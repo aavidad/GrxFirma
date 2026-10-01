@@ -1,0 +1,144 @@
+.TH GRXFIRMA-PROTOCOLOS-WEB 7 "20 marzo 2026" "GrxFirma" "Protocolos web e integración"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-protocolos-web \- protocolos y vías de integración que una web puede usar con GrxFirma
+.SH DESCRIPCIÓN
+Esta página resume las principales formas en que una web, sede electrónica o
+portal puede pedir a \fBGrxFirma\fR una identificación, una firma o una operación
+relacionada.
+.PP
+No todos los portales usan el mismo mecanismo. Algunos son modernos y otros arrastran
+compatibilidad histórica.
+.SH PROTOCOLOS O VÍAS HABITUALES
+.TP
+.B 1. Extensión de navegador + Native Messaging
+La web habla con una extensión. La extensión habla con el \fInative host\fR
+local mediante \fBNative Messaging\fR.
+.PP
+Es la vía típica cuando el navegador necesita:
+.IP \(bu 2
+detectar la instalación local;
+.IP \(bu 2
+listar certificados;
+.IP \(bu 2
+lanzar una firma o identificación sin salir del navegador.
+.TP
+.B 2. Protocolo afirma://
+La web o portal pide al sistema operativo abrir una URL con el esquema
+\fBafirma://\fR.
+.PP
+El sistema operativo la entrega al manejador registrado, normalmente:
+.PP
+.RS
+\fBgrxfirma\-afirmauri\fR
+.RE
+.PP
+Es habitual en integraciones legacy o en sedes que dependen del comportamiento
+histórico de GrxFirma.
+.TP
+.B 3. REST local en loopback
+La integración usa un servicio HTTPS local expuesto por la aplicación en
+\fB127.0.0.1\fR.
+.PP
+Es útil para clientes técnicos o integraciones controladas, más que para portales
+genéricos de navegador.
+.TP
+.B 4. WebSocket local seguro
+Algunas integraciones históricas usan un WebSocket local con TLS para coordinar
+operaciones entre la web y la aplicación.
+.PP
+En \fBGrxFirma\fR esta capacidad vive en el borde legacy y solo debe activarse
+cuando el flujo realmente lo necesita.
+.PP
+El WebSocket legacy rechaza por defecto handshakes sin cabecera \fBOrigin\fR o
+con \fBOrigin: null\fR. Para integraciones V1 estrictamente locales que no
+envían esa cabecera, un administrador puede activar la política de máquina
+\fBpermitir_origen_vacio\fR en \fB/etc/grxfirma/policy.json\fR.
+.TP
+.B 5. Lote o firma trifásica remota
+Más que un transporte, es un patrón de trabajo remoto:
+.IP \(bu 2
+retrieve;
+.IP \(bu 2
+wait;
+.IP \(bu 2
+presign;
+.IP \(bu 2
+firma local;
+.IP \(bu 2
+postsign;
+.IP \(bu 2
+upload.
+.PP
+Puede viajar por `afirma://`, por extensión o por otros mecanismos, pero conceptualmente
+es la secuencia remota que muchos portales esperan.
+.SH QUÉ PUEDE PEDIR UNA WEB
+Según el protocolo, una web puede pedir:
+.IP \(bu 2
+identificación con certificado;
+.IP \(bu 2
+listado o selección de certificados;
+.IP \(bu 2
+firma de documento;
+.IP \(bu 2
+firma en lote;
+.IP \(bu 2
+verificación o comprobaciones auxiliares;
+.IP \(bu 2
+comprobación de presencia de la aplicación local.
+.SH CUÁNDO SE USA CADA UNO
+.TP
+.B Portal moderno con extensión
+Suele preferir extensión + native host.
+.TP
+.B Sede legacy
+Suele depender de \fBafirma://\fR y compatibilidad histórica.
+.TP
+.B Integración técnica local
+Puede preferir REST local o CLI.
+.TP
+.B Compatibilidad específica heredada
+Puede requerir WebSocket local seguro o flujos batch antiguos.
+.SH QUÉ NO DEBERÍA HACER UNA WEB DIRECTAMENTE
+Por seguridad, una web no debería acceder por sí sola a:
+.IP \(bu 2
+claves privadas;
+.IP \(bu 2
+almacenes locales del sistema;
+.IP \(bu 2
+ficheros privados del usuario;
+.IP \(bu 2
+ni procesos locales arbitrarios.
+.PP
+Por eso existen estas capas intermedias: extensión, bridge, native host, manejador
+de protocolo o servicio local controlado.
+.SH CONSEJOS PRÁCTICOS
+.IP \(bu 2
+Si el portal no detecta la aplicación, revisar primero extensión, manifests y native host.
+.IP \(bu 2
+Si el portal abre la app pero no termina, revisar el flujo \fBafirma://\fR y los logs del handler.
+.IP \(bu 2
+Si la identificación funciona pero la firma falla, mirar el flujo de lote o trifase.
+.IP \(bu 2
+Si el portal depende de comportamiento antiguo, asumir que la compatibilidad vive en los adaptadores legacy.
+.SH REGISTROS ÚTILES
+.TP
+.I /tmp/grxfirma-handler.log
+Útil para invocaciones \fBafirma://\fR.
+.TP
+.I /tmp/grxfirma-web-compat.log
+Útil para compatibilidad web, retrieve, wait, presign, postsign y upload.
+.TP
+.I /tmp/grxfirma-debug.log
+Útil para depuración general del proceso.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-integracion-web (7),
+.BR grxfirma-servicios-locales (7),
+.BR grxfirma-puente-navegador (7),
+.BR grxfirma-lotes (7),
+.BR grxfirma-portales (7)

@@ -1,0 +1,131 @@
+.TH GRXFIRMA-LOTES 7 "20 marzo 2026" "GrxFirma" "Lotes y firma trifásica"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-lotes \- firma por lotes, prefirma, postfirma y flujos remotos en GrxFirma
+.SH DESCRIPCIÓN
+Esta página explica cómo entiende \fBGrxFirma\fR la firma por lotes y los
+flujos trifásicos usados por muchos portales y sedes electrónicas.
+.PP
+La idea general es simple:
+.IP \(bu 2
+el portal prepara trabajo remoto;
+.IP \(bu 2
+la aplicación local realiza la parte criptográfica privada;
+.IP \(bu 2
+y el resultado final vuelve al servidor remoto.
+.SH QUÉ ES UN LOTE
+Un lote es un conjunto de una o varias operaciones de firma descritas en una
+estructura común.
+.PP
+En un caso sencillo puede haber una sola firma. En otros casos puede haber varias
+entradas, cada una con su identificador, formato, operación y parámetros.
+.SH QUÉ ES LA FIRMA TRIFÁSICA
+La firma trifásica divide el proceso en tres partes:
+.TP
+.B 1. Prefirma
+El servidor remoto prepara los datos que deben firmarse localmente. Esa fase
+no usa todavía la clave privada del usuario.
+.TP
+.B 2. Firma local
+La aplicación usa el certificado y la clave privada del usuario para firmar
+el material de prefirma.
+.TP
+.B 3. Postfirma
+El servidor remoto combina la firma local con el resto de la estructura y genera
+el resultado final o el estado definitivo del lote.
+.PP
+Este esquema existe para que la clave privada nunca salga del equipo local.
+.SH QUÉ HACE GRXFIRMA
+En flujos remotos legacy, \fBGrxFirma\fR puede:
+.IP \(bu 2
+recuperar el trabajo desde un servicio remoto;
+.IP \(bu 2
+esperar o sincronizar con el servidor intermedio;
+.IP \(bu 2
+pedir prefirma;
+.IP \(bu 2
+firmar localmente;
+.IP \(bu 2
+pedir postfirma;
+.IP \(bu 2
+y subir el resultado final.
+.PP
+Todo eso vive en adaptadores de borde. El núcleo no depende del protocolo concreto
+del portal.
+.SH LOTE LOCAL FRENTE A LOTE REMOTO
+.TP
+.B Lote local
+La aplicación recibe directamente el manifiesto o la definición del lote en local.
+.TP
+.B Lote remoto
+La aplicación recibe una referencia, recupera el lote desde el servidor y continúa
+el flujo con prefirma y postfirma remotas.
+.SH FLUJOS TÍPICOS
+.SS Lote local por CLI
+Ejemplo:
+.PP
+.RS
+\fBgrxfirma \-contenedor\-p12 cert.p12 \-lote manifiesto.json\fR
+.RE
+.SS Portal remoto con afirma://
+El portal abre una URL \fBafirma://...\fR y la aplicación local ejecuta el flujo
+trifásico remoto hasta subir el resultado.
+.SS Navegador con extensión y host nativo
+La extensión y el native host pueden hacer de puente hacia el mismo tipo de
+operación remota.
+.SH CAMPOS IMPORTANTES EN COMPATIBILIDAD LEGACY
+En flujos históricos suelen ser sensibles:
+.IP \(bu 2
+los identificadores de firma;
+.IP \(bu 2
+el contenido exacto de \fBtridata\fR;
+.IP \(bu 2
+la codificación de parámetros;
+.IP \(bu 2
+los certificados enviados;
+.IP \(bu 2
+y el orden real de retrieve, wait, presign, postsign y upload.
+.PP
+Una web puede parecer "casi compatible" y aun así fallar si uno de esos puntos
+no coincide con lo esperado por el portal.
+.SH QUÉ MIRAR SI UN LOTE FALLA
+.IP "1." 4
+Confirmar que el lote se ha recuperado correctamente.
+.IP "2." 4
+Confirmar que la prefirma devuelve entradas válidas.
+.IP "3." 4
+Confirmar que la firma local se hace con el certificado correcto.
+.IP "4." 4
+Confirmar que la postfirma usa los mismos identificadores esperados.
+.IP "5." 4
+Confirmar que el upload final devuelve éxito real.
+.SH REGISTROS ÚTILES
+.TP
+.I /tmp/grxfirma-web-compat.log
+Registro principal para retrieve, wait, presign, postsign, upload y compatibilidad
+legacy.
+.TP
+.I /tmp/grxfirma-handler.log
+Útil para ver si el manejador protocolario arranca, termina o falla.
+.TP
+.I /tmp/grxfirma-debug.log
+Depuración general del proceso cuando se activa el modo debug.
+.SH CONSEJOS PRÁCTICOS
+.IP \(bu 2
+Si una identificación funciona pero la firma de documento no, el problema suele estar
+en el lote remoto o en la trifase, no en la detección básica del certificado.
+.IP \(bu 2
+Si el servidor responde \fB200 OK\fR pero la web no cierra, puede seguir habiendo
+una incompatibilidad en el contenido del resultado, no en el transporte.
+.IP \(bu 2
+Si el lote depende de un documento original o de datos detached, revisar también
+la operación de verificación posterior.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-portales (7),
+.BR grxfirma-integracion-web (7),
+.BR grxfirma-diagnostico (7)

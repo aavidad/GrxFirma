@@ -1,0 +1,41 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+title = "GrxFirma secret scanning policy"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "WebSocket RFC 6455 nonces used only in protocol tests"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^internal/adapters/inbound/legacy/websocket/adapter_test\.go$''']
+regexes = ['''Sec-WebSocket-Key:''']
+
+[[allowlists]]
+description = "CLI option names that contain the word secret but no credential"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^internal/adapters/inbound/common/cli/adapter\.go$''']
+regexes = ['''fs\.StringVar\(&cfg\.secretProteccionB64, "(?:protection-secret-b64|clave-proteccion-b64)", "", ""\)''']
+
+[[allowlists]]
+description = "Literal documentation placeholder in the local REST curl example"
+targetRules = ["curl-auth-header"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^cmd/grxfirma/main\.go$''']
+regexes = ['''Authorization: Bearer valor-prueba''']
+
+[[allowlists]]
+description = "Synthetic CMS suffixes listed consecutively in an IPC path test"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "match"
+paths = ['''^internal/adapters/inbound/desktop/ipc/handler_test\.go$''']
+regexes = ['''secreto\.txt\.encrypted\.p7m",\s*"secreto\.txt\.signedenveloped\.p7m''']

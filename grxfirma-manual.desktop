@@ -1,0 +1,21 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+[Desktop Entry]
+Name=GrxFirma
+Name[es]=GrxFirma
+GenericName=Aplicacion de firma electronica
+GenericName[es]=Aplicacion de firma electronica
+Comment=Firma y verifica documentos locales con GrxFirma
+Comment[es]=Firma y verifica documentos locales con GrxFirma
+Exec=grxfirma-desktop
+Terminal=false
+Type=Application
+Icon=grxfirma
+Categories=Office;Security;
+Keywords=firma;electronica;certificado;digital;manual;desktop;
+StartupNotify=false
+# X11: clase de ventana de la interfaz Qt, para agrupar la ventana con este lanzador.
+StartupWMClass=grxfirma-gui-qml

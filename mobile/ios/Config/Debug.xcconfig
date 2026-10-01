@@ -1,0 +1,15 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// Autoría: Alberto Avidad Fernández
+// Licencia: EUPL 1.2 o posterior
+// SPDX-License-Identifier: EUPL-1.2
+
+#include "Base.xcconfig"
+#include? "Signing.local.xcconfig"
+
+GRXFIRMA_CORE_MODE = verification
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) DEBUG
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) DEBUG=1
+SWIFT_OPTIMIZATION_LEVEL = -Onone
+ENABLE_TESTABILITY = YES
+ONLY_ACTIVE_ARCH = YES
+DEBUG_INFORMATION_FORMAT = dwarf

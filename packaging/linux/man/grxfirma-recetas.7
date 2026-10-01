@@ -1,0 +1,110 @@
+.TH GRXFIRMA-RECETAS 7 "20 marzo 2026" "GrxFirma" "Recetas de uso"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-recetas \- recetas prácticas de uso de GrxFirma
+.SH DESCRIPCIÓN
+Esta página reúne ejemplos cotidianos de uso de \fBGrxFirma\fR en consola y en
+entornos de escritorio Linux.
+.SH LISTAR CERTIFICADOS
+.PP
+.RS
+\fBgrxfirma -modo-cli -listar-certificados -salida-json\fR
+.RE
+.PP
+Útil para ver qué certificados tiene disponibles la aplicación y cómo los identifica.
+.SH COMPROBAR SI LOS CERTIFICADOS PUEDEN FIRMAR
+.PP
+.RS
+\fBgrxfirma -modo-cli -comprobar-certificados -salida-json\fR
+.RE
+.PP
+Sirve para distinguir entre certificados visibles y certificados realmente utilizables.
+.SH FIRMAR UN DOCUMENTO
+.PP
+.RS
+\fBgrxfirma -modo-cli -firmar -entrada contrato.pdf -indice-certificado 0 -salida contrato_firmado.pdf\fR
+.RE
+.PP
+Si el documento es PDF, normalmente lo natural será PAdES.
+.SH FIRMAR EN FORMATO EXPLÍCITO
+.PP
+.RS
+\fBgrxfirma -modo-cli -firmar -entrada datos.bin -formato cades -indice-certificado 0 -salida datos.csig\fR
+.RE
+.SH VERIFICAR UNA FIRMA
+.PP
+.RS
+\fBgrxfirma -modo-cli -verificar -entrada contrato_firmado.pdf -salida-json\fR
+.RE
+.SH VERIFICAR UNA FIRMA DESACOPLADA
+.PP
+.RS
+\fBgrxfirma -modo-cli -verificar -entrada firma.csig -documento-original contrato.pdf -salida-json\fR
+.RE
+.PP
+Si no aportas el documento original, una firma detached puede no poder evaluarse bien.
+.SH IMPORTAR UN PKCS#12 AL PERFIL
+.PP
+.RS
+\fBgrxfirma -importar-p12 /ruta/certificado.p12 -contrasena-p12-stdin -salida-json\fR
+.RE
+.PP
+Esto valida el contenedor y lo copia al directorio local de P12 del perfil.
+.SH TRABAJAR CON DOMINIOS DE CONFIANZA
+.TP
+Listar dominios
+\fBgrxfirma -listar-dominios -salida-json\fR
+.TP
+Añadir dominio
+\fBgrxfirma -añadir-dominio -dominio https://sede.ejemplo.gob.es\fR
+.TP
+Exportar dominios
+\fBgrxfirma -exportar-dominios -fichero-dominios /tmp/dominios.json\fR
+.TP
+Limpiar dominios
+\fBgrxfirma -limpiar-dominios\fR
+.PP
+Si tras limpiar el círculo queda vacío y estás en modo interactivo, la CLI puede ofrecer
+reimportar la semilla pública inicial.
+.SH USAR TLS LOCAL
+.TP
+Ver estado del almacén TLS
+\fBgrxfirma -estado-almacen-tls\fR
+.TP
+Generar certificados TLS locales
+\fBgrxfirma -generar-certificados-tls\fR
+.TP
+Instalar confianza local
+\fBgrxfirma -instalar-confianza-tls\fR
+.SH ARRANCAR LA APP DESKTOP MANUAL
+.PP
+.RS
+\fBgrxfirma-desktop\fR
+.RE
+.PP
+La aplicación manual sirve para abrir, firmar o verificar documentos sin portal web.
+.SH ARRANCAR EL FRONTEND QT/QML OPCIONAL
+.PP
+.RS
+\fBmake build-qt-qml\fR
+.br
+\fBgrxfirma -qt\fR
+.RE
+.PP
+Si ya lo has compilado, \fBmake install-user\fR también puede copiar \fBgrxfirma-gui-qml\fR
+al perfil del usuario.
+.SH ARRANCAR EL HANDLER AFIRMA:// EN DEPURACIÓN
+.PP
+.RS
+\fBGRXFIRMA_DEBUG=1 GRXFIRMA_LOG_FILE=/tmp/grxfirma-debug.log GRXFIRMA_PROTOCOL_UI=1 grxfirma-afirmauri 'afirma://...'\fR
+.RE
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-verificacion (7),
+.BR grxfirma-confianza (7),
+.BR grxfirma-tls-local (7),
+.BR grxfirma-frontend-qt (7)

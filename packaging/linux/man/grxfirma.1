@@ -1,0 +1,540 @@
+.TH GRXFIRMA 1 "26 julio 2026" "GrxFirma" "Manual de usuario"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma \- firma electrónica de escritorio, CLI y servicios locales para Linux
+.SH SINOPSIS
+.B grxfirma
+[\fIopciones generales\fR]
+.br
+.B grxfirma
+\-modo\-cli [\fIoperación\fR] [\fIopciones CLI\fR]
+.br
+.B grxfirma
+\-servidor\-rest [\fIopciones REST\fR]
+.br
+.B grxfirma\-desktop
+.br
+.B grxfirma
+\-desktop \-frontend qt
+.br
+.B grxfirma\-afirmauri
+\fIafirma://...\fR
+.SH DESCRIPCIÓN
+\fBgrxfirma\fR es el binario principal de GrxFirma. En Linux puede trabajar en
+varios modos:
+.IP \(bu 2
+\fBCLI\fR, para automatización, firma por lotes, verificación y gestión del círculo de confianza.
+.IP \(bu 2
+\fBREST local\fR, para exponer una API HTTPS en loopback.
+.IP \(bu 2
+\fBDesktop manual\fR, mediante \fBgrxfirma-desktop\fR, para firmar o verificar desde interfaz gráfica.
+.IP \(bu 2
+\fBProtocolo afirma://\fR, mediante \fBgrxfirma-afirmauri\fR, para integración con sedes y portales.
+.PP
+La arquitectura de V2 mantiene el núcleo de firma separado de los conectores externos.
+Las compatibilidades con portales legacy, el manejo de \fBafirma://\fR, la confianza
+de dominios y la interacción con NSS o el sistema operativo viven en adaptadores del borde.
+.PP
+GrxFirma es \fBsoftware libre\fR y se distribuye bajo licencia \fBEUPL 1.2 o posterior\fR.
+La autoría del proyecto corresponde a \fBAlberto Avidad Fernandez\fR
+\fR(Oficina de Software Libre \- Diputación de Granada)\fR.
+.SH MODOS DE USO
+.SS CLI
+El modo CLI es el más útil para terminal, scripts, automatización, CI o integración local.
+.PP
+Puede arrancarse de forma explícita con:
+.PP
+.RS
+\fBgrxfirma \-modo\-cli \-ayuda\fR
+.RE
+.PP
+o directamente usando una operación o una bandera reconocida de la CLI.
+.SS REST local
+El modo REST expone un servicio HTTPS local, orientado a integraciones técnicas.
+.PP
+.RS
+\fBgrxfirma \-servidor\-rest \-direccion\-rest 127.0.0.1:63118\fR
+.br
+\fBgrxfirma \-servidor\-rest \-huellas\-cert\-rest <sha256> \-ttl\-sesion\-rest 10m\fR
+.RE
+.PP
+El servicio publica su especificación OpenAPI en \fI/openapi.json\fR.
+.SS Desktop manual
+La aplicación gráfica manual se ejecuta con:
+.PP
+.RS
+\fBgrxfirma\-desktop\fR
+.RE
+.PP
+Sirve para abrir documentos, elegir certificado, firmar y verificar sin depender de un portal web.
+.PP
+Como alternativa opcional, \fBgrxfirma\fR también puede delegar en el frontend
+\fBQt/QML\fR importado desde la V1:
+.PP
+.RS
+\fBgrxfirma \-desktop \-frontend qt\fR
+.br
+\fBgrxfirma \-qt\fR
+.RE
+.PP
+Ese frontend requiere haber sido compilado antes con:
+.PP
+.RS
+\fBmake build\-qt\-qml\fR
+.RE
+.PP
+Si el binario Qt ya existe, \fBmake install-user\fR o \fBmake install\fR también
+lo copiarán junto al resto de binarios.
+.SS Protocolo afirma://
+El manejador de \fBafirma://\fR se ejecuta con:
+.PP
+.RS
+\fBgrxfirma\-afirmauri 'afirma://...'\fR
+.RE
+.PP
+En una instalación de usuario Linux normalmente queda registrado a través del fichero
+\fI.desktop\fR y no se lanza manualmente salvo para depuración.
+.SS Puente de navegadores
+El puente de navegadores es la pieza que conecta el navegador con la aplicación local.
+.PP
+En \fBGrxFirma\fR suele materializarse mediante \fBNative Messaging\fR:
+.IP \(bu 2
+la web habla con una extensión del navegador;
+.IP \(bu 2
+la extensión habla con el puente o \fInative host\fR;
+.IP \(bu 2
+y ese host delega en los binarios locales de GrxFirma.
+.PP
+Esto existe por seguridad. El navegador no debería acceder libremente a certificados,
+claves privadas, almacenes del sistema o ficheros locales. El puente permite una
+comunicación controlada entre el navegador y la aplicación de firma instalada.
+.PP
+En la práctica, el puente sirve para:
+.IP \(bu 2
+detectar que GrxFirma está instalada;
+.IP \(bu 2
+listar certificados disponibles;
+.IP \(bu 2
+pedir selección de certificado;
+.IP \(bu 2
+lanzar una operación de firma o verificación;
+.IP \(bu 2
+y devolver el resultado al navegador o al portal web.
+.PP
+Sin ese puente, una web no debería poder interactuar directamente con el material
+criptográfico local del usuario.
+.SH OPCIONES GENERALES
+.TP
+.B \-ayuda, \-a, \-h
+Muestra la ayuda general.
+.TP
+.B \-modo\-cli
+Fuerza el modo línea de comandos.
+.TP
+.B \-desktop
+Fuerza la ruta desktop del binario principal.
+.TP
+.B \-frontend \fIfyne|qt\fR
+Selecciona el frontend desktop cuando se usa \fB\-desktop\fR.
+.TP
+.B \-qt
+Alias corto de \fB\-desktop \-frontend qt\fR.
+.TP
+.B \-servidor\-rest
+Activa el servidor REST local.
+.TP
+.B \-direccion\-rest \fIdirección\fR
+Dirección de escucha del servidor REST. Valor habitual: \fB127.0.0.1:63118\fR.
+.TP
+.B GRXFIRMA_REST_TOKEN
+Compatibilidad para automatización con autenticación Bearer. Si se omite, el
+servidor local genera un token efímero y muestra únicamente la ruta de una
+configuración privada para \fBcurl \-\-config\fR. El fichero tiene modo 0600,
+se elimina al cerrar el servidor y evita copiar el Bearer a argv. El token no
+se admite como valor de argv.
+.TP
+.B \-huellas\-cert\-rest \fIsha256,sha256\fR
+Permite autenticación REST por certificado solo para las huellas SHA\-256 indicadas.
+.TP
+.B \-ttl\-sesion\-rest \fIduración\fR
+Define la duración de la sesión emitida tras \fI/auth/verify\fR. El valor habitual es \fB10m\fR.
+.TP
+.B \-version
+Muestra la versión del binario.
+.TP
+.B \-ayuda\-detallada
+Muestra una ayuda ampliada del binario principal.
+.SH MODO CLI
+.SS Operaciones principales
+.TP
+.B \-operacion firmar
+Firma un documento con el certificado seleccionado.
+.TP
+.B \-operacion cofirmar
+Añade una firma adicional sobre un documento ya firmado.
+.TP
+.B \-operacion contrafirmar
+Contrafirma una firma existente.
+.TP
+.B \-operacion verificar
+Verifica una firma. Si la firma es desacoplada, puede requerir el documento original.
+.TP
+.B \-operacion proteger
+Protege o cifra un documento usando destinatarios locales y el perfil indicado.
+.TP
+.B \-operacion proteger\-firmando
+Protege el documento para uno o varios destinatarios y firma el contenedor CMS
+\fBSignedAndEnvelopedData\fR con el certificado seleccionado.
+.TP
+.B \-operacion desproteger
+Desprotege o descifra un documento \fB.afp\fR previamente protegido.
+.TP
+.B \-operacion crear\-hash
+Calcula la huella de un fichero o genera un manifiesto de huellas de directorio.
+.TP
+.B \-operacion comprobar\-hash
+Compara un fichero con una huella o valida un directorio contra su manifiesto.
+.TP
+.B \-operacion listar\-destinatarios\-proteccion
+Lista destinatarios locales disponibles para protección/cifrado en perfiles \fBcompat\fR y \fBalto\fR.
+.TP
+.B \-operacion exportar\-destinatario\-proteccion
+Exporta el material público de un destinatario fuerte para compartirlo con otro equipo.
+.TP
+.B \-operacion importar\-destinatario\-proteccion
+Importa el material público de un destinatario fuerte previamente exportado.
+.TP
+.B \-operacion informe\-diagnostico
+Genera un resumen técnico del estado local: certificados, posibilidad de firma,
+confianza TLS y dominios confiados.
+.SS Selección de certificado
+.TP
+.B \-id\-certificado \fIid\fR
+Usa un certificado concreto por su identificador interno.
+.TP
+.B \-indice\-certificado \fIn\fR
+Usa el certificado según el índice mostrado por \fB\-listar\-certificados\fR.
+.TP
+.B \-certificado\-contiene \fItexto\fR
+Selecciona el primer certificado cuyo titular, alias o serie contenga ese texto.
+.SS Entrada y salida
+.TP
+.B \-entrada, \-in, \-e \fIfichero\fR
+Documento de entrada.
+.TP
+.B \-salida, \-out, \-s \fIfichero\fR
+Ruta de salida para la firma.
+.TP
+.B \-documento\-original \fIfichero\fR
+Documento original para firmas detached al verificar.
+.TP
+.B \-no\-guardar
+No guarda el resultado en disco.
+.TP
+.B \-imprimir\-firma
+Imprime la firma resultante en Base64.
+.TP
+.B \-salida\-json, \-json, \-j
+Devuelve la salida estructurada en JSON, en castellano.
+.SS Formato y compatibilidad
+.TP
+.B \-formato \fIauto|pades|cades|xades|xmldsig|odf|ooxml|facturae|asic\-xades\fR
+Fuerza el formato de trabajo.
+.PP
+\fBXMLdSig\fR genera una firma XML separada y solo admite firma;
+\fBODF\fR y \fBOOXML\fR conservan el contenedor de oficina y admiten firma
+y cofirma; \fBFacturaE\fR inserta una firma XAdES enveloped en una factura
+3.1/3.2 todavía no firmada; \fBASiC\-XAdES\fR crea un contenedor ASiC\-S
+monodato y solo admite firma. Ninguno de estos perfiles ofrece contrafirma.
+.PP
+Para documentos \fB.xml\fR, \fBauto\fR elige XAdES. Indique
+\fB\-formato xmldsig\fR o \fB\-formato facturae\fR cuando corresponda.
+ODF, OOXML y los contenedores \fB.asics\fR sí se infieren por su extensión.
+.PP
+.RS
+\fBgrxfirma \-modo\-cli \-operacion firmar \-entrada factura.xml \-formato facturae \-salida factura_firmada.xml\fR
+.br
+\fBgrxfirma \-modo\-cli \-operacion firmar \-entrada expediente.docx \-formato ooxml \-salida expediente_firmado.docx\fR
+.RE
+.TP
+.B \-permitir\-pdf\-invalido
+Opción legacy conservada para detectar configuraciones antiguas. No habilita
+la firma de PDF dañados: si se activa, la operación PAdES se rechaza para
+preservar el documento original.
+.TP
+.B \-compatibilidad\-estricta
+Aplica defaults compatibles con AutoFirma Java o flujos legacy cuando procede.
+.TP
+.B \-sobrescribir \fIerror|renombrar|forzar\fR
+Define qué hacer si el fichero de salida ya existe.
+.SS Protección local de ficheros
+.TP
+.B \-perfil\-proteccion \fIcompat|alto\fR
+Selecciona el perfil de protección/cifrado. \fBcompat\fR usa
+\fBRSA\-OAEP\-SHA256 + AES\-256\-GCM\fR sobre certificados aptos para cifrado.
+\fBalto\fR usa \fBML\-KEM\-768 + X25519 + AES\-256\-GCM\fR y mantiene una identidad
+fuerte local del usuario.
+.TP
+.B \-destinatario \fIid\fR
+Añade un destinatario de protección. Puede repetirse para varios destinatarios.
+.TP
+.B \-contenedor\-proteccion \fIjson|cms|cms\-encrypted\fR
+Selecciona el contenedor de protección. \fBjson\fR genera el sobre nativo
+\fB.afp\fR, \fBcms\fR genera \fBEnvelopedData\fR y \fBcms\-encrypted\fR
+genera \fBEncryptedData\fR.
+.TP
+.B \-clave\-proteccion\-stdin
+Lee sin eco desde stdin una clave simétrica Base64 de 32 bytes para
+\fBcms\-encrypted\fR. No se persiste y debe suministrarse también al desproteger.
+.TP
+.B \-operacion listar\-destinatarios\-proteccion
+Muestra el catálogo combinado de destinatarios \fBcompat\fR y \fBalto\fR.
+.TP
+.B \-operacion exportar\-destinatario\-proteccion \-destinatario \fIid\fR [\-salida \fIfichero\fR]
+Exporta un destinatario fuerte a un fichero \fB.afpr.json\fR.
+.TP
+.B \-operacion importar\-destinatario\-proteccion \-entrada \fIfichero\fR
+Importa un destinatario fuerte exportado por otra instalación.
+.SS Utilidades de hash
+.TP
+.B \-algoritmo\-hash \fIsha1|sha256|sha384|sha512\fR
+Algoritmo de huella. El valor por defecto es \fBSHA\-256\fR; SHA\-1 requiere
+la habilitación legacy explícita documentada por el proyecto.
+.TP
+.B \-formato\-hash \fIhex|base64|bin|xml|txt|csv\fR
+Formato de salida de la huella o del manifiesto de directorio.
+.TP
+.B \-fichero\-hash \fIfichero\fR
+Huella o manifiesto que se comprobará con \fB\-operacion comprobar\-hash\fR.
+.TP
+.B \-recursive, \-recursivo, \-r
+Incluye subdirectorios al crear o comprobar manifiestos de directorio.
+.SS Sello visible PAdES
+.TP
+.B \-sello\-visible
+Activa el sello visible en PAdES.
+.TP
+.B \-sello\-pagina \fIn\fR
+Página donde colocar el sello cuando se usa una sola página.
+.TP
+.B \-sello\-paginas \fIselección\fR
+Selección avanzada de páginas para el sello visible. Acepta \fBall\fR, una página
+simple o rangos como \fB1,3\-5\fR. Si se informa, tiene prioridad sobre
+\fB\-sello\-pagina\fR.
+.TP
+.B \-sello\-x, \-sello\-y, \-sello\-ancho, \-sello\-alto
+Coordenadas normalizadas del sello visible.
+.TP
+.B \-disposicion\-sello \fImanual|footer\fR
+Layout del sello visible.
+.TP
+.B \-margen\-inferior\-sello \fIvalor\fR
+Margen inferior cuando se usa el layout \fBfooter\fR.
+.TP
+.B \-sello\-qr \fItexto|URL\fR
+Inserta un QR opcional en el sello visible cuando no se usa una imagen
+personalizada.
+.TP
+.B \-motivo\-firma, \-ubicacion\-firma, \-contacto\-firma \fItexto\fR
+Metadatos PAdES opcionales que se incorporan a la firma.
+.SS Certificados
+.TP
+.B \-listar\-certificados, \-ll
+Lista certificados disponibles.
+.TP
+.B \-comprobar\-certificados, \-cc
+Comprueba si los certificados pueden firmar realmente.
+.SS Lote
+.TP
+.B \-lote \fImanifiesto.json\fR
+Procesa una firma en lote definida en un manifiesto JSON.
+.SS Dominios de confianza
+GrxFirma mantiene un círculo de confianza de dominios para operaciones remotas.
+.PP
+En el primer arranque se siembran por defecto dominios públicos habituales
+(Gobierno de España, Junta de Andalucía, otras administraciones públicas y loopback local).
+Esa semilla es \fBeditable\fR: puede exportarse, borrarse, reimportarse o ampliarse.
+.PP
+La idea es sencilla:
+.IP \(bu 2
+si un dominio está en el círculo de confianza, se considera apto para flujos remotos;
+.IP \(bu 2
+si no lo está, la aplicación no debería confiar en él por defecto;
+.IP \(bu 2
+añadir un dominio es ampliar ese círculo de confianza;
+.IP \(bu 2
+limpiar o borrar dominios permite vaciarlo por completo.
+.TP
+.B \-operacion listar\-dominios
+Lista el círculo de confianza actual.
+.TP
+.B \-operacion añadir\-dominio \-dominio \fIorigen\fR
+Añade un dominio u origen confiado.
+.TP
+.B \-operacion eliminar\-dominio \-dominio \fIorigen\fR
+Elimina un dominio concreto.
+.TP
+.B \-operacion importar\-dominios \-fichero\-dominios \fIruta\fR
+Importa una lista desde texto o JSON.
+.TP
+.B \-operacion exportar\-dominios \-fichero\-dominios \fIruta\fR
+Exporta el círculo de confianza.
+.TP
+.B \-operacion limpiar\-dominios
+Elimina todos los dominios permitidos del círculo de confianza.
+.TP
+.B \-importar\-p12 \fIruta\fR [\-contrasena\-p12\-stdin]
+Valida un contenedor PKCS#12 y lo copia al directorio local de certificados P12 del perfil.
+.TP
+.B \-operacion listar\-autoseleccion\-cert
+Lista la autoselección de certificado guardada en persistencia y sesión.
+.TP
+.B \-operacion eliminar\-autoseleccion\-cert \-dominio \fIorigen\fR
+Elimina la autoselección guardada para un origen concreto.
+.TP
+.B \-operacion resetear\-autoseleccion\-cert
+Pide confirmación y elimina toda la autoselección guardada.
+.TP
+.B \-operacion exportar\-autoseleccion\-cert \-fichero\-autoseleccion \fIruta\fR
+Exporta a JSON la autoselección persistente y la de sesión.
+.TP
+.B \-operacion importar\-autoseleccion\-cert \-fichero\-autoseleccion \fIruta\fR
+Importa desde JSON y reemplaza la autoselección persistente y la de sesión.
+.TP
+.B \-operacion limpiar\-autoseleccion\-cert
+Elimina toda la autoselección guardada sin pedir confirmación.
+.PP
+Si el círculo de confianza queda vacío y la CLI se ejecuta en modo interactivo,
+GrxFirma puede preguntar si se desea reimportar la semilla pública inicial.
+.SS TLS local
+.TP
+.B \-operacion estado\-almacen\-tls
+Muestra el estado del almacén TLS local.
+.TP
+.B \-operacion limpiar\-almacen\-tls
+Limpia artefactos TLS locales.
+.TP
+.B \-operacion estado\-confianza\-tls
+Resume el estado de confianza TLS local.
+.TP
+.B \-operacion generar\-certificados\-tls
+Genera certificados TLS locales.
+.TP
+.B \-operacion instalar\-confianza\-tls
+Instala la confianza TLS local en la plataforma cuando está soportado.
+.SH EJEMPLOS
+.TP
+Listar certificados
+\fBgrxfirma \-modo\-cli \-listar\-certificados \-salida\-json\fR
+.TP
+Firmar un documento usando el segundo certificado
+\fBgrxfirma \-modo\-cli \-firmar \-entrada contrato.pdf \-indice\-certificado 1 \-salida contrato_firmado.pdf\fR
+.TP
+Verificar una firma detached
+\fBgrxfirma \-modo\-cli \-verificar \-entrada firma.csig \-documento\-original contrato.pdf \-salida\-json\fR
+.TP
+Añadir un dominio confiado
+\fBgrxfirma \-modo\-cli \-añadir\-dominio \-dominio https://sede.ejemplo.gob.es\fR
+.TP
+Exportar el círculo de confianza
+\fBgrxfirma \-modo\-cli \-exportar\-dominios \-fichero\-dominios /tmp/dominios.json\fR
+.TP
+Exportar la autoselección de certificados
+\fBgrxfirma \-modo\-cli \-exportar\-autoseleccion\-cert \-fichero\-autoseleccion /tmp/autoseleccion.json\fR
+.TP
+Importar la autoselección de certificados
+\fBgrxfirma \-modo\-cli \-importar\-autoseleccion\-cert \-fichero\-autoseleccion /tmp/autoseleccion.json\fR
+.TP
+Borrar todos los dominios confiados
+\fBgrxfirma \-modo\-cli \-limpiar\-dominios\fR
+.TP
+Importar un certificado PKCS#12 al perfil local
+\fBgrxfirma \-importar\-p12 /ruta/certificado.p12 \-contrasena\-p12\-stdin\fR
+.TP
+Lanzar el servidor REST local
+\fBgrxfirma \-servidor\-rest \-direccion\-rest 127.0.0.1:63118\fR
+.TP
+Abrir la app manual desktop
+\fBgrxfirma\-desktop\fR
+.SH FICHEROS
+.TP
+.I ~/.config/grxfirma/config.json
+Configuración local del usuario.
+.TP
+.I ~/.config/grxfirma/trusted-domains.json
+Decisiones persistidas de confianza de dominios.
+.TP
+.I ~/.config/grxfirma/preferred-certificates.json
+Autoselección persistente de certificados por origen.
+.TP
+.I ~/.config/grxfirma/tls/
+Material TLS local generado por la aplicación.
+.TP
+.I ~/.local/share/applications/grxfirma.desktop
+Fichero de integración con \fBafirma://\fR para el usuario.
+.SH SALIDA Y DIAGNÓSTICO
+En modo CLI, la salida visible está orientada a castellano. Si se usa
+\fB\-salida\-json\fR, las claves visibles relevantes también se devuelven en castellano.
+.PP
+Para depurar integraciones reales con portales web, suelen ser útiles:
+.IP \(bu 2
+\fI/tmp/grxfirma-handler.log\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-web-compat.log\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-debug.log\fR
+.SH SEGURIDAD
+.PP
+El círculo de confianza no es decorativo: sirve para no firmar alegremente en
+orígenes remotos no confiables o potencialmente maliciosos.
+.PP
+La semilla pública inicial es editable, pero cualquier ampliación del perímetro
+de confianza debe hacerse con criterio.
+.SH AUTORÍA
+.PP
+Proyecto: \fBGrxFirma\fR.
+.PP
+Autor: \fBAlberto Avidad Fernandez\fR.
+.PP
+Organización: \fBOficina de Software Libre \- Diputación de Granada\fR.
+.SH LICENCIA
+.PP
+Este programa es \fBsoftware libre\fR.
+.PP
+Se distribuye bajo los términos de la licencia \fBEuropean Union Public Licence 1.2 o posterior (EUPL)\fR.
+.PP
+Puede redistribuirse y modificarse bajo dicha licencia.
+.SH GARANTÍA Y RESPONSABILIDAD
+.PP
+Este programa se entrega \fBSIN GARANTÍA\fR de ningún tipo, en la medida permitida por la legislación aplicable.
+.PP
+El uso de GrxFirma, la firma o verificación de documentos, la confianza en dominios remotos,
+la instalación de confianza TLS y cualquier consecuencia derivada de errores, incompatibilidades,
+pérdida de datos o decisiones operativas quedan bajo la responsabilidad del operador o de la
+organización que despliega la herramienta.
+.SH VER TAMBIÉN
+.BR grxfirma-desktop (1),
+.BR grxfirma-afirmauri (1),
+.BR grxfirma-certificados (7),
+.BR grxfirma-servicios-locales (7),
+.BR grxfirma-integracion-web (7),
+.BR grxfirma-lotes (7),
+.BR grxfirma-protocolos-web (7),
+.BR grxfirma-errores-comunes (7),
+.BR grxfirma-operacion (7),
+.BR grxfirma-autenticacion-y-certificados (7),
+.BR grxfirma-mejoras (7),
+.BR grxfirma-recetas (7),
+.BR grxfirma-diagnostico (7),
+.BR grxfirma-puente-navegador (7),
+.BR grxfirma-frontend-qt (7),
+.BR grxfirma-firmas (7),
+.BR grxfirma-verificacion (7),
+.BR grxfirma-formatos (7),
+.BR grxfirma-portales (7),
+.BR grxfirma-confianza (7),
+.BR grxfirma-tls-local (7)

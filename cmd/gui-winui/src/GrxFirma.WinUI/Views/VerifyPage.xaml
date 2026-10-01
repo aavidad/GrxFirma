@@ -1,0 +1,277 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<Page
+    x:Class="GrxFirma.WinUI.Views.VerifyPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:GrxFirma.WinUI.Controls"
+    Loaded="OnLoaded"
+    Unloaded="OnUnloaded"
+    Background="{ThemeResource AppPageBackgroundBrush}">
+
+    <ScrollViewer
+        AutomationProperties.Name="Contenido de verificación"
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="Narrow">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="Wide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="760" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="LayoutRoot.Padding" Value="32" />
+                        <Setter Target="SignedBrowseColumn.Width" Value="Auto" />
+                        <Setter Target="SignedBrowseRow.Height" Value="0" />
+                        <Setter Target="SignedBrowseButton.(Grid.Column)" Value="1" />
+                        <Setter Target="SignedBrowseButton.(Grid.Row)" Value="0" />
+                        <Setter Target="OriginalActionsColumn.Width" Value="Auto" />
+                        <Setter Target="OriginalActionsRow.Height" Value="0" />
+                        <Setter Target="OriginalActions.(Grid.Column)" Value="1" />
+                        <Setter Target="OriginalActions.(Grid.Row)" Value="0" />
+                        <Setter Target="CertificateResultColumn.Width" Value="*" />
+                        <Setter Target="TrustResultColumn.Width" Value="*" />
+                        <Setter Target="CertificateResultRow.Height" Value="0" />
+                        <Setter Target="TrustResultRow.Height" Value="0" />
+                        <Setter Target="CertificateResult.(Grid.Column)" Value="1" />
+                        <Setter Target="CertificateResult.(Grid.Row)" Value="0" />
+                        <Setter Target="TrustResult.(Grid.Column)" Value="2" />
+                        <Setter Target="TrustResult.(Grid.Row)" Value="0" />
+                        <Setter Target="VerifyActions.Orientation" Value="Horizontal" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <Grid
+            x:Name="LayoutRoot"
+            MaxWidth="1000"
+            Padding="16"
+            HorizontalAlignment="Stretch"
+            RowSpacing="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Spacing="8">
+                <TextBlock
+                    AutomationProperties.HeadingLevel="Level1"
+                    Style="{StaticResource PageTitleTextStyle}"
+                    Text="{x:Bind ViewModel.Title}" />
+                <TextBlock
+                    Style="{StaticResource PageSubtitleTextStyle}"
+                    Text="{x:Bind ViewModel.Description}" />
+            </StackPanel>
+
+            <InfoBar
+                Grid.Row="1"
+                AutomationProperties.LiveSetting="Polite"
+                IsClosable="False"
+                IsOpen="{x:Bind ViewModel.IsAvailabilityNoticeOpen, Mode=OneWay}"
+                Message="{x:Bind ViewModel.PendingMessage, Mode=OneWay}"
+                Severity="Informational"
+                Title="Disponibilidad de verificación" />
+
+            <StackPanel Grid.Row="2" Spacing="20">
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Firma que se va a verificar" />
+
+                        <Grid ColumnSpacing="8" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition x:Name="SignedBrowseColumn" Width="0" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition x:Name="SignedBrowseRow" Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBox
+                                AutomationProperties.Name="Fichero firmado"
+                                Header="Fichero firmado"
+                                MinHeight="40"
+                                IsReadOnly="True"
+                                PlaceholderText="Ningún fichero seleccionado"
+                                TabIndex="0"
+                                Text="{x:Bind ViewModel.SignedFileName, Mode=OneWay}" />
+                            <Button MinHeight="40"
+                                x:Name="SignedBrowseButton"
+                                Grid.Row="1"
+                                VerticalAlignment="Bottom"
+                                AutomationProperties.Name="Seleccionar fichero firmado"
+                                Click="OnSelectSignedFileClick"
+                                Content="Examinar…"
+                                IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
+                                TabIndex="1" />
+                        </Grid>
+
+                        <Grid ColumnSpacing="8" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition x:Name="OriginalActionsColumn" Width="0" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition x:Name="OriginalActionsRow" Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBox
+                                AutomationProperties.Name="Fichero original para firma separada"
+                                Header="Original, solo para firmas separadas"
+                                MinHeight="40"
+                                IsReadOnly="True"
+                                PlaceholderText="Opcional"
+                                TabIndex="2"
+                                Text="{x:Bind ViewModel.OriginalFileName, Mode=OneWay}" />
+                            <controls:ResponsiveActionPanel
+                                x:Name="OriginalActions"
+                                Grid.Row="1"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                VerticalAlignment="Bottom">
+                                <Button MinHeight="40"
+                                    VerticalAlignment="Bottom"
+                                    AutomationProperties.Name="Seleccionar fichero original"
+                                    Click="OnSelectOriginalFileClick"
+                                    Content="Seleccionar original…"
+                                    IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
+                                    TabIndex="3" />
+                                <Button MinHeight="40"
+                                    VerticalAlignment="Bottom"
+                                    AutomationProperties.Name="Quitar fichero original"
+                                    Click="OnClearOriginalFileClick"
+                                    Content="Quitar"
+                                    IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
+                                    TabIndex="4" />
+                            </controls:ResponsiveActionPanel>
+                        </Grid>
+
+                        <TextBlock
+                            Style="{StaticResource PageSubtitleTextStyle}"
+                            Text="Seleccione un original solo para una firma CAdES separada de su contenido. Los PDF, XML y contenedores firmados se verifican sin ese archivo. Si seleccionó uno por error, pulse Quitar; no se ignorará silenciosamente."
+                            TextWrapping="Wrap" />
+
+                        <controls:ResponsiveActionPanel
+                            x:Name="VerifyActions"
+                            Orientation="Vertical"
+                            Spacing="8">
+                            <Button MinHeight="40"
+                                x:Name="VerifyButton"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.HelpText="Comprueba la firma mediante el motor local autenticado."
+                                AutomationProperties.Name="Verificar firma"
+                                Click="OnVerifyClick"
+                                Content="Verificar firma"
+                                IsEnabled="{x:Bind ViewModel.CanVerify, Mode=OneWay}"
+                                Style="{StaticResource AccentButtonStyle}"
+                                TabIndex="5" />
+                            <Button MinHeight="40"
+                                AutomationProperties.Name="Cancelar verificación"
+                                Click="OnCancelClick"
+                                Content="Cancelar operación"
+                                IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
+                                TabIndex="6" />
+                            <ProgressRing
+                                Width="28"
+                                Height="28"
+                                AutomationProperties.Name="Verificación en curso"
+                                IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+                        </controls:ResponsiveActionPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Resultado de verificación" />
+                        <InfoBar
+                            AutomationProperties.LiveSetting="Assertive"
+                            IsClosable="False"
+                            IsOpen="{x:Bind ViewModel.HasResult, Mode=OneWay}"
+                            Message="{x:Bind ViewModel.ResultMessage, Mode=OneWay}"
+                            Severity="{x:Bind ViewModel.ResultSeverity, Mode=OneWay}"
+                            Title="{x:Bind ViewModel.ResultTitle, Mode=OneWay}" />
+                        <Grid ColumnSpacing="12" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition x:Name="CertificateResultColumn" Width="0" />
+                                <ColumnDefinition x:Name="TrustResultColumn" Width="0" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition x:Name="CertificateResultRow" Height="Auto" />
+                                <RowDefinition x:Name="TrustResultRow" Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock
+                                Text="{x:Bind ViewModel.IntegritySummary, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                x:Name="CertificateResult"
+                                Grid.Row="1"
+                                Text="{x:Bind ViewModel.CertificateSummary, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                x:Name="TrustResult"
+                                Grid.Row="2"
+                                Text="{x:Bind ViewModel.TrustSummary, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </Grid>
+                        <TextBlock
+                            Text="{x:Bind ViewModel.FormatSummary, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Firmantes" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Signers, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Avisos y errores" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Warnings, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Detalles" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Details, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>

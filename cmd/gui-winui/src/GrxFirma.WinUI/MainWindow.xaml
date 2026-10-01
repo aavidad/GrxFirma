@@ -1,0 +1,198 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<Window
+    x:Class="GrxFirma.WinUI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="GrxFirma">
+
+    <Grid x:Name="AppRoot" Background="{ThemeResource AppPageBackgroundBrush}">
+        <NavigationView
+            x:Name="RootNavigation"
+            AutomationProperties.Name="Navegación principal"
+            CompactModeThresholdWidth="760"
+            ExpandedModeThresholdWidth="1080"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            ItemInvoked="OnNavigationItemInvoked"
+            OpenPaneLength="250"
+            PaneDisplayMode="Auto">
+
+            <NavigationView.PaneHeader>
+                <StackPanel
+                    Margin="0,8,0,12"
+                    AutomationProperties.Name="GrxFirma"
+                    Orientation="Horizontal"
+                    Spacing="12">
+                    <Image
+                        Width="36"
+                        Height="36"
+                        AutomationProperties.Name="Icono de GrxFirma"
+                        Source="ms-appx:///Assets/logo-dipgra.png"
+                        Stretch="Uniform" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="GrxFirma"
+                        TextTrimming="None"
+                        TextWrapping="NoWrap" />
+                </StackPanel>
+            </NavigationView.PaneHeader>
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem
+                    AccessKey="F"
+                    Content="Firmar"
+                    Tag="sign">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8D4;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    AccessKey="V"
+                    Content="Verificar"
+                    Tag="verify">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE73E;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    AccessKey="H"
+                    Content="Huellas"
+                    Tag="hash">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8A5;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    AccessKey="P"
+                    Content="Proteger"
+                    Tag="protect">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE72E;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    AccessKey="C"
+                    Content="Certificados"
+                    Tag="certificates">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE77B;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItemHeader
+                    x:Name="ComplementsHeader"
+                    Content="Complementos"
+                    Visibility="Collapsed" />
+                <NavigationViewItem
+                    x:Name="FacturaeNavigationItem"
+                    AccessKey="E"
+                    AutomationProperties.HelpText="Asistente opcional para crear Facturae y seguir su remisión oficial a FACe."
+                    Content="Facturae y FACe"
+                    Tag="facturae"
+                    Visibility="Collapsed">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8A5;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem
+                    x:Name="SettingsNavigationItem"
+                    AccessKey="O"
+                    Content="Configuración"
+                    Tag="settings">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE713;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    AccessKey="D"
+                    Content="Diagnóstico"
+                    Tag="diagnostics">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE90F;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    x:Name="HelpNavigationItem"
+                    AccessKey="Y"
+                    Content="Ayuda"
+                    Tag="help">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE897;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    x:Name="AboutNavigationItem"
+                    AccessKey="R"
+                    Content="Acerca de"
+                    Tag="about">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE946;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="24,16,24,0" Spacing="8">
+                    <InfoBar
+                        AutomationProperties.LiveSetting="Polite"
+                        IsClosable="False"
+                        IsOpen="{x:Bind ViewModel.IsConnectionNoticeOpen, Mode=OneWay}"
+                        Message="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
+                        Severity="Informational"
+                        Title="Estado del motor local" />
+                    <InfoBar
+                        AutomationProperties.LiveSetting="Assertive"
+                        IsClosable="False"
+                        IsOpen="{x:Bind ViewModel.HasConnectionError, Mode=OneWay}"
+                        Message="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
+                        Severity="Error"
+                        Title="No se pudo preparar el motor local">
+                        <InfoBar.ActionButton>
+                            <Button
+                                AutomationProperties.HelpText="Muestra únicamente los pasos ya observados; no repite ninguna operación."
+                                Click="OnOpenCurrentDiagnostic"
+                                Content="Diagnóstico de la operación" />
+                        </InfoBar.ActionButton>
+                    </InfoBar>
+                    <InfoBar
+                        AutomationProperties.LiveSetting="Polite"
+                        IsClosable="True"
+                        IsOpen="{x:Bind ViewModel.IsUpdateNoticeOpen, Mode=OneWay}"
+                        Message="{x:Bind ViewModel.UpdateNoticeMessage, Mode=OneWay}"
+                        Severity="Informational"
+                        Title="Nueva versión disponible">
+                        <InfoBar.ActionButton>
+                            <Button
+                                AutomationProperties.HelpText="Abre la página fija de versiones del repositorio oficial de GitHub."
+                                Click="OnOpenOfficialReleases"
+                                Content="Ver versión oficial" />
+                        </InfoBar.ActionButton>
+                    </InfoBar>
+                </StackPanel>
+
+                <Frame
+                    x:Name="ContentFrame"
+                    Grid.Row="1"
+                    AutomationProperties.Name="Contenido de la sección"
+                    IsNavigationStackEnabled="False"
+                    Navigated="OnContentFrameNavigated" />
+            </Grid>
+        </NavigationView>
+    </Grid>
+</Window>

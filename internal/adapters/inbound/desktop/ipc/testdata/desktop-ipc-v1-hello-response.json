@@ -1,0 +1,36 @@
+{
+  "protocol": "desktop-ipc-v1",
+  "requestId": "example-hello-001",
+  "traceId": "example-hello-001",
+  "ok": true,
+  "action": "hello",
+  "errorCode": "",
+  "phase": "operation",
+  "retryable": false,
+  "outcome": "success",
+  "data": {
+    "protocol": "desktop-ipc-v1",
+    "version": "1.0",
+    "build": {
+      "version": "devel",
+      "target": "windows/amd64"
+    },
+    "capabilities": [
+      "certificate-id-selection",
+      "correlation",
+      "guided-diagnostic-steps",
+      "stable-result-metadata"
+    ],
+    "actions": [
+      "hello",
+      "ping"
+    ],
+    "limits": {
+      "maxRequestBytes": 4194304,
+      "maxConcurrentConnections": 10,
+      "defaultTimeoutSeconds": 30,
+      "longOperationTimeoutSeconds": 300
+    },
+    "idleTimeoutSeconds": 60
+  }
+}

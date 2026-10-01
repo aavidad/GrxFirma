@@ -1,0 +1,122 @@
+{
+  "documentDefaultFilename": {
+    "message": "document"
+  },
+  "extensionActionTitle": {
+    "message": "Open GrxFirma"
+  },
+  "extensionDescription": {
+    "message": "GrxFirma extension for signing PDF documents and proving identity to authorised sites."
+  },
+  "extensionName": {
+    "message": "GrxFirma"
+  },
+  "extensionShortName": {
+    "message": "GrxFirma"
+  },
+  "nativeRequestTimeout": {
+    "message": "The operation timed out. Please try again."
+  },
+  "pdfDefaultFilename": {
+    "message": "document.pdf"
+  },
+  "pdfPreparingDocument": {
+    "message": "Preparing the document for GrxFirma"
+  },
+  "pdfSignButtonAriaLabel": {
+    "message": "Sign PDF with GrxFirma"
+  },
+  "pdfSignButtonLabel": {
+    "message": "Sign PDF"
+  },
+  "pdfSignerUnavailable": {
+    "message": "GrxFirma could not be opened."
+  },
+  "pdfPreloadUnavailable": {
+    "message": "GrxFirma opened without the PDF. Choose the file in the signer."
+  },
+  "pdfOpeningPending": {
+    "message": "GrxFirma is already opening for this tab. Please wait."
+  },
+  "popupCheckingConnection": {
+    "message": "Checking the connection…"
+  },
+  "popupIntro": {
+    "message": "Sign documents from allowed sites."
+  },
+  "popupNativeHostConnected": {
+    "message": "GrxFirma is connected."
+  },
+  "popupNativeHostUnavailable": {
+    "message": "Could not connect to GrxFirma. Open the app or reinstall the connector and try again."
+  },
+  "popupRestAvailable": {
+    "message": "The local GrxFirma service is available."
+  },
+  "popupOpenApp": {
+    "message": "Open GrxFirma"
+  },
+  "popupTrustedSites": {
+    "message": "Trusted sites"
+  },
+  "runtimeRequestRejected": {
+    "message": "This request is not authorised for the site or action."
+  },
+  "optionsTitle": {
+    "message": "Trusted sites"
+  },
+  "optionsIntro": {
+    "message": "Add sites where you want to see the “Sign PDF” button. Your browser will ask for permission for each site."
+  },
+  "optionsIdentityScope": {
+    "message": "Identity proof is available only on sites included with GrxFirma and sites set by your organisation. Sites you add here can only show the PDF button."
+  },
+  "optionsSiteLabel": {
+    "message": "Site name"
+  },
+  "optionsSitePlaceholder": {
+    "message": "example.org or *.example.org"
+  },
+  "optionsSiteHelp": {
+    "message": "Enter an HTTPS domain without a path or port. Start with * to include subdomains."
+  },
+  "optionsAddSite": {
+    "message": "Add site"
+  },
+  "optionsSitesHeading": {
+    "message": "Allowed sites"
+  },
+  "optionsFactorySite": {
+    "message": "Included with GrxFirma"
+  },
+  "optionsManagedSite": {
+    "message": "Set by your organisation"
+  },
+  "optionsRemoveSite": {
+    "message": "Remove site"
+  },
+  "optionsSiteRemoved": {
+    "message": "Site removed."
+  },
+  "optionsInvalidSite": {
+    "message": "Enter a valid domain. IP addresses, localhost and public suffixes are not allowed."
+  },
+  "optionsSiteExists": {
+    "message": "This site is already listed."
+  },
+  "optionsPermissionDenied": {
+    "message": "Permission was not granted for this site."
+  },
+  "optionsSaveFailed": {
+    "message": "Could not save the site. Please try again."
+  },
+  "optionsSiteAdded": {
+    "message": "Site added."
+  },
+  "optionsLoadFailed": {
+    "message": "Could not load the site list."
+  },
+  "optionsManagedPermissionMissing": {
+    "message": "Your organisation must grant access to this site before it can be used."
+  }
+}

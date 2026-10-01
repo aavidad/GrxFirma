@@ -1,0 +1,88 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+name: Security - SBOM
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-sbom-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install syft
+        run: go install github.com/anchore/syft/cmd/syft@v1.44.0
+
+      - name: Install grype
+        run: go install github.com/anchore/grype/cmd/grype@v0.112.0
+
+      - name: Generate complete source inventory
+        run: |
+          "$(go env GOPATH)/bin/syft" dir:. \
+            -o spdx-json=grxfirma-source.spdx.json
+
+      - name: Prepare distributed runtime dependency scope
+        run: |
+          python3 scripts/ci/prepare_runtime_sbom_scope.py \
+            --root "$GITHUB_WORKSPACE" \
+            --output "$GITHUB_WORKSPACE/grxfirma-runtime-scope"
+
+      - name: Generate distributed runtime SPDX JSON SBOM
+        run: |
+          "$(go env GOPATH)/bin/syft" \
+            dir:grxfirma-runtime-scope \
+            -o spdx-json=grxfirma-runtime.spdx.json
+
+      - name: Verify Android release coverage in runtime SBOM
+        run: |
+          python3 scripts/ci/validate_runtime_sbom.py \
+            --sbom grxfirma-runtime.spdx.json \
+            --android-lockfile \
+              grxfirma-runtime-scope/mobile/android/app/gradle.lockfile
+
+      - name: Scan distributed runtime for fixable high-severity vulnerabilities
+        run: |
+          "$(go env GOPATH)/bin/grype" sbom:grxfirma-runtime.spdx.json \
+            --fail-on high \
+            --only-fixed \
+            --output json \
+            --file grxfirma-runtime.grype.json
+
+      - name: Upload supply-chain reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: grxfirma-supply-chain
+          path: |
+            grxfirma-source.spdx.json
+            grxfirma-runtime.spdx.json
+            grxfirma-runtime.grype.json
+            grxfirma-runtime-scope/grxfirma-runtime-scope.json
+            grxfirma-runtime-scope/mobile/android/app/gradle.lockfile
+          if-no-files-found: error
+          retention-days: 30

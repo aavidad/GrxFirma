@@ -1,0 +1,15 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// Autoría: Alberto Avidad Fernández
+// Licencia: EUPL 1.2 o posterior
+// SPDX-License-Identifier: EUPL-1.2
+
+// Copy outside version control as Signing.local.xcconfig and replace every value.
+// Never commit signing identifiers or credentials to this repository.
+
+DEVELOPMENT_TEAM = ABCDE12345
+GRXFIRMA_APP_BUNDLE_IDENTIFIER = es.organismo.grxfirma
+GRXFIRMA_APP_GROUP = group.es.organismo.grxfirma
+GRXFIRMA_KEYCHAIN_GROUP = es.organismo.grxfirma.keys
+PROVISIONING_PROFILE_SPECIFIER = GrxFirma App Store
+GRXFIRMA_SHARE_BUNDLE_IDENTIFIER = es.organismo.grxfirma.share
+GRXFIRMA_SHARE_PROVISIONING_PROFILE = GrxFirma Share App Store

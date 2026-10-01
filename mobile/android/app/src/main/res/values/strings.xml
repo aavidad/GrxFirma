@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<resources>
+    <string name="app_name">GrxFirma</string>
+    <string name="screen_title">Firma y verificación</string>
+    <string name="screen_subtitle">Operación local en este dispositivo</string>
+
+    <string name="backend_ready_title">Núcleo de firma disponible</string>
+    <string name="backend_unavailable_title">Núcleo de firma no disponible</string>
+    <string name="backend_ready_detail">Contrato móvil y servicios criptográficos comprobados.</string>
+    <string name="backend_unavailable_detail">Esta compilación no puede usar el núcleo criptográfico. Instale una versión operativa válida.</string>
+    <string name="backend_verification_detail">Compilación de verificación: permite validar la interfaz y los selectores, pero no realiza operaciones criptográficas.</string>
+    <string name="backend_loading_detail">Comprobando el núcleo criptográfico…</string>
+    <string name="open_help">Ayuda y seguridad</string>
+    <string name="help_title">Cómo usar GrxFirma en Android</string>
+    <string name="help_content">1. Seleccione un documento desde Android o compártalo con GrxFirma.\n\n2. Para firmar, seleccione un PKCS#12 moderno (AES y SHA-256), con un certificado vigente, e introduzca su contraseña. Si Android no puede abrir un PKCS#12 antiguo, reexpórtelo en formato moderno desde el almacén o la aplicación que lo creó. Si el certificado está caducado, renuévelo antes de firmar. La identidad se conserva solo en la memoria de esta sesión: esta versión no afirma usar Android Keystore ni biometría. Pulse «Olvidar certificado» cuando termine.\n\n3. Elija formato automático, PAdES, CAdES o XAdES y confirme la firma. El resultado se guarda mediante el selector seguro de Android.\n\n4. La verificación informa por separado de integridad criptográfica, vigencia del certificado, confianza y disponibilidad de revocación. La aplicación no tiene acceso a Internet: solo puede considerar evidencias de revocación incluidas en la firma y no realiza una consulta en línea.\n\nLa pantalla admite un documento por operación. No anuncia lotes ni integración web. Las capturas están bloqueadas en la versión productiva.</string>
+    <string name="help_close">Cerrar</string>
+
+    <string name="document_section">Documento</string>
+    <string name="document_helper">Seleccione el documento que desea firmar o verificar.</string>
+    <string name="select_document">Seleccionar documento</string>
+    <string name="no_document">Ningún documento seleccionado</string>
+    <string name="document_summary">%1$s · %2$s · %3$s</string>
+    <string name="original_document_helper">Para verificar una firma separada, como CAdES, seleccione también el documento original. Déjelo vacío para firmas que ya contienen el documento.</string>
+    <string name="select_original_document">Seleccionar original para firma separada</string>
+    <string name="no_original_document">Ningún documento original seleccionado (opcional)</string>
+    <string name="clear_original_document">Quitar documento original</string>
+
+    <string name="certificate_section">Certificado de firma</string>
+    <string name="certificate_helper">Importe un PKCS#12 protegido para esta sesión. La clave no se guarda de forma persistente.</string>
+    <string name="select_pkcs12">Seleccionar archivo PKCS#12</string>
+    <string name="no_certificate_file">Ningún archivo PKCS#12 seleccionado</string>
+    <string name="certificate_password">Contraseña del PKCS#12</string>
+    <string name="certificate_password_helper">La contraseña se usa durante la importación y no se guarda de forma persistente.</string>
+    <string name="import_certificate">Importar certificado</string>
+    <string name="forget_certificate">Olvidar certificado y limpiar sesión</string>
+    <string name="no_certificate">Ningún certificado preparado</string>
+    <string name="certificate_summary">%1$s\nEmisor: %2$s\nHuella: %3$s</string>
+
+    <string name="operation_section">Operación</string>
+    <string name="signature_format">Formato de firma</string>
+    <string name="format_auto">Automático</string>
+    <string name="format_pades">PAdES</string>
+    <string name="format_cades">CAdES</string>
+    <string name="format_xades">XAdES</string>
+    <string name="sign_document">Firmar documento</string>
+    <string name="seal_visible">Firma visible</string>
+    <string name="seal_edit">Colocar y configurar el sello</string>
+    <string name="seal_edit_hint">Arrastre el sello, cambie su tamaño en la esquina o gírelo con el tirador. También puede usar los botones.</string>
+    <string name="seal_canvas_description">Vista de la página con el sello girado %1$d°. Use los botones para ajustar el sello con TalkBack.</string>
+    <string name="seal_page_placeholder">Página</string>
+    <string name="seal_page_number">Página %1$d de %2$d</string>
+    <string name="seal_previous">Anterior</string>
+    <string name="seal_next">Siguiente</string>
+    <string name="seal_accessible_controls">Ajustes de posición y giro</string>
+    <string name="seal_left">←</string>
+    <string name="seal_right">→</string>
+    <string name="seal_up">↑</string>
+    <string name="seal_down">↓</string>
+    <string name="seal_move_left">Mover sello a la izquierda</string>
+    <string name="seal_move_right">Mover sello a la derecha</string>
+    <string name="seal_move_up">Mover sello hacia arriba</string>
+    <string name="seal_move_down">Mover sello hacia abajo</string>
+    <string name="seal_smaller">− tamaño</string>
+    <string name="seal_larger">+ tamaño</string>
+    <string name="seal_rotate_left">↶ 15°</string>
+    <string name="seal_rotate_right">↻ 15°</string>
+    <string name="seal_opacity">Opacidad del sello (0–100 %)</string>
+    <string name="seal_qr">Añadir QR de verificación</string>
+    <string name="seal_qr_address">Dirección HTTPS del QR</string>
+    <string name="seal_style">Estilo e imagen</string>
+    <string name="seal_logo_none">Sin logo</string>
+    <string name="seal_logo_institutional">Logo institucional</string>
+    <string name="seal_logo_custom">Imagen propia</string>
+    <string name="seal_choose_image">Seleccionar imagen</string>
+    <string name="seal_show_text">Mostrar datos de la firma</string>
+    <string name="seal_text_color">Color del texto</string>
+    <string name="seal_color_black">Negro</string>
+    <string name="seal_color_blue">Azul</string>
+    <string name="seal_color_gray">Gris oscuro</string>
+    <string name="seal_image">La imagen del sello</string>
+    <string name="seal_all_pages">Aplicar a todas las páginas</string>
+    <string name="seal_one_page">Solo esta página</string>
+    <string name="seal_preview_loading">Actualizando vista previa real…</string>
+    <string name="seal_preview_ready">Vista previa real actualizada</string>
+    <string name="seal_preview_error">No se pudo generar la vista previa. Revise el sello antes de aplicarlo.</string>
+    <string name="seal_apply">Aplicar sello</string>
+    <string name="seal_pdf_error">No se pudo mostrar el PDF. Seleccione otro archivo válido.</string>
+    <string name="seal_certificate_required">Importe primero un certificado para ver el sello real.</string>
+    <string name="seal_pdf_only">La firma visible solo se puede usar con PAdES y documentos PDF.</string>
+    <string name="seal_invalid_settings">Revise la posición, el tamaño, la imagen y la dirección HTTPS del sello.</string>
+    <string name="seal_image_error">No se pudo usar la imagen. Seleccione un PNG o JPEG de hasta 2 MiB.</string>
+    <string name="verify_document">Verificar firma</string>
+    <string name="operation_in_progress">Procesando la operación…</string>
+
+    <string name="result_section">Resultado</string>
+    <string name="result_idle">Todavía no se ha ejecutado ninguna operación.</string>
+    <string name="result_success">Operación completada</string>
+    <string name="result_error">No se pudo completar la operación</string>
+    <string name="result_signed">Firma %1$s creada con %2$s. Seleccione dónde guardar el resultado.</string>
+    <string name="verification_result_title">Resultado de la verificación</string>
+    <string name="verification_integrity">Integridad criptográfica: %1$s</string>
+    <string name="verification_certificate">Vigencia y uso del certificado: %1$s</string>
+    <string name="verification_trust">Confianza de la cadena: %1$s</string>
+    <string name="verification_revocation">Revocación: %1$s</string>
+    <string name="verification_format">Formato detectado: %1$s</string>
+    <string name="verification_status_valid">válida</string>
+    <string name="verification_status_invalid">no válida</string>
+    <string name="verification_status_warning">con advertencias</string>
+    <string name="verification_status_unknown">no comprobada</string>
+    <string name="revocation_embedded_only">solo evidencias incluidas; consulta en línea no disponible</string>
+    <string name="revocation_online">consulta en línea disponible</string>
+    <string name="revocation_not_available">no disponible</string>
+    <string name="result_certificate_imported">Certificado preparado: %1$s</string>
+    <string name="result_certificate_forgotten">Certificado olvidado y sesión criptográfica limpiada.</string>
+    <string name="result_saved">Documento firmado guardado correctamente.</string>
+    <string name="result_save_cancelled">Guardado cancelado; el resultado y el certificado de la sesión se han descartado.</string>
+    <string name="retry_save">Reintentar guardado</string>
+    <string name="discard_pending_output">Descartar resultado firmado</string>
+
+    <string name="error_document_required">Seleccione primero un documento.</string>
+    <string name="error_certificate_required">Seleccione o importe primero un certificado.</string>
+    <string name="error_password_required">Introduzca la contraseña del PKCS#12.</string>
+    <string name="error_invalid_shared_intent">No se pudo abrir el documento compartido.</string>
+    <string name="error_multiple_documents">Esta pantalla admite un documento por operación.</string>
+    <string name="error_picker_unavailable">Android no dispone de un selector de archivos compatible.</string>
+    <string name="error_save_picker_unavailable">No se pudo abrir el selector de destino. El resultado firmado sigue en memoria: reintente guardarlo o descártelo.</string>
+    <string name="error_save_picker_cancelled">No se completó la selección de destino. El resultado firmado sigue en memoria: reintente guardarlo o descártelo.</string>
+    <string name="error_save_failed_keep_output">No se pudo guardar el resultado. El proveedor puede haber creado un archivo parcial, pero el documento original no se ha modificado. El resultado firmado sigue en memoria: reintente guardarlo o descártelo.</string>
+    <string name="error_operation_in_progress">Termine o cancele la operación y el guardado actuales antes de abrir otro documento.</string>
+    <string name="error_document_access">Android no ha podido acceder al documento. Vuelva a seleccionarlo y compruebe sus permisos.</string>
+    <string name="error_core_unavailable">El núcleo criptográfico no está disponible en esta compilación.</string>
+    <string name="error_core_operation">La operación criptográfica ha fallado. Compruebe el documento y el certificado e inténtelo de nuevo.</string>
+    <string name="error_pkcs12_password_or_legacy">No se pudo abrir el PKCS#12. Compruebe la contraseña. Si el archivo usa un formato antiguo, reexpórtelo como PKCS#12 moderno (AES y SHA-256).</string>
+    <string name="error_certificate_not_current">El certificado no está vigente. Use un certificado vigente; si ha caducado, renuévelo.</string>
+    <string name="error_signing_identity_unsupported">El certificado o su clave no son aptos para firmar en Android. Use un certificado de firma con RSA de al menos 2048 bits o ECDSA de al menos 256 bits.</string>
+    <string name="error_operation_failed">La operación ha fallado. Revise la selección e inténtelo de nuevo.</string>
+
+    <string name="size_bytes">%1$d B</string>
+    <string name="size_kib">%1$.1f KiB</string>
+    <string name="size_mib">%1$.1f MiB</string>
+    <string name="unknown_value">No disponible</string>
+
+    <plurals name="verification_signers">
+        <item quantity="one">%1$d firmante detectado</item>
+        <item quantity="other">%1$d firmantes detectados</item>
+    </plurals>
+    <plurals name="verification_warnings">
+        <item quantity="one">%1$d advertencia técnica; consulte la ayuda</item>
+        <item quantity="other">%1$d advertencias técnicas; consulte la ayuda</item>
+    </plurals>
+    <plurals name="verification_errors">
+        <item quantity="one">%1$d error de verificación</item>
+        <item quantity="other">%1$d errores de verificación</item>
+    </plurals>
+</resources>

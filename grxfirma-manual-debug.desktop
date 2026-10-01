@@ -1,0 +1,19 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+[Desktop Entry]
+Name=GrxFirma (manual debug)
+Name[es]=GrxFirma (manual debug)
+GenericName=Aplicacion de firma electronica
+GenericName[es]=Aplicacion de firma electronica
+Comment=Modo debug de la app manual de GrxFirma
+Comment[es]=Modo debug de la app manual de GrxFirma
+Exec=env GRXFIRMA_DESKTOP_DEBUG=1 grxfirma-desktop
+Terminal=false
+Type=Application
+Icon=grxfirma
+Categories=Office;Security;
+Keywords=firma;electronica;certificado;digital;debug;manual;
+StartupNotify=false

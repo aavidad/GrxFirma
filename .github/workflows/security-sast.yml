@@ -1,0 +1,93 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+name: Security - static analysis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-sast-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gosec:
+    name: gosec (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: application
+            path: .
+          - name: pdfsign
+            path: third_party/pdfsign
+          - name: pdf
+            path: third_party/pdf
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install gosec
+        env:
+          GOSEC_VERSION: v2.25.0
+        run: go install github.com/securego/gosec/v2/cmd/gosec@"$GOSEC_VERSION"
+
+      - name: Enforce high-severity gate
+        working-directory: ${{ matrix.path }}
+        run: |
+          REPORT="$RUNNER_TEMP/gosec-high-${{ matrix.name }}.json"
+          set +e
+          "$(go env GOPATH)/bin/gosec" \
+            -quiet \
+            -severity high \
+            -confidence medium \
+            -track-suppressions \
+            -fmt json \
+            -out "$REPORT" \
+            ./...
+          EXIT_CODE=$?
+          if [ ! -f "$REPORT" ]; then
+            printf '{"Issues":[],"Stats":{"found":0}}\n' > "$REPORT"
+          fi
+          exit "$EXIT_CODE"
+
+      - name: Record medium-confidence audit
+        if: always()
+        working-directory: ${{ matrix.path }}
+        run: |
+          "$(go env GOPATH)/bin/gosec" \
+            -quiet \
+            -severity medium \
+            -confidence high \
+            -track-suppressions \
+            -no-fail \
+            -fmt json \
+            -out "$RUNNER_TEMP/gosec-audit-${{ matrix.name }}.json" \
+            ./...
+
+      - name: Upload static-analysis reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gosec-reports-${{ matrix.name }}
+          path: ${{ runner.temp }}/gosec-*-${{ matrix.name }}.json
+          if-no-files-found: error
+          retention-days: 30

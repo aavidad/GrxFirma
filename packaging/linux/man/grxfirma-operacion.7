@@ -1,0 +1,184 @@
+.TH GRXFIRMA-OPERACION 7 "20 marzo 2026" "GrxFirma" "Operación y administración"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-operacion \- operación diaria, despliegue y administración básica de GrxFirma
+.SH DESCRIPCIÓN
+Esta página está orientada a operadores, administradores y personal de soporte.
+.PP
+Resume qué binario usar en cada caso, qué logs conviene revisar y cómo distinguir
+los distintos modos de trabajo de \fBGrxFirma\fR sin mezclar conceptos.
+.SH QUÉ BINARIO USAR
+.TP
+.B grxfirma
+Binario principal. Sirve para:
+.IP \(bu 2
+modo CLI;
+.IP \(bu 2
+arranque de REST local;
+.IP \(bu 2
+acciones directas de dominios, TLS y utilidades operativas.
+.TP
+.B grxfirma-desktop
+Aplicación manual de escritorio para abrir, firmar y verificar documentos sin portal.
+.TP
+.B grxfirma-gui-qml
+Frontend Qt/QML opcional, si ha sido compilado e instalado.
+.TP
+.B grxfirma-afirmauri
+Manejador del protocolo \fBafirma://\fR para portales y sedes legacy.
+.TP
+.B grxfirma-nativehost
+Host nativo usado por extensiones de navegador mediante \fBNative Messaging\fR.
+.SH MODOS DE TRABAJO
+.SS Modo CLI
+Útil para:
+.IP \(bu 2
+scripts;
+.IP \(bu 2
+automatización;
+.IP \(bu 2
+diagnóstico;
+.IP \(bu 2
+administración local.
+.PP
+Ejemplos:
+.PP
+.RS
+\fBgrxfirma \-modo\-cli \-listar\-certificados \-salida\-json\fR
+.br
+\fBgrxfirma \-modo\-cli \-operacion informe\-diagnostico \-salida\-json\fR
+.RE
+.SS Modo desktop manual
+Útil para usuario final o pruebas manuales:
+.PP
+.RS
+\fBgrxfirma\-desktop\fR
+.RE
+.PP
+Si necesitas la UX Qt/QML importada desde la V1 Go:
+.PP
+.RS
+\fBmake build\-qt\-qml\fR
+.br
+\fBgrxfirma \-qt\fR
+.RE
+.PP
+Si el binario Qt existe, \fBmake install-user\fR también lo instala de forma opcional.
+.SS Modo protocolo web
+Útil para portales que delegan en el sistema operativo:
+.PP
+.RS
+\fBgrxfirma\-afirmauri 'afirma://...'\fR
+.RE
+.SS Modo REST local
+Útil para integración técnica en loopback:
+.PP
+.RS
+\fBgrxfirma \-servidor\-rest \-direccion\-rest 127.0.0.1:63118\fR
+.RE
+.SH RUTAS IMPORTANTES
+.TP
+.I ~/.local/bin/grxfirma
+Binario principal instalado para el usuario.
+.TP
+.I ~/.local/bin/grxfirma-desktop
+Aplicación manual de escritorio.
+.TP
+.I ~/.local/bin/grxfirma-gui-qml
+Frontend Qt/QML opcional, si ha sido compilado e instalado.
+.TP
+.I ~/.local/bin/grxfirma-afirmauri
+Manejador protocolario para \fBafirma://\fR.
+.TP
+.I ~/.local/lib/grxfirma/bin/grxfirma-nativehost
+Host nativo para integración con navegador.
+.TP
+.I ~/.config/grxfirma/
+Directorio de configuración local del perfil.
+.TP
+.I ~/.config/grxfirma/pkcs12/
+Contenedores P12 del perfil.
+.SH LOGS ÚTILES
+.TP
+.I /tmp/grxfirma-debug.log
+Depuración general del handler o de integraciones lanzadas con debug.
+.TP
+.I /tmp/grxfirma-handler.log
+Seguimiento del manejador \fBafirma://\fR.
+.TP
+.I /tmp/grxfirma-web-compat.log
+Compatibilidad web, lote remoto y pasos legacy.
+.TP
+.I /tmp/grxfirma-desktop.log
+Útil si la aplicación manual se lanza en modo debug propio.
+.SH CUÁNDO MIRAR CADA LOG
+.IP \(bu 2
+Si falla una sede con \fBafirma://\fR: mirar primero \fI/tmp/grxfirma-handler.log\fR.
+.IP \(bu 2
+Si el problema parece batch o trifase: mirar \fI/tmp/grxfirma-web-compat.log\fR.
+.IP \(bu 2
+Si el proceso arranca pero no sabes con qué binario o entorno: mirar \fI/tmp/grxfirma-debug.log\fR.
+.SH DEPURACIÓN
+.TP
+.B Handler afirma://
+Puede activarse debug a través del entorno del launcher instalado.
+.PP
+Configuración habitual:
+.PP
+.RS
+\fI~/.local/lib/grxfirma/config/env.sh\fR
+.RE
+.PP
+Variables frecuentes:
+.IP \(bu 2
+\fBGRXFIRMA_DEBUG_ENABLED=1\fR
+.IP \(bu 2
+\fBGRXFIRMA_DEBUG_LOG_FILE=/tmp/grxfirma-debug.log\fR
+.TP
+.B App manual
+Puede lanzarse con su modo debug o con variables específicas del entorno si se desea
+ver mejor el comportamiento gráfico.
+.SH INSTALACIÓN DE USUARIO
+Comando habitual:
+.PP
+.RS
+\fBmake install-user\fR
+.RE
+.PP
+Si además quieres integración de navegador y esquema \fBafirma://\fR:
+.PP
+.RS
+\fBmake bridge-user desktop-user\fR
+.RE
+.SH ERRORES TÍPICOS DE OPERACIÓN
+.TP
+.B La web no detecta la aplicación
+Revisar extensión, manifests y native host.
+.TP
+.B La sede abre la app pero no termina
+Revisar handler y logs de compatibilidad web.
+.TP
+.B El usuario ve certificados pero no firma
+Revisar catálogo, clave privada accesible y comprobación real de certificados.
+.SH CONSEJO PRÁCTICO
+Antes de escalar una incidencia conviene anotar:
+.IP \(bu 2
+qué binario se usó;
+.IP \(bu 2
+qué integración estaba en juego;
+.IP \(bu 2
+qué log confirma el último paso correcto;
+.IP \(bu 2
+y si el problema afecta a identificación, firma o verificación.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-diagnostico (7),
+.BR grxfirma-errores-comunes (7),
+.BR grxfirma-integracion-web (7),
+.BR grxfirma-protocolos-web (7),
+.BR grxfirma-certificados (7),
+.BR grxfirma-frontend-qt (7)

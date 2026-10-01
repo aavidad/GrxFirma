@@ -1,0 +1,123 @@
+.TH GRXFIRMA-DIAGNOSTICO 7 "26 julio 2026" "GrxFirma" "Diagnóstico"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-diagnostico \- guía de diagnóstico y resolución de problemas en GrxFirma
+.SH DESCRIPCIÓN
+Esta página resume qué mirar cuando \fBGrxFirma\fR falla, según el síntoma.
+.SH SI FALLA LA FIRMA EN CONSOLA
+Revisa:
+.IP \(bu 2
+que el certificado exista y pueda firmar;
+.IP \(bu 2
+que el formato elegido sea el adecuado;
+.IP \(bu 2
+que el documento original se aporte si la firma es detached.
+.PP
+Comandos útiles:
+.PP
+.RS
+\fBgrxfirma -modo-cli -listar-certificados -salida-json\fR
+.br
+\fBgrxfirma -modo-cli -comprobar-certificados -salida-json\fR
+.br
+\fBgrxfirma -modo-cli -informe-diagnostico -salida-json\fR
+.RE
+.SH SI FALLA UN PORTAL WEB
+Revisa:
+.IP \(bu 2
+el handler \fBafirma://\fR;
+.IP \(bu 2
+la app viva protocolaria si aplica;
+.IP \(bu 2
+el bridge del navegador y Native Messaging;
+.IP \(bu 2
+la confianza del dominio remoto.
+.PP
+Logs especialmente útiles:
+.IP \(bu 2
+\fI/tmp/grxfirma-handler.log\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-web-compat.log\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-debug.log\fR
+.SH SI EL NAVEGADOR NO DETECTA LA APP
+Revisa:
+.IP \(bu 2
+los manifests de Native Messaging;
+.IP \(bu 2
+el binario \fBgrxfirma-nativehost\fR;
+.IP \(bu 2
+el script \fBbrowser-bridge.sh\fR;
+.IP \(bu 2
+el navegador concreto y su directorio de manifests.
+.SH SI FALLA EL CÍRCULO DE CONFIANZA
+Revisa:
+.IP \(bu 2
+\fI~/.config/grxfirma/trusted-domains.json\fR
+.IP \(bu 2
+si el perfil ya fue sembrado;
+.IP \(bu 2
+si el dominio está en allowlist del sistema o en decisiones del usuario.
+.SH SI FALLA TLS LOCAL
+Revisa:
+.IP \(bu 2
+el directorio \fI~/.config/grxfirma/tls/\fR;
+.IP \(bu 2
+si los certificados locales existen;
+.IP \(bu 2
+si la confianza está instalada en la plataforma.
+.IP \(bu 2
+si el portal tiene concedido por sitio el acceso a aplicaciones del mismo equipo
+(\fBloopback-network\fR) y, solo cuando corresponda, a la red privada
+(\fBlocal-network\fR).
+.PP
+Comandos útiles:
+.PP
+.RS
+\fBgrxfirma -estado-almacen-tls\fR
+.br
+\fBgrxfirma -estado-confianza-tls\fR
+.br
+\fBgrxfirma -generar-certificados-tls\fR
+.br
+\fBgrxfirma -instalar-confianza-tls\fR
+.RE
+.PP
+Después de instalar o rotar la CA local, cierra por completo el navegador y
+vuelve a abrirlo. No aceptes excepciones de certificado ni desactives TLS o los
+controles \fBnetwork.lna.*\fR para continuar.
+.PP
+Para acotar la causa: un error \fBLocal Network Access\fR apunta al permiso por
+sitio; \fBunknown issuer\fR o \fBcertificate unknown\fR, a la confianza TLS; y
+\fBconnection refused\fR, a que el servicio local no está escuchando.
+.SH SI FALLA LA VERIFICACIÓN
+Revisa:
+.IP \(bu 2
+si el formato es el correcto;
+.IP \(bu 2
+si la firma es detached y falta el original;
+.IP \(bu 2
+si el fichero firmado está truncado o alterado.
+.SH CONSEJO PRÁCTICO
+No intentes diagnosticar todo a la vez.
+.PP
+Empieza por acotar:
+.IP \(bu 2
+si falla el arranque,
+.IP \(bu 2
+si falla la selección de certificado,
+.IP \(bu 2
+si falla la firma,
+.IP \(bu 2
+si falla la subida,
+.IP \(bu 2
+o si falla la verificación final.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-portales (7),
+.BR grxfirma-puente-navegador (7),
+.BR grxfirma-verificacion (7)

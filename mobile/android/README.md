@@ -1,0 +1,257 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+# GrxFirma para Android
+
+Proyecto Android nativo en Kotlin para seleccionar documentos mediante Storage
+Access Framework, preparar certificados PKCS#12, firmar y verificar a través del
+nucleo Go enlazado con `gomobile bind`.
+
+## Variantes
+
+- `verificationDebug`: compila, ejecuta selectores SAF, valida estados y permite
+  probar la interfaz sin afirmar que existe un backend criptografico.
+- `productionDebug`: exige un AAR valido y su SHA-256 aprobado.
+- `productionRelease`: ademas exige credenciales de firma Android fuera del
+  repositorio. Es la unica variante apta para empaquetado oficial.
+
+La variante de verificacion muestra el backend como no disponible y mantiene
+deshabilitadas las operaciones criptograficas. No contiene un firmador simulado.
+
+## Compilacion verificable
+
+Requisitos: JDK 17, Android SDK Platform 36, Build Tools 36.0.0 y NDK
+28.2.13676358. Se pueden instalar sin `sudo` con:
+
+```bash
+ACCEPT_ANDROID_SDK_LICENSES=1 scripts/mobile/android/install-toolchain.sh
+```
+
+El instalador no puede modificar el entorno de la terminal que lo invoca.
+Después de instalar, aplique las rutas explícitamente, sin evaluar su salida:
+
+```bash
+export JAVA_HOME="$HOME/.cache/grxfirma-android/jdk-17.0.19+10"
+export ANDROID_HOME="$HOME/.cache/grxfirma-android/android-sdk"
+export ANDROID_SDK_ROOT="$ANDROID_HOME"
+export PATH="$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+```
+
+En GitHub Actions, `--github-env "$GITHUB_ENV"` registra esas mismas rutas de
+forma segura para los pasos posteriores; el script rechaza destinos simbólicos,
+no regulares o valores con saltos de línea.
+
+Para instalar además un emulador API 36 reproducible, añada
+`INSTALL_ANDROID_EMULATOR=1`.
+
+Con `JAVA_HOME`, `ANDROID_HOME` y `ANDROID_SDK_ROOT` configurados:
+
+```bash
+scripts/mobile/android/validate-project.sh
+```
+
+Con un emulador o dispositivo conectado, las pruebas instrumentadas se añaden
+con `RUN_ANDROID_DEVICE_TESTS=1`. También se pueden ejecutar directamente con
+`scripts/mobile/android/test-device.sh`.
+
+Ese script valida `verificationDebug`. Para ejecutar el mismo arnés contra el
+nucleo real, configure primero el AAR y su hash como se indica abajo y ejecute:
+
+```bash
+cd mobile/android
+./gradlew --no-daemon --no-configuration-cache \
+  connectedProductionDebugAndroidTest
+```
+
+Las expectativas son deliberadamente distintas por variante:
+`verificationDebug` exige backend no disponible, mientras
+`productionDebug` exige backend operativo y habilita verificación tras recibir
+un documento por `ACTION_SEND`.
+
+Para probar operaciones criptográficas reales con material sintético y
+efímero, configure el AAR productivo y ejecute:
+
+```bash
+scripts/mobile/android/test-production-signing.sh
+```
+
+El arnés genera un PKCS#12 RSA de dos días sin datos personales, lo importa en
+la aplicación, crea y verifica firmas PAdES, CAdES separada y XAdES, extrae las
+evidencias y destruye la clave privada, el PKCS#12 y las fixtures privadas. Si
+están disponibles, OpenSSL y `pdfsig` vuelven a comprobar CAdES y PAdES fuera
+del núcleo Android.
+
+El certificado oficial QA de Cliente @firma
+`EIDAS CERTIFICADO PRUEBAS - 99999999R` también puede comprobarse sin
+versionarlo:
+
+```bash
+export GRXFIRMA_ANDROID_OFFICIAL_TEST_P12=/ruta/al/P12-oficial-QA
+export GRXFIRMA_ANDROID_OFFICIAL_TEST_PASSWORD_FILE=/ruta/al/secreto-QA-en-0600
+scripts/mobile/android/test-official-certificate-signing.sh
+```
+
+El arnés solo acepta la huella SHA-256 del certificado oficial QA vigente
+autorizado para la campaña. La contraseña no aparece en código, argumentos ni
+registros: se entrega mediante un fichero regular `0600` (recomendado) o la
+variable `GRXFIRMA_ANDROID_OFFICIAL_TEST_PASSWORD`, se copia en ficheros
+temporales con permisos `0600`, el test la lee con un límite estricto y todas
+las copias se eliminan al terminar. Además de la verificación del núcleo Android, OpenSSL,
+`pdfsig`, `qpdf` y un proceso CLI separado comprueban, cuando están
+disponibles, CAdES, PAdES y la integridad XAdES. La confianza se informa por
+separado y no se deduce únicamente de que la firma criptográfica sea íntegra.
+
+El APK verificable queda en
+`app/build/outputs/apk/verification/debug/`. No debe distribuirse como version
+operativa porque no firma ni verifica.
+
+## Release oficial Android
+
+`versionName` se obtiene de `VERSION.txt`; un
+`GRXFIRMA_ANDROID_VERSION_NAME` explícito solo se admite si coincide
+exactamente. `versionCode` se deriva como `major*1000000 + minor*1000 + patch`,
+con posibilidad de fijarlo mediante `GRXFIRMA_ANDROID_VERSION_CODE` dentro
+del rango Android.
+
+La variante `productionRelease` exige un árbol Git limpio y estos valores
+externos:
+
+- AAR y `GRXFIRMA_ANDROID_CORE_SHA256`;
+- `GRXFIRMA_ANDROID_SOURCE_COMMIT`, igual al `HEAD` completo;
+- almacén, contraseñas y alias de firma Android;
+- `GRXFIRMA_ANDROID_SIGNING_CERT_SHA256`, fijada fuera del repositorio.
+
+El preflight exporta el certificado público del alias mediante `keytool`, sin
+poner la contraseña en argumentos, y compara su huella. El APK incorpora como
+metadatos el `sourceCommit` y SHA-256 del AAR realmente enlazado. El verificador
+de artefactos comprueba de nuevo firma APK, firma AAB estricta, paquete, versión
+y ambos metadatos. Además reconstruye el AAR en un runner sin credenciales,
+reproduce el `llvm-strip --strip-unneeded` de Gradle con el NDK fijado
+28.2.13676358 y compara byte a byte las `libgojni.so` resultantes de sus tres
+ABI con las incluidas en el APK antes de generar `ANDROID-SIGNATURES.json`.
+
+El APK oficial usa APK Signature Scheme v2 y v3 con RSA determinista. v1 queda
+deshabilitado por obsoleto y v4 no forma parte del APK publicable. El gate
+rechaza cualquier combinación distinta. También rechaza el bloque
+`0x504b4453` de información de dependencias que AGP añade cifrado al APK: ese
+bloque no interviene en la integridad v2/v3 y cambia entre construcciones. El
+APK directo ya queda inventariado por el SBOM externo de la release. El AAB
+conserva la información de dependencias para Google Play.
+
+El workflow oficial central construye y publica un APK y un AAB junto a esa
+evidencia. Antes reconstruye ambos dos veces con la misma clave QA fija
+almacenada como secreto externo; los bytes deben coincidir. Las credenciales
+oficiales y QA se crean en el directorio efímero del runner y se eliminan
+siempre. Los artefactos Android entran en el manifiesto y checksums OpenPGP de
+la misma GitHub Release que escritorio; no existe una publicación paralela.
+
+Para reproducir localmente el gate con una identidad QA externa:
+
+```bash
+export GRXFIRMA_ANDROID_SOURCE_COMMIT="$(git rev-parse HEAD)"
+export GRXFIRMA_ANDROID_KEYSTORE=/ruta/qa-release.p12
+export GRXFIRMA_ANDROID_KEYSTORE_PASSWORD=...
+export GRXFIRMA_ANDROID_KEY_ALIAS=...
+export GRXFIRMA_ANDROID_KEY_PASSWORD=...
+export GRXFIRMA_ANDROID_SIGNING_CERT_SHA256=<64-hex>
+scripts/mobile/android/verify-release-reproducibility.sh
+```
+
+## Integracion del nucleo
+
+El contrato binario obligatorio se define en [CORE_CONTRACT.md](CORE_CONTRACT.md).
+El AAR se ubica por defecto en `app/core/grxfirma.aar` y nunca se versiona. Su
+ruta y hash tambien se pueden proporcionar con:
+
+```bash
+export GRXFIRMA_ANDROID_CORE_AAR=/ruta/grxfirma.aar
+export GRXFIRMA_ANDROID_CORE_SHA256=<64-hex>
+```
+
+`scripts/mobile/android/build-core-aar.sh` construye y valida el AAR desde el
+commit actual, no desde cambios locales sin commit. Usa una revision fijada de
+`golang.org/x/mobile`, ejecuta las pruebas de `mobilebind`, genera las tres ABI
+y muestra el SHA-256 que debe aprobar Gradle. La compilacion se realiza sobre
+un `git archive` de `HEAD` y desactiva el sellado VCS de Go dentro de esa copia,
+ademas de eliminar del binario las rutas temporales con `-trimpath`; por ello
+usa una ruta de trabajo estable derivada de los blobs Go de `HEAD` y el AAR es
+reproducible byte a byte con Go 1.26 dentro del mismo entorno de herramientas,
+aunque el origen sea un `worktree` o el commit solo cambie documentación. Dos
+compilaciones simultaneas del mismo núcleo se rechazan para no mezclar sus
+ficheros intermedios:
+
+```bash
+scripts/mobile/android/build-core-aar.sh /tmp/grxfirma.aar
+export GRXFIRMA_ANDROID_CORE_AAR=/tmp/grxfirma.aar
+export GRXFIRMA_ANDROID_CORE_SHA256=$(sha256sum /tmp/grxfirma.aar | cut -d' ' -f1)
+cd mobile/android
+./gradlew --no-daemon --no-configuration-cache assembleProductionDebug
+```
+
+El flujo local es real: importacion PKCS#12, catalogo y seleccion de la
+identidad de sesion, firma CAdES/PAdES (RSA o ECDSA), XAdES (RSA), verificacion
+y guardado SAF. Al verificar una firma separada CAdES, la interfaz permite
+seleccionar el documento original opcional que exige el verificador. No se
+habilitan flujos remotos, lotes, biometria ni persistencia de la clave. Solo se
+conserva una identidad en memoria. La acción visible `Olvidar certificado`,
+descartar el resultado sin guardarlo y el cierre del modelo de pantalla llaman
+a `clearSession()`; terminar el proceso también elimina el estado por diseño.
+No se usa ni se afirma Android Keystore o hardware TEE en este flujo PKCS#12.
+
+Para un PDF, «Firma visible» abre un editor que dibuja la página con
+`PdfRenderer`. El sello se mueve, redimensiona y gira con gestos o botones
+accesibles; el PNG de vista previa procede del mismo compositor Go que firma.
+Se puede aplicar a una página o a todas (hasta 128), elegir opacidad, QR HTTPS,
+texto/color, logo institucional o una imagen PNG/JPEG de hasta 2 MiB. Las preferencias de
+geometría y estilo se guardan sin certificado ni documento; la imagen elegida
+se copia a `noBackupFilesDir`. El AAR expone `sealPreviewJSON` y la firma recibe
+las opciones PAdES existentes del motor.
+
+La prueba instrumentada específica de sello visible reutiliza el certificado
+sintético efímero del arnés productivo; firma a 30° con opacidad del 50 %, abre
+el PDF firmado con `PdfRenderer`, verifica su integridad en el núcleo y ejecuta
+`pdfsig` en el anfitrión cuando está instalado:
+
+```bash
+scripts/mobile/android/test-visible-seal.sh
+```
+
+El PKCS#12 cruza JNI como un buffer mutable, sin la copia Base64 que existía en
+el contrato inicial, y se sobrescribe en ambos lados cuando deja de usarse. La
+contraseña aún debe cruzar como `String` por la API generada por `gobind`: por
+ello la limpieza es de mejor esfuerzo y no se promete borrado perfecto del heap
+administrado.
+
+PAdES usa temporalmente un subdirectorio privado con permisos `0700` dentro de
+`noBackupFilesDir`; los archivos de trabajo se intentan eliminar al terminar y
+la fachada vuelve a limpiar ese directorio al iniciarse y al borrar la sesion.
+La integridad de firma se verifica localmente. Como el nucleo mobile no integra
+todavia las anclas de confianza del sistema, la pantalla separa integridad,
+vigencia del certificado, confianza y revocación. Nunca presenta una validez
+global cuando la confianza es desconocida; la revocacion se limita a evidencias
+embebidas.
+
+La app solicita permisos SAF transitorios de lectura/escritura y no los
+persiste. Al arrancar libera permisos persistentes que pudieran quedar de
+versiones anteriores. Mientras hay una operación o un resultado pendiente de
+guardar, se rechazan nuevos intents y cambios de documento para no mezclar
+sesiones.
+
+## Controles de seguridad
+
+- sin permiso `INTERNET` ni trafico en claro;
+- copias de seguridad y transferencia de datos deshabilitadas;
+- documentos abiertos exclusivamente mediante URI `content://`;
+- permisos SAF de alcance transitorio, sin retención entre sesiones;
+- limite de 32 MiB para documentos y 4 MiB para PKCS#12;
+- contrasenas y bytes sensibles no se guardan en preferencias ni estado;
+- identidad PKCS#12 limitada a una por sesion, con borrado explícito desde la UI;
+- resultados de firma limitados a 48 MiB y borrados de memoria al guardarlos;
+- errores del nucleo saneados antes de cruzar el enlace JNI;
+- ayuda local en español e inglés, estados de verificación separados y
+  encabezados accesibles para lector de pantalla;
+- `FLAG_SECURE` activo en producción para impedir capturas del documento,
+  certificados, contraseña y resultados;
+- release bloqueada sin AAR fijado por hash y firma externa.

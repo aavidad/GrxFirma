@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <policyNamespaces>
+    <target prefix="grxfirma" namespace="GrxFirma.Policies.GrxFirma" />
+    <using prefix="windows" namespace="Microsoft.Policies.Windows" />
+  </policyNamespaces>
+  <resources minRequiredRevision="1.0" />
+  <supportedOn>
+    <definitions>
+      <definition name="SUPPORTED_GrxFirma_0_0_90" displayName="$(string.SUPPORTED_GrxFirma_0_0_90)" />
+    </definitions>
+  </supportedOn>
+  <categories>
+    <category name="GrxFirma" displayName="$(string.Cat_GrxFirma)" />
+    <category name="Origenes" displayName="$(string.Cat_Origenes)">
+      <parentCategory ref="GrxFirma" />
+    </category>
+    <category name="Operacion" displayName="$(string.Cat_Operacion)">
+      <parentCategory ref="GrxFirma" />
+    </category>
+    <category name="Compatibilidad" displayName="$(string.Cat_Compatibilidad)">
+      <parentCategory ref="GrxFirma" />
+    </category>
+  </categories>
+  <policies>
+    <!-- Orígenes de confianza -->
+    <policy name="AllowedDomains" class="Machine" displayName="$(string.AllowedDomains)" explainText="$(string.AllowedDomains_Help)" presentation="$(presentation.AllowedDomains)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Origenes" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <elements>
+        <multiText id="AllowedDomains_List" valueName="allowed_domains" required="true" />
+      </elements>
+    </policy>
+    <policy name="DominiosDeConfianza" class="Machine" displayName="$(string.DominiosDeConfianza)" explainText="$(string.DominiosDeConfianza_Help)" presentation="$(presentation.DominiosDeConfianza)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Origenes" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <elements>
+        <multiText id="DominiosDeConfianza_List" valueName="dominios_de_confianza" required="true" />
+      </elements>
+    </policy>
+    <policy name="TofuHabilitado" class="Machine" displayName="$(string.TofuHabilitado)" explainText="$(string.TofuHabilitado_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="tofu_habilitado">
+      <parentCategory ref="Origenes" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+
+    <!-- Operación -->
+    <policy name="WebsocketHabilitado" class="Machine" displayName="$(string.WebsocketHabilitado)" explainText="$(string.WebsocketHabilitado_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="websocket_habilitado">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="WebsocketPermitido" class="Machine" displayName="$(string.WebsocketPermitido)" explainText="$(string.WebsocketPermitido_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="websocket_permitido">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="RestHabilitado" class="Machine" displayName="$(string.RestHabilitado)" explainText="$(string.RestHabilitado_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="rest_habilitado">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="NivelLog" class="Machine" displayName="$(string.NivelLog)" explainText="$(string.NivelLog_Help)" presentation="$(presentation.NivelLog)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <elements>
+        <enum id="NivelLog_Valor" valueName="nivel_log" required="true">
+          <item displayName="$(string.NivelLog_Error)"><value><string>error</string></value></item>
+          <item displayName="$(string.NivelLog_Warn)"><value><string>warn</string></value></item>
+          <item displayName="$(string.NivelLog_Info)"><value><string>info</string></value></item>
+          <item displayName="$(string.NivelLog_Debug)"><value><string>debug</string></value></item>
+        </enum>
+      </elements>
+    </policy>
+    <policy name="DirectorioP12" class="Machine" displayName="$(string.DirectorioP12)" explainText="$(string.DirectorioP12_Help)" presentation="$(presentation.DirectorioP12)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <elements>
+        <text id="DirectorioP12_Ruta" valueName="directorio_p12" required="true" maxLength="260" />
+      </elements>
+    </policy>
+    <policy name="TimeoutOperacion" class="Machine" displayName="$(string.TimeoutOperacion)" explainText="$(string.TimeoutOperacion_Help)" presentation="$(presentation.TimeoutOperacion)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <elements>
+        <decimal id="TimeoutOperacion_Segundos" valueName="timeout_operacion_segundos" required="true" minValue="5" maxValue="3600" />
+      </elements>
+    </policy>
+    <policy name="MaxTamanoDocumento" class="Machine" displayName="$(string.MaxTamanoDocumento)" explainText="$(string.MaxTamanoDocumento_Help)" presentation="$(presentation.MaxTamanoDocumento)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <elements>
+        <decimal id="MaxTamanoDocumento_Bytes" valueName="max_tamano_documento_bytes" required="true" minValue="1048576" maxValue="4294967295" />
+      </elements>
+    </policy>
+
+    <!-- Excepciones de compatibilidad: rebajan la seguridad -->
+    <policy name="PermitirDESLegacy" class="Machine" displayName="$(string.PermitirDESLegacy)" explainText="$(string.PermitirDESLegacy_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_des_legacy">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="PermitirSHA1Legacy" class="Machine" displayName="$(string.PermitirSHA1Legacy)" explainText="$(string.PermitirSHA1Legacy_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_sha1_legacy">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="PermitirCMSAESECBLegacy" class="Machine" displayName="$(string.PermitirCMSAESECBLegacy)" explainText="$(string.PermitirCMSAESECBLegacy_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_cms_aes_ecb_legacy">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="PermitirOrigenVacio" class="Machine" displayName="$(string.PermitirOrigenVacio)" explainText="$(string.PermitirOrigenVacio_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_origen_vacio">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="PermitirRutasDirectas" class="Machine" displayName="$(string.PermitirRutasDirectas)" explainText="$(string.PermitirRutasDirectas_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_rutas_directas_protocolo">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="AprobacionAutomaticaNativehost" class="Machine" displayName="$(string.AprobacionAutomaticaNativehost)" explainText="$(string.AprobacionAutomaticaNativehost_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="aprobacion_automatica_nativehost">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+  </policies>
+</policyDefinitions>

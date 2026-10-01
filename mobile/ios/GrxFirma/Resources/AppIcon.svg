@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="GrxFirma · Trazo">
+  <title>GrxFirma · Trazo</title>
+  <rect width="256" height="256" fill="#173a4e"/>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="#173a4e"/>
+  <g fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M89 89 A31 31 0 1 0 89 137 V116 H73"/>
+    <path d="M111 140 V87 H134 C154 87 154 115 134 115 H111 M132 115 L154 140"/>
+  </g>
+  <path d="M170 88 L207 140 M207 88 L170 140" fill="none" stroke="#accb49" stroke-width="15" stroke-linecap="round"/>
+  <path d="M55 172 C87 160 106 183 127 170 C144 160 155 168 168 176 C182 184 195 177 207 164" fill="none" stroke="#accb49" stroke-width="11" stroke-linecap="round"/>
+  <path d="M204 165 L217 153 L212 173 Z" fill="#accb49"/>
+</svg>

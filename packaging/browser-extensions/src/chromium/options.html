@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. Autoría: Alberto Avidad Fernández. Licencia: EUPL 1.2 o posterior. SPDX-License-Identifier: EUPL-1.2 -->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title data-i18n="optionsTitle"></title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="options">
+  <main class="shell">
+    <h1 data-i18n="optionsTitle"></h1>
+    <p data-i18n="optionsIntro"></p>
+    <p data-i18n="optionsIdentityScope"></p>
+    <form id="addSiteForm">
+      <label for="siteInput" data-i18n="optionsSiteLabel"></label>
+      <div class="input-row">
+        <input id="siteInput" name="site" type="text" required autocomplete="off" spellcheck="false" data-i18n-placeholder="optionsSitePlaceholder" aria-describedby="siteHelp">
+        <button type="submit" data-i18n="optionsAddSite"></button>
+      </div>
+      <p id="siteHelp" class="muted" data-i18n="optionsSiteHelp"></p>
+    </form>
+    <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+    <h2 data-i18n="optionsSitesHeading"></h2>
+    <ul id="siteList" class="site-list"></ul>
+  </main>
+  <script src="compat.js"></script>
+  <script src="trusted_sites.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

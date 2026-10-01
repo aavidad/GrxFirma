@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "descripcion": "Corpus de regresión offline: PDF sintético propio, documentos de ejemplo y firmas CAdES/XAdES/PAdES con el certificado de pruebas de la FNMT.",
+  "fixtures": [
+    "samples/2.txt",
+    "samples/2.xml",
+    "samples/2.pdf",
+    "samples/2_txt_signed.csig",
+    "samples/2_xml_signed.xsig",
+    "samples/2_signed.pdf",
+    "samples/2_txt_signed_signed.csig",
+    "samples/2_xml_signed_signed.xsig",
+    "samples/2_signed_signed.pdf",
+    "samples/multiple_pages.pdf"
+  ]
+}

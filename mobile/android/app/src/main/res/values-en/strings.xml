@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<resources>
+    <string name="app_name">GrxFirma</string>
+    <string name="screen_title">Sign and verify</string>
+    <string name="screen_subtitle">Local operation on this device</string>
+
+    <string name="backend_ready_title">Signature core available</string>
+    <string name="backend_unavailable_title">Signature core unavailable</string>
+    <string name="backend_ready_detail">The mobile contract and cryptographic services have been checked.</string>
+    <string name="backend_unavailable_detail">This build cannot use the cryptographic core. Install a valid operational build.</string>
+    <string name="backend_verification_detail">Verification build: the interface and system pickers work, but cryptographic operations are disabled.</string>
+    <string name="backend_loading_detail">Checking the cryptographic core…</string>
+    <string name="open_help">Help and security</string>
+    <string name="help_title">Using GrxFirma on Android</string>
+    <string name="help_content">1. Select a document in Android or share it with GrxFirma.\n\n2. To sign, select a modern PKCS#12 file (AES and SHA-256) containing a currently valid certificate, then enter its password. If Android cannot open an old PKCS#12 file, re-export it in modern format from the store or application that created it. Renew an expired certificate before signing. The identity is held only in this session’s memory: this version does not claim to use Android Keystore or biometrics. Tap “Forget certificate” when finished.\n\n3. Choose automatic, PAdES, CAdES or XAdES format and confirm signing. The result is saved through Android’s secure system picker.\n\n4. Verification reports cryptographic integrity, certificate validity, chain trust and revocation availability separately. The application has no Internet access: it can only consider revocation evidence embedded in the signature and does not perform an online check.\n\nThe screen accepts one document per operation. It does not advertise batches or web integration. Screenshots are blocked in the production build.</string>
+    <string name="help_close">Close</string>
+
+    <string name="document_section">Document</string>
+    <string name="document_helper">Select the document you want to sign or verify.</string>
+    <string name="select_document">Select document</string>
+    <string name="no_document">No document selected</string>
+    <string name="document_summary">%1$s · %2$s · %3$s</string>
+    <string name="original_document_helper">To verify a detached signature such as CAdES, also select the original document. Leave this empty for signatures that already contain the document.</string>
+    <string name="select_original_document">Select original for detached signature</string>
+    <string name="no_original_document">No original document selected (optional)</string>
+    <string name="clear_original_document">Remove original document</string>
+
+    <string name="certificate_section">Signing certificate</string>
+    <string name="certificate_helper">Import a protected PKCS#12 file for this session. The key is not stored persistently.</string>
+    <string name="select_pkcs12">Select PKCS#12 file</string>
+    <string name="no_certificate_file">No PKCS#12 file selected</string>
+    <string name="certificate_password">PKCS#12 password</string>
+    <string name="certificate_password_helper">The password is used during import and is not stored persistently.</string>
+    <string name="import_certificate">Import certificate</string>
+    <string name="forget_certificate">Forget certificate and clear session</string>
+    <string name="no_certificate">No certificate prepared</string>
+    <string name="certificate_summary">%1$s\nIssuer: %2$s\nFingerprint: %3$s</string>
+
+    <string name="operation_section">Operation</string>
+    <string name="signature_format">Signature format</string>
+    <string name="format_auto">Automatic</string>
+    <string name="format_pades">PAdES</string>
+    <string name="format_cades">CAdES</string>
+    <string name="format_xades">XAdES</string>
+    <string name="sign_document">Sign document</string>
+    <string name="seal_visible">Visible signature</string>
+    <string name="seal_edit">Place and configure seal</string>
+    <string name="seal_edit_hint">Drag the seal, resize it from the corner, or rotate it with the handle. You can also use the buttons.</string>
+    <string name="seal_canvas_description">Page preview with the seal rotated %1$d°. Use the buttons to adjust the seal with TalkBack.</string>
+    <string name="seal_page_placeholder">Page</string>
+    <string name="seal_page_number">Page %1$d of %2$d</string>
+    <string name="seal_previous">Previous</string>
+    <string name="seal_next">Next</string>
+    <string name="seal_accessible_controls">Position and rotation controls</string>
+    <string name="seal_left">←</string>
+    <string name="seal_right">→</string>
+    <string name="seal_up">↑</string>
+    <string name="seal_down">↓</string>
+    <string name="seal_move_left">Move seal left</string>
+    <string name="seal_move_right">Move seal right</string>
+    <string name="seal_move_up">Move seal up</string>
+    <string name="seal_move_down">Move seal down</string>
+    <string name="seal_smaller">− size</string>
+    <string name="seal_larger">+ size</string>
+    <string name="seal_rotate_left">↶ 15°</string>
+    <string name="seal_rotate_right">↻ 15°</string>
+    <string name="seal_opacity">Seal opacity (0–100%)</string>
+    <string name="seal_qr">Add verification QR</string>
+    <string name="seal_qr_address">QR HTTPS address</string>
+    <string name="seal_style">Style and image</string>
+    <string name="seal_logo_none">No logo</string>
+    <string name="seal_logo_institutional">Institutional logo</string>
+    <string name="seal_logo_custom">Custom image</string>
+    <string name="seal_choose_image">Select image</string>
+    <string name="seal_show_text">Show signature details</string>
+    <string name="seal_text_color">Text color</string>
+    <string name="seal_color_black">Black</string>
+    <string name="seal_color_blue">Blue</string>
+    <string name="seal_color_gray">Dark gray</string>
+    <string name="seal_image">Seal image</string>
+    <string name="seal_all_pages">Apply to all pages</string>
+    <string name="seal_one_page">This page only</string>
+    <string name="seal_preview_loading">Updating actual seal preview…</string>
+    <string name="seal_preview_ready">Actual seal preview updated</string>
+    <string name="seal_preview_error">The seal preview could not be generated. Check the seal before applying it.</string>
+    <string name="seal_apply">Apply seal</string>
+    <string name="seal_pdf_error">The PDF could not be displayed. Select another valid file.</string>
+    <string name="seal_certificate_required">Import a certificate first to preview the actual seal.</string>
+    <string name="seal_pdf_only">Visible signatures require PAdES and a PDF document.</string>
+    <string name="seal_invalid_settings">Check the seal position, size, image, and HTTPS address.</string>
+    <string name="seal_image_error">The image could not be used. Select a PNG or JPEG up to 2 MiB.</string>
+    <string name="verify_document">Verify signature</string>
+    <string name="operation_in_progress">Processing operation…</string>
+
+    <string name="result_section">Result</string>
+    <string name="result_idle">No operation has been run yet.</string>
+    <string name="result_success">Operation completed</string>
+    <string name="result_error">The operation could not be completed</string>
+    <string name="result_signed">%1$s signature created with %2$s. Select where to save the result.</string>
+    <string name="verification_result_title">Verification result</string>
+    <string name="verification_integrity">Cryptographic integrity: %1$s</string>
+    <string name="verification_certificate">Certificate validity and usage: %1$s</string>
+    <string name="verification_trust">Chain trust: %1$s</string>
+    <string name="verification_revocation">Revocation: %1$s</string>
+    <string name="verification_format">Detected format: %1$s</string>
+    <string name="verification_status_valid">valid</string>
+    <string name="verification_status_invalid">invalid</string>
+    <string name="verification_status_warning">warnings found</string>
+    <string name="verification_status_unknown">not checked</string>
+    <string name="revocation_embedded_only">embedded evidence only; online checking unavailable</string>
+    <string name="revocation_online">online checking available</string>
+    <string name="revocation_not_available">unavailable</string>
+    <string name="result_certificate_imported">Certificate prepared: %1$s</string>
+    <string name="result_certificate_forgotten">Certificate forgotten and cryptographic session cleared.</string>
+    <string name="result_saved">Signed document saved.</string>
+    <string name="result_save_cancelled">Save cancelled; the result and session certificate have been discarded.</string>
+    <string name="retry_save">Retry save</string>
+    <string name="discard_pending_output">Discard signed result</string>
+
+    <string name="error_document_required">Select a document first.</string>
+    <string name="error_certificate_required">Select or import a certificate first.</string>
+    <string name="error_password_required">Enter the PKCS#12 password.</string>
+    <string name="error_invalid_shared_intent">The shared document could not be opened.</string>
+    <string name="error_multiple_documents">This screen accepts one document per operation.</string>
+    <string name="error_picker_unavailable">Android has no compatible file picker available.</string>
+    <string name="error_save_picker_unavailable">The destination picker could not be opened. The signed result remains in memory: retry saving or discard it.</string>
+    <string name="error_save_picker_cancelled">Destination selection did not finish. The signed result remains in memory: retry saving or discard it.</string>
+    <string name="error_save_failed_keep_output">The result could not be saved. The provider may have created a partial file, but the original document was not modified. The signed result remains in memory: retry saving or discard it.</string>
+    <string name="error_operation_in_progress">Finish or cancel the current operation and save before opening another document.</string>
+    <string name="error_document_access">Android could not access the document. Select it again and check its permissions.</string>
+    <string name="error_core_unavailable">The cryptographic core is unavailable in this build.</string>
+    <string name="error_core_operation">The cryptographic operation failed. Check the document and certificate, then try again.</string>
+    <string name="error_pkcs12_password_or_legacy">The PKCS#12 file could not be opened. Check its password. If it uses an old format, re-export it as modern PKCS#12 (AES and SHA-256).</string>
+    <string name="error_certificate_not_current">The certificate is not currently valid. Use a valid certificate; renew it if it has expired.</string>
+    <string name="error_signing_identity_unsupported">The certificate or its key is not suitable for signing on Android. Use a signing certificate with RSA of at least 2048 bits or ECDSA of at least 256 bits.</string>
+    <string name="error_operation_failed">The operation failed. Review your selection and try again.</string>
+
+    <string name="size_bytes">%1$d B</string>
+    <string name="size_kib">%1$.1f KiB</string>
+    <string name="size_mib">%1$.1f MiB</string>
+    <string name="unknown_value">Unavailable</string>
+
+    <plurals name="verification_signers">
+        <item quantity="one">%1$d signer detected</item>
+        <item quantity="other">%1$d signers detected</item>
+    </plurals>
+    <plurals name="verification_warnings">
+        <item quantity="one">%1$d technical warning; see Help</item>
+        <item quantity="other">%1$d technical warnings; see Help</item>
+    </plurals>
+    <plurals name="verification_errors">
+        <item quantity="one">%1$d verification error</item>
+        <item quantity="other">%1$d verification errors</item>
+    </plurals>
+</resources>

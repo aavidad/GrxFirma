@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>GrxFirma Native - Popup</title>
+    <style>
+        body {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 30px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f9fafb;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            color: #2563eb;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin: 0 0 15px 0;
+            color: #1f2937;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .status.connected {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status.disconnected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            background: #2563eb;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #certList {
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .cert-item {
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .cert-item strong {
+            color: #1f2937;
+        }
+
+        .cert-source {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        .cert-source.dnie {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .cert-source.system {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+        <img src="../icons/Logo-Color.png" alt="Diputación de Granada" style="height: 50px; width: auto;">
+        <div style="flex: 1;">
+            <h1 style="margin: 0;">🔐 GrxFirma Dipgra</h1>
+        </div>
+
+        <!-- Icon-only buttons -->
+        <button id="showHelp"
+            style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px; margin: 0; color: #6b7280; transition: color 0.2s;">❓</button>
+        <button id="openOptions"
+            style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px; margin: 0; color: #6b7280; transition: color 0.2s;">⚙️</button>
+    </div>
+
+    <div id="status" class="status disconnected">
+        ⚠️ Conectando con native host...
+    </div>
+
+    <button id="getCerts">🔄 Recargar Certificados</button>
+
+    <div id="certList"></div>
+
+    <!-- Help Modal -->
+    <div id="helpModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div
+            style="background: white; margin: 50px auto; padding: 20px; max-width: 500px; border-radius: 10px; max-height: 80vh; overflow-y: auto;">
+            <h2 style="margin-top: 0; color: #2563eb;">📚 Ayuda - GrxFirma Dipgra</h2>
+
+            <h3 style="font-size: 14px; color: #059669;">🔐 Firmar un documento</h3>
+            <ol style="font-size: 12px; line-height: 1.6;">
+                <li>Selecciona un certificado de la lista</li>
+                <li>Elige el formato de firma (PAdES para PDFs)</li>
+                <li>Haz clic en "Seleccionar Documento"</li>
+                <li>Pulsa "Firmar Documento"</li>
+                <li>El archivo firmado se descargará automáticamente</li>
+            </ol>
+
+            <h3 style="font-size: 14px; color: #059669;">✔️ Verificar una firma</h3>
+            <ol style="font-size: 12px; line-height: 1.6;">
+                <li>Selecciona el formato de validación</li>
+                <li>Para PAdES: selecciona solo el PDF firmado</li>
+                <li>Para otros: selecciona documento original y archivo .p7s</li>
+                <li>Pulsa "Verificar Firma"</li>
+            </ol>
+
+            <h3 style="font-size: 14px; color: #dc2626;">⚠️ Solución de problemas</h3>
+            <ul style="font-size: 12px; line-height: 1.6;">
+                <li><strong>No aparecen certificados:</strong> Asegúrate de tener certificados instalados en el sistema
+                    (DNIe o smart card)</li>
+                <li><strong>Error al firmar:</strong> Verifica que el programa nativo está instalado correctamente</li>
+                <li><strong>Archivos grandes lentos:</strong> Es normal, se envían por partes para mayor seguridad</li>
+            </ul>
+
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+            <h3 style="font-size: 14px; color: #7c3aed; margin-top: 15px;">ℹ️ Acerca de</h3>
+
+            <p style="font-size: 13px; line-height: 1.6; margin: 10px 0;">
+                <strong>Versión:</strong> 2.0.0<br>
+                <strong>Desarrollado por:</strong> Alberto Avidad Fernández<br>
+                <strong>Departamento:</strong> Asistencia Informática a Municipios<br>
+                <strong>Organización:</strong> Diputación Provincial de Granada
+            </p>
+
+            <p style="font-size: 12px; color: #6b7280; line-height: 1.6; margin-top: 10px;">
+                Esta extensión permite firmar y verificar documentos electrónicamente usando certificados del sistema
+                (DNIe, certificados digitales).
+            </p>
+
+            <p style="font-size: 11px; color: #9ca3af; margin-top: 10px;">
+                © 2024 Diputación Provincial de Granada
+            </p>
+
+            <button id="closeHelp" style="width: 100%; margin-top: 15px; background: #6b7280;">Cerrar</button>
+        </div>
+    </div>
+
+    <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+    <h2 style="font-size: 16px; margin: 15px 0 10px 0;">📝 Firmar Documento</h2>
+
+    <div style="margin: 10px 0;">
+        <label style="display: block; font-size: 12px; margin-bottom: 5px;">Certificado:</label>
+        <select id="certSelect" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+            <option value="">Seleccionar certificado...</option>
+        </select>
+    </div>
+
+    <div style="margin: 10px 0;">
+        <label style="display: block; font-size: 12px; margin-bottom: 5px;">Formato:</label>
+        <select id="formatSelect" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+            <option value="pades">PAdES (PDF)</option>
+            <option value="xades">XAdES (XML)</option>
+            <option value="cades">CAdES (Binario)</option>
+        </select>
+    </div>
+
+    <!-- Password input removed as it is handled automatically -->
+
+    <div style="margin: 10px 0;">
+        <input type="file" id="fileInput" style="display: none;">
+        <label for="fileInput"
+            style="display: inline-block; width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 5px; background: #2563eb; color: white; font-size: 14px; cursor: pointer; text-align: center;">
+            📄 Seleccionar Documento
+        </label>
+        <div id="fileName"
+            style="margin-top: 5px; font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div id="progressContainer" style="display: none; margin: 10px 0;">
+        <div style="width: 100%; background-color: #e5e7eb; border-radius: 4px; height: 10px; overflow: hidden;">
+            <div id="progressBar"
+                style="width: 0%; height: 100%; background-color: #2563eb; transition: width 0.3s ease;"></div>
+        </div>
+        <div id="progressText" style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 2px;">0%</div>
+    </div>
+
+    <button id="signDocument" style="background: #dc2626;">✍️ Firmar Documento</button>
+
+    <div id="signResult" style="margin-top: 10px;"></div>
+
+    <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+    <h2 style="font-size: 16px; margin: 15px 0 10px 0;">🔍 Verificar Firma</h2>
+
+    <div style="margin: 10px 0;">
+        <label style="display: block; font-size: 12px; margin-bottom: 5px;">Formato de Validación:</label>
+        <select id="verifyFormat" style="width: 100%; padding: 5px; border: 1px solid #d1d5db; border-radius: 4px;">
+            <option value="pades">PAdES (PDF Firmado)</option>
+            <option value="cades">CAdES/XAdES (Firma Separada)</option>
+        </select>
+    </div>
+
+    <div style="margin: 10px 0;">
+        <label id="verifyOriginalLabel" style="display: block; font-size: 12px; margin-bottom: 5px;">PDF
+            Firmado:</label>
+        <input type="file" id="verifyOriginalFile" style="display: none;">
+        <button id="selectOriginalFile" style="background: #059669; font-size: 12px; padding: 6px 12px;">📄 Seleccionar
+            archivo</button>
+        <div id="originalFileName" style="font-size: 11px; margin-top: 5px; color: #6b7280;"></div>
+    </div>
+
+    <div id="verifySignatureContainer" style="margin: 10px 0; display: none;">
+        <label style="display: block; font-size: 12px; margin-bottom: 5px;">Archivo de firma (.p7s):</label>
+        <input type="file" id="verifySignatureFile" accept=".p7s" style="display: none;">
+        <button id="selectSignatureFile" style="background: #059669; font-size: 12px; padding: 6px 12px;">📝 Seleccionar
+            firma (.p7s)</button>
+        <div id="signatureFileName" style="font-size: 11px; margin-top: 5px; color: #6b7280;"></div>
+    </div>
+
+    <button id="verifySignature" style="background: #2563eb;">✓ Verificar Firma</button>
+
+    <div id="verifyResult" style="margin-top: 10px;"></div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

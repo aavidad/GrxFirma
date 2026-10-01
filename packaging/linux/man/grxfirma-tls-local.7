@@ -1,0 +1,106 @@
+.TH GRXFIRMA-TLS-LOCAL 7 "26 julio 2026" "GrxFirma" "TLS local"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-tls-local \- certificados y confianza TLS local en GrxFirma
+.SH DESCRIPCIÓN
+Esta página explica qué significa el material TLS local de \fBGrxFirma\fR y por qué
+aparece en algunas operaciones del binario principal.
+.SH QUÉ ES EL ALMACÉN TLS LOCAL
+Es el conjunto de certificados y claves que \fBGrxFirma\fR genera o guarda para sus
+servicios locales HTTPS/WSS.
+.PP
+No es el certificado personal del usuario para firmar documentos.
+Es material técnico para cifrar y autenticar conexiones locales en loopback.
+.SH PARA QUÉ SIRVE
+Se usa cuando \fBGrxFirma\fR expone servicios locales, por ejemplo:
+.IP \(bu 2
+REST local,
+.IP \(bu 2
+WebSocket local seguro,
+.IP \(bu 2
+integraciones que requieren HTTPS en localhost.
+.SH CERTIFICADO DE FIRMA VS CERTIFICADO TLS
+.TP
+.B Certificado de firma
+Identifica al firmante y se usa para firmar documentos.
+.TP
+.B Certificado TLS local
+Protege el canal entre cliente y servicio local.
+.PP
+Son cosas distintas. Un fallo en TLS local no implica que el certificado personal
+de firma sea inválido.
+.SH OPERACIONES DISPONIBLES
+.TP
+.B estado-almacen-tls
+Muestra cuántos artefactos TLS locales existen y dónde se encuentran.
+.TP
+.B limpiar-almacen-tls
+Elimina artefactos TLS locales generados por la aplicación.
+.TP
+.B estado-confianza-tls
+Resume si la confianza TLS local parece instalada correctamente.
+.TP
+.B generar-certificados-tls
+Genera certificados locales para servicios loopback.
+.TP
+.B instalar-confianza-tls
+Intenta instalar la confianza local en la plataforma cuando está soportado.
+.SH CUÁNDO CONVIENE USARLO
+.IP \(bu 2
+Cuando una integración local por HTTPS o WSS falla por confianza.
+.IP \(bu 2
+Cuando necesitas regenerar el material local.
+.IP \(bu 2
+Cuando quieres diagnosticar si el almacén local está corrupto o incompleto.
+.SH RIESGOS Y RESPONSABILIDAD
+Instalar confianza TLS local modifica el entorno de confianza del usuario o del sistema
+según la plataforma. Debe hacerse con criterio.
+.PP
+Limpiar el almacén TLS puede romper integraciones locales hasta regenerar e instalar
+de nuevo la confianza.
+.SH COMANDOS ÚTILES
+.TP
+.B grxfirma -estado-almacen-tls
+Muestra el estado del almacén TLS local.
+.TP
+.B grxfirma -limpiar-almacen-tls
+Limpia el material TLS local.
+.TP
+.B grxfirma -generar-certificados-tls
+Genera certificados locales.
+.TP
+.B grxfirma -instalar-confianza-tls
+Instala la confianza local cuando está soportado.
+.SH NAVEGADORES MODERNOS
+Los permisos de acceso a red local y la confianza TLS son controles distintos.
+Firefox 153 y versiones posteriores protegen por sitio el acceso a aplicaciones
+del mismo equipo (\fBloopback-network\fR) y a dispositivos de la red privada
+(\fBlocal-network\fR). Chrome/Chromium aplica controles equivalentes en versiones
+recientes.
+.PP
+El canal de GrxFirma en \fBlocalhost\fR o \fB127.0.0.1\fR necesita el permiso
+de loopback del portal. El permiso de red local solo debe concederse si el portal
+aprobado lo solicita porque prueba ambos espacios de direcciones.
+.PP
+Después de instalar, regenerar o rotar la CA local, cierre por completo todas las
+ventanas y procesos del navegador y vuelva a abrirlo. Abrir solo una pestaña nueva
+puede no recargar el almacén de confianza.
+.SH DIAGNÓSTICO SEGURO
+Un error \fBLocal Network Access\fR o de permiso denegado apunta al permiso por
+sitio. \fBunknown issuer\fR o \fBcertificate unknown\fR apunta a la confianza
+TLS. \fBconnection refused\fR apunta a que el servicio local no está escuchando.
+Un fallo posterior a establecer WSS debe investigarse como error de la operación.
+.PP
+No acepte advertencias de certificado ni importe raíces obtenidas del portal.
+No desactive TLS, los controles \fBnetwork.lna.*\fR de Firefox ni la seguridad
+equivalente de Chrome. Restablezca o conceda únicamente el permiso del portal
+afectado. En equipos gestionados, limite las políticas corporativas a orígenes
+aprobados.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-firmas (7),
+.BR grxfirma-confianza (7)

@@ -1,0 +1,99 @@
+.TH GRXFIRMA-FIRMAS 7 "20 marzo 2026" "GrxFirma" "Conceptos de firma"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-firmas \- conceptos de firma electrónica en GrxFirma
+.SH DESCRIPCIÓN
+Esta página explica, en castellano y sin depender del código fuente, los conceptos
+más habituales de firma electrónica que aparecen en \fBGrxFirma\fR.
+.SH QUÉ ES FIRMAR
+Firmar un documento significa generar una evidencia criptográfica que vincula:
+.IP \(bu 2
+el documento o sus bytes relevantes,
+.IP \(bu 2
+un certificado de firma,
+.IP \(bu 2
+y una clave privada bajo control del firmante.
+.PP
+La firma no consiste solo en "adjuntar un certificado". Implica calcular resúmenes,
+firmar material preparado para ello y, según el formato, incrustar o devolver el
+resultado en una estructura concreta.
+.SH FASES HABITUALES DE UNA FIRMA
+En términos prácticos, una operación de firma suele tener estas fases:
+.IP "1." 4
+\fBPreparación\fR. Se lee el documento, se decide el formato y se selecciona el certificado.
+.IP "2." 4
+\fBPrefirma\fR. En algunos protocolos remotos el servidor prepara los datos que deben
+firmarse localmente.
+.IP "3." 4
+\fBFirma local\fR. La clave privada firma el material criptográfico preparado.
+.IP "4." 4
+\fBPostfirma\fR. El resultado local se reinyecta en el formato final.
+.IP "5." 4
+\fBEntrega o almacenamiento\fR. Se guarda el documento firmado o se sube al portal remoto.
+.PP
+En flujos de portales legacy estas fases pueden verse como \fBpresign\fR, \fBsign\fR y
+\fBpostsign\fR.
+.SH TIPOS DE OPERACIÓN
+.TP
+.B Firmar
+Genera una firma nueva sobre un documento.
+.TP
+.B Cofirmar
+Añade una firma adicional a un documento ya firmado, sin sustituir la anterior.
+.TP
+.B Contrafirmar
+Firma una firma existente o una parte de su estructura, no necesariamente el documento base.
+.SH FIRMA ADJUNTA Y FIRMA DESACOPLADA
+.TP
+.B Firma adjunta
+El contenido firmado viaja dentro del resultado o queda embebido en él.
+Ejemplo típico: muchos PDFs firmados.
+.TP
+.B Firma desacoplada
+La firma viaja separada del documento original. Para verificarla suele necesitarse
+el documento original además del fichero de firma.
+.PP
+En la CLI de \fBGrxFirma\fR, cuando una verificación requiere el documento original,
+se usa \fB-documento-original\fR.
+.SH FORMATOS MÁS HABITUALES
+.TP
+.B CAdES
+Firma basada en CMS/PKCS#7, habitual para binarios y firmas detached.
+.TP
+.B XAdES
+Firma XML. Se usa cuando el documento o el ecosistema gira alrededor de XML.
+.TP
+.B PAdES
+Firma PDF. Suele permitir sello visible y validación directa por lectores PDF.
+.SH SELLO VISIBLE
+El sello visible es una representación gráfica dentro del PDF. No sustituye a la
+firma criptográfica: solo la acompaña visualmente.
+.PP
+Mover el sello visible no equivale a mover la firma criptográfica. El sello es
+presentación; la validez la determina la estructura firmada del PDF.
+.SH TIMESTAMP Y EXTENSIONES AVANZADAS
+Algunas variantes avanzadas añaden sellado de tiempo o evidencias de revocación.
+.IP \(bu 2
+\fBT\fR: añade sello de tiempo.
+.IP \(bu 2
+\fBLT/LTA\fR: añaden evidencias para validación a largo plazo.
+.PP
+Estas variantes no cambian la idea base de firmar, pero sí el nivel de evidencia
+que se conserva a futuro.
+.SH ERRORES COMUNES
+.IP \(bu 2
+Firmar con un certificado distinto del esperado por el usuario o el portal.
+.IP \(bu 2
+Intentar verificar una firma desacoplada sin aportar el documento original.
+.IP \(bu 2
+Confundir sello visible con validez criptográfica.
+.IP \(bu 2
+Usar un formato distinto del que espera la plataforma remota.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-confianza (7),
+.BR grxfirma-tls-local (7)

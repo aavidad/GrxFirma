@@ -1,0 +1,146 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<Page
+    x:Class="GrxFirma.WinUI.Views.AboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:GrxFirma.WinUI.Controls"
+    Loaded="OnLoaded"
+    Unloaded="OnUnloaded"
+    Background="{ThemeResource AppPageBackgroundBrush}">
+
+    <ScrollViewer
+        AutomationProperties.Name="Información de GrxFirma"
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="Narrow">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="Wide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="760" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="LayoutRoot.Padding" Value="32" />
+                        <Setter Target="AboutActions.Orientation" Value="Horizontal" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <Grid
+            x:Name="LayoutRoot"
+            MaxWidth="900"
+            Padding="16"
+            HorizontalAlignment="Stretch"
+            RowSpacing="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Spacing="8">
+                <TextBlock
+                    AutomationProperties.HeadingLevel="Level1"
+                    Style="{StaticResource PageTitleTextStyle}"
+                    Text="{x:Bind ViewModel.Title}" />
+                <TextBlock
+                    Style="{StaticResource PageSubtitleTextStyle}"
+                    Text="{x:Bind ViewModel.Description}" />
+            </StackPanel>
+
+            <Border Grid.Row="1" Style="{StaticResource AppCardStyle}">
+                <StackPanel Spacing="14">
+                    <Image
+                        MaxWidth="220"
+                        Height="112"
+                        HorizontalAlignment="Left"
+                        AutomationProperties.Name="Logotipo de GrxFirma"
+                        Source="ms-appx:///Assets/logo-dipgra.png"
+                        Stretch="Uniform" />
+                    <TextBlock
+                        AutomationProperties.HeadingLevel="Level2"
+                        Style="{StaticResource SectionTitleTextStyle}"
+                        Text="GrxFirma" />
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Text="{x:Bind ViewModel.VersionText}"
+                        TextWrapping="Wrap" />
+                    <Button x:Name="ReleaseNotesButton" MinHeight="40"
+                        Click="OnReleaseNotesClick"
+                        TabIndex="0" />
+                    <TextBlock
+                        Text="Autor: Alberto Avidad Fernández"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Text="Copyright © 2026 Alberto Avidad Fernández"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Text="Software libre bajo la licencia EUPL 1.2 o posterior."
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Foreground="{ThemeResource AppMutedTextBrush}"
+                        Text="El código fuente está disponible públicamente. La licencia oficial explica los derechos y obligaciones aplicables a su uso, modificación y redistribución."
+                        TextWrapping="Wrap" />
+                    <controls:ResponsiveActionPanel
+                        x:Name="AboutActions"
+                        Orientation="Vertical"
+                        Spacing="8">
+                        <Button MinHeight="40"
+                            AutomationProperties.HelpText="Abre el texto oficial fijo de la licencia EUPL 1.2 en el portal de la Unión Europea."
+                            AutomationProperties.Name="Consultar licencia EUPL"
+                            Click="OnOpenOfficialLicenseClick"
+                            Content="Consultar licencia EUPL"
+                            IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
+                            TabIndex="1" />
+                        <Button MinHeight="40"
+                            AutomationProperties.HelpText="Abre el repositorio oficial fijo de GrxFirma."
+                            AutomationProperties.Name="Abrir repositorio oficial"
+                            Click="OnOpenOfficialProjectClick"
+                            Content="Abrir repositorio oficial"
+                            IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
+                            Style="{StaticResource AccentButtonStyle}"
+                            TabIndex="2" />
+                        <Button MinHeight="40"
+                            AutomationProperties.HelpText="Consulta una vez la última GitHub Release mediante el motor local; no descarga ni instala archivos."
+                            AutomationProperties.Name="Comprobar actualizaciones"
+                            Click="OnCheckUpdatesClick"
+                            Content="Comprobar actualizaciones"
+                            IsEnabled="{x:Bind ViewModel.CanCheckUpdates, Mode=OneWay}"
+                            TabIndex="3" />
+                        <Button MinHeight="40"
+                            AutomationProperties.HelpText="Abre la página fija de versiones del repositorio oficial."
+                            AutomationProperties.Name="Ver versiones oficiales"
+                            Click="OnOpenOfficialReleasesClick"
+                            Content="Ver versiones oficiales"
+                            IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
+                            TabIndex="4" />
+                        <ProgressRing
+                            Width="28"
+                            Height="28"
+                            AutomationProperties.Name="Apertura de información en curso"
+                            IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+                    </controls:ResponsiveActionPanel>
+                    <TextBlock
+                        Foreground="{ThemeResource AppMutedTextBrush}"
+                        Text="La comprobación contacta por HTTPS con GitHub y no envía documentos, certificados ni datos de firma. Nunca descarga ni ejecuta una actualización automáticamente."
+                        TextWrapping="Wrap" />
+                    <InfoBar
+                        AutomationProperties.LiveSetting="Assertive"
+                        IsClosable="False"
+                        IsOpen="{x:Bind ViewModel.HasStatus, Mode=OneWay}"
+                        Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                        Severity="{x:Bind ViewModel.StatusSeverity, Mode=OneWay}"
+                        Title="{x:Bind ViewModel.StatusTitle, Mode=OneWay}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Page>

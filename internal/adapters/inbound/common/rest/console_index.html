@@ -1,0 +1,3952 @@
+<!doctype html>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>GrxFirma REST local</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      color-scheme: light;
+      --bg:#eef4f8;
+      --panel:#ffffff;
+      --panel-2:#f8fafc;
+      --text:#102033;
+      --muted:#5f7288;
+      --line:#cfd9e4;
+      --primary:#005ea8;
+      --primary-2:#0b78d1;
+      --ok:#1c8c52;
+      --warn:#b45309;
+      --bad:#c0392b;
+      --mono:#e8eef5;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(11,120,209,.12), transparent 22rem),
+        radial-gradient(circle at top right, rgba(0,94,168,.1), transparent 18rem),
+        var(--bg);
+      color:var(--text);
+    }
+    .page{
+      max-width:1300px;
+      margin:0 auto;
+      padding:28px;
+    }
+    header{
+      display:flex;
+      gap:20px;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:24px;
+    }
+    h1{
+      margin:0 0 8px;
+      font-size:2rem;
+      color:var(--primary);
+    }
+    p{margin:0}
+    .muted{color:var(--muted)}
+    .hero{
+      background:linear-gradient(135deg, rgba(0,94,168,.08), rgba(255,255,255,.9));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:24px;
+      box-shadow:0 20px 45px rgba(16,32,51,.08);
+    }
+    .hero-links{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
+    .language-picker{
+      min-width:220px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .hero-links a,.download-link{
+      color:#fff;
+      background:var(--primary);
+      text-decoration:none;
+      padding:10px 14px;
+      border-radius:10px;
+      font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:none;
+      cursor:pointer;
+    }
+    .hero-links a.secondary,.download-link.secondary{
+      background:#0f172a;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(12, 1fr);
+      gap:18px;
+      margin-top:22px;
+    }
+    .card{
+      grid-column:span 6;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:20px;
+      box-shadow:0 10px 30px rgba(16,32,51,.06);
+    }
+    .card.full{grid-column:1 / -1}
+    .card.third{grid-column:span 4}
+    .card h2{
+      margin:0 0 14px;
+      font-size:1.15rem;
+    }
+    .toolbar,.field-row,.actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .field-row{margin-bottom:12px}
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      flex:1 1 220px;
+      min-width:180px;
+    }
+    label{
+      font-size:.9rem;
+      color:var(--muted);
+      font-weight:600;
+    }
+    input[type="text"],input[type="password"],input[type="number"],select,textarea{
+      width:100%;
+      padding:11px 12px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:#fff;
+      color:var(--text);
+      font:inherit;
+    }
+    textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+    input[type="file"]{
+      font:inherit;
+      color:var(--text);
+    }
+    button{
+      border:none;
+      border-radius:10px;
+      background:var(--primary);
+      color:#fff;
+      padding:11px 14px;
+      font:inherit;
+      font-weight:700;
+      cursor:pointer;
+    }
+    button.secondary{
+      background:#0f172a;
+    }
+    button.light{
+      background:#dbe7f3;
+      color:#16324f;
+    }
+    button.warn{
+      background:#b45309;
+    }
+    button.danger{
+      background:#c0392b;
+    }
+    button:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+    .status-banner{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:12px;
+      font-weight:600;
+      border:1px solid transparent;
+      background:#f5f7fa;
+    }
+    .status-ok{background:#e9f8ef;border-color:#b7e6c8;color:#11663d}
+    .status-warn{background:#fff6e5;border-color:#f2d2a8;color:#8a4a06}
+    .status-bad{background:#fdeceb;border-color:#f4c4c1;color:#97332a}
+    .mono{
+      background:var(--mono);
+      color:#123;
+      font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      border-radius:12px;
+      padding:12px;
+      overflow:auto;
+      white-space:pre-wrap;
+      word-break:break-word;
+      min-height:80px;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.95rem;
+    }
+    th,td{
+      text-align:left;
+      padding:10px 8px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+    }
+    th{
+      color:var(--muted);
+      font-size:.85rem;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+    .pill{
+      display:inline-flex;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:.78rem;
+      font-weight:800;
+      background:#e2e8f0;
+      color:#334155;
+    }
+    .pill.ok{background:#dcfce7;color:#166534}
+    .pill.bad{background:#fee2e2;color:#991b1b}
+    .pill.warn{background:#ffedd5;color:#9a3412}
+    .small{font-size:.88rem}
+    .stack{display:flex;flex-direction:column;gap:10px}
+    .check{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:.95rem;
+      color:var(--text);
+    }
+    .result-block{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+    .result-stack{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:12px;
+    }
+    .result-summary{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+    .kv{
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+    }
+    .kv strong{
+      display:block;
+      margin-bottom:6px;
+      color:var(--muted);
+      font-size:.82rem;
+      text-transform:uppercase;
+    }
+    .footer{
+      margin-top:20px;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+    @media (max-width: 980px){
+      .card,.card.third{grid-column:1 / -1}
+      header{flex-direction:column}
+      .result-block{grid-template-columns:1fr}
+      .result-summary{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="hero" style="flex:1">
+        <h1>GrxFirma REST local</h1>
+        <p class="muted">Consola web local para firma, verificación, certificados, ajustes y diagnóstico, sobre la API REST del propio backend.</p>
+        <div class="hero-links">
+          __LANG_SELECTOR__
+          <a href="/signer?lang=__LANG__">Firmador Web</a>
+          <a href="/validator?lang=__LANG__">Validación avanzada</a>
+          <a href="/openapi.json?lang=__LANG__" target="_blank" rel="noopener">OpenAPI</a>
+          <a href="/health?lang=__LANG__" target="_blank" rel="noopener" class="secondary">Health</a>
+          <a href="/certificates?lang=__LANG__" target="_blank" rel="noopener" class="secondary">Certificados</a>
+        </div>
+      </div>
+    </header>
+
+    <div id="globalStatus" class="status-banner">Cargando consola...</div>
+
+    <div class="grid">
+      <section class="card third">
+        <h2>Estado</h2>
+        <div class="toolbar">
+          <button id="refreshHealthBtn">Actualizar estado</button>
+          <button id="serviceStatusBtn" class="light">Estado del servicio</button>
+        </div>
+        <div id="healthPanel" class="stack small" style="margin-top:12px"></div>
+      </section>
+
+      <section class="card third">
+        <h2>Autenticación</h2>
+        <div class="field-row">
+          <div class="field">
+            <label for="bearerToken">Bearer token</label>
+            <input id="bearerToken" type="password" placeholder="Requerido salvo autenticación por certificado. Se envía como Bearer.">
+          </div>
+        </div>
+        <p class="muted small">La consola usa este token para endpoints protegidos como firma, verificación, ajustes o diagnóstico.</p>
+      </section>
+
+      <section class="card third">
+        <h2>Accesos directos</h2>
+        <div class="stack small">
+          <div><strong>API base:</strong> <code id="apiBaseLabel"></code></div>
+          <div><strong>Entorno:</strong> loopback local del equipo</div>
+          <div><strong>Descarga directa:</strong> si la firma devuelve contenido base64, la consola genera un enlace de descarga.</div>
+        </div>
+      </section>
+
+      <section class="card full">
+        <h2>Certificados</h2>
+        <div class="toolbar">
+          <button id="loadCertificatesBtn">Cargar certificados</button>
+          <button id="checkCertificatesBtn" class="light">Revisar certificados</button>
+          <button id="selectCertificateBtn" class="light">Seleccionar automáticamente</button>
+        </div>
+        <div id="selectedCertificateStatus" class="stack" style="margin-top:12px"></div>
+        <div id="selectedCertificateSummary" class="stack" style="margin-top:14px"></div>
+        <div id="selectedCertificateExportSummary" class="stack" style="margin-top:10px"></div>
+        <div class="actions" style="margin-top:10px">
+          <label class="check"><input id="rememberConsoleCertificate" type="checkbox" checked> Recordar certificado seleccionado</label>
+        </div>
+        <div id="selectedCertificatePreferenceSummary" class="stack" style="margin-top:10px"></div>
+        <div class="field-row" style="margin-top:12px">
+          <div class="field">
+            <label for="subjectFilter">Filtro por asunto</label>
+            <input id="subjectFilter" type="text" placeholder="CN=..., NIF=..., etc.">
+          </div>
+          <div class="field">
+            <label for="issuerFilter">Filtro por emisor</label>
+            <input id="issuerFilter" type="text" placeholder="FNMT, ACCV, ...">
+          </div>
+          <label class="check"><input id="onlyValidCerts" type="checkbox" checked> Solo no caducados</label>
+        </div>
+        <div id="certificateFilterMeta" class="muted small" style="margin:-4px 0 12px"></div>
+        <div id="certificateFilterSummary" class="stack" style="margin-top:10px"></div>
+        <div id="certificateUsabilitySummary" class="stack" style="margin-top:10px"></div>
+        <div id="certificateExpirySummary" class="stack" style="margin-top:10px"></div>
+        <div id="certificateInventorySummary" class="stack" style="margin-top:10px"></div>
+        <div style="overflow:auto; margin-top:14px">
+          <table id="certTable">
+            <thead>
+              <tr>
+                <th>Seleccionar</th>
+                <th>Asunto</th>
+                <th>Emisor</th>
+                <th>Validez</th>
+                <th>Estado</th>
+                <th>Id</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Firmar</h2>
+        <div class="field-row">
+          <div class="field">
+            <label for="signFile">Archivo(s) a firmar</label>
+            <input id="signFile" type="file" multiple>
+          </div>
+          <div class="field">
+            <label for="signDirectory">o carpeta</label>
+            <input id="signDirectory" type="file" webkitdirectory directory multiple>
+          </div>
+          <div class="field">
+            <label for="signInputPath">o ruta local</label>
+            <input id="signInputPath" type="text" placeholder="/ruta/al/documento.pdf">
+          </div>
+        </div>
+        <div id="signFileMeta" class="muted small" style="margin:-4px 0 12px"></div>
+        <div class="field-row">
+          <div class="field">
+            <label for="signFormat">Formato</label>
+            <select id="signFormat">
+              <option value="PAdES">PAdES</option>
+              <option value="CAdES">CAdES</option>
+              <option value="XAdES">XAdES</option>
+              <option value="XMLdSig">XMLdSig</option>
+              <option value="ODF">ODF</option>
+              <option value="OOXML">OOXML</option>
+              <option value="FacturaE">FacturaE</option>
+              <option value="ASiC-XAdES">ASiC-XAdES</option>
+              <option value="AUTO">AUTO</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="signAction">Acción</label>
+            <select id="signAction">
+              <option value="sign">Firmar</option>
+              <option value="cosign">Cofirma</option>
+              <option value="countersign">Contrafirma</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="signOutputPath">Ruta de salida</label>
+            <input id="signOutputPath" type="text" placeholder="/ruta/de/salida/opcional">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="signOptions">Opciones JSON</label>
+            <textarea id="signOptions" placeholder='{"strictCompat":"true","allowInvalidPDF":"false"}'></textarea>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="rootSignProfile">Perfil de firma</label>
+            <select id="rootSignProfile">
+              <option value="">-</option>
+              <option value="baseline">Baseline B</option>
+              <option value="t">Baseline T</option>
+              <option value="lt">CAdES-LT</option>
+              <option value="lta">CAdES-LTA</option>
+            </select>
+            <div class="muted small">Aplica a PAdES, CAdES y XAdES. LT/LTA solo tiene efecto real en CAdES.</div>
+          </div>
+          <div class="field">
+            <label for="rootTsaUrl">URL TSA</label>
+            <input id="rootTsaUrl" type="text" placeholder="https://tsa.ejemplo/">
+            <div class="muted small">Opcional. Si se indica, el backend la usará para perfiles con sello de tiempo.</div>
+          </div>
+          <div class="field">
+            <label for="rootPadesSubFilter">Subfiltro PAdES</label>
+            <select id="rootPadesSubFilter">
+              <option value="">-</option>
+              <option value="etsi">ETSI CAdES detached</option>
+              <option value="adobe">Adobe PKCS#7 detached</option>
+            </select>
+            <div class="muted small">Solo aplica cuando el formato efectivo es PAdES.</div>
+          </div>
+        </div>
+        <div id="rootFacturaEPanel" class="stack" style="display:none;margin-bottom:12px">
+          <div class="field-row">
+            <div class="field">
+              <label style="font-weight:700;color:var(--text)">FacturaE avanzada</label>
+              <div class="muted small">Opcional. Este bloque expone política, rol y lugar de firma que el backend FacturaE ya consume de forma real.</div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="rootFacturaePolicyVersion">Política FacturaE</label>
+              <select id="rootFacturaePolicyVersion">
+                <option value="">-</option>
+                <option value="3.1">3.1</option>
+                <option value="3.0">3.0</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="rootFacturaeSignerRole">Rol FacturaE</label>
+              <input id="rootFacturaeSignerRole" type="text" placeholder="emisor">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="rootFacturaePolicyIdentifier">Identificador de política</label>
+              <input id="rootFacturaePolicyIdentifier" type="text" placeholder="http://www.facturae.gob.es/politica_de_firma_formato_facturae/">
+            </div>
+            <div class="field">
+              <label for="rootFacturaePolicyIdentifierHash">Hash de política</label>
+              <input id="rootFacturaePolicyIdentifierHash" type="text" placeholder="Ohixl6upD6av8N7pEvDABhEL6hM=">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="rootFacturaePolicyQualifier">Qualifier de política</label>
+              <input id="rootFacturaePolicyQualifier" type="text" placeholder="https://www.facturae.gob.es/politica.html">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="rootFacturaeSignatureCity">Ciudad</label>
+              <input id="rootFacturaeSignatureCity" type="text" placeholder="Granada">
+            </div>
+            <div class="field">
+              <label for="rootFacturaeSignatureProvince">Provincia</label>
+              <input id="rootFacturaeSignatureProvince" type="text" placeholder="Granada">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="rootFacturaeSignaturePostalCode">Código postal</label>
+              <input id="rootFacturaeSignaturePostalCode" type="text" placeholder="18001">
+            </div>
+            <div class="field">
+              <label for="rootFacturaeSignatureCountry">País</label>
+              <input id="rootFacturaeSignatureCountry" type="text" placeholder="ES">
+            </div>
+          </div>
+        </div>
+        <div id="rootPadesMetaPanel" class="stack" style="display:none;margin-bottom:12px">
+          <div class="field-row">
+            <div class="field">
+              <label style="font-weight:700;color:var(--text)">Metadatos de la firma</label>
+              <div class="muted small">Opcional. Estos datos se incrustan en la firma PAdES y no sustituyen al certificado ni al sello visible.</div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="rootSignatureReason">Motivo</label>
+              <input id="rootSignatureReason" type="text" placeholder="Firma electrónica avanzada">
+            </div>
+            <div class="field">
+              <label for="rootSignatureLocation">Ubicación</label>
+              <input id="rootSignatureLocation" type="text" placeholder="Granada">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="rootSignatureContact">Contacto</label>
+              <input id="rootSignatureContact" type="text" placeholder="correo@ejemplo.es">
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field" style="flex:1 1 100%">
+            <label class="check"><input id="rootVisibleSealEnabled" type="checkbox"> Activar sello visible (PAdES)</label>
+            <div class="muted small">Atajo visual para configurar el sello sin salir de esta consola. Para previsualización avanzada sigue disponible <a href="/signer?lang=__LANG__" target="_blank" rel="noopener">/signer</a>.</div>
+          </div>
+        </div>
+        <div id="rootVisibleSealPanel" class="stack" style="display:none;margin-bottom:12px">
+          <div class="field-row">
+            <div class="field">
+              <label for="rootSealPosition">Posición</label>
+              <select id="rootSealPosition">
+                <option value="bottom-right">Inferior derecha</option>
+                <option value="bottom-left">Inferior izquierda</option>
+                <option value="top-right">Superior derecha</option>
+                <option value="top-left">Superior izquierda</option>
+                <option value="custom">Personalizada</option>
+              </select>
+            </div>
+          <div class="field">
+            <label for="rootSealPages">Página(s)</label>
+            <input id="rootSealPages" type="text" value="1" placeholder="1 o 1,3-5">
+            <label class="check" style="margin-top:8px"><input id="rootSealAllPages" type="checkbox"> Todas las páginas</label>
+          </div>
+        </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="rootSealX">X (0..1)</label>
+              <input id="rootSealX" type="number" min="0" max="1" step="0.0001" value="0.6200">
+            </div>
+            <div class="field">
+              <label for="rootSealY">Y (0..1)</label>
+              <input id="rootSealY" type="number" min="0" max="1" step="0.0001" value="0.0400">
+            </div>
+            <div class="field">
+              <label for="rootSealW">Ancho (0..1)</label>
+              <input id="rootSealW" type="number" min="0.05" max="1" step="0.0001" value="0.3400">
+            </div>
+            <div class="field">
+              <label for="rootSealH">Alto (0..1)</label>
+              <input id="rootSealH" type="number" min="0.04" max="1" step="0.0001" value="0.1200">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="rootSealImage">Imagen de firma (opcional)</label>
+              <input id="rootSealImage" type="file" accept="image/png,image/jpeg">
+            </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <label class="check"><input id="rootSealKeepText" type="checkbox" checked> Mantener texto visible del sello</label>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="rootSealQRContent">QR del sello</label>
+              <input id="rootSealQRContent" type="text" placeholder="https://verifica.ejemplo/">
+              <div class="muted small">Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible y puede combinarse con imagen personalizada.</div>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="check"><input id="signSaveToDisk" type="checkbox" checked> Guardar en disco si se usa ruta</label>
+          <label class="check"><input id="signReturnB64" type="checkbox" checked> Devolver contenido firmado en base64</label>
+          <label class="check"><input id="signOverwrite" type="checkbox"> Sobrescribir salida</label>
+        </div>
+        <div class="actions">
+          <button id="signBtn">Firmar</button>
+        </div>
+        <div id="signPlanSummary" class="stack" style="margin-top:10px"></div>
+        <div id="signResult" class="stack" style="margin-top:14px"></div>
+      </section>
+
+      <section class="card">
+        <h2>Verificar</h2>
+        <div class="field-row">
+          <div class="field">
+            <label for="verifyFile">Archivo firmado</label>
+            <input id="verifyFile" type="file">
+          </div>
+          <div class="field">
+            <label for="verifyInputPath">o ruta local</label>
+            <input id="verifyInputPath" type="text" placeholder="/ruta/al/documento_firmado.pdf">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="verifyOriginalFile">Original opcional</label>
+            <input id="verifyOriginalFile" type="file">
+          </div>
+          <div class="field">
+            <label for="verifyOriginalPath">o ruta del original</label>
+            <input id="verifyOriginalPath" type="text" placeholder="/ruta/al/original.pdf">
+          </div>
+        </div>
+        <div id="verifyOriginalSummary" class="stack" style="margin-top:10px"></div>
+        <div id="verifyArtifactSummary" class="stack" style="margin-top:10px"></div>
+        <div id="verifyPairSummary" class="stack" style="margin-top:10px"></div>
+        <div id="verifyCompatibilitySummary" class="stack" style="margin-top:10px"></div>
+        <div id="verifyAlgorithmSummary" class="stack" style="margin-top:10px"></div>
+        <div id="verifyPlanSummary" class="stack" style="margin-top:10px"></div>
+        <div class="actions">
+          <button id="verifyBtn">Validar documento</button>
+        </div>
+        <div id="verifyResult" class="stack" style="margin-top:14px"></div>
+      </section>
+
+      <section id="hashToolsCard" class="card">
+        <h2>Huellas e integridad</h2>
+        <div class="stack">
+          <div class="field-row">
+            <div class="field">
+              <label for="hashCreateMode">Crear huella</label>
+              <select id="hashCreateMode">
+                <option value="file">Fichero</option>
+                <option value="directory">Directorio</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="hashCreateAlgorithm">Algoritmo</label>
+              <select id="hashCreateAlgorithm">
+                <option value="sha256">SHA-256</option>
+                <option value="sha384">SHA-384</option>
+                <option value="sha512">SHA-512</option>
+                <option value="sha1">SHA-1</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="hashCreateFormat">Formato</label>
+              <select id="hashCreateFormat"></select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="hashCreateFile">Fichero</label>
+              <input id="hashCreateFile" type="file">
+            </div>
+            <div class="field">
+              <label for="hashCreatePath">Ruta local</label>
+              <input id="hashCreatePath" type="text" placeholder="/ruta/al/documento.pdf o /ruta/al/directorio">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="hashCreateOutputPath">Ruta de salida</label>
+              <input id="hashCreateOutputPath" type="text" placeholder="/ruta/de/salida opcional">
+            </div>
+            <div class="field" id="hashCreateRecursiveWrap">
+              <label>&nbsp;</label>
+              <label class="check"><input id="hashCreateRecursive" type="checkbox"> Recursivo</label>
+            </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <label class="check"><input id="hashCreateSaveToDisk" type="checkbox" checked> Guardar en disco</label>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="hashCreateBtn">Crear huella</button>
+          </div>
+          <div id="hashCreateArtifactSummary" class="stack" style="margin-top:10px"></div>
+          <div id="hashCreatePlanSummary" class="stack" style="margin-top:10px"></div>
+          <div id="hashCreateResult" class="stack" style="margin-top:12px"></div>
+        </div>
+
+        <div class="stack" style="margin-top:18px">
+          <div class="field-row">
+            <div class="field">
+              <label for="hashCheckMode">Comprobar huella</label>
+              <select id="hashCheckMode">
+                <option value="file">Fichero</option>
+                <option value="directory">Directorio</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="hashCheckAlgorithm">Algoritmo opcional</label>
+              <select id="hashCheckAlgorithm">
+                <option value="">Auto</option>
+                <option value="sha256">SHA-256</option>
+                <option value="sha384">SHA-384</option>
+                <option value="sha512">SHA-512</option>
+                <option value="sha1">SHA-1</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="hashCheckFile">Fichero</label>
+              <input id="hashCheckFile" type="file">
+            </div>
+            <div class="field">
+              <label for="hashCheckPath">Ruta local</label>
+              <input id="hashCheckPath" type="text" placeholder="/ruta/al/documento.pdf o /ruta/al/directorio">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="hashCheckManifestFile">Fichero de huella o manifiesto</label>
+              <input id="hashCheckManifestFile" type="file" accept=".hexhash,.hashb64,.hash,.hashfiles,.txthashfiles,.txt,.xml,.csv,.hashreport">
+            </div>
+            <div class="field">
+              <label for="hashCheckManifestPath">Ruta del fichero de huella</label>
+              <input id="hashCheckManifestPath" type="text" placeholder="/ruta/al/documento.hexhash o /ruta/al/directorio.hashfiles">
+            </div>
+          </div>
+          <div class="field-row" id="hashCheckReportRow">
+            <div class="field">
+              <label for="hashCheckReportOutputPath">Ruta del informe (.hashreport)</label>
+              <input id="hashCheckReportOutputPath" type="text" placeholder="/ruta/de/salida.hashreport">
+            </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <label class="check"><input id="hashCheckSaveReportToDisk" type="checkbox"> Guardar informe</label>
+            </div>
+          </div>
+          <div id="hashCheckAlgorithmSummary" class="stack" style="margin-top:10px"></div>
+          <div id="hashCheckArtifactSummary" class="stack" style="margin-top:10px"></div>
+          <div class="actions">
+            <button id="hashCheckBtn" class="secondary">Comprobar huella</button>
+          </div>
+          <div id="hashCheckPlanSummary" class="stack" style="margin-top:10px"></div>
+          <div id="hashCheckResult" class="stack" style="margin-top:12px"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Proteger / Desproteger</h2>
+        <div class="toolbar">
+          <button id="loadProtectionRecipientsBtn">Cargar destinatarios</button>
+          <button id="exportProtectionRecipientBtn" class="light">Exportar destinatario alto</button>
+          <button id="importProtectionRecipientBtn" class="secondary">Importar destinatario alto</button>
+        </div>
+        <div class="field-row" style="margin-top:12px">
+          <div class="field">
+            <label for="importProtectionRecipientFile">Fichero de destinatario fuerte</label>
+            <input id="importProtectionRecipientFile" type="file" accept=".afpr,.json,application/json">
+          </div>
+        </div>
+        <div id="protectionExchangeResult" class="stack" style="margin-top:10px"></div>
+        <div class="field-row" style="margin-top:12px">
+          <div class="field">
+            <label for="protectionRecipients">Destinatarios de protección</label>
+            <select id="protectionRecipients" multiple size="6"></select>
+            <div id="protectionSelectionStatus" class="stack" style="margin-top:10px"></div>
+            <div id="protectionRecipientSummary" class="stack" style="margin-top:10px"></div>
+          </div>
+          <div class="field">
+            <label for="protectionProfile">Perfil</label>
+            <select id="protectionProfile">
+              <option value="alto">alto</option>
+              <option value="compat">compat</option>
+            </select>
+            <label for="protectionContainer" style="margin-top:10px">Contenedor</label>
+            <select id="protectionContainer">
+              <option value="json">json (.afp)</option>
+              <option value="cms">cms (.enveloped)</option>
+              <option value="authenvelopeddata">cms AuthEnvelopedData (.authenveloped.p7m)</option>
+            </select>
+            <div id="protectionContainerPolicySummary" class="stack" style="margin-top:10px"></div>
+            <div id="protectionRecipientsMeta" class="muted small"></div>
+            <div id="protectionCatalogSummary" class="stack" style="margin-top:10px"></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="protectFile">Fichero a proteger</label>
+            <input id="protectFile" type="file">
+          </div>
+          <div class="field">
+            <label for="protectInputPath">o ruta local</label>
+            <input id="protectInputPath" type="text" placeholder="/ruta/al/documento.bin">
+          </div>
+          <div class="field">
+            <label for="protectOutputPath">Ruta protegida</label>
+            <input id="protectOutputPath" type="text" placeholder="/ruta/de/salida/opcional.afp, .enveloped o .authenveloped.p7m">
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="check"><input id="protectSaveToDisk" type="checkbox" checked> Guardar protegido en disco si se usa ruta</label>
+          <label class="check"><input id="protectReturnB64" type="checkbox" checked> Devolver contenido protegido en base64</label>
+          <label class="check"><input id="protectOverwrite" type="checkbox"> Sobrescribir salida</label>
+        </div>
+        <div id="protectArtifactSummary" class="stack" style="margin-top:10px"></div>
+        <div id="protectPlanSummary" class="stack" style="margin-top:10px"></div>
+        <div class="actions">
+          <button id="protectBtn">Proteger</button>
+        </div>
+        <div id="protectResult" class="stack" style="margin-top:14px"></div>
+        <div class="field-row" style="margin-top:18px">
+          <div class="field">
+            <label for="unprotectFile">Fichero protegido</label>
+            <input id="unprotectFile" type="file" accept=".afp,.enveloped,.p7m,application/pkcs7-mime,application/vnd.grxfirma.protected-envelope,application/octet-stream">
+          </div>
+          <div class="field">
+            <label for="unprotectInputPath">o ruta local</label>
+            <input id="unprotectInputPath" type="text" placeholder="/ruta/al/documento.afp, .enveloped o .authenveloped.p7m">
+          </div>
+          <div class="field">
+            <label for="unprotectOutputPath">Ruta desprotegida</label>
+            <input id="unprotectOutputPath" type="text" placeholder="/ruta/de/salida/opcional">
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="check"><input id="unprotectSaveToDisk" type="checkbox" checked> Guardar desprotegido en disco si se usa ruta</label>
+          <label class="check"><input id="unprotectReturnB64" type="checkbox" checked> Devolver contenido desprotegido en base64</label>
+          <label class="check"><input id="unprotectOverwrite" type="checkbox"> Sobrescribir salida</label>
+        </div>
+        <div id="unprotectArtifactSummary" class="stack" style="margin-top:10px"></div>
+        <div id="unprotectPlanSummary" class="stack" style="margin-top:10px"></div>
+        <div class="actions">
+          <button id="unprotectBtn" class="secondary">Desproteger</button>
+        </div>
+        <div id="unprotectResult" class="stack" style="margin-top:14px"></div>
+      </section>
+
+      <section class="card">
+        <h2>Importar P12/PFX</h2>
+        <div class="field-row">
+          <div class="field">
+            <label for="p12File">Archivo P12/PFX</label>
+            <input id="p12File" type="file" accept=".p12,.pfx,application/x-pkcs12">
+          </div>
+          <div class="field">
+            <label for="p12Password">Contraseña</label>
+            <input id="p12Password" type="password">
+          </div>
+        </div>
+        <div class="actions">
+          <button id="importP12Btn">Importar certificado</button>
+        </div>
+        <div id="importResult" class="stack" style="margin-top:14px"></div>
+      </section>
+
+      <section class="card">
+        <h2>Ajustes</h2>
+        <div class="toolbar">
+          <button id="loadSettingsBtn">Cargar ajustes</button>
+          <button id="saveSettingsBtn" class="light">Guardar ajustes</button>
+        </div>
+        <div class="field-row" style="margin-top:12px">
+          <div class="field">
+            <label for="settingsJson">JSON de ajustes</label>
+            <textarea id="settingsJson" style="min-height:220px" placeholder='{"modo_experto":true}'></textarea>
+          </div>
+        </div>
+        <div id="settingsResult" class="stack"></div>
+      </section>
+
+      <section class="card full">
+        <h2>Diagnóstico y TLS</h2>
+        <div class="toolbar">
+          <button id="tlsStatusBtn">Estado TLS</button>
+          <button id="diagnosticsBtn" class="light">Informe diagnóstico</button>
+          <button id="installRootsBtn" class="light">Instalar confianza TLS local</button>
+          <button id="clearTlsBtn" class="warn">Vaciar almacén TLS local</button>
+      <button id="openApiBtn" class="secondary">Abrir OpenAPI</button>
+        </div>
+        <div id="tlsTrustSummary" class="stack" style="margin-top:14px"></div>
+        <div id="proxySecretStoreSummary" class="stack" style="margin-top:14px"></div>
+        <div id="diagnosticsSummary" class="stack" style="margin-top:14px"></div>
+        <div id="diagnosticsExportSummary" class="stack" style="margin-top:14px"></div>
+        <div id="diagResult" class="stack" style="margin-top:14px"></div>
+      </section>
+    </div>
+
+    <div class="footer">Esta consola usa los endpoints REST ya existentes del backend local de GrxFirma. Si un endpoint requiere autenticación, introduce el token Bearer arriba.</div>
+  </div>
+
+  <script>
+    const A4_WIDTH = 595.28;
+    const A4_HEIGHT = 841.89;
+    const CONSOLE_PREF_KEY = "grxfirma.console.preferences";
+    const CONSOLE_LANGUAGE_KEY = "grxfirma.console.language";
+    const CURRENT_LANG = "__LANG__";
+
+    // translateConsoleIndexPage localiza estos literales antes de servir el
+    // HTML. Mantener el helper hace explícitas las superficies dinámicas y
+    // evita fallos en tiempo de ejecución al construir diagnósticos.
+    function t(value) {
+      return value;
+    }
+
+    const state = {
+      certificates: [],
+      selectedCertificateId: "",
+      signDownloadUrls: [],
+      hashDownloadUrls: [],
+      protectionDownloadUrls: [],
+      diagnosticsDownloadUrls: [],
+      certificateDownloadUrls: [],
+      lastDiagnosticsJSON: "",
+      lastSelectedCertificateJSON: "",
+      lastSelectedCertificateFingerprint: "",
+      protectionRecipients: []
+    };
+
+    const ui = {
+      globalStatus: document.getElementById("globalStatus"),
+      languageSelect: document.getElementById("languageSelect"),
+      healthPanel: document.getElementById("healthPanel"),
+      apiBaseLabel: document.getElementById("apiBaseLabel"),
+      certTableBody: document.querySelector("#certTable tbody"),
+      selectedCertificateStatus: document.getElementById("selectedCertificateStatus"),
+      selectedCertificateSummary: document.getElementById("selectedCertificateSummary"),
+      selectedCertificateExportSummary: document.getElementById("selectedCertificateExportSummary"),
+      selectedCertificatePreferenceSummary: document.getElementById("selectedCertificatePreferenceSummary"),
+      certificateFilterMeta: document.getElementById("certificateFilterMeta"),
+      certificateFilterSummary: document.getElementById("certificateFilterSummary"),
+      certificateUsabilitySummary: document.getElementById("certificateUsabilitySummary"),
+      certificateExpirySummary: document.getElementById("certificateExpirySummary"),
+      certificateInventorySummary: document.getElementById("certificateInventorySummary"),
+      bearerToken: document.getElementById("bearerToken"),
+      signFileMeta: document.getElementById("signFileMeta"),
+      signPlanSummary: document.getElementById("signPlanSummary"),
+      signResult: document.getElementById("signResult"),
+      verifyOriginalSummary: document.getElementById("verifyOriginalSummary"),
+      verifyArtifactSummary: document.getElementById("verifyArtifactSummary"),
+      verifyPairSummary: document.getElementById("verifyPairSummary"),
+      verifyCompatibilitySummary: document.getElementById("verifyCompatibilitySummary"),
+      verifyAlgorithmSummary: document.getElementById("verifyAlgorithmSummary"),
+      verifyPlanSummary: document.getElementById("verifyPlanSummary"),
+      verifyResult: document.getElementById("verifyResult"),
+      hashCreateArtifactSummary: document.getElementById("hashCreateArtifactSummary"),
+      hashCreatePlanSummary: document.getElementById("hashCreatePlanSummary"),
+      hashCreateResult: document.getElementById("hashCreateResult"),
+      hashCheckAlgorithmSummary: document.getElementById("hashCheckAlgorithmSummary"),
+      hashCheckArtifactSummary: document.getElementById("hashCheckArtifactSummary"),
+      hashCheckPlanSummary: document.getElementById("hashCheckPlanSummary"),
+      hashCheckResult: document.getElementById("hashCheckResult"),
+      protectionRecipients: document.getElementById("protectionRecipients"),
+      protectionRecipientsMeta: document.getElementById("protectionRecipientsMeta"),
+      protectionContainerPolicySummary: document.getElementById("protectionContainerPolicySummary"),
+      protectionCatalogSummary: document.getElementById("protectionCatalogSummary"),
+      protectionSelectionStatus: document.getElementById("protectionSelectionStatus"),
+      protectionRecipientSummary: document.getElementById("protectionRecipientSummary"),
+      protectArtifactSummary: document.getElementById("protectArtifactSummary"),
+      protectPlanSummary: document.getElementById("protectPlanSummary"),
+      protectionExchangeResult: document.getElementById("protectionExchangeResult"),
+      protectResult: document.getElementById("protectResult"),
+      unprotectArtifactSummary: document.getElementById("unprotectArtifactSummary"),
+      unprotectPlanSummary: document.getElementById("unprotectPlanSummary"),
+      unprotectResult: document.getElementById("unprotectResult"),
+      importResult: document.getElementById("importResult"),
+      settingsJson: document.getElementById("settingsJson"),
+      settingsResult: document.getElementById("settingsResult"),
+      tlsTrustSummary: document.getElementById("tlsTrustSummary"),
+      proxySecretStoreSummary: document.getElementById("proxySecretStoreSummary"),
+      diagnosticsSummary: document.getElementById("diagnosticsSummary"),
+      diagnosticsExportSummary: document.getElementById("diagnosticsExportSummary"),
+      diagResult: document.getElementById("diagResult"),
+      rootPadesMetaPanel: document.getElementById("rootPadesMetaPanel"),
+      rootFacturaEPanel: document.getElementById("rootFacturaEPanel")
+    };
+
+    window.grxfirmaSwitchWebLanguage = function(lang) {
+      const target = String(lang || "").trim() || "es";
+      try {
+        localStorage.setItem(CONSOLE_LANGUAGE_KEY, target);
+      } catch (_) {}
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("lang") === target) {
+        return;
+      }
+      url.searchParams.set("lang", target);
+      window.location.href = url.toString();
+    };
+
+    if (ui.languageSelect) {
+      ui.languageSelect.value = CURRENT_LANG;
+      ui.languageSelect.addEventListener("change", function() {
+        window.grxfirmaSwitchWebLanguage(ui.languageSelect.value);
+      });
+      try {
+        const storedLang = localStorage.getItem(CONSOLE_LANGUAGE_KEY);
+        const requestedLang = new URL(window.location.href).searchParams.get("lang");
+        if (storedLang && !requestedLang && storedLang !== CURRENT_LANG) {
+          window.grxfirmaSwitchWebLanguage(storedLang);
+        }
+      } catch (_) {}
+    }
+
+    ui.apiBaseLabel.textContent = window.location.origin;
+
+    const consolePrefFields = {
+      signFormat: "value",
+      signAction: "value",
+      signSaveToDisk: "checked",
+      signReturnB64: "checked",
+      signOverwrite: "checked",
+      rootSignProfile: "value",
+      rootTsaUrl: "value",
+      rootPadesSubFilter: "value",
+      rootFacturaePolicyVersion: "value",
+      rootFacturaeSignerRole: "value",
+      rootFacturaePolicyIdentifier: "value",
+      rootFacturaePolicyIdentifierHash: "value",
+      rootFacturaeSignatureCity: "value",
+      rootFacturaeSignatureProvince: "value",
+      rootFacturaeSignaturePostalCode: "value",
+      rootFacturaeSignatureCountry: "value",
+      rootVisibleSealEnabled: "checked",
+      rootSealPosition: "value",
+      rootSealAllPages: "checked",
+      hashCreateMode: "value",
+      hashCreateAlgorithm: "value",
+      hashCreateRecursive: "checked",
+      hashCreateSaveToDisk: "checked",
+      hashCheckMode: "value",
+      hashCheckAlgorithm: "value",
+      hashCheckSaveReportToDisk: "checked",
+      rememberConsoleCertificate: "checked",
+      subjectFilter: "value",
+      issuerFilter: "value",
+      onlyValidCerts: "checked"
+    };
+
+    function persistConsolePreferences() {
+      const prefs = {};
+      for (const [id, prop] of Object.entries(consolePrefFields)) {
+        const element = document.getElementById(id);
+        if (!element) continue;
+        prefs[id] = prop === "checked" ? !!element.checked : String(element.value || "");
+      }
+      const hashCreateFormat = document.getElementById("hashCreateFormat");
+      if (hashCreateFormat) {
+        prefs.hashCreateFormat = String(hashCreateFormat.value || "");
+      }
+      prefs.selectedCertificateId = document.getElementById("rememberConsoleCertificate").checked ? String(state.selectedCertificateId || "") : "";
+      try {
+        localStorage.setItem(CONSOLE_PREF_KEY, JSON.stringify(prefs));
+      } catch (_) {
+      }
+    }
+
+    function restoreConsolePreferences() {
+      try {
+        const raw = localStorage.getItem(CONSOLE_PREF_KEY);
+        if (!raw) return;
+        const prefs = JSON.parse(raw);
+        for (const [id, prop] of Object.entries(consolePrefFields)) {
+          const element = document.getElementById(id);
+          if (!element || !(id in prefs)) continue;
+          if (prop === "checked") {
+            element.checked = !!prefs[id];
+          } else {
+            element.value = String(prefs[id] || "");
+          }
+        }
+        updateHashPanels();
+        const hashCreateFormat = document.getElementById("hashCreateFormat");
+        if (hashCreateFormat && prefs.hashCreateFormat) {
+          const wanted = String(prefs.hashCreateFormat);
+          if (Array.from(hashCreateFormat.options).some((option) => option.value === wanted)) {
+            hashCreateFormat.value = wanted;
+          }
+        }
+        if (prefs.selectedCertificateId && prefs.rememberConsoleCertificate !== false) {
+          state.selectedCertificateId = String(prefs.selectedCertificateId);
+        }
+      } catch (_) {
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function setGlobalStatus(kind, message) {
+      ui.globalStatus.className = "status-banner " + (kind || "");
+      ui.globalStatus.textContent = message;
+    }
+
+    function authHeaders() {
+      const token = ui.bearerToken.value.trim();
+      return token ? { Authorization: "Bearer " + token } : {};
+    }
+
+    async function apiFetch(path, options = {}) {
+      const headers = new Headers(options.headers || {});
+      if (!headers.has("Content-Type") && options.body && !(options.body instanceof FormData)) {
+        headers.set("Content-Type", "application/json");
+      }
+      for (const [k, v] of Object.entries(authHeaders())) {
+        headers.set(k, v);
+      }
+      const response = await fetch(path, { ...options, headers });
+      const contentType = response.headers.get("content-type") || "";
+      let payload;
+      if (contentType.includes("application/json")) {
+        payload = await response.json();
+      } else {
+        payload = await response.text();
+      }
+      if (!response.ok) {
+        const msg = typeof payload === "string" ? payload : (payload.error || JSON.stringify(payload));
+        throw new Error(msg || ("HTTP " + response.status));
+      }
+      return payload;
+    }
+
+    async function fileToBase64(file) {
+      if (!file) return "";
+      const buf = await file.arrayBuffer();
+      let binary = "";
+      const bytes = new Uint8Array(buf);
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      return btoa(binary);
+    }
+
+    function jsonBlock(data) {
+      return '<div class="mono">' + escapeHtml(JSON.stringify(data, null, 2)) + '</div>';
+    }
+
+    function resultBanner(kind, message) {
+      return '<div class="status-banner ' + kind + '">' + escapeHtml(message) + '</div>';
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      return d.toLocaleString("es-ES");
+    }
+
+    function certStatusPill(cert) {
+      const text = cert.status || cert.Status || "";
+      const normalized = text.toLowerCase();
+      let kind = "";
+      if (normalized.includes("válido") || normalized.includes("valido")) kind = "ok";
+      else if (normalized.includes("caduc")) kind = "warn";
+      else kind = "bad";
+      return '<span class="pill ' + kind + '">' + escapeHtml(text) + '</span>';
+    }
+
+    function renderSelectedCertificateSummary() {
+      const cert = state.certificates.find((item) => (item.id || item.ID || "") === state.selectedCertificateId);
+      if (!cert) {
+        ui.selectedCertificateStatus.innerHTML = resultBanner("status-warn", "No hay certificado seleccionado.");
+        ui.selectedCertificateSummary.innerHTML = '<div class="status-banner status-warn">' +
+          escapeHtml("No hay certificado seleccionado.") + '</div>';
+        clearSelectedCertificateExportSummary();
+        renderSelectedCertificatePreferenceSummary(null, false);
+        return;
+      }
+      const subject = cert.subjectName || cert.SubjectName || cert.subject || cert.Subject || cert.id || cert.ID || "";
+      const issuer = cert.issuerName || cert.IssuerName || cert.issuer || cert.Issuer || "";
+      const validTo = formatDate(cert.validTo || cert.ValidTo || cert.notAfter || cert.NotAfter || "");
+      const fingerprint = cert.fingerprint || cert.Fingerprint || "";
+      const canSign = !!(cert.canSign || cert.CanSign);
+      const status = String(cert.status || cert.Status || "").toLowerCase();
+      const expired = status.includes("caduc") || status.includes("expir");
+      if (!canSign) {
+        ui.selectedCertificateStatus.innerHTML = resultBanner("status-warn", "El certificado seleccionado no es apto para firma.");
+      } else if (expired) {
+        ui.selectedCertificateStatus.innerHTML = resultBanner("status-warn", "El certificado seleccionado está caducado o expirado.");
+      } else {
+        ui.selectedCertificateStatus.innerHTML = resultBanner("status-ok", "El certificado seleccionado está listo para firmar.");
+      }
+      ui.selectedCertificateSummary.innerHTML =
+        '<div class="result-block">' +
+          '<div class="kv"><strong>Certificado seleccionado</strong>' + escapeHtml(subject) + '</div>' +
+          '<div class="kv"><strong>Estado</strong>' + certStatusPill(cert) + '</div>' +
+          '<div class="kv"><strong>Emisor</strong>' + escapeHtml(issuer || "No disponible") + '</div>' +
+          '<div class="kv"><strong>Validez</strong>' + escapeHtml(validTo || "No disponible") + '</div>' +
+          '<div class="kv"><strong>Firma</strong><span class="pill ' + (canSign ? "ok" : "warn") + '">' + escapeHtml(canSign ? "apto para firma" : "no apto para firma") + '</span></div>' +
+          '<div class="kv"><strong>Huella</strong><code>' + escapeHtml(fingerprint || "No disponible") + '</code></div>' +
+        '</div>';
+      renderSelectedCertificateExportSummary(cert);
+      renderSelectedCertificatePreferenceSummary(cert, false);
+    }
+
+    function clearSelectedCertificateExportSummary() {
+      releaseCertificateDownloadUrls();
+      state.lastSelectedCertificateJSON = "";
+      state.lastSelectedCertificateFingerprint = "";
+      ui.selectedCertificateExportSummary.innerHTML = '<span class="muted">Selecciona un certificado para exportar su resumen visible como JSON.</span>';
+    }
+
+    function renderSelectedCertificateExportSummary(cert) {
+      if (!cert) {
+        clearSelectedCertificateExportSummary();
+        return;
+      }
+      releaseCertificateDownloadUrls();
+      const payload = {
+        id: cert.id || cert.ID || "",
+        subjectName: cert.subjectName || cert.SubjectName || cert.subject || cert.Subject || "",
+        issuerName: cert.issuerName || cert.IssuerName || cert.issuer || cert.Issuer || "",
+        validTo: cert.validTo || cert.ValidTo || cert.notAfter || cert.NotAfter || "",
+        fingerprint: cert.fingerprint || cert.Fingerprint || "",
+        serialNumber: cert.serialNumber || cert.SerialNumber || "",
+        status: cert.status || cert.Status || "",
+        canSign: !!(cert.canSign || cert.CanSign),
+      };
+      state.lastSelectedCertificateJSON = JSON.stringify(payload, null, 2);
+      state.lastSelectedCertificateFingerprint = String(payload.fingerprint || "");
+      const baseName = sourceFileBasename(payload.subjectName || payload.id || "certificado").replace(/[\\/:*?\"<>|]+/g, "_");
+      const downloadHtml = buildCertificateDownloadLinkFromJSON(
+        state.lastSelectedCertificateJSON,
+        baseName + "_certificado.json",
+        "Descargar resumen JSON del certificado",
+      );
+      const copyJsonButton = navigator.clipboard && typeof navigator.clipboard.writeText === "function"
+        ? '<button type="button" class="secondary" data-copy-selected-certificate-json="1">Copiar JSON del certificado</button>'
+        : "";
+      const copyFingerprintButton = navigator.clipboard && typeof navigator.clipboard.writeText === "function" && state.lastSelectedCertificateFingerprint
+        ? '<button type="button" class="light" data-copy-selected-certificate-fingerprint="1">Copiar huella</button>'
+        : "";
+      ui.selectedCertificateExportSummary.innerHTML =
+        '<div class="toolbar">' + downloadHtml + copyJsonButton + copyFingerprintButton + '</div>';
+    }
+
+    function renderSelectedCertificatePreferenceSummary(cert, restored) {
+      const remember = document.getElementById("rememberConsoleCertificate").checked;
+      if (!remember) {
+        ui.selectedCertificatePreferenceSummary.innerHTML = resultBanner("status-warn", t("La selección actual no se recordará entre sesiones."));
+        return;
+      }
+      if (!state.selectedCertificateId) {
+        ui.selectedCertificatePreferenceSummary.innerHTML = resultBanner("status-warn", t("Activa la preferencia y selecciona un certificado para reutilizarlo en la siguiente sesión."));
+        return;
+      }
+      if (!cert) {
+        ui.selectedCertificatePreferenceSummary.innerHTML = resultBanner("status-warn", t("La preferencia guardada ya no está disponible en el catálogo actual."));
+        return;
+      }
+      ui.selectedCertificatePreferenceSummary.innerHTML = resultBanner("status-ok", (restored ? t("Certificado restaurado desde la sesión anterior: ") : t("Se reutilizará en la próxima sesión: ")) + (cert.subjectName || cert.SubjectName || cert.id || cert.ID || ""));
+    }
+
+    function isCertificateVisible(cert) {
+      const subjectFilter = document.getElementById("subjectFilter").value.trim().toLowerCase();
+      const issuerFilter = document.getElementById("issuerFilter").value.trim().toLowerCase();
+      const onlyValid = document.getElementById("onlyValidCerts").checked;
+      const subject = String(cert.subjectName || cert.SubjectName || cert.subject || cert.Subject || "").toLowerCase();
+      const issuer = String(cert.issuerName || cert.IssuerName || cert.issuer || cert.Issuer || "").toLowerCase();
+      const status = String(cert.status || cert.Status || "").toLowerCase();
+      if (subjectFilter && !subject.includes(subjectFilter)) {
+        return false;
+      }
+      if (issuerFilter && !issuer.includes(issuerFilter)) {
+        return false;
+      }
+      if (onlyValid && (status.includes("caduc") || status.includes("expir"))) {
+        return false;
+      }
+      return true;
+    }
+
+    function updateCertificateFilterMeta(visibleCount, totalCount) {
+      ui.certificateFilterMeta.textContent = "Mostrando " + String(visibleCount) + " de " + String(totalCount) + " certificado(s).";
+    }
+
+    function renderCertificateInventorySummary(visibleCerts) {
+      const total = state.certificates.length;
+      const usable = state.certificates.filter((cert) => !!(cert.canSign || cert.CanSign)).length;
+      const expired = state.certificates.filter((cert) => {
+        const status = String(cert.status || cert.Status || "").toLowerCase();
+        return status.includes("caduc") || status.includes("expir");
+      }).length;
+      const visible = Array.isArray(visibleCerts) ? visibleCerts.length : total;
+      ui.certificateInventorySummary.innerHTML =
+        '<div class="result-block">' +
+          '<div class="kv"><strong>Resumen del almacén</strong>' + escapeHtml(String(total) + " certificado(s)") + '</div>' +
+          '<div class="kv"><strong>Total</strong>' + escapeHtml(String(total)) + '</div>' +
+          '<div class="kv"><strong>Aptos para firma</strong>' + escapeHtml(String(usable)) + '</div>' +
+          '<div class="kv"><strong>Caducados</strong>' + escapeHtml(String(expired)) + '</div>' +
+          '<div class="kv"><strong>Visibles</strong>' + escapeHtml(String(visible)) + '</div>' +
+        '</div>';
+    }
+
+    function renderCertificateFilterSummary(visibleCerts) {
+      const selectedVisible = visibleCerts.some((cert) => (cert.id || cert.ID || "") === state.selectedCertificateId);
+      if (visibleCerts.length === 0) {
+        ui.certificateFilterSummary.innerHTML = resultBanner("status-warn", "Ningún certificado coincide con los filtros actuales.");
+        return;
+      }
+      if (state.selectedCertificateId && !selectedVisible) {
+        ui.certificateFilterSummary.innerHTML = resultBanner("status-warn", "El certificado seleccionado actual queda fuera de los filtros.");
+        return;
+      }
+      ui.certificateFilterSummary.innerHTML = resultBanner("status-ok", "La selección actual es coherente con los filtros.");
+    }
+
+    function renderCertificateUsabilitySummary(visibleCerts) {
+      const usableAll = state.certificates.filter((cert) => !!(cert.canSign || cert.CanSign));
+      const usableVisible = visibleCerts.filter((cert) => !!(cert.canSign || cert.CanSign));
+      if (usableAll.length === 0) {
+        ui.certificateUsabilitySummary.innerHTML = resultBanner("status-bad", "No hay certificados aptos para firma.");
+        return;
+      }
+      if (usableVisible.length === 0) {
+        ui.certificateUsabilitySummary.innerHTML = resultBanner("status-warn", "Hay certificados aptos, pero ninguno queda visible con los filtros actuales.");
+        return;
+      }
+      ui.certificateUsabilitySummary.innerHTML = resultBanner("status-ok", "Hay certificados aptos para firma visibles.");
+    }
+
+    function renderCertificateExpirySummary(visibleCerts) {
+      const now = Date.now();
+      const soonThreshold = now + (30 * 24 * 60 * 60 * 1000);
+      const expiringSoon = visibleCerts.filter((cert) => {
+        const raw = cert.validTo || cert.ValidTo || cert.notAfter || cert.NotAfter || "";
+        const when = Date.parse(String(raw));
+        if (Number.isNaN(when)) return false;
+        return when >= now && when <= soonThreshold;
+      });
+      if (expiringSoon.length === 0) {
+        ui.certificateExpirySummary.innerHTML = resultBanner("status-ok", "No hay certificados visibles con caducidad próxima.");
+        return;
+      }
+      ui.certificateExpirySummary.innerHTML = resultBanner("status-warn", "Hay certificados visibles que caducan en los próximos 30 días: " + String(expiringSoon.length));
+    }
+
+    function describeVerifySource(file, path, emptyText) {
+      if (file) {
+        return {
+          label: "Archivo cargado",
+          value: file.name
+        };
+      }
+      if (path) {
+        return {
+          label: "Ruta local",
+          value: path
+        };
+      }
+      return {
+        label: emptyText,
+        value: "No disponible"
+      };
+    }
+
+    function detectVerifyArtifactKind(nameOrPath) {
+      const lower = String(nameOrPath || "").toLowerCase();
+      if (!lower) return "";
+      if (lower.endsWith(".pdf")) return "PAdES/PDF";
+      if (lower.endsWith(".csig") || lower.endsWith(".p7s") || lower.endsWith(".p7m")) return "CAdES/CMS";
+      if (lower.endsWith(".xsig")) return "XAdES";
+      if (lower.endsWith(".dsig")) return "XMLdSig";
+      if (lower.endsWith(".asics")) return "ASiC-XAdES";
+      if (lower.endsWith(".odt")) return "ODF firmado";
+      if (lower.endsWith(".docx")) return "OOXML firmado";
+      if (lower.endsWith(".xml")) return "XML firmado";
+      return "";
+    }
+
+    function inferredKindLabelOrEmpty(nameOrPath, detector) {
+      return detector(nameOrPath) || "";
+    }
+
+    function verifyKindFamily(kind) {
+      const value = String(kind || "");
+      if (value.includes("PDF")) return "pdf";
+      if (value.includes("XML")) return "xml";
+      if (value.includes("ODF")) return "odf";
+      if (value.includes("OOXML")) return "ooxml";
+      if (value.includes("CMS") || value.includes("CAdES")) return "cms";
+      return "";
+    }
+
+    function verifyAlgorithmLabel(kind) {
+      const value = String(kind || "");
+      if (value.includes("PDF")) return "PAdES";
+      if (value.includes("CMS") || value.includes("CAdES")) return "CAdES/CMS";
+      if (value.includes("XMLdSig")) return "XMLdSig";
+      if (value.includes("ASiC")) return "ASiC-XAdES";
+      if (value.includes("ODF")) return "ODF + XAdES";
+      if (value.includes("OOXML")) return "OOXML + XMLDSig";
+      if (value.includes("XML")) return "XML/XAdES";
+      return "";
+    }
+
+    function renderVerifyArtifactSummary() {
+      const signedFile = document.getElementById("verifyFile").files[0];
+      const signedPath = document.getElementById("verifyInputPath").value.trim();
+      const name = signedFile ? signedFile.name : signedPath;
+      if (!name) {
+        ui.verifyArtifactSummary.innerHTML = resultBanner("status-warn", "Pendiente de documento firmado");
+        return;
+      }
+      const kind = detectVerifyArtifactKind(name);
+      if (!kind) {
+        ui.verifyArtifactSummary.innerHTML = resultBanner("status-warn", "No se pudo inferir el tipo probable del firmado.");
+        return;
+      }
+      ui.verifyArtifactSummary.innerHTML = resultBanner("status-ok", "Tipo probable del firmado: " + kind);
+    }
+
+    function detectOriginalReferenceKind(nameOrPath) {
+      const lower = String(nameOrPath || "").toLowerCase();
+      if (!lower) return "";
+      if (lower.endsWith(".pdf")) return "PDF original";
+      if (lower.endsWith(".xml")) return "XML original";
+      if (lower.endsWith(".odt")) return "ODF original";
+      if (lower.endsWith(".docx")) return "OOXML original";
+      return "";
+    }
+
+    function renderVerifyOriginalSummary() {
+      const originalFile = document.getElementById("verifyOriginalFile").files[0];
+      const originalPath = document.getElementById("verifyOriginalPath").value.trim();
+      const name = originalFile ? originalFile.name : originalPath;
+      if (!name) {
+        ui.verifyOriginalSummary.innerHTML = resultBanner("status-warn", "Sin documento original de referencia.");
+        return;
+      }
+      const kind = detectOriginalReferenceKind(name);
+      if (!kind) {
+        ui.verifyOriginalSummary.innerHTML = resultBanner("status-ok", "Original de referencia aportado.");
+        return;
+      }
+      ui.verifyOriginalSummary.innerHTML = resultBanner("status-ok", "Tipo probable del original: " + kind);
+    }
+
+    function renderVerifyPairSummary() {
+      const signedFile = document.getElementById("verifyFile").files[0];
+      const signedPath = document.getElementById("verifyInputPath").value.trim();
+      const originalFile = document.getElementById("verifyOriginalFile").files[0];
+      const originalPath = document.getElementById("verifyOriginalPath").value.trim();
+      const signedKind = inferredKindLabelOrEmpty(signedFile ? signedFile.name : signedPath, detectVerifyArtifactKind);
+      const originalKind = inferredKindLabelOrEmpty(originalFile ? originalFile.name : originalPath, detectOriginalReferenceKind);
+      if (!(signedFile || signedPath)) {
+        ui.verifyPairSummary.innerHTML = resultBanner("status-warn", "Pendiente de pareja de validación.");
+        return;
+      }
+      if (!(originalFile || originalPath)) {
+        ui.verifyPairSummary.innerHTML = resultBanner("status-ok", "Validación prevista sin original de referencia.");
+        return;
+      }
+      if (signedKind && originalKind && signedKind.includes("PDF") && originalKind.includes("PDF")) {
+        ui.verifyPairSummary.innerHTML = resultBanner("status-ok", "Pareja de validación PDF/original detectada.");
+        return;
+      }
+      if (signedKind && originalKind && signedKind.includes("XML") && originalKind.includes("XML")) {
+        ui.verifyPairSummary.innerHTML = resultBanner("status-ok", "Pareja de validación XML/original detectada.");
+        return;
+      }
+      ui.verifyPairSummary.innerHTML = resultBanner("status-ok", "Validación con original de referencia aportado.");
+    }
+
+    function renderVerifyCompatibilitySummary() {
+      const signedFile = document.getElementById("verifyFile").files[0];
+      const signedPath = document.getElementById("verifyInputPath").value.trim();
+      const originalFile = document.getElementById("verifyOriginalFile").files[0];
+      const originalPath = document.getElementById("verifyOriginalPath").value.trim();
+      const signedKind = inferredKindLabelOrEmpty(signedFile ? signedFile.name : signedPath, detectVerifyArtifactKind);
+      const originalKind = inferredKindLabelOrEmpty(originalFile ? originalFile.name : originalPath, detectOriginalReferenceKind);
+      if (!(signedFile || signedPath) || !(originalFile || originalPath)) {
+        ui.verifyCompatibilitySummary.innerHTML = resultBanner("status-ok", "Compatibilidad de validación no evaluable sin ambos artefactos.");
+        return;
+      }
+      const signedFamily = verifyKindFamily(signedKind);
+      const originalFamily = verifyKindFamily(originalKind);
+      if (signedFamily && originalFamily && signedFamily === originalFamily) {
+        ui.verifyCompatibilitySummary.innerHTML = resultBanner("status-ok", "Firmado y original parecen compatibles para validación.");
+        return;
+      }
+      if (signedFamily && originalFamily && signedFamily !== originalFamily) {
+        ui.verifyCompatibilitySummary.innerHTML = resultBanner("status-warn", "El firmado y el original parecen de tipos distintos.");
+        return;
+      }
+      ui.verifyCompatibilitySummary.innerHTML = resultBanner("status-ok", "No se pudo determinar la compatibilidad exacta del par.");
+    }
+
+    function renderVerifyAlgorithmSummary() {
+      const signedFile = document.getElementById("verifyFile").files[0];
+      const signedPath = document.getElementById("verifyInputPath").value.trim();
+      const signedKind = inferredKindLabelOrEmpty(signedFile ? signedFile.name : signedPath, detectVerifyArtifactKind);
+      if (!(signedFile || signedPath)) {
+        ui.verifyAlgorithmSummary.innerHTML = resultBanner("status-warn", "Pendiente de firmado para estimar el stack.");
+        return;
+      }
+      const label = verifyAlgorithmLabel(signedKind);
+      if (!label) {
+        ui.verifyAlgorithmSummary.innerHTML = resultBanner("status-ok", "No se pudo estimar el stack de firma probable.");
+        return;
+      }
+      ui.verifyAlgorithmSummary.innerHTML = resultBanner("status-ok", "Stack de firma probable: " + label);
+    }
+
+    function renderVerifyPlanSummary() {
+      const signedFile = document.getElementById("verifyFile").files[0];
+      const signedPath = document.getElementById("verifyInputPath").value.trim();
+      const originalFile = document.getElementById("verifyOriginalFile").files[0];
+      const originalPath = document.getElementById("verifyOriginalPath").value.trim();
+      const signedSource = describeVerifySource(signedFile, signedPath, "Pendiente de documento firmado");
+      const originalSource = describeVerifySource(originalFile, originalPath, "Sin original");
+      const hasSignedSource = !!(signedFile || signedPath);
+      const hasOriginalSource = !!(originalFile || originalPath);
+      const mode = hasOriginalSource ? "con original de referencia" : "solo documento firmado";
+      const banner = hasSignedSource
+        ? resultBanner(hasOriginalSource ? "status-ok" : "status-warn", hasOriginalSource ? "Plan de validación listo con original de referencia." : "Plan de validación listo sin documento original.")
+        : resultBanner("status-warn", "Pendiente de documento firmado");
+      ui.verifyPlanSummary.innerHTML =
+        banner +
+        '<div class="result-block">' +
+          '<div class="kv"><strong>Plan de validación</strong>' + escapeHtml(mode) + '</div>' +
+          '<div class="kv"><strong>Documento firmado</strong>' + escapeHtml(signedSource.label + ": " + signedSource.value) + '</div>' +
+          '<div class="kv"><strong>Original</strong>' + escapeHtml(originalSource.label + ": " + originalSource.value) + '</div>' +
+          '<div class="kv"><strong>Modo</strong>' + escapeHtml(mode) + '</div>' +
+        '</div>';
+    }
+
+    function renderHashCreatePlanSummary() {
+      const mode = document.getElementById("hashCreateMode").value;
+      const algorithm = document.getElementById("hashCreateAlgorithm").value.toUpperCase();
+      const format = document.getElementById("hashCreateFormat").value;
+      const inputFile = document.getElementById("hashCreateFile").files[0];
+      const inputPath = document.getElementById("hashCreatePath").value.trim();
+      const outputPath = document.getElementById("hashCreateOutputPath").value.trim();
+      const saveToDisk = document.getElementById("hashCreateSaveToDisk").checked;
+      const recursive = document.getElementById("hashCreateRecursive").checked;
+      const source = inputFile ? ("Archivo cargado: " + inputFile.name) : (inputPath ? ("Ruta local: " + inputPath) : "Pendiente de origen");
+      const output = outputPath ? ("Ruta local: " + outputPath) : (saveToDisk ? "Misma ruta o nombre derivado" : "Solo en memoria");
+      const modeLabel = mode === "directory" ? "Directorio" : "Fichero";
+      const ready = !!(inputFile || inputPath);
+      const banner = ready
+        ? resultBanner("status-ok", mode === "directory" ? "Plan de huella listo para manifiesto de directorio." : "Plan de huella listo para fichero.")
+        : resultBanner("status-warn", "Pendiente de origen para crear huella.");
+      ui.hashCreatePlanSummary.innerHTML =
+        banner +
+        '<div class="result-block">' +
+          '<div class="kv"><strong>Plan de huella</strong>' + escapeHtml("crear") + '</div>' +
+          '<div class="kv"><strong>Origen</strong>' + escapeHtml(source) + '</div>' +
+          '<div class="kv"><strong>Modo</strong>' + escapeHtml(modeLabel) + '</div>' +
+          '<div class="kv"><strong>Algoritmo</strong>' + escapeHtml(algorithm) + '</div>' +
+          '<div class="kv"><strong>Formato</strong>' + escapeHtml(format || "No disponible") + '</div>' +
+          '<div class="kv"><strong>Salida prevista</strong>' + escapeHtml(output) + '</div>' +
+          (mode === "directory" ? ('<div class="kv"><strong>Recursivo</strong>' + escapeHtml(recursive ? t("__GRXFIRMA_BOOLEAN_YES__") : t("__GRXFIRMA_BOOLEAN_NO__")) + '</div>') : '') +
+        '</div>';
+    }
+
+    function expectedHashCreateArtifactSuffix(mode, format) {
+      const normalizedMode = String(mode || "").toLowerCase();
+      const normalizedFormat = String(format || "").toLowerCase();
+      if (normalizedMode === "directory") {
+        if (normalizedFormat === "xml") return ".hashfiles";
+        if (normalizedFormat === "txt") return ".txthashfiles";
+        if (normalizedFormat === "csv") return ".csv";
+        return "";
+      }
+      if (normalizedFormat === "hex") return ".hexhash";
+      if (normalizedFormat === "base64") return ".hashb64";
+      if (normalizedFormat === "bin") return ".hash";
+      return "";
+    }
+
+    function renderHashCreateArtifactSummary() {
+      const mode = document.getElementById("hashCreateMode").value;
+      const format = document.getElementById("hashCreateFormat").value;
+      const outputPath = document.getElementById("hashCreateOutputPath").value.trim();
+      const suffix = expectedHashCreateArtifactSuffix(mode, format);
+      if (!suffix) {
+        ui.hashCreateArtifactSummary.innerHTML = resultBanner("status-warn", "No se pudo inferir el artefacto esperado de huella.");
+        return;
+      }
+      if (!outputPath) {
+        ui.hashCreateArtifactSummary.innerHTML = resultBanner("status-ok", "Artefacto de huella esperado: " + suffix);
+        return;
+      }
+      if (!outputPath.toLowerCase().endsWith(suffix.toLowerCase())) {
+        ui.hashCreateArtifactSummary.innerHTML = resultBanner("status-warn", "La ruta de salida no termina en " + suffix);
+        return;
+      }
+      ui.hashCreateArtifactSummary.innerHTML = resultBanner("status-ok", "La ruta de salida coincide con el artefacto esperado: " + suffix);
+    }
+
+    function renderHashCheckPlanSummary() {
+      const mode = document.getElementById("hashCheckMode").value;
+      const algorithm = document.getElementById("hashCheckAlgorithm").value.toUpperCase();
+      const inputFile = document.getElementById("hashCheckFile").files[0];
+      const inputPath = document.getElementById("hashCheckPath").value.trim();
+      const manifestFile = document.getElementById("hashCheckManifestFile").files[0];
+      const manifestPath = document.getElementById("hashCheckManifestPath").value.trim();
+      const reportPath = document.getElementById("hashCheckReportOutputPath").value.trim();
+      const saveReport = document.getElementById("hashCheckSaveReportToDisk").checked;
+      const source = inputFile ? ("Archivo cargado: " + inputFile.name) : (inputPath ? ("Ruta local: " + inputPath) : "Pendiente de origen");
+      const manifest = manifestFile ? ("Archivo cargado: " + manifestFile.name) : (manifestPath ? ("Ruta local: " + manifestPath) : "Pendiente de huella o manifiesto");
+      const report = mode === "directory"
+        ? (reportPath ? ("Ruta local: " + reportPath) : (saveReport ? "Ruta pendiente de informe" : "Sin informe en disco"))
+        : "No aplica";
+      const modeLabel = mode === "directory" ? "Directorio" : "Fichero";
+      const ready = !!((inputFile || inputPath) && (manifestFile || manifestPath));
+      const banner = ready
+        ? resultBanner("status-ok", mode === "directory" ? "Plan de comprobación listo para manifiesto de directorio." : "Plan de comprobación listo para fichero.")
+        : resultBanner("status-warn", "Pendiente de origen o huella para comprobar.");
+      ui.hashCheckPlanSummary.innerHTML =
+        banner +
+        '<div class="result-block">' +
+          '<div class="kv"><strong>Plan de huella</strong>' + escapeHtml("comprobar") + '</div>' +
+          '<div class="kv"><strong>Origen</strong>' + escapeHtml(source) + '</div>' +
+          '<div class="kv"><strong>Huella o manifiesto</strong>' + escapeHtml(manifest) + '</div>' +
+          '<div class="kv"><strong>Modo</strong>' + escapeHtml(modeLabel) + '</div>' +
+          '<div class="kv"><strong>Algoritmo</strong>' + escapeHtml(algorithm || "Auto") + '</div>' +
+          (mode === "directory" ? ('<div class="kv"><strong>Informe</strong>' + escapeHtml(report) + '</div>') : '') +
+        '</div>';
+    }
+
+    function detectHashArtifactKind(nameOrPath) {
+      const lower = String(nameOrPath || "").toLowerCase();
+      if (!lower) return "";
+      if (lower.endsWith(".hashfiles") || lower.endsWith(".txthashfiles") || lower.endsWith(".csv") || lower.endsWith(".hashreport")) {
+        return "directory";
+      }
+      if (lower.endsWith(".hexhash") || lower.endsWith(".hashb64") || lower.endsWith(".hash")) {
+        return "file";
+      }
+      return "";
+    }
+
+    function renderHashCheckArtifactSummary() {
+      const mode = document.getElementById("hashCheckMode").value;
+      const manifestFile = document.getElementById("hashCheckManifestFile").files[0];
+      const manifestPath = document.getElementById("hashCheckManifestPath").value.trim();
+      const manifestName = manifestFile ? manifestFile.name : manifestPath;
+      const detectedKind = detectHashArtifactKind(manifestName);
+      if (!manifestName) {
+        ui.hashCheckArtifactSummary.innerHTML = resultBanner("status-warn", "Pendiente de huella o manifiesto");
+        return;
+      }
+      if (!detectedKind) {
+        ui.hashCheckArtifactSummary.innerHTML = resultBanner("status-warn", "No se pudo inferir el tipo del artefacto de huella.");
+        return;
+      }
+      if (detectedKind !== mode) {
+        ui.hashCheckArtifactSummary.innerHTML = resultBanner("status-warn", "El artefacto de huella parece de " + (detectedKind === "directory" ? "directorio" : "fichero") + " y no coincide con el modo actual.");
+        return;
+      }
+      ui.hashCheckArtifactSummary.innerHTML = resultBanner("status-ok", "El artefacto de huella coincide con el modo seleccionado.");
+    }
+
+    function renderHashCheckAlgorithmSummary() {
+      const algorithm = document.getElementById("hashCheckAlgorithm").value.trim().toUpperCase();
+      if (!algorithm) {
+        ui.hashCheckAlgorithmSummary.innerHTML = resultBanner("status-ok", "Algoritmo en auto-detección desde la huella o el manifiesto.");
+        return;
+      }
+      ui.hashCheckAlgorithmSummary.innerHTML = resultBanner("status-ok", "Algoritmo forzado para la comprobación: " + algorithm);
+    }
+
+    function renderCertificates(certs) {
+      state.certificates = Array.isArray(certs) ? certs : [];
+      const hadStoredSelection = !!state.selectedCertificateId;
+      if (!state.selectedCertificateId && state.certificates.length > 0) {
+        const firstUsable = state.certificates.find(c => c.canSign || c.CanSign) || state.certificates[0];
+        state.selectedCertificateId = firstUsable.id || firstUsable.ID || "";
+      }
+      const visibleCerts = state.certificates.filter(isCertificateVisible);
+      ui.certTableBody.innerHTML = visibleCerts.map((cert, idx) => {
+        const id = cert.id || cert.ID || "";
+        const checked = id === state.selectedCertificateId ? "checked" : "";
+        return '<tr>' +
+          '<td><input type="radio" name="selectedCert" value="' + escapeHtml(id) + '" ' + checked + '></td>' +
+          '<td>' + escapeHtml(cert.subjectName || cert.SubjectName || cert.subject || cert.Subject || "") + '</td>' +
+          '<td>' + escapeHtml(cert.issuerName || cert.IssuerName || cert.issuer || cert.Issuer || "") + '</td>' +
+          '<td>' + escapeHtml(formatDate(cert.validTo || cert.ValidTo || cert.notAfter || cert.NotAfter || "")) + '</td>' +
+          '<td>' + certStatusPill(cert) + '</td>' +
+          '<td><code>' + escapeHtml(id || String(idx)) + '</code></td>' +
+          '</tr>';
+      }).join("");
+      updateCertificateFilterMeta(visibleCerts.length, state.certificates.length);
+      renderCertificateFilterSummary(visibleCerts);
+      renderCertificateUsabilitySummary(visibleCerts);
+      renderCertificateExpirySummary(visibleCerts);
+      renderCertificateInventorySummary(visibleCerts);
+      ui.certTableBody.querySelectorAll('input[name="selectedCert"]').forEach((radio) => {
+        radio.addEventListener("change", () => {
+          state.selectedCertificateId = radio.value;
+          renderSelectedCertificateSummary();
+          persistConsolePreferences();
+          setGlobalStatus("status-ok", "Certificado seleccionado: " + radio.value);
+        });
+      });
+      renderSelectedCertificateSummary();
+      const restoredCert = state.certificates.find((item) => (item.id || item.ID || "") === state.selectedCertificateId);
+      if (hadStoredSelection && restoredCert) {
+        renderSelectedCertificatePreferenceSummary(restoredCert, true);
+      }
+    }
+
+    function renderProtectionRecipients(recipients) {
+      state.protectionRecipients = Array.isArray(recipients) ? recipients : [];
+      const hasStrong = state.protectionRecipients.some((recipient) => String(recipient.profile || recipient.Profile || "").toLowerCase() === "alto");
+      document.getElementById("protectionProfile").value = hasStrong ? "alto" : "compat";
+      updateProtectionRecipientsForProfile();
+    }
+
+    function selectedVisibleProtectionRecipients() {
+      const ids = selectedProtectionRecipientIDs();
+      return state.protectionRecipients.filter((recipient) => {
+        const id = recipient.id || recipient.ID || "";
+        return ids.includes(id);
+      });
+    }
+
+    function renderProtectionRecipientSummary(visibleRecipients) {
+      const selected = selectedVisibleProtectionRecipients();
+      const container = String(document.getElementById("protectionContainer").value || "json").toLowerCase();
+      const targetRecipients = selected.length ? selected : (Array.isArray(visibleRecipients) ? visibleRecipients.slice(0, 1) : []);
+      if (!targetRecipients.length) {
+        const profile = String(document.getElementById("protectionProfile").value || "compat").toLowerCase();
+        const guidance = profile === "compat"
+          ? "El perfil compat requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto."
+          : "No hay destinatarios compatibles con el perfil seleccionado.";
+        ui.protectionRecipientSummary.innerHTML = '<div class="status-banner status-warn">' +
+          escapeHtml(guidance) + '</div>';
+        return;
+      }
+      const cards = targetRecipients.map((recipient) => {
+        const label = recipient.label || recipient.Label || recipient.id || recipient.ID || "";
+        const id = recipient.id || recipient.ID || "";
+        const profile = String(recipient.profile || recipient.Profile || "compat").toLowerCase();
+        const algorithm = recipient.algorithm || recipient.Algorithm || "";
+        const kind = profile === "alto" ? "status-ok" : "status-warn";
+        const containerHint = container === "authenvelopeddata"
+          ? "Este destinatario es compatible con AuthEnvelopedData autenticado."
+          : (profile === "alto"
+              ? "Este destinatario fuerte usa contenedor json (.afp)."
+              : (container === "cms"
+                  ? "Este destinatario compat usará sobre CMS interoperable."
+                  : "Este destinatario compat usará contenedor json (.afp)."));
+        return '<div class="kv">' +
+          '<strong>' + escapeHtml(label || id) + '</strong>' +
+          '<div style="margin-top:8px"><strong>' + escapeHtml("Perfil") + '</strong> <span class="pill ' + (profile === "alto" ? "ok" : "warn") + '">' + escapeHtml(profile) + '</span></div>' +
+          '<div style="margin-top:8px"><strong>' + escapeHtml("Id") + '</strong> <code>' + escapeHtml(id) + '</code></div>' +
+          '<div style="margin-top:8px"><strong>' + escapeHtml("Algoritmo") + '</strong> ' + escapeHtml(algorithm || "No disponible") + '</div>' +
+          '<div class="status-banner ' + kind + '" style="margin-top:10px">' + escapeHtml(containerHint) + '</div>' +
+        '</div>';
+      }).join("");
+      const summaryPrefix = selected.length > 1
+        ? "Destinatarios seleccionados: " + selected.length
+        : (selected.length === 1 ? "Destinatario seleccionado:" : "Destinatario de referencia:");
+      ui.protectionRecipientSummary.innerHTML =
+        '<div class="muted small" style="margin-bottom:6px">' + escapeHtml(summaryPrefix) + '</div>' + cards;
+    }
+
+    function renderProtectionSelectionStatus() {
+      const selectedCount = selectedProtectionRecipientIDs().length;
+      if (selectedCount === 0) {
+        ui.protectionSelectionStatus.innerHTML = resultBanner("status-warn", "No hay destinatarios seleccionados.");
+        return;
+      }
+      if (selectedCount === 1) {
+        ui.protectionSelectionStatus.innerHTML = resultBanner("status-ok", "Hay un destinatario seleccionado.");
+        return;
+      }
+      ui.protectionSelectionStatus.innerHTML = resultBanner("status-ok", "Hay varios destinatarios seleccionados: " + String(selectedCount));
+    }
+
+    function renderProtectionCatalogSummary(visibleRecipients) {
+      const total = state.protectionRecipients.length;
+      const alto = state.protectionRecipients.filter((recipient) => String(recipient.profile || recipient.Profile || "").toLowerCase() === "alto").length;
+      const compat = state.protectionRecipients.filter((recipient) => {
+        const profile = String(recipient.profile || recipient.Profile || "").toLowerCase();
+        return !profile || profile === "compat";
+      }).length;
+      const visible = Array.isArray(visibleRecipients) ? visibleRecipients.length : total;
+      ui.protectionCatalogSummary.innerHTML =
+        '<div class="result-block">' +
+          '<div class="kv"><strong>Resumen del catálogo</strong>' + escapeHtml(String(total) + " destinatario(s)") + '</div>' +
+          '<div class="kv"><strong>Total</strong>' + escapeHtml(String(total)) + '</div>' +
+          '<div class="kv"><strong>alto</strong>' + escapeHtml(String(alto)) + '</div>' +
+          '<div class="kv"><strong>compat</strong>' + escapeHtml(String(compat)) + '</div>' +
+          '<div class="kv"><strong>Visibles</strong>' + escapeHtml(String(visible)) + '</div>' +
+        '</div>';
+    }
+
+    function renderProtectionContainerPolicySummary() {
+      const profile = String(document.getElementById("protectionProfile").value || "compat").toLowerCase();
+      const requestedContainer = String(document.getElementById("protectionContainer").value || "json").toLowerCase();
+      if (profile === "alto") {
+        ui.protectionContainerPolicySummary.innerHTML = resultBanner("status-ok", "El perfil alto usa siempre contenedor json (.afp).");
+        return;
+      }
+      if (requestedContainer === "cms") {
+        ui.protectionContainerPolicySummary.innerHTML = resultBanner("status-ok", "El perfil compat usará sobre CMS interoperable (.enveloped).");
+        return;
+      }
+      if (requestedContainer === "authenvelopeddata") {
+        ui.protectionContainerPolicySummary.innerHTML = resultBanner(
+          "status-ok",
+          "AuthEnvelopedData usa AES-256-GCM y RSA-OAEP-SHA256/MGF1-SHA256; requiere un destinatario compatible con certificado X.509 RSA válido."
+        );
+        return;
+      }
+      ui.protectionContainerPolicySummary.innerHTML = resultBanner("status-ok", "El perfil compat usará contenedor json (.afp).");
+    }
+
+    function protectionContainerSuffix(container) {
+      if (container === "cms") return ".enveloped";
+      if (container === "authenvelopeddata") return ".authenveloped.p7m";
+      return ".afp";
+    }
+
+    function renderProtectPlanSummary() {
+      const selected = selectedProtectionRecipientIDs();
+      const profile = String(document.getElementById("protectionProfile").value || "compat").toLowerCase();
+      const requestedContainer = String(document.getElementById("protectionContainer").value || "json").toLowerCase();
+      const effectiveContainer = profile === "alto" ? "json" : requestedContainer;
+      const outputHint = protectionContainerSuffix(effectiveContainer);
+      const file = document.getElementById("protectFile").files[0];
+      const inputPath = document.getElementById("protectInputPath").value.trim();
+      const outputPath = document.getElementById("protectOutputPath").value.trim();
+      const sourceLabel = file ? file.name : (inputPath || "No disponible");
+      const saveToDisk = document.getElementById("protectSaveToDisk").checked;
+      const returnB64 = document.getElementById("protectReturnB64").checked;
+      ui.protectPlanSummary.innerHTML =
+        '<div class="result-block">' +
+          '<div class="kv"><strong>Origen</strong>' + escapeHtml(sourceLabel) + '</div>' +
+          '<div class="kv"><strong>Destinatarios</strong>' + escapeHtml(String(selected.length)) + '</div>' +
+          '<div class="kv"><strong>Perfil</strong>' + escapeHtml(profile) + '</div>' +
+          '<div class="kv"><strong>Contenedor efectivo</strong>' + escapeHtml(effectiveContainer + " (" + outputHint + ")") + '</div>' +
+          '<div class="kv"><strong>Salida prevista</strong>' + escapeHtml(outputPath || ("automática " + outputHint)) + '</div>' +
+          '<div class="kv"><strong>Entrega</strong>' + escapeHtml((saveToDisk ? "disco" : "memoria") + (returnB64 ? " + base64" : "")) + '</div>' +
+        '</div>';
+    }
+
+    function renderProtectArtifactSummary() {
+      const profile = String(document.getElementById("protectionProfile").value || "compat").toLowerCase();
+      const requestedContainer = String(document.getElementById("protectionContainer").value || "json").toLowerCase();
+      const effectiveContainer = profile === "alto" ? "json" : requestedContainer;
+      const suffix = protectionContainerSuffix(effectiveContainer);
+      const outputPath = document.getElementById("protectOutputPath").value.trim();
+      if (!outputPath) {
+        ui.protectArtifactSummary.innerHTML = resultBanner("status-ok", "Artefacto protegido esperado: " + suffix);
+        return;
+      }
+      if (!outputPath.toLowerCase().endsWith(suffix.toLowerCase())) {
+        ui.protectArtifactSummary.innerHTML = resultBanner("status-warn", "La ruta protegida no termina en " + suffix);
+        return;
+      }
+      ui.protectArtifactSummary.innerHTML = resultBanner("status-ok", "La ruta protegida coincide con el artefacto esperado: " + suffix);
+    }
+
+    function updateProtectionRecipientsForProfile() {
+      const profile = String(document.getElementById("protectionProfile").value || "compat").toLowerCase();
+      const containerSelect = document.getElementById("protectionContainer");
+      if (profile === "alto") {
+        containerSelect.value = "json";
+        containerSelect.disabled = true;
+      } else {
+        containerSelect.disabled = false;
+      }
+      const authEnvelopedSelected = profile === "compat" && containerSelect.value === "authenvelopeddata";
+      const visibleRecipients = state.protectionRecipients.filter((recipient) => {
+        const recipientProfile = String(recipient.profile || recipient.Profile || "").toLowerCase();
+        if (authEnvelopedSelected) {
+          return recipient.authEnvelopedDataCompatible === true;
+        }
+        if (!recipientProfile) {
+          return profile === "compat";
+        }
+        return recipientProfile === profile;
+      });
+      ui.protectionRecipients.innerHTML = visibleRecipients.map((recipient) => {
+        const label = recipient.label || recipient.Label || recipient.id || recipient.ID || "";
+        const id = recipient.id || recipient.ID || "";
+        const profile = recipient.profile || recipient.Profile || "compat";
+        const algorithm = recipient.algorithm || recipient.Algorithm || "";
+        return '<option value="' + escapeHtml(id) + '">' +
+          escapeHtml(label + " [" + profile + (algorithm ? " · " + algorithm : "") + "]") +
+          '</option>';
+      }).join("");
+      ui.protectionRecipientsMeta.textContent = visibleRecipients.length
+        ? ("Destinatarios disponibles: " + visibleRecipients.length)
+        : "No hay destinatarios locales válidos para cifrado.";
+      renderProtectionSelectionStatus();
+      renderProtectionContainerPolicySummary();
+      renderProtectionCatalogSummary(visibleRecipients);
+      renderProtectionRecipientSummary(visibleRecipients);
+      renderProtectArtifactSummary();
+      renderProtectPlanSummary();
+    }
+
+    async function loadHealth() {
+      try {
+        const health = await apiFetch("/health");
+        ui.healthPanel.innerHTML =
+          '<div class="kv"><strong>' + escapeHtml(t("Estado del servicio")) + '</strong>' + escapeHtml(health.service || "") + '</div>' +
+          '<div class="kv"><strong>OK</strong>' + escapeHtml(String(health.ok)) + '</div>';
+        setGlobalStatus("status-ok", "Backend REST operativo.");
+      } catch (err) {
+        ui.healthPanel.innerHTML = resultBanner("status-bad", err.message);
+        setGlobalStatus("status-bad", "Error consultando el estado: " + err.message);
+      }
+    }
+
+    async function loadServiceStatus() {
+      try {
+        const payload = await apiFetch("/service/status");
+        ui.healthPanel.innerHTML += jsonBlock(payload);
+        setGlobalStatus(payload.ok ? "status-ok" : "status-warn", "Estado del servicio consultado.");
+      } catch (err) {
+        ui.healthPanel.innerHTML += resultBanner("status-bad", err.message);
+      }
+    }
+
+    async function loadCertificates(check) {
+      try {
+        const payload = await apiFetch("/certificates?check=" + (check ? "true" : "1"));
+        renderCertificates(payload.certificates || []);
+        setGlobalStatus("status-ok", "Certificados cargados: " + (payload.certificates || []).length);
+      } catch (err) {
+        ui.certTableBody.innerHTML = '<tr><td colspan="6">' + escapeHtml(err.message) + '</td></tr>';
+        setGlobalStatus("status-bad", "No se pudieron cargar los certificados: " + err.message);
+      }
+    }
+
+    async function autoSelectCertificate() {
+      try {
+        const payload = await apiFetch("/select-certificate", {
+          method: "POST",
+          body: JSON.stringify({
+            subject_filter: document.getElementById("subjectFilter").value.trim(),
+            issuer_filter: document.getElementById("issuerFilter").value.trim(),
+            solo_no_caducados: document.getElementById("onlyValidCerts").checked
+          })
+        });
+        state.selectedCertificateId = payload.certificate_id || "";
+        renderCertificates(state.certificates);
+        persistConsolePreferences();
+        setGlobalStatus("status-ok", "Certificado seleccionado automáticamente: " + (payload.subject || payload.certificate_id));
+      } catch (err) {
+        setGlobalStatus("status-bad", "No se pudo seleccionar certificado: " + err.message);
+      }
+    }
+
+    function parseOptionsJson(raw) {
+      const value = raw.trim();
+      if (!value) return {};
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed;
+      }
+      throw new Error("El JSON de opciones debe ser un objeto.");
+    }
+
+    function buildSignOptionsPayload(options) {
+      const payload = {};
+      for (const [key, value] of Object.entries(options)) {
+        if (value == null) continue;
+        if (typeof value === "object") {
+          if (key === "visibleSeal" && value && typeof value === "object") {
+            flattenVisibleSealOptions(payload, value);
+          }
+          continue;
+        }
+        payload[key] = String(value);
+      }
+      return payload;
+    }
+
+    function clamp01(v) {
+      const num = Number(v);
+      if (!Number.isFinite(num)) return 0;
+      if (num < 0) return 0;
+      if (num > 1) return 1;
+      return num;
+    }
+
+    function applyRootSealPreset(position) {
+      const x = document.getElementById("rootSealX");
+      const y = document.getElementById("rootSealY");
+      const w = document.getElementById("rootSealW");
+      const h = document.getElementById("rootSealH");
+      w.value = "0.3400";
+      h.value = "0.1200";
+      if (position === "bottom-left") {
+        x.value = "0.0400"; y.value = "0.0400";
+      } else if (position === "bottom-right") {
+        x.value = "0.6200"; y.value = "0.0400";
+      } else if (position === "top-left") {
+        x.value = "0.0400"; y.value = "0.8400";
+      } else if (position === "top-right") {
+        x.value = "0.6200"; y.value = "0.8400";
+      }
+    }
+
+    function updateRootSealVisibility() {
+      const enabled = document.getElementById("rootVisibleSealEnabled").checked;
+      const currentFormat = document.getElementById("signFormat").value;
+      const isPades = currentFormat === "PAdES";
+      const isFacturaE = currentFormat === "FacturaE";
+      document.getElementById("rootVisibleSealPanel").style.display = enabled && isPades ? "flex" : "none";
+      ui.rootPadesMetaPanel.style.display = isPades ? "flex" : "none";
+      ui.rootFacturaEPanel.style.display = isFacturaE ? "flex" : "none";
+      updateRootSealPageMode();
+    }
+
+    function updateRootSealPageMode() {
+      const allPages = document.getElementById("rootSealAllPages").checked;
+      document.getElementById("rootSealPages").disabled = allPages;
+    }
+
+    function normalizePageSelection(raw) {
+      const value = String(raw == null ? "" : raw).trim().replace(/\s+/g, "");
+      return value === "" ? "1" : value;
+    }
+
+    function parsePageSelection(raw) {
+      const value = normalizePageSelection(raw);
+      if (value === "1") {
+        return { ok: true, normalized: "1", previewPage: 1 };
+      }
+      if (/^(all|todas|todos|\*)$/i.test(value)) {
+        return { ok: true, normalized: "all", previewPage: 1 };
+      }
+      const parts = value.split(",");
+      let previewPage = 1;
+      let previewAssigned = false;
+      for (const part of parts) {
+        if (!/^\d+(?:-\d+)?$/.test(part)) {
+          return { ok: false, normalized: value, previewPage: 1 };
+        }
+        if (part.includes("-")) {
+          const [startRaw, endRaw] = part.split("-", 2);
+          const start = Number(startRaw);
+          const end = Number(endRaw);
+          if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < 1 || start > end) {
+            return { ok: false, normalized: value, previewPage: 1 };
+          }
+          if (!previewAssigned) {
+            previewPage = start;
+            previewAssigned = true;
+          }
+          continue;
+        }
+        const page = Number(part);
+        if (!Number.isInteger(page) || page < 1) {
+          return { ok: false, normalized: value, previewPage: 1 };
+        }
+        if (!previewAssigned) {
+          previewPage = page;
+          previewAssigned = true;
+        }
+      }
+      return { ok: true, normalized: value, previewPage };
+    }
+
+    function applyRootSealPageValidity() {
+      const input = document.getElementById("rootSealPages");
+      if (document.getElementById("rootSealAllPages").checked) {
+        input.setCustomValidity("");
+        return true;
+      }
+      const parsed = parsePageSelection(input.value);
+      if (!parsed.ok) {
+        input.setCustomValidity("Selección de páginas inválida. Usa 1, 1,3-5 o all.");
+        return false;
+      }
+      input.value = parsed.normalized;
+      input.setCustomValidity("");
+      return true;
+    }
+
+    function flattenVisibleSealOptions(target, source) {
+      if (!source || typeof source !== "object") return;
+      const enabled = source.enabled;
+      if (enabled === false || enabled === "false") return;
+      target.visibleSeal = "true";
+      if (source.allPages === true || source.allPages === "true") {
+        target.page = "all";
+      } else if (source.page != null) {
+        target.page = String(source.page);
+      }
+      if (source.keepText != null) target.visibleSealKeepText = String(source.keepText);
+      if (source.visibleSealKeepText != null) target.visibleSealKeepText = String(source.visibleSealKeepText);
+      if (source.visibleSealImageBase64) target.visibleSealImageBase64 = String(source.visibleSealImageBase64);
+      if (source.imageBase64) target.visibleSealImageBase64 = String(source.imageBase64);
+
+      const rx = source.rectX ?? source.visibleSealRectX ?? source.x;
+      const ry = source.rectY ?? source.visibleSealRectY ?? source.y;
+      const rw = source.rectW ?? source.visibleSealRectW ?? source.w ?? source.width;
+      const rh = source.rectH ?? source.visibleSealRectH ?? source.h ?? source.height;
+
+      function rectValue(value, axisSize) {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return "";
+        if (num >= 0 && num <= 1) {
+          return String((num * axisSize).toFixed(2));
+        }
+        return String(num);
+      }
+
+      if (rx != null) target.visibleSealRectX = rectValue(rx, A4_WIDTH);
+      if (ry != null) target.visibleSealRectY = rectValue(ry, A4_HEIGHT);
+      if (rw != null) target.visibleSealRectW = rectValue(rw, A4_WIDTH);
+      if (rh != null) target.visibleSealRectH = rectValue(rh, A4_HEIGHT);
+    }
+
+    async function buildVisualSealOptions() {
+      const options = {};
+      const enabled = document.getElementById("rootVisibleSealEnabled").checked;
+      if (!enabled || document.getElementById("signFormat").value !== "PAdES") {
+        return options;
+      }
+      if (!applyRootSealPageValidity()) {
+        throw new Error("Selección de páginas inválida. Usa 1, 1,3-5 o all.");
+      }
+      options.visibleSeal = "true";
+      options.page = document.getElementById("rootSealAllPages").checked
+        ? "all"
+        : normalizePageSelection(document.getElementById("rootSealPages").value);
+      options.visibleSealRectX = String((clamp01(document.getElementById("rootSealX").value) * A4_WIDTH).toFixed(2));
+      options.visibleSealRectY = String((clamp01(document.getElementById("rootSealY").value) * A4_HEIGHT).toFixed(2));
+      options.visibleSealRectW = String((clamp01(document.getElementById("rootSealW").value) * A4_WIDTH).toFixed(2));
+      options.visibleSealRectH = String((clamp01(document.getElementById("rootSealH").value) * A4_HEIGHT).toFixed(2));
+      options.visibleSealKeepText = document.getElementById("rootSealKeepText").checked ? "true" : "false";
+      const imageFile = document.getElementById("rootSealImage").files[0];
+      if (imageFile) {
+        options.visibleSealImageBase64 = await fileToBase64(imageFile);
+      }
+      const qrContent = document.getElementById("rootSealQRContent").value.trim();
+      if (qrContent) {
+        options.qrContent = qrContent;
+      }
+      return options;
+    }
+
+    function buildPadesMetadataOptions() {
+      const options = {};
+      if (document.getElementById("signFormat").value !== "PAdES") {
+        return options;
+      }
+      const reason = document.getElementById("rootSignatureReason").value.trim();
+      const location = document.getElementById("rootSignatureLocation").value.trim();
+      const contact = document.getElementById("rootSignatureContact").value.trim();
+      if (reason) options.reason = reason;
+      if (location) options.location = location;
+      if (contact) options.contactInfo = contact;
+      return options;
+    }
+
+    function buildRootAdvancedSignOptions() {
+      const options = {};
+      const format = document.getElementById("signFormat").value;
+      const profile = document.getElementById("rootSignProfile").value.trim();
+      const tsaUrl = document.getElementById("rootTsaUrl").value.trim();
+      const padesSubFilter = document.getElementById("rootPadesSubFilter").value.trim();
+      const formatUpper = String(format || "").toUpperCase();
+      if (formatUpper === "PADES" || formatUpper === "CADES" || formatUpper === "XADES") {
+        if (profile) options.profile = profile;
+        if (tsaUrl) options.tsaURL = tsaUrl;
+      }
+      if (formatUpper === "PADES" && padesSubFilter) {
+        options.subfilter = padesSubFilter;
+      }
+      return options;
+    }
+
+    function buildRootFacturaEOptions() {
+      const options = {};
+      if (document.getElementById("signFormat").value !== "FacturaE") {
+        return options;
+      }
+      const policyVersion = document.getElementById("rootFacturaePolicyVersion").value.trim();
+      const signerRole = document.getElementById("rootFacturaeSignerRole").value.trim();
+      const policyIdentifier = document.getElementById("rootFacturaePolicyIdentifier").value.trim();
+      const policyIdentifierHash = document.getElementById("rootFacturaePolicyIdentifierHash").value.trim();
+      const policyQualifier = document.getElementById("rootFacturaePolicyQualifier").value.trim();
+      const signatureCity = document.getElementById("rootFacturaeSignatureCity").value.trim();
+      const signatureProvince = document.getElementById("rootFacturaeSignatureProvince").value.trim();
+      const signaturePostalCode = document.getElementById("rootFacturaeSignaturePostalCode").value.trim();
+      const signatureCountry = document.getElementById("rootFacturaeSignatureCountry").value.trim();
+      if (policyVersion) options.facturaePolicyVersion = policyVersion;
+      if (signerRole) options.signerClaimedRole = signerRole;
+      if (policyIdentifier) options.policyIdentifier = policyIdentifier;
+      if (policyIdentifierHash) options.policyIdentifierHash = policyIdentifierHash;
+      if (policyQualifier) options.policyQualifier = policyQualifier;
+      if (signatureCity) options.signatureProductionCity = signatureCity;
+      if (signatureProvince) options.signatureProductionProvince = signatureProvince;
+      if (signaturePostalCode) options.signatureProductionPostalCode = signaturePostalCode;
+      if (signatureCountry) options.signatureProductionCountry = signatureCountry;
+      return options;
+    }
+
+    function inferMimeType(file, fallbackPath) {
+      if (file && file.type) return file.type;
+      const path = (fallbackPath || "").toLowerCase();
+      if (path.endsWith(".pdf")) return "application/pdf";
+      if (path.endsWith(".odt")) return "application/vnd.oasis.opendocument.text";
+      if (path.endsWith(".ods")) return "application/vnd.oasis.opendocument.spreadsheet";
+      if (path.endsWith(".odp")) return "application/vnd.oasis.opendocument.presentation";
+      if (path.endsWith(".odg")) return "application/vnd.oasis.opendocument.graphics";
+      if (path.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      if (path.endsWith(".xlsx")) return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      if (path.endsWith(".pptx")) return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+      if (path.endsWith(".ppsx")) return "application/vnd.openxmlformats-officedocument.presentationml.slideshow";
+      if (path.endsWith(".xml") || path.endsWith(".xsig")) return "application/xml";
+      if (path.endsWith(".p7s") || path.endsWith(".csig")) return "application/pkcs7-signature";
+      return "application/octet-stream";
+    }
+
+    function sourceFileName(file) {
+      if (!file) return "";
+      return String(file.webkitRelativePath || file.name || "");
+    }
+
+    function selectedSignFiles() {
+      const fileInput = document.getElementById("signFile");
+      const directoryInput = document.getElementById("signDirectory");
+      const files = Array.from(fileInput.files || []);
+      if (files.length > 0) return files;
+      return Array.from(directoryInput.files || []);
+    }
+
+    function releaseDownloadUrls() {
+      for (const url of state.signDownloadUrls) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (_) {
+        }
+      }
+      state.signDownloadUrls = [];
+    }
+
+    function releaseHashDownloadUrls() {
+      for (const url of state.hashDownloadUrls) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (_) {
+        }
+      }
+      state.hashDownloadUrls = [];
+    }
+
+    function releaseProtectionDownloadUrls() {
+      for (const url of state.protectionDownloadUrls) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (_) {
+        }
+      }
+      state.protectionDownloadUrls = [];
+    }
+
+    function releaseDiagnosticsDownloadUrls() {
+      for (const url of state.diagnosticsDownloadUrls) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (_) {
+        }
+      }
+      state.diagnosticsDownloadUrls = [];
+    }
+
+    function releaseCertificateDownloadUrls() {
+      for (const url of state.certificateDownloadUrls) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (_) {
+        }
+      }
+      state.certificateDownloadUrls = [];
+    }
+
+    function buildHashDownloadLinkFromB64(contentB64, mime, filename, label) {
+      if (!contentB64) return "";
+      const raw = Uint8Array.from(atob(contentB64), c => c.charCodeAt(0));
+      const blob = new Blob([raw], { type: mime || "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      state.hashDownloadUrls.push(url);
+      return '<a class="download-link secondary" href="' + url + '" download="' + escapeHtml(filename) + '">' + escapeHtml(label) + '</a>';
+    }
+
+    function setHashCreateFormatOptions() {
+      const mode = document.getElementById("hashCreateMode").value;
+      const select = document.getElementById("hashCreateFormat");
+      const options = mode === "directory"
+        ? [
+            ['xml', 'xml (.hashfiles)'],
+            ['txt', 'txt (.txthashfiles)'],
+            ['csv', 'csv']
+          ]
+        : [
+            ['hex', 'hex (.hexhash)'],
+            ['base64', 'base64 (.hashb64)'],
+            ['bin', 'bin (.hash)']
+          ];
+      select.innerHTML = options.map(([value, label]) =>
+        '<option value="' + escapeHtml(value) + '">' + escapeHtml(label) + '</option>'
+      ).join("");
+    }
+
+    function updateHashPanels() {
+      const createMode = document.getElementById("hashCreateMode").value;
+      document.getElementById("hashCreateRecursiveWrap").style.display = createMode === "directory" ? "flex" : "none";
+      document.getElementById("hashCreateFile").disabled = createMode === "directory";
+      if (createMode === "directory") {
+        document.getElementById("hashCreateFile").value = "";
+      }
+      setHashCreateFormatOptions();
+
+      const checkMode = document.getElementById("hashCheckMode").value;
+      document.getElementById("hashCheckReportRow").style.display = checkMode === "directory" ? "flex" : "none";
+      document.getElementById("hashCheckFile").disabled = checkMode === "directory";
+      if (checkMode === "directory") {
+        document.getElementById("hashCheckFile").value = "";
+      }
+      renderHashCreateArtifactSummary();
+      renderHashCreatePlanSummary();
+      renderHashCheckAlgorithmSummary();
+      renderHashCheckPlanSummary();
+      renderHashCheckArtifactSummary();
+    }
+
+    function handleHashCreateFileChange() {
+      const fileInput = document.getElementById("hashCreateFile");
+      const pathInput = document.getElementById("hashCreatePath");
+      if ((fileInput.files || []).length > 0) {
+        pathInput.value = "";
+      }
+      renderHashCreatePlanSummary();
+    }
+
+    function handleHashCreatePathInput() {
+      const fileInput = document.getElementById("hashCreateFile");
+      const pathInput = document.getElementById("hashCreatePath");
+      if (pathInput.value.trim() !== "" && (fileInput.files || []).length > 0) {
+        fileInput.value = "";
+      }
+      renderHashCreatePlanSummary();
+    }
+
+    function handleHashCheckFileChange() {
+      const fileInput = document.getElementById("hashCheckFile");
+      const pathInput = document.getElementById("hashCheckPath");
+      if ((fileInput.files || []).length > 0) {
+        pathInput.value = "";
+      }
+      renderHashCheckPlanSummary();
+      renderHashCheckArtifactSummary();
+    }
+
+    function handleHashCheckPathInput() {
+      const fileInput = document.getElementById("hashCheckFile");
+      const pathInput = document.getElementById("hashCheckPath");
+      if (pathInput.value.trim() !== "" && (fileInput.files || []).length > 0) {
+        fileInput.value = "";
+      }
+      renderHashCheckPlanSummary();
+      renderHashCheckArtifactSummary();
+    }
+
+    function handleHashManifestFileChange() {
+      const fileInput = document.getElementById("hashCheckManifestFile");
+      const pathInput = document.getElementById("hashCheckManifestPath");
+      if ((fileInput.files || []).length > 0) {
+        pathInput.value = "";
+      }
+      renderHashCheckPlanSummary();
+      renderHashCheckArtifactSummary();
+    }
+
+    function handleHashManifestPathInput() {
+      const fileInput = document.getElementById("hashCheckManifestFile");
+      const pathInput = document.getElementById("hashCheckManifestPath");
+      if (pathInput.value.trim() !== "" && (fileInput.files || []).length > 0) {
+        fileInput.value = "";
+      }
+      renderHashCheckPlanSummary();
+      renderHashCheckArtifactSummary();
+    }
+
+    function selectedProtectionRecipientIDs() {
+      return Array.from(ui.protectionRecipients.selectedOptions || []).map((option) => option.value).filter(Boolean);
+    }
+
+    function selectedProtectionRecipientEntry() {
+      const ids = selectedProtectionRecipientIDs();
+      if (ids.length !== 1) {
+        throw new Error("Selecciona exactamente un destinatario de protección.");
+      }
+      const recipient = state.protectionRecipients.find((item) => (item.id || item.ID || "") === ids[0]);
+      if (!recipient) {
+        throw new Error("No se pudo localizar el destinatario seleccionado.");
+      }
+      return recipient;
+    }
+
+    function signedMimeTypeForFormat(format, fallbackName) {
+      const normalized = String(format || "").toUpperCase();
+      if (normalized === "PADES") return "application/pdf";
+      if (normalized === "ODF") return "application/vnd.oasis.opendocument.text";
+      if (normalized === "OOXML") return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      if (normalized === "FACTURAE") return "application/xml";
+      if (normalized === "ASIC-XADES") return "application/vnd.etsi.asic-s+zip";
+      if (normalized === "XADES") return "application/xml";
+      if (normalized === "XMLDSIG") return "application/xmldsig+xml";
+      const lowerName = String(fallbackName || "").toLowerCase();
+      if (lowerName.endsWith(".pdf")) return "application/pdf";
+      if (lowerName.endsWith(".odt")) return "application/vnd.oasis.opendocument.text";
+      if (lowerName.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      if (lowerName.endsWith(".xml") || lowerName.endsWith(".xsig")) return "application/xml";
+      return "application/pkcs7-signature";
+    }
+
+    function signedFilenameForResult(name, format, outputPath) {
+      if (outputPath) {
+        return outputPath.split(/[\\/]/).pop();
+      }
+      const source = String(name || "firmado").split(/[\\/]/).pop();
+      const dot = source.lastIndexOf(".");
+      const base = dot > 0 ? source.slice(0, dot) : source;
+      const normalized = String(format || "").toUpperCase();
+      if (normalized === "PADES") return base + "_firmado.pdf";
+      if (normalized === "XADES") return base + ".xsig";
+      if (normalized === "XMLDSIG") return base + ".dsig";
+      if (normalized === "ODF") return base + "_firmado.odt";
+      if (normalized === "OOXML") return base + "_firmado.docx";
+      if (normalized === "FACTURAE") return base + "_firmada.xml";
+      if (normalized === "ASIC-XADES") return base + ".asics";
+      return base + ".csig";
+    }
+
+    function protectedFilenameForResult(name, outputPath) {
+      if (outputPath) {
+        return outputPath.split(/[\\/]/).pop();
+      }
+      const source = String(name || "protegido").split(/[\\/]/).pop();
+      if (/\.(afp|enveloped|p7m)$/i.test(source)) {
+        return source;
+      }
+      return source + ".afp";
+    }
+
+    function unprotectedFilenameForResult(documentName, outputPath, fallbackName) {
+      if (outputPath) {
+        return outputPath.split(/[\\/]/).pop();
+      }
+      const preferred = String(documentName || "").trim();
+      if (preferred) {
+        return preferred.split(/[\\/]/).pop();
+      }
+      const source = String(fallbackName || "documento").split(/[\\/]/).pop();
+      return source.endsWith(".afp") ? source.slice(0, -4) : source;
+    }
+
+    function detectProtectedArtifactKind(nameOrPath) {
+      const lower = String(nameOrPath || "").toLowerCase();
+      if (!lower) return "";
+      if (lower.endsWith(".afp")) return "json (.afp)";
+      if (lower.endsWith(".authenveloped.p7m")) return "cms AuthEnvelopedData (.authenveloped.p7m)";
+      if (lower.endsWith(".enveloped")) return "cms (.enveloped)";
+      if (lower.endsWith(".p7m")) return "cms/pkcs7 (.p7m)";
+      return "";
+    }
+
+    function updateSignFileMeta() {
+      const files = selectedSignFiles();
+      const inputPath = document.getElementById("signInputPath").value.trim();
+      if (files.length === 0 && !inputPath) {
+        ui.signFileMeta.innerHTML = "";
+        return;
+      }
+      if (files.length > 0) {
+        const items = files.map((file) => {
+          const size = file.size > 0 ? (file.size / 1024).toFixed(1) + " KB" : "0 KB";
+          return '<li><strong>' + escapeHtml(sourceFileName(file)) + '</strong> <span class="muted">(' + escapeHtml(size + " · " + inferMimeType(file, file.name)) + ')</span></li>';
+        }).join("");
+        ui.signFileMeta.innerHTML =
+          '<strong>' + escapeHtml("Seleccionados") + ':</strong> ' + escapeHtml(String(files.length)) +
+          '<ul style="margin:6px 0 0 18px;padding:0">' + items + '</ul>';
+        return;
+      }
+      ui.signFileMeta.innerHTML = '<code>' + escapeHtml(inputPath) + '</code>';
+    }
+
+    function renderSignPlanSummary() {
+      const files = selectedSignFiles();
+      const inputPath = document.getElementById("signInputPath").value.trim();
+      const outputPath = document.getElementById("signOutputPath").value.trim();
+      const format = document.getElementById("signFormat").value;
+      const action = document.getElementById("signAction").value;
+      const profile = document.getElementById("rootSignProfile").value.trim();
+      const tsaUrl = document.getElementById("rootTsaUrl").value.trim();
+      const padesSubFilter = document.getElementById("rootPadesSubFilter").value.trim();
+      const saveToDisk = document.getElementById("signSaveToDisk").checked;
+      const returnB64 = document.getElementById("signReturnB64").checked;
+      const overwrite = document.getElementById("signOverwrite").checked;
+      const policyVersion = document.getElementById("rootFacturaePolicyVersion").value.trim();
+      const signerRole = document.getElementById("rootFacturaeSignerRole").value.trim();
+      const policyIdentifier = document.getElementById("rootFacturaePolicyIdentifier").value.trim();
+      const policyIdentifierHash = document.getElementById("rootFacturaePolicyIdentifierHash").value.trim();
+      const signatureCity = document.getElementById("rootFacturaeSignatureCity").value.trim();
+      const signatureProvince = document.getElementById("rootFacturaeSignatureProvince").value.trim();
+      const signaturePostalCode = document.getElementById("rootFacturaeSignaturePostalCode").value.trim();
+      const signatureCountry = document.getElementById("rootFacturaeSignatureCountry").value.trim();
+      const ready = files.length > 0 || !!inputPath;
+      const source = files.length > 1
+        ? ("Lote: " + files.length + " fichero(s)")
+        : (files.length === 1
+            ? ("Fichero: " + sourceFileName(files[0]))
+            : (inputPath ? ("Ruta local: " + inputPath) : "Pendiente de origen"));
+      const output = outputPath
+        ? ("Ruta local: " + outputPath)
+        : (saveToDisk ? "ruta automática si el backend la resuelve" : "memoria");
+      const delivery = (saveToDisk ? "disco" : "memoria") + (returnB64 ? " + base64" : "");
+      let advanced = "Sin opciones avanzadas visibles.";
+      const formatUpper = String(format || "").toUpperCase();
+      if (formatUpper === "PADES" || formatUpper === "CADES" || formatUpper === "XADES") {
+        const parts = [];
+        if (profile) parts.push("perfil=" + profile);
+        if (tsaUrl) parts.push("TSA");
+        if (formatUpper === "PADES" && padesSubFilter) parts.push("subfiltro=" + padesSubFilter);
+        advanced = parts.length ? parts.join(" · ") : "Sin perfil/TSA/subfiltro visibles.";
+      } else if (format === "FacturaE") {
+        const parts = [];
+        if (policyVersion) parts.push("política=" + policyVersion);
+        if (signerRole) parts.push("rol=" + signerRole);
+        if (policyIdentifier) parts.push("id política");
+        if (policyIdentifierHash) parts.push("hash política");
+        const policyQualifier = document.getElementById("rootFacturaePolicyQualifier").value.trim();
+        if (policyQualifier) parts.push("qualifier");
+        const hasPlace = signatureCity || signatureProvince || signaturePostalCode || signatureCountry;
+        if (hasPlace) parts.push("lugar de firma");
+        advanced = parts.length ? parts.join(" · ") : "Sin política/rol/lugar FacturaE visibles.";
+      }
+      ui.signPlanSummary.innerHTML =
+        resultBanner(ready ? "status-ok" : "status-warn", ready ? "Plan de firma listo." : "Pendiente de origen para firmar.") +
+        '<div class="result-block">' +
+          '<div class="kv"><strong>Plan de firma</strong>' + escapeHtml(action) + '</div>' +
+          '<div class="kv"><strong>Origen</strong>' + escapeHtml(source) + '</div>' +
+          '<div class="kv"><strong>Formato</strong>' + escapeHtml(format) + '</div>' +
+          '<div class="kv"><strong>Salida prevista</strong>' + escapeHtml(output) + '</div>' +
+          '<div class="kv"><strong>Entrega</strong>' + escapeHtml(delivery) + '</div>' +
+          '<div class="kv"><strong>Avanzado</strong>' + escapeHtml(advanced) + '</div>' +
+          '<div class="kv"><strong>Sobrescritura</strong>' + escapeHtml(overwrite ? "permitida" : "desactivada") + '</div>' +
+        '</div>';
+    }
+
+    function handleSignFileChange() {
+      const fileInput = document.getElementById("signFile");
+      const directoryInput = document.getElementById("signDirectory");
+      const pathInput = document.getElementById("signInputPath");
+      if ((fileInput.files || []).length > 0) {
+        directoryInput.value = "";
+        pathInput.value = "";
+      }
+      updateSignFileMeta();
+      renderSignPlanSummary();
+    }
+
+    function handleSignDirectoryChange() {
+      const fileInput = document.getElementById("signFile");
+      const directoryInput = document.getElementById("signDirectory");
+      const pathInput = document.getElementById("signInputPath");
+      if ((directoryInput.files || []).length > 0) {
+        fileInput.value = "";
+        pathInput.value = "";
+      }
+      updateSignFileMeta();
+      renderSignPlanSummary();
+    }
+
+    function handleSignPathInput() {
+      const fileInput = document.getElementById("signFile");
+      const directoryInput = document.getElementById("signDirectory");
+      const pathInput = document.getElementById("signInputPath");
+      if (pathInput.value.trim() !== "" && ((fileInput.files || []).length > 0 || (directoryInput.files || []).length > 0)) {
+        fileInput.value = "";
+        directoryInput.value = "";
+      }
+      updateSignFileMeta();
+      renderSignPlanSummary();
+    }
+
+    function handleProtectFileChange() {
+      const fileInput = document.getElementById("protectFile");
+      const pathInput = document.getElementById("protectInputPath");
+      if ((fileInput.files || []).length > 0) {
+        pathInput.value = "";
+      }
+    }
+
+    function handleProtectPathInput() {
+      const fileInput = document.getElementById("protectFile");
+      const pathInput = document.getElementById("protectInputPath");
+      if (pathInput.value.trim() !== "" && (fileInput.files || []).length > 0) {
+        fileInput.value = "";
+      }
+    }
+
+    function handleUnprotectFileChange() {
+      const fileInput = document.getElementById("unprotectFile");
+      const pathInput = document.getElementById("unprotectInputPath");
+      if ((fileInput.files || []).length > 0) {
+        pathInput.value = "";
+      }
+      renderUnprotectArtifactSummary();
+      renderUnprotectPlanSummary();
+    }
+
+    function handleUnprotectPathInput() {
+      const fileInput = document.getElementById("unprotectFile");
+      const pathInput = document.getElementById("unprotectInputPath");
+      if (pathInput.value.trim() !== "" && (fileInput.files || []).length > 0) {
+        fileInput.value = "";
+      }
+      renderUnprotectArtifactSummary();
+      renderUnprotectPlanSummary();
+    }
+
+    function renderUnprotectArtifactSummary() {
+      const file = document.getElementById("unprotectFile").files[0];
+      const inputPath = document.getElementById("unprotectInputPath").value.trim();
+      const name = file ? file.name : inputPath;
+      if (!name) {
+        ui.unprotectArtifactSummary.innerHTML = resultBanner("status-warn", "Pendiente de artefacto protegido.");
+        return;
+      }
+      const kind = detectProtectedArtifactKind(name);
+      if (!kind) {
+        ui.unprotectArtifactSummary.innerHTML = resultBanner("status-warn", "No se pudo inferir el contenedor protegido por extensión.");
+        return;
+      }
+      ui.unprotectArtifactSummary.innerHTML = resultBanner("status-ok", "Contenedor protegido detectado: " + kind);
+    }
+
+    function renderUnprotectPlanSummary() {
+      const file = document.getElementById("unprotectFile").files[0];
+      const inputPath = document.getElementById("unprotectInputPath").value.trim();
+      const outputPath = document.getElementById("unprotectOutputPath").value.trim();
+      const saveToDisk = document.getElementById("unprotectSaveToDisk").checked;
+      const returnB64 = document.getElementById("unprotectReturnB64").checked;
+      const source = file ? ("Archivo cargado: " + file.name) : (inputPath ? ("Ruta local: " + inputPath) : "Pendiente de origen");
+      const output = outputPath ? ("Ruta local: " + outputPath) : (saveToDisk ? ("automática " + "disco") : "memoria");
+      const delivery = (saveToDisk ? "disco" : "memoria") + (returnB64 ? " + base64" : "");
+      const ready = !!(file || inputPath);
+      ui.unprotectPlanSummary.innerHTML =
+        resultBanner(ready ? "status-ok" : "status-warn", ready ? "Plan de desprotección listo." : "Pendiente de origen para desproteger.") +
+        '<div class="result-block">' +
+          '<div class="kv"><strong>Plan de desprotección</strong>' + escapeHtml("activo") + '</div>' +
+          '<div class="kv"><strong>Origen</strong>' + escapeHtml(source) + '</div>' +
+          '<div class="kv"><strong>Salida prevista</strong>' + escapeHtml(output) + '</div>' +
+          '<div class="kv"><strong>Entrega</strong>' + escapeHtml(delivery) + '</div>' +
+        '</div>';
+    }
+
+    function buildDownloadLinkFromB64(contentB64, mime, filename) {
+      if (!contentB64) return "";
+      const raw = Uint8Array.from(atob(contentB64), c => c.charCodeAt(0));
+      const blob = new Blob([raw], { type: mime || "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      state.signDownloadUrls.push(url);
+      return '<a class="download-link" href="' + url + '" download="' + escapeHtml(filename) + '">Descargar firmado</a>';
+    }
+
+    function buildProtectionDownloadLinkFromB64(contentB64, mime, filename, label) {
+      if (!contentB64) return "";
+      const raw = Uint8Array.from(atob(contentB64), c => c.charCodeAt(0));
+      const blob = new Blob([raw], { type: mime || "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      state.protectionDownloadUrls.push(url);
+      return '<a class="download-link secondary" href="' + url + '" download="' + escapeHtml(filename) + '">' + escapeHtml(label) + '</a>';
+    }
+
+    function buildDiagnosticsDownloadLinkFromJSON(content, filename, label) {
+      if (!content) return "";
+      const blob = new Blob([content], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      state.diagnosticsDownloadUrls.push(url);
+      return '<a class="download-link secondary" href="' + url + '" download="' + escapeHtml(filename) + '">' + escapeHtml(label) + '</a>';
+    }
+
+    function buildCertificateDownloadLinkFromJSON(content, filename, label) {
+      if (!content) return "";
+      const blob = new Blob([content], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      state.certificateDownloadUrls.push(url);
+      return '<a class="download-link secondary" href="' + url + '" download="' + escapeHtml(filename) + '">' + escapeHtml(label) + '</a>';
+    }
+
+    async function renderBatchSignResults(response, originalItems) {
+      const results = Array.isArray(response.results) ? response.results : [];
+      const parts = [];
+      for (let index = 0; index < results.length; index++) {
+        const item = results[index];
+        const filename = signedFilenameForResult(item.name, item.format, item.outputPath);
+        const mime = signedMimeTypeForFormat(item.format, filename);
+        const downloadHtml = buildDownloadLinkFromB64(item.signed_content_base64, mime, filename);
+        const originalItem = Array.isArray(originalItems) ? originalItems[index] : null;
+        const verification = item && item.ok && item.signed_content_base64
+          ? await verifySignedPayload(
+              item.signed_content_base64,
+              originalItem && originalItem.content_base64,
+              item.name || (originalItem && originalItem.name) || "documento",
+              mime
+            )
+          : null;
+        const statusKind = item.ok ? "ok" : "bad";
+        const statusText = item.ok ? "OK" : "KO";
+        parts.push(
+          '<div class="result-block">' +
+            '<div class="kv"><strong>Fichero</strong>' + escapeHtml(item.name || "") + '</div>' +
+            '<div class="kv"><strong>Estado</strong><span class="pill ' + statusKind + '">' + escapeHtml(statusText) + '</span></div>' +
+            '<div class="kv"><strong>Formato</strong>' + escapeHtml(item.format || "") + '</div>' +
+            '<div class="kv"><strong>Algoritmo</strong>' + escapeHtml(item.algorithm || "") + '</div>' +
+            '<div class="kv"><strong>Certificado</strong><code>' + escapeHtml(item.certificate_id || "") + '</code></div>' +
+            '<div class="kv"><strong>Salida</strong>' + escapeHtml(item.outputPath || "en memoria") + '</div>' +
+            (item.error ? '<div class="kv"><strong>' + escapeHtml(t("__GRXFIRMA_ERROR_LABEL__")) + '</strong>' + escapeHtml(item.error) + '</div>' : '') +
+            (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
+            renderVerificationBlock(verification) +
+          '</div>'
+        );
+      }
+      return '<div class="result-stack">' + parts.join("") + '</div>';
+    }
+
+    function renderBatchSummary(response, requestedCount) {
+      const total = Number(response.total || requestedCount || 0);
+      const successCount = Number(response.successCount || 0);
+      const failureCount = Number(response.failureCount || 0);
+      return '<div class="result-summary">' +
+        '<div class="kv"><strong>Total</strong>' + escapeHtml(String(total)) + '</div>' +
+        '<div class="kv"><strong>OK</strong>' + escapeHtml(String(successCount)) + '</div>' +
+        '<div class="kv"><strong>KO</strong>' + escapeHtml(String(failureCount)) + '</div>' +
+      '</div>';
+    }
+
+    function renderHashDirectoryListBlock(title, values, emptyLabel) {
+      const items = Array.isArray(values) ? values.filter(Boolean) : [];
+      return '<div class="kv"><strong>' + escapeHtml(title) + '</strong>' +
+        (items.length
+          ? '<ul style="margin:8px 0 0 18px;padding:0">' + items.map((item) => '<li><code>' + escapeHtml(String(item)) + '</code></li>').join("") + '</ul>'
+          : '<div style="margin-top:8px">' + escapeHtml(emptyLabel) + '</div>') +
+      '</div>';
+    }
+
+    function renderDirectoryHashDiffBlock(response) {
+      return '<div class="result-block" style="margin-top:12px">' +
+        renderHashDirectoryListBlock("Coinciden", response.matching_hash, "Sin coincidencias registradas.") +
+        renderHashDirectoryListBlock("No coinciden", response.not_matching_hash, "No hay ficheros con hash distinto.") +
+        renderHashDirectoryListBlock("Hash sin fichero", response.hash_without_file, "No hay entradas huérfanas en el manifiesto.") +
+        renderHashDirectoryListBlock("Fichero sin hash", response.file_without_hash, "No hay ficheros nuevos fuera del manifiesto.") +
+      '</div>';
+    }
+
+    async function verifySignedPayload(signedContentBase64, originalContentBase64, filename, mimeType) {
+      if (!signedContentBase64) return null;
+      try {
+        return await apiFetch("/verify", {
+          method: "POST",
+          body: JSON.stringify({
+            name: filename || "documento",
+            mime_type: mimeType || "application/octet-stream",
+            content_base64: signedContentBase64,
+            original_content_base64: originalContentBase64 || undefined
+          })
+        });
+      } catch (err) {
+        return {
+          valid: false,
+          reason: err.message || String(err),
+          details: [],
+          signers: [],
+          result: {
+            valid: false,
+            reason: err.message || String(err),
+            details: [],
+            signers: [],
+            integrity: { status: "invalid", reason: err.message || String(err), details: [] },
+            certificate: { status: "unknown", details: [] },
+            trust: { status: "unknown", details: [] },
+            warnings: [],
+            errors: [err.message || String(err)],
+            evidence: []
+          }
+        };
+      }
+    }
+
+    function verificationData(response) {
+      if (!response) return null;
+      if (response.result && typeof response.result === "object") return response.result;
+      return response;
+    }
+
+    function verificationStatusText(status) {
+      switch (String(status || "").toLowerCase()) {
+        case "valid":
+          return "Válida";
+        case "invalid":
+          return "Inválida";
+        case "warning":
+          return "Con advertencias";
+        default:
+          return "Desconocido";
+      }
+    }
+
+    function verificationStatusClass(status) {
+      switch (String(status || "").toLowerCase()) {
+        case "valid":
+          return "ok";
+        case "invalid":
+          return "bad";
+        case "warning":
+          return "warn";
+        default:
+          return "";
+      }
+    }
+
+    function renderStringListBlock(title, values) {
+      const items = Array.isArray(values) ? values.filter(Boolean) : [];
+      return '<div class="kv"><strong>' + escapeHtml(title) + '</strong>' +
+        escapeHtml(items.length ? items.join("\n") : "No disponible") +
+      '</div>';
+    }
+
+    function renderAspectBlock(title, aspect) {
+      if (!aspect || typeof aspect !== "object") return "";
+      const details = Array.isArray(aspect.details) ? aspect.details : [];
+      return '<div class="kv"><strong>' + escapeHtml(title) + '</strong>' +
+        '<div><span class="pill ' + verificationStatusClass(aspect.status) + '">' + escapeHtml(verificationStatusText(aspect.status)) + '</span></div>' +
+        '<div style="margin-top:8px"><strong>Razón</strong> ' + escapeHtml(aspect.reason || "No disponible") + '</div>' +
+        '<div style="margin-top:8px"><strong>Detalles</strong> ' + escapeHtml(details.length ? details.join("\n") : "No disponible") + '</div>' +
+      '</div>';
+    }
+
+    function renderSignerSummariesBlock(items) {
+      const rows = Array.isArray(items) ? items : [];
+      return '<div class="kv"><strong>Firmantes resumidos</strong>' +
+        escapeHtml(rows.length ? rows.map((item) => {
+          const parts = [];
+          if (item.subject) parts.push(item.subject);
+          if (item.issuer) parts.push(item.issuer);
+          if (item.fingerprint) parts.push(item.fingerprint);
+          if (!parts.length && item.id) parts.push(item.id);
+          return parts.join(" | ");
+        }).join("\n") : "No disponible") +
+      '</div>';
+    }
+
+    function renderEvidenceBlock(items) {
+      const rows = Array.isArray(items) ? items : [];
+      return '<div class="kv"><strong>Evidencias</strong>' +
+        escapeHtml(rows.length ? rows.map((item) => {
+          const type = item && item.type ? String(item.type) : "No disponible";
+          const summary = item && item.summary ? String(item.summary) : "";
+          return "Tipo: " + type + (summary ? " · " + summary : "");
+        }).join("\n") : "No disponible") +
+      '</div>';
+    }
+
+    function renderVerificationPostureBlock(rich) {
+      const integrityStatus = String(rich && rich.integrity && rich.integrity.status || "").toLowerCase();
+      const trustStatus = String(rich && rich.trust && rich.trust.status || "").toLowerCase();
+      const certificateStatus = String(rich && rich.certificate && rich.certificate.status || "").toLowerCase();
+      const warnings = Array.isArray(rich && rich.warnings) ? rich.warnings : [];
+      const errors = Array.isArray(rich && rich.errors) ? rich.errors : [];
+      let kind = "status-ok";
+      let text = "Firma íntegra y confiable.";
+      if (!rich || rich.valid === false || integrityStatus === "invalid" || errors.length > 0) {
+        kind = "status-bad";
+        text = "Firma inválida o integridad no garantizada.";
+      } else if (trustStatus === "warning" || trustStatus === "invalid" || certificateStatus === "warning" || certificateStatus === "invalid" || warnings.length > 0) {
+        kind = "status-warn";
+        text = "Firma íntegra, pero con advertencias de confianza o certificado.";
+      }
+      return resultBanner(kind, "Resumen de seguridad: " + text);
+    }
+
+    function renderVerificationBlock(response) {
+      if (!response) return "";
+      const rich = verificationData(response);
+      const signers = Array.isArray(rich.signers) ? rich.signers : [];
+      const details = Array.isArray(rich.details) ? rich.details : [];
+      return renderVerificationPostureBlock(rich) +
+      '<div class="result-block" style="margin-top:12px">' +
+        '<div class="kv"><strong>Verificación automática</strong>' + escapeHtml(rich.valid ? "Firma válida." : "Firma no válida.") + '</div>' +
+        '<div class="kv"><strong>Razón</strong>' + escapeHtml(rich.reason || "No disponible") + '</div>' +
+        '<div class="kv"><strong>Firmantes</strong>' + escapeHtml(signers.length ? signers.join("\n") : "No disponible") + '</div>' +
+        '<div class="kv"><strong>Detalles</strong>' + escapeHtml(details.length ? details.join("\n") : "No disponible") + '</div>' +
+        '<div class="kv"><strong>Formato</strong>' + escapeHtml(rich.format || "No disponible") + '</div>' +
+        '<div class="kv"><strong>Cobertura</strong>' + escapeHtml(rich.coverage || "No disponible") + '</div>' +
+      '</div>' +
+      '<div class="result-block" style="margin-top:12px">' +
+        renderAspectBlock("Integridad", rich.integrity) +
+        renderAspectBlock("Certificado", rich.certificate) +
+        renderAspectBlock("Confianza", rich.trust) +
+        renderStringListBlock("Advertencias", rich.warnings) +
+        renderStringListBlock("Errores", rich.errors) +
+        renderSignerSummariesBlock(rich.signerSummaries) +
+        renderEvidenceBlock(rich.evidence) +
+      '</div>';
+    }
+
+    async function signDocument() {
+      ui.signResult.innerHTML = resultBanner("status-warn", "Procesando firma...");
+      releaseDownloadUrls();
+      try {
+        const files = selectedSignFiles();
+        const inputPath = document.getElementById("signInputPath").value.trim();
+        const outputPath = document.getElementById("signOutputPath").value.trim();
+        const format = document.getElementById("signFormat").value;
+        const action = document.getElementById("signAction").value;
+        const optionsRaw = parseOptionsJson(document.getElementById("signOptions").value);
+        const selectedCert = state.selectedCertificateId;
+        if (files.length === 0 && !inputPath) {
+          throw new Error("Selecciona un archivo o indica una ruta local.");
+        }
+        if (!selectedCert) {
+          throw new Error("Selecciona primero un certificado.");
+        }
+
+        const mergedOptions = buildSignOptionsPayload(optionsRaw);
+        Object.assign(mergedOptions, buildRootAdvancedSignOptions());
+        Object.assign(mergedOptions, buildRootFacturaEOptions());
+        Object.assign(mergedOptions, await buildVisualSealOptions());
+        Object.assign(mergedOptions, buildPadesMetadataOptions());
+        for (const [k, v] of Object.entries(optionsRaw)) {
+          if (typeof v === "boolean" && (k === "strictCompat" || k === "allowInvalidPDF")) {
+            mergedOptions[k] = String(v);
+          }
+        }
+
+        if (files.length > 1) {
+          const batchPayload = {
+            format,
+            action,
+            certificate_id: selectedCert,
+            saveToDisk: document.getElementById("signSaveToDisk").checked,
+            returnSignatureB64: document.getElementById("signReturnB64").checked,
+            options: mergedOptions,
+            items: []
+          };
+          if (document.getElementById("signOverwrite").checked) batchPayload.overwrite = "true";
+          for (const file of files) {
+            batchPayload.items.push({
+              name: sourceFileName(file) || file.name,
+              mime_type: inferMimeType(file, file.name),
+              content_base64: await fileToBase64(file)
+            });
+          }
+          const response = await apiFetch("/sign-batch", {
+            method: "POST",
+            body: JSON.stringify(batchPayload)
+          });
+          const bannerKind = response.failureCount > 0 ? "status-warn" : "status-ok";
+          const bannerText = response.failureCount > 0
+            ? ("Firma múltiple completada con incidencias (" + response.successCount + "/" + response.total + " correctos).")
+            : ("Firma múltiple completada (" + response.successCount + " fichero(s)).");
+          ui.signResult.innerHTML =
+            resultBanner(bannerKind, bannerText) +
+            renderBatchSummary(response, files.length) +
+            await renderBatchSignResults(response, batchPayload.items) +
+            jsonBlock(response);
+          setGlobalStatus(response.failureCount > 0 ? "status-warn" : "status-ok", "Firma múltiple finalizada.");
+          return;
+        }
+
+        const payload = {
+          format,
+          action,
+          certificate_id: selectedCert,
+          saveToDisk: document.getElementById("signSaveToDisk").checked,
+          returnSignatureB64: document.getElementById("signReturnB64").checked,
+          options: mergedOptions
+        };
+
+        if (outputPath) payload.outputPath = outputPath;
+        if (document.getElementById("signOverwrite").checked) payload.overwrite = "true";
+
+        if (files.length === 1) {
+          const file = files[0];
+          payload.name = sourceFileName(file) || file.name;
+          payload.mime_type = inferMimeType(file, file.name);
+          payload.content_base64 = await fileToBase64(file);
+        } else {
+          payload.inputPath = inputPath;
+          payload.name = inputPath.split(/[\\/]/).pop();
+          payload.mime_type = inferMimeType(null, inputPath);
+        }
+
+        const response = await apiFetch("/sign", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        const verification = await verifySignedPayload(
+          response.signed_content_base64,
+          payload.content_base64,
+          payload.name || "documento",
+          signedMimeTypeForFormat(response.format || format, payload.name || "documento")
+        );
+
+        let downloadHtml = "";
+        if (response.signed_content_base64) {
+          const filename = response.outputPath
+            ? response.outputPath.split(/[\\/]/).pop()
+            : signedFilenameForResult(payload.name || "firmado", response.format || format, "");
+          downloadHtml = buildDownloadLinkFromB64(
+            response.signed_content_base64,
+            signedMimeTypeForFormat(response.format || format, filename),
+            filename
+          );
+        }
+
+        ui.signResult.innerHTML =
+          resultBanner("status-ok", "Firma completada correctamente.") +
+          '<div class="result-block">' +
+            '<div class="kv"><strong>Formato</strong>' + escapeHtml(response.format || "") + '</div>' +
+            '<div class="kv"><strong>Algoritmo</strong>' + escapeHtml(response.algorithm || "") + '</div>' +
+            '<div class="kv"><strong>Certificado</strong><code>' + escapeHtml(response.certificate_id || "") + '</code></div>' +
+            '<div class="kv"><strong>Salida</strong>' + escapeHtml(response.outputPath || "en memoria") + '</div>' +
+          '</div>' +
+          renderVerificationBlock(verification) +
+          (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
+          jsonBlock(response);
+        setGlobalStatus("status-ok", "Documento firmado.");
+      } catch (err) {
+        ui.signResult.innerHTML = resultBanner("status-bad", err.message);
+        setGlobalStatus("status-bad", "Error en firma: " + err.message);
+      }
+    }
+
+    async function verifyDocument() {
+      ui.verifyResult.innerHTML = resultBanner("status-warn", "Validando documento...");
+      try {
+        const signedFile = document.getElementById("verifyFile").files[0];
+        const signedPath = document.getElementById("verifyInputPath").value.trim();
+        const originalFile = document.getElementById("verifyOriginalFile").files[0];
+        const originalPath = document.getElementById("verifyOriginalPath").value.trim();
+
+        if (!signedFile && !signedPath) {
+          throw new Error("Selecciona un documento firmado o indica una ruta local.");
+        }
+
+        const payload = {};
+        if (signedFile) {
+          payload.name = signedFile.name;
+          payload.mime_type = inferMimeType(signedFile, signedFile.name);
+          payload.content_base64 = await fileToBase64(signedFile);
+        } else {
+          payload.inputPath = signedPath;
+        }
+
+        if (originalFile) {
+          payload.original_content_base64 = await fileToBase64(originalFile);
+        } else if (originalPath) {
+          payload.originalPath = originalPath;
+        }
+
+        const response = await apiFetch("/verify", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        ui.verifyResult.innerHTML =
+          resultBanner(response.valid ? "status-ok" : "status-bad",
+            response.valid ? "Firma válida." : ("Firma no válida: " + (response.reason || ""))) +
+          renderVerificationBlock(response) +
+          jsonBlock(response);
+        setGlobalStatus(response.valid ? "status-ok" : "status-warn", "Validación finalizada.");
+      } catch (err) {
+        ui.verifyResult.innerHTML = resultBanner("status-bad", err.message);
+        setGlobalStatus("status-bad", "Error en verificación: " + err.message);
+      }
+    }
+
+    async function createHash() {
+      ui.hashCreateResult.innerHTML = resultBanner("status-warn", t("Calculando huella..."));
+      releaseHashDownloadUrls();
+      try {
+        const mode = document.getElementById("hashCreateMode").value;
+        const algorithm = document.getElementById("hashCreateAlgorithm").value;
+        const format = document.getElementById("hashCreateFormat").value;
+        const inputPath = document.getElementById("hashCreatePath").value.trim();
+        const outputPath = document.getElementById("hashCreateOutputPath").value.trim();
+        const payload = {
+          algorithm,
+          format,
+          saveToDisk: document.getElementById("hashCreateSaveToDisk").checked
+        };
+        if (outputPath) payload.outputPath = outputPath;
+        if (mode === "directory") {
+          if (!inputPath) {
+            throw new Error(t("Indica una ruta local de directorio para generar el manifiesto."));
+          }
+          payload.inputPath = inputPath;
+          payload.name = inputPath.split(/[\\/]/).pop();
+          payload.recursive = document.getElementById("hashCreateRecursive").checked;
+        } else {
+          const file = document.getElementById("hashCreateFile").files[0];
+          if (file) {
+            payload.name = file.name;
+            payload.content_base64 = await fileToBase64(file);
+          } else if (inputPath) {
+            payload.inputPath = inputPath;
+            payload.name = inputPath.split(/[\\/]/).pop();
+          } else {
+            throw new Error(t("Selecciona un fichero o indica una ruta local."));
+          }
+        }
+
+        const response = await apiFetch("/hash", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        if (mode === "directory") {
+          const extension = response.format === "txt" ? ".txthashfiles" : (response.format === "csv" ? ".csv" : ".hashfiles");
+          const filename = (payload.name || "directorio") + extension;
+          const downloadHtml = buildHashDownloadLinkFromB64(
+            response.manifest_base64,
+            response.format === "csv" ? "text/csv" : "application/xml",
+            filename,
+            t("Descargar manifiesto")
+          );
+          ui.hashCreateResult.innerHTML =
+            resultBanner("status-ok", t("Manifiesto de huellas generado.")) +
+            '<div class="result-block">' +
+              '<div class="kv"><strong>' + escapeHtml(t("Algoritmo")) + '</strong>' + escapeHtml(response.algorithm || "") + '</div>' +
+              '<div class="kv"><strong>' + escapeHtml(t("Formato")) + '</strong>' + escapeHtml(response.format || "") + '</div>' +
+              '<div class="kv"><strong>' + escapeHtml(t("Entradas")) + '</strong>' + escapeHtml(String(response.entries || 0)) + '</div>' +
+              '<div class="kv"><strong>' + escapeHtml(t("Recursivo")) + '</strong>' + escapeHtml(response.recursive ? t("__GRXFIRMA_BOOLEAN_YES__") : t("__GRXFIRMA_BOOLEAN_NO__")) + '</div>' +
+              '<div class="kv"><strong>' + escapeHtml(t("Salida")) + '</strong>' + escapeHtml(response.outputPath || t("en memoria")) + '</div>' +
+            '</div>' +
+            (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
+            jsonBlock(response);
+          setGlobalStatus("status-ok", t("Manifiesto hash de directorio generado."));
+          return;
+        }
+
+        let hashFilename = (payload.name || "documento");
+        if (response.format === "hex") hashFilename += ".hexhash";
+        else if (response.format === "base64") hashFilename += ".hashb64";
+        else hashFilename += ".hash";
+        const hashContent = response.hash ? btoa(unescape(encodeURIComponent(response.hash))) : "";
+        const downloadHtml = response.hash
+          ? buildHashDownloadLinkFromB64(hashContent, "text/plain", hashFilename, t("Descargar huella"))
+          : "";
+        ui.hashCreateResult.innerHTML =
+          resultBanner("status-ok", t("Huella generada correctamente.")) +
+          '<div class="result-block">' +
+            '<div class="kv"><strong>' + escapeHtml(t("Algoritmo")) + '</strong>' + escapeHtml(response.algorithm || "") + '</div>' +
+            '<div class="kv"><strong>' + escapeHtml(t("Formato")) + '</strong>' + escapeHtml(response.format || "") + '</div>' +
+            '<div class="kv"><strong>' + escapeHtml(t("Huella")) + '</strong><code>' + escapeHtml(response.hash || "") + '</code></div>' +
+            '<div class="kv"><strong>' + escapeHtml(t("Salida")) + '</strong>' + escapeHtml(response.outputPath || t("en memoria")) + '</div>' +
+          '</div>' +
+          (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
+          jsonBlock(response);
+        setGlobalStatus("status-ok", t("Huella generada."));
+      } catch (err) {
+        ui.hashCreateResult.innerHTML = resultBanner("status-bad", err.message);
+        setGlobalStatus("status-bad", t("Error al generar huella: ") + err.message);
+      }
+    }
+
+    async function checkHash() {
+      ui.hashCheckResult.innerHTML = resultBanner("status-warn", t("Comprobando integridad..."));
+      releaseHashDownloadUrls();
+      try {
+        const mode = document.getElementById("hashCheckMode").value;
+        const algorithm = document.getElementById("hashCheckAlgorithm").value;
+        const inputPath = document.getElementById("hashCheckPath").value.trim();
+        const manifestPath = document.getElementById("hashCheckManifestPath").value.trim();
+        const payload = {};
+        if (algorithm) payload.algorithm = algorithm;
+
+        if (mode === "directory") {
+          if (!inputPath) {
+            throw new Error(t("Indica una ruta local de directorio para comprobar el manifiesto."));
+          }
+          payload.inputPath = inputPath;
+        } else {
+          const file = document.getElementById("hashCheckFile").files[0];
+          if (file) {
+            payload.name = file.name;
+            payload.content_base64 = await fileToBase64(file);
+          } else if (inputPath) {
+            payload.inputPath = inputPath;
+          } else {
+            throw new Error(t("Selecciona un fichero o indica una ruta local."));
+          }
+        }
+
+        const manifestFile = document.getElementById("hashCheckManifestFile").files[0];
+        if (manifestFile) {
+          payload.hash_content_base64 = await fileToBase64(manifestFile);
+        } else if (manifestPath) {
+          payload.hashPath = manifestPath;
+        } else {
+          throw new Error(t("Selecciona un fichero de huella/manifiesto o indica su ruta."));
+        }
+
+        if (mode === "directory") {
+          payload.saveReportToDisk = document.getElementById("hashCheckSaveReportToDisk").checked;
+          const reportOutputPath = document.getElementById("hashCheckReportOutputPath").value.trim();
+          if (reportOutputPath) payload.reportOutputPath = reportOutputPath;
+        }
+
+        const response = await apiFetch("/hash/check", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        if (mode === "directory") {
+          const reportFilename = ((inputPath || "directorio").split(/[\\/]/).pop() || "directorio") + ".hashreport";
+          const downloadHtml = buildHashDownloadLinkFromB64(
+            response.report_base64,
+            "application/xml",
+            reportFilename,
+            t("Descargar informe")
+          );
+          ui.hashCheckResult.innerHTML =
+            resultBanner(response.valid ? "status-ok" : "status-warn",
+              response.valid ? t("Directorio íntegro.") : t("Directorio con diferencias respecto al manifiesto.")) +
+            '<div class="result-block">' +
+              '<div class="kv"><strong>' + escapeHtml(t("Algoritmo")) + '</strong>' + escapeHtml(response.algorithm || "") + '</div>' +
+              '<div class="kv"><strong>' + escapeHtml(t("Recursivo")) + '</strong>' + escapeHtml(response.recursive ? t("__GRXFIRMA_BOOLEAN_YES__") : t("__GRXFIRMA_BOOLEAN_NO__")) + '</div>' +
+              '<div class="kv"><strong>' + escapeHtml(t("Coinciden")) + '</strong>' + escapeHtml(String((response.matching_hash || []).length)) + '</div>' +
+              '<div class="kv"><strong>' + escapeHtml(t("No coinciden")) + '</strong>' + escapeHtml(String((response.not_matching_hash || []).length)) + '</div>' +
+              '<div class="kv"><strong>' + escapeHtml(t("Hash sin fichero")) + '</strong>' + escapeHtml(String((response.hash_without_file || []).length)) + '</div>' +
+              '<div class="kv"><strong>' + escapeHtml(t("Fichero sin hash")) + '</strong>' + escapeHtml(String((response.file_without_hash || []).length)) + '</div>' +
+              '<div class="kv"><strong>' + escapeHtml(t("Informe")) + '</strong>' + escapeHtml(response.report_output_path || t("en memoria")) + '</div>' +
+            '</div>' +
+            renderDirectoryHashDiffBlock(response) +
+            (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
+            jsonBlock(response);
+          setGlobalStatus(response.valid ? "status-ok" : "status-warn", t("Comprobación de directorio finalizada."));
+          return;
+        }
+
+        ui.hashCheckResult.innerHTML =
+          resultBanner(response.valid ? "status-ok" : "status-bad",
+            response.valid ? t("Huella válida.") : t("La huella no coincide con el fichero.")) +
+          '<div class="result-block">' +
+            '<div class="kv"><strong>' + escapeHtml(t("Algoritmo")) + '</strong>' + escapeHtml(response.algorithm || "") + '</div>' +
+            '<div class="kv"><strong>' + escapeHtml(t("Formato")) + '</strong>' + escapeHtml(response.format || "") + '</div>' +
+            '<div class="kv"><strong>' + escapeHtml(t("Esperada")) + '</strong><code>' + escapeHtml(response.expectedHash || "") + '</code></div>' +
+            '<div class="kv"><strong>' + escapeHtml(t("Estado actual")) + '</strong><code>' + escapeHtml(response.actualHash || "") + '</code></div>' +
+          '</div>' +
+          jsonBlock(response);
+        setGlobalStatus(response.valid ? "status-ok" : "status-warn", t("Comprobación de huella finalizada."));
+      } catch (err) {
+        ui.hashCheckResult.innerHTML = resultBanner("status-bad", err.message);
+        setGlobalStatus("status-bad", t("Error al comprobar huella: ") + err.message);
+      }
+    }
+
+    async function loadProtectionRecipients() {
+      try {
+        const response = await apiFetch("/protection/recipients");
+        renderProtectionRecipients(response.recipients || []);
+        setGlobalStatus("status-ok", "Destinatarios de protección cargados: " + ((response.recipients || []).length));
+      } catch (err) {
+        renderProtectionRecipients([]);
+        ui.protectionRecipientsMeta.textContent = err.message;
+        setGlobalStatus("status-bad", "No se pudieron cargar los destinatarios de protección: " + err.message);
+      }
+    }
+
+    async function exportProtectionRecipient() {
+      ui.protectionExchangeResult.innerHTML = resultBanner("status-warn", "Exportando destinatario...");
+      releaseProtectionDownloadUrls();
+      try {
+        const recipient = selectedProtectionRecipientEntry();
+        const profile = String(recipient.profile || recipient.Profile || "").toLowerCase();
+        if (profile !== "alto") {
+          throw new Error("Solo se pueden exportar destinatarios del perfil alto.");
+        }
+        const id = recipient.id || recipient.ID || "";
+        const response = await apiFetch("/protection/recipient/export?id=" + encodeURIComponent(id));
+        const filename = response.filename || ((response.recipient && response.recipient.id) ? response.recipient.id + ".afpr.json" : "destinatario.afpr.json");
+        const exportedRecipient = response.recipient || {};
+        const downloadHtml = buildProtectionDownloadLinkFromB64(
+          response.data_base64,
+          "application/json",
+          filename,
+          "Descargar destinatario"
+        );
+        ui.protectionExchangeResult.innerHTML =
+          resultBanner("status-ok", "Destinatario exportado.") +
+          '<div class="result-block">' +
+            '<div class="kv"><strong>ID</strong>' + escapeHtml(exportedRecipient.id || id) + '</div>' +
+            '<div class="kv"><strong>Perfil</strong>' + escapeHtml(exportedRecipient.profile || "alto") + '</div>' +
+            '<div class="kv"><strong>Salida</strong>' + escapeHtml(filename) + '</div>' +
+          '</div>' +
+          (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
+          jsonBlock(response);
+        setGlobalStatus("status-ok", "Destinatario fuerte exportado.");
+      } catch (err) {
+        ui.protectionExchangeResult.innerHTML = resultBanner("status-bad", err.message);
+        setGlobalStatus("status-bad", "Error en exportación de destinatario: " + err.message);
+      }
+    }
+
+    async function importProtectionRecipient() {
+      ui.protectionExchangeResult.innerHTML = resultBanner("status-warn", "Importando destinatario...");
+      try {
+        const file = document.getElementById("importProtectionRecipientFile").files[0];
+        if (!file) {
+          throw new Error("Selecciona un fichero de destinatario fuerte.");
+        }
+        const response = await apiFetch("/protection/recipient/import", {
+          method: "POST",
+          body: JSON.stringify({
+            data_base64: await fileToBase64(file)
+          })
+        });
+        const importedRecipient = response.recipient || {};
+        await loadProtectionRecipients();
+        document.getElementById("protectionProfile").value = "alto";
+        updateProtectionRecipientsForProfile();
+        ui.protectionExchangeResult.innerHTML =
+          resultBanner("status-ok", "Destinatario importado.") +
+          '<div class="result-block">' +
+            '<div class="kv"><strong>ID</strong>' + escapeHtml(importedRecipient.id || "") + '</div>' +
+            '<div class="kv"><strong>Perfil</strong>' + escapeHtml(importedRecipient.profile || "alto") + '</div>' +
+            '<div class="kv"><strong>Algoritmo</strong>' + escapeHtml(importedRecipient.algorithm || "") + '</div>' +
+          '</div>' +
+          jsonBlock(response);
+        setGlobalStatus("status-ok", "Destinatario fuerte importado.");
+      } catch (err) {
+        ui.protectionExchangeResult.innerHTML = resultBanner("status-bad", err.message);
+        setGlobalStatus("status-bad", "Error en importación de destinatario: " + err.message);
+      }
+    }
+
+    async function protectDocument() {
+      ui.protectResult.innerHTML = resultBanner("status-warn", "Protegiendo documento...");
+      releaseProtectionDownloadUrls();
+      try {
+        const file = document.getElementById("protectFile").files[0];
+        const inputPath = document.getElementById("protectInputPath").value.trim();
+        const outputPath = document.getElementById("protectOutputPath").value.trim();
+        const recipientIds = selectedProtectionRecipientIDs();
+        if (!file && !inputPath) {
+          throw new Error("Selecciona un fichero para proteger o indica una ruta local.");
+        }
+        if (recipientIds.length === 0) {
+          throw new Error("Selecciona al menos un destinatario de protección.");
+        }
+
+        const payload = {
+          profile: document.getElementById("protectionProfile").value || "compat",
+          recipient_ids: recipientIds
+        };
+        const protectionContainer = String(document.getElementById("protectionContainer").value || "json").toLowerCase();
+        if (protectionContainer === "authenvelopeddata" &&
+            selectedVisibleProtectionRecipients().some((recipient) => recipient.authEnvelopedDataCompatible !== true)) {
+          throw new Error("AuthEnvelopedData requiere destinatarios compatibles con certificado X.509 RSA válido.");
+        }
+        payload.options = { container: protectionContainer };
+        if (outputPath) payload.outputPath = outputPath;
+        if (document.getElementById("protectOverwrite").checked) payload.overwrite = "true";
+        payload.saveToDisk = document.getElementById("protectSaveToDisk").checked;
+        payload.returnProtectedB64 = document.getElementById("protectReturnB64").checked;
+
+        if (file) {
+          payload.name = file.name;
+          payload.mime_type = inferMimeType(file, file.name);
+          payload.content_base64 = await fileToBase64(file);
+        } else {
+          payload.inputPath = inputPath;
+          payload.name = inputPath.split(/[\\/]/).pop();
+          payload.mime_type = inferMimeType(null, inputPath);
+        }
+
+        const response = await apiFetch("/protect", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const filename = protectedFilenameForResult(response.documentName || payload.name || "protegido", response.outputPath || outputPath);
+        const downloadHtml = buildProtectionDownloadLinkFromB64(
+          response.protected_content_base64,
+          response.mime_type || "application/vnd.grxfirma.protected-envelope",
+          filename,
+          "Descargar protegido"
+        );
+        ui.protectResult.innerHTML =
+          resultBanner("status-ok", "Protección completada correctamente.") +
+          '<div class="result-block">' +
+            '<div class="kv"><strong>Perfil</strong>' + escapeHtml(response.profile || payload.profile || "") + '</div>' +
+            '<div class="kv"><strong>Contenedor</strong>' + escapeHtml(protectionContainer) + '</div>' +
+            '<div class="kv"><strong>Destinatarios</strong>' + escapeHtml(String(response.recipientCount || recipientIds.length)) + '</div>' +
+            '<div class="kv"><strong>Salida</strong>' + escapeHtml(response.outputPath || "en memoria") + '</div>' +
+          '</div>' +
+          (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
+          jsonBlock(response);
+        setGlobalStatus("status-ok", "Documento protegido.");
+      } catch (err) {
+        ui.protectResult.innerHTML = resultBanner("status-bad", err.message);
+        setGlobalStatus("status-bad", "Error en protección: " + err.message);
+      }
+    }
+
+    async function unprotectDocument() {
+      ui.unprotectResult.innerHTML = resultBanner("status-warn", "Desprotegiendo documento...");
+      releaseProtectionDownloadUrls();
+      try {
+        const file = document.getElementById("unprotectFile").files[0];
+        const inputPath = document.getElementById("unprotectInputPath").value.trim();
+        const outputPath = document.getElementById("unprotectOutputPath").value.trim();
+        if (!file && !inputPath) {
+          throw new Error("Selecciona un fichero protegido o indica una ruta local.");
+        }
+
+        const payload = {};
+        if (outputPath) payload.outputPath = outputPath;
+        if (document.getElementById("unprotectOverwrite").checked) payload.overwrite = "true";
+        payload.saveToDisk = document.getElementById("unprotectSaveToDisk").checked;
+        payload.returnUnprotectedB64 = document.getElementById("unprotectReturnB64").checked;
+
+        if (file) {
+          payload.name = file.name;
+          payload.mime_type = "application/vnd.grxfirma.protected-envelope";
+          payload.content_base64 = await fileToBase64(file);
+        } else {
+          payload.inputPath = inputPath;
+          payload.name = inputPath.split(/[\\/]/).pop();
+          payload.mime_type = "application/vnd.grxfirma.protected-envelope";
+        }
+
+        const response = await apiFetch("/unprotect", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const filename = unprotectedFilenameForResult(response.documentName, response.outputPath || outputPath, payload.name || "documento");
+        const downloadHtml = buildProtectionDownloadLinkFromB64(
+          response.unprotected_content_base64,
+          response.mime_type || "application/octet-stream",
+          filename,
+          "Descargar desprotegido"
+        );
+        ui.unprotectResult.innerHTML =
+          resultBanner("status-ok", "Desprotección completada correctamente.") +
+          '<div class="result-block">' +
+            '<div class="kv"><strong>Perfil</strong>' + escapeHtml(response.profile || "") + '</div>' +
+            '<div class="kv"><strong>Destinatario</strong>' + escapeHtml(response.recipientId || "") + '</div>' +
+            '<div class="kv"><strong>Documento</strong>' + escapeHtml(response.documentName || filename) + '</div>' +
+            '<div class="kv"><strong>Salida</strong>' + escapeHtml(response.outputPath || "en memoria") + '</div>' +
+          '</div>' +
+          (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
+          jsonBlock(response);
+        setGlobalStatus("status-ok", "Documento desprotegido.");
+      } catch (err) {
+        ui.unprotectResult.innerHTML = resultBanner("status-bad", err.message);
+        setGlobalStatus("status-bad", "Error en desprotección: " + err.message);
+      }
+    }
+
+    async function importP12() {
+      ui.importResult.innerHTML = resultBanner("status-warn", "Importando certificado...");
+      try {
+        const file = document.getElementById("p12File").files[0];
+        if (!file) {
+          throw new Error("Selecciona un fichero P12 o PFX.");
+        }
+        const response = await apiFetch("/certificates/import", {
+          method: "POST",
+          body: JSON.stringify({
+            p12B64: await fileToBase64(file),
+            password: document.getElementById("p12Password").value
+          })
+        });
+        ui.importResult.innerHTML =
+          resultBanner(response.ok ? "status-ok" : "status-bad",
+            response.ok ? "Certificado importado." : (response.error || "Error de importación.")) +
+          jsonBlock(response);
+        if (response.ok) {
+          await loadCertificates(false);
+        }
+      } catch (err) {
+        ui.importResult.innerHTML = resultBanner("status-bad", err.message);
+      }
+    }
+
+    async function loadSettings() {
+      try {
+        const response = await apiFetch("/settings");
+        ui.settingsJson.value = JSON.stringify(response.settings || {}, null, 2);
+        ui.settingsResult.innerHTML = resultBanner("status-ok", "Ajustes cargados.");
+      } catch (err) {
+        ui.settingsResult.innerHTML = resultBanner("status-bad", err.message);
+      }
+    }
+
+    async function saveSettings() {
+      try {
+        const payload = JSON.parse(ui.settingsJson.value || "{}");
+        const response = await apiFetch("/settings", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        ui.settingsResult.innerHTML = resultBanner("status-ok", "Ajustes guardados.") + jsonBlock(response);
+      } catch (err) {
+        ui.settingsResult.innerHTML = resultBanner("status-bad", err.message);
+      }
+    }
+
+    async function runSimpleAction(path, target, okMessage, method = "GET") {
+      target.innerHTML = resultBanner("status-warn", "Ejecutando...");
+      try {
+        const response = await apiFetch(path, { method });
+        const statusKind = response.ok === false ? "status-warn" : "status-ok";
+        target.innerHTML = resultBanner(statusKind, okMessage) + jsonBlock(response);
+      } catch (err) {
+        target.innerHTML = resultBanner("status-bad", err.message);
+      }
+    }
+
+    function renderTLSTrustSummary(response) {
+      const tlsStore = response && typeof response.tlsStore === "object"
+        ? response.tlsStore
+        : {};
+      const certGenerated = String(tlsStore.localCertificateState || "") === "generated";
+      const artifactCount = Number(tlsStore.artifactCount || 0);
+      const certificateCount = Number(tlsStore.certificateCount || 0);
+      const keyCount = Number(tlsStore.keyCount || 0);
+      const storeState = String(tlsStore.state || "unavailable");
+      const systemTrustState = String(tlsStore.systemTrustState || "unknown");
+      const statusKind = certGenerated ? "status-warn" : "status-bad";
+      const headline = certGenerated
+        ? t("Certificado TLS local generado. Revisa o reinstala la confianza si el navegador sigue advirtiendo.")
+        : t("Certificado TLS local no generado. La consola segura puede no funcionar hasta generarlo e instalar su confianza.");
+      ui.tlsTrustSummary.innerHTML =
+        resultBanner(statusKind, headline) +
+        '<div class="result-block">' +
+          '<div class="kv"><strong>' + escapeHtml(t("Estado certificado")) + '</strong>' + escapeHtml(certGenerated ? t("generado") : t("no generado")) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Confianza del sistema")) + '</strong>' + escapeHtml(systemTrustState) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Estado TLS")) + '</strong>' + escapeHtml(storeState) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Artefactos TLS")) + '</strong>' + escapeHtml(String(artifactCount)) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Certificados detectados")) + '</strong>' + escapeHtml(String(certificateCount)) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Claves privadas")) + '</strong>' + escapeHtml(String(keyCount)) + '</div>' +
+        '</div>';
+    }
+
+    async function loadTLSTrustStatus(showGlobalMessage = false) {
+      try {
+        const response = await apiFetch("/tls/trust-status");
+        renderTLSTrustSummary(response);
+        if (showGlobalMessage) {
+          setGlobalStatus("status-ok", "Estado TLS consultado.");
+        }
+      } catch (err) {
+        ui.tlsTrustSummary.innerHTML = resultBanner("status-bad", err.message);
+        if (showGlobalMessage) {
+          setGlobalStatus("status-bad", "Error al consultar estado TLS: " + err.message);
+        }
+      }
+    }
+
+    function renderProxySecretStoreSummary(response) {
+      const available = !!(response && response.available);
+      const backend = String(response && response.backend || "");
+      const platform = String(response && response.platform || "");
+      const runtimeProxyMode = String(response && response.runtimeProxyMode || "");
+      const reason = String(response && response.reason || "");
+      const statusKind = available ? "status-ok" : "status-warn";
+      const headline = available
+        ? t("El almacén seguro de secretos de proxy está disponible para este backend local.")
+        : t("El almacén seguro de secretos de proxy no está listo; el proxy autenticado puede quedar limitado en este equipo.");
+      let runtimeProxyModeLine = "";
+      if (runtimeProxyMode) {
+        runtimeProxyModeLine =
+          '<div class="kv"><strong>' + escapeHtml(t("Modo de proxy en ejecución")) + '</strong>' + escapeHtml(describeRuntimeProxyMode(runtimeProxyMode)) + '</div>';
+      }
+      ui.proxySecretStoreSummary.innerHTML =
+        resultBanner(statusKind, headline) +
+        '<div class="result-block">' +
+          '<div class="kv"><strong>' + escapeHtml(t("Disponible")) + '</strong>' + escapeHtml(available ? t("__GRXFIRMA_BOOLEAN_YES__") : t("__GRXFIRMA_BOOLEAN_NO__")) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Backend")) + '</strong>' + escapeHtml(backend || t("No disponible")) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Plataforma")) + '</strong>' + escapeHtml(platform || t("No disponible")) + '</div>' +
+          runtimeProxyModeLine +
+          '<div class="kv"><strong>' + escapeHtml(t("Motivo")) + '</strong>' + escapeHtml(reason || t("Sin incidencias")) + '</div>' +
+        '</div>';
+    }
+
+    function describeRuntimeProxyMode(mode) {
+      const normalized = String(mode || "").trim().toLowerCase();
+      switch (normalized) {
+        case "":
+          return t("No disponible");
+        case "none":
+        case "direct":
+        case "disabled":
+          return t("Sin proxy");
+        case "system":
+        case "auto":
+        case "pac":
+          return t("Proxy del sistema");
+        case "configured":
+        case "manual":
+        case "explicit":
+          return t("Proxy configurado");
+        case "authenticated":
+        case "auth":
+        case "secure":
+        case "secret-store":
+        case "secret_store":
+          return t("Proxy autenticado");
+        default:
+          return normalized.replaceAll("_", " ").replaceAll("-", " ");
+      }
+    }
+
+    async function loadProxySecretStoreStatus(showGlobalMessage = false) {
+      try {
+        const response = await apiFetch("/settings/proxy/secret-store/status");
+        renderProxySecretStoreSummary(response);
+        if (showGlobalMessage) {
+          setGlobalStatus(response.available ? "status-ok" : "status-warn", t("Estado del almacén seguro de proxy consultado."));
+        }
+      } catch (err) {
+        ui.proxySecretStoreSummary.innerHTML = resultBanner("status-bad", err.message);
+        if (showGlobalMessage) {
+          setGlobalStatus("status-bad", t("Error al consultar el almacén seguro de proxy: ") + err.message);
+        }
+      }
+    }
+
+    function renderDiagnosticsSummary(response) {
+      const certificateCount = Number(response && response.certificateCount || 0);
+      const canSignCount = Number(response && response.canSignCount || 0);
+      const tlsStore = response && typeof response.tlsStore === "object"
+        ? response.tlsStore
+        : {};
+      const tlsState = String(tlsStore.state || "unavailable");
+      const artifactCount = Number(tlsStore.artifactCount || 0);
+      const tlsCertificateCount = Number(tlsStore.certificateCount || 0);
+      const keyCount = Number(tlsStore.keyCount || 0);
+      const localCertificateState = String(
+        tlsStore.localCertificateState || "unknown");
+      const systemTrustState = String(tlsStore.systemTrustState || "unknown");
+      const trustKind = canSignCount > 0 ? "status-ok" : "status-warn";
+      const trustHeadline = canSignCount > 0
+        ? t("Diagnóstico local correcto: hay certificados utilizables para firmar.")
+        : t("Diagnóstico local con advertencias: no se detectan certificados utilizables para firmar.");
+      ui.diagnosticsSummary.innerHTML =
+        resultBanner(trustKind, trustHeadline) +
+        '<div class="result-block">' +
+          '<div class="kv"><strong>' + escapeHtml(t("Certificados detectados")) + '</strong>' + escapeHtml(String(certificateCount)) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Certificados utilizables")) + '</strong>' + escapeHtml(String(canSignCount)) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Estado TLS")) + '</strong>' + escapeHtml(tlsState) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Artefactos TLS locales")) + '</strong>' + escapeHtml(String(artifactCount)) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Certificado local")) + '</strong>' + escapeHtml(String(tlsCertificateCount)) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Claves privadas")) + '</strong>' + escapeHtml(String(keyCount)) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Estado certificado")) + '</strong>' + escapeHtml(localCertificateState) + '</div>' +
+          '<div class="kv"><strong>' + escapeHtml(t("Confianza del sistema")) + '</strong>' + escapeHtml(systemTrustState) + '</div>' +
+        '</div>';
+    }
+
+    function clearDiagnosticsExportSummary() {
+      releaseDiagnosticsDownloadUrls();
+      state.lastDiagnosticsJSON = "";
+      ui.diagnosticsExportSummary.innerHTML = "";
+    }
+
+    function renderDiagnosticsExportSummary(response) {
+      clearDiagnosticsExportSummary();
+      if (!response || typeof response !== "object") {
+        return;
+      }
+      state.lastDiagnosticsJSON = JSON.stringify(response, null, 2);
+      const filename = String(t("Informe diagnóstico") || "diagnostic-report")
+        .trim()
+        .replaceAll(/[\\\\/:*?\"<>|]+/g, "-")
+        .replaceAll(/\s+/g, "_") + ".json";
+      const downloadHtml = buildDiagnosticsDownloadLinkFromJSON(
+        state.lastDiagnosticsJSON,
+        filename,
+        t("Descargar informe"),
+      );
+      ui.diagnosticsExportSummary.innerHTML =
+        resultBanner("status-ok", t("Informe diagnóstico")) +
+        '<div class="toolbar" style="margin-top:10px">' +
+          downloadHtml +
+          '<button type="button" class="secondary" data-copy-diagnostics-report="1">' + escapeHtml(t("Copiar diagnóstico")) + '</button>' +
+        '</div>';
+    }
+
+    async function loadDiagnosticsSummary(showGlobalMessage = false) {
+      try {
+        const response = await apiFetch("/diagnostics/report");
+        renderDiagnosticsSummary(response);
+        renderDiagnosticsExportSummary(response);
+        if (showGlobalMessage) {
+          setGlobalStatus("status-ok", t("Diagnóstico generado."));
+        }
+      } catch (err) {
+        ui.diagnosticsSummary.innerHTML = resultBanner("status-bad", err.message);
+        clearDiagnosticsExportSummary();
+        if (showGlobalMessage) {
+          setGlobalStatus("status-bad", t("Error al generar diagnóstico: ") + err.message);
+        }
+      }
+    }
+
+    document.getElementById("refreshHealthBtn").addEventListener("click", loadHealth);
+    document.getElementById("serviceStatusBtn").addEventListener("click", loadServiceStatus);
+    document.getElementById("loadCertificatesBtn").addEventListener("click", () => loadCertificates(false));
+    document.getElementById("checkCertificatesBtn").addEventListener("click", () => loadCertificates(true));
+    document.getElementById("selectCertificateBtn").addEventListener("click", autoSelectCertificate);
+    document.getElementById("rememberConsoleCertificate").addEventListener("change", () => {
+      renderSelectedCertificateSummary();
+      persistConsolePreferences();
+    });
+    document.getElementById("subjectFilter").addEventListener("input", () => {
+      renderCertificates(state.certificates);
+      persistConsolePreferences();
+    });
+    document.getElementById("issuerFilter").addEventListener("input", () => {
+      renderCertificates(state.certificates);
+      persistConsolePreferences();
+    });
+    document.getElementById("onlyValidCerts").addEventListener("change", () => {
+      renderCertificates(state.certificates);
+      persistConsolePreferences();
+    });
+    document.getElementById("rootVisibleSealEnabled").addEventListener("change", updateRootSealVisibility);
+    document.getElementById("signFormat").addEventListener("change", updateRootSealVisibility);
+    document.getElementById("signFormat").addEventListener("change", renderSignPlanSummary);
+    document.getElementById("signAction").addEventListener("change", renderSignPlanSummary);
+    document.getElementById("signFile").addEventListener("change", handleSignFileChange);
+    document.getElementById("signDirectory").addEventListener("change", handleSignDirectoryChange);
+    document.getElementById("signInputPath").addEventListener("input", handleSignPathInput);
+    document.getElementById("signOutputPath").addEventListener("input", renderSignPlanSummary);
+    document.getElementById("signSaveToDisk").addEventListener("change", renderSignPlanSummary);
+    document.getElementById("signReturnB64").addEventListener("change", renderSignPlanSummary);
+    document.getElementById("signOverwrite").addEventListener("change", renderSignPlanSummary);
+    document.getElementById("rootSignProfile").addEventListener("change", renderSignPlanSummary);
+    document.getElementById("rootTsaUrl").addEventListener("input", renderSignPlanSummary);
+    document.getElementById("rootPadesSubFilter").addEventListener("change", renderSignPlanSummary);
+    document.getElementById("rootFacturaePolicyVersion").addEventListener("change", renderSignPlanSummary);
+    document.getElementById("rootFacturaeSignerRole").addEventListener("input", renderSignPlanSummary);
+    document.getElementById("rootFacturaePolicyIdentifier").addEventListener("input", renderSignPlanSummary);
+    document.getElementById("rootFacturaePolicyIdentifierHash").addEventListener("input", renderSignPlanSummary);
+    document.getElementById("rootFacturaeSignatureCity").addEventListener("input", renderSignPlanSummary);
+    document.getElementById("rootFacturaeSignatureProvince").addEventListener("input", renderSignPlanSummary);
+    document.getElementById("rootFacturaeSignaturePostalCode").addEventListener("input", renderSignPlanSummary);
+    document.getElementById("rootFacturaeSignatureCountry").addEventListener("input", renderSignPlanSummary);
+    document.getElementById("loadProtectionRecipientsBtn").addEventListener("click", loadProtectionRecipients);
+    document.getElementById("exportProtectionRecipientBtn").addEventListener("click", exportProtectionRecipient);
+    document.getElementById("importProtectionRecipientBtn").addEventListener("click", importProtectionRecipient);
+    document.getElementById("protectionProfile").addEventListener("change", updateProtectionRecipientsForProfile);
+    document.getElementById("protectionContainer").addEventListener("change", updateProtectionRecipientsForProfile);
+    document.getElementById("protectionRecipients").addEventListener("change", () => {
+      renderProtectionRecipientSummary();
+      renderProtectArtifactSummary();
+      renderProtectPlanSummary();
+    });
+    document.getElementById("protectFile").addEventListener("change", handleProtectFileChange);
+    document.getElementById("protectInputPath").addEventListener("input", handleProtectPathInput);
+    document.getElementById("protectOutputPath").addEventListener("input", renderProtectArtifactSummary);
+    document.getElementById("protectFile").addEventListener("change", renderProtectPlanSummary);
+    document.getElementById("protectInputPath").addEventListener("input", renderProtectPlanSummary);
+    document.getElementById("protectOutputPath").addEventListener("input", renderProtectPlanSummary);
+    document.getElementById("protectSaveToDisk").addEventListener("change", renderProtectPlanSummary);
+    document.getElementById("protectReturnB64").addEventListener("change", renderProtectPlanSummary);
+    document.getElementById("unprotectFile").addEventListener("change", handleUnprotectFileChange);
+    document.getElementById("unprotectInputPath").addEventListener("input", handleUnprotectPathInput);
+    document.getElementById("unprotectOutputPath").addEventListener("input", renderUnprotectPlanSummary);
+    document.getElementById("unprotectSaveToDisk").addEventListener("change", renderUnprotectPlanSummary);
+    document.getElementById("unprotectReturnB64").addEventListener("change", renderUnprotectPlanSummary);
+    document.getElementById("rootSealAllPages").addEventListener("change", () => {
+      updateRootSealPageMode();
+      applyRootSealPageValidity();
+    });
+    document.getElementById("rootSealPages").addEventListener("blur", applyRootSealPageValidity);
+    document.getElementById("rootSealPosition").addEventListener("change", (event) => {
+      if (event.target.value !== "custom") applyRootSealPreset(event.target.value);
+    });
+    document.getElementById("signBtn").addEventListener("click", signDocument);
+    document.getElementById("verifyFile").addEventListener("change", renderVerifyArtifactSummary);
+    document.getElementById("verifyFile").addEventListener("change", renderVerifyPairSummary);
+    document.getElementById("verifyFile").addEventListener("change", renderVerifyCompatibilitySummary);
+    document.getElementById("verifyFile").addEventListener("change", renderVerifyAlgorithmSummary);
+    document.getElementById("verifyFile").addEventListener("change", renderVerifyPlanSummary);
+    document.getElementById("verifyInputPath").addEventListener("input", renderVerifyArtifactSummary);
+    document.getElementById("verifyInputPath").addEventListener("input", renderVerifyPairSummary);
+    document.getElementById("verifyInputPath").addEventListener("input", renderVerifyCompatibilitySummary);
+    document.getElementById("verifyInputPath").addEventListener("input", renderVerifyAlgorithmSummary);
+    document.getElementById("verifyInputPath").addEventListener("input", renderVerifyPlanSummary);
+    document.getElementById("verifyOriginalFile").addEventListener("change", renderVerifyOriginalSummary);
+    document.getElementById("verifyOriginalFile").addEventListener("change", renderVerifyPairSummary);
+    document.getElementById("verifyOriginalFile").addEventListener("change", renderVerifyCompatibilitySummary);
+    document.getElementById("verifyOriginalFile").addEventListener("change", renderVerifyPlanSummary);
+    document.getElementById("verifyOriginalPath").addEventListener("input", renderVerifyOriginalSummary);
+    document.getElementById("verifyOriginalPath").addEventListener("input", renderVerifyPairSummary);
+    document.getElementById("verifyOriginalPath").addEventListener("input", renderVerifyCompatibilitySummary);
+    document.getElementById("verifyOriginalPath").addEventListener("input", renderVerifyPlanSummary);
+    document.getElementById("verifyBtn").addEventListener("click", verifyDocument);
+    document.getElementById("hashCreateMode").addEventListener("change", updateHashPanels);
+    document.getElementById("hashCheckMode").addEventListener("change", updateHashPanels);
+    document.getElementById("hashCreateAlgorithm").addEventListener("change", renderHashCreateArtifactSummary);
+    document.getElementById("hashCreateAlgorithm").addEventListener("change", renderHashCreatePlanSummary);
+    document.getElementById("hashCreateFormat").addEventListener("change", renderHashCreateArtifactSummary);
+    document.getElementById("hashCreateFormat").addEventListener("change", renderHashCreatePlanSummary);
+    document.getElementById("hashCreateOutputPath").addEventListener("input", renderHashCreateArtifactSummary);
+    document.getElementById("hashCreateOutputPath").addEventListener("input", renderHashCreatePlanSummary);
+    document.getElementById("hashCreateRecursive").addEventListener("change", renderHashCreatePlanSummary);
+    document.getElementById("hashCreateSaveToDisk").addEventListener("change", renderHashCreatePlanSummary);
+    document.getElementById("hashCreateFile").addEventListener("change", handleHashCreateFileChange);
+    document.getElementById("hashCreatePath").addEventListener("input", handleHashCreatePathInput);
+    document.getElementById("hashCheckAlgorithm").addEventListener("change", renderHashCheckAlgorithmSummary);
+    document.getElementById("hashCheckAlgorithm").addEventListener("change", renderHashCheckPlanSummary);
+    document.getElementById("hashCheckFile").addEventListener("change", handleHashCheckFileChange);
+    document.getElementById("hashCheckPath").addEventListener("input", handleHashCheckPathInput);
+    document.getElementById("hashCheckManifestFile").addEventListener("change", handleHashManifestFileChange);
+    document.getElementById("hashCheckManifestPath").addEventListener("input", handleHashManifestPathInput);
+    document.getElementById("hashCheckReportOutputPath").addEventListener("input", renderHashCheckPlanSummary);
+    document.getElementById("hashCheckSaveReportToDisk").addEventListener("change", renderHashCheckPlanSummary);
+    document.getElementById("hashCreateBtn").addEventListener("click", createHash);
+    document.getElementById("hashCheckBtn").addEventListener("click", checkHash);
+    document.getElementById("protectBtn").addEventListener("click", protectDocument);
+    document.getElementById("unprotectBtn").addEventListener("click", unprotectDocument);
+    document.getElementById("importP12Btn").addEventListener("click", importP12);
+    document.getElementById("loadSettingsBtn").addEventListener("click", loadSettings);
+    document.getElementById("saveSettingsBtn").addEventListener("click", saveSettings);
+    document.getElementById("tlsStatusBtn").addEventListener("click", async () => {
+      await loadTLSTrustStatus(true);
+      await loadProxySecretStoreStatus(false);
+      await runSimpleAction("/tls/trust-status", ui.diagResult, t("Estado TLS consultado."));
+    });
+    document.getElementById("diagnosticsBtn").addEventListener("click", async () => {
+      await loadDiagnosticsSummary(true);
+      await loadProxySecretStoreStatus(false);
+      await runSimpleAction("/diagnostics/report", ui.diagResult, t("Diagnóstico generado."));
+    });
+    document.addEventListener("click", async (event) => {
+      const copyDiagnosticsBtn = event.target.closest("[data-copy-diagnostics-report]");
+      if (copyDiagnosticsBtn) {
+        if (!state.lastDiagnosticsJSON) {
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(state.lastDiagnosticsJSON);
+        } catch (err) {
+          setGlobalStatus("status-bad", t("Copiar diagnóstico") + ": " + (err.message || t("No disponible")));
+        }
+        return;
+      }
+      const copySelectedCertificateJSONBtn = event.target.closest("[data-copy-selected-certificate-json]");
+      if (copySelectedCertificateJSONBtn) {
+        if (!state.lastSelectedCertificateJSON) {
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(state.lastSelectedCertificateJSON);
+          setGlobalStatus("status-ok", t("JSON del certificado copiado al portapapeles."));
+        } catch (err) {
+          setGlobalStatus("status-bad", t("No se pudo copiar el JSON del certificado.") + " " + (err.message || t("No disponible")));
+        }
+        return;
+      }
+      const copySelectedCertificateFingerprintBtn = event.target.closest("[data-copy-selected-certificate-fingerprint]");
+      if (copySelectedCertificateFingerprintBtn) {
+        if (!state.lastSelectedCertificateFingerprint) {
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(state.lastSelectedCertificateFingerprint);
+          setGlobalStatus("status-ok", t("Huella del certificado copiada al portapapeles."));
+        } catch (err) {
+          setGlobalStatus("status-bad", t("No se pudo copiar la huella del certificado.") + " " + (err.message || t("No disponible")));
+        }
+      }
+    });
+    document.getElementById("installRootsBtn").addEventListener("click", async () => {
+      if (!window.confirm(t("Esto instalará o reinstalará la confianza TLS local en este equipo. ¿Continuar?"))) {
+        return;
+      }
+      await runSimpleAction("/trust/install-public-roots", ui.diagResult, t("Resultado de instalación de confianza TLS local."), "POST");
+      await loadTLSTrustStatus(false);
+    });
+    document.getElementById("clearTlsBtn").addEventListener("click", async () => {
+      if (!window.confirm("Esto vaciará el almacén TLS local de GrxFirma y puede romper la consola web segura hasta reinstalar la confianza. ¿Continuar?")) {
+        return;
+      }
+      await runSimpleAction("/tls/clear-store", ui.diagResult, "Almacén TLS local vaciado.", "POST");
+      await loadTLSTrustStatus(false);
+    });
+    document.getElementById("openApiBtn").addEventListener("click", () => window.open("/openapi.json?lang=" + encodeURIComponent(CURRENT_LANG), "_blank", "noopener"));
+
+    Object.keys(consolePrefFields).forEach((id) => {
+      const element = document.getElementById(id);
+      if (!element) return;
+      const eventName = consolePrefFields[id] === "checked" ? "change" : "change";
+      element.addEventListener(eventName, persistConsolePreferences);
+    });
+    document.getElementById("hashCreateFormat").addEventListener("change", persistConsolePreferences);
+
+    restoreConsolePreferences();
+    updateRootSealVisibility();
+    applyRootSealPageValidity();
+    updateHashPanels();
+    updateSignFileMeta();
+    renderSignPlanSummary();
+    renderVerifyOriginalSummary();
+    renderVerifyArtifactSummary();
+    renderVerifyPairSummary();
+    renderVerifyCompatibilitySummary();
+    renderVerifyAlgorithmSummary();
+    renderVerifyPlanSummary();
+    renderHashCreateArtifactSummary();
+    renderHashCreatePlanSummary();
+    renderHashCheckAlgorithmSummary();
+    renderHashCheckPlanSummary();
+    renderHashCheckArtifactSummary();
+    renderProtectArtifactSummary();
+    renderProtectPlanSummary();
+    renderUnprotectArtifactSummary();
+    renderUnprotectPlanSummary();
+    Promise.allSettled([loadHealth(), loadCertificates(false), loadProtectionRecipients(), loadTLSTrustStatus(false), loadProxySecretStoreStatus(false), loadDiagnosticsSummary(false)]).then(() => {
+      setGlobalStatus("status-ok", "Consola web lista.");
+    });
+  </script>
+</body>
+</html>

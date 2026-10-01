@@ -1,0 +1,109 @@
+.TH GRXFIRMA-CONFIANZA 7 "20 marzo 2026" "GrxFirma" "Círculo de confianza"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-confianza \- confianza de dominios y perímetro remoto en GrxFirma
+.SH DESCRIPCIÓN
+\fBGrxFirma\fR mantiene un círculo de confianza de dominios para no tratar igual
+cualquier origen remoto.
+.PP
+La idea práctica es sencilla: no debería firmarse alegremente contra dominios
+desconocidos, ajenos o potencialmente maliciosos.
+.SH QUÉ ES EL CÍRCULO DE CONFIANZA
+Es la lista de dominios u orígenes que el operador acepta como válidos para
+operaciones remotas.
+.PP
+Si un dominio está dentro del círculo:
+.IP \(bu 2
+la aplicación puede considerarlo permitido según la política configurada.
+.PP
+Si no está dentro:
+.IP \(bu 2
+la aplicación no debería confiar en él por defecto.
+.SH SEMILLA INICIAL
+En el primer arranque, \fBGrxFirma\fR siembra una base de dominios públicos
+habituales: Estado, Junta de Andalucía, otras administraciones públicas y loopback local.
+.PP
+Esa semilla:
+.IP \(bu 2
+no es inmutable,
+.IP \(bu 2
+puede ampliarse,
+.IP \(bu 2
+puede exportarse,
+.IP \(bu 2
+y puede borrarse por completo.
+.SH RUTAS PERSISTENTES
+.TP
+.B /etc/grxfirma/policy.json
+Política global de organización con máxima precedencia.
+.TP
+.B /etc/grxfirma/allowed-domains.json
+Allowlist global del sistema para el círculo de confianza.
+.TP
+.B ~/.config/grxfirma/trusted-domains.json
+Decisiones persistidas del usuario sobre dominios y orígenes.
+.TP
+.B ~/.config/grxfirma/trusted-domains.seeded
+Marca de que la semilla inicial ya fue aplicada en ese perfil.
+.PP
+La reinstalación normal del producto no borra los ficheros del perfil del usuario.
+.SH AÑADIR UN DOMINIO
+Añadir un dominio significa incorporarlo al círculo de confianza.
+.PP
+No es un detalle decorativo. Significa ampliar el perímetro de orígenes desde los
+que aceptas iniciar o continuar operaciones remotas.
+.SH ELIMINAR O LIMPIAR
+.TP
+.B Eliminar un dominio
+Quita un origen concreto.
+.TP
+.B Limpiar dominios
+Vacía por completo el conjunto de dominios permitidos.
+.PP
+Si el círculo queda vacío y la CLI se usa en modo interactivo, la aplicación puede
+preguntar si quieres reimportar la semilla pública inicial.
+.SH IMPORTAR Y EXPORTAR
+.TP
+.B Importar dominios
+Permite cargar un círculo de confianza desde texto o JSON.
+.TP
+.B Exportar dominios
+Permite guardar el conjunto actual para reutilizarlo en otra instalación o perfil.
+.SH MOTIVOS VISIBLES
+La CLI puede mostrar distintos motivos asociados a un dominio:
+.TP
+.B semilla inicial de dominios públicos
+Dominio sembrado al inicio como base editable.
+.TP
+.B allowlist del sistema
+Dominio permitido por política o configuración del sistema.
+.TP
+.B configuración local
+Dominio cargado desde configuración local.
+.TP
+.B decisión persistida del usuario
+Dominio añadido o modificado explícitamente por el usuario.
+.SH COMANDOS ÚTILES
+.TP
+.B grxfirma -listar-dominios
+Lista el círculo actual.
+.TP
+.B grxfirma -añadir-dominio -dominio https://sede.ejemplo.gob.es
+Añade un origen al círculo de confianza.
+.TP
+.B grxfirma -eliminar-dominio -dominio https://sede.ejemplo.gob.es
+Elimina un origen concreto.
+.TP
+.B grxfirma -exportar-dominios -fichero-dominios /tmp/dominios.json
+Exporta el círculo de confianza.
+.TP
+.B grxfirma -limpiar-dominios
+Vacía por completo los dominios permitidos.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-firmas (7),
+.BR grxfirma-tls-local (7)

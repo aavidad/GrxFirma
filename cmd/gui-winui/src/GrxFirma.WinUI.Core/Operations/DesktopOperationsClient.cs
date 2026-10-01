@@ -1,0 +1,606 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// Autoría: Alberto Avidad Fernández
+// Licencia: EUPL 1.2 o posterior
+// SPDX-License-Identifier: EUPL-1.2
+
+using GrxFirma.WinUI.Core.Ipc;
+using System.Buffers;
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace GrxFirma.WinUI.Core.Operations;
+
+public static class DesktopOperationActions
+{
+    public const string Certificates = "certificates";
+    public const string CertificateExportPublic = "certificate_export_public";
+    public const string SmartcardStatus = "smartcard_status";
+    public const string ValidateCertificateOnline =
+        "validate_certificate_online";
+    public const string OpenCertificateManager =
+        "open_certificate_manager";
+    public const string Sign = "sign";
+    public const string SignMultiCosign = "sign_multicosign";
+    public const string SignBatch = "sign_batch";
+    public const string Verify = "verify";
+    public const string PdfPreview = "pdf_preview";
+    public const string SealPreview = "seal_preview";
+    public const string HashCreate = "hash_create";
+    public const string HashCheck = "hash_check";
+    public const string GetSettings = "get_settings";
+    public const string SaveSettings = "save_settings";
+    public const string ProtectionRecipients = "protection_recipients";
+    public const string ProtectionRecipientImport = "protection_recipient_import";
+    public const string ProtectionRecipientRemove = "protection_recipient_remove";
+    public const string Protect = "protect";
+    public const string ProtectAndSign = "protect_sign";
+    public const string Unprotect = "unprotect";
+    public const string Ping = "ping";
+    public const string CheckCertificates = "check_certificates";
+    public const string CheckUpdates = "check_updates";
+    public const string CertificateAccessOptions =
+        "certificate_access_options";
+    public const string ImportCertificateToStore =
+        "import_certificate_to_store";
+    public const string UseTemporaryCertificate =
+        "use_temporary_certificate";
+    public const string RemoveTemporaryCertificate =
+        "remove_temporary_certificate";
+    public const string ClearTemporaryCertificates =
+        "clear_temporary_certificates";
+    public const string ProxySecretStoreStatus =
+        "proxy_secret_store_status";
+    public const string ProxySecretStore =
+        "proxy_secret_store";
+    public const string ProxySecretDelete =
+        "proxy_secret_delete";
+    public const string TlsDiagnostics =
+        "tls_diagnostics";
+    public const string ClockDiagnostics =
+        "clock_diagnostics";
+    public const string ExportDiagnostic =
+        "export_diagnostic";
+    public const string InstallPublicRoots =
+        "install_public_roots";
+    public const string ClearTlsTrust =
+        "clear_tls_trust";
+}
+
+/// <summary>
+/// Fachada tipada de las operaciones reales expuestas por el motor de escritorio.
+/// El transporte conserva la correlación, los diagnósticos y los errores estables
+/// proporcionados por <see cref="IIpcClient"/>.
+/// </summary>
+public sealed class DesktopOperationsClient
+{
+    public const int MaximumCredentialBytes = 2 * 1024 * 1024;
+    public const int MaximumPasswordBytes = 4 * 1024;
+    public const int MaximumProxyCredentialTextBytes = 256;
+
+    private readonly IIpcClient _ipcClient;
+
+    public DesktopOperationsClient(IIpcClient ipcClient)
+    {
+        ArgumentNullException.ThrowIfNull(ipcClient);
+        _ipcClient = ipcClient;
+    }
+
+    public Task<IpcCallResult<IReadOnlyList<CertificateInfo>>>
+        GetCertificatesAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            CertificatesParameters,
+            IReadOnlyList<CertificateInfo>>(
+                DesktopOperationActions.Certificates,
+                new CertificatesParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<CertificateExportPublicResult>> ExportPublicCertificateAsync(
+        CertificateExportPublicParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<CertificateExportPublicParameters, CertificateExportPublicResult>(
+            DesktopOperationActions.CertificateExportPublic, parameters, cancellationToken);
+    }
+
+    public Task<IpcCallResult<SmartcardStatusResult>>
+        GetSmartcardStatusAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            SmartcardStatusParameters,
+            SmartcardStatusResult>(
+                DesktopOperationActions.SmartcardStatus,
+                new SmartcardStatusParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<CertificateOnlineValidationResult>>
+        ValidateCertificateOnlineAsync(
+            ValidateCertificateOnlineParameters parameters,
+            CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<
+            ValidateCertificateOnlineParameters,
+            CertificateOnlineValidationResult>(
+                DesktopOperationActions.ValidateCertificateOnline,
+                parameters,
+                cancellationToken);
+    }
+
+    public Task<IpcCallResult<SignResult>> SignAsync(
+        SignParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<SignParameters, SignResult>(
+            DesktopOperationActions.Sign,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<SignResult>> SignMultiCosignAsync(
+        SignParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<SignParameters, SignResult>(
+            DesktopOperationActions.SignMultiCosign,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<VerifyResult>> VerifyAsync(
+        VerifyParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<VerifyParameters, VerifyResult>(
+            DesktopOperationActions.Verify,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<PdfPreviewResult>> GetPdfPreviewAsync(
+        PdfPreviewParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<PdfPreviewParameters, PdfPreviewResult>(
+            DesktopOperationActions.PdfPreview,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<SealPreviewResult>> GetSealPreviewAsync(
+        SealPreviewParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<SealPreviewParameters, SealPreviewResult>(
+            DesktopOperationActions.SealPreview,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<HashCreateResult>> CreateHashAsync(
+        HashCreateParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<HashCreateParameters, HashCreateResult>(
+            DesktopOperationActions.HashCreate,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<HashCheckResult>> CheckHashAsync(
+        HashCheckParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<HashCheckParameters, HashCheckResult>(
+            DesktopOperationActions.HashCheck,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<ProtectionRecipientsResult>>
+        GetProtectionRecipientsAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            ProtectionRecipientsParameters,
+            ProtectionRecipientsResult>(
+                DesktopOperationActions.ProtectionRecipients,
+                new ProtectionRecipientsParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<ProtectionRecipientChangeResult>> ImportProtectionRecipientAsync(
+        ProtectionRecipientImportParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<ProtectionRecipientImportParameters, ProtectionRecipientChangeResult>(
+            DesktopOperationActions.ProtectionRecipientImport, parameters, cancellationToken);
+    }
+
+    public Task<IpcCallResult<ProtectionRecipientChangeResult>> RemoveProtectionRecipientAsync(
+        ProtectionRecipientRemoveParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<ProtectionRecipientRemoveParameters, ProtectionRecipientChangeResult>(
+            DesktopOperationActions.ProtectionRecipientRemove, parameters, cancellationToken);
+    }
+
+    public Task<IpcCallResult<ProtectionResult>> ProtectAsync(
+        ProtectionParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<ProtectionParameters, ProtectionResult>(
+            DesktopOperationActions.Protect,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<ProtectionResult>> ProtectAndSignAsync(
+        ProtectionParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<ProtectionParameters, ProtectionResult>(
+            DesktopOperationActions.ProtectAndSign,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<UnprotectResult>> UnprotectAsync(
+        ProtectionParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<ProtectionParameters, UnprotectResult>(
+            DesktopOperationActions.Unprotect,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<DesktopSettingsDocument>> GetSettingsAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            GetSettingsParameters,
+            DesktopSettingsDocument>(
+                DesktopOperationActions.GetSettings,
+                new GetSettingsParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<string>> SaveSettingsAsync(
+        DesktopSettingsDocument settings,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        return _ipcClient.SendAsync<DesktopSettingsDocument, string>(
+            DesktopOperationActions.SaveSettings,
+            settings.CreateSafeSaveSnapshot(),
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<PingResult>> PingAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<PingParameters, PingResult>(
+                DesktopOperationActions.Ping,
+                new PingParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<CheckCertificatesSummaryResult>>
+        CheckCertificatesAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            CheckCertificatesParameters,
+            CheckCertificatesSummaryResult>(
+                DesktopOperationActions.CheckCertificates,
+                new CheckCertificatesParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<UpdateCheckResult>> CheckUpdatesAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<UpdateCheckParameters, UpdateCheckResult>(
+            DesktopOperationActions.CheckUpdates,
+            new UpdateCheckParameters(),
+            cancellationToken);
+
+    public Task<IpcCallResult<CertificateAccessInventoryResult>>
+        GetCertificateAccessOptionsAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            CertificateAccessOptionsParameters,
+            CertificateAccessInventoryResult>(
+                DesktopOperationActions.CertificateAccessOptions,
+                new CertificateAccessOptionsParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<CertificateManagerOptionsResult>>
+        GetCertificateManagersAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            CertificateAccessOptionsParameters,
+            CertificateManagerOptionsResult>(
+                DesktopOperationActions.CertificateAccessOptions,
+                new CertificateAccessOptionsParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<CertificateAccessOptionsResult>>
+        GetCertificateImportOptionsAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            CertificateAccessOptionsParameters,
+            CertificateAccessOptionsResult>(
+                DesktopOperationActions.CertificateAccessOptions,
+                new CertificateAccessOptionsParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<string>> OpenCertificateManagerAsync(
+        OpenCertificateManagerParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<
+            OpenCertificateManagerParameters,
+            string>(
+                DesktopOperationActions.OpenCertificateManager,
+                parameters,
+                cancellationToken);
+    }
+
+    public Task<IpcCallResult<string>> ImportCertificateToStoreAsync(
+        ImportCertificateToStoreParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        ValidateCredentialBuffers(
+            parameters.CredentialB64,
+            parameters.PasswordB64);
+        if (string.IsNullOrWhiteSpace(parameters.TargetId))
+        {
+            throw new ArgumentException(
+                "Debe indicar el almacén de destino.",
+                nameof(parameters));
+        }
+        return _ipcClient.SendAsync<
+            ImportCertificateToStoreParameters,
+            string>(
+                DesktopOperationActions.ImportCertificateToStore,
+                parameters,
+                cancellationToken);
+    }
+
+    public Task<IpcCallResult<TemporaryCertificateResult>>
+        UseTemporaryCertificateAsync(
+            UseTemporaryCertificateParameters parameters,
+            CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        ValidateCredentialBuffers(
+            parameters.CredentialB64,
+            parameters.PasswordB64);
+        return _ipcClient.SendAsync<
+            UseTemporaryCertificateParameters,
+            TemporaryCertificateResult>(
+                DesktopOperationActions.UseTemporaryCertificate,
+                parameters,
+                cancellationToken);
+    }
+
+    public Task<IpcCallResult<string>> RemoveTemporaryCertificateAsync(
+        RemoveTemporaryCertificateParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        if (string.IsNullOrWhiteSpace(parameters.CertificateId))
+        {
+            throw new ArgumentException(
+                "Debe indicar la credencial temporal.",
+                nameof(parameters));
+        }
+        return _ipcClient.SendAsync<
+            RemoveTemporaryCertificateParameters,
+            string>(
+                DesktopOperationActions.RemoveTemporaryCertificate,
+                parameters,
+                cancellationToken);
+    }
+
+    public Task<IpcCallResult<string>> ClearTemporaryCertificatesAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            ClearTemporaryCertificatesParameters,
+            string>(
+                DesktopOperationActions.ClearTemporaryCertificates,
+                new ClearTemporaryCertificatesParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<BatchSignResult>> SignBatchAsync(
+        BatchSignParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<BatchSignParameters, BatchSignResult>(
+            DesktopOperationActions.SignBatch,
+            parameters,
+            cancellationToken);
+    }
+
+    public Task<IpcCallResult<ProxySecretStoreStatusResult>>
+        GetProxySecretStoreStatusAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            ProxySecretStoreStatusParameters,
+            ProxySecretStoreStatusResult>(
+                DesktopOperationActions.ProxySecretStoreStatus,
+                new ProxySecretStoreStatusParameters(),
+                cancellationToken);
+
+    /// <summary>
+    /// Consume el buffer de contraseña: queda sobrescrito tanto si la
+    /// validación falla como si el transporte termina con error o éxito.
+    /// </summary>
+    public async Task<IpcCallResult<ProxySecretMutationResult>>
+        StoreProxySecretAsync(
+            ProxySecretStoreParameters parameters,
+            CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        ArgumentNullException.ThrowIfNull(parameters.Password);
+        try
+        {
+            var realm = NormalizeProxyCredentialText(
+                parameters.Realm,
+                nameof(parameters.Realm));
+            var username = NormalizeProxyCredentialText(
+                parameters.Username,
+                nameof(parameters.Username));
+            ValidateProxyPassword(parameters.Password);
+            return await _ipcClient.SendAsync<
+                ProxySecretStoreParameters,
+                ProxySecretMutationResult>(
+                    DesktopOperationActions.ProxySecretStore,
+                    parameters with
+                    {
+                        Realm = realm,
+                        Username = username,
+                    },
+                    cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(parameters.Password);
+        }
+    }
+
+    public Task<IpcCallResult<ProxySecretMutationResult>>
+        DeleteProxySecretAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            ProxySecretDeleteParameters,
+            ProxySecretMutationResult>(
+                DesktopOperationActions.ProxySecretDelete,
+                new ProxySecretDeleteParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<TlsStoreDiagnosticResult>>
+        GetTlsDiagnosticsAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            TlsDiagnosticsParameters,
+            TlsStoreDiagnosticResult>(
+                DesktopOperationActions.TlsDiagnostics,
+                new TlsDiagnosticsParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<ClockDiagnosticResult>>
+        GetClockDiagnosticsAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            ClockDiagnosticsParameters,
+            ClockDiagnosticResult>(
+                DesktopOperationActions.ClockDiagnostics,
+                new ClockDiagnosticsParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<DesktopDiagnosticSummaryResult>>
+        ExportDiagnosticSummaryAsync(
+            CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            ExportDiagnosticParameters,
+            DesktopDiagnosticSummaryResult>(
+                DesktopOperationActions.ExportDiagnostic,
+                new ExportDiagnosticParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<string>> InstallPublicRootsAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            InstallPublicRootsParameters,
+            string>(
+                DesktopOperationActions.InstallPublicRoots,
+                new InstallPublicRootsParameters(),
+                cancellationToken);
+
+    public Task<IpcCallResult<int>> ClearTlsTrustAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            ClearTlsTrustParameters,
+            int>(
+                DesktopOperationActions.ClearTlsTrust,
+                new ClearTlsTrustParameters(),
+                cancellationToken);
+
+    private static void ValidateCredentialBuffers(
+        byte[]? credential,
+        byte[]? password)
+    {
+        ArgumentNullException.ThrowIfNull(credential);
+        ArgumentNullException.ThrowIfNull(password);
+        if (credential.Length is 0 or > MaximumCredentialBytes)
+        {
+            throw new ArgumentException(
+                "La credencial está vacía o supera el límite permitido.",
+                nameof(credential));
+        }
+        if (password.Length > MaximumPasswordBytes)
+        {
+            throw new ArgumentException(
+                "La contraseña supera el límite permitido.",
+                nameof(password));
+        }
+    }
+
+    private static string NormalizeProxyCredentialText(
+        string? value,
+        string parameterName)
+    {
+        ArgumentNullException.ThrowIfNull(value, parameterName);
+        var normalized = value.Trim();
+        if (normalized.Length == 0 ||
+            Encoding.UTF8.GetByteCount(normalized) >
+                MaximumProxyCredentialTextBytes ||
+            normalized.Any(char.IsControl))
+        {
+            throw new ArgumentException(
+                "El dominio o usuario del proxy no es válido.",
+                parameterName);
+        }
+        return normalized;
+    }
+
+    private static void ValidateProxyPassword(byte[] password)
+    {
+        if (password.Length is 0 or > MaximumPasswordBytes)
+        {
+            throw new ArgumentException(
+                "La contraseña del proxy está vacía o supera 4096 bytes.",
+                nameof(password));
+        }
+
+        var remaining = password.AsSpan();
+        while (!remaining.IsEmpty)
+        {
+            var status = Rune.DecodeFromUtf8(
+                remaining,
+                out var rune,
+                out var consumed);
+            if (status != OperationStatus.Done ||
+                consumed <= 0 ||
+                Rune.GetUnicodeCategory(rune) ==
+                    UnicodeCategory.Control)
+            {
+                throw new ArgumentException(
+                    "La contraseña del proxy no contiene texto UTF-8 válido.",
+                    nameof(password));
+            }
+            remaining = remaining[consumed..];
+        }
+    }
+}

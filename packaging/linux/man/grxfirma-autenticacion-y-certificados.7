@@ -1,0 +1,150 @@
+.TH GRXFIRMA-AUTENTICACION-Y-CERTIFICADOS 7 "20 marzo 2026" "GrxFirma" "Autenticación y selección de certificado"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-autenticacion-y-certificados \- autenticación con certificado, selección y autoselección en GrxFirma
+.SH DESCRIPCIÓN
+Esta página explica cómo usa \fBGrxFirma\fR los certificados para identificarse,
+firmar y recordar selecciones previas en ciertos contextos.
+.PP
+Aunque a veces se hable simplemente de "elegir un certificado", en la práctica
+intervienen varias capas:
+.IP \(bu 2
+el catálogo visible;
+.IP \(bu 2
+la capacidad real de firmar;
+.IP \(bu 2
+el contexto del portal o integración;
+.IP \(bu 2
+y, en algunos casos, la autoselección previamente guardada.
+.SH AUTENTICACIÓN CON CERTIFICADO
+Una autenticación con certificado normalmente busca demostrar la identidad del usuario
+ante una web, portal o servicio.
+.PP
+Según el flujo, eso puede implicar:
+.IP \(bu 2
+seleccionar un certificado;
+.IP \(bu 2
+firmar un reto;
+.IP \(bu 2
+o simplemente comunicar al portal qué certificado se ha elegido para continuar el proceso.
+.PP
+No todas las autenticaciones son iguales:
+.TP
+.B Identificación simple
+El portal necesita saber qué certificado ha escogido el usuario.
+.TP
+.B Firma de reto
+El portal genera un reto o material de prefirma y la aplicación firma localmente.
+.TP
+.B Firma documental
+Ya no es solo autenticación, sino una operación de firma completa sobre un documento o lote.
+.SH SELECCIÓN DE CERTIFICADO
+La selección puede hacerse de varias formas.
+.SS Por interfaz gráfica
+El usuario ve una lista y elige el certificado desde un selector.
+.SS Por CLI
+La selección puede fijarse con:
+.TP
+.B -id-certificado
+Selecciona por identificador exacto.
+.TP
+.B -indice-certificado
+Selecciona por posición en el listado.
+.TP
+.B -certificado-contiene
+Selecciona el primer certificado cuyo texto visible encaje con el patrón indicado.
+.SH AUTOSELECCIÓN
+En algunos flujos tiene sentido recordar qué certificado se eligió para un portal
+u origen concreto.
+.PP
+Eso permite no repetir la selección cada vez, siempre que el usuario y el operador
+consideren seguro ese comportamiento.
+.PP
+Además, si tras aplicar los filtros operativos solo queda un certificado utilizable,
+\fBGrxFirma\fR lo selecciona automáticamente y no vuelve a mostrar el selector.
+.PP
+La autoselección no sustituye al control del usuario. Es una comodidad operativa
+para contextos ya conocidos.
+.SH GESTIÓN DE AUTOSELECCIÓN
+Operaciones disponibles:
+.TP
+.B -listar-autoseleccion-cert
+Lista autoselecciones guardadas.
+.TP
+.B -eliminar-autoseleccion-cert -dominio <origen>
+Elimina la autoselección de un origen concreto.
+.TP
+.B -resetear-autoseleccion-cert
+Resetea el estado de autoselección cuando proceda.
+.TP
+.B -limpiar-autoseleccion-cert
+Elimina autoselecciones guardadas.
+.PP
+En algunos casos puede filtrarse por origen:
+.PP
+.RS
+\fBgrxfirma -modo-cli -operacion listar-autoseleccion-cert -dominio https://portal.ejemplo -salida-json\fR
+.RE
+.SH CUÁNDO CONVIENE USAR AUTOSELECCIÓN
+.IP \(bu 2
+En portales internos o ya conocidos.
+.IP \(bu 2
+Cuando el usuario trabaja de forma repetitiva contra el mismo origen.
+.IP \(bu 2
+Cuando el entorno está bien controlado.
+.IP \(bu 2
+Cuando solo existe un certificado disponible y quieres evitar confirmaciones redundantes.
+.SH CUÁNDO NO CONVIENE
+.IP \(bu 2
+En equipos compartidos.
+.IP \(bu 2
+Cuando el origen cambia con frecuencia.
+.IP \(bu 2
+Cuando hay riesgo de firmar o identificarse con un certificado distinto al esperado.
+.SH RELACIÓN CON EL CÍRCULO DE CONFIANZA
+Recordar una selección no equivale a confiar en cualquier web.
+.PP
+La autoselección y el círculo de confianza son cosas distintas:
+.IP \(bu 2
+el círculo de confianza decide contra qué dominios remotos aceptas operar;
+.IP \(bu 2
+la autoselección decide qué certificado reutilizar para un origen ya conocido.
+.SH PROBLEMAS TÍPICOS
+.TP
+.B Veo varios certificados pero el portal usa otro
+Conviene comprobar que la identidad resuelta y la clave privada asociada coinciden
+con el certificado seleccionado.
+.TP
+.B Siempre entra con el mismo certificado
+Revisar si existe una autoselección guardada para ese origen.
+.TP
+.B Con un solo certificado ya no pregunta
+Es el comportamiento esperado. Solo debería abrir selector si hay más de una opción real
+o si no puede resolver el certificado utilizable.
+.TP
+.B La identificación funciona pero la firma falla
+Normalmente el problema ya no está en la selección básica, sino en el flujo de
+firma remota, lote o trifase.
+.SH COMANDOS ÚTILES
+.TP
+.B grxfirma -modo-cli -listar-certificados -salida-json
+Lista certificados visibles.
+.TP
+.B grxfirma -modo-cli -comprobar-certificados -salida-json
+Comprueba qué certificados pueden firmar realmente.
+.TP
+.B grxfirma -modo-cli -operacion listar-autoseleccion-cert
+Muestra autoselecciones guardadas.
+.TP
+.B grxfirma -modo-cli -operacion eliminar-autoseleccion-cert -dominio https://portal.ejemplo
+Elimina la autoselección de un origen.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-certificados (7),
+.BR grxfirma-confianza (7),
+.BR grxfirma-integracion-web (7),
+.BR grxfirma-errores-comunes (7)

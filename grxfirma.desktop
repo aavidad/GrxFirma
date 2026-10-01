@@ -1,0 +1,21 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+[Desktop Entry]
+Name=GrxFirma protocol handler
+Name[es]=Manejador de protocolo GrxFirma
+GenericName=Aplicacion de firma electronica
+GenericName[es]=Aplicacion de firma electronica
+Comment=Firma electronica avanzada de documentos (CAdES, XAdES, PAdES)
+Comment[es]=Firma electronica avanzada de documentos (CAdES, XAdES, PAdES)
+Exec=env GRXFIRMA_PROTOCOL_UI=1 grxfirma-afirmauri %u
+Terminal=false
+Type=Application
+Icon=grxfirma
+NoDisplay=true
+Categories=Office;Security;
+MimeType=x-scheme-handler/afirmav2;x-scheme-handler/afirma;
+Keywords=firma;electronica;certificado;digital;CAdES;XAdES;PAdES;
+StartupNotify=false

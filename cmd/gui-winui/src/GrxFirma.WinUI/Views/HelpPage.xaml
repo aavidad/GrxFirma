@@ -1,0 +1,174 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<Page
+    x:Class="GrxFirma.WinUI.Views.HelpPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:GrxFirma.WinUI.Controls"
+    Loaded="OnLoaded"
+    Unloaded="OnUnloaded"
+    Background="{ThemeResource AppPageBackgroundBrush}">
+
+    <ScrollViewer
+        AutomationProperties.Name="Contenido de ayuda"
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="Narrow">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="Wide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="760" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="LayoutRoot.Padding" Value="32" />
+                        <Setter Target="HelpActions.Orientation" Value="Horizontal" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <Grid
+            x:Name="LayoutRoot"
+            MaxWidth="900"
+            Padding="16"
+            HorizontalAlignment="Stretch"
+            RowSpacing="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Spacing="8">
+                <TextBlock
+                    AutomationProperties.HeadingLevel="Level1"
+                    Style="{StaticResource PageTitleTextStyle}"
+                    Text="{x:Bind ViewModel.Title}" />
+                <TextBlock
+                    Style="{StaticResource PageSubtitleTextStyle}"
+                    Text="{x:Bind ViewModel.Description}" />
+            </StackPanel>
+
+            <InfoBar
+                Grid.Row="1"
+                AutomationProperties.LiveSetting="Polite"
+                IsClosable="False"
+                IsOpen="True"
+                Message="{x:Bind ViewModel.PendingMessage, Mode=OneWay}"
+                Severity="Informational"
+                Title="Recursos seguros" />
+
+            <StackPanel Grid.Row="2" Spacing="20">
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Ayuda y soporte" />
+                        <TextBlock
+                            Foreground="{ThemeResource AppMutedTextBrush}"
+                            Text="Abra la guía incluida, localice los archivos instalados o consulte los canales oficiales. La aplicación nunca abrirá aquí una dirección recibida de una sede web."
+                            TextWrapping="Wrap" />
+                        <controls:ResponsiveActionPanel
+                            x:Name="HelpActions"
+                            Orientation="Vertical"
+                            Spacing="8">
+                            <Button x:Name="ReleaseNotesButton" MinHeight="40"
+                                Click="OnReleaseNotesClick"
+                                TabIndex="0" />
+                            <Button MinHeight="40"
+                                AutomationProperties.HelpText="Busca únicamente manuales y archivos de ayuda en ubicaciones conocidas de GrxFirma."
+                                AutomationProperties.Name="Abrir manual instalado"
+                                Click="OnOpenInstalledManualClick"
+                                Content="Abrir manual instalado"
+                                IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
+                                TabIndex="1" />
+                            <Button MinHeight="40"
+                                AutomationProperties.HelpText="Abre la carpeta desde la que se está ejecutando esta interfaz."
+                                AutomationProperties.Name="Abrir carpeta de instalación"
+                                Click="OnOpenInstallationFolderClick"
+                                Content="Abrir carpeta de instalación"
+                                IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
+                                TabIndex="2" />
+                            <Button MinHeight="40"
+                                AutomationProperties.HelpText="Abre el repositorio oficial fijo del proyecto en el navegador predeterminado."
+                                AutomationProperties.Name="Abrir proyecto oficial"
+                                Click="OnOpenOfficialProjectClick"
+                                Content="Abrir proyecto oficial"
+                                IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
+                                Style="{StaticResource AccentButtonStyle}"
+                                TabIndex="3" />
+                            <Button MinHeight="40"
+                                AutomationProperties.HelpText="Abre un mensaje al contacto privado publicado por el proyecto."
+                                AutomationProperties.Name="Contactar de forma privada"
+                                Click="OnOpenPrivateSupportClick"
+                                Content="Contactar de forma privada"
+                                IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
+                                TabIndex="4" />
+                            <ProgressRing
+                                Width="28"
+                                Height="28"
+                                AutomationProperties.Name="Apertura de ayuda en curso"
+                                IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+                        </controls:ResponsiveActionPanel>
+                        <TextBlock
+                            Foreground="{ThemeResource AppMutedTextBrush}"
+                            Text="No adjunte certificados, contraseñas, documentos firmados ni datos personales. Si informa de una vulnerabilidad, utilice siempre un canal privado."
+                            TextWrapping="Wrap" />
+                        <InfoBar
+                            AutomationProperties.LiveSetting="Assertive"
+                            IsClosable="False"
+                            IsOpen="{x:Bind ViewModel.HasStatus, Mode=OneWay}"
+                            Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                            Severity="{x:Bind ViewModel.StatusSeverity, Mode=OneWay}"
+                            Title="{x:Bind ViewModel.StatusTitle, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Antes de firmar" />
+                        <TextBlock
+                            Text="Compruebe que el documento sea el correcto, seleccione un certificado cuyo titular reconozca y revise el formato solicitado por la sede."
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Si una operación falla" />
+                        <TextBlock
+                            Text="Abra «Diagnóstico de la operación». La aplicación mostrará únicamente los pasos observados; no repetirá firmas ni realizará comprobaciones activas sin consentimiento."
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Privacidad" />
+                        <TextBlock
+                            Text="Los documentos, parámetros IPC, resultados y secretos no se escriben en los eventos del cliente WinUI. Los detalles técnicos permanecen plegados hasta que el usuario decide consultarlos."
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>

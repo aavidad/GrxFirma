@@ -1,0 +1,83 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+name: conformance
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: conformance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dss-contract-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Test DSS runner contract
+        run: go test -count=1 ./cmd/dssrunner
+
+      - name: Test conformance harness offline
+        run: make test-conformance-dss-offline
+
+      - name: Record offline scope
+        run: |
+          {
+            echo "### DSS offline"
+            echo "Contrato y harness validados sin llamar a DSS externo."
+            echo "Este job no constituye evidencia de conformidad ETSI."
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  dss-conformance-external:
+    if: ${{ vars.GRXFIRMA_DSS_EXTERNAL_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GRXFIRMA_DSS_ENDPOINT: ${{ secrets.GRXFIRMA_DSS_ENDPOINT || vars.GRXFIRMA_DSS_ENDPOINT }}
+      GRXFIRMA_DSS_EXPECTED_RESULT: TOTAL_PASSED
+      GRXFIRMA_TSA_URL: ${{ secrets.GRXFIRMA_TSA_URL || vars.GRXFIRMA_TSA_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Build repository DSS runner
+        run: go build -trimpath -o "${RUNNER_TEMP}/grxfirma-dssrunner" ./cmd/dssrunner
+
+      - name: Run strict external DSS conformance
+        env:
+          GRXFIRMA_DSS_RUNNER: ${{ runner.temp }}/grxfirma-dssrunner
+        run: make test-conformance-dss
+
+      - name: Record strict external scope
+        if: ${{ always() }}
+        run: |
+          {
+            echo "### DSS externo"
+            echo "Gate habilitado explícitamente con resultado exigido TOTAL_PASSED."
+          } >> "${GITHUB_STEP_SUMMARY}"

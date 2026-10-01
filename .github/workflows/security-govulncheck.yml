@@ -1,0 +1,120 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+name: Security - govulncheck
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-govulncheck-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  govulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.6.0
+
+      - name: Run govulncheck (application)
+        id: govulncheck_app
+        run: |
+          set +e
+          GOVULNCHECK_BIN="$(go env GOPATH)/bin/govulncheck"
+          OUTPUT_FILE="$RUNNER_TEMP/govulncheck-application.txt"
+          "$GOVULNCHECK_BIN" ./... 2>&1 | tee "$OUTPUT_FILE"
+          EXIT_CODE=${PIPESTATUS[0]}
+
+          case "$EXIT_CODE" in
+            0)
+              echo "has_findings=false" >> "$GITHUB_OUTPUT"
+              ;;
+            3)
+              echo "has_findings=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "govulncheck terminó con código inesperado: $EXIT_CODE" >&2
+              exit "$EXIT_CODE"
+              ;;
+          esac
+
+      - name: Run govulncheck (vendored PDF signing module)
+        id: govulncheck_pdfsign
+        working-directory: third_party/pdfsign
+        run: |
+          set +e
+          GOVULNCHECK_BIN="$(go env GOPATH)/bin/govulncheck"
+          OUTPUT_FILE="$RUNNER_TEMP/govulncheck-pdfsign.txt"
+          "$GOVULNCHECK_BIN" ./... 2>&1 | tee "$OUTPUT_FILE"
+          EXIT_CODE=${PIPESTATUS[0]}
+
+          case "$EXIT_CODE" in
+            0)
+              echo "has_findings=false" >> "$GITHUB_OUTPUT"
+              ;;
+            3)
+              echo "has_findings=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "govulncheck terminó con código inesperado: $EXIT_CODE" >&2
+              exit "$EXIT_CODE"
+              ;;
+          esac
+
+      - name: Upload govulncheck reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: govulncheck-reports
+          path: ${{ runner.temp }}/govulncheck-*.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish job summary
+        if: always()
+        run: |
+          if [ "${{ steps.govulncheck_app.outputs.has_findings }}" = "true" ] || \
+             [ "${{ steps.govulncheck_pdfsign.outputs.has_findings }}" = "true" ]; then
+            {
+              echo "## govulncheck"
+              echo
+              echo "Se han detectado vulnerabilidades alcanzables. Revisar los informes adjuntos antes de integrar el cambio."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## govulncheck"
+              echo
+              echo "Sin vulnerabilidades alcanzables detectadas."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Enforce vulnerability gate
+        if: always()
+        run: |
+          if [ "${{ steps.govulncheck_app.outputs.has_findings }}" = "true" ] || \
+             [ "${{ steps.govulncheck_pdfsign.outputs.has_findings }}" = "true" ]; then
+            echo "La integración queda bloqueada por vulnerabilidades alcanzables." >&2
+            exit 1
+          fi

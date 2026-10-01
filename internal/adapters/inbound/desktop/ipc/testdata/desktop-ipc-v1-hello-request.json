@@ -1,0 +1,7 @@
+{
+  "protocol": "desktop-ipc-v1",
+  "requestId": "example-hello-001",
+  "traceId": "example-hello-001",
+  "action": "hello",
+  "params": {}
+}

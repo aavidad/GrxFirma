@@ -1,0 +1,80 @@
+.TH GRXFIRMA-PORTALES 7 "20 marzo 2026" "GrxFirma" "Portales y afirma://"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-portales \- integración con portales web, afirma:// y flujos remotos
+.SH DESCRIPCIÓN
+Esta página explica cómo se integra \fBGrxFirma\fR con portales web y sedes
+electrónicas.
+.SH DOS VÍAS HABITUALES
+.TP
+.B afirma://
+El portal lanza un URI del sistema operativo para abrir el manejador local.
+.TP
+.B Native Messaging
+El navegador y una extensión hablan con el host nativo instalado.
+.PP
+Ambas vías pueden convivir en una misma instalación.
+.SH QUÉ HACE EL MANEJADOR AFIRMA://
+El binario \fBgrxfirma-afirmauri\fR recibe la solicitud, interpreta el protocolo
+legacy o moderno y orquesta el flujo local.
+.PP
+En portales legacy puede haber fases como:
+.IP \(bu 2
+retrieve,
+.IP \(bu 2
+presign,
+.IP \(bu 2
+sign,
+.IP \(bu 2
+postsign,
+.IP \(bu 2
+upload.
+.SH APP VIVA Y FLUJO PROTOCOLARIO
+En algunos flujos no basta con lanzar un binario corto y salir. El entorno puede
+necesitar una aplicación viva que mantenga el control del proceso mientras el portal
+espera el cierre correcto del ciclo.
+.PP
+En \fBGrxFirma\fR esa lógica pertenece al borde protocolario y a la presentación,
+no al núcleo hexagonal.
+.SH QUÉ REVISAR SI UN PORTAL FALLA
+.IP \(bu 2
+si se ha lanzado realmente el binario correcto;
+.IP \(bu 2
+si el navegador está usando el puente adecuado;
+.IP \(bu 2
+si el flujo llega a presign/postsign/upload;
+.IP \(bu 2
+si el portal espera selección de certificado o solo batch;
+.IP \(bu 2
+si la política de confianza del dominio está bien resuelta.
+.SH LOGS ÚTILES
+Para comportamiento real en Linux, suelen ser especialmente útiles:
+.IP \(bu 2
+\fI/tmp/grxfirma-handler.log\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-web-compat.log\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-debug.log\fR
+.SH COMPATIBILIDAD
+Los portales legacy pueden ser muy sensibles a:
+.IP \(bu 2
+codificación de parámetros,
+.IP \(bu 2
+forma del `tridata`,
+.IP \(bu 2
+certificados enviados,
+.IP \(bu 2
+timing de cierre del proceso,
+.IP \(bu 2
+o semántica exacta del batch remoto.
+.PP
+Por eso, en \fBGrxFirma\fR, estas compatibilidades deben vivir en adaptadores del borde,
+sin contaminar el núcleo.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-puente-navegador (7),
+.BR grxfirma-confianza (7)

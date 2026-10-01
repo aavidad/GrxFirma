@@ -1,0 +1,825 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+name: Release
+run-name: Release ${{ github.ref_name }}
+
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-policy:
+    environment: official-release
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+      WINDOWS_SIGNING_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+      WINDOWS_SIGNING_CERT_THUMBPRINT: ${{ vars.WINDOWS_SIGNING_CERT_THUMBPRINT }}
+      ANDROID_SIGNING_KEYSTORE_BASE64: ${{ secrets.ANDROID_SIGNING_KEYSTORE_BASE64 }}
+      GRXFIRMA_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.GRXFIRMA_ANDROID_KEYSTORE_PASSWORD }}
+      GRXFIRMA_ANDROID_KEY_ALIAS: ${{ vars.GRXFIRMA_ANDROID_KEY_ALIAS }}
+      GRXFIRMA_ANDROID_KEY_PASSWORD: ${{ secrets.GRXFIRMA_ANDROID_KEY_PASSWORD }}
+      GRXFIRMA_ANDROID_SIGNING_CERT_SHA256: ${{ vars.GRXFIRMA_ANDROID_SIGNING_CERT_SHA256 }}
+      ANDROID_QA_KEYSTORE_BASE64: ${{ secrets.ANDROID_QA_KEYSTORE_BASE64 }}
+      ANDROID_QA_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_QA_KEYSTORE_PASSWORD }}
+      ANDROID_QA_KEY_ALIAS: ${{ vars.ANDROID_QA_KEY_ALIAS }}
+      ANDROID_QA_KEY_PASSWORD: ${{ secrets.ANDROID_QA_KEY_PASSWORD }}
+      ANDROID_QA_SIGNING_CERT_SHA256: ${{ vars.ANDROID_QA_SIGNING_CERT_SHA256 }}
+      MACOS_APPLICATION_CERT_P12_BASE64: ${{ secrets.MACOS_APPLICATION_CERT_P12_BASE64 }}
+      MACOS_APPLICATION_CERT_PASSWORD: ${{ secrets.MACOS_APPLICATION_CERT_PASSWORD }}
+      MACOS_INSTALLER_CERT_P12_BASE64: ${{ secrets.MACOS_INSTALLER_CERT_P12_BASE64 }}
+      MACOS_INSTALLER_CERT_PASSWORD: ${{ secrets.MACOS_INSTALLER_CERT_PASSWORD }}
+      MACOS_CODESIGN_IDENTITY: ${{ vars.MACOS_CODESIGN_IDENTITY }}
+      MACOS_INSTALLER_IDENTITY: ${{ vars.MACOS_INSTALLER_IDENTITY }}
+      MACOS_TEAM_ID: ${{ vars.MACOS_TEAM_ID }}
+      MACOS_NOTARY_KEY_P8_BASE64: ${{ secrets.MACOS_NOTARY_KEY_P8_BASE64 }}
+      MACOS_NOTARY_KEY_ID: ${{ vars.MACOS_NOTARY_KEY_ID }}
+      MACOS_NOTARY_ISSUER_ID: ${{ vars.MACOS_NOTARY_ISSUER_ID }}
+      RELEASE_GPG_PRIVATE_KEY_BASE64: ${{ secrets.RELEASE_GPG_PRIVATE_KEY_BASE64 }}
+      RELEASE_GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
+      RELEASE_GPG_FINGERPRINT: ${{ vars.RELEASE_GPG_FINGERPRINT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validar tag y version inmutables
+        run: python3 scripts/release/validate-official-tag.py "${GITHUB_REF_NAME}"
+
+      - name: Exigir commit integrado en la rama principal
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git show-ref --verify --quiet "refs/remotes/origin/${DEFAULT_BRANCH}"
+          git merge-base --is-ancestor "${GITHUB_SHA}" "refs/remotes/origin/${DEFAULT_BRANCH}"
+
+      - name: Exigir todas las credenciales oficiales
+        run: bash scripts/release/check-official-release-env.sh
+
+      - name: Validar material OpenPGP antes de compilar
+        run: |
+          work_dir="$(mktemp -d)"
+          trap 'rm -rf "${work_dir}"' EXIT
+          printf 'release-key-preflight\n' > "${work_dir}/probe.txt"
+          bash scripts/release/sign-checksums.sh "${work_dir}"
+
+      - name: Ejecutar gate de seguridad de release
+        run: bash scripts/release/check-release-gate.sh
+
+      - name: Validar politica fail-closed del workflow
+        run: python3 scripts/release/check-official-release-policy.py
+
+      - name: Validar documentacion publica minima
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          required = (
+              Path("SECURITY.md"),
+              Path("docs/POLITICA_VULNERABILIDADES.md"),
+              Path("docs/RELEASE.md"),
+              Path("docs/RELEASE_SIGNING.md"),
+          )
+          missing = [str(path) for path in required if not path.is_file() or path.stat().st_size == 0]
+          if missing:
+              raise SystemExit(f"missing required public release/security docs: {missing}")
+          PY
+
+  build-firefox-extension:
+    environment: official-release
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: release-policy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Exigir credenciales aisladas de firma Firefox
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: bash scripts/release/check-firefox-signing-env.sh
+
+      - name: Instalar web-ext fijado
+        run: npm install --global web-ext@10.5.0
+
+      - name: Generar XPI firmado por AMO
+        env:
+          GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI: "1"
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: python3 packaging/browser-extensions/build.py
+
+      - name: Subir exclusivamente el XPI firmado y sus metadatos
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: firefox-extension-signed
+          path: |
+            packaging/browser-extensions/dipgra-extension-firefox.xpi
+            packaging/browser-extensions/dipgra-extension-firefox.metadata.json
+          if-no-files-found: error
+          retention-days: 30
+
+  build-linux:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs:
+      - release-policy
+      - build-firefox-extension
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Descargar XPI Firefox firmado
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: firefox-extension-signed
+          path: release/browser-official
+
+      - name: Instalar dependencias de compilacion
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            dpkg-dev \
+            gcc \
+            g++ \
+            libgl1-mesa-dev \
+            libxxf86vm-dev \
+            openssl \
+            pkg-config \
+            qml6-module-qt-labs-settings \
+            qml6-module-qtqml \
+            qml6-module-qtqml-models \
+            qml6-module-qtqml-workerscript \
+            qml6-module-qtquick \
+            qml6-module-qtquick-controls \
+            qml6-module-qtquick-dialogs \
+            qml6-module-qtquick-layouts \
+            qml6-module-qtquick-templates \
+            qml6-module-qtquick-window \
+            qmake6 \
+            qt6-base-dev \
+            qt6-declarative-dev \
+            unzip \
+            xorg-dev
+
+      - name: Generar instaladores Linux
+        env:
+          GRXFIRMA_FIREFOX_SIGNED_XPI: ${{ github.workspace }}/release/browser-official/dipgra-extension-firefox.xpi
+          GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI: "1"
+        run: bash packaging/linux/build-suite.sh --deb
+
+      - name: Subir candidatos Linux sin credenciales
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: linux-installers
+          path: |
+            release/linux-suite/*.tar.gz
+            release/linux-suite/*.deb
+          if-no-files-found: error
+          retention-days: 30
+
+  build-sbom:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: release-policy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Instalar syft fijado
+        run: go install github.com/anchore/syft/cmd/syft@v1.43.0
+
+      - name: Generar SBOM SPDX JSON
+        run: |
+          mkdir -p release/security
+          "$(go env GOPATH)/bin/syft" dir:. -o "spdx-json=release/security/grxfirma-${GITHUB_REF_NAME}.spdx.json"
+
+      - name: Subir artefacto SBOM
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom-artifact
+          path: release/security/*.spdx.json
+          if-no-files-found: error
+          retention-days: 30
+
+  verify-android-reproducibility:
+    environment: official-release
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: release-policy
+    env:
+      GRXFIRMA_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_QA_KEYSTORE_PASSWORD }}
+      GRXFIRMA_ANDROID_KEY_ALIAS: ${{ vars.ANDROID_QA_KEY_ALIAS }}
+      GRXFIRMA_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_QA_KEY_PASSWORD }}
+      GRXFIRMA_ANDROID_SIGNING_CERT_SHA256: ${{ vars.ANDROID_QA_SIGNING_CERT_SHA256 }}
+      GRXFIRMA_ANDROID_SOURCE_COMMIT: ${{ github.sha }}
+    steps:
+      - name: Checkout exacto
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Setup Java 17
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Instalar toolchain Android fijado
+        env:
+          ACCEPT_ANDROID_SDK_LICENSES: "1"
+        run: scripts/mobile/android/install-toolchain.sh --github-env "$GITHUB_ENV"
+
+      - name: Preparar clave QA fija fuera del repositorio
+        env:
+          ANDROID_QA_KEYSTORE_BASE64: ${{ secrets.ANDROID_QA_KEYSTORE_BASE64 }}
+        run: |
+          umask 077
+          install -d "${RUNNER_TEMP}/android-qa-signing"
+          printf '%s' "${ANDROID_QA_KEYSTORE_BASE64}" |
+            base64 --decode > "${RUNNER_TEMP}/android-qa-signing/release.p12"
+          echo "GRXFIRMA_ANDROID_KEYSTORE=${RUNNER_TEMP}/android-qa-signing/release.p12" >> "${GITHUB_ENV}"
+
+      - name: Construir AAR exacto
+        run: |
+          scripts/mobile/android/build-core-aar.sh "${RUNNER_TEMP}/grxfirma.aar"
+          echo "GRXFIRMA_ANDROID_CORE_AAR=${RUNNER_TEMP}/grxfirma.aar" >> "${GITHUB_ENV}"
+          echo "GRXFIRMA_ANDROID_CORE_SHA256=$(sha256sum "${RUNNER_TEMP}/grxfirma.aar" | awk '{print $1}')" >> "${GITHUB_ENV}"
+
+      - name: Reconstruir APK y AAB con la misma clave QA
+        run: scripts/mobile/android/verify-release-reproducibility.sh
+
+      - name: Eliminar clave QA y AAR efimeros
+        if: ${{ always() }}
+        run: |
+          rm -f "${RUNNER_TEMP}/android-qa-signing/release.p12"
+          rm -f "${RUNNER_TEMP}/grxfirma.aar"
+
+  build-android:
+    environment: official-release
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    needs:
+      - release-policy
+      - verify-android-reproducibility
+    env:
+      GRXFIRMA_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.GRXFIRMA_ANDROID_KEYSTORE_PASSWORD }}
+      GRXFIRMA_ANDROID_KEY_ALIAS: ${{ vars.GRXFIRMA_ANDROID_KEY_ALIAS }}
+      GRXFIRMA_ANDROID_KEY_PASSWORD: ${{ secrets.GRXFIRMA_ANDROID_KEY_PASSWORD }}
+      GRXFIRMA_ANDROID_SIGNING_CERT_SHA256: ${{ vars.GRXFIRMA_ANDROID_SIGNING_CERT_SHA256 }}
+      GRXFIRMA_ANDROID_SOURCE_COMMIT: ${{ github.sha }}
+    steps:
+      - name: Checkout exacto
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Setup Java 17
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Instalar toolchain Android fijado
+        env:
+          ACCEPT_ANDROID_SDK_LICENSES: "1"
+        run: scripts/mobile/android/install-toolchain.sh --github-env "$GITHUB_ENV"
+
+      - name: Preparar identidad oficial fuera del repositorio
+        env:
+          ANDROID_SIGNING_KEYSTORE_BASE64: ${{ secrets.ANDROID_SIGNING_KEYSTORE_BASE64 }}
+        run: |
+          umask 077
+          install -d "${RUNNER_TEMP}/android-official-signing"
+          printf '%s' "${ANDROID_SIGNING_KEYSTORE_BASE64}" |
+            base64 --decode > "${RUNNER_TEMP}/android-official-signing/release.p12"
+          echo "GRXFIRMA_ANDROID_KEYSTORE=${RUNNER_TEMP}/android-official-signing/release.p12" >> "${GITHUB_ENV}"
+
+      - name: Fijar versión Android
+        run: |
+          version="$(tr -d '\r\n' < VERSION.txt)"
+          version_code="$(python3 - "${version}" <<'PY'
+          import re
+          import sys
+          match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:[-+][0-9A-Za-z.-]+)?", sys.argv[1])
+          if not match:
+              raise SystemExit("VERSION.txt no es SemVer")
+          major, minor, patch = map(int, match.groups())
+          code = major * 1_000_000 + minor * 1_000 + patch
+          if not 1 <= code <= 2_100_000_000:
+              raise SystemExit("versionCode Android fuera de rango")
+          print(code)
+          PY
+          )"
+          echo "GRXFIRMA_ANDROID_VERSION_NAME=${version}" >> "${GITHUB_ENV}"
+          echo "GRXFIRMA_ANDROID_VERSION_CODE=${version_code}" >> "${GITHUB_ENV}"
+
+      - name: Construir AAR desde sourceCommit
+        run: |
+          scripts/mobile/android/build-core-aar.sh "${RUNNER_TEMP}/grxfirma.aar"
+          echo "GRXFIRMA_ANDROID_CORE_AAR=${RUNNER_TEMP}/grxfirma.aar" >> "${GITHUB_ENV}"
+          echo "GRXFIRMA_ANDROID_CORE_SHA256=$(sha256sum "${RUNNER_TEMP}/grxfirma.aar" | awk '{print $1}')" >> "${GITHUB_ENV}"
+
+      - name: Generar APK y AAB oficiales
+        working-directory: mobile/android
+        run: >-
+          ./gradlew --no-daemon --no-configuration-cache
+          clean assembleProductionRelease bundleProductionRelease
+
+      - name: Verificar firma, versión, AAR y sourceCommit
+        run: |
+          output="release/android-official"
+          install -d "${output}"
+          apk="${output}/GrxFirma-${GRXFIRMA_ANDROID_VERSION_NAME}-android.apk"
+          aab="${output}/GrxFirma-${GRXFIRMA_ANDROID_VERSION_NAME}-android.aab"
+          install -m 0644 \
+            mobile/android/app/build/outputs/apk/production/release/app-production-release.apk \
+            "${apk}"
+          install -m 0644 \
+            mobile/android/app/build/outputs/bundle/productionRelease/app-production-release.aab \
+            "${aab}"
+          python3 scripts/mobile/android/verify_release_artifacts.py \
+            --apk "${apk}" \
+            --aab "${aab}" \
+            --core-aar "${GRXFIRMA_ANDROID_CORE_AAR}" \
+            --signing-cert-sha256 "${GRXFIRMA_ANDROID_SIGNING_CERT_SHA256}" \
+            --version-name "${GRXFIRMA_ANDROID_VERSION_NAME}" \
+            --version-code "${GRXFIRMA_ANDROID_VERSION_CODE}" \
+            --source-commit "${GRXFIRMA_ANDROID_SOURCE_COMMIT}" \
+            --core-sha256 "${GRXFIRMA_ANDROID_CORE_SHA256}" \
+            --output "${output}/ANDROID-SIGNATURES.json"
+
+      - name: Subir APK, AAB y evidencia firmada
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-installers
+          path: release/android-official/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Eliminar identidad oficial y AAR efimeros
+        if: ${{ always() }}
+        run: |
+          rm -f "${RUNNER_TEMP}/android-official-signing/release.p12"
+          rm -f "${RUNNER_TEMP}/grxfirma.aar"
+
+  verify-android:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build-android
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Java 17
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Instalar toolchain Android fijado
+        env:
+          ACCEPT_ANDROID_SDK_LICENSES: "1"
+        run: scripts/mobile/android/install-toolchain.sh --github-env "$GITHUB_ENV"
+
+      - name: Descargar Android firmado en runner independiente
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: android-installers
+          path: release/android-official
+
+      - name: Repetir verificación sin credenciales
+        env:
+          EXPECTED_ANDROID_SIGNER: ${{ vars.GRXFIRMA_ANDROID_SIGNING_CERT_SHA256 }}
+        run: |
+          evidence="release/android-official/ANDROID-SIGNATURES.json"
+          apk="$(find release/android-official -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          aab="$(find release/android-official -maxdepth 1 -type f -name '*.aab' -print -quit)"
+          scripts/mobile/android/build-core-aar.sh "${RUNNER_TEMP}/grxfirma.aar"
+          core_sha256="$(sha256sum "${RUNNER_TEMP}/grxfirma.aar" | awk '{print $1}')"
+          test "${core_sha256}" = "$(jq -r .core_aar_sha256 "${evidence}")"
+          python3 scripts/mobile/android/verify_release_artifacts.py \
+            --apk "${apk}" \
+            --aab "${aab}" \
+            --core-aar "${RUNNER_TEMP}/grxfirma.aar" \
+            --signing-cert-sha256 "${EXPECTED_ANDROID_SIGNER}" \
+            --version-name "$(jq -r .version_name "${evidence}")" \
+            --version-code "$(jq -r .version_code "${evidence}")" \
+            --source-commit "${GITHUB_SHA}" \
+            --core-sha256 "${core_sha256}" \
+            --output "${RUNNER_TEMP}/ANDROID-SIGNATURES.reverified.json"
+          cmp "${evidence}" "${RUNNER_TEMP}/ANDROID-SIGNATURES.reverified.json"
+
+  build-windows:
+    environment: official-release
+    permissions:
+      contents: read
+    runs-on: windows-2022
+    timeout-minutes: 50
+    needs:
+      - release-policy
+      - build-firefox-extension
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Setup .NET fijado para WinUI
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        with:
+          dotnet-version: "10.0.302"
+
+      - name: Descargar XPI Firefox firmado
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: firefox-extension-signed
+          path: release/browser-official
+
+      - name: Instalar Qt 6 (MSVC)
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.7.3"
+          arch: win64_msvc2019_64
+          cache: true
+
+      - name: Entorno MSVC (nmake)
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+
+      - name: Instalar NSIS
+        shell: pwsh
+        run: |
+          choco install nsis --version 3.12.0 --yes --no-progress
+          $nsisDir = Join-Path ${env:ProgramFiles(x86)} "NSIS"
+          $makensis = Join-Path $nsisDir "makensis.exe"
+          if (-not (Test-Path -LiteralPath $makensis -PathType Leaf)) {
+            throw "Chocolatey no instalo makensis.exe en $nsisDir"
+          }
+          $nsisDir | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Generar Desktop Qt/QML Windows
+        shell: pwsh
+        run: ./packaging/windows/build-desktop-qml.ps1 --nsis
+
+      - name: Generar Desktop WinUI Windows
+        shell: pwsh
+        run: ./packaging/windows/build-desktop-winui.ps1
+
+      - name: Generar suite dual Windows
+        shell: pwsh
+        env:
+          GRXFIRMA_FIREFOX_SIGNED_XPI: ${{ github.workspace }}/release/browser-official/dipgra-extension-firefox.xpi
+          GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI: "1"
+        run: >-
+          ./packaging/windows/build-suite.ps1
+          --with-winui --with-qt --nsis
+
+      - name: Firmar payloads y reconstruir contenedores Windows
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_SIGNING_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+          WINDOWS_SIGNING_CERT_THUMBPRINT: ${{ vars.WINDOWS_SIGNING_CERT_THUMBPRINT }}
+          WINDOWS_TIMESTAMP_URL: ${{ vars.WINDOWS_TIMESTAMP_URL }}
+        run: |
+          ./scripts/release/finalize-windows-release.ps1 `
+            -RepositoryRoot "${env:GITHUB_WORKSPACE}" `
+            -OutputDirectory "${env:GITHUB_WORKSPACE}/release/windows-official"
+
+      - name: Subir artefactos Authenticode Windows
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-installers
+          path: release/windows-official/*
+          if-no-files-found: error
+          retention-days: 30
+
+  verify-windows:
+    permissions:
+      contents: read
+    runs-on: windows-2022
+    timeout-minutes: 15
+    needs: build-windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Descargar artefactos Windows en runner independiente
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: windows-installers
+          path: release/windows-official
+
+      - name: Verificar Authenticode, timestamps, ZIP y evidencias
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERT_THUMBPRINT: ${{ vars.WINDOWS_SIGNING_CERT_THUMBPRINT }}
+        run: |
+          ./scripts/release/verify-windows-release.ps1 `
+            -ArtifactDirectory "${env:GITHUB_WORKSPACE}/release/windows-official" `
+            -ExpectedThumbprint "${env:WINDOWS_SIGNING_CERT_THUMBPRINT}" `
+            -RequireEvidence `
+            -RequireDualGui
+
+  build-macos:
+    environment: official-release
+    permissions:
+      contents: read
+    runs-on: macos-latest
+    timeout-minutes: 120
+    needs:
+      - release-policy
+      - build-firefox-extension
+    env:
+      MACOS_CODESIGN_IDENTITY: ${{ vars.MACOS_CODESIGN_IDENTITY }}
+      MACOS_INSTALLER_IDENTITY: ${{ vars.MACOS_INSTALLER_IDENTITY }}
+      MACOS_TEAM_ID: ${{ vars.MACOS_TEAM_ID }}
+      MACOS_NOTARY_KEY_ID: ${{ vars.MACOS_NOTARY_KEY_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Descargar XPI Firefox firmado
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: firefox-extension-signed
+          path: release/browser-official
+
+      - name: Instalar Qt 6 para macOS
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.7.3"
+          cache: true
+
+      - name: Configurar llavero efimero y notarytool
+        env:
+          MACOS_APPLICATION_CERT_P12_BASE64: ${{ secrets.MACOS_APPLICATION_CERT_P12_BASE64 }}
+          MACOS_APPLICATION_CERT_PASSWORD: ${{ secrets.MACOS_APPLICATION_CERT_PASSWORD }}
+          MACOS_INSTALLER_CERT_P12_BASE64: ${{ secrets.MACOS_INSTALLER_CERT_P12_BASE64 }}
+          MACOS_INSTALLER_CERT_PASSWORD: ${{ secrets.MACOS_INSTALLER_CERT_PASSWORD }}
+          MACOS_NOTARY_KEY_P8_BASE64: ${{ secrets.MACOS_NOTARY_KEY_P8_BASE64 }}
+          MACOS_NOTARY_ISSUER_ID: ${{ vars.MACOS_NOTARY_ISSUER_ID }}
+        run: bash scripts/release/configure-macos-signing.sh
+
+      - name: Generar y firmar PKG macOS
+        env:
+          GRXFIRMA_FIREFOX_SIGNED_XPI: ${{ github.workspace }}/release/browser-official/dipgra-extension-firefox.xpi
+          GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI: "1"
+          MACOS_NOTARY_PROFILE: ""
+        run: bash packaging/macos/build-suite.sh --pkg
+
+      - name: Notarizar y grapar ticket al PKG
+        run: bash scripts/release/notarize-macos-release.sh release/macos-suite
+
+      - name: Verificar firma, Gatekeeper y ticket notarial
+        run: bash scripts/release/verify-macos-release.sh release/macos-suite
+
+      - name: Subir exclusivamente el PKG notarizado
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: macos-installers
+          path: |
+            release/macos-suite/*.pkg
+            release/macos-suite/MACOS-NOTARIZATION.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Eliminar llavero y credenciales efimeras
+        if: ${{ always() }}
+        run: bash scripts/release/cleanup-macos-signing.sh
+
+  verify-macos:
+    permissions:
+      contents: read
+    runs-on: macos-latest
+    timeout-minutes: 25
+    needs: build-macos
+    env:
+      MACOS_CODESIGN_IDENTITY: ${{ vars.MACOS_CODESIGN_IDENTITY }}
+      MACOS_INSTALLER_IDENTITY: ${{ vars.MACOS_INSTALLER_IDENTITY }}
+      MACOS_TEAM_ID: ${{ vars.MACOS_TEAM_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Descargar PKG en runner independiente
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: macos-installers
+          path: release/macos-official
+
+      - name: Repetir Gatekeeper, firmas y ticket notarial
+        run: bash scripts/release/verify-macos-release.sh release/macos-official
+
+  publish:
+    environment: official-release
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs:
+      - build-linux
+      - build-sbom
+      - verify-android
+      - verify-macos
+      - verify-windows
+    env:
+      RELEASE_GPG_PRIVATE_KEY_BASE64: ${{ secrets.RELEASE_GPG_PRIVATE_KEY_BASE64 }}
+      RELEASE_GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
+      RELEASE_GPG_FINGERPRINT: ${{ vars.RELEASE_GPG_FINGERPRINT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Descargar artefactos verificados
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: dist
+
+      - name: Revalidar tag oficial
+        run: python3 scripts/release/validate-official-tag.py "${GITHUB_REF_NAME}"
+
+      - name: Exigir que el tag no tenga una release previa
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          response="${RUNNER_TEMP}/existing-release.json"
+          status="$(curl --silent --show-error \
+            --output "${response}" \
+            --write-out '%{http_code}' \
+            --header 'Accept: application/vnd.github+json' \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/tags/${GITHUB_REF_NAME}")"
+          case "${status}" in
+            404)
+              ;;
+            200)
+              echo "error: ya existe una release para ${GITHUB_REF_NAME}; no se mezclaran assets nuevos y antiguos." >&2
+              exit 1
+              ;;
+            *)
+              echo "error: GitHub API devolvio HTTP ${status} al comprobar la release previa." >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Agrupar candidatos publicos estrictos
+        run: |
+          python3 scripts/release/release_artifacts.py copy \
+            --dist dist \
+            --output release/installers \
+            --version "$(tr -d '\r\n' < VERSION.txt)"
+          bash scripts/release/check-secrets.sh release/installers
+
+      - name: Firmar checksums Linux con OpenPGP
+        run: |
+          bash scripts/release/sign-checksums.sh release/installers/linux \
+            --checksum-name SHA256SUMS-linux.txt
+
+      - name: Generar manifiesto y metadatos trazables
+        run: |
+          python3 scripts/release/release_artifacts.py metadata \
+            --root release/installers \
+            --tag "${GITHUB_REF_NAME}" \
+            --commit "${GITHUB_SHA}" \
+            --repository "${GITHUB_REPOSITORY}" \
+            --workflow "${GITHUB_WORKFLOW}" \
+            --run-id "${GITHUB_RUN_ID}" \
+            --run-attempt "${GITHUB_RUN_ATTEMPT}" \
+            --ref "${GITHUB_REF}" \
+            --summary-file "${GITHUB_STEP_SUMMARY}"
+
+      - name: Firmar inventario global de checksums
+        run: |
+          bash scripts/release/sign-checksums.sh release/installers \
+            --export-public-key release/installers/RELEASE-SIGNING-KEY.asc
+
+      - name: Validar cobertura y layout de artefactos
+        run: python3 scripts/release/release_artifacts.py validate --root release/installers
+
+      - name: Verificar firmas OpenPGP desde clave publica
+        run: |
+          bash scripts/release/verify-signed-checksums.sh \
+            release/installers \
+            release/installers/SHA256SUMS.txt \
+            release/installers/SHA256SUMS.txt.asc \
+            release/installers/RELEASE-SIGNING-KEY.asc
+          bash scripts/release/verify-signed-checksums.sh \
+            release/installers/linux \
+            release/installers/linux/SHA256SUMS-linux.txt \
+            release/installers/linux/SHA256SUMS-linux.txt.asc \
+            release/installers/RELEASE-SIGNING-KEY.asc
+
+      - name: Publicar release oficial verificado
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true
+          files: |
+            release/installers/linux/*.tar.gz
+            release/installers/linux/*.deb
+            release/installers/linux/SHA256SUMS-linux.txt
+            release/installers/linux/SHA256SUMS-linux.txt.asc
+            release/installers/windows/*.zip
+            release/installers/windows/*-setup.exe
+            release/installers/windows/WINDOWS-SIGNATURES.json
+            release/installers/windows/SHA256SUMS-windows.txt
+            release/installers/macos/*.pkg
+            release/installers/macos/MACOS-NOTARIZATION.json
+            release/installers/android/*.apk
+            release/installers/android/*.aab
+            release/installers/android/ANDROID-SIGNATURES.json
+            release/installers/security/*.spdx.json
+            release/installers/SHA256SUMS.txt
+            release/installers/SHA256SUMS.txt.asc
+            release/installers/RELEASE-SIGNING-KEY.asc
+            release/installers/manifest.json
+            release/installers/release-metadata.json
+            release/installers/ARTIFACTS.md

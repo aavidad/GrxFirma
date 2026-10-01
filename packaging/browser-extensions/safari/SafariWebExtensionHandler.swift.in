@@ -1,0 +1,1140 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// Autoría: Alberto Avidad Fernández
+// Licencia: EUPL 1.2 o posterior
+// SPDX-License-Identifier: EUPL-1.2
+
+// GRXFIRMA_SAFARI_BRIDGE_V1
+// Generated projects receive this file through safari/postprocess.py.
+
+import Foundation
+import CryptoKit
+import LocalAuthentication
+import SafariServices
+import Security
+
+private enum BridgeLimits {
+    static let maximumEnvelopeBytes = 26 * 1024 * 1024
+    static let maximumInputBase64Characters = 12 * 1024 * 1024
+    static let maximumOutputBase64Characters = 18 * 1024 * 1024
+    static let maximumHTTPResponseBytes = 20 * 1024 * 1024
+    static let maximumOptionsBytes = 1024 * 1024
+    static let maximumCertificates = 512
+    static let operationTimeout: TimeInterval = 170
+}
+
+private enum BridgeSettings {
+    static let keychainService = "__KEYCHAIN_SERVICE__"
+    static let keychainAccessGroupSuffix = "__KEYCHAIN_ACCESS_GROUP_SUFFIX__"
+    static let tokenAccount = "rest-bearer-token"
+    static let endpointAccount = "rest-endpoint"
+    static let tlsPinAccount = "rest-tls-certificate-sha256"
+    static let defaultEndpoint = "__DEFAULT_ENDPOINT__"
+}
+
+private struct BridgeFailure: Error {
+    let code: String
+    let message: String
+
+    static let malformedRequest = BridgeFailure(
+        code: "invalid_request", message: "Solicitud nativa no valida"
+    )
+    static let requestTooLarge = BridgeFailure(
+        code: "request_too_large", message: "La solicitud supera el limite permitido"
+    )
+    static let unsupportedAction = BridgeFailure(
+        code: "unsupported_action", message: "Operacion no permitida por el puente Safari"
+    )
+    static let configurationRequired = BridgeFailure(
+        code: "configuration_required",
+        message: "Configura el token y la huella TLS en la app GrxFirma Safari"
+    )
+    static let invalidConfiguration = BridgeFailure(
+        code: "invalid_configuration", message: "La configuracion local no es valida"
+    )
+    static let userDenied = BridgeFailure(
+        code: "user_denied", message: "La firma no fue autorizada por el usuario"
+    )
+    static let authenticationUnavailable = BridgeFailure(
+        code: "authentication_unavailable",
+        message: "No hay autenticacion local disponible para autorizar la firma"
+    )
+    static let signInProgress = BridgeFailure(
+        code: "sign_in_progress", message: "Ya hay una solicitud de firma en curso"
+    )
+    static let signRateLimited = BridgeFailure(
+        code: "sign_rate_limited", message: "Espera antes de solicitar otra firma"
+    )
+    static let tooManyRequests = BridgeFailure(
+        code: "too_many_requests", message: "Hay demasiadas operaciones locales en curso"
+    )
+    static let timeout = BridgeFailure(
+        code: "timeout", message: "La operacion local ha agotado el tiempo de espera"
+    )
+    static let serviceUnavailable = BridgeFailure(
+        code: "service_unavailable", message: "El servicio local GrxFirma no responde"
+    )
+    static let invalidServiceResponse = BridgeFailure(
+        code: "invalid_service_response", message: "Respuesta local no valida"
+    )
+}
+
+private final class RequestResponder {
+    private let context: NSExtensionContext
+    private let requestID: String
+    private let onFinish: (_ timedOut: Bool) -> Void
+    private let lock = NSLock()
+    private var isFinished = false
+    private var timeoutWorkItem: DispatchWorkItem?
+    private var cancellation: (() -> Void)?
+
+    init(
+        context: NSExtensionContext,
+        requestID: String,
+        onFinish: @escaping (_ timedOut: Bool) -> Void = { _ in }
+    ) {
+        self.context = context
+        self.requestID = requestID
+        self.onFinish = onFinish
+    }
+
+    func armTimeout() {
+        let item = DispatchWorkItem { [weak self] in
+            self?.timeout()
+        }
+        lock.lock()
+        if !isFinished {
+            timeoutWorkItem = item
+            DispatchQueue.global(qos: .utility).asyncAfter(
+                deadline: .now() + BridgeLimits.operationTimeout,
+                execute: item
+            )
+        }
+        lock.unlock()
+    }
+
+    func setCancellation(_ cancellation: @escaping () -> Void) {
+        lock.lock()
+        if isFinished {
+            lock.unlock()
+            cancellation()
+            return
+        }
+        self.cancellation = cancellation
+        lock.unlock()
+    }
+
+    func replaceCancellationAndStart(
+        _ cancellation: @escaping () -> Void,
+        start: () -> Void
+    ) {
+        lock.lock()
+        guard !isFinished else {
+            lock.unlock()
+            cancellation()
+            return
+        }
+        self.cancellation = cancellation
+        lock.unlock()
+        start()
+    }
+
+    func success(_ values: [String: Any] = [:]) {
+        var response = values
+        response["requestId"] = requestID
+        response["success"] = true
+        finish(response, cancelActiveWork: false)
+    }
+
+    func failure(_ failure: BridgeFailure) {
+        finish([
+            "requestId": requestID,
+            "success": false,
+            "error": failure.message,
+            "errorCode": failure.code,
+        ], cancelActiveWork: false)
+    }
+
+    private func timeout() {
+        finish([
+            "requestId": requestID,
+            "success": false,
+            "error": BridgeFailure.timeout.message,
+            "errorCode": BridgeFailure.timeout.code,
+        ], cancelActiveWork: true)
+    }
+
+    private func finish(_ message: [String: Any], cancelActiveWork: Bool) {
+        lock.lock()
+        guard !isFinished else {
+            lock.unlock()
+            return
+        }
+        isFinished = true
+        timeoutWorkItem?.cancel()
+        timeoutWorkItem = nil
+        let cancellationToRun = cancelActiveWork ? cancellation : nil
+        cancellation = nil
+        lock.unlock()
+
+        cancellationToRun?()
+
+        let safeMessage: [String: Any]
+        if JSONSerialization.isValidJSONObject(message) {
+            safeMessage = message
+        } else {
+            safeMessage = [
+                "requestId": requestID,
+                "success": false,
+                "error": BridgeFailure.invalidServiceResponse.message,
+                "errorCode": BridgeFailure.invalidServiceResponse.code,
+            ]
+        }
+        let item = NSExtensionItem()
+        item.userInfo = [SFExtensionMessageKey: safeMessage]
+        context.completeRequest(returningItems: [item], completionHandler: nil)
+        onFinish(cancelActiveWork)
+    }
+}
+
+private struct SignLease {
+    let owner: String
+    let accounts: [String]
+}
+
+private enum SignGate {
+    private static let lock = NSLock()
+    private static let activeAccountPrefix = "active-sign-lease-"
+    private static let cooldownAccount = "sign-cooldown-until"
+    private static let leaseInterval: TimeInterval = 210
+    private static var activeOwner: String?
+    private static var nextAllowed = Date.distantPast
+
+    static func acquire() -> Result<SignLease, BridgeFailure> {
+        lock.lock()
+        defer { lock.unlock() }
+        guard activeOwner == nil else { return .failure(.signInProgress) }
+        guard Date() >= nextAllowed else { return .failure(.signRateLimited) }
+
+        do {
+            let accessGroup = try SharedAccessGroup.resolve()
+            if let cooldown = read(account: cooldownAccount, accessGroup: accessGroup),
+               let timestamp = TimeInterval(cooldown),
+               Date().timeIntervalSince1970 < timestamp {
+                return .failure(.signRateLimited)
+            }
+
+            let owner = UUID().uuidString
+            let now = Date().timeIntervalSince1970
+            let bucket = Int(now / leaseInterval)
+            let accounts = [
+                activeAccountPrefix + String(bucket),
+                activeAccountPrefix + String(bucket - 1),
+            ]
+            var acquiredAccounts: [String] = []
+            for account in accounts {
+                let status = addLease(
+                    account: account,
+                    owner: owner,
+                    timestamp: now,
+                    accessGroup: accessGroup
+                )
+                guard status == errSecSuccess else {
+                    acquiredAccounts.forEach {
+                        deleteOwnedLease(account: $0, owner: owner, accessGroup: accessGroup)
+                    }
+                    return status == errSecDuplicateItem
+                        ? .failure(.signInProgress)
+                        : .failure(.invalidConfiguration)
+                }
+                acquiredAccounts.append(account)
+            }
+            activeOwner = owner
+            return .success(SignLease(owner: owner, accounts: accounts))
+        } catch {
+            return .failure(.invalidConfiguration)
+        }
+    }
+
+    static func release(_ lease: SignLease, after delay: TimeInterval = 0) {
+        let work = {
+            lock.lock()
+            defer { lock.unlock() }
+            guard activeOwner == lease.owner else { return }
+            defer { activeOwner = nil }
+            guard let accessGroup = try? SharedAccessGroup.resolve() else { return }
+            let cooldown = Date().addingTimeInterval(3).timeIntervalSince1970
+            write(String(cooldown), account: cooldownAccount, accessGroup: accessGroup)
+            lease.accounts.forEach {
+                deleteOwnedLease(account: $0, owner: lease.owner, accessGroup: accessGroup)
+            }
+            nextAllowed = Date(timeIntervalSince1970: cooldown)
+        }
+        if delay > 0 {
+            DispatchQueue.global(qos: .utility).asyncAfter(
+                deadline: .now() + delay,
+                execute: work
+            )
+        } else {
+            work()
+        }
+    }
+
+    private static func baseQuery(account: String, accessGroup: String) -> [String: Any] {
+        return [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: BridgeSettings.keychainService,
+            kSecAttrAccount as String: account,
+            kSecAttrAccessGroup as String: accessGroup,
+            kSecUseDataProtectionKeychain as String: true,
+        ]
+    }
+
+    private static func addLease(
+        account: String,
+        owner: String,
+        timestamp: TimeInterval,
+        accessGroup: String
+    ) -> OSStatus {
+        var query = baseQuery(account: account, accessGroup: accessGroup)
+        query[kSecValueData as String] = Data("\(owner)|\(timestamp)".utf8)
+        query[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        return SecItemAdd(query as CFDictionary, nil)
+    }
+
+    private static func read(account: String, accessGroup: String) -> String? {
+        var query = baseQuery(account: account, accessGroup: accessGroup)
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        query[kSecReturnData as String] = true
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private static func write(_ value: String, account: String, accessGroup: String) {
+        let lookup = baseQuery(account: account, accessGroup: accessGroup)
+        let attributes: [String: Any] = [
+            kSecValueData as String: Data(value.utf8),
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+        ]
+        if SecItemUpdate(lookup as CFDictionary, attributes as CFDictionary) == errSecItemNotFound {
+            var addition = lookup
+            attributes.forEach { addition[$0.key] = $0.value }
+            _ = SecItemAdd(addition as CFDictionary, nil)
+        }
+    }
+
+    private static func delete(account: String, accessGroup: String) {
+        let query = baseQuery(account: account, accessGroup: accessGroup)
+        _ = SecItemDelete(query as CFDictionary)
+    }
+
+    private static func deleteOwnedLease(account: String, owner: String, accessGroup: String) {
+        guard read(account: account, accessGroup: accessGroup).map(leaseOwner) == owner else {
+            return
+        }
+        delete(account: account, accessGroup: accessGroup)
+    }
+
+    private static func leaseOwner(_ value: String) -> String {
+        return String(value.split(separator: "|", maxSplits: 1).first ?? "")
+    }
+
+}
+
+private enum SharedAccessGroup {
+    static func resolve() throws -> String {
+        guard let task = SecTaskCreateFromSelf(nil),
+              let rawGroups = SecTaskCopyValueForEntitlement(
+                  task,
+                  "keychain-access-groups" as CFString,
+                  nil
+              ) as? [String],
+              let group = rawGroups.first(where: {
+                  $0.hasSuffix("." + BridgeSettings.keychainAccessGroupSuffix)
+              }) else {
+            throw BridgeFailure.invalidConfiguration
+        }
+        return group
+    }
+}
+
+private enum SecureConfigurationStore {
+    static func read(account: String) throws -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: BridgeSettings.keychainService,
+            kSecAttrAccount as String: account,
+            kSecAttrAccessGroup as String: try SharedAccessGroup.resolve(),
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: true,
+            kSecUseDataProtectionKeychain as String: true,
+        ]
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        if status == errSecItemNotFound { return nil }
+        guard status == errSecSuccess,
+              let data = item as? Data,
+              let value = String(data: data, encoding: .utf8) else {
+            throw BridgeFailure.invalidConfiguration
+        }
+        return value
+    }
+}
+
+private struct BridgeConfiguration {
+    let endpoint: URL
+    let bearerToken: String?
+    let tlsCertificateSHA256: [UInt8]
+
+    static func load(requireToken: Bool) throws -> BridgeConfiguration {
+        let storedEndpoint = try SecureConfigurationStore.read(
+            account: BridgeSettings.endpointAccount
+        )
+        let endpoint = try validateEndpoint(storedEndpoint ?? BridgeSettings.defaultEndpoint)
+        let token = try SecureConfigurationStore.read(account: BridgeSettings.tokenAccount)
+        guard let storedPin = try SecureConfigurationStore.read(
+            account: BridgeSettings.tlsPinAccount
+        ), let pin = decodeSHA256(storedPin) else {
+            throw BridgeFailure.configurationRequired
+        }
+        if requireToken {
+            guard let token = token, isValidToken(token) else {
+                throw BridgeFailure.configurationRequired
+            }
+        } else if let token = token, !isValidToken(token) {
+            throw BridgeFailure.invalidConfiguration
+        }
+        return BridgeConfiguration(
+            endpoint: endpoint,
+            bearerToken: token,
+            tlsCertificateSHA256: pin
+        )
+    }
+
+    private static func validateEndpoint(_ rawValue: String) throws -> URL {
+        guard let components = URLComponents(string: rawValue),
+              components.scheme == "https",
+              components.user == nil,
+              components.password == nil,
+              components.query == nil,
+              components.fragment == nil,
+              components.port == 63118,
+              ["127.0.0.1", "::1"].contains(components.host ?? ""),
+              components.path.isEmpty || components.path == "/",
+              let url = components.url else {
+            throw BridgeFailure.invalidConfiguration
+        }
+        return url
+    }
+
+    private static func isValidToken(_ value: String) -> Bool {
+        let bytes = Array(value.utf8)
+        return (32...512).contains(bytes.count) && bytes.allSatisfy { (0x21...0x7e).contains($0) }
+    }
+
+    private static func decodeSHA256(_ value: String) -> [UInt8]? {
+        guard value.count == 64 else { return nil }
+        var bytes: [UInt8] = []
+        bytes.reserveCapacity(32)
+        var index = value.startIndex
+        for _ in 0..<32 {
+            let next = value.index(index, offsetBy: 2)
+            guard let byte = UInt8(value[index..<next], radix: 16) else { return nil }
+            bytes.append(byte)
+            index = next
+        }
+        return bytes
+    }
+}
+
+private struct HTTPResult {
+    let response: HTTPURLResponse
+    let data: Data
+}
+
+private struct PendingSignature {
+    let body: [String: Any]
+    let authorizationReason: String
+}
+
+private final class BoundedRequest: NSObject, URLSessionDataDelegate, URLSessionTaskDelegate {
+    private let maximumBytes: Int
+    private let expectedTLSPin: [UInt8]
+    private let completion: (Result<HTTPResult, BridgeFailure>) -> Void
+    private let lock = NSLock()
+    private var completed = false
+    private var received = Data()
+    private var httpResponse: HTTPURLResponse?
+    private var terminalFailure: BridgeFailure?
+    private var session: URLSession?
+    private var request: URLRequest?
+
+    init(
+        request: URLRequest,
+        maximumBytes: Int,
+        expectedTLSPin: [UInt8],
+        completion: @escaping (Result<HTTPResult, BridgeFailure>) -> Void
+    ) {
+        self.request = request
+        self.maximumBytes = maximumBytes
+        self.expectedTLSPin = expectedTLSPin
+        self.completion = completion
+        super.init()
+    }
+
+    func start() {
+        lock.lock()
+        guard !completed, let request = request else {
+            lock.unlock()
+            return
+        }
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        configuration.timeoutIntervalForRequest = 30
+        configuration.timeoutIntervalForResource = 150
+        configuration.httpShouldSetCookies = false
+        configuration.httpMaximumConnectionsPerHost = 2
+        configuration.urlCredentialStorage = nil
+
+        let queue = OperationQueue()
+        queue.name = "es.dipgra.grxfirma.safari.http"
+        queue.maxConcurrentOperationCount = 1
+        let session = URLSession(configuration: configuration, delegate: self, delegateQueue: queue)
+        self.session = session
+        self.request = nil
+        let task = session.dataTask(with: request)
+        lock.unlock()
+        task.resume()
+    }
+
+    func cancel() {
+        lock.lock()
+        guard !completed else {
+            lock.unlock()
+            return
+        }
+        completed = true
+        let currentSession = session
+        session = nil
+        lock.unlock()
+
+        currentSession?.invalidateAndCancel()
+        completion(.failure(.timeout))
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    ) {
+        guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
+              ["127.0.0.1", "::1"].contains(challenge.protectionSpace.host),
+              let trust = challenge.protectionSpace.serverTrust,
+              SecTrustEvaluateWithError(trust, nil),
+              let leaf = SecTrustGetCertificateAtIndex(trust, 0) else {
+            terminalFailure = .serviceUnavailable
+            completionHandler(.cancelAuthenticationChallenge, nil)
+            return
+        }
+        let certificateData = SecCertificateCopyData(leaf) as Data
+        let actualPin = Array(SHA256.hash(data: certificateData))
+        guard constantTimeEqual(actualPin, expectedTLSPin) else {
+            terminalFailure = .serviceUnavailable
+            completionHandler(.cancelAuthenticationChallenge, nil)
+            return
+        }
+        completionHandler(.useCredential, URLCredential(trust: trust))
+    }
+
+    private func constantTimeEqual(_ lhs: [UInt8], _ rhs: [UInt8]) -> Bool {
+        guard lhs.count == rhs.count else { return false }
+        var difference: UInt8 = 0
+        for index in lhs.indices {
+            difference |= lhs[index] ^ rhs[index]
+        }
+        return difference == 0
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        dataTask: URLSessionDataTask,
+        didReceive response: URLResponse,
+        completionHandler: @escaping (URLSession.ResponseDisposition) -> Void
+    ) {
+        guard let http = response as? HTTPURLResponse else {
+            terminalFailure = .invalidServiceResponse
+            completionHandler(.cancel)
+            return
+        }
+        let declaredLength = http.expectedContentLength
+        if declaredLength > Int64(maximumBytes) {
+            terminalFailure = .invalidServiceResponse
+            completionHandler(.cancel)
+            return
+        }
+        httpResponse = http
+        completionHandler(.allow)
+    }
+
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        guard received.count <= maximumBytes - data.count else {
+            terminalFailure = .invalidServiceResponse
+            dataTask.cancel()
+            return
+        }
+        received.append(data)
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping (URLRequest?) -> Void
+    ) {
+        terminalFailure = .invalidServiceResponse
+        completionHandler(nil)
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        didCompleteWithError error: Error?
+    ) {
+        if let terminalFailure = terminalFailure {
+            finish(.failure(terminalFailure))
+            return
+        }
+        guard error == nil else {
+            finish(.failure(.serviceUnavailable))
+            return
+        }
+        guard let httpResponse = httpResponse else {
+            finish(.failure(.invalidServiceResponse))
+            return
+        }
+        finish(.success(HTTPResult(response: httpResponse, data: received)))
+    }
+
+    private func finish(_ result: Result<HTTPResult, BridgeFailure>) {
+        lock.lock()
+        guard !completed else {
+            lock.unlock()
+            return
+        }
+        completed = true
+        let currentSession = session
+        session = nil
+        lock.unlock()
+
+        currentSession?.finishTasksAndInvalidate()
+        completion(result)
+    }
+}
+
+private final class BoundedHTTPClient {
+    static let shared = BoundedHTTPClient()
+    private static let maximumConcurrentRequests = 2
+
+    private let lock = NSLock()
+    private var active: [UUID: BoundedRequest] = [:]
+
+    func prepare(
+        _ request: URLRequest,
+        maximumBytes: Int,
+        expectedTLSPin: [UInt8],
+        completion: @escaping (Result<HTTPResult, BridgeFailure>) -> Void
+    ) -> (start: () -> Void, cancel: () -> Void)? {
+        let identifier = UUID()
+        let operation = BoundedRequest(
+            request: request,
+            maximumBytes: maximumBytes,
+            expectedTLSPin: expectedTLSPin
+        ) {
+            [weak self] result in
+            self?.lock.lock()
+            self?.active.removeValue(forKey: identifier)
+            self?.lock.unlock()
+            completion(result)
+        }
+        lock.lock()
+        guard active.count < Self.maximumConcurrentRequests else {
+            lock.unlock()
+            completion(.failure(.tooManyRequests))
+            return nil
+        }
+        active[identifier] = operation
+        lock.unlock()
+        return (
+            start: { operation.start() },
+            cancel: { operation.cancel() }
+        )
+    }
+}
+
+final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
+    private static let allowedKeys: Set<String> = [
+        "requestId", "action", "certificateId", "data", "format", "mimeType",
+        "name", "signatureOptions", "originalData", "signatureData", "pin",
+    ]
+    private static let allowedActions: Set<String> = [
+        "ping", "getcertificates", "sign", "verify",
+    ]
+    private static let allowedFormats: Set<String> = ["cades", "pades", "xades"]
+    private static let allowedOptionKeys: Set<String> = [
+        "enabled", "position", "customX", "customY", "width", "height", "page",
+        "keepText", "imageB64", "enableQR", "qrContent", "enableMetadata",
+        "metaTitle", "metaSubject",
+    ]
+
+    func beginRequest(with context: NSExtensionContext) {
+        let inputItem = context.inputItems.first as? NSExtensionItem
+        let rawMessage = inputItem?.userInfo?[SFExtensionMessageKey] as? [String: Any]
+        let fallbackRequestID = (rawMessage?["requestId"] as? String) ?? ""
+
+        do {
+            let message = try validateEnvelope(rawMessage)
+            let requestID = try requiredIdentifier(message["requestId"], maximumLength: 128)
+            let action = try requiredAction(message["action"])
+
+            if action == "sign" {
+                let lease: SignLease
+                switch SignGate.acquire() {
+                case .failure(let gateFailure):
+                    RequestResponder(context: context, requestID: requestID).failure(gateFailure)
+                    return
+                case .success(let acquiredLease):
+                    lease = acquiredLease
+                }
+                let responder = RequestResponder(
+                    context: context,
+                    requestID: requestID,
+                    onFinish: { timedOut in
+                        SignGate.release(lease, after: timedOut ? 30 : 0)
+                    }
+                )
+                responder.armTimeout()
+                authorizeAndSign(message, responder: responder)
+                return
+            }
+
+            let responder = RequestResponder(context: context, requestID: requestID)
+            responder.armTimeout()
+            dispatch(action: action, message: message, responder: responder)
+        } catch let failure as BridgeFailure {
+            RequestResponder(context: context, requestID: fallbackRequestID).failure(failure)
+        } catch {
+            RequestResponder(context: context, requestID: fallbackRequestID).failure(.malformedRequest)
+        }
+    }
+
+    private func validateEnvelope(_ candidate: [String: Any]?) throws -> [String: Any] {
+        guard let candidate = candidate,
+              Set(candidate.keys).isSubset(of: Self.allowedKeys),
+              JSONSerialization.isValidJSONObject(candidate) else {
+            throw BridgeFailure.malformedRequest
+        }
+        let encoded = try JSONSerialization.data(withJSONObject: candidate)
+        guard encoded.count <= BridgeLimits.maximumEnvelopeBytes else {
+            throw BridgeFailure.requestTooLarge
+        }
+        return candidate
+    }
+
+    private func requiredAction(_ value: Any?) throws -> String {
+        guard let raw = value as? String else { throw BridgeFailure.malformedRequest }
+        let action = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard Self.allowedActions.contains(action) else { throw BridgeFailure.unsupportedAction }
+        return action
+    }
+
+    private func requiredIdentifier(_ value: Any?, maximumLength: Int) throws -> String {
+        guard let value = value as? String,
+              !value.isEmpty,
+              value.utf8.count <= maximumLength,
+              value.utf8.allSatisfy({
+                  (0x30...0x39).contains($0) || (0x41...0x5a).contains($0)
+                      || (0x61...0x7a).contains($0) || [0x2d, 0x2e, 0x3a, 0x5f].contains($0)
+              }) else {
+            throw BridgeFailure.malformedRequest
+        }
+        return value
+    }
+
+    private func dispatch(
+        action: String,
+        message: [String: Any],
+        responder: RequestResponder
+    ) {
+        do {
+            switch action {
+            case "ping":
+                let configuration = try BridgeConfiguration.load(requireToken: false)
+                performREST(
+                    path: "/health", method: "GET", body: nil,
+                    configuration: configuration, responder: responder,
+                    transform: transformPing
+                )
+            case "getcertificates":
+                let configuration = try BridgeConfiguration.load(requireToken: true)
+                performREST(
+                    path: "/certificates", method: "GET", body: nil,
+                    configuration: configuration, responder: responder,
+                    transform: transformCertificates
+                )
+            case "verify":
+                let configuration = try BridgeConfiguration.load(requireToken: true)
+                let body = try verifyBody(message)
+                performREST(
+                    path: "/verify", method: "POST", body: body,
+                    configuration: configuration, responder: responder,
+                    transform: transformVerification
+                )
+            default:
+                responder.failure(.unsupportedAction)
+            }
+        } catch let failure as BridgeFailure {
+            responder.failure(failure)
+        } catch {
+            responder.failure(.malformedRequest)
+        }
+    }
+
+    private func authorizeAndSign(_ message: [String: Any], responder: RequestResponder) {
+        do {
+            let configuration = try BridgeConfiguration.load(requireToken: true)
+            let pendingSignature = try signatureRequest(message)
+            let authentication = LAContext()
+            authentication.localizedCancelTitle = "Cancelar firma"
+            authentication.touchIDAuthenticationAllowableReuseDuration = 0
+            responder.setCancellation { authentication.invalidate() }
+            var evaluationError: NSError?
+            guard authentication.canEvaluatePolicy(
+                .deviceOwnerAuthentication, error: &evaluationError
+            ) else {
+                responder.failure(.authenticationUnavailable)
+                return
+            }
+            authentication.evaluatePolicy(
+                .deviceOwnerAuthentication,
+                localizedReason: pendingSignature.authorizationReason
+            ) { [authentication] success, _ in
+                _ = authentication
+                guard success else {
+                    responder.failure(.userDenied)
+                    return
+                }
+                self.performREST(
+                    path: "/sign", method: "POST", body: pendingSignature.body,
+                    configuration: configuration, responder: responder,
+                    transform: self.transformSignature
+                )
+            }
+        } catch let failure as BridgeFailure {
+            responder.failure(failure)
+        } catch {
+            responder.failure(.malformedRequest)
+        }
+    }
+
+    private func signatureRequest(_ message: [String: Any]) throws -> PendingSignature {
+        if let pin = message["pin"] as? String, !pin.isEmpty {
+            throw BridgeFailure.malformedRequest
+        }
+        let content = try requiredBase64(
+            message["data"], maximumCharacters: BridgeLimits.maximumInputBase64Characters
+        )
+        let certificateID = try requiredIdentifier(
+            message["certificateId"], maximumLength: 1024
+        )
+        let requestID = try requiredIdentifier(message["requestId"], maximumLength: 128)
+        let format = try normalizedFormat(message["format"])
+        let options = try normalizedOptions(message["signatureOptions"])
+        guard let documentData = Data(base64Encoded: content) else {
+            throw BridgeFailure.malformedRequest
+        }
+        let digest = SHA256.hash(data: documentData)
+            .map { String(format: "%02x", $0) }
+            .joined()
+        let certificateLabel = String(certificateID.prefix(80))
+        let reason = "Autorizar firma \(format.uppercased()). "
+            + "Certificado: \(certificateLabel). Documento SHA-256: \(digest)"
+        let body: [String: Any] = [
+            "name": format == "pades" ? "documento.pdf" : "documento.bin",
+            "content_base64": content,
+            "mime_type": format == "pades" ? "application/pdf" : "application/octet-stream",
+            "format": format,
+            "action": "sign",
+            "certificate_id": certificateID,
+            "request_id": requestID,
+            "options": options,
+            "saveToDisk": false,
+            "returnSignatureB64": true,
+        ]
+        return PendingSignature(body: body, authorizationReason: reason)
+    }
+
+    private func verifyBody(_ message: [String: Any]) throws -> [String: Any] {
+        let signatureValue = message["signatureData"] ?? message["data"]
+        let signature = try requiredBase64(
+            signatureValue, maximumCharacters: BridgeLimits.maximumInputBase64Characters
+        )
+        var body: [String: Any] = [
+            "name": "firma.bin",
+            "content_base64": signature,
+            "mime_type": normalizedMIMEType(message["mimeType"]),
+        ]
+        if let original = message["originalData"] as? String, !original.isEmpty {
+            body["original_content_base64"] = try requiredBase64(
+                original, maximumCharacters: BridgeLimits.maximumInputBase64Characters
+            )
+        }
+        return body
+    }
+
+    private func normalizedFormat(_ value: Any?) throws -> String {
+        let format = ((value as? String) ?? "cades")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        guard Self.allowedFormats.contains(format) else {
+            throw BridgeFailure.malformedRequest
+        }
+        return format
+    }
+
+    private func normalizedMIMEType(_ value: Any?) -> String {
+        guard let value = value as? String,
+              !value.isEmpty,
+              value.utf8.count <= 128,
+              value.utf8.allSatisfy({ (0x21...0x7e).contains($0) }) else {
+            return "application/octet-stream"
+        }
+        return value
+    }
+
+    private func normalizedOptions(_ value: Any?) throws -> [String: String] {
+        guard let value = value else { return [:] }
+        guard let raw = value as? [String: Any], raw.count <= Self.allowedOptionKeys.count else {
+            throw BridgeFailure.malformedRequest
+        }
+        var options: [String: String] = [:]
+        var totalBytes = 0
+        for (key, rawValue) in raw {
+            guard Self.allowedOptionKeys.contains(key) else {
+                throw BridgeFailure.malformedRequest
+            }
+            let normalized: String
+            if let text = rawValue as? String {
+                normalized = text
+            } else if let number = rawValue as? NSNumber {
+                normalized = CFGetTypeID(number) == CFBooleanGetTypeID()
+                    ? (number.boolValue ? "true" : "false")
+                    : number.stringValue
+            } else if rawValue is NSNull {
+                continue
+            } else {
+                throw BridgeFailure.malformedRequest
+            }
+            let perValueLimit = key == "imageB64" ? BridgeLimits.maximumOptionsBytes : 8192
+            guard normalized.utf8.count <= perValueLimit else {
+                throw BridgeFailure.requestTooLarge
+            }
+            totalBytes += key.utf8.count + normalized.utf8.count
+            guard totalBytes <= BridgeLimits.maximumOptionsBytes else {
+                throw BridgeFailure.requestTooLarge
+            }
+            options[key] = normalized
+        }
+        return options
+    }
+
+    private func requiredBase64(_ value: Any?, maximumCharacters: Int) throws -> String {
+        guard let value = value as? String,
+              !value.isEmpty,
+              value.utf8.count <= maximumCharacters,
+              value.utf8.count % 4 == 0 else {
+            throw BridgeFailure.malformedRequest
+        }
+        let bytes = Array(value.utf8)
+        var paddingStarted = false
+        var paddingCount = 0
+        for byte in bytes {
+            if byte == 0x3d {
+                paddingStarted = true
+                paddingCount += 1
+                if paddingCount > 2 { throw BridgeFailure.malformedRequest }
+                continue
+            }
+            if paddingStarted
+                || !((0x30...0x39).contains(byte) || (0x41...0x5a).contains(byte)
+                    || (0x61...0x7a).contains(byte) || byte == 0x2b || byte == 0x2f) {
+                throw BridgeFailure.malformedRequest
+            }
+        }
+        return value
+    }
+
+    private func performREST(
+        path: String,
+        method: String,
+        body: [String: Any]?,
+        configuration: BridgeConfiguration,
+        responder: RequestResponder,
+        transform: @escaping ([String: Any]) throws -> [String: Any]
+    ) {
+        do {
+            guard var components = URLComponents(url: configuration.endpoint, resolvingAgainstBaseURL: false) else {
+                throw BridgeFailure.invalidConfiguration
+            }
+            components.path = path
+            components.query = nil
+            components.fragment = nil
+            guard let url = components.url else { throw BridgeFailure.invalidConfiguration }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = method
+            request.timeoutInterval = method == "POST" ? 150 : 30
+            request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            if let token = configuration.bearerToken {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+            if let body = body {
+                guard JSONSerialization.isValidJSONObject(body) else {
+                    throw BridgeFailure.malformedRequest
+                }
+                let data = try JSONSerialization.data(withJSONObject: body)
+                guard data.count <= BridgeLimits.maximumEnvelopeBytes else {
+                    throw BridgeFailure.requestTooLarge
+                }
+                request.httpBody = data
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            }
+
+            let preparedRequest = BoundedHTTPClient.shared.prepare(
+                request,
+                maximumBytes: BridgeLimits.maximumHTTPResponseBytes,
+                expectedTLSPin: configuration.tlsCertificateSHA256
+            ) { result in
+                switch result {
+                case .failure(let failure):
+                    responder.failure(failure)
+                case .success(let result):
+                    do {
+                        let payload = try self.decodeServiceResponse(result)
+                        responder.success(try transform(payload))
+                    } catch let failure as BridgeFailure {
+                        responder.failure(failure)
+                    } catch {
+                        responder.failure(.invalidServiceResponse)
+                    }
+                }
+            }
+            if let preparedRequest = preparedRequest {
+                responder.replaceCancellationAndStart(
+                    preparedRequest.cancel,
+                    start: preparedRequest.start
+                )
+            }
+        } catch let failure as BridgeFailure {
+            responder.failure(failure)
+        } catch {
+            responder.failure(.malformedRequest)
+        }
+    }
+
+    private func decodeServiceResponse(_ result: HTTPResult) throws -> [String: Any] {
+        guard (200...299).contains(result.response.statusCode) else {
+            if result.response.statusCode == 401 || result.response.statusCode == 403 {
+                throw BridgeFailure(
+                    code: "service_unauthorized",
+                    message: "El token local no es valido; actualiza la configuracion"
+                )
+            }
+            if result.response.statusCode == 413 {
+                throw BridgeFailure.requestTooLarge
+            }
+            throw BridgeFailure(
+                code: "service_error", message: "El servicio local rechazo la operacion"
+            )
+        }
+        let contentType = result.response.value(forHTTPHeaderField: "Content-Type")?.lowercased() ?? ""
+        guard contentType.hasPrefix("application/json") else {
+            throw BridgeFailure.invalidServiceResponse
+        }
+        let payload = try JSONSerialization.jsonObject(with: result.data) as? [String: Any]
+        guard let payload = payload else { throw BridgeFailure.invalidServiceResponse }
+        if let ok = payload["ok"] as? Bool, !ok {
+            throw BridgeFailure(
+                code: "service_error",
+                message: "El servicio local no pudo completar la operacion"
+            )
+        }
+        return payload
+    }
+
+    private func transformPing(_ payload: [String: Any]) throws -> [String: Any] {
+        guard (payload["ok"] as? Bool) == true else {
+            throw BridgeFailure.invalidServiceResponse
+        }
+        return ["message": "pong", "mode": "safari-native-rest"]
+    }
+
+    private func transformCertificates(_ payload: [String: Any]) throws -> [String: Any] {
+        guard let rawCertificates = payload["certificates"] as? [[String: Any]],
+              rawCertificates.count <= BridgeLimits.maximumCertificates else {
+            throw BridgeFailure.invalidServiceResponse
+        }
+        let certificates: [[String: Any]] = try rawCertificates.map { item in
+            guard let identifier = item["id"] as? String,
+                  let subject = item["subjectName"] as? String,
+                  let issuer = item["issuerName"] as? String,
+                  identifier.utf8.count <= 1024,
+                  subject.utf8.count <= 4096,
+                  issuer.utf8.count <= 4096 else {
+                throw BridgeFailure.invalidServiceResponse
+            }
+            return [
+                "id": identifier,
+                "subject": subject,
+                "issuer": issuer,
+                "notAfter": String((item["validTo"] as? String ?? "").prefix(128)),
+                "fingerprint": String((item["fingerprint"] as? String ?? "").prefix(256)),
+            ]
+        }
+        return ["certificates": certificates]
+    }
+
+    private func transformSignature(_ payload: [String: Any]) throws -> [String: Any] {
+        guard let signature = payload["signed_content_base64"] as? String else {
+            throw BridgeFailure.invalidServiceResponse
+        }
+        let validated = try requiredBase64(
+            signature, maximumCharacters: BridgeLimits.maximumOutputBase64Characters
+        )
+        return ["signature": validated, "signatureLen": validated.count]
+    }
+
+    private func transformVerification(_ payload: [String: Any]) throws -> [String: Any] {
+        guard let valid = payload["valid"] as? Bool else {
+            throw BridgeFailure.invalidServiceResponse
+        }
+        let details = (payload["details"] as? [String] ?? []).prefix(256).map {
+            String($0.prefix(2048))
+        }
+        let signers = (payload["signers"] as? [String] ?? []).prefix(256).map {
+            String($0.prefix(2048))
+        }
+        return [
+            "result": [
+                "valid": valid,
+                "reason": String((payload["reason"] as? String ?? "").prefix(2048)),
+                "details": Array(details),
+                "signers": Array(signers),
+            ]
+        ]
+    }
+}

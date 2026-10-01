@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "sitiosConfianza": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Sitios HTTPS fijados por la organización para PDF e identidad"
+    }
+  }
+}

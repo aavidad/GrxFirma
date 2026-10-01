@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+# Puerta local previa a publicar. El workflow tests.yml se dispara con
+# "on: push", es decir, DESPUES de que el commit ya este en el remoto: informa,
+# pero no puede impedir que se publique nada. Como ademas el proyecto integra
+# con commits directos sobre main y sin pull request, este hook es el unico
+# punto del flujo capaz de bloquear de verdad.
+#
+# Instalacion:
+#   make install-git-hooks
+#
+# Salto puntual y consciente:
+#   git push --no-verify
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+echo "pre-push: build, vet y tests antes de publicar..."
+
+fallo() {
+	echo >&2
+	echo "pre-push: BLOQUEADO — $1" >&2
+	echo "pre-push: corrigelo, o publica a conciencia con 'git push --no-verify'." >&2
+	exit 1
+}
+
+go build ./... || fallo "go build ./... no compila"
+go vet ./... || fallo "go vet ./... tiene hallazgos"
+
+# third_party/ queda fuera: es un fork vendorizado, igual que en CI.
+sin_formato="$(gofmt -l ./internal ./cmd ./presentation ./test ./scripts ./mobilebind)"
+if [ -n "$sin_formato" ]; then
+	echo "$sin_formato" >&2
+	fallo "hay ficheros sin gofmt (arriba); pasa 'gofmt -w' sobre ellos"
+fi
+
+python3 -m unittest discover -s scripts/ci/tests -v ||
+	fallo "los tests del validador documental estan en rojo"
+python3 scripts/ci/validate_task_docs.py ||
+	fallo "el backlog y las fichas de tareas no son coherentes"
+
+# Mismo criterio que CI: si faltan los validadores externos los tests fallan,
+# en vez de saltarse la comprobacion en silencio.
+GRXFIRMA_REQUIRE_EXTERNAL_TOOLS="${GRXFIRMA_REQUIRE_EXTERNAL_TOOLS:-1}" \
+	go test ./... || fallo "go test ./... esta en rojo"
+
+echo "pre-push: OK."

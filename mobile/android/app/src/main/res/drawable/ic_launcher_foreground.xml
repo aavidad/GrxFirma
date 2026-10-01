@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <group android:translateX="22" android:translateY="22"
+        android:scaleX="0.25" android:scaleY="0.25">
+        <path android:fillColor="#173A4E"
+            android:pathData="M60,8 H196 A52,52 0,0 1,248 60 V196 A52,52 0,0 1,196 248 H60 A52,52 0,0 1,8 196 V60 A52,52 0,0 1,60 8 Z" />
+        <path android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFF" android:strokeWidth="14"
+            android:strokeLineCap="round" android:strokeLineJoin="round"
+            android:pathData="M89,89 A31,31 0,1 0,89 137 V116 H73" />
+        <path android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFF" android:strokeWidth="14"
+            android:strokeLineCap="round" android:strokeLineJoin="round"
+            android:pathData="M111,140 V87 H134 C154,87 154,115 134,115 H111 M132,115 L154,140" />
+        <path android:fillColor="@android:color/transparent"
+            android:strokeColor="#ACCB49" android:strokeWidth="15"
+            android:strokeLineCap="round"
+            android:pathData="M170,88 L207,140 M207,88 L170,140" />
+        <path android:fillColor="@android:color/transparent"
+            android:strokeColor="#ACCB49" android:strokeWidth="11"
+            android:strokeLineCap="round"
+            android:pathData="M55,172 C87,160 106,183 127,170 C144,160 155,168 168,176 C182,184 195,177 207,164" />
+        <path android:fillColor="#ACCB49"
+            android:pathData="M204,165 L217,153 L212,173 Z" />
+    </group>
+</vector>

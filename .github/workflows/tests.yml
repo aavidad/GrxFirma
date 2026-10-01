@@ -1,0 +1,115 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Obliga a que los tests que validan artefactos con herramientas externas
+      # (qpdf, pdfsig, openssl) FALLEN si la herramienta no está, en vez de
+      # saltarse la validación en silencio. Ver internal/testsupport/exttools.
+      GRXFIRMA_REQUIRE_EXTERNAL_TOOLS: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install external validators (qpdf, poppler, nss, openssl)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            qpdf \
+            poppler-utils \
+            libnss3-tools \
+            libnss3-dev \
+            openssl
+
+      - name: Report validator versions
+        run: |
+          qpdf --version | head -1
+          pdfsig -v 2>&1 | head -1 || true
+          openssl version
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      # third_party/ queda fuera igual que en staticcheck: es un fork
+      # vendorizado y su formato no es responsabilidad de este repo.
+      - name: Gofmt
+        run: |
+          sin_formato="$(gofmt -l ./internal ./cmd ./presentation ./test ./scripts ./mobilebind)"
+          if [ -n "$sin_formato" ]; then
+            echo "Ficheros sin gofmt:" >&2
+            echo "$sin_formato" >&2
+            exit 1
+          fi
+
+      - name: Validate task documentation
+        run: |
+          python3 -m unittest discover -s scripts/ci/tests -v
+          python3 scripts/ci/validate_task_docs.py
+
+      - name: Enforce no-runtime-plugins architecture
+        run: python3 scripts/ci/check_no_runtime_plugins.py
+
+      # third_party/ queda fuera a propósito: es un fork vendorizado y el ruido
+      # upstream no es accionable aquí. Los símbolos usados solo bajo
+      # -tags fyne_gui llevan //lint:ignore U1000 (staticcheck corre sin tags).
+      - name: Staticcheck
+        run: go run honnef.co/go/tools/cmd/staticcheck@2025.1 ./internal/... ./cmd/...
+
+      - name: Test (validación externa obligatoria)
+        run: go test ./...
+
+      - name: Vet vendored PDF signing module
+        working-directory: third_party/pdfsign
+        run: go vet ./...
+
+      - name: Test vendored PDF signing module
+        working-directory: third_party/pdfsign
+        run: go test -count=1 -timeout=10m ./...
+
+      - name: Vet vendored PDF reader module
+        working-directory: third_party/pdf
+        run: go vet ./...
+
+      - name: Test vendored PDF reader module
+        working-directory: third_party/pdf
+        run: go test -count=1 ./...
+
+      # T032: variante nativa del catálogo NSS (libnss3 vía CGo, opt-in con
+      # -tags nss_cgo). Prueba contra una base NSS real creada con certutil.
+      - name: Test NSS CGo (T032)
+        run: |
+          go vet -tags nss_cgo ./internal/adapters/outbound/desktop/nssstore/
+          go test -tags nss_cgo ./internal/adapters/outbound/desktop/nssstore/ -count=1
+
+      - name: Release security gate (T113/T114)
+        run: ./scripts/release/check-release-gate.sh

@@ -1,0 +1,246 @@
+.TH GRXFIRMA-MEJORAS 7 "20 marzo 2026" "GrxFirma" "Mejoras de V2 frente a la base Java histórica"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-mejoras \- mejoras técnicas, operativas y de seguridad de GrxFirma frente a la base Java histórica
+.SH DESCRIPCIÓN
+Esta página resume mejoras observables de \fBGrxFirma\fR frente a la base Java
+histórica usada como referencia funcional en el árbol \fBclienteafirma-master\fR
+de la migración local.
+.PP
+No pretende desacreditar la solución histórica. Su finalidad es explicar por qué
+\fBV2\fR resulta más mantenible, más operable y más alineada con prácticas modernas
+de integración y seguridad.
+.SH ACLARACIÓN IMPORTANTE
+La base Java histórica fue útil y cubrió durante años un conjunto amplio de escenarios.
+.PP
+Las observaciones de esta página deben leerse como:
+.IP \(bu 2
+mejoras de arquitectura y operación en \fBV2\fR;
+.IP \(bu 2
+limitaciones heredadas de una solución de otra época;
+.IP \(bu 2
+y reducción de superficie y complejidad en la nueva versión.
+.PP
+No debe interpretarse esta página como un dictamen jurídico, una auditoría forense
+ni una afirmación de vulnerabilidad explotable concreta si no se documenta de forma expresa.
+.SH MARCO LEGAL RELEVANTE
+\fBGrxFirma\fR se orienta a un marco de firma, identificación y servicios de confianza
+electrónicos alineado con la normativa vigente aplicable.
+.TP
+.B Reglamento (UE) 910/2014
+Reglamento eIDAS, relativo a la identificación electrónica y los servicios de confianza
+para las transacciones electrónicas en el mercado interior.
+.TP
+.B Reglamento (UE) 2024/1183
+Modifica el Reglamento (UE) 910/2014 en lo relativo al marco europeo de identidad digital.
+.TP
+.B Ley 6/2020, de 11 de noviembre
+Regula en España determinados aspectos de los servicios electrónicos de confianza.
+.TP
+.B Ley 39/2015, de 1 de octubre
+Marco básico del procedimiento administrativo común y del uso de firma e identificación
+electrónicas en la relación con las Administraciones Públicas.
+.TP
+.B Ley 40/2015, de 1 de octubre
+Marco del régimen jurídico del sector público, incluidos sellos, firma electrónica
+y actuación administrativa por medios electrónicos.
+.TP
+.B Real Decreto 203/2021, de 30 de marzo
+Aprueba el Reglamento de actuación y funcionamiento del sector público por medios electrónicos.
+.PP
+Esta documentación técnica no sustituye el análisis jurídico específico que cada
+organización deba hacer sobre sus procedimientos concretos.
+.SH MEJORAS DE ARQUITECTURA
+.SS 1. Núcleo separado de conectores
+En \fBV2\fR el núcleo de firma y los casos de uso están separados de:
+.IP \(bu 2
+UI;
+.IP \(bu 2
+REST;
+.IP \(bu 2
+native host;
+.IP \(bu 2
+\fBafirma://\fR;
+.IP \(bu 2
+NSS, PKCS#12, TLS local y otras integraciones.
+.PP
+Eso reduce acoplamiento y hace más sencillo:
+.IP \(bu 2
+probar la lógica;
+.IP \(bu 2
+adaptar protocolos legacy;
+.IP \(bu 2
+o sustituir integraciones externas sin reescribir el núcleo.
+.SS 2. Reducción de superficie heredada
+El árbol Java histórico arrastra una gran cantidad de módulos y tecnologías de distintas épocas,
+incluyendo referencias a:
+.IP \(bu 2
+applets;
+.IP \(bu 2
+webstart;
+.IP \(bu 2
+configuradores y descargadores remotos;
+.IP \(bu 2
+plugins;
+.IP \(bu 2
+varios almacenes y capas de UI específicas.
+.PP
+Eso no implica por sí mismo una vulnerabilidad, pero sí una superficie funcional
+y de mantenimiento mayor.
+.PP
+\fBV2\fR simplifica este panorama en torno a binarios y adaptadores más definidos.
+.SS 3. Mejor aislamiento de compatibilidad legacy
+Las compatibilidades con portales antiguos viven en el borde:
+.IP \(bu 2
+batch remoto;
+.IP \(bu 2
+trifase;
+.IP \(bu 2
+retrieve / wait / presign / postsign / upload;
+.IP \(bu 2
+\fBafirma://\fR.
+.PP
+Eso evita contaminar el núcleo con detalles heredados.
+.SH MEJORAS DE SEGURIDAD Y ENDURECIMIENTO
+.SS 1. Menor dependencia estructural del ecosistema Java histórico
+La base antigua depende de un ecosistema amplio de módulos Java, integración Swing
+y mecanismos heredados de distribución y actualización.
+.PP
+\fBV2\fR reduce esa dependencia mediante binarios Go nativos y conectores más explícitos.
+.SS 2. Integraciones web más controladas
+\fBV2\fR documenta y separa con claridad:
+.IP \(bu 2
+bridge de navegador;
+.IP \(bu 2
+native host;
+.IP \(bu 2
+REST local;
+.IP \(bu 2
+\fBafirma://\fR;
+.IP \(bu 2
+y compatibilidad WebSocket legacy cuando procede.
+.PP
+Eso facilita entender qué canal se está usando y qué logs revisar.
+.SS 3. Círculo de confianza de dominios
+\fBV2\fR incorpora una gestión clara y auditable del círculo de confianza:
+.IP \(bu 2
+listar;
+.IP \(bu 2
+añadir;
+.IP \(bu 2
+eliminar;
+.IP \(bu 2
+importar;
+.IP \(bu 2
+exportar;
+.IP \(bu 2
+limpiar;
+.IP \(bu 2
+reimportar semilla pública inicial.
+.PP
+Eso ayuda a evitar operar contra dominios no confiables o maliciosos.
+.SS 4. Mejor trazabilidad operativa
+\fBV2\fR separa logs por tipo de problema:
+.IP \(bu 2
+\fI/tmp/grxfirma-handler.log\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-web-compat.log\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-debug.log\fR
+.PP
+La base histórica Java no estaba pensada con esta separación documental y operativa
+tan directa para soporte moderno en escritorio Linux.
+.SS 5. TLS local y confianza mejor explicados
+\fBV2\fR incorpora operaciones y documentación específicas para:
+.IP \(bu 2
+estado del almacén TLS local;
+.IP \(bu 2
+generación de certificados locales;
+.IP \(bu 2
+instalación de confianza;
+.IP \(bu 2
+limpieza del almacén;
+.IP \(bu 2
+diagnóstico de operación.
+.SH MEJORAS DE USABILIDAD
+.SS 1. CLI en castellano
+\fBV2\fR prioriza nombres visibles en castellano:
+.IP \(bu 2
+\fB-añadir-dominio\fR;
+.IP \(bu 2
+\fB-limpiar-dominios\fR;
+.IP \(bu 2
+\fB-informe-diagnostico\fR;
+.IP \(bu 2
+\fB-estado-confianza-tls\fR;
+.IP \(bu 2
+y más.
+.PP
+Los alias en inglés se mantienen como compatibilidad, pero la experiencia de usuario
+está pensada para administración y operación en castellano.
+.SS 2. Documentación `man` fragmentada por temas
+\fBV2\fR ya no obliga a concentrar todo en una sola ayuda enorme.
+.PP
+Hay páginas separadas para:
+.IP \(bu 2
+certificados;
+.IP \(bu 2
+confianza;
+.IP \(bu 2
+integración web;
+.IP \(bu 2
+lotes;
+.IP \(bu 2
+TLS local;
+.IP \(bu 2
+errores comunes;
+.IP \(bu 2
+operación;
+.IP \(bu 2
+autenticación y selección de certificado.
+.SS 3. App manual separada
+\fBV2\fR distingue:
+.IP \(bu 2
+CLI;
+.IP \(bu 2
+desktop manual;
+.IP \(bu 2
+handler protocolario;
+.IP \(bu 2
+native host.
+.PP
+Eso reduce confusión operativa.
+.SH MEJORAS DE MANTENIBILIDAD
+.SS 1. Menos mezcla de épocas tecnológicas
+En la base Java histórica conviven piezas de UI, despliegue y compatibilidad propias
+de varias generaciones tecnológicas.
+.PP
+\fBV2\fR intenta concentrarse en una base más homogénea.
+.SS 2. Más sencillo de auditar
+La separación por adaptadores, páginas `man`, logs y binarios permite:
+.IP \(bu 2
+diagnosticar mejor;
+.IP \(bu 2
+aislar regresiones;
+.IP \(bu 2
+y documentar mejor los riesgos operativos.
+.SH LÍMITES Y CAUTELAS
+.IP \(bu 2
+\fBV2\fR no sustituye la necesidad de revisión jurídica, organizativa y de cumplimiento.
+.IP \(bu 2
+Reducir superficie no equivale a ausencia total de riesgo.
+.IP \(bu 2
+La compatibilidad con portales legacy sigue siendo un área delicada y necesita pruebas reales.
+.IP \(bu 2
+La base Java histórica sigue siendo una referencia funcional valiosa para compatibilidad.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-operacion (7),
+.BR grxfirma-protocolos-web (7),
+.BR grxfirma-errores-comunes (7),
+.BR grxfirma-autenticacion-y-certificados (7),
+.BR grxfirma-certificados (7)

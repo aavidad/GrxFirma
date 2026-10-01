@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <displayName>GrxFirma</displayName>
+  <description>GrxFirma computer policies. They are applied in HKLM\SOFTWARE\Policies\GrxFirma and cannot be changed by non-administrators.</description>
+  <resources>
+    <stringTable>
+      <string id="SUPPORTED_GrxFirma_0_0_90">GrxFirma 0.0.90 or later</string>
+      <string id="Cat_GrxFirma">GrxFirma</string>
+      <string id="Cat_Origenes">Trusted origins</string>
+      <string id="Cat_Operacion">Operation</string>
+      <string id="Cat_Compatibilidad">Compatibility (lowers security)</string>
+      <string id="AllowedDomains">Origins allowed without asking</string>
+      <string id="AllowedDomains_Help">Origins (e-government sites) that may request signatures without GrxFirma asking the user whether to trust them. One value per line.
+
+- "sede.example.es" or "*.example.es" allow HTTPS only, on any port.
+- "https://sede.example.es:8443", "http://localhost:3000" or "chrome-extension://&lt;id&gt;" allow exactly that scheme, host and port.
+
+If not configured, each new origin is confirmed with the user the first time.</string>
+      <string id="DominiosDeConfianza">Additional trusted domains</string>
+      <string id="DominiosDeConfianza_Help">Additional trusted domains, with the same syntax as "Origins allowed without asking". One value per line.</string>
+      <string id="TofuHabilitado">Ask the user about unknown origins</string>
+      <string id="TofuHabilitado_Help">Enabled or not configured: when a site that is not on the list requests a signature, GrxFirma asks the user whether to trust it.
+
+Disabled: any origin that is not on the allowed list is rejected without asking. Recommended on managed computers with the full list of sites.</string>
+      <string id="WebsocketHabilitado">Resident WebSocket service</string>
+      <string id="WebsocketHabilitado_Help">Enabled: GrxFirma keeps a local WebSocket service running in the background for sites that use AutoScript 1.9, even if the site does not launch it.
+
+Disabled or not configured: there is no resident service. Sites can still open, through the afirma:// protocol, a temporary WebSocket channel that closes when each operation ends.</string>
+      <string id="WebsocketPermitido">Allow local WebSocket</string>
+      <string id="WebsocketPermitido_Help">Enabled or not configured: temporary local WebSocket channels opened through afirma:// are allowed, as is the resident service when separately enabled.
+
+Disabled: all local WebSocket channels are blocked, including temporary afirma:// channels. Sites requiring AutoScript 1.9 over WebSocket will stop working. This policy takes precedence over websocket_habilitado and user settings.</string>
+      <string id="RestHabilitado">Local REST service</string>
+      <string id="RestHabilitado_Help">Enabled: turns on the local REST service for desktop integrations, which opens a local TCP port.
+
+Disabled or not configured: the REST service is off (default), even if the user tries to enable it in their settings.</string>
+      <string id="NivelLog">Diagnostic log level</string>
+      <string id="NivelLog_Help">Level of detail of the diagnostic log. The log never contains documents, keys or passwords, and paths and identifiers are redacted.</string>
+      <string id="NivelLog_Error">Errors only</string>
+      <string id="NivelLog_Warn">Warnings</string>
+      <string id="NivelLog_Info">Information (recommended)</string>
+      <string id="NivelLog_Debug">Debug</string>
+      <string id="DirectorioP12">PKCS#12 certificate folder</string>
+      <string id="DirectorioP12_Help">Folder from which GrxFirma loads .p12 or .pfx certificate files in addition to the Windows store. It must be a protected local path.</string>
+      <string id="TimeoutOperacion">Maximum operation time</string>
+      <string id="TimeoutOperacion_Help">Maximum time, in seconds, a signing operation may take before it is cancelled. Default: 30 seconds.</string>
+      <string id="MaxTamanoDocumento">Maximum document size</string>
+      <string id="MaxTamanoDocumento_Help">Maximum size, in bytes, of a document that can be signed. Default: 52428800 (50 MiB).</string>
+      <string id="PermitirDESLegacy">Allow intermediate-server DES without HTTPS</string>
+      <string id="PermitirDESLegacy_Help">LOWERS SECURITY. Without this policy, the AutoFirma 1.x DES session package (FIRe and AutoScript intermediate server) is only accepted when every server in the exchange uses HTTPS, and the user is told why. Enabling it also allows servers without HTTPS, such as a local test server. DES is never used to sign.</string>
+      <string id="PermitirSHA1Legacy">Allow SHA-1 signatures</string>
+      <string id="PermitirSHA1Legacy_Help">LOWERS SECURITY. Without this policy, signatures requested with SHA-1 are created with SHA-256 and the user is told why. Enabling it allows SHA-1 signatures for legacy portals that accept nothing else.</string>
+      <string id="PermitirCMSAESECBLegacy">Allow AutoFirma 1.9 AES-ECB CMS envelopes</string>
+      <string id="PermitirCMSAESECBLegacy_Help">LOWERS SECURITY. Allows reading SignedAndEnvelopedData envelopes encrypted with AES in ECB mode created by AutoFirma 1.9.</string>
+      <string id="PermitirOrigenVacio">Allow WebSocket without origin</string>
+      <string id="PermitirOrigenVacio_Help">LOWERS SECURITY. Allows WebSocket connections without an Origin header or with "Origin: null", which do not identify the connecting site.</string>
+      <string id="PermitirRutasDirectas">Allow local paths requested by the site</string>
+      <string id="PermitirRutasDirectas_Help">LOWERS SECURITY. Allows a site to specify absolute local paths in load, save and signandsave operations. Without this policy the user always chooses the file.</string>
+      <string id="AprobacionAutomaticaNativehost">Sign from the extension without confirmation</string>
+      <string id="AprobacionAutomaticaNativehost_Help">LOWERS SECURITY. Allows signing from the browser extension without showing the confirmation dialog. Only for dedicated, controlled workstations.</string>
+    </stringTable>
+    <presentationTable>
+      <presentation id="AllowedDomains"><multiTextBox refId="AllowedDomains_List">Origins (one per line):</multiTextBox></presentation>
+      <presentation id="DominiosDeConfianza"><multiTextBox refId="DominiosDeConfianza_List">Domains (one per line):</multiTextBox></presentation>
+      <presentation id="NivelLog"><dropdownList refId="NivelLog_Valor" defaultItem="2">Level:</dropdownList></presentation>
+      <presentation id="DirectorioP12"><textBox refId="DirectorioP12_Ruta"><label>Folder:</label></textBox></presentation>
+      <presentation id="TimeoutOperacion"><decimalTextBox refId="TimeoutOperacion_Segundos" defaultValue="30">Seconds:</decimalTextBox></presentation>
+      <presentation id="MaxTamanoDocumento"><decimalTextBox refId="MaxTamanoDocumento_Bytes" defaultValue="52428800">Bytes:</decimalTextBox></presentation>
+    </presentationTable>
+  </resources>
+</policyDefinitionResources>

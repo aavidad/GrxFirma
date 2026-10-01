@@ -1,0 +1,3657 @@
+<!doctype html>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<html lang="{{.Lang}}">
+<head>
+  <meta charset="utf-8">
+  <title>{{index .Messages "title"}} - GrxFirma</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      color-scheme: light;
+      --bg:#edf3f8;
+      --panel:#ffffff;
+      --panel-2:#f8fbfd;
+      --text:#12324d;
+      --muted:#5c7288;
+      --line:#cedae6;
+      --primary:#005ea8;
+      --primary-2:#0a78d0;
+      --ok:#1e8449;
+      --warn:#b9770e;
+      --bad:#c0392b;
+      --accent:#1373c4;
+      --accent-soft:rgba(19,115,196,.15);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at top left, rgba(10,120,208,.14), transparent 20rem),
+        radial-gradient(circle at bottom right, rgba(0,94,168,.10), transparent 24rem),
+        var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    .page{max-width:1380px;margin:0 auto;padding:28px}
+    .hero{
+      background:linear-gradient(135deg, rgba(255,255,255,.92), rgba(225,238,249,.92));
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:18px;
+      box-shadow:0 22px 48px rgba(18,50,77,.08);
+    }
+    h1{margin:0 0 8px;font-size:2rem;color:var(--primary)}
+    p{margin:0}
+    .muted{color:var(--muted)}
+    .hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .language-picker{
+      min-width:220px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .btn,.link-btn,button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      border:none;
+      border-radius:12px;
+      padding:11px 16px;
+      font:inherit;
+      font-weight:700;
+      cursor:pointer;
+      text-decoration:none;
+      background:var(--primary);
+      color:#fff;
+    }
+    .btn.secondary, .link-btn.secondary, button.secondary{
+      background:#0f172a;
+    }
+    button.light{
+      background:#dbe8f4;
+      color:#173550;
+    }
+    .status{
+      margin-top:16px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid transparent;
+      font-weight:600;
+    }
+    .status.ok{background:#e9f8ef;border-color:#b7e5c9;color:#166534}
+    .status.warn{background:#fff5e7;border-color:#f3d3ac;color:#9a5a09}
+    .status.bad{background:#fdecec;border-color:#f4c3bf;color:#9a2f22}
+    .grid{
+      margin-top:22px;
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:18px;
+    }
+    .stack{display:flex;flex-direction:column;gap:18px}
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:20px;
+      box-shadow:0 12px 32px rgba(18,50,77,.06);
+    }
+    .card h2{margin:0 0 12px;font-size:1.15rem}
+    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+    .field-row{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+    label{
+      font-size:.9rem;
+      font-weight:700;
+      color:var(--muted);
+    }
+    input[type="text"],input[type="number"],select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:11px 12px;
+      background:#fff;
+      color:var(--text);
+      font:inherit;
+    }
+    input[type="checkbox"]{transform:scale(1.1)}
+    .check{display:flex;align-items:center;gap:8px;font-weight:600}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .dropzone{
+      border:2px dashed #9ec3e3;
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(240,247,252,.94), rgba(248,251,253,.94));
+      padding:28px 20px;
+      text-align:center;
+      color:var(--muted);
+      font-weight:600;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .dropzone.drag{border-color:var(--primary);background:#eef6fd;color:var(--primary)}
+    .meta{
+      margin-top:12px;
+      padding:12px;
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      border-radius:14px;
+      font-size:.92rem;
+    }
+    .cert-summary{margin-top:10px;padding:12px;border-radius:14px;background:var(--panel-2);border:1px solid var(--line)}
+    .seal-controls[hidden]{display:none}
+    .preview-shell{
+      margin-top:12px;
+      padding:16px;
+      border-radius:18px;
+      background:linear-gradient(180deg, #f5f9fc, #eef5fb);
+      border:1px solid var(--line);
+    }
+    .preview-stage{
+      position:relative;
+      width:min(100%, 540px);
+      aspect-ratio:595.28 / 841.89;
+      margin:0 auto;
+      border:1px solid #6d8197;
+      border-radius:10px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,251,253,.96)),
+        repeating-linear-gradient(180deg, transparent, transparent 39px, rgba(19,115,196,.035) 40px);
+      overflow:hidden;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.8);
+    }
+    .preview-seal{
+      position:absolute;
+      background:rgba(19,115,196,.14);
+      border:2px solid var(--accent);
+      border-radius:10px;
+      cursor:move;
+      min-width:44px;
+      min-height:28px;
+      user-select:none;
+      touch-action:none;
+    }
+    .preview-seal-inner{
+      height:100%;
+      padding:8px;
+    }
+    .preview-seal-layout{
+      height:100%;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      overflow:hidden;
+    }
+    .preview-seal-main{
+      min-width:0;
+      flex:1 1 auto;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:2px;
+      overflow:hidden;
+      text-align:center;
+    }
+    .preview-seal-title{
+      font-size:clamp(10px, 1.3vw, 14px);
+      font-weight:800;
+      color:var(--accent);
+    }
+    .preview-seal-subtitle{
+      font-size:clamp(9px, 1.1vw, 12px);
+      color:#2d465d;
+      line-height:1.2;
+    }
+    .preview-seal-qr{
+      flex:0 0 auto;
+      width:clamp(36px, 24%, 74px);
+      aspect-ratio:1;
+      border-radius:8px;
+      border:1px solid rgba(19,115,196,.55);
+      background:
+        linear-gradient(45deg, rgba(19,115,196,.15) 25%, transparent 25%, transparent 50%, rgba(19,115,196,.15) 50%, rgba(19,115,196,.15) 75%, transparent 75%, transparent),
+        linear-gradient(-45deg, rgba(19,115,196,.11) 25%, transparent 25%, transparent 50%, rgba(19,115,196,.11) 50%, rgba(19,115,196,.11) 75%, transparent 75%, transparent),
+        #fff;
+      background-size:10px 10px;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      color:var(--accent);
+      font-size:clamp(9px, 1vw, 12px);
+      font-weight:800;
+      letter-spacing:.08em;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.9);
+    }
+    .preview-seal.has-qr .preview-seal-qr{
+      display:flex;
+    }
+    .resize-handle{
+      position:absolute;
+      width:16px;
+      height:16px;
+      right:-8px;
+      bottom:-8px;
+      border-radius:999px;
+      background:var(--accent);
+      border:2px solid #fff;
+      cursor:nwse-resize;
+      touch-action:none;
+    }
+    .result{
+      min-height:90px;
+      padding:14px;
+      border-radius:16px;
+      background:#eef4f9;
+      border:1px solid var(--line);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .hint{
+      margin-top:8px;
+      font-size:.9rem;
+      color:var(--muted);
+    }
+    @media (max-width: 1080px){
+      .grid{grid-template-columns:1fr}
+      .hero{flex-direction:column}
+      .field-row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div>
+        <h1>{{index .Messages "title"}}</h1>
+        <p class="muted">{{index .Messages "subtitle"}}</p>
+        <div id="globalStatus" class="status warn">{{index .Messages "connectionChecking"}}</div>
+      </div>
+      <div class="hero-actions">
+        <div class="language-picker">
+          <label for="languageSelect">{{index .Messages "languageSelector"}}</label>
+          <select id="languageSelect">
+            {{range .Languages}}
+            <option value="{{.Code}}"{{if eq $.Lang .Code}} selected{{end}}>{{.Name}}</option>
+            {{end}}
+          </select>
+        </div>
+        <a class="link-btn secondary" href="/?lang={{.Lang}}">{{index .Messages "openConsole"}}</a>
+        <a class="link-btn secondary" href="/validator?lang={{.Lang}}">{{index .Messages "openValidator"}}</a>
+        <a class="link-btn secondary" href="/?lang={{.Lang}}#hashToolsCard">{{index .Messages "openHashTools"}}</a>
+        <a class="link-btn" href="/openapi.json?lang={{.Lang}}" target="_blank" rel="noopener">{{index .Messages "openOpenAPI"}}</a>
+      </div>
+    </section>
+
+    <div class="grid">
+      <div class="stack">
+        <section class="card">
+          <h2>{{index .Messages "fileCardTitle"}}</h2>
+          <p class="muted">{{index .Messages "fileHelp"}}</p>
+          <label id="dropzone" class="dropzone" for="fileInput">{{index .Messages "dropLabel"}}</label>
+          <input id="fileInput" type="file" multiple hidden>
+          <input id="directoryInput" type="file" webkitdirectory directory multiple hidden>
+          <div class="actions" style="margin-top:12px">
+            <button id="pickFileBtn" type="button">{{index .Messages "selectFile"}}</button>
+            <button id="pickDirectoryBtn" class="secondary" type="button">{{index .Messages "selectDirectory"}}</button>
+            <button id="clearFileBtn" class="light" type="button">{{index .Messages "clearFile"}}</button>
+          </div>
+          <div id="fileMeta" class="meta"></div>
+          <div class="field-row" style="margin-top:12px">
+            <div class="field">
+              <label for="localPathInput">{{index .Messages "localPath"}}</label>
+              <input id="localPathInput" type="text" placeholder="{{index .Messages "localPathPlaceholder"}}">
+              <div class="hint">{{index .Messages "localPathHelp"}}</div>
+            </div>
+            <div class="field">
+              <label for="localOutputPathInput">{{index .Messages "outputPath"}}</label>
+              <input id="localOutputPathInput" type="text" placeholder="{{index .Messages "outputPathPlaceholder"}}">
+            </div>
+          </div>
+          <div class="actions">
+            <label class="check"><input id="saveToDisk" type="checkbox" checked> {{index .Messages "saveToDisk"}}</label>
+            <label class="check"><input id="returnB64" type="checkbox" checked> {{index .Messages "returnB64"}}</label>
+            <label class="check"><input id="overwriteOutput" type="checkbox"> {{index .Messages "overwrite"}}</label>
+          </div>
+          <div id="selectionTypeSummary" class="cert-summary" style="margin-top:14px"></div>
+        </section>
+
+        <section class="card">
+          <h2>{{index .Messages "certificateCardTitle"}}</h2>
+          <div class="actions" style="margin-bottom:12px">
+            <button id="refreshCertificatesBtn" type="button">{{index .Messages "refreshCertificates"}}</button>
+            <button id="autoSelectCertificateBtn" class="light" type="button">{{index .Messages "autoSelectCertificate"}}</button>
+            <button id="clearSelectedCertificateBtn" class="light" type="button">{{index .Messages "clearSelectedCertificate"}}</button>
+          </div>
+
+          <div id="certificateInventoryStatus" class="cert-summary"></div>
+
+          <div class="field-row" style="margin-top:14px">
+            <div class="field">
+              <label for="certificateSubjectFilter">{{index .Messages "certificateSubjectFilter"}}</label>
+              <input id="certificateSubjectFilter" type="text" placeholder="{{index .Messages "certificateSubjectFilterPlaceholder"}}">
+            </div>
+            <div class="field">
+              <label for="certificateIssuerFilter">{{index .Messages "certificateIssuerFilter"}}</label>
+              <input id="certificateIssuerFilter" type="text" placeholder="{{index .Messages "certificateIssuerFilterPlaceholder"}}">
+            </div>
+          </div>
+          <div class="actions" style="margin-top:4px">
+            <label class="check"><input id="onlyUsableCertificates" type="checkbox"> {{index .Messages "onlyUsableCertificates"}}</label>
+            <label class="check"><input id="onlyValidCertificates" type="checkbox"> {{index .Messages "onlyValidCertificates"}}</label>
+            <button id="clearCertificateFiltersBtn" class="light" type="button">{{index .Messages "clearCertificateFilters"}}</button>
+          </div>
+          <div id="certificateFilterMeta" class="hint"></div>
+          <div id="certificateFilterSummary" class="cert-summary"></div>
+          <div class="actions" style="margin-top:10px">
+            <label class="check"><input id="rememberSelectedCertificate" type="checkbox" checked> {{index .Messages "rememberSelectedCertificate"}}</label>
+          </div>
+          <div id="certificatePreferenceSummary" class="cert-summary"></div>
+          <div id="certificateAutoSelectSummary" class="cert-summary"></div>
+
+          <div class="field">
+            <label for="certificateSelect">{{index .Messages "certificate"}}</label>
+            <select id="certificateSelect"></select>
+          </div>
+
+          <div id="certificateStatus" class="cert-summary"></div>
+          <div id="certificateExpiryStatus" class="cert-summary"></div>
+          <div id="certificateDetailsSummary" class="cert-summary"></div>
+          <div id="certificateExportSummary" class="cert-summary"></div>
+          <div id="certificateSummary" class="cert-summary"></div>
+
+          <div class="field-row" style="margin-top:14px">
+            <div class="field">
+              <label for="formatSelect">{{index .Messages "format"}}</label>
+              <select id="formatSelect">
+                <option value="AUTO">{{index .Messages "formatOptionAuto"}}</option>
+                <option value="PAdES">{{index .Messages "formatOptionPAdES"}}</option>
+                <option value="CAdES">{{index .Messages "formatOptionCAdES"}}</option>
+                <option value="XAdES">{{index .Messages "formatOptionXAdES"}}</option>
+                <option value="XMLdSig">{{index .Messages "formatOptionXMLdSig"}}</option>
+                <option value="ODF">{{index .Messages "formatOptionODF"}}</option>
+                <option value="OOXML">{{index .Messages "formatOptionOOXML"}}</option>
+                <option value="FacturaE">{{index .Messages "formatOptionFacturaE"}}</option>
+                <option value="ASiC-XAdES">{{index .Messages "formatOptionASiCXAdES"}}</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="actionSelect">{{index .Messages "action"}}</label>
+              <select id="actionSelect">
+                <option value="sign">{{index .Messages "actionSign"}}</option>
+                <option value="cosign">{{index .Messages "actionCosign"}}</option>
+                <option value="countersign">{{index .Messages "actionCountersign"}}</option>
+              </select>
+              <div class="hint">{{index .Messages "actionHelp"}}</div>
+            </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <label class="check"><input id="strictCompat" type="checkbox"> {{index .Messages "strictCompat"}}</label>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="signProfile">{{index .Messages "signProfile"}}</label>
+              <select id="signProfile">
+                <option value="baseline">{{index .Messages "signProfileBaseline"}}</option>
+                <option value="t">{{index .Messages "signProfileT"}}</option>
+                <option value="lt">{{index .Messages "signProfileLT"}}</option>
+                <option value="lta">{{index .Messages "signProfileLTA"}}</option>
+              </select>
+              <div class="hint">{{index .Messages "signProfileHelp"}}</div>
+            </div>
+            <div class="field">
+              <label for="tsaUrl">{{index .Messages "tsaUrl"}}</label>
+              <input id="tsaUrl" type="text" placeholder="{{index .Messages "tsaUrlPlaceholder"}}">
+              <div class="hint">{{index .Messages "tsaUrlHelp"}}</div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="padesSubFilter">{{index .Messages "padesSubFilter"}}</label>
+              <select id="padesSubFilter">
+                <option value="etsi">{{index .Messages "padesSubFilterETSI"}}</option>
+                <option value="adobe">{{index .Messages "padesSubFilterAdobe"}}</option>
+              </select>
+              <div class="hint">{{index .Messages "padesSubFilterHelp"}}</div>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:14px">
+            <label class="check"><input id="enableMultiCosign" type="checkbox"> {{index .Messages "enableMultiCosign"}}</label>
+            <div class="hint">{{index .Messages "enableMultiCosignHelp"}}</div>
+          </div>
+          <div id="multiCosignControls" class="field" hidden>
+            <label for="multiCosignSelect">{{index .Messages "multiCosignAdditionalSigners"}}</label>
+            <select id="multiCosignSelect" multiple size="5"></select>
+            <div class="actions" style="margin-top:10px">
+              <button id="multiCosignSelectAllBtn" class="light" type="button">{{index .Messages "multiCosignSelectAll"}}</button>
+              <button id="multiCosignClearBtn" class="light" type="button">{{index .Messages "multiCosignClear"}}</button>
+            </div>
+          </div>
+
+          <div id="signPlanSummary" class="cert-summary" style="margin-top:14px"></div>
+          <div id="guidedAssistantSummary" class="cert-summary" style="margin-top:14px"></div>
+          <div id="multiCosignSummary" class="cert-summary" style="margin-top:14px"></div>
+          <div id="multiCosignOutputNotice" class="cert-summary" style="margin-top:14px"></div>
+          <div id="certificateRoleSummary" class="cert-summary" style="margin-top:14px"></div>
+          <div id="operationStrategySummary" class="cert-summary" style="margin-top:14px"></div>
+          <div id="formatConfigSummary" class="cert-summary" style="margin-top:14px"></div>
+          <div id="verificationPlanSummary" class="cert-summary" style="margin-top:14px"></div>
+          <div id="outputDeliverySummary" class="cert-summary" style="margin-top:14px"></div>
+          <div id="outputArtifactSummary" class="cert-summary" style="margin-top:14px"></div>
+          <div id="proxySecretStoreSummary" class="cert-summary" style="margin-top:14px"></div>
+
+          <div class="actions" style="margin-top:16px">
+            <button id="signBtn" type="button">{{index .Messages "signNow"}}</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="stack">
+        <section class="card">
+          <h2>{{index .Messages "sealCardTitle"}}</h2>
+          <p class="muted">{{index .Messages "sealHelp"}}</p>
+          <div class="field" style="margin-top:12px">
+            <label class="check"><input id="enableVisibleSeal" type="checkbox" checked> {{index .Messages "enableVisibleSeal"}}</label>
+          </div>
+
+          <div id="sealControls" class="seal-controls">
+            <div class="field-row">
+              <div class="field">
+                <label for="sealPosition">{{index .Messages "position"}}</label>
+                <select id="sealPosition">
+                  <option value="bottom-right">{{index .Messages "bottomRight"}}</option>
+                  <option value="bottom-left">{{index .Messages "bottomLeft"}}</option>
+                  <option value="top-right">{{index .Messages "topRight"}}</option>
+                  <option value="top-left">{{index .Messages "topLeft"}}</option>
+                  <option value="custom">{{index .Messages "custom"}}</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="sealPage">{{index .Messages "pageRange"}}</label>
+                <input id="sealPage" type="text" value="1" placeholder="{{index .Messages "pageRangePlaceholder"}}">
+                <label class="check" style="margin-top:8px"><input id="sealAllPages" type="checkbox"> {{index .Messages "allPages"}}</label>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="sealX">{{index .Messages "xAxis"}}</label>
+                <input id="sealX" type="number" min="0" max="1" step="0.0001" value="0.6200">
+              </div>
+              <div class="field">
+                <label for="sealY">{{index .Messages "yAxis"}}</label>
+                <input id="sealY" type="number" min="0" max="1" step="0.0001" value="0.0400">
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="sealW">{{index .Messages "width"}}</label>
+                <input id="sealW" type="number" min="0.05" max="1" step="0.0001" value="0.3400">
+              </div>
+              <div class="field">
+                <label for="sealH">{{index .Messages "height"}}</label>
+                <input id="sealH" type="number" min="0.04" max="1" step="0.0001" value="0.1200">
+              </div>
+            </div>
+
+            <div class="field">
+              <label>{{index .Messages "signatureImage"}}</label>
+              <input id="sealImageInput" type="file" accept="image/png,image/jpeg" hidden>
+              <div class="actions">
+                <button id="selectSealImageBtn" type="button">{{index .Messages "selectImage"}}</button>
+                <button id="removeSealImageBtn" class="light" type="button">{{index .Messages "removeImage"}}</button>
+              </div>
+              <img id="sealImagePreview" hidden alt="" style="max-width:100%;max-height:96px;border-radius:10px;border:1px solid var(--line);background:#fff;padding:6px">
+              <label class="check"><input id="keepSealText" type="checkbox" checked> {{index .Messages "keepText"}}</label>
+              <div class="hint">{{index .Messages "imageNotPersisted"}}</div>
+            </div>
+
+            <div class="field">
+              <label for="signatureQRContent">{{index .Messages "signatureQR"}}</label>
+              <input id="signatureQRContent" type="text" placeholder="{{index .Messages "signatureQRPlaceholder"}}">
+              <div class="hint">{{index .Messages "signatureQRHelp"}}</div>
+            </div>
+
+            <div class="field">
+              <label style="font-weight:700;color:var(--text)">{{index .Messages "metadataTitle"}}</label>
+              <div class="hint" style="margin:0 0 6px">{{index .Messages "metadataHelp"}}</div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="signatureReason">{{index .Messages "signatureReason"}}</label>
+                  <input id="signatureReason" type="text" placeholder="{{index .Messages "signatureReasonPlaceholder"}}">
+                </div>
+                <div class="field">
+                  <label for="signatureLocation">{{index .Messages "signatureLocation"}}</label>
+                  <input id="signatureLocation" type="text" placeholder="{{index .Messages "signatureLocationPlaceholder"}}">
+                </div>
+              </div>
+            <div class="field">
+              <label for="signatureContact">{{index .Messages "signatureContact"}}</label>
+              <input id="signatureContact" type="text" placeholder="{{index .Messages "signatureContactPlaceholder"}}">
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label style="font-weight:700;color:var(--text)">{{index .Messages "facturaeAdvancedTitle"}}</label>
+              <div class="hint" style="margin:0 0 6px">{{index .Messages "facturaeAdvancedHelp"}}</div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="facturaePolicyVersion">{{index .Messages "facturaePolicyVersion"}}</label>
+                  <select id="facturaePolicyVersion">
+                    <option value="">-</option>
+                    <option value="3.1">3.1</option>
+                    <option value="3.0">3.0</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="facturaeSignerRole">{{index .Messages "facturaeSignerRole"}}</label>
+                  <input id="facturaeSignerRole" type="text" placeholder="{{index .Messages "facturaeSignerRolePlaceholder"}}">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="facturaePolicyIdentifier">{{index .Messages "facturaePolicyIdentifier"}}</label>
+                  <input id="facturaePolicyIdentifier" type="text" placeholder="{{index .Messages "facturaePolicyIdentifierPlaceholder"}}">
+                </div>
+                <div class="field">
+                  <label for="facturaePolicyIdentifierHash">{{index .Messages "facturaePolicyIdentifierHash"}}</label>
+                  <input id="facturaePolicyIdentifierHash" type="text" placeholder="{{index .Messages "facturaePolicyIdentifierHashPlaceholder"}}">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="facturaePolicyQualifier">{{index .Messages "facturaePolicyQualifier"}}</label>
+                  <input id="facturaePolicyQualifier" type="text" placeholder="{{index .Messages "facturaePolicyQualifierPlaceholder"}}">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="facturaeSignatureCity">{{index .Messages "facturaeSignatureCity"}}</label>
+                  <input id="facturaeSignatureCity" type="text" placeholder="{{index .Messages "facturaeSignatureCityPlaceholder"}}">
+                </div>
+                <div class="field">
+                  <label for="facturaeSignatureProvince">{{index .Messages "facturaeSignatureProvince"}}</label>
+                  <input id="facturaeSignatureProvince" type="text" placeholder="{{index .Messages "facturaeSignatureProvincePlaceholder"}}">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="facturaeSignaturePostalCode">{{index .Messages "facturaeSignaturePostalCode"}}</label>
+                  <input id="facturaeSignaturePostalCode" type="text" placeholder="{{index .Messages "facturaeSignaturePostalCodePlaceholder"}}">
+                </div>
+                <div class="field">
+                  <label for="facturaeSignatureCountry">{{index .Messages "facturaeSignatureCountry"}}</label>
+                  <input id="facturaeSignatureCountry" type="text" placeholder="{{index .Messages "facturaeSignatureCountryPlaceholder"}}">
+                </div>
+              </div>
+            </div>
+            <div id="metadataSummary" class="cert-summary" style="margin-top:10px"></div>
+            <div id="metadataApplicabilitySummary" class="cert-summary" style="margin-top:10px"></div>
+            <div id="metadataDeliverySummary" class="cert-summary" style="margin-top:10px"></div>
+          </div>
+
+          <div class="preview-shell">
+              <div style="font-weight:700;margin-bottom:8px">{{index .Messages "preview"}}</div>
+              <div id="previewStage" class="preview-stage">
+                <div id="previewSeal" class="preview-seal">
+                  <div class="preview-seal-inner">
+                    <div class="preview-seal-layout">
+                      <div class="preview-seal-main">
+                        <div class="preview-seal-title">{{index .Messages "signaturePreviewTitle"}}</div>
+                        <div id="previewSealSubtitle" class="preview-seal-subtitle">{{index .Messages "signaturePreviewSubtitle"}}</div>
+                      </div>
+                      <div id="previewSealQR" class="preview-seal-qr" aria-hidden="true">{{index .Messages "QR"}}</div>
+                    </div>
+                  </div>
+                  <div id="resizeHandle" class="resize-handle"></div>
+                </div>
+              </div>
+              <div class="hint">{{index .Messages "previewLegend"}}</div>
+            </div>
+          </div>
+
+          <div id="sealDisabledHint" class="hint" hidden>{{index .Messages "sealOnlyForPDF"}}</div>
+        </section>
+
+        <section class="card">
+          <h2>{{index .Messages "quickVerifyTitle"}}</h2>
+          <p class="muted">{{index .Messages "quickVerifyHelp"}}</p>
+          <input id="quickVerifyFileInput" type="file" hidden>
+          <input id="quickVerifyOriginalFileInput" type="file" hidden>
+          <div class="actions" style="margin-top:12px">
+            <button id="quickVerifyPickBtn" type="button">{{index .Messages "quickVerifyPickFile"}}</button>
+            <button id="quickVerifyPickOriginalBtn" class="secondary" type="button">{{index .Messages "quickVerifyPickOriginal"}}</button>
+            <button id="quickVerifyClearBtn" class="light" type="button">{{index .Messages "quickVerifyClear"}}</button>
+          </div>
+          <div class="field" style="margin-top:12px">
+            <label for="quickVerifyPathInput">{{index .Messages "quickVerifyPath"}}</label>
+            <input id="quickVerifyPathInput" type="text" placeholder="{{index .Messages "quickVerifyPathPlaceholder"}}">
+          </div>
+          <div id="quickVerifySourceSummary" class="cert-summary" style="margin-top:10px"></div>
+          <div class="field" style="margin-top:12px">
+            <label for="quickVerifyOriginalPathInput">{{index .Messages "quickVerifyOriginalPath"}}</label>
+            <input id="quickVerifyOriginalPathInput" type="text" placeholder="{{index .Messages "quickVerifyOriginalPathPlaceholder"}}">
+          </div>
+          <div id="quickVerifyOriginalSummary" class="cert-summary" style="margin-top:10px"></div>
+          <div id="quickVerifyPairSummary" class="cert-summary" style="margin-top:10px"></div>
+          <div id="quickVerifyPlanSummary" class="cert-summary" style="margin-top:10px"></div>
+          <div id="quickVerifyResultSummary" class="cert-summary" style="margin-top:10px"></div>
+          <div id="verificationExportSummary" class="cert-summary" style="margin-top:10px"></div>
+          <div class="actions" style="margin-top:12px">
+            <button id="quickVerifyBtn" type="button">{{index .Messages "quickVerifyNow"}}</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>{{index .Messages "results"}}</h2>
+          <div id="resultArtifactSummary" class="cert-summary" style="margin-bottom:12px"></div>
+          <div id="resultBox" class="result"></div>
+          <div id="supportSummary" class="cert-summary" style="margin-top:12px"></div>
+          <div id="supportExportSummary" class="cert-summary" style="margin-top:12px"></div>
+          <div class="field" style="margin-top:12px">
+            <label class="check"><input id="supportExpertMode" type="checkbox"> {{index .Messages "supportExpertMode"}}</label>
+            <div class="hint">{{index .Messages "supportExpertHint"}}</div>
+          </div>
+          <div class="actions" style="margin-top:12px">
+            <button id="prepareIncidentBtn" type="button">{{index .Messages "supportPrepareIncident"}}</button>
+            <button id="supportCopyBtn" class="light" type="button">{{index .Messages "supportCopySummary"}}</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.WEB_SIGNER_MESSAGES = {{json .Messages}};
+    window.WEB_SIGNER_LANG = {{json .Lang}};
+  </script>
+  <script>
+    (function(){
+      "use strict";
+
+      const MSG = window.WEB_SIGNER_MESSAGES || {};
+      const CURRENT_LANG = window.WEB_SIGNER_LANG || "es";
+      const A4_WIDTH = 595.28;
+      const A4_HEIGHT = 841.89;
+      const PREF_KEY = "grxfirma.websigner.preferences";
+      const WEB_LANGUAGE_KEY = "grxfirma.websigner.language";
+
+      const ui = {
+        globalStatus: document.getElementById("globalStatus"),
+        languageSelect: document.getElementById("languageSelect"),
+        fileInput: document.getElementById("fileInput"),
+        directoryInput: document.getElementById("directoryInput"),
+        pickFileBtn: document.getElementById("pickFileBtn"),
+        pickDirectoryBtn: document.getElementById("pickDirectoryBtn"),
+        clearFileBtn: document.getElementById("clearFileBtn"),
+        dropzone: document.getElementById("dropzone"),
+        fileMeta: document.getElementById("fileMeta"),
+        selectionTypeSummary: document.getElementById("selectionTypeSummary"),
+        localPathInput: document.getElementById("localPathInput"),
+        localOutputPathInput: document.getElementById("localOutputPathInput"),
+        saveToDisk: document.getElementById("saveToDisk"),
+        returnB64: document.getElementById("returnB64"),
+        overwriteOutput: document.getElementById("overwriteOutput"),
+        refreshCertificatesBtn: document.getElementById("refreshCertificatesBtn"),
+        autoSelectCertificateBtn: document.getElementById("autoSelectCertificateBtn"),
+        clearSelectedCertificateBtn: document.getElementById("clearSelectedCertificateBtn"),
+        certificateInventoryStatus: document.getElementById("certificateInventoryStatus"),
+        certificateSubjectFilter: document.getElementById("certificateSubjectFilter"),
+        certificateIssuerFilter: document.getElementById("certificateIssuerFilter"),
+        clearCertificateFiltersBtn: document.getElementById("clearCertificateFiltersBtn"),
+        onlyUsableCertificates: document.getElementById("onlyUsableCertificates"),
+        onlyValidCertificates: document.getElementById("onlyValidCertificates"),
+        certificateFilterMeta: document.getElementById("certificateFilterMeta"),
+        certificateFilterSummary: document.getElementById("certificateFilterSummary"),
+        rememberSelectedCertificate: document.getElementById("rememberSelectedCertificate"),
+        certificatePreferenceSummary: document.getElementById("certificatePreferenceSummary"),
+        certificateAutoSelectSummary: document.getElementById("certificateAutoSelectSummary"),
+        certificateSelect: document.getElementById("certificateSelect"),
+        certificateStatus: document.getElementById("certificateStatus"),
+        certificateExpiryStatus: document.getElementById("certificateExpiryStatus"),
+        certificateDetailsSummary: document.getElementById("certificateDetailsSummary"),
+        certificateExportSummary: document.getElementById("certificateExportSummary"),
+        certificateSummary: document.getElementById("certificateSummary"),
+        signPlanSummary: document.getElementById("signPlanSummary"),
+        guidedAssistantSummary: document.getElementById("guidedAssistantSummary"),
+        multiCosignSummary: document.getElementById("multiCosignSummary"),
+        multiCosignOutputNotice: document.getElementById("multiCosignOutputNotice"),
+        certificateRoleSummary: document.getElementById("certificateRoleSummary"),
+        operationStrategySummary: document.getElementById("operationStrategySummary"),
+        formatConfigSummary: document.getElementById("formatConfigSummary"),
+        verificationPlanSummary: document.getElementById("verificationPlanSummary"),
+        outputDeliverySummary: document.getElementById("outputDeliverySummary"),
+        outputArtifactSummary: document.getElementById("outputArtifactSummary"),
+        proxySecretStoreSummary: document.getElementById("proxySecretStoreSummary"),
+        formatSelect: document.getElementById("formatSelect"),
+        actionSelect: document.getElementById("actionSelect"),
+        strictCompat: document.getElementById("strictCompat"),
+        signProfile: document.getElementById("signProfile"),
+        tsaUrl: document.getElementById("tsaUrl"),
+        padesSubFilter: document.getElementById("padesSubFilter"),
+        enableMultiCosign: document.getElementById("enableMultiCosign"),
+        multiCosignControls: document.getElementById("multiCosignControls"),
+        multiCosignSelect: document.getElementById("multiCosignSelect"),
+        multiCosignSelectAllBtn: document.getElementById("multiCosignSelectAllBtn"),
+        multiCosignClearBtn: document.getElementById("multiCosignClearBtn"),
+        signBtn: document.getElementById("signBtn"),
+        quickVerifyFileInput: document.getElementById("quickVerifyFileInput"),
+        quickVerifyOriginalFileInput: document.getElementById("quickVerifyOriginalFileInput"),
+        quickVerifyPickBtn: document.getElementById("quickVerifyPickBtn"),
+        quickVerifyPickOriginalBtn: document.getElementById("quickVerifyPickOriginalBtn"),
+        quickVerifyClearBtn: document.getElementById("quickVerifyClearBtn"),
+        quickVerifyPathInput: document.getElementById("quickVerifyPathInput"),
+        quickVerifyOriginalPathInput: document.getElementById("quickVerifyOriginalPathInput"),
+        quickVerifySourceSummary: document.getElementById("quickVerifySourceSummary"),
+        quickVerifyOriginalSummary: document.getElementById("quickVerifyOriginalSummary"),
+        quickVerifyPairSummary: document.getElementById("quickVerifyPairSummary"),
+        quickVerifyPlanSummary: document.getElementById("quickVerifyPlanSummary"),
+        quickVerifyResultSummary: document.getElementById("quickVerifyResultSummary"),
+        verificationExportSummary: document.getElementById("verificationExportSummary"),
+        quickVerifyBtn: document.getElementById("quickVerifyBtn"),
+        resultArtifactSummary: document.getElementById("resultArtifactSummary"),
+        supportSummary: document.getElementById("supportSummary"),
+        supportExportSummary: document.getElementById("supportExportSummary"),
+        supportExpertMode: document.getElementById("supportExpertMode"),
+        prepareIncidentBtn: document.getElementById("prepareIncidentBtn"),
+        supportCopyBtn: document.getElementById("supportCopyBtn"),
+        enableVisibleSeal: document.getElementById("enableVisibleSeal"),
+        sealControls: document.getElementById("sealControls"),
+        sealDisabledHint: document.getElementById("sealDisabledHint"),
+        sealPosition: document.getElementById("sealPosition"),
+        sealPage: document.getElementById("sealPage"),
+        sealAllPages: document.getElementById("sealAllPages"),
+        sealX: document.getElementById("sealX"),
+        sealY: document.getElementById("sealY"),
+        sealW: document.getElementById("sealW"),
+        sealH: document.getElementById("sealH"),
+        sealImageInput: document.getElementById("sealImageInput"),
+        selectSealImageBtn: document.getElementById("selectSealImageBtn"),
+        removeSealImageBtn: document.getElementById("removeSealImageBtn"),
+        sealImagePreview: document.getElementById("sealImagePreview"),
+        keepSealText: document.getElementById("keepSealText"),
+        signatureQRContent: document.getElementById("signatureQRContent"),
+        signatureReason: document.getElementById("signatureReason"),
+        signatureLocation: document.getElementById("signatureLocation"),
+        signatureContact: document.getElementById("signatureContact"),
+        facturaePolicyVersion: document.getElementById("facturaePolicyVersion"),
+        facturaeSignerRole: document.getElementById("facturaeSignerRole"),
+        facturaePolicyIdentifier: document.getElementById("facturaePolicyIdentifier"),
+        facturaePolicyIdentifierHash: document.getElementById("facturaePolicyIdentifierHash"),
+        facturaePolicyQualifier: document.getElementById("facturaePolicyQualifier"),
+        facturaeSignatureCity: document.getElementById("facturaeSignatureCity"),
+        facturaeSignatureProvince: document.getElementById("facturaeSignatureProvince"),
+        facturaeSignaturePostalCode: document.getElementById("facturaeSignaturePostalCode"),
+        facturaeSignatureCountry: document.getElementById("facturaeSignatureCountry"),
+        metadataSummary: document.getElementById("metadataSummary"),
+        metadataApplicabilitySummary: document.getElementById("metadataApplicabilitySummary"),
+        metadataDeliverySummary: document.getElementById("metadataDeliverySummary"),
+        previewStage: document.getElementById("previewStage"),
+        previewSeal: document.getElementById("previewSeal"),
+        previewSealSubtitle: document.getElementById("previewSealSubtitle"),
+        previewSealQR: document.getElementById("previewSealQR"),
+        resizeHandle: document.getElementById("resizeHandle"),
+        resultBox: document.getElementById("resultBox")
+      };
+
+      const state = {
+        certificates: [],
+        selectedCertificateId: "",
+        selectedFiles: [],
+        signDownloadUrls: [],
+        supportDownloadUrls: [],
+        lastCertificateJSON: "",
+        lastCertificateFingerprint: "",
+        lastVerificationJSON: "",
+        lastSupportIncidentJSON: "",
+        lastRequestId: "",
+        lastGuidedDiagnostic: null,
+        lastProxySecretStoreStatus: null,
+        quickVerifyFile: null,
+        quickVerifyOriginalFile: null,
+        restoredMultiCosignIds: [],
+        multiCosignOutputPrefs: null,
+        sealImageDataUrl: "",
+        preview: {
+          enabled: true,
+          page: 1,
+          x: 0.62,
+          y: 0.04,
+          w: 0.34,
+          h: 0.12
+        }
+      };
+
+      function applyWebLanguage(lang) {
+        const target = String(lang || "").trim() || "es";
+        try {
+          localStorage.setItem(WEB_LANGUAGE_KEY, target);
+        } catch (_) {}
+        const url = new URL(window.location.href);
+        if (url.searchParams.get("lang") === target) {
+          return;
+        }
+        url.searchParams.set("lang", target);
+        window.location.href = url.toString();
+      }
+
+      if (ui.languageSelect) {
+        ui.languageSelect.value = CURRENT_LANG;
+        ui.languageSelect.addEventListener("change", function() {
+          applyWebLanguage(ui.languageSelect.value);
+        });
+        try {
+          const storedLang = localStorage.getItem(WEB_LANGUAGE_KEY);
+          const requestedLang = new URL(window.location.href).searchParams.get("lang");
+          if (storedLang && !requestedLang && storedLang !== CURRENT_LANG) {
+            applyWebLanguage(storedLang);
+            return;
+          }
+        } catch (_) {}
+      }
+
+      function t(key) {
+        return MSG[key] || key;
+      }
+
+      function clamp01(v) {
+        const num = Number(v);
+        if (!Number.isFinite(num)) return 0;
+        if (num < 0) return 0;
+        if (num > 1) return 1;
+        return num;
+      }
+
+      function clampMinMax(v, min, max) {
+        const num = Number(v);
+        if (!Number.isFinite(num)) return min;
+        return Math.max(min, Math.min(max, num));
+      }
+
+      function normalizePageSelection(raw) {
+        const value = String(raw == null ? "" : raw).trim().replace(/\s+/g, "");
+        return value === "" ? "1" : value;
+      }
+
+      function parsePageSelection(raw) {
+        const value = normalizePageSelection(raw);
+        if (value === "1") {
+          return { ok: true, normalized: "1", previewPage: 1 };
+        }
+        if (/^(all|todas|todos|\*)$/i.test(value)) {
+          return { ok: true, normalized: "all", previewPage: 1 };
+        }
+        const parts = value.split(",");
+        let previewPage = 1;
+        let previewAssigned = false;
+        for (const part of parts) {
+          if (!/^\d+(?:-\d+)?$/.test(part)) {
+            return { ok: false, normalized: value, previewPage: 1 };
+          }
+          if (part.includes("-")) {
+            const [startRaw, endRaw] = part.split("-", 2);
+            const start = Number(startRaw);
+            const end = Number(endRaw);
+            if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < 1 || start > end) {
+              return { ok: false, normalized: value, previewPage: 1 };
+            }
+            if (!previewAssigned) {
+              previewPage = start;
+              previewAssigned = true;
+            }
+            continue;
+          }
+          const page = Number(part);
+          if (!Number.isInteger(page) || page < 1) {
+            return { ok: false, normalized: value, previewPage: 1 };
+          }
+          if (!previewAssigned) {
+            previewPage = page;
+            previewAssigned = true;
+          }
+        }
+        return { ok: true, normalized: value, previewPage };
+      }
+
+      function previewPageFromSelection(raw) {
+        const parsed = parsePageSelection(raw);
+        return parsed.ok ? parsed.previewPage : 1;
+      }
+
+      function applyPageSelectionValidity() {
+        if (ui.sealAllPages.checked) {
+          ui.sealPage.setCustomValidity("");
+          return true;
+        }
+        const parsed = parsePageSelection(ui.sealPage.value);
+        if (!parsed.ok) {
+          ui.sealPage.setCustomValidity(t("invalidPageSelection"));
+          return false;
+        }
+        ui.sealPage.value = parsed.normalized;
+        ui.sealPage.setCustomValidity("");
+        return true;
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
+
+      function setStatus(kind, message) {
+        ui.globalStatus.className = "status " + kind;
+        ui.globalStatus.textContent = message;
+        renderSupportSummary();
+      }
+
+      function setResult(message, kind) {
+        const klass = kind || "warn";
+        ui.resultBox.innerHTML = '<div class="status ' + klass + '">' + escapeHtml(message) + '</div>';
+        renderSupportSummary();
+      }
+
+      function clearDownloadUrl() {
+        for (const url of state.signDownloadUrls) {
+          URL.revokeObjectURL(url);
+        }
+        state.signDownloadUrls = [];
+        state.lastVerificationJSON = "";
+        ui.verificationExportSummary.innerHTML = '<span class="muted">' + escapeHtml(t("quickVerifyExportPending")) + '</span>';
+      }
+
+      function clearSupportDownloadUrls() {
+        for (const url of state.supportDownloadUrls) {
+          URL.revokeObjectURL(url);
+        }
+        state.supportDownloadUrls = [];
+      }
+
+      function clearSupportExportSummary() {
+        clearSupportDownloadUrls();
+        state.lastSupportIncidentJSON = "";
+        ui.supportExportSummary.innerHTML = '<span class="muted">' + escapeHtml(t("supportExportPending")) + '</span>';
+      }
+
+      async function apiFetch(path, options) {
+        const response = await fetch(path, options || {});
+        let data = null;
+        try {
+          data = await response.json();
+        } catch (err) {
+          data = null;
+        }
+        if (!response.ok) {
+          const msg = data && data.error ? data.error : ("HTTP " + response.status);
+          const error = new Error(msg);
+          error.diagnostic = data && data.diagnostic && typeof data.diagnostic === "object"
+            ? data.diagnostic
+            : null;
+          state.lastGuidedDiagnostic = error.diagnostic;
+          throw error;
+        }
+        return data;
+      }
+
+      function persistPreferences() {
+        const guidedOutputLocked = activeGuidedMultiCosign();
+        const storedOutputPrefs = state.multiCosignOutputPrefs || null;
+        const prefs = {
+          format: ui.formatSelect.value,
+          action: ui.actionSelect.value,
+          localPathInput: ui.localPathInput.value,
+          localOutputPathInput: ui.localOutputPathInput.value,
+          saveToDisk: guidedOutputLocked && storedOutputPrefs ? !!storedOutputPrefs.saveToDisk : ui.saveToDisk.checked,
+          returnB64: guidedOutputLocked && storedOutputPrefs ? !!storedOutputPrefs.returnB64 : ui.returnB64.checked,
+          overwriteOutput: guidedOutputLocked && storedOutputPrefs ? !!storedOutputPrefs.overwriteOutput : ui.overwriteOutput.checked,
+          certificateSubjectFilter: ui.certificateSubjectFilter.value,
+          certificateIssuerFilter: ui.certificateIssuerFilter.value,
+          onlyUsableCertificates: ui.onlyUsableCertificates.checked,
+          onlyValidCertificates: ui.onlyValidCertificates.checked,
+          rememberSelectedCertificate: ui.rememberSelectedCertificate.checked,
+          selectedCertificateId: ui.rememberSelectedCertificate.checked ? state.selectedCertificateId : "",
+          enableMultiCosign: ui.enableMultiCosign.checked,
+          multiCosignCertificateIds: Array.from(ui.multiCosignSelect.selectedOptions || []).map((option) => option.value).filter(Boolean),
+          strictCompat: ui.strictCompat.checked,
+          signProfile: ui.signProfile.value,
+          tsaUrl: ui.tsaUrl.value,
+          padesSubFilter: ui.padesSubFilter.value,
+          enableVisibleSeal: ui.enableVisibleSeal.checked,
+          sealPosition: ui.sealPosition.value,
+          sealPage: ui.sealPage.value,
+          sealAllPages: ui.sealAllPages.checked,
+          sealX: ui.sealX.value,
+          sealY: ui.sealY.value,
+          sealW: ui.sealW.value,
+          sealH: ui.sealH.value,
+          keepSealText: ui.keepSealText.checked,
+          signatureQRContent: ui.signatureQRContent.value,
+          signatureReason: ui.signatureReason.value,
+          signatureLocation: ui.signatureLocation.value,
+          signatureContact: ui.signatureContact.value,
+          facturaePolicyVersion: ui.facturaePolicyVersion.value,
+          facturaeSignerRole: ui.facturaeSignerRole.value,
+          facturaePolicyIdentifier: ui.facturaePolicyIdentifier.value,
+          facturaePolicyIdentifierHash: ui.facturaePolicyIdentifierHash.value,
+          facturaePolicyQualifier: ui.facturaePolicyQualifier.value,
+          facturaeSignatureCity: ui.facturaeSignatureCity.value,
+          facturaeSignatureProvince: ui.facturaeSignatureProvince.value,
+          facturaeSignaturePostalCode: ui.facturaeSignaturePostalCode.value,
+          facturaeSignatureCountry: ui.facturaeSignatureCountry.value,
+          supportExpertMode: ui.supportExpertMode.checked,
+          quickVerifyPathInput: ui.quickVerifyPathInput.value,
+          quickVerifyOriginalPathInput: ui.quickVerifyOriginalPathInput.value
+        };
+        try {
+          localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
+        } catch (err) {}
+      }
+
+      function restorePreferences() {
+        try {
+          const raw = localStorage.getItem(PREF_KEY);
+          if (!raw) return;
+          const prefs = JSON.parse(raw);
+          if (prefs.format) ui.formatSelect.value = prefs.format;
+          if (prefs.action) ui.actionSelect.value = prefs.action;
+          if (prefs.localPathInput) ui.localPathInput.value = prefs.localPathInput;
+          if (prefs.localOutputPathInput) ui.localOutputPathInput.value = prefs.localOutputPathInput;
+          ui.saveToDisk.checked = prefs.saveToDisk !== false;
+          ui.returnB64.checked = prefs.returnB64 !== false;
+          ui.overwriteOutput.checked = !!prefs.overwriteOutput;
+          if (prefs.certificateSubjectFilter) ui.certificateSubjectFilter.value = prefs.certificateSubjectFilter;
+          if (prefs.certificateIssuerFilter) ui.certificateIssuerFilter.value = prefs.certificateIssuerFilter;
+          ui.onlyUsableCertificates.checked = !!prefs.onlyUsableCertificates;
+          ui.onlyValidCertificates.checked = !!prefs.onlyValidCertificates;
+          ui.rememberSelectedCertificate.checked = prefs.rememberSelectedCertificate !== false;
+          if (ui.rememberSelectedCertificate.checked && prefs.selectedCertificateId) {
+            state.selectedCertificateId = prefs.selectedCertificateId;
+          }
+          ui.enableMultiCosign.checked = !!prefs.enableMultiCosign;
+          ui.strictCompat.checked = !!prefs.strictCompat;
+          if (prefs.signProfile) ui.signProfile.value = prefs.signProfile;
+          if (prefs.tsaUrl) ui.tsaUrl.value = prefs.tsaUrl;
+          if (prefs.padesSubFilter) ui.padesSubFilter.value = prefs.padesSubFilter;
+          ui.enableVisibleSeal.checked = prefs.enableVisibleSeal !== false;
+          if (prefs.sealPosition) ui.sealPosition.value = prefs.sealPosition;
+          if (prefs.sealPage) ui.sealPage.value = prefs.sealPage;
+          ui.sealAllPages.checked = !!prefs.sealAllPages;
+          if (prefs.sealX) ui.sealX.value = prefs.sealX;
+          if (prefs.sealY) ui.sealY.value = prefs.sealY;
+          if (prefs.sealW) ui.sealW.value = prefs.sealW;
+          if (prefs.sealH) ui.sealH.value = prefs.sealH;
+          ui.keepSealText.checked = prefs.keepSealText !== false;
+          if (prefs.signatureQRContent) ui.signatureQRContent.value = prefs.signatureQRContent;
+          if (prefs.signatureReason) ui.signatureReason.value = prefs.signatureReason;
+          if (prefs.signatureLocation) ui.signatureLocation.value = prefs.signatureLocation;
+          if (prefs.signatureContact) ui.signatureContact.value = prefs.signatureContact;
+          if (prefs.facturaePolicyVersion) ui.facturaePolicyVersion.value = prefs.facturaePolicyVersion;
+          if (prefs.facturaeSignerRole) ui.facturaeSignerRole.value = prefs.facturaeSignerRole;
+          if (prefs.facturaePolicyIdentifier) ui.facturaePolicyIdentifier.value = prefs.facturaePolicyIdentifier;
+          if (prefs.facturaePolicyIdentifierHash) ui.facturaePolicyIdentifierHash.value = prefs.facturaePolicyIdentifierHash;
+          if (prefs.facturaePolicyQualifier) ui.facturaePolicyQualifier.value = prefs.facturaePolicyQualifier;
+          if (prefs.facturaeSignatureCity) ui.facturaeSignatureCity.value = prefs.facturaeSignatureCity;
+          if (prefs.facturaeSignatureProvince) ui.facturaeSignatureProvince.value = prefs.facturaeSignatureProvince;
+          if (prefs.facturaeSignaturePostalCode) ui.facturaeSignaturePostalCode.value = prefs.facturaeSignaturePostalCode;
+          if (prefs.facturaeSignatureCountry) ui.facturaeSignatureCountry.value = prefs.facturaeSignatureCountry;
+          ui.supportExpertMode.checked = !!prefs.supportExpertMode;
+          if (prefs.quickVerifyPathInput) ui.quickVerifyPathInput.value = prefs.quickVerifyPathInput;
+          if (prefs.quickVerifyOriginalPathInput) ui.quickVerifyOriginalPathInput.value = prefs.quickVerifyOriginalPathInput;
+          state.restoredMultiCosignIds = Array.isArray(prefs.multiCosignCertificateIds) ? prefs.multiCosignCertificateIds : [];
+        } catch (err) {}
+      }
+
+      async function checkHealth() {
+        setStatus("warn", t("connectionChecking"));
+        try {
+          const health = await apiFetch("/health");
+          if (!health || !health.ok) throw new Error(t("connectionError"));
+          setStatus("ok", t("connectionReady"));
+        } catch (err) {
+          setStatus("bad", t("connectionError") + " " + err.message);
+        }
+      }
+
+      function certificateIsExpired(cert) {
+        const status = String(cert && cert.status || "").toLowerCase();
+        return status.includes("caduc") || status.includes("expir");
+      }
+
+      function isCertificateVisible(cert) {
+        if (!cert) return false;
+        const subjectFilter = ui.certificateSubjectFilter.value.trim().toLowerCase();
+        const issuerFilter = ui.certificateIssuerFilter.value.trim().toLowerCase();
+        const subject = String(cert.subjectName || cert.id || "").toLowerCase();
+        const issuer = String(cert.issuerName || "").toLowerCase();
+        if (subjectFilter && !subject.includes(subjectFilter)) {
+          return false;
+        }
+        if (issuerFilter && !issuer.includes(issuerFilter)) {
+          return false;
+        }
+        if (ui.onlyUsableCertificates.checked && !cert.canSign) {
+          return false;
+        }
+        if (ui.onlyValidCertificates.checked && certificateIsExpired(cert)) {
+          return false;
+        }
+        return true;
+      }
+
+      function renderCertificateFilterMeta(visibleCount, totalCount) {
+        ui.certificateFilterMeta.textContent = t("certificateFilterMeta")
+          .replace("%visible%", String(visibleCount))
+          .replace("%total%", String(totalCount));
+      }
+
+      function renderCertificateFilterSummary(visibleCerts) {
+        if (!state.certificates.length) {
+          ui.certificateFilterSummary.innerHTML = '<span class="muted">' + escapeHtml(t("certificateFilterEmptyCatalog")) + '</span>';
+          return;
+        }
+        if (!visibleCerts.length) {
+          ui.certificateFilterSummary.innerHTML = '<span class="muted">' + escapeHtml(t("certificateFilterNoMatches")) + '</span>';
+          return;
+        }
+        if (state.selectedCertificateId && !visibleCerts.some((cert) => cert.id === state.selectedCertificateId)) {
+          ui.certificateFilterSummary.innerHTML = '<span class="muted">' + escapeHtml(t("certificateFilterSelectionHidden")) + '</span>';
+          return;
+        }
+        ui.certificateFilterSummary.innerHTML = '<span class="muted">' + escapeHtml(t("certificateFilterSelectionVisible")) + '</span>';
+      }
+
+      function clearCertificateFilters() {
+        ui.certificateSubjectFilter.value = "";
+        ui.certificateIssuerFilter.value = "";
+        ui.onlyUsableCertificates.checked = false;
+        ui.onlyValidCertificates.checked = false;
+        renderCertificateInventory();
+        persistPreferences();
+      }
+
+      function renderCertificatePreferenceSummary(activeCert, restored) {
+        if (!ui.rememberSelectedCertificate.checked) {
+          ui.certificatePreferenceSummary.innerHTML = '<span class="muted">' + escapeHtml(t("certificatePreferenceDisabled")) + '</span>';
+          return;
+        }
+        if (!state.selectedCertificateId) {
+          ui.certificatePreferenceSummary.innerHTML = '<span class="muted">' + escapeHtml(t("certificatePreferenceNoSelection")) + '</span>';
+          return;
+        }
+        if (!activeCert) {
+          ui.certificatePreferenceSummary.innerHTML = '<span class="muted">' + escapeHtml(t("certificatePreferenceMissing")) + '</span>';
+          return;
+        }
+        const prefix = restored ? t("certificatePreferenceRestored") : t("certificatePreferenceStored");
+        ui.certificatePreferenceSummary.innerHTML =
+          '<strong>' + escapeHtml(t("certificatePreferenceTitle")) + ':</strong> ' +
+          escapeHtml(prefix) + '<br><span class="muted">' +
+          escapeHtml(activeCert.subjectName || activeCert.id || t("certificateUnknown")) +
+          '</span>';
+      }
+
+      function renderCertificateAutoSelectSummary(kind, message) {
+        const css = kind ? ('status ' + kind) : 'muted';
+        ui.certificateAutoSelectSummary.innerHTML = '<span class="' + css + '">' + escapeHtml(message) + '</span>';
+      }
+
+      function renderCertificateExportSummary(cert) {
+        if (!cert) {
+          state.lastCertificateJSON = "";
+          state.lastCertificateFingerprint = "";
+          ui.certificateExportSummary.innerHTML = '<span class="muted">' + escapeHtml(t("certificateExportPending")) + '</span>';
+          return;
+        }
+        const payload = {
+          id: cert.id || "",
+          subjectName: cert.subjectName || "",
+          issuerName: cert.issuerName || "",
+          validTo: cert.validTo || "",
+          fingerprint: cert.fingerprint || "",
+          serialNumber: cert.serialNumber || "",
+          status: cert.status || "",
+          canSign: !!cert.canSign
+        };
+        state.lastCertificateJSON = JSON.stringify(payload, null, 2);
+        state.lastCertificateFingerprint = String(cert.fingerprint || "");
+        const href = "data:application/json;charset=utf-8," + encodeURIComponent(state.lastCertificateJSON);
+        const filename = sourceFileBasename(cert.subjectName || cert.id || t("certificateExportFilenameFallback")).replace(/[\\/:*?\"<>|]+/g, "_") + t("certificateExportFilenameSuffix");
+        const copyButton = navigator.clipboard && typeof navigator.clipboard.writeText === "function"
+          ? ' <button type="button" class="link-btn light" data-copy-certificate-json="1">' + escapeHtml(t("certificateCopyReady")) + '</button>'
+          : "";
+        const copyFingerprintButton = navigator.clipboard && typeof navigator.clipboard.writeText === "function" && state.lastCertificateFingerprint
+          ? ' <button type="button" class="link-btn light" data-copy-certificate-fingerprint="1">' + escapeHtml(t("certificateFingerprintCopyReady")) + '</button>'
+          : "";
+        ui.certificateExportSummary.innerHTML =
+          '<a class="link-btn secondary" href="' + href + '" download="' + escapeHtml(filename) + '">' +
+          escapeHtml(t("certificateExportReady")) +
+          '</a>' + copyButton + copyFingerprintButton;
+      }
+
+      function describeCertificate(cert) {
+        if (!cert) {
+          ui.certificateStatus.innerHTML = '<span class="muted">' + escapeHtml(t("certificateStatusNone")) + '</span>';
+          ui.certificateExpiryStatus.innerHTML = '<span class="muted">' + escapeHtml(t("certificateExpiryEmpty")) + '</span>';
+          ui.certificateDetailsSummary.innerHTML = '<span class="muted">' + escapeHtml(t("certificateDetailsEmpty")) + '</span>';
+          renderCertificateExportSummary(null);
+          ui.certificateSummary.innerHTML = '<span class="muted">' + escapeHtml(t("noCertificates")) + '</span>';
+          ui.previewSealSubtitle.textContent = t("signaturePreviewSubtitle");
+          renderSignPlanSummary();
+          renderCertificateRoleSummary();
+          renderOperationStrategySummary();
+          renderVerificationPlanSummary();
+          renderOutputDeliverySummary();
+          return;
+        }
+        const status = String(cert.status || "").toLowerCase();
+        const expired = status.includes("caduc") || status.includes("expir");
+        const canSign = !!cert.canSign;
+        if (!canSign) {
+          ui.certificateStatus.innerHTML = '<strong>' + escapeHtml(t("certificateStatusTitle")) + ':</strong> ' + escapeHtml(t("certificateStatusNotUsable"));
+        } else if (expired) {
+          ui.certificateStatus.innerHTML = '<strong>' + escapeHtml(t("certificateStatusTitle")) + ':</strong> ' + escapeHtml(t("certificateStatusExpired"));
+        } else {
+          ui.certificateStatus.innerHTML = '<strong>' + escapeHtml(t("certificateStatusTitle")) + ':</strong> ' + escapeHtml(t("certificateStatusReady"));
+        }
+        const validToRaw = String(cert.validTo || "");
+        const validToTs = Date.parse(validToRaw);
+        if (!Number.isNaN(validToTs)) {
+          const daysLeft = Math.ceil((validToTs - Date.now()) / (24 * 60 * 60 * 1000));
+          if (daysLeft >= 0 && daysLeft <= 30) {
+            ui.certificateExpiryStatus.innerHTML = '<strong>' + escapeHtml(t("certificateExpiryTitle")) + ':</strong> ' + escapeHtml(t("certificateExpirySoon") + String(daysLeft));
+          } else {
+            ui.certificateExpiryStatus.innerHTML = '<strong>' + escapeHtml(t("certificateExpiryTitle")) + ':</strong> ' + escapeHtml(t("certificateExpiryOk"));
+          }
+        } else {
+          ui.certificateExpiryStatus.innerHTML = '<strong>' + escapeHtml(t("certificateExpiryTitle")) + ':</strong> ' + escapeHtml(t("notAvailable"));
+        }
+        ui.certificateDetailsSummary.innerHTML =
+          '<strong>' + escapeHtml(t("certificateValidity")) + ':</strong> ' + escapeHtml(cert.validTo || t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("certificateSerial")) + ':</strong> ' + escapeHtml(cert.serialNumber || t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("certificateFingerprint")) + ':</strong> <code>' + escapeHtml(cert.fingerprint || t("notAvailable")) + '</code>';
+        renderCertificateExportSummary(cert);
+        ui.certificateSummary.innerHTML =
+          '<strong>' + escapeHtml(cert.subjectName || cert.id || t("certificateUnknown")) + '</strong><br>' +
+          '<span class="muted">' + escapeHtml(cert.issuerName || "") + '</span><br>' +
+          '<span class="muted">' + escapeHtml(cert.status || "") + '</span>';
+        ui.previewSealSubtitle.textContent = cert.subjectName || t("certificateUnknown");
+        renderSignPlanSummary();
+        renderCertificateRoleSummary();
+        renderOperationStrategySummary();
+        renderVerificationPlanSummary();
+      }
+
+      function renderCertificateInventoryStatus() {
+        const total = state.certificates.length;
+        const usable = state.certificates.filter((cert) => !!cert.canSign).length;
+        if (total === 0) {
+          ui.certificateInventoryStatus.innerHTML = '<span class="muted">' + escapeHtml(t("certificateInventoryEmpty")) + '</span>';
+          return;
+        }
+        ui.certificateInventoryStatus.innerHTML =
+          '<strong>' + escapeHtml(t("certificateInventoryTitle")) + ':</strong> ' +
+          escapeHtml(String(total) + " " + t("certificateInventoryLoaded")) + '<br>' +
+          '<span class="muted">' + escapeHtml(t("certificateInventoryUsable") + String(usable)) + '</span>';
+      }
+
+      async function loadCertificates() {
+        ui.refreshCertificatesBtn.disabled = true;
+        ui.certificateSelect.innerHTML = '<option value="">' + escapeHtml(t("loadingCertificates")) + '</option>';
+        try {
+          const payload = await apiFetch("/certificates?check=1");
+          state.certificates = Array.isArray(payload.certificates) ? payload.certificates : [];
+          renderCertificateAutoSelectSummary("", t("certificateAutoSelectIdle"));
+          renderCertificateInventory(true);
+        } catch (err) {
+          ui.certificateSelect.innerHTML = '<option value="">' + escapeHtml(err.message) + '</option>';
+          ui.certificateInventoryStatus.innerHTML = '<span class="muted">' + escapeHtml(err.message) + '</span>';
+          ui.certificateFilterMeta.textContent = "";
+          ui.certificateFilterSummary.innerHTML = '<span class="muted">' + escapeHtml(err.message) + '</span>';
+          ui.certificatePreferenceSummary.innerHTML = '<span class="muted">' + escapeHtml(err.message) + '</span>';
+          ui.certificateAutoSelectSummary.innerHTML = '<span class="muted">' + escapeHtml(err.message) + '</span>';
+          describeCertificate(null);
+        } finally {
+          ui.refreshCertificatesBtn.disabled = false;
+        }
+      }
+
+      function renderCertificateInventory(isInitialLoad) {
+        const selected = state.selectedCertificateId;
+        const visibleCerts = state.certificates.filter(isCertificateVisible);
+        ui.certificateSelect.innerHTML = "";
+        if (state.certificates.length === 0) {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = t("noCertificates");
+          ui.certificateSelect.appendChild(option);
+          state.selectedCertificateId = "";
+          renderCertificateInventoryStatus();
+          renderCertificateFilterMeta(0, 0);
+          renderCertificateFilterSummary([]);
+          renderCertificatePreferenceSummary(null, false);
+          renderMultiCosignCandidates();
+          updateMultiCosignVisibility();
+          renderMultiCosignSummary();
+          describeCertificate(null);
+          return;
+        }
+        if (!visibleCerts.length) {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = t("certificateFilterNoMatchesShort");
+          ui.certificateSelect.appendChild(option);
+        } else {
+          for (const cert of visibleCerts) {
+            const option = document.createElement("option");
+            option.value = cert.id || "";
+            option.textContent = cert.subjectName || cert.id || t("certificateUnknown");
+            if (selected && option.value === selected) {
+              option.selected = true;
+            }
+            ui.certificateSelect.appendChild(option);
+          }
+        }
+        if (!ui.certificateSelect.value && !visibleCerts.some((cert) => cert.id === selected)) {
+          const preferred = visibleCerts.find((cert) => cert.canSign && !certificateIsExpired(cert)) || visibleCerts.find((cert) => cert.canSign) || visibleCerts[0];
+          if (!selected && preferred) {
+            ui.certificateSelect.value = preferred.id || "";
+            state.selectedCertificateId = ui.certificateSelect.value;
+          }
+        } else if (ui.certificateSelect.value) {
+          state.selectedCertificateId = ui.certificateSelect.value;
+        }
+        renderCertificateInventoryStatus();
+        renderCertificateFilterMeta(visibleCerts.length, state.certificates.length);
+        renderCertificateFilterSummary(visibleCerts);
+        renderMultiCosignCandidates();
+        updateMultiCosignVisibility();
+        const activeCert = state.certificates.find((item) => item.id === state.selectedCertificateId) || visibleCerts[0] || null;
+        renderCertificatePreferenceSummary(activeCert, !!(isInitialLoad && selected && activeCert && activeCert.id === selected));
+        describeCertificate(activeCert);
+      }
+
+      async function autoSelectCertificate() {
+        ui.autoSelectCertificateBtn.disabled = true;
+        renderCertificateAutoSelectSummary("warn", t("certificateAutoSelectRunning"));
+        try {
+          const payload = await apiFetch("/select-certificate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              subject_filter: ui.certificateSubjectFilter.value.trim(),
+              issuer_filter: ui.certificateIssuerFilter.value.trim(),
+              solo_no_caducados: ui.onlyValidCertificates.checked
+            })
+          });
+          state.selectedCertificateId = String(payload.certificate_id || "");
+          renderCertificateInventory(false);
+          persistPreferences();
+          renderCertificateAutoSelectSummary("ok", t("certificateAutoSelectDone") + " " + String(payload.subject || payload.certificate_id || ""));
+        } catch (err) {
+          renderCertificateAutoSelectSummary("bad", t("certificateAutoSelectError") + " " + String(err.message || err));
+        } finally {
+          ui.autoSelectCertificateBtn.disabled = false;
+        }
+      }
+
+      function updateFileMeta() {
+        const localPath = ui.localPathInput.value.trim();
+        if (state.selectedFiles.length === 0) {
+          if (!localPath) {
+            ui.fileMeta.innerHTML = '<span class="muted">' + escapeHtml(t("needFile")) + '</span>';
+            renderSignPlanSummary();
+            renderVerificationPlanSummary();
+            renderOutputDeliverySummary();
+            renderOperationStrategySummary();
+            renderSelectionTypeSummary();
+            renderMetadataDeliverySummary();
+            return;
+          }
+          ui.fileMeta.innerHTML =
+            '<strong>' + escapeHtml(t("selectedFile")) + ':</strong> <code>' + escapeHtml(localPath) + '</code>';
+          renderSignPlanSummary();
+          renderVerificationPlanSummary();
+          renderOutputDeliverySummary();
+          renderOutputArtifactSummary();
+          renderOperationStrategySummary();
+          renderSelectionTypeSummary();
+          renderMetadataDeliverySummary();
+          return;
+        }
+        const items = state.selectedFiles.map((file) => {
+          const size = file.size > 0 ? (file.size / 1024).toFixed(1) + " KB" : "0 KB";
+          return '<li><strong>' + escapeHtml(sourceFileName(file)) + '</strong> <span class="muted">(' + escapeHtml(size + " · " + (file.type || "application/octet-stream")) + ')</span></li>';
+        }).join("");
+        const countLabel = String(t("selectedFilesCount") || "%d fichero(s)").replace("%d", String(state.selectedFiles.length));
+        ui.fileMeta.innerHTML =
+          '<strong>' + escapeHtml(t("selectedFile")) + ':</strong> ' + escapeHtml(countLabel) +
+          '<ul style="margin:8px 0 0 18px;padding:0">' + items + '</ul>';
+        renderSignPlanSummary();
+        renderVerificationPlanSummary();
+        renderOutputDeliverySummary();
+        renderOutputArtifactSummary();
+        renderOperationStrategySummary();
+        renderSelectionTypeSummary();
+        renderMetadataDeliverySummary();
+      }
+
+      function currentActionLabel() {
+        switch (currentAction()) {
+          case "cosign":
+            return t("actionCosign");
+          case "countersign":
+            return t("actionCountersign");
+          default:
+            return t("actionSign");
+        }
+      }
+
+      function supportsGuidedMultiCosign() {
+        const singleSource = state.selectedFiles.length <= 1 && !(state.selectedFiles.length === 0 && !ui.localPathInput.value.trim());
+        const supportedFormat = ["PAdES", "ODF", "OOXML"].includes(currentFormat());
+        return singleSource && supportedFormat && (currentAction() === "sign" || currentAction() === "cosign");
+      }
+
+      function activeGuidedMultiCosign() {
+        return ui.enableMultiCosign.checked && supportsGuidedMultiCosign();
+      }
+
+      function updateMultiCosignOutputPolicy() {
+        const active = activeGuidedMultiCosign();
+        if (active) {
+          if (!state.multiCosignOutputPrefs) {
+            state.multiCosignOutputPrefs = {
+              saveToDisk: ui.saveToDisk.checked,
+              returnB64: ui.returnB64.checked,
+              overwriteOutput: ui.overwriteOutput.checked
+            };
+          }
+          ui.saveToDisk.checked = false;
+          ui.returnB64.checked = true;
+          ui.overwriteOutput.checked = false;
+          ui.saveToDisk.disabled = true;
+          ui.returnB64.disabled = true;
+          ui.overwriteOutput.disabled = true;
+          ui.localOutputPathInput.disabled = true;
+          ui.multiCosignOutputNotice.innerHTML =
+            '<strong>' + escapeHtml(t("multiCosignOutputPolicyTitle")) + ':</strong> ' + escapeHtml(t("multiCosignOutputPolicyActive")) + '<br>' +
+            '<span class="muted">' + escapeHtml(t("multiCosignOutputPolicyRestore")) + '</span>';
+          return;
+        }
+        if (state.multiCosignOutputPrefs) {
+          ui.saveToDisk.checked = !!state.multiCosignOutputPrefs.saveToDisk;
+          ui.returnB64.checked = !!state.multiCosignOutputPrefs.returnB64;
+          ui.overwriteOutput.checked = !!state.multiCosignOutputPrefs.overwriteOutput;
+          state.multiCosignOutputPrefs = null;
+        }
+        ui.saveToDisk.disabled = false;
+        ui.returnB64.disabled = false;
+        ui.overwriteOutput.disabled = false;
+        ui.localOutputPathInput.disabled = false;
+        ui.multiCosignOutputNotice.innerHTML = '<span class="muted">' + escapeHtml(t("multiCosignOutputPolicyInactive")) + '</span>';
+      }
+
+      function multiCosignAdditionalIds() {
+        return Array.from(ui.multiCosignSelect.selectedOptions || []).map((option) => option.value).filter(Boolean);
+      }
+
+      function selectAllMultiCosignCandidates() {
+        Array.from(ui.multiCosignSelect.options || []).forEach((option) => {
+          option.selected = true;
+        });
+        renderMultiCosignSummary();
+        persistPreferences();
+      }
+
+      function clearMultiCosignCandidates() {
+        Array.from(ui.multiCosignSelect.options || []).forEach((option) => {
+          option.selected = false;
+        });
+        renderMultiCosignSummary();
+        persistPreferences();
+      }
+
+      function renderMultiCosignCandidates() {
+        const previous = new Set(multiCosignAdditionalIds().concat(state.restoredMultiCosignIds || []));
+        const primaryId = state.selectedCertificateId;
+        const candidates = state.certificates.filter((cert) => {
+          const id = cert.id || "";
+          return id && id !== primaryId && cert.canSign && !certificateIsExpired(cert);
+        });
+        ui.multiCosignSelect.innerHTML = candidates.map((cert) => {
+          const id = cert.id || "";
+          const selected = previous.has(id) ? ' selected' : '';
+          return '<option value="' + escapeHtml(id) + '"' + selected + '>' +
+            escapeHtml((cert.subjectName || id) + (cert.issuerName ? " · " + cert.issuerName : "")) +
+          '</option>';
+        }).join("");
+        state.restoredMultiCosignIds = [];
+      }
+
+      function updateMultiCosignVisibility() {
+        const enabled = ui.enableMultiCosign.checked;
+        const supported = supportsGuidedMultiCosign();
+        ui.multiCosignControls.hidden = !(enabled && supported);
+        updateMultiCosignOutputPolicy();
+      }
+
+      function renderMultiCosignSummary() {
+        const enabled = ui.enableMultiCosign.checked;
+        const additionalIds = multiCosignAdditionalIds();
+        const primary = state.certificates.find((item) => item.id === state.selectedCertificateId) || null;
+        if (!enabled) {
+          ui.multiCosignSummary.innerHTML = '<span class="muted">' + escapeHtml(t("multiCosignDisabled")) + '</span>';
+          return;
+        }
+        if (!supportsGuidedMultiCosign()) {
+          ui.multiCosignSummary.innerHTML = '<span class="muted">' + escapeHtml(t("multiCosignUnsupported")) + '</span>';
+          return;
+        }
+        if (!primary) {
+          ui.multiCosignSummary.innerHTML = '<span class="muted">' + escapeHtml(t("multiCosignNeedPrimary")) + '</span>';
+          return;
+        }
+        if (!additionalIds.length) {
+          ui.multiCosignSummary.innerHTML = '<span class="muted">' + escapeHtml(t("multiCosignNoAdditional")) + '</span>';
+          return;
+        }
+        const labels = additionalIds.map((id) => {
+          const cert = state.certificates.find((item) => item.id === id);
+          return cert ? (cert.subjectName || cert.id || id) : id;
+        });
+        ui.multiCosignSummary.innerHTML =
+          '<strong>' + escapeHtml(t("multiCosignTitle")) + '</strong><br>' +
+          '<strong>' + escapeHtml(t("multiCosignPrimary")) + ':</strong> ' + escapeHtml(primary.subjectName || primary.id || t("certificateUnknown")) + '<br>' +
+          '<strong>' + escapeHtml(t("multiCosignAdditional")) + ':</strong> ' + escapeHtml(labels.join(" · "));
+      }
+
+      function renderSignPlanSummary() {
+        const cert = state.certificates.find((item) => item.id === state.selectedCertificateId);
+        const localPath = ui.localPathInput.value.trim();
+        let sourceText = t("pendingSelection");
+        if (state.selectedFiles.length > 0) {
+          sourceText = t("uploadedSelection");
+        } else if (localPath) {
+          sourceText = t("localPathMode");
+        }
+        let deliveryText = t("deliveryMemoryOnly");
+        if (ui.saveToDisk.checked && ui.returnB64.checked) {
+          deliveryText = t("deliveryDiskAndBase64");
+        } else if (ui.saveToDisk.checked) {
+          deliveryText = t("deliveryDiskOnly");
+        } else if (ui.returnB64.checked) {
+          deliveryText = t("deliveryMemoryAndBase64");
+        }
+        const sealActive = ui.enableVisibleSeal.checked && currentFormat() === "PAdES";
+        const formatUpper = currentFormat();
+        const profileApplies = formatUpper === "PAdES" || formatUpper === "CAdES" || formatUpper === "XAdES";
+        const profileText = profileApplies ? ui.signProfile.value : t("notAvailable");
+        let tsaText = t("notAvailable");
+        if (profileApplies) {
+          tsaText = ui.tsaUrl.value.trim() ? ui.tsaUrl.value.trim() : t("tsaUrlNotConfigured");
+        }
+        const padesSubFilterText = formatUpper === "PAdES" ? ui.padesSubFilter.value : t("notAvailable");
+        const multiCosignText = ui.enableMultiCosign.checked
+          ? (supportsGuidedMultiCosign() ? t("multiCosignEnabled") : t("multiCosignUnsupported"))
+          : t("multiCosignDisabledShort");
+        ui.signPlanSummary.innerHTML =
+          '<strong>' + escapeHtml(t("signingPlan")) + '</strong><br>' +
+          '<strong>' + escapeHtml(t("certificate")) + ':</strong> ' + escapeHtml(cert ? (cert.subjectName || cert.id || t("certificateUnknown")) : t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("action")) + ':</strong> ' + escapeHtml(currentActionLabel()) + '<br>' +
+          '<strong>' + escapeHtml(t("format")) + ':</strong> ' + escapeHtml(currentFormat()) + '<br>' +
+          '<strong>' + escapeHtml(t("signProfile")) + ':</strong> ' + escapeHtml(profileText) + '<br>' +
+          '<strong>' + escapeHtml(t("tsaUrl")) + ':</strong> ' + escapeHtml(tsaText) + '<br>' +
+          '<strong>' + escapeHtml(t("padesSubFilter")) + ':</strong> ' + escapeHtml(padesSubFilterText) + '<br>' +
+          '<strong>' + escapeHtml(t("multiCosignLabel")) + ':</strong> ' + escapeHtml(multiCosignText) + '<br>' +
+          '<strong>' + escapeHtml(t("source")) + ':</strong> ' + escapeHtml(sourceText) + '<br>' +
+          '<strong>' + escapeHtml(t("outputMode")) + ':</strong> ' + escapeHtml(deliveryText) + '<br>' +
+          '<strong>' + escapeHtml(t("sealStatus")) + ':</strong> ' + escapeHtml(sealActive ? t("sealEnabled") : t("sealDisabled"));
+        renderGuidedAssistantSummary();
+        renderMultiCosignSummary();
+      }
+
+      function renderGuidedAssistantSummary() {
+        let message = t("guidedAssistantNeedSource");
+        let detail = t("guidedAssistantNeedSourceHelp");
+        if (state.selectedFiles.length === 0 && !ui.localPathInput.value.trim()) {
+          message = t("guidedAssistantNeedSource");
+          detail = t("guidedAssistantNeedSourceHelp");
+        } else if (!state.selectedCertificateId) {
+          message = t("guidedAssistantNeedCertificate");
+          detail = t("guidedAssistantNeedCertificateHelp");
+        } else if (ui.enableMultiCosign.checked && supportsGuidedMultiCosign() && multiCosignAdditionalIds().length === 0) {
+          message = t("guidedAssistantNeedCoSigner");
+          detail = t("guidedAssistantNeedCoSignerHelp");
+        } else if (ui.enableVisibleSeal.checked && currentFormat() !== "PAdES") {
+          message = t("guidedAssistantNeedPades");
+          detail = t("guidedAssistantNeedPadesHelp");
+        } else if (ui.enableVisibleSeal.checked && !ui.sealAllPages.checked && !parsePageSelection(ui.sealPage.value).ok) {
+          message = t("guidedAssistantInvalidPages");
+          detail = t("guidedAssistantInvalidPagesHelp");
+        } else {
+          message = t("guidedAssistantReady");
+          detail = t("guidedAssistantReadyHelp");
+        }
+        ui.guidedAssistantSummary.innerHTML =
+          '<strong>' + escapeHtml(t("guidedAssistantTitle")) + '</strong><br>' +
+          escapeHtml(message) + '<br>' +
+          '<span class="muted">' + escapeHtml(detail) + '</span>';
+      }
+
+      function renderCertificateRoleSummary() {
+        const cert = state.certificates.find((item) => item.id === state.selectedCertificateId);
+        if (!cert) {
+          ui.certificateRoleSummary.innerHTML = '<span class="muted">' + escapeHtml(t("certificateRolePending")) + '</span>';
+          renderMultiCosignSummary();
+          return;
+        }
+        const status = String(cert.status || "").toLowerCase();
+        const canOperate = !!cert.canSign && !status.includes("caduc") && !status.includes("expir");
+        let roleText = t("certificateRoleNotUsable");
+        if (canOperate) {
+          switch (currentAction()) {
+            case "cosign":
+              roleText = t("certificateRoleCosign");
+              break;
+            case "countersign":
+              roleText = t("certificateRoleCountersign");
+              break;
+            default:
+              roleText = t("certificateRoleSign");
+              break;
+          }
+        }
+        ui.certificateRoleSummary.innerHTML =
+          '<strong>' + escapeHtml(t("certificateRoleTitle")) + '</strong><br>' +
+          '<strong>' + escapeHtml(t("certificateRoleSelected")) + ':</strong> ' + escapeHtml(cert.subjectName || cert.id || t("certificateUnknown")) + '<br>' +
+          '<strong>' + escapeHtml(t("certificateRoleDescription")) + ':</strong> ' + escapeHtml(roleText);
+        renderMultiCosignSummary();
+      }
+
+      function renderOperationStrategySummary() {
+        const localPath = ui.localPathInput.value.trim();
+        let selectionText = t("pendingSelection");
+        if (state.selectedFiles.length > 1) {
+          selectionText = String(state.selectedFiles.length) + " " + t("filesSelectedCount");
+        } else if (state.selectedFiles.length === 1) {
+          selectionText = t("uploadedSelection");
+        } else if (localPath) {
+          selectionText = t("localPathMode");
+        }
+
+        let strategyText = t("operationStrategyPending");
+        switch (currentAction()) {
+          case "cosign":
+            strategyText = state.selectedFiles.length > 1 ? t("operationStrategyCosignBatch") : (ui.enableMultiCosign.checked && supportsGuidedMultiCosign() ? t("operationStrategyCosignMulti") : t("operationStrategyCosignSingle"));
+            break;
+          case "countersign":
+            strategyText = state.selectedFiles.length > 1 ? t("operationStrategyCountersignBatch") : t("operationStrategyCountersignSingle");
+            break;
+          default:
+            strategyText = state.selectedFiles.length > 1 ? t("operationStrategySignBatch") : (ui.enableMultiCosign.checked && supportsGuidedMultiCosign() ? t("operationStrategySignMulti") : t("operationStrategySignSingle"));
+            break;
+        }
+
+        ui.operationStrategySummary.innerHTML =
+          '<strong>' + escapeHtml(t("operationStrategyTitle")) + '</strong><br>' +
+          '<strong>' + escapeHtml(t("selectionType")) + ':</strong> ' + escapeHtml(selectionText) + '<br>' +
+          '<strong>' + escapeHtml(t("operationStrategy")) + ':</strong> ' + escapeHtml(strategyText);
+        renderMultiCosignSummary();
+      }
+
+      function renderFormatConfigSummary() {
+        const format = currentFormat();
+        let summary = t("formatConfigNone");
+        if (format === "FacturaE") {
+          const parts = [];
+          if (ui.facturaePolicyVersion.value.trim()) parts.push(t("formatConfigFacturaEPolicy") + "=" + ui.facturaePolicyVersion.value.trim());
+          if (ui.facturaeSignerRole.value.trim()) parts.push(t("formatConfigFacturaERole"));
+          if (ui.facturaePolicyIdentifier.value.trim()) parts.push(t("formatConfigFacturaEIdentifier"));
+          if (ui.facturaePolicyIdentifierHash.value.trim()) parts.push(t("formatConfigFacturaEHash"));
+          if (ui.facturaePolicyQualifier.value.trim()) parts.push(t("formatConfigFacturaEQualifier"));
+          if (ui.facturaeSignatureCity.value.trim() || ui.facturaeSignatureProvince.value.trim() || ui.facturaeSignaturePostalCode.value.trim() || ui.facturaeSignatureCountry.value.trim()) {
+            parts.push(t("formatConfigFacturaEPlace"));
+          }
+          summary = parts.length ? parts.join(" · ") : t("formatConfigFacturaENone");
+        } else if (format === "PAdES" || format === "CAdES" || format === "XAdES") {
+          const parts = [];
+          if (ui.signProfile.value.trim()) parts.push(t("formatConfigProfile") + "=" + ui.signProfile.value.trim());
+          if (ui.tsaUrl.value.trim()) parts.push(t("formatConfigTsa"));
+          if (format === "PAdES" && ui.padesSubFilter.value.trim()) parts.push(t("formatConfigPadesSubFilter") + "=" + ui.padesSubFilter.value.trim());
+          summary = parts.length ? parts.join(" · ") : t("formatConfigProfileNone");
+        }
+        ui.formatConfigSummary.innerHTML =
+          '<strong>' + escapeHtml(t("formatConfigTitle")) + '</strong><br>' +
+          escapeHtml(summary);
+      }
+
+      function renderVerificationPlanSummary() {
+        const localPath = ui.localPathInput.value.trim();
+        if (state.selectedFiles.length === 0 && !localPath) {
+          ui.verificationPlanSummary.innerHTML = '<span class="muted">' + escapeHtml(t("verificationPlanPending")) + '</span>';
+          return;
+        }
+        let baseText = t("verificationPlanSign");
+        switch (currentAction()) {
+          case "cosign":
+            baseText = t("verificationPlanCosign");
+            break;
+          case "countersign":
+            baseText = t("verificationPlanCountersign");
+            break;
+        }
+        let referenceText = t("verificationPlanArtifactOnly");
+        if (state.selectedFiles.length > 1) {
+          referenceText = t("verificationPlanBatchRef");
+        } else if (state.selectedFiles.length === 1) {
+          referenceText = t("verificationPlanUploadRef");
+        } else if (localPath) {
+          referenceText = t("verificationPlanLocalRef");
+        }
+        const formatAware = currentAction() === "sign" || currentFormat() === "AUTO";
+        ui.verificationPlanSummary.innerHTML =
+          '<strong>' + escapeHtml(t("verificationPlanTitle")) + ':</strong> ' + escapeHtml(baseText) + '<br>' +
+          '<span class="muted">' + escapeHtml(referenceText) + '</span><br>' +
+          '<span class="muted">' + escapeHtml(formatAware ? t("verificationPlanFormatRef") : t("verificationPlanArtifactOnly")) + '</span>';
+      }
+
+      function renderOutputDeliverySummary() {
+        const localPath = ui.localPathInput.value.trim();
+        const outputPath = ui.localOutputPathInput.value.trim();
+        const saveRequested = ui.saveToDisk.checked;
+        const wantsBase64 = ui.returnB64.checked;
+        let mainText = t("outputDeliveryPending");
+
+        if (activeGuidedMultiCosign()) {
+          mainText = t("multiCosignMemoryOnlyNotice");
+        } else if (!saveRequested) {
+          mainText = t("outputDeliveryMemory");
+        } else if (state.selectedFiles.length > 1) {
+          mainText = t("outputDeliveryBatchMemory");
+        } else if (state.selectedFiles.length === 1) {
+          mainText = outputPath ? t("outputDeliveryUploadExplicit") : t("outputDeliveryUploadNeedPath");
+        } else if (localPath) {
+          mainText = outputPath ? t("outputDeliveryLocalExplicit") : t("outputDeliveryLocalAuto");
+        }
+
+        ui.outputDeliverySummary.innerHTML =
+          '<strong>' + escapeHtml(t("outputDeliveryTitle")) + ':</strong> ' + escapeHtml(mainText) +
+          (wantsBase64 ? '<br><span class="muted">' + escapeHtml(t("outputDeliveryBase64Also")) + '</span>' : '');
+      }
+
+      function renderMetadataSummary() {
+        const reason = ui.signatureReason.value.trim();
+        const location = ui.signatureLocation.value.trim();
+        const contact = ui.signatureContact.value.trim();
+        const qr = ui.signatureQRContent.value.trim();
+        const filled = [reason, location, contact, qr].filter(Boolean).length;
+        if (filled === 0) {
+          ui.metadataSummary.innerHTML = '<strong>' + escapeHtml(t("metadataSummaryTitle")) + ':</strong> ' + escapeHtml(t("metadataSummaryEmpty"));
+          return;
+        }
+        ui.metadataSummary.innerHTML =
+          '<strong>' + escapeHtml(t("metadataSummaryTitle")) + ':</strong> ' + escapeHtml(t("metadataSummaryConfigured") + String(filled)) + '<br>' +
+          '<span class="muted">' +
+            escapeHtml(t("signatureReason")) + ': ' + escapeHtml(reason || t("notAvailable")) + ' · ' +
+            escapeHtml(t("signatureLocation")) + ': ' + escapeHtml(location || t("notAvailable")) + ' · ' +
+            escapeHtml(t("signatureContact")) + ': ' + escapeHtml(contact || t("notAvailable")) + ' · ' +
+            escapeHtml(t("signatureQR")) + ': ' + escapeHtml(qr || t("notAvailable")) +
+          '</span>';
+      }
+
+      function renderMetadataApplicabilitySummary() {
+        const filled = [
+          ui.signatureReason.value.trim(),
+          ui.signatureLocation.value.trim(),
+          ui.signatureContact.value.trim()
+        ].filter(Boolean).length;
+        if (filled === 0) {
+          ui.metadataApplicabilitySummary.innerHTML = '<span class="muted">' + escapeHtml(t("metadataApplicabilityEmpty")) + '</span>';
+          return;
+        }
+        if (currentFormat() === "PAdES") {
+          ui.metadataApplicabilitySummary.innerHTML =
+            '<strong>' + escapeHtml(t("metadataApplicabilityTitle")) + ':</strong> ' +
+            escapeHtml(t("metadataApplicabilityPAdES"));
+          return;
+        }
+        ui.metadataApplicabilitySummary.innerHTML =
+          '<strong>' + escapeHtml(t("metadataApplicabilityTitle")) + ':</strong> ' +
+          escapeHtml(t("metadataApplicabilityOther"));
+      }
+
+      function renderMetadataDeliverySummary() {
+        const reason = ui.signatureReason.value.trim();
+        const location = ui.signatureLocation.value.trim();
+        const contact = ui.signatureContact.value.trim();
+        const qr = ui.signatureQRContent.value.trim();
+        const hasTextMetadata = [reason, location, contact].some(Boolean);
+        const hasQR = !!qr;
+        if (!hasTextMetadata && !hasQR) {
+          ui.metadataDeliverySummary.innerHTML = '<span class="muted">' + escapeHtml(t("metadataDeliveryEmpty")) + '</span>';
+          return;
+        }
+        if (currentFormat() !== "PAdES") {
+          ui.metadataDeliverySummary.innerHTML =
+            '<strong>' + escapeHtml(t("metadataDeliveryTitle")) + ':</strong> ' +
+            escapeHtml(t("metadataDeliveryPAdESOnly"));
+          return;
+        }
+        const parts = [];
+        if (hasTextMetadata) {
+          parts.push(t("metadataDeliveryTextReady"));
+        }
+        if (hasQR) {
+          parts.push(ui.enableVisibleSeal.checked && isPDFSelection()
+            ? t("metadataDeliveryQRReady")
+            : t("metadataDeliveryQRNeedsSeal"));
+        }
+        ui.metadataDeliverySummary.innerHTML =
+          '<strong>' + escapeHtml(t("metadataDeliveryTitle")) + ':</strong> ' +
+          escapeHtml(parts.join(" · "));
+      }
+
+      function expectedSignedArtifactSuffix() {
+        const normalized = String(currentFormat() || "").toUpperCase();
+        if (normalized === "PADES") return ".pdf";
+        if (normalized === "CADES") return ".csig";
+        if (normalized === "XADES") return ".xsig";
+        if (normalized === "XMLDSIG") return ".dsig";
+        if (normalized === "ODF") return ".odt";
+        if (normalized === "OOXML") return ".docx";
+        if (normalized === "FACTURAE") return ".xml";
+        if (normalized === "ASIC-XADES") return ".asics";
+        const localPath = ui.localPathInput.value.trim().toLowerCase();
+        if (localPath.endsWith(".pdf")) return ".pdf";
+        if (localPath.endsWith(".odt")) return ".odt";
+        if (localPath.endsWith(".docx")) return ".docx";
+        if (localPath.endsWith(".xml")) return ".xml";
+        return "";
+      }
+
+      function renderOutputArtifactSummary() {
+        const suffix = expectedSignedArtifactSuffix();
+        const outputPath = ui.localOutputPathInput.value.trim();
+        if (!suffix) {
+          ui.outputArtifactSummary.innerHTML = '<span class="muted">' + escapeHtml(t("outputArtifactUnknown")) + '</span>';
+          return;
+        }
+        if (!outputPath) {
+          ui.outputArtifactSummary.innerHTML = '<strong>' + escapeHtml(t("outputArtifactTitle")) + ':</strong> ' + escapeHtml(t("outputArtifactExpected") + suffix);
+          return;
+        }
+        if (!outputPath.toLowerCase().endsWith(suffix.toLowerCase())) {
+          ui.outputArtifactSummary.innerHTML = '<strong>' + escapeHtml(t("outputArtifactTitle")) + ':</strong> ' + escapeHtml(t("outputArtifactMismatch") + suffix);
+          return;
+        }
+        ui.outputArtifactSummary.innerHTML = '<strong>' + escapeHtml(t("outputArtifactTitle")) + ':</strong> ' + escapeHtml(t("outputArtifactMatch") + suffix);
+      }
+
+      function renderProxySecretStoreSummary(response) {
+        state.lastProxySecretStoreStatus = response || null;
+        const available = !!(response && response.available);
+        const backend = String(response && response.backend || "");
+        const platform = String(response && response.platform || "");
+        const runtimeProxyMode = String(response && response.runtimeProxyMode || "");
+        const reason = String(response && response.reason || "");
+        const headline = available ? t("proxySecretStoreReady") : t("proxySecretStoreNotReady");
+        let runtimeProxyModeSummary = "";
+        if (runtimeProxyMode) {
+          runtimeProxyModeSummary =
+            escapeHtml(t("proxySecretStoreRuntimeModeLabel")) + ": " + escapeHtml(describeRuntimeProxyMode(runtimeProxyMode)) + " · ";
+        }
+        ui.proxySecretStoreSummary.innerHTML =
+          '<strong>' + escapeHtml(t("proxySecretStoreTitle")) + ':</strong> ' + escapeHtml(headline) + '<br>' +
+          '<span class="muted">' +
+            escapeHtml(t("proxySecretStoreAvailableLabel")) + ': ' + escapeHtml(available ? t("yes") : t("no")) + ' · ' +
+            escapeHtml(t("proxySecretStoreBackendLabel")) + ': ' + escapeHtml(backend || t("notAvailable")) + ' · ' +
+            escapeHtml(t("proxySecretStorePlatformLabel")) + ': ' + escapeHtml(platform || t("notAvailable")) + ' · ' +
+            runtimeProxyModeSummary +
+            escapeHtml(t("proxySecretStoreReasonLabel")) + ': ' + escapeHtml(reason || t("proxySecretStoreNoIssues")) +
+          '</span>';
+      }
+
+      function describeRuntimeProxyMode(mode) {
+        const normalized = String(mode || "").trim().toLowerCase();
+        switch (normalized) {
+          case "":
+            return t("notAvailable");
+          case "none":
+          case "direct":
+          case "disabled":
+            return t("proxyRuntimeModeNone");
+          case "system":
+          case "auto":
+          case "pac":
+            return t("proxyRuntimeModeSystem");
+          case "configured":
+          case "manual":
+          case "explicit":
+            return t("proxyRuntimeModeConfigured");
+          case "authenticated":
+          case "auth":
+          case "secure":
+          case "secret-store":
+          case "secret_store":
+            return t("proxyRuntimeModeAuthenticated");
+          default:
+            return normalized.replaceAll("_", " ").replaceAll("-", " ");
+        }
+      }
+
+      async function loadProxySecretStoreStatus() {
+        try {
+          const response = await apiFetch("/settings/proxy/secret-store/status");
+          renderProxySecretStoreSummary(response);
+        } catch (err) {
+          state.lastProxySecretStoreStatus = null;
+          ui.proxySecretStoreSummary.innerHTML =
+            '<strong>' + escapeHtml(t("proxySecretStoreTitle")) + ':</strong> ' +
+            '<span class="muted">' + escapeHtml(err.message) + '</span>';
+        }
+      }
+
+      function renderQuickVerifySummary() {
+        const path = ui.quickVerifyPathInput.value.trim();
+        if (state.quickVerifyFile) {
+          ui.quickVerifySourceSummary.innerHTML =
+            '<strong>' + escapeHtml(t("quickVerifySource")) + ':</strong> ' +
+            escapeHtml(sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name || t("notAvailable"));
+        } else if (path) {
+          ui.quickVerifySourceSummary.innerHTML =
+            '<strong>' + escapeHtml(t("quickVerifySource")) + ':</strong> <code>' + escapeHtml(path) + '</code>';
+        } else {
+          ui.quickVerifySourceSummary.innerHTML = '<span class="muted">' + escapeHtml(t("quickVerifyNeedArtifact")) + '</span>';
+        }
+        let expected = t("quickVerifyArtifactOnly");
+        if (state.quickVerifyFile || path) {
+          const kind = detectVerifyArtifactKind(state.quickVerifyFile ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name) : path);
+          if (kind) {
+            expected = t("quickVerifyDetectedKind") + " " + kind;
+          }
+        }
+        ui.quickVerifyPlanSummary.innerHTML =
+          '<strong>' + escapeHtml(t("quickVerifyPlanTitle")) + ':</strong> ' +
+          escapeHtml(expected + ((state.quickVerifyOriginalFile || ui.quickVerifyOriginalPathInput.value.trim()) ? " · " + t("quickVerifyPlanWithOriginal") : ""));
+        renderQuickVerifyOriginalSummary();
+        renderQuickVerifyPairSummary();
+        renderQuickVerifyResultSummary(null);
+      }
+
+      function renderQuickVerifyOriginalSummary() {
+        const path = ui.quickVerifyOriginalPathInput.value.trim();
+        if (state.quickVerifyOriginalFile) {
+          ui.quickVerifyOriginalSummary.innerHTML =
+            '<strong>' + escapeHtml(t("quickVerifyOriginal")) + ':</strong> ' +
+            escapeHtml(sourceFileName(state.quickVerifyOriginalFile) || state.quickVerifyOriginalFile.name || t("notAvailable"));
+        } else if (path) {
+          ui.quickVerifyOriginalSummary.innerHTML =
+            '<strong>' + escapeHtml(t("quickVerifyOriginal")) + ':</strong> <code>' + escapeHtml(path) + '</code>';
+        } else {
+          ui.quickVerifyOriginalSummary.innerHTML = '<span class="muted">' + escapeHtml(t("quickVerifyOriginalOptional")) + '</span>';
+        }
+      }
+
+      function renderQuickVerifyPairSummary() {
+        const signedName = state.quickVerifyFile ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name) : ui.quickVerifyPathInput.value.trim();
+        const originalName = state.quickVerifyOriginalFile ? (sourceFileName(state.quickVerifyOriginalFile) || state.quickVerifyOriginalFile.name) : ui.quickVerifyOriginalPathInput.value.trim();
+        if (!(signedName && originalName)) {
+          ui.quickVerifyPairSummary.innerHTML = '<span class="muted">' + escapeHtml(t("quickVerifyPairArtifactOnly")) + '</span>';
+          return;
+        }
+        ui.quickVerifyPairSummary.innerHTML =
+          '<strong>' + escapeHtml(t("quickVerifyPairTitle")) + ':</strong> ' +
+          escapeHtml(t("quickVerifyPairReady"));
+      }
+
+      function renderResultArtifactSummary(summary) {
+        if (!summary) {
+          ui.resultArtifactSummary.innerHTML = '<span class="muted">' + escapeHtml(t("resultArtifactPending")) + '</span>';
+          renderSupportSummary();
+          return;
+        }
+        if (summary.mode === "batch") {
+          ui.resultArtifactSummary.innerHTML =
+            '<strong>' + escapeHtml(t("resultArtifactTitle")) + '</strong><br>' +
+            '<strong>' + escapeHtml(t("resultArtifactBatch")) + '</strong><br>' +
+            '<strong>' + escapeHtml(t("verificationFormat")) + ':</strong> ' + escapeHtml(summary.format || t("notAvailable")) + '<br>' +
+            '<strong>' + escapeHtml(t("batchResultTotal")) + ':</strong> ' + escapeHtml(String(summary.total || 0)) + ' · ' +
+              '<strong>' + escapeHtml(t("batchResultOk")) + ':</strong> ' + escapeHtml(String(summary.success || 0)) + ' · ' +
+              '<strong>' + escapeHtml(t("batchResultKo")) + ':</strong> ' + escapeHtml(String(summary.failure || 0)) + '<br>' +
+            '<strong>' + escapeHtml(t("resultArtifactBatchDownloads")) + ':</strong> ' + escapeHtml(String(summary.downloadable || 0));
+          renderSupportSummary();
+          return;
+        }
+        ui.resultArtifactSummary.innerHTML =
+          '<strong>' + escapeHtml(t("resultArtifactTitle")) + '</strong><br>' +
+          '<strong>' + escapeHtml(t("resultArtifactSingle")) + '</strong><br>' +
+          '<strong>' + escapeHtml(t("verificationFormat")) + ':</strong> ' + escapeHtml(summary.format || t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("verificationAlgorithm")) + ':</strong> ' + escapeHtml(summary.algorithm || t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("outputPath")) + ':</strong> ' + escapeHtml(summary.outputPath || t("memoryOutput")) + '<br>' +
+          '<strong>' + escapeHtml(t("resultArtifactDelivery")) + ':</strong> ' + escapeHtml(summary.delivery || t("notAvailable"));
+        renderSupportSummary();
+      }
+
+      function supportCurrentActionLabel() {
+        switch (currentAction()) {
+          case "cosign":
+            return t("actionCosign");
+          case "countersign":
+            return t("actionCountersign");
+          default:
+            return t("actionSign");
+        }
+      }
+
+      function guidedDiagnosticCategoryLabel(value) {
+        switch (String(value || "").trim()) {
+          case "app_local":
+            return t("diagnosticAppLocal");
+          case "certificate_store":
+          case "certificate_or_device":
+            return t("diagnosticCertificateStore");
+          case "network_proxy":
+          case "environment":
+            return t("diagnosticNetworkProxy");
+          case "local_web_service":
+            return t("diagnosticLocalWebService");
+          case "remote_service":
+            return t("diagnosticRemoteService");
+          case "government_afirma":
+            return t("diagnosticGovernmentAFirma");
+          default:
+            return t("diagnosticUnknown");
+        }
+      }
+
+      function supportProbableOwner() {
+        const noSource = state.selectedFiles.length === 0 && !ui.localPathInput.value.trim();
+        const invalidSealPages = ui.enableVisibleSeal.checked && !ui.sealAllPages.checked && !parsePageSelection(ui.sealPage.value).ok;
+        if (noSource) {
+          return {
+            id: "input",
+            label: t("fileCardTitle"),
+            reason: ui.guidedAssistantSummary.textContent.trim()
+          };
+        }
+        if (!state.selectedCertificateId) {
+          return {
+            id: "certificate",
+            label: t("certificateCardTitle"),
+            reason: ui.certificateStatus.textContent.trim() || ui.guidedAssistantSummary.textContent.trim()
+          };
+        }
+        if (state.lastGuidedDiagnostic) {
+          const diagnostic = state.lastGuidedDiagnostic;
+          return {
+            id: String(diagnostic.category || "unknown"),
+            label: guidedDiagnosticCategoryLabel(diagnostic.category),
+            reason: String(diagnostic.responsibilityMessage || diagnostic.userMessage || "").trim()
+              || ui.resultBox.textContent.trim()
+              || ui.guidedAssistantSummary.textContent.trim()
+          };
+        }
+        if (ui.enableMultiCosign.checked && supportsGuidedMultiCosign() && multiCosignAdditionalIds().length === 0) {
+          return {
+            id: "multi_cosign",
+            label: t("multiCosignLabel"),
+            reason: ui.multiCosignSummary.textContent.trim() || ui.guidedAssistantSummary.textContent.trim()
+          };
+        }
+        if (ui.enableVisibleSeal.checked && (currentFormat() !== "PAdES" || invalidSealPages)) {
+          return {
+            id: "visible_seal",
+            label: t("sealCardTitle"),
+            reason: ui.guidedAssistantSummary.textContent.trim()
+          };
+        }
+        if (state.lastProxySecretStoreStatus && state.lastProxySecretStoreStatus.available === false) {
+          return {
+            id: "proxy_secret_store",
+            label: t("proxySecretStoreTitle"),
+            reason: ui.proxySecretStoreSummary.textContent.trim()
+          };
+        }
+        if (ui.quickVerifyResultSummary.textContent.trim() && ui.quickVerifyResultSummary.textContent.trim() !== t("quickVerifyResultPending")) {
+          return {
+            id: "quick_verify",
+            label: t("quickVerifyTitle"),
+            reason: ui.quickVerifyResultSummary.textContent.trim()
+          };
+        }
+        if (ui.resultBox.textContent.trim()) {
+          return {
+            id: "result",
+            label: t("results"),
+            reason: ui.resultBox.textContent.trim()
+          };
+        }
+        return {
+          id: "signer",
+          label: t("title"),
+          reason: ui.guidedAssistantSummary.textContent.trim() || ui.globalStatus.textContent.trim()
+        };
+      }
+
+      function supportNonTechnicalSummary() {
+        const owner = supportProbableOwner();
+        return owner.reason || ui.guidedAssistantSummary.textContent.trim() || ui.globalStatus.textContent.trim() || t("notAvailable");
+      }
+
+      function buildSupportIncidentText() {
+        const selectedFiles = state.selectedFiles.length;
+        const localPath = ui.localPathInput.value.trim();
+        const verifyPath = ui.quickVerifyPathInput.value.trim();
+        const cert = state.certificates.find((item) => item.id === state.selectedCertificateId);
+        const owner = supportProbableOwner();
+        const lines = [];
+        lines.push(t("supportSummaryTitle") + ": " + (ui.globalStatus.textContent || t("notAvailable")));
+        lines.push(t("action") + ": " + supportCurrentActionLabel());
+        lines.push(t("format") + ": " + currentFormat());
+        if (selectedFiles > 0) {
+          lines.push(t("supportFilesLoaded") + ": " + String(selectedFiles));
+        } else if (localPath) {
+          lines.push(t("localPath") + ": " + localPath);
+        }
+        if (verifyPath) {
+          lines.push(t("quickVerifyPath") + ": " + verifyPath);
+        }
+        lines.push(t("certificate") + ": " + (cert ? (cert.subjectName || cert.id || t("certificateUnknown")) : t("notAvailable")));
+        lines.push(owner.label + ": " + (owner.reason || t("notAvailable")));
+        lines.push(t("supportSuggestedStep") + ": " + ui.guidedAssistantSummary.textContent.trim());
+        if (ui.supportExpertMode.checked && state.lastRequestId) {
+          lines.push("RequestId: " + state.lastRequestId);
+        }
+        if (ui.resultBox.textContent.trim()) {
+          lines.push(t("supportVisibleResult") + ": " + ui.resultBox.textContent.trim());
+        }
+        return lines.join("\n");
+      }
+
+      function renderSupportSummary() {
+        const owner = supportProbableOwner();
+        const suggested = ui.guidedAssistantSummary.textContent.trim() || t("notAvailable");
+        const expert = !!ui.supportExpertMode.checked;
+        ui.supportCopyBtn.disabled = !(navigator.clipboard && typeof navigator.clipboard.writeText === "function");
+        let expertHtml = "";
+        if (expert) {
+          const details = [
+            'RequestId: ' + escapeHtml(state.lastRequestId || t("notAvailable")),
+            escapeHtml(t("outputPath")) + ': ' + escapeHtml(ui.localOutputPathInput.value.trim() || t("notAvailable")),
+            escapeHtml(t("quickVerifyPath")) + ': ' + escapeHtml(ui.quickVerifyPathInput.value.trim() || t("notAvailable")),
+            escapeHtml(t("supportSuggestedStep")) + ': ' + escapeHtml(suggested)
+          ];
+          if (state.lastGuidedDiagnostic) {
+            details.push(
+              escapeHtml(guidedDiagnosticCategoryLabel(state.lastGuidedDiagnostic.category))
+                + (state.lastGuidedDiagnostic.failureCode
+                  ? ': ' + escapeHtml(String(state.lastGuidedDiagnostic.failureCode))
+                  : '')
+            );
+          }
+          expertHtml = '<br><span class="muted">' + details.join(' · ') + '</span>';
+        }
+        ui.supportSummary.innerHTML =
+          '<strong>' + escapeHtml(t("supportSummaryTitle")) + '</strong><br>' +
+          escapeHtml(t("supportSummaryHelp")) + '<br>' +
+          '<span class="muted">' + escapeHtml(ui.globalStatus.textContent || t("notAvailable")) + '</span><br>' +
+          '<span class="muted">' +
+            escapeHtml(t("action")) + ': ' + escapeHtml(supportCurrentActionLabel()) + ' · ' +
+            escapeHtml(t("format")) + ': ' + escapeHtml(currentFormat()) + ' · ' +
+            escapeHtml(t("certificate")) + ': ' + escapeHtml((state.certificates.find((item) => item.id === state.selectedCertificateId) || {}).subjectName || state.selectedCertificateId || t("notAvailable")) +
+          '</span><br>' +
+          '<span class="muted">' +
+            escapeHtml(owner.label) + ': ' + escapeHtml(supportNonTechnicalSummary()) +
+          '</span><br>' +
+          '<span class="muted">' +
+            escapeHtml(t("supportSuggestedStep")) + ': ' + escapeHtml(suggested) +
+          '</span>' + expertHtml;
+      }
+
+      function buildSupportDownloadLinkFromJSON(content, filename, label) {
+        if (!content) return "";
+        const blob = new Blob([content], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        state.supportDownloadUrls.push(url);
+        return '<a class="link-btn secondary" href="' + url + '" download="' + escapeHtml(filename) + '">' + escapeHtml(label) + '</a>';
+      }
+
+      function parseSupportJSON(value) {
+        if (!value) return null;
+        try {
+          return JSON.parse(value);
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function supportIncidentFileName(value) {
+        const raw = String(value || "").trim().replace(/\\/g, "/");
+        if (!raw) return "";
+        const parts = raw.split("/").filter(Boolean);
+        return String(parts.length ? parts[parts.length - 1] : "[PATH]").slice(0, 255);
+      }
+
+      function supportIncidentSafeText(value) {
+        return String(value || "")
+          .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]+/gi, "Bearer [REDACTED]")
+          .replace(/\b(token|password|passwd|secret|authorization|dat)\s*[=:]\s*[^\s,;&]+/gi, "$1=[REDACTED]")
+          .replace(/\bfile:(?:\/\/)?[^\s"'<>]+/gi, "[PATH]")
+          .replace(/(?:\b[A-Z]:[\\/]|\\\\)[^\r\n"'<>|]+/gi, "[PATH]")
+          .replace(/(^|[\s(])\/(?:[^\s"'<>]+\/?)+/g, "$1[PATH]")
+          .slice(0, 4096);
+      }
+
+      function supportIncidentSafeRequestId(value) {
+        const requestId = String(value || "").trim();
+        return /^[A-Za-z0-9._:-]{1,128}$/.test(requestId) ? requestId : "";
+      }
+
+      function supportIncidentSafeDiagnostics(value) {
+        const diagnostics = value && typeof value === "object" ? value : {};
+        return {
+          ok: !!diagnostics.ok,
+          certificate_count: Number(diagnostics.certificateCount || 0),
+          can_sign_count: Number(diagnostics.canSignCount || 0),
+          endpoint_store_count: Number(diagnostics.endpointStoreCount || 0)
+        };
+      }
+
+      function supportIncidentSafeProxyStatus(value) {
+        const status = value && typeof value === "object" ? value : {};
+        return {
+          available: !!status.available,
+          platform: supportIncidentSafeText(status.platform || ""),
+          backend: supportIncidentSafeText(status.backend || ""),
+          runtime_mode: supportIncidentSafeText(status.runtimeProxyMode || "")
+        };
+      }
+
+      function supportIncidentSafeGuidedDiagnostic(value) {
+        const diagnostic = value && typeof value === "object" ? value : {};
+        const allowedCategories = new Set([
+          "app_local",
+          "certificate_store",
+          "network_proxy",
+          "local_web_service",
+          "remote_service",
+          "government_afirma",
+          "unknown"
+        ]);
+        const category = String(diagnostic.category || "unknown").trim();
+        const failureCode = String(diagnostic.failureCode || "").trim();
+        return {
+          category: allowedCategories.has(category) ? category : "unknown",
+          failure_code: /^[A-Z0-9_-]{1,32}$/.test(failureCode) ? failureCode : "",
+          likely_owner: supportIncidentSafeText(diagnostic.likelyOwner || ""),
+          user_can_resolve_directly: diagnostic.userCanResolveDirectly === true,
+          user_message: supportIncidentSafeText(diagnostic.userMessage || ""),
+          responsibility_message: supportIncidentSafeText(diagnostic.responsibilityMessage || ""),
+          suggested_action: supportIncidentSafeText(diagnostic.suggestedAction || "")
+        };
+      }
+
+      function buildSupportIncidentPayload(diagnostics) {
+        const cert = state.certificates.find((item) => item.id === state.selectedCertificateId) || null;
+        const selectedFiles = state.selectedFiles.map((file) => sourceFileName(file) || file.name || "").filter(Boolean);
+        const quickVerifyArtifact = state.quickVerifyFile
+          ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name || "")
+          : supportIncidentFileName(ui.quickVerifyPathInput.value);
+        const quickVerifyOriginal = state.quickVerifyOriginalFile
+          ? (sourceFileName(state.quickVerifyOriginalFile) || state.quickVerifyOriginalFile.name || "")
+          : supportIncidentFileName(ui.quickVerifyOriginalPathInput.value);
+        const owner = supportProbableOwner();
+        return {
+          generated_at: new Date().toISOString(),
+          page: "/signer",
+          locale: CURRENT_LANG,
+          request_id: supportIncidentSafeRequestId(state.lastRequestId),
+          signer: {
+            global_status: supportIncidentSafeText(ui.globalStatus.textContent),
+            action: currentAction(),
+            action_label: supportIncidentSafeText(supportCurrentActionLabel()),
+            format: currentFormat(),
+            local_file: supportIncidentFileName(ui.localPathInput.value),
+            output_file: supportIncidentFileName(ui.localOutputPathInput.value),
+            selected_files: selectedFiles.map(supportIncidentFileName).slice(0, 128),
+            certificate: cert ? {
+              selected: true,
+              status: supportIncidentSafeText(cert.status || ""),
+              can_sign: !!cert.canSign
+            } : null,
+            visible_seal_enabled: !!ui.enableVisibleSeal.checked,
+            visible_seal_pages: ui.sealAllPages.checked ? "all" : ui.sealPage.value.trim(),
+            multi_cosign_enabled: !!ui.enableMultiCosign.checked,
+            multi_cosign_count: multiCosignAdditionalIds().length,
+            quick_verify: {
+              artifact: supportIncidentFileName(quickVerifyArtifact),
+              original: supportIncidentFileName(quickVerifyOriginal),
+              source_summary: supportIncidentSafeText(ui.quickVerifySourceSummary.textContent),
+              original_summary: supportIncidentSafeText(ui.quickVerifyOriginalSummary.textContent),
+              pair_summary: supportIncidentSafeText(ui.quickVerifyPairSummary.textContent),
+              plan_summary: supportIncidentSafeText(ui.quickVerifyPlanSummary.textContent),
+              result_summary: supportIncidentSafeText(ui.quickVerifyResultSummary.textContent)
+            },
+            proxy_secret_store: supportIncidentSafeProxyStatus(state.lastProxySecretStoreStatus),
+            exported_artifacts: {
+              verification_report_available: !!parseSupportJSON(state.lastVerificationJSON),
+              certificate_report_available: !!parseSupportJSON(state.lastCertificateJSON)
+            },
+            support_mode: ui.supportExpertMode.checked ? "expert" : "user",
+            guided_diagnostic: supportIncidentSafeGuidedDiagnostic(state.lastGuidedDiagnostic),
+            probable_owner: owner,
+            non_technical_summary: supportIncidentSafeText(supportNonTechnicalSummary()),
+            visible_summaries: {
+              selection_type: supportIncidentSafeText(ui.selectionTypeSummary.textContent),
+              certificate_status: supportIncidentSafeText(ui.certificateStatus.textContent),
+              certificate_details: supportIncidentSafeText(ui.certificateDetailsSummary.textContent),
+              sign_plan: supportIncidentSafeText(ui.signPlanSummary.textContent),
+              suggested_next_step: supportIncidentSafeText(ui.guidedAssistantSummary.textContent),
+              multi_cosign: supportIncidentSafeText(ui.multiCosignSummary.textContent),
+              operation_strategy: supportIncidentSafeText(ui.operationStrategySummary.textContent),
+              verification_plan: supportIncidentSafeText(ui.verificationPlanSummary.textContent),
+              output_delivery: supportIncidentSafeText(ui.outputDeliverySummary.textContent),
+              output_artifact: supportIncidentSafeText(ui.outputArtifactSummary.textContent),
+              proxy_secret_store: supportIncidentSafeText(ui.proxySecretStoreSummary.textContent),
+              result_artifact: supportIncidentSafeText(ui.resultArtifactSummary.textContent)
+            },
+            suggested_next_step: supportIncidentSafeText(ui.guidedAssistantSummary.textContent),
+            visible_result: supportIncidentSafeText(ui.resultBox.textContent)
+          },
+          diagnostics: supportIncidentSafeDiagnostics(diagnostics)
+        };
+      }
+
+      function renderSupportExportSummary(payload) {
+        clearSupportDownloadUrls();
+        state.lastSupportIncidentJSON = JSON.stringify(payload, null, 2);
+        const filename = "grxfirma_signer_incident.json";
+        const owner = payload && payload.signer && payload.signer.probable_owner ? payload.signer.probable_owner : supportProbableOwner();
+        const nextStep = payload && payload.signer ? String(payload.signer.suggested_next_step || "").trim() : "";
+        const downloadHtml = buildSupportDownloadLinkFromJSON(
+          state.lastSupportIncidentJSON,
+          filename,
+          t("Descargar informe"),
+        );
+        const copyButton = navigator.clipboard && typeof navigator.clipboard.writeText === "function"
+          ? ' <button type="button" class="link-btn light" data-copy-support-incident="1">' + escapeHtml(t("Copiar diagnóstico")) + '</button>'
+          : "";
+        ui.supportExportSummary.innerHTML =
+          '<strong>' + escapeHtml(t("supportPrepareIncident")) + '</strong><br>' +
+          '<span class="muted">' + escapeHtml(t("supportExportReady")) + '</span><br>' +
+          '<span class="muted">' + escapeHtml(owner.label || t("title")) + ': ' + escapeHtml((owner && owner.reason) || supportNonTechnicalSummary()) + '</span>' +
+          (nextStep ? '<br><span class="muted">' + escapeHtml(t("supportSuggestedStep")) + ': ' + escapeHtml(nextStep) + '</span>' : '') +
+          '<div class="actions" style="margin-top:10px">' + downloadHtml + copyButton + '</div>';
+      }
+
+      async function prepareSupportIncident() {
+        ui.supportExportSummary.innerHTML = '<span class="muted">' + escapeHtml(t("supportPrepareRunning")) + '</span>';
+        try {
+          const diagnostics = await apiFetch("/diagnostics/report");
+          renderSupportExportSummary(buildSupportIncidentPayload(diagnostics));
+          setStatus("ok", t("supportPrepareDone"));
+        } catch (err) {
+          clearSupportExportSummary();
+          ui.supportExportSummary.innerHTML = '<span class="muted">' + escapeHtml(err.message || t("notAvailable")) + '</span>';
+          setStatus("bad", err.message || t("notAvailable"));
+        }
+      }
+
+      function inferMimeType(file) {
+        if (file && file.type) return file.type;
+        const name = (file && file.name ? file.name : "").toLowerCase();
+        if (name.endsWith(".pdf")) return "application/pdf";
+        if (name.endsWith(".odt")) return "application/vnd.oasis.opendocument.text";
+        if (name.endsWith(".ods")) return "application/vnd.oasis.opendocument.spreadsheet";
+        if (name.endsWith(".odp")) return "application/vnd.oasis.opendocument.presentation";
+        if (name.endsWith(".odg")) return "application/vnd.oasis.opendocument.graphics";
+        if (name.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        if (name.endsWith(".xlsx")) return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        if (name.endsWith(".pptx")) return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+        if (name.endsWith(".ppsx")) return "application/vnd.openxmlformats-officedocument.presentationml.slideshow";
+        if (name.endsWith(".xml") || name.endsWith(".xsig")) return "application/xml";
+        if (name.endsWith(".p7s") || name.endsWith(".csig")) return "application/pkcs7-signature";
+        return "application/octet-stream";
+      }
+
+      function sourceFileName(file) {
+        if (!file) return "";
+        return String(file.webkitRelativePath || file.name || "");
+      }
+
+      function sourceFileBasename(name) {
+        return String(name || "").split(/[\\/]/).pop() || "";
+      }
+
+      function inferSelectionTypeFromName(name) {
+        const lower = String(name || "").toLowerCase();
+        if (lower.endsWith(".pdf")) return t("selectionTypePDF");
+        if (lower.endsWith(".xml") || lower.endsWith(".xsig")) return t("selectionTypeXML");
+        if (lower.endsWith(".odt")) return t("selectionTypeODF");
+        if (lower.endsWith(".docx")) return t("selectionTypeOOXML");
+        if (lower.endsWith(".p7s") || lower.endsWith(".csig") || lower.endsWith(".p7m")) return t("selectionTypeCMS");
+        return t("selectionTypeGeneric");
+      }
+
+      function detectVerifyArtifactKind(nameOrPath) {
+        return inferSelectionTypeFromName(nameOrPath);
+      }
+
+      function renderSelectionTypeSummary() {
+        const localPath = ui.localPathInput.value.trim();
+        if (state.selectedFiles.length > 1) {
+          ui.selectionTypeSummary.innerHTML = '<strong>' + escapeHtml(t("selectionTypeTitle")) + ':</strong> ' + escapeHtml(t("selectionTypeBatch"));
+          return;
+        }
+        if (state.selectedFiles.length === 1) {
+          ui.selectionTypeSummary.innerHTML = '<strong>' + escapeHtml(t("selectionTypeTitle")) + ':</strong> ' + escapeHtml(inferSelectionTypeFromName(sourceFileName(state.selectedFiles[0])));
+          return;
+        }
+        if (localPath) {
+          ui.selectionTypeSummary.innerHTML = '<strong>' + escapeHtml(t("selectionTypeTitle")) + ':</strong> ' + escapeHtml(inferSelectionTypeFromName(localPath));
+          return;
+        }
+        ui.selectionTypeSummary.innerHTML = '<span class="muted">' + escapeHtml(t("selectionTypePending")) + '</span>';
+      }
+
+      function signedMimeTypeForFormat(format, fallbackName) {
+        const normalized = String(format || "").toUpperCase();
+        if (normalized === "PADES") return "application/pdf";
+        if (normalized === "ODF") return "application/vnd.oasis.opendocument.text";
+        if (normalized === "OOXML") return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        if (normalized === "FACTURAE") return "application/xml";
+        if (normalized === "ASIC-XADES") return "application/vnd.etsi.asic-s+zip";
+        if (normalized === "XADES") return "application/xml";
+        if (normalized === "XMLDSIG") return "application/xmldsig+xml";
+        const lowerName = String(fallbackName || "").toLowerCase();
+        if (lowerName.endsWith(".pdf")) return "application/pdf";
+        if (lowerName.endsWith(".odt")) return "application/vnd.oasis.opendocument.text";
+        if (lowerName.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        if (lowerName.endsWith(".xml") || lowerName.endsWith(".xsig")) return "application/xml";
+        return "application/pkcs7-signature";
+      }
+
+      function currentFormat() {
+        return ui.formatSelect.value;
+      }
+
+      function currentAction() {
+        return ui.actionSelect.value || "sign";
+      }
+
+      function isPDFSelection() {
+        if (currentFormat() !== "PAdES") return false;
+        if (state.selectedFiles.length === 0) {
+          const localPath = ui.localPathInput.value.trim();
+          return !!localPath && /\.pdf$/i.test(localPath);
+        }
+        return state.selectedFiles.every((file) => {
+          const mime = inferMimeType(file).toLowerCase();
+          return mime === "application/pdf" || String(file.name || "").toLowerCase().endsWith(".pdf");
+        });
+      }
+
+      function updateSealVisibility() {
+        const showSeal = ui.enableVisibleSeal.checked && currentFormat() === "PAdES" && isPDFSelection();
+        ui.sealControls.hidden = !showSeal;
+        ui.sealDisabledHint.hidden = currentFormat() === "PAdES";
+        updateSealPageMode();
+      }
+
+      function updateSealPageMode() {
+        ui.sealPage.disabled = !!ui.sealAllPages.checked;
+      }
+
+      function applyPreset(position) {
+        switch (position) {
+          case "bottom-left":
+            state.preview.x = 0.04;
+            state.preview.y = 0.04;
+            state.preview.w = 0.34;
+            state.preview.h = 0.12;
+            break;
+          case "bottom-right":
+            state.preview.x = 0.62;
+            state.preview.y = 0.04;
+            state.preview.w = 0.34;
+            state.preview.h = 0.12;
+            break;
+          case "top-left":
+            state.preview.x = 0.04;
+            state.preview.y = 0.84;
+            state.preview.w = 0.34;
+            state.preview.h = 0.12;
+            break;
+          case "top-right":
+            state.preview.x = 0.62;
+            state.preview.y = 0.84;
+            state.preview.w = 0.34;
+            state.preview.h = 0.12;
+            break;
+          default:
+            break;
+        }
+        syncInputsFromPreview();
+        renderPreview();
+      }
+
+      function syncInputsFromPreview() {
+        ui.sealX.value = clamp01(state.preview.x).toFixed(4);
+        ui.sealY.value = clamp01(state.preview.y).toFixed(4);
+        ui.sealW.value = clamp01(state.preview.w).toFixed(4);
+        ui.sealH.value = clamp01(state.preview.h).toFixed(4);
+      }
+
+      function syncPreviewFromInputs() {
+        applyPageSelectionValidity();
+        state.preview.page = previewPageFromSelection(ui.sealPage.value);
+        state.preview.x = clamp01(ui.sealX.value);
+        state.preview.y = clamp01(ui.sealY.value);
+        state.preview.w = clampMinMax(ui.sealW.value, 0.05, 1);
+        state.preview.h = clampMinMax(ui.sealH.value, 0.04, 1);
+        state.preview.x = Math.min(state.preview.x, 1 - state.preview.w);
+        state.preview.y = Math.min(state.preview.y, 1 - state.preview.h);
+        syncInputsFromPreview();
+        renderPreview();
+      }
+
+      function renderPreview() {
+        ui.previewSeal.style.left = (state.preview.x * 100) + "%";
+        ui.previewSeal.style.top = ((1 - state.preview.y - state.preview.h) * 100) + "%";
+        ui.previewSeal.style.width = (state.preview.w * 100) + "%";
+        ui.previewSeal.style.height = (state.preview.h * 100) + "%";
+        const showQR = !!ui.signatureQRContent.value.trim() && !state.sealImageDataUrl;
+        ui.previewSeal.classList.toggle("has-qr", showQR);
+        ui.previewSealQR.title = showQR ? ui.signatureQRContent.value.trim() : "";
+      }
+
+      function pointerRatio(event) {
+        const rect = ui.previewStage.getBoundingClientRect();
+        const x = clampMinMax((event.clientX - rect.left) / rect.width, 0, 1);
+        const yTop = clampMinMax((event.clientY - rect.top) / rect.height, 0, 1);
+        return { x, yTop };
+      }
+
+      function installDragAndResize() {
+        let mode = "";
+        let start = null;
+        let initial = null;
+
+        function onMove(event) {
+          if (!mode || !start || !initial) return;
+          const current = pointerRatio(event);
+          const dx = current.x - start.x;
+          const dyTop = current.yTop - start.yTop;
+          if (mode === "drag") {
+            state.preview.x = clamp01(initial.x + dx);
+            const newTop = clampMinMax((1 - initial.y - initial.h) + dyTop, 0, 1 - initial.h);
+            state.preview.y = clamp01(1 - newTop - initial.h);
+          } else if (mode === "resize") {
+            state.preview.w = clampMinMax(initial.w + dx, 0.05, 1 - initial.x);
+            const newTop = clampMinMax((1 - initial.y - initial.h), 0, 1);
+            const newHeight = clampMinMax(initial.h + dyTop, 0.04, 1 - newTop);
+            state.preview.h = newHeight;
+            state.preview.y = clamp01(1 - newTop - newHeight);
+          }
+          syncInputsFromPreview();
+          ui.sealPosition.value = "custom";
+          renderPreview();
+        }
+
+        function onUp() {
+          mode = "";
+          start = null;
+          initial = null;
+          persistPreferences();
+          window.removeEventListener("pointermove", onMove);
+          window.removeEventListener("pointerup", onUp);
+        }
+
+        ui.previewSeal.addEventListener("pointerdown", (event) => {
+          if (event.target === ui.resizeHandle) return;
+          mode = "drag";
+          start = pointerRatio(event);
+          initial = Object.assign({}, state.preview);
+          window.addEventListener("pointermove", onMove);
+          window.addEventListener("pointerup", onUp);
+        });
+
+        ui.resizeHandle.addEventListener("pointerdown", (event) => {
+          event.stopPropagation();
+          mode = "resize";
+          start = pointerRatio(event);
+          initial = Object.assign({}, state.preview);
+          window.addEventListener("pointermove", onMove);
+          window.addEventListener("pointerup", onUp);
+        });
+      }
+
+      function buildSignOptions() {
+        const options = {};
+        if (ui.enableVisibleSeal.checked && currentFormat() === "PAdES" && isPDFSelection()) {
+          if (!applyPageSelectionValidity()) {
+            throw new Error(t("invalidPageSelection"));
+          }
+          options.visibleSeal = "true";
+          options.visibleSealRectX = String((state.preview.x * A4_WIDTH).toFixed(2));
+          options.visibleSealRectY = String((state.preview.y * A4_HEIGHT).toFixed(2));
+          options.visibleSealRectW = String((state.preview.w * A4_WIDTH).toFixed(2));
+          options.visibleSealRectH = String((state.preview.h * A4_HEIGHT).toFixed(2));
+          options.page = ui.sealAllPages.checked ? "all" : normalizePageSelection(ui.sealPage.value);
+          options.visibleSealKeepText = ui.keepSealText.checked ? "true" : "false";
+          if (state.sealImageDataUrl) {
+            const comma = state.sealImageDataUrl.indexOf(",");
+            options.visibleSealImageBase64 = comma >= 0 ? state.sealImageDataUrl.slice(comma + 1) : state.sealImageDataUrl;
+          }
+          if (ui.signatureQRContent.value.trim()) {
+            options.qrContent = ui.signatureQRContent.value.trim();
+          }
+        }
+        if (currentFormat() === "PAdES") {
+          if (ui.padesSubFilter.value.trim()) options.subfilter = ui.padesSubFilter.value.trim();
+          if (ui.signatureReason.value.trim()) options.reason = ui.signatureReason.value.trim();
+          if (ui.signatureLocation.value.trim()) options.location = ui.signatureLocation.value.trim();
+          if (ui.signatureContact.value.trim()) options.contactInfo = ui.signatureContact.value.trim();
+        }
+        if (currentFormat() === "FacturaE") {
+          if (ui.facturaePolicyVersion.value.trim()) options.facturaePolicyVersion = ui.facturaePolicyVersion.value.trim();
+          if (ui.facturaePolicyIdentifier.value.trim()) options.policyIdentifier = ui.facturaePolicyIdentifier.value.trim();
+          if (ui.facturaePolicyIdentifierHash.value.trim()) options.policyIdentifierHash = ui.facturaePolicyIdentifierHash.value.trim();
+          if (ui.facturaePolicyQualifier.value.trim()) options.policyQualifier = ui.facturaePolicyQualifier.value.trim();
+          if (ui.facturaeSignerRole.value.trim()) options.signerClaimedRole = ui.facturaeSignerRole.value.trim();
+          if (ui.facturaeSignatureCity.value.trim()) options.signatureProductionCity = ui.facturaeSignatureCity.value.trim();
+          if (ui.facturaeSignatureProvince.value.trim()) options.signatureProductionProvince = ui.facturaeSignatureProvince.value.trim();
+          if (ui.facturaeSignaturePostalCode.value.trim()) options.signatureProductionPostalCode = ui.facturaeSignaturePostalCode.value.trim();
+          if (ui.facturaeSignatureCountry.value.trim()) options.signatureProductionCountry = ui.facturaeSignatureCountry.value.trim();
+        }
+        if (currentFormat() === "PAdES" || currentFormat() === "CAdES" || currentFormat() === "XAdES") {
+          if (ui.signProfile.value.trim()) options.profile = ui.signProfile.value.trim();
+          if (ui.tsaUrl.value.trim()) options.tsaURL = ui.tsaUrl.value.trim();
+        }
+        return options;
+      }
+
+      function stripVisualOptionsForCoSign(options) {
+        const out = { ...(options || {}) };
+        [
+          "visibleSeal",
+          "visibleSealRectX",
+          "visibleSealRectY",
+          "visibleSealRectW",
+          "visibleSealRectH",
+          "page",
+          "rotation",
+          "visibleSealKeepText",
+          "visibleSealImagePath",
+          "visibleSealImageBase64",
+          "visibleSealSignerSummary",
+          "qrContent",
+          "visibleSealQRContent"
+        ].forEach((key) => delete out[key]);
+        return out;
+      }
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = String(reader.result || "");
+            const comma = result.indexOf(",");
+            resolve(comma >= 0 ? result.slice(comma + 1) : result);
+          };
+          reader.onerror = () => reject(reader.error || new Error("file reader error"));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function base64ToFile(base64, name, mimeType) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return new File([bytes], name || "documento", { type: mimeType || "application/octet-stream" });
+      }
+
+      function loadExtensionDocument(payload) {
+        if (!payload || !payload.contentBase64) {
+          throw new Error(t("extensionDocumentError"));
+        }
+        state.selectedFiles = [base64ToFile(payload.contentBase64, payload.name, payload.mimeType)];
+        if (/\.pdf$/i.test(String(payload.name || ""))) {
+          ui.formatSelect.value = "PAdES";
+        }
+        updateFileMeta();
+        updateSealVisibility();
+        syncPreviewFromInputs();
+        persistPreferences();
+        setResult(t("extensionDocumentLoaded"), "ok");
+      }
+
+      function installExtensionBridge() {
+        window.addEventListener("message", (event) => {
+          if (event.origin !== window.location.origin) return;
+          const data = event.data || {};
+          if (data.type === "grxfirma-extension-document") {
+            try {
+              loadExtensionDocument(data.document);
+            } catch (err) {
+              setResult((err && err.message) || t("extensionDocumentError"), "bad");
+            }
+            return;
+          }
+          if (data.type === "grxfirma-extension-document-error") {
+            setResult(t("extensionDocumentError") + " " + String(data.error || ""), "bad");
+          }
+        });
+      }
+
+      async function buildBatchResultsHTML(results, originalItems, format) {
+        const extension = format === "PAdES" ? ".pdf" : (format === "XAdES" ? ".xsig" : (format === "XMLdSig" ? ".dsig" : (format === "ODF" ? ".odt" : (format === "OOXML" ? ".docx" : (format === "FacturaE" ? ".xml" : (format === "ASiC-XAdES" ? ".asics" : ".csig"))))));
+        const rows = await Promise.all(results.map(async (item, index) => {
+          let downloadHtml = "";
+          if (item && item.ok && item.signed_content_base64) {
+            const raw = Uint8Array.from(atob(item.signed_content_base64), (c) => c.charCodeAt(0));
+            const blob = new Blob([raw], { type: format === "PAdES" ? "application/pdf" : "application/octet-stream" });
+            const url = URL.createObjectURL(blob);
+            state.signDownloadUrls.push(url);
+            const filenameBase = sourceFileBasename(String(item.name || ("documento_" + (index + 1)))).replace(/\.[^.]+$/, "");
+            downloadHtml = ' <a class="link-btn" href="' + url + '" download="' + escapeHtml(filenameBase + "_firmado" + extension) + '">' + escapeHtml(t("downloadSignedBatch")) + '</a>';
+          }
+          const originalItem = Array.isArray(originalItems) ? originalItems[index] : null;
+          const verification = item && item.ok
+            ? await verifySignedPayload(
+                item.signed_content_base64 || "",
+                originalItem && originalItem.content_base64,
+                item.name || (originalItem && originalItem.name) || ("documento_" + (index + 1)),
+                signedMimeTypeForFormat(item && item.format ? item.format : format, item && item.name ? item.name : (originalItem && originalItem.name)),
+                item && item.outputPath ? item.outputPath : ""
+              )
+            : null;
+          const badgeClass = item && item.ok ? "ok" : "bad";
+          const statusText = item && item.ok ? t("signSuccess") : (item && item.error ? item.error : t("batchResultError"));
+          return '<li><span class="status ' + badgeClass + '">' + escapeHtml(String(item && item.name ? item.name : ("#" + (index + 1)))) + ': ' + escapeHtml(statusText) + '</span>' + downloadHtml + buildVerificationHTML(verification) + '</li>';
+        }));
+        return '<ul style="margin:12px 0 0 18px;padding:0">' + rows.join("") + '</ul>';
+      }
+
+      async function verifySignedPayload(signedContentBase64, originalContentBase64, filename, mimeType, inputPath, originalPath) {
+        if (!signedContentBase64 && !inputPath) return null;
+        try {
+          const payload = {
+            name: filename || "documento",
+            mime_type: mimeType || "application/octet-stream",
+            original_content_base64: originalContentBase64 || undefined
+          };
+          if (signedContentBase64) {
+            payload.content_base64 = signedContentBase64;
+          } else if (inputPath) {
+            payload.inputPath = inputPath;
+          }
+          if (originalPath) {
+            payload.originalPath = originalPath;
+          }
+          return await apiFetch("/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+        } catch (err) {
+          return {
+            valid: false,
+            reason: err.message || String(err),
+            details: [],
+            signers: [],
+            result: {
+              valid: false,
+              reason: err.message || String(err),
+              details: [],
+              signers: [],
+              integrity: { status: "invalid", reason: err.message || String(err), details: [] },
+              certificate: { status: "unknown", details: [] },
+              trust: { status: "unknown", details: [] },
+              warnings: [],
+              errors: [err.message || String(err)],
+              evidence: []
+            }
+          };
+        }
+      }
+
+      function verificationData(verification) {
+        if (!verification) return null;
+        if (verification.result && typeof verification.result === "object") return verification.result;
+        return verification;
+      }
+
+      function verificationStatusText(status) {
+        switch (String(status || "").toLowerCase()) {
+          case "valid":
+            return t("verificationStatusValid");
+          case "invalid":
+            return t("verificationStatusInvalid");
+          case "warning":
+            return t("verificationStatusWarning");
+          default:
+            return t("verificationStatusUnknown");
+        }
+      }
+
+      function verificationStatusClass(status) {
+        switch (String(status || "").toLowerCase()) {
+          case "valid":
+            return "ok";
+          case "invalid":
+            return "bad";
+          case "warning":
+            return "warn";
+          default:
+            return "";
+        }
+      }
+
+      function verificationPostureInfo(rich) {
+        const integrityStatus = String(rich && rich.integrity && rich.integrity.status || "").toLowerCase();
+        const trustStatus = String(rich && rich.trust && rich.trust.status || "").toLowerCase();
+        const certificateStatus = String(rich && rich.certificate && rich.certificate.status || "").toLowerCase();
+        const warnings = Array.isArray(rich && rich.warnings) ? rich.warnings : [];
+        const errors = Array.isArray(rich && rich.errors) ? rich.errors : [];
+        let kind = "ok";
+        let text = t("verificationPostureTrusted");
+        if (!rich || rich.valid === false || integrityStatus === "invalid" || errors.length > 0) {
+          kind = "bad";
+          text = t("verificationPostureInvalid");
+        } else if (trustStatus === "warning" || trustStatus === "invalid" || certificateStatus === "warning" || certificateStatus === "invalid" || warnings.length > 0) {
+          kind = "warn";
+          text = t("verificationPostureWarning");
+        }
+        return { kind, text };
+      }
+
+      function buildAspectHTML(title, aspect) {
+        if (!aspect || typeof aspect !== "object") return "";
+        const details = Array.isArray(aspect.details) ? aspect.details : [];
+        const reason = aspect.reason || "";
+        return '<div class="meta" style="margin-top:12px">' +
+          '<strong>' + escapeHtml(title) + '</strong><br>' +
+          '<strong>' + escapeHtml(t("verificationStatus")) + ':</strong> ' +
+            '<span class="status ' + verificationStatusClass(aspect.status) + '">' + escapeHtml(verificationStatusText(aspect.status)) + '</span><br>' +
+          '<strong>' + escapeHtml(t("verificationReason")) + ':</strong> ' + escapeHtml(reason || t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("verificationDetails")) + ':</strong> ' + escapeHtml(details.length ? details.join("\n") : t("notAvailable")) +
+        '</div>';
+      }
+
+      function buildStringListHTML(title, values) {
+        const items = Array.isArray(values) ? values.filter(Boolean) : [];
+        return '<div class="meta" style="margin-top:12px">' +
+          '<strong>' + escapeHtml(title) + '</strong><br>' +
+          escapeHtml(items.length ? items.join("\n") : t("notAvailable")) +
+        '</div>';
+      }
+
+      function buildSignerSummariesHTML(items) {
+        const rows = Array.isArray(items) ? items : [];
+        if (!rows.length) return buildStringListHTML(t("verificationSignerSummary"), []);
+        return '<div class="meta" style="margin-top:12px">' +
+          '<strong>' + escapeHtml(t("verificationSignerSummary")) + '</strong><br>' +
+          rows.map((item) => {
+            const parts = [];
+            if (item.subject) parts.push(item.subject);
+            if (item.issuer) parts.push(item.issuer);
+            if (item.fingerprint) parts.push(item.fingerprint);
+            if (!parts.length && item.id) parts.push(item.id);
+            return escapeHtml(parts.join(" | "));
+          }).join("<br>") +
+        '</div>';
+      }
+
+      function buildEvidenceHTML(items) {
+        const rows = Array.isArray(items) ? items : [];
+        if (!rows.length) return buildStringListHTML(t("verificationEvidence"), []);
+        return '<div class="meta" style="margin-top:12px">' +
+          '<strong>' + escapeHtml(t("verificationEvidence")) + '</strong><br>' +
+          rows.map((item) => {
+            const type = item && item.type ? String(item.type) : t("notAvailable");
+            const summary = item && item.summary ? String(item.summary) : "";
+            return '<strong>' + escapeHtml(t("verificationType")) + ':</strong> ' + escapeHtml(type) +
+              (summary ? ' · ' + escapeHtml(summary) : '');
+          }).join("<br>") +
+        '</div>';
+      }
+
+      function buildVerificationPostureHTML(rich) {
+        const posture = verificationPostureInfo(rich);
+        return '<div class="status ' + posture.kind + '" style="margin-top:12px"><strong>' +
+          escapeHtml(t("verificationPosture")) + ':</strong> ' + escapeHtml(posture.text) + '</div>';
+      }
+
+      function renderQuickVerifyResultSummary(verification) {
+        if (!verification) {
+          ui.quickVerifyResultSummary.innerHTML = '<span class="muted">' + escapeHtml(t("quickVerifyResultPending")) + '</span>';
+          return;
+        }
+        const rich = verificationData(verification);
+        const posture = verificationPostureInfo(rich);
+        const signers = Array.isArray(rich && rich.signers) ? rich.signers : [];
+        ui.quickVerifyResultSummary.innerHTML =
+          '<strong>' + escapeHtml(t("quickVerifyResultTitle")) + '</strong><br>' +
+          '<span class="status ' + posture.kind + '">' + escapeHtml(posture.text) + '</span><br>' +
+          '<strong>' + escapeHtml(t("verificationStatus")) + ':</strong> ' + escapeHtml(rich && rich.valid ? t("verificationValid") : t("verificationInvalid")) + '<br>' +
+          '<strong>' + escapeHtml(t("verificationFormat")) + ':</strong> ' + escapeHtml(rich && rich.format ? rich.format : t("notAvailable")) + ' · ' +
+            '<strong>' + escapeHtml(t("verificationCoverage")) + ':</strong> ' + escapeHtml(rich && rich.coverage ? rich.coverage : t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("verificationIntegrity")) + ':</strong> ' + escapeHtml(verificationStatusText(rich && rich.integrity && rich.integrity.status)) + ' · ' +
+            '<strong>' + escapeHtml(t("verificationCertificate")) + ':</strong> ' + escapeHtml(verificationStatusText(rich && rich.certificate && rich.certificate.status)) + ' · ' +
+            '<strong>' + escapeHtml(t("verificationTrust")) + ':</strong> ' + escapeHtml(verificationStatusText(rich && rich.trust && rich.trust.status)) + '<br>' +
+          '<strong>' + escapeHtml(t("verificationSigners")) + ':</strong> ' + escapeHtml(signers.length ? String(signers.length) : t("notAvailable"));
+      }
+
+      function renderVerificationExportSummary(verification, baseName) {
+        if (!verification) {
+          state.lastVerificationJSON = "";
+          ui.verificationExportSummary.innerHTML = '<span class="muted">' + escapeHtml(t("quickVerifyExportPending")) + '</span>';
+          return;
+        }
+        state.lastVerificationJSON = JSON.stringify(verification, null, 2);
+        const filename = sourceFileBasename(baseName || "verificacion").replace(/\.[^.]+$/, "") + "_verificacion.json";
+        const blob = new Blob([state.lastVerificationJSON], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        state.signDownloadUrls.push(url);
+        const copyButton = navigator.clipboard && typeof navigator.clipboard.writeText === "function"
+          ? ' <button type="button" class="link-btn light" data-copy-verification-json="1">' + escapeHtml(t("quickVerifyCopyReady")) + '</button>'
+          : "";
+        ui.verificationExportSummary.innerHTML =
+          '<a class="link-btn secondary" href="' + url + '" download="' + escapeHtml(filename) + '">' +
+          escapeHtml(t("quickVerifyExportReady")) +
+          '</a>' + copyButton;
+      }
+
+      function buildVerificationHTML(verification) {
+        if (!verification) return "";
+        const rich = verificationData(verification);
+        const signers = Array.isArray(rich.signers) ? rich.signers : [];
+        const details = Array.isArray(rich.details) ? rich.details : [];
+        const valid = !!rich.valid;
+        return buildVerificationPostureHTML(rich) +
+        '<div class="meta" style="margin-top:12px">' +
+          '<strong>' + escapeHtml(t("verifyAfterSign")) + '</strong><br>' +
+          '<strong>' + escapeHtml(t("verificationStatus")) + ':</strong> ' + escapeHtml(valid ? t("verificationValid") : t("verificationInvalid")) + '<br>' +
+          '<strong>' + escapeHtml(t("verificationReason")) + ':</strong> ' + escapeHtml(rich.reason || t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("verificationSigners")) + ':</strong> ' + escapeHtml(signers.length ? signers.join("\n") : t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("verificationDetails")) + ':</strong> ' + escapeHtml(details.length ? details.join("\n") : t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("verificationFormat")) + ':</strong> ' + escapeHtml(rich.format || t("notAvailable")) + '<br>' +
+          '<strong>' + escapeHtml(t("verificationCoverage")) + ':</strong> ' + escapeHtml(rich.coverage || t("notAvailable")) +
+        '</div>' +
+        buildAspectHTML(t("verificationIntegrity"), rich.integrity) +
+        buildAspectHTML(t("verificationCertificate"), rich.certificate) +
+        buildAspectHTML(t("verificationTrust"), rich.trust) +
+        buildStringListHTML(t("verificationWarnings"), rich.warnings) +
+        buildStringListHTML(t("verificationErrors"), rich.errors) +
+        buildSignerSummariesHTML(rich.signerSummaries) +
+        buildEvidenceHTML(rich.evidence);
+      }
+
+      async function performSignRequest(payload) {
+        const requestId = newSignRequestId();
+        const requestPayload = { ...payload, request_id: requestId };
+        state.lastRequestId = requestId;
+        const response = await apiFetch("/sign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestPayload)
+        });
+        state.lastRequestId = supportIncidentSafeRequestId(response.request_id) || requestId;
+        return response;
+      }
+
+      function newSignRequestId() {
+        if (!window.crypto || typeof window.crypto.getRandomValues !== "function") {
+          throw new Error(t("notAvailable"));
+        }
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+        return "web-" + Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+      }
+
+      async function signDocument() {
+        clearDownloadUrl();
+        state.lastGuidedDiagnostic = null;
+        renderResultArtifactSummary(null);
+        const localPath = ui.localPathInput.value.trim();
+        const outputPath = ui.localOutputPathInput.value.trim();
+        if (state.selectedFiles.length === 0 && !localPath) {
+          setResult(t("needFile"), "bad");
+          return;
+        }
+        if (!state.selectedCertificateId) {
+          setResult(t("needCertificate"), "bad");
+          return;
+        }
+        setResult(t("signing"), "warn");
+        try {
+          if (state.selectedFiles.length === 1 || (state.selectedFiles.length === 0 && localPath)) {
+            const file = state.selectedFiles[0];
+            const inputName = file ? (sourceFileName(file) || file.name) : (localPath.split(/[\\/]/).pop() || "documento");
+            const inputMime = file ? inferMimeType(file) : inferMimeType(null, localPath);
+            const payload = {
+              name: inputName,
+              mime_type: inputMime,
+              format: currentFormat(),
+              action: currentAction(),
+              certificate_id: state.selectedCertificateId,
+              options: buildSignOptions(),
+              saveToDisk: ui.saveToDisk.checked,
+              returnSignatureB64: ui.returnB64.checked,
+              strictCompat: ui.strictCompat.checked
+            };
+            if (outputPath) {
+              payload.outputPath = outputPath;
+            }
+            if (ui.overwriteOutput.checked) {
+              payload.overwrite = "true";
+            }
+            if (file) {
+              payload.content_base64 = await fileToBase64(file);
+            } else {
+              payload.inputPath = localPath;
+            }
+            const initialOriginalBase64 = payload.content_base64 || "";
+            let response;
+            let multiInfoHtml = "";
+            if (ui.enableMultiCosign.checked) {
+              if (!supportsGuidedMultiCosign()) {
+                throw new Error(t("multiCosignUnsupported"));
+              }
+              const additionalIds = multiCosignAdditionalIds();
+              if (!additionalIds.length) {
+                throw new Error(t("multiCosignNoAdditional"));
+              }
+              let workingResponse = await performSignRequest({
+                ...payload,
+                saveToDisk: false,
+                returnSignatureB64: true,
+                outputPath: ""
+              });
+              const followingCoSignOptions = stripVisualOptionsForCoSign(payload.options);
+              const appliedSigners = [state.selectedCertificateId];
+              for (const additionalId of additionalIds) {
+                workingResponse = await performSignRequest({
+                  name: inputName,
+                  mime_type: signedMimeTypeForFormat(workingResponse.format || currentFormat(), inputName),
+                  content_base64: workingResponse.signed_content_base64,
+                  format: currentFormat(),
+                  action: "cosign",
+                  certificate_id: additionalId,
+                  options: followingCoSignOptions,
+                  saveToDisk: false,
+                  returnSignatureB64: true,
+                  strictCompat: ui.strictCompat.checked
+                });
+                appliedSigners.push(additionalId);
+              }
+              response = workingResponse;
+              const signerLabels = appliedSigners.map((id) => {
+                const cert = state.certificates.find((item) => item.id === id);
+                return cert ? (cert.subjectName || cert.id || id) : id;
+              });
+              multiInfoHtml =
+                '<div class="meta" style="margin-top:12px">' +
+                  '<strong>' + escapeHtml(t("multiCosignExecutedTitle")) + ':</strong> ' + escapeHtml(String(signerLabels.length)) + '<br>' +
+                  '<strong>' + escapeHtml(t("multiCosignExecutedChain")) + ':</strong> ' + escapeHtml(signerLabels.join(" · ")) +
+                  (ui.saveToDisk.checked ? '<br><span class="muted">' + escapeHtml(t("multiCosignMemoryOnlyNotice")) + '</span>' : '') +
+                '</div>';
+            } else {
+              response = await performSignRequest(payload);
+            }
+
+            const verification = await verifySignedPayload(
+              response.signed_content_base64 || "",
+              currentAction() === "sign" ? initialOriginalBase64 : "",
+              payload.name,
+              inputMime,
+              response.outputPath || payload.inputPath || ""
+            );
+            renderVerificationExportSummary(verification, payload.name || response.outputPath || "firmado");
+
+            const mime = signedMimeTypeForFormat(response.format || currentFormat(), payload.name);
+            let downloadHtml = "";
+            if (response.signed_content_base64) {
+              const raw = Uint8Array.from(atob(response.signed_content_base64), (c) => c.charCodeAt(0));
+              const blob = new Blob([raw], { type: mime });
+              const url = URL.createObjectURL(blob);
+              state.signDownloadUrls.push(url);
+              const extension = currentFormat() === "PAdES" ? ".pdf" : (currentFormat() === "XAdES" ? ".xsig" : (currentFormat() === "XMLdSig" ? ".dsig" : (currentFormat() === "ODF" ? ".odt" : (currentFormat() === "OOXML" ? ".docx" : (currentFormat() === "FacturaE" ? ".xml" : (currentFormat() === "ASiC-XAdES" ? ".asics" : ".csig"))))));
+              const filename = sourceFileBasename(payload.name || "firmado").replace(/\.[^.]+$/, "") + "_firmado" + extension;
+              downloadHtml = '<div style="margin-top:12px"><a class="link-btn" href="' + url + '" download="' + escapeHtml(filename) + '">' + escapeHtml(t("downloadSigned")) + '</a></div>';
+            }
+            let delivery = t("resultArtifactMemoryOnly");
+            if (response.outputPath && response.signed_content_base64) {
+              delivery = t("resultArtifactStoredAndDownload");
+            } else if (response.outputPath) {
+              delivery = t("resultArtifactStored");
+            } else if (response.signed_content_base64) {
+              delivery = t("resultArtifactDownloadReady");
+            }
+            renderResultArtifactSummary({
+              mode: "single",
+              format: response.format || currentFormat(),
+              algorithm: response.algorithm || "",
+              outputPath: response.outputPath || "",
+              delivery: delivery
+            });
+            ui.resultBox.innerHTML =
+              '<div class="status ok">' + escapeHtml(t("signSuccess")) + '</div>' +
+              '<div class="meta">' +
+                '<strong>' + escapeHtml(t("verificationFormat")) + ':</strong> ' + escapeHtml(response.format || "") + '<br>' +
+                '<strong>' + escapeHtml(t("verificationAlgorithm")) + ':</strong> ' + escapeHtml(response.algorithm || "") + '<br>' +
+                '<strong>' + escapeHtml(t("verificationCertificate")) + ':</strong> ' + escapeHtml(response.certificate_id || "") + '<br>' +
+                '<strong>' + escapeHtml(t("outputPath")) + ':</strong> ' + escapeHtml(response.outputPath || t("memoryOutput")) +
+              '</div>' +
+              multiInfoHtml +
+              buildVerificationHTML(verification) +
+              downloadHtml;
+            return;
+          }
+
+          const items = [];
+          for (const file of state.selectedFiles) {
+            items.push({
+              name: sourceFileName(file) || file.name,
+              mime_type: inferMimeType(file),
+              content_base64: await fileToBase64(file)
+            });
+          }
+          const payload = {
+            request_id: newSignRequestId(),
+            items,
+            format: currentFormat(),
+            action: currentAction(),
+            certificate_id: state.selectedCertificateId,
+            options: buildSignOptions(),
+            saveToDisk: ui.saveToDisk.checked,
+            returnSignatureB64: ui.returnB64.checked,
+            strictCompat: ui.strictCompat.checked
+          };
+          state.lastRequestId = payload.request_id;
+          if (ui.overwriteOutput.checked) {
+            payload.overwrite = "true";
+          }
+          const response = await apiFetch("/sign-batch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          state.lastRequestId = supportIncidentSafeRequestId(response.request_id) || payload.request_id;
+          renderResultArtifactSummary({
+            mode: "batch",
+            format: currentFormat(),
+            total: response.total || state.selectedFiles.length,
+            success: response.successCount || 0,
+            failure: response.failureCount || 0,
+            downloadable: Array.isArray(response.results) ? response.results.filter((item) => item && item.ok && item.signed_content_base64).length : 0
+          });
+          const successClass = response.failureCount > 0 ? "warn" : "ok";
+          const headline = response.failureCount > 0 ? t("batchSignPartial") : t("batchSignSuccess");
+          ui.resultBox.innerHTML =
+            '<div class="status ' + successClass + '">' + escapeHtml(headline) + '</div>' +
+            '<div class="meta">' +
+              '<strong>' + escapeHtml(t("batchResultTotal")) + ':</strong> ' + escapeHtml(String(response.total || state.selectedFiles.length)) + '<br>' +
+              '<strong>' + escapeHtml(t("batchResultOk")) + ':</strong> ' + escapeHtml(String(response.successCount || 0)) + '<br>' +
+              '<strong>' + escapeHtml(t("batchResultKo")) + ':</strong> ' + escapeHtml(String(response.failureCount || 0)) +
+            '</div>' +
+            await buildBatchResultsHTML(Array.isArray(response.results) ? response.results : [], payload.items, currentFormat());
+        } catch (err) {
+          setResult(err.message || String(err), "bad");
+        }
+      }
+
+      async function quickVerify() {
+        const path = ui.quickVerifyPathInput.value.trim();
+        const originalPath = ui.quickVerifyOriginalPathInput.value.trim();
+        if (!state.quickVerifyFile && !path) {
+          setResult(t("quickVerifyNeedArtifact"), "bad");
+          return;
+        }
+        setResult(t("quickVerifyRunning"), "warn");
+        try {
+          const verification = await verifySignedPayload(
+            state.quickVerifyFile ? await fileToBase64(state.quickVerifyFile) : "",
+            state.quickVerifyOriginalFile ? await fileToBase64(state.quickVerifyOriginalFile) : "",
+            state.quickVerifyFile ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name || "documento") : (path.split(/[\\/]/).pop() || "documento"),
+            state.quickVerifyFile ? inferMimeType(state.quickVerifyFile) : signedMimeTypeForFormat("AUTO", path),
+            path,
+            originalPath
+          );
+          renderQuickVerifyResultSummary(verification);
+          renderVerificationExportSummary(verification, state.quickVerifyFile ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name || "verificacion") : (path.split(/[\\/]/).pop() || "verificacion"));
+          ui.resultBox.innerHTML = buildVerificationHTML(verification);
+        } catch (err) {
+          renderQuickVerifyResultSummary({
+            valid: false,
+            result: {
+              valid: false,
+              integrity: { status: "invalid" },
+              certificate: { status: "unknown" },
+              trust: { status: "unknown" },
+              errors: [err.message || String(err)]
+            }
+          });
+          renderVerificationExportSummary(null);
+          setResult(err.message || String(err), "bad");
+        }
+      }
+
+      function bindEvents() {
+        ui.pickFileBtn.addEventListener("click", () => ui.fileInput.click());
+        ui.pickDirectoryBtn.addEventListener("click", () => ui.directoryInput.click());
+        ui.dropzone.addEventListener("click", () => ui.fileInput.click());
+        ui.fileInput.addEventListener("change", () => {
+          ui.directoryInput.value = "";
+          ui.localPathInput.value = "";
+          state.selectedFiles = Array.from(ui.fileInput.files || []);
+          updateFileMeta();
+          updateSealVisibility();
+          updateMultiCosignVisibility();
+          renderMultiCosignSummary();
+          syncPreviewFromInputs();
+          persistPreferences();
+        });
+        ui.directoryInput.addEventListener("change", () => {
+          ui.fileInput.value = "";
+          ui.localPathInput.value = "";
+          state.selectedFiles = Array.from(ui.directoryInput.files || []);
+          updateFileMeta();
+          updateSealVisibility();
+          updateMultiCosignVisibility();
+          renderMultiCosignSummary();
+          syncPreviewFromInputs();
+          persistPreferences();
+        });
+        ui.clearFileBtn.addEventListener("click", () => {
+          ui.fileInput.value = "";
+          ui.directoryInput.value = "";
+          ui.localPathInput.value = "";
+          state.selectedFiles = [];
+          updateFileMeta();
+          updateSealVisibility();
+          updateMultiCosignVisibility();
+          renderMultiCosignSummary();
+          syncPreviewFromInputs();
+          persistPreferences();
+        });
+        ["dragenter", "dragover"].forEach((name) => {
+          ui.dropzone.addEventListener(name, (event) => {
+            event.preventDefault();
+            ui.dropzone.classList.add("drag");
+          });
+        });
+        ["dragleave", "drop"].forEach((name) => {
+          ui.dropzone.addEventListener(name, (event) => {
+            event.preventDefault();
+            ui.dropzone.classList.remove("drag");
+          });
+        });
+        ui.dropzone.addEventListener("drop", (event) => {
+          ui.fileInput.value = "";
+          ui.directoryInput.value = "";
+          ui.localPathInput.value = "";
+          const files = event.dataTransfer && event.dataTransfer.files;
+          state.selectedFiles = Array.from(files || []);
+          updateFileMeta();
+          updateSealVisibility();
+          updateMultiCosignVisibility();
+          renderMultiCosignSummary();
+          syncPreviewFromInputs();
+          persistPreferences();
+        });
+        ui.refreshCertificatesBtn.addEventListener("click", loadCertificates);
+        ui.certificateExportSummary.addEventListener("click", async (event) => {
+          const copyJSON = event.target && event.target.closest ? event.target.closest("[data-copy-certificate-json]") : null;
+          const copyFingerprint = event.target && event.target.closest ? event.target.closest("[data-copy-certificate-fingerprint]") : null;
+          if (!copyJSON && !copyFingerprint) return;
+          event.preventDefault();
+          if (!(navigator.clipboard && typeof navigator.clipboard.writeText === "function")) {
+            setStatus("warn", copyFingerprint ? t("certificateFingerprintCopyError") : t("certificateCopyError"));
+            return;
+          }
+          try {
+            if (copyFingerprint) {
+              if (!state.lastCertificateFingerprint) {
+                setStatus("warn", t("certificateExportPending"));
+                return;
+              }
+              await navigator.clipboard.writeText(state.lastCertificateFingerprint);
+              setStatus("ok", t("certificateFingerprintCopyDone"));
+              return;
+            }
+            if (!state.lastCertificateJSON) {
+              setStatus("warn", t("certificateExportPending"));
+              return;
+            }
+            await navigator.clipboard.writeText(state.lastCertificateJSON);
+            setStatus("ok", t("certificateCopyDone"));
+          } catch (err) {
+            setStatus("bad", copyFingerprint ? t("certificateFingerprintCopyError") : t("certificateCopyError"));
+          }
+        });
+        ui.verificationExportSummary.addEventListener("click", async (event) => {
+          const trigger = event.target && event.target.closest ? event.target.closest("[data-copy-verification-json]") : null;
+          if (!trigger) return;
+          event.preventDefault();
+          if (!state.lastVerificationJSON) {
+            setStatus("warn", t("quickVerifyExportPending"));
+            return;
+          }
+          if (!(navigator.clipboard && typeof navigator.clipboard.writeText === "function")) {
+            setStatus("warn", t("quickVerifyCopyError"));
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(state.lastVerificationJSON);
+            setStatus("ok", t("quickVerifyCopyDone"));
+          } catch (err) {
+            setStatus("bad", t("quickVerifyCopyError"));
+          }
+        });
+        ui.supportCopyBtn.addEventListener("click", async () => {
+          if (!(navigator.clipboard && typeof navigator.clipboard.writeText === "function")) {
+            setStatus("warn", t("supportCopyUnavailable"));
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(buildSupportIncidentText());
+            setStatus("ok", t("supportCopyDone"));
+          } catch (err) {
+            setStatus("bad", t("supportCopyError"));
+          }
+        });
+        ui.supportExpertMode.addEventListener("change", () => {
+          renderSupportSummary();
+          persistPreferences();
+        });
+        ui.prepareIncidentBtn.addEventListener("click", prepareSupportIncident);
+        ui.supportExportSummary.addEventListener("click", async (event) => {
+          const trigger = event.target && event.target.closest ? event.target.closest("[data-copy-support-incident]") : null;
+          if (!trigger) return;
+          event.preventDefault();
+          if (!state.lastSupportIncidentJSON) {
+            setStatus("warn", t("supportExportPending"));
+            return;
+          }
+          if (!(navigator.clipboard && typeof navigator.clipboard.writeText === "function")) {
+            setStatus("warn", t("supportCopyUnavailable"));
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(state.lastSupportIncidentJSON);
+            setStatus("ok", t("supportExportCopyDone"));
+          } catch (err) {
+            setStatus("bad", t("supportExportCopyError"));
+          }
+        });
+        ui.autoSelectCertificateBtn.addEventListener("click", autoSelectCertificate);
+        ui.clearSelectedCertificateBtn.addEventListener("click", () => {
+          state.selectedCertificateId = "";
+          if (ui.certificateSelect) {
+            ui.certificateSelect.value = "";
+          }
+          renderCertificatePreferenceSummary(null, false);
+          renderCertificateAutoSelectSummary("", t("certificateAutoSelectIdle"));
+          renderMultiCosignCandidates();
+          updateMultiCosignVisibility();
+          renderMultiCosignSummary();
+          describeCertificate(null);
+          persistPreferences();
+        });
+        [ui.localPathInput, ui.localOutputPathInput].forEach((element) => {
+          element.addEventListener("input", () => {
+            if (element === ui.localPathInput && element.value.trim()) {
+              ui.fileInput.value = "";
+              ui.directoryInput.value = "";
+              state.selectedFiles = [];
+            }
+            updateFileMeta();
+            updateSealVisibility();
+            updateMultiCosignVisibility();
+            renderMultiCosignSummary();
+            persistPreferences();
+          });
+        });
+        [ui.saveToDisk, ui.returnB64, ui.overwriteOutput].forEach((element) => {
+          element.addEventListener("change", () => {
+            renderSignPlanSummary();
+            renderVerificationPlanSummary();
+            renderOutputDeliverySummary();
+            persistPreferences();
+          });
+        });
+        ui.certificateSelect.addEventListener("change", () => {
+          state.selectedCertificateId = ui.certificateSelect.value;
+          renderCertificatePreferenceSummary(state.certificates.find((item) => item.id === state.selectedCertificateId) || null, false);
+          renderMultiCosignCandidates();
+          updateMultiCosignVisibility();
+          renderMultiCosignSummary();
+          persistPreferences();
+          describeCertificate(state.certificates.find((item) => item.id === state.selectedCertificateId));
+        });
+        ui.rememberSelectedCertificate.addEventListener("change", () => {
+          renderCertificatePreferenceSummary(state.certificates.find((item) => item.id === state.selectedCertificateId) || null, false);
+          persistPreferences();
+        });
+        [ui.certificateSubjectFilter, ui.certificateIssuerFilter].forEach((element) => {
+          element.addEventListener("input", () => {
+            renderCertificateInventory();
+            persistPreferences();
+          });
+        });
+        ui.clearCertificateFiltersBtn.addEventListener("click", () => {
+          clearCertificateFilters();
+        });
+        [ui.onlyUsableCertificates, ui.onlyValidCertificates].forEach((element) => {
+          element.addEventListener("change", () => {
+            renderCertificateInventory();
+            persistPreferences();
+          });
+        });
+        ui.formatSelect.addEventListener("change", () => {
+          updateSealVisibility();
+          updateMultiCosignVisibility();
+          renderSignPlanSummary();
+          renderVerificationPlanSummary();
+          renderOutputDeliverySummary();
+          renderOutputArtifactSummary();
+          renderMetadataApplicabilitySummary();
+          renderMetadataDeliverySummary();
+          persistPreferences();
+        });
+        ui.actionSelect.addEventListener("change", () => {
+          updateMultiCosignVisibility();
+          renderSignPlanSummary();
+          renderCertificateRoleSummary();
+          renderOperationStrategySummary();
+          renderVerificationPlanSummary();
+          renderOutputDeliverySummary();
+          persistPreferences();
+        });
+        ui.enableMultiCosign.addEventListener("change", () => {
+          updateMultiCosignVisibility();
+          renderMultiCosignSummary();
+          renderSignPlanSummary();
+          renderOperationStrategySummary();
+          renderOutputDeliverySummary();
+          persistPreferences();
+        });
+        ui.multiCosignSelect.addEventListener("change", () => {
+          renderMultiCosignSummary();
+          persistPreferences();
+        });
+        ui.multiCosignSelectAllBtn.addEventListener("click", selectAllMultiCosignCandidates);
+        ui.multiCosignClearBtn.addEventListener("click", clearMultiCosignCandidates);
+        [ui.signProfile, ui.tsaUrl, ui.padesSubFilter].forEach((element) => {
+          const evt = element.tagName === "SELECT" ? "change" : "input";
+          element.addEventListener(evt, () => {
+            renderSignPlanSummary();
+            persistPreferences();
+          });
+        });
+        ui.strictCompat.addEventListener("change", persistPreferences);
+        ui.keepSealText.addEventListener("change", persistPreferences);
+        [ui.signatureQRContent, ui.signatureReason, ui.signatureLocation, ui.signatureContact].forEach((element) => {
+          element.addEventListener("input", () => {
+            persistPreferences();
+            renderMetadataSummary();
+            renderMetadataApplicabilitySummary();
+            renderMetadataDeliverySummary();
+            renderPreview();
+          });
+        });
+        [ui.facturaePolicyVersion, ui.facturaeSignerRole, ui.facturaePolicyIdentifier, ui.facturaePolicyIdentifierHash, ui.facturaePolicyQualifier, ui.facturaeSignatureCity, ui.facturaeSignatureProvince, ui.facturaeSignaturePostalCode, ui.facturaeSignatureCountry].forEach((element) => {
+          const evt = element.tagName === "SELECT" ? "change" : "input";
+          element.addEventListener(evt, persistPreferences);
+        });
+        ui.enableVisibleSeal.addEventListener("change", () => {
+          updateSealVisibility();
+          renderSignPlanSummary();
+          renderMetadataDeliverySummary();
+          persistPreferences();
+        });
+        ui.sealAllPages.addEventListener("change", () => {
+          updateSealPageMode();
+          applyPageSelectionValidity();
+          persistPreferences();
+        });
+        ui.sealPosition.addEventListener("change", () => {
+          if (ui.sealPosition.value !== "custom") {
+            applyPreset(ui.sealPosition.value);
+          }
+          persistPreferences();
+        });
+        [ui.sealPage, ui.sealX, ui.sealY, ui.sealW, ui.sealH].forEach((element) => {
+          element.addEventListener("change", () => {
+            syncPreviewFromInputs();
+            ui.sealPosition.value = "custom";
+            persistPreferences();
+          });
+        });
+        ui.sealPage.addEventListener("blur", () => {
+          applyPageSelectionValidity();
+          persistPreferences();
+        });
+        ui.selectSealImageBtn.addEventListener("click", () => ui.sealImageInput.click());
+        ui.sealImageInput.addEventListener("change", () => {
+          const file = ui.sealImageInput.files && ui.sealImageInput.files[0] ? ui.sealImageInput.files[0] : null;
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            state.sealImageDataUrl = String(reader.result || "");
+            ui.sealImagePreview.src = state.sealImageDataUrl;
+            ui.sealImagePreview.hidden = !state.sealImageDataUrl;
+            renderPreview();
+          };
+          reader.readAsDataURL(file);
+        });
+        ui.removeSealImageBtn.addEventListener("click", () => {
+          ui.sealImageInput.value = "";
+          state.sealImageDataUrl = "";
+          ui.sealImagePreview.src = "";
+          ui.sealImagePreview.hidden = true;
+          renderPreview();
+        });
+        ui.signBtn.addEventListener("click", signDocument);
+        ui.quickVerifyPickBtn.addEventListener("click", () => ui.quickVerifyFileInput.click());
+        ui.quickVerifyPickOriginalBtn.addEventListener("click", () => ui.quickVerifyOriginalFileInput.click());
+        ui.quickVerifyFileInput.addEventListener("change", () => {
+          state.quickVerifyFile = ui.quickVerifyFileInput.files && ui.quickVerifyFileInput.files[0] ? ui.quickVerifyFileInput.files[0] : null;
+          if (state.quickVerifyFile) {
+            ui.quickVerifyPathInput.value = "";
+          }
+          renderQuickVerifySummary();
+          persistPreferences();
+        });
+        ui.quickVerifyOriginalFileInput.addEventListener("change", () => {
+          state.quickVerifyOriginalFile = ui.quickVerifyOriginalFileInput.files && ui.quickVerifyOriginalFileInput.files[0] ? ui.quickVerifyOriginalFileInput.files[0] : null;
+          if (state.quickVerifyOriginalFile) {
+            ui.quickVerifyOriginalPathInput.value = "";
+          }
+          renderQuickVerifySummary();
+          persistPreferences();
+        });
+        ui.quickVerifyClearBtn.addEventListener("click", () => {
+          ui.quickVerifyFileInput.value = "";
+          ui.quickVerifyOriginalFileInput.value = "";
+          ui.quickVerifyPathInput.value = "";
+          ui.quickVerifyOriginalPathInput.value = "";
+          state.quickVerifyFile = null;
+          state.quickVerifyOriginalFile = null;
+          renderQuickVerifySummary();
+          persistPreferences();
+        });
+        ui.quickVerifyPathInput.addEventListener("input", () => {
+          if (ui.quickVerifyPathInput.value.trim()) {
+            ui.quickVerifyFileInput.value = "";
+            state.quickVerifyFile = null;
+          }
+          renderQuickVerifySummary();
+          persistPreferences();
+        });
+        ui.quickVerifyOriginalPathInput.addEventListener("input", () => {
+          if (ui.quickVerifyOriginalPathInput.value.trim()) {
+            ui.quickVerifyOriginalFileInput.value = "";
+            state.quickVerifyOriginalFile = null;
+          }
+          renderQuickVerifySummary();
+          persistPreferences();
+        });
+        ui.quickVerifyBtn.addEventListener("click", quickVerify);
+        installDragAndResize();
+      }
+
+      async function init() {
+        restorePreferences();
+        installExtensionBridge();
+        bindEvents();
+        updateFileMeta();
+        syncPreviewFromInputs();
+        updateSealVisibility();
+        updateSealPageMode();
+        updateMultiCosignVisibility();
+        renderSignPlanSummary();
+        renderMultiCosignSummary();
+        renderCertificateRoleSummary();
+        renderOperationStrategySummary();
+        renderVerificationPlanSummary();
+        renderOutputDeliverySummary();
+        renderOutputArtifactSummary();
+        renderProxySecretStoreSummary(null);
+        renderQuickVerifySummary();
+        renderResultArtifactSummary(null);
+        renderSupportSummary();
+        renderSelectionTypeSummary();
+        renderMetadataSummary();
+        renderMetadataApplicabilitySummary();
+        renderMetadataDeliverySummary();
+        clearSupportExportSummary();
+        setResult(t("checking"), "warn");
+        await checkHealth();
+        await loadCertificates();
+        await loadProxySecretStoreStatus();
+      }
+
+      init().catch((err) => {
+        setStatus("bad", err.message || String(err));
+      });
+    })();
+  </script>
+</body>
+</html>

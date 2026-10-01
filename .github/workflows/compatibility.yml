@@ -1,0 +1,662 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+name: Compatibility
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compatibility-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  workflow-validation:
+    name: Workflow and CI scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install shell packaging test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends bats shellcheck
+
+      - name: Validate GitHub Actions syntax
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+
+      - name: Audit workflow safety policy
+        run: python3 scripts/ci/audit_workflows.py
+
+      - name: Validate Bash syntax
+        run: find packaging scripts -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
+
+      - name: Lint shell packaging scripts
+        run: >-
+          find packaging scripts -type f
+          \( -name '*.sh' -o -name '*.bats' \) -print0 |
+          xargs -0 shellcheck
+
+      - name: Test installer behavior
+        run: bats packaging/linux/tests packaging/macos/tests packaging/windows/tests
+
+      - name: Test official release policy
+        run: |
+          python3 scripts/release/check-official-release-policy.py
+          bats scripts/release/tests/release_pipeline.bats
+          python3 -m unittest discover \
+            -s scripts/release/tests \
+            -p 'test_*.py' \
+            -v
+
+      - name: Validate CI Python syntax
+        env:
+          PYTHONPYCACHEPREFIX: ${{ runner.temp }}/pycache
+        run: python3 -m py_compile scripts/ci/*.py
+
+  native-go:
+    name: Go native (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-latest
+            python: python3
+          - name: Windows
+            os: windows-2022
+            python: python
+          - name: macOS
+            os: macos-latest
+            python: python3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Report native toolchain
+        run: go env GOVERSION GOOS GOARCH CGO_ENABLED
+
+      - name: Vet native packages
+        run: go vet ./...
+
+      - name: Build all native packages
+        run: go build ./...
+
+      - name: Run all native tests with public failure annotations
+        shell: bash
+        run: |
+          test_log="go-native-${{ matrix.name }}.jsonl"
+          set +e
+          go test -json -count=1 -timeout=5m ./... | tee "${test_log}"
+          test_exit="${PIPESTATUS[0]}"
+          set -e
+          if [[ "${test_exit}" -ne 0 ]]; then
+            "${{ matrix.python }}" scripts/ci/summarize_go_test_json.py \
+              "${test_log}" \
+              --title "Go native test failure (${{ matrix.name }})" ||
+              echo "::error title=Go native test failure::The JSON diagnostic parser failed; inspect the streamed test log."
+          fi
+          exit "${test_exit}"
+
+      - name: Test Windows CurrentUser certificate store mutations
+        if: ${{ matrix.name == 'Windows' }}
+        env:
+          GRXFIRMA_WINDOWS_CERT_STORE_INTEGRATION: "1"
+        run: >-
+          go test -count=1
+          ./internal/adapters/outbound/desktop/localtlstrust
+
+      # T074: miekg/pkcs11 no expone símbolos cuando CGo está desactivado.
+      # El stub debe conservar los contratos públicos en las tres plataformas.
+      - name: Test PKCS#11 fallback without CGo
+        env:
+          CGO_ENABLED: "0"
+        run: >-
+          go test -count=1
+          ./internal/adapters/outbound/desktop/pkcs11store
+
+  browser-extensions:
+    name: Chromium and Firefox extensions
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      WEB_EXT_VERSION: "10.5.0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Build unsigned browser smoke artifacts
+        run: python3 packaging/browser-extensions/build.py
+
+      - name: Validate archives and reproducibility
+        run: >-
+          python3 scripts/ci/validate_browser_extensions.py
+          --check-determinism
+          --report "${RUNNER_TEMP}/browser-validation.json"
+
+      - name: Validate JavaScript syntax
+        run: >-
+          find packaging/browser-extensions/src/chromium
+          packaging/browser-extensions/src/firefox
+          -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Run browser extension behavior tests
+        run: node --test packaging/browser-extensions/tests/*.test.mjs
+
+      - name: Run real-browser harness regression tests
+        run: |
+          python3 -m unittest discover \
+            -s packaging/browser-extensions/tests/chromium \
+            -p 'test_*.py'
+          python3 -m unittest discover \
+            -s packaging/browser-extensions/tests/firefox \
+            -p 'test_*.py'
+          bash -n \
+            packaging/browser-extensions/tests/chromium/run-e2e.sh \
+            packaging/browser-extensions/tests/chromium/install-playwright.sh \
+            packaging/browser-extensions/tests/firefox/run-e2e.sh
+
+      - name: Extract Firefox smoke artifact
+        run: |
+          mkdir -p "${RUNNER_TEMP}/firefox-extension"
+          firefox_xpi="packaging/browser-extensions/dipgra-extension-firefox-unsigned.xpi"
+          if [[ ! -f "${firefox_xpi}" ]]; then
+            firefox_xpi="packaging/browser-extensions/dipgra-extension-firefox.xpi"
+          fi
+          python3 -m zipfile -e "${firefox_xpi}" "${RUNNER_TEMP}/firefox-extension"
+
+      - name: Lint packaged Firefox extension
+        run: >-
+          npx --yes "web-ext@${WEB_EXT_VERSION}" lint
+          --source-dir "${RUNNER_TEMP}/firefox-extension"
+          --output text | tee "${RUNNER_TEMP}/firefox-web-ext-lint.txt"
+
+      - name: Upload unsigned browser smoke artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: browser-extensions-unsigned-smoke
+          path: |
+            packaging/browser-extensions/dipgra-extension-chromium.zip
+            packaging/browser-extensions/dipgra-extension-firefox*.xpi
+            ${{ runner.temp }}/browser-validation.json
+            ${{ runner.temp }}/firefox-web-ext-lint.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  linux-bundle:
+    name: Linux unsigned bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            dpkg-dev \
+            at-spi2-core \
+            dbus-x11 \
+            gcc \
+            g++ \
+            libgl1-mesa-dev \
+            libxxf86vm-dev \
+            openssl \
+            pkg-config \
+            python3-pyatspi \
+            qml6-module-qt-labs-settings \
+            qml6-module-qtqml \
+            qml6-module-qtqml-models \
+            qml6-module-qtqml-workerscript \
+            qml6-module-qtquick \
+            qml6-module-qtquick-controls \
+            qml6-module-qtquick-dialogs \
+            qml6-module-qtquick-layouts \
+            qml6-module-qtquick-templates \
+            qml6-module-qtquick-window \
+            qmake6 \
+            qt6-base-dev \
+            qt6-declarative-dev \
+            unzip \
+            xvfb \
+            xorg-dev
+
+      - name: Test Qt/QML security and product contracts
+        run: >-
+          python3 -m unittest discover
+          -s cmd/gui-qml/tests
+          -p 'test_*.py'
+          -v
+
+      - name: Test resident desktop agent
+        run: |
+          mkdir -p "${RUNNER_TEMP}/resident-agent-test"
+          qmake6 -o "${RUNNER_TEMP}/resident-agent-test/Makefile" \
+            cmd/gui-qml/residentagent_test.pro
+          make -C "${RUNNER_TEMP}/resident-agent-test" -j2
+          QT_QPA_PLATFORM=offscreen \
+            "${RUNNER_TEMP}/resident-agent-test/residentagent_test"
+
+      - name: Test temporary web compatibility lease
+        run: |
+          mkdir -p "${RUNNER_TEMP}/web-compatibility-lease-test"
+          qmake6 -o "${RUNNER_TEMP}/web-compatibility-lease-test/Makefile" \
+            cmd/gui-qml/webcompatibilitylease_test.pro
+          make -C "${RUNNER_TEMP}/web-compatibility-lease-test" -j2
+          QT_QPA_PLATFORM=offscreen \
+            "${RUNNER_TEMP}/web-compatibility-lease-test/webcompatibilitylease_test"
+
+      - name: Test incident privacy boundary
+        run: |
+          mkdir -p "${RUNNER_TEMP}/incident-privacy-test"
+          qmake6 -o "${RUNNER_TEMP}/incident-privacy-test/Makefile" \
+            cmd/gui-qml/incidentprivacy_test.pro
+          make -C "${RUNNER_TEMP}/incident-privacy-test" -j2
+          QT_QPA_PLATFORM=offscreen \
+            "${RUNNER_TEMP}/incident-privacy-test/incidentprivacy_test"
+
+      - name: Test bounded active diagnostics
+        run: |
+          mkdir -p "${RUNNER_TEMP}/active-diagnostics-test"
+          qmake6 -o "${RUNNER_TEMP}/active-diagnostics-test/Makefile" \
+            cmd/gui-qml/activediagnostics_test.pro
+          make -C "${RUNNER_TEMP}/active-diagnostics-test" -j2
+          QT_QPA_PLATFORM=offscreen \
+            "${RUNNER_TEMP}/active-diagnostics-test/activediagnostics_test"
+
+      - name: Test transient EncryptedData secret
+        run: |
+          mkdir -p "${RUNNER_TEMP}/transient-secret-test"
+          qmake6 -o "${RUNNER_TEMP}/transient-secret-test/Makefile" \
+            cmd/gui-qml/transientsecret_test.pro
+          make -C "${RUNNER_TEMP}/transient-secret-test" -j2
+          QT_QPA_PLATFORM=offscreen \
+            "${RUNNER_TEMP}/transient-secret-test/transientsecret_test"
+
+      - name: Test IPC secret is never deferred
+        run: |
+          mkdir -p "${RUNNER_TEMP}/ipc-transient-secret-test"
+          qmake6 -o "${RUNNER_TEMP}/ipc-transient-secret-test/Makefile" \
+            cmd/gui-qml/ipcbridge_transientsecret_test.pro
+          make -C "${RUNNER_TEMP}/ipc-transient-secret-test" -j2
+          QT_QPA_PLATFORM=offscreen \
+            "${RUNNER_TEMP}/ipc-transient-secret-test/ipcbridge_transientsecret_test"
+
+      - name: Test bundled executable resolution
+        run: |
+          mkdir -p "${RUNNER_TEMP}/executable-locator-test"
+          qmake6 -o "${RUNNER_TEMP}/executable-locator-test/Makefile" \
+            cmd/gui-qml/executablelocator_test.pro
+          make -C "${RUNNER_TEMP}/executable-locator-test" -j2
+          QT_QPA_PLATFORM=offscreen \
+            "${RUNNER_TEMP}/executable-locator-test/executablelocator_test"
+
+      - name: Test Qt child process environment
+        run: |
+          mkdir -p "${RUNNER_TEMP}/process-environment-test"
+          qmake6 -o "${RUNNER_TEMP}/process-environment-test/Makefile" \
+            cmd/gui-qml/processenvironment_test.pro
+          make -C "${RUNNER_TEMP}/process-environment-test" -j2
+          QT_QPA_PLATFORM=offscreen \
+            "${RUNNER_TEMP}/process-environment-test/processenvironment_test"
+
+      - name: Test Qt startup argument policy
+        run: |
+          mkdir -p "${RUNNER_TEMP}/process-arguments-test"
+          qmake6 -o "${RUNNER_TEMP}/process-arguments-test/Makefile" \
+            cmd/gui-qml/processarguments_test.pro
+          make -C "${RUNNER_TEMP}/process-arguments-test" -j2
+          QT_QPA_PLATFORM=offscreen \
+            "${RUNNER_TEMP}/process-arguments-test/processarguments_test"
+
+      - name: Audit Qt accessibility tree with AT-SPI
+        run: ./scripts/accessibility/run-atspi-audit.sh
+
+      - name: Build unsigned Linux tarball and Debian package
+        run: ./packaging/linux/build-suite.sh --deb
+
+      - name: Upload Linux smoke bundle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: linux-unsigned-smoke
+          path: |
+            release/linux-suite/*.tar.gz
+            release/linux-suite/*.deb
+            release/linux-suite/SHA256SUMS.txt
+            release/linux-suite/ARTIFACTS.md
+          if-no-files-found: error
+          retention-days: 14
+
+  windows-bundle:
+    name: Windows unsigned bundle
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Setup .NET for WinUI
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        with:
+          dotnet-version: "10.0.302"
+
+      - name: Install Qt 6 for MSVC
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.7.3"
+          arch: win64_msvc2019_64
+          cache: true
+
+      - name: Configure MSVC
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: ./scripts/ci/test-powershell-syntax.ps1
+
+      - name: Test Windows packaging contracts
+        shell: pwsh
+        run: |
+          ./packaging/windows/tests/test-install-nativehost.ps1
+          ./packaging/windows/tests/test-afirmauri-registration.ps1
+          ./packaging/windows/tests/test-installer-contracts.ps1
+          ./packaging/windows/tests/test-dual-gui-suite-contracts.ps1
+          ./packaging/windows/tests/test-winui-build-contracts.ps1
+          ./packaging/windows/tests/test-nsis-path-preflight.ps1
+          ./packaging/windows/tests/test-qt-runtime-validation.ps1
+          ./packaging/windows/tests/test-reproducible-builds.ps1
+          ./scripts/release/tests/test-windows-authenticode-contracts.ps1
+          ./scripts/release/tests/test-windows-dual-gui-finalizer-contracts.ps1
+
+      - name: Test WinUI core and application contracts
+        shell: pwsh
+        run: |
+          $testProject = "./cmd/gui-winui/tests/GrxFirma.WinUI.Core.Tests/GrxFirma.WinUI.Core.Tests.csproj"
+          $testArtifacts = Join-Path $env:RUNNER_TEMP "winui-contract-tests"
+          dotnet restore $testProject `
+            --artifacts-path $testArtifacts `
+            --locked-mode
+          dotnet test $testProject `
+            --artifacts-path $testArtifacts `
+            --configuration Release `
+            --no-restore
+          python -m unittest discover `
+            -s cmd/gui-winui/tests `
+            -p "test_*.py" `
+            -v
+
+      - name: Test native protocol fallback without OpenGL
+        shell: pwsh
+        env:
+          CGO_ENABLED: "1"
+        run: >-
+          go test -count=1 -tags fyne_gui
+          -run
+          "^(TestNativeProtocolOperationPolicyFailsClosedForBatch|TestNativeSafeFailureDetailDoesNotExposeRequestData|TestNativeDialogSanitizersBoundAndRejectInjection|TestParseNativeFileDialogBufferRejectsUnsafeMultiselect|TestPublishNativeDirectProtocolResultPublishesBeforeClosingUI|TestNativeWindowsABIStructSizes|TestShowNativeTaskDialogHonorsAlreadyCanceledContext)$"
+          ./cmd/grxfirmauri
+
+      - name: Install NSIS
+        shell: pwsh
+        run: |
+          choco install nsis --version 3.12.0 --yes --no-progress
+          $nsisDir = Join-Path ${env:ProgramFiles(x86)} "NSIS"
+          $makensis = Join-Path $nsisDir "makensis.exe"
+          if (-not (Test-Path -LiteralPath $makensis -PathType Leaf)) {
+            throw "Chocolatey no instalo makensis.exe en $nsisDir"
+          }
+          $nsisDir | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Test signed NSIS uninstaller hook
+        shell: pwsh
+        run: ./scripts/release/tests/test-windows-authenticode-contracts.ps1 -RequireNsis
+
+      - name: Build Windows Qt/QML frontend
+        shell: pwsh
+        run: ./packaging/windows/build-desktop-qml.ps1 --nsis
+
+      - name: Build Windows WinUI frontend
+        shell: pwsh
+        run: ./packaging/windows/build-desktop-winui.ps1
+
+      - name: Build unsigned dual-interface Windows suite
+        shell: pwsh
+        run: >-
+          ./packaging/windows/build-suite.ps1
+          --with-winui --with-qt --nsis
+
+      - name: Verify Windows installers
+        shell: pwsh
+        run: |
+          foreach ($directory in @(
+            "release/windows-desktop-qml",
+            "release/windows-suite"
+          )) {
+            $installers = @(
+              Get-ChildItem -LiteralPath $directory -File -Filter "*-setup.exe"
+            )
+            if ($installers.Count -ne 1) {
+              throw "$directory debe contener exactamente un instalador NSIS y contiene $($installers.Count)"
+            }
+          }
+
+      - name: Upload Windows smoke bundle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-unsigned-smoke
+          path: |
+            release/windows-desktop-qml/*.zip
+            release/windows-desktop-qml/*-setup.exe
+            release/windows-desktop-qml/SHA256SUMS.txt
+            release/windows-desktop-qml/ARTIFACTS.md
+            release/windows-suite/*.zip
+            release/windows-suite/*-setup.exe
+            release/windows-suite/SHA256SUMS.txt
+            release/windows-suite/ARTIFACTS.md
+          if-no-files-found: error
+          retention-days: 14
+
+  macos-bundle:
+    name: macOS unsigned bundle
+    runs-on: macos-latest
+    timeout-minutes: 60
+    env:
+      GRXFIRMA_BUILD_SAFARI: "0"
+      MACOS_CODESIGN_IDENTITY: ""
+      MACOS_INSTALLER_IDENTITY: ""
+      MACOS_NOTARY_PROFILE: ""
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install Qt 6 for macOS
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.7.3"
+          cache: true
+
+      - name: Select the runner native architecture
+        run: echo "GOARCH=$(go env GOARCH)" >> "${GITHUB_ENV}"
+
+      - name: Report macOS build toolchain
+        run: |
+          set -euo pipefail
+          echo "macOS:"
+          sw_vers
+          echo "host architecture: $(uname -m)"
+          go env GOVERSION GOOS GOARCH CGO_ENABLED
+          xcodebuild -version
+          clang --version | sed -n '1p'
+
+          qmake_cmd="$(command -v qmake6 || command -v qmake)"
+          qt_version="$("${qmake_cmd}" -query QT_VERSION)"
+          qt_prefix="$("${qmake_cmd}" -query QT_INSTALL_PREFIX)"
+          qt_libs="$("${qmake_cmd}" -query QT_INSTALL_LIBS)"
+          echo "qmake: ${qmake_cmd}"
+          echo "Qt version: ${qt_version}"
+          echo "Qt prefix: ${qt_prefix}"
+          echo "Qt libraries: ${qt_libs}"
+
+          qt_core="${qt_libs}/QtCore.framework/Versions/A/QtCore"
+          if [[ ! -f "${qt_core}" ]]; then
+            qt_core="${qt_libs}/QtCore.framework/QtCore"
+          fi
+          if [[ -f "${qt_core}" ]]; then
+            echo "QtCore architectures: $(lipo -archs "${qt_core}")"
+          else
+            echo "::warning title=Qt toolchain report::QtCore binary was not found under QT_INSTALL_LIBS"
+          fi
+
+      - name: Build unsigned macOS tarball and PKG
+        id: macos_build
+        run: |
+          raw_log="${RUNNER_TEMP}/grxfirma-macos-build.log"
+          diagnostic_log="${RUNNER_TEMP}/grxfirma-macos-build-diagnostic.log"
+          set +e
+          ./packaging/macos/build-suite.sh --pkg 2>&1 | tee "${raw_log}"
+          build_exit="${PIPESTATUS[0]}"
+          set -e
+          if [[ "${build_exit}" -ne 0 ]]; then
+            python3 scripts/ci/summarize_build_log.py \
+              "${raw_log}" \
+              --title "macOS bundle build failure" \
+              --sanitized-output "${diagnostic_log}" ||
+              echo "::error title=macOS bundle build failure::The diagnostic parser failed; inspect the streamed build log."
+          fi
+          exit "${build_exit}"
+
+      - name: Upload sanitized macOS failure diagnostic
+        if: ${{ failure() && steps.macos_build.outcome == 'failure' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: macos-build-failure-diagnostic
+          path: ${{ runner.temp }}/grxfirma-macos-build-diagnostic.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Validate unsigned PKG structure
+        run: |
+          shopt -s nullglob
+          pkg_path=(release/macos-suite/*.pkg)
+          if [[ "${#pkg_path[@]}" -ne 1 ]]; then
+            echo "Expected exactly one PKG, found ${#pkg_path[@]}" >&2
+            exit 1
+          fi
+          pkgutil --expand-full "${pkg_path[0]}" "${RUNNER_TEMP}/grxfirma-pkg"
+
+      - name: Upload macOS smoke bundle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: macos-unsigned-smoke
+          path: |
+            release/macos-suite/*.tar.gz
+            release/macos-suite/*.pkg
+            release/macos-suite/SHA256SUMS.txt
+            release/macos-suite/ARTIFACTS.md
+          if-no-files-found: error
+          retention-days: 14
+
+  compatibility-gate:
+    name: Compatibility gate
+    if: ${{ always() }}
+    needs:
+      - workflow-validation
+      - native-go
+      - browser-extensions
+      - linux-bundle
+      - windows-bundle
+      - macos-bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      WORKFLOW_VALIDATION_RESULT: ${{ needs.workflow-validation.result }}
+      NATIVE_GO_RESULT: ${{ needs.native-go.result }}
+      BROWSER_EXTENSIONS_RESULT: ${{ needs.browser-extensions.result }}
+      LINUX_BUNDLE_RESULT: ${{ needs.linux-bundle.result }}
+      WINDOWS_BUNDLE_RESULT: ${{ needs.windows-bundle.result }}
+      MACOS_BUNDLE_RESULT: ${{ needs.macos-bundle.result }}
+    steps:
+      - name: Publish compatibility summary
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          results = {
+              "Workflow and CI scripts": os.environ["WORKFLOW_VALIDATION_RESULT"],
+              "Native Go matrix": os.environ["NATIVE_GO_RESULT"],
+              "Chromium and Firefox extensions": os.environ["BROWSER_EXTENSIONS_RESULT"],
+              "Linux unsigned bundle": os.environ["LINUX_BUNDLE_RESULT"],
+              "Windows unsigned bundle": os.environ["WINDOWS_BUNDLE_RESULT"],
+              "macOS unsigned bundle": os.environ["MACOS_BUNDLE_RESULT"],
+          }
+          lines = [
+              "# Compatibility gate",
+              "",
+              "| Check | Result |",
+              "| --- | --- |",
+              *(f"| {name} | `{result}` |" for name, result in results.items()),
+          ]
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(
+              "\n".join(lines) + "\n", encoding="utf-8"
+          )
+
+          failed = [name for name, result in results.items() if result != "success"]
+          if failed:
+              raise SystemExit("compatibility checks failed: " + ", ".join(failed))
+          PY

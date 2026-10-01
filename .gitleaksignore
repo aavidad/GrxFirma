@@ -1,0 +1,13 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+# Historical test-only RSA fixture removed by 438a799 and replaced with
+# an ephemeral key generated independently on every test run.
+a9282b1f67a2e2a2ea5e21e7850697aa0cb531d5:third_party/pdfsign/sign/sign_test.go:private-key:38
+
+# Literal PEM header used by the WinUI packager to reject private keys from
+# release stages. Both fingerprints identify the same non-secret guard line.
+71128a433c742309635cebb62c27c14642fef857:packaging/windows/build-desktop-winui.ps1:private-key:253
+packaging/windows/build-desktop-winui.ps1:private-key:253

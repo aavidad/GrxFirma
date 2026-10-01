@@ -1,0 +1,175 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+schema_version = 1
+
+[canonical_header]
+copyright = "Derechos de autor (C) 2026 Alberto Avidad Fernández."
+authorship = "Autoría: Alberto Avidad Fernández"
+license_notice = "Licencia: EUPL 1.2 o posterior"
+spdx = "SPDX-License-Identifier: EUPL-1.2"
+
+[central_coverage]
+copyright = "Derechos de autor (C) 2026 Alberto Avidad Fernández."
+authorship = "Autoría: Alberto Avidad Fernández"
+license_notice = "Licencia: EUPL 1.2 o posterior"
+spdx = "SPDX-License-Identifier: EUPL-1.2"
+categories = [
+  "binary-resource",
+  "generated",
+  "json",
+  "uncommentable",
+]
+
+[classification]
+inline_extensions = [
+  ".1",
+  ".7",
+  ".adml",
+  ".admx",
+  ".bat",
+  ".bats",
+  ".bk",
+  ".c",
+  ".cs",
+  ".cpp",
+  ".csproj",
+  ".css",
+  ".desktop",
+  ".entitlements",
+  ".go",
+  ".h",
+  ".html",
+  ".in",
+  ".js",
+  ".kt",
+  ".kts",
+  ".m",
+  ".manifest",
+  ".md",
+  ".mjs",
+  ".mod",
+  ".nsh",
+  ".nsi",
+  ".plist",
+  ".pro",
+  ".properties",
+  ".props",
+  ".ps1",
+  ".py",
+  ".qml",
+  ".qrc",
+  ".rb",
+  ".rc",
+  ".sh",
+  ".svg",
+  ".swift",
+  ".tmpl",
+  ".toml",
+  ".xaml",
+  ".xcconfig",
+  ".xcprivacy",
+  ".xml",
+  ".yml",
+]
+inline_filenames = [
+  ".gitattributes",
+  ".gitignore",
+  ".gitleaksignore",
+  "Makefile",
+  "pre-push",
+]
+json_extensions = [".json"]
+binary_resource_extensions = [
+  ".cer",
+  ".crt",
+  ".csig",
+  ".hash",
+  ".hexhash",
+  ".ico",
+  ".jar",
+  ".jpeg",
+  ".jpg",
+  ".odt",
+  ".pdf",
+  ".png",
+  ".syso",
+  ".xsig",
+  ".zip",
+]
+uncommentable_extensions = [
+  ".lockfile",
+  ".pbxproj",
+  ".sln",
+  ".sum",
+  ".txt",
+  ".xcscheme",
+]
+uncommentable_filenames = [
+  ".gitkeep",
+]
+license_text_filenames = ["LICENSE"]
+generated_globs = [
+  "**/packages.lock.json",
+  "docs/generated/**",
+  "mobile/android/app/gradle.lockfile",
+  "mobile/ios/GrxFirma.xcodeproj/project.pbxproj",
+  "mobile/ios/GrxFirma.xcodeproj/xcshareddata/xcschemes/GrxFirma.xcscheme",
+]
+central_fixture_paths = [
+  "internal/adapters/outbound/common/signer/testdata/sample-facturae.xml",
+  "test/regression/fixtures/v1/samples/2.txt",
+  "test/regression/fixtures/v1/samples/2.xml",
+]
+
+[[third_party]]
+name = "pkcs7"
+globs = ["third_party/pdfsign/internal/pkcs7/**"]
+license = "MIT"
+copyright = "2015 Andrew Smith"
+notice_file = "third_party/pdfsign/internal/pkcs7/LICENSE"
+required_notice_markers = [
+  "The MIT License (MIT)",
+  "Copyright (c) 2015 Andrew Smith",
+]
+
+[[third_party]]
+name = "pdf"
+globs = ["third_party/pdf/**"]
+license = "BSD-3-Clause"
+copyright = "2009 The Go Authors"
+notice_file = "third_party/pdf/LICENSE"
+required_notice_markers = [
+  "Copyright (c) 2009 The Go Authors. All rights reserved.",
+]
+
+[[third_party]]
+name = "pdfsign"
+globs = ["third_party/pdfsign/**"]
+license = "BSD-2-Clause"
+copyright = "2018 Digitorus"
+notice_file = "third_party/pdfsign/LICENSE"
+required_notice_markers = [
+  "BSD 2-Clause License",
+  "Copyright (c) 2018, Digitorus",
+]
+
+[[third_party]]
+name = "Gradle Wrapper"
+paths = [
+  "mobile/android/gradle/wrapper/gradle-wrapper.jar",
+  "mobile/android/gradlew",
+  "mobile/android/gradlew.bat",
+]
+license = "Apache-2.0"
+copyright = "2015 the original authors"
+notice_files = [
+  "mobile/android/gradlew",
+  "mobile/android/gradlew.bat",
+]
+required_notice_markers = [
+  "Licensed under the Apache License, Version 2.0",
+  "SPDX-License-Identifier: Apache-2.0",
+]

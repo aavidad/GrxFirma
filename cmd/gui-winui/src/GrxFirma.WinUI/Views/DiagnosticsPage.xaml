@@ -1,0 +1,316 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<Page
+    x:Class="GrxFirma.WinUI.Views.DiagnosticsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:GrxFirma.WinUI.Controls"
+    Loaded="OnLoaded"
+    Unloaded="OnUnloaded"
+    Background="{ThemeResource AppPageBackgroundBrush}">
+
+    <Page.Resources>
+        <controls:DiagnosticStatusBrushConverter x:Key="DiagnosticStatusBrushConverter" />
+    </Page.Resources>
+
+    <ScrollViewer
+        AutomationProperties.Name="Contenido de diagnóstico"
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="Narrow">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="Wide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="760" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="LayoutRoot.Padding" Value="32" />
+                        <Setter Target="DiagnosticActions.Orientation" Value="Horizontal" />
+                        <Setter Target="TlsActions.Orientation" Value="Horizontal" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <Grid
+            x:Name="LayoutRoot"
+            MaxWidth="1000"
+            Padding="16"
+            HorizontalAlignment="Stretch"
+            RowSpacing="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Spacing="8">
+                <TextBlock
+                    AutomationProperties.HeadingLevel="Level1"
+                    Style="{StaticResource PageTitleTextStyle}"
+                    Text="{x:Bind ViewModel.Title}" />
+                <TextBlock
+                    Style="{StaticResource PageSubtitleTextStyle}"
+                    Text="{x:Bind ViewModel.Description}" />
+            </StackPanel>
+
+            <InfoBar
+                Grid.Row="1"
+                AutomationProperties.LiveSetting="Polite"
+                IsClosable="False"
+                IsOpen="True"
+                Message="{x:Bind ViewModel.PendingMessage, Mode=OneWay}"
+                Severity="Informational"
+                Title="Disponibilidad del asistente" />
+
+            <StackPanel Grid.Row="2" Spacing="20">
+                <InfoBar
+                    AutomationProperties.LiveSetting="Assertive"
+                    IsClosable="False"
+                    IsOpen="{x:Bind ViewModel.HasResult, Mode=OneWay}"
+                    Message="{x:Bind ViewModel.SummaryMessage, Mode=OneWay}"
+                    Severity="{x:Bind ViewModel.ResultSeverity, Mode=OneWay}"
+                    Title="{x:Bind ViewModel.SummaryTitle, Mode=OneWay}" />
+
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Resultado comprensible" />
+                        <Grid ColumnSpacing="16" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock
+                                FontWeight="SemiBold"
+                                Text="Origen probable"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Grid.Column="1"
+                                AutomationProperties.LiveSetting="Polite"
+                                Text="{x:Bind ViewModel.OwnerLabel, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Grid.Row="1"
+                                FontWeight="SemiBold"
+                                Text="Qué significa"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Text="{x:Bind ViewModel.Responsibility, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Grid.Row="2"
+                                FontWeight="SemiBold"
+                                Text="Qué hacer ahora"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Text="{x:Bind ViewModel.SuggestedAction, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Fases comprobadas" />
+                        <TextBlock
+                            Style="{StaticResource PageSubtitleTextStyle}"
+                            Text="Cada ✓ o ✕ procede de una respuesta real. «No comprobado» significa que el motor no dispone de evidencia para esa fase." />
+
+                        <ItemsControl
+                            AutomationProperties.Name="Línea de fases del diagnóstico"
+                            ItemsSource="{x:Bind ViewModel.Steps, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid
+                                        Margin="0,0,0,10"
+                                        ColumnSpacing="14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="44" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border
+                                            Width="2"
+                                            Margin="0,36,0,-12"
+                                            HorizontalAlignment="Center"
+                                            Background="{ThemeResource AppCardBorderBrush}" />
+                                        <Border
+                                            Width="40"
+                                            Height="40"
+                                            Padding="7"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Top"
+                                            Background="{ThemeResource AppPageBackgroundBrush}"
+                                            BorderBrush="{Binding Status, Converter={StaticResource DiagnosticStatusBrushConverter}}"
+                                            BorderThickness="2"
+                                            CornerRadius="20">
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                AutomationProperties.AccessibilityView="Raw"
+                                                FontSize="18"
+                                                FontWeight="Bold"
+                                                Foreground="{Binding Status, Converter={StaticResource DiagnosticStatusBrushConverter}}"
+                                                Text="{Binding StatusIcon}"
+                                                TextWrapping="Wrap" />
+                                        </Border>
+                                        <Border
+                                            Grid.Column="1"
+                                            Padding="14"
+                                            Background="{ThemeResource AppCardBackgroundBrush}"
+                                            BorderBrush="{ThemeResource AppCardBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock
+                                                    AutomationProperties.HeadingLevel="Level3"
+                                                    AutomationProperties.Name="{Binding AutomationSummary}"
+                                                    FontSize="16"
+                                                    FontWeight="SemiBold"
+                                                    Text="{Binding Label}"
+                                                    TextWrapping="Wrap" />
+                                                <TextBlock
+                                                    AutomationProperties.AccessibilityView="Raw"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{Binding Status, Converter={StaticResource DiagnosticStatusBrushConverter}}"
+                                                    Text="{Binding StatusDisplayText}"
+                                                    TextWrapping="Wrap" />
+                                                <TextBlock
+                                                    AutomationProperties.AccessibilityView="Raw"
+                                                    Foreground="{ThemeResource AppMutedTextBrush}"
+                                                    Text="{Binding Detail}"
+                                                    TextWrapping="Wrap" />
+                                                <TextBlock
+                                                    AutomationProperties.AccessibilityView="Raw"
+                                                    Foreground="{ThemeResource AppMutedTextBrush}"
+                                                    Text="{Binding OwnerDisplayText}"
+                                                    TextWrapping="Wrap" />
+                                                <TextBlock
+                                                    AutomationProperties.AccessibilityView="Raw"
+                                                    FontStyle="Italic"
+                                                    Foreground="{ThemeResource AppMutedTextBrush}"
+                                                    Text="{Binding SuggestedActionDisplayText}"
+                                                    TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="TLS local y navegadores" />
+                        <TextBlock
+                            Style="{StaticResource PageSubtitleTextStyle}"
+                            Text="Inspecciona y repara únicamente la CA local inventariada por GrxFirma. Nunca administra certificados personales ni raíces ajenas." />
+                        <InfoBar
+                            AutomationProperties.LiveSetting="Assertive"
+                            IsClosable="False"
+                            IsOpen="{x:Bind ViewModel.HasTlsStatus, Mode=OneWay}"
+                            Message="{x:Bind ViewModel.TlsStatusMessage, Mode=OneWay}"
+                            Severity="{x:Bind ViewModel.TlsStatusSeverity, Mode=OneWay}"
+                            Title="{x:Bind ViewModel.TlsStatusTitle, Mode=OneWay}" />
+                        <TextBlock
+                            AutomationProperties.Name="Resumen local de certificados"
+                            Foreground="{ThemeResource AppMutedTextBrush}"
+                            Text="{x:Bind ViewModel.CertificateSummary, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                        <controls:ResponsiveActionPanel
+                            x:Name="TlsActions"
+                            Orientation="Vertical"
+                            Spacing="8">
+                            <Button MinHeight="40"
+                                AutomationProperties.HelpText="Consulta recuentos y estados saneados, sin exportar rutas ni certificados."
+                                AutomationProperties.Name="Actualizar diagnóstico TLS local"
+                                Click="OnRefreshTlsClick"
+                                Content="Actualizar TLS"
+                                IsEnabled="{x:Bind ViewModel.CanRefreshTlsStatus, Mode=OneWay}"
+                                TabIndex="0" />
+                            <Button MinHeight="40"
+                                AutomationProperties.HelpText="Solicita confirmación antes de crear la CA local e instalar su confianza para el usuario actual."
+                                AutomationProperties.Name="Instalar confianza TLS local"
+                                Click="OnInstallTlsTrustClick"
+                                Content="Instalar confianza local"
+                                IsEnabled="{x:Bind ViewModel.CanInstallTlsTrust, Mode=OneWay}"
+                                TabIndex="1" />
+                            <Button MinHeight="40"
+                                AutomationProperties.HelpText="Solicita confirmación y retira solo la confianza y los artefactos inventariados por GrxFirma."
+                                AutomationProperties.Name="Retirar confianza TLS local"
+                                Click="OnClearTlsTrustClick"
+                                Content="Retirar confianza local"
+                                IsEnabled="{x:Bind ViewModel.CanClearTlsTrust, Mode=OneWay}"
+                                TabIndex="2" />
+                        </controls:ResponsiveActionPanel>
+                    </StackPanel>
+                </Border>
+
+                <InfoBar
+                    IsClosable="False"
+                    IsOpen="True"
+                    Message="Este asistente no inventa una conexión con la sede ni con @firma. La hora remota solo se consulta si el motor conserva un origen HTTPS observado y autorizado; @firma exige evidencia directa de una operación real."
+                    Severity="Informational"
+                    Title="Alcance de la comprobación" />
+
+                <controls:ResponsiveActionPanel
+                    x:Name="DiagnosticActions"
+                    Orientation="Vertical"
+                    Spacing="8">
+                    <Button MinHeight="40"
+                        AutomationProperties.HelpText="Ejecuta ping, consulta el reloj sin modificarlo y obtiene únicamente conteos e inventarios publicados por el motor."
+                        AutomationProperties.Name="Ejecutar diagnóstico"
+                        Click="OnRunDiagnosticClick"
+                        Content="Ejecutar diagnóstico"
+                        IsEnabled="{x:Bind ViewModel.CanRun, Mode=OneWay}"
+                        Style="{StaticResource AccentButtonStyle}"
+                        TabIndex="3" />
+                    <Button MinHeight="40"
+                        AutomationProperties.Name="Cancelar diagnóstico"
+                        Click="OnCancelClick"
+                        Content="Cancelar"
+                        IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
+                        TabIndex="4" />
+                    <Button MinHeight="40"
+                        AutomationProperties.HelpText="Abre el mismo resultado con detalle técnico saneado para soporte."
+                        AutomationProperties.Name="Abrir diagnóstico detallado"
+                        Click="OnOpenDetailedDiagnosticClick"
+                        Content="Ver detalle"
+                        IsEnabled="{x:Bind ViewModel.CanOpenDetailedDiagnostic, Mode=OneWay}"
+                        TabIndex="5" />
+                    <ProgressRing
+                        Width="28"
+                        Height="28"
+                        AutomationProperties.Name="Diagnóstico en curso"
+                        IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+                </controls:ResponsiveActionPanel>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>

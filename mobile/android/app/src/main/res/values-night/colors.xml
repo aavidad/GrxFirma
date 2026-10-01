@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<resources>
+    <color name="primary">#9BD5BE</color>
+    <color name="on_primary">#003828</color>
+    <color name="primary_container">#00513E</color>
+    <color name="on_primary_container">#B7F1DA</color>
+    <color name="secondary">#A5C8F5</color>
+    <color name="on_secondary">#073151</color>
+    <color name="surface">#111412</color>
+    <color name="on_surface">#E1E3E0</color>
+    <color name="surface_variant">#404944</color>
+    <color name="outline">#89938D</color>
+    <color name="error">#FFB4AB</color>
+    <color name="on_error">#690005</color>
+    <color name="status_warning">#FFDE8B</color>
+    <color name="status_warning_container">#5C4200</color>
+</resources>

@@ -1,0 +1,439 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<Page
+    x:Class="GrxFirma.WinUI.Views.ProtectPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:GrxFirma.WinUI.Controls"
+    Loaded="OnLoaded"
+    Unloaded="OnUnloaded"
+    Background="{ThemeResource AppPageBackgroundBrush}">
+
+    <ScrollViewer
+        AutomationProperties.Name="Contenido de protección y desprotección"
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="Narrow">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="Wide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="760" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="LayoutRoot.Padding" Value="32" />
+                        <Setter Target="ProtectBrowseColumn.Width" Value="Auto" />
+                        <Setter Target="ProtectBrowseRow.Height" Value="0" />
+                        <Setter Target="ProtectBrowseButton.(Grid.Column)" Value="1" />
+                        <Setter Target="ProtectBrowseButton.(Grid.Row)" Value="0" />
+                        <Setter Target="ContainerColumn.Width" Value="*" />
+                        <Setter Target="ContainerRow.Height" Value="0" />
+                        <Setter Target="ContainerCombo.(Grid.Column)" Value="1" />
+                        <Setter Target="ContainerCombo.(Grid.Row)" Value="0" />
+                        <Setter Target="ProtectButton.HorizontalAlignment" Value="Left" />
+                        <Setter Target="ProtectResultButton.HorizontalAlignment" Value="Left" />
+                        <Setter Target="ProtectActions.Orientation" Value="Horizontal" />
+                        <Setter Target="UnprotectBrowseColumn.Width" Value="Auto" />
+                        <Setter Target="UnprotectBrowseRow.Height" Value="0" />
+                        <Setter Target="UnprotectBrowseButton.(Grid.Column)" Value="1" />
+                        <Setter Target="UnprotectBrowseButton.(Grid.Row)" Value="0" />
+                        <Setter Target="UnprotectButton.HorizontalAlignment" Value="Left" />
+                        <Setter Target="UnprotectResultButton.HorizontalAlignment" Value="Left" />
+                        <Setter Target="UnprotectActions.Orientation" Value="Horizontal" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <Grid
+            x:Name="LayoutRoot"
+            MaxWidth="1080"
+            Padding="16"
+            HorizontalAlignment="Stretch"
+            RowSpacing="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Spacing="8">
+                <TextBlock
+                    AutomationProperties.HeadingLevel="Level1"
+                    Style="{StaticResource PageTitleTextStyle}"
+                    Text="{x:Bind ViewModel.Title}" />
+                <TextBlock
+                    Style="{StaticResource PageSubtitleTextStyle}"
+                    Text="{x:Bind ViewModel.Description}" />
+            </StackPanel>
+
+            <InfoBar
+                Grid.Row="1"
+                AutomationProperties.LiveSetting="Polite"
+                IsClosable="False"
+                IsOpen="{x:Bind ViewModel.IsAvailabilityNoticeOpen, Mode=OneWay}"
+                Message="{x:Bind ViewModel.PendingMessage, Mode=OneWay}"
+                Severity="Informational"
+                Title="Disponibilidad de protección" />
+
+            <StackPanel Grid.Row="2" Spacing="20">
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Proteger documento" />
+                        <TextBlock
+                            Style="{StaticResource PageSubtitleTextStyle}"
+                            Text="El documento solo podrá abrirse con uno de los certificados destinatarios seleccionados."
+                            TextWrapping="Wrap" />
+
+                        <Grid ColumnSpacing="8" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition x:Name="ProtectBrowseColumn" Width="0" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition x:Name="ProtectBrowseRow" Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBox
+                                AutomationProperties.Name="Documento que se va a proteger"
+                                Header="Documento"
+                                MinHeight="40"
+                                IsReadOnly="True"
+                                PlaceholderText="Ningún documento seleccionado"
+                                TabIndex="0"
+                                Text="{x:Bind ViewModel.ProtectInputDisplayName, Mode=OneWay}" />
+                            <Button MinHeight="40"
+                                x:Name="ProtectBrowseButton"
+                                Grid.Row="1"
+                                VerticalAlignment="Bottom"
+                                AutomationProperties.Name="Seleccionar documento para proteger"
+                                Click="OnSelectProtectInputClick"
+                                Content="Examinar…"
+                                IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
+                                TabIndex="1" />
+                        </Grid>
+
+                        <Grid ColumnSpacing="12" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition x:Name="ContainerColumn" Width="0" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition x:Name="ContainerRow" Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ComboBox
+                                AutomationProperties.Name="Perfil de protección"
+                                DisplayMemberPath="Label"
+                                Header="Perfil criptográfico"
+                                IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
+                                ItemsSource="{x:Bind ViewModel.Profiles}"
+                                SelectedItem="{x:Bind ViewModel.SelectedProfile, Mode=TwoWay}"
+                                TabIndex="2" />
+                            <ComboBox
+                                x:Name="ContainerCombo"
+                                Grid.Row="1"
+                                AutomationProperties.Name="Formato del contenedor protegido"
+                                DisplayMemberPath="Label"
+                                Header="Formato de salida"
+                                IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
+                                ItemsSource="{x:Bind ViewModel.VisibleContainers, Mode=OneWay}"
+                                SelectedItem="{x:Bind ViewModel.SelectedContainer, Mode=TwoWay}"
+                                TabIndex="3" />
+                        </Grid>
+
+                        <InfoBar
+                            AutomationProperties.Name="Aviso sobre CMS EncryptedData"
+                            IsClosable="False"
+                            IsOpen="True"
+                            Message="CMS EncryptedData usa una clave AES-256 transitoria en Base64. Al proteger se abrirán dos diálogos nativos seguros para introducirla y confirmarla. No emplea certificados destinatarios y la clave nunca se guarda ni se envía a registros."
+                            Severity="Informational"
+                            Title="Protección con clave efímera" />
+
+                        <StackPanel
+                            x:Name="ProtectEncryptedDataSecretFields"
+                            x:Load="{x:Bind ViewModel.IsEncryptedDataSelected, Mode=OneWay}"
+                            Spacing="8">
+                            <TextBlock
+                                Foreground="{ThemeResource AppMutedTextBrush}"
+                                Text="La clave se solicita únicamente al pulsar Proteger y se borra de la memoria controlada al terminar o cancelar. Guárdela por separado: será imprescindible para recuperar el documento."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="8">
+                            <TextBlock
+                                AutomationProperties.HeadingLevel="Level3"
+                                FontWeight="SemiBold"
+                                Text="Destinatarios"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Style="{StaticResource PageSubtitleTextStyle}"
+                                Text="Seleccione quién podrá recuperar el documento. CMS EncryptedData usa exclusivamente la clave efímera y no necesita destinatarios."
+                                TextWrapping="Wrap" />
+                            <ListView
+                                x:Name="RecipientsList"
+                                MinHeight="128"
+                                MaxHeight="320"
+                                AutomationProperties.Name="Certificados destinatarios"
+                                IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
+                                ItemsSource="{x:Bind ViewModel.VisibleRecipients, Mode=OneWay}"
+                                SelectionChanged="OnRecipientsSelectionChanged"
+                                SelectionMode="Multiple"
+                                TabIndex="4">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Padding="2,6" Spacing="3">
+                                            <TextBlock
+                                                FontWeight="SemiBold"
+                                                Text="{Binding Label}"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Foreground="{ThemeResource AppMutedTextBrush}"
+                                                Text="{Binding Detail}"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button
+                                    AutomationProperties.Name="Compartir mi certificado público"
+                                    MinHeight="40"
+                                    Click="OnShareMyCertificateClick"
+                                    Content="Compartir mi certificado…"
+                                    TabIndex="5" />
+                                <Button
+                                    AutomationProperties.Name="Añadir destinatario público"
+                                    MinHeight="40"
+                                    Click="OnAddRecipientClick"
+                                    Content="Añadir destinatario…"
+                                    IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
+                                    TabIndex="6" />
+                                <Button
+                                    AutomationProperties.Name="Quitar destinatario importado"
+                                    MinHeight="40"
+                                    Click="OnRemoveRecipientClick"
+                                    Content="Quitar destinatario"
+                                    IsEnabled="{x:Bind ViewModel.CanRemoveRecipient, Mode=OneWay}"
+                                    TabIndex="7" />
+                            </StackPanel>
+                            <TextBlock
+                                Foreground="{ThemeResource AppMutedTextBrush}"
+                                Text="Solo se aceptan certificados públicos X.509 RSA vigentes (.cer, .crt, .pem o .der) aptos para cifrado. Los P12/PFX y las claves privadas se rechazan."
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                AutomationProperties.LiveSetting="Polite"
+                                Foreground="{ThemeResource AppMutedTextBrush}"
+                                Text="{x:Bind ViewModel.SelectedRecipientSummary, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <CheckBox
+                            AutomationProperties.HelpText="Crea un contenedor CMS protegido y firmado con el certificado elegido."
+                            AutomationProperties.Name="Proteger y firmar el documento"
+                            Content="Proteger y firmar"
+                            IsChecked="{x:Bind ViewModel.IsProtectAndSign, Mode=TwoWay}"
+                            IsEnabled="{x:Bind ViewModel.CanUseProtectAndSign, Mode=OneWay}"
+                            TabIndex="8" />
+                        <ComboBox
+                            AutomationProperties.Name="Certificado para firmar el contenedor"
+                            DisplayMemberPath="Label"
+                            Header="Certificado de firma"
+                            IsEnabled="{x:Bind ViewModel.CanSelectSigningCertificate, Mode=OneWay}"
+                            ItemsSource="{x:Bind ViewModel.SigningCertificates, Mode=OneWay}"
+                            PlaceholderText="No hay certificados aptos cargados"
+                            SelectedItem="{x:Bind ViewModel.SelectedSigningCertificate, Mode=TwoWay}"
+                            TabIndex="9" />
+
+                        <TextBlock
+                            AutomationProperties.LiveSetting="Polite"
+                            Foreground="{ThemeResource AppMutedTextBrush}"
+                            Text="{x:Bind ViewModel.ProtectValidationMessage, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+
+                        <controls:ResponsiveActionPanel
+                            x:Name="ProtectActions"
+                            Orientation="Vertical"
+                            Spacing="8">
+                            <Button MinHeight="40"
+                                x:Name="ProtectButton"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.Name="Proteger documento"
+                                Click="OnProtectClick"
+                                Content="Proteger documento"
+                                IsEnabled="{x:Bind ViewModel.CanProtect, Mode=OneWay}"
+                                Style="{StaticResource AccentButtonStyle}"
+                                TabIndex="10" />
+                            <Button MinHeight="40"
+                                AutomationProperties.Name="Cancelar protección"
+                                Click="OnCancelClick"
+                                Content="Cancelar operación"
+                                IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
+                                TabIndex="11" />
+                            <ProgressRing
+                                Width="28"
+                                Height="28"
+                                AutomationProperties.Name="Protección en curso"
+                                IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+                        </controls:ResponsiveActionPanel>
+
+                        <Border
+                            Padding="14"
+                            Background="{ThemeResource AppCardBackgroundBrush}"
+                            BorderBrush="{ThemeResource AppCardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                            <StackPanel Spacing="10">
+                                <TextBlock
+                                    AutomationProperties.HeadingLevel="Level3"
+                                    FontWeight="SemiBold"
+                                    Text="Resultado de protección"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    AutomationProperties.LiveSetting="Polite"
+                                    Text="{x:Bind ViewModel.ProtectResultMessage, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                                <Button MinHeight="40"
+                                    x:Name="ProtectResultButton"
+                                    HorizontalAlignment="Stretch"
+                                    AutomationProperties.Name="Abrir documento protegido"
+                                    Click="OnOpenProtectedResultClick"
+                                    Content="Abrir resultado"
+                                    IsEnabled="{x:Bind ViewModel.CanOpenProtectedOutput, Mode=OneWay}"
+                                    TabIndex="12" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}"
+                            Text="Desproteger documento" />
+                        <TextBlock
+                            Style="{StaticResource PageSubtitleTextStyle}"
+                            Text="La aplicación usará un certificado del almacén local o solicitará la clave efímera cuando el contenedor sea CMS EncryptedData."
+                            TextWrapping="Wrap" />
+
+                        <Grid ColumnSpacing="8" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition x:Name="UnprotectBrowseColumn" Width="0" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition x:Name="UnprotectBrowseRow" Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBox
+                                AutomationProperties.Name="Contenedor que se va a desproteger"
+                                Header="Contenedor protegido"
+                                MinHeight="40"
+                                IsReadOnly="True"
+                                PlaceholderText="Ningún contenedor seleccionado"
+                                TabIndex="13"
+                                Text="{x:Bind ViewModel.UnprotectInputDisplayName, Mode=OneWay}" />
+                            <Button MinHeight="40"
+                                x:Name="UnprotectBrowseButton"
+                                Grid.Row="1"
+                                VerticalAlignment="Bottom"
+                                AutomationProperties.Name="Seleccionar contenedor protegido"
+                                Click="OnSelectUnprotectInputClick"
+                                Content="Examinar…"
+                                IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
+                                TabIndex="14" />
+                        </Grid>
+
+                        <InfoBar
+                            AutomationProperties.Name="Aviso de desprotección EncryptedData"
+                            IsClosable="False"
+                            IsOpen="True"
+                            Message="Los contenedores para certificados usan el almacén local. Los archivos con sufijo .encrypted.p7m solicitan la clave en un diálogo nativo seguro al pulsar Desproteger y la borran de la memoria controlada tras el envío."
+                            Severity="Informational"
+                            Title="Uso de claves" />
+
+                        <StackPanel
+                            x:Name="UnprotectEncryptedDataSecretFields"
+                            x:Load="{x:Bind ViewModel.IsEncryptedDataUnprotectSelected, Mode=OneWay}"
+                            Spacing="8">
+                            <TextBlock
+                                Foreground="{ThemeResource AppMutedTextBrush}"
+                                Text="Se solicitará la clave Base64 de 44 caracteres usada al crear el contenedor."
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <TextBlock
+                            AutomationProperties.LiveSetting="Polite"
+                            Foreground="{ThemeResource AppMutedTextBrush}"
+                            Text="{x:Bind ViewModel.UnprotectValidationMessage, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+
+                        <controls:ResponsiveActionPanel
+                            x:Name="UnprotectActions"
+                            Orientation="Vertical"
+                            Spacing="8">
+                            <Button MinHeight="40"
+                                x:Name="UnprotectButton"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.Name="Desproteger documento"
+                                Click="OnUnprotectClick"
+                                Content="Desproteger documento"
+                                IsEnabled="{x:Bind ViewModel.CanUnprotect, Mode=OneWay}"
+                                Style="{StaticResource AccentButtonStyle}"
+                                TabIndex="15" />
+                            <Button MinHeight="40"
+                                AutomationProperties.Name="Cancelar desprotección"
+                                Click="OnCancelClick"
+                                Content="Cancelar operación"
+                                IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
+                                TabIndex="16" />
+                            <ProgressRing
+                                Width="28"
+                                Height="28"
+                                AutomationProperties.Name="Desprotección en curso"
+                                IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+                        </controls:ResponsiveActionPanel>
+
+                        <Border
+                            Padding="14"
+                            Background="{ThemeResource AppCardBackgroundBrush}"
+                            BorderBrush="{ThemeResource AppCardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                            <StackPanel Spacing="10">
+                                <TextBlock
+                                    AutomationProperties.HeadingLevel="Level3"
+                                    FontWeight="SemiBold"
+                                    Text="Resultado de desprotección"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    AutomationProperties.LiveSetting="Polite"
+                                    Text="{x:Bind ViewModel.UnprotectResultMessage, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                                <Button MinHeight="40"
+                                    x:Name="UnprotectResultButton"
+                                    HorizontalAlignment="Stretch"
+                                    AutomationProperties.Name="Abrir documento recuperado"
+                                    Click="OnOpenUnprotectedResultClick"
+                                    Content="Abrir resultado"
+                                    IsEnabled="{x:Bind ViewModel.CanOpenUnprotectedOutput, Mode=OneWay}"
+                                    TabIndex="17" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>

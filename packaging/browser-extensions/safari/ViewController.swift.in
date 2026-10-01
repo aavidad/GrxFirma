@@ -1,0 +1,412 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// Autoría: Alberto Avidad Fernández
+// Licencia: EUPL 1.2 o posterior
+// SPDX-License-Identifier: EUPL-1.2
+
+// GRXFIRMA_SAFARI_BRIDGE_V1
+// Configuration UI for the generated macOS containing app.
+
+import Cocoa
+import SafariServices
+import Security
+
+private enum AppBridgeSettings {
+    static let extensionBundleIdentifier = "__EXTENSION_BUNDLE_ID__"
+    static let keychainService = "__KEYCHAIN_SERVICE__"
+    static let keychainAccessGroupSuffix = "__KEYCHAIN_ACCESS_GROUP_SUFFIX__"
+    static let tokenAccount = "rest-bearer-token"
+    static let endpointAccount = "rest-endpoint"
+    static let tlsPinAccount = "rest-tls-certificate-sha256"
+    static let defaultEndpoint = "__DEFAULT_ENDPOINT__"
+}
+
+private enum AppConfigurationError: Error {
+    case invalidEndpoint
+    case invalidToken
+    case invalidTLSPin
+    case keychain(OSStatus)
+}
+
+private enum SharedAccessGroup {
+    static func resolve() throws -> String {
+        guard let task = SecTaskCreateFromSelf(nil),
+              let rawGroups = SecTaskCopyValueForEntitlement(
+                  task,
+                  "keychain-access-groups" as CFString,
+                  nil
+              ) as? [String],
+              let group = rawGroups.first(where: {
+                  $0.hasSuffix("." + AppBridgeSettings.keychainAccessGroupSuffix)
+              }) else {
+            throw AppConfigurationError.keychain(errSecMissingEntitlement)
+        }
+        return group
+    }
+}
+
+private enum SharedKeychain {
+    static func read(account: String) throws -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: AppBridgeSettings.keychainService,
+            kSecAttrAccount as String: account,
+            kSecAttrAccessGroup as String: try SharedAccessGroup.resolve(),
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: true,
+            kSecUseDataProtectionKeychain as String: true,
+        ]
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        if status == errSecItemNotFound { return nil }
+        guard status == errSecSuccess,
+              let data = item as? Data,
+              let value = String(data: data, encoding: .utf8) else {
+            throw AppConfigurationError.keychain(status)
+        }
+        return value
+    }
+
+    static func write(_ value: String, account: String) throws {
+        let data = Data(value.utf8)
+        let lookup: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: AppBridgeSettings.keychainService,
+            kSecAttrAccount as String: account,
+            kSecAttrAccessGroup as String: try SharedAccessGroup.resolve(),
+            kSecUseDataProtectionKeychain as String: true,
+        ]
+        let attributes: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+        ]
+        let updateStatus = SecItemUpdate(lookup as CFDictionary, attributes as CFDictionary)
+        if updateStatus == errSecSuccess { return }
+        guard updateStatus == errSecItemNotFound else {
+            throw AppConfigurationError.keychain(updateStatus)
+        }
+        var addition = lookup
+        attributes.forEach { addition[$0.key] = $0.value }
+        let addStatus = SecItemAdd(addition as CFDictionary, nil)
+        guard addStatus == errSecSuccess else {
+            throw AppConfigurationError.keychain(addStatus)
+        }
+    }
+
+    static func delete(account: String) throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: AppBridgeSettings.keychainService,
+            kSecAttrAccount as String: account,
+            kSecAttrAccessGroup as String: try SharedAccessGroup.resolve(),
+            kSecUseDataProtectionKeychain as String: true,
+        ]
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw AppConfigurationError.keychain(status)
+        }
+    }
+
+    static func restore(_ value: String?, account: String) throws {
+        if let value = value {
+            try write(value, account: account)
+        } else {
+            try delete(account: account)
+        }
+    }
+}
+
+final class ViewController: NSViewController {
+    // Kept for compatibility with converter-generated Main.storyboard files.
+    @IBOutlet var appNameLabel: NSTextField!
+
+    private let endpointField = NSTextField(string: AppBridgeSettings.defaultEndpoint)
+    private let tokenField = NSSecureTextField(string: "")
+    private let tlsPinField = NSTextField(string: "")
+    private let extensionStateLabel = NSTextField(labelWithString: "Comprobando Safari...")
+    private let configurationStateLabel = NSTextField(labelWithString: "")
+    private var tokenAlreadyConfigured = false
+
+    override func loadView() {
+        view = NSView(frame: NSRect(x: 0, y: 0, width: 700, height: 500))
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.subviews.forEach { $0.removeFromSuperview() }
+        appNameLabel = nil
+        configureInterface()
+        loadConfiguration()
+        refreshExtensionState()
+    }
+
+    override func viewDidAppear() {
+        super.viewDidAppear()
+        view.window?.title = "GrxFirma Safari"
+        view.window?.contentMinSize = NSSize(width: 700, height: 500)
+        view.window?.setContentSize(NSSize(width: 700, height: 500))
+    }
+
+    private func configureInterface() {
+        endpointField.placeholderString = AppBridgeSettings.defaultEndpoint
+        endpointField.accessibilityLabel = "Endpoint local GrxFirma"
+        tokenField.placeholderString = "Token Bearer local (minimo 32 caracteres)"
+        tokenField.accessibilityLabel = "Token Bearer local"
+        tlsPinField.placeholderString = "64 caracteres hexadecimales"
+        tlsPinField.accessibilityLabel = "Huella SHA-256 del certificado TLS local"
+
+        extensionStateLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        extensionStateLabel.lineBreakMode = .byWordWrapping
+        extensionStateLabel.maximumNumberOfLines = 2
+        configurationStateLabel.textColor = .secondaryLabelColor
+        configurationStateLabel.lineBreakMode = .byWordWrapping
+        configurationStateLabel.maximumNumberOfLines = 3
+
+        let title = NSTextField(labelWithString: "GrxFirma Safari")
+        title.font = .systemFont(ofSize: 24, weight: .semibold)
+        let explanation = NSTextField(wrappingLabelWithString:
+            "Configura la conexion HTTPS local usada por la extension. "
+            + "El token y la huella TLS se guardan en el Llavero de macOS; "
+            + "el token nunca se muestra de nuevo."
+        )
+        explanation.textColor = .secondaryLabelColor
+
+        let endpointLabel = NSTextField(labelWithString: "Servicio local")
+        endpointLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        let tokenLabel = NSTextField(labelWithString: "Token Bearer")
+        tokenLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        let tlsPinLabel = NSTextField(labelWithString: "Huella SHA-256 del certificado TLS")
+        tlsPinLabel.font = .systemFont(ofSize: 13, weight: .medium)
+
+        let saveButton = NSButton(title: "Guardar configuracion", target: self, action: #selector(saveConfiguration))
+        saveButton.bezelStyle = .rounded
+        saveButton.keyEquivalent = "\r"
+        let clearButton = NSButton(title: "Eliminar token", target: self, action: #selector(clearToken))
+        clearButton.bezelStyle = .rounded
+        let safariButton = NSButton(title: "Abrir ajustes de Safari", target: self, action: #selector(openSafariPreferences))
+        safariButton.bezelStyle = .rounded
+
+        let buttonRow = NSStackView(views: [saveButton, clearButton, safariButton])
+        buttonRow.orientation = .horizontal
+        buttonRow.alignment = .centerY
+        buttonRow.spacing = 10
+        let divider = separator()
+
+        let stack = NSStackView(views: [
+            title,
+            explanation,
+            divider,
+            extensionStateLabel,
+            endpointLabel,
+            endpointField,
+            tokenLabel,
+            tokenField,
+            tlsPinLabel,
+            tlsPinField,
+            buttonRow,
+            configurationStateLabel,
+        ])
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 10
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stack)
+
+        endpointField.translatesAutoresizingMaskIntoConstraints = false
+        tokenField.translatesAutoresizingMaskIntoConstraints = false
+        tlsPinField.translatesAutoresizingMaskIntoConstraints = false
+        explanation.translatesAutoresizingMaskIntoConstraints = false
+        extensionStateLabel.translatesAutoresizingMaskIntoConstraints = false
+        configurationStateLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
+            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -28),
+            stack.topAnchor.constraint(equalTo: view.topAnchor, constant: 24),
+            endpointField.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            tokenField.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            tlsPinField.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            divider.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            explanation.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            extensionStateLabel.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            configurationStateLabel.widthAnchor.constraint(equalTo: stack.widthAnchor),
+        ])
+    }
+
+    private func separator() -> NSBox {
+        let box = NSBox()
+        box.boxType = .separator
+        return box
+    }
+
+    private func loadConfiguration() {
+        do {
+            endpointField.stringValue = try SharedKeychain.read(
+                account: AppBridgeSettings.endpointAccount
+            ) ?? AppBridgeSettings.defaultEndpoint
+            tokenAlreadyConfigured = try SharedKeychain.read(
+                account: AppBridgeSettings.tokenAccount
+            ) != nil
+            tlsPinField.stringValue = try SharedKeychain.read(
+                account: AppBridgeSettings.tlsPinAccount
+            ) ?? ""
+            tokenField.stringValue = ""
+            tokenField.placeholderString = tokenAlreadyConfigured
+                ? "Token ya configurado; dejalo vacio para conservarlo"
+                : "Token Bearer local (minimo 32 caracteres)"
+            let hasPin = (try? normalizedTLSPin(tlsPinField.stringValue)) != nil
+            configurationStateLabel.stringValue = tokenAlreadyConfigured && hasPin
+                ? "Token local y huella TLS configurados en el Llavero."
+                : "Faltan el token o la huella TLS; las operaciones quedan bloqueadas."
+        } catch {
+            configurationStateLabel.stringValue = "No se pudo leer el Llavero de macOS."
+            configurationStateLabel.textColor = .systemRed
+        }
+    }
+
+    @objc private func saveConfiguration() {
+        do {
+            let endpoint = try validatedEndpoint(endpointField.stringValue)
+            let tlsPin = try normalizedTLSPin(tlsPinField.stringValue)
+            let newToken = tokenField.stringValue
+            if !newToken.isEmpty {
+                try validateToken(newToken)
+            } else if !tokenAlreadyConfigured {
+                throw AppConfigurationError.invalidToken
+            }
+
+            let previousEndpoint = try SharedKeychain.read(
+                account: AppBridgeSettings.endpointAccount
+            )
+            let previousPin = try SharedKeychain.read(account: AppBridgeSettings.tlsPinAccount)
+            let previousToken = try SharedKeychain.read(
+                account: AppBridgeSettings.tokenAccount
+            )
+            do {
+                try SharedKeychain.write(endpoint, account: AppBridgeSettings.endpointAccount)
+                try SharedKeychain.write(tlsPin, account: AppBridgeSettings.tlsPinAccount)
+                if !newToken.isEmpty {
+                    try SharedKeychain.write(newToken, account: AppBridgeSettings.tokenAccount)
+                }
+            } catch {
+                try? SharedKeychain.restore(
+                    previousEndpoint,
+                    account: AppBridgeSettings.endpointAccount
+                )
+                try? SharedKeychain.restore(previousPin, account: AppBridgeSettings.tlsPinAccount)
+                try? SharedKeychain.restore(
+                    previousToken,
+                    account: AppBridgeSettings.tokenAccount
+                )
+                throw error
+            }
+
+            tokenAlreadyConfigured = true
+            endpointField.stringValue = endpoint
+            tlsPinField.stringValue = tlsPin
+            tokenField.stringValue = ""
+            tokenField.placeholderString = "Token ya configurado; dejalo vacio para conservarlo"
+            configurationStateLabel.textColor = .systemGreen
+            configurationStateLabel.stringValue = "Configuracion guardada de forma segura."
+        } catch AppConfigurationError.invalidEndpoint {
+            showValidationError("Solo se permite https://127.0.0.1:63118 o https://[::1]:63118.")
+        } catch AppConfigurationError.invalidToken {
+            showValidationError("El token debe tener entre 32 y 512 caracteres ASCII sin espacios.")
+        } catch AppConfigurationError.invalidTLSPin {
+            showValidationError("La huella TLS debe contener exactamente 64 digitos hexadecimales.")
+        } catch {
+            showValidationError("No se pudo guardar la configuracion en el Llavero de macOS.")
+        }
+    }
+
+    @objc private func clearToken() {
+        do {
+            try SharedKeychain.delete(account: AppBridgeSettings.tokenAccount)
+            tokenAlreadyConfigured = false
+            tokenField.stringValue = ""
+            tokenField.placeholderString = "Token Bearer local (minimo 32 caracteres)"
+            configurationStateLabel.textColor = .secondaryLabelColor
+            configurationStateLabel.stringValue = "Token eliminado. La firma queda bloqueada hasta configurar otro."
+        } catch {
+            showValidationError("No se pudo eliminar el token del Llavero de macOS.")
+        }
+    }
+
+    @objc private func openSafariPreferences() {
+        SFSafariApplication.showPreferencesForExtension(
+            withIdentifier: AppBridgeSettings.extensionBundleIdentifier
+        ) { [weak self] error in
+            DispatchQueue.main.async {
+                if error != nil {
+                    self?.showValidationError("Safari no pudo abrir los ajustes de la extension.")
+                }
+            }
+        }
+    }
+
+    @IBAction func openSafariExtensionPreferences(_ sender: AnyObject?) {
+        openSafariPreferences()
+    }
+
+    private func refreshExtensionState() {
+        SFSafariExtensionManager.getStateOfSafariExtension(
+            withIdentifier: AppBridgeSettings.extensionBundleIdentifier
+        ) { [weak self] state, error in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                if error != nil || state == nil {
+                    self.extensionStateLabel.stringValue = "No se pudo consultar el estado de la extension."
+                    self.extensionStateLabel.textColor = .systemRed
+                } else if state?.isEnabled == true {
+                    self.extensionStateLabel.stringValue = "Extension habilitada en Safari."
+                    self.extensionStateLabel.textColor = .systemGreen
+                } else {
+                    self.extensionStateLabel.stringValue = "Extension instalada pero deshabilitada en Safari."
+                    self.extensionStateLabel.textColor = .systemOrange
+                }
+            }
+        }
+    }
+
+    private func validatedEndpoint(_ rawValue: String) throws -> String {
+        let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let components = URLComponents(string: trimmed),
+              components.scheme == "https",
+              components.user == nil,
+              components.password == nil,
+              components.query == nil,
+              components.fragment == nil,
+              components.port == 63118,
+              ["127.0.0.1", "::1"].contains(components.host ?? ""),
+              components.path.isEmpty else {
+            throw AppConfigurationError.invalidEndpoint
+        }
+        return trimmed
+    }
+
+    private func validateToken(_ value: String) throws {
+        let bytes = Array(value.utf8)
+        guard (32...512).contains(bytes.count),
+              bytes.allSatisfy({ (0x21...0x7e).contains($0) }) else {
+            throw AppConfigurationError.invalidToken
+        }
+    }
+
+    private func normalizedTLSPin(_ value: String) throws -> String {
+        let normalized = value
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ":", with: "")
+            .lowercased()
+        guard normalized.count == 64,
+              normalized.utf8.allSatisfy({
+                  (0x30...0x39).contains($0) || (0x61...0x66).contains($0)
+              }) else {
+            throw AppConfigurationError.invalidTLSPin
+        }
+        return normalized
+    }
+
+    private func showValidationError(_ message: String) {
+        configurationStateLabel.textColor = .systemRed
+        configurationStateLabel.stringValue = message
+        NSSound.beep()
+    }
+}

@@ -1,0 +1,105 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<Application
+    x:Class="GrxFirma.WinUI.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <controls:XamlControlsResources />
+            </ResourceDictionary.MergedDictionaries>
+
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#FFF7F8FA" />
+                    <SolidColorBrush x:Key="AppCardBackgroundBrush" Color="#FFFFFFFF" />
+                    <SolidColorBrush x:Key="AppCardBorderBrush" Color="#1A000000" />
+                    <SolidColorBrush x:Key="AppMutedTextBrush" Color="#FF4E5968" />
+                    <SolidColorBrush x:Key="AppSealOverlayBrush" Color="#18206BC4" />
+                    <SolidColorBrush x:Key="AppSealBorderBrush" Color="#FF206BC4" />
+                    <SolidColorBrush x:Key="AppSealTextBackgroundBrush" Color="#EFFFFFFF" />
+                    <SolidColorBrush x:Key="AppSealTextBrush" Color="#FF103A6E" />
+                    <SolidColorBrush x:Key="AppSealHandleBrush" Color="#FF103A6E" />
+                    <SolidColorBrush x:Key="AppSealHandleTextBrush" Color="#FFFFFFFF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#FF17191D" />
+                    <SolidColorBrush x:Key="AppCardBackgroundBrush" Color="#FF22252A" />
+                    <SolidColorBrush x:Key="AppCardBorderBrush" Color="#2EFFFFFF" />
+                    <SolidColorBrush x:Key="AppMutedTextBrush" Color="#FFB8C0CC" />
+                    <!-- La hoja representa el PDF real; el editor mantiene contraste sobre papel blanco. -->
+                    <SolidColorBrush x:Key="AppSealOverlayBrush" Color="#18206BC4" />
+                    <SolidColorBrush x:Key="AppSealBorderBrush" Color="#FF206BC4" />
+                    <SolidColorBrush x:Key="AppSealTextBackgroundBrush" Color="#EFFFFFFF" />
+                    <SolidColorBrush x:Key="AppSealTextBrush" Color="#FF103A6E" />
+                    <SolidColorBrush x:Key="AppSealHandleBrush" Color="#FF103A6E" />
+                    <SolidColorBrush x:Key="AppSealHandleTextBrush" Color="#FFFFFFFF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <SolidColorBrush x:Key="AppSealOverlayBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="AppSealBorderBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+                    <SolidColorBrush x:Key="AppSealTextBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="AppSealTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="AppSealHandleBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+                    <SolidColorBrush x:Key="AppSealHandleTextBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
+                    <SolidColorBrush
+                        x:Key="AppPageBackgroundBrush"
+                        Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush
+                        x:Key="AppCardBackgroundBrush"
+                        Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush
+                        x:Key="AppCardBorderBrush"
+                        Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush
+                        x:Key="AppMutedTextBrush"
+                        Color="{ThemeResource SystemColorWindowTextColor}" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <SolidColorBrush
+                x:Key="AppDiagnosticSuccessBrush"
+                Color="{ThemeResource SystemFillColorSuccess}" />
+            <SolidColorBrush
+                x:Key="AppDiagnosticFailureBrush"
+                Color="{ThemeResource SystemFillColorCritical}" />
+            <SolidColorBrush
+                x:Key="AppDiagnosticSkippedBrush"
+                Color="{ThemeResource SystemFillColorNeutral}" />
+            <SolidColorBrush
+                x:Key="AppDiagnosticUnknownBrush"
+                Color="{ThemeResource SystemFillColorCaution}" />
+
+            <Style x:Key="PageTitleTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="30" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <Style x:Key="PageSubtitleTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="Foreground" Value="{ThemeResource AppMutedTextBrush}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <Style x:Key="SectionTitleTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <Style x:Key="AppCardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource AppCardBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource AppCardBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="Padding" Value="20" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

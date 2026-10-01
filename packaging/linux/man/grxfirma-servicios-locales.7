@@ -1,0 +1,135 @@
+.TH GRXFIRMA-SERVICIOS-LOCALES 7 "20 marzo 2026" "GrxFirma" "Servicios locales e integración"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-servicios-locales \- servicios locales, native host y puntos de integración de GrxFirma
+.SH DESCRIPCIÓN
+Esta página explica las piezas locales que \fBGrxFirma\fR puede exponer o utilizar
+para integrarse con navegadores, portales y herramientas externas.
+.PP
+No todas las integraciones sirven para lo mismo:
+.IP \(bu 2
+unas están pensadas para web y navegador;
+.IP \(bu 2
+otras para automatización local;
+.IP \(bu 2
+y otras para compatibilidad con protocolos históricos.
+.SH SERVIDOR REST LOCAL
+El modo REST local permite que otra herramienta hable con la aplicación a través de
+HTTPS en loopback.
+.PP
+Ejemplo:
+.PP
+.RS
+\fBgrxfirma \-servidor\-rest \-direccion\-rest 127.0.0.1:63118\fR
+.RE
+.PP
+Suele ser útil para:
+.IP \(bu 2
+integraciones técnicas locales;
+.IP \(bu 2
+automatización en entornos controlados;
+.IP \(bu 2
+clientes de escritorio que prefieren una API explícita.
+.PP
+La exposición se hace sobre loopback para reducir superficie de ataque.
+.SH NATIVE HOST
+El \fInative host\fR es el binario que habla con el navegador mediante
+\fBNative Messaging\fR.
+.PP
+En \fBGrxFirma\fR suele corresponder a:
+.PP
+.RS
+\fBgrxfirma\-nativehost\fR
+.RE
+.PP
+Su trabajo principal es:
+.IP \(bu 2
+responder a peticiones de la extensión del navegador;
+.IP \(bu 2
+listar certificados;
+.IP \(bu 2
+lanzar flujos de firma o identificación;
+.IP \(bu 2
+y devolver resultados al navegador.
+.PP
+La web no habla directamente con tus certificados ni con tus claves privadas.
+Siempre lo hace a través de la extensión y del host nativo.
+.SH PUENTE DE NAVEGADOR
+El puente del navegador es el script o envoltorio que conecta la instalación local
+con el host nativo real.
+.PP
+Suele encargarse de:
+.IP \(bu 2
+cargar variables de entorno de la instalación;
+.IP \(bu 2
+activar modo debug si procede;
+.IP \(bu 2
+y ejecutar el binario correcto.
+.PP
+Esto permite cambiar rutas, logs o configuración sin reescribir los manifiestos del navegador.
+.SH PROTOCOLO AFIRMA://
+El manejador \fBafirma://\fR no es un servicio persistente por sí mismo. Es un
+adaptador de entrada para flujos lanzados desde portales o sedes.
+.PP
+Ejemplo:
+.PP
+.RS
+\fBgrxfirma\-afirmauri 'afirma://...'\fR
+.RE
+.PP
+En Linux normalmente se activa desde el fichero \fI.desktop\fR registrado como
+manejador del esquema.
+.SH WEBSOCKET LOCAL
+Algunos entornos históricos pueden requerir un WebSocket local seguro como mecanismo
+de compatibilidad. En \fBGrxFirma\fR esa capacidad vive en el borde legacy y no
+forma parte del núcleo de firma.
+.PP
+Solo debería habilitarse cuando el flujo lo necesite realmente.
+.SH QUÉ USAR EN CADA CASO
+.TP
+.B Portal web con extensión
+Usar puente + native host.
+.TP
+.B Portal legacy con afirma://
+Usar el manejador \fBgrxfirma\-afirmauri\fR.
+.TP
+.B Automatización local o integración controlada
+Valorar CLI o REST local.
+.TP
+.B Firma manual por usuario
+Usar \fBgrxfirma\-desktop\fR.
+.SH SEGURIDAD
+Estas piezas existen precisamente para no exponer de forma directa:
+.IP \(bu 2
+el almacén local de certificados;
+.IP \(bu 2
+las claves privadas;
+.IP \(bu 2
+ni acceso irrestricto desde cualquier web.
+.PP
+Por eso conviene distinguir bien entre:
+.IP \(bu 2
+una web de confianza;
+.IP \(bu 2
+el círculo de confianza de dominios;
+.IP \(bu 2
+y los servicios locales realmente habilitados.
+.SH COMANDOS ÚTILES
+.TP
+.B grxfirma \-servidor\-rest \-direccion\-rest 127.0.0.1:63118
+Levanta el servicio REST local.
+.TP
+.B grxfirma\-nativehost
+Arranca el host nativo si se invoca manualmente.
+.TP
+.B grxfirma\-afirmauri 'afirma://...'
+Lanza el manejador del protocolo legacy.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-puente-navegador (7),
+.BR grxfirma-portales (7),
+.BR grxfirma-diagnostico (7)

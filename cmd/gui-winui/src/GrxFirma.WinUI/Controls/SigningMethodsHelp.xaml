@@ -1,0 +1,40 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<UserControl
+    x:Class="GrxFirma.WinUI.Controls.SigningMethodsHelp"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Expander
+        HorizontalAlignment="Stretch"
+        HorizontalContentAlignment="Stretch"
+        MinHeight="44"
+        IsExpanded="False"
+        AutomationProperties.AutomationId="SigningMethodsHelp"
+        AutomationProperties.Name="Otras formas de firmar"
+        AutomationProperties.HelpText="Despliegue la ayuda sobre archivos, almacén Windows, dispositivos y Cl@ve Firma.">
+        <Expander.Header>
+            <TextBlock Text="Otras formas de firmar" AutomationProperties.HeadingLevel="Level2" TextWrapping="Wrap" />
+        </Expander.Header>
+        <StackPanel Spacing="16">
+            <StackPanel Spacing="4">
+                <TextBlock Text="Archivo P12/PFX: solo esta sesión" FontWeight="SemiBold" AutomationProperties.HeadingLevel="Level3" TextWrapping="Wrap" />
+                <TextBlock Text="En Firmar, «Cargar P12/PFX…» permite usar su certificado con clave privada sin instalarlo en Windows. Puede ser de FNMT o de otros emisores compatibles; no es exclusivo de FNMT. La sede decide qué certificados admite." TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="Almacén personal de Windows" FontWeight="SemiBold" AutomationProperties.HeadingLevel="Level3" TextWrapping="Wrap" />
+                <TextBlock Text="Use Buscar en Windows o Actualizar para consultar los certificados disponibles. Importar en Windows es una acción distinta: conserva la credencial en el almacén personal tras su confirmación." TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="Tarjetas, DNIe y tokens USB" FontWeight="SemiBold" AutomationProperties.HeadingLevel="Level3" TextWrapping="Wrap" />
+                <TextBlock Text="Conecte el lector, inserte la tarjeta y pulse «Usar DNIe o tarjeta». Windows necesita el controlador del fabricante para mostrar sus certificados. Si falta, consulte la web oficial del DNIe o la del fabricante. Al firmar, el controlador solicitará el PIN; no lo escriba en esta aplicación. La disponibilidad depende del dispositivo y del proveedor: no se garantiza compatibilidad universal." TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="Cl@ve Firma: depende del trámite" FontWeight="SemiBold" AutomationProperties.HeadingLevel="Level3" TextWrapping="Wrap" />
+                <TextBlock Text="Es un servicio de firma que debe ofrecer e integrar la sede o el trámite. No es un certificado local y no puede añadirse a este selector desde GrxFirma. Si el trámite ofrece Cl@ve Firma, siga esa opción en su propia sede." TextWrapping="Wrap" />
+            </StackPanel>
+        </StackPanel>
+    </Expander>
+</UserControl>

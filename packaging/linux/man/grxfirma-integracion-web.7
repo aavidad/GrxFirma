@@ -1,0 +1,112 @@
+.TH GRXFIRMA-INTEGRACION-WEB 7 "20 marzo 2026" "GrxFirma" "Integración web y navegador"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-integracion-web \- integración web, navegador, afirma:// y diagnóstico de portales en GrxFirma
+.SH DESCRIPCIÓN
+Esta página explica cómo se integra \fBGrxFirma\fR con portales web, sedes electrónicas
+y extensiones de navegador.
+.PP
+El objetivo es que una web pueda solicitar firma o identificación sin acceder directamente
+al almacén local de certificados ni a las claves privadas del usuario.
+.SH PIEZAS QUE INTERVIENEN
+.TP
+.B Portal o sede electrónica
+Es la aplicación web que pide identificación o firma.
+.TP
+.B Extensión del navegador
+Intermedia entre la web y la instalación local.
+.TP
+.B Puente de navegador
+Script o envoltorio que prepara el entorno y ejecuta el host nativo correcto.
+.TP
+.B Native host
+Proceso local que habla con el navegador mediante \fBNative Messaging\fR.
+.TP
+.B Manejador afirma://
+Adaptador local para portales legacy que arrancan la aplicación con el esquema
+\fBafirma://\fR.
+.SH DOS MODELOS DE INTEGRACIÓN
+.SS Modelo con extensión y native host
+La web habla con la extensión. La extensión habla con el host nativo. El host
+nativo invoca o coordina la operación local.
+.PP
+Suele usarse para:
+.IP \(bu 2
+detectar que la aplicación está instalada;
+.IP \(bu 2
+listar certificados;
+.IP \(bu 2
+lanzar firmas o verificaciones desde el navegador.
+.SS Modelo legacy con afirma://
+El portal delega en el sistema operativo abriendo una URL \fBafirma://...\fR.
+.PP
+El sistema operativo la entrega al manejador registrado:
+.PP
+.RS
+\fBgrxfirma\-afirmauri\fR
+.RE
+.PP
+Ese adaptador interpreta la operación, interactúa con los casos de uso internos
+y devuelve el resultado al flujo web remoto.
+.SH IDENTIFICACIÓN FRENTE A FIRMA
+No todos los portales usan el mismo flujo:
+.TP
+.B Identificación
+Algunos portales solo necesitan demostrar qué certificado ha elegido el usuario.
+.TP
+.B Firma de documento
+Otros recuperan un lote o una tarea remota, hacen prefirma, firman localmente
+y suben el resultado final.
+.PP
+En ambos casos, la compatibilidad exacta con portales legacy vive en el borde
+de integración, no en el núcleo de firma.
+.SH FICHEROS Y REGISTROS ÚTILES
+.TP
+.I /tmp/grxfirma-handler.log
+Registro útil para ver si el manejador \fBafirma://\fR ha sido invocado y cómo termina.
+.TP
+.I /tmp/grxfirma-web-compat.log
+Registro útil para compatibilidad web: retrieve, wait, presign, postsign, upload
+y otros pasos del flujo legacy.
+.TP
+.I /tmp/grxfirma-debug.log
+Registro general de depuración cuando se activa el modo debug del handler.
+.SH QUÉ MIRAR SI UNA WEB FALLA
+.IP "1." 4
+Confirmar que se ha invocado el manejador o el native host.
+.IP "2." 4
+Confirmar que el usuario ha podido elegir certificado o que el catálogo es válido.
+.IP "3." 4
+Confirmar que el flujo remoto llega a \fBWAIT\fR, \fBpresign\fR, \fBpostsign\fR y \fBupload\fR.
+.IP "4." 4
+Ver si el fallo es de transporte, de compatibilidad legacy o de contenido firmado.
+.SH CONSEJOS PRÁCTICOS
+.IP \(bu 2
+Si el navegador no detecta la aplicación, revisar extensión, manifiestos y native host.
+.IP \(bu 2
+Si el portal invoca \fBafirma://\fR pero no termina, revisar \fI/tmp/grxfirma-handler.log\fR.
+.IP \(bu 2
+Si el batch remoto parece correcto pero la web no cierra, revisar \fI/tmp/grxfirma-web-compat.log\fR.
+.IP \(bu 2
+Si el problema parece de certificados, consultar \fBgrxfirma-certificados(7)\fR.
+.SH COMANDOS ÚTILES
+.TP
+.B xdg-mime query default x-scheme-handler/afirma
+Comprueba qué aplicación maneja el esquema \fBafirma://\fR.
+.TP
+.B man grxfirma-puente-navegador
+Explica el papel del bridge y del native host.
+.TP
+.B man grxfirma-portales
+Explica compatibilidad con portales y sedes.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-puente-navegador (7),
+.BR grxfirma-servicios-locales (7),
+.BR grxfirma-portales (7),
+.BR grxfirma-diagnostico (7),
+.BR grxfirma-certificados (7)

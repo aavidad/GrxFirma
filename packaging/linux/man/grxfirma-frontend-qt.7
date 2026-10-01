@@ -1,0 +1,133 @@
+.TH GRXFIRMA-FRONTEND-QT 7 "21 marzo 2026" "GrxFirma" "Frontend desktop Qt/QML"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-frontend-qt \- compilación, instalación y uso del frontend Qt/QML de GrxFirma
+.SH DESCRIPCIÓN
+Esta página describe el frontend \fBQt/QML\fR importado desde la V1 Go y adaptado
+como frontend opcional de \fBGrxFirma\fR.
+.PP
+No sustituye al frontend actual basado en Fyne. Se mantiene como alternativa
+de escritorio para recuperar una UX más cercana a la V1 y facilitar el portado
+gradual de la interfaz clásica.
+.SH ESTADO ACTUAL
+El frontend Qt/QML en V2 está orientado a:
+.IP \(bu 2
+operar contra el backend REST local de \fBgrxfirma\fR;
+.IP \(bu 2
+listar certificados;
+.IP \(bu 2
+firmar por ruta;
+.IP \(bu 2
+verificar por ruta;
+.IP \(bu 2
+usar ajustes locales y diagnóstico básico.
+.PP
+La ruta \fBIPC\fR de la V1 se conserva únicamente como referencia histórica en el
+código importado, pero la UI visible de V2 queda limitada a \fBREST\fR.
+.SH COMPILACIÓN EN LINUX
+Si tienes Qt 5 y \fBqmake\fR disponibles:
+.PP
+.RS
+\fBmake build-qt-qml\fR
+.RE
+.PP
+El binario resultante se genera en:
+.PP
+.RS
+\fIcmd/gui-qml/grxfirma-gui-qml\fR
+.RE
+.PP
+El QML y los assets del frontend quedan embebidos en el binario compilado, por lo
+que la instalación no depende de copiar manualmente un árbol \fIqml/\fR adicional.
+.SH INSTALACIÓN
+.SS Instalación normal
+La instalación estándar sigue funcionando sin Qt:
+.PP
+.RS
+\fBmake install-user\fR
+.RE
+.PP
+Si el binario Qt no existe todavía, la instalación lo indicará y continuará con
+la ruta habitual basada en Fyne.
+.SS Instalación con frontend Qt ya compilado
+Si antes has ejecutado:
+.PP
+.RS
+\fBmake build-qt-qml\fR
+.RE
+.PP
+entonces:
+.PP
+.RS
+\fBmake install-user\fR
+.RE
+.PP
+copiará también:
+.PP
+.RS
+\fI~/.local/bin/grxfirma-gui-qml\fR
+.RE
+.PP
+Como alternativa, el instalador de usuario puede hacer ambas cosas en una sola vez:
+.PP
+.RS
+\fBpackaging/linux/install-user.sh --with-qt\fR
+.RE
+.PP
+Lo mismo aplica a \fBmake install\fR para instalación de sistema.
+.SH ARRANQUE
+.TP
+.B Forzar frontend Qt
+.RS
+\fBgrxfirma \-desktop \-frontend qt\fR
+.br
+\fBgrxfirma \-qt\fR
+.RE
+.TP
+.B Forzar frontend Fyne
+.RS
+\fBgrxfirma \-desktop \-frontend fyne\fR
+.RE
+.SH RESOLUCIÓN DEL BINARIO QT
+Cuando se usa \fB\-qt\fR, \fBgrxfirma\fR busca el frontend Qt en este orden aproximado:
+.IP \(bu 2
+en el mismo directorio del ejecutable;
+.IP \(bu 2
+en \fIcmd/gui-qml/grxfirma-gui-qml\fR dentro del árbol de desarrollo;
+.IP \(bu 2
+en el \fBPATH\fR del sistema.
+.PP
+Eso permite:
+.IP \(bu 2
+probar el frontend Qt desde el repo sin instalarlo;
+.IP \(bu 2
+o usarlo ya instalado junto al binario principal.
+.SH QUÉ NO DEBE ESPERARSE TODAVÍA
+.IP \(bu 2
+paridad total con todos los comportamientos heredados de la V1;
+.IP \(bu 2
+packaging multiplataforma cerrado;
+.IP \(bu 2
+un modo IPC soportado en V2;
+.IP \(bu 2
+que sustituya por completo al frontend Fyne en todos los flujos.
+.SH CUÁNDO USARLO
+Tiene sentido usar el frontend Qt cuando:
+.IP \(bu 2
+quieres probar la UX importada de la V1;
+.IP \(bu 2
+necesitas validar portado visual/funcional;
+.IP \(bu 2
+o estás desarrollando la capa desktop clásica.
+.PP
+Para operación diaria estable, si no necesitas esa UX concreta, el frontend Fyne
+sigue siendo la referencia general de V2.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-operacion (7),
+.BR grxfirma-certificados (7),
+.BR grxfirma-diagnostico (7)

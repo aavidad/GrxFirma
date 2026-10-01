@@ -1,0 +1,39 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<RCC>
+  <qresource prefix="/">
+    <file>qml/main.qml</file>
+    <file>qml/NavButton.qml</file>
+    <file>qml/DiagnosticTimeline.qml</file>
+    <file>qml/TokenSettingsPanel.qml</file>
+    <file>assets/Logo-Horizontal-Color.png</file>
+    <file>assets/Logo-Horizontal-Color.svg</file>
+    <file>assets/logo-dipgra.png</file>
+    <file>assets/logo-firma-dipgra.png</file>
+    <file>assets/logo_firma_grxfirma_final.png</file>
+    <file>assets/eye.svg</file>
+    <file>assets/eye_icon.png</file>
+    <file>assets/folder.svg</file>
+    <file>assets/folder_icon.png</file>
+    <file>assets/search.svg</file>
+    <file>assets/search_icon.png</file>
+    <file alias="assets/grxfirma-diputacion.ico">../../assets/branding/grxfirma-diputacion.ico</file>
+    <file alias="assets/grxfirma-icono-256.png">../../assets/branding/grxfirma-icono-256.png</file>
+  </qresource>
+  <qresource prefix="/i18n">
+    <file alias="es.json">../../internal/adapters/outbound/common/localizador/locales/es.json</file>
+    <file alias="en.json">../../internal/adapters/outbound/common/localizador/locales/en.json</file>
+    <file alias="zh.json">../../internal/adapters/outbound/common/localizador/locales/zh.json</file>
+    <file alias="fr.json">../../internal/adapters/outbound/common/localizador/locales/fr.json</file>
+    <file alias="pt.json">../../internal/adapters/outbound/common/localizador/locales/pt.json</file>
+    <file alias="de.json">../../internal/adapters/outbound/common/localizador/locales/de.json</file>
+    <file alias="it.json">../../internal/adapters/outbound/common/localizador/locales/it.json</file>
+    <file alias="gl.json">../../internal/adapters/outbound/common/localizador/locales/gl.json</file>
+    <file alias="eu.json">../../internal/adapters/outbound/common/localizador/locales/eu.json</file>
+    <file alias="ca.json">../../internal/adapters/outbound/common/localizador/locales/ca.json</file>
+    <file alias="va.json">../../internal/adapters/outbound/common/localizador/locales/va.json</file>
+  </qresource>
+</RCC>

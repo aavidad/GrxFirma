@@ -1,0 +1,635 @@
+<!doctype html>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<html lang="{{.Lang}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{index .Messages "title"}} · GrxFirma</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef3f8;
+      --card: #ffffff;
+      --text: #142334;
+      --muted: #5d6b7b;
+      --line: #d8e1ea;
+      --primary: #075985;
+      --primary-dark: #0c3f5d;
+      --ok: #166534;
+      --warn: #92400e;
+      --bad: #991b1b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .page { width: min(1180px, calc(100% - 32px)); margin: 24px auto 48px; }
+    .hero, .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, .06);
+    }
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      padding: 24px;
+    }
+    h1, h2 { margin: 0 0 8px; line-height: 1.2; }
+    h1 { font-size: clamp(1.7rem, 4vw, 2.35rem); }
+    h2 { font-size: 1.25rem; }
+    .muted { color: var(--muted); margin: 0; }
+    .hero-actions, .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .hero-actions { justify-content: flex-end; }
+    .language-picker { display: flex; align-items: center; gap: 8px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .card { padding: 22px; min-width: 0; }
+    .wide { grid-column: 1 / -1; }
+    label { display: block; color: var(--muted); font-weight: 650; margin: 12px 0 5px; }
+    input[type="password"], select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      padding: 8px 10px;
+      font: inherit;
+    }
+    input[type="file"] { width: 100%; color: var(--text); font: inherit; }
+    button, .link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #fff;
+      padding: 9px 13px;
+      font: inherit;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    button.secondary, .link-btn.secondary { background: var(--primary-dark); }
+    button.light { background: #dbe7f3; color: var(--primary-dark); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .status {
+      margin-top: 12px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #edf2f7;
+      color: var(--muted);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .status.ok { background: #eaf7ee; color: var(--ok); }
+    .status.warn { background: #fff7e6; color: var(--warn); }
+    .status.bad { background: #feeeee; color: var(--bad); }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .result-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .result-item strong { display: block; color: var(--muted); font-size: .82rem; }
+    .full-row { grid-column: 1 / -1; }
+    .hidden { display: none !important; }
+    .file-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .auth { margin-top: 18px; }
+    @media (max-width: 780px) {
+      .hero { flex-direction: column; }
+      .hero-actions { justify-content: flex-start; }
+      .grid, .file-row, .result-grid { grid-template-columns: 1fr; }
+      .wide, .full-row { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div>
+        <h1>{{index .Messages "title"}}</h1>
+        <p class="muted">{{index .Messages "subtitle"}}</p>
+        <div id="globalStatus" class="status warn" role="status" aria-live="polite">{{index .Messages "connectionChecking"}}</div>
+      </div>
+      <nav class="hero-actions" aria-label="{{index .Messages "title"}}">
+        <div class="language-picker">
+          <label for="languageSelect">{{index .Messages "languageSelector"}}</label>
+          <select id="languageSelect">
+            {{range .Languages}}
+            <option value="{{.Code}}"{{if eq $.Lang .Code}} selected{{end}}>{{.Name}}</option>
+            {{end}}
+          </select>
+        </div>
+        <a class="link-btn secondary" href="/?lang={{.Lang}}">{{index .Messages "openConsole"}}</a>
+        <a class="link-btn secondary" href="/signer?lang={{.Lang}}">{{index .Messages "openSigner"}}</a>
+        <a class="link-btn" href="/openapi.json?lang={{.Lang}}" target="_blank" rel="noopener">{{index .Messages "openOpenAPI"}}</a>
+      </nav>
+    </section>
+
+    <section class="card auth">
+      <h2>{{index .Messages "authTitle"}}</h2>
+      <label for="bearerToken">{{index .Messages "bearerToken"}}</label>
+      <input id="bearerToken" type="password" autocomplete="off" spellcheck="false" placeholder="{{index .Messages "bearerHelp"}}">
+      <p class="muted">{{index .Messages "bearerHelp"}}</p>
+    </section>
+
+    <div class="grid">
+      <section class="card wide">
+        <h2>{{index .Messages "signatureTitle"}}</h2>
+        <p class="muted">{{index .Messages "signatureHelp"}}</p>
+        <div class="file-row">
+          <div>
+            <label for="signedFile">{{index .Messages "signedFile"}}</label>
+            <input id="signedFile" type="file">
+          </div>
+          <div>
+            <label for="originalFile">{{index .Messages "originalFile"}}</label>
+            <input id="originalFile" type="file">
+          </div>
+        </div>
+        <div class="actions" style="margin-top:16px">
+          <button id="verifyBtn" type="button">{{index .Messages "verifyNow"}}</button>
+          <button id="clearVerifyBtn" type="button" class="light">{{index .Messages "clear"}}</button>
+          <button id="downloadVerifyBtn" type="button" class="secondary" disabled>{{index .Messages "downloadReport"}}</button>
+        </div>
+        <div id="verifyStatus" class="status" role="status" aria-live="polite">{{index .Messages "emptyVerification"}}</div>
+        <div id="verifyResult" class="result-grid hidden">
+          <div class="result-item"><strong>{{index .Messages "status"}}</strong><span id="verifyState"></span></div>
+          <div class="result-item"><strong>{{index .Messages "format"}}</strong><span id="verifyFormat"></span></div>
+          <div class="result-item"><strong>{{index .Messages "coverage"}}</strong><span id="verifyCoverage"></span></div>
+          <div class="result-item"><strong>{{index .Messages "integrity"}}</strong><span id="verifyIntegrity"></span></div>
+          <div class="result-item"><strong>{{index .Messages "certificate"}}</strong><span id="verifyCertificate"></span></div>
+          <div class="result-item"><strong>{{index .Messages "trust"}}</strong><span id="verifyTrust"></span></div>
+          <div class="result-item full-row"><strong>{{index .Messages "reason"}}</strong><span id="verifyReason"></span></div>
+          <div class="result-item full-row"><strong>{{index .Messages "signers"}}</strong><span id="verifySigners"></span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>{{index .Messages "certificateTitle"}}</h2>
+        <p class="muted">{{index .Messages "certificateHelp"}}</p>
+        <div class="actions" style="margin-top:14px">
+          <button id="loadCertificatesBtn" type="button">{{index .Messages "loadCertificates"}}</button>
+        </div>
+        <label for="certificateSelect">{{index .Messages "certificateSelection"}}</label>
+        <select id="certificateSelect" disabled>
+          <option value="">{{index .Messages "noCertificates"}}</option>
+        </select>
+        <div id="certificateStatus" class="status" role="status" aria-live="polite">{{index .Messages "noCertificates"}}</div>
+        <div class="actions" style="margin-top:12px">
+          <button id="validateCertificateBtn" type="button" disabled>{{index .Messages "validateCertificate"}}</button>
+          <button id="onlineCheckBtn" type="button" disabled>{{index .Messages "onlineCheck"}}</button>
+          <button id="downloadCertificateBtn" type="button" class="secondary" disabled>{{index .Messages "downloadReport"}}</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>{{index .Messages "hashTitle"}}</h2>
+        <p class="muted">{{index .Messages "hashHelp"}}</p>
+        <label for="hashInput">{{index .Messages "dataFile"}}</label>
+        <input id="hashInput" type="file">
+        <label for="hashReference">{{index .Messages "hashFile"}}</label>
+        <input id="hashReference" type="file">
+        <label for="hashAlgorithm">{{index .Messages "algorithm"}}</label>
+        <select id="hashAlgorithm">
+          <option value="SHA-256">SHA-256</option>
+          <option value="SHA-384">SHA-384</option>
+          <option value="SHA-512">SHA-512</option>
+          <option value="SHA-1">SHA-1</option>
+        </select>
+        <div class="actions" style="margin-top:14px">
+          <button id="createHashBtn" type="button">{{index .Messages "createHash"}}</button>
+          <button id="checkHashBtn" type="button">{{index .Messages "checkHash"}}</button>
+          <button id="downloadHashBtn" type="button" class="secondary" disabled>{{index .Messages "downloadReport"}}</button>
+        </div>
+        <div id="hashStatus" class="status" role="status" aria-live="polite">{{index .Messages "selectRequired"}}</div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    "use strict";
+    const M = {{json .Messages}};
+    const LANG = {{json .Lang}};
+    const MAX_FILE_BYTES = 64 * 1024 * 1024;
+    const MAX_REQUEST_RAW_BYTES = 72 * 1024 * 1024;
+    let verificationReport = null;
+    let certificateReport = null;
+    let hashReport = null;
+    let certificateCatalog = [];
+    let certificateRequestGeneration = 0;
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function setStatus(target, text, kind) {
+      target.textContent = String(text || "");
+      target.className = "status" + (kind ? " " + kind : "");
+    }
+
+    function authHeaders() {
+      const headers = {"Content-Type": "application/json"};
+      const token = byId("bearerToken").value.trim();
+      if (token !== "") headers.Authorization = "Bearer " + token;
+      return headers;
+    }
+
+    async function apiFetch(path, options) {
+      const response = await fetch(path, options || {});
+      const contentType = response.headers.get("content-type") || "";
+      const payload = contentType.includes("application/json") ? await response.json() : {};
+      if (!response.ok) {
+        throw new Error(payload.error || M.requestFailed);
+      }
+      return payload;
+    }
+
+    function fileBase64(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) {
+          reject(new Error(M.selectRequired));
+          return;
+        }
+        if (file.size > MAX_FILE_BYTES) {
+          reject(new Error(M.fileTooLarge));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error(M.requestFailed));
+        reader.onload = () => {
+          const value = String(reader.result || "");
+          const separator = value.indexOf(",");
+          resolve(separator >= 0 ? value.substring(separator + 1) : value);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function ensureCombinedFileSize(files) {
+      const total = files.reduce((sum, file) => sum + (file ? Number(file.size || 0) : 0), 0);
+      if (total > MAX_REQUEST_RAW_BYTES) {
+        throw new Error(M.fileTooLarge);
+      }
+    }
+
+    function displayValue(value) {
+      const text = String(value || "").trim();
+      return text === "" ? M.notAvailable : text;
+    }
+
+    function aspectStatus(aspect) {
+      return displayValue(aspect && (aspect.status || aspect.reason));
+    }
+
+    function downloadJSON(report, filename) {
+      if (!report) return;
+      const blob = new Blob([JSON.stringify(report, null, 2) + "\n"], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+
+    async function verifySignature() {
+      const signed = byId("signedFile").files[0];
+      if (!signed) {
+        setStatus(byId("verifyStatus"), M.selectRequired, "warn");
+        return;
+      }
+      byId("verifyBtn").disabled = true;
+      setStatus(byId("verifyStatus"), M.connectionChecking, "warn");
+      try {
+        const original = byId("originalFile").files[0];
+        ensureCombinedFileSize([signed, original]);
+        const request = {
+          name: signed.name,
+          mime_type: signed.type || "application/octet-stream",
+          content_base64: await fileBase64(signed)
+        };
+        if (original) request.original_content_base64 = await fileBase64(original);
+        const response = await apiFetch("/verify", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify(request)
+        });
+        verificationReport = response.result || response;
+        const report = verificationReport;
+        byId("verifyState").textContent = response.valid ? M.valid : M.invalid;
+        byId("verifyFormat").textContent = displayValue(report.format);
+        byId("verifyCoverage").textContent = displayValue(report.coverage);
+        byId("verifyIntegrity").textContent = aspectStatus(report.integrity);
+        byId("verifyCertificate").textContent = aspectStatus(report.certificate);
+        byId("verifyTrust").textContent = aspectStatus(report.trust);
+        byId("verifyReason").textContent = displayValue(report.reason || response.reason);
+        const signers = report.signerSummaries || response.signers || [];
+        byId("verifySigners").textContent = displayValue(signers.map(item => {
+          return typeof item === "string" ? item : (item.subject || item.id || "");
+        }).filter(Boolean).join(", "));
+        byId("verifyResult").classList.remove("hidden");
+        byId("downloadVerifyBtn").disabled = false;
+        setStatus(byId("verifyStatus"), response.valid ? M.valid : M.invalid, response.valid ? "ok" : "bad");
+      } catch (error) {
+        verificationReport = null;
+        byId("verifyResult").classList.add("hidden");
+        byId("downloadVerifyBtn").disabled = true;
+        setStatus(byId("verifyStatus"), error.message || M.requestFailed, "bad");
+      } finally {
+        byId("verifyBtn").disabled = false;
+      }
+    }
+
+    function selectedCertificate() {
+      const id = byId("certificateSelect").value;
+      return certificateCatalog.find(item => String(item.id || "") === id) || null;
+    }
+
+    function certificateStatusLines(cert, validation) {
+      if (validation) {
+        return [
+          M.certificateSelection + ": " + displayValue(validation.subject || cert.subjectName || cert.subject),
+          M.issuer + ": " + displayValue(validation.issuer || cert.issuerName || cert.issuer),
+          M.status + ": " + (validation.valid ? M.valid : M.invalid),
+          M.certificateValidity + ": " + (validation.time_valid ? M.valid : M.invalid),
+          M.signature + ": " + (validation.digital_signature_usage ? M.valid : M.invalid),
+          M.trust + ": " + (validation.trusted ? M.valid : M.invalid),
+          M.fingerprint + ": " + displayValue(validation.fingerprint_sha256 || cert.fingerprint)
+        ];
+      }
+      return [
+        M.certificateSelection + ": " + displayValue(cert.subjectName || cert.subject),
+        M.issuer + ": " + displayValue(cert.issuerName || cert.issuer),
+        M.status + ": " + displayValue(cert.status),
+        M.certificateValidity + ": " + displayValue(cert.validTo),
+        M.fingerprint + ": " + displayValue(cert.fingerprint)
+      ];
+    }
+
+    function renderCertificate() {
+      const cert = selectedCertificate();
+      if (!cert) {
+        certificateReport = null;
+        setStatus(byId("certificateStatus"), M.noCertificates, "warn");
+        byId("validateCertificateBtn").disabled = true;
+        byId("onlineCheckBtn").disabled = true;
+        byId("downloadCertificateBtn").disabled = true;
+        return;
+      }
+      certificateReport = {certificate: cert, onlineRevocation: null};
+      const lines = certificateStatusLines(cert, null);
+      const usable = cert.canSign === true && String(cert.status || "").toLowerCase() !== "caducado";
+      setStatus(byId("certificateStatus"), lines.join("\n"), usable ? "ok" : "warn");
+      byId("validateCertificateBtn").disabled = false;
+      byId("onlineCheckBtn").disabled = false;
+      byId("downloadCertificateBtn").disabled = false;
+    }
+
+    async function validateCertificate() {
+      const cert = selectedCertificate();
+      if (!cert) return;
+      const requestedCertificateID = String(cert.id || "");
+      const requestGeneration = certificateRequestGeneration;
+      byId("validateCertificateBtn").disabled = true;
+      setStatus(byId("certificateStatus"), M.connectionChecking, "warn");
+      try {
+        const response = await apiFetch("/certificates/validate", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({certificate_id: cert.id})
+        });
+        const currentCertificate = selectedCertificate();
+        if (requestGeneration !== certificateRequestGeneration || !currentCertificate ||
+            String(currentCertificate.id || "") !== requestedCertificateID) return;
+        certificateReport = {
+          certificate: cert,
+          validation: response,
+          onlineRevocation: certificateReport && certificateReport.onlineRevocation
+            ? certificateReport.onlineRevocation
+            : null
+        };
+        const lines = certificateStatusLines(cert, response);
+        const online = certificateReport.onlineRevocation;
+        let statusKind = response.valid ? "ok" : "warn";
+        if (online) {
+          const onlineDetail = [
+            online.status,
+            online.userMessage,
+            online.reason,
+            online.error
+          ].filter(Boolean).join(" · ");
+          lines.push(M.onlineCheck + ": " + displayValue(onlineDetail));
+          if (online.status === "revoked" || online.status === "unavailable") statusKind = "bad";
+        }
+        setStatus(byId("certificateStatus"), lines.join("\n"), statusKind);
+      } catch (error) {
+        const currentCertificate = selectedCertificate();
+        if (requestGeneration !== certificateRequestGeneration || !currentCertificate ||
+            String(currentCertificate.id || "") !== requestedCertificateID) return;
+        renderCertificate();
+        const current = byId("certificateStatus").textContent;
+        setStatus(byId("certificateStatus"), current + "\n" + (error.message || M.requestFailed), "bad");
+      } finally {
+        const currentCertificate = selectedCertificate();
+        if (requestGeneration === certificateRequestGeneration && currentCertificate &&
+            String(currentCertificate.id || "") === requestedCertificateID) {
+          byId("validateCertificateBtn").disabled = false;
+        }
+      }
+    }
+
+    async function loadCertificates() {
+      byId("loadCertificatesBtn").disabled = true;
+      setStatus(byId("certificateStatus"), M.connectionChecking, "warn");
+      try {
+        const response = await apiFetch("/certificates?check=1", {headers: authHeaders()});
+        certificateCatalog = Array.isArray(response.certificates) ? response.certificates : [];
+        const select = byId("certificateSelect");
+        select.replaceChildren();
+        if (certificateCatalog.length === 0) {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = M.noCertificates;
+          select.appendChild(option);
+          select.disabled = true;
+        } else {
+          for (const cert of certificateCatalog) {
+            const option = document.createElement("option");
+            option.value = String(cert.id || "");
+            option.textContent = displayValue(cert.subjectName || cert.subject) + " · " + displayValue(cert.status);
+            select.appendChild(option);
+          }
+          select.disabled = false;
+        }
+        certificateRequestGeneration += 1;
+        renderCertificate();
+        if (certificateCatalog.length > 0) await validateCertificate();
+      } catch (error) {
+        certificateCatalog = [];
+        setStatus(byId("certificateStatus"), error.message || M.requestFailed, "bad");
+      } finally {
+        byId("loadCertificatesBtn").disabled = false;
+      }
+    }
+
+    async function checkCertificateOnline() {
+      const cert = selectedCertificate();
+      if (!cert) return;
+      const requestedCertificateID = String(cert.id || "");
+      const requestGeneration = certificateRequestGeneration;
+      byId("onlineCheckBtn").disabled = true;
+      setStatus(byId("certificateStatus"), M.onlineChecking, "warn");
+      try {
+        const response = await apiFetch("/certificates/online-check", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({certificate_id: cert.id})
+        });
+        const currentCertificate = selectedCertificate();
+        if (requestGeneration !== certificateRequestGeneration || !currentCertificate ||
+            String(currentCertificate.id || "") !== requestedCertificateID) return;
+        const validation = certificateReport && certificateReport.validation
+          ? certificateReport.validation
+          : null;
+        certificateReport = {certificate: cert, validation: validation, onlineRevocation: response};
+        const lines = certificateStatusLines(cert, validation);
+        const detail = [response.status, response.userMessage, response.reason].filter(Boolean).join(" · ");
+        lines.push(M.onlineCheck + ": " + displayValue(detail));
+        setStatus(byId("certificateStatus"), lines.join("\n"),
+          response.status === "valid" ? "ok" : (response.status === "revoked" ? "bad" : "warn"));
+      } catch (error) {
+        const currentCertificate = selectedCertificate();
+        if (requestGeneration !== certificateRequestGeneration || !currentCertificate ||
+            String(currentCertificate.id || "") !== requestedCertificateID) return;
+        const validation = certificateReport && certificateReport.validation
+          ? certificateReport.validation
+          : null;
+        certificateReport = {
+          certificate: cert,
+          validation: validation,
+          onlineRevocation: {status: "unavailable", error: M.requestFailed}
+        };
+        const lines = certificateStatusLines(cert, validation);
+        lines.push(M.onlineCheck + ": " + (error.message || M.requestFailed));
+        setStatus(byId("certificateStatus"), lines.join("\n"), "bad");
+      } finally {
+        const currentCertificate = selectedCertificate();
+        if (requestGeneration === certificateRequestGeneration && currentCertificate &&
+            String(currentCertificate.id || "") === requestedCertificateID) {
+          byId("onlineCheckBtn").disabled = false;
+        }
+      }
+    }
+
+    async function runHash(check) {
+      const input = byId("hashInput").files[0];
+      const reference = byId("hashReference").files[0];
+      if (!input || (check && !reference)) {
+        setStatus(byId("hashStatus"), M.selectRequired, "warn");
+        return;
+      }
+      byId("createHashBtn").disabled = true;
+      byId("checkHashBtn").disabled = true;
+      setStatus(byId("hashStatus"), M.connectionChecking, "warn");
+      try {
+        ensureCombinedFileSize([input, check ? reference : null]);
+        const request = {
+          name: input.name,
+          content_base64: await fileBase64(input),
+          algorithm: byId("hashAlgorithm").value
+        };
+        let endpoint = "/hash";
+        if (check) {
+          endpoint = "/hash/check";
+          request.hash_content_base64 = await fileBase64(reference);
+        } else {
+          request.format = "hex";
+          request.saveToDisk = false;
+        }
+        const response = await apiFetch(endpoint, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify(request)
+        });
+        hashReport = response;
+        byId("downloadHashBtn").disabled = false;
+        const lines = check
+          ? [
+              M.status + ": " + (response.valid ? M.valid : M.invalid),
+              M.expectedHash + displayValue(response.expectedHash),
+              M.actualHash + displayValue(response.actualHash)
+            ]
+          : [M.algorithm + ": " + displayValue(response.algorithm), M.fingerprint + ": " + displayValue(response.hash)];
+        setStatus(byId("hashStatus"), lines.join("\n"), check && !response.valid ? "bad" : "ok");
+      } catch (error) {
+        hashReport = null;
+        byId("downloadHashBtn").disabled = true;
+        setStatus(byId("hashStatus"), error.message || M.requestFailed, "bad");
+      } finally {
+        byId("createHashBtn").disabled = false;
+        byId("checkHashBtn").disabled = false;
+      }
+    }
+
+    byId("languageSelect").addEventListener("change", event => {
+      window.location.assign("/validator?lang=" + encodeURIComponent(event.target.value));
+    });
+    byId("verifyBtn").addEventListener("click", verifySignature);
+    byId("clearVerifyBtn").addEventListener("click", () => {
+      byId("signedFile").value = "";
+      byId("originalFile").value = "";
+      verificationReport = null;
+      byId("verifyResult").classList.add("hidden");
+      byId("downloadVerifyBtn").disabled = true;
+      setStatus(byId("verifyStatus"), M.emptyVerification, "");
+    });
+    byId("downloadVerifyBtn").addEventListener("click", () => downloadJSON(verificationReport, M.reportFilename));
+    byId("loadCertificatesBtn").addEventListener("click", loadCertificates);
+    byId("certificateSelect").addEventListener("change", () => {
+      certificateRequestGeneration += 1;
+      renderCertificate();
+      validateCertificate();
+    });
+    byId("validateCertificateBtn").addEventListener("click", validateCertificate);
+    byId("onlineCheckBtn").addEventListener("click", checkCertificateOnline);
+    byId("downloadCertificateBtn").addEventListener("click", () => downloadJSON(certificateReport, M.certificateReportName));
+    byId("createHashBtn").addEventListener("click", () => runHash(false));
+    byId("checkHashBtn").addEventListener("click", () => runHash(true));
+    byId("downloadHashBtn").addEventListener("click", () => downloadJSON(hashReport, M.hashReportName));
+
+    apiFetch("/health")
+      .then(() => setStatus(byId("globalStatus"), M.connectionReady, "ok"))
+      .catch(() => setStatus(byId("globalStatus"), M.connectionError, "bad"));
+  </script>
+</body>
+</html>

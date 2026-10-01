@@ -1,0 +1,86 @@
+{
+  "manifest_version": 3,
+  "default_locale": "es",
+  "name": "__MSG_extensionName__",
+  "short_name": "__MSG_extensionShortName__",
+  "version": "1.1.0",
+  "description": "__MSG_extensionDescription__",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_title": "__MSG_extensionActionTitle__",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "background": {
+    "scripts": [
+      "compat.js",
+      "config.js",
+      "trusted_sites.js",
+      "background.js"
+    ]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "extension@dipgra.es",
+      "data_collection_permissions": {
+        "required": [
+          "personallyIdentifyingInfo",
+          "websiteContent"
+        ]
+      },
+      "strict_min_version": "140.0"
+    }
+  },
+  "permissions": [
+    "storage",
+    "nativeMessaging",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://*.dipgra.es/*",
+    "https://*.savia.net/*",
+    "https://127.0.0.1/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.dipgra.es/*",
+        "https://*.savia.net/*"
+      ],
+      "js": [
+        "compat.js",
+        "content_scripts/pdf_detector.js",
+        "content_scripts/identity_bridge.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://127.0.0.1/*"
+      ],
+      "js": [
+        "compat.js",
+        "content_scripts/local_signer_bridge.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
+}

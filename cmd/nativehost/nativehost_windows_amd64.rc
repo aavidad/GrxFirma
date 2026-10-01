@@ -1,0 +1,13 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// Autoría: Alberto Avidad Fernández
+// Licencia: EUPL 1.2 o posterior
+// SPDX-License-Identifier: EUPL-1.2
+
+// Manifiesto con Common Controls v6: necesario para los diálogos nativos
+// (TaskDialog) que sustituyen a los antiguos formularios PowerShell.
+// Regenerar con scripts/branding/regenerate_windows_resources.sh.
+
+#include <windows.h>
+
+1 RT_MANIFEST "nativehost_windows_amd64.manifest"
+1 ICON "../../assets/branding/grxfirma-diputacion.ico"

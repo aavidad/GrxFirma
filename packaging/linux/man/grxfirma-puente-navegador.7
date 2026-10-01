@@ -1,0 +1,144 @@
+.TH GRXFIRMA-PUENTE-NAVEGADOR 7 "20 marzo 2026" "GrxFirma" "Puente de navegadores"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-puente-navegador \- puente de navegador y Native Messaging en GrxFirma
+.SH DESCRIPCIÓN
+Esta página explica qué es el puente del navegador en \fBGrxFirma\fR, por qué existe
+y cómo encaja con la seguridad del sistema.
+.SH QUÉ ES EL PUENTE DEL NAVEGADOR
+El puente del navegador es la pieza que conecta el navegador web con la aplicación local.
+.PP
+En \fBGrxFirma\fR normalmente se materializa mediante \fBNative Messaging\fR:
+.IP \(bu 2
+la web o sede electrónica interactúa con una extensión del navegador;
+.IP \(bu 2
+la extensión habla con el \fInative host\fR;
+.IP \(bu 2
+y ese host delega en los binarios locales de GrxFirma.
+.SH POR QUÉ EXISTE
+El navegador no debería acceder libremente a:
+.IP \(bu 2
+certificados del sistema,
+.IP \(bu 2
+claves privadas,
+.IP \(bu 2
+almacenes NSS o del sistema operativo,
+.IP \(bu 2
+ni a ciertos ficheros y procesos locales.
+.PP
+Eso es una medida de seguridad, no una molestia accidental.
+.PP
+El puente existe para permitir una comunicación controlada entre:
+.IP \(bu 2
+el navegador,
+.IP \(bu 2
+la extensión,
+.IP \(bu 2
+y la aplicación de firma instalada.
+.SH PARA QUÉ SIRVE EN LA PRÁCTICA
+El puente puede servir para:
+.IP \(bu 2
+detectar que \fBGrxFirma\fR está instalada;
+.IP \(bu 2
+listar certificados disponibles;
+.IP \(bu 2
+pedir selección de certificado;
+.IP \(bu 2
+lanzar una operación de firma o verificación;
+.IP \(bu 2
+devolver el resultado al portal o a la extensión.
+.SH QUÉ NO HACE
+El puente no debería:
+.IP \(bu 2
+dar acceso libre y arbitrario a tus certificados;
+.IP \(bu 2
+exponer una API sin control para cualquier página;
+.IP \(bu 2
+sustituir la política de confianza del usuario.
+.SH RELACIÓN CON AFIRMA://
+En algunos escenarios el portal usa \fBafirma://\fR y no Native Messaging.
+.PP
+Son mecanismos distintos:
+.TP
+.B afirma://
+Lanza el manejador protocolario del sistema operativo.
+.TP
+.B Native Messaging
+Permite comunicación controlada entre extensión y host local.
+.PP
+Ambos pueden convivir en la misma instalación de \fBGrxFirma\fR.
+.SH FICHEROS IMPLICADOS
+.TP
+.B grxfirma-nativehost
+Binario host para Native Messaging.
+.TP
+.B browser-bridge.sh
+Script de puente instalado para el usuario.
+.TP
+.B Manifests de navegador
+Describen al navegador cómo localizar y lanzar el host nativo.
+.SH CUÁNDO REVISAR ESTA CAPA
+Conviene revisar el puente cuando:
+.IP \(bu 2
+el navegador no detecta GrxFirma;
+.IP \(bu 2
+la extensión no lista certificados;
+.IP \(bu 2
+la firma web falla antes de lanzar el flujo local;
+.IP \(bu 2
+o hay dudas sobre permisos, manifests o allowlists.
+.SH DIAGNÓSTICO
+En Linux suelen ser útiles:
+.IP \(bu 2
+\fI~/.config/google-chrome/NativeMessagingHosts/\fR
+.IP \(bu 2
+\fI~/.config/chromium/NativeMessagingHosts/\fR
+.IP \(bu 2
+\fI~/.mozilla/native-messaging-hosts/\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-handler.log\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-debug.log\fR
+.SH SEGURIDAD
+El puente es una frontera sensible. Debe mantenerse:
+.IP \(bu 2
+acotado,
+.IP \(bu 2
+auditable,
+.IP \(bu 2
+sin acceso arbitrario a operaciones no autorizadas,
+.IP \(bu 2
+y separado del núcleo de firma.
+.PP
+El host no acepta una identidad incluida en el JSON. Chromium entrega el
+origen de la extensión al arrancar el proceso y Firefox entrega la ruta del
+manifiesto y el ID. GrxFirma rechaza un llamador vacío, no autorizado o
+ligado a otro ejecutable.
+.PP
+La extensión valida además su propio ID, el origen de la página y la acción.
+Los portales declarados en el manifiesto solo pueden abrir el firmador; las
+operaciones criptográficas proceden de páginas internas de la extensión. El
+puente de loopback solo consume el token pendiente desde
+\fIhttps://127.0.0.1:63118/signer\fR o \fI/firmador\fR.
+.PP
+Las solicitudes de firma usan identificadores únicos. Un identificador
+ausente, mal formado o repetido se rechaza, y la confirmación muestra la
+aplicación y el origen solicitantes. Si esos datos no corresponden al trámite,
+el usuario debe cancelar.
+.PP
+Todo bloqueo visible debe explicar el requisito incumplido y una recuperación
+segura. Las acciones normales son repetir, reiniciar el navegador, reinstalar
+el conector oficial o contactar con la sede o el administrador. No se deben
+añadir comodines ni desactivar controles para evitar el rechazo.
+.PP
+En la arquitectura de \fBGrxFirma\fR esta capa vive en los adaptadores de entrada,
+no en el núcleo hexagonal.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-confianza (7),
+.BR grxfirma-firmas (7),
+.BR grxfirma-tls-local (7)

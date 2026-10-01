@@ -1,0 +1,30 @@
+/* Derechos de autor (C) 2026 Alberto Avidad Fernández. Licencia: EUPL 1.2 o posterior. */
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#12324d;background:#eef4f8}
+*{box-sizing:border-box}
+body{margin:0;padding:18px}
+body.popup{width:380px}
+body.options{max-width:760px;margin:0 auto}
+.shell{background:#fff;border:1px solid #d1dce7;border-radius:18px;padding:20px;box-shadow:0 12px 28px rgba(18,50,77,.08)}
+.header{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.header img{width:42px;height:42px;border-radius:10px}
+h1{margin:0 0 10px;color:#005ea8;font-size:1.3rem}
+h2{margin-top:28px;font-size:1.05rem}
+p{line-height:1.45;margin:8px 0 14px}
+.status{padding:11px 12px;border-radius:12px;font-weight:700;border:1px solid transparent}
+.status.ok{background:#e9f8ef;color:#166534;border-color:#b7e5c9}
+.status.bad{background:#fdecec;color:#9a2f22;border-color:#f4c3bf}
+.actions{display:grid;gap:10px}
+button{border:0;border-radius:12px;padding:11px 14px;background:#005ea8;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+button.secondary{background:#0f172a}
+button:hover{filter:brightness(.9)}
+button:focus-visible,input:focus-visible{outline:3px solid #f7a51b;outline-offset:2px}
+label{display:block;font-weight:700;margin-top:22px;margin-bottom:8px}
+.input-row{display:flex;gap:10px;flex-wrap:wrap}
+input{flex:1;min-width:240px;border:1px solid #70869b;border-radius:10px;padding:10px 12px;font:inherit}
+.muted{color:#536d83;font-size:.87rem}
+.feedback{min-height:1.5em;font-weight:600}
+.site-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.site-list li{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 12px;background:#f8fbfd;border:1px solid #d7e2ec;border-radius:10px}
+.site-list li span:first-child{font-weight:700;overflow-wrap:anywhere}
+.site-list button{margin-left:auto}
+@media(max-width:450px){.input-row>*{width:100%}}

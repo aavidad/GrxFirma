@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <displayName>GrxFirma</displayName>
+  <description>Directivas de equipo de GrxFirma. Se aplican en HKLM\SOFTWARE\Policies\GrxFirma y un usuario sin privilegios no puede cambiarlas.</description>
+  <resources>
+    <stringTable>
+      <string id="SUPPORTED_GrxFirma_0_0_90">GrxFirma 0.0.90 o posterior</string>
+      <string id="Cat_GrxFirma">GrxFirma</string>
+      <string id="Cat_Origenes">Orígenes de confianza</string>
+      <string id="Cat_Operacion">Operación</string>
+      <string id="Cat_Compatibilidad">Compatibilidad (rebaja la seguridad)</string>
+      <string id="AllowedDomains">Orígenes permitidos sin preguntar</string>
+      <string id="AllowedDomains_Help">Lista de orígenes (sedes electrónicas) que pueden pedir firmas sin que GrxFirma pregunte al usuario si confía en ellos. Un valor por línea.
+
+- "sede.ejemplo.es" o "*.ejemplo.es" autorizan solo HTTPS, en cualquier puerto.
+- "https://sede.ejemplo.es:8443", "http://localhost:3000" o "chrome-extension://&lt;id&gt;" autorizan exactamente ese esquema, host y puerto.
+
+Si no se configura, cada origen nuevo se confirma con el usuario la primera vez.</string>
+      <string id="DominiosDeConfianza">Dominios adicionales de confianza</string>
+      <string id="DominiosDeConfianza_Help">Dominios adicionales en los que se confía, con la misma sintaxis que "Orígenes permitidos sin preguntar". Un valor por línea.</string>
+      <string id="TofuHabilitado">Preguntar al usuario por orígenes desconocidos</string>
+      <string id="TofuHabilitado_Help">Habilitada o sin configurar: cuando una sede que no está en la lista pide una firma, GrxFirma pregunta al usuario si confía en ella.
+
+Deshabilitada: se rechaza, sin preguntar, cualquier origen que no esté en la lista de orígenes permitidos. Recomendado en equipos corporativos con la lista completa de sedes.</string>
+      <string id="WebsocketHabilitado">Servicio WebSocket residente</string>
+      <string id="WebsocketHabilitado_Help">Habilitada: GrxFirma mantiene en segundo plano un servicio WebSocket local para las sedes que usan AutoScript 1.9, aunque la sede no lo lance.
+
+Deshabilitada o sin configurar: no hay servicio residente. Las sedes siguen pudiendo abrir, a través del protocolo afirma://, un canal WebSocket temporal que se cierra al terminar cada operación.</string>
+      <string id="WebsocketPermitido">Permitir WebSocket local</string>
+      <string id="WebsocketPermitido_Help">Habilitada o sin configurar: se permiten los canales WebSocket locales temporales abiertos por afirma:// y, si está habilitado por separado, el servicio residente.
+
+Deshabilitada: se impide cualquier canal WebSocket local, incluido el temporal de afirma://. Las sedes que necesitan AutoScript 1.9 por WebSocket dejarán de funcionar. Esta directiva prevalece sobre websocket_habilitado y la configuración del usuario.</string>
+      <string id="RestHabilitado">Servicio REST local</string>
+      <string id="RestHabilitado_Help">Habilitada: activa el servicio REST local para integraciones de escritorio, que abre un puerto TCP local.
+
+Deshabilitada o sin configurar: el servicio REST está desactivado (valor por defecto), aunque el usuario intente activarlo en su configuración.</string>
+      <string id="NivelLog">Nivel del registro de diagnóstico</string>
+      <string id="NivelLog_Help">Nivel de detalle del registro de diagnóstico. El registro nunca incluye documentos, claves ni contraseñas, y las rutas e identificadores se ocultan.</string>
+      <string id="NivelLog_Error">Solo errores</string>
+      <string id="NivelLog_Warn">Advertencias</string>
+      <string id="NivelLog_Info">Información (recomendado)</string>
+      <string id="NivelLog_Debug">Depuración</string>
+      <string id="DirectorioP12">Carpeta de certificados PKCS#12</string>
+      <string id="DirectorioP12_Help">Carpeta de la que GrxFirma carga certificados en ficheros .p12 o .pfx además de los del almacén de Windows. Debe ser una ruta local protegida.</string>
+      <string id="TimeoutOperacion">Tiempo máximo de una operación</string>
+      <string id="TimeoutOperacion_Help">Tiempo máximo, en segundos, que puede durar una operación de firma antes de cancelarse. Por defecto, 30 segundos.</string>
+      <string id="MaxTamanoDocumento">Tamaño máximo de documento</string>
+      <string id="MaxTamanoDocumento_Help">Tamaño máximo, en bytes, de un documento que se puede firmar. Por defecto, 52428800 (50 MiB).</string>
+      <string id="PermitirDESLegacy">Permitir DES del servidor intermedio también sin HTTPS</string>
+      <string id="PermitirDESLegacy_Help">REBAJA LA SEGURIDAD. Sin esta directiva, el paquete de sesión DES de AutoFirma 1.x (servidor intermedio de FIRe y AutoScript) solo se admite si todos los servidores del intercambio son HTTPS, y se avisa al usuario. Habilitarla lo permite también con servidores sin HTTPS, por ejemplo un servidor local de pruebas. DES nunca se usa para firmar.</string>
+      <string id="PermitirSHA1Legacy">Permitir firmas SHA-1</string>
+      <string id="PermitirSHA1Legacy_Help">REBAJA LA SEGURIDAD. Sin esta directiva, las firmas pedidas con SHA-1 se generan con SHA-256 y se avisa al usuario. Habilitarla permite generar firmas SHA-1 para portales antiguos que no admiten otra cosa.</string>
+      <string id="PermitirCMSAESECBLegacy">Permitir sobres CMS AES-ECB de AutoFirma 1.9</string>
+      <string id="PermitirCMSAESECBLegacy_Help">REBAJA LA SEGURIDAD. Permite leer sobres SignedAndEnvelopedData cifrados con AES en modo ECB generados por AutoFirma 1.9.</string>
+      <string id="PermitirOrigenVacio">Permitir WebSocket sin origen</string>
+      <string id="PermitirOrigenVacio_Help">REBAJA LA SEGURIDAD. Permite conexiones WebSocket sin cabecera Origin o con "Origin: null", que no identifican qué web se conecta.</string>
+      <string id="PermitirRutasDirectas">Permitir rutas locales pedidas por la web</string>
+      <string id="PermitirRutasDirectas_Help">REBAJA LA SEGURIDAD. Permite que una web indique rutas locales absolutas en las operaciones load, save y signandsave. Sin esta directiva el usuario elige siempre el fichero.</string>
+      <string id="AprobacionAutomaticaNativehost">Firmar desde la extensión sin confirmación</string>
+      <string id="AprobacionAutomaticaNativehost_Help">REBAJA LA SEGURIDAD. Permite firmar desde la extensión del navegador sin mostrar el diálogo de confirmación al usuario. Solo para puestos dedicados y controlados.</string>
+    </stringTable>
+    <presentationTable>
+      <presentation id="AllowedDomains"><multiTextBox refId="AllowedDomains_List">Orígenes (uno por línea):</multiTextBox></presentation>
+      <presentation id="DominiosDeConfianza"><multiTextBox refId="DominiosDeConfianza_List">Dominios (uno por línea):</multiTextBox></presentation>
+      <presentation id="NivelLog"><dropdownList refId="NivelLog_Valor" defaultItem="2">Nivel:</dropdownList></presentation>
+      <presentation id="DirectorioP12"><textBox refId="DirectorioP12_Ruta"><label>Carpeta:</label></textBox></presentation>
+      <presentation id="TimeoutOperacion"><decimalTextBox refId="TimeoutOperacion_Segundos" defaultValue="30">Segundos:</decimalTextBox></presentation>
+      <presentation id="MaxTamanoDocumento"><decimalTextBox refId="MaxTamanoDocumento_Bytes" defaultValue="52428800">Bytes:</decimalTextBox></presentation>
+    </presentationTable>
+  </resources>
+</policyDefinitionResources>

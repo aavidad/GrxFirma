@@ -1,0 +1,453 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/aavidad/GrxFirma/blob/main/docs/schemas/desktop-ipc-v1.schema.json",
+  "title": "GrxFirma desktop IPC v1",
+  "description": "Contrato NDJSON del IPC local. Omitir protocol mantiene la compatibilidad legacy. get/save/diagnose_token_settings requieren además el PID exacto del frontend autorizado; nunca son opciones web. Sus parámetros rechazan claves duplicadas incluso escapadas, algo que JSON Schema no representa.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/response"
+    }
+  ],
+  "$defs": {
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "action"
+      ],
+      "properties": {
+        "protocol": {
+          "const": "desktop-ipc-v1"
+        },
+        "requestId": {
+          "$ref": "#/$defs/correlationId"
+        },
+        "traceId": {
+          "$ref": "#/$defs/correlationId"
+        },
+        "action": {
+          "$ref": "#/$defs/action"
+        },
+        "params": {}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"action": {"const": "certificate_export_public"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["certificateId"], "properties": {"certificateId": {"type": "string", "minLength": 1}, "outputPath": {"type": "string"}, "format": {"enum": ["der", "pem"]}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "protection_recipient_import"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["path"], "properties": {"path": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "protection_recipient_remove"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["id"], "properties": {"id": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "save_token_settings"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"$ref": "#/$defs/tokenSettingsUpdate"}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "seal_preview"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["visibleSeal"], "properties": {"visibleSeal": {"type": "object"}, "certificateId": {"type": "string"}, "qrContent": {"type": "string"}, "reason": {"type": "string"}, "location": {"type": "string"}, "contactInfo": {"type": "string"}, "extraOptions": {"type": "object", "additionalProperties": {"type": "string"}}}}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "smartcard_status"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "maxProperties": 0}}}
+        },
+        {
+          "if": {"properties": {"action": {"enum": ["get_token_settings", "diagnose_token_settings"]}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "maxProperties": 0}}}
+        },
+        {
+          "if": {
+            "required": [
+              "protocol"
+            ]
+          },
+          "then": {
+            "required": [
+              "requestId",
+              "traceId",
+              "params"
+            ],
+            "properties": {
+              "params": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "required": [
+        "ok",
+        "action",
+        "errorCode",
+        "phase",
+        "retryable",
+        "outcome"
+      ],
+      "properties": {
+        "protocol": {
+          "const": "desktop-ipc-v1"
+        },
+        "requestId": {
+          "$ref": "#/$defs/correlationId"
+        },
+        "traceId": {
+          "$ref": "#/$defs/correlationId"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "action": {
+          "type": "string"
+        },
+        "errorCode": {
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "admission",
+            "protocol",
+            "operation"
+          ]
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "outcome": {
+          "enum": [
+            "success",
+            "failure",
+            "partial"
+          ]
+        },
+        "data": {},
+        "error": {
+          "type": "string"
+        },
+        "diagnostic": {
+          "$ref": "#/$defs/diagnostic"
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"action": {"const": "smartcard_status"}, "ok": {"const": true}}, "required": ["action", "ok"]},
+          "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["readers"], "properties": {"readers": {"type": "array", "items": {"type": "object", "required": ["name", "present", "isDnie"], "properties": {"name": {"type": "string"}, "present": {"type": "boolean"}, "isDnie": {"type": "boolean"}}, "additionalProperties": false}}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {
+            "properties": {"action": {"enum": ["sign", "sign_multicosign"]}, "ok": {"const": true}},
+            "required": ["action", "ok"]
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "outputPath": {"type": "string"},
+                  "signature_b64": {"type": "string"},
+                  "format": {
+                    "type": "string",
+                    "description": "Formato real devuelto por el motor de firma. Opcional por compatibilidad; su ausencia no permite inferirlo de la extensión ni del formato solicitado. Presente tanto en respuestas por ruta como base64."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "ok": {
+                "const": false
+              }
+            },
+            "required": [
+              "ok"
+            ]
+          },
+          "then": {
+            "properties": {
+              "outcome": {
+                "const": "failure"
+              },
+              "errorCode": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "success",
+                  "partial"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "success"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "errorCode": {
+                "const": ""
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "partial"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ok": {
+                "const": true
+              },
+              "errorCode": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "protocol"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "requestId",
+                  "traceId"
+                ]
+              },
+              {
+                "properties": {
+                  "ok": {
+                    "const": false
+                  },
+                  "phase": {
+                    "enum": [
+                      "admission",
+                      "protocol"
+                    ]
+                  }
+                },
+                "required": [
+                  "ok",
+                  "phase"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "requestId"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "traceId"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "tokenSettingsUpdate": {
+      "description": "Máximo 64 KiB de JSON UTF-8. Se guarda solo con confirmación y revisión vigente. Las rutas absolutas, permisos, propietarios y alias de módulos se validan localmente. Deshabilitar permite retirar un controlador ausente. No contiene PIN, comandos, helper ni entorno.",
+      "type": "object",
+      "required": ["enabled", "modules", "revision", "confirmed", "replaceInvalid"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "confirmed": {"const": true},
+        "replaceInvalid": {"type": "boolean"},
+        "revision": {"type": "string", "pattern": "^([0-9a-fA-F]{64})?$"},
+        "modules": {
+          "type": "array", "maxItems": 8, "uniqueItems": true,
+          "items": {
+            "type": "object", "required": ["path"], "additionalProperties": false,
+            "properties": {"path": {"type": "string", "minLength": 1, "maxLength": 4096, "pattern": "^[^\\u0000]+$"}}
+          }
+        }
+      }
+    },
+    "action": {
+      "enum": [
+        "certificate_access_options",
+        "certificate_export_public",
+        "certificates",
+        "check_certificates",
+        "check_updates",
+        "clear_temporary_certificates",
+        "clear_tls_trust",
+        "clock_diagnostics",
+        "diagnose_token_settings",
+        "export_diagnostic",
+        "get_settings",
+        "get_token_settings",
+        "getcertificates",
+        "hash_check",
+        "hash_create",
+        "hello",
+        "import_certificate",
+        "import_certificate_to_store",
+        "install_public_roots",
+        "local_tls_startup_status",
+        "open_certificate_manager",
+        "pdf_preview",
+        "ping",
+        "protect",
+        "protect_sign",
+        "protection_recipient_import",
+        "protection_recipient_remove",
+        "protection_recipients",
+        "proxy_secret_delete",
+        "proxy_secret_store",
+        "proxy_secret_store_status",
+        "remove_temporary_certificate",
+        "save_settings",
+        "save_token_settings",
+        "seal_preview",
+        "service_install",
+        "service_start",
+        "service_status",
+        "service_stop",
+        "service_uninstall",
+        "sign",
+        "smartcard_status",
+        "sign_batch",
+        "sign_multicosign",
+        "tls_diagnostics",
+        "unprotect",
+        "use_temporary_certificate",
+        "validate_certificate_online",
+        "verify"
+      ]
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": [
+        "category",
+        "userMessage",
+        "expertMessage"
+      ],
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "failureCode": {
+          "type": "string"
+        },
+        "userMessage": {
+          "type": "string"
+        },
+        "expertMessage": {
+          "type": "string"
+        },
+        "likelyOwner": {
+          "type": "string"
+        },
+        "responsibilityMessage": {
+          "type": "string"
+        },
+        "suggestedAction": {
+          "type": "string"
+        },
+        "userCanResolveDirectly": {
+          "type": "boolean"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diagnosticStep"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "diagnosticStep": {
+      "type": "object",
+      "required": [
+        "code",
+        "label",
+        "status"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "success",
+            "failure",
+            "skipped",
+            "unknown"
+          ]
+        },
+        "owner": {
+          "type": "string"
+        },
+        "userMessage": {
+          "type": "string"
+        },
+        "suggestedAction": {
+          "type": "string"
+        },
+        "evidenceRef": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

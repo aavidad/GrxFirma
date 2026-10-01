@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrxFirma.WinUI.Core", "src\GrxFirma.WinUI.Core\GrxFirma.WinUI.Core.csproj", "{38F5815C-699B-4ABF-99E6-754824131F30}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrxFirma.WinUI", "src\GrxFirma.WinUI\GrxFirma.WinUI.csproj", "{B47ED3CD-5403-4494-A240-4392D802E8DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrxFirma.WinUI.Core.Tests", "tests\GrxFirma.WinUI.Core.Tests\GrxFirma.WinUI.Core.Tests.csproj", "{8EAB52C8-AB7A-4F02-934A-2D2EC4278A90}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{38F5815C-699B-4ABF-99E6-754824131F30}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{38F5815C-699B-4ABF-99E6-754824131F30}.Debug|x64.Build.0 = Debug|Any CPU
+		{38F5815C-699B-4ABF-99E6-754824131F30}.Release|x64.ActiveCfg = Release|Any CPU
+		{38F5815C-699B-4ABF-99E6-754824131F30}.Release|x64.Build.0 = Release|Any CPU
+		{B47ED3CD-5403-4494-A240-4392D802E8DB}.Debug|x64.ActiveCfg = Debug|x64
+		{B47ED3CD-5403-4494-A240-4392D802E8DB}.Debug|x64.Build.0 = Debug|x64
+		{B47ED3CD-5403-4494-A240-4392D802E8DB}.Release|x64.ActiveCfg = Release|x64
+		{B47ED3CD-5403-4494-A240-4392D802E8DB}.Release|x64.Build.0 = Release|x64
+		{8EAB52C8-AB7A-4F02-934A-2D2EC4278A90}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8EAB52C8-AB7A-4F02-934A-2D2EC4278A90}.Debug|x64.Build.0 = Debug|Any CPU
+		{8EAB52C8-AB7A-4F02-934A-2D2EC4278A90}.Release|x64.ActiveCfg = Release|Any CPU
+		{8EAB52C8-AB7A-4F02-934A-2D2EC4278A90}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

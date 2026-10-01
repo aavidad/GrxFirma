@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<resources>
+    <dimen name="content_max_width">720dp</dimen>
+    <dimen name="screen_padding">20dp</dimen>
+    <dimen name="section_spacing">24dp</dimen>
+    <dimen name="control_spacing">12dp</dimen>
+</resources>

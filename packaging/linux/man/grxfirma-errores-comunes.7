@@ -1,0 +1,185 @@
+.TH GRXFIRMA-ERRORES-COMUNES 7 "20 marzo 2026" "GrxFirma" "Errores comunes y diagnóstico rápido"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-errores-comunes \- síntomas frecuentes, causas probables y diagnóstico rápido en GrxFirma
+.SH DESCRIPCIÓN
+Esta página reúne errores o síntomas frecuentes y orienta sobre qué mirar primero.
+.PP
+No sustituye al análisis detallado, pero ayuda a acotar si el problema está en:
+.IP \(bu 2
+certificados;
+.IP \(bu 2
+portales y compatibilidad legacy;
+.IP \(bu 2
+native host o navegador;
+.IP \(bu 2
+verificación;
+.IP \(bu 2
+o despliegue local.
+.SH LA WEB NO DETECTA LA APLICACIÓN
+.TP
+.B Síntoma
+El portal indica que la aplicación no está instalada o no responde.
+.TP
+.B Causas probables
+.IP \(bu 2
+la extensión no está instalada o no coincide;
+.IP \(bu 2
+el manifiesto de Native Messaging falta o apunta a otra ruta;
+.IP \(bu 2
+el native host no arranca;
+.IP \(bu 2
+la web espera otro mecanismo de integración.
+.TP
+.B Qué mirar
+.IP \(bu 2
+\fBman grxfirma-puente-navegador\fR
+.IP \(bu 2
+\fBman grxfirma-protocolos-web\fR
+.IP \(bu 2
+manifiestos en el perfil del navegador
+.SH EL PORTAL ABRE LA APP PERO NO TERMINA
+.TP
+.B Síntoma
+Se abre la aplicación o el handler, pero la web se queda esperando.
+.TP
+.B Causas probables
+.IP \(bu 2
+incompatibilidad legacy en batch o trifase;
+.IP \(bu 2
+problema de retrieve, wait, presign, postsign o upload;
+.IP \(bu 2
+resultado firmado aceptado por transporte pero no por contenido.
+.TP
+.B Qué mirar
+.IP \(bu 2
+\fI/tmp/grxfirma-handler.log\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-web-compat.log\fR
+.IP \(bu 2
+\fBman grxfirma-lotes\fR
+.IP \(bu 2
+\fBman grxfirma-integracion-web\fR
+.SH LA IDENTIFICACIÓN FUNCIONA PERO LA FIRMA DE DOCUMENTO FALLA
+.TP
+.B Síntoma
+El portal deja elegir certificado e identificarse, pero luego falla al firmar.
+.TP
+.B Causas probables
+.IP \(bu 2
+el problema no está en detección básica del certificado, sino en lote remoto o trifase;
+.IP \(bu 2
+hay diferencias de compatibilidad en el flujo de documento respecto a identificación.
+.TP
+.B Qué mirar
+.IP \(bu 2
+\fBman grxfirma-lotes\fR
+.IP \(bu 2
+\fI/tmp/grxfirma-web-compat.log\fR
+.SH VEO CERTIFICADOS PERO NO PUEDO FIRMAR
+.TP
+.B Síntoma
+La aplicación lista certificados, pero falla al firmar o al comprobar disponibilidad real.
+.TP
+.B Causas probables
+.IP \(bu 2
+la clave privada no es accesible;
+.IP \(bu 2
+el certificado visible no coincide con una identidad firmable real;
+.IP \(bu 2
+el proveedor criptográfico local falla;
+.IP \(bu 2
+el certificado está caducado o no es válido para firma.
+.TP
+.B Qué mirar
+.IP \(bu 2
+\fBgrxfirma -modo-cli -comprobar-certificados -salida-json\fR
+.IP \(bu 2
+\fBman grxfirma-certificados\fR
+.SH LA VERIFICACIÓN FALLA EN UNA FIRMA DETACHED
+.TP
+.B Síntoma
+Una firma parece válida, pero la operación de verificación falla.
+.TP
+.B Causas probables
+.IP \(bu 2
+falta el documento original;
+.IP \(bu 2
+se está verificando con un fichero distinto al que originó la firma;
+.IP \(bu 2
+el formato no se corresponde con lo esperado.
+.TP
+.B Qué mirar
+.IP \(bu 2
+usar \fB-documento-original\fR si procede;
+.IP \(bu 2
+\fBman grxfirma-verificacion\fR
+.IP \(bu 2
+\fBman grxfirma-formatos\fR
+.SH EL CÍRCULO DE CONFIANZA QUEDA VACÍO
+.TP
+.B Síntoma
+No quedan dominios confiados tras borrar o limpiar la lista.
+.TP
+.B Comportamiento esperado
+En modo interactivo la CLI puede preguntar si quieres reimportar la semilla pública inicial.
+.PP
+En modo JSON o automatizado no pregunta y devuelve el estado vacío.
+.TP
+.B Qué mirar
+.IP \(bu 2
+\fBman grxfirma-confianza\fR
+.IP \(bu 2
+\fBgrxfirma -listar-dominios -salida-json\fR
+.SH EL REST LOCAL NO RESPONDE COMO ESPERAS
+.TP
+.B Síntoma
+El servicio local no arranca, no escucha donde esperas o responde con errores.
+.TP
+.B Causas probables
+.IP \(bu 2
+dirección equivocada;
+.IP \(bu 2
+token Bearer ausente;
+.IP \(bu 2
+TLS local no preparado o no confiado;
+.IP \(bu 2
+se esperaba `afirma://` o native host y no REST.
+.TP
+.B Qué mirar
+.IP \(bu 2
+\fBman grxfirma-servicios-locales\fR
+.IP \(bu 2
+\fBman grxfirma-tls-local\fR
+.SH LA APP MANUAL NO ARRANCA O SE VE MAL
+.TP
+.B Síntoma
+La aplicación gráfica manual no abre, o el texto/tamaño no son adecuados.
+.TP
+.B Qué mirar
+.IP \(bu 2
+binario \fBgrxfirma-desktop\fR
+.IP \(bu 2
+variables de escala del entorno Fyne si procede
+.IP \(bu 2
+modo debug local si se está usando
+.SH REGLA PRÁCTICA
+Antes de tocar código o culpar al formato de firma, conviene responder primero a tres preguntas:
+.IP "1." 4
+¿El problema es de detección local, de protocolo web o de contenido firmado?
+.IP "2." 4
+¿Afecta a identificación, a firma o a verificación?
+.IP "3." 4
+¿Existe un log que confirme el paso exacto donde se rompe el flujo?
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-diagnostico (7),
+.BR grxfirma-protocolos-web (7),
+.BR grxfirma-integracion-web (7),
+.BR grxfirma-lotes (7),
+.BR grxfirma-certificados (7),
+.BR grxfirma-verificacion (7)

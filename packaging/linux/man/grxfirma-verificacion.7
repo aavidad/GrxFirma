@@ -1,0 +1,89 @@
+.TH GRXFIRMA-VERIFICACION 7 "20 marzo 2026" "GrxFirma" "Verificación de firmas"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-verificacion \- cómo funciona la verificación en GrxFirma
+.SH DESCRIPCIÓN
+Esta página explica qué significa verificar una firma en \fBGrxFirma\fR y qué
+puede comprobar realmente la herramienta.
+.SH QUÉ ES VERIFICAR
+Verificar una firma significa comprobar, como mínimo:
+.IP \(bu 2
+que la estructura criptográfica de la firma es coherente;
+.IP \(bu 2
+que el contenido firmado no ha cambiado;
+.IP \(bu 2
+que la firma corresponde al certificado embebido o referenciado;
+.IP \(bu 2
+y, cuando procede, que las referencias y propiedades firmadas cuadran.
+.PP
+Verificar no es solo "abrir el archivo y ver si parece firmado". Es una validación
+técnica de integridad y consistencia.
+.SH QUÉ PUEDE SALIR BIEN Y QUÉ NO
+.TP
+.B Firma válida
+La estructura es coherente, el contenido encaja y la evidencia criptográfica es correcta.
+.TP
+.B Firma inválida
+El contenido no cuadra, faltan piezas, las referencias están rotas o la firma está corrupta.
+.TP
+.B Firma no evaluable por falta de contexto
+Puede pasar cuando la firma es desacoplada y falta el documento original.
+.SH FIRMA DESACOPLADA
+Una firma desacoplada no lleva necesariamente el documento original dentro del resultado.
+.PP
+En ese caso, para verificar correctamente suele hacer falta aportar también:
+.IP \(bu 2
+el fichero de firma,
+.IP \(bu 2
+y el documento original.
+.PP
+En la CLI de \fBGrxFirma\fR esto se expresa con:
+.PP
+.RS
+\fB-documento-original\fR
+.RE
+.SH QUÉ REVISA SEGÚN EL FORMATO
+.TP
+.B CAdES
+Se revisa la estructura CMS/PKCS#7, atributos firmados, digest y coherencia del contenido.
+.TP
+.B XAdES
+Se revisan referencias XML, SignedProperties y la relación entre nodos firmados.
+.TP
+.B PAdES
+Se revisa el ByteRange, el contenedor CMS embebido y la integridad del PDF firmado.
+.SH QUÉ NO GARANTIZA POR SÍ SOLO
+Una verificación técnica positiva no sustituye otras decisiones:
+.IP \(bu 2
+si el firmante era la persona que esperabas;
+.IP \(bu 2
+si el flujo de negocio era el correcto;
+.IP \(bu 2
+si el portal remoto hizo lo que tú creías;
+.IP \(bu 2
+o si la política legal aplicable se cumple en tu organización.
+.SH SALIDAS ÚTILES
+En CLI con JSON, \fBGrxFirma\fR devuelve estados visibles en castellano.
+.PP
+Para verificación detached, un ejemplo típico sería:
+.PP
+.RS
+\fBgrxfirma -modo-cli -verificar -entrada firma.csig -documento-original contrato.pdf -salida-json\fR
+.RE
+.SH ERRORES TÍPICOS
+.IP \(bu 2
+No aportar el documento original en una firma desacoplada.
+.IP \(bu 2
+Intentar verificar un formato distinto del que realmente contiene el fichero.
+.IP \(bu 2
+Confundir una firma visible en PDF con una firma criptográficamente válida.
+.IP \(bu 2
+Intentar verificar un fichero parcial, truncado o alterado.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-firmas (7),
+.BR grxfirma-formatos (7)

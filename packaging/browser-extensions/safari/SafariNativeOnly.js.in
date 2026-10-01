@@ -1,0 +1,52 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// Autoría: Alberto Avidad Fernández
+// Licencia: EUPL 1.2 o posterior
+// SPDX-License-Identifier: EUPL-1.2
+
+// GRXFIRMA_SAFARI_NATIVE_ONLY_START
+// Safari's native handler already performs the authenticated REST bridge.
+(function enforceSafariNativeBridge() {
+    "use strict";
+
+    function rejectNativeFailure(nativeError) {
+        throw nativeError || new Error("Safari native bridge unavailable");
+    }
+
+    getSystemCertificatesFromRest = async function disableCertificateRestFallback(nativeError) {
+        rejectNativeFailure(nativeError);
+    };
+
+    signWithSystemCertificateRest = async function disableSignRestFallback(
+        data,
+        certificateId,
+        format,
+        signatureOptions,
+        nativeError
+    ) {
+        void data;
+        void certificateId;
+        void format;
+        void signatureOptions;
+        rejectNativeFailure(nativeError);
+    };
+
+    verifyWithSystemCertificateRest = async function disableVerifyRestFallback(
+        signatureData,
+        originalData,
+        format,
+        mimeType,
+        nativeError
+    ) {
+        void signatureData;
+        void originalData;
+        void format;
+        void mimeType;
+        rejectNativeFailure(nativeError);
+    };
+
+    pingLocalIntegration = async function pingThroughSafariHandler() {
+        const response = await sendToNativeHost("ping");
+        return { success: true, message: "pong", mode: "safari-native", native: response };
+    };
+})();
+// GRXFIRMA_SAFARI_NATIVE_ONLY_END

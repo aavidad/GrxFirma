@@ -1,0 +1,161 @@
+.TH GRXFIRMA-CERTIFICADOS 7 "20 marzo 2026" "GrxFirma" "Certificados y almacenes"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-certificados \- certificados, almacenes y selección en GrxFirma
+.SH DESCRIPCIÓN
+Esta página explica cómo entiende \fBGrxFirma\fR los certificados locales, de dónde
+pueden salir y por qué a veces un certificado visible no implica que realmente pueda firmar.
+.SH QUÉ ES UN CERTIFICADO EN LA PRÁCTICA
+Para la aplicación, un certificado útil no es solo un nombre visible en pantalla.
+.PP
+Hace falta, como mínimo:
+.IP \(bu 2
+una referencia de certificado identificable;
+.IP \(bu 2
+una clave privada accesible por el proveedor correspondiente;
+.IP \(bu 2
+y compatibilidad real con la operación de firma pedida.
+.SH FUENTES HABITUALES DE CERTIFICADOS
+.TP
+.B NSS / almacén del sistema
+En Linux suele ser una fuente principal. La aplicación puede descubrir certificados
+del perfil o del sistema y resolver después la clave privada asociada.
+.TP
+.B PKCS#12 (P12 / PFX)
+Contenedor portable con certificado y clave privada. Útil para importar credenciales
+al perfil de \fBGrxFirma\fR o para usar un contenedor concreto de forma explícita.
+.TP
+.B PEM
+Pareja de certificado y clave en ficheros separados. Suele usarse en CLI técnica
+o en integraciones controladas.
+.SH CATÁLOGO AGREGADO
+\fBGrxFirma\fR puede construir un catálogo agregado: combina varias fuentes y presenta
+una vista unificada al usuario.
+.PP
+Eso significa que:
+.IP \(bu 2
+un certificado puede venir de NSS,
+.IP \(bu 2
+otro de un P12 del perfil,
+.IP \(bu 2
+y otro de un PEM explícito.
+.SH VER UN CERTIFICADO NO SIEMPRE SIGNIFICA PODER FIRMAR
+Un certificado puede listarse y aun así no servir para firmar realmente.
+.PP
+Puede pasar si:
+.IP \(bu 2
+la clave privada no es accesible;
+.IP \(bu 2
+el proveedor criptográfico falla;
+.IP \(bu 2
+el certificado está caducado o no es válido para firma;
+.IP \(bu 2
+la integración con el almacén local no puede resolver la identidad correcta.
+.PP
+Por eso existen dos operaciones distintas:
+.TP
+.B Listar certificados
+Dice qué certificados ve la aplicación.
+.TP
+.B Comprobar certificados
+Intenta determinar cuáles pueden firmar de verdad.
+.SH SELECCIÓN DE CERTIFICADO
+La CLI ofrece varias formas de seleccionar:
+.TP
+.B -id-certificado
+Selecciona por identificador exacto.
+.TP
+.B -indice-certificado
+Selecciona por posición dentro del listado.
+.TP
+.B -certificado-contiene
+Selecciona el primer certificado cuyo texto visible encaja con la cadena dada.
+.PP
+En GUI, la selección la hace el usuario sobre el catálogo mostrado.
+.PP
+Si tras filtrar por validez u otras reglas operativas solo queda un certificado,
+\fBGrxFirma\fR lo autoselecciona y continúa sin mostrar el selector.
+.PP
+Si el operador decide recordar la elección, \fBGrxFirma\fR puede guardar esa
+selección por origen remoto:
+.IP \(bu 2
+de forma persistente entre arranques;
+.IP \(bu 2
+o solo durante la sesión actual.
+.PP
+La CLI permite listar, borrar, exportar e importar esa autoselección.
+.SH IMPORTAR UN P12
+La operación:
+.PP
+.RS
+\fBgrxfirma -importar-p12 /ruta/certificado.p12 -contrasena-p12-stdin\fR
+.RE
+.PP
+valida el contenedor y lo copia al directorio local de P12 del perfil.
+.PP
+Si la biblioteca Go no reconoce el cifrado de transporte de un P12 antiguo,
+la aplicación usa OpenSSL como respaldo. En OpenSSL 3 prueba primero el modo
+predeterminado y solo después el proveedor de lectura
+.BR -legacy .
+Esta compatibilidad se limita a extraer certificado y clave del contenedor
+local: no habilita algoritmos de firma antiguos ni altera la comprobación de
+vigencia o confianza.
+.PP
+Esto no significa necesariamente que el sistema operativo lo incorpore a todos sus
+almacenes globales. Significa que \fBGrxFirma\fR podrá reutilizarlo dentro de su
+propio perfil operativo.
+.SH DIRECTORIOS RELEVANTES
+.TP
+.I ~/.config/grxfirma/pkcs12/
+Directorio habitual de contenedores PKCS#12 del perfil.
+.TP
+.I ~/.config/grxfirma/config.json
+Configuración local del perfil, incluida la ruta alternativa del directorio P12 si se define.
+.TP
+.I ~/.config/grxfirma/preferred-certificates.json
+Autoselección persistente de certificados por origen.
+.TP
+.I $XDG_RUNTIME_DIR/grxfirma/preferred-certificates-session.json
+Autoselección temporal de certificados durante la sesión actual.
+.SH CONSEJO PRÁCTICO
+Si dudas sobre qué certificado se está usando realmente:
+.IP \(bu 2
+lista certificados,
+.IP \(bu 2
+comprueba cuáles pueden firmar,
+.IP \(bu 2
+y fija uno por índice o identificador explícito.
+.SH COMANDOS ÚTILES
+.TP
+.B grxfirma -modo-cli -listar-certificados -salida-json
+Lista certificados visibles.
+.TP
+.B grxfirma -modo-cli -comprobar-certificados -salida-json
+Comprueba qué certificados pueden firmar realmente.
+.TP
+.B grxfirma -importar-p12 /ruta/certificado.p12 -contrasena-p12-stdin
+Importa un P12 al perfil local de la aplicación.
+.TP
+.B grxfirma -listar-autoseleccion-cert
+Lista la autoselección persistente y la de sesión.
+.TP
+.B grxfirma -resetear-autoseleccion-cert
+Pide confirmación y limpia la autoselección persistente y temporal.
+.TP
+.B grxfirma -eliminar-autoseleccion-cert -dominio https://portal.ejemplo
+Elimina la preferencia guardada para un origen concreto.
+.TP
+.B grxfirma -exportar-autoseleccion-cert -fichero-autoseleccion /tmp/autoseleccion.json
+Exporta a JSON la autoselección guardada.
+.TP
+.B grxfirma -importar-autoseleccion-cert -fichero-autoseleccion /tmp/autoseleccion.json
+Importa desde JSON y repone la autoselección guardada.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-recetas (7),
+.BR grxfirma-firmas (7),
+.BR grxfirma-diagnostico (7)

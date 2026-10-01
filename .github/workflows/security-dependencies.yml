@@ -1,0 +1,131 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+name: Security - dependency scanning
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-dependencies-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  osv-scanner:
+    name: osv-scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install OSV-Scanner
+        env:
+          OSV_SCANNER_VERSION: v2.3.8
+        run: go install github.com/google/osv-scanner/v2/cmd/osv-scanner@"$OSV_SCANNER_VERSION"
+
+      - name: Inventory all dependency manifests
+        run: |
+          set +e
+          "$(go env GOPATH)/bin/osv-scanner" scan source --recursive . \
+            --call-analysis=go \
+            --format json \
+            --all-packages \
+            --output-file "$RUNNER_TEMP/osv-inventory.json"
+          SCAN_STATUS=$?
+          set -e
+          # Exit 1 means findings. They remain visible in the complete inventory,
+          # while the scoped gates below decide whether they affect shipped code.
+          if [ "$SCAN_STATUS" -ne 0 ] && [ "$SCAN_STATUS" -ne 1 ]; then
+            exit "$SCAN_STATUS"
+          fi
+
+      - name: Verify every dependency manifest has an explicit gate
+        run: |
+          python3 scripts/ci/validate_osv_inventory.py \
+            --report "$RUNNER_TEMP/osv-inventory.json" \
+            --root "$GITHUB_WORKSPACE" \
+            --expected-source go.mod \
+            --expected-source third_party/pdfsign/go.mod \
+            --expected-source third_party/pdf/go.mod \
+            --expected-source cmd/gui-winui/src/GrxFirma.WinUI/packages.lock.json \
+            --expected-source cmd/gui-winui/tests/GrxFirma.WinUI.Core.Tests/packages.lock.json \
+            --expected-source mobile/android/app/gradle.lockfile \
+            --expected-source mobile/android/gradle/verification-metadata.xml \
+            --expected-source packaging/browser-extensions/tests/chromium/requirements.txt
+
+      - name: Gate reachable Go dependencies
+        run: |
+          "$(go env GOPATH)/bin/osv-scanner" scan source \
+            --lockfile go.mod \
+            --lockfile third_party/pdfsign/go.mod \
+            --lockfile third_party/pdf/go.mod \
+            --call-analysis=go \
+            --format json \
+            --all-packages \
+            --output-file "$RUNNER_TEMP/osv-go-runtime.json"
+
+      # Core y el helper QA no declaran paquetes NuGet y OSV no incluye sus
+      # lockfiles vacíos en el inventario recursivo, pero se pasan igualmente
+      # al gate para cubrir cualquier dependencia futura.
+      - name: Gate WinUI runtime and test dependencies
+        run: |
+          "$(go env GOPATH)/bin/osv-scanner" scan source \
+            --lockfile cmd/gui-winui/src/GrxFirma.WinUI.Core/packages.lock.json \
+            --lockfile cmd/gui-winui/src/GrxFirma.WinUI/packages.lock.json \
+            --lockfile cmd/gui-winui/tests/GrxFirma.WinUI.Core.Tests/packages.lock.json \
+            --lockfile scripts/windows-qa/GrxFirma.WindowCapture/packages.lock.json \
+            --format json \
+            --all-packages \
+            --output-file "$RUNNER_TEMP/osv-winui.json"
+
+      - name: Build Android runtime dependency scope
+        run: |
+          python3 scripts/ci/filter_gradle_lockfile.py \
+            --input mobile/android/app/gradle.lockfile \
+            --output "$RUNNER_TEMP/android-runtime/gradle.lockfile" \
+            --configuration productionReleaseRuntimeClasspath \
+            --configuration verificationReleaseRuntimeClasspath
+
+      - name: Gate Android runtime dependencies
+        run: |
+          "$(go env GOPATH)/bin/osv-scanner" scan source \
+            --lockfile "$RUNNER_TEMP/android-runtime/gradle.lockfile" \
+            --format json \
+            --all-packages \
+            --output-file "$RUNNER_TEMP/osv-android-runtime.json"
+
+      - name: Gate browser E2E tooling dependencies
+        run: |
+          "$(go env GOPATH)/bin/osv-scanner" scan source \
+            --lockfile packaging/browser-extensions/tests/chromium/requirements.txt \
+            --format json \
+            --all-packages \
+            --output-file "$RUNNER_TEMP/osv-browser-tooling.json"
+
+      - name: Upload dependency scanning report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: osv-scanner-report
+          path: |
+            ${{ runner.temp }}/osv-*.json
+            ${{ runner.temp }}/android-runtime/gradle.lockfile
+          if-no-files-found: error
+          retention-days: 30

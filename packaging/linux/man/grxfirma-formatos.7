@@ -1,0 +1,147 @@
+.TH GRXFIRMA-FORMATOS 7 "26 julio 2026" "GrxFirma" "Formatos de firma"
+.\" Derechos de autor (C) 2026 Alberto Avidad Fernández.
+.\" Autoría: Alberto Avidad Fernández
+.\" Licencia: EUPL 1.2 o posterior
+.\" SPDX-License-Identifier: EUPL-1.2
+
+.SH NOMBRE
+grxfirma-formatos \- formatos de firma soportados por GrxFirma
+.SH DESCRIPCIÓN
+Esta página resume los formatos de firma más habituales en \fBGrxFirma\fR y cuándo
+tiene sentido usar cada uno.
+.SH CAdES
+\fBCAdES\fR es una firma basada en CMS/PKCS#7.
+.PP
+Se usa con frecuencia para:
+.IP \(bu 2
+firmas detached,
+.IP \(bu 2
+contenidos binarios,
+.IP \(bu 2
+flujos donde importa la evidencia CMS más que el contenedor visual.
+.PP
+Suele ser una opción natural para automatización y firma de datos genéricos.
+.SH XAdES
+\fBXAdES\fR es una firma XML.
+.PP
+Encaja mejor cuando:
+.IP \(bu 2
+el documento original es XML,
+.IP \(bu 2
+el ecosistema de intercambio usa XML firmado,
+.IP \(bu 2
+o el receptor espera explícitamente este formato.
+.SH XMLDSIG
+\fBXMLdSig\fR genera un artefacto \fB.dsig\fR separado con una referencia
+detached RSA\-SHA256 al documento XML canónico. Para poder verificarlo sin un
+segundo fichero, la salida incorpora además una copia Base64 del documento.
+El motor actual solo soporta firma: no ofrece cofirma ni contrafirma.
+.PP
+La extensión \fB.xml\fR en modo \fBauto\fR se interpreta como XAdES; seleccione
+\fBxmldsig\fR de forma explícita:
+.PP
+.RS
+\fBgrxfirma \-modo\-cli \-operacion firmar \-entrada datos.xml \-formato xmldsig \-salida datos.dsig\fR
+.RE
+.SH ODF
+\fBODF\fR firma documentos OpenDocument válidos, como \fB.odt\fR, \fB.ods\fR
+y \fB.odp\fR. La firma XML se guarda en
+\fIMETA\-INF/documentsignatures.xml\fR dentro del mismo paquete.
+.PP
+Admite firma y cofirma, pero no contrafirma. El modo \fBauto\fR reconoce las
+extensiones ODF.
+.PP
+.RS
+\fBgrxfirma \-modo\-cli \-operacion firmar \-entrada informe.odt \-formato odf \-salida informe_firmado.odt\fR
+.RE
+.SH OOXML
+\fBOOXML\fR firma paquetes Office Open XML válidos, como \fB.docx\fR,
+\fB.xlsx\fR y \fB.pptx\fR. La firma se incorpora bajo
+\fI_xmlsignatures/\fR y se actualizan las relaciones del paquete.
+.PP
+Admite firma y cofirma, pero no contrafirma. El modo \fBauto\fR reconoce las
+extensiones OOXML.
+.PP
+.RS
+\fBgrxfirma \-modo\-cli \-operacion firmar \-entrada expediente.docx \-formato ooxml \-salida expediente_firmado.docx\fR
+.RE
+.SH FACTURAE
+\fBFacturaE\fR aplica un perfil XAdES enveloped sobre facturas XML 3.1 o 3.2
+con la estructura mínima \fBFileHeader\fR, \fBParties\fR e \fBInvoices\fR.
+La bandera repetible \fB\-opcion clave=valor\fR permite configurar
+\fBfacturaePolicyVersion\fR, \fBpolicyIdentifier\fR,
+\fBpolicyIdentifierHash\fR, \fBpolicyQualifier\fR,
+\fBsignerClaimedRole\fR y los campos \fBsignatureProduction*\fR.
+.PP
+El motor actual solo soporta firma y rechaza una factura que ya contenga firma;
+no ofrece cofirma ni contrafirma. Como \fBauto\fR trata \fB.xml\fR como XAdES,
+indique el formato explícitamente:
+.PP
+.RS
+\fBgrxfirma \-modo\-cli \-operacion firmar \-entrada factura.xml \-formato facturae \-salida factura_firmada.xml\fR
+.RE
+.SH ASIC\-XADES
+\fBASiC\-XAdES\fR crea un contenedor ASiC\-S ZIP monodato: conserva un único
+documento y su firma XAdES en \fIMETA\-INF/signatures.xml\fR. La salida
+habitual usa la extensión \fB.asics\fR.
+.PP
+El motor actual solo soporta firma; no ofrece cofirma ni contrafirma. La
+verificación en modo \fBauto\fR reconoce \fB.asics\fR.
+.PP
+.RS
+\fBgrxfirma \-modo\-cli \-operacion firmar \-entrada anexo.bin \-formato asic\-xades \-salida anexo.asics\fR
+.RE
+.SH PAdES
+\fBPAdES\fR es la firma PDF.
+.PP
+Encaja cuando:
+.IP \(bu 2
+el documento final es un PDF,
+.IP \(bu 2
+quieres validación natural en lectores PDF,
+.IP \(bu 2
+o necesitas sello visible.
+.SH ELEGIR FORMATO
+Regla práctica:
+.IP \(bu 2
+si firmas un PDF y el resultado final también debe ser PDF, normalmente \fBPAdES\fR;
+.IP \(bu 2
+si firmas XML y el receptor habla XML firmado, normalmente \fBXAdES\fR;
+.IP \(bu 2
+si firmas una FacturaE o necesitas XMLdSig, indica ese perfil explícitamente;
+.IP \(bu 2
+si necesitas conservar un documento ODF/OOXML dentro de su paquete, usa su
+perfil específico;
+.IP \(bu 2
+si intercambias un documento y su firma como una sola unidad ZIP, usa
+\fBASiC\-XAdES\fR;
+.IP \(bu 2
+si firmas datos genéricos o detached, normalmente \fBCAdES\fR.
+.SH VARIANTES AVANZADAS
+Algunas variantes añaden más evidencia:
+.TP
+.B T
+Sello de tiempo.
+.TP
+.B LT / LTA
+Evidencias para validación a largo plazo.
+.PP
+Estas variantes amplían la evidencia, pero no cambian la lógica básica del formato.
+.SH SELLO VISIBLE
+Solo tiene sentido práctico en \fBPAdES\fR.
+.PP
+El sello visible:
+.IP \(bu 2
+es presentación,
+.IP \(bu 2
+no sustituye la firma criptográfica,
+.IP \(bu 2
+y no convierte por sí solo una firma inválida en válida.
+.SH MODO AUTO
+Cuando se usa \fB-formato auto\fR, la aplicación intenta inferir el formato adecuado
+según la entrada y el contexto. Aun así, en integraciones exigentes conviene indicar
+el formato explícitamente.
+.SH VER TAMBIÉN
+.BR grxfirma (1),
+.BR grxfirma-firmas (7),
+.BR grxfirma-verificacion (7)

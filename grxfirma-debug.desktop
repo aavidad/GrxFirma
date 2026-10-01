@@ -1,0 +1,20 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+[Desktop Entry]
+Name=GrxFirma (debug)
+Name[es]=GrxFirma (debug)
+GenericName=Aplicacion de firma electronica
+GenericName[es]=Aplicacion de firma electronica
+Comment=Modo debug de GrxFirma con logs en /tmp
+Comment[es]=Modo debug de GrxFirma con logs en /tmp
+Exec=env GRXFIRMA_DEBUG=1 GRXFIRMA_LOG_FILE=/tmp/grxfirma-debug.log GRXFIRMA_PROTOCOL_UI=1 grxfirma-afirmauri %u
+Terminal=false
+Type=Application
+Icon=grxfirma
+Categories=Office;Security;
+MimeType=x-scheme-handler/afirma;
+Keywords=firma;electronica;certificado;digital;debug;
+StartupNotify=false

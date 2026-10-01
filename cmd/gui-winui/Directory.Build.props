@@ -1,0 +1,25 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<Project>
+  <!-- Solo los ensamblados del producto; no cambia los proyectos de pruebas
+       ni las versiones de paquetes o del SDK. VERSION.txt es la misma fuente
+       publicada junto a la aplicación y leída por Acerca de. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'GrxFirma.WinUI' Or '$(MSBuildProjectName)' == 'GrxFirma.WinUI.Core'">
+    <_GrxFirmaVersionFile>$(MSBuildThisFileDirectory)../../VERSION.txt</_GrxFirmaVersionFile>
+    <_GrxFirmaVersion Condition="Exists('$(_GrxFirmaVersionFile)')">$([System.IO.File]::ReadAllText('$(_GrxFirmaVersionFile)').Trim())</_GrxFirmaVersion>
+    <_GrxFirmaNumericVersion>$([System.Text.RegularExpressions.Regex]::Match('$(_GrxFirmaVersion)', '^[0-9]+\.[0-9]+\.[0-9]+').Value)</_GrxFirmaNumericVersion>
+    <Version>$(_GrxFirmaVersion)</Version>
+    <AssemblyVersion>$(_GrxFirmaNumericVersion).0</AssemblyVersion>
+    <FileVersion>$(_GrxFirmaNumericVersion).0</FileVersion>
+    <InformationalVersion>$(_GrxFirmaVersion)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+  <Target Name="ValidateGrxFirmaProductVersion" BeforeTargets="PrepareForBuild"
+          Condition="'$(MSBuildProjectName)' == 'GrxFirma.WinUI' Or '$(MSBuildProjectName)' == 'GrxFirma.WinUI.Core'">
+    <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(_GrxFirmaVersion)', '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'))"
+           Text="VERSION.txt debe contener una versión SemVer válida del producto." />
+  </Target>
+</Project>

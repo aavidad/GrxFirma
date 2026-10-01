@@ -1,0 +1,13 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+gradlew text eol=lf
+gradlew.bat text eol=crlf
+*.kts text eol=lf
+*.kt text eol=lf
+*.xml text eol=lf
+*.py text eol=lf
+*.sh text eol=lf
+*.md text eol=lf

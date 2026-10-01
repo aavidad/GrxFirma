@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<resources>
+    <string-array name="signature_formats">
+        <item>@string/format_auto</item>
+        <item>@string/format_pades</item>
+        <item>@string/format_cades</item>
+        <item>@string/format_xades</item>
+    </string-array>
+</resources>

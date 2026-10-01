@@ -1,0 +1,58 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+# Binarios compilados en la raíz del repo. IMPORTANTE: anclados con "/" —
+# un patrón sin anclar como "grxfirmauri" también ignora el DIRECTORIO
+# cmd/grxfirmauri/ y git deja de trackear fuentes nuevas en silencio
+# (así quedaron fuera 4 .go hasta jul-2026 y el repo remoto no compilaba).
+.ssl-key.log
+.claude/settings.local.json
+/grxfirma
+/grxfirma
+/grxfirma-gui
+/grxfirma-gui-qml
+/grxfirmauri
+/grxfirma-afirmauri
+/grxfirma-desktop
+/grxfirma-nativehost
+.qmake.stash
+*.o
+*.test
+*.test.exe
+cmd/gui-qml/.qmake.stash
+cmd/gui-qml/Makefile
+cmd/gui-qml/*.o
+cmd/gui-qml/moc_*.cpp
+cmd/gui-qml/moc_*.o
+cmd/gui-qml/moc_predefs.h
+cmd/gui-qml/qrc_*.cpp
+cmd/gui-qml/qrc_*.o
+cmd/gui-qml/grxfirma-gui-qml
+release/windows-cli/
+release/windows-nativehost/
+release/windows-afirmauri/
+release/windows-suite/
+release/windows-desktop-qml/
+release/windows-desktop-winui/
+release/windows-msix/
+release/macos-cli/
+release/macos-nativehost/
+release/macos-afirmauri/
+release/macos-suite/
+release/macos-desktop-qml/
+release/installers/
+release/linux-suite/
+release/candidates/
+release/frozen/
+release/versions/
+/backups/
+/build/
+*.bk
+packaging/browser-extensions/*.zip
+packaging/browser-extensions/*.xpi
+packaging/browser-extensions/*.metadata.json
+__pycache__/
+*.pyc
+mobile/android/app/core/*.aar

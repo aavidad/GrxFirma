@@ -1,0 +1,243 @@
+GRXFIRMA PARA WINDOWS
+GUIA LOCAL DE USUARIO
+
+Esta guía describe las funciones básicas de la interfaz WinUI incluida con
+GrxFirma. Se puede consultar sin conexión a Internet.
+
+
+1. ANTES DE EMPEZAR
+
+- Compruebe que reconoce el documento que va a utilizar.
+- Utilice únicamente certificados propios o autorizados para el trámite.
+- No comparta contraseñas, PIN, claves privadas ni copias de certificados con
+  clave privada.
+- Revise siempre el resultado antes de enviarlo a una sede electrónica.
+
+
+2. FIRMAR UN DOCUMENTO
+
+1. Abra la sección Firmar.
+2. Seleccione el documento.
+3. Elija el certificado correcto comprobando titular, emisor y vigencia.
+4. Revise el formato de firma y el destino propuesto.
+5. Pulse Firmar y complete, si se solicita, la autenticación del certificado.
+6. Compruebe el mensaje final y conserve el fichero firmado.
+
+Para colocar un sello visible en un PDF:
+
+1. Seleccione el PDF y el formato PAdES o Automático.
+2. Despliegue "Opciones avanzadas" y active "Añadir sello visible en PDF".
+3. Indique las páginas: una página (1), una lista o rango (1,3-5), o todas
+   (all).
+4. Pulse "Cargar previsualización". La aplicación muestra la página real y una
+   zona azul que representa el lugar exacto del sello. En Windows la imagen se
+   genera localmente con el visor PDF del sistema: el documento no se envía a
+   Internet y no es necesario instalar herramientas PDF adicionales.
+5. Arrastre la zona azul para moverla. Arrastre el tirador de la esquina
+   inferior derecha para cambiar su ancho y alto.
+6. Para un ajuste preciso o para trabajar solo con teclado, use X, Y, Ancho y
+   Alto. X se mide desde la izquierda e Y desde la parte inferior.
+7. Elija la orientación del sello: 0, 90, 180 o 270 grados. Revise también el
+   texto que se incluirá antes de pulsar Firmar.
+
+La zona no puede salir de la página. Si cambia el documento o las páginas,
+cargue de nuevo la previsualización antes de firmar. La aplicación comprueba
+que el PDF no haya cambiado desde esa previsualización.
+
+La aplicación no debe sobrescribir un fichero sin mostrar la decisión
+correspondiente. Cancelar la selección o el PIN no invalida el documento
+original.
+
+
+3. VERIFICAR UNA FIRMA
+
+1. Abra la sección Verificar.
+2. Seleccione el documento firmado.
+3. Si se trata de una firma separada, seleccione también el documento original.
+4. Revise por separado la integridad, el certificado, la confianza y los avisos.
+
+Un resultado no concluyente no equivale a una firma válida. Puede indicar que
+faltan datos de confianza o que una comprobación en línea no estaba disponible.
+
+
+4. HUELLAS, PROTECCION Y CERTIFICADOS
+
+- Huellas permite crear o comprobar resúmenes criptográficos de ficheros y
+  carpetas. Compare siempre el algoritmo y el valor esperado.
+- Proteger cifra un documento para destinatarios seleccionados. Perder la clave
+  privada necesaria puede impedir recuperar el contenido.
+- Certificados muestra los certificados detectados y su capacidad de firma.
+  Revise los avisos de caducidad y no importe credenciales de origen dudoso.
+- Puede usar un P12/PFX solo durante la sesión o importarlo expresamente en un
+  almacén. Algunos contenedores antiguos necesitan la compatibilidad local de
+  OpenSSL para abrirse; esto no habilita algoritmos de firma antiguos.
+- Una firma puede ser criptográficamente íntegra y mostrar, a la vez, el
+  certificado como caducado o no confiable. No use ese resultado para un
+  trámite que exija un certificado vigente.
+
+
+5. USO DESDE EL NAVEGADOR
+
+Una sede puede solicitar la apertura de GrxFirma para completar un trámite.
+Mantenga abierta únicamente la sede que reconoce y confirme que el documento y
+el certificado coinciden con el trámite. El navegador, la aplicación local, la
+sede y la plataforma pública de firma son componentes distintos; un fallo en
+uno de ellos no demuestra que los demás estén averiados.
+
+Cuando una firma llegue desde la extensión del navegador, el diálogo de
+confirmación muestra también la aplicación y el origen solicitantes. Cancele
+si están vacíos, no corresponden a la sede que está usando o aparecen
+caracteres inesperados. GrxFirma rechaza por diseño extensiones, orígenes,
+acciones e identificadores repetidos que no estén autorizados.
+
+Si el navegador informa de que la extensión solicitante no está autorizada, cierre todas
+sus ventanas y reinstale los conectores desde la aplicación o desde el
+instalador oficial. No desactive controles del navegador, no añada comodines y
+no ejecute manualmente el programa `grxfirma-nativehost`.
+
+
+6. SI UNA OPERACION FALLA
+
+Abra el diagnóstico mostrado por la operación o la sección Diagnóstico. La
+vista distingue los pasos realmente observados:
+
+- Correcto: la fase terminó antes de alcanzar la siguiente.
+- Falló: el problema se observó en esa fase.
+- Omitido: la comprobación no era aplicable.
+- No comprobado: no existe evidencia suficiente.
+
+El responsable probable puede ser este equipo, el certificado o dispositivo,
+el navegador, la sede electrónica o la plataforma pública de firma. Si no hay
+evidencia suficiente, la aplicación debe indicarlo y no atribuir la causa.
+
+El botón de diagnóstico no repite firmas ni modifica certificados por sí solo.
+Las comprobaciones adicionales que puedan acceder a la red requieren una
+decisión explícita del usuario.
+
+Cuando GrxFirma detiene una operación por seguridad, el mensaje debe indicar:
+
+- qué requisito no se cumple;
+- por qué no es seguro continuar;
+- y cómo resolverlo sin reducir la seguridad.
+
+Las recuperaciones habituales son corregir los datos, repetir la operación,
+reiniciar el navegador, reinstalar un conector oficial, desbloquear el
+certificado o contactar con la sede o el administrador. Nunca se debe resolver
+un aviso desactivando TLS, la validación de firmas, el antivirus o los
+controles del navegador.
+
+
+7. ALGORITMOS ANTIGUOS
+
+SHA-1 y otros algoritmos antiguos ya no ofrecen una seguridad adecuada para
+nuevas firmas. Si una sede exige uno de estos algoritmos, GrxFirma debe
+explicar que el mecanismo solicitado es inseguro y puede rechazar la operación.
+No reduzca la seguridad del equipo para evitar este aviso; contacte con la sede
+para que actualice el procedimiento.
+
+
+8. PRIVACIDAD Y SOPORTE
+
+Antes de solicitar soporte:
+
+- Anote el código visible y qué acción estaba realizando.
+- Si la distribución ofrece exportar una incidencia, comparta únicamente el
+  informe preparado y saneado por la aplicación.
+- No adjunte el documento, el certificado, el PIN, contraseñas ni claves.
+- Use un canal privado para comunicar una posible vulnerabilidad.
+
+Los detalles técnicos pueden contener información útil para soporte. Revíselos
+antes de compartirlos y utilice solo las opciones de exportación previstas.
+Las incidencias locales que controla la aplicación se eliminan automáticamente
+al superar 30 días y se conservan como máximo las 50 más recientes. El paquete
+instalado no incluye un modo de depuración; soporte no debe pedirle que lo
+active ni que envíe el log completo.
+
+
+9. FACTURAE Y ENVIO ASISTIDO A FACE
+
+El complemento Facturae está desactivado de forma predeterminada. Para usarlo:
+
+1. Abra Configuración.
+2. En Complementos, active "Herramientas Facturae y FACe".
+3. Guarde las preferencias.
+4. Abra la nueva sección "Facturae y FACe".
+
+Antes de crear o remitir una factura:
+
+- Pida a la Administración destinataria los tres códigos DIR3 exactos:
+  oficina contable, órgano gestor y unidad tramitadora.
+- Reúna y revise los datos fiscales del emisor y del receptor, número y fecha,
+  líneas, impuestos, totales y forma de pago.
+- Utilice un XML Facturae firmado. Un PDF puede ser un anexo, pero no sustituye
+  a la factura electrónica XML.
+
+Crear una factura simple desde el complemento:
+
+1. Despliegue los bloques Factura, Emisor, Administración receptora y DIR3,
+   Concepto y, si corresponde, Pago.
+2. Complete los campos marcados con asterisco. El generador crea Facturae
+   3.2.2 para una factura ordinaria en euros con una línea; calcula base, IVA
+   y total y valida localmente formatos, longitudes, DIR3, fechas e IBAN.
+3. Pulse "Crear XML Facturae 3.2.2" y guarde el fichero.
+4. Abra "Firmar", seleccione el XML creado y el formato "FacturaE". Firme con
+   el certificado del emisor y guarde el XML firmado.
+5. El generador es una ayuda para casos simples y no sustituye la revisión
+   fiscal, contable ni contractual. Si necesita varias líneas, descuentos,
+   retenciones, facturas rectificativas o regímenes especiales, genere la
+   factura con su programa de facturación y use GrxFirma para firmarla.
+
+Pasos para remitirla:
+
+1. Abra el buscador oficial de organismos desde la sección Facturae y FACe y
+   compruebe la relación de los tres códigos DIR3.
+2. Abra el validador oficial de FACe, suba el XML firmado y corrija los errores
+   indicados.
+3. Abra "Remitir factura en FACe".
+4. Identifíquese en el portal con uno de los medios que FACe admita.
+5. Seleccione el XML firmado, añada solo los anexos solicitados, revise el
+   destino y confirme la presentación.
+6. Descargue el justificante. La factura no se considera presentada hasta que
+   FACe confirma la remisión y entrega un número de registro y un código seguro
+   de verificación (CSV).
+7. Conserve el XML, los anexos y el justificante. Consulte después el estado de
+   la factura en FACe.
+
+GrxFirma abre destinos HTTPS oficiales fijos, pero en el modo asistido no
+adjunta ni transmite la factura por sí mismo. Las instrucciones actuales del
+portal oficial prevalecen si el procedimiento cambia.
+
+
+10. NUEVAS VERSIONES
+
+GrxFirma puede consultar si existe una versión estable más reciente:
+
+1. En Configuración, deje activado "Avisar de nuevas versiones" para hacer una
+   única consulta al arrancar la aplicación.
+2. Para comprobarlo cuando quiera, abra Acerca de y pulse "Comprobar
+   actualizaciones".
+3. Si aparece una nueva versión, revise las notas y pulse el enlace oficial
+   solo si desea abrir la página de Releases de GrxFirma en GitHub.
+4. Descargue e instale manualmente la versión que corresponda después de
+   comprobar su procedencia. La aplicación nunca descarga, instala ni ejecuta
+   actualizaciones por sí sola.
+
+La consulta HTTPS comunica a GitHub los datos técnicos normales de una
+conexión y el nombre "GrxFirma-UpdateCheck". No envía documentos,
+certificados, firmas, preferencias ni datos del titular. Puede desactivar la
+consulta automática; la comprobación manual seguirá disponible.
+
+Si falla, compruebe Internet, DNS y el proxy y vuelva a intentarlo. No
+desactive TLS, el antivirus ni la validación de certificados. Este fallo no
+impide firmar o verificar de forma local. Si todavía no hay una Release pública
+estable, la aplicación lo indicará sin inventar una actualización.
+
+
+11. COMPATIBILIDAD
+
+Esta edición está preparada para Windows 10 de 64 bits compatible con la versión
+mínima indicada por el instalador. La distribución autocontenida incluye los
+componentes de ejecución necesarios; no requiere instalar Qt.
+
+
+FIN DE LA GUIA

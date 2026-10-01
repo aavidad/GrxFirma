@@ -1,0 +1,815 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// Autoría: Alberto Avidad Fernández
+// Licencia: EUPL 1.2 o posterior
+// SPDX-License-Identifier: EUPL-1.2
+
+using GrxFirma.WinUI.Core.Diagnostics;
+using GrxFirma.WinUI.Core.Ipc;
+using GrxFirma.WinUI.Core.Operations;
+using GrxFirma.WinUI.Services;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+
+namespace GrxFirma.WinUI.ViewModels;
+
+public sealed class HashPageViewModel
+    : WorkspacePageViewModel
+{
+    private const int MaximumVisibleResults = 50;
+
+    private static readonly IReadOnlyList<HashFormatOption>
+        FileFormatOptions =
+        [
+            new("Hexadecimal GrxFirma (.hexhash)", "hex"),
+            new("Base64 GrxFirma (.hashb64)", "base64"),
+            new("Binario (.hash)", "bin"),
+        ];
+
+    private static readonly IReadOnlyList<HashFormatOption>
+        DirectoryFormatOptions =
+        [
+            new("XML GrxFirma (.hashfiles)", "xml"),
+            new("Texto GrxFirma (.txthashfiles)", "txt"),
+            new("CSV (.csv)", "csv"),
+        ];
+
+    private static readonly IReadOnlySet<string> FileManifestExtensions =
+        new HashSet<string>(
+            [".hexhash", ".hashb64", ".hash"],
+            StringComparer.OrdinalIgnoreCase);
+
+    private static readonly IReadOnlySet<string> DirectoryManifestExtensions =
+        new HashSet<string>(
+            [".hashfiles", ".txthashfiles", ".csv", ".xml", ".txt"],
+            StringComparer.OrdinalIgnoreCase);
+
+    private readonly DesktopOperationSession _session;
+    private readonly IFilePickerService _filePicker;
+    private CancellationTokenSource? _pageLifetime;
+    private CancellationTokenSource? _operationCancellation;
+    private string? _inputPath;
+    private string? _manifestPath;
+    private string _inputName = "Ningún origen seleccionado";
+    private string _manifestName = "Ningún manifiesto seleccionado";
+    private string _selectedAlgorithm = "SHA-256";
+    private IReadOnlyList<HashFormatOption> _availableFormats =
+        FileFormatOptions;
+    private HashFormatOption _selectedFormat = FileFormatOptions[0];
+    private string _actionLabel = "Crear huella";
+    private Visibility _manifestVisibility = Visibility.Collapsed;
+    private string _resultTitle = "Sin resultado";
+    private string _resultMessage =
+        "Seleccione una operación y un origen para crear o comprobar una huella.";
+    private string _resultSummary = "Sin evidencias del motor local.";
+    private IReadOnlyList<string> _resultItems = [];
+    private bool _isActive;
+    private bool _isCreateMode = true;
+    private bool _isDirectoryMode;
+    private bool _isRecursive;
+    private bool _isBusy;
+    private bool _canSelect;
+    private bool _canSetRecursive;
+    private bool _canExecute;
+    private bool _canCancel;
+    private bool _hasResult;
+    private InfoBarSeverity _resultSeverity =
+        InfoBarSeverity.Informational;
+
+    public HashPageViewModel(
+        DesktopOperationSession session,
+        IFilePickerService filePicker)
+        : base(
+            "Huellas",
+            "Crea o comprueba huellas de ficheros y directorios sin firmar el contenido.",
+            "Las huellas no están disponibles porque el motor local no ha publicado todas las operaciones necesarias.")
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(filePicker);
+        _session = session;
+        _filePicker = filePicker;
+    }
+
+    public event Action<OperationDiagnostic>? DiagnosticRequested;
+
+    public IReadOnlyList<string> Algorithms { get; } =
+        ["SHA-256", "SHA-384", "SHA-512"];
+
+    public string InputName
+    {
+        get => _inputName;
+        private set => SetProperty(ref _inputName, value);
+    }
+
+    public string ManifestName
+    {
+        get => _manifestName;
+        private set => SetProperty(ref _manifestName, value);
+    }
+
+    public string SelectedAlgorithm
+    {
+        get => _selectedAlgorithm;
+        private set => SetProperty(ref _selectedAlgorithm, value);
+    }
+
+    public IReadOnlyList<HashFormatOption> AvailableFormats
+    {
+        get => _availableFormats;
+        private set => SetProperty(ref _availableFormats, value);
+    }
+
+    public HashFormatOption SelectedFormat
+    {
+        get => _selectedFormat;
+        private set => SetProperty(ref _selectedFormat, value);
+    }
+
+    public string ActionLabel
+    {
+        get => _actionLabel;
+        private set => SetProperty(ref _actionLabel, value);
+    }
+
+    public string ResultTitle
+    {
+        get => _resultTitle;
+        private set => SetProperty(ref _resultTitle, value);
+    }
+
+    public string ResultMessage
+    {
+        get => _resultMessage;
+        private set => SetProperty(ref _resultMessage, value);
+    }
+
+    public string ResultSummary
+    {
+        get => _resultSummary;
+        private set => SetProperty(ref _resultSummary, value);
+    }
+
+    public IReadOnlyList<string> ResultItems
+    {
+        get => _resultItems;
+        private set => SetProperty(ref _resultItems, value);
+    }
+
+    public bool IsCreateMode
+    {
+        get => _isCreateMode;
+        private set => SetProperty(ref _isCreateMode, value);
+    }
+
+    public bool IsDirectoryMode
+    {
+        get => _isDirectoryMode;
+        private set => SetProperty(ref _isDirectoryMode, value);
+    }
+
+    public bool IsRecursive
+    {
+        get => _isRecursive;
+        private set => SetProperty(ref _isRecursive, value);
+    }
+
+    public bool IsBusy
+    {
+        get => _isBusy;
+        private set => SetProperty(ref _isBusy, value);
+    }
+
+    public bool CanSelect
+    {
+        get => _canSelect;
+        private set => SetProperty(ref _canSelect, value);
+    }
+
+    public bool CanExecute
+    {
+        get => _canExecute;
+        private set => SetProperty(ref _canExecute, value);
+    }
+
+    public bool CanSetRecursive
+    {
+        get => _canSetRecursive;
+        private set => SetProperty(ref _canSetRecursive, value);
+    }
+
+    public bool CanCancel
+    {
+        get => _canCancel;
+        private set => SetProperty(ref _canCancel, value);
+    }
+
+    public bool HasResult
+    {
+        get => _hasResult;
+        private set => SetProperty(ref _hasResult, value);
+    }
+
+    public InfoBarSeverity ResultSeverity
+    {
+        get => _resultSeverity;
+        private set => SetProperty(ref _resultSeverity, value);
+    }
+
+    public Visibility ManifestVisibility
+    {
+        get => _manifestVisibility;
+        private set => SetProperty(ref _manifestVisibility, value);
+    }
+
+    public void Activate()
+    {
+        if (_isActive)
+        {
+            return;
+        }
+
+        _isActive = true;
+        _pageLifetime = new CancellationTokenSource();
+        _session.AvailabilityChanged += OnAvailabilityChanged;
+        RefreshAvailability();
+    }
+
+    public void Deactivate()
+    {
+        if (!_isActive)
+        {
+            return;
+        }
+
+        _isActive = false;
+        _session.AvailabilityChanged -= OnAvailabilityChanged;
+        _operationCancellation?.Cancel();
+        _pageLifetime?.Cancel();
+        _pageLifetime?.Dispose();
+        _pageLifetime = null;
+        RefreshAvailability();
+    }
+
+    public void SetCreateMode(bool create)
+    {
+        if (IsBusy || IsCreateMode == create)
+        {
+            return;
+        }
+
+        IsCreateMode = create;
+        ActionLabel = create ? "Crear huella" : "Comprobar huella";
+        ManifestVisibility = create
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        _manifestPath = null;
+        ManifestName = "Ningún manifiesto seleccionado";
+        ResetResult();
+        RefreshCommandState();
+    }
+
+    public void SetDirectoryMode(bool directory)
+    {
+        if (IsBusy || IsDirectoryMode == directory)
+        {
+            return;
+        }
+
+        IsDirectoryMode = directory;
+        AvailableFormats = directory
+            ? DirectoryFormatOptions
+            : FileFormatOptions;
+        SelectedFormat = AvailableFormats[0];
+        _inputPath = null;
+        _manifestPath = null;
+        InputName = "Ningún origen seleccionado";
+        ManifestName = "Ningún manifiesto seleccionado";
+        ResetResult();
+        RefreshCommandState();
+    }
+
+    public void SetAlgorithm(string? algorithm)
+    {
+        if (IsBusy || algorithm is null ||
+            !Algorithms.Contains(algorithm, StringComparer.Ordinal))
+        {
+            return;
+        }
+
+        SelectedAlgorithm = algorithm;
+        ResetResult();
+    }
+
+    public void SetFormat(HashFormatOption? format)
+    {
+        if (IsBusy || format is null ||
+            !AvailableFormats.Contains(format))
+        {
+            return;
+        }
+
+        SelectedFormat = format;
+        ResetResult();
+    }
+
+    public void SetRecursive(bool recursive)
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        IsRecursive = recursive;
+        ResetResult();
+    }
+
+    public async Task SelectInputAsync()
+    {
+        if (!CanSelect || _pageLifetime is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var path = IsDirectoryMode
+                ? await _filePicker.PickFolderAsync(_pageLifetime.Token)
+                : await _filePicker.PickOpenFileAsync(
+                    OpenFilePickerProfile.SignedOrOriginalDocument,
+                    _pageLifetime.Token);
+            if (path is null)
+            {
+                return;
+            }
+
+            _inputPath = path;
+            InputName = DisplayPathName(path, IsDirectoryMode);
+            ResetResult();
+            RefreshCommandState();
+        }
+        catch (OperationCanceledException)
+            when (_pageLifetime?.IsCancellationRequested == true)
+        {
+        }
+        catch (Exception exception)
+        {
+            RequestDiagnostic(OperationDiagnosticMapper.FromException(
+                exception));
+        }
+    }
+
+    public async Task SelectManifestAsync()
+    {
+        if (!CanSelect || IsCreateMode || _pageLifetime is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var path = await _filePicker.PickOpenFileAsync(
+                OpenFilePickerProfile.HashManifest,
+                _pageLifetime.Token);
+            if (path is null)
+            {
+                return;
+            }
+            if (!IsAllowedManifest(path))
+            {
+                _manifestPath = null;
+                ManifestName = "Formato de manifiesto no admitido";
+                ShowLocalValidation(
+                    "Manifiesto no válido",
+                    IsDirectoryMode
+                        ? "Seleccione un manifiesto .hashfiles, .txthashfiles, .csv, .xml o .txt. Un .hashreport es un informe de salida, no un manifiesto."
+                        : "Seleccione una huella .hexhash, .hashb64 o .hash. Un .hashreport es un informe de salida, no una huella de entrada.");
+                RefreshCommandState();
+                return;
+            }
+
+            _manifestPath = path;
+            ManifestName = DisplayPathName(path, directory: false);
+            ResetResult();
+            RefreshCommandState();
+        }
+        catch (OperationCanceledException)
+            when (_pageLifetime?.IsCancellationRequested == true)
+        {
+        }
+        catch (Exception exception)
+        {
+            RequestDiagnostic(OperationDiagnosticMapper.FromException(
+                exception));
+        }
+    }
+
+    public async Task ExecuteAsync()
+    {
+        if (!CanExecute || _inputPath is null ||
+            _pageLifetime is null)
+        {
+            RefreshAvailability();
+            return;
+        }
+
+        var requiredAction = IsCreateMode
+            ? DesktopOperationActions.HashCreate
+            : DesktopOperationActions.HashCheck;
+        if (!_session.TryGetOperations(requiredAction, out var operations))
+        {
+            RefreshAvailability();
+            return;
+        }
+
+        using var operationCancellation =
+            CancellationTokenSource.CreateLinkedTokenSource(
+                _pageLifetime.Token);
+        _operationCancellation = operationCancellation;
+        SetBusy(true);
+        HasResult = false;
+        ResultTitle = IsCreateMode
+            ? "Creando huella…"
+            : "Comprobando huella…";
+        ResultMessage =
+            "El motor local está procesando el contenido seleccionado.";
+
+        try
+        {
+            if (IsCreateMode)
+            {
+                await CreateHashAsync(
+                    operations,
+                    operationCancellation.Token);
+            }
+            else
+            {
+                await CheckHashAsync(
+                    operations,
+                    operationCancellation.Token);
+            }
+        }
+        catch (OperationCanceledException)
+            when (operationCancellation.IsCancellationRequested)
+        {
+            ShowLocalValidation(
+                "Operación cancelada",
+                "La operación se detuvo antes de obtener un resultado.",
+                InfoBarSeverity.Warning);
+        }
+        catch (Exception exception)
+        {
+            ShowLocalValidation(
+                "No se pudo completar",
+                "La operación terminó sin un resultado de huella.",
+                InfoBarSeverity.Error);
+            RequestDiagnostic(OperationDiagnosticMapper.FromException(
+                exception,
+                operationCancellation.Token));
+        }
+        finally
+        {
+            if (ReferenceEquals(
+                _operationCancellation,
+                operationCancellation))
+            {
+                _operationCancellation = null;
+            }
+            SetBusy(false);
+        }
+    }
+
+    public void CancelCurrentOperation() =>
+        _operationCancellation?.Cancel();
+
+    private async Task CreateHashAsync(
+        DesktopOperationsClient operations,
+        CancellationToken cancellationToken)
+    {
+        var result = await operations.CreateHashAsync(
+            new HashCreateParameters
+            {
+                InputPath = _inputPath!,
+                OutputPath = string.Empty,
+                Algorithm = SelectedAlgorithm,
+                Format = SelectedFormat.Value,
+                Recursive = IsDirectoryMode && IsRecursive,
+            },
+            cancellationToken);
+        if (!result.IsSuccess || result.Outcome != "success")
+        {
+            ShowBackendFailure(result.SafeUserMessage);
+            RequestDiagnostic(OperationDiagnosticMapper.FromResult(result));
+            return;
+        }
+        if (!IsCoherentCreateResult(result.Data))
+        {
+            ShowIncoherentResult();
+            return;
+        }
+
+        PresentCreateResult(result.Data!);
+    }
+
+    private async Task CheckHashAsync(
+        DesktopOperationsClient operations,
+        CancellationToken cancellationToken)
+    {
+        if (_manifestPath is null || !IsAllowedManifest(_manifestPath))
+        {
+            ShowLocalValidation(
+                "Falta el manifiesto",
+                "Seleccione el fichero de huella o manifiesto que se va a comprobar.",
+                InfoBarSeverity.Warning);
+            return;
+        }
+
+        var result = await operations.CheckHashAsync(
+            new HashCheckParameters
+            {
+                InputPath = _inputPath!,
+                HashPath = _manifestPath,
+                OutputPath = null,
+                Algorithm = SelectedAlgorithm,
+                Recursive = IsDirectoryMode ? IsRecursive : null,
+                SaveReportToDisk = IsDirectoryMode,
+            },
+            cancellationToken);
+        if (!result.IsSuccess || result.Outcome != "success")
+        {
+            ShowBackendFailure(result.SafeUserMessage);
+            RequestDiagnostic(OperationDiagnosticMapper.FromResult(result));
+            return;
+        }
+        if (!IsCoherentCheckResult(result.Data))
+        {
+            ShowIncoherentResult();
+            return;
+        }
+
+        PresentCheckResult(result.Data!);
+    }
+
+    private void PresentCreateResult(HashCreateResult data)
+    {
+        HasResult = true;
+        ResultSeverity = InfoBarSeverity.Success;
+        ResultTitle = "Huella creada";
+        ResultMessage =
+            "La huella se ha creado y guardado mediante el motor local.";
+        var outputName = DisplayPathName(
+            data.DisplayOutputPath,
+            directory: false);
+        ResultSummary =
+            $"Algoritmo: {data.Algorithm}. Formato: {FormatLabel(data.Format)}. " +
+            $"Salida: {outputName}.";
+
+        if (IsDirectoryMode)
+        {
+            ResultItems =
+            [
+                $"Entradas incluidas: {data.Entries.GetValueOrDefault()}",
+                data.Recursive == true
+                    ? "Se incluyeron subdirectorios."
+                    : "No se incluyeron subdirectorios.",
+            ];
+        }
+        else
+        {
+            ResultItems =
+            [
+                $"Huella: {SafeIpcText.Clean(data.Hash, 300, "no disponible")}",
+            ];
+        }
+    }
+
+    private void PresentCheckResult(HashCheckResult data)
+    {
+        HasResult = true;
+        ResultSeverity = data.IsValid
+            ? InfoBarSeverity.Success
+            : InfoBarSeverity.Error;
+        ResultTitle = data.IsValid
+            ? "La huella coincide"
+            : "La huella no coincide";
+        ResultMessage = data.IsValid
+            ? "El contenido comprobado coincide con la huella almacenada."
+            : "El contenido ha cambiado, falta información o el manifiesto no corresponde con el origen.";
+        ResultSummary =
+            $"Algoritmo detectado: {data.Algorithm}. " +
+            $"Formato: {FormatLabel(data.Format)}.";
+
+        var items = new List<string>();
+        if (!IsDirectoryMode)
+        {
+            items.Add(
+                $"Esperada: {SafeIpcText.Clean(data.ExpectedHash, 300, "no disponible")}");
+            items.Add(
+                $"Calculada: {SafeIpcText.Clean(data.ActualHash, 300, "no disponible")}");
+        }
+        else
+        {
+            AddResultItems(items, "Coincide", data.VisibleMatchingHash);
+            AddResultItems(
+                items,
+                "No coincide",
+                data.VisibleNotMatchingHash);
+            AddResultItems(
+                items,
+                "Sin fichero",
+                data.VisibleHashWithoutFile);
+            AddResultItems(
+                items,
+                "Sin huella",
+                data.VisibleFileWithoutHash);
+            if (!string.IsNullOrWhiteSpace(data.DisplayReportOutputPath))
+            {
+                items.Add(
+                    $"Informe de comprobación: {DisplayPathName(data.DisplayReportOutputPath, directory: false)}");
+            }
+        }
+
+        ResultItems = items
+            .Take(MaximumVisibleResults)
+            .ToArray();
+    }
+
+    private void OnAvailabilityChanged(object? sender, EventArgs args) =>
+        RefreshAvailability();
+
+    private void RefreshAvailability()
+    {
+        var available =
+            _isActive &&
+            _session.Supports(DesktopOperationActions.HashCreate) &&
+            _session.Supports(DesktopOperationActions.HashCheck);
+        SetOperationAvailability(
+            available,
+            "Motor local listo para crear y comprobar huellas.");
+        if (!available)
+        {
+            _operationCancellation?.Cancel();
+        }
+        RefreshCommandState();
+    }
+
+    private void SetBusy(bool value)
+    {
+        IsBusy = value;
+        RefreshCommandState();
+    }
+
+    private void RefreshCommandState()
+    {
+        CanSelect =
+            _isActive &&
+            IsOperationConnected &&
+            !IsBusy;
+        CanExecute =
+            CanSelect &&
+            !string.IsNullOrWhiteSpace(_inputPath) &&
+            (IsCreateMode ||
+                (!string.IsNullOrWhiteSpace(_manifestPath) &&
+                    IsAllowedManifest(_manifestPath)));
+        CanSetRecursive = CanSelect && IsDirectoryMode;
+        CanCancel = _isActive && IsBusy;
+    }
+
+    private void ResetResult()
+    {
+        HasResult = false;
+        ResultSeverity = InfoBarSeverity.Informational;
+        ResultTitle = "Sin resultado";
+        ResultMessage =
+            "Seleccione una operación y un origen para crear o comprobar una huella.";
+        ResultSummary = "Sin evidencias del motor local.";
+        ResultItems = [];
+    }
+
+    private void ShowBackendFailure(string message) =>
+        ShowLocalValidation(
+            "No se pudo completar",
+            message,
+            InfoBarSeverity.Error);
+
+    private void ShowIncoherentResult()
+    {
+        ShowLocalValidation(
+            "Resultado no utilizable",
+            "El motor local no devolvió datos de huella coherentes.",
+            InfoBarSeverity.Error);
+        RequestDiagnostic(OperationDiagnosticMapper.FromException(
+            new InvalidOperationException()));
+    }
+
+    private void ShowLocalValidation(
+        string title,
+        string message,
+        InfoBarSeverity severity = InfoBarSeverity.Error)
+    {
+        HasResult = true;
+        ResultTitle = title;
+        ResultMessage = message;
+        ResultSummary = "Revise los datos seleccionados antes de continuar.";
+        ResultItems = [];
+        ResultSeverity = severity;
+    }
+
+    private void RequestDiagnostic(OperationDiagnostic diagnostic) =>
+        DiagnosticRequested?.Invoke(diagnostic);
+
+    private bool IsAllowedManifest(string path)
+    {
+        var extension = Path.GetExtension(path);
+        return (IsDirectoryMode
+                ? DirectoryManifestExtensions
+                : FileManifestExtensions)
+            .Contains(extension);
+    }
+
+    private bool IsCoherentCreateResult(HashCreateResult? data) =>
+        data is not null &&
+        Algorithms.Contains(data.Algorithm, StringComparer.Ordinal) &&
+        AvailableFormats.Any(
+            format => string.Equals(
+                format.Value,
+                data.Format,
+                StringComparison.OrdinalIgnoreCase)) &&
+        !string.IsNullOrWhiteSpace(data.DisplayOutputPath) &&
+        HasNonEmptyOutput(data.OutputPath) &&
+        (IsDirectoryMode
+            ? data.Entries is >= 0
+            : !string.IsNullOrWhiteSpace(data.Hash));
+
+    private static bool HasNonEmptyOutput(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            return new FileInfo(path).Length > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private bool IsCoherentCheckResult(HashCheckResult? data) =>
+        data is not null &&
+        Algorithms.Contains(data.Algorithm, StringComparer.Ordinal) &&
+        (IsDirectoryMode ||
+            (!string.IsNullOrWhiteSpace(data.ExpectedHash) &&
+                !string.IsNullOrWhiteSpace(data.ActualHash)));
+
+    private static void AddResultItems(
+        ICollection<string> destination,
+        string label,
+        IEnumerable<string> source)
+    {
+        if (destination.Count >= MaximumVisibleResults)
+        {
+            return;
+        }
+
+        foreach (var item in source.Take(MaximumVisibleResults))
+        {
+            destination.Add(
+                $"{label}: {SafeIpcText.Clean(item, 300, "elemento sin nombre")}");
+            if (destination.Count >= MaximumVisibleResults)
+            {
+                return;
+            }
+        }
+    }
+
+    private static string FormatLabel(string? format) =>
+        format?.Trim().ToLowerInvariant() switch
+        {
+            "hex" => "hexadecimal",
+            "base64" => "Base64",
+            "bin" => "binario",
+            "xml" or "hashfiles" => "XML GrxFirma",
+            "txt" or "txthashfiles" => "texto GrxFirma",
+            "csv" => "CSV",
+            _ => "no determinado",
+        };
+
+    private static string DisplayPathName(
+        string path,
+        bool directory)
+    {
+        var trimmed = path.TrimEnd(
+            Path.DirectorySeparatorChar,
+            Path.AltDirectorySeparatorChar);
+        return SafeIpcText.Clean(
+            Path.GetFileName(trimmed),
+            256,
+            directory ? "Directorio seleccionado" : "Fichero seleccionado");
+    }
+
+    public sealed record HashFormatOption(
+        string Label,
+        string Value);
+}
