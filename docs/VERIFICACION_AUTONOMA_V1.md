@@ -162,6 +162,8 @@ cadena. El efecto en cada entrada es:
 | Native host | `result.certificateStatus` expone ahora ese estado. |
 | Móvil | `certificate_status` recibe `unknown` o `warning`; iOS no muestra el resultado en verde si falta acreditación. |
 
-El campo heredado `valid` sigue expresando la integridad técnica del formato;
-puede ser `true` con revocación no acreditada. Para tomar decisiones de
-confianza se debe usar `dictamen.estado` o comprobar todos los aspectos.
+El campo heredado `valid` lo calcula el motor de verificación sin las fuentes
+locales del validador: nunca es `true` con revocación no concluyente, pero
+puede ser `false` («revocación no concluyente») aunque las CRL de
+`-verificacion-crl` acrediten la revocación. Para tomar decisiones de
+confianza se debe usar `dictamen.estado`, que sí incorpora esas CRL.
