@@ -33,6 +33,12 @@ type EvaluadorDictamenFirma interface {
 	Evaluar(ctx context.Context, entrada EntradaDictamen) (domain.DictamenVerificacion, error)
 }
 
+// EvaluadorSelloDocumento verifica un TimeStampToken RFC 3161 sobre el
+// ByteRange y evalúa la TSA con las mismas anclas y fuentes de revocación.
+type EvaluadorSelloDocumento interface {
+	EvaluarSelloDocumento(ctx context.Context, token, contenido []byte, anclas domain.CertificateChain, referencia time.Time) (domain.DictamenFirmante, domain.AspectoDictamen)
+}
+
 // ResultadoSelloRemoto es la respuesta de un validador externo de sellos.
 type ResultadoSelloRemoto struct {
 	// Valido solo es true si el servicio acreditó el sello y su TSA.

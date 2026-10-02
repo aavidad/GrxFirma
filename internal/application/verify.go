@@ -144,6 +144,23 @@ func (uc *VerifySignatureUseCase) Execute(ctx context.Context, cmd VerifyCommand
 	return uc.Ejecutar(ctx, cmd)
 }
 
+// EvaluarSelloDocumento conserva anclas y fuentes locales del dictamen v2.
+func (uc *VerifySignatureUseCase) EvaluarSelloDocumento(ctx context.Context, token, contenido []byte, referencia time.Time) (domain.DictamenFirmante, domain.AspectoDictamen) {
+	pendiente := domain.AspectoDictamen{Estado: domain.IntegridadParcial, Motivo: "sello_no_comprobado"}
+	if uc == nil || uc.anclas == nil || uc.evaluador == nil {
+		return domain.DictamenFirmante{}, pendiente
+	}
+	evaluador, ok := uc.evaluador.(ports.EvaluadorSelloDocumento)
+	if !ok {
+		return domain.DictamenFirmante{}, pendiente
+	}
+	anclas, err := uc.anclas.Anchors(ctx)
+	if err != nil {
+		return domain.DictamenFirmante{}, pendiente
+	}
+	return evaluador.EvaluarSelloDocumento(ctx, token, contenido, anclas, referencia)
+}
+
 func (uc *VerifySignatureUseCase) auditar(ctx context.Context, cmd VerifyCommand, success bool, err error) {
 	if uc == nil || uc.auditor == nil {
 		return

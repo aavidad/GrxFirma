@@ -284,7 +284,8 @@
           "type": "string",
           "enum": [
             "aprobacion",
-            "certificacion"
+            "certificacion",
+            "sello_tiempo_documento"
           ]
         },
         "nivelDocMDP": {

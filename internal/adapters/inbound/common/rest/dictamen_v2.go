@@ -135,6 +135,34 @@ func (a *Adaptador) evaluarDictamenV2(ctx context.Context, pdfBytes, original []
 			incomplete = true
 			continue
 		}
+		if sig.TipoFirma == "sello_tiempo_documento" {
+			checker, ok := a.Verificar.(interface {
+				EvaluarSelloDocumento(context.Context, []byte, []byte, time.Time) (domain.DictamenFirmante, domain.AspectoDictamen)
+			})
+			if !ok {
+				incomplete = true
+				continue
+			}
+			f, integridad := checker.EvaluarSelloDocumento(ctx, sig.CMSDER, sig.ContenidoFirmado, now)
+			entry.Integridad = aspectoDictamen(integridad)
+			entry.CertificadoHuellaSHA256, entry.Serie, entry.Asunto, entry.Emisor = f.CertificadoHuellaSHA256, textoCertificadoV2(f.Serie, 128), textoCertificadoV2(f.Asunto, 1024), textoCertificadoV2(f.Emisor, 1024)
+			entry.Cadena, entry.Certificado, entry.Revocacion, entry.SelloTiempo = aspectoDictamen(f.Cadena), aspectoDictamen(f.Certificado), aspectoDictamen(f.Revocacion), aspectoDictamen(f.SelloTiempo)
+			if integridad.Estado == domain.IntegridadValida && f.Cadena.Estado == domain.CadenaValida && f.Certificado.Estado == domain.CertificadoVigente && f.Revocacion.Estado == domain.RevocacionVigente && f.SelloTiempo.Estado == domain.SelloValido && cambioSoloSelloPendiente(entry.CambiosDesdeAnterior) {
+				entry.CambiosDesdeAnterior.Estado = "permitidos"
+				entry.CambiosDesdeAnterior.Detalle[len(entry.CambiosDesdeAnterior.Detalle)-1] = "sello_tiempo_documento_anadido"
+			}
+			result.Dictamen.Firmas[i] = entry
+			composed.Firmantes = append(composed.Firmantes, f)
+			if integridad.Estado == domain.IntegridadNoValida {
+				composed.Integridad = integridad
+			} else if integridad.Estado != domain.IntegridadValida && composed.Integridad.Estado == domain.IntegridadValida {
+				composed.Integridad = integridad
+			}
+			if f.CertificadoHuellaSHA256 != "" {
+				result.Signers = append(result.Signers, f.CertificadoHuellaSHA256)
+			}
+			continue
+		}
 		cmsDoc, err := domain.NewDocument("firma.csig", sig.CMSDER, "application/pkcs7-signature")
 		if err != nil {
 			incomplete = true
@@ -195,6 +223,18 @@ func (a *Adaptador) evaluarDictamenV2(ctx context.Context, pdfBytes, original []
 	result.Valid = result.Dictamen.Estado == "valida"
 	result.Reason = result.Dictamen.Motivo
 	return result
+}
+
+func cambioSoloSelloPendiente(change cambiosV2Response) bool {
+	if change.Estado != "no_comprobados" || len(change.Detalle) == 0 || change.Detalle[len(change.Detalle)-1] != "sello_tiempo_documento_pendiente_confianza" {
+		return false
+	}
+	for _, detail := range change.Detalle[:len(change.Detalle)-1] {
+		if detail != "dss_anadido" {
+			return false
+		}
+	}
+	return true
 }
 
 func applyChangeV2(dict *dictamenV2Response, change cambiosV2Response) {

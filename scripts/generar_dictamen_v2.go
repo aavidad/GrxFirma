@@ -15,14 +15,17 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/asn1"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
@@ -35,6 +38,8 @@ import (
 
 	pdf "github.com/digitorus/pdf"
 	pdfsign "github.com/digitorus/pdfsign/sign"
+	"github.com/digitorus/timestamp"
+	"golang.org/x/crypto/ocsp"
 	restin "grxfirma/internal/adapters/inbound/common/rest"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/adapters/outbound/common/verificacionlocal"
@@ -59,10 +64,12 @@ func main() {
 	intermediate := issue("intermedia", 2, &root, true)
 	alice := issue("firmante-a", 3, &intermediate, false)
 	bob := issue("firmante-b", 4, &intermediate, false)
+	tsa := issue("tsa", 5, &root, false)
 	write("pki/raiz.pem", pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: root.cert.Raw}))
 	write("pki/intermedia.pem", pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: intermediate.cert.Raw}))
 	write("pki/firmante-a.pem", pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: alice.cert.Raw}))
 	write("pki/firmante-b.pem", pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: bob.cert.Raw}))
+	write("pki/tsa.pem", pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: tsa.cert.Raw}))
 	write("pki/crl-buena/raiz.crl", createCRL(root, nil))
 	write("pki/crl-buena/intermedia.crl", createCRL(intermediate, nil))
 	write("pki/crl-b-revocado/raiz.crl", createCRL(root, nil))
@@ -88,12 +95,21 @@ func main() {
 	writeCase("10_xref_hibrido", original, appendXRefStream(two, true), "pki/crl-buena", "indeterminada")
 	locked := signPDF(original, alice, intermediate, pdfsign.ApprovalSignature, 0, true)
 	writeCase("11_fieldmdp_all", original, signPDF(locked, bob, intermediate, pdfsign.ApprovalSignature, 0, false), "pki/crl-buena", "no_valida")
-	writeCase("12_dss", original, appendDSS(two), "pki/crl-buena", "indeterminada")
+	writeCase("12_dss", original, appendDSS(two), "pki/crl-buena", "valida")
 	writeCase("13_doctimestamp", original, appendDocumentTimestamp(two), "pki/crl-buena", "indeterminada")
 	certifiedP2 := signPDF(original, alice, intermediate, pdfsign.CertificationSignature, pdfsign.AllowFillingExistingFormFieldsAndSignaturesPerms, false)
 	writeCase("14_docmdp_2", original, signPDF(certifiedP2, bob, intermediate, pdfsign.ApprovalSignature, 0, false), "pki/crl-buena", "valida")
 	certifiedP3 := signPDF(original, alice, intermediate, pdfsign.CertificationSignature, pdfsign.AllowFillingExistingFormFieldsAndSignaturesAndCRUDAnnotationsPerms, false)
 	writeCase("15_docmdp_3", original, signPDF(certifiedP3, bob, intermediate, pdfsign.ApprovalSignature, 0, false), "pki/crl-buena", "valida")
+	ocspDER, err := ocsp.CreateResponse(intermediate.cert, intermediate.cert, ocsp.Response{Status: ocsp.Good, SerialNumber: alice.cert.SerialNumber, ThisUpdate: notBefore, NextUpdate: notAfter, ProducedAt: fixedDate}, intermediate.key)
+	must(err)
+	withDSS := appendDSSValidation(one, alice.cert.Raw, createCRL(intermediate, nil), ocspDER, false)
+	writeCase("16_dss_valido", original, withDSS, "pki/crl-buena", "valida")
+	writeCase("17_dss_objeto_ajeno", original, appendDSSValidation(one, alice.cert.Raw, createCRL(intermediate, nil), ocspDER, true), "pki/crl-buena", "indeterminada")
+	withStamp := appendDocumentTimestampValid(one, tsa, false)
+	writeCase("18_doctimestamp_valido", original, withStamp, "pki/crl-buena", "valida")
+	writeCase("19_doctimestamp_imprint_ajeno", original, appendDocumentTimestampValid(one, tsa, true), "pki/crl-buena", "no_valida")
+	writeCase("20_lta_completo", original, appendDocumentTimestampValid(withDSS, tsa, false), "pki/crl-buena", "valida")
 	fmt.Println("Corpus v2 generado en", corpus)
 }
 
@@ -108,7 +124,16 @@ func write(relative string, data []byte) {
 	must(os.WriteFile(path, data, 0o644))
 }
 func loadKey(name string) *rsa.PrivateKey {
-	data, err := os.ReadFile(filepath.Join(corpus, "pki", name+".key.pem"))
+	path := filepath.Join(corpus, "pki", name+".key.pem")
+	data, err := os.ReadFile(path)
+	if os.IsNotExist(err) && name == "tsa" {
+		key, genErr := rsa.GenerateKey(rand.Reader, 2048)
+		must(genErr)
+		der, marshalErr := x509.MarshalPKCS8PrivateKey(key)
+		must(marshalErr)
+		write("pki/tsa.key.pem", pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: der}))
+		data, err = os.ReadFile(path)
+	}
 	must(err)
 	block, _ := pem.Decode(data)
 	if block == nil {
@@ -132,6 +157,11 @@ func issue(name string, serial int64, parent *identity, ca bool) identity {
 	}
 	if !ca {
 		template.CRLDistributionPoints = []string{"http://crl.invalid/intermedia.crl"}
+	}
+	if name == "tsa" {
+		template.KeyUsage = x509.KeyUsageDigitalSignature
+		template.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping}
+		template.CRLDistributionPoints = []string{"http://crl.invalid/raiz.crl"}
 	}
 	issuer, signer := template, crypto.Signer(key)
 	if parent != nil {
@@ -225,6 +255,94 @@ func appendDSS(input []byte) []byte {
 	_ = root
 	_ = generation
 	return out.Bytes()
+}
+
+func appendDSSValidation(input, certDER, crlDER, ocspDER []byte, alien bool) []byte {
+	_, _, size, prev := xrefInfo(input)
+	r, err := pdf.NewReader(bytes.NewReader(input), int64(len(input)))
+	must(err)
+	catalog := r.Trailer().Key("Root").String()
+	index := strings.LastIndex(catalog, ">>")
+	if index < 0 {
+		panic("catalogo inválido")
+	}
+	catalog = catalog[:index] + fmt.Sprintf(" /DSS %d 0 R ", size+4) + catalog[index:]
+	var out bytes.Buffer
+	out.Write(input)
+	offsets := make([]int, 0, 7)
+	for i, der := range [][]byte{certDER, crlDER, ocspDER} {
+		offsets = append(offsets, out.Len())
+		fmt.Fprintf(&out, "%d 0 obj\n<< /Length %d >>\nstream\n", size+int64(i), len(der))
+		out.Write(der)
+		out.WriteString("\nendstream\nendobj\n")
+	}
+	offsets = append(offsets, out.Len())
+	fmt.Fprintf(&out, "%d 0 obj\n<< /Type /VRI /Cert [%d 0 R] /CRL [%d 0 R] /OCSP [%d 0 R] >>\nendobj\n", size+3, size, size+1, size+2)
+	offsets = append(offsets, out.Len())
+	fmt.Fprintf(&out, "%d 0 obj\n<< /Type /DSS /Certs [%d 0 R] /CRLs [%d 0 R] /OCSPs [%d 0 R] /VRI << /AABB %d 0 R >> >>\nendobj\n", size+4, size, size+1, size+2, size+3)
+	offsets = append(offsets, out.Len())
+	fmt.Fprintf(&out, "%d 0 obj\n%s\nendobj\n", size+5, catalog)
+	if alien {
+		offsets = append(offsets, out.Len())
+		fmt.Fprintf(&out, "%d 0 obj\n<< /Type /Annot /Subtype /Text /Contents (ajeno) >>\nendobj\n", size+6)
+	}
+	xref := out.Len()
+	fmt.Fprintf(&out, "xref\n%d %d\n", size, len(offsets))
+	for _, offset := range offsets {
+		fmt.Fprintf(&out, "%010d 00000 n \n", offset)
+	}
+	fmt.Fprintf(&out, "trailer\n<< /Size %d /Root %d 0 R /Prev %d >>\nstartxref\n%d\n%%%%EOF\n", size+int64(len(offsets)), size+5, prev, xref)
+	return out.Bytes()
+}
+
+type tsaRoundTrip struct{ tsa identity }
+
+func (transport tsaRoundTrip) RoundTrip(request *http.Request) (*http.Response, error) {
+	data, err := io.ReadAll(io.LimitReader(request.Body, 65537))
+	if err != nil || len(data) > 65536 {
+		return nil, fmt.Errorf("petición TSA de corpus inválida")
+	}
+	parsed, err := timestamp.ParseRequest(data)
+	if err != nil {
+		return nil, err
+	}
+	ts := timestamp.Timestamp{HashAlgorithm: parsed.HashAlgorithm, HashedMessage: parsed.HashedMessage, Time: fixedDate, Policy: asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 55555, 2}, Nonce: parsed.Nonce, AddTSACertificate: true}
+	response, err := ts.CreateResponseWithOpts(transport.tsa.cert, transport.tsa.key, crypto.SHA256)
+	if err != nil {
+		return nil, err
+	}
+	return &http.Response{StatusCode: http.StatusOK, Header: http.Header{"Content-Type": []string{"application/timestamp-reply"}}, Body: io.NopCloser(bytes.NewReader(response)), ContentLength: int64(len(response)), Request: request}, nil
+}
+
+func appendDocumentTimestampValid(input []byte, tsa identity, altered bool) []byte {
+	dir, err := os.MkdirTemp("", "grxfirma-v2-ts-")
+	must(err)
+	defer os.RemoveAll(dir)
+	in, out := filepath.Join(dir, "in.pdf"), filepath.Join(dir, "out.pdf")
+	must(os.WriteFile(in, input, 0o600))
+	must(pdfsign.SignFile(in, out, pdfsign.SignData{Signature: pdfsign.SignDataSignature{CertType: pdfsign.TimeStampSignature}, DigestAlgorithm: crypto.SHA256, TSA: pdfsign.TSA{URL: "http://tsa.invalid", HTTPClient: &http.Client{Transport: tsaRoundTrip{tsa}}}}))
+	signed, err := os.ReadFile(out)
+	must(err)
+	if !altered {
+		return signed
+	}
+	matches := contentsHex.FindAllSubmatchIndex(signed, -1)
+	if len(matches) == 0 {
+		panic("Contents del sello ausente")
+	}
+	match := matches[len(matches)-1]
+	ts := timestamp.Timestamp{HashAlgorithm: crypto.SHA256, HashedMessage: make([]byte, sha256.Size), Time: fixedDate, Policy: asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 55555, 2}, AddTSACertificate: true}
+	response, err := ts.CreateResponseWithOpts(tsa.cert, tsa.key, crypto.SHA256)
+	must(err)
+	token, err := timestamp.ParseResponse(response)
+	must(err)
+	hexToken := hex.EncodeToString(token.RawToken)
+	space := match[3] - match[2]
+	if len(hexToken) > space {
+		panic("token alterado no cabe")
+	}
+	copy(signed[match[2]:match[3]], hexToken+strings.Repeat("0", space-len(hexToken)))
+	return signed
 }
 func appendDocumentTimestamp(input []byte) []byte {
 	root, generation, size, prev := xrefInfo(input)

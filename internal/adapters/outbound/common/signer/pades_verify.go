@@ -175,6 +175,10 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 }
 
 func extractPDFEmbeddedSignatures(pdfBytes []byte) ([]pdfEmbeddedSignature, error) {
+	return extractPDFEmbeddedSignaturesWithTimestamps(pdfBytes, false)
+}
+
+func extractPDFEmbeddedSignaturesWithTimestamps(pdfBytes []byte, timestamps bool) ([]pdfEmbeddedSignature, error) {
 	text := string(pdfBytes)
 	if candidates := strings.Count(text, "/ByteRange"); candidates > maxPDFEmbeddedSignatures {
 		return nil, fmt.Errorf("demasiadas firmas PDF: máximo %d", maxPDFEmbeddedSignatures)
@@ -216,7 +220,7 @@ func extractPDFEmbeddedSignatures(pdfBytes []byte) ([]pdfEmbeddedSignature, erro
 		if err != nil {
 			return nil, err
 		}
-		if err := validatePDFSubFilter(subFilter); err != nil {
+		if err := validatePDFSubFilter(subFilter); err != nil && !(timestamps && subFilter == "ETSI.RFC3161") {
 			continue
 		}
 		cmsDER, contentsFrom, contentsTo, err := extractPDFSignatureCMSWithRange(block)

@@ -115,7 +115,7 @@ func InspeccionarPAdESV2(data []byte, maxFirmas, maxRevisiones int, maxBytes ...
 			return InspeccionPDFV2{}, errors.New("cadena_xref_incompleta")
 		}
 	}
-	signatures, err := extractPDFEmbeddedSignatures(data)
+	signatures, err := extractPDFEmbeddedSignaturesWithTimestamps(data, true)
 	if err != nil {
 		return InspeccionPDFV2{}, fmt.Errorf("firmas_pdf_no_comprobadas: %w", err)
 	}
@@ -150,7 +150,7 @@ func InspeccionarPAdESV2(data []byte, maxFirmas, maxRevisiones int, maxBytes ...
 			ContenidoHuellaSHA256: hex.EncodeToString(contentHash[:]),
 			CMSDER:                sig.CMSDER, ContenidoFirmado: content,
 			CubreRevisionCompleta: sig.RevisionEnd == revisionLength,
-			TipoFirma:             "aprobacion",
+			TipoFirma:             tipoFirmaPDFV2(sig.SubFilter),
 			objetoFirma:           objectNumber,
 		})
 		last = revisionLength
@@ -159,6 +159,13 @@ func InspeccionarPAdESV2(data []byte, maxFirmas, maxRevisiones int, maxBytes ...
 		return InspeccionPDFV2{}, err
 	}
 	return out, nil
+}
+
+func tipoFirmaPDFV2(subFilter string) string {
+	if subFilter == "ETSI.RFC3161" {
+		return "sello_tiempo_documento"
+	}
+	return "aprobacion"
 }
 
 func revisionLengthForEnd(lengths []int, end int) int {

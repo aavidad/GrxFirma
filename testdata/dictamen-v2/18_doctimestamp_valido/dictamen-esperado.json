@@ -27,7 +27,7 @@
     "estado": "acreditado",
     "fuente": "pades_revision"
   },
-  "huellaFirmadoSHA256": "87ba3c65927817f067d3fb74b35cc8b256c7fac19c16f6343c9c4f1ff565a0c7",
+  "huellaFirmadoSHA256": "43eb65f1d9e3e9c88fdb46e9a2dbaa35757c4d12ea29820b27f1bdc4165ca7b5",
   "huellaOriginalSHA256": "e45da948f71fcc1bced76a652e5744b336a6ad72e4513686117f36fa846fe567",
   "extensiones": {
     "revocacionRemota": "desactivada",
@@ -82,21 +82,21 @@
       "orden": 2,
       "byteRange": [
         0,
-        6527,
-        11223,
-        979
+        6529,
+        25555,
+        503
       ],
-      "revisionHuellaSHA256": "2bcd59a11d895ac836d4f7d1ed2d544e915bfaa4260876af68ea51bc8cea9812",
-      "contenidoFirmadoHuellaSHA256": "96dccd8d68ff64202a47e0032ed6b6fae1b9fa529a3c280e5fe8bb1bf63ba02f",
-      "revisionLongitud": 12202,
+      "revisionHuellaSHA256": "43eb65f1d9e3e9c88fdb46e9a2dbaa35757c4d12ea29820b27f1bdc4165ca7b5",
+      "contenidoFirmadoHuellaSHA256": "565eae6985708bb5431fe1bc54bf6ce47e81dc8a6bc5312b41d66f04e85b7f7a",
+      "revisionLongitud": 26058,
       "cubreDocumentoCompletoHastaAqui": true,
       "integridad": {
         "estado": "valida"
       },
-      "certificadoHuellaSHA256": "2a4d9a978bc151a04549afd294cb328a25fd8d54ed85c5a79c7d4cf3f5a2bd06",
-      "serie": "4",
-      "asunto": "CN=GrxFirma v2 sintética firmante-b",
-      "emisor": "CN=GrxFirma v2 sintética intermedia",
+      "certificadoHuellaSHA256": "18d46e494add2b3aa073d0e9b85b1784077688cbae47ccdf21738221db775fe0",
+      "serie": "5",
+      "asunto": "CN=GrxFirma v2 sintética tsa",
+      "emisor": "CN=GrxFirma v2 sintética raiz",
       "cadena": {
         "estado": "valida",
         "fuente": "anclas_locales"
@@ -111,23 +111,22 @@
         "fecha": "2026-10-02T21:05:41Z"
       },
       "selloTiempo": {
-        "estado": "no_presente"
+        "estado": "valido",
+        "fuente": "token_rfc3161",
+        "fecha": "2026-10-01T12:00:00Z"
       },
-      "tipoFirma": "aprobacion",
+      "tipoFirma": "sello_tiempo_documento",
       "nivelDocMDP": null,
       "cambiosDesdeAnterior": {
         "estado": "permitidos",
         "detalle": [
-          "firma_anadida"
+          "sello_tiempo_documento_anadido"
         ]
       }
     }
   ],
   "cambiosPosteriores": {
-    "estado": "permitidos",
-    "detalle": [
-      "dss_anadido"
-    ],
-    "bytesNoFirmados": 306
+    "estado": "ninguno",
+    "detalle": []
   }
 }

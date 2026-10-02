@@ -50,19 +50,22 @@ func clasificarActualizacionesPAdESV2(data []byte, out *InspeccionPDFV2) error {
 			applySignaturePolicy(data, out.Revisiones[revision], sig, &certLevel, &fieldLock)
 		}
 		change := clasificarUnaActualizacion(data, out.Revisiones[revision-1], out.Revisiones[revision], sig)
+		if priorLevel != nil && *priorLevel == 1 && (change.Estado == "permitidos" || sig != nil && sig.TipoFirma == "sello_tiempo_documento" && cambioContieneDetalle(change, "sello_tiempo_documento_pendiente_confianza")) {
+			detail := "docmdp_nivel_1_impide_cambio_posterior"
+			if sig != nil {
+				detail = "docmdp_nivel_1_impide_firma_posterior"
+			}
+			change = CambiosPDFV2{Estado: "no_permitidos", Detalle: []string{detail}}
+		}
+		if sig != nil && priorFieldLock == "All" && (change.Estado == "permitidos" || sig.TipoFirma == "sello_tiempo_documento" && cambioContieneDetalle(change, "sello_tiempo_documento_pendiente_confianza")) {
+			change = CambiosPDFV2{Estado: "no_permitidos", Detalle: []string{"fieldmdp_bloquea_campo"}}
+		}
+		if sig != nil && priorFieldLock != "" && priorFieldLock != "All" && (change.Estado == "permitidos" || sig.TipoFirma == "sello_tiempo_documento" && cambioContieneDetalle(change, "sello_tiempo_documento_pendiente_confianza")) {
+			change = CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"fieldmdp_no_evaluado"}}
+		}
 		if sig != nil {
 			change = combinarCambios(pending, change)
 			pending = CambiosPDFV2{}
-			if priorLevel != nil && *priorLevel == 1 && change.Estado == "permitidos" {
-				change = CambiosPDFV2{Estado: "no_permitidos", Detalle: []string{"docmdp_nivel_1_impide_firma_posterior"}}
-			}
-			if priorFieldLock != "" && change.Estado == "permitidos" {
-				if priorFieldLock == "All" {
-					change = CambiosPDFV2{Estado: "no_permitidos", Detalle: []string{"fieldmdp_bloquea_campo"}}
-				} else {
-					change = CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"fieldmdp_no_evaluado"}}
-				}
-			}
 			out.Firmas[currentSignature].CambiosDesdeAnterior = change
 			lastSignedRevision = revision
 			if sig.TipoFirma == "certificacion" {
@@ -87,6 +90,15 @@ func clasificarActualizacionesPAdESV2(data []byte, out *InspeccionPDFV2) error {
 		out.CambiosPosteriores.BytesNoFirmados = len(data) - out.Firmas[len(out.Firmas)-1].RevisionLongitud
 	}
 	return nil
+}
+
+func cambioContieneDetalle(change CambiosPDFV2, want string) bool {
+	for _, detail := range change.Detalle {
+		if detail == want {
+			return true
+		}
+	}
+	return false
 }
 
 func applySignaturePolicy(data []byte, snapshot pdf.XRefSnapshot, sig *FirmaPDFV2, certLevel **int, fieldLock *string) {
@@ -163,6 +175,9 @@ func clasificarUnaActualizacion(data []byte, before, after pdf.XRefSnapshot, sig
 		return CambiosPDFV2{Estado: "ninguno", Detalle: []string{}}
 	}
 	if signature == nil {
+		if comprobarDSSV2(data, before, after, changed) {
+			return CambiosPDFV2{Estado: "permitidos", Detalle: []string{"dss_anadido"}}
+		}
 		return clasificarCambioNoFirmado(data, before, after, changed)
 	}
 	var sigObject, widgetObject uint32
@@ -185,7 +200,7 @@ func clasificarUnaActualizacion(data []byte, before, after pdf.XRefSnapshot, sig
 		switch {
 		case number == after.RootObject:
 			// Checked below against the signed catalog.
-		case pdfName(dict["/Type"]) == "/Sig":
+		case pdfName(dict["/Type"]) == "/Sig" || signature.TipoFirma == "sello_tiempo_documento" && pdfName(dict["/Type"]) == "/DocTimeStamp":
 			br, err := extractPDFByteRange([]byte(body))
 			if err != nil || br != signature.ByteRange || sigObject != 0 {
 				return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"firma_nueva_no_corresponde"}}
@@ -269,6 +284,14 @@ func clasificarUnaActualizacion(data []byte, before, after pdf.XRefSnapshot, sig
 	if widget["/AP"] != "" {
 		return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"apariencia_widget_no_evaluada"}}
 	}
+	if signature.TipoFirma == "sello_tiempo_documento" {
+		body := cuerpoActivoPDF(data, after, sigObject)
+		dict, ok := parsePDFObjectDict(body)
+		if !ok || pdfName(dict["/SubFilter"]) != "/ETSI.RFC3161" {
+			return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"doctimestamp_no_verificado"}}
+		}
+		return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"sello_tiempo_documento_pendiente_confianza"}}
+	}
 	return CambiosPDFV2{Estado: "permitidos", Detalle: []string{"firma_anadida"}}
 }
 
@@ -310,6 +333,9 @@ func clasificarCambioNoFirmado(data []byte, before, after pdf.XRefSnapshot, chan
 		newCatalog, okNew := parsePDFObjectDict(cuerpoActivoPDF(data, after, after.RootObject))
 		if !okOld || !okNew || oldCatalog["/Pages"] != newCatalog["/Pages"] {
 			return CambiosPDFV2{Estado: "no_permitidos", Detalle: []string{"contenido_paginas_modificado"}}
+		}
+		if oldCatalog["/DSS"] != newCatalog["/DSS"] && changedKeysOutside(oldCatalog, newCatalog, "/DSS", "/Extensions", "/Version") == "" {
+			return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"dss_no_verificado"}}
 		}
 	}
 	for _, number := range changed {
@@ -357,6 +383,18 @@ func objetosDePaginaPDF(data []byte) (objects map[uint32]bool) {
 		resources := page.Key("Resources")
 		if number, _ := resources.ObjectReference(); number != 0 {
 			objects[number] = true
+		}
+		annots := page.Key("Annots")
+		if number, _ := annots.ObjectReference(); number != 0 {
+			objects[number] = true
+		}
+		if annots.Len() > 10000 {
+			return map[uint32]bool{}
+		}
+		for j := 0; j < annots.Len(); j++ {
+			if number, _ := annots.Index(j).ObjectReference(); number != 0 {
+				objects[number] = true
+			}
 		}
 	}
 	return objects

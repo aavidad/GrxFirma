@@ -20,9 +20,14 @@ Cada carpeta contiene `original.pdf` sin firmar, `firmado.pdf` y `dictamen-esper
 | 09, xref stream | `indeterminada` | Revisión estructural posterior sin firma |
 | 10, xref híbrido | `indeterminada` | Revisión híbrida posterior sin firma |
 | 11, FieldMDP `/All` | `no_valida` | Bloquea la segunda firma |
-| 12, DSS | `indeterminada` | Material LTV sin evaluación suficiente |
-| 13, DocTimeStamp | `indeterminada` | Token RFC 3161 sintético sin autenticación |
+| 12, DSS vacío | `valida` | DSS añadido sin otros objetos ni material ilegible |
+| 13, DocTimeStamp mal formado | `indeterminada` | Sello sin campo ni token autenticable |
 | 14, DocMDP nivel 2 | `valida` | Permite una firma de aprobación posterior |
 | 15, DocMDP nivel 3 | `valida` | También permite una firma de aprobación posterior |
+| 16, DSS válido | `valida` | Certificado, CRL, OCSP y VRI DER; `dss_anadido` |
+| 17, DSS con objeto ajeno | `indeterminada` | Anotación no perteneciente al DSS; `no_comprobados` |
+| 18, DocTimeStamp válido | `valida` | Token RFC 3161 sobre su ByteRange, TSA anclada y CRL local |
+| 19, impronta ajena | `no_valida` | Token firmado con `messageImprint` distinto |
+| 20, LTA completo | `valida` | Firma, DSS válido y sello de documento posterior |
 
-`pki/*.key.pem` son **claves de prueba públicas**: nunca deben utilizarse para datos reales. La PKI, certificados y CRL son sintéticos, no contienen identidades reales y no requieren red. El generador está en [generar_dictamen_v2.go](../../scripts/generar_dictamen_v2.go); se ejecuta desde la raíz con `go run scripts/generar_dictamen_v2.go`. Las claves se conservan para repetir la generación; el generador vuelve a emitir certificados, CRL, PDF y dictámenes esperados. Los PDF generados pueden variar en bytes por atributos temporales del CMS, por lo que el generador actualiza las huellas y los resultados esperados conjuntamente.
+`pki/*.key.pem` son **claves de prueba públicas**: nunca deben utilizarse para datos reales. La PKI, certificados y CRL son sintéticos, no contienen identidades reales y no requieren red. La TSA del generador responde mediante transporte HTTP en memoria, sin sockets. El generador está en [generar_dictamen_v2.go](../../scripts/generar_dictamen_v2.go); se ejecuta desde la raíz con `GOFLAGS=-buildvcs=false go run scripts/generar_dictamen_v2.go`. Las claves se conservan para repetir la generación; el generador vuelve a emitir certificados, CRL, PDF y dictámenes esperados. Los PDF generados pueden variar en bytes por atributos temporales del CMS, por lo que el generador actualiza las huellas y los resultados esperados conjuntamente.

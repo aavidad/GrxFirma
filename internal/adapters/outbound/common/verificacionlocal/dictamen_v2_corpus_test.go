@@ -7,6 +7,7 @@ package verificacionlocal_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+	"time"
 
 	restin "grxfirma/internal/adapters/inbound/common/rest"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
@@ -44,10 +46,15 @@ func TestDictamenV2_CorpusSintetico(t *testing.T) {
 		{"09_xref_stream", "indeterminada", "cambios_no_comprobados", "permitidos", "no_comprobados", false},
 		{"10_xref_hibrido", "indeterminada", "cambios_no_comprobados", "permitidos", "no_comprobados", false},
 		{"11_fieldmdp_all", "no_valida", "cambios_no_permitidos", "no_permitidos", "ninguno", false},
-		{"12_dss", "indeterminada", "cambios_no_comprobados", "permitidos", "no_comprobados", false},
-		{"13_doctimestamp", "indeterminada", "cambios_no_comprobados", "permitidos", "no_comprobados", false},
+		{"12_dss", "valida", "verificada", "permitidos", "permitidos", false},
+		{"13_doctimestamp", "indeterminada", "pdf_no_comprobado", "", "no_comprobados", false},
 		{"14_docmdp_2", "valida", "verificada", "permitidos", "ninguno", false},
 		{"15_docmdp_3", "valida", "verificada", "permitidos", "ninguno", false},
+		{"16_dss_valido", "valida", "verificada", "", "permitidos", false},
+		{"17_dss_objeto_ajeno", "indeterminada", "cambios_no_comprobados", "", "no_comprobados", false},
+		{"18_doctimestamp_valido", "valida", "verificada", "permitidos", "ninguno", false},
+		{"19_doctimestamp_imprint_ajeno", "no_valida", "integridad_no_valida", "no_comprobados", "ninguno", false},
+		{"20_lta_completo", "valida", "verificada", "permitidos", "ninguno", false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -100,6 +107,14 @@ func TestDictamenV2_CorpusSintetico(t *testing.T) {
 				t.Fatalf("cambios posteriores: %v", post)
 			}
 			firms := wire.Dictamen["firmas"].([]any)
+			if tc.name == "18_doctimestamp_valido" || tc.name == "19_doctimestamp_imprint_ajeno" || tc.name == "20_lta_completo" {
+				if len(firms) != 2 || firms[1].(map[string]any)["tipoFirma"] != "sello_tiempo_documento" || firms[1].(map[string]any)["orden"] != float64(2) {
+					t.Fatalf("sello de documento sin orden o tipo: %v", firms)
+				}
+				if firms[1].(map[string]any)["byteRange"] == nil || firms[1].(map[string]any)["revisionHuellaSHA256"] == "" || firms[1].(map[string]any)["contenidoFirmadoHuellaSHA256"] == "" {
+					t.Fatalf("sello sin cobertura o huellas: %v", firms[1])
+				}
+			}
 			if tc.secondChange != "" && (len(firms) < 2 || firms[1].(map[string]any)["cambiosDesdeAnterior"].(map[string]any)["estado"] != tc.secondChange) {
 				t.Fatalf("segunda firma: %v", firms)
 			}
@@ -112,6 +127,101 @@ func TestDictamenV2_CorpusSintetico(t *testing.T) {
 				t.Fatalf("dictamen distinto del esperado: %s", rec.Body.String())
 			}
 		})
+	}
+}
+
+func TestDictamenV2_SelloDocumentoExigeConfianzaYRevocacion(t *testing.T) {
+	root := filepath.Join("..", "..", "..", "..", "..", "testdata", "dictamen-v2")
+	original, err := os.ReadFile(filepath.Join(root, "18_doctimestamp_valido", "original.pdf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	signed, err := os.ReadFile(filepath.Join(root, "18_doctimestamp_valido", "firmado.pdf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name, anchor, crlDir, aspect string
+	}{
+		{"tsa_sin_ancla", "intermedia.pem", "crl-buena", "cadena"},
+		{"tsa_sin_revocacion", "raiz.pem", "", "revocacion"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			anchors, err := verificacionlocal.CargarAnclas(filepath.Join(root, "pki", tc.anchor))
+			if err != nil {
+				t.Fatal(err)
+			}
+			cfg := verificacionlocal.Configuracion{}
+			if tc.crlDir != "" {
+				cfg.CRL, err = verificacionlocal.NuevoAlmacenCRL(filepath.Join(root, "pki", tc.crlDir))
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			uc := application.NuevoVerifySignatureUseCase(anchors, commonsigner.NewMultiVerifierOffline(), nil).ConEvaluador(verificacionlocal.Nuevo(cfg))
+			adapter := restin.New(nil, uc, nil).WithBearerToken("token-sintetico-de-corpus")
+			body, _ := json.Marshal(map[string]string{"content_base64": base64.StdEncoding.EncodeToString(signed), "original_content_base64": base64.StdEncoding.EncodeToString(original), "contrato_solicitado": "autofirmav2.dictamen-verificacion.v2"})
+			rec := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPost, "/v2/verify", bytes.NewReader(body))
+			req.Header.Set("Authorization", "Bearer token-sintetico-de-corpus")
+			adapter.RoutesSoloVerificacion().ServeHTTP(rec, req)
+			var response struct {
+				Dictamen struct {
+					Estado string `json:"estado"`
+					Firmas []struct {
+						Cadena struct {
+							Estado string `json:"estado"`
+						} `json:"cadena"`
+						Revocacion struct {
+							Estado string `json:"estado"`
+						} `json:"revocacion"`
+						Cambios struct {
+							Estado string `json:"estado"`
+						} `json:"cambiosDesdeAnterior"`
+					} `json:"firmas"`
+				} `json:"dictamen"`
+			}
+			if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+				t.Fatal(err)
+			}
+			if response.Dictamen.Estado != "indeterminada" || len(response.Dictamen.Firmas) != 2 || response.Dictamen.Firmas[1].Cambios.Estado != "no_comprobados" {
+				t.Fatalf("sello promovido sin %s: %s", tc.aspect, rec.Body.String())
+			}
+			if tc.aspect == "cadena" && response.Dictamen.Firmas[1].Cadena.Estado != "no_comprobada" || tc.aspect == "revocacion" && response.Dictamen.Firmas[1].Revocacion.Estado != "no_comprobada" {
+				t.Fatalf("aspecto %s no reflejado: %s", tc.aspect, rec.Body.String())
+			}
+		})
+	}
+}
+
+func TestDictamenV2_SelloDocumentoFirmaTokenAlterada(t *testing.T) {
+	root := filepath.Join("..", "..", "..", "..", "..", "testdata", "dictamen-v2")
+	data, err := os.ReadFile(filepath.Join(root, "18_doctimestamp_valido", "firmado.pdf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	inspection, err := commonsigner.InspeccionarPAdESV2(data, 20, 20)
+	if err != nil || len(inspection.Firmas) != 2 {
+		t.Fatalf("sello ausente: %v", err)
+	}
+	sig := inspection.Firmas[1]
+	token := append([]byte(nil), sig.CMSDER...)
+	if len(token) < 100 {
+		t.Fatal("token inesperadamente corto")
+	}
+	token[100] ^= 1
+	anchors, err := verificacionlocal.CargarAnclas(filepath.Join(root, "pki", "raiz.pem"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	chain, err := anchors.Anchors(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	eval := verificacionlocal.Nuevo(verificacionlocal.Configuracion{})
+	_, integrity := eval.EvaluarSelloDocumento(context.Background(), token, sig.ContenidoFirmado, chain, time.Now().UTC())
+	if integrity.Estado != "no_valida" {
+		t.Fatalf("firma del token alterada: %+v", integrity)
 	}
 }
 
