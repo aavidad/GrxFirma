@@ -588,7 +588,7 @@ func readXrefStreamData(r *Reader, strm stream, table []xref, size int64) ([]xre
 				if v3 < 0 || v3 > math.MaxUint16 {
 					return nil, fmt.Errorf("malformed xref stream free generation %d", v3)
 				}
-				table[x] = xref{ptr: objptr{uint32(x), uint16(v3)}, defined: true, free: true}
+				table[x] = xref{ptr: objptr{uint32(x), uint16(v3)}, defined: true, free: true} // #nosec G115 -- x y v3 en rango.
 			case 1:
 				if v3 < 0 || v3 > math.MaxUint16 {
 					return nil, fmt.Errorf("malformed xref stream generation %d", v3)
