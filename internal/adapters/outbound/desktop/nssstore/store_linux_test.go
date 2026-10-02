@@ -15,10 +15,13 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"math/big"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -86,6 +89,7 @@ esac
 	if err := os.WriteFile(scriptPath, []byte(scriptContent), 0o755); err != nil {
 		t.Fatalf("WriteFile(script): %v", err)
 	}
+	esperarScriptEjecutable(t, scriptPath)
 
 	almacen := nssstore.NewConRutas(scriptPath, []string{nssDir})
 	refs, err := almacen.List(context.Background())
@@ -154,6 +158,7 @@ esac
 	if err := os.WriteFile(scriptPath, []byte(scriptContent), 0o755); err != nil {
 		t.Fatalf("WriteFile(script): %v", err)
 	}
+	esperarScriptEjecutable(t, scriptPath)
 
 	almacen := nssstore.NewConRutas(scriptPath, []string{nssDir1, nssDir2})
 	refs, err := almacen.List(context.Background())
@@ -334,4 +339,19 @@ func generarCertPEM(t *testing.T, cn string) []byte {
 	}
 
 	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
+}
+
+// esperarScriptEjecutable evita ETXTBSY: un proceso hijo de otra prueba en
+// paralelo puede heredar durante un instante el descriptor de escritura del
+// script recién creado y el primer exec falla con «text file busy».
+func esperarScriptEjecutable(t *testing.T, path string) {
+	t.Helper()
+	for intento := 0; intento < 50; intento++ {
+		err := exec.Command(path).Run()
+		if err == nil || !errors.Is(err, syscall.ETXTBSY) {
+			return
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	t.Fatalf("el script simulado %s sigue ocupado (ETXTBSY)", path)
 }
