@@ -15,7 +15,7 @@ var testFiles = []struct {
 	{
 		file: "../testfiles/testfile20.pdf",
 		expectedCatalogs: map[CertType]string{
-			CertificationSignature: "<<\n  /Type /Catalog\n  /Metadata 2 0 R\n  /Pages 3 0 R\n  /AcroForm <<\n    /Fields [10 0 R]\n    /SigFlags 3\n  >>\n>>\n",
+			CertificationSignature: "<<\n  /Type /Catalog\n  /Metadata 2 0 R\n  /Pages 3 0 R\n  /Perms << /DocMDP 42 0 R >>\n  /AcroForm <<\n    /Fields [10 0 R]\n    /SigFlags 3\n  >>\n>>\n",
 			UsageRightsSignature:   "<<\n  /Type /Catalog\n  /Metadata 2 0 R\n  /Pages 3 0 R\n  /AcroForm <<\n    /Fields [10 0 R]\n    /SigFlags 1\n  >>\n>>\n",
 			ApprovalSignature:      "<<\n  /Type /Catalog\n  /Metadata 2 0 R\n  /Pages 3 0 R\n  /AcroForm <<\n    /Fields [10 0 R]\n    /SigFlags 3\n  >>\n>>\n",
 		},
@@ -23,7 +23,7 @@ var testFiles = []struct {
 	{
 		file: "../testfiles/testfile12.pdf",
 		expectedCatalogs: map[CertType]string{
-			CertificationSignature: "<<\n  /Type /Catalog\n  /Outlines 4 0 R\n  /Pages 3 0 R\n  /Version /1.5\n  /AcroForm <<\n    /Fields [11 0 R]\n    /SigFlags 3\n  >>\n>>\n",
+			CertificationSignature: "<<\n  /Type /Catalog\n  /Outlines 4 0 R\n  /Pages 3 0 R\n  /Version /1.5\n  /Perms << /DocMDP 42 0 R >>\n  /AcroForm <<\n    /Fields [11 0 R]\n    /SigFlags 3\n  >>\n>>\n",
 			UsageRightsSignature:   "<<\n  /Type /Catalog\n  /Outlines 4 0 R\n  /Pages 3 0 R\n  /Version /1.5\n  /AcroForm <<\n    /Fields [11 0 R]\n    /SigFlags 1\n  >>\n>>\n",
 			ApprovalSignature:      "<<\n  /Type /Catalog\n  /Outlines 4 0 R\n  /Pages 3 0 R\n  /Version /1.5\n  /AcroForm <<\n    /Fields [11 0 R]\n    /SigFlags 3\n  >>\n>>\n",
 		},
@@ -60,6 +60,7 @@ func TestCreateCatalog(t *testing.T) {
 						objectId: uint32(rdr.XrefInformation.ItemCount),
 					},
 					SignData: SignData{
+						objectId: 42,
 						Signature: SignDataSignature{
 							CertType:   certType,
 							DocMDPPerm: AllowFillingExistingFormFieldsAndSignaturesPerms,

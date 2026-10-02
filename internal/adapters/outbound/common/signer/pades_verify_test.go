@@ -303,19 +303,19 @@ func TestPAdESVerifier_VerificaFixtureQAConRutaGo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	verifier := commonsigner.NewPAdESVerifier()
+	verifier := commonsigner.NewPAdESVerifierWithCAdES(commonsigner.NewCAdESVerifierWithChecker(commonsigner.NewRevocationCheckerOffline()))
 	result, signers, err := verifier.Verify(context.Background(), doc, domain.CertificateChain{})
 	if err != nil {
 		t.Fatalf("la verificación PAdES Go falló para el fixture QA: %v", err)
 	}
-	if !result.Valid {
-		t.Fatalf("el fixture PAdES QA debería ser válido: %s", result.Reason)
+	if result.Valid || result.Reason != "revocación no concluyente" {
+		t.Fatalf("sin CRL concluyente el fixture PAdES QA no puede ser válido: %+v", result)
 	}
 	if result.Integrity.Status != domain.VerificationStatusValid {
 		t.Fatalf("la integridad criptográfica del fixture debería ser válida: %+v", result.Integrity)
 	}
-	if !(result.Certificate.Status == domain.VerificationStatusValid || (result.Certificate.Status == domain.VerificationStatusWarning && strings.Contains(result.Certificate.Reason, "revocación"))) {
-		t.Fatalf("el certificado oficial de pruebas debería estar vigente: %+v", result.Certificate)
+	if result.Certificate.Status != domain.VerificationStatusUnknown && result.Certificate.Status != domain.VerificationStatusWarning {
+		t.Fatalf("el certificado oficial de pruebas debería quedar sin revocación acreditada: %+v", result.Certificate)
 	}
 	if len(signers) == 0 {
 		t.Fatal("se esperaba al menos un firmante en el fixture PAdES QA")

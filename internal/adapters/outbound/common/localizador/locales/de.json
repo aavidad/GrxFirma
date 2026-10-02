@@ -132,6 +132,21 @@
   "rest.help.private_delivery": "Ein Geheimnismanager kann GRXFIRMA_REST_TOKEN bereitstellen. Wird das Token automatisch erzeugt, erscheint nur der Pfad zu einer privaten temporären Datei für curl --config.",
   "rest.output.bearer_file": "Temporäre Bearer-Anmeldeinformation: private Datei %s",
   "rest.output.curl_usage": "Sichere curl-Nutzung: curl --cacert %s --config %s https://%s/openapi.json",
+  "rest.verify_only.output.active": "GrxFirma-Validator (nur Prüfung) aktiv unter https://%s",
+  "rest.verify_only.output.routes": "Veröffentlichte Routen: GET /health, POST /verify; POST /v2/verify",
+  "rest.verify_only.output.anchors": "Lokale Vertrauensanker: %d",
+  "rest.verify_only.output.crl_local": "Widerruf: lokale CRLs",
+  "rest.verify_only.output.crl_none": "Widerruf: keine lokalen CRLs; nur in der Signatur eingebettete Nachweise",
+  "rest.verify_only.output.remote_disabled": "Entfernte Erweiterungen (OCSP, TSA): deaktiviert",
+  "rest.verify_only.error.config": "Fehler in der Prüfkonfiguration: %v",
+  "rest.verify_only.error.security": "Sicherheitsfehler im Validator: %v",
+  "rest.verify_only.error.listen": "Fehler beim Öffnen des Validators: %v",
+  "rest.verify_only.error.config_dir": "das Konfigurationsverzeichnis konnte nicht ermittelt werden",
+  "rest.verify_only.error.token": "Fehler beim Erzeugen der REST-Anmeldeinformation: %v",
+  "rest.verify_only.error.anchors_required": "der Nur-Prüfung-Modus erfordert -verificacion-anclas <Datei|Verzeichnis>",
+  "rest.verify_only.error.fingerprints": "der Nur-Prüfung-Modus akzeptiert -huellas-cert-rest nicht; verwenden Sie GRXFIRMA_REST_TOKEN",
+  "rest.verify_only.error.not_loopback": "die Adresse %q ist kein Loopback; verwenden Sie -rest-publico nur, um den Validator bewusst freizugeben",
+  "rest.verify_only.error.token_required": "die Freigabe des Validators außerhalb von Loopback erfordert GRXFIRMA_REST_TOKEN",
   " + base64": " + base64",
   " certificado(s).": " certificado(s).",
   " con conexiones seguras activas.": " con conexiones seguras activas.",
@@ -2729,4 +2744,6 @@
   ,"Novedades de GrxFirma %1": "Neuerungen in GrxFirma %1"
   ,"Entendido": "Verstanden"
   ,"Actualizado a %1: ver novedades": "Auf %1 aktualisiert: Neuerungen anzeigen"
+  ,"revocación no concluyente": "Der Widerruf des Zertifikats konnte nicht geprüft werden. Die Signatur gilt nicht als gültig."
+  ,"rest.verify_v2.error.limit": "Der Grenzwert für die Verifikation v2 liegt außerhalb des zulässigen Bereichs"
 }

@@ -132,6 +132,21 @@
   "rest.help.private_delivery": "Sekretu-kudeatzaile batek GRXFIRMA_REST_TOKEN txerta dezake. Tokena automatikoki sortzen bada, curl --config erabiltzeko fitxategi pribatu eta iragankorraren bidea bakarrik erakusten da.",
   "rest.output.bearer_file": "Aldi baterako Bearer kredentziala: %s fitxategi pribatua",
   "rest.output.curl_usage": "curl erabilera segurua: curl --cacert %s --config %s https://%s/openapi.json",
+  "rest.verify_only.output.active": "GrxFirma balidatzailea (egiaztapena soilik) aktibo https://%s helbidean",
+  "rest.verify_only.output.routes": "Argitaratutako bideak: GET /health, POST /verify; POST /v2/verify",
+  "rest.verify_only.output.anchors": "Konfiantzazko aingura lokalak: %d",
+  "rest.verify_only.output.crl_local": "Errebokazioa: CRL lokalak",
+  "rest.verify_only.output.crl_none": "Errebokazioa: CRL lokalik ez; sinaduran txertatutako ebidentziak soilik",
+  "rest.verify_only.output.remote_disabled": "Urruneko hedapenak (OCSP, TSA): desgaituta",
+  "rest.verify_only.error.config": "egiaztapen-konfigurazioaren errorea: %v",
+  "rest.verify_only.error.security": "balidatzailearen segurtasun-errorea: %v",
+  "rest.verify_only.error.listen": "errorea balidatzailea irekitzean: %v",
+  "rest.verify_only.error.config_dir": "ezin izan da konfigurazio-direktorioa ebatzi",
+  "rest.verify_only.error.token": "errorea REST kredentziala sortzean: %v",
+  "rest.verify_only.error.anchors_required": "egiaztapen soileko moduak -verificacion-anclas <fitxategia|direktorioa> behar du",
+  "rest.verify_only.error.fingerprints": "egiaztapen soileko moduak ez du -huellas-cert-rest onartzen; erabili GRXFIRMA_REST_TOKEN",
+  "rest.verify_only.error.not_loopback": "%q helbidea ez da loopback; erabili -rest-publico balidatzailea nahita erakutsi nahi baduzu soilik",
+  "rest.verify_only.error.token_required": "balidatzailea loopback-etik kanpo erakusteko GRXFIRMA_REST_TOKEN behar da",
   " + base64": " + base64",
   " certificado(s).": " certificado(s).",
   " con conexiones seguras activas.": " con conexiones seguras activas.",
@@ -2729,4 +2744,6 @@
   ,"Novedades de GrxFirma %1": "GrxFirma %1 bertsioaren berritasunak"
   ,"Entendido": "Ulertuta"
   ,"Actualizado a %1: ver novedades": "%1 bertsiora eguneratuta: ikusi berritasunak"
+  ,"revocación no concluyente": "Ezin izan da ziurtagiriaren ezeztapena egiaztatu. Sinadura ez da baliozkotzat hartzen."
+  ,"rest.verify_v2.error.limit": "v2 egiaztapenaren muga baimendutako tartetik kanpo dago"
 }

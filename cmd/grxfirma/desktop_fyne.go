@@ -25,6 +25,7 @@ import (
 	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
 
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/common/logging"
 	"grxfirma/internal/adapters/outbound/common/pkcs12importer"
 	"grxfirma/internal/adapters/outbound/common/securefile"
@@ -519,7 +520,11 @@ func (ui *desktopManualUI) verificarDocumento() {
 			detalle.WriteString("## Firma no válida\n\n")
 		}
 		if resultado.Verification.Reason != "" {
-			detalle.WriteString("- Motivo: `" + resultado.Verification.Reason + "`\n")
+			reason := resultado.Verification.Reason
+			if reason == "revocación no concluyente" {
+				reason = localizador.Detectar().T("revocación no concluyente")
+			}
+			detalle.WriteString("- Motivo: `" + reason + "`\n")
 		}
 		for _, firmante := range resultado.Firmantes {
 			detalle.WriteString("- Firmante: `" + firmante.Subject + "`\n")

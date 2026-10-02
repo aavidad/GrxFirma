@@ -6,6 +6,6 @@
 # Falsos positivos revisados (nombres de variables de entorno, un valor literal
 # de prueba y un nonce Sec-WebSocket-Key sintético); no son credenciales.
 cmd/grxfirma/desktop_common_test.go:generic-api-key:99
-cmd/grxfirma/main.go:generic-api-key:62
+cmd/grxfirma/main.go:generic-api-key:63
 internal/adapters/inbound/common/cli/adapter.go:generic-api-key:52
 internal/adapters/inbound/legacy/websocket/adapter_test.go:generic-api-key:414

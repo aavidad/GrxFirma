@@ -51,6 +51,10 @@ type VerificationResult struct {
 	Warnings        []string
 	Errors          []string
 	Evidence        []VerificationEvidence
+
+	// Material conserva certificados, sellos y coberturas halladas para la
+	// evaluación autónoma posterior. Nunca se serializa.
+	Material MaterialVerificacion `json:"-"`
 }
 
 func NewVerificationSuccess(format, reason string, details []string) VerificationResult {

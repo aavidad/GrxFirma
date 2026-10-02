@@ -169,6 +169,9 @@ type Adaptador struct {
 	Firmar             SignDocumentUseCase
 	ProcesarLote       BatchSignUseCase
 	Verificar          VerifySignatureUseCase
+	MaxV2Firmas        int
+	MaxV2Revisiones    int
+	MaxV2PDFBytes      int
 	CrearHash          CreateHashUseCase
 	ComprobarHash      CheckHashUseCase
 	CrearHashDir       CreateDirectoryHashUseCase
@@ -482,6 +485,7 @@ func (a *Adaptador) Routes() http.Handler {
 	mux.Handle("/protection/recipient/export", a.authorize(http.HandlerFunc(a.handleProtectionRecipientExport)))
 	mux.Handle("/protection/recipient/import", a.authorize(http.HandlerFunc(a.handleProtectionRecipientImport)))
 	mux.Handle("/verify", a.authorize(http.HandlerFunc(a.handleVerify)))
+	mux.Handle("/v2/verify", a.authorize(http.HandlerFunc(a.handleVerifyV2)))
 	mux.Handle("/select-certificate", a.authorize(http.HandlerFunc(a.handleSelectCertificate)))
 	mux.HandleFunc("/signer", a.handleSigner)
 	mux.HandleFunc("/firmador", a.handleSigner)
@@ -699,12 +703,13 @@ type protectionRecipientExchangeResponse struct {
 }
 
 type verifyRequest struct {
-	Name           string `json:"name"`
-	ContentBase64  string `json:"content_base64"`
-	MIMEType       string `json:"mime_type"`
-	OriginalBase64 string `json:"original_content_base64"`
-	InputPath      string `json:"inputPath"`
-	OriginalPath   string `json:"originalPath"`
+	Name               string `json:"name"`
+	ContentBase64      string `json:"content_base64"`
+	MIMEType           string `json:"mime_type"`
+	OriginalBase64     string `json:"original_content_base64"`
+	ContratoSolicitado string `json:"contrato_solicitado"`
+	InputPath          string `json:"inputPath"`
+	OriginalPath       string `json:"originalPath"`
 }
 
 type hashRequest struct {
@@ -756,6 +761,9 @@ type verifyResponse struct {
 	Details []string `json:"details"`
 	Signers []string `json:"signers"`
 	Result  any      `json:"result,omitempty"`
+	// Dictamen es el resultado explícito de la verificación autónoma. Se
+	// añade sin alterar los campos anteriores.
+	Dictamen *dictamenResponse `json:"dictamen,omitempty"`
 }
 
 type guidedDiagnosticResponse struct {
@@ -1849,9 +1857,26 @@ func (a *Adaptador) handleVerify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	body, ok := a.readVerifyBody(w, r)
+	if !ok {
+		return
+	}
+	if err := rechazarClavesJSONDuplicadas(body); err != nil {
+		writeError(w, http.StatusBadRequest, "json de verificacion con claves duplicadas o invalido")
+		return
+	}
 	var req verifyRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.Unmarshal(body, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "json de verificacion invalido")
+		return
+	}
+	if req.ContratoSolicitado != "" {
+		if req.ContratoSolicitado != contratoDictamenV2 {
+			writeError(w, http.StatusBadRequest, "contrato_solicitado no reconocido")
+			return
+		}
+		r.Body = io.NopCloser(bytes.NewReader(body))
+		a.handleVerifyV2(w, r)
 		return
 	}
 	if strings.TrimSpace(req.InputPath) != "" {
@@ -2301,12 +2326,13 @@ func buildVerifyResponse(result application.VerifyResult) verifyResponse {
 		signers = append(signers, signer.ID)
 	}
 	return verifyResponse{
-		OK:      true,
-		Valid:   result.Verification.Valid,
-		Reason:  result.Verification.Reason,
-		Details: append([]string(nil), result.Verification.Details...),
-		Signers: signers,
-		Result:  buildVerifyRichResult(result.Verification, result.Firmantes, signers),
+		OK:       true,
+		Valid:    result.Verification.Valid,
+		Reason:   result.Verification.Reason,
+		Details:  append([]string(nil), result.Verification.Details...),
+		Signers:  signers,
+		Result:   buildVerifyRichResult(result.Verification, result.Firmantes, signers),
+		Dictamen: buildDictamenResponse(result.Dictamen),
 	}
 }
 

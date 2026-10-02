@@ -2894,7 +2894,7 @@
       if (!rich || rich.valid === false || integrityStatus === "invalid" || errors.length > 0) {
         kind = "status-bad";
         text = "Firma inválida o integridad no garantizada.";
-      } else if (trustStatus === "warning" || trustStatus === "invalid" || certificateStatus === "warning" || certificateStatus === "invalid" || warnings.length > 0) {
+      } else if (integrityStatus !== "valid" || trustStatus !== "valid" || certificateStatus !== "valid" || warnings.length > 0) {
         kind = "status-warn";
         text = "Firma íntegra, pero con advertencias de confianza o certificado.";
       }

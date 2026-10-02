@@ -90,6 +90,9 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 		"referencias_zip=ok",
 	})
 	result = applySignerVerificationMetadata(result, allSignerCertificates, allEmbeddedCertificates, anchors)
+	for _, signature := range signatures {
+		result = marcarSelloXMLNoEvaluable(result, signature.fragment)
+	}
 	result = markXMLCompatibility(result, compatibility)
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
 }
@@ -149,6 +152,9 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		"referencias_zip=ok",
 	})
 	result = applySignerVerificationMetadata(result, allSignerCertificates, allEmbeddedCertificates, anchors)
+	for _, name := range names {
+		result = marcarSelloXMLNoEvaluable(result, signatures[name])
+	}
 	result = markXMLCompatibility(result, compatibility)
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
 }
@@ -178,6 +184,9 @@ func verifyXMLSignatureDocument(xmlData []byte, requireSigningCertificate bool, 
 		compatibility = append(compatibility, xmlCompatibilityDetails(verification.result)...)
 	}
 	aggregate.result = applySignerVerificationMetadata(domain.NewVerificationSuccess(format, reason, details), aggregate.signerCertificates, aggregate.embeddedCertificates, anchors)
+	for _, part := range parts {
+		aggregate.result = marcarSelloXMLNoEvaluable(aggregate.result, part.fragment)
+	}
 	aggregate.result = markXMLCompatibility(aggregate.result, compatibility)
 	return aggregate, nil
 }
@@ -208,6 +217,7 @@ func verifyXMLSignatureDocumentWithContext(xmlData []byte, signatureContext xmlS
 	}
 	result := domain.NewVerificationSuccess(format, reason, details)
 	result = applySignerVerificationMetadata(result, signerCertificates, certificates, anchors)
+	result = marcarSelloXMLNoEvaluable(result, xmlData)
 	result = markXMLCompatibility(result, compatibility)
 	return xmlSignatureVerification{
 		result:               result,

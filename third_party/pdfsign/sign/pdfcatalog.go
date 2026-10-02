@@ -37,6 +37,11 @@ func (context *SignContext) createCatalog() ([]byte, error) {
 
 	// Retrieve the root, its pointer and set the root string
 	root := context.PDFReader.Trailer().Key("Root")
+	if context.SignData.Signature.CertType == CertificationSignature {
+		if len(context.existingSignatures) != 0 || !root.Key("Perms").IsNull() {
+			return nil, fmt.Errorf("una firma de certificación debe ser la primera")
+		}
+	}
 	rootPtr := root.GetPtr()
 	context.CatalogData.RootString = strconv.Itoa(int(rootPtr.GetID())) + " " + strconv.Itoa(int(rootPtr.GetGen())) + " R"
 
@@ -61,6 +66,9 @@ func (context *SignContext) createCatalog() ([]byte, error) {
 
 	if context.dssObjectID != 0 {
 		_, _ = fmt.Fprintf(&catalog_buffer, "  /DSS %d 0 R\n", context.dssObjectID)
+	}
+	if context.SignData.Signature.CertType == CertificationSignature {
+		_, _ = fmt.Fprintf(&catalog_buffer, "  /Perms << /DocMDP %d 0 R >>\n", context.SignData.objectId)
 	}
 
 	// AcroForm: se conservan TODOS los campos y claves del formulario original

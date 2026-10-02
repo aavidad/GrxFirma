@@ -132,6 +132,21 @@
   "rest.help.private_delivery": "Um gestor de segredos pode injetar GRXFIRMA_REST_TOKEN. Se o token for gerado automaticamente, apenas é mostrado o caminho de um ficheiro privado e efémero para curl --config.",
   "rest.output.bearer_file": "Credencial Bearer efémera: ficheiro privado %s",
   "rest.output.curl_usage": "Utilização segura com curl: curl --cacert %s --config %s https://%s/openapi.json",
+  "rest.verify_only.output.active": "Validador GrxFirma (apenas verificação) ativo em https://%s",
+  "rest.verify_only.output.routes": "Rotas publicadas: GET /health, POST /verify; POST /v2/verify",
+  "rest.verify_only.output.anchors": "Âncoras de confiança locais: %d",
+  "rest.verify_only.output.crl_local": "Revogação: CRL locais",
+  "rest.verify_only.output.crl_none": "Revogação: sem CRL locais; apenas evidências incorporadas na assinatura",
+  "rest.verify_only.output.remote_disabled": "Extensões remotas (OCSP, TSA): desativadas",
+  "rest.verify_only.error.config": "erro na configuração de verificação: %v",
+  "rest.verify_only.error.security": "erro de segurança no validador: %v",
+  "rest.verify_only.error.listen": "erro ao abrir o validador: %v",
+  "rest.verify_only.error.config_dir": "não foi possível resolver o diretório de configuração",
+  "rest.verify_only.error.token": "erro ao gerar a credencial REST: %v",
+  "rest.verify_only.error.anchors_required": "o modo apenas verificação exige -verificacion-anclas <ficheiro|diretório>",
+  "rest.verify_only.error.fingerprints": "o modo apenas verificação não admite -huellas-cert-rest; use GRXFIRMA_REST_TOKEN",
+  "rest.verify_only.error.not_loopback": "o endereço %q não é loopback; use -rest-publico apenas se pretender expor o validador deliberadamente",
+  "rest.verify_only.error.token_required": "a exposição do validador fora de loopback exige GRXFIRMA_REST_TOKEN",
   " + base64": " + base64",
   " certificado(s).": " certificado(s).",
   " con conexiones seguras activas.": " con conexiones seguras activas.",
@@ -2729,4 +2744,6 @@
   ,"Novedades de GrxFirma %1": "Novidades do GrxFirma %1"
   ,"Entendido": "Entendido"
   ,"Actualizado a %1: ver novedades": "Atualizado para %1: ver novidades"
+  ,"revocación no concluyente": "Não foi possível verificar a revogação do certificado. A assinatura não é considerada válida."
+  ,"rest.verify_v2.error.limit": "O limite de verificação v2 está fora do intervalo permitido"
 }

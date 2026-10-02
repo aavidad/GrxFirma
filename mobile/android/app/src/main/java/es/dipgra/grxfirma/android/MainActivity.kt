@@ -35,6 +35,7 @@ import es.dipgra.grxfirma.android.ui.MainUiState
 import es.dipgra.grxfirma.android.ui.MainViewModel
 import es.dipgra.grxfirma.android.ui.OperationResult
 import es.dipgra.grxfirma.android.ui.UiEffect
+import es.dipgra.grxfirma.android.ui.UiText
 import es.dipgra.grxfirma.android.ui.resolve
 import kotlinx.coroutines.launch
 import java.io.File
@@ -278,7 +279,14 @@ class MainActivity : AppCompatActivity() {
             }
             is OperationResult.Success -> {
                 resultTitle.text = result.title.resolve(this@MainActivity)
-                resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.primary))
+                val verification = result.detail as? UiText.Verification
+                val color = when {
+                    verification == null -> R.color.primary
+                    !verification.valid || verification.integrityStatus == "invalid" -> R.color.error
+                    verification.accredited() -> R.color.primary
+                    else -> R.color.status_warning
+                }
+                resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, color))
                 renderDetail(result.detail?.resolve(this@MainActivity))
             }
             is OperationResult.Error -> {

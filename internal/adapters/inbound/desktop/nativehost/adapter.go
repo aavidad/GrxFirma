@@ -134,10 +134,11 @@ type certificateJSON struct {
 }
 
 type verifyResultJSON struct {
-	Valid   bool     `json:"valid"`
-	Reason  string   `json:"reason,omitempty"`
-	Details []string `json:"details,omitempty"`
-	Signers []string `json:"signers,omitempty"`
+	Valid             bool     `json:"valid"`
+	Reason            string   `json:"reason,omitempty"`
+	Details           []string `json:"details,omitempty"`
+	Signers           []string `json:"signers,omitempty"`
+	CertificateStatus string   `json:"certificateStatus,omitempty"`
 }
 
 // ServeOnce procesa una unica peticion Native Messaging sobre stdin/stdout.
@@ -419,10 +420,11 @@ func (a *Adaptador) handleVerify(ctx context.Context, reqID string, req request)
 		RequestID: reqID,
 		Success:   true,
 		Result: &verifyResultJSON{
-			Valid:   result.Verification.Valid,
-			Reason:  result.Verification.Reason,
-			Details: result.Verification.Details,
-			Signers: signers,
+			Valid:             result.Verification.Valid,
+			Reason:            result.Verification.Reason,
+			Details:           result.Verification.Details,
+			Signers:           signers,
+			CertificateStatus: string(result.Verification.Certificate.Status),
 		},
 		Chunk: 0,
 	}})

@@ -118,5 +118,6 @@
   },
   "optionsManagedPermissionMissing": {
     "message": "Your organisation must grant access to this site before it can be used."
-  }
+  },
+  "revocationInconclusive": {"message": "Certificate revocation could not be checked. The signature is not considered valid."}
 }

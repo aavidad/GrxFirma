@@ -132,6 +132,21 @@
   "rest.help.private_delivery": "Un gestionnaire de secrets peut injecter GRXFIRMA_REST_TOKEN. Si le jeton est généré automatiquement, seul le chemin d'un fichier privé et éphémère pour curl --config est affiché.",
   "rest.output.bearer_file": "Identifiant Bearer éphémère : fichier privé %s",
   "rest.output.curl_usage": "Utilisation sécurisée de curl : curl --cacert %s --config %s https://%s/openapi.json",
+  "rest.verify_only.output.active": "Validateur GrxFirma (vérification uniquement) actif sur https://%s",
+  "rest.verify_only.output.routes": "Routes publiées : GET /health, POST /verify; POST /v2/verify",
+  "rest.verify_only.output.anchors": "Ancres de confiance locales : %d",
+  "rest.verify_only.output.crl_local": "Révocation : CRL locales",
+  "rest.verify_only.output.crl_none": "Révocation : aucune CRL locale ; uniquement les preuves intégrées à la signature",
+  "rest.verify_only.output.remote_disabled": "Extensions distantes (OCSP, TSA) : désactivées",
+  "rest.verify_only.error.config": "erreur de configuration de la vérification : %v",
+  "rest.verify_only.error.security": "erreur de sécurité du validateur : %v",
+  "rest.verify_only.error.listen": "erreur à l’ouverture du validateur : %v",
+  "rest.verify_only.error.config_dir": "impossible de résoudre le répertoire de configuration",
+  "rest.verify_only.error.token": "erreur lors de la génération de l’identifiant REST : %v",
+  "rest.verify_only.error.anchors_required": "le mode vérification uniquement exige -verificacion-anclas <fichier|répertoire>",
+  "rest.verify_only.error.fingerprints": "le mode vérification uniquement n’accepte pas -huellas-cert-rest ; utilisez GRXFIRMA_REST_TOKEN",
+  "rest.verify_only.error.not_loopback": "l’adresse %q n’est pas loopback ; utilisez -rest-publico uniquement pour exposer délibérément le validateur",
+  "rest.verify_only.error.token_required": "l’exposition du validateur hors loopback exige GRXFIRMA_REST_TOKEN",
   " + base64": " + base64",
   " certificado(s).": " certificado(s).",
   " con conexiones seguras activas.": " con conexiones seguras activas.",
@@ -2729,4 +2744,6 @@
   ,"Novedades de GrxFirma %1": "Nouveautés de GrxFirma %1"
   ,"Entendido": "Compris"
   ,"Actualizado a %1: ver novedades": "Mis à jour vers %1 : voir les nouveautés"
+  ,"revocación no concluyente": "La révocation du certificat n’a pas pu être vérifiée. La signature n’est pas considérée comme valide."
+  ,"rest.verify_v2.error.limit": "La limite de vérification v2 est hors de la plage autorisée"
 }

@@ -66,7 +66,7 @@ func TestXAdESVerifier_VerificaFixtureQA(t *testing.T) {
 	}
 
 	verifier := NewXAdESVerifier()
-	vr, signers, err := verifier.Verify(context.Background(), doc, domain.CertificateChain{})
+	vr, signers, err := verifier.Verify(context.WithValue(context.Background(), offlineVerificationContextKey{}, true), doc, domain.CertificateChain{})
 	if err != nil {
 		t.Fatalf("verificando fixture QA: %v", err)
 	}
@@ -74,8 +74,11 @@ func TestXAdESVerifier_VerificaFixtureQA(t *testing.T) {
 	// canonicalizador histórico (véase la regresión de digest específica).
 	// Se conserva su diagnóstico y certificado, no un éxito XML estándar.
 	requireCompatibility(t, vr)
-	if !(vr.Certificate.Status == domain.VerificationStatusValid || (vr.Certificate.Status == domain.VerificationStatusWarning && strings.Contains(vr.Certificate.Reason, "revocación"))) {
-		t.Fatalf("el certificado oficial de pruebas debe constar como vigente: %+v", vr.Certificate)
+	if vr.Certificate.Status != domain.VerificationStatusUnknown && vr.Certificate.Status != domain.VerificationStatusWarning {
+		t.Fatalf("el certificado oficial de pruebas debe quedar sin revocación acreditada: %+v", vr.Certificate)
+	}
+	if vr.Valid || !strings.Contains(vr.Certificate.Reason, "revocación") {
+		t.Fatalf("la muestra sin revocación acreditada no puede declararse válida: %+v", vr)
 	}
 	if len(signers) != 1 {
 		t.Fatalf("se esperaba un firmante QA, obtenidos %d", len(signers))

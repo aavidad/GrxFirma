@@ -16,6 +16,15 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/localtlstrust"
 )
 
+func TestPoliticasTLSRestYVerificacionAislada(t *testing.T) {
+	if got := serverTLSConfig(tls.Certificate{}, tls.VersionTLS12).MinVersion; got != tls.VersionTLS12 {
+		t.Fatalf("REST normal: MinVersion=%#x", got)
+	}
+	if got := serverTLSConfig(tls.Certificate{}, tls.VersionTLS13).MinVersion; got != tls.VersionTLS13 {
+		t.Fatalf("solo verificación: MinVersion=%#x", got)
+	}
+}
+
 func TestEnsureLocalhostCertificateWithLocalCAProtegeYReutilizaClaveRaiz(t *testing.T) {
 	dir := t.TempDir()
 	const prefix = "prueba"

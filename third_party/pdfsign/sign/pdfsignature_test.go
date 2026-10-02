@@ -1,6 +1,7 @@
 package sign
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -19,7 +20,7 @@ var signatureTests = []struct {
 		expectedSignatures: map[CertType]string{
 			CertificationSignature: "<<\n /Type /Sig\n /Filter /Adobe.PPKLite\n /SubFilter /adbe.pkcs7.detached\n /Prop_Build <<\n   /App << /Name /Digitorus#20PDFSign >>\n >>\n /ByteRange[0 ********** ********** **********] /Contents<>\n /Reference [\n << /Type /SigRef\n /TransformMethod /DocMDP\n /TransformParams <<\n   /Type /TransformParams\n   /P 2   /V /1.2\n   >>\n >> ] /Name (John Doe)\n /Location (Somewhere)\n /Reason (Test)\n /ContactInfo (None)\n /M (D:20170923143900+03'00')\n>>\n",
 			UsageRightsSignature:   "<<\n /Type /Sig\n /Filter /Adobe.PPKLite\n /SubFilter /adbe.pkcs7.detached\n /Prop_Build <<\n   /App << /Name /Digitorus#20PDFSign >>\n >>\n /ByteRange[0 ********** ********** **********] /Contents<>\n /Reference [\n << /Type /SigRef\n   /TransformMethod /UR3\n   /TransformParams <<\n     /Type /TransformParams\n     /V /2.2\n   >>\n >> ] /Name (John Doe)\n /Location (Somewhere)\n /Reason (Test)\n /ContactInfo (None)\n /M (D:20170923143900+03'00')\n>>\n",
-			ApprovalSignature:      "<<\n /Type /Sig\n /Filter /Adobe.PPKLite\n /SubFilter /adbe.pkcs7.detached\n /Prop_Build <<\n   /App << /Name /Digitorus#20PDFSign >>\n >>\n /ByteRange[0 ********** ********** **********] /Contents<>\n   /TransformMethod /FieldMDP\n   /TransformParams <<\n     /Type /TransformParams\n     /Action /All\n     /V /1.2\n >>\n /Name (John Doe)\n /Location (Somewhere)\n /Reason (Test)\n /ContactInfo (None)\n /M (D:20170923143900+03'00')\n>>\n",
+			ApprovalSignature:      "<<\n /Type /Sig\n /Filter /Adobe.PPKLite\n /SubFilter /adbe.pkcs7.detached\n /Prop_Build <<\n   /App << /Name /Digitorus#20PDFSign >>\n >>\n /ByteRange[0 ********** ********** **********] /Contents<>\n /Name (John Doe)\n /Location (Somewhere)\n /Reason (Test)\n /ContactInfo (None)\n /M (D:20170923143900+03'00')\n>>\n",
 		},
 	},
 }
@@ -95,5 +96,17 @@ func TestCreateSignaturePlaceholderDefaultsToETSICAdESDetached(t *testing.T) {
 	signature := string(context.createSignaturePlaceholder())
 	if !strings.Contains(signature, "/SubFilter /ETSI.CAdES.detached") {
 		t.Fatalf("default signature subfilter is not ETSI CAdES detached:\n%s", signature)
+	}
+}
+
+func TestApprovalSignature_FieldMDPRequiresExplicitOption(t *testing.T) {
+	ctx := SignContext{SignData: SignData{Signature: SignDataSignature{CertType: ApprovalSignature}}}
+	if bytes.Contains(ctx.createSignaturePlaceholder(), []byte("/FieldMDP")) {
+		t.Fatal("una aprobación corriente no debe bloquear futuras firmas")
+	}
+	ctx.SignData.Signature.FieldMDPAll = true
+	locked := ctx.createSignaturePlaceholder()
+	if !bytes.Contains(locked, []byte("/TransformMethod /FieldMDP")) || !bytes.Contains(locked, []byte("/Action /All")) {
+		t.Fatal("falta el bloqueo FieldMDP solicitado")
 	}
 }

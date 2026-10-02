@@ -132,6 +132,21 @@
   "rest.help.private_delivery": "Un gestor de secrets pot injectar GRXFIRMA_REST_TOKEN. Si el testimoni es genera automàticament, només es mostra la ruta d'un fitxer privat i efímer per a curl --config.",
   "rest.output.bearer_file": "Credencial Bearer efímera: fitxer privat %s",
   "rest.output.curl_usage": "Ús segur amb curl: curl --cacert %s --config %s https://%s/openapi.json",
+  "rest.verify_only.output.active": "Validador GrxFirma (només verificació) actiu en https://%s",
+  "rest.verify_only.output.routes": "Rutes publicades: GET /health, POST /verify; POST /v2/verify",
+  "rest.verify_only.output.anchors": "Àncores de confiança locals: %d",
+  "rest.verify_only.output.crl_local": "Revocació: CRL locals",
+  "rest.verify_only.output.crl_none": "Revocació: sense CRL locals; només evidències incrustades en la firma",
+  "rest.verify_only.output.remote_disabled": "Extensions remotes (OCSP, TSA): desactivades",
+  "rest.verify_only.error.config": "error en la configuració de verificació: %v",
+  "rest.verify_only.error.security": "error de seguretat en el validador: %v",
+  "rest.verify_only.error.listen": "error obrint el validador: %v",
+  "rest.verify_only.error.config_dir": "no s'ha pogut resoldre el directori de configuració",
+  "rest.verify_only.error.token": "error generant la credencial REST: %v",
+  "rest.verify_only.error.anchors_required": "el mode només verificació exigix -verificacion-anclas <fitxer|directori>",
+  "rest.verify_only.error.fingerprints": "el mode només verificació no admet -huellas-cert-rest; utilitzeu GRXFIRMA_REST_TOKEN",
+  "rest.verify_only.error.not_loopback": "l'adreça %q no és loopback; utilitzeu -rest-publico només si voleu exposar el validador deliberadament",
+  "rest.verify_only.error.token_required": "l'exposició del validador fora de loopback exigix GRXFIRMA_REST_TOKEN",
   " + base64": " + base64",
   " certificado(s).": " certificado(s).",
   " con conexiones seguras activas.": " con conexiones seguras activas.",
@@ -2729,4 +2744,6 @@
   ,"Novedades de GrxFirma %1": "Novetats de GrxFirma %1"
   ,"Entendido": "Entés"
   ,"Actualizado a %1: ver novedades": "Actualitzat a %1: vore novetats"
+  ,"revocación no concluyente": "No s’ha pogut comprovar la revocació del certificat. La signatura no es considera vàlida."
+  ,"rest.verify_v2.error.limit": "El límit de verificació v2 està fora de l’interval permés"
 }

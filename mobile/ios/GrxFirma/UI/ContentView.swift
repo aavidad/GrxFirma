@@ -204,7 +204,7 @@ struct ContentView: View {
                 )
                 .font(.headline)
                 .foregroundStyle(verificationColor(verification))
-                Text(verification.reason)
+                Text(verification.reason == "revocación no concluyente" ? revocationMessage() : verification.reason)
                 if !verification.format.isEmpty {
                     LabeledContent("Formato", value: verification.format)
                 }
@@ -282,24 +282,45 @@ struct ContentView: View {
     }
 
     private func verificationTitle(_ result: VerificationSummary) -> String {
+        if result.reason == "revocación no concluyente" { return revocationTitle() }
         guard result.valid else { return "Firma no válida" }
-        let trust = result.trustStatus.lowercased()
-        if ["valid", "trusted", "ok"].contains(trust) {
+        if hasAccreditedVerification(result) {
             return "Firma válida y confiable"
         }
-        return "Integridad válida; confianza no evaluada"
+        if result.integrityStatus.lowercased() == "valid" {
+            return "Integridad válida; certificado o confianza no acreditados"
+        }
+        return "Verificación incompleta"
     }
 
     private func verificationIcon(_ result: VerificationSummary) -> String {
+        if result.reason == "revocación no concluyente" { return "questionmark.diamond.fill" }
         guard result.valid else { return "xmark.seal.fill" }
-        return ["valid", "trusted", "ok"].contains(result.trustStatus.lowercased())
+        return hasAccreditedVerification(result)
             ? "checkmark.seal.fill"
             : "questionmark.diamond.fill"
     }
 
     private func verificationColor(_ result: VerificationSummary) -> Color {
+        if result.reason == "revocación no concluyente" { return .orange }
         guard result.valid else { return .red }
-        return ["valid", "trusted", "ok"].contains(result.trustStatus.lowercased()) ? .green : .orange
+        return hasAccreditedVerification(result) ? .green : .orange
+    }
+
+    private func revocationTitle() -> String {
+        Locale.current.language.languageCode?.identifier == "en" ? "Revocation not established" : "Revocación no acreditada"
+    }
+
+    private func revocationMessage() -> String {
+        Locale.current.language.languageCode?.identifier == "en"
+            ? "Certificate revocation could not be checked. The signature is not considered valid."
+            : "No se pudo comprobar la revocación del certificado. La firma no se considera válida."
+    }
+
+    private func hasAccreditedVerification(_ result: VerificationSummary) -> Bool {
+        result.integrityStatus.lowercased() == "valid" &&
+        result.certificateStatus.lowercased() == "valid" &&
+        result.trustStatus.lowercased() == "valid"
     }
 
     private var certificateTypes: [UTType] {

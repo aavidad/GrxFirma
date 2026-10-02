@@ -132,6 +132,21 @@
   "rest.help.private_delivery": "机密管理器可以注入 GRXFIRMA_REST_TOKEN。自动生成令牌时，只会显示供 curl --config 使用的私密临时文件路径。",
   "rest.output.bearer_file": "临时 Bearer 凭据：私密文件 %s",
   "rest.output.curl_usage": "安全使用 curl：curl --cacert %s --config %s https://%s/openapi.json",
+  "rest.verify_only.output.active": "GrxFirma 验证器（仅验证）运行于 https://%s",
+  "rest.verify_only.output.routes": "已发布路由：GET /health, POST /verify; POST /v2/verify",
+  "rest.verify_only.output.anchors": "本地信任锚：%d",
+  "rest.verify_only.output.crl_local": "吊销：本地 CRL",
+  "rest.verify_only.output.crl_none": "吊销：无本地 CRL；仅使用签名中嵌入的证据",
+  "rest.verify_only.output.remote_disabled": "远程扩展（OCSP、TSA）：已禁用",
+  "rest.verify_only.error.config": "验证配置错误：%v",
+  "rest.verify_only.error.security": "验证器安全错误：%v",
+  "rest.verify_only.error.listen": "打开验证器时出错：%v",
+  "rest.verify_only.error.config_dir": "无法解析配置目录",
+  "rest.verify_only.error.token": "生成 REST 凭据时出错：%v",
+  "rest.verify_only.error.anchors_required": "仅验证模式需要 -verificacion-anclas <文件|目录>",
+  "rest.verify_only.error.fingerprints": "仅验证模式不接受 -huellas-cert-rest；请使用 GRXFIRMA_REST_TOKEN",
+  "rest.verify_only.error.not_loopback": "地址 %q 不是回环地址；仅在有意公开验证器时使用 -rest-publico",
+  "rest.verify_only.error.token_required": "在回环地址之外公开验证器需要 GRXFIRMA_REST_TOKEN",
   " + base64": " + base64",
   " certificado(s).": " certificado(s).",
   " con conexiones seguras activas.": " con conexiones seguras activas.",
@@ -2729,4 +2744,6 @@
   ,"Novedades de GrxFirma %1": "GrxFirma %1 更新内容"
   ,"Entendido": "知道了"
   ,"Actualizado a %1: ver novedades": "已更新至 %1：查看更新内容"
+  ,"revocación no concluyente": "无法核实证书吊销状态。此签名不视为有效。"
+  ,"rest.verify_v2.error.limit": "v2 验证限制超出允许范围"
 }

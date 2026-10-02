@@ -88,31 +88,12 @@ func (context *SignContext) createSignaturePlaceholder() []byte {
 		signature_buffer.WriteString("     /Type /TransformParams\n")
 		signature_buffer.WriteString("     /V /2.2\n")
 
-	// Approval signatures (also known as recipient signatures)
+	// Approval signatures do not impose a FieldMDP lock by default. An /All
+	// lock would forbid the next approval signature in a sequential workflow.
 	case ApprovalSignature:
-		// Used to detect modifications to a list of form fields specified in TransformParams; see
-		// 12.8.2.4, "FieldMDP"
-		signature_buffer.WriteString("   /TransformMethod /FieldMDP\n")
-
-		// Entries in the FieldMDP transform parameters dictionary (Table 259)
-		signature_buffer.WriteString("   /TransformParams <<\n")
-
-		// Type [name]: (Optional) The type of PDF object that this dictionary describes;
-		//   if present, shall be TransformParams for a transform parameters dictionary.
-		signature_buffer.WriteString("     /Type /TransformParams\n")
-
-		// Action [name]: (Required) A name that, along with the Fields array, describes
-		//   which form fields do not permit changes after the signature is applied.
-		//   Valid values shall be:
-		//     All - All form fields
-		//     Include - Only those form fields specified in Fields.
-		//     Exclude - Only those form fields not specified in Fields.
-		signature_buffer.WriteString("     /Action /All\n")
-
-		// V [name]: (Optional; required for PDF 1.5 and later) The transform parameters
-		//   dictionary version. The value for PDF 1.5 and later shall be 1.2.
-		//   Default value: 1.2. (This value is a name object, not a number.)
-		signature_buffer.WriteString("     /V /1.2\n")
+		if context.SignData.Signature.FieldMDPAll {
+			signature_buffer.WriteString(" /Reference [\n << /Type /SigRef\n /TransformMethod /FieldMDP\n /TransformParams <<\n   /Type /TransformParams\n   /Action /All\n   /V /1.2\n")
+		}
 	}
 
 	// (Required) A name identifying the algorithm that shall be used when computing the digest if not specified in the
@@ -137,11 +118,10 @@ func (context *SignContext) createSignaturePlaceholder() []byte {
 		signature_buffer.WriteString("   >>\n") // close TransformParams
 		signature_buffer.WriteString(" >>")     // close SigRef
 		signature_buffer.WriteString(" ]")      // end of reference
-	}
-
-	switch context.SignData.Signature.CertType {
 	case ApprovalSignature:
-		signature_buffer.WriteString(" >>\n")
+		if context.SignData.Signature.FieldMDPAll {
+			signature_buffer.WriteString("   >>\n >> ]")
+		}
 	}
 
 	if context.SignData.Signature.Info.Name != "" {

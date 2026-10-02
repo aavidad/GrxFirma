@@ -132,6 +132,21 @@
   "rest.help.private_delivery": "A secret manager can inject GRXFIRMA_REST_TOKEN. If the token is generated automatically, only the path to a private ephemeral file for curl --config is shown.",
   "rest.output.bearer_file": "Ephemeral Bearer credential: private file %s",
   "rest.output.curl_usage": "Secure curl usage: curl --cacert %s --config %s https://%s/openapi.json",
+  "rest.verify_only.output.active": "GrxFirma validator (verification only) listening on https://%s",
+  "rest.verify_only.output.routes": "Published routes: GET /health, POST /verify; POST /v2/verify",
+  "rest.verify_only.output.anchors": "Local trust anchors: %d",
+  "rest.verify_only.output.crl_local": "Revocation: local CRLs",
+  "rest.verify_only.output.crl_none": "Revocation: no local CRLs; only evidence embedded in the signature",
+  "rest.verify_only.output.remote_disabled": "Remote extensions (OCSP, TSA): disabled",
+  "rest.verify_only.error.config": "verification configuration error: %v",
+  "rest.verify_only.error.security": "validator security error: %v",
+  "rest.verify_only.error.listen": "error opening the validator: %v",
+  "rest.verify_only.error.config_dir": "could not resolve the configuration directory",
+  "rest.verify_only.error.token": "error generating the REST credential: %v",
+  "rest.verify_only.error.anchors_required": "verification-only mode requires -verificacion-anclas <file|directory>",
+  "rest.verify_only.error.fingerprints": "verification-only mode does not accept -huellas-cert-rest; use GRXFIRMA_REST_TOKEN",
+  "rest.verify_only.error.not_loopback": "address %q is not loopback; use -rest-publico only to expose the validator deliberately",
+  "rest.verify_only.error.token_required": "exposing the validator outside loopback requires GRXFIRMA_REST_TOKEN",
   " + base64": " + base64",
   " certificado(s).": " certificate(s).",
   " con conexiones seguras activas.": " con conexiones seguras activas.",
@@ -2729,4 +2744,6 @@
   ,"Novedades de GrxFirma %1": "What’s new in GrxFirma %1"
   ,"Entendido": "Got it"
   ,"Actualizado a %1: ver novedades": "Updated to %1: see what’s new"
+  ,"revocación no concluyente": "Certificate revocation could not be checked. The signature is not considered valid."
+  ,"rest.verify_v2.error.limit": "Verification v2 limit is outside the permitted range"
 }

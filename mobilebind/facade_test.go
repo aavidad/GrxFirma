@@ -144,11 +144,12 @@ func TestFacadeVerifyJSON(t *testing.T) {
 
 	facade := newFacade(nil, verifyServiceMock{result: application.VerifyResult{
 		Verification: domain.VerificationResult{
-			Valid:    true,
-			Reason:   "ok",
-			Details:  []string{"cadena valida"},
-			Format:   string(domain.FormatPAdES),
-			Coverage: "full",
+			Valid:       true,
+			Reason:      "ok",
+			Details:     []string{"cadena valida"},
+			Certificate: domain.VerificationAspect{Status: domain.VerificationStatusUnknown},
+			Format:      string(domain.FormatPAdES),
+			Coverage:    "full",
 			SignerSummaries: []domain.VerificationSignerSummary{{
 				ID:          "cert-1",
 				Subject:     "CN=Alice",
@@ -174,6 +175,9 @@ func TestFacadeVerifyJSON(t *testing.T) {
 	}
 	if resp.Format != string(domain.FormatPAdES) || resp.Coverage != "full" {
 		t.Fatalf("metadatos de verificación inesperados: %+v", resp)
+	}
+	if resp.CertificateStatus != "unknown" {
+		t.Fatalf("certificate_status = %q", resp.CertificateStatus)
 	}
 	if len(resp.SignerSummaries) != 1 || resp.SignerSummaries[0].Subject != "CN=Alice" {
 		t.Fatalf("signer_summaries inesperado: %+v", resp)

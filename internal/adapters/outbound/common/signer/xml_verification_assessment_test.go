@@ -79,8 +79,7 @@ func requireCompatibility(t *testing.T, result domain.VerificationResult) {
 	if result.Coverage == "full" || strings.Contains(strings.Join(result.Details, ";"), "referencias=ok") {
 		t.Fatalf("éxito contradictorio en compatibilidad: %+v", result)
 	}
-	if result.Certificate.Status != domain.VerificationStatusValid &&
-		!(result.Certificate.Status == domain.VerificationStatusWarning && strings.Contains(result.Certificate.Reason, "revocación")) {
+	if result.Certificate.Status != domain.VerificationStatusUnknown && result.Certificate.Status != domain.VerificationStatusWarning {
 		t.Fatalf("se perdieron datos de certificado: %+v", result.Certificate)
 	}
 }

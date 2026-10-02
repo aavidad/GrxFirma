@@ -165,6 +165,23 @@ func openAPIDocument(certificateAuthEnabled, identidadHabilitada bool) map[strin
 					},
 				},
 			},
+			"/v2/verify": map[string]any{
+				"post": map[string]any{
+					"summary":     "Dictamen PAdES por firma y revisión (contrato autofirmav2.dictamen-verificacion.v2)",
+					"description": "Esquema cerrado 2.0.0 en docs/schema/dictamen-verificacion-v2.schema.json; SHA-256 ef4c621ca6d968061ed63428073bc53c501d41e2f21e357a7f5ad10f39a94dae",
+					"requestBody": jsonRequestBody(map[string]any{
+						"type": "object", "additionalProperties": false,
+						"required": []string{"content_base64"},
+						"properties": map[string]any{
+							"name":                    map[string]any{"type": "string"},
+							"content_base64":          map[string]any{"type": "string"},
+							"original_content_base64": map[string]any{"type": "string"},
+							"contrato_solicitado":     map[string]any{"type": "string", "enum": []string{"autofirmav2.dictamen-verificacion.v2"}},
+						},
+					}),
+					"responses": map[string]any{"200": map[string]any{"description": "Envoltura con dictamen v2; consulte el esquema cerrado publicado"}},
+				},
+			},
 			"/select-certificate": map[string]any{
 				"post": map[string]any{
 					"summary": "Selecciona un certificado",
@@ -411,11 +428,12 @@ func verifyResponseSchema() map[string]any {
 	return map[string]any{
 		"type": "object",
 		"properties": map[string]any{
-			"ok":      map[string]any{"type": "boolean"},
-			"valid":   map[string]any{"type": "boolean"},
-			"reason":  map[string]any{"type": "string"},
-			"details": map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
-			"signers": map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
+			"ok":       map[string]any{"type": "boolean"},
+			"valid":    map[string]any{"type": "boolean"},
+			"reason":   map[string]any{"type": "string"},
+			"details":  map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
+			"signers":  map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
+			"dictamen": dictamenSchema(),
 			"result": map[string]any{
 				"type": "object",
 				"properties": map[string]any{
@@ -608,6 +626,68 @@ func signOptionsSchema() map[string]any {
 				"visibleSealRectW": "260",
 				"visibleSealRectH": "84",
 				"qrContent":        "EXP:2026/0001",
+			},
+		},
+	}
+}
+
+// dictamenSchema documenta el contrato autofirmav2.dictamen-verificacion.v1.
+func dictamenSchema() map[string]any {
+	aspecto := func(estados ...string) map[string]any {
+		return map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"estado": map[string]any{"type": "string", "enum": estados},
+				"motivo": map[string]any{"type": "string"},
+				"fuente": map[string]any{"type": "string"},
+				"fecha":  map[string]any{"type": "string", "format": "date-time"},
+			},
+		}
+	}
+	cadena := aspecto("valida", "no_valida", "no_comprobada")
+	certificado := aspecto("vigente", "no_vigente", "uso_no_permitido", "no_comprobado")
+	revocacion := aspecto("vigente", "revocado", "no_comprobada")
+	sello := aspecto("no_presente", "valido", "no_valido", "no_comprobado")
+	return map[string]any{
+		"type":        "object",
+		"description": "Dictamen explícito de verificación autónoma. Solo estado=valida con motivo=verificada acredita la firma.",
+		"properties": map[string]any{
+			"contrato":                map[string]any{"type": "string", "enum": []string{"autofirmav2.dictamen-verificacion.v1"}},
+			"estado":                  map[string]any{"type": "string", "enum": []string{"valida", "no_valida", "indeterminada"}},
+			"motivo":                  map[string]any{"type": "string"},
+			"formato":                 map[string]any{"type": "string"},
+			"comprobadoEn":            map[string]any{"type": "string", "format": "date-time"},
+			"integridad":              aspecto("valida", "parcial", "no_valida"),
+			"cadena":                  cadena,
+			"certificado":             certificado,
+			"revocacion":              revocacion,
+			"selloTiempo":             sello,
+			"vinculoOriginal":         aspecto("acreditado", "no_acreditado", "no_aportado"),
+			"huellaFirmadoSHA256":     map[string]any{"type": "string"},
+			"huellaOriginalSHA256":    map[string]any{"type": "string"},
+			"certificadoHuellaSHA256": map[string]any{"type": "string"},
+			"firmantes": map[string]any{
+				"type": "array",
+				"items": map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"certificadoHuellaSHA256": map[string]any{"type": "string"},
+						"serie":                   map[string]any{"type": "string"},
+						"asunto":                  map[string]any{"type": "string"},
+						"emisor":                  map[string]any{"type": "string"},
+						"cadena":                  cadena,
+						"certificado":             certificado,
+						"revocacion":              revocacion,
+						"selloTiempo":             sello,
+					},
+				},
+			},
+			"extensiones": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"revocacionRemota":  map[string]any{"type": "string", "enum": []string{"desactivada", "activa"}},
+					"selloTiempoRemoto": map[string]any{"type": "string", "enum": []string{"desactivada", "activa"}},
+				},
 			},
 		},
 	}

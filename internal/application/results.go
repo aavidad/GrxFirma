@@ -52,6 +52,10 @@ type VerifyResult struct {
 
 	// Firmantes contiene la lista de certificados firmantes encontrados.
 	Firmantes []domain.CertificateRef
+
+	// Dictamen es el resultado explícito de la evaluación autónoma. Es nil
+	// cuando no hay evaluador configurado.
+	Dictamen *domain.DictamenVerificacion
 }
 
 // ProtectResult resume la protección/cifrado de un documento.

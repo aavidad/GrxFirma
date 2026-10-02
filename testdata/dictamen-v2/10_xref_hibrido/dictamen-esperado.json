@@ -1,0 +1,133 @@
+{
+  "contrato": "autofirmav2.dictamen-verificacion.v2",
+  "estado": "indeterminada",
+  "motivo": "cambios_no_comprobados",
+  "formato": "PAdES",
+  "comprobadoEn": "2026-10-02T19:46:48Z",
+  "integridad": {
+    "estado": "valida"
+  },
+  "cadena": {
+    "estado": "valida",
+    "fuente": "anclas_locales"
+  },
+  "certificado": {
+    "estado": "vigente",
+    "fecha": "2035-01-01T00:00:00Z"
+  },
+  "revocacion": {
+    "estado": "vigente",
+    "fuente": "crl_local",
+    "fecha": "2026-10-02T19:46:48Z"
+  },
+  "selloTiempo": {
+    "estado": "no_presente"
+  },
+  "vinculoOriginal": {
+    "estado": "acreditado",
+    "fuente": "pades_revision"
+  },
+  "huellaFirmadoSHA256": "4ebdb1ff778872f58111946f36f633739321b23fbda8c4e5c0627387c0fae3e3",
+  "huellaOriginalSHA256": "e45da948f71fcc1bced76a652e5744b336a6ad72e4513686117f36fa846fe567",
+  "extensiones": {
+    "revocacionRemota": "desactivada",
+    "selloTiempoRemoto": "desactivada"
+  },
+  "firmas": [
+    {
+      "orden": 1,
+      "byteRange": [
+        0,
+        666,
+        5362,
+        964
+      ],
+      "revisionHuellaSHA256": "2cf7c5940c046ce92191a47132f071c762f788c5eafc9e052966815d4d55ea29",
+      "contenidoFirmadoHuellaSHA256": "bf6f129f6e94567c9ad67c348d81fb1ae42c024aee532921c5712d9e720b3de8",
+      "revisionLongitud": 6326,
+      "cubreDocumentoCompletoHastaAqui": true,
+      "integridad": {
+        "estado": "valida"
+      },
+      "certificadoHuellaSHA256": "b8fe8aa9b940d6970a66db4cfb4666e3a8186f6976246826888f34f1caae520f",
+      "serie": "3",
+      "asunto": "CN=GrxFirma v2 sintética firmante-a",
+      "emisor": "CN=GrxFirma v2 sintética intermedia",
+      "cadena": {
+        "estado": "valida",
+        "fuente": "anclas_locales"
+      },
+      "certificado": {
+        "estado": "vigente",
+        "fecha": "2035-01-01T00:00:00Z"
+      },
+      "revocacion": {
+        "estado": "vigente",
+        "fuente": "crl_local",
+        "fecha": "2026-10-02T19:46:48Z"
+      },
+      "selloTiempo": {
+        "estado": "no_presente"
+      },
+      "tipoFirma": "aprobacion",
+      "nivelDocMDP": null,
+      "cambiosDesdeAnterior": {
+        "estado": "permitidos",
+        "detalle": [
+          "firma_anadida"
+        ]
+      }
+    },
+    {
+      "orden": 2,
+      "byteRange": [
+        0,
+        6527,
+        11223,
+        979
+      ],
+      "revisionHuellaSHA256": "2bcd59a11d895ac836d4f7d1ed2d544e915bfaa4260876af68ea51bc8cea9812",
+      "contenidoFirmadoHuellaSHA256": "96dccd8d68ff64202a47e0032ed6b6fae1b9fa529a3c280e5fe8bb1bf63ba02f",
+      "revisionLongitud": 12202,
+      "cubreDocumentoCompletoHastaAqui": true,
+      "integridad": {
+        "estado": "valida"
+      },
+      "certificadoHuellaSHA256": "2a4d9a978bc151a04549afd294cb328a25fd8d54ed85c5a79c7d4cf3f5a2bd06",
+      "serie": "4",
+      "asunto": "CN=GrxFirma v2 sintética firmante-b",
+      "emisor": "CN=GrxFirma v2 sintética intermedia",
+      "cadena": {
+        "estado": "valida",
+        "fuente": "anclas_locales"
+      },
+      "certificado": {
+        "estado": "vigente",
+        "fecha": "2035-01-01T00:00:00Z"
+      },
+      "revocacion": {
+        "estado": "vigente",
+        "fuente": "crl_local",
+        "fecha": "2026-10-02T19:46:48Z"
+      },
+      "selloTiempo": {
+        "estado": "no_presente"
+      },
+      "tipoFirma": "aprobacion",
+      "nivelDocMDP": null,
+      "cambiosDesdeAnterior": {
+        "estado": "permitidos",
+        "detalle": [
+          "firma_anadida"
+        ]
+      }
+    }
+  ],
+  "cambiosPosteriores": {
+    "estado": "no_comprobados",
+    "detalle": [
+      "objetos_activos_no_clasificados"
+    ],
+    "bytesNoFirmados": 230
+  }
+}

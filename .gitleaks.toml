@@ -9,6 +9,11 @@ title = "GrxFirma secret scanning policy"
 useDefault = true
 
 [[allowlists]]
+description = "Synthetic test PKI for the v2 verification cases; never trusted outside tests"
+targetRules = ["private-key"]
+paths = ['''^testdata/dictamen-v2/pki/[a-z-]+\.key\.pem$''']
+
+[[allowlists]]
 description = "WebSocket RFC 6455 nonces used only in protocol tests"
 targetRules = ["generic-api-key"]
 condition = "AND"

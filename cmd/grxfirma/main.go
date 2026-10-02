@@ -36,6 +36,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -130,6 +131,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	if restCfg.habilitado && restCfg.soloVerificacion {
+		os.Exit(runRESTSoloVerificacion(ctx, logger, restCfg))
+	}
 	if restCfg.habilitado {
 		code := runRESTServer(ctx, logger, rutaP12, password, rutaCert, rutaClave, restCfg)
 		os.Exit(code)
@@ -220,8 +224,20 @@ type restFlags struct {
 	sessionTTL          time.Duration
 	lifetime            time.Duration
 	permitirRemoto      bool
-	parseErr            error
+	// soloVerificacion publica únicamente GET /health y POST /verify.
+	soloVerificacion bool
+	// anclasVerificacion es un fichero o directorio de anclas locales.
+	anclasVerificacion string
+	// crlVerificacion es un directorio de CRL locales.
+	crlVerificacion string
+	v2MaxFirmas     int
+	v2MaxRevisiones int
+	v2MaxPDFMiB     int
+	v2MaxCuerpoMiB  int
+	parseErr        error
 }
+
+const unidadLimiteV2 = "MiB"
 
 type accionesDirectas struct {
 	ayudaDetallada         bool
@@ -298,6 +314,67 @@ func extraerFlagsREST(args []string) (cfg restFlags, resto []string) {
 			cfg.permitirRemoto = true
 			i++
 			continue
+		case "-rest-solo-verificacion", "--rest-solo-verificacion", "-rest-verify-only", "--rest-verify-only":
+			cfg.habilitado = true
+			cfg.soloVerificacion = true
+			i++
+			continue
+		case "-verificacion-anclas", "--verificacion-anclas", "-verify-anchors", "--verify-anchors":
+			if i+1 < len(args) {
+				cfg.anclasVerificacion = args[i+1]
+				i += 2
+				continue
+			}
+		case "-verificacion-crl", "--verificacion-crl", "-verify-crl-dir", "--verify-crl-dir":
+			if i+1 < len(args) {
+				cfg.crlVerificacion = args[i+1]
+				i += 2
+				continue
+			}
+		case "-verificacion-v2-max-firmas", "--verificacion-v2-max-firmas", "-verify-v2-max-signatures":
+			if i+1 < len(args) {
+				value, err := strconv.Atoi(args[i+1])
+				if err != nil || value < 1 || value > 20 {
+					cfg.parseErr = fmt.Errorf("%s: 1..20", localizador.Detectar().T("rest.verify_v2.error.limit"))
+				} else {
+					cfg.v2MaxFirmas = value
+				}
+				i += 2
+				continue
+			}
+		case "-verificacion-v2-max-revisiones", "--verificacion-v2-max-revisiones", "-verify-v2-max-revisions":
+			if i+1 < len(args) {
+				value, err := strconv.Atoi(args[i+1])
+				if err != nil || value < 1 || value > 20 {
+					cfg.parseErr = fmt.Errorf("%s: 1..20", localizador.Detectar().T("rest.verify_v2.error.limit"))
+				} else {
+					cfg.v2MaxRevisiones = value
+				}
+				i += 2
+				continue
+			}
+		case "-verificacion-v2-max-pdf-mib", "--verificacion-v2-max-pdf-mib", "-verify-v2-max-pdf-mib":
+			if i+1 < len(args) {
+				value, err := strconv.Atoi(args[i+1])
+				if err != nil || value < 1 || value > 100 {
+					cfg.parseErr = fmt.Errorf("%s: 1..100 %s", localizador.Detectar().T("rest.verify_v2.error.limit"), unidadLimiteV2)
+				} else {
+					cfg.v2MaxPDFMiB = value
+				}
+				i += 2
+				continue
+			}
+		case "-verificacion-v2-max-cuerpo-mib", "--verificacion-v2-max-cuerpo-mib", "-verify-v2-max-body-mib":
+			if i+1 < len(args) {
+				value, err := strconv.Atoi(args[i+1])
+				if err != nil || value < 1 || value > 150 {
+					cfg.parseErr = fmt.Errorf("%s: 1..150 %s", localizador.Detectar().T("rest.verify_v2.error.limit"), unidadLimiteV2)
+				} else {
+					cfg.v2MaxCuerpoMiB = value
+				}
+				i += 2
+				continue
+			}
 		}
 		resto = append(resto, args[i])
 		i++
@@ -523,6 +600,11 @@ func runRESTServer(ctx context.Context, logger *slog.Logger, rutaP12, password, 
 			return 1
 		}
 		defer cleanup()
+	}
+	if err := configurarVerificacionLocal(servicios.verificar, cfg); err != nil {
+		logger.ErrorContext(ctx, "configuración de verificación local inválida", "op", "rest-verify-config", "error", err)
+		fmt.Fprintln(os.Stderr, loc.T("rest.verify_only.error.config", err))
+		return 1
 	}
 	selector := application.NuevoSelectCertificateUseCase(servicios.catalogo, &aprobacionAutomatica{}, nil, relojReal{})
 	adaptador := restin.New(servicios.firmar, servicios.verificar, selector).WithBearerToken(cfg.token)

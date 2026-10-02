@@ -61,7 +61,11 @@ func verifyASiCCAdES(ctx context.Context, cms, container []byte, anchors domain.
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
-	result, signers, err := NewCAdESVerifier().VerifyDetachedCMSWithAnchors(ctx, cms, payload, anchors)
+	verifier := NewCAdESVerifier()
+	if offlineVerification(ctx) {
+		verifier = NewCAdESVerifierWithChecker(NewRevocationCheckerOffline())
+	}
+	result, signers, err := verifier.VerifyDetachedCMSWithAnchors(ctx, cms, payload, anchors)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}

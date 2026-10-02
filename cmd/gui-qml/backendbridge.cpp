@@ -1199,7 +1199,7 @@ void BackendBridge::verifyFileWithOriginal(const QString &inputPath,
         bool valid = result.value("valid").toBool();
         msg = valid ? bt(QStringLiteral("Firma válida"))
                     : bt(QStringLiteral("Firma no válida: ")) +
-                          result.value("reason").toString();
+						  bt(result.value("reason").toString());
       } else {
         success = false;
         msg = res.value("error").toString();

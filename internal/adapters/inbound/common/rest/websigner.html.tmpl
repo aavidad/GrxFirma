@@ -2873,7 +2873,7 @@
         if (!rich || rich.valid === false || integrityStatus === "invalid" || errors.length > 0) {
           kind = "bad";
           text = t("verificationPostureInvalid");
-        } else if (trustStatus === "warning" || trustStatus === "invalid" || certificateStatus === "warning" || certificateStatus === "invalid" || warnings.length > 0) {
+        } else if (integrityStatus !== "valid" || trustStatus !== "valid" || certificateStatus !== "valid" || warnings.length > 0) {
           kind = "warn";
           text = t("verificationPostureWarning");
         }

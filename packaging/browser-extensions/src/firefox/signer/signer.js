@@ -74,6 +74,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+function showUntrustedStatus(container, message) {
+    const status = document.createElement('div');
+    status.className = 'status disconnected';
+    status.textContent = message;
+    container.replaceChildren(status);
+}
+
 // Automatically fetch a PDF from a URL
 async function autoFetchPDF(url) {
     const fileName = document.getElementById('fileName');
@@ -99,7 +106,7 @@ async function autoFetchPDF(url) {
     } catch (error) {
         selectedFile = null;
         console.error('Error fetching PDF:', error);
-        signResult.innerHTML = `<div class="status disconnected">❌ Error al descargar PDF: ${error.message}</div>`;
+        showUntrustedStatus(signResult, `❌ Error al descargar PDF: ${error.message}`);
     }
 }
 
@@ -333,10 +340,10 @@ async function loadCertificates() {
         if (response.success) {
             displayCertificates(response.certificates);
         } else {
-            certList.innerHTML = `<div class="status disconnected">❌ Error: ${response.error}</div>`;
+            showUntrustedStatus(certList, `❌ Error: ${response.error}`);
         }
     } catch (error) {
-        certList.innerHTML = `<div class="status disconnected">❌ Error: ${error.message}</div>`;
+        showUntrustedStatus(certList, `❌ Error: ${error.message}`);
     } finally {
         getCertsBtn.disabled = false;
         getCertsBtn.textContent = '🔄 Recargar Certificados';
@@ -377,12 +384,13 @@ function displayCertificates(certificates) {
     // Create collapsible header
     certList.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 10px; background: #f3f4f6; border-radius: 5px; margin: 10px 0;" id="certListToggle">
-            <h3 style="font-size: 14px; margin: 0;">Certificados encontrados (${certificates.length})</h3>
+            <h3 style="font-size: 14px; margin: 0;" id="certListCount"></h3>
             <span id="certListArrow" style="font-size: 18px;">▶</span>
         </div>
         <div id="certListContent" style="display: none;"></div>
     `;
 
+    document.getElementById('certListCount').textContent = `Certificados encontrados (${certificates.length})`;
     const certListContent = document.getElementById('certListContent');
     const toggle = document.getElementById('certListToggle');
     const arrow = document.getElementById('certListArrow');
@@ -402,14 +410,16 @@ function displayCertificates(certificates) {
         const sourceLabel = cert.source === 'dnie' ? 'DNIe' :
             cert.source === 'smartcard' ? 'Tarjeta' : 'Sistema';
 
-        div.innerHTML = `
-            <strong>${cert.subject.CN || 'Sin nombre'}</strong>
-            <span class="cert-source ${sourceClass}">${sourceLabel}</span>
-            <br>
-            <small>Emisor: ${cert.issuer.CN || cert.issuer.O || 'Desconocido'}</small>
-            <br>
-            <small>Válido: ${new Date(cert.validFrom).toLocaleDateString()} - ${new Date(cert.validTo).toLocaleDateString()}</small>
-        `;
+        const subject = document.createElement('strong');
+        subject.textContent = cert.subject?.CN || 'Sin nombre';
+        const source = document.createElement('span');
+        source.className = `cert-source ${sourceClass}`;
+        source.textContent = sourceLabel;
+        const issuer = document.createElement('small');
+        issuer.textContent = `Emisor: ${cert.issuer?.CN || cert.issuer?.O || 'Desconocido'}`;
+        const validity = document.createElement('small');
+        validity.textContent = `Válido: ${new Date(cert.validFrom).toLocaleDateString()} - ${new Date(cert.validTo).toLocaleDateString()}`;
+        div.append(subject, source, document.createElement('br'), issuer, document.createElement('br'), validity);
 
         certListContent.appendChild(div);
 
@@ -476,7 +486,7 @@ function setupSigningUI() {
             selectedFile = null;
             e.target.value = '';
             console.error('Error selecting file:', error);
-            signResult.innerHTML = `<div class="status disconnected">❌ Error al seleccionar archivo: ${error.message}</div>`;
+            showUntrustedStatus(signResult, `❌ Error al seleccionar archivo: ${error.message}`);
         }
         return false;
     };
@@ -588,11 +598,11 @@ function setupSigningUI() {
                 progressText.textContent = '100% (Completado)';
                 progressBar.style.width = '100%';
             } else {
-                signResult.innerHTML = `<div class="status disconnected">❌ Error: ${response.error}</div>`;
+                showUntrustedStatus(signResult, `❌ Error: ${response.error}`);
                 progressContainer.style.display = 'none';
             }
         } catch (error) {
-            signResult.innerHTML = `<div class="status disconnected">❌ Error: ${error.message}</div>`;
+            showUntrustedStatus(signResult, `❌ Error: ${error.message}`);
             progressContainer.style.display = 'none';
         } finally {
             signBtn.disabled = false;
@@ -726,7 +736,7 @@ function setupVerificationUI() {
             } catch (error) {
                 verifyOriginalFileData = null;
                 originalFileInput.value = '';
-                verifyResult.innerHTML = `<div class="status disconnected">❌ ${error.message}</div>`;
+                showUntrustedStatus(verifyResult, `❌ ${error.message}`);
             }
         }
     };
@@ -746,7 +756,7 @@ function setupVerificationUI() {
             } catch (error) {
                 verifySignatureFileData = null;
                 signatureFileInput.value = '';
-                verifyResult.innerHTML = `<div class="status disconnected">❌ ${error.message}</div>`;
+                showUntrustedStatus(verifyResult, `❌ ${error.message}`);
             }
         }
     };
@@ -785,25 +795,22 @@ function setupVerificationUI() {
             });
 
             if (response.success && response.result.valid) {
-                verifyResult.innerHTML = `
-                    <div class="status connected">
-                        <strong>✅ Firma válida</strong><br>
-                        <small>Firmante: ${response.result.signerName || 'Desconocido'}</small><br>
-                        <small>Fecha: ${response.result.timestamp || 'No disponible'}</small><br>
-                        <small>Formato: ${response.result.format || format.toUpperCase()}</small><br>
-                        <small>Algoritmo: ${response.result.algorithm || 'SHA256withRSA'}</small>
-                    </div>
-                `;
+                verifyResult.innerHTML = '<div class="status connected"><strong>✅ Firma válida</strong><br><small class="verify-signer"></small><br><small class="verify-date"></small><br><small class="verify-format"></small><br><small class="verify-algorithm"></small></div>';
+                verifyResult.querySelector('.verify-signer').textContent = `Firmante: ${response.result.signerName || 'Desconocido'}`;
+                verifyResult.querySelector('.verify-date').textContent = `Fecha: ${response.result.timestamp || 'No disponible'}`;
+                verifyResult.querySelector('.verify-format').textContent = `Formato: ${response.result.format || format.toUpperCase()}`;
+                verifyResult.querySelector('.verify-algorithm').textContent = `Algoritmo: ${response.result.algorithm || 'SHA256withRSA'}`;
             } else {
-                verifyResult.innerHTML = `
-                    <div class="status disconnected">
-                        <strong>❌ Firma inválida</strong><br>
-                        <small>${response.result?.reason || response.error || 'Error desconocido'}</small>
-                    </div>
-                `;
+                const rawReason = response.result?.reason || response.error || 'Error desconocido';
+                const reason = rawReason === 'revocación no concluyente'
+                    ? (chrome.i18n.getMessage('revocationInconclusive') || rawReason)
+                    : rawReason;
+                verifyResult.innerHTML = '<div class="status disconnected"><strong>❌ Firma inválida</strong><br><small class="verify-reason"></small></div>';
+                verifyResult.querySelector('.verify-reason').textContent = reason;
             }
         } catch (error) {
-            verifyResult.innerHTML = `<div class="status disconnected">❌ Error: ${error.message}</div>`;
+            verifyResult.innerHTML = '<div class="status disconnected"></div>';
+            verifyResult.firstElementChild.textContent = `❌ Error: ${error.message}`;
         } finally {
             verifyBtn.disabled = false;
             verifyBtn.textContent = '✓ Verificar Firma';

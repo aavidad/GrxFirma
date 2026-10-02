@@ -433,3 +433,20 @@ func TestAyudaGeneralEnumeraTodosLosFormatos(t *testing.T) {
 		t.Fatalf("la ayuda general no enumera todos los formatos públicos: %s", stdout.String())
 	}
 }
+
+func TestExtraerFlagsRESTLimitesV2(t *testing.T) {
+	cfg, rest := extraerFlagsREST([]string{
+		"-rest-solo-verificacion", "-verificacion-v2-max-firmas", "12",
+		"-verificacion-v2-max-revisiones", "15", "-verificacion-v2-max-pdf-mib", "48",
+		"-verificacion-v2-max-cuerpo-mib", "90", "-modo-cli",
+	})
+	if cfg.parseErr != nil || cfg.v2MaxFirmas != 12 || cfg.v2MaxRevisiones != 15 || cfg.v2MaxPDFMiB != 48 || cfg.v2MaxCuerpoMiB != 90 || len(rest) != 1 || rest[0] != "-modo-cli" {
+		t.Fatalf("límites v2 mal interpretados: %+v, resto=%v", cfg, rest)
+	}
+	for _, flag := range []string{"-verificacion-v2-max-firmas", "-verificacion-v2-max-revisiones", "-verificacion-v2-max-pdf-mib", "-verificacion-v2-max-cuerpo-mib"} {
+		cfg, _ = extraerFlagsREST([]string{flag, "999"})
+		if cfg.parseErr == nil {
+			t.Fatalf("%s aceptó un límite inseguro", flag)
+		}
+	}
+}

@@ -225,6 +225,8 @@ class MainViewModel(
                     result = OperationResult.Success(
                         UiText.Resource(R.string.verification_result_title),
                         UiText.Verification(
+                            valid = verification.valid,
+                            reason = verification.reason,
                             format = verification.format,
                             signerCount = verification.signers.size,
                             integrityStatus = verification.integrityStatus,

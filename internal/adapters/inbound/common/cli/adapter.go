@@ -1268,7 +1268,11 @@ func (a *Adaptador) ejecutarVerificacion(ctx context.Context, cfg configCLI) int
 		fmt.Fprintf(a.Stdout, "%s: %s\n", a.t("Cobertura", "Cobertura"), coverage)
 	}
 	if resultado.Verification.Reason != "" {
-		fmt.Fprintf(a.Stdout, "%s: %s\n", a.t("Motivo", "Motivo"), resultado.Verification.Reason)
+		reason := resultado.Verification.Reason
+		if reason == "revocación no concluyente" {
+			reason = a.t("revocación no concluyente", "revocación no concluyente")
+		}
+		fmt.Fprintf(a.Stdout, "%s: %s\n", a.t("Motivo", "Motivo"), reason)
 	}
 	for _, detalle := range resultado.Verification.Details {
 		fmt.Fprintf(a.Stdout, "- %s\n", detalle)

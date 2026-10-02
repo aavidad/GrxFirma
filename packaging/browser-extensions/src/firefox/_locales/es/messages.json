@@ -118,5 +118,6 @@
   },
   "optionsManagedPermissionMissing": {
     "message": "Su organización debe conceder permiso de acceso a este sitio para activarlo."
-  }
+  },
+  "revocationInconclusive": {"message": "No se pudo comprobar la revocación del certificado. La firma no se considera válida."}
 }

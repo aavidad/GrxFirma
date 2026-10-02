@@ -26,6 +26,8 @@ import (
 	"grxfirma/internal/ports"
 )
 
+const motivoCertificadoSinRevocacion = "certificado vigente en fechas; revocación no comprobada"
+
 // RevocationStatus representa el estado de revocación de un certificado.
 type RevocationStatus int
 
@@ -257,6 +259,7 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 	signers := make([]domain.CertificateRef, 0, len(signerInfos))
 	signerCerts := make([]*x509.Certificate, 0, len(signerInfos))
 	signerDetails := make([][]string, 0, len(signerInfos))
+	signerCertsPorSignerInfo := make([]*x509.Certificate, 0, len(signerInfos))
 
 	for _, signerInfo := range signerInfos {
 		signerCert, err := findSignerCertificate(certs, signerInfo.SID)
@@ -274,6 +277,7 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 			return domain.VerificationResult{}, certRefs, err
 		}
 		signerCerts = append(signerCerts, signerCert)
+		signerCertsPorSignerInfo = append(signerCertsPorSignerInfo, signerCert)
 		signers = append(signers, certificateToRef(signerCert))
 		signerDetails = append(signerDetails, []string{
 			fmt.Sprintf("firmante=%s", signerCert.Subject.String()),
@@ -290,6 +294,8 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 		result.Integrity.Details = append(result.Integrity.Details, chunk...)
 	}
 	result = applySignerVerificationMetadata(result, signerCerts, certs, anchors)
+	enriquecerMaterialCMS(result.Material.Firmas, signerCertsPorSignerInfo, signerInfos)
+	result.Material.HuellasContenidoFirmado = []string{huellaContenido(content)}
 
 	// La revocación se evalúa sobre la cadena real de cada firmante
 	// (hoja → emisor → ...), construida por nombre y firma. Antes se usaba el
@@ -308,8 +314,20 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 			result = mergeRevocationResult(result, revocation)
 		}
 	}
+	result = exigirRevocacionConcluyente(result)
 
 	return result.Normalize(), signers, nil
+}
+
+// La validez pública no puede afirmarse cuando la revocación del firmante
+// queda pendiente. La integridad criptográfica conserva su estado propio.
+func exigirRevocacionConcluyente(result domain.VerificationResult) domain.VerificationResult {
+	if result.Valid && result.Certificate.Status == domain.VerificationStatusWarning {
+		result.Valid = false
+		result.Reason = "revocación no concluyente"
+		result.Warnings = appendUniqueString(result.Warnings, result.Reason)
+	}
+	return result
 }
 
 // validarAlgoritmosSignerInfo admite SHA-256, SHA-384 y SHA-512 (AutoFirma
@@ -441,6 +459,9 @@ func mergeRevocationResult(result, revocation domain.VerificationResult) domain.
 // presentaba como válida.
 func applyXMLRevocation(ctx context.Context, result domain.VerificationResult, signers, embedded []*x509.Certificate) domain.VerificationResult {
 	checker := NewCAdESVerifier()
+	if offlineVerification(ctx) {
+		checker = NewCAdESVerifierWithChecker(NewRevocationCheckerOffline())
+	}
 	for _, signer := range signers {
 		chain := chainForRevocation(ctx, checker.revChecker, signer, embedded)
 		if len(chain) < 2 {
@@ -452,7 +473,7 @@ func applyXMLRevocation(ctx context.Context, result domain.VerificationResult, s
 			result = mergeRevocationResult(result, revocation)
 		}
 	}
-	return result.Normalize()
+	return exigirRevocacionConcluyente(result).Normalize()
 }
 
 // chainForRevocation obtiene la cadena del firmante para comprobar su
@@ -996,7 +1017,12 @@ func applySignerVerificationMetadata(result domain.VerificationResult, signerCer
 		result.Format = string(domain.FormatCAdES)
 	}
 	result.Certificate = evaluateCertificateAspect(signerCerts)
+	if result.Certificate.Status == domain.VerificationStatusValid {
+		result.Certificate.Status = domain.VerificationStatusUnknown
+		result.Certificate.Reason = motivoCertificadoSinRevocacion
+	}
 	result.Trust = evaluateTrustFromCertificates(signerCerts, embeddedCerts, anchors)
+	result.Material.Firmas = append(result.Material.Firmas, materialFirmantes(signerCerts, embeddedCerts)...)
 	for _, cert := range signerCerts {
 		if cert == nil {
 			continue

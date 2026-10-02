@@ -64,7 +64,7 @@ func TestCAdES_QA_IntegridadVerificablePorV2(t *testing.T) {
 		filepath.Join("fixtures", "v1", "samples", "2_txt_signed_signed.csig"),
 	}
 
-	verifier := signer.NewCAdESVerifier()
+	verifier := signer.NewMultiVerifierOffline()
 
 	for _, fixturePath := range fixtures {
 		fixturePath := fixturePath
@@ -148,19 +148,19 @@ func TestPAdES_QA_IntegridadVerificablePorV2(t *testing.T) {
 		t.Fatalf("no se pudo construir el documento PAdES de prueba: %v", err)
 	}
 
-	verifier := signer.NewPAdESVerifier()
+	verifier := signer.NewMultiVerifierOffline()
 	result, signers, err := verifier.Verify(context.Background(), doc, domain.CertificateChain{})
 	if err != nil {
 		t.Fatalf("la verificación PAdES QA falló en V2: %v", err)
 	}
-	if !result.Valid {
-		t.Fatalf("la firma PAdES QA debería ser válida según V2: %s", result.Reason)
+	if result.Valid {
+		t.Fatalf("la firma PAdES QA no debe considerarse válida sin revocación acreditada: %s", result.Reason)
 	}
 	if result.Integrity.Status != domain.VerificationStatusValid {
 		t.Fatalf("la integridad criptográfica del fixture QA debería ser válida: %+v", result.Integrity)
 	}
-	if !(result.Certificate.Status == domain.VerificationStatusValid || (result.Certificate.Status == domain.VerificationStatusWarning && strings.Contains(result.Certificate.Reason, "revocación"))) {
-		t.Fatalf("el certificado oficial de pruebas debería estar vigente: %+v", result.Certificate)
+	if result.Certificate.Status != domain.VerificationStatusUnknown && result.Certificate.Status != domain.VerificationStatusWarning {
+		t.Fatalf("el certificado oficial de pruebas debería quedar sin revocación acreditada: %+v", result.Certificate)
 	}
 	if len(signers) == 0 {
 		t.Fatal("no se extrajo ningún firmante del fixture PAdES QA")
@@ -185,7 +185,7 @@ func TestXAdES_QA_IntegridadVerificablePorV2(t *testing.T) {
 		filepath.Join("fixtures", "v1", "samples", "2_xml_signed_signed.xsig"),
 	}
 
-	verifier := signer.NewXAdESVerifier()
+	verifier := signer.NewMultiVerifierOffline()
 
 	for _, fixturePath := range fixtures {
 		fixturePath := fixturePath
@@ -257,9 +257,12 @@ func assertQAFixtureIntegrity(
 		t.Fatalf("la integridad criptográfica de %s debería ser válida, estado=%q motivo=%q",
 			fixturePath, result.Integrity.Status, result.Integrity.Reason)
 	}
-	if !(result.Certificate.Status == domain.VerificationStatusValid || (result.Certificate.Status == domain.VerificationStatusWarning && strings.Contains(result.Certificate.Reason, "revocación"))) {
-		t.Fatalf("el certificado QA de %s debería estar vigente, estado=%q motivo=%q",
+	if result.Certificate.Status != domain.VerificationStatusUnknown && result.Certificate.Status != domain.VerificationStatusWarning {
+		t.Fatalf("el certificado QA de %s debería quedar sin revocación acreditada, estado=%q motivo=%q",
 			fixturePath, result.Certificate.Status, result.Certificate.Reason)
+	}
+	if result.Valid {
+		t.Fatalf("la firma QA de %s no debe considerarse válida sin revocación acreditada", fixturePath)
 	}
 	for _, signerRef := range signers {
 		if signerRef.NotAfter.IsZero() {

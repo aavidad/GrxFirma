@@ -13,7 +13,6 @@ import (
 	"crypto/x509/pkix"
 	"math/big"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -51,10 +50,10 @@ func TestXMLVerifiers_EvaluanConfianzaX509(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Verify(sin anclas) error = %v", err)
 			}
-			if !withoutAnchors.Valid || withoutAnchors.Integrity.Status != domain.VerificationStatusValid {
-				t.Fatalf("la integridad válida debe conservarse sin anclas: %+v", withoutAnchors)
+			if withoutAnchors.Valid || withoutAnchors.Reason != "revocación no concluyente" || withoutAnchors.Integrity.Status != domain.VerificationStatusValid {
+				t.Fatalf("integridad=%s, valid=%v, motivo=%q", withoutAnchors.Integrity.Status, withoutAnchors.Valid, withoutAnchors.Reason)
 			}
-			if !(withoutAnchors.Certificate.Status == domain.VerificationStatusValid || (withoutAnchors.Certificate.Status == domain.VerificationStatusWarning && strings.Contains(withoutAnchors.Certificate.Reason, "revocación"))) {
+			if withoutAnchors.Certificate.Status != domain.VerificationStatusUnknown && withoutAnchors.Certificate.Status != domain.VerificationStatusWarning {
 				t.Fatalf("Certificate.Status=%q, want valid", withoutAnchors.Certificate.Status)
 			}
 			if withoutAnchors.Trust.Status != domain.VerificationStatusUnknown {
@@ -67,7 +66,7 @@ func TestXMLVerifiers_EvaluanConfianzaX509(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Verify(raíz confiable) error = %v", err)
 			}
-			if !trusted.Valid || trusted.Trust.Status != domain.VerificationStatusValid {
+			if trusted.Valid || trusted.Reason != "revocación no concluyente" || trusted.Trust.Status != domain.VerificationStatusValid {
 				t.Fatalf("la raíz emisora debe validar la confianza: valid=%v trust=%+v", trusted.Valid, trusted.Trust)
 			}
 

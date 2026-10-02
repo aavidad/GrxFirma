@@ -18,6 +18,8 @@ import es.dipgra.grxfirma.android.model.SelectedFile
 sealed interface UiText {
     data class Resource(@param:StringRes val id: Int, val arguments: List<Any> = emptyList()) : UiText
     data class Verification(
+        val valid: Boolean,
+        val reason: String = "",
         val format: String,
         val signerCount: Int,
         val integrityStatus: String,
@@ -26,12 +28,27 @@ sealed interface UiText {
         val revocationMode: String,
         val warningCount: Int,
         val errorCount: Int,
-    ) : UiText
+    ) : UiText {
+        fun accredited(): Boolean = valid &&
+            integrityStatus == "valid" &&
+            certificateStatus == "valid" &&
+            trustStatus == "valid"
+    }
 }
 
 fun UiText.resolve(context: Context): String = when (this) {
     is UiText.Resource -> context.getString(id, *arguments.toTypedArray())
     is UiText.Verification -> buildList {
+        add(
+            context.getString(
+                when {
+                    reason == "revocación no concluyente" -> R.string.verification_revocation_inconclusive
+                    !valid || integrityStatus == "invalid" -> R.string.verification_result_invalid
+                    accredited() -> R.string.verification_result_accredited
+                    else -> R.string.verification_result_incomplete
+                },
+            ),
+        )
         add(
             context.getString(
                 R.string.verification_integrity,

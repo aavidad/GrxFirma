@@ -42,8 +42,8 @@ func TestCAdESVerifier_TrustChain(t *testing.T) {
 		if err != nil {
 			t.Fatalf("VerifyDetachedCMSWithAnchors() error = %v", err)
 		}
-		if !result.Valid {
-			t.Fatalf("Valid=false con cadena confiable: %s (%v)", result.Reason, result.Trust.Details)
+		if result.Valid || result.Reason != "revocación no concluyente" {
+			t.Fatalf("sin CRL concluyente no debe ser válido: %s (%v)", result.Reason, result.Trust.Details)
 		}
 		if result.Integrity.Status != domain.VerificationStatusValid {
 			t.Fatalf("Integrity.Status=%q, want valid", result.Integrity.Status)
@@ -64,7 +64,7 @@ func TestCAdESVerifier_TrustChain(t *testing.T) {
 		if err != nil {
 			t.Fatalf("VerifyDetachedCMSWithAnchors() error = %v", err)
 		}
-		if !result.Valid || result.Trust.Status != domain.VerificationStatusValid {
+		if result.Valid || result.Reason != "revocación no concluyente" || result.Trust.Status != domain.VerificationStatusValid {
 			t.Fatalf("la ancla explícita debe combinarse con el pool del sistema: valid=%v trust=%+v", result.Valid, result.Trust)
 		}
 	})
@@ -96,8 +96,8 @@ func TestCAdESVerifier_TrustChain(t *testing.T) {
 		if err != nil {
 			t.Fatalf("VerifyDetachedCMS() error = %v", err)
 		}
-		if !result.Valid {
-			t.Fatalf("la integridad criptográfica debe conservar compatibilidad sin anclas: %s", result.Reason)
+		if result.Valid || result.Reason != "revocación no concluyente" {
+			t.Fatalf("sin revocación concluyente no hay validez global: %s", result.Reason)
 		}
 		if result.Integrity.Status != domain.VerificationStatusValid {
 			t.Fatalf("Integrity.Status=%q, want valid", result.Integrity.Status)
@@ -127,7 +127,7 @@ func TestCAdESVerifier_AnclaLegacyRequiereHuellaExacta(t *testing.T) {
 	if err != nil {
 		t.Fatalf("VerifyDetachedCMSWithAnchors() error = %v", err)
 	}
-	if !result.Valid || result.Trust.Status != domain.VerificationStatusValid {
+	if result.Valid || result.Reason != "revocación no concluyente" || result.Trust.Status != domain.VerificationStatusValid {
 		t.Fatalf("la huella exacta del ancla embebida debe validar: valid=%v trust=%+v", result.Valid, result.Trust)
 	}
 

@@ -11,6 +11,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -154,6 +155,12 @@ func testSignAllFiles(t *testing.T, baseSignData SignData) {
 			signData.Certificate = cert
 
 			err = SignFile("../testfiles/"+f.Name(), outputFile.Name(), signData)
+			if baseSignData.Signature.CertType == CertificationSignature && f.Name() == "testfile30.pdf" {
+				if err == nil || !strings.Contains(err.Error(), "debe ser la primera") {
+					st.Fatalf("una certificación posterior debe rechazarse: %v", err)
+				}
+				return
+			}
 			if err != nil {
 				st.Fatalf("%s: %s", f.Name(), err.Error())
 			}

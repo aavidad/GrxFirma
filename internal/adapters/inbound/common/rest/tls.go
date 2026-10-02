@@ -47,6 +47,16 @@ type TLSServer struct {
 
 // StartTLSServer arranca HTTPS local con la identidad TLS compartida del navegador.
 func StartTLSServer(ctx context.Context, addr string, handler http.Handler, certDir string) (*TLSServer, error) {
+	return startTLSServer(ctx, addr, handler, certDir, tls.VersionTLS12)
+}
+
+// StartTLS13Server reserva TLS 1.3 para el servicio de solo verificación.
+// El servidor REST normal conserva su política de transporte anterior.
+func StartTLS13Server(ctx context.Context, addr string, handler http.Handler, certDir string) (*TLSServer, error) {
+	return startTLSServer(ctx, addr, handler, certDir, tls.VersionTLS13)
+}
+
+func startTLSServer(ctx context.Context, addr string, handler http.Handler, certDir string, minVersion uint16) (*TLSServer, error) {
 	certFile, keyFile, _, source, err :=
 		EnsureBrowserCompatibleLocalhostCertificate(certDir, defaultCertPrefix)
 	if err != nil {
@@ -61,10 +71,7 @@ func StartTLSServer(ctx context.Context, addr string, handler http.Handler, cert
 		return nil, fmt.Errorf("rest: no se pudo cargar el par TLS: %w", err)
 	}
 
-	tlsCfg := &tls.Config{
-		MinVersion:   tls.VersionTLS12,
-		Certificates: []tls.Certificate{cert},
-	}
+	tlsCfg := serverTLSConfig(cert, minVersion)
 
 	ln, err := tls.Listen("tcp", addr, tlsCfg)
 	if err != nil {
@@ -97,6 +104,14 @@ func StartTLSServer(ctx context.Context, addr string, handler http.Handler, cert
 		CertFile: certFile,
 		KeyFile:  keyFile,
 	}, nil
+}
+
+func serverTLSConfig(cert tls.Certificate, minVersion uint16) *tls.Config {
+	cfg := &tls.Config{MinVersion: tls.VersionTLS12, Certificates: []tls.Certificate{cert}}
+	if minVersion > tls.VersionTLS12 {
+		cfg.MinVersion = minVersion
+	}
+	return cfg
 }
 
 // EnsureLocalhostCertificate crea o reutiliza un certificado válido para localhost y 127.0.0.1.

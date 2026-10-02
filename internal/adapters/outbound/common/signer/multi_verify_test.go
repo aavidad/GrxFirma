@@ -80,7 +80,7 @@ func TestMultiVerifier_RechazaFormatoDesconocido(t *testing.T) {
 }
 
 func TestMultiVerifier_VerificaXAdESPorExtension(t *testing.T) {
-	v := commonsigner.NewMultiVerifier()
+	v := commonsigner.NewMultiVerifierOffline()
 	fixturePath := filepath.Join("..", "..", "..", "..", "..", "test", "regression", "fixtures", "v1", "samples", "2_xml_signed.xsig")
 	data, err := os.ReadFile(fixturePath)
 	if err != nil {
@@ -101,8 +101,11 @@ func TestMultiVerifier_VerificaXAdESPorExtension(t *testing.T) {
 	if !compatibility {
 		t.Fatal("se perdió la evidencia tipada de compatibilidad")
 	}
-	if !(result.Certificate.Status == domain.VerificationStatusValid || (result.Certificate.Status == domain.VerificationStatusWarning && strings.Contains(result.Certificate.Reason, "revocación"))) {
-		t.Fatalf("el certificado oficial de pruebas debe marcarse vigente: %+v", result.Certificate)
+	if result.Certificate.Status != domain.VerificationStatusUnknown && result.Certificate.Status != domain.VerificationStatusWarning {
+		t.Fatalf("el certificado oficial de pruebas debe quedar sin revocación acreditada: %+v", result.Certificate)
+	}
+	if result.Valid || !strings.Contains(result.Certificate.Reason, "revocación") {
+		t.Fatalf("el dispatcher no puede ocultar la revocación no concluyente: %+v", result)
 	}
 	if len(signers) != 1 {
 		t.Fatalf("se esperaba un firmante XAdES, obtenidos %d", len(signers))

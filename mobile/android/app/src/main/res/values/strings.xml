@@ -103,6 +103,10 @@
     <string name="result_error">No se pudo completar la operación</string>
     <string name="result_signed">Firma %1$s creada con %2$s. Seleccione dónde guardar el resultado.</string>
     <string name="verification_result_title">Resultado de la verificación</string>
+    <string name="verification_result_accredited">Firma íntegra y acreditada.</string>
+    <string name="verification_result_incomplete">Verificación incompleta: certificado o confianza sin acreditar.</string>
+    <string name="verification_result_invalid">Firma no válida o integridad no garantizada.</string>
+	<string name="verification_revocation_inconclusive">No se pudo comprobar la revocación del certificado. La firma no se considera válida.</string>
     <string name="verification_integrity">Integridad criptográfica: %1$s</string>
     <string name="verification_certificate">Vigencia y uso del certificado: %1$s</string>
     <string name="verification_trust">Confianza de la cadena: %1$s</string>

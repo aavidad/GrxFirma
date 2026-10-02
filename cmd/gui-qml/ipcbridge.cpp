@@ -2201,7 +2201,7 @@ void IpcBridge::onReadyRead() {
         QString msg =
             valid ? it(QStringLiteral("Firma válida"))
                   : it(QStringLiteral("Firma no válida: ")) +
-                        res.value("reason").toString();
+						it(res.value("reason").toString());
         setStatus(msg);
         emit verificationFinished(true, msg, details);
       }

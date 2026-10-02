@@ -1,0 +1,86 @@
+{
+  "contrato": "autofirmav2.dictamen-verificacion.v2",
+  "estado": "no_valida",
+  "motivo": "byterange_no_cubre_revision_completa",
+  "formato": "PAdES",
+  "comprobadoEn": "2026-10-02T19:46:48Z",
+  "integridad": {
+    "estado": "valida"
+  },
+  "cadena": {
+    "estado": "valida",
+    "fuente": "anclas_locales"
+  },
+  "certificado": {
+    "estado": "vigente",
+    "fecha": "2035-01-01T00:00:00Z"
+  },
+  "revocacion": {
+    "estado": "vigente",
+    "fuente": "crl_local",
+    "fecha": "2026-10-02T19:46:48Z"
+  },
+  "selloTiempo": {
+    "estado": "no_presente"
+  },
+  "vinculoOriginal": {
+    "estado": "acreditado",
+    "fuente": "pades_revision"
+  },
+  "huellaFirmadoSHA256": "767339a34fb714c85e45c151187a843503ab0c156a39d44d36449e19e1d1a00d",
+  "huellaOriginalSHA256": "e45da948f71fcc1bced76a652e5744b336a6ad72e4513686117f36fa846fe567",
+  "extensiones": {
+    "revocacionRemota": "desactivada",
+    "selloTiempoRemoto": "desactivada"
+  },
+  "firmas": [
+    {
+      "orden": 1,
+      "byteRange": [
+        0,
+        666,
+        5362,
+        954
+      ],
+      "revisionHuellaSHA256": "767339a34fb714c85e45c151187a843503ab0c156a39d44d36449e19e1d1a00d",
+      "contenidoFirmadoHuellaSHA256": "282d1615f9d77b9a57b9b7f0fa99afd3d97d71a92d4edf9bcb34577f783c961d",
+      "revisionLongitud": 6326,
+      "cubreDocumentoCompletoHastaAqui": false,
+      "integridad": {
+        "estado": "valida"
+      },
+      "certificadoHuellaSHA256": "b8fe8aa9b940d6970a66db4cfb4666e3a8186f6976246826888f34f1caae520f",
+      "serie": "3",
+      "asunto": "CN=GrxFirma v2 sintética firmante-a",
+      "emisor": "CN=GrxFirma v2 sintética intermedia",
+      "cadena": {
+        "estado": "valida",
+        "fuente": "anclas_locales"
+      },
+      "certificado": {
+        "estado": "vigente",
+        "fecha": "2035-01-01T00:00:00Z"
+      },
+      "revocacion": {
+        "estado": "vigente",
+        "fuente": "crl_local",
+        "fecha": "2026-10-02T19:46:48Z"
+      },
+      "selloTiempo": {
+        "estado": "no_presente"
+      },
+      "tipoFirma": "aprobacion",
+      "nivelDocMDP": null,
+      "cambiosDesdeAnterior": {
+        "estado": "permitidos",
+        "detalle": [
+          "firma_anadida"
+        ]
+      }
+    }
+  ],
+  "cambiosPosteriores": {
+    "estado": "ninguno",
+    "detalle": []
+  }
+}

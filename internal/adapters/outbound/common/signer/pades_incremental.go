@@ -594,6 +594,9 @@ func parsePDFDictValue(value string) (map[string]string, bool) {
 		if !ok {
 			return nil, false
 		}
+		if _, repeated := out[key]; repeated {
+			return nil, false
+		}
 		out[key] = strings.Join(tokens[start:end], " ")
 		i = end
 	}

@@ -132,6 +132,21 @@
   "rest.help.private_delivery": "Un gestore di segreti può inserire GRXFIRMA_REST_TOKEN. Se il token viene generato automaticamente, viene mostrato solo il percorso di un file privato e temporaneo per curl --config.",
   "rest.output.bearer_file": "Credenziale Bearer temporanea: file privato %s",
   "rest.output.curl_usage": "Uso sicuro con curl: curl --cacert %s --config %s https://%s/openapi.json",
+  "rest.verify_only.output.active": "Validatore GrxFirma (solo verifica) attivo su https://%s",
+  "rest.verify_only.output.routes": "Percorsi pubblicati: GET /health, POST /verify; POST /v2/verify",
+  "rest.verify_only.output.anchors": "Ancore di fiducia locali: %d",
+  "rest.verify_only.output.crl_local": "Revoca: CRL locali",
+  "rest.verify_only.output.crl_none": "Revoca: nessuna CRL locale; solo evidenze incorporate nella firma",
+  "rest.verify_only.output.remote_disabled": "Estensioni remote (OCSP, TSA): disattivate",
+  "rest.verify_only.error.config": "errore nella configurazione della verifica: %v",
+  "rest.verify_only.error.security": "errore di sicurezza nel validatore: %v",
+  "rest.verify_only.error.listen": "errore nell'apertura del validatore: %v",
+  "rest.verify_only.error.config_dir": "impossibile risolvere la directory di configurazione",
+  "rest.verify_only.error.token": "errore nella generazione della credenziale REST: %v",
+  "rest.verify_only.error.anchors_required": "la modalità solo verifica richiede -verificacion-anclas <file|directory>",
+  "rest.verify_only.error.fingerprints": "la modalità solo verifica non ammette -huellas-cert-rest; usare GRXFIRMA_REST_TOKEN",
+  "rest.verify_only.error.not_loopback": "l'indirizzo %q non è loopback; usare -rest-publico solo per esporre deliberatamente il validatore",
+  "rest.verify_only.error.token_required": "l'esposizione del validatore fuori da loopback richiede GRXFIRMA_REST_TOKEN",
   " + base64": " + base64",
   " certificado(s).": " certificado(s).",
   " con conexiones seguras activas.": " con conexiones seguras activas.",
@@ -2729,4 +2744,6 @@
   ,"Novedades de GrxFirma %1": "Novità di GrxFirma %1"
   ,"Entendido": "Ho capito"
   ,"Actualizado a %1: ver novedades": "Aggiornato alla %1: vedi le novità"
+  ,"revocación no concluyente": "Non è stato possibile verificare la revoca del certificato. La firma non è considerata valida."
+  ,"rest.verify_v2.error.limit": "Il limite di verifica v2 è fuori dall’intervallo consentito"
 }

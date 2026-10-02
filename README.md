@@ -361,6 +361,10 @@ Si necesitas el frontend Qt/QML:
   - `warnings`
   - `errors`
   - `evidence`
+- `REST /verify` añade un `dictamen` explícito (integridad, cadena hasta anclas
+  locales, revocación con CRL locales, sello de tiempo, vínculo con el
+  original y huellas) y existe un modo `-rest-solo-verificacion` que solo
+  publica la verificación; ver `docs/VERIFICACION_AUTONOMA_V1.md`.
 - La GUI QML ya muestra estado, motivo, firmantes y bloques de
   `Integridad / Certificado / Confianza`.
 - CAdES, PAdES, XAdES, XMLDSig, FacturaE, ASiC-XAdES, ODF y OOXML evalúan la

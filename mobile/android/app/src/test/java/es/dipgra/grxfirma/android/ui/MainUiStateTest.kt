@@ -15,6 +15,26 @@ import org.junit.Test
 
 class MainUiStateTest {
     @Test
+    fun `verification needs accredited certificate before success color`() {
+        val base = UiText.Verification(
+            valid = true,
+            format = "PAdES",
+            signerCount = 1,
+            integrityStatus = "valid",
+            certificateStatus = "valid",
+            trustStatus = "valid",
+            revocationMode = "embedded_evidence_only",
+            warningCount = 0,
+            errorCount = 0,
+        )
+        assertTrue(base.accredited())
+        assertFalse(base.copy(certificateStatus = "unknown").accredited())
+        assertFalse(base.copy(certificateStatus = "warning").accredited())
+        assertFalse(base.copy(trustStatus = "unknown").accredited())
+        assertFalse(base.copy(valid = false).accredited())
+    }
+
+    @Test
     fun `critical actions stay disabled without an operational backend`() {
         val state = MainUiState(
             backend = CoreReadiness(false, "verification_build", "No enlazado"),

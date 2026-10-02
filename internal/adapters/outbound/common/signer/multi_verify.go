@@ -19,6 +19,7 @@ import (
 
 // MultiVerifier selecciona el verificador apropiado según MIME, nombre o firma mágica.
 type MultiVerifier struct {
+	offline   bool
 	cades     ports.VerifierEngine
 	xades     ports.VerifierEngine
 	xmldsig   ports.VerifierEngine
@@ -88,6 +89,9 @@ func NewMultiVerifierWithEngines(cades, xades, xmldsig, pades, odf, ooxml, factu
 }
 
 func (v *MultiVerifier) Verify(ctx context.Context, signedDocument domain.Document, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
+	if v.offline {
+		ctx = context.WithValue(ctx, offlineVerificationContextKey{}, true)
+	}
 	engine, format, err := v.pickEngine(signedDocument)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
@@ -101,6 +105,9 @@ func (v *MultiVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 }
 
 func (v *MultiVerifier) VerifyDetached(ctx context.Context, signedDocument domain.Document, originalDocument domain.Document, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
+	if v.offline {
+		ctx = context.WithValue(ctx, offlineVerificationContextKey{}, true)
+	}
 	engine, format, err := v.pickEngine(signedDocument)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err

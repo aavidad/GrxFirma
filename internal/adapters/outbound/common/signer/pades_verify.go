@@ -88,6 +88,10 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		}
 
 		aggregate = mergePAdESVerificationResult(aggregate, result)
+		aggregate.Material.CoberturasPDF = append(aggregate.Material.CoberturasPDF, domain.CoberturaPDF{
+			InicioHueco: signature.ByteRange[1],
+			FinRevision: signature.RevisionEnd,
+		})
 		aggregate.Details = append(aggregate.Details,
 			fmt.Sprintf("firma_pdf=%d", idx+1),
 			fmt.Sprintf("byterange=%d,%d,%d,%d", signature.ByteRange[0], signature.ByteRange[1], signature.ByteRange[2], signature.ByteRange[3]),
@@ -440,6 +444,7 @@ func mergePAdESVerificationResult(base, next domain.VerificationResult) domain.V
 	base.Warnings = append(base.Warnings, next.Warnings...)
 	base.Errors = append(base.Errors, next.Errors...)
 	base.Evidence = append(base.Evidence, next.Evidence...)
+	base.Material = base.Material.Anadir(next.Material)
 	base.Integrity = mergeVerificationAspect(base.Integrity, next.Integrity)
 	base.Certificate = mergeVerificationAspect(base.Certificate, next.Certificate)
 	base.Trust = mergeVerificationAspect(base.Trust, next.Trust)

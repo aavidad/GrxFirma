@@ -334,9 +334,10 @@ func TestProcessVerify(t *testing.T) {
 
 	adapter := New(nil, nil, verifyMock{result: application.VerifyResult{
 		Verification: domain.VerificationResult{
-			Valid:   true,
-			Reason:  "ok",
-			Details: []string{"cadena valida"},
+			Valid:       true,
+			Reason:      "ok",
+			Details:     []string{"cadena valida"},
+			Certificate: domain.VerificationAspect{Status: domain.VerificationStatusUnknown},
 		},
 		Firmantes: []domain.CertificateRef{{ID: "cert-1"}},
 	}}, nil)
@@ -363,6 +364,9 @@ func TestProcessVerify(t *testing.T) {
 	}
 	if len(resp.Result.Signers) != 1 || resp.Result.Signers[0] != "cert-1" {
 		t.Fatalf("signers = %+v", resp.Result.Signers)
+	}
+	if resp.Result.CertificateStatus != "unknown" {
+		t.Fatalf("certificateStatus = %q", resp.Result.CertificateStatus)
 	}
 }
 

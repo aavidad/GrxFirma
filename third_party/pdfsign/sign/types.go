@@ -153,7 +153,10 @@ const (
 type SignDataSignature struct {
 	CertType   CertType
 	DocMDPPerm DocMDPPerm
-	Info       SignDataSignatureInfo
+	// FieldMDPAll explicitly locks all form fields after an approval signature.
+	// The default approval signature leaves fields available for later signers.
+	FieldMDPAll bool
+	Info        SignDataSignatureInfo
 	// SubFilter selects the PDF signature encoding advertised in the
 	// signature dictionary. The zero value is the recommended ETSI CAdES
 	// detached profile; Adobe PKCS#7 detached must be requested explicitly.

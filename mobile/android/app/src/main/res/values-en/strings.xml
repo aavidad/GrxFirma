@@ -103,6 +103,10 @@
     <string name="result_error">The operation could not be completed</string>
     <string name="result_signed">%1$s signature created with %2$s. Select where to save the result.</string>
     <string name="verification_result_title">Verification result</string>
+    <string name="verification_result_accredited">Signature integrity and trust are established.</string>
+    <string name="verification_result_incomplete">Verification incomplete: certificate or trust not established.</string>
+    <string name="verification_result_invalid">Invalid signature or integrity not established.</string>
+	<string name="verification_revocation_inconclusive">Certificate revocation could not be checked. The signature is not considered valid.</string>
     <string name="verification_integrity">Cryptographic integrity: %1$s</string>
     <string name="verification_certificate">Certificate validity and usage: %1$s</string>
     <string name="verification_trust">Chain trust: %1$s</string>
