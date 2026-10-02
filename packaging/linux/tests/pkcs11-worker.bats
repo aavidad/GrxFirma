@@ -6,7 +6,7 @@
 
 # Bats carga helpers relativos e invoca dobles indirectamente; los contratos
 # buscan variables de shell literales, no valores del entorno del laboratorio.
-# shellcheck disable=SC1091,SC2329,SC2016
+# shellcheck disable=SC1091,SC2329,SC2016,SC2317
 
 setup() {
   source "${BATS_TEST_DIRNAME}/../reproducible-build.sh"

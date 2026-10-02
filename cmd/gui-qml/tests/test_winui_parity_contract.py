@@ -80,7 +80,7 @@ class WinUiParityContractTest(unittest.TestCase):
         self.assertIn("sealPayloadFromConfig(captureSealConfig())", qml_function("requestSealPreview"))
         self.assertIn("sealPayloadFromConfig(batchSealOverrides[path])", qml_function("buildSignPayload"))
         self.assertIn('onSignSealLogoOpacityPercentChanged: { scheduleSettingsSave(); scheduleSealPreview() }', QML)
-        self.assertEqual(QML.count('Accessible.name: tr("sign.seal.logo_opacity")'), 2)
+        self.assertEqual(QML.count('Accessible.name: tr("sign.seal.opacity")'), 2)
         self.assertEqual(QML.count('Accessible.description: tr("sign.seal.opacity_help")'), 2)
         self.assertIn('visibleSeal: seal', qml_function('requestSealPreview'))
         self.assertIn('body.visibleSeal = sealPayloadFromConfig(globalConfig)', qml_function('buildSignPayload'))

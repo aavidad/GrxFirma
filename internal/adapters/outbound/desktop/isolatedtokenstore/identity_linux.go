@@ -65,8 +65,15 @@ func supportedPublicKey(public crypto.PublicKey) bool {
 	case *rsa.PublicKey:
 		return key != nil && key.N != nil && key.N.BitLen() >= 2048 && key.N.BitLen() <= 8192 && key.E >= 3 && key.E%2 == 1
 	case *ecdsa.PublicKey:
-		return key != nil && key.Curve != nil && key.X != nil && key.Y != nil &&
-			key.Curve.Params().BitSize >= 256 && key.Curve.Params().BitSize <= 521 && key.Curve.IsOnCurve(key.X, key.Y)
+		if key == nil || key.Curve == nil || key.Curve.Params().BitSize < 256 || key.Curve.Params().BitSize > 521 {
+			return false
+		}
+		encoded, err := key.Bytes()
+		if err != nil {
+			return false
+		}
+		_, err = ecdsa.ParseUncompressedPublicKey(key.Curve, encoded)
+		return err == nil
 	default:
 		return false
 	}

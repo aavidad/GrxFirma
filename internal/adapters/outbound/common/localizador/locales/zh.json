@@ -1200,7 +1200,7 @@
   "Omitir confirmación al cerrar con cambios sin guardar": "Skip confirmation when closing with unsaved changes",
   "Opacidad del sello": "印章不透明度",
   "error.opacidad_logo_sello": "印章不透明度必须是 0 到 100% 之间的整数。",
-  "sign.seal.logo_opacity": "印章不透明度",
+  "sign.seal.opacity": "印章不透明度",
   "sign.seal.opacity_help": "降低不透明度，以便看到印章下方的文档",
   "sign.seal.qr_https_error": "二维码需要 HTTPS。请输入不带协议或以 https:// 开头的地址，且不要包含用户名或密码。",
   "sign.seal.one_by_one": "逐页编辑",

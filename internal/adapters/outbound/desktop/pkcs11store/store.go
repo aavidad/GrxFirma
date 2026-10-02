@@ -396,7 +396,6 @@ func (a *Almacen) Cerrar() {
 		a.driver = nil
 	}
 }
-func trimPKCS11String(s string) string { return strings.TrimRight(s, " \x00") }
 
 var _ ports.CertificateCatalog = (*Almacen)(nil)
 var _ ports.SigningKeyProvider = (*Almacen)(nil)

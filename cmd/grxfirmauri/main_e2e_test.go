@@ -100,7 +100,7 @@ func (rechazoE2E) Request(context.Context, string) (bool, error) {
 
 func TestRun_ProcesaURIRegistrableYSubeResultado(t *testing.T) {
 	home := t.TempDir()
-	configDir := filepath.Join(home, ".config", "grxfirma")
+	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
 	if err := os.MkdirAll(p12Dir, 0o700); err != nil {
 		t.Fatalf("MkdirAll(pkcs12): %v", err)
@@ -243,7 +243,7 @@ func TestRun_ProcesaURIRegistrableYSubeResultado(t *testing.T) {
 
 func TestRun_ProcesaURIRegistrableConXAdESTYtsaURLPorPeticion(t *testing.T) {
 	home := t.TempDir()
-	configDir := filepath.Join(home, ".config", "grxfirma")
+	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
 	if err := os.MkdirAll(p12Dir, 0o700); err != nil {
 		t.Fatalf("MkdirAll(pkcs12): %v", err)
@@ -371,7 +371,7 @@ func TestRun_ProcesaURIRegistrableConXAdESTYtsaURLPorPeticion(t *testing.T) {
 
 func TestRun_ProcesaURIRegistrableConPAdESTYtsaURLPorPeticion(t *testing.T) {
 	home := t.TempDir()
-	configDir := filepath.Join(home, ".config", "grxfirma")
+	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
 	if err := os.MkdirAll(p12Dir, 0o700); err != nil {
 		t.Fatalf("MkdirAll(pkcs12): %v", err)
@@ -499,7 +499,7 @@ func TestRun_ProcesaURIRegistrableConPAdESTYtsaURLPorPeticion(t *testing.T) {
 
 func TestRun_ProcesaURIBatchRemotoJSONCompatV1(t *testing.T) {
 	home := t.TempDir()
-	configDir := filepath.Join(home, ".config", "grxfirma")
+	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
 	if err := os.MkdirAll(p12Dir, 0o700); err != nil {
 		t.Fatalf("MkdirAll(pkcs12): %v", err)
@@ -613,7 +613,7 @@ func TestRun_ProcesaURIBatchRemotoJSONCompatV1(t *testing.T) {
 
 func TestRun_BatchLocalStopOnErrorNoIniciaTrabajosPosteriores(t *testing.T) {
 	home := t.TempDir()
-	configDir := filepath.Join(home, ".config", "grxfirma")
+	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
 	if err := os.MkdirAll(p12Dir, 0o700); err != nil {
 		t.Fatalf("MkdirAll(pkcs12): %v", err)
@@ -738,7 +738,7 @@ func TestRun_BatchLocalStopOnErrorNoIniciaTrabajosPosteriores(t *testing.T) {
 
 func TestRun_BatchCanceladoAntesDeRedNoContactaServicios(t *testing.T) {
 	home := t.TempDir()
-	configDir := filepath.Join(home, ".config", "grxfirma")
+	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
 	if err := os.MkdirAll(p12Dir, 0o700); err != nil {
 		t.Fatalf("MkdirAll(pkcs12): %v", err)
@@ -788,7 +788,7 @@ func TestRun_BatchCanceladoAntesDeRedNoContactaServicios(t *testing.T) {
 
 func TestRun_ProcesaURISelectCertYSubeCertificado(t *testing.T) {
 	home := t.TempDir()
-	configDir := filepath.Join(home, ".config", "grxfirma")
+	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
 	if err := os.MkdirAll(p12Dir, 0o700); err != nil {
 		t.Fatalf("MkdirAll(pkcs12): %v", err)
@@ -877,7 +877,7 @@ func TestRun_ProcesaURISelectCertYSubeCertificado(t *testing.T) {
 
 func TestRun_ProcesaURISelectCertConFallbackLegacy(t *testing.T) {
 	home := t.TempDir()
-	configDir := filepath.Join(home, ".config", "grxfirma")
+	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
 	if err := os.MkdirAll(p12Dir, 0o700); err != nil {
 		t.Fatalf("MkdirAll(pkcs12): %v", err)
@@ -972,7 +972,7 @@ func TestRun_ProcesaURISelectCertConSessionKeyNoReintentaEnClaro(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, true)
 
 	home := t.TempDir()
-	configDir := filepath.Join(home, ".config", "grxfirma")
+	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
 	if err := os.MkdirAll(p12Dir, 0o700); err != nil {
 		t.Fatalf("MkdirAll(pkcs12): %v", err)
@@ -1034,7 +1034,7 @@ func TestRun_ProcesaURISelectCertConSessionKeyNoReintentaEnClaro(t *testing.T) {
 
 func TestRun_ProcesaURISelectCertReutilizaPreferenciaPersistente(t *testing.T) {
 	home := t.TempDir()
-	configDir := filepath.Join(home, ".config", "grxfirma")
+	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
 	if err := os.MkdirAll(p12Dir, 0o700); err != nil {
 		t.Fatalf("MkdirAll(pkcs12): %v", err)

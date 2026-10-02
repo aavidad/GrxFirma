@@ -10,9 +10,9 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[3]
-QML = (ROOT / "cmd/gui-qml/qml/main.qml").read_text()
-AGENT = (ROOT / "cmd/gui-qml/residentagent.cpp").read_text()
-PARSER = (ROOT / "cmd/gui-qml/releasenotes.h").read_text()
+QML = (ROOT / "cmd/gui-qml/qml/main.qml").read_text(encoding="utf-8")
+AGENT = (ROOT / "cmd/gui-qml/residentagent.cpp").read_text(encoding="utf-8")
+PARSER = (ROOT / "cmd/gui-qml/releasenotes.h").read_text(encoding="utf-8")
 
 
 class ReleaseNotesUpdateContract(unittest.TestCase):
@@ -41,7 +41,7 @@ class ReleaseNotesUpdateContract(unittest.TestCase):
                 "Actualizado a %1: ver novedades"}
         for path in (ROOT / "internal/adapters/outbound/common/localizador/locales").glob("*.json"):
             with self.subTest(locale=path.stem):
-                self.assertTrue(keys <= json.loads(path.read_text()).keys())
+                self.assertTrue(keys <= json.loads(path.read_text(encoding="utf-8")).keys())
 
 
 if __name__ == "__main__":

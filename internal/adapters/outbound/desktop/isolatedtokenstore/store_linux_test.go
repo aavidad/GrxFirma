@@ -171,7 +171,7 @@ func TestRemoteSignerRoundTripAndImmutableIdentity(t *testing.T) {
 			case *rsa.PublicKey:
 				public.N.SetInt64(1)
 			case *ecdsa.PublicKey:
-				public.X.SetInt64(1)
+				*public = ecdsa.PublicKey{}
 			}
 			again, _ := x509.MarshalPKIXPublicKey(remote.Public())
 			if !bytes.Equal(publicDER, again) {

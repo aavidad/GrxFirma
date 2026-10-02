@@ -428,7 +428,7 @@ func TestOpacidadLogoTraducidaEnTodosLosIdiomas(t *testing.T) {
 			if strings.TrimSpace(catalogo[clave]) == "" {
 				t.Fatalf("falta la traducción de %q", clave)
 			}
-			if catalogo["sign.seal.logo_opacity"] != catalogo[clave] {
+			if catalogo["sign.seal.opacity"] != catalogo[clave] {
 				t.Fatal("el rótulo de WinUI y Qt debe coincidir")
 			}
 			if strings.TrimSpace(catalogo["error.opacidad_logo_sello"]) == "" {

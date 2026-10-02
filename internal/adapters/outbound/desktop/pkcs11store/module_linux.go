@@ -11,9 +11,12 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/miekg/pkcs11"
 )
+
+func trimPKCS11String(s string) string { return strings.TrimRight(s, " \x00") }
 
 type nativeModule struct {
 	ctx *pkcs11.Ctx

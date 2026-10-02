@@ -6,13 +6,7 @@
 package proxysecretstore
 
 import (
-	"bytes"
-	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
-	"fmt"
-	"os/exec"
 	"strings"
 	"unicode"
 )
@@ -22,43 +16,6 @@ const windowsBackendName = "dpapi-user"
 const maxProxySecretIDBytes = 128
 
 var ErrInvalidSecretID = errors.New("proxysecretstore: id invalido")
-
-type commandRunner interface {
-	Run(ctx context.Context, stdin []byte, name string, args ...string) ([]byte, error)
-}
-
-type execCommandRunner struct{}
-
-func (execCommandRunner) Run(ctx context.Context, stdin []byte, name string, args ...string) ([]byte, error) {
-	// #nosec G204 -- this internal runner only receives executables resolved
-	// from fixed platform allowlists; tests replace the runner without exec.
-	cmd := exec.CommandContext(ctx, name, args...)
-	if len(stdin) > 0 {
-		cmd.Stdin = bytes.NewReader(stdin)
-	}
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		if len(out) > 0 {
-			return nil, fmt.Errorf("%w: %s", err, strings.TrimSpace(string(out)))
-		}
-		return nil, err
-	}
-	return out, nil
-}
-
-type secretEnvelope struct {
-	Realm       string `json:"realm"`
-	Username    string `json:"username"`
-	PasswordB64 string `json:"password_b64"`
-}
-
-func randomID() (string, error) {
-	buf := make([]byte, 16)
-	if _, err := rand.Read(buf); err != nil {
-		return "", fmt.Errorf("proxysecretstore: generando id: %w", err)
-	}
-	return hex.EncodeToString(buf), nil
-}
 
 // normalizeSecretID limita los identificadores opacos a un subconjunto que es
 // seguro tanto como atributo de Secret Service/Keychain como al formar la ruta

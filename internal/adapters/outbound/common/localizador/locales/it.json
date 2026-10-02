@@ -1200,7 +1200,7 @@
   "Omitir confirmación al cerrar con cambios sin guardar": "Skip confirmation when closing with unsaved changes",
   "Opacidad del sello": "Opacità del timbro",
   "error.opacidad_logo_sello": "L’opacità del timbro deve essere un numero intero tra 0 e 100 %.",
-  "sign.seal.logo_opacity": "Opacità del timbro",
+  "sign.seal.opacity": "Opacità del timbro",
   "sign.seal.opacity_help": "Riduci l’opacità per vedere il documento sotto il timbro",
   "sign.seal.qr_https_error": "Il codice QR richiede HTTPS. Inserire un indirizzo senza schema o con https://, senza nome utente o password.",
   "sign.seal.one_by_one": "Una alla volta",

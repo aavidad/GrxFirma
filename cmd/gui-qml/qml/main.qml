@@ -8055,7 +8055,7 @@ Window {
                                         RowLayout {
                                             Layout.fillWidth: true
                                             spacing: 10
-                                            Text { text: tr("sign.seal.logo_opacity"); color: currentTheme.textColor; font.pixelSize: 12 }
+                                            Text { text: tr("sign.seal.opacity"); color: currentTheme.textColor; font.pixelSize: 12 }
                                             Slider {
                                                 id: signSealLogoOpacitySlider
                                                 Layout.fillWidth: true
@@ -8064,7 +8064,7 @@ Window {
                                                 stepSize: 1
                                                 value: window.signSealLogoOpacityPercent
                                                 focusPolicy: Qt.StrongFocus
-                                                Accessible.name: tr("sign.seal.logo_opacity")
+                                                Accessible.name: tr("sign.seal.opacity")
                                                 Accessible.description: tr("sign.seal.opacity_help")
                                                 ToolTip.visible: hovered
                                                 ToolTip.text: tr("sign.seal.opacity_help")
@@ -13273,7 +13273,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     spacing: 10
-                                    Text { text: tr("sign.seal.logo_opacity"); color: currentTheme.textColor }
+                                    Text { text: tr("sign.seal.opacity"); color: currentTheme.textColor }
                                     Slider {
                                         id: settingsSignSealLogoOpacitySlider
                                         Layout.fillWidth: true
@@ -13282,7 +13282,7 @@ Window {
                                         stepSize: 1
                                         value: window.signSealLogoOpacityPercent
                                         focusPolicy: Qt.StrongFocus
-                                        Accessible.name: tr("sign.seal.logo_opacity")
+                                        Accessible.name: tr("sign.seal.opacity")
                                         Accessible.description: tr("sign.seal.opacity_help")
                                         ToolTip.visible: hovered
                                         ToolTip.text: tr("sign.seal.opacity_help")

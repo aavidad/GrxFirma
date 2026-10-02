@@ -13,7 +13,10 @@ import (
 	"grxfirma/internal/ports"
 )
 
-type managerOperations struct{}
+// Manager is inert when token settings are unavailable.
+type Manager struct{}
+
+func NewManager(string) *Manager { return &Manager{} }
 
 func (*Manager) Load(context.Context) (ports.TokenSettingsSnapshot, error) {
 	return ports.TokenSettingsSnapshot{State: "unavailable", Modules: []ports.TokenModuleSetting{}, Checks: []ports.TokenSettingCheck{{ID: "config", Status: "unavailable"}}}, nil

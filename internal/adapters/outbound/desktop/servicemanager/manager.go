@@ -13,6 +13,3 @@ import "errors"
 
 // ErrNoSoportado se devuelve cuando la plataforma no soporta gestion de servicios.
 var ErrNoSoportado = errors.New("gestion de servicio no soportada en esta plataforma")
-
-// nombreServicio es el nombre del servicio de usuario systemd.
-const nombreServicio = "grxfirma.service"

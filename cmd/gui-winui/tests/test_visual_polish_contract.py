@@ -48,13 +48,13 @@ class VisualPolishContractTests(unittest.TestCase):
             root = ET.parse(ROOT / f"Views/{page}Page.xaml").getroot()
             banner = next(element for element in root.iter() if "ViewModel.PendingMessage" in element.get("Message", ""))
             self.assertIn("IsAvailabilityNoticeOpen", banner.get("IsOpen"))
-        workspace = (ROOT / "ViewModels/WorkspacePageViewModel.cs").read_text()
+        workspace = (ROOT / "ViewModels/WorkspacePageViewModel.cs").read_text(encoding="utf-8")
         self.assertIn("IsAvailabilityNoticeOpen => !IsOperationConnected", workspace)
         self.assertIn("RaisePropertyChanged(nameof(IsAvailabilityNoticeOpen))", workspace)
 
     def test_theme_is_applied_to_window_and_successful_preferences(self):
-        window = (ROOT / "MainWindow.xaml.cs").read_text()
-        model = (ROOT / "ViewModels/SettingsPageViewModel.cs").read_text()
+        window = (ROOT / "MainWindow.xaml.cs").read_text(encoding="utf-8")
+        model = (ROOT / "ViewModels/SettingsPageViewModel.cs").read_text(encoding="utf-8")
         self.assertIn("AppRoot.RequestedTheme", window)
         self.assertIn("1 => ElementTheme.Light", window)
         self.assertIn("0 or 2 => ElementTheme.Dark", window)

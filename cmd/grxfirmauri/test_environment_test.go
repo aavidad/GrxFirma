@@ -8,6 +8,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -54,4 +55,11 @@ func sameTestPath(left, right string) bool {
 		return strings.EqualFold(left, right)
 	}
 	return left == right
+}
+
+func testProtocolConfigDir(home string) string {
+	if runtime.GOOS == "windows" {
+		return filepath.Join(home, "AppData", "Roaming", "GrxFirma")
+	}
+	return filepath.Join(home, ".config", "grxfirma")
 }

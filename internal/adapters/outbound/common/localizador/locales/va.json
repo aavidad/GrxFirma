@@ -1200,7 +1200,7 @@
   "Omitir confirmación al cerrar con cambios sin guardar": "Skip confirmation when closing with unsaved changes",
   "Opacidad del sello": "Opacitat del segell",
   "error.opacidad_logo_sello": "L’opacitat del segell ha de ser un nombre enter entre 0 i 100 %.",
-  "sign.seal.logo_opacity": "Opacitat del segell",
+  "sign.seal.opacity": "Opacitat del segell",
   "sign.seal.opacity_help": "Reduïu l’opacitat perquè es veja el document davall del segell",
   "sign.seal.qr_https_error": "El QR exigix HTTPS. Escriga una adreça sense esquema o amb https://, sense usuari ni contrasenya.",
   "sign.seal.one_by_one": "Una per una",

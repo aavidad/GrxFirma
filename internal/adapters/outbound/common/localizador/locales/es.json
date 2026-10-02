@@ -1200,7 +1200,7 @@
   "Omitir confirmación al cerrar con cambios sin guardar": "Omitir confirmación al cerrar con cambios sin guardar",
   "Opacidad del sello": "Opacidad del sello",
   "error.opacidad_logo_sello": "La opacidad del sello debe ser un número entero entre 0 y 100 %.",
-  "sign.seal.logo_opacity": "Opacidad del sello",
+  "sign.seal.opacity": "Opacidad del sello",
   "sign.seal.opacity_help": "Reduzca la opacidad para que se vea el documento bajo el sello",
   "sign.seal.qr_https_error": "El QR exige HTTPS. Escriba una dirección sin esquema o con https://, sin usuario ni contraseña.",
   "sign.seal.one_by_one": "Uno por uno",

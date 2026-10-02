@@ -36,7 +36,7 @@ func verificarPeer(conn net.Conn) (uint32, error) {
 		return 0, fmt.Errorf("obteniendo PID del cliente named pipe: %w", err)
 	}
 	if pid == 0 {
-		return 0, errors.New("Windows devolvio un PID de cliente vacio")
+		return 0, errors.New("se recibió un PID de cliente vacío")
 	}
 	return pid, nil
 }

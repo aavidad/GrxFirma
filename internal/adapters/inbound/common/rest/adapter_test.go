@@ -3158,7 +3158,8 @@ func TestRoutes_TLSClearStore(t *testing.T) {
 		return
 	}
 	for _, entry := range entries {
-		if entry.Name() != ".websocket-localhost-ca.lock" {
+		if entry.Name() != ".websocket-localhost-ca.lock" &&
+			entry.Name() != "websocket-localhost-root.crt.pem.grxfirma-trust.lock" {
 			t.Fatalf("queda un artefacto TLS inesperado: %s", entry.Name())
 		}
 	}

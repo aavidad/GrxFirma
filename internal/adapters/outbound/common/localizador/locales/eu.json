@@ -1200,7 +1200,7 @@
   "Omitir confirmación al cerrar con cambios sin guardar": "Skip confirmation when closing with unsaved changes",
   "Opacidad del sello": "Zigiluaren opakutasuna",
   "error.opacidad_logo_sello": "Zigiluaren opakutasunak 0 eta 100 % arteko zenbaki osoa izan behar du.",
-  "sign.seal.logo_opacity": "Zigiluaren opakutasuna",
+  "sign.seal.opacity": "Zigiluaren opakutasuna",
   "sign.seal.opacity_help": "Murriztu opakutasuna zigiluaren azpiko dokumentua ikusteko",
   "sign.seal.qr_https_error": "QR kodeak HTTPS behar du. Idatzi helbide bat eskemarik gabe edo https:// erabilita, erabiltzaile edo pasahitzik gabe.",
   "sign.seal.one_by_one": "Banan-banan",

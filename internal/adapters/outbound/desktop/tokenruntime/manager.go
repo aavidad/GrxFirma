@@ -5,22 +5,6 @@
 
 package tokenruntime
 
-import (
-	"sync"
-
-	"grxfirma/internal/ports"
-)
-
-// Manager administers saved local settings, never a live Runtime. A successful
-// change requires restarting the application; existing operations keep their
-// original configuration. Construction performs no filesystem or module IO.
-type Manager struct {
-	configDir       string
-	mu              sync.Mutex
-	restartRequired bool
-	ops             managerOperations // private per-instance test seams
-}
+import "grxfirma/internal/ports"
 
 var _ ports.LocalTokenSettings = (*Manager)(nil)
-
-func NewManager(configDir string) *Manager { return &Manager{configDir: configDir} }

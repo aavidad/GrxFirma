@@ -20,6 +20,9 @@ import (
 	"grxfirma/internal/ports"
 )
 
+// nombreServicio es el nombre del servicio de usuario systemd.
+const nombreServicio = "grxfirma.service"
+
 const plantillaUnidad = `[Unit]
 Description=GrxFirma – motor de firma digital
 After=network.target

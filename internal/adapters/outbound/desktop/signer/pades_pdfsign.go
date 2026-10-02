@@ -438,24 +438,6 @@ func ajustarImagenSelloAlRectanguloSinRecorte(raw []byte, widthPt, heightPt floa
 	return out.Bytes(), nil
 }
 
-func ajustarImagenSelloAlRectangulo(raw []byte, widthPt, heightPt float64) ([]byte, error) {
-	widthPx, heightPx, err := dimensionesRasterSello(widthPt, heightPt, 1, 1)
-	if err != nil {
-		return nil, err
-	}
-	source, err := decodificarImagenSello(raw)
-	if err != nil {
-		return nil, err
-	}
-	canvas := image.NewRGBA(image.Rect(0, 0, widthPx, heightPx))
-	dibujarImagenAjustada(canvas, source, canvas.Bounds(), 255)
-	var out bytes.Buffer
-	if err := png.Encode(&out, canvas); err != nil {
-		return nil, err
-	}
-	return out.Bytes(), nil
-}
-
 func generarImagenSelloPAdES(info pdfsign.SignDataSignatureInfo, widthPt, heightPt float64, keepText bool, qrContent, signerSummary string, backgroundImage []byte, estilo estiloTextoSello) ([]byte, error) {
 	return generarImagenSelloPAdESModo(info, widthPt, heightPt, keepText, qrContent, signerSummary, backgroundImage, estilo, capaSelloCompleto, 255)
 }
@@ -478,10 +460,6 @@ func generarImagenSelloPAdESModo(info pdfsign.SignDataSignatureInfo, widthPt, he
 		return nil, err
 	}
 	return buf.Bytes(), nil
-}
-
-func renderizarImagenSelloPAdES(info pdfsign.SignDataSignatureInfo, widthPx, heightPx int, keepText bool, qrContent, signerSummary string, backgroundImage []byte, estilo estiloTextoSello) (*image.RGBA, error) {
-	return renderizarImagenSelloPAdESModo(info, widthPx, heightPx, keepText, qrContent, signerSummary, backgroundImage, estilo, capaSelloCompleto, 255)
 }
 
 func renderizarImagenSelloPAdESModo(info pdfsign.SignDataSignatureInfo, widthPx, heightPx int, keepText bool, qrContent, signerSummary string, backgroundImage []byte, estilo estiloTextoSello, capa capaSello, opacidadLogo uint8) (*image.RGBA, error) {

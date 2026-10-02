@@ -769,7 +769,10 @@ func TestLegacyWebSocketHandler_SaveSeleccionVaciaEsCancelacion(t *testing.T) {
 }
 
 func TestLegacyWebSocketHandler_SaveAceptaDestinoElegidoPorElUsuarioFueraDelHome(t *testing.T) {
-	outsideRoot := t.TempDir()
+	outsideRoot, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
 	home := t.TempDir()
 	safeTemp := t.TempDir()
 	setTestUserHome(t, home)
@@ -1557,7 +1560,10 @@ func TestLegacyWebSocketHandler_SignAndSaveSeleccionVaciaEsCancelacion(t *testin
 }
 
 func TestLegacyWebSocketHandler_SignAndSaveAceptaDestinoElegidoFueraDelHome(t *testing.T) {
-	outsideRoot := t.TempDir()
+	outsideRoot, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
 	home := t.TempDir()
 	safeTemp := t.TempDir()
 	setTestUserHome(t, home)

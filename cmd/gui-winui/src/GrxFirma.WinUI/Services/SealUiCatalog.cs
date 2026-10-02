@@ -9,7 +9,7 @@ namespace GrxFirma.WinUI.Services;
 
 internal static class SealUiCatalog
 {
-    private const string LogoOpacityKey = "sign.seal.logo_opacity";
+    private const string LogoOpacityKey = "sign.seal.opacity";
 
     public static string LogoOpacityLabel(string? language)
         => Text(language, LogoOpacityKey);

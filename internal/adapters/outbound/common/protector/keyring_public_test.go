@@ -17,6 +17,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -65,7 +66,7 @@ func TestLibroDestinatariosPublicos(t *testing.T) {
 		t.Fatalf("resolución = %d, %v", len(resolved), err)
 	}
 	info, err := os.Stat(filepath.Join(book.dir(), recipient.ID+".der"))
-	if err != nil || info.Mode().Perm()&0o077 != 0 {
+	if err != nil || (runtime.GOOS != "windows" && info.Mode().Perm()&0o077 != 0) {
 		t.Fatalf("permisos = %v, %v", info, err)
 	}
 	if _, err := book.Import(ctx, append(der, private...)); err == nil || !strings.Contains(err.Error(), "clave privada") {

@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"time"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
 )
@@ -154,10 +153,6 @@ func cargarCertificado(certFile string) (*x509.Certificate, []byte, error) {
 		return nil, nil, fmt.Errorf("localtlstrust: parsear certificado: %w", err)
 	}
 	return cert, data, nil
-}
-
-func certVigente(cert *x509.Certificate, now time.Time) bool {
-	return !now.Before(cert.NotBefore) && !now.After(cert.NotAfter)
 }
 
 func fingerprintSHA256(cert *x509.Certificate) string {

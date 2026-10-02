@@ -20,5 +20,5 @@ func solicitarCredencialTemporal(ctx context.Context) ([]byte, []byte, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
 	}
-	return nil, nil, errors.New("La carga de P12/PFX requiere la interfaz local de GrxFirma.")
+	return nil, nil, errors.New("la carga de P12/PFX requiere la interfaz local de GrxFirma")
 }

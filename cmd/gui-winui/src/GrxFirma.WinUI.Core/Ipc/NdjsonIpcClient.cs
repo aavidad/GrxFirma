@@ -282,6 +282,10 @@ public sealed class NdjsonIpcClient : IIpcClient
         }
         catch (IpcClientException exception)
         {
+            var reportedException = requestWritten &&
+                exception.Code == "connection_closed"
+                    ? IpcClientException.ClosedAfterRequest()
+                    : exception;
             if (transportTouched)
             {
                 await InvalidateTransportAsync().ConfigureAwait(false);
@@ -292,7 +296,11 @@ public sealed class NdjsonIpcClient : IIpcClient
                 action,
                 requestId,
                 traceId,
-                exception.Code));
+                reportedException.Code));
+            if (!ReferenceEquals(reportedException, exception))
+            {
+                throw reportedException;
+            }
             throw;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

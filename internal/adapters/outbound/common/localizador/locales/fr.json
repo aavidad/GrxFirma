@@ -1200,7 +1200,7 @@
   "Omitir confirmación al cerrar con cambios sin guardar": "Skip confirmation when closing with unsaved changes",
   "Opacidad del sello": "Opacité du cachet",
   "error.opacidad_logo_sello": "L’opacité du cachet doit être un nombre entier compris entre 0 et 100 %.",
-  "sign.seal.logo_opacity": "Opacité du cachet",
+  "sign.seal.opacity": "Opacité du cachet",
   "sign.seal.opacity_help": "Réduisez l’opacité pour voir le document sous le cachet",
   "sign.seal.qr_https_error": "Le code QR exige HTTPS. Saisissez une adresse sans protocole ou avec https://, sans identifiant ni mot de passe.",
   "sign.seal.one_by_one": "Une par une",

@@ -213,9 +213,7 @@ func TestDriverSeccompChild(t *testing.T) {
 	}
 	// Exercise scheduler, timers, GC and memory mappings after restrictions.
 	runtime.GC()
-	select {
-	case <-time.After(time.Millisecond):
-	}
+	time.Sleep(time.Millisecond)
 }
 
 func TestDriverSeccompPthreadFallback(t *testing.T) {

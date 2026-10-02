@@ -17,11 +17,11 @@ LOCALES = ROOT / "internal/adapters/outbound/common/localizador/locales"
 
 class SealPerPageContractTest(unittest.TestCase):
     def test_ipc_and_editor_share_per_page_list(self):
-        contract = (CORE / "Operations/DesktopOperationContracts.cs").read_text()
-        settings = (CORE / "Operations/DesktopSettingsContracts.cs").read_text()
-        vm = (WINUI / "ViewModels/SignPageViewModel.cs").read_text()
+        contract = (CORE / "Operations/DesktopOperationContracts.cs").read_text(encoding="utf-8")
+        settings = (CORE / "Operations/DesktopSettingsContracts.cs").read_text(encoding="utf-8")
+        vm = (WINUI / "ViewModels/SignPageViewModel.cs").read_text(encoding="utf-8")
         view = ET.parse(WINUI / "Views/SignPage.xaml")
-        events = (WINUI / "Views/SignPage.xaml.cs").read_text()
+        events = (WINUI / "Views/SignPage.xaml.cs").read_text(encoding="utf-8")
         self.assertIn('JsonPropertyName("placements")', contract)
         self.assertIn('JsonPropertyName("rect")', contract)
         self.assertIn('JsonPropertyName("signSealPlacements")', settings)
@@ -33,7 +33,7 @@ class SealPerPageContractTest(unittest.TestCase):
         self.assertTrue(any("HasSealOnPreviewPage" in value for el in view.iter() for value in el.attrib.values()))
 
     def test_qr_field_is_hidden_and_url_is_normalized(self):
-        vm = (WINUI / "ViewModels/SignPageViewModel.cs").read_text()
+        vm = (WINUI / "ViewModels/SignPageViewModel.cs").read_text(encoding="utf-8")
         view = ET.parse(WINUI / "Views/SignPage.xaml")
         field = next(el for el in view.iter() if el.attrib.get("AutomationProperties.Name") == "Dirección de verificación del QR")
         self.assertIn("VisibleSealQrEnabled", field.attrib["Visibility"])
@@ -45,7 +45,7 @@ class SealPerPageContractTest(unittest.TestCase):
                 "sign.seal.add_this_page", "sign.seal.qr_https_error", "sign.seal.page_limit")
         for language in ("ca", "de", "en", "es", "eu", "fr", "gl", "it", "pt", "va", "zh"):
             with self.subTest(language=language):
-                catalog = json.loads((LOCALES / f"{language}.json").read_text())
+                catalog = json.loads((LOCALES / f"{language}.json").read_text(encoding="utf-8"))
                 for key in keys:
                     self.assertTrue(catalog[key].strip())
 

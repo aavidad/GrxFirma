@@ -200,7 +200,7 @@ func Show(ctx context.Context, spec Spec) (int32, int32, error) {
 		return 0, 0, ctx.Err()
 	}
 	if st.foreign.Load() {
-		return 0, 0, errors.New("Windows creó el diálogo fuera de este proceso")
+		return 0, 0, errors.New("el diálogo se creó fuera de este proceso")
 	}
 	hresult := uint32(result) // #nosec G115 -- un HRESULT ocupa 32 bits.
 	if hresult&0x80000000 != 0 {

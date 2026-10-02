@@ -38,7 +38,11 @@ func TestCLITLSUsaCAUnicaGestionada(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	configDir := filepath.Join(home, ".config", "grxfirma")
-	for _, operation := range []string{"generar-certificados-tls", "estado-confianza-tls", "instalar-confianza-tls"} {
+	operations := []string{"generar-certificados-tls", "estado-confianza-tls"}
+	if localtlstrust.ManagedTrustLifecycleSupported() {
+		operations = append(operations, "instalar-confianza-tls")
+	}
+	for _, operation := range operations {
 		var stdout, stderr strings.Builder
 		adapter := New(nil, nil).WithConfigDir(configDir)
 		adapter.Stdout, adapter.Stderr = &stdout, &stderr
@@ -86,7 +90,17 @@ func TestCLITLSLimpiarPreservaFicherosAjenos(t *testing.T) {
 	}
 	stdout.Reset()
 	stderr.Reset()
-	if code := adapter.Run(context.Background(), []string{"-operacion", "limpiar-almacen-tls"}); code != 0 {
+	code := adapter.Run(context.Background(), []string{"-operacion", "limpiar-almacen-tls"})
+	if !localtlstrust.ManagedTrustLifecycleSupported() {
+		if code == 0 {
+			t.Fatal("la plataforma sin retirada aceptó limpiar el almacén")
+		}
+		if data, err := os.ReadFile(foreign); err != nil || string(data) != "conservar" {
+			t.Fatalf("fichero ajeno alterado: %v", err)
+		}
+		return
+	}
+	if code != 0 {
 		t.Fatalf("limpiar: %d: %s", code, stderr.String())
 	}
 	if data, err := os.ReadFile(foreign); err != nil || string(data) != "conservar" {

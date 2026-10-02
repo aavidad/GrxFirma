@@ -61,7 +61,7 @@ func solicitarPasswordTemporalNativo(ctx context.Context) ([]byte, error) {
 		return nil, err
 	}
 	if err := procPromptTemporaryCredential.Find(); err != nil {
-		return nil, errors.New("Windows no dispone del diálogo protegido de contraseña.")
+		return nil, errors.New("no está disponible el diálogo protegido de contraseña de Windows")
 	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
@@ -124,7 +124,7 @@ func solicitarPasswordTemporalNativo(ctx context.Context) ([]byte, error) {
 		return nil, certpicker.ErrSeleccionCancelada
 	}
 	if result != 0 {
-		return nil, errors.New("Windows no pudo recoger la contraseña del P12/PFX.")
+		return nil, errors.New("no se pudo recoger la contraseña del P12/PFX en Windows")
 	}
 	return temporaryPasswordUTF8(password[:])
 }
@@ -140,19 +140,19 @@ func temporaryPasswordUTF8(password []uint16) ([]byte, error) {
 		if utf16.IsSurrogate(value) {
 			if index+1 >= len(password) {
 				clear(result)
-				return nil, errors.New("La contraseña contiene texto Unicode inválido.")
+				return nil, errors.New("la contraseña contiene texto Unicode inválido")
 			}
 			index++
 			value = utf16.DecodeRune(value, rune(password[index]))
 			if value == utf8.RuneError {
 				clear(result)
-				return nil, errors.New("La contraseña contiene texto Unicode inválido.")
+				return nil, errors.New("la contraseña contiene texto Unicode inválido")
 			}
 		}
 		result = utf8.AppendRune(result, value)
 	}
 	clear(result)
-	return nil, errors.New("Windows devolvió una contraseña sin terminador.")
+	return nil, errors.New("se recibió una contraseña sin terminador de Windows")
 }
 
 func mostrarAvisoCredencialTemporalNativo(ctx context.Context, title, detail string) {

@@ -1200,7 +1200,7 @@
   "Omitir confirmación al cerrar con cambios sin guardar": "Skip confirmation when closing with unsaved changes",
   "Opacidad del sello": "Deckkraft des Stempels",
   "error.opacidad_logo_sello": "Die Deckkraft des Stempels muss eine ganze Zahl zwischen 0 und 100 Prozent sein.",
-  "sign.seal.logo_opacity": "Deckkraft des Stempels",
+  "sign.seal.opacity": "Deckkraft des Stempels",
   "sign.seal.opacity_help": "Verringern Sie die Deckkraft, damit das Dokument unter dem Stempel sichtbar wird",
   "sign.seal.qr_https_error": "Der QR-Code erfordert HTTPS. Geben Sie eine Adresse ohne Schema oder mit https:// ein, ohne Benutzername oder Passwort.",
   "sign.seal.one_by_one": "Einzeln",

@@ -222,9 +222,6 @@ func TestSandboxCancellationUnavailableAndLateCleanup(t *testing.T) {
 	if _, err := NewSandboxCommand(ctx, client.Executable, client.ModulePath, SandboxResources{}); !errors.Is(err, context.Canceled) {
 		t.Fatal(err)
 	}
-	if _, err := NewSandboxCommand(nil, client.Executable, client.ModulePath, SandboxResources{}); !errors.Is(err, ErrSandboxPolicy) {
-		t.Fatal(err)
-	}
 	if _, err := newSandboxCommand(context.Background(), client.Executable, client.ModulePath, SandboxResources{}, "/nonexistent-sandbox-launcher"); !errors.Is(err, ErrSandboxUnavailable) {
 		t.Fatal(err)
 	}

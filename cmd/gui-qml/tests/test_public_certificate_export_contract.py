@@ -15,9 +15,9 @@ ROOT = Path(__file__).resolve().parents[3]
 
 class PublicCertificateExportContract(unittest.TestCase):
     def test_qt_routes_both_buttons_through_ipc(self):
-        qml = (ROOT / "cmd/gui-qml/qml/main.qml").read_text()
-        header = (ROOT / "cmd/gui-qml/ipcbridge.h").read_text()
-        bridge = (ROOT / "cmd/gui-qml/ipcbridge.cpp").read_text()
+        qml = (ROOT / "cmd/gui-qml/qml/main.qml").read_text(encoding="utf-8")
+        header = (ROOT / "cmd/gui-qml/ipcbridge.h").read_text(encoding="utf-8")
+        bridge = (ROOT / "cmd/gui-qml/ipcbridge.cpp").read_text(encoding="utf-8")
         self.assertEqual(qml.count('text: tr("Exportar certificado público…")'), 2)
         self.assertIn('text: tr("Compartir mi certificado…")', qml)
         self.assertIn('window.startPublicCertificateExport(false)', qml)
@@ -36,12 +36,12 @@ class PublicCertificateExportContract(unittest.TestCase):
             "Es su certificado público: puede enviarlo sin riesgo. Quien lo reciba podrá proteger archivos que solo usted podrá abrir con GrxFirma (Desproteger).",
         ]
         for locale in ("ca", "de", "en", "es", "eu", "fr", "gl", "it", "pt", "va", "zh"):
-            data = json.loads((ROOT / f"internal/adapters/outbound/common/localizador/locales/{locale}.json").read_text())
+            data = json.loads((ROOT / f"internal/adapters/outbound/common/localizador/locales/{locale}.json").read_text(encoding="utf-8"))
             with self.subTest(locale=locale):
                 self.assertTrue(all(data.get(key) for key in keys))
 
     def test_ipc_schema_requires_certificate_id(self):
-        schema = json.loads((ROOT / "docs/schemas/desktop-ipc-v1.schema.json").read_text())
+        schema = json.loads((ROOT / "docs/schemas/desktop-ipc-v1.schema.json").read_text(encoding="utf-8"))
         rules = schema["$defs"]["request"]["allOf"]
         export = next(rule for rule in rules if rule.get("if", {}).get("properties", {}).get("action", {}).get("const") == "certificate_export_public")
         params = export["then"]["properties"]["params"]

@@ -3,7 +3,7 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
-//go:build windows
+//go:build windows && fyne_gui
 
 package main
 

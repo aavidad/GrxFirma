@@ -47,12 +47,7 @@ func TestRunRetiraConfianzaTLSGestionadaAntesDeProcesarProtocolos(t *testing.T) 
 	if protocolCalls != 0 {
 		t.Fatalf("protocolCalls = %d, want 0", protocolCalls)
 	}
-	wantSuffix := filepath.Join(
-		".config",
-		"grxfirma",
-		"tls",
-		"websocket-localhost-root.crt.pem",
-	)
+	wantSuffix := filepath.Join("tls", "websocket-localhost-root.crt.pem")
 	if !strings.HasSuffix(filepath.Clean(receivedPath), wantSuffix) {
 		t.Fatalf("ruta CA = %q, want suffix %q", receivedPath, wantSuffix)
 	}

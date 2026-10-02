@@ -203,7 +203,7 @@ class SafariBuildScriptTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertFalse((output / "old-output").exists())
             report = json.loads(
-                (output / ".grxfirma-safari" / "integration-report.json").read_text()
+                (output / ".grxfirma-safari" / "integration-report.json").read_text(encoding="utf-8")
             )
             self.assertEqual(report["build_environment"]["minimum_macos"], "12.3")
             self.assertEqual(
@@ -234,7 +234,7 @@ class SafariBuildScriptTests(unittest.TestCase):
             result = self.run_build(source, output, tools, fail_converter=True)
 
             self.assertNotEqual(result.returncode, 0)
-            self.assertEqual(sentinel.read_text(), "must survive\n")
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "must survive\n")
             self.assertFalse(list(output.parent.glob(".grxfirma-safari-*")))
 
 

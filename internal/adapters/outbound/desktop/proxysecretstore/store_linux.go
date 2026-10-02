@@ -31,6 +31,28 @@ type Store struct {
 	idgen  func() (string, error)
 }
 
+type commandRunner interface {
+	Run(ctx context.Context, stdin []byte, name string, args ...string) ([]byte, error)
+}
+
+type execCommandRunner struct{}
+
+func (execCommandRunner) Run(ctx context.Context, stdin []byte, name string, args ...string) ([]byte, error) {
+	// #nosec G204 -- executable comes from the fixed platform allowlist.
+	cmd := exec.CommandContext(ctx, name, args...)
+	if len(stdin) > 0 {
+		cmd.Stdin = bytes.NewReader(stdin)
+	}
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		if len(out) > 0 {
+			return nil, fmt.Errorf("%w: %s", err, strings.TrimSpace(string(out)))
+		}
+		return nil, err
+	}
+	return out, nil
+}
+
 func New() *Store {
 	return &Store{
 		runner: execCommandRunner{},

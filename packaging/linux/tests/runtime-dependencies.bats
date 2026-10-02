@@ -4,6 +4,9 @@
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
 
+# Bats invokes fixture functions indirectly.
+# shellcheck disable=SC2317,SC2329
+
 setup() {
   export FIXTURE_ROOT="${BATS_TEST_TMPDIR}/runtime-dependencies"
   export TEST_BIN="${FIXTURE_ROOT}/bin"

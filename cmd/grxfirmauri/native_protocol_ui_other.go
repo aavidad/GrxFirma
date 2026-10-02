@@ -84,12 +84,6 @@ func waitNativeLegacyLaunchUI(
 //lint:ignore U1000 Stub requerido por las combinaciones sin fallback nativo.
 func updateNativeProtocolUI(string, string) {}
 
-func setNativeProtocolCompletionUI(bool) {}
-
-func nativePortalDeliveredUI(string) {}
-
-func nativePortalErrorUI() {}
-
 func reportNativeProtocolFailure(string, error) {}
 
 //lint:ignore U1000 Stub requerido por las combinaciones sin fallback nativo.

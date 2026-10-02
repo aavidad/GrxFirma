@@ -49,25 +49,24 @@ class ReleaseNotesContractTests(unittest.TestCase):
                 "# Novedades\n\n## 2.0.2 — 2026-09-26\n\n- Cambio.\n",
                 encoding="utf-8",
             )
-            script = root / "scripts/nueva-version.sh"
-            self.assertEqual(subprocess.run(["bash", str(script)], capture_output=True).returncode, 0)
-            self.assertEqual((root / "VERSION.txt").read_text().strip(), "2.0.3")
-            text = (root / "docs/NOVEDADES.md").read_text()
+            self.assertEqual(subprocess.run(["bash", "scripts/nueva-version.sh"], cwd=root, capture_output=True).returncode, 0)
+            self.assertEqual((root / "VERSION.txt").read_text(encoding="utf-8").strip(), "2.0.3")
+            text = (root / "docs/NOVEDADES.md").read_text(encoding="utf-8")
             self.assertLess(text.index("## 2.0.3"), text.index("## 2.0.2"))
             self.assertIn("Pendiente:", text)
             before = text
             for candidate in ("2.0.3", "2.0.2", "2.0.3+otra", "02.0.4", "2.0.4-01"):
-                result = subprocess.run(["bash", str(script), candidate], capture_output=True)
+                result = subprocess.run(["bash", "scripts/nueva-version.sh", candidate], cwd=root, capture_output=True)
                 self.assertNotEqual(result.returncode, 0, candidate)
-                self.assertEqual((root / "VERSION.txt").read_text().strip(), "2.0.3")
-                self.assertEqual((root / "docs/NOVEDADES.md").read_text(), before)
+                self.assertEqual((root / "VERSION.txt").read_text(encoding="utf-8").strip(), "2.0.3")
+                self.assertEqual((root / "docs/NOVEDADES.md").read_text(encoding="utf-8"), before)
             self.assertEqual(
-                subprocess.run(["bash", str(script), "2.1.0"], capture_output=True).returncode,
+                subprocess.run(["bash", "scripts/nueva-version.sh", "2.1.0"], cwd=root, capture_output=True).returncode,
                 0,
             )
-            self.assertEqual((root / "VERSION.txt").read_text().strip(), "2.1.0")
+            self.assertEqual((root / "VERSION.txt").read_text(encoding="utf-8").strip(), "2.1.0")
             self.assertEqual(
-                subprocess.run(["bash", str(script), "2.1.1-rc.1"], capture_output=True).returncode,
+                subprocess.run(["bash", "scripts/nueva-version.sh", "2.1.1-rc.1"], cwd=root, capture_output=True).returncode,
                 0,
             )
             self.assertEqual(
@@ -101,14 +100,13 @@ class ReleaseNotesContractTests(unittest.TestCase):
             (root / "VERSION.txt").write_text("2.0.3\n", encoding="utf-8")
             notes = root / "docs/NOVEDADES.md"
             notes.write_text("## 2.0.3 — 2026-09-26\n\n- Cambio.\n", encoding="utf-8")
-            script = root / "scripts/nueva-version.sh"
             for arguments in (("0.0.90",), ("--renumerar",), ("--renumerar", "2.0.3")):
                 with self.subTest(arguments=arguments):
-                    self.assertNotEqual(subprocess.run(["bash", str(script), *arguments], capture_output=True).returncode, 0)
-                    self.assertEqual((root / "VERSION.txt").read_text().strip(), "2.0.3")
-            self.assertEqual(subprocess.run(["bash", str(script), "--renumerar", "0.0.90"], capture_output=True).returncode, 0)
-            self.assertEqual((root / "VERSION.txt").read_text().strip(), "0.0.90")
-            self.assertEqual(notes.read_text().count("## 0.0.90 — "), 1)
+                    self.assertNotEqual(subprocess.run(["bash", "scripts/nueva-version.sh", *arguments], cwd=root, capture_output=True).returncode, 0)
+                    self.assertEqual((root / "VERSION.txt").read_text(encoding="utf-8").strip(), "2.0.3")
+            self.assertEqual(subprocess.run(["bash", "scripts/nueva-version.sh", "--renumerar", "0.0.90"], cwd=root, capture_output=True).returncode, 0)
+            self.assertEqual((root / "VERSION.txt").read_text(encoding="utf-8").strip(), "0.0.90")
+            self.assertEqual(notes.read_text(encoding="utf-8").count("## 0.0.90 — "), 1)
 
     def test_packagers_check_notes_before_build(self):
         for relative in (

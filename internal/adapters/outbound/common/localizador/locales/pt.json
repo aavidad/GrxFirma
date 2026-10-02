@@ -1200,7 +1200,7 @@
   "Omitir confirmación al cerrar con cambios sin guardar": "Skip confirmation when closing with unsaved changes",
   "Opacidad del sello": "Opacidade do selo",
   "error.opacidad_logo_sello": "A opacidade do selo deve ser um número inteiro entre 0 e 100 %.",
-  "sign.seal.logo_opacity": "Opacidade do selo",
+  "sign.seal.opacity": "Opacidade do selo",
   "sign.seal.opacity_help": "Reduza a opacidade para ver o documento por baixo do selo",
   "sign.seal.qr_https_error": "O código QR exige HTTPS. Introduza um endereço sem esquema ou com https://, sem utilizador nem palavra-passe.",
   "sign.seal.one_by_one": "Uma a uma",

@@ -85,6 +85,9 @@ func importarP12AWindows(ctx context.Context, rutaP12, password string) error {
 	for {
 		actual, err = windows.CertEnumCertificatesInStore(temporal, actual)
 		if actual == nil {
+			if err != nil && !errors.Is(err, windows.Errno(0x80092004)) { // CRYPT_E_NOT_FOUND indica fin del almacén.
+				return fmt.Errorf("enumerar certificados del P12/PFX: %w", err)
+			}
 			break
 		}
 		if !tieneClavePrivada(actual) {
@@ -97,7 +100,7 @@ func importarP12AWindows(ctx context.Context, rutaP12, password string) error {
 		importados++
 	}
 	if importados == 0 {
-		return errors.New("El P12/PFX no contiene ningún certificado con clave privada.")
+		return errors.New("el P12/PFX no contiene ningún certificado con clave privada")
 	}
 	return nil
 }

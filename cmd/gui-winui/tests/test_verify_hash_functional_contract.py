@@ -79,7 +79,7 @@ class VerifyAndHashFunctionalContractTests(unittest.TestCase):
         )
         self.assertIn(
             '"Firma íntegra; confianza no determinada"',
-            (APP.parent / "GrxFirma.WinUI.Core/Operations/VerificationPresentation.cs").read_text(),
+            (APP.parent / "GrxFirma.WinUI.Core/Operations/VerificationPresentation.cs").read_text(encoding="utf-8"),
         )
         self.assertIn(
             "VerificationAssessment.HasEstablishedTrust(data)",

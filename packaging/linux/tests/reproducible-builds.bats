@@ -4,6 +4,9 @@
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
 
+# The assertions compare literal shell source, including dollar signs.
+# shellcheck disable=SC2016
+
 setup() {
   export FIXTURE_ROOT="${BATS_TEST_TMPDIR}/linux-repro"
   export STAGE_DIR="${FIXTURE_ROOT}/stage"

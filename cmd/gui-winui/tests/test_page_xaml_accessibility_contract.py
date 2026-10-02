@@ -233,7 +233,7 @@ class PageXamlAccessibilityContractTest(unittest.TestCase):
                 tab_indices = []
                 for control in controls:
                     if control.get(XAML_NAME) == "ReleaseNotesButton":
-                        code = (VIEWS_DIRECTORY / (page_name + ".cs")).read_text()
+                        code = (VIEWS_DIRECTORY / (page_name + ".cs")).read_text(encoding="utf-8")
                         self.assertIn("AutomationProperties.SetName(", code)
                         self.assertIn("AutomationProperties.SetHelpText(", code)
                         self.assertIn('"Novedades"', code)

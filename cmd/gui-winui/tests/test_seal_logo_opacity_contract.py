@@ -42,10 +42,10 @@ class SealLogoOpacityContractTests(unittest.TestCase):
         self.assertIn("VisibleSealEnabled", ET.tostring(xaml.getroot(), encoding="unicode"))
 
     def test_preview_and_sign_share_explicit_opacity(self) -> None:
-        vm = (WINUI / "ViewModels" / "SignPageViewModel.cs").read_text()
+        vm = (WINUI / "ViewModels" / "SignPageViewModel.cs").read_text(encoding="utf-8")
         contract = (
             CORE / "Operations" / "DesktopOperationContracts.cs"
-        ).read_text()
+        ).read_text(encoding="utf-8")
         self.assertIn('JsonPropertyName("logoOpacityPercent")', contract)
         self.assertEqual(
             vm.count("LogoOpacityPercent = (int)VisibleSealLogoOpacityPercent"),
@@ -55,11 +55,11 @@ class SealLogoOpacityContractTests(unittest.TestCase):
         self.assertIn("ScheduleSealStampPreview();", vm)
 
     def test_preference_is_loaded_saved_and_localized(self) -> None:
-        page = (WINUI / "Views" / "SignPage.xaml.cs").read_text()
+        page = (WINUI / "Views" / "SignPage.xaml.cs").read_text(encoding="utf-8")
         settings = (
             CORE / "Operations" / "DesktopSettingsContracts.cs"
-        ).read_text()
-        project = (WINUI / "GrxFirma.WinUI.csproj").read_text()
+        ).read_text(encoding="utf-8")
+        project = (WINUI / "GrxFirma.WinUI.csproj").read_text(encoding="utf-8")
         self.assertIn('JsonPropertyName("signSealLogoOpacityPercent")', settings)
         self.assertIn("result.Data.SealLogoOpacityPercent", page)
         self.assertIn("SealLogoOpacityPercent = value", page)
@@ -67,14 +67,14 @@ class SealLogoOpacityContractTests(unittest.TestCase):
         self.assertIn("locales\\*.json", project)
         for locale in ("ca", "de", "en", "es", "eu", "fr", "gl", "it", "pt", "va", "zh"):
             with self.subTest(locale=locale):
-                catalog = json.loads((LOCALES / f"{locale}.json").read_text())
-                self.assertTrue(catalog["sign.seal.logo_opacity"].strip())
+                catalog = json.loads((LOCALES / f"{locale}.json").read_text(encoding="utf-8"))
+                self.assertTrue(catalog["sign.seal.opacity"].strip())
                 self.assertTrue(catalog["sign.seal.opacity_help"].strip())
 
     def test_rotated_card_keeps_its_unrotated_size(self) -> None:
-        xaml = (WINUI / "Views" / "SignPage.xaml").read_text()
-        vm = (WINUI / "ViewModels" / "SignPageViewModel.cs").read_text()
-        page = (WINUI / "Views" / "SignPage.xaml.cs").read_text()
+        xaml = (WINUI / "Views" / "SignPage.xaml").read_text(encoding="utf-8")
+        vm = (WINUI / "ViewModels" / "SignPageViewModel.cs").read_text(encoding="utf-8")
+        page = (WINUI / "Views" / "SignPage.xaml.cs").read_text(encoding="utf-8")
         self.assertIn('<Border.RenderTransform>', xaml)
         self.assertIn('Angle="{x:Bind ViewModel.VisibleSealPreviewRotation, Mode=OneWay}"', xaml)
         self.assertIn('Rotation = 0, // El editor gira la tarjeta completa.', vm)

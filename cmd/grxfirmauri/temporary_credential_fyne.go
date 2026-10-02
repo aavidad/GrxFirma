@@ -31,7 +31,7 @@ func solicitarCredencialTemporal(ctx context.Context) ([]byte, []byte, error) {
 		return nil, nil, certpicker.ErrSeleccionCancelada
 	}
 	if err != nil || len(paths) != 1 {
-		return nil, nil, errors.New("No se pudo seleccionar el archivo P12/PFX.")
+		return nil, nil, errors.New("no se pudo seleccionar el archivo P12/PFX")
 	}
 	data, err := readTemporaryCredential(paths[0])
 	if err != nil {
@@ -66,7 +66,7 @@ func solicitarPasswordTemporalFyne(ctx context.Context) ([]byte, error) {
 		a = fyne.CurrentApp()
 	}
 	if a == nil {
-		return nil, errors.New("No está disponible la ventana local para introducir la contraseña.")
+		return nil, errors.New("no está disponible la ventana local para introducir la contraseña")
 	}
 	type answer struct {
 		password []byte

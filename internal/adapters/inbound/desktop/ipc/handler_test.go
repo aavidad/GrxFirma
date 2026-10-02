@@ -2889,6 +2889,7 @@ func TestDespachar_ClearTlsTrust_RetiraConfianzaAntesDeArtefactosPropios(t *test
 
 	removeCalled := false
 	m := &Manejador{
+		ConfigDir: filepath.Dir(tlsDir),
 		tlsDeps: tlsIPCDependencies{
 			removeManagedTrust: func(_ context.Context, rootFile string) error {
 				removeCalled = true

@@ -26,12 +26,14 @@ set_valid_release_environment() {
   export GRXFIRMA_ANDROID_KEYSTORE_PASSWORD="test-password"
   export GRXFIRMA_ANDROID_KEY_ALIAS="release"
   export GRXFIRMA_ANDROID_KEY_PASSWORD="test-password"
-  export GRXFIRMA_ANDROID_SIGNING_CERT_SHA256="$(printf 'A%.0s' {1..64})"
+  GRXFIRMA_ANDROID_SIGNING_CERT_SHA256="$(printf 'A%.0s' {1..64})"
+  export GRXFIRMA_ANDROID_SIGNING_CERT_SHA256
   export ANDROID_QA_KEYSTORE_BASE64="${encoded}"
   export ANDROID_QA_KEYSTORE_PASSWORD="test-password"
   export ANDROID_QA_KEY_ALIAS="qa"
   export ANDROID_QA_KEY_PASSWORD="test-password"
-  export ANDROID_QA_SIGNING_CERT_SHA256="$(printf 'B%.0s' {1..64})"
+  ANDROID_QA_SIGNING_CERT_SHA256="$(printf 'B%.0s' {1..64})"
+  export ANDROID_QA_SIGNING_CERT_SHA256
   export WEB_EXT_API_KEY="user:test"
   export WEB_EXT_API_SECRET="test-secret"
   export MACOS_APPLICATION_CERT_P12_BASE64="${encoded}"

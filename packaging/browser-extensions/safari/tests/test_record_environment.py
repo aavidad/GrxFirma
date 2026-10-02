@@ -62,7 +62,7 @@ class RecordEnvironmentTests(unittest.TestCase):
                 ["Xcode 16.4", "Build version 16F6"],
             )
             self.assertRegex(environment["source_tree_sha256"], r"^[0-9a-f]{64}$")
-            self.assertEqual(json.loads(report.read_text()), second)
+            self.assertEqual(json.loads(report.read_text(encoding="utf-8")), second)
 
     def test_source_hash_changes_with_path_or_content(self):
         with tempfile.TemporaryDirectory() as temporary:

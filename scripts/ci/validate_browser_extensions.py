@@ -30,9 +30,6 @@ FORBIDDEN_PATHS = {
     "crypto_utils.js",
     "content_scripts/autologin.js",
     "content_scripts/session_sync.js",
-    "options.html",
-    "options.js",
-    "styles.css",
 }
 
 

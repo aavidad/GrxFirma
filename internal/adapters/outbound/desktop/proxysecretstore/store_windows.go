@@ -187,33 +187,6 @@ func callDPAPI(input []byte, protect bool) ([]byte, error) {
 	return result, nil
 }
 
-func decodeBase64Limited(encoded []byte, maxDecodedBytes int, label string) ([]byte, error) {
-	if len(encoded) == 0 ||
-		maxDecodedBytes <= 0 ||
-		len(encoded) > base64.StdEncoding.EncodedLen(maxDecodedBytes) {
-		return nil, fmt.Errorf(
-			"proxysecretstore: %s fuera del limite de %d bytes",
-			label,
-			maxDecodedBytes,
-		)
-	}
-	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(encoded)))
-	n, err := base64.StdEncoding.Decode(decoded, encoded)
-	if err != nil {
-		zeroSecretBytes(decoded)
-		return nil, fmt.Errorf("proxysecretstore: decodificando %s: %w", label, err)
-	}
-	if n == 0 || n > maxDecodedBytes {
-		zeroSecretBytes(decoded)
-		return nil, fmt.Errorf(
-			"proxysecretstore: %s fuera del limite de %d bytes",
-			label,
-			maxDecodedBytes,
-		)
-	}
-	return decoded[:n], nil
-}
-
 func validateProxySecretMaterial(realm, username string, password []byte) error {
 	switch {
 	case strings.TrimSpace(realm) == "":

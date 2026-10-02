@@ -16,8 +16,6 @@ func hasLegacyProtocolWindow() bool { return false }
 
 func portalDeliveredUI(string) {}
 
-func portalActionUI() {}
-
 func portalErrorUI() {}
 
 func maybeRunProtocolUI(context.Context, io.Writer, string) (bool, int) {
