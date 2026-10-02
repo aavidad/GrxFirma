@@ -1,0 +1,38 @@
+# Derechos de autor (C) 2026 Diputación de Granada.
+# Autoría: Oficina de Software Libre de la Diputación de Granada.
+# Licencia: EUPL-1.2
+# SPDX-License-Identifier: EUPL-1.2
+Categories:
+  - Office
+License: EUPL-1.2
+AuthorEmail: avidad@dipgra.es
+SourceCode: https://github.com/aavidad/GrxFirma
+IssueTracker: https://github.com/aavidad/GrxFirma/issues
+AutoName: GrxFirma
+Summary: Firma y verifica documentos en el dispositivo
+Description: |
+  GrxFirma permite seleccionar documentos con el selector de Android,
+  firmarlos y verificar firmas con un núcleo libre compilado desde Go.
+  No solicita permiso de Internet.
+
+RepoType: git
+Repo: https://github.com/aavidad/GrxFirma.git
+
+Builds:
+  - versionName: 0.0.105
+    versionCode: 105
+    commit: v0.0.105
+    subdir: mobile/android
+    output: app/build/outputs/apk/production/release/app-production-release-unsigned.apk
+    build: |
+      cd ../..
+      scripts/mobile/android/build-core-aar.sh mobile/android/app/core/grxfirma.aar
+      export GRXFIRMA_ANDROID_CORE_AAR="$PWD/mobile/android/app/core/grxfirma.aar"
+      export GRXFIRMA_ANDROID_CORE_SHA256="$(sha256sum "$GRXFIRMA_ANDROID_CORE_AAR" | cut -d ' ' -f1)"
+      export GRXFIRMA_ANDROID_SOURCE_COMMIT="$(git rev-parse HEAD)"
+      export GRXFIRMA_FDROID_BUILD=1
+      cd mobile/android
+      ./gradlew --no-daemon --no-configuration-cache clean assembleProductionRelease
+
+AutoUpdateMode: None
+UpdateCheckMode: None

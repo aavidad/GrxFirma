@@ -55,6 +55,21 @@ val releaseSigningConfigured = listOf(
     releaseKeyAlias,
     releaseKeyPassword,
 ).all { it.isPresent }
+// F-Droid compila el APK desde fuentes y aplica su propia firma después.
+val fdroidBuild = providers.environmentVariable("GRXFIRMA_FDROID_BUILD")
+    .map { it == "1" }
+    .orElse(false)
+    .get()
+if (fdroidBuild) {
+    require(listOf(
+        releaseKeystore,
+        releaseKeystorePassword,
+        releaseKeyAlias,
+        releaseKeyPassword,
+    ).none { it.isPresent }) {
+        "La compilación F-Droid no acepta credenciales de firma externas."
+    }
+}
 val pythonExecutable = providers.environmentVariable("PYTHON").orElse("python3")
 val androidScripts = layout.projectDirectory.dir("../../../scripts/mobile/android")
 
@@ -238,7 +253,7 @@ tasks.configureEach {
     if (name == "preProductionDebugBuild" || name == "preProductionReleaseBuild") {
         dependsOn(verifyProductionCore)
     }
-    if (name == "preProductionReleaseBuild") {
+    if (name == "preProductionReleaseBuild" && !fdroidBuild) {
         dependsOn(verifyProductionSigning)
     }
 }

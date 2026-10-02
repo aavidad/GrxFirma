@@ -480,6 +480,7 @@ jobs:
     environment: official-release
     permissions:
       contents: read
+      actions: read
     runs-on: windows-2022
     timeout-minutes: 50
     needs:
@@ -558,12 +559,39 @@ jobs:
             -OutputDirectory "${env:GITHUB_WORKSPACE}/release/windows-official"
 
       - name: Subir artefactos Authenticode Windows
+        id: windows-artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-installers
           path: release/windows-official/*
           if-no-files-found: error
           retention-days: 30
+
+      - name: Detectar credenciales SignPath completas
+        id: signpath
+        if: ${{ !contains(github.ref_name, '-') }}
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORGANIZATION_ID: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+        run: |
+          if ($env:SIGNPATH_API_TOKEN -and $env:SIGNPATH_ORGANIZATION_ID) {
+            "enabled=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
+
+      # La solicitud opcional no altera el paquete oficial ni su verificación.
+      # SignPath debe configurar el perfil para firmar el instalador y los EXE del ZIP.
+      - name: Solicitar firma adicional a SignPath Foundation
+        if: ${{ steps.signpath.outputs.enabled == 'true' }}
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: grxfirma
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: windows-installers
+          github-artifact-id: ${{ steps.windows-artifact.outputs.artifact-id }}
+          wait-for-completion: true
 
   verify-windows:
     permissions:
