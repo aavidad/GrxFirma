@@ -7,6 +7,10 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.107 — 2026-10-03
+
+- Validador en servidor: admite un certificado y una clave TLS propios (`-certificado-tls-rest` y `-clave-tls-rest`) y acepta el nombre heredado `AUTOFIRMAV2_REST_TOKEN` para el token.
+
 ## 0.0.106 — 2026-10-02
 
 - Verificación más completa de los PDF con varias firmas: el servicio REST ofrece en `/v2/verify` un informe por cada firma que indica qué parte del documento cubre y si el PDF cambió después de firmarlo.
