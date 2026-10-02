@@ -11,11 +11,45 @@ import (
 	"context"
 	"crypto/x509"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
 const windowsCertStoreIntegrationEnv = "GRXFIRMA_WINDOWS_CERT_STORE_INTEGRATION"
+
+type fakeWindowsTrustStore struct {
+	*fakeManagedCertificateStore
+	closed bool
+}
+
+func (store *fakeWindowsTrustStore) Close() { store.closed = true }
+
+func TestWindowsTrustStoreInyectado(t *testing.T) {
+	cert := newManagedLocalCATestCertificate(t, 1002, true)
+	store := &fakeWindowsTrustStore{fakeManagedCertificateStore: newFakeManagedCertificateStore()}
+	open := func() (windowsTrustStore, error) { store.closed = false; return store, nil }
+	certFile := filepath.Join(t.TempDir(), "websocket-localhost-root.crt.pem")
+	ctx := context.Background()
+	if err := ensureManagedTrustedWithWindowsStore(ctx, certFile, cert, open); err != nil {
+		t.Fatal(err)
+	}
+	if !store.closed || len(store.certificates) != 1 {
+		t.Fatal("el alta gestionada no cerró el almacén inyectado o no añadió la CA")
+	}
+	if err := removeManagedTrustedWithWindowsStore(ctx, certFile, open); err != nil {
+		t.Fatal(err)
+	}
+	if !store.closed || len(store.certificates) != 0 {
+		t.Fatal("la baja gestionada no cerró el almacén inyectado o dejó la CA")
+	}
+	if err := ensureTrustedWithWindowsStore(ctx, cert, open); err != nil {
+		t.Fatal(err)
+	}
+	if !store.closed || len(store.certificates) != 1 {
+		t.Fatal("el alta simple no usó el almacén inyectado")
+	}
+}
 
 func TestWindowsRootStore_AddRechazaCertificadoSobredimensionado(t *testing.T) {
 	t.Parallel()

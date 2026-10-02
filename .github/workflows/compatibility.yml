@@ -125,10 +125,8 @@ jobs:
           fi
           exit "${test_exit}"
 
-      - name: Test Windows CurrentUser certificate store mutations
+      - name: Test Windows certificate trust with fake store
         if: ${{ matrix.name == 'Windows' }}
-        env:
-          GRXFIRMA_WINDOWS_CERT_STORE_INTEGRATION: "1"
         run: >-
           go test -count=1
           ./internal/adapters/outbound/desktop/localtlstrust

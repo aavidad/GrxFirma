@@ -9,7 +9,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"grxfirma/internal/appdirs"
 	"os"
 	"path/filepath"
@@ -56,7 +55,7 @@ func newShellLogConsole(ctx context.Context) fyne.CanvasObject {
 	refresh := func() {
 		text, err := readTailRedacted(path, 64*1024)
 		if err != nil {
-			text = fmt.Sprintf(tl("No se pudo leer el log en %s\n\n%s"), path, err.Error())
+			text = tl("No se pudo leer el log en %s\n\n%s", path, err.Error())
 		}
 		if text == lastText {
 			return

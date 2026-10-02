@@ -8,6 +8,7 @@ package signer_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -172,6 +173,116 @@ func TestMotorFirmaGo_SelloUnicoDesdeLista(t *testing.T) {
 		t.Fatalf("firmas=%d", got)
 	}
 	comprobarPDFFirmado(t, firmado)
+}
+
+// Comprueba referencias y herencia del campo sin depender de la versión de pdfsig.
+func TestMotorFirmaGo_EstructuraCampoFirmaPorPagina(t *testing.T) {
+	exttools.Require(t, "qpdf")
+	fixture := filepath.Join("..", "..", "..", "..", "..", "test", "regression", "fixtures", "v1", "samples", "2.pdf")
+	pdfData, err := os.ReadFile(fixture)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name, placements string
+		pages            []int
+	}{
+		{"widget fusionado", `[{"page":3,"rect":{"x":0.2,"y":0.2,"w":0.3,"h":0.1}}]`, []int{3}},
+		{"campo con hijos", `[{"page":1,"rect":{"x":0.1,"y":0.1,"w":0.3,"h":0.1}},{"page":2,"rect":{"x":0.4,"y":0.2,"w":0.2,"h":0.15}}]`, []int{1, 2}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			firmado := firmarFormulario(t, pdfData, map[string]string{
+				"visibleSeal": "true", "visibleSealPlacements": tc.placements,
+			})
+			path := filepath.Join(t.TempDir(), "signed.pdf")
+			if err := os.WriteFile(path, firmado, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			output, err := exec.Command("qpdf", "--json", path).Output()
+			if err != nil {
+				t.Fatalf("qpdf --json: %v", err)
+			}
+			var doc struct {
+				Pages []struct {
+					Object string `json:"object"`
+				} `json:"pages"`
+				QPDF []map[string]any `json:"qpdf"`
+			}
+			if err := json.Unmarshal(output, &doc); err != nil {
+				t.Fatal(err)
+			}
+			if len(doc.QPDF) < 2 {
+				t.Fatal("qpdf --json sin objetos ni tráiler")
+			}
+			objects := doc.QPDF[1]
+			object := func(ref string) map[string]any {
+				t.Helper()
+				entry, ok := objects["obj:"+ref].(map[string]any)
+				if !ok {
+					t.Fatalf("objeto %s ausente", ref)
+				}
+				value, ok := entry["value"].(map[string]any)
+				if !ok {
+					t.Fatalf("objeto %s sin diccionario", ref)
+				}
+				return value
+			}
+			trailer := doc.QPDF[1]["trailer"].(map[string]any)["value"].(map[string]any)
+			catalog := object(trailer["/Root"].(string))
+			acroform := catalog["/AcroForm"].(map[string]any)
+			if acroform["/SigFlags"] != float64(3) {
+				t.Fatalf("SigFlags=%v", acroform["/SigFlags"])
+			}
+			fields := acroform["/Fields"].([]any)
+			if len(fields) != 1 {
+				t.Fatalf("Fields=%v", fields)
+			}
+			fieldRef := fields[0].(string)
+			field := object(fieldRef)
+			if field["/FT"] != "/Sig" || field["/T"] == nil {
+				t.Fatalf("campo inválido: %v", field)
+			}
+			valueRef, ok := field["/V"].(string)
+			if !ok || object(valueRef)["/Type"] != "/Sig" {
+				t.Fatalf("/V no apunta a firma: %v", field["/V"])
+			}
+			var widgetRefs []string
+			if len(tc.pages) == 1 {
+				if field["/Kids"] != nil {
+					t.Fatalf("widget único separado: %v", field["/Kids"])
+				}
+				widgetRefs = []string{fieldRef}
+			} else {
+				kids, ok := field["/Kids"].([]any)
+				if !ok || len(kids) != len(tc.pages) {
+					t.Fatalf("Kids=%v", field["/Kids"])
+				}
+				for _, kid := range kids {
+					widgetRefs = append(widgetRefs, kid.(string))
+				}
+			}
+			for i, pageNumber := range tc.pages {
+				widget := object(widgetRefs[i])
+				pageRef := doc.Pages[pageNumber-1].Object
+				page := object(pageRef)
+				if widget["/Subtype"] != "/Widget" || widget["/P"] != pageRef || widget["/Rect"] == nil || widget["/AP"] == nil || widget["/F"] == nil {
+					t.Fatalf("widget de página %d incompleto: %v", pageNumber, widget)
+				}
+				if len(tc.pages) > 1 && (widget["/Parent"] != fieldRef || widget["/FT"] != nil || widget["/V"] != nil) {
+					t.Fatalf("widget hijo de página %d inválido: %v", pageNumber, widget)
+				}
+				found := false
+				for _, ref := range page["/Annots"].([]any) {
+					if ref == widgetRefs[i] {
+						found = true
+					}
+				}
+				if !found {
+					t.Fatalf("widget %s ausente de /Annots de página %d", widgetRefs[i], pageNumber)
+				}
+			}
+		})
+	}
 }
 
 // --- dobles de test mínimos para los puertos de application ---

@@ -21,8 +21,23 @@ type windowsRootStore struct {
 	handle windows.Handle
 }
 
+type windowsTrustStore interface {
+	managedCertificateStore
+	Close()
+}
+
+type windowsTrustStoreOpener func() (windowsTrustStore, error)
+
+func openWindowsTrustStore() (windowsTrustStore, error) {
+	return openWindowsRootStore()
+}
+
 func ensureTrustedPlatform(ctx context.Context, _, _ string, cert *x509.Certificate) error {
-	store, err := openWindowsRootStore()
+	return ensureTrustedWithWindowsStore(ctx, cert, openWindowsTrustStore)
+}
+
+func ensureTrustedWithWindowsStore(ctx context.Context, cert *x509.Certificate, open windowsTrustStoreOpener) error {
+	store, err := open()
 	if err != nil {
 		return err
 	}
@@ -47,7 +62,11 @@ func ensureManagedTrustedPlatform(
 	_ string,
 	cert *x509.Certificate,
 ) error {
-	store, err := openWindowsRootStore()
+	return ensureManagedTrustedWithWindowsStore(ctx, certFile, cert, openWindowsTrustStore)
+}
+
+func ensureManagedTrustedWithWindowsStore(ctx context.Context, certFile string, cert *x509.Certificate, open windowsTrustStoreOpener) error {
+	store, err := open()
 	if err != nil {
 		return err
 	}
@@ -59,7 +78,11 @@ func ensureManagedTrustedPlatform(
 }
 
 func removeManagedTrustedPlatform(ctx context.Context, certFile string) error {
-	store, err := openWindowsRootStore()
+	return removeManagedTrustedWithWindowsStore(ctx, certFile, openWindowsTrustStore)
+}
+
+func removeManagedTrustedWithWindowsStore(ctx context.Context, certFile string, open windowsTrustStoreOpener) error {
+	store, err := open()
 	if err != nil {
 		return err
 	}

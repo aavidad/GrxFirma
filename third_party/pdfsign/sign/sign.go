@@ -309,7 +309,7 @@ func (context *SignContext) crearCampoFirma(visible bool, rectangle [4]float64) 
 		return fmt.Errorf("failed to resolve visual signature pages: %w", err)
 	}
 
-	if visible && (len(pageNumbers) > 1 || len(context.SignData.Appearance.PerPage) > 0) {
+	if visible && len(pageNumbers) > 1 {
 		// PAdES exige una única firma: un solo campo /FT /Sig (dueño de /V) cuyos
 		// /Kids son un widget por página. La ruta anterior emitía createVisualSignature
 		// por página, generando N campos de firma completos que apuntaban al mismo /V,
@@ -395,7 +395,17 @@ func (context *SignContext) crearCampoFirma(visible bool, rectangle [4]float64) 
 			}
 		}
 	} else {
+		// Un único elemento de PerPage es el mismo campo/widget fusionado que
+		// una firma visible clásica. Así /Fields y /Annots comparten objeto y /V.
+		originalAppearance := context.SignData.Appearance
+		if len(originalAppearance.PerPage) == 1 {
+			placement := originalAppearance.PerPage[0]
+			rectangle = placement.Rect
+			context.SignData.Appearance.Image = placement.Image
+			context.SignData.Appearance.LogoImage = placement.LogoImage
+		}
 		visualSignature, pageObjectID, err := context.createVisualSignature(visible, pageNumbers[0], rectangle, len(context.existingSignatures)+1)
+		context.SignData.Appearance = originalAppearance
 		if err != nil {
 			return fmt.Errorf("failed to create visual signature: %w", err)
 		}
