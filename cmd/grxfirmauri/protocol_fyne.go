@@ -183,6 +183,7 @@ func portalActionUI() {
 	portalPendingAction.Store(true)
 	portalWaitingGeneration.Add(1)
 	portalWaitingEffectMu.Lock()
+	//lint:ignore SA2001 Barrera para esperar el posicionamiento en curso.
 	portalWaitingEffectMu.Unlock()
 	portalWindowControls.mu.RLock()
 	callback := portalWindowControls.action
@@ -196,6 +197,7 @@ func portalErrorUI() {
 	portalPendingAction.Store(true)
 	portalWaitingGeneration.Add(1)
 	portalWaitingEffectMu.Lock()
+	//lint:ignore SA2001 Barrera para esperar el posicionamiento en curso.
 	portalWaitingEffectMu.Unlock()
 	if nativeProtocolUIEnabled() {
 		nativePortalErrorUI()

@@ -23,6 +23,7 @@ import (
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/testsupport/pdfsigtest"
 )
 
 // pdfFormulario genera un PDF con AcroForm: un campo de texto relleno y, si se
@@ -83,10 +84,12 @@ func comprobarPDFFirmado(t *testing.T, firmado []byte) {
 		}
 	}
 	if _, err := exec.LookPath("pdfsig"); err == nil {
-		out, _ := exec.Command("pdfsig", f).CombinedOutput()
-		if !strings.Contains(string(out), "Signature is Valid") {
-			t.Fatalf("pdfsig no valida la firma:\n%s", out)
-		}
+		t.Run("pdfsig", func(t *testing.T) {
+			out, _ := pdfsigtest.Command(t, f).CombinedOutput()
+			if !strings.Contains(string(out), "Signature is Valid") {
+				t.Fatalf("pdfsig no valida la firma:\n%s", out)
+			}
+		})
 	}
 	doc, _ := domain.NewDocument("f.pdf", firmado, "application/pdf")
 	vr, _, err := commonsigner.NewPAdESVerifier().Verify(context.Background(), doc, domain.CertificateChain{})
@@ -259,18 +262,20 @@ func comprobarFirmaCifrada(t *testing.T, nombre string, firmado []byte, password
 		}
 	}
 	if _, err := exec.LookPath("pdfsig"); err == nil {
-		args := []string{f}
-		switch password {
-		case "":
-		case "propietario":
-			args = []string{"-opw", password, f}
-		default:
-			args = []string{"-upw", password, f}
-		}
-		out, _ := exec.Command("pdfsig", args...).CombinedOutput()
-		if !strings.Contains(string(out), "Signature is Valid") {
-			t.Fatalf("%s: pdfsig no valida la firma:\n%s", nombre, out)
-		}
+		t.Run("pdfsig", func(t *testing.T) {
+			args := []string{f}
+			switch password {
+			case "":
+			case "propietario":
+				args = []string{"-opw", password, f}
+			default:
+				args = []string{"-upw", password, f}
+			}
+			out, _ := pdfsigtest.Command(t, args...).CombinedOutput()
+			if !strings.Contains(string(out), "Signature is Valid") {
+				t.Fatalf("%s: pdfsig no valida la firma:\n%s", nombre, out)
+			}
+		})
 	}
 }
 

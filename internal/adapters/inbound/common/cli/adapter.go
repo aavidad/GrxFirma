@@ -129,35 +129,36 @@ type ProtectionRecipients interface {
 
 // Adaptador implementa la entrada CLI hacia los casos de uso de la aplicación.
 type Adaptador struct {
-	Firmar             SignDocumentUseCase
-	ProcesarLote       ProcessBatchUseCase
-	Verificar          VerifySignatureUseCase
-	CrearHash          CreateHashUseCase
-	ComprobarHash      CheckHashUseCase
-	CrearHashDir       CreateDirectoryHashUseCase
-	ComprobarHashDir   CheckDirectoryHashUseCase
-	InformeHashDir     ports.DirectoryHashReportCodec
-	Proteger           ProtectDocumentUseCase
-	ProtegerFirmando   ProtectAndSignDocumentUseCase
-	Desproteger        UnprotectDocumentUseCase
-	ExportarProteccion ExportProtectionRecipientUseCase
-	ImportarProteccion ImportProtectionRecipientUseCase
-	Destinatarios      ProtectionRecipients
-	GestionDominios    ManageTrustedDomainUseCase
-	Catalogo           ports.CertificateCatalog
-	Claves             ports.SigningKeyProvider
-	Localizador        ports.Localizador
-	ConfigDir          string
-	Version            string
-	Stdout             io.Writer
-	Stderr             io.Writer
-	Stdin              io.Reader
-	LeerFichero        func(string) ([]byte, error)
-	Escribir           func(string, []byte, os.FileMode) error
-	Limits             limits.Limits
-	passwordP12Compat  string
-	protectionCompat   string
-	pdfPasswordCompat  string
+	Firmar               SignDocumentUseCase
+	ProcesarLote         ProcessBatchUseCase
+	Verificar            VerifySignatureUseCase
+	CrearHash            CreateHashUseCase
+	ComprobarHash        CheckHashUseCase
+	CrearHashDir         CreateDirectoryHashUseCase
+	ComprobarHashDir     CheckDirectoryHashUseCase
+	InformeHashDir       ports.DirectoryHashReportCodec
+	Proteger             ProtectDocumentUseCase
+	ProtegerFirmando     ProtectAndSignDocumentUseCase
+	Desproteger          UnprotectDocumentUseCase
+	ExportarProteccion   ExportProtectionRecipientUseCase
+	ImportarProteccion   ImportProtectionRecipientUseCase
+	Destinatarios        ProtectionRecipients
+	GestionDominios      ManageTrustedDomainUseCase
+	Catalogo             ports.CertificateCatalog
+	Claves               ports.SigningKeyProvider
+	Localizador          ports.Localizador
+	ConfigDir            string
+	Version              string
+	Stdout               io.Writer
+	Stderr               io.Writer
+	Stdin                io.Reader
+	LeerFichero          func(string) ([]byte, error)
+	Escribir             func(string, []byte, os.FileMode) error
+	Limits               limits.Limits
+	instalarConfianzaTLS func(context.Context, string) error
+	passwordP12Compat    string
+	protectionCompat     string
+	pdfPasswordCompat    string
 }
 
 type configCLI struct {
@@ -293,14 +294,15 @@ type elementoLoteCLI struct {
 // New crea un adaptador CLI con dependencias por defecto.
 func New(firmar SignDocumentUseCase, procesarLote ProcessBatchUseCase) *Adaptador {
 	return &Adaptador{
-		Firmar:       firmar,
-		ProcesarLote: procesarLote,
-		Stdout:       os.Stdout,
-		Stderr:       os.Stderr,
-		Stdin:        os.Stdin,
-		LeerFichero:  os.ReadFile,
-		Escribir:     os.WriteFile,
-		Limits:       limits.FromEnv(limits.Default()),
+		Firmar:               firmar,
+		ProcesarLote:         procesarLote,
+		Stdout:               os.Stdout,
+		Stderr:               os.Stderr,
+		Stdin:                os.Stdin,
+		LeerFichero:          os.ReadFile,
+		Escribir:             os.WriteFile,
+		Limits:               limits.FromEnv(limits.Default()),
+		instalarConfianzaTLS: localtlstrust.EnsureManagedTrusted,
 	}
 }
 
@@ -2975,7 +2977,7 @@ func (a *Adaptador) ejecutarTLSInstalarConfianza(ctx context.Context, cfg config
 		fmt.Fprintln(a.Stderr, "error generando el certificado TLS local:", err)
 		return 1
 	}
-	err = localtlstrust.EnsureManagedTrusted(ctx, certFile)
+	err = a.instalarConfianzaTLS(ctx, certFile)
 	if err != nil && !errors.Is(err, localtlstrust.ErrSoporteNoDisponible) && !errors.Is(err, localtlstrust.ErrHerramientaNoDisponible) {
 		fmt.Fprintln(a.Stderr, "error instalando la confianza TLS:", err)
 		return 1

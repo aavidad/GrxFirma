@@ -34,6 +34,8 @@ import (
 )
 
 func TestCLITLSUsaCAUnicaGestionada(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
@@ -45,8 +47,14 @@ func TestCLITLSUsaCAUnicaGestionada(t *testing.T) {
 	for _, operation := range operations {
 		var stdout, stderr strings.Builder
 		adapter := New(nil, nil).WithConfigDir(configDir)
+		adapter.instalarConfianzaTLS = func(_ context.Context, certFile string) error {
+			if filepath.Base(certFile) != resttls.ManagedLocalhostPrefix+"-root.crt.pem" {
+				t.Errorf("CA inesperada para instalar confianza: %s", certFile)
+			}
+			return nil
+		}
 		adapter.Stdout, adapter.Stderr = &stdout, &stderr
-		if code := adapter.Run(context.Background(), []string{"-operacion", operation, "-salida-json"}); code != 0 {
+		if code := adapter.Run(ctx, []string{"-operacion", operation, "-salida-json"}); code != 0 {
 			t.Fatalf("%s: code=%d stderr=%s", operation, code, stderr.String())
 		}
 		if !strings.Contains(stdout.String(), resttls.ManagedLocalhostPrefix) {

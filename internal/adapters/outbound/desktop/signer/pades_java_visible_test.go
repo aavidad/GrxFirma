@@ -22,6 +22,7 @@ import (
 
 	"grxfirma/internal/domain"
 	"grxfirma/internal/testsupport/pdffixture"
+	"grxfirma/internal/testsupport/pdfsigtest"
 )
 
 func TestTraducirSelloVisibleJava(t *testing.T) {
@@ -92,12 +93,14 @@ func TestMotorFirmaGo_PAdESVisibleConParametrosJava(t *testing.T) {
 		t.Fatal("la anotación de firma no está en la posición pedida por la web")
 	}
 	if _, err := exec.LookPath("pdfsig"); err == nil {
-		f := filepath.Join(t.TempDir(), "v.pdf")
-		_ = os.WriteFile(f, res.Data, 0o600)
-		out, _ := exec.Command("pdfsig", f).CombinedOutput()
-		if !strings.Contains(string(out), "Signature is Valid") {
-			t.Fatalf("pdfsig no valida la firma visible:\n%s", out)
-		}
+		t.Run("pdfsig", func(t *testing.T) {
+			f := filepath.Join(t.TempDir(), "v.pdf")
+			_ = os.WriteFile(f, res.Data, 0o600)
+			out, _ := pdfsigtest.Command(t, f).CombinedOutput()
+			if !strings.Contains(string(out), "Signature is Valid") {
+				t.Fatalf("pdfsig no valida la firma visible:\n%s", out)
+			}
+		})
 	}
 }
 

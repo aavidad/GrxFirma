@@ -17,6 +17,7 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/testsupport/exttools"
+	"grxfirma/internal/testsupport/pdfsigtest"
 )
 
 // TestMotorFirmaGo_PAdESVisible_CorpusVariado firma con sello visible un corpus
@@ -112,17 +113,19 @@ func TestMotorFirmaGo_PAdESVisible_CorpusVariado(t *testing.T) {
 				}
 
 				if exttools.Available(t, "pdfsig") {
-					salida, _ := exec.Command("pdfsig", signedPath).CombinedOutput()
-					out := string(salida)
-					// "Impossible" delata múltiples campos /FT /Sig apuntando al
-					// mismo /V (el bug de AllPages). El resto de la salida de
-					// pdfsig depende de la versión de poppler: las versiones
-					// antiguas no resuelven /V cuando está en el campo padre con
-					// widgets /Kids, así que no exigimos aquí su validación
-					// criptográfica (la cubren los tests de página única y qpdf).
-					if strings.Contains(out, "Impossible") {
-						t.Fatalf("pdfsig reporta firmas inconsistentes:\n%s", out)
-					}
+					t.Run("pdfsig", func(t *testing.T) {
+						salida, _ := pdfsigtest.Command(t, signedPath).CombinedOutput()
+						out := string(salida)
+						// "Impossible" delata múltiples campos /FT /Sig apuntando al
+						// mismo /V (el bug de AllPages). El resto de la salida de
+						// pdfsig depende de la versión de poppler: las versiones
+						// antiguas no resuelven /V cuando está en el campo padre con
+						// widgets /Kids, así que no exigimos aquí su validación
+						// criptográfica (la cubren los tests de página única y qpdf).
+						if strings.Contains(out, "Impossible") {
+							t.Fatalf("pdfsig reporta firmas inconsistentes:\n%s", out)
+						}
+					})
 				}
 			})
 		}

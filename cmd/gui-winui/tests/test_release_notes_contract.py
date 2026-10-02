@@ -5,6 +5,7 @@
 
 from pathlib import Path
 import re
+import os
 import shutil
 import subprocess
 import tempfile
@@ -37,6 +38,7 @@ class ReleaseNotesContractTests(unittest.TestCase):
             0,
         )
 
+    @unittest.skipUnless(os.name != "nt", "nueva-version.sh requiere herramientas Unix")
     def test_version_script_increments_and_rejects_reuse(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -91,6 +93,7 @@ class ReleaseNotesContractTests(unittest.TestCase):
             notes_path.write_text(section + section, encoding="utf-8")
             self.assertNotEqual(subprocess.run(check, capture_output=True).returncode, 0)
 
+    @unittest.skipUnless(os.name != "nt", "nueva-version.sh requiere herramientas Unix")
     def test_renumerar_requires_explicit_distinct_version(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

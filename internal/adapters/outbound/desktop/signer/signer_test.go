@@ -36,6 +36,7 @@ import (
 	"grxfirma/internal/ports"
 	"grxfirma/internal/testsupport/exttools"
 	"grxfirma/internal/testsupport/pdffixture"
+	"grxfirma/internal/testsupport/pdfsigtest"
 	"grxfirma/internal/testsupport/tsatest"
 )
 
@@ -683,7 +684,7 @@ func TestMotorFirmaGo_PAdES_ValidaConPdfsig(t *testing.T) {
 		t.Fatalf("no se pudo escribir el PDF firmado temporal: %v", err)
 	}
 
-	cmd := exec.Command("pdfsig", signedPath)
+	cmd := pdfsigtest.Command(t, signedPath)
 	salida, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("pdfsig devolvio error: %v\n%s", err, salida)
@@ -801,20 +802,22 @@ func TestMotorFirmaGo_PAdESVisible_PreservaPDFOriginalYGeneraWidget(t *testing.T
 		}
 	}
 	if exttools.Available(t, "pdfsig") {
-		salida, err := exec.Command("pdfsig", signedPath).CombinedOutput()
-		if err != nil {
-			t.Fatalf("pdfsig devolvió error: %v\n%s", err, salida)
-		}
-		out := string(salida)
-		if !strings.Contains(out, "Signature #1:") {
-			t.Fatalf("pdfsig no detectó la firma PDF visible:\n%s", out)
-		}
-		if !strings.Contains(out, "Signature Type: ETSI.CAdES.detached") {
-			t.Fatalf("pdfsig no reconoció la firma visible ETSI por defecto:\n%s", out)
-		}
-		if !strings.Contains(out, "Signature Validation: Signature is Valid.") {
-			t.Fatalf("pdfsig no validó la firma visible:\n%s", out)
-		}
+		t.Run("pdfsig", func(t *testing.T) {
+			salida, err := pdfsigtest.Command(t, signedPath).CombinedOutput()
+			if err != nil {
+				t.Fatalf("pdfsig devolvió error: %v\n%s", err, salida)
+			}
+			out := string(salida)
+			if !strings.Contains(out, "Signature #1:") {
+				t.Fatalf("pdfsig no detectó la firma PDF visible:\n%s", out)
+			}
+			if !strings.Contains(out, "Signature Type: ETSI.CAdES.detached") {
+				t.Fatalf("pdfsig no reconoció la firma visible ETSI por defecto:\n%s", out)
+			}
+			if !strings.Contains(out, "Signature Validation: Signature is Valid.") {
+				t.Fatalf("pdfsig no validó la firma visible:\n%s", out)
+			}
+		})
 	}
 }
 
@@ -873,14 +876,16 @@ func TestMotorFirmaGo_PAdESVisible_TodasLasPaginas_GeneraUnWidgetPorPagina(t *te
 		}
 	}
 	if exttools.Available(t, "pdfsig") {
-		// La validación criptográfica vía pdfsig depende de la versión de
-		// poppler para firmas con /V en el campo padre y widgets /Kids; aquí
-		// solo comprobamos que no delate campos de firma inconsistentes. La
-		// validez la garantizan qpdf y los tests de página única.
-		salida, _ := exec.Command("pdfsig", signedPath).CombinedOutput()
-		if strings.Contains(string(salida), "Impossible") {
-			t.Fatalf("pdfsig reporta firmas inconsistentes:\n%s", salida)
-		}
+		t.Run("pdfsig", func(t *testing.T) {
+			// La validación criptográfica vía pdfsig depende de la versión de
+			// poppler para firmas con /V en el campo padre y widgets /Kids; aquí
+			// solo comprobamos que no delate campos de firma inconsistentes. La
+			// validez la garantizan qpdf y los tests de página única.
+			salida, _ := pdfsigtest.Command(t, signedPath).CombinedOutput()
+			if strings.Contains(string(salida), "Impossible") {
+				t.Fatalf("pdfsig reporta firmas inconsistentes:\n%s", salida)
+			}
+		})
 	}
 }
 
@@ -925,17 +930,19 @@ func TestMotorFirmaGo_PAdESSinSello_PreservaPDFOriginal(t *testing.T) {
 	}
 
 	if exttools.Available(t, "pdfsig") {
-		salida, err := exec.Command("pdfsig", signedPath).CombinedOutput()
-		if err != nil {
-			t.Fatalf("pdfsig devolvió error: %v\n%s", err, salida)
-		}
-		out := string(salida)
-		if !strings.Contains(out, "Signature #1:") {
-			t.Fatalf("pdfsig no detectó la firma PDF:\n%s", out)
-		}
-		if !strings.Contains(out, "Signature Validation: Signature is Valid.") {
-			t.Fatalf("pdfsig no validó la firma PDF:\n%s", out)
-		}
+		t.Run("pdfsig", func(t *testing.T) {
+			salida, err := pdfsigtest.Command(t, signedPath).CombinedOutput()
+			if err != nil {
+				t.Fatalf("pdfsig devolvió error: %v\n%s", err, salida)
+			}
+			out := string(salida)
+			if !strings.Contains(out, "Signature #1:") {
+				t.Fatalf("pdfsig no detectó la firma PDF:\n%s", out)
+			}
+			if !strings.Contains(out, "Signature Validation: Signature is Valid.") {
+				t.Fatalf("pdfsig no validó la firma PDF:\n%s", out)
+			}
+		})
 	}
 }
 
@@ -1119,7 +1126,7 @@ func TestMotorFirmaGo_PAdEST_ValidaConPdfsig(t *testing.T) {
 		t.Fatalf("no se pudo escribir el PDF firmado temporal: %v", err)
 	}
 
-	cmd := exec.Command("pdfsig", signedPath)
+	cmd := pdfsigtest.Command(t, signedPath)
 	salida, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("pdfsig devolvio error: %v\n%s", err, salida)
