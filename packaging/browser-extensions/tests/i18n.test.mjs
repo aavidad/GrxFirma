@@ -38,7 +38,7 @@ function messageKeysFromHTML(source) {
 
 function messageKeysFromJavaScript(source) {
   return new Set(
-    [...source.matchAll(/(?:\bt|\bsay|\bshowNotice|\.i18n\.message)\(\s*["']([A-Za-z][A-Za-z0-9_]*)["']/g)]
+    [...source.matchAll(/(?:\bt|\bsay|\bshowNotice|\.i18n\.message|\.i18n\.getMessage)\(\s*["']([A-Za-z][A-Za-z0-9_]*)["']/g)]
       .map((match) => match[1])
   );
 }
@@ -54,6 +54,7 @@ for (const variant of variants) {
     const popupJS = await readSource(variant, "popup.js");
     const backgroundJS = await readSource(variant, "background.js");
     const pdfDetector = await readSource(variant, "content_scripts/pdf_detector.js");
+    const signerJS = await readSource(variant, "signer/signer.js");
 
     assert.equal(manifest.default_locale, "es");
     assert.deepEqual(Object.keys(english).sort(), Object.keys(spanish).sort());
@@ -71,7 +72,8 @@ for (const variant of variants) {
       ...messageKeysFromJavaScript(optionsJS),
       ...messageKeysFromJavaScript(popupJS),
       ...messageKeysFromJavaScript(backgroundJS),
-      ...messageKeysFromJavaScript(pdfDetector)
+      ...messageKeysFromJavaScript(pdfDetector),
+      ...messageKeysFromJavaScript(signerJS)
     ]);
     assert.deepEqual([...referenced].sort(), Object.keys(spanish).sort());
   });
