@@ -7,6 +7,13 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.106 — 2026-10-02
+
+- Verificación más completa de los PDF con varias firmas: el servicio REST ofrece en `/v2/verify` un informe por cada firma que indica qué parte del documento cubre y si el PDF cambió después de firmarlo.
+- Las firmas longevas (PAdES-LT y PAdES-LTA, con datos de validación o sello de tiempo de documento) se comprueban y ya no quedan como «no comprobadas».
+- Si no se puede comprobar la revocación de un certificado, la firma ya no aparece como válida.
+- Nuevo modo «solo verificación» para usar GrxFirma como validador en un servidor, con TLS 1.3 y token obligatorios.
+
 ## 0.0.105 — 2026-10-01
 
 - Corrección de compilación de la versión de Windows; mismo contenido que la 0.0.104.
