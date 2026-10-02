@@ -87,6 +87,13 @@ func comprobarPDFFirmado(t *testing.T, firmado []byte) {
 		t.Run("pdfsig", func(t *testing.T) {
 			out, _ := pdfsigtest.Command(t, f).CombinedOutput()
 			if !strings.Contains(string(out), "Signature is Valid") {
+				// Poppler anterior a 25 no recorre los hijos de un campo de firma con
+				// varios widgets y los da por no firmados; la estructura se comprueba
+				// con qpdf en TestMotorFirmaGo_EstructuraCampoFirmaPorPagina.
+				if bytes.Count(firmado, []byte("/Subtype /Widget")) > 1 && pdfsigAnterior25(t) &&
+					strings.Contains(string(out), "The signature form field is not signed") {
+					t.Skip("pdfsig < 25 no admite campos de firma con varios widgets")
+				}
 				t.Fatalf("pdfsig no valida la firma:\n%s", out)
 			}
 		})
@@ -273,6 +280,13 @@ func comprobarFirmaCifrada(t *testing.T, nombre string, firmado []byte, password
 			}
 			out, _ := pdfsigtest.Command(t, args...).CombinedOutput()
 			if !strings.Contains(string(out), "Signature is Valid") {
+				// Poppler anterior a 25 no recorre los hijos de un campo de firma con
+				// varios widgets y los da por no firmados; la estructura se comprueba
+				// con qpdf en TestMotorFirmaGo_EstructuraCampoFirmaPorPagina.
+				if bytes.Count(firmado, []byte("/Subtype /Widget")) > 1 && pdfsigAnterior25(t) &&
+					strings.Contains(string(out), "The signature form field is not signed") {
+					t.Skip("pdfsig < 25 no admite campos de firma con varios widgets")
+				}
 				t.Fatalf("%s: pdfsig no valida la firma:\n%s", nombre, out)
 			}
 		})
@@ -371,4 +385,16 @@ func TestMotorFirmaGo_PAdESSelloEnPosicionElegida(t *testing.T) {
 		t.Fatalf("el sello no está abajo a la derecha:\n%s", incremental)
 	}
 	comprobarPDFFirmado(t, firmado)
+}
+
+func pdfsigAnterior25(t *testing.T) bool {
+	t.Helper()
+	out, _ := exec.Command("pdfsig", "-v").CombinedOutput()
+	var mayor int
+	for _, campo := range strings.Fields(string(out)) {
+		if n, err := fmt.Sscanf(campo, "%d.", &mayor); err == nil && n == 1 {
+			return mayor < 25
+		}
+	}
+	return false
 }
