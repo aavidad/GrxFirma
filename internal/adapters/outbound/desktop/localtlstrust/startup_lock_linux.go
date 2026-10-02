@@ -63,7 +63,7 @@ func withLocalTLSFileLock(ctx context.Context, dir, lockName string, fn func() e
 		return fmt.Errorf("localtlstrust: comprobar bloqueo TLS: %w", err)
 	}
 	if info.Mode&unix.S_IFMT != unix.S_IFREG || info.Nlink != 1 ||
-		info.Uid != uint32(os.Geteuid()) || info.Mode&0o077 != 0 {
+		info.Uid != uint32(os.Geteuid()) || info.Mode&0o077 != 0 { // #nosec G115 -- Linux euid is a kernel uid_t (uint32).
 		return errors.New("localtlstrust: fichero de bloqueo TLS inseguro")
 	}
 
@@ -123,7 +123,7 @@ func openLocalTLSConfigDir(configDir string) (int, error) {
 		unix.Close(fd)
 		return -1, err
 	}
-	if info.Uid != uint32(os.Geteuid()) || info.Mode&0o022 != 0 {
+	if info.Uid != uint32(os.Geteuid()) || info.Mode&0o022 != 0 { // #nosec G115 -- Linux euid is a kernel uid_t (uint32).
 		unix.Close(fd)
 		return -1, errors.New("directorio de configuración TLS no privado")
 	}

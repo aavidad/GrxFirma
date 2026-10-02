@@ -153,7 +153,7 @@ func (r *protocolReader) response(pinAllowed bool) (pin []byte, err error) {
 					if hi < 0 || lo < 0 {
 						return pin, ErrProtocol
 					}
-					b = byte(hi<<4 | lo)
+					b = byte(hi<<4 | lo) // #nosec G115 -- unhex returned two valid 4-bit nibbles.
 					pos += 2
 				}
 				if len(pin) >= pkcs11worker.MaxPINBytes {

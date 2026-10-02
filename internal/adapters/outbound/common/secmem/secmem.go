@@ -75,7 +75,7 @@ func newBlob(size int, strict bool, operations memoryOperations) (*Blob, error) 
 	// Pin antes de calcular la dirección; nunca fabricar un puntero desde uintptr.
 	b.pinner.Pin(&b.backing[0])
 	address := uintptr(unsafe.Pointer(&b.backing[0]))
-	offset := (page - int(address%uintptr(page))) % page
+	offset := (page - int(address%uintptr(page))) % page // #nosec G115 -- remainder is strictly below positive int page size.
 	b.region = b.backing[offset : offset+regionSize : offset+regionSize]
 	b.data = b.region[:size:size]
 	b.locked = operations.lock(b.region)

@@ -6,6 +6,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -103,6 +104,7 @@ func TestNativeCallerFromArgs_RechazaAusenteMalformadoYOtroFirefox(t *testing.T)
 }
 
 func TestNewNativeCallerPolicy_CargaSoloIDYManifiestoLigadosAlBinario(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", "")
 	dir := t.TempDir()
 	home := filepath.Join(dir, "home")
 	executable := filepath.Join(dir, "bin", "grxfirma-nativehost")
@@ -144,6 +146,27 @@ func TestNewNativeCallerPolicy_CargaSoloIDYManifiestoLigadosAlBinario(t *testing
 	policy = newNativeCallerPolicy(executable, home, false)
 	if _, ok := policy.chromiumIDs["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]; ok {
 		t.Fatal("un manifiesto de otro binario no debe ampliar la allowlist")
+	}
+}
+
+func TestReadNativeHostManifest_RechazaEnlaceYTamanoExcesivo(t *testing.T) {
+	dir := t.TempDir()
+	manifestPath := filepath.Join(dir, "manifest.json")
+	writeTestManifest(t, manifestPath, nativeHostManifest{
+		Name: "com.dipgra.grxfirma", Path: filepath.Join(dir, "host"), Type: "stdio",
+	})
+	if _, ok := readNativeHostManifest(manifestPath); !ok {
+		t.Fatal("un manifiesto regular y acotado debe ser aceptado")
+	}
+	link := filepath.Join(dir, "link.json")
+	if err := os.Symlink(manifestPath, link); err == nil {
+		if _, ok := readNativeHostManifest(link); ok {
+			t.Fatal("un enlace simbolico no debe ser aceptado")
+		}
+	}
+	writeTestFile(t, manifestPath, bytes.Repeat([]byte("x"), maxNativeManifestBytes+1), 0o600)
+	if _, ok := readNativeHostManifest(manifestPath); ok {
+		t.Fatal("un manifiesto demasiado grande no debe ser aceptado")
 	}
 }
 

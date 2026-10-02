@@ -29,7 +29,7 @@ func abrirFicheroRegistro(path string, crear bool) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	f := os.NewFile(uintptr(fd), path)
+	f := os.NewFile(uintptr(fd), path) // #nosec G115 -- unix.Open returned a non-negative descriptor.
 	info, err := f.Stat()
 	if err != nil || !info.Mode().IsRegular() || info.Mode().Perm() != 0o600 {
 		_ = f.Close()

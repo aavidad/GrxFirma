@@ -140,7 +140,7 @@ func aplicarPosicionesSello(signData *pdfsign.SignData, options map[string]strin
 	seen := make(map[int]bool, len(entries))
 	placements := make([]pdfsign.PageAppearance, 0, len(entries))
 	for _, entry := range entries {
-		if entry.Page < 1 || entry.Page > r.NumPage() || seen[entry.Page] || entry.Rotation < 0 || entry.Rotation > 359 {
+		if entry.Page < 1 || uint64(entry.Page) > uint64(^uint32(0)) || entry.Page > r.NumPage() || seen[entry.Page] || entry.Rotation < 0 || entry.Rotation > 359 {
 			return fmt.Errorf("página o giro no válido en la lista de sellos")
 		}
 		seen[entry.Page] = true
@@ -173,7 +173,7 @@ func aplicarPosicionesSello(signData *pdfsign.SignData, options map[string]strin
 			return err
 		}
 		placements = append(placements, pdfsign.PageAppearance{
-			Page:  uint32(entry.Page),
+			Page:  uint32(entry.Page), // #nosec G115 -- entry.Page was checked against uint32 above.
 			Rect:  rect,
 			Image: img,
 		})

@@ -8,6 +8,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"io/fs"
 	"net/url"
 	"os"
@@ -262,13 +263,25 @@ func readSingleChromiumID(path string) (string, bool) {
 }
 
 func readNativeHostManifest(path string) (nativeHostManifest, bool) {
-	info, err := os.Lstat(path)
+	if cleanAbsolutePath(path) == "" {
+		return nativeHostManifest{}, false
+	}
+	info, err := os.Lstat(path) // #nosec G703 -- only an absolute path is inspected; its opened file identity is checked below.
 	if err != nil || !info.Mode().IsRegular() || info.Mode()&fs.ModeSymlink != 0 ||
 		info.Size() <= 0 || info.Size() > maxNativeManifestBytes {
 		return nativeHostManifest{}, false
 	}
-	raw, err := os.ReadFile(path)
+	file, err := os.Open(path) // #nosec G703 -- opened file must match the previously inspected regular file.
 	if err != nil {
+		return nativeHostManifest{}, false
+	}
+	defer file.Close()
+	opened, err := file.Stat()
+	if err != nil || !opened.Mode().IsRegular() || !os.SameFile(info, opened) {
+		return nativeHostManifest{}, false
+	}
+	raw, err := io.ReadAll(io.LimitReader(file, maxNativeManifestBytes+1))
+	if err != nil || len(raw) == 0 || len(raw) > maxNativeManifestBytes {
 		return nativeHostManifest{}, false
 	}
 	var manifest nativeHostManifest

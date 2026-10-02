@@ -92,7 +92,7 @@ func readPolicyFileFrom(path, anchor string, owner uint32, limit int64) ([]byte,
 	if err != nil {
 		return nil, err
 	}
-	f := os.NewFile(uintptr(fd), path)
+	f := os.NewFile(uintptr(fd), path) // #nosec G115 -- unix.Openat returned a non-negative descriptor.
 	defer f.Close()
 	if err := checkPolicyNode(fd, owner, false); err != nil {
 		return nil, err

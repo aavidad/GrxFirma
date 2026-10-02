@@ -49,7 +49,7 @@ func softHSMFileResources(configPaths []string, explicit SandboxResources) (Sand
 		if err != nil {
 			return SandboxResources{}, ErrSandboxPolicy
 		}
-		file := os.NewFile(uintptr(fd), "local-driver-configuration")
+		file := os.NewFile(uintptr(fd), "local-driver-configuration") // #nosec G115 -- unix.Open returned a non-negative descriptor.
 		info, statErr := file.Stat()
 		if statErr != nil || !info.Mode().IsRegular() || info.Size() > 64*1024 {
 			_ = file.Close()

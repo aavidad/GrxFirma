@@ -219,7 +219,7 @@ func newSandboxCommand(ctx context.Context, executable, module string, resources
 			stat, statErr := sandboxStat(file)
 			valid := statErr == nil && sandboxRegular(stat)
 			if group.directory {
-				valid = statErr == nil && stat.Mode&unix.S_IFMT == unix.S_IFDIR && stat.Uid == uint32(os.Geteuid()) && stat.Mode&07777 == 0700
+				valid = statErr == nil && stat.Mode&unix.S_IFMT == unix.S_IFDIR && stat.Uid == uint32(os.Geteuid()) && stat.Mode&07777 == 0700 // #nosec G115 -- Linux euid is a kernel uid_t (uint32).
 			}
 			if !valid {
 				_ = file.Close()
@@ -288,7 +288,7 @@ func sandboxReservedResource(path string) bool {
 
 func sandboxStat(file *os.File) (unix.Stat_t, error) {
 	var stat unix.Stat_t
-	err := unix.Fstat(int(file.Fd()), &stat)
+	err := unix.Fstat(int(file.Fd()), &stat) // #nosec G115 -- os.File.Fd is a kernel int descriptor on Linux.
 	return stat, err
 }
 
@@ -348,15 +348,15 @@ func sandboxOpenPathOwned(path string, rootOnly bool) (*os.File, error) {
 		fd = next
 	}
 	var stat unix.Stat_t
-	if err := unix.Fstat(fd, &stat); err != nil || stat.Mode&unix.S_IFMT == unix.S_IFLNK || (stat.Uid != 0 && (rootOnly || stat.Uid != uint32(os.Geteuid()))) {
+	if err := unix.Fstat(fd, &stat); err != nil || stat.Mode&unix.S_IFMT == unix.S_IFLNK || (stat.Uid != 0 && (rootOnly || stat.Uid != uint32(os.Geteuid()))) { // #nosec G115 -- Linux euid is a kernel uid_t (uint32).
 		_ = unix.Close(fd)
 		return nil, ErrSandboxPolicy
 	}
-	return os.NewFile(uintptr(fd), path), nil
+	return os.NewFile(uintptr(fd), path), nil // #nosec G115 -- unix.Openat returned a non-negative descriptor.
 }
 
 func sandboxAncestor(stat unix.Stat_t) bool {
-	return stat.Mode&unix.S_IFMT == unix.S_IFDIR && (stat.Uid == 0 || stat.Uid == uint32(os.Geteuid())) && (stat.Mode&0022 == 0 || (stat.Uid == 0 && stat.Mode&unix.S_ISVTX != 0))
+	return stat.Mode&unix.S_IFMT == unix.S_IFDIR && (stat.Uid == 0 || stat.Uid == uint32(os.Geteuid())) && (stat.Mode&0022 == 0 || (stat.Uid == 0 && stat.Mode&unix.S_ISVTX != 0)) // #nosec G115 -- Linux euid is a kernel uid_t (uint32).
 }
 
 // Do not take HOME from the caller's environment or load NSS plugins into the
@@ -372,7 +372,7 @@ func sandboxLocalHome() (string, error) {
 	if err != nil || !sandboxRegular(stat) || stat.Uid != 0 || stat.Size > 4*1024*1024 {
 		return "", ErrSandboxPolicy
 	}
-	file, err := os.Open("/proc/self/fd/" + strconv.Itoa(int(path.Fd())))
+	file, err := os.Open("/proc/self/fd/" + strconv.Itoa(int(path.Fd()))) // #nosec G115 -- os.File.Fd is a kernel int descriptor on Linux.
 	if err != nil {
 		return "", ErrSandboxPolicy
 	}

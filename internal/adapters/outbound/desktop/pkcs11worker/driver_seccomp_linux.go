@@ -22,13 +22,20 @@ import (
 // sandbox. Existing descriptors retain their authority; the launcher must
 // restrict mounts, namespaces and inherited descriptors independently.
 func RestrictDriverSyscalls() error {
-	filter := driverSyscallFilter(uint32(os.Getpid()))
+	pid := os.Getpid()
+	if pid < 0 || uint64(pid) > uint64(^uint32(0)) {
+		return errors.New("identificador de proceso fuera de rango")
+	}
+	filter := driverSyscallFilter(uint32(pid)) // #nosec G115 -- pid was checked against uint32 above.
+	if len(filter) == 0 || len(filter) > int(^uint16(0)) {
+		return errors.New("filtro de llamadas fuera de rango")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 	if err := unix.Prctl(unix.PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0); err != nil {
 		return errors.New("no se pudo restringir privilegios del controlador")
 	}
-	program := unix.SockFprog{Len: uint16(len(filter)), Filter: &filter[0]}
+	program := unix.SockFprog{Len: uint16(len(filter)), Filter: &filter[0]} // #nosec G115 -- filter length was checked against uint16 above.
 	result, _, errno := unix.Syscall(unix.SYS_SECCOMP, unix.SECCOMP_SET_MODE_FILTER,
 		unix.SECCOMP_FILTER_FLAG_TSYNC, uintptr(unsafe.Pointer(&program)))
 	runtime.KeepAlive(program)

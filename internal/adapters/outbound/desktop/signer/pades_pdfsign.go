@@ -392,6 +392,9 @@ func componerImagenSelloModo(info pdfsign.SignDataSignatureInfo, options map[str
 // La vista previa compone antes todas las capas y reduce después su alfa.
 // Así el fondo, el texto, el QR y el logo dejan ver la página por igual.
 func aplicarOpacidadVistaPreviaSello(raw []byte, porcentaje int) ([]byte, error) {
+	if porcentaje < 0 || porcentaje > 100 {
+		return nil, fmt.Errorf("PAdES pdfsign: opacidad del sello fuera del rango 0–100 %%")
+	}
 	decoded, err := decodificarImagenSello(raw)
 	if err != nil {
 		return nil, err
@@ -401,10 +404,10 @@ func aplicarOpacidadVistaPreviaSello(raw []byte, porcentaje int) ([]byte, error)
 	for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
 		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
 			pixel := img.RGBAAt(x, y)
-			pixel.R = uint8(uint32(pixel.R) * uint32(porcentaje) / 100)
-			pixel.G = uint8(uint32(pixel.G) * uint32(porcentaje) / 100)
-			pixel.B = uint8(uint32(pixel.B) * uint32(porcentaje) / 100)
-			pixel.A = uint8(uint32(pixel.A) * uint32(porcentaje) / 100)
+			pixel.R = uint8(uint32(pixel.R) * uint32(porcentaje) / 100) // #nosec G115 -- porcentaje <= 100; result <= 255.
+			pixel.G = uint8(uint32(pixel.G) * uint32(porcentaje) / 100) // #nosec G115 -- porcentaje <= 100; result <= 255.
+			pixel.B = uint8(uint32(pixel.B) * uint32(porcentaje) / 100) // #nosec G115 -- porcentaje <= 100; result <= 255.
+			pixel.A = uint8(uint32(pixel.A) * uint32(porcentaje) / 100) // #nosec G115 -- porcentaje <= 100; result <= 255.
 			img.SetRGBA(x, y, pixel)
 		}
 	}

@@ -22,10 +22,10 @@ func acquireTLSLock(path string) (func(), error) {
 	}
 	deadline := time.Now().Add(15 * time.Second)
 	for {
-		err = unix.Flock(int(file.Fd()), unix.LOCK_EX|unix.LOCK_NB)
+		err = unix.Flock(int(file.Fd()), unix.LOCK_EX|unix.LOCK_NB) // #nosec G115 -- os.File.Fd is a kernel int descriptor on Unix.
 		if err == nil {
 			return func() {
-				_ = unix.Flock(int(file.Fd()), unix.LOCK_UN)
+				_ = unix.Flock(int(file.Fd()), unix.LOCK_UN) // #nosec G115 -- os.File.Fd is a kernel int descriptor on Unix.
 				_ = file.Close()
 			}, nil
 		}

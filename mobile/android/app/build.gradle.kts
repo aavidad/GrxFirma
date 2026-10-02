@@ -225,6 +225,17 @@ dependencies {
     androidTestUtil("androidx.test:orchestrator:1.6.1")
 }
 
+// Las configuraciones de pruebas de Android también resuelven Netty de forma
+// transitiva. Mantener todos sus módulos en la versión con las correcciones.
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "io.netty" && requested.version?.startsWith("4.1.") == true) {
+            useVersion("4.1.137.Final")
+            because("Corrige las vulnerabilidades de Netty detectadas en los classpaths de Android")
+        }
+    }
+}
+
 dependencyLocking {
     lockAllConfigurations()
 }

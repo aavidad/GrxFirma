@@ -128,7 +128,7 @@ func WriteFrame(w io.Writer, kind byte, payload []byte, limit int) error {
 	}
 	var header [5]byte
 	header[0] = kind
-	binary.BigEndian.PutUint32(header[1:], uint32(len(payload)))
+	binary.BigEndian.PutUint32(header[1:], uint32(len(payload))) // #nosec G115 -- len(payload) was bounded by uint32 above.
 	if err := writeAll(w, header[:]); err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func ReadFrame(r io.Reader, limit int) (byte, []byte, error) {
 	if limit < 0 || length > uint64(limit) {
 		return 0, nil, ErrProtocol
 	}
-	payload := make([]byte, int(length))
+	payload := make([]byte, int(length)) // #nosec G115 -- length <= non-negative int limit above.
 	if _, err := io.ReadFull(r, payload); err != nil {
 		clear(payload)
 		return 0, nil, err

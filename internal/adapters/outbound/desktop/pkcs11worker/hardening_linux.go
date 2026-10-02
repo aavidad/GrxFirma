@@ -84,7 +84,7 @@ func ValidateModulePath(path string) (string, error) {
 		if err != nil {
 			return "", invalid
 		}
-		if !moduleEntryAllowed(info, uint32(os.Geteuid()), current == resolved) {
+		if !moduleEntryAllowed(info, uint32(os.Geteuid()), current == resolved) { // #nosec G115 -- Linux euid is a kernel uid_t (uint32).
 			return "", invalid
 		}
 		parent := filepath.Dir(current)
@@ -113,16 +113,16 @@ func PrivateProtocolOutput() (*os.File, error) {
 	// A file, terminal, socket or named FIFO is not the parent's anonymous pipe.
 	var stat unix.Stat_t
 	target, readErr := os.Readlink("/proc/self/fd/1")
-	flags, flagErr := unix.FcntlInt(uintptr(unix.Stdout), unix.F_GETFL, 0)
+	flags, flagErr := unix.FcntlInt(uintptr(unix.Stdout), unix.F_GETFL, 0) // #nosec G115 -- Stdout is fixed descriptor 1.
 	if unix.Fstat(unix.Stdout, &stat) != nil || stat.Mode&unix.S_IFMT != unix.S_IFIFO ||
 		readErr != nil || !strings.HasPrefix(target, "pipe:[") || flagErr != nil || flags&unix.O_ACCMODE != unix.O_WRONLY {
 		return nil, errors.New("el auxiliar requiere un pipe anonimo de salida")
 	}
-	fd, err := unix.FcntlInt(uintptr(unix.Stdout), unix.F_DUPFD_CLOEXEC, 3)
+	fd, err := unix.FcntlInt(uintptr(unix.Stdout), unix.F_DUPFD_CLOEXEC, 3) // #nosec G115 -- Stdout is fixed descriptor 1.
 	if err != nil {
 		return nil, errors.New("no se pudo preparar canal privado")
 	}
-	output := os.NewFile(uintptr(fd), "pkcs11-private-output")
+	output := os.NewFile(uintptr(fd), "pkcs11-private-output") // #nosec G115 -- F_DUPFD_CLOEXEC returns a non-negative descriptor on success.
 	null, err := unix.Open("/dev/null", unix.O_WRONLY|unix.O_CLOEXEC, 0)
 	if err != nil {
 		_ = output.Close()
@@ -137,7 +137,7 @@ func PrivateProtocolOutput() (*os.File, error) {
 		var redirectErr error
 		if null == target {
 			// x/sys Dup2 uses dup3 on Linux, which rejects oldfd == newfd.
-			_, redirectErr = unix.FcntlInt(uintptr(null), unix.F_SETFD, 0)
+			_, redirectErr = unix.FcntlInt(uintptr(null), unix.F_SETFD, 0) // #nosec G115 -- unix.Open returned a non-negative descriptor.
 		} else {
 			redirectErr = unix.Dup2(null, target)
 		}

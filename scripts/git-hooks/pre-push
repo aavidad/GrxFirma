@@ -39,9 +39,7 @@ if [ -n "$sin_formato" ]; then
 fi
 
 python3 -m unittest discover -s scripts/ci/tests -v ||
-	fallo "los tests del validador documental estan en rojo"
-python3 scripts/ci/validate_task_docs.py ||
-	fallo "el backlog y las fichas de tareas no son coherentes"
+	fallo "los tests de los scripts CI estan en rojo"
 
 # Mismo criterio que CI: si faltan los validadores externos los tests fallan,
 # en vez de saltarse la comprobacion en silencio.

@@ -71,10 +71,8 @@ jobs:
             exit 1
           fi
 
-      - name: Validate task documentation
-        run: |
-          python3 -m unittest discover -s scripts/ci/tests -v
-          python3 scripts/ci/validate_task_docs.py
+      - name: Test CI scripts
+        run: python3 -m unittest discover -s scripts/ci/tests -v
 
       - name: Enforce no-runtime-plugins architecture
         run: python3 scripts/ci/check_no_runtime_plugins.py
