@@ -29,8 +29,10 @@ func (context *SignContext) createCatalog() ([]byte, error) {
 	//
 	// If an incremental upgrade requires a version that is higher than specified by the document.
 	// Ensure PDF version is at least 1.5 to support SigFlags in acroFormDict (1.4) and UF in the fileSpecDict (1.5)
+	versionEscrita := false
 	if v, err := strconv.ParseFloat(context.PDFReader.PDFVersion, 64); err == nil && v < 1.5 {
 		catalog_buffer.WriteString("  /Version /1.5\n")
+		versionEscrita = true
 	}
 
 	// Retrieve the root, its pointer and set the root string
@@ -42,6 +44,11 @@ func (context *SignContext) createCatalog() ([]byte, error) {
 	// (y DSS si esta firma escribe uno nuevo que ya combina el anterior).
 	for _, key := range root.Keys() {
 		if key == "Type" || key == "AcroForm" {
+			continue
+		}
+		// Una firma anterior ya pudo subir /Version: no se duplica la clave (qpdf lo
+		// marca como diccionario con claves repetidas y algunos lectores lo rechazan).
+		if key == "Version" && versionEscrita {
 			continue
 		}
 		if key == "DSS" && context.dssObjectID != 0 {
