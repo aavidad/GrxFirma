@@ -30,6 +30,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -58,11 +59,13 @@ import (
 var version = "dev"
 
 const (
-	envRESTToken       = "GRXFIRMA_REST_TOKEN"
-	envPKCS12Password  = "GRXFIRMA_PKCS12_PASSWORD"
-	envProtectionToken = "GRXFIRMA_PROTECTION_SECRET_B64"
-	minRESTLifetime    = time.Second
-	maxRESTLifetime    = 240 * time.Minute
+	envRESTToken = "GRXFIRMA_REST_TOKEN"
+	// envRESTTokenHeredado mantiene los lanzadores de AutoFirmaV2 existentes.
+	envRESTTokenHeredado = "AUTOFIRMAV2_REST_TOKEN"
+	envPKCS12Password    = "GRXFIRMA_PKCS12_PASSWORD"
+	envProtectionToken   = "GRXFIRMA_PROTECTION_SECRET_B64"
+	minRESTLifetime      = time.Second
+	maxRESTLifetime      = 240 * time.Minute
 )
 
 func main() {
@@ -77,7 +80,7 @@ func main() {
 		os.Exit(2)
 	}
 	environment, err := secretinput.ConsumeEnvironment(
-		[]string{envPKCS12Password, envRESTToken, envProtectionToken},
+		[]string{envPKCS12Password, envRESTToken, envRESTTokenHeredado, envProtectionToken},
 		os.LookupEnv,
 		os.Unsetenv,
 	)
@@ -91,10 +94,19 @@ func main() {
 	rutaP12, passwordStdin, rutaCert, rutaClave, argsResto := extraerFlagsCredencial(os.Args[1:])
 	acciones, argsResto := extraerAccionesDirectas(argsResto)
 	restCfg, argsResto := extraerFlagsREST(argsResto)
-	restTokenCompat, restTokenPresent := environment.Take(envRESTToken)
-	restCfg = aplicarTokenRESTEntorno(restCfg, func(string) (string, bool) {
-		return restTokenCompat, restTokenPresent
+	restTokens := map[string]string{}
+	for _, name := range []string{envRESTToken, envRESTTokenHeredado} {
+		if value, ok := environment.Take(name); ok {
+			restTokens[name] = value
+		}
+	}
+	restCfg = aplicarTokenRESTEntorno(restCfg, func(name string) (string, bool) {
+		value, ok := restTokens[name]
+		return value, ok
 	})
+	if restCfg.parseErr == nil && (restCfg.tlsCert != "" || restCfg.tlsKey != "") && !restCfg.soloVerificacion {
+		restCfg.parseErr = errors.New(loc.T("rest.error.tls_pair_verify_only"))
+	}
 	argsResto = acciones.inyectarEnCLI(argsResto)
 
 	if restCfg.parseErr != nil {
@@ -230,6 +242,9 @@ type restFlags struct {
 	anclasVerificacion string
 	// crlVerificacion es un directorio de CRL locales.
 	crlVerificacion string
+	// tlsCert y tlsKey sustituyen la identidad TLS local por una propia.
+	tlsCert         string
+	tlsKey          string
 	v2MaxFirmas     int
 	v2MaxRevisiones int
 	v2MaxPDFMiB     int
@@ -325,6 +340,18 @@ func extraerFlagsREST(args []string) (cfg restFlags, resto []string) {
 				i += 2
 				continue
 			}
+		case "-rest-tls-cert", "--rest-tls-cert", "-certificado-tls-rest", "--certificado-tls-rest":
+			if i+1 < len(args) {
+				cfg.tlsCert = args[i+1]
+				i += 2
+				continue
+			}
+		case "-rest-tls-key", "--rest-tls-key", "-clave-tls-rest", "--clave-tls-rest":
+			if i+1 < len(args) {
+				cfg.tlsKey = args[i+1]
+				i += 2
+				continue
+			}
 		case "-verificacion-crl", "--verificacion-crl", "-verify-crl-dir", "--verify-crl-dir":
 			if i+1 < len(args) {
 				cfg.crlVerificacion = args[i+1]
@@ -411,12 +438,23 @@ func aplicarTokenRESTEntorno(cfg restFlags, lookup func(string) (string, bool)) 
 	if lookup == nil {
 		return cfg
 	}
-	if token, presente := lookup(envRESTToken); presente {
-		if token = strings.TrimSpace(token); token != "" {
-			// El entorno tiene prioridad: permite que los lanzadores seguros no
-			// expongan la credencial en argv ni dependan de un flag heredado.
-			cfg.token = token
+	actual, _ := lookup(envRESTToken)
+	heredado, _ := lookup(envRESTTokenHeredado)
+	actual, heredado = strings.TrimSpace(actual), strings.TrimSpace(heredado)
+	if actual != "" && heredado != "" && actual != heredado {
+		// Dos credenciales distintas: no se elige una en silencio.
+		if cfg.parseErr == nil {
+			cfg.parseErr = errors.New(localizador.Detectar().T("rest.error.token_env_conflict", envRESTToken, envRESTTokenHeredado))
 		}
+		return cfg
+	}
+	if actual == "" {
+		actual = heredado
+	}
+	if actual != "" {
+		// El entorno tiene prioridad: permite que los lanzadores seguros no
+		// expongan la credencial en argv ni dependan de un flag heredado.
+		cfg.token = actual
 	}
 	return cfg
 }

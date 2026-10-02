@@ -14,6 +14,14 @@ targetRules = ["private-key"]
 paths = ['''^testdata/dictamen-v2/pki/[a-z-]+\.key\.pem$''']
 
 [[allowlists]]
+description = "Name of the environment variable that carries the protection secret, not the secret"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^cmd/grxfirma/main\.go$''']
+regexes = ['''envProtectionToken\s*=\s*"GRXFIRMA_PROTECTION_SECRET_B64"''']
+
+[[allowlists]]
 description = "WebSocket RFC 6455 nonces used only in protocol tests"
 targetRules = ["generic-api-key"]
 condition = "AND"

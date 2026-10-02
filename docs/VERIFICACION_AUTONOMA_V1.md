@@ -121,6 +121,19 @@ GRXFIRMA_REST_TOKEN=<secreto> grxfirma -rest-solo-verificacion \
   un fichero privado. Las rutas no publicadas responden 404 sin redirección.
   `POST /v2/verify` publica el [dictamen v2](DICTAMEN_V2_ESTADO.md).
   Fuera de loopback se exige un token configurado explícitamente.
+- Token: `GRXFIRMA_REST_TOKEN`. Se acepta también el nombre heredado
+  `AUTOFIRMAV2_REST_TOKEN` para lanzadores ya existentes. Si se definen las dos
+  con valores distintos, el validador no arranca.
+- TLS: sin más opciones, el validador usa la identidad local de GrxFirma. Su
+  CA es persistente y está en
+  `~/.config/grxfirma/tls/websocket-localhost-root.crt.pem`; la hoja se
+  renueva sola y cubre `localhost` y `127.0.0.1`. Un cliente puede fijar esa
+  CA.
+- `-rest-tls-cert` y `-rest-tls-key` (alias `-certificado-tls-rest` y
+  `-clave-tls-rest`): certificado y clave PEM propios del servidor, en lugar
+  de la identidad local. Deben usarse juntos, solo en modo solo verificación;
+  el certificado debe estar vigente y corresponder a la clave. Es la opción
+  recomendada para un validador en un servidor.
 
 En el modo REST completo (`-rest`) las mismas banderas sustituyen el almacén
 del sistema por las anclas locales y añaden el dictamen; sin ellas, el

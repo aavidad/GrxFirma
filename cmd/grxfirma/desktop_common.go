@@ -339,6 +339,7 @@ func filtrarSecretosEntornoHijo(base []string) []string {
 	bloqueadas := map[string]struct{}{
 		"GRXFIRMA_PKCS12_PASSWORD":       {},
 		"GRXFIRMA_REST_TOKEN":            {},
+		"AUTOFIRMAV2_REST_TOKEN":         {},
 		"GRXFIRMA_PROTECTION_SECRET_B64": {},
 	}
 	out := make([]string, 0, len(base))

@@ -77,3 +77,35 @@ func TestConstruirFuentesVerificacion_RutasInvalidas(t *testing.T) {
 		t.Fatalf("directorio de CRL vacío pero válido: %+v %v", fuentes, err)
 	}
 }
+
+func TestTokenRESTAceptaVariableHeredadaYRechazaConflicto(t *testing.T) {
+	entorno := func(valores map[string]string) func(string) (string, bool) {
+		return func(nombre string) (string, bool) {
+			valor, ok := valores[nombre]
+			return valor, ok
+		}
+	}
+	if cfg := aplicarTokenRESTEntorno(restFlags{}, entorno(map[string]string{envRESTTokenHeredado: " heredado "})); cfg.token != "heredado" || cfg.parseErr != nil {
+		t.Fatalf("variable heredada no aplicada: %+v", cfg)
+	}
+	if cfg := aplicarTokenRESTEntorno(restFlags{}, entorno(map[string]string{envRESTToken: "nuevo", envRESTTokenHeredado: "nuevo"})); cfg.token != "nuevo" || cfg.parseErr != nil {
+		t.Fatalf("valores iguales deben aceptarse: %+v", cfg)
+	}
+	if cfg := aplicarTokenRESTEntorno(restFlags{}, entorno(map[string]string{envRESTToken: "uno", envRESTTokenHeredado: "otro"})); cfg.parseErr == nil || cfg.token != "" {
+		t.Fatalf("dos tokens distintos deben rechazarse: %+v", cfg)
+	}
+}
+
+func TestSoloVerificacionExigeCertificadoYClaveTLSJuntos(t *testing.T) {
+	base := restFlags{soloVerificacion: true, addr: "127.0.0.1:0", anclasVerificacion: "anclas.pem"}
+	soloCert := base
+	soloCert.tlsCert = "srv.crt.pem"
+	if err := validarPoliticaSoloVerificacion(soloCert); err == nil {
+		t.Fatal("se aceptó -rest-tls-cert sin -rest-tls-key")
+	}
+	ambos := soloCert
+	ambos.tlsKey = "srv.key.pem"
+	if err := validarPoliticaSoloVerificacion(ambos); err != nil {
+		t.Fatalf("par completo rechazado: %v", err)
+	}
+}

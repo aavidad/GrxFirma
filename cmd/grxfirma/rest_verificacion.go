@@ -125,7 +125,12 @@ func runRESTSoloVerificacion(ctx context.Context, logger *slog.Logger, cfg restF
 	if cfg.v2MaxCuerpoMiB > 0 {
 		adaptador.MaxBodyBytes = int64(cfg.v2MaxCuerpoMiB) << 20
 	}
-	srv, err := restin.StartTLS13Server(ctx, cfg.addr, adaptador.RoutesSoloVerificacion(), filepath.Join(configDir, "tls"))
+	var srv *restin.TLSServer
+	if cfg.tlsCert != "" {
+		srv, err = restin.StartTLS13ServerWithKeyPair(ctx, cfg.addr, adaptador.RoutesSoloVerificacion(), cfg.tlsCert, cfg.tlsKey)
+	} else {
+		srv, err = restin.StartTLS13Server(ctx, cfg.addr, adaptador.RoutesSoloVerificacion(), filepath.Join(configDir, "tls"))
+	}
 	if err != nil {
 		logger.ErrorContext(ctx, "no se pudo abrir el validador", "op", "rest-verify-listen", "error", err)
 		fmt.Fprintln(os.Stderr, loc.T("rest.verify_only.error.listen", err))
@@ -133,6 +138,11 @@ func runRESTSoloVerificacion(ctx context.Context, logger *slog.Logger, cfg restF
 	}
 	fmt.Fprintln(os.Stdout, loc.T("rest.verify_only.output.active", srv.Addr))
 	fmt.Fprintln(os.Stdout, loc.T("rest.verify_only.output.routes"))
+	if cfg.tlsCert != "" {
+		fmt.Fprintln(os.Stdout, loc.T("rest.verify_only.output.tls_own", srv.CertFile))
+	} else {
+		fmt.Fprintln(os.Stdout, loc.T("rest.verify_only.output.tls_ca", restin.ManagedLocalhostCAFile(filepath.Join(configDir, "tls"))))
+	}
 	fmt.Fprintln(os.Stdout, loc.T("rest.verify_only.output.anchors", fuentes.anclas.Cantidad()))
 	if fuentes.conCRL {
 		fmt.Fprintln(os.Stdout, loc.T("rest.verify_only.output.crl_local"))
@@ -156,6 +166,9 @@ func validarPoliticaSoloVerificacion(cfg restFlags) error {
 	}
 	if strings.TrimSpace(cfg.certFingerprintsCSV) != "" {
 		return errors.New(loc.T("rest.verify_only.error.fingerprints"))
+	}
+	if (cfg.tlsCert == "") != (cfg.tlsKey == "") {
+		return errors.New(loc.T("rest.verify_only.error.tls_pair"))
 	}
 	if esDireccionLoopback(cfg.addr) {
 		return nil

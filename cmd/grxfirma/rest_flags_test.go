@@ -235,10 +235,14 @@ func TestExtraerFlagsREST_CaducidadServidor(t *testing.T) {
 func TestAplicarTokenRESTEntorno_PriorizaEntornoSinTocarArgv(t *testing.T) {
 	cfg := restFlags{token: "token-en-argv"}
 	got := aplicarTokenRESTEntorno(cfg, func(key string) (string, bool) {
-		if key != envRESTToken {
-			t.Fatalf("clave de entorno inesperada: %s", key)
+		switch key {
+		case envRESTToken:
+			return " token-privado ", true
+		case envRESTTokenHeredado:
+			return "", false
 		}
-		return " token-privado ", true
+		t.Fatalf("clave de entorno inesperada: %s", key)
+		return "", false
 	})
 	if got.token != "token-privado" {
 		t.Fatalf("token = %q", got.token)

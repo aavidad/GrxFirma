@@ -185,7 +185,7 @@ Native host:
 
 - `GRXFIRMA_PKCS12_DIR`
 - `GRXFIRMA_PKCS12_PASSWORD` (compatibilidad para lanzadores existentes)
-- `GRXFIRMA_REST_TOKEN` (compatibilidad para automatización REST)
+- `GRXFIRMA_REST_TOKEN` (compatibilidad para automatización REST; también se acepta el nombre heredado `AUTOFIRMAV2_REST_TOKEN`)
 - `GRXFIRMA_PROTECTION_SECRET_B64` (compatibilidad para automatización CLI)
 
 Límites:

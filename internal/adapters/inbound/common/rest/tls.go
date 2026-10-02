@@ -56,6 +56,32 @@ func StartTLS13Server(ctx context.Context, addr string, handler http.Handler, ce
 	return startTLSServer(ctx, addr, handler, certDir, tls.VersionTLS13)
 }
 
+// StartTLS13ServerWithKeyPair publica el validador con un certificado y una
+// clave del operador, en lugar de la identidad local de los navegadores.
+func StartTLS13ServerWithKeyPair(ctx context.Context, addr string, handler http.Handler, certFile, keyFile string) (*TLSServer, error) {
+	cert, certPEM, err := loadX509KeyPairSecure(certFile, keyFile)
+	if err != nil {
+		return nil, fmt.Errorf("rest: no se pudo cargar el par TLS propio: %w", err)
+	}
+	block, _ := pem.Decode(certPEM)
+	if block == nil {
+		return nil, errors.New("rest: el certificado TLS propio no es PEM")
+	}
+	leaf, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("rest: el certificado TLS propio no es válido: %w", err)
+	}
+	if now := time.Now(); now.Before(leaf.NotBefore) || now.After(leaf.NotAfter) {
+		return nil, errors.New("rest: el certificado TLS propio no está vigente")
+	}
+	return serveTLS(ctx, addr, handler, cert, certFile, keyFile, tls.VersionTLS13)
+}
+
+// ManagedLocalhostCAFile devuelve la CA local persistente que firma la hoja TLS.
+func ManagedLocalhostCAFile(certDir string) string {
+	return filepath.Join(certDir, ManagedLocalhostPrefix+"-root.crt.pem")
+}
+
 func startTLSServer(ctx context.Context, addr string, handler http.Handler, certDir string, minVersion uint16) (*TLSServer, error) {
 	certFile, keyFile, _, source, err :=
 		EnsureBrowserCompatibleLocalhostCertificate(certDir, defaultCertPrefix)
@@ -70,7 +96,10 @@ func startTLSServer(ctx context.Context, addr string, handler http.Handler, cert
 	if err != nil {
 		return nil, fmt.Errorf("rest: no se pudo cargar el par TLS: %w", err)
 	}
+	return serveTLS(ctx, addr, handler, cert, certFile, keyFile, minVersion)
+}
 
+func serveTLS(ctx context.Context, addr string, handler http.Handler, cert tls.Certificate, certFile, keyFile string, minVersion uint16) (*TLSServer, error) {
 	tlsCfg := serverTLSConfig(cert, minVersion)
 
 	ln, err := tls.Listen("tcp", addr, tlsCfg)
