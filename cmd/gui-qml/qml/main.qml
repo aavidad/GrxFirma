@@ -119,7 +119,9 @@ Window {
     }
 
     function showLocalTLSStartupNotice(status) {
-        if (!status || localTLSStartupNoticeShown)
+        // El editor del sello del portal no conecta con navegadores: el aviso
+        // solo taparía el editor.
+        if (!status || localTLSStartupNoticeShown || portalSealMode)
             return
         const state = String(status.state || "")
         if (state !== "error" && !(state === "ready" && status.changed === true))
@@ -7231,6 +7233,7 @@ Window {
             anchors.margins: 20
             spacing: 12
             Text { text: tr("portal.seal.title"); font.pixelSize: 22; font.bold: true; color: currentTheme.textColor }
+            Text { text: tr("portal.seal.instructions"); wrapMode: Text.WordWrap; Layout.fillWidth: true; Layout.maximumWidth: 900; color: currentTheme.textColor }
             RowLayout {
                 Layout.fillWidth: true
                 Button { text: tr("portal.seal.previous_page"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(previewCurrentPage - 1) }
