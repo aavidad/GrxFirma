@@ -18,6 +18,22 @@ Window {
     height: 850
     title: tr("GrxFirma")
     color: currentTheme.backgroundColor
+    property bool portalSealMode: typeof portalSeal !== "undefined" && portalSeal && portalSeal.active
+    property bool portalSealDecision: false
+    function portalSealSubmit(action) {
+        if (!portalSealMode || portalSealDecision) return
+        let placements = []
+        if (action === "place") {
+            if (previewGeometryPath !== portalSeal.documentPath ||
+                    previewGeometryPage !== previewCurrentPage || pdfPageImage.source === "") return
+            placements = [currentSealGeometry()]
+        }
+        const appearance = action === "place" ? {
+            logo: sealStyle === "institutional" ? "institutional" : "text",
+            opacityPercent: Math.round(signSealLogoOpacityPercent)
+        } : ({})
+        if (portalSeal.submit(action, placements, appearance)) portalSealDecision = true
+    }
     property string ipcSocketPath: ""
     property string publicCertificateExportId: ""
     property string appLanguage: (typeof i18n !== "undefined" && i18n && i18n.locale) ? i18n.locale : "es"
@@ -541,6 +557,10 @@ Window {
     }
 
     onCurrentFilePathChanged: {
+        if (portalSealMode) {
+            pendingPreviewRequestId = ""
+            return
+        }
         if (signResultKind !== "") clearSignResult()
         if (currentFilePath !== "" && !isBatchMode()) {
             rememberSessionDocumentPath(currentFilePath)
@@ -2870,6 +2890,7 @@ Window {
     }
 
     function scheduleSettingsSave() {
+        if (portalSealMode) return
         markBackendSettingsDirty()
     }
 
@@ -3485,12 +3506,24 @@ Window {
             window.appLanguage = appSettings.language
         }
         if (typeof ipcSocketPath !== "undefined") window.ipcSocketPath = ipcSocketPath
-        window.syncResidentAgentUi()
+        if (!portalSealMode) window.syncResidentAgentUi()
         if (typeof isIpcMode !== "undefined" && isIpcMode && backend)
             window.showLocalTLSStartupNotice(backend.localTLSStartupStatus)
-        backendStartupQueriesTimer.start()
+        if (!portalSealMode) backendStartupQueriesTimer.start()
         settingsLoaded = true
-        releaseNotesStartupTimer.start()
+        if (!portalSealMode) releaseNotesStartupTimer.start()
+        if (portalSealMode) {
+            window.currentFilePath = portalSeal.documentPath
+            window.signFormat = "pades"
+            window.signVisibleSeal = true
+            window.signSealPages = "1"
+            window.signSealPerPage = false
+            window.signSealPlacements = ({})
+            portalSealEditor.parent = portalSealCanvas
+            portalSealEditor.anchors.fill = portalSealCanvas
+            portalSealStartupTimer.start()
+            portalSealPreviewRetryTimer.start()
+        }
     }
 
     Timer {
@@ -3608,6 +3641,7 @@ Window {
         }
     }
     onSignFormatChanged: {
+        if (portalSealMode) return
         scheduleSettingsSave()
         if (multiCosignEnabled && !supportsGuidedMultiCosignFormat()) {
             multiCosignEnabled = false
@@ -3958,6 +3992,7 @@ Window {
         sealPreviewMessage = tr("Preparando vista real del sello…")
         const options = {
             certificateId: certificateId(selectedCertData),
+            signerName: portalSealMode ? portalSeal.signerName : "",
             visibleSeal: seal,
             extraOptions: sealAppearanceOptions(),
             qrContent: signQREnabled ? normalizedQrUrl(signQRContent) : "",
@@ -6591,6 +6626,10 @@ Window {
     Connections {
         target: backend
         function onCertificatesLoaded(certs) {
+            if (portalSealMode) {
+                window.requestPdfPreview()
+                return
+            }
             console.log(tr("QML: Certificados recibidos:"), certs.length)
             window.certificates = certs
             window.syncCertificateSelection(certs)
@@ -7131,6 +7170,11 @@ Window {
     }
 
     onClosing: function(close) {
+        if (portalSealMode) {
+            if (!portalSealDecision) portalSealSubmit("cancel")
+            close.accepted = true
+            return
+        }
         window.clearTransientProtectionSecrets()
         console.log("QML: onClosing", window.backendSettingsDirty ? "con cambios" : "sin cambios")
         window.flushSettingsNow()
@@ -7155,7 +7199,91 @@ Window {
         }
     }
 
+    Timer {
+        id: portalSealStartupTimer
+        interval: 15000
+        repeat: false
+        onTriggered: {
+            if (portalSealMode && previewGeometryPath !== portalSeal.documentPath) {
+                portalSealDecision = true
+                Qt.quit()
+            }
+        }
+    }
+
+    Timer {
+        id: portalSealPreviewRetryTimer
+        interval: 1000
+        repeat: true
+        onTriggered: {
+            if (previewGeometryPath === portalSeal.documentPath) stop()
+            else requestPdfPreview()
+        }
+    }
+
+    Rectangle {
+        visible: portalSealMode
+        anchors.fill: parent
+        z: 1000
+        color: currentTheme.backgroundColor
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 12
+            Text { text: tr("portal.seal.title"); font.pixelSize: 22; font.bold: true; color: currentTheme.textColor }
+            RowLayout {
+                Layout.fillWidth: true
+                Button { text: tr("portal.seal.previous_page"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(previewCurrentPage - 1) }
+                Text { text: tr("portal.seal.page").replace("%1", previewCurrentPage).replace("%2", previewTotalPages); color: currentTheme.textColor }
+                Button { text: tr("portal.seal.next_page"); enabled: previewCurrentPage < previewTotalPages; onClicked: goToPreviewPage(previewCurrentPage + 1) }
+                Item { Layout.fillWidth: true }
+                ComboBox {
+                    model: [tr("portal.seal.logo"), tr("portal.seal.text")]
+                    currentIndex: sealStyle === "institutional" ? 0 : 1
+                    onActivated: sealStyle = currentIndex === 0 ? "institutional" : "text"
+                    Accessible.name: tr("portal.seal.style")
+                }
+                Text { text: tr("sign.seal.opacity"); color: currentTheme.textColor }
+                Slider { from: 0; to: 100; stepSize: 1; value: signSealLogoOpacityPercent; onMoved: signSealLogoOpacityPercent = value; Accessible.name: tr("sign.seal.opacity") }
+            }
+            GridLayout {
+                Layout.fillWidth: true
+                columns: window.width < 980 ? 2 : 5
+                ColumnLayout {
+                    Text { text: tr("portal.seal.x"); color: currentTheme.textColor }
+                    SpinBox { from: 0; to: 99; value: Math.round(signSealX * 100); onValueModified: signSealX = Math.min(value / 100, 1 - signSealW); Accessible.name: tr("portal.seal.x") }
+                }
+                ColumnLayout {
+                    Text { text: tr("portal.seal.y"); color: currentTheme.textColor }
+                    SpinBox { from: 0; to: 99; value: Math.round(signSealY * 100); onValueModified: signSealY = Math.min(value / 100, 1 - signSealH); Accessible.name: tr("portal.seal.y") }
+                }
+                ColumnLayout {
+                    Text { text: tr("portal.seal.width"); color: currentTheme.textColor }
+                    SpinBox { from: 1; to: 100; value: Math.round(signSealW * 100); onValueModified: signSealW = Math.min(value / 100, 1 - signSealX); Accessible.name: tr("portal.seal.width") }
+                }
+                ColumnLayout {
+                    Text { text: tr("portal.seal.height"); color: currentTheme.textColor }
+                    SpinBox { from: 1; to: 100; value: Math.round(signSealH * 100); onValueModified: signSealH = Math.min(value / 100, 1 - signSealY); Accessible.name: tr("portal.seal.height") }
+                }
+                ColumnLayout {
+                    Text { text: tr("portal.seal.rotation"); color: currentTheme.textColor }
+                    SpinBox { from: 0; to: 359; value: signSealRotation; onValueModified: applySealRotation(value); Accessible.name: tr("portal.seal.rotation") }
+                }
+            }
+            Item { id: portalSealCanvas; Layout.fillWidth: true; Layout.fillHeight: true; clip: true }
+            Text { text: tr("portal.seal.preview_error"); visible: previewGeometryPath !== portalSeal.documentPath; color: currentTheme.textColor }
+            RowLayout {
+                Layout.fillWidth: true
+                Button { text: tr("portal.seal.sign_here"); enabled: previewGeometryPath === portalSeal.documentPath && previewGeometryPage === previewCurrentPage; onClicked: portalSealSubmit("place") }
+                Button { text: tr("portal.seal.sign_without"); onClicked: portalSealSubmit("without") }
+                Item { Layout.fillWidth: true }
+                Button { text: tr("portal.seal.cancel"); onClicked: portalSealSubmit("cancel") }
+            }
+        }
+    }
+
     RowLayout {
+        visible: !portalSealMode
         anchors.fill: parent
         spacing: 0
 
@@ -8483,6 +8611,7 @@ Window {
                                 }
 
                                 Rectangle {
+                                    id: portalSealEditor
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: signVisibleSeal ? pagePreview.height + 20 : 0
                                     visible: signVisibleSeal && supportsVisibleSeal()

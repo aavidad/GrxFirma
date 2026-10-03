@@ -25,6 +25,7 @@ public partial class App : Application
     private ReleaseNotesManager? _releaseNotes;
     private bool _releaseNotesDialogOpen;
     private SingleInstanceSignal? _singleInstance;
+    private PortalSealSession? _portalSealSession;
 
     internal DesktopOperationSession OperationSession { get; } = new();
     internal IFilePickerService FilePickerService { get; private set; } = null!;
@@ -37,6 +38,7 @@ public partial class App : Application
     internal event EventHandler<bool>? FacturaeToolsEnabledChanged;
 
     internal bool FacturaeToolsEnabled => _facturaeToolsEnabled;
+    internal bool PortalSealActive => _portalSealSession is not null;
 
     public App()
     {
@@ -45,6 +47,27 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        var commandLine = Environment.GetCommandLineArgs().Skip(1).ToArray();
+        if (!PortalSealSession.TryLoad(commandLine, out var portalSession,
+            out var portalRequested))
+        {
+            Exit();
+            return;
+        }
+        if (portalRequested)
+        {
+            _portalSealSession = portalSession;
+            _keepInTray = false;
+            _window = new MainWindow();
+            FilePickerService = new WindowsFilePickerService(_window);
+            SecurePasswordPromptService = new WindowsSecurePasswordPromptService(_window);
+            _window.Closed += OnMainWindowClosed;
+            _window.AppWindow.Closing += OnMainWindowClosing;
+            _window.ShowInitialPage();
+            _window.OpenPortalSeal(portalSession!);
+            _window.Activate();
+            return;
+        }
         try
         {
             _singleInstance = SingleInstanceSignal.Open();
@@ -83,7 +106,6 @@ public partial class App : Application
         _singleInstance.Listen(() => EnqueueOnUi(ShowWindow));
         _window.ShowInitialPage();
 
-        var commandLine = Environment.GetCommandLineArgs().Skip(1).ToArray();
         if (!WinUiLaunchOptions.TryParse(commandLine, out var options, out var safeError))
         {
             _window.Activate();
@@ -279,8 +301,26 @@ public partial class App : Application
         _window?.Close();
     }
 
+    internal void CompletePortalSeal()
+    {
+        _exitRequested = true;
+        _window?.Close();
+    }
+
+    internal void FallbackPortalSeal()
+    {
+        _portalSealSession = null;
+        _exitRequested = true;
+        _window?.Close();
+    }
+
     private void OnMainWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
     {
+        if (_portalSealSession is not null)
+        {
+            _portalSealSession.CancelOnClose();
+            return;
+        }
         if (_exitRequested || !_keepInTray || _tray?.Installed != true)
         {
             return;

@@ -63,6 +63,9 @@ public sealed partial class SignPage : Page
     private double _visibleSealStartYPercent;
     private double _visibleSealStartWidthPercent;
     private double _visibleSealStartHeightPercent;
+    private PortalSealSession? _portalSealSession;
+    private Button? _portalSignButton;
+    private TextBlock? _portalPageText;
 
     public SignPage()
     {
@@ -93,6 +96,152 @@ public sealed partial class SignPage : Page
         VisibleSealRotateHandle.AddHandler(
             UIElement.PointerReleasedEvent,
             new PointerEventHandler(OnVisibleSealPreviewPointerReleased), true);
+    }
+
+    internal void ConfigurePortalSeal(PortalSealSession session)
+    {
+        _portalSealSession = session;
+        ViewModel.ConfigurePortalSealDocument(session.DocumentPath, session.SignerName);
+        var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+        string Label(string key) => SealUiCatalog.Text(language, key);
+        if (VisibleSealPreviewSurface.Parent is Border border)
+            border.Child = null;
+
+        var pageControls = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        var previous = new Button { Content = Label("portal.seal.previous_page"), MinHeight = 40 };
+        previous.Click += async (_, _) => await NavigatePortalPageAsync(-1);
+        pageControls.Children.Add(previous);
+        _portalPageText = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
+        pageControls.Children.Add(_portalPageText);
+        var next = new Button { Content = Label("portal.seal.next_page"), MinHeight = 40 };
+        next.Click += async (_, _) => await NavigatePortalPageAsync(1);
+        pageControls.Children.Add(next);
+
+        var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        _portalSignButton = new Button
+        {
+            Content = Label("portal.seal.sign_here"), MinHeight = 40,
+            IsEnabled = false,
+        };
+        _portalSignButton.Click += (_, _) =>
+        {
+            var placement = ViewModel.PortalSealPlacement();
+            if (placement is null) return;
+            if (session.Submit("place", [placement]))
+                ((App)Application.Current).CompletePortalSeal();
+        };
+        actions.Children.Add(_portalSignButton);
+        var without = new Button { Content = Label("portal.seal.sign_without"), MinHeight = 40 };
+        without.Click += (_, _) =>
+        {
+            if (session.Submit("without"))
+                ((App)Application.Current).CompletePortalSeal();
+        };
+        actions.Children.Add(without);
+        var cancel = new Button { Content = Label("portal.seal.cancel"), MinHeight = 40 };
+        cancel.Click += (_, _) =>
+        {
+            if (session.Submit("cancel"))
+                ((App)Application.Current).CompletePortalSeal();
+        };
+        actions.Children.Add(cancel);
+
+        var content = new StackPanel { Spacing = 16, Padding = new Thickness(20) };
+        content.Children.Add(new TextBlock
+        {
+            Text = Label("portal.seal.title"), FontSize = 22,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+        });
+        content.Children.Add(pageControls);
+        var geometry = new Grid { ColumnSpacing = 8 };
+        for (var index = 0; index < 5; index++)
+            geometry.ColumnDefinitions.Add(new ColumnDefinition
+            {
+                Width = new GridLength(1, GridUnitType.Star),
+            });
+        void AddGeometryField(int column, string key, string property,
+            double minimum, double maximum)
+        {
+            var box = new NumberBox
+            {
+                Header = Label(key), Minimum = minimum, Maximum = maximum,
+                SmallChange = 1, MinWidth = 100,
+            };
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(box, Label(key));
+            box.SetBinding(NumberBox.ValueProperty,
+                new Microsoft.UI.Xaml.Data.Binding
+                {
+                    Source = ViewModel,
+                    Path = new PropertyPath(property),
+                    Mode = Microsoft.UI.Xaml.Data.BindingMode.TwoWay,
+                });
+            Grid.SetColumn(box, column);
+            geometry.Children.Add(box);
+        }
+        AddGeometryField(0, "portal.seal.x", nameof(SignPageViewModel.VisibleSealXPercent), 0, 99);
+        AddGeometryField(1, "portal.seal.y", nameof(SignPageViewModel.VisibleSealYPercent), 0, 99);
+        AddGeometryField(2, "portal.seal.width", nameof(SignPageViewModel.VisibleSealWidthPercent), 1, 100);
+        AddGeometryField(3, "portal.seal.height", nameof(SignPageViewModel.VisibleSealHeightPercent), 1, 100);
+        AddGeometryField(4, "portal.seal.rotation", nameof(SignPageViewModel.VisibleSealRotationDegrees), 0, 359);
+        content.Children.Add(new ScrollViewer
+        {
+            Content = geometry,
+            HorizontalScrollMode = ScrollMode.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+            VerticalScrollMode = ScrollMode.Disabled,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+        });
+        content.Children.Add(new Viewbox
+        {
+            MaxHeight = 620, MaxWidth = 620,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Stretch = Stretch.Uniform,
+            Child = VisibleSealPreviewSurface,
+        });
+        content.Children.Add(actions);
+        SignContentScrollViewer.Content = content;
+        void UpdateNavigation()
+        {
+            _portalPageText!.Text = Label("portal.seal.page")
+                .Replace("%1", Math.Max(1, ViewModel.PortalCurrentPage).ToString(CultureInfo.CurrentCulture))
+                .Replace("%2", Math.Max(1, ViewModel.PortalTotalPages).ToString(CultureInfo.CurrentCulture));
+            previous.IsEnabled = ViewModel.CanGoToPreviousSealPage;
+            next.IsEnabled = ViewModel.CanGoToNextSealPage;
+            _portalSignButton!.IsEnabled = ViewModel.PortalSealPlacement() is not null;
+        }
+        _portalUpdateNavigation = UpdateNavigation;
+        UpdateNavigation();
+        if (_isSubscribed) _ = RefreshPortalSealAsync();
+    }
+
+    private Action? _portalUpdateNavigation;
+    private int _portalRefreshInProgress;
+
+    private async Task RefreshPortalSealAsync()
+    {
+        if (_portalSealSession is null ||
+            Interlocked.Exchange(ref _portalRefreshInProgress, 1) != 0) return;
+        try
+        {
+            await ViewModel.RefreshVisibleSealPreviewAsync(_pageCancellation?.Token ?? CancellationToken.None);
+            await UpdateVisibleSealPreviewImageAsync();
+            _portalUpdateNavigation?.Invoke();
+            if (_pageCancellation?.IsCancellationRequested != true &&
+                ViewModel.PortalSealPlacement() is null)
+                ((App)Application.Current).FallbackPortalSeal();
+        }
+        finally { Interlocked.Exchange(ref _portalRefreshInProgress, 0); }
+    }
+
+    private async Task NavigatePortalPageAsync(int step)
+    {
+        await ViewModel.NavigateVisibleSealPageAsync(step,
+            _pageCancellation?.Token ?? CancellationToken.None);
+        await UpdateVisibleSealPreviewImageAsync();
+        _portalUpdateNavigation?.Invoke();
+        if (_pageCancellation?.IsCancellationRequested != true &&
+            ViewModel.PortalSealPlacement() is null)
+            ((App)Application.Current).FallbackPortalSeal();
     }
 
     public SignPageViewModel ViewModel { get; }
@@ -130,6 +279,12 @@ public sealed partial class SignPage : Page
         CertificatePanel.UpdateAvailability();
         UpdateCertificatePanelLayout();
         await UpdateVisibleSealPreviewImageAsync();
+        if (((App)Application.Current).PortalSealActive)
+        {
+            if (_portalSealSession is not null)
+                await RefreshPortalSealAsync();
+            return;
+        }
         await RefreshCertificatesAndShowDiagnosticAsync(
             _pageCancellation.Token);
         await LoadCertificatePanelPreferenceAsync();

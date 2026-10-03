@@ -54,6 +54,28 @@ func TestDespachar_SealPreview_SinSelloEsError(t *testing.T) {
 	}
 }
 
+func TestDespachar_SealPreview_UsaNombreElegidoPorElPortal(t *testing.T) {
+	if got := nombreFirmanteVistaPrevia("", " Nombre elegido ", "Ejemplo"); got != "Nombre elegido" {
+		t.Fatalf("nombre=%q", got)
+	}
+	if got := nombreFirmanteVistaPrevia("cert-id", "Nombre elegido", "Certificado real"); got != "Certificado real" {
+		t.Fatalf("prioridad=%q", got)
+	}
+	m := manejadorVacio()
+	seal := map[string]any{"page": "1", "x": 0.5, "y": 0.05, "w": 0.4, "h": 0.1,
+		"pageWidth": 595.0, "pageHeight": 842.0, "rotation": 0, "keepText": true}
+	preview := func(name string) string {
+		resp := m.despachar(context.Background(), peticionJSON(t, "seal_preview", paramsVistaPreviaSello{VisibleSeal: seal, SignerName: name}))
+		if !resp.OK {
+			t.Fatalf("seal_preview: %s", resp.Error)
+		}
+		return resp.Data.(resultadoVistaPreviaSello).Image
+	}
+	if preview("Nombre elegido") == preview("Otro certificado") {
+		t.Fatal("el nombre elegido no cambió el sello previsualizado")
+	}
+}
+
 // El PNG conserva la tarjeta y ocupa la caja envolvente de la anotación PDF.
 func TestDespachar_SealPreview_GeometriaRotada(t *testing.T) {
 	for _, rotation := range []int{0, 15, 30, 45, 80, 90, 180, 270} {

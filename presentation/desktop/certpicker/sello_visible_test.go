@@ -25,24 +25,24 @@ func (s selectorSello) ElegirPosicionSello(context.Context) (string, string, err
 
 func TestResolverSelloVisible(t *testing.T) {
 	quiere := map[string]string{"visibleSignature": "want", "otra": "x"}
-	out, err := ResolverSelloVisible(context.Background(), selectorSello{"inferior-derecha", "-1", nil}, domain.FormatPAdES, quiere)
+	out, err := ResolverSelloVisible(context.Background(), selectorSello{"inferior-derecha", "-1", nil}, domain.FormatPAdES, quiere, domain.Document{}, "")
 	if err != nil || out[domain.OpcionPosicionSello] != "inferior-derecha" || out[domain.OpcionPaginaSello] != "-1" || out["otra"] != "x" {
 		t.Fatalf("out=%v err=%v", out, err)
 	}
-	if out, _ := ResolverSelloVisible(context.Background(), selectorSello{}, domain.FormatCAdES, quiere); out[domain.OpcionPosicionSello] != "" {
+	if out, _ := ResolverSelloVisible(context.Background(), selectorSello{}, domain.FormatCAdES, quiere, domain.Document{}, ""); out[domain.OpcionPosicionSello] != "" {
 		t.Error("solo aplica a PAdES")
 	}
 	avisos.Reiniciar()
 	defer avisos.Reiniciar()
-	out, err = ResolverSelloVisible(context.Background(), selectorSello{err: ErrSinSelloVisible}, domain.FormatPAdES, quiere)
+	out, err = ResolverSelloVisible(context.Background(), selectorSello{err: ErrSinSelloVisible}, domain.FormatPAdES, quiere, domain.Document{}, "")
 	if err != nil || out["visibleSignature"] != "" || !strings.Contains(avisos.Texto(), "sin sello visible") {
 		t.Fatalf("sin sello: out=%v err=%v avisos=%q", out, err, avisos.Texto())
 	}
 	// Una interfaz sin selector firma sin sello y lo explica.
-	if out, err := ResolverSelloVisible(context.Background(), struct{}{}, domain.FormatPAdES, quiere); err != nil || out["visibleSignature"] != "" {
+	if out, err := ResolverSelloVisible(context.Background(), struct{}{}, domain.FormatPAdES, quiere, domain.Document{}, ""); err != nil || out["visibleSignature"] != "" {
 		t.Fatalf("sin selector: out=%v err=%v", out, err)
 	}
-	if _, err := ResolverSelloVisible(context.Background(), selectorSello{"centro", "1", nil}, domain.FormatPAdES, quiere); err == nil {
+	if _, err := ResolverSelloVisible(context.Background(), selectorSello{"centro", "1", nil}, domain.FormatPAdES, quiere, domain.Document{}, ""); err == nil {
 		t.Error("una posición inválida debe rechazarse")
 	}
 }

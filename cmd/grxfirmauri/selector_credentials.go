@@ -216,3 +216,7 @@ func (s *selectorCredenciales) ElegirPosicionSello(ctx context.Context) (string,
 	}
 	return "", "", certpicker.ErrPosicionSelloNoDisponible
 }
+
+func (s *selectorCredenciales) ElegirSelloEnEditor(ctx context.Context, documento domain.Document, nombreCertificado string) ([]byte, error) {
+	return certpicker.EjecutarEditorSello(ctx, documento, nombreCertificado)
+}

@@ -20,6 +20,7 @@ import (
 // vista previa sea exactamente el sello que se incrustará.
 type paramsVistaPreviaSello struct {
 	CertificateID string            `json:"certificateId,omitempty"`
+	SignerName    string            `json:"signerName,omitempty"`
 	VisibleSeal   map[string]any    `json:"visibleSeal"`
 	QRContent     string            `json:"qrContent,omitempty"`
 	Reason        string            `json:"reason,omitempty"`
@@ -45,11 +46,20 @@ func (m *Manejador) handleVistaPreviaSello(ctx context.Context, raw json.RawMess
 		return respuesta{OK: false, Action: accion, Error: m.localizarErrorOpacidadLogoSello(err)}
 	}
 	firmante, emisor := m.identidadParaSello(ctx, p.CertificateID)
+	firmante = nombreFirmanteVistaPrevia(p.CertificateID, p.SignerName, firmante)
 	img, err := desktopsigner.PrevisualizarSello(opciones, firmante, emisor, time.Now())
 	if err != nil {
 		return respuesta{OK: false, Action: accion, Error: err.Error()}
 	}
 	return respuesta{OK: true, Action: accion, Data: resultadoVistaPreviaSello{Image: base64.StdEncoding.EncodeToString(img)}}
+}
+
+func nombreFirmanteVistaPrevia(id, nombre, ejemplo string) string {
+	nombre = strings.TrimSpace(nombre)
+	if id == "" && nombre != "" && len(nombre) <= 256 {
+		return nombre
+	}
+	return ejemplo
 }
 
 // identidadParaSello devuelve el nombre y el emisor del certificado; sin

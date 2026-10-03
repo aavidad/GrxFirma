@@ -8,6 +8,7 @@
 #include "ipcbridge.h"
 #include "processarguments.h"
 #include "processenvironment.h"
+#include "portalsealbridge.h"
 #include "residentagent.h"
 #include "releasenotes.h"
 #include "translatorbridge.h"
@@ -275,6 +276,7 @@ int main(int argc, char *argv[]) {
   // El modo REST queda solo para uso explícito.
   bool useIpc = true;
   QString forcedIpcPath;
+  QString portalSealRequest;
   for (int i = 1; i < argc; ++i) {
     QString arg = QString::fromLocal8Bit(argv[i]);
     if (arg == "--rest" || arg == "-rest") {
@@ -285,10 +287,18 @@ int main(int argc, char *argv[]) {
       useIpc = true;
     } else if (arg == "--ipc" || arg == "-ipc") {
       useIpc = true;
+    } else if (arg == "--portal-seal-request" && i + 1 < argc) {
+      portalSealRequest = QString::fromLocal8Bit(argv[++i]);
     }
   }
   ensureSessionBusAddress();
   QApplication app(argc, argv);
+  PortalSealBridge portalSeal;
+  if (!portalSealRequest.isEmpty() && !portalSeal.load(portalSealRequest))
+    return 1;
+  if (portalSeal.active())
+    forcedIpcPath = QFileInfo(portalSealRequest).absolutePath() +
+                    QStringLiteral("/preview.sock");
   // Qt.labs.settings uses this identifier to find existing user preferences.
   app.setApplicationName("GrxFirma");
   app.setOrganizationName("Diputacion de Granada");
@@ -415,6 +425,7 @@ int main(int argc, char *argv[]) {
                 QDir(guiAssetsDir).absoluteFilePath("logo_firma_grxfirma_final.png"))
                 .toString();
   engine.rootContext()->setContextProperty("backend", activeBridge);
+  engine.rootContext()->setContextProperty("portalSeal", &portalSeal);
   engine.rootContext()->setContextProperty("isIpcMode", useIpc);
   engine.rootContext()->setContextProperty("ipcSocketPath", ipcPath);
   engine.rootContext()->setContextProperty("i18n", &translator);
@@ -462,9 +473,10 @@ int main(int argc, char *argv[]) {
   if (engine.rootObjects().isEmpty())
     return -1;
 
-  residentAgent.initialize(
-      qobject_cast<QWindow *>(engine.rootObjects().constFirst()),
-      applicationIconPath);
+  if (!portalSeal.active())
+    residentAgent.initialize(
+        qobject_cast<QWindow *>(engine.rootObjects().constFirst()),
+        applicationIconPath);
   if (startupArguments.contains(QStringLiteral("--start-hidden"))) {
     residentAgent.setEnabled(true);
     residentAgent.hideMainWindow();

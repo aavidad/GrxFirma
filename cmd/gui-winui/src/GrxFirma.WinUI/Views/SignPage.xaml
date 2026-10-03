@@ -18,6 +18,7 @@
     </Page.Resources>
 
     <ScrollViewer
+        x:Name="SignContentScrollViewer"
         AutomationProperties.Name="Contenido de firma"
         HorizontalScrollBarVisibility="Disabled"
         HorizontalScrollMode="Disabled"

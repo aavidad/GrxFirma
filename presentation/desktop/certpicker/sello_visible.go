@@ -32,8 +32,27 @@ type SelectorPosicionSello interface {
 // la web lo ha pedido y la firma es PAdES. Si la interfaz no permite elegir o
 // el usuario prefiere no poner sello, se firma sin sello visible y se le
 // explica el motivo.
-func ResolverSelloVisible(ctx context.Context, selector any, formato domain.SignatureFormat, opciones map[string]string) (map[string]string, error) {
-	if formato != domain.FormatPAdES || !domain.SolicitaElegirSello(opciones) {
+func ResolverSelloVisible(ctx context.Context, selector any, formato domain.SignatureFormat, opciones map[string]string, documento domain.Document, nombreCertificado string) (map[string]string, error) {
+	if formato != domain.FormatPAdES {
+		return opciones, nil
+	}
+	quiere := domain.SolicitaElegirSello(opciones)
+	// Las coordenadas recibidas de la web no son una decisión del usuario.
+	seguras := make(map[string]string, len(opciones))
+	for k, v := range opciones {
+		lower := strings.ToLower(k)
+		if strings.EqualFold(k, domain.OpcionPosicionSello) || strings.EqualFold(k, domain.OpcionPaginaSello) ||
+			strings.HasPrefix(lower, "visibleseal") || strings.EqualFold(k, "signatureField") ||
+			strings.EqualFold(k, "rotation") || strings.EqualFold(k, "signatureRubricImage") ||
+			strings.EqualFold(k, "signatureRotation") || strings.EqualFold(k, "signaturePage") ||
+			strings.EqualFold(k, "signaturePages") || strings.EqualFold(k, "layer2Text") ||
+			strings.HasPrefix(lower, "signaturepositiononpage") {
+			continue
+		}
+		seguras[k] = v
+	}
+	opciones = seguras
+	if !quiere {
 		return opciones, nil
 	}
 	sinSello := func(motivo string) map[string]string {
@@ -48,6 +67,36 @@ func ResolverSelloVisible(ctx context.Context, selector any, formato domain.Sign
 	}
 	sinSelector := func() map[string]string {
 		return sinSello("la web pidió que eligiera dónde colocar la firma visible, pero esta interfaz no permite elegirlo; el PDF se firma sin sello visible")
+	}
+	if editor, ok := selector.(SelectorEditorSello); ok {
+		if paginas, err := paginasPDFEditor(documento); err == nil {
+			raw, err := editor.ElegirSelloEnEditor(ctx, documento, nombreCertificado)
+			if err == nil {
+				colocaciones, appearance, validationErr := validarResultadoEditorSello(raw, paginas)
+				switch {
+				case errors.Is(validationErr, ErrSinSelloVisible):
+					return sinSello("ha elegido firmar sin sello visible; la firma es igual de válida"), nil
+				case validationErr != nil:
+					return nil, validationErr
+				}
+				out := make(map[string]string, len(opciones)+2)
+				for k, v := range opciones {
+					out[k] = v
+				}
+				out["visibleSeal"] = "true"
+				out["visibleSealPlacements"] = colocaciones
+				for key, value := range appearance {
+					out[key] = value
+				}
+				return out, nil
+			}
+			if !errors.Is(err, ErrEditorSelloNoDisponible) {
+				return nil, err
+			}
+			avisos.Registrar(tp("portal.seal.notice.editor_title"), tp("portal.seal.notice.editor_body"))
+		} else {
+			avisos.Registrar(tp("portal.seal.notice.preview_title"), tp("portal.seal.notice.preview_body"))
+		}
 	}
 	sel, ok := selector.(SelectorPosicionSello)
 	if !ok {

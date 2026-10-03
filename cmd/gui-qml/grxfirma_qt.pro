@@ -32,6 +32,7 @@ SOURCES += \
         backendbridge.cpp \
         incidentprivacy.cpp \
         ipcbridge.cpp \
+        portalsealbridge.cpp \
         residentagent.cpp \
         transientsecret.cpp \
         translatorbridge.cpp \
@@ -43,6 +44,7 @@ HEADERS += \
         executablelocator.h \
         incidentprivacy.h \
         ipcbridge.h \
+        portalsealbridge.h \
         ipcsocketpath.h \
         processarguments.h \
         processenvironment.h \

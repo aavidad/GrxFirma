@@ -42,6 +42,19 @@ public sealed partial class MainWindow : Window
         ContentFrame.Navigate(typeof(SignPage));
     }
 
+    internal void OpenPortalSeal(PortalSealSession session)
+    {
+        RootNavigation.IsPaneVisible = false;
+        RootNavigation.IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
+        RootNavigation.MenuItems.Clear();
+        RootNavigation.FooterMenuItems.Clear();
+        Title = SealUiCatalog.Text(
+            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+            "portal.seal.title");
+        if (ContentFrame.Content is SignPage page)
+            page.ConfigurePortalSeal(session);
+    }
+
     internal void ShowSettingsPage()
     {
         RootNavigation.SelectedItem = SettingsNavigationItem;

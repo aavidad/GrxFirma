@@ -34,11 +34,11 @@ func PosicionSelloValida(p string) bool {
 }
 
 // SolicitaElegirSello indica si la web pide que el usuario sitúe la firma
-// visible y todavía no se ha elegido la posición.
+// visible. La web no puede indicar una posición para evitar la elección local.
 func SolicitaElegirSello(opciones map[string]string) bool {
 	for k, v := range opciones {
 		if strings.EqualFold(k, "visibleSignature") && strings.EqualFold(strings.TrimSpace(v), "want") {
-			return strings.TrimSpace(opciones[OpcionPosicionSello]) == ""
+			return true
 		}
 	}
 	return false

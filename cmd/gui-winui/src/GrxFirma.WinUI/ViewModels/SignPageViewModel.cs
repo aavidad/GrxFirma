@@ -158,6 +158,8 @@ public sealed class SignPageViewModel
     private int _previewCurrentPage;
     private int _previewTotalPages;
     private string? _previewInputPath;
+    private bool _portalSealMode;
+    private string _portalSignerName = string.Empty;
     private long _previewFileLength;
     private long _previewFileLastWriteUtcTicks;
     private byte[]? _previewFileDigest;
@@ -1145,8 +1147,33 @@ public sealed class SignPageViewModel
         Math.Max(1, VisibleSealPreviewHeight - 16);
 
     public string VisibleSealPreviewText => VisibleSealKeepText
-        ? "Identidad · ubicación · fecha"
+        ? (_portalSealMode && !string.IsNullOrWhiteSpace(_portalSignerName)
+            ? _portalSignerName : "Identidad · ubicación · fecha")
         : "Rótulo sin datos personales";
+
+    public void ConfigurePortalSealDocument(string path, string signerName)
+    {
+        _portalSealMode = true;
+        _portalSignerName = signerName;
+        _inputPath = path;
+        _visibleSealPages = "1";
+        _requestedPreviewPage = 1;
+        InputDisplayName = SafeFileName(path);
+        VisibleSealEnabled = true;
+        RaisePropertyChanged(nameof(VisibleSealPreviewText));
+    }
+
+    public VisibleSealPlacementParameters? PortalSealPlacement() =>
+        _portalSealMode && _isPreviewImageRendered &&
+        _previewCurrentPage is > 0 &&
+        _previewCurrentPage <= _previewTotalPages &&
+        !VisibleSealPreviewImage.IsEmpty &&
+        !string.IsNullOrWhiteSpace(_previewInputPath) &&
+        PathsEqual(_previewInputPath, _inputPath ?? string.Empty)
+            ? CurrentSealPlacement() : null;
+
+    public int PortalCurrentPage => _previewCurrentPage;
+    public int PortalTotalPages => _previewTotalPages;
 
     public string VisibleSealGeometrySummary =>
         $"Tamaño: {VisibleSealPreviewWidth * 25.4 / 72:0.#} × " +
@@ -3289,7 +3316,7 @@ public sealed class SignPageViewModel
         {
             return pageError;
         }
-        if (_perPageSealEnabled && _requestedPreviewPage > 0) previewPage = _requestedPreviewPage;
+        if ((_perPageSealEnabled || _portalSealMode) && _requestedPreviewPage > 0) previewPage = _requestedPreviewPage;
         return null;
     }
 
@@ -3800,7 +3827,7 @@ public sealed class SignPageViewModel
 
     private bool IsVisibleSealSupportedByCurrentSelection()
     {
-        if (!_session.Supports(DesktopOperationActions.PdfPreview) ||
+        if ((!_portalSealMode && !_session.Supports(DesktopOperationActions.PdfPreview)) ||
             string.IsNullOrWhiteSpace(_inputPath) ||
             !string.Equals(
                 Path.GetExtension(_inputPath),

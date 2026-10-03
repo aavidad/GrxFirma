@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/des" // #nosec G502 -- DES is required for V1.9 session responses and is gated by explicit operator opt-in.
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
@@ -414,7 +415,11 @@ func (h *legacyWebSocketHandler) handleSign(ctx context.Context, solicitud afirm
 	cmd.CertificateID = cert.ID
 	// La web puede pedir que el usuario sitúe la firma visible (Java:
 	// visibleSignature=want).
-	if cmd.Options, err = certpicker.ResolverSelloVisible(ctx, h.selector, cmd.Format, cmd.Options); err != nil {
+	nombreCertificado := cert.Subject
+	if parsed, parseErr := x509.ParseCertificate(certDER); parseErr == nil && strings.TrimSpace(parsed.Subject.CommonName) != "" {
+		nombreCertificado = strings.TrimSpace(parsed.Subject.CommonName)
+	}
+	if cmd.Options, err = certpicker.ResolverSelloVisible(ctx, h.selector, cmd.Format, cmd.Options, cmd.Document, nombreCertificado); err != nil {
 		if isLegacyCancellation(err) {
 			return "CANCEL", nil
 		}
@@ -443,6 +448,19 @@ func (h *legacyWebSocketHandler) handleSign(ctx context.Context, solicitud afirm
 // en una firma local, y la clave solo firma el resumen que envía el servidor.
 func (h *legacyWebSocketHandler) firmarTrifasicoServidor(ctx context.Context, cmd application.SignCommand, solicitud afirmauri.Solicitud, formato, servidor string) (string, error) {
 	cert, certDER, err := h.selectCertificate(ctx, solicitud)
+	if err != nil {
+		if isLegacyCancellation(err) {
+			return "CANCEL", nil
+		}
+		return "", err
+	}
+	nombreCertificado := cert.Subject
+	if parsed, parseErr := x509.ParseCertificate(certDER); parseErr == nil && strings.TrimSpace(parsed.Subject.CommonName) != "" {
+		nombreCertificado = strings.TrimSpace(parsed.Subject.CommonName)
+	}
+	// En firma trifásica el dato local puede ser un identificador del servidor;
+	// no se presenta como si fuera el PDF que se va a firmar.
+	cmd.Options, err = certpicker.ResolverSelloVisible(ctx, h.selector, cmd.Format, cmd.Options, domain.Document{}, nombreCertificado)
 	if err != nil {
 		if isLegacyCancellation(err) {
 			return "CANCEL", nil

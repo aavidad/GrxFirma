@@ -10,6 +10,7 @@ package session
 
 import (
 	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"log"
@@ -490,7 +491,21 @@ func (o *Orchestrator) ejecutarSimple(ctx context.Context, solicitud afirmauri.S
 	// La web puede pedir que el usuario sitúe la firma visible (Java:
 	// visibleSignature=want).
 	if solicitud.SignCommand != nil {
-		opciones, err := certpicker.ResolverSelloVisible(ctx, o.certSelector, job.Format, job.Options)
+		nombreCertificado := ""
+		if clave != nil {
+			chain := clave.CertificateChainDER()
+			if len(chain) > 0 {
+				if certificado, parseErr := x509.ParseCertificate(chain[0]); parseErr == nil {
+					nombreCertificado = strings.TrimSpace(certificado.Subject.CommonName)
+				}
+			}
+		}
+		documentoEditor := job.Document
+		if strings.TrimSpace(job.Options["serverUrl"]) != "" &&
+			triphase.EsFormatoTrifasico(solicitud.LegacyParams.Get("format")) {
+			documentoEditor = domain.Document{}
+		}
+		opciones, err := certpicker.ResolverSelloVisible(ctx, o.certSelector, job.Format, job.Options, documentoEditor, nombreCertificado)
 		if err != nil {
 			return err
 		}
