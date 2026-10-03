@@ -14,8 +14,8 @@ class PortalSealEditorContract(unittest.TestCase):
     def test_portal_moves_existing_surface_and_returns_only_explicit_action(self):
         source = (ROOT / "Views/SignPage.xaml.cs").read_text(encoding="utf-8")
         for expected in (
-            "border.Child = null",
-            "Child = VisibleSealPreviewSurface",
+            "VisibleSealEditorPanel.Children.Remove(VisibleSealPreviewViewbox)",
+            "content.Children.Add(VisibleSealPreviewViewbox)",
             'session.Submit("place", [placement])',
             'session.Submit("without")',
             'session.Submit("cancel")',

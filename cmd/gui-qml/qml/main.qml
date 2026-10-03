@@ -7244,7 +7244,7 @@ Window {
                     Accessible.name: tr("portal.seal.style")
                 }
                 Text { text: tr("sign.seal.opacity"); color: currentTheme.textColor }
-                Slider { from: 0; to: 100; stepSize: 1; value: signSealLogoOpacityPercent; onMoved: signSealLogoOpacityPercent = value; Accessible.name: tr("sign.seal.opacity") }
+                Slider { from: 0; to: 100; stepSize: 1; value: signSealLogoOpacityPercent; focusPolicy: Qt.StrongFocus; onMoved: signSealLogoOpacityPercent = Math.round(value); Accessible.name: tr("sign.seal.opacity"); Accessible.description: tr("sign.seal.opacity_help") }
             }
             GridLayout {
                 Layout.fillWidth: true
