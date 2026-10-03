@@ -32,6 +32,7 @@ public sealed record CertificateListItem
     public required string DefaultDisplay { get; init; }
     public bool IsDefaultCertificate { get; init; }
     public required string SearchText { get; init; }
+    public required CertificateInfo SourceCertificate { get; init; }
     public required bool CanSign { get; init; }
     public bool NeedsUnlock { get; init; }
     public required bool IsTemporary { get; init; }
@@ -157,6 +158,7 @@ public sealed record CertificateListItem
                 certificate.Nif,
                 certificate.Organization,
                 certificate.Type),
+            SourceCertificate = certificate,
             CanSign = suitable,
             IsTemporary = isTemporary,
             TemporaryDisplay = isTemporary
@@ -321,6 +323,12 @@ public sealed class CertificatesPageViewModel
     private string? _selectedCredentialPath;
     private string? _defaultCertificateId;
     private string _filterText = string.Empty;
+    private bool _requireNif;
+    private bool _requireOrganization;
+    private bool _filterPersonal;
+    private bool _filterRepresentative;
+    private bool _filterSeal;
+    private bool _filterPublicEmployee;
     private string _selectedCredentialDisplayName =
         "Ninguna credencial seleccionada";
     private string _catalogMessage =
@@ -357,6 +365,42 @@ public sealed class CertificatesPageViewModel
         _session = session;
         _filePicker = filePicker;
         UpdateAvailability();
+    }
+
+    public bool FilterPersonal
+    {
+        get => _filterPersonal;
+        set { if (SetProperty(ref _filterPersonal, value)) ApplyFilter(); }
+    }
+
+    public bool FilterRepresentative
+    {
+        get => _filterRepresentative;
+        set { if (SetProperty(ref _filterRepresentative, value)) ApplyFilter(); }
+    }
+
+    public bool FilterSeal
+    {
+        get => _filterSeal;
+        set { if (SetProperty(ref _filterSeal, value)) ApplyFilter(); }
+    }
+
+    public bool FilterPublicEmployee
+    {
+        get => _filterPublicEmployee;
+        set { if (SetProperty(ref _filterPublicEmployee, value)) ApplyFilter(); }
+    }
+
+    public bool RequireNif
+    {
+        get => _requireNif;
+        set { if (SetProperty(ref _requireNif, value)) ApplyFilter(); }
+    }
+
+    public bool RequireOrganization
+    {
+        get => _requireOrganization;
+        set { if (SetProperty(ref _requireOrganization, value)) ApplyFilter(); }
     }
 
     public IReadOnlyList<CertificateListItem> VisibleCertificates
@@ -1921,13 +1965,18 @@ public sealed class CertificatesPageViewModel
     {
         selectedId ??= SelectedCertificate?.Id;
         var filter = FilterText.Trim();
-        var visible = string.IsNullOrEmpty(filter)
-            ? _allCertificates
-            : _allCertificates
-                .Where(item => item.SearchText.Contains(
-                    filter,
-                    StringComparison.CurrentCultureIgnoreCase))
-                .ToArray();
+        var types = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (FilterPersonal) types.Add("fisica");
+        if (FilterRepresentative) types.Add("representacion");
+        if (FilterSeal) types.Add("sello");
+        if (FilterPublicEmployee) types.Add("empleado_publico");
+        var visible = _allCertificates
+            .Where(item => CertificateStructuredFilter.Matches(
+                item.SourceCertificate, RequireNif, RequireOrganization,
+                types) &&
+                (string.IsNullOrEmpty(filter) || item.SearchText.Contains(
+                    filter, StringComparison.CurrentCultureIgnoreCase)))
+            .ToArray();
 
         VisibleCertificates = visible.OrderBy(item => item.CanSign ? 0 : 1).ToArray();
         RaisePropertyChanged(nameof(VisibleCountText));

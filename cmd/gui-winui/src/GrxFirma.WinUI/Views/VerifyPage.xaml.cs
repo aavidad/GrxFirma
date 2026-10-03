@@ -8,6 +8,7 @@ using GrxFirma.WinUI.Core.Diagnostics;
 using GrxFirma.WinUI.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using GrxFirma.WinUI.Services;
 
 namespace GrxFirma.WinUI.Views;
 
@@ -22,6 +23,11 @@ public sealed partial class VerifyPage : Page
             app.OperationSession,
             app.FilePickerService);
         InitializeComponent();
+        ExportReportButton.Content = SealUiCatalog.Text(
+            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+            "winui.parity.verify.export");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            ExportReportButton, (string)ExportReportButton.Content);
     }
 
     public VerifyPageViewModel ViewModel { get; }
@@ -74,6 +80,9 @@ public sealed partial class VerifyPage : Page
         object sender,
         RoutedEventArgs args) =>
         ViewModel.CancelCurrentOperation();
+
+    private async void OnExportReportClick(object sender, RoutedEventArgs args) =>
+        await ViewModel.ExportReportAsync();
 
     private async void OnDiagnosticRequested(
         OperationDiagnostic diagnostic)

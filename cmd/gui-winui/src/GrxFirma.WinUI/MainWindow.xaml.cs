@@ -80,6 +80,26 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    internal void ShowSupportTargetPage(string destination)
+    {
+        foreach (var item in RootNavigation.MenuItems.OfType<NavigationViewItem>())
+        {
+            if (string.Equals(item.Tag as string, destination, StringComparison.Ordinal))
+            {
+                RootNavigation.SelectedItem = item;
+                var page = destination switch
+                {
+                    "verify" => typeof(VerifyPage),
+                    "certificates" => typeof(CertificatesPage),
+                    _ => typeof(SignPage),
+                };
+                ViewModel.ActivePageTitle = item.Content?.ToString() ?? string.Empty;
+                ContentFrame.Navigate(page);
+                return;
+            }
+        }
+    }
+
     internal async Task OpenHelpManualAsync()
     {
         RootNavigation.SelectedItem = HelpNavigationItem;

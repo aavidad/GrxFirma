@@ -72,6 +72,38 @@
                 Title="Disponibilidad del asistente" />
 
             <StackPanel Grid.Row="2" Spacing="20">
+                <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock x:Name="SupportAssistantTitle"
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}" />
+                        <ComboBox x:Name="SupportGoalCombo"
+                            DisplayMemberPath="Label"
+                            SelectionChanged="OnSupportGoalChanged"
+                            TabIndex="0"
+                            AutomationProperties.Name="{Binding Header, ElementName=SupportGoalCombo}" />
+                        <TextBlock x:Name="SupportStepText"
+                            AutomationProperties.LiveSetting="Polite"
+                            TextWrapping="Wrap" />
+                        <controls:ResponsiveActionPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="SupportNextButton" MinHeight="40"
+                                Click="OnSupportNextClick"
+                            AutomationProperties.Name="{Binding Content, ElementName=SupportNextButton}"
+                            TabIndex="1" />
+                            <Button x:Name="SupportPrimaryButton" MinHeight="40"
+                                Click="OnSupportPrimaryClick"
+                            AutomationProperties.Name="{Binding Content, ElementName=SupportPrimaryButton}"
+                            TabIndex="2" />
+                            <Button x:Name="SupportExportButton" MinHeight="40"
+                                Click="OnSupportExportClick"
+                            AutomationProperties.Name="{Binding Content, ElementName=SupportExportButton}"
+                            TabIndex="3" />
+                        </controls:ResponsiveActionPanel>
+                        <TextBlock x:Name="SupportStatusText"
+                            AutomationProperties.LiveSetting="Polite"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
                 <InfoBar
                     AutomationProperties.LiveSetting="Assertive"
                     IsClosable="False"
@@ -253,21 +285,21 @@
                                 Click="OnRefreshTlsClick"
                                 Content="Actualizar TLS"
                                 IsEnabled="{x:Bind ViewModel.CanRefreshTlsStatus, Mode=OneWay}"
-                                TabIndex="0" />
+                                TabIndex="4" />
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Solicita confirmación antes de crear la CA local e instalar su confianza para el usuario actual."
                                 AutomationProperties.Name="Instalar confianza TLS local"
                                 Click="OnInstallTlsTrustClick"
                                 Content="Instalar confianza local"
                                 IsEnabled="{x:Bind ViewModel.CanInstallTlsTrust, Mode=OneWay}"
-                                TabIndex="1" />
+                                TabIndex="5" />
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Solicita confirmación y retira solo la confianza y los artefactos inventariados por GrxFirma."
                                 AutomationProperties.Name="Retirar confianza TLS local"
                                 Click="OnClearTlsTrustClick"
                                 Content="Retirar confianza local"
                                 IsEnabled="{x:Bind ViewModel.CanClearTlsTrust, Mode=OneWay}"
-                                TabIndex="2" />
+                                TabIndex="6" />
                         </controls:ResponsiveActionPanel>
                     </StackPanel>
                 </Border>
@@ -290,20 +322,20 @@
                         Content="Ejecutar diagnóstico"
                         IsEnabled="{x:Bind ViewModel.CanRun, Mode=OneWay}"
                         Style="{StaticResource AccentButtonStyle}"
-                        TabIndex="3" />
+                        TabIndex="7" />
                     <Button MinHeight="40"
                         AutomationProperties.Name="Cancelar diagnóstico"
                         Click="OnCancelClick"
                         Content="Cancelar"
                         IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
-                        TabIndex="4" />
+                        TabIndex="8" />
                     <Button MinHeight="40"
                         AutomationProperties.HelpText="Abre el mismo resultado con detalle técnico saneado para soporte."
                         AutomationProperties.Name="Abrir diagnóstico detallado"
                         Click="OnOpenDetailedDiagnosticClick"
                         Content="Ver detalle"
                         IsEnabled="{x:Bind ViewModel.CanOpenDetailedDiagnostic, Mode=OneWay}"
-                        TabIndex="5" />
+                        TabIndex="9" />
                     <ProgressRing
                         Width="28"
                         Height="28"
