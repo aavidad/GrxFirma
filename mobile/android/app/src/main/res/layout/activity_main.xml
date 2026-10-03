@@ -198,6 +198,38 @@
                     android:minHeight="48dp"
                     android:text="@string/select_pkcs12" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/selectDnieNfcButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:minHeight="48dp"
+                    android:text="@string/dnie_nfc_choice" />
+
+                <TextView
+                    android:id="@+id/dnieScanStatus"
+                    style="@style/TextAppearance.Material3.BodyMedium"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:accessibilityLiveRegion="polite"
+                    android:drawablePadding="12dp"
+                    android:gravity="center_vertical"
+                    android:text="@string/dnie_scan_instruction"
+                    android:textColor="@color/on_surface"
+                    android:visibility="gone"
+                    app:drawableStartCompat="@drawable/ic_nfc_card" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/cancelDnieScanButton"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/dnie_cancel"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/certificateFileSummary"
                     style="@style/TextAppearance.Material3.BodyMedium"

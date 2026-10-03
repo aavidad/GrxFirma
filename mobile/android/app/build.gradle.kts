@@ -189,6 +189,7 @@ android {
         htmlReport = true
         sarifReport = true
         warningsAsErrors = true
+        lintConfig = file("lint.xml")
         // API 37 is preview-only; API 36 is the latest stable SDK available to sdkmanager.
         // Gradle 9.4.1 is the version explicitly supported by AGP 9.2.x.
         disable += setOf(
@@ -209,6 +210,13 @@ dependencies {
     implementation("com.google.android.material:material:1.13.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    // jmulticard es software libre (EUPL/GPL); se incluye también en F-Droid.
+    implementation("es.gob.afirma.jmulticard:jmulticard:2.0")
+    implementation("es.gob.afirma.jmulticard:jmulticard-android:2.0")
+    implementation("es.gob.afirma.jmulticard:jmulticard-jse:2.0")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
+    implementation("org.bouncycastle:bcutil-jdk18on:1.86")
 
     add("productionImplementation", files(coreAar))
 
@@ -228,7 +236,14 @@ dependencies {
 // Las configuraciones de pruebas de Android también resuelven Netty de forma
 // transitiva. Mantener todos sus módulos en la versión con las correcciones.
 configurations.configureEach {
+    exclude(group = "com.google.android", module = "android")
+    exclude(group = "com.android.support")
     resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle" && requested.name in setOf(
+                "bcprov-jdk18on", "bcpkix-jdk18on", "bcutil-jdk18on")) {
+            useVersion("1.86")
+            because("PACE de jmulticard usa los tres módulos BouncyCastle 1.86")
+        }
         if (requested.group == "io.netty" && requested.version?.startsWith("4.1.") == true) {
             useVersion("4.1.137.Final")
             because("Corrige las vulnerabilidades de Netty detectadas en los classpaths de Android")

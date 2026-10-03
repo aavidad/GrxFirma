@@ -321,6 +321,52 @@ type importCertificateResponse struct {
 	Fingerprint   string `json:"fingerprint"`
 }
 
+type externalIdentityRequest struct {
+	CertificateBase64 string   `json:"certificate_base64"`
+	ChainBase64       []string `json:"chain_base64"`
+}
+
+// InstallExternalIdentityJSON enlaza un certificado con un firmador del DNIe.
+// El callback recibe solo resúmenes; la clave privada permanece en la tarjeta.
+func (f *Facade) InstallExternalIdentityJSON(payload string, signer ExternalDigestSigner) (string, error) {
+	if f == nil || f.session == nil || signer == nil {
+		return "", errNoConfigurado("identidad externa")
+	}
+	f.operationMu.Lock()
+	defer f.operationMu.Unlock()
+	var req externalIdentityRequest
+	if err := decodeJSONStrict(payload, maxCertificateBytes*2, "identidad externa", &req); err != nil {
+		return "", err
+	}
+	if len(req.ChainBase64) > maxCertificateChainLength {
+		return "", newFacadeError(mobileSigningIdentityUnsupportedMessage)
+	}
+	leaf, err := decodeBase64Limited(req.CertificateBase64, "certificate_base64", maxCertificateBytes)
+	if err != nil {
+		return "", err
+	}
+	defer zeroBytes(leaf)
+	chain := make([][]byte, 0, len(req.ChainBase64))
+	for _, encoded := range req.ChainBase64 {
+		der, err := decodeBase64Limited(encoded, "chain_base64", maxCertificateBytes)
+		if err != nil {
+			return "", err
+		}
+		chain = append(chain, der)
+		defer zeroBytes(der)
+	}
+	ref, err := f.session.installExternalIdentity(leaf, chain, signer)
+	if err != nil {
+		return "", newFacadeError(mobileCertificateImportErrorMessage(err))
+	}
+	return marshal(importCertificateResponse{
+		CertificateID: sanitizeOutputText(ref.ID, 128),
+		Subject:       sanitizeOutputText(ref.Subject, 500),
+		Issuer:        sanitizeOutputText(ref.Issuer, 500),
+		Fingerprint:   sanitizeOutputText(ref.Fingerprint, 128),
+	})
+}
+
 type platformProfileResponse struct {
 	HasSecureStorage    bool `json:"has_secure_storage"`
 	HasBiometricPrompt  bool `json:"has_biometric_prompt"`

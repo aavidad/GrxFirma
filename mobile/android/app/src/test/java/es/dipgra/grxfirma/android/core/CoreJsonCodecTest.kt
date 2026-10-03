@@ -62,7 +62,8 @@ class CoreJsonCodecTest {
                 "sign": true,
                 "verify": true,
                 "select_certificate": true,
-                "import_certificate": true
+                "import_certificate": true,
+                "external_signer": true
               }
             }
         """.trimIndent()

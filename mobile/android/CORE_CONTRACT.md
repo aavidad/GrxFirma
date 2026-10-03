@@ -33,6 +33,7 @@ clearSession()
 selectCertificateJSON(String) -> String
 importCertificateJSON(String) -> String
 importCertificateBytesJSON(byte[], String) -> String
+installExternalIdentityJSON(String, mobilebind.ExternalDigestSigner) -> String
 signJSON(String) -> String
 sealPreviewJSON(String) -> String
 verifyJSON(String) -> String
@@ -43,6 +44,12 @@ Base64 del PKCS#12 en la capa Kotlin. `importCertificateJSON` se conserva por
 compatibilidad del contrato. Los buffers mutables se sobrescriben al terminar;
 la contraseña cruza como `String` por una limitación explícita de `gobind` y no
 se declara borrado perfecto del heap administrado.
+
+`installExternalIdentityJSON` recibe el certificado de FIRMA y, si están
+disponibles, las CA intermedias en DER codificado Base64. El callback recibe
+únicamente un resumen y el nombre del hash. El núcleo comprueba la firma RSA
+devuelta contra el certificado antes de construir PAdES, CAdES o XAdES. La
+clave privada del DNIe permanece en la tarjeta.
 
 `sealPreviewJSON` recibe `certificate_id` y `options` del mismo formato que
 `signJSON`. Devuelve `image_base64` (PNG). Exige la identidad de la sesión y
@@ -60,7 +67,8 @@ renderizada por `PdfRenderer`.
     "verify": true,
     "select_certificate": true,
     "import_certificate": true,
-    "seal_preview": true
+    "seal_preview": true,
+    "external_signer": true
   }
 }
 ```
