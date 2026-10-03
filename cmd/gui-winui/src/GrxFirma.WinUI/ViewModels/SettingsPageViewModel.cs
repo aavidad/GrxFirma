@@ -8,6 +8,7 @@ using System.Text;
 using GrxFirma.WinUI.Core.Diagnostics;
 using GrxFirma.WinUI.Core.Ipc;
 using GrxFirma.WinUI.Core.Operations;
+using GrxFirma.WinUI.Services;
 using Microsoft.UI.Xaml.Controls;
 
 namespace GrxFirma.WinUI.ViewModels;
