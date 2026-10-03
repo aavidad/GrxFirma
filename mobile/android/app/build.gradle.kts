@@ -189,6 +189,7 @@ android {
         htmlReport = true
         sarifReport = true
         warningsAsErrors = true
+        lintConfig = file("lint.xml")
         // API 37 is preview-only; API 36 is the latest stable SDK available to sdkmanager.
         // Gradle 9.4.1 is the version explicitly supported by AGP 9.2.x.
         disable += setOf(
@@ -210,12 +211,12 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     // jmulticard es software libre (EUPL/GPL); se incluye también en F-Droid.
-    implementation(libs.jmulticard.core)
-    implementation(libs.jmulticard.android)
-    implementation(libs.jmulticard.jse)
-    implementation(libs.bcprov)
-    implementation(libs.bcpkix)
-    implementation(libs.bcutil)
+    implementation("es.gob.afirma.jmulticard:jmulticard:2.0")
+    implementation("es.gob.afirma.jmulticard:jmulticard-android:2.0")
+    implementation("es.gob.afirma.jmulticard:jmulticard-jse:2.0")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
+    implementation("org.bouncycastle:bcutil-jdk18on:1.86")
 
     add("productionImplementation", files(coreAar))
 
@@ -240,7 +241,7 @@ configurations.configureEach {
     resolutionStrategy.eachDependency {
         if (requested.group == "org.bouncycastle" && requested.name in setOf(
                 "bcprov-jdk18on", "bcpkix-jdk18on", "bcutil-jdk18on")) {
-            useVersion(libs.versions.bouncycastle.get())
+            useVersion("1.86")
             because("PACE de jmulticard usa los tres módulos BouncyCastle 1.86")
         }
         if (requested.group == "io.netty" && requested.version?.startsWith("4.1.") == true) {

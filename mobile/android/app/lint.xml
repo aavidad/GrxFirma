@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández.
+     Licencia: EUPL 1.2 o posterior. SPDX-License-Identifier: EUPL-1.2 -->
+<lint>
+    <!-- BouncyCastle PKIX incluye un gestor de confianza vacío en su cliente
+         EST (inscripción de certificados por HTTPS). GrxFirma solo usa sus
+         clases CMS para el DNIe y nunca abre conexiones con ese cliente; R8
+         elimina la clase. La excepción se limita a ese jar. -->
+    <issue id="TrustAllX509TrustManager">
+        <ignore regexp="bcpkix-jdk18on-[0-9.]+\.jar" />
+    </issue>
+</lint>

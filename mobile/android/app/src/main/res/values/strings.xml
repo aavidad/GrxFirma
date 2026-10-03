@@ -40,7 +40,6 @@
     <string name="dnie_can_continue">Acercar DNIe</string>
     <string name="dnie_cancel">Cancelar</string>
     <string name="dnie_can_invalid">El CAN debe tener exactamente 6 dígitos.</string>
-    <string name="dnie_nfc_icon_description">DNIe y ondas de lectura NFC</string>
     <string name="dnie_scan_instruction">Mantenga el DNIe junto a la parte trasera del móvil hasta que termine la lectura.</string>
     <string name="dnie_ready">Certificado de FIRMA del DNIe preparado. Elija el formato y pulse Firmar; se pedirá el PIN.</string>
     <string name="dnie_session_ended">La sesión NFC terminó al salir de la pantalla. Vuelva a acercar el DNIe para firmar.</string>

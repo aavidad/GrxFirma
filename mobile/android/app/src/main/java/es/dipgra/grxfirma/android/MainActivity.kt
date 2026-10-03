@@ -573,7 +573,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun beginDnieReading(adapter: NfcAdapter) {
         val epoch = scanEpoch.incrementAndGet()
-        binding.dnieScanGuidance.visibility = View.VISIBLE
+        binding.dnieScanStatus.visibility = View.VISIBLE
         binding.cancelDnieScanButton.visibility = View.VISIBLE
         binding.dnieScanStatus.setText(R.string.dnie_scan_instruction)
         readingDnie.set(false)
@@ -603,7 +603,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread ui@{
                     if (scanEpoch.get() != epoch || !lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@ui
                     stopDnieReading()
-                    binding.dnieScanGuidance.visibility = View.GONE
+                    binding.dnieScanStatus.visibility = View.GONE
                     viewModel.reportDnieError(error)
                 }
             } finally {
@@ -619,7 +619,7 @@ class MainActivity : AppCompatActivity() {
         try { nfcAdapter?.disableReaderMode(this) } catch (_: IllegalStateException) { }
         pendingCan?.fill('\u0000')
         pendingCan = null
-        binding.dnieScanGuidance.visibility = View.GONE
+        binding.dnieScanStatus.visibility = View.GONE
         binding.cancelDnieScanButton.visibility = View.GONE
     }
 

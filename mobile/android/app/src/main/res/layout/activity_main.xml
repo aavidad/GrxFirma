@@ -207,32 +207,19 @@
                     android:minHeight="48dp"
                     android:text="@string/dnie_nfc_choice" />
 
-                <LinearLayout
-                    android:id="@+id/dnieScanGuidance"
+                <TextView
+                    android:id="@+id/dnieScanStatus"
+                    style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:accessibilityLiveRegion="polite"
+                    android:drawablePadding="12dp"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:visibility="gone">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:contentDescription="@string/dnie_nfc_icon_description"
-                        android:src="@drawable/ic_nfc_card" />
-
-                    <TextView
-                        android:id="@+id/dnieScanStatus"
-                        style="@style/TextAppearance.Material3.BodyMedium"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:accessibilityLiveRegion="polite"
-                        android:text="@string/dnie_scan_instruction"
-                        android:textColor="@color/on_surface" />
-                </LinearLayout>
+                    android:text="@string/dnie_scan_instruction"
+                    android:textColor="@color/on_surface"
+                    android:visibility="gone"
+                    app:drawableStartCompat="@drawable/ic_nfc_card" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/cancelDnieScanButton"

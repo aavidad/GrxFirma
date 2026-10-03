@@ -40,7 +40,6 @@
     <string name="dnie_can_continue">Hold DNIe near phone</string>
     <string name="dnie_cancel">Cancel</string>
     <string name="dnie_can_invalid">The CAN must contain exactly six digits.</string>
-    <string name="dnie_nfc_icon_description">DNIe card and NFC reading waves</string>
     <string name="dnie_scan_instruction">Hold the DNIe against the back of the phone until reading finishes.</string>
     <string name="dnie_ready">The DNIe SIGNATURE certificate is ready. Choose a format and tap Sign; you will be asked for the PIN.</string>
     <string name="dnie_session_ended">The NFC session ended when you left this screen. Hold the DNIe near the phone again to sign.</string>
