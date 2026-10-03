@@ -374,3 +374,11 @@ func ultimaVariable(entorno []string, nombre string) string {
 	}
 	return ""
 }
+
+func TestFrontendPorDefectoEsElNativoDeCadaSistema(t *testing.T) {
+	for goos, want := range map[string]string{"windows": "winui", "linux": "qt", "darwin": "qt"} {
+		if got := frontendPorDefecto(goos); got != want {
+			t.Errorf("frontendPorDefecto(%q) = %q, se esperaba %q", goos, got, want)
+		}
+	}
+}

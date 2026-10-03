@@ -94,7 +94,7 @@ func main() {
 
 	var (
 		socketPath       = flag.String("ipc-socket", "", "ruta del socket IPC (auto si vacio)")
-		frontend         = flag.String("frontend", "qt", "frontend grafico: qt o winui")
+		frontend         = flag.String("frontend", frontendPorDefecto(runtime.GOOS), "frontend grafico: qt o winui")
 		uiBinary         = flag.String("ui-binary", "", "ruta al binario del frontend (auto si vacio)")
 		qtBinary         = flag.String("qt-binary", "", "compatibilidad: ruta al binario Qt (auto si vacio)")
 		p12              = flag.String("p12", "", "fichero PKCS#12")
@@ -818,4 +818,14 @@ func entornoFrontend(frontend frontendKind) []string {
 		return entornoConBusSesion()
 	}
 	return os.Environ()
+}
+
+// frontendPorDefecto elige la interfaz nativa de cada sistema: en Windows se
+// instala WinUI y no Qt, así que abrir el lanzador sin argumentos (doble clic)
+// no debe buscar una interfaz que no existe.
+func frontendPorDefecto(goos string) string {
+	if goos == "windows" {
+		return string(frontendWinUI)
+	}
+	return "qt"
 }
