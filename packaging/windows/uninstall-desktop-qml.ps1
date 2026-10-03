@@ -36,9 +36,8 @@ function Stop-InstalledDesktopProcesses {
         [System.IO.Path]::GetFullPath((Join-Path $InstallDir "grxfirma.exe"))
     )
     foreach ($process in Get-Process -Name "grxfirma-gui-qml", "grxfirma-gui", "grxfirma" -ErrorAction SilentlyContinue) {
-        try {
-            $processPath = [System.IO.Path]::GetFullPath($process.Path)
-        } catch {
+        $processPath = Get-GrxFirmaProcessPath -Process $process
+        if (-not $processPath) {
             continue
         }
         if ($expectedPaths -contains $processPath) {

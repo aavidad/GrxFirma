@@ -73,7 +73,8 @@ $currentSession = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
 $restartFrontend = ""
 foreach ($process in Get-Process -Name "grxfirma-gui-qml", "grxfirma-winui" -ErrorAction SilentlyContinue) {
     if ($process.SessionId -ne $currentSession) { continue }
-    try { $exe = [System.IO.Path]::GetFullPath($process.Path) } catch { continue }
+    $exe = Get-GrxFirmaProcessPath -Process $process
+    if (-not $exe) { continue }
     if ([string]::Equals($exe, $expectedQt, [System.StringComparison]::OrdinalIgnoreCase)) {
         $restartFrontend = "qt"
         break

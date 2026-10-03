@@ -35,9 +35,8 @@ $expectedFrontend = [System.IO.Path]::GetFullPath(
     (Join-Path $InstallDir "grxfirma-winui.exe")
 )
 foreach ($process in Get-Process -Name "grxfirma-winui" -ErrorAction SilentlyContinue) {
-    try {
-        $processPath = [System.IO.Path]::GetFullPath($process.Path)
-    } catch {
+    $processPath = Get-GrxFirmaProcessPath -Process $process
+    if (-not $processPath) {
         continue
     }
     if ([string]::Equals(

@@ -12,6 +12,8 @@
 ; Registra un fallo minimo y estable para que una instalacion silenciosa
 ; explique que fase fallo. El mensaje es estatico y no contiene argumentos,
 ; rutas de documentos, credenciales ni salida cruda de procesos.
+!include "powershell-path.nsh"
+
 !macro GrxFirmaWriteInstallFailure EXIT_CODE ERROR_MESSAGE
   FileOpen $R9 "$TEMP\GrxFirma-install-error.txt" w
   FileWrite $R9 "GrxFirma - instalacion fallida$\r$\n"
@@ -77,6 +79,7 @@ Function .onInit
   Push $3
 
   Delete "$TEMP\GrxFirma-install-error.txt"
+  !insertmacro GrxFirmaResolvePowerShell
   !insertmacro GrxFirmaRequireSupportedWindows
 
   !insertmacro GrxFirmaReadLegacyMachineInstall 64 "GrxFirma" "GrxFirma Suite"

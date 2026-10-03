@@ -63,9 +63,8 @@ if (Test-GrxFirmaSuiteOwnershipMarker -Path $launcherDir -Component "DesktopLaun
         (Join-Path $launcherDir "grxfirma-gui.exe")
     )
     foreach ($process in Get-Process -Name "grxfirma-gui" -ErrorAction SilentlyContinue) {
-        try {
-            $processPath = [System.IO.Path]::GetFullPath($process.Path)
-        } catch {
+        $processPath = Get-GrxFirmaProcessPath -Process $process
+        if (-not $processPath) {
             continue
         }
         if ([string]::Equals(

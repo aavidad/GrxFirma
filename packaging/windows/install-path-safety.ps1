@@ -261,6 +261,24 @@ function Resolve-GrxFirmaBaseInstallPath {
     return $actual
 }
 
+# Ruta del ejecutable de un proceso. Desde un PowerShell de 32 bits
+# Process.Path de un proceso de 64 bits llega vacío: entonces se consulta WMI,
+# que la devuelve sin depender de la arquitectura.
+function Get-GrxFirmaProcessPath {
+    param([Parameter(Mandatory = $true)] $Process)
+    $path = $null
+    try { $path = $Process.Path } catch { $path = $null }
+    if ([string]::IsNullOrWhiteSpace($path)) {
+        try {
+            $path = (Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $($Process.Id)" -ErrorAction Stop).ExecutablePath
+        } catch {
+            $path = $null
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($path)) { return $null }
+    return [System.IO.Path]::GetFullPath($path)
+}
+
 function Stop-GrxFirmaInstalledProcesses {
     param(
         [Parameter(Mandatory = $true)] [string]$Path,
@@ -272,9 +290,8 @@ function Stop-GrxFirmaInstalledProcesses {
     $verified = Resolve-GrxFirmaInstallPath -Path $Path -Component $Component
     $prefix = $verified.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
     foreach ($process in Get-Process -ErrorAction Stop) {
-        try {
-            $executable = [System.IO.Path]::GetFullPath($process.Path)
-        } catch {
+        $executable = Get-GrxFirmaProcessPath -Process $process
+        if (-not $executable) {
             continue
         }
         if (-not $executable.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {

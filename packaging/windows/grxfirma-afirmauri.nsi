@@ -4,6 +4,7 @@
 ; SPDX-License-Identifier: EUPL-1.2
 
 Unicode True
+!include "powershell-path.nsh"
 !include "MUI2.nsh"
 !include "authenticode-signing.nsh"
 !include "legacy-machine-install.nsh"
@@ -73,7 +74,7 @@ Section "Handler afirma://" SEC01
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayIcon" "$INSTDIR\grxfirma-diputacion.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "QuietUninstallString" '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR"'
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "QuietUninstallString" '"$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR"'
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "NoModify" 1
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "NoRepair" 1
 
@@ -85,7 +86,7 @@ Section "Handler afirma://" SEC01
   StrCpy $SilentInstallArg "-SilentInstall"
   !insertmacro GrxFirmaShowWarning \
     "Windows pedirá confirmar el certificado local de GrxFirma. Si se está renovando, también pedirá retirar el anterior. Pulse 'Sí' en los avisos de Windows para permitir la conexión segura con los portales."
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\install-afirmauri.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\AfirmaURI" $SilentInstallArg'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\install-afirmauri.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\AfirmaURI" $SilentInstallArg'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "La instalación PowerShell del handler afirma:// ha fallado con código $0."
@@ -101,15 +102,16 @@ Section -post
 SectionEnd
 
 Section "Uninstall"
+  !insertmacro GrxFirmaResolvePowerShell
   SetShellVarContext current
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR" -ValidateOnly'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR" -ValidateOnly'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "La ruta de mantenimiento contiene enlaces o puntos de reanálisis y no puede eliminarse de forma segura (código $0)."
   StrCpy $SilentInstallArg ""
   IfSilent 0 +2
   StrCpy $SilentInstallArg "-Silent"
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\uninstall-afirmauri.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\AfirmaURI" $SilentInstallArg'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\uninstall-afirmauri.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\AfirmaURI" $SilentInstallArg'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "No se pudo limpiar la instalación por usuario (código $0). El desinstalador se conserva para reintentar."
