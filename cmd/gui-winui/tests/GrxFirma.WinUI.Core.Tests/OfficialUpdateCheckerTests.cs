@@ -71,7 +71,7 @@ public sealed class OfficialUpdateCheckerTests
             Release(url: "https://github.com/aavidad/GrxFirma/releases/tag/v0.0.109"),
             Release(tag: "v01.2.3"), Release(tag: "v1.2.3-01"), Release(flags: ",\"draft\":\"false\""),
             new byte[OfficialUpdateChecker.MaximumResponseBytes + 1] })
-            Assert.ThrowsException<InvalidDataException>(() => OfficialUpdateChecker.ParseRelease(bytes));
+            Assert.ThrowsExactly<InvalidDataException>(() => OfficialUpdateChecker.ParseRelease(bytes));
     }
 
     [TestMethod]
@@ -88,7 +88,7 @@ public sealed class OfficialUpdateCheckerTests
             new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new ByteArrayContent(new byte[OfficialUpdateChecker.MaximumResponseBytes + 1])
             })));
-        await Assert.ThrowsExceptionAsync<InvalidDataException>(() =>
+        await Assert.ThrowsExactlyAsync<InvalidDataException>(() =>
             new OfficialUpdateChecker(large).CheckAsync());
         Assert.AreEqual(TimeSpan.FromSeconds(10), OfficialUpdateChecker.MaximumDuration);
     }
@@ -104,7 +104,7 @@ public sealed class OfficialUpdateCheckerTests
             return new HttpResponseMessage(HttpStatusCode.OK);
         }));
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
-        await Assert.ThrowsExceptionAsync<TaskCanceledException>(() =>
+        await Assert.ThrowsExactlyAsync<TaskCanceledException>(() =>
             new OfficialUpdateChecker(client).CheckAsync(cancellation.Token));
         Assert.IsTrue(called);
     }
