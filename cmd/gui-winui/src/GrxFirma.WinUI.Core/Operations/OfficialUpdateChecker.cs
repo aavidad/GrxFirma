@@ -96,6 +96,9 @@ public sealed class OfficialUpdateChecker
             return null;
         var tag = tagProperty.GetString() ?? string.Empty;
         var url = urlProperty.GetString() ?? string.Empty;
+        // Una etiqueta preliminar válida no es una versión estable: se ignora.
+        if (TryVersion(tag, out _, out var tagIsPrerelease) && tagIsPrerelease)
+            return null;
         if (!IsReleaseForVersion(url, tag))
             throw new InvalidDataException("Invalid official release");
         return new OfficialRelease(tag, url);
