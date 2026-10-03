@@ -1230,6 +1230,10 @@ void IpcBridge::failActionDueToConnection(const QString &action,
     emit smartcardStatusReceived(false, QVariantList(), safeMessage);
   } else if (action == "facturae_create") {
     emit facturaeCreated(false, QVariantMap(), safeMessage);
+  } else if (action == "validate_invoice") {
+    emit invoiceValidated(false, QVariantMap(), safeMessage);
+  } else if (action == "generate_eni_document" || action == "generate_eni_file") {
+    emit eniGenerated(action, false, QVariantMap(), safeMessage);
   } else if (action == "protection_recipient_import" ||
              action == "protection_recipient_remove") {
     emit protectionRecipientChanged(false, safeMessage);
@@ -1456,6 +1460,18 @@ void IpcBridge::createFacturae(const QVariantMap &draft, const QString &outputPa
   sendRequest(QStringLiteral("facturae_create"),
               {{QStringLiteral("draft"), draft},
                {QStringLiteral("outputPath"), outputPath}});
+}
+
+void IpcBridge::validateInvoice(const QString &inputPath) {
+  sendRequest(QStringLiteral("validate_invoice"), {{QStringLiteral("inputPath"), inputPath}});
+}
+
+void IpcBridge::generateENIDocument(const QVariantMap &params) {
+  sendRequest(QStringLiteral("generate_eni_document"), params);
+}
+
+void IpcBridge::generateENIFile(const QVariantMap &params) {
+  sendRequest(QStringLiteral("generate_eni_file"), params);
 }
 
 void IpcBridge::requestSmartcardStatus() {
@@ -1868,6 +1884,17 @@ void IpcBridge::onReadyRead() {
     if (action == QStringLiteral("facturae_create")) {
       emit facturaeCreated(ok, ok ? data.toObject().toVariantMap() : QVariantMap(),
                            ok ? QString() : errMsg);
+      continue;
+    }
+    if (action == QStringLiteral("validate_invoice")) {
+      emit invoiceValidated(ok, ok ? data.toObject().toVariantMap() : QVariantMap(),
+                            ok ? QString() : errMsg);
+      continue;
+    }
+    if (action == QStringLiteral("generate_eni_document") ||
+        action == QStringLiteral("generate_eni_file")) {
+      emit eniGenerated(action, ok, ok ? data.toObject().toVariantMap() : QVariantMap(),
+                        ok ? QString() : errMsg);
       continue;
     }
 

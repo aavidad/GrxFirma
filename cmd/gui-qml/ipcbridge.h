@@ -86,6 +86,9 @@ public:
   Q_INVOKABLE void removeProtectionRecipient(const QString &id);
   Q_INVOKABLE void requestSmartcardStatus();
   Q_INVOKABLE void createFacturae(const QVariantMap &draft, const QString &outputPath);
+  Q_INVOKABLE void validateInvoice(const QString &inputPath);
+  Q_INVOKABLE void generateENIDocument(const QVariantMap &params);
+  Q_INVOKABLE void generateENIFile(const QVariantMap &params);
   Q_INVOKABLE bool startupEnabled() const;
   Q_INVOKABLE bool setStartupEnabled(bool enabled);
   Q_INVOKABLE void getSealPreview(const QVariantMap &options,
@@ -194,6 +197,8 @@ signals:
   void protectionRecipientChanged(bool ok, QString message);
   void smartcardStatusReceived(bool ok, QVariantList readers, QString message);
   void facturaeCreated(bool ok, QVariantMap result, QString message);
+  void invoiceValidated(bool ok, QVariantMap result, QString message);
+  void eniGenerated(QString action, bool ok, QVariantMap result, QString message);
   void sealPreviewReceived(QString requestId, bool ok, QString image,
                            QString message);
   void protectionFinished(bool success, QString message, QVariantMap result);

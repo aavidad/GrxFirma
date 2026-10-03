@@ -1,0 +1,24 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<Page x:Class="GrxFirma.WinUI.Views.EniPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{ThemeResource AppPageBackgroundBrush}">
+    <ScrollViewer AutomationProperties.Name="{x:Bind PageTitle.Text, Mode=OneWay}"
+                  HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="Narrow"><VisualState.StateTriggers><AdaptiveTrigger MinWindowWidth="0" /></VisualState.StateTriggers></VisualState>
+                <VisualState x:Name="Wide"><VisualState.StateTriggers><AdaptiveTrigger MinWindowWidth="760" /></VisualState.StateTriggers>
+                    <VisualState.Setters><Setter Target="LayoutRoot.Padding" Value="32" /><Setter Target="EniActions.MaxWidth" Value="920" /></VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <StackPanel x:Name="LayoutRoot" MaxWidth="960" Padding="16" Spacing="18" HorizontalAlignment="Stretch">
+            <TextBlock x:Name="PageTitle" AutomationProperties.HeadingLevel="Level1" Style="{StaticResource PageTitleTextStyle}" />
+            <StackPanel x:Name="EniActions" Orientation="Vertical" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -13,9 +13,12 @@ Item {
     property var bridge
     property var localPath
     property var theme
+    property var reportSaver
     property var translate: function(key) { return key }
     property bool busy: false
     property string statusText: ""
+    property var invoiceResult: null
+    property string invoicePath: ""
     signal signRequested()
     function tr(key) { return translate(key) }
     function party(kind, tax, name, surname, second, address, post, town, province, email) {
@@ -78,6 +81,31 @@ Item {
             panel.bridge.createFacturae(panel.draft(), path)
         }
     }
+    FileDialog {
+        id: invoiceOpenDialog
+        title: tr("paridad.lote3.invoice.choose")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [tr("paridad.lote3.invoice.filter")]
+        onAccepted: {
+            panel.invoicePath = panel.localPath(selectedFile)
+            if (panel.invoicePath === "") return
+            panel.invoiceResult = null
+            panel.statusText = tr("paridad.lote3.invoice.validating")
+            panel.busy = true
+            panel.bridge.validateInvoice(panel.invoicePath)
+        }
+    }
+    FileDialog {
+        id: invoiceReportDialog
+        title: tr("paridad.lote3.invoice.export")
+        fileMode: FileDialog.SaveFile
+        nameFilters: [tr("paridad.lote3.report.filter")]
+        onAccepted: {
+            const path = panel.localPath(selectedFile)
+            if (path !== "" && panel.invoiceResult && panel.reportSaver)
+                panel.reportSaver(path, panel.invoiceResult.report)
+        }
+    }
     Connections {
         target: panel.bridge
         ignoreUnknownSignals: true
@@ -87,6 +115,13 @@ Item {
                     ? tr("facturae.created").replace("%1", result.total)
                     : (message && message.indexOf("facturae.error.") === 0
                          ? tr(message) : tr("facturae.error.input"))
+        }
+        function onInvoiceValidated(ok, result, message) {
+            panel.busy = false
+            panel.invoiceResult = ok ? result : null
+            panel.statusText = ok
+                    ? (result.valid ? tr("paridad.lote3.invoice.valid") : tr("paridad.lote3.invoice.invalid"))
+                    : tr("paridad.lote3.invoice.failed").replace("%1", message)
         }
     }
     ScrollView {
@@ -193,6 +228,26 @@ Item {
                 Layout.fillWidth: true
                 Button { text: tr("facturae.create"); enabled: !panel.busy; Accessible.name: text; onClicked: saveDialog.open() }
                 Button { text: tr("facturae.sign"); Accessible.name: text; onClicked: panel.signRequested() }
+            }
+            Label { text: tr("paridad.lote3.invoice.title"); font.bold: true; color: panel.theme.textColor; Layout.fillWidth: true }
+            RowLayout {
+                Layout.fillWidth: true
+                Button { text: tr("paridad.lote3.invoice.choose"); enabled: !panel.busy; Accessible.name: text; onClicked: invoiceOpenDialog.open() }
+                Button { text: tr("paridad.lote3.invoice.export"); enabled: !!panel.invoiceResult; Accessible.name: text; onClicked: invoiceReportDialog.open() }
+            }
+            Label {
+                text: panel.invoiceResult ? tr("paridad.lote3.invoice.summary").replace("%1", panel.invoiceResult.format).replace("%2", panel.invoiceResult.errors).replace("%3", panel.invoiceResult.warnings) : tr("paridad.lote3.invoice.empty")
+                color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true
+                Accessible.name: text
+            }
+            Repeater {
+                model: panel.invoiceResult ? panel.invoiceResult.issues : []
+                delegate: Label {
+                    required property var modelData
+                    text: (modelData.level === "error" ? tr("paridad.lote3.invoice.error") : tr("paridad.lote3.invoice.warning")) + " · " + modelData.field + ": " + modelData.message
+                    color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true
+                    Accessible.name: text
+                }
             }
             Label { text: tr("facturae.face_note"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {

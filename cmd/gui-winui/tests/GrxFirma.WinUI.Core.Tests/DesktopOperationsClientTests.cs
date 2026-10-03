@@ -1324,6 +1324,29 @@ public sealed class DesktopOperationsClientTests
         CollectionAssert.AreEqual(orderedExpected, actual);
     }
 
+    [TestMethod]
+    public async Task AdministrativeOperations_UseDesktopIpcActionsAndDecodeReports()
+    {
+        var transport = new RecordingIpcClient();
+        var client = new DesktopOperationsClient(transport);
+        await client.ValidateInvoiceAsync(@"C:\docs\factura.xml");
+        await client.GenerateEniDocumentAsync(@"C:\docs\firma.pdf", null,
+            @"C:\docs\documento-eni.xml", new Dictionary<string, string> { ["eni.organo"] = "L12345678" });
+        await client.GenerateEniFileAsync(@"C:\docs\eni", @"C:\docs\expediente.xml",
+            "cert-1", new Dictionary<string, string> { ["exp.clasificacion"] = "123456" });
+        CollectionAssert.AreEqual(new[] { "validate_invoice", "generate_eni_document", "generate_eni_file" },
+            transport.Calls.Select(call => call.Action).ToArray());
+        Assert.AreEqual(typeof(InvoiceValidationResult), transport.Calls[0].DataType);
+        Assert.AreEqual(typeof(EniGenerationResult), transport.Calls[1].DataType);
+        Assert.AreEqual(typeof(EniGenerationResult), transport.Calls[2].DataType);
+        var result = JsonSerializer.Deserialize<InvoiceValidationResult>(
+            """{"format":"UBL","valid":false,"errors":1,"warnings":1,"issues":[{"level":"error","field":"Total","message":"Descuadre"}],"report":"[error] Total: Descuadre"}""");
+        Assert.IsNotNull(result);
+        Assert.AreEqual("UBL", result.Format);
+        Assert.AreEqual(1, result.Errors);
+        Assert.AreEqual("Total", result.Issues[0].Field);
+    }
+
     private sealed class RecordingIpcClient : IIpcClient
     {
         public IpcHello? ServerHello => null;
