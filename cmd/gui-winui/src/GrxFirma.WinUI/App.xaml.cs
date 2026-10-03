@@ -270,10 +270,13 @@ public partial class App : Application
     {
         using var timer = new PeriodicTimer(UpdateNoticeSchedule.Interval);
         await Task.Yield();
-        if (_window is not null)
-            await _window.RefreshUpdateAvailabilityAsync(_lifetimeCancellation.Token);
         try
         {
+            if (_window is not null)
+            {
+                await _window.WaitForEngineSettledAsync(TimeSpan.FromSeconds(20), _lifetimeCancellation.Token);
+                await _window.RefreshUpdateAvailabilityAsync(_lifetimeCancellation.Token);
+            }
             while (await timer.WaitForNextTickAsync(_lifetimeCancellation.Token))
                 if (_window is not null)
                     await _window.RefreshUpdateAvailabilityAsync(_lifetimeCancellation.Token);

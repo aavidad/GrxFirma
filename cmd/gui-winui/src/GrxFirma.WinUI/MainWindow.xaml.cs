@@ -273,6 +273,16 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    // Espera a que el motor termine de conectar o falle, como mucho el plazo
+    // indicado, para que la primera comprobación use el motor si está listo.
+    internal async Task WaitForEngineSettledAsync(TimeSpan maximum, CancellationToken cancellationToken)
+    {
+        var deadline = DateTimeOffset.UtcNow + maximum;
+        while (!ViewModel.IsBackendReady && !ViewModel.HasConnectionError &&
+               DateTimeOffset.UtcNow < deadline)
+            await Task.Delay(500, cancellationToken);
+    }
+
     internal async Task RefreshUpdateAvailabilityAsync(CancellationToken cancellationToken = default)
     {
         if (!UpdatePreferenceStore.Read()) return;
@@ -332,7 +342,9 @@ public sealed partial class MainWindow : Window
             var message = SealUiCatalog.Text(language,
                 "Hay una versión nueva de GrxFirma (%1). Tienes la %2.")
                 .Replace("%1", release.Version).Replace("%2", current);
-            if (!engineAvailable)
+            // Solo se avisa del motor si su conexión ha fallado de verdad, no si
+            // la comprobación se adelantó a que terminara de conectar.
+            if (ViewModel.HasConnectionError)
                 message += "\n" + SealUiCatalog.Text(language,
                     "Además, el motor local no responde; instalar la versión nueva puede resolverlo.");
             ViewModel.SetUpdateAvailable(message);

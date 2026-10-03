@@ -3607,7 +3607,9 @@ Window {
     }
     Timer {
         id: updateStartupTimer
-        interval: 3000
+        // Margen para que el motor termine de conectar: si no, la primera
+        // comprobación lo daría por caído y avisaría de un problema inexistente.
+        interval: 15000
         repeat: false
         onTriggered: window.requestUpdateCheck(false)
     }
