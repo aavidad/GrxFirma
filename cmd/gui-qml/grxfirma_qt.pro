@@ -46,6 +46,7 @@ HEADERS += \
         ipcbridge.h \
         portalsealbridge.h \
         ipcsocketpath.h \
+        linuxstartupregistration.h \
         processarguments.h \
         processenvironment.h \
         residentagent.h \

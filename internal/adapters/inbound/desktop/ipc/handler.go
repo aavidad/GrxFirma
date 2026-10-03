@@ -245,6 +245,8 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp = m.handleCertificados(ctx, accion)
 	case "certificate_export_public":
 		resp = m.handleCertificateExportPublic(ctx, p.Params)
+	case "facturae_create":
+		resp = handleFacturaeCreate(ctx, p.Params)
 	case "smartcard_status":
 		detector := m.smartcardDetector
 		if detector == nil {
@@ -337,6 +339,13 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 			Action:    accion,
 			ErrorCode: "unsupported_action",
 			Error:     m.t("error.accion_no_soportada", accion),
+		}
+	}
+	if accion == "facturae_create" && !resp.OK && strings.HasPrefix(resp.Error, "facturae.error.") {
+		resp.ErrorCode = resp.Error
+		resp.Diagnostic = &resultadoDiagnosticoGuiado{
+			Category: "app_local", FailureCode: resp.Error,
+			UserMessage: m.t(resp.Error), ExpertMessage: resp.Error,
 		}
 	}
 	return normalizeIPCResponse(resp)

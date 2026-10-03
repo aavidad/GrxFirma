@@ -90,6 +90,7 @@ func desktopIPCHelloWithManagedTrust(managedTrustSupported bool) resultadoIPCHel
 		"clock_diagnostics",
 		"diagnose_token_settings",
 		"export_diagnostic",
+		"facturae_create",
 		"get_settings",
 		"get_token_settings",
 		"getcertificates",
@@ -129,7 +130,7 @@ func desktopIPCHelloWithManagedTrust(managedTrustSupported bool) resultadoIPCHel
 			"install_public_roots",
 		)
 	}
-	if runtime.GOOS == "windows" {
+	if smartcardAvailable {
 		actions = append(actions, "smartcard_status")
 	}
 	if runtime.GOOS == "linux" {

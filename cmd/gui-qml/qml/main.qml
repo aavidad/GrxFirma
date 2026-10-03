@@ -542,6 +542,8 @@ Window {
     property string supportAssistantMode: "usuario"
     property string supportAssistantGoal: "sign"
     property bool facturaeToolsEnabled: false
+    property bool startupWithSession: Qt.platform.os === "linux" && isIpcMode && backend.startupEnabled()
+    onFacturaeToolsEnabledChanged: if (!facturaeToolsEnabled && activeTab === "facturae") activeTab = "firmar"
     property string lastIncidentReportPath: ""
     property var activeFailureContext: null
     property var activeDiagnosticResult: null
@@ -4031,16 +4033,17 @@ Window {
         }
         function onSmartcardStatusReceived(ok, readers, message) {
             if (!ok) {
-                window.smartcardMessage = Qt.platform.os === "linux" && String(message || "").indexOf("requiere Windows") >= 0
-                    ? tr("La detección automática de tarjetas aún no está disponible en Linux. Comprueba pcscd, conecta el lector y configura el módulo PKCS#11; después actualiza los certificados.")
-                    : tr("No se pudo consultar la tarjeta: %1. Comprueba pcscd, el lector y el módulo PKCS#11.").arg(message)
+                window.smartcardMessage = tr("No se pudo consultar la tarjeta: %1. Comprueba pcscd, el lector y el módulo PKCS#11.").arg(String(message || "").indexOf("smartcard.") === 0 ? tr(message) : message)
             } else if (!readers || readers.length === 0) {
                 window.smartcardMessage = tr("No se detectan lectores. Comprueba que pcscd esté activo, conecta el lector y configura el módulo PKCS#11.")
             } else {
                 const present = readers.filter(function(r) { return r.present }).length
-                window.smartcardMessage = present > 0
-                    ? tr("Tarjeta detectada. Se actualiza la lista de certificados; puede que necesites configurar el módulo PKCS#11.")
-                    : tr("Lector detectado sin tarjeta. Introduce el DNIe o tarjeta y vuelve a consultar.")
+                const dnie = readers.some(function(r) { return r.present && r.isDnie })
+                window.smartcardMessage = dnie
+                    ? tr("facturae.smartcard_dnie")
+                    : (present > 0
+                       ? tr("Tarjeta detectada. Se actualiza la lista de certificados; puede que necesites configurar el módulo PKCS#11.")
+                       : tr("Lector detectado sin tarjeta. Introduce el DNIe o tarjeta y vuelve a consultar."))
             }
             backend.refreshCertificates()
         }
@@ -7391,6 +7394,13 @@ Window {
                             }
                         }
                     }
+                    NavButton {
+                        text: tr("facturae.nav")
+                        iconTxt: "€"
+                        active: activeTab === "facturae"
+                        visible: window.facturaeToolsEnabled && isIpcMode
+                        onClicked: activeTab = "facturae"
+                    }
                     NavButton { 
                         text: tr("CONFIGURACIÓN")
                         iconTxt: "⚙"
@@ -7425,7 +7435,8 @@ Window {
                           (activeTab === "cifrar" ? 2 :
                           (activeTab === "config" ? 3 :
                           (activeTab === "experto" ? 4 :
-                          (activeTab === "seguridad" ? 5 : 6)))))
+                          (activeTab === "seguridad" ? 5 :
+                          (activeTab === "facturae" && window.facturaeToolsEnabled && isIpcMode ? 6 : 0))))))
 
             // TAB: FIRMAR (0)
             Item {
@@ -12630,6 +12641,42 @@ Window {
                                 Text { text: tr("⚙️  Preferencias Generales"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15 }
 
                                 SettingsRowHighlight {
+                                    visible: isIpcMode
+                                    Text { text: tr("facturae.enable_label"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Switch {
+                                        id: facturaeToolsSwitch
+                                        checked: window.facturaeToolsEnabled
+                                        Accessible.name: tr("facturae.enable_label")
+                                        Accessible.description: tr("facturae.enable_help")
+                                        onToggled: {
+                                            window.facturaeToolsEnabled = checked
+                                            markBackendSettingsDirty()
+                                        }
+                                    }
+                                    Binding { target: facturaeToolsSwitch; property: "checked"; value: window.facturaeToolsEnabled }
+                                }
+
+                                SettingsRowHighlight {
+                                    visible: Qt.platform.os === "linux" && isIpcMode
+                                    Text { text: tr("facturae.startup_label"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Switch {
+                                        id: startupSwitch
+                                        checked: window.startupWithSession
+                                        Accessible.name: tr("facturae.startup_label")
+                                        Accessible.description: tr("facturae.startup_help")
+                                        onClicked: {
+                                            if (backend.setStartupEnabled(checked)) {
+                                                window.startupWithSession = checked
+                                                window.statusMessage = checked ? tr("facturae.startup_on") : tr("facturae.startup_off")
+                                            } else {
+                                                checked = window.startupWithSession
+                                                window.statusMessage = tr("facturae.startup_error")
+                                            }
+                                        }
+                                    }
+                                }
+
+                                SettingsRowHighlight {
                                     Text { text: tr("Idioma"); color: currentTheme.textColor; Layout.fillWidth: true }
                                     ComboBox {
                                         id: languageCombo
@@ -14601,7 +14648,6 @@ Window {
                         Flow {
                             Layout.fillWidth: true; spacing: 10
                             Button { text: tr("Comprobar Certs"); onClicked: backend.checkCertificates() }
-                            Button { text: tr("Pruebas de Integración"); onClicked: activeTab = "pruebas" } // Placeholder
                         }
                     }
 
@@ -14684,47 +14730,14 @@ Window {
                 }
             }
 
-            // TAB: PRUEBAS (5)
-            Item {
-                id: testsTab
-                ColumnLayout {
-                    anchors.fill: parent; anchors.margins: 40; spacing: 20
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: tr("Pruebas de Integración"); font.pixelSize: 32; font.bold: true; color: currentTheme.textColor; Layout.fillWidth: true }
-                        Button { text: tr("Volver"); flat: true; onClicked: activeTab = "experto" }
-                    }
-                    
-                    Rectangle {
-                        Layout.fillWidth: true; Layout.fillHeight: true; radius: 15; color: currentTheme.cardColor
-                        ColumnLayout {
-                            anchors.centerIn: parent; spacing: 20; width: parent.width * 0.8
-                            Text { text: tr("🧪 Banco de Pruebas Automático"); color: currentTheme.textColor; font.pixelSize: 22; font.bold: true; Layout.alignment: Qt.AlignHCenter }
-                            Text { 
-                                text: tr("Ejecuta una serie de firmas y verificaciones de prueba para asegurar\nque el motor y los certificados están funcionando correctamente en este entorno.")
-                                color: currentTheme.secondaryTextColor
-                                horizontalAlignment: Text.AlignHCenter
-                                Layout.fillWidth: true
-                            }
-                            Button { 
-                                text: tr("Lanzar Suite de Pruebas")
-                                palette.button: currentTheme.primaryColor; palette.buttonText: "white"
-                                font.bold: true
-                                Layout.preferredHeight: 50
-                                Layout.preferredWidth: 250
-                                Layout.alignment: Qt.AlignHCenter
-                                onClicked: {
-                                    backend.updateStatus(tr("Lanzando suite de pruebas..."));
-                                    backend.backendLogReceived(tr("Iniciando integración test v1.0..."));
-                                    backend.backendLogReceived(tr("[01/05] Test conexión socket: OK"));
-                                    backend.backendLogReceived(tr("[02/05] Test carga certificados: OK"));
-                                    backend.backendLogReceived(tr("[03/05] Test firma PAdES dummy: Ejecutando..."));
-                                    backend.updateStatus(tr("Pruebas finalizadas con éxito."));
-                                }
-                            }
-                        }
-                    }
-                }
+            FacturaePanel {
+                id: facturaePanel
+                bridge: backend
+                theme: currentTheme
+                localPath: function(url) { return window.localPathFromUrl(url) }
+                translate: function(key) { return window.tr(key) }
+                enabled: window.facturaeToolsEnabled && isIpcMode
+                onSignRequested: window.activeTab = "firmar"
             }
         }
     }

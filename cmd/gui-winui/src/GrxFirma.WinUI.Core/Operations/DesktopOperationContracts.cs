@@ -38,6 +38,15 @@ public sealed record CertificateExportPublicResult
     public bool EncryptionSuitable { get; init; }
 }
 
+public sealed record FacturaeCreateResult
+{
+    [JsonPropertyName("xml")]
+    public string Xml { get; init; } = string.Empty;
+
+    [JsonPropertyName("total")]
+    public string Total { get; init; } = string.Empty;
+}
+
 public sealed record SmartcardStatusParameters;
 
 public sealed record SmartcardStatusResult

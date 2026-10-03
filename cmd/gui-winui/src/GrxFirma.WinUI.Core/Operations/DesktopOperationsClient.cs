@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using GrxFirma.WinUI.Core.Ipc;
+using GrxFirma.WinUI.Core.Facturae;
 using System.Buffers;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -16,6 +17,7 @@ public static class DesktopOperationActions
     public const string Certificates = "certificates";
     public const string CertificateExportPublic = "certificate_export_public";
     public const string SmartcardStatus = "smartcard_status";
+    public const string FacturaeCreate = "facturae_create";
     public const string ValidateCertificateOnline =
         "validate_certificate_online";
     public const string OpenCertificateManager =
@@ -265,6 +267,60 @@ public sealed class DesktopOperationsClient
             DesktopOperationActions.Unprotect,
             parameters,
             cancellationToken);
+    }
+
+    public Task<IpcCallResult<FacturaeCreateResult>> CreateFacturaeAsync(
+        FacturaeInvoiceDraft draft,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(draft);
+        object Party(FacturaePartyDraft party) => new
+        {
+            personTypeCode = party.PersonTypeCode,
+            taxIdentificationNumber = party.TaxIdentificationNumber,
+            name = party.Name,
+            firstSurname = party.FirstSurname,
+            secondSurname = party.SecondSurname,
+            address = new
+            {
+                address = party.Address.Address,
+                postCode = party.Address.PostCode,
+                town = party.Address.Town,
+                province = party.Address.Province,
+            },
+            electronicMail = party.ElectronicMail,
+        };
+        string Number(decimal value) =>
+            value.ToString("0.########", CultureInfo.InvariantCulture);
+        var parameters = new
+        {
+            draft = new
+            {
+                invoiceNumber = draft.InvoiceNumber,
+                invoiceSeriesCode = draft.InvoiceSeriesCode,
+                issueDate = draft.IssueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                seller = Party(draft.Seller),
+                buyer = Party(draft.Buyer),
+                accountingOfficeDir3 = draft.AccountingOfficeDir3,
+                managingBodyDir3 = draft.ManagingBodyDir3,
+                processingUnitDir3 = draft.ProcessingUnitDir3,
+                lines = draft.Lines.Select(line => new
+                {
+                    description = line.Description,
+                    quantity = Number(line.Quantity),
+                    unitPriceWithoutTax = Number(line.UnitPriceWithoutTax),
+                    vatRate = Number(line.VatRate),
+                }).ToArray(),
+                installmentDueDate = draft.InstallmentDueDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? string.Empty,
+                iban = draft.Iban,
+                invoiceDescription = draft.InvoiceDescription,
+                fileReference = draft.FileReference,
+                receiverContractReference = draft.ReceiverContractReference,
+            },
+            outputPath = string.Empty,
+        };
+        return _ipcClient.SendAsync<object, FacturaeCreateResult>(
+            DesktopOperationActions.FacturaeCreate, parameters, cancellationToken);
     }
 
     public Task<IpcCallResult<DesktopSettingsDocument>> GetSettingsAsync(

@@ -672,8 +672,6 @@
   "EXPERTO": "ESPECIALISTA",
   "Edición de Seguridad y Dominios cerrada.": "Edição de Segurança e Domínios encerrada.",
   "Ej.: Aprobación del documento": "E.g. Document approval",
-  "Ejecuta una serie de firmas y verificaciones de prueba para asegurar\nque el motor y los certificados están funcionando correctamente en este entorno.": "Executa uma série de assinaturas e verificações de teste para garantir\nque o motor e os certificados estão a funcionar corretamente neste ambiente.",
-  "Ejecuta una serie de firmas y verificaciones de prueba para asegurar\\nque el motor y los certificados están funcionando correctamente en este entorno.": "Executa uma série de assinaturas de teste e verificações para garantir\\nque o mecanismo e os certificados estão funcionando corretamente neste ambiente.",
   "Ejecutando operación...": "Ejecutando operación...",
   "Ejecutando...": "Running...",
   "El JSON de opciones debe ser un objeto.": "The options JSON must be an object.",
@@ -981,7 +979,6 @@
   "Informe diagnóstico": "Relatório de diagnóstico",
   "Informe: ": "Relatório: ",
   "Inicializando el flujo de firma web": "Inicializando el flujo de firma web",
-  "Iniciando integración test v1.0...": "Iniciando o teste de integração v1.0...",
   "Iniciando...": "Começando...",
   "Iniciar servidor": "Iniciar servidor",
   "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "Insere um carimbo gráfico no PDF indicando que ele foi assinado digitalmente.",
@@ -1059,8 +1056,6 @@
   "Lanza la validación con el fichero actual.": "Lanza la validación con el fichero actual.",
   "Lanza la validación y revisa razón, firmantes y advertencias.": "Execute a validação e reveja o motivo, os signatários e os avisos.",
   "Lanza la validación y revisa si falta el original o aparece algún aviso.": "Run validation and check whether the original is missing or whether any warning appears.",
-  "Lanzando suite de pruebas...": "Liberando conjunto de testes...",
-  "Lanzar Suite de Pruebas": "Iniciar conjunto de testes",
   "Leyendo firmantes previos para completar el sello...": "Leyendo firmantes previos para completar el sello...",
   "Limpiar": "Limpar",
   "Limpiar Log": "Limpar registro",
@@ -1377,8 +1372,6 @@
   "Proxy del sistema": "Proxy del sistema",
   "Proxy manual con credenciales protegidas": "Manual proxy with protected credentials",
   "Proxy obligatorio para esta conexión": "Proxy required for this connection",
-  "Pruebas de Integración": "Testes de integração",
-  "Pruebas finalizadas con éxito.": "Testes concluídos com sucesso.",
   "Puedes arrastrar documentos al área superior o indicar una ruta local sin subir el fichero al navegador.": "Pode arrastar documentos para a área superior ou indicar um caminho local sem enviar o ficheiro para o navegador.",
   "Puedes arrastrar y redimensionar el sello. El backend recibirá coordenadas seguras y normalizadas.": "You can drag and resize the seal. The backend will receive safe normalized coordinates.",
   "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "Pode iniciar a operação agora ou continuar a ajustar o selo visível, o perfil ou os metadados antes de assinar.",
@@ -1822,9 +1815,6 @@
   "Y (0..1)": "Y (0..1)",
   "Ya tienes documento, pero falta seleccionar un certificado adecuado para firmar.": "Já tem documento, mas falta selecionar um certificado adequado para assinar.",
   "Ya tienes preparado el flujo de validación. El siguiente paso es lanzar la comprobación.": "Já tem o fluxo de validação preparado. O passo seguinte é iniciar a verificação.",
-  "[01/05] Test conexión socket: OK": "[01/05] Teste de conexão do soquete: OK",
-  "[02/05] Test carga certificados: OK": "[02/05] Teste de carregamento do certificado: OK",
-  "[03/05] Test firma PAdES dummy: Ejecutando...": "[03/05] Teste de assinatura fictícia PAdES: Executando...",
   "[data-copy-certificate-fingerprint]": "[data-copy-certificate-fingerprint]",
   "[data-copy-certificate-json]": "[data-copy-certificate-json]",
   "[data-copy-diagnostics-report]": "[data-copy-diagnostics-report]",
@@ -2456,7 +2446,6 @@
   "🛡️ Control de Dominios Permitidos": "🛡️ Controle de domínios permitidos",
   "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "🛡️ Install local TLS trust",
   "🛡️ Instalar confianza TLS local": "🛡️ Instale confiança TLS local",
-  "🧪 Banco de Pruebas Automático": "🧪 Bancada de teste automática",
   "🌐  Navegadores y certificados locales": "🌐  Navegadores e certificados locais",
   "Repara la integración con Chrome, Chromium, Edge, Brave y Firefox, incluyendo perfiles Snap o Flatpak cuando existan. Usa estas opciones si una web no consigue abrir GrxFirma o si el navegador no confía en la conexión local.": "Repara la integración con Chrome, Chromium, Edge, Brave y Firefox, incluyendo perfiles Snap o Flatpak cuando existan. Usa estas opciones si una web no consigue abrir GrxFirma o si el navegador no confía en la conexión local.",
   "Reinstalar conectores de navegadores": "Reinstalar conectores dos navegadores",
@@ -2664,7 +2653,6 @@
   ,"Importa solo un certificado X.509 público; no se importa ninguna clave privada.": "Importe apenas um certificado X.509 público; nenhuma chave privada será importada."
   ,"Importar certificado público del destinatario": "Importar certificado público do destinatário"
   ,"Introduce una dirección HTTPS completa sin usuario ni contraseña.": "Introduza um endereço HTTPS completo, sem nome de utilizador nem palavra-passe."
-  ,"La detección automática de tarjetas aún no está disponible en Linux. Comprueba pcscd, conecta el lector y configura el módulo PKCS#11; después actualiza los certificados.": "A deteção automática de cartões ainda não está disponível no Linux. Verifique o pcscd, ligue o leitor e configure o módulo PKCS#11; depois atualize os certificados."
   ,"La vista real del sello requiere el motor IPC local.": "A pré-visualização real do selo requer o motor IPC local."
   ,"Lector detectado sin tarjeta. Introduce el DNIe o tarjeta y vuelve a consultar.": "Leitor detetado sem cartão. Insira o DNIe ou cartão e volte a verificar."
   ,"Libro de destinatarios actualizado. La clave privada no se ha importado.": "Livro de destinatários atualizado. A chave privada não foi importada."
@@ -2776,4 +2764,71 @@
   ,"portal.seal.width": "Largura (%)"
   ,"portal.seal.height": "Altura (%)"
   ,"portal.seal.rotation": "Rotação (°)"
+  ,"facturae.accounting": "Serviço contabilístico (DIR3)"
+  ,"facturae.address": "Morada"
+  ,"facturae.buyer": "Destinatário"
+  ,"facturae.contract_reference": "Referência do contrato (opcional)"
+  ,"facturae.create": "Criar XML Facturae"
+  ,"facturae.created": "XML criado. Total: %1 €. Assine o XML antes de o submeter no FACe."
+  ,"facturae.creating": "A validar e criar o XML…"
+  ,"facturae.date_hint": "AAAA-MM-DD"
+  ,"facturae.description": "Descrição geral (opcional)"
+  ,"facturae.dir3": "Códigos DIR3 do destinatário"
+  ,"facturae.due_date": "Vencimento"
+  ,"facturae.email": "Correio eletrónico (opcional)"
+  ,"facturae.error.address": "Verifique a morada, localidade, província e código postal de ambas as partes."
+  ,"facturae.error.amount": "A quantidade, o preço e o IVA devem ser válidos; o montante não pode exceder o limite permitido."
+  ,"facturae.error.date": "Indique uma data de emissão válida que não seja futura."
+  ,"facturae.error.description": "Verifique o comprimento da descrição e das referências."
+  ,"facturae.error.dir3": "Cada código DIR3 deve ter nove caracteres alfanuméricos."
+  ,"facturae.error.email": "Verifique o correio eletrónico do emissor."
+  ,"facturae.error.input": "Não foi possível criar a fatura. Verifique os dados e tente novamente."
+  ,"facturae.error.lines": "A fatura deve conter uma linha com uma descrição válida."
+  ,"facturae.error.number": "Indique um número de fatura válido (máximo 20 caracteres)."
+  ,"facturae.error.output": "Não foi possível guardar o XML. Escolha um ficheiro .xml numa pasta onde possa escrever."
+  ,"facturae.error.party": "Verifique o NIF e o nome ou denominação social de ambas as partes."
+  ,"facturae.error.payment": "Indique um IBAN válido e um vencimento posterior à emissão."
+  ,"facturae.face_note": "O FACe abre no navegador. Assine a fatura antes de a submeter; abrir o FACe não a envia automaticamente."
+  ,"facturae.file_reference": "Referência do processo (opcional)"
+  ,"facturae.first_surname": "Primeiro apelido"
+  ,"facturae.iban": "IBAN"
+  ,"facturae.individual": "O emissor é uma pessoa singular"
+  ,"facturae.intro": "Crie uma fatura Facturae 3.2.2 não assinada. Depois assine-a e submeta-a no FACe."
+  ,"facturae.invoice": "Fatura"
+  ,"facturae.invoice_number": "Número da fatura"
+  ,"facturae.issue_date": "Data de emissão"
+  ,"facturae.item": "Item"
+  ,"facturae.item_description": "Descrição do item"
+  ,"facturae.legal_name": "Denominação social"
+  ,"facturae.managing": "Órgão gestor (DIR3)"
+  ,"facturae.nav": "FACTURAE E FACE"
+  ,"facturae.payment": "Incluir dados de pagamento"
+  ,"facturae.person_name": "Nome"
+  ,"facturae.post_code": "Código postal"
+  ,"facturae.price": "Preço unitário sem IVA (€)"
+  ,"facturae.processing": "Unidade de processamento (DIR3)"
+  ,"facturae.province": "Província"
+  ,"facturae.quantity": "Quantidade"
+  ,"facturae.save_title": "Guardar fatura Facturae"
+  ,"facturae.second_surname": "Segundo apelido (opcional)"
+  ,"facturae.seller": "Emissor"
+  ,"facturae.series": "Série (opcional)"
+  ,"facturae.sign": "Ir para assinatura"
+  ,"facturae.smartcard_dnie": "DNIe detetado no leitor. A lista de certificados está a ser atualizada."
+  ,"facturae.startup_error": "Não foi possível alterar o arranque automático. Verifique a pasta de configuração do utilizador."
+  ,"facturae.startup_help": "O GrxFirma iniciará oculto com a sua sessão Linux."
+  ,"facturae.startup_label": "Iniciar com a sessão"
+  ,"facturae.startup_off": "Arranque automático desativado."
+  ,"facturae.startup_on": "O GrxFirma iniciará com a sua sessão."
+  ,"facturae.submit_face": "Submeter no FACe"
+  ,"facturae.tax_id": "NIF"
+  ,"facturae.title": "Facturae e FACe"
+  ,"facturae.town": "Localidade"
+  ,"facturae.validate_face": "Validar no FACe"
+  ,"facturae.vat": "IVA (%)"
+  ,"facturae.xml_filter": "Facturae XML (*.xml)"
+  ,"smartcard.pcsc_unavailable": "PC/SC não está disponível neste computador. Instale ou ative o pcscd."
+  ,"smartcard.pcsc_error": "O PC/SC não conseguiu consultar o leitor."
+  ,"facturae.enable_label": "Ativar as ferramentas Facturae e FACe"
+  ,"facturae.enable_help": "Mostra o gerador Facturae e as ligações oficiais do FACe."
 }

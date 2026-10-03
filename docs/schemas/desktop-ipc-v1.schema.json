@@ -60,6 +60,10 @@
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["visibleSeal"], "properties": {"visibleSeal": {"type": "object"}, "certificateId": {"type": "string"}, "qrContent": {"type": "string"}, "reason": {"type": "string"}, "location": {"type": "string"}, "contactInfo": {"type": "string"}, "extraOptions": {"type": "object", "additionalProperties": {"type": "string"}}}}}}
         },
         {
+          "if": {"properties": {"action": {"const": "facturae_create"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["draft"], "properties": {"draft": {"type": "object"}, "outputPath": {"type": "string"}}, "additionalProperties": false}}}
+        },
+        {
           "if": {"properties": {"action": {"const": "smartcard_status"}}, "required": ["action"]},
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "maxProperties": 0}}}
         },
@@ -146,6 +150,10 @@
         }
       },
       "allOf": [
+        {
+          "if": {"properties": {"action": {"const": "facturae_create"}, "ok": {"const": true}}, "required": ["action", "ok"]},
+          "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["total"], "properties": {"total": {"type": "string"}, "xml": {"type": "string"}, "outputPath": {"type": "string"}}, "additionalProperties": false}}}
+        },
         {
           "if": {"properties": {"action": {"const": "smartcard_status"}, "ok": {"const": true}}, "required": ["action", "ok"]},
           "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["readers"], "properties": {"readers": {"type": "array", "items": {"type": "object", "required": ["name", "present", "isDnie"], "properties": {"name": {"type": "string"}, "present": {"type": "boolean"}, "isDnie": {"type": "boolean"}}, "additionalProperties": false}}}, "additionalProperties": false}}}
@@ -330,6 +338,7 @@
         "clock_diagnostics",
         "diagnose_token_settings",
         "export_diagnostic",
+        "facturae_create",
         "get_settings",
         "get_token_settings",
         "getcertificates",

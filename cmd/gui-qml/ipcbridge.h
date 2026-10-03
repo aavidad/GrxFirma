@@ -85,6 +85,9 @@ public:
   Q_INVOKABLE void importProtectionRecipient(const QString &path);
   Q_INVOKABLE void removeProtectionRecipient(const QString &id);
   Q_INVOKABLE void requestSmartcardStatus();
+  Q_INVOKABLE void createFacturae(const QVariantMap &draft, const QString &outputPath);
+  Q_INVOKABLE bool startupEnabled() const;
+  Q_INVOKABLE bool setStartupEnabled(bool enabled);
   Q_INVOKABLE void getSealPreview(const QVariantMap &options,
                                  const QString &requestId);
   Q_INVOKABLE void protectFileAdvanced(const QString &inputPath,
@@ -189,6 +192,7 @@ signals:
   void protectionRecipientsLoaded(QVariantList recipients);
   void protectionRecipientChanged(bool ok, QString message);
   void smartcardStatusReceived(bool ok, QVariantList readers, QString message);
+  void facturaeCreated(bool ok, QVariantMap result, QString message);
   void sealPreviewReceived(QString requestId, bool ok, QString image,
                            QString message);
   void protectionFinished(bool success, QString message, QVariantMap result);

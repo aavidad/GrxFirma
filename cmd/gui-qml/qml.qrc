@@ -9,6 +9,7 @@
     <file>qml/NavButton.qml</file>
     <file>qml/DiagnosticTimeline.qml</file>
     <file>qml/TokenSettingsPanel.qml</file>
+    <file>qml/FacturaePanel.qml</file>
     <file>assets/Logo-Horizontal-Color.png</file>
     <file>assets/Logo-Horizontal-Color.svg</file>
     <file>assets/logo-dipgra.png</file>

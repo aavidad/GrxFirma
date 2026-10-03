@@ -1,4 +1,4 @@
-//go:build !windows
+//go:build !windows && (!linux || !cgo)
 
 // Derechos de autor (C) 2026 Alberto Avidad Fernández.
 // Autoría: Alberto Avidad Fernández
@@ -12,6 +12,8 @@ import (
 	"errors"
 )
 
+const smartcardAvailable = false
+
 func detectSmartcards(context.Context) ([]smartcardReader, error) {
-	return nil, errors.New("la detección de tarjetas requiere Windows")
+	return nil, errors.New("smartcard.pcsc_unavailable")
 }

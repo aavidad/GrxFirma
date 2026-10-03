@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 #include "ipcbridge.h"
+#include "linuxstartupregistration.h"
 #include "executablelocator.h"
 #include "activediagnostics.h"
 #include "incidentprivacy.h"
@@ -1227,6 +1228,8 @@ void IpcBridge::failActionDueToConnection(const QString &action,
     emit certificateAccessOptionsLoaded(false, QVariantMap(), safeMessage);
   } else if (action == "smartcard_status") {
     emit smartcardStatusReceived(false, QVariantList(), safeMessage);
+  } else if (action == "facturae_create") {
+    emit facturaeCreated(false, QVariantMap(), safeMessage);
   } else if (action == "protection_recipient_import" ||
              action == "protection_recipient_remove") {
     emit protectionRecipientChanged(false, safeMessage);
@@ -1430,6 +1433,29 @@ void IpcBridge::importProtectionRecipient(const QString &path) {
 void IpcBridge::removeProtectionRecipient(const QString &id) {
   sendRequest(QStringLiteral("protection_recipient_remove"),
               {{QStringLiteral("id"), id}});
+}
+
+bool IpcBridge::startupEnabled() const {
+#ifdef Q_OS_LINUX
+  return LinuxStartupRegistration::isEnabled();
+#else
+  return false;
+#endif
+}
+
+bool IpcBridge::setStartupEnabled(bool enabled) {
+#ifdef Q_OS_LINUX
+  return LinuxStartupRegistration::setEnabled(enabled);
+#else
+  Q_UNUSED(enabled);
+  return false;
+#endif
+}
+
+void IpcBridge::createFacturae(const QVariantMap &draft, const QString &outputPath) {
+  sendRequest(QStringLiteral("facturae_create"),
+              {{QStringLiteral("draft"), draft},
+               {QStringLiteral("outputPath"), outputPath}});
 }
 
 void IpcBridge::requestSmartcardStatus() {
@@ -1836,6 +1862,12 @@ void IpcBridge::onReadyRead() {
       emit sealPreviewReceived(requestId, ok,
                                ok ? data.toObject().value(QStringLiteral("image")).toString() : QString(),
                                ok ? QString() : errMsg);
+      continue;
+    }
+
+    if (action == QStringLiteral("facturae_create")) {
+      emit facturaeCreated(ok, ok ? data.toObject().toVariantMap() : QVariantMap(),
+                           ok ? QString() : errMsg);
       continue;
     }
 
