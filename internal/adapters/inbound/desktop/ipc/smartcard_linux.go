@@ -25,6 +25,8 @@ typedef struct {
     DWORD cbAtr;
     unsigned char rgbAtr[33];
 } reader_state;
+// Acota en C la longitud del ATR al búfer de 33 bytes que define PC/SC.
+static int grx_atr_len(DWORD n) { return n > 33 ? 33 : (int)n; }
 typedef LONG (*establish_fn)(DWORD, const void *, const void *, SCARDCONTEXT *);
 typedef LONG (*release_fn)(SCARDCONTEXT);
 typedef LONG (*list_fn)(SCARDCONTEXT, const char *, char *, DWORD *);
@@ -122,8 +124,9 @@ func detectSmartcards(ctx context.Context) ([]smartcardReader, error) {
 	result := make([]smartcardReader, 0, int(count))
 	for _, reader := range found[:int(count)] {
 		name := C.GoString(&reader.name[0])
-		atr := C.GoBytes(unsafe.Pointer(&reader.atr[0]), C.int(reader.atr_len))
-		present := uint32(reader.state)&0x20 != 0
+		atrLen := min(int(C.grx_atr_len(reader.atr_len)), len(reader.atr))
+		atr := append([]byte(nil), unsafe.Slice((*byte)(unsafe.Pointer(&reader.atr[0])), atrLen)...)
+		present := reader.state&0x20 != 0 // SCARD_STATE_PRESENT
 		result = append(result, smartcardReader{Name: name, Present: present, IsDNIe: present && classifyDNIeATR(atr)})
 	}
 	return result, nil

@@ -85,8 +85,8 @@ Item {
             panel.busy = false
             panel.statusText = ok
                     ? tr("facturae.created").replace("%1", result.total)
-                    : tr(message && message.indexOf("facturae.error.") === 0
-                         ? message : "facturae.error.input")
+                    : (message && message.indexOf("facturae.error.") === 0
+                         ? tr(message) : tr("facturae.error.input"))
         }
     }
     ScrollView {
