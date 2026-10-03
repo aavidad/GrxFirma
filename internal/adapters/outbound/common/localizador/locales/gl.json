@@ -2775,5 +2775,10 @@
   ,"portal.seal.y": "Desde abaixo (%)"
   ,"portal.seal.width": "Ancho (%)"
   ,"portal.seal.height": "Alto (%)"
-  ,"portal.seal.rotation": "Xiro (°)"
+  ,"portal.seal.rotation": "Xiro (°)",
+  "Hay una versión nueva de GrxFirma (%1). Tienes la %2.": "Hai unha nova versión de GrxFirma (%1). Tes a %2.",
+  "Además, el motor local no responde; instalar la versión nueva puede resolverlo.": "Ademais, o motor local non responde; instalar a nova versión pode resolvelo.",
+  "Descargar e instalar": "Descargar e instalar",
+  "Ver novedades": "Ver novidades",
+  "Ahora no": "Agora non"
 }

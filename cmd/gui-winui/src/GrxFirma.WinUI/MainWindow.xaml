@@ -171,18 +171,19 @@
                         </InfoBar.ActionButton>
                     </InfoBar>
                     <InfoBar
+                        x:Name="UpdateNotice"
                         AutomationProperties.LiveSetting="Polite"
-                        IsClosable="True"
+                        IsClosable="False"
                         IsOpen="{x:Bind ViewModel.IsUpdateNoticeOpen, Mode=OneWay}"
                         Message="{x:Bind ViewModel.UpdateNoticeMessage, Mode=OneWay}"
-                        Severity="Informational"
-                        Title="Nueva versión disponible">
-                        <InfoBar.ActionButton>
-                            <Button
-                                AutomationProperties.HelpText="Abre la página fija de versiones del repositorio oficial de GitHub."
-                                Click="OnOpenOfficialReleases"
-                                Content="Ver versión oficial" />
-                        </InfoBar.ActionButton>
+                        Severity="Warning">
+                        <InfoBar.Content>
+                            <StackPanel Spacing="8">
+                                <Button x:Name="DownloadUpdateButton" Click="OnOpenUpdateRelease" Style="{StaticResource AccentButtonStyle}" />
+                                <Button x:Name="ReleaseNotesButton" Click="OnOpenUpdateRelease" />
+                                <Button x:Name="DismissUpdateButton" Click="OnDismissUpdate" />
+                            </StackPanel>
+                        </InfoBar.Content>
                     </InfoBar>
                 </StackPanel>
 

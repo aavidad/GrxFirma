@@ -49,6 +49,7 @@ internal sealed class WindowsTrayIcon : IDisposable
     private readonly Action _exit;
     private bool _installed;
     private bool _releaseNotesNotificationPending;
+    private bool _updateNotificationPending;
     private bool _subclassInstalled;
 
     public WindowsTrayIcon(
@@ -123,6 +124,17 @@ internal sealed class WindowsTrayIcon : IDisposable
         _ = ShellNotifyIcon(Modify, ref data);
     }
 
+    public void ShowUpdateNotification(string message)
+    {
+        if (!_installed) return;
+        _updateNotificationPending = true;
+        _releaseNotesNotificationPending = false;
+        var data = CreateData(InfoFlag);
+        data.InfoTitle = "GrxFirma";
+        data.Info = message;
+        _ = ShellNotifyIcon(Modify, ref data);
+    }
+
     private NotifyIconData CreateData(uint flags) => new()
     {
         Size = (uint)Marshal.SizeOf<NotifyIconData>(),
@@ -165,7 +177,12 @@ internal sealed class WindowsTrayIcon : IDisposable
             }
             else if (eventCode == BalloonUserClick)
             {
-                if (_releaseNotesNotificationPending)
+                if (_updateNotificationPending)
+                {
+                    _updateNotificationPending = false;
+                    _open();
+                }
+                else if (_releaseNotesNotificationPending)
                 {
                     _releaseNotesNotificationPending = false;
                     _pendingReleaseNotes();

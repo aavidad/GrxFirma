@@ -2775,5 +2775,10 @@
   ,"portal.seal.y": "距底部 (%)"
   ,"portal.seal.width": "宽度 (%)"
   ,"portal.seal.height": "高度 (%)"
-  ,"portal.seal.rotation": "旋转 (°)"
+  ,"portal.seal.rotation": "旋转 (°)",
+  "Hay una versión nueva de GrxFirma (%1). Tienes la %2.": "GrxFirma 有新版本（%1）。您当前使用的是 %2。",
+  "Además, el motor local no responde; instalar la versión nueva puede resolverlo.": "此外，本地引擎没有响应；安装新版本可能解决此问题。",
+  "Descargar e instalar": "下载并安装",
+  "Ver novedades": "查看新功能",
+  "Ahora no": "暂不"
 }

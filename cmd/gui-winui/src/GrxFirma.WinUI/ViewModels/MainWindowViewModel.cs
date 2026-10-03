@@ -67,29 +67,13 @@ public sealed class MainWindowViewModel : ObservableObject
         private set => SetProperty(ref _updateNoticeMessage, value);
     }
 
-    public void SetUpdateAvailable(
-        string latestVersion,
-        string currentVersion)
+    public void SetUpdateAvailable(string message)
     {
-        var latest = CleanVersion(latestVersion);
-        var current = CleanVersion(currentVersion);
-        UpdateNoticeMessage =
-            $"Está disponible GrxFirma {latest}; esta instalación usa {current}. Revise las notas oficiales. No se descargará ni ejecutará nada automáticamente.";
+        UpdateNoticeMessage = message;
         IsUpdateNoticeOpen = true;
     }
 
-    private static string CleanVersion(string? value)
-    {
-        var cleaned = new string(
-            SafeIpcText.Clean(value, 64, "desconocida")
-                .Where(character =>
-                    char.IsAsciiLetterOrDigit(character) ||
-                    character is '.' or '-' or '+' or '_')
-                .ToArray());
-        return cleaned.Length == 0
-            ? "desconocida"
-            : cleaned;
-    }
+    public void HideUpdateNotice() => IsUpdateNoticeOpen = false;
 
     public void SetStandalone()
     {

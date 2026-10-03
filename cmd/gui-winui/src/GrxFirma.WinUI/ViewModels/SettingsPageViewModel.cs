@@ -625,6 +625,7 @@ public sealed class SettingsPageViewModel
                 return;
             }
 
+            UpdatePreferenceStore.Write(CheckForUpdates);
             _loadedSnapshot = document.CreateSafeSaveSnapshot();
             IsDirty = false;
             ThemePreferenceApplied?.Invoke(document.ThemeIndex);

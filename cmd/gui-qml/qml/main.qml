@@ -80,12 +80,21 @@ Window {
         releaseNotesDialog.notesText = history ? releaseNotesText : pendingReleaseNotes
         releaseNotesDialog.open()
     }
-    property bool checkForUpdates: true
+    property bool checkForUpdates: appSettings.checkForUpdatesCached &&
+                                  officialUpdateChecker.savedCheckForUpdates()
     property bool updateCheckAttempted: false
     property bool updateCheckInProgress: false
     property bool updateAvailable: false
+    property bool updateEngineUnavailable: false
+    property bool updateManualRequest: false
+    property bool updateUsingDirect: false
+    property double updateAttemptStartedAt: 0
     property string updateLatestVersion: ""
     property string updateReleaseUrl: ""
+    property string updateDismissedVersion: ""
+    // «Ahora no» oculta solo esa versión hasta el próximo arranque.
+    readonly property bool updateNoticeDismissed: updateLatestVersion !== "" && updateLatestVersion === updateDismissedVersion
+    property string updateNoticeMessage: ""
     property string updateStatusMessage: tr("Todavía no se ha comprobado si existe una versión nueva.")
     property string localTLSStartupNoticeState: ""
     property bool localTLSStartupNoticeShown: false
@@ -131,21 +140,74 @@ Window {
         localTLSStartupNoticeDialog.open()
     }
 
-    function requestUpdateCheck(manual) {
-        if (updateCheckInProgress || !backend || !backend.checkUpdates)
+    function startDirectUpdateCheck() {
+        updateEngineBudgetTimer.stop()
+        updateEngineUnavailable = true
+        updateUsingDirect = true
+        const remaining = Math.max(1, 10000 - (Date.now() - updateAttemptStartedAt))
+        if (remaining <= 1) {
+            updateCheckInProgress = false
+            console.warn("update: automatic check timed out")
             return
+        }
+        officialUpdateChecker.check(aboutApplicationVersion, remaining)
+    }
+
+    function requestUpdateCheck(manual) {
+        if (updateCheckInProgress || (!manual && !checkForUpdates)) return
         updateCheckAttempted = true
         updateCheckInProgress = true
-        updateStatusMessage = tr("Consultando la última versión publicada en GitHub…")
-        backend.checkUpdates()
+        updateManualRequest = manual
+        updateAttemptStartedAt = Date.now()
+        updateEngineUnavailable = !(backend && backend.checkUpdates &&
+                                    (!isIpcMode || (backend.updateEngineAvailable &&
+                                                    backend.updateEngineAvailable())))
+        updateUsingDirect = updateEngineUnavailable
+        if (manual) updateStatusMessage = tr("Consultando la última versión publicada en GitHub…")
+        if (updateEngineUnavailable) officialUpdateChecker.check(aboutApplicationVersion, 10000)
+        else {
+            updateEngineBudgetTimer.start()
+            backend.checkUpdates()
+        }
+    }
+
+    function acceptUpdateResult(result) {
+        const latest = String(result.ultima_version || result.version || "")
+        const current = String(aboutApplicationVersion || "")
+        const target = String(result.url || "")
+        const newer = officialUpdateChecker.newer(current, latest)
+        if (!newer) {
+            if (updateManualRequest)
+                updateStatusMessage = current === ""
+                        ? tr("La última versión publicada es %1, pero este build de desarrollo no se puede comparar automáticamente.").arg(latest)
+                        : tr("GrxFirma está actualizado (%1).").arg(current)
+            return
+        }
+        if (!officialUpdateChecker.isOfficialReleaseUrl(target) ||
+                !target.endsWith("/" + latest)) {
+            console.warn("update: invalid release destination")
+            return
+        }
+        updateLatestVersion = latest
+        updateReleaseUrl = target
+        updateAvailable = true
+        updateNoticeMessage = tr("Hay una versión nueva de GrxFirma (%1). Tienes la %2.")
+                .arg(latest).arg(current)
+        if (updateEngineUnavailable)
+            updateNoticeMessage += "\n" + tr("Además, el motor local no responde; instalar la versión nueva puede resolverlo.")
+        updateStatusMessage = updateNoticeMessage
+        if (!updateNoticeDismissed && residentAgent.hidden)
+            residentAgent.notifyUpdate(updateNoticeMessage)
     }
 
     function openOfficialUpdateRelease() {
         const target = String(updateReleaseUrl || "").trim()
-        if (!/^https:\/\/github\.com\/aavidad\/GrxFirma\/releases(?:$|\/tag\/[^/?#]+$)/.test(target)) {
+        if (!/^https:\/\/github\.com\/aavidad\/GrxFirma\/releases(?:$|\/tag\/[^/?#]+$)/.test(target) ||
+                !officialUpdateChecker.isOfficialReleaseUrl(target)) {
             updateStatusMessage = tr("El enlace recibido no pertenece al repositorio oficial y se ha bloqueado. Repita la comprobación o reinstale la aplicación desde GitHub.")
             return
         }
+        // GitHub publica SHA256SUMS; con firma de código se podrá automatizar la instalación.
         backend.openExternal(target)
     }
 
@@ -525,7 +587,7 @@ Window {
         saveFileDialog.visible || verifyFileDialog.visible || verifyOriginalFileDialog.visible || protectFileDialog.visible ||
         unprotectFileDialog.visible || verifyReportSaveDialog.visible || verifySummarySaveDialog.visible || hashInputFileDialog.visible ||
         hashInputDirectoryDialog.visible || hashReferenceDialog.visible || localTLSStartupNoticeDialog.visible || aboutDialog.visible || releaseNotesDialog.visible ||
-        updateAvailableDialog.visible || signValidationErrorDialog.visible || signConfirmDialog.visible || multiCosignDialog.visible ||
+        signValidationErrorDialog.visible || signConfirmDialog.visible || multiCosignDialog.visible ||
         signedDocumentWarningDialog.visible || certificateValidationDialog.visible || certificateValidationSaveDialog.visible || supportIncidentSaveDialog.visible ||
         activeDiagnosticsConsentDialog.visible || supportIncidentSendDialog.visible || supportAssistantDialog.visible || unsavedSettingsDialog.visible ||
         p12FileDialog.visible || temporaryCertificateFileDialog.visible || guidedImportCertificateFileDialog.visible || sealImageFileDialog.visible ||
@@ -2733,6 +2795,8 @@ Window {
         property bool expertMode: false
         property string language: ""
         property string lastSeenVersion: ""
+        property bool checkForUpdatesCached: true
+        property string lastUpdateCheckAt: ""
         property string supportIncidentEndpoint: ""
         property bool leftSidebarCollapsed: false
         property bool rightSidebarCollapsed: false
@@ -3511,7 +3575,11 @@ Window {
         if (!portalSealMode) window.syncResidentAgentUi()
         if (typeof isIpcMode !== "undefined" && isIpcMode && backend)
             window.showLocalTLSStartupNotice(backend.localTLSStartupStatus)
-        if (!portalSealMode) backendStartupQueriesTimer.start()
+        if (!portalSealMode) {
+            backendStartupQueriesTimer.start()
+            updateStartupTimer.start()
+            updateCycleTimer.start()
+        }
         settingsLoaded = true
         if (!portalSealMode) releaseNotesStartupTimer.start()
         if (portalSealMode) {
@@ -3525,6 +3593,44 @@ Window {
             portalSealEditor.anchors.fill = portalSealCanvas
             portalSealStartupTimer.start()
             portalSealPreviewRetryTimer.start()
+        }
+    }
+
+    Timer {
+        id: updateEngineBudgetTimer
+        interval: 4000
+        repeat: false
+        onTriggered: {
+            if (window.updateCheckInProgress && !window.updateUsingDirect)
+                window.startDirectUpdateCheck()
+        }
+    }
+    Timer {
+        id: updateStartupTimer
+        interval: 3000
+        repeat: false
+        onTriggered: window.requestUpdateCheck(false)
+    }
+    Timer {
+        id: updateCycleTimer
+        interval: 5 * 60 * 60 * 1000
+        repeat: true
+        onTriggered: window.requestUpdateCheck(false)
+    }
+    Connections {
+        target: officialUpdateChecker
+        function onFinished(ok, result) {
+            if (!window.updateCheckInProgress) return
+            window.updateCheckInProgress = false
+            if (ok && result.estado === "sin_publicaciones") {
+                if (window.updateManualRequest)
+                    window.updateStatusMessage = tr("Todavía no hay versiones publicadas en el canal oficial.")
+            } else if (ok) window.acceptUpdateResult(result)
+            else {
+                console.warn("update: automatic check unavailable")
+                if (window.updateManualRequest)
+                    window.updateStatusMessage = tr("No se pudo conectar para comprobar versiones. Revise su conexión a Internet y vuelva a intentarlo.")
+            }
         }
     }
 
@@ -4814,46 +4920,6 @@ Window {
                 if (window.releaseNotesAcknowledge)
                     appSettings.lastSeenVersion = window.aboutApplicationVersion
                 releaseNotesDialog.close()
-            }
-        }
-    }
-
-    Dialog {
-        id: updateAvailableDialog
-        title: tr("Nueva versión disponible")
-        modal: true
-        anchors.centerIn: parent
-        width: Math.min(520, window.width - 48)
-        standardButtons: Dialog.Close
-        Accessible.name: tr("Nueva versión de GrxFirma disponible")
-        Accessible.description: window.updateStatusMessage
-
-        ColumnLayout {
-            width: Math.max(300, updateAvailableDialog.availableWidth)
-            spacing: 14
-
-            Text {
-                text: window.updateStatusMessage
-                color: currentTheme.textColor
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                Accessible.role: Accessible.StaticText
-                Accessible.name: text
-            }
-            Text {
-                text: tr("GrxFirma no descargará ni instalará nada automáticamente. Revise la versión y sus notas en el repositorio oficial.")
-                color: currentTheme.secondaryTextColor
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                Accessible.role: Accessible.StaticText
-                Accessible.name: text
-            }
-            Button {
-                text: tr("Ver versión en GitHub")
-                enabled: window.updateReleaseUrl !== ""
-                onClicked: window.openOfficialUpdateRelease()
-                Accessible.name: text
-                Accessible.description: tr("Abre la página oficial de la versión; la aplicación no descarga ni ejecuta archivos.")
             }
         }
     }
@@ -6910,6 +6976,7 @@ Window {
             }
             if (s.checkForUpdates !== undefined) {
                 window.checkForUpdates = s.checkForUpdates
+                appSettings.checkForUpdatesCached = s.checkForUpdates
             }
             if (s.stickySigner !== undefined) window.stickySigner = s.stickySigner
             if (s.autoSelectSingleCertificate !== undefined) window.autoSelectSingleCertificate = s.autoSelectSingleCertificate
@@ -7032,38 +7099,28 @@ Window {
                     }
                 })
             }
-            if (window.checkForUpdates && !window.updateCheckAttempted) {
-                Qt.callLater(function() {
-                    window.requestUpdateCheck(false)
-                })
-            }
         }
         function onUpdateCheckFinished(ok, message, result) {
-            window.updateCheckInProgress = false
+            if (!window.updateCheckInProgress || window.updateUsingDirect) return
+            updateEngineBudgetTimer.stop()
             if (!ok) {
-                window.updateAvailable = false
-                window.updateReleaseUrl = ""
-                window.updateStatusMessage = message
+                if (window.updateManualRequest) window.updateStatusMessage = message
+                window.startDirectUpdateCheck()
                 return
             }
-            const latest = String(result.ultima_version || "").trim()
-            const current = String(result.version_actual || window.aboutApplicationVersion || "").trim()
-            window.updateLatestVersion = latest
-            window.updateReleaseUrl = String(result.url || "").trim()
-            window.updateAvailable = result.hay_nueva === true
+            window.updateCheckInProgress = false
             if (result.estado === "sin_publicaciones") {
-                window.updateStatusMessage = String(result.mensaje || tr("Todavía no hay versiones publicadas en el canal oficial."))
-            } else if (window.updateAvailable) {
-                window.updateStatusMessage = tr("Hay una versión nueva de GrxFirma: %1. Tiene instalada la %2.")
-                        .arg(latest).arg(current)
-                updateAvailableDialog.open()
-            } else if (result.comparable === false) {
-                window.updateStatusMessage = tr("La última versión publicada es %1, pero este build de desarrollo no se puede comparar automáticamente.")
-                        .arg(latest)
-            } else {
-                window.updateStatusMessage = tr("GrxFirma está actualizado (%1).")
-                        .arg(current !== "" ? current : latest)
+                if (window.updateManualRequest)
+                    window.updateStatusMessage = result.mensaje || tr("Todavía no hay versiones publicadas en el canal oficial.")
+                return
             }
+            if (result.comparable === false) {
+                if (window.updateManualRequest)
+                    window.updateStatusMessage = tr("La última versión publicada es %1, pero este build de desarrollo no se puede comparar automáticamente.")
+                        .arg(String(result.ultima_version || ""))
+                return
+            }
+            window.acceptUpdateResult(result)
         }
         function onProxySecretStoreStatusReceived(available, platform, backendName, reason, runtimeMode) {
             window.proxySecretStoreAvailable = available
@@ -7285,9 +7342,55 @@ Window {
         }
     }
 
+    Rectangle {
+        id: updateBanner
+        visible: !portalSealMode && updateAvailable &&
+                 !updateNoticeDismissed && updateNoticeMessage !== ""
+        z: 200
+        anchors.top: parent.top
+        width: parent.width
+        height: updateBannerContent.implicitHeight + 24
+        color: currentTheme.backgroundColor
+        border.color: currentTheme.textColor
+        border.width: 1
+        Accessible.role: Accessible.AlertMessage
+        Accessible.name: updateNoticeMessage
+        ColumnLayout {
+            id: updateBannerContent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 12
+            spacing: 8
+            Text {
+                text: updateNoticeMessage
+                color: currentTheme.textColor
+                font.bold: true
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+            Flow {
+                Layout.fillWidth: true
+                spacing: 8
+                Button {
+                    text: tr("Descargar e instalar")
+                    highlighted: true
+                    onClicked: window.openOfficialUpdateRelease()
+                    Accessible.description: tr("Abre la página oficial de la versión; la aplicación no descarga ni ejecuta archivos.")
+                }
+                Button { text: tr("Ver novedades"); onClicked: window.openOfficialUpdateRelease() }
+                Button {
+                    text: tr("Ahora no")
+                    onClicked: window.updateDismissedVersion = window.updateLatestVersion
+                }
+            }
+        }
+    }
+
     RowLayout {
         visible: !portalSealMode
         anchors.fill: parent
+        anchors.topMargin: updateBanner.visible ? updateBanner.height : 0
         spacing: 0
 
         // SIDEBAR
@@ -12706,6 +12809,7 @@ Window {
                                         checked: window.checkForUpdates
                                         onToggled: {
                                             window.checkForUpdates = checked
+                                            appSettings.checkForUpdatesCached = checked
                                             markBackendSettingsDirty()
                                         }
                                         ToolTip.visible: hovered

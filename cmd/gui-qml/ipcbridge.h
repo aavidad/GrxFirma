@@ -137,6 +137,7 @@ public:
   Q_INVOKABLE void openHelpManual();
   Q_INVOKABLE void checkCertificates();
   Q_INVOKABLE void checkUpdates();
+  Q_INVOKABLE bool updateEngineAvailable() const;
   Q_INVOKABLE void runTLSDiagnostics();
   Q_INVOKABLE void exportDiagnosticReport();
   Q_INVOKABLE void clearTLSTrustStore();

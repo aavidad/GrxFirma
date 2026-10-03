@@ -9,6 +9,7 @@ using GrxFirma.WinUI.Services;
 using GrxFirma.WinUI.ViewModels;
 using GrxFirma.WinUI.Views;
 using Microsoft.UI.Xaml;
+using Windows.System;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
@@ -20,6 +21,10 @@ namespace GrxFirma.WinUI;
 public sealed partial class MainWindow : Window
 {
     private readonly App _app;
+    private readonly OfficialUpdateChecker _officialUpdates = new();
+    private readonly UpdateNoticeSchedule _updateSchedule = new(TimeProvider.System);
+    private string _updateVersion = string.Empty;
+    private string _updateReleaseUrl = string.Empty;
     private readonly IHelpLauncherService _helpLauncher =
         new WindowsHelpLauncherService();
 
@@ -28,6 +33,11 @@ public sealed partial class MainWindow : Window
         _app = (App)Application.Current;
         ViewModel = new MainWindowViewModel();
         InitializeComponent();
+        var language = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+        UpdateNotice.Title = SealUiCatalog.Text(language, "Nueva versión disponible");
+        DownloadUpdateButton.Content = SealUiCatalog.Text(language, "Descargar e instalar");
+        ReleaseNotesButton.Content = SealUiCatalog.Text(language, "Ver novedades");
+        DismissUpdateButton.Content = SealUiCatalog.Text(language, "Ahora no");
         ConfigureInitialWindow();
         SetFacturaeNavigationVisibility(
             _app.FacturaeToolsEnabled);
@@ -263,45 +273,89 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    internal async Task RefreshUpdateAvailabilityAsync()
+    internal async Task RefreshUpdateAvailabilityAsync(CancellationToken cancellationToken = default)
     {
-        if (!_app.OperationSession.TryGetOperations(
-                DesktopOperationActions.GetSettings,
-                out var settingsOperations) ||
-            !_app.OperationSession.Supports(
-                DesktopOperationActions.CheckUpdates))
-        {
-            return;
-        }
-
+        if (!UpdatePreferenceStore.Read()) return;
+        using var engineBudget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        engineBudget.CancelAfter(TimeSpan.FromSeconds(4));
         try
         {
-            var settings = await settingsOperations.GetSettingsAsync();
-            if (!settings.IsSuccess ||
-                settings.Outcome != "success" ||
-                settings.Data?.CheckForUpdates == false ||
-                !_app.OperationSession.TryGetOperations(
-                    DesktopOperationActions.CheckUpdates,
-                    out var updateOperations))
+            var engineAvailable = _app.OperationSession.Supports(DesktopOperationActions.CheckUpdates);
+            if (engineAvailable && _app.OperationSession.TryGetOperations(
+                    DesktopOperationActions.GetSettings, out var settingsOperations))
             {
+                try
+                {
+                    var settings = await settingsOperations.GetSettingsAsync(engineBudget.Token);
+                    if (settings.IsSuccess && settings.Outcome == "success" && settings.Data is not null)
+                    {
+                        UpdatePreferenceStore.Write(settings.Data.CheckForUpdates != false);
+                        if (settings.Data.CheckForUpdates == false) return;
+                    }
+                    else engineAvailable = false;
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    engineAvailable = false;
+                }
+            }
+            else if (engineAvailable) engineAvailable = false;
+            OfficialRelease? release = null;
+            var current = _app.InstalledVersion;
+            if (engineAvailable && _app.OperationSession.TryGetOperations(
+                    DesktopOperationActions.CheckUpdates, out var updateOperations))
+            {
+                try
+                {
+                    var result = await updateOperations.CheckUpdatesAsync(engineBudget.Token);
+                    if (result.IsSuccess && result.Outcome == "success" &&
+                        result.Data?.HasNewVersion == true &&
+                        OfficialUpdateChecker.IsReleaseForVersion(result.Data.ReleaseUrl, result.Data.LatestVersion) &&
+                        OfficialUpdateChecker.IsNewer(current, result.Data.LatestVersion))
+                        release = new(result.Data.LatestVersion, result.Data.ReleaseUrl);
+                    if (!result.IsSuccess) engineAvailable = false;
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    engineAvailable = false;
+                }
+            }
+            else if (engineAvailable) engineAvailable = false;
+            if (!engineAvailable && !cancellationToken.IsCancellationRequested)
+                release = await _officialUpdates.CheckAsync(cancellationToken);
+            if (release is null || !OfficialUpdateChecker.IsNewer(current, release.Version) ||
+                !_updateSchedule.ShouldShow(release.Version) || cancellationToken.IsCancellationRequested)
                 return;
-            }
-
-            var result = await updateOperations.CheckUpdatesAsync();
-            if (result.IsSuccess &&
-                result.Outcome == "success" &&
-                result.Data?.HasNewVersion == true)
-            {
-                ViewModel.SetUpdateAvailable(
-                    result.Data.LatestVersion,
-                    result.Data.CurrentVersion);
-            }
+            _updateVersion = release.Version;
+            _updateReleaseUrl = release.Url;
+            var language = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+            var message = SealUiCatalog.Text(language,
+                "Hay una versión nueva de GrxFirma (%1). Tienes la %2.")
+                .Replace("%1", release.Version).Replace("%2", current);
+            if (!engineAvailable)
+                message += "\n" + SealUiCatalog.Text(language,
+                    "Además, el motor local no responde; instalar la versión nueva puede resolverlo.");
+            ViewModel.SetUpdateAvailable(message);
+            _app.NotifyUpdateInTray(message);
         }
-        catch
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (Exception error)
         {
-            // La comprobación automática nunca bloquea ni ensucia el arranque.
-            // «Acerca de» permite repetirla y muestra una corrección accionable.
+            _app.LogAutomaticUpdateFailure(error);
         }
+    }
+
+    private void OnDismissUpdate(object sender, RoutedEventArgs args)
+    {
+        _updateSchedule.Dismiss(_updateVersion);
+        ViewModel.HideUpdateNotice();
+    }
+
+    private async void OnOpenUpdateRelease(object sender, RoutedEventArgs args)
+    {
+        if (!OfficialUpdateChecker.IsReleaseForVersion(_updateReleaseUrl, _updateVersion)) return;
+        // GitHub publica SHA256SUMS; con firma de código se podrá automatizar la instalación.
+        await Launcher.LaunchUriAsync(new Uri(_updateReleaseUrl));
     }
 
     private void OnFacturaeToolsEnabledChanged(
@@ -343,11 +397,6 @@ public sealed partial class MainWindow : Window
         };
         await dialog.ShowAsync();
     }
-
-    private async void OnOpenOfficialReleases(
-        object sender,
-        RoutedEventArgs args) =>
-        await _helpLauncher.OpenOfficialReleasesAsync();
 
     private void OnContentFrameNavigated(
         object sender,

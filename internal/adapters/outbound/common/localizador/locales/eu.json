@@ -2775,5 +2775,10 @@
   ,"portal.seal.y": "Behetik (%)"
   ,"portal.seal.width": "Zabalera (%)"
   ,"portal.seal.height": "Altuera (%)"
-  ,"portal.seal.rotation": "Biraketa (°)"
+  ,"portal.seal.rotation": "Biraketa (°)",
+  "Hay una versión nueva de GrxFirma (%1). Tienes la %2.": "GrxFirmaren bertsio berri bat dago (%1). Zuk %2 duzu.",
+  "Además, el motor local no responde; instalar la versión nueva puede resolverlo.": "Gainera, tokiko motorrak ez du erantzuten; bertsio berria instalatzeak arazoa konpon dezake.",
+  "Descargar e instalar": "Deskargatu eta instalatu",
+  "Ver novedades": "Ikusi berritasunak",
+  "Ahora no": "Orain ez"
 }

@@ -91,6 +91,7 @@ private:
   QAction *m_aboutAction = nullptr;
   QAction *m_quitAction = nullptr;
   bool m_releaseNotesNotificationPending = false;
+  bool m_updateNotificationPending = false;
   bool m_available = false;
   bool m_enabled = false;
   bool m_hidden = false;

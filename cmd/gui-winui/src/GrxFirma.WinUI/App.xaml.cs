@@ -39,6 +39,7 @@ public partial class App : Application
 
     internal bool FacturaeToolsEnabled => _facturaeToolsEnabled;
     internal bool PortalSealActive => _portalSealSession is not null;
+    internal string InstalledVersion => _releaseNotes?.InstalledVersion ?? string.Empty;
 
     public App()
     {
@@ -129,6 +130,7 @@ public partial class App : Application
         _releaseNotes = new ReleaseNotesManager();
         _singleInstance.Listen(() => EnqueueOnUi(ShowWindow));
         _window.ShowInitialPage();
+        _ = RunUpdateLoopAsync();
 
         if (!WinUiLaunchOptions.TryParse(commandLine, out var options, out var safeError))
         {
@@ -210,7 +212,7 @@ public partial class App : Application
                 OperationSession.Attach(client);
                 _window?.ViewModel.SetConnected(client.ServerHello);
                 _ = _window?.RefreshFacturaeToolsAvailabilityAsync();
-                _ = _window?.RefreshUpdateAvailabilityAsync();
+
             });
         }
         catch (OperationCanceledException)
@@ -239,6 +241,44 @@ public partial class App : Application
             EnqueueOnUi(() => _window?.ViewModel.SetConnectionFailure(
                 "No se pudo iniciar la conexión segura con el motor local."));
         }
+    }
+
+
+    internal void NotifyUpdateInTray(string message)
+    {
+        if (_window is not null && !_window.AppWindow.IsVisible)
+            _tray?.ShowUpdateNotification(message);
+    }
+
+    internal void LogAutomaticUpdateFailure(Exception error)
+    {
+        try
+        {
+            var directory = Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData), "GrxFirma", "logs");
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, "winui-updates.log");
+            if (File.Exists(path) && new FileInfo(path).Length > 256 * 1024)
+                File.Delete(path);
+            File.AppendAllText(path,
+                $"{DateTimeOffset.Now:O} {error.GetType().Name}{Environment.NewLine}");
+        }
+        catch (Exception ignored) when (ignored is IOException or UnauthorizedAccessException) { }
+    }
+
+    private async Task RunUpdateLoopAsync()
+    {
+        using var timer = new PeriodicTimer(UpdateNoticeSchedule.Interval);
+        await Task.Yield();
+        if (_window is not null)
+            await _window.RefreshUpdateAvailabilityAsync(_lifetimeCancellation.Token);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(_lifetimeCancellation.Token))
+                if (_window is not null)
+                    await _window.RefreshUpdateAvailabilityAsync(_lifetimeCancellation.Token);
+        }
+        catch (OperationCanceledException) when (_lifetimeCancellation.IsCancellationRequested) { }
     }
 
     internal void SetFacturaeToolsEnabled(bool enabled)

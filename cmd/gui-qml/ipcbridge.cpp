@@ -2487,6 +2487,10 @@ void IpcBridge::checkCertificates() {
   }
 }
 
+bool IpcBridge::updateEngineAvailable() const {
+  return m_socket && m_socket->state() == QLocalSocket::ConnectedState;
+}
+
 void IpcBridge::checkUpdates() {
   m_pendingAction = QStringLiteral("check_updates");
   sendRequest(QStringLiteral("check_updates"));

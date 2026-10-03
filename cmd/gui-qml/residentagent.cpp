@@ -75,7 +75,10 @@ void ResidentAgent::initialize(QWindow *window, const QString &iconPath) {
               showMainWindow();
           });
   connect(m_tray, &QSystemTrayIcon::messageClicked, this, [this]() {
-    if (m_releaseNotesNotificationPending) {
+    if (m_updateNotificationPending) {
+      m_updateNotificationPending = false;
+      showMainWindow();
+    } else if (m_releaseNotesNotificationPending) {
       m_releaseNotesNotificationPending = false;
       emit pendingReleaseNotesRequested();
     }
@@ -211,6 +214,7 @@ void ResidentAgent::recordOperation(const QString &operation, bool success) {
 void ResidentAgent::notifyUpdate(const QString &message) {
   if (!m_shuttingDown && m_tray && m_hidden) {
     m_releaseNotesNotificationPending = false;
+    m_updateNotificationPending = true;
     m_tray->showMessage(QStringLiteral("GrxFirma"),
                         boundedLabel(message, QString()),
                         QSystemTrayIcon::Information, 6000);

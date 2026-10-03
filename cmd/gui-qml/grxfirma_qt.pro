@@ -28,6 +28,7 @@ macx {
 
 SOURCES += \
         main.cpp \
+        officialupdatechecker.cpp \
         activediagnostics.cpp \
         backendbridge.cpp \
         incidentprivacy.cpp \
@@ -46,6 +47,7 @@ HEADERS += \
         ipcbridge.h \
         portalsealbridge.h \
         ipcsocketpath.h \
+        officialupdatechecker.h \
         processarguments.h \
         processenvironment.h \
         residentagent.h \

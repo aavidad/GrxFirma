@@ -6,6 +6,7 @@
 #include "backendbridge.h"
 #include "incidentprivacy.h"
 #include "ipcbridge.h"
+#include "officialupdatechecker.h"
 #include "processarguments.h"
 #include "processenvironment.h"
 #include "portalsealbridge.h"
@@ -416,6 +417,7 @@ int main(int argc, char *argv[]) {
 
   QQmlApplicationEngine engine;
   TranslatorBridge translator;
+  OfficialUpdateChecker officialUpdateChecker;
   ReleaseNotesBridge releaseNotes(resolveReleaseNotes(binDir));
   const QString guiAssetsDir = resolveGuiAssetsDir(binDir);
   const QString bundledSealLogoPath =
@@ -429,6 +431,7 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("isIpcMode", useIpc);
   engine.rootContext()->setContextProperty("ipcSocketPath", ipcPath);
   engine.rootContext()->setContextProperty("i18n", &translator);
+  engine.rootContext()->setContextProperty("officialUpdateChecker", &officialUpdateChecker);
   engine.rootContext()->setContextProperty("residentAgent", &residentAgent);
   engine.rootContext()->setContextProperty("appVersion",
                                            QCoreApplication::applicationVersion());
