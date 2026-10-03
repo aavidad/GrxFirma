@@ -59,18 +59,18 @@ public sealed partial class OperationDiagnosticDialog : ContentDialog
                 ? InfoBarSeverity.Success
                 : InfoBarSeverity.Informational;
             ExportStatusBar.Title = saved
-                ? "Informe guardado"
-                : "Exportación cancelada";
+                ? Localizer.Text("Informe guardado")
+                : Localizer.Text("Exportación cancelada");
             ExportStatusBar.Message = saved
-                ? "El informe saneado está listo para entregarlo a soporte."
-                : "No se ha guardado ningún informe.";
+                ? Localizer.Text("El informe saneado está listo para entregarlo a soporte.")
+                : Localizer.Text("No se ha guardado ningún informe.");
         }
         catch
         {
             ExportStatusBar.Severity = InfoBarSeverity.Error;
-            ExportStatusBar.Title = "No se pudo guardar el informe";
+            ExportStatusBar.Title = Localizer.Text("No se pudo guardar el informe");
             ExportStatusBar.Message =
-                "Inténtelo de nuevo en otra ubicación.";
+                Localizer.Text("Inténtelo de nuevo en otra ubicación.");
         }
         finally
         {
@@ -85,5 +85,5 @@ public sealed partial class OperationDiagnosticDialog : ContentDialog
         app.FilePickerService is not null
             ? app.FilePickerService
             : throw new InvalidOperationException(
-                "El selector de informes todavía no está disponible.");
+                Localizer.Text("El selector de informes todavía no está disponible."));
 }

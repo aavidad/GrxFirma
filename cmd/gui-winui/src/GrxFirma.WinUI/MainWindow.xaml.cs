@@ -245,17 +245,17 @@ public sealed partial class MainWindow : Window
 
         ViewModel.ActivePageTitle = tag switch
         {
-            "sign" => "Firmar",
-            "verify" => "Verificar",
-            "hash" => "Huellas",
-            "protect" => "Proteger",
-            "certificates" => "Certificados",
-            "facturae" => "Facturae y FACe",
+            "sign" => Localizer.Text("Firmar"),
+            "verify" => Localizer.Text("Verificar"),
+            "hash" => Localizer.Text("Huellas"),
+            "protect" => Localizer.Text("Proteger"),
+            "certificates" => Localizer.Text("Certificados"),
+            "facturae" => Localizer.Text("Facturae y FACe"),
             "eni" => SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "paridad.lote3.eni.nav"),
-            "settings" => "Configuración",
-            "diagnostics" => "Diagnóstico",
-            "help" => "Ayuda",
-            "about" => "Acerca de",
+            "settings" => Localizer.Text("Configuración"),
+            "diagnostics" => Localizer.Text("Diagnóstico"),
+            "help" => Localizer.Text("Ayuda"),
+            "about" => Localizer.Text("Acerca de"),
             _ => "GrxFirma",
         };
 

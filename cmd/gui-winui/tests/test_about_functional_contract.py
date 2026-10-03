@@ -50,7 +50,7 @@ class AboutFunctionalContractTests(unittest.TestCase):
             about_items[0].get("Content"),
             "Acerca de",
         )
-        self.assertIn('"about" => "Acerca de"', self.main_code)
+        self.assertIn('"about" => Localizer.Text("Acerca de")', self.main_code)
         self.assertIn('"about" => typeof(AboutPage)', self.main_code)
 
     def test_identity_authorship_and_license_are_visible(self) -> None:

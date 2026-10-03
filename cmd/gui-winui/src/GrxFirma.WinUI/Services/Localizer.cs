@@ -33,7 +33,7 @@ internal static class Localizer
     }
 
     public static string Language => Catalog.Language;
-    public static string Text(string key) => Catalog.Text(key);
+    public static string Text(string key) => Catalog.TranslateVisibleText(key);
     public static string Text(string? language, string key) => Catalog.Text(language, key);
 
     public static bool SetLanguage(string? language) => Catalog.SetLanguage(language);
@@ -64,6 +64,7 @@ internal static class Localizer
         foreach (var property in Properties(element.GetType())) Observe(element, property);
         Observe(element, AutomationProperties.NameProperty);
         Observe(element, AutomationProperties.HelpTextProperty);
+        Observe(element, AutomationProperties.FullDescriptionProperty);
         Observe(element, ToolTipService.ToolTipProperty);
 
         // El contenido de cuadros de diálogo puede no haberse agregado aún

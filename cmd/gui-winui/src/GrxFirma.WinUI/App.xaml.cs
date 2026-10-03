@@ -245,7 +245,7 @@ public partial class App : Application
                 return;
             }
             EnqueueOnUi(() => _window?.ViewModel.SetConnectionFailure(
-                "No se pudo iniciar la conexión segura con el motor local."));
+                Localizer.Text("No se pudo iniciar la conexión segura con el motor local.")));
         }
     }
 
