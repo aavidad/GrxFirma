@@ -3715,5 +3715,13 @@
   "-firmado": "-已签名",
   "documento-protegido": "已加密文档",
   "-protegido": "-已加密",
-  "diagnostico-grxfirma-": "诊断-grxfirma-"
+  "diagnostico-grxfirma-": "诊断-grxfirma-",
+
+  "Preparado": "已准备",
+  "Cancelado": "已取消",
+  "Base64 GrxFirma (.hashb64)": "GrxFirma Base64 (.hashb64)",
+  "XML GrxFirma (.hashfiles)": "GrxFirma XML (.hashfiles)",
+  "CSV (.csv)": "CSV (.csv)",
+  "JSON GrxFirma (.afp)": "GrxFirma JSON (.afp)",
+  "XML GrxFirma": "GrxFirma XML"
 }

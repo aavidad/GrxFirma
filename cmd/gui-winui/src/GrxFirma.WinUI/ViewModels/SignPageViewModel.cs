@@ -4055,7 +4055,7 @@ public sealed class SignPageViewModel
         BatchItems = _batchInputPaths
             .Select(path => new BatchSignDisplayItem(
                 SafeFileName(path),
-                "Preparado",
+                Localizer.Text("Preparado"),
                 "Pendiente de ejecutar.",
                 false,
                 null))
@@ -4108,7 +4108,7 @@ public sealed class SignPageViewModel
                     StringComparison.Ordinal)
                     ? item with
                     {
-                        Status = "Cancelado",
+                        Status = Localizer.Text("Cancelado"),
                         Detail =
                             "No existe confirmación de salida para este documento.",
                     }
