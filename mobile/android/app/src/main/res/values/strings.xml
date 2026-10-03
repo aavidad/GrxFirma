@@ -17,7 +17,7 @@
     <string name="backend_loading_detail">Comprobando el núcleo criptográfico…</string>
     <string name="open_help">Ayuda y seguridad</string>
     <string name="help_title">Cómo usar GrxFirma en Android</string>
-    <string name="help_content">1. Seleccione un documento desde Android o compártalo con GrxFirma.\n\n2. Para firmar, seleccione un PKCS#12 moderno (AES y SHA-256), con un certificado vigente, e introduzca su contraseña. Si Android no puede abrir un PKCS#12 antiguo, reexpórtelo en formato moderno desde el almacén o la aplicación que lo creó. Si el certificado está caducado, renuévelo antes de firmar. La identidad se conserva solo en la memoria de esta sesión: esta versión no afirma usar Android Keystore ni biometría. Pulse «Olvidar certificado» cuando termine.\n\n3. Elija formato automático, PAdES, CAdES o XAdES y confirme la firma. El resultado se guarda mediante el selector seguro de Android.\n\n4. La verificación informa por separado de integridad criptográfica, vigencia del certificado, confianza y disponibilidad de revocación. La aplicación no tiene acceso a Internet: solo puede considerar evidencias de revocación incluidas en la firma y no realiza una consulta en línea.\n\nLa pantalla admite un documento por operación. No anuncia lotes ni integración web. Las capturas están bloqueadas en la versión productiva.</string>
+    <string name="help_content">1. Seleccione un documento desde Android o compártalo con GrxFirma.\n\n2. Para firmar, importe un PKCS#12 protegido o pulse «DNIe por NFC». En el segundo caso, introduzca el CAN de seis dígitos impreso en el DNIe y mantenga la tarjeta junto a la parte trasera del móvil. Se utilizará el certificado de FIRMA y se pedirá el PIN al firmar. La clave privada permanece en la tarjeta.\n\n3. Elija formato automático, PAdES, CAdES o XAdES y confirme la firma. El resultado se guarda mediante el selector de Android. Pulse «Olvidar certificado» cuando termine.\n\n4. La verificación informa por separado de integridad criptográfica, vigencia del certificado, confianza y disponibilidad de revocación. Sin conexión a Internet, solo puede considerar evidencias de revocación incluidas en la firma.\n\nLa pantalla admite un documento por operación. Las capturas están bloqueadas en la versión productiva.</string>
     <string name="help_close">Cerrar</string>
 
     <string name="document_section">Documento</string>
@@ -31,7 +31,36 @@
     <string name="clear_original_document">Quitar documento original</string>
 
     <string name="certificate_section">Certificado de firma</string>
-    <string name="certificate_helper">Importe un PKCS#12 protegido para esta sesión. La clave no se guarda de forma persistente.</string>
+    <string name="certificate_helper">Elija un PKCS#12 o use el DNIe por NFC. La clave del DNIe permanece en la tarjeta.</string>
+    <string name="dnie_nfc_choice">DNIe por NFC</string>
+    <string name="dnie_document_first">Seleccione primero el documento que desea firmar.</string>
+    <string name="dnie_can_title">CAN del DNIe</string>
+    <string name="dnie_can_help">Introduzca los 6 dígitos del CAN impresos en la parte frontal del DNIe, abajo a la derecha.</string>
+    <string name="dnie_can_label">CAN (6 dígitos)</string>
+    <string name="dnie_can_continue">Acercar DNIe</string>
+    <string name="dnie_cancel">Cancelar</string>
+    <string name="dnie_can_invalid">El CAN debe tener exactamente 6 dígitos.</string>
+    <string name="dnie_nfc_icon_description">DNIe y ondas de lectura NFC</string>
+    <string name="dnie_scan_instruction">Mantenga el DNIe junto a la parte trasera del móvil hasta que termine la lectura.</string>
+    <string name="dnie_ready">Certificado de FIRMA del DNIe preparado. Elija el formato y pulse Firmar; se pedirá el PIN.</string>
+    <string name="dnie_session_ended">La sesión NFC terminó al salir de la pantalla. Vuelva a acercar el DNIe para firmar.</string>
+    <string name="dnie_pin_title">PIN del DNIe</string>
+    <string name="dnie_pin_help">Mantenga el DNIe apoyado en el móvil. Introduzca el PIN para firmar este documento.</string>
+    <string name="dnie_pin_label">PIN del DNIe</string>
+    <string name="dnie_pin_invalid">Introduzca el PIN del DNIe.</string>
+    <string name="dnie_pin_confirm">Firmar con DNIe</string>
+    <string name="dnie_nfc_missing">Este móvil no tiene NFC. Use un certificado PKCS#12 u otro móvil compatible.</string>
+    <string name="dnie_nfc_off">Active NFC en los ajustes del móvil y vuelva a intentarlo.</string>
+    <string name="dnie_open_nfc_settings">Abrir ajustes de NFC</string>
+    <string name="dnie_can_wrong">No se pudo abrir el DNIe con ese CAN. Compruebe los seis dígitos y vuelva a acercar la tarjeta.</string>
+    <string name="dnie_pin_wrong">El PIN no es correcto. Intentos restantes: %1$d. Compruébelo antes de volver a firmar.</string>
+    <string name="dnie_pin_wrong_unknown">El PIN no es correcto. No se pudieron consultar los intentos restantes; compruébelo antes de volver a firmar.</string>
+    <string name="dnie_blocked">El DNIe está bloqueado. No intente firmar de nuevo; acuda a un punto de actualización del DNIe.</string>
+    <string name="dnie_removed">Se perdió la conexión con el DNIe. Manténgalo junto al móvil y pulse DNIe por NFC para reintentar.</string>
+    <string name="dnie_expired">El certificado de FIRMA del DNIe ha caducado. Renueve el DNIe antes de firmar.</string>
+    <string name="dnie_no_signature_certificate">No se encontró un certificado de FIRMA utilizable en este DNIe.</string>
+    <string name="dnie_library_unavailable">No se pudo iniciar la lectura del DNIe en esta instalación. Actualice la aplicación.</string>
+    <string name="dnie_error">No se pudo leer o usar el DNIe. Mantenga la tarjeta junto al móvil y vuelva a intentarlo.</string>
     <string name="select_pkcs12">Seleccionar archivo PKCS#12</string>
     <string name="no_certificate_file">Ningún archivo PKCS#12 seleccionado</string>
     <string name="certificate_password">Contraseña del PKCS#12</string>

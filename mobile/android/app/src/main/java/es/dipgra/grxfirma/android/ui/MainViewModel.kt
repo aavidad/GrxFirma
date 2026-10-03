@@ -11,6 +11,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import es.dipgra.grxfirma.android.R
 import es.dipgra.grxfirma.android.core.CoreBridge
+import es.dipgra.grxfirma.android.core.ExternalIdentityBridge
+import es.dipgra.grxfirma.android.nfc.DnieError
+import es.dipgra.grxfirma.android.nfc.DnieErrors
+import es.dipgra.grxfirma.android.nfc.DnieNfcSession
 import es.dipgra.grxfirma.android.files.ContentRepository
 import es.dipgra.grxfirma.android.files.DocumentPolicy
 import es.dipgra.grxfirma.android.model.SignedOutput
@@ -23,6 +27,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicLong
 
 class MainViewModel(
     private val repository: ContentRepository,
@@ -36,6 +41,7 @@ class MainViewModel(
     val effects = effectChannel.receiveAsFlow()
 
     private var pendingOutput: SignedOutput? = null
+    private val identityEpoch = AtomicLong()
 
     fun selectDocument(uri: Uri) {
         if (!mutableState.value.canReplaceSelection) {
@@ -171,6 +177,68 @@ class MainViewModel(
                 password.fill('\u0000')
             }
         }
+    }
+
+    internal fun installDnie(session: DnieNfcSession, onReady: () -> Unit) {
+        val epoch = identityEpoch.incrementAndGet()
+        launchOperation {
+            try {
+                val bridge = core as? ExternalIdentityBridge
+                    ?: throw IllegalStateException("EXTERNAL_SIGNER_UNAVAILABLE")
+                val certificate = bridge.installExternalIdentity(
+                    session.certificate.encoded,
+                    session.chain.map { it.encoded },
+                    session::signDigest,
+                )
+                withContext(Dispatchers.Main) {
+                    if (identityEpoch.get() != epoch) {
+                        core.clearSession()
+                        session.close()
+                    } else {
+                        mutableState.value = mutableState.value.copy(
+                            certificate = certificate,
+                            certificateFile = null,
+                            result = OperationResult.Success(
+                                UiText.Resource(R.string.result_success),
+                                UiText.Resource(R.string.dnie_ready),
+                            ),
+                        )
+                        onReady()
+                    }
+                }
+            } catch (error: Exception) {
+                session.close()
+                reportDnieError(error)
+            }
+        }
+    }
+
+    fun clearDnieIdentity() {
+        identityEpoch.incrementAndGet()
+        try { core.clearSession() } catch (_: Exception) { }
+        val current = mutableState.value
+        mutableState.value = current.copy(
+            certificate = null,
+            result = if (current.awaitingSave) current.result else
+                OperationResult.Error(UiText.Resource(R.string.dnie_session_ended)),
+        )
+    }
+
+    fun reportDnieError(error: Throwable, retriesLeft: Int = -1) {
+        val resource = when (DnieErrors.from(error, retriesLeft)) {
+            DnieError.NFC_MISSING -> R.string.dnie_nfc_missing
+            DnieError.NFC_OFF -> R.string.dnie_nfc_off
+            DnieError.CAN -> R.string.dnie_can_wrong
+            DnieError.PIN -> if (retriesLeft >= 0) R.string.dnie_pin_wrong else R.string.dnie_pin_wrong_unknown
+            DnieError.BLOCKED -> R.string.dnie_blocked
+            DnieError.REMOVED -> R.string.dnie_removed
+            DnieError.EXPIRED -> R.string.dnie_expired
+            DnieError.CERTIFICATE -> R.string.dnie_no_signature_certificate
+            DnieError.LIBRARY -> R.string.dnie_library_unavailable
+            DnieError.OTHER -> R.string.dnie_error
+        }
+        val args = if (resource == R.string.dnie_pin_wrong) listOf(retriesLeft.coerceAtLeast(0)) else emptyList()
+        setError(UiText.Resource(resource, args))
     }
 
     fun sign(format: String, options: Map<String, String> = emptyMap()) {

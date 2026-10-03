@@ -37,6 +37,10 @@ interface CoreBridge {
     fun clearSession()
 }
 
+interface ExternalIdentityBridge {
+    fun installExternalIdentity(certificate: ByteArray, chain: List<ByteArray>, signDigest: (ByteArray, String) -> ByteArray): CertificateSummary
+}
+
 class CoreUnavailableException(message: String) : Exception(message)
 
 class CoreContractException(message: String, cause: Throwable? = null) : Exception(message, cause)

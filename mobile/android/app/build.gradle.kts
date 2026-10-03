@@ -209,6 +209,13 @@ dependencies {
     implementation("com.google.android.material:material:1.13.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    // jmulticard es software libre (EUPL/GPL); se incluye también en F-Droid.
+    implementation(libs.jmulticard.core)
+    implementation(libs.jmulticard.android)
+    implementation(libs.jmulticard.jse)
+    implementation(libs.bcprov)
+    implementation(libs.bcpkix)
+    implementation(libs.bcutil)
 
     add("productionImplementation", files(coreAar))
 
@@ -228,7 +235,14 @@ dependencies {
 // Las configuraciones de pruebas de Android también resuelven Netty de forma
 // transitiva. Mantener todos sus módulos en la versión con las correcciones.
 configurations.configureEach {
+    exclude(group = "com.google.android", module = "android")
+    exclude(group = "com.android.support")
     resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle" && requested.name in setOf(
+                "bcprov-jdk18on", "bcpkix-jdk18on", "bcutil-jdk18on")) {
+            useVersion(libs.versions.bouncycastle.get())
+            because("PACE de jmulticard usa los tres módulos BouncyCastle 1.86")
+        }
         if (requested.group == "io.netty" && requested.version?.startsWith("4.1.") == true) {
             useVersion("4.1.137.Final")
             because("Corrige las vulnerabilidades de Netty detectadas en los classpaths de Android")

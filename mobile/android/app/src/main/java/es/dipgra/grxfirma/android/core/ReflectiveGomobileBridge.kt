@@ -13,11 +13,13 @@ import es.dipgra.grxfirma.android.model.SignedOutput
 import es.dipgra.grxfirma.android.model.VerificationSummary
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import java.lang.reflect.Proxy
+import java.util.Base64
 
 class ReflectiveGomobileBridge private constructor(
     private val facade: Any,
     private val methods: Map<String, Method>,
-) : CoreBridge {
+) : CoreBridge, ExternalIdentityBridge {
     override val readiness = CoreReadiness(
         available = true,
         code = "ready",
@@ -40,6 +42,28 @@ class ReflectiveGomobileBridge private constructor(
         } finally {
             data.fill(0)
         }
+
+    override fun installExternalIdentity(
+        certificate: ByteArray,
+        chain: List<ByteArray>,
+        signDigest: (ByteArray, String) -> ByteArray,
+    ): CertificateSummary {
+        val callbackType = Class.forName("mobilebind.ExternalDigestSigner")
+        val callback = Proxy.newProxyInstance(callbackType.classLoader, arrayOf(callbackType)) { proxy, method, args ->
+            when (method.name) {
+                "signDigest" -> signDigest(args!![0] as ByteArray, args[1] as String)
+                "toString" -> "DNIe external signer"
+                "hashCode" -> System.identityHashCode(proxy)
+                "equals" -> proxy === args?.get(0)
+                else -> throw UnsupportedOperationException()
+            }
+        }
+        val payload = org.json.JSONObject()
+            .put("certificate_base64", Base64.getEncoder().encodeToString(certificate))
+            .put("chain_base64", org.json.JSONArray(chain.map { Base64.getEncoder().encodeToString(it) }))
+            .toString()
+        return CoreJsonCodec.parseCertificate(invokeJson("installExternalIdentityJSON", payload, callback))
+    }
 
     override fun sign(
         document: LoadedFile,
@@ -137,6 +161,10 @@ class ReflectiveGomobileBridge private constructor(
             ).associateWith { facadeClass.getMethod(it, String::class.java) }
                 .toMutableMap()
                 .apply {
+                    put("installExternalIdentityJSON", facadeClass.getMethod(
+                        "installExternalIdentityJSON", String::class.java,
+                        Class.forName("mobilebind.ExternalDigestSigner"),
+                    ))
                     put("clearSession", facadeClass.getMethod("clearSession"))
                     put(
                         "importCertificateBytesJSON",

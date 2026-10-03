@@ -8,7 +8,11 @@ package es.dipgra.grxfirma.android
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.nfc.NfcAdapter
+import android.nfc.Tag
 import android.os.Bundle
+import android.provider.Settings
+import android.text.InputType
 import android.view.WindowManager
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,12 +25,16 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import es.dipgra.grxfirma.android.core.ReflectiveGomobileBridge
 import es.dipgra.grxfirma.android.databinding.ActivityMainBinding
 import es.dipgra.grxfirma.android.files.ContentRepository
 import es.dipgra.grxfirma.android.intents.IncomingDocument
 import es.dipgra.grxfirma.android.intents.IntentDocumentResolver
 import es.dipgra.grxfirma.android.model.SelectedFile
+import es.dipgra.grxfirma.android.nfc.DnieInput
+import es.dipgra.grxfirma.android.nfc.DnieNfcSession
 import es.dipgra.grxfirma.android.seal.SealEditorDialog
 import es.dipgra.grxfirma.android.seal.SealPreferences
 import es.dipgra.grxfirma.android.seal.SealSettings
@@ -40,6 +48,8 @@ import es.dipgra.grxfirma.android.ui.resolve
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Base64
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -51,6 +61,11 @@ class MainActivity : AppCompatActivity() {
     private var updatingSealCheck = false
     private var lastDocumentUri: Uri? = null
     private val sealImageFile: File by lazy { File(noBackupFilesDir, "visible-seal-image") }
+    private var pendingCan: CharArray? = null
+    private var dnieSession: DnieNfcSession? = null
+    private val readingDnie = AtomicBoolean(false)
+    private val scanEpoch = AtomicLong()
+    private val nfcAdapter: NfcAdapter? by lazy { NfcAdapter.getDefaultAdapter(this) }
 
     private val viewModel: MainViewModel by viewModels {
         MainViewModel.Factory(
@@ -122,8 +137,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        stopDnieReading()
+        dnieSession?.close()
+        dnieSession = null
         binding.certificatePassword.text?.clear()
         super.onDestroy()
+    }
+
+    override fun onStop() {
+        stopDnieReading()
+        if (dnieSession != null) {
+            dnieSession?.close()
+            dnieSession = null
+            viewModel.clearDnieIdentity()
+        }
+        super.onStop()
     }
 
     private fun configureActions() = with(binding) {
@@ -144,6 +172,12 @@ class MainActivity : AppCompatActivity() {
         clearOriginalDocumentButton.setOnClickListener { viewModel.clearOriginalDocument() }
         helpButton.setOnClickListener { showHelp() }
         selectCertificateFileButton.setOnClickListener {
+            stopDnieReading()
+            if (dnieSession != null) {
+                dnieSession?.close()
+                dnieSession = null
+                viewModel.clearDnieIdentity()
+            }
             try {
                 openCertificate.launch(
                     arrayOf(
@@ -156,6 +190,8 @@ class MainActivity : AppCompatActivity() {
                 viewModel.reportPickerError()
             }
         }
+        selectDnieNfcButton.setOnClickListener { startDnieSelection() }
+        cancelDnieScanButton.setOnClickListener { stopDnieReading() }
         importCertificateButton.setOnClickListener {
             val password = certificatePassword.text?.toString().orEmpty().toCharArray()
             certificatePassword.text?.clear()
@@ -167,7 +203,11 @@ class MainActivity : AppCompatActivity() {
                 viewModel.importCertificate(password)
             }
         }
-        forgetCertificateButton.setOnClickListener { viewModel.forgetCertificate() }
+        forgetCertificateButton.setOnClickListener {
+            dnieSession?.close()
+            dnieSession = null
+            viewModel.forgetCertificate()
+        }
         visibleSealCheck.setOnCheckedChangeListener { _, checked ->
             if (updatingSealCheck) return@setOnCheckedChangeListener
             sealSettings = sealSettings.copy(enabled = checked)
@@ -176,7 +216,16 @@ class MainActivity : AppCompatActivity() {
             if (checked && sealPageInfo == null) showSealEditor()
         }
         editVisibleSealButton.setOnClickListener { showSealEditor() }
-        signButton.setOnClickListener { signWithSealIfSelected() }
+        signButton.setOnClickListener {
+            if (dnieSession != null) {
+                val document = viewModel.state.value.document
+                if (sealSettings.enabled && document != null && isPdf(document) && sealPageInfo == null) {
+                    showSealEditor()
+                } else {
+                    showDniePinDialog()
+                }
+            } else signWithSealIfSelected()
+        }
         verifyButton.setOnClickListener { viewModel.verify() }
         retrySaveButton.setOnClickListener { viewModel.retryPendingOutput() }
         discardPendingOutputButton.setOnClickListener { viewModel.discardPendingOutput() }
@@ -243,6 +292,7 @@ class MainActivity : AppCompatActivity() {
         clearOriginalDocumentButton.visibility =
             if (state.originalDocument == null) View.GONE else View.VISIBLE
         selectCertificateFileButton.isEnabled = state.canReplaceSelection
+        selectDnieNfcButton.isEnabled = state.canReplaceSelection && state.backend.available
         importCertificateButton.isEnabled = state.canImportCertificate
         val certificateImportVisibility = if (state.certificateFile != null) View.VISIBLE else View.GONE
         certificatePasswordLayout.visibility = certificateImportVisibility
@@ -290,6 +340,11 @@ class MainActivity : AppCompatActivity() {
                 renderDetail(result.detail?.resolve(this@MainActivity))
             }
             is OperationResult.Error -> {
+                dnieSession?.consumeSigningError()?.let { error ->
+                    viewModel.reportDnieError(error, dnieSession?.retriesLeft() ?: -1)
+                    return@with
+                }
+                dnieSession?.clearPin()
                 resultTitle.setText(R.string.result_error)
                 resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.error))
                 renderDetail(result.detail.resolve(this@MainActivity))
@@ -362,11 +417,13 @@ class MainActivity : AppCompatActivity() {
             return
         }
         if (format != "auto" && format != "pades") {
+            dnieSession?.clearPin()
             android.widget.Toast.makeText(this, R.string.seal_pdf_only, android.widget.Toast.LENGTH_LONG).show()
             return
         }
         val pageInfo = sealPageInfo
         if (pageInfo == null) {
+            dnieSession?.clearPin()
             showSealEditor()
             return
         }
@@ -378,6 +435,7 @@ class MainActivity : AppCompatActivity() {
             val options = sealSettings.options(pageInfo.first, pageInfo.second, pageInfo.third, image)
             viewModel.sign("pades", options)
         } catch (_: Exception) {
+            dnieSession?.clearPin()
             android.widget.Toast.makeText(this, R.string.seal_invalid_settings, android.widget.Toast.LENGTH_LONG).show()
         }
     }
@@ -453,6 +511,163 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun startDnieSelection() {
+        if (viewModel.state.value.document == null) {
+            android.widget.Toast.makeText(this, R.string.dnie_document_first, android.widget.Toast.LENGTH_LONG).show()
+            return
+        }
+        val adapter = nfcAdapter
+        if (adapter == null) {
+            viewModel.reportDnieError(IllegalStateException("NFC_MISSING"))
+            return
+        }
+        if (!adapter.isEnabled) {
+            viewModel.reportDnieError(IllegalStateException("NFC_OFF"))
+            MaterialAlertDialogBuilder(this)
+                .setMessage(R.string.dnie_nfc_off)
+                .setPositiveButton(R.string.dnie_open_nfc_settings) { _, _ ->
+                    startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
+                }
+                .setNegativeButton(R.string.dnie_cancel, null)
+                .show()
+            return
+        }
+        val field = TextInputEditText(this).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            filters = arrayOf(android.text.InputFilter.LengthFilter(6))
+            isSaveEnabled = false
+            importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+        }
+        val layout = TextInputLayout(this).apply {
+            hint = getString(R.string.dnie_can_label)
+            addView(field)
+        }
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.dnie_can_title)
+            .setMessage(R.string.dnie_can_help)
+            .setView(layout)
+            .setPositiveButton(R.string.dnie_can_continue, null)
+            .setNegativeButton(R.string.dnie_cancel) { _, _ -> field.text?.clear() }
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val editable = field.text
+                val can = CharArray(editable?.length ?: 0) { editable!![it] }
+                field.text?.clear()
+                if (!DnieInput.validCan(can)) {
+                    can.fill('\u0000')
+                    layout.error = getString(R.string.dnie_can_invalid)
+                    return@setOnClickListener
+                }
+                pendingCan?.fill('\u0000')
+                pendingCan = can
+                layout.error = null
+                dialog.dismiss()
+                beginDnieReading(adapter)
+            }
+        }
+        dialog.show()
+    }
+
+    private fun beginDnieReading(adapter: NfcAdapter) {
+        val epoch = scanEpoch.incrementAndGet()
+        binding.dnieScanGuidance.visibility = View.VISIBLE
+        binding.cancelDnieScanButton.visibility = View.VISIBLE
+        binding.dnieScanStatus.setText(R.string.dnie_scan_instruction)
+        readingDnie.set(false)
+        adapter.enableReaderMode(this, reader@{ tag: Tag ->
+            if (!readingDnie.compareAndSet(false, true)) return@reader
+            val can = pendingCan ?: run {
+                readingDnie.set(false)
+                return@reader
+            }
+            pendingCan = null
+            try {
+                val session = DnieNfcSession.open(tag, can)
+                runOnUiThread ui@{
+                    if (scanEpoch.get() != epoch || !lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                        session.close()
+                        return@ui
+                    }
+                    nfcAdapter?.disableReaderMode(this)
+                    binding.cancelDnieScanButton.visibility = View.GONE
+                    dnieSession?.close()
+                    dnieSession = session
+                    viewModel.installDnie(session) {
+                        binding.dnieScanStatus.setText(R.string.dnie_ready)
+                    }
+                }
+            } catch (error: Exception) {
+                runOnUiThread ui@{
+                    if (scanEpoch.get() != epoch || !lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@ui
+                    stopDnieReading()
+                    binding.dnieScanGuidance.visibility = View.GONE
+                    viewModel.reportDnieError(error)
+                }
+            } finally {
+                can.fill('\u0000')
+                readingDnie.set(false)
+            }
+        }, NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or
+            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null)
+    }
+
+    private fun stopDnieReading() {
+        scanEpoch.incrementAndGet()
+        try { nfcAdapter?.disableReaderMode(this) } catch (_: IllegalStateException) { }
+        pendingCan?.fill('\u0000')
+        pendingCan = null
+        binding.dnieScanGuidance.visibility = View.GONE
+        binding.cancelDnieScanButton.visibility = View.GONE
+    }
+
+    private fun showDniePinDialog() {
+        val session = dnieSession ?: return
+        val field = TextInputEditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            filters = arrayOf(android.text.InputFilter.LengthFilter(16))
+            isSaveEnabled = false
+            importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+        }
+        val layout = TextInputLayout(this).apply {
+            hint = getString(R.string.dnie_pin_label)
+            addView(field)
+        }
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.dnie_pin_title)
+            .setMessage(R.string.dnie_pin_help)
+            .setView(layout)
+            .setPositiveButton(R.string.dnie_pin_confirm, null)
+            .setNegativeButton(R.string.dnie_cancel) { _, _ -> field.text?.clear() }
+            .create()
+        dialog.setOnDismissListener {
+            field.text?.clear()
+            if (BuildConfig.CORE_MODE != "production") window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+        dialog.setOnShowListener {
+            dialog.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val editable = field.text
+                val pin = CharArray(editable?.length ?: 0) { editable!![it] }
+                field.text?.clear()
+                if (!DnieInput.validPin(pin)) {
+                    pin.fill('\u0000')
+                    layout.error = getString(R.string.dnie_pin_invalid)
+                    return@setOnClickListener
+                }
+                try {
+                    session.setPin(pin)
+                    dialog.dismiss()
+                    signWithSealIfSelected()
+                } finally {
+                    pin.fill('\u0000')
+                }
+            }
+        }
+        dialog.show()
     }
 
     private fun showHelp() {

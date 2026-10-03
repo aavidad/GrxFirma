@@ -17,7 +17,7 @@
     <string name="backend_loading_detail">Checking the cryptographic core…</string>
     <string name="open_help">Help and security</string>
     <string name="help_title">Using GrxFirma on Android</string>
-    <string name="help_content">1. Select a document in Android or share it with GrxFirma.\n\n2. To sign, select a modern PKCS#12 file (AES and SHA-256) containing a currently valid certificate, then enter its password. If Android cannot open an old PKCS#12 file, re-export it in modern format from the store or application that created it. Renew an expired certificate before signing. The identity is held only in this session’s memory: this version does not claim to use Android Keystore or biometrics. Tap “Forget certificate” when finished.\n\n3. Choose automatic, PAdES, CAdES or XAdES format and confirm signing. The result is saved through Android’s secure system picker.\n\n4. Verification reports cryptographic integrity, certificate validity, chain trust and revocation availability separately. The application has no Internet access: it can only consider revocation evidence embedded in the signature and does not perform an online check.\n\nThe screen accepts one document per operation. It does not advertise batches or web integration. Screenshots are blocked in the production build.</string>
+    <string name="help_content">1. Select a document in Android or share it with GrxFirma.\n\n2. To sign, import a protected PKCS#12 file or tap “DNIe over NFC”. For NFC, enter the six CAN digits printed on the DNIe and hold the card against the back of the phone. The SIGNATURE certificate is used and the PIN is requested when signing. The private key stays on the card.\n\n3. Choose automatic, PAdES, CAdES or XAdES format and confirm signing. Save the result with the Android picker. Tap “Forget certificate” when finished.\n\n4. Verification reports cryptographic integrity, certificate validity, chain trust and revocation availability separately. Without Internet access, it can only consider revocation evidence embedded in the signature.\n\nThe screen accepts one document per operation. Screenshots are blocked in the production build.</string>
     <string name="help_close">Close</string>
 
     <string name="document_section">Document</string>
@@ -31,7 +31,36 @@
     <string name="clear_original_document">Remove original document</string>
 
     <string name="certificate_section">Signing certificate</string>
-    <string name="certificate_helper">Import a protected PKCS#12 file for this session. The key is not stored persistently.</string>
+    <string name="certificate_helper">Choose a PKCS#12 file or use your DNIe over NFC. The DNIe key stays on the card.</string>
+    <string name="dnie_nfc_choice">DNIe over NFC</string>
+    <string name="dnie_document_first">Select the document you want to sign first.</string>
+    <string name="dnie_can_title">DNIe CAN</string>
+    <string name="dnie_can_help">Enter the six CAN digits printed on the front of the DNIe, at the bottom right.</string>
+    <string name="dnie_can_label">CAN (6 digits)</string>
+    <string name="dnie_can_continue">Hold DNIe near phone</string>
+    <string name="dnie_cancel">Cancel</string>
+    <string name="dnie_can_invalid">The CAN must contain exactly six digits.</string>
+    <string name="dnie_nfc_icon_description">DNIe card and NFC reading waves</string>
+    <string name="dnie_scan_instruction">Hold the DNIe against the back of the phone until reading finishes.</string>
+    <string name="dnie_ready">The DNIe SIGNATURE certificate is ready. Choose a format and tap Sign; you will be asked for the PIN.</string>
+    <string name="dnie_session_ended">The NFC session ended when you left this screen. Hold the DNIe near the phone again to sign.</string>
+    <string name="dnie_pin_title">DNIe PIN</string>
+    <string name="dnie_pin_help">Keep the DNIe against the phone. Enter the PIN to sign this document.</string>
+    <string name="dnie_pin_label">DNIe PIN</string>
+    <string name="dnie_pin_invalid">Enter your DNIe PIN.</string>
+    <string name="dnie_pin_confirm">Sign with DNIe</string>
+    <string name="dnie_nfc_missing">This phone has no NFC. Use a PKCS#12 certificate or another compatible phone.</string>
+    <string name="dnie_nfc_off">Turn on NFC in your phone settings and try again.</string>
+    <string name="dnie_open_nfc_settings">Open NFC settings</string>
+    <string name="dnie_can_wrong">The DNIe could not be opened with that CAN. Check the six digits and hold the card near the phone again.</string>
+    <string name="dnie_pin_wrong">Incorrect PIN. Attempts remaining: %1$d. Check it before trying again.</string>
+    <string name="dnie_pin_wrong_unknown">Incorrect PIN. The remaining attempts could not be checked; verify the PIN before trying again.</string>
+    <string name="dnie_blocked">The DNIe is blocked. Do not try again; visit a DNIe update point.</string>
+    <string name="dnie_removed">Connection to the DNIe was lost. Keep it against the phone and tap DNIe over NFC to retry.</string>
+    <string name="dnie_expired">The DNIe SIGNATURE certificate has expired. Renew the DNIe before signing.</string>
+    <string name="dnie_no_signature_certificate">No usable SIGNATURE certificate was found on this DNIe.</string>
+    <string name="dnie_library_unavailable">DNIe reading could not start in this installation. Update the app.</string>
+    <string name="dnie_error">The DNIe could not be read or used. Keep the card against the phone and try again.</string>
     <string name="select_pkcs12">Select PKCS#12 file</string>
     <string name="no_certificate_file">No PKCS#12 file selected</string>
     <string name="certificate_password">PKCS#12 password</string>

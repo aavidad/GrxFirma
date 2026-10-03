@@ -9,6 +9,34 @@ Proyecto Android nativo en Kotlin para seleccionar documentos mediante Storage
 Access Framework, preparar certificados PKCS#12, firmar y verificar a través del
 nucleo Go enlazado con `gomobile bind`.
 
+## DNIe 3.0/4.0 por NFC
+
+La opción «DNIe por NFC» usa `jmulticard`, `jmulticard-android` y
+`jmulticard-jse` 2.0, con BouncyCastle 1.86. La conexión NFC oficial de
+jmulticard y `BcCryptoHelper` realizan PACE con Brainpool sin registrar un
+proveedor criptográfico global. Un adaptador usa `SecureRandom` para la
+aleatoriedad de CWA-14890, ya que `BcCryptoHelper` 2.0 no siembra su generador.
+El usuario introduce el CAN de seis cifras, acerca el DNIe, selecciona el
+certificado de FIRMA y confirma con el PIN. La clave privada no sale de la
+tarjeta. La app no guarda CAN ni PIN en almacenamiento; al salir de la pantalla se cierra la sesión
+NFC. El núcleo Go recibe solo resúmenes y verifica cada firma RSA contra el
+certificado antes de crear PAdES, CAdES o XAdES.
+
+La resolución de dependencias, el `gradle.lockfile` y
+`gradle/verification-metadata.xml` se completan fuera de este entorno sin red.
+Después hay que reconstruir el AAR `gomobile` con el nuevo método
+`installExternalIdentityJSON`, fijar su SHA-256 y compilar `productionDebug`.
+
+Antes de distribuir, un operador debe probar con un móvil NFC y DNIe 3.0 y
+4.0 reales: lectura de ambos certificados, elección de FIRMA, CAN incorrecto,
+PIN incorrecto e intentos restantes, bloqueo, retirada durante lectura y
+firma, certificado caducado, NFC desactivado y móvil sin NFC. Debe abrir y
+verificar fuera de la aplicación las salidas PAdES, CAdES y XAdES, comprobar
+que incluyen las CA intermedias disponibles y repetir el recorrido con
+TalkBack, texto ampliado y rotación de pantalla. Hay que comprobar también
+que el lector acepta la operación RSA sobre DigestInfo ya calculado; el
+núcleo rechaza la salida si la firma no corresponde al certificado.
+
 ## Variantes
 
 - `verificationDebug`: compila, ejecuta selectores SAF, valida estados y permite

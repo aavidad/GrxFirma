@@ -17,6 +17,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"io"
 	"math/big"
 	"net/http"
 	"os"
@@ -302,6 +303,7 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			"verify":             true,
 			"select_certificate": true,
 			"import_certificate": true,
+			"external_signer":    true,
 			"platform_profile":   true,
 			"clear_session":      true,
 			"android_intent":     androidIntent,
@@ -399,6 +401,89 @@ type sessionIdentity struct {
 	signer      crypto.Signer
 	certificate *x509.Certificate
 	chain       []*x509.Certificate
+}
+
+// ExternalDigestSigner es el único acceso del núcleo a una clave no exportable.
+// gomobile implementa esta interfaz en Android; nunca recibe la clave privada.
+type ExternalDigestSigner interface {
+	SignDigest(digest []byte, hashName string) ([]byte, error)
+}
+
+type externalRSASigner struct {
+	publicKey *rsa.PublicKey
+	delegate  ExternalDigestSigner
+}
+
+func (s *externalRSASigner) Public() crypto.PublicKey { return s.publicKey }
+
+func (s *externalRSASigner) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts) ([]byte, error) {
+	if s == nil || s.delegate == nil || s.publicKey == nil || opts == nil {
+		return nil, errors.New("firmador externo no disponible")
+	}
+	if _, pss := opts.(*rsa.PSSOptions); pss {
+		return nil, errors.New("RSA-PSS no admitido por DNIe")
+	}
+	hash := opts.HashFunc()
+	if hash != crypto.SHA256 && hash != crypto.SHA384 && hash != crypto.SHA512 {
+		return nil, errors.New("resumen no admitido por DNIe")
+	}
+	if len(digest) != hash.Size() {
+		return nil, errors.New("longitud del resumen no valida")
+	}
+	copyDigest := append([]byte(nil), digest...)
+	defer zeroBytes(copyDigest)
+	signature, err := s.delegate.SignDigest(copyDigest, hash.String())
+	if err != nil {
+		return nil, errors.New("el DNIe no pudo firmar el resumen")
+	}
+	if err := rsa.VerifyPKCS1v15(s.publicKey, hash, digest, signature); err != nil {
+		zeroBytes(signature)
+		return nil, errors.New("la firma del DNIe no corresponde al certificado")
+	}
+	return signature, nil
+}
+
+// installExternalIdentity sustituye atómicamente la identidad en memoria.
+func (s *sessionIdentityStore) installExternalIdentity(leafDER []byte, chainDER [][]byte, delegate ExternalDigestSigner) (domain.CertificateRef, error) {
+	if delegate == nil || len(leafDER) == 0 || len(leafDER) > maxCertificateBytes || len(chainDER) > maxCertificateChainLength {
+		return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
+	}
+	cert, err := x509.ParseCertificate(append([]byte(nil), leafDER...))
+	if err != nil {
+		return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
+	}
+	publicKey, ok := cert.PublicKey.(*rsa.PublicKey)
+	if !ok || publicKey.N == nil || publicKey.N.BitLen() < 2048 {
+		return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
+	}
+	chain := make([]*x509.Certificate, 0, len(chainDER))
+	for _, der := range chainDER {
+		if len(der) == 0 || len(der) > maxCertificateBytes {
+			return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
+		}
+		issuer, err := x509.ParseCertificate(append([]byte(nil), der...))
+		if err != nil || !issuer.IsCA {
+			return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
+		}
+		chain = append(chain, issuer)
+	}
+	previousCertificate := cert
+	for _, issuer := range chain {
+		if err := previousCertificate.CheckSignatureFrom(issuer); err != nil {
+			return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
+		}
+		previousCertificate = issuer
+	}
+	identity := &sessionIdentity{reference: certificateReference(cert), signer: &externalRSASigner{publicKey, delegate}, certificate: cert, chain: chain}
+	if err := validateImportedIdentity(identity); err != nil {
+		return domain.CertificateRef{}, err
+	}
+	s.mu.Lock()
+	oldIdentity := s.identity
+	s.identity = identity
+	s.mu.Unlock()
+	destroySessionIdentity(oldIdentity)
+	return identity.reference, nil
 }
 
 type sessionIdentityStore struct {

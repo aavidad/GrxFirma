@@ -170,7 +170,7 @@ func TestPlatformContractsAreHonest(t *testing.T) {
 	if androidContract.Platform != "android" || androidContract.ContractVersion != mobileContractVersion {
 		t.Fatalf("contrato Android inesperado: %+v", androidContract)
 	}
-	for _, service := range []string{"sign", "verify", "select_certificate", "import_certificate"} {
+	for _, service := range []string{"sign", "verify", "select_certificate", "import_certificate", "external_signer"} {
 		if !androidContract.Services[service] {
 			t.Fatalf("servicio Android no declarado: %s", service)
 		}

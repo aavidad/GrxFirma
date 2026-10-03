@@ -78,7 +78,7 @@ object CoreJsonCodec {
         }
         val services = json.optJSONObject("services")
             ?: throw CoreContractException("El AAR no declara sus servicios.")
-        for (service in listOf("sign", "verify", "select_certificate", "import_certificate")) {
+        for (service in listOf("sign", "verify", "select_certificate", "import_certificate", "external_signer")) {
             requireField(services.optBoolean(service, false)) {
                 "El servicio '$service' no está operativo en el AAR."
             }
