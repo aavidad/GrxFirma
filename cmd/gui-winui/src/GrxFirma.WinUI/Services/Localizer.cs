@@ -29,12 +29,18 @@ internal static class Localizer
     {
         public Dictionary<DependencyProperty, string> Original { get; } = [];
         public HashSet<DependencyProperty> Observed { get; } = [];
+        public Dictionary<DependencyProperty, (string Source, string Language,
+            string Translation)> Applied { get; } = [];
         public bool Applying { get; set; }
     }
 
     public static string Language => Catalog.Language;
     public static string Text(string key) => Catalog.Text(key);
     public static string Text(string? language, string key) => Catalog.Text(language, key);
+    public static string VisibleText(string source) => Catalog.TranslateVisibleText(source);
+    public static string Format(string key, params object?[] arguments) =>
+        string.Format(System.Globalization.CultureInfo.CurrentCulture,
+            Catalog.Text(key), arguments);
 
     public static bool SetLanguage(string? language) => Catalog.SetLanguage(language);
 
@@ -64,6 +70,7 @@ internal static class Localizer
         foreach (var property in Properties(element.GetType())) Observe(element, property);
         Observe(element, AutomationProperties.NameProperty);
         Observe(element, AutomationProperties.HelpTextProperty);
+        Observe(element, AutomationProperties.FullDescriptionProperty);
         Observe(element, ToolTipService.ToolTipProperty);
 
         // El contenido de cuadros de diálogo puede no haberse agregado aún
@@ -129,7 +136,13 @@ internal static class Localizer
         DependencyObject element, DependencyProperty property, ElementState state)
     {
         var original = state.Original[property];
+        var language = Catalog.Language;
+        if (state.Applied.TryGetValue(property, out var applied) &&
+            applied.Source == original && applied.Language == language &&
+            element.GetValue(property) is string displayed &&
+            displayed == applied.Translation) return;
         var translated = Catalog.TranslateVisibleText(original);
+        state.Applied[property] = (original, language, translated);
         if (element.GetValue(property) is string current && current == translated)
             return;
         state.Applying = true;

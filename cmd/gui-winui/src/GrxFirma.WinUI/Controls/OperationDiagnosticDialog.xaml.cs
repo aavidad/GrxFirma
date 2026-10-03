@@ -53,7 +53,8 @@ public sealed partial class OperationDiagnosticDialog : ContentDialog
             var saved = await _filePicker.PickAndSaveTextFileAsync(
                 SaveFilePickerProfile.DiagnosticReport,
                 report,
-                $"diagnostico-grxfirma-{generatedAtUtc:yyyyMMddTHHmmssZ}");
+                Localizer.Text("diagnostico-grxfirma-") +
+                $"{generatedAtUtc:yyyyMMddTHHmmssZ}");
 
             ExportStatusBar.Severity = saved
                 ? InfoBarSeverity.Success

@@ -77,10 +77,10 @@ public sealed partial class SignPage : Page
             app.FilePickerService,
             new WindowsPdfPreviewService());
         ViewModel.VisibleSealLogoOpacityLabel = SealUiCatalog.LogoOpacityLabel(
-            CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
+            Localizer.Language);
         ViewModel.VisibleSealOpacityHelp = SealUiCatalog.SealOpacityHelp(
-            CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
-        ViewModel.SetSealUiLanguage(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
+            Localizer.Language);
+        ViewModel.SetSealUiLanguage(Localizer.Language);
         CertificatePanel = new CertificatesPageViewModel(
             _session,
             app.FilePickerService);
@@ -126,7 +126,7 @@ public sealed partial class SignPage : Page
     {
         _portalSealSession = session;
         ViewModel.ConfigurePortalSealDocument(session.DocumentPath, session.SignerName);
-        var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+        var language = Localizer.Language;
         string Label(string key) => SealUiCatalog.Text(language, key);
         // Antes de cargarse la página WinUI no expone el padre: se suelta del
         // panel con nombre que lo contiene en SignPage.xaml.
@@ -896,7 +896,7 @@ public sealed partial class SignPage : Page
             : "No se pudo firmar el documento";
         var cause = diagnostic?.UserMessage;
         SignResultNotice.Message = unsafeOutput
-            ? $"{ViewModel.ResultMessage} {ViewModel.ValidationMessage}"
+            ? $"{Localizer.VisibleText(ViewModel.ResultMessage)} {Localizer.VisibleText(ViewModel.ValidationMessage)}"
             : hasOutput
             ? ViewModel.ResultMessage
             : string.IsNullOrWhiteSpace(cause)

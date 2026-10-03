@@ -12,23 +12,42 @@ using GrxFirma.WinUI.Services;
 
 namespace GrxFirma.WinUI.ViewModels;
 
-public sealed record SignActionOption(string Label, string Value);
+public sealed record SignActionOption(string SourceLabel, string Value)
+{
+    public string Label => Localizer.Text(SourceLabel);
+}
 
 public sealed record SignatureFormatOption(
-    string Label,
+    string SourceLabel,
     string Value,
-    SaveFilePickerProfile SaveProfile);
+    SaveFilePickerProfile SaveProfile)
+{
+    public string Label => Localizer.Text(SourceLabel);
+}
 
-public sealed record SignatureProfileOption(string Label, string Value);
+public sealed record SignatureProfileOption(string SourceLabel, string Value)
+{
+    public string Label => Localizer.Text(SourceLabel);
+}
 
-public sealed record VisibleSealRotationOption(string Label, int Value);
+public sealed record VisibleSealRotationOption(string SourceLabel, int Value)
+{
+    public string Label => Localizer.Text(SourceLabel);
+}
 
 public sealed record VisibleSealStyleOption(
-    string Label,
+    string SourceLabel,
     string Value,
-    string Description);
+    string SourceDescription)
+{
+    public string Label => Localizer.Text(SourceLabel);
+    public string Description => Localizer.Text(SourceDescription);
+}
 
-public sealed record VisibleSealPageModeOption(string Label, string Value);
+public sealed record VisibleSealPageModeOption(string SourceLabel, string Value)
+{
+    public string Label => Localizer.Text(SourceLabel);
+}
 
 public sealed record BatchSignDisplayItem(
     string DocumentName,
@@ -81,7 +100,7 @@ public sealed class SignPageViewModel
     private IReadOnlyList<string> _batchInputPaths = [];
     private string? _batchSourceDirectory;
     private string? _batchOutputDirectory;
-    private string _inputDisplayName = "Ningún documento seleccionado";
+    private string _inputDisplayName = Localizer.Text("Ningún documento seleccionado");
     private string _batchInputSummary =
         "No se han seleccionado documentos para el lote.";
     private string _batchOutputSummary =
@@ -959,7 +978,8 @@ public sealed class SignPageViewModel
     public string VisibleSealImageSummary =>
         string.IsNullOrWhiteSpace(_visibleSealImagePath)
             ? "Ninguna imagen elegida."
-            : $"Imagen: {Path.GetFileName(_visibleSealImagePath)}";
+            : Localizer.Format("Imagen: {0}",
+                Path.GetFileName(_visibleSealImagePath));
 
     public string VisibleSealCsvLabel => SealText("paridad.lote3.csv.enable");
     public string VisibleSealCsvNotice => SealText("paridad.lote3.csv.notice");
@@ -1193,9 +1213,13 @@ public sealed class SignPageViewModel
     public int PortalTotalPages => _previewTotalPages;
 
     public string VisibleSealGeometrySummary =>
-        $"Tamaño: {VisibleSealPreviewWidth * 25.4 / 72:0.#} × " +
-        $"{VisibleSealPreviewHeight * 25.4 / 72:0.#} mm · " +
-        $"Giro: {VisibleSealPreviewRotation:0}°";
+        Localizer.Format("Tamaño: {0} × {1} mm · Giro: {2}°",
+            (VisibleSealPreviewWidth * 25.4 / 72).ToString("0.#",
+                System.Globalization.CultureInfo.CurrentCulture),
+            (VisibleSealPreviewHeight * 25.4 / 72).ToString("0.#",
+                System.Globalization.CultureInfo.CurrentCulture),
+            VisibleSealPreviewRotation.ToString("0",
+                System.Globalization.CultureInfo.CurrentCulture));
 
     public string VisibleSealReadabilityHint =>
         _visibleSealRotationDegrees % 180 != 0 &&
@@ -1646,8 +1670,9 @@ public sealed class SignPageViewModel
         ArgumentNullException.ThrowIfNull(exception);
         ValidationMessage = exception is
             SecurePasswordPromptException promptException
-            ? "No se pudo capturar la contraseña de la credencial. " +
-                $"Código de soporte: {promptException.SupportCode}."
+            ? Localizer.Format(
+                "No se pudo capturar la contraseña de la credencial. Código de soporte: {0}.",
+                promptException.SupportCode)
             : "No se pudo capturar la contraseña de la credencial.";
         return OperationDiagnosticMapper.FromException(exception);
     }
@@ -1881,8 +1906,8 @@ public sealed class SignPageViewModel
             }
 
             _batchOutputDirectory = fullPath;
-            BatchOutputSummary =
-                $"Salida: {SafeDirectoryName(fullPath)}";
+            BatchOutputSummary = Localizer.Format("Salida: {0}",
+                SafeDirectoryName(fullPath));
             ResetBatchResults();
             UpdateValidationMessage();
             UpdateCommandStates();
@@ -2092,8 +2117,9 @@ public sealed class SignPageViewModel
                 out var successCount,
                 out var failureCount);
             BatchProgressValue = currentPaths.Count;
-            BatchProgressText =
-                $"Lote finalizado: {successCount} correcto(s), {failureCount} fallido(s).";
+            BatchProgressText = Localizer.Format(
+                "Lote finalizado: {0} correcto(s), {1} fallido(s).",
+                successCount, failureCount);
             ValidationMessage = failureCount == 0 && protocolCoherent
                 ? "Todos los documentos tienen una salida no vacía confirmada por el motor."
                 : "El lote terminó con incidencias. Revise cada documento y el diagnóstico antes de continuar.";
@@ -2401,10 +2427,13 @@ public sealed class SignPageViewModel
 
             _visibleSealPages = normalizedPages;
             RaisePropertyChanged(nameof(VisibleSealPages));
-            VisibleSealPreviewMessage =
-                $"PDF real: página {_previewCurrentPage} de {_previewTotalPages}, " +
-                $"{_previewPageWidth:0.##} × {_previewPageHeight:0.##} puntos. " +
-                "El sello se muestra con su aspecto real dentro de la zona marcada.";
+            VisibleSealPreviewMessage = Localizer.Format(
+                "PDF real: página {0} de {1}, {2} × {3} puntos. El sello se muestra con su aspecto real dentro de la zona marcada.",
+                _previewCurrentPage, _previewTotalPages,
+                _previewPageWidth.ToString("0.##",
+                    System.Globalization.CultureInfo.CurrentCulture),
+                _previewPageHeight.ToString("0.##",
+                    System.Globalization.CultureInfo.CurrentCulture));
             ValidationMessage =
                 "Previsualización preparada. Revise posición, tamaño y orientación antes de firmar.";
             UpdateCommandStates();
@@ -3205,7 +3234,7 @@ public sealed class SignPageViewModel
         if (!File.Exists(_inputPath))
         {
             _inputPath = null;
-            InputDisplayName = "Ningún documento seleccionado";
+            InputDisplayName = Localizer.Text("Ningún documento seleccionado");
             ClearOutput();
             UpdateCommandStates();
             return "El documento seleccionado ya no está disponible. Selecciónelo de nuevo.";
@@ -3849,10 +3878,12 @@ public sealed class SignPageViewModel
         var remaining =
             _selectedAdditionalCertificateIds.Count - names.Length;
         var suffix = remaining > 0
-            ? $" y {remaining} más"
+            ? Localizer.Format(" y {0} más", remaining)
             : string.Empty;
-        GuidedMultiCosignSummary =
-            $"Principal: {SelectedCertificate?.DisplayName ?? "no definido"}. Después: {string.Join(", ", names)}{suffix}.";
+        GuidedMultiCosignSummary = Localizer.Format(
+            "Principal: {0}. Después: {1}{2}.",
+            SelectedCertificate?.DisplayName ?? Localizer.Text("no definido"),
+            string.Join(", ", names), suffix);
     }
 
     private bool IsGuidedMultiCosignEligible() =>
@@ -4009,9 +4040,11 @@ public sealed class SignPageViewModel
         var folderSuffix = string.IsNullOrWhiteSpace(
             _batchSourceDirectory)
             ? string.Empty
-            : $" Incluye la carpeta {SafeDirectoryName(_batchSourceDirectory)}.";
-        BatchInputSummary =
-            $"{combinedPaths.Count} documento(s) seleccionado(s).{folderSuffix}";
+            : Localizer.Format(" Incluye la carpeta {0}.",
+                SafeDirectoryName(_batchSourceDirectory));
+        BatchInputSummary = Localizer.Format(
+            "{0} documento(s) seleccionado(s).{1}",
+            combinedPaths.Count, folderSuffix);
         ResetBatchResults();
         UpdateValidationMessage();
         UpdateCommandStates();
@@ -4200,7 +4233,8 @@ public sealed class SignPageViewModel
             visibleItems.Add(new BatchSignDisplayItem(
                 SafeFileName(expectedPath),
                 "Firmado",
-                $"Salida confirmada: {SafeFileName(item.OutputPath)}",
+                Localizer.Format("Salida confirmada: {0}",
+                    SafeFileName(item.OutputPath)),
                 true,
                 item.OutputPath));
         }
@@ -4442,12 +4476,12 @@ public sealed class SignPageViewModel
                 Path.TrimEndingDirectorySeparator(path);
             var name = Path.GetFileName(normalized);
             return string.IsNullOrWhiteSpace(name)
-                ? "carpeta seleccionada"
+                ? Localizer.Text("carpeta seleccionada")
                 : name;
         }
         catch
         {
-            return "carpeta seleccionada";
+            return Localizer.Text("carpeta seleccionada");
         }
     }
 
@@ -4653,8 +4687,9 @@ public sealed class SignPageViewModel
         if (value.Length > MaximumMetadataLength ||
             value.Any(char.IsControl))
         {
-            error =
-                $"El campo {label} admite hasta {MaximumMetadataLength} caracteres de texto en una sola línea.";
+            error = Localizer.Format(
+                "El campo {0} admite hasta {1} caracteres de texto en una sola línea.",
+                Localizer.Text(label), MaximumMetadataLength);
             return false;
         }
         normalized = value.Trim();
@@ -4839,8 +4874,8 @@ public sealed class SignPageViewModel
     {
         var baseName = Path.GetFileNameWithoutExtension(inputPath);
         return string.IsNullOrWhiteSpace(baseName)
-            ? "documento-firmado"
-            : $"{baseName}-firmado";
+            ? Localizer.Text("documento-firmado")
+            : baseName + Localizer.Text("-firmado");
     }
 
     private static string SafeFileName(string path)
@@ -4849,12 +4884,12 @@ public sealed class SignPageViewModel
         {
             var fileName = Path.GetFileName(path);
             return string.IsNullOrWhiteSpace(fileName)
-                ? "documento seleccionado"
+                ? Localizer.Text("documento seleccionado")
                 : fileName;
         }
         catch
         {
-            return "documento seleccionado";
+            return Localizer.Text("documento seleccionado");
         }
     }
 

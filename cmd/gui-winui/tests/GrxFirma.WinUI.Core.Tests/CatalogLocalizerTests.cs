@@ -46,4 +46,35 @@ public sealed class CatalogLocalizerTests
     {
         Assert.ThrowsExactly<ArgumentException>(() => new CatalogLocalizer(""));
     }
+
+    [TestMethod]
+    public void VisibleTemplateKeepsFileNameWhenLanguageChanges()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            File.WriteAllText(Path.Combine(directory, "es.json"),
+                """{"La firma se guardó como {0}, pero no pudo validarse.":"La firma se guardó como {0}, pero no pudo validarse.","{0}: {1}":"{0}: {1}"}""");
+            File.WriteAllText(Path.Combine(directory, "en.json"),
+                """{"La firma se guardó como {0}, pero no pudo validarse.":"The signature was saved as {0}, but could not be validated.","{0}: {1}":"{0} - {1}"}""");
+            var localizer = new CatalogLocalizer(directory, "en");
+            var source = "La firma se guardó como acta.pdf, pero no pudo validarse.";
+            Assert.AreEqual(
+                "The signature was saved as acta.pdf, but could not be validated.",
+                localizer.TranslateVisibleText(source));
+            Assert.AreEqual("Header: value",
+                localizer.TranslateVisibleText("Header: value"));
+            Assert.IsTrue(localizer.SetLanguage("es"));
+            Assert.AreEqual(source, localizer.TranslateVisibleText(source));
+            Assert.IsTrue(localizer.SetLanguage("en"));
+            Assert.AreEqual(
+                "The signature was saved as acta.pdf, but could not be validated.",
+                localizer.TranslateVisibleText(source));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
 }
