@@ -2752,6 +2752,8 @@
   ,"revocación no concluyente": "Der Widerruf des Zertifikats konnte nicht geprüft werden. Die Signatur gilt nicht als gültig."
   ,"rest.verify_v2.error.limit": "Der Grenzwert für die Verifikation v2 liegt außerhalb des zulässigen Bereichs"
   ,"portal.seal.title": "Siegel auf dem PDF platzieren"
+  ,"portal.seal.instructions": "Die Website bittet Sie, die Position der Signatur zu wählen. Ziehen Sie das Siegel, um es zu verschieben, nutzen Sie den Kreis in der Ecke für die Größe und den Pfeil zum Drehen."
+  ,"portal.seal.fine_tune": "Feinjustierung"
   ,"portal.seal.page": "Seite %1 von %2"
   ,"portal.seal.previous_page": "Vorherige Seite"
   ,"portal.seal.next_page": "Nächste Seite"

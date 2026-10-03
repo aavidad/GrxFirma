@@ -2752,6 +2752,8 @@
   ,"revocación no concluyente": "La révocation du certificat n’a pas pu être vérifiée. La signature n’est pas considérée comme valide."
   ,"rest.verify_v2.error.limit": "La limite de vérification v2 est hors de la plage autorisée"
   ,"portal.seal.title": "Placer le cachet sur le PDF"
+  ,"portal.seal.instructions": "Le site demande de choisir l'emplacement de la signature. Faites glisser le cachet pour le déplacer, utilisez le cercle du coin pour le redimensionner et la flèche pour le faire pivoter."
+  ,"portal.seal.fine_tune": "Réglage précis"
   ,"portal.seal.page": "Page %1 sur %2"
   ,"portal.seal.previous_page": "Page précédente"
   ,"portal.seal.next_page": "Page suivante"

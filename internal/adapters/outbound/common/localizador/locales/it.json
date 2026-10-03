@@ -2752,6 +2752,8 @@
   ,"revocación no concluyente": "Non è stato possibile verificare la revoca del certificato. La firma non è considerata valida."
   ,"rest.verify_v2.error.limit": "Il limite di verifica v2 è fuori dall’intervallo consentito"
   ,"portal.seal.title": "Posiziona il sigillo sul PDF"
+  ,"portal.seal.instructions": "Il sito chiede di scegliere dove va la firma. Trascina il sigillo per spostarlo, usa il cerchio nell'angolo per ridimensionarlo e la freccia per ruotarlo."
+  ,"portal.seal.fine_tune": "Regolazione precisa"
   ,"portal.seal.page": "Pagina %1 di %2"
   ,"portal.seal.previous_page": "Pagina precedente"
   ,"portal.seal.next_page": "Pagina successiva"

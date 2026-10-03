@@ -44,6 +44,8 @@ public sealed partial class MainWindow : Window
 
     internal void OpenPortalSeal(PortalSealSession session)
     {
+        // En el editor del portal no hay motor local: su aviso solo confundiría.
+        ConnectionNotices.Visibility = Visibility.Collapsed;
         RootNavigation.IsPaneVisible = false;
         RootNavigation.IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
         RootNavigation.MenuItems.Clear();
@@ -51,8 +53,21 @@ public sealed partial class MainWindow : Window
         Title = SealUiCatalog.Text(
             System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
             "portal.seal.title");
-        if (ContentFrame.Content is SignPage page)
+        if (ContentFrame.Content is not SignPage page)
+            return;
+        // El árbol visual se reorganiza cuando la página ya está cargada: antes,
+        // WinUI no garantiza padres ni enlaces y la reubicación puede fallar.
+        if (page.IsLoaded)
+        {
             page.ConfigurePortalSeal(session);
+            return;
+        }
+        void OnLoaded(object sender, RoutedEventArgs args)
+        {
+            page.Loaded -= OnLoaded;
+            page.ConfigurePortalSeal(session);
+        }
+        page.Loaded += OnLoaded;
     }
 
     internal void ShowSettingsPage()

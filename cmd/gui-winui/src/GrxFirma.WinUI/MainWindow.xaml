@@ -148,7 +148,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Margin="24,16,24,0" Spacing="8">
+                <StackPanel x:Name="ConnectionNotices" Grid.Row="0" Margin="24,16,24,0" Spacing="8">
                     <InfoBar
                         AutomationProperties.LiveSetting="Polite"
                         IsClosable="False"

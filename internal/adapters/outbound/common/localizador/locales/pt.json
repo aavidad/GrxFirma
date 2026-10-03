@@ -2752,6 +2752,8 @@
   ,"revocación no concluyente": "Não foi possível verificar a revogação do certificado. A assinatura não é considerada válida."
   ,"rest.verify_v2.error.limit": "O limite de verificação v2 está fora do intervalo permitido"
   ,"portal.seal.title": "Colocar o selo no PDF"
+  ,"portal.seal.instructions": "O site pediu que escolha onde fica a assinatura. Arraste o selo para o mover, use o círculo do canto para mudar o tamanho e a seta para o rodar."
+  ,"portal.seal.fine_tune": "Ajuste preciso"
   ,"portal.seal.page": "Página %1 de %2"
   ,"portal.seal.previous_page": "Página anterior"
   ,"portal.seal.next_page": "Página seguinte"

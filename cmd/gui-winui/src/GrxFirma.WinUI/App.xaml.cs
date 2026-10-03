@@ -43,6 +43,28 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
+        UnhandledException += (_, e) => RegistrarErrorNoControlado(e.Exception);
+    }
+
+    // Deja constancia local de un fallo no controlado para poder diagnosticarlo;
+    // el fichero vive en el perfil del usuario y se recorta para no crecer sin fin.
+    private static void RegistrarErrorNoControlado(Exception? error)
+    {
+        if (error is null) return;
+        try
+        {
+            var dir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "GrxFirma", "logs");
+            Directory.CreateDirectory(dir);
+            var file = Path.Combine(dir, "winui-errores.log");
+            if (File.Exists(file) && new FileInfo(file).Length > 256 * 1024)
+                File.Delete(file);
+            File.AppendAllText(file,
+                $"{DateTimeOffset.Now:O} {error.GetType().FullName} 0x{error.HResult:X8}{Environment.NewLine}{error}{Environment.NewLine}{Environment.NewLine}");
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -65,6 +87,8 @@ public partial class App : Application
             _window.AppWindow.Closing += OnMainWindowClosing;
             _window.ShowInitialPage();
             _window.OpenPortalSeal(portalSession!);
+            if (_window.AppWindow.Presenter is OverlappedPresenter presenter)
+                presenter.Maximize();
             _window.Activate();
             return;
         }

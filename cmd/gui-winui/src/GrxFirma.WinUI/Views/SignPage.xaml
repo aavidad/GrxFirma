@@ -500,7 +500,7 @@
                                     <ContentControl
                                         HorizontalContentAlignment="Stretch"
                                         IsEnabled="{x:Bind ViewModel.CanRefreshVisibleSealPreview, Mode=OneWay}">
-                                        <StackPanel Spacing="14">
+                                        <StackPanel x:Name="VisibleSealEditorPanel" Spacing="14">
                                         <TextBlock
                                             FontWeight="SemiBold"
                                             Text="Configuración del sello visible"
@@ -798,6 +798,7 @@
                                             TextWrapping="Wrap" />
 
                                         <Viewbox
+                                            x:Name="VisibleSealPreviewViewbox"
                                             MaxHeight="520"
                                             MaxWidth="520"
                                             HorizontalAlignment="Center"

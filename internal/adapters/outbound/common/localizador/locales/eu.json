@@ -2752,6 +2752,8 @@
   ,"revocación no concluyente": "Ezin izan da ziurtagiriaren ezeztapena egiaztatu. Sinadura ez da baliozkotzat hartzen."
   ,"rest.verify_v2.error.limit": "v2 egiaztapenaren muga baimendutako tartetik kanpo dago"
   ,"portal.seal.title": "Jarri zigilua PDFan"
+  ,"portal.seal.instructions": "Webguneak sinadura non jarri aukeratzeko eskatu du. Arrastatu zigilua mugitzeko, erabili izkinako zirkulua tamaina aldatzeko eta gezia biratzeko."
+  ,"portal.seal.fine_tune": "Doikuntza zehatza"
   ,"portal.seal.page": "%1. orria / %2"
   ,"portal.seal.previous_page": "Aurreko orria"
   ,"portal.seal.next_page": "Hurrengo orria"

@@ -98,14 +98,40 @@ public sealed partial class SignPage : Page
             new PointerEventHandler(OnVisibleSealPreviewPointerReleased), true);
     }
 
+    // Un elemento XAML solo puede tener un padre: se suelta del actual, sea del
+    // tipo que sea, antes de colocarlo en la vista del portal.
+    private static void DetachFromParent(FrameworkElement element)
+    {
+        switch (element.Parent ?? VisualTreeHelper.GetParent(element))
+        {
+            case Panel panel:
+                panel.Children.Remove(element);
+                break;
+            case Border border:
+                border.Child = null;
+                break;
+            case Viewbox viewbox:
+                viewbox.Child = null;
+                break;
+            case ContentControl control:
+                control.Content = null;
+                break;
+            case ContentPresenter presenter:
+                presenter.Content = null;
+                break;
+        }
+    }
+
     internal void ConfigurePortalSeal(PortalSealSession session)
     {
         _portalSealSession = session;
         ViewModel.ConfigurePortalSealDocument(session.DocumentPath, session.SignerName);
         var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
         string Label(string key) => SealUiCatalog.Text(language, key);
-        if (VisibleSealPreviewSurface.Parent is Border border)
-            border.Child = null;
+        // Antes de cargarse la página WinUI no expone el padre: se suelta del
+        // panel con nombre que lo contiene en SignPage.xaml.
+        VisibleSealEditorPanel.Children.Remove(VisibleSealPreviewViewbox);
+        DetachFromParent(VisibleSealPreviewViewbox);
 
         var pageControls = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         var previous = new Button { Content = Label("portal.seal.previous_page"), MinHeight = 40 };
@@ -152,6 +178,12 @@ public sealed partial class SignPage : Page
             Text = Label("portal.seal.title"), FontSize = 22,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
         });
+        content.Children.Add(new TextBlock
+        {
+            Text = Label("portal.seal.instructions"), TextWrapping = TextWrapping.Wrap,
+            MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Left,
+        });
+        content.Children.Add(actions);
         content.Children.Add(pageControls);
         var geometry = new Grid { ColumnSpacing = 8 };
         for (var index = 0; index < 5; index++)
@@ -183,22 +215,31 @@ public sealed partial class SignPage : Page
         AddGeometryField(2, "portal.seal.width", nameof(SignPageViewModel.VisibleSealWidthPercent), 1, 100);
         AddGeometryField(3, "portal.seal.height", nameof(SignPageViewModel.VisibleSealHeightPercent), 1, 100);
         AddGeometryField(4, "portal.seal.rotation", nameof(SignPageViewModel.VisibleSealRotationDegrees), 0, 359);
-        content.Children.Add(new ScrollViewer
+        var geometryPanel = new ScrollViewer
         {
             Content = geometry,
             HorizontalScrollMode = ScrollMode.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
             VerticalScrollMode = ScrollMode.Disabled,
             VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
-        });
-        content.Children.Add(new Viewbox
+        };
+        // La página entera debe verse sin desplazarse: se ajusta a la altura
+        // disponible bajo el título, la instrucción y los botones.
+        void FitPreview()
         {
-            MaxHeight = 620, MaxWidth = 620,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Stretch = Stretch.Uniform,
-            Child = VisibleSealPreviewSurface,
+            var available = SignContentScrollViewer.ActualHeight - 260;
+            VisibleSealPreviewViewbox.MaxHeight = Math.Clamp(available, 280, 900);
+            VisibleSealPreviewViewbox.MaxWidth = 900;
+        }
+        SignContentScrollViewer.SizeChanged += (_, _) => FitPreview();
+        FitPreview();
+        content.Children.Add(VisibleSealPreviewViewbox);
+        content.Children.Add(new TextBlock
+        {
+            Text = Label("portal.seal.fine_tune"),
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
         });
-        content.Children.Add(actions);
+        content.Children.Add(geometryPanel);
         SignContentScrollViewer.Content = content;
         void UpdateNavigation()
         {
@@ -223,12 +264,23 @@ public sealed partial class SignPage : Page
             Interlocked.Exchange(ref _portalRefreshInProgress, 1) != 0) return;
         try
         {
-            await ViewModel.RefreshVisibleSealPreviewAsync(_pageCancellation?.Token ?? CancellationToken.None);
-            await UpdateVisibleSealPreviewImageAsync();
-            _portalUpdateNavigation?.Invoke();
-            if (_pageCancellation?.IsCancellationRequested != true &&
-                ViewModel.PortalSealPlacement() is null)
-                ((App)Application.Current).FallbackPortalSeal();
+            // La primera vista puede coincidir con el renderizado inicial de la
+            // página; solo se recurre al diálogo de reserva si tras varios
+            // intentos no hay una página del PDF sobre la que situar el sello.
+            var token = _pageCancellation?.Token ?? CancellationToken.None;
+            for (var intento = 0; intento < 5; intento++)
+            {
+                await ViewModel.RefreshVisibleSealPreviewAsync(token);
+                await UpdateVisibleSealPreviewImageAsync();
+                _portalUpdateNavigation?.Invoke();
+                if (token.IsCancellationRequested || ViewModel.PortalSealPlacement() is not null)
+                    return;
+                await Task.Delay(400, token);
+            }
+            ((App)Application.Current).FallbackPortalSeal();
+        }
+        catch (OperationCanceledException)
+        {
         }
         finally { Interlocked.Exchange(ref _portalRefreshInProgress, 0); }
     }
