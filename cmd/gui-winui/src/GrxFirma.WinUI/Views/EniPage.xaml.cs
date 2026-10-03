@@ -7,6 +7,7 @@ using System.Globalization;
 using GrxFirma.WinUI.Core.Operations;
 using GrxFirma.WinUI.Services;
 using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
