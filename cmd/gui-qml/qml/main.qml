@@ -541,6 +541,11 @@ Window {
                                            : "../assets/logo_firma_grxfirma_final.png"
     property string signQRContent: ""
     property bool signQREnabled: false
+    property bool signCSVEnabled: false
+    property string signCSVCode: ""
+    property string signCSVUrl: ""
+    property string signCSVText: ""
+    property bool signCSVQR: false
     property string signReason: ""
     property string signLocation: ""
     property string signContactInfo: ""
@@ -4163,6 +4168,10 @@ Window {
     }
 
     function buildSignPayload() {
+        if (signVisibleSeal && supportsVisibleSeal() && signCSVEnabled && (signCSVCode.trim() === "" || signCSVCode.length > 128 || /[\r\n\t]/.test(signCSVCode) || signCSVUrl.trim().length > 2048 || !/^https:\/\//i.test(signCSVUrl.trim()) || !validQrUrl(signCSVUrl.trim().replace("{csv}", encodeURIComponent(signCSVCode.trim()))) || signCSVText.length > 512 || /[\r\n\t]/.test(signCSVText))) {
+            statusMessage = tr("paridad.lote3.csv.invalid")
+            return null
+        }
         if (signVisibleSeal && supportsVisibleSeal() && signQREnabled && normalizedQrUrl(signQRContent) === "") {
             statusMessage = tr("sign.seal.qr_https_error")
             return null
@@ -4229,6 +4238,12 @@ Window {
         if (body.format === "pades") {
             const extraOptions = body.extraOptions ? body.extraOptions : {}
             Object.assign(extraOptions, sealAppearanceOptions())
+            if (signVisibleSeal && signCSVEnabled) {
+                extraOptions.csv = signCSVCode.trim()
+                extraOptions.csvUrl = signCSVUrl.trim()
+                extraOptions.csvText = signCSVText.trim()
+                extraOptions.csvQR = signCSVQR ? "true" : "false"
+            }
             if (padesSubFilter.trim() !== "") extraOptions.subfilter = padesSubFilter.trim()
             if (window.multiCosignEnabled) {
                 const signerSummary = multiCosignVisibleSealSummary()
@@ -7506,6 +7521,7 @@ Window {
                         visible: window.facturaeToolsEnabled && isIpcMode
                         onClicked: activeTab = "facturae"
                     }
+                    NavButton { text: tr("paridad.lote3.eni.nav"); iconTxt: "▣"; active: activeTab === "eni"; visible: isIpcMode; onClicked: activeTab = "eni" }
                     NavButton { 
                         text: tr("CONFIGURACIÓN")
                         iconTxt: "⚙"
@@ -7541,7 +7557,7 @@ Window {
                           (activeTab === "config" ? 3 :
                           (activeTab === "experto" ? 4 :
                           (activeTab === "seguridad" ? 5 :
-                          (activeTab === "facturae" && window.facturaeToolsEnabled && isIpcMode ? 6 : 0))))))
+                          (activeTab === "facturae" && window.facturaeToolsEnabled && isIpcMode ? 6 : (activeTab === "eni" && isIpcMode ? 7 : 0)))))))
 
             // TAB: FIRMAR (0)
             Item {
@@ -8341,6 +8357,13 @@ Window {
                                             onTextChanged: signQRContent = text
                                         }
                                         Binding { target: signQRContentField; property: "text"; value: window.signQRContent; when: !signQRContentField.activeFocus }
+                                        CheckBox { id: csvEnabledCheck; text: tr("paridad.lote3.csv.enable"); checked: window.signCSVEnabled; Accessible.name: text; onToggled: window.signCSVEnabled = checked }
+                                        Binding { target: csvEnabledCheck; property: "checked"; value: window.signCSVEnabled }
+                                        Label { text: tr("paridad.lote3.csv.notice"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                                        TextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.code"); Accessible.name: placeholderText; maximumLength: 128; text: window.signCSVCode; onTextChanged: window.signCSVCode = text }
+                                        TextField { id: csvUrlField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.url"); Accessible.name: placeholderText; maximumLength: 2048; text: window.signCSVUrl; onTextChanged: window.signCSVUrl = text }
+                                        TextField { id: csvTextField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.text_optional"); Accessible.name: placeholderText; maximumLength: 512; text: window.signCSVText; onTextChanged: window.signCSVText = text }
+                                        CheckBox { id: csvQrCheck; visible: window.signCSVEnabled; text: tr("paridad.lote3.csv.qr"); checked: window.signCSVQR; Accessible.name: text; onToggled: window.signCSVQR = checked }
                                         Text {
                                             Layout.fillWidth: true
                                             visible: window.signQREnabled
@@ -14839,12 +14862,14 @@ Window {
             FacturaePanel {
                 id: facturaePanel
                 bridge: backend
+                reportSaver: function(path, content) { backend.saveTextReport(path, content) }
                 theme: currentTheme
                 localPath: function(url) { return window.localPathFromUrl(url) }
                 translate: function(key) { return window.tr(key) }
                 enabled: window.facturaeToolsEnabled && isIpcMode
                 onSignRequested: window.activeTab = "firmar"
             }
+            EniPanel { bridge: backend; theme: currentTheme; localPath: function(url) { return window.localPathFromUrl(url) }; translate: function(key) { return window.tr(key) }; certificates: window.certificates; certificateId: function(cert) { return window.certificateId(cert) }; enabled: isIpcMode }
         }
     }
 

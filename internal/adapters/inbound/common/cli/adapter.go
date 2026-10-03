@@ -4410,6 +4410,12 @@ func (a *Adaptador) documentoENIDesdeFirma(firma, original []byte, opciones map[
 	return doc, nil
 }
 
+// DocumentoENIDesdeFirma comparte con el IPC el reconocimiento de firmas y
+// los metadatos usados por la orden generar-eni.
+func DocumentoENIDesdeFirma(firma, original []byte, opciones map[string]string) (eni.Documento, error) {
+	return (&Adaptador{}).documentoENIDesdeFirma(firma, original, opciones)
+}
+
 func formatoContenidoENI(data []byte) string {
 	d := bytes.TrimLeft(data, " \t\r\n\ufeff")
 	switch {

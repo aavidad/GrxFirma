@@ -18,6 +18,9 @@ public static class DesktopOperationActions
     public const string CertificateExportPublic = "certificate_export_public";
     public const string SmartcardStatus = "smartcard_status";
     public const string FacturaeCreate = "facturae_create";
+    public const string ValidateInvoice = "validate_invoice";
+    public const string GenerateEniDocument = "generate_eni_document";
+    public const string GenerateEniFile = "generate_eni_file";
     public const string ValidateCertificateOnline =
         "validate_certificate_online";
     public const string OpenCertificateManager =
@@ -116,6 +119,22 @@ public sealed class DesktopOperationsClient
                 DesktopOperationActions.SmartcardStatus,
                 new SmartcardStatusParameters(),
                 cancellationToken);
+
+    public Task<IpcCallResult<InvoiceValidationResult>> ValidateInvoiceAsync(string inputPath, CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<object, InvoiceValidationResult>(DesktopOperationActions.ValidateInvoice,
+            new { inputPath }, cancellationToken);
+
+    public Task<IpcCallResult<EniGenerationResult>> GenerateEniDocumentAsync(
+        string inputPath, string? originalPath, string outputPath,
+        IReadOnlyDictionary<string, string> options, CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<object, EniGenerationResult>(DesktopOperationActions.GenerateEniDocument,
+            new { inputPath, originalPath, outputPath, options }, cancellationToken);
+
+    public Task<IpcCallResult<EniGenerationResult>> GenerateEniFileAsync(
+        string directoryPath, string outputPath, string certificateId,
+        IReadOnlyDictionary<string, string> options, CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<object, EniGenerationResult>(DesktopOperationActions.GenerateEniFile,
+            new { directoryPath, outputPath, certificateId, options }, cancellationToken);
 
     public Task<IpcCallResult<CertificateOnlineValidationResult>>
         ValidateCertificateOnlineAsync(

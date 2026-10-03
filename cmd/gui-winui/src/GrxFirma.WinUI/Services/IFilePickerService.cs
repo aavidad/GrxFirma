@@ -33,6 +33,8 @@ public enum SaveFilePickerProfile
     CmsSignedEnveloped,
     DiagnosticReport,
     VerificationReport,
+    InvoiceReport,
+    EniXml,
     SupportIncidentText,
     CmsEncrypted,
 }

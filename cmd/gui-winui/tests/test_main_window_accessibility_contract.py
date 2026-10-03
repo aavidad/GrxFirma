@@ -37,7 +37,7 @@ class MainWindowAccessibilityContractTest(unittest.TestCase):
             for element in self.window.iter()
             if local_name(element) == "NavigationViewItem"
         ]
-        self.assertEqual(len(navigation_items), 10)
+        self.assertEqual(len(navigation_items), 11)
 
         access_keys = []
         for item in navigation_items:

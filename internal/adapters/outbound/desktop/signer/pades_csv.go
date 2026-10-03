@@ -31,6 +31,8 @@ import (
 
 const (
 	maxLongitudCSV       = 128
+	maxLongitudCSVURL    = 2048
+	maxLongitudCSVTexto  = 512
 	altoLeyendaCSVPt     = 34.0
 	margenLeyendaCSVPt   = 18.0
 	escalaLeyendaCSV     = 3
@@ -39,6 +41,7 @@ const (
 
 type opcionesLeyendaCSV struct {
 	codigo, direccion, texto string
+	qr                       bool
 }
 
 func leerOpcionesLeyendaCSV(options map[string]string) (opcionesLeyendaCSV, bool, error) {
@@ -51,15 +54,18 @@ func leerOpcionesLeyendaCSV(options map[string]string) (opcionesLeyendaCSV, bool
 	}
 	direccion := strings.ReplaceAll(strings.TrimSpace(valorOpcion(options, "csvUrl")), "{csv}", url.QueryEscape(codigo))
 	u, err := url.Parse(direccion)
-	if err != nil || !strings.EqualFold(u.Scheme, "https") || u.Host == "" || u.User != nil {
+	if err != nil || len(direccion) > maxLongitudCSVURL || !strings.EqualFold(u.Scheme, "https") || u.Host == "" || u.User != nil {
 		return opcionesLeyendaCSV{}, false, fmt.Errorf("la dirección de cotejo del CSV (csvUrl) debe ser una URL HTTPS válida")
 	}
 	texto := strings.TrimSpace(valorOpcion(options, "csvText"))
 	if texto == "" {
 		texto = textoLeyendaCSVDefec
 	}
+	if len(texto) > maxLongitudCSVTexto || strings.ContainsAny(texto, "\r\n\t") {
+		return opcionesLeyendaCSV{}, false, fmt.Errorf("el texto de la leyenda CSV supera el límite permitido")
+	}
 	texto = strings.NewReplacer("{csv}", codigo, "{url}", direccion).Replace(texto)
-	return opcionesLeyendaCSV{codigo: codigo, direccion: direccion, texto: texto}, true, nil
+	return opcionesLeyendaCSV{codigo: codigo, direccion: direccion, texto: texto, qr: !strings.EqualFold(valorOpcion(options, "csvQR"), "false")}, true, nil
 }
 
 // leyendaCSV devuelve un sello por página con la leyenda CSV.
@@ -111,7 +117,7 @@ func imagenLeyendaCSV(o opcionesLeyendaCSV, anchoPt float64) ([]byte, error) {
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	draw.Draw(img, img.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
 	x := 6
-	if qr := generarQRSeccionSello(o.direccion, h); qr != nil {
+	if qr := generarQRSeccionSello(o.direccion, h); o.qr && qr != nil {
 		b := qr.Bounds()
 		y := (h - b.Dy()) / 2
 		draw.Draw(img, image.Rect(x, y, x+b.Dx(), y+b.Dy()), qr, b.Min, draw.Src)

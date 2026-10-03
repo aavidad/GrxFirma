@@ -219,7 +219,7 @@ func (m *Manejador) despacharConTimeout(parent context.Context, p peticion) resp
 	timeout := defaultIPCOperationTimeout
 	switch accion {
 	case "sign", "sign_multicosign", "sign_batch", "protect_sign",
-		"verify", "pdf_preview", "hash_create", "hash_check":
+		"verify", "pdf_preview", "hash_create", "hash_check", "validate_invoice", "generate_eni_document", "generate_eni_file":
 		timeout = longIPCOperationTimeout
 	}
 	ctx, cancel := context.WithTimeout(parent, timeout)
@@ -247,6 +247,12 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp = m.handleCertificateExportPublic(ctx, p.Params)
 	case "facturae_create":
 		resp = handleFacturaeCreate(ctx, p.Params)
+	case "validate_invoice":
+		resp = m.handleValidateInvoice(ctx, p.Params)
+	case "generate_eni_document":
+		resp = m.handleGenerateENIDocument(ctx, p.Params)
+	case "generate_eni_file":
+		resp = m.handleGenerateENIFile(ctx, p.Params)
 	case "smartcard_status":
 		detector := m.smartcardDetector
 		if detector == nil {

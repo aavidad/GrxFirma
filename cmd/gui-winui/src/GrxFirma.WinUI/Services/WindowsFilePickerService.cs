@@ -467,6 +467,14 @@ public sealed class WindowsFilePickerService : IFilePickerService
                     "winui.parity.verify.export"),
                     SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
                     "winui.parity.verify.filename"), [".json"]),
+            SaveFilePickerProfile.InvoiceReport =>
+                new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                    "paridad.lote3.invoice.report"), SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                    "paridad.lote3.invoice.filename"), [".txt"]),
+            SaveFilePickerProfile.EniXml =>
+                new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                    "paridad.lote3.eni.xml_filter"), SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                    "paridad.lote3.eni.filename"), [".xml"]),
             SaveFilePickerProfile.SupportIncidentText =>
                 new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
                     "winui.parity.support.export"),

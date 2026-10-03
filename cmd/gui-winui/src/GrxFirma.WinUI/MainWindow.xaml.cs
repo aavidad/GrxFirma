@@ -33,6 +33,7 @@ public sealed partial class MainWindow : Window
         _app = (App)Application.Current;
         ViewModel = new MainWindowViewModel();
         InitializeComponent();
+        EniNavigationItem.Content = SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "paridad.lote3.eni.nav");
         var language = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
         UpdateNotice.Title = SealUiCatalog.Text(language, "Nueva versión disponible");
         DownloadUpdateButton.Content = SealUiCatalog.Text(language, "Descargar e instalar");
@@ -233,6 +234,7 @@ public sealed partial class MainWindow : Window
             "protect" => "Proteger",
             "certificates" => "Certificados",
             "facturae" => "Facturae y FACe",
+            "eni" => SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "paridad.lote3.eni.nav"),
             "settings" => "Configuración",
             "diagnostics" => "Diagnóstico",
             "help" => "Ayuda",
@@ -248,6 +250,7 @@ public sealed partial class MainWindow : Window
             "protect" => typeof(ProtectPage),
             "certificates" => typeof(CertificatesPage),
             "facturae" => typeof(FacturaePage),
+            "eni" => typeof(EniPage),
             "settings" => typeof(SettingsPage),
             "diagnostics" => typeof(DiagnosticsPage),
             "help" => typeof(HelpPage),

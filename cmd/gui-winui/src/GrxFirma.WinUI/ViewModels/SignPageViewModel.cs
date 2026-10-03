@@ -139,6 +139,11 @@ public sealed class SignPageViewModel
     private readonly Dictionary<int, VisibleSealPlacementParameters> _sealPlacements = [];
     private VisibleSealStyleOption? _selectedVisibleSealStyle;
     private string? _visibleSealImagePath;
+    private bool _visibleSealCsvEnabled;
+    private string _visibleSealCsvCode = string.Empty;
+    private string _visibleSealCsvUrl = string.Empty;
+    private string _visibleSealCsvText = string.Empty;
+    private bool _visibleSealCsvQr;
     private bool _visibleSealQrEnabled;
     private string _visibleSealQrUrl = string.Empty;
     private VisibleSealPageModeOption? _selectedVisibleSealPageMode;
@@ -819,7 +824,7 @@ public sealed class SignPageViewModel
     public void SetSealUiLanguage(string? language)
     {
         _sealUiLanguage = language ?? "es";
-        foreach (var name in new[] { nameof(SealOneByOneLabel), nameof(SealApplyAllLabel), nameof(SealPreviousPageLabel), nameof(SealNextPageLabel), nameof(SealPageToggleLabel), nameof(VisibleSealPageSummary), nameof(VisibleSealRotateHandleLabel), nameof(VisibleSealRotateHandleHelp) })
+        foreach (var name in new[] { nameof(SealOneByOneLabel), nameof(SealApplyAllLabel), nameof(SealPreviousPageLabel), nameof(SealNextPageLabel), nameof(SealPageToggleLabel), nameof(VisibleSealPageSummary), nameof(VisibleSealRotateHandleLabel), nameof(VisibleSealRotateHandleHelp), nameof(VisibleSealCsvLabel), nameof(VisibleSealCsvNotice), nameof(VisibleSealCsvCodeLabel), nameof(VisibleSealCsvUrlLabel), nameof(VisibleSealCsvTextLabel), nameof(VisibleSealCsvQrLabel) })
             RaisePropertyChanged(name);
     }
 
@@ -955,6 +960,18 @@ public sealed class SignPageViewModel
         string.IsNullOrWhiteSpace(_visibleSealImagePath)
             ? "Ninguna imagen elegida."
             : $"Imagen: {Path.GetFileName(_visibleSealImagePath)}";
+
+    public string VisibleSealCsvLabel => SealText("paridad.lote3.csv.enable");
+    public string VisibleSealCsvNotice => SealText("paridad.lote3.csv.notice");
+    public string VisibleSealCsvCodeLabel => SealText("paridad.lote3.csv.code");
+    public string VisibleSealCsvUrlLabel => SealText("paridad.lote3.csv.url");
+    public string VisibleSealCsvTextLabel => SealText("paridad.lote3.csv.text_optional");
+    public string VisibleSealCsvQrLabel => SealText("paridad.lote3.csv.qr");
+    public bool VisibleSealCsvEnabled { get => _visibleSealCsvEnabled; set { if (SetProperty(ref _visibleSealCsvEnabled, value)) { ClearOutput(); UpdateValidationMessage(); } } }
+    public string VisibleSealCsvCode { get => _visibleSealCsvCode; set { if (SetProperty(ref _visibleSealCsvCode, value ?? string.Empty)) ClearOutput(); } }
+    public string VisibleSealCsvUrl { get => _visibleSealCsvUrl; set { if (SetProperty(ref _visibleSealCsvUrl, value ?? string.Empty)) ClearOutput(); } }
+    public string VisibleSealCsvText { get => _visibleSealCsvText; set { if (SetProperty(ref _visibleSealCsvText, value ?? string.Empty)) ClearOutput(); } }
+    public bool VisibleSealCsvQr { get => _visibleSealCsvQr; set { if (SetProperty(ref _visibleSealCsvQr, value)) ClearOutput(); } }
 
     public bool VisibleSealQrEnabled
     {
@@ -3480,6 +3497,27 @@ public sealed class SignPageViewModel
             errorCode = "VISIBLE_SEAL_PLACEMENTS_EMPTY";
             error = SealText("sign.seal.no_pages_error");
             return false;
+        }
+        if (VisibleSealCsvEnabled)
+        {
+            var code = VisibleSealCsvCode.Trim();
+            var url = VisibleSealCsvUrl.Trim();
+            var text = VisibleSealCsvText.Trim();
+            if (code.Length is 0 or > 128 || code.Any(char.IsControl) ||
+                url.Length is 0 or > 2048 || url.Any(char.IsControl) ||
+                !Uri.TryCreate(url.Replace("{csv}", Uri.EscapeDataString(code), StringComparison.Ordinal), UriKind.Absolute, out var csvUri) ||
+                !string.Equals(csvUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+                string.IsNullOrWhiteSpace(csvUri.Host) || !string.IsNullOrWhiteSpace(csvUri.UserInfo) ||
+                text.Length > 512 || text.Any(char.IsControl))
+            {
+                errorCode = "VISIBLE_SEAL_CSV_INVALID";
+                error = SealText("paridad.lote3.csv.invalid");
+                return false;
+            }
+            extraOptions = MergeExtraOptions(extraOptions, "csv", code);
+            extraOptions = MergeExtraOptions(extraOptions, "csvUrl", url);
+            extraOptions = MergeExtraOptions(extraOptions, "csvText", text);
+            extraOptions = MergeExtraOptions(extraOptions, "csvQR", VisibleSealCsvQr ? "true" : "false");
         }
         sealQrContent = qrContent;
         sealExtraOptions = extraOptions;
