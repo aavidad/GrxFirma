@@ -37,6 +37,27 @@ public sealed partial class CertificatesPage : Page
             _session,
             app.FilePickerService);
         InitializeComponent();
+        string Label(string key) => SealUiCatalog.Text(
+            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, key);
+        CertificateTypeFilterTitle.Text = Label("winui.parity.certs.type");
+        FilterPersonalCheck.Content = Label("winui.parity.certs.person");
+        FilterRepresentativeCheck.Content = Label("winui.parity.certs.representative");
+        FilterSealCheck.Content = Label("winui.parity.certs.seal");
+        FilterPublicEmployeeCheck.Content = Label("winui.parity.certs.employee");
+        RequireNifFilter.Content = Label("winui.parity.certs.nif");
+        RequireOrganizationFilter.Content = Label("winui.parity.certs.organization");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            FilterPersonalCheck, (string)FilterPersonalCheck.Content);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            FilterRepresentativeCheck, (string)FilterRepresentativeCheck.Content);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            FilterSealCheck, (string)FilterSealCheck.Content);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            FilterPublicEmployeeCheck, (string)FilterPublicEmployeeCheck.Content);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            RequireNifFilter, (string)RequireNifFilter.Content);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            RequireOrganizationFilter, (string)RequireOrganizationFilter.Content);
     }
 
     public CertificatesPageViewModel ViewModel { get; }

@@ -132,8 +132,6 @@ public sealed record DesktopSettingsDocument
             "legacyWebUiSize",
             "legacyWebTrayResident",
             "webCompatibilityDurationMinutes",
-            "tsaUrl",
-            "tsaEnabled",
         ],
         StringComparer.Ordinal);
 
@@ -151,6 +149,12 @@ public sealed record DesktopSettingsDocument
 
     [JsonPropertyName("signFormat")]
     public string? DefaultSignatureFormat { get; init; }
+
+    [JsonPropertyName("tsaEnabled")]
+    public bool? TsaEnabled { get; init; }
+
+    [JsonPropertyName("tsaUrl")]
+    public string? TsaUrl { get; init; }
 
     [JsonPropertyName("signStrictCompat")]
     public bool? StrictSignatureCompatibility { get; init; }
@@ -254,6 +258,7 @@ public sealed record DesktopSettingsDocument
             DefaultSignatureFormat = NormalizeOptional(
                 DefaultSignatureFormat,
                 32),
+            TsaUrl = NormalizeOptional(TsaUrl, 2048),
             DefaultCertificateId = DefaultCertificateId is null
                 ? null
                 : OperationResultText.Clean(

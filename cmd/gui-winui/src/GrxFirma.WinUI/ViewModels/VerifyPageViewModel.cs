@@ -22,6 +22,8 @@ public sealed class VerifyPageViewModel
     private CancellationTokenSource? _operationCancellation;
     private string? _signedFilePath;
     private string? _originalFilePath;
+    private VerifyResult? _reportResult;
+    private bool _canExportReport;
     private string _signedFileName = "Ningún fichero seleccionado";
     private string _originalFileName = "No seleccionado";
     private string _resultTitle = "Sin resultado";
@@ -152,6 +154,30 @@ public sealed class VerifyPageViewModel
     {
         get => _hasResult;
         private set => SetProperty(ref _hasResult, value);
+    }
+
+    public bool CanExportReport
+    {
+        get => _canExportReport;
+        private set => SetProperty(ref _canExportReport, value);
+    }
+
+    public async Task ExportReportAsync()
+    {
+        if (!CanExportReport || _reportResult is null || _pageLifetime is null) return;
+        try
+        {
+            var json = VerificationReport.Serialize(
+                _reportResult, _signedFilePath, _originalFilePath, DateTimeOffset.UtcNow);
+            await _filePicker.PickAndSaveTextFileAsync(
+                SaveFilePickerProfile.VerificationReport, json,
+                null, _pageLifetime.Token);
+        }
+        catch (OperationCanceledException) when (_pageLifetime?.IsCancellationRequested == true) { }
+        catch (Exception exception)
+        {
+            RequestDiagnostic(OperationDiagnosticMapper.FromException(exception));
+        }
     }
 
     public InfoBarSeverity ResultSeverity
@@ -390,6 +416,8 @@ public sealed class VerifyPageViewModel
 
     private void PresentResult(VerifyResult data)
     {
+        _reportResult = data;
+        CanExportReport = true;
         var trustStatus = NormalizeAspectStatus(data.Trust.Status);
         var hasValidSignatureEvidence =
             VerificationAssessment.HasValidSignatureEvidence(data);
@@ -458,6 +486,8 @@ public sealed class VerifyPageViewModel
 
     private void ResetResult()
     {
+        _reportResult = null;
+        CanExportReport = false;
         HasResult = false;
         ResultSeverity = InfoBarSeverity.Informational;
         ResultTitle = "Sin resultado";

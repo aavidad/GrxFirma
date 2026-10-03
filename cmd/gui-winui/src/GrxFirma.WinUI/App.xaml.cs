@@ -28,6 +28,7 @@ public partial class App : Application
     private PortalSealSession? _portalSealSession;
 
     internal DesktopOperationSession OperationSession { get; } = new();
+    internal WindowsRestServer RestServer { get; } = new();
     internal IFilePickerService FilePickerService { get; private set; } = null!;
     internal ISecurePasswordPromptService SecurePasswordPromptService
     {
@@ -40,6 +41,8 @@ public partial class App : Application
     internal bool FacturaeToolsEnabled => _facturaeToolsEnabled;
     internal bool PortalSealActive => _portalSealSession is not null;
     internal string InstalledVersion => _releaseNotes?.InstalledVersion ?? string.Empty;
+    internal void ShowSupportTargetPage(string destination) =>
+        _window?.ShowSupportTargetPage(destination);
 
     public App()
     {
@@ -430,6 +433,7 @@ public partial class App : Application
         }
 
         _lifetimeCancellation.Cancel();
+        RestServer.Dispose();
         _tray?.Dispose();
         _singleInstance?.Dispose();
         var client = Interlocked.Exchange(ref _ipcClient, null);

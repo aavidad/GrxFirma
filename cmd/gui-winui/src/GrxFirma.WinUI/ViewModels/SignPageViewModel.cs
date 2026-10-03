@@ -1979,6 +1979,25 @@ public sealed class SignPageViewModel
             var format = SelectedFormat!;
             var profile = SelectedProfile!;
             var useGuidedMultiCosign = GuidedMultiCosignEnabled;
+            string? batchTsaUrl = null;
+            if (_session.Supports(DesktopOperationActions.GetSettings))
+            {
+                var settings = await operations.GetSettingsAsync(operationCancellation.Token);
+                if (!settings.IsSuccess || settings.Data is null)
+                {
+                    ValidationMessage = SealText("winui.parity.tsa.unavailable");
+                    return null;
+                }
+                if (settings.Data.TsaEnabled == true)
+                {
+                    if (!TsaConfiguration.TryNormalize(true, settings.Data.TsaUrl, out var normalized))
+                    {
+                        ValidationMessage = SealText("winui.parity.tsa.invalid");
+                        return null;
+                    }
+                    batchTsaUrl = normalized;
+                }
+            }
             BatchItems = currentPaths
                 .Select(path => new BatchSignDisplayItem(
                     SafeFileName(path),
@@ -2018,11 +2037,11 @@ public sealed class SignPageViewModel
                     Reason = signatureReason,
                     Location = signatureLocation,
                     ContactInfo = signatureContact,
-                    ExtraOptions = new Dictionary<string, string>(
-                        StringComparer.Ordinal)
-                    {
-                        ["profile"] = profile.Value,
-                    },
+                    ExtraOptions = batchTsaUrl is null
+                        ? new Dictionary<string, string>(StringComparer.Ordinal)
+                            { ["profile"] = profile.Value }
+                        : new Dictionary<string, string>(StringComparer.Ordinal)
+                            { ["profile"] = profile.Value, ["tsaURL"] = batchTsaUrl },
                 },
                 operationCancellation.Token);
 
@@ -2469,6 +2488,25 @@ public sealed class SignPageViewModel
             var action = SelectedAction!;
             var format = SelectedFormat!;
             var profile = SelectedProfile!;
+            string? tsaUrl = null;
+            if (_session.Supports(DesktopOperationActions.GetSettings))
+            {
+                var settings = await operations.GetSettingsAsync(operationCancellation.Token);
+                if (!settings.IsSuccess || settings.Data is null)
+                {
+                    ValidationMessage = SealText("winui.parity.tsa.unavailable");
+                    return null;
+                }
+                if (settings.Data.TsaEnabled == true)
+                {
+                    if (!TsaConfiguration.TryNormalize(true, settings.Data.TsaUrl, out var normalized))
+                    {
+                        ValidationMessage = SealText("winui.parity.tsa.invalid");
+                        return null;
+                    }
+                    tsaUrl = normalized;
+                }
+            }
             var saveProfile = ResolveSaveProfile(format, inputPath);
             ValidationMessage =
                 "Elija dónde guardar el resultado. La firma aún no se ha iniciado.";
@@ -2545,7 +2583,7 @@ public sealed class SignPageViewModel
                 Location = signatureLocation,
                 ContactInfo = signatureContact,
                 ExtraOptions = MergeExtraOptions(
-                    sealExtraOptions,
+                    tsaUrl is null ? sealExtraOptions : MergeExtraOptions(sealExtraOptions, "tsaURL", tsaUrl),
                     "profile",
                     profile.Value),
             };

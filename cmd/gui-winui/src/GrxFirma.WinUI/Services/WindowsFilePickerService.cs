@@ -462,6 +462,16 @@ public sealed class WindowsFilePickerService : IFilePickerService
                     [".signedenveloped.p7m"]),
             SaveFilePickerProfile.DiagnosticReport =>
                 new("Informe de diagnóstico", "diagnostico", [".json", ".txt"]),
+            SaveFilePickerProfile.VerificationReport =>
+                new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                    "winui.parity.verify.export"),
+                    SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                    "winui.parity.verify.filename"), [".json"]),
+            SaveFilePickerProfile.SupportIncidentText =>
+                new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                    "winui.parity.support.export"),
+                    SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                    "winui.parity.support.filename"), [".txt"]),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(profile),
                 profile,

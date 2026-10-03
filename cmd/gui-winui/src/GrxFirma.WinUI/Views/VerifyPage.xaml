@@ -178,11 +178,17 @@
                                 Style="{StaticResource AccentButtonStyle}"
                                 TabIndex="5" />
                             <Button MinHeight="40"
+                                x:Name="ExportReportButton"
+                                Click="OnExportReportClick"
+                                IsEnabled="{x:Bind ViewModel.CanExportReport, Mode=OneWay}"
+                                TabIndex="6"
+                            AutomationProperties.Name="{Binding Content, ElementName=ExportReportButton}" />
+                            <Button MinHeight="40"
                                 AutomationProperties.Name="Cancelar verificación"
                                 Click="OnCancelClick"
                                 Content="Cancelar operación"
                                 IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
-                                TabIndex="6" />
+                                TabIndex="7" />
                             <ProgressRing
                                 Width="28"
                                 Height="28"

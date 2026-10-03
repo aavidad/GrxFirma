@@ -40,6 +40,7 @@ public sealed class SettingsPageViewModel
     private string _proxyRuntimeModeMessage = string.Empty;
     private string _validationMessage =
         "Cargue las preferencias del motor local antes de editarlas.";
+    private string _tsaValidationMessage = string.Empty;
     private string _statusTitle = "Sin cambios";
     private string _statusMessage =
         "Las preferencias todavía no se han cargado.";
@@ -49,6 +50,8 @@ public sealed class SettingsPageViewModel
     private bool _visiblePdfSeal;
     private bool _facturaeToolsEnabled;
     private bool _checkForUpdates = true;
+    private bool _tsaEnabled;
+    private string _tsaUrl = string.Empty;
     private bool _proxyEnabled;
     private bool _isActive;
     private bool _isApplying;
@@ -233,6 +236,24 @@ public sealed class SettingsPageViewModel
                 MarkDirty();
             }
         }
+    }
+
+    public bool TsaEnabled
+    {
+        get => _tsaEnabled;
+        set { if (SetProperty(ref _tsaEnabled, value)) MarkDirty(); }
+    }
+
+    public string TsaUrl
+    {
+        get => _tsaUrl;
+        set { if (SetProperty(ref _tsaUrl, value ?? string.Empty)) MarkDirty(); }
+    }
+
+    public string TsaValidationMessage
+    {
+        get => _tsaValidationMessage;
+        private set => SetProperty(ref _tsaValidationMessage, value);
     }
 
     public bool FacturaeToolsEnabled
@@ -957,6 +978,8 @@ public sealed class SettingsPageViewModel
             StrictSignatureCompatibility =
                 safeSnapshot.StrictSignatureCompatibility ?? true;
             VisiblePdfSeal = safeSnapshot.VisiblePdfSeal ?? false;
+            TsaEnabled = safeSnapshot.TsaEnabled ?? false;
+            TsaUrl = safeSnapshot.TsaUrl ?? string.Empty;
             FacturaeToolsEnabled =
                 safeSnapshot.FacturaeToolsEnabled ?? false;
             CheckForUpdates =
@@ -1015,6 +1038,8 @@ public sealed class SettingsPageViewModel
             StrictSignatureCompatibility =
                 StrictSignatureCompatibility,
             VisiblePdfSeal = VisiblePdfSeal,
+            TsaEnabled = TsaEnabled,
+            TsaUrl = TsaUrl.Trim(),
             FacturaeToolsEnabled = FacturaeToolsEnabled,
             CheckForUpdates = CheckForUpdates,
             ProxyEnabled = ProxyEnabled,
@@ -1039,6 +1064,11 @@ public sealed class SettingsPageViewModel
 
     private void UpdateValidation()
     {
+        TsaValidationMessage = TsaEnabled &&
+            !TsaConfiguration.TryNormalize(true, TsaUrl, out _)
+            ? GrxFirma.WinUI.Services.SealUiCatalog.Text(
+                SelectedLanguage.Value, "winui.parity.tsa.invalid")
+            : string.Empty;
         ValidationMessage = Validate();
         RefreshCommandState();
     }
@@ -1068,6 +1098,11 @@ public sealed class SettingsPageViewModel
             SelectedDefaultFormat.Value is not ("" or "pades"))
         {
             return "El sello visible solo es compatible con el formato automático o PAdES.";
+        }
+        if (!TsaConfiguration.TryNormalize(TsaEnabled, TsaUrl, out _))
+        {
+            return GrxFirma.WinUI.Services.SealUiCatalog.Text(
+                SelectedLanguage.Value, "winui.parity.tsa.invalid");
         }
         if (!DesktopSettingsDocument.IsSupportedProxyType(
             SelectedProxyType.Value))
