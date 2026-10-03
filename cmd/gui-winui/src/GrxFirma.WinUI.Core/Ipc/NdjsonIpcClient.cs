@@ -47,6 +47,13 @@ public sealed class NdjsonIpcClient : IIpcClient
 
     public IpcHello? ServerHello { get; private set; }
 
+    /// <summary>
+    /// Indica si el canal sigue utilizable. Tras una cancelación o un error a
+    /// mitad de petición queda invalidado y hay que abrir otro.
+    /// </summary>
+    public bool IsTransportUsable =>
+        Volatile.Read(ref _transportState) == TransportActive;
+
     public static async Task<NdjsonIpcClient> ConnectAsync(
         IIpcConnector connector,
         IpcEndpoint endpoint,

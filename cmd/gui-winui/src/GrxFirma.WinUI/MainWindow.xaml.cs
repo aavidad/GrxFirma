@@ -303,31 +303,52 @@ public sealed partial class MainWindow : Window
             await Task.Delay(500, cancellationToken);
     }
 
+    // Espera una petición al motor como mucho el plazo indicado sin cancelarla:
+    // si no llega a tiempo devuelve null y la petición termina por su cuenta.
+    private static async Task<T?> WaitWithinAsync<T>(
+        Task<T> request, TimeSpan budget, CancellationToken cancellationToken)
+        where T : class
+    {
+        var finished = await Task.WhenAny(
+            request, Task.Delay(budget, cancellationToken)).ConfigureAwait(true);
+        if (!ReferenceEquals(finished, request))
+        {
+            _ = request.ContinueWith(
+                static task => _ = task.Exception,
+                TaskContinuationOptions.OnlyOnFaulted);
+            return null;
+        }
+        try
+        {
+            return await request.ConfigureAwait(true);
+        }
+        catch (Exception error) when (error is not OperationCanceledException)
+        {
+            return null;
+        }
+    }
+
     internal async Task RefreshUpdateAvailabilityAsync(CancellationToken cancellationToken = default)
     {
         if (!UpdatePreferenceStore.Read()) return;
-        using var engineBudget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        engineBudget.CancelAfter(TimeSpan.FromSeconds(4));
+        // El plazo del motor solo limita la espera: cancelar una petición IPC ya
+        // enviada invalidaría la conexión con el motor.
+        var engineBudget = TimeSpan.FromSeconds(4);
         try
         {
             var engineAvailable = _app.OperationSession.Supports(DesktopOperationActions.CheckUpdates);
             if (engineAvailable && _app.OperationSession.TryGetOperations(
                     DesktopOperationActions.GetSettings, out var settingsOperations))
             {
-                try
+                var settings = await WaitWithinAsync(
+                    settingsOperations.GetSettingsAsync(), engineBudget, cancellationToken);
+                if (settings is not null && settings.IsSuccess &&
+                    settings.Outcome == "success" && settings.Data is not null)
                 {
-                    var settings = await settingsOperations.GetSettingsAsync(engineBudget.Token);
-                    if (settings.IsSuccess && settings.Outcome == "success" && settings.Data is not null)
-                    {
-                        UpdatePreferenceStore.Write(settings.Data.CheckForUpdates != false);
-                        if (settings.Data.CheckForUpdates == false) return;
-                    }
-                    else engineAvailable = false;
+                    UpdatePreferenceStore.Write(settings.Data.CheckForUpdates != false);
+                    if (settings.Data.CheckForUpdates == false) return;
                 }
-                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-                {
-                    engineAvailable = false;
-                }
+                else engineAvailable = false;
             }
             else if (engineAvailable) engineAvailable = false;
             OfficialRelease? release = null;
@@ -335,20 +356,14 @@ public sealed partial class MainWindow : Window
             if (engineAvailable && _app.OperationSession.TryGetOperations(
                     DesktopOperationActions.CheckUpdates, out var updateOperations))
             {
-                try
-                {
-                    var result = await updateOperations.CheckUpdatesAsync(engineBudget.Token);
-                    if (result.IsSuccess && result.Outcome == "success" &&
-                        result.Data?.HasNewVersion == true &&
-                        OfficialUpdateChecker.IsReleaseForVersion(result.Data.ReleaseUrl, result.Data.LatestVersion) &&
-                        OfficialUpdateChecker.IsNewer(current, result.Data.LatestVersion))
-                        release = new(result.Data.LatestVersion, result.Data.ReleaseUrl);
-                    if (!result.IsSuccess) engineAvailable = false;
-                }
-                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-                {
-                    engineAvailable = false;
-                }
+                var result = await WaitWithinAsync(
+                    updateOperations.CheckUpdatesAsync(), engineBudget, cancellationToken);
+                if (result is not null && result.IsSuccess && result.Outcome == "success" &&
+                    result.Data?.HasNewVersion == true &&
+                    OfficialUpdateChecker.IsReleaseForVersion(result.Data.ReleaseUrl, result.Data.LatestVersion) &&
+                    OfficialUpdateChecker.IsNewer(current, result.Data.LatestVersion))
+                    release = new(result.Data.LatestVersion, result.Data.ReleaseUrl);
+                if (result is null || !result.IsSuccess) engineAvailable = false;
             }
             else if (engineAvailable) engineAvailable = false;
             if (!engineAvailable && !cancellationToken.IsCancellationRequested)

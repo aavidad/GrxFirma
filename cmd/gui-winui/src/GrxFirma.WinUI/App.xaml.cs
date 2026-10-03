@@ -14,7 +14,7 @@ namespace GrxFirma.WinUI;
 public partial class App : Application
 {
     private MainWindow? _window;
-    private NdjsonIpcClient? _ipcClient;
+    private ReconnectingIpcClient? _ipcClient;
     private readonly CancellationTokenSource _lifetimeCancellation = new();
     private int _windowClosed;
     private bool _facturaeToolsEnabled;
@@ -181,10 +181,18 @@ public partial class App : Application
     {
         try
         {
-            var client = await NdjsonIpcClient.ConnectAsync(
+            var initial = await NdjsonIpcClient.ConnectAsync(
                 new NamedPipeIpcConnector(),
                 launchOptions.ToEndpoint(),
                 cancellationToken: _lifetimeCancellation.Token);
+            // Si una cancelación o un error invalidan el canal, la siguiente
+            // petición abre otro: la aplicación no se queda sin motor.
+            var client = new ReconnectingIpcClient(
+                initial,
+                cancellationToken => NdjsonIpcClient.ConnectAsync(
+                    new NamedPipeIpcConnector(),
+                    launchOptions.ToEndpoint(),
+                    cancellationToken: cancellationToken));
             var previous = Interlocked.CompareExchange(
                 ref _ipcClient,
                 client,
@@ -445,7 +453,7 @@ public partial class App : Application
     }
 
     private static async Task DisposeClientQuietlyAsync(
-        NdjsonIpcClient client)
+        IIpcClient client)
     {
         try
         {
