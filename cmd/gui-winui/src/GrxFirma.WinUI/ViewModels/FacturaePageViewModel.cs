@@ -5,6 +5,7 @@
 
 using System.Globalization;
 using GrxFirma.WinUI.Core.Facturae;
+using GrxFirma.WinUI.Core.Operations;
 using GrxFirma.WinUI.Services;
 using Microsoft.UI.Xaml.Controls;
 
@@ -15,7 +16,7 @@ public sealed class FacturaePageViewModel
 {
     private readonly IFacePortalLauncherService _launcher;
     private readonly IFilePickerService _filePicker;
-    private readonly FacturaeInvoiceGenerator _generator = new();
+    private readonly DesktopOperationSession _session;
     private CancellationTokenSource? _pageLifetime;
     private string _statusTitle = "Asistente preparado";
     private string _statusMessage =
@@ -67,7 +68,8 @@ public sealed class FacturaePageViewModel
 
     public FacturaePageViewModel(
         IFacePortalLauncherService launcher,
-        IFilePickerService filePicker)
+        IFilePickerService filePicker,
+        DesktopOperationSession session)
         : base(
             "Facturae y FACe",
             "Cree una factura Facturae 3.2.2 y preséntela en FACe mediante un flujo separado y opcional.",
@@ -77,6 +79,7 @@ public sealed class FacturaePageViewModel
         ArgumentNullException.ThrowIfNull(filePicker);
         _launcher = launcher;
         _filePicker = filePicker;
+        _session = session ?? throw new ArgumentNullException(nameof(session));
         RefreshCalculatedTotals();
     }
 
@@ -359,8 +362,9 @@ public sealed class FacturaePageViewModel
 
         _pageLifetime = new CancellationTokenSource();
         _isActive = true;
+        _session.AvailabilityChanged += OnSessionAvailabilityChanged;
         SetOperationAvailability(
-            true,
+            _session.Supports(DesktopOperationActions.FacturaeCreate),
             "El XML se crea localmente. Los enlaces abren únicamente páginas HTTPS fijas del Portal FACe Proveedores.");
         SetActionsEnabled(
             Volatile.Read(ref _operationInProgress) == 0);
@@ -374,6 +378,7 @@ public sealed class FacturaePageViewModel
         }
 
         _isActive = false;
+        _session.AvailabilityChanged -= OnSessionAvailabilityChanged;
         SetActionsEnabled(false);
         _pageLifetime?.Cancel();
         _pageLifetime?.Dispose();
@@ -395,10 +400,25 @@ public sealed class FacturaePageViewModel
         try
         {
             var draft = BuildDraft();
-            var generated = _generator.Generate(draft);
+            if (!_session.TryGetOperations(DesktopOperationActions.FacturaeCreate, out var operations))
+            {
+                StatusTitle = "No se pudo crear la factura";
+                StatusMessage = PendingMessage;
+                StatusSeverity = InfoBarSeverity.Warning;
+                return;
+            }
+            var result = await operations.CreateFacturaeAsync(draft, lifetime.Token);
+            if (!IsCurrentLifetime(lifetime)) return;
+            if (!result.IsSuccess || result.Data is null || string.IsNullOrEmpty(result.Data.Xml))
+            {
+                StatusTitle = "Revise los datos";
+                StatusMessage = result.SafeUserMessage;
+                StatusSeverity = InfoBarSeverity.Warning;
+                return;
+            }
             var saved = await _filePicker.PickAndSaveTextFileAsync(
                 SaveFilePickerProfile.FacturaeXml,
-                generated.Xml,
+                result.Data.Xml,
                 FacturaeInvoiceGenerator.SuggestedFileName(draft),
                 lifetime.Token);
             if (!IsCurrentLifetime(lifetime))
@@ -417,7 +437,7 @@ public sealed class FacturaePageViewModel
 
             StatusTitle = "XML Facturae 3.2.2 creado";
             StatusMessage =
-                $"Total {FormatCurrency(generated.Totals.InvoiceTotal)}. Abra «Firmar», seleccione el XML y el formato FacturaE; después valídelo en FACe.";
+                $"Total {result.Data.Total} €. Abra «Firmar», seleccione el XML y el formato FacturaE; después valídelo en FACe.";
             StatusSeverity = InfoBarSeverity.Success;
         }
         catch (FacturaeValidationException exception)
@@ -656,11 +676,20 @@ public sealed class FacturaePageViewModel
         }
     }
 
+    private void OnSessionAvailabilityChanged(object? sender, EventArgs args)
+    {
+        if (!_isActive) return;
+        SetOperationAvailability(
+            _session.Supports(DesktopOperationActions.FacturaeCreate),
+            "El XML se crea localmente. Los enlaces abren únicamente páginas HTTPS fijas del Portal FACe Proveedores.");
+        SetActionsEnabled(Volatile.Read(ref _operationInProgress) == 0);
+    }
+
     private void SetActionsEnabled(
         bool enabled)
     {
         CanLaunch = enabled;
-        CanCreate = enabled;
+        CanCreate = enabled && _session.Supports(DesktopOperationActions.FacturaeCreate);
     }
 
     private bool IsCurrentLifetime(

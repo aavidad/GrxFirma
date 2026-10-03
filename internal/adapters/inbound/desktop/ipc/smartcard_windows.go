@@ -43,6 +43,8 @@ type scardReaderState struct {
 	atr          [36]byte
 }
 
+const smartcardAvailable = true
+
 func detectSmartcards(ctx context.Context) ([]smartcardReader, error) {
 	var handle uintptr
 	code, _, _ := scardEstablishContext.Call(scardScopeUser, 0, 0, uintptr(unsafe.Pointer(&handle)))

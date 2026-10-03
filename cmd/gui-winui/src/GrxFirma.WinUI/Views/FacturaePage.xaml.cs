@@ -19,7 +19,8 @@ public sealed partial class FacturaePage : Page
         var app = (App)Application.Current;
         ViewModel = new FacturaePageViewModel(
             new WindowsFacePortalLauncherService(),
-            app.FilePickerService);
+            app.FilePickerService,
+            app.OperationSession);
         InitializeComponent();
     }
 
