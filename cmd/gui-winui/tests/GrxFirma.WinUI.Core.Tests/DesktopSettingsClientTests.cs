@@ -274,7 +274,7 @@ public sealed class DesktopSettingsClientTests
               "certificateTypeFilter":[
                 {{JsonSerializer.Serialize(oversizedArrayItem)}}
               ],
-              "tsaEnabled":true
+              "expertMode":true
             }
             """);
 
@@ -283,7 +283,7 @@ public sealed class DesktopSettingsClientTests
         Assert.IsFalse(safe.AdditionalSettings.ContainsKey("signReason"));
         Assert.IsFalse(
             safe.AdditionalSettings.ContainsKey("certificateTypeFilter"));
-        Assert.IsTrue(safe.AdditionalSettings.ContainsKey("tsaEnabled"));
+        Assert.IsTrue(safe.AdditionalSettings.ContainsKey("expertMode"));
     }
 
     [TestMethod]

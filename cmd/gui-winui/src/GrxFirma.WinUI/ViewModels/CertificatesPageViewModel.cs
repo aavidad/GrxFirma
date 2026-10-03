@@ -1980,7 +1980,7 @@ public sealed class CertificatesPageViewModel
 
         VisibleCertificates = visible.OrderBy(item => item.CanSign ? 0 : 1).ToArray();
         RaisePropertyChanged(nameof(VisibleCountText));
-        HasVisibleCertificates = visible.Count > 0;
+        HasVisibleCertificates = visible.Length > 0;
         SelectedCertificate = (selectedId is null
             ? null
             : visible.FirstOrDefault(item =>

@@ -11,6 +11,7 @@ import (
 	"encoding/xml"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -94,7 +95,8 @@ func TestHandleFacturaeCreateSupportsBothFrontends(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info.Mode().Perm() != 0o600 {
+	// Windows no tiene permisos Unix: allí la protección la da el perfil del usuario.
+	if runtime.GOOS != "windows" && info.Mode().Perm() != 0o600 {
 		t.Fatalf("permisos: %v", info.Mode().Perm())
 	}
 	raw, err = json.Marshal(facturaeCreateParams{Draft: draft})
