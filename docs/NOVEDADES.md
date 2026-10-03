@@ -7,6 +7,12 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.108 — 2026-10-03
+
+- Cuando una web pide que elijas dónde va la firma, GrxFirma abre el editor del sello sobre la página real del PDF: puedes moverlo, agrandarlo y girarlo, o firmar sin sello. Antes solo había seis posiciones fijas.
+- Android: firma con el DNIe por NFC. Introduce el CAN, acerca el DNIe al móvil y escribe el PIN; la clave nunca sale de la tarjeta y ni el CAN ni el PIN se guardan.
+- Windows: si la aplicación se cierra por un error inesperado, deja un registro local para poder diagnosticarlo.
+
 ## 0.0.107 — 2026-10-03
 
 - Validador en servidor: admite un certificado y una clave TLS propios (`-certificado-tls-rest` y `-clave-tls-rest`) y acepta el nombre heredado `AUTOFIRMAV2_REST_TOKEN` para el token.
