@@ -236,7 +236,7 @@ public sealed partial class SettingsPage : Page
                 CloseButtonText = "Aceptar",
                 XamlRoot = XamlRoot,
             };
-            await dialog.ShowAsync();
+            await Localizer.ShowAsync(dialog);
         }
     }
 
@@ -262,6 +262,7 @@ public sealed partial class SettingsPage : Page
             app.SetKeepInTray(ViewModel.StayResident);
             app.SetFacturaeToolsEnabled(
                 ViewModel.FacturaeToolsEnabled);
+            app.ApplyLanguagePreference(ViewModel.SelectedLanguage.Value);
         }
     }
 
@@ -342,7 +343,7 @@ public sealed partial class SettingsPage : Page
             CloseButtonText = "Cancelar",
             DefaultButton = ContentDialogButton.Close,
         };
-        if (await confirmation.ShowAsync() ==
+        if (await Localizer.ShowAsync(confirmation) ==
             ContentDialogResult.Primary)
         {
             await ViewModel.DeleteProxyCredentialsAsync();
@@ -362,6 +363,6 @@ public sealed partial class SettingsPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
         };
-        await dialog.ShowAsync();
+        await Localizer.ShowAsync(dialog);
     }
 }

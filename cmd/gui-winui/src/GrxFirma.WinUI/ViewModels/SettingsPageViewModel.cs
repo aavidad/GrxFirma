@@ -82,7 +82,7 @@ public sealed class SettingsPageViewModel
     {
         ArgumentNullException.ThrowIfNull(session);
         _session = session;
-        _selectedLanguage = Languages[0];
+        _selectedLanguage = FindOption(Languages, Localizer.Language);
         _selectedTheme = Themes[0];
         _selectedDefaultFormat = DefaultFormats[0];
         _selectedProxyType = ProxyTypes[0];
@@ -959,7 +959,7 @@ public sealed class SettingsPageViewModel
                 DesktopSettingsDocument.IsSupportedLanguage(
                     safeSnapshot.Language)
                     ? safeSnapshot.Language!
-                    : "es");
+                    : Localizer.Language);
             SelectedTheme = FindOption(
                 Themes,
                 DesktopSettingsDocument.IsSupportedTheme(

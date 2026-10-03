@@ -121,10 +121,6 @@
                             Foreground="{ThemeResource AppMutedTextBrush}"
                             Text="El idioma y el tema se comparten con las demás interfaces de GrxFirma; cada interfaz aplica las capacidades visuales que tenga disponibles."
                             TextWrapping="Wrap" />
-                        <TextBlock
-                            Foreground="{ThemeResource AppMutedTextBrush}"
-                            Text="La preferencia de idioma se guarda en el motor, pero esta interfaz WinUI se muestra actualmente en español."
-                            TextWrapping="Wrap" />
                         <CheckBox
                             AutomationProperties.Name="Confirmar antes de firmar"
                             Content="Confirmar antes de firmar"

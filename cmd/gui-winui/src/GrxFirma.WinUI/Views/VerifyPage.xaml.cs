@@ -97,6 +97,6 @@ public sealed partial class VerifyPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
         };
-        await dialog.ShowAsync();
+        await Localizer.ShowAsync(dialog);
     }
 }

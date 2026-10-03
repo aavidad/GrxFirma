@@ -386,7 +386,7 @@ public sealed partial class ProtectPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
         };
-        await dialog.ShowAsync();
+        await Localizer.ShowAsync(dialog);
     }
 
     private static byte[]? DecodeCanonicalAes256Secret(

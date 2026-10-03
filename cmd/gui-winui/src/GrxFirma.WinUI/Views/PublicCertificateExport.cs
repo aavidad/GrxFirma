@@ -64,7 +64,7 @@ internal static class PublicCertificateExport
                     PrimaryButtonText = "Continuar",
                     CloseButtonText = "Cancelar",
                 };
-                if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+                if (await Localizer.ShowAsync(dialog) != ContentDialogResult.Primary)
                     return;
                 certificateId = (combo.SelectedItem as CertificateInfo)?.Id;
             }
@@ -98,12 +98,13 @@ internal static class PublicCertificateExport
 
     private static async Task NoticeAsync(XamlRoot xamlRoot, string message)
     {
-        await new ContentDialog
+        var dialog = new ContentDialog
         {
             XamlRoot = xamlRoot,
             Title = "Certificado público",
             Content = message,
             CloseButtonText = "Cerrar",
-        }.ShowAsync();
+        };
+        await Localizer.ShowAsync(dialog);
     }
 }

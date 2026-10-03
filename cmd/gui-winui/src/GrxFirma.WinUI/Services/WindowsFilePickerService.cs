@@ -198,7 +198,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
             var picker = new FolderPicker
             {
                 SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-                CommitButtonText = "Seleccionar carpeta",
+                CommitButtonText = Localizer.Text("Seleccionar carpeta"),
             };
             // WinRT exige al menos un filtro también para FolderPicker. Este
             // comodín no permite seleccionar ficheros: el diálogo solo expone
@@ -226,7 +226,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
         {
             SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
             ViewMode = PickerViewMode.List,
-            CommitButtonText = "Seleccionar",
+            CommitButtonText = Localizer.Text("Seleccionar"),
         };
         foreach (var extension in OpenExtensions(profile))
         {
@@ -252,12 +252,12 @@ public sealed class WindowsFilePickerService : IFilePickerService
         {
             SuggestedStartLocation =
                 Microsoft.Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
-            CommitButtonText = "Guardar",
+            CommitButtonText = Localizer.Text("Guardar"),
             ShowOverwritePrompt = true,
             DefaultFileExtension = policy.Extensions[0],
             SuggestedFileName = SafeSuggestedFileName(suggestedFileName, policy),
         };
-        picker.FileTypeChoices.Add(policy.DisplayName, policy.Extensions.ToArray());
+        picker.FileTypeChoices.Add(Localizer.Text(policy.DisplayName), policy.Extensions.ToArray());
         return picker;
     }
 
@@ -269,14 +269,14 @@ public sealed class WindowsFilePickerService : IFilePickerService
         var picker = new FileSavePicker
         {
             SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-            CommitButtonText = "Guardar",
+            CommitButtonText = Localizer.Text("Guardar"),
             DefaultFileExtension = policy.Extensions[0],
             SuggestedFileName = SafeSuggestedFileName(
                 suggestedFileName,
                 policy),
         };
         picker.FileTypeChoices.Add(
-            policy.DisplayName,
+            Localizer.Text(policy.DisplayName),
             policy.Extensions.ToArray());
         InitializeWithOwner(picker);
         return picker;

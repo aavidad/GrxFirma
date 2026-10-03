@@ -3,6 +3,7 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
+using GrxFirma.WinUI.Services;
 using GrxFirma.WinUI.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -81,6 +82,6 @@ public static class CertificateValidationDialog
             DefaultButton = ContentDialogButton.Close,
         };
         AutomationProperties.SetName(dialog, "Verificación del certificado");
-        await dialog.ShowAsync();
+        await Localizer.ShowAsync(dialog);
     }
 }

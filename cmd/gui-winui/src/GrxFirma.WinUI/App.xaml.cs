@@ -41,6 +41,9 @@ public partial class App : Application
     internal bool FacturaeToolsEnabled => _facturaeToolsEnabled;
     internal bool PortalSealActive => _portalSealSession is not null;
     internal string InstalledVersion => _releaseNotes?.InstalledVersion ?? string.Empty;
+    internal void ApplyLanguagePreference(string? language) =>
+        _window?.ApplyLanguagePreference(language);
+    internal void RefreshTrayLanguage() => _tray?.RefreshLanguage();
     internal void ShowSupportTargetPage(string destination) =>
         _window?.ShowSupportTargetPage(destination);
 

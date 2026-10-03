@@ -694,7 +694,7 @@ public sealed partial class SignPage : Page
             CloseButtonText = "Cancelar",
             DefaultButton = ContentDialogButton.Close,
         };
-        return await dialog.ShowAsync() ==
+        return await Localizer.ShowAsync(dialog) ==
             ContentDialogResult.Primary;
     }
 
@@ -1729,6 +1729,6 @@ public sealed partial class SignPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
         };
-        await dialog.ShowAsync();
+        await Localizer.ShowAsync(dialog);
     }
 }

@@ -3,6 +3,7 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
+using GrxFirma.WinUI.Services;
 using GrxFirma.WinUI.Controls;
 using GrxFirma.WinUI.Core.Diagnostics;
 using GrxFirma.WinUI.ViewModels;
@@ -130,6 +131,6 @@ public sealed partial class HashPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
         };
-        await dialog.ShowAsync();
+        await Localizer.ShowAsync(dialog);
     }
 }

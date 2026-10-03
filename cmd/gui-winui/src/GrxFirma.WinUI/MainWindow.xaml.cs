@@ -39,6 +39,7 @@ public sealed partial class MainWindow : Window
         DownloadUpdateButton.Content = SealUiCatalog.Text(language, "Descargar e instalar");
         ReleaseNotesButton.Content = SealUiCatalog.Text(language, "Ver novedades");
         DismissUpdateButton.Content = SealUiCatalog.Text(language, "Ahora no");
+        Localizer.Attach(AppRoot);
         ConfigureInitialWindow();
         SetFacturaeNavigationVisibility(
             _app.FacturaeToolsEnabled);
@@ -84,7 +85,7 @@ public sealed partial class MainWindow : Window
     internal void ShowSettingsPage()
     {
         RootNavigation.SelectedItem = SettingsNavigationItem;
-        ViewModel.ActivePageTitle = "Configuración";
+        ViewModel.ActivePageTitle = Localizer.Text("Configuración");
         if (ContentFrame.CurrentSourcePageType != typeof(SettingsPage))
         {
             ContentFrame.Navigate(typeof(SettingsPage));
@@ -188,7 +189,7 @@ public sealed partial class MainWindow : Window
             PrimaryButtonText = Label("Entendido"),
             DefaultButton = ContentDialogButton.Primary,
         };
-        var result = await dialog.ShowAsync();
+        var result = await Localizer.ShowAsync(dialog);
         return acknowledge && result == ContentDialogResult.Primary;
     }
 
@@ -215,6 +216,22 @@ public sealed partial class MainWindow : Window
             // Usar el mismo valor evita anunciar «oscuro» mientras se hereda el claro del SO.
             _ => ElementTheme.Dark,
         };
+    }
+
+    internal void ApplyLanguagePreference(string? language)
+    {
+        if (!Localizer.SetLanguage(language)) return;
+        // NavigationView almacena sus entradas aparte del árbol visual.
+        foreach (var item in RootNavigation.MenuItems.OfType<DependencyObject>())
+            Localizer.Apply(item);
+        foreach (var item in RootNavigation.FooterMenuItems.OfType<DependencyObject>())
+            Localizer.Apply(item);
+        Localizer.Apply(AppRoot);
+        _app.RefreshTrayLanguage();
+        if (RootNavigation.SelectedItem is NavigationViewItem selected)
+            ViewModel.ActivePageTitle = selected.Content?.ToString() ?? string.Empty;
+        var pageType = ContentFrame.CurrentSourcePageType;
+        if (pageType is not null) ContentFrame.Navigate(pageType);
     }
 
     private void OnNavigationItemInvoked(
@@ -285,6 +302,7 @@ public sealed partial class MainWindow : Window
             SetFacturaeNavigationVisibility(enabled);
             if (result.IsSuccess && result.Outcome == "success" && result.Data is not null)
             {
+                ApplyLanguagePreference(result.Data.Language);
                 ApplyThemePreference(result.Data.ThemeIndex);
                 _app.SetKeepInTray(result.Data.CloseBehavior != "exit");
             }
@@ -430,7 +448,7 @@ public sealed partial class MainWindow : Window
         {
             XamlRoot = RootNavigation.XamlRoot,
         };
-        await dialog.ShowAsync();
+        await Localizer.ShowAsync(dialog);
     }
 
     private void OnContentFrameNavigated(

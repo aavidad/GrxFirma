@@ -124,6 +124,10 @@ public sealed class WindowsSecurePasswordPromptService
     {
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
+        request = new SecurePasswordPromptRequest(
+            Localizer.Text(request.Title),
+            Localizer.Text(request.Label),
+            request.MaximumCharacters);
         if (Interlocked.CompareExchange(ref _activePrompt, 1, 0) != 0)
         {
             throw new InvalidOperationException(
@@ -620,7 +624,7 @@ public sealed class WindowsSecurePasswordPromptService
         var cancel = CreateRequiredControl(
             0,
             "BUTTON",
-            "Cancelar",
+            Localizer.Text("Cancelar"),
             WsChild | WsVisible | WsTabStop,
             width - 112,
             height - 42,
@@ -634,7 +638,7 @@ public sealed class WindowsSecurePasswordPromptService
         var accept = CreateRequiredControl(
             0,
             "BUTTON",
-            "Aceptar",
+            Localizer.Text("Aceptar"),
             WsChild | WsVisible | WsTabStop | BsDefaultPushButton,
             width - 216,
             height - 42,

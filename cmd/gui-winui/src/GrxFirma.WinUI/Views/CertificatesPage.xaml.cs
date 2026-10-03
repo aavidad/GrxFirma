@@ -488,7 +488,7 @@ public sealed partial class CertificatesPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
         };
-        await dialog.ShowAsync();
+        await Localizer.ShowAsync(dialog);
     }
 
     private async Task ShowDiagnosticIfPresentAsync(
@@ -522,7 +522,7 @@ public sealed partial class CertificatesPage : Page
             CloseButtonText = "Cancelar",
             DefaultButton = ContentDialogButton.Close,
         };
-        return await dialog.ShowAsync() ==
+        return await Localizer.ShowAsync(dialog) ==
             ContentDialogResult.Primary;
     }
 }

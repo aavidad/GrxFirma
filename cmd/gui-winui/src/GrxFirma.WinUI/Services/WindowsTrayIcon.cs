@@ -101,6 +101,13 @@ internal sealed class WindowsTrayIcon : IDisposable
 
     public bool Installed => _installed;
 
+    public void RefreshLanguage()
+    {
+        if (!_installed) return;
+        var data = CreateData(TipFlag);
+        _ = ShellNotifyIcon(Modify, ref data);
+    }
+
     public void ExplainFirstHide()
     {
         if (!_installed)
@@ -109,8 +116,8 @@ internal sealed class WindowsTrayIcon : IDisposable
         }
         _releaseNotesNotificationPending = false;
         var data = CreateData(InfoFlag);
-        data.InfoTitle = "GrxFirma sigue disponible";
-        data.Info = "Se ha ocultado en la bandeja. Abra su icono para volver a la ventana.";
+        data.InfoTitle = Localizer.Text("GrxFirma sigue disponible");
+        data.Info = Localizer.Text("Se ha ocultado en la bandeja. Abra su icono para volver a la ventana.");
         _ = ShellNotifyIcon(Modify, ref data);
     }
 
@@ -143,7 +150,7 @@ internal sealed class WindowsTrayIcon : IDisposable
         Flags = flags,
         CallbackMessage = CallbackMessage,
         Icon = _icon,
-        Tip = "GrxFirma — firmas desde portales: activo",
+        Tip = Localizer.Text("GrxFirma — firmas desde portales: activo"),
         Info = string.Empty,
         InfoTitle = string.Empty,
     };

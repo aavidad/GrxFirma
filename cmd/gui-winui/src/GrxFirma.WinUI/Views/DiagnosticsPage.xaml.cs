@@ -187,7 +187,7 @@ public sealed partial class DiagnosticsPage : Page
             CloseButtonText = "Cancelar",
             DefaultButton = ContentDialogButton.Close,
         };
-        if (await confirmation.ShowAsync() ==
+        if (await Localizer.ShowAsync(confirmation) ==
             ContentDialogResult.Primary)
         {
             await ViewModel.InstallTlsTrustAsync();
@@ -214,7 +214,7 @@ public sealed partial class DiagnosticsPage : Page
             CloseButtonText = "Cancelar",
             DefaultButton = ContentDialogButton.Close,
         };
-        if (await confirmation.ShowAsync() ==
+        if (await Localizer.ShowAsync(confirmation) ==
             ContentDialogResult.Primary)
         {
             await ViewModel.ClearTlsTrustAsync();
@@ -234,6 +234,6 @@ public sealed partial class DiagnosticsPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
         };
-        await dialog.ShowAsync();
+        await Localizer.ShowAsync(dialog);
     }
 }
