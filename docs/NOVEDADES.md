@@ -7,6 +7,14 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.109 — 2026-10-03
+
+- GrxFirma comprueba en segundo plano si hay una versión nueva al arrancar y cada 5 horas mientras sigue abierta o en la bandeja. Lo hace aunque el motor local no responda y sin esperas si no hay internet, y avisa con «Descargar e instalar», «Ver novedades» y «Ahora no».
+- Windows: exportar el informe de verificación, configurar el sello de tiempo, filtrar certificados por NIF, organización o tipo, controlar el servidor REST y usar el asistente de soporte, como en Linux.
+- Linux: generador de facturas FacturaE, estado del lector de tarjetas y arranque automático con la sesión, como en Windows.
+- Linux: se retira la pestaña de pruebas internas, que mostraba resultados ficticios, y ya no aparece «Cambios sin guardar» al abrir la aplicación.
+- Windows: abrir el lanzador directamente ya no busca la interfaz de Linux.
+
 ## 0.0.108 — 2026-10-03
 
 - Cuando una web pide que elijas dónde va la firma, GrxFirma abre el editor del sello sobre la página real del PDF: puedes moverlo, agrandarlo y girarlo, o firmar sin sello. Antes solo había seis posiciones fijas.
