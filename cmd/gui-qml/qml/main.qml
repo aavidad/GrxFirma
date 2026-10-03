@@ -2153,7 +2153,10 @@ Window {
             seen[id] = true
             cleaned.push(id)
         }
-        multiCosignCertificateIds = cleaned
+        // Reasignar una lista igual dispararía el aviso de «Cambios sin guardar»
+        // al cargar los certificados aunque el usuario no haya tocado nada.
+        if (JSON.stringify(cleaned) !== JSON.stringify(multiCosignCertificateIds))
+            multiCosignCertificateIds = cleaned
     }
 
     function sanitizeMultiCosignIdsForPrimary(primaryId, ids, certs) {
