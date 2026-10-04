@@ -29,12 +29,34 @@ public sealed partial class OperationDiagnosticDialog : ContentDialog
         _filePicker = filePicker;
         ViewModel = new OperationDiagnosticDialogViewModel(diagnostic);
         InitializeComponent();
+        Closed += (_, _) =>
+        {
+            if (_correctFieldRequested) _correctFieldAction?.Invoke();
+        };
     }
 
     private readonly OperationDiagnostic _diagnostic;
     private readonly IFilePickerService _filePicker;
 
+    public Action? CorrectFieldAction
+    {
+        get => _correctFieldAction;
+        set
+        {
+            _correctFieldAction = value;
+            SecondaryButtonText = value is null ? string.Empty : Localizer.Text("validacion.corregir");
+        }
+    }
+
+    private Action? _correctFieldAction;
+    private bool _correctFieldRequested;
+
     public OperationDiagnosticDialogViewModel ViewModel { get; }
+
+    private void OnCorrectField(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    {
+        _correctFieldRequested = true;
+    }
 
     private async void OnExportReport(
         ContentDialog sender,

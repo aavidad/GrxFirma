@@ -3072,6 +3072,49 @@ public sealed class SignPageViewModel
         return true;
     }
 
+    private (string Field, string Key)? CsvLegendError(string? field = null)
+    {
+        var code = VisibleSealCsvCode.Trim();
+        var url = VisibleSealCsvUrl.Trim();
+        var text = VisibleSealCsvText.Trim();
+        if (field is null or "csvCode")
+        {
+            if (code.Length == 0) return ("csvCode", "csv.error.code_missing");
+            if (code.Length > 128 || code.Any(char.IsControl)) return ("csvCode", "csv.error.code_invalid");
+        }
+        if (field is null or "csvUrl")
+        {
+            if (url.Length == 0) return ("csvUrl", "csv.error.url_missing");
+            if (!TryNormalizeCsvUrl(url, code, out _)) return ("csvUrl", "csv.error.url_invalid");
+        }
+        if ((field is null || field == "csvText") &&
+            (text.Length > 512 || text.Any(char.IsControl)))
+            return ("csvText", "csv.error.text_invalid");
+        return null;
+    }
+
+    public IReadOnlyDictionary<string, string> ValidateVisibleSealFields()
+    {
+        var errors = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (!VisibleSealEnabled) return errors;
+        if (SelectedVisibleSealStyle?.Value == "imagen" && string.IsNullOrWhiteSpace(_visibleSealImagePath))
+            errors["image"] = "validacion.sello.imagen";
+        if (VisibleSealQrEnabled && !TryNormalizeVerificationUrl(VisibleSealQrUrl, out _, out _))
+            errors["qr"] = "sign.seal.qr_https_error";
+        if (VisibleSealCsvEnabled)
+        {
+            foreach (var field in new[] { "csvCode", "csvUrl", "csvText" })
+            {
+                var csvError = CsvLegendError(field);
+                if (csvError is { } issue) errors[issue.Field] = issue.Key;
+            }
+        }
+        if (IsVisibleSealCustomPages &&
+            !TryParsePageSelection(VisibleSealPages, _previewTotalPages, out _, out _, out _))
+            errors["pages"] = "validacion.sello.paginas";
+        return errors;
+    }
+
     private static IReadOnlyDictionary<string, string> MergeExtraOptions(
         IReadOnlyDictionary<string, string>? baseOptions,
         string key,
@@ -3551,19 +3594,14 @@ public sealed class SignPageViewModel
             var text = VisibleSealCsvText.Trim();
             // Cada problema tiene su propio mensaje: uno genérico hacía creer
             // que fallaba la URL cuando faltaba, por ejemplo, el código.
-            var csvError =
-                code.Length == 0 ? "csv.error.code_missing" :
-                code.Length > 128 || code.Any(char.IsControl) ? "csv.error.code_invalid" :
-                url.Length == 0 ? "csv.error.url_missing" :
-                !TryNormalizeCsvUrl(url, code, out url) ? "csv.error.url_invalid" :
-                text.Length > 512 || text.Any(char.IsControl) ? "csv.error.text_invalid" :
-                null;
+            var csvError = CsvLegendError();
             if (csvError is not null)
             {
                 errorCode = "VISIBLE_SEAL_CSV_INVALID";
-                error = SealText(csvError);
+                error = SealText(csvError.Value.Key);
                 return false;
             }
+            TryNormalizeCsvUrl(url, code, out url);
             extraOptions = MergeExtraOptions(extraOptions, "csv", code);
             extraOptions = MergeExtraOptions(extraOptions, "csvUrl", url);
             extraOptions = MergeExtraOptions(extraOptions, "csvText", text);

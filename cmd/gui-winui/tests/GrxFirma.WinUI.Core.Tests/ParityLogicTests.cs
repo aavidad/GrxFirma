@@ -44,6 +44,20 @@ public sealed class ParityLogicTests
     }
 
     [TestMethod]
+    public void NetworkFormValidation_IdentifiesTheAffectedFieldRule()
+    {
+        Assert.AreEqual("winui.parity.tsa.invalid", NetworkFormValidation.TsaError(true, "http://tsa.example.test"));
+        Assert.IsNull(NetworkFormValidation.TsaError(false, "http://tsa.example.test"));
+        Assert.IsNull(NetworkFormValidation.TsaError(true, "https://tsa.example.test/"));
+        Assert.AreEqual("validacion.proxy.host", NetworkFormValidation.ProxyHostError(true, "manual", "https://proxy.example.test"));
+        Assert.IsNull(NetworkFormValidation.ProxyHostError(false, "manual", ""));
+        Assert.IsNull(NetworkFormValidation.ProxyHostError(true, "manual", "proxy.example.test"));
+        Assert.AreEqual("validacion.proxy.puerto", NetworkFormValidation.ProxyPortError("65536"));
+        Assert.AreEqual("validacion.proxy.puerto", NetworkFormValidation.ProxyPortError("x"));
+        Assert.IsNull(NetworkFormValidation.ProxyPortError("8080"));
+    }
+
+    [TestMethod]
     public void TsaSettings_UseQtWireKeysAcrossSaveSnapshot()
     {
         var settings = JsonSerializer.Deserialize<DesktopSettingsDocument>("""

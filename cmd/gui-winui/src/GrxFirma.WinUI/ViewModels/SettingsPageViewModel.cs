@@ -256,6 +256,18 @@ public sealed class SettingsPageViewModel
         private set => SetProperty(ref _tsaValidationMessage, Localizer.Text(value));
     }
 
+    public IReadOnlyDictionary<string, string> ValidateNetworkFields()
+    {
+        var errors = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (NetworkFormValidation.TsaError(TsaEnabled, TsaUrl) is { } tsaError)
+            errors["tsa"] = tsaError;
+        if (NetworkFormValidation.ProxyPortError(ProxyPortText) is { } portError)
+            errors["proxyPort"] = portError;
+        if (NetworkFormValidation.ProxyHostError(ProxyEnabled, SelectedProxyType.Value, ProxyHost) is { } hostError)
+            errors["proxyHost"] = hostError;
+        return errors;
+    }
+
     public bool FacturaeToolsEnabled
     {
         get => _facturaeToolsEnabled;
@@ -1099,7 +1111,7 @@ public sealed class SettingsPageViewModel
         {
             return "El sello visible solo es compatible con el formato automático o PAdES.";
         }
-        if (!TsaConfiguration.TryNormalize(TsaEnabled, TsaUrl, out _))
+        if (NetworkFormValidation.TsaError(TsaEnabled, TsaUrl) is not null)
         {
             return GrxFirma.WinUI.Services.SealUiCatalog.Text(
                 SelectedLanguage.Value, "winui.parity.tsa.invalid");
@@ -1109,8 +1121,7 @@ public sealed class SettingsPageViewModel
         {
             return "Seleccione un tipo de proxy admitido.";
         }
-        if (!int.TryParse(ProxyPortText, out var port) ||
-            port is < 1 or > 65535)
+        if (NetworkFormValidation.ProxyPortError(ProxyPortText) is not null)
         {
             return "El puerto del proxy debe estar entre 1 y 65535.";
         }
@@ -1118,18 +1129,8 @@ public sealed class SettingsPageViewModel
         {
             return "Seleccione proxy manual o desactive el uso de proxy.";
         }
-        if (ProxyEnabled && SelectedProxyType.Value == "manual")
-        {
-            var host = ProxyHost.Trim();
-            if (host.Length is < 1 or > 512 ||
-                host.Any(char.IsControl) ||
-                host.Any(char.IsWhiteSpace) ||
-                host.Contains("://", StringComparison.Ordinal) ||
-                host.IndexOfAny(['/', '\\', '@']) >= 0)
-            {
-                return "Indique solo el host o la IP del proxy, sin esquema, ruta ni credenciales.";
-            }
-        }
+        if (NetworkFormValidation.ProxyHostError(ProxyEnabled, SelectedProxyType.Value, ProxyHost) is not null)
+            return "Indique solo el host o la IP del proxy, sin esquema, ruta ni credenciales.";
         if (!TryParseProxyExcludedUrls(
                 ProxyExcludedUrlsText,
                 out _))

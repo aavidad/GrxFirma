@@ -66,6 +66,7 @@ public sealed partial class SignPage : Page
     private PortalSealSession? _portalSealSession;
     private Button? _portalSignButton;
     private TextBlock? _portalPageText;
+    private readonly Dictionary<string, string> _fieldErrors = new(StringComparer.Ordinal);
 
     public SignPage()
     {
@@ -85,6 +86,21 @@ public sealed partial class SignPage : Page
             _session,
             app.FilePickerService);
         InitializeComponent();
+        RegisterFieldValidation(VisibleSealQrUrlTextBox, "qr");
+        RegisterFieldValidation(VisibleSealCsvCodeTextBox, "csvCode");
+        RegisterFieldValidation(VisibleSealCsvUrlTextBox, "csvUrl");
+        RegisterFieldValidation(VisibleSealCsvTextTextBox, "csvText");
+        RegisterFieldValidation(VisibleSealPagesTextBox, "pages");
+        VisibleSealImageButton.LostFocus += (_, _) => RefreshFieldError("image");
+        ViewModel.PropertyChanged += (_, change) =>
+        {
+            if (_fieldErrors.Count == 0) return;
+            if (change.PropertyName is nameof(SignPageViewModel.VisibleSealEnabled) or
+                nameof(SignPageViewModel.VisibleSealQrEnabled) or
+                nameof(SignPageViewModel.VisibleSealCsvEnabled) or
+                nameof(SignPageViewModel.IsVisibleSealCustomPages))
+                foreach (var field in _fieldErrors.Keys.ToArray()) RefreshFieldError(field);
+        };
         // Button consume eventos de puntero; recibirlos también al estar marcados
         // como atendidos mantiene fiable la captura del tirador.
         VisibleSealRotateHandle.AddHandler(
@@ -96,6 +112,73 @@ public sealed partial class SignPage : Page
         VisibleSealRotateHandle.AddHandler(
             UIElement.PointerReleasedEvent,
             new PointerEventHandler(OnVisibleSealPreviewPointerReleased), true);
+    }
+
+    private void RegisterFieldValidation(TextBox field, string name)
+    {
+        field.LostFocus += (_, _) => RefreshFieldError(name);
+        field.TextChanged += (_, _) =>
+        {
+            if (_fieldErrors.ContainsKey(name)) RefreshFieldError(name);
+        };
+    }
+
+    private void RefreshFieldError(string name)
+    {
+        var issues = ViewModel.ValidateVisibleSealFields();
+        if (issues.TryGetValue(name, out var key)) _fieldErrors[name] = key;
+        else _fieldErrors.Remove(name);
+        RenderFieldErrors();
+    }
+
+    private string? ValidateAllFields()
+    {
+        _fieldErrors.Clear();
+        foreach (var issue in ViewModel.ValidateVisibleSealFields())
+            _fieldErrors[issue.Key] = issue.Value;
+        RenderFieldErrors();
+        foreach (var name in new[] { "image", "qr", "csvCode", "csvUrl", "csvText", "pages" })
+            if (_fieldErrors.ContainsKey(name)) return name;
+        return null;
+    }
+
+    private void RenderFieldErrors()
+    {
+        void Show(string name, Control field, TextBlock message)
+        {
+            var invalid = _fieldErrors.TryGetValue(name, out var key);
+            var detail = invalid ? Localizer.Text(key!) : string.Empty;
+            message.Text = detail;
+            message.Visibility = invalid ? Visibility.Visible : Visibility.Collapsed;
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(field, detail);
+            if (invalid) field.BorderBrush = (Brush)Application.Current.Resources["AppDiagnosticFailureBrush"];
+            else field.ClearValue(Control.BorderBrushProperty);
+        }
+        Show("image", VisibleSealImageButton, VisibleSealImageError);
+        Show("qr", VisibleSealQrUrlTextBox, VisibleSealQrError);
+        Show("csvCode", VisibleSealCsvCodeTextBox, VisibleSealCsvCodeError);
+        Show("csvUrl", VisibleSealCsvUrlTextBox, VisibleSealCsvUrlError);
+        Show("csvText", VisibleSealCsvTextTextBox, VisibleSealCsvTextError);
+        Show("pages", VisibleSealPagesTextBox, VisibleSealPagesError);
+        AdvancedSignErrorCount.Visibility = _fieldErrors.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        AdvancedSignErrorCount.Text = Localizer.Text("validacion.problemas")
+            .Replace("%1", _fieldErrors.Count.ToString(CultureInfo.CurrentCulture), StringComparison.Ordinal);
+    }
+
+    private void FocusField(string name)
+    {
+        AdvancedSignExpander.IsExpanded = true;
+        Control target = name switch
+        {
+            "image" => VisibleSealImageButton,
+            "qr" => VisibleSealQrUrlTextBox,
+            "csvCode" => VisibleSealCsvCodeTextBox,
+            "csvUrl" => VisibleSealCsvUrlTextBox,
+            "csvText" => VisibleSealCsvTextTextBox,
+            _ => VisibleSealPagesTextBox,
+        };
+        target.StartBringIntoView();
+        target.Focus(FocusState.Programmatic);
     }
 
     // Un elemento XAML solo puede tener un padre: se suelta del actual, sea del
@@ -801,6 +884,13 @@ public sealed partial class SignPage : Page
             return;
         }
 
+        var firstFieldError = ValidateAllFields();
+        if (firstFieldError is not null)
+        {
+            FocusField(firstFieldError);
+            return;
+        }
+
         SignResultPanel.Visibility = Visibility.Collapsed;
         var revealRevision = ++_resultRevealRevision;
         var previousCompletion = ViewModel.CompletedSignPresentationId;
@@ -943,6 +1033,13 @@ public sealed partial class SignPage : Page
         var cancellation = _pageCancellation;
         if (cancellation is null)
         {
+            return;
+        }
+
+        var firstFieldError = ValidateAllFields();
+        if (firstFieldError is not null)
+        {
+            FocusField(firstFieldError);
             return;
         }
 
@@ -1404,6 +1501,7 @@ public sealed partial class SignPage : Page
         }
         var diagnostic = await ViewModel.PickVisibleSealImageAsync(
             cancellation.Token);
+        if (_fieldErrors.ContainsKey("image")) RefreshFieldError("image");
         await ShowDiagnosticIfPresentAsync(diagnostic);
     }
 
@@ -1729,6 +1827,9 @@ public sealed partial class SignPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
         };
+        var fieldError = ValidateAllFields();
+        if (fieldError is not null)
+            dialog.CorrectFieldAction = () => FocusField(fieldError);
         await Localizer.ShowAsync(dialog);
     }
 }

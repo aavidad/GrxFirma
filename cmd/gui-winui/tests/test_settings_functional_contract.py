@@ -30,6 +30,9 @@ class SettingsFunctionalContractTests(unittest.TestCase):
         cls.vm = (
             APP / "ViewModels/SettingsPageViewModel.cs"
         ).read_text(encoding="utf-8")
+        cls.network_validation = (
+            CORE / "Operations/NetworkFormValidation.cs"
+        ).read_text(encoding="utf-8")
         cls.page = (
             APP / "Views/SettingsPage.xaml.cs"
         ).read_text(encoding="utf-8")
@@ -137,10 +140,15 @@ class SettingsFunctionalContractTests(unittest.TestCase):
             "result.Data is null",
             "string.IsNullOrWhiteSpace(result.Data)",
             "TryBuildSaveDocument",
-            "port is < 1 or > 65535",
-            'host.Contains("://", StringComparison.Ordinal)',
+            "NetworkFormValidation.ProxyPortError(",
+            "NetworkFormValidation.ProxyHostError(",
         ):
             self.assertIn(fragment, self.vm)
+        for fragment in (
+            "port is >= 1 and <= 65535",
+            'host.Contains("://", StringComparison.Ordinal)',
+        ):
+            self.assertIn(fragment, self.network_validation)
 
     def test_operations_are_cancelable_and_double_click_is_bounded(self):
         for fragment in (

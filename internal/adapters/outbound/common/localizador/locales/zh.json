@@ -4780,4 +4780,10 @@
   ,"Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.": "在 Windows 和 Linux 上通过应用验证 FacturaE、UBL 和 CII 发票，并可导出报告。"
   ,"Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».": "Windows：现在可以在 GrxFirma 打开时进行更新。安装程序会关闭应用、安装新版本并重新打开；以前会失败并提示“套件的 PowerShell 安装失败，代码 1”。"
   ,"Windows: si la conexión con el motor local se interrumpe, GrxFirma vuelve a conectar sola en la siguiente operación. Antes la aplicación podía quedarse sin motor («falla todo») hasta cerrarla del todo.": "Windows：如果与本地引擎的连接中断，GrxFirma 会在下一次操作时自动重新连接。以前应用可能一直没有引擎（“全部失败”），直到完全关闭。"
+  ,"validacion.sello.imagen": "请选择用于印章的 PNG 或 JPEG 图片。"
+  ,"validacion.sello.paginas": "请输入有效的印章页码（例如 1,3-5）。"
+  ,"validacion.corregir": "更正"
+  ,"validacion.problemas": "可见签名有 %1 个问题"
+  ,"validacion.proxy.host": "仅输入代理主机名或 IP 地址，不要包含协议、路径或凭据。"
+  ,"validacion.proxy.puerto": "代理端口必须介于 1 和 65535 之间。"
 }
