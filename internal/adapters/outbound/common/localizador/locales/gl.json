@@ -4775,4 +4775,9 @@
   ,"csv.error.url_missing": "Falta o URL de cotexo do CSV."
   ,"csv.error.url_invalid": "O URL de cotexo non é válido: debe ser un enderezo https:// sen usuario, contrasinal nin espazos (use %20 para os espazos)."
   ,"csv.error.text_invalid": "O texto da lenda CSV non pode superar os 512 caracteres nin conter saltos de liña."
+  ,"Crear documentos y expedientes ENI desde la aplicación, en Windows y Linux.": "Crear documentos e expedientes ENI desde a aplicación, en Windows e Linux."
+  ,"Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.": "Lenda CSV de cotexo no selo PAdES (código e URL da Administración), en Windows e Linux."
+  ,"Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.": "Validar facturas FacturaE, UBL e CII desde a aplicación, con informe exportable, en Windows e Linux."
+  ,"Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».": "Windows: actualizar con GrxFirma aberta xa funciona. O instalador pecha a aplicación, instala a versión nova e volve abrila; antes fallaba con «A instalación PowerShell da suite fallou co código 1»."
+  ,"Windows: si la conexión con el motor local se interrumpe, GrxFirma vuelve a conectar sola en la siguiente operación. Antes la aplicación podía quedarse sin motor («falla todo») hasta cerrarla del todo.": "Windows: se a conexión co motor local se interrompe, GrxFirma volve conectar soa na seguinte operación. Antes a aplicación podía quedar sen motor («falla todo») ata pechala de todo."
 }

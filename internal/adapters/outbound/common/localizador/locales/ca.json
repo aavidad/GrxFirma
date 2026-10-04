@@ -4775,4 +4775,9 @@
   ,"csv.error.url_missing": "Falta l'URL de verificació del CSV."
   ,"csv.error.url_invalid": "L'URL de verificació no és vàlida: ha de ser una adreça https:// sense usuari, contrasenya ni espais (useu %20 per als espais)."
   ,"csv.error.text_invalid": "El text de la llegenda CSV no pot superar els 512 caràcters ni contenir salts de línia."
+  ,"Crear documentos y expedientes ENI desde la aplicación, en Windows y Linux.": "Crear documents i expedients ENI des de l'aplicació, a Windows i Linux."
+  ,"Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.": "Llegenda CSV de verificació al segell PAdES (codi i URL de l'Administració), a Windows i Linux."
+  ,"Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.": "Validar factures FacturaE, UBL i CII des de l'aplicació, amb informe exportable, a Windows i Linux."
+  ,"Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».": "Windows: actualitzar amb GrxFirma oberta ja funciona. L'instal·lador tanca l'aplicació, instal·la la versió nova i la torna a obrir; abans fallava amb «La instal·lació PowerShell de la suite ha fallat amb el codi 1»."
+  ,"Windows: si la conexión con el motor local se interrumpe, GrxFirma vuelve a conectar sola en la siguiente operación. Antes la aplicación podía quedarse sin motor («falla todo») hasta cerrarla del todo.": "Windows: si la connexió amb el motor local s'interromp, GrxFirma es torna a connectar sola en la següent operació. Abans l'aplicació es podia quedar sense motor («tot falla») fins a tancar-la del tot."
 }

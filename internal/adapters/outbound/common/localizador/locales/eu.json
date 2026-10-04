@@ -4775,4 +4775,9 @@
   ,"csv.error.url_missing": "CSVaren egiaztatze-URLa falta da."
   ,"csv.error.url_invalid": "Egiaztatze-URLa ez da baliozkoa: https:// helbidea izan behar du, erabiltzailerik, pasahitzik eta espaziorik gabe (erabili %20 espazioetarako)."
   ,"csv.error.text_invalid": "CSV legendaren testuak ezin ditu 512 karaktere gainditu ezta lerro-jauzirik izan."
+  ,"Crear documentos y expedientes ENI desde la aplicación, en Windows y Linux.": "ENI dokumentuak eta espedienteak sortu aplikaziotik, Windowsen eta Linuxen."
+  ,"Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.": "CSV egiaztatze-legenda PAdES zigiluan (Administrazioaren kodea eta URLa), Windowsen eta Linuxen."
+  ,"Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.": "FacturaE, UBL eta CII fakturak balioztatu aplikaziotik, txosten esportagarriarekin, Windowsen eta Linuxen."
+  ,"Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».": "Windows: GrxFirma irekita dagoela eguneratzeak badabil orain. Instalatzaileak aplikazioa ixten du, bertsio berria instalatzen du eta berriro irekitzen du; lehen «Suitearen PowerShell instalazioak huts egin du 1 kodearekin» errorearekin huts egiten zuen."
+  ,"Windows: si la conexión con el motor local se interrumpe, GrxFirma vuelve a conectar sola en la siguiente operación. Antes la aplicación podía quedarse sin motor («falla todo») hasta cerrarla del todo.": "Windows: motor lokalarekiko konexioa eteten bada, GrxFirma berez konektatzen da hurrengo eragiketan. Lehen aplikazioa motorrik gabe gera zitekeen («dena huts egiten du») guztiz itxi arte."
 }

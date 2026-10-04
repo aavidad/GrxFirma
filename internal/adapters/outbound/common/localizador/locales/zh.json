@@ -4775,4 +4775,9 @@
   ,"csv.error.url_missing": "缺少 CSV 核验网址。"
   ,"csv.error.url_invalid": "核验网址无效：必须是不含用户名、密码和空格的 https:// 地址（空格请用 %20）。"
   ,"csv.error.text_invalid": "CSV 图例文字不能超过 512 个字符，也不能包含换行符。"
+  ,"Crear documentos y expedientes ENI desde la aplicación, en Windows y Linux.": "在 Windows 和 Linux 上直接通过应用创建 ENI 文档和卷宗。"
+  ,"Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.": "在 PAdES 印章中添加 CSV 核验图例（行政机关提供的代码和网址），适用于 Windows 和 Linux。"
+  ,"Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.": "在 Windows 和 Linux 上通过应用验证 FacturaE、UBL 和 CII 发票，并可导出报告。"
+  ,"Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».": "Windows：现在可以在 GrxFirma 打开时进行更新。安装程序会关闭应用、安装新版本并重新打开；以前会失败并提示“套件的 PowerShell 安装失败，代码 1”。"
+  ,"Windows: si la conexión con el motor local se interrumpe, GrxFirma vuelve a conectar sola en la siguiente operación. Antes la aplicación podía quedarse sin motor («falla todo») hasta cerrarla del todo.": "Windows：如果与本地引擎的连接中断，GrxFirma 会在下一次操作时自动重新连接。以前应用可能一直没有引擎（“全部失败”），直到完全关闭。"
 }
