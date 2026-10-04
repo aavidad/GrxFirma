@@ -55,7 +55,11 @@ public static class VerificationUrlNormalizer
                 var idn = new IdnMapping { UseStd3AsciiRules = true };
                 host = idn.GetAscii(host).ToLowerInvariant();
                 // Validar también la entrada ACE, sin confiar en su prefijo xn--.
-                if (idn.GetAscii(idn.GetUnicode(host)) != host) return false;
+                var unicode = idn.GetUnicode(host);
+                if (idn.GetAscii(unicode) != host) return false;
+                // IdnMapping con NLS (Windows) no aplica la regla Bidi de IDNA
+                // (RFC 5893); el motor Go sí. Se comprueba aquí para rechazar lo mismo.
+                if (unicode.Split('.').Any(label => !CumpleReglaBidi(label))) return false;
             }
             catch (ArgumentException) { return false; }
             if (host.Length > 253 || host.Split('.').Any(label =>
@@ -70,4 +74,16 @@ public static class VerificationUrlNormalizer
         normalized = result;
         return true;
     }
+
+    // Una etiqueta con escritura de derecha a izquierda debe empezar por una
+    // letra de esa escritura y no contener letras de izquierda a derecha.
+    private static bool CumpleReglaBidi(string label)
+    {
+        if (!label.Any(EsDerechaAIzquierda)) return true;
+        if (!EsDerechaAIzquierda(label[0])) return false;
+        return !label.Any(c => char.IsLetter(c) && !EsDerechaAIzquierda(c));
+    }
+
+    private static bool EsDerechaAIzquierda(char c) =>
+        c is >= '\u0590' and <= '\u08FF' or >= '\uFB1D' and <= '\uFDFF' or >= '\uFE70' and <= '\uFEFF';
 }
