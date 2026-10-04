@@ -4770,4 +4770,9 @@
   ,"oficina contable": "kontabilitate-bulegoa"
   ,"órgano gestor": "organo kudeatzailea"
   ,"unidad tramitadora": "izapidetze-unitatea"
+  ,"csv.error.code_missing": "CSV kodea falta da. Idatzi Administrazioak eman bezala."
+  ,"csv.error.code_invalid": "CSV kodeak ezin ditu 128 karaktere gainditu ezta lerro-jauzirik edo tabuladorerik izan."
+  ,"csv.error.url_missing": "CSVaren egiaztatze-URLa falta da."
+  ,"csv.error.url_invalid": "Egiaztatze-URLa ez da baliozkoa: https:// helbidea izan behar du, erabiltzailerik, pasahitzik eta espaziorik gabe (erabili %20 espazioetarako)."
+  ,"csv.error.text_invalid": "CSV legendaren testuak ezin ditu 512 karaktere gainditu ezta lerro-jauzirik izan."
 }

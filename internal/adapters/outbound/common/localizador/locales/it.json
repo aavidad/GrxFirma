@@ -4770,4 +4770,9 @@
   ,"oficina contable": "ufficio contabile"
   ,"órgano gestor": "organo di gestione"
   ,"unidad tramitadora": "unità di elaborazione"
+  ,"csv.error.code_missing": "Manca il codice CSV. Inseriscilo esattamente come rilasciato dall'amministrazione."
+  ,"csv.error.code_invalid": "Il codice CSV non può superare i 128 caratteri né contenere a capo o tabulazioni."
+  ,"csv.error.url_missing": "Manca l'URL di verifica del CSV."
+  ,"csv.error.url_invalid": "L'URL di verifica non è valido: deve essere un indirizzo https:// senza utente, password o spazi (usa %20 per gli spazi)."
+  ,"csv.error.text_invalid": "Il testo della legenda CSV non può superare i 512 caratteri né contenere a capo."
 }

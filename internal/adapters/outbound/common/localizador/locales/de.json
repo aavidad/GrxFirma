@@ -4770,4 +4770,9 @@
   ,"oficina contable": "Buchhaltungsstelle"
   ,"órgano gestor": "zuständige Behörde"
   ,"unidad tramitadora": "Bearbeitungseinheit"
+  ,"csv.error.code_missing": "Der CSV-Code fehlt. Geben Sie ihn so ein, wie ihn die Verwaltung ausgestellt hat."
+  ,"csv.error.code_invalid": "Der CSV-Code darf höchstens 128 Zeichen lang sein und keine Zeilenumbrüche oder Tabulatoren enthalten."
+  ,"csv.error.url_missing": "Die Prüf-URL des CSV fehlt."
+  ,"csv.error.url_invalid": "Die Prüf-URL ist ungültig: Sie muss eine https://-Adresse ohne Benutzer, Passwort und Leerzeichen sein (verwenden Sie %20 für Leerzeichen)."
+  ,"csv.error.text_invalid": "Der Text der CSV-Legende darf höchstens 512 Zeichen lang sein und keine Zeilenumbrüche enthalten."
 }

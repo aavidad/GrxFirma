@@ -127,6 +127,28 @@ Window {
         }
     }
 
+    // Como el QR: sin esquema se entiende https://.
+    function normalizedCsvUrl(raw) {
+        let value = String(raw || "").trim()
+        if (value.indexOf("://") < 0 && value.indexOf(":") < 0 && value !== "")
+            value = "https://" + value
+        return value
+    }
+
+    // Un mensaje por cada problema de la leyenda CSV, para saber qué corregir.
+    function csvLegendError() {
+        const code = signCSVCode.trim()
+        const url = normalizedCsvUrl(signCSVUrl)
+        if (code === "") return "csv.error.code_missing"
+        if (code.length > 128 || /[\r\n\t]/.test(code)) return "csv.error.code_invalid"
+        if (url === "") return "csv.error.url_missing"
+        if (url.length > 2048 || / /.test(url) || !/^https:\/\//i.test(url) ||
+                !validQrUrl(url.replace("{csv}", encodeURIComponent(code))))
+            return "csv.error.url_invalid"
+        if (signCSVText.length > 512 || /[\r\n\t]/.test(signCSVText)) return "csv.error.text_invalid"
+        return ""
+    }
+
     function showLocalTLSStartupNotice(status) {
         // El editor del sello del portal no conecta con navegadores: el aviso
         // solo taparía el editor.
@@ -4171,8 +4193,9 @@ Window {
     }
 
     function buildSignPayload() {
-        if (signVisibleSeal && supportsVisibleSeal() && signCSVEnabled && (signCSVCode.trim() === "" || signCSVCode.length > 128 || /[\r\n\t]/.test(signCSVCode) || signCSVUrl.trim().length > 2048 || !/^https:\/\//i.test(signCSVUrl.trim()) || !validQrUrl(signCSVUrl.trim().replace("{csv}", encodeURIComponent(signCSVCode.trim()))) || signCSVText.length > 512 || /[\r\n\t]/.test(signCSVText))) {
-            statusMessage = tr("paridad.lote3.csv.invalid")
+        const csvError = (signVisibleSeal && supportsVisibleSeal() && signCSVEnabled) ? csvLegendError() : ""
+        if (csvError !== "") {
+            statusMessage = tr(csvError)
             return null
         }
         if (signVisibleSeal && supportsVisibleSeal() && signQREnabled && normalizedQrUrl(signQRContent) === "") {
@@ -4243,7 +4266,7 @@ Window {
             Object.assign(extraOptions, sealAppearanceOptions())
             if (signVisibleSeal && signCSVEnabled) {
                 extraOptions.csv = signCSVCode.trim()
-                extraOptions.csvUrl = signCSVUrl.trim()
+                extraOptions.csvUrl = normalizedCsvUrl(signCSVUrl)
                 extraOptions.csvText = signCSVText.trim()
                 extraOptions.csvQR = signCSVQR ? "true" : "false"
             }

@@ -4770,4 +4770,9 @@
   ,"oficina contable": "serviço de contabilidade"
   ,"órgano gestor": "órgão gestor"
   ,"unidad tramitadora": "unidade de processamento"
+  ,"csv.error.code_missing": "Falta o código CSV. Escreva-o tal como é emitido pela Administração."
+  ,"csv.error.code_invalid": "O código CSV não pode exceder 128 caracteres nem conter quebras de linha ou tabulações."
+  ,"csv.error.url_missing": "Falta o URL de verificação do CSV."
+  ,"csv.error.url_invalid": "O URL de verificação não é válido: deve ser um endereço https:// sem utilizador, palavra-passe nem espaços (use %20 para os espaços)."
+  ,"csv.error.text_invalid": "O texto da legenda CSV não pode exceder 512 caracteres nem conter quebras de linha."
 }

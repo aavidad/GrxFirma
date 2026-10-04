@@ -4770,4 +4770,9 @@
   ,"oficina contable": "oficina contable"
   ,"órgano gestor": "órgano gestor"
   ,"unidad tramitadora": "unidad tramitadora"
+  ,"csv.error.code_missing": "Falta el código CSV. Escríbalo tal como lo emite la Administración."
+  ,"csv.error.code_invalid": "El código CSV no puede superar los 128 caracteres ni contener saltos de línea o tabuladores."
+  ,"csv.error.url_missing": "Falta la URL de cotejo del CSV."
+  ,"csv.error.url_invalid": "La URL de cotejo no es válida: debe ser una dirección https:// sin usuario, contraseña ni espacios (use %20 para los espacios)."
+  ,"csv.error.text_invalid": "El texto de la leyenda CSV no puede superar los 512 caracteres ni contener saltos de línea."
 }

@@ -4770,4 +4770,9 @@
   ,"oficina contable": "accounting office"
   ,"órgano gestor": "managing body"
   ,"unidad tramitadora": "processing unit"
+  ,"csv.error.code_missing": "The CSV code is missing. Enter it exactly as issued by the administration."
+  ,"csv.error.code_invalid": "The CSV code cannot exceed 128 characters or contain line breaks or tabs."
+  ,"csv.error.url_missing": "The CSV verification URL is missing."
+  ,"csv.error.url_invalid": "The verification URL is not valid: it must be an https:// address without user, password or spaces (use %20 for spaces)."
+  ,"csv.error.text_invalid": "The CSV legend text cannot exceed 512 characters or contain line breaks."
 }
