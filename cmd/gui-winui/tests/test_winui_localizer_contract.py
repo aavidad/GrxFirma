@@ -165,6 +165,11 @@ def is_machine_literal(path, value):
             or value in PROPER_NAMES | LANGUAGE_SELF_NAMES | MACHINE_WORDS |
             WIN32_NAMES | MACHINE_EXACT):
         return True
+    # Códigos NTI generados desde Go: datos de interoperabilidad. Las etiquetas
+    # se resuelven mediante eni.codigo.* y el contrato ENI comprueba las listas.
+    if (relative == "GrxFirma.WinUI.Core/Operations/EniCatalog.cs"
+            and re.fullmatch(r"(?:EE(?:0[1-4]|99)|TD(?:0[1-9]|1[0-9]|20|99)|E0[1-3])", value)):
+        return True
     without_interpolation = re.sub(r"\{[^{}]*\}", "", value)
     if (not re.search(r"[A-Za-zÀ-ÿ]", without_interpolation)
             or re.fullmatch(r"[\s0-9xX:.+\-]*", without_interpolation)):
