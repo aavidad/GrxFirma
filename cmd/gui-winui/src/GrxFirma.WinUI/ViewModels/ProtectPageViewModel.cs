@@ -11,13 +11,19 @@ using GrxFirma.WinUI.Services;
 
 namespace GrxFirma.WinUI.ViewModels;
 
-public sealed record ProtectionProfileOption(string Label, string Value);
+public sealed record ProtectionProfileOption(string SourceLabel, string Value)
+{
+    public string Label => Localizer.Text(SourceLabel);
+}
 
 public sealed record ProtectionContainerOption(
-    string Label,
+    string SourceLabel,
     string Value,
     SaveFilePickerProfile SaveProfile,
-    bool RequiresTransientSecret = false);
+    bool RequiresTransientSecret = false)
+{
+    public string Label => Localizer.Text(SourceLabel);
+}
 
 public sealed record ProtectionRecipientItem
 {
@@ -60,8 +66,8 @@ public sealed class ProtectPageViewModel
     private string? _protectOutputPath;
     private string? _unprotectInputPath;
     private string? _unprotectOutputPath;
-    private string _protectInputDisplayName = "Ningún documento seleccionado";
-    private string _unprotectInputDisplayName = "Ningún contenedor seleccionado";
+    private string _protectInputDisplayName = Localizer.Text("Ningún documento seleccionado");
+    private string _unprotectInputDisplayName = Localizer.Text("Ningún contenedor seleccionado");
     private string _protectValidationMessage =
         "Seleccione un documento y al menos un destinatario.";
     private string _unprotectValidationMessage =
@@ -509,8 +515,11 @@ public sealed class ProtectPageViewModel
                     {
                         Id = recipient.Id,
                         Label = recipient.Label,
-                        Detail = $"Origen: {OriginLabel(recipient.Origin)} · Perfil: {recipient.Profile}" +
-                            (string.IsNullOrWhiteSpace(recipient.Algorithm) ? "" : $" · Algoritmo: {recipient.Algorithm}"),
+                        Detail = Localizer.Format("Origen: {0} · Perfil: {1}",
+                            Localizer.Text(OriginLabel(recipient.Origin)),
+                            Localizer.Text(recipient.Profile)) +
+                            (string.IsNullOrWhiteSpace(recipient.Algorithm) ? "" :
+                                Localizer.Format(" · Algoritmo: {0}", recipient.Algorithm)),
                         Profile = recipient.Profile,
                         Origin = recipient.Origin,
                         AuthEnvelopedDataCompatible =
@@ -744,8 +753,12 @@ public sealed class ProtectPageViewModel
 
             _protectOutputPath = outputPath;
             ProtectResultMessage = encryptedData
-                ? $"Protección CMS EncryptedData completada: {SafeFileName(outputPath)}."
-                : $"{(signToo ? "Protección firmada" : "Protección")} completada para {result.Data.RecipientCount} destinatario(s): {SafeFileName(outputPath)}.";
+                ? Localizer.Format("Protección CMS EncryptedData completada: {0}.",
+                    SafeFileName(outputPath))
+                : Localizer.Format(signToo
+                        ? "Protección firmada completada para {0} destinatario(s): {1}."
+                        : "Protección completada para {0} destinatario(s): {1}.",
+                    result.Data.RecipientCount, SafeFileName(outputPath));
             ProtectValidationMessage =
                 encryptedData
                     ? "El documento protegido está listo. Conserve la clave efímera fuera de la aplicación para poder recuperarlo."
@@ -1052,7 +1065,7 @@ public sealed class ProtectPageViewModel
         if (!File.Exists(_protectInputPath))
         {
             _protectInputPath = null;
-            ProtectInputDisplayName = "Ningún documento seleccionado";
+            ProtectInputDisplayName = Localizer.Text("Ningún documento seleccionado");
             ClearProtectedOutput();
             UpdateCommandStates();
             return "El documento seleccionado ya no está disponible.";
@@ -1101,7 +1114,7 @@ public sealed class ProtectPageViewModel
             _unprotectInputPath = null;
             IsEncryptedDataUnprotectSelected = false;
             UnprotectInputDisplayName =
-                "Ningún contenedor seleccionado";
+                Localizer.Text("Ningún contenedor seleccionado");
             ClearUnprotectedOutput();
             UpdateCommandStates();
             return "El contenedor seleccionado ya no está disponible.";
@@ -1337,8 +1350,8 @@ public sealed class ProtectPageViewModel
     {
         var baseName = Path.GetFileNameWithoutExtension(inputPath);
         return string.IsNullOrWhiteSpace(baseName)
-            ? "documento-protegido"
-            : $"{baseName}-protegido";
+            ? Localizer.Text("documento-protegido")
+            : baseName + Localizer.Text("-protegido");
     }
 
     private static string SafeFileName(string path)
@@ -1347,12 +1360,12 @@ public sealed class ProtectPageViewModel
         {
             var name = Path.GetFileName(path);
             return string.IsNullOrWhiteSpace(name)
-                ? "documento"
+                ? Localizer.Text("documento")
                 : name;
         }
         catch
         {
-            return "documento";
+            return Localizer.Text("documento");
         }
     }
 

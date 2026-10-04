@@ -49,8 +49,8 @@ public sealed class HashPageViewModel
     private CancellationTokenSource? _operationCancellation;
     private string? _inputPath;
     private string? _manifestPath;
-    private string _inputName = "Ningún origen seleccionado";
-    private string _manifestName = "Ningún manifiesto seleccionado";
+    private string _inputName = Localizer.Text("Ningún origen seleccionado");
+    private string _manifestName = Localizer.Text("Ningún manifiesto seleccionado");
     private string _selectedAlgorithm = "SHA-256";
     private IReadOnlyList<HashFormatOption> _availableFormats =
         FileFormatOptions;
@@ -262,7 +262,7 @@ public sealed class HashPageViewModel
             ? Visibility.Collapsed
             : Visibility.Visible;
         _manifestPath = null;
-        ManifestName = "Ningún manifiesto seleccionado";
+        ManifestName = Localizer.Text("Ningún manifiesto seleccionado");
         ResetResult();
         RefreshCommandState();
     }
@@ -281,8 +281,8 @@ public sealed class HashPageViewModel
         SelectedFormat = AvailableFormats[0];
         _inputPath = null;
         _manifestPath = null;
-        InputName = "Ningún origen seleccionado";
-        ManifestName = "Ningún manifiesto seleccionado";
+        InputName = Localizer.Text("Ningún origen seleccionado");
+        ManifestName = Localizer.Text("Ningún manifiesto seleccionado");
         ResetResult();
         RefreshCommandState();
     }
@@ -558,15 +558,16 @@ public sealed class HashPageViewModel
         var outputName = DisplayPathName(
             data.DisplayOutputPath,
             directory: false);
-        ResultSummary =
-            $"Algoritmo: {data.Algorithm}. Formato: {FormatLabel(data.Format)}. " +
-            $"Salida: {outputName}.";
+        ResultSummary = Localizer.Format(
+            "Algoritmo: {0}. Formato: {1}. Salida: {2}.",
+            data.Algorithm, Localizer.Text(FormatLabel(data.Format)), outputName);
 
         if (IsDirectoryMode)
         {
             ResultItems =
             [
-                $"Entradas incluidas: {data.Entries.GetValueOrDefault()}",
+                Localizer.Format("Entradas incluidas: {0}",
+                    data.Entries.GetValueOrDefault()),
                 data.Recursive == true
                     ? "Se incluyeron subdirectorios."
                     : "No se incluyeron subdirectorios.",
@@ -576,7 +577,9 @@ public sealed class HashPageViewModel
         {
             ResultItems =
             [
-                $"Huella: {SafeIpcText.Clean(data.Hash, 300, "no disponible")}",
+                Localizer.Format("Huella: {0}",
+                    SafeIpcText.Clean(data.Hash, 300,
+                        Localizer.Text("no disponible"))),
             ];
         }
     }
@@ -593,17 +596,21 @@ public sealed class HashPageViewModel
         ResultMessage = data.IsValid
             ? "El contenido comprobado coincide con la huella almacenada."
             : "El contenido ha cambiado, falta información o el manifiesto no corresponde con el origen.";
-        ResultSummary =
-            $"Algoritmo detectado: {data.Algorithm}. " +
-            $"Formato: {FormatLabel(data.Format)}.";
+        ResultSummary = Localizer.Format(
+            "Algoritmo detectado: {0}. Formato: {1}.",
+            data.Algorithm, Localizer.Text(FormatLabel(data.Format)));
 
         var items = new List<string>();
         if (!IsDirectoryMode)
         {
             items.Add(
-                $"Esperada: {SafeIpcText.Clean(data.ExpectedHash, 300, "no disponible")}");
+                Localizer.Format("Esperada: {0}",
+                    SafeIpcText.Clean(data.ExpectedHash, 300,
+                        Localizer.Text("no disponible"))));
             items.Add(
-                $"Calculada: {SafeIpcText.Clean(data.ActualHash, 300, "no disponible")}");
+                Localizer.Format("Calculada: {0}",
+                    SafeIpcText.Clean(data.ActualHash, 300,
+                        Localizer.Text("no disponible"))));
         }
         else
         {
@@ -776,7 +783,9 @@ public sealed class HashPageViewModel
         foreach (var item in source.Take(MaximumVisibleResults))
         {
             destination.Add(
-                $"{label}: {SafeIpcText.Clean(item, 300, "elemento sin nombre")}");
+                Localizer.Format("{0}: {1}", Localizer.Text(label),
+                    SafeIpcText.Clean(item, 300,
+                        Localizer.Text("elemento sin nombre"))));
             if (destination.Count >= MaximumVisibleResults)
             {
                 return;
@@ -806,10 +815,14 @@ public sealed class HashPageViewModel
         return SafeIpcText.Clean(
             Path.GetFileName(trimmed),
             256,
-            directory ? "Directorio seleccionado" : "Fichero seleccionado");
+            Localizer.Text(directory
+                ? "Directorio seleccionado" : "Fichero seleccionado"));
     }
 
     public sealed record HashFormatOption(
-        string Label,
-        string Value);
+        string SourceLabel,
+        string Value)
+    {
+        public string Label => Localizer.Text(SourceLabel);
+    }
 }

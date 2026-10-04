@@ -23,9 +23,7 @@ public sealed partial class VerifyPage : Page
             app.OperationSession,
             app.FilePickerService);
         InitializeComponent();
-        ExportReportButton.Content = SealUiCatalog.Text(
-            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
-            "winui.parity.verify.export");
+        ExportReportButton.Content = Localizer.Text("winui.parity.verify.export");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
             ExportReportButton, (string)ExportReportButton.Content);
     }

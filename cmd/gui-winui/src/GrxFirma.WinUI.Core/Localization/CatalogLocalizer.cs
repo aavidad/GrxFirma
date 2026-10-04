@@ -5,6 +5,7 @@
 
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace GrxFirma.WinUI.Core.Localization;
 
@@ -18,6 +19,7 @@ public sealed class CatalogLocalizer
     private readonly object _sync = new();
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _catalogs = [];
     private readonly Dictionary<string, string> _spanishValues = new(StringComparer.Ordinal);
+    private readonly List<(string Key, Regex Pattern, int ArgumentCount)> _visibleTemplates = [];
     private string _language;
 
     public CatalogLocalizer(string directory, string? language = null)
@@ -70,12 +72,31 @@ public sealed class CatalogLocalizer
     public string TranslateVisibleText(string source)
     {
         if (string.IsNullOrWhiteSpace(source)) return source;
-        lock (_sync)
+        lock (_sync) return TranslateVisibleTextCore(source);
+    }
+
+    private string TranslateVisibleTextCore(string source)
+    {
+        if (Read("es").ContainsKey(source)) return Text(source);
+        if (_spanishValues.TryGetValue(source, out var key)) return Text(key);
+        if (source.Length > 2048) return source;
+        foreach (var template in _visibleTemplates)
         {
-            if (Read("es").ContainsKey(source)) return Text(source);
-            if (_spanishValues.TryGetValue(source, out var key)) return Text(key);
-            return source;
+            Match match;
+            try { match = template.Pattern.Match(source); }
+            catch (RegexMatchTimeoutException) { continue; }
+            if (!match.Success) continue;
+            var arguments = new object[template.ArgumentCount];
+            for (var index = 0; index < arguments.Length; index++)
+                arguments[index] = match.Groups[$"value{index}"].Value;
+            try
+            {
+                return string.Format(CultureInfo.CurrentCulture,
+                    Text(template.Key), arguments);
+            }
+            catch (FormatException) { return source; }
         }
+        return source;
     }
 
     private IReadOnlyDictionary<string, string> Read(string language)
@@ -94,8 +115,49 @@ public sealed class CatalogLocalizer
         if (language == "es")
         {
             foreach (var entry in catalog)
+            {
                 _spanishValues.TryAdd(entry.Value, entry.Key);
+                // Los mensajes compuestos de los ViewModels ya contienen los
+                // valores insertados cuando llegan a las propiedades de WinUI.
+                if (entry.Key.Contains("{0}", StringComparison.Ordinal))
+                {
+                    var pattern = BuildVisibleTemplate(entry.Key);
+                    if (pattern is not null) _visibleTemplates.Add(pattern.Value);
+                }
+            }
+            _visibleTemplates.Sort((left, right) =>
+                right.Key.Length.CompareTo(left.Key.Length));
         }
         return catalog;
+    }
+
+    private static (string Key, Regex Pattern, int ArgumentCount)? BuildVisibleTemplate(
+        string key)
+    {
+        var placeholders = Regex.Matches(key, @"\{(\d+)\}");
+        if (placeholders.Count == 0) return null;
+        // Las plantillas genéricas «{0}: {1}» se usan con Format de forma
+        // explícita. Aplicarlas al árbol visual también alteraría URLs y datos.
+        var fixedText = Regex.Replace(key, @"\{\d+\}", string.Empty);
+        if (Regex.Matches(fixedText, @"\p{L}").Count < 5) return null;
+        var pattern = new System.Text.StringBuilder("^");
+        var position = 0;
+        var maximum = -1;
+        var seen = new HashSet<int>();
+        foreach (Match placeholder in placeholders)
+        {
+            var index = int.Parse(placeholder.Groups[1].Value,
+                CultureInfo.InvariantCulture);
+            if (index > 9) return null;
+            maximum = Math.Max(maximum, index);
+            pattern.Append(Regex.Escape(key[position..placeholder.Index]));
+            pattern.Append(seen.Add(index)
+                ? $"(?<value{index}>.*?)"
+                : $"\\k<value{index}>");
+            position = placeholder.Index + placeholder.Length;
+        }
+        pattern.Append(Regex.Escape(key[position..])).Append('$');
+        return (key, new Regex(pattern.ToString(), RegexOptions.Singleline |
+            RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(50)), maximum + 1);
     }
 }

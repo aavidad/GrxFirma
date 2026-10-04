@@ -24,8 +24,8 @@ public sealed class VerifyPageViewModel
     private string? _originalFilePath;
     private VerifyResult? _reportResult;
     private bool _canExportReport;
-    private string _signedFileName = "Ningún fichero seleccionado";
-    private string _originalFileName = "No seleccionado";
+    private string _signedFileName = Localizer.Text("Ningún fichero seleccionado");
+    private string _originalFileName = Localizer.Text("No seleccionado");
     private string _resultTitle = "Sin resultado";
     private string _resultMessage =
         "No se presupone la validez de ninguna firma hasta recibir evidencias del motor.";
@@ -286,7 +286,7 @@ public sealed class VerifyPageViewModel
         }
 
         _originalFilePath = null;
-        OriginalFileName = "No seleccionado";
+        OriginalFileName = Localizer.Text("No seleccionado");
         ResetResult();
     }
 
@@ -445,9 +445,10 @@ public sealed class VerifyPageViewModel
             "Certificado",
             data.Certificate);
         TrustSummary = AspectSummary("Confianza", data.Trust);
-        FormatSummary =
-            $"Formato: {SafeIpcText.Clean(data.Format, 80, "no determinado")}. " +
-            $"Cobertura: {CoverageLabel(data.Coverage)}.";
+        FormatSummary = Localizer.Format("Formato: {0}. Cobertura: {1}.",
+            SafeIpcText.Clean(data.Format, 80,
+                Localizer.Text("no determinado")),
+            Localizer.Text(CoverageLabel(data.Coverage)));
 
         Signers = data.VisibleSignerSummaries
             .Select(item => item.Subject)
@@ -475,9 +476,11 @@ public sealed class VerifyPageViewModel
             .Concat(data.Certificate.VisibleDetails)
             .Concat(data.Trust.VisibleDetails)
             .Concat(data.VisibleEvidence.Select(
-                item =>
-                    $"{SafeIpcText.Clean(item.Type, 80, "Evidencia")}: " +
-                    SafeIpcText.Clean(item.Summary, 320, "sin detalle")))
+                item => Localizer.Format("{0}: {1}",
+                    Localizer.VisibleText(SafeIpcText.Clean(item.Type, 80,
+                        Localizer.Text("Evidencia"))),
+                    Localizer.VisibleText(SafeIpcText.Clean(item.Summary, 320,
+                        Localizer.Text("sin detalle"))))))
             .Where(static item => !string.IsNullOrWhiteSpace(item))
             .Distinct(StringComparer.Ordinal)
             .Take(MaximumVisibleItems)
@@ -531,8 +534,10 @@ public sealed class VerifyPageViewModel
         };
         var reason = SafeIpcText.Clean(aspect.Reason, 320, string.Empty);
         return string.IsNullOrEmpty(reason)
-            ? $"{label}: {statusLabel}."
-            : $"{label}: {statusLabel}. {reason}";
+            ? Localizer.Format("{0}: {1}.", Localizer.Text(label),
+                Localizer.Text(statusLabel))
+            : Localizer.Format("{0}: {1}. {2}", Localizer.Text(label),
+                Localizer.Text(statusLabel), Localizer.VisibleText(reason));
     }
 
     private static string CoverageLabel(string? coverage) =>
@@ -547,5 +552,5 @@ public sealed class VerifyPageViewModel
         SafeIpcText.Clean(
             Path.GetFileName(path),
             256,
-            "Fichero seleccionado");
+            Localizer.Text("Fichero seleccionado"));
 }
