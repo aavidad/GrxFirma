@@ -7661,7 +7661,7 @@ Window {
                         visible: window.facturaeToolsEnabled && isIpcMode
                         onClicked: activeTab = "facturae"
                     }
-                    NavButton { text: tr("paridad.lote3.eni.nav"); iconTxt: "▣"; active: activeTab === "eni"; visible: isIpcMode; onClicked: activeTab = "eni" }
+                    NavButton { text: tr("paridad.lote3.eni.nav").toUpperCase(); iconTxt: "▣"; active: activeTab === "eni"; visible: isIpcMode; onClicked: activeTab = "eni" }
                     NavButton { 
                         text: tr("CONFIGURACIÓN")
                         iconTxt: "⚙"
