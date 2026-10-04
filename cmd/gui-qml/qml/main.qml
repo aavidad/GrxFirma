@@ -129,10 +129,7 @@ Window {
 
     // Como el QR: sin esquema se entiende https://.
     function normalizedCsvUrl(raw) {
-        let value = String(raw || "").trim()
-        if (value.indexOf("://") < 0 && value.indexOf(":") < 0 && value !== "")
-            value = "https://" + value
-        return value
+        return portalSeal.normalizeVerificationUrl(String(raw || ""))
     }
 
     // Un mensaje por cada problema de la leyenda CSV, para saber qué corregir.
@@ -144,7 +141,8 @@ Window {
             if (code.length > 128 || /[\r\n\t]/.test(code)) return "csv.error.code_invalid"
         }
         if (!field || field === "csvUrl") {
-            if (url === "") return "csv.error.url_missing"
+            if (signCSVUrl.trim() === "") return "csv.error.url_missing"
+            if (url === "") return "csv.error.url_invalid"
             if (url.length > 2048 || / /.test(url) || !/^https:\/\//i.test(url) ||
                     !validQrUrl(url.replace("{csv}", encodeURIComponent(code))))
                 return "csv.error.url_invalid"
@@ -448,7 +446,7 @@ Window {
             primaryColor: "#2980b9",
             accentColor: "#e74c3c",
             textColor: "#2c3e50",
-            secondaryTextColor: "#7f8c8d",
+            secondaryTextColor: "#5f6c6d",
             borderOpacity: 0.2
         },
         {
@@ -547,7 +545,7 @@ Window {
             primaryColor: "#d4af37",
             accentColor: "#b39030",
             textColor: "#2c2a26",
-            secondaryTextColor: "#7d786e",
+            secondaryTextColor: "#686359",
             borderOpacity: 0.1
         },
         {
@@ -2656,12 +2654,7 @@ Window {
     }
 
     function normalizedQrUrl(value) {
-        const input = String(value || "").trim()
-        if (input === "") return ""
-        if (/^[a-z][a-z0-9+.-]*:\/\//i.test(input) && !/^https:\/\//i.test(input)) return ""
-        if (input.indexOf("://") < 0 && input.indexOf(":") >= 0) return ""
-        const raw = /^https:\/\//i.test(input) ? input : "https://" + input
-        return validQrUrl(raw) ? raw : ""
+        return portalSeal.normalizeVerificationUrl(String(value || ""))
     }
 
     // Igual que el motor: RFC 3161 por http o https, sin credenciales ni fragmento.
@@ -2674,15 +2667,7 @@ Window {
     function validQrUrl(rawValue) {
         const raw = String(rawValue || "").trim()
         if (raw === "") return true
-        if (raw.length > 2048 || /[\s\\\u0000-\u001f\u007f]/.test(raw)) return false
-        const match = /^https:\/\/([^/?#@]+)(?:[/?#][^\s]*)?$/i.exec(raw)
-        if (!match) return false
-        const authority = match[1].split(":")
-        if (authority.length > 2 || !authority[0]) return false
-        if (authority.length === 2 && (!/^\d{1,5}$/.test(authority[1]) || Number(authority[1]) > 65535 || Number(authority[1]) === 0)) return false
-        return authority[0].split(".").every(function(label) {
-            return /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(label)
-        })
+        return /^https:\/\//i.test(raw) && portalSeal.normalizeVerificationUrl(raw) !== ""
     }
 
     function certificateSelectionColor() {
@@ -4866,15 +4851,16 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: localTLSStartupNoticeDialog
         title: tr("Conexión segura con navegadores")
         modal: true
         anchors.centerIn: parent
         width: Math.min(560, window.width - 48)
         standardButtons: Dialog.Close
-        Accessible.name: title
-        Accessible.description: localTLSStartupNoticeText.text
+        accessibleName: title
+        accessibleDescription: localTLSStartupNoticeText.text
 
         Text {
             id: localTLSStartupNoticeText
@@ -4887,7 +4873,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: aboutDialog
         title: tr("Acerca de")
         modal: true
@@ -4895,8 +4882,8 @@ Window {
         width: Math.min(560, window.width - 48)
         height: Math.min(720, window.height - 48)
         standardButtons: Dialog.Close
-        Accessible.name: tr("Acerca de GrxFirma")
-        Accessible.description: tr("Información de versión, autoría y licencia de la aplicación")
+        accessibleName: tr("Acerca de GrxFirma")
+        accessibleDescription: tr("Información de versión, autoría y licencia de la aplicación")
 
         // Con pantallas bajas el contenido no cabe: se desplaza en vez de cortarse.
         ScrollView {
@@ -5042,7 +5029,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: releaseNotesDialog
         property string notesText: ""
         title: tr("Novedades de GrxFirma %1").arg(window.aboutApplicationVersion)
@@ -5051,7 +5039,7 @@ Window {
         width: Math.min(640, window.width - 48)
         height: Math.min(620, window.height - 48)
         standardButtons: Dialog.NoButton
-        Accessible.name: title
+        accessibleName: title
         ScrollView {
             anchors.fill: parent
             clip: true
@@ -5075,7 +5063,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: signValidationErrorDialog
         title: tr("Atención")
         modal: true
@@ -5098,7 +5087,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: signConfirmDialog
         title: tr("Confirmar firma")
         modal: true
@@ -5128,7 +5118,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: multiCosignDialog
         title: tr("Cofirma múltiple guiada")
         modal: true
@@ -5260,7 +5251,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: signedDocumentWarningDialog
         title: tr("Documento ya firmado")
         modal: true
@@ -5304,7 +5296,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: certificateValidationDialog
         title: tr("Verificación de certificado")
         modal: true
@@ -5322,7 +5315,7 @@ Window {
             spacing: 10
             Text {
                 text: certificateValidationDialog.validationOk ? tr("Certificado válido para firma") : tr("Certificado con incidencias")
-                color: certificateValidationDialog.validationOk ? "#2ecc71" : "#f39c12"
+                color: currentTheme.textColor
                 font.bold: true
             }
             RowLayout {
@@ -5339,7 +5332,7 @@ Window {
                     text: (certificateValidationDialog.validationDetails && certificateValidationDialog.validationDetails.statusText)
                           ? certificateValidationDialog.validationDetails.statusText
                           : (certificateValidationDialog.validationOk ? tr("Válido") : tr("Con incidencias"))
-                    color: certificateValidationDialog.validationOk ? "#2ecc71" : "#e74c3c"
+                    color: currentTheme.textColor
                     font.bold: true
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
@@ -5364,9 +5357,7 @@ Window {
                           : String((certificateValidationDialog.validationDetails && certificateValidationDialog.validationDetails.daysRemaining !== undefined)
                                    ? certificateValidationDialog.validationDetails.daysRemaining
                                    : 0)
-                    color: (certificateValidationDialog.validationDetails && certificateValidationDialog.validationDetails.expiredDays > 0)
-                           ? "#e74c3c"
-                           : "#2ecc71"
+                    color: currentTheme.textColor
                     font.bold: true
                 }
             }
@@ -5391,9 +5382,7 @@ Window {
                     text: certificateValidationDialog.onlineCheckInProgress
                           ? tr("Comprobando...")
                           : window.certificateOnlineStatusText(certificateValidationDialog.onlineCheckResult)
-                    color: certificateValidationDialog.onlineCheckInProgress
-                           ? currentTheme.secondaryTextColor
-                           : window.certificateOnlineStatusColor(certificateValidationDialog.onlineCheckResult)
+                    color: currentTheme.secondaryTextColor
                     font.bold: true
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
@@ -5481,7 +5470,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: activeDiagnosticsConsentDialog
         title: tr("Diagnóstico activo")
         modal: true
@@ -5517,7 +5507,7 @@ Window {
             Rectangle {
                 Layout.fillWidth: true
                 radius: 8
-                color: Qt.rgba(1, 1, 1, 0.04)
+                color: currentTheme.cardColor
                 border.color: Qt.rgba(1, 1, 1, currentTheme.borderOpacity)
                 implicitHeight: activeDiagnosticsPrivacyColumn.implicitHeight + 20
 
@@ -5575,7 +5565,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: supportIncidentSendDialog
         title: tr("Enviar incidencia")
         modal: true
@@ -5664,7 +5655,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: supportAssistantDialog
         title: tr("Asistente guiado")
         modal: true
@@ -5793,7 +5785,7 @@ Window {
 
                                 Text {
                                     text: "\u2302"
-                                    color: currentTheme.primaryColor
+                                    color: currentTheme.textColor
                                     font.bold: true
                                     font.pixelSize: 18
                                     Accessible.ignored: true
@@ -5830,7 +5822,7 @@ Window {
 
                                 Text {
                                     text: "\u2192"
-                                    color: currentTheme.primaryColor
+                                    color: currentTheme.textColor
                                     font.bold: true
                                     font.pixelSize: 18
                                     Accessible.ignored: true
@@ -5863,7 +5855,7 @@ Window {
                                             .arg(window.supportAssistantKnownIssue().fixedIn)
                                       : tr("Problema conocido: %1")
                                             .arg(window.supportAssistantKnownIssue().summary)
-                                color: "#f39c12"
+                                color: currentTheme.secondaryTextColor
                                 font.pixelSize: 11
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -5932,7 +5924,7 @@ Window {
                     Rectangle {
                         width: parent.width
                         radius: 10
-                        color: Qt.rgba(1, 1, 1, 0.03)
+                        color: currentTheme.cardColor
                         border.color: currentTheme.primaryColor
                         border.width: 1
                         implicitHeight: supportAssistantActionColumn.implicitHeight + 28
@@ -6266,7 +6258,7 @@ Window {
                                 delegate: Rectangle {
                                     Layout.fillWidth: true
                                     radius: 8
-                                    color: Qt.rgba(1, 1, 1, 0.03)
+                                    color: currentTheme.cardColor
                                     border.color: Qt.rgba(1, 1, 1, currentTheme.borderOpacity)
                                     border.width: 1
                                     implicitHeight: supportAssistantStepRow.implicitHeight + 18
@@ -6282,12 +6274,12 @@ Window {
                                             width: 24
                                             height: 24
                                             radius: 12
-                                            color: currentTheme.primaryColor
+                                            color: currentTheme.textColor
 
                                             Text {
                                                 anchors.centerIn: parent
                                                 text: String(index + 1)
-                                                color: "white"
+                                                color: currentTheme.cardColor
                                                 font.bold: true
                                             }
                                         }
@@ -6307,8 +6299,8 @@ Window {
                     Rectangle {
                         width: parent.width
                         radius: 8
-                        color: "#1b1f2a"
-                        border.color: "#34495e"
+                        color: currentTheme.cardColor
+                        border.color: currentTheme.secondaryTextColor
                         border.width: 1
                         visible: window.diagnosticTechnicalExpanded
                         implicitHeight: supportAssistantExpertColumn.implicitHeight + 20
@@ -6321,29 +6313,29 @@ Window {
 
                             Text {
                                 text: tr("Vista experta")
-                                color: "white"
+                                color: currentTheme.textColor
                                 font.bold: true
                             }
 
                             Text {
                                 text: tr("Certificados cargados: %1").arg(window.certificates.length)
-                                color: "#d7e3ff"
+                                color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
                             }
 
                             Text {
                                 text: tr("Lote activo: %1").arg(window.currentBatchPaths.length > 0 ? tr("Sí") : tr("No"))
-                                color: "#d7e3ff"
+                                color: currentTheme.secondaryTextColor
                             }
 
                             Text {
                                 text: tr("Detalles de validación disponibles: %1").arg(verifyTab.verifyDetails !== null ? tr("Sí") : tr("No"))
-                                color: "#d7e3ff"
+                                color: currentTheme.secondaryTextColor
                             }
 
                             Text {
                                 text: tr("Razón técnica visible: %1").arg(verifyTab.verifyDetails && verifyTab.verifyDetails.reason ? localizeVisibleDiagnosticText(verifyTab.verifyDetails.reason) : tr("No disponible"))
-                                color: "#d7e3ff"
+                                color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
                             }
@@ -6357,7 +6349,7 @@ Window {
                                           ? window.currentFailureDiagnostic().failureCode
                                           : tr("No disponible"))
                                 textFormat: Text.PlainText
-                                color: "#d7e3ff"
+                                color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
                             }
@@ -6369,7 +6361,7 @@ Window {
                                           ? window.currentFailureRequestId()
                                           : tr("No disponible"))
                                 textFormat: Text.PlainText
-                                color: "#d7e3ff"
+                                color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
                             }
@@ -6381,7 +6373,7 @@ Window {
                                           ? window.currentFailureTraceId()
                                           : tr("No disponible"))
                                 textFormat: Text.PlainText
-                                color: "#d7e3ff"
+                                color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
                             }
@@ -6394,7 +6386,7 @@ Window {
                                                 window.currentFailureDiagnostic().likelyOwner)
                                           : tr("No disponible"))
                                 textFormat: Text.PlainText
-                                color: "#d7e3ff"
+                                color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
                             }
@@ -6407,7 +6399,7 @@ Window {
                                                 window.currentFailureDiagnostic().expertMessage)
                                           : tr("No disponible"))
                                 textFormat: Text.PlainText
-                                color: "#d7e3ff"
+                                color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
                             }
@@ -6469,7 +6461,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: unsavedSettingsDialog
         title: tr("Cambios sin guardar")
         modal: true
@@ -6576,7 +6569,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: publicCertificateSelectDialog
         title: tr("Elegir mi certificado")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -6598,7 +6592,8 @@ Window {
         }
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: publicCertificateResultDialog
         standardButtons: Dialog.Ok
         anchors.centerIn: parent
@@ -6620,7 +6615,8 @@ Window {
         wrapMode: TextEdit.NoWrap
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: importPasswordDialog
         title: tr("Contraseña del Certificado")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -6649,7 +6645,8 @@ Window {
         onRejected: importPasswordField.text = ""
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: temporaryCertificatePasswordDialog
         title: tr("Usar certificado sin instalar")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -6682,7 +6679,8 @@ Window {
         onRejected: temporaryCertificatePasswordField.text = ""
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: guidedImportPasswordDialog
         title: tr("Importar en navegador o sistema")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -6716,7 +6714,8 @@ Window {
         onRejected: guidedImportPasswordField.text = ""
     }
 
-    Dialog {
+    ThemedDialog {
+        theme: currentTheme
         id: certificateAccessDialog
         title: tr("Certificados del navegador o del sistema")
         modal: true
@@ -6789,7 +6788,7 @@ Window {
                 visible: (certificateAccessOptions.importTargets || []).length === 0
                 Layout.fillWidth: true
                 text: tr("No se encontró un almacén compatible. Puedes abrir el gestor e importar el P12/PFX manualmente.")
-                color: "#f39c12"
+                color: currentTheme.secondaryTextColor
                 wrapMode: Text.WordWrap
             }
         }
@@ -12924,6 +12923,7 @@ Window {
                         TokenSettingsPanel {
                             Layout.fillWidth: true
                             Layout.minimumWidth: 0
+                            theme: currentTheme
                             bridge: backend
                             localIpc: typeof isIpcMode !== "undefined" && isIpcMode
                             translate: function(key) { return window.tr(key) }

@@ -121,20 +121,12 @@ class WinUiParityContractTest(unittest.TestCase):
     @unittest.skipUnless(shutil.which("node"), "Node no instalado")
     def test_qr_and_certificate_rules(self) -> None:
         funcs = "\n".join(qml_function(name).replace("    function ", "function ", 1)
-                          for name in ("validQrUrl", "certificateExpiry", "canRenewFnmt",
+                          for name in ("certificateExpiry", "canRenewFnmt",
                                        "certificateCanSign", "certificateStatusText",
                                        "certificateStatusReason", "certificateStatusColorForBackground",
                                        "certificateStatusColor",
                                        "rotationIndexForSeal"))
         js = "const assert = require('node:assert/strict');\nfunction tr(s) { return s; }\nString.prototype.arg = function(v) { return this.replace('%1', v); };\nconst currentTheme = {cardColor:'#ffffff'};\n" + funcs + "\n" + """
-assert.equal(validQrUrl('https://sede.ejemplo.es/verificar'), true);
-assert.equal(validQrUrl('http://sede.ejemplo.es/verificar'), false);
-assert.equal(validQrUrl('https://usuario@sede.ejemplo.es'), false);
-assert.equal(validQrUrl('https://:443'), false);
-assert.equal(validQrUrl('https://sede.ejemplo.es:abc'), false);
-assert.equal(validQrUrl('https://sede.ejemplo.es:65536'), false);
-assert.equal(validQrUrl('https://sede..ejemplo.es'), false);
-assert.equal(validQrUrl('https://sede.ejemplo.es\\\\atacante.es'), false);
 assert.equal(certificateExpiry({validTo:'2026-12-31T23:00:00Z'}), '31/12/2026');
 const base = {canSign:true, caducado:false, validTo:'2026-12-31', issuer:'FNMT-RCM', tipo:'fisica', status:'Válido'};
 assert.equal(canRenewFnmt({...base, diasCaducidad:60}), true);

@@ -31,8 +31,8 @@ Item {
             Layout.fillWidth: true
             visible: !timeline.steps || timeline.steps.length === 0
             radius: 8
-            color: Qt.rgba(1, 1, 1, 0.03)
-            border.color: timeline.theme.borderColor || "#718096"
+            color: timeline.theme.cardColor
+            border.color: timeline.theme.secondaryTextColor || "#718096"
             border.width: 1
             implicitHeight: emptyColumn.implicitHeight + 20
 
@@ -82,9 +82,9 @@ Item {
                         width: 30
                         height: 30
                         radius: 15
-                        color: modelData.statusColor || "#718096"
+                        color: timeline.theme.textColor
                         border.color: modelData.statusBorderColor
-                                      || timeline.theme.borderColor
+                                      || timeline.theme.secondaryTextColor
                                       || "#ffffff"
                         border.width: 1
 
@@ -92,7 +92,7 @@ Item {
                             anchors.centerIn: parent
                             text: modelData.statusIcon || "?"
                             textFormat: Text.PlainText
-                            color: modelData.statusTextColor || "#ffffff"
+                            color: timeline.theme.cardColor
                             font.bold: true
                             font.pixelSize: 17
                             Accessible.ignored: true
@@ -104,7 +104,7 @@ Item {
                         width: 2
                         Layout.preferredHeight: 16
                         visible: index < timeline.steps.length - 1
-                        color: timeline.theme.borderColor || "#718096"
+                        color: timeline.theme.secondaryTextColor || "#718096"
                         Accessible.ignored: true
                     }
                 }
@@ -112,8 +112,8 @@ Item {
                 Rectangle {
                     Layout.fillWidth: true
                     radius: 8
-                    color: Qt.rgba(1, 1, 1, 0.03)
-                    border.color: timeline.theme.borderColor || "#718096"
+                    color: timeline.theme.cardColor
+                    border.color: timeline.theme.secondaryTextColor || "#718096"
                     border.width: 1
                     implicitHeight: stepColumn.implicitHeight + 18
 
@@ -146,10 +146,9 @@ Item {
                                 bottomPadding: 3
                                 background: Rectangle {
                                     radius: 9
-                                    color: modelData.statusBadgeColor
-                                           || Qt.rgba(1, 1, 1, 0.08)
+                                    color: timeline.theme.cardColor
                                     border.color: modelData.statusBorderColor
-                                                  || timeline.theme.borderColor
+                                                  || timeline.theme.secondaryTextColor
                                                   || "#718096"
                                     border.width: 1
                                 }

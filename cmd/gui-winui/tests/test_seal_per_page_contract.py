@@ -37,8 +37,10 @@ class SealPerPageContractTest(unittest.TestCase):
         view = ET.parse(WINUI / "Views/SignPage.xaml")
         field = next(el for el in view.iter() if el.attrib.get("AutomationProperties.Name") == "Dirección de verificación del QR")
         self.assertIn("VisibleSealQrEnabled", field.attrib["Visibility"])
-        self.assertIn('value = "https://" + value', vm)
-        self.assertIn("uri.Scheme", vm)
+        self.assertIn("VerificationUrlNormalizer.TryNormalize", vm)
+        helper = (WINUI.parent / "GrxFirma.WinUI.Core/Operations/VerificationUrlNormalizer.cs").read_text(encoding="utf-8")
+        self.assertIn('value = "https://" + value', helper)
+        self.assertIn("uri.Scheme", helper)
 
     def test_labels_exist_in_eleven_catalogs(self):
         keys = ("sign.seal.one_by_one", "sign.seal.apply_all_pages", "sign.seal.remove_this_page",

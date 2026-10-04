@@ -1,0 +1,78 @@
+{
+  "valid": [
+    {
+      "input": "https://sede.ayuntamiento-de-almuñécar.es/verificar",
+      "expected": "https://sede.xn--ayuntamiento-de-almucar-ucc3r.es/verificar"
+    },
+    {
+      "input": "https://café.es/verificar",
+      "expected": "https://xn--caf-dma.es/verificar"
+    },
+    {
+      "input": "https://mañana.es/consulta?csv={csv}",
+      "expected": "https://xn--maana-pta.es/consulta?csv={csv}"
+    },
+    {
+      "input": "https://xn--caf-dma.es/verificar",
+      "expected": "https://xn--caf-dma.es/verificar"
+    },
+    {
+      "input": "café.es/verificar",
+      "expected": "https://xn--caf-dma.es/verificar"
+    },
+    {
+      "input": "https://café.es:8443/verificar",
+      "expected": "https://xn--caf-dma.es:8443/verificar"
+    },
+    {
+      "input": "https://CAFÉ.es/verificar",
+      "expected": "https://xn--caf-dma.es/verificar"
+    },
+    {
+      "input": "https://café.es/verificar",
+      "expected": "https://xn--caf-dma.es/verificar"
+    },
+    {
+      "input": "https://127.0.0.1/verificar",
+      "expected": "https://127.0.0.1/verificar"
+    },
+    {
+      "input": "https://[::1]:443/verificar",
+      "expected": "https://[::1]:443/verificar"
+    }
+  ],
+  "invalid": [
+    "http://café.es/verificar",
+    "ftp://café.es",
+    "https://user:pass@café.es",
+    "https://@café.es",
+    "https://café.es:0",
+    "https://café.es:65536",
+    "https://café.es:abc",
+    "https://café.es:",
+    "https://ca fé.es",
+    "https://café.es/espacio malo",
+    "https://café.es/ foo",
+    "https://café.es/\\ruta",
+    "https://café.es/\nfoo",
+    "https://bad_host.es",
+    "https://-café.es",
+    "https://café-.es",
+    "https://café..es",
+    "https://xn--.es",
+    "https://xn--a.es",
+    "https://́cafe.es",
+    "https://ab‍cd.es",
+    "https://aא.es",
+    "https://café.es.",
+    "https://ññññññññññññññññññññññññññññññññññññññññññññññññññññññññññññññññ.es",
+    "https://xn--a-0hc.es",
+    "https://ab‌cd.es",
+    "https://café.es/foo",
+    "https://café.es/\tfoo",
+    "https://ca fé.es",
+    "https://café.es:-1",
+    "https://caf%C3%A9.es/verificar",
+    "https://café.es:000443"
+  ]
+}

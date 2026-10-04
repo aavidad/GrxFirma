@@ -13,6 +13,9 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"unicode"
+
+	"golang.org/x/net/idna"
 
 	"github.com/digitorus/pdf"
 	pdfsign "github.com/digitorus/pdfsign/sign"
@@ -38,7 +41,7 @@ func normalizarURLQRSello(raw string) (string, error) {
 	if value == "" {
 		return "", nil
 	}
-	if len(value) > 2048 || strings.ContainsAny(value, "\\ \t\n\r") || strings.IndexFunc(value, func(r rune) bool { return r < 32 || r == 127 }) >= 0 {
+	if len(value) > 2048 || strings.Contains(value, "\\") || strings.IndexFunc(value, func(r rune) bool { return unicode.IsSpace(r) || unicode.IsControl(r) }) >= 0 {
 		return "", fmt.Errorf("el QR exige una dirección HTTPS válida, sin espacios ni caracteres de control")
 	}
 	if !strings.Contains(value, "://") {
@@ -54,25 +57,48 @@ func normalizarURLQRSello(raw string) (string, error) {
 	if err != nil || !strings.EqualFold(u.Scheme, "https") || u.Host == "" || u.User != nil || u.Opaque != "" {
 		return "", fmt.Errorf("el QR exige una dirección HTTPS válida, sin usuario ni contraseña")
 	}
-	if host := u.Hostname(); host == "" || strings.ContainsAny(host, "@%") {
+	authorityStart := strings.Index(value, "://") + 3
+	authorityEnd := strings.IndexAny(value[authorityStart:], "/?#")
+	if authorityEnd < 0 {
+		authorityEnd = len(value)
+	} else {
+		authorityEnd += authorityStart
+	}
+	if strings.ContainsAny(value[authorityStart:authorityEnd], "@%") {
 		return "", fmt.Errorf("el QR exige un servidor HTTPS válido")
-	} else if net.ParseIP(host) == nil {
-		for _, label := range strings.Split(host, ".") {
-			if len(label) == 0 || len(label) > 63 || label[0] == '-' || label[len(label)-1] == '-' {
-				return "", fmt.Errorf("el QR exige un servidor HTTPS válido")
-			}
-			for _, c := range label {
-				if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-') {
-					return "", fmt.Errorf("el QR exige un servidor HTTPS válido")
-				}
-			}
+	}
+	host := u.Hostname()
+	if host == "" || strings.ContainsAny(host, "@%") {
+		return "", fmt.Errorf("el QR exige un servidor HTTPS válido")
+	}
+	if net.ParseIP(host) == nil {
+		// Lookup aplica NFC y las reglas STD3, ContextJ y Bidi. Registration
+		// comprueba también los límites DNS y la validez de etiquetas ACE.
+		host, err = idna.Lookup.ToASCII(host)
+		if err == nil {
+			host, err = idna.Registration.ToASCII(host)
 		}
+		if err != nil || strings.HasSuffix(host, ".") {
+			return "", fmt.Errorf("el QR exige un servidor HTTPS válido")
+		}
+	} else if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	if strings.HasSuffix(u.Host, ":") {
+		return "", fmt.Errorf("el puerto HTTPS del QR no es válido")
 	}
 	if port := u.Port(); port != "" {
 		n, err := strconv.Atoi(port)
-		if err != nil || n < 1 || n > 65535 {
+		if err != nil || len(port) > 5 || n < 1 || n > 65535 {
 			return "", fmt.Errorf("el puerto HTTPS del QR no es válido")
 		}
+	}
+	if port := u.Port(); port != "" {
+		host += ":" + port
+	}
+	value = "https://" + host + value[authorityEnd:]
+	if len(value) > 2048 {
+		return "", fmt.Errorf("la dirección HTTPS del QR es demasiado larga")
 	}
 	return value, nil
 }

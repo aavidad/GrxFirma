@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="../../../../testdata/verification_urls.json" Link="verification_urls.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\GrxFirma.WinUI.Core\GrxFirma.WinUI.Core.csproj" />
   </ItemGroup>
 </Project>

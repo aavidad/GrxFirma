@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 #include "portalsealbridge.h"
+#include "verificationurl.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
@@ -14,6 +15,10 @@
 #include <QSaveFile>
 
 PortalSealBridge::PortalSealBridge(QObject *parent) : QObject(parent) {}
+
+QString PortalSealBridge::normalizeVerificationUrl(const QString &raw) const {
+  return VerificationUrl::normalize(raw);
+}
 
 bool PortalSealBridge::load(const QString &requestPath) {
   const QFileInfo requestInfo(requestPath);

@@ -14,6 +14,7 @@ TestCase {
     width: 700
     height: 800
     when: windowShown
+    property var theme: ({cardColor: "#1c1f26", textColor: "#ffffff", secondaryTextColor: "#bdc3c7"})
     property var panel
     QtObject {
         id: fake
@@ -24,12 +25,13 @@ TestCase {
         function saveTokenSettings(value) { calls.push(value) }
         function tokenModuleLocalPath(url) { return String(url).startsWith("file:///") ? String(url).substring(7) : "" }
     }
-    Component { id: factory; TokenSettingsPanel { width: 650; bridge: fake; localIpc: true; translate: function(key) { return key } } }
+    Component { id: factory; TokenSettingsPanel { theme: testCase.theme; width: 650; bridge: fake; localIpc: true; translate: function(key) { return key } } }
     Component {
         id: layoutFactory
         ColumnLayout {
             width: Math.max(456, implicitWidth)
             TokenSettingsPanel {
+                theme: testCase.theme
                 objectName: "responsivePanel"
                 Layout.fillWidth: true; Layout.minimumWidth: 0
                 bridge: fake; localIpc: true
