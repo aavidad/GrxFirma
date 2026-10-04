@@ -14,7 +14,7 @@ class EniValidationTests(unittest.TestCase):
         node = shutil.which("node")
         if not node:
             self.skipTest("Node no instalado")
-        js = (ROOT / "cmd/gui-qml/qml/EniValidation.js").read_text().replace(".pragma library", "")
+        js = (ROOT / "cmd/gui-qml/qml/EniValidation.js").read_text(encoding="utf-8").replace(".pragma library", "")
         js += r'''
 const assert = require('assert');
 assert.strictEqual(organError('L01180877, A00000000'), '');

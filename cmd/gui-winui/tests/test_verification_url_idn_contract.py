@@ -13,15 +13,15 @@ ROOT = Path(__file__).resolve().parents[3]
 
 class VerificationUrlIdnContract(unittest.TestCase):
     def test_qr_and_csv_delegate_to_the_tested_core(self):
-        view = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI/ViewModels/SignPageViewModel.cs").read_text()
+        view = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI/ViewModels/SignPageViewModel.cs").read_text(encoding="utf-8")
         for name in ("TryNormalizeCsvUrl", "TryNormalizeVerificationUrl"):
             start = view.index("private static bool " + name) if name == "TryNormalizeCsvUrl" else view.index("private bool " + name)
             body = view[start:].split("\n    }", 1)[0]
             self.assertIn("VerificationUrlNormalizer.TryNormalize", body)
-        helper = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI.Core/Operations/VerificationUrlNormalizer.cs").read_text()
+        helper = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI.Core/Operations/VerificationUrlNormalizer.cs").read_text(encoding="utf-8")
         for token in ("using System.Globalization;", "new IdnMapping { UseStd3AsciiRules = true }", "GetAscii", "GetUnicode", "char.IsWhiteSpace", "char.IsControl", "65535", "uri.UserInfo"):
             self.assertIn(token, helper)
-        tests = (ROOT / "cmd/gui-winui/tests/GrxFirma.WinUI.Core.Tests/VerificationUrlNormalizerTests.cs").read_text()
+        tests = (ROOT / "cmd/gui-winui/tests/GrxFirma.WinUI.Core.Tests/VerificationUrlNormalizerTests.cs").read_text(encoding="utf-8")
         self.assertIn('GetProperty("valid")', tests)
         self.assertIn('GetProperty("invalid")', tests)
         self.assertIn("verification_urls.json", tests)

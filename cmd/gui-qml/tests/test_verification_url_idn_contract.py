@@ -19,14 +19,14 @@ QT = ROOT / "cmd/gui-qml"
 
 class VerificationUrlIdnContract(unittest.TestCase):
     def test_qml_uses_the_registered_cpp_bridge_for_qr_and_csv(self):
-        qml = (QT / "qml/main.qml").read_text()
+        qml = (QT / "qml/main.qml").read_text(encoding="utf-8")
         for function in ("normalizedQrUrl", "normalizedCsvUrl", "validQrUrl"):
             body = qml.split("function " + function + "(", 1)[1].split("\n    }", 1)[0]
             self.assertIn("portalSeal.normalizeVerificationUrl", body)
-        self.assertIn('setContextProperty("portalSeal", &portalSeal)', (QT / "main.cpp").read_text())
-        self.assertIn("Q_INVOKABLE QString normalizeVerificationUrl", (QT / "portalsealbridge.h").read_text())
-        self.assertIn("VerificationUrl::normalize(raw)", (QT / "portalsealbridge.cpp").read_text())
-        self.assertIn("QUrl::toAce", (QT / "verificationurl.h").read_text())
+        self.assertIn('setContextProperty("portalSeal", &portalSeal)', (QT / "main.cpp").read_text(encoding="utf-8"))
+        self.assertIn("Q_INVOKABLE QString normalizeVerificationUrl", (QT / "portalsealbridge.h").read_text(encoding="utf-8"))
+        self.assertIn("VerificationUrl::normalize(raw)", (QT / "portalsealbridge.cpp").read_text(encoding="utf-8"))
+        self.assertIn("QUrl::toAce", (QT / "verificationurl.h").read_text(encoding="utf-8"))
 
     def test_native_idn_validation_against_shared_cases(self):
         if not shutil.which("c++") or not shutil.which("pkg-config"):
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 }
 ''')
             subprocess.run(["c++", "-std=c++17", "-fPIC", "-I" + str(QT), str(source), "-o", str(binary), *shlex.split(flags.stdout)], check=True, capture_output=True, timeout=60)
-            cases = json.loads((ROOT / "testdata/verification_urls.json").read_text())
+            cases = json.loads((ROOT / "testdata/verification_urls.json").read_text(encoding="utf-8"))
             for item in cases["valid"]:
                 with self.subTest(input=item["input"]):
                     result = subprocess.run([str(binary), item["input"]], check=True, capture_output=True, text=True, timeout=5)

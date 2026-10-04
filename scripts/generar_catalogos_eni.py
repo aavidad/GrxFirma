@@ -15,7 +15,7 @@ HEADER = '// Derechos de autor (C) 2026 Alberto Avidad Fernández.\n// Autoría:
 
 
 def outputs():
-    source = SOURCE.read_text()
+    source = SOURCE.read_text(encoding='utf-8')
     catalogs = {}
     for name in ('EstadosElaboracion', 'TiposDocumentales', 'EstadosExpediente'):
         body = re.search(r'func ' + name + r'\(\) \[\]string\s*\{(.*?)\n\}', source, re.S).group(1)
@@ -34,10 +34,10 @@ def outputs():
 def main():
     for path, content in outputs().items():
         if '--check' in sys.argv:
-            if not path.exists() or path.read_text() != content:
+            if not path.exists() or path.read_text(encoding='utf-8') != content:
                 raise SystemExit(f'Catálogo desactualizado: {path.relative_to(ROOT)}')
         else:
-            path.write_text(content)
+            path.write_text(content, encoding='utf-8', newline='\n')
 
 if __name__ == '__main__':
     main()

@@ -57,7 +57,7 @@ def unthemed_dialogs(source):
 
 
 def themes():
-    source = (QML_DIR / "main.qml").read_text()
+    source = (QML_DIR / "main.qml").read_text(encoding="utf-8")
     section = source.split("property var themes: [", 1)[1].split("property var currentTheme:", 1)[0]
     return [dict(re.findall(r'(\w+):\s*"([^"]+)"', block)) for block in re.findall(r"\{([^{}]+)\}", section)]
 
@@ -87,16 +87,16 @@ class DialogThemeContract(unittest.TestCase):
     def test_all_dialogs_and_popups_have_a_theme_surface(self):
         for path in QML_DIR.rglob("*.qml"):
             with self.subTest(file=path.name):
-                self.assertEqual(unthemed_dialogs(path.read_text()), [])
+                self.assertEqual(unthemed_dialogs(path.read_text(encoding="utf-8")), [])
 
     def test_shared_dialog_styles_title_text_inputs_and_buttons(self):
-        source = (QML_DIR / "ThemedDialog.qml").read_text()
+        source = (QML_DIR / "ThemedDialog.qml").read_text(encoding="utf-8")
         for member in ("background: Rectangle", "header: Item", "footer: DialogButtonBox", "palette.text: theme.textColor", "palette.base: theme.cardColor", "palette.buttonText: theme.textColor", "palette.highlight: theme.textColor", "palette.highlightedText: theme.cardColor", "color: dialog.theme.textColor", "dialog.theme.cardColor", "standardButtons: dialog.standardButtons"):
             self.assertIn(member, source)
         self.assertNotIn("onAccepted: dialog.accept()", source)
         self.assertNotIn("onRejected: dialog.reject()", source)
         for path in (QML_DIR / "main.qml", QML_DIR / "TokenSettingsPanel.qml"):
-            self.assertTrue(all(kind == "ThemedDialog" for kind, _, _ in dialog_blocks(path.read_text())))
+            self.assertTrue(all(kind == "ThemedDialog" for kind, _, _ in dialog_blocks(path.read_text(encoding="utf-8"))))
 
     def test_normal_and_secondary_text_pass_wcag_aa_in_every_theme(self):
         self.assertEqual(len(themes()), 14)
@@ -108,5 +108,5 @@ class DialogThemeContract(unittest.TestCase):
     def test_theme_property_names_exist_in_all_themes(self):
         known = set(themes()[0]) | {"borderOpacity"}
         for path in QML_DIR.rglob("*.qml"):
-            used = set(re.findall(r"\b(?:currentTheme|theme)\.(\w+)", path.read_text()))
+            used = set(re.findall(r"\b(?:currentTheme|theme)\.(\w+)", path.read_text(encoding="utf-8")))
             self.assertFalse(used - known, (path.name, used - known))
