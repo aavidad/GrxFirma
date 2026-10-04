@@ -4,6 +4,7 @@
 ; SPDX-License-Identifier: EUPL-1.2
 
 Unicode True
+!include "powershell-path.nsh"
 !include "MUI2.nsh"
 !include "authenticode-signing.nsh"
 !include "legacy-machine-install.nsh"
@@ -69,14 +70,14 @@ Section "Desktop Qt/QML" SEC01
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "Publisher" "Alberto Avidad Fernandez - OSL Diputacion de Granada"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "QuietUninstallString" '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR"'
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "QuietUninstallString" '"$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR"'
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "NoModify" 1
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "NoRepair" 1
 
   ; Deja siempre una via de limpieza si el despliegue operativo falla a mitad.
   WriteUninstaller "$INSTDIR\uninstall.exe"
 
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\install-desktop-qml.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML"'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\install-desktop-qml.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML"'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "La instalación PowerShell del desktop Qt ha fallado con código $0."
@@ -92,12 +93,13 @@ Section -post
 SectionEnd
 
 Section "Uninstall"
+  !insertmacro GrxFirmaResolvePowerShell
   SetShellVarContext current
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR" -ValidateOnly'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR" -ValidateOnly'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "La ruta de mantenimiento contiene enlaces o puntos de reanálisis y no puede eliminarse de forma segura (código $0)."
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\uninstall-desktop-qml.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML"'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\uninstall-desktop-qml.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML"'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "No se pudo limpiar la instalación por usuario (código $0). El desinstalador se conserva para reintentar."

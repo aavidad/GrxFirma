@@ -147,6 +147,47 @@ public sealed class IpcClientTests
     }
 
     [TestMethod]
+    public async Task Reconnecting_OpensNewChannelAfterInvalidationWithoutRepeatingRequest()
+    {
+        var first = new ScriptedDuplexStream(blockAction: "test_block");
+        var second = new ScriptedDuplexStream();
+        var endpoint = new IpcEndpoint(@"\\.\pipe\UNIT_TEST_ONLY", 123);
+        var initial = await NdjsonIpcClient.ConnectAsync(new FakeConnector(first), endpoint);
+        var connections = 0;
+        await using var client = new ReconnectingIpcClient(
+            initial,
+            cancellationToken =>
+            {
+                connections++;
+                return NdjsonIpcClient.ConnectAsync(
+                    new FakeConnector(second), endpoint, cancellationToken: cancellationToken);
+            });
+
+        using (var cancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(100)))
+        {
+            try
+            {
+                await client.SendAsync<object, object>("test_block", new { }, cancellation.Token);
+                Assert.Fail("La petición bloqueada debía cancelarse.");
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+        Assert.IsFalse(initial.IsTransportUsable);
+        Assert.AreEqual(0, connections, "La reconexión no se adelanta a la siguiente petición.");
+
+        var result = await client.SendAsync<object, object>("test_success", new { });
+
+        Assert.IsTrue(result.IsSuccess);
+        Assert.AreEqual(1, connections);
+        Assert.AreEqual(1, client.Reconnections);
+        Assert.IsTrue(first.IsDisposed);
+        // El canal nuevo solo recibe el saludo y la petición nueva; la bloqueada no se repite.
+        CollectionAssert.AreEqual(new[] { "hello", "test_success" }, second.Actions.ToArray());
+    }
+
+    [TestMethod]
     public async Task HelloWithDifferentVersion_IsRejected()
     {
         var stream = new ScriptedDuplexStream(helloVersion: "2.0");

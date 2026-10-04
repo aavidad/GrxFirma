@@ -6,6 +6,7 @@
 Unicode True
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
+!include "powershell-path.nsh"
 !include "Sections.nsh"
 !include "authenticode-signing.nsh"
 !include "legacy-machine-install.nsh"
@@ -96,7 +97,7 @@ Section "Motor, navegador y línea de comandos (obligatorio)" SEC_CORE
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayIcon" "$INSTDIR\grxfirma-diputacion.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "QuietUninstallString" '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR"'
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "QuietUninstallString" '"$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR"'
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "NoModify" 1
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "NoRepair" 1
 
@@ -108,7 +109,7 @@ Section "Motor, navegador y línea de comandos (obligatorio)" SEC_CORE
   StrCpy $SilentInstallArg "-SilentInstall"
   !insertmacro GrxFirmaShowWarning \
     "Windows pedirá confirmar el certificado local de GrxFirma. Si se está renovando, también pedirá retirar el anterior. Pulse 'Sí' en los avisos de Windows para permitir la conexión segura con los portales."
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -CoreOnly $SilentInstallArg'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -CoreOnly $SilentInstallArg'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "La instalación PowerShell de la suite ha fallado con código $0."
@@ -121,7 +122,7 @@ Section "Interfaz nativa de Windows (WinUI 3) - recomendada" SEC_WINUI
   SetShellVarContext current
   SetOutPath "$INSTDIR\desktop-winui"
   File /r "${STAGE_DIR}\desktop-winui\*.*"
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-desktop-winui.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopWinUI" -PackageDir "$INSTDIR\desktop-winui" -LauncherPath "$LOCALAPPDATA\Programs\GrxFirma\DesktopLauncher\grxfirma-gui.exe" -ManagedBySuite'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-desktop-winui.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopWinUI" -PackageDir "$INSTDIR\desktop-winui" -LauncherPath "$LOCALAPPDATA\Programs\GrxFirma\DesktopLauncher\grxfirma-gui.exe" -ManagedBySuite'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "La instalación de la interfaz nativa WinUI ha fallado con código $0."
@@ -134,7 +135,7 @@ Section /o "Interfaz multiplataforma Qt/QML (opcional)" SEC_QT
   SetShellVarContext current
   SetOutPath "$INSTDIR\desktop-qt"
   File /r "${STAGE_DIR}\desktop-qt\*.*"
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-desktop-qml.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML" -PackageDir "$INSTDIR\desktop-qt" -LauncherPath "$LOCALAPPDATA\Programs\GrxFirma\DesktopLauncher\grxfirma-gui.exe" -ManagedBySuite'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-desktop-qml.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML" -PackageDir "$INSTDIR\desktop-qt" -LauncherPath "$LOCALAPPDATA\Programs\GrxFirma\DesktopLauncher\grxfirma-gui.exe" -ManagedBySuite'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "La instalación de la interfaz Qt/QML ha fallado con código $0."
@@ -197,11 +198,11 @@ Section -post
     StrCpy $KeepWinUi "1"
   ${EndIf}
 !endif
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\remove-unselected-desktop.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -KeepQt "$KeepQt" -KeepWinUi "$KeepWinUi"'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\remove-unselected-desktop.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -KeepQt "$KeepQt" -KeepWinUi "$KeepWinUi"'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "No se pudieron retirar los componentes desmarcados (código $0)."
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -RestoreTray'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -RestoreTray'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "No se pudo restaurar GrxFirma en la bandeja (código $0)."
@@ -211,8 +212,9 @@ Section -post
 SectionEnd
 
 Section "Uninstall"
+  !insertmacro GrxFirmaResolvePowerShell
   SetShellVarContext current
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR" -ValidateOnly'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR" -ValidateOnly'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "La ruta de mantenimiento contiene enlaces o puntos de reanálisis y no puede eliminarse de forma segura (código $0)."
@@ -220,7 +222,7 @@ Section "Uninstall"
   StrCpy $SilentInstallArg ""
   IfSilent 0 +2
   StrCpy $SilentInstallArg "-Silent"
-  nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\uninstall-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" $SilentInstallArg'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\uninstall-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" $SilentInstallArg'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "No se pudo limpiar la instalación por usuario (código $0). El desinstalador se conserva para reintentar."

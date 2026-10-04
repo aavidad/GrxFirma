@@ -173,8 +173,9 @@ public sealed class AboutPageViewModel : ObservableObject
 
         try
         {
-            var result = await operations.CheckUpdatesAsync(
-                lifetime.Token);
+            // Sin token: cancelar la petición ya enviada invalidaría la conexión
+            // con el motor; si la página se cierra, el resultado se descarta.
+            var result = await operations.CheckUpdatesAsync();
             if (!IsCurrentLifetime(lifetime))
             {
                 return;

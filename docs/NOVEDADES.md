@@ -7,6 +7,17 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.111 — 2026-10-04
+
+- Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».
+
+## 0.0.110 — 2026-10-03
+
+- Windows: si la conexión con el motor local se interrumpe, GrxFirma vuelve a conectar sola en la siguiente operación. Antes la aplicación podía quedarse sin motor («falla todo») hasta cerrarla del todo.
+- Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.
+- Crear documentos y expedientes ENI desde la aplicación, en Windows y Linux.
+- Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.
+
 ## 0.0.109 — 2026-10-03
 
 - GrxFirma comprueba en segundo plano si hay una versión nueva al arrancar y cada 5 horas mientras sigue abierta o en la bandeja. Lo hace aunque el motor local no responda y sin esperas si no hay internet, y avisa con «Descargar e instalar», «Ver novedades» y «Ahora no».
