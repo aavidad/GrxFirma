@@ -93,10 +93,10 @@ internal static class Localizer
             Scan(content);
         if (element is ContentControl { Content: DependencyObject nested })
             Scan(nested);
-        if (element is Border { Child: DependencyObject child })
-            Scan(child);
+        if (element is Border { Child: DependencyObject borderChild })
+            Scan(borderChild);
         if (element is Panel panel)
-            foreach (var child in panel.Children) Scan(child);
+            foreach (var panelChild in panel.Children) Scan(panelChild);
         var count = VisualTreeHelper.GetChildrenCount(element);
         for (var i = 0; i < count; i++)
             Scan(VisualTreeHelper.GetChild(element, i));
