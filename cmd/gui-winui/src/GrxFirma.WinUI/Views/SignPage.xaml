@@ -476,8 +476,8 @@
                             TabIndex="19">
                             <Expander.Header>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Opciones avanzadas" />
-                                    <TextBlock x:Name="AdvancedSignErrorCount" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" Visibility="Collapsed" />
+                                    <TextBlock Text="Opciones avanzadas" TextWrapping="Wrap" />
+                                    <TextBlock x:Name="AdvancedSignErrorCount" TextWrapping="Wrap" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" Visibility="Collapsed" />
                                 </StackPanel>
                             </Expander.Header>
                             <StackPanel Padding="0,12,0,0" Spacing="12">
