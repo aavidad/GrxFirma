@@ -7,6 +7,8 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using GrxFirma.WinUI.Core.Diagnostics;
 
+using GrxFirma.WinUI.Core.Localization;
+
 namespace GrxFirma.WinUI.Core.Operations;
 
 public sealed record PingParameters;
@@ -244,7 +246,7 @@ public sealed record ClockDiagnosticStepResult
         init => _label = OperationResultText.Clean(
             value,
             160,
-            "Fase de fecha y hora");
+            CatalogLocalizer.Shared.TranslateVisibleText("Fase de fecha y hora"));
     }
 
     [JsonPropertyName("status")]

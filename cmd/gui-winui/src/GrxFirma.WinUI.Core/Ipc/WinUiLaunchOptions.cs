@@ -5,6 +5,8 @@
 
 using System.Globalization;
 
+using GrxFirma.WinUI.Core.Localization;
+
 namespace GrxFirma.WinUI.Core.Ipc;
 
 public sealed record WinUiLaunchOptions(string? IpcSocket, uint? BackendProcessId, bool StartHidden = false)
@@ -114,7 +116,7 @@ public sealed record WinUiLaunchOptions(string? IpcSocket, uint? BackendProcessI
         out string safeError)
     {
         options = new WinUiLaunchOptions(null, null);
-        safeError = "Los parámetros de inicio de la interfaz no son válidos.";
+        safeError = CatalogLocalizer.Shared.TranslateVisibleText("Los parámetros de inicio de la interfaz no son válidos.");
         return false;
     }
 }

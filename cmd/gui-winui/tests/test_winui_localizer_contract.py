@@ -158,6 +158,8 @@ def is_machine_literal(path, value):
     relative = source_relative(path)
     if path.name == "Localizer.cs":
         return True  # Nombres de DependencyProperty y claves de catálogo.
+    if path.name == "CatalogLocalizer.cs":
+        return True  # Grupos de captura y patrones de las plantillas.
     if ((relative, value) in C_SHARP_FORMAT_EXCEPTIONS
             or value in PROPER_NAMES | LANGUAGE_SELF_NAMES | MACHINE_WORDS |
             WIN32_NAMES | MACHINE_EXACT):
@@ -178,6 +180,116 @@ def is_machine_literal(path, value):
             or re.fullmatch(r"[a-z0-9]+(?:[-_][a-z0-9]+)+", value)
             or value.startswith(("eni.", "exp.", "winui.", "phase:"))
             or value.endswith(("Brush", "Style"))):
+        return True
+    return False
+
+
+def is_machine_context(path, source, line, value):
+    """Exclude protocol/data tokens by syntax and use, never by Spanish vocabulary.
+
+    Keep this separate from is_machine_literal so a one-word UI label remains
+    visible when it occurs in a return value or a view-model assignment.
+    """
+    lines = source.splitlines()
+    current = lines[line - 1] if line <= len(lines) else ""
+    literal_at = current.find('"' + value + '"')
+    before_literal = current[:literal_at] if literal_at >= 0 else current
+    preceding = "\n".join(lines[max(0, line - 3):line])
+    call_context = "\n".join(lines[max(0, line - 8):line])
+    # A closed set of contract field names is initialized as a HashSet. The
+    # collection syntax, rather than the spelling of each field, identifies it.
+    if re.fullmatch(r'[A-Za-z][A-Za-z0-9_.-]*', value):
+        before = "\n".join(lines[:line])
+        collection_start = before.rfind('new HashSet<string>')
+        if collection_start >= 0 and ']);' not in before[collection_start:]:
+            return True
+    # Serialization metadata and assembly access declarations define wire names.
+    if re.search(r"\[(?:JsonPropertyName|JsonStringEnumMemberName|assembly:\s*InternalsVisibleTo)\s*\(", current):
+        return True
+    # Standard format specifiers, content types and HTTP header names are data.
+    if re.search(r"(?:ToString|ParseExact|TryParseExact|GetDateTime)\s*\(\s*\$?@?$", before_literal):
+        return True
+    if re.search(r"(?:Headers\.|\.Headers|MediaType|HttpRequestHeaders|Accept\.|UserAgent\.)", current):
+        return True
+    # Comparisons and switch arms inspect stable protocol values; the string on
+    # the right side of => may instead be a user-facing label.
+    if re.search(r'(?:==|!=|\bis\b|\.Equals\s*\(|\.StartsWith\s*\(|\.EndsWith\s*\(|\.Contains\s*\(|IsStatus\s*\()\s*$', before_literal):
+        return True
+    if re.search(r'^\s*\"[^\"]+\"\s*(?:=>|:)', current) and current.strip().startswith(f'"{value}"'):
+        return True
+    # Indexers and named property lookups use strings as keys, not copy.
+    if (re.search(r'\[\s*$', before_literal) or
+            re.search(r'(?:GetProperty|TryGetProperty|GetPropertyOrDefault|TryGetValue|ContainsKey)\s*\(\s*$', before_literal)):
+        return True
+    # Log/trace event names and logging templates are developer diagnostics.
+    if re.search(r'(?:Log(?:Debug|Trace|Information|Warning|Error|Critical)?|Trace|WriteLine|TrackEvent|EventSource)\s*\(\s*$', before_literal):
+        return True
+    if re.search(r'\b(?:File|Directory|Path)\.(?:Exists|Combine|GetFileName|GetExtension|ChangeExtension)\s*\(\s*$', before_literal):
+        return True
+    # IPC action identifiers, CLI switches, codes and MIME/file patterns are
+    # stable machine vocabulary, including values inside object initializers.
+    if (value.startswith('--') or
+            re.fullmatch(r'[\w.-]+\.(?:xml|pdf|json|pem|cer|p12|pfx|csv|txt|dsig|xsig|p7s)', value, re.I) or
+            re.fullmatch(r'[\w.-]*\{expression\}[\w.-]*\.(?:xml|pdf|json)', value, re.I)):
+        return True
+    if (value.startswith(('(?', '^')) or
+            re.fullmatch(r'(?:yyyy|yy|MM|dd|HH|mm|ss|zzz|T|Z|[-/:.])+', value) or
+            re.fullmatch(r'\{expression\}[_./-][A-Za-z0-9_.-]+', value)):
+        return True
+    # The update checker deliberately catches its parsing/network exceptions at
+    # the UI boundary and presents a separate localized, safe status there.
+    if path.name == 'OfficialUpdateChecker.cs' and re.search(r'throw new (?:InvalidDataException|HttpRequestException)\s*\(', preceding):
+        return True
+    # These typed option constructors pair a visible label with an invariant
+    # backend code. A lowercase single token is the code; the label stays in
+    # the catalog even when it is a single word.
+    if (path.name in {'SignPageViewModel.cs', 'ProtectPageViewModel.cs',
+                      'HashPageViewModel.cs', 'SignPage.xaml.cs',
+                      'ProtectPage.xaml.cs', 'PublicCertificateExport.cs'}
+            and re.fullmatch(r'[a-z][a-z0-9]*', value)):
+        return True
+    if (path.name in {'VerificationAssessment.cs', 'PortalSealSession.cs',
+                      'DesktopOperationsClient.cs', 'CorrelationId.cs',
+                      'OperationDiagnostic.cs', 'DiagnosticIncidentReport.cs'}
+            and re.fullmatch(r'[a-z][a-z0-9]*', value)):
+        return True
+    if path.name == 'OperationDiagnosticPresentation.cs' and re.fullmatch(r'[a-z][a-z0-9]*', value):
+        return True  # Categorías recibidas del protocolo de diagnóstico.
+    if path.name == 'DesktopOperationContracts.cs' and re.search(r'public string Overwrite\b', preceding):
+        return True  # Modo de sobrescritura serializado.
+    if path.name == 'SignPageViewModel.cs' and re.fullmatch(r'(?:Baseline|T|LT|LTA)', value):
+        return True  # Nombres normativos de los perfiles de firma.
+    if path.name == 'SignPage.xaml.cs' and '.Contains(' in preceding:
+        return True  # Subcadena de una comparación de estado existente.
+    if (path.name == 'FacturaeInvoiceGenerator.cs' and
+            re.fullmatch(r'[a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*', value) and
+            re.search(r'Validate(?:Party|Dir3)\s*\(', call_context)):
+        return True  # Etiqueta interna que se inserta en el error completo.
+    if (path.name == 'FacturaeInvoiceGenerator.cs' and
+            re.search(r'new AdministrativeCentre\s*\(', call_context) and
+            re.fullmatch(r'[A-ZÁÉÍÓÚ][a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*', value)):
+        return True  # Nombre normativo del rol en el XML Facturae.
+    if re.fullmatch(r'[A-Za-z][A-Za-z0-9_.-]*', value) and not re.search(r'[À-ÿ]', value):
+        if re.search(r'(?:Action|Method|Status|Phase|Code|Format|Algorithm|Mode|Type|Kind|Profile|Target|Store|Source|Owner|Namespace|XName)\s*=\s*\"', current):
+            return True
+        if re.search(r'(?:XElement|XAttribute|XName|XNamespace|XmlElement|XmlAttribute|PropertyName|CreateElement|CreateAttribute|GetProperty)\s*\(', current):
+            return True
+        if re.search(r'\b(?:case|or)\s+\"', current):
+            return True
+        # XML element/attribute names inside the Facturae serializer are wire
+        # vocabulary. Human field labels in validation code remain candidates.
+        if (path.name == 'FacturaeInvoiceGenerator.cs' and
+                (re.fullmatch(r'[A-Z][A-Za-z0-9]*', value) or
+                 re.search(r'(?:Element|Attribute|BuildParty|AmountElement)\s*\(', preceding))
+                and line < 600):
+            return True
+        if (path.name == 'FacturaeInvoiceGenerator.cs' and
+                re.search(r'new AdministrativeCentre\s*\(', call_context)):
+            return True
+    # Regex bodies and invariant report/JSON field names are not displayed.
+    if re.search(r'\b(?:new Regex|Regex\.Matches|Regex\.IsMatch)\s*\(', current):
+        return True
+    if re.search(r'\b(?:JsonPropertyName|JsonSerializer|Utf8JsonWriter)\b', current):
         return True
     return False
 
@@ -297,9 +409,14 @@ def csharp_string_literals(source):
         index += 1
 
 
+def numbered_template(value):
+    parts = value.split("{expression}")
+    return "".join(part + ("{" + str(index) + "}" if index < len(parts) - 1 else "")
+                   for index, part in enumerate(parts))
+
+
 def untranslated_csharp(paths):
     spanish = json.loads((LOCALES / "es.json").read_text(encoding="utf-8"))
-    known = set(spanish) | set(spanish.values())
     value_to_key = {value: key for key, value in spanish.items()}
     catalogs = [json.loads(path.read_text(encoding="utf-8"))
                 for path in LOCALES.glob("*.json")]
@@ -307,9 +424,12 @@ def untranslated_csharp(paths):
     for path in paths:
         source = path.read_text(encoding="utf-8")
         for line, value in csharp_string_literals(source):
-            key = value if value in spanish else value_to_key.get(value)
-            if ((value in known and all(catalog.get(key) for catalog in catalogs))
-                    or is_machine_literal(path, value)):
+            template = numbered_template(value)
+            key = (value if value in spanish else value_to_key.get(value)
+                   or (template if template in spanish else value_to_key.get(template)))
+            if ((key is not None and all(catalog.get(key) for catalog in catalogs))
+                    or is_machine_literal(path, value)
+                    or is_machine_context(path, source, line, value)):
                 continue
             missing.append((source_relative(path), line, value))
     return missing
@@ -332,6 +452,19 @@ class WinUiLocalizerContractTests(unittest.TestCase):
         self.assertFalse(is_machine_literal(UI / "Views/SettingsPage.xaml.cs", "PendienteNuevo"))
         self.assertTrue(is_machine_literal(UI / "ViewModels/DiagnosticsPageViewModel.cs",
                                            "certificate_inventory"))
+        source = '[JsonPropertyName("userMessage")]\nvar title = "PendienteNuevo";'
+        path = SOURCE_ROOT / "GrxFirma.WinUI.Core/Ipc/IpcContracts.cs"
+        self.assertTrue(is_machine_context(path, source, 1, "userMessage"))
+        self.assertFalse(is_machine_context(path, source, 2, "PendienteNuevo"))
+        switch = '"invalid" => "Firma íntegra, pero no confiable",'
+        self.assertTrue(is_machine_context(path, switch, 1, "invalid"))
+        self.assertFalse(is_machine_context(path, switch, 1,
+                                            "Firma íntegra, pero no confiable"))
+        combined = 'if (status == "invalid") label = "PendienteNuevo";'
+        self.assertTrue(is_machine_context(path, combined, 1, "invalid"))
+        self.assertFalse(is_machine_context(path, combined, 1, "PendienteNuevo"))
+        self.assertEqual(numbered_template("Error en {expression}: {expression}"),
+                         "Error en {0}: {1}")
 
     def test_group_b_visible_xaml_literals_are_in_the_shared_catalog(self):
         paths = (path for path in UI.rglob("*.xaml") if path.name in GROUP_B_XAML)

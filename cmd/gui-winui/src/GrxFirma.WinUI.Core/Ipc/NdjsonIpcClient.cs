@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using GrxFirma.WinUI.Core.Diagnostics;
 
+using GrxFirma.WinUI.Core.Localization;
+
 namespace GrxFirma.WinUI.Core.Ipc;
 
 public sealed class NdjsonIpcClient : IIpcClient
@@ -506,7 +508,7 @@ public sealed class NdjsonIpcClient : IIpcClient
             ExpertMessage = SafeIpcText.Clean(
                 diagnostic.ExpertMessage,
                 4096,
-                "No hay detalle técnico disponible."),
+                CatalogLocalizer.Shared.TranslateVisibleText("No hay detalle técnico disponible.")),
             LikelyOwner = SafeIpcText.Clean(
                 diagnostic.LikelyOwner,
                 64,
@@ -514,11 +516,11 @@ public sealed class NdjsonIpcClient : IIpcClient
             ResponsibilityMessage = SafeIpcText.Clean(
                 diagnostic.ResponsibilityMessage,
                 512,
-                "No se ha podido determinar el responsable probable."),
+                CatalogLocalizer.Shared.TranslateVisibleText("No se ha podido determinar el responsable probable.")),
             SuggestedAction = SafeIpcText.Clean(
                 diagnostic.SuggestedAction,
                 512,
-                "Vuelva a intentarlo o abra una incidencia si el problema continúa."),
+                CatalogLocalizer.Shared.TranslateVisibleText("Vuelva a intentarlo o abra una incidencia si el problema continúa.")),
             Steps = steps,
         };
     }

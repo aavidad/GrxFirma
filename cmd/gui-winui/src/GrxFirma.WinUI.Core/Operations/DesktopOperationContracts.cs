@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using GrxFirma.WinUI.Core.Ipc;
 
+using GrxFirma.WinUI.Core.Localization;
+
 namespace GrxFirma.WinUI.Core.Operations;
 
 public sealed record CertificatesParameters;
@@ -165,7 +167,7 @@ public sealed record CertificateManagerInfo
         init => _label = OperationResultText.Clean(
             value,
             256,
-            "Gestor de certificados");
+            CatalogLocalizer.Shared.TranslateVisibleText("Gestor de certificados"));
     }
 
     [JsonPropertyName("recommended")]
@@ -270,7 +272,7 @@ public sealed record CertificateImportTargetInfo
         init => _label = OperationResultText.Clean(
             value,
             256,
-            "Almacén de certificados");
+            CatalogLocalizer.Shared.TranslateVisibleText("Almacén de certificados"));
     }
 
     [JsonPropertyName("browser")]
@@ -429,7 +431,7 @@ public sealed record TemporaryCertificateResult
         init => _subject = OperationResultText.Clean(
             value,
             512,
-            "Certificado temporal");
+            CatalogLocalizer.Shared.TranslateVisibleText("Certificado temporal"));
     }
 
     [JsonPropertyName("fingerprint")]
@@ -948,7 +950,7 @@ public sealed record ProtectionRecipientInfo
         init => _label = OperationResultText.Clean(
             value,
             512,
-            "Destinatario sin nombre");
+            CatalogLocalizer.Shared.TranslateVisibleText("Destinatario sin nombre"));
     }
 
     [JsonPropertyName("profile")]

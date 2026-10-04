@@ -3,6 +3,8 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
+using GrxFirma.WinUI.Core.Localization;
+
 namespace GrxFirma.WinUI.Core.Ipc;
 
 public sealed class IpcClientException : Exception
@@ -13,10 +15,10 @@ public sealed class IpcClientException : Exception
         string phase,
         string likelyOwner,
         bool retryable = false)
-        : base(userMessage)
+        : base(CatalogLocalizer.Shared.TranslateVisibleText(userMessage))
     {
         Code = code;
-        UserMessage = userMessage;
+        UserMessage = Message;
         Phase = phase;
         LikelyOwner = likelyOwner;
         Retryable = retryable;

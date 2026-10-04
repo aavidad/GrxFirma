@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+using GrxFirma.WinUI.Core.Localization;
 
 namespace GrxFirma.WinUI.Core.Facturae;
 
@@ -125,14 +126,16 @@ public sealed partial class FacturaeInvoiceGenerator
         {
             throw new FacturaeValidationException(
             [
-                "Los importes de la factura superan el rango de cálculo admitido.",
+                CatalogLocalizer.Shared.TranslateVisibleText(
+                    "Los importes de la factura superan el rango de cálculo admitido."),
             ]);
         }
         if (invoiceTotal > MaximumSupportedAmount)
         {
             throw new FacturaeValidationException(
             [
-                "El total de la factura supera el límite admitido por este generador.",
+                CatalogLocalizer.Shared.TranslateVisibleText(
+                    "El total de la factura supera el límite admitido por este generador."),
             ]);
         }
 
@@ -238,7 +241,9 @@ public sealed partial class FacturaeInvoiceGenerator
             errors.Add("El IBAN no es válido.");
         }
 
-        return errors;
+        return errors.Select(error =>
+            CatalogLocalizer.Shared.TranslateVisibleText(
+                error, translateCapturedSpanish: true)).ToArray();
     }
 
     public static string SuggestedFileName(

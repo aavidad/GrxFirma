@@ -19,9 +19,7 @@ public sealed partial class HelpPage : Page
         ViewModel = new HelpPageViewModel(
             new WindowsHelpLauncherService());
         InitializeComponent();
-        var label = SealUiCatalog.Text(
-            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
-            "Novedades");
+        var label = Localizer.Text("Novedades");
         ReleaseNotesButton.Content = label;
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
             ReleaseNotesButton, label);

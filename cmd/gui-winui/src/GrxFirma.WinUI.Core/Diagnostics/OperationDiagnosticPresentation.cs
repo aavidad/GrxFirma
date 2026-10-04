@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using GrxFirma.WinUI.Core.Ipc;
+using GrxFirma.WinUI.Core.Localization;
 
 namespace GrxFirma.WinUI.Core.Diagnostics;
 
@@ -37,24 +38,24 @@ public sealed record OperationDiagnosticPresentation
         var owner = MapOwner(diagnostic.LikelyOwner);
         return new OperationDiagnosticPresentation
         {
-            Cause = SafeIpcText.Clean(
+            Cause = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
                 diagnostic.UserMessage,
                 512,
-                "No se ha podido determinar una causa sencilla."),
+                "No se ha podido determinar una causa sencilla.")),
             Owner = owner,
             OwnerLabel = OwnerText(owner),
-            Responsibility = SafeIpcText.Clean(
+            Responsibility = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
                 diagnostic.ResponsibilityMessage,
                 512,
-                "No se ha podido determinar quién debe revisar el problema."),
-            SuggestedAction = SafeIpcText.Clean(
+                "No se ha podido determinar quién debe revisar el problema.")),
+            SuggestedAction = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
                 diagnostic.SuggestedAction,
                 512,
-                "No hay una acción concreta registrada. Conserve el código para soporte."),
-            ExpertDetail = SafeIpcText.Clean(
+                "No hay una acción concreta registrada. Conserve el código para soporte.")),
+            ExpertDetail = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
                 diagnostic.ExpertMessage,
                 4096,
-                "No hay detalle técnico disponible."),
+                "No hay detalle técnico disponible.")),
             FailureCode = NormalizeFailureCode(diagnostic.FailureCode),
             Steps = diagnostic.Steps
                 .Take(MaxVisibleSteps)
@@ -85,14 +86,15 @@ public sealed record OperationDiagnosticPresentation
             _ => DiagnosticOwner.Unknown,
         };
 
-    public static string OwnerText(DiagnosticOwner owner) => owner switch
+    public static string OwnerText(DiagnosticOwner owner) =>
+        CatalogLocalizer.Shared.TranslateVisibleText(owner switch
     {
         DiagnosticOwner.Computer => "Este equipo o la aplicación local",
         DiagnosticOwner.Browser => "El navegador",
         DiagnosticOwner.Portal => "El portal o sede electrónica",
         DiagnosticOwner.GovernmentAFirma => "La plataforma @firma",
         _ => "Responsable desconocido",
-    };
+    });
 
     private static string? NormalizeFailureCode(string? value)
     {
@@ -128,20 +130,21 @@ public sealed record DiagnosticStepPresentation
     public static DiagnosticStepPresentation From(OperationDiagnosticStep step)
     {
         ArgumentNullException.ThrowIfNull(step);
-        var label = SafeIpcText.Clean(step.Label, 160, "Paso observado");
+        var label = CatalogLocalizer.Shared.TranslateVisibleText(
+            SafeIpcText.Clean(step.Label, 160, "Paso observado"));
         var statusText = StatusDescription(step.Status);
-        var detail = SafeIpcText.Clean(
+        var detail = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
             step.UserMessage,
             512,
             step.Status == DiagnosticStepStatus.Unknown
                 ? "Este paso no se ha comprobado."
-                : "Sin detalle adicional.");
+                : "Sin detalle adicional."));
         var owner = OperationDiagnosticPresentation.MapOwner(step.Owner);
         var ownerLabel = OperationDiagnosticPresentation.OwnerText(owner);
-        var suggestedAction = SafeIpcText.Clean(
+        var suggestedAction = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
             step.SuggestedAction,
             512,
-            "No hay una acción específica registrada para este paso.");
+            "No hay una acción específica registrada para este paso."));
 
         return new DiagnosticStepPresentation
         {
@@ -150,16 +153,24 @@ public sealed record DiagnosticStepPresentation
             Status = step.Status,
             StatusIcon = StatusIconText(step.Status),
             StatusText = statusText,
-            StatusDisplayText = $"Estado: {statusText}",
+            StatusDisplayText = string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                CatalogLocalizer.Shared.Text("Estado: {0}"), statusText),
             Detail = detail,
             Owner = owner,
             OwnerLabel = ownerLabel,
-            OwnerDisplayText = $"Responsable probable: {ownerLabel}",
+            OwnerDisplayText = string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                CatalogLocalizer.Shared.Text("Responsable probable: {0}"), ownerLabel),
             SuggestedAction = suggestedAction,
-            SuggestedActionDisplayText = $"Qué hacer ahora: {suggestedAction}",
-            AutomationSummary =
-                $"{label}. Estado: {statusText}. Responsable probable: {ownerLabel}. " +
-                $"{detail} Qué hacer ahora: {suggestedAction}",
+            SuggestedActionDisplayText = string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                CatalogLocalizer.Shared.Text("Qué hacer ahora: {0}"), suggestedAction),
+            AutomationSummary = string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                CatalogLocalizer.Shared.Text(
+                    "{0}. Estado: {1}. Responsable probable: {2}. {3} Qué hacer ahora: {4}"),
+                label, statusText, ownerLabel, detail, suggestedAction),
         };
     }
 
@@ -171,11 +182,12 @@ public sealed record DiagnosticStepPresentation
         _ => "?",
     };
 
-    public static string StatusDescription(DiagnosticStepStatus status) => status switch
+    public static string StatusDescription(DiagnosticStepStatus status) =>
+        CatalogLocalizer.Shared.TranslateVisibleText(status switch
     {
         DiagnosticStepStatus.Success => "Correcto",
         DiagnosticStepStatus.Failure => "Falló",
         DiagnosticStepStatus.Skipped => "Omitido",
         _ => "No comprobado",
-    };
+    });
 }

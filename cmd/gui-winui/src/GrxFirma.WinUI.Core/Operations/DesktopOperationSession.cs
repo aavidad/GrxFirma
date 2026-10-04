@@ -6,6 +6,8 @@
 using System.Diagnostics.CodeAnalysis;
 using GrxFirma.WinUI.Core.Ipc;
 
+using GrxFirma.WinUI.Core.Localization;
+
 namespace GrxFirma.WinUI.Core.Operations;
 
 /// <summary>
@@ -125,7 +127,7 @@ public sealed class DesktopOperationSession
 
         var hello = transport.ServerHello ??
             throw new InvalidOperationException(
-                "El transporte debe completar hello antes de publicarse.");
+                CatalogLocalizer.Shared.TranslateVisibleText("El transporte debe completar hello antes de publicarse."));
         var actions = new HashSet<string>(
             hello.Actions ?? [],
             StringComparer.Ordinal);
@@ -136,7 +138,7 @@ public sealed class DesktopOperationSession
                 !ReferenceEquals(_transport, transport))
             {
                 throw new InvalidOperationException(
-                    "Ya existe otro transporte IPC publicado.");
+                    CatalogLocalizer.Shared.TranslateVisibleText("Ya existe otro transporte IPC publicado."));
             }
 
             if (ReferenceEquals(_transport, transport))
@@ -179,7 +181,7 @@ public sealed class DesktopOperationSession
         if (certificateId.Length > MaximumCertificateIdCharacters)
         {
             throw new ArgumentException(
-                "El identificador del certificado supera el límite permitido.",
+                CatalogLocalizer.Shared.TranslateVisibleText("El identificador del certificado supera el límite permitido."),
                 nameof(certificateId));
         }
     }

@@ -15,6 +15,10 @@ public sealed class CatalogLocalizer
     private static readonly HashSet<string> Supported =
         ["ca", "de", "en", "es", "eu", "fr", "gl", "it", "pt", "va", "zh"];
 
+    // Core and WinUI use one language selection and the same packaged catalogs.
+    public static CatalogLocalizer Shared { get; } = new(
+        Path.Combine(AppContext.BaseDirectory, "locales"));
+
     private readonly string _directory;
     private readonly object _sync = new();
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _catalogs = [];
@@ -70,12 +74,17 @@ public sealed class CatalogLocalizer
     // El XAML heredado usa la frase española como valor. Su búsqueda se hace
     // por clave o por valor español para aprovechar también las claves Qt.
     public string TranslateVisibleText(string source)
+        => TranslateVisibleText(source, translateCapturedSpanish: false);
+
+    // Los errores compuestos de Facturae insertan nombres de campos españoles.
+    // Traducir esas capturas solo allí evita alterar nombres de archivo y datos.
+    public string TranslateVisibleText(string source, bool translateCapturedSpanish)
     {
         if (string.IsNullOrWhiteSpace(source)) return source;
-        lock (_sync) return TranslateVisibleTextCore(source);
+        lock (_sync) return TranslateVisibleTextCore(source, translateCapturedSpanish);
     }
 
-    private string TranslateVisibleTextCore(string source)
+    private string TranslateVisibleTextCore(string source, bool translateCapturedSpanish)
     {
         if (Read("es").ContainsKey(source)) return Text(source);
         if (_spanishValues.TryGetValue(source, out var key)) return Text(key);
@@ -88,7 +97,14 @@ public sealed class CatalogLocalizer
             if (!match.Success) continue;
             var arguments = new object[template.ArgumentCount];
             for (var index = 0; index < arguments.Length; index++)
-                arguments[index] = match.Groups[$"value{index}"].Value;
+            {
+                var captured = match.Groups[$"value{index}"].Value;
+                // Un campo puede contener otra plantilla (p. ej. «El NIF del
+                // receptor»). Cada captura es más corta que la frase origen.
+                arguments[index] = translateCapturedSpanish
+                    ? TranslateVisibleTextCore(captured, true)
+                    : captured;
+            }
             try
             {
                 return string.Format(CultureInfo.CurrentCulture,

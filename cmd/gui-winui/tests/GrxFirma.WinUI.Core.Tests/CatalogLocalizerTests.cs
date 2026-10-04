@@ -55,9 +55,9 @@ public sealed class CatalogLocalizerTests
         try
         {
             File.WriteAllText(Path.Combine(directory, "es.json"),
-                """{"La firma se guardó como {0}, pero no pudo validarse.":"La firma se guardó como {0}, pero no pudo validarse.","{0}: {1}":"{0}: {1}"}""");
+                """{"La firma se guardó como {0}, pero no pudo validarse.":"La firma se guardó como {0}, pero no pudo validarse.","Faltan los datos del {0}.":"Faltan los datos del {0}.","El NIF del {0}":"El NIF del {0}","{0} es obligatorio.":"{0} es obligatorio.","emisor":"emisor","{0}: {1}":"{0}: {1}"}""");
             File.WriteAllText(Path.Combine(directory, "en.json"),
-                """{"La firma se guardó como {0}, pero no pudo validarse.":"The signature was saved as {0}, but could not be validated.","{0}: {1}":"{0} - {1}"}""");
+                """{"La firma se guardó como {0}, pero no pudo validarse.":"The signature was saved as {0}, but could not be validated.","Faltan los datos del {0}.":"Details for the {0} are missing.","El NIF del {0}":"The {0}'s tax ID","{0} es obligatorio.":"{0} is required.","emisor":"issuer","{0}: {1}":"{0} - {1}"}""");
             var localizer = new CatalogLocalizer(directory, "en");
             var source = "La firma se guardó como acta.pdf, pero no pudo validarse.";
             Assert.AreEqual(
@@ -65,6 +65,14 @@ public sealed class CatalogLocalizerTests
                 localizer.TranslateVisibleText(source));
             Assert.AreEqual("Header: value",
                 localizer.TranslateVisibleText("Header: value"));
+            Assert.AreEqual("Details for the emisor are missing.",
+                localizer.TranslateVisibleText("Faltan los datos del emisor."));
+            Assert.AreEqual("Details for the issuer are missing.",
+                localizer.TranslateVisibleText(
+                    "Faltan los datos del emisor.", translateCapturedSpanish: true));
+            Assert.AreEqual("The issuer's tax ID is required.",
+                localizer.TranslateVisibleText(
+                    "El NIF del emisor es obligatorio.", translateCapturedSpanish: true));
             Assert.IsTrue(localizer.SetLanguage("es"));
             Assert.AreEqual(source, localizer.TranslateVisibleText(source));
             Assert.IsTrue(localizer.SetLanguage("en"));

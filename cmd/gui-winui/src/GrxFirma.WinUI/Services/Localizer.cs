@@ -16,8 +16,7 @@ namespace GrxFirma.WinUI.Services;
 
 internal static class Localizer
 {
-    private static readonly CatalogLocalizer Catalog = new(
-        Path.Combine(AppContext.BaseDirectory, "locales"));
+    private static readonly CatalogLocalizer Catalog = CatalogLocalizer.Shared;
     private static readonly Regex PlaceholderPattern = new(
         @"\{([a-z]+)\}", RegexOptions.CultureInvariant);
     private static readonly ConditionalWeakTable<DependencyObject, ElementState> States = new();

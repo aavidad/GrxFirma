@@ -10,6 +10,8 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
+using GrxFirma.WinUI.Core.Localization;
+
 namespace GrxFirma.WinUI.Core.Operations;
 
 public static class DesktopOperationActions
@@ -440,7 +442,7 @@ public sealed class DesktopOperationsClient
         if (string.IsNullOrWhiteSpace(parameters.TargetId))
         {
             throw new ArgumentException(
-                "Debe indicar el almacén de destino.",
+                CatalogLocalizer.Shared.TranslateVisibleText("Debe indicar el almacén de destino."),
                 nameof(parameters));
         }
         return _ipcClient.SendAsync<
@@ -476,7 +478,7 @@ public sealed class DesktopOperationsClient
         if (string.IsNullOrWhiteSpace(parameters.CertificateId))
         {
             throw new ArgumentException(
-                "Debe indicar la credencial temporal.",
+                CatalogLocalizer.Shared.TranslateVisibleText("Debe indicar la credencial temporal."),
                 nameof(parameters));
         }
         return _ipcClient.SendAsync<
@@ -621,13 +623,13 @@ public sealed class DesktopOperationsClient
         if (credential.Length is 0 or > MaximumCredentialBytes)
         {
             throw new ArgumentException(
-                "La credencial está vacía o supera el límite permitido.",
+                CatalogLocalizer.Shared.TranslateVisibleText("La credencial está vacía o supera el límite permitido."),
                 nameof(credential));
         }
         if (password.Length > MaximumPasswordBytes)
         {
             throw new ArgumentException(
-                "La contraseña supera el límite permitido.",
+                CatalogLocalizer.Shared.TranslateVisibleText("La contraseña supera el límite permitido."),
                 nameof(password));
         }
     }
@@ -644,7 +646,7 @@ public sealed class DesktopOperationsClient
             normalized.Any(char.IsControl))
         {
             throw new ArgumentException(
-                "El dominio o usuario del proxy no es válido.",
+                CatalogLocalizer.Shared.TranslateVisibleText("El dominio o usuario del proxy no es válido."),
                 parameterName);
         }
         return normalized;
@@ -655,7 +657,7 @@ public sealed class DesktopOperationsClient
         if (password.Length is 0 or > MaximumPasswordBytes)
         {
             throw new ArgumentException(
-                "La contraseña del proxy está vacía o supera 4096 bytes.",
+                CatalogLocalizer.Shared.TranslateVisibleText("La contraseña del proxy está vacía o supera 4096 bytes."),
                 nameof(password));
         }
 
@@ -672,7 +674,7 @@ public sealed class DesktopOperationsClient
                     UnicodeCategory.Control)
             {
                 throw new ArgumentException(
-                    "La contraseña del proxy no contiene texto UTF-8 válido.",
+                    CatalogLocalizer.Shared.TranslateVisibleText("La contraseña del proxy no contiene texto UTF-8 válido."),
                     nameof(password));
             }
             remaining = remaining[consumed..];

@@ -5,6 +5,8 @@
 
 using System.Security.Cryptography;
 
+using GrxFirma.WinUI.Core.Localization;
+
 namespace GrxFirma.WinUI.Core.Operations;
 
 /// <summary>
@@ -45,19 +47,19 @@ public static class DesktopCertificateCredentialFile
     {
         if (string.IsNullOrWhiteSpace(path))
         {
-            return "Credencial seleccionada";
+            return CatalogLocalizer.Shared.TranslateVisibleText("Credencial seleccionada");
         }
 
         try
         {
             var fileName = Path.GetFileName(path);
             return string.IsNullOrWhiteSpace(fileName)
-                ? "Credencial seleccionada"
+                ? CatalogLocalizer.Shared.TranslateVisibleText("Credencial seleccionada")
                 : fileName;
         }
         catch
         {
-            return "Credencial seleccionada";
+            return CatalogLocalizer.Shared.TranslateVisibleText("Credencial seleccionada");
         }
     }
 
@@ -67,7 +69,7 @@ public static class DesktopCertificateCredentialFile
         if (!IsSupportedPath(path))
         {
             throw new InvalidDataException(
-                "Seleccione una credencial P12, PFX, PEM, CER o CRT.");
+                CatalogLocalizer.Shared.TranslateVisibleText("Seleccione una credencial P12, PFX, PEM, CER o CRT."));
         }
 
         var fileInfo = new FileInfo(path);
@@ -76,7 +78,7 @@ public static class DesktopCertificateCredentialFile
                 > DesktopOperationsClient.MaximumCredentialBytes)
         {
             throw new InvalidDataException(
-                "La credencial está vacía, no está disponible o supera 2 MiB.");
+                CatalogLocalizer.Shared.TranslateVisibleText("La credencial está vacía, no está disponible o supera 2 MiB."));
         }
     }
 
@@ -103,7 +105,7 @@ public static class DesktopCertificateCredentialFile
                 > DesktopOperationsClient.MaximumCredentialBytes)
             {
                 throw new InvalidDataException(
-                    "La credencial está vacía o supera 2 MiB.");
+                    CatalogLocalizer.Shared.TranslateVisibleText("La credencial está vacía o supera 2 MiB."));
             }
 
             credential = GC.AllocateUninitializedArray<byte>(
@@ -117,7 +119,7 @@ public static class DesktopCertificateCredentialFile
                 if (read == 0)
                 {
                     throw new InvalidDataException(
-                        "La credencial cambió mientras se leía.");
+                        CatalogLocalizer.Shared.TranslateVisibleText("La credencial cambió mientras se leía."));
                 }
                 offset += read;
             }
@@ -130,7 +132,7 @@ public static class DesktopCertificateCredentialFile
                     cancellationToken).ConfigureAwait(false) != 0)
                 {
                     throw new InvalidDataException(
-                        "La credencial cambió mientras se leía.");
+                        CatalogLocalizer.Shared.TranslateVisibleText("La credencial cambió mientras se leía."));
                 }
             }
             finally

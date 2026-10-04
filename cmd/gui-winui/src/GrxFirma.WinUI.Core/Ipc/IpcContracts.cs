@@ -6,6 +6,8 @@
 using System.Text.Json.Serialization;
 using GrxFirma.WinUI.Core.Diagnostics;
 
+using GrxFirma.WinUI.Core.Localization;
+
 namespace GrxFirma.WinUI.Core.Ipc;
 
 public static class DesktopIpcProtocol
@@ -99,7 +101,7 @@ public sealed record IpcCallResult<TData>
 
     public string SafeUserMessage =>
         IsSuccess
-            ? "Operación completada."
+            ? CatalogLocalizer.Shared.TranslateVisibleText("Operación completada.")
             : SafeIpcText.Clean(
                 Diagnostic?.UserMessage,
                 512,
