@@ -157,11 +157,7 @@ Window {
 
     property var signFieldErrors: ({})
     property string firstSignFieldError: ""
-    onSignVisibleSealChanged: { if (firstSignFieldError) validateSignFields() }
-    onSignQREnabledChanged: { if (signFieldError("qr")) validateSignField("qr") }
     onSignCSVEnabledChanged: { if (!signCSVEnabled) { validateSignField("csvCode"); validateSignField("csvUrl"); validateSignField("csvText") } }
-    onSignSealImagePathChanged: { if (signFieldError("image")) validateSignField("image") }
-    onSealStyleChanged: { if (signFieldError("image")) validateSignField("image") }
     property var settingsFieldErrors: ({})
     onTsaEnabledChanged: { if (settingsFieldError("tsa")) validateSettingsField("tsa") }
     onProxyEnabledChanged: { if (settingsFieldError("proxyHost") || settingsFieldError("proxyPort")) { validateSettingsField("proxyHost"); validateSettingsField("proxyPort") } }
@@ -3938,20 +3934,21 @@ Window {
         syncSealVisibilityControls()
         scheduleSettingsSave()
         scheduleSealPreview()
+        if (firstSignFieldError) validateSignFields()
     }
     onSignSealPagesChanged: { scheduleSettingsSave(); scheduleSealPreview() }
     onSignSealAllPagesChanged: { scheduleSettingsSave(); scheduleSealPreview() }
-    onSealStyleChanged: { scheduleSettingsSave(); scheduleSealPreview() }
+    onSealStyleChanged: { scheduleSettingsSave(); scheduleSealPreview(); if (signFieldError("image")) validateSignField("image") }
     onSignSealXChanged: { savePageSeal(); scheduleSettingsSave(); if (!sealRotationDragging) scheduleSealPreview() }
     onSignSealYChanged: { savePageSeal(); scheduleSettingsSave(); if (!sealRotationDragging) scheduleSealPreview() }
     onSignSealWChanged: { savePageSeal(); scheduleSettingsSave(); scheduleSealPreview() }
     onSignSealHChanged: { savePageSeal(); scheduleSettingsSave(); scheduleSealPreview() }
     onSignSealRotationChanged: { savePageSeal(); scheduleSettingsSave(); if (!sealRotationDragging) scheduleSealPreview() }
     onSignSealKeepTextChanged: { scheduleSettingsSave(); scheduleSealPreview() }
-    onSignSealImagePathChanged: { scheduleSettingsSave(); scheduleSealPreview() }
+    onSignSealImagePathChanged: { scheduleSettingsSave(); scheduleSealPreview(); if (signFieldError("image")) validateSignField("image") }
     onSignSealLogoOpacityPercentChanged: { scheduleSettingsSave(); scheduleSealPreview() }
     onSignQRContentChanged: { scheduleSettingsSave(); scheduleSealPreview() }
-    onSignQREnabledChanged: { scheduleSettingsSave(); scheduleSealPreview() }
+    onSignQREnabledChanged: { scheduleSettingsSave(); scheduleSealPreview(); if (signFieldError("qr")) validateSignField("qr") }
     onSignSealPerPageChanged: scheduleSettingsSave()
     onSignSealPlacementsChanged: scheduleSettingsSave()
     onPreviewCurrentPageChanged: loadPageSeal()
@@ -14436,8 +14433,8 @@ Window {
                                     implicitHeight: visible ? proxyCredentialsCol.implicitHeight + 24 : 0
                                     visible: isIpcMode && window.proxyEnabled && window.proxyType === "manual"
                                     radius: 8
-                                    color: currentTheme.inputBackground
-                                    border.color: currentTheme.borderColor
+                                    color: currentTheme.cardColor
+                                    border.color: currentTheme.secondaryTextColor
                                     border.width: 1
 
                                     ColumnLayout {
