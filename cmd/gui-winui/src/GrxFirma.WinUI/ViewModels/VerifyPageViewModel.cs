@@ -62,7 +62,9 @@ public sealed class VerifyPageViewModel
 
     public string SignedFileName
     {
-        get => string.IsNullOrEmpty(_signedFileName) ? Localizer.Text("Ningún fichero seleccionado") : _signedFileName;
+        // Vacío sin selección: el PlaceholderText traducido muestra el aviso
+        // y sigue el idioma aunque cambie en caliente.
+        get => _signedFileName;
         private set => SetProperty(ref _signedFileName, value);
     }
 

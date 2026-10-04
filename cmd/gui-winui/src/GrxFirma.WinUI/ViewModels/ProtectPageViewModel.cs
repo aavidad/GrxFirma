@@ -262,13 +262,17 @@ public sealed class ProtectPageViewModel
 
     public string ProtectInputDisplayName
     {
-        get => string.IsNullOrEmpty(_protectInputDisplayName) ? Localizer.Text("Ningún documento seleccionado") : _protectInputDisplayName;
+        // Vacío sin selección: el PlaceholderText traducido muestra el aviso
+        // y sigue el idioma aunque cambie en caliente.
+        get => _protectInputDisplayName;
         private set => SetProperty(ref _protectInputDisplayName, value);
     }
 
     public string UnprotectInputDisplayName
     {
-        get => string.IsNullOrEmpty(_unprotectInputDisplayName) ? Localizer.Text("Ningún contenedor seleccionado") : _unprotectInputDisplayName;
+        // Vacío sin selección: el PlaceholderText traducido muestra el aviso
+        // y sigue el idioma aunque cambie en caliente.
+        get => _unprotectInputDisplayName;
         private set => SetProperty(ref _unprotectInputDisplayName, value);
     }
 

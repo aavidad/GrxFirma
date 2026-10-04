@@ -402,7 +402,9 @@ public sealed class SignPageViewModel
 
     public string InputDisplayName
     {
-        get => string.IsNullOrEmpty(_inputDisplayName) ? Localizer.Text("Ningún documento seleccionado") : _inputDisplayName;
+        // Vacío sin selección: el PlaceholderText traducido muestra el aviso
+        // y sigue el idioma aunque cambie en caliente.
+        get => _inputDisplayName;
         private set => SetProperty(ref _inputDisplayName, value);
     }
 

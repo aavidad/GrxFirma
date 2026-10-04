@@ -96,13 +96,17 @@ public sealed class HashPageViewModel
 
     public string InputName
     {
-        get => string.IsNullOrEmpty(_inputName) ? Localizer.Text("Ningún origen seleccionado") : _inputName;
+        // Vacío sin selección: el PlaceholderText traducido muestra el aviso
+        // y sigue el idioma aunque cambie en caliente.
+        get => _inputName;
         private set => SetProperty(ref _inputName, value);
     }
 
     public string ManifestName
     {
-        get => string.IsNullOrEmpty(_manifestName) ? Localizer.Text("Ningún manifiesto seleccionado") : _manifestName;
+        // Vacío sin selección: el PlaceholderText traducido muestra el aviso
+        // y sigue el idioma aunque cambie en caliente.
+        get => _manifestName;
         private set => SetProperty(ref _manifestName, value);
     }
 
