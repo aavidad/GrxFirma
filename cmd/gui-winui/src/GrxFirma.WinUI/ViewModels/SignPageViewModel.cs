@@ -3031,17 +3031,10 @@ public sealed class SignPageViewModel
     // usuario o una contraseña en la dirección se rechazan.
     private static bool TryNormalizeCsvUrl(string raw, string code, out string url)
     {
-        url = raw.Trim();
-        if (!url.Contains("://", StringComparison.Ordinal))
-        {
-            if (url.Contains(':')) return false;
-            url = "https://" + url;
-        }
-        var probe = url.Replace("{csv}", Uri.EscapeDataString(code), StringComparison.Ordinal);
-        return url.Length <= 2048 && !url.Any(char.IsControl) && !url.Contains(' ') &&
-            Uri.TryCreate(probe, UriKind.Absolute, out var uri) &&
-            string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
-            !string.IsNullOrWhiteSpace(uri.Host) && string.IsNullOrEmpty(uri.UserInfo);
+        url = string.Empty;
+        var probe = raw.Replace("{csv}", Uri.EscapeDataString(code), StringComparison.Ordinal);
+        return VerificationUrlNormalizer.TryNormalize(probe, out _) &&
+            VerificationUrlNormalizer.TryNormalize(raw, out url);
     }
 
     private bool TryNormalizeVerificationUrl(
@@ -3051,25 +3044,10 @@ public sealed class SignPageViewModel
     {
         url = null;
         error = SealText("sign.seal.qr_https_error");
-        var value = raw?.Trim() ?? string.Empty;
-        if (!value.Contains("://", StringComparison.Ordinal))
-        {
-            if (value.Contains(':')) return false;
-            value = "https://" + value;
-        }
-        if (value.Length is 0 or > MaximumQrUrlLength ||
-            value.Any(char.IsControl) ||
-            !Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
-            !string.Equals(
-                uri.Scheme,
-                Uri.UriSchemeHttps,
-                StringComparison.OrdinalIgnoreCase) ||
-            string.IsNullOrEmpty(uri.Host) ||
-            !string.IsNullOrEmpty(uri.UserInfo))
-        {
+        if (!VerificationUrlNormalizer.TryNormalize(raw, out var normalized) ||
+            normalized.Length > MaximumQrUrlLength)
             return false;
-        }
-        url = value;
+        url = normalized;
         error = string.Empty;
         return true;
     }
