@@ -239,7 +239,13 @@
   "winui.parity.support.goal.verify",
   "winui.parity.support.owner",
   "Última",
-  "❌ Error: "
+  "❌ Error: ",
+  "eni.validacion.previous",
+  "eni.codigo.EE01",
+  "eni.codigo.TD10",
+  "eni.codigo.TD13",
+  "eni.codigo.TD17",
+  "eni.codigo.TD19"
  ],
  "de": [
   " + base64",
@@ -440,7 +446,8 @@
   "title",
   "token_settings.check_hardware",
   "width",
-  "❌ Error: "
+  "❌ Error: ",
+  "eni.codigo.EE01"
  ],
  "eu": [
   " + base64",
@@ -660,7 +667,12 @@
   "subtitle",
   "title",
   "width",
-  "winui.parity.support.filename"
+  "winui.parity.support.filename",
+  "eni.codigo.EE01",
+  "eni.codigo.TD04",
+  "eni.codigo.TD06",
+  "eni.codigo.TD07",
+  "eni.codigo.TD08"
  ],
  "gl": [
   " + base64",
@@ -1417,7 +1429,25 @@
   "🔄 Solicitando certificados vía %1...",
   "🔍 Solicitando verificación IPC para: ",
   "🗂️  Formato automático por tipo de documento",
-  "🛡️ Instalar Certificados Raíz de Administraciones Públicas"
+  "🛡️ Instalar Certificados Raíz de Administraciones Públicas",
+  "eni.validacion.calendar",
+  "eni.validacion.previous",
+  "eni.codigo.EE02",
+  "eni.codigo.EE04",
+  "eni.codigo.TD01",
+  "eni.codigo.TD03",
+  "eni.codigo.TD04",
+  "eni.codigo.TD05",
+  "eni.codigo.TD06",
+  "eni.codigo.TD07",
+  "eni.codigo.TD08",
+  "eni.codigo.TD10",
+  "eni.codigo.TD11",
+  "eni.codigo.TD13",
+  "eni.codigo.TD15",
+  "eni.codigo.TD16",
+  "eni.codigo.TD17",
+  "eni.codigo.TD19"
  ],
  "it": [
   " + base64",
@@ -1560,7 +1590,8 @@
   "token_settings.check_hardware",
   "token_settings.check_pin_memory",
   "width",
-  "❌ Error: "
+  "❌ Error: ",
+  "eni.codigo.TD15"
  ],
  "pt": [
   " + base64",
@@ -1890,7 +1921,11 @@
   "Última página",
   "Último documento",
   "✅ Conectores de navegador reinstalados.",
-  "🗂️  Formato automático por tipo de documento"
+  "🗂️  Formato automático por tipo de documento",
+  "eni.codigo.EE01",
+  "eni.codigo.TD03",
+  "eni.codigo.TD11",
+  "eni.codigo.TD17"
  ],
  "va": [
   " + base64",
@@ -2165,7 +2200,13 @@
   "winui.parity.support.owner",
   "Última",
   "❌ Error en Socket: ",
-  "❌ Error: "
+  "❌ Error: ",
+  "eni.validacion.previous",
+  "eni.codigo.EE01",
+  "eni.codigo.TD10",
+  "eni.codigo.TD13",
+  "eni.codigo.TD17",
+  "eni.codigo.TD19"
  ],
  "zh": [
   " + base64",
