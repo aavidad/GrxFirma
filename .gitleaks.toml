@@ -52,3 +52,11 @@ condition = "AND"
 regexTarget = "match"
 paths = ['''^internal/adapters/inbound/desktop/ipc/handler_test\.go$''']
 regexes = ['''secreto\.txt\.encrypted\.p7m",\s*"secreto\.txt\.signedenveloped\.p7m''']
+
+[[allowlists]]
+description = "Catalog keys of ENI form labels (labelKey), not credentials"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^cmd/gui-qml/qml/EniPanel\.qml$''']
+regexes = ['''labelKey:\s*"paridad\.lote3\.eni\.[a-z_]+"''']
