@@ -2960,4 +2960,9 @@
   "paridad.lote3.eni.creating": "Creant l’arxiu ENI…",
   "paridad.lote3.invoice.filename": "informe-factura",
   "paridad.lote3.eni.filename": "documento-eni"
+  ,"csv.error.code_missing": "Falta el codi CSV. Escriviu-lo tal com l'emet l'Administració."
+  ,"csv.error.code_invalid": "El codi CSV no pot superar els 128 caràcters ni contindre salts de línia o tabuladors."
+  ,"csv.error.url_missing": "Falta l'URL de verificació del CSV."
+  ,"csv.error.url_invalid": "L'URL de verificació no és vàlida: ha de ser una adreça https:// sense usuari, contrasenya ni espais (useu %20 per als espais)."
+  ,"csv.error.text_invalid": "El text de la llegenda CSV no pot superar els 512 caràcters ni contindre salts de línia."
 }

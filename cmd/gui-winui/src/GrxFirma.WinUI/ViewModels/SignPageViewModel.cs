@@ -2996,6 +2996,23 @@ public sealed class SignPageViewModel
         return true;
     }
 
+    // Como el QR: sin esquema se entiende https://; cualquier otro esquema, un
+    // usuario o una contraseña en la dirección se rechazan.
+    private static bool TryNormalizeCsvUrl(string raw, string code, out string url)
+    {
+        url = raw.Trim();
+        if (!url.Contains("://", StringComparison.Ordinal))
+        {
+            if (url.Contains(':')) return false;
+            url = "https://" + url;
+        }
+        var probe = url.Replace("{csv}", Uri.EscapeDataString(code), StringComparison.Ordinal);
+        return url.Length <= 2048 && !url.Any(char.IsControl) && !url.Contains(' ') &&
+            Uri.TryCreate(probe, UriKind.Absolute, out var uri) &&
+            string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrWhiteSpace(uri.Host) && string.IsNullOrEmpty(uri.UserInfo);
+    }
+
     private bool TryNormalizeVerificationUrl(
         string? raw,
         out string? url,
@@ -3503,15 +3520,19 @@ public sealed class SignPageViewModel
             var code = VisibleSealCsvCode.Trim();
             var url = VisibleSealCsvUrl.Trim();
             var text = VisibleSealCsvText.Trim();
-            if (code.Length is 0 or > 128 || code.Any(char.IsControl) ||
-                url.Length is 0 or > 2048 || url.Any(char.IsControl) ||
-                !Uri.TryCreate(url.Replace("{csv}", Uri.EscapeDataString(code), StringComparison.Ordinal), UriKind.Absolute, out var csvUri) ||
-                !string.Equals(csvUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
-                string.IsNullOrWhiteSpace(csvUri.Host) || !string.IsNullOrWhiteSpace(csvUri.UserInfo) ||
-                text.Length > 512 || text.Any(char.IsControl))
+            // Cada problema tiene su propio mensaje: uno genérico hacía creer
+            // que fallaba la URL cuando faltaba, por ejemplo, el código.
+            var csvError =
+                code.Length == 0 ? "csv.error.code_missing" :
+                code.Length > 128 || code.Any(char.IsControl) ? "csv.error.code_invalid" :
+                url.Length == 0 ? "csv.error.url_missing" :
+                !TryNormalizeCsvUrl(url, code, out url) ? "csv.error.url_invalid" :
+                text.Length > 512 || text.Any(char.IsControl) ? "csv.error.text_invalid" :
+                null;
+            if (csvError is not null)
             {
                 errorCode = "VISIBLE_SEAL_CSV_INVALID";
-                error = SealText("paridad.lote3.csv.invalid");
+                error = SealText(csvError);
                 return false;
             }
             extraOptions = MergeExtraOptions(extraOptions, "csv", code);

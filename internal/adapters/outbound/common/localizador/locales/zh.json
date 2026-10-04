@@ -2960,4 +2960,9 @@
   "paridad.lote3.eni.creating": "正在创建 ENI 文件…",
   "paridad.lote3.invoice.filename": "informe-factura",
   "paridad.lote3.eni.filename": "documento-eni"
+  ,"csv.error.code_missing": "缺少 CSV 代码。请按行政机关签发的原样输入。"
+  ,"csv.error.code_invalid": "CSV 代码不能超过 128 个字符，也不能包含换行符或制表符。"
+  ,"csv.error.url_missing": "缺少 CSV 核验网址。"
+  ,"csv.error.url_invalid": "核验网址无效：必须是不含用户名、密码和空格的 https:// 地址（空格请用 %20）。"
+  ,"csv.error.text_invalid": "CSV 图例文字不能超过 512 个字符，也不能包含换行符。"
 }
