@@ -66,8 +66,8 @@ public sealed class ProtectPageViewModel
     private string? _protectOutputPath;
     private string? _unprotectInputPath;
     private string? _unprotectOutputPath;
-    private string _protectInputDisplayName = Localizer.Text("Ningún documento seleccionado");
-    private string _unprotectInputDisplayName = Localizer.Text("Ningún contenedor seleccionado");
+    private string _protectInputDisplayName = string.Empty;
+    private string _unprotectInputDisplayName = string.Empty;
     private string _protectValidationMessage =
         "Seleccione un documento y al menos un destinatario.";
     private string _unprotectValidationMessage =
@@ -262,13 +262,13 @@ public sealed class ProtectPageViewModel
 
     public string ProtectInputDisplayName
     {
-        get => _protectInputDisplayName;
+        get => string.IsNullOrEmpty(_protectInputDisplayName) ? Localizer.Text("Ningún documento seleccionado") : _protectInputDisplayName;
         private set => SetProperty(ref _protectInputDisplayName, value);
     }
 
     public string UnprotectInputDisplayName
     {
-        get => _unprotectInputDisplayName;
+        get => string.IsNullOrEmpty(_unprotectInputDisplayName) ? Localizer.Text("Ningún contenedor seleccionado") : _unprotectInputDisplayName;
         private set => SetProperty(ref _unprotectInputDisplayName, value);
     }
 
@@ -1065,7 +1065,7 @@ public sealed class ProtectPageViewModel
         if (!File.Exists(_protectInputPath))
         {
             _protectInputPath = null;
-            ProtectInputDisplayName = Localizer.Text("Ningún documento seleccionado");
+            ProtectInputDisplayName = string.Empty;
             ClearProtectedOutput();
             UpdateCommandStates();
             return "El documento seleccionado ya no está disponible.";

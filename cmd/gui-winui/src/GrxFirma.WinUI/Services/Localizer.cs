@@ -58,19 +58,48 @@ internal static class Localizer
 
     public static bool SetLanguage(string? language) => Catalog.SetLanguage(language);
 
+    private static readonly TimeSpan RescanInterval = TimeSpan.FromMilliseconds(300);
+
     // Se registra una vez por ventana. LayoutUpdated incorpora controles que
-    // se crean después (elementos de ComboBox, resultados y avisos).
+    // se crean después (elementos de ComboBox, resultados y avisos), pero se
+    // dispara continuamente y cada traducción provoca otra maquetación: los
+    // avisos se agrupan en un único recorrido diferido, como mucho cada 300 ms.
+    // Recorrer el árbol en cada LayoutUpdated dejaba la aplicación consumiendo
+    // CPU y memoria sin parar.
     public static void Attach(FrameworkElement root)
     {
         ArgumentNullException.ThrowIfNull(root);
-        root.LayoutUpdated += (_, _) => Apply(root);
+        var pending = false;
+        var last = DateTimeOffset.MinValue;
+        var queue = root.DispatcherQueue;
+        root.LayoutUpdated += (_, _) =>
+        {
+            if (pending || queue is null) return;
+            pending = true;
+            var wait = last + RescanInterval - DateTimeOffset.UtcNow;
+            async void Run()
+            {
+                try
+                {
+                    if (wait > TimeSpan.Zero) await Task.Delay(wait);
+                    Apply(root);
+                }
+                finally
+                {
+                    last = DateTimeOffset.UtcNow;
+                    pending = false;
+                }
+            }
+            queue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, Run);
+        };
         Apply(root);
+        last = DateTimeOffset.UtcNow;
     }
 
     public static void Apply(DependencyObject root)
     {
         ArgumentNullException.ThrowIfNull(root);
-        Scan(root);
+        Scan(root, new HashSet<DependencyObject>(ReferenceEqualityComparer.Instance));
     }
 
     public static async Task<ContentDialogResult> ShowAsync(ContentDialog dialog)
@@ -79,8 +108,12 @@ internal static class Localizer
         return await dialog.ShowAsync();
     }
 
-    private static void Scan(DependencyObject element)
+    // Cada pasada visita cada elemento una sola vez: el contenido de paneles y
+    // controles también aparece en el árbol visual, y recorrer ambos duplicaba
+    // el trabajo en cada nivel de anidamiento.
+    private static void Scan(DependencyObject element, HashSet<DependencyObject> visited)
     {
+        if (!visited.Add(element)) return;
         foreach (var property in Properties(element.GetType())) Observe(element, property);
         Observe(element, AutomationProperties.NameProperty);
         Observe(element, AutomationProperties.HelpTextProperty);
@@ -90,16 +123,16 @@ internal static class Localizer
         // El contenido de cuadros de diálogo puede no haberse agregado aún
         // al árbol visual cuando se llama a ShowAsync.
         if (element is ContentDialog { Content: DependencyObject content })
-            Scan(content);
+            Scan(content, visited);
         if (element is ContentControl { Content: DependencyObject nested })
-            Scan(nested);
+            Scan(nested, visited);
         if (element is Border { Child: DependencyObject borderChild })
-            Scan(borderChild);
+            Scan(borderChild, visited);
         if (element is Panel panel)
-            foreach (var panelChild in panel.Children) Scan(panelChild);
+            foreach (var panelChild in panel.Children) Scan(panelChild, visited);
         var count = VisualTreeHelper.GetChildrenCount(element);
         for (var i = 0; i < count; i++)
-            Scan(VisualTreeHelper.GetChild(element, i));
+            Scan(VisualTreeHelper.GetChild(element, i), visited);
     }
 
     private static DependencyProperty[] Properties(Type type)
@@ -111,9 +144,15 @@ internal static class Localizer
             // TextBox.Text y PasswordBox.Password contienen datos del usuario.
             if (name == "Text" && !typeof(TextBlock).IsAssignableFrom(type) &&
                 type.Name != "Run") continue;
-            var field = type.GetField(name + "Property",
-                BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-            if (field?.GetValue(null) is DependencyProperty property)
+            // En WinUI 3 los identificadores (TextBlock.TextProperty,
+            // ContentControl.ContentProperty…) son propiedades estáticas, no
+            // campos: buscar solo campos dejaba sin traducir el texto del XAML.
+            const BindingFlags flags =
+                BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy;
+            var identifier =
+                type.GetProperty(name + "Property", flags)?.GetValue(null) ??
+                type.GetField(name + "Property", flags)?.GetValue(null);
+            if (identifier is DependencyProperty property)
                 properties.Add(property);
         }
         cached = [.. properties];

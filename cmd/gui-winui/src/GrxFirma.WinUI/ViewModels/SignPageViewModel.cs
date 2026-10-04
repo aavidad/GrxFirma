@@ -100,7 +100,7 @@ public sealed class SignPageViewModel
     private IReadOnlyList<string> _batchInputPaths = [];
     private string? _batchSourceDirectory;
     private string? _batchOutputDirectory;
-    private string _inputDisplayName = Localizer.Text("Ningún documento seleccionado");
+    private string _inputDisplayName = string.Empty;
     private string _batchInputSummary =
         "No se han seleccionado documentos para el lote.";
     private string _batchOutputSummary =
@@ -402,7 +402,7 @@ public sealed class SignPageViewModel
 
     public string InputDisplayName
     {
-        get => _inputDisplayName;
+        get => string.IsNullOrEmpty(_inputDisplayName) ? Localizer.Text("Ningún documento seleccionado") : _inputDisplayName;
         private set => SetProperty(ref _inputDisplayName, value);
     }
 
@@ -3251,7 +3251,7 @@ public sealed class SignPageViewModel
         if (!File.Exists(_inputPath))
         {
             _inputPath = null;
-            InputDisplayName = Localizer.Text("Ningún documento seleccionado");
+            InputDisplayName = string.Empty;
             ClearOutput();
             UpdateCommandStates();
             return "El documento seleccionado ya no está disponible. Selecciónelo de nuevo.";

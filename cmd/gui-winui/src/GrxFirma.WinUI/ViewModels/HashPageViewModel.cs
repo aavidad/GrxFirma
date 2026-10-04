@@ -49,8 +49,8 @@ public sealed class HashPageViewModel
     private CancellationTokenSource? _operationCancellation;
     private string? _inputPath;
     private string? _manifestPath;
-    private string _inputName = Localizer.Text("Ningún origen seleccionado");
-    private string _manifestName = Localizer.Text("Ningún manifiesto seleccionado");
+    private string _inputName = string.Empty;
+    private string _manifestName = string.Empty;
     private string _selectedAlgorithm = "SHA-256";
     private IReadOnlyList<HashFormatOption> _availableFormats =
         FileFormatOptions;
@@ -96,13 +96,13 @@ public sealed class HashPageViewModel
 
     public string InputName
     {
-        get => _inputName;
+        get => string.IsNullOrEmpty(_inputName) ? Localizer.Text("Ningún origen seleccionado") : _inputName;
         private set => SetProperty(ref _inputName, value);
     }
 
     public string ManifestName
     {
-        get => _manifestName;
+        get => string.IsNullOrEmpty(_manifestName) ? Localizer.Text("Ningún manifiesto seleccionado") : _manifestName;
         private set => SetProperty(ref _manifestName, value);
     }
 
@@ -262,7 +262,7 @@ public sealed class HashPageViewModel
             ? Visibility.Collapsed
             : Visibility.Visible;
         _manifestPath = null;
-        ManifestName = Localizer.Text("Ningún manifiesto seleccionado");
+        ManifestName = string.Empty;
         ResetResult();
         RefreshCommandState();
     }
@@ -281,8 +281,8 @@ public sealed class HashPageViewModel
         SelectedFormat = AvailableFormats[0];
         _inputPath = null;
         _manifestPath = null;
-        InputName = Localizer.Text("Ningún origen seleccionado");
-        ManifestName = Localizer.Text("Ningún manifiesto seleccionado");
+        InputName = string.Empty;
+        ManifestName = string.Empty;
         ResetResult();
         RefreshCommandState();
     }

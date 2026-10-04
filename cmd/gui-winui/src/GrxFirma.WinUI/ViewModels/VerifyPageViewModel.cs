@@ -24,8 +24,8 @@ public sealed class VerifyPageViewModel
     private string? _originalFilePath;
     private VerifyResult? _reportResult;
     private bool _canExportReport;
-    private string _signedFileName = Localizer.Text("Ningún fichero seleccionado");
-    private string _originalFileName = Localizer.Text("No seleccionado");
+    private string _signedFileName = string.Empty;
+    private string _originalFileName = string.Empty;
     private string _resultTitle = "Sin resultado";
     private string _resultMessage =
         "No se presupone la validez de ninguna firma hasta recibir evidencias del motor.";
@@ -62,13 +62,13 @@ public sealed class VerifyPageViewModel
 
     public string SignedFileName
     {
-        get => _signedFileName;
+        get => string.IsNullOrEmpty(_signedFileName) ? Localizer.Text("Ningún fichero seleccionado") : _signedFileName;
         private set => SetProperty(ref _signedFileName, value);
     }
 
     public string OriginalFileName
     {
-        get => _originalFileName;
+        get => string.IsNullOrEmpty(_originalFileName) ? Localizer.Text("No seleccionado") : _originalFileName;
         private set => SetProperty(ref _originalFileName, value);
     }
 
@@ -286,7 +286,7 @@ public sealed class VerifyPageViewModel
         }
 
         _originalFilePath = null;
-        OriginalFileName = Localizer.Text("No seleccionado");
+        OriginalFileName = string.Empty;
         ResetResult();
     }
 
