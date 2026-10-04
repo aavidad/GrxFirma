@@ -53,8 +53,8 @@ func leerOpcionesLeyendaCSV(options map[string]string) (opcionesLeyendaCSV, bool
 		return opcionesLeyendaCSV{}, false, fmt.Errorf("el código CSV no es válido")
 	}
 	direccion := strings.ReplaceAll(strings.TrimSpace(valorOpcion(options, "csvUrl")), "{csv}", url.QueryEscape(codigo))
-	u, err := url.Parse(direccion)
-	if err != nil || len(direccion) > maxLongitudCSVURL || !strings.EqualFold(u.Scheme, "https") || u.Host == "" || u.User != nil {
+	direccion, err := normalizarURLQRSello(direccion)
+	if err != nil || direccion == "" || len(direccion) > maxLongitudCSVURL {
 		return opcionesLeyendaCSV{}, false, fmt.Errorf("la dirección de cotejo del CSV (csvUrl) debe ser una URL HTTPS válida")
 	}
 	texto := strings.TrimSpace(valorOpcion(options, "csvText"))
