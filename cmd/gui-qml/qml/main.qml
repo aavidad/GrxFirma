@@ -129,10 +129,7 @@ Window {
 
     // Como el QR: sin esquema se entiende https://.
     function normalizedCsvUrl(raw) {
-        let value = String(raw || "").trim()
-        if (value.indexOf("://") < 0 && value.indexOf(":") < 0 && value !== "")
-            value = "https://" + value
-        return value
+        return portalSeal.normalizeVerificationUrl(String(raw || ""))
     }
 
     // Un mensaje por cada problema de la leyenda CSV, para saber qué corregir.
@@ -144,7 +141,8 @@ Window {
             if (code.length > 128 || /[\r\n\t]/.test(code)) return "csv.error.code_invalid"
         }
         if (!field || field === "csvUrl") {
-            if (url === "") return "csv.error.url_missing"
+            if (signCSVUrl.trim() === "") return "csv.error.url_missing"
+            if (url === "") return "csv.error.url_invalid"
             if (url.length > 2048 || / /.test(url) || !/^https:\/\//i.test(url) ||
                     !validQrUrl(url.replace("{csv}", encodeURIComponent(code))))
                 return "csv.error.url_invalid"
@@ -2656,12 +2654,7 @@ Window {
     }
 
     function normalizedQrUrl(value) {
-        const input = String(value || "").trim()
-        if (input === "") return ""
-        if (/^[a-z][a-z0-9+.-]*:\/\//i.test(input) && !/^https:\/\//i.test(input)) return ""
-        if (input.indexOf("://") < 0 && input.indexOf(":") >= 0) return ""
-        const raw = /^https:\/\//i.test(input) ? input : "https://" + input
-        return validQrUrl(raw) ? raw : ""
+        return portalSeal.normalizeVerificationUrl(String(value || ""))
     }
 
     // Igual que el motor: RFC 3161 por http o https, sin credenciales ni fragmento.
@@ -2674,15 +2667,7 @@ Window {
     function validQrUrl(rawValue) {
         const raw = String(rawValue || "").trim()
         if (raw === "") return true
-        if (raw.length > 2048 || /[\s\\\u0000-\u001f\u007f]/.test(raw)) return false
-        const match = /^https:\/\/([^/?#@]+)(?:[/?#][^\s]*)?$/i.exec(raw)
-        if (!match) return false
-        const authority = match[1].split(":")
-        if (authority.length > 2 || !authority[0]) return false
-        if (authority.length === 2 && (!/^\d{1,5}$/.test(authority[1]) || Number(authority[1]) > 65535 || Number(authority[1]) === 0)) return false
-        return authority[0].split(".").every(function(label) {
-            return /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(label)
-        })
+        return /^https:\/\//i.test(raw) && portalSeal.normalizeVerificationUrl(raw) !== ""
     }
 
     function certificateSelectionColor() {

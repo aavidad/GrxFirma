@@ -46,6 +46,7 @@ HEADERS += \
         incidentprivacy.h \
         ipcbridge.h \
         portalsealbridge.h \
+        verificationurl.h \
         ipcsocketpath.h \
         officialupdatechecker.h \
         linuxstartupregistration.h \

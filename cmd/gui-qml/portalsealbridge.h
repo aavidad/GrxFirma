@@ -21,6 +21,7 @@ public:
   bool active() const { return m_active; }
   QString documentPath() const { return m_documentPath; }
   QString signerName() const { return m_signerName; }
+  Q_INVOKABLE QString normalizeVerificationUrl(const QString &raw) const;
   Q_INVOKABLE bool submit(const QString &action, const QVariantList &placements,
                           const QVariantMap &appearance);
 
