@@ -6,6 +6,7 @@
 <RCC>
   <qresource prefix="/">
     <file>qml/main.qml</file>
+    <file>qml/ThemedDialog.qml</file>
     <file>qml/NavButton.qml</file>
     <file>qml/DiagnosticTimeline.qml</file>
     <file>qml/TokenSettingsPanel.qml</file>

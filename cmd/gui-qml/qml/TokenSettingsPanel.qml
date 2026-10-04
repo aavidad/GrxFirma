@@ -12,6 +12,7 @@ GroupBox {
     id: panel
     // Wrapped prose must not make the outer settings layout wider than its viewport.
     implicitWidth: 320
+    required property var theme
     required property var bridge
     required property bool localIpc
     required property var translate
@@ -173,7 +174,8 @@ GroupBox {
         fileMode: FileDialog.OpenFiles
         onAccepted: panel.addFiles(selectedFiles)
     }
-    Dialog {
+    ThemedDialog {
+        theme: panel.theme
         id: discardDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -188,7 +190,8 @@ GroupBox {
         contentItem: Label { text: panel.t("discard"); wrapMode: Text.Wrap }
         onAccepted: panel.load()
     }
-    Dialog {
+    ThemedDialog {
+        theme: panel.theme
         id: saveDialog
         parent: Overlay.overlay
         anchors.centerIn: parent

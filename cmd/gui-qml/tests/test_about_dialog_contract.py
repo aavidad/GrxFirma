@@ -79,7 +79,7 @@ class AboutDialogContractTest(unittest.TestCase):
             "id: adminLoginDialog", 1
         )[0]
         self.assertIn(
-            'Accessible.name: tr("Acerca de GrxFirma")',
+            'accessibleName: tr("Acerca de GrxFirma")',
             about,
         )
         self.assertIn("Accessible.role: Accessible.Graphic", about)
