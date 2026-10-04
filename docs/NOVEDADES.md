@@ -7,6 +7,14 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.112 — 2026-10-04
+
+- Toda la aplicación aparece en el idioma elegido: se han traducido más de mil textos que seguían en español o en inglés en los diez idiomas disponibles.
+- Windows: al cambiar de idioma en Configuración cambian también los textos fijos de todas las pantallas.
+- Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma te lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.
+- Leyenda CSV: cada problema tiene su propio mensaje (falta el código, la URL no es válida…) y la dirección puede escribirse sin https://.
+- Windows: se admiten servidores de sello de tiempo con dirección http://, como el de la FNMT, igual que en Linux y en AutoFirma Java.
+
 ## 0.0.111 — 2026-10-04
 
 - Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».

@@ -4786,4 +4786,9 @@
   ,"validacion.problemas": "可见签名有 %1 个问题"
   ,"validacion.proxy.host": "仅输入代理主机名或 IP 地址，不要包含协议、路径或凭据。"
   ,"validacion.proxy.puerto": "代理端口必须介于 1 和 65535 之间。"
+  ,"Toda la aplicación aparece en el idioma elegido: se han traducido más de mil textos que seguían en español o en inglés en los diez idiomas disponibles.": "整个应用程序以所选语言显示：一千多条仍为西班牙语或英语的文本已翻译成全部十种可用语言。"
+  ,"Windows: al cambiar de idioma en Configuración cambian también los textos fijos de todas las pantallas.": "Windows：在设置中切换语言时，所有界面上的固定文本也会随之切换。"
+  ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma te lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "如果某个字段有错误，它会以红色标出并在下方显示原因；签名或保存时，GrxFirma 会带你到该字段。诊断和助手提供“更正”按钮，可直接跳转。适用于 Windows 和 Linux。"
+  ,"Leyenda CSV: cada problema tiene su propio mensaje (falta el código, la URL no es válida…) y la dirección puede escribirse sin https://.": "CSV 图例：每个问题都有单独的提示（缺少代码、URL 无效……），地址也可以不带 https:// 输入。"
+  ,"Windows: se admiten servidores de sello de tiempo con dirección http://, como el de la FNMT, igual que en Linux y en AutoFirma Java.": "Windows：现在接受 http:// 地址的时间戳服务器（例如 FNMT 的服务器），与 Linux 和 AutoFirma Java 一致。"
 }

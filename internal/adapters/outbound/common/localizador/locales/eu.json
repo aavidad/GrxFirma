@@ -4786,4 +4786,9 @@
   ,"validacion.problemas": "%1 arazo sinadura ikusgaian"
   ,"validacion.proxy.host": "Adierazi proxyaren ostalaria edo IP helbidea soilik, eskemarik, biderik eta kredentzialik gabe."
   ,"validacion.proxy.puerto": "Proxyaren atakak 1 eta 65535 artekoa izan behar du."
+  ,"Toda la aplicación aparece en el idioma elegido: se han traducido más de mil textos que seguían en español o en inglés en los diez idiomas disponibles.": "Aplikazio osoa aukeratutako hizkuntzan agertzen da: oraindik gaztelaniaz edo ingelesez zeuden mila testu baino gehiago itzuli dira eskuragarri dauden hamar hizkuntzetara."
+  ,"Windows: al cambiar de idioma en Configuración cambian también los textos fijos de todas las pantallas.": "Windows: Konfigurazioan hizkuntza aldatzean, pantaila guztietako testu finkoak ere aldatzen dira."
+  ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma te lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "Eremu batek errorea badu, gorriz markatzen da eta arrazoia azpian agertzen da; sinatzean edo gordetzean, GrxFirmak eremu horretara eramaten zaitu. Diagnostikoak eta laguntzaileak «Zuzendu» eskaintzen dute zuzenean joateko. Windows-en eta Linux-en."
+  ,"Leyenda CSV: cada problema tiene su propio mensaje (falta el código, la URL no es válida…) y la dirección puede escribirse sin https://.": "CSV legenda: arazo bakoitzak bere mezua du (kodea falta da, URLa ez da baliozkoa…) eta helbidea https:// gabe idatz daiteke."
+  ,"Windows: se admiten servidores de sello de tiempo con dirección http://, como el de la FNMT, igual que en Linux y en AutoFirma Java.": "Windows: http:// helbidea duten denbora-zigilu zerbitzariak onartzen dira, FNMTrena adibidez, Linux-en eta AutoFirma Java-n bezala."
 }

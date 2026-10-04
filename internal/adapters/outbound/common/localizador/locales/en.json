@@ -4786,4 +4786,9 @@
   ,"validacion.problemas": "%1 visible seal problems"
   ,"validacion.proxy.host": "Enter only the proxy host or IP address, without a scheme, path, or credentials."
   ,"validacion.proxy.puerto": "The proxy port must be between 1 and 65535."
+  ,"Toda la aplicación aparece en el idioma elegido: se han traducido más de mil textos que seguían en español o en inglés en los diez idiomas disponibles.": "The whole application appears in the chosen language: more than a thousand texts that were still in Spanish or English have been translated into the ten available languages."
+  ,"Windows: al cambiar de idioma en Configuración cambian también los textos fijos de todas las pantallas.": "Windows: changing the language in Settings now also changes the fixed texts on every screen."
+  ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma te lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "If a field has an error, it is outlined in red with the reason underneath, and when you sign or save GrxFirma takes you to that field; the diagnosis and the assistant offer \"Fix\" to go straight there. On Windows and Linux."
+  ,"Leyenda CSV: cada problema tiene su propio mensaje (falta el código, la URL no es válida…) y la dirección puede escribirse sin https://.": "CSV legend: each problem has its own message (missing code, invalid URL…) and the address can be typed without https://."
+  ,"Windows: se admiten servidores de sello de tiempo con dirección http://, como el de la FNMT, igual que en Linux y en AutoFirma Java.": "Windows: time stamp servers with an http:// address, such as the FNMT one, are now accepted, as on Linux and in AutoFirma Java."
 }
