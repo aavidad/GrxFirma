@@ -16,7 +16,7 @@ public sealed partial class FacturaePage : Page
 {
     private bool _isLoaded;
     private string _invoiceReport = string.Empty;
-    private static string T(string key) => SealUiCatalog.Text(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, key);
+    private static string T(string key) => SealUiCatalog.Text(Localizer.Language, key);
 
     public FacturaePage()
     {

@@ -18,12 +18,12 @@ public sealed partial class DiagnosticsPage : Page
     private int _supportStepIndex;
     private readonly IReadOnlyList<SettingsOption> _supportGoals =
     [
-        new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "winui.parity.support.goal.sign"), "sign"),
-        new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "winui.parity.support.goal.verify"), "verify"),
-        new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "winui.parity.support.goal.certificate"), "certificate"),
-        new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "winui.parity.support.goal.sign_failure"), "sign-failure"),
-        new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "winui.parity.support.goal.verify_failure"), "verify-failure"),
-        new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "winui.parity.support.goal.issue"), "support"),
+        new(SealUiCatalog.Text(Localizer.Language, "winui.parity.support.goal.sign"), "sign"),
+        new(SealUiCatalog.Text(Localizer.Language, "winui.parity.support.goal.verify"), "verify"),
+        new(SealUiCatalog.Text(Localizer.Language, "winui.parity.support.goal.certificate"), "certificate"),
+        new(SealUiCatalog.Text(Localizer.Language, "winui.parity.support.goal.sign_failure"), "sign-failure"),
+        new(SealUiCatalog.Text(Localizer.Language, "winui.parity.support.goal.verify_failure"), "verify-failure"),
+        new(SealUiCatalog.Text(Localizer.Language, "winui.parity.support.goal.issue"), "support"),
     ];
 
     public DiagnosticsPage()
@@ -50,7 +50,7 @@ public sealed partial class DiagnosticsPage : Page
     }
 
     private static string SupportLabel(string key) => SealUiCatalog.Text(
-        System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, key);
+        Localizer.Language, key);
 
     private SupportAssistantPlan CurrentSupportPlan =>
         SupportAssistantPlan.ForGoal((SupportGoalCombo.SelectedItem as SettingsOption)?.Value);

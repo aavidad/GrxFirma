@@ -46,7 +46,7 @@ public sealed partial class SettingsPage : Page
     private void ApplyParityLabels()
     {
         string Label(string key) => SealUiCatalog.Text(
-            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+            Localizer.Language,
             key);
         TsaEnabledCheckBox.Content = Label("winui.parity.tsa.enabled");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TsaEnabledCheckBox, (string)TsaEnabledCheckBox.Content);
@@ -71,7 +71,7 @@ public sealed partial class SettingsPage : Page
     }
 
     private string ParityText(string key) => SealUiCatalog.Text(
-        System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, key);
+        Localizer.Language, key);
 
     private void UpdateRestControls()
     {

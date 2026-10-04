@@ -6,6 +6,7 @@
 using GrxFirma.WinUI.Core.Diagnostics;
 using GrxFirma.WinUI.Core.Ipc;
 using GrxFirma.WinUI.Core.Operations;
+using GrxFirma.WinUI.Services;
 using Microsoft.UI.Xaml.Controls;
 
 namespace GrxFirma.WinUI.ViewModels;
@@ -115,31 +116,31 @@ public sealed class DiagnosticsPageViewModel
     public string SummaryTitle
     {
         get => _summaryTitle;
-        private set => SetProperty(ref _summaryTitle, value);
+        private set => SetProperty(ref _summaryTitle, Localizer.Text(value));
     }
 
     public string SummaryMessage
     {
         get => _summaryMessage;
-        private set => SetProperty(ref _summaryMessage, value);
+        private set => SetProperty(ref _summaryMessage, Localizer.Text(value));
     }
 
     public string OwnerLabel
     {
         get => _ownerLabel;
-        private set => SetProperty(ref _ownerLabel, value);
+        private set => SetProperty(ref _ownerLabel, Localizer.Text(value));
     }
 
     public string Responsibility
     {
         get => _responsibility;
-        private set => SetProperty(ref _responsibility, value);
+        private set => SetProperty(ref _responsibility, Localizer.Text(value));
     }
 
     public string SuggestedAction
     {
         get => _suggestedAction;
-        private set => SetProperty(ref _suggestedAction, value);
+        private set => SetProperty(ref _suggestedAction, Localizer.Text(value));
     }
 
     public InfoBarSeverity ResultSeverity
@@ -151,19 +152,19 @@ public sealed class DiagnosticsPageViewModel
     public string TlsStatusTitle
     {
         get => _tlsStatusTitle;
-        private set => SetProperty(ref _tlsStatusTitle, value);
+        private set => SetProperty(ref _tlsStatusTitle, Localizer.Text(value));
     }
 
     public string TlsStatusMessage
     {
         get => _tlsStatusMessage;
-        private set => SetProperty(ref _tlsStatusMessage, value);
+        private set => SetProperty(ref _tlsStatusMessage, Localizer.Text(value));
     }
 
     public string CertificateSummary
     {
         get => _certificateSummary;
-        private set => SetProperty(ref _certificateSummary, value);
+        private set => SetProperty(ref _certificateSummary, Localizer.Text(value));
     }
 
     public InfoBarSeverity TlsStatusSeverity
@@ -502,7 +503,8 @@ public sealed class DiagnosticsPageViewModel
                 CertificatesCode,
                 "Certificados utilizables",
                 unavailable > 0
-                    ? $"Se encontraron {unavailable} certificado(s), pero ninguno está disponible para firmar."
+                    ? Localizer.Fill("Se encontraron {unavailable} certificado(s), pero ninguno está disponible para firmar.",
+                        ("unavailable", unavailable.ToString()))
                     : "No se encontró ningún certificado disponible para firmar.",
                 "Abra Certificados y revise el almacén, la caducidad y el dispositivo criptográfico.",
                 "NO_USABLE_CERTIFICATE",
@@ -519,8 +521,10 @@ public sealed class DiagnosticsPageViewModel
                 DiagnosticStepStatus.Success,
                 "certificate_store",
                 unavailable > 0
-                    ? $"Hay {usable} certificado(s) utilizable(s) y {unavailable} que requieren revisión."
-                    : $"Hay {usable} certificado(s) utilizable(s) para firmar.",
+                    ? Localizer.Fill("Hay {usable} certificado(s) utilizable(s) y {unavailable} que requieren revisión.",
+                        ("usable", usable.ToString()), ("unavailable", unavailable.ToString()))
+                    : Localizer.Fill("Hay {usable} certificado(s) utilizable(s) para firmar.",
+                        ("usable", usable.ToString())),
                 "Seleccione un certificado utilizable al iniciar la firma.",
                 evidenceRef: "phase:operation"));
         PublishSteps(steps);
@@ -602,7 +606,8 @@ public sealed class DiagnosticsPageViewModel
                 "Acceso local a certificados",
                 DiagnosticStepStatus.Success,
                 "app_local",
-                $"El motor detectó {managers} gestor(es) y {targets} destino(s) de importación.",
+                Localizer.Fill("El motor detectó {managers} gestor(es) y {targets} destino(s) de importación.",
+                    ("managers", managers.ToString()), ("targets", targets.ToString())),
                 "Use Certificados si necesita abrir un gestor o importar una credencial.",
                 evidenceRef: "phase:operation"));
         PublishSteps(steps);
@@ -838,9 +843,10 @@ public sealed class DiagnosticsPageViewModel
             return;
         }
 
-        CertificateSummary =
-            $"Certificados detectados: {result.Data.CertificateCount}. " +
-            $"Con acceso de firma confirmado: {result.Data.CanSignCount}.";
+        CertificateSummary = Localizer.Fill(
+            "Certificados detectados: {count}. Con acceso de firma confirmado: {signable}.",
+            ("count", result.Data.CertificateCount.ToString()),
+            ("signable", result.Data.CanSignCount.ToString()));
     }
 
     public async Task RefreshTlsStatusAsync()
@@ -976,8 +982,9 @@ public sealed class DiagnosticsPageViewModel
                 ApplyTlsStore(refreshed.Data);
             }
             TlsStatusTitle = "Confianza TLS local retirada";
-            TlsStatusMessage =
-                $"El motor confirmó la retirada de la confianza y de {result.Data} artefacto(s) gestionado(s).";
+            TlsStatusMessage = Localizer.Fill(
+                "El motor confirmó la retirada de la confianza y de {count} artefacto(s) gestionado(s).",
+                ("count", result.Data.ToString()));
             TlsStatusSeverity = InfoBarSeverity.Success;
             HasTlsStatus = true;
         }
@@ -1012,10 +1019,11 @@ public sealed class DiagnosticsPageViewModel
         {
             case "available":
                 TlsStatusTitle = "Material TLS local disponible";
-                TlsStatusMessage =
-                    $"Se inventariaron {store.ArtifactCount} artefacto(s): " +
-                    $"{store.CertificateCount} certificado(s) y " +
-                    $"{store.KeyCount} clave(s). Este inventario no afirma por sí solo que el navegador confíe en la CA.";
+                TlsStatusMessage = Localizer.Fill(
+                    "Se inventariaron {artifacts} artefacto(s): {certificates} certificado(s) y {keys} clave(s). Este inventario no afirma por sí solo que el navegador confíe en la CA.",
+                    ("artifacts", store.ArtifactCount.ToString()),
+                    ("certificates", store.CertificateCount.ToString()),
+                    ("keys", store.KeyCount.ToString()));
                 TlsStatusSeverity = InfoBarSeverity.Success;
                 break;
             case "empty":

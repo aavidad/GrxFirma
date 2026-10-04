@@ -463,22 +463,22 @@ public sealed class WindowsFilePickerService : IFilePickerService
             SaveFilePickerProfile.DiagnosticReport =>
                 new("Informe de diagnóstico", "diagnostico", [".json", ".txt"]),
             SaveFilePickerProfile.VerificationReport =>
-                new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                new(SealUiCatalog.Text(Localizer.Language,
                     "winui.parity.verify.export"),
-                    SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                    SealUiCatalog.Text(Localizer.Language,
                     "winui.parity.verify.filename"), [".json"]),
             SaveFilePickerProfile.InvoiceReport =>
-                new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
-                    "paridad.lote3.invoice.report"), SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                new(SealUiCatalog.Text(Localizer.Language,
+                    "paridad.lote3.invoice.report"), SealUiCatalog.Text(Localizer.Language,
                     "paridad.lote3.invoice.filename"), [".txt"]),
             SaveFilePickerProfile.EniXml =>
-                new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
-                    "paridad.lote3.eni.xml_filter"), SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                new(SealUiCatalog.Text(Localizer.Language,
+                    "paridad.lote3.eni.xml_filter"), SealUiCatalog.Text(Localizer.Language,
                     "paridad.lote3.eni.filename"), [".xml"]),
             SaveFilePickerProfile.SupportIncidentText =>
-                new(SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                new(SealUiCatalog.Text(Localizer.Language,
                     "winui.parity.support.export"),
-                    SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+                    SealUiCatalog.Text(Localizer.Language,
                     "winui.parity.support.filename"), [".txt"]),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(profile),

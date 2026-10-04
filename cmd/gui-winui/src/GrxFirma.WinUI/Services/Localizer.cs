@@ -5,6 +5,7 @@
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using GrxFirma.WinUI.Core.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -17,12 +18,15 @@ internal static class Localizer
 {
     private static readonly CatalogLocalizer Catalog = new(
         Path.Combine(AppContext.BaseDirectory, "locales"));
+    private static readonly Regex PlaceholderPattern = new(
+        @"\{([a-z]+)\}", RegexOptions.CultureInvariant);
     private static readonly ConditionalWeakTable<DependencyObject, ElementState> States = new();
     private static readonly Dictionary<Type, DependencyProperty[]> PropertyCache = [];
     private static readonly string[] VisibleProperties =
     [
         "Text", "Content", "Header", "PlaceholderText", "Title", "Message",
         "Description", "PrimaryButtonText", "SecondaryButtonText", "CloseButtonText",
+        "OnContent", "OffContent",
     ];
 
     private sealed class ElementState
@@ -35,6 +39,17 @@ internal static class Localizer
     public static string Language => Catalog.Language;
     public static string Text(string key) => Catalog.TranslateVisibleText(key);
     public static string Text(string? language, string key) => Catalog.Text(language, key);
+
+    public static string Fill(string key, params (string Name, string Value)[] values)
+    {
+        var replacements = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (name, value) in values)
+            replacements[name] = value;
+        return PlaceholderPattern.Replace(Text(key), match =>
+            replacements.TryGetValue(match.Groups[1].Value, out var replacement)
+                ? replacement
+                : match.Value);
+    }
 
     public static bool SetLanguage(string? language) => Catalog.SetLanguage(language);
 

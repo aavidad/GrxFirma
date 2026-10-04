@@ -30,7 +30,8 @@ public sealed record SecurePasswordPromptRequest
         {
             throw new ArgumentOutOfRangeException(
                 nameof(maximumCharacters),
-                $"El límite debe estar entre 1 y {MaximumSupportedCharacters} caracteres.");
+                Localizer.Fill("El límite debe estar entre 1 y {maximum} caracteres.",
+                    ("maximum", MaximumSupportedCharacters.ToString())));
         }
 
         MaximumCharacters = maximumCharacters;

@@ -159,7 +159,7 @@ public partial class App : Application
             if (options.StartHidden && _tray?.Installed == true &&
                 options.HasBackendEndpoint)
             {
-                var language = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+                var language = Localizer.Language;
                 var message = SealUiCatalog.Text(language,
                     "Actualizado a %1: ver novedades").Replace("%1", _releaseNotes.InstalledVersion);
                 _tray.ShowReleaseNotesNotification(message);

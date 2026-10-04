@@ -22,7 +22,7 @@ public sealed partial class AboutPage : Page
             app.OperationSession);
         InitializeComponent();
         var label = SealUiCatalog.Text(
-            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+            Localizer.Language,
             "Novedades");
         ReleaseNotesButton.Content = label;
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(

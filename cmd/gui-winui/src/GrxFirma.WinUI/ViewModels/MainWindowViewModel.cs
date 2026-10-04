@@ -5,6 +5,7 @@
 
 using GrxFirma.WinUI.Core.Ipc;
 using GrxFirma.WinUI.Core.Diagnostics;
+using GrxFirma.WinUI.Services;
 
 namespace GrxFirma.WinUI.ViewModels;
 
@@ -22,13 +23,13 @@ public sealed class MainWindowViewModel : ObservableObject
     public string ConnectionStatus
     {
         get => _connectionStatus;
-        private set => SetProperty(ref _connectionStatus, value);
+        private set => SetProperty(ref _connectionStatus, Localizer.Text(value));
     }
 
     public string ActivePageTitle
     {
         get => _activePageTitle;
-        set => SetProperty(ref _activePageTitle, value);
+        set => SetProperty(ref _activePageTitle, Localizer.Text(value));
     }
 
     public bool IsBackendReady
@@ -64,7 +65,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public string UpdateNoticeMessage
     {
         get => _updateNoticeMessage;
-        private set => SetProperty(ref _updateNoticeMessage, value);
+        private set => SetProperty(ref _updateNoticeMessage, Localizer.Text(value));
     }
 
     public void SetUpdateAvailable(string message)
@@ -110,7 +111,8 @@ public sealed class MainWindowViewModel : ObservableObject
             : null;
         ConnectionStatus = hello is null
             ? "El motor local no confirmó el protocolo esperado."
-            : $"Motor local conectado mediante {DesktopIpcProtocol.Name}.";
+            : Localizer.Fill("Motor local conectado mediante {protocol}.",
+                ("protocol", DesktopIpcProtocol.Name));
     }
 
     public void SetConnectionFailure(

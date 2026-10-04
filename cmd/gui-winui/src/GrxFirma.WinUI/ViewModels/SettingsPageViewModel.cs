@@ -253,7 +253,7 @@ public sealed class SettingsPageViewModel
     public string TsaValidationMessage
     {
         get => _tsaValidationMessage;
-        private set => SetProperty(ref _tsaValidationMessage, value);
+        private set => SetProperty(ref _tsaValidationMessage, Localizer.Text(value));
     }
 
     public bool FacturaeToolsEnabled
@@ -386,7 +386,7 @@ public sealed class SettingsPageViewModel
         get => _proxySecurityStatusTitle;
         private set => SetProperty(
             ref _proxySecurityStatusTitle,
-            value);
+            Localizer.Text(value));
     }
 
     public string ProxySecurityStatusMessage
@@ -394,7 +394,7 @@ public sealed class SettingsPageViewModel
         get => _proxySecurityStatusMessage;
         private set => SetProperty(
             ref _proxySecurityStatusMessage,
-            value);
+            Localizer.Text(value));
     }
 
     public string ProxyRuntimeModeMessage
@@ -402,7 +402,7 @@ public sealed class SettingsPageViewModel
         get => _proxyRuntimeModeMessage;
         private set => SetProperty(
             ref _proxyRuntimeModeMessage,
-            value);
+            Localizer.Text(value));
     }
 
     public bool CanRefreshProxySecretStatus
@@ -432,19 +432,19 @@ public sealed class SettingsPageViewModel
     public string ValidationMessage
     {
         get => _validationMessage;
-        private set => SetProperty(ref _validationMessage, value);
+        private set => SetProperty(ref _validationMessage, Localizer.Text(value));
     }
 
     public string StatusTitle
     {
         get => _statusTitle;
-        private set => SetProperty(ref _statusTitle, value);
+        private set => SetProperty(ref _statusTitle, Localizer.Text(value));
     }
 
     public string StatusMessage
     {
         get => _statusMessage;
-        private set => SetProperty(ref _statusMessage, value);
+        private set => SetProperty(ref _statusMessage, Localizer.Text(value));
     }
 
     public bool IsDirty

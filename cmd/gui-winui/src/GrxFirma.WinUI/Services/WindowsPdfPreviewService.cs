@@ -44,7 +44,8 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
         {
             throw new ArgumentOutOfRangeException(
                 nameof(page),
-                $"El PDF solo contiene {document.PageCount} páginas.");
+                Localizer.Fill("El PDF solo contiene {count} páginas.",
+                    ("count", document.PageCount.ToString())));
         }
 
         using var pdfPage = document.GetPage((uint)(page - 1));

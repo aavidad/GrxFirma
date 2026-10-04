@@ -213,7 +213,7 @@ internal sealed class WindowsTrayIcon : IDisposable
         }
         try
         {
-            var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+            var language = Localizer.Language;
             string Label(string key) => SealUiCatalog.Text(language, key);
             _ = AppendMenu(menu, MenuString, 1, Label("Abrir GrxFirma"));
             _ = AppendMenu(menu, MenuString | MenuDisabled, 2,

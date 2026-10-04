@@ -38,7 +38,7 @@ public sealed partial class CertificatesPage : Page
             app.FilePickerService);
         InitializeComponent();
         string Label(string key) => SealUiCatalog.Text(
-            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, key);
+            Localizer.Language, key);
         CertificateTypeFilterTitle.Text = Label("winui.parity.certs.type");
         FilterPersonalCheck.Content = Label("winui.parity.certs.person");
         FilterRepresentativeCheck.Content = Label("winui.parity.certs.representative");

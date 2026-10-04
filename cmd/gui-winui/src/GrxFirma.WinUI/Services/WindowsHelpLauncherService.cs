@@ -540,7 +540,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
     private static string? CurrentHelpLanguage()
     {
         var language =
-            CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+            Localizer.Language;
         return SupportedHelpLanguages.Contains(language)
             ? language.ToLowerInvariant()
             : null;

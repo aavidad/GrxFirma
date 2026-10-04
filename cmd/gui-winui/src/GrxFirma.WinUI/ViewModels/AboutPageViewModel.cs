@@ -38,8 +38,11 @@ public sealed class AboutPageViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(session);
         _launcher = launcher;
         _session = session;
-        VersionText = ResolveInstalledVersion();
-        ReleaseNotesText = ResolveReleaseNotes(VersionText);
+        var installedVersion = ResolveInstalledVersion();
+        VersionText = installedVersion == VersionUnavailable
+            ? Localizer.Text(installedVersion)
+            : Localizer.Fill("Versión {version}", ("version", installedVersion));
+        ReleaseNotesText = Localizer.Text(ResolveReleaseNotes(installedVersion));
     }
 
     public string Title { get; } = "Acerca de";
@@ -54,13 +57,13 @@ public sealed class AboutPageViewModel : ObservableObject
     public string StatusTitle
     {
         get => _statusTitle;
-        private set => SetProperty(ref _statusTitle, value);
+        private set => SetProperty(ref _statusTitle, Localizer.Text(value));
     }
 
     public string StatusMessage
     {
         get => _statusMessage;
-        private set => SetProperty(ref _statusMessage, value);
+        private set => SetProperty(ref _statusMessage, Localizer.Text(value));
     }
 
     public bool IsBusy
@@ -197,21 +200,25 @@ public sealed class AboutPageViewModel : ObservableObject
             else if (result.Data.HasNewVersion)
             {
                 StatusTitle = "Nueva versión disponible";
-                StatusMessage =
-                    $"Está disponible {latest}; esta instalación usa {current}. Revise las notas en GitHub. GrxFirma no descargará ni ejecutará nada automáticamente.";
+                StatusMessage = Localizer.Fill(
+                    "Está disponible {latest}; esta instalación usa {current}. Revise las notas en GitHub. GrxFirma no descargará ni ejecutará nada automáticamente.",
+                    ("latest", latest), ("current", current));
                 StatusSeverity = InfoBarSeverity.Warning;
             }
             else if (!result.Data.IsComparable)
             {
                 StatusTitle = "Build no comparable";
-                StatusMessage =
-                    $"La última versión publicada es {latest}, pero este build de desarrollo no se puede comparar automáticamente.";
+                StatusMessage = Localizer.Fill(
+                    "La última versión publicada es {latest}, pero este build de desarrollo no se puede comparar automáticamente.",
+                    ("latest", latest));
                 StatusSeverity = InfoBarSeverity.Informational;
             }
             else
             {
                 StatusTitle = "GrxFirma está actualizado";
-                StatusMessage = $"La versión instalada ({current}) es la última publicada.";
+                StatusMessage = Localizer.Fill(
+                    "La versión instalada ({current}) es la última publicada.",
+                    ("current", current));
                 StatusSeverity = InfoBarSeverity.Success;
             }
         }
@@ -340,7 +347,7 @@ public sealed class AboutPageViewModel : ObservableObject
                     character is '.' or '-' or '+' or '_')
                 .ToArray());
         return cleaned.Length == 0
-            ? "desconocida"
+            ? Localizer.Text("desconocida")
             : cleaned;
     }
 
@@ -380,7 +387,7 @@ public sealed class AboutPageViewModel : ObservableObject
                 return VersionUnavailable;
             }
 
-            return $"Versión {value}";
+            return value;
         }
         catch
         {
@@ -390,7 +397,7 @@ public sealed class AboutPageViewModel : ObservableObject
 
     private static string ResolveReleaseNotes(string versionText)
     {
-        if (!versionText.StartsWith("Versión ", StringComparison.Ordinal))
+        if (versionText == VersionUnavailable)
         {
             return "No se pueden mostrar las novedades porque no se encontró la versión instalada.";
         }
@@ -441,7 +448,7 @@ public sealed class AboutPageViewModel : ObservableObject
 
             var content = new UTF8Encoding(false, true).GetString(bytes, 0, total);
             using var reader = new StringReader(content);
-            var heading = "## " + versionText["Versión ".Length..] + " — ";
+            var heading = "## " + versionText + " — ";
             var section = new StringBuilder();
             var inCurrentSection = false;
             string? line;

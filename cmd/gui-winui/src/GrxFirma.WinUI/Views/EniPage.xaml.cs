@@ -23,7 +23,7 @@ public sealed partial class EniPage : Page
     private readonly Button _createDocument = new(), _createFile = new();
     private bool _busy;
 
-    private static string T(string key) => SealUiCatalog.Text(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, key);
+    private static string T(string key) => SealUiCatalog.Text(Localizer.Language, key);
     private static TextBox Field(string key, string value = "", int maxLength = 128) => new()
     {
         Header = T(key), Text = value, MaxLength = maxLength, HorizontalAlignment = HorizontalAlignment.Stretch,

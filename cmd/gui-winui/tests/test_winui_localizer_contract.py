@@ -11,12 +11,14 @@ import xml.etree.ElementTree as ET
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
-UI = ROOT / "cmd/gui-winui/src/GrxFirma.WinUI"
+SOURCE_ROOT = ROOT / "cmd/gui-winui/src"
+UI = SOURCE_ROOT / "GrxFirma.WinUI"
 LOCALES = ROOT / "internal/adapters/outbound/common/localizador/locales"
 VISIBLE = {
     "Text", "Content", "Header", "PlaceholderText", "Title", "Message",
     "Description", "PrimaryButtonText", "SecondaryButtonText",
-    "CloseButtonText", "ToolTip", "Name", "HelpText", "FullDescription",
+    "CloseButtonText", "OnContent", "OffContent", "ToolTip", "Name",
+    "HelpText", "FullDescription",
 }
 VISIBLE_XAML_ATTRIBUTES = VISIBLE - {"Name", "HelpText", "FullDescription", "ToolTip"}
 VISIBLE_XAML_ATTRIBUTES |= {
@@ -33,26 +35,94 @@ GROUP_B_PAGES = {"CertificatesPage", "SettingsPage", "DiagnosticsPage",
 GROUP_B_CS = {"App.xaml.cs", "MainWindow.xaml.cs"}
 PROPER_NAMES = {"GrxFirma", "FNMT", "FACe", "DIR3", "PAdES", "CAdES",
                 "XAdES", "ASiC", "ENI", "CSV", "PKCS#11", "PKCS#12", "DNIe"}
+# Ejemplos de direcciones y patrones que el usuario puede copiar literalmente.
+VISIBLE_FORMAT_EXCEPTIONS = {
+    ("Views/SettingsPage.xaml", "PlaceholderText", "proxy.organizacion.es"),
+    ("Views/SettingsPage.xaml", "PlaceholderText",
+     "localhost\n127.0.0.1\n*.organizacion.es"),
+}
+C_SHARP_FORMAT_EXCEPTIONS = {
+    ("ViewModels/CertificatesPageViewModel.cs", "dd/MM/yyyy HH:mm"),
+    ("ViewModels/CertificatesPageViewModel.cs", "dd/MM/yyyy"),
+    ("ViewModels/FacturaePageViewModel.cs", "es-ES"),
+    ("Views/EniPage.xaml.cs", "yyyy-MM-ddTHH:mm:sszzz"),
+    ("Views/EniPage.xaml.cs", "EE01"),
+    ("Views/EniPage.xaml.cs", "TD99"),
+    ("Views/EniPage.xaml.cs", "E01"),
+    ("Services/WindowsFilePickerService.cs", "Facturae 3.2.2"),
+    ("Services/WindowsFilePickerService.cs", "CMS EnvelopedData"),
+    ("Services/WindowsFilePickerService.cs", "CMS EncryptedData"),
+    ("Services/WindowsFilePickerService.cs", "CMS AuthEnvelopedData"),
+    ("Services/WindowsFilePickerService.cs", "CMS SignedAndEnvelopedData"),
+    ("Services/WindowsStartupRegistration.cs", "--frontend=winui --start-hidden"),
+    ("Services/WindowsSecurePasswordPromptService.cs", "GrxFirma/contraseña-transitoria"),
+    ("Services/WindowsSecurePasswordPromptService.cs", "STATE"),
+    ("Services/WindowsSecurePasswordPromptService.cs", "RANGE"),
+    ("Services/WindowsSecurePasswordPromptService.cs", "ARGUMENT"),
+    ("Services/WindowsSecurePasswordPromptService.cs", "UNEXPECTED_"),
+    ("Services/WindowsHelpLauncherService.cs", "ayuda-{expression}.pdf"),
+    ("Services/SingleInstanceSignal.cs", "D:P(A;;0x001F0003;;;{expression})(A;;0x001F0003;;;SY)"),
+    ("Controls/OperationDiagnosticDialog.xaml.cs", "diagnostico-grxfirma-{expression}"),
+    ("App.xaml.cs", "{DateTimeOffset.Now:O} {error.GetType().FullName} 0x{error.HResult:X8}{Environment.NewLine}{error}{Environment.NewLine}{Environment.NewLine}"),
+}
+LANGUAGE_SELF_NAMES = {"Español", "Català", "Valencià", "Euskara", "Galego",
+                       "English", "Deutsch", "Français", "Português", "Italiano", "中文"}
+# Identificadores de protocolo, estado, operación, campo JSON y sustitución de
+# plantillas. Son valores de máquina, no etiquetas presentadas a una persona.
+MACHINE_WORDS = {
+    "about", "administracion", "admission", "artifacts", "available",
+    "avidad", "browser", "ca", "cades", "certificates", "ciudadano",
+    "count", "current", "date", "days", "de", "diagnostico", "diagnostics",
+    "disabled", "empty", "en", "eni", "environment", "es", "eu", "exit",
+    "facturae", "failure", "firma", "fisica", "fr", "gl", "hash", "help",
+    "inconclusive", "issuer", "it", "keychain", "keys", "latest", "locales",
+    "logs", "managers", "manual", "maximum", "none", "odf", "ooxml",
+    "owner", "pades", "protect", "protocol", "pt", "reason", "remaining",
+    "renewal", "representacion", "resident", "revoked", "sello", "service",
+    "settings", "shown", "sign", "signable", "store", "subject", "success",
+    "support", "system", "targets", "tls", "total", "unavailable", "unknown",
+    "usable", "va", "valid", "verify", "version", "xades", "xmldsig", "zh",
+}
+# Nombres de clases nativas Win32 y funciones importadas; nunca son texto UI.
+WIN32_NAMES = {
+    "RtlZeroMemory", "WideCharToMultiByte",
+    "ConvertStringSecurityDescriptorToSecurityDescriptorW", "CreateEventW",
+    "Shell_NotifyIconW", "LoadImageW", "CredUIPromptForCredentialsW",
+    "EnumThreadWindows", "GetWindow", "GetClassNameW",
+    "DialogBoxIndirectParamW", "CreateWindowExW", "SetWindowLongPtrW",
+    "GetWindowLongPtrW", "SendMessageW", "PostMessageW", "EndDialog",
+    "SetWindowTextW", "GetClientRect", "SetFocus", "GetWindowThreadProcessId",
+    "GetCurrentThreadId", "GetModuleHandleW", "GetStockObject",
+    "AppendMenuW", "RegisterWindowMessageW", "TaskbarCreated",
+    "STATIC", "EDIT", "BUTTON",
+}
+# Campos de certificados y valores de interoperabilidad que se comparan por su
+# valor exacto. Los títulos traducibles ya figuran en los catálogos.
+MACHINE_EXACT = {
+    "Valido", "CN=", "@firma", "XMLDSig", "F", "J", "C2", "N", "CLI",
+    "Programs", "Suite", "DesktopLauncher", "Assets",
+    "GrxFirma:DesktopLauncher", "lastSeenVersion", "checkForUpdates",
+    "lastAttempt", "WIN32_{expression}",
+}
 
 
 def static_xaml_literals(paths):
     for path in paths:
         for element in ET.parse(path).getroot().iter():
-            tag = element.tag.rsplit("}", 1)[-1]
-            if tag in {"TextBlock", "Run", "Span", "Hyperlink", "Button",
-                       "NavigationViewItem", "MenuFlyoutItem"}:
-                value = (element.text or "").strip()
-                if (value and not value.startswith("{")
-                        and re.search(r"[A-Za-zÀ-ÿ]", value)
-                        and value not in PROPER_NAMES):
-                    yield path.relative_to(UI).as_posix(), "inner text", value
+            value = (element.text or "").strip()
+            if (value and not value.startswith("{")
+                    and re.search(r"[A-Za-zÀ-ÿ]", value)
+                    and value not in PROPER_NAMES):
+                yield path.relative_to(UI).as_posix(), "inner text", value
             for raw_name, value in element.attrib.items():
                 name = raw_name.rsplit("}", 1)[-1]
                 if (name not in VISIBLE_XAML_ATTRIBUTES or value.startswith("{")
                         or not re.search(r"[A-Za-zÀ-ÿ]", value)
                         or value in PROPER_NAMES):
                     continue
-                yield path.relative_to(UI).as_posix(), name, value
+                relative = path.relative_to(UI).as_posix()
+                if (relative, name, value) not in VISIBLE_FORMAT_EXCEPTIONS:
+                    yield relative, name, value
 
 
 def untranslated_xaml(paths):
@@ -66,6 +136,8 @@ def untranslated_xaml(paths):
 
 
 def belongs_to_group_b_cs(path):
+    if not path.is_relative_to(UI):
+        return False
     relative = path.relative_to(UI)
     if relative.name in GROUP_B_CS:
         return True
@@ -76,8 +148,83 @@ def belongs_to_group_b_cs(path):
     return relative.parts[0] == "Services"
 
 
+def source_relative(path):
+    if path.is_relative_to(UI):
+        return path.relative_to(UI).as_posix()
+    return path.relative_to(SOURCE_ROOT).as_posix()
+
+
+def is_machine_literal(path, value):
+    relative = source_relative(path)
+    if path.name == "Localizer.cs":
+        return True  # Nombres de DependencyProperty y claves de catálogo.
+    if ((relative, value) in C_SHARP_FORMAT_EXCEPTIONS
+            or value in PROPER_NAMES | LANGUAGE_SELF_NAMES | MACHINE_WORDS |
+            WIN32_NAMES | MACHINE_EXACT):
+        return True
+    without_interpolation = re.sub(r"\{[^{}]*\}", "", value)
+    if (not re.search(r"[A-Za-zÀ-ÿ]", without_interpolation)
+            or re.fullmatch(r"[\s0-9xX:.+\-]*", without_interpolation)):
+        return True
+    # Rutas, dominios, formatos de fichero y destinos oficiales fijos.
+    if (value.startswith(("http://", "https://", "mailto:", "/", "."))
+            or "\\" in value
+            or re.fullmatch(r"(?:[a-z0-9-]+\.)+[a-z]{2,}", value)
+            or re.fullmatch(r"[\w.-]+\.(?:dll|exe|json|md|txt|ico|pdf|pem|crt|cer|p12|pfx|log)", value, re.I)):
+        return True
+    # Códigos de operación, claves de datos, evidencias, formatos y recursos UI.
+    if (re.fullmatch(r"[A-Z][A-Z0-9_]*_[A-Z0-9_]+", value)
+            or re.fullmatch(r"(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])", value)
+            or re.fullmatch(r"[a-z0-9]+(?:[-_][a-z0-9]+)+", value)
+            or value.startswith(("eni.", "exp.", "winui.", "phase:"))
+            or value.endswith(("Brush", "Style"))):
+        return True
+    return False
+
+
 def csharp_string_literals(source):
-    """Walk C# tokens so quoted characters and comments cannot join two strings."""
+    """Scan normal, verbatim, interpolated and raw C# strings without comments."""
+
+    def skip_interpolation(index):
+        depth = 1
+        while index < len(source) and depth:
+            if source.startswith("//", index):
+                end = source.find("\n", index)
+                index = len(source) if end < 0 else end
+            elif source.startswith("/*", index):
+                end = source.find("*/", index + 2)
+                index = len(source) if end < 0 else end + 2
+            elif source[index] == "'":
+                index += 1
+                while index < len(source):
+                    if source[index] == "\\":
+                        index += 2
+                    elif source[index] == "'":
+                        index += 1
+                        break
+                    else:
+                        index += 1
+            elif source[index] == '"':
+                # Una cadena dentro de la expresión no cierra la interpolada.
+                index += 1
+                while index < len(source):
+                    if source[index] == "\\":
+                        index += 2
+                    elif source[index] == '"':
+                        index += 1
+                        break
+                    else:
+                        index += 1
+            elif source[index] == "{":
+                depth += 1
+                index += 1
+            elif source[index] == "}":
+                depth -= 1
+                index += 1
+            else:
+                index += 1
+        return index
+
     index = 0
     line = 1
     while index < len(source):
@@ -103,16 +250,37 @@ def csharp_string_literals(source):
                     line += source[index] == "\n"
                     index += 1
             continue
-        prefix = re.match(r'(?:\$@|@\$|\$|@)?"', source[index:])
+        prefix = re.match(r'(?:\$@|@\$|\$+|@)?(?:"{3,}|")', source[index:])
         if prefix:
             start_line = line
-            verbatim = "@" in prefix.group()
-            index += len(prefix.group())
+            token = prefix.group()
+            verbatim = "@" in token
+            interpolated = "$" in token
+            quotes = len(token) - len(token.rstrip('"'))
+            index += len(token)
+            if quotes >= 3:
+                ending = '"' * quotes
+                end = source.find(ending, index)
+                end = len(source) if end < 0 else end
+                value = source[index:end]
+                next_index = min(len(source), end + quotes)
+                line += source.count("\n", index, next_index)
+                index = next_index
+                yield start_line, value
+                continue
             value = []
             while index < len(source):
                 if verbatim and source.startswith('""', index):
                     value.append('""')
                     index += 2
+                elif interpolated and source.startswith("{{", index):
+                    value.append("{{")
+                    index += 2
+                elif interpolated and source[index] == "{":
+                    end = skip_interpolation(index + 1)
+                    value.append("{expression}")
+                    line += source.count("\n", index, end)
+                    index = end
                 elif source[index] == '"':
                     index += 1
                     break
@@ -136,22 +304,14 @@ def untranslated_csharp(paths):
     catalogs = [json.loads(path.read_text(encoding="utf-8"))
                 for path in LOCALES.glob("*.json")]
     missing = []
-    language_names = {"Català", "Valencià", "Français", "Português"}
     for path in paths:
         source = path.read_text(encoding="utf-8")
         for line, value in csharp_string_literals(source):
-            without_interpolation = re.sub(r"\{[^{}]*\}", "", value)
             key = value if value in spanish else value_to_key.get(value)
             if ((value in known and all(catalog.get(key) for catalog in catalogs))
-                    or value in PROPER_NAMES or value in language_names
-                    or not re.search(r"[A-Za-zÀ-ÿ]", without_interpolation)
-                    or re.fullmatch(r"[\s0-9xX:.+\-]*", without_interpolation)
-                    or not (re.search(r"[À-ÿ¿¡]", without_interpolation)
-                            or " " in without_interpolation)
-                    or value.startswith(("http://", "https://", "/"))
-                    or "/" in value and " " not in value):
+                    or is_machine_literal(path, value)):
                 continue
-            missing.append((path.relative_to(UI).as_posix(), line, value))
+            missing.append((source_relative(path), line, value))
     return missing
 
 
@@ -160,6 +320,18 @@ class WinUiLocalizerContractTests(unittest.TestCase):
         source = """// \"comentario\"\nvar quote = '\"';\nvar label = \"Texto visible\";"""
         self.assertEqual(list(csharp_string_literals(source)),
                          [(3, "Texto visible")])
+
+    def test_csharp_scanner_handles_interpolation_and_raw_strings(self):
+        source = ('var a = ""; var b = $"Caducado el {FormatDate(x, '
+                  '"dd/MM/yyyy")}"; var c = "Texto"; var d = """raw""";')
+        self.assertEqual(list(csharp_string_literals(source)),
+                         [(1, ""), (1, "Caducado el {expression}"),
+                          (1, "Texto"), (1, "raw")])
+
+    def test_unclassified_one_word_ui_label_is_not_exempt(self):
+        self.assertFalse(is_machine_literal(UI / "Views/SettingsPage.xaml.cs", "PendienteNuevo"))
+        self.assertTrue(is_machine_literal(UI / "ViewModels/DiagnosticsPageViewModel.cs",
+                                           "certificate_inventory"))
 
     def test_group_b_visible_xaml_literals_are_in_the_shared_catalog(self):
         paths = (path for path in UI.rglob("*.xaml") if path.name in GROUP_B_XAML)
@@ -180,9 +352,10 @@ class WinUiLocalizerContractTests(unittest.TestCase):
         if missing:
             self.fail(f"{len(missing)} pending group A literals: {missing[:20]}")
 
-    @unittest.expectedFailure  # Archivos C# fuera del grupo B pertenecen a la integración pendiente.
+    @unittest.expectedFailure  # Grupo A, incluido WinUI.Core, se integra desde la otra rama.
     def test_pending_other_csharp_human_text_is_in_the_shared_catalog(self):
-        paths = (path for path in UI.rglob("*.cs") if not belongs_to_group_b_cs(path))
+        paths = (path for path in SOURCE_ROOT.rglob("*.cs")
+                 if not belongs_to_group_b_cs(path))
         missing = untranslated_csharp(paths)
         if missing:
             self.fail(f"{len(missing)} pending C# text candidates: {missing[:20]}")
@@ -223,21 +396,59 @@ class WinUiLocalizerContractTests(unittest.TestCase):
         self.assertIn("RootNavigation.FooterMenuItems", window)
         self.assertIn("ContentFrame.Navigate(pageType)", window)
         self.assertIn("_app.RefreshTrayLanguage()", window)
+        self.assertIn("RefreshProgrammaticLanguage()", window)
         self.assertIn("app.ApplyLanguagePreference(ViewModel.SelectedLanguage.Value)", settings)
         self.assertIn("Localizer.Text(key)", catalog)
         self.assertNotIn("se muestra actualmente en español", (UI / "Views/SettingsPage.xaml").read_text(encoding="utf-8"))
 
+    def test_custom_winui_labels_use_selected_language(self):
+        paths = [UI / "MainWindow.xaml.cs", UI / "App.xaml.cs"]
+        paths += [UI / "Views" / f"{name}.xaml.cs" for name in
+                  ("EniPage", "FacturaePage", "AboutPage", "DiagnosticsPage",
+                   "SettingsPage", "CertificatesPage")]
+        paths += [UI / "Services" / f"{name}.cs" for name in
+                  ("WindowsTrayIcon", "WindowsHelpLauncherService",
+                   "WindowsFilePickerService")]
+        for path in paths:
+            with self.subTest(file=path.name):
+                self.assertNotIn("CurrentUICulture.TwoLetterISOLanguageName",
+                                 path.read_text(encoding="utf-8"))
+
+    def test_release_notes_shown_in_winui_have_catalog_translations(self):
+        window = (UI / "MainWindow.xaml.cs").read_text(encoding="utf-8")
+        self.assertIn("line = Localizer.Text(line);", window)
+        notes = (ROOT / "docs/NOVEDADES.md").read_text(encoding="utf-8")
+        visible = set()
+        for raw in notes.splitlines():
+            if raw.startswith("- "):
+                visible.add(raw[2:].replace("**", "").replace("`", ""))
+            elif raw.startswith("## ") and not re.match(r"## [0-9]", raw):
+                visible.add(raw[3:])
+        for path in sorted(LOCALES.glob("*.json")):
+            catalog = json.loads(path.read_text(encoding="utf-8"))
+            with self.subTest(locale=path.stem):
+                self.assertFalse(visible - catalog.keys(),
+                                 sorted(visible - catalog.keys()))
+
     def test_explicit_localizer_keys_exist_in_every_catalog(self):
         used = set()
+        templates = set()
         for path in UI.rglob("*.cs"):
             if path.name == "Localizer.cs":
                 continue
-            used.update(re.findall(r'Localizer\.Text\("([^"\n]+)"\)', path.read_text(encoding="utf-8")))
+            source = path.read_text(encoding="utf-8")
+            used.update(re.findall(r'Localizer\.(?:Text|Fill)\(\s*"([^"\n]+)"', source))
+            templates.update(re.findall(r'Localizer\.Fill\(\s*"([^"\n]+)"', source))
         self.assertTrue(used)
         for path in sorted(LOCALES.glob("*.json")):
             catalog = json.loads(path.read_text(encoding="utf-8"))
             with self.subTest(locale=path.stem):
                 self.assertFalse(used - catalog.keys(), sorted(used - catalog.keys()))
+                for key in templates:
+                    self.assertEqual(
+                        set(re.findall(r"\{[a-z]+\}", key)),
+                        set(re.findall(r"\{[a-z]+\}", catalog[key])),
+                        f"{path.stem}: placeholders changed in {key!r}")
 
 
 if __name__ == "__main__":

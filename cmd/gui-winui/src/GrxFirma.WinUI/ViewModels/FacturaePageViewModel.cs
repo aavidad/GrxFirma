@@ -86,13 +86,13 @@ public sealed class FacturaePageViewModel
     public string StatusTitle
     {
         get => _statusTitle;
-        private set => SetProperty(ref _statusTitle, value);
+        private set => SetProperty(ref _statusTitle, Localizer.Text(value));
     }
 
     public string StatusMessage
     {
         get => _statusMessage;
-        private set => SetProperty(ref _statusMessage, value);
+        private set => SetProperty(ref _statusMessage, Localizer.Text(value));
     }
 
     public bool IsBusy
@@ -436,8 +436,9 @@ public sealed class FacturaePageViewModel
             }
 
             StatusTitle = "XML Facturae 3.2.2 creado";
-            StatusMessage =
-                $"Total {result.Data.Total} €. Abra «Firmar», seleccione el XML y el formato FacturaE; después valídelo en FACe.";
+            StatusMessage = Localizer.Fill(
+                "Total {total} €. Abra «Firmar», seleccione el XML y el formato FacturaE; después valídelo en FACe.",
+                ("total", result.Data.Total.ToString(CultureInfo.CurrentCulture)));
             StatusSeverity = InfoBarSeverity.Success;
         }
         catch (FacturaeValidationException exception)

@@ -85,7 +85,8 @@ public sealed record CertificateListItem
         var suitable = certificate.CanSign && !expired &&
             !certificate.NeedsUnlock && !engineRejected;
         var reason = expired
-            ? $"Caducado el {FormatDate(FirstVisible(certificate.ValidTo, certificate.NotAfter, string.Empty), "dd/MM/yyyy")}"
+            ? Localizer.Fill("Caducado el {date}",
+                ("date", FormatDate(FirstVisible(certificate.ValidTo, certificate.NotAfter, string.Empty), "dd/MM/yyyy")))
             : certificate.NeedsUnlock
                 ? "Requiere autorización de la tarjeta"
                 : engineRejected
@@ -94,7 +95,7 @@ public sealed record CertificateListItem
                         ? "No dispone de clave utilizable para firmar"
                         : string.Empty;
         var summary = !suitable
-            ? $"No válido para firmar. {reason}"
+            ? Localizer.Fill("No válido para firmar. {reason}", ("reason", Localizer.Text(reason)))
             : certificate.DaysUntilExpiration <= FnmtRenewalWindowDays
                 ? "Válido para firmar, pero caduca pronto."
                 : "Válido y apto para firmar.";
@@ -125,7 +126,8 @@ public sealed record CertificateListItem
         {
             CanRenewAtFnmt = renewable,
             RenewalMessage = renewable
-                ? $"Caduca en {certificate.DaysUntilExpiration} día(s). La FNMT permite renovarlo durante los 60 días previos a la caducidad, si no está revocado: instale su Configurador, solicite la renovación identificándose con este certificado y descargue el nuevo con el código que le enviarán por correo. Solo se puede renovar así una vez; después hay que volver a acreditar la identidad."
+                ? Localizer.Fill("Caduca en {days} día(s). La FNMT permite renovarlo durante los 60 días previos a la caducidad, si no está revocado: instale su Configurador, solicite la renovación identificándose con este certificado y descargue el nuevo con el código que le enviarán por correo. Solo se puede renovar así una vez; después hay que volver a acreditar la identidad.",
+                    ("days", certificate.DaysUntilExpiration.ToString(System.Globalization.CultureInfo.CurrentCulture)))
                 : string.Empty,
             SuitabilitySummary = summary,
             IsSuitable = suitable && !certificate.NeedsUnlock,
@@ -139,7 +141,7 @@ public sealed record CertificateListItem
                 : certificate.DaysUntilExpiration is >= 0 and <= FnmtRenewalWindowDays
                     ? "Caduca pronto"
                     : "Válido",
-            ExpirationDisplay = $"Vence: {expirationDate}",
+            ExpirationDisplay = Localizer.Fill("Vence: {date}", ("date", expirationDate)),
             ExpirationDateDisplay = expirationDate,
             DaysUntilExpiration = certificate.DaysUntilExpiration,
             IsExpired = expired,
@@ -148,7 +150,7 @@ public sealed record CertificateListItem
             ShortIssuerDisplay = ShortIssuer(issuer),
             Id = certificate.Id,
             DisplayName = displayName,
-            IssuerDisplay = $"Emisor: {issuer}",
+            IssuerDisplay = Localizer.Fill("Emisor: {issuer}", ("issuer", issuer)),
             StatusDisplay = status,
             DefaultDisplay = string.Empty,
             SearchText = string.Join(
@@ -409,8 +411,10 @@ public sealed class CertificatesPageViewModel
         private set => SetProperty(ref _visibleCertificates, value);
     }
 
-    public string VisibleCountText =>
-        $"Mostrando {VisibleCertificates.Count} de {_allCertificates.Count}";
+    public string VisibleCountText => Localizer.Fill(
+        "Mostrando {shown} de {total}",
+        ("shown", VisibleCertificates.Count.ToString(System.Globalization.CultureInfo.CurrentCulture)),
+        ("total", _allCertificates.Count.ToString(System.Globalization.CultureInfo.CurrentCulture)));
 
     public CertificateListItem? SelectedCertificate
     {
@@ -520,8 +524,11 @@ public sealed class CertificatesPageViewModel
                     ? "Este certificado"
                     : "Su certificado predeterminado";
                 return certificate.ExpirationDateDisplay == "Fecha desconocida"
-                    ? $"{subject} ha caducado y no puede usarse para firmar."
-                    : $"{subject} caducó el {certificate.ExpirationDateDisplay} y no puede usarse para firmar.";
+                    ? Localizer.Fill("{subject} ha caducado y no puede usarse para firmar.",
+                        ("subject", Localizer.Text(subject)))
+                    : Localizer.Fill("{subject} caducó el {date} y no puede usarse para firmar.",
+                        ("subject", Localizer.Text(subject)),
+                        ("date", certificate.ExpirationDateDisplay));
             }
             if (!certificate.IsExpiringSoon)
             {
@@ -535,7 +542,11 @@ public sealed class CertificatesPageViewModel
             var owner = isSelected
                 ? "Su certificado"
                 : "Su certificado predeterminado";
-            return $"{owner} caduca el {certificate.ExpirationDateDisplay} (quedan {remaining} días). {renewal}";
+            return Localizer.Fill("{owner} caduca el {date} (quedan {remaining} días). {renewal}",
+                ("owner", Localizer.Text(owner)),
+                ("date", certificate.ExpirationDateDisplay),
+                ("remaining", remaining),
+                ("renewal", Localizer.Text(renewal)));
         }
     }
 
@@ -562,7 +573,7 @@ public sealed class CertificatesPageViewModel
         get => _selectedCredentialDisplayName;
         private set => SetProperty(
             ref _selectedCredentialDisplayName,
-            value);
+            Localizer.Text(value));
     }
 
     public string FilterText
@@ -580,7 +591,7 @@ public sealed class CertificatesPageViewModel
     public string CatalogMessage
     {
         get => _catalogMessage;
-        private set => SetProperty(ref _catalogMessage, value);
+        private set => SetProperty(ref _catalogMessage, Localizer.Text(value));
     }
 
     public bool IsBusy
@@ -658,13 +669,13 @@ public sealed class CertificatesPageViewModel
     public string ActionStatusTitle
     {
         get => _actionStatusTitle;
-        private set => SetProperty(ref _actionStatusTitle, value);
+        private set => SetProperty(ref _actionStatusTitle, Localizer.Text(value));
     }
 
     public string ActionStatusMessage
     {
         get => _actionStatusMessage;
-        private set => SetProperty(ref _actionStatusMessage, value);
+        private set => SetProperty(ref _actionStatusMessage, Localizer.Text(value));
     }
 
     public InfoBarSeverity ActionStatusSeverity
@@ -808,7 +819,8 @@ public sealed class CertificatesPageViewModel
                 ? "El almacén se consultó correctamente, pero no contiene certificados disponibles."
                 : catalog.Length == 1
                     ? "Se ha cargado 1 certificado del almacén real."
-                    : $"Se han cargado {catalog.Length} certificados del almacén real.";
+                    : Localizer.Fill("Se han cargado {count} certificados del almacén real.",
+                        ("count", catalog.Length.ToString(System.Globalization.CultureInfo.CurrentCulture)));
 
             var managerDiagnostic =
                 await RefreshCertificateManagerAsync(
@@ -1034,7 +1046,8 @@ public sealed class CertificatesPageViewModel
             {
                 SetActionStatus(
                     "Importando credencial",
-                    $"Instalando la credencial en {option.Label}.",
+                    Localizer.Fill("Instalando la credencial en {store}.",
+                        ("store", Localizer.Text(option.Label))),
                     InfoBarSeverity.Informational);
                 var result =
                     await operations.ImportCertificateToStoreAsync(
@@ -1075,7 +1088,8 @@ public sealed class CertificatesPageViewModel
                 }
                 SetActionStatus(
                     "Credencial importada",
-                    $"El almacén {option.Label} confirmó la importación.",
+                    Localizer.Fill("El almacén {store} confirmó la importación.",
+                        ("store", Localizer.Text(option.Label))),
                     InfoBarSeverity.Success);
             }
 
@@ -1405,7 +1419,8 @@ public sealed class CertificatesPageViewModel
             ApplyDefaultCertificate(certificate.Id);
             SetActionStatus(
                 "Certificado predeterminado guardado",
-                $"{certificate.DisplayName} se usará primero cuando la aplicación solicite un certificado.",
+                Localizer.Fill("{certificate} se usará primero cuando la aplicación solicite un certificado.",
+                    ("certificate", certificate.DisplayName)),
                 InfoBarSeverity.Success);
             return null;
         }
@@ -1809,11 +1824,13 @@ public sealed class CertificatesPageViewModel
                     !string.IsNullOrWhiteSpace(target.Id))
                 .Select(target => new CertificateImportOption(
                     target.Recommended
-                        ? $"{target.Label} (recomendado)"
+                        ? Localizer.Fill("{store} (recomendado)",
+                            ("store", Localizer.Text(target.Label)))
                         : target.Label,
                     string.IsNullOrWhiteSpace(target.Browser)
                         ? "Importación persistente en el almacén seleccionado."
-                        : $"Importación persistente para {target.Browser}.",
+                        : Localizer.Fill("Importación persistente para {browser}.",
+                            ("browser", target.Browser)),
                     IsTemporary: false,
                     TargetId: target.Id)));
         }
@@ -2038,7 +2055,8 @@ public sealed class CertificatesPageViewModel
         ApplyDefaultCertificate(_defaultCertificateId);
         CatalogMessage = catalog.Length == 1
             ? "Se ha cargado 1 certificado del almacén real."
-            : $"Se han cargado {catalog.Length} certificados del almacén real.";
+            : Localizer.Fill("Se han cargado {count} certificados del almacén real.",
+                ("count", catalog.Length.ToString(System.Globalization.CultureInfo.CurrentCulture)));
         return null;
     }
 

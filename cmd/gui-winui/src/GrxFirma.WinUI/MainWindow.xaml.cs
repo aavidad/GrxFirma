@@ -33,12 +33,7 @@ public sealed partial class MainWindow : Window
         _app = (App)Application.Current;
         ViewModel = new MainWindowViewModel();
         InitializeComponent();
-        EniNavigationItem.Content = SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "paridad.lote3.eni.nav");
-        var language = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
-        UpdateNotice.Title = SealUiCatalog.Text(language, "Nueva versión disponible");
-        DownloadUpdateButton.Content = SealUiCatalog.Text(language, "Descargar e instalar");
-        ReleaseNotesButton.Content = SealUiCatalog.Text(language, "Ver novedades");
-        DismissUpdateButton.Content = SealUiCatalog.Text(language, "Ahora no");
+        RefreshProgrammaticLanguage();
         Localizer.Attach(AppRoot);
         ConfigureInitialWindow();
         SetFacturaeNavigationVisibility(
@@ -63,7 +58,7 @@ public sealed partial class MainWindow : Window
         RootNavigation.MenuItems.Clear();
         RootNavigation.FooterMenuItems.Clear();
         Title = SealUiCatalog.Text(
-            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+            Localizer.Language,
             "portal.seal.title");
         if (ContentFrame.Content is not SignPage page)
             return;
@@ -116,7 +111,7 @@ public sealed partial class MainWindow : Window
     {
         RootNavigation.SelectedItem = HelpNavigationItem;
         ViewModel.ActivePageTitle = SealUiCatalog.Text(
-            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+            Localizer.Language,
             "Ayuda");
         if (ContentFrame.CurrentSourcePageType != typeof(HelpPage))
         {
@@ -133,7 +128,7 @@ public sealed partial class MainWindow : Window
     {
         RootNavigation.SelectedItem = AboutNavigationItem;
         ViewModel.ActivePageTitle = SealUiCatalog.Text(
-            System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName,
+            Localizer.Language,
             "Acerca de GrxFirma");
         if (ContentFrame.CurrentSourcePageType != typeof(AboutPage))
         {
@@ -144,7 +139,7 @@ public sealed partial class MainWindow : Window
     internal async Task<bool> ShowReleaseNotesAsync(string notes, string version,
         bool acknowledge)
     {
-        var language = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+        var language = Localizer.Language;
         string Label(string key) => SealUiCatalog.Text(language, key);
         var content = new StackPanel { Spacing = 10, Padding = new Thickness(8) };
         foreach (var rawLine in notes.Split('\n'))
@@ -153,10 +148,12 @@ public sealed partial class MainWindow : Window
             if (line.Length == 0) continue;
             var heading = line.StartsWith("## ", StringComparison.Ordinal);
             if (heading) line = line[3..];
-            if (line.StartsWith("- ", StringComparison.Ordinal))
-                line = "• " + line[2..];
+            var bullet = line.StartsWith("- ", StringComparison.Ordinal);
+            if (bullet) line = line[2..];
             // Solo texto: no se crean controles HTML ni Hipervínculos.
             line = line.Replace("**", string.Empty).Replace("`", string.Empty);
+            line = Localizer.Text(line);
+            if (bullet) line = "• " + line;
             content.Children.Add(new TextBlock
             {
                 Text = line,
@@ -221,6 +218,7 @@ public sealed partial class MainWindow : Window
     internal void ApplyLanguagePreference(string? language)
     {
         if (!Localizer.SetLanguage(language)) return;
+        RefreshProgrammaticLanguage();
         // NavigationView almacena sus entradas aparte del árbol visual.
         foreach (var item in RootNavigation.MenuItems.OfType<DependencyObject>())
             Localizer.Apply(item);
@@ -232,6 +230,16 @@ public sealed partial class MainWindow : Window
             ViewModel.ActivePageTitle = selected.Content?.ToString() ?? string.Empty;
         var pageType = ContentFrame.CurrentSourcePageType;
         if (pageType is not null) ContentFrame.Navigate(pageType);
+    }
+
+    private void RefreshProgrammaticLanguage()
+    {
+        var language = Localizer.Language;
+        EniNavigationItem.Content = SealUiCatalog.Text(language, "paridad.lote3.eni.nav");
+        UpdateNotice.Title = SealUiCatalog.Text(language, "Nueva versión disponible");
+        DownloadUpdateButton.Content = SealUiCatalog.Text(language, "Descargar e instalar");
+        ReleaseNotesButton.Content = SealUiCatalog.Text(language, "Ver novedades");
+        DismissUpdateButton.Content = SealUiCatalog.Text(language, "Ahora no");
     }
 
     private void OnNavigationItemInvoked(
@@ -251,7 +259,7 @@ public sealed partial class MainWindow : Window
             "protect" => Localizer.Text("Proteger"),
             "certificates" => Localizer.Text("Certificados"),
             "facturae" => Localizer.Text("Facturae y FACe"),
-            "eni" => SealUiCatalog.Text(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "paridad.lote3.eni.nav"),
+            "eni" => SealUiCatalog.Text(Localizer.Language, "paridad.lote3.eni.nav"),
             "settings" => Localizer.Text("Configuración"),
             "diagnostics" => Localizer.Text("Diagnóstico"),
             "help" => Localizer.Text("Ayuda"),
@@ -379,7 +387,7 @@ public sealed partial class MainWindow : Window
                 return;
             _updateVersion = release.Version;
             _updateReleaseUrl = release.Url;
-            var language = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+            var language = Localizer.Language;
             var message = SealUiCatalog.Text(language,
                 "Hay una versión nueva de GrxFirma (%1). Tienes la %2.")
                 .Replace("%1", release.Version).Replace("%2", current);
