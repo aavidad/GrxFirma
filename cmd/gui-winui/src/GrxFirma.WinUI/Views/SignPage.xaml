@@ -471,9 +471,15 @@
                         </Border>
 
                         <Expander
+                            x:Name="AdvancedSignExpander"
                             AutomationProperties.Name="Opciones avanzadas de firma"
-                            Header="Opciones avanzadas"
                             TabIndex="19">
+                            <Expander.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Opciones avanzadas" />
+                                    <TextBlock x:Name="AdvancedSignErrorCount" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" Visibility="Collapsed" />
+                                </StackPanel>
+                            </Expander.Header>
                             <StackPanel Padding="0,12,0,0" Spacing="12">
                                 <ComboBox
                                     AutomationProperties.Name="Perfil de firma"
@@ -524,19 +530,23 @@
                                             Text="{x:Bind ViewModel.VisibleSealStyleDescription, Mode=OneWay}"
                                             TextWrapping="Wrap" />
                                         <StackPanel
-                                            Orientation="Horizontal"
+                                            Orientation="Vertical"
                                             Spacing="12"
                                             Visibility="{x:Bind ViewModel.IsVisibleSealCustomImageStyle, Mode=OneWay}">
-                                            <Button
-                                                AutomationProperties.Name="Elegir imagen del sello"
-                                                Click="OnPickVisibleSealImageClick"
-                                                Content="Elegir imagen…"
-                                                MinHeight="40"
-                                                TabIndex="23" />
-                                            <TextBlock
-                                                VerticalAlignment="Center"
-                                                Text="{x:Bind ViewModel.VisibleSealImageSummary, Mode=OneWay}"
-                                                TextWrapping="Wrap" />
+                                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                                <Button
+                                                    x:Name="VisibleSealImageButton"
+                                                    AutomationProperties.Name="Elegir imagen del sello"
+                                                    Click="OnPickVisibleSealImageClick"
+                                                    Content="Elegir imagen…"
+                                                    MinHeight="40"
+                                                    TabIndex="23" />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    Text="{x:Bind ViewModel.VisibleSealImageSummary, Mode=OneWay}"
+                                                    TextWrapping="Wrap" />
+                                            </StackPanel>
+                                            <TextBlock x:Name="VisibleSealImageError" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
                                         </StackPanel>
 
                                         <Grid
@@ -580,6 +590,7 @@
                                             IsChecked="{x:Bind ViewModel.VisibleSealQrEnabled, Mode=TwoWay}"
                                             TabIndex="26" />
                                         <TextBox
+                                            x:Name="VisibleSealQrUrlTextBox"
                                             AutomationProperties.HelpText="Dirección HTTPS completa que abrirá el QR, por ejemplo la página de verificación de su sede electrónica."
                                             AutomationProperties.Name="Dirección de verificación del QR"
                                             Header="Dirección de verificación (HTTPS)"
@@ -590,24 +601,28 @@
                                             PlaceholderText="https://sede.ejemplo.es/verificar"
                                             TabIndex="27"
                                             Text="{x:Bind ViewModel.VisibleSealQrUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock x:Name="VisibleSealQrError" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
 
                                         <CheckBox TabIndex="28" Content="{x:Bind ViewModel.VisibleSealCsvLabel, Mode=OneWay}"
                                                   AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvLabel, Mode=OneWay}"
                                                   IsChecked="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=TwoWay}" />
                                         <TextBlock Text="{x:Bind ViewModel.VisibleSealCsvNotice, Mode=OneWay}"
                                                    TextWrapping="Wrap" Visibility="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=OneWay}" />
-                                        <TextBox TabIndex="29" Header="{x:Bind ViewModel.VisibleSealCsvCodeLabel, Mode=OneWay}"
+                                        <TextBox x:Name="VisibleSealCsvCodeTextBox" TabIndex="29" Header="{x:Bind ViewModel.VisibleSealCsvCodeLabel, Mode=OneWay}"
                                                  AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvCodeLabel, Mode=OneWay}"
                                                  MaxLength="128" Visibility="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=OneWay}"
                                                  Text="{x:Bind ViewModel.VisibleSealCsvCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        <TextBox TabIndex="30" Header="{x:Bind ViewModel.VisibleSealCsvUrlLabel, Mode=OneWay}"
+                                        <TextBlock x:Name="VisibleSealCsvCodeError" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
+                                        <TextBox x:Name="VisibleSealCsvUrlTextBox" TabIndex="30" Header="{x:Bind ViewModel.VisibleSealCsvUrlLabel, Mode=OneWay}"
                                                  AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvUrlLabel, Mode=OneWay}"
                                                  MaxLength="2048" Visibility="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=OneWay}"
                                                  Text="{x:Bind ViewModel.VisibleSealCsvUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        <TextBox TabIndex="31" Header="{x:Bind ViewModel.VisibleSealCsvTextLabel, Mode=OneWay}"
+                                        <TextBlock x:Name="VisibleSealCsvUrlError" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
+                                        <TextBox x:Name="VisibleSealCsvTextTextBox" TabIndex="31" Header="{x:Bind ViewModel.VisibleSealCsvTextLabel, Mode=OneWay}"
                                                  AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvTextLabel, Mode=OneWay}"
                                                  MaxLength="512" Visibility="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=OneWay}"
                                                  Text="{x:Bind ViewModel.VisibleSealCsvText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock x:Name="VisibleSealCsvTextError" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
                                         <CheckBox TabIndex="32" Content="{x:Bind ViewModel.VisibleSealCsvQrLabel, Mode=OneWay}"
                                                   AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvQrLabel, Mode=OneWay}"
                                                   Visibility="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=OneWay}"
@@ -631,8 +646,10 @@
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition x:Name="VisibleSealPreviewRow" Height="Auto" />
+                                                <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
                                             <TextBox
+                                                x:Name="VisibleSealPagesTextBox"
                                                 AutomationProperties.HelpText="Use una página, una lista o un rango; por ejemplo 1, 1,3-5 o all."
                                                 AutomationProperties.Name="Páginas del sello visible"
                                                 Header="Páginas concretas"
@@ -641,7 +658,8 @@
                                                 MaxLength="128"
                                                 PlaceholderText="1, 1,3-5 o all"
                                                 TabIndex="34"
-                                                Text="{x:Bind ViewModel.VisibleSealPages, Mode=TwoWay}" />
+                                                Text="{x:Bind ViewModel.VisibleSealPages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock x:Name="VisibleSealPagesError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
                                             <Button MinHeight="40"
                                                 x:Name="VisibleSealPreviewButton"
                                                 Grid.Row="1"

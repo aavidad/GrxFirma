@@ -136,17 +136,104 @@ Window {
     }
 
     // Un mensaje por cada problema de la leyenda CSV, para saber qué corregir.
-    function csvLegendError() {
+    function csvLegendError(field) {
         const code = signCSVCode.trim()
         const url = normalizedCsvUrl(signCSVUrl)
-        if (code === "") return "csv.error.code_missing"
-        if (code.length > 128 || /[\r\n\t]/.test(code)) return "csv.error.code_invalid"
-        if (url === "") return "csv.error.url_missing"
-        if (url.length > 2048 || / /.test(url) || !/^https:\/\//i.test(url) ||
-                !validQrUrl(url.replace("{csv}", encodeURIComponent(code))))
-            return "csv.error.url_invalid"
-        if (signCSVText.length > 512 || /[\r\n\t]/.test(signCSVText)) return "csv.error.text_invalid"
+        if (!field || field === "csvCode") {
+            if (code === "") return "csv.error.code_missing"
+            if (code.length > 128 || /[\r\n\t]/.test(code)) return "csv.error.code_invalid"
+        }
+        if (!field || field === "csvUrl") {
+            if (url === "") return "csv.error.url_missing"
+            if (url.length > 2048 || / /.test(url) || !/^https:\/\//i.test(url) ||
+                    !validQrUrl(url.replace("{csv}", encodeURIComponent(code))))
+                return "csv.error.url_invalid"
+        }
+        if ((!field || field === "csvText") &&
+                (signCSVText.length > 512 || /[\r\n\t]/.test(signCSVText)))
+            return "csv.error.text_invalid"
         return ""
+    }
+
+    property var signFieldErrors: ({})
+    property string firstSignFieldError: ""
+    onSignVisibleSealChanged: { if (firstSignFieldError) validateSignFields() }
+    onSignQREnabledChanged: { if (signFieldError("qr")) validateSignField("qr") }
+    onSignCSVEnabledChanged: { if (!signCSVEnabled) { validateSignField("csvCode"); validateSignField("csvUrl"); validateSignField("csvText") } }
+    onSignSealImagePathChanged: { if (signFieldError("image")) validateSignField("image") }
+    onSealStyleChanged: { if (signFieldError("image")) validateSignField("image") }
+    property var settingsFieldErrors: ({})
+    onTsaEnabledChanged: { if (settingsFieldError("tsa")) validateSettingsField("tsa") }
+    onProxyEnabledChanged: { if (settingsFieldError("proxyHost") || settingsFieldError("proxyPort")) { validateSettingsField("proxyHost"); validateSettingsField("proxyPort") } }
+    onProxyTypeChanged: { if (settingsFieldError("proxyHost") || settingsFieldError("proxyPort")) { validateSettingsField("proxyHost"); validateSettingsField("proxyPort") } }
+
+    function settingsFieldError(field) { return settingsFieldErrors[field] || "" }
+
+    function validateSettingsField(field) {
+        const errors = Object.assign({}, settingsFieldErrors)
+        let key = ""
+        if (field === "tsa" && tsaEnabled && !validTsaUrl(tsaUrl))
+            key = "winui.parity.tsa.invalid"
+        if (proxyEnabled && proxyType === "manual") {
+            if (field === "proxyHost" && (!proxyHost.trim() || proxyHost.trim().length > 512 || /[\s\/@\\]/.test(proxyHost.trim()) || proxyHost.indexOf("://") >= 0))
+                key = "validacion.proxy.host"
+            if (field === "proxyPort" && (!Number.isInteger(proxyPort) || proxyPort < 1 || proxyPort > 65535))
+                key = "validacion.proxy.puerto"
+        }
+        if (key) errors[field] = key
+        else delete errors[field]
+        settingsFieldErrors = errors
+        return key === ""
+    }
+
+    function signFieldError(field) {
+        return signFieldErrors[field] || ""
+    }
+
+    function validateSignField(field) {
+        const errors = Object.assign({}, signFieldErrors)
+        let key = ""
+        if (signVisibleSeal && supportsVisibleSeal()) {
+            if (field === "qr" && signQREnabled && normalizedQrUrl(signQRContent) === "")
+                key = "sign.seal.qr_https_error"
+            else if (field === "image" && sealStyle === "image" && localPathFromUrl(signSealImagePath) === "")
+                key = "validacion.sello.imagen"
+            else if (field === "pages" && !signSealAllPages && !parsePageSelection(signSealPages).ok)
+                key = "validacion.sello.paginas"
+            else if (signCSVEnabled && (field === "csvCode" || field === "csvUrl" || field === "csvText")) {
+                key = csvLegendError(field)
+            }
+        }
+        if (key) errors[field] = key
+        else {
+            delete errors[field]
+            if (field === "pages") signSealPagesError = ""
+        }
+        signFieldErrors = errors
+        firstSignFieldError = Object.keys(errors)[0] || ""
+        return key === ""
+    }
+
+    function validateSignFields() {
+        const fields = ["image", "qr", "csvCode", "csvUrl", "csvText", "pages"]
+        for (let i = 0; i < fields.length; i++) validateSignField(fields[i])
+        return firstSignFieldError === ""
+    }
+
+    function focusSignField(field) {
+        activeTab = "firmar"
+        Qt.callLater(function() {
+            const target = field === "qr" ? signQRContentField
+                    : field === "csvCode" ? csvCodeField
+                    : field === "csvUrl" ? csvUrlField
+                    : field === "csvText" ? csvTextField
+                    : field === "pages" ? signSealPagesField : signSealImageButton
+            if (!target) return
+            const position = target.mapToItem(signMainOuterContent, 0, 0)
+            signMainOuterScroll.ScrollBar.vertical.position = Math.max(0,
+                    Math.min(1, (position.y - 24) / Math.max(1, signMainOuterContent.height - signMainOuterScroll.height)))
+            target.forceActiveFocus()
+        })
     }
 
     function showLocalTLSStartupNotice(status) {
@@ -2581,6 +2668,13 @@ Window {
         return validQrUrl(raw) ? raw : ""
     }
 
+    // Igual que el motor: RFC 3161 por http o https, sin credenciales ni fragmento.
+    function validTsaUrl(rawValue) {
+        const raw = String(rawValue || "").trim()
+        if (raw === "" || raw.length > 2048 || /[\s\\\u0000-\u001f\u007f]/.test(raw)) return false
+        return /^https?:\/\/[^/?#@\s]+(?:[/?][^#]*)?$/i.test(raw)
+    }
+
     function validQrUrl(rawValue) {
         const raw = String(rawValue || "").trim()
         if (raw === "") return true
@@ -3321,6 +3415,16 @@ Window {
 
     function saveBackendSettings() {
         if (!settingsLoaded || settingsSaveInFlight) return
+        for (const field of ["tsa", "proxyHost", "proxyPort"]) validateSettingsField(field)
+        const firstError = Object.keys(settingsFieldErrors)[0]
+        if (firstError) {
+            const target = firstError === "tsa" ? tsaCombo : firstError === "proxyHost" ? proxyHostField : proxyPortField
+            const position = target.mapToItem(configMainOuterContent, 0, 0)
+            configMainOuterScroll.ScrollBar.vertical.position = Math.max(0,
+                    Math.min(1, (position.y - 24) / Math.max(1, configMainOuterContent.height - configMainOuterScroll.height)))
+            target.forceActiveFocus()
+            return
+        }
         console.log("QML: Guardando preferencias en backend")
         const s = {
             expertMode: backend.expertMode,
@@ -3480,6 +3584,10 @@ Window {
                 signValidationErrorDialog.open()
                 return
             }
+        }
+        if (!validateSignFields()) {
+            focusSignField(firstSignFieldError)
+            return
         }
         const payload = buildSignPayload()
         if (payload === null) {
@@ -5871,6 +5979,16 @@ Window {
                                     text: window.supportAssistantPrimaryActionLabel()
                                     highlighted: true
                                     onClicked: window.runSupportAssistantPrimaryAction()
+                                }
+
+                                Button {
+                                    visible: window.firstSignFieldError !== "" &&
+                                             (window.supportAssistantGoal === "sign-failure" || window.activeTab === "firmar")
+                                    text: tr("validacion.corregir")
+                                    onClicked: {
+                                        supportAssistantDialog.close()
+                                        window.focusSignField(window.firstSignFieldError)
+                                    }
                                 }
 
                                 Button {
@@ -8288,6 +8406,12 @@ Window {
                                         ToolTip.text: tr("Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.")
                                     }
                                     Binding { target: signVisibleSealCheckBox; property: "checked"; value: window.signVisibleSeal }
+                                    Text {
+                                        visible: window.firstSignFieldError !== "" && window.signVisibleSeal
+                                        text: tr("validacion.problemas").arg(Object.keys(window.signFieldErrors).length)
+                                        color: "#b42318"
+                                        Accessible.role: Accessible.StaticText
+                                    }
                                     CheckBox {
                                         id: signStrictCompatCheckBox
                                         text: tr("Compatibilidad estricta")
@@ -8380,15 +8504,31 @@ Window {
                                             text: signQRContent
                                             placeholderText: tr("https://verifica.ejemplo/")
                                             Accessible.name: tr("QR del sello")
-                                            onTextChanged: signQRContent = text
+                                            Accessible.description: window.signFieldError("qr") ? tr(window.signFieldError("qr")) : ""
+                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("qr") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("qr") ? 2 : 1 }
+                                            onTextChanged: {
+                                                signQRContent = text
+                                                if (window.signFieldError("qr")) window.validateSignField("qr")
+                                            }
+                                            onEditingFinished: window.validateSignField("qr")
                                         }
                                         Binding { target: signQRContentField; property: "text"; value: window.signQRContent; when: !signQRContentField.activeFocus }
+                                        Text { Layout.fillWidth: true; visible: window.signFieldError("qr") !== ""; text: tr(window.signFieldError("qr")); color: "#b42318"; wrapMode: Text.WordWrap; Accessible.role: Accessible.StaticText }
                                         CheckBox { id: csvEnabledCheck; text: tr("paridad.lote3.csv.enable"); checked: window.signCSVEnabled; Accessible.name: text; onToggled: window.signCSVEnabled = checked }
                                         Binding { target: csvEnabledCheck; property: "checked"; value: window.signCSVEnabled }
                                         Label { text: tr("paridad.lote3.csv.notice"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-                                        TextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.code"); Accessible.name: placeholderText; maximumLength: 128; text: window.signCSVCode; onTextChanged: window.signCSVCode = text }
-                                        TextField { id: csvUrlField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.url"); Accessible.name: placeholderText; maximumLength: 2048; text: window.signCSVUrl; onTextChanged: window.signCSVUrl = text }
-                                        TextField { id: csvTextField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.text_optional"); Accessible.name: placeholderText; maximumLength: 512; text: window.signCSVText; onTextChanged: window.signCSVText = text }
+                                        TextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.code"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvCode") ? tr(window.signFieldError("csvCode")) : ""; maximumLength: 128; text: window.signCSVCode; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvCode") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvCode") ? 2 : 1 }
+                                            onTextChanged: { window.signCSVCode = text; if (window.signFieldError("csvCode")) window.validateSignField("csvCode") }
+                                            onEditingFinished: window.validateSignField("csvCode") }
+                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvCode") !== ""; text: tr(window.signFieldError("csvCode")); color: "#b42318"; wrapMode: Text.WordWrap }
+                                        TextField { id: csvUrlField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.url"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvUrl") ? tr(window.signFieldError("csvUrl")) : ""; maximumLength: 2048; text: window.signCSVUrl; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvUrl") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvUrl") ? 2 : 1 }
+                                            onTextChanged: { window.signCSVUrl = text; if (window.signFieldError("csvUrl")) window.validateSignField("csvUrl") }
+                                            onEditingFinished: window.validateSignField("csvUrl") }
+                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvUrl") !== ""; text: tr(window.signFieldError("csvUrl")); color: "#b42318"; wrapMode: Text.WordWrap }
+                                        TextField { id: csvTextField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.text_optional"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvText") ? tr(window.signFieldError("csvText")) : ""; maximumLength: 512; text: window.signCSVText; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvText") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvText") ? 2 : 1 }
+                                            onTextChanged: { window.signCSVText = text; if (window.signFieldError("csvText")) window.validateSignField("csvText") }
+                                            onEditingFinished: window.validateSignField("csvText") }
+                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvText") !== ""; text: tr(window.signFieldError("csvText")); color: "#b42318"; wrapMode: Text.WordWrap }
                                         CheckBox { id: csvQrCheck; visible: window.signCSVEnabled; text: tr("paridad.lote3.csv.qr"); checked: window.signCSVQR; Accessible.name: text; onToggled: window.signCSVQR = checked }
                                         Text {
                                             Layout.fillWidth: true
@@ -8414,16 +8554,26 @@ Window {
                                         TextField {
                                             id: signSealPagesField
                                             Accessible.name: tr("Página(s)")
+                                            Accessible.description: window.signFieldError("pages") ? tr(window.signFieldError("pages")) : ""
                                             enabled: !signSealAllPages
                                             text: signSealPages
                                             placeholderText: tr("1 o 1,3-5")
+                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("pages") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("pages") ? 2 : 1 }
+                                            onTextChanged: {
+                                                if (window.signFieldError("pages")) {
+                                                    signSealPages = text
+                                                    window.validateSignField("pages")
+                                                }
+                                            }
                                             onEditingFinished: {
                                                 signSealPages = text
+                                                window.validateSignField("pages")
                                                 if (!applyPageSelectionValidity()) return
                                                 text = signSealPages
                                                 requestPdfPreview()
                                             }
                                         }
+                                        Text { Layout.fillWidth: true; visible: window.signFieldError("pages") !== ""; text: tr(window.signFieldError("pages")); color: "#b42318"; wrapMode: Text.WordWrap }
                                         RowLayout {
                                             Button { text: tr("Primera"); onClicked: { signSealAllPages = false; signSealPages = "1"; applyPageSelectionValidity(); requestPdfPreview() } }
                                             Button { text: tr("Última"); enabled: previewTotalPages > 0; onClicked: { signSealAllPages = false; signSealPages = String(previewTotalPages); applyPageSelectionValidity(); requestPdfPreview() } }
@@ -8431,7 +8581,7 @@ Window {
                                         }
                                         Binding { target: signSealPagesField; property: "text"; value: signSealPages; when: !signSealPagesField.activeFocus }
                                         Text {
-                                            visible: signSealPagesError !== "" && !signSealAllPages
+                                            visible: signSealPagesError !== "" && !signSealAllPages && window.signFieldError("pages") === ""
                                             text: signSealPagesError
                                             color: "#d62828"
                                             font.pixelSize: 11
@@ -8616,7 +8766,10 @@ Window {
                                                     onClicked: { sealStyle = "image"; signSealImagePath = bundledSealLogoPath }
                                                 }
                                                 Button {
+                                                    id: signSealImageButton
                                                     text: tr("Elegir imagen…")
+                                                    Accessible.description: window.signFieldError("image") ? tr(window.signFieldError("image")) : ""
+                                                    background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("image") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("image") ? 2 : 1 }
                                                     onClicked: sealImageFileDialog.open()
                                                 }
                                                 Button {
@@ -8632,6 +8785,7 @@ Window {
                                                 }
                                                 Binding { target: signSealKeepTextCheckBox; property: "checked"; value: window.signSealKeepText }
                                             }
+                                            Text { Layout.fillWidth: true; visible: window.signFieldError("image") !== ""; text: tr(window.signFieldError("image")); color: "#b42318"; wrapMode: Text.WordWrap }
                                             Text {
                                                 Layout.fillWidth: true
                                                 visible: signSealImagePath !== ""
@@ -14104,6 +14258,7 @@ Window {
                                             id: tsaCombo
                                             Layout.fillWidth: true
                                             editable: true
+                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("tsa") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("tsa") ? 2 : 1 }
                                             model: [
                                                 "http://tsa.fnmt.es/",
                                                 "http://tsa.accv.es/",
@@ -14118,7 +14273,10 @@ Window {
                                             onEditTextChanged: {
                                                 window.tsaUrl = editText
                                                 markBackendSettingsDirty()
+                                                if (window.settingsFieldError("tsa")) window.validateSettingsField("tsa")
                                             }
+                                            onActiveFocusChanged: { if (!activeFocus) window.validateSettingsField("tsa") }
+                                            Accessible.description: window.settingsFieldError("tsa") ? tr(window.settingsFieldError("tsa")) : ""
                                             Component.onCompleted: {
                                                 editText = window.tsaUrl
                                             }
@@ -14131,6 +14289,7 @@ Window {
                                                 }
                                             }
                                         }
+                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("tsa") !== ""; text: tr(window.settingsFieldError("tsa")); color: "#b42318"; wrapMode: Text.WordWrap }
                                     }
 
                                     Button {
@@ -14200,26 +14359,48 @@ Window {
                                         Layout.fillWidth: true
                                         Text { text: tr("Host / IP:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                         TextField {
+                                            id: proxyHostField
                                             Layout.fillWidth: true
                                             text: window.proxyHost
+                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("proxyHost") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("proxyHost") ? 2 : 1 }
+                                            Accessible.description: window.settingsFieldError("proxyHost") ? tr(window.settingsFieldError("proxyHost")) : ""
+                                            onTextChanged: {
+                                                if (window.settingsFieldError("proxyHost")) {
+                                                    window.proxyHost = text
+                                                    window.validateSettingsField("proxyHost")
+                                                }
+                                            }
                                             onEditingFinished: {
                                                 window.proxyHost = text
+                                                window.validateSettingsField("proxyHost")
                                                 markBackendSettingsDirty()
                                             }
                                         }
+                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("proxyHost") !== ""; text: tr(window.settingsFieldError("proxyHost")); color: "#b42318"; wrapMode: Text.WordWrap }
                                     }
                                     ColumnLayout {
                                         width: 100
                                         Text { text: tr("Puerto:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                         TextField {
+                                            id: proxyPortField
                                             Layout.fillWidth: true
                                             text: window.proxyPort.toString()
                                             validator: IntValidator { bottom: 1; top: 65535 }
+                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("proxyPort") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("proxyPort") ? 2 : 1 }
+                                            Accessible.description: window.settingsFieldError("proxyPort") ? tr(window.settingsFieldError("proxyPort")) : ""
+                                            onTextChanged: {
+                                                if (window.settingsFieldError("proxyPort")) {
+                                                    window.proxyPort = parseInt(text)
+                                                    window.validateSettingsField("proxyPort")
+                                                }
+                                            }
                                             onEditingFinished: {
                                                 window.proxyPort = parseInt(text)
+                                                window.validateSettingsField("proxyPort")
                                                 markBackendSettingsDirty()
                                             }
                                         }
+                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("proxyPort") !== ""; text: tr(window.settingsFieldError("proxyPort")); color: "#b42318"; wrapMode: Text.WordWrap }
                                     }
                                 }
 

@@ -4780,4 +4780,10 @@
   ,"Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.": "FacturaE-, UBL- und CII-Rechnungen in der Anwendung prüfen, mit exportierbarem Bericht, unter Windows und Linux."
   ,"Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».": "Windows: Aktualisieren bei geöffnetem GrxFirma funktioniert jetzt. Das Installationsprogramm schließt die Anwendung, installiert die neue Version und öffnet sie wieder; früher schlug es mit „Die PowerShell-Installation der Suite ist mit Code 1 fehlgeschlagen“ fehl."
   ,"Windows: si la conexión con el motor local se interrumpe, GrxFirma vuelve a conectar sola en la siguiente operación. Antes la aplicación podía quedarse sin motor («falla todo») hasta cerrarla del todo.": "Windows: Wird die Verbindung zur lokalen Engine unterbrochen, verbindet sich GrxFirma beim nächsten Vorgang selbst neu. Früher konnte die Anwendung ohne Engine bleiben („alles schlägt fehl“), bis sie vollständig geschlossen wurde."
+  ,"validacion.sello.imagen": "Wählen Sie ein PNG- oder JPEG-Bild für das Siegel aus."
+  ,"validacion.sello.paginas": "Geben Sie gültige Seiten für das Siegel ein (z. B. 1,3-5)."
+  ,"validacion.corregir": "Korrigieren"
+  ,"validacion.problemas": "%1 Probleme mit dem sichtbaren Siegel"
+  ,"validacion.proxy.host": "Geben Sie nur den Proxy-Host oder die IP-Adresse an, ohne Schema, Pfad oder Zugangsdaten."
+  ,"validacion.proxy.puerto": "Der Proxy-Port muss zwischen 1 und 65535 liegen."
 }

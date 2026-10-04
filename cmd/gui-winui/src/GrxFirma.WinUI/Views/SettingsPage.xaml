@@ -212,8 +212,11 @@
                             TabIndex="10"
                             AutomationProperties.Name="{Binding Header, ElementName=TsaUrlTextBox}" />
                         <TextBlock
+                            x:Name="TsaFieldError"
                             AutomationProperties.LiveSetting="Assertive"
+                            Foreground="{ThemeResource AppDiagnosticFailureBrush}"
                             Text="{x:Bind ViewModel.TsaValidationMessage, Mode=OneWay}"
+                            Visibility="Collapsed"
                             TextWrapping="Wrap" />
                         <CheckBox
                             AutomationProperties.HelpText="La preferencia se conserva, pero la firma WinUI no la usa hasta disponer del editor seguro de sello PDF."
@@ -249,6 +252,7 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition x:Name="ProxyTypeRow" Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <ComboBox
                                 AutomationProperties.Name="Tipo de proxy"
@@ -259,6 +263,7 @@
                                 SelectedItem="{x:Bind ViewModel.SelectedProxyType, Mode=TwoWay}"
                                 TabIndex="13" />
                             <TextBox
+                                x:Name="ProxyHostTextBox"
                                 Grid.Row="1"
                                 AutomationProperties.Name="Servidor proxy"
                                 Header="Host o IP"
@@ -267,6 +272,7 @@
                                 PlaceholderText="proxy.organizacion.es"
                                 TabIndex="14"
                                 Text="{x:Bind ViewModel.ProxyHost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock x:Name="ProxyHostFieldError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
                         </Grid>
                         <Grid ColumnSpacing="12" RowSpacing="12">
                             <Grid.ColumnDefinitions>
@@ -276,6 +282,7 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition x:Name="ProxyPortRow" Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBox
                                 x:Name="ProxyPortTextBox"
@@ -287,6 +294,7 @@
                                 PlaceholderText="8080"
                                 TabIndex="15"
                                 Text="{x:Bind ViewModel.ProxyPortText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock x:Name="ProxyPortFieldError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
                             <TextBlock
                                 Grid.Row="1"
                                 Foreground="{ThemeResource AppMutedTextBrush}"

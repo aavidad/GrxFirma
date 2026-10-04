@@ -30,6 +30,7 @@ public sealed partial class SettingsPage : Page
     private bool _restBusy;
     private bool _restHealthy;
     private bool _restPortBusy;
+    private readonly HashSet<string> _networkErrorsShown = new(StringComparer.Ordinal);
 
     public SettingsPage()
     {
@@ -38,7 +39,74 @@ public sealed partial class SettingsPage : Page
         ViewModel = new SettingsPageViewModel(
             app.OperationSession);
         InitializeComponent();
+        RegisterNetworkField(TsaUrlTextBox, TsaFieldError, "tsa");
+        RegisterNetworkField(ProxyHostTextBox, ProxyHostFieldError, "proxyHost");
+        RegisterNetworkField(ProxyPortTextBox, ProxyPortFieldError, "proxyPort");
+        ViewModel.PropertyChanged += (_, change) =>
+        {
+            if (_networkErrorsShown.Count == 0) return;
+            if (change.PropertyName == nameof(SettingsPageViewModel.TsaEnabled) &&
+                _networkErrorsShown.Contains("tsa"))
+                ShowNetworkFieldError("tsa", TsaUrlTextBox, TsaFieldError);
+            if (change.PropertyName is nameof(SettingsPageViewModel.ProxyEnabled) or
+                nameof(SettingsPageViewModel.SelectedProxyType))
+            {
+                if (_networkErrorsShown.Contains("proxyHost"))
+                    ShowNetworkFieldError("proxyHost", ProxyHostTextBox, ProxyHostFieldError);
+                if (_networkErrorsShown.Contains("proxyPort"))
+                    ShowNetworkFieldError("proxyPort", ProxyPortTextBox, ProxyPortFieldError);
+            }
+        };
         ApplyParityLabels();
+    }
+
+    private void RegisterNetworkField(TextBox field, TextBlock message, string name)
+    {
+        field.LostFocus += (_, _) => ShowNetworkFieldError(name, field, message);
+        field.TextChanged += (_, _) =>
+        {
+            if (_networkErrorsShown.Contains(name)) ShowNetworkFieldError(name, field, message);
+        };
+    }
+
+    private void ShowNetworkFieldError(string name, TextBox field, TextBlock message)
+    {
+        var invalid = ViewModel.ValidateNetworkFields().TryGetValue(name, out var key);
+        var detail = invalid ? Localizer.Text(key!) : string.Empty;
+        message.Text = detail;
+        message.Visibility = invalid ? Visibility.Visible : Visibility.Collapsed;
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(field, detail);
+        if (invalid)
+        {
+            _networkErrorsShown.Add(name);
+            field.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AppDiagnosticFailureBrush"];
+        }
+        else
+        {
+            _networkErrorsShown.Remove(name);
+            field.ClearValue(Control.BorderBrushProperty);
+        }
+    }
+
+    private bool ValidateNetworkFieldsAndFocus()
+    {
+        var issues = ViewModel.ValidateNetworkFields();
+        ShowNetworkFieldError("tsa", TsaUrlTextBox, TsaFieldError);
+        ShowNetworkFieldError("proxyHost", ProxyHostTextBox, ProxyHostFieldError);
+        ShowNetworkFieldError("proxyPort", ProxyPortTextBox, ProxyPortFieldError);
+        foreach (var candidate in new[] {
+            (Name: "tsa", Field: TsaUrlTextBox),
+            (Name: "proxyHost", Field: ProxyHostTextBox),
+            (Name: "proxyPort", Field: ProxyPortTextBox) })
+        {
+            if (issues.ContainsKey(candidate.Name))
+            {
+                candidate.Field.StartBringIntoView();
+                candidate.Field.Focus(FocusState.Programmatic);
+                return false;
+            }
+        }
+        return true;
     }
 
     public SettingsPageViewModel ViewModel { get; }
@@ -255,6 +323,7 @@ public sealed partial class SettingsPage : Page
         object sender,
         RoutedEventArgs args)
     {
+        if (!ValidateNetworkFieldsAndFocus()) return;
         await ViewModel.SaveAsync();
         if (!ViewModel.IsDirty)
         {

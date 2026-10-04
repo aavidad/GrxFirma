@@ -72,6 +72,7 @@ LANGUAGE_SELF_NAMES = {"Español", "Català", "Valencià", "Euskara", "Galego",
 MACHINE_WORDS = {
     "about", "administracion", "admission", "artifacts", "available",
     "avidad", "browser", "ca", "cades", "certificates", "ciudadano",
+    "csvCode", "csvUrl", "csvText", "proxyHost", "proxyPort", "tsa",
     "count", "current", "date", "days", "de", "diagnostico", "diagnostics",
     "disabled", "empty", "en", "eni", "environment", "es", "eu", "exit",
     "facturae", "failure", "firma", "fisica", "fr", "gl", "hash", "help",

@@ -11,6 +11,7 @@
     CloseButtonText="Cerrar"
     DefaultButton="Close"
     PrimaryButtonClick="OnExportReport"
+    SecondaryButtonClick="OnCorrectField"
     PrimaryButtonText="Exportar informe"
     Title="Diagnóstico de la operación">
 
