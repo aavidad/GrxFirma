@@ -27,6 +27,17 @@ EniValidatedField {
         modal: true
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        // Mismo fondo y colores que el resto de diálogos del tema actual.
+        palette.windowText: root.theme ? root.theme.textColor : "black"
+        palette.text: root.theme ? root.theme.textColor : "black"
+        palette.buttonText: root.theme ? root.theme.textColor : "black"
+        palette.button: root.theme ? root.theme.cardColor : "white"
+        background: Rectangle {
+            radius: 8
+            color: root.theme ? root.theme.cardColor : "white"
+            border.color: root.theme ? root.theme.secondaryTextColor : "#767676"
+            border.width: 1
+        }
         ColumnLayout {
             width: calendarPopup.availableWidth
             RowLayout {
