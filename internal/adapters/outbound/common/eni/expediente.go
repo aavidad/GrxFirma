@@ -10,9 +10,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/xml"
-	"errors"
 	"fmt"
-	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -31,7 +30,7 @@ const (
 	funcionResumenSHA2 = "http://www.w3.org/2001/04/xmlenc#sha256"
 )
 
-var reIdentificadorExp = regexp.MustCompile(`^ES_([A-Z0-9]{9})_(\d{4})_EXP_([A-Za-z0-9_]{1,30})$`)
+var reIdentificadorExp = reIdentificador
 
 // MetadatosExpediente son los metadatos mínimos obligatorios del anexo I.
 type MetadatosExpediente struct {
@@ -59,30 +58,43 @@ type FirmaIndice func(indiceContenido []byte, id string) ([]byte, error)
 
 // Validar comprueba los metadatos del expediente.
 func (m *MetadatosExpediente) Validar() error {
+	if len(m.Organos) > 128 || len(m.Interesados) > 128 {
+		return problema("expediente", "limit")
+	}
+	if !fechaTiempoValida(m.FechaApertura) {
+		return problema("FechaAperturaExpediente", "date")
+	}
+	for _, in := range m.Interesados {
+		if !textoSeguro(in, 128) {
+			return problema("Interesado", "text")
+		}
+	}
 	if len(m.Organos) == 0 {
-		return errors.New("falta el órgano (código DIR3) responsable del expediente")
+		return problema("Organo", "dir3")
 	}
 	for _, o := range m.Organos {
 		if !reDIR3.MatchString(o) {
-			return fmt.Errorf("el órgano %q no es un código DIR3 de 9 caracteres", o)
+			return problema("Organo", "dir3")
 		}
 	}
 	if m.Identificador != "" && !reIdentificadorExp.MatchString(m.Identificador) {
-		return fmt.Errorf("el identificador %q no sigue el formato ES_<Órgano>_<AAAA>_EXP_<ID específico>", m.Identificador)
+		return problema("Identificador", "identifier")
 	}
-	if strings.TrimSpace(m.Clasificacion) == "" || strings.ContainsAny(m.Clasificacion, "<>&\r\n") {
-		return errors.New("falta la clasificación del expediente (código SIA del procedimiento)")
+	if !reClasificacion.MatchString(m.Clasificacion) {
+		return problema("Clasificacion", "classification")
 	}
-	switch m.Estado {
-	case "E01", "E02", "E03":
-	default:
-		return fmt.Errorf("estado del expediente no válido: %q (E01 abierto, E02 cerrado, E03 índice para remisión cerrado)", m.Estado)
+	if !slices.Contains(EstadosExpediente(), m.Estado) {
+		return problema("Estado", "value")
 	}
+
 	return nil
 }
 
 // identificadorDocumentoENI extrae el identificador de un documento ENI.
 func identificadorDocumentoENI(data []byte) (string, error) {
+	if err := validarSalida(data); err != nil {
+		return "", err
+	}
 	var d struct {
 		XMLName   xml.Name
 		Metadatos struct {
@@ -92,14 +104,14 @@ func identificadorDocumentoENI(data []byte) (string, error) {
 	dec := xml.NewDecoder(bytes.NewReader(data))
 	dec.Strict = true
 	if err := dec.Decode(&d); err != nil {
-		return "", fmt.Errorf("no es un documento ENI legible: %w", err)
+		return "", problema("documento", "xml")
 	}
 	if d.XMLName.Space != nsDocumento || d.XMLName.Local != "documento" {
-		return "", errors.New("no es un documento electrónico ENI (enidoc:documento)")
+		return "", problema("documento", "structure")
 	}
 	id := strings.TrimSpace(d.Metadatos.Identificador)
 	if !reIdentificador.MatchString(id) {
-		return "", fmt.Errorf("el documento ENI tiene un identificador no válido: %q", id)
+		return "", problema("Identificador", "identifier")
 	}
 	return id, nil
 }
@@ -111,14 +123,14 @@ func GenerarExpediente(m MetadatosExpediente, docs []DocumentoExpediente, firmar
 	if err := m.Validar(); err != nil {
 		return nil, err
 	}
-	if len(docs) == 0 {
-		return nil, errors.New("el expediente necesita al menos un documento ENI")
+	if len(docs) == 0 || len(docs) > 128 {
+		return nil, problema("DocumentoIndizado", "limit")
 	}
 	if firmar == nil || canonicalizar == nil {
-		return nil, errors.New("el índice del expediente debe firmarse")
+		return nil, problema("firmas", "structure")
 	}
 	if m.Identificador == "" {
-		sufijo, err := identificadorAleatorio(30)
+		sufijo, err := identificadorAleatorio(26)
 		if err != nil {
 			return nil, err
 		}
@@ -137,18 +149,26 @@ func GenerarExpediente(m MetadatosExpediente, docs []DocumentoExpediente, firmar
 	fmt.Fprintf(&ic, `<eniexpind:IndiceContenido xmlns:eniexpind="%s" xmlns:eniconexpind="%s" Id="%s">`, nsIndice, nsIndiceContenido, esc(idIndiceContenido))
 	fmt.Fprintf(&ic, `<eniconexpind:FechaIndiceElectronico>%s</eniconexpind:FechaIndiceElectronico>`, ahora.Format(time.RFC3339))
 	vistos := map[string]bool{}
+	var total int64
 	for i, d := range docs {
+		total += int64(len(d.XML))
+		if total > 256*1024*1024 {
+			return nil, problema("DocumentoIndizado", "limit")
+		}
+		if !fechaTiempoValida(d.FechaIncorporacion) {
+			return nil, problema("FechaIncorporacionExpediente", "date")
+		}
 		id, err := identificadorDocumentoENI(d.XML)
 		if err != nil {
-			return nil, fmt.Errorf("documento %d: %w", i+1, err)
+			return nil, fmt.Errorf("DocumentoIndizado[%d]: %w", i+1, err)
 		}
 		if vistos[id] {
-			return nil, fmt.Errorf("documento %d: el identificador %s está repetido en el expediente", i+1, id)
+			return nil, problema(fmt.Sprintf("DocumentoIndizado[%d]/IdentificadorDocumento", i+1), "value")
 		}
 		vistos[id] = true
 		canon, err := canonicalizar(d.XML)
 		if err != nil {
-			return nil, fmt.Errorf("documento %d: %w", i+1, err)
+			return nil, fmt.Errorf("DocumentoIndizado[%d]: %w", i+1, err)
 		}
 		huella := sha256.Sum256(canon)
 		fecha := d.FechaIncorporacion
@@ -168,10 +188,10 @@ func GenerarExpediente(m MetadatosExpediente, docs []DocumentoExpediente, firmar
 
 	firma, err := firmar(ic.Bytes(), idIndiceContenido)
 	if err != nil {
-		return nil, fmt.Errorf("firma del índice del expediente: %w", err)
+		return nil, fmt.Errorf("indice/firmas: %w", err)
 	}
 	if !bytes.HasPrefix(bytes.TrimSpace(firma), []byte("<ds:Signature")) {
-		return nil, errors.New("la firma del índice debe ser un elemento ds:Signature")
+		return nil, problema("indice/firmas/Signature", "structure")
 	}
 
 	var b bytes.Buffer
@@ -199,5 +219,8 @@ func GenerarExpediente(m MetadatosExpediente, docs []DocumentoExpediente, firmar
 		}
 	}
 	b.WriteString(`</eniexpmeta:metadatosExp></eniexp:expediente>` + "\n")
+	if err := validarSalida(b.Bytes()); err != nil {
+		return nil, err
+	}
 	return b.Bytes(), nil
 }

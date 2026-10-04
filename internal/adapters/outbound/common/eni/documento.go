@@ -15,10 +15,9 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"regexp"
-	"strconv"
+	"slices"
 	"strings"
 	"time"
 )
@@ -80,60 +79,71 @@ type Documento struct {
 }
 
 var (
-	reDIR3          = regexp.MustCompile(`^[A-Z0-9]{9}$`)
-	reIdentificador = regexp.MustCompile(`^ES_([A-Z0-9]{9})_(\d{4})_([A-Za-z0-9_]{1,30})$`)
+	reDIR3          = regexp.MustCompile(`^[A-Z][0-9]{8}$`)
+	reIdentificador = regexp.MustCompile(`^ES_([A-Z][0-9]{8})_(\d{4})_([A-Za-z0-9_]{1,30})$`)
 	reFormato       = regexp.MustCompile(`^[A-Za-z0-9.+-]{1,32}$`)
-	estados         = map[string]bool{"EE01": true, "EE02": true, "EE03": true, "EE04": true, "EE99": true}
 	tiposFirma      = map[TipoFirma]bool{FirmaXAdESDetached: true, FirmaXAdESEnvelope: true, FirmaCAdESExplicit: true, FirmaCAdESImplicit: true, FirmaPAdES: true}
 )
 
 // TipoDocumentalValido indica si el código es un tipo documental de la NTI.
 func TipoDocumentalValido(td string) bool {
-	if len(td) != 4 || !strings.HasPrefix(td, "TD") {
-		return false
-	}
-	n, err := strconv.Atoi(td[2:])
-	return err == nil && (n == 99 || (n >= 1 && n <= 20))
+	return slices.Contains(TiposDocumentales(), td)
 }
 
 // Validar comprueba los metadatos y firmas antes de generar el documento.
 func (d *Documento) Validar() error {
 	m := &d.Metadatos
+	if len(d.Contenido) > 100*1024*1024 || len(m.Organos) > 128 || len(d.Firmas) > 128 {
+		return problema("documento", "limit")
+	}
+	if !fechaTiempoValida(m.FechaCaptura) {
+		return problema("FechaCaptura", "date")
+	}
+	if m.IdentificadorDocumentoOrigen != "" && !reIdentificador.MatchString(m.IdentificadorDocumentoOrigen) {
+		return problema("IdentificadorDocumentoOrigen", "source")
+	}
+	total := int64(len(d.Contenido))
+	for _, f := range d.Firmas {
+		total += int64(len(f.Datos))
+		if total > 100*1024*1024 {
+			return problema("firma", "limit")
+		}
+	}
 	if len(d.Contenido) == 0 {
-		return errors.New("el documento ENI necesita contenido")
+		return problema("contenido", "structure")
 	}
 	if !reFormato.MatchString(d.NombreFormato) {
-		return errors.New("el nombre de formato del contenido no es válido (por ejemplo PDF o XML)")
+		return problema("NombreFormato", "format")
 	}
 	if len(m.Organos) == 0 {
-		return errors.New("falta el órgano (código DIR3) responsable del documento")
+		return problema("Organo", "dir3")
 	}
 	for _, o := range m.Organos {
 		if !reDIR3.MatchString(o) {
-			return fmt.Errorf("el órgano %q no es un código DIR3 de 9 caracteres", o)
+			return problema("Organo", "dir3")
 		}
 	}
 	if m.Identificador != "" {
 		if !reIdentificador.MatchString(m.Identificador) {
-			return fmt.Errorf("el identificador %q no sigue el formato ES_<Órgano>_<AAAA>_<ID específico>", m.Identificador)
+			return problema("Identificador", "identifier")
 		}
 	}
-	if !estados[m.EstadoElaboracion] {
-		return fmt.Errorf("estado de elaboración no válido: %q (EE01, EE02, EE03, EE04 o EE99)", m.EstadoElaboracion)
+	if !slices.Contains(EstadosElaboracion(), m.EstadoElaboracion) {
+		return problema("EstadoElaboracion", "value")
 	}
 	copia := m.EstadoElaboracion == "EE02" || m.EstadoElaboracion == "EE03" || m.EstadoElaboracion == "EE04"
 	if copia && strings.TrimSpace(m.IdentificadorDocumentoOrigen) == "" {
-		return errors.New("una copia auténtica (EE02, EE03, EE04) necesita el identificador del documento de origen")
+		return problema("IdentificadorDocumentoOrigen", "source")
 	}
 	if !TipoDocumentalValido(m.TipoDocumental) {
-		return fmt.Errorf("tipo documental no válido: %q (TD01 a TD20 o TD99)", m.TipoDocumental)
+		return problema("TipoDocumental", "value")
 	}
 	for i, f := range d.Firmas {
 		if !tiposFirma[f.Tipo] {
-			return fmt.Errorf("firma %d: tipo de firma no soportado: %q", i+1, f.Tipo)
+			return problema(fmt.Sprintf("firma[%d]/TipoFirma", i+1), "value")
 		}
 		if f.Tipo != FirmaPAdES && len(f.Datos) == 0 {
-			return fmt.Errorf("firma %d: faltan los datos de la firma", i+1)
+			return problema(fmt.Sprintf("firma[%d]/Datos", i+1), "structure")
 		}
 	}
 	return nil
@@ -195,6 +205,9 @@ func Generar(d Documento, ahora time.Time) ([]byte, error) {
 		b.WriteString(`</enids:firmas>`)
 	}
 	b.WriteString(`</enidoc:documento>` + "\n")
+	if err := validarSalida(b.Bytes()); err != nil {
+		return nil, err
+	}
 	return b.Bytes(), nil
 }
 

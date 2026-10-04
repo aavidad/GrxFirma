@@ -64,7 +64,7 @@
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["draft"], "properties": {"draft": {"type": "object"}, "outputPath": {"type": "string"}}, "additionalProperties": false}}}
         },
         {
-          "if": {"properties": {"action": {"const": "validate_invoice"}}, "required": ["action"]},
+          "if": {"properties": {"action": {"enum": ["validate_invoice", "validate_eni"]}}, "required": ["action"]},
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["inputPath"], "properties": {"inputPath": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
         },
         {
@@ -167,7 +167,7 @@
           "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["total"], "properties": {"total": {"type": "string"}, "xml": {"type": "string"}, "outputPath": {"type": "string"}}, "additionalProperties": false}}}
         },
         {
-          "if": {"properties": {"action": {"const": "validate_invoice"}, "ok": {"const": true}}, "required": ["action", "ok"]},
+          "if": {"properties": {"action": {"enum": ["validate_invoice", "validate_eni"]}, "ok": {"const": true}}, "required": ["action", "ok"]},
           "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["format", "valid", "errors", "warnings", "issues", "report"], "properties": {"format": {"enum": ["FacturaE", "UBL", "CII"]}, "valid": {"type": "boolean"}, "errors": {"type": "integer"}, "warnings": {"type": "integer"}, "issues": {"type": "array"}, "report": {"type": "string"}}, "additionalProperties": false}}}
         },
         {
@@ -360,6 +360,7 @@
         "export_diagnostic",
         "facturae_create",
         "validate_invoice",
+        "validate_eni",
         "generate_eni_document",
         "generate_eni_file",
         "get_settings",

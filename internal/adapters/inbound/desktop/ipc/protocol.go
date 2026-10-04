@@ -92,6 +92,7 @@ func desktopIPCHelloWithManagedTrust(managedTrustSupported bool) resultadoIPCHel
 		"export_diagnostic",
 		"facturae_create",
 		"validate_invoice",
+		"validate_eni",
 		"generate_eni_document",
 		"generate_eni_file",
 		"get_settings",

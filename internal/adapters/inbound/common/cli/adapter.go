@@ -491,6 +491,8 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 		return a.ejecutarComprobarHash(ctx, cfg)
 	case "facturae-check":
 		return a.ejecutarValidarFactura(cfg)
+	case "eni-check":
+		return a.ejecutarValidarENI(cfg)
 	case "eni-create":
 		return a.ejecutarGenerarENI(cfg)
 	case "eni-file-create":
@@ -3277,6 +3279,7 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("    Crear requiere -entrada y opcionalmente -algoritmo-hash/-formato-hash/-salida.\n")
 	b.WriteString("    Comprobar requiere -entrada y -fichero-hash. Si -entrada es un directorio, -salida guarda un informe .hashreport.\n")
 	b.WriteString("    También puedes usar directamente: -crear-hash, -createdigest, -comprobar-hash y -checkdigest.\n")
+	b.WriteString("  " + a.t("eni.validacion.help", "") + "\n")
 	b.WriteString("  " + a.t("cli.help.eni_usage", "-operacion generar-eni -entrada <firma> [-original <documento>] -opcion eni.organo=<DIR3> -opcion eni.origen=ciudadano|administracion") + "\n")
 	b.WriteString("    " + a.t("cli.help.eni", "Genera un documento electrónico ENI (NTI de Documento Electrónico) con el contenido, los metadatos obligatorios y la firma PAdES, CAdES o XAdES. Opciones: eni.tipoDocumental (TD99 por defecto), eni.estado (EE01 por defecto), eni.identificador, eni.documentoOrigen, eni.fechaCaptura y eni.formato.") + "\n")
 	b.WriteString("  " + a.t("cli.help.eni_file_usage", "-operacion generar-expediente -lote <carpeta> -opcion exp.organo=<DIR3> -opcion exp.clasificacion=<SIA>") + "\n")
@@ -3468,6 +3471,8 @@ func normalizarOperacion(op, accion, lote, entrada string) string {
 		return "hash-check"
 	case "validar-factura", "revisar-factura", "facturae-check":
 		return "facturae-check"
+	case "validar-eni", "eni-check":
+		return "eni-check"
 	case "generar-eni", "eni-create", "documento-eni":
 		return "eni-create"
 	case "generar-expediente", "eni-file-create", "expediente-eni":
@@ -3825,6 +3830,8 @@ func accionCastellano(raw string) string {
 		return "comprobar-hash"
 	case "facturae-check", "validar-factura", "revisar-factura":
 		return "validar-factura"
+	case "eni-check", "validar-eni":
+		return "validar-eni"
 	case "eni-create", "generar-eni", "documento-eni":
 		return "generar-eni"
 	case "eni-file-create", "generar-expediente", "expediente-eni":

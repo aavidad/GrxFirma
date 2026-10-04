@@ -257,3 +257,34 @@ func (m *Manejador) handleGenerateENIFile(ctx context.Context, raw json.RawMessa
 	}
 	return respuesta{OK: true, Action: action, Data: map[string]any{"outputPath": p.OutputPath, "documents": len(docs)}}
 }
+
+func (m *Manejador) handleValidateENI(ctx context.Context, raw json.RawMessage) respuesta {
+	const action = "validate_eni"
+	var p invoiceValidationParams
+	if err := json.Unmarshal(raw, &p); err != nil {
+		return respuesta{Action: action, Error: m.t("eni.validacion.input")}
+	}
+	if err := ctx.Err(); err != nil {
+		return respuesta{Action: action, Error: err.Error()}
+	}
+	if err := validarRutaLectura(p.InputPath); err != nil {
+		return respuesta{Action: action, Error: err.Error()}
+	}
+	data, err := securefile.ReadFileLimit(p.InputPath, eni.MaxXMLBytes)
+	if err != nil {
+		return respuesta{Action: action, Error: err.Error()}
+	}
+	issues := eni.ValidarXML(data)
+	result := invoiceValidationResult{Format: "ENI", Valid: len(issues) == 0, Errors: len(issues), Issues: []invoiceIssueIPC{}}
+	var report strings.Builder
+	for _, p := range issues {
+		message := m.t(p.Clave)
+		result.Issues = append(result.Issues, invoiceIssueIPC{Level: "error", Field: p.Campo, Message: message})
+		fmt.Fprintf(&report, "%s: %s\n", p.Campo, message)
+	}
+	if len(issues) == 0 {
+		report.WriteString(m.t("eni.validacion.valid"))
+	}
+	result.Report = report.String()
+	return respuesta{OK: true, Action: action, Data: result}
+}

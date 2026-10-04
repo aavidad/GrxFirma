@@ -62,3 +62,19 @@ func TestENIFileIPCRejectsOutputInsideInputFolder(t *testing.T) {
 		t.Fatalf("unexpected response: %+v", response)
 	}
 }
+
+func TestValidateENIIPC(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "eni.xml")
+	if err := os.WriteFile(path, []byte(`<documento xmlns="urn:otro"/>`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := json.Marshal(map[string]string{"inputPath": path})
+	response := (&Manejador{}).despachar(context.Background(), peticion{Action: "validate_eni", Params: raw})
+	if !response.OK {
+		t.Fatal(response.Error)
+	}
+	result, ok := response.Data.(invoiceValidationResult)
+	if !ok || result.Valid || result.Errors == 0 {
+		t.Fatalf("resultado: %+v", response)
+	}
+}
