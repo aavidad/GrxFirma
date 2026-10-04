@@ -24,8 +24,9 @@ import (
 const MaxXMLBytes = 150 * 1024 * 1024
 const nsDS = "http://www.w3.org/2000/09/xmldsig#"
 
+var reXMLID = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_.-]{0,127}$`)
 var reClasificacion = regexp.MustCompile(`^(?:[0-9]{1,30}|[A-Z][0-9]{8}_PRO_[A-Za-z0-9_]{1,30})$`)
-var reFecha = regexp.MustCompile(`^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})$`)
+var reFecha = regexp.MustCompile(`^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:Z|[+-](?:0[0-9]|1[0-4]):[0-5][0-9])$`)
 
 // Problema identifica una infracción estructural sin incluir el XML del usuario.
 type Problema struct {
@@ -68,7 +69,7 @@ func fechaTiempoValida(t time.Time) bool {
 type xmlNodo struct {
 	nombre xml.Name
 	attrs  []xml.Attr
-	texto  string
+	texto  strings.Builder
 	hijos  []*xmlNodo
 }
 
@@ -76,10 +77,12 @@ func leerXML(data []byte) (*xmlNodo, string) {
 	if len(data) == 0 || len(data) > MaxXMLBytes {
 		return nil, "limit"
 	}
+	data = bytes.TrimPrefix(data, []byte{0xef, 0xbb, 0xbf})
 	dec := xml.NewDecoder(bytes.NewReader(data))
 	var root *xmlNodo
 	var stack []*xmlNodo
 	nodes := 0
+	declarationSeen := false
 	for {
 		token, err := dec.Token()
 		if err == io.EOF {
@@ -92,17 +95,21 @@ func leerXML(data []byte) (*xmlNodo, string) {
 		case xml.Directive:
 			return nil, "xml" // DTD/entidades externas nunca se procesan.
 		case xml.ProcInst:
-			if t.Target != "xml" || root != nil {
+			if t.Target != "xml" || root != nil || declarationSeen {
 				return nil, "xml"
 			}
+			declarationSeen = true
 		case xml.StartElement:
 			nodes++
-			if len(stack) >= 64 || nodes > 20000 || len(t.Attr) > 64 {
+			if len(stack) >= 64 || nodes > 20000 || len(t.Attr) > 64 || len(t.Name.Local) > 128 || len(t.Name.Space) > 512 {
 				return nil, "limit"
 			}
 			n := &xmlNodo{nombre: t.Name, attrs: t.Attr}
 			seen := map[xml.Name]bool{}
 			for _, a := range t.Attr {
+				if len(a.Name.Local) > 128 || len(a.Name.Space) > 512 {
+					return nil, "limit"
+				}
 				if seen[a.Name] {
 					return nil, "xml"
 				}
@@ -127,12 +134,7 @@ func leerXML(data []byte) (*xmlNodo, string) {
 				}
 			} else {
 				n := stack[len(stack)-1]
-				// Acumular el contenido sin copias cuadráticas para base64 grande.
-				if len(n.texto) == 0 {
-					n.texto = string(t)
-				} else {
-					n.texto += string(t)
-				}
+				_, _ = n.texto.Write(t)
 			}
 		}
 	}
@@ -159,12 +161,14 @@ func ValidarXML(data []byte) []Problema {
 	}
 	var issues []Problema
 	add := func(path, key string) {
-		if len(issues) < 256 {
+		if len(issues) < 255 {
 			issues = append(issues, problema(path, key))
+		} else if len(issues) == 255 {
+			issues = append(issues, problema("XML", "limit"))
 		}
 	}
 	sequence := func(n *xmlNodo, path string, rules ...elemento) {
-		if strings.TrimSpace(n.texto) != "" {
+		if strings.TrimSpace(n.texto.String()) != "" {
 			add(path, "structure")
 		}
 		pos := 0
@@ -190,10 +194,56 @@ func ValidarXML(data []byte) []Problema {
 			add(path, "value")
 		}
 	}
+	ids := map[string]bool{}
+	type referencia struct{ path, id string }
+	refs := []referencia{}
+	rootID := ""
+	metadataID := ""
 	var walk func(*xmlNodo, string)
 	walk = func(n *xmlNodo, path string) {
-		s := strings.TrimSpace(n.texto)
+		s := strings.TrimSpace(n.texto.String())
 		ns, name := n.nombre.Space, n.nombre.Local
+		if ns == nsDS && name == "Signature" {
+			return
+		}
+		for _, attr := range n.attrs {
+			if attr.Name.Space == "xmlns" || (attr.Name.Space == "" && attr.Name.Local == "xmlns") {
+				continue
+			}
+			if attr.Name.Space == "http://www.w3.org/2001/XMLSchema-instance" && attr.Name.Local == "schemaLocation" && textoSeguro(attr.Value, 4096) {
+				continue
+			}
+			if attr.Name.Space != "" {
+				add(path+"/@"+attr.Name.Local, "structure")
+				continue
+			}
+			switch attr.Name.Local {
+			case "Id":
+				if !slices.Contains([]string{"documento", "contenido", "expediente", "indice", "IndiceContenido", "DocumentoIndizado", "firma"}, name) {
+					add(path+"/@Id", "structure")
+				}
+				if !reXMLID.MatchString(attr.Value) || ids[attr.Value] {
+					add(path+"/@Id", "value")
+				}
+				ids[attr.Value] = true
+				if n == root {
+					rootID = attr.Value
+				}
+			case "ref":
+				if ns != nsFirma || name != "firma" {
+					add(path+"/@ref", "structure")
+				}
+				refs = append(refs, referencia{path + "/@ref", strings.TrimPrefix(attr.Value, "#")})
+			default:
+				add(path+"/@"+attr.Name.Local, "structure")
+			}
+		}
+		if name == "Identificador" && (ns == nsMetadatos || ns == nsMetadatosExp) {
+			metadataID = s
+		}
+		if ns == nsFirma && name == "ReferenciaFirma" {
+			refs = append(refs, referencia{path, strings.TrimPrefix(s, "#")})
+		}
 		switch {
 		case ns == nsDocumento && name == "documento":
 			sequence(n, path, e(nsContenido, "contenido", 1, 1), e(nsMetadatos, "metadatos", 1, 1), e(nsFirma, "firmas", 0, 1))
@@ -203,7 +253,7 @@ func ValidarXML(data []byte) []Problema {
 			sequence(n, path, e(ns, "VersionNTI", 1, 1), e(ns, "Identificador", 1, 1), e(ns, "Organo", 1, 128), e(ns, "FechaCaptura", 1, 1), e(ns, "OrigenCiudadanoAdministracion", 1, 1), e(ns, "EstadoElaboracion", 1, 1), e(ns, "TipoDocumental", 1, 1))
 		case ns == nsMetadatos && name == "EstadoElaboracion":
 			sequence(n, path, e(ns, "ValorEstadoElaboracion", 1, 1), e(ns, "IdentificadorDocumentoOrigen", 0, 1))
-			if len(n.hijos) > 0 && slices.Contains([]string{"EE02", "EE03", "EE04"}, n.hijos[0].texto) && len(n.hijos) != 2 {
+			if len(n.hijos) > 0 && slices.Contains([]string{"EE02", "EE03", "EE04"}, n.hijos[0].texto.String()) && len(n.hijos) != 2 {
 				add(path+"/IdentificadorDocumentoOrigen", "source")
 			}
 		case ns == nsExpediente && name == "expediente":
@@ -261,7 +311,7 @@ func ValidarXML(data []byte) []Problema {
 			value(n, path, reFormato.MatchString(s))
 		case (ns == nsContenido && name == "ValorBinario") || (ns == nsFirma && name == "FirmaBase64"):
 			compact := strings.Join(strings.Fields(s), "")
-			_, err := base64.StdEncoding.DecodeString(compact)
+			_, err := io.Copy(io.Discard, base64.NewDecoder(base64.StdEncoding, strings.NewReader(compact)))
 			value(n, path, err == nil && compact != "")
 		case ns == nsFirma && name == "TipoFirma":
 			value(n, path, tiposFirma[TipoFirma(s)])
@@ -285,6 +335,14 @@ func ValidarXML(data []byte) []Problema {
 		return issues
 	}
 	walk(root, "/"+root.nombre.Local)
+	if rootID != "" && rootID != metadataID {
+		add("/"+root.nombre.Local+"/@Id", "identifier")
+	}
+	for _, ref := range refs {
+		if !ids[ref.id] {
+			add(ref.path, "value")
+		}
+	}
 	return issues
 }
 

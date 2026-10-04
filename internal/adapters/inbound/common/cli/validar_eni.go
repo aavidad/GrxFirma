@@ -9,14 +9,12 @@ import (
 	"grxfirma/internal/adapters/outbound/common/eni"
 	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/ports"
 	"strings"
 )
 
 func (a *Adaptador) ejecutarValidarENI(cfg configCLI) int {
-	loc := a.Localizador
-	if loc == nil {
-		loc = localizador.Detectar()
-	}
+	loc := a.localizadorENI()
 	if strings.TrimSpace(cfg.entrada) == "" {
 		fmt.Fprintln(a.Stderr, loc.T("eni.validacion.input"))
 		return 1
@@ -35,4 +33,11 @@ func (a *Adaptador) ejecutarValidarENI(cfg configCLI) int {
 	}
 	fmt.Fprintln(a.Stdout, loc.T("eni.validacion.valid"))
 	return 0
+}
+
+func (a *Adaptador) localizadorENI() ports.Localizador {
+	if a.Localizador != nil {
+		return a.Localizador
+	}
+	return localizador.Detectar()
 }

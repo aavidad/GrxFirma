@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
 """Genera las proyecciones de los códigos NTI; --check comprueba su vigencia."""
 import pathlib
 import re
@@ -6,7 +11,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'internal/adapters/outbound/common/eni/catalogos.go'
-HEADER = '// Generado por scripts/generar_catalogos_eni.py; editar catalogos.go.\n'
+HEADER = '// Derechos de autor (C) 2026 Alberto Avidad Fernández.\n// Autoría: Alberto Avidad Fernández\n// Licencia: EUPL 1.2 o posterior\n// SPDX-License-Identifier: EUPL-1.2\n// Generado por scripts/generar_catalogos_eni.py; editar catalogos.go.\n'
 
 
 def outputs():

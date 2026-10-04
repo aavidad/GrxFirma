@@ -18,6 +18,7 @@ import (
 
 	"grxfirma/internal/adapters/inbound/common/cli"
 	"grxfirma/internal/adapters/outbound/common/eni"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/ports"
@@ -260,9 +261,13 @@ func (m *Manejador) handleGenerateENIFile(ctx context.Context, raw json.RawMessa
 
 func (m *Manejador) handleValidateENI(ctx context.Context, raw json.RawMessage) respuesta {
 	const action = "validate_eni"
+	loc := m.Loc
+	if loc == nil {
+		loc = localizador.Detectar()
+	}
 	var p invoiceValidationParams
 	if err := json.Unmarshal(raw, &p); err != nil {
-		return respuesta{Action: action, Error: m.t("eni.validacion.input")}
+		return respuesta{Action: action, Error: loc.T("eni.validacion.input")}
 	}
 	if err := ctx.Err(); err != nil {
 		return respuesta{Action: action, Error: err.Error()}
@@ -278,12 +283,12 @@ func (m *Manejador) handleValidateENI(ctx context.Context, raw json.RawMessage) 
 	result := invoiceValidationResult{Format: "ENI", Valid: len(issues) == 0, Errors: len(issues), Issues: []invoiceIssueIPC{}}
 	var report strings.Builder
 	for _, p := range issues {
-		message := m.t(p.Clave)
+		message := loc.T(p.Clave)
 		result.Issues = append(result.Issues, invoiceIssueIPC{Level: "error", Field: p.Campo, Message: message})
 		fmt.Fprintf(&report, "%s: %s\n", p.Campo, message)
 	}
 	if len(issues) == 0 {
-		report.WriteString(m.t("eni.validacion.valid"))
+		report.WriteString(loc.T("eni.validacion.valid"))
 	}
 	result.Report = report.String()
 	return respuesta{OK: true, Action: action, Data: result}

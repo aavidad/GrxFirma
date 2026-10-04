@@ -3279,7 +3279,7 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("    Crear requiere -entrada y opcionalmente -algoritmo-hash/-formato-hash/-salida.\n")
 	b.WriteString("    Comprobar requiere -entrada y -fichero-hash. Si -entrada es un directorio, -salida guarda un informe .hashreport.\n")
 	b.WriteString("    También puedes usar directamente: -crear-hash, -createdigest, -comprobar-hash y -checkdigest.\n")
-	b.WriteString("  " + a.t("eni.validacion.help", "") + "\n")
+	b.WriteString("  " + a.localizadorENI().T("eni.validacion.help") + "\n")
 	b.WriteString("  " + a.t("cli.help.eni_usage", "-operacion generar-eni -entrada <firma> [-original <documento>] -opcion eni.organo=<DIR3> -opcion eni.origen=ciudadano|administracion") + "\n")
 	b.WriteString("    " + a.t("cli.help.eni", "Genera un documento electrónico ENI (NTI de Documento Electrónico) con el contenido, los metadatos obligatorios y la firma PAdES, CAdES o XAdES. Opciones: eni.tipoDocumental (TD99 por defecto), eni.estado (EE01 por defecto), eni.identificador, eni.documentoOrigen, eni.fechaCaptura y eni.formato.") + "\n")
 	b.WriteString("  " + a.t("cli.help.eni_file_usage", "-operacion generar-expediente -lote <carpeta> -opcion exp.organo=<DIR3> -opcion exp.clasificacion=<SIA>") + "\n")

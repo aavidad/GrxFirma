@@ -35,27 +35,32 @@ func TestValidarXMLDocumento(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if issues := ValidarXML(valid); len(issues) != 0 {
+	if issues := ValidarXML(append([]byte{0xef, 0xbb, 0xbf}, valid...)); len(issues) != 0 {
 		t.Fatal(issues)
 	}
 	cases := map[string]string{
-		"namespace":          strings.Replace(string(valid), nsMetadatos, "urn:otro", 1),
-		"obligatorio":        strings.Replace(string(valid), "<enidocmeta:TipoDocumental>TD14</enidocmeta:TipoDocumental>", "", 1),
-		"orden":              strings.Replace(string(valid), "<enidocmeta:TipoDocumental>TD14</enidocmeta:TipoDocumental>", "<enidocmeta:Organo>L01180877</enidocmeta:Organo>", 1),
-		"estado":             strings.Replace(string(valid), "EE01", "EE05", 1),
-		"tipo":               strings.Replace(string(valid), "TD14", "TD21", 1),
-		"origen":             strings.Replace(string(valid), ">false<", ">ciudadano<", 1),
-		"DIR3":               strings.ReplaceAll(string(valid), "L01180877", "LLLLLLLLL"),
-		"id largo":           strings.ReplaceAll(string(valid), "ES_L01180877_2026_", "ES_L01180877_2026_"+strings.Repeat("A", 31)),
-		"fecha":              strings.Replace(string(valid), "2026-09-26T12:00:00Z", "2026-02-30T12:00:00Z", 1),
-		"zona":               strings.Replace(string(valid), "2026-09-26T12:00:00Z", "2026-09-26T12:00:00", 1),
-		"zona extrema":       strings.Replace(string(valid), "2026-09-26T12:00:00Z", "2026-09-26T12:00:00+15:00", 1),
-		"origen copia":       strings.Replace(string(valid), "EE01", "EE02", 1),
-		"base64":             strings.Replace(string(valid), "<enifile:ValorBinario>", "<enifile:ValorBinario>!", 1),
-		"raices":             string(valid) + string(valid),
-		"DTD":                `<!DOCTYPE x [<!ENTITY x SYSTEM "file:///etc/passwd">]>` + string(valid),
-		"profundidad":        strings.Repeat("<x>", 65) + strings.Repeat("</x>", 65),
-		"atributo duplicado": strings.Replace(string(valid), "<enidoc:documento ", `<enidoc:documento x="1" x="2" `, 1),
+		"nombre largo":         "<" + strings.Repeat("x", 129) + "/>",
+		"namespace largo":      `<x xmlns="` + strings.Repeat("x", 513) + `"/>`,
+		"atributo desconocido": strings.Replace(string(valid), "<enidoc:documento ", `<enidoc:documento sorpresa="1" `, 1),
+		"referencia externa":   strings.Replace(string(valid), "<enids:ReferenciaFirma>#", "<enids:ReferenciaFirma>https://example.invalid/", 1),
+		"offset minutos":       strings.Replace(string(valid), "2026-09-26T12:00:00Z", "2026-09-26T12:00:00+02:60", 1),
+		"namespace":            strings.Replace(string(valid), nsMetadatos, "urn:otro", 1),
+		"obligatorio":          strings.Replace(string(valid), "<enidocmeta:TipoDocumental>TD14</enidocmeta:TipoDocumental>", "", 1),
+		"orden":                strings.Replace(string(valid), "<enidocmeta:TipoDocumental>TD14</enidocmeta:TipoDocumental>", "<enidocmeta:Organo>L01180877</enidocmeta:Organo>", 1),
+		"estado":               strings.Replace(string(valid), "EE01", "EE05", 1),
+		"tipo":                 strings.Replace(string(valid), "TD14", "TD21", 1),
+		"origen":               strings.Replace(string(valid), ">false<", ">ciudadano<", 1),
+		"DIR3":                 strings.ReplaceAll(string(valid), "L01180877", "LLLLLLLLL"),
+		"id largo":             strings.ReplaceAll(string(valid), "ES_L01180877_2026_", "ES_L01180877_2026_"+strings.Repeat("A", 31)),
+		"fecha":                strings.Replace(string(valid), "2026-09-26T12:00:00Z", "2026-02-30T12:00:00Z", 1),
+		"zona":                 strings.Replace(string(valid), "2026-09-26T12:00:00Z", "2026-09-26T12:00:00", 1),
+		"zona extrema":         strings.Replace(string(valid), "2026-09-26T12:00:00Z", "2026-09-26T12:00:00+15:00", 1),
+		"origen copia":         strings.Replace(string(valid), "EE01", "EE02", 1),
+		"base64":               strings.Replace(string(valid), "<enifile:ValorBinario>", "<enifile:ValorBinario>!", 1),
+		"raices":               string(valid) + string(valid),
+		"DTD":                  `<!DOCTYPE x [<!ENTITY x SYSTEM "file:///etc/passwd">]>` + string(valid),
+		"profundidad":          strings.Repeat("<x>", 65) + strings.Repeat("</x>", 65),
+		"atributo duplicado":   strings.Replace(string(valid), "<enidoc:documento ", `<enidoc:documento x="1" x="2" `, 1),
 	}
 	for name, input := range cases {
 		t.Run(name, func(t *testing.T) {

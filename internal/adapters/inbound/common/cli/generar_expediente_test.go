@@ -83,6 +83,11 @@ func TestRunGenerarExpediente_FirmaElIndice(t *testing.T) {
 	if err != nil || res.Integrity.Status != domain.VerificationStatusValid {
 		t.Fatalf("la firma del índice debe verificarse: %v %+v", err, res.Integrity)
 	}
+	stdout.Reset()
+	stderr.Reset()
+	if rc := a.Run(context.Background(), []string{"-operacion", "validar-eni", "-entrada", salida}); rc != 0 {
+		t.Fatalf("la validación CLI del expediente generado falló: rc=%d %s %s", rc, stdout.String(), stderr.String())
+	}
 	if d := os.Getenv("GRXFIRMA_ENI_SALIDA"); d != "" {
 		_ = os.WriteFile(filepath.Join(d, "cli-expediente.xml"), exp, 0o600)
 	}
