@@ -7,6 +7,8 @@ namespace GrxFirma.WinUI.Core.Operations;
 
 public static class TsaConfiguration
 {
+    // Como el motor y AutoFirma Java: RFC 3161 por http o https. La respuesta
+    // va firmada por la TSA, así que el transporte no decide su validez.
     public static bool TryNormalize(bool enabled, string? value, out string url)
     {
         url = value?.Trim() ?? string.Empty;
@@ -14,7 +16,7 @@ public static class TsaConfiguration
         if (url.Length is 0 or > 2048 || url.Any(char.IsControl) ||
             url.Any(char.IsWhiteSpace) ||
             !Uri.TryCreate(url, UriKind.Absolute, out var parsed) ||
-            parsed.Scheme != Uri.UriSchemeHttps ||
+            (parsed.Scheme != Uri.UriSchemeHttps && parsed.Scheme != Uri.UriSchemeHttp) ||
             string.IsNullOrWhiteSpace(parsed.Host) ||
             parsed.UserInfo.Length != 0 || parsed.Fragment.Length != 0)
         {

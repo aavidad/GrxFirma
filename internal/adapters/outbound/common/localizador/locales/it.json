@@ -2772,7 +2772,7 @@
   ,"winui.parity.verify.export": "Esporta rapporto JSON"
   ,"winui.parity.tsa.enabled": "Usa una marca temporale"
   ,"winui.parity.tsa.url": "URL del server di marcatura temporale (HTTPS)"
-  ,"winui.parity.tsa.invalid": "Inserisci un URL HTTPS valido per il server di marcatura temporale."
+  ,"winui.parity.tsa.invalid": "Inserisci un URL HTTP o HTTPS valido per il server di marcatura temporale."
   ,"winui.parity.tsa.unavailable": "Impossibile leggere le impostazioni della marca temporale. Riprova."
   ,"winui.parity.certs.person": "Persona fisica"
   ,"winui.parity.certs.representative": "Rappresentante"

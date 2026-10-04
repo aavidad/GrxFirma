@@ -2772,7 +2772,7 @@
   ,"winui.parity.verify.export": "Exporta l'informe JSON"
   ,"winui.parity.tsa.enabled": "Utilitza una marca de temps"
   ,"winui.parity.tsa.url": "URL del servidor de marca de temps (HTTPS)"
-  ,"winui.parity.tsa.invalid": "Indiqueu un URL HTTPS vàlid per al servidor de marca de temps."
+  ,"winui.parity.tsa.invalid": "Indiqueu un URL HTTP o HTTPS vàlid per al servidor de marca de temps."
   ,"winui.parity.tsa.unavailable": "No s'han pogut consultar els ajustos de la marca de temps. Torneu-ho a provar."
   ,"winui.parity.certs.person": "Persona física"
   ,"winui.parity.certs.representative": "Representant"

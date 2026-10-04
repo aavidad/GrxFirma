@@ -2772,7 +2772,7 @@
   ,"winui.parity.verify.export": "Exportar relatório JSON"
   ,"winui.parity.tsa.enabled": "Usar carimbo temporal"
   ,"winui.parity.tsa.url": "URL do servidor de carimbo temporal (HTTPS)"
-  ,"winui.parity.tsa.invalid": "Indique um URL HTTPS válido para o servidor de carimbo temporal."
+  ,"winui.parity.tsa.invalid": "Indique um URL HTTP ou HTTPS válido para o servidor de carimbo temporal."
   ,"winui.parity.tsa.unavailable": "Não foi possível consultar as definições do carimbo temporal. Tente novamente."
   ,"winui.parity.certs.person": "Pessoa singular"
   ,"winui.parity.certs.representative": "Representante"

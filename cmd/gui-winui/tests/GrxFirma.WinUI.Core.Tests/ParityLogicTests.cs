@@ -31,11 +31,13 @@ public sealed class ParityLogicTests
     }
 
     [TestMethod]
-    public void Tsa_RequiresHttpsWithoutCredentialsOrFragment()
+    public void Tsa_AcceptsHttpOrHttpsWithoutCredentialsOrFragment()
     {
         Assert.IsTrue(TsaConfiguration.TryNormalize(true, " https://tsa.example.test/path ", out var url));
         Assert.AreEqual("https://tsa.example.test/path", url);
-        Assert.IsFalse(TsaConfiguration.TryNormalize(true, "http://tsa.example.test", out _));
+        Assert.IsTrue(TsaConfiguration.TryNormalize(true, "http://tsa.example.test", out _));
+        Assert.IsFalse(TsaConfiguration.TryNormalize(true, "ftp://tsa.example.test", out _));
+        Assert.IsFalse(TsaConfiguration.TryNormalize(true, "http://user@tsa.example.test", out _));
         Assert.IsFalse(TsaConfiguration.TryNormalize(true, "https://user@tsa.example.test", out _));
         Assert.IsFalse(TsaConfiguration.TryNormalize(true, "https://tsa.example.test/#x", out _));
         Assert.IsFalse(TsaConfiguration.TryNormalize(true, "", out _));
@@ -46,7 +48,8 @@ public sealed class ParityLogicTests
     [TestMethod]
     public void NetworkFormValidation_IdentifiesTheAffectedFieldRule()
     {
-        Assert.AreEqual("winui.parity.tsa.invalid", NetworkFormValidation.TsaError(true, "http://tsa.example.test"));
+        Assert.AreEqual("winui.parity.tsa.invalid", NetworkFormValidation.TsaError(true, "ftp://tsa.example.test"));
+        Assert.IsNull(NetworkFormValidation.TsaError(true, "http://tsa.fnmt.es/tsa/tss"));
         Assert.IsNull(NetworkFormValidation.TsaError(false, "http://tsa.example.test"));
         Assert.IsNull(NetworkFormValidation.TsaError(true, "https://tsa.example.test/"));
         Assert.AreEqual("validacion.proxy.host", NetworkFormValidation.ProxyHostError(true, "manual", "https://proxy.example.test"));

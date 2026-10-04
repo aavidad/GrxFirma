@@ -2772,7 +2772,7 @@
   ,"winui.parity.verify.export": "导出 JSON 报告"
   ,"winui.parity.tsa.enabled": "使用时间戳"
   ,"winui.parity.tsa.url": "时间戳服务器 URL（HTTPS）"
-  ,"winui.parity.tsa.invalid": "请输入有效的时间戳服务器 HTTPS URL。"
+  ,"winui.parity.tsa.invalid": "请输入有效的时间戳服务器 HTTP 或 HTTPS URL。"
   ,"winui.parity.tsa.unavailable": "无法读取时间戳设置。请重试。"
   ,"winui.parity.certs.person": "个人"
   ,"winui.parity.certs.representative": "代表"

@@ -2772,7 +2772,7 @@
   ,"winui.parity.verify.export": "JSON-Bericht exportieren"
   ,"winui.parity.tsa.enabled": "Zeitstempel verwenden"
   ,"winui.parity.tsa.url": "URL des Zeitstempelservers (HTTPS)"
-  ,"winui.parity.tsa.invalid": "Geben Sie eine gültige HTTPS-URL für den Zeitstempelserver ein."
+  ,"winui.parity.tsa.invalid": "Geben Sie eine gültige HTTP- oder HTTPS-URL für den Zeitstempelserver ein."
   ,"winui.parity.tsa.unavailable": "Zeitstempeleinstellungen konnten nicht gelesen werden. Versuchen Sie es erneut."
   ,"winui.parity.certs.person": "Natürliche Person"
   ,"winui.parity.certs.representative": "Vertretung"

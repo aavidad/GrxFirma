@@ -2772,7 +2772,7 @@
   ,"winui.parity.verify.export": "Exportar informe JSON"
   ,"winui.parity.tsa.enabled": "Usar selo de tempo"
   ,"winui.parity.tsa.url": "URL do servidor de selo de tempo (HTTPS)"
-  ,"winui.parity.tsa.invalid": "Indique un URL HTTPS válido para o servidor de selo de tempo."
+  ,"winui.parity.tsa.invalid": "Indique un URL HTTP ou HTTPS válido para o servidor de selo de tempo."
   ,"winui.parity.tsa.unavailable": "Non se puideron consultar os axustes do selo de tempo. Ténteo de novo."
   ,"winui.parity.certs.person": "Persoa física"
   ,"winui.parity.certs.representative": "Representante"

@@ -2772,7 +2772,7 @@
   ,"winui.parity.verify.export": "Exporta l'informe JSON"
   ,"winui.parity.tsa.enabled": "Utilitza un segell de temps"
   ,"winui.parity.tsa.url": "URL del servidor de segell de temps (HTTPS)"
-  ,"winui.parity.tsa.invalid": "Indiqueu una URL HTTPS vàlida per al servidor de segell de temps."
+  ,"winui.parity.tsa.invalid": "Indiqueu una URL HTTP o HTTPS vàlida per al servidor de segell de temps."
   ,"winui.parity.tsa.unavailable": "No s'han pogut consultar els ajustos del segell de temps. Torneu-ho a provar."
   ,"winui.parity.certs.person": "Persona física"
   ,"winui.parity.certs.representative": "Representant"

@@ -2772,7 +2772,7 @@
   ,"winui.parity.verify.export": "Exporter le rapport JSON"
   ,"winui.parity.tsa.enabled": "Utiliser un horodatage"
   ,"winui.parity.tsa.url": "URL du serveur d'horodatage (HTTPS)"
-  ,"winui.parity.tsa.invalid": "Saisissez une URL HTTPS valide pour le serveur d'horodatage."
+  ,"winui.parity.tsa.invalid": "Saisissez une URL HTTP ou HTTPS valide pour le serveur d'horodatage."
   ,"winui.parity.tsa.unavailable": "Impossible de lire les paramètres d'horodatage. Réessayez."
   ,"winui.parity.certs.person": "Personne physique"
   ,"winui.parity.certs.representative": "Représentant"

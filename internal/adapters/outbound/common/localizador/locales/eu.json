@@ -2772,7 +2772,7 @@
   ,"winui.parity.verify.export": "Esportatu JSON txostena"
   ,"winui.parity.tsa.enabled": "Erabili denbora-zigilua"
   ,"winui.parity.tsa.url": "Denbora-zigilu zerbitzariaren URLa (HTTPS)"
-  ,"winui.parity.tsa.invalid": "Idatzi denbora-zigilu zerbitzariaren HTTPS URL baliozkoa."
+  ,"winui.parity.tsa.invalid": "Idatzi denbora-zigilu zerbitzariaren HTTP edo HTTPS URL baliozkoa."
   ,"winui.parity.tsa.unavailable": "Ezin izan dira denbora-zigiluaren ezarpenak irakurri. Saiatu berriro."
   ,"winui.parity.certs.person": "Pertsona fisikoa"
   ,"winui.parity.certs.representative": "Ordezkaria"

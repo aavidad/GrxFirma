@@ -2772,7 +2772,7 @@
   ,"winui.parity.verify.export": "Export JSON report"
   ,"winui.parity.tsa.enabled": "Use a time stamp"
   ,"winui.parity.tsa.url": "Time stamp server URL (HTTPS)"
-  ,"winui.parity.tsa.invalid": "Enter a valid HTTPS URL for the time stamp server."
+  ,"winui.parity.tsa.invalid": "Enter a valid HTTP or HTTPS URL for the time stamp server."
   ,"winui.parity.tsa.unavailable": "Could not read time stamp settings. Try again."
   ,"winui.parity.certs.person": "Individual"
   ,"winui.parity.certs.representative": "Representative"
