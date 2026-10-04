@@ -4837,4 +4837,9 @@
   "eni.codigo.E01": "Offen",
   "eni.codigo.E02": "Geschlossen",
   "eni.codigo.E03": "Abgeschlossenes Verzeichnis zur Übermittlung"
+  ,"Documentos y expedientes ENI: el estado de elaboración, el tipo documental y el estado del expediente se eligen de una lista con los códigos oficiales y su descripción.": "ENI-Dokumente und -Akten: Erstellungsstatus, Dokumenttyp und Aktenstatus werden aus einer Liste mit den offiziellen Codes und ihrer Beschreibung gewählt."
+  ,"ENI: las fechas de captura y de apertura se eligen en un calendario.": "ENI: Erfassungs- und Eröffnungsdatum werden in einem Kalender gewählt."
+  ,"ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».": "ENI: GrxFirma prüft, ob das erzeugte Dokument bzw. die Akte der Struktur der technischen Norm (NTI) entspricht, und meldet jedes Problem. Mit „grxfirma -operacion validar-eni -entrada <fichero>“ lässt sich auch eine vorhandene Datei prüfen."
+  ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "Die Prüfadressen des QR-Codes und der CSV-Legende akzeptieren Domains mit Akzenten oder ñ, zum Beispiel „https://sede.almuñécar.es/verificar“."
+  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: Dialoge sind mit jedem Design gut lesbar; Text erscheint nicht mehr hell auf hellem Hintergrund."
 }

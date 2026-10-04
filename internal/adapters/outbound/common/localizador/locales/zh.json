@@ -4837,4 +4837,9 @@
   "eni.codigo.E01": "开放",
   "eni.codigo.E02": "关闭",
   "eni.codigo.E03": "已关闭的移送索引"
+  ,"Documentos y expedientes ENI: el estado de elaboración, el tipo documental y el estado del expediente se eligen de una lista con los códigos oficiales y su descripción.": "ENI 文档和卷宗：编制状态、文档类型和卷宗状态从带有官方代码及其说明的列表中选择。"
+  ,"ENI: las fechas de captura y de apertura se eligen en un calendario.": "ENI：采集日期和开立日期在日历中选择。"
+  ,"ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».": "ENI：GrxFirma 会检查生成的文档或卷宗是否符合技术规范（NTI）的结构，并报告每个问题。也可以用 «grxfirma -operacion validar-eni -entrada <fichero>» 验证已有文件。"
+  ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "二维码和 CSV 图例的验证地址支持带重音符号或 ñ 的域名，例如 «https://sede.almuñécar.es/verificar»。"
+  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux：对话框在任何主题下都清晰易读，不再出现浅色背景上的浅色文字。"
 }

@@ -4837,4 +4837,9 @@
   "eni.codigo.E01": "Abierto",
   "eni.codigo.E02": "Cerrado",
   "eni.codigo.E03": "Índice para remisión cerrado"
+  ,"Documentos y expedientes ENI: el estado de elaboración, el tipo documental y el estado del expediente se eligen de una lista con los códigos oficiales y su descripción.": "Documentos y expedientes ENI: el estado de elaboración, el tipo documental y el estado del expediente se eligen de una lista con los códigos oficiales y su descripción."
+  ,"ENI: las fechas de captura y de apertura se eligen en un calendario.": "ENI: las fechas de captura y de apertura se eligen en un calendario."
+  ,"ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».": "ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>»."
+  ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar»."
+  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro."
 }

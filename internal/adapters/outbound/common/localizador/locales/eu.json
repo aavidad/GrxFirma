@@ -4837,4 +4837,9 @@
   "eni.codigo.E01": "Irekita",
   "eni.codigo.E02": "Itxita",
   "eni.codigo.E03": "Bidaltzeko indize itxia"
+  ,"Documentos y expedientes ENI: el estado de elaboración, el tipo documental y el estado del expediente se eligen de una lista con los códigos oficiales y su descripción.": "ENI dokumentuak eta espedienteak: prestaketa-egoera, dokumentu mota eta espedientearen egoera kode ofizialak eta haien deskribapena dituen zerrenda batetik aukeratzen dira."
+  ,"ENI: las fechas de captura y de apertura se eligen en un calendario.": "ENI: atzemate- eta irekiera-datak egutegi batean aukeratzen dira."
+  ,"ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».": "ENI: GrxFirmak egiaztatzen du sortutako dokumentuak edo espedienteak arau teknikoaren (NTI) egitura betetzen duela, eta arazo bakoitzaren berri ematen du. Lehendik dagoen bat ere baliozkotzen du «grxfirma -operacion validar-eni -entrada <fichero>» erabiliz."
+  ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "QR kodearen eta CSV legendaren egiaztapen-helbideek azentuak edo eñea dituzten domeinuak onartzen dituzte, adibidez «https://sede.almuñécar.es/verificar»."
+  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: elkarrizketa-koadroak ondo irakurtzen dira edozein gairekin; testua ez da jada argi agertzen hondo argiaren gainean."
 }

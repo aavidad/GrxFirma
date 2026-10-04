@@ -7,6 +7,14 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.113 — 2026-10-04
+
+- Documentos y expedientes ENI: el estado de elaboración, el tipo documental y el estado del expediente se eligen de una lista con los códigos oficiales y su descripción.
+- ENI: las fechas de captura y de apertura se eligen en un calendario.
+- ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».
+- Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».
+- Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.
+
 ## 0.0.112 — 2026-10-04
 
 - Toda la aplicación aparece en el idioma elegido: se han traducido más de mil textos que seguían en español o en inglés en los diez idiomas disponibles.
