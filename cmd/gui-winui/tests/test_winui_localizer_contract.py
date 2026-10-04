@@ -345,14 +345,12 @@ class WinUiLocalizerContractTests(unittest.TestCase):
         if missing:
             self.fail(f"{len(missing)} group B C# text candidates lack a catalog key: {missing[:20]}")
 
-    @unittest.expectedFailure  # Grupo A se integra desde la otra rama.
     def test_pending_group_a_visible_xaml_literals_are_in_the_shared_catalog(self):
         paths = (path for path in UI.rglob("*.xaml") if path.name not in GROUP_B_XAML)
         missing = untranslated_xaml(paths)
         if missing:
             self.fail(f"{len(missing)} pending group A literals: {missing[:20]}")
 
-    @unittest.expectedFailure  # Grupo A, incluido WinUI.Core, se integra desde la otra rama.
     def test_pending_other_csharp_human_text_is_in_the_shared_catalog(self):
         paths = (path for path in SOURCE_ROOT.rglob("*.cs")
                  if not belongs_to_group_b_cs(path))
