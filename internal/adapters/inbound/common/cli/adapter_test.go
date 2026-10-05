@@ -941,7 +941,7 @@ func TestRunAyudaCLI_EnumeraTodosLosFormatos(t *testing.T) {
 	if rc := adaptador.Run(context.Background(), []string{"-ayuda-cli"}); rc != 0 {
 		t.Fatalf("se esperaba codigo 0, se obtuvo %d, stderr=%s", rc, stderr.String())
 	}
-	const formatos = "auto|pades|cades|xades|xmldsig|odf|ooxml|facturae|asic-xades"
+	const formatos = "auto|pades|cades|xades|xmldsig|odf|ooxml|facturae|verifactu|asic-xades"
 	if !strings.Contains(stdout.String(), "-formato "+formatos) {
 		t.Fatalf("la ayuda CLI no enumera todos los formatos públicos: %s", stdout.String())
 	}

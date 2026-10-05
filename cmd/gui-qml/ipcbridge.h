@@ -87,6 +87,10 @@ public:
   Q_INVOKABLE void requestSmartcardStatus();
   Q_INVOKABLE void createFacturae(const QVariantMap &draft, const QString &outputPath);
   Q_INVOKABLE void validateInvoice(const QString &inputPath);
+  Q_INVOKABLE void validateVeriFactu(const QString &inputPath);
+  Q_INVOKABLE void readVeriFactuQR(const QString &url);
+  Q_INVOKABLE void queryVeriFactuQR(const QString &url);
+  Q_INVOKABLE void detectVeriFactu(const QString &inputPath);
   Q_INVOKABLE void generateENIDocument(const QVariantMap &params);
   Q_INVOKABLE void generateENIFile(const QVariantMap &params);
   Q_INVOKABLE bool startupEnabled() const;
@@ -198,6 +202,9 @@ signals:
   void smartcardStatusReceived(bool ok, QVariantList readers, QString message);
   void facturaeCreated(bool ok, QVariantMap result, QString message);
   void invoiceValidated(bool ok, QVariantMap result, QString message);
+  void verifactuValidated(bool ok, QVariantMap result, QString message);
+  void verifactuQRFinished(QString action, bool ok, QVariantMap result, QString message);
+  void verifactuDetected(bool ok, QVariantMap result);
   void eniGenerated(QString action, bool ok, QVariantMap result, QString message);
   void sealPreviewReceived(QString requestId, bool ok, QString image,
                            QString message);

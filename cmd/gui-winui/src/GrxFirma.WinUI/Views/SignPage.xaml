@@ -295,7 +295,7 @@
                                 AutomationProperties.Name="Formato de firma"
                                 DisplayMemberPath="Label"
                                 Header="Formato"
-                                ItemsSource="{x:Bind ViewModel.Formats}"
+                                ItemsSource="{x:Bind ViewModel.Formats, Mode=OneWay}"
                                 SelectedItem="{x:Bind ViewModel.SelectedFormat, Mode=TwoWay}"
                                 TabIndex="11" />
                         </Grid>

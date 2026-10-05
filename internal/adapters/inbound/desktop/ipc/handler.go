@@ -249,6 +249,8 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp = handleFacturaeCreate(ctx, p.Params)
 	case "validate_eni":
 		resp = m.handleValidateENI(ctx, p.Params)
+	case "validate_verifactu", "read_verifactu_qr", "query_verifactu_qr", "detect_verifactu":
+		resp = m.handleVeriFactu(ctx, accion, p.Params)
 	case "validate_invoice":
 		resp = m.handleValidateInvoice(ctx, p.Params)
 	case "generate_eni_document":
@@ -3744,6 +3746,8 @@ func sufijoSalidaFirma(formato string) string {
 	switch strings.ToLower(formato) {
 	case "pades":
 		return "_firmado.pdf"
+	case "verifactu":
+		return "_firmado.xml"
 	case "xmldsig":
 		return "_firmado.dsig"
 	case "xades":

@@ -21,6 +21,10 @@ public static class DesktopOperationActions
     public const string SmartcardStatus = "smartcard_status";
     public const string FacturaeCreate = "facturae_create";
     public const string ValidateInvoice = "validate_invoice";
+    public const string ValidateVeriFactu = "validate_verifactu";
+    public const string ReadVeriFactuQr = "read_verifactu_qr";
+    public const string QueryVeriFactuQr = "query_verifactu_qr";
+    public const string DetectVeriFactu = "detect_verifactu";
     public const string GenerateEniDocument = "generate_eni_document";
     public const string GenerateEniFile = "generate_eni_file";
     public const string ValidateCertificateOnline =
@@ -121,6 +125,28 @@ public sealed class DesktopOperationsClient
                 DesktopOperationActions.SmartcardStatus,
                 new SmartcardStatusParameters(),
                 cancellationToken);
+
+    public Task<IpcCallResult<InvoiceValidationResult>> ValidateVeriFactuAsync(string inputPath, CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<object, InvoiceValidationResult>(DesktopOperationActions.ValidateVeriFactu,
+            new { inputPath }, cancellationToken);
+
+    public Task<IpcCallResult<VeriFactuDetectionResult>> DetectVeriFactuAsync(string inputPath, CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<object, VeriFactuDetectionResult>(DesktopOperationActions.DetectVeriFactu,
+            new { inputPath }, cancellationToken);
+
+    public Task<IpcCallResult<VeriFactuQrResult>> ReadVeriFactuQrAsync(string url, CancellationToken cancellationToken = default)
+    {
+        VeriFactuQrInput.EnsureAllowedAuthority(url);
+        return _ipcClient.SendAsync<object, VeriFactuQrResult>(DesktopOperationActions.ReadVeriFactuQr,
+            new { url }, cancellationToken);
+    }
+
+    public Task<IpcCallResult<VeriFactuQrQueryResult>> QueryVeriFactuQrAsync(string url, CancellationToken cancellationToken = default)
+    {
+        VeriFactuQrInput.EnsureAllowedAuthority(url);
+        return _ipcClient.SendAsync<object, VeriFactuQrQueryResult>(DesktopOperationActions.QueryVeriFactuQr,
+            new { url }, cancellationToken);
+    }
 
     public Task<IpcCallResult<InvoiceValidationResult>> ValidateInvoiceAsync(string inputPath, CancellationToken cancellationToken = default) =>
         _ipcClient.SendAsync<object, InvoiceValidationResult>(DesktopOperationActions.ValidateInvoice,

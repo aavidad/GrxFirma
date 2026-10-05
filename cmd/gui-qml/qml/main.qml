@@ -730,7 +730,19 @@ Window {
         currentOutputVerificationDetails = null
     }
 
+    property bool verifactuInput: false
+    Connections {
+        target: (typeof isIpcMode !== "undefined" && isIpcMode) ? backend : null
+        ignoreUnknownSignals: true
+        function onVerifactuDetected(ok, result) {
+            if (ok && result.inputPath === window.currentFilePath)
+                window.verifactuInput = result.isVerifactu === true
+        }
+    }
     onCurrentFilePathChanged: {
+        verifactuInput = false
+        if (signFormat === "verifactu") signFormat = ""
+        if (isIpcMode && currentFilePath.toLowerCase().endsWith(".xml")) backend.detectVeriFactu(currentFilePath)
         if (portalSealMode) {
             pendingPreviewRequestId = ""
             return
@@ -3220,6 +3232,7 @@ Window {
         case "ooxml": return 6
         case "facturae": return 7
         case "asic-xades": return 8
+        case "verifactu": return verifactuInput ? 9 : 0
         default: return 0
         }
     }
@@ -8309,7 +8322,7 @@ Window {
                                                 { texto: tr("OOXML"), valor: "ooxml" },
                                                 { texto: tr("FacturaE"), valor: "facturae" },
                                                 { texto: tr("ASiC-XAdES"), valor: "asic-xades" }
-                                            ]
+                                            ].concat(window.verifactuInput ? [{ texto: tr("verifactu.profile_label"), valor: "verifactu" }] : [])
                                             textRole: "texto"
                                             currentIndex: signFormatIndex()
                                             onActivated: function(index) { signFormat = model[index].valor }

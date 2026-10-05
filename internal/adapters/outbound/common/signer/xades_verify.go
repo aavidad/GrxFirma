@@ -554,12 +554,12 @@ func verifySigningCertificate(xmlData, signedInfoXML []byte, cert *x509.Certific
 	}
 
 	switch {
-	case props.SigningCertificateV2.Cert.CertDigest.DigestValue != "":
-		got, err := digestXML(props.SigningCertificateV2.Cert.CertDigest.DigestMethod.Algorithm, cert.Raw)
+	case len(props.SigningCertificateV2.Certs) > 0 && props.SigningCertificateV2.Certs[0].CertDigest.DigestValue != "":
+		got, err := digestXML(props.SigningCertificateV2.Certs[0].CertDigest.DigestMethod.Algorithm, cert.Raw)
 		if err != nil {
 			return err
 		}
-		expected, err := base64.StdEncoding.DecodeString(compactBase64(props.SigningCertificateV2.Cert.CertDigest.DigestValue))
+		expected, err := base64.StdEncoding.DecodeString(compactBase64(props.SigningCertificateV2.Certs[0].CertDigest.DigestValue))
 		if err != nil {
 			return err
 		}
@@ -567,12 +567,12 @@ func verifySigningCertificate(xmlData, signedInfoXML []byte, cert *x509.Certific
 			return fmt.Errorf("signingcertificatev2 no coincide")
 		}
 		return nil
-	case props.SigningCertificate.Cert.CertDigest.DigestValue != "":
-		got, err := digestXML(props.SigningCertificate.Cert.CertDigest.DigestMethod.Algorithm, cert.Raw)
+	case len(props.SigningCertificate.Certs) > 0 && props.SigningCertificate.Certs[0].CertDigest.DigestValue != "":
+		got, err := digestXML(props.SigningCertificate.Certs[0].CertDigest.DigestMethod.Algorithm, cert.Raw)
 		if err != nil {
 			return err
 		}
-		expected, err := base64.StdEncoding.DecodeString(compactBase64(props.SigningCertificate.Cert.CertDigest.DigestValue))
+		expected, err := base64.StdEncoding.DecodeString(compactBase64(props.SigningCertificate.Certs[0].CertDigest.DigestValue))
 		if err != nil {
 			return err
 		}
@@ -935,11 +935,11 @@ type signedPropertiesForVerify struct {
 }
 
 type signingCertificateV2Wrapper struct {
-	Cert signingCertificateEntry `xml:"Cert"`
+	Certs []signingCertificateEntry `xml:"Cert"`
 }
 
 type signingCertificateWrapper struct {
-	Cert signingCertificateEntry `xml:"Cert"`
+	Certs []signingCertificateEntry `xml:"Cert"`
 }
 
 type signingCertificateEntry struct {

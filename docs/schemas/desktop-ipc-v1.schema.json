@@ -68,6 +68,14 @@
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["inputPath"], "properties": {"inputPath": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
         },
         {
+          "if": {"properties": {"action": {"enum": ["validate_verifactu", "detect_verifactu"]}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["inputPath"], "properties": {"inputPath": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"enum": ["read_verifactu_qr", "query_verifactu_qr"]}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["url"], "properties": {"url": {"type": "string", "minLength": 1, "maxLength": 2048}}, "additionalProperties": false}}}
+        },
+        {
           "if": {"properties": {"action": {"const": "validate_eni"}}, "required": ["action"]},
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["inputPath"], "properties": {"inputPath": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
         },
@@ -173,6 +181,22 @@
         {
           "if": {"properties": {"action": {"const": "validate_invoice"}, "ok": {"const": true}}, "required": ["action", "ok"]},
           "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["format", "valid", "errors", "warnings", "issues", "report"], "properties": {"format": {"enum": ["FacturaE", "UBL", "CII"]}, "valid": {"type": "boolean"}, "errors": {"type": "integer"}, "warnings": {"type": "integer"}, "issues": {"type": "array"}, "report": {"type": "string"}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "validate_verifactu"}, "ok": {"const": true}}, "required": ["action", "ok"]},
+          "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["format", "valid", "errors", "warnings", "records", "report"], "properties": {"format": {"const": "VeriFactu"}, "valid": {"type": "boolean"}, "errors": {"type": "integer"}, "warnings": {"type": "integer"}, "records": {"type": "array"}, "report": {"type": "string"}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "detect_verifactu"}, "ok": {"const": true}}, "required": ["action", "ok"]},
+          "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["inputPath", "isVerifactu"], "properties": {"inputPath": {"type": "string"}, "isVerifactu": {"type": "boolean"}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "read_verifactu_qr"}, "ok": {"const": true}}, "required": ["action", "ok"]},
+          "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["url", "nif", "numserie", "fecha", "importe", "verifiable", "test"], "properties": {"url": {"type": "string"}, "nif": {"type": "string"}, "numserie": {"type": "string"}, "fecha": {"type": "string"}, "importe": {"type": "string"}, "verifiable": {"type": "boolean"}, "test": {"type": "boolean"}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "query_verifactu_qr"}, "ok": {"const": true}}, "required": ["action", "ok"]},
+          "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["response"], "properties": {"response": {}}, "additionalProperties": false}}}
         },
         {
           "if": {"properties": {"action": {"const": "validate_eni"}, "ok": {"const": true}}, "required": ["action", "ok"]},
@@ -368,6 +392,10 @@
         "export_diagnostic",
         "facturae_create",
         "validate_invoice",
+        "validate_verifactu",
+        "read_verifactu_qr",
+        "query_verifactu_qr",
+        "detect_verifactu",
         "validate_eni",
         "generate_eni_document",
         "generate_eni_file",

@@ -219,7 +219,12 @@ public sealed class SignPageViewModel
         new("Contrafirma", "countersign"),
     ];
 
-    public IReadOnlyList<SignatureFormatOption> Formats { get; } =
+    private bool _verifactuInput;
+    private static readonly SignatureFormatOption VeriFactuFormat = new("verifactu.profile_label", "verifactu", SaveFilePickerProfile.FacturaeXml);
+    public IReadOnlyList<SignatureFormatOption> Formats => _verifactuInput
+        ? StandardFormats.Concat(new[] { VeriFactuFormat }).ToArray()
+        : StandardFormats;
+    private IReadOnlyList<SignatureFormatOption> StandardFormats { get; } =
     [
         new("Automático", "", SaveFilePickerProfile.CadesSignature),
         new("PAdES", "pades", SaveFilePickerProfile.SignedPdf),
@@ -367,6 +372,23 @@ public sealed class SignPageViewModel
                 UpdateCommandStates();
             }
         }
+    }
+
+    private async Task UpdateVeriFactuFormatAsync(string path)
+    {
+        _verifactuInput = false;
+        if (SelectedFormat?.Value == "verifactu") SelectedFormat = StandardFormats[0];
+        RaisePropertyChanged(nameof(Formats));
+        if (!path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) ||
+            !_session.TryGetOperations(DesktopOperationActions.DetectVeriFactu, out var operations)) return;
+        try
+        {
+            var result = await operations.DetectVeriFactuAsync(path);
+            if (!PathsEqual(_inputPath ?? string.Empty, path)) return;
+            _verifactuInput = result.IsSuccess && result.Data?.IsVerifactu == true;
+            RaisePropertyChanged(nameof(Formats));
+        }
+        catch (Exception) { /* La firma conserva el formato automático si falla la detección. */ }
     }
 
     public SignatureFormatOption? SelectedFormat
@@ -1229,6 +1251,7 @@ public sealed class SignPageViewModel
         _portalSealMode = true;
         _portalSignerName = signerName;
         _inputPath = path;
+        _ = UpdateVeriFactuFormatAsync(path);
         _visibleSealPages = "1";
         _requestedPreviewPage = 1;
         InputDisplayName = SafeFileName(path);
@@ -1746,6 +1769,7 @@ public sealed class SignPageViewModel
                 RaisePropertyChanged(nameof(HasSealOnPreviewPage));
             }
             _inputPath = selectedPath;
+            _ = UpdateVeriFactuFormatAsync(selectedPath);
             InputDisplayName = SafeFileName(selectedPath);
             ClearOutput();
             ClearVisibleSealPreview();
@@ -3308,6 +3332,7 @@ public sealed class SignPageViewModel
         if (!File.Exists(_inputPath))
         {
             _inputPath = null;
+            _ = UpdateVeriFactuFormatAsync(string.Empty);
             InputDisplayName = string.Empty;
             ClearOutput();
             UpdateCommandStates();

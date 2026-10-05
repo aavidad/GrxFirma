@@ -46,6 +46,8 @@ func ParseSignatureFormat(raw string) (domain.SignatureFormat, error) {
 		return domain.SignatureFormat("ODF"), nil
 	case "ooxml", "ooxml (office open xml)":
 		return domain.SignatureFormat("OOXML"), nil
+	case "verifactu":
+		return domain.SignatureFormat("VeriFactu"), nil
 	case "facturae", "facturaetri", "factura-e":
 		return domain.SignatureFormat("FacturaE"), nil
 	case "none", "nonetri", "pkcs1", "pkcs#1":
