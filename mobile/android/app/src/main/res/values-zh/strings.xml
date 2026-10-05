@@ -485,7 +485,6 @@
     <string name="summary_tsa">含认证日期和时间</string>
     <string name="other_tools_title">其他工具</string>
     <string name="tsa_url_example">https://tsa.example.cn</string>
-    <string name="menu_help">帮助</string>
     <string name="hint_need_document">要签名或验证，请在第 1 步选择文档。</string>
     <string name="hint_need_certificate">要签名，请在第 2 步准备证书。验证不需要证书。</string>
     <string name="hint_unavailable">此安装无法签名或验证。请安装 GrxFirma 官方版本。</string>
@@ -606,7 +605,7 @@
     <string name="cert_fingerprint">指纹：%1$s</string>
     <string name="seal_qr_address_example">https://example.cn/verify</string>
     <string name="seal_qr_address_required">请输入二维码要打开的 https:// 地址。</string>
-    <string name="seal_qr_address_https">二维码地址必须以 https:// 开头。</string>
+    <string name="seal_qr_address_https">二维码地址无效。请输入以 https:// 开头的完整安全网址。</string>
     <string name="seal_image_required">请通过“选择图像”选择图片，或将样式改为“无标志”。</string>
     <string name="seal_placed_press_sign">印章已放置。点击“签署文档”完成。</string>
     <string name="error_protect_own_certificate">您的证书不能用于保护文件。请取消勾选“将我的证书列为接收者”，或添加其他人的证书。</string>

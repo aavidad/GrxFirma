@@ -498,7 +498,6 @@
     <string name="summary_tsa">Mit zertifiziertem Datum und Uhrzeit</string>
     <string name="other_tools_title">Weitere Werkzeuge</string>
     <string name="tsa_url_example">https://tsa.beispiel.de</string>
-    <string name="menu_help">Hilfe</string>
     <string name="hint_need_document">Wählen Sie zum Signieren oder Prüfen in Schritt 1 ein Dokument.</string>
     <string name="hint_need_certificate">Richten Sie zum Signieren in Schritt 2 ein Zertifikat ein. Zum Prüfen ist es nicht nötig.</string>
     <string name="hint_unavailable">Diese Installation kann weder signieren noch prüfen. Installieren Sie die offizielle Version von GrxFirma.</string>
@@ -623,7 +622,7 @@
     <string name="cert_fingerprint">Fingerabdruck: %1$s</string>
     <string name="seal_qr_address_example">https://beispiel.de/pruefen</string>
     <string name="seal_qr_address_required">Geben Sie die https://-Adresse ein, die der QR-Code öffnen soll.</string>
-    <string name="seal_qr_address_https">Die QR-Adresse muss mit https:// beginnen.</string>
+    <string name="seal_qr_address_https">Die QR-Adresse ist ungültig. Geben Sie eine vollständige sichere Webadresse ein, die mit https:// beginnt.</string>
     <string name="seal_image_required">Wählen Sie Ihr Bild mit „Bild auswählen“ oder stellen Sie den Stil auf „Ohne Logo“.</string>
     <string name="seal_placed_press_sign">Siegel platziert. Tippen Sie auf „Dokument signieren“, um abzuschließen.</string>
     <string name="error_protect_own_certificate">Ihr Zertifikat kann keine Dateien schützen. Entfernen Sie das Häkchen bei „Mein Zertifikat als Empfänger einschließen“ oder fügen Sie das Zertifikat einer anderen Person hinzu.</string>

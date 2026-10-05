@@ -511,7 +511,6 @@
     <string name="summary_tsa">Amb data i hora certificades</string>
     <string name="other_tools_title">Altres eines</string>
     <string name="tsa_url_example">https://tsa.exemple.cat</string>
-    <string name="menu_help">Ajuda</string>
     <string name="hint_need_document">Per signar o verificar, trieu un document al pas 1.</string>
     <string name="hint_need_certificate">Per signar, prepareu un certificat al pas 2. Per verificar no cal.</string>
     <string name="hint_unavailable">Aquesta instal·lació no pot signar ni verificar. Instal·leu la versió oficial de GrxFirma.</string>
@@ -640,7 +639,7 @@
     <string name="cert_fingerprint">Empremta: %1$s</string>
     <string name="seal_qr_address_example">https://seu.exemple.cat/verificar</string>
     <string name="seal_qr_address_required">Escriviu l\'adreça https:// que obrirà el QR.</string>
-    <string name="seal_qr_address_https">L\'adreça del QR ha de començar per https://.</string>
+    <string name="seal_qr_address_https">L\'adreça del QR no és vàlida. Escriviu una adreça web segura completa, que comenci per https://.</string>
     <string name="seal_image_required">Trieu la imatge amb «Selecciona una imatge» o canvieu l\'estil a «Sense logotip».</string>
     <string name="seal_placed_press_sign">Segell col·locat. Premeu «Signar el document» per acabar.</string>
     <string name="error_protect_own_certificate">El vostre certificat no serveix per protegir fitxers. Desmarqueu «Incloure el meu certificat com a destinatari» o afegiu el certificat d\'una altra persona.</string>

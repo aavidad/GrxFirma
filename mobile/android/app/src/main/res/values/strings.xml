@@ -498,7 +498,6 @@
     <string name="summary_tsa">Con fecha y hora certificadas</string>
     <string name="other_tools_title">Otras herramientas</string>
     <string name="tsa_url_example">https://tsa.ejemplo.es</string>
-    <string name="menu_help">Ayuda</string>
     <string name="hint_need_document">Para firmar o verificar, elija un documento en el paso 1.</string>
     <string name="hint_need_certificate">Para firmar, prepare un certificado en el paso 2. Para verificar no hace falta.</string>
     <string name="hint_unavailable">Esta instalación no puede firmar ni verificar. Instale la versión oficial de GrxFirma.</string>
@@ -623,7 +622,7 @@
     <string name="cert_fingerprint">Huella: %1$s</string>
     <string name="seal_qr_address_example">https://sede.ejemplo.es/verificar</string>
     <string name="seal_qr_address_required">Escriba la dirección https:// que abrirá el QR.</string>
-    <string name="seal_qr_address_https">La dirección del QR debe empezar por https://.</string>
+    <string name="seal_qr_address_https">La dirección del QR no es válida. Escriba una dirección web segura completa, que empiece por https://.</string>
     <string name="seal_image_required">Elija su imagen con «Seleccionar imagen» o cambie el estilo a «Sin logo».</string>
     <string name="seal_placed_press_sign">Sello colocado. Pulse «Firmar documento» para terminar.</string>
     <string name="error_protect_own_certificate">Su certificado no sirve para proteger ficheros. Desmarque «Incluir mi certificado como destinatario» o añada el certificado de otra persona.</string>

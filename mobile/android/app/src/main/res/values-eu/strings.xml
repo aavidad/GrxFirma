@@ -498,7 +498,6 @@
     <string name="summary_tsa">Data eta ordu ziurtatuekin</string>
     <string name="other_tools_title">Beste tresna batzuk</string>
     <string name="tsa_url_example">https://tsa.adibidea.eus</string>
-    <string name="menu_help">Laguntza</string>
     <string name="hint_need_document">Sinatzeko edo egiaztatzeko, aukeratu dokumentu bat 1. urratsean.</string>
     <string name="hint_need_certificate">Sinatzeko, prestatu ziurtagiri bat 2. urratsean. Egiaztatzeko ez da behar.</string>
     <string name="hint_unavailable">Instalazio honek ezin du sinatu edo egiaztatu. Instalatu GrxFirma-ren bertsio ofiziala.</string>
@@ -623,7 +622,7 @@
     <string name="cert_fingerprint">Hatz-marka: %1$s</string>
     <string name="seal_qr_address_example">https://egoitza.adibidea.eus/egiaztatu</string>
     <string name="seal_qr_address_required">Idatzi QR kodeak irekiko duen https:// helbidea.</string>
-    <string name="seal_qr_address_https">QR kodearen helbideak https:// hasiera izan behar du.</string>
+    <string name="seal_qr_address_https">QR kodearen helbidea ez da baliozkoa. Idatzi web helbide seguru oso bat, https:// hasiera duena.</string>
     <string name="seal_image_required">Aukeratu zure irudia «Hautatu irudia» erabiliz, edo aldatu estiloa «Logorik gabe» aukerara.</string>
     <string name="seal_placed_press_sign">Zigilua jarrita. Sakatu «Sinatu dokumentua» amaitzeko.</string>
     <string name="error_protect_own_certificate">Zure ziurtagiriak ez du balio fitxategiak babesteko. Kendu marka «Sartu nire ziurtagiria hartzaile gisa» aukerari, edo gehitu beste pertsona baten ziurtagiria.</string>

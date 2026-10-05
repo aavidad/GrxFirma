@@ -369,7 +369,7 @@ class SealEditorDialog(
         val address = settings.qrAddress.trim()
         val problem = when {
             settings.qrEnabled && address.isEmpty() -> R.string.seal_qr_address_required
-            settings.qrEnabled && !address.startsWith("https://", ignoreCase = true) -> R.string.seal_qr_address_https
+            settings.qrEnabled && runCatching { normalizedHttps(address) }.isFailure -> R.string.seal_qr_address_https
             settings.logo == "custom" && !(imageFile.isFile && imageFile.length() in 1..(2L shl 20)) -> R.string.seal_image_required
             else -> null
         }

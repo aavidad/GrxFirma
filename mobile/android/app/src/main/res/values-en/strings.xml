@@ -498,7 +498,6 @@
     <string name="summary_tsa">With certified date and time</string>
     <string name="other_tools_title">Other tools</string>
     <string name="tsa_url_example">https://tsa.example.com</string>
-    <string name="menu_help">Help</string>
     <string name="hint_need_document">To sign or verify, choose a document in step 1.</string>
     <string name="hint_need_certificate">To sign, set up a certificate in step 2. It is not needed to verify.</string>
     <string name="hint_unavailable">This installation cannot sign or verify. Install the official version of GrxFirma.</string>
@@ -623,7 +622,7 @@
     <string name="cert_fingerprint">Fingerprint: %1$s</string>
     <string name="seal_qr_address_example">https://office.example.org/verify</string>
     <string name="seal_qr_address_required">Enter the https:// address the QR code will open.</string>
-    <string name="seal_qr_address_https">The QR address must start with https://.</string>
+    <string name="seal_qr_address_https">The QR address is not valid. Enter a full secure web address starting with https://.</string>
     <string name="seal_image_required">Choose your image with “Select image” or change the style to “No logo”.</string>
     <string name="seal_placed_press_sign">Seal placed. Tap “Sign document” to finish.</string>
     <string name="error_protect_own_certificate">Your certificate cannot be used to protect files. Untick “Include my certificate as a recipient” or add another person\'s certificate.</string>

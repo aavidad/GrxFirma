@@ -511,7 +511,6 @@
     <string name="summary_tsa">Com data e hora certificadas</string>
     <string name="other_tools_title">Outras ferramentas</string>
     <string name="tsa_url_example">https://tsa.exemplo.pt</string>
-    <string name="menu_help">Ajuda</string>
     <string name="hint_need_document">Para assinar ou verificar, escolha um documento no passo 1.</string>
     <string name="hint_need_certificate">Para assinar, prepare um certificado no passo 2. Para verificar não é necessário.</string>
     <string name="hint_unavailable">Esta instalação não pode assinar nem verificar. Instale a versão oficial do GrxFirma.</string>
@@ -640,7 +639,7 @@
     <string name="cert_fingerprint">Impressão digital: %1$s</string>
     <string name="seal_qr_address_example">https://exemplo.pt/verificar</string>
     <string name="seal_qr_address_required">Escreva o endereço https:// que o QR vai abrir.</string>
-    <string name="seal_qr_address_https">O endereço do QR tem de começar por https://.</string>
+    <string name="seal_qr_address_https">O endereço do QR não é válido. Escreva um endereço web seguro completo, que comece por https://.</string>
     <string name="seal_image_required">Escolha a sua imagem com «Selecionar imagem» ou mude o estilo para «Sem logótipo».</string>
     <string name="seal_placed_press_sign">Selo colocado. Toque em «Assinar documento» para terminar.</string>
     <string name="error_protect_own_certificate">O seu certificado não serve para proteger ficheiros. Desmarque «Incluir o meu certificado como destinatário» ou adicione o certificado de outra pessoa.</string>
