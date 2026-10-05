@@ -4970,7 +4970,7 @@
   ,"csc.error.otp_lote": "Votre prestataire ne permet pas d'autoriser plusieurs signatures avec un même code à usage unique. Signez les documents un par un."
   ,"csc.error.secreto_no_pedido": "Le PIN ou le code à usage unique manque, ou il a été envoyé pour un certificat qui n'est pas distant. Signez de nouveau et saisissez-les lorsqu'ils sont demandés."
   ,"csc.error.adicional_con_secretos": "Lorsque plusieurs personnes signent, seul le premier signataire peut utiliser un certificat distant qui demande un code PIN ou un code à usage unique. Placez ce certificat en premier ou signez séparément."
-  ,"csc.error.proteger_con_secretos": "Ce certificat distant demande un code PIN ou un code à usage unique, et « Protéger et signer » ne peut pas les demander. Signez d’abord le document puis protégez-le, ou utilisez un autre certificat."
+  ,"csc.error.proteger_con_secretos": "Ce certificat distant demande un code PIN ou un code à usage unique, et ils ne sont pas arrivés. Appuyez de nouveau sur « Protéger et signer » et saisissez-les lorsqu’ils sont demandés."
   ,"csc.gui.titulo": "Signature à distance"
   ,"csc.gui.descripcion": "Signez avec un certificat conservé par un prestataire de confiance. Seule l'empreinte du document quitte l'ordinateur, jamais le document."
   ,"csc.gui.url": "Adresse du service de signature"

@@ -4970,7 +4970,7 @@
   ,"csc.error.otp_lote": "Su prestador no permite autorizar varias firmas con un mismo código de un solo uso. Firme los documentos de uno en uno."
   ,"csc.error.secreto_no_pedido": "Falta el PIN o el código de un solo uso, o se ha enviado para un certificado que no es remoto. Vuelva a firmar y escríbalos cuando se pidan."
   ,"csc.error.adicional_con_secretos": "En una firma con varios firmantes, solo el primero puede usar un certificado remoto que pida PIN o código de un solo uso. Ponga ese certificado como primer firmante o firme por separado."
-  ,"csc.error.proteger_con_secretos": "Este certificado remoto pide PIN o código de un solo uso, y «Proteger y firmar» no puede pedirlos. Firme el documento primero y protéjalo después, o use otro certificado."
+  ,"csc.error.proteger_con_secretos": "Este certificado remoto pide PIN o código de un solo uso y no han llegado. Vuelva a pulsar «Proteger y firmar» y escríbalos cuando se pidan."
   ,"csc.gui.titulo": "Firma remota"
   ,"csc.gui.descripcion": "Firme con un certificado que guarda un prestador de confianza. Del equipo solo sale el resumen del documento, nunca el documento."
   ,"csc.gui.url": "Dirección del servicio de firma"

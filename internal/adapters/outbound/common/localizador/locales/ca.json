@@ -4970,7 +4970,7 @@
   ,"csc.error.otp_lote": "El vostre prestador no permet autoritzar diverses signatures amb un mateix codi d'un sol ús. Signeu els documents d'un en un."
   ,"csc.error.secreto_no_pedido": "Falta el PIN o el codi d'un sol ús, o s'ha enviat per a un certificat que no és remot. Torneu a signar i escriviu-los quan es demanin."
   ,"csc.error.adicional_con_secretos": "En una signatura amb diversos signants, només el primer pot fer servir un certificat remot que demani PIN o codi d’un sol ús. Poseu aquest certificat com a primer signant o signeu per separat."
-  ,"csc.error.proteger_con_secretos": "Aquest certificat remot demana PIN o codi d’un sol ús, i «Protegir i signar» no els pot demanar. Signeu primer el document i protegiu-lo després, o feu servir un altre certificat."
+  ,"csc.error.proteger_con_secretos": "Aquest certificat remot demana PIN o codi d’un sol ús i no han arribat. Torneu a prémer «Protegir i signar» i escriviu-los quan es demanin."
   ,"csc.gui.titulo": "Signatura remota"
   ,"csc.gui.descripcion": "Signeu amb un certificat que guarda un prestador de confiança. De l'equip només surt el resum del document, mai el document."
   ,"csc.gui.url": "Adreça del servei de signatura"

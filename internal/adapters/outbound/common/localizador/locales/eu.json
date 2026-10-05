@@ -4970,7 +4970,7 @@
   ,"csc.error.otp_lote": "Zure hornitzaileak ez du uzten erabilera bakarreko kode berarekin hainbat sinadura baimentzen. Sinatu dokumentuak banan-banan."
   ,"csc.error.secreto_no_pedido": "PINa edo erabilera bakarreko kodea falta da, edo urrunekoa ez den ziurtagiri baterako bidali da. Sinatu berriro eta idatzi eskatzen direnean."
   ,"csc.error.adicional_con_secretos": "Sinatzaile bat baino gehiagoko sinaduran, lehenengoak bakarrik erabil dezake PINa edo erabilera bakarreko kodea eskatzen duen urruneko ziurtagiria. Jarri ziurtagiri hori lehen sinatzaile gisa edo sinatu bereizita."
-  ,"csc.error.proteger_con_secretos": "Urruneko ziurtagiri honek PINa edo erabilera bakarreko kodea eskatzen du, eta «Babestu eta sinatu» aukerak ezin ditu eskatu. Sinatu lehenik dokumentua eta babestu gero, edo erabili beste ziurtagiri bat."
+  ,"csc.error.proteger_con_secretos": "Urruneko ziurtagiri honek PINa edo erabilera bakarreko kodea eskatzen du, eta ez dira iritsi. Sakatu berriro «Babestu eta sinatu» eta idatzi eskatzen zaizkizunean."
   ,"csc.gui.titulo": "Urruneko sinadura"
   ,"csc.gui.descripcion": "Sinatu konfiantzazko zerbitzu-emaile batek gordetzen duen ziurtagiriarekin. Ordenagailutik dokumentuaren laburpena bakarrik ateratzen da, inoiz ez dokumentua."
   ,"csc.gui.url": "Sinadura-zerbitzuaren helbidea"
