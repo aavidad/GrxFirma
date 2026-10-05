@@ -52,6 +52,10 @@ type Config struct {
 	// Límites operativos
 	TimeoutOperacionSegundos int   `json:"timeout_operacion_segundos"`
 	MaxTamanoDocumentoBytes  int64 `json:"max_tamano_documento_bytes"`
+
+	// FirmaRemotaCSC activa el prototipo de firma con certificados remotos
+	// (CSC API). Desactivado por defecto; no admite variable de entorno.
+	FirmaRemotaCSC bool `json:"firma_remota_csc"`
 }
 
 // Policy representa únicamente los overrides definidos explícitamente en
@@ -67,6 +71,9 @@ type Policy struct {
 	NivelLog                 *string  `json:"nivel_log"`
 	TimeoutOperacionSegundos *int     `json:"timeout_operacion_segundos"`
 	MaxTamanoDocumentoBytes  *int64   `json:"max_tamano_documento_bytes"`
+	// FirmaRemotaCSC=false prohíbe la firma remota CSC aunque el usuario la
+	// pida en config.json o en la línea de órdenes.
+	FirmaRemotaCSC *bool `json:"firma_remota_csc"`
 }
 
 // Default devuelve la configuración con valores seguros por defecto.
@@ -305,4 +312,17 @@ func aplicarPolicyCargada(cfg *Config, raw Policy, err error) {
 	if raw.MaxTamanoDocumentoBytes != nil {
 		cfg.MaxTamanoDocumentoBytes = *raw.MaxTamanoDocumentoBytes
 	}
+	if raw.FirmaRemotaCSC != nil {
+		cfg.FirmaRemotaCSC = *raw.FirmaRemotaCSC
+	}
+}
+
+// FirmaRemotaCSCActiva decide si se puede usar la firma remota CSC en esta
+// ejecución: hace falta pedirla (config.json o la opción de la CLI) y que la
+// política de la organización no la prohíba.
+func (cfg Config) FirmaRemotaCSCActiva(pedidaEnCLI bool, politica Policy) bool {
+	if politica.FirmaRemotaCSC != nil && !*politica.FirmaRemotaCSC {
+		return false
+	}
+	return cfg.FirmaRemotaCSC || pedidaEnCLI
 }
