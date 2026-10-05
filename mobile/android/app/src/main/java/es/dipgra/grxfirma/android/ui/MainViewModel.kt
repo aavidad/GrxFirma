@@ -428,6 +428,7 @@ class MainViewModel(
                 mutableState.value = mutableState.value.copy(
                     awaitingSave = true,
                     verification = verification,
+                    verificationOrigin = VerificationOrigin.SIGN,
                     verifiedDocumentName = output.displayName,
                     postSignVerificationFailed = verification == null,
                     result = OperationResult.Success(
@@ -462,6 +463,7 @@ class MainViewModel(
                 val verification = core.verify(loaded, original)
                 mutableState.value = mutableState.value.copy(
                     verification = verification,
+                    verificationOrigin = VerificationOrigin.VERIFY,
                     verifiedDocumentName = document.displayName,
                     postSignVerificationFailed = false,
                     coSignSuggested = verification.signers.isNotEmpty() || verification.signerSummaries.isNotEmpty(),
@@ -560,9 +562,14 @@ class MainViewModel(
             output.bytes.fill(0)
             pendingOutput = null
             val saved = UiText.Resource(if (signature) R.string.result_saved else R.string.result_file_saved)
+            // Si ya existía un fichero con ese nombre, Android guarda otro («… (1).pdf»):
+            // se muestra el nombre real, no el propuesto.
+            val savedName = repository.savedDisplayName(uri)
+            val detail = if (savedName == null) pendingSavedDetail
+                else pendingSavedDetail?.replacingArgument(output.displayName, savedName)
             mutableState.value = mutableState.value.copy(
                 awaitingSave = false,
-                result = OperationResult.Success(saved, pendingSavedDetail),
+                result = OperationResult.Success(saved, detail),
             )
             pendingSavedDetail = null
         } catch (_: Exception) {
@@ -1111,8 +1118,9 @@ class MainViewModel(
                 val created = core.createEniDocument(signature, original, request)
                 val name = EniForm.outputName(document.displayName)
                 val detail = UiText.Resource(R.string.eni_created_detail, listOf(name))
+                // Tras guardarlo ya no se pide elegir destino.
                 replacePending(SignedOutput(created.bytes, name, "application/xml", "ENI", created.signatureType),
-                    PendingKind.TOOL, detail)
+                    PendingKind.TOOL, UiText.Resource(R.string.eni_saved_detail, listOf(name)))
                 mutableState.value = mutableState.value.copy(awaitingSave = true,
                     result = OperationResult.Success(UiText.Resource(R.string.eni_created), detail))
                 effectChannel.send(UiEffect.SaveSignedDocument(name, "application/xml"))
@@ -1375,7 +1383,9 @@ class MainViewModel(
                     UiText.Plural(R.plurals.expediente_documents_count, created.documents),
                     UiText.Resource(R.string.expediente_output_name, listOf(name)),
                 ))
-                replacePending(SignedOutput(bytes, name, "application/xml", "ENI", "XAdES"), PendingKind.TOOL, detail)
+                replacePending(SignedOutput(bytes, name, "application/xml", "ENI", "XAdES"), PendingKind.TOOL,
+                    UiText.Lines(listOf(UiText.Plural(R.plurals.expediente_documents_count, created.documents),
+                        UiText.Resource(R.string.expediente_saved_detail, listOf(name)))))
                 mutableState.value = mutableState.value.copy(awaitingSave = true,
                     result = OperationResult.Success(UiText.Resource(R.string.expediente_created), detail))
                 effectChannel.send(UiEffect.SaveSignedDocument(name, "application/xml"))

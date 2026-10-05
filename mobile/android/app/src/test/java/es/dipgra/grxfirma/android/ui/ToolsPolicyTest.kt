@@ -60,4 +60,12 @@ class ToolsPolicyTest {
         assertFalse(ToolsPolicy.looksUnprotectable("contrato.pdf"))
         assertEquals(listOf("cms", "authenvelopeddata", "cms-encrypted"), ToolsPolicy.CONTAINERS)
     }
+
+    @Test
+    fun protectedFileNameIsShownAsProtectedFileNotBin() {
+        assertTrue(ToolsPolicy.isProtectedFileName("documento.pdf.enveloped"))
+        assertTrue(ToolsPolicy.isProtectedFileName("SOBRE.AFP"))
+        assertFalse(ToolsPolicy.isProtectedFileName("firma.pdf.p7m"))
+        assertFalse(ToolsPolicy.isProtectedFileName("contrato.pdf"))
+    }
 }

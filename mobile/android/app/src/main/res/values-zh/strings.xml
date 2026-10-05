@@ -620,4 +620,10 @@
     <string name="pref_seal_language_helper">已签名 PDF 中可见印章文字的语言。</string>
     <string name="pref_seal_language_app">与应用相同</string>
     <string name="pref_tsa_url">时间戳地址</string>
+    <string name="seal_edit_change">更改印章</string>
+    <string name="seal_edit_change_all">更改印章（所有页面）</string>
+    <string name="seal_edit_change_page">更改印章（第 %1$d 页）</string>
+    <string name="eni_saved_detail">ENI 文档已保存：%1$s</string>
+    <string name="expediente_saved_detail">案卷已保存：%1$s</string>
+    <string name="protected_file_type">受保护的文件</string>
 </resources>

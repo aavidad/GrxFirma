@@ -105,6 +105,15 @@ object ToolsPolicy {
     private val PROTECTED_EXTENSIONS = listOf(".enveloped", ".p7m", ".p7e", ".afp", ".cms")
 
     /**
+     * Ficheros que solo produce «Proteger»; «.p7m» no entra porque también es
+     * la extensión habitual de una firma CAdES.
+     */
+    fun isProtectedFileName(displayName: String): Boolean {
+        val lower = displayName.lowercase(java.util.Locale.ROOT)
+        return PROTECTED_EXTENSIONS.any { it != ".p7m" && lower.endsWith(it) }
+    }
+
+    /**
      * Si el nombre deja claro que el documento no está protegido, «Desproteger»
      * no puede funcionar. Sin extensión (compartido sin nombre) no se descarta.
      */

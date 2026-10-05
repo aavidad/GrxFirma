@@ -656,4 +656,10 @@
     <string name="pref_seal_language_helper">Idioma dos textos do selo visível no PDF assinado.</string>
     <string name="pref_seal_language_app">Igual à aplicação</string>
     <string name="pref_tsa_url">URL de carimbo</string>
+    <string name="seal_edit_change">Alterar o selo</string>
+    <string name="seal_edit_change_all">Alterar o selo (todas as páginas)</string>
+    <string name="seal_edit_change_page">Alterar o selo (página %1$d)</string>
+    <string name="eni_saved_detail">Documento ENI guardado: %1$s</string>
+    <string name="expediente_saved_detail">Processo guardado: %1$s</string>
+    <string name="protected_file_type">Ficheiro protegido</string>
 </resources>

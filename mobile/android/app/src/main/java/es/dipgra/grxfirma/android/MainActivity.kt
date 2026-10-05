@@ -15,6 +15,7 @@ import android.provider.Settings
 import android.text.InputType
 import android.view.WindowManager
 import android.view.View
+import android.webkit.MimeTypeMap
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,6 +52,7 @@ import es.dipgra.grxfirma.android.ui.AutoClose
 import es.dipgra.grxfirma.android.ui.MainUiState
 import es.dipgra.grxfirma.android.ui.MainViewModel
 import es.dipgra.grxfirma.android.ui.OperationResult
+import es.dipgra.grxfirma.android.ui.VerificationOrigin
 import es.dipgra.grxfirma.android.ui.PendingKind
 import es.dipgra.grxfirma.android.ui.ToolsPolicy
 import es.dipgra.grxfirma.android.ui.FormatPolicy
@@ -1066,6 +1068,7 @@ class MainActivity : AppCompatActivity() {
         }
         editVisibleSealButton.visibility = if (pdfSelected && sealSettings.enabled) View.VISIBLE else View.GONE
         editVisibleSealButton.isEnabled = state.canReplaceSelection
+        editVisibleSealButton.text = sealButtonText()
         verifyButton.isEnabled = state.canVerify
         certificatePasswordLayout.isEnabled = !state.busy
         signatureFormat.isEnabled = state.canReplaceSelection
@@ -1207,11 +1210,15 @@ class MainActivity : AppCompatActivity() {
         verificationDetail.visibility = if (shown) View.VISIBLE else View.GONE
         val text = SpannableStringBuilder()
         if (verification != null) {
-            val isResult = (state.result as? OperationResult.Success)?.detail is UiText.Verification
-            if (!isResult) {
+            // Tras «Verificar firma» el veredicto ya es el título; si el resultado
+            // cambia (p. ej. al guardar el informe) se repite sin hablar de firma creada.
+            val fromSign = state.verificationOrigin == VerificationOrigin.SIGN
+            val verdictIsTitle = !fromSign && (state.result as? OperationResult.Success)?.detail is UiText.Verification
+            if (!verdictIsTitle) {
                 val verdict = VerificationCard.verdict(verification)
                 val start = text.length
-                text.append(getString(R.string.verification_post_sign, getString(VerificationCard.title(verdict))))
+                val title = getString(VerificationCard.title(verdict))
+                text.append(if (fromSign) getString(R.string.verification_post_sign, title) else title)
                 text.setSpan(ForegroundColorSpan(ContextCompat.getColor(this@MainActivity, VerificationCard.color(verdict))),
                     start, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 text.setSpan(StyleSpan(Typeface.BOLD), start, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -1257,6 +1264,7 @@ class MainActivity : AppCompatActivity() {
 
     /** Tipo corto para la persona (PDF, XML…), no el tipo MIME. */
     private fun SelectedFile.typeLabel(): String {
+        if (ToolsPolicy.isProtectedFileName(displayName)) return getString(R.string.protected_file_type)
         val extension = displayName.substringAfterLast('.', "").takeIf { it.length in 1..5 && it.all(Char::isLetterOrDigit) }
         return extension?.uppercase(java.util.Locale.ROOT)
             ?: android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)?.uppercase(java.util.Locale.ROOT)
@@ -1348,6 +1356,7 @@ class MainActivity : AppCompatActivity() {
                 sealSettings = settings
                 sealPageInfo = Triple(count, width, height)
                 sealPreferences.save(settings)
+                binding.editVisibleSealButton.text = sealButtonText()
                 // Tras cerrarse el editor: la firma sigue o se explica el paso siguiente.
                 binding.rootLayout.post {
                     when {
@@ -1364,6 +1373,14 @@ class MainActivity : AppCompatActivity() {
             },
             onError = { showMessage(it) })
         sealEditor?.show()
+    }
+
+    /** Antes de colocarlo, «Colocar el sello»; después dice dónde está y que se puede cambiar. */
+    private fun sealButtonText(): String = when {
+        sealPageInfo == null -> getString(R.string.seal_edit)
+        sealSettings.allPages -> getString(R.string.seal_edit_change_all)
+        sealSettings.perPage -> getString(R.string.seal_edit_change)
+        else -> getString(R.string.seal_edit_change_page, sealSettings.page)
     }
 
     private fun signWithSealIfSelected() {
@@ -1415,10 +1432,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Con un tipo genérico, Android no sabe la extensión y al repetir un nombre
+     * crea «documento.pdf (1)»; con el tipo de la extensión crea «documento (1).pdf».
+     */
+    private fun saveMimeType(mimeType: String, displayName: String): String {
+        if (mimeType.isNotBlank() && !mimeType.equals("application/octet-stream", ignoreCase = true)) return mimeType
+        val extension = displayName.substringAfterLast('.', "").lowercase(java.util.Locale.ROOT)
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: "application/octet-stream"
+    }
+
     private fun requestSave(effect: UiEffect.SaveSignedDocument) {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = effect.mimeType
+            type = saveMimeType(effect.mimeType, effect.displayName)
             putExtra(Intent.EXTRA_TITLE, effect.displayName)
         }
         try {

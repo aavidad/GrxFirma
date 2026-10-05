@@ -87,4 +87,17 @@ class MainUiStateTest {
         assertEquals(UiText.Resource(R.string.error_core_operation), text)
         assertFalse(text.toString().contains(secret))
     }
+
+    @Test
+    fun `saved detail shows the name the provider really used`() {
+        val detail = UiText.Lines(listOf(
+            UiText.Plural(R.plurals.minutes, 2),
+            UiText.Resource(R.string.result_unprotected_detail, listOf("doc.pdf")),
+        ))
+        val replaced = detail.replacingArgument("doc.pdf", "doc (1).pdf")
+        assertEquals(UiText.Lines(listOf(
+            UiText.Plural(R.plurals.minutes, 2),
+            UiText.Resource(R.string.result_unprotected_detail, listOf("doc (1).pdf")),
+        )), replaced)
+    }
 }

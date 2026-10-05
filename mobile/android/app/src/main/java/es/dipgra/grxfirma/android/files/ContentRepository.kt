@@ -35,6 +35,9 @@ interface DocumentRepository {
     /** Nombre visible de una carpeta elegida con SAF, o null si no se conoce. */
     fun treeDisplayName(folder: Uri): String? = null
 
+    /** Nombre con el que quedó guardado un fichero (el proveedor puede cambiarlo), o null. */
+    fun savedDisplayName(document: Uri): String? = null
+
     /**
      * Ficheros (no subcarpetas) de una carpeta elegida con SAF, hasta
      * [maximumEntries]. El permiso de la carpeta no se persiste.
@@ -101,6 +104,15 @@ open class ContentRepository(private val resolver: ContentResolver) : DocumentRe
             DocumentPolicy.sanitizeDisplayName(displayName, "documento"),
         ) ?: throw InvalidDocumentException(DocumentProblem.CREATE_FAILED)
         write(created, bytes)
+    }
+
+    override fun savedDisplayName(document: Uri): String? = try {
+        require(document.scheme == ContentResolver.SCHEME_CONTENT)
+        resolver.query(document, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) cursor.optionalString(OpenableColumns.DISPLAY_NAME) else null
+        }?.let { DocumentPolicy.sanitizeDisplayName(it, "") }?.takeIf { it.isNotBlank() }
+    } catch (_: Exception) {
+        null
     }
 
     override fun treeDisplayName(folder: Uri): String? = try {

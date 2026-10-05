@@ -638,4 +638,10 @@
     <string name="pref_seal_language_helper">Idioma dos textos do selo visible no PDF asinado.</string>
     <string name="pref_seal_language_app">O mesmo que a aplicación</string>
     <string name="pref_tsa_url">URL de selado</string>
+    <string name="seal_edit_change">Cambiar o selo</string>
+    <string name="seal_edit_change_all">Cambiar o selo (todas as páxinas)</string>
+    <string name="seal_edit_change_page">Cambiar o selo (páxina %1$d)</string>
+    <string name="eni_saved_detail">Documento ENI gardado: %1$s</string>
+    <string name="expediente_saved_detail">Expediente gardado: %1$s</string>
+    <string name="protected_file_type">Ficheiro protexido</string>
 </resources>

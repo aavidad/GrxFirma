@@ -76,6 +76,19 @@ fun UiText.resolve(context: Context): String = when (this) {
     is UiText.Verification -> VerificationCard.summary(this).joinToString("\n") { it.resolve(context) }
 }
 
+/** Origen de la verificación mostrada en la tarjeta de resultado. */
+enum class VerificationOrigin { SIGN, VERIFY }
+
+/** Sustituye un argumento de texto (p. ej. el nombre propuesto por el guardado). */
+fun UiText.replacingArgument(old: String, new: String): UiText = when (this) {
+    is UiText.Resource -> copy(arguments = arguments.map { arg ->
+        when (arg) { old -> new; is UiText -> arg.replacingArgument(old, new); else -> arg }
+    })
+    is UiText.Plural -> copy(arguments = arguments.map { if (it == old) new else it })
+    is UiText.Lines -> copy(lines = lines.map { it.replacingArgument(old, new) })
+    else -> this
+}
+
 sealed interface OperationResult {
     data object Idle : OperationResult
     data class Success(val title: UiText, val detail: UiText? = null) : OperationResult
@@ -96,6 +109,8 @@ data class MainUiState(
     val awaitingSave: Boolean = false,
     val result: OperationResult = OperationResult.Idle,
     val verification: VerificationSummary? = null,
+    /** De dónde viene [verification]: la firma recién creada o «Verificar firma». */
+    val verificationOrigin: VerificationOrigin = VerificationOrigin.VERIFY,
     val verifiedDocumentName: String = "",
     val postSignVerificationFailed: Boolean = false,
     val signatureAction: String = "sign",
