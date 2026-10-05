@@ -5,7 +5,7 @@
 
 # Corpus sintético del dictamen v2
 
-Cada carpeta contiene `original.pdf` sin firmar, `firmado.pdf` y `dictamen-esperado.json` completo. Los casos 01 a 08 corresponden, en el mismo orden, al apartado 7 de la petición de VEC. La prueba `TestDictamenV2_CorpusSintetico` compara los dictámenes completos salvo los instantes de comprobación, y además fija los estados esenciales de cada caso.
+Cada carpeta contiene `original.pdf` sin firmar, `firmado.pdf` y `dictamen-esperado.json` completo. Los casos 01 a 08 corresponden, en el mismo orden, a los casos de referencia que pidió la aplicación integradora. La prueba `TestDictamenV2_CorpusSintetico` compara los dictámenes completos salvo los instantes de comprobación, y además fija los estados esenciales de cada caso.
 
 | Caso | Estado | Evidencia que decide |
 |---|---|---|

@@ -545,8 +545,8 @@ cp "${ROOT_DIR}/packaging/linux/runtime-dependencies.sh" "${STAGE_DIR}/check-run
 mkdir -p "${STAGE_DIR}/extensions"
 python3 "${ROOT_DIR}/packaging/browser-extensions/build.py" --output-dir "${STAGE_DIR}/extensions"
 python3 "${ROOT_DIR}/packaging/browser-extensions/verify_package.py" "${STAGE_DIR}/extensions"
-cp "${ROOT_DIR}/grxfirma.desktop" "${STAGE_DIR}/grxfirma.desktop"
-cp "${ROOT_DIR}/grxfirma-manual.desktop" "${STAGE_DIR}/grxfirma-manual.desktop"
+cp "${ROOT_DIR}/packaging/linux/grxfirma.desktop" "${STAGE_DIR}/grxfirma.desktop"
+cp "${ROOT_DIR}/packaging/linux/grxfirma-manual.desktop" "${STAGE_DIR}/grxfirma-manual.desktop"
 for icon_size in 48 128 256; do
   icon_dir="${STAGE_DIR}/icons/hicolor/${icon_size}x${icon_size}/apps"
   mkdir -p "${icon_dir}"

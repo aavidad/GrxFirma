@@ -162,25 +162,12 @@ La sonda preparada para integrar esa fuente aplica estas restricciones:
   desconocido: una sola comparación no demuestra si está mal el reloj local o
   el remoto.
 
-No se debe habilitar la sonda remota pasando una URL desde WinUI o IPC. El paso
-pendiente es crear un registro efímero y autenticado de orígenes realmente
+No se debe habilitar la sonda remota pasando una URL desde WinUI o IPC. Antes de habilitarla
+hace falta un registro efímero y autenticado de orígenes realmente
 observados y autorizados, compartido por los procesos sin persistir cookies,
 credenciales ni rutas sensibles.
 
-## Problema pendiente
-
-La capa guiada ya existe en Qt, web y WinUI. La exportación local existe en las
-superficies que la documentan, pero no en WinUI. El cierre pendiente se ha
-reducido a:
-
-- propagar un identificador de operación común por los tramos REST y remotos
-  que todavía no conservan la correlación de extremo a extremo;
-- formalizar retención y borrado de logs, auditoría e incidencias;
-- extender los probes activos de `T107`, ya operativos contra el motor local,
-  a un catálogo cerrado de portal/`@firma`/trifásico cuando pueda ligarse a la
-  operación real, y a las superficies que aún no ofrecen el gesto;
-- validar el transporte contra el endpoint de soporte real y su certificado;
-- ejecutar la matriz empaquetada de portales, navegadores y Windows de `T085`.
+## Modelo objetivo
 
 El modelo objetivo común para las superficies que dispongan de evidencia es:
 
@@ -466,17 +453,6 @@ La razón es pragmática:
   introduce rotación, despliegue y soporte de claves;
 - no debe bloquear el primer flujo útil y seguro de soporte remoto.
 
-## Relación con otras tareas
-
-- `T067`: logging estructurado
-- `T087`: validación avanzada como producto
-- `T100`: preferencias y modo experto en Qt
-- `T101`: proxy seguro y diagnóstico de red/proxy
-- `T102`: diagnóstico guiado de operaciones
-- `T103`: trazas correlacionadas y exportación de incidencias
-- `T104`: asistente guiado de ayuda y soporte al usuario
-- `T097`: cierre final Linux/Windows
-
 ## Asistente guiado de ayuda
 
 Además del diagnóstico visible, el producto encaja bien con un asistente simple
@@ -522,7 +498,7 @@ Un panel o diálogo guiado con árbol de decisión:
 - `Si sigue fallando, preparar incidencia`
 
 Eso mantiene la app utilizable por usuario medio y aprovecha la infraestructura
-de `T102/T103`.
+de diagnóstico guiado, trazas correlacionadas y exportación de incidencias.
 
 El asistente guiado de Qt está implantado sin chat libre y con entradas
 cerradas, entre ellas:
@@ -536,35 +512,11 @@ usuario que vuelva a describir la operación actual.
 
 WinUI ofrece por ahora una guía local, recomendaciones breves y accesos fijos a
 manual, carpeta, proyecto y contacto privado. Es un centro de ayuda seguro,
-pero todavía no es el asistente contextual completo descrito en este apartado
-y no debe presentarse como cierre total de `T104`.
+pero todavía no es el asistente contextual completo descrito en este apartado.
 
-### Encaje con `T102`, `T103` y `T104`
+## Criterios de calidad
 
-- `T102` debe cerrar la capa base de producto:
-  - pasos visibles;
-  - diferencia real entre `modo usuario` y `modo experto`;
-  - clasificación amigable del fallo;
-  - siguiente acción recomendada.
-- `T103` debe cerrar la correlación y exportación:
-  - `requestId`;
-  - recorte de trazas;
-  - exportación acotada para soporte;
-  - reutilización en Qt/QML y web local.
-- `T104` no debe abrir un chat genérico:
-  - debe reutilizar `T102/T103`;
-  - debe presentarse como asistente guiado por flujos;
-  - debe cubrir al menos `firmar`, `validar` y `ha fallado`.
-
-El bloqueo real ya no es la ausencia de diagnóstico activo local ni la
-retención técnica —cerrada con límites 30/90 días y builds `production`—: son
-la uniformidad entre superficies, la correlación no IPC, el catálogo remoto
-cerrado de `T107`, la conservación contractual del endpoint y las evidencias
-reales de integración, accesibilidad y soporte.
-
-## Criterio de cierre
-
-No se debe considerar este frente cerrado hasta que:
+El diagnóstico cumple su función cuando:
 
 - un usuario no experto pueda entender por qué ha fallado una firma o validación;
 - la app indique si el problema es nuestro, del certificado, del equipo, de la

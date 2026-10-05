@@ -131,7 +131,7 @@ jobs:
           go test -count=1
           ./internal/adapters/outbound/desktop/localtlstrust
 
-      # T074: miekg/pkcs11 no expone símbolos cuando CGo está desactivado.
+      # miekg/pkcs11 no expone símbolos cuando CGo está desactivado.
       # El stub debe conservar los contratos públicos en las tres plataformas.
       - name: Test PKCS#11 fallback without CGo
         env:

@@ -202,8 +202,8 @@ install: build build-gui build-uri build-bridge
 	@if [ -f "$(QTGUI_PATH)" ]; then echo "Frontend Qt instalado en $(DESTDIR)$(BINDIR)/$(BINARY_QT)"; else echo "Frontend Qt no instalado (compila antes con make build-qt-qml si lo necesitas)."; fi
 
 desktop: install
-	install -D -m 644 grxfirma.desktop $(DESTDIR)$(APPDIR)/$(BINARY).desktop
-	install -D -m 644 grxfirma-manual.desktop $(DESTDIR)$(APPDIR)/$(BINARY)-manual.desktop
+	install -D -m 644 packaging/linux/grxfirma.desktop $(DESTDIR)$(APPDIR)/$(BINARY).desktop
+	install -D -m 644 packaging/linux/grxfirma-manual.desktop $(DESTDIR)$(APPDIR)/$(BINARY)-manual.desktop
 	rm -f $(DESTDIR)$(APPDIR)/$(BINARY)-manual-debug.desktop
 	rm -f $(DESTDIR)$(APPDIR)/$(BINARY)-debug.desktop
 	@if command -v update-desktop-database >/dev/null 2>&1; then \
@@ -334,9 +334,9 @@ bridge-user: install-user
 
 desktop-user: install-user
 	@mkdir -p "$(USERAPP)"
-	@sed 's|^Exec=.*|Exec=$(USERLIBDIR)/afirmauri-handler.sh %u|' grxfirma.desktop > $(USERAPP)/$(BINARY).desktop
+	@sed 's|^Exec=.*|Exec=$(USERLIBDIR)/afirmauri-handler.sh %u|' packaging/linux/grxfirma.desktop > $(USERAPP)/$(BINARY).desktop
 	@chmod 644 $(USERAPP)/$(BINARY).desktop
-	install -D -m 644 grxfirma-manual.desktop $(USERAPP)/$(BINARY)-manual.desktop
+	install -D -m 644 packaging/linux/grxfirma-manual.desktop $(USERAPP)/$(BINARY)-manual.desktop
 	rm -f $(USERAPP)/$(BINARY)-manual-debug.desktop
 	rm -f $(USERAPP)/$(BINARY)-debug.desktop
 	@if command -v update-desktop-database >/dev/null 2>&1; then \
@@ -348,7 +348,7 @@ desktop-user: install-user
 	@echo "Esquema afirma:// registrado para el usuario"
 
 desktop-user-debug: install-user
-	install -D -m 644 grxfirma-debug.desktop $(USERAPP)/$(BINARY)-debug.desktop
+	install -D -m 644 packaging/linux/grxfirma-debug.desktop $(USERAPP)/$(BINARY)-debug.desktop
 	@if command -v update-desktop-database >/dev/null 2>&1; then \
 	    update-desktop-database $(USERAPP); \
 	fi

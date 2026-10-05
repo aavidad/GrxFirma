@@ -32,7 +32,7 @@ Se decide aplicar el mismo principio a escritorio.
 
 **GrxFirma desktop no abre ningún puerto TCP/UDP por defecto.**
 
-El servidor WebSocket heredado (T063) existe para compatibilidad con webs antiguas,
+El servidor WebSocket heredado existe para compatibilidad con webs antiguas,
 pero es **opt-in**: desactivado en la configuración por defecto y activado solo cuando
 el usuario lo habilita explícitamente en la aplicación.
 
@@ -90,35 +90,35 @@ Al activarlo, la app:
 
 ---
 
-## Implicaciones para el plan de tareas
+## Implicaciones de diseño
 
-### T063 — WebSocket local: opt-in, no opt-out
+### WebSocket local: opt-in, no opt-out
 
-La tarea T063 implementa el servidor WebSocket, pero con estas restricciones:
+El servidor WebSocket se implementa con estas restricciones:
 
 - Arranca **solo** si `websocket_habilitado: true` en la configuración.
 - Si arranca, registra el evento en auditoría.
 - Muestra aviso en la GUI cuando está activo (icono o indicador visible).
 - Se detiene cuando la ventana principal se cierra (no como demonio de fondo).
 
-### T072 — Sistema de configuración de GrxFirma (tarea nueva)
+### Sistema de configuración de GrxFirma
 
 Para materializar este modelo se necesita un sistema de configuración mínimo:
 
 - Fichero `~/.config/grxfirma/config.json` con valores por defecto seguros.
 - Variables de entorno `GRXFIRMA_*` como override (para despliegues gestionados).
 - Lectura al arrancar cada binario (`cmd/grxfirmauri`, `cmd/nativehost`).
-- Sección en GUI (T038–T040) para modificar la configuración.
+- Sección en la GUI para modificar la configuración.
 - Clave `websocket_habilitado` (bool, defecto: false).
 - Clave `rest_habilitado` (bool, defecto: false).
 - Clave `tofu_habilitado` (bool, defecto: true; desactivable por política).
-- Clave `dominios_de_confianza` (lista, integrada con TrustPolicy T054).
+- Clave `dominios_de_confianza` (lista, integrada con TrustPolicy).
 - Clave `directorio_p12` (string, defecto: `~/.config/grxfirma/pkcs12`).
 - Clave `nivel_log` (string, defecto: `info`).
 
-### T058 — Límites sistémicos: incluir bloqueo de red por defecto
+### Límites sistémicos: bloqueo de red por defecto
 
-La tarea T058 (límites y timeouts) debe incluir:
+Los límites y tiempos de espera incluyen:
 
 - Verificación al arrancar de que no se abre ningún puerto si la configuración
   indica `websocket_habilitado: false`.
