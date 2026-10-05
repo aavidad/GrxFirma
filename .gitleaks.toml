@@ -68,3 +68,11 @@ condition = "AND"
 regexTarget = "line"
 paths = ['''^cmd/gui-qml/qml/FacturaePanel\.qml$''']
 regexes = ['''verifactuStatusKey = "[a-z0-9.]+"''']
+
+[[allowlists]]
+description = "Name of the environment variable that carries the protection secret in the CLI, not the secret"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^internal/adapters/inbound/common/cli/adapter\.go$''']
+regexes = ['''envProtectionSecret\s*=\s*"GRXFIRMA_PROTECTION_SECRET_B64"''']
