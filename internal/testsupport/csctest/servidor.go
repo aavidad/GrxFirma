@@ -293,7 +293,8 @@ func (s *Servidor) authorize(w http.ResponseWriter, r *http.Request) {
 	destino, _ := url.Parse(redireccion)
 	consulta := url.Values{"code": {codigo}, "state": {estado}}
 	destino.RawQuery = consulta.Encode()
-	http.Redirect(w, r, destino.String(), http.StatusFound)
+	// Simulador de servidor OAuth: redirige solo a http://127.0.0.1:<puerto>, comprobado arriba.
+	http.Redirect(w, r, destino.String(), http.StatusFound) // nosemgrep: go.lang.security.injection.open-redirect.open-redirect
 }
 
 func (s *Servidor) token(w http.ResponseWriter, r *http.Request) {
