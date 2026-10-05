@@ -60,3 +60,11 @@ condition = "AND"
 regexTarget = "line"
 paths = ['''^cmd/gui-qml/qml/EniPanel\.qml$''']
 regexes = ['''labelKey:\s*"paridad\.lote3\.eni\.[a-z_]+"''']
+
+[[allowlists]]
+description = "Translation catalogue keys assigned to the Veri*Factu status label, not credentials"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^cmd/gui-qml/qml/FacturaePanel\.qml$''']
+regexes = ['''verifactuStatusKey = "[a-z0-9.]+"''']
