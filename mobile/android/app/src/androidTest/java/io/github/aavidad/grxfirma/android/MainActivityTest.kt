@@ -25,6 +25,7 @@ import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.not
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class MainActivityTest {
@@ -125,6 +126,41 @@ class MainActivityTest {
             }
         } finally {
             uris.forEach { context.contentResolver.delete(it, null, null) }
+        }
+    }
+
+    /** Sin NFC, el botón del DNIe no se puede pulsar y el lector de pantalla dice por qué. */
+    @Test
+    fun dnieButtonWithoutNfcIsReallyDisabledAndExplained() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        assumeTrue(android.nfc.NfcAdapter.getDefaultAdapter(context) == null)
+        ActivityScenario.launch(MainActivity::class.java).use {
+            it.onActivity { activity ->
+                val button = activity.findViewById<View>(R.id.selectDnieNfcButton)
+                assertFalse(button.isEnabled)
+                assertFalse(button.isClickable)
+                val node = androidx.core.view.accessibility.AccessibilityNodeInfoCompat.obtain()
+                androidx.core.view.ViewCompat.onInitializeAccessibilityNodeInfo(button, node)
+                assertFalse(node.isEnabled)
+                assertFalse(node.isClickable)
+                assertEquals(activity.getString(R.string.dnie_hint_no_nfc), node.stateDescription?.toString())
+                assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.dnieHint).visibility)
+            }
+        }
+    }
+
+    /** Sin un PDF elegido, los controles del sello no están en el árbol de accesibilidad. */
+    @Test
+    fun sealControlsAreLeftOutOfTheTreeWithoutAPdf() {
+        ActivityScenario.launch(MainActivity::class.java).use {
+            it.onActivity { activity ->
+                for (id in listOf(R.id.visibleSealCheck, R.id.editVisibleSealButton)) {
+                    val view = activity.findViewById<View>(id)
+                    assertEquals(View.GONE, view.visibility)
+                    // GONE, no solo encogido: así no queda en el árbol que recorre TalkBack.
+                    assertFalse(view.isShown)
+                }
+            }
         }
     }
 }

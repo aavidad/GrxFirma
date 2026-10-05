@@ -88,6 +88,7 @@
     <string name="seal_choose_image">Seleccionar imatge</string>
     <string name="seal_show_text">Mostrar dades de la signatura</string>
     <string name="seal_text_color">Color del text</string>
+    <string name="seal_color_auto">Predeterminat</string>
     <string name="seal_color_black">Negre</string>
     <string name="seal_color_blue">Blau</string>
     <string name="seal_color_gray">Gris fosc</string>

@@ -30,6 +30,17 @@ class SealSettingsPagesTest {
         assertThrows(IllegalArgumentException::class.java) { settings.options(2, 595, 842) } // página 3 fuera del PDF
     }
 
+    @Test fun `default seal matches desktop with emblem and engine colours`() {
+        val options = SealSettings(enabled = true).options(1, 595, 842)
+        assertEquals("institucional", options["visibleSealLogo"])
+        assertFalse(options.containsKey("layer2FontColor"))
+        val black = SealSettings(enabled = true, textColor = "black").options(1, 595, 842)
+        assertEquals("black", black["layer2FontColor"])
+        assertThrows(IllegalArgumentException::class.java) {
+            SealSettings(enabled = true, textColor = "red").options(1, 595, 842)
+        }
+    }
+
     @Test fun `all pages and single page keep their previous behaviour`() {
         val all = SealSettings(enabled = true, allPages = true)
         assertEquals(3, JSONArray(all.options(3, 595, 842).getValue("visibleSealPlacements")).length())

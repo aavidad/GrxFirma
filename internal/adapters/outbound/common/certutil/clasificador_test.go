@@ -160,7 +160,9 @@ func TestClasificarCertificado_SelloPorVATESSinOrg(t *testing.T) {
 	}
 }
 
-func TestClasificarCertificado_SelloHeuristicaOrgSinSerial(t *testing.T) {
+// Una organización sin número de serie ni políticas de sello no es, por sí
+// sola, un sello de entidad: se queda como certificado genérico.
+func TestClasificarCertificado_OrgSinSerialNoEsSello(t *testing.T) {
 	t.Parallel()
 	cert := certConCampos(t, pkix.Name{
 		CommonName:   "Empresa Ejemplo SA",
@@ -168,8 +170,8 @@ func TestClasificarCertificado_SelloHeuristicaOrgSinSerial(t *testing.T) {
 	}, nil, false)
 
 	tipo, org, _ := certutil.ClasificarCertificado(cert)
-	if tipo != domain.TipoCertSello {
-		t.Errorf("org sin serial: tipo=%v, queria sello", tipo)
+	if tipo != domain.TipoCertDesconocido {
+		t.Errorf("org sin serial: tipo=%v, queria desconocido", tipo)
 	}
 	if org != "Empresa Ejemplo SA" {
 		t.Errorf("org=%q, queria 'Empresa Ejemplo SA'", org)
@@ -250,5 +252,103 @@ func TestPuedeCifrar(t *testing.T) {
 				t.Errorf("KeyUsage=%v: got %v, queria %v", tc.keyUsage, got, tc.quiere)
 			}
 		})
+	}
+}
+
+func certConExtensiones(t *testing.T, subject pkix.Name, extensiones []pkix.Extension) *x509.Certificate {
+	t.Helper()
+	clave, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("generando clave: %v", err)
+	}
+	plantilla := &x509.Certificate{
+		SerialNumber:    big.NewInt(2),
+		Subject:         subject,
+		NotBefore:       time.Now(),
+		NotAfter:        time.Now().Add(24 * time.Hour),
+		KeyUsage:        x509.KeyUsageDigitalSignature,
+		ExtraExtensions: extensiones,
+	}
+	der, err := x509.CreateCertificate(rand.Reader, plantilla, plantilla, &clave.PublicKey, clave)
+	if err != nil {
+		t.Fatalf("creando certificado: %v", err)
+	}
+	cert, err := x509.ParseCertificate(der)
+	if err != nil {
+		t.Fatalf("parseando certificado: %v", err)
+	}
+	return cert
+}
+
+// qcStatementsConTipos codifica QCStatements con QcCompliance y un QcType.
+func qcStatementsConTipos(t *testing.T, tipos ...asn1.ObjectIdentifier) pkix.Extension {
+	t.Helper()
+	type declaracion struct {
+		ID   asn1.ObjectIdentifier
+		Info asn1.RawValue `asn1:"optional"`
+	}
+	info, err := asn1.Marshal(tipos)
+	if err != nil {
+		t.Fatal(err)
+	}
+	valor, err := asn1.Marshal([]declaracion{
+		{ID: asn1.ObjectIdentifier{0, 4, 0, 1862, 1, 1}},
+		{ID: asn1.ObjectIdentifier{0, 4, 0, 1862, 1, 6}, Info: asn1.RawValue{FullBytes: info}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return pkix.Extension{Id: asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 3}, Value: valor}
+}
+
+func TestClasificarCertificado_SelloPorQcTypeESeal(t *testing.T) {
+	t.Parallel()
+	cert := certConExtensiones(t, pkix.Name{
+		CommonName:   "Sello de Empresa Ejemplo",
+		Organization: []string{"Empresa Ejemplo SA"},
+	}, []pkix.Extension{qcStatementsConTipos(t, asn1.ObjectIdentifier{0, 4, 0, 1862, 1, 6, 2})})
+
+	if tipo, _, _ := certutil.ClasificarCertificado(cert); tipo != domain.TipoCertSello {
+		t.Errorf("QcType eseal: tipo=%v, queria sello", tipo)
+	}
+}
+
+func TestClasificarCertificado_QcTypeESignNoEsSello(t *testing.T) {
+	t.Parallel()
+	cert := certConExtensiones(t, pkix.Name{
+		CommonName:   "Empresa Ejemplo SA",
+		Organization: []string{"Empresa Ejemplo SA"},
+	}, []pkix.Extension{qcStatementsConTipos(t, asn1.ObjectIdentifier{0, 4, 0, 1862, 1, 6, 1})})
+
+	if tipo, _, _ := certutil.ClasificarCertificado(cert); tipo != domain.TipoCertDesconocido {
+		t.Errorf("QcType esign con org: tipo=%v, queria desconocido", tipo)
+	}
+}
+
+func TestClasificarCertificado_SelloPorPoliticaQCPl(t *testing.T) {
+	t.Parallel()
+	cert := certConCampos(t, pkix.Name{
+		CommonName:   "Sello de Empresa Ejemplo",
+		Organization: []string{"Empresa Ejemplo SA"},
+	}, []asn1.ObjectIdentifier{{0, 4, 0, 194112, 1, 3}}, false)
+
+	if tipo, _, _ := certutil.ClasificarCertificado(cert); tipo != domain.TipoCertSello {
+		t.Errorf("QCP-l-qscd: tipo=%v, queria sello", tipo)
+	}
+}
+
+func TestClasificarCertificado_FisicaPorNombreYApellidos(t *testing.T) {
+	t.Parallel()
+	cert := certConCampos(t, pkix.Name{
+		CommonName:   "María López",
+		Organization: []string{"Empresa Ejemplo SA"},
+		ExtraNames: []pkix.AttributeTypeAndValue{
+			{Type: asn1.ObjectIdentifier{2, 5, 4, 42}, Value: "María"},
+			{Type: asn1.ObjectIdentifier{2, 5, 4, 4}, Value: "López"},
+		},
+	}, nil, false)
+
+	if tipo, _, _ := certutil.ClasificarCertificado(cert); tipo != domain.TipoCertFisica {
+		t.Errorf("nombre y apellidos: tipo=%v, queria fisica", tipo)
 	}
 }

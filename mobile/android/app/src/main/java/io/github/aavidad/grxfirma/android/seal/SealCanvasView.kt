@@ -33,6 +33,15 @@ class SealCanvasView(context: Context) : View(context) {
         set(value) { field = value; invalidate() }
 
     private val border = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF005A46.toInt(); style = Paint.Style.STROKE; strokeWidth = 3f * resources.displayMetrics.density }
+    /**
+     * Marco de selección cuando ya hay vista previa: discontinuo y por fuera,
+     * para que se vean el borde y los colores del sello que irá en el PDF.
+     */
+    private val frameGap = 4f * resources.displayMetrics.density
+    private val frame = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xFF005A46.toInt(); style = Paint.Style.STROKE; strokeWidth = 2f * resources.displayMetrics.density
+        pathEffect = android.graphics.DashPathEffect(floatArrayOf(6f * resources.displayMetrics.density, 4f * resources.displayMetrics.density), 0f)
+    }
     private val handle = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF005A46.toInt(); style = Paint.Style.FILL }
     private val rotateGlyph = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFFFFFFFF.toInt()
@@ -94,10 +103,11 @@ class SealCanvasView(context: Context) : View(context) {
             if (seal != null) {
                 sealDst.set(left, top, right, bottom)
                 drawBitmap(seal, null, sealDst, null)
+                drawRect(left - frameGap, top - frameGap, right + frameGap, bottom + frameGap, frame)
             } else {
                 drawRect(left, top, right, bottom, placeholder)
+                drawRect(left, top, right, bottom, border)
             }
-            drawRect(left, top, right, bottom, border)
             drawCircle(right, bottom, handleRadius / 2f, handle)
             drawCircle((left + right) / 2f, top - handleRadius, handleRadius / 2f, handle)
             drawText("↻", (left + right) / 2f, top - handleRadius + rotateGlyph.textSize / 3f, rotateGlyph)

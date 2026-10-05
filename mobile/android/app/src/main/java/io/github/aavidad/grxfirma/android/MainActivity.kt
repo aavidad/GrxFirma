@@ -31,6 +31,7 @@ import android.text.util.Linkify
 import android.text.method.LinkMovementMethod
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import com.google.android.material.button.MaterialButton
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -1060,7 +1061,7 @@ class MainActivity : AppCompatActivity() {
         clearOriginalDocumentButton.visibility =
             if (state.originalDocument == null) View.GONE else View.VISIBLE
         selectCertificateFileButton.isEnabled = state.canReplaceSelection
-        selectDnieNfcButton.isEnabled = state.canReplaceSelection && state.backend.available
+        // El botón del DNIe se habilita en renderHints, junto con el texto que explica por qué no.
         importCertificateButton.isEnabled = state.canImportCertificate
         val certificateImportVisibility = if (state.certificateFile != null) View.VISIBLE else View.GONE
         certificatePasswordLayout.visibility = certificateImportVisibility
@@ -1200,8 +1201,13 @@ class MainActivity : AppCompatActivity() {
         }
         dnieHint.visibility = if (dnie == null) View.GONE else View.VISIBLE
         if (dnie != null) dnieHint.setText(dnie)
-        selectDnieNfcButton.isEnabled = state.canReplaceSelection && state.backend.available &&
+        val dnieAvailable = state.canReplaceSelection && state.backend.available &&
             nfcAdapter != null && state.document != null
+        // Desactivado de verdad: ni pulsable ni anunciado como tal, y el lector de
+        // pantalla lee el motivo junto al botón.
+        selectDnieNfcButton.isEnabled = dnieAvailable
+        selectDnieNfcButton.isClickable = dnieAvailable
+        ViewCompat.setStateDescription(selectDnieNfcButton, if (!dnieAvailable && dnie != null) getString(dnie) else null)
         val certificate = state.certificate
         openCertificateStatus.visibility = if (certificate != null && !state.certificateExternal) View.VISIBLE else View.GONE
         if (certificate != null && !state.certificateExternal) {
@@ -1349,23 +1355,36 @@ class MainActivity : AppCompatActivity() {
     private fun showAbout() {
         val engine = viewModel.engineVersion.takeIf { it.isNotBlank() && it != "development" }
             ?: getString(R.string.unknown_value)
-        val dialog = MaterialAlertDialogBuilder(this)
+        val density = resources.displayMetrics.density
+        var dialog: androidx.appcompat.app.AlertDialog? = null
+        // Acciones juntas en una columna estrecha, con «Cerrar» al final.
+        val actions = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            val side = (24 * density).toInt()
+            setPadding(side, (8 * density).toInt(), side, (16 * density).toInt())
+        }
+        fun action(text: Int, outlined: Boolean, onClick: () -> Unit) = MaterialButton(this,
+            null, if (outlined) com.google.android.material.R.attr.materialButtonOutlinedStyle
+            else com.google.android.material.R.attr.materialButtonStyle).apply {
+            setText(text)
+            minHeight = (48 * density).toInt()
+            setOnClickListener { dialog?.dismiss(); onClick() }
+        }.also { actions.addView(it, android.widget.LinearLayout.LayoutParams(
+            android.widget.LinearLayout.LayoutParams.MATCH_PARENT, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT)) }
+        if (viewModel.state.value.updateCheckAvailable) {
+            action(R.string.about_check_updates, outlined = true) { viewModel.checkUpdate(BuildConfig.VERSION_NAME) }
+        }
+        action(R.string.about_release_notes, outlined = true) {
+            MaterialAlertDialogBuilder(this).setTitle(R.string.about_release_notes)
+                .setMessage(getString(R.string.release_notes_wave3) + "\n\n" + getString(R.string.release_notes_wave4) + "\n\n" + getString(R.string.release_notes_wave2b) +
+                    "\n\n" + getString(R.string.release_notes_content))
+                .setPositiveButton(R.string.help_close, null).show()
+        }
+        action(R.string.help_close, outlined = false) {}
+        dialog = MaterialAlertDialogBuilder(this)
             .setCustomTitle(aboutHeader())
-            // Las acciones van primero y «Cerrar» al final cuando Material apila los botones
-            // (positivo, negativo, neutro): por eso «Cerrar» es el neutro.
             .setMessage(getString(R.string.about_content, BuildConfig.VERSION_NAME, engine, AppLinks.CONTACT_EMAIL))
-            .setNeutralButton(R.string.help_close, null)
-            .setNegativeButton(R.string.about_release_notes) { _, _ ->
-                MaterialAlertDialogBuilder(this).setTitle(R.string.about_release_notes)
-                    .setMessage(getString(R.string.release_notes_wave3) + "\n\n" + getString(R.string.release_notes_wave4) + "\n\n" + getString(R.string.release_notes_wave2b) +
-                        "\n\n" + getString(R.string.release_notes_content))
-                    .setPositiveButton(R.string.help_close, null).show()
-            }
-            .apply {
-                if (viewModel.state.value.updateCheckAvailable) {
-                    setPositiveButton(R.string.about_check_updates) { _, _ -> viewModel.checkUpdate(BuildConfig.VERSION_NAME) }
-                }
-            }
+            .setView(actions)
             .show()
         dialog.findViewById<android.widget.TextView>(android.R.id.message)?.let {
             Linkify.addLinks(it, Linkify.EMAIL_ADDRESSES or Linkify.WEB_URLS)

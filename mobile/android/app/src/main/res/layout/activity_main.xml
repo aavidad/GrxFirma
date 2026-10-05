@@ -59,6 +59,7 @@
                     android:id="@+id/backendStatusCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/section_spacing"
                     app:cardBackgroundColor="@color/status_warning_container"
                     app:cardCornerRadius="8dp"
                     app:cardElevation="0dp"
@@ -97,7 +98,6 @@
                     style="@style/TextAppearance.Material3.TitleLarge"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/section_spacing"
                     android:text="@string/step_document"
                     android:textColor="@color/on_surface"
                     android:textStyle="bold" />
@@ -460,7 +460,7 @@
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/control_spacing"
                     android:accessibilityLiveRegion="polite"
                     android:textColor="@color/on_surface"
                     android:visibility="gone" />
