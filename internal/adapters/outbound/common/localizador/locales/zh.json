@@ -83,11 +83,11 @@
   "Registro de auditoría": "审计日志",
   "Registro de auditoría íntegro: %d registros.": "审计日志完整：%d 条记录。",
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "最早的记录已按保留策略删除；将从保留的第一条记录开始校验链条。",
-  "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d 条记录早于指纹链，无法校验。",
+  "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d 条记录早于哈希链，无法校验。",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "校验审计日志的指纹链：检测被修改、插入或删除的记录。若还要证明末尾未被截断，请在提交时用您的证书对该文件签名。",
+  "cli.help.audit": "校验审计日志的哈希链：检测被修改、插入或删除的记录。若还要证明末尾未被截断，请在提交时用您的证书对该文件签名。",
   "cli.help.report_usage": "-informe <informe.html>",
-  "cli.help.report": "验证时保存可打印的 HTML 验证报告，包含结论、各项检查、签名者以及所验证文件的 SHA-256 指纹。",
+  "cli.help.report": "验证时保存可打印的 HTML 验证报告，包含结论、各项检查、签名者以及所验证文件的 SHA-256 哈希值。",
   "Informe de validación": "验证报告",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "无回显读取加密 PDF 的密码（用户或所有者密码），以在保留加密的情况下签名。也接受 GRXFIRMA_PDF_PASSWORD 变量，读取后即清除；绝不接受作为参数传入。",
@@ -127,7 +127,7 @@
   "security.secret.hint.import_p12": "使用 -password-p12-stdin，或仅为自动化兼容使用 GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.hint.p12": "使用 -password-stdin，或仅为自动化兼容使用 GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "PKCS#12 密码：",
-  "security.secret.prompt.protection": "Base64 保护密钥：",
+  "security.secret.prompt.protection": "Base64 保护密钥： ",
   "rest.error.private_credential": "无法准备 REST 凭据的私密交付",
   "rest.help.private_delivery": "机密管理器可以注入 GRXFIRMA_REST_TOKEN。自动生成令牌时，只会显示供 curl --config 使用的私密临时文件路径。",
   "rest.output.bearer_file": "临时 Bearer 凭据：私密文件 %s",
@@ -173,8 +173,8 @@
   "+ CERTIFICADOS": "+ 证书",
   "+%1 más": "另外 %1 个",
   ",": ",",
-  "--- INICIO DE LOGS ---\n": "--- INICIO DE LOGS ---\n",
-  "--- INICIO DE LOGS ---\\n": "--- 日志开始 ---\\n",
+  "--- INICIO DE LOGS ---\n": "--- 日志开始 ---\n",
+  "--- INICIO DE LOGS ---\\n": "--- 日志开始 ---\n",
   "--- LOGS REINICIADOS [": "--- 日志重置 [",
   "/ruta/al/documento.afp o .enveloped": "/路径/到/文档.afp 或 .enveloped",
   "/ruta/al/documento.bin": "/路径/到/文档.bin",
@@ -206,7 +206,7 @@
   "Abra la configuración de certificados de su navegador.": "请打开浏览器的证书设置。",
   "Abre el resumen del certificado seleccionado.": "打开所选证书的摘要。",
   "Abre la ayuda local de la aplicación.": "打开应用的本地帮助。",
-  "Abriendo consola web REST en ": "在中打开 REST Web 控制台 ",
+  "Abriendo consola web REST en ": "正在打开 REST Web 控制台，地址： ",
   "Abriendo el selector de fichero solicitado por la web": "正在打开网页请求的文件选择器",
   "Abrir": "打开",
   "Abrir Ayuda": "打开帮助",
@@ -249,7 +249,7 @@
   "Algoritmo": "算法",
   "Algoritmo de huella por defecto": "默认哈希算法",
   "Algoritmo en auto-detección desde la huella o el manifiesto.": "算法将根据摘要或清单自动检测。",
-  "Algoritmo forzado para la comprobación: ": "强制用于校验的算法：",
+  "Algoritmo forzado para la comprobación: ": "强制用于校验的算法： ",
   "Almacen seguro de proxy": "代理安全存储",
   "Almacén TLS limpiado.": "TLS 存储已清理。",
   "Almacén TLS local vaciado.": "本地 TLS 存储已清空。",
@@ -269,7 +269,7 @@
   "Aplicación en este equipo": "此设备上的应用",
   "Aplicación local": "本地应用程序",
   "Aplicar idioma": "应用语言",
-  "Aplicará una contrafirma sobre la firma ya presente.": "将在现有签名之上应用复签。",
+  "Aplicará una contrafirma sobre la firma ya presente.": "将在现有签名之上应用副署。",
   "Aptos para firma": "可用于签名",
   "Aptos para firma: ": "可用于签名：",
   "Archivo P12/PFX": "P12/PFX 文件",
@@ -287,7 +287,7 @@
   "Arrastra o selecciona un PDF": "拖入或选择一个 PDF",
   "Arrastra un archivo firmado para verificar": "拖动签名文件进行验证",
   "Artefacto a verificar": "待验证的工件",
-  "Artefacto de huella esperado: ": "预期的摘要产物：",
+  "Artefacto de huella esperado: ": "预期的摘要产物： ",
   "Artefacto esperado": "预期产物",
   "Artefacto firmado y original preparados para validación avanzada.": "已签名产物和原始文件已准备好进行高级验证。",
   "Artefacto protegido esperado: ": "预期的受保护产物：",
@@ -297,7 +297,7 @@
   "Asistente guiado": "引导式助手",
   "Aspectos de verificación": "验证项",
   "Asunto": "主题",
-  "Atajo visual para configurar el sello sin salir de esta consola. Para previsualización avanzada sigue disponible ": "用于配置可见印章的快捷入口，无需离开此控制台。高级预览仍可在此使用：",
+  "Atajo visual para configurar el sello sin salir de esta consola. Para previsualización avanzada sigue disponible ": "用于配置可见印章的快捷入口，无需离开此控制台。高级预览仍可在此使用： ",
   "Atardecer Cálido": "暖色黄昏",
   "Atención": "注意",
   "Aun no hay una seleccion preparada para calcular la persistencia real del resultado.": "目前还没有可用于计算结果实际持久化方式的已准备选择。",
@@ -412,7 +412,7 @@
   "Certificado seleccionado automáticamente:": "已自动选择证书：",
   "Certificado seleccionado automáticamente: ": "已自动选择证书： ",
   "Certificado seleccionado: ": "已选择证书： ",
-  "Certificado válido para firma": "证书签名有效",
+  "Certificado válido para firma": "证书可用于签名",
   "Certificado y firma": "证书与签名",
   "Certificado, almacén o dispositivo criptográfico": "证书、证书库或加密设备",
   "Certificado: ": "证书：",
@@ -495,7 +495,7 @@
   "Confianza TLS local instalada con éxito": "本地 TLS 信任安装成功",
   "Confianza del sistema": "系统信任",
   "Confianza: ": "信任：",
-  "Confianza: Raíces de AAPP instaladas correctamente.": "信任：AAPP 根目录安装正确。",
+  "Confianza: Raíces de AAPP instaladas correctamente.": "信任：已成功安装 AAPP 根证书。",
   "Confiar en este emisor": "信任本地 API",
   "Confiar en la API local": "信任本地 API",
   "Configuración": "设置",
@@ -533,8 +533,8 @@
   "Copiar JSON de verificación": "复制验证 JSON",
   "Copiar JSON del certificado": "复制证书 JSON",
   "Copiar diagnóstico": "复制诊断信息",
-  "Copiar huella": "复制哈希",
-  "Copiar huella al portapapeles por defecto": "默认将指纹复制到剪贴板",
+  "Copiar huella": "复制指纹",
+  "Copiar huella al portapapeles por defecto": "默认将哈希复制到剪贴板",
   "Copiar informe": "复制报告",
   "Copiar resumen": "复制摘要",
   "Copiar resumen de validación": "复制验证摘要",
@@ -555,17 +555,17 @@
   "Datos de la firma": "签名详情",
   "Debe cargar un archivo PDF antes de realizar la firma.": "签名前必须先加载 PDF 文件。",
   "Debe cargar un archivo PDF y seleccionar un certificado para poder firmar.": "必须加载 PDF 文件并选择证书才能签名。",
-  "Debe cargar uno o varios documentos antes de realizar la firma.": "您必须在签署前上传一份或多份文件。",
-  "Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.": "您必须上传一份或多份文档并选择要签名的证书。",
+  "Debe cargar uno o varios documentos antes de realizar la firma.": "签名前，您必须加载一份或多份文档。",
+  "Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.": "您必须加载一份或多份文档并选择证书才能签名。",
   "Debe definir un firmante principal válido para la cofirma múltiple guiada.": "必须为引导式多重联署定义一个有效的主签署人。",
   "Debe indicar el certificado a comprobar.": "必须指明要检查的证书。",
   "Debe indicar el certificado que quiere comprobar.": "必须指明要检查的证书。",
   "Debe indicar un dominio u origen para añadirlo.": "必须填写要添加的域名或来源。",
   "Debe seleccionar al menos un certificado adicional para la cofirma múltiple guiada.": "必须至少选择一个附加证书用于引导式多重联署。",
   "Debe seleccionar un certificado de la lista para poder firmar el documento.": "您必须从列表中选择一个证书才能签署文档。",
-  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "定义创建和校验数字指纹时预选的算法。",
+  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "定义创建和校验哈希时预选的算法。",
   "Define el comportamiento por defecto cuando el archivo de salida ya existe.": "定义输出文件已存在时的默认行为。",
-  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "定义创建或校验文件指纹时预选的格式。",
+  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "定义创建或校验文件哈希时预选的格式。",
   "Define el formato preseleccionado al crear o comprobar manifiestos de directorio.": "定义创建或校验目录清单时预选的格式。",
   "Define el motivo preseleccionado que se incrustará en la firma cuando proceda.": "定义在适用时嵌入签名的预选原因。",
   "Define el papel preseleccionado del firmante al generar firmas FacturaE.": "定义生成 FacturaE 签名时签署人的预选角色。",
@@ -607,7 +607,7 @@
   "Destinatarios": "收件人",
   "Destinatarios de protección": "保护收件人",
   "Destinatarios de protección cargados": "已加载保护接收者",
-  "Destinatarios de protección cargados: ": "已加载的保护收件人：",
+  "Destinatarios de protección cargados: ": "已加载的保护收件人： ",
   "Destinatarios disponibles: ": "可用收件人：",
   "Destinatarios seleccionados: ": "已选收件人：",
   "Destino HTTPS": "HTTPS目的地",
@@ -739,10 +739,10 @@
   "Error al arrancar el backend": "启动后端时出错",
   "Error al arrancar el backend IPC": "启动 IPC 后端时出错",
   "Error al cargar certificados: ": "加载证书时出错： ",
-  "Error al consultar el almacén seguro de proxy: ": "查询代理安全存储时出错：",
-  "Error al consultar estado TLS: ": "查询 TLS 状态时出错：",
+  "Error al consultar el almacén seguro de proxy: ": "查询代理安全存储时出错： ",
+  "Error al consultar estado TLS: ": "查询 TLS 状态时出错： ",
   "Error al desproteger": "解除保护时出错",
-  "Error al generar diagnóstico: ": "生成诊断时出错：",
+  "Error al generar diagnóstico: ": "生成诊断时出错： ",
   "Error al guardar ajustes: ": "保存设置时出错： ",
   "Error al iniciar el backend": "启动后端时出错",
   "Error al intentar firmar": "尝试签名时出错",
@@ -754,7 +754,7 @@
   "Error al vaciar almacén: ": "清空存储时出错： ",
   "Error cargando certificados": "加载证书时出错",
   "Error cargando certificados: ": "加载证书时出错： ",
-  "Error consultando el estado: ": "查询状态时出错：",
+  "Error consultando el estado: ": "查询状态时出错： ",
   "Error de conexión": "连接错误",
   "Error de importación.": "导入错误。",
   "Error de previsualización: ": "预览错误： ",
@@ -771,7 +771,7 @@
   "Error importando certificado: ": "导入证书时出错： ",
   "Error instalando certificados": "安装证书时出错",
   "Error instalando la confianza TLS local": "安装本地 TLS 信任时出错",
-  "Error instalando raíces de confianza: ": "安装可信根时出错： ",
+  "Error instalando raíces de confianza: ": "安装本地 TLS 信任时出错： ",
   "Error si existe": "如果存在则出错",
   "Error: ": "错误： ",
   "Error: Ruta IPC vacía": "错误：IPC 路径为空",
@@ -901,7 +901,7 @@
   "Genera un diagnóstico para soporte. Según el backend activo, se dejará en el log y puede copiarse también al portapapeles.": "生成供支持使用的诊断信息。根据当前后端不同，它会保存在日志中，也可能同时复制到剪贴板。",
   "Generando el resultado para devolverlo a la web": "正在生成结果以返回给网页",
   "Generar diagnóstico": "生成诊断",
-  "Gestión avanzada y resolución de problemas": "先进的管理和问题解决",
+  "Gestión avanzada y resolución de problemas": "高级管理与故障排除",
   "Gestor Certificados": "证书管理器",
   "Gestor de certificados abierto con ": "证书管理器已打开： ",
   "Granada": "格拉纳达",
@@ -936,7 +936,7 @@
   "Hay cambios en las preferencias de la app que todavía no se han guardado.": "应用偏好设置中有尚未保存的更改。",
   "Hay certificados aptos para firma visibles.": "当前可见的证书中有适合签名的证书。",
   "Hay certificados aptos, pero ninguno queda visible con los filtros actuales.": "存在适合的证书，但在当前筛选条件下没有任何证书可见。",
-  "Hay certificados visibles que caducan en los próximos 30 días: ": "有可见证书将在未来 30 天内到期：",
+  "Hay certificados visibles que caducan en los próximos 30 días: ": "有可见证书将在未来 30 天内到期： ",
   "Hay un destinatario seleccionado.": "已选择一个接收者。",
   "Hay varios destinatarios seleccionados: ": "已选择多个接收者： ",
   "Haz la operación y vuelve aquí si algo no queda claro.": "请执行操作；如有不清楚之处，请回到此处。",
@@ -944,9 +944,9 @@
   "Host / IP:": "主机/IP：",
   "Huella": "哈希",
   "Huella SHA-256: ": "SHA-256 指纹： ",
-  "Huella copiada al portapapeles.": "指纹已复制到剪贴板。",
+  "Huella copiada al portapapeles.": "哈希已复制到剪贴板。",
   "Huella del certificado copiada al portapapeles.": "证书指纹已复制到剪贴板。",
-  "Huella o manifiesto": "指纹或清单",
+  "Huella o manifiesto": "哈希或清单",
   "Huella o manifiesto: ": "哈希或清单：",
   "Huella válida.": "哈希有效。",
   "Huella: ": "哈希：",
@@ -1014,7 +1014,7 @@
   "La clave indicada no es correcta.": "输入的密钥不正确。",
   "La cofirma múltiple guiada está desactivada.": "引导式多重联合签名已停用。",
   "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "引导式多重联合签名仅适用于“签名”或“联合签名”操作下的单个文档。",
-  "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "引导式多重联署仅适用于签名或联署，不适用于反签。",
+  "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "引导式多重联署仅适用于签名或联署，不适用于副署。",
   "La cofirma múltiple guiada solo está disponible para un único documento, no para lotes.": "引导式多重共签仅适用于单个文档，不适用于批量。",
   "La confirmación de la clave no coincide.": "密钥确认不一致。",
   "La consola usa este token para endpoints protegidos como firma, verificación, ajustes o diagnóstico.": "控制台使用此令牌访问受保护的端点，如签名、验证、设置或诊断。",
@@ -1050,7 +1050,7 @@
   "La validación ha fallado o tiene incidencias: %1": "验证失败或存在问题：%1",
   "La validación tiene incidencias. Revisa la razón mostrada y decide si necesitas el original, otro certificado o soporte.": "验证存在问题。请查看显示的原因，并判断是否需要原始文件、其他证书或技术支持。",
   "La ventana se cerrará automáticamente al terminar la sesión del portal.": "门户会话结束时，此窗口将自动关闭。",
-  "La verificación ha devuelto incidencias.": "核查已返回事件。",
+  "La verificación ha devuelto incidencias.": "验证返回了问题。",
   "La vista previa muestra el PDF activo del lote. De momento la misma posición del sello se aplica al resto del lote.": "预览显示该批次的活动 PDF。目前，邮票的相同位置适用于该批次的其余部分。",
   "Lanza la operación y usa este asistente si algo no queda claro.": "执行操作；如果有不清楚的地方，请使用此助手。",
   "Lanza la validación con el fichero actual.": "使用当前文件开始验证。",
@@ -1070,7 +1070,7 @@
   "Lote firmado correctamente.": "批量签名成功。",
   "Lote firmado y verificado correctamente.": "批量签名并验证正确。",
   "Lote firmado, con incidencias de verificación en algunos resultados.": "已签署批次，但某些结果存在验证问题。",
-  "Lote firmado. Verificando resultados...": "签了很多。验证结果...",
+  "Lote firmado. Verificando resultados...": "批量签名已完成。正在验证结果...",
   "Lote o selección múltiple": "批量或多选",
   "Lote: ": "批次：",
   "Lugar de firma FacturaE": "FacturaE 签名地点",
@@ -1237,7 +1237,7 @@
   "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible y puede combinarse con imagen personalizada.": "可选。如果提供文本或 URL，会在可见印章中嵌入二维码，并可与自定义图像组合。",
   "Opcional. Si indicas una TSA, el backend la usará para perfiles con sello de tiempo.": "可选。如果指定了 TSA，后端将把它用于带时间戳的配置文件。",
   "Opcional. Si informa identificador y hash, se enviarán al backend como política explícita de FacturaE.": "可选。如果提供标识符和哈希，它们将作为显式 FacturaE 策略发送到后端。",
-  "Opcional. Si se deja vacío, cada fichero se guarda junto al original.": "选修的。如果留空，则每个文件都保存在原始文件旁边。",
+  "Opcional. Si se deja vacío, cada fichero se guarda junto al original.": "可选。如果留空，每个文件都会保存在原文件旁边。",
   "Opcional. Si se indica, el backend la usará para perfiles con sello de tiempo.": "可选。如果指定，后端将把它用于带时间戳的配置文件。",
   "Opcional: 6F:..., 8A:...": "可选：6F：...，8A：...",
   "Opcional: token de acceso bearer": "可选：不记名访问令牌",
@@ -1262,7 +1262,7 @@
   "PDF": "PDF",
   "PDF %1/%2: %3": "PDF %1/%2: %3",
   "PDF original": "原始 PDF",
-  "Panel de Diagnóstico Experto": "专家诊断小组",
+  "Panel de Diagnóstico Experto": "专家诊断面板",
   "Paquete de soporte listo para exportar": "支持包已准备好导出",
   "Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.": "要在没有浏览器提示的情况下打开本地 REST API，请安装本地 TLS 证书信任。",
   "Para modificar la lista de dominios permitidos (NM/CORS) debe identificarse como administrador del sistema.": "要修改允许的域 (NM/CORS) 列表，您必须将自己标识为系统管理员。",
@@ -1300,7 +1300,7 @@
   "Perfil: %1 | Destinatario: %2": "配置文件：%1 | 收件人：%2",
   "Perfil: %1 | Destinatarios: %2": "配置文件：%1 | 收件人：%2",
   "Perla Lujosa": "奢华珍珠",
-  "Permite firmar, cofirmar o contrafirmar directamente desde el firmador web local.": "可直接在本地网页签名器中进行签名、联合签名或反签名。",
+  "Permite firmar, cofirmar o contrafirmar directamente desde el firmador web local.": "可直接在本地网页签名器中进行签名、联合签名或副署。",
   "Permite intentar firmar PDF con incidencias estructurales. No se recomienda salvo integración heredada o documentos de terceros que no puedas regenerar.": "允许尝试签署存在结构问题的 PDF。除非是遗留系统兼容或无法重新生成的第三方文档，否则不建议启用。",
   "Permitir PDF inválido": "允许无效的 PDF",
   "Persistencia efectiva": "实际持久化方式",
@@ -1412,7 +1412,7 @@
   "REST local": "本地 REST",
   "REST: ": "REST：",
   "RUTA DE ENTRADA": "输入路径",
-  "RUTA DE SALIDA (PDF FIRMADO)": "退出路线（签名 PDF）",
+  "RUTA DE SALIDA (PDF FIRMADO)": "输出路径（已签名 PDF）",
   "Razón": "原因",
   "Razón técnica visible: %1": "可见的技术原因：%1",
   "Razón: ": "原因： ",
@@ -1496,7 +1496,7 @@
   "Rotación del sello visible por defecto": "默认可见签章旋转",
   "Ruta de salida": "输出路径",
   "Ruta de salida opcional": "可选输出路径",
-  "Ruta del fichero de huella": "指纹文件路径",
+  "Ruta del fichero de huella": "哈希文件路径",
   "Ruta del informe (.hashreport)": "报告路径 (.hashreport)",
   "Ruta del manifiesto": "清单路径",
   "Ruta desprotegida": "解除保护路径",
@@ -1513,14 +1513,14 @@
   "SHA-384": "SHA-384",
   "SHA-512": "SHA-512",
   "SISTEMA": "系统",
-  "SOLICITUD FALLIDA\n\nLa operación terminó con código %d.": "请求失败\\n\\n操作已结束，代码为 %d。",
+  "SOLICITUD FALLIDA\n\nLa operación terminó con código %d.": "请求失败\n\n操作已结束，代码为 %d。",
   "SOPORTE Y DOCUMENTACIÓN": "支持和文档",
   "Salida": "输出",
   "Salida prevista": "预期输出",
   "Salida si el fichero ya existe": "文件已存在时的输出方式",
   "Salida: ": "输出：",
   "Salida: %1": "输出：%1",
-  "Se aplicará una contrafirma sobre la firma ya presente en el artefacto seleccionado.": "将对所选工件中已有的签名进行反签名。",
+  "Se aplicará una contrafirma sobre la firma ya presente en el artefacto seleccionado.": "将对所选工件中已有的签名进行副署。",
   "Se añadirá como cofirmante, manteniendo la firma ya existente.": "将作为联合签名人加入，并保留已有的签名。",
   "Se añadirá una cofirma al artefacto ya firmado, manteniendo la firma existente.": "将向已签名的工件添加联合签名，并保留现有签名。",
   "Se añadirá una cofirma y, a continuación, se encadenarán cofirmas adicionales sobre el mismo artefacto.": "将添加一个联合签名，随后在同一工件上依次链接更多联合签名。",
@@ -1533,11 +1533,11 @@
   "Se ha abierto el gestor de certificados.": "已打开证书管理器。",
   "Se ha abierto la configuración de certificados del navegador.": "已打开浏览器的证书设置。",
   "Se ha borrado el certificado predeterminado.": "默认证书已清除。",
-  "Se ha cambiado la operación a Cofirmar.": "操作已切换为联合签名。",
+  "Se ha cambiado la operación a Cofirmar.": "操作已切换为“共签”。",
   "Se ha establecido un certificado predeterminado.": "已设置默认证书。",
   "Se incluirá": "将被包含",
-  "Se incluirá un resumen saneado de la incidencia y un extracto técnico mínimo.": "将包含事件的清理摘要和最小技术摘录。",
-  "Se intentará aplicar una contrafirma sobre cada elemento del lote seleccionado.": "将尝试对所选批处理的每个项目进行反签名。",
+  "Se incluirá un resumen saneado de la incidencia y un extracto técnico mínimo.": "将包含经过脱敏的事件摘要和最少的技术摘录。",
+  "Se intentará aplicar una contrafirma sobre cada elemento del lote seleccionado.": "将尝试对所选批处理的每个项目进行副署。",
   "Se intentará añadir una cofirma sobre cada elemento del lote seleccionado.": "将尝试对所选批处理的每个项目添加联合签名。",
   "Se ocultará": "将被隐藏",
   "Se reutilizará en la próxima sesión si sigue disponible.": "如果仍然可用，将在下次会话中重复使用。",
@@ -1616,7 +1616,7 @@
   "Selección": "选择",
   "Selección cancelada": "选择已取消",
   "Selección cargada en navegador": "所选内容已加载到浏览器",
-  "Selección de páginas inválida. Usa 1, 1,3-5 o all.": "页面选择无效。使用 1、1,3-5 或全部。",
+  "Selección de páginas inválida. Usa 1, 1,3-5 o all.": "页面选择无效。请使用 1、1,3-5 或 all。",
   "Sello": "印章",
   "Sello restaurado a valores por defecto.": "签章已恢复为默认值。",
   "Sello visible": "可见签章",
@@ -1638,7 +1638,7 @@
   "Si no eliges un formato manualmente, esta preferencia se usará al preparar la firma.": "如果您不手动选择格式，准备签名时将使用此首选项。",
   "Si parece un fallo externo, anota lo ocurrido y vuelve a intentarlo más tarde.": "如果看起来是外部故障，请记录发生的情况并稍后再试。",
   "Si persiste, abre ayuda o exporta diagnóstico para soporte.": "如果问题持续，请打开帮助或导出诊断信息给支持团队。",
-  "Si quieres añadir otra firma sobre el mismo documento, lo correcto normalmente es usar Cofirmar.": "如果想在同一文档上再添加一个签名，通常应使用联合签名。",
+  "Si quieres añadir otra firma sobre el mismo documento, lo correcto normalmente es usar Cofirmar.": "如果想在同一文档上再添加一个签名，通常应使用“共签”。",
   "Si se activa y solo hay un certificado disponible, la aplicación lo seleccionará automáticamente al cargar el catálogo.": "启用后，如果只有一个可用证书，应用程序会在加载目录时自动选中它。",
   "Si se activa, al cerrar con preferencias pendientes la aplicación intentará guardarlas y cerrará sin mostrar el diálogo de confirmación.": "启用后，关闭时若有未保存的首选项，应用程序会尝试保存并直接关闭，不显示确认对话框。",
   "Si se activa, al cerrar con preferencias pendientes la aplicación las guardará y continuará sin mostrar el diálogo de confirmación.": "如果启用，关闭且存在待保存偏好设置时，应用会自动保存并继续，不显示确认对话框。",
@@ -1701,7 +1701,7 @@
   "Solo en memoria": "仅在内存中",
   "Solo logo": "仅徽标",
   "Solo no caducados": "仅未过期",
-  "Solo se pueden exportar destinatarios del perfil alto.": "只能导出高级配置文件的接收者。",
+  "Solo se pueden exportar destinatarios del perfil alto.": "只能导出高安全配置的接收者。",
   "Solo utilizables": "仅显示可用项",
   "Stack de firma probable: ": "可能的签名栈： ",
   "Subfiltro PAdES": "PAdES 子过滤器",
@@ -1745,7 +1745,7 @@
   "Total": "总计",
   "TraceId: %1": "TraceId：%1",
   "Tras cofirmar, se validara el artefacto final manteniendo la firma principal existente.": "联合签名后，将在保留现有主签名的情况下验证最终工件。",
-  "Tras contrafirmar, se validara el artefacto final con la nueva contrafirma aplicada.": "反签名后，将验证应用了新反签名的最终工件。",
+  "Tras contrafirmar, se validara el artefacto final con la nueva contrafirma aplicada.": "副署后，将验证应用了新副署的最终工件。",
   "Tras firmar, se validara automaticamente el artefacto resultante.": "签名后，将自动验证生成的工件。",
   "URL TSA": "URL TSA",
   "URLs excluidas del proxy:": "代理排除的 URL：",
@@ -2020,7 +2020,7 @@
   "help.more.title": "更多信息",
   "help.security.body": "始终检查请求签名或证书的网站。不要确认任何你未预期的操作。仅在必要时使用常驻模式和网页兼容模式。",
   "help.security.title": "安全",
-  "help.sign.body": "使用“签署”选项卡可以签署单个文件、多个文件或整个文件夹。对于 PAdES 格式的 PDF，可以启用可见签章、旋转、二维码、元数据以及指定页面或全部页面。你可以保持选择器打开或从容调整签章位置：已连接通道允许最长 30 分钟无操作。",
+  "help.sign.body": "使用“签名”选项卡可以签署单个文件、多个文件或整个文件夹。对于 PAdES 格式的 PDF，可以启用可见签章、旋转、二维码、元数据以及指定页面或全部页面。你可以保持选择器打开或从容调整签章位置：已连接通道允许最长 30 分钟无操作。",
   "help.sign.title": "签署文档",
   "help.subtitle": "应用程序快速使用指南。",
   "help.title": "GrxFirma 帮助",
@@ -2392,7 +2392,7 @@
   "⚙ Verificando firma de: ": "⚙ 正在验证签名： ",
   "⚙️  Preferencias Generales": "⚙️ 一般偏好",
   "⚙️ Modo administrador habilitado.": "⚙️ 管理员模式已启用。",
-  "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "⚠ 与本地 IPC 接口断开连接（独占 REST 模式，或发动机停止）。",
+  "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "⚠ 与本地 IPC 接口断开连接（仅 REST 模式，或引擎已停止）。",
   "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ 重要提示：它作为您的用户会话的服务（而不是系统服务）安装，以便它可以访问您在个人存储中的证书。系统服务无法访问用户证书。",
   "⚠️": "⚠️",
   "⚠️ Conexión IPC cerrada.": "⚠️ IPC 连接已关闭。",
@@ -2597,12 +2597,12 @@
   ,"Descargar huella": "下载哈希"
   ,"Huella generada correctamente.": "哈希已成功生成。"
   ,"Huella generada.": "哈希已生成。"
-  ,"Error al generar huella: ": "生成哈希时出错："
+  ,"Error al generar huella: ": "生成哈希时出错： "
   ,"Comprobando integridad...": "正在检查完整性..."
   ,"Indica una ruta local de directorio para comprobar el manifiesto.": "请输入本地目录路径以检查清单。"
   ,"Selecciona un fichero de huella/manifiesto o indica su ruta.": "请选择哈希或清单文件，或输入其路径。"
   ,"Esperada": "预期值"
-  ,"Error al comprobar huella: ": "检查哈希时出错："
+  ,"Error al comprobar huella: ": "检查哈希时出错： "
   ,"ACERCA DE": "关于"
   ,"Acerca de": "关于"
   ,"Acerca de GrxFirma": "关于 GrxFirma"
@@ -2627,7 +2627,7 @@
   ,"La última versión publicada es %1, pero este build de desarrollo no se puede comparar automáticamente.": "最新发布的版本是 %1，但此开发构建无法自动比较。"
   ,"GrxFirma está actualizado (%1).": "GrxFirma 已是最新版本（%1）。"
   ,"Avisar de nuevas versiones": "有新版本时通知"
-  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "启动时检查一次最新的 GitHub Release。仅向 GitHub 发送 HTTPS 连接和 GrxFirma 标识符；不发送文档、证书或签名数据。"
+  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "启动时检查一次最新的 GitHub Release。仅通过 HTTPS 连接 GitHub 并请求官方仓库路径；不发送文档、证书或签名数据。"
   ,"Comprobación de versiones finalizada.": "版本检查已完成。"
   ,"La comprobación segura de versiones necesita el motor local IPC. Abra GrxFirma desde el lanzador instalado y vuelva a intentarlo; la firma local no queda bloqueada.": "安全版本检查需要本地 IPC 引擎。请从已安装的启动器打开 GrxFirma 后重试；本地签名仍可使用。"
   ,"No se puede comprobar la versión porque el servicio de actualizaciones no está configurado. Reinstale GrxFirma desde el repositorio oficial.": "无法检查版本，因为未配置更新服务。请从官方仓库重新安装 GrxFirma。"
@@ -2674,7 +2674,7 @@
   ,"Primera": "第一页"
   ,"Renovar en la FNMT": "在 FNMT 续期"
   ,"Selecciona una imagen PNG o JPEG para el sello.": "选择用于印章的 PNG 或 JPEG 图片。"
-  ,"Selección de páginas inválida. Usa 1, 1,3-5 o todas.": "页面选择无效。请使用 1、1,3-5 或全部。"
+  ,"Selección de páginas inválida. Usa 1, 1,3-5 o todas.": "页面选择无效。请使用 1、1,3-5 或 all。"
   ,"Solo texto": "纯文本"
   ,"Tarjeta detectada. Se actualiza la lista de certificados; puede que necesites configurar el módulo PKCS#11.": "检测到卡片。正在刷新证书列表；您可能需要配置 PKCS#11 模块。"
   ,"Todas": "全部"
@@ -2909,7 +2909,7 @@
   "paridad.lote3.csv.url": "HTTPS 核验地址（可包含 {csv}）",
   "paridad.lote3.eni.administration": "行政机关",
   "paridad.lote3.eni.capture_date": "捕获日期",
-  "paridad.lote3.eni.certificate": "用于签署目录的证书",
+  "paridad.lote3.eni.certificate": "用于签署索引的证书",
   "paridad.lote3.eni.certificates_failed": "无法加载证书。",
   "paridad.lote3.eni.citizen": "公民",
   "paridad.lote3.eni.classification": "程序的 SIA 代码（必填）",
@@ -3853,7 +3853,7 @@
   ,"Titular": "持有人"
   ,"desconocida": "未知"
   ,"Persona jurídica": "法人"
-  ,"GrxFirma comprueba en segundo plano si hay una versión nueva al arrancar y cada 5 horas mientras sigue abierta o en la bandeja. Lo hace aunque el motor local no responda y sin esperas si no hay internet, y avisa con «Descargar e instalar», «Ver novedades» y «Ahora no».": "GrxFirma 在启动时及保持打开或驻留托盘期间每 5 小时在后台检查新版本。即使本地引擎无响应也会检查；离线时不会等待，并提供“下载并安装”“查看更新”和“暂不”选项。"
+  ,"GrxFirma comprueba en segundo plano si hay una versión nueva al arrancar y cada 5 horas mientras sigue abierta o en la bandeja. Lo hace aunque el motor local no responda y sin esperas si no hay internet, y avisa con «Descargar e instalar», «Ver novedades» y «Ahora no».": "GrxFirma 在启动时及保持打开或驻留托盘期间每 5 小时在后台检查新版本。即使本地引擎无响应也会检查；离线时不会等待，并提供“下载并安装”“查看新功能”和“暂不”选项。"
   ,"Windows: exportar el informe de verificación, configurar el sello de tiempo, filtrar certificados por NIF, organización o tipo, controlar el servidor REST y usar el asistente de soporte, como en Linux.": "Windows：现在可像 Linux 一样导出验证报告、配置时间戳、按 NIF、机构或类型筛选证书、控制 REST 服务器并使用支持向导。"
   ,"Linux: generador de facturas FacturaE, estado del lector de tarjetas y arranque automático con la sesión, como en Windows.": "Linux：新增 FacturaE 发票生成器、读卡器状态和随会话自动启动功能，与 Windows 版一致。"
   ,"Linux: se retira la pestaña de pruebas internas, que mostraba resultados ficticios, y ya no aparece «Cambios sin guardar» al abrir la aplicación.": "Linux：移除了显示虚构结果的内部测试选项卡；打开应用时也不再显示“未保存的更改”。"
@@ -4100,7 +4100,7 @@
   ,"Aviso sobre CMS EncryptedData": "关于 CMS EncryptedData 的提示"
   ,"CMS EncryptedData usa una clave AES-256 transitoria en Base64. Al proteger se abrirán dos diálogos nativos seguros para introducirla y confirmarla. No emplea certificados destinatarios y la clave nunca se guarda ni se envía a registros.": "CMS EncryptedData 使用以 Base64 编码的临时 AES-256 密钥。加密时会打开两个安全的系统对话框，用于输入和确认密钥。此模式不使用收件人证书，密钥也不会存储或写入日志。"
   ,"Protección con clave efímera": "使用临时密钥加密"
-  ,"La clave se solicita únicamente al pulsar Proteger y se borra de la memoria controlada al terminar o cancelar. Guárdela por separado: será imprescindible para recuperar el documento.": "只有点击“加密”时才会要求输入密钥；操作完成或取消后，密钥会从受控内存中清除。请单独保存密钥，恢复文档时必须使用它。"
+  ,"La clave se solicita únicamente al pulsar Proteger y se borra de la memoria controlada al terminar o cancelar. Guárdela por separado: será imprescindible para recuperar el documento.": "只有点击“保护”时才会要求输入密钥；操作完成或取消后，密钥会从受控内存中清除。请单独保存密钥，恢复文档时必须使用它。"
   ,"Seleccione quién podrá recuperar el documento. CMS EncryptedData usa exclusivamente la clave efímera y no necesita destinatarios.": "选择可恢复文档的人员。CMS EncryptedData 仅使用临时密钥，无需指定收件人。"
   ,"Certificados destinatarios": "收件人证书"
   ,"Compartir mi certificado público": "共享我的公钥证书"
@@ -4124,7 +4124,7 @@
   ,"Ningún contenedor seleccionado": "未选择容器"
   ,"Seleccionar contenedor protegido": "选择加密容器"
   ,"Aviso de desprotección EncryptedData": "EncryptedData 解密提示"
-  ,"Los contenedores para certificados usan el almacén local. Los archivos con sufijo .encrypted.p7m solicitan la clave en un diálogo nativo seguro al pulsar Desproteger y la borran de la memoria controlada tras el envío.": "基于证书的容器使用本地存储区。点击“解密”时，扩展名为 .encrypted.p7m 的文件会在安全的系统对话框中请求密钥；提交后，密钥会从受控内存中清除。"
+  ,"Los contenedores para certificados usan el almacén local. Los archivos con sufijo .encrypted.p7m solicitan la clave en un diálogo nativo seguro al pulsar Desproteger y la borran de la memoria controlada tras el envío.": "基于证书的容器使用本地存储区。点击“解除保护”时，扩展名为 .encrypted.p7m 的文件会在安全的系统对话框中请求密钥；提交后，密钥会从受控内存中清除。"
   ,"Uso de claves": "密钥使用"
   ,"Se solicitará la clave Base64 de 44 caracteres usada al crear el contenedor.": "系统会要求输入创建容器时使用的 44 字符 Base64 密钥。"
   ,"Cancelar desprotección": "取消解密"
@@ -4137,7 +4137,7 @@
   ,"Almacén personal de Windows": "Windows 个人证书存储区"
   ,"Use Buscar en Windows o Actualizar para consultar los certificados disponibles. Importar en Windows es una acción distinta: conserva la credencial en el almacén personal tras su confirmación.": "使用“在 Windows 中查找”或“刷新”查看可用证书。导入 Windows 是另一项操作：确认后，凭据会保留在个人证书存储区。"
   ,"Tarjetas, DNIe y tokens USB": "智能卡、DNIe 和 USB 令牌"
-  ,"Conecte el lector, inserte la tarjeta y pulse «Usar DNIe o tarjeta». Windows necesita el controlador del fabricante para mostrar sus certificados. Si falta, consulte la web oficial del DNIe o la del fabricante. Al firmar, el controlador solicitará el PIN; no lo escriba en esta aplicación. La disponibilidad depende del dispositivo y del proveedor: no se garantiza compatibilidad universal.": "连接读卡器、插入智能卡，然后点击“使用 DNIe 或智能卡”。Windows 需要制造商的驱动程序才能显示证书；若未安装，请查阅 DNIe 或制造商的官方网站。签名时驱动程序会请求 PIN，请勿在本应用中输入。是否可用取决于设备和服务提供商，无法保证兼容所有设备。"
+  ,"Conecte el lector, inserte la tarjeta y pulse «Usar DNIe o tarjeta». Windows necesita el controlador del fabricante para mostrar sus certificados. Si falta, consulte la web oficial del DNIe o la del fabricante. Al firmar, el controlador solicitará el PIN; no lo escriba en esta aplicación. La disponibilidad depende del dispositivo y del proveedor: no se garantiza compatibilidad universal.": "连接读卡器、插入智能卡，然后点击“使用 DNIe 或卡片”。Windows 需要制造商的驱动程序才能显示证书；若未安装，请查阅 DNIe 或制造商的官方网站。签名时驱动程序会请求 PIN，请勿在本应用中输入。是否可用取决于设备和服务提供商，无法保证兼容所有设备。"
   ,"Cl@ve Firma: depende del trámite": "Cl@ve Firma：取决于办理事项"
   ,"Es un servicio de firma que debe ofrecer e integrar la sede o el trámite. No es un certificado local y no puede añadirse a este selector desde GrxFirma. Si el trámite ofrece Cl@ve Firma, siga esa opción en su propia sede.": "此签名服务必须由办事门户或具体事项提供并集成。它不是本地证书，不能从 GrxFirma 添加到此证书选择器。如果办理事项提供 Cl@ve Firma，请在相应门户使用该选项。"
   ,"Importar en el almacén de Windows": "导入 Windows 证书存储区"
@@ -4789,7 +4789,7 @@
   ,"csv.error.code_invalid": "CSV 代码不能超过 128 个字符，也不能包含换行符或制表符。"
   ,"csv.error.url_missing": "缺少 CSV 核验网址。"
   ,"csv.error.url_invalid": "核验网址无效：必须是不含用户名、密码和空格的 https:// 地址（空格请用 %20）。"
-  ,"csv.error.text_invalid": "CSV 图例文字不能超过 512 个字符，也不能包含换行符。"
+  ,"csv.error.text_invalid": "CSV 说明文字不能超过 512 个字符，也不能包含换行符。"
   ,"Crear documentos y expedientes ENI desde la aplicación, en Windows y Linux.": "在 Windows 和 Linux 上直接通过应用创建 ENI 文档和卷宗。"
   ,"Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.": "在 PAdES 印章中添加 CSV 核验图例（行政机关提供的代码和网址），适用于 Windows 和 Linux。"
   ,"Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.": "在 Windows 和 Linux 上通过应用验证 FacturaE、UBL 和 CII 发票，并可导出报告。"
@@ -4866,7 +4866,7 @@
   ,"sign.seal.draw_position": "区域：左 %1%，上 %2%，宽 %3%，高 %4%"
   ,"verifactu.title": "检查 Veri*Factu 记录"
   ,"verifactu.profile_label": "Veri*Factu 记录签名"
-  ,"verifactu.scope": "检查由您的开票软件生成的 Veri*Factu 记录。GrxFirma 不会创建、保存记录，也不会将其发送给 AEAT：发送由您的开票软件完成。如需签署记录，请使用“签名”，并选择“Veri*Factu 记录”格式。"
+  ,"verifactu.scope": "检查由您的开票软件生成的 Veri*Factu 记录。GrxFirma 不会创建、保存记录，也不会将其发送给 AEAT：发送由您的开票软件完成。如需签署记录，请使用“签名”，并选择“Veri*Factu 记录签名”格式。"
   ,"verifactu.limit": "已超出大小或复杂度限制。"
   ,"verifactu.xml": "XML 无效。不允许 DTD 或外部实体。"
   ,"verifactu.root": "该文件不是 Veri*Factu 记录。请选择由您的开票软件生成的 XML。"
@@ -4887,7 +4887,7 @@
   ,"verifactu.empty": "所选范围不包含 XML 记录。"
   ,"verifactu.valid": "记录检查完成，未发现错误。"
   ,"verifactu.invalid": "记录存在错误。"
-  ,"verifactu.hash_label": "计算的指纹"
+  ,"verifactu.hash_label": "计算出的哈希值"
   ,"verifactu.choose": "选择 XML 记录"
   ,"verifactu.folder": "选择记录文件夹"
   ,"verifactu.qr_title": "读取税务二维码"
@@ -4906,7 +4906,7 @@
   ,"verifactu.output": "请将报告保存到与输入记录不同的文件中。"
   ,"verifactu.root_detail": "根元素必须是 AEAT 命名空间中的 RegistroAlta、RegistroAnulacion 或 RegistroEvento。"
   ,"verifactu.profile_detail": "签名不符合使用 AGE 策略及 RSA-SHA256 或 RSA-SHA512 的封装式 XAdES 配置。"
-  ,"verifactu.hash_detail": "指纹与根据记录字段计算的指纹不一致。"
+  ,"verifactu.hash_detail": "哈希值与根据记录字段计算出的哈希值不一致。"
   ,"verifactu.chain_detail": "链式链接、上一条记录的身份或日期顺序不一致。"
   ,"verifactu.signature_detail": "XAdES 签名已被修改或未覆盖整条记录。"
   ,"verifactu.export": "导出 Veri*Factu 报告"
@@ -4934,8 +4934,8 @@
   ,"csc.cli.credencial": "%s | %s | 颁发者：%s | 到期：%s | SCAL %s | %s"
   ,"csc.cli.credencial_no_disponible": "%s | 不可用：%s"
   ,"csc.navegador.vuelta": "已收到授权。您可以关闭此窗口并返回 GrxFirma。"
-  ,"csc.prompt.pin": "远程证书 PIN："
-  ,"csc.prompt.otp": "一次性验证码（OTP）："
+  ,"csc.prompt.pin": "远程证书 PIN： "
+  ,"csc.prompt.otp": "一次性验证码（OTP）： "
   ,"csc.modo.implicit": "由服务商自动授权"
   ,"csc.modo.explicit": "需要 PIN 或 OTP"
   ,"csc.modo.oauth2code": "在浏览器中授权"
@@ -5052,7 +5052,7 @@
   ,"report.size_bytes": "%d 字节"
   ,"report.section.document": "已验证的文档"
   ,"report.field.name": "名称"
-  ,"report.field.hash": "SHA-256 指纹"
+  ,"report.field.hash": "SHA-256 哈希"
   ,"report.field.size": "大小"
   ,"report.field.format": "签名格式"
   ,"report.field.coverage": "覆盖范围"
@@ -5065,7 +5065,7 @@
   ,"report.section.warnings": "警告"
   ,"report.section.evidence": "证据"
   ,"report.section.details": "技术细节"
-  ,"report.footer": "由 %s 生成。本报告描述在所示日期进行的本地验证结果；SHA-256 指纹用于识别所验证的确切文件。本报告不能替代合格的验证服务。"
+  ,"report.footer": "由 %s 生成。本报告描述在所示日期进行的本地验证结果；SHA-256 哈希用于识别所验证的确切文件。本报告不能替代合格的验证服务。"
   ,"firma CAdES válida": "CAdES 签名有效"
   ,"firma XAdES valida": "XAdES 签名有效"
   ,"firma XMLdSig valida": "XMLdSig 签名有效"
@@ -5150,7 +5150,7 @@
   ,"winui.comun.proteger": "保护"
   ,"winui.comun.certificado_sin_titular": "无持有人证书"
   ,"winui.comun.operacion_cancelada": "操作已取消"
-  ,"winui.proteger.el_perfil_compatible_requiere_una": "兼容配置需要具有可解密私钥的 RSA 身份，例如已获授权的 P12/PFX。Windows 存储区中的不透明证书仍可用于签名，但不会用于加密；请加载适用的 P12/PFX 或切换到高级配置。"
+  ,"winui.proteger.el_perfil_compatible_requiere_una": "兼容配置需要具有可解密私钥的 RSA 身份，例如已获授权的 P12/PFX。Windows 存储区中的不透明证书仍可用于签名，但不会用于加密；请加载适用的 P12/PFX 或切换到高安全配置。"
   ,"winui.proteger.seleccione_un_documento_y_al_menos_un": "请选择文档和至少一个收件人。"
   ,"winui.proteger.seleccione_un_contenedor_protegido": "请选择加密容器。"
   ,"winui.proteger.no_se_ha_ejecutado_ninguna_proteccion": "尚未执行加密操作。"
@@ -5267,7 +5267,7 @@
   ,"winui.firmar.seleccione_un_documento_y_un_certificado": "请选择待签名文档和证书。"
   ,"winui.firmar.seleccione_un_documento_compatible_y_un": "请选择兼容的文档和主证书。"
   ,"winui.firmar.active_el_sello_y_cargue_la": "启用印章并加载预览，以获取 PDF 的实际页面尺寸。"
-  ,"winui.firmar.firma_cofirma_o_contrafirma_documentos": "使用 Windows 证书或 P12/PFX 文件签署、联合签署或复签文档。"
+  ,"winui.firmar.firma_cofirma_o_contrafirma_documentos": "使用 Windows 证书或 P12/PFX 文件签署、联合签署或副署文档。"
   ,"winui.firmar.la_firma_no_esta_disponible_porque_el": "本地引擎未发布 certificates 和 sign 操作，因此签名不可用。"
   ,"winui.firmar.firma": "签名"
   ,"winui.firmar.cofirma": "联合签名"
@@ -5441,11 +5441,11 @@
   ,"winui.firmar.el_documento_seleccionado_ya_no_esta": "所选文档不再可用。请重新选择。"
   ,"winui.firmar.seleccione_un_certificado_apto_para": "请选择适用于签名的证书。"
   ,"winui.firmar.el_certificado_seleccionado_no_es_valido": "所选证书不能用于签名。{0}"
-  ,"winui.firmar.seleccione_si_desea_firmar_cofirmar_o": "请选择签名、联合签名或复签。"
+  ,"winui.firmar.seleccione_si_desea_firmar_cofirmar_o": "请选择签名、联合签名或副署。"
   ,"winui.firmar.seleccione_un_formato_de_firma": "请选择签名格式。"
   ,"winui.firmar.seleccione_un_perfil_de_firma": "请选择签名配置。"
   ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma": "本地引擎不支持引导式多证书联合签名。"
-  ,"winui.firmar.la_cofirma_multiple_guiada_no_admite": "引导式多证书联合签名不支持复签。"
+  ,"winui.firmar.la_cofirma_multiple_guiada_no_admite": "引导式多证书联合签名不支持副署。"
   ,"winui.firmar.la_cofirma_multiple_guiada_solo_esta": "引导式多证书联合签名仅适用于 PAdES、ODF 或 OOXML。"
   ,"winui.firmar.seleccione_al_menos_un_certificado": "请至少选择一个与主签名人不同的其他证书。"
   ,"winui.firmar.no_se_puede_firmar_el_lote_porque_el": "本地引擎未连接，无法签署批次。"
@@ -5484,7 +5484,7 @@
   ,"winui.firmar.documento_certificado_y_sello_visible": "文档、证书和可见印章已准备好进行签名。"
   ,"winui.firmar.no_se_ha_ejecutado_ninguna_firma_con": "尚未使用此选择执行签名。"
   ,"winui.firmar.el_motor_local_no_ha_publicado_sign": "本地引擎未发布 sign_multicosign。"
-  ,"winui.firmar.la_cofirma_multiple_guiada_admite_firma": "引导式多证书联合签名支持签名或联合签名，但不支持复签。"
+  ,"winui.firmar.la_cofirma_multiple_guiada_admite_firma": "引导式多证书联合签名支持签名或联合签名，但不支持副署。"
   ,"winui.firmar.disponible_unicamente_para_pades_odf_u": "仅适用于 PAdES、ODF 或 OOXML。自动模式按文档类型处理。"
   ,"winui.firmar.se_necesitan_al_menos_dos_certificados": "至少需要两个不同的签名证书。"
   ,"winui.firmar.activela_para_aplicar_primero_el": "启用后将先应用主证书，再应用其他证书。"
@@ -5760,7 +5760,7 @@
   ,"winui.certificados.predeterminado": "默认"
   ,"winui.certificados.la_operacion_se_confirmo_pero_no_se_pudo": "操作已确认，但无法刷新目录。"
   ,"winui.certificados.catalogo_pendiente_de_actualizar": "目录待刷新"
-  ,"winui.certificados.la_credencial_cambio_pero_la_lista": "凭据已更改，但无法重新加载列表。请点击“刷新”。"
+  ,"winui.certificados.la_credencial_cambio_pero_la_lista": "凭据已更改，但无法重新加载列表。请点击“更新”。"
   ,"winui.certificados.la_operacion_se_confirmo_pero_el": "操作已确认，但收到的目录无效。"
   ,"winui.certificados.la_comprobacion_online_ha_finalizado": "在线检查已完成。"
   ,"winui.certificados.certificado_no_revocado": "证书未吊销"
@@ -5804,7 +5804,7 @@
   ,"winui.diagnostico.comprueba_paso_a_paso_el_canal_el_reloj": "逐步检查通道、时钟和可用清单，不重复签名，也不接受任意远程端点。"
   ,"winui.diagnostico.el_diagnostico_no_esta_disponible_porque": "诊断不可用，因为本地引擎未提供 ping。"
   ,"winui.diagnostico.diagnostico_en_curso": "诊断进行中"
-  ,"winui.diagnostico.se_estan_ejecutando_comprobaciones": "正在执行有界只读检查。"
+  ,"winui.diagnostico.se_estan_ejecutando_comprobaciones": "正在执行限定范围的只读检查。"
   ,"winui.diagnostico.aun_no_determinado": "尚未确定"
   ,"winui.diagnostico.espere_a_que_terminen_las_fases": "请等待可用阶段完成。"
   ,"winui.diagnostico.puede_cancelar_sin_modificar": "您可以取消，不会更改证书或设置。"
@@ -5817,7 +5817,7 @@
   ,"winui.diagnostico.el_motor_respondio_a_una_peticion_ping": "引擎已响应实际的 ping 请求。"
   ,"winui.diagnostico.continue_con_el_inventario_local": "继续检查本地清单。"
   ,"winui.diagnostico.reloj_local": "本地时钟"
-  ,"winui.diagnostico.no_comprobado_el_motor_conectado_no": "未检查：已连接的引擎未提供有界日期和时间诊断。"
+  ,"winui.diagnostico.no_comprobado_el_motor_conectado_no": "未检查：已连接的引擎未提供限定范围的日期和时间诊断。"
   ,"winui.diagnostico.diagnostico_de_fecha_y_hora": "日期和时间诊断"
   ,"winui.diagnostico.el_motor_devolvio_fases_de_reloj": "引擎返回的时钟阶段不一致。"
   ,"winui.diagnostico.repare_o_actualice_la_instalacion_antes": "在将故障归因于电脑时钟之前，请修复或更新安装。"
@@ -5931,7 +5931,7 @@
   ,"winui.diagnostico.sin_detalle_adicional": "无更多详情。"
   ,"winui.diagnostico.no_hay_una_accion_especifica_registrada": "未记录具体操作。"
   ,"winui.diagnostico.comprobacion_local": "本地检查"
-  ,"winui.diagnostico.motor_local_conectado_el_asistente": "本地引擎已连接。向导只会运行有界只读检查。"
+  ,"winui.diagnostico.motor_local_conectado_el_asistente": "本地引擎已连接。向导只会运行限定范围的只读检查。"
   ,"winui.ajustes.estado_del_almacen_pendiente": "存储状态待检查"
   ,"winui.ajustes.actualice_el_estado_para_comprobar_la": "刷新状态以检查凭据保护。"
   ,"winui.ajustes.cargue_las_preferencias_del_motor_local": "编辑前请加载本地引擎的首选项。"
