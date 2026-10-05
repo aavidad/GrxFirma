@@ -30,7 +30,7 @@ set -euo pipefail
 
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RAIZ="$(cd "$AQUI/../.." && pwd)"
-# shellcheck source=scripts/fire-banco/versiones.env
+# shellcheck disable=SC1091 source=scripts/fire-banco/versiones.env
 source "$AQUI/versiones.env"
 BANCO="${FIRE_BANCO_DIR:-/tmp/fire-banco}"
 [[ -f "$BANCO/portal-config.properties" ]] || { echo "Banco sin preparar: ejecute preparar.sh" >&2; exit 2; }
