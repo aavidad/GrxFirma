@@ -807,24 +807,43 @@ func construirCadenaPdfsign(clave *ClaveLocal) [][]*x509.Certificate {
 }
 
 func nombreFirmantePAdES(clave *ClaveLocal) string {
-	if clave == nil || clave.cert == nil {
+	if clave == nil {
 		return ""
 	}
-	if cn := strings.TrimSpace(clave.cert.Subject.CommonName); cn != "" {
+	return NombreFirmanteSello(clave.cert)
+}
+
+// NombreFirmanteSello es el nombre del titular que la firma PAdES escribe en
+// el sello: el CN y, si falta, el nombre distinguido completo.
+func NombreFirmanteSello(cert *x509.Certificate) string {
+	if cert == nil {
+		return ""
+	}
+	if cn := strings.TrimSpace(cert.Subject.CommonName); cn != "" {
 		return cn
 	}
-	return strings.TrimSpace(clave.cert.Subject.String())
+	return strings.TrimSpace(cert.Subject.String())
+}
+
+// EmisorSelloCertificado es el emisor que la firma PAdES escribe en el sello:
+// la organización del emisor y, si falta, su CN. Las vistas previas deben
+// usarlo para mostrar exactamente el mismo texto que el PDF firmado.
+func EmisorSelloCertificado(cert *x509.Certificate) string {
+	if cert == nil {
+		return ""
+	}
+	if org := strings.TrimSpace(strings.Join(cert.Issuer.Organization, " ")); org != "" {
+		return org
+	}
+	return strings.TrimSpace(cert.Issuer.CommonName)
 }
 
 func descripcionCertificadoPAdES(clave *ClaveLocal) string {
-	if clave == nil || clave.cert == nil {
+	if clave == nil {
 		return "Certificado digital"
 	}
-	if org := strings.Join(clave.cert.Issuer.Organization, " "); strings.TrimSpace(org) != "" {
-		return "Certificado: " + strings.TrimSpace(org)
-	}
-	if issuer := strings.TrimSpace(clave.cert.Issuer.CommonName); issuer != "" {
-		return "Certificado: " + issuer
+	if emisor := EmisorSelloCertificado(clave.cert); emisor != "" {
+		return "Certificado: " + emisor
 	}
 	return "Certificado digital"
 }

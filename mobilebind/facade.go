@@ -195,12 +195,14 @@ func (f *Facade) SealPreviewJSON(payload string) (string, error) {
 	if req.Options["visibleSeal"] != "true" {
 		return "", newFacadeError("la vista previa exige un sello visible")
 	}
-	ref, ok := f.session.reference(req.CertificateID)
+	cert, ok := f.session.certificate(req.CertificateID)
 	if !ok {
 		return "", newFacadeError("certificado de sesión no disponible")
 	}
 	options := f.withRegionOptions(req.Options)
-	image, err := desktopsigner.PrevisualizarSello(options, ref.Subject, ref.Issuer, f.now())
+	// Mismo titular y emisor que escribe la firma PAdES en el PDF.
+	image, err := desktopsigner.PrevisualizarSello(options, desktopsigner.NombreFirmanteSello(cert),
+		desktopsigner.EmisorSelloCertificado(cert), f.now())
 	if err != nil {
 		return "", safeOperationError("vista previa del sello")
 	}

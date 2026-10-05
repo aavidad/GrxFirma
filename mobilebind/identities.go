@@ -125,17 +125,18 @@ func (s *sessionIdentityStore) has(id string) bool {
 	return s.findLocked(id) != nil
 }
 
-func (s *sessionIdentityStore) reference(id string) (domain.CertificateRef, bool) {
+// certificate devuelve el certificado público de una identidad abierta.
+func (s *sessionIdentityStore) certificate(id string) (*x509.Certificate, bool) {
 	if s == nil {
-		return domain.CertificateRef{}, false
+		return nil, false
 	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	identity := s.findLocked(id)
-	if identity == nil {
-		return domain.CertificateRef{}, false
+	if identity == nil || identity.certificate == nil {
+		return nil, false
 	}
-	return identity.reference, true
+	return identity.certificate, true
 }
 
 // installExternalIdentity añade el DNIe a la sesión y sustituye el anterior.
