@@ -73,7 +73,7 @@ func TestInformeMovilUsaIdiomaYZonaDeLaApp(t *testing.T) {
 		if !strings.Contains(text, esperado) {
 			t.Errorf("falta %q en el informe", esperado)
 		}
-	}	// Las evidencias técnicas llegan también redactadas en el idioma de la app.
+	} // Las evidencias técnicas llegan también redactadas en el idioma de la app.
 	if len(response.DetailsText) != len(response.Details) || len(response.Details) == 0 {
 		t.Fatalf("details_text debe acompañar a cada evidencia: %v / %v", response.DetailsText, response.Details)
 	}
