@@ -29,33 +29,44 @@ certificados locales.
 
 ## Cómo activarlo
 
-Hace falta una de estas dos cosas:
+Decide primero la política de la organización:
 
-- `"firma_remota_csc": true` en el `config.json` del usuario, o
-- la opción `-csc-activar` en cada ejecución.
+- `"firma_remota_csc": true` en `policy.json` (`/etc/grxfirma/policy.json`) o,
+  en Windows, el valor `firma_remota_csc` = `1` (`REG_DWORD`) en
+  `HKLM\SOFTWARE\Policies\GrxFirma` la permite;
+- `false` o `0` la prohíbe, diga lo que diga el usuario.
 
-Una organización puede prohibirlo con `"firma_remota_csc": false` en
-`policy.json` (`/etc/grxfirma/policy.json`); entonces ninguna de las dos vías lo
-activa. No hay variable de entorno para activarlo. En Windows la política aún no
-se lee del registro (falta la plantilla ADMX).
+Si la política no fija el valor, la activa `"firma_remota_csc": true` en el
+`config.json` del usuario. No hay opción de la línea de órdenes ni variable de
+entorno que la active. La plantilla ADMX incluye las dos directivas
+(`FirmaRemotaCSC` y `FirmaRemotaCSCOAuth`); véase `POLITICA_MAQUINA.md`.
 
 El prestador debe dar de alta a GrxFirma como cliente OAuth público y facilitar un
 identificador de cliente. No hay secreto de cliente: la autorización usa PKCE.
 
+Por seguridad, el servidor OAuth que anuncia el servicio debe estar en el mismo
+host y puerto que el servicio de firma. Si un prestador los separa, se autoriza
+el par en `firma_remota_csc_oauth_permitidos`, con una entrada
+`servicio=autorizacion` por prestador (por ejemplo
+`"firma.prestador.es=auth.prestador.es:8443"`). La lista de la política
+sustituye a la del usuario y una entrada mal escrita impide usar la firma remota.
+
 ```sh
 # Ver los certificados remotos de la cuenta
-grxfirma -csc-activar -csc-url https://firma.prestador.example \
+grxfirma -csc-url https://firma.prestador.example \
   -csc-client-id <id> -csc-listar-credenciales
 
 # Firmar un PDF con uno de ellos
-grxfirma -csc-activar -csc-url https://firma.prestador.example \
+grxfirma -csc-url https://firma.prestador.example \
   -csc-client-id <id> -csc-credencial <credencial> \
   -entrada doc.pdf -salida doc_firmado.pdf -formato pades
 ```
 
-La CLI muestra un enlace y abre el navegador del sistema para que la persona se
-identifique ante el prestador. El navegador vuelve a `http://127.0.0.1` en un
-puerto elegido al azar, donde GrxFirma recoge el código de autorización. Si la
+La CLI escribe el host del servicio y el del servidor de autorización y abre el
+navegador del sistema para que la persona se identifique ante el prestador. No
+escribe el enlace, porque lleva el `state` de la petición; si no hay navegador en
+el equipo, la orden falla. El navegador vuelve a `http://127.0.0.1` en un puerto
+elegido al azar, donde GrxFirma recoge el código de autorización. Si la
 credencial pide PIN o código de un solo uso (OTP), se piden por la entrada
 estándar (sin eco en una terminal). Mientras dura la orden, la credencial remota
 es el único certificado disponible, para que no se firme por error con otro.
@@ -64,18 +75,27 @@ es el único certificado disponible, para que no se firme por error con otro.
 
 - Solo `https`, con la validación TLS del sistema (TLS 1.2 o superior). Se
   rechaza `http` en cualquier dirección, también la del servidor OAuth que
-  anuncia el servicio.
-- No se sigue ninguna redirección HTTP.
+  anuncia el servicio, y ese servidor debe estar en el host del servicio o en
+  un par autorizado.
+- No se sigue ninguna redirección HTTP. Si el cliente HTTP de base no se puede
+  endurecer (no es un `http.Transport`), no se conecta.
 - Cada petición tiene un tiempo máximo de 30 segundos y la espera del navegador,
-  de 5 minutos. Las respuestas se cortan a 1 MiB.
-- El `state` OAuth es aleatorio y se compara en tiempo constante. Si no
-  coincide, la autorización se descarta. El receptor local solo atiende
-  `GET /callback` con el `Host` esperado y responde con cabeceras que impiden
-  caché y referer.
-- Los tokens, el SAD, el PIN y el OTP solo están en memoria. Se borran al
-  terminar y el token de servicio se revoca. Go no permite borrar todas las
-  copias que crean `net/http` y `encoding/json`, así que el borrado es lo mejor
-  que se puede hacer, no una garantía.
+  de 5 minutos. Las respuestas se cortan a 1 MiB y la vida de los tokens se
+  acota a 24 horas.
+- El `state` OAuth es aleatorio y se compara en tiempo constante. Una petición
+  con otro `state`, otra ruta, otro método u otro `Host` recibe un error y no
+  cuenta: el receptor sigue esperando la buena hasta el tiempo máximo, de modo
+  que otra web u otro proceso local no puede ni colar un código ni cortar la
+  espera. Las respuestas impiden caché y referer.
+- Tokens, SAD, PIN y OTP solo están en memoria, en `[]byte`. Los cuerpos que los
+  llevan se componen como bytes y se borran tras enviarse. Al terminar se
+  revocan el token de servicio y el de credencial (modo `oauth2code`). Quedan
+  copias que no se pueden borrar: la cabecera `Authorization` es un `string` en
+  `net/http` y la CLI lee el PIN como `string`. El borrado reduce la exposición,
+  no la elimina.
+- La firma recibida se comprueba con la clave pública del certificado (en
+  RSA-PSS, con la sal anunciada). La cadena que envía el servicio solo se
+  incrusta si cada certificado está firmado por el siguiente.
 - Ningún error ni registro incluye tokens, PIN, OTP ni SAD. Los datos que llegan
   del servidor se sanean antes de mostrarlos en la terminal.
 
@@ -99,13 +119,17 @@ es el único certificado disponible, para que no se firme por error con otro.
 - `internal/adapters/outbound/common/csc`: flujo completo contra el simulador
   (`internal/testsupport/csctest`): descubrimiento, PKCE, listado, autorización
   SCAL1/SCAL2 en los tres modos, signHash con RSA, RSA-PSS y ECDSA. También los
-  casos de error: `state` distinto, redirección a otro host, respuesta enorme,
-  `http` plano, TLS no confiable, servicio sin OAuth y firma que no corresponde
-  al certificado.
+  casos de error: `state` distinto (no se acepta y la espera caduca), servidor
+  OAuth en otro host, redirección a otro host, respuesta enorme, `http` plano,
+  TLS no confiable, servicio sin OAuth, firma que no corresponde al
+  certificado, sal PSS distinta y cadena que no encadena.
 - `internal/adapters/outbound/desktop/signer`: el motor firma PAdES, CAdES y
   XAdES con la clave remota y el verificador del propio motor las da por válidas.
-- `cmd/grxfirma`: opciones, activación y prohibición por política, listado y una
-  firma CAdES completa con la CLI real, con PIN y OTP por stdin.
+- `internal/adapters/outbound/common/config`: activación por política (también
+  la de máquina de Windows, con un lector simulado) y por `config.json`.
+- `cmd/grxfirma`: opciones, activación y prohibición por política, pares OAuth,
+  listado sin escribir el `state` y una firma CAdES completa con la CLI real,
+  con PIN y OTP por stdin.
 
 ## Qué falta para usarlo en producción
 
