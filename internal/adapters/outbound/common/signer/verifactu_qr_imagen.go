@@ -42,7 +42,9 @@ const (
 	vfQRPNGMaxBytes = 64 * 1024 * 1024
 )
 
-var errVFQRNoEncontrado = errors.New("qr no encontrado")
+// ErrorQRVeriFactuFuente es el error localizable de una fuente del QR que no
+// es una URL, una imagen o un PDF admisibles.
+func ErrorQRVeriFactuFuente() error { return vfError("qr_image") }
 
 // LeerQRVeriFactuImagen localiza el QR tributario en una imagen PNG o JPEG y
 // devuelve los mismos datos que LeerQRVeriFactu. No hace peticiones de red.
