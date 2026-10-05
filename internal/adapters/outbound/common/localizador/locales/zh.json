@@ -942,7 +942,7 @@
   "Haz la operación y vuelve aquí si algo no queda claro.": "请执行操作；如有不清楚之处，请回到此处。",
   "Hexadecimal": "十六进制",
   "Host / IP:": "主机/IP：",
-  "Huella": "哈希",
+  "Huella": "指纹",
   "Huella SHA-256: ": "SHA-256 指纹： ",
   "Huella copiada al portapapeles.": "哈希已复制到剪贴板。",
   "Huella del certificado copiada al portapapeles.": "证书指纹已复制到剪贴板。",
@@ -4878,7 +4878,7 @@
   ,"verifactu.input": "请选择可访问的 XML 文件或记录文件夹。"
   ,"verifactu.hash": "该记录在生成后被修改过：其哈希值不一致。请让您的开票软件重新生成。"
   ,"verifactu.chain": "此记录未与该系列的上一条记录相连。请检查文件夹是否按顺序包含所有记录。"
-  ,"verifactu.duplicate": "链中存在指纹相同的记录。"
+  ,"verifactu.duplicate": "链中存在哈希相同的记录。"
   ,"verifactu.previous_missing": "上一条记录不在所选范围内，无法检查此链式链接。"
   ,"verifactu.signature": "记录的签名已被篡改或未覆盖整条记录。请使用“Veri*Factu 记录”格式重新签名。"
   ,"verifactu.certificate": "证书在记录日期无效。"
