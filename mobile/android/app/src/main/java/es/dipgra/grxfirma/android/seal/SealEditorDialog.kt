@@ -70,6 +70,7 @@ class SealEditorDialog(
     private lateinit var navigation: LinearLayout
     private lateinit var qrCheck: CheckBox
     private lateinit var logoDropdown: DropdownField
+    private lateinit var chooseImageButton: View
     private lateinit var pageToggle: MaterialButton
     private lateinit var pagesSummary: TextView
     private var csvJob: Job? = null
@@ -102,6 +103,7 @@ class SealEditorDialog(
     fun customImageSelected() {
         settings = settings.copy(logo = "custom")
         if (::logoDropdown.isInitialized) logoDropdown.select(2)
+        if (::chooseImageButton.isInitialized) chooseImageButton.visibility = View.VISIBLE
         refreshPreview()
     }
 
@@ -142,7 +144,8 @@ class SealEditorDialog(
             }
         }
         // La página no ocupa toda la ventana: debajo deben asomar los botones de ajuste.
-        canvas.maxPageHeight = (activity.resources.displayMetrics.heightPixels * 0.55f).toInt()
+        // Primero un 40 % de la pantalla; al mostrarse se ajusta al alto real del diálogo.
+        canvas.maxPageHeight = (activity.resources.displayMetrics.heightPixels * 0.40f).toInt()
         column.addView(canvas, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             .apply { gravity = android.view.Gravity.CENTER_HORIZONTAL })
         previewStatus = label(R.string.seal_preview_loading).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
@@ -157,7 +160,8 @@ class SealEditorDialog(
         column.addView(navigation)
 
         // Iconos con su descripción: no hay palabras que se corten con letra grande.
-        column.addView(label(R.string.seal_accessible_controls))
+        val controlsLabel = label(R.string.seal_accessible_controls)
+        column.addView(controlsLabel)
         val move = row()
         move.addView(iconButton(R.drawable.ic_seal_left, R.string.seal_move_left) { adjust(dx = -0.02f) }, weighted())
         move.addView(iconButton(R.drawable.ic_seal_right, R.string.seal_move_right) { adjust(dx = 0.02f) }, weighted())
@@ -224,11 +228,15 @@ class SealEditorDialog(
         val logoField = dropdown(R.string.seal_style, listOf(R.string.seal_logo_none, R.string.seal_logo_institutional,
             R.string.seal_logo_custom), when (settings.logo) { "institutional" -> 1; "custom" -> 2; else -> 0 }) { position ->
             settings = settings.copy(logo = listOf("none", "institutional", "custom")[position])
+            chooseImageButton.visibility = if (settings.logo == "custom") View.VISIBLE else View.GONE
             refreshPreview()
         }
         logoDropdown = logoField.second
         column.addView(logoField.first)
-        column.addView(button(R.string.seal_choose_image) { chooseImage() })
+        // Acción secundaria: solo tiene sentido con «Imagen propia».
+        chooseImageButton = button(R.string.seal_choose_image, outlined = true) { chooseImage() }
+        chooseImageButton.visibility = if (settings.logo == "custom") View.VISIBLE else View.GONE
+        column.addView(chooseImageButton)
         column.addView(CheckBox(activity).apply {
             setText(R.string.seal_show_text)
             minHeight = dp(48)
@@ -285,10 +293,21 @@ class SealEditorDialog(
                 }
                 actual.show()
                 actual.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)
+                // Al abrir deben verse la página, su estado y la primera fila de botones.
+                scroll.post { fitCanvasToDialog(scroll, column, listOf(instructions, previewStatus, pageLabel, navigation, controlsLabel, move)) }
                 actual.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                     saveIfValid(actual)
                 }
             }
+    }
+
+    /** Limita el lienzo al hueco que dejan en el diálogo los textos y la primera fila de botones. */
+    private fun fitCanvasToDialog(scroll: View, column: View, around: List<View>) {
+        if (scroll.height <= 0) return
+        val reserved = column.paddingTop + around.sumOf { if (it.visibility == View.GONE) 0 else it.height } + dp(16)
+        val available = scroll.height - reserved
+        val limit = (activity.resources.displayMetrics.heightPixels * 0.55f).toInt()
+        if (available >= dp(120)) canvas.maxPageHeight = available.coerceAtMost(limit)
     }
 
     private fun saveIfValid(actual: androidx.appcompat.app.AlertDialog) {
