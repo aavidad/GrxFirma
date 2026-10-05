@@ -13,6 +13,24 @@ Administración que ya lo usan sigan funcionando. Está pensada para cualquier
 persona o entidad que firme en esas sedes, sin depender de una organización
 concreta.
 
+## Capturas
+
+El sello visible se coloca, se cambia de tamaño y se gira sobre la vista previa del PDF; el documento firmado lo muestra igual:
+
+![Sello de firma girado 30° en un PDF firmado](docs/capturas/sello-girado-pdf.png)
+
+| Windows: firmar con sello visible | Windows: colocar el sello desde un portal |
+|---|---|
+| ![Pantalla Firmar en Windows con el sello girado](docs/capturas/windows-firmar.png) | ![Ventana para colocar el sello abierta desde un portal](docs/capturas/windows-portal.png) |
+| **Windows: verificar** | **Linux: firmar** |
+| ![Resultado de verificar una firma en Windows](docs/capturas/windows-verificar.png) | ![Pantalla Firmar en Linux con el sello girado](docs/capturas/linux-firmar.png) |
+
+| Android: sello | Android: firma terminada |
+|---|---|
+| ![Editor del sello en Android](docs/capturas/android-sello.png) | ![Firma terminada en Android](docs/capturas/android-resultado.png) |
+
+Las capturas usan el certificado de pruebas público de la FNMT o uno sintético y un documento de ejemplo.
+
 ## Plataformas
 
 - Windows 10 (1809) o posterior, x64: interfaz WinUI 3 e interfaz Qt como
