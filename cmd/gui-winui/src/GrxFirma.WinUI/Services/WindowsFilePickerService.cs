@@ -228,7 +228,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
             ViewMode = PickerViewMode.List,
             CommitButtonText = Localizer.Text("winui.selector.seleccionar"),
         };
-        foreach (var extension in OpenExtensions(profile))
+        foreach (var extension in PickerFilterExtensions(OpenExtensions(profile)))
         {
             picker.FileTypeFilter.Add(extension);
         }
@@ -292,6 +292,16 @@ public sealed class WindowsFilePickerService : IFilePickerService
         }
         InitializeWithWindow.Initialize(picker, windowHandle);
     }
+
+    // FileTypeFilter solo admite una extensión simple: «.authenveloped.p7m»
+    // lanza ArgumentException y el selector no llegaba a abrirse. Se filtra
+    // por la última extensión («.p7m»), que ya incluye esos contenedores; el
+    // motor comprueba después el formato real del fichero.
+    internal static IReadOnlyList<string> PickerFilterExtensions(IEnumerable<string> extensions) =>
+        extensions
+            .Select(static extension => "." + extension.TrimStart('.').Split('.')[^1])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
     private static IReadOnlyList<string> OpenExtensions(
         OpenFilePickerProfile profile) =>

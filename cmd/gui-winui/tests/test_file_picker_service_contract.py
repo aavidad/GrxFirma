@@ -89,6 +89,11 @@ class FilePickerServiceContractTests(unittest.TestCase):
             self.assertIn(extension, source)
         self.assertNotIn("IReadOnlyList<string> extensions", self.api)
         self.assertIn("ArgumentOutOfRangeException", source)
+        # FileTypeFilter rechaza extensiones compuestas (".authenveloped.p7m"):
+        # el selector filtra por la última extensión.
+        self.assertIn("PickerFilterExtensions(OpenExtensions(profile))", source)
+        self.assertIn("Split('.')[^1]", source)
+        self.assertNotIn("foreach (var extension in OpenExtensions(profile))", source)
 
     def test_user_cancel_is_empty_and_suggested_name_cannot_be_a_path(self) -> None:
         source = self.implementation

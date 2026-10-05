@@ -457,6 +457,36 @@ public sealed partial class MainWindow : Window
         Closed -= OnClosed;
     }
 
+    private bool _unexpectedErrorShown;
+
+    // Un único aviso a la vez: si el propio aviso fallara, no se encadenan
+    // diálogos sin fin.
+    internal void ShowUnexpectedError(Exception exception)
+    {
+        if (_unexpectedErrorShown || RootNavigation.XamlRoot is null) return;
+        _unexpectedErrorShown = true;
+        DispatcherQueue.TryEnqueue(async () =>
+        {
+            try
+            {
+                var dialog = new OperationDiagnosticDialog(
+                    GrxFirma.WinUI.Core.Diagnostics.OperationDiagnosticMapper.FromException(exception))
+                {
+                    XamlRoot = RootNavigation.XamlRoot,
+                };
+                await Localizer.ShowAsync(dialog);
+            }
+            catch (Exception)
+            {
+                // El fallo ya consta en el registro local.
+            }
+            finally
+            {
+                _unexpectedErrorShown = false;
+            }
+        });
+    }
+
     private async void OnOpenCurrentDiagnostic(
         object sender,
         RoutedEventArgs args)

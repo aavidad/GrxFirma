@@ -99,6 +99,21 @@ class AppLifecycleContractTests(unittest.TestCase):
             resources,
         )
 
+    def test_unexpected_ui_failures_do_not_close_the_app(self) -> None:
+        # Recorrido Windows 0.0.117 (A1): un segundo ContentDialog desde un
+        # manejador async void cerraba GrxFirma.
+        source = APP.read_text(encoding="utf-8")
+        main_window = MAIN_WINDOW.read_text(encoding="utf-8")
+        localizer = (APP.parent / "Services" / "Localizer.cs").read_text(encoding="utf-8")
+        self.assertIn("UnhandledException += OnUnhandledException;", source)
+        self.assertIn("e.Handled = true;", source)
+        self.assertIn("RegistrarErrorNoControlado(e.Exception);", source)
+        self.assertIn("internal void ShowUnexpectedError(Exception exception)", main_window)
+        self.assertIn("if (_unexpectedErrorShown", main_window)
+        self.assertIn("await DialogGate.WaitAsync();", localizer)
+        self.assertIn("DialogGate.Release();", localizer)
+        self.assertIn("0x80000019", localizer)
+
     def test_safe_exception_attribution_reaches_visual_diagnostic(self) -> None:
         source = APP.read_text(encoding="utf-8")
         view_model = MAIN_VIEW_MODEL.read_text(encoding="utf-8")
