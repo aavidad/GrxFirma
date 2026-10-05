@@ -16,9 +16,10 @@ Button {
     hoverEnabled: true
     // Color del borde cuando el botón señala un error (transparente si no lo hay).
     property color alertColor: "transparent"
+    readonly property color baseFill: Contrast.legibleFill(control.palette.button)
     readonly property color fillColor: control.down
-        ? Qt.darker(control.palette.button, 1.25)
-        : (control.hovered && control.enabled ? Qt.darker(control.palette.button, 1.08) : control.palette.button)
+        ? Qt.darker(control.baseFill, 1.25)
+        : (control.hovered && control.enabled ? Qt.darker(control.baseFill, 1.08) : control.baseFill)
     readonly property color labelColor: Contrast.readableOn(control.flat ? control.palette.window : control.fillColor,
                                                              control.palette.buttonText)
     contentItem: Text {

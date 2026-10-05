@@ -10,6 +10,26 @@ import QtQuick.Controls
 CheckBox {
     id: control
     Accessible.name: text
+    // Recuadro propio: el de Fusion pierde el borde sobre fondos oscuros (contraste < 3:1).
+    indicator: Rectangle {
+        implicitWidth: 20
+        implicitHeight: 20
+        x: control.mirrored ? control.width - width - control.rightPadding : control.leftPadding
+        y: control.topPadding + (control.availableHeight - height) / 2
+        radius: 3
+        color: control.checkState !== Qt.Unchecked ? control.palette.highlight : control.palette.base
+        border.color: control.checkState !== Qt.Unchecked ? control.palette.highlight : control.palette.mid
+        border.width: 2
+        opacity: control.enabled ? 1 : 0.5
+        Text {
+            anchors.centerIn: parent
+            text: control.checkState === Qt.PartiallyChecked ? "\u2013" : "\u2713"
+            visible: control.checkState !== Qt.Unchecked
+            color: control.palette.highlightedText
+            font.bold: true
+            font.pixelSize: 14
+        }
+    }
     contentItem: Text {
         text: control.text
         font: control.font

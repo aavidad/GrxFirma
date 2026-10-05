@@ -5146,4 +5146,5 @@
   ,"verificacion.detalle.valor.detached": "firma en un fitxer a part"
   ,"verificacion.detalle.valor.embedded": "firma inclosa en el document"
   ,"verificacion.detalle.valor.ok": "comprovades"
+  ,"sign.need_certificate": "Trieu un certificat per a poder signar."
 }

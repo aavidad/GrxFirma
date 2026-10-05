@@ -5146,4 +5146,5 @@
   ,"verificacion.detalle.valor.detached": "sinadura aparteko fitxategian"
   ,"verificacion.detalle.valor.embedded": "sinadura dokumentuan sartuta"
   ,"verificacion.detalle.valor.ok": "egiaztatuta"
+  ,"sign.need_certificate": "Aukeratu ziurtagiri bat sinatu ahal izateko."
 }

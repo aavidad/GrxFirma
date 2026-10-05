@@ -29,3 +29,16 @@ function readableOn(background, preferred) {
     const light = Qt.rgba(1, 1, 1, 1)
     return ratio(background, dark) >= ratio(background, light) ? dark : light
 }
+
+// Fondo de botón ajustado: si ni el texto casi negro ni el blanco llegan a 4,5:1,
+// se oscurece poco a poco hasta que el blanco lo alcance.
+function legibleFill(background) {
+    let c = background
+    const light = Qt.rgba(1, 1, 1, 1)
+    const dark = Qt.rgba(0.07, 0.08, 0.1, 1)
+    for (let i = 0; i < 6; i++) {
+        if (ratio(c, light) >= 4.5 || ratio(c, dark) >= 4.5) return c
+        c = Qt.darker(c, 1.12)
+    }
+    return c
+}

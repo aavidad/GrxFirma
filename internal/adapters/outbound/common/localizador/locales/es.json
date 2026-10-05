@@ -5146,4 +5146,5 @@
   ,"verificacion.detalle.valor.detached": "firma en fichero aparte"
   ,"verificacion.detalle.valor.embedded": "firma incluida en el documento"
   ,"verificacion.detalle.valor.ok": "comprobadas"
+  ,"sign.need_certificate": "Elija un certificado para poder firmar."
 }

@@ -10,6 +10,27 @@ import QtQuick.Controls
 Switch {
     id: control
     Accessible.name: text
+    // Pista y mando propios con borde visible en temas claros y oscuros.
+    indicator: Rectangle {
+        implicitWidth: 42
+        implicitHeight: 22
+        x: control.mirrored ? control.width - width - control.rightPadding : control.leftPadding
+        y: control.topPadding + (control.availableHeight - height) / 2
+        radius: height / 2
+        color: control.checked ? control.palette.highlight : control.palette.base
+        border.color: control.checked ? control.palette.highlight : control.palette.mid
+        border.width: 2
+        opacity: control.enabled ? 1 : 0.5
+        Rectangle {
+            width: 14
+            height: 14
+            radius: 7
+            y: (parent.height - height) / 2
+            x: control.checked ? parent.width - width - 4 : 4
+            color: control.checked ? control.palette.highlightedText : control.palette.mid
+            Behavior on x { NumberAnimation { duration: 120 } }
+        }
+    }
     contentItem: Text {
         text: control.text
         font: control.font

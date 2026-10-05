@@ -8786,16 +8786,16 @@ Window {
                         Rectangle {
                             Layout.fillWidth: true
                             implicitHeight: optionsCol.implicitHeight + 24
+                            implicitWidth: optionsCol.implicitWidth + 24
                             radius: 10
                             color: currentTheme.cardColor
                             border.color: Qt.rgba(1, 1, 1, currentTheme.borderOpacity)
-                            ScrollView {
+                            // Sin desplazamiento propio: un ScrollView anidado se quedaba con la
+                            // rueda del ratón y la página no llegaba hasta «Firmar ahora».
+                            Item {
                                 id: scrollOpts
                                 anchors.fill: parent
                                 anchors.margins: 12
-                                contentWidth: optionsCol.implicitWidth
-                                contentHeight: optionsCol.implicitHeight
-                                clip: true
 
                                 ColumnLayout {
                                     id: optionsCol
@@ -9912,6 +9912,17 @@ Window {
                                     signVisibleSeal = false
                                 }
                             }
+                        }
+
+                        // Motivo visible cuando «Firmar ahora» está desactivado por el certificado.
+                        Text {
+                            Layout.fillWidth: true
+                            visible: !window.signingInProgress && !window.autoVerificationInProgress && !window.selectedCertificateUsable
+                            text: window.selectedCertData ? window.certificateStatusReason(window.selectedCertData) : tr("sign.need_certificate")
+                            color: currentTheme.textColor
+                            wrapMode: Text.WordWrap
+                            Accessible.role: Accessible.StaticText
+                            Accessible.name: text
                         }
 
                         Text {

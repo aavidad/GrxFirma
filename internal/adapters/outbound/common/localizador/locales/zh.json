@@ -5146,4 +5146,5 @@
   ,"verificacion.detalle.valor.detached": "签名位于单独文件中"
   ,"verificacion.detalle.valor.embedded": "签名嵌入文档中"
   ,"verificacion.detalle.valor.ok": "已验证"
+  ,"sign.need_certificate": "请选择一个证书以便签名。"
 }
