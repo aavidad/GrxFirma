@@ -15770,7 +15770,7 @@ Window {
                 enabled: window.facturaeToolsEnabled && isIpcMode
                 onSignRequested: window.activeTab = "firmar"
             }
-            EniPanel { bridge: backend; theme: currentTheme; localPath: function(url) { return window.localPathFromUrl(url) }; translate: function(key) { return window.tr(key) }; certificates: window.certificates; certificateId: function(cert) { return window.certificateId(cert) }; enabled: isIpcMode }
+            EniPanel { localeName: window.appLanguage === "va" ? "ca" : window.appLanguage; bridge: backend; theme: currentTheme; localPath: function(url) { return window.localPathFromUrl(url) }; translate: function(key) { return window.tr(key) }; certificates: window.certificates; certificateId: function(cert) { return window.certificateId(cert) }; enabled: isIpcMode }
         }
     }
 

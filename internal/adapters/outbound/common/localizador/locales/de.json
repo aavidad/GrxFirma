@@ -2911,7 +2911,7 @@
   "paridad.lote3.eni.certificate": "Zertifikat zum Signieren des Verzeichnisses",
   "paridad.lote3.eni.certificates_failed": "Zertifikate konnten nicht geladen werden.",
   "paridad.lote3.eni.citizen": "Bürgerin oder Bürger",
-  "paridad.lote3.eni.classification": "Verfahrensklassifikation (SIA)",
+  "paridad.lote3.eni.classification": "SIA-Code des Verfahrens (Pflichtfeld)",
   "paridad.lote3.eni.create_document": "ENI-Dokument erstellen",
   "paridad.lote3.eni.create_file": "ENI-Akte erstellen",
   "paridad.lote3.eni.created": "ENI-Datei erstellt: %1",
@@ -4808,7 +4808,7 @@
   "eni.validacion.dir3": "Geben Sie einen oder mehrere DIR3-Codes ein (ein Großbuchstabe und acht Ziffern), durch Kommas getrennt. Beispiel: L01180877.",
   "eni.validacion.identifier": "Verwenden Sie ES_<DIR3>_<JJJJ>_<id> mit 1 bis 30 Zeichen (Buchstaben, Ziffern oder Unterstriche).",
   "eni.validacion.date": "Wählen Sie ein gültiges Datum und eine gültige Uhrzeit.",
-  "eni.validacion.classification": "Geben Sie einen numerischen SIA-Code oder <DIR3>_PRO_<id> ein (höchstens 30 Zeichen).",
+  "eni.validacion.classification": "Geben Sie den SIA-Code ein: nur Ziffern (bis zu 30) oder das Format, das Ihnen Ihre Stelle nennt.",
   "eni.validacion.source": "Eine authentische Kopie benötigt eine gültige ENI-Kennung der Quelle.",
   "eni.validacion.format": "Verwenden Sie einen Formatnamen mit höchstens 32 Zeichen: Buchstaben, Ziffern, Punkt, Plus oder Bindestrich.",
   "eni.validacion.text": "Der Text überschreitet das Limit oder enthält Steuerzeichen.",
@@ -5152,4 +5152,6 @@
   ,"verificacion.detalle.revocacion.bueno": "nicht widerrufen"
   ,"verificacion.detalle.revocacion.revocado": "widerrufen"
   ,"verificacion.detalle.revocacion.desconocido": "keine Widerrufsinformationen"
+  ,"paridad.lote3.eni.classification_hint": "Die Nummer des Verfahrens im Verwaltungsinformationssystem (SIA). Beispiel: 2345678. Wenn Sie sie nicht kennen, fragen Sie Ihre zuständige Bearbeitungsstelle."
+  ,"paridad.lote3.eni.interested_hint": "Steuer-ID oder Name jeder beteiligten Person, durch Kommas getrennt."
 }

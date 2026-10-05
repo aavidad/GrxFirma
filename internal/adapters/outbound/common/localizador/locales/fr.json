@@ -2911,7 +2911,7 @@
   "paridad.lote3.eni.certificate": "Certificat pour signer l’index",
   "paridad.lote3.eni.certificates_failed": "Impossible de charger les certificats.",
   "paridad.lote3.eni.citizen": "Citoyen",
-  "paridad.lote3.eni.classification": "Classement de la procédure (SIA)",
+  "paridad.lote3.eni.classification": "Code SIA de la procédure (obligatoire)",
   "paridad.lote3.eni.create_document": "Créer le document ENI",
   "paridad.lote3.eni.create_file": "Créer le dossier ENI",
   "paridad.lote3.eni.created": "Fichier ENI créé : %1",
@@ -4808,7 +4808,7 @@
   "eni.validacion.dir3": "Saisissez un ou plusieurs codes DIR3 (une lettre majuscule et huit chiffres), séparés par des virgules. Exemple : L01180877.",
   "eni.validacion.identifier": "Utilisez ES_<DIR3>_<AAAA>_<id>, avec un id de 1 à 30 caractères (lettres, chiffres ou tirets bas).",
   "eni.validacion.date": "Choisissez une date et une heure valides.",
-  "eni.validacion.classification": "Saisissez un code SIA numérique ou <DIR3>_PRO_<id> (30 caractères maximum).",
+  "eni.validacion.classification": "Saisissez le code SIA : uniquement des chiffres (30 au maximum) ou le format indiqué par votre service.",
   "eni.validacion.source": "Une copie authentique exige un identifiant ENI source valide.",
   "eni.validacion.format": "Utilisez un nom de format de 32 caractères maximum : lettres, chiffres, point, signe plus ou trait d’union.",
   "eni.validacion.text": "Le texte dépasse la limite ou contient des caractères de contrôle.",
@@ -5152,4 +5152,6 @@
   ,"verificacion.detalle.revocacion.bueno": "non révoqué"
   ,"verificacion.detalle.revocacion.revocado": "révoqué"
   ,"verificacion.detalle.revocacion.desconocido": "aucune information de révocation"
+  ,"paridad.lote3.eni.classification_hint": "C’est le numéro de la procédure dans le système d’information administrative (SIA). Exemple : 2345678. Si vous ne le connaissez pas, demandez-le à votre service instructeur."
+  ,"paridad.lote3.eni.interested_hint": "Identifiant fiscal ou nom de chaque personne intéressée, séparés par des virgules."
 }

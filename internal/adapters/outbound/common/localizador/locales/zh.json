@@ -2911,7 +2911,7 @@
   "paridad.lote3.eni.certificate": "用于签署目录的证书",
   "paridad.lote3.eni.certificates_failed": "无法加载证书。",
   "paridad.lote3.eni.citizen": "公民",
-  "paridad.lote3.eni.classification": "程序分类（SIA）",
+  "paridad.lote3.eni.classification": "程序的 SIA 代码（必填）",
   "paridad.lote3.eni.create_document": "创建 ENI 文档",
   "paridad.lote3.eni.create_file": "创建 ENI 案卷",
   "paridad.lote3.eni.created": "已创建 ENI 文件：%1",
@@ -4808,7 +4808,7 @@
   "eni.validacion.dir3": "请输入一个或多个 DIR3 代码（一个大写字母和八位数字），以逗号分隔。示例：L01180877。",
   "eni.validacion.identifier": "请使用 ES_<DIR3>_<年份>_<id>，其中 id 为 1 至 30 个字母、数字或下划线。",
   "eni.validacion.date": "请选择有效的日期和时间。",
-  "eni.validacion.classification": "请输入数字 SIA 代码或 <DIR3>_PRO_<id>（最多 30 个字符）。",
+  "eni.validacion.classification": "请输入 SIA 代码：仅限数字（最多 30 位），或使用您的单位提供的格式。",
   "eni.validacion.source": "真实副本需要有效的来源 ENI 标识符。",
   "eni.validacion.format": "格式名称最多 32 个字符，可使用字母、数字、点、加号或连字符。",
   "eni.validacion.text": "文本超出长度限制或含有控制字符。",
@@ -5152,4 +5152,6 @@
   ,"verificacion.detalle.revocacion.bueno": "未吊销"
   ,"verificacion.detalle.revocacion.revocado": "已吊销"
   ,"verificacion.detalle.revocacion.desconocido": "无吊销信息"
+  ,"paridad.lote3.eni.classification_hint": "这是该程序在行政信息系统（SIA）中的编号。示例：2345678。如果不知道，请向您的办理单位索取。"
+  ,"paridad.lote3.eni.interested_hint": "每位利害关系人的税号或姓名，用逗号分隔。"
 }

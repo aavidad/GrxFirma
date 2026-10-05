@@ -55,7 +55,8 @@ ColumnLayout {
     }
     Label {
         Layout.fillWidth: true
-        visible: root.hintKey !== ""
+        // Con el error a la vista la pista sobra: el error ya dice qué escribir.
+        visible: root.hintKey !== "" && !root.invalid
         text: root.hintKey !== "" ? root.translate(root.hintKey) : ""
         color: root.theme.secondaryTextColor
         wrapMode: Text.WordWrap

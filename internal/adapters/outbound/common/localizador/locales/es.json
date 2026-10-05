@@ -2911,7 +2911,7 @@
   "paridad.lote3.eni.certificate": "Certificado para firmar el índice",
   "paridad.lote3.eni.certificates_failed": "No se pudieron cargar los certificados.",
   "paridad.lote3.eni.citizen": "Ciudadano",
-  "paridad.lote3.eni.classification": "Clasificación del procedimiento (SIA)",
+  "paridad.lote3.eni.classification": "Código SIA del procedimiento (obligatorio)",
   "paridad.lote3.eni.create_document": "Crear documento ENI",
   "paridad.lote3.eni.create_file": "Crear expediente ENI",
   "paridad.lote3.eni.created": "Archivo ENI creado: %1",
@@ -4808,7 +4808,7 @@
   "eni.validacion.dir3": "Indique uno o varios códigos DIR3 (una letra mayúscula y ocho cifras), separados por comas. Ejemplo: L01180877.",
   "eni.validacion.identifier": "Use ES_<DIR3>_<AAAA>_<id>, con un id de 1 a 30 caracteres (letras, cifras o guion bajo).",
   "eni.validacion.date": "Elija una fecha y una hora válidas.",
-  "eni.validacion.classification": "Indique un código SIA numérico o <DIR3>_PRO_<id> (hasta 30 caracteres).",
+  "eni.validacion.classification": "Escriba el código SIA: solo cifras (hasta 30) o el formato que le indique su unidad.",
   "eni.validacion.source": "La copia auténtica necesita un identificador ENI de origen válido.",
   "eni.validacion.format": "Use un nombre de formato de hasta 32 caracteres: letras, cifras, punto, signo más o guion.",
   "eni.validacion.text": "El texto supera el límite o contiene caracteres de control.",
@@ -5152,4 +5152,6 @@
   ,"verificacion.detalle.revocacion.bueno": "no revocado"
   ,"verificacion.detalle.revocacion.revocado": "revocado"
   ,"verificacion.detalle.revocacion.desconocido": "sin información de revocación"
+  ,"paridad.lote3.eni.classification_hint": "Es el número del procedimiento en el Sistema de Información Administrativa. Ejemplo: 2345678. Si no lo conoce, pídalo a su unidad de tramitación."
+  ,"paridad.lote3.eni.interested_hint": "NIF o nombre de cada interesado, separados por comas."
 }

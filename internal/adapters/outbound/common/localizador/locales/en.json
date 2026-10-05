@@ -2911,7 +2911,7 @@
   "paridad.lote3.eni.certificate": "Certificate for signing the index",
   "paridad.lote3.eni.certificates_failed": "Could not load certificates.",
   "paridad.lote3.eni.citizen": "Citizen",
-  "paridad.lote3.eni.classification": "Procedure classification (SIA)",
+  "paridad.lote3.eni.classification": "SIA procedure code (required)",
   "paridad.lote3.eni.create_document": "Create ENI document",
   "paridad.lote3.eni.create_file": "Create ENI case file",
   "paridad.lote3.eni.created": "ENI file created: %1",
@@ -4808,7 +4808,7 @@
   "eni.validacion.dir3": "Enter one or more DIR3 codes (one uppercase letter and eight digits), separated by commas. Example: L01180877.",
   "eni.validacion.identifier": "Use ES_<DIR3>_<YYYY>_<id>, with an id of 1 to 30 characters (letters, digits or underscores).",
   "eni.validacion.date": "Choose a valid date and time.",
-  "eni.validacion.classification": "Enter a numeric SIA code or <DIR3>_PRO_<id> (up to 30 characters).",
+  "eni.validacion.classification": "Enter the SIA code: digits only (up to 30) or the format your unit gives you.",
   "eni.validacion.source": "An authentic copy requires a valid source ENI identifier.",
   "eni.validacion.format": "Use a format name of up to 32 characters: letters, digits, dot, plus sign or hyphen.",
   "eni.validacion.text": "The text exceeds the limit or contains control characters.",
@@ -5152,4 +5152,6 @@
   ,"verificacion.detalle.revocacion.bueno": "not revoked"
   ,"verificacion.detalle.revocacion.revocado": "revoked"
   ,"verificacion.detalle.revocacion.desconocido": "no revocation information"
+  ,"paridad.lote3.eni.classification_hint": "The procedure number in the Administrative Information System (SIA). Example: 2345678. If you do not know it, ask your processing unit."
+  ,"paridad.lote3.eni.interested_hint": "Tax ID or name of each interested party, separated by commas."
 }

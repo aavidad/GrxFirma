@@ -2911,7 +2911,7 @@
   "paridad.lote3.eni.certificate": "Certificat per signar l’índex",
   "paridad.lote3.eni.certificates_failed": "No s’han pogut carregar els certificats.",
   "paridad.lote3.eni.citizen": "Ciutadà",
-  "paridad.lote3.eni.classification": "Classificació del procediment (SIA)",
+  "paridad.lote3.eni.classification": "Codi SIA del procediment (obligatori)",
   "paridad.lote3.eni.create_document": "Crea el document ENI",
   "paridad.lote3.eni.create_file": "Crea l’expedient ENI",
   "paridad.lote3.eni.created": "Fitxer ENI creat: %1",
@@ -4808,7 +4808,7 @@
   "eni.validacion.dir3": "Indiqueu un o diversos codis DIR3 (una lletra majúscula i vuit xifres), separats per comes. Exemple: L01180877.",
   "eni.validacion.identifier": "Feu servir ES_<DIR3>_<AAAA>_<id>, amb un id d’1 a 30 caràcters (lletres, xifres o guió baix).",
   "eni.validacion.date": "Trieu una data i una hora vàlides.",
-  "eni.validacion.classification": "Indiqueu un codi SIA numèric o <DIR3>_PRO_<id> (fins a 30 caràcters).",
+  "eni.validacion.classification": "Escriviu el codi SIA: només xifres (fins a 30) o el format que us indiqui la vostra unitat.",
   "eni.validacion.source": "La còpia autèntica necessita un identificador ENI d’origen vàlid.",
   "eni.validacion.format": "Feu servir un nom de format de fins a 32 caràcters: lletres, xifres, punt, signe més o guió.",
   "eni.validacion.text": "El text supera el límit o conté caràcters de control.",
@@ -5152,4 +5152,6 @@
   ,"verificacion.detalle.revocacion.bueno": "no revocat"
   ,"verificacion.detalle.revocacion.revocado": "revocat"
   ,"verificacion.detalle.revocacion.desconocido": "sense informació de revocació"
+  ,"paridad.lote3.eni.classification_hint": "És el número del procediment al Sistema d’Informació Administrativa (SIA). Exemple: 2345678. Si no el coneixeu, demaneu-lo a la vostra unitat de tramitació."
+  ,"paridad.lote3.eni.interested_hint": "NIF o nom de cada persona interessada, separats per comes."
 }

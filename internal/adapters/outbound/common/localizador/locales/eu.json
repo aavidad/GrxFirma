@@ -2911,7 +2911,7 @@
   "paridad.lote3.eni.certificate": "Indizea sinatzeko ziurtagiria",
   "paridad.lote3.eni.certificates_failed": "Ezin izan dira ziurtagiriak kargatu.",
   "paridad.lote3.eni.citizen": "Herritarra",
-  "paridad.lote3.eni.classification": "Prozeduraren sailkapena (SIA)",
+  "paridad.lote3.eni.classification": "Prozeduraren SIA kodea (derrigorrezkoa)",
   "paridad.lote3.eni.create_document": "Sortu ENI dokumentua",
   "paridad.lote3.eni.create_file": "Sortu ENI espedientea",
   "paridad.lote3.eni.created": "ENI fitxategia sortu da: %1",
@@ -4808,7 +4808,7 @@
   "eni.validacion.dir3": "Adierazi DIR3 kode bat edo gehiago (letra larri bat eta zortzi zifra), komaz bereizita. Adibidea: L01180877.",
   "eni.validacion.identifier": "Erabili ES_<DIR3>_<UUUU>_<id>, 1 eta 30 karaktere arteko id batekin (letrak, zifrak edo azpimarrak).",
   "eni.validacion.date": "Aukeratu baliozko data eta ordua.",
-  "eni.validacion.classification": "Adierazi zenbakizko SIA kode bat edo <DIR3>_PRO_<id> (gehienez 30 karaktere).",
+  "eni.validacion.classification": "Idatzi SIA kodea: zifrak soilik (30 arte) edo zure unitateak adierazten dizun formatua.",
   "eni.validacion.source": "Benetako kopiak jatorrizko ENI identifikatzaile balioduna behar du.",
   "eni.validacion.format": "Erabili gehienez 32 karaktereko formatu-izena: letrak, zifrak, puntua, plus zeinua edo marratxoa.",
   "eni.validacion.text": "Testuak muga gainditzen du edo kontrol-karaktereak ditu.",
@@ -5152,4 +5152,6 @@
   ,"verificacion.detalle.revocacion.bueno": "ez dago baliogabetuta"
   ,"verificacion.detalle.revocacion.revocado": "baliogabetuta"
   ,"verificacion.detalle.revocacion.desconocido": "baliogabetzeari buruzko informaziorik ez"
+  ,"paridad.lote3.eni.classification_hint": "Prozeduraren zenbakia da Administrazio Informazioko Sisteman (SIA). Adibidea: 2345678. Ez badakizu, eskatu zure izapidetze-unitateari."
+  ,"paridad.lote3.eni.interested_hint": "Interesdun bakoitzaren IFZa edo izena, komaz bereizita."
 }

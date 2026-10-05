@@ -22,34 +22,47 @@ Item {
     property string signaturePath: ""
     property string originalPath: ""
     property string directoryPath: ""
-    property string statusText: ""
-    property string documentMessage: ""
-    property string fileMessage: ""
+    // Idioma de la aplicación para el calendario (no el del sistema).
+    property string localeName: ""
+    // Se guardan claves y no textos para que los mensajes cambien con el idioma.
+    property string statusKey: ""
+    property string statusArg: ""
+    property string documentMessageKey: ""
+    property string fileMessageKey: ""
     readonly property color focusColor: theme && theme.focusColor ? theme.focusColor : "#1f5fa8"
     function tr(key) { return translate(key) }
     // Primero el nombre y después el código NTI: «Otros (TD99)».
     function codeItems(codes) {
         return codes.map(function(code) { return {code: code, label: panel.tr("eni.codigo." + code) + " (" + code + ")"} })
     }
+    // Desplaza la página para que el elemento quede a la vista antes de darle el foco.
+    function scrollTo(item) {
+        const flick = scroller.contentItem
+        const point = item.mapToItem(flick.contentItem, 0, 0)
+        flick.contentY = Math.max(0, Math.min(point.y - 12, flick.contentHeight - flick.height))
+    }
     // Explica junto al botón qué falta y lleva el foco a la acción que lo resuelve.
     function missingDocumentInput() {
-        if (panel.signaturePath !== "") { panel.documentMessage = ""; return false }
-        panel.documentMessage = tr("paridad.lote3.eni.required_signature")
+        if (panel.signaturePath !== "") { panel.documentMessageKey = ""; return false }
+        panel.documentMessageKey = "paridad.lote3.eni.required_signature"
+        panel.scrollTo(signatureButton)
         signatureButton.forceActiveFocus()
         return true
     }
     function missingFileInput() {
         if (panel.directoryPath === "") {
-            panel.fileMessage = tr("paridad.lote3.eni.required_folder")
+            panel.fileMessageKey = "paridad.lote3.eni.required_folder"
+            panel.scrollTo(folderButton)
             folderButton.forceActiveFocus()
             return true
         }
         if (certificate.currentIndex < 0 || panel.certificates.length === 0) {
-            panel.fileMessage = tr("paridad.lote3.eni.required_certificate")
+            panel.fileMessageKey = "paridad.lote3.eni.required_certificate"
+            panel.scrollTo(certificate)
             certificate.forceActiveFocus()
             return true
         }
-        panel.fileMessage = ""
+        panel.fileMessageKey = ""
         return false
     }
     function validateFields(fields) {
@@ -57,9 +70,7 @@ Item {
         fields.forEach(function(field) { if (!field.validateNow() && first === null) first = field })
         if (first !== null) {
             first.focusInput()
-            const flick = scroller.contentItem
-            const point = first.mapToItem(flick.contentItem, 0, 0)
-            flick.contentY = Math.max(0, Math.min(point.y - 12, flick.contentHeight - flick.height))
+            panel.scrollTo(first)
             return false
         }
         return true
@@ -76,18 +87,19 @@ Item {
                 "exp.identificador": fileId.text.trim(), "exp.interesado": interested.text.trim()}
     }
     FileDialog { id: signaturePicker; title: tr("paridad.lote3.eni.signature"); fileMode: FileDialog.OpenFile
-        onAccepted: { panel.signaturePath = panel.localPath(selectedFile); if (panel.signaturePath !== "") panel.documentMessage = "" } }
+        onAccepted: { panel.signaturePath = panel.localPath(selectedFile); if (panel.signaturePath !== "") panel.documentMessageKey = "" } }
     FileDialog { id: originalPicker; title: tr("paridad.lote3.eni.original"); fileMode: FileDialog.OpenFile
         onAccepted: panel.originalPath = panel.localPath(selectedFile) }
     FolderDialog { id: folderPicker; title: tr("paridad.lote3.eni.folder")
-        onAccepted: { panel.directoryPath = panel.localPath(selectedFolder); if (panel.directoryPath !== "") panel.fileMessage = "" } }
+        onAccepted: { panel.directoryPath = panel.localPath(selectedFolder); if (panel.directoryPath !== "") panel.fileMessageKey = "" } }
     FileDialog { id: documentSave; title: tr("paridad.lote3.eni.save_document"); fileMode: FileDialog.SaveFile
         nameFilters: [tr("paridad.lote3.eni.xml_filter")]
         onAccepted: {
             const output = panel.localPath(selectedFile)
             if (output === "" || panel.missingDocumentInput() || !panel.validateFields([docOrgan, capture, docId, sourceId, format])) return
             panel.busy = true
-            panel.statusText = tr("paridad.lote3.eni.creating")
+            panel.statusKey = "paridad.lote3.eni.creating"
+            panel.statusArg = ""
             panel.bridge.generateENIDocument({inputPath: panel.signaturePath, originalPath: panel.originalPath,
                                               outputPath: output, options: panel.documentOptions()})
         }
@@ -99,7 +111,8 @@ Item {
             if (output === "" || panel.missingFileInput() || !panel.validateFields([fileOrgan, opened, classification, fileId, interested])) return
             const cert = panel.certificates[certificate.currentIndex]
             panel.busy = true
-            panel.statusText = tr("paridad.lote3.eni.creating")
+            panel.statusKey = "paridad.lote3.eni.creating"
+            panel.statusArg = ""
             panel.bridge.generateENIFile({directoryPath: panel.directoryPath, outputPath: output,
                                           certificateId: panel.certificateId(cert), options: panel.fileOptions()})
         }
@@ -109,8 +122,8 @@ Item {
         ignoreUnknownSignals: true
         function onEniGenerated(action, ok, result, message) {
             panel.busy = false
-            panel.statusText = ok ? tr("paridad.lote3.eni.created").replace("%1", result.outputPath)
-                                  : tr("paridad.lote3.eni.failed").replace("%1", message)
+            panel.statusKey = ok ? "paridad.lote3.eni.created" : "paridad.lote3.eni.failed"
+            panel.statusArg = ok ? result.outputPath : message
         }
     }
     component SectionTitle: Label {
@@ -206,7 +219,7 @@ Item {
             FieldLabel { text: tr("paridad.lote3.eni.origin") }
             EniCombo { id: origin; model: [tr("paridad.lote3.eni.administration"), tr("paridad.lote3.eni.citizen")]; Accessible.name: tr("paridad.lote3.eni.origin") }
             FieldLabel { text: tr("paridad.lote3.eni.capture_date") }
-            EniDateField { id: capture; objectName: "capture"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.capture_date"; timeLabelKey: "paridad.lote3.eni.capture_time" }
+            EniDateField { id: capture; objectName: "capture"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; localeName: panel.localeName; labelKey: "paridad.lote3.eni.capture_date"; timeLabelKey: "paridad.lote3.eni.capture_time" }
             FieldLabel { text: tr("paridad.lote3.eni.state") }
             EniCombo { id: state; objectName: "state"; model: panel.codeItems(Catalog.EstadosElaboracion); textRole: "label"; valueRole: "code"; currentIndex: 0; Accessible.name: tr("paridad.lote3.eni.state"); onCurrentValueChanged: if (sourceId) sourceId.touched = true }
             FieldLabel { text: tr("paridad.lote3.eni.doc_type") }
@@ -218,27 +231,29 @@ Item {
             FieldLabel { text: tr("paridad.lote3.eni.format_optional") }
             EniValidatedField { id: format; objectName: "format"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.format_optional"; maximumLength: 32; validation: Validation.formatError }
             EniButton { objectName: "createDocumentButton"; text: tr("paridad.lote3.eni.create_document"); enabled: !panel.busy; onClicked: if (!panel.missingDocumentInput() && panel.validateFields([docOrgan, capture, docId, sourceId, format])) documentSave.open() }
-            MessageLabel { objectName: "documentMessage"; text: panel.documentMessage }
+            MessageLabel { objectName: "documentMessage"; text: panel.documentMessageKey !== "" ? tr(panel.documentMessageKey) : "" }
             SectionTitle { text: tr("paridad.lote3.eni.file") }
             EniButton { id: folderButton; objectName: "folderButton"; text: tr("paridad.lote3.eni.folder"); onClicked: folderPicker.open() }
             PathLabel { path: panel.directoryPath; emptyKey: "paridad.lote3.eni.no_folder" }
             FieldLabel { text: tr("paridad.lote3.eni.organ_file") }
             EniValidatedField { id: fileOrgan; objectName: "fileOrgan"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.organ_file"; hintKey: "paridad.lote3.eni.organ_hint"; maximumLength: 128; validation: Validation.organError }
             FieldLabel { text: tr("paridad.lote3.eni.open_date") }
-            EniDateField { id: opened; objectName: "opened"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.open_date"; timeLabelKey: "paridad.lote3.eni.open_time" }
+            EniDateField { id: opened; objectName: "opened"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; localeName: panel.localeName; labelKey: "paridad.lote3.eni.open_date"; timeLabelKey: "paridad.lote3.eni.open_time" }
             FieldLabel { text: tr("paridad.lote3.eni.classification") }
-            EniValidatedField { id: classification; objectName: "classification"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.classification"; maximumLength: 44; validation: Validation.classificationError }
+            EniValidatedField { id: classification; objectName: "classification"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.classification"; hintKey: "paridad.lote3.eni.classification_hint"; maximumLength: 44; validation: Validation.classificationError }
             FieldLabel { text: tr("paridad.lote3.eni.file_state") }
             EniCombo { id: fileState; objectName: "fileState"; model: panel.codeItems(Catalog.EstadosExpediente); textRole: "label"; valueRole: "code"; currentIndex: 0; Accessible.name: tr("paridad.lote3.eni.file_state") }
             FieldLabel { text: tr("paridad.lote3.eni.identifier_file") }
             EniValidatedField { id: fileId; objectName: "fileId"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.identifier_file"; maximumLength: 48; validation: function(text) { return Validation.identifierError(text, false) } }
             FieldLabel { text: tr("paridad.lote3.eni.interested_optional") }
-            EniValidatedField { id: interested; objectName: "interested"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.interested_optional"; maximumLength: 256; validation: Validation.interestedError }
+            EniValidatedField { id: interested; objectName: "interested"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.interested_optional"; hintKey: "paridad.lote3.eni.interested_hint"; maximumLength: 256; validation: Validation.interestedError }
             FieldLabel { text: tr("paridad.lote3.eni.certificate") }
-            EniCombo { id: certificate; model: panel.certificates; textRole: "subjectName"; Accessible.name: tr("paridad.lote3.eni.certificate") }
+            // Sin certificados, el combo lo dice en lugar de quedarse vacío.
+            EniCombo { id: certificate; objectName: "certificateCombo"; model: panel.certificates; textRole: "subjectName"; Accessible.name: tr("paridad.lote3.eni.certificate")
+                displayText: panel.certificates.length === 0 ? tr("paridad.lote3.eni.required_certificate") : currentText }
             EniButton { objectName: "createFileButton"; text: tr("paridad.lote3.eni.create_file"); enabled: !panel.busy; onClicked: if (!panel.missingFileInput() && panel.validateFields([fileOrgan, opened, classification, fileId, interested])) fileSave.open() }
-            MessageLabel { objectName: "fileMessage"; text: panel.fileMessage }
-            MessageLabel { text: panel.statusText }
+            MessageLabel { objectName: "fileMessage"; text: panel.fileMessageKey !== "" ? tr(panel.fileMessageKey) : "" }
+            MessageLabel { text: panel.statusKey !== "" ? tr(panel.statusKey).replace("%1", panel.statusArg) : "" }
             Item { Layout.preferredHeight: 24 }
         }
     }
