@@ -18,7 +18,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
+	"time"
 )
 
 //go:embed locales/*.json
@@ -79,6 +81,73 @@ func (l *Localizador) T(id string, args ...any) string {
 // Locale devuelve el locale detectado.
 func (l *Localizador) Locale() string { return l.locale }
 
+// EtiquetaHTML devuelve la etiqueta BCP 47 del idioma para el atributo lang
+// de un documento (el valenciano es una variante registrada del catalán).
+func (l *Localizador) EtiquetaHTML() string {
+	if l.locale == "va" {
+		return "ca-ES-valencia"
+	}
+	return l.locale
+}
+
+// Idioma normaliza un idioma pedido a uno de los catálogos disponibles.
+// Devuelve "" si la petición está vacía, para que quien llama aplique su
+// propio valor por defecto.
+func Idioma(pedido string) string {
+	if strings.TrimSpace(pedido) == "" {
+		return ""
+	}
+	return localeBase(pedido)
+}
+
+var nombreZonaIANA = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_+\-]*(/[A-Za-z0-9_+\-]+){0,2}$`)
+
+// Zona carga una zona horaria IANA («Europe/Madrid»). Rechaza nombres con
+// forma de ruta y devuelve nil si el nombre está vacío o no se reconoce, de
+// modo que quien llama siga con la zona local del sistema.
+func Zona(nombre string) *time.Location {
+	nombre = strings.TrimSpace(nombre)
+	if nombre == "" || len(nombre) > 64 || !nombreZonaIANA.MatchString(nombre) {
+		return nil
+	}
+	zona, err := time.LoadLocation(nombre)
+	if err != nil {
+		return nil
+	}
+	return zona
+}
+
+// FechaHora escribe un instante en la zona indicada (la local si es nil) con
+// el formato de fecha del catálogo y la zona entre paréntesis: la abreviatura
+// cuando la hay («08:25 (CEST)») y, si no, el desfase («08:25 (UTC+03:00)»).
+// Un documento firmado se lee en otros husos: la hora sin zona sería ambigua.
+func (l *Localizador) FechaHora(t time.Time, zona *time.Location, segundos bool) string {
+	if zona == nil {
+		zona = time.Local
+	}
+	t = t.In(zona)
+	clave, porDefecto := "format.datetime_minutes", "02/01/2006 15:04"
+	if segundos {
+		clave, porDefecto = "format.datetime_seconds", "02/01/2006 15:04:05"
+	}
+	formato := l.T(clave)
+	if formato == clave {
+		formato = porDefecto
+	}
+	return t.Format(formato) + " (" + nombreZona(t) + ")"
+}
+
+func nombreZona(t time.Time) string {
+	abreviatura, desfase := t.Zone()
+	if desfase == 0 && (abreviatura == "" || abreviatura == "UTC" || abreviatura == "GMT") {
+		return "UTC"
+	}
+	if abreviatura != "" && abreviatura[0] != '+' && abreviatura[0] != '-' {
+		return abreviatura
+	}
+	return "UTC" + t.Format("-07:00")
+}
+
 func detectarLocale() string {
 	for _, env := range []string{"LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"} {
 		if v := os.Getenv(env); v != "" {
@@ -112,7 +181,7 @@ func localeBase(locale string) string {
 		return "gl"
 	case strings.HasPrefix(v, "eu"):
 		return "eu"
-	case strings.HasPrefix(v, "ca-valencia"), strings.HasPrefix(v, "val"), strings.HasPrefix(v, "va"):
+	case strings.HasPrefix(v, "ca") && strings.Contains(v, "valencia"), strings.HasPrefix(v, "val"), strings.HasPrefix(v, "va"):
 		return "va"
 	case strings.HasPrefix(v, "ca"):
 		return "ca"
