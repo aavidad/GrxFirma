@@ -5007,6 +5007,8 @@
   ,"verifactu.qr_not_found": "Não foi encontrado um QR legível na imagem nem nas cinco primeiras páginas do PDF. Experimente uma imagem mais nítida ou recorte a zona do QR."
   ,"verifactu.qr_timeout": "A procura do QR excedeu o tempo máximo. Experimente uma imagem mais pequena ou recortada."
   ,"verifactu.qr_busy": "Já está em curso outra procura de QR. Aguarde que termine e tente novamente."
+  ,"movil.informe.confianza_no_evaluada": "A confiança no emissor não é avaliada no telemóvel: não dispõe das âncoras de confiança do sistema."
+  ,"movil.verificacion.cadena_no_evaluada": "Integridade criptográfica verificada; confiança da cadeia não avaliada pelo sistema."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu e cotejar-qr-verifactu aceitam em -entrada o URL do QR ou um ficheiro PNG, JPEG ou PDF."
   ,"eni.error.signature_mismatch": "A assinatura não corresponde ao documento original ou o documento foi alterado depois de assinado. Verifique se escolheu o original correto."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: ecrã por passos, resultado visível ao terminar, confirmação antes de descartar uma assinatura, fecho automático do certificado após alguns minutos em segundo plano e textos mais claros."

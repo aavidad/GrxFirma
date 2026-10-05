@@ -5007,6 +5007,8 @@
   ,"verifactu.qr_not_found": "在图像或 PDF 的前五页中未找到可读的二维码。请使用更清晰的图像或裁剪二维码区域。"
   ,"verifactu.qr_timeout": "查找二维码超过了最长时间。请尝试更小或裁剪过的图像。"
   ,"verifactu.qr_busy": "另一个二维码查找正在进行中。请等待其完成后重试。"
+  ,"movil.informe.confianza_no_evaluada": "手机上不评估对签发机构的信任：手机没有系统信任锚点。"
+  ,"movil.verificacion.cadena_no_evaluada": "已验证加密完整性；系统尚未评估证书链信任。"
   ,"verifactu.cli_qr_input": "leer-qr-verifactu 和 cotejar-qr-verifactu 的 -entrada 参数接受二维码 URL 或 PNG、JPEG、PDF 文件。"
   ,"eni.error.signature_mismatch": "签名与原始文档不符，或文档在签名后已被修改。请确认您选择了正确的原始文档。"
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android：分步界面、完成后显示结果、放弃签名前先确认、证书在后台数分钟后自动关闭，文字也更清晰。"

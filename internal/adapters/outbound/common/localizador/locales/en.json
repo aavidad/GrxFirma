@@ -5007,6 +5007,8 @@
   ,"verifactu.qr_not_found": "No readable QR was found in the image or in the first five pages of the PDF. Try a sharper image or crop the QR area."
   ,"verifactu.qr_timeout": "The QR search took longer than allowed. Try a smaller or cropped image."
   ,"verifactu.qr_busy": "Another QR search is already running. Wait for it to finish and try again."
+  ,"movil.informe.confianza_no_evaluada": "Trust in the issuer is not evaluated on the phone: it does not have the system trust anchors."
+  ,"movil.verificacion.cadena_no_evaluada": "Cryptographic integrity checked; system chain trust has not been evaluated."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu and cotejar-qr-verifactu accept in -entrada the QR URL or a PNG, JPEG or PDF file."
   ,"eni.error.signature_mismatch": "The signature does not match the original document, or the document was changed after it was signed. Check that you chose the correct original."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: step-by-step screen, result shown when finished, confirmation before discarding a signature, automatic closing of the certificate after a few minutes in the background and clearer texts."

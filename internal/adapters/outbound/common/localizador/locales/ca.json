@@ -5007,6 +5007,8 @@
   ,"verifactu.qr_not_found": "No s’ha trobat cap QR llegible a la imatge ni a les cinc primeres pàgines del PDF. Proveu amb una imatge més nítida o retalleu la zona del QR."
   ,"verifactu.qr_timeout": "La cerca del QR ha superat el temps màxim. Proveu amb una imatge més petita o retallada."
   ,"verifactu.qr_busy": "Ja hi ha una altra cerca de QR en curs. Espereu que acabi i torneu-ho a provar."
+  ,"movil.informe.confianza_no_evaluada": "La confiança en l’emissor no s’avalua al mòbil: no disposa de les àncores de confiança del sistema."
+  ,"movil.verificacion.cadena_no_evaluada": "Integritat criptogràfica comprovada; el sistema no ha avaluat la confiança de la cadena."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu i cotejar-qr-verifactu accepten a -entrada l’URL del QR o un fitxer PNG, JPEG o PDF."
   ,"eni.error.signature_mismatch": "La signatura no correspon al document original o el document s'ha modificat després de signar-lo. Comproveu que heu triat l'original correcte."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: pantalla per passos, resultat visible en acabar, confirmació abans de descartar una signatura, tancament automàtic del certificat després d'uns minuts en segon pla i textos més clars."

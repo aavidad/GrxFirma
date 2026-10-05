@@ -607,7 +607,7 @@ func (f *Facade) VerifyJSON(payload string) (string, error) {
 	trustStatus := result.Verification.Trust.Status
 	if !f.systemTrustAnchors {
 		trustStatus = domain.VerificationStatusUnknown
-		warnings = append(warnings, "La integridad criptografica se ha verificado, pero la confianza de la cadena no esta evaluada por el sistema.")
+		warnings = append(warnings, textoMotor("movil.verificacion.cadena_no_evaluada"))
 	}
 	reportHTML := ""
 	if req.IncludeHTMLReport {

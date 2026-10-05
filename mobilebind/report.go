@@ -6,9 +6,20 @@
 package mobilebind
 
 import (
+	"sync"
+
 	"grxfirma/internal/adapters/outbound/common/informeverificacion"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/domain"
 )
+
+// catalogoMotor resuelve los textos que el motor móvil devuelve a la app.
+// Se resuelven en castellano porque la app los traduce con su propio
+// catálogo usando esa frase como clave; el texto vive en el catálogo de
+// datos, no en el código.
+var catalogoMotor = sync.OnceValue(func() *localizador.Localizador { return localizador.Para("es") })
+
+func textoMotor(clave string) string { return catalogoMotor().T(clave) }
 
 // maxReportHTMLBytes acota el informe que cruza JNI.
 const maxReportHTMLBytes = 4 << 20
@@ -21,7 +32,7 @@ func (f *Facade) verificationReportHTML(name string, content []byte, result doma
 	if !f.systemTrustAnchors {
 		result.Valid = false
 		result.Trust.Status = domain.VerificationStatusUnknown
-		result.Trust.Reason = "La confianza en el emisor no se evalúa en el móvil: no dispone de las anclas de confianza del sistema."
+		result.Trust.Reason = textoMotor("movil.informe.confianza_no_evaluada")
 	}
 	html, err := informeverificacion.HTML(informeverificacion.Datos{
 		NombreDocumento: sanitizeOutputText(name, 200),
