@@ -114,7 +114,7 @@ class ReleaseArtifactsTest(unittest.TestCase):
             json.dumps(
                 {
                     "schema_version": 1,
-                    "package": "es.dipgra.grxfirma",
+                    "package": "io.github.aavidad.grxfirma",
                     "version_name": "1.2.3",
                     "version_code": 1_002_003,
                     "source_commit": "a" * 40,

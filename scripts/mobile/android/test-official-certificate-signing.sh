@@ -10,10 +10,10 @@ SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(CDPATH='' cd -- "$SCRIPT_DIR/../../.." && pwd)
 PROJECT_DIR="$ROOT_DIR/mobile/android"
 SDK_ROOT=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}
-PACKAGE=es.dipgra.grxfirma.debug
-TEST_PACKAGE=es.dipgra.grxfirma.debug.test
+PACKAGE=io.github.aavidad.grxfirma.debug
+TEST_PACKAGE=io.github.aavidad.grxfirma.debug.test
 RUNNER=androidx.test.runner.AndroidJUnitRunner
-TEST_CLASS=es.dipgra.grxfirma.android.CoreOfficialTestCertificateSigningTest
+TEST_CLASS=io.github.aavidad.grxfirma.android.CoreOfficialTestCertificateSigningTest
 EXPECTED_P12_SHA256=6e0cad97b78be2918ed54a64a0dd4f3f6e4c16e01b405ef0836fb91b77a3ffb4
 P12=${GRXFIRMA_ANDROID_OFFICIAL_TEST_P12:-}
 PASSWORD_VALUE=${GRXFIRMA_ANDROID_OFFICIAL_TEST_PASSWORD:-}

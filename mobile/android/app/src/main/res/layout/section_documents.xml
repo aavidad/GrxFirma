@@ -265,7 +265,7 @@
             android:layout_marginTop="@dimen/control_spacing"
             android:hint="@string/eni_origin">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/eniOrigin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -280,7 +280,7 @@
             android:layout_marginTop="@dimen/control_spacing"
             android:hint="@string/eni_state">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/eniState"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -295,7 +295,7 @@
             android:layout_marginTop="@dimen/control_spacing"
             android:hint="@string/eni_doc_type">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/eniDocumentType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -131,7 +131,7 @@
             android:layout_marginTop="@dimen/control_spacing"
             android:hint="@string/hash_algorithm">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/hashAlgorithm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -147,7 +147,7 @@
             android:layout_marginTop="@dimen/control_spacing"
             android:hint="@string/hash_format">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/hashFormat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -211,7 +211,7 @@
             android:layout_marginTop="@dimen/control_spacing"
             android:hint="@string/protect_container">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/protectionContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
