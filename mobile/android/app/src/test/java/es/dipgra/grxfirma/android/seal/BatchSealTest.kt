@@ -31,4 +31,29 @@ class BatchSealTest {
         assertEquals(2, none.page)
         assertEquals(1, BatchSeal.referencePage(BatchSeal.settingsFor(perPage, 6)))
     }
+
+    @Test fun `work directory cleanup removes only top level regular files without following links`() {
+        val base = java.nio.file.Files.createTempDirectory("grxfirma-lote-test").toFile()
+        try {
+            val work = java.io.File(base, BatchSeal.WORK_DIRECTORY).apply { assertTrue(mkdirs()) }
+            val outside = java.io.File(base, "fuera.pdf").apply { writeBytes(ByteArray(200_000) { 7 }) }
+            val copy = java.io.File(work, "copia.pdf").apply { writeBytes(ByteArray(150_000) { 9 }) }
+            val nested = java.io.File(work, "sub").apply { assertTrue(mkdirs()) }
+            val nestedFile = java.io.File(nested, "dentro.pdf").apply { writeBytes(byteArrayOf(1)) }
+            val link = java.io.File(work, "enlace.pdf").toPath()
+            java.nio.file.Files.createSymbolicLink(link, outside.toPath())
+
+            BatchSeal.clearWorkDirectory(work)
+
+            assertFalse(copy.exists())
+            assertTrue("el destino del enlace no se toca", outside.readBytes().all { it == 7.toByte() })
+            assertTrue(java.nio.file.Files.isSymbolicLink(link))
+            assertTrue("no entra en subdirectorios", nestedFile.exists())
+            BatchSeal.clearWorkDirectory(java.io.File(base, "no-existe"))
+            BatchSeal.clearWorkDirectory(outside)
+            assertTrue(outside.exists())
+        } finally {
+            base.deleteRecursively()
+        }
+    }
 }
