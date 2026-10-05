@@ -6,6 +6,8 @@
 from pathlib import Path
 import unittest
 
+from winui_catalog import read_with_catalog
+
 
 ROOT = Path(__file__).resolve().parents[3]
 APP = ROOT / "cmd/gui-winui/src/GrxFirma.WinUI"
@@ -13,7 +15,7 @@ APP = ROOT / "cmd/gui-winui/src/GrxFirma.WinUI"
 
 class TrayContractTests(unittest.TestCase):
     def test_close_hides_only_when_tray_is_available(self):
-        source = (APP / "App.xaml.cs").read_text(encoding="utf-8")
+        source = read_with_catalog(APP / "App.xaml.cs")
         self.assertIn("_keepInTray = true", source)
         self.assertIn("_tray?.Installed != true", source)
         self.assertIn("args.Cancel = true", source)
@@ -23,9 +25,7 @@ class TrayContractTests(unittest.TestCase):
         self.assertIn("OperationSession.Detach(client)", source)
 
     def test_tray_menu_is_native_and_status_cannot_be_selected(self):
-        source = (APP / "Services/WindowsTrayIcon.cs").read_text(
-            encoding="utf-8"
-        )
+        source = read_with_catalog(APP / "Services/WindowsTrayIcon.cs")
         for item in (
             "Abrir GrxFirma",
             "Firmas desde portales: activo",
@@ -39,9 +39,7 @@ class TrayContractTests(unittest.TestCase):
         self.assertIn("LeftDoubleClick", source)
 
     def test_restore_signal_is_session_local_sid_acl_and_data_free(self):
-        source = (APP / "Services/SingleInstanceSignal.cs").read_text(
-            encoding="utf-8"
-        )
+        source = read_with_catalog(APP / "Services/SingleInstanceSignal.cs")
         self.assertIn(r"Local\GrxFirma.WinUI.Show.{sid}", source)
         self.assertIn("WindowsIdentity.GetCurrent().User", source)
         self.assertIn("ConvertStringSecurityDescriptorToSecurityDescriptor", source)
@@ -50,9 +48,7 @@ class TrayContractTests(unittest.TestCase):
         self.assertNotIn("signature", source.lower())
 
     def test_run_value_uses_fixed_absolute_launcher_and_hkcu(self):
-        source = (APP / "Services/WindowsStartupRegistration.cs").read_text(
-            encoding="utf-8"
-        )
+        source = read_with_catalog(APP / "Services/WindowsStartupRegistration.cs")
         self.assertIn("Registry.CurrentUser", source)
         self.assertIn("grxfirma-gui.exe", source)
         self.assertIn("--frontend=winui --start-hidden", source)

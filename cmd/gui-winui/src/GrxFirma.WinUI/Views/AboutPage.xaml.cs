@@ -23,7 +23,7 @@ public sealed partial class AboutPage : Page
         InitializeComponent();
         var label = SealUiCatalog.Text(
             Localizer.Language,
-            "Novedades");
+            "winui.comun.novedades");
         ReleaseNotesButton.Content = label;
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
             ReleaseNotesButton, label);

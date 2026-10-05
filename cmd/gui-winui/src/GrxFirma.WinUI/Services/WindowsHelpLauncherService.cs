@@ -80,17 +80,17 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
                 {
                     return new(
                         true,
-                        "Se ha abierto la ayuda instalada con la aplicación predeterminada de Windows.");
+                        Localizer.Text("winui.ayuda.se_ha_abierto_la_ayuda_instalada_con_la"));
                 }
 
                 return new(
                     false,
-                    "Windows no encontró una aplicación compatible para abrir la ayuda. Instale un lector PDF o un editor de texto y vuelva a intentarlo.");
+                    Localizer.Text("winui.ayuda.windows_no_encontro_una_aplicacion"));
             }
 
             return new(
                 false,
-                "No se encontró un manual instalado en esta distribución. Puede consultar el proyecto oficial o contactar de forma privada desde esta misma pantalla.");
+                Localizer.Text("winui.ayuda.no_se_encontro_un_manual_instalado_en"));
         }
         catch (OperationCanceledException)
         {
@@ -100,7 +100,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
         {
             return new(
                 false,
-                "La ayuda instalada no se pudo abrir. Compruebe que la instalación esté completa o consulte el proyecto oficial.");
+                Localizer.Text("winui.ayuda.la_ayuda_instalada_no_se_pudo_abrir"));
         }
     }
 
@@ -117,7 +117,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
             {
                 return new(
                     false,
-                    "Windows no pudo localizar de forma segura la carpeta de instalación.");
+                    Localizer.Text("winui.ayuda.windows_no_pudo_localizar_de_forma"));
             }
 
             var folderOperation =
@@ -135,10 +135,10 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
             return await launchOperation
                 ? new(
                     true,
-                    "Se ha abierto la carpeta de instalación.")
+                    Localizer.Text("winui.ayuda.se_ha_abierto_la_carpeta_de_instalacion"))
                 : new(
                     false,
-                    "Windows no pudo abrir la carpeta de instalación.");
+                    Localizer.Text("winui.ayuda.windows_no_pudo_abrir_la_carpeta_de"));
         }
         catch (OperationCanceledException)
         {
@@ -148,7 +148,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
         {
             return new(
                 false,
-                "La carpeta de instalación no se pudo abrir.");
+                Localizer.Text("winui.ayuda.la_carpeta_de_instalacion_no_se_pudo"));
         }
     }
 
@@ -156,56 +156,56 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
         CancellationToken cancellationToken = default) =>
         LaunchTrustedUriAsync(
             TrustedOfficialProjectUri(),
-            "Se ha abierto el proyecto oficial en el navegador.",
-            "Windows no tiene configurado un navegador para abrir el proyecto oficial.",
+            Localizer.Text("winui.ayuda.se_ha_abierto_el_proyecto_oficial_en_el"),
+            Localizer.Text("winui.ayuda.windows_no_tiene_configurado_un"),
             cancellationToken);
 
     public Task<HelpLaunchResult> OpenOfficialReleasesAsync(
         CancellationToken cancellationToken = default) =>
         LaunchTrustedUriAsync(
             TrustedOfficialReleasesUri(),
-            "Se ha abierto la página oficial de versiones en el navegador.",
-            "Windows no tiene configurado un navegador para consultar las versiones oficiales.",
+            Localizer.Text("winui.ayuda.se_ha_abierto_la_pagina_oficial_de"),
+            Localizer.Text("winui.ayuda.windows_no_tiene_configurado_un_2"),
             cancellationToken);
 
     public Task<HelpLaunchResult> OpenOfficialLicenseAsync(
         CancellationToken cancellationToken = default) =>
         LaunchTrustedUriAsync(
             TrustedOfficialLicenseUri(),
-            "Se ha abierto el texto oficial de la licencia EUPL 1.2.",
-            "Windows no tiene configurado un navegador para consultar la licencia EUPL.",
+            Localizer.Text("winui.ayuda.se_ha_abierto_el_texto_oficial_de_la"),
+            Localizer.Text("winui.ayuda.windows_no_tiene_configurado_un_3"),
             cancellationToken);
 
     public Task<HelpLaunchResult> OpenPrivateSupportAsync(
         CancellationToken cancellationToken = default) =>
         LaunchTrustedUriAsync(
             TrustedPrivateSupportUri(),
-            "Se ha abierto un mensaje nuevo en la aplicación de correo predeterminada.",
-            "Windows no tiene configurada una aplicación de correo. Puede escribir a avidad@dipgra.es desde su cliente habitual.",
+            Localizer.Text("winui.ayuda.se_ha_abierto_un_mensaje_nuevo_en_la"),
+            Localizer.Text("winui.ayuda.windows_no_tiene_configurada_una"),
             cancellationToken);
 
     public Task<HelpLaunchResult> OpenFnmtRenewalAsync(
         CancellationToken cancellationToken = default) =>
         LaunchTrustedUriAsync(
             TrustedFnmtRenewalUri(),
-            "Se ha abierto la página oficial de renovación de la FNMT en el navegador.",
-            "Windows no tiene configurado un navegador. Abra www.sede.fnmt.gob.es y entre en «Renovar certificado».",
+            Localizer.Text("winui.ayuda.se_ha_abierto_la_pagina_oficial_de_2"),
+            Localizer.Text("winui.ayuda.windows_no_tiene_configurado_un_4"),
             cancellationToken);
 
     public Task<HelpLaunchResult> OpenValideAsync(
         CancellationToken cancellationToken = default) =>
         LaunchTrustedUriAsync(
             TrustedValideUri(),
-            "Se ha abierto VALIDe en el navegador.",
-            "Windows no tiene configurado un navegador. Abra valide.redsara.es/valide/.",
+            Localizer.Text("winui.ayuda.se_ha_abierto_valide_en_el_navegador"),
+            Localizer.Text("winui.ayuda.windows_no_tiene_configurado_un_5"),
             cancellationToken);
 
     public Task<HelpLaunchResult> OpenOfficialDNIeAsync(
         CancellationToken cancellationToken = default) =>
         LaunchTrustedUriAsync(
             TrustedOfficialDNIeUri(),
-            "Se ha abierto el portal oficial del DNIe.",
-            "Windows no tiene configurado un navegador. Abra www.dnielectronico.es/PortalDNIe/.",
+            Localizer.Text("winui.ayuda.se_ha_abierto_el_portal_oficial_del_dnie"),
+            Localizer.Text("winui.ayuda.windows_no_tiene_configurado_un_6"),
             cancellationToken);
 
     private static Uri TrustedOfficialDNIeUri()
@@ -219,7 +219,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
                 StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                "La dirección del DNIe no es la oficial.");
+                Localizer.Text("winui.ayuda.la_direccion_del_dnie_no_es_la_oficial"));
         }
         return uri;
     }
@@ -235,7 +235,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
                 StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                "La dirección de VALIDe no es la oficial.");
+                Localizer.Text("winui.ayuda.la_direccion_de_valide_no_es_la_oficial"));
         }
         return uri;
     }
@@ -253,7 +253,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
                 StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException(
-                "La dirección de renovación de la FNMT no es la oficial.");
+                Localizer.Text("winui.ayuda.la_direccion_de_renovacion_de_la_fnmt_no"));
         }
         return uri;
     }
@@ -302,7 +302,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
                 StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                "El destino oficial configurado no es válido.");
+                Localizer.Text("winui.ayuda.el_destino_oficial_configurado_no_es"));
         }
 
         return uri;
@@ -325,7 +325,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
                 StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                "El destino oficial de versiones no es válido.");
+                Localizer.Text("winui.ayuda.el_destino_oficial_de_versiones_no_es"));
         }
 
         return uri;
@@ -348,7 +348,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
                 StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                "El destino oficial de la licencia no es válido.");
+                Localizer.Text("winui.ayuda.el_destino_oficial_de_la_licencia_no_es"));
         }
 
         return uri;
@@ -375,7 +375,7 @@ public sealed class WindowsHelpLauncherService : IHelpLauncherService
                 StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                "El contacto privado configurado no es válido.");
+                Localizer.Text("winui.ayuda.el_contacto_privado_configurado_no_es"));
         }
 
         return uri;

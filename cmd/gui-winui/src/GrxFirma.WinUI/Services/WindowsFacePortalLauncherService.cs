@@ -27,35 +27,35 @@ public sealed class WindowsFacePortalLauncherService
         CancellationToken cancellationToken = default) =>
         LaunchAsync(
             TrustedPortalUri(ValidatorPath),
-            "Se ha abierto el validador oficial de FACe.",
+            Localizer.Text("winui.face.se_ha_abierto_el_validador_oficial_de"),
             cancellationToken);
 
     public Task<HelpLaunchResult> OpenOrganisationDirectoryAsync(
         CancellationToken cancellationToken = default) =>
         LaunchAsync(
             TrustedPortalUri(OrganisationDirectoryPath),
-            "Se ha abierto el buscador oficial de organismos y relaciones DIR3.",
+            Localizer.Text("winui.face.se_ha_abierto_el_buscador_oficial_de"),
             cancellationToken);
 
     public Task<HelpLaunchResult> OpenSubmissionAsync(
         CancellationToken cancellationToken = default) =>
         LaunchAsync(
             TrustedPortalUri(SubmissionPath),
-            "Se ha abierto el trámite oficial de remisión de facturas.",
+            Localizer.Text("winui.face.se_ha_abierto_el_tramite_oficial_de"),
             cancellationToken);
 
     public Task<HelpLaunchResult> OpenInvoiceStatusAsync(
         CancellationToken cancellationToken = default) =>
         LaunchAsync(
             TrustedPortalUri(InvoiceStatusPath),
-            "Se ha abierto la consulta oficial de facturas.",
+            Localizer.Text("winui.face.se_ha_abierto_la_consulta_oficial_de"),
             cancellationToken);
 
     public Task<HelpLaunchResult> OpenReceiptVerificationAsync(
         CancellationToken cancellationToken = default) =>
         LaunchAsync(
             TrustedPortalUri(ReceiptVerificationPath),
-            "Se ha abierto la verificación oficial del CSV del justificante.",
+            Localizer.Text("winui.face.se_ha_abierto_la_verificacion_oficial"),
             cancellationToken);
 
     private static async Task<HelpLaunchResult> LaunchAsync(
@@ -74,7 +74,7 @@ public sealed class WindowsFacePortalLauncherService
                 ? new(true, successMessage)
                 : new(
                     false,
-                    "Windows no tiene un navegador disponible para abrir FACe.");
+                    Localizer.Text("winui.face.windows_no_tiene_un_navegador_disponible"));
         }
         catch (OperationCanceledException)
         {
@@ -84,7 +84,7 @@ public sealed class WindowsFacePortalLauncherService
         {
             return new(
                 false,
-                "El portal oficial de FACe no se pudo abrir. Compruebe la conexión y vuelva a intentarlo.");
+                Localizer.Text("winui.face.el_portal_oficial_de_face_no_se_pudo"));
         }
     }
 
@@ -109,7 +109,7 @@ public sealed class WindowsFacePortalLauncherService
             !string.IsNullOrEmpty(uri.Fragment))
         {
             throw new InvalidOperationException(
-                "El destino oficial de FACe configurado no es válido.");
+                Localizer.Text("winui.face.el_destino_oficial_de_face_configurado"));
         }
 
         return uri;

@@ -18,9 +18,9 @@ public sealed class FacturaePageViewModel
     private readonly IFilePickerService _filePicker;
     private readonly DesktopOperationSession _session;
     private CancellationTokenSource? _pageLifetime;
-    private string _statusTitle = "Asistente preparado";
+    private string _statusTitle = Localizer.Text("winui.facturae.asistente_preparado");
     private string _statusMessage =
-        "Puede crear un XML Facturae 3.2.2 o seguir la guía de envío.";
+        Localizer.Text("winui.facturae.puede_crear_un_xml_facturae_3_2_2_o");
     private string _invoiceNumber = "";
     private string _invoiceSeriesCode = "";
     private DateTimeOffset _issueDate = DateTimeOffset.Now.Date;
@@ -71,9 +71,9 @@ public sealed class FacturaePageViewModel
         IFilePickerService filePicker,
         DesktopOperationSession session)
         : base(
-            "Facturae y FACe",
-            "Cree una factura Facturae 3.2.2 y preséntela en FACe mediante un flujo separado y opcional.",
-            "El asistente de Facturae y FACe no está disponible.")
+            Localizer.Text("winui.comun.facturae_y_face"),
+            Localizer.Text("winui.facturae.cree_una_factura_facturae_3_2_2_y"),
+            Localizer.Text("winui.facturae.el_asistente_de_facturae_y_face_no_esta"))
     {
         ArgumentNullException.ThrowIfNull(launcher);
         ArgumentNullException.ThrowIfNull(filePicker);
@@ -365,7 +365,7 @@ public sealed class FacturaePageViewModel
         _session.AvailabilityChanged += OnSessionAvailabilityChanged;
         SetOperationAvailability(
             _session.Supports(DesktopOperationActions.FacturaeCreate),
-            "El XML se crea localmente. Los enlaces abren únicamente páginas HTTPS fijas del Portal FACe Proveedores.");
+            Localizer.Text("winui.facturae.el_xml_se_crea_localmente_los_enlaces"));
         SetActionsEnabled(
             Volatile.Read(ref _operationInProgress) == 0);
     }
@@ -393,16 +393,16 @@ public sealed class FacturaePageViewModel
             return;
         }
 
-        StatusTitle = "Comprobando la factura";
+        StatusTitle = Localizer.Text("winui.facturae.comprobando_la_factura");
         StatusMessage =
-            "Se validan los campos y se calculan los totales antes de guardar.";
+            Localizer.Text("winui.facturae.se_validan_los_campos_y_se_calculan_los");
         StatusSeverity = InfoBarSeverity.Informational;
         try
         {
             var draft = BuildDraft();
             if (!_session.TryGetOperations(DesktopOperationActions.FacturaeCreate, out var operations))
             {
-                StatusTitle = "No se pudo crear la factura";
+                StatusTitle = Localizer.Text("winui.facturae.no_se_pudo_crear_la_factura");
                 StatusMessage = PendingMessage;
                 StatusSeverity = InfoBarSeverity.Warning;
                 return;
@@ -411,7 +411,7 @@ public sealed class FacturaePageViewModel
             if (!IsCurrentLifetime(lifetime)) return;
             if (!result.IsSuccess || result.Data is null || string.IsNullOrEmpty(result.Data.Xml))
             {
-                StatusTitle = "Revise los datos";
+                StatusTitle = Localizer.Text("winui.facturae.revise_los_datos");
                 StatusMessage = result.SafeUserMessage;
                 StatusSeverity = InfoBarSeverity.Warning;
                 return;
@@ -428,16 +428,16 @@ public sealed class FacturaePageViewModel
 
             if (!saved)
             {
-                StatusTitle = "Guardado cancelado";
+                StatusTitle = Localizer.Text("winui.comun.guardado_cancelado");
                 StatusMessage =
-                    "No se creó ningún fichero. Los datos siguen en el formulario.";
+                    Localizer.Text("winui.facturae.no_se_creo_ningun_fichero_los_datos");
                 StatusSeverity = InfoBarSeverity.Informational;
                 return;
             }
 
-            StatusTitle = "XML Facturae 3.2.2 creado";
+            StatusTitle = Localizer.Text("winui.facturae.xml_facturae_3_2_2_creado");
             StatusMessage = Localizer.Fill(
-                "Total {total} €. Abra «Firmar», seleccione el XML y el formato FacturaE; después valídelo en FACe.",
+                "winui.facturae.total_abra_firmar_seleccione_el_xml_y_el",
                 ("total", result.Data.Total.ToString(CultureInfo.CurrentCulture)));
             StatusSeverity = InfoBarSeverity.Success;
         }
@@ -445,7 +445,7 @@ public sealed class FacturaePageViewModel
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "Revise los datos";
+                StatusTitle = Localizer.Text("winui.facturae.revise_los_datos");
                 StatusMessage = string.Join(
                     " ",
                     exception.Errors.Take(5));
@@ -456,9 +456,9 @@ public sealed class FacturaePageViewModel
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "Creación cancelada";
+                StatusTitle = Localizer.Text("winui.facturae.creacion_cancelada");
                 StatusMessage =
-                    "No se creó ni modificó ningún fichero.";
+                    Localizer.Text("winui.facturae.no_se_creo_ni_modifico_ningun_fichero");
                 StatusSeverity = InfoBarSeverity.Informational;
             }
         }
@@ -466,9 +466,9 @@ public sealed class FacturaePageViewModel
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "No se pudo crear la factura";
+                StatusTitle = Localizer.Text("winui.facturae.no_se_pudo_crear_la_factura");
                 StatusMessage =
-                    "Windows no pudo guardar el XML Facturae. Revise los datos y vuelva a intentarlo.";
+                    Localizer.Text("winui.facturae.windows_no_pudo_guardar_el_xml_facturae");
                 StatusSeverity = InfoBarSeverity.Error;
             }
         }
@@ -480,27 +480,27 @@ public sealed class FacturaePageViewModel
 
     public Task OpenValidatorAsync() =>
         ExecutePortalAsync(
-            "Abriendo el validador oficial",
+            Localizer.Text("winui.facturae.abriendo_el_validador_oficial"),
             _launcher.OpenValidatorAsync);
 
     public Task OpenOrganisationDirectoryAsync() =>
         ExecutePortalAsync(
-            "Abriendo el buscador DIR3",
+            Localizer.Text("winui.facturae.abriendo_el_buscador_dir3"),
             _launcher.OpenOrganisationDirectoryAsync);
 
     public Task OpenSubmissionAsync() =>
         ExecutePortalAsync(
-            "Abriendo la remisión oficial",
+            Localizer.Text("winui.facturae.abriendo_la_remision_oficial"),
             _launcher.OpenSubmissionAsync);
 
     public Task OpenInvoiceStatusAsync() =>
         ExecutePortalAsync(
-            "Abriendo la consulta oficial",
+            Localizer.Text("winui.facturae.abriendo_la_consulta_oficial"),
             _launcher.OpenInvoiceStatusAsync);
 
     public Task OpenReceiptVerificationAsync() =>
         ExecutePortalAsync(
-            "Abriendo la verificación del justificante",
+            Localizer.Text("winui.facturae.abriendo_la_verificacion_del"),
             _launcher.OpenReceiptVerificationAsync);
 
     private async Task ExecutePortalAsync(
@@ -514,7 +514,7 @@ public sealed class FacturaePageViewModel
         }
 
         StatusTitle = progressTitle;
-        StatusMessage = "Espere un momento.";
+        StatusMessage = Localizer.Text("winui.comun.espere_un_momento");
         StatusSeverity = InfoBarSeverity.Informational;
         try
         {
@@ -525,8 +525,8 @@ public sealed class FacturaePageViewModel
             }
 
             StatusTitle = result.Succeeded
-                ? "Portal oficial abierto"
-                : "No se pudo abrir FACe";
+                ? Localizer.Text("winui.facturae.portal_oficial_abierto")
+                : Localizer.Text("winui.facturae.no_se_pudo_abrir_face");
             StatusMessage = result.Message;
             StatusSeverity = result.Succeeded
                 ? InfoBarSeverity.Success
@@ -536,9 +536,9 @@ public sealed class FacturaePageViewModel
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "Apertura cancelada";
+                StatusTitle = Localizer.Text("winui.facturae.apertura_cancelada");
                 StatusMessage =
-                    "No se ha enviado ni modificado ninguna factura.";
+                    Localizer.Text("winui.facturae.no_se_ha_enviado_ni_modificado_ninguna");
                 StatusSeverity = InfoBarSeverity.Informational;
             }
         }
@@ -546,9 +546,9 @@ public sealed class FacturaePageViewModel
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "No se pudo abrir FACe";
+                StatusTitle = Localizer.Text("winui.facturae.no_se_pudo_abrir_face");
                 StatusMessage =
-                    "Windows no pudo abrir el recurso oficial solicitado.";
+                    Localizer.Text("winui.comun.windows_no_pudo_abrir_el_recurso_oficial");
                 StatusSeverity = InfoBarSeverity.Error;
             }
         }
@@ -682,7 +682,7 @@ public sealed class FacturaePageViewModel
         if (!_isActive) return;
         SetOperationAvailability(
             _session.Supports(DesktopOperationActions.FacturaeCreate),
-            "El XML se crea localmente. Los enlaces abren únicamente páginas HTTPS fijas del Portal FACe Proveedores.");
+            Localizer.Text("winui.facturae.el_xml_se_crea_localmente_los_enlaces"));
         SetActionsEnabled(Volatile.Read(ref _operationInProgress) == 0);
     }
 
@@ -705,7 +705,7 @@ public sealed class FacturaePageViewModel
         {
             throw new FacturaeValidationException(
             [
-                "Cantidad, precio e IVA deben ser números válidos.",
+                Localizer.Text("winui.facturae.cantidad_precio_e_iva_deben_ser_numeros"),
             ]);
         }
         return result;

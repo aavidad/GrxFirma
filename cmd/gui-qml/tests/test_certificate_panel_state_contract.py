@@ -7,10 +7,18 @@ from __future__ import annotations
 
 import pathlib
 import re
+import importlib.util
 import unittest
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
+# Las fuentes WinUI nombran claves del catálogo; se leen con su texto español.
+# Se carga por ruta para no mezclar los módulos de prueba de ambas interfaces.
+_SPEC = importlib.util.spec_from_file_location(
+    "winui_catalog", ROOT / "cmd/gui-winui/tests/winui_catalog.py")
+_WINUI_CATALOG = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(_WINUI_CATALOG)
+read_with_catalog = _WINUI_CATALOG.read_with_catalog
 QML = (ROOT / "cmd/gui-qml/qml/main.qml").read_text(encoding="utf-8")
 WINUI = ROOT / "cmd/gui-winui/src/GrxFirma.WinUI"
 
@@ -65,9 +73,9 @@ class CertificatePanelStateContract(unittest.TestCase):
     def test_winui_picker_cards_and_preference(self) -> None:
         xaml = (WINUI / "Views/SignPage.xaml").read_text(encoding="utf-8")
         certificates_xaml = (WINUI / "Views/CertificatesPage.xaml").read_text(encoding="utf-8")
-        view = (WINUI / "Views/SignPage.xaml.cs").read_text(encoding="utf-8")
-        cards = (WINUI / "ViewModels/CertificatesPageViewModel.cs").read_text(encoding="utf-8")
-        signing = (WINUI / "ViewModels/SignPageViewModel.cs").read_text(encoding="utf-8")
+        view = read_with_catalog(WINUI / "Views/SignPage.xaml.cs")
+        cards = read_with_catalog(WINUI / "ViewModels/CertificatesPageViewModel.cs")
+        signing = read_with_catalog(WINUI / "ViewModels/SignPageViewModel.cs")
         settings = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI.Core/Operations/DesktopSettingsContracts.cs").read_text(encoding="utf-8")
         self.assertIn('AutomationProperties.Name="Certificado de firma"', xaml)
         self.assertIn('AutomationProperties.Name="Ver todos los certificados"', xaml)
@@ -81,7 +89,7 @@ class CertificatePanelStateContract(unittest.TestCase):
         self.assertIn("VisibleCertificates = visible.OrderBy(item => item.CanSign ? 0 : 1)", cards)
         self.assertIn(".OrderBy(item => item.CanSign ? 0 : 1)", signing)
         self.assertIn("SelectedCertificate?.CanSign == true", signing)
-        self.assertIn('No válido para firmar. {SelectedCertificate.StatusReason}', signing)
+        self.assertIn('Localizer.Format("No válido para firmar. {0}", SelectedCertificate.StatusReason)', signing)
 
 
 if __name__ == "__main__":

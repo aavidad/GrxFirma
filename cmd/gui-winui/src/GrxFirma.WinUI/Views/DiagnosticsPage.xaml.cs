@@ -180,11 +180,11 @@ public sealed partial class DiagnosticsPage : Page
         {
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
-            Title = "Instalar confianza TLS local",
+            Title = Localizer.Text("winui.diagnostico.instalar_confianza_tls_local"),
             Content =
-                "GrxFirma creará, si es necesario, una CA local propia y la confiará únicamente para el usuario actual. No se modifican certificados personales ni raíces ajenas.",
-            PrimaryButtonText = "Instalar confianza",
-            CloseButtonText = "Cancelar",
+                Localizer.Text("winui.diagnostico.grxfirma_creara_si_es_necesario_una_ca"),
+            PrimaryButtonText = Localizer.Text("winui.diagnostico.instalar_confianza"),
+            CloseButtonText = Localizer.Text("winui.comun.cancelar"),
             DefaultButton = ContentDialogButton.Close,
         };
         if (await Localizer.ShowAsync(confirmation) ==
@@ -207,11 +207,11 @@ public sealed partial class DiagnosticsPage : Page
         {
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
-            Title = "Retirar confianza TLS local",
+            Title = Localizer.Text("winui.diagnostico.retirar_confianza_tls_local"),
             Content =
-                "Se retirará primero la CA local inventariada y después sus artefactos gestionados. La firma desde navegador dejará de funcionar hasta volver a instalarla.",
-            PrimaryButtonText = "Retirar confianza",
-            CloseButtonText = "Cancelar",
+                Localizer.Text("winui.diagnostico.se_retirara_primero_la_ca_local"),
+            PrimaryButtonText = Localizer.Text("winui.diagnostico.retirar_confianza"),
+            CloseButtonText = Localizer.Text("winui.comun.cancelar"),
             DefaultButton = ContentDialogButton.Close,
         };
         if (await Localizer.ShowAsync(confirmation) ==

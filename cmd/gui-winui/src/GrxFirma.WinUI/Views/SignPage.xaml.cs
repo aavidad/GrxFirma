@@ -37,10 +37,10 @@ public sealed partial class SignPage : Page
         Draw,
     }
 
-    private static readonly SecurePasswordPromptRequest
-        CredentialPasswordPrompt = new(
-            "Contraseña de la credencial",
-            "&Contraseña de P12/PFX/PEM (puede quedar vacía):",
+    private static SecurePasswordPromptRequest
+        CredentialPasswordPrompt => new(
+            Localizer.Text("winui.comun.contrasena_de_la_credencial"),
+            Localizer.Text("winui.comun.contrasena_de_p12_pfx_pem_puede_quedar"),
             maximumCharacters: 1024);
 
     private readonly DesktopOperationSession _session;
@@ -645,7 +645,7 @@ public sealed partial class SignPage : Page
             DesktopOperationActions.SmartcardStatus,
             out var operations))
         {
-            ShowSmartcardNotice("El motor local no ofrece la consulta de tarjetas.",
+            ShowSmartcardNotice(Localizer.Text("winui.comun.el_motor_local_no_ofrece_la_consulta_de"),
                 InfoBarSeverity.Warning, false);
             return;
         }
@@ -656,7 +656,7 @@ public sealed partial class SignPage : Page
             if (!result.IsSuccess || result.Data is null ||
                 !string.Equals(result.Outcome, "success", StringComparison.Ordinal))
             {
-                ShowSmartcardNotice("No se pudo consultar el lector de tarjetas.",
+                ShowSmartcardNotice(Localizer.Text("winui.comun.no_se_pudo_consultar_el_lector_de"),
                     InfoBarSeverity.Error, false);
                 return;
             }
@@ -682,7 +682,7 @@ public sealed partial class SignPage : Page
         }
         catch (Exception)
         {
-            ShowSmartcardNotice("No se pudo consultar el lector de tarjetas.",
+            ShowSmartcardNotice(Localizer.Text("winui.comun.no_se_pudo_consultar_el_lector_de"),
                 InfoBarSeverity.Error, false);
         }
     }
@@ -889,11 +889,11 @@ public sealed partial class SignPage : Page
         {
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
-            Title = "Importar en el almacén de Windows",
+            Title = Localizer.Text("winui.firmar.importar_en_el_almacen_de_windows"),
             Content =
-                "La credencial se instalará de forma persistente en el almacén personal del usuario actual de Windows (Cert:\\CurrentUser\\My). Podrá usarla esta aplicación y otros programas con acceso a ese almacén. Continúe solo si quiere conservarla allí.",
-            PrimaryButtonText = "Importar en Windows",
-            CloseButtonText = "Cancelar",
+                Localizer.Text("winui.firmar.la_credencial_se_instalara_de_forma"),
+            PrimaryButtonText = Localizer.Text("winui.firmar.importar_en_windows"),
+            CloseButtonText = Localizer.Text("winui.comun.cancelar"),
             DefaultButton = ContentDialogButton.Close,
         };
         return await Localizer.ShowAsync(dialog) ==
@@ -1076,8 +1076,7 @@ public sealed partial class SignPage : Page
             (completion == Guid.Empty || completion == previousCompletion) &&
             _isSubscribed && ReferenceEquals(_pageCancellation, cancellation) &&
             !cancellation.IsCancellationRequested &&
-            !ViewModel.ValidationMessage.Contains("No se eligió un destino", StringComparison.Ordinal) &&
-            !ViewModel.ValidationMessage.Contains("canceló", StringComparison.OrdinalIgnoreCase))
+            !IsCancelledOrDiscardedMessage(ViewModel.ValidationMessage))
         {
             ShowSignResult(null, false);
             ReviewSignButton.Focus(FocusState.Programmatic);
@@ -1102,9 +1101,9 @@ public sealed partial class SignPage : Page
         SignResultNotice.Severity = hasOutput && !unsafeOutput
             ? InfoBarSeverity.Success : InfoBarSeverity.Error;
         SignResultNotice.Title = unsafeOutput
-            ? "Resultado guardado: no utilice el documento"
-            : hasOutput ? "Documento firmado correctamente"
-            : "No se pudo firmar el documento";
+            ? Localizer.Text("winui.firmar.resultado_guardado_no_utilice_el")
+            : hasOutput ? Localizer.Text("winui.firmar.documento_firmado_correctamente")
+            : Localizer.Text("winui.firmar.no_se_pudo_firmar_el_documento");
         var cause = diagnostic?.UserMessage;
         SignResultNotice.Message = unsafeOutput
             ? $"{Localizer.VisibleText(ViewModel.ResultMessage)} {Localizer.VisibleText(ViewModel.ValidationMessage)}"
@@ -1117,15 +1116,15 @@ public sealed partial class SignPage : Page
             ? Path.GetFileName(ViewModel.OutputPath) : string.Empty;
         SignResultVerification.Text = unsafeOutput
             ? string.IsNullOrWhiteSpace(diagnostic?.SuggestedAction)
-                ? "Cierre el programa que modifica el PDF, actualice la previsualización y repita la firma."
+                ? Localizer.Text("winui.firmar.cierre_el_programa_que_modifica_el_pdf")
                 : diagnostic.SuggestedAction
             : verified
-            ? "Firma verificada"
+            ? Localizer.Text("winui.firmar.firma_verificada")
             : hasOutput && !ViewModel.ValidateAfterSigning
-                ? "No se solicitó comprobar la firma."
-            : warning ? "La firma no se pudo verificar por completo. Revise el detalle antes de usarla."
+                ? Localizer.Text("winui.firmar.no_se_solicito_comprobar_la_firma")
+            : warning ? Localizer.Text("winui.firmar.la_firma_no_se_pudo_verificar_por")
             : string.IsNullOrWhiteSpace(diagnostic?.SuggestedAction)
-                ? "Revise los datos y vuelva a intentarlo."
+                ? Localizer.Text("winui.firmar.revise_los_datos_y_vuelva_a_intentarlo")
                 : diagnostic.SuggestedAction;
         SignResultVerification.Foreground = (Brush)Application.Current.Resources[
             unsafeOutput ? "AppDiagnosticFailureBrush"
@@ -1223,7 +1222,7 @@ public sealed partial class SignPage : Page
         if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
         {
             SignResultNotice.Severity = InfoBarSeverity.Error;
-            SignResultNotice.Message = "La carpeta del documento firmado ya no está disponible. Compruebe el destino de guardado.";
+            SignResultNotice.Message = Localizer.Text("winui.firmar.la_carpeta_del_documento_firmado_ya_no");
             return;
         }
         try
@@ -1517,8 +1516,10 @@ public sealed partial class SignPage : Page
             return;
         }
         if (args.PropertyName == nameof(SignPageViewModel.ResultMessage) &&
-            ViewModel.ResultMessage.StartsWith(
-                "No se ha ejecutado ninguna firma", StringComparison.Ordinal))
+            (string.Equals(ViewModel.ResultMessage,
+                Localizer.Text("winui.firmar.no_se_ha_ejecutado_ninguna_firma"), StringComparison.Ordinal) ||
+             string.Equals(ViewModel.ResultMessage,
+                Localizer.Text("winui.firmar.no_se_ha_ejecutado_ninguna_firma_con"), StringComparison.Ordinal)))
         {
             SignResultPanel.Visibility = Visibility.Collapsed;
             return;
@@ -2066,6 +2067,48 @@ public sealed partial class SignPage : Page
         if (direction == 0) return;
         ViewModel.VisibleSealRotationDegrees += direction * (IsShiftPressed() ? 15 : 1);
         args.Handled = true;
+    }
+
+    // Mensajes de validación que indican que el usuario canceló o no eligió
+    // destino: en esos casos no se muestra el panel de resultado. Se comparan
+    // con el texto ya traducido del catálogo, no con frases escritas aquí.
+    private static readonly string[] CancelledOrDiscardedMessageKeys =
+    [
+        "winui.firmar.no_se_eligio_un_destino_no_se_ha",
+        "winui.firmar.la_consulta_de_certificados_se_cancelo",
+        "winui.firmar.la_seleccion_de_la_credencial_se_cancelo",
+        "winui.firmar.la_carga_de_la_credencial_se_cancelo",
+        "winui.firmar.la_seleccion_del_documento_se_cancelo_no",
+        "winui.firmar.la_seleccion_de_documentos_para_el_lote",
+        "winui.firmar.la_seleccion_de_la_carpeta_del_lote_se",
+        "winui.firmar.la_seleccion_de_la_carpeta_de_salida_se",
+        "winui.firmar.el_lote_se_cancelo_solo_se_consideran",
+        "winui.firmar.la_carga_de_la_previsualizacion_se",
+        "winui.firmar.la_firma_se_guardo_como_pero_su",
+        "winui.firmar.la_firma_se_cancelo_antes_de_completarse",
+    ];
+
+    private static bool IsCancelledOrDiscardedMessage(string message)
+    {
+        foreach (var key in CancelledOrDiscardedMessageKeys)
+        {
+            if (MatchesCatalogTemplate(message, Localizer.Text(key)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Las plantillas con {0} coinciden si el mensaje conserva el texto fijo
+    // anterior y posterior al dato insertado.
+    private static bool MatchesCatalogTemplate(string message, string template)
+    {
+        var parts = template.Split("{0}");
+        return parts.Length == 1
+            ? string.Equals(message, template, StringComparison.Ordinal)
+            : message.StartsWith(parts[0], StringComparison.Ordinal) &&
+                message.EndsWith(parts[^1], StringComparison.Ordinal);
     }
 
     private static bool IsShiftPressed() =>

@@ -11,8 +11,8 @@ namespace GrxFirma.WinUI.ViewModels;
 
 public sealed class MainWindowViewModel : ObservableObject
 {
-    private string _connectionStatus = "Motor local no conectado.";
-    private string _activePageTitle = "Firmar";
+    private string _connectionStatus = Localizer.Text("winui.ventana.motor_local_no_conectado");
+    private string _activePageTitle = Localizer.Text("winui.comun.firmar");
     private bool _isBackendReady;
     private bool _hasConnectionError;
     private bool _isConnectionNoticeOpen = true;
@@ -83,7 +83,7 @@ public sealed class MainWindowViewModel : ObservableObject
         IsConnectionNoticeOpen = true;
         CurrentDiagnostic = null;
         ConnectionStatus =
-            "Interfaz iniciada sin motor local. Las operaciones permanecen deshabilitadas.";
+            Localizer.Text("winui.ventana.interfaz_iniciada_sin_motor_local_las");
     }
 
     public void SetConnecting()
@@ -92,7 +92,7 @@ public sealed class MainWindowViewModel : ObservableObject
         HasConnectionError = false;
         IsConnectionNoticeOpen = true;
         CurrentDiagnostic = null;
-        ConnectionStatus = "Comprobando la identidad del motor local…";
+        ConnectionStatus = Localizer.Text("winui.ventana.comprobando_la_identidad_del_motor_local");
     }
 
     public void SetConnected(IpcHello? hello)
@@ -104,14 +104,14 @@ public sealed class MainWindowViewModel : ObservableObject
         IsConnectionNoticeOpen = false;
         CurrentDiagnostic = hello is null
             ? BuildConnectionDiagnostic(
-                "El motor local no confirmó el protocolo esperado.",
+                Localizer.Text("winui.ventana.el_motor_local_no_confirmo_el_protocolo"),
                 "unsupported_protocol",
                 "protocol",
                 "app_local")
             : null;
         ConnectionStatus = hello is null
-            ? "El motor local no confirmó el protocolo esperado."
-            : Localizer.Fill("Motor local conectado mediante {protocol}.",
+            ? Localizer.Text("winui.ventana.el_motor_local_no_confirmo_el_protocolo")
+            : Localizer.Fill("winui.ventana.motor_local_conectado_mediante",
                 ("protocol", DesktopIpcProtocol.Name));
     }
 
@@ -127,7 +127,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ConnectionStatus = SafeIpcText.Clean(
             safeMessage,
             512,
-            "No se pudo conectar con el motor local.");
+            Localizer.Text("winui.ventana.no_se_pudo_conectar_con_el_motor_local"));
         CurrentDiagnostic = BuildConnectionDiagnostic(
             ConnectionStatus,
             failureCode,
@@ -160,15 +160,15 @@ public sealed class MainWindowViewModel : ObservableObject
             FailureCode = safeCode,
             UserMessage = message,
             ExpertMessage = protocolFailure
-                ? "La negociación del protocolo local devolvió datos incompatibles. No se ha repetido ninguna acción."
-                : "La admisión del canal local terminó antes de habilitar operaciones. No se ha repetido ninguna acción.",
+                ? Localizer.Text("winui.ventana.la_negociacion_del_protocolo_local")
+                : Localizer.Text("winui.ventana.la_admision_del_canal_local_termino"),
             LikelyOwner = safeOwner,
             ResponsibilityMessage = ownerKnown
-                ? "El fallo se ha localizado en esta instalación o en el entorno local del equipo."
-                : "El canal local falló, pero con la evidencia disponible no se puede atribuir el responsable.",
+                ? Localizer.Text("winui.ventana.el_fallo_se_ha_localizado_en_esta")
+                : Localizer.Text("winui.ventana.el_canal_local_fallo_pero_con_la"),
             SuggestedAction = protocolFailure
-                ? "Compruebe que la interfaz y el motor pertenecen a la misma versión instalada. Si se repite, conserve el código y solicite soporte."
-                : "Cierre la aplicación y vuelva a abrirla desde el lanzador. Si se repite, conserve el código y solicite soporte.",
+                ? Localizer.Text("winui.ventana.compruebe_que_la_interfaz_y_el_motor")
+                : Localizer.Text("winui.ventana.cierre_la_aplicacion_y_vuelva_a_abrirla"),
             UserCanResolveDirectly = ownerKnown,
             Steps =
             [
@@ -176,14 +176,14 @@ public sealed class MainWindowViewModel : ObservableObject
                 {
                     Code = safeCode,
                     Label = protocolFailure
-                        ? "Negociación del protocolo local"
-                        : "Admisión del canal local",
+                        ? Localizer.Text("winui.ventana.negociacion_del_protocolo_local")
+                        : Localizer.Text("winui.ventana.admision_del_canal_local"),
                     Status = DiagnosticStepStatus.Failure,
                     Owner = safeOwner,
                     UserMessage = message,
                     SuggestedAction = protocolFailure
-                        ? "Actualice o repare conjuntamente la interfaz y el motor local."
-                        : "Vuelva a iniciar la aplicación desde el lanzador.",
+                        ? Localizer.Text("winui.ventana.actualice_o_repare_conjuntamente_la")
+                        : Localizer.Text("winui.ventana.vuelva_a_iniciar_la_aplicacion_desde_el"),
                     EvidenceRef = $"phase:{safePhase}",
                 },
             ],

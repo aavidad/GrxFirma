@@ -36,19 +36,19 @@ public sealed class DiagnosticsPageViewModel
     private bool _canCancel;
     private bool _canOpenDetailedDiagnostic;
     private bool _hasResult;
-    private string _summaryTitle = "Sin comprobaciones";
+    private string _summaryTitle = Localizer.Text("winui.comun.sin_comprobaciones");
     private string _summaryMessage =
-        "Pulse «Ejecutar diagnóstico» para comprobar únicamente las fases que publica el motor local.";
-    private string _ownerLabel = "Indeterminado";
+        Localizer.Text("winui.diagnostico.pulse_ejecutar_diagnostico_para");
+    private string _ownerLabel = Localizer.Text("winui.diagnostico.indeterminado");
     private string _responsibility =
-        "Todavía no se ha observado ningún fallo.";
+        Localizer.Text("winui.diagnostico.todavia_no_se_ha_observado_ningun_fallo");
     private string _suggestedAction =
-        "Ejecute el diagnóstico cuando el motor local esté conectado.";
-    private string _tlsStatusTitle = "Estado TLS pendiente";
+        Localizer.Text("winui.diagnostico.ejecute_el_diagnostico_cuando_el_motor");
+    private string _tlsStatusTitle = Localizer.Text("winui.diagnostico.estado_tls_pendiente");
     private string _tlsStatusMessage =
-        "Ejecute el diagnóstico para inspeccionar el material TLS local gestionado.";
+        Localizer.Text("winui.diagnostico.ejecute_el_diagnostico_para_inspeccionar");
     private string _certificateSummary =
-        "El resumen local de certificados todavía no se ha consultado.";
+        Localizer.Text("winui.diagnostico.el_resumen_local_de_certificados_todavia");
     private InfoBarSeverity _resultSeverity =
         InfoBarSeverity.Informational;
     private InfoBarSeverity _tlsStatusSeverity =
@@ -63,9 +63,9 @@ public sealed class DiagnosticsPageViewModel
 
     public DiagnosticsPageViewModel(DesktopOperationSession session)
         : base(
-            "Diagnóstico",
-            "Comprueba paso a paso el canal, el reloj y los inventarios disponibles, sin repetir una firma ni aceptar endpoints remotos arbitrarios.",
-            "El diagnóstico no está disponible porque el motor local no ha publicado ping.")
+            Localizer.Text("winui.comun.diagnostico"),
+            Localizer.Text("winui.diagnostico.comprueba_paso_a_paso_el_canal_el_reloj"),
+            Localizer.Text("winui.diagnostico.el_diagnostico_no_esta_disponible_porque"))
     {
         ArgumentNullException.ThrowIfNull(session);
         _session = session;
@@ -256,14 +256,14 @@ public sealed class DiagnosticsPageViewModel
         var failures = new List<OperationDiagnostic>();
         _currentDiagnostic = null;
         HasResult = true;
-        SummaryTitle = "Diagnóstico en curso";
+        SummaryTitle = Localizer.Text("winui.diagnostico.diagnostico_en_curso");
         SummaryMessage =
-            "Se están ejecutando comprobaciones acotadas de solo lectura.";
-        OwnerLabel = "Aún no determinado";
+            Localizer.Text("winui.diagnostico.se_estan_ejecutando_comprobaciones");
+        OwnerLabel = Localizer.Text("winui.diagnostico.aun_no_determinado");
         Responsibility =
-            "Espere a que terminen las fases disponibles.";
+            Localizer.Text("winui.diagnostico.espere_a_que_terminen_las_fases");
         SuggestedAction =
-            "Puede cancelar sin modificar certificados ni configuración.";
+            Localizer.Text("winui.diagnostico.puede_cancelar_sin_modificar");
         ResultSeverity = InfoBarSeverity.Informational;
         PublishSteps(observedSteps);
 
@@ -277,9 +277,9 @@ public sealed class DiagnosticsPageViewModel
                     observedSteps,
                     failures,
                     LocalChannelCode,
-                    "Canal seguro con el motor local",
-                    "El canal local dejó de estar disponible antes de iniciar las comprobaciones.",
-                    "Cierre la aplicación, ábrala desde el lanzador y vuelva a intentarlo.",
+                    Localizer.Text("winui.diagnostico.canal_seguro_con_el_motor_local"),
+                    Localizer.Text("winui.diagnostico.el_canal_local_dejo_de_estar_disponible"),
+                    Localizer.Text("winui.diagnostico.cierre_la_aplicacion_abrala_desde_el"),
                     "IPC_UNAVAILABLE");
                 MarkPendingLocalStepsAsSkipped(observedSteps);
                 FinishRun(
@@ -294,11 +294,11 @@ public sealed class DiagnosticsPageViewModel
                 LocalChannelCode,
                 Step(
                     LocalChannelCode,
-                    "Canal seguro con el motor local",
+                    Localizer.Text("winui.diagnostico.canal_seguro_con_el_motor_local"),
                     DiagnosticStepStatus.Success,
                     "app_local",
-                    "La interfaz ya completó el saludo autenticado del protocolo local.",
-                    "Continúe con las comprobaciones del motor.",
+                    Localizer.Text("winui.diagnostico.la_interfaz_ya_completo_el_saludo"),
+                    Localizer.Text("winui.diagnostico.continue_con_las_comprobaciones_del"),
                     evidenceRef: "phase:admission"));
             PublishSteps(observedSteps);
 
@@ -311,7 +311,7 @@ public sealed class DiagnosticsPageViewModel
                     observedSteps,
                     failures,
                     EnginePingCode,
-                    "Respuesta del motor local",
+                    Localizer.Text("winui.diagnostico.respuesta_del_motor_local"),
                     OperationDiagnosticMapper.FromResult(ping));
                 MarkPendingLocalStepsAsSkipped(observedSteps);
                 FinishRun(observedSteps, failures, cancelled: false);
@@ -322,11 +322,11 @@ public sealed class DiagnosticsPageViewModel
                 EnginePingCode,
                 Step(
                     EnginePingCode,
-                    "Respuesta del motor local",
+                    Localizer.Text("winui.diagnostico.respuesta_del_motor_local"),
                     DiagnosticStepStatus.Success,
                     "app_local",
-                    "El motor respondió a una petición ping real.",
-                    "Continúe con el inventario local.",
+                    Localizer.Text("winui.diagnostico.el_motor_respondio_a_una_peticion_ping"),
+                    Localizer.Text("winui.diagnostico.continue_con_el_inventario_local"),
                     evidenceRef: "phase:operation"));
             PublishSteps(observedSteps);
 
@@ -402,9 +402,9 @@ public sealed class DiagnosticsPageViewModel
                 LocalClockCode,
                 UnknownStep(
                     LocalClockCode,
-                    "Reloj local",
+                    Localizer.Text("winui.diagnostico.reloj_local"),
                     "app_local",
-                    "No comprobado: el motor conectado no publica el diagnóstico acotado de fecha y hora."));
+                    Localizer.Text("winui.diagnostico.no_comprobado_el_motor_conectado_no")));
             PublishSteps(steps);
             return;
         }
@@ -417,7 +417,7 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 LocalClockCode,
-                "Diagnóstico de fecha y hora",
+                Localizer.Text("winui.diagnostico.diagnostico_de_fecha_y_hora"),
                 OperationDiagnosticMapper.FromResult(result));
             return;
         }
@@ -427,9 +427,9 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 LocalClockCode,
-                "Diagnóstico de fecha y hora",
-                "El motor devolvió fases de reloj incoherentes.",
-                "Repare o actualice la instalación antes de atribuir el fallo a la hora del equipo.",
+                Localizer.Text("winui.diagnostico.diagnostico_de_fecha_y_hora"),
+                Localizer.Text("winui.diagnostico.el_motor_devolvio_fases_de_reloj"),
+                Localizer.Text("winui.diagnostico.repare_o_actualice_la_instalacion_antes"),
                 "CLOCK_DIAGNOSTIC_INCOHERENT");
             return;
         }
@@ -459,11 +459,11 @@ public sealed class DiagnosticsPageViewModel
                 CertificatesCode,
                 Step(
                     CertificatesCode,
-                    "Certificados utilizables",
+                    Localizer.Text("winui.diagnostico.certificados_utilizables"),
                     DiagnosticStepStatus.Skipped,
                     "app_local",
-                    "El motor conectado no publica el resumen check_certificates.",
-                    "Actualice o repare la instalación para habilitar esta comprobación."));
+                    Localizer.Text("winui.diagnostico.el_motor_conectado_no_publica_el_resumen"),
+                    Localizer.Text("winui.diagnostico.actualice_o_repare_la_instalacion_para")));
             PublishSteps(steps);
             return;
         }
@@ -476,7 +476,7 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 CertificatesCode,
-                "Certificados utilizables",
+                Localizer.Text("winui.diagnostico.certificados_utilizables"),
                 OperationDiagnosticMapper.FromResult(result));
             return;
         }
@@ -486,9 +486,9 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 CertificatesCode,
-                "Certificados utilizables",
-                "El motor no devolvió conteos de certificados coherentes.",
-                "Abra Certificados y vuelva a cargar el almacén local.",
+                Localizer.Text("winui.diagnostico.certificados_utilizables"),
+                Localizer.Text("winui.diagnostico.el_motor_no_devolvio_conteos_de"),
+                Localizer.Text("winui.diagnostico.abra_certificados_y_vuelva_a_cargar_el"),
                 "DIAGNOSTIC_CERTIFICATE_COUNTS");
             return;
         }
@@ -501,12 +501,12 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 CertificatesCode,
-                "Certificados utilizables",
+                Localizer.Text("winui.diagnostico.certificados_utilizables"),
                 unavailable > 0
-                    ? Localizer.Fill("Se encontraron {unavailable} certificado(s), pero ninguno está disponible para firmar.",
+                    ? Localizer.Fill("winui.diagnostico.se_encontraron_certificado_s_pero",
                         ("unavailable", unavailable.ToString()))
-                    : "No se encontró ningún certificado disponible para firmar.",
-                "Abra Certificados y revise el almacén, la caducidad y el dispositivo criptográfico.",
+                    : Localizer.Text("winui.diagnostico.no_se_encontro_ningun_certificado"),
+                Localizer.Text("winui.diagnostico.abra_certificados_y_revise_el_almacen_la"),
                 "NO_USABLE_CERTIFICATE",
                 owner: "certificate_store");
             return;
@@ -517,15 +517,15 @@ public sealed class DiagnosticsPageViewModel
             CertificatesCode,
             Step(
                 CertificatesCode,
-                "Certificados utilizables",
+                Localizer.Text("winui.diagnostico.certificados_utilizables"),
                 DiagnosticStepStatus.Success,
                 "certificate_store",
                 unavailable > 0
-                    ? Localizer.Fill("Hay {usable} certificado(s) utilizable(s) y {unavailable} que requieren revisión.",
+                    ? Localizer.Fill("winui.diagnostico.hay_certificado_s_utilizable_s_y_que",
                         ("usable", usable.ToString()), ("unavailable", unavailable.ToString()))
-                    : Localizer.Fill("Hay {usable} certificado(s) utilizable(s) para firmar.",
+                    : Localizer.Fill("winui.diagnostico.hay_certificado_s_utilizable_s_para",
                         ("usable", usable.ToString())),
-                "Seleccione un certificado utilizable al iniciar la firma.",
+                Localizer.Text("winui.diagnostico.seleccione_un_certificado_utilizable_al"),
                 evidenceRef: "phase:operation"));
         PublishSteps(steps);
     }
@@ -545,11 +545,11 @@ public sealed class DiagnosticsPageViewModel
                 CertificateAccessCode,
                 Step(
                     CertificateAccessCode,
-                    "Acceso local a certificados",
+                    Localizer.Text("winui.diagnostico.acceso_local_a_certificados"),
                     DiagnosticStepStatus.Skipped,
                     "app_local",
-                    "El motor no publica el inventario de gestores e importadores.",
-                    "Use la página Certificados para revisar las opciones disponibles."));
+                    Localizer.Text("winui.diagnostico.el_motor_no_publica_el_inventario_de"),
+                    Localizer.Text("winui.diagnostico.use_la_pagina_certificados_para_revisar")));
             PublishSteps(steps);
             return;
         }
@@ -562,7 +562,7 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 CertificateAccessCode,
-                "Acceso local a certificados",
+                Localizer.Text("winui.diagnostico.acceso_local_a_certificados"),
                 OperationDiagnosticMapper.FromResult(result));
             return;
         }
@@ -572,9 +572,9 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 CertificateAccessCode,
-                "Acceso local a certificados",
-                "El motor no devolvió un inventario de acceso a certificados.",
-                "Repare la instalación si el problema se repite.",
+                Localizer.Text("winui.diagnostico.acceso_local_a_certificados"),
+                Localizer.Text("winui.diagnostico.el_motor_no_devolvio_un_inventario_de"),
+                Localizer.Text("winui.diagnostico.repare_la_instalacion_si_el_problema_se"),
                 "MISSING_CERTIFICATE_ACCESS_INVENTORY");
             return;
         }
@@ -588,11 +588,11 @@ public sealed class DiagnosticsPageViewModel
                 CertificateAccessCode,
                 Step(
                     CertificateAccessCode,
-                    "Acceso local a certificados",
+                    Localizer.Text("winui.diagnostico.acceso_local_a_certificados"),
                     DiagnosticStepStatus.Skipped,
                     "app_local",
-                    "No se detectaron gestores ni destinos de importación; esto no demuestra por sí solo un fallo de firma.",
-                    "Revise Certificados si necesita importar o administrar una credencial.",
+                    Localizer.Text("winui.diagnostico.no_se_detectaron_gestores_ni_destinos_de"),
+                    Localizer.Text("winui.diagnostico.revise_certificados_si_necesita_importar"),
                     evidenceRef: "phase:operation"));
             PublishSteps(steps);
             return;
@@ -603,12 +603,12 @@ public sealed class DiagnosticsPageViewModel
             CertificateAccessCode,
             Step(
                 CertificateAccessCode,
-                "Acceso local a certificados",
+                Localizer.Text("winui.diagnostico.acceso_local_a_certificados"),
                 DiagnosticStepStatus.Success,
                 "app_local",
-                Localizer.Fill("El motor detectó {managers} gestor(es) y {targets} destino(s) de importación.",
+                Localizer.Fill("winui.diagnostico.el_motor_detecto_gestor_es_y_destino_s",
                     ("managers", managers.ToString()), ("targets", targets.ToString())),
-                "Use Certificados si necesita abrir un gestor o importar una credencial.",
+                Localizer.Text("winui.diagnostico.use_certificados_si_necesita_abrir_un"),
                 evidenceRef: "phase:operation"));
         PublishSteps(steps);
     }
@@ -628,11 +628,11 @@ public sealed class DiagnosticsPageViewModel
                 ProxyStoreCode,
                 Step(
                     ProxyStoreCode,
-                    "Almacén seguro del proxy",
+                    Localizer.Text("winui.diagnostico.almacen_seguro_del_proxy"),
                     DiagnosticStepStatus.Skipped,
                     "app_local",
-                    "El motor no publica el inventario del almacén seguro del proxy.",
-                    "No configure credenciales de proxy hasta disponer de un almacén seguro."));
+                    Localizer.Text("winui.diagnostico.el_motor_no_publica_el_inventario_del"),
+                    Localizer.Text("winui.diagnostico.no_configure_credenciales_de_proxy_hasta")));
             PublishSteps(steps);
             return;
         }
@@ -645,7 +645,7 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 ProxyStoreCode,
-                "Almacén seguro del proxy",
+                Localizer.Text("winui.diagnostico.almacen_seguro_del_proxy"),
                 OperationDiagnosticMapper.FromResult(result));
             return;
         }
@@ -655,9 +655,9 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 ProxyStoreCode,
-                "Almacén seguro del proxy",
-                "El motor no devolvió el estado del almacén seguro.",
-                "Revise la configuración del proxy o repare la instalación.",
+                Localizer.Text("winui.diagnostico.almacen_seguro_del_proxy"),
+                Localizer.Text("winui.diagnostico.el_motor_no_devolvio_el_estado_del"),
+                Localizer.Text("winui.diagnostico.revise_la_configuracion_del_proxy_o"),
                 "MISSING_PROXY_STORE_STATUS",
                 owner: "network_proxy");
             return;
@@ -671,11 +671,11 @@ public sealed class DiagnosticsPageViewModel
                 ProxyStoreCode,
                 Step(
                     ProxyStoreCode,
-                    "Almacén seguro del proxy",
+                    Localizer.Text("winui.diagnostico.almacen_seguro_del_proxy"),
                     DiagnosticStepStatus.Success,
                     "network_proxy",
-                    "El motor confirmó que hay un almacén seguro disponible para credenciales de proxy.",
-                    "No se muestran ni se leen credenciales durante este diagnóstico.",
+                    Localizer.Text("winui.diagnostico.el_motor_confirmo_que_hay_un_almacen"),
+                    Localizer.Text("winui.diagnostico.no_se_muestran_ni_se_leen_credenciales"),
                     evidenceRef: "phase:operation"));
         }
         else if (mode is "disabled" or "system" or
@@ -686,11 +686,11 @@ public sealed class DiagnosticsPageViewModel
                 ProxyStoreCode,
                 Step(
                     ProxyStoreCode,
-                    "Almacén seguro del proxy",
+                    Localizer.Text("winui.diagnostico.almacen_seguro_del_proxy"),
                     DiagnosticStepStatus.Skipped,
                     "network_proxy",
-                    "La configuración actual no requiere credenciales guardadas en el almacén seguro.",
-                    "No es necesario actuar mientras no use un proxy manual autenticado.",
+                    Localizer.Text("winui.diagnostico.la_configuracion_actual_no_requiere"),
+                    Localizer.Text("winui.diagnostico.no_es_necesario_actuar_mientras_no_use"),
                     evidenceRef: "phase:operation"));
         }
         else if (mode is "manual-no-secret" or "fail-closed")
@@ -699,9 +699,9 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 ProxyStoreCode,
-                "Almacén seguro del proxy",
-                "El proxy manual no dispone de credenciales utilizables en un almacén seguro.",
-                "Abra Configuración y guarde de nuevo las credenciales del proxy.",
+                Localizer.Text("winui.diagnostico.almacen_seguro_del_proxy"),
+                Localizer.Text("winui.diagnostico.el_proxy_manual_no_dispone_de"),
+                Localizer.Text("winui.diagnostico.abra_configuracion_y_guarde_de_nuevo_las"),
                 "PROXY_SECURE_STORE_UNAVAILABLE",
                 owner: "network_proxy");
             return;
@@ -713,11 +713,11 @@ public sealed class DiagnosticsPageViewModel
                 ProxyStoreCode,
                 Step(
                     ProxyStoreCode,
-                    "Almacén seguro del proxy",
+                    Localizer.Text("winui.diagnostico.almacen_seguro_del_proxy"),
                     DiagnosticStepStatus.Unknown,
                     "network_proxy",
-                    "El inventario no permite determinar si el proxy necesita un almacén seguro.",
-                    "Revise la configuración del proxy antes de atribuir un fallo remoto.",
+                    Localizer.Text("winui.diagnostico.el_inventario_no_permite_determinar_si"),
+                    Localizer.Text("winui.diagnostico.revise_la_configuracion_del_proxy_antes"),
                     evidenceRef: "phase:operation"));
         }
         PublishSteps(steps);
@@ -737,14 +737,14 @@ public sealed class DiagnosticsPageViewModel
                 TlsStoreCode,
                 Step(
                     TlsStoreCode,
-                    "Material TLS local",
+                    Localizer.Text("winui.diagnostico.material_tls_local"),
                     DiagnosticStepStatus.Skipped,
                     "app_local",
-                    "El motor conectado no publica el inventario TLS local.",
-                    "Repare o actualice la instalación para habilitar esta comprobación."));
-            TlsStatusTitle = "Diagnóstico TLS no publicado";
+                    Localizer.Text("winui.diagnostico.el_motor_conectado_no_publica_el"),
+                    Localizer.Text("winui.diagnostico.repare_o_actualice_la_instalacion_para")));
+            TlsStatusTitle = Localizer.Text("winui.diagnostico.diagnostico_tls_no_publicado");
             TlsStatusMessage =
-                "Esta versión del motor no permite consultar el material TLS gestionado.";
+                Localizer.Text("winui.diagnostico.esta_version_del_motor_no_permite");
             TlsStatusSeverity = InfoBarSeverity.Warning;
             HasTlsStatus = true;
             PublishSteps(steps);
@@ -760,7 +760,7 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 TlsStoreCode,
-                "Material TLS local",
+                Localizer.Text("winui.diagnostico.material_tls_local"),
                 diagnostic);
             ApplyTlsFailure(diagnostic);
             return;
@@ -771,9 +771,9 @@ public sealed class DiagnosticsPageViewModel
                 steps,
                 failures,
                 TlsStoreCode,
-                "Material TLS local",
-                "El motor devolvió un inventario TLS incoherente.",
-                "Repare la instalación antes de modificar la confianza TLS.",
+                Localizer.Text("winui.diagnostico.material_tls_local"),
+                Localizer.Text("winui.diagnostico.el_motor_devolvio_un_inventario_tls"),
+                Localizer.Text("winui.diagnostico.repare_la_instalacion_antes_de_modificar"),
                 "TLS_DIAGNOSTIC_INCOHERENT",
                 owner: "app_local");
             ApplyTlsFailure(
@@ -793,13 +793,13 @@ public sealed class DiagnosticsPageViewModel
             TlsStoreCode,
             Step(
                 TlsStoreCode,
-                "Material TLS local",
+                Localizer.Text("winui.diagnostico.material_tls_local"),
                 status,
                 "app_local",
                 TlsStatusMessage,
                 status == DiagnosticStepStatus.Failure
-                    ? "Use las acciones TLS de esta pantalla para reparar o retirar únicamente la confianza gestionada."
-                    : "Instale la confianza local solo si necesita la integración con navegador.",
+                    ? Localizer.Text("winui.diagnostico.use_las_acciones_tls_de_esta_pantalla")
+                    : Localizer.Text("winui.diagnostico.instale_la_confianza_local_solo_si"),
                 evidenceRef: "phase:operation"));
         if (status == DiagnosticStepStatus.Failure)
         {
@@ -809,12 +809,12 @@ public sealed class DiagnosticsPageViewModel
                 FailureCode = "TLS_STORE_UNAVAILABLE",
                 UserMessage = TlsStatusMessage,
                 ExpertMessage =
-                    "El inventario tipado devolvió el estado unavailable sin exponer rutas locales.",
+                    Localizer.Text("winui.diagnostico.el_inventario_tipado_devolvio_el_estado"),
                 LikelyOwner = "app_local",
                 ResponsibilityMessage =
-                    "El fallo observado pertenece al almacén TLS local.",
+                    Localizer.Text("winui.diagnostico.el_fallo_observado_pertenece_al_almacen"),
                 SuggestedAction =
-                    "Repare o retire la confianza TLS gestionada y vuelva a ejecutar el diagnóstico.",
+                    Localizer.Text("winui.diagnostico.repare_o_retire_la_confianza_tls"),
                 UserCanResolveDirectly = true,
             });
         }
@@ -829,7 +829,7 @@ public sealed class DiagnosticsPageViewModel
             DesktopOperationActions.ExportDiagnostic))
         {
             CertificateSummary =
-                "El motor no publica el resumen agregado de certificados.";
+                Localizer.Text("winui.diagnostico.el_motor_no_publica_el_resumen_agregado");
             return;
         }
 
@@ -839,12 +839,12 @@ public sealed class DiagnosticsPageViewModel
             result.Data is not { IsCoherent: true })
         {
             CertificateSummary =
-                "No se pudo confirmar un resumen coherente de certificados.";
+                Localizer.Text("winui.diagnostico.no_se_pudo_confirmar_un_resumen");
             return;
         }
 
         CertificateSummary = Localizer.Fill(
-            "Certificados detectados: {count}. Con acceso de firma confirmado: {signable}.",
+            "winui.diagnostico.certificados_detectados_con_acceso_de",
             ("count", result.Data.CertificateCount.ToString()),
             ("signable", result.Data.CanSignCount.ToString()));
     }
@@ -878,9 +878,9 @@ public sealed class DiagnosticsPageViewModel
         catch (OperationCanceledException)
             when (operationCancellation.IsCancellationRequested)
         {
-            TlsStatusTitle = "Comprobación TLS cancelada";
+            TlsStatusTitle = Localizer.Text("winui.diagnostico.comprobacion_tls_cancelada");
             TlsStatusMessage =
-                "No se modificó la confianza ni el material TLS local.";
+                Localizer.Text("winui.diagnostico.no_se_modifico_la_confianza_ni_el");
             TlsStatusSeverity = InfoBarSeverity.Warning;
             HasTlsStatus = true;
         }
@@ -924,18 +924,18 @@ public sealed class DiagnosticsPageViewModel
             {
                 ApplyTlsStore(refreshed.Data);
             }
-            TlsStatusTitle = "Confianza TLS local instalada";
+            TlsStatusTitle = Localizer.Text("winui.diagnostico.confianza_tls_local_instalada");
             TlsStatusMessage =
-                "El motor confirmó la CA local gestionada para el usuario actual. Solo se usa para la integración local con navegador.";
+                Localizer.Text("winui.diagnostico.el_motor_confirmo_la_ca_local_gestionada");
             TlsStatusSeverity = InfoBarSeverity.Success;
             HasTlsStatus = true;
         }
         catch (OperationCanceledException)
             when (operationCancellation.IsCancellationRequested)
         {
-            TlsStatusTitle = "Instalación TLS cancelada";
+            TlsStatusTitle = Localizer.Text("winui.diagnostico.instalacion_tls_cancelada");
             TlsStatusMessage =
-                "No se recibió confirmación de que la confianza quedara instalada.";
+                Localizer.Text("winui.diagnostico.no_se_recibio_confirmacion_de_que_la");
             TlsStatusSeverity = InfoBarSeverity.Warning;
             HasTlsStatus = true;
         }
@@ -981,9 +981,9 @@ public sealed class DiagnosticsPageViewModel
             {
                 ApplyTlsStore(refreshed.Data);
             }
-            TlsStatusTitle = "Confianza TLS local retirada";
+            TlsStatusTitle = Localizer.Text("winui.diagnostico.confianza_tls_local_retirada");
             TlsStatusMessage = Localizer.Fill(
-                "El motor confirmó la retirada de la confianza y de {count} artefacto(s) gestionado(s).",
+                "winui.diagnostico.el_motor_confirmo_la_retirada_de_la",
                 ("count", result.Data.ToString()));
             TlsStatusSeverity = InfoBarSeverity.Success;
             HasTlsStatus = true;
@@ -991,9 +991,9 @@ public sealed class DiagnosticsPageViewModel
         catch (OperationCanceledException)
             when (operationCancellation.IsCancellationRequested)
         {
-            TlsStatusTitle = "Retirada TLS cancelada";
+            TlsStatusTitle = Localizer.Text("winui.diagnostico.retirada_tls_cancelada");
             TlsStatusMessage =
-                "No se recibió confirmación de que la confianza quedara retirada.";
+                Localizer.Text("winui.diagnostico.no_se_recibio_confirmacion_de_que_la_2");
             TlsStatusSeverity = InfoBarSeverity.Warning;
             HasTlsStatus = true;
         }
@@ -1018,30 +1018,30 @@ public sealed class DiagnosticsPageViewModel
         switch (store.State)
         {
             case "available":
-                TlsStatusTitle = "Material TLS local disponible";
+                TlsStatusTitle = Localizer.Text("winui.diagnostico.material_tls_local_disponible");
                 TlsStatusMessage = Localizer.Fill(
-                    "Se inventariaron {artifacts} artefacto(s): {certificates} certificado(s) y {keys} clave(s). Este inventario no afirma por sí solo que el navegador confíe en la CA.",
+                    "winui.diagnostico.se_inventariaron_artefacto_s_certificado",
                     ("artifacts", store.ArtifactCount.ToString()),
                     ("certificates", store.CertificateCount.ToString()),
                     ("keys", store.KeyCount.ToString()));
                 TlsStatusSeverity = InfoBarSeverity.Success;
                 break;
             case "empty":
-                TlsStatusTitle = "Almacén TLS local vacío";
+                TlsStatusTitle = Localizer.Text("winui.diagnostico.almacen_tls_local_vacio");
                 TlsStatusMessage =
-                    "No hay material TLS gestionado. Instale la confianza solo si necesita firmar desde el navegador.";
+                    Localizer.Text("winui.diagnostico.no_hay_material_tls_gestionado_instale");
                 TlsStatusSeverity = InfoBarSeverity.Warning;
                 break;
             case "not_created":
-                TlsStatusTitle = "Material TLS no creado";
+                TlsStatusTitle = Localizer.Text("winui.diagnostico.material_tls_no_creado");
                 TlsStatusMessage =
-                    "La integración local con navegador todavía no ha creado su CA ni sus claves.";
+                    Localizer.Text("winui.diagnostico.la_integracion_local_con_navegador");
                 TlsStatusSeverity = InfoBarSeverity.Informational;
                 break;
             default:
-                TlsStatusTitle = "Almacén TLS no disponible";
+                TlsStatusTitle = Localizer.Text("winui.diagnostico.almacen_tls_no_disponible");
                 TlsStatusMessage =
-                    "El motor no pudo inspeccionar de forma segura el material TLS local.";
+                    Localizer.Text("winui.diagnostico.el_motor_no_pudo_inspeccionar_de_forma");
                 TlsStatusSeverity = InfoBarSeverity.Error;
                 break;
         }
@@ -1053,7 +1053,7 @@ public sealed class DiagnosticsPageViewModel
         _currentDiagnostic = diagnostic;
         var presentation =
             OperationDiagnosticPresentation.From(diagnostic);
-        TlsStatusTitle = "No se pudo completar la operación TLS";
+        TlsStatusTitle = Localizer.Text("winui.diagnostico.no_se_pudo_completar_la_operacion_tls");
         TlsStatusMessage = presentation.Cause;
         TlsStatusSeverity = InfoBarSeverity.Error;
         HasTlsStatus = true;
@@ -1073,11 +1073,11 @@ public sealed class DiagnosticsPageViewModel
         var presentation =
             OperationDiagnosticPresentation.From(_currentDiagnostic);
         SummaryTitle = cancelled
-            ? "Diagnóstico cancelado"
+            ? Localizer.Text("winui.diagnostico.diagnostico_cancelado")
             : observedSteps.Any(step =>
                 step.Status == DiagnosticStepStatus.Failure)
-                ? "Se detectó un problema"
-                : "Comprobaciones terminadas";
+                ? Localizer.Text("winui.diagnostico.se_detecto_un_problema")
+                : Localizer.Text("winui.diagnostico.comprobaciones_terminadas");
         SummaryMessage = presentation.Cause;
         OwnerLabel = presentation.OwnerLabel;
         Responsibility = presentation.Responsibility;
@@ -1119,11 +1119,11 @@ public sealed class DiagnosticsPageViewModel
         if (cancelled)
         {
             cause =
-                "El diagnóstico se canceló. Las fases pendientes no se ejecutaron.";
+                Localizer.Text("winui.diagnostico.el_diagnostico_se_cancelo_las_fases");
             responsibility =
-                "La cancelación no se atribuye a ningún sistema.";
+                Localizer.Text("winui.diagnostico.la_cancelacion_no_se_atribuye_a_ningun");
             action =
-                "Ejecute de nuevo el diagnóstico si desea completar las fases locales.";
+                Localizer.Text("winui.diagnostico.ejecute_de_nuevo_el_diagnostico_si_desea");
         }
         else if (failedStep is null)
         {
@@ -1131,37 +1131,37 @@ public sealed class DiagnosticsPageViewModel
                 step.Code == RemoteClockCode);
             cause = remoteClock?.Status ==
                 DiagnosticStepStatus.Success
-                    ? "Las comprobaciones disponibles han terminado y la hora local coincide con la cabecera Date del origen HTTPS observado. @firma no se ha comprobado."
-                    : "Las comprobaciones disponibles han terminado. La hora remota y @firma que no tengan evidencia siguen como no comprobadas.";
+                    ? Localizer.Text("winui.diagnostico.las_comprobaciones_disponibles_han")
+                    : Localizer.Text("winui.diagnostico.las_comprobaciones_disponibles_han_2");
             responsibility =
-                "No se ha observado un fallo atribuible, pero una comparación horaria no demuestra por sí sola el estado completo del trámite remoto.";
+                Localizer.Text("winui.diagnostico.no_se_ha_observado_un_fallo_atribuible");
             action =
-                "Si una firma real falla, abra el diagnóstico de esa operación para conservar la evidencia exacta de cada fase.";
+                Localizer.Text("winui.diagnostico.si_una_firma_real_falla_abra_el");
         }
         else
         {
             (cause, responsibility, action) = owner switch
             {
                 "app_local" => (
-                    "Se ha detectado un problema en este equipo o en la aplicación local.",
-                    "El fallo observado pertenece a una fase local.",
+                    Localizer.Text("winui.diagnostico.se_ha_detectado_un_problema_en_este"),
+                    Localizer.Text("winui.diagnostico.el_fallo_observado_pertenece_a_una_fase"),
                     failedStep.SuggestedAction ??
-                        "Revise la fase marcada con una ✕ y vuelva a intentarlo."),
+                        Localizer.Text("winui.diagnostico.revise_la_fase_marcada_con_una_y_vuelva")),
                 "remote_service" => (
-                    "La evidencia recibida sitúa el problema en un servidor remoto.",
-                    "El fallo observado no pertenece al canal local.",
+                    Localizer.Text("winui.diagnostico.la_evidencia_recibida_situa_el_problema"),
+                    Localizer.Text("winui.diagnostico.el_fallo_observado_no_pertenece_al_canal"),
                     failedStep.SuggestedAction ??
-                        "Conserve el diagnóstico y contacte con el portal."),
+                        Localizer.Text("winui.diagnostico.conserve_el_diagnostico_y_contacte_con")),
                 "@firma" => (
-                    "La evidencia recibida sitúa el problema en la plataforma @firma.",
-                    "El fallo observado ha sido atribuido por el motor a @firma.",
+                    Localizer.Text("winui.diagnostico.la_evidencia_recibida_situa_el_problema_2"),
+                    Localizer.Text("winui.diagnostico.el_fallo_observado_ha_sido_atribuido_por"),
                     failedStep.SuggestedAction ??
-                        "Conserve el diagnóstico y contacte con el soporte del trámite."),
+                        Localizer.Text("winui.diagnostico.conserve_el_diagnostico_y_contacte_con_2")),
                 _ => (
-                    "Se ha detectado un fallo, pero su origen no puede determinarse.",
-                    "La evidencia disponible no permite distinguir entre un origen local y remoto.",
+                    Localizer.Text("winui.diagnostico.se_ha_detectado_un_fallo_pero_su_origen"),
+                    Localizer.Text("winui.diagnostico.la_evidencia_disponible_no_permite"),
                     failedStep.SuggestedAction ??
-                        "Conserve el diagnóstico y solicite soporte."),
+                        Localizer.Text("winui.diagnostico.conserve_el_diagnostico_y_solicite")),
             };
         }
 
@@ -1173,7 +1173,7 @@ public sealed class DiagnosticsPageViewModel
                 : failureCode,
             UserMessage = cause,
             ExpertMessage =
-                "El asistente ejecutó únicamente acciones IPC publicadas. La sonda de hora remota solo puede usar un origen HTTPS observado y autorizado; no acepta URLs por IPC, no envía cookies ni credenciales y no prueba @firma por descarte.",
+                Localizer.Text("winui.diagnostico.el_asistente_ejecuto_unicamente_acciones"),
             LikelyOwner = owner,
             ResponsibilityMessage = responsibility,
             SuggestedAction = action,
@@ -1225,10 +1225,10 @@ public sealed class DiagnosticsPageViewModel
             FailureCode = failureCode,
             UserMessage = message,
             ExpertMessage =
-                "El motor respondió, pero el resumen tipado no contenía un estado local utilizable.",
+                Localizer.Text("winui.diagnostico.el_motor_respondio_pero_el_resumen"),
             LikelyOwner = owner,
             ResponsibilityMessage =
-                "El resultado incoherente se ha observado en una fase local.",
+                Localizer.Text("winui.diagnostico.el_resultado_incoherente_se_ha_observado"),
             SuggestedAction = action,
             UserCanResolveDirectly = true,
             Steps =
@@ -1277,8 +1277,8 @@ public sealed class DiagnosticsPageViewModel
                     ProbeLabel(code),
                     DiagnosticStepStatus.Skipped,
                     "app_local",
-                    "La fase no se ejecutó porque el diagnóstico se detuvo antes.",
-                    "Ejecute de nuevo el diagnóstico para completar esta fase."));
+                    Localizer.Text("winui.diagnostico.la_fase_no_se_ejecuto_porque_el"),
+                    Localizer.Text("winui.diagnostico.ejecute_de_nuevo_el_diagnostico_para")));
         }
     }
 
@@ -1303,49 +1303,49 @@ public sealed class DiagnosticsPageViewModel
     [
         UnknownStep(
             LocalChannelCode,
-            "Canal seguro con el motor local",
+            Localizer.Text("winui.diagnostico.canal_seguro_con_el_motor_local"),
             "app_local",
-            "Se comprobará al iniciar el asistente."),
+            Localizer.Text("winui.diagnostico.se_comprobara_al_iniciar_el_asistente")),
         UnknownStep(
             EnginePingCode,
-            "Respuesta del motor local",
+            Localizer.Text("winui.diagnostico.respuesta_del_motor_local"),
             "app_local",
-            "Pendiente de una petición ping real."),
+            Localizer.Text("winui.diagnostico.pendiente_de_una_peticion_ping_real")),
         UnknownStep(
             LocalClockCode,
-            "Reloj local",
+            Localizer.Text("winui.diagnostico.reloj_local"),
             "app_local",
-            "Pendiente de una lectura real y del estado no destructivo del servicio de hora."),
+            Localizer.Text("winui.diagnostico.pendiente_de_una_lectura_real_y_del")),
         UnknownStep(
             CertificatesCode,
-            "Certificados utilizables",
+            Localizer.Text("winui.diagnostico.certificados_utilizables"),
             "certificate_store",
-            "Pendiente del resumen local de certificados."),
+            Localizer.Text("winui.diagnostico.pendiente_del_resumen_local_de")),
         UnknownStep(
             CertificateAccessCode,
-            "Acceso local a certificados",
+            Localizer.Text("winui.diagnostico.acceso_local_a_certificados"),
             "app_local",
-            "Pendiente del inventario de gestores e importadores."),
+            Localizer.Text("winui.diagnostico.pendiente_del_inventario_de_gestores_e")),
         UnknownStep(
             ProxyStoreCode,
-            "Almacén seguro del proxy",
+            Localizer.Text("winui.diagnostico.almacen_seguro_del_proxy"),
             "network_proxy",
-            "Pendiente del inventario seguro del proxy."),
+            Localizer.Text("winui.diagnostico.pendiente_del_inventario_seguro_del")),
         UnknownStep(
             TlsStoreCode,
-            "Material TLS local",
+            Localizer.Text("winui.diagnostico.material_tls_local"),
             "app_local",
-            "Pendiente del inventario TLS gestionado."),
+            Localizer.Text("winui.diagnostico.pendiente_del_inventario_tls_gestionado")),
         UnknownStep(
             RemoteClockCode,
-            "Hora del servidor remoto observado",
+            Localizer.Text("winui.diagnostico.hora_del_servidor_remoto_observado"),
             "remote_service",
-            "No comprobado: todavía no hay un origen HTTPS observado y autorizado disponible para esta sonda."),
+            Localizer.Text("winui.diagnostico.no_comprobado_todavia_no_hay_un_origen")),
         UnknownStep(
             GovernmentAFirmaCode,
-            "Plataforma @firma",
+            Localizer.Text("winui.diagnostico.plataforma_firma"),
             "@firma",
-            "No comprobado: ninguna acción publicada prueba @firma de forma aislada."),
+            Localizer.Text("winui.diagnostico.no_comprobado_ninguna_accion_publicada")),
     ];
 
     private static OperationDiagnosticStep UnknownStep(
@@ -1359,7 +1359,7 @@ public sealed class DiagnosticsPageViewModel
             DiagnosticStepStatus.Unknown,
             owner,
             message,
-            "Abra el diagnóstico de una operación real para obtener evidencia de esta fase.");
+            Localizer.Text("winui.diagnostico.abra_el_diagnostico_de_una_operacion"));
 
     private static OperationDiagnosticStep Step(
         string code,
@@ -1372,17 +1372,17 @@ public sealed class DiagnosticsPageViewModel
         new()
         {
             Code = SafeIpcText.Clean(code, 64, "unknown"),
-            Label = SafeIpcText.Clean(label, 160, "Paso observado"),
+            Label = SafeIpcText.Clean(label, 160, Localizer.Text("winui.diagnostico.paso_observado")),
             Status = status,
             Owner = owner,
             UserMessage = SafeIpcText.Clean(
                 message,
                 512,
-                "Sin detalle adicional."),
+                Localizer.Text("winui.diagnostico.sin_detalle_adicional")),
             SuggestedAction = SafeIpcText.Clean(
                 action,
                 512,
-                "No hay una acción específica registrada."),
+                Localizer.Text("winui.diagnostico.no_hay_una_accion_especifica_registrada")),
             EvidenceRef = evidenceRef,
         };
 
@@ -1421,14 +1421,14 @@ public sealed class DiagnosticsPageViewModel
 
     private static string ProbeLabel(string code) => code switch
     {
-        LocalChannelCode => "Canal seguro con el motor local",
-        EnginePingCode => "Respuesta del motor local",
-        LocalClockCode => "Diagnóstico de fecha y hora",
-        CertificatesCode => "Certificados utilizables",
-        CertificateAccessCode => "Acceso local a certificados",
-        ProxyStoreCode => "Almacén seguro del proxy",
-        TlsStoreCode => "Material TLS local",
-        _ => "Comprobación local",
+        LocalChannelCode => Localizer.Text("winui.diagnostico.canal_seguro_con_el_motor_local"),
+        EnginePingCode => Localizer.Text("winui.diagnostico.respuesta_del_motor_local"),
+        LocalClockCode => Localizer.Text("winui.diagnostico.diagnostico_de_fecha_y_hora"),
+        CertificatesCode => Localizer.Text("winui.diagnostico.certificados_utilizables"),
+        CertificateAccessCode => Localizer.Text("winui.diagnostico.acceso_local_a_certificados"),
+        ProxyStoreCode => Localizer.Text("winui.diagnostico.almacen_seguro_del_proxy"),
+        TlsStoreCode => Localizer.Text("winui.diagnostico.material_tls_local"),
+        _ => Localizer.Text("winui.diagnostico.comprobacion_local"),
     };
 
     private bool TryBeginOperation(
@@ -1513,7 +1513,7 @@ public sealed class DiagnosticsPageViewModel
             _session.Supports(DesktopOperationActions.Ping);
         SetOperationAvailability(
             available,
-            "Motor local conectado. El asistente ejecutará únicamente comprobaciones acotadas de solo lectura.");
+            Localizer.Text("winui.diagnostico.motor_local_conectado_el_asistente"));
         if (!available)
         {
             CancelCurrentOperation();

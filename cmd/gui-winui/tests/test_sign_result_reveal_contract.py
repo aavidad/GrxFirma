@@ -8,13 +8,15 @@ import pathlib
 import unittest
 import xml.etree.ElementTree as ET
 
+from winui_catalog import read_with_catalog
+
 ROOT = pathlib.Path(__file__).resolve().parents[1] / "src/GrxFirma.WinUI"
 
 
 class SignResultRevealContracts(unittest.TestCase):
     def setUp(self):
-        self.view = (ROOT / "Views/SignPage.xaml.cs").read_text(encoding="utf-8")
-        self.model = (ROOT / "ViewModels/SignPageViewModel.cs").read_text(encoding="utf-8")
+        self.view = read_with_catalog(ROOT / "Views/SignPage.xaml.cs")
+        self.model = read_with_catalog(ROOT / "ViewModels/SignPageViewModel.cs")
         self.sign = self.model.split("public async Task<OperationDiagnostic?> SignAsync(", 1)[1].split(
             "public OperationDiagnostic? ValidateOutputForOpening", 1)[0]
         self.click = self.view.split("private async void OnSignClick(", 1)[1].split(
@@ -104,7 +106,7 @@ class SignResultRevealContracts(unittest.TestCase):
             "private void OnCertificatePanelPropertyChanged(", 1)[0]
         self.assertNotIn("selected is { IsSuitable: true }", layout)
         self.assertIn("SignLayoutGrid.ColumnSpacing = sidebarWidth > 0 ? 20 : 0", layout)
-        certificate_model = (ROOT / "ViewModels/CertificatesPageViewModel.cs").read_text(encoding="utf-8")
+        certificate_model = read_with_catalog(ROOT / "ViewModels/CertificatesPageViewModel.cs")
         self.assertIn("IsSuitable = suitable && !certificate.NeedsUnlock", certificate_model)
 
 

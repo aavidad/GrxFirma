@@ -116,8 +116,8 @@ internal sealed class WindowsTrayIcon : IDisposable
         }
         _releaseNotesNotificationPending = false;
         var data = CreateData(InfoFlag);
-        data.InfoTitle = Localizer.Text("GrxFirma sigue disponible");
-        data.Info = Localizer.Text("Se ha ocultado en la bandeja. Abra su icono para volver a la ventana.");
+        data.InfoTitle = Localizer.Text("winui.bandeja.grxfirma_sigue_disponible");
+        data.Info = Localizer.Text("winui.bandeja.se_ha_ocultado_en_la_bandeja_abra_su");
         _ = ShellNotifyIcon(Modify, ref data);
     }
 
@@ -150,7 +150,7 @@ internal sealed class WindowsTrayIcon : IDisposable
         Flags = flags,
         CallbackMessage = CallbackMessage,
         Icon = _icon,
-        Tip = Localizer.Text("GrxFirma — firmas desde portales: activo"),
+        Tip = Localizer.Text("winui.bandeja.grxfirma_firmas_desde_portales_activo"),
         Info = string.Empty,
         InfoTitle = string.Empty,
     };
@@ -215,24 +215,24 @@ internal sealed class WindowsTrayIcon : IDisposable
         {
             var language = Localizer.Language;
             string Label(string key) => SealUiCatalog.Text(language, key);
-            _ = AppendMenu(menu, MenuString, 1, Label("Abrir GrxFirma"));
+            _ = AppendMenu(menu, MenuString, 1, Label("winui.bandeja.abrir_grxfirma"));
             _ = AppendMenu(menu, MenuString | MenuDisabled, 2,
-                Label("Firmas desde portales: activo"));
-            _ = AppendMenu(menu, MenuString, 3, Label("Ajustes"));
+                Label("winui.bandeja.firmas_desde_portales_activo"));
+            _ = AppendMenu(menu, MenuString, 3, Label("winui.bandeja.ajustes"));
             _ = AppendMenu(menu, MenuSeparator, 0, null);
             var helpMenu = CreatePopupMenu();
             if (helpMenu != 0)
             {
-                _ = AppendMenu(helpMenu, MenuString, 5, Label("Manual de ayuda"));
-                _ = AppendMenu(helpMenu, MenuString, 7, Label("Novedades"));
-                _ = AppendMenu(helpMenu, MenuString, 6, Label("Acerca de GrxFirma"));
-                if (!AppendMenu(menu, MenuPopup, (nuint)helpMenu, Label("Ayuda")))
+                _ = AppendMenu(helpMenu, MenuString, 5, Label("winui.bandeja.manual_de_ayuda"));
+                _ = AppendMenu(helpMenu, MenuString, 7, Label("winui.comun.novedades"));
+                _ = AppendMenu(helpMenu, MenuString, 6, Label("winui.comun.acerca_de_grxfirma"));
+                if (!AppendMenu(menu, MenuPopup, (nuint)helpMenu, Label("winui.comun.ayuda")))
                 {
                     _ = DestroyMenu(helpMenu);
                 }
             }
             _ = AppendMenu(menu, MenuSeparator, 0, null);
-            _ = AppendMenu(menu, MenuString, 4, Label("Salir"));
+            _ = AppendMenu(menu, MenuString, 4, Label("winui.bandeja.salir"));
             _ = SetForegroundWindow(_hwnd);
             _ = GetCursorPos(out var point);
             var selected = TrackPopupMenuEx(menu,

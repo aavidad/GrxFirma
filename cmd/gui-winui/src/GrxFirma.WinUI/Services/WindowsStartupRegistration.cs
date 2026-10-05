@@ -38,7 +38,7 @@ internal static class WindowsStartupRegistration
 
         var command = ExpectedCommand();
         using var run = Registry.CurrentUser.CreateSubKey(RunKey, true)
-            ?? throw new InvalidOperationException("No se pudo abrir el inicio del usuario.");
+            ?? throw new InvalidOperationException(Localizer.Text("winui.inicio.no_se_pudo_abrir_el_inicio_del_usuario"));
         run.SetValue(ValueName, command, RegistryValueKind.String);
     }
 
@@ -51,7 +51,7 @@ internal static class WindowsStartupRegistration
             local.StartsWith(@"\\", StringComparison.Ordinal) ||
             local.Contains('%') || local.Contains('"'))
         {
-            throw new InvalidOperationException("La instalación por usuario no es segura.");
+            throw new InvalidOperationException(Localizer.Text("winui.inicio.la_instalacion_por_usuario_no_es_segura"));
         }
 
         var root = Path.GetFullPath(local);
@@ -61,7 +61,7 @@ internal static class WindowsStartupRegistration
         var launcher = Path.Combine(launcherDir, "grxfirma-gui.exe");
         var marker = Path.Combine(launcherDir, ".grxfirma-install");
         var current = WindowsIdentity.GetCurrent().User
-            ?? throw new InvalidOperationException("No se pudo identificar al usuario.");
+            ?? throw new InvalidOperationException(Localizer.Text("winui.comun.no_se_pudo_identificar_al_usuario"));
         foreach (var path in new[]
                  { root, programs, app, launcherDir, launcher, marker })
         {
@@ -70,7 +70,7 @@ internal static class WindowsStartupRegistration
         if (new FileInfo(marker).Length > 64 ||
             File.ReadAllText(marker).Trim() != "GrxFirma:DesktopLauncher")
         {
-            throw new InvalidOperationException("El lanzador no está instalado correctamente.");
+            throw new InvalidOperationException(Localizer.Text("winui.inicio.el_lanzador_no_esta_instalado"));
         }
         return $"\"{launcher}\" {FixedArgument}";
     }
@@ -80,7 +80,7 @@ internal static class WindowsStartupRegistration
         var attributes = File.GetAttributes(path);
         if ((attributes & FileAttributes.ReparsePoint) != 0)
         {
-            throw new InvalidOperationException("La instalación por usuario no es segura.");
+            throw new InvalidOperationException(Localizer.Text("winui.inicio.la_instalacion_por_usuario_no_es_segura"));
         }
         var isDirectory = (attributes & FileAttributes.Directory) != 0;
         FileSystemSecurity security = isDirectory
@@ -88,12 +88,12 @@ internal static class WindowsStartupRegistration
             : new FileInfo(path).GetAccessControl();
         var owner = security.GetOwner(typeof(SecurityIdentifier))
             as SecurityIdentifier
-            ?? throw new InvalidOperationException("La instalación por usuario no es segura.");
+            ?? throw new InvalidOperationException(Localizer.Text("winui.inicio.la_instalacion_por_usuario_no_es_segura"));
         if (!owner.Equals(current) &&
             !owner.IsWellKnown(WellKnownSidType.LocalSystemSid) &&
             !owner.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid))
         {
-            throw new InvalidOperationException("La instalación por usuario no es segura.");
+            throw new InvalidOperationException(Localizer.Text("winui.inicio.la_instalacion_por_usuario_no_es_segura"));
         }
         foreach (FileSystemAccessRule rule in security.GetAccessRules(
                      true, true, typeof(SecurityIdentifier)))
@@ -111,7 +111,7 @@ internal static class WindowsStartupRegistration
                 !sid.IsWellKnown(WellKnownSidType.LocalSystemSid) &&
                 !sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid))
             {
-                throw new InvalidOperationException("La instalación por usuario no es segura.");
+                throw new InvalidOperationException(Localizer.Text("winui.inicio.la_instalacion_por_usuario_no_es_segura"));
             }
         }
     }

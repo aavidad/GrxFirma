@@ -75,25 +75,25 @@ public sealed partial class OperationDiagnosticDialog : ContentDialog
             var saved = await _filePicker.PickAndSaveTextFileAsync(
                 SaveFilePickerProfile.DiagnosticReport,
                 report,
-                Localizer.Text("diagnostico-grxfirma-") +
+                Localizer.Text("winui.diagnostico.diagnostico_grxfirma") +
                 $"{generatedAtUtc:yyyyMMddTHHmmssZ}");
 
             ExportStatusBar.Severity = saved
                 ? InfoBarSeverity.Success
                 : InfoBarSeverity.Informational;
             ExportStatusBar.Title = saved
-                ? Localizer.Text("Informe guardado")
-                : Localizer.Text("Exportación cancelada");
+                ? Localizer.Text("winui.diagnostico.informe_guardado")
+                : Localizer.Text("winui.diagnostico.exportacion_cancelada");
             ExportStatusBar.Message = saved
-                ? Localizer.Text("El informe saneado está listo para entregarlo a soporte.")
-                : Localizer.Text("No se ha guardado ningún informe.");
+                ? Localizer.Text("winui.diagnostico.el_informe_saneado_esta_listo_para")
+                : Localizer.Text("winui.diagnostico.no_se_ha_guardado_ningun_informe");
         }
         catch
         {
             ExportStatusBar.Severity = InfoBarSeverity.Error;
-            ExportStatusBar.Title = Localizer.Text("No se pudo guardar el informe");
+            ExportStatusBar.Title = Localizer.Text("winui.diagnostico.no_se_pudo_guardar_el_informe");
             ExportStatusBar.Message =
-                Localizer.Text("Inténtelo de nuevo en otra ubicación.");
+                Localizer.Text("winui.diagnostico.intentelo_de_nuevo_en_otra_ubicacion");
         }
         finally
         {
@@ -108,5 +108,5 @@ public sealed partial class OperationDiagnosticDialog : ContentDialog
         app.FilePickerService is not null
             ? app.FilePickerService
             : throw new InvalidOperationException(
-                Localizer.Text("El selector de informes todavía no está disponible."));
+                Localizer.Text("winui.diagnostico.el_selector_de_informes_todavia_no_esta"));
 }

@@ -64,16 +64,16 @@ public sealed record CertificateListItem
         var displayName = FirstVisible(
             certificate.SubjectName,
             certificate.Subject,
-            "Certificado sin titular");
+            Localizer.Text("winui.comun.certificado_sin_titular"));
         var issuer = FirstVisible(
             certificate.IssuerName,
             certificate.Issuer,
-            "Emisor desconocido");
+            Localizer.Text("winui.certificados.emisor_desconocido"));
         var status = certificate.IsExpired
-            ? "Caducado"
+            ? Localizer.Text("winui.certificados.caducado")
             : FirstVisible(
                 certificate.Status,
-                certificate.CanSign ? "Disponible para firmar" : "Solo consulta");
+                certificate.CanSign ? Localizer.Text("winui.certificados.disponible_para_firmar") : Localizer.Text("winui.certificados.solo_consulta"));
 
         var engineStatus = certificate.Status.Trim();
         var expired = certificate.IsExpired ||
@@ -85,20 +85,20 @@ public sealed record CertificateListItem
         var suitable = certificate.CanSign && !expired &&
             !certificate.NeedsUnlock && !engineRejected;
         var reason = expired
-            ? Localizer.Fill("Caducado el {date}",
+            ? Localizer.Fill("winui.certificados.caducado_el",
                 ("date", FormatDate(FirstVisible(certificate.ValidTo, certificate.NotAfter, string.Empty), "dd/MM/yyyy")))
             : certificate.NeedsUnlock
-                ? "Requiere autorización de la tarjeta"
+                ? Localizer.Text("winui.certificados.requiere_autorizacion_de_la_tarjeta")
                 : engineRejected
                     ? engineStatus
                     : !certificate.CanSign
-                        ? "No dispone de clave utilizable para firmar"
+                        ? Localizer.Text("winui.certificados.no_dispone_de_clave_utilizable_para")
                         : string.Empty;
         var summary = !suitable
-            ? Localizer.Fill("No válido para firmar. {reason}", ("reason", Localizer.Text(reason)))
+            ? Localizer.Fill("winui.certificados.no_valido_para_firmar", ("reason", Localizer.Text(reason)))
             : certificate.DaysUntilExpiration <= FnmtRenewalWindowDays
-                ? "Válido para firmar, pero caduca pronto."
-                : "Válido y apto para firmar.";
+                ? Localizer.Text("winui.certificados.valido_para_firmar_pero_caduca_pronto")
+                : Localizer.Text("winui.certificados.valido_y_apto_para_firmar");
 
         // La FNMT permite renovar el certificado de ciudadano con el propio
         // certificado en los 60 días previos a su caducidad.
@@ -126,7 +126,7 @@ public sealed record CertificateListItem
         {
             CanRenewAtFnmt = renewable,
             RenewalMessage = renewable
-                ? Localizer.Fill("Caduca en {days} día(s). La FNMT permite renovarlo durante los 60 días previos a la caducidad, si no está revocado: instale su Configurador, solicite la renovación identificándose con este certificado y descargue el nuevo con el código que le enviarán por correo. Solo se puede renovar así una vez; después hay que volver a acreditar la identidad.",
+                ? Localizer.Fill("winui.certificados.caduca_en_dia_s_la_fnmt_permite",
                     ("days", certificate.DaysUntilExpiration.ToString(System.Globalization.CultureInfo.CurrentCulture)))
                 : string.Empty,
             SuitabilitySummary = summary,
@@ -137,11 +137,11 @@ public sealed record CertificateListItem
             CardStatus = cardStatus,
             StatusReason = reason,
             CardStatusText = !suitable
-                ? "⚠ No válido"
+                ? Localizer.Text("winui.certificados.no_valido")
                 : certificate.DaysUntilExpiration is >= 0 and <= FnmtRenewalWindowDays
-                    ? "Caduca pronto"
-                    : "Válido",
-            ExpirationDisplay = Localizer.Fill("Vence: {date}", ("date", expirationDate)),
+                    ? Localizer.Text("winui.certificados.caduca_pronto")
+                    : Localizer.Text("winui.certificados.valido"),
+            ExpirationDisplay = Localizer.Fill("winui.certificados.vence", ("date", expirationDate)),
             ExpirationDateDisplay = expirationDate,
             DaysUntilExpiration = certificate.DaysUntilExpiration,
             IsExpired = expired,
@@ -150,7 +150,7 @@ public sealed record CertificateListItem
             ShortIssuerDisplay = ShortIssuer(issuer),
             Id = certificate.Id,
             DisplayName = displayName,
-            IssuerDisplay = Localizer.Fill("Emisor: {issuer}", ("issuer", issuer)),
+            IssuerDisplay = Localizer.Fill("winui.certificados.emisor", ("issuer", issuer)),
             StatusDisplay = status,
             DefaultDisplay = string.Empty,
             SearchText = string.Join(
@@ -167,8 +167,8 @@ public sealed record CertificateListItem
             TemporaryDisplay = certificate.Remote
                 ? Localizer.Text("csc.gui.remoto")
                 : isTemporary
-                    ? "Solo durante esta sesión"
-                    : "Almacén del sistema",
+                    ? Localizer.Text("winui.certificados.solo_durante_esta_sesion")
+                    : Localizer.Text("winui.certificados.almacen_del_sistema"),
         };
     }
 
@@ -180,27 +180,27 @@ public sealed record CertificateListItem
     {
         var rows = new List<CertificateDetailRow>
         {
-            new("Titular", holder),
+            new(Localizer.Text("winui.certificados.titular"), holder),
         };
-        AddIfPresent(rows, "NIF / identificador", certificate.Nif);
-        AddIfPresent(rows, "Organización", certificate.Organization);
-        rows.Add(new("Tipo", TypeLabel(certificate.Type)));
-        rows.Add(new("Emisor", issuer));
-        AddIfPresent(rows, "Número de serie", certificate.SerialNumber);
-        rows.Add(new("Estado", status));
+        AddIfPresent(rows, Localizer.Text("winui.certificados.nif_identificador"), certificate.Nif);
+        AddIfPresent(rows, Localizer.Text("winui.certificados.organizacion"), certificate.Organization);
+        rows.Add(new(Localizer.Text("winui.certificados.tipo"), TypeLabel(certificate.Type)));
+        rows.Add(new(Localizer.Text("winui.certificados.emisor_2"), issuer));
+        AddIfPresent(rows, Localizer.Text("winui.certificados.numero_de_serie"), certificate.SerialNumber);
+        rows.Add(new(Localizer.Text("winui.certificados.estado"), status));
         rows.Add(new(
-            "Válido hasta",
+            Localizer.Text("winui.certificados.valido_hasta"),
             FormatDate(FirstVisible(
                 certificate.ValidTo,
                 certificate.NotAfter,
-                "Desconocido"))));
+                Localizer.Text("winui.certificados.desconocido")))));
         rows.Add(new(
-            certificate.IsExpired ? "Días caducado" : "Días restantes",
+            certificate.IsExpired ? Localizer.Text("winui.certificados.dias_caducado") : Localizer.Text("winui.certificados.dias_restantes"),
             Math.Abs(certificate.DaysUntilExpiration).ToString(
                 System.Globalization.CultureInfo.CurrentCulture)));
         AddIfPresent(
             rows,
-            "Huella SHA-256",
+            Localizer.Text("winui.certificados.huella_sha_256"),
             FormatFingerprint(certificate.Fingerprint));
         return rows;
     }
@@ -211,7 +211,7 @@ public sealed record CertificateListItem
         var rows = new List<CertificateDetailRow>();
         foreach (var label in new[]
         {
-            "Titular", "Emisor", "Válido hasta", "Huella SHA-256",
+            Localizer.Text("winui.certificados.titular"), Localizer.Text("winui.certificados.emisor_2"), Localizer.Text("winui.certificados.valido_hasta"), Localizer.Text("winui.certificados.huella_sha_256"),
         })
         {
             var row = details.FirstOrDefault(item => item.Label == label);
@@ -221,12 +221,12 @@ public sealed record CertificateListItem
             }
         }
         var identifier = details.FirstOrDefault(item =>
-            item.Label == "Número de serie") ?? details.FirstOrDefault(item =>
-                item.Label == "NIF / identificador");
+            item.Label == Localizer.Text("winui.certificados.numero_de_serie")) ?? details.FirstOrDefault(item =>
+                item.Label == Localizer.Text("winui.certificados.nif_identificador"));
         if (identifier is not null)
         {
             rows.Insert(Math.Min(2, rows.Count),
-                new CertificateDetailRow("Nº Serie / NIF", identifier.Value));
+                new CertificateDetailRow(Localizer.Text("winui.certificados.no_serie_nif"), identifier.Value));
         }
         return rows;
     }
@@ -245,11 +245,11 @@ public sealed record CertificateListItem
     private static string TypeLabel(string? type) =>
         type switch
         {
-            "fisica" => "Persona física",
-            "representacion" => "Representante de entidad",
-            "sello" => "Sello de entidad",
-            "empleado_publico" => "Empleado público",
-            _ => "No identificado",
+            "fisica" => Localizer.Text("winui.certificados.persona_fisica"),
+            "representacion" => Localizer.Text("winui.certificados.representante_de_entidad"),
+            "sello" => Localizer.Text("winui.certificados.sello_de_entidad"),
+            "empleado_publico" => Localizer.Text("winui.certificados.empleado_publico"),
+            _ => Localizer.Text("winui.certificados.no_identificado"),
         };
 
     private static string FormatDate(
@@ -263,7 +263,7 @@ public sealed record CertificateListItem
             ? date.ToLocalTime().ToString(
                 format,
                 System.Globalization.CultureInfo.CurrentCulture)
-            : "Fecha desconocida";
+            : Localizer.Text("winui.certificados.fecha_desconocida");
 
     private static string ShortIssuer(string issuer)
     {
@@ -335,12 +335,12 @@ public sealed class CertificatesPageViewModel
     private bool _filterSeal;
     private bool _filterPublicEmployee;
     private string _selectedCredentialDisplayName =
-        "Ninguna credencial seleccionada";
+        Localizer.Text("winui.certificados.ninguna_credencial_seleccionada");
     private string _catalogMessage =
-        "Conecte el motor local y actualice para consultar el almacén.";
-    private string _actionStatusTitle = "Sin comprobaciones";
+        Localizer.Text("winui.certificados.conecte_el_motor_local_y_actualice_para");
+    private string _actionStatusTitle = Localizer.Text("winui.comun.sin_comprobaciones");
     private string _actionStatusMessage =
-        "Seleccione un certificado para comprobar online su estado.";
+        Localizer.Text("winui.certificados.seleccione_un_certificado_para_comprobar");
     private bool _isBusy;
     private bool _canRefresh;
     private bool _canSetSelectedAsDefault;
@@ -361,9 +361,9 @@ public sealed class CertificatesPageViewModel
         DesktopOperationSession session,
         IFilePickerService filePicker)
         : base(
-            "Certificados",
-            "Consulta, filtra y comprueba los certificados publicados por el almacén de Windows.",
-            "El almacén no está disponible porque el motor local no ha publicado la operación certificates.")
+            Localizer.Text("winui.comun.certificados"),
+            Localizer.Text("winui.certificados.consulta_filtra_y_comprueba_los"),
+            Localizer.Text("winui.certificados.el_almacen_no_esta_disponible_porque_el"))
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(filePicker);
@@ -415,7 +415,7 @@ public sealed class CertificatesPageViewModel
     }
 
     public string VisibleCountText => Localizer.Fill(
-        "Mostrando {shown} de {total}",
+        "winui.certificados.mostrando_de",
         ("shown", VisibleCertificates.Count.ToString(System.Globalization.CultureInfo.CurrentCulture)),
         ("total", _allCertificates.Count.ToString(System.Globalization.CultureInfo.CurrentCulture)));
 
@@ -462,13 +462,13 @@ public sealed class CertificatesPageViewModel
 
     public void ReportRenewalLaunch(bool succeeded, string message) =>
         SetActionStatus(
-            succeeded ? "Renovación en la FNMT" : "No se pudo abrir la FNMT",
+            succeeded ? Localizer.Text("winui.certificados.renovacion_en_la_fnmt") : Localizer.Text("winui.certificados.no_se_pudo_abrir_la_fnmt"),
             message,
             succeeded ? InfoBarSeverity.Informational : InfoBarSeverity.Warning);
 
     public void ReportExternalValidationLaunch(bool succeeded, string message) =>
         SetActionStatus(
-            succeeded ? "VALIDe abierto" : "No se pudo abrir VALIDe",
+            succeeded ? Localizer.Text("winui.certificados.valide_abierto") : Localizer.Text("winui.certificados.no_se_pudo_abrir_valide"),
             message,
             succeeded ? InfoBarSeverity.Informational : InfoBarSeverity.Warning);
 
@@ -524,12 +524,12 @@ public sealed class CertificatesPageViewModel
             if (certificate.IsExpired)
             {
                 var subject = isSelected
-                    ? "Este certificado"
-                    : "Su certificado predeterminado";
-                return certificate.ExpirationDateDisplay == "Fecha desconocida"
-                    ? Localizer.Fill("{subject} ha caducado y no puede usarse para firmar.",
+                    ? Localizer.Text("winui.certificados.este_certificado")
+                    : Localizer.Text("winui.certificados.su_certificado_predeterminado");
+                return certificate.ExpirationDateDisplay == Localizer.Text("winui.certificados.fecha_desconocida")
+                    ? Localizer.Fill("winui.certificados.ha_caducado_y_no_puede_usarse_para",
                         ("subject", Localizer.Text(subject)))
-                    : Localizer.Fill("{subject} caducó el {date} y no puede usarse para firmar.",
+                    : Localizer.Fill("winui.certificados.caduco_el_y_no_puede_usarse_para_firmar",
                         ("subject", Localizer.Text(subject)),
                         ("date", certificate.ExpirationDateDisplay));
             }
@@ -540,12 +540,12 @@ public sealed class CertificatesPageViewModel
             var remaining = certificate.DaysUntilExpiration.ToString(
                 System.Globalization.CultureInfo.CurrentCulture);
             var renewal = certificate.CanRenewAtFnmt
-                ? "Puede renovarlo ahora."
-                : "Contacte con su emisor para renovarlo.";
+                ? Localizer.Text("winui.certificados.puede_renovarlo_ahora")
+                : Localizer.Text("winui.certificados.contacte_con_su_emisor_para_renovarlo");
             var owner = isSelected
-                ? "Su certificado"
-                : "Su certificado predeterminado";
-            return Localizer.Fill("{owner} caduca el {date} (quedan {remaining} días). {renewal}",
+                ? Localizer.Text("winui.certificados.su_certificado")
+                : Localizer.Text("winui.certificados.su_certificado_predeterminado");
+            return Localizer.Fill("winui.certificados.caduca_el_quedan_dias",
                 ("owner", Localizer.Text(owner)),
                 ("date", certificate.ExpirationDateDisplay),
                 ("remaining", remaining),
@@ -706,7 +706,7 @@ public sealed class CertificatesPageViewModel
         var available = _session.Supports(DesktopOperationActions.Certificates);
         SetOperationAvailability(
             available,
-            "Motor local conectado. Puede consultar el almacén real de certificados.");
+            Localizer.Text("winui.certificados.motor_local_conectado_puede_consultar_el"));
         if (!available)
         {
             CancelCurrentOperation();
@@ -716,18 +716,18 @@ public sealed class CertificatesPageViewModel
             SelectedImportOption = null;
             ClearSelectedCredential();
             CatalogMessage =
-                "El catálogo no está disponible mientras el motor local está desconectado.";
+                Localizer.Text("winui.certificados.el_catalogo_no_esta_disponible_mientras");
             SetActionStatus(
-                "Motor local desconectado",
-                "No se puede comprobar certificados ni abrir su gestor hasta recuperar la conexión.",
+                Localizer.Text("winui.certificados.motor_local_desconectado"),
+                Localizer.Text("winui.certificados.no_se_puede_comprobar_certificados_ni"),
                 InfoBarSeverity.Warning);
         }
         else if (!_session.Supports(
             DesktopOperationActions.ValidateCertificateOnline))
         {
             SetActionStatus(
-                "Comprobación online no disponible",
-                "El motor conectado no publica la comprobación online individual. Puede seguir consultando el almacén.",
+                Localizer.Text("winui.certificados.comprobacion_online_no_disponible"),
+                Localizer.Text("winui.certificados.el_motor_conectado_no_publica_la"),
                 InfoBarSeverity.Warning);
         }
         if (!_session.Supports(
@@ -766,7 +766,7 @@ public sealed class CertificatesPageViewModel
             out var operationCancellation))
         {
             CatalogMessage =
-                "Ya se está actualizando el catálogo de certificados.";
+                Localizer.Text("winui.certificados.ya_se_esta_actualizando_el_catalogo_de");
             return null;
         }
 
@@ -777,11 +777,11 @@ public sealed class CertificatesPageViewModel
                 out var operations))
             {
                 CatalogMessage =
-                    "No se puede consultar el almacén: el motor local no ofrece la operación certificates.";
+                    Localizer.Text("winui.certificados.no_se_puede_consultar_el_almacen_el");
                 return null;
             }
 
-            CatalogMessage = "Consultando el almacén de Windows…";
+            CatalogMessage = Localizer.Text("winui.certificados.consultando_el_almacen_de_windows");
             var result = await operations.GetCertificatesAsync(
                 operationCancellation.Token);
             if (!result.IsSuccess ||
@@ -791,13 +791,13 @@ public sealed class CertificatesPageViewModel
                     StringComparison.Ordinal))
             {
                 CatalogMessage =
-                    "El motor local no pudo completar la consulta del almacén.";
+                    Localizer.Text("winui.certificados.el_motor_local_no_pudo_completar_la");
                 return OperationDiagnosticMapper.FromResult(result);
             }
             if (result.Data is null)
             {
                 CatalogMessage =
-                    "El motor confirmó la consulta, pero no devolvió un catálogo válido.";
+                    Localizer.Text("winui.comun.el_motor_confirmo_la_consulta_pero_no");
                 return InvalidResultDiagnostic(
                     result,
                     "MISSING_CERTIFICATE_CATALOG");
@@ -819,10 +819,10 @@ public sealed class CertificatesPageViewModel
                 .ToArray();
             ReplaceCatalog(catalog, previousId);
             CatalogMessage = catalog.Length == 0
-                ? "El almacén se consultó correctamente, pero no contiene certificados disponibles."
+                ? Localizer.Text("winui.certificados.el_almacen_se_consulto_correctamente")
                 : catalog.Length == 1
-                    ? "Se ha cargado 1 certificado del almacén real."
-                    : Localizer.Fill("Se han cargado {count} certificados del almacén real.",
+                    ? Localizer.Text("winui.certificados.se_ha_cargado_1_certificado_del_almacen")
+                    : Localizer.Fill("winui.certificados.se_han_cargado_certificados_del_almacen",
                         ("count", catalog.Length.ToString(System.Globalization.CultureInfo.CurrentCulture)));
 
             var managerDiagnostic =
@@ -842,7 +842,7 @@ public sealed class CertificatesPageViewModel
         }
         catch (OperationCanceledException exception)
         {
-            CatalogMessage = "La actualización del catálogo se canceló.";
+            CatalogMessage = Localizer.Text("winui.certificados.la_actualizacion_del_catalogo_se_cancelo");
             return OperationDiagnosticMapper.FromException(
                 exception,
                 operationCancellation.Token);
@@ -850,13 +850,13 @@ public sealed class CertificatesPageViewModel
         catch (IpcClientException exception)
         {
             CatalogMessage =
-                "Falló la comunicación segura al consultar el almacén.";
+                Localizer.Text("winui.certificados.fallo_la_comunicacion_segura_al");
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             CatalogMessage =
-                "La aplicación no pudo completar la consulta del almacén.";
+                Localizer.Text("winui.certificados.la_aplicacion_no_pudo_completar_la");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -873,8 +873,8 @@ public sealed class CertificatesPageViewModel
             out var operationCancellation))
         {
             SetActionStatus(
-                "Operación en curso",
-                "Espere a que termine la operación actual.",
+                Localizer.Text("winui.certificados.operacion_en_curso"),
+                Localizer.Text("winui.certificados.espere_a_que_termine_la_operacion_actual"),
                 InfoBarSeverity.Informational);
             return null;
         }
@@ -887,8 +887,8 @@ public sealed class CertificatesPageViewModel
             if (string.IsNullOrWhiteSpace(path))
             {
                 SetActionStatus(
-                    "Selección cancelada",
-                    "No se ha cambiado la credencial preparada.",
+                    Localizer.Text("winui.certificados.seleccion_cancelada"),
+                    Localizer.Text("winui.certificados.no_se_ha_cambiado_la_credencial"),
                     InfoBarSeverity.Informational);
                 return null;
             }
@@ -900,7 +900,7 @@ public sealed class CertificatesPageViewModel
             {
                 ClearSelectedCredential();
                 SetActionStatus(
-                    "Credencial no válida",
+                    Localizer.Text("winui.certificados.credencial_no_valida"),
                     exception.Message,
                     InfoBarSeverity.Warning);
                 return null;
@@ -910,8 +910,8 @@ public sealed class CertificatesPageViewModel
             SelectedCredentialDisplayName =
                 DesktopCertificateCredentialFile.SafeDisplayName(path);
             SetActionStatus(
-                "Credencial preparada",
-                "Elija si quiere usarla solo durante esta sesión o importarla en un almacén persistente.",
+                Localizer.Text("winui.certificados.credencial_preparada"),
+                Localizer.Text("winui.certificados.elija_si_quiere_usarla_solo_durante_esta"),
                 InfoBarSeverity.Informational);
             UpdateCommandStates();
             return null;
@@ -925,8 +925,8 @@ public sealed class CertificatesPageViewModel
         {
             ClearSelectedCredential();
             SetActionStatus(
-                "No se pudo leer la selección",
-                "La aplicación no pudo preparar la credencial elegida.",
+                Localizer.Text("winui.certificados.no_se_pudo_leer_la_seleccion"),
+                Localizer.Text("winui.certificados.la_aplicacion_no_pudo_preparar_la"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -954,8 +954,8 @@ public sealed class CertificatesPageViewModel
             if (option is null || string.IsNullOrWhiteSpace(path))
             {
                 SetActionStatus(
-                    "Faltan datos para importar",
-                    "Seleccione una credencial y un destino antes de continuar.",
+                    Localizer.Text("winui.certificados.faltan_datos_para_importar"),
+                    Localizer.Text("winui.certificados.seleccione_una_credencial_y_un_destino"),
                     InfoBarSeverity.Warning);
                 return null;
             }
@@ -963,8 +963,8 @@ public sealed class CertificatesPageViewModel
                 DesktopOperationsClient.MaximumPasswordBytes)
             {
                 SetActionStatus(
-                    "Contraseña demasiado larga",
-                    "La contraseña supera el límite de seguridad permitido.",
+                    Localizer.Text("winui.certificados.contrasena_demasiado_larga"),
+                    Localizer.Text("winui.comun.la_contrasena_supera_el_limite_de"),
                     InfoBarSeverity.Warning);
                 return null;
             }
@@ -973,8 +973,8 @@ public sealed class CertificatesPageViewModel
                 out operationCancellation))
             {
                 SetActionStatus(
-                    "Operación en curso",
-                    "Espere a que termine la operación actual.",
+                    Localizer.Text("winui.certificados.operacion_en_curso"),
+                    Localizer.Text("winui.certificados.espere_a_que_termine_la_operacion_actual"),
                     InfoBarSeverity.Informational);
                 return null;
             }
@@ -985,8 +985,8 @@ public sealed class CertificatesPageViewModel
             if (!_session.TryGetOperations(action, out var operations))
             {
                 SetActionStatus(
-                    "Importación no disponible",
-                    "El motor local no publica la acción segura seleccionada.",
+                    Localizer.Text("winui.certificados.importacion_no_disponible"),
+                    Localizer.Text("winui.certificados.el_motor_local_no_publica_la_accion"),
                     InfoBarSeverity.Warning);
                 return null;
             }
@@ -998,8 +998,8 @@ public sealed class CertificatesPageViewModel
             if (option.IsTemporary)
             {
                 SetActionStatus(
-                    "Cargando credencial temporal",
-                    "La clave privada se conservará únicamente en memoria durante esta sesión.",
+                    Localizer.Text("winui.certificados.cargando_credencial_temporal"),
+                    Localizer.Text("winui.certificados.la_clave_privada_se_conservara"),
                     InfoBarSeverity.Informational);
                 var result =
                     await operations.UseTemporaryCertificateAsync(
@@ -1012,8 +1012,8 @@ public sealed class CertificatesPageViewModel
                 if (!IsSuccessful(result))
                 {
                     SetActionStatus(
-                        "No se pudo cargar la credencial",
-                        "No se ha añadido ninguna credencial temporal. Abra el diagnóstico para conocer la causa.",
+                        Localizer.Text("winui.certificados.no_se_pudo_cargar_la_credencial"),
+                        Localizer.Text("winui.certificados.no_se_ha_anadido_ninguna_credencial"),
                         InfoBarSeverity.Error);
                     return OperationDiagnosticMapper.FromResult(result);
                 }
@@ -1022,8 +1022,8 @@ public sealed class CertificatesPageViewModel
                     string.IsNullOrWhiteSpace(result.Data.Id))
                 {
                     SetActionStatus(
-                        "Confirmación incompleta",
-                        "El motor no confirmó una credencial temporal utilizable.",
+                        Localizer.Text("winui.certificados.confirmacion_incompleta"),
+                        Localizer.Text("winui.comun.el_motor_no_confirmo_una_credencial"),
                         InfoBarSeverity.Error);
                     return InvalidResultDiagnostic(
                         result,
@@ -1041,15 +1041,15 @@ public sealed class CertificatesPageViewModel
                     return refreshDiagnostic;
                 }
                 SetActionStatus(
-                    "Credencial temporal disponible",
-                    "Puede firmar con ella durante esta sesión. No se ha instalado de forma persistente.",
+                    Localizer.Text("winui.certificados.credencial_temporal_disponible"),
+                    Localizer.Text("winui.certificados.puede_firmar_con_ella_durante_esta"),
                     InfoBarSeverity.Success);
             }
             else
             {
                 SetActionStatus(
-                    "Importando credencial",
-                    Localizer.Fill("Instalando la credencial en {store}.",
+                    Localizer.Text("winui.certificados.importando_credencial"),
+                    Localizer.Fill("winui.certificados.instalando_la_credencial_en",
                         ("store", Localizer.Text(option.Label))),
                     InfoBarSeverity.Informational);
                 var result =
@@ -1064,16 +1064,16 @@ public sealed class CertificatesPageViewModel
                 if (!IsSuccessful(result))
                 {
                     SetActionStatus(
-                        "No se pudo importar la credencial",
-                        "El almacén no confirmó la importación. Abra el diagnóstico para conocer la causa.",
+                        Localizer.Text("winui.certificados.no_se_pudo_importar_la_credencial"),
+                        Localizer.Text("winui.certificados.el_almacen_no_confirmo_la_importacion"),
                         InfoBarSeverity.Error);
                     return OperationDiagnosticMapper.FromResult(result);
                 }
                 if (string.IsNullOrWhiteSpace(result.Data))
                 {
                     SetActionStatus(
-                        "Confirmación incompleta",
-                        "El motor no confirmó que la credencial se haya instalado.",
+                        Localizer.Text("winui.certificados.confirmacion_incompleta"),
+                        Localizer.Text("winui.certificados.el_motor_no_confirmo_que_la_credencial"),
                         InfoBarSeverity.Error);
                     return InvalidResultDiagnostic(
                         result,
@@ -1090,8 +1090,8 @@ public sealed class CertificatesPageViewModel
                     return refreshDiagnostic;
                 }
                 SetActionStatus(
-                    "Credencial importada",
-                    Localizer.Fill("El almacén {store} confirmó la importación.",
+                    Localizer.Text("winui.certificados.credencial_importada"),
+                    Localizer.Fill("winui.certificados.el_almacen_confirmo_la_importacion",
                         ("store", Localizer.Text(option.Label))),
                     InfoBarSeverity.Success);
             }
@@ -1103,16 +1103,16 @@ public sealed class CertificatesPageViewModel
             when (cancellationToken.IsCancellationRequested)
         {
             SetActionStatus(
-                "Importación cancelada",
-                "No se recibió confirmación de que la credencial se haya añadido.",
+                Localizer.Text("winui.certificados.importacion_cancelada"),
+                Localizer.Text("winui.certificados.no_se_recibio_confirmacion_de_que_la"),
                 InfoBarSeverity.Warning);
             return null;
         }
         catch (OperationCanceledException exception)
         {
             SetActionStatus(
-                "Importación cancelada",
-                "La operación terminó antes de recibir una confirmación.",
+                Localizer.Text("winui.certificados.importacion_cancelada"),
+                Localizer.Text("winui.certificados.la_operacion_termino_antes_de_recibir"),
                 InfoBarSeverity.Warning);
             return OperationDiagnosticMapper.FromException(
                 exception,
@@ -1121,16 +1121,16 @@ public sealed class CertificatesPageViewModel
         catch (IpcClientException exception)
         {
             SetActionStatus(
-                "Falló la comunicación segura",
-                "No se pudo completar la importación de la credencial.",
+                Localizer.Text("winui.certificados.fallo_la_comunicacion_segura"),
+                Localizer.Text("winui.certificados.no_se_pudo_completar_la_importacion_de"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             SetActionStatus(
-                "No se pudo importar la credencial",
-                "La aplicación no pudo leer o procesar la credencial seleccionada.",
+                Localizer.Text("winui.certificados.no_se_pudo_importar_la_credencial"),
+                Localizer.Text("winui.certificados.la_aplicacion_no_pudo_leer_o_procesar_la"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -1157,8 +1157,8 @@ public sealed class CertificatesPageViewModel
             !_session.IsTemporaryCertificateTracked(certificate.Id))
         {
             SetActionStatus(
-                "Seleccione una credencial temporal",
-                "Solo se pueden retirar desde aquí las credenciales cargadas para esta sesión.",
+                Localizer.Text("winui.certificados.seleccione_una_credencial_temporal"),
+                Localizer.Text("winui.certificados.solo_se_pueden_retirar_desde_aqui_las"),
                 InfoBarSeverity.Warning);
             return null;
         }
@@ -1176,8 +1176,8 @@ public sealed class CertificatesPageViewModel
                 out var operations))
             {
                 SetActionStatus(
-                    "Retirada no disponible",
-                    "El motor local no ofrece esta acción.",
+                    Localizer.Text("winui.certificados.retirada_no_disponible"),
+                    Localizer.Text("winui.certificados.el_motor_local_no_ofrece_esta_accion"),
                     InfoBarSeverity.Warning);
                 return null;
             }
@@ -1192,8 +1192,8 @@ public sealed class CertificatesPageViewModel
                 string.IsNullOrWhiteSpace(result.Data))
             {
                 SetActionStatus(
-                    "No se pudo retirar la credencial",
-                    "No se recibió confirmación de la retirada.",
+                    Localizer.Text("winui.certificados.no_se_pudo_retirar_la_credencial"),
+                    Localizer.Text("winui.certificados.no_se_recibio_confirmacion_de_la"),
                     InfoBarSeverity.Error);
                 return !IsSuccessful(result)
                     ? OperationDiagnosticMapper.FromResult(result)
@@ -1214,8 +1214,8 @@ public sealed class CertificatesPageViewModel
                 return refreshDiagnostic;
             }
             SetActionStatus(
-                "Credencial temporal retirada",
-                "La clave privada ya no está disponible en esta sesión.",
+                Localizer.Text("winui.certificados.credencial_temporal_retirada"),
+                Localizer.Text("winui.certificados.la_clave_privada_ya_no_esta_disponible"),
                 InfoBarSeverity.Success);
             return null;
         }
@@ -1227,8 +1227,8 @@ public sealed class CertificatesPageViewModel
         catch (Exception exception)
         {
             SetActionStatus(
-                "No se pudo retirar la credencial",
-                "La operación no terminó correctamente.",
+                Localizer.Text("winui.certificados.no_se_pudo_retirar_la_credencial"),
+                Localizer.Text("winui.certificados.la_operacion_no_termino_correctamente"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -1256,8 +1256,8 @@ public sealed class CertificatesPageViewModel
                 out var operations))
             {
                 SetActionStatus(
-                    "Limpieza no disponible",
-                    "El motor local no ofrece esta acción.",
+                    Localizer.Text("winui.certificados.limpieza_no_disponible"),
+                    Localizer.Text("winui.certificados.el_motor_local_no_ofrece_esta_accion"),
                     InfoBarSeverity.Warning);
                 return null;
             }
@@ -1268,8 +1268,8 @@ public sealed class CertificatesPageViewModel
                 string.IsNullOrWhiteSpace(result.Data))
             {
                 SetActionStatus(
-                    "No se pudieron retirar las credenciales",
-                    "No se recibió confirmación de la limpieza.",
+                    Localizer.Text("winui.certificados.no_se_pudieron_retirar_las_credenciales"),
+                    Localizer.Text("winui.certificados.no_se_recibio_confirmacion_de_la_2"),
                     InfoBarSeverity.Error);
                 return !IsSuccessful(result)
                     ? OperationDiagnosticMapper.FromResult(result)
@@ -1290,8 +1290,8 @@ public sealed class CertificatesPageViewModel
                 return refreshDiagnostic;
             }
             SetActionStatus(
-                "Credenciales temporales retiradas",
-                "La sesión ya no conserva claves privadas cargadas temporalmente.",
+                Localizer.Text("winui.certificados.credenciales_temporales_retiradas"),
+                Localizer.Text("winui.certificados.la_sesion_ya_no_conserva_claves_privadas"),
                 InfoBarSeverity.Success);
             return null;
         }
@@ -1303,8 +1303,8 @@ public sealed class CertificatesPageViewModel
         catch (Exception exception)
         {
             SetActionStatus(
-                "No se pudieron retirar las credenciales",
-                "La operación no terminó correctamente.",
+                Localizer.Text("winui.certificados.no_se_pudieron_retirar_las_credenciales"),
+                Localizer.Text("winui.certificados.la_operacion_no_termino_correctamente"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -1319,8 +1319,8 @@ public sealed class CertificatesPageViewModel
     {
         ArgumentNullException.ThrowIfNull(exception);
         SetActionStatus(
-            "No se pudo leer la contraseña",
-            "Windows no pudo capturar o codificar la contraseña de forma segura.",
+            Localizer.Text("winui.certificados.no_se_pudo_leer_la_contrasena"),
+            Localizer.Text("winui.certificados.windows_no_pudo_capturar_o_codificar_la"),
             InfoBarSeverity.Error);
         return OperationDiagnosticMapper.FromException(exception);
     }
@@ -1334,8 +1334,8 @@ public sealed class CertificatesPageViewModel
             string.IsNullOrWhiteSpace(certificate.Id))
         {
             SetActionStatus(
-                "Seleccione un certificado",
-                "Elija un certificado del catálogo antes de establecerlo como predeterminado.",
+                Localizer.Text("winui.certificados.seleccione_un_certificado"),
+                Localizer.Text("winui.certificados.elija_un_certificado_del_catalogo_antes"),
                 InfoBarSeverity.Warning);
             return null;
         }
@@ -1344,8 +1344,8 @@ public sealed class CertificatesPageViewModel
             out var operationCancellation))
         {
             SetActionStatus(
-                "Operación en curso",
-                "Espere a que termine la operación actual.",
+                Localizer.Text("winui.certificados.operacion_en_curso"),
+                Localizer.Text("winui.certificados.espere_a_que_termine_la_operacion_actual"),
                 InfoBarSeverity.Informational);
             return null;
         }
@@ -1359,23 +1359,23 @@ public sealed class CertificatesPageViewModel
                     DesktopOperationActions.SaveSettings))
             {
                 SetActionStatus(
-                    "Preferencia no disponible",
-                    "El motor local no permite leer y guardar de forma segura el certificado predeterminado.",
+                    Localizer.Text("winui.certificados.preferencia_no_disponible"),
+                    Localizer.Text("winui.certificados.el_motor_local_no_permite_leer_y_guardar"),
                     InfoBarSeverity.Warning);
                 return null;
             }
 
             SetActionStatus(
-                "Guardando certificado predeterminado",
-                "Leyendo primero las preferencias actuales para conservar el resto de opciones.",
+                Localizer.Text("winui.certificados.guardando_certificado_predeterminado"),
+                Localizer.Text("winui.certificados.leyendo_primero_las_preferencias"),
                 InfoBarSeverity.Informational);
             var settingsResult = await operations.GetSettingsAsync(
                 operationCancellation.Token);
             if (!IsSuccessful(settingsResult))
             {
                 SetActionStatus(
-                    "No se pudieron leer las preferencias",
-                    "No se ha modificado el certificado predeterminado. Abra el diagnóstico para conocer la causa.",
+                    Localizer.Text("winui.certificados.no_se_pudieron_leer_las_preferencias"),
+                    Localizer.Text("winui.certificados.no_se_ha_modificado_el_certificado"),
                     InfoBarSeverity.Error);
                 return OperationDiagnosticMapper.FromResult(
                     settingsResult);
@@ -1383,8 +1383,8 @@ public sealed class CertificatesPageViewModel
             if (settingsResult.Data is null)
             {
                 SetActionStatus(
-                    "Preferencias incompletas",
-                    "El motor no devolvió un documento utilizable y no se ha guardado ningún cambio.",
+                    Localizer.Text("winui.certificados.preferencias_incompletas"),
+                    Localizer.Text("winui.certificados.el_motor_no_devolvio_un_documento"),
                     InfoBarSeverity.Error);
                 return InvalidResultDiagnostic(
                     settingsResult,
@@ -1403,16 +1403,16 @@ public sealed class CertificatesPageViewModel
             if (!IsSuccessful(saveResult))
             {
                 SetActionStatus(
-                    "No se pudo guardar la preferencia",
-                    "No se recibió confirmación del cambio. Abra el diagnóstico para conocer la causa.",
+                    Localizer.Text("winui.certificados.no_se_pudo_guardar_la_preferencia"),
+                    Localizer.Text("winui.certificados.no_se_recibio_confirmacion_del_cambio"),
                     InfoBarSeverity.Error);
                 return OperationDiagnosticMapper.FromResult(saveResult);
             }
             if (string.IsNullOrWhiteSpace(saveResult.Data))
             {
                 SetActionStatus(
-                    "Confirmación incompleta",
-                    "El motor no confirmó el guardado y la interfaz no dará el cambio por aplicado.",
+                    Localizer.Text("winui.certificados.confirmacion_incompleta"),
+                    Localizer.Text("winui.certificados.el_motor_no_confirmo_el_guardado_y_la"),
                     InfoBarSeverity.Error);
                 return InvalidResultDiagnostic(
                     saveResult,
@@ -1421,8 +1421,8 @@ public sealed class CertificatesPageViewModel
 
             ApplyDefaultCertificate(certificate.Id);
             SetActionStatus(
-                "Certificado predeterminado guardado",
-                Localizer.Fill("{certificate} se usará primero cuando la aplicación solicite un certificado.",
+                Localizer.Text("winui.certificados.certificado_predeterminado_guardado"),
+                Localizer.Fill("winui.certificados.se_usara_primero_cuando_la_aplicacion",
                     ("certificate", certificate.DisplayName)),
                 InfoBarSeverity.Success);
             return null;
@@ -1431,24 +1431,24 @@ public sealed class CertificatesPageViewModel
             when (operationCancellation.IsCancellationRequested)
         {
             SetActionStatus(
-                "Guardado cancelado",
-                "No se recibió confirmación de que el certificado predeterminado haya cambiado.",
+                Localizer.Text("winui.comun.guardado_cancelado"),
+                Localizer.Text("winui.certificados.no_se_recibio_confirmacion_de_que_el"),
                 InfoBarSeverity.Warning);
             return null;
         }
         catch (IpcClientException exception)
         {
             SetActionStatus(
-                "Falló la comunicación segura",
-                "No se pudo guardar el certificado predeterminado.",
+                Localizer.Text("winui.certificados.fallo_la_comunicacion_segura"),
+                Localizer.Text("winui.certificados.no_se_pudo_guardar_el_certificado"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             SetActionStatus(
-                "No se pudo guardar la preferencia",
-                "La aplicación no pudo completar el cambio.",
+                Localizer.Text("winui.certificados.no_se_pudo_guardar_la_preferencia"),
+                Localizer.Text("winui.certificados.la_aplicacion_no_pudo_completar_el"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -1467,8 +1467,8 @@ public sealed class CertificatesPageViewModel
             out var operationCancellation))
         {
             SetActionStatus(
-                "Operación en curso",
-                "Espere a que termine la operación actual.",
+                Localizer.Text("winui.certificados.operacion_en_curso"),
+                Localizer.Text("winui.certificados.espere_a_que_termine_la_operacion_actual"),
                 InfoBarSeverity.Informational);
             return null;
         }
@@ -1482,23 +1482,23 @@ public sealed class CertificatesPageViewModel
                     DesktopOperationActions.SaveSettings))
             {
                 SetActionStatus(
-                    "Preferencia no disponible",
-                    "El motor local no permite quitar de forma segura el certificado predeterminado.",
+                    Localizer.Text("winui.certificados.preferencia_no_disponible"),
+                    Localizer.Text("winui.certificados.el_motor_local_no_permite_quitar_de"),
                     InfoBarSeverity.Warning);
                 return null;
             }
 
             SetActionStatus(
-                "Quitando certificado predeterminado",
-                "Leyendo primero las preferencias actuales para conservar el resto de opciones.",
+                Localizer.Text("winui.certificados.quitando_certificado_predeterminado"),
+                Localizer.Text("winui.certificados.leyendo_primero_las_preferencias"),
                 InfoBarSeverity.Informational);
             var settingsResult = await operations.GetSettingsAsync(
                 operationCancellation.Token);
             if (!IsSuccessful(settingsResult))
             {
                 SetActionStatus(
-                    "No se pudieron leer las preferencias",
-                    "No se ha modificado el certificado predeterminado. Abra el diagnóstico para conocer la causa.",
+                    Localizer.Text("winui.certificados.no_se_pudieron_leer_las_preferencias"),
+                    Localizer.Text("winui.certificados.no_se_ha_modificado_el_certificado"),
                     InfoBarSeverity.Error);
                 return OperationDiagnosticMapper.FromResult(
                     settingsResult);
@@ -1506,8 +1506,8 @@ public sealed class CertificatesPageViewModel
             if (settingsResult.Data is null)
             {
                 SetActionStatus(
-                    "Preferencias incompletas",
-                    "El motor no devolvió un documento utilizable y no se ha guardado ningún cambio.",
+                    Localizer.Text("winui.certificados.preferencias_incompletas"),
+                    Localizer.Text("winui.certificados.el_motor_no_devolvio_un_documento"),
                     InfoBarSeverity.Error);
                 return InvalidResultDiagnostic(
                     settingsResult,
@@ -1526,16 +1526,16 @@ public sealed class CertificatesPageViewModel
             if (!IsSuccessful(saveResult))
             {
                 SetActionStatus(
-                    "No se pudo quitar la preferencia",
-                    "No se recibió confirmación del cambio. Abra el diagnóstico para conocer la causa.",
+                    Localizer.Text("winui.certificados.no_se_pudo_quitar_la_preferencia"),
+                    Localizer.Text("winui.certificados.no_se_recibio_confirmacion_del_cambio"),
                     InfoBarSeverity.Error);
                 return OperationDiagnosticMapper.FromResult(saveResult);
             }
             if (string.IsNullOrWhiteSpace(saveResult.Data))
             {
                 SetActionStatus(
-                    "Confirmación incompleta",
-                    "El motor no confirmó el guardado y la interfaz no dará el cambio por aplicado.",
+                    Localizer.Text("winui.certificados.confirmacion_incompleta"),
+                    Localizer.Text("winui.certificados.el_motor_no_confirmo_el_guardado_y_la"),
                     InfoBarSeverity.Error);
                 return InvalidResultDiagnostic(
                     saveResult,
@@ -1544,8 +1544,8 @@ public sealed class CertificatesPageViewModel
 
             ApplyDefaultCertificate(null);
             SetActionStatus(
-                "Certificado predeterminado eliminado",
-                "La aplicación volverá a pedir el certificado cuando sea necesario.",
+                Localizer.Text("winui.certificados.certificado_predeterminado_eliminado"),
+                Localizer.Text("winui.certificados.la_aplicacion_volvera_a_pedir_el"),
                 InfoBarSeverity.Success);
             return null;
         }
@@ -1553,24 +1553,24 @@ public sealed class CertificatesPageViewModel
             when (operationCancellation.IsCancellationRequested)
         {
             SetActionStatus(
-                "Cambio cancelado",
-                "No se recibió confirmación de que la preferencia haya cambiado.",
+                Localizer.Text("winui.certificados.cambio_cancelado"),
+                Localizer.Text("winui.certificados.no_se_recibio_confirmacion_de_que_la_2"),
                 InfoBarSeverity.Warning);
             return null;
         }
         catch (IpcClientException exception)
         {
             SetActionStatus(
-                "Falló la comunicación segura",
-                "No se pudo quitar el certificado predeterminado.",
+                Localizer.Text("winui.certificados.fallo_la_comunicacion_segura"),
+                Localizer.Text("winui.certificados.no_se_pudo_quitar_el_certificado"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             SetActionStatus(
-                "No se pudo quitar la preferencia",
-                "La aplicación no pudo completar el cambio.",
+                Localizer.Text("winui.certificados.no_se_pudo_quitar_la_preferencia"),
+                Localizer.Text("winui.certificados.la_aplicacion_no_pudo_completar_el"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -1589,8 +1589,8 @@ public sealed class CertificatesPageViewModel
             string.IsNullOrWhiteSpace(certificate.Id))
         {
             SetActionStatus(
-                "Seleccione un certificado",
-                "Elija un certificado del catálogo antes de iniciar la comprobación online.",
+                Localizer.Text("winui.certificados.seleccione_un_certificado"),
+                Localizer.Text("winui.certificados.elija_un_certificado_del_catalogo_antes_2"),
                 InfoBarSeverity.Warning);
             return null;
         }
@@ -1599,8 +1599,8 @@ public sealed class CertificatesPageViewModel
             out var operationCancellation))
         {
             SetActionStatus(
-                "Operación en curso",
-                "Espere a que termine la operación actual.",
+                Localizer.Text("winui.certificados.operacion_en_curso"),
+                Localizer.Text("winui.certificados.espere_a_que_termine_la_operacion_actual"),
                 InfoBarSeverity.Informational);
             return null;
         }
@@ -1612,15 +1612,15 @@ public sealed class CertificatesPageViewModel
                 out var operations))
             {
                 SetActionStatus(
-                    "Comprobación online no disponible",
-                    "El motor local no ofrece la comprobación online individual.",
+                    Localizer.Text("winui.certificados.comprobacion_online_no_disponible"),
+                    Localizer.Text("winui.certificados.el_motor_local_no_ofrece_la_comprobacion"),
                     InfoBarSeverity.Warning);
                 return null;
             }
 
             SetActionStatus(
-                "Comprobando certificado",
-                "Consultando de forma online el estado de revocación del certificado seleccionado…",
+                Localizer.Text("winui.certificados.comprobando_certificado"),
+                Localizer.Text("winui.certificados.consultando_de_forma_online_el_estado_de"),
                 InfoBarSeverity.Informational);
             var result = await operations.ValidateCertificateOnlineAsync(
                 new ValidateCertificateOnlineParameters
@@ -1631,16 +1631,16 @@ public sealed class CertificatesPageViewModel
             if (!IsSuccessful(result))
             {
                 SetActionStatus(
-                    "No se pudo comprobar el certificado",
-                    "Abra el diagnóstico para conocer la fase y el responsable del fallo.",
+                    Localizer.Text("winui.certificados.no_se_pudo_comprobar_el_certificado"),
+                    Localizer.Text("winui.certificados.abra_el_diagnostico_para_conocer_la_fase"),
                     InfoBarSeverity.Error);
                 return OperationDiagnosticMapper.FromResult(result);
             }
             if (result.Data is null)
             {
                 SetActionStatus(
-                    "Respuesta incompleta",
-                    "El motor confirmó la operación, pero no devolvió el estado del certificado.",
+                    Localizer.Text("winui.certificados.respuesta_incompleta"),
+                    Localizer.Text("winui.certificados.el_motor_confirmo_la_operacion_pero_no"),
                     InfoBarSeverity.Error);
                 return InvalidResultDiagnostic(
                     result,
@@ -1658,16 +1658,16 @@ public sealed class CertificatesPageViewModel
         catch (IpcClientException exception)
         {
             SetActionStatus(
-                "Falló la comunicación segura",
-                "No se pudo completar la comprobación online.",
+                Localizer.Text("winui.certificados.fallo_la_comunicacion_segura"),
+                Localizer.Text("winui.certificados.no_se_pudo_completar_la_comprobacion"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             SetActionStatus(
-                "No se pudo comprobar el certificado",
-                "La aplicación no pudo completar la operación.",
+                Localizer.Text("winui.certificados.no_se_pudo_comprobar_el_certificado"),
+                Localizer.Text("winui.certificados.la_aplicacion_no_pudo_completar_la_2"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -1685,8 +1685,8 @@ public sealed class CertificatesPageViewModel
         if (manager is null)
         {
             SetActionStatus(
-                "Gestor de Windows no disponible",
-                "Actualice el catálogo para volver a consultar los gestores permitidos por el motor.",
+                Localizer.Text("winui.certificados.gestor_de_windows_no_disponible"),
+                Localizer.Text("winui.certificados.actualice_el_catalogo_para_volver_a"),
                 InfoBarSeverity.Warning);
             return null;
         }
@@ -1695,8 +1695,8 @@ public sealed class CertificatesPageViewModel
             out var operationCancellation))
         {
             SetActionStatus(
-                "Operación en curso",
-                "Espere a que termine la operación actual.",
+                Localizer.Text("winui.certificados.operacion_en_curso"),
+                Localizer.Text("winui.certificados.espere_a_que_termine_la_operacion_actual"),
                 InfoBarSeverity.Informational);
             return null;
         }
@@ -1709,8 +1709,8 @@ public sealed class CertificatesPageViewModel
             {
                 _windowsCertificateManager = null;
                 SetActionStatus(
-                    "Gestor de Windows no disponible",
-                    "El motor local no ofrece la acción segura para abrirlo.",
+                    Localizer.Text("winui.certificados.gestor_de_windows_no_disponible"),
+                    Localizer.Text("winui.certificados.el_motor_local_no_ofrece_la_accion"),
                     InfoBarSeverity.Warning);
                 return null;
             }
@@ -1724,15 +1724,15 @@ public sealed class CertificatesPageViewModel
             if (!IsSuccessful(result))
             {
                 SetActionStatus(
-                    "No se pudo abrir el gestor",
-                    "Abra el diagnóstico para conocer la causa y la acción recomendada.",
+                    Localizer.Text("winui.certificados.no_se_pudo_abrir_el_gestor"),
+                    Localizer.Text("winui.certificados.abra_el_diagnostico_para_conocer_la"),
                     InfoBarSeverity.Error);
                 return OperationDiagnosticMapper.FromResult(result);
             }
 
             SetActionStatus(
-                "Gestor de Windows abierto",
-                "El motor local ha abierto el gestor de certificados permitido.",
+                Localizer.Text("winui.certificados.gestor_de_windows_abierto"),
+                Localizer.Text("winui.certificados.el_motor_local_ha_abierto_el_gestor_de"),
                 InfoBarSeverity.Success);
             return null;
         }
@@ -1744,16 +1744,16 @@ public sealed class CertificatesPageViewModel
         catch (IpcClientException exception)
         {
             SetActionStatus(
-                "Falló la comunicación segura",
-                "No se pudo solicitar la apertura del gestor.",
+                Localizer.Text("winui.certificados.fallo_la_comunicacion_segura"),
+                Localizer.Text("winui.certificados.no_se_pudo_solicitar_la_apertura_del"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             SetActionStatus(
-                "No se pudo abrir el gestor",
-                "La aplicación no pudo completar la operación.",
+                Localizer.Text("winui.certificados.no_se_pudo_abrir_el_gestor"),
+                Localizer.Text("winui.certificados.la_aplicacion_no_pudo_completar_la_2"),
                 InfoBarSeverity.Error);
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -1783,16 +1783,16 @@ public sealed class CertificatesPageViewModel
         if (!IsSuccessful(result))
         {
             SetActionStatus(
-                "No se pudieron consultar los destinos",
-                "El catálogo está disponible, pero no se pudo preparar la importación ni la apertura de gestores.",
+                Localizer.Text("winui.certificados.no_se_pudieron_consultar_los_destinos"),
+                Localizer.Text("winui.certificados.el_catalogo_esta_disponible_pero_no_se"),
                 InfoBarSeverity.Warning);
             return OperationDiagnosticMapper.FromResult(result);
         }
         if (result.Data is null)
         {
             SetActionStatus(
-                "Inventario de certificados incompleto",
-                "El motor no devolvió una lista válida de gestores y destinos permitidos.",
+                Localizer.Text("winui.certificados.inventario_de_certificados_incompleto"),
+                Localizer.Text("winui.certificados.el_motor_no_devolvio_una_lista_valida_de"),
                 InfoBarSeverity.Warning);
             return InvalidResultDiagnostic(
                 result,
@@ -1814,8 +1814,8 @@ public sealed class CertificatesPageViewModel
             DesktopOperationActions.UseTemporaryCertificate))
         {
             importOptions.Add(new CertificateImportOption(
-                "Solo esta sesión (recomendado)",
-                "La clave privada permanece en memoria y se elimina al cerrar.",
+                Localizer.Text("winui.certificados.solo_esta_sesion_recomendado"),
+                Localizer.Text("winui.certificados.la_clave_privada_permanece_en_memoria_y"),
                 IsTemporary: true,
                 TargetId: string.Empty));
         }
@@ -1827,12 +1827,12 @@ public sealed class CertificatesPageViewModel
                     !string.IsNullOrWhiteSpace(target.Id))
                 .Select(target => new CertificateImportOption(
                     target.Recommended
-                        ? Localizer.Fill("{store} (recomendado)",
+                        ? Localizer.Fill("winui.certificados.recomendado",
                             ("store", Localizer.Text(target.Label)))
                         : target.Label,
                     string.IsNullOrWhiteSpace(target.Browser)
-                        ? "Importación persistente en el almacén seleccionado."
-                        : Localizer.Fill("Importación persistente para {browser}.",
+                        ? Localizer.Text("winui.certificados.importacion_persistente_en_el_almacen")
+                        : Localizer.Fill("winui.certificados.importacion_persistente_para",
                             ("browser", target.Browser)),
                     IsTemporary: false,
                     TargetId: target.Id)));
@@ -1848,11 +1848,11 @@ public sealed class CertificatesPageViewModel
 
         SetActionStatus(
             importOptions.Count == 0
-                ? "Importación no disponible"
-                : "Certificados preparados",
+                ? Localizer.Text("winui.certificados.importacion_no_disponible")
+                : Localizer.Text("winui.certificados.certificados_preparados"),
             importOptions.Count == 0
-                ? "El motor no ha publicado destinos seguros para cargar credenciales."
-                : "Puede cargar una credencial solo para esta sesión o elegir un almacén persistente.",
+                ? Localizer.Text("winui.certificados.el_motor_no_ha_publicado_destinos")
+                : Localizer.Text("winui.certificados.puede_cargar_una_credencial_solo_para"),
             importOptions.Count == 0
                 ? InfoBarSeverity.Warning
                 : InfoBarSeverity.Informational);
@@ -1876,16 +1876,16 @@ public sealed class CertificatesPageViewModel
         if (!IsSuccessful(result))
         {
             SetActionStatus(
-                "No se pudo leer el certificado predeterminado",
-                "El catálogo está disponible, pero no se pudo cargar esta preferencia.",
+                Localizer.Text("winui.certificados.no_se_pudo_leer_el_certificado"),
+                Localizer.Text("winui.certificados.el_catalogo_esta_disponible_pero_no_se_2"),
                 InfoBarSeverity.Warning);
             return OperationDiagnosticMapper.FromResult(result);
         }
         if (result.Data is null)
         {
             SetActionStatus(
-                "Preferencias incompletas",
-                "El motor no devolvió el certificado predeterminado guardado.",
+                Localizer.Text("winui.certificados.preferencias_incompletas"),
+                Localizer.Text("winui.certificados.el_motor_no_devolvio_el_certificado"),
                 InfoBarSeverity.Warning);
             return InvalidResultDiagnostic(
                 result,
@@ -1898,8 +1898,8 @@ public sealed class CertificatesPageViewModel
         if (string.IsNullOrWhiteSpace(defaultId))
         {
             SetActionStatus(
-                "Certificados preparados",
-                "Seleccione un certificado para comprobarlo o establecerlo como predeterminado.",
+                Localizer.Text("winui.certificados.certificados_preparados"),
+                Localizer.Text("winui.certificados.seleccione_un_certificado_para"),
                 InfoBarSeverity.Informational);
         }
         else if (_allCertificates.Any(item => string.Equals(
@@ -1908,15 +1908,15 @@ public sealed class CertificatesPageViewModel
             StringComparison.Ordinal)))
         {
             SetActionStatus(
-                "Certificado predeterminado cargado",
-                "El catálogo identifica visualmente la preferencia guardada.",
+                Localizer.Text("winui.certificados.certificado_predeterminado_cargado"),
+                Localizer.Text("winui.certificados.el_catalogo_identifica_visualmente_la"),
                 InfoBarSeverity.Informational);
         }
         else
         {
             SetActionStatus(
-                "Certificado predeterminado no disponible",
-                "La preferencia guardada no aparece en el almacén actual. Puede seleccionar otro certificado.",
+                Localizer.Text("winui.certificados.certificado_predeterminado_no_disponible"),
+                Localizer.Text("winui.certificados.la_preferencia_guardada_no_aparece_en_el"),
                 InfoBarSeverity.Warning);
         }
         return null;
@@ -1941,7 +1941,7 @@ public sealed class CertificatesPageViewModel
                     item.Id,
                     normalizedId,
                     StringComparison.Ordinal)
-                    ? "Predeterminado"
+                    ? Localizer.Text("winui.certificados.predeterminado")
                     : string.Empty,
             })
             .ToArray();
@@ -2025,17 +2025,17 @@ public sealed class CertificatesPageViewModel
         if (!IsSuccessful(result))
         {
             CatalogMessage =
-                "La operación se confirmó, pero no se pudo actualizar el catálogo.";
+                Localizer.Text("winui.certificados.la_operacion_se_confirmo_pero_no_se_pudo");
             SetActionStatus(
-                "Catálogo pendiente de actualizar",
-                "La credencial cambió, pero la lista visual no pudo recargarse. Pulse Actualizar.",
+                Localizer.Text("winui.certificados.catalogo_pendiente_de_actualizar"),
+                Localizer.Text("winui.certificados.la_credencial_cambio_pero_la_lista"),
                 InfoBarSeverity.Warning);
             return OperationDiagnosticMapper.FromResult(result);
         }
         if (result.Data is null)
         {
             CatalogMessage =
-                "La operación se confirmó, pero el catálogo recibido no es válido.";
+                Localizer.Text("winui.certificados.la_operacion_se_confirmo_pero_el");
             return InvalidResultDiagnostic(
                 result,
                 "MISSING_CERTIFICATE_CATALOG");
@@ -2057,8 +2057,8 @@ public sealed class CertificatesPageViewModel
         ReplaceCatalog(catalog, selectedId);
         ApplyDefaultCertificate(_defaultCertificateId);
         CatalogMessage = catalog.Length == 1
-            ? "Se ha cargado 1 certificado del almacén real."
-            : Localizer.Fill("Se han cargado {count} certificados del almacén real.",
+            ? Localizer.Text("winui.certificados.se_ha_cargado_1_certificado_del_almacen")
+            : Localizer.Fill("winui.certificados.se_han_cargado_certificados_del_almacen",
                 ("count", catalog.Length.ToString(System.Globalization.CultureInfo.CurrentCulture)));
         return null;
     }
@@ -2067,7 +2067,7 @@ public sealed class CertificatesPageViewModel
     {
         _selectedCredentialPath = null;
         SelectedCredentialDisplayName =
-            "Ninguna credencial seleccionada";
+            Localizer.Text("winui.certificados.ninguna_credencial_seleccionada");
         UpdateCommandStates();
     }
 
@@ -2172,37 +2172,37 @@ public sealed class CertificatesPageViewModel
             ? result.UserMessage
             : !string.IsNullOrWhiteSpace(result.Reason)
                 ? result.Reason
-                : "La comprobación online ha finalizado.";
+                : Localizer.Text("winui.certificados.la_comprobacion_online_ha_finalizado");
         switch (result.Status)
         {
             case "valid":
                 SetActionStatus(
-                    "Certificado no revocado",
+                    Localizer.Text("winui.certificados.certificado_no_revocado"),
                     message,
                     InfoBarSeverity.Success);
                 break;
             case "revoked":
                 SetActionStatus(
-                    "Certificado revocado",
+                    Localizer.Text("winui.certificados.certificado_revocado"),
                     message,
                     InfoBarSeverity.Error);
                 break;
             case "inconclusive":
                 SetActionStatus(
-                    "Resultado no concluyente",
+                    Localizer.Text("winui.certificados.resultado_no_concluyente"),
                     message,
                     InfoBarSeverity.Warning);
                 break;
             case "unavailable":
                 SetActionStatus(
-                    "Comprobación no disponible",
+                    Localizer.Text("winui.comun.comprobacion_no_disponible"),
                     message,
                     InfoBarSeverity.Warning);
                 break;
             default:
                 SetActionStatus(
-                    "Estado no reconocido",
-                    "El motor devolvió un estado nuevo que esta interfaz todavía no reconoce.",
+                    Localizer.Text("winui.certificados.estado_no_reconocido"),
+                    Localizer.Text("winui.certificados.el_motor_devolvio_un_estado_nuevo_que"),
                     InfoBarSeverity.Warning);
                 break;
         }

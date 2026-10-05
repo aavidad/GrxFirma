@@ -19,13 +19,13 @@ internal sealed class SecurePasswordPromptException : Exception
         string supportCode,
         Exception innerException)
         : base(
-            "Windows no pudo completar el diálogo seguro de contraseña.",
+            Localizer.Text("winui.contrasena.windows_no_pudo_completar_el_dialogo"),
             innerException)
     {
         if (string.IsNullOrWhiteSpace(supportCode))
         {
             throw new ArgumentException(
-                "El código de soporte es obligatorio.",
+                Localizer.Text("winui.contrasena.el_codigo_de_soporte_es_obligatorio"),
                 nameof(supportCode));
         }
 
@@ -131,7 +131,7 @@ public sealed class WindowsSecurePasswordPromptService
         if (Interlocked.CompareExchange(ref _activePrompt, 1, 0) != 0)
         {
             throw new InvalidOperationException(
-                "Ya hay una solicitud segura de contraseña activa.");
+                Localizer.Text("winui.contrasena.ya_hay_una_solicitud_segura_de"));
         }
 
         if (_ownerDispatcher is not null &&
@@ -151,7 +151,7 @@ public sealed class WindowsSecurePasswordPromptService
                 throw new SecurePasswordPromptException(
                     "PASSWORD_DISPATCH_UNAVAILABLE",
                     new InvalidOperationException(
-                        "No se pudo programar el diálogo seguro en el hilo de la ventana."));
+                        Localizer.Text("winui.contrasena.no_se_pudo_programar_el_dialogo_seguro")));
             }
             return completion.Task;
         }
@@ -290,7 +290,7 @@ public sealed class WindowsSecurePasswordPromptService
             {
                 throw new Win32Exception(
                     checked((int)result),
-                    "Windows no pudo mostrar el diálogo de credenciales de respaldo.");
+                    Localizer.Text("winui.contrasena.windows_no_pudo_mostrar_el_dialogo_de"));
             }
 
             password.SetCharacterCount(
@@ -330,7 +330,7 @@ public sealed class WindowsSecurePasswordPromptService
             }
         }
         throw new InvalidOperationException(
-            "Windows devolvió un secreto sin terminador dentro del límite.");
+            Localizer.Text("winui.contrasena.windows_devolvio_un_secreto_sin"));
     }
 
     private void CompleteDispatchedCapture(
@@ -421,13 +421,13 @@ public sealed class WindowsSecurePasswordPromptService
             {
                 throw new Win32Exception(
                     dialogError,
-                    "Windows no pudo crear el diálogo seguro de contraseña.");
+                    Localizer.Text("winui.contrasena.windows_no_pudo_crear_el_dialogo_seguro"));
             }
 
             if (result == DialogFailure)
             {
                 throw new InvalidOperationException(
-                    "El diálogo seguro de contraseña terminó de forma inesperada.");
+                    Localizer.Text("winui.contrasena.el_dialogo_seguro_de_contrasena_termino"));
             }
 
             if (cancellationToken.IsCancellationRequested)
@@ -439,7 +439,7 @@ public sealed class WindowsSecurePasswordPromptService
             {
                 return password ??
                     throw new InvalidOperationException(
-                        "El diálogo terminó sin entregar el buffer nativo.");
+                        Localizer.Text("winui.contrasena.el_dialogo_termino_sin_entregar_el"));
             }
 
             password?.Dispose();
@@ -458,7 +458,7 @@ public sealed class WindowsSecurePasswordPromptService
         if (owner == 0)
         {
             throw new InvalidOperationException(
-                "La ventana propietaria todavía no está disponible.");
+                Localizer.Text("winui.comun.la_ventana_propietaria_todavia_no_esta"));
         }
 
         var ownerThread = GetWindowThreadProcessId(owner, out _);
@@ -466,13 +466,13 @@ public sealed class WindowsSecurePasswordPromptService
         {
             throw new Win32Exception(
                 Marshal.GetLastWin32Error(),
-                "No se pudo determinar el hilo de la ventana propietaria.");
+                Localizer.Text("winui.contrasena.no_se_pudo_determinar_el_hilo_de_la"));
         }
 
         if (ownerThread != GetCurrentThreadId())
         {
             throw new InvalidOperationException(
-                "El diálogo de contraseña debe abrirse desde el hilo de la ventana WinUI.");
+                Localizer.Text("winui.contrasena.el_dialogo_de_contrasena_debe_abrirse"));
         }
 
         return owner;
@@ -491,7 +491,7 @@ public sealed class WindowsSecurePasswordPromptService
             {
                 state = GCHandle.FromIntPtr(lParam).Target as PromptState ??
                     throw new InvalidOperationException(
-                        "No se recibió el estado del diálogo.");
+                        Localizer.Text("winui.contrasena.no_se_recibio_el_estado_del_dialogo"));
                 _ = SetWindowLongPtrW(dialog, GwlpUserData, lParam);
                 state.AttachDialog(dialog);
                 InitializeDialog(dialog, state);
@@ -624,7 +624,7 @@ public sealed class WindowsSecurePasswordPromptService
         var cancel = CreateRequiredControl(
             0,
             "BUTTON",
-            Localizer.Text("Cancelar"),
+            Localizer.Text("winui.comun.cancelar"),
             WsChild | WsVisible | WsTabStop,
             width - 112,
             height - 42,
@@ -638,7 +638,7 @@ public sealed class WindowsSecurePasswordPromptService
         var accept = CreateRequiredControl(
             0,
             "BUTTON",
-            Localizer.Text("Aceptar"),
+            Localizer.Text("winui.comun.aceptar"),
             WsChild | WsVisible | WsTabStop | BsDefaultPushButton,
             width - 216,
             height - 42,
@@ -667,7 +667,7 @@ public sealed class WindowsSecurePasswordPromptService
             currentLength > state.Request.MaximumCharacters)
         {
             throw new InvalidOperationException(
-                "La longitud del secreto introducido no es válida.");
+                Localizer.Text("winui.contrasena.la_longitud_del_secreto_introducido_no"));
         }
 
         var password = NativePasswordBuffer.Allocate(currentLength);
@@ -840,7 +840,7 @@ public sealed class WindowsSecurePasswordPromptService
             Volatile.Read(ref _editHandle) is var handle && handle != 0
                 ? handle
                 : throw new InvalidOperationException(
-                    "El control de contraseña no está disponible.");
+                    Localizer.Text("winui.contrasena.el_control_de_contrasena_no_esta"));
 
         internal void AttachDialog(nint dialog)
         {
@@ -883,7 +883,7 @@ public sealed class WindowsSecurePasswordPromptService
             {
                 password.Dispose();
                 throw new InvalidOperationException(
-                    "El diálogo ya entregó una contraseña.");
+                    Localizer.Text("winui.contrasena.el_dialogo_ya_entrego_una_contrasena"));
             }
         }
 

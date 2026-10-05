@@ -20,17 +20,17 @@ public sealed class HashPageViewModel
     private static readonly IReadOnlyList<HashFormatOption>
         FileFormatOptions =
         [
-            new("Hexadecimal GrxFirma (.hexhash)", "hex"),
-            new("Base64 GrxFirma (.hashb64)", "base64"),
-            new("Binario (.hash)", "bin"),
+            new("winui.huella.hexadecimal_grxfirma_hexhash", "hex"),
+            new("winui.huella.base64_grxfirma_hashb64", "base64"),
+            new("winui.huella.binario_hash", "bin"),
         ];
 
     private static readonly IReadOnlyList<HashFormatOption>
         DirectoryFormatOptions =
         [
-            new("XML GrxFirma (.hashfiles)", "xml"),
-            new("Texto GrxFirma (.txthashfiles)", "txt"),
-            new("CSV (.csv)", "csv"),
+            new("winui.huella.xml_grxfirma_hashfiles", "xml"),
+            new("winui.huella.texto_grxfirma_txthashfiles", "txt"),
+            new("winui.huella.csv_csv", "csv"),
         ];
 
     private static readonly IReadOnlySet<string> FileManifestExtensions =
@@ -55,12 +55,12 @@ public sealed class HashPageViewModel
     private IReadOnlyList<HashFormatOption> _availableFormats =
         FileFormatOptions;
     private HashFormatOption _selectedFormat = FileFormatOptions[0];
-    private string _actionLabel = "Crear huella";
+    private string _actionLabel = Localizer.Text("winui.huella.crear_huella");
     private Visibility _manifestVisibility = Visibility.Collapsed;
-    private string _resultTitle = "Sin resultado";
+    private string _resultTitle = Localizer.Text("winui.comun.sin_resultado");
     private string _resultMessage =
-        "Seleccione una operación y un origen para crear o comprobar una huella.";
-    private string _resultSummary = "Sin evidencias del motor local.";
+        Localizer.Text("winui.huella.seleccione_una_operacion_y_un_origen");
+    private string _resultSummary = Localizer.Text("winui.huella.sin_evidencias_del_motor_local");
     private IReadOnlyList<string> _resultItems = [];
     private bool _isActive;
     private bool _isCreateMode = true;
@@ -79,9 +79,9 @@ public sealed class HashPageViewModel
         DesktopOperationSession session,
         IFilePickerService filePicker)
         : base(
-            "Huellas",
-            "Crea o comprueba huellas de ficheros y directorios sin firmar el contenido.",
-            "Las huellas no están disponibles porque el motor local no ha publicado todas las operaciones necesarias.")
+            Localizer.Text("winui.ventana.huellas"),
+            Localizer.Text("winui.huella.crea_o_comprueba_huellas_de_ficheros_y"),
+            Localizer.Text("winui.huella.las_huellas_no_estan_disponibles_porque"))
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(filePicker);
@@ -261,7 +261,7 @@ public sealed class HashPageViewModel
         }
 
         IsCreateMode = create;
-        ActionLabel = create ? "Crear huella" : "Comprobar huella";
+        ActionLabel = create ? Localizer.Text("winui.huella.crear_huella") : Localizer.Text("winui.huella.comprobar_huella");
         ManifestVisibility = create
             ? Visibility.Collapsed
             : Visibility.Visible;
@@ -380,12 +380,12 @@ public sealed class HashPageViewModel
             if (!IsAllowedManifest(path))
             {
                 _manifestPath = null;
-                ManifestName = "Formato de manifiesto no admitido";
+                ManifestName = Localizer.Text("winui.huella.formato_de_manifiesto_no_admitido");
                 ShowLocalValidation(
-                    "Manifiesto no válido",
+                    Localizer.Text("winui.huella.manifiesto_no_valido"),
                     IsDirectoryMode
-                        ? "Seleccione un manifiesto .hashfiles, .txthashfiles, .csv, .xml o .txt. Un .hashreport es un informe de salida, no un manifiesto."
-                        : "Seleccione una huella .hexhash, .hashb64 o .hash. Un .hashreport es un informe de salida, no una huella de entrada.");
+                        ? Localizer.Text("winui.huella.seleccione_un_manifiesto_hashfiles")
+                        : Localizer.Text("winui.huella.seleccione_una_huella_hexhash_hashb64_o"));
                 RefreshCommandState();
                 return;
             }
@@ -431,10 +431,10 @@ public sealed class HashPageViewModel
         SetBusy(true);
         HasResult = false;
         ResultTitle = IsCreateMode
-            ? "Creando huella…"
-            : "Comprobando huella…";
+            ? Localizer.Text("winui.huella.creando_huella")
+            : Localizer.Text("winui.huella.comprobando_huella");
         ResultMessage =
-            "El motor local está procesando el contenido seleccionado.";
+            Localizer.Text("winui.huella.el_motor_local_esta_procesando_el");
 
         try
         {
@@ -455,15 +455,15 @@ public sealed class HashPageViewModel
             when (operationCancellation.IsCancellationRequested)
         {
             ShowLocalValidation(
-                "Operación cancelada",
-                "La operación se detuvo antes de obtener un resultado.",
+                Localizer.Text("winui.comun.operacion_cancelada"),
+                Localizer.Text("winui.comun.la_operacion_se_detuvo_antes_de_obtener"),
                 InfoBarSeverity.Warning);
         }
         catch (Exception exception)
         {
             ShowLocalValidation(
-                "No se pudo completar",
-                "La operación terminó sin un resultado de huella.",
+                Localizer.Text("winui.comun.no_se_pudo_completar"),
+                Localizer.Text("winui.huella.la_operacion_termino_sin_un_resultado_de"),
                 InfoBarSeverity.Error);
             RequestDiagnostic(OperationDiagnosticMapper.FromException(
                 exception,
@@ -520,8 +520,8 @@ public sealed class HashPageViewModel
         if (_manifestPath is null || !IsAllowedManifest(_manifestPath))
         {
             ShowLocalValidation(
-                "Falta el manifiesto",
-                "Seleccione el fichero de huella o manifiesto que se va a comprobar.",
+                Localizer.Text("winui.huella.falta_el_manifiesto"),
+                Localizer.Text("winui.huella.seleccione_el_fichero_de_huella_o"),
                 InfoBarSeverity.Warning);
             return;
         }
@@ -556,34 +556,34 @@ public sealed class HashPageViewModel
     {
         HasResult = true;
         ResultSeverity = InfoBarSeverity.Success;
-        ResultTitle = "Huella creada";
+        ResultTitle = Localizer.Text("winui.huella.huella_creada");
         ResultMessage =
-            "La huella se ha creado y guardado mediante el motor local.";
+            Localizer.Text("winui.huella.la_huella_se_ha_creado_y_guardado");
         var outputName = DisplayPathName(
             data.DisplayOutputPath,
             directory: false);
         ResultSummary = Localizer.Format(
-            "Algoritmo: {0}. Formato: {1}. Salida: {2}.",
+            "winui.huella.algoritmo_formato_salida",
             data.Algorithm, Localizer.Text(FormatLabel(data.Format)), outputName);
 
         if (IsDirectoryMode)
         {
             ResultItems =
             [
-                Localizer.Format("Entradas incluidas: {0}",
+                Localizer.Format("winui.huella.entradas_incluidas",
                     data.Entries.GetValueOrDefault()),
                 data.Recursive == true
-                    ? "Se incluyeron subdirectorios."
-                    : "No se incluyeron subdirectorios.",
+                    ? Localizer.Text("winui.huella.se_incluyeron_subdirectorios")
+                    : Localizer.Text("winui.huella.no_se_incluyeron_subdirectorios"),
             ];
         }
         else
         {
             ResultItems =
             [
-                Localizer.Format("Huella: {0}",
+                Localizer.Format("winui.huella.huella",
                     SafeIpcText.Clean(data.Hash, 300,
-                        Localizer.Text("no disponible"))),
+                        Localizer.Text("winui.huella.no_disponible"))),
             ];
         }
     }
@@ -595,46 +595,46 @@ public sealed class HashPageViewModel
             ? InfoBarSeverity.Success
             : InfoBarSeverity.Error;
         ResultTitle = data.IsValid
-            ? "La huella coincide"
-            : "La huella no coincide";
+            ? Localizer.Text("winui.huella.la_huella_coincide")
+            : Localizer.Text("winui.huella.la_huella_no_coincide");
         ResultMessage = data.IsValid
-            ? "El contenido comprobado coincide con la huella almacenada."
-            : "El contenido ha cambiado, falta información o el manifiesto no corresponde con el origen.";
+            ? Localizer.Text("winui.huella.el_contenido_comprobado_coincide_con_la")
+            : Localizer.Text("winui.huella.el_contenido_ha_cambiado_falta");
         ResultSummary = Localizer.Format(
-            "Algoritmo detectado: {0}. Formato: {1}.",
+            "winui.huella.algoritmo_detectado_formato",
             data.Algorithm, Localizer.Text(FormatLabel(data.Format)));
 
         var items = new List<string>();
         if (!IsDirectoryMode)
         {
             items.Add(
-                Localizer.Format("Esperada: {0}",
+                Localizer.Format("winui.huella.esperada",
                     SafeIpcText.Clean(data.ExpectedHash, 300,
-                        Localizer.Text("no disponible"))));
+                        Localizer.Text("winui.huella.no_disponible"))));
             items.Add(
-                Localizer.Format("Calculada: {0}",
+                Localizer.Format("winui.huella.calculada",
                     SafeIpcText.Clean(data.ActualHash, 300,
-                        Localizer.Text("no disponible"))));
+                        Localizer.Text("winui.huella.no_disponible"))));
         }
         else
         {
-            AddResultItems(items, "Coincide", data.VisibleMatchingHash);
+            AddResultItems(items, Localizer.Text("winui.huella.coincide"), data.VisibleMatchingHash);
             AddResultItems(
                 items,
-                "No coincide",
+                Localizer.Text("winui.huella.no_coincide"),
                 data.VisibleNotMatchingHash);
             AddResultItems(
                 items,
-                "Sin fichero",
+                Localizer.Text("winui.huella.sin_fichero"),
                 data.VisibleHashWithoutFile);
             AddResultItems(
                 items,
-                "Sin huella",
+                Localizer.Text("winui.huella.sin_huella"),
                 data.VisibleFileWithoutHash);
             if (!string.IsNullOrWhiteSpace(data.DisplayReportOutputPath))
             {
                 items.Add(
-                    $"Informe de comprobación: {DisplayPathName(data.DisplayReportOutputPath, directory: false)}");
+                    Localizer.Format("winui.huella.informe_de_comprobacion", DisplayPathName(data.DisplayReportOutputPath, directory: false)));
             }
         }
 
@@ -654,7 +654,7 @@ public sealed class HashPageViewModel
             _session.Supports(DesktopOperationActions.HashCheck);
         SetOperationAvailability(
             available,
-            "Motor local listo para crear y comprobar huellas.");
+            Localizer.Text("winui.huella.motor_local_listo_para_crear_y_comprobar"));
         if (!available)
         {
             _operationCancellation?.Cancel();
@@ -688,24 +688,24 @@ public sealed class HashPageViewModel
     {
         HasResult = false;
         ResultSeverity = InfoBarSeverity.Informational;
-        ResultTitle = "Sin resultado";
+        ResultTitle = Localizer.Text("winui.comun.sin_resultado");
         ResultMessage =
-            "Seleccione una operación y un origen para crear o comprobar una huella.";
-        ResultSummary = "Sin evidencias del motor local.";
+            Localizer.Text("winui.huella.seleccione_una_operacion_y_un_origen");
+        ResultSummary = Localizer.Text("winui.huella.sin_evidencias_del_motor_local");
         ResultItems = [];
     }
 
     private void ShowBackendFailure(string message) =>
         ShowLocalValidation(
-            "No se pudo completar",
+            Localizer.Text("winui.comun.no_se_pudo_completar"),
             message,
             InfoBarSeverity.Error);
 
     private void ShowIncoherentResult()
     {
         ShowLocalValidation(
-            "Resultado no utilizable",
-            "El motor local no devolvió datos de huella coherentes.",
+            Localizer.Text("winui.comun.resultado_no_utilizable"),
+            Localizer.Text("winui.huella.el_motor_local_no_devolvio_datos_de"),
             InfoBarSeverity.Error);
         RequestDiagnostic(OperationDiagnosticMapper.FromException(
             new InvalidOperationException()));
@@ -719,7 +719,7 @@ public sealed class HashPageViewModel
         HasResult = true;
         ResultTitle = title;
         ResultMessage = message;
-        ResultSummary = "Revise los datos seleccionados antes de continuar.";
+        ResultSummary = Localizer.Text("winui.huella.revise_los_datos_seleccionados_antes_de");
         ResultItems = [];
         ResultSeverity = severity;
     }
@@ -789,7 +789,7 @@ public sealed class HashPageViewModel
             destination.Add(
                 Localizer.Format("{0}: {1}", Localizer.Text(label),
                     SafeIpcText.Clean(item, 300,
-                        Localizer.Text("elemento sin nombre"))));
+                        Localizer.Text("winui.huella.elemento_sin_nombre"))));
             if (destination.Count >= MaximumVisibleResults)
             {
                 return;
@@ -800,13 +800,13 @@ public sealed class HashPageViewModel
     private static string FormatLabel(string? format) =>
         format?.Trim().ToLowerInvariant() switch
         {
-            "hex" => "hexadecimal",
+            "hex" => Localizer.Text("winui.huella.hexadecimal"),
             "base64" => "Base64",
-            "bin" => "binario",
-            "xml" or "hashfiles" => "XML GrxFirma",
-            "txt" or "txthashfiles" => "texto GrxFirma",
+            "bin" => Localizer.Text("winui.huella.binario"),
+            "xml" or "hashfiles" => Localizer.Text("winui.huella.xml_grxfirma"),
+            "txt" or "txthashfiles" => Localizer.Text("winui.huella.texto_grxfirma"),
             "csv" => "CSV",
-            _ => "no determinado",
+            _ => Localizer.Text("winui.comun.no_determinado"),
         };
 
     private static string DisplayPathName(
@@ -820,7 +820,7 @@ public sealed class HashPageViewModel
             Path.GetFileName(trimmed),
             256,
             Localizer.Text(directory
-                ? "Directorio seleccionado" : "Fichero seleccionado"));
+                ? "winui.huella.directorio_seleccionado" : "winui.comun.fichero_seleccionado"));
     }
 
     public sealed record HashFormatOption(

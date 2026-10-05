@@ -12,15 +12,15 @@ namespace GrxFirma.WinUI.ViewModels;
 
 public sealed class AboutPageViewModel : ObservableObject
 {
-    private const string VersionUnavailable = "Versión no disponible";
+    private static string VersionUnavailable => Localizer.Text("winui.acerca.version_no_disponible");
     private const int MaxReleaseNotesBytes = 64 * 1024;
     private const int MaxCurrentSectionCharacters = 8192;
     private readonly IHelpLauncherService _launcher;
     private readonly DesktopOperationSession _session;
     private CancellationTokenSource? _pageLifetime;
-    private string _statusTitle = "Información del proyecto";
+    private string _statusTitle = Localizer.Text("winui.acerca.informacion_del_proyecto");
     private string _statusMessage =
-        "Puede consultar la licencia o el código fuente mediante destinos oficiales fijos.";
+        Localizer.Text("winui.acerca.puede_consultar_la_licencia_o_el_codigo");
     private bool _isActive;
     private bool _isBusy;
     private bool _canLaunch;
@@ -41,14 +41,14 @@ public sealed class AboutPageViewModel : ObservableObject
         var installedVersion = ResolveInstalledVersion();
         VersionText = installedVersion == VersionUnavailable
             ? Localizer.Text(installedVersion)
-            : Localizer.Fill("Versión {version}", ("version", installedVersion));
+            : Localizer.Fill("winui.acerca.version", ("version", installedVersion));
         ReleaseNotesText = Localizer.Text(ResolveReleaseNotes(installedVersion));
     }
 
-    public string Title { get; } = "Acerca de";
+    public string Title { get; } = Localizer.Text("winui.comun.acerca_de");
 
     public string Description { get; } =
-        "Autoría, versión, licencia y código fuente de GrxFirma.";
+        Localizer.Text("winui.acerca.autoria_version_licencia_y_codigo_fuente");
 
     public string VersionText { get; }
 
@@ -127,17 +127,17 @@ public sealed class AboutPageViewModel : ObservableObject
 
     public Task OpenOfficialLicenseAsync() =>
         ExecuteAsync(
-            "Abriendo licencia oficial",
+            Localizer.Text("winui.acerca.abriendo_licencia_oficial"),
             _launcher.OpenOfficialLicenseAsync);
 
     public Task OpenOfficialProjectAsync() =>
         ExecuteAsync(
-            "Abriendo repositorio oficial",
+            Localizer.Text("winui.acerca.abriendo_repositorio_oficial"),
             _launcher.OpenOfficialProjectAsync);
 
     public Task OpenOfficialReleasesAsync() =>
         ExecuteAsync(
-            "Abriendo versiones oficiales",
+            Localizer.Text("winui.acerca.abriendo_versiones_oficiales"),
             _launcher.OpenOfficialReleasesAsync);
 
     public async Task CheckUpdatesAsync()
@@ -154,9 +154,9 @@ public sealed class AboutPageViewModel : ObservableObject
                 0) != 0)
         {
             HasStatus = true;
-            StatusTitle = "Comprobación no disponible";
+            StatusTitle = Localizer.Text("winui.comun.comprobacion_no_disponible");
             StatusMessage =
-                "Abra GrxFirma desde el lanzador instalado para conectar el motor local y vuelva a intentarlo; la firma local no queda bloqueada.";
+                Localizer.Text("winui.acerca.abra_grxfirma_desde_el_lanzador");
             StatusSeverity = InfoBarSeverity.Warning;
             RefreshAvailability();
             return;
@@ -166,9 +166,9 @@ public sealed class AboutPageViewModel : ObservableObject
         CanLaunch = false;
         CanCheckUpdates = false;
         HasStatus = true;
-        StatusTitle = "Consultando GitHub";
+        StatusTitle = Localizer.Text("winui.acerca.consultando_github");
         StatusMessage =
-            "Se está consultando la última versión publicada; no se descargará ni instalará ningún archivo.";
+            Localizer.Text("winui.acerca.se_esta_consultando_la_ultima_version");
         StatusSeverity = InfoBarSeverity.Informational;
 
         try
@@ -184,7 +184,7 @@ public sealed class AboutPageViewModel : ObservableObject
                 result.Outcome != "success" ||
                 result.Data is null)
             {
-                StatusTitle = "No se pudo comprobar";
+                StatusTitle = Localizer.Text("winui.acerca.no_se_pudo_comprobar");
                 StatusMessage = result.SafeUserMessage;
                 StatusSeverity = InfoBarSeverity.Warning;
                 return;
@@ -200,25 +200,25 @@ public sealed class AboutPageViewModel : ObservableObject
             }
             else if (result.Data.HasNewVersion)
             {
-                StatusTitle = "Nueva versión disponible";
+                StatusTitle = Localizer.Text("winui.comun.nueva_version_disponible");
                 StatusMessage = Localizer.Fill(
-                    "Está disponible {latest}; esta instalación usa {current}. Revise las notas en GitHub. GrxFirma no descargará ni ejecutará nada automáticamente.",
+                    "winui.acerca.esta_disponible_esta_instalacion_usa",
                     ("latest", latest), ("current", current));
                 StatusSeverity = InfoBarSeverity.Warning;
             }
             else if (!result.Data.IsComparable)
             {
-                StatusTitle = "Build no comparable";
+                StatusTitle = Localizer.Text("winui.acerca.build_no_comparable");
                 StatusMessage = Localizer.Fill(
-                    "La última versión publicada es {latest}, pero este build de desarrollo no se puede comparar automáticamente.",
+                    "winui.acerca.la_ultima_version_publicada_es_pero_este",
                     ("latest", latest));
                 StatusSeverity = InfoBarSeverity.Informational;
             }
             else
             {
-                StatusTitle = "GrxFirma está actualizado";
+                StatusTitle = Localizer.Text("winui.acerca.grxfirma_esta_actualizado");
                 StatusMessage = Localizer.Fill(
-                    "La versión instalada ({current}) es la última publicada.",
+                    "winui.acerca.la_version_instalada_es_la_ultima",
                     ("current", current));
                 StatusSeverity = InfoBarSeverity.Success;
             }
@@ -227,9 +227,9 @@ public sealed class AboutPageViewModel : ObservableObject
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "Comprobación cancelada";
+                StatusTitle = Localizer.Text("winui.comun.comprobacion_cancelada");
                 StatusMessage =
-                    "No se descargó ni instaló ningún archivo.";
+                    Localizer.Text("winui.acerca.no_se_descargo_ni_instalo_ningun_archivo");
                 StatusSeverity = InfoBarSeverity.Informational;
             }
         }
@@ -237,9 +237,9 @@ public sealed class AboutPageViewModel : ObservableObject
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "No se pudo comprobar";
+                StatusTitle = Localizer.Text("winui.acerca.no_se_pudo_comprobar");
                 StatusMessage =
-                    "No se pudo consultar GitHub de forma segura. Compruebe la conexión a Internet o el proxy y vuelva a intentarlo; la firma local sigue disponible.";
+                    Localizer.Text("winui.acerca.no_se_pudo_consultar_github_de_forma");
                 StatusSeverity = InfoBarSeverity.Warning;
             }
         }
@@ -273,7 +273,7 @@ public sealed class AboutPageViewModel : ObservableObject
         CanLaunch = false;
         HasStatus = true;
         StatusTitle = progressTitle;
-        StatusMessage = "Espere un momento.";
+        StatusMessage = Localizer.Text("winui.comun.espere_un_momento");
         StatusSeverity = InfoBarSeverity.Informational;
 
         try
@@ -285,8 +285,8 @@ public sealed class AboutPageViewModel : ObservableObject
             }
 
             StatusTitle = result.Succeeded
-                ? "Acción completada"
-                : "No se pudo completar";
+                ? Localizer.Text("winui.comun.accion_completada")
+                : Localizer.Text("winui.comun.no_se_pudo_completar");
             StatusMessage = result.Message;
             StatusSeverity = result.Succeeded
                 ? InfoBarSeverity.Success
@@ -296,8 +296,8 @@ public sealed class AboutPageViewModel : ObservableObject
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "Acción cancelada";
-                StatusMessage = "No se ha abierto ningún recurso externo.";
+                StatusTitle = Localizer.Text("winui.comun.accion_cancelada");
+                StatusMessage = Localizer.Text("winui.acerca.no_se_ha_abierto_ningun_recurso_externo");
                 StatusSeverity = InfoBarSeverity.Informational;
             }
         }
@@ -305,9 +305,9 @@ public sealed class AboutPageViewModel : ObservableObject
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "No se pudo completar";
+                StatusTitle = Localizer.Text("winui.comun.no_se_pudo_completar");
                 StatusMessage =
-                    "Windows no pudo abrir el recurso oficial solicitado.";
+                    Localizer.Text("winui.comun.windows_no_pudo_abrir_el_recurso_oficial");
                 StatusSeverity = InfoBarSeverity.Error;
             }
         }
@@ -348,7 +348,7 @@ public sealed class AboutPageViewModel : ObservableObject
                     character is '.' or '-' or '+' or '_')
                 .ToArray());
         return cleaned.Length == 0
-            ? Localizer.Text("desconocida")
+            ? Localizer.Text("winui.acerca.desconocida")
             : cleaned;
     }
 
@@ -400,7 +400,7 @@ public sealed class AboutPageViewModel : ObservableObject
     {
         if (versionText == VersionUnavailable)
         {
-            return "No se pueden mostrar las novedades porque no se encontró la versión instalada.";
+            return Localizer.Text("winui.acerca.no_se_pueden_mostrar_las_novedades");
         }
 
         try
@@ -421,7 +421,7 @@ public sealed class AboutPageViewModel : ObservableObject
                 (File.GetAttributes(helpDirectory) & FileAttributes.ReparsePoint) != 0 ||
                 (File.GetAttributes(notesFile) & FileAttributes.ReparsePoint) != 0)
             {
-                return "No se encontró el archivo de novedades instalado. Compruebe que la instalación esté completa.";
+                return Localizer.Text("winui.acerca.no_se_encontro_el_archivo_de_novedades");
             }
 
             using var stream = new FileStream(
@@ -444,7 +444,7 @@ public sealed class AboutPageViewModel : ObservableObject
             }
             if (total > MaxReleaseNotesBytes)
             {
-                return "El archivo de novedades instalado es demasiado grande para mostrarlo.";
+                return Localizer.Text("winui.acerca.el_archivo_de_novedades_instalado_es");
             }
 
             var content = new UTF8Encoding(false, true).GetString(bytes, 0, total);
@@ -469,18 +469,18 @@ public sealed class AboutPageViewModel : ObservableObject
                     section.AppendLine(line);
                     if (section.Length > MaxCurrentSectionCharacters)
                     {
-                        return "Las novedades de esta versión son demasiado extensas para mostrarlas aquí.";
+                        return Localizer.Text("winui.acerca.las_novedades_de_esta_version_son");
                     }
                 }
             }
             var currentNotes = section.ToString().Trim();
             return inCurrentSection && currentNotes.Length > 0
                 ? currentNotes
-                : "No se encontró la sección de novedades de esta versión en la instalación.";
+                : Localizer.Text("winui.acerca.no_se_encontro_la_seccion_de_novedades");
         }
         catch
         {
-            return "No se pudieron leer las novedades instaladas. Compruebe que la instalación esté completa.";
+            return Localizer.Text("winui.acerca.no_se_pudieron_leer_las_novedades");
         }
     }
 }

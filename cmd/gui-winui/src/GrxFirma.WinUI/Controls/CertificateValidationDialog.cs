@@ -40,12 +40,12 @@ public static class CertificateValidationDialog
         });
         content.Children.Add(new TextBlock
         {
-            Text = "La aptitud se basa en la información local. Use «Refrescar validez online» para consultar la revocación.",
+            Text = Localizer.Text("winui.certificados.la_aptitud_se_basa_en_la_informacion"),
             TextWrapping = TextWrapping.Wrap,
         });
         content.Children.Add(new TextBlock
         {
-            Text = "Ficha completa del certificado",
+            Text = Localizer.Text("winui.certificados.ficha_completa_del_certificado"),
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             TextWrapping = TextWrapping.Wrap,
         });
@@ -72,16 +72,16 @@ public static class CertificateValidationDialog
         {
             XamlRoot = xamlRoot,
             RequestedTheme = theme,
-            Title = "Verificar certificado",
+            Title = Localizer.Text("winui.certificados.verificar_certificado"),
             Content = new ScrollViewer
             {
                 MaxHeight = 520,
                 Content = content,
             },
-            CloseButtonText = "Cerrar",
+            CloseButtonText = Localizer.Text("winui.comun.cerrar"),
             DefaultButton = ContentDialogButton.Close,
         };
-        AutomationProperties.SetName(dialog, "Verificación del certificado");
+        AutomationProperties.SetName(dialog, Localizer.Text("winui.certificados.verificacion_del_certificado"));
         await Localizer.ShowAsync(dialog);
     }
 }

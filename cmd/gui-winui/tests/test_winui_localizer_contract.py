@@ -71,7 +71,7 @@ LANGUAGE_SELF_NAMES = {"Español", "Català", "Valencià", "Euskara", "Galego",
 # plantillas. Son valores de máquina, no etiquetas presentadas a una persona.
 MACHINE_WORDS = {
     "about", "administracion", "admission", "artifacts", "available",
-    "avidad", "browser", "ca", "cades", "certificates", "ciudadano",
+    "avidad", "browser", "ca", "cades", "certificate", "certificates", "ciudadano",
     "csvCode", "csvUrl", "csvText", "proxyHost", "proxyPort", "tsa",
     "count", "current", "date", "days", "de", "diagnostico", "diagnostics",
     "disabled", "empty", "en", "eni", "environment", "es", "eu", "exit",
@@ -441,6 +441,112 @@ def untranslated_csharp(paths):
     return missing
 
 
+# --- Contrato estricto de la aplicación WinUI -------------------------------
+# En GrxFirma.WinUI el código solo nombra claves con punto (winui.*, sign.*,
+# portal.*...). Ya no basta con que la frase española exista en el catálogo:
+# cualquier frase escrita en C# es un fallo. GrxFirma.WinUI.Core queda fuera
+# a propósito: es la biblioteca de dominio, sus pruebas MSTest se ejecutan sin
+# catálogos y sus mensajes se traducen en la frontera de la interfaz con
+# CatalogLocalizer.TranslateVisibleText; la cubre la prueba pendiente de abajo.
+CATALOG_KEY = re.compile(r"[a-z][a-z0-9_]*(?:\.[a-z0-9_]+)+")
+APP_EXCLUDED_FILES = {"Localizer.cs"}  # Nombres de propiedades y patrones.
+# Palabras que delatan una frase en castellano aunque aún no esté en el
+# catálogo. Se eligen las que no aparecen en identificadores ingleses.
+SPANISH_WORDS = re.compile(
+    r"\b(?:el|la|los|las|del|una|unos|unas|que|para|con|por|se|ningún|"
+    r"ninguna|este|esta|puede|debe|está|no\s+se)\b", re.IGNORECASE)
+SPANISH_LETTERS = re.compile(r"[áéíóúñÁÉÍÓÚÑ¿¡«»]")
+# Literales en castellano que NO son texto para la persona. Cada entrada dice
+# por qué se queda en el código; añadir una exige la misma justificación.
+APP_SPANISH_EXCEPTIONS = {
+    # Valores de estado que envía el motor Go; se comparan, no se muestran.
+    ("ViewModels/CertificatesPageViewModel.cs", "Caducado"),
+    ("ViewModels/CertificatesPageViewModel.cs", "Válido"),
+    ("ViewModels/CertificatesPageViewModel.cs", "Disponible para firmar"),
+    # Nombre del marcador {certificate} en Localizer.Fill.
+    ("ViewModels/CertificatesPageViewModel.cs", "certificate"),
+    # Código del objetivo de soporte que se envía al motor.
+    ("Views/DiagnosticsPage.xaml.cs", "certificate"),
+    # Códigos del protocolo de protección (perfil, origen) y del sello.
+    ("ViewModels/ProtectPageViewModel.cs", "compat"),
+    ("ViewModels/ProtectPageViewModel.cs", "alto"),
+    ("ViewModels/ProtectPageViewModel.cs", "importado"),
+    ("ViewModels/SignPageViewModel.cs", "custom"),
+    # Identificador del servicio REST local que se compara en su respuesta.
+    ("Services/WindowsRestServer.cs", "GrxFirma REST local"),
+    # Nombre interno del destino de CredUI; Windows no lo muestra.
+    ("Services/WindowsSecurePasswordPromptService.cs", "GrxFirma/contraseña-transitoria"),
+    # Nombres normativos de algoritmos y formatos de huella.
+    ("ViewModels/HashPageViewModel.cs", "SHA-256"),
+    ("ViewModels/HashPageViewModel.cs", "SHA-384"),
+    ("ViewModels/HashPageViewModel.cs", "SHA-512"),
+    ("ViewModels/HashPageViewModel.cs", "Base64"),
+    ("ViewModels/HashPageViewModel.cs", "CSV"),
+}
+
+
+def app_csharp_paths():
+    return sorted(path for path in UI.rglob("*.cs")
+                  if path.name not in APP_EXCLUDED_FILES
+                  and "obj" not in path.parts and "bin" not in path.parts)
+
+
+def catalog_dictionaries():
+    return {path.stem: json.loads(path.read_text(encoding="utf-8"))
+            for path in LOCALES.glob("*.json")}
+
+
+def app_text_outside_keys(paths):
+    """Candidatos visibles (según la clasificación de arriba) que no son claves."""
+    missing = []
+    for path in paths:
+        source = path.read_text(encoding="utf-8")
+        for line, value in csharp_string_literals(source):
+            if (CATALOG_KEY.fullmatch(value)
+                    or is_machine_literal(path, value)
+                    or is_machine_context(path, source, line, value)):
+                continue
+            missing.append((source_relative(path), line, value))
+    return missing
+
+
+def is_spanish_literal(relative, value, spanish_texts):
+    if (not value or CATALOG_KEY.fullmatch(value)
+            or value in PROPER_NAMES | LANGUAGE_SELF_NAMES
+            or (relative, value) in APP_SPANISH_EXCEPTIONS):
+        return False
+    words = re.sub(r"\{[^{}]*\}", " ", value)
+    in_catalog = (value in spanish_texts
+                  and len(re.findall(r"[A-Za-zÀ-ÿ]", words)) >= 3)
+    phrase = " " in words.strip() and SPANISH_WORDS.search(words)
+    return bool(in_catalog or SPANISH_LETTERS.search(value) or phrase)
+
+
+def app_spanish_literals(paths, catalogs):
+    """Cualquier literal en castellano, también donde la clasificación lo
+    toma por dato: comparaciones, códigos o palabras sueltas del catálogo."""
+    spanish_texts = set(catalogs["es"]) | set(catalogs["es"].values())
+    found = []
+    for path in paths:
+        relative = source_relative(path)
+        for line, value in csharp_string_literals(path.read_text(encoding="utf-8")):
+            if is_spanish_literal(relative, value, spanish_texts):
+                found.append((relative, line, value))
+    return found
+
+
+def app_catalog_keys_used(paths):
+    used = {}
+    for path in paths:
+        source = path.read_text(encoding="utf-8")
+        for line, value in csharp_string_literals(source):
+            # Un prefijo que termina en punto se completa en tiempo de
+            # ejecución (p. ej. winui.parity.support.primary.<paso>).
+            if value.startswith("winui.") and CATALOG_KEY.fullmatch(value):
+                used.setdefault(value, (source_relative(path), line))
+    return used
+
+
 class WinUiLocalizerContractTests(unittest.TestCase):
     def test_csharp_scanner_ignores_comments_and_character_literals(self):
         source = """// \"comentario\"\nvar quote = '\"';\nvar label = \"Texto visible\";"""
@@ -471,6 +577,64 @@ class WinUiLocalizerContractTests(unittest.TestCase):
         self.assertFalse(is_machine_context(path, combined, 1, "PendienteNuevo"))
         self.assertEqual(numbered_template("Error en {expression}: {expression}"),
                          "Error en {0}: {1}")
+
+    def test_app_csharp_names_only_catalog_keys(self):
+        missing = app_text_outside_keys(app_csharp_paths())
+        if missing:
+            self.fail(f"{len(missing)} textos visibles escritos en C# en vez de una "
+                      f"clave del catálogo: {missing[:20]}")
+
+    def test_app_csharp_has_no_spanish_literals(self):
+        found = app_spanish_literals(app_csharp_paths(), catalog_dictionaries())
+        if found:
+            self.fail(f"{len(found)} literales en castellano en GrxFirma.WinUI; "
+                      f"llévelos al catálogo o justifíquelos en "
+                      f"APP_SPANISH_EXCEPTIONS: {found[:20]}")
+
+    def test_spanish_detector_catches_new_phrases_and_hidden_words(self):
+        spanish_texts = {"Firmado"}
+        relative = "ViewModels/SignPageViewModel.cs"
+        cases = {
+            "Firmado": True,                       # Palabra suelta del catálogo.
+            "canceló": True,                       # Subcadena con tilde.
+            "No se pudo guardar el fichero": True,  # Frase que aún no está.
+            "winui.firmar.estado_firmado": False,  # Clave del catálogo.
+            "SHA-256": False,
+            "yyyy-MM-dd": False,
+            "Signed by {0}": False,
+            "custom": False,                       # Excepción justificada.
+        }
+        for value, expected in cases.items():
+            with self.subTest(value=value):
+                self.assertEqual(
+                    is_spanish_literal(relative, value, spanish_texts), expected)
+
+    def test_app_spanish_exceptions_are_still_needed(self):
+        catalogs = catalog_dictionaries()
+        present = set()
+        for path in app_csharp_paths():
+            relative = source_relative(path)
+            for _, value in csharp_string_literals(path.read_text(encoding="utf-8")):
+                if (relative, value) in APP_SPANISH_EXCEPTIONS:
+                    present.add((relative, value))
+        self.assertFalse(APP_SPANISH_EXCEPTIONS - present,
+                         sorted(APP_SPANISH_EXCEPTIONS - present))
+        self.assertTrue(catalogs)
+
+    def test_app_winui_keys_exist_with_matching_placeholders(self):
+        catalogs = catalog_dictionaries()
+        spanish = catalogs["es"]
+        used = app_catalog_keys_used(app_csharp_paths())
+        self.assertTrue(used)
+        for locale, catalog in sorted(catalogs.items()):
+            with self.subTest(locale=locale):
+                missing = sorted(key for key in used if not catalog.get(key))
+                self.assertFalse(missing, [(key, used[key]) for key in missing[:20]])
+                for key in used:
+                    self.assertEqual(
+                        sorted(re.findall(r"\{[0-9a-z]+\}", spanish[key])),
+                        sorted(re.findall(r"\{[0-9a-z]+\}", catalog[key])),
+                        f"{locale}: marcadores distintos en {key!r}")
 
     def test_group_b_visible_xaml_literals_are_in_the_shared_catalog(self):
         paths = (path for path in UI.rglob("*.xaml") if path.name in GROUP_B_XAML)
@@ -577,13 +741,16 @@ class WinUiLocalizerContractTests(unittest.TestCase):
             used.update(re.findall(r'Localizer\.(?:Text|Fill)\(\s*"([^"\n]+)"', source))
             templates.update(re.findall(r'Localizer\.Fill\(\s*"([^"\n]+)"', source))
         self.assertTrue(used)
+        # Las claves winui.* no llevan marcadores: los de referencia son los
+        # del texto español; en las claves heredadas coinciden con la clave.
+        spanish = json.loads((LOCALES / "es.json").read_text(encoding="utf-8"))
         for path in sorted(LOCALES.glob("*.json")):
             catalog = json.loads(path.read_text(encoding="utf-8"))
             with self.subTest(locale=path.stem):
                 self.assertFalse(used - catalog.keys(), sorted(used - catalog.keys()))
                 for key in templates:
                     self.assertEqual(
-                        set(re.findall(r"\{[a-z]+\}", key)),
+                        set(re.findall(r"\{[a-z]+\}", spanish.get(key, key))),
                         set(re.findall(r"\{[a-z]+\}", catalog[key])),
                         f"{path.stem}: placeholders changed in {key!r}")
 

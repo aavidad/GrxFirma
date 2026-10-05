@@ -35,16 +35,16 @@ public sealed class SettingsPageViewModel
     private string _proxyRealm = string.Empty;
     private string _proxyUsername = string.Empty;
     private string _proxySecurityStatusTitle =
-        "Estado del almacén pendiente";
+        Localizer.Text("winui.ajustes.estado_del_almacen_pendiente");
     private string _proxySecurityStatusMessage =
-        "Actualice el estado para comprobar la protección de credenciales.";
+        Localizer.Text("winui.ajustes.actualice_el_estado_para_comprobar_la");
     private string _proxyRuntimeModeMessage = string.Empty;
     private string _validationMessage =
-        "Cargue las preferencias del motor local antes de editarlas.";
+        Localizer.Text("winui.ajustes.cargue_las_preferencias_del_motor_local");
     private string _tsaValidationMessage = string.Empty;
-    private string _statusTitle = "Sin cambios";
+    private string _statusTitle = Localizer.Text("winui.ajustes.sin_cambios");
     private string _statusMessage =
-        "Las preferencias todavía no se han cargado.";
+        Localizer.Text("winui.ajustes.las_preferencias_todavia_no_se_han");
     private bool _confirmBeforeSigning = true;
     private bool _stayResident = true;
     private bool _strictSignatureCompatibility = true;
@@ -77,9 +77,9 @@ public sealed class SettingsPageViewModel
 
     public SettingsPageViewModel(DesktopOperationSession session)
         : base(
-            "Configuración",
-            "Preferencias compartidas de firma, red y experiencia de usuario.",
-            "La configuración no está disponible porque el motor local no ha publicado get_settings y save_settings.")
+            Localizer.Text("winui.comun.configuracion"),
+            Localizer.Text("winui.ajustes.preferencias_compartidas_de_firma_red_y"),
+            Localizer.Text("winui.ajustes.la_configuracion_no_esta_disponible"))
     {
         ArgumentNullException.ThrowIfNull(session);
         _session = session;
@@ -113,7 +113,7 @@ public sealed class SettingsPageViewModel
     // documentos de la Administración).
     public IReadOnlyList<SettingsOption> SealLanguages { get; } =
     [
-        new("El mismo que la aplicación",
+        new(Localizer.Text("winui.ajustes.el_mismo_que_la_aplicacion"),
             DesktopSettingsDocument.SealLanguageFollowsInterface),
         new("Español", "es"),
         new("Català", "ca"),
@@ -130,28 +130,28 @@ public sealed class SettingsPageViewModel
 
     public IReadOnlyList<SettingsOption> Themes { get; } =
     [
-        new("Cristal oscuro", "0"),
-        new("Minimalista claro", "1"),
-        new("Futurista (oscuro en Windows)", "2"),
+        new(Localizer.Text("winui.ajustes.cristal_oscuro"), "0"),
+        new(Localizer.Text("winui.ajustes.minimalista_claro"), "1"),
+        new(Localizer.Text("winui.ajustes.futurista_oscuro_en_windows"), "2"),
     ];
 
     public IReadOnlyList<SettingsOption> DefaultFormats { get; } =
     [
-        new("Automático", ""),
+        new(Localizer.Text("winui.comun.automatico"), ""),
         new("PAdES", "pades"),
         new("CAdES", "cades"),
         new("XAdES", "xades"),
         new("XMLDSig", "xmldsig"),
-        new("ODF", "odf"),
-        new("OOXML", "ooxml"),
-        new("FacturaE", "facturae"),
-        new("ASiC-XAdES", "asic-xades"),
+        new(Localizer.Text("winui.comun.odf"), "odf"),
+        new(Localizer.Text("winui.comun.ooxml"), "ooxml"),
+        new(Localizer.Text("winui.comun.facturae"), "facturae"),
+        new(Localizer.Text("winui.comun.asic_xades"), "asic-xades"),
     ];
 
     public IReadOnlyList<SettingsOption> ProxyTypes { get; } =
     [
-        new("Sin proxy", "none"),
-        new("Manual", "manual"),
+        new(Localizer.Text("winui.ajustes.sin_proxy"), "none"),
+        new(Localizer.Text("winui.ajustes.manual"), "manual"),
     ];
 
     public SettingsOption SelectedLanguage
@@ -598,8 +598,8 @@ public sealed class SettingsPageViewModel
         }
 
         ShowStatus(
-            "Cargando preferencias…",
-            "Se está leyendo la configuración persistida por el motor local.",
+            Localizer.Text("winui.ajustes.cargando_preferencias"),
+            Localizer.Text("winui.ajustes.se_esta_leyendo_la_configuracion"),
             InfoBarSeverity.Informational);
         try
         {
@@ -608,7 +608,7 @@ public sealed class SettingsPageViewModel
             if (!result.IsSuccess || result.Outcome != "success")
             {
                 ShowStatus(
-                    "No se pudo cargar",
+                    Localizer.Text("winui.ajustes.no_se_pudo_cargar"),
                     result.SafeUserMessage,
                     InfoBarSeverity.Error);
                 RequestDiagnostic(
@@ -618,30 +618,30 @@ public sealed class SettingsPageViewModel
             if (result.Data is null)
             {
                 ShowIncoherentResult(
-                    "El motor local no devolvió un documento de preferencias.");
+                    Localizer.Text("winui.ajustes.el_motor_local_no_devolvio_un_documento"));
                 return;
             }
 
             ApplyLoadedSettings(result.Data);
             ThemePreferenceApplied?.Invoke(result.Data.ThemeIndex);
             ShowStatus(
-                "Preferencias cargadas",
-                "Puede modificar los valores y guardarlos cuando termine.",
+                Localizer.Text("winui.ajustes.preferencias_cargadas"),
+                Localizer.Text("winui.ajustes.puede_modificar_los_valores_y_guardarlos"),
                 InfoBarSeverity.Success);
         }
         catch (OperationCanceledException)
             when (operationCancellation.IsCancellationRequested)
         {
             ShowStatus(
-                "Carga cancelada",
-                "La lectura de preferencias se detuvo antes de completarse.",
+                Localizer.Text("winui.ajustes.carga_cancelada"),
+                Localizer.Text("winui.ajustes.la_lectura_de_preferencias_se_detuvo"),
                 InfoBarSeverity.Warning);
         }
         catch (Exception exception)
         {
             ShowStatus(
-                "No se pudo cargar",
-                "La lectura terminó sin un documento de preferencias.",
+                Localizer.Text("winui.ajustes.no_se_pudo_cargar"),
+                Localizer.Text("winui.ajustes.la_lectura_termino_sin_un_documento_de"),
                 InfoBarSeverity.Error);
             RequestDiagnostic(OperationDiagnosticMapper.FromException(
                 exception,
@@ -670,8 +670,8 @@ public sealed class SettingsPageViewModel
         }
 
         ShowStatus(
-            "Guardando preferencias…",
-            "El motor local está validando y persistiendo los cambios.",
+            Localizer.Text("winui.ajustes.guardando_preferencias"),
+            Localizer.Text("winui.ajustes.el_motor_local_esta_validando_y"),
             InfoBarSeverity.Informational);
         try
         {
@@ -681,7 +681,7 @@ public sealed class SettingsPageViewModel
             if (!result.IsSuccess || result.Outcome != "success")
             {
                 ShowStatus(
-                    "No se pudo guardar",
+                    Localizer.Text("winui.ajustes.no_se_pudo_guardar"),
                     result.SafeUserMessage,
                     InfoBarSeverity.Error);
                 RequestDiagnostic(
@@ -691,7 +691,7 @@ public sealed class SettingsPageViewModel
             if (string.IsNullOrWhiteSpace(result.Data))
             {
                 ShowIncoherentResult(
-                    "El motor local no confirmó el guardado de las preferencias.");
+                    Localizer.Text("winui.ajustes.el_motor_local_no_confirmo_el_guardado"));
                 return;
             }
 
@@ -701,23 +701,23 @@ public sealed class SettingsPageViewModel
             ThemePreferenceApplied?.Invoke(document.ThemeIndex);
             UpdateValidation();
             ShowStatus(
-                "Preferencias guardadas",
-                "Los cambios se han persistido correctamente.",
+                Localizer.Text("winui.ajustes.preferencias_guardadas"),
+                Localizer.Text("winui.ajustes.los_cambios_se_han_persistido"),
                 InfoBarSeverity.Success);
         }
         catch (OperationCanceledException)
             when (operationCancellation.IsCancellationRequested)
         {
             ShowStatus(
-                "Guardado cancelado",
-                "No se recibió confirmación de que los cambios se hayan guardado.",
+                Localizer.Text("winui.comun.guardado_cancelado"),
+                Localizer.Text("winui.ajustes.no_se_recibio_confirmacion_de_que_los"),
                 InfoBarSeverity.Warning);
         }
         catch (Exception exception)
         {
             ShowStatus(
-                "No se pudo guardar",
-                "El guardado terminó sin una confirmación válida.",
+                Localizer.Text("winui.ajustes.no_se_pudo_guardar"),
+                Localizer.Text("winui.ajustes.el_guardado_termino_sin_una_confirmacion"),
                 InfoBarSeverity.Error);
             RequestDiagnostic(OperationDiagnosticMapper.FromException(
                 exception,
@@ -742,9 +742,9 @@ public sealed class SettingsPageViewModel
             return;
         }
 
-        ProxySecurityStatusTitle = "Comprobando almacén seguro…";
+        ProxySecurityStatusTitle = Localizer.Text("winui.ajustes.comprobando_almacen_seguro");
         ProxySecurityStatusMessage =
-            "Windows está comprobando la protección local de credenciales.";
+            Localizer.Text("winui.ajustes.windows_esta_comprobando_la_proteccion");
         try
         {
             var result =
@@ -759,14 +759,14 @@ public sealed class SettingsPageViewModel
         catch (OperationCanceledException)
             when (operationCancellation.IsCancellationRequested)
         {
-            ProxySecurityStatusTitle = "Comprobación cancelada";
+            ProxySecurityStatusTitle = Localizer.Text("winui.comun.comprobacion_cancelada");
             ProxySecurityStatusMessage =
-                "No se modificaron las credenciales del proxy.";
+                Localizer.Text("winui.ajustes.no_se_modificaron_las_credenciales_del");
         }
         catch (Exception exception)
         {
             SetProxyStoreUnavailable(
-                "No se pudo comprobar el almacén protegido.");
+                Localizer.Text("winui.ajustes.no_se_pudo_comprobar_el_almacen"));
             RequestDiagnostic(OperationDiagnosticMapper.FromException(
                 exception,
                 operationCancellation.Token));
@@ -807,15 +807,15 @@ public sealed class SettingsPageViewModel
                         out var username))
                 {
                     ShowStatus(
-                        "Credenciales no válidas",
-                        "El dominio y el usuario deben tener entre 1 y 256 bytes UTF-8 y no contener controles.",
+                        Localizer.Text("winui.ajustes.credenciales_no_validas"),
+                        Localizer.Text("winui.ajustes.el_dominio_y_el_usuario_deben_tener"),
                         InfoBarSeverity.Warning);
                     return;
                 }
 
                 ShowStatus(
-                    "Protegiendo credenciales…",
-                    "La contraseña se enviará una sola vez al almacén protegido de Windows.",
+                    Localizer.Text("winui.ajustes.protegiendo_credenciales"),
+                    Localizer.Text("winui.ajustes.la_contrasena_se_enviara_una_sola_vez_al"),
                     InfoBarSeverity.Informational);
                 var result = await operations.StoreProxySecretAsync(
                     new ProxySecretStoreParameters
@@ -829,7 +829,7 @@ public sealed class SettingsPageViewModel
                     result.Outcome != "success")
                 {
                     ShowStatus(
-                        "No se guardaron las credenciales",
+                        Localizer.Text("winui.ajustes.no_se_guardaron_las_credenciales"),
                         result.SafeUserMessage,
                         InfoBarSeverity.Error);
                     RequestDiagnostic(
@@ -840,7 +840,7 @@ public sealed class SettingsPageViewModel
                     !result.Data.Configured)
                 {
                     ShowIncoherentResult(
-                        "El motor local no confirmó que la credencial quedara protegida.");
+                        Localizer.Text("winui.ajustes.el_motor_local_no_confirmo_que_la"));
                     return;
                 }
 
@@ -857,12 +857,12 @@ public sealed class SettingsPageViewModel
                 ShowStatus(
                     refreshed
                         ? result.Data.Rotated
-                            ? "Credenciales cambiadas"
-                            : "Credenciales protegidas"
-                        : "Credenciales protegidas; estado pendiente",
+                            ? Localizer.Text("winui.ajustes.credenciales_cambiadas")
+                            : Localizer.Text("winui.ajustes.credenciales_protegidas")
+                        : Localizer.Text("winui.ajustes.credenciales_protegidas_estado_pendiente"),
                     refreshed
-                        ? "El almacén seguro confirmó el estado persistido."
-                        : "El guardado se confirmó, pero no se pudo volver a consultar su estado.",
+                        ? Localizer.Text("winui.ajustes.el_almacen_seguro_confirmo_el_estado")
+                        : Localizer.Text("winui.ajustes.el_guardado_se_confirmo_pero_no_se_pudo"),
                     refreshed
                         ? InfoBarSeverity.Success
                         : InfoBarSeverity.Warning);
@@ -871,15 +871,15 @@ public sealed class SettingsPageViewModel
                 when (operationCancellation.IsCancellationRequested)
             {
                 ShowStatus(
-                    "Operación cancelada",
-                    "No se recibió confirmación de que las credenciales se guardaran.",
+                    Localizer.Text("winui.comun.operacion_cancelada"),
+                    Localizer.Text("winui.ajustes.no_se_recibio_confirmacion_de_que_las"),
                     InfoBarSeverity.Warning);
             }
             catch (Exception exception)
             {
                 ShowStatus(
-                    "No se guardaron las credenciales",
-                    "La protección local de la contraseña no pudo completarse.",
+                    Localizer.Text("winui.ajustes.no_se_guardaron_las_credenciales"),
+                    Localizer.Text("winui.ajustes.la_proteccion_local_de_la_contrasena_no"),
                     InfoBarSeverity.Error);
                 RequestDiagnostic(OperationDiagnosticMapper.FromException(
                     exception,
@@ -912,8 +912,8 @@ public sealed class SettingsPageViewModel
         try
         {
             ShowStatus(
-                "Quitando credenciales…",
-                "El almacén protegido está eliminando la credencial asociada.",
+                Localizer.Text("winui.ajustes.quitando_credenciales"),
+                Localizer.Text("winui.ajustes.el_almacen_protegido_esta_eliminando_la"),
                 InfoBarSeverity.Informational);
             var result = await operations.DeleteProxySecretAsync(
                 operationCancellation.Token);
@@ -921,7 +921,7 @@ public sealed class SettingsPageViewModel
                 result.Outcome != "success")
             {
                 ShowStatus(
-                    "No se quitaron las credenciales",
+                    Localizer.Text("winui.ajustes.no_se_quitaron_las_credenciales"),
                     result.SafeUserMessage,
                     InfoBarSeverity.Error);
                 RequestDiagnostic(
@@ -932,7 +932,7 @@ public sealed class SettingsPageViewModel
                 result.Data.Configured)
             {
                 ShowIncoherentResult(
-                    "El motor local no confirmó la eliminación de la credencial.");
+                    Localizer.Text("winui.ajustes.el_motor_local_no_confirmo_la"));
                 return;
             }
 
@@ -945,11 +945,11 @@ public sealed class SettingsPageViewModel
                     operationCancellation.Token);
             ShowStatus(
                 refreshed
-                    ? "Credenciales eliminadas"
-                    : "Credenciales eliminadas; estado pendiente",
+                    ? Localizer.Text("winui.ajustes.credenciales_eliminadas")
+                    : Localizer.Text("winui.ajustes.credenciales_eliminadas_estado_pendiente"),
                 refreshed
-                    ? "El proxy manual ya no tiene autenticación protegida asociada."
-                    : "La eliminación se confirmó, pero no se pudo volver a consultar el estado.",
+                    ? Localizer.Text("winui.ajustes.el_proxy_manual_ya_no_tiene")
+                    : Localizer.Text("winui.ajustes.la_eliminacion_se_confirmo_pero_no_se"),
                 refreshed
                     ? InfoBarSeverity.Success
                     : InfoBarSeverity.Warning);
@@ -958,15 +958,15 @@ public sealed class SettingsPageViewModel
             when (operationCancellation.IsCancellationRequested)
         {
             ShowStatus(
-                "Operación cancelada",
-                "No se recibió confirmación de que la credencial se eliminara.",
+                Localizer.Text("winui.comun.operacion_cancelada"),
+                Localizer.Text("winui.ajustes.no_se_recibio_confirmacion_de_que_la"),
                 InfoBarSeverity.Warning);
         }
         catch (Exception exception)
         {
             ShowStatus(
-                "No se quitaron las credenciales",
-                "El almacén protegido no confirmó la eliminación.",
+                Localizer.Text("winui.ajustes.no_se_quitaron_las_credenciales"),
+                Localizer.Text("winui.ajustes.el_almacen_protegido_no_confirmo_la"),
                 InfoBarSeverity.Error);
             RequestDiagnostic(OperationDiagnosticMapper.FromException(
                 exception,
@@ -984,8 +984,8 @@ public sealed class SettingsPageViewModel
     {
         ArgumentNullException.ThrowIfNull(exception);
         ShowStatus(
-            "No se pudo capturar la contraseña",
-            "Windows no pudo preparar la contraseña como memoria borrable.",
+            Localizer.Text("winui.ajustes.no_se_pudo_capturar_la_contrasena"),
+            Localizer.Text("winui.ajustes.windows_no_pudo_preparar_la_contrasena"),
             InfoBarSeverity.Error);
         RequestDiagnostic(OperationDiagnosticMapper.FromException(
             exception,
@@ -1132,32 +1132,32 @@ public sealed class SettingsPageViewModel
     {
         if (!_hasLoaded)
         {
-            return "Cargue las preferencias del motor local antes de editarlas.";
+            return Localizer.Text("winui.ajustes.cargue_las_preferencias_del_motor_local");
         }
         if (!DesktopSettingsDocument.IsSupportedLanguage(
             SelectedLanguage.Value))
         {
-            return "Seleccione un idioma admitido.";
+            return Localizer.Text("winui.ajustes.seleccione_un_idioma_admitido");
         }
         if (!DesktopSettingsDocument.IsSupportedSealLanguage(
             SelectedSealLanguage.Value))
         {
-            return "Seleccione un idioma admitido.";
+            return Localizer.Text("winui.ajustes.seleccione_un_idioma_admitido");
         }
         if (!int.TryParse(SelectedTheme.Value, out var themeIndex) ||
             !DesktopSettingsDocument.IsSupportedTheme(themeIndex))
         {
-            return "Seleccione un tema visual admitido.";
+            return Localizer.Text("winui.ajustes.seleccione_un_tema_visual_admitido");
         }
         if (!DesktopSettingsDocument.IsSupportedSignatureFormat(
             SelectedDefaultFormat.Value))
         {
-            return "Seleccione un formato de firma admitido.";
+            return Localizer.Text("winui.ajustes.seleccione_un_formato_de_firma_admitido");
         }
         if (VisiblePdfSeal &&
             SelectedDefaultFormat.Value is not ("" or "pades"))
         {
-            return "El sello visible solo es compatible con el formato automático o PAdES.";
+            return Localizer.Text("winui.ajustes.el_sello_visible_solo_es_compatible_con");
         }
         if (NetworkFormValidation.TsaError(TsaEnabled, TsaUrl) is not null)
         {
@@ -1167,33 +1167,33 @@ public sealed class SettingsPageViewModel
         if (!DesktopSettingsDocument.IsSupportedProxyType(
             SelectedProxyType.Value))
         {
-            return "Seleccione un tipo de proxy admitido.";
+            return Localizer.Text("winui.ajustes.seleccione_un_tipo_de_proxy_admitido");
         }
         if (NetworkFormValidation.ProxyPortError(ProxyPortText) is not null)
         {
-            return "El puerto del proxy debe estar entre 1 y 65535.";
+            return Localizer.Text("winui.ajustes.el_puerto_del_proxy_debe_estar_entre_1_y");
         }
         if (ProxyEnabled && SelectedProxyType.Value == "none")
         {
-            return "Seleccione proxy manual o desactive el uso de proxy.";
+            return Localizer.Text("winui.ajustes.seleccione_proxy_manual_o_desactive_el");
         }
         if (NetworkFormValidation.ProxyHostError(ProxyEnabled, SelectedProxyType.Value, ProxyHost) is not null)
-            return "Indique solo el host o la IP del proxy, sin esquema, ruta ni credenciales.";
+            return Localizer.Text("winui.ajustes.indique_solo_el_host_o_la_ip_del_proxy");
         if (!TryParseProxyExcludedUrls(
                 ProxyExcludedUrlsText,
                 out _))
         {
-            return "Las exclusiones del proxy admiten hasta 512 entradas de 2048 caracteres, sin controles.";
+            return Localizer.Text("winui.ajustes.las_exclusiones_del_proxy_admiten_hasta");
         }
         if (ProxyCredentialsConfigured &&
             IsProxyEndpointDirty())
         {
-            return "Quite primero las credenciales protegidas antes de cambiar el host o el puerto del proxy.";
+            return Localizer.Text("winui.ajustes.quite_primero_las_credenciales");
         }
 
         return IsDirty
-            ? "Cambios pendientes de guardar."
-            : "Las preferencias cargadas no tienen cambios pendientes.";
+            ? Localizer.Text("winui.ajustes.cambios_pendientes_de_guardar")
+            : Localizer.Text("winui.ajustes.las_preferencias_cargadas_no_tienen");
     }
 
     private void OnAvailabilityChanged(object? sender, EventArgs args)
@@ -1226,7 +1226,7 @@ public sealed class SettingsPageViewModel
             _session.Supports(DesktopOperationActions.SaveSettings);
         SetOperationAvailability(
             available,
-            "Motor local listo para cargar y guardar preferencias.");
+            Localizer.Text("winui.ajustes.motor_local_listo_para_cargar_y_guardar"));
         if (!available)
         {
             _operationCancellation?.Cancel();
@@ -1313,7 +1313,7 @@ public sealed class SettingsPageViewModel
             IsDirty &&
             string.Equals(
                 ValidationMessage,
-                "Cambios pendientes de guardar.",
+                Localizer.Text("winui.ajustes.cambios_pendientes_de_guardar"),
                 StringComparison.Ordinal);
         CanCancel = _isActive && IsBusy;
     }
@@ -1332,7 +1332,7 @@ public sealed class SettingsPageViewModel
     private void ShowIncoherentResult(string message)
     {
         ShowStatus(
-            "Respuesta no utilizable",
+            Localizer.Text("winui.ajustes.respuesta_no_utilizable"),
             message,
             InfoBarSeverity.Error);
         RequestDiagnostic(OperationDiagnosticMapper.FromException(
@@ -1395,40 +1395,40 @@ public sealed class SettingsPageViewModel
             result.Data is null)
         {
             SetProxyStoreUnavailable(
-                "El motor local no confirmó el estado del almacén.");
+                Localizer.Text("winui.ajustes.el_motor_local_no_confirmo_el_estado_del"));
             return false;
         }
 
         ProxySecretStoreAvailable = result.Data.Available;
         ProxySecurityStatusTitle = result.Data.Available
-            ? "Almacén seguro disponible"
-            : "Almacén seguro no disponible";
+            ? Localizer.Text("winui.ajustes.almacen_seguro_disponible")
+            : Localizer.Text("winui.ajustes.almacen_seguro_no_disponible");
         // No se representa Reason: el backend puede incluir detalles internos.
         ProxySecurityStatusMessage = result.Data.Available
             ? result.Data.Backend switch
             {
                 "dpapi-user" =>
-                    "La contraseña se protege con DPAPI para el usuario actual de Windows.",
+                    Localizer.Text("winui.ajustes.la_contrasena_se_protege_con_dpapi_para"),
                 "secret-service" =>
-                    "La contraseña se protege en el almacén de secretos del sistema.",
+                    Localizer.Text("winui.ajustes.la_contrasena_se_protege_en_el_almacen"),
                 "keychain" =>
-                    "La contraseña se protege en el llavero del sistema.",
+                    Localizer.Text("winui.ajustes.la_contrasena_se_protege_en_el_llavero"),
                 _ =>
-                    "El sistema operativo confirmó un almacén protegido.",
+                    Localizer.Text("winui.ajustes.el_sistema_operativo_confirmo_un_almacen"),
             }
-            : "La autenticación del proxy no puede configurarse hasta que el almacén protegido esté disponible.";
+            : Localizer.Text("winui.ajustes.la_autenticacion_del_proxy_no_puede");
         ProxyRuntimeModeMessage = result.Data.RuntimeMode switch
         {
-            "disabled" => "Modo en uso: proxy desactivado.",
-            "system" => "Modo en uso: configuración del sistema.",
+            "disabled" => Localizer.Text("winui.ajustes.modo_en_uso_proxy_desactivado"),
+            "system" => Localizer.Text("winui.ajustes.modo_en_uso_configuracion_del_sistema"),
             "manual-secure-store" =>
-                "Modo en uso: proxy manual con credenciales protegidas.",
+                Localizer.Text("winui.ajustes.modo_en_uso_proxy_manual_con"),
             "manual-no-secret" =>
-                "Modo en uso: proxy manual sin autenticación protegida.",
+                Localizer.Text("winui.ajustes.modo_en_uso_proxy_manual_sin"),
             "fail-closed" =>
-                "Modo en uso: conexión bloqueada por configuración no segura.",
+                Localizer.Text("winui.ajustes.modo_en_uso_conexion_bloqueada_por"),
             "default-environment" =>
-                "Modo en uso: configuración predeterminada del entorno.",
+                Localizer.Text("winui.ajustes.modo_en_uso_configuracion_predeterminada"),
             _ => string.Empty,
         };
         return true;
@@ -1437,7 +1437,7 @@ public sealed class SettingsPageViewModel
     private void SetProxyStoreUnavailable(string safeMessage)
     {
         ProxySecretStoreAvailable = false;
-        ProxySecurityStatusTitle = "Almacén seguro no disponible";
+        ProxySecurityStatusTitle = Localizer.Text("winui.ajustes.almacen_seguro_no_disponible");
         ProxySecurityStatusMessage = safeMessage;
         ProxyRuntimeModeMessage = string.Empty;
     }

@@ -80,7 +80,7 @@ public sealed partial class MainWindow : Window
     internal void ShowSettingsPage()
     {
         RootNavigation.SelectedItem = SettingsNavigationItem;
-        ViewModel.ActivePageTitle = Localizer.Text("Configuración");
+        ViewModel.ActivePageTitle = Localizer.Text("winui.comun.configuracion");
         if (ContentFrame.CurrentSourcePageType != typeof(SettingsPage))
         {
             ContentFrame.Navigate(typeof(SettingsPage));
@@ -112,7 +112,7 @@ public sealed partial class MainWindow : Window
         RootNavigation.SelectedItem = HelpNavigationItem;
         ViewModel.ActivePageTitle = SealUiCatalog.Text(
             Localizer.Language,
-            "Ayuda");
+            "winui.comun.ayuda");
         if (ContentFrame.CurrentSourcePageType != typeof(HelpPage))
         {
             ContentFrame.Navigate(typeof(HelpPage));
@@ -129,7 +129,7 @@ public sealed partial class MainWindow : Window
         RootNavigation.SelectedItem = AboutNavigationItem;
         ViewModel.ActivePageTitle = SealUiCatalog.Text(
             Localizer.Language,
-            "Acerca de GrxFirma");
+            "winui.comun.acerca_de_grxfirma");
         if (ContentFrame.CurrentSourcePageType != typeof(AboutPage))
         {
             ContentFrame.Navigate(typeof(AboutPage));
@@ -168,14 +168,14 @@ public sealed partial class MainWindow : Window
         {
             content.Children.Add(new TextBlock
             {
-                Text = Label("Novedades no disponibles en esta instalación."),
+                Text = Label("winui.ventana.novedades_no_disponibles_en_esta"),
                 TextWrapping = TextWrapping.Wrap,
             });
         }
         var dialog = new ContentDialog
         {
             XamlRoot = RootNavigation.XamlRoot,
-            Title = Label("Novedades de GrxFirma %1").Replace("%1", version),
+            Title = Label("winui.ventana.novedades_de_grxfirma_1").Replace("%1", version),
             Content = new ScrollViewer
             {
                 Content = content,
@@ -183,7 +183,7 @@ public sealed partial class MainWindow : Window
                 MaxHeight = 520,
                 MinWidth = 320,
             },
-            PrimaryButtonText = Label("Entendido"),
+            PrimaryButtonText = Label("winui.ventana.entendido"),
             DefaultButton = ContentDialogButton.Primary,
         };
         var result = await Localizer.ShowAsync(dialog);
@@ -236,10 +236,10 @@ public sealed partial class MainWindow : Window
     {
         var language = Localizer.Language;
         EniNavigationItem.Content = SealUiCatalog.Text(language, "paridad.lote3.eni.nav");
-        UpdateNotice.Title = SealUiCatalog.Text(language, "Nueva versión disponible");
-        DownloadUpdateButton.Content = SealUiCatalog.Text(language, "Descargar e instalar");
-        ReleaseNotesButton.Content = SealUiCatalog.Text(language, "Ver novedades");
-        DismissUpdateButton.Content = SealUiCatalog.Text(language, "Ahora no");
+        UpdateNotice.Title = SealUiCatalog.Text(language, "winui.comun.nueva_version_disponible");
+        DownloadUpdateButton.Content = SealUiCatalog.Text(language, "winui.ventana.descargar_e_instalar");
+        ReleaseNotesButton.Content = SealUiCatalog.Text(language, "winui.ventana.ver_novedades");
+        DismissUpdateButton.Content = SealUiCatalog.Text(language, "winui.ventana.ahora_no");
     }
 
     private void OnNavigationItemInvoked(
@@ -253,17 +253,17 @@ public sealed partial class MainWindow : Window
 
         ViewModel.ActivePageTitle = tag switch
         {
-            "sign" => Localizer.Text("Firmar"),
-            "verify" => Localizer.Text("Verificar"),
-            "hash" => Localizer.Text("Huellas"),
-            "protect" => Localizer.Text("Proteger"),
-            "certificates" => Localizer.Text("Certificados"),
-            "facturae" => Localizer.Text("Facturae y FACe"),
+            "sign" => Localizer.Text("winui.comun.firmar"),
+            "verify" => Localizer.Text("winui.comun.verificar"),
+            "hash" => Localizer.Text("winui.ventana.huellas"),
+            "protect" => Localizer.Text("winui.comun.proteger"),
+            "certificates" => Localizer.Text("winui.comun.certificados"),
+            "facturae" => Localizer.Text("winui.comun.facturae_y_face"),
             "eni" => SealUiCatalog.Text(Localizer.Language, "paridad.lote3.eni.nav"),
-            "settings" => Localizer.Text("Configuración"),
-            "diagnostics" => Localizer.Text("Diagnóstico"),
-            "help" => Localizer.Text("Ayuda"),
-            "about" => Localizer.Text("Acerca de"),
+            "settings" => Localizer.Text("winui.comun.configuracion"),
+            "diagnostics" => Localizer.Text("winui.comun.diagnostico"),
+            "help" => Localizer.Text("winui.comun.ayuda"),
+            "about" => Localizer.Text("winui.comun.acerca_de"),
             _ => "GrxFirma",
         };
 
@@ -404,13 +404,13 @@ public sealed partial class MainWindow : Window
             _updateReleaseUrl = release.Url;
             var language = Localizer.Language;
             var message = SealUiCatalog.Text(language,
-                "Hay una versión nueva de GrxFirma (%1). Tienes la %2.")
+                "winui.ventana.hay_una_version_nueva_de_grxfirma_1")
                 .Replace("%1", release.Version).Replace("%2", current);
             // Solo se avisa del motor si su conexión ha fallado de verdad, no si
             // la comprobación se adelantó a que terminara de conectar.
             if (ViewModel.HasConnectionError)
                 message += "\n" + SealUiCatalog.Text(language,
-                    "Además, el motor local no responde; instalar la versión nueva puede resolverlo.");
+                    "winui.ventana.ademas_el_motor_local_no_responde");
             ViewModel.SetUpdateAvailable(message);
             _app.NotifyUpdateInTray(message);
         }

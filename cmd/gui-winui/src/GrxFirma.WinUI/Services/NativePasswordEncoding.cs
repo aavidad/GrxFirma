@@ -41,7 +41,7 @@ public static class NativePasswordEncoding
             {
                 throw new Win32Exception(
                     Marshal.GetLastWin32Error(),
-                    "La contraseña contiene texto Unicode no válido.");
+                    Localizer.Text("winui.contrasena.la_contrasena_contiene_texto_unicode_no"));
             }
 
             var utf8 = GC.AllocateUninitializedArray<byte>(
@@ -61,7 +61,7 @@ public static class NativePasswordEncoding
                 {
                     throw new Win32Exception(
                         Marshal.GetLastWin32Error(),
-                        "Windows no pudo codificar la contraseña de forma segura.");
+                        Localizer.Text("winui.contrasena.windows_no_pudo_codificar_la_contrasena"));
                 }
                 return utf8;
             }

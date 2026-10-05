@@ -17,10 +17,10 @@ namespace GrxFirma.WinUI.Views;
 
 public sealed partial class CertificatesPage : Page
 {
-    private static readonly SecurePasswordPromptRequest
-        CredentialPasswordPrompt = new(
-            "Contraseña de la credencial",
-            "&Contraseña de P12/PFX/PEM (puede quedar vacía):",
+    private static SecurePasswordPromptRequest
+        CredentialPasswordPrompt => new(
+            Localizer.Text("winui.comun.contrasena_de_la_credencial"),
+            Localizer.Text("winui.comun.contrasena_de_p12_pfx_pem_puede_quedar"),
             maximumCharacters: 1024);
 
     private readonly DesktopOperationSession _session;
@@ -191,7 +191,7 @@ public sealed partial class CertificatesPage : Page
             DesktopOperationActions.SmartcardStatus,
             out var operations))
         {
-            ShowSmartcardNotice("El motor local no ofrece la consulta de tarjetas.",
+            ShowSmartcardNotice(Localizer.Text("winui.comun.el_motor_local_no_ofrece_la_consulta_de"),
                 InfoBarSeverity.Warning, false);
             return;
         }
@@ -202,7 +202,7 @@ public sealed partial class CertificatesPage : Page
             if (!result.IsSuccess || result.Data is null ||
                 !string.Equals(result.Outcome, "success", StringComparison.Ordinal))
             {
-                ShowSmartcardNotice("No se pudo consultar el lector de tarjetas.",
+                ShowSmartcardNotice(Localizer.Text("winui.comun.no_se_pudo_consultar_el_lector_de"),
                     InfoBarSeverity.Error, false);
                 return;
             }
@@ -228,7 +228,7 @@ public sealed partial class CertificatesPage : Page
         }
         catch (Exception)
         {
-            ShowSmartcardNotice("No se pudo consultar el lector de tarjetas.",
+            ShowSmartcardNotice(Localizer.Text("winui.comun.no_se_pudo_consultar_el_lector_de"),
                 InfoBarSeverity.Error, false);
         }
     }
@@ -348,9 +348,9 @@ public sealed partial class CertificatesPage : Page
             return;
         }
         if (!await ConfirmTemporaryRemovalAsync(
-            "Retirar credencial temporal",
-            "La clave privada seleccionada dejará de estar disponible durante esta sesión.",
-            "Retirar"))
+            Localizer.Text("winui.certificados.retirar_credencial_temporal"),
+            Localizer.Text("winui.certificados.la_clave_privada_seleccionada_dejara_de"),
+            Localizer.Text("winui.certificados.retirar")))
         {
             return;
         }
@@ -372,9 +372,9 @@ public sealed partial class CertificatesPage : Page
             return;
         }
         if (!await ConfirmTemporaryRemovalAsync(
-            "Retirar todas las credenciales temporales",
-            "Todas las claves privadas cargadas solo para esta sesión dejarán de estar disponibles.",
-            "Retirar todas"))
+            Localizer.Text("winui.certificados.retirar_todas_las_credenciales"),
+            Localizer.Text("winui.certificados.todas_las_claves_privadas_cargadas_solo"),
+            Localizer.Text("winui.certificados.retirar_todas")))
         {
             return;
         }
@@ -519,7 +519,7 @@ public sealed partial class CertificatesPage : Page
             Title = title,
             Content = message,
             PrimaryButtonText = primaryButtonText,
-            CloseButtonText = "Cancelar",
+            CloseButtonText = Localizer.Text("winui.comun.cancelar"),
             DefaultButton = ContentDialogButton.Close,
         };
         return await Localizer.ShowAsync(dialog) ==

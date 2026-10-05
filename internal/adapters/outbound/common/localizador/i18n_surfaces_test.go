@@ -81,6 +81,42 @@ func TestI18nQMLNoIntroduceTextoVisibleDirecto(t *testing.T) {
 	}
 }
 
+// Los nombres de tema son datos del QML que se muestran con tr(nombre): no los
+// ve la prueba anterior porque «name» no es una propiedad visible. Cada uno
+// debe tener traducción en todos los catálogos.
+func TestI18nQMLNombresDeTemaTienenTraduccion(t *testing.T) {
+	ruta := filepath.Join(raizRepositorio(t), "cmd", "gui-qml", "qml", "main.qml")
+	fuente := leerSuperficie(t, ruta)
+	if !strings.Contains(fuente, "tr(themes[index].name)") {
+		t.Fatalf("%s: los nombres de tema ya no pasan por tr(); revise esta prueba", ruta)
+	}
+	inicio := strings.Index(fuente, "property var themes: [")
+	if inicio < 0 {
+		t.Fatalf("%s: no se encontró la lista de temas", ruta)
+	}
+	fin := strings.Index(fuente[inicio:], "\n    ]")
+	if fin < 0 {
+		t.Fatalf("%s: lista de temas sin cierre", ruta)
+	}
+	nombre := regexp.MustCompile(`(?m)^\s*name:\s*("(?:\\.|[^"\\])*")`)
+	coincidencias := nombre.FindAllStringSubmatch(fuente[inicio:inicio+fin], -1)
+	if len(coincidencias) == 0 {
+		t.Fatalf("%s: lista de temas vacía", ruta)
+	}
+	for _, idioma := range append([]string{"es"}, idiomasI18n...) {
+		catalogo := cargarLocale(t, idioma)
+		for _, m := range coincidencias {
+			texto, err := strconv.Unquote(m[1])
+			if err != nil {
+				t.Fatalf("%s: nombre de tema inválido %s: %v", ruta, m[1], err)
+			}
+			if strings.TrimSpace(catalogo[texto]) == "" {
+				t.Errorf("%s: falta la traducción del tema %q", idioma, texto)
+			}
+		}
+	}
+}
+
 func TestI18nBridgesQtLocalizanLiteralesVisibles(t *testing.T) {
 	raiz := raizRepositorio(t)
 	// Cubrir tanto QStringLiteral("...") como QString("..."). El segundo

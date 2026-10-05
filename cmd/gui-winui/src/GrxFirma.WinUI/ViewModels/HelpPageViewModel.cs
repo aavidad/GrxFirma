@@ -13,9 +13,9 @@ public sealed class HelpPageViewModel
 {
     private readonly IHelpLauncherService _launcher;
     private CancellationTokenSource? _pageLifetime;
-    private string _statusTitle = "Ayuda preparada";
+    private string _statusTitle = Localizer.Text("winui.ayuda.ayuda_preparada");
     private string _statusMessage =
-        "Elija una opción para consultar ayuda o soporte.";
+        Localizer.Text("winui.ayuda.elija_una_opcion_para_consultar_ayuda_o");
     private bool _isActive;
     private bool _isBusy;
     private bool _canLaunch;
@@ -26,9 +26,9 @@ public sealed class HelpPageViewModel
 
     public HelpPageViewModel(IHelpLauncherService launcher)
         : base(
-            "Ayuda",
-            "Guía básica, recursos instalados y canales oficiales de soporte.",
-            "La ayuda visual está temporalmente inactiva.")
+            Localizer.Text("winui.comun.ayuda"),
+            Localizer.Text("winui.ayuda.guia_basica_recursos_instalados_y"),
+            Localizer.Text("winui.ayuda.la_ayuda_visual_esta_temporalmente"))
     {
         ArgumentNullException.ThrowIfNull(launcher);
         _launcher = launcher;
@@ -81,7 +81,7 @@ public sealed class HelpPageViewModel
         _isActive = true;
         SetOperationAvailability(
             true,
-            "Estos recursos son locales o usan destinos oficiales fijos. Ninguna ruta ni dirección recibida durante una firma puede abrirse desde aquí.");
+            Localizer.Text("winui.ayuda.estos_recursos_son_locales_o_usan"));
         CanLaunch = Volatile.Read(ref _operationInProgress) == 0;
     }
 
@@ -101,22 +101,22 @@ public sealed class HelpPageViewModel
 
     public Task OpenInstalledManualAsync() =>
         ExecuteAsync(
-            "Buscando ayuda instalada",
+            Localizer.Text("winui.ayuda.buscando_ayuda_instalada"),
             _launcher.OpenInstalledManualAsync);
 
     public Task OpenInstallationFolderAsync() =>
         ExecuteAsync(
-            "Abriendo carpeta de instalación",
+            Localizer.Text("winui.ayuda.abriendo_carpeta_de_instalacion"),
             _launcher.OpenInstallationFolderAsync);
 
     public Task OpenOfficialProjectAsync() =>
         ExecuteAsync(
-            "Abriendo proyecto oficial",
+            Localizer.Text("winui.ayuda.abriendo_proyecto_oficial"),
             _launcher.OpenOfficialProjectAsync);
 
     public Task OpenPrivateSupportAsync() =>
         ExecuteAsync(
-            "Abriendo contacto privado",
+            Localizer.Text("winui.ayuda.abriendo_contacto_privado"),
             _launcher.OpenPrivateSupportAsync);
 
     private async Task ExecuteAsync(
@@ -138,7 +138,7 @@ public sealed class HelpPageViewModel
         CanLaunch = false;
         HasStatus = true;
         StatusTitle = progressTitle;
-        StatusMessage = "Espere un momento.";
+        StatusMessage = Localizer.Text("winui.comun.espere_un_momento");
         StatusSeverity = InfoBarSeverity.Informational;
 
         try
@@ -150,8 +150,8 @@ public sealed class HelpPageViewModel
             }
 
             StatusTitle = result.Succeeded
-                ? "Acción completada"
-                : "No se pudo completar";
+                ? Localizer.Text("winui.comun.accion_completada")
+                : Localizer.Text("winui.comun.no_se_pudo_completar");
             StatusMessage = result.Message;
             StatusSeverity = result.Succeeded
                 ? InfoBarSeverity.Success
@@ -161,9 +161,9 @@ public sealed class HelpPageViewModel
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "Acción cancelada";
+                StatusTitle = Localizer.Text("winui.comun.accion_cancelada");
                 StatusMessage =
-                    "La apertura se canceló sin modificar ningún documento.";
+                    Localizer.Text("winui.ayuda.la_apertura_se_cancelo_sin_modificar");
                 StatusSeverity = InfoBarSeverity.Informational;
             }
         }
@@ -171,9 +171,9 @@ public sealed class HelpPageViewModel
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = "No se pudo completar";
+                StatusTitle = Localizer.Text("winui.comun.no_se_pudo_completar");
                 StatusMessage =
-                    "Windows no pudo abrir el recurso solicitado. Inténtelo de nuevo o use otra opción de ayuda.";
+                    Localizer.Text("winui.ayuda.windows_no_pudo_abrir_el_recurso");
                 StatusSeverity = InfoBarSeverity.Error;
             }
         }

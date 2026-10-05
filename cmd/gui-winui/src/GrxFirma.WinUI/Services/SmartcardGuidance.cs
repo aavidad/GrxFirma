@@ -22,26 +22,26 @@ internal static class SmartcardGuidance
         if (status.Readers.Count == 0)
         {
             return new(
-                "No se ha encontrado ningún lector de tarjetas. Conecte un lector compatible y vuelva a intentarlo.",
+                Localizer.Text("winui.certificados.no_se_ha_encontrado_ningun_lector_de"),
                 InfoBarSeverity.Warning,
                 false);
         }
         if (!status.Readers.Any(reader => reader.Present))
         {
             return new(
-                "Inserte el DNIe o la tarjeta en el lector y vuelva a intentarlo.",
+                Localizer.Text("winui.certificados.inserte_el_dnie_o_la_tarjeta_en_el"),
                 InfoBarSeverity.Informational,
                 false);
         }
         if (hasUnlockableCertificate)
         {
             return new(
-                "Tarjeta detectada y certificado seleccionado. Al firmar, el controlador de Windows solicitará el PIN.",
+                Localizer.Text("winui.certificados.tarjeta_detectada_y_certificado"),
                 InfoBarSeverity.Success,
                 false);
         }
         return new(
-            "Tarjeta detectada, pero no aparecen certificados de firma. Falta el controlador del fabricante; para el DNIe, descárguelo de la web oficial.",
+            Localizer.Text("winui.certificados.tarjeta_detectada_pero_no_aparecen"),
             InfoBarSeverity.Warning,
             true);
     }

@@ -8,6 +8,8 @@ import re
 import unittest
 import xml.etree.ElementTree as ET
 
+from winui_catalog import read_with_catalog
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 APP = ROOT / "cmd/gui-winui/src/GrxFirma.WinUI"
@@ -16,18 +18,10 @@ APP = ROOT / "cmd/gui-winui/src/GrxFirma.WinUI"
 class VerifyAndHashFunctionalContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.verify_vm = (
-            APP / "ViewModels/VerifyPageViewModel.cs"
-        ).read_text(encoding="utf-8")
-        cls.hash_vm = (
-            APP / "ViewModels/HashPageViewModel.cs"
-        ).read_text(encoding="utf-8")
-        cls.verify_page = (
-            APP / "Views/VerifyPage.xaml.cs"
-        ).read_text(encoding="utf-8")
-        cls.hash_page = (
-            APP / "Views/HashPage.xaml.cs"
-        ).read_text(encoding="utf-8")
+        cls.verify_vm = read_with_catalog(APP / "ViewModels/VerifyPageViewModel.cs")
+        cls.hash_vm = read_with_catalog(APP / "ViewModels/HashPageViewModel.cs")
+        cls.verify_page = read_with_catalog(APP / "Views/VerifyPage.xaml.cs")
+        cls.hash_page = read_with_catalog(APP / "Views/HashPage.xaml.cs")
         cls.verify_xaml_path = APP / "Views/VerifyPage.xaml"
         cls.hash_xaml_path = APP / "Views/HashPage.xaml"
         cls.verify_xaml = cls.verify_xaml_path.read_text(encoding="utf-8")
@@ -79,7 +73,7 @@ class VerifyAndHashFunctionalContractTests(unittest.TestCase):
         )
         self.assertIn(
             '"Firma íntegra; confianza no determinada"',
-            (APP.parent / "GrxFirma.WinUI.Core/Operations/VerificationPresentation.cs").read_text(encoding="utf-8"),
+            read_with_catalog(APP.parent / "GrxFirma.WinUI.Core/Operations/VerificationPresentation.cs"),
         )
         self.assertIn(
             "VerificationAssessment.HasEstablishedTrust(data)",

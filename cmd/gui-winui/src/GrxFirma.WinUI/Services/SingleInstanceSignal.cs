@@ -30,7 +30,7 @@ internal sealed class SingleInstanceSignal : IDisposable
     public static SingleInstanceSignal Open()
     {
         var sid = WindowsIdentity.GetCurrent().User?.Value
-            ?? throw new InvalidOperationException("No se pudo identificar al usuario.");
+            ?? throw new InvalidOperationException(Localizer.Text("winui.comun.no_se_pudo_identificar_al_usuario"));
         var name = $@"Local\GrxFirma.WinUI.Show.{sid}";
         var sddl = $"D:P(A;;0x001F0003;;;{sid})(A;;0x001F0003;;;SY)";
         if (!ConvertStringSecurityDescriptorToSecurityDescriptor(

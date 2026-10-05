@@ -6,6 +6,8 @@
 from pathlib import Path
 import unittest
 
+from winui_catalog import read_with_catalog
+
 
 ROOT = Path(__file__).resolve().parents[3]
 SERVICES = (
@@ -24,7 +26,7 @@ class FilePickerServiceContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.api = INTERFACE.read_text(encoding="utf-8")
-        cls.implementation = IMPLEMENTATION.read_text(encoding="utf-8")
+        cls.implementation = read_with_catalog(IMPLEMENTATION)
 
     def test_api_is_injectable_and_covers_open_save_folder_and_multiple(self) -> None:
         self.assertIn("interface IFilePickerService", self.api)

@@ -7,6 +7,8 @@ from pathlib import Path
 import unittest
 import xml.etree.ElementTree as ET
 
+from winui_catalog import read_with_catalog
+
 
 ROOT = Path(__file__).resolve().parents[3]
 WINUI = ROOT / "cmd/gui-winui/src/GrxFirma.WinUI"
@@ -28,12 +30,12 @@ class AboutFunctionalContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.main_xaml = MAIN_XAML.read_text(encoding="utf-8")
-        cls.main_code = MAIN_CODE.read_text(encoding="utf-8")
+        cls.main_code = read_with_catalog(MAIN_CODE)
         cls.xaml = VIEW.read_text(encoding="utf-8")
-        cls.code_behind = CODE_BEHIND.read_text(encoding="utf-8")
-        cls.view_model = VIEW_MODEL.read_text(encoding="utf-8")
-        cls.api = INTERFACE.read_text(encoding="utf-8")
-        cls.service = SERVICE.read_text(encoding="utf-8")
+        cls.code_behind = read_with_catalog(CODE_BEHIND)
+        cls.view_model = read_with_catalog(VIEW_MODEL)
+        cls.api = read_with_catalog(INTERFACE)
+        cls.service = read_with_catalog(SERVICE)
         cls.project = PROJECT.read_text(encoding="utf-8")
         cls.main_root = ET.parse(MAIN_XAML).getroot()
         cls.root = ET.parse(VIEW).getroot()
@@ -50,7 +52,7 @@ class AboutFunctionalContractTests(unittest.TestCase):
             about_items[0].get("Content"),
             "Acerca de",
         )
-        self.assertIn('"about" => Localizer.Text("Acerca de")', self.main_code)
+        self.assertIn('"about" => "Acerca de"', self.main_code)
         self.assertIn('"about" => typeof(AboutPage)', self.main_code)
 
     def test_identity_authorship_and_license_are_visible(self) -> None:
@@ -149,7 +151,7 @@ class AboutFunctionalContractTests(unittest.TestCase):
         self.assertIn("DesktopOperationActions.CheckUpdates", self.view_model)
 
     def test_update_result_exposes_official_channel_state(self) -> None:
-        contract = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI.Core/Operations/DesktopUpdateContracts.cs").read_text(encoding="utf-8")
+        contract = read_with_catalog(ROOT / "cmd/gui-winui/src/GrxFirma.WinUI.Core/Operations/DesktopUpdateContracts.cs")
         self.assertIn('[JsonPropertyName("estado")]', contract)
         self.assertIn('[JsonPropertyName("mensaje")]', contract)
         self.assertIn('[JsonPropertyName("titulo")]', contract)

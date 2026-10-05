@@ -7,6 +7,8 @@ from pathlib import Path
 import unittest
 import xml.etree.ElementTree as ET
 
+from winui_catalog import read_with_catalog
+
 
 ROOT = Path(__file__).resolve().parents[3]
 WINUI = (
@@ -34,11 +36,11 @@ def local_name(element):
 class HelpFunctionalContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.api = INTERFACE.read_text(encoding="utf-8")
-        cls.service = SERVICE.read_text(encoding="utf-8")
-        cls.view_model = VIEW_MODEL.read_text(encoding="utf-8")
+        cls.api = read_with_catalog(INTERFACE)
+        cls.service = read_with_catalog(SERVICE)
+        cls.view_model = read_with_catalog(VIEW_MODEL)
         cls.xaml = VIEW.read_text(encoding="utf-8")
-        cls.code_behind = CODE_BEHIND.read_text(encoding="utf-8")
+        cls.code_behind = read_with_catalog(CODE_BEHIND)
         cls.project = PROJECT.read_text(encoding="utf-8")
         cls.user_guide = USER_GUIDE.read_text(encoding="utf-8")
         cls.root = ET.parse(VIEW).getroot()
