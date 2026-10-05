@@ -431,6 +431,34 @@ Pendiente: revisión de usabilidad independiente y prueba en dispositivo
 han ejecutado); leer el QR desde la cámara o una imagen; más de una
 identidad por sesión para que el filtro de certificados tenga uso.
 
+## Revisión de usabilidad y accesibilidad
+
+La pantalla principal sigue tres pasos: «1. Documento», «2. Certificado» y
+«3. Firmar o verificar». El resultado sale en una tarjeta justo debajo de los
+botones; al terminar una operación se desplaza a la vista y TalkBack lo lee
+por su región viva. Ayuda, Idioma, Preferencias, Diagnóstico y Acerca de están
+en el menú de la barra. Las opciones avanzadas de firma (operación, perfil,
+fecha y hora certificadas y formato) y «Otras herramientas» están plegadas, y
+un resumen dice qué se usará si no se abren.
+
+- Si Firmar, Verificar o el DNIe están desactivados, un texto explica qué
+  falta.
+- Descartar una firma o un resultado sin guardar pide confirmación; después
+  aparece un aviso neutro, no un error.
+- El certificado PKCS#12 se cierra solo si la app pasa en segundo plano más
+  del tiempo elegido en Preferencias (1, 5 o 15 minutos, o nunca; 5 por
+  defecto). Mientras está abierto, junto a Firmar se indica cuál es.
+- Los avisos que bloquean una acción salen en un Snackbar o dentro del editor
+  del sello, no en un Toast.
+- Los desplegables son campos `ExposedDropdownMenu` (`ui/DropdownField`), con
+  etiqueta y sin cortar las opciones largas.
+- La ayuda está dividida en apartados.
+
+Pendiente de esa revisión: guardar el informe de verificación en HTML legible
+como en escritorio (Android sigue guardando JSON); un buzón institucional de
+contacto; y comprobar con TalkBack y un móvil con NFC el editor del sello, los
+diálogos del DNIe y la tarjeta de resultado con un núcleo de producción.
+
 Comprobaciones locales adicionales:
 
 ```bash
