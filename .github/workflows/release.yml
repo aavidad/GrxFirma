@@ -22,9 +22,13 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      windows-signing-mode: ${{ steps.windows-signing.outputs.mode }}
     env:
       WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
       WINDOWS_SIGNING_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      SIGNPATH_ORGANIZATION_ID: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
       WINDOWS_SIGNING_CERT_THUMBPRINT: ${{ vars.WINDOWS_SIGNING_CERT_THUMBPRINT }}
       ANDROID_SIGNING_KEYSTORE_BASE64: ${{ secrets.ANDROID_SIGNING_KEYSTORE_BASE64 }}
       GRXFIRMA_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.GRXFIRMA_ANDROID_KEYSTORE_PASSWORD }}
@@ -68,6 +72,14 @@ jobs:
 
       - name: Exigir todas las credenciales oficiales
         run: bash scripts/release/check-official-release-env.sh
+
+      # SignPath (solo tags sin sufijo) o PFX propio, según los secretos.
+      - name: Elegir la via de firma Windows
+        id: windows-signing
+        run: |
+          mode="$(bash scripts/release/select-windows-signing-mode.sh "${GITHUB_REF_NAME}")"
+          echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
+          echo "Firma Windows: ${mode}" >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Validar material OpenPGP antes de compilar
         run: |
@@ -482,11 +494,21 @@ jobs:
       contents: read
       actions: read
     runs-on: windows-2022
-    timeout-minutes: 50
+    # Incluye hasta dos aprobaciones manuales en SignPath.
+    timeout-minutes: 150
     needs:
       - release-policy
       - build-firefox-extension
+    env:
+      WINDOWS_SIGNING_MODE: ${{ needs.release-policy.outputs.windows-signing-mode }}
     steps:
+      - name: Exigir una via de firma Windows conocida
+        shell: pwsh
+        run: |
+          if ($env:WINDOWS_SIGNING_MODE -notin @('pfx', 'signpath')) {
+            throw "Via de firma Windows desconocida: '$env:WINDOWS_SIGNING_MODE'"
+          }
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -547,6 +569,7 @@ jobs:
           --with-winui --with-qt --nsis
 
       - name: Firmar payloads y reconstruir contenedores Windows
+        if: ${{ env.WINDOWS_SIGNING_MODE == 'pfx' }}
         shell: pwsh
         env:
           WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
@@ -558,31 +581,67 @@ jobs:
             -RepositoryRoot "${env:GITHUB_WORKSPACE}" `
             -OutputDirectory "${env:GITHUB_WORKSPACE}/release/windows-official"
 
-      - name: Subir artefactos Authenticode Windows
-        id: windows-artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: windows-installers
-          path: release/windows-official/*
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Detectar credenciales SignPath completas
-        id: signpath
-        if: ${{ !contains(github.ref_name, '-') }}
+      # SignPath: ronda 1 con los PE de las etapas y los uninstallers NSIS;
+      # ronda 2 con los instaladores. Cada fichero devuelto se compara con el
+      # enviado y se verifica su Authenticode antes de usarlo.
+      - name: SignPath ronda 1 - preparar PE y uninstallers
+        if: ${{ env.WINDOWS_SIGNING_MODE == 'signpath' }}
         shell: pwsh
         env:
-          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
-          SIGNPATH_ORGANIZATION_ID: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          WINDOWS_SIGNING_CERT_THUMBPRINT: ${{ vars.WINDOWS_SIGNING_CERT_THUMBPRINT }}
         run: |
-          if ($env:SIGNPATH_API_TOKEN -and $env:SIGNPATH_ORGANIZATION_ID) {
-            "enabled=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          }
+          ./scripts/release/finalize-windows-release-signpath.ps1 `
+            -Phase Prepare `
+            -RepositoryRoot "${env:GITHUB_WORKSPACE}" `
+            -WorkDirectory "${env:RUNNER_TEMP}/signpath"
 
-      # La solicitud opcional no altera el paquete oficial ni su verificación.
-      # SignPath debe configurar el perfil para firmar el instalador y los EXE del ZIP.
-      - name: Solicitar firma adicional a SignPath Foundation
-        if: ${{ steps.signpath.outputs.enabled == 'true' }}
+      - name: SignPath ronda 1 - subir artefacto sin firmar
+        id: signpath-round1-unsigned
+        if: ${{ env.WINDOWS_SIGNING_MODE == 'signpath' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-signpath-round1-unsigned
+          path: ${{ runner.temp }}/signpath/round1-unsigned/
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: SignPath ronda 1 - firmar y descargar
+        if: ${{ env.WINDOWS_SIGNING_MODE == 'signpath' }}
+        uses: signpath/github-action-submit-signing-request@ced31329c0317e779dad2eec2a7c3bb46ea1343e # v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: grxfirma
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: windows-payload
+          github-artifact-id: ${{ steps.signpath-round1-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: "3600"
+          output-artifact-directory: ${{ runner.temp }}/signpath/round1-signed
+
+      - name: SignPath ronda 2 - aplicar firmas y generar instaladores
+        if: ${{ env.WINDOWS_SIGNING_MODE == 'signpath' }}
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERT_THUMBPRINT: ${{ vars.WINDOWS_SIGNING_CERT_THUMBPRINT }}
+        run: |
+          ./scripts/release/finalize-windows-release-signpath.ps1 `
+            -Phase Installers `
+            -RepositoryRoot "${env:GITHUB_WORKSPACE}" `
+            -WorkDirectory "${env:RUNNER_TEMP}/signpath"
+
+      - name: SignPath ronda 2 - subir instaladores sin firmar
+        id: signpath-round2-unsigned
+        if: ${{ env.WINDOWS_SIGNING_MODE == 'signpath' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-signpath-round2-unsigned
+          path: ${{ runner.temp }}/signpath/round2-unsigned/
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: SignPath ronda 2 - firmar y descargar
+        if: ${{ env.WINDOWS_SIGNING_MODE == 'signpath' }}
         uses: signpath/github-action-submit-signing-request@ced31329c0317e779dad2eec2a7c3bb46ea1343e # v1
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -590,8 +649,30 @@ jobs:
           project-slug: grxfirma
           signing-policy-slug: release-signing
           artifact-configuration-slug: windows-installers
-          github-artifact-id: ${{ steps.windows-artifact.outputs.artifact-id }}
+          github-artifact-id: ${{ steps.signpath-round2-unsigned.outputs.artifact-id }}
           wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: "3600"
+          output-artifact-directory: ${{ runner.temp }}/signpath/round2-signed
+
+      - name: SignPath - verificar, regenerar evidencias y SHA256SUMS
+        if: ${{ env.WINDOWS_SIGNING_MODE == 'signpath' }}
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERT_THUMBPRINT: ${{ vars.WINDOWS_SIGNING_CERT_THUMBPRINT }}
+        run: |
+          ./scripts/release/finalize-windows-release-signpath.ps1 `
+            -Phase Complete `
+            -RepositoryRoot "${env:GITHUB_WORKSPACE}" `
+            -WorkDirectory "${env:RUNNER_TEMP}/signpath" `
+            -OutputDirectory "${env:GITHUB_WORKSPACE}/release/windows-official"
+
+      - name: Subir artefactos Authenticode Windows
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-installers
+          path: release/windows-official/*
+          if-no-files-found: error
+          retention-days: 30
 
   verify-windows:
     permissions:

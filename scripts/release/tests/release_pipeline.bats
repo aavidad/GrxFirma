@@ -85,6 +85,60 @@ set_valid_release_environment() {
   [[ "$output" == *"40 hexadecimales"* ]]
 }
 
+@test "official release preflight accepts SignPath without a PFX on an official tag" {
+  set_valid_release_environment
+  run env -u WINDOWS_SIGNING_PFX_BASE64 -u WINDOWS_SIGNING_PFX_PASSWORD \
+    SIGNPATH_API_TOKEN="test-token" \
+    SIGNPATH_ORGANIZATION_ID="00000000-0000-0000-0000-000000000000" \
+    GITHUB_REF_NAME="v1.2.3" \
+    bash "${REPO_ROOT}/scripts/release/check-official-release-env.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"firma Windows: signpath"* ]]
+}
+
+@test "official release preflight rejects SignPath alone on a test tag" {
+  set_valid_release_environment
+  run env -u WINDOWS_SIGNING_PFX_BASE64 -u WINDOWS_SIGNING_PFX_PASSWORD \
+    SIGNPATH_API_TOKEN="test-token" \
+    SIGNPATH_ORGANIZATION_ID="00000000-0000-0000-0000-000000000000" \
+    GITHUB_REF_NAME="v1.2.3-rc.1" \
+    bash "${REPO_ROOT}/scripts/release/check-official-release-env.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"no usa SignPath"* ]]
+}
+
+@test "Windows signing selector prefers SignPath on official tags and PFX on test tags" {
+  local both=(
+    WINDOWS_SIGNING_PFX_BASE64="dGVzdA=="
+    WINDOWS_SIGNING_PFX_PASSWORD="test-password"
+    SIGNPATH_API_TOKEN="test-token"
+    SIGNPATH_ORGANIZATION_ID="test-org"
+  )
+  run env "${both[@]}" \
+    bash "${REPO_ROOT}/scripts/release/select-windows-signing-mode.sh" v1.2.3
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"signpath" ]]
+  run env "${both[@]}" \
+    bash "${REPO_ROOT}/scripts/release/select-windows-signing-mode.sh" v1.2.3-rc.1
+  [ "$status" -eq 0 ]
+  [ "$output" = "pfx" ]
+}
+
+@test "Windows signing selector rejects incomplete or missing credentials" {
+  run env -i PATH="${PATH}" SIGNPATH_API_TOKEN="test-token" \
+    bash "${REPO_ROOT}/scripts/release/select-windows-signing-mode.sh" v1.2.3
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"SIGNPATH_ORGANIZATION_ID"* ]]
+  run env -i PATH="${PATH}" WINDOWS_SIGNING_PFX_PASSWORD="test-password" \
+    bash "${REPO_ROOT}/scripts/release/select-windows-signing-mode.sh" v1.2.3
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"WINDOWS_SIGNING_PFX_BASE64"* ]]
+  run env -i PATH="${PATH}" \
+    bash "${REPO_ROOT}/scripts/release/select-windows-signing-mode.sh" v1.2.3
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"falta una vía de firma Windows"* ]]
+}
+
 @test "isolated Firefox preflight rejects missing signing credentials" {
   run env \
     -u WEB_EXT_API_SECRET \

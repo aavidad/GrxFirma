@@ -7,9 +7,9 @@
 # Fail-closed credential preflight for tag-triggered official releases.
 set -euo pipefail
 
+# La firma Windows admite SignPath o un PFX propio; la elige
+# select-windows-signing-mode.sh según los secretos presentes.
 required=(
-  WINDOWS_SIGNING_PFX_BASE64
-  WINDOWS_SIGNING_PFX_PASSWORD
   WINDOWS_SIGNING_CERT_THUMBPRINT
   ANDROID_SIGNING_KEYSTORE_BASE64
   GRXFIRMA_ANDROID_KEYSTORE_PASSWORD
@@ -48,6 +48,9 @@ if (( ${#missing[@]} > 0 )); then
   printf '  - %s\n' "${missing[@]}" >&2
   exit 1
 fi
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+windows_signing_mode="$(bash "${script_dir}/select-windows-signing-mode.sh")"
 
 normalize_hex() {
   tr -d '[:space:]' <<<"$1" | tr '[:lower:]' '[:upper:]'
@@ -100,7 +103,9 @@ validate_base64() {
   fi
 }
 
-validate_base64 WINDOWS_SIGNING_PFX_BASE64
+if [[ "${windows_signing_mode}" == pfx ]]; then
+  validate_base64 WINDOWS_SIGNING_PFX_BASE64
+fi
 validate_base64 ANDROID_SIGNING_KEYSTORE_BASE64
 validate_base64 ANDROID_QA_KEYSTORE_BASE64
 validate_base64 MACOS_APPLICATION_CERT_P12_BASE64
@@ -108,4 +113,4 @@ validate_base64 MACOS_INSTALLER_CERT_P12_BASE64
 validate_base64 MACOS_NOTARY_KEY_P8_BASE64
 validate_base64 RELEASE_GPG_PRIVATE_KEY_BASE64
 
-echo "Preflight de credenciales de release oficial: OK."
+echo "Preflight de credenciales de release oficial: OK (firma Windows: ${windows_signing_mode})."

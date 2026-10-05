@@ -347,3 +347,127 @@ function Invoke-WindowsAuthenticodeSign {
         -ExpectedThumbprint $thumbprint `
         -RequireSha256Rfc3161
 }
+
+function Get-WindowsPeSigningLayout {
+    param(
+        [Parameter(Mandatory = $true)]
+        [byte[]]$Bytes,
+        [Parameter(Mandatory = $true)]
+        [string]$Label
+    )
+
+    if ($Bytes.Length -lt 64) {
+        throw "El fichero PE es demasiado corto: $Label"
+    }
+    $peOffset = [int64][BitConverter]::ToUInt32($Bytes, 0x3c)
+    if ($peOffset -lt 64 -or $peOffset + 26 -gt $Bytes.Length) {
+        throw "Cabecera PE no valida: $Label"
+    }
+    if ([BitConverter]::ToUInt32($Bytes, [int]$peOffset) -ne 0x00004550) {
+        throw "Firma PE no valida: $Label"
+    }
+    $optionalHeader = $peOffset + 24
+    $magic = [BitConverter]::ToUInt16($Bytes, [int]$optionalHeader)
+    switch ($magic) {
+        0x010b {
+            $rvaCountOffset = $optionalHeader + 92
+            $dataDirectories = $optionalHeader + 96
+            break
+        }
+        0x020b {
+            $rvaCountOffset = $optionalHeader + 108
+            $dataDirectories = $optionalHeader + 112
+            break
+        }
+        default { throw "Formato de cabecera opcional PE no soportado en ${Label}: $magic" }
+    }
+    $certificateDirectory = $dataDirectories + (8 * 4)
+    if ($certificateDirectory + 8 -gt $Bytes.Length) {
+        throw "El PE no contiene una tabla de directorios completa: $Label"
+    }
+    if ([BitConverter]::ToUInt32($Bytes, [int]$rvaCountOffset) -lt 5) {
+        throw "El PE no declara el directorio de certificados: $Label"
+    }
+    return [pscustomobject]@{
+        ChecksumOffset = [int]($optionalHeader + 64)
+        CertificateDirectoryOffset = [int]$certificateDirectory
+        CertificateOffset = [int64][BitConverter]::ToUInt32($Bytes, [int]$certificateDirectory)
+        CertificateSize = [int64][BitConverter]::ToUInt32($Bytes, [int]($certificateDirectory + 4))
+    }
+}
+
+# Comprueba que una firma externa (SignPath) solo ha anadido la tabla de
+# certificados al final del PE enviado, sin alterar ningun otro byte salvo la
+# suma de comprobacion PE y la entrada del directorio de certificados.
+function Assert-WindowsAuthenticodeSignedCopy {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$UnsignedPath,
+        [Parameter(Mandatory = $true)]
+        [string]$SignedPath
+    )
+
+    foreach ($path in @($UnsignedPath, $SignedPath)) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw "No existe el fichero que se debe comparar: $path"
+        }
+    }
+    $unsigned = [System.IO.File]::ReadAllBytes($UnsignedPath)
+    $signed = [System.IO.File]::ReadAllBytes($SignedPath)
+    $unsignedLayout = Get-WindowsPeSigningLayout `
+        -Bytes $unsigned `
+        -Label $UnsignedPath
+    $signedLayout = Get-WindowsPeSigningLayout `
+        -Bytes $signed `
+        -Label $SignedPath
+
+    if ($unsignedLayout.CertificateOffset -ne 0 -or
+        $unsignedLayout.CertificateSize -ne 0) {
+        throw "El original enviado a firmar ya contenia una tabla de certificados: $UnsignedPath"
+    }
+    if ($unsignedLayout.ChecksumOffset -ne $signedLayout.ChecksumOffset -or
+        $unsignedLayout.CertificateDirectoryOffset -ne
+            $signedLayout.CertificateDirectoryOffset) {
+        throw "La copia firmada cambia la cabecera PE: $SignedPath"
+    }
+    $alignedEnd = [int64]([math]::Ceiling($unsigned.Length / 8.0) * 8)
+    if ($signedLayout.CertificateOffset -ne $alignedEnd) {
+        throw "La firma no empieza justo al final del original alineado: $SignedPath"
+    }
+    if ($signedLayout.CertificateSize -lt 8 -or
+        $signedLayout.CertificateOffset + $signedLayout.CertificateSize -ne
+            $signed.Length) {
+        throw "La tabla de certificados no ocupa exactamente el final de la copia firmada: $SignedPath"
+    }
+    for ($index = [int64]$unsigned.Length; $index -lt $alignedEnd; $index++) {
+        if ($signed[$index] -ne 0) {
+            throw "El relleno previo a la firma no es nulo: $SignedPath"
+        }
+    }
+
+    $prefix = [byte[]]::new($unsigned.Length)
+    [Array]::Copy($signed, $prefix, $unsigned.Length)
+    [Array]::Copy(
+        $unsigned,
+        $unsignedLayout.ChecksumOffset,
+        $prefix,
+        $unsignedLayout.ChecksumOffset,
+        4
+    )
+    [Array]::Copy(
+        $unsigned,
+        $unsignedLayout.CertificateDirectoryOffset,
+        $prefix,
+        $unsignedLayout.CertificateDirectoryOffset,
+        8
+    )
+    $expectedDigest = [System.Convert]::ToHexString(
+        [System.Security.Cryptography.SHA256]::HashData($unsigned)
+    )
+    $actualDigest = [System.Convert]::ToHexString(
+        [System.Security.Cryptography.SHA256]::HashData($prefix)
+    )
+    if ($expectedDigest -ne $actualDigest) {
+        throw "La copia firmada no conserva los bytes del original: $SignedPath"
+    }
+}
