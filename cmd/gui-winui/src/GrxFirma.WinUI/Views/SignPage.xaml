@@ -1002,8 +1002,8 @@
                                                             </ContentControl.Template>
                                                         </ContentControl>
                                                         <Border x:Name="VisibleSealDrawRubberBand" Visibility="Collapsed"
-                                                            IsHitTestVisible="False" Background="{ThemeResource AppSealTextBackgroundBrush}"
-                                                            Opacity="0.6" BorderBrush="{ThemeResource AppSealBorderBrush}" BorderThickness="2" />
+                                                            IsHitTestVisible="False" Background="Transparent"
+                                                            BorderBrush="{ThemeResource AccentFillColorDefaultBrush}" BorderThickness="2" />
                                                     </Canvas>
                                                 </Grid>
                                             </Border>

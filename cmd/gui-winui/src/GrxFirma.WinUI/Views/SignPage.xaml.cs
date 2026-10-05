@@ -1839,12 +1839,13 @@ public sealed partial class SignPage : Page
         return applied;
     }
 
-    // Intro y Esc terminan el modo dibujo y devuelven el foco al botón.
-    private void ExitVisibleSealDrawMode()
+    // Intro, Esc y soltar el ratón tras dibujar terminan el modo dibujo y
+    // devuelven el foco al botón.
+    private void ExitVisibleSealDrawMode(FocusState focus = FocusState.Keyboard)
     {
         _sealDrawPositionTimer?.Stop();
         VisibleSealDrawToggle.IsChecked = false;
-        VisibleSealDrawToggle.Focus(FocusState.Keyboard);
+        VisibleSealDrawToggle.Focus(focus);
     }
 
     // Anuncia la posición con un retardo corto para no saturar el lector de pantalla.
@@ -2086,12 +2087,15 @@ public sealed partial class SignPage : Page
         {
             return;
         }
+        var drawApplied = false;
         if (_visibleSealPointerMode == VisibleSealPointerMode.Draw)
         {
             _sealDrawSecond = NormalizeSealDrawPoint(args.GetCurrentPoint(VisibleSealPreviewSurface).Position);
-            ConfirmVisibleSealDrawing();
+            drawApplied = ConfirmVisibleSealDrawing();
         }
         EndVisibleSealPointerInteraction(args);
+        // Con el ratón, igual que con Intro: el área aplicada cierra el modo.
+        if (drawApplied) ExitVisibleSealDrawMode(FocusState.Pointer);
         args.Handled = true;
     }
 
