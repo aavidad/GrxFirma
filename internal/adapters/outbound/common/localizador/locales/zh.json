@@ -4887,4 +4887,8 @@
   ,"verifactu.qr_amount": "总金额"
   ,"verifactu.cli_usage": "用法: -operacion validar-verifactu|leer-qr-verifactu|cotejar-qr-verifactu -entrada ..."
   ,"verifactu.output": "请将报告保存到与输入记录不同的文件中。"
+  ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu：按 AEAT 要求的格式为开票程序提供的开票记录签名，并检查已签名的记录：链式哈希、签名和结构。GrxFirma 不生成、不保存也不发送记录。"
+  ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu：读取发票税务二维码的 URL 并显示其数据；仅在你要求时，才通过 AEAT 公共服务进行核对。"
+  ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "可见印章：使用“绘制区域”，在页面上拖动即可设定其位置和大小，与 AutoFirma 相同。也可用键盘操作。适用于 Windows 和 Linux，以及门户网站打开的编辑器。"
+  ,"Android: cofirma y contrafirma, perfiles con sello de tiempo, verificación automática tras firmar, verificación detallada con informe exportable, los once idiomas con selector propio y pantalla «Acerca de».": "Android：联合签名和反签名、带时间戳的签名配置、签名后自动验证、可导出报告的详细验证、带独立选择器的十一种语言，以及“关于”页面。"
 }
