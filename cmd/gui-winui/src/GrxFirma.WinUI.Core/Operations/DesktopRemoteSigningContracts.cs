@@ -184,11 +184,14 @@ public static class RemoteSigningInput
 
     public static RemoteSigningConfigureParameters Normalize(string? serviceUrl, string? clientId)
     {
-        var url = (serviceUrl ?? string.Empty).Trim();
+        // Los caracteres de control se buscan antes de recortar: Trim() quitaría
+        // un salto de línea final que el motor rechaza.
+        var rawUrl = serviceUrl ?? string.Empty;
+        var url = rawUrl.Trim();
         var id = (clientId ?? string.Empty).Trim();
         if (url.Length is 0 or > MaximumServiceUrlLength ||
             !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
-            url.Any(char.IsControl) ||
+            rawUrl.Any(char.IsControl) ||
             !Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
             !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
             uri.UserInfo.Length > 0 || uri.Query.Length > 0 || uri.Fragment.Length > 0)
