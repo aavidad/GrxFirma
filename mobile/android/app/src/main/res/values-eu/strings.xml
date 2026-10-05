@@ -628,4 +628,6 @@
     <string name="seal_qr_address_https">QR kodearen helbideak https:// hasiera izan behar du.</string>
     <string name="seal_image_required">Aukeratu zure irudia «Hautatu irudia» erabiliz, edo aldatu estiloa «Logorik gabe» aukerara.</string>
     <string name="seal_placed_press_sign">Zigilua jarrita. Sakatu «Sinatu dokumentua» amaitzeko.</string>
+    <string name="error_protect_own_certificate">Zure ziurtagiriak ez du balio fitxategiak babesteko. Kendu marka «Sartu nire ziurtagiria hartzaile gisa» aukerari, edo gehitu beste pertsona baten ziurtagiria.</string>
+    <string name="error_unprotect_not_protected">Dokumentu hau ez dago babestuta. Babesa kentzeko, aukeratu .enveloped, .p7m edo .afp fitxategi bat.</string>
 </resources>

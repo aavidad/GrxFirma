@@ -611,4 +611,6 @@
     <string name="seal_qr_address_https">二维码地址必须以 https:// 开头。</string>
     <string name="seal_image_required">请通过“选择图像”选择图片，或将样式改为“无标志”。</string>
     <string name="seal_placed_press_sign">印章已放置。点击“签署文档”完成。</string>
+    <string name="error_protect_own_certificate">您的证书不能用于保护文件。请取消勾选“将我的证书列为接收者”，或添加其他人的证书。</string>
+    <string name="error_unprotect_not_protected">此文档未受保护。如需解除保护，请选择 .enveloped、.p7m 或 .afp 文件。</string>
 </resources>

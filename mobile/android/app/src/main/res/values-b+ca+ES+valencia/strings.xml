@@ -645,4 +645,6 @@
     <string name="seal_qr_address_https">L\'adreça del QR ha de començar per https://.</string>
     <string name="seal_image_required">Trieu la imatge amb «Seleccionar imatge» o canvieu l\'estil a «Sense logotip».</string>
     <string name="seal_placed_press_sign">Segell col·locat. Polseu «Signar el document» per a acabar.</string>
+    <string name="error_protect_own_certificate">El vostre certificat no servix per a protegir fitxers. Desmarqueu «Incloure el meu certificat com a destinatari» o afegiu el certificat d\'una altra persona.</string>
+    <string name="error_unprotect_not_protected">Este document no està protegit. Per a desprotegir, trieu un fitxer .enveloped, .p7m o .afp.</string>
 </resources>

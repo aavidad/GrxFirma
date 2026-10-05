@@ -90,5 +90,27 @@ object ToolsPolicy {
     fun hashFileName(documentName: String, extension: String): String =
         DocumentPolicy.sanitizeDisplayName("$documentName.$extension", "documento.$extension")
 
-    fun hashMime(format: String): String = if (format == "bin") "application/octet-stream" else "text/plain"
+    /**
+     * El selector de Android añade «.txt» a un fichero text/plain: la huella
+     * («.hexhash», «.hashb64») se guarda siempre como binario para conservar su extensión.
+     */
+    const val HASH_MIME = "application/octet-stream"
+
+    /** El fichero de huella de escritorio termina la huella hexadecimal en «h»; en pantalla no se muestra. */
+    fun displayHash(format: String, hash: String): String =
+        if (format == "hex" && hash.length > 1 && hash.endsWith("h") && hash.dropLast(1).all { it.isLetterOrDigit() }) hash.dropLast(1)
+        else hash
+
+    /** Extensiones de los ficheros protegidos que sabe abrir el núcleo (CMS y sobre .afp). */
+    private val PROTECTED_EXTENSIONS = listOf(".enveloped", ".p7m", ".p7e", ".afp", ".cms")
+
+    /**
+     * Si el nombre deja claro que el documento no está protegido, «Desproteger»
+     * no puede funcionar. Sin extensión (compartido sin nombre) no se descarta.
+     */
+    fun looksUnprotectable(displayName: String): Boolean {
+        val lower = displayName.lowercase(java.util.Locale.ROOT)
+        val hasExtension = lower.substringAfterLast('/').contains('.')
+        return !hasExtension || PROTECTED_EXTENSIONS.any { lower.endsWith(it) }
+    }
 }

@@ -186,7 +186,12 @@ data class MainUiState(
     val canProtectAndSign: Boolean
         get() = canProtect && certificate != null && (!certificateExternal || externalProtectSignAvailable) &&
             protectionContainer != "cms-encrypted"
-    val canUnprotect: Boolean get() = canUseTools && document != null
+    /** Solo con un documento que puede estar protegido; si no, se explica junto al botón. */
+    val canUnprotect: Boolean get() = canUseTools && document != null && unprotectSupported
+    val unprotectSupported: Boolean get() = document?.let { ToolsPolicy.looksUnprotectable(it.displayName) } != false
+    /** «Incluir mi certificado» con un certificado que no admite cifrado nunca puede funcionar. */
+    val ownCertificateCannotEncrypt: Boolean
+        get() = canProtectForMe && certificateDetails.firstOrNull { it.id == certificate?.id }?.canEncrypt == false
     val canSignBatch: Boolean
         get() = canUseTools && batchDocuments.isNotEmpty() && certificate != null &&
             (!certificateExternal || externalBatchAvailable)

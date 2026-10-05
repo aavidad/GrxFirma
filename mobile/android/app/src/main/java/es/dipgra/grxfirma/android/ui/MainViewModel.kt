@@ -685,10 +685,11 @@ class MainViewModel(
             val loaded = repository.loadDocument(document)
             try {
                 val hash = core.createHash(loaded, snapshot.hashAlgorithm, snapshot.hashFormat)
-                val detail = UiText.Resource(R.string.result_hash_detail, listOf(hash.algorithm, hash.hash))
+                val detail = UiText.Resource(R.string.result_hash_detail,
+                    listOf(hash.algorithm, ToolsPolicy.displayHash(hash.format, hash.hash)))
                 replacePending(
                     SignedOutput(hash.bytes, ToolsPolicy.hashFileName(document.displayName, hash.extension),
-                        ToolsPolicy.hashMime(hash.format), hash.format, hash.algorithm),
+                        ToolsPolicy.HASH_MIME, hash.format, hash.algorithm),
                     PendingKind.TOOL,
                     detail,
                 )
@@ -769,6 +770,7 @@ class MainViewModel(
             sign && snapshot.certificateExternal && !snapshot.externalProtectSignAvailable -> R.string.error_protect_sign_identity
             !snapshot.usesTransientKey && snapshot.recipients.isEmpty() && !snapshot.canProtectForMe ->
                 R.string.error_protect_recipients_required
+            !snapshot.usesTransientKey && snapshot.ownCertificateCannotEncrypt -> R.string.error_protect_own_certificate
             else -> null
         }
         confirmation.fill('\u0000')
@@ -799,7 +801,17 @@ class MainViewModel(
                     certificateId = if (sign || (!snapshot.usesTransientKey && snapshot.canProtectForMe))
                         snapshot.certificate?.id.orEmpty() else "",
                 )
-                val output = core.protect(loaded, request, key)
+                val output = try {
+                    core.protect(loaded, request, key)
+                } catch (error: es.dipgra.grxfirma.android.core.CoreContractException) {
+                    // Sin destinatarios, el único certificado que puede fallar es el propio.
+                    if (error.toUserText() == UiText.Resource(R.string.error_protect_recipient) &&
+                        request.includeSessionCertificate && loadedRecipients.isEmpty()) {
+                        setError(UiText.Resource(R.string.error_protect_own_certificate))
+                        return@launchOperation
+                    }
+                    throw error
+                }
                 val detail = UiText.Resource(R.string.result_protected_detail, listOf(output.displayName))
                 replacePending(output, PendingKind.TOOL, detail)
                 mutableState.value = mutableState.value.copy(awaitingSave = true,
@@ -820,6 +832,7 @@ class MainViewModel(
         val document = snapshot.document
         val problem: Int? = when {
             document == null -> R.string.error_document_required
+            !snapshot.unprotectSupported -> R.string.error_unprotect_not_protected
             !snapshot.canUnprotect -> -1
             secret.isNotEmpty() && !ToolsPolicy.canonicalAesKey(secret) -> R.string.error_protect_key
             secret.isEmpty() && (snapshot.certificate == null || snapshot.certificateExternal) ->

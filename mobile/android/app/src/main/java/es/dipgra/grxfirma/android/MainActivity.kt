@@ -926,6 +926,7 @@ class MainActivity : AppCompatActivity() {
         protectSignButton.visibility = if (transient) View.GONE else View.VISIBLE
         protectSignButton.isEnabled = state.canProtectAndSign
         unprotectButton.isEnabled = state.canUnprotect
+        unprotectHint.visibility = if (state.document != null && !state.unprotectSupported) View.VISIBLE else View.GONE
         binding.discardPendingOutputButton.setText(
             if (state.pendingKind == PendingKind.SIGNATURE) R.string.discard_pending_output else R.string.discard_pending_tool_output,
         )

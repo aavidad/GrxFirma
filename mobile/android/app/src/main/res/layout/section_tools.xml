@@ -341,5 +341,14 @@
             android:minHeight="48dp"
             android:text="@string/unprotect_button" />
 
+        <TextView
+            android:id="@+id/unprotectHint"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/error_unprotect_not_protected"
+            android:textColor="@color/on_surface"
+            android:visibility="gone" />
+
     </LinearLayout>
 </LinearLayout>

@@ -645,4 +645,6 @@
     <string name="seal_qr_address_https">O endereço do QR tem de começar por https://.</string>
     <string name="seal_image_required">Escolha a sua imagem com «Selecionar imagem» ou mude o estilo para «Sem logótipo».</string>
     <string name="seal_placed_press_sign">Selo colocado. Toque em «Assinar documento» para terminar.</string>
+    <string name="error_protect_own_certificate">O seu certificado não serve para proteger ficheiros. Desmarque «Incluir o meu certificado como destinatário» ou adicione o certificado de outra pessoa.</string>
+    <string name="error_unprotect_not_protected">Este documento não está protegido. Para desproteger, escolha um ficheiro .enveloped, .p7m ou .afp.</string>
 </resources>

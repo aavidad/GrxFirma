@@ -50,8 +50,14 @@ class ToolsPolicyTest {
         assertEquals("cades", ToolsPolicy.effectiveFormat("auto", "a.txt", "text/plain"))
         assertEquals("xades", ToolsPolicy.effectiveFormat("xades", "a.pdf", "application/pdf"))
         assertEquals("contrato.pdf.hexhash", ToolsPolicy.hashFileName("contrato.pdf", "hexhash"))
-        assertEquals("text/plain", ToolsPolicy.hashMime("hex"))
-        assertEquals("application/octet-stream", ToolsPolicy.hashMime("bin"))
+        // Con text/plain el selector añadiría «.txt» a «.hexhash».
+        assertEquals("application/octet-stream", ToolsPolicy.HASH_MIME)
+        assertEquals("ab12", ToolsPolicy.displayHash("hex", "ab12h"))
+        assertEquals("q83vAA==", ToolsPolicy.displayHash("base64", "q83vAA=="))
+        assertTrue(ToolsPolicy.looksUnprotectable("contrato.pdf.enveloped"))
+        assertTrue(ToolsPolicy.looksUnprotectable("secreto.pdf.encrypted.p7m"))
+        assertTrue(ToolsPolicy.looksUnprotectable("compartido"))
+        assertFalse(ToolsPolicy.looksUnprotectable("contrato.pdf"))
         assertEquals(listOf("cms", "authenvelopeddata", "cms-encrypted"), ToolsPolicy.CONTAINERS)
     }
 }
