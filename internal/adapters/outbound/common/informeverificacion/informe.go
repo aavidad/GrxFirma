@@ -95,7 +95,7 @@ func HTML(d Datos) ([]byte, error) {
 		Motivo:       limpiar(tr(r.Reason)),
 		Documento:    limpiar(d.NombreDocumento),
 		Huella:       hex.EncodeToString(huella[:]),
-		Tamano:       loc.T("report.size_bytes", len(d.Contenido)),
+		Tamano:       textoTamano(loc, len(d.Contenido)),
 		Fecha:        loc.FechaHora(d.Fecha, d.Zona, true),
 		Version:      limpiar(d.VersionApp),
 		Formato:      limpiar(r.Format),
@@ -269,3 +269,12 @@ ul{margin:.3rem 0 .3rem 1.2rem;padding:0}li{overflow-wrap:anywhere}footer{margin
 <footer>{{.Pie}}</footer>
 </body></html>
 `))
+
+// textoTamano escribe el tamaño con la forma singular o plural del catálogo
+// («1 byte», «2 bytes»).
+func textoTamano(loc *localizador.Localizador, n int) string {
+	if n == 1 {
+		return loc.T("report.size_byte_one", n)
+	}
+	return loc.T("report.size_bytes", n)
+}

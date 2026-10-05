@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	desktopsigner "grxfirma/internal/adapters/outbound/desktop/signer"
 )
 
@@ -46,7 +47,7 @@ func (m *Manejador) handleVistaPreviaSello(ctx context.Context, raw json.RawMess
 		return respuesta{OK: false, Action: accion, Error: m.localizarErrorOpacidadLogoSello(err)}
 	}
 	opciones = m.aplicarIdiomaSelloConfigurado(ctx, "pades", opciones)
-	firmante, emisor := m.identidadParaSello(ctx, p.CertificateID)
+	firmante, emisor := m.identidadParaSello(ctx, p.CertificateID, m.ejemploFirmanteSello(opciones))
 	firmante = nombreFirmanteVistaPrevia(p.CertificateID, p.SignerName, firmante)
 	img, err := desktopsigner.PrevisualizarSello(opciones, firmante, emisor, time.Now())
 	if err != nil {
@@ -63,10 +64,20 @@ func nombreFirmanteVistaPrevia(id, nombre, ejemplo string) string {
 	return ejemplo
 }
 
+// ejemploFirmanteSello devuelve el nombre de ejemplo en el idioma del sello
+// (el pedido o el fijado en la configuración) o, si no hay, en el de la
+// interfaz del motor.
+func (m *Manejador) ejemploFirmanteSello(opciones map[string]string) string {
+	idioma := localizador.Idioma(opciones[desktopsigner.OpcionIdiomaSello])
+	if idioma == "" && m.Loc != nil {
+		return m.t("seal.preview.signer_sample")
+	}
+	return localizador.Para(idioma).T("seal.preview.signer_sample")
+}
+
 // identidadParaSello devuelve el nombre y el emisor del certificado; sin
 // certificado elegido se muestra un texto de ejemplo.
-func (m *Manejador) identidadParaSello(ctx context.Context, id string) (string, string) {
-	const ejemplo = "Nombre del firmante"
+func (m *Manejador) identidadParaSello(ctx context.Context, id, ejemplo string) (string, string) {
 	id = strings.TrimSpace(id)
 	if id == "" || m.Catalogo == nil {
 		return ejemplo, ""

@@ -108,3 +108,17 @@ func TestDespachar_SealPreview_GeometriaRotada(t *testing.T) {
 		})
 	}
 }
+
+// Sin certificado elegido, el nombre de ejemplo sale en el idioma del sello.
+func TestEjemploFirmanteSello_EnElIdiomaDelSello(t *testing.T) {
+	m := manejadorVacio()
+	casos := map[string]string{"en": "Signer name", "fr": "Nom du signataire", "es": "Nombre del firmante"}
+	for idioma, esperado := range casos {
+		if got := m.ejemploFirmanteSello(map[string]string{"sealLanguage": idioma}); got != esperado {
+			t.Errorf("%s: %q, se esperaba %q", idioma, got, esperado)
+		}
+	}
+	if got := m.ejemploFirmanteSello(nil); got != "Nombre del firmante" {
+		t.Errorf("sin idioma ni localizador: %q", got)
+	}
+}

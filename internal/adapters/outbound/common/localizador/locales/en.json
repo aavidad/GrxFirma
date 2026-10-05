@@ -5113,4 +5113,6 @@
   ,"sin OCSP ni CRL disponibles": "No OCSP or CRL available"
   ,"sin respuesta concluyente del servicio de revocación": "The revocation service did not give a conclusive answer"
   ,"cli.help.seal_language": "Language of the visible seal labels. By default, the CLI language."
+  ,"seal.preview.signer_sample": "Signer name"
+  ,"report.size_byte_one": "%d byte"
 }

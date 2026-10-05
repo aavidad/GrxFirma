@@ -5113,4 +5113,6 @@
   ,"sin OCSP ni CRL disponibles": "没有可用的 OCSP 或 CRL"
   ,"sin respuesta concluyente del servicio de revocación": "吊销服务未给出明确答复"
   ,"cli.help.seal_language": "可见印章标签的语言。默认使用 CLI 的语言。"
+  ,"seal.preview.signer_sample": "签名人姓名"
+  ,"report.size_byte_one": "%d 字节"
 }

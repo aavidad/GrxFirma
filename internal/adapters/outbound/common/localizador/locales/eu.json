@@ -5113,4 +5113,6 @@
   ,"sin OCSP ni CRL disponibles": "Ez dago OCSP edo CRL eskuragarririk"
   ,"sin respuesta concluyente del servicio de revocación": "Ezeztapen-zerbitzuak ez du erantzun erabakigarririk eman"
   ,"cli.help.seal_language": "Zigilu ikusgaiaren etiketen hizkuntza. Lehenespenez, CLIaren hizkuntza."
+  ,"seal.preview.signer_sample": "Sinatzailearen izena"
+  ,"report.size_byte_one": "%d byte"
 }
