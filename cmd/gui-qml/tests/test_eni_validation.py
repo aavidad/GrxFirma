@@ -34,6 +34,12 @@ for (const text of ['2026-02-29T12:00:00Z', '2026-10-04', '2026-10-04T25:00:00Z'
 const date = new Date(2026, 9, 4, 13, 42, 0);
 assert.strictEqual(dateError(rfc3339(date)), '');
 assert.strictEqual(new Date(rfc3339(date)).getTime(), date.getTime());
+assert.strictEqual(displayDate(date), '04/10/2026');
+assert.strictEqual(displayTime(date), '13:42');
+assert.strictEqual(parseLocal('04/10/2026', '13:42').getTime(), date.getTime());
+assert.strictEqual(parseLocal(' 4/10/2026 ', '13:42').getTime(), date.getTime());
+for (const [d, t] of [['31/02/2026', '10:00'], ['04/13/2026', '10:00'], ['04/10/26', '10:00'], ['04/10/2026', '24:00'], ['04/10/2026', '10:60'], ['2026-10-04', '10:00'], ['04/10/2026', '']]) assert.strictEqual(parseLocal(d, t), null);
+assert.strictEqual(dateError(rfc3339(parseLocal('29/02/2024', '00:00'))), '');
 '''
         subprocess.run([node, "-e", js], check=True, cwd=ROOT)
 

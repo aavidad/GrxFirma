@@ -47,3 +47,18 @@ function rfc3339(date) {
             + "T" + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds())
             + (offset >= 0 ? "+" : "-") + pad(Math.floor(Math.abs(offset) / 60)) + ":" + pad(Math.abs(offset) % 60)
 }
+function pad2(n) { return String(n).padStart(2, "0") }
+// Formato visible: dd/mm/aaaa y hh:mm (24 horas), igual que el selector de WinUI.
+function displayDate(date) { return pad2(date.getDate()) + "/" + pad2(date.getMonth() + 1) + "/" + String(date.getFullYear()).padStart(4, "0") }
+function displayTime(date) { return pad2(date.getHours()) + ":" + pad2(date.getMinutes()) }
+function parseLocal(dateText, timeText) {
+    const d = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/.exec(dateText)
+    const t = /^\s*(\d{1,2}):(\d{2})\s*$/.exec(timeText)
+    if (!d || !t) return null
+    const day = Number(d[1]), month = Number(d[2]), year = Number(d[3])
+    const hours = Number(t[1]), minutes = Number(t[2])
+    if (year < 1000 || month < 1 || month > 12 || day < 1 || hours > 23 || minutes > 59) return null
+    const date = new Date(year, month - 1, day, hours, minutes, 0)
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null
+    return date
+}

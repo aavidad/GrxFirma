@@ -15,10 +15,12 @@ ColumnLayout {
     property alias text: input.text
     property alias maximumLength: input.maximumLength
     property bool touched: false
-    property bool calendarEnabled: false
+    property string hintKey: ""
     readonly property string errorKey: validation(text)
+    // Error y foco salen del tema; los valores por defecto cumplen AA sobre fondo claro.
+    readonly property color errorColor: root.theme && root.theme.errorColor ? root.theme.errorColor : "#b42318"
+    readonly property color focusColor: root.theme && root.theme.focusColor ? root.theme.focusColor : "#1f5fa8"
     readonly property bool invalid: touched && errorKey !== ""
-    signal calendarRequested()
     spacing: 4
     function validateNow() { touched = true; return errorKey === "" }
     function focusInput() { input.forceActiveFocus() }
@@ -30,28 +32,42 @@ ColumnLayout {
             Layout.fillWidth: true
             color: root.theme.textColor
             Accessible.name: root.translate(root.labelKey)
-            Accessible.description: root.invalid ? root.translate(root.errorKey) : ""
+            Accessible.description: root.invalid ? root.translate(root.errorKey)
+                                                 : (root.hintKey !== "" ? root.translate(root.hintKey) : "")
             onActiveFocusChanged: if (!activeFocus) root.touched = true
             background: Rectangle {
                 color: root.theme.cardColor
                 radius: 4
-                border.color: root.invalid ? "#b42318" : root.theme.secondaryTextColor
+                border.color: root.invalid ? root.errorColor : root.theme.secondaryTextColor
                 border.width: root.invalid ? 2 : 1
+                // Anillo de foco separado del borde de error para no confundirlos.
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: -3
+                    radius: 6
+                    color: "transparent"
+                    border.color: root.focusColor
+                    border.width: 2
+                    visible: input.activeFocus
+                }
             }
-        }
-        Button {
-            visible: root.calendarEnabled
-            text: root.translate("eni.validacion.calendar")
-            Accessible.name: text
-            onClicked: root.calendarRequested()
         }
     }
     Label {
         Layout.fillWidth: true
+        visible: root.hintKey !== ""
+        text: root.hintKey !== "" ? root.translate(root.hintKey) : ""
+        color: root.theme.secondaryTextColor
+        wrapMode: Text.WordWrap
+    }
+    Label {
+        Layout.fillWidth: true
         visible: root.invalid
-        text: root.invalid ? root.translate(root.errorKey) : ""
-        color: "#b42318"
+        // El icono evita depender solo del color para reconocer el error.
+        text: root.invalid ? "\u26A0 " + root.translate(root.errorKey) : ""
+        color: root.errorColor
         wrapMode: Text.WordWrap
         Accessible.role: Accessible.StaticText
+        Accessible.name: root.invalid ? root.translate(root.errorKey) : ""
     }
 }

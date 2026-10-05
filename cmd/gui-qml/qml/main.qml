@@ -436,6 +436,9 @@ Window {
             accentColor: "#2ecc71",
             textColor: "#ffffff",
             secondaryTextColor: "#bdc3c7",
+            // Error y foco con contraste AA sobre cardColor y backgroundColor.
+            errorColor: "#ff8a80",
+            focusColor: "#3498db",
             borderOpacity: 0.1
         },
         {
@@ -447,6 +450,8 @@ Window {
             accentColor: "#e74c3c",
             textColor: "#2c3e50",
             secondaryTextColor: "#5f6c6d",
+            errorColor: "#b42318",
+            focusColor: "#2980b9",
             borderOpacity: 0.2
         },
         {
@@ -458,6 +463,8 @@ Window {
             accentColor: "#bc00ff",
             textColor: "#ffffff",
             secondaryTextColor: "#00f2ff",
+            errorColor: "#ff8a80",
+            focusColor: "#00f2ff",
             borderOpacity: 0.3
         },
         {
@@ -469,6 +476,8 @@ Window {
             accentColor: "#778da9",
             textColor: "#ffffff",
             secondaryTextColor: "#e0e1dd",
+            errorColor: "#ffc4bc",
+            focusColor: "#ffd166",
             borderOpacity: 0.1
         },
         {
@@ -480,6 +489,8 @@ Window {
             accentColor: "#c5c6c7",
             textColor: "#ffffff",
             secondaryTextColor: "#45a29e",
+            errorColor: "#ff8a80",
+            focusColor: "#66fcf1",
             borderOpacity: 0.2
         },
         {
@@ -491,6 +502,8 @@ Window {
             accentColor: "#f1c40f",
             textColor: "#ecf0f1",
             secondaryTextColor: "#95a5a6",
+            errorColor: "#ff8a80",
+            focusColor: "#2ecc71",
             borderOpacity: 0.15
         },
         {
@@ -502,6 +515,8 @@ Window {
             accentColor: "#feca57",
             textColor: "#fff9f9",
             secondaryTextColor: "#f6b9b9",
+            errorColor: "#ff8a80",
+            focusColor: "#feca57",
             borderOpacity: 0.2
         },
         {
@@ -513,6 +528,8 @@ Window {
             accentColor: "#ccd6f6",
             textColor: "#e6f1ff",
             secondaryTextColor: "#8892b0",
+            errorColor: "#ff8a80",
+            focusColor: "#64ffda",
             borderOpacity: 0.1
         },
         {
@@ -524,6 +541,8 @@ Window {
             accentColor: "#8e0020",
             textColor: "#ffffff",
             secondaryTextColor: "#a68a8a",
+            errorColor: "#ff8a80",
+            focusColor: "#7fd4ff",
             borderOpacity: 0.25
         },
         {
@@ -535,6 +554,8 @@ Window {
             accentColor: "#b366ff",
             textColor: "#ffffff",
             secondaryTextColor: "#c2a3ff",
+            errorColor: "#ff8a80",
+            focusColor: "#00ffcc",
             borderOpacity: 0.15
         },
         {
@@ -546,6 +567,8 @@ Window {
             accentColor: "#b39030",
             textColor: "#2c2a26",
             secondaryTextColor: "#686359",
+            errorColor: "#b42318",
+            focusColor: "#1f5fa8",
             borderOpacity: 0.1
         },
         {
@@ -557,6 +580,8 @@ Window {
             accentColor: "#f15bb5",
             textColor: "#f8f5fd",
             secondaryTextColor: "#baabcf",
+            errorColor: "#ff8a80",
+            focusColor: "#9b5de5",
             borderOpacity: 0.2
         },
         {
@@ -568,6 +593,8 @@ Window {
             accentColor: "#008800",
             textColor: "#00ff00",
             secondaryTextColor: "#00aa00",
+            errorColor: "#ff8a80",
+            focusColor: "#00ff00",
             borderOpacity: 0.3
         },
         {
@@ -579,6 +606,8 @@ Window {
             accentColor: "#3d405b",
             textColor: "#f4f1de",
             secondaryTextColor: "#eab69f",
+            errorColor: "#ff8a80",
+            focusColor: "#8ecae6",
             borderOpacity: 0.15
         }
     ]
@@ -3795,6 +3824,7 @@ Window {
             portalSealEditor.anchors.fill = portalSealCanvas
             portalSealStartupTimer.start()
             portalSealPreviewRetryTimer.start()
+            portalSealPreviewTimeout.start()
         }
     }
 
@@ -7809,6 +7839,14 @@ Window {
         }
     }
 
+    // Si la vista no llega a tiempo se sustituye «Cargando…» por una salida.
+    property bool portalSealPreviewTimedOut: false
+    Timer {
+        id: portalSealPreviewTimeout
+        interval: 10000
+        onTriggered: window.portalSealPreviewTimedOut = true
+    }
+
     Timer {
         id: portalSealPreviewRetryTimer
         interval: 1000
@@ -7870,7 +7908,15 @@ Window {
                 }
             }
             Item { id: portalSealCanvas; Layout.fillWidth: true; Layout.fillHeight: true; clip: true }
-            Text { text: tr("portal.seal.preview_error"); visible: previewGeometryPath !== portalSeal.documentPath; color: currentTheme.textColor }
+            Text {
+                text: window.portalSealPreviewTimedOut ? tr("portal.seal.preview_error") : tr("portal.seal.preview_loading")
+                visible: previewGeometryPath !== portalSeal.documentPath
+                color: currentTheme.textColor
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+                Accessible.role: Accessible.AlertMessage
+                Accessible.name: text
+            }
             RowLayout {
                 Layout.fillWidth: true
                 Button { text: tr("portal.seal.sign_here"); enabled: previewGeometryPath === portalSeal.documentPath && previewGeometryPage === previewCurrentPage; onClicked: portalSealSubmit("place") }
@@ -9312,8 +9358,9 @@ Window {
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: signVisibleSeal ? pagePreview.height + sealDrawControls.implicitHeight + 30 : 0
                                     visible: signVisibleSeal && supportsVisibleSeal()
-                                    color: "#e8edf4"
-                                    border.color: "#c2ccd6"
+                                    // Colores del tema: la ayuda y los avisos usan textColor.
+                                    color: currentTheme.cardColor
+                                    border.color: currentTheme.secondaryTextColor
                                     radius: 8
 
                                     ColumnLayout {
@@ -9422,6 +9469,30 @@ Window {
                                             onFeedback: (key) => {
                                                 sealDrawNotice.messageKey = key
                                                 Qt.callLater(function() { backend.announceAccessible(sealDrawNotice, tr(key)) })
+                                            }
+                                            onKeyboardMoved: (rect) => {
+                                                sealDrawAnnounceTimer.rect = rect
+                                                sealDrawAnnounceTimer.restart()
+                                            }
+                                            // Intro aplica y Esc descarta; en ambos casos se sale del modo.
+                                            onFinished: {
+                                                sealDrawButton.checked = false
+                                                sealDrawArea.drawMode = false
+                                                sealDrawButton.forceActiveFocus()
+                                            }
+                                            Timer {
+                                                id: sealDrawAnnounceTimer
+                                                property var rect: null
+                                                interval: 350
+                                                onTriggered: {
+                                                    if (!rect) return
+                                                    const percent = (value) => Math.round(value * 100)
+                                                    backend.announceAccessible(sealDrawNotice, tr("sign.seal.draw_position")
+                                                        .replace("%1", percent(rect.x))
+                                                        .replace("%2", percent(1 - rect.y - rect.h))
+                                                        .replace("%3", percent(rect.w))
+                                                        .replace("%4", percent(rect.h)))
+                                                }
                                             }
                                         }
 

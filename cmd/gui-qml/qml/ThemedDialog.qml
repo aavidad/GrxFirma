@@ -58,7 +58,10 @@ Dialog {
             implicitHeight: 44
             background: Rectangle {
                 color: button.down ? dialog.theme.textColor : dialog.theme.cardColor
-                border.color: dialog.theme.secondaryTextColor
+                // Foco de teclado visible y distinto del borde normal.
+                border.color: button.activeFocus ? (dialog.theme.focusColor ? dialog.theme.focusColor : dialog.theme.textColor)
+                                                 : dialog.theme.secondaryTextColor
+                border.width: button.activeFocus ? 2 : 1
                 radius: 4
             }
             contentItem: Text {

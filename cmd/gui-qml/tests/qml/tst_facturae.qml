@@ -45,8 +45,12 @@ TestCase {
     function test_verifactu_report_and_local_qr_do_not_query() {
         fake.qrQueries = 0
         fake.verifactuValidated(true, {format: "VeriFactu", valid: false, errors: 1, warnings: 0, records: [], report: "XML: error"}, "")
-        compare(panel.invoiceResult.report, "XML: error")
-        compare(panel.statusText, "verifactu.invalid")
+        compare(panel.verifactuResult.report, "XML: error")
+        compare(panel.verifactuStatus, "verifactu.invalid")
+        // El resultado aparece junto a los botones de Veri*Factu, no en la validación local.
+        compare(findChild(panel, "verifactuSummary").text, "verifactu.invalid")
+        compare(findChild(panel, "verifactuReport").text, "XML: error")
+        compare(panel.invoiceResult, null)
         fake.verifactuQRFinished("read_verifactu_qr", true, {url: "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?nif=12345678Z&numserie=A&fecha=01-01-2025&importe=1", nif: "12345678Z", numserie: "A", fecha: "01-01-2025", importe: "1"}, "")
         compare(fake.qrQueries, 0)
         compare(panel.busy, false)
@@ -64,6 +68,26 @@ TestCase {
         verify(query.enabled)
         query.clicked()
         compare(fake.qrQueries, 1)
+    }
+    function test_aeat_answer_is_a_sentence_with_technical_detail() {
+        fake.verifactuQRFinished("read_verifactu_qr", true, {url: "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?nif=12345678Z&numserie=A&fecha=01-01-2025&importe=1", nif: "12345678Z", numserie: "A", fecha: "01-01-2025", importe: "1"}, "")
+        const area = findChild(panel, "qrResultArea")
+        const technical = findChild(panel, "qrTechnicalButton")
+        compare(panel.qrTechnical, "")
+        fake.verifactuQRFinished("query_verifactu_qr", true, {response: {resultado: "Factura no encontrada"}}, "")
+        compare(area.text, "verifactu.qr_aeat_not_found")
+        verify(panel.qrTechnical.length > 0)
+        verify(!technical.checked)
+        technical.toggle()
+        verify(technical.checked)
+        verify(findChild(panel, "qrTechnicalArea").text.indexOf("no encontrada") >= 0)
+        fake.verifactuQRFinished("query_verifactu_qr", true, {response: {resultado: "ok"}}, "")
+        compare(area.text, "verifactu.qr_aeat_found")
+        fake.verifactuQRFinished("query_verifactu_qr", true, {response: {otro: 1}}, "")
+        compare(area.text, "verifactu.qr_aeat_unknown")
+    }
+    function test_empty_state_before_checking_records() {
+        compare(findChild(panel, "verifactuSummary").text, "verifactu.empty_state")
     }
     function test_draft_and_result() {
         const draft = panel.draft()

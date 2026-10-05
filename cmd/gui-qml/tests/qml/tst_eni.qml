@@ -44,6 +44,53 @@ TestCase {
         verify(!panel.validateFields([organ, field("capture")]))
         field("capture").text = "2026-10-04T13:42:00+02:00"
     }
+    function test_readable_date_and_time_drive_rfc3339() {
+        const capture = field("capture")
+        capture.text = "2026-10-04T13:42:00+02:00"
+        const date = findChild(capture, "eniDateInput")
+        const time = findChild(capture, "eniTimeInput")
+        const local = new Date("2026-10-04T13:42:00+02:00")
+        compare(date.text, String(local.getDate()).padStart(2, "0") + "/" + String(local.getMonth() + 1).padStart(2, "0") + "/2026")
+        date.text = "05/10/2026"
+        time.text = "08:15"
+        date.textEdited()
+        const parsed = new Date(capture.text)
+        compare(parsed.getDate(), 5)
+        compare(parsed.getHours(), 8)
+        compare(parsed.getMinutes(), 15)
+        compare(capture.errorKey, "")
+        date.text = "31/02/2026"
+        date.textEdited()
+        compare(capture.errorKey, "eni.validacion.date")
+        capture.text = "2026-10-04T13:42:00+02:00"
+    }
+    function test_calendar_keyboard_moves_and_picks_day() {
+        const capture = field("capture")
+        capture.text = "2026-10-04T13:42:00+02:00"
+        const start = new Date(capture.text)
+        capture.calendarRequested()
+        const popup = findChild(capture, "calendarPopup")
+        tryCompare(popup, "opened", true)
+        const grid = findChild(capture, "calendarGrid")
+        tryCompare(grid, "activeFocus", true)
+        keyClick(Qt.Key_Right)
+        keyClick(Qt.Key_Down)
+        keyClick(Qt.Key_Return)
+        tryCompare(popup, "opened", false)
+        const picked = new Date(capture.text)
+        compare(picked.getDate(), start.getDate() + 8)
+        compare(picked.getHours(), start.getHours())
+    }
+    function test_missing_input_is_explained_next_to_the_button() {
+        panel.signaturePath = ""
+        findChild(panel, "createDocumentButton").clicked()
+        compare(panel.documentMessage, "paridad.lote3.eni.required_signature")
+        verify(findChild(panel, "signatureButton").activeFocus)
+        panel.directoryPath = ""
+        findChild(panel, "createFileButton").clicked()
+        compare(panel.fileMessage, "paridad.lote3.eni.required_folder")
+        verify(findChild(panel, "folderButton").activeFocus)
+    }
     function test_calendar_opens_and_preserves_time() {
         const capture = field("capture")
         capture.text = "2026-10-04T13:42:00+02:00"

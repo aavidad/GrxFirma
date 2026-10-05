@@ -19,9 +19,13 @@ Item {
     property string accessibleName: ""
     property string accessibleHelp: ""
     property color outlineColor: "#2980b9"
+    // Sobre la página blanca de la vista previa: azul oscuro con contraste AA.
+    property color focusColor: "#1f5fa8"
     readonly property var rectangle: Geometry.normalize(firstX, firstY, secondX, secondY)
     signal committed(var rect)
     signal feedback(string key)
+    signal keyboardMoved(var rect)
+    signal finished()
     visible: drawMode
     enabled: ready
     activeFocusOnTab: true
@@ -35,15 +39,16 @@ Item {
         feedback("sign.seal.draw_cancelled")
     }
     function confirm() {
-        if (!drawing || !ready) return
+        if (!drawing || !ready) return false
         const rect = rectangle
         drawing = false
         if (!Geometry.isLargeEnough(rect, width, height)) {
             feedback("sign.seal.draw_too_small")
-            return
+            return false
         }
         committed(rect)
         feedback("sign.seal.draw_applied")
+        return true
     }
     function beginKeyboard() {
         firstX = initialRect.x
@@ -56,9 +61,10 @@ Item {
         if (!drawMode || !ready) return
         if (event.key === Qt.Key_Escape) {
             cancel()
+            finished()
         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
             if (!drawing) beginKeyboard()
-            confirm()
+            if (confirm()) finished()
         } else {
             const dx = event.key === Qt.Key_Left ? -0.01 : event.key === Qt.Key_Right ? 0.01 : 0
             const dy = event.key === Qt.Key_Up ? -0.01 : event.key === Qt.Key_Down ? 0.01 : 0
@@ -71,6 +77,7 @@ Item {
                 firstX = Math.max(0, Math.min(1, firstX + dx))
                 firstY = Math.max(0, Math.min(1, firstY + dy))
             }
+            keyboardMoved(rectangle)
         }
         event.accepted = true
     }
@@ -80,6 +87,13 @@ Item {
     onWidthChanged: cancel()
     onHeightChanged: cancel()
 
+    Rectangle {
+        anchors.fill: parent
+        color: "transparent"
+        border.color: drawArea.focusColor
+        border.width: 2
+        visible: drawArea.activeFocus
+    }
     Rectangle {
         visible: drawArea.drawing
         x: drawArea.rectangle.x * drawArea.width

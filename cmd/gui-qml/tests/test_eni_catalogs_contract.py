@@ -29,8 +29,23 @@ class EniCatalogsContract(unittest.TestCase):
         self.assertIn("MonthGrid {", qt)
         self.assertIn("DayOfWeekRow {", qt)
         panel = (ROOT / "cmd/gui-qml/qml/EniPanel.qml").read_text(encoding="utf-8")
-        self.assertIn("if (panel.validateFields([docOrgan, capture, docId, sourceId, format])) documentSave.open()", panel)
+        self.assertIn("if (!panel.missingDocumentInput() && panel.validateFields([docOrgan, capture, docId, sourceId, format])) documentSave.open()", panel)
         self.assertIn("first.focusInput()", panel)
+        # La fecha se escribe dd/mm/aaaa y hh:mm; al motor solo llega RFC 3339.
+        self.assertIn("Validation.parseLocal(dateInput.text, timeInput.text)", qt)
+        self.assertIn("Validation.rfc3339(date)", qt)
+        self.assertIn("Keys.onPressed", qt)
+        self.assertIn('"eni.fechaCaptura": capture.text.trim()', panel)
+
+    def test_eni_texts_use_formal_address_and_no_codes_in_labels(self):
+        import json
+        es = json.loads((ROOT / "internal/adapters/outbound/common/localizador/locales/es.json").read_text(encoding="utf-8"))
+        for key, value in es.items():
+            if key.startswith("eni.validacion."):
+                self.assertNotRegex(value, r"^(Indica|Elige|Usa|Escribe) ", key)
+        for key in ("paridad.lote3.eni.state", "paridad.lote3.eni.doc_type", "paridad.lote3.eni.file_state",
+                    "paridad.lote3.eni.capture_date", "paridad.lote3.eni.open_date"):
+            self.assertNotRegex(es[key], r"\(|ISO|RFC", key)
 
 if __name__ == "__main__":
     unittest.main()

@@ -42,3 +42,22 @@ class VeriFactuContract(unittest.TestCase):
         self.assertIn("panel.invoiceResult = ok ? result : null", panel)
         self.assertIn("panel.reportSaver(path, panel.invoiceResult.report)", panel)
         self.assertIn("verifactuFolderDialog", panel)
+
+    def test_aeat_answer_classifier_matches_winui(self):
+        import shutil, subprocess
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node no instalado")
+        js = (ROOT / "cmd/gui-qml/qml/VeriFactuResponse.js").read_text(encoding="utf-8").replace(".pragma library", "")
+        js += r"""
+const assert = require('assert');
+for (const j of ['{"resultado":"ok"}', '{"resultado":"Factura encontrada"}', '{"estado":"Registrada"}']) assert.strictEqual(classify(JSON.parse(j)), 'verifactu.qr_aeat_found');
+for (const j of ['{"resultado":"Factura no encontrada"}', '{"estado":"KO"}', '{"mensaje":"No se ha identificado la factura"}', '{"result":"NOT_FOUND"}']) assert.strictEqual(classify(JSON.parse(j)), 'verifactu.qr_aeat_not_found');
+assert.strictEqual(classify({x: 1}), 'verifactu.qr_aeat_unknown');
+"""
+        subprocess.run([node, "-e", js], check=True, cwd=ROOT, timeout=15)
+        cs = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI.Core/Operations/VeriFactuQrResponse.cs").read_text(encoding="utf-8")
+        qml = (ROOT / "cmd/gui-qml/qml/VeriFactuResponse.js").read_text(encoding="utf-8")
+        for fragment in ("encontrad|encuentr|consta|existe|registrad|identificad", "noencontrad", "not[\\s_-]*found"):
+            self.assertIn(fragment, cs)
+            self.assertIn(fragment, qml)
