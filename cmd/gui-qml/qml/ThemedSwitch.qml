@@ -5,11 +5,16 @@
 
 import QtQuick
 import QtQuick.Controls
+import "AccessibleLabel.js" as AccessibleLabel
 
 // Interruptor con el texto del tema (paleta de la ventana), ajuste de línea y foco visible.
 Switch {
     id: control
-    Accessible.name: text
+    // Rótulo para lectores de pantalla cuando el texto visible está fuera
+    // del control y no lo precede en la misma fila.
+    property string accessibleLabel: ""
+    Accessible.name: AccessibleLabel.name(control, text, accessibleLabel)
+    Accessible.description: ToolTip.text
     // Pista y mando propios con borde visible en temas claros y oscuros.
     indicator: Rectangle {
         implicitWidth: 42

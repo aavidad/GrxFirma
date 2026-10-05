@@ -5,11 +5,16 @@
 
 import QtQuick
 import QtQuick.Controls
+import "AccessibleLabel.js" as AccessibleLabel
 
 // Casilla con el texto del tema (paleta de la ventana), ajuste de línea y foco visible.
 CheckBox {
     id: control
-    Accessible.name: text
+    // Rótulo para lectores de pantalla cuando el texto visible está fuera
+    // del control y no lo precede en la misma fila.
+    property string accessibleLabel: ""
+    Accessible.name: AccessibleLabel.name(control, text, accessibleLabel)
+    Accessible.description: ToolTip.text
     // Recuadro propio: el de Fusion pierde el borde sobre fondos oscuros (contraste < 3:1).
     indicator: Rectangle {
         implicitWidth: 20

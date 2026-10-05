@@ -38,6 +38,24 @@ Item {
         }
     }
 
+    // Fila de Configuración: el rótulo es un Text aparte del interruptor.
+    Component {
+        id: settingsRowComponent
+        Row {
+            property alias toggle: rowSwitch
+            property alias box: rowCheck
+            property alias label: rowLabel
+            Text { id: rowLabel; text: "Recordar último certificado"; wrapMode: Text.WordWrap }
+            ThemedSwitch { id: rowSwitch }
+            Text { text: "Otro rótulo posterior"; wrapMode: Text.WordWrap }
+            ThemedCheckBox { id: rowCheck }
+        }
+    }
+    Component {
+        id: labelledSwitchComponent
+        ThemedSwitch { text: "Sello visible"; accessibleLabel: "No se usa" }
+    }
+
     TestCase {
         name: "ThemedFields"
         when: windowShown
@@ -81,6 +99,18 @@ Item {
         function test_textarea_is_plain_text_by_default() {
             const area = createTemporaryObject(areaComponent, root)
             compare(area.textFormat, TextEdit.PlainText)
+        }
+
+        function test_switch_and_checkbox_take_the_row_label_as_accessible_name() {
+            const row = createTemporaryObject(settingsRowComponent, root)
+            compare(row.toggle.Accessible.name, "Recordar último certificado")
+            compare(row.box.Accessible.name, "Otro rótulo posterior")
+            row.label.text = "Rótulo cambiado"
+            compare(row.toggle.Accessible.name, "Rótulo cambiado")
+            row.toggle.accessibleLabel = "Rótulo explícito"
+            compare(row.toggle.Accessible.name, "Rótulo explícito")
+            const own = createTemporaryObject(labelledSwitchComponent, root)
+            compare(own.Accessible.name, "Sello visible")
         }
 
         function test_adaptive_row_wraps_when_narrow() {

@@ -14,6 +14,7 @@
     <file>qml/ThemedButton.qml</file>
     <file>qml/ThemedCheckBox.qml</file>
     <file>qml/ThemedSwitch.qml</file>
+    <file>qml/AccessibleLabel.js</file>
     <file>qml/AdaptiveRow.qml</file>
     <file>qml/ThemedTextField.qml</file>
     <file>qml/ThemedTextArea.qml</file>
