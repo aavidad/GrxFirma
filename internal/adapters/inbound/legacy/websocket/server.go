@@ -829,6 +829,7 @@ func serveLegacyWebSocket(ctx context.Context, adapter *Adaptador, hooks *Sessio
 			// deja ventanas ni procesos abiertos.
 			handleCtx, stopWatching := watchPeerClose(ctx, conn, buf.Reader)
 			result, err := adapter.HandleText(handleCtx, strings.TrimSpace(r.Header.Get("Origin")), message)
+			peerGone := handleCtx.Err() != nil
 			stopWatching()
 			if err != nil {
 				reply := legacyWebSocketErrorText(err)
@@ -854,13 +855,34 @@ func serveLegacyWebSocket(ctx context.Context, adapter *Adaptador, hooks *Sessio
 				}
 				return err
 			}
-			if hooks != nil && hooks.OnMessageHandled != nil {
-				hooks.OnMessageHandled(result)
-			}
+			notifyMessageOutcome(hooks, op, result, peerGone)
 		default:
 			trace.WarnContext(ctx, "websocket_unsupported_opcode", "opcode", frame.opcode, "origin", r.Header.Get("Origin"))
 			return fmt.Errorf("websocket: opcode no soportado: %d", frame.opcode)
 		}
+	}
+}
+
+// ErrPortalSinRespuesta indica que el portal cerró el canal mientras se
+// atendía la operación: la respuesta ya no le llega.
+var ErrPortalSinRespuesta = errors.New("websocket: el portal cerró el canal antes de recibir la respuesta")
+
+// notifyMessageOutcome avisa del resultado de una operación. Si el portal
+// cerró el canal mientras se atendía, el resultado (a menudo CANCEL por el
+// contexto cancelado) no es una decisión de la persona sino una entrega
+// fallida, y se notifica como error.
+func notifyMessageOutcome(hooks *SessionHooks, op string, result Resultado, peerGone bool) {
+	if hooks == nil {
+		return
+	}
+	if peerGone {
+		if hooks.OnMessageError != nil {
+			hooks.OnMessageError(op, ErrPortalSinRespuesta)
+		}
+		return
+	}
+	if hooks.OnMessageHandled != nil {
+		hooks.OnMessageHandled(result)
 	}
 }
 
