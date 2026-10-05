@@ -18,8 +18,17 @@ public static class VeriFactuQrDisplay
         var value = raw ?? string.Empty;
         return DateOnly.TryParseExact(value, "dd-MM-yyyy", CultureInfo.InvariantCulture,
             DateTimeStyles.None, out var date)
-            ? date.ToString("d", culture)
+            ? date.ToString(TwoDigitShortDate(culture), culture)
             : value;
+    }
+
+    // Fecha corta del idioma con día y mes de dos cifras (01/09/2024): en
+    // una factura se lee mejor que 1/9/2024.
+    private static string TwoDigitShortDate(CultureInfo culture)
+    {
+        var pattern = culture.DateTimeFormat.ShortDatePattern;
+        pattern = System.Text.RegularExpressions.Regex.Replace(pattern, "(?<!d)d(?!d)", "dd");
+        return System.Text.RegularExpressions.Regex.Replace(pattern, "(?<!M)M(?!M)", "MM");
     }
 
     public static string Amount(string? raw, CultureInfo culture)

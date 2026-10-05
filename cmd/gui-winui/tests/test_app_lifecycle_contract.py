@@ -114,6 +114,17 @@ class AppLifecycleContractTests(unittest.TestCase):
         self.assertIn("DialogGate.Release();", localizer)
         self.assertIn("0x80000019", localizer)
 
+    def test_winui_controls_follow_the_app_language(self) -> None:
+        # Recorrido Windows 0.0.117 (B6): selector de fecha y textos propios
+        # de WinUI en el idioma de la aplicación, no en el de Windows.
+        main_window = MAIN_WINDOW.read_text(encoding="utf-8")
+        self.assertIn("AppRoot.Language = tag;", main_window)
+        self.assertIn("ApplicationLanguages.PrimaryLanguageOverride = tag;", main_window)
+        self.assertIn("Localizer.Apply(page);", main_window)
+        apply = main_window.index("internal void ApplyLanguagePreference")
+        self.assertLess(main_window.index("ApplyControlLanguage();", apply),
+                        main_window.index("if (!changed) return;", apply))
+
     def test_safe_exception_attribution_reaches_visual_diagnostic(self) -> None:
         source = APP.read_text(encoding="utf-8")
         view_model = MAIN_VIEW_MODEL.read_text(encoding="utf-8")

@@ -849,7 +849,8 @@ public sealed class DesktopOperationsClientTests
             "signerSummaries",
             "warnings",
             "errors",
-            "evidence");
+            "evidence",
+            "reportHtml");
         AssertJsonPropertyNames<VerifyAspect>(
             "status",
             "reason",
