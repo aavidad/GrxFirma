@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierre Firefox por completo y vuelva a abrir GrxFirma; si el problema continúa, compruebe que certutil está instalado.",
   "Detalle técnico: %s": "Detalle técnico: %s",
   "token_settings.title": "Tarjetas y tokens",
-  "token_settings.intro": "Configuración local de controladores PKCS#11 para tarjetas, DNIe y tokens USB compatibles. No garantiza compatibilidad con todos los dispositivos.",
-  "token_settings.unavailable": "Esta función está inactiva en producción y no se puede activar aquí. La edición requiere una compilación de prueba habilitada y el canal IPC local.",
+  "token_settings.intro": "Configuración de los controladores de tarjetas, DNIe y tokens USB. No todos los dispositivos son compatibles.",
+  "token_settings.unavailable": "Las tarjetas y tokens USB solo se pueden configurar en la versión de pruebas.",
   "token_settings.state": "Configuración guardada",
   "token_settings.readonly": "La configuración no es modificable. Revise los permisos y la seguridad del archivo; no se cambiarán automáticamente.",
   "token_settings.load": "Cargar configuración",
@@ -2869,7 +2869,7 @@
   ,"facturae.item_description": "Descripción del concepto"
   ,"facturae.legal_name": "Razón social"
   ,"facturae.managing": "Órgano gestor (DIR3)"
-  ,"facturae.nav": "FACTURAE Y FACE"
+  ,"facturae.nav": "FACTURACIÓN"
   ,"facturae.payment": "Incluir datos de pago"
   ,"facturae.person_name": "Nombre"
   ,"facturae.post_code": "Código postal"
@@ -5156,4 +5156,5 @@
   ,"paridad.lote3.eni.interested_hint": "NIF o nombre de cada interesado, separados por comas."
   ,"facturae.required": "obligatorio"
   ,"facturae.required_legend": "Los campos marcados con * son obligatorios."
+  ,"csc.gui.client_id_ayuda": "Se lo facilita su prestador junto con la dirección del servicio."
 }

@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "Impossible d'installer le CA local de GrxFirma dans tous les navigateurs. Fermez complètement Firefox et rouvrez GrxFirma ; si le problème persiste, vérifiez que certutil est installé.",
   "Detalle técnico: %s": "Détail technique : %s",
   "token_settings.title": "Cartes et jetons",
-  "token_settings.intro": "Configuration locale des pilotes PKCS#11 pour cartes, identités électroniques et jetons USB compatibles. La compatibilité avec tous les appareils n'est pas garantie.",
-  "token_settings.unavailable": "Cette fonction est inactive en production et ne peut pas être activée ici. La modification exige une version de test activée et le canal IPC local.",
+  "token_settings.intro": "Réglages des pilotes de cartes, de la carte d’identité espagnole (DNIe) et des jetons USB. Tous les appareils ne sont pas compatibles.",
+  "token_settings.unavailable": "Les cartes et les jetons USB ne peuvent être configurés que dans la version de test.",
   "token_settings.state": "Configuration enregistrée",
   "token_settings.readonly": "La configuration n'est pas modifiable. Vérifiez les permissions et la sécurité du fichier ; elles ne seront pas modifiées automatiquement.",
   "token_settings.load": "Charger la configuration",
@@ -2869,7 +2869,7 @@
   ,"facturae.item_description": "Description de la ligne"
   ,"facturae.legal_name": "Raison sociale"
   ,"facturae.managing": "Organisme gestionnaire (DIR3)"
-  ,"facturae.nav": "FACTURAE ET FACE"
+  ,"facturae.nav": "FACTURATION"
   ,"facturae.payment": "Inclure les données de paiement"
   ,"facturae.person_name": "Nom"
   ,"facturae.post_code": "Code postal"
@@ -5156,4 +5156,5 @@
   ,"paridad.lote3.eni.interested_hint": "Identifiant fiscal ou nom de chaque personne intéressée, séparés par des virgules."
   ,"facturae.required": "obligatoire"
   ,"facturae.required_legend": "Les champs marqués d’un * sont obligatoires."
+  ,"csc.gui.client_id_ayuda": "Votre prestataire vous le fournit avec l’adresse du service."
 }

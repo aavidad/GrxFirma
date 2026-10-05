@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "Non se puido instalar a CA local de GrxFirma en todos os navegadores. Pecha Firefox por completo e volve abrir GrxFirma; se persiste, comproba que certutil está instalado.",
   "Detalle técnico: %s": "Detalle técnico: %s",
   "token_settings.title": "Tarxetas e tokens",
-  "token_settings.intro": "Configuración local de controladores PKCS#11 para tarxetas, identidades electrónicas e tokens USB compatibles. Non garante compatibilidade con todos os dispositivos.",
-  "token_settings.unavailable": "Esta función está inactiva en produción e non se pode activar aquí. A edición require unha compilación de proba habilitada e a canle IPC local.",
+  "token_settings.intro": "Configuración dos controladores de tarxetas, DNIe e tokens USB. Non todos os dispositivos son compatibles.",
+  "token_settings.unavailable": "As tarxetas e os tokens USB só se poden configurar na versión de probas.",
   "token_settings.state": "Configuración gardada",
   "token_settings.readonly": "A configuración non se pode modificar. Revise os permisos e a seguridade do ficheiro; non se cambiarán automaticamente.",
   "token_settings.load": "Cargar configuración",
@@ -2869,7 +2869,7 @@
   ,"facturae.item_description": "Descrición do concepto"
   ,"facturae.legal_name": "Razón social"
   ,"facturae.managing": "Órgano xestor (DIR3)"
-  ,"facturae.nav": "FACTURAE E FACE"
+  ,"facturae.nav": "FACTURACIÓN"
   ,"facturae.payment": "Incluír datos de pagamento"
   ,"facturae.person_name": "Nome"
   ,"facturae.post_code": "Código postal"
@@ -5156,4 +5156,5 @@
   ,"paridad.lote3.eni.interested_hint": "NIF ou nome de cada persoa interesada, separados por comas."
   ,"facturae.required": "obrigatorio"
   ,"facturae.required_legend": "Os campos marcados con * son obrigatorios."
+  ,"csc.gui.client_id_ayuda": "Facilítallo o seu prestador xunto co enderezo do servizo."
 }

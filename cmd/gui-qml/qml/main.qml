@@ -6970,7 +6970,15 @@ Window {
                 enabled: !window.cscBusy && window.cscState.connected !== true
                 inputMethodHints: Qt.ImhNoAutoUppercase | Qt.ImhNoPredictiveText
                 Accessible.name: tr("csc.gui.client_id")
+                Accessible.description: tr("csc.gui.client_id_ayuda")
                 onTextEdited: window.cscDiscovery = null
+            }
+            Label {
+                visible: window.cscAllowed
+                text: tr("csc.gui.client_id_ayuda")
+                color: currentTheme.secondaryTextColor
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
             }
             ThemedButton {
                 text: window.cscBusy && window.cscDiscovery === null ? tr("csc.gui.comprobando") : tr("csc.gui.comprobar")
@@ -8124,6 +8132,8 @@ Window {
         visible: !portalSealMode
         anchors.fill: parent
         anchors.topMargin: updateBanner.visible ? updateBanner.height : 0
+        // El contenido termina encima de la barra de estado, sin quedar debajo de ella.
+        anchors.bottomMargin: statusBar.height
         spacing: 0
 
         // SIDEBAR
@@ -13676,6 +13686,8 @@ Window {
                                         Layout.preferredWidth: 260
                                         model: themes.map(function(_, index) { return themeLabel(index) })
                                         currentIndex: window.currentThemeIndex
+                                        // Al traducirse los nombres cambia el modelo y el combo volvía al primero.
+                                        onModelChanged: currentIndex = Qt.binding(function() { return window.currentThemeIndex })
                                         onActivated: function(index) {
                                             window.currentThemeIndex = index
                                         }
@@ -15783,6 +15795,12 @@ Window {
         property string iconTxt: ""
         property bool active: false
         signal clicked()
+        // Al cambiar de sección se limpia la barra de estado: un mensaje de Verificar
+        // no debe seguir a la vista en Configuración o en ENI.
+        function activate() {
+            window.statusMessage = ""
+            navButtonRoot.clicked()
+        }
 
         Layout.fillWidth: true
         height: 54
@@ -15791,7 +15809,7 @@ Window {
         Accessible.role: Accessible.Button
         Accessible.name: navButtonRoot.text
         Accessible.description: active ? tr("Sección activa") : tr("Abrir sección")
-        Accessible.onPressAction: navButtonRoot.clicked()
+        Accessible.onPressAction: navButtonRoot.activate()
         color: active ? currentTheme.primaryColor : "transparent"
         // Texto legible tanto en temas claros como oscuros; la activa, sobre el color principal.
         readonly property color labelColor: active ? Contrast.readableOn(currentTheme.primaryColor, "#ffffff") : currentTheme.textColor
@@ -15800,7 +15818,7 @@ Window {
 
         Keys.onPressed: function(event) {
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                navButtonRoot.clicked()
+                navButtonRoot.activate()
                 event.accepted = true
             }
         }
@@ -15808,7 +15826,7 @@ Window {
         MouseArea {
             id: navButtonMouseArea
             anchors.fill: parent
-            onClicked: navButtonRoot.clicked()
+            onClicked: navButtonRoot.activate()
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onEntered: if(!navButtonRoot.active) navButtonRoot.opacity = 0.7

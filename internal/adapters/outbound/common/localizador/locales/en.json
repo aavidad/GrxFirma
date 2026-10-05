@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "GrxFirma could not install its local CA in every browser. Close Firefox completely and reopen GrxFirma; if the problem persists, check that certutil is installed.",
   "Detalle técnico: %s": "Technical details: %s",
   "token_settings.title": "Cards and tokens",
-  "token_settings.intro": "Local PKCS#11 driver settings for compatible cards, electronic IDs and USB tokens. Compatibility with every device is not guaranteed.",
-  "token_settings.unavailable": "This feature is inactive in production and cannot be enabled here. Editing requires an enabled preview build and the local IPC channel.",
+  "token_settings.intro": "Settings for card, Spanish ID card (DNIe) and USB token drivers. Not every device is supported.",
+  "token_settings.unavailable": "Cards and USB tokens can only be configured in the test version.",
   "token_settings.state": "Saved configuration",
   "token_settings.readonly": "The configuration is not editable. Check file permissions and safety; they will not be changed automatically.",
   "token_settings.load": "Load configuration",
@@ -2869,7 +2869,7 @@
   ,"facturae.item_description": "Item description"
   ,"facturae.legal_name": "Legal name"
   ,"facturae.managing": "Managing body (DIR3)"
-  ,"facturae.nav": "FACTURAE AND FACE"
+  ,"facturae.nav": "INVOICING"
   ,"facturae.payment": "Include payment details"
   ,"facturae.person_name": "Name"
   ,"facturae.post_code": "Postal code"
@@ -5156,4 +5156,5 @@
   ,"paridad.lote3.eni.interested_hint": "Tax ID or name of each interested party, separated by commas."
   ,"facturae.required": "required"
   ,"facturae.required_legend": "Fields marked with * are required."
+  ,"csc.gui.client_id_ayuda": "Your provider gives it to you together with the service address."
 }

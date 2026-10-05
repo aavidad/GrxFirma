@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "Não foi possível instalar a CA local da GrxFirma em todos os navegadores. Feche o Firefox por completo e volte a abrir a GrxFirma; se persistir, verifique se o certutil está instalado.",
   "Detalle técnico: %s": "Detalhe técnico: %s",
   "token_settings.title": "Cartões e tokens",
-  "token_settings.intro": "Configuração local de controladores PKCS#11 para cartões, identidades eletrónicas e tokens USB compatíveis. Não garante compatibilidade com todos os dispositivos.",
-  "token_settings.unavailable": "Esta função está inativa em produção e não pode ser ativada aqui. A edição exige uma compilação de teste habilitada e o canal IPC local.",
+  "token_settings.intro": "Configuração dos controladores de cartões, DNIe e tokens USB. Nem todos os dispositivos são compatíveis.",
+  "token_settings.unavailable": "Os cartões e os tokens USB só podem ser configurados na versão de testes.",
   "token_settings.state": "Configuração guardada",
   "token_settings.readonly": "A configuração não é editável. Verifique as permissões e a segurança do ficheiro; não serão alteradas automaticamente.",
   "token_settings.load": "Carregar configuração",
@@ -2869,7 +2869,7 @@
   ,"facturae.item_description": "Descrição do item"
   ,"facturae.legal_name": "Denominação social"
   ,"facturae.managing": "Órgão gestor (DIR3)"
-  ,"facturae.nav": "FACTURAE E FACE"
+  ,"facturae.nav": "FATURAÇÃO"
   ,"facturae.payment": "Incluir dados de pagamento"
   ,"facturae.person_name": "Nome"
   ,"facturae.post_code": "Código postal"
@@ -5156,4 +5156,5 @@
   ,"paridad.lote3.eni.interested_hint": "NIF ou nome de cada interessado, separados por vírgulas."
   ,"facturae.required": "obrigatório"
   ,"facturae.required_legend": "Os campos marcados com * são obrigatórios."
+  ,"csc.gui.client_id_ayuda": "É-lhe fornecido pelo seu prestador juntamente com o endereço do serviço."
 }

@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "Die lokale CA von GrxFirma konnte nicht in allen Browsern installiert werden. Schließen Sie Firefox vollständig und öffnen Sie GrxFirma erneut; besteht das Problem weiter, prüfen Sie, ob certutil installiert ist.",
   "Detalle técnico: %s": "Technische Details: %s",
   "token_settings.title": "Karten und Token",
-  "token_settings.intro": "Lokale PKCS#11-Treibereinstellungen für kompatible Karten, elektronische Ausweise und USB-Token. Die Kompatibilität mit allen Geräten ist nicht garantiert.",
-  "token_settings.unavailable": "Diese Funktion ist in der Produktionsversion inaktiv und kann hier nicht aktiviert werden. Änderungen erfordern eine freigeschaltete Testversion und den lokalen IPC-Kanal.",
+  "token_settings.intro": "Einstellungen für Treiber von Karten, spanischem Personalausweis (DNIe) und USB-Token. Nicht alle Geräte werden unterstützt.",
+  "token_settings.unavailable": "Karten und USB-Token lassen sich nur in der Testversion einrichten.",
   "token_settings.state": "Gespeicherte Konfiguration",
   "token_settings.readonly": "Die Konfiguration ist nicht bearbeitbar. Prüfen Sie Dateirechte und Sicherheit; diese werden nicht automatisch geändert.",
   "token_settings.load": "Konfiguration laden",
@@ -2869,7 +2869,7 @@
   ,"facturae.item_description": "Positionsbeschreibung"
   ,"facturae.legal_name": "Firmenname"
   ,"facturae.managing": "Verwaltungsstelle (DIR3)"
-  ,"facturae.nav": "FACTURAE UND FACE"
+  ,"facturae.nav": "RECHNUNGEN"
   ,"facturae.payment": "Zahlungsdaten hinzufügen"
   ,"facturae.person_name": "Name"
   ,"facturae.post_code": "Postleitzahl"
@@ -5156,4 +5156,5 @@
   ,"paridad.lote3.eni.interested_hint": "Steuer-ID oder Name jeder beteiligten Person, durch Kommas getrennt."
   ,"facturae.required": "Pflichtfeld"
   ,"facturae.required_legend": "Mit * gekennzeichnete Felder sind Pflichtfelder."
+  ,"csc.gui.client_id_ayuda": "Sie erhalten sie von Ihrem Anbieter zusammen mit der Adresse des Dienstes."
 }

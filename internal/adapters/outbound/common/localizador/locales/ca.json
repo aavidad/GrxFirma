@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "No s'ha pogut instal·lar la CA local de GrxFirma a tots els navegadors. Tanqueu Firefox completament i torneu a obrir GrxFirma; si persisteix, comproveu que certutil estigui instal·lat.",
   "Detalle técnico: %s": "Detall tècnic: %s",
   "token_settings.title": "Targetes i tokens",
-  "token_settings.intro": "Configuració local de controladors PKCS#11 per a targetes, identitats electròniques i tokens USB compatibles. No garanteix compatibilitat amb tots els dispositius.",
-  "token_settings.unavailable": "Aquesta funció està inactiva en producció i no es pot activar aquí. L'edició requereix una compilació de prova habilitada i el canal IPC local.",
+  "token_settings.intro": "Configuració dels controladors de targetes, DNIe i tokens USB. No tots els dispositius són compatibles.",
+  "token_settings.unavailable": "Les targetes i els tokens USB només es poden configurar a la versió de proves.",
   "token_settings.state": "Configuració desada",
   "token_settings.readonly": "La configuració no es pot modificar. Reviseu els permisos i la seguretat del fitxer; no es canviaran automàticament.",
   "token_settings.load": "Carrega la configuració",
@@ -2869,7 +2869,7 @@
   ,"facturae.item_description": "Descripció del concepte"
   ,"facturae.legal_name": "Raó social"
   ,"facturae.managing": "Òrgan gestor (DIR3)"
-  ,"facturae.nav": "FACTURAE I FACE"
+  ,"facturae.nav": "FACTURACIÓ"
   ,"facturae.payment": "Incloure dades de pagament"
   ,"facturae.person_name": "Nom"
   ,"facturae.post_code": "Codi postal"
@@ -5156,4 +5156,5 @@
   ,"paridad.lote3.eni.interested_hint": "NIF o nom de cada persona interessada, separats per comes."
   ,"facturae.required": "obligatori"
   ,"facturae.required_legend": "Els camps marcats amb * són obligatoris."
+  ,"csc.gui.client_id_ayuda": "Us el facilita el vostre prestador juntament amb l’adreça del servei."
 }

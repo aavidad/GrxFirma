@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "无法在所有浏览器中安装 GrxFirma 的本地 CA。请完全关闭 Firefox 并重新打开 GrxFirma；如果问题仍然存在，请检查是否已安装 certutil。",
   "Detalle técnico: %s": "技术详情：%s",
   "token_settings.title": "智能卡和令牌",
-  "token_settings.intro": "为兼容的智能卡、电子身份证和 USB 令牌配置本地 PKCS#11 驱动程序。不保证兼容所有设备。",
-  "token_settings.unavailable": "此功能在生产版本中未启用，无法在此激活。编辑需要已启用的预览构建及本地 IPC 通道。",
+  "token_settings.intro": "智能卡、西班牙电子身份证（DNIe）和 USB 令牌驱动程序的设置。并非所有设备都受支持。",
+  "token_settings.unavailable": "智能卡和 USB 令牌只能在测试版中配置。",
   "token_settings.state": "已保存的配置",
   "token_settings.readonly": "配置不可编辑。请检查文件权限和安全性；系统不会自动修改它们。",
   "token_settings.load": "加载配置",
@@ -2869,7 +2869,7 @@
   ,"facturae.item_description": "项目说明"
   ,"facturae.legal_name": "法人名称"
   ,"facturae.managing": "管理机构 (DIR3)"
-  ,"facturae.nav": "FACTURAE 和 FACE"
+  ,"facturae.nav": "开票"
   ,"facturae.payment": "包含付款信息"
   ,"facturae.person_name": "姓名"
   ,"facturae.post_code": "邮政编码"
@@ -5156,4 +5156,5 @@
   ,"paridad.lote3.eni.interested_hint": "每位利害关系人的税号或姓名，用逗号分隔。"
   ,"facturae.required": "必填"
   ,"facturae.required_legend": "标有 * 的字段为必填项。"
+  ,"csc.gui.client_id_ayuda": "由您的服务提供商连同服务地址一起提供给您。"
 }

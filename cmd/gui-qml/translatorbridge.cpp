@@ -119,6 +119,40 @@ QString TranslatorBridge::displayName(const QString &code) const {
   return t(QStringLiteral("language.") + normalizeLocale(code));
 }
 
+// Nombre de cada idioma en su propio idioma («English», «Català»…), sacado de
+// su catálogo para que cada persona encuentre el suyo aunque la interfaz esté
+// en otro. Solo se lee la línea de la clave, sin analizar todo el catálogo.
+QString TranslatorBridge::nativeName(const QString &code) const {
+  const QString normalized = normalizeLocale(code);
+  const auto cached = m_nativeNames.constFind(normalized);
+  if (cached != m_nativeNames.constEnd())
+    return cached.value();
+  QString name = displayName(normalized);
+  QFile file(resourcePathForLocale(normalized));
+  if (file.open(QIODevice::ReadOnly)) {
+    const QByteArray data = file.readAll();
+    const QByteArray key = QByteArrayLiteral("\"language.") +
+                           normalized.toUtf8() + QByteArrayLiteral("\"");
+    const qsizetype start = data.indexOf(key);
+    if (start >= 0) {
+      qsizetype end = data.indexOf('\n', start);
+      if (end < 0)
+        end = data.size();
+      QByteArray line = data.mid(start, end - start).trimmed();
+      if (line.endsWith(','))
+        line.chop(1);
+      const QJsonDocument doc =
+          QJsonDocument::fromJson(QByteArrayLiteral("{") + line + QByteArrayLiteral("}"));
+      const QString value =
+          doc.object().value(QStringLiteral("language.") + normalized).toString();
+      if (!value.isEmpty())
+        name = value;
+    }
+  }
+  m_nativeNames.insert(normalized, name);
+  return name;
+}
+
 QVariantList TranslatorBridge::languages() const {
   QVariantList out;
   const QStringList codes = {QStringLiteral("es"), QStringLiteral("ca"),
@@ -130,7 +164,8 @@ QVariantList TranslatorBridge::languages() const {
   for (const auto &code : codes) {
     QVariantMap item;
     item.insert(QStringLiteral("code"), code);
-    item.insert(QStringLiteral("name"), displayName(code));
+    item.insert(QStringLiteral("name"), nativeName(code));
+    item.insert(QStringLiteral("localName"), displayName(code));
     out.push_back(item);
   }
   return out;

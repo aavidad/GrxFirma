@@ -27,6 +27,7 @@ public:
   Q_INVOKABLE QString format(const QString &key,
                              const QVariantList &args = QVariantList()) const;
   Q_INVOKABLE QString displayName(const QString &code) const;
+  Q_INVOKABLE QString nativeName(const QString &code) const;
   Q_INVOKABLE QString helpHtml() const;
   QVariantList languages() const;
 
@@ -43,6 +44,7 @@ private:
 
   QString m_locale;
   QHash<QString, QString> m_messages;
+  mutable QHash<QString, QString> m_nativeNames;
   static TranslatorBridge *s_shared;
 };
 

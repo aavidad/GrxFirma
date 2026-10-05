@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "Ezin izan da GrxFirma-ren CA lokala nabigatzaile guztietan instalatu. Itxi Firefox erabat eta ireki GrxFirma berriro; jarraitzen badu, egiaztatu certutil instalatuta dagoela.",
   "Detalle técnico: %s": "Xehetasun teknikoa: %s",
   "token_settings.title": "Txartelak eta tokenak",
-  "token_settings.intro": "PKCS#11 kontrolatzaileen tokiko konfigurazioa, txartel, nortasun elektroniko eta USB token bateragarrietarako. Ez du gailu guztiekiko bateragarritasuna bermatzen.",
-  "token_settings.unavailable": "Funtzio hau produkzioan desgaituta dago eta ezin da hemen gaitu. Editatzeko, gaitutako proba-konpilazioa eta tokiko IPC kanala behar dira.",
+  "token_settings.intro": "Txartel, NAN elektroniko eta USB token kontrolatzaileen konfigurazioa. Gailu guztiak ez dira bateragarriak.",
+  "token_settings.unavailable": "Txartelak eta USB tokenak proba-bertsioan soilik konfigura daitezke.",
   "token_settings.state": "Gordetako konfigurazioa",
   "token_settings.readonly": "Konfigurazioa ezin da aldatu. Egiaztatu fitxategiaren baimenak eta segurtasuna; ez dira automatikoki aldatuko.",
   "token_settings.load": "Kargatu konfigurazioa",
@@ -2869,7 +2869,7 @@
   ,"facturae.item_description": "Kontzeptuaren deskribapena"
   ,"facturae.legal_name": "Sozietate izena"
   ,"facturae.managing": "Kudeaketa organoa (DIR3)"
-  ,"facturae.nav": "FACTURAE ETA FACE"
+  ,"facturae.nav": "FAKTURAZIOA"
   ,"facturae.payment": "Sartu ordainketaren datuak"
   ,"facturae.person_name": "Izena"
   ,"facturae.post_code": "Posta kodea"
@@ -5156,4 +5156,5 @@
   ,"paridad.lote3.eni.interested_hint": "Interesdun bakoitzaren IFZa edo izena, komaz bereizita."
   ,"facturae.required": "derrigorrezkoa"
   ,"facturae.required_legend": "* ikurra duten eremuak derrigorrezkoak dira."
+  ,"csc.gui.client_id_ayuda": "Zure hornitzaileak ematen dizu, zerbitzuaren helbidearekin batera."
 }

@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "Non è stato possibile installare la CA locale di GrxFirma in tutti i browser. Chiudi completamente Firefox e riapri GrxFirma; se il problema persiste, verifica che certutil sia installato.",
   "Detalle técnico: %s": "Dettaglio tecnico: %s",
   "token_settings.title": "Carte e token",
-  "token_settings.intro": "Configurazione locale dei driver PKCS#11 per carte, identità elettroniche e token USB compatibili. La compatibilità con tutti i dispositivi non è garantita.",
-  "token_settings.unavailable": "Questa funzione è inattiva in produzione e non può essere attivata qui. La modifica richiede una build di prova abilitata e il canale IPC locale.",
+  "token_settings.intro": "Impostazioni dei driver di schede, carta d’identità spagnola (DNIe) e token USB. Non tutti i dispositivi sono compatibili.",
+  "token_settings.unavailable": "Schede e token USB si possono configurare solo nella versione di prova.",
   "token_settings.state": "Configurazione salvata",
   "token_settings.readonly": "La configurazione non è modificabile. Verificare permessi e sicurezza del file; non saranno cambiati automaticamente.",
   "token_settings.load": "Carica configurazione",
@@ -2869,7 +2869,7 @@
   ,"facturae.item_description": "Descrizione della voce"
   ,"facturae.legal_name": "Ragione sociale"
   ,"facturae.managing": "Organo gestore (DIR3)"
-  ,"facturae.nav": "FACTURAE E FACE"
+  ,"facturae.nav": "FATTURAZIONE"
   ,"facturae.payment": "Includi dati di pagamento"
   ,"facturae.person_name": "Nome"
   ,"facturae.post_code": "Codice postale"
@@ -5156,4 +5156,5 @@
   ,"paridad.lote3.eni.interested_hint": "Codice fiscale o nome di ciascun interessato, separati da virgole."
   ,"facturae.required": "obbligatorio"
   ,"facturae.required_legend": "I campi contrassegnati con * sono obbligatori."
+  ,"csc.gui.client_id_ayuda": "Glielo fornisce il suo prestatore insieme all’indirizzo del servizio."
 }
