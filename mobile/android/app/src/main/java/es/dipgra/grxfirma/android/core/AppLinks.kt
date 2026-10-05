@@ -9,6 +9,8 @@ import java.net.URI
 /** Destinos oficiales que la app abre en el navegador; no son textos visibles. */
 object AppLinks {
     const val RELEASES = "https://github.com/aavidad/GrxFirma/releases"
+    /** Contacto de soporte; fuera de los textos traducibles. */
+    const val CONTACT_EMAIL = "avidad@dipgra.es"
     private const val TAG_PREFIX = "/aavidad/GrxFirma/releases/tag/"
 
     /** Solo se abre una publicación del repositorio oficial por HTTPS. */

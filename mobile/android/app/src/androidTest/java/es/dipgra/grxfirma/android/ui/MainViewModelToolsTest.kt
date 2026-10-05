@@ -56,7 +56,7 @@ class MainViewModelToolsTest {
         vm.discardPendingOutput()
         assertEquals(0, core.clearSessionCalls)
         assertEquals("id", vm.state.value.certificate?.id)
-        assertEquals(OperationResult.Error(UiText.Resource(R.string.result_tool_discarded)), vm.state.value.result)
+        assertEquals(OperationResult.Notice(UiText.Resource(R.string.result_tool_discarded)), vm.state.value.result)
         vm.createHash()
         advanceUntilIdle()
         vm.savePendingOutput(DESTINATION)

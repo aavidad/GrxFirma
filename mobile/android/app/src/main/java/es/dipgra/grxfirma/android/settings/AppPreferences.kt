@@ -22,6 +22,8 @@ data class AppSettings(
     val tsaUrl: String = "",
     val outputName: String = OutputNames.SUFFIX,
     val theme: String = THEME_SYSTEM,
+    /** Minutos en segundo plano tras los que se cierra el PKCS#12; 0 = no se cierra solo. */
+    val sessionTimeoutMinutes: Int = DEFAULT_TIMEOUT,
 ) {
     /** Corrige valores fuera de rango (preferencias manipuladas o antiguas). */
     fun sanitized(): AppSettings = copy(
@@ -30,6 +32,7 @@ data class AppSettings(
         tsaUrl = tsaUrl.take(MAX_TSA_URL).filter { !it.isISOControl() },
         outputName = outputName.takeIf { it in OutputNames.POLICIES } ?: OutputNames.SUFFIX,
         theme = theme.takeIf { it in THEMES } ?: THEME_SYSTEM,
+        sessionTimeoutMinutes = sessionTimeoutMinutes.takeIf { it in TIMEOUTS } ?: DEFAULT_TIMEOUT,
     )
 
     companion object {
@@ -37,6 +40,8 @@ data class AppSettings(
         const val THEME_LIGHT = "light"
         const val THEME_DARK = "dark"
         const val MAX_TSA_URL = 2048
+        const val DEFAULT_TIMEOUT = 5
+        val TIMEOUTS = listOf(1, 5, 15, 0)
         val THEMES = listOf(THEME_SYSTEM, THEME_LIGHT, THEME_DARK)
         val PROFILES = listOf("baseline", "t", "lt", "lta")
         val FORMATS = listOf("auto", "pades", "cades", "xades", "xmldsig", "odf", "ooxml", "facturae", "asic-xades", "verifactu")
@@ -65,6 +70,7 @@ class AppPreferences(context: Context) : AppSettingsStore {
         tsaUrl = preferences.getString("tsa_url", "").orEmpty(),
         outputName = preferences.getString("output_name", OutputNames.SUFFIX).orEmpty(),
         theme = preferences.getString("theme", AppSettings.THEME_SYSTEM).orEmpty(),
+        sessionTimeoutMinutes = preferences.getInt("session_timeout_minutes", AppSettings.DEFAULT_TIMEOUT),
     ).sanitized()
 
     override fun save(settings: AppSettings) {
@@ -76,6 +82,7 @@ class AppPreferences(context: Context) : AppSettingsStore {
             putString("tsa_url", clean.tsaUrl)
             putString("output_name", clean.outputName)
             putString("theme", clean.theme)
+            putInt("session_timeout_minutes", clean.sessionTimeoutMinutes)
         }
     }
 

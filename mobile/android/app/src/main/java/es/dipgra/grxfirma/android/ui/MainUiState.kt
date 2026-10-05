@@ -166,6 +166,8 @@ private fun Context.revocationModeLabel(mode: String): String = getString(
 sealed interface OperationResult {
     data object Idle : OperationResult
     data class Success(val title: UiText, val detail: UiText? = null) : OperationResult
+    /** Hecho decidido por la persona (descartar, cierre por seguridad): sin color de error. */
+    data class Notice(val detail: UiText) : OperationResult
     data class Error(val detail: UiText) : OperationResult
 }
 

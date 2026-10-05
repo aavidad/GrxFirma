@@ -5,7 +5,7 @@
 package es.dipgra.grxfirma.android
 
 import android.view.View
-import android.widget.Spinner
+import es.dipgra.grxfirma.android.ui.DropdownField
 import androidx.test.core.app.ActivityScenario
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -28,9 +28,10 @@ class DocumentsUiTest {
     @Test fun signatureFormatsFollowTheContract() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity {
-                val spinner = it.findViewById<Spinner>(R.id.signatureFormat)
-                assertEquals(4, spinner.adapter.count)
-                assertEquals(it.getString(R.string.format_auto), spinner.adapter.getItem(0))
+                val field = it.findViewById<DropdownField>(R.id.signatureFormat)
+                assertEquals(4, field.adapter.count)
+                assertEquals(it.getString(R.string.format_auto), field.adapter.getItem(0))
+                assertEquals(it.getString(R.string.format_auto), field.text.toString())
             }
         }
     }

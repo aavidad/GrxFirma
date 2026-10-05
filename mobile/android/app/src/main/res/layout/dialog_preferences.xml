@@ -24,36 +24,36 @@
             android:text="@string/preferences_helper"
             android:textColor="@color/on_surface" />
 
-        <TextView
-            style="@style/TextAppearance.Material3.LabelLarge"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/prefFormatLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:labelFor="@+id/prefFormat"
-            android:text="@string/pref_default_format"
-            android:textColor="@color/on_surface" />
+            android:hint="@string/pref_default_format">
 
-        <Spinner
-            android:id="@+id/prefFormat"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp" />
+            <es.dipgra.grxfirma.android.ui.DropdownField
+                android:id="@+id/prefFormat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            style="@style/TextAppearance.Material3.LabelLarge"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/prefProfileLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:labelFor="@+id/prefProfile"
-            android:text="@string/pref_default_profile"
-            android:textColor="@color/on_surface" />
+            android:hint="@string/pref_default_profile">
 
-        <Spinner
-            android:id="@+id/prefProfile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:entries="@array/signature_profiles"
-            android:minHeight="48dp" />
+            <es.dipgra.grxfirma.android.ui.DropdownField
+                android:id="@+id/prefProfile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:entries="@array/signature_profiles"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/prefTsaEnabled"
@@ -81,37 +81,52 @@
                 android:minHeight="48dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            style="@style/TextAppearance.Material3.LabelLarge"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/prefOutputNameLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:labelFor="@+id/prefOutputName"
-            android:text="@string/pref_output_name"
-            android:textColor="@color/on_surface" />
+            android:hint="@string/pref_output_name">
 
-        <Spinner
-            android:id="@+id/prefOutputName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:entries="@array/output_name_policies"
-            android:minHeight="48dp" />
+            <es.dipgra.grxfirma.android.ui.DropdownField
+                android:id="@+id/prefOutputName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:entries="@array/output_name_policies"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            style="@style/TextAppearance.Material3.LabelLarge"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/prefThemeLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:labelFor="@+id/prefTheme"
-            android:text="@string/pref_theme"
-            android:textColor="@color/on_surface" />
+            android:hint="@string/pref_theme">
 
-        <Spinner
-            android:id="@+id/prefTheme"
+            <es.dipgra.grxfirma.android.ui.DropdownField
+                android:id="@+id/prefTheme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:entries="@array/themes"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/prefSessionTimeoutLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:entries="@array/themes"
-            android:minHeight="48dp" />
+            android:layout_marginTop="8dp"
+            android:hint="@string/pref_certificate_timeout">
+
+            <es.dipgra.grxfirma.android.ui.DropdownField
+                android:id="@+id/prefSessionTimeout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/prefRestore"

@@ -136,7 +136,7 @@ class MainViewModelPendingSaveTest {
         assertEquals(1, core.clearSessionCalls)
         assertArrayEquals(ByteArray(SIGNED_BYTES.size), core.output.bytes)
         assertEquals(
-            OperationResult.Error(UiText.Resource(R.string.result_save_cancelled)),
+            OperationResult.Notice(UiText.Resource(R.string.result_save_cancelled)),
             viewModel.state.value.result,
         )
     }

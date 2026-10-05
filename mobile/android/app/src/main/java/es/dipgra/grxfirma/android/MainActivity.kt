@@ -21,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.core.widget.doAfterTextChanged
-import android.widget.AdapterView
 import android.text.util.Linkify
 import android.text.method.LinkMovementMethod
 import androidx.core.content.ContextCompat
@@ -57,7 +56,6 @@ import es.dipgra.grxfirma.android.model.EniRequest
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointBackward
 import com.google.android.material.datepicker.MaterialDatePicker
-import android.widget.ArrayAdapter
 import java.text.DateFormat
 import java.util.Date
 import java.util.TimeZone
@@ -68,6 +66,7 @@ import es.dipgra.grxfirma.android.ui.CertificateText
 import es.dipgra.grxfirma.android.ui.DiagnosticsText
 import es.dipgra.grxfirma.android.ui.QrText
 import es.dipgra.grxfirma.android.ui.UpdateText
+import es.dipgra.grxfirma.android.ui.LanguageTags
 import es.dipgra.grxfirma.android.ui.PlatformServicesVisibility
 import androidx.core.net.toUri
 import es.dipgra.grxfirma.android.ui.VeriFactuText
@@ -82,6 +81,12 @@ import es.dipgra.grxfirma.android.ui.UiText
 import es.dipgra.grxfirma.android.ui.resolve
 import es.dipgra.grxfirma.android.ui.toUiText
 import kotlinx.coroutines.launch
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import android.view.Menu
+import android.view.MenuItem
+import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import java.util.Base64
 import java.util.concurrent.atomic.AtomicBoolean
@@ -114,6 +119,11 @@ class MainActivity : AppCompatActivity() {
     private var diagnosticsDialog: DialogDiagnosticsBinding? = null
     private var shownUpdateCheck: UpdateCheck? = null
     private var updatingCertificateFilter = false
+    private var menuEnabled = true
+    private var lastResult: OperationResult? = null
+    private var backgroundSince = 0L
+    private val closeHandler = Handler(Looper.getMainLooper())
+    private val closeCertificateTask = Runnable { closeCertificateIfInactive() }
 
     private val viewModel: MainViewModel by viewModels {
         MainViewModel.Factory(
@@ -209,6 +219,7 @@ class MainActivity : AppCompatActivity() {
         sealPreferences = SealPreferences(this)
         sealSettings = sealPreferences.load()
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         with(binding) {
             ViewCompat.setAccessibilityHeading(documentSectionTitle, true)
             ViewCompat.setAccessibilityHeading(certificateSectionTitle, true)
@@ -244,10 +255,57 @@ class MainActivity : AppCompatActivity() {
         dnieSession?.close()
         dnieSession = null
         binding.certificatePassword.text?.clear()
+        closeHandler.removeCallbacks(closeCertificateTask)
         super.onDestroy()
     }
 
+    override fun onStart() {
+        super.onStart()
+        closeHandler.removeCallbacks(closeCertificateTask)
+        closeCertificateIfInactive()
+        backgroundSince = 0L
+    }
+
+    /** Cierra el certificado si la app lleva en segundo plano más del tiempo elegido. */
+    private fun closeCertificateIfInactive() {
+        if (backgroundSince == 0L) return
+        viewModel.closeCertificateAfterBackground(SystemClock.elapsedRealtime() - backgroundSince)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        val state = viewModel.state.value
+        listOf(R.id.action_language, R.id.action_preferences, R.id.action_about).forEach {
+            menu.findItem(it)?.isEnabled = menuEnabled
+        }
+        menu.findItem(R.id.action_diagnostics)?.isVisible = state.diagnosticsAvailable
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.action_help -> { showHelp(); true }
+        R.id.action_language -> { showLanguageSelector(); true }
+        R.id.action_preferences -> { showPreferences(); true }
+        R.id.action_diagnostics -> { showDiagnostics(); true }
+        R.id.action_about -> { showAbout(); true }
+        else -> super.onOptionsItemSelected(item)
+    }
+
+    /** Aviso que bloquea una acción: se lee y no desaparece mientras TalkBack lo anuncia. */
+    private fun showMessage(message: Int, action: Int? = null, onAction: (() -> Unit)? = null) {
+        val snackbar = Snackbar.make(binding.rootLayout, message, Snackbar.LENGTH_LONG)
+        if (action != null && onAction != null) snackbar.setAction(action) { onAction() }
+        snackbar.show()
+    }
+
     override fun onStop() {
+        backgroundSince = SystemClock.elapsedRealtime()
+        val minutes = viewModel.state.value.settings.sessionTimeoutMinutes
+        if (minutes > 0) closeHandler.postDelayed(closeCertificateTask, minutes * 60_000L)
         stopDnieReading()
         if (dnieSession != null) {
             dnieSession?.close()
@@ -273,21 +331,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
         clearOriginalDocumentButton.setOnClickListener { viewModel.clearOriginalDocument() }
-        helpButton.setOnClickListener { showHelp() }
-        aboutButton.setOnClickListener { showAbout() }
-        preferencesButton.setOnClickListener { showPreferences() }
-        diagnosticsButton.setOnClickListener { showDiagnostics() }
-        languageButton.setOnClickListener { showLanguageSelector() }
+        listOf(toggleSigningOptionsButton to signingOptionsGroup, toggleOtherToolsButton to otherToolsGroup)
+            .forEach { (toggle, group) ->
+                toggle.setOnClickListener {
+                    if (!expandedTools.remove(group.id)) expandedTools += group.id
+                    renderMainToggles()
+                }
+            }
+        renderMainToggles()
         exportReportButton.setOnClickListener { viewModel.exportVerificationReport() }
         useCosignButton.setOnClickListener { viewModel.acceptCoSignSuggestion() }
-        val signingListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updateSigningSettings()
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
-        signatureAction.onItemSelectedListener = signingListener
-        signatureProfile.onItemSelectedListener = signingListener
+        signatureAction.onItemSelected = { updateSigningSettings() }
+        signatureProfile.onItemSelected = { updateSigningSettings() }
+        signatureFormat.onItemSelected = { renderSigningSummary(viewModel.state.value) }
         tsaEnabled.setOnCheckedChangeListener { _, _ -> updateSigningSettings() }
         tsaUrl.doAfterTextChanged { updateSigningSettings() }
         selectCertificateFileButton.setOnClickListener {
@@ -348,7 +404,7 @@ class MainActivity : AppCompatActivity() {
         }
         verifyButton.setOnClickListener { viewModel.verify() }
         retrySaveButton.setOnClickListener { viewModel.retryPendingOutput() }
-        discardPendingOutputButton.setOnClickListener { viewModel.discardPendingOutput() }
+        discardPendingOutputButton.setOnClickListener { confirmDiscard() }
         configureTools()
         configureFormats()
         configureDocuments()
@@ -357,16 +413,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun selectDefaultFormat() {
         val index = formatMenu.indexOf(viewModel.state.value.settings.defaultFormat)
-        if (index >= 0) binding.signatureFormat.setSelection(index)
+        if (index >= 0) binding.signatureFormat.select(index)
     }
 
     private fun configureCertificatePanel() = with(binding.certificatePanel) {
-        certificateKindFilter.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
+        certificateKindFilter.setItems(
             listOf(getString(R.string.cert_filter_all)) + CertificateFilter.KINDS.map { getString(CertificateText.kindLabel(it)) })
-        certificateKindFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) = updateCertificateFilter()
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
+        certificateKindFilter.onItemSelected = { updateCertificateFilter() }
         certificateFilter.doAfterTextChanged { updateCertificateFilter() }
         checkCertificateOnlineButton.setOnClickListener { viewModel.checkCertificateOnline() }
     }
@@ -396,16 +449,49 @@ class MainActivity : AppCompatActivity() {
         checkCertificateOnlineButton.isEnabled = state.canCheckCertificateOnline
         updatingCertificateFilter = true
         if (certificateFilter.text?.toString() != state.certificateFilter) certificateFilter.setText(state.certificateFilter)
-        certificateKindFilter.setSelection(CertificateFilter.KINDS.indexOf(state.certificateKindFilter) + 1)
+        certificateKindFilter.select(CertificateFilter.KINDS.indexOf(state.certificateKindFilter) + 1)
         updatingCertificateFilter = false
+    }
+
+    private fun renderMainToggles() = with(binding) {
+        listOf(toggleSigningOptionsButton to signingOptionsGroup, toggleOtherToolsButton to otherToolsGroup)
+            .forEach { (toggle, group) ->
+                val expanded = group.id in expandedTools
+                group.visibility = if (expanded) View.VISIBLE else View.GONE
+                toggle.setIconResource(if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
+                ViewCompat.setStateDescription(toggle,
+                    getString(if (expanded) R.string.state_expanded else R.string.state_collapsed))
+            }
+    }
+
+    /** Resumen de las opciones avanzadas cuando están plegadas. */
+    private fun renderSigningSummary(state: MainUiState) {
+        val action = when (state.signatureAction) {
+            "cosign" -> R.string.action_cosign
+            "countersign" -> R.string.action_countersign
+            else -> R.string.action_sign
+        }
+        binding.signingOptionsSummary.text = getString(R.string.signing_options_summary, getString(action),
+            getString(FormatPolicy.label(selectedSignatureFormat())),
+            getString(if (state.tsaEnabled) R.string.summary_tsa else R.string.summary_no_tsa))
+    }
+
+    /** Descartar es irreversible: se confirma antes, con el botón seguro por defecto. */
+    private fun confirmDiscard() {
+        val signature = viewModel.state.value.pendingKind == PendingKind.SIGNATURE
+        MaterialAlertDialogBuilder(this)
+            .setTitle(if (signature) R.string.discard_confirm_title else R.string.discard_tool_confirm_title)
+            .setMessage(if (signature) R.string.discard_confirm_message else R.string.discard_tool_confirm_message)
+            .setPositiveButton(if (signature) R.string.discard_keep_signature else R.string.discard_keep_result, null)
+            .setNegativeButton(R.string.discard_confirm_action) { _, _ -> viewModel.discardPendingOutput() }
+            .show()
     }
 
     /** El desplegable ofrece solo los formatos que declara el núcleo. */
     private fun configureFormats() {
         val declared = viewModel.state.value.signingFormats
         formatMenu = listOf("auto") + FormatPolicy.MENU_ORDER.filter { it in declared }
-        binding.signatureFormat.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
-            formatMenu.map { getString(FormatPolicy.label(it)) })
+        binding.signatureFormat.setItems(formatMenu.map { getString(FormatPolicy.label(it)) })
     }
 
     private fun configureDocuments() = with(binding.documents) {
@@ -433,13 +519,12 @@ class MainActivity : AppCompatActivity() {
         val catalogs = viewModel.eniCatalogs()
         eniStates = catalogs.documentStates
         eniTypes = catalogs.documentTypes
-        eniOrigin.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
-            listOf(getString(R.string.eni_origin_administration), getString(R.string.eni_origin_citizen)))
-        eniState.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
-            eniStates.map(::eniCodeLabel))
-        eniDocumentType.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
-            eniTypes.map(::eniCodeLabel))
-        eniDocumentType.setSelection(eniTypes.indexOf("TD99").coerceAtLeast(0))
+        eniOrigin.setItems(listOf(getString(R.string.eni_origin_administration), getString(R.string.eni_origin_citizen)))
+        eniState.setItems(eniStates.map(::eniCodeLabel))
+        eniDocumentType.setItems(eniTypes.map(::eniCodeLabel))
+        if (eniDocumentType.text.isNullOrEmpty() || eniDocumentType.selectedItemPosition == 0) {
+            eniDocumentType.select(eniTypes.indexOf("TD99").coerceAtLeast(0))
+        }
         eniCaptureDateButton.setOnClickListener { showEniDatePicker() }
         eniCaptureDateClearButton.setOnClickListener { viewModel.updateEniCaptureDate(null) }
         createEniButton.setOnClickListener { createEni() }
@@ -552,15 +637,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         renderToolToggles()
-        val toolListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updateToolSettings()
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
-        hashAlgorithm.onItemSelectedListener = toolListener
-        hashFormat.onItemSelectedListener = toolListener
-        protectionContainer.onItemSelectedListener = toolListener
+        hashAlgorithm.onItemSelected = { updateToolSettings() }
+        hashFormat.onItemSelected = { updateToolSettings() }
+        protectionContainer.onItemSelected = { updateToolSettings() }
         protectForMe.setOnCheckedChangeListener { _, _ -> updateToolSettings() }
         selectBatchButton.setOnClickListener {
             try { openBatchDocuments.launch(arrayOf("*/*")) } catch (_: RuntimeException) { viewModel.reportPickerError() }
@@ -654,7 +733,7 @@ class MainActivity : AppCompatActivity() {
         protectForMe.visibility = if (transient) View.GONE else View.VISIBLE
         protectForMe.isEnabled = idle && state.certificate != null && !state.certificateExternal
         addRecipientButton.visibility = protectForMe.visibility
-        addRecipientButton.isEnabled = idle && state.recipients.size < ToolsPolicy.MAX_RECIPIENTS
+        addRecipientButton.isEnabled = state.canUseTools && state.recipients.size < ToolsPolicy.MAX_RECIPIENTS
         recipientsSummary.visibility = protectForMe.visibility
         recipientsSummary.text = if (state.recipients.isEmpty()) getString(R.string.protect_recipients_none) else
             resources.getQuantityString(R.plurals.protect_recipients_count, state.recipients.size, state.recipients.size) +
@@ -676,9 +755,9 @@ class MainActivity : AppCompatActivity() {
             if (state.pendingKind == PendingKind.SIGNATURE) R.string.discard_pending_output else R.string.discard_pending_tool_output,
         )
         updatingToolControls = true
-        hashAlgorithm.setSelection(ToolsPolicy.HASH_ALGORITHMS.indexOf(state.hashAlgorithm).coerceAtLeast(0))
-        hashFormat.setSelection(ToolsPolicy.HASH_FORMATS.indexOf(state.hashFormat).coerceAtLeast(0))
-        protectionContainer.setSelection(ToolsPolicy.CONTAINERS.indexOf(state.protectionContainer).coerceAtLeast(0))
+        hashAlgorithm.select(ToolsPolicy.HASH_ALGORITHMS.indexOf(state.hashAlgorithm).coerceAtLeast(0))
+        hashFormat.select(ToolsPolicy.HASH_FORMATS.indexOf(state.hashFormat).coerceAtLeast(0))
+        protectionContainer.select(ToolsPolicy.CONTAINERS.indexOf(state.protectionContainer).coerceAtLeast(0))
         protectForMe.isChecked = state.protectForMe
         updatingToolControls = false
     }
@@ -779,7 +858,7 @@ class MainActivity : AppCompatActivity() {
             state.postSignVerificationFailed -> R.color.status_warning
             state.verification?.integrityStatus == "invalid" -> R.color.error
             state.verification?.toUiText()?.accredited() == true -> R.color.primary
-            else -> R.color.status_warning
+            else -> R.color.on_surface
         }))
         verifyButton.isEnabled = state.canVerify
         certificatePasswordLayout.isEnabled = !state.busy
@@ -788,12 +867,14 @@ class MainActivity : AppCompatActivity() {
         signatureProfile.isEnabled = state.canReplaceSelection
         tsaEnabled.isEnabled = state.canReplaceSelection
         tsaUrl.isEnabled = state.canReplaceSelection && state.tsaEnabled
-        languageButton.isEnabled = state.canReplaceSelection
-        aboutButton.isEnabled = state.canReplaceSelection
-        helpButton.isEnabled = state.canReplaceSelection
+        tsaUrlLayout.visibility = if (state.tsaEnabled) View.VISIBLE else View.GONE
+        if (menuEnabled != state.canReplaceSelection) {
+            menuEnabled = state.canReplaceSelection
+            invalidateOptionsMenu()
+        }
         updatingSigningControls = true
-        signatureAction.setSelection(listOf("sign", "cosign", "countersign").indexOf(state.signatureAction).coerceAtLeast(0))
-        signatureProfile.setSelection(listOf("baseline", "t", "lt", "lta").indexOf(state.signatureProfile).coerceAtLeast(0))
+        signatureAction.select(listOf("sign", "cosign", "countersign").indexOf(state.signatureAction).coerceAtLeast(0))
+        signatureProfile.select(listOf("baseline", "t", "lt", "lta").indexOf(state.signatureProfile).coerceAtLeast(0))
         tsaEnabled.isChecked = state.tsaEnabled
         if (tsaUrl.text.toString() != state.tsaUrl) tsaUrl.setText(state.tsaUrl)
         updatingSigningControls = false
@@ -816,8 +897,8 @@ class MainActivity : AppCompatActivity() {
         renderCertificatePanel(state)
         renderDiagnostics(state)
         renderUpdateCheck(state)
-        preferencesButton.isEnabled = state.canReplaceSelection
-        diagnosticsButton.visibility = if (state.diagnosticsAvailable) View.VISIBLE else View.GONE
+        renderSigningSummary(state)
+        renderHints(state)
 
         when (val result = state.result) {
             OperationResult.Idle -> {
@@ -839,6 +920,11 @@ class MainActivity : AppCompatActivity() {
                 resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, color))
                 renderDetail(if (result.detail is UiText.Verification) null else result.detail?.resolve(this@MainActivity))
             }
+            is OperationResult.Notice -> {
+                resultTitle.text = result.detail.resolve(this@MainActivity)
+                resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_surface))
+                renderDetail(null)
+            }
             is OperationResult.Error -> {
                 dnieSession?.consumeSigningError()?.let { error ->
                     viewModel.reportDnieError(error, dnieSession?.retriesLeft() ?: -1)
@@ -850,6 +936,53 @@ class MainActivity : AppCompatActivity() {
                 renderDetail(result.detail.resolve(this@MainActivity))
             }
         }
+        revealResult(state.result)
+    }
+
+    /**
+     * Tras cada operación el resultado se desplaza a la vista; TalkBack lo
+     * anuncia por su región viva sin forzar el foco.
+     */
+    private fun revealResult(result: OperationResult) {
+        val previous = lastResult
+        lastResult = result
+        if (previous == null || result === previous || result == OperationResult.Idle) return
+        binding.contentScroll.post {
+            val top = binding.contentColumn.top + binding.resultCard.top
+            binding.contentScroll.smoothScrollTo(0, (top - resources.getDimensionPixelSize(R.dimen.control_spacing)).coerceAtLeast(0))
+        }
+    }
+
+    /** Explica qué falta cuando Firmar, Verificar o el DNIe están desactivados. */
+    private fun renderHints(state: MainUiState) = with(binding) {
+        backendStatusCard.visibility = if (state.backend.available) View.GONE else View.VISIBLE
+        val action = when {
+            state.busy || state.awaitingSave -> null
+            !state.backend.available -> R.string.hint_unavailable
+            state.document == null -> R.string.hint_need_document
+            state.certificate == null -> R.string.hint_need_certificate
+            else -> null
+        }
+        actionHint.visibility = if (action == null) View.GONE else View.VISIBLE
+        if (action != null) actionHint.setText(action)
+        val dnie = when {
+            !state.backend.available -> null
+            nfcAdapter == null -> R.string.dnie_hint_no_nfc
+            state.document == null -> R.string.dnie_hint_document_first
+            else -> null
+        }
+        dnieHint.visibility = if (dnie == null) View.GONE else View.VISIBLE
+        if (dnie != null) dnieHint.setText(dnie)
+        selectDnieNfcButton.isEnabled = state.canReplaceSelection && state.backend.available &&
+            nfcAdapter != null && state.document != null
+        val certificate = state.certificate
+        openCertificateStatus.visibility = if (certificate != null && !state.certificateExternal) View.VISIBLE else View.GONE
+        if (certificate != null && !state.certificateExternal) {
+            val minutes = state.settings.sessionTimeoutMinutes
+            openCertificateStatus.text = if (minutes > 0) getString(R.string.certificate_open_status, certificate.subject,
+                resources.getQuantityString(R.plurals.minutes, minutes, minutes))
+            else getString(R.string.certificate_open_status_manual, certificate.subject)
+        }
     }
 
     private fun renderDetail(detail: String?) = with(binding.resultDetail) {
@@ -860,9 +993,17 @@ class MainActivity : AppCompatActivity() {
     private fun SelectedFile.summaryText(): String = getString(
         R.string.document_summary,
         displayName,
-        mimeType,
+        typeLabel(),
         formatSize(sizeBytes),
     )
+
+    /** Tipo corto para la persona (PDF, XML…), no el tipo MIME. */
+    private fun SelectedFile.typeLabel(): String {
+        val extension = displayName.substringAfterLast('.', "").takeIf { it.length in 1..5 && it.all(Char::isLetterOrDigit) }
+        return extension?.uppercase(java.util.Locale.ROOT)
+            ?: android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)?.uppercase(java.util.Locale.ROOT)
+            ?: getString(R.string.unknown_value)
+    }
 
     private fun formatSize(bytes: Long?): String = when {
         bytes == null -> getString(R.string.unknown_value)
@@ -885,11 +1026,11 @@ class MainActivity : AppCompatActivity() {
         val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.language_title)
-            .setSingleChoiceItems(R.array.language_names, tags.indexOf(current).coerceAtLeast(0)) { dialog, index ->
+            .setSingleChoiceItems(R.array.language_names, LanguageTags.indexFor(current, tags.toList())) { dialog, index ->
                 dialog.dismiss()
                 AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tags[index]))
             }
-            .setNegativeButton(R.string.help_close, null)
+            .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
@@ -898,7 +1039,7 @@ class MainActivity : AppCompatActivity() {
             ?: getString(R.string.unknown_value)
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.about_title)
-            .setMessage(getString(R.string.about_content, BuildConfig.VERSION_NAME, engine) + "\n\n" +
+            .setMessage(getString(R.string.about_content, BuildConfig.VERSION_NAME, engine, AppLinks.CONTACT_EMAIL) + "\n\n" +
                 getString(R.string.about_release_link, AppLinks.RELEASES))
             .setPositiveButton(R.string.help_close, null)
             .setNeutralButton(R.string.about_release_notes) { _, _ ->
@@ -908,10 +1049,9 @@ class MainActivity : AppCompatActivity() {
                     .setPositiveButton(R.string.help_close, null).show()
             }
             .apply {
-                // Sin el servicio en el AAR se conserva el acceso a la ayuda.
                 if (viewModel.state.value.updateCheckAvailable) {
                     setNegativeButton(R.string.about_check_updates) { _, _ -> viewModel.checkUpdate(BuildConfig.VERSION_NAME) }
-                } else setNegativeButton(R.string.open_help) { _, _ -> showHelp() }
+                }
             }
             .show()
         dialog.findViewById<android.widget.TextView>(android.R.id.message)?.let {
@@ -931,7 +1071,7 @@ class MainActivity : AppCompatActivity() {
         val document = viewModel.state.value.document
         if (document == null || !isPdf(document)) return
         if (viewModel.state.value.certificate == null) {
-            android.widget.Toast.makeText(this, R.string.seal_certificate_required, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.seal_certificate_required)
             return
         }
         sealEditorOpen = true
@@ -939,7 +1079,7 @@ class MainActivity : AppCompatActivity() {
             chooseImage = {
                 try { openSealImage.launch(arrayOf("image/png", "image/jpeg")) }
                 catch (_: RuntimeException) {
-                    android.widget.Toast.makeText(this, R.string.error_picker_unavailable, android.widget.Toast.LENGTH_LONG).show()
+                    showMessage(R.string.error_picker_unavailable)
                 }
             },
             onSaved = { settings, count, width, height ->
@@ -950,7 +1090,8 @@ class MainActivity : AppCompatActivity() {
             onClosed = {
                 sealEditorOpen = false
                 sealEditor = null
-            })
+            },
+            onError = { showMessage(it) })
         sealEditor?.show()
     }
 
@@ -963,7 +1104,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (format != "auto" && format != "pades") {
             dnieSession?.clearPin()
-            android.widget.Toast.makeText(this, R.string.seal_pdf_only, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.seal_pdf_only)
             return
         }
         val pageInfo = sealPageInfo
@@ -981,7 +1122,7 @@ class MainActivity : AppCompatActivity() {
             viewModel.sign("pades", options)
         } catch (_: Exception) {
             dnieSession?.clearPin()
-            android.widget.Toast.makeText(this, R.string.seal_invalid_settings, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.seal_invalid_settings)
         }
     }
 
@@ -999,7 +1140,7 @@ class MainActivity : AppCompatActivity() {
             } finally { bytes.fill(0) }
             sealEditor?.customImageSelected()
         } catch (_: Exception) {
-            android.widget.Toast.makeText(this, R.string.seal_image_error, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.seal_image_error)
         }
     }
 
@@ -1060,7 +1201,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun startDnieSelection() {
         if (viewModel.state.value.document == null) {
-            android.widget.Toast.makeText(this, R.string.dnie_document_first, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.dnie_document_first, R.string.snack_choose_document) {
+                try { openDocument.launch(arrayOf("*/*")) } catch (_: RuntimeException) { viewModel.reportPickerError() }
+            }
             return
         }
         val adapter = nfcAdapter
@@ -1085,14 +1228,11 @@ class MainActivity : AppCompatActivity() {
             isSaveEnabled = false
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
         }
-        val layout = TextInputLayout(this).apply {
-            hint = getString(R.string.dnie_can_label)
-            addView(field)
-        }
+        val layout = secretInputLayout(R.string.dnie_can_label, field, password = false)
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.dnie_can_title)
             .setMessage(R.string.dnie_can_help)
-            .setView(layout)
+            .setView(layout.parent as View)
             .setPositiveButton(R.string.dnie_can_continue, null)
             .setNegativeButton(R.string.dnie_cancel) { _, _ -> field.text?.clear() }
             .create()
@@ -1176,15 +1316,12 @@ class MainActivity : AppCompatActivity() {
             isSaveEnabled = false
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
         }
-        val layout = TextInputLayout(this).apply {
-            hint = getString(R.string.dnie_pin_label)
-            addView(field)
-        }
+        val layout = secretInputLayout(R.string.dnie_pin_label, field, password = true)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.dnie_pin_title)
             .setMessage(R.string.dnie_pin_help)
-            .setView(layout)
+            .setView(layout.parent as View)
             .setPositiveButton(R.string.dnie_pin_confirm, null)
             .setNegativeButton(R.string.dnie_cancel) { _, _ -> field.text?.clear() }
             .create()
@@ -1221,16 +1358,19 @@ class MainActivity : AppCompatActivity() {
         val current = viewModel.state.value.settings
         val formats = formatMenu
         with(dialogBinding) {
-            prefFormat.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
-                formats.map { getString(FormatPolicy.label(it)) })
-            prefFormat.setSelection(formats.indexOf(current.defaultFormat).coerceAtLeast(0))
-            prefProfile.setSelection(AppSettings.PROFILES.indexOf(current.defaultProfile).coerceAtLeast(0))
+            prefFormat.setItems(formats.map { getString(FormatPolicy.label(it)) })
+            prefFormat.select(formats.indexOf(current.defaultFormat).coerceAtLeast(0))
+            prefProfile.select(AppSettings.PROFILES.indexOf(current.defaultProfile).coerceAtLeast(0))
+            prefSessionTimeout.setItems(AppSettings.TIMEOUTS.map {
+                if (it == 0) getString(R.string.timeout_never) else resources.getQuantityString(R.plurals.minutes, it, it)
+            })
+            prefSessionTimeout.select(AppSettings.TIMEOUTS.indexOf(current.sessionTimeoutMinutes).coerceAtLeast(0))
             prefTsaEnabled.isChecked = current.tsaEnabled
             prefTsaUrl.setText(current.tsaUrl)
             prefTsaUrlLayout.isEnabled = current.tsaEnabled
             prefTsaEnabled.setOnCheckedChangeListener { _, checked -> prefTsaUrlLayout.isEnabled = checked }
-            prefOutputName.setSelection(OutputNames.POLICIES.indexOf(current.outputName).coerceAtLeast(0))
-            prefTheme.setSelection(AppSettings.THEMES.indexOf(current.theme).coerceAtLeast(0))
+            prefOutputName.select(OutputNames.POLICIES.indexOf(current.outputName).coerceAtLeast(0))
+            prefTheme.select(AppSettings.THEMES.indexOf(current.theme).coerceAtLeast(0))
         }
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.preferences_title)
@@ -1259,6 +1399,9 @@ class MainActivity : AppCompatActivity() {
                         tsaUrl = prefTsaUrl.text?.toString()?.trim().orEmpty(),
                         outputName = OutputNames.POLICIES.getOrElse(prefOutputName.selectedItemPosition) { OutputNames.SUFFIX },
                         theme = AppSettings.THEMES.getOrElse(prefTheme.selectedItemPosition) { AppSettings.THEME_SYSTEM },
+                        sessionTimeoutMinutes = AppSettings.TIMEOUTS.getOrElse(prefSessionTimeout.selectedItemPosition) {
+                            AppSettings.DEFAULT_TIMEOUT
+                        },
                     )
                 }
                 if (viewModel.savePreferences(settings)) {
@@ -1328,7 +1471,7 @@ class MainActivity : AppCompatActivity() {
         val clipboard = getSystemService(android.content.ClipboardManager::class.java) ?: return
         clipboard.setPrimaryClip(android.content.ClipData.newPlainText(getString(R.string.diag_report_title), text))
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
-            android.widget.Toast.makeText(this, R.string.diag_copied, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.diag_copied)
         }
     }
 
@@ -1359,11 +1502,40 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Ayuda por apartados: cada uno en pasos cortos, sin un bloque largo que desplazar. */
+    /** Campo con contorno y márgenes del diálogo; el PIN se puede mostrar u ocultar. */
+    private fun secretInputLayout(hint: Int, field: TextInputEditText, password: Boolean): TextInputLayout {
+        val layout = TextInputLayout(this, null, com.google.android.material.R.attr.textInputOutlinedStyle)
+        layout.hint = getString(hint)
+        if (password) layout.endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
+        layout.addView(field)
+        val padding = (24 * resources.displayMetrics.density).toInt()
+        android.widget.FrameLayout(this).apply {
+            setPadding(padding, padding / 3, padding, 0)
+            addView(layout)
+        }
+        return layout
+    }
+
     private fun showHelp() {
+        val topics = listOf(
+            R.string.help_topic_sign to R.string.help_sign_content,
+            R.string.help_topic_dnie to R.string.help_dnie_content,
+            R.string.help_topic_verify to R.string.help_verify_content,
+            R.string.help_topic_tools to R.string.help_tools_content,
+            R.string.help_topic_privacy to R.string.help_privacy_content,
+        )
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.help_title)
-            .setMessage(getString(R.string.help_content) + "\n\n" + getString(R.string.help_tools_content) +
-                "\n\n" + getString(R.string.help_documents_content) + "\n\n" + getString(R.string.help_wave3_content))
+            .setItems(topics.map { getString(it.first) }.toTypedArray()) { _, index ->
+                val (title, content) = topics[index]
+                MaterialAlertDialogBuilder(this)
+                    .setTitle(title)
+                    .setMessage(content)
+                    .setPositiveButton(R.string.help_close, null)
+                    .setNeutralButton(R.string.menu_help) { _, _ -> showHelp() }
+                    .show()
+            }
             .setPositiveButton(R.string.help_close, null)
             .show()
     }

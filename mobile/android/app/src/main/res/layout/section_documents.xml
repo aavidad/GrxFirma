@@ -235,50 +235,50 @@
                 android:singleLine="true" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            style="@style/TextAppearance.Material3.LabelLarge"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/eniOriginLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:labelFor="@id/eniOrigin"
-            android:text="@string/eni_origin"
-            android:textColor="@color/on_surface" />
+            android:hint="@string/eni_origin">
 
-        <Spinner
-            android:id="@+id/eniOrigin"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:spinnerMode="dropdown" />
+            <es.dipgra.grxfirma.android.ui.DropdownField
+                android:id="@+id/eniOrigin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            style="@style/TextAppearance.Material3.LabelLarge"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/control_spacing"
-            android:labelFor="@id/eniState"
-            android:text="@string/eni_state"
-            android:textColor="@color/on_surface" />
-
-        <Spinner
-            android:id="@+id/eniState"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:spinnerMode="dropdown" />
-
-        <TextView
-            style="@style/TextAppearance.Material3.LabelLarge"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/eniStateLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:labelFor="@id/eniDocumentType"
-            android:text="@string/eni_doc_type"
-            android:textColor="@color/on_surface" />
+            android:hint="@string/eni_state">
 
-        <Spinner
-            android:id="@+id/eniDocumentType"
+            <es.dipgra.grxfirma.android.ui.DropdownField
+                android:id="@+id/eniState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/eniDocumentTypeLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:spinnerMode="dropdown" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:hint="@string/eni_doc_type">
+
+            <es.dipgra.grxfirma.android.ui.DropdownField
+                android:id="@+id/eniDocumentType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/eniSourceLayout"

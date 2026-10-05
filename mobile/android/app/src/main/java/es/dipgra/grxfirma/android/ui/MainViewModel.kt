@@ -488,12 +488,12 @@ class MainViewModel(
         clearPending()
         if (kind != PendingKind.SIGNATURE) {
             mutableState.value = mutableState.value.copy(awaitingSave = false,
-                result = OperationResult.Error(UiText.Resource(R.string.result_tool_discarded)))
+                result = OperationResult.Notice(UiText.Resource(R.string.result_tool_discarded)))
             return
         }
         val result = try {
             core.clearSession()
-            OperationResult.Error(UiText.Resource(R.string.result_save_cancelled))
+            OperationResult.Notice(UiText.Resource(R.string.result_save_cancelled))
         } catch (error: Exception) {
             OperationResult.Error(error.toUserText())
         }
@@ -519,6 +519,23 @@ class MainViewModel(
         pendingBatch?.forEach { it.output?.bytes?.fill(0) }
         pendingBatch = null
         pendingSavedDetail = null
+    }
+
+    /**
+     * Cierra el PKCS#12 si la app ha pasado en segundo plano el tiempo elegido.
+     * El DNIe ya se cierra al salir de la pantalla. Devuelve true si lo cerró.
+     */
+    fun closeCertificateAfterBackground(elapsedMillis: Long): Boolean {
+        val snapshot = mutableState.value
+        val minutes = snapshot.settings.sessionTimeoutMinutes
+        if (snapshot.certificate == null || snapshot.certificateExternal || minutes <= 0 || snapshot.busy) return false
+        if (elapsedMillis < minutes * 60_000L) return false
+        identityEpoch.incrementAndGet()
+        try { core.clearSession() } catch (_: Exception) { }
+        mutableState.value = mutableState.value.copy(certificate = null, certificateDetails = emptyList(),
+            certificateFile = null, result = if (snapshot.awaitingSave) snapshot.result
+            else OperationResult.Notice(UiText.Resource(R.string.certificate_closed_timeout)))
+        return true
     }
 
     fun forgetCertificate() {

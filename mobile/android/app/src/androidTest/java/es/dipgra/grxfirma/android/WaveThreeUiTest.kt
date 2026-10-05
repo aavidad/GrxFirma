@@ -9,7 +9,6 @@ import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.Espresso.onData
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.scrollTo
@@ -22,7 +21,6 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.platform.app.InstrumentationRegistry
 import es.dipgra.grxfirma.android.settings.AppPreferences
 import es.dipgra.grxfirma.android.settings.AppSettings
-import org.hamcrest.Matchers.anything
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -47,10 +45,10 @@ class WaveThreeUiTest {
 
     @Test fun preferencesSaveThemeAndRestoreDefaults() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            onView(withId(R.id.preferencesButton)).perform(scrollTo(), click())
+            TestMenus.open(R.id.action_preferences, R.string.preferences_button)
             onView(withId(R.id.prefTheme)).inRoot(isDialog()).perform(scrollTo(), click())
-            // Lista del desplegable: onData elige la opción «Oscuro» por posición.
-            onData(anything()).inRoot(isPlatformPopup()).atPosition(2).perform(click())
+            // La lista del desplegable es una ventana emergente propia.
+            onView(withText(R.string.theme_dark)).inRoot(isPlatformPopup()).perform(click())
             onView(withText(R.string.preferences_save)).inRoot(isDialog()).perform(click())
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
             assertEquals(AppSettings.THEME_DARK, AppPreferences(context).load().theme)
@@ -59,7 +57,7 @@ class WaveThreeUiTest {
             }
         }
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            onView(withId(R.id.preferencesButton)).perform(scrollTo(), click())
+            TestMenus.open(R.id.action_preferences, R.string.preferences_button)
             onView(withId(R.id.prefRestore)).inRoot(isDialog()).perform(scrollTo(), click())
             onView(withText(R.string.preferences_restore_action)).inRoot(isDialog()).perform(click())
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
@@ -72,9 +70,9 @@ class WaveThreeUiTest {
 
     @Test fun timestampProfileWithoutTsaIsRejectedInTheDialog() {
         ActivityScenario.launch(MainActivity::class.java).use {
-            onView(withId(R.id.preferencesButton)).perform(scrollTo(), click())
+            TestMenus.open(R.id.action_preferences, R.string.preferences_button)
             onView(withId(R.id.prefProfile)).inRoot(isDialog()).perform(scrollTo(), click())
-            onData(anything()).inRoot(isPlatformPopup()).atPosition(2).perform(click())
+            onView(withText(R.string.profile_lt)).inRoot(isPlatformPopup()).perform(click())
             onView(withText(R.string.preferences_save)).inRoot(isDialog()).perform(click())
             onView(withId(R.id.prefTsaUrlLayout)).inRoot(isDialog()).check(matches(isDisplayed()))
             assertEquals("baseline", AppPreferences(context).load().defaultProfile)
@@ -86,7 +84,6 @@ class WaveThreeUiTest {
         if (BuildConfig.CORE_MODE == "production") return
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                assertEquals(View.GONE, activity.findViewById<View>(R.id.diagnosticsButton).visibility)
                 assertEquals(View.GONE, activity.findViewById<View>(R.id.qrGroup).visibility)
                 assertEquals(View.GONE, activity.findViewById<View>(R.id.checkCertificateOnlineButton).visibility)
             }
