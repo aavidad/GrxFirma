@@ -12,16 +12,6 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/toolsSectionTitle"
-        style="@style/TextAppearance.Material3.TitleLarge"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/section_spacing"
-        android:text="@string/tools_section"
-        android:textColor="@color/on_surface"
-        android:textStyle="bold" />
-
-    <TextView
         android:id="@+id/toolsHelper"
         style="@style/TextAppearance.Material3.BodyMedium"
         android:layout_width="match_parent"

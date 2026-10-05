@@ -280,7 +280,6 @@ class MainActivity : AppCompatActivity() {
             ViewCompat.setAccessibilityHeading(certificateSectionTitle, true)
             ViewCompat.setAccessibilityHeading(operationSectionTitle, true)
             ViewCompat.setAccessibilityHeading(resultSectionTitle, true)
-            ViewCompat.setAccessibilityHeading(tools.toolsSectionTitle, true)
             ViewCompat.setAccessibilityHeading(documents.documentsSectionTitle, true)
         }
         savedInstanceState?.getIntArray(STATE_EXPANDED_TOOLS)?.let { expandedTools.addAll(it.toList()) }
@@ -545,6 +544,9 @@ class MainActivity : AppCompatActivity() {
                 ViewCompat.setStateDescription(toggle,
                     getString(if (expanded) R.string.state_expanded else R.string.state_collapsed))
             }
+        // El resumen solo hace falta con las opciones plegadas: abiertas, ya se ven los campos.
+        signingOptionsSummary.visibility =
+            if (signingOptionsGroup.id in expandedTools) View.GONE else View.VISIBLE
     }
 
     /** Resumen de las opciones avanzadas cuando están plegadas. */
@@ -1059,9 +1061,11 @@ class MainActivity : AppCompatActivity() {
         }
         actionHint.visibility = if (action == null) View.GONE else View.VISIBLE
         if (action != null) actionHint.setText(action)
+        // Si el botón del DNIe está desactivado, siempre se explica por qué.
         val dnie = when {
-            !state.backend.available -> null
+            state.busy || state.awaitingSave -> null
             nfcAdapter == null -> R.string.dnie_hint_no_nfc
+            !state.backend.available -> R.string.hint_unavailable
             state.document == null -> R.string.dnie_hint_document_first
             else -> null
         }
