@@ -46,6 +46,9 @@ def main():
         catalogue = json.loads((CATALOGUES / f"{language}.json").read_text())
         messages = {spanish.get(key, key): value for key, value in catalogue.items()
                     if spanish.get(key, key) in literals}
+        # Diagnósticos cuyo literal del motor es la propia clave del catálogo
+        # (su texto en castellano puede estar mejor redactado que el literal).
+        messages.update({key: value for key, value in catalogue.items() if key in literals})
         folder = "values" if language == "es" else "values-b+ca+ES+valencia" if language == "va" else f"values-{language}"
         overlay = {node.attrib["name"]: node.text for node in ET.parse(RES / folder / "strings.xml").getroot() if node.tag == "string"}
         messages.update({value: overlay[key] for key, value in source_overlay.items()})
