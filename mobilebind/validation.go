@@ -27,7 +27,12 @@ const (
 	maxVerifyJSONBytes     = 108 << 20
 	maxImportJSONBytes     = 6 << 20
 	maxSelectJSONBytes     = 16 << 10
-	maxBatchJSONBytes      = 96 << 20
+	// maxBatchJSONBytes: Base64 de la entrada total del lote (4/3), la
+	// imagen del sello que Android repite en cada documento (hasta 2 MiB)
+	// y 2 MiB para nombres y opciones. Unos 87 MiB, antes 96 MiB.
+	maxBatchJSONBytes = (maxBatchInputBytes+maxBatchItems*maxBatchSealImageBytes)/3*4 + 2<<20
+	// maxBatchSealImageBytes es la imagen de sello que admite Android.
+	maxBatchSealImageBytes = 2 << 20
 	maxRemoteJSONBytes     = 64 << 20
 	maxIntentJSONBytes     = 48 << 20
 	maxOptions             = 32

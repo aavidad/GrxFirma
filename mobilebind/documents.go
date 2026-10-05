@@ -24,9 +24,15 @@ import (
 // las traduce con sus recursos; el núcleo no envía textos para mostrar.
 
 const (
-	maxVeriFactuFiles      = 64
-	maxVeriFactuJSONBytes  = 45 << 20
-	maxENIJSONBytes        = 108 << 20
+	maxVeriFactuFiles     = 64
+	maxVeriFactuJSONBytes = 45 << 20
+	// maxENIInputBytes suma firma y original: una firma implícita o PAdES
+	// llega sola y una separada (CAdES explícita, XAdES) es pequeña frente a
+	// su original de hasta maxDocumentBytes.
+	maxENIInputBytes = maxSignedDocumentBytes
+	// maxENIJSONBytes es el Base64 de maxENIInputBytes (4/3) más 1 MiB de
+	// metadatos: 65 MiB, antes 108 MiB.
+	maxENIJSONBytes        = maxENIInputBytes/3*4 + 1<<20
 	maxENIOrgans           = 16
 	maxIssueFieldRunes     = 160
 	eniErrorUnsignedPDF    = "eni.error.unsigned_pdf"
@@ -222,6 +228,9 @@ func (f *Facade) CreateENIDocumentJSON(payload string) (string, error) {
 			return "", err
 		}
 		defer zeroBytes(original)
+	}
+	if len(signature)+len(original) > maxENIInputBytes {
+		return "", newFacadeError("original_base64 supera el limite permitido")
 	}
 	doc, err := eniDocumentFromSignature(signature, original, req)
 	if err != nil {

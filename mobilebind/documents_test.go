@@ -192,3 +192,35 @@ func TestCSVLegendNormalizesIDNAndReportsField(t *testing.T) {
 		}
 	}
 }
+
+func TestENIAndBatchJSONLimitsAreProportional(t *testing.T) {
+	encoded := func(n int) int { return base64.StdEncoding.EncodedLen(n) }
+	for _, tc := range []struct {
+		name          string
+		limit, needed int
+		previous      int
+	}{
+		{"ENI", maxENIJSONBytes, encoded(maxENIInputBytes), 108 << 20},
+		{"expediente ENI", maxENIFileJSONBytes, encoded(maxENIFileInputBytes), 48 << 20},
+		{"lote", maxBatchJSONBytes, encoded(maxBatchInputBytes) + maxBatchItems*encoded(maxBatchSealImageBytes), 96 << 20},
+	} {
+		if tc.limit < tc.needed+512<<10 || tc.limit > tc.needed+2<<20 || tc.limit >= tc.previous {
+			t.Errorf("%s: límite %d para %d bytes de Base64 (antes %d)", tc.name, tc.limit, tc.needed, tc.previous)
+		}
+	}
+}
+
+func TestCreateENIDocumentRejectsOversizedSignaturePlusOriginal(t *testing.T) {
+	facade := newAndroidFacadeForTest(t)
+	request := eniDocumentRequest{
+		SignatureBase64: base64.StdEncoding.EncodeToString(make([]byte, maxSignedDocumentBytes-1024)),
+		OriginalBase64:  base64.StdEncoding.EncodeToString(make([]byte, 2048)),
+		Organs:          []string{"L01180877"},
+		Origin:          "administracion",
+		State:           "EE01",
+		DocumentType:    "TD10",
+	}
+	if _, err := facade.CreateENIDocumentJSON(mustJSON(t, request)); err == nil || !strings.Contains(err.Error(), "limite") {
+		t.Fatalf("firma y original por encima del tope: %v", err)
+	}
+}

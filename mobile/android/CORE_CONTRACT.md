@@ -226,7 +226,9 @@ aprobación y la identidad de la sesión. Cada documento pasa las mismas
 validaciones que `signJSON` (nombre, MIME, acción, perfil y TSA). La respuesta
 trae `items[]` en el orden de entrada, cada uno con `ok` y la firma o un error
 propio. No admite `session`: `remote_exchange` sigue en `false`. El DNIe exige
-PIN por firma, así que Android no le ofrece el lote.
+PIN por firma, así que Android no le ofrece el lote. El JSON del lote admite
+unos 87 MiB: el Base64 de los 32 MiB de documentos más una imagen de sello de
+hasta 2 MiB repetida en cada documento y 2 MiB para nombres y opciones.
 
 El contrato declara `process_batch`, `hash`, `protect`, `unprotect` y
 `protect_sign`, además de `limits.batch_items`, `limits.batch_input_bytes`,
@@ -274,7 +276,9 @@ traduce. No consulta a la AEAT ni usa la red.
 `eni.error.content_format` y `eni.error.origin`. `validateENIJSON` devuelve
 `valid` e `issues[]` con claves `eni.validacion.*`; no verifica las firmas.
 `eniCatalogsJSON` devuelve `document_states`, `document_types` y
-`file_states`. El expediente ENI (carpeta de documentos con índice firmado)
+`file_states`. La firma y el original suman como máximo 48 MiB (una firma
+implícita o PAdES llega sola; una separada es pequeña frente a su original de
+hasta 32 MiB) y el JSON admite 65 MiB. El expediente ENI (carpeta de documentos con índice firmado)
 no está en Android.
 
 `csvLegendJSON` recibe `csv`, `csv_url` y `csv_text` y devuelve `url`
@@ -291,7 +295,8 @@ como opcionales: con un AAR anterior oculta lo que no esté declarado.
 
 `createENIFileJSON` crea un expediente ENI con la operación
 `generar-expediente` del escritorio. Recibe `documents[]` (`name`,
-`content_base64`; documentos ENI en XML, hasta 64 y 32 MiB en total),
+`content_base64`; documentos ENI en XML, hasta 64 y 32 MiB en total; el JSON
+admite unos 44 MiB),
 `certificate_id`, `organs[]` (DIR3), `classification` (código SIA o
 `<DIR3>_PRO_<id>`), `state` (`E01`, `E02` o `E03`, de
 `eni.EstadosExpediente`), `identifier` opcional, `opening_date` opcional en
