@@ -52,6 +52,14 @@ type Config struct {
 	// Límites operativos
 	TimeoutOperacionSegundos int   `json:"timeout_operacion_segundos"`
 	MaxTamanoDocumentoBytes  int64 `json:"max_tamano_documento_bytes"`
+
+	// FirmaRemotaCSC activa el prototipo de firma con certificados remotos
+	// (CSC API) cuando no hay política. Desactivado por defecto; no admite
+	// variable de entorno.
+	FirmaRemotaCSC bool `json:"firma_remota_csc"`
+	// FirmaRemotaCSCOAuth lista pares "servicio=oauth" (host[:puerto]) que
+	// autorizan un servidor OAuth en otro host que el servicio CSC.
+	FirmaRemotaCSCOAuth []string `json:"firma_remota_csc_oauth_permitidos"`
 }
 
 // Policy representa únicamente los overrides definidos explícitamente en
@@ -67,6 +75,11 @@ type Policy struct {
 	NivelLog                 *string  `json:"nivel_log"`
 	TimeoutOperacionSegundos *int     `json:"timeout_operacion_segundos"`
 	MaxTamanoDocumentoBytes  *int64   `json:"max_tamano_documento_bytes"`
+	// FirmaRemotaCSC decide la firma remota CSC por encima del usuario:
+	// true la permite y false la prohíbe.
+	FirmaRemotaCSC *bool `json:"firma_remota_csc"`
+	// FirmaRemotaCSCOAuth sustituye la lista de pares del usuario.
+	FirmaRemotaCSCOAuth []string `json:"firma_remota_csc_oauth_permitidos"`
 }
 
 // Default devuelve la configuración con valores seguros por defecto.
@@ -83,6 +96,7 @@ func Default() Config {
 		NivelLog:                 "info",
 		TimeoutOperacionSegundos: 30,
 		MaxTamanoDocumentoBytes:  52428800, // 50 MB
+		FirmaRemotaCSCOAuth:      []string{},
 	}
 }
 
@@ -136,11 +150,31 @@ func loadSystemPolicy(policyDir string) (Policy, error) {
 	return loadPolicyFile(filepath.Join(policyDir, ficheroPolicy))
 }
 
+// lectorPoliticaMaquina abstrae el registro para poder probar la lectura
+// fuera de Windows.
+type lectorPoliticaMaquina struct {
+	boolean func(string) (bool, bool, error)
+	texto   func(string) (string, bool, error)
+	textos  func(string) ([]string, bool, error)
+	entero  func(string) (int64, bool, error)
+}
+
+var lectorRegistro = lectorPoliticaMaquina{
+	boolean: machinepolicy.Bool,
+	texto:   machinepolicy.String,
+	textos:  machinepolicy.Strings,
+	entero:  machinepolicy.Int64,
+}
+
 func loadMachinePolicy() (Policy, error) {
+	return loadMachinePolicyDesde(lectorRegistro)
+}
+
+func loadMachinePolicyDesde(lector lectorPoliticaMaquina) (Policy, error) {
 	var p Policy
 	var errs []error
 	leerBool := func(nombre string, destino **bool) {
-		v, ok, err := machinepolicy.Bool(nombre)
+		v, ok, err := lector.boolean(nombre)
 		if err != nil {
 			errs = append(errs, err)
 		} else if ok {
@@ -148,7 +182,7 @@ func loadMachinePolicy() (Policy, error) {
 		}
 	}
 	leerTexto := func(nombre string, destino **string) {
-		v, ok, err := machinepolicy.String(nombre)
+		v, ok, err := lector.texto(nombre)
 		if err != nil {
 			errs = append(errs, err)
 		} else if ok {
@@ -161,18 +195,24 @@ func loadMachinePolicy() (Policy, error) {
 	leerBool(machinepolicy.TofuHabilitado, &p.TofuHabilitado)
 	leerTexto(machinepolicy.DirectorioP12, &p.DirectorioP12)
 	leerTexto(machinepolicy.NivelLog, &p.NivelLog)
-	if v, ok, err := machinepolicy.Strings(machinepolicy.DominiosDeConfianza); err != nil {
+	if v, ok, err := lector.textos(machinepolicy.DominiosDeConfianza); err != nil {
 		errs = append(errs, err)
 	} else if ok {
 		p.DominiosDeConfianza = v
 	}
-	if v, ok, err := machinepolicy.Int64(machinepolicy.TimeoutOperacionSegundos); err != nil {
+	if v, ok, err := lector.entero(machinepolicy.TimeoutOperacionSegundos); err != nil {
 		errs = append(errs, err)
 	} else if ok {
 		n := int(v)
 		p.TimeoutOperacionSegundos = &n
 	}
-	if v, ok, err := machinepolicy.Int64(machinepolicy.MaxTamanoDocumentoBytes); err != nil {
+	leerBool(machinepolicy.FirmaRemotaCSC, &p.FirmaRemotaCSC)
+	if v, ok, err := lector.textos(machinepolicy.FirmaRemotaCSCOAuth); err != nil {
+		errs = append(errs, err)
+	} else if ok {
+		p.FirmaRemotaCSCOAuth = v
+	}
+	if v, ok, err := lector.entero(machinepolicy.MaxTamanoDocumentoBytes); err != nil {
 		errs = append(errs, err)
 	} else if ok {
 		p.MaxTamanoDocumentoBytes = &v
@@ -305,4 +345,21 @@ func aplicarPolicyCargada(cfg *Config, raw Policy, err error) {
 	if raw.MaxTamanoDocumentoBytes != nil {
 		cfg.MaxTamanoDocumentoBytes = *raw.MaxTamanoDocumentoBytes
 	}
+	if raw.FirmaRemotaCSC != nil {
+		cfg.FirmaRemotaCSC = *raw.FirmaRemotaCSC
+	}
+	if raw.FirmaRemotaCSCOAuth != nil {
+		cfg.FirmaRemotaCSCOAuth = raw.FirmaRemotaCSCOAuth
+	}
+}
+
+// FirmaRemotaCSCActiva decide si se puede usar la firma remota CSC. Si la
+// política de la organización (policy.json o, en Windows, la política de
+// máquina) fija el valor, manda ella. Sin política, solo config.json la
+// activa: ninguna opción de la línea de órdenes ni variable de entorno.
+func (cfg Config) FirmaRemotaCSCActiva(politica Policy) bool {
+	if politica.FirmaRemotaCSC != nil {
+		return *politica.FirmaRemotaCSC
+	}
+	return cfg.FirmaRemotaCSC
 }

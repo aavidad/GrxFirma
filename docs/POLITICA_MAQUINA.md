@@ -32,6 +32,8 @@ todos los usuarios del equipo (por ejemplo, en servidores de escritorio remoto).
 | `websocket_habilitado` | `REG_DWORD` | `1` mantiene un servicio WebSocket residente. Sin él, las sedes solo pueden abrir por `afirma://` un canal temporal que se cierra al terminar cada operación. |
 | `websocket_permitido` | `REG_DWORD` | `0` impide todo WebSocket local, incluso el canal temporal de `afirma://`; `1` o ausencia permite los canales temporales y, si se habilita aparte, el servicio residente. Prevalece sobre `websocket_habilitado` y el ajuste del usuario. |
 | `rest_habilitado` | `REG_DWORD` | `1` activa el servicio REST local; `0` lo impide aunque el usuario lo active. |
+| `firma_remota_csc` | `REG_DWORD` | `1` permite la firma remota CSC (prototipo); `0` la prohíbe aunque el usuario la active. Sin valor, decide `firma_remota_csc` en el `config.json` del usuario. |
+| `firma_remota_csc_oauth_permitidos` | `REG_MULTI_SZ` | Pares `servicio=autorizacion` (`host[:puerto]`) que permiten un servidor OAuth en otro host que el servicio de firma remota. Sustituye a la lista del usuario. |
 | `nivel_log`, `directorio_p12` | `REG_SZ` | Igual que en `policy.json`. |
 | `timeout_operacion_segundos`, `max_tamano_documento_bytes` | `REG_DWORD` / `REG_QWORD` | Límites operativos. |
 

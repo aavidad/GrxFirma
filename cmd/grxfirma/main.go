@@ -92,6 +92,7 @@ func main() {
 
 	// Extraer flags de credencial antes de pasarlos al adaptador CLI.
 	rutaP12, passwordStdin, rutaCert, rutaClave, argsResto := extraerFlagsCredencial(os.Args[1:])
+	cscOpc, argsResto := extraerFlagsCSC(argsResto)
 	acciones, argsResto := extraerAccionesDirectas(argsResto)
 	restCfg, argsResto := extraerFlagsREST(argsResto)
 	restTokens := map[string]string{}
@@ -127,6 +128,13 @@ func main() {
 	if solicitaAyudaGeneral(argsResto) {
 		imprimirUso()
 		os.Exit(0)
+	}
+
+	// Firma remota CSC (prototipo, desactivado por defecto): sustituye a
+	// todas las fuentes locales de certificados durante esta ejecución.
+	if cscOpc.solicitada() {
+		locales := rutaP12 != "" || passwordStdin || rutaCert != "" || rutaClave != "" || restCfg.habilitado
+		os.Exit(ejecutarCSC(nuevoEntornoCSC(ctx, logger, loc.T, loc.Locale()), cscOpc, locales, argsResto))
 	}
 
 	passwordP12Compat, _ := environment.Take(envPKCS12Password)
@@ -940,6 +948,7 @@ Documentación adicional:
 		localizador.Detectar().T("rest.help.private_delivery"),
 		1,
 	)
+	ayuda += "\n\n" + localizador.Detectar().T("csc.help") + "\n"
 	_, _ = io.WriteString(w, ayuda)
 }
 

@@ -19,6 +19,7 @@
 - [Modelo de dominio](DOMAIN_MODEL.md)
 - [Puertos y adaptadores](PORTS_AND_ADAPTERS.md)
 - [Identidad reforzada](IDENTIDAD_REFORZADA_V1.md)
+- [Firma remota CSC (prototipo)](FIRMA_REMOTA_CSC.md)
 - [Verificación autónoma v1](VERIFICACION_AUTONOMA_V1.md)
 - [Estado del dictamen v2](DICTAMEN_V2_ESTADO.md)
 - [Extensibilidad](EXTENSIBILIDAD_Y_UTILIDADES_INTEGRADAS.md)
