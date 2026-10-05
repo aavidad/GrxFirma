@@ -585,15 +585,15 @@ func (r *nativeWindowsProgressReporter) Cerrar() {
 
 func newNativeWindowsDocumentPicker() ports.DocumentPicker {
 	return desktopdocumentpicker.Nuevo(
-		desktopdocumentpicker.ResolveFunc(
-			func(ctx context.Context) (
+		desktopdocumentpicker.ResolveFilteredFunc(
+			func(ctx context.Context, filter ports.DocumentFilter) (
 				desktopdocumentpicker.SelectedDocument,
 				error,
 			) {
 				paths, err := selectNativeWindowsLoadPaths(
 					ctx,
 					"",
-					"",
+					strings.Join(filter.Extensions, ","),
 					false,
 				)
 				if err != nil {
@@ -1779,7 +1779,7 @@ func nativeFileDialogFilter(
 	extensions := normalizedNativeExtensions(rawExtensions)
 	if len(extensions) == 0 {
 		return nativeUTF16Filter(
-			"Todos los ficheros (*.*)",
+			tl(legacyFiltroTodosID),
 			"*.*",
 		), ""
 	}
@@ -1789,9 +1789,9 @@ func nativeFileDialogFilter(
 	}
 	pattern := strings.Join(patterns, ";")
 	return nativeUTF16Filter(
-		"Ficheros permitidos ("+pattern+")",
+		tl(legacyFiltroPermitidosID, pattern),
 		pattern,
-		"Todos los ficheros (*.*)",
+		tl(legacyFiltroTodosID),
 		"*.*",
 	), extensions[0]
 }
@@ -1938,6 +1938,9 @@ func nativeSafeFailureDetail(action string, err error) string {
 	var policyError *nativeProtocolPolicyError
 	if errors.As(err, &policyError) {
 		return sanitizeNativeDialogText(policyError.Error(), 1024)
+	}
+	if isLegacyDocumentoNoPDF(err) {
+		return sanitizeNativeDialogText(tl(legacyDocumentoNoPDFDetailID), 1024)
 	}
 
 	lower := strings.ToLower(err.Error())

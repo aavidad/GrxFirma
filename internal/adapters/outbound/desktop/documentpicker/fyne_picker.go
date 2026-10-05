@@ -24,6 +24,7 @@ import (
 	"fyne.io/fyne/v2/storage"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/ports"
 )
 
 const fyneDocumentPickerAppID = "es.dipgra.grxfirma.afirmauri"
@@ -50,6 +51,28 @@ type resolveResult struct {
 }
 
 func (r fyneResolver) ResolveDocument(ctx context.Context) (SelectedDocument, error) {
+	return r.ResolveDocumentFiltered(ctx, ports.DocumentFilter{})
+}
+
+// fyneExtensionFilter traduce el filtro del puerto al de Fyne (".pdf").
+func fyneExtensionFilter(filter ports.DocumentFilter) storage.FileFilter {
+	if len(filter.Extensions) == 0 {
+		return nil
+	}
+	exts := make([]string, 0, len(filter.Extensions))
+	for _, ext := range filter.Extensions {
+		ext = strings.ToLower(strings.TrimPrefix(strings.TrimSpace(ext), "."))
+		if ext != "" {
+			exts = append(exts, "."+ext)
+		}
+	}
+	if len(exts) == 0 {
+		return nil
+	}
+	return storage.NewExtensionFileFilter(exts)
+}
+
+func (r fyneResolver) ResolveDocumentFiltered(ctx context.Context, filter ports.DocumentFilter) (SelectedDocument, error) {
 	select {
 	case <-ctx.Done():
 		return SelectedDocument{}, ctx.Err()
@@ -146,6 +169,9 @@ func (r fyneResolver) ResolveDocument(ctx context.Context) (SelectedDocument, er
 				MIMEType: mimeType,
 			}})
 		}, w)
+		if extFilter := fyneExtensionFilter(filter); extFilter != nil {
+			fd.SetFilter(extFilter)
+		}
 		if downloads, ok := fynePickerStartLocation(); ok {
 			fd.SetLocation(downloads)
 		}

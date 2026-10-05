@@ -15,7 +15,10 @@ import (
 	"time"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/storage"
 	fynetest "fyne.io/fyne/v2/test"
+
+	"grxfirma/internal/ports"
 )
 
 type signalingParentWindow struct {
@@ -73,5 +76,21 @@ func TestFyneResolverReusesVisibleParentWindow(t *testing.T) {
 
 	if got := len(a.Driver().AllWindows()); got != initialWindows {
 		t.Fatalf("la cancelación cerró la ventana principal: ventanas=%d, want=%d", got, initialWindows)
+	}
+}
+
+func TestFyneExtensionFilter(t *testing.T) {
+	if fyneExtensionFilter(ports.DocumentFilter{}) != nil {
+		t.Fatal("sin extensiones no debe haber filtro")
+	}
+	filtro := fyneExtensionFilter(ports.DocumentFilter{Extensions: []string{"pdf", ".XML", " "}})
+	if filtro == nil {
+		t.Fatal("falta el filtro")
+	}
+	if !filtro.Matches(storage.NewFileURI("/tmp/a.pdf")) || !filtro.Matches(storage.NewFileURI("/tmp/b.xml")) {
+		t.Fatal("el filtro debe admitir .pdf y .xml")
+	}
+	if filtro.Matches(storage.NewFileURI("/tmp/c.txt")) {
+		t.Fatal("el filtro no debe admitir .txt")
 	}
 }

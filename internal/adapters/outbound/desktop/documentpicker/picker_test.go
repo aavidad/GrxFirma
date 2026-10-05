@@ -10,6 +10,8 @@ import (
 	"context"
 	"errors"
 	"testing"
+
+	"grxfirma/internal/ports"
 )
 
 func resolverFijo(doc SelectedDocument, err error) Resolver {
@@ -135,5 +137,36 @@ func TestPicker_ContextoCanceladoNoAbreElSelector(t *testing.T) {
 	}
 	if abierto {
 		t.Error("no debe invocarse el resolver con el contexto ya cancelado")
+	}
+}
+
+func TestPicker_PickFilteredPasaElFiltroAlResolver(t *testing.T) {
+	t.Parallel()
+
+	var recibido ports.DocumentFilter
+	p := Nuevo(ResolveFilteredFunc(func(_ context.Context, filter ports.DocumentFilter) (SelectedDocument, error) {
+		recibido = filter
+		return SelectedDocument{Name: "a.pdf", Content: []byte("%PDF-1.7"), MIMEType: "application/pdf"}, nil
+	}))
+	if _, err := p.PickFiltered(context.Background(), ports.DocumentFilter{Extensions: []string{"pdf"}}); err != nil {
+		t.Fatalf("PickFiltered() error = %v", err)
+	}
+	if len(recibido.Extensions) != 1 || recibido.Extensions[0] != "pdf" {
+		t.Fatalf("filtro recibido = %v", recibido.Extensions)
+	}
+	if _, err := p.Pick(context.Background()); err != nil {
+		t.Fatalf("Pick() error = %v", err)
+	}
+	if len(recibido.Extensions) != 0 {
+		t.Fatalf("Pick() sin filtro pasó %v", recibido.Extensions)
+	}
+}
+
+func TestPicker_PickFilteredConResolverSinFiltro(t *testing.T) {
+	t.Parallel()
+
+	p := Nuevo(resolverFijo(SelectedDocument{Name: "a.txt", Content: []byte("x")}, nil))
+	if _, err := p.PickFiltered(context.Background(), ports.DocumentFilter{Extensions: []string{"pdf"}}); err != nil {
+		t.Fatalf("PickFiltered() error = %v", err)
 	}
 }

@@ -6413,4 +6413,8 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: a consulta á AEAT interpreta ben a súa resposta (atopada, non atopada ou non contrastable) en Windows e Linux, e o informe distingue avisos de erros."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: bo contraste en todos os temas (tamén os claros), caixas e campos lexibles, a roda do rato chega ata «Asinar agora» e as pantallas adáptanse a xanelas estreitas."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: o lote indica en que cartafol se gardaron as sinaturas, o selo e a vista previa amosan o mesmo emisor, e Preferencias e o editor do selo vense ben con letra grande."
+  ,"El fichero elegido no es un PDF": "O ficheiro escollido non é un PDF"
+  ,"El portal pide una firma PAdES, que solo admite documentos PDF, y el fichero elegido no es un PDF. No se ha firmado nada. Vuelva a iniciar la firma en el portal y elija un fichero PDF.": "O portal pide unha sinatura PAdES, que só admite documentos PDF, e o ficheiro escollido non é un PDF. Non se asinou nada. Volva iniciar a sinatura no portal e escolla un ficheiro PDF."
+  ,"Ficheros permitidos (%s)": "Ficheiros permitidos (%s)"
+  ,"Todos los ficheros (*.*)": "Todos os ficheiros (*.*)"
 }

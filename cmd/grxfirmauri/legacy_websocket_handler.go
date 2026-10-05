@@ -623,7 +623,7 @@ func (h *legacyWebSocketHandler) buildLocalInteractiveSignCommand(ctx context.Co
 	setProtocolPhase("document_pick", tl("Preparando documento..."), tl("Abriendo el selector de fichero solicitado por la web"))
 	documentPickStart := time.Now()
 	slog.Info("legacy_document_pick_start", "operation", solicitud.Operacion)
-	documento, err := h.documentos.Pick(ctx)
+	documento, err := pickLegacyDocument(ctx, h.documentos, legacyDocumentFilter(solicitud))
 	protocolDiagnosticMeasurePhase("document_pick", documentPickStart)
 	if err != nil {
 		slog.Error("legacy_document_pick_error", "error", err)
@@ -632,6 +632,10 @@ func (h *legacyWebSocketHandler) buildLocalInteractiveSignCommand(ctx context.Co
 	slog.Info("legacy_document_pick_selected", "name", documento.Name, "size", len(documento.Content))
 	documento = normalizarDocumentoLegacy(documento, solicitud)
 	formato := resolverFormatoLocalLegacy(solicitud, documento.Name)
+	if err := validarDocumentoLegacy(documento, formato); err != nil {
+		slog.Warn("legacy_document_pick_invalid", "format", formato, "size", len(documento.Content))
+		return application.SignCommand{}, solicitud, err
+	}
 
 	return application.SignCommand{
 		Document: documento,
@@ -1149,7 +1153,12 @@ func isLegacySHA1Failure(err error) bool {
 	return errors.Is(err, cryptopolicy.ErrSHA1Disabled)
 }
 
+// presentLegacySHA1Failure presenta en la ventana del protocolo los fallos
+// con aviso propio: SHA-1 bloqueado y documento no PDF para PAdES.
 func presentLegacySHA1Failure(action string, err error) bool {
+	if presentLegacyDocumentoNoPDF(action, err) {
+		return true
+	}
 	if !isLegacySHA1Failure(err) {
 		return false
 	}
@@ -1187,7 +1196,9 @@ func (h *legacyWebSocketHandler) handleLoad(ctx context.Context, solicitud afirm
 		}
 	}
 	if len(paths) == 0 && h.documentos != nil {
-		documento, err := h.documentos.Pick(ctx)
+		documento, err := pickLegacyDocument(ctx, h.documentos, ports.DocumentFilter{
+			Extensions: normalizarExtensionesDocumento(legacyQueryParam(solicitud.LegacyParams, "exts", "extensions")),
+		})
 		if err != nil {
 			if isLegacyCancellation(err) {
 				return "CANCEL"

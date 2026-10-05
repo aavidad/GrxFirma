@@ -220,6 +220,20 @@ type DocumentPicker interface {
 	Pick(ctx context.Context) (domain.Document, error)
 }
 
+// DocumentFilter restringe los ficheros que ofrece un selector documental.
+// Extensions contiene extensiones sin punto y en minúsculas; vacío significa
+// que se admite cualquier fichero.
+type DocumentFilter struct {
+	Extensions []string
+}
+
+// FilteredDocumentPicker es un DocumentPicker que además sabe filtrar por
+// tipo de fichero (por ejemplo, solo PDF cuando la web pide PAdES).
+type FilteredDocumentPicker interface {
+	DocumentPicker
+	PickFiltered(ctx context.Context, filter DocumentFilter) (domain.Document, error)
+}
+
 type Clock interface {
 	Now() time.Time
 }
