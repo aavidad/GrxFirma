@@ -41,7 +41,7 @@
       "allOf": [
         {
           "if": {"properties": {"action": {"const": "certificate_export_public"}}, "required": ["action"]},
-          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["certificateId"], "properties": {"certificateId": {"type": "string", "minLength": 1}, "outputPath": {"type": "string"}, "format": {"enum": ["der", "pem"]}}, "additionalProperties": false}}}
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["certificateId"], "properties": {"certificateId": {"type": "string", "minLength": 1}, "outputPath": {"type": "string"}, "format": {"enum": ["der", "pem"]}, "overwriteConfirmed": {"type": "boolean"}}, "additionalProperties": false}}}
         },
         {
           "if": {"properties": {"action": {"const": "protection_recipient_import"}}, "required": ["action"]},
@@ -61,7 +61,7 @@
         },
         {
           "if": {"properties": {"action": {"const": "facturae_create"}}, "required": ["action"]},
-          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["draft"], "properties": {"draft": {"type": "object"}, "outputPath": {"type": "string"}}, "additionalProperties": false}}}
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["draft"], "properties": {"draft": {"type": "object"}, "outputPath": {"type": "string"}, "overwriteConfirmed": {"type": "boolean"}}, "additionalProperties": false}}}
         },
         {
           "if": {"properties": {"action": {"const": "validate_invoice"}}, "required": ["action"]},
@@ -85,11 +85,11 @@
         },
         {
           "if": {"properties": {"action": {"const": "generate_eni_document"}}, "required": ["action"]},
-          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["inputPath", "outputPath", "options"], "properties": {"inputPath": {"type": "string", "minLength": 1}, "originalPath": {"type": ["string", "null"]}, "outputPath": {"type": "string", "minLength": 1}, "options": {"type": "object", "additionalProperties": {"type": "string"}}}, "additionalProperties": false}}}
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["inputPath", "outputPath", "options"], "properties": {"inputPath": {"type": "string", "minLength": 1}, "originalPath": {"type": ["string", "null"]}, "outputPath": {"type": "string", "minLength": 1}, "options": {"type": "object", "additionalProperties": {"type": "string"}}, "overwriteConfirmed": {"type": "boolean"}}, "additionalProperties": false}}}
         },
         {
           "if": {"properties": {"action": {"const": "generate_eni_file"}}, "required": ["action"]},
-          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["directoryPath", "outputPath", "certificateId", "options"], "properties": {"directoryPath": {"type": "string", "minLength": 1}, "outputPath": {"type": "string", "minLength": 1}, "certificateId": {"type": "string", "minLength": 1}, "options": {"type": "object", "additionalProperties": {"type": "string"}}}, "additionalProperties": false}}}
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["directoryPath", "outputPath", "certificateId", "options"], "properties": {"directoryPath": {"type": "string", "minLength": 1}, "outputPath": {"type": "string", "minLength": 1}, "certificateId": {"type": "string", "minLength": 1}, "options": {"type": "object", "additionalProperties": {"type": "string"}}, "overwriteConfirmed": {"type": "boolean"}}, "additionalProperties": false}}}
         },
         {
           "if": {"properties": {"action": {"const": "smartcard_status"}}, "required": ["action"]},

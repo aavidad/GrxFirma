@@ -37,26 +37,60 @@ func NuevoEscritorResultado(politica PoliticaSobreescritura) *EscritorResultado 
 	return &EscritorResultado{politica: politica}
 }
 
+// ErrSalidaExiste indica que la politica impidio reemplazar un fichero que ya
+// existia. Envuelve os.ErrExist para que errors.Is funcione con ambos.
+var ErrSalidaExiste = fmt.Errorf("el fichero de salida ya existe: %w", os.ErrExist)
+
 // Escribir guarda los datos firmados en la ruta indicada.
 // Devuelve la ruta final donde se escribio el fichero (puede diferir si se renombro).
+// Crea los directorios que falten y rechaza cualquier enlace simbolico en
+// ellos.
 func (e *EscritorResultado) Escribir(rutaSalida string, datos []byte) (string, error) {
-	if len(datos) == 0 {
-		return "", errors.New("no se puede escribir un resultado de firma vacio")
-	}
-	if rutaSalida == "" {
-		return "", errors.New("la ruta de salida no puede estar vacia")
-	}
-	if strings.IndexByte(rutaSalida, 0) >= 0 {
-		return "", errors.New("la ruta de salida contiene un caracter nulo")
+	if err := validarEntradaEscritura(rutaSalida, datos); err != nil {
+		return "", err
 	}
 	if contieneComponentePadre(rutaSalida) {
 		return "", errors.New("la ruta de salida contiene componentes padre no permitidos")
 	}
-
 	if err := prepararDirectorioSeguro(filepath.Dir(rutaSalida)); err != nil {
 		return "", err
 	}
+	return e.publicar(rutaSalida, datos, true)
+}
 
+// EscribirEnDirectorioExistente aplica la misma politica que Escribir sobre
+// una carpeta que ya existe y que el llamador ha validado (puede estar detras
+// de un enlace o de una union de Windows elegida por la persona). Nunca crea
+// carpetas. El fichero final se publica en exclusiva o, solo con
+// PoliticaForzar, reemplazando una entrada regular.
+func (e *EscritorResultado) EscribirEnDirectorioExistente(rutaSalida string, datos []byte) (string, error) {
+	if err := validarEntradaEscritura(rutaSalida, datos); err != nil {
+		return "", err
+	}
+	info, err := os.Stat(filepath.Dir(rutaSalida))
+	if err != nil {
+		return "", fmt.Errorf("no se pudo comprobar el directorio de salida: %w", err)
+	}
+	if !info.IsDir() {
+		return "", fmt.Errorf("la ruta de salida no es un directorio: %s", filepath.Dir(rutaSalida))
+	}
+	return e.publicar(rutaSalida, datos, false)
+}
+
+func validarEntradaEscritura(rutaSalida string, datos []byte) error {
+	if len(datos) == 0 {
+		return errors.New("no se puede escribir un resultado de firma vacio")
+	}
+	if rutaSalida == "" {
+		return errors.New("la ruta de salida no puede estar vacia")
+	}
+	if strings.IndexByte(rutaSalida, 0) >= 0 {
+		return errors.New("la ruta de salida contiene un caracter nulo")
+	}
+	return nil
+}
+
+func (e *EscritorResultado) publicar(rutaSalida string, datos []byte, revalidarDirectorio bool) (string, error) {
 	rutaFinal, modo, err := e.resolverRuta(rutaSalida)
 	if err != nil {
 		return "", err
@@ -70,8 +104,10 @@ func (e *EscritorResultado) Escribir(rutaSalida string, datos []byte) (string, e
 
 	// Acorta la ventana entre validar los componentes y publicar. La operacion
 	// final no sigue el destino: lo crea en exclusiva o reemplaza su entrada.
-	if err := prepararDirectorioSeguro(filepath.Dir(rutaFinal)); err != nil {
-		return "", err
+	if revalidarDirectorio {
+		if err := prepararDirectorioSeguro(filepath.Dir(rutaFinal)); err != nil {
+			return "", err
+		}
 	}
 
 	switch e.politica {
@@ -85,9 +121,9 @@ func (e *EscritorResultado) Escribir(rutaSalida string, datos []byte) (string, e
 		return rutaFinal, nil
 
 	case PoliticaFallar:
-		if err := publicarSinSobrescribir(temporal, rutaFinal); err != nil {
+		if err := publicarSinSobrescribir(temporal, rutaFinal, modo, datos); err != nil {
 			if errors.Is(err, os.ErrExist) {
-				return "", fmt.Errorf("el fichero de salida ya existe: %s", rutaFinal)
+				return "", fmt.Errorf("%w: %s", ErrSalidaExiste, rutaFinal)
 			}
 			return "", fmt.Errorf("no se pudo publicar el fichero de salida: %w", err)
 		}
@@ -95,7 +131,7 @@ func (e *EscritorResultado) Escribir(rutaSalida string, datos []byte) (string, e
 
 	case PoliticaRenombrar:
 		for intentos := 0; intentos < 1000; intentos++ {
-			err := publicarSinSobrescribir(temporal, rutaFinal)
+			err := publicarSinSobrescribir(temporal, rutaFinal, modo, datos)
 			if err == nil {
 				return rutaFinal, nil
 			}
@@ -133,7 +169,7 @@ func (e *EscritorResultado) resolverRuta(ruta string) (string, os.FileMode, erro
 
 	switch e.politica {
 	case PoliticaFallar:
-		return "", 0, fmt.Errorf("el fichero de salida ya existe: %s", ruta)
+		return "", 0, fmt.Errorf("%w: %s", ErrSalidaExiste, ruta)
 
 	case PoliticaForzar:
 		return ruta, info.Mode().Perm(), nil
@@ -306,15 +342,49 @@ func crearTemporalResultado(directorio string, modo os.FileMode, datos []byte) (
 
 // publicarSinSobrescribir enlaza el temporal con el nombre definitivo. La
 // creacion del enlace es atomica y falla si cualquier entrada (incluido un
-// enlace simbolico) aparece en el destino durante la operacion.
-func publicarSinSobrescribir(temporal, destino string) error {
+// enlace simbolico) aparece en el destino durante la operacion. Si el sistema
+// de ficheros no admite enlaces duros (FAT o exFAT en memorias USB, algunas
+// unidades de red), crea el destino en exclusiva con O_EXCL, que tampoco
+// reemplaza ni sigue una entrada existente.
+func publicarSinSobrescribir(temporal, destino string, modo os.FileMode, datos []byte) error {
 	if err := os.Link(temporal, destino); err != nil {
-		return err
+		if errors.Is(err, os.ErrExist) {
+			return err
+		}
+		if _, statErr := os.Lstat(destino); statErr == nil {
+			return fmt.Errorf("%w: %s", os.ErrExist, destino)
+		}
+		return crearDestinoExclusivo(destino, modo, datos)
 	}
 	if err := os.Remove(temporal); err != nil {
 		return fmt.Errorf("resultado publicado, pero no se pudo retirar el temporal: %w", err)
 	}
 	return nil
+}
+
+// crearDestinoExclusivo escribe datos en un fichero nuevo que crea en
+// exclusiva. Si la escritura falla, retira el fichero que acaba de crear.
+func crearDestinoExclusivo(destino string, modo os.FileMode, datos []byte) (err error) {
+	if modo.Perm() == 0 {
+		modo = 0o600
+	}
+	fichero, err := os.OpenFile(destino, os.O_WRONLY|os.O_CREATE|os.O_EXCL, modo.Perm()) // #nosec G304 -- ruta de salida validada por el llamador; O_EXCL no sigue ni reemplaza entradas.
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			_ = fichero.Close()
+			_ = os.Remove(destino)
+		}
+	}()
+	if _, err = fichero.Write(datos); err != nil {
+		return err
+	}
+	if err = fichero.Sync(); err != nil {
+		return err
+	}
+	return fichero.Close()
 }
 
 func validarDestinoForzado(ruta string) error {

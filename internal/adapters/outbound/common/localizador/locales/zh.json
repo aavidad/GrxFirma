@@ -6451,4 +6451,5 @@
   ,"Windows: GrxFirma ya no termina con error al salir en equipos sin tarjeta gráfica (escritorios remotos, Citrix o máquinas virtuales), y el aviso del portal se cierra solo tras cancelar.": "Windows：在没有显卡的计算机（远程桌面、Citrix 或虚拟机）上，GrxFirma 退出时不再报错；取消后，门户提示会自动关闭。"
   ,"Portales: al firmar un PDF solo se ofrecen ficheros PDF y, si se elige otro tipo, se explica el motivo en lugar de mostrar un error genérico.": "门户：签署 PDF 时只提供 PDF 文件；如果选择了其他类型，会说明原因，而不是显示通用错误。"
   ,"Informe de verificación: el firmante aparece con su nombre, NIF y emisor, y la fecha indica si procede de un sello de tiempo o del reloj del equipo.": "验证报告：签名人显示姓名、税号和颁发者，日期会注明来自时间戳还是计算机时钟。"
+  ,"error.salida_existe": "已存在同名文件，覆盖设置不允许替换它：%s"
 }

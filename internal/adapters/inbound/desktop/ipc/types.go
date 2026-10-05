@@ -92,24 +92,27 @@ type respuesta struct {
 
 // paramsFirma mapea los parametros de la accion "sign".
 type paramsFirma struct {
-	InputPath                string            `json:"inputPath"`
-	OutputPath               string            `json:"outputPath"`
-	CertificateID            string            `json:"certificateId,omitempty"`
-	CertificateIndex         int               `json:"certificateIndex"`
-	AdditionalCertificateIDs []string          `json:"additionalCertificateIds,omitempty"`
-	Format                   string            `json:"format"`
-	Action                   string            `json:"action"`
-	Overwrite                string            `json:"overwrite"`
-	SaveToDisk               bool              `json:"saveToDisk"`
-	ReturnSignatureB64       bool              `json:"returnSignatureB64"`
-	VisibleSeal              map[string]any    `json:"visibleSeal,omitempty"`
-	AllowInvalidPDF          bool              `json:"allowInvalidPDF"`
-	StrictCompat             bool              `json:"strictCompat"`
-	QRContent                string            `json:"qrContent,omitempty"`
-	Reason                   string            `json:"reason,omitempty"`
-	Location                 string            `json:"location,omitempty"`
-	ContactInfo              string            `json:"contactInfo,omitempty"`
-	ExtraOptions             map[string]string `json:"extraOptions,omitempty"`
+	InputPath                string   `json:"inputPath"`
+	OutputPath               string   `json:"outputPath"`
+	CertificateID            string   `json:"certificateId,omitempty"`
+	CertificateIndex         int      `json:"certificateIndex"`
+	AdditionalCertificateIDs []string `json:"additionalCertificateIds,omitempty"`
+	Format                   string   `json:"format"`
+	Action                   string   `json:"action"`
+	Overwrite                string   `json:"overwrite"`
+	// OverwriteConfirmed solo debe ir a true cuando la persona confirmó el
+	// reemplazo de OutputPath en un diálogo de guardar del sistema.
+	OverwriteConfirmed bool              `json:"overwriteConfirmed,omitempty"`
+	SaveToDisk         bool              `json:"saveToDisk"`
+	ReturnSignatureB64 bool              `json:"returnSignatureB64"`
+	VisibleSeal        map[string]any    `json:"visibleSeal,omitempty"`
+	AllowInvalidPDF    bool              `json:"allowInvalidPDF"`
+	StrictCompat       bool              `json:"strictCompat"`
+	QRContent          string            `json:"qrContent,omitempty"`
+	Reason             string            `json:"reason,omitempty"`
+	Location           string            `json:"location,omitempty"`
+	ContactInfo        string            `json:"contactInfo,omitempty"`
+	ExtraOptions       map[string]string `json:"extraOptions,omitempty"`
 }
 
 // paramsFirmaLote mapea los parametros de la accion "sign_batch".
@@ -161,6 +164,7 @@ type paramsProtection struct {
 	Profile              string            `json:"profile"`
 	RecipientIDs         []string          `json:"recipientIds,omitempty"`
 	Overwrite            string            `json:"overwrite,omitempty"`
+	OverwriteConfirmed   bool              `json:"overwriteConfirmed,omitempty"`
 	SaveToDisk           bool              `json:"saveToDisk"`
 	ReturnProtectedB64   bool              `json:"returnProtectedB64,omitempty"`
 	ReturnUnprotectedB64 bool              `json:"returnUnprotectedB64,omitempty"`
@@ -176,6 +180,9 @@ type paramsHashCreate struct {
 	Algorithm  string `json:"algorithm"`
 	Format     string `json:"format"`
 	Recursive  bool   `json:"recursive"`
+	// OverwriteConfirmed: la persona confirmó el reemplazo en un diálogo de
+	// guardar del sistema. Sin él se aplica la preferencia de sobrescritura.
+	OverwriteConfirmed bool `json:"overwriteConfirmed,omitempty"`
 }
 
 type paramsHashCheck struct {
@@ -185,6 +192,8 @@ type paramsHashCheck struct {
 	Algorithm        string `json:"algorithm,omitempty"`
 	Recursive        bool   `json:"recursive,omitempty"`
 	SaveReportToDisk bool   `json:"saveReportToDisk,omitempty"`
+	// OverwriteConfirmed: igual que en paramsHashCreate, para el informe.
+	OverwriteConfirmed bool `json:"overwriteConfirmed,omitempty"`
 }
 
 // paramsPdfPreview mapea los parametros de la accion "pdf_preview".

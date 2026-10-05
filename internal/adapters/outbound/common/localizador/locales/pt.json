@@ -6451,4 +6451,5 @@
   ,"Windows: GrxFirma ya no termina con error al salir en equipos sin tarjeta gráfica (escritorios remotos, Citrix o máquinas virtuales), y el aviso del portal se cierra solo tras cancelar.": "Windows: o GrxFirma já não termina com erro ao sair em computadores sem placa gráfica (ambientes de trabalho remotos, Citrix ou máquinas virtuais), e o aviso do portal fecha sozinho após cancelar."
   ,"Portales: al firmar un PDF solo se ofrecen ficheros PDF y, si se elige otro tipo, se explica el motivo en lugar de mostrar un error genérico.": "Portais: ao assinar um PDF só são oferecidos ficheiros PDF e, se for escolhido outro tipo, é explicado o motivo em vez de um erro genérico."
   ,"Informe de verificación: el firmante aparece con su nombre, NIF y emisor, y la fecha indica si procede de un sello de tiempo o del reloj del equipo.": "Relatório de verificação: o signatário aparece com o nome, NIF e emissor, e a data indica se provém de um carimbo temporal ou do relógio do computador."
+  ,"error.salida_existe": "Já existe um ficheiro com esse nome e a preferência de substituição não permite substituí-lo: %s"
 }

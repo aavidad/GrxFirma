@@ -6451,4 +6451,5 @@
   ,"Windows: GrxFirma ya no termina con error al salir en equipos sin tarjeta gráfica (escritorios remotos, Citrix o máquinas virtuales), y el aviso del portal se cierra solo tras cancelar.": "Windows: GrxFirma ja no acaba amb error en eixir en equips sense targeta gràfica (escriptoris remots, Citrix o màquines virtuals), i l'avís del portal es tanca sol després de cancel·lar."
   ,"Portales: al firmar un PDF solo se ofrecen ficheros PDF y, si se elige otro tipo, se explica el motivo en lugar de mostrar un error genérico.": "Portals: en signar un PDF només s'oferixen fitxers PDF i, si se'n tria un altre tipus, s'explica el motiu en lloc de mostrar un error genèric."
   ,"Informe de verificación: el firmante aparece con su nombre, NIF y emisor, y la fecha indica si procede de un sello de tiempo o del reloj del equipo.": "Informe de verificació: el signant apareix amb el seu nom, NIF i emissor, i la data indica si prové d'un segell de temps o del rellotge de l'equip."
+  ,"error.salida_existe": "Ja existix un fitxer amb eixe nom i la preferència de sobreescriptura no permet substituir-lo: %s"
 }
