@@ -2772,7 +2772,7 @@
   "Ahora no": "Ahora no"
   ,"winui.parity.verify.export": "Exportar informe JSON"
   ,"winui.parity.tsa.enabled": "Usar sello de tiempo"
-  ,"winui.parity.tsa.url": "URL del servidor de sello de tiempo (HTTPS)"
+  ,"winui.parity.tsa.url": "URL del servidor de sello de tiempo"
   ,"winui.parity.tsa.invalid": "Indique una URL HTTP o HTTPS válida para el servidor de sello de tiempo."
   ,"winui.parity.tsa.unavailable": "No se pudieron consultar los ajustes del sello de tiempo. Inténtelo de nuevo."
   ,"winui.parity.certs.person": "Persona física"
@@ -6369,4 +6369,5 @@
   ,"winui.parity.verify.export_html": "Guardar informe (HTML)"
   ,"winui.parity.verify.export_json": "Exportar datos técnicos (JSON)"
   ,"winui.parity.verify.html_filter": "Informe de verificación (HTML)"
+  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas»."
 }

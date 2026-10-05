@@ -2772,7 +2772,7 @@
   "Ahora no": "Orain ez"
   ,"winui.parity.verify.export": "Esportatu JSON txostena"
   ,"winui.parity.tsa.enabled": "Erabili denbora-zigilua"
-  ,"winui.parity.tsa.url": "Denbora-zigilu zerbitzariaren URLa (HTTPS)"
+  ,"winui.parity.tsa.url": "Denbora-zigilu zerbitzariaren URLa"
   ,"winui.parity.tsa.invalid": "Idatzi denbora-zigilu zerbitzariaren HTTP edo HTTPS URL baliozkoa."
   ,"winui.parity.tsa.unavailable": "Ezin izan dira denbora-zigiluaren ezarpenak irakurri. Saiatu berriro."
   ,"winui.parity.certs.person": "Pertsona fisikoa"
@@ -6369,4 +6369,5 @@
   ,"winui.parity.verify.export_html": "Gorde txostena (HTML)"
   ,"winui.parity.verify.export_json": "Esportatu datu teknikoak (JSON)"
   ,"winui.parity.verify.html_filter": "Egiaztapen-txostena (HTML)"
+  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "Linuxerako bertsioak erabiltzen du hobespen hau. Windowsen, aktibatu zigilua sinadura bakoitzean, «Aukera aurreratuak» atalean."
 }

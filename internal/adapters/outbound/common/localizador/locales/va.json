@@ -2772,7 +2772,7 @@
   "Ahora no": "Ara no"
   ,"winui.parity.verify.export": "Exporta l'informe JSON"
   ,"winui.parity.tsa.enabled": "Utilitza un segell de temps"
-  ,"winui.parity.tsa.url": "URL del servidor de segell de temps (HTTPS)"
+  ,"winui.parity.tsa.url": "URL del servidor de segell de temps"
   ,"winui.parity.tsa.invalid": "Indiqueu una URL HTTP o HTTPS vàlida per al servidor de segell de temps."
   ,"winui.parity.tsa.unavailable": "No s'han pogut consultar els ajustos del segell de temps. Torneu-ho a provar."
   ,"winui.parity.certs.person": "Persona física"
@@ -6369,4 +6369,5 @@
   ,"winui.parity.verify.export_html": "Guarda l'informe (HTML)"
   ,"winui.parity.verify.export_json": "Exporta les dades tècniques (JSON)"
   ,"winui.parity.verify.html_filter": "Informe de verificació (HTML)"
+  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "Esta preferència la utilitza la versió per a Linux. En Windows, activeu el segell en cada firma, dins d'«Opcions avançades»."
 }

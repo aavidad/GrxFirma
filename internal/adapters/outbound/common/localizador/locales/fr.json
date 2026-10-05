@@ -2772,7 +2772,7 @@
   "Ahora no": "Pas maintenant"
   ,"winui.parity.verify.export": "Exporter le rapport JSON"
   ,"winui.parity.tsa.enabled": "Utiliser un horodatage"
-  ,"winui.parity.tsa.url": "URL du serveur d'horodatage (HTTPS)"
+  ,"winui.parity.tsa.url": "URL du serveur d'horodatage"
   ,"winui.parity.tsa.invalid": "Saisissez une URL HTTP ou HTTPS valide pour le serveur d'horodatage."
   ,"winui.parity.tsa.unavailable": "Impossible de lire les paramètres d'horodatage. Réessayez."
   ,"winui.parity.certs.person": "Personne physique"
@@ -6369,4 +6369,5 @@
   ,"winui.parity.verify.export_html": "Enregistrer le rapport (HTML)"
   ,"winui.parity.verify.export_json": "Exporter les données techniques (JSON)"
   ,"winui.parity.verify.html_filter": "Rapport de vérification (HTML)"
+  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "Cette préférence est utilisée par la version Linux. Sous Windows, activez le cachet pour chaque signature, dans « Options avancées »."
 }

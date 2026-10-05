@@ -42,6 +42,8 @@ public sealed class SettingsPageViewModel
     private string _proxySecurityStatusMessage =
         Localizer.Text("winui.ajustes.actualice_el_estado_para_comprobar_la");
     private string _proxyRuntimeModeMessage = string.Empty;
+    private string? _validationError;
+    private bool _justSaved;
     private string _validationMessage =
         Localizer.Text("winui.ajustes.cargue_las_preferencias_del_motor_local");
     private string _tsaValidationMessage = string.Empty;
@@ -659,6 +661,14 @@ public sealed class SettingsPageViewModel
     public async Task SaveAsync()
     {
         UpdateValidation();
+        if (CanSave && _validationError is not null)
+        {
+            ShowStatus(
+                Localizer.Text("winui.ajustes.no_se_pudo_guardar"),
+                _validationError,
+                InfoBarSeverity.Warning);
+            return;
+        }
         if (!CanSave ||
             _loadedSnapshot is null ||
             _pageLifetime is null ||
@@ -701,6 +711,7 @@ public sealed class SettingsPageViewModel
             UpdatePreferenceStore.Write(CheckForUpdates);
             _loadedSnapshot = document.CreateSafeSaveSnapshot();
             IsDirty = false;
+            _justSaved = true;
             ThemePreferenceApplied?.Invoke(document.ThemeIndex);
             UpdateValidation();
             ShowStatus(
@@ -1068,6 +1079,7 @@ public sealed class SettingsPageViewModel
         _loadedSnapshot = safeSnapshot;
         _hasLoaded = true;
         IsDirty = false;
+        _justSaved = false;
         UpdateValidation();
     }
 
@@ -1117,6 +1129,7 @@ public sealed class SettingsPageViewModel
         }
 
         IsDirty = true;
+        _justSaved = false;
         UpdateValidation();
     }
 
@@ -1127,11 +1140,18 @@ public sealed class SettingsPageViewModel
             ? GrxFirma.WinUI.Services.SealUiCatalog.Text(
                 SelectedLanguage.Value, "winui.parity.tsa.invalid")
             : string.Empty;
-        ValidationMessage = Validate();
+        _validationError = ValidationError();
+        ValidationMessage = _validationError ??
+            (IsDirty
+                ? Localizer.Text("winui.ajustes.cambios_pendientes_de_guardar")
+                : _justSaved
+                    ? Localizer.Text("winui.ajustes.preferencias_guardadas")
+                    : Localizer.Text("winui.ajustes.las_preferencias_cargadas_no_tienen"));
         RefreshCommandState();
     }
 
-    private string Validate()
+    // null si el formulario se puede guardar; si no, el motivo que se enseña.
+    private string? ValidationError()
     {
         if (!_hasLoaded)
         {
@@ -1194,9 +1214,7 @@ public sealed class SettingsPageViewModel
             return Localizer.Text("winui.ajustes.quite_primero_las_credenciales");
         }
 
-        return IsDirty
-            ? Localizer.Text("winui.ajustes.cambios_pendientes_de_guardar")
-            : Localizer.Text("winui.ajustes.las_preferencias_cargadas_no_tienen");
+        return null;
     }
 
     private void OnAvailabilityChanged(object? sender, EventArgs args)
@@ -1311,13 +1329,12 @@ public sealed class SettingsPageViewModel
             !IsBusy &&
             _session.Supports(
                 DesktopOperationActions.ProxySecretDelete);
+        // «Guardar» sigue activo con un dato mal escrito: al pulsarlo se
+        // explica el motivo y el foco va al campo, en vez de un botón
+        // desactivado sin explicación.
         CanSave =
             CanEdit &&
-            IsDirty &&
-            string.Equals(
-                ValidationMessage,
-                Localizer.Text("winui.ajustes.cambios_pendientes_de_guardar"),
-                StringComparison.Ordinal);
+            IsDirty;
         CanCancel = _isActive && IsBusy;
     }
 

@@ -219,7 +219,7 @@
                             Visibility="Collapsed"
                             TextWrapping="Wrap" />
                         <CheckBox
-                            AutomationProperties.HelpText="La preferencia se conserva, pero la firma WinUI no la usa hasta disponer del editor seguro de sello PDF."
+                            AutomationProperties.HelpText="Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas»."
                             AutomationProperties.Name="Sello visible en PDF como valor predeterminado"
                             Content="Sello visible en PDF como valor predeterminado"
                             IsChecked="{x:Bind ViewModel.VisiblePdfSeal, Mode=TwoWay}"

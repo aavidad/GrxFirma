@@ -2772,7 +2772,7 @@
   "Ahora no": "Jetzt nicht"
   ,"winui.parity.verify.export": "JSON-Bericht exportieren"
   ,"winui.parity.tsa.enabled": "Zeitstempel verwenden"
-  ,"winui.parity.tsa.url": "URL des Zeitstempelservers (HTTPS)"
+  ,"winui.parity.tsa.url": "URL des Zeitstempelservers"
   ,"winui.parity.tsa.invalid": "Geben Sie eine gültige HTTP- oder HTTPS-URL für den Zeitstempelserver ein."
   ,"winui.parity.tsa.unavailable": "Zeitstempeleinstellungen konnten nicht gelesen werden. Versuchen Sie es erneut."
   ,"winui.parity.certs.person": "Natürliche Person"
@@ -6369,4 +6369,5 @@
   ,"winui.parity.verify.export_html": "Bericht speichern (HTML)"
   ,"winui.parity.verify.export_json": "Technische Daten exportieren (JSON)"
   ,"winui.parity.verify.html_filter": "Prüfbericht (HTML)"
+  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "Diese Einstellung verwendet die Linux-Version. Unter Windows aktivieren Sie den Stempel bei jeder Signatur unter „Erweiterte Optionen“."
 }

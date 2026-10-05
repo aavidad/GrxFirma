@@ -2772,7 +2772,7 @@
   "Ahora no": "Agora não"
   ,"winui.parity.verify.export": "Exportar relatório JSON"
   ,"winui.parity.tsa.enabled": "Usar carimbo temporal"
-  ,"winui.parity.tsa.url": "URL do servidor de carimbo temporal (HTTPS)"
+  ,"winui.parity.tsa.url": "URL do servidor de carimbo temporal"
   ,"winui.parity.tsa.invalid": "Indique um URL HTTP ou HTTPS válido para o servidor de carimbo temporal."
   ,"winui.parity.tsa.unavailable": "Não foi possível consultar as definições do carimbo temporal. Tente novamente."
   ,"winui.parity.certs.person": "Pessoa singular"
@@ -6369,4 +6369,5 @@
   ,"winui.parity.verify.export_html": "Guardar relatório (HTML)"
   ,"winui.parity.verify.export_json": "Exportar dados técnicos (JSON)"
   ,"winui.parity.verify.html_filter": "Relatório de verificação (HTML)"
+  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "Esta preferência é usada pela versão para Linux. No Windows, ative o selo em cada assinatura, em «Opções avançadas»."
 }

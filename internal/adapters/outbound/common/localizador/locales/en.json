@@ -2772,7 +2772,7 @@
   "Ahora no": "Not now"
   ,"winui.parity.verify.export": "Export JSON report"
   ,"winui.parity.tsa.enabled": "Use a time stamp"
-  ,"winui.parity.tsa.url": "Time stamp server URL (HTTPS)"
+  ,"winui.parity.tsa.url": "Time stamp server URL"
   ,"winui.parity.tsa.invalid": "Enter a valid HTTP or HTTPS URL for the time stamp server."
   ,"winui.parity.tsa.unavailable": "Could not read time stamp settings. Try again."
   ,"winui.parity.certs.person": "Individual"
@@ -6369,4 +6369,5 @@
   ,"winui.parity.verify.export_html": "Save report (HTML)"
   ,"winui.parity.verify.export_json": "Export technical data (JSON)"
   ,"winui.parity.verify.html_filter": "Verification report (HTML)"
+  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "This preference is used by the Linux version. On Windows, turn on the stamp for each signature under “Advanced options”."
 }

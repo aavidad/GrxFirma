@@ -2772,7 +2772,7 @@
   "Ahora no": "暂不"
   ,"winui.parity.verify.export": "导出 JSON 报告"
   ,"winui.parity.tsa.enabled": "使用时间戳"
-  ,"winui.parity.tsa.url": "时间戳服务器 URL（HTTPS）"
+  ,"winui.parity.tsa.url": "时间戳服务器 URL"
   ,"winui.parity.tsa.invalid": "请输入有效的时间戳服务器 HTTP 或 HTTPS URL。"
   ,"winui.parity.tsa.unavailable": "无法读取时间戳设置。请重试。"
   ,"winui.parity.certs.person": "个人"
@@ -6369,4 +6369,5 @@
   ,"winui.parity.verify.export_html": "保存报告（HTML）"
   ,"winui.parity.verify.export_json": "导出技术数据（JSON）"
   ,"winui.parity.verify.html_filter": "验证报告（HTML）"
+  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "此偏好设置由 Linux 版本使用。在 Windows 上，请在每次签署时于“高级选项”中启用印章。"
 }
