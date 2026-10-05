@@ -123,7 +123,10 @@ func (r *RendererPdftoppm) RenderizarPagina(ctx context.Context, ruta string, pa
 
 	// #nosec G204 -- pdftoppm is a fixed system tool and rutaPDF is an
 	// absolute regular-file path, so it cannot be interpreted as an option.
+	// -cropbox: se dibuja la CropBox, que es lo que muestran los lectores y la
+	// caja que mide pdfinfo y sobre la que el motor coloca el sello.
 	cmd := exec.CommandContext(renderCtx, pdftoppmPath,
+		"-cropbox",
 		"-r", strconv.Itoa(dpi),
 		"-scale-to", strconv.Itoa(maxPreviewPixelDimension),
 		"-f", paginaStr,
@@ -261,9 +264,29 @@ func normalizarRutaPDF(ruta string) (string, error) {
 // ejecutaba nunca y todo PDF se reportaba como A4. Las dimensiones viajan por
 // IPC hasta el frontend, que las usa para situar el sello visible PAdES: en
 // cualquier documento que no fuera A4 el sello caia en coordenadas erroneas.
+//
+// pdfinfo da el tamaño de la CropBox sin girar y el /Rotate aparte ("Page
+// 1 rot: 90"). pdftoppm dibuja la página ya girada, así que con 90 o 270 se
+// devuelven ancho y alto intercambiados: las interfaces miden el sello sobre
+// la página tal como se ve, que es la convención del motor de firma.
 func parsearSalidaPdfinfo(salida string) (ancho, alto float64, totalPaginas int, ok bool) {
+	giro, giroLeido := 0, false
+	defer func() {
+		if ok && (giro == 90 || giro == 270) {
+			ancho, alto = alto, ancho
+		}
+	}()
 	for _, linea := range strings.Split(salida, "\n") {
 		linea = strings.TrimSpace(linea)
+
+		if !giroLeido && strings.HasPrefix(linea, "Page") {
+			if idx := strings.Index(linea, "rot:"); idx >= 0 {
+				if n, err := strconv.Atoi(strings.TrimSpace(linea[idx+len("rot:"):])); err == nil {
+					giro, giroLeido = ((n%360)+360)%360, true
+				}
+				continue
+			}
+		}
 
 		if strings.HasPrefix(linea, "Pages:") {
 			raw := strings.TrimSpace(strings.TrimPrefix(linea, "Pages:"))

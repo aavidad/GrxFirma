@@ -66,10 +66,13 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
         }
 
         using var pdfPage = document.GetPage((uint)(page - 1));
-        var dimensions = pdfPage.Dimensions;
-        var mediaBox = dimensions.MediaBox;
-        if (!IsPositiveFinite(mediaBox.Width) ||
-            !IsPositiveFinite(mediaBox.Height))
+        // Size ya aplica la CropBox y el /Rotate de la página, igual que
+        // RenderToStreamAsync: la imagen y las medidas describen la página
+        // tal como se ve, que es la convención del motor para el sello.
+        // Dimensions.MediaBox es la caja sin girar ni recortar.
+        var pageSize = pdfPage.Size;
+        if (!IsPositiveFinite(pageSize.Width) ||
+            !IsPositiveFinite(pageSize.Height))
         {
             throw new InvalidDataException(
                 Localizer.Text("winui.vistapdf.windows_no_devolvio_dimensiones_pdf"));
@@ -78,11 +81,11 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
         var scale = Math.Min(
             1,
             maximumRenderDimension /
-                Math.Max(mediaBox.Width, mediaBox.Height));
+                Math.Max(pageSize.Width, pageSize.Height));
         var destinationWidth = checked(
-            (uint)Math.Max(1, Math.Round(mediaBox.Width * scale)));
+            (uint)Math.Max(1, Math.Round(pageSize.Width * scale)));
         var destinationHeight = checked(
-            (uint)Math.Max(1, Math.Round(mediaBox.Height * scale)));
+            (uint)Math.Max(1, Math.Round(pageSize.Height * scale)));
         using var output = new InMemoryRandomAccessStream();
         var renderOptions = new PdfPageRenderOptions
         {
@@ -113,8 +116,8 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
         return new PdfPreviewResult
         {
             Data = data,
-            Width = mediaBox.Width * PdfPointsPerDip,
-            Height = mediaBox.Height * PdfPointsPerDip,
+            Width = pageSize.Width * PdfPointsPerDip,
+            Height = pageSize.Height * PdfPointsPerDip,
             CurrentPage = page,
             TotalPages = checked((int)document.PageCount),
         };

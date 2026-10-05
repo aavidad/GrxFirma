@@ -32,6 +32,15 @@ class NativePdfPreviewContractTests(unittest.TestCase):
         self.assertNotIn("pdftoppm", source)
         self.assertNotIn("pdfinfo", source)
 
+    def test_windows_renderer_measures_the_page_as_seen(self) -> None:
+        # El motor coloca el sello sobre la página tal como se ve (CropBox y
+        # /Rotate aplicados); RenderToStreamAsync dibuja así la página y las
+        # medidas devueltas deben ser las mismas, no la MediaBox sin girar.
+        source = SERVICE.read_text(encoding="utf-8")
+        self.assertIn("pdfPage.Size", source)
+        self.assertNotIn("MediaBox.Width", source)
+        self.assertNotIn("mediaBox", source)
+
     def test_view_model_uses_injected_native_preview_with_safe_fallback(self) -> None:
         interface = INTERFACE.read_text(encoding="utf-8")
         view_model = VIEW_MODEL.read_text(encoding="utf-8")
