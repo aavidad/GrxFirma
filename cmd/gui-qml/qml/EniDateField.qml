@@ -84,27 +84,15 @@ ColumnLayout {
         calendarPopup.open()
     }
 
-    component ThemedInput: TextField {
-        id: field
+    component ThemedInput: ThemedTextField {
         color: root.textColor
-        selectByMouse: true
+        fieldColor: root.cardColor
+        mutedColor: root.mutedColor
+        focusColor: root.focusColor
+        errorColor: root.errorColor
+        hasError: root.invalid
         onActiveFocusChanged: if (!activeFocus) root.touched = true
         onTextEdited: root.updateFromInputs()
-        background: Rectangle {
-            color: root.cardColor
-            radius: 4
-            border.color: root.invalid ? root.errorColor : root.mutedColor
-            border.width: root.invalid ? 2 : 1
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: -3
-                radius: 6
-                color: "transparent"
-                border.color: root.focusColor
-                border.width: 2
-                visible: field.activeFocus
-            }
-        }
     }
 
     RowLayout {

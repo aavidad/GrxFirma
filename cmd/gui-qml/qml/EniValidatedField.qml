@@ -26,31 +26,20 @@ ColumnLayout {
     function focusInput() { input.forceActiveFocus() }
     RowLayout {
         Layout.fillWidth: true
-        TextField {
+        ThemedTextField {
             id: input
             objectName: "eniInput"
             Layout.fillWidth: true
             color: root.theme.textColor
+            fieldColor: root.theme.cardColor
+            mutedColor: root.theme.secondaryTextColor
+            focusColor: root.focusColor
+            errorColor: root.errorColor
+            hasError: root.invalid
             Accessible.name: root.translate(root.labelKey)
             Accessible.description: root.invalid ? root.translate(root.errorKey)
                                                  : (root.hintKey !== "" ? root.translate(root.hintKey) : "")
             onActiveFocusChanged: if (!activeFocus) root.touched = true
-            background: Rectangle {
-                color: root.theme.cardColor
-                radius: 4
-                border.color: root.invalid ? root.errorColor : root.theme.secondaryTextColor
-                border.width: root.invalid ? 2 : 1
-                // Anillo de foco separado del borde de error para no confundirlos.
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: -3
-                    radius: 6
-                    color: "transparent"
-                    border.color: root.focusColor
-                    border.width: 2
-                    visible: input.activeFocus
-                }
-            }
         }
     }
     Label {

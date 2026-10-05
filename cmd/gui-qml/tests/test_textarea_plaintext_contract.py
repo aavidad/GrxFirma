@@ -3,7 +3,8 @@
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
 
-"""Las áreas de texto que muestran datos externos no interpretan HTML."""
+"""Las áreas de texto (también ThemedTextArea) que muestran datos externos no
+interpretan HTML."""
 
 from pathlib import Path
 import re
@@ -13,7 +14,7 @@ QML = Path(__file__).resolve().parents[1] / "qml"
 
 
 def bloques_textarea(texto):
-    for coincidencia in re.finditer(r"\bTextArea\s*\{", texto):
+    for coincidencia in re.finditer(r"\b(?:Themed)?TextArea\s*\{", texto):
         inicio = coincidencia.end()
         nivel, i = 1, inicio
         while nivel and i < len(texto):

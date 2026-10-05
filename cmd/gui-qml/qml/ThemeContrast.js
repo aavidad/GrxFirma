@@ -48,3 +48,19 @@ function legibleFill(background) {
     }
     return c
 }
+
+// Color de acento (títulos, estados) ajustado al fondo: conserva el tono si ya
+// llega al contraste pedido (4,5:1 por defecto); si no, lo oscurece sobre fondos
+// claros o lo aclara sobre oscuros hasta alcanzarlo, y como último recurso usa
+// el texto más legible entre casi negro y blanco.
+function accentOn(background, accent, minimum) {
+    const target = minimum === undefined ? 4.5 : minimum
+    let c = toColor(accent)
+    if (ratio(background, c) >= target) return c
+    const lightBackground = luminance(background) > 0.18
+    for (let i = 0; i < 12; i++) {
+        c = lightBackground ? Qt.darker(c, 1.15) : Qt.lighter(c, 1.15)
+        if (ratio(background, c) >= target) return c
+    }
+    return readableOn(background)
+}
