@@ -271,7 +271,7 @@ sesiones.
 
 ## Controles de seguridad
 
-- solo permisos NFC e `INTERNET`; este último permite la TSA y obtener evidencias LT/LTA, sin permisos de almacenamiento amplios;
+- solo permisos NFC e `INTERNET`; este último permite la TSA, obtener evidencias LT/LTA y, solo cuando la persona lo pulsa, OCSP/CRL del certificado, el cotejo con la AEAT y la consulta de versiones en GitHub. Kotlin no abre conexiones: lo hace el núcleo Go. Sin permisos de almacenamiento amplios;
 - TSA HTTP(S) elegida por la persona y validada sin credenciales ni fragmento; los controles Android generales conservan la prohibición de tráfico en claro, mientras el cliente Go admite HTTP como el motor de escritorio;
 - copias de seguridad y transferencia de datos deshabilitadas;
 - documentos abiertos exclusivamente mediante URI `content://`;
@@ -385,6 +385,51 @@ exportar el informe Veri*Factu a un fichero, leer el QR tributario y la
 consulta a la AEAT, perfiles T para los formatos nuevos y sello visible en el
 lote. La revisión de usabilidad independiente y la prueba en dispositivo de
 esta parte siguen pendientes.
+
+## Tercera oleada: certificado, preferencias, diagnóstico, QR y versiones
+
+- **Certificado**: bajo el certificado de la sesión aparece hasta cuándo es
+  válido, con aviso escrito (no solo color) si caduca en 30 días o menos,
+  además del tipo, NIF, organización, clave y origen (fichero o DNIe).
+  «Comprobar con el emisor si está revocado» consulta OCSP o CRL con el
+  comprobador de escritorio, que filtra direcciones internas; solo se envía
+  el número de serie. La verificación de firmas no cambia: sigue con
+  evidencias embebidas. El filtro por NIF, organización o tipo solo aparece
+  con más de un certificado; hoy la sesión guarda uno, así que de momento
+  no se ve.
+- **Preferencias**: formato y perfil por defecto, TSA, nombre propuesto al
+  guardar (`-firmado`, `_firmado` como en escritorio o el nombre original) y
+  tema del sistema, claro u oscuro. Un perfil T/LT/LTA exige una TSA válida.
+  «Restaurar valores predeterminados» vuelve a los valores de fábrica y
+  borra también el sello visible y su imagen. Se guardan en
+  SharedPreferences privadas sin cifrar porque no contienen nada sensible:
+  el gate estático rechaza claves con nombres de contraseña, PIN, clave o
+  certificado.
+- **Diagnóstico**: versión y commit de la app, versión y contrato del motor,
+  SHA-256 del núcleo, Android, idioma, reloj del dispositivo y del motor, y
+  el host de la TSA (sin ruta ni parámetros). «Probar la conexión con la
+  TSA» pide un sello RFC 3161 sobre un resumen aleatorio y avisa si el reloj
+  difiere más de dos minutos. «Copiar informe para soporte» copia ese texto,
+  sin titular, NIF, huellas ni nombres de documento.
+- **Veri*Factu**: «Exportar informe» guarda por SAF un JSON con el informe en
+  el idioma de la app y la respuesta del motor. «Leer QR tributario» valida
+  la URL pegada con `LeerQRVeriFactu` de escritorio sin usar la red. «Cotejar
+  con la AEAT» solo se activa tras una lectura válida y envía los cuatro
+  datos del QR con `ConsultarQRVeriFactu` (HTTPS, hosts oficiales, sin
+  redirecciones ni proxy, 12 s). La respuesta se muestra literal.
+- **Versiones**: «Acerca de» enlaza a las novedades publicadas en GitHub y
+  ofrece «Buscar actualizaciones», que consulta la API pública de releases
+  de `aavidad/GrxFirma` solo al pulsarlo (10 s, sin proxy, redirecciones al
+  mismo origen). No descarga nada; solo abre la página de la versión si es
+  del repositorio oficial.
+
+Todo es opcional para la app: un AAR anterior sin estos métodos los oculta.
+El AAR productivo hay que reconstruirlo y fijar su nuevo SHA-256.
+
+Pendiente: revisión de usabilidad independiente y prueba en dispositivo
+(las pruebas instrumentadas de `WaveThreeUiTest` están escritas pero no se
+han ejecutado); leer el QR desde la cámara o una imagen; más de una
+identidad por sesión para que el filtro de certificados tenga uso.
 
 Comprobaciones locales adicionales:
 
