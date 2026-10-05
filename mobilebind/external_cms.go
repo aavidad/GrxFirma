@@ -26,7 +26,9 @@ import (
 // ninguna entrada de la biblioteca: la verificación sigue resolviéndose por el
 // OID real de la firma. Check solo acepta externalRSASigner, así que las claves
 // PKCS#12 siguen usando el firmador original de la biblioteca.
-var externalCMSKeySignRegistration = asn1.ObjectIdentifier{2, 25, 172447041437101873, 1}
+// Cada arco cabe en 32 bits: asn1.ObjectIdentifier es []int y gomobile
+// compila también para armeabi-v7a.
+var externalCMSKeySignRegistration = asn1.ObjectIdentifier{2, 25, 1724470414, 37101873, 1}
 
 func init() {
 	cryptobinpkcs7.AddKeySign(externalCMSKeySignRegistration, func() cryptobinpkcs7.KeySign {
