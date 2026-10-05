@@ -104,4 +104,37 @@ public sealed class PortalSealSessionTests
         }
         finally { Directory.Delete(dir, true); }
     }
+
+    // El proceso del editor termina con 0 solo si dejó una decisión escrita;
+    // si no, GrxFirma vuelve al diálogo de posiciones fijas.
+    [TestMethod]
+    public void ExitCode_ReflectsWhetherADecisionWasWritten()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"grxfirma-portal-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var pdf = Path.Combine(dir, "document.pdf");
+            var result = Path.Combine(dir, "result.json");
+            var request = Path.Combine(dir, "request.json");
+            File.WriteAllBytes(pdf, "%PDF-test"u8.ToArray());
+            File.WriteAllText(request, JsonSerializer.Serialize(new
+            {
+                documentPath = pdf, resultPath = result, signerName = "Prueba",
+            }));
+            Assert.IsTrue(PortalSealSession.TryLoad(
+                ["--portal-seal-request", request], out var session, out _));
+            Assert.IsFalse(session!.IsCompleted);
+            Assert.AreEqual(1, session.ExitCode);
+            Assert.IsFalse(session.Submit("place", []));
+            Assert.AreEqual(1, session.ExitCode);
+            Assert.IsTrue(session.Submit("without"));
+            Assert.IsTrue(session.IsCompleted);
+            Assert.AreEqual(0, session.ExitCode);
+            session.CancelOnClose();
+            Assert.AreEqual("without", JsonDocument.Parse(File.ReadAllBytes(result))
+                .RootElement.GetProperty("action").GetString());
+        }
+        finally { Directory.Delete(dir, true); }
+    }
 }

@@ -66,8 +66,6 @@ class PortalSealEditorContract(unittest.TestCase):
         confirm = confirm[:confirm.index("\n    }\n")]
         self.assertIn("RaisePropertyChanged(nameof(CanDrawVisibleSealArea))", confirm)
 
-if __name__ == "__main__":
-    unittest.main()
 
     # Regresión 0.0.118: al mover el sello quedaba en cola una traducción
     # diferida (LayoutUpdated + 300 ms). Al pulsar «Firmar con el sello aquí»
@@ -94,3 +92,28 @@ if __name__ == "__main__":
                         handler.index("Volatile.Read(ref _windowClosed) != 0"))
         self.assertLess(handler.index("Volatile.Read(ref _windowClosed) != 0"),
                         handler.index("_window.ShowUnexpectedError"))
+
+    # Regresión 0.0.118: la salida normal del editor caía con c000000d al
+    # descargar Windows.Data.Pdf (dispositivo D3D11 WARP liberado con el grupo
+    # de hilos ya cerrado). En modo portal el proceso termina al cerrarse la
+    # ventana, después de dejar escrita la decisión.
+    def test_portal_editor_terminates_after_writing_the_decision(self):
+        app = (ROOT / "App.xaml.cs").read_text(encoding="utf-8")
+        closed = app[app.index("private async void OnMainWindowClosed"):
+                     app.index("private static async Task DisposeClientQuietlyAsync")]
+        portal = closed.index("if (_portalSealSession is not null)")
+        self.assertLess(closed.index("Interlocked.Exchange(ref _windowClosed, 1)"), portal)
+        self.assertLess(portal, closed.index("_portalSealSession.CancelOnClose();"))
+        self.assertLess(closed.index("_portalSealSession.CancelOnClose();"),
+                        closed.index("PortalSealProcessExit.Terminate(_portalSealSession);"))
+        self.assertLess(closed.index("PortalSealProcessExit.Terminate"),
+                        closed.index("_lifetimeCancellation.Cancel();"))
+        exit_source = (ROOT / "Services/PortalSealProcessExit.cs").read_text(encoding="utf-8")
+        self.assertIn("TerminateProcess(GetCurrentProcess(), (uint)session.ExitCode)", exit_source)
+        session = (ROOT.parent / "GrxFirma.WinUI.Core/Operations/PortalSealSession.cs").read_text(
+            encoding="utf-8")
+        self.assertIn("public int ExitCode => IsCompleted ? 0 : 1;", session)
+
+
+if __name__ == "__main__":
+    unittest.main()

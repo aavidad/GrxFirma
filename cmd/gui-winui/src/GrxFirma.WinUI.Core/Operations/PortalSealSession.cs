@@ -21,6 +21,12 @@ public sealed class PortalSealSession
     public string ResultPath { get; }
     public string SignerName { get; }
 
+    // La decisión quedó escrita en result.json (colocar, sin sello o cancelar).
+    public bool IsCompleted => Volatile.Read(ref _completed) != 0;
+
+    // Código de salida del proceso del editor: 0 solo si dejó una decisión.
+    public int ExitCode => IsCompleted ? 0 : 1;
+
     public static bool TryLoad(string[] arguments, out PortalSealSession? session,
         out bool requested)
     {

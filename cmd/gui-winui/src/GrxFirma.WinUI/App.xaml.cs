@@ -452,6 +452,16 @@ public partial class App : Application
             return;
         }
 
+        // El editor del portal termina aquí: result.json ya está escrito y la
+        // salida normal puede caer al descargar Windows.Data.Pdf (véase
+        // PortalSealProcessExit).
+        if (_portalSealSession is not null)
+        {
+            _portalSealSession.CancelOnClose();
+            PortalSealProcessExit.Terminate(_portalSealSession);
+            return;
+        }
+
         _lifetimeCancellation.Cancel();
         RestServer.Dispose();
         _tray?.Dispose();
