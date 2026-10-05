@@ -20,6 +20,8 @@ import es.dipgra.grxfirma.android.files.DocumentPolicy
 import es.dipgra.grxfirma.android.model.SignedOutput
 import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SignatureInspection
+import es.dipgra.grxfirma.android.model.BatchItemResult
+import es.dipgra.grxfirma.android.model.ProtectionRequest
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -36,13 +38,17 @@ class MainViewModel(
     private val core: CoreBridge,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
-    private val mutableState = MutableStateFlow(MainUiState(backend = core.readiness))
+    private val mutableState = MutableStateFlow(
+        MainUiState(backend = core.readiness, toolsAvailable = core.readiness.available && core.toolsAvailable),
+    )
     val state: StateFlow<MainUiState> = mutableState.asStateFlow()
 
     private val effectChannel = Channel<UiEffect>(Channel.BUFFERED)
     val effects = effectChannel.receiveAsFlow()
 
     private var pendingOutput: SignedOutput? = null
+    private var pendingBatch: List<BatchItemResult>? = null
+    private var pendingSavedDetail: UiText? = null
     private val identityEpoch = AtomicLong()
     val engineVersion: String get() = core.engineVersion
 
@@ -130,13 +136,15 @@ class MainViewModel(
 
     fun reportSavePickerUnavailable() {
         if (mutableState.value.awaitingSave) {
-            setError(UiText.Resource(R.string.error_save_picker_unavailable))
+            setError(UiText.Resource(if (mutableState.value.pendingKind == PendingKind.SIGNATURE)
+                R.string.error_save_picker_unavailable else R.string.error_tool_save_picker_unavailable))
         }
     }
 
     fun reportSavePickerCancelled() {
         if (mutableState.value.awaitingSave) {
-            setError(UiText.Resource(R.string.error_save_picker_cancelled))
+            setError(UiText.Resource(if (mutableState.value.pendingKind == PendingKind.SIGNATURE)
+                R.string.error_save_picker_cancelled else R.string.error_tool_save_picker_cancelled))
         }
     }
 
@@ -178,6 +186,7 @@ class MainViewModel(
                     mutableState.value = mutableState.value.copy(
                         certificate = certificate,
                         certificateFile = null,
+                        certificateExternal = false,
                         result = OperationResult.Success(
                             UiText.Resource(R.string.result_success),
                             UiText.Resource(R.string.result_certificate_imported, listOf(certificate.subject)),
@@ -211,6 +220,7 @@ class MainViewModel(
                         mutableState.value = mutableState.value.copy(
                             certificate = certificate,
                             certificateFile = null,
+                            certificateExternal = true,
                             result = OperationResult.Success(
                                 UiText.Resource(R.string.result_success),
                                 UiText.Resource(R.string.dnie_ready),
@@ -232,6 +242,7 @@ class MainViewModel(
         val current = mutableState.value
         mutableState.value = current.copy(
             certificate = null,
+            certificateExternal = false,
             result = if (current.awaitingSave) current.result else
                 OperationResult.Error(UiText.Resource(R.string.dnie_session_ended)),
         )
@@ -286,8 +297,7 @@ class MainViewModel(
                     return@launchOperation
                 }
                 val output = core.sign(loaded, effectiveFormat, certificate.id, options + configured, snapshot.signatureAction)
-                pendingOutput?.bytes?.fill(0)
-                pendingOutput = output
+                replacePending(output, PendingKind.SIGNATURE)
                 // The output remains saveable even if verification cannot run.
                 // Detached signatures need the input for sign, and the separately
                 // selected original for co/countersign (never the old signature).
@@ -410,24 +420,33 @@ class MainViewModel(
     fun savePendingOutput(uri: Uri) = launchOperation(allowAwaitingSave = true) {
         val output = pendingOutput
             ?: throw IllegalStateException("No hay un resultado de firma pendiente.")
+        val signature = mutableState.value.pendingKind == PendingKind.SIGNATURE
         try {
             repository.write(uri, output.bytes)
             output.bytes.fill(0)
             pendingOutput = null
+            val saved = UiText.Resource(if (signature) R.string.result_saved else R.string.result_file_saved)
             mutableState.value = mutableState.value.copy(
                 awaitingSave = false,
-                result = OperationResult.Success(UiText.Resource(R.string.result_saved)),
+                result = OperationResult.Success(saved, pendingSavedDetail),
             )
+            pendingSavedDetail = null
         } catch (_: Exception) {
             // Un proveedor SAF puede haber creado un fichero parcial. La salida se
             // conserva solo en memoria para poder elegir otro destino sin refirmar.
             mutableState.value = mutableState.value.copy(
-                result = OperationResult.Error(UiText.Resource(R.string.error_save_failed_keep_output)),
+                result = OperationResult.Error(UiText.Resource(
+                    if (signature) R.string.error_save_failed_keep_output else R.string.error_tool_save_failed,
+                )),
             )
         }
     }
 
     fun retryPendingOutput() = launchOperation(allowAwaitingSave = true) {
+        if (pendingBatch != null) {
+            effectChannel.send(UiEffect.ChooseBatchFolder)
+            return@launchOperation
+        }
         val output = pendingOutput
             ?: throw IllegalStateException("No hay un resultado de firma pendiente.")
         effectChannel.send(UiEffect.SaveSignedDocument(output.displayName, output.mimeType))
@@ -435,8 +454,13 @@ class MainViewModel(
 
     fun discardPendingOutput() {
         if (!mutableState.value.canDiscardPendingOutput) return
-        pendingOutput?.bytes?.fill(0)
-        pendingOutput = null
+        val kind = mutableState.value.pendingKind
+        clearPending()
+        if (kind != PendingKind.SIGNATURE) {
+            mutableState.value = mutableState.value.copy(awaitingSave = false,
+                result = OperationResult.Error(UiText.Resource(R.string.result_tool_discarded)))
+            return
+        }
         val result = try {
             core.clearSession()
             OperationResult.Error(UiText.Resource(R.string.result_save_cancelled))
@@ -446,8 +470,24 @@ class MainViewModel(
         mutableState.value = mutableState.value.copy(
             awaitingSave = false,
             certificate = null,
+            certificateExternal = false,
             result = result,
         )
+    }
+
+    private fun replacePending(output: SignedOutput, kind: PendingKind, savedDetail: UiText? = null) {
+        clearPending()
+        pendingOutput = output
+        pendingSavedDetail = savedDetail
+        mutableState.value = mutableState.value.copy(pendingKind = kind)
+    }
+
+    private fun clearPending() {
+        pendingOutput?.bytes?.fill(0)
+        pendingOutput = null
+        pendingBatch?.forEach { it.output?.bytes?.fill(0) }
+        pendingBatch = null
+        pendingSavedDetail = null
     }
 
     fun forgetCertificate() {
@@ -457,10 +497,313 @@ class MainViewModel(
             mutableState.value = mutableState.value.copy(
                 certificate = null,
                 certificateFile = null,
+                certificateExternal = false,
                 result = OperationResult.Success(UiText.Resource(R.string.result_certificate_forgotten)),
             )
         } catch (error: Exception) {
             setError(error.toUserText())
+        }
+    }
+
+    // --- Herramientas: huellas, protección y lote ---
+
+    fun updateToolSettings(hashAlgorithm: String, hashFormat: String, container: String, protectForMe: Boolean) {
+        if (!mutableState.value.canReplaceSelection) return
+        require(hashAlgorithm in ToolsPolicy.HASH_ALGORITHMS)
+        require(hashFormat in ToolsPolicy.HASH_FORMATS)
+        require(container in ToolsPolicy.CONTAINERS)
+        mutableState.value = mutableState.value.copy(hashAlgorithm = hashAlgorithm, hashFormat = hashFormat,
+            protectionContainer = container, protectForMe = protectForMe)
+    }
+
+    fun createHash() {
+        val snapshot = mutableState.value
+        val document = snapshot.document ?: return setError(UiText.Resource(R.string.error_document_required))
+        if (!snapshot.canHash) return
+        launchOperation {
+            val loaded = repository.loadDocument(document)
+            try {
+                val hash = core.createHash(loaded, snapshot.hashAlgorithm, snapshot.hashFormat)
+                val detail = UiText.Resource(R.string.result_hash_detail, listOf(hash.algorithm, hash.hash))
+                replacePending(
+                    SignedOutput(hash.bytes, ToolsPolicy.hashFileName(document.displayName, hash.extension),
+                        ToolsPolicy.hashMime(hash.format), hash.format, hash.algorithm),
+                    PendingKind.TOOL,
+                    detail,
+                )
+                mutableState.value = mutableState.value.copy(awaitingSave = true,
+                    result = OperationResult.Success(UiText.Resource(R.string.result_hash_created), detail))
+                val output = pendingOutput ?: return@launchOperation
+                effectChannel.send(UiEffect.SaveSignedDocument(output.displayName, output.mimeType))
+            } finally {
+                loaded.bytes.fill(0)
+            }
+        }
+    }
+
+    fun checkHash(hashUri: Uri) {
+        val snapshot = mutableState.value
+        val document = snapshot.document ?: return setError(UiText.Resource(R.string.error_document_required))
+        if (!snapshot.canHash) return
+        launchOperation {
+            val hashFile = repository.inspect(hashUri, "huella", "application/octet-stream")
+            DocumentPolicy.requireAllowedSize(hashFile.sizeBytes, ToolsPolicy.MAX_HASH_FILE_BYTES, "La huella")
+            val stored = repository.loadCertificate(hashFile)
+            val loaded = try { repository.loadDocument(document) } catch (error: Exception) { stored.bytes.fill(0); throw error }
+            try {
+                if (stored.bytes.size > ToolsPolicy.MAX_HASH_FILE_BYTES) {
+                    setError(UiText.Resource(R.string.error_hash_file))
+                    return@launchOperation
+                }
+                val check = core.checkHash(loaded, stored)
+                val lines = UiText.Lines(listOf(
+                    UiText.Resource(R.string.hash_check_algorithm, listOf(check.algorithm)),
+                    UiText.Resource(R.string.hash_expected, listOf(check.expected)),
+                    UiText.Resource(R.string.hash_actual, listOf(check.actual)),
+                ))
+                mutableState.value = mutableState.value.copy(result = if (check.valid)
+                    OperationResult.Success(UiText.Resource(R.string.result_hash_match), lines)
+                else OperationResult.Error(UiText.Lines(listOf(UiText.Resource(R.string.result_hash_mismatch), lines))))
+            } finally {
+                loaded.bytes.fill(0)
+                stored.bytes.fill(0)
+            }
+        }
+    }
+
+    fun addRecipient(uri: Uri) {
+        if (!mutableState.value.canReplaceSelection) return reportBusyIncomingIntent()
+        runInspect {
+            if (mutableState.value.recipients.size >= ToolsPolicy.MAX_RECIPIENTS) {
+                setError(UiText.Resource(R.string.error_recipient_too_many))
+                return@runInspect
+            }
+            val selected = repository.inspect(uri, "destinatario.cer", "application/pkix-cert")
+            DocumentPolicy.requireAllowedSize(selected.sizeBytes, ToolsPolicy.MAX_RECIPIENT_BYTES, "El certificado")
+            mutableState.value = mutableState.value.copy(
+                recipients = (mutableState.value.recipients + selected).distinctBy { it.uri },
+                result = OperationResult.Idle,
+            )
+        }
+    }
+
+    fun clearRecipients() {
+        if (!mutableState.value.canReplaceSelection) return
+        mutableState.value = mutableState.value.copy(recipients = emptyList())
+    }
+
+    /** [secret] y [confirmation] se borran siempre, también si hay error. */
+    fun protect(secret: CharArray, confirmation: CharArray, sign: Boolean) {
+        val snapshot = mutableState.value
+        val document = snapshot.document
+        val problem: Int? = when {
+            document == null -> R.string.error_document_required
+            !snapshot.canProtect -> -1
+            snapshot.usesTransientKey && sign -> R.string.error_protect_sign_identity
+            snapshot.usesTransientKey && (!ToolsPolicy.canonicalAesKey(secret) || !secret.contentEquals(confirmation)) ->
+                R.string.error_protect_key
+            !snapshot.usesTransientKey && snapshot.recipients.isEmpty() && !snapshot.canProtectForMe ->
+                R.string.error_protect_recipients_required
+            sign && (snapshot.certificate == null || snapshot.certificateExternal) -> R.string.error_protect_sign_identity
+            else -> null
+        }
+        confirmation.fill('\u0000')
+        if (problem != null || document == null) {
+            secret.fill('\u0000')
+            if (problem != null && problem != -1) setError(UiText.Resource(problem))
+            return
+        }
+        val key = if (snapshot.usesTransientKey) secret else { secret.fill('\u0000'); null }
+        launchOperation(onFinished = { key?.fill('\u0000') }) {
+            val loadedRecipients = ArrayList<ByteArray>()
+            val loaded = repository.loadDocument(document)
+            try {
+                if (!snapshot.usesTransientKey) for (recipient in snapshot.recipients) {
+                    val file = repository.loadCertificate(recipient)
+                    loadedRecipients += file.bytes
+                    if (file.bytes.size > ToolsPolicy.MAX_RECIPIENT_BYTES) {
+                        setError(UiText.Resource(R.string.error_protect_recipient))
+                        return@launchOperation
+                    }
+                }
+                val request = ProtectionRequest(
+                    container = if (sign) "signedandenvelopeddata" else snapshot.protectionContainer,
+                    recipients = loadedRecipients,
+                    includeSessionCertificate = !snapshot.usesTransientKey && snapshot.canProtectForMe,
+                    sign = sign,
+                    certificateId = if (sign) snapshot.certificate?.id.orEmpty() else "",
+                )
+                val output = core.protect(loaded, request, key)
+                val detail = UiText.Resource(R.string.result_protected_detail, listOf(output.displayName))
+                replacePending(output, PendingKind.TOOL, detail)
+                mutableState.value = mutableState.value.copy(awaitingSave = true,
+                    result = OperationResult.Success(UiText.Resource(
+                        if (sign) R.string.result_protected_signed else R.string.result_protected), detail))
+                effectChannel.send(UiEffect.SaveSignedDocument(output.displayName, output.mimeType))
+            } finally {
+                loaded.bytes.fill(0)
+                loadedRecipients.forEach { it.fill(0) }
+                key?.fill('\u0000')
+            }
+        }
+    }
+
+    /** [secret] vacío usa el certificado PKCS#12 de la sesión; se borra siempre. */
+    fun unprotect(secret: CharArray) {
+        val snapshot = mutableState.value
+        val document = snapshot.document
+        val problem: Int? = when {
+            document == null -> R.string.error_document_required
+            !snapshot.canUnprotect -> -1
+            secret.isNotEmpty() && !ToolsPolicy.canonicalAesKey(secret) -> R.string.error_protect_key
+            secret.isEmpty() && (snapshot.certificate == null || snapshot.certificateExternal) ->
+                R.string.error_unprotect_key_or_certificate
+            else -> null
+        }
+        if (problem != null || document == null) {
+            secret.fill('\u0000')
+            if (problem != null && problem != -1) setError(UiText.Resource(problem))
+            return
+        }
+        val key = secret.takeIf { it.isNotEmpty() }
+        launchOperation(onFinished = { secret.fill('\u0000') }) {
+            val loaded = repository.loadDocument(document)
+            try {
+                val output = core.unprotect(loaded, key)
+                val detail = UiText.Resource(R.string.result_unprotected_detail, listOf(output.displayName))
+                replacePending(output, PendingKind.TOOL, detail)
+                mutableState.value = mutableState.value.copy(awaitingSave = true,
+                    result = OperationResult.Success(UiText.Resource(R.string.result_unprotected), detail))
+                effectChannel.send(UiEffect.SaveSignedDocument(output.displayName, output.mimeType))
+            } finally {
+                loaded.bytes.fill(0)
+                secret.fill('\u0000')
+            }
+        }
+    }
+
+    fun selectBatchDocuments(uris: List<Uri>) {
+        if (!mutableState.value.canReplaceSelection) return reportBusyIncomingIntent()
+        if (uris.isEmpty()) return
+        runInspect {
+            if (uris.size > ToolsPolicy.MAX_BATCH_ITEMS) {
+                setError(UiText.Resource(R.string.error_batch_too_many))
+                return@runInspect
+            }
+            val selected = uris.distinct().map { repository.inspect(it, "documento", "application/octet-stream") }
+            selected.forEach {
+                DocumentPolicy.requireAllowedSize(it.sizeBytes, DocumentPolicy.MAX_DOCUMENT_BYTES, "El documento")
+            }
+            ToolsPolicy.batchProblem(selected.map { it.sizeBytes })?.let {
+                setError(UiText.Resource(it))
+                return@runInspect
+            }
+            mutableState.value = mutableState.value.copy(batchDocuments = selected, result = OperationResult.Idle)
+        }
+    }
+
+    fun clearBatchDocuments() {
+        if (!mutableState.value.canReplaceSelection) return
+        mutableState.value = mutableState.value.copy(batchDocuments = emptyList())
+    }
+
+    fun signBatch(format: String) {
+        val snapshot = mutableState.value
+        val certificate = snapshot.certificate
+        val problem: Int? = when {
+            snapshot.batchDocuments.isEmpty() -> R.string.error_batch_required
+            certificate == null -> R.string.error_certificate_required
+            snapshot.certificateExternal -> R.string.batch_dnie_unavailable
+            !snapshot.canSignBatch -> -1
+            snapshot.batchDocuments.any {
+                !SigningOptions.supported(ToolsPolicy.effectiveFormat(format, it.displayName, it.mimeType), "sign",
+                    snapshot.signatureProfile)
+            } -> R.string.error_signature_combination
+            else -> null
+        }
+        if (problem != null || certificate == null) {
+            if (problem != null && problem != -1) setError(UiText.Resource(problem))
+            return
+        }
+        launchOperation {
+            val configured = try {
+                SigningOptions.create(snapshot.signatureProfile, snapshot.tsaEnabled, snapshot.tsaUrl)
+            } catch (_: Exception) {
+                setError(UiText.Resource(R.string.error_tsa_configuration))
+                return@launchOperation
+            }
+            val loaded = ArrayList<LoadedFile>(snapshot.batchDocuments.size)
+            try {
+                var total = 0L
+                for (document in snapshot.batchDocuments) {
+                    val file = repository.loadDocument(document)
+                    loaded += file
+                    total += file.bytes.size
+                    if (total > ToolsPolicy.MAX_BATCH_TOTAL_BYTES) {
+                        setError(UiText.Resource(R.string.error_batch_too_large))
+                        return@launchOperation
+                    }
+                }
+                val results = core.signBatch(loaded, format, certificate.id, configured)
+                clearPending()
+                pendingBatch = results
+                val ok = results.count { it.output != null }
+                val lines = buildList<UiText> {
+                    add(UiText.Plural(R.plurals.batch_ok_count, ok))
+                    if (ok < results.size) add(UiText.Plural(R.plurals.batch_error_count, results.size - ok))
+                    results.forEach {
+                        add(UiText.Resource(if (it.output != null) R.string.batch_item_ok else R.string.batch_item_error,
+                            listOf(it.sourceName)))
+                    }
+                }
+                if (ok == 0) {
+                    clearPending()
+                    mutableState.value = mutableState.value.copy(result = OperationResult.Error(UiText.Lines(lines)))
+                    return@launchOperation
+                }
+                mutableState.value = mutableState.value.copy(awaitingSave = true, pendingKind = PendingKind.BATCH,
+                    result = OperationResult.Success(UiText.Resource(R.string.result_batch_signed), UiText.Lines(lines)))
+                effectChannel.send(UiEffect.ChooseBatchFolder)
+            } finally {
+                loaded.forEach { it.bytes.fill(0) }
+            }
+        }
+    }
+
+    fun saveBatchOutputs(folder: Uri) = launchOperation(allowAwaitingSave = true) {
+        val batch = pendingBatch ?: throw IllegalStateException("No hay un lote pendiente.")
+        val lines = ArrayList<UiText>()
+        var saved = 0
+        var failed = 0
+        for (item in batch) {
+            val output = item.output
+            if (output == null) {
+                lines += UiText.Resource(R.string.batch_item_error, listOf(item.sourceName))
+                continue
+            }
+            if (output.bytes.isEmpty()) {
+                saved++
+                lines += UiText.Resource(R.string.batch_item_saved, listOf(output.displayName))
+                continue
+            }
+            try {
+                repository.writeToTree(folder, output.displayName, output.mimeType, output.bytes)
+                output.bytes.fill(0)
+                saved++
+                lines += UiText.Resource(R.string.batch_item_saved, listOf(output.displayName))
+            } catch (_: Exception) {
+                failed++
+                lines += UiText.Resource(R.string.batch_item_not_saved, listOf(output.displayName))
+            }
+        }
+        if (failed == 0) {
+            clearPending()
+            mutableState.value = mutableState.value.copy(awaitingSave = false, result = OperationResult.Success(
+                UiText.Plural(R.plurals.batch_saved_count, saved), UiText.Lines(lines)))
+        } else {
+            // Las firmas no guardadas siguen en memoria para elegir otra carpeta.
+            mutableState.value = mutableState.value.copy(result = OperationResult.Error(UiText.Lines(
+                listOf(UiText.Resource(R.string.error_tool_save_failed)) + lines)))
         }
     }
 
@@ -498,8 +841,7 @@ class MainViewModel(
     }
 
     override fun onCleared() {
-        pendingOutput?.bytes?.fill(0)
-        pendingOutput = null
+        clearPending()
         try {
             core.clearSession()
         } catch (_: Exception) {

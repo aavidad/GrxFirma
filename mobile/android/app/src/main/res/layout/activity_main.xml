@@ -452,6 +452,12 @@
                         android:text="@string/discard_pending_output" />
                 </LinearLayout>
 
+                <include
+                    android:id="@+id/tools"
+                    layout="@layout/section_tools"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
                 <TextView
                     android:id="@+id/resultSectionTitle"
                     style="@style/TextAppearance.Material3.TitleLarge"
