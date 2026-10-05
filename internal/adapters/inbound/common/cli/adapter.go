@@ -45,7 +45,7 @@ import (
 
 // SignatureFormatsHelp mantiene en un único punto la lista canónica que
 // publican la ayuda CLI detallada y el binario principal.
-const SignatureFormatsHelp = "auto|pades|cades|xades|xmldsig|odf|ooxml|facturae|asic-xades"
+const SignatureFormatsHelp = "auto|pades|cades|xades|xmldsig|odf|ooxml|facturae|verifactu|asic-xades"
 
 const (
 	envPKCS12PasswordCLI = "GRXFIRMA_PKCS12_PASSWORD"
@@ -489,6 +489,9 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 		return a.ejecutarCrearHash(ctx, cfg)
 	case "hash-check":
 		return a.ejecutarComprobarHash(ctx, cfg)
+	case "validar-verifactu", "leer-qr-verifactu", "cotejar-qr-verifactu":
+		cfg.operacion = operacion
+		return a.ejecutarVeriFactu(ctx, cfg)
 	case "facturae-check":
 		return a.ejecutarValidarFactura(cfg)
 	case "eni-check":
@@ -915,7 +918,13 @@ func (a *Adaptador) ejecutarFirma(ctx context.Context, cfg configCLI) int {
 		return 1
 	}
 
-	entrada, err := a.LeerFichero(cfg.entrada)
+	var entrada []byte
+	var err error
+	if strings.EqualFold(strings.TrimSpace(cfg.formato), "verifactu") {
+		entrada, err = securefile.ReadFileLimit(cfg.entrada, commonsigner.VeriFactuMaxXMLBytes)
+	} else {
+		entrada, err = a.LeerFichero(cfg.entrada)
+	}
 	if err != nil {
 		a.escribirErrorCLI(a.t("Entrada", "Entrada"), err)
 		return 1
@@ -1036,7 +1045,13 @@ func (a *Adaptador) ejecutarLote(ctx context.Context, cfg configCLI) int {
 			return 1
 		}
 	} else {
-		manifestBytes, err := a.LeerFichero(cfg.lote)
+		var manifestBytes []byte
+		var err error
+		if strings.EqualFold(strings.TrimSpace(cfg.formato), "verifactu") {
+			manifestBytes, err = securefile.ReadFileLimit(cfg.lote, 1024*1024)
+		} else {
+			manifestBytes, err = a.LeerFichero(cfg.lote)
+		}
 		if err != nil {
 			a.escribirErrorCLI(a.t("Entrada", "Entrada"), err)
 			return 1
@@ -1048,7 +1063,17 @@ func (a *Adaptador) ejecutarLote(ctx context.Context, cfg configCLI) int {
 	}
 	entradas := make([]application.BatchItemInput, 0, len(manifest))
 	for _, item := range manifest {
-		contenido, err := a.LeerFichero(item.Ruta)
+		requested := item.Formato
+		if strings.TrimSpace(requested) == "" {
+			requested = cfg.formato
+		}
+		var contenido []byte
+		var err error
+		if strings.EqualFold(strings.TrimSpace(requested), "verifactu") {
+			contenido, err = securefile.ReadFileLimit(item.Ruta, commonsigner.VeriFactuMaxXMLBytes)
+		} else {
+			contenido, err = a.LeerFichero(item.Ruta)
+		}
 		if err != nil {
 			a.escribirErrorCLI(a.t("Entrada", "Entrada"), err)
 			return 1
@@ -3292,6 +3317,8 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("    " + a.t("cli.help.pdf_password", "Lee sin eco la contraseña de un PDF cifrado (de usuario o de propietario) para firmarlo conservando su cifrado. También se admite la variable GRXFIRMA_PDF_PASSWORD, que se borra al leerla; nunca se acepta como argumento.") + "\n")
 	b.WriteString("  " + a.t("cli.help.batch_usage", "-lote <manifiesto.json|carpeta>") + "\n")
 	b.WriteString("    " + a.t("cli.help.batch", "Firma varios documentos con un único certificado. Con una carpeta firma sus ficheros (máximo 128, sin subcarpetas ni ocultos) y guarda cada firma junto al original o en -salida; los fallos se indican por documento.") + "\n")
+	b.WriteString("  " + a.localizadorENI().T("verifactu.cli_usage") + "\n")
+	b.WriteString("    " + a.localizadorENI().T("verifactu.scope") + "\n")
 	b.WriteString("  " + a.t("cli.help.facturae_check_usage", "-operacion validar-factura -entrada ...") + "\n")
 	b.WriteString("    " + a.t("cli.help.facturae_check", "Revisa una factura FacturaE, UBL o CII: totales (reglas EN 16931 en UBL y CII), impuestos, NIF/NIE/CIF y centros DIR3 que exige FACe.") + "\n")
 	b.WriteString("    " + a.t("cli.help.facturae_check_exit", "Devuelve 0 si no hay errores y 1 si FACe o el receptor rechazarían la factura.") + "\n")
@@ -3554,6 +3581,8 @@ func inferirFormatoFirma(formato, entrada string) string {
 		return strings.ToUpper(raw[:1]) + raw[1:]
 	case "xmldsig", "xmlsig", "xml-dsig":
 		return "XMLdSig"
+	case "verifactu":
+		return "VeriFactu"
 	case "facturae":
 		return "FacturaE"
 	case "asic-xades", "asicxades", "xades-asic", "xadesasics":
@@ -4100,6 +4129,8 @@ func construirRutaSalidaPorDefecto(entrada string, formato domain.SignatureForma
 		return base + ".xsig"
 	case domain.SignatureFormat("XMLdSig"):
 		return base + ".dsig"
+	case domain.SignatureFormat("VeriFactu"):
+		return base + "-signed.xml"
 	case domain.SignatureFormat("FacturaE"):
 		return base + "_firmada.xml"
 	case domain.SignatureFormat("ASiC-XAdES"):
