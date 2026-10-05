@@ -48,6 +48,19 @@ import es.dipgra.grxfirma.android.files.DocumentPolicy
 import es.dipgra.grxfirma.android.ui.MainUiState
 import es.dipgra.grxfirma.android.ui.MainViewModel
 import es.dipgra.grxfirma.android.ui.OperationResult
+import es.dipgra.grxfirma.android.ui.PendingKind
+import es.dipgra.grxfirma.android.ui.ToolsPolicy
+import es.dipgra.grxfirma.android.ui.FormatPolicy
+import es.dipgra.grxfirma.android.ui.EniForm
+import es.dipgra.grxfirma.android.ui.EngineText
+import es.dipgra.grxfirma.android.model.EniRequest
+import com.google.android.material.datepicker.CalendarConstraints
+import com.google.android.material.datepicker.DateValidatorPointBackward
+import com.google.android.material.datepicker.MaterialDatePicker
+import android.widget.ArrayAdapter
+import java.text.DateFormat
+import java.util.Date
+import java.util.TimeZone
 import es.dipgra.grxfirma.android.ui.UiEffect
 import es.dipgra.grxfirma.android.ui.UiText
 import es.dipgra.grxfirma.android.ui.resolve
@@ -57,6 +70,9 @@ import java.io.File
 import java.util.Base64
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
+
+private const val STATE_EXPANDED_TOOLS = "expanded_tools"
+private const val ENI_DATE_PICKER = "eni_capture_date"
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -74,6 +90,11 @@ class MainActivity : AppCompatActivity() {
     private val readingDnie = AtomicBoolean(false)
     private val scanEpoch = AtomicLong()
     private val nfcAdapter: NfcAdapter? by lazy { NfcAdapter.getDefaultAdapter(this) }
+    private val expandedTools = mutableSetOf<Int>()
+    private var updatingToolControls = false
+    private var formatMenu: List<String> = emptyList()
+    private var eniStates: List<String> = emptyList()
+    private var eniTypes: List<String> = emptyList()
 
     private val viewModel: MainViewModel by viewModels {
         MainViewModel.Factory(
@@ -103,6 +124,32 @@ class MainActivity : AppCompatActivity() {
 
     private val openSealImage = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) importSealImage(uri)
+    }
+
+    private val openBatchDocuments =
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+            viewModel.selectBatchDocuments(uris)
+        }
+
+    private val openHashFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(viewModel::checkHash)
+    }
+
+    private val openRecipient = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(viewModel::addRecipient)
+    }
+
+    private val openVeriFactuRecords =
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+            viewModel.selectVeriFactuRecords(uris)
+        }
+
+    private val openEniDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(viewModel::validateEni)
+    }
+
+    private val chooseBatchFolder = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri != null) viewModel.saveBatchOutputs(uri) else viewModel.reportSavePickerCancelled()
     }
 
     private val createSignedDocument = registerForActivityResult(
@@ -137,7 +184,10 @@ class MainActivity : AppCompatActivity() {
             ViewCompat.setAccessibilityHeading(certificateSectionTitle, true)
             ViewCompat.setAccessibilityHeading(operationSectionTitle, true)
             ViewCompat.setAccessibilityHeading(resultSectionTitle, true)
+            ViewCompat.setAccessibilityHeading(tools.toolsSectionTitle, true)
+            ViewCompat.setAccessibilityHeading(documents.documentsSectionTitle, true)
         }
+        savedInstanceState?.getIntArray(STATE_EXPANDED_TOOLS)?.let { expandedTools.addAll(it.toList()) }
         releaseLegacyPersistedPermissions()
         configureActions()
         collectViewModel()
@@ -150,7 +200,14 @@ class MainActivity : AppCompatActivity() {
         handleIncomingIntent(intent)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putIntArray(STATE_EXPANDED_TOOLS, expandedTools.toIntArray())
+    }
+
     override fun onDestroy() {
+        binding.tools.protectKey.text?.clear()
+        binding.tools.protectKeyConfirm.text?.clear()
         stopDnieReading()
         dnieSession?.close()
         dnieSession = null
@@ -258,6 +315,269 @@ class MainActivity : AppCompatActivity() {
         verifyButton.setOnClickListener { viewModel.verify() }
         retrySaveButton.setOnClickListener { viewModel.retryPendingOutput() }
         discardPendingOutputButton.setOnClickListener { viewModel.discardPendingOutput() }
+        configureTools()
+        configureFormats()
+        configureDocuments()
+    }
+
+    /** El desplegable ofrece solo los formatos que declara el núcleo. */
+    private fun configureFormats() {
+        val declared = viewModel.state.value.signingFormats
+        formatMenu = listOf("auto") + FormatPolicy.MENU_ORDER.filter { it in declared }
+        binding.signatureFormat.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
+            formatMenu.map { getString(FormatPolicy.label(it)) })
+    }
+
+    private fun configureDocuments() = with(binding.documents) {
+        listOf(toggleVerifactuButton to verifactuGroup, toggleEniButton to eniGroup).forEach { (toggle, group) ->
+            toggle.setOnClickListener {
+                if (!expandedTools.remove(group.id)) expandedTools += group.id
+                renderDocumentToggles()
+            }
+        }
+        renderDocumentToggles()
+        selectVerifactuButton.setOnClickListener {
+            try {
+                openVeriFactuRecords.launch(arrayOf("text/xml", "application/xml", "application/octet-stream"))
+            } catch (_: RuntimeException) { viewModel.reportPickerError() }
+        }
+        clearVerifactuButton.setOnClickListener { viewModel.clearVeriFactuRecords() }
+        checkVerifactuButton.setOnClickListener { viewModel.checkVeriFactu() }
+        val catalogs = viewModel.eniCatalogs()
+        eniStates = catalogs.documentStates
+        eniTypes = catalogs.documentTypes
+        eniOrigin.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
+            listOf(getString(R.string.eni_origin_administration), getString(R.string.eni_origin_citizen)))
+        eniState.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
+            eniStates.map(::eniCodeLabel))
+        eniDocumentType.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
+            eniTypes.map(::eniCodeLabel))
+        eniDocumentType.setSelection(eniTypes.indexOf("TD99").coerceAtLeast(0))
+        eniCaptureDateButton.setOnClickListener { showEniDatePicker() }
+        eniCaptureDateClearButton.setOnClickListener { viewModel.updateEniCaptureDate(null) }
+        createEniButton.setOnClickListener { createEni() }
+        validateEniButton.setOnClickListener {
+            try {
+                openEniDocument.launch(arrayOf("text/xml", "application/xml", "application/octet-stream"))
+            } catch (_: RuntimeException) { viewModel.reportPickerError() }
+        }
+    }
+
+    /** Código oficial seguido de su descripción del catálogo del motor. */
+    private fun eniCodeLabel(code: String): String {
+        val key = "eni.codigo.$code"
+        val description = EngineText.resolve(this, key)
+        return if (description == key) code else getString(R.string.eni_code_label, code, description)
+    }
+
+    private fun showEniDatePicker() {
+        if (supportFragmentManager.findFragmentByTag(ENI_DATE_PICKER) != null) return
+        val picker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText(R.string.eni_capture_date_title)
+            .setSelection(viewModel.state.value.eniCaptureDate ?: MaterialDatePicker.todayInUtcMilliseconds())
+            .setCalendarConstraints(CalendarConstraints.Builder().setValidator(DateValidatorPointBackward.now()).build())
+            .build()
+        picker.addOnPositiveButtonClickListener { viewModel.updateEniCaptureDate(it) }
+        picker.show(supportFragmentManager, ENI_DATE_PICKER)
+    }
+
+    private fun createEni() = with(binding.documents) {
+        val organs = EniForm.organs(eniOrgans.text?.toString().orEmpty())
+        if (!EniForm.organsValid(organs)) {
+            eniOrgansLayout.error = EngineText.resolve(this@MainActivity, "eni.validacion.dir3")
+            return@with
+        }
+        eniOrgansLayout.error = null
+        viewModel.createEni(EniRequest(
+            organs = organs,
+            origin = if (eniOrigin.selectedItemPosition == 1) "ciudadano" else "administracion",
+            state = eniStates.getOrElse(eniState.selectedItemPosition) { "EE01" },
+            documentType = eniTypes.getOrElse(eniDocumentType.selectedItemPosition) { "TD99" },
+            identifier = eniIdentifier.text?.toString()?.trim().orEmpty(),
+            sourceIdentifier = eniSource.text?.toString()?.trim().orEmpty(),
+            captureDate = EniForm.captureDate(viewModel.state.value.eniCaptureDate),
+            contentFormat = eniContentFormat.text?.toString()?.trim().orEmpty(),
+        ))
+    }
+
+    private fun renderDocumentToggles() = with(binding.documents) {
+        listOf(toggleVerifactuButton to verifactuGroup, toggleEniButton to eniGroup).forEach { (toggle, group) ->
+            val expanded = group.id in expandedTools
+            group.visibility = if (expanded) View.VISIBLE else View.GONE
+            toggle.setIconResource(if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
+            ViewCompat.setStateDescription(toggle,
+                getString(if (expanded) R.string.state_expanded else R.string.state_collapsed))
+        }
+    }
+
+    private fun renderDocuments(state: MainUiState) = with(binding.documents) {
+        val any = state.verifactuAvailable || state.eniDocumentAvailable || state.eniValidateAvailable
+        documentsHelper.setText(if (any) R.string.documents_helper else R.string.documents_unavailable)
+        val idle = state.canReplaceSelection
+        toggleVerifactuButton.visibility = if (state.verifactuAvailable) View.VISIBLE else View.GONE
+        if (!state.verifactuAvailable) verifactuGroup.visibility = View.GONE
+        toggleEniButton.visibility = if (state.eniDocumentAvailable || state.eniValidateAvailable) View.VISIBLE else View.GONE
+        if (!state.eniDocumentAvailable && !state.eniValidateAvailable) eniGroup.visibility = View.GONE
+        selectVerifactuButton.isEnabled = state.verifactuAvailable && idle
+        verifactuSummary.text = if (state.verifactuRecords.isEmpty()) getString(R.string.verifactu_none) else
+            resources.getQuantityString(R.plurals.verifactu_selected, state.verifactuRecords.size, state.verifactuRecords.size) +
+                "\n" + state.verifactuRecords.joinToString("\n") { it.summaryText() }
+        clearVerifactuButton.visibility = if (state.verifactuRecords.isEmpty()) View.GONE else View.VISIBLE
+        clearVerifactuButton.isEnabled = idle
+        checkVerifactuButton.isEnabled = state.canCheckVeriFactu
+        listOf(eniOrgansLayout, eniSourceLayout, eniIdentifierLayout, eniContentFormatLayout).forEach { it.isEnabled = idle }
+        listOf(eniOrigin, eniState, eniDocumentType).forEach { it.isEnabled = idle }
+        eniCaptureDateSummary.text = state.eniCaptureDate?.let {
+            val format = DateFormat.getDateInstance(DateFormat.LONG).apply { timeZone = TimeZone.getTimeZone("UTC") }
+            getString(R.string.eni_capture_date_value, format.format(Date(it)))
+        } ?: getString(R.string.eni_capture_date_now)
+        eniCaptureDateButton.isEnabled = idle
+        eniCaptureDateClearButton.visibility = if (state.eniCaptureDate == null) View.GONE else View.VISIBLE
+        eniCaptureDateClearButton.isEnabled = idle
+        createEniButton.visibility = if (state.eniDocumentAvailable) View.VISIBLE else View.GONE
+        createEniButton.isEnabled = state.canCreateEni
+        validateEniButton.visibility = if (state.eniValidateAvailable) View.VISIBLE else View.GONE
+        validateEniButton.isEnabled = state.canValidateEni
+    }
+
+    private fun configureTools() = with(binding.tools) {
+        listOf(toggleBatchButton to batchGroup, toggleHashButton to hashGroup, toggleProtectButton to protectGroup)
+            .forEach { (toggle, group) ->
+                toggle.setOnClickListener {
+                    if (!expandedTools.remove(group.id)) expandedTools += group.id
+                    renderToolToggles()
+                }
+            }
+        renderToolToggles()
+        val toolListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateToolSettings()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+        hashAlgorithm.onItemSelectedListener = toolListener
+        hashFormat.onItemSelectedListener = toolListener
+        protectionContainer.onItemSelectedListener = toolListener
+        protectForMe.setOnCheckedChangeListener { _, _ -> updateToolSettings() }
+        selectBatchButton.setOnClickListener {
+            try { openBatchDocuments.launch(arrayOf("*/*")) } catch (_: RuntimeException) { viewModel.reportPickerError() }
+        }
+        clearBatchButton.setOnClickListener { viewModel.clearBatchDocuments() }
+        signBatchButton.setOnClickListener { viewModel.signBatch(selectedSignatureFormat()) }
+        createHashButton.setOnClickListener { viewModel.createHash() }
+        checkHashButton.setOnClickListener {
+            try { openHashFile.launch(arrayOf("*/*")) } catch (_: RuntimeException) { viewModel.reportPickerError() }
+        }
+        addRecipientButton.setOnClickListener {
+            try {
+                openRecipient.launch(arrayOf("application/pkix-cert", "application/x-x509-ca-cert",
+                    "application/x-x509-user-cert", "application/x-pem-file", "application/octet-stream"))
+            } catch (_: RuntimeException) {
+                viewModel.reportPickerError()
+            }
+        }
+        clearRecipientsButton.setOnClickListener { viewModel.clearRecipients() }
+        generateKeyButton.setOnClickListener {
+            val key = ToolsPolicy.generateAesKey()
+            try {
+                protectKey.setText(key, 0, key.size)
+                protectKeyConfirm.setText(key, 0, key.size)
+            } finally {
+                key.fill('\u0000')
+            }
+            protectKeyLayout.helperText = getString(R.string.protect_key_generated)
+        }
+        protectButton.setOnClickListener { protectWithKey(sign = false) }
+        protectSignButton.setOnClickListener { protectWithKey(sign = true) }
+        unprotectButton.setOnClickListener {
+            val key = readAndClear(protectKey)
+            protectKeyConfirm.text?.clear()
+            viewModel.unprotect(key)
+        }
+    }
+
+    private fun protectWithKey(sign: Boolean) {
+        val key = readAndClear(binding.tools.protectKey)
+        val confirmation = readAndClear(binding.tools.protectKeyConfirm)
+        binding.tools.protectKeyLayout.helperText = getString(R.string.protect_key_helper)
+        viewModel.protect(key, confirmation, sign)
+    }
+
+    private fun readAndClear(field: TextInputEditText): CharArray {
+        val editable = field.text
+        val chars = CharArray(editable?.length ?: 0) { editable!![it] }
+        field.text?.clear()
+        return chars
+    }
+
+    private fun renderToolToggles() = with(binding.tools) {
+        listOf(toggleBatchButton to batchGroup, toggleHashButton to hashGroup, toggleProtectButton to protectGroup)
+            .forEach { (toggle, group) ->
+                val expanded = group.id in expandedTools
+                group.visibility = if (expanded) View.VISIBLE else View.GONE
+                toggle.setIconResource(if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
+                ViewCompat.setStateDescription(toggle,
+                    getString(if (expanded) R.string.state_expanded else R.string.state_collapsed))
+            }
+    }
+
+    private fun updateToolSettings() {
+        if (updatingToolControls) return
+        viewModel.updateToolSettings(
+            ToolsPolicy.HASH_ALGORITHMS.getOrElse(binding.tools.hashAlgorithm.selectedItemPosition) { "SHA-256" },
+            ToolsPolicy.HASH_FORMATS.getOrElse(binding.tools.hashFormat.selectedItemPosition) { "hex" },
+            ToolsPolicy.CONTAINERS.getOrElse(binding.tools.protectionContainer.selectedItemPosition) { "cms" },
+            binding.tools.protectForMe.isChecked,
+        )
+    }
+
+    private fun renderTools(state: MainUiState) = with(binding.tools) {
+        toolsHelper.setText(if (state.backend.available && state.toolsAvailable) R.string.tools_helper else R.string.tools_unavailable)
+        val idle = state.canReplaceSelection
+        listOf(toggleBatchButton, toggleHashButton, toggleProtectButton).forEach { it.isEnabled = true }
+        selectBatchButton.isEnabled = state.canUseTools
+        batchSummary.text = if (state.batchDocuments.isEmpty()) getString(R.string.batch_none) else
+            resources.getQuantityString(R.plurals.batch_selected, state.batchDocuments.size, state.batchDocuments.size) +
+                "\n" + state.batchDocuments.joinToString("\n") { it.summaryText() }
+        clearBatchButton.visibility = if (state.batchDocuments.isEmpty()) View.GONE else View.VISIBLE
+        clearBatchButton.isEnabled = idle
+        signBatchButton.isEnabled = state.canSignBatch
+        hashAlgorithm.isEnabled = idle
+        hashFormat.isEnabled = idle
+        createHashButton.isEnabled = state.canHash
+        checkHashButton.isEnabled = state.canHash
+        protectionContainer.isEnabled = idle
+        val transient = state.usesTransientKey
+        protectForMe.visibility = if (transient) View.GONE else View.VISIBLE
+        protectForMe.isEnabled = idle && state.certificate != null && !state.certificateExternal
+        addRecipientButton.visibility = protectForMe.visibility
+        addRecipientButton.isEnabled = idle && state.recipients.size < ToolsPolicy.MAX_RECIPIENTS
+        recipientsSummary.visibility = protectForMe.visibility
+        recipientsSummary.text = if (state.recipients.isEmpty()) getString(R.string.protect_recipients_none) else
+            resources.getQuantityString(R.plurals.protect_recipients_count, state.recipients.size, state.recipients.size) +
+                "\n" + state.recipients.joinToString("\n") { it.displayName }
+        clearRecipientsButton.visibility = if (!transient && state.recipients.isNotEmpty()) View.VISIBLE else View.GONE
+        clearRecipientsButton.isEnabled = idle
+        val encryptedInput = state.document?.displayName?.endsWith(".encrypted.p7m", ignoreCase = true) == true
+        protectKeyLayout.visibility = if (transient || encryptedInput) View.VISIBLE else View.GONE
+        protectKeyConfirmLayout.visibility = if (transient) View.VISIBLE else View.GONE
+        generateKeyButton.visibility = protectKeyConfirmLayout.visibility
+        protectKeyLayout.isEnabled = !state.busy
+        protectKeyConfirmLayout.isEnabled = !state.busy
+        generateKeyButton.isEnabled = idle
+        protectButton.isEnabled = state.canProtect
+        protectSignButton.visibility = if (transient) View.GONE else View.VISIBLE
+        protectSignButton.isEnabled = state.canProtectAndSign
+        unprotectButton.isEnabled = state.canUnprotect
+        binding.discardPendingOutputButton.setText(
+            if (state.pendingKind == PendingKind.SIGNATURE) R.string.discard_pending_output else R.string.discard_pending_tool_output,
+        )
+        updatingToolControls = true
+        hashAlgorithm.setSelection(ToolsPolicy.HASH_ALGORITHMS.indexOf(state.hashAlgorithm).coerceAtLeast(0))
+        hashFormat.setSelection(ToolsPolicy.HASH_FORMATS.indexOf(state.hashFormat).coerceAtLeast(0))
+        protectionContainer.setSelection(ToolsPolicy.CONTAINERS.indexOf(state.protectionContainer).coerceAtLeast(0))
+        protectForMe.isChecked = state.protectForMe
+        updatingToolControls = false
     }
 
     private fun collectViewModel() {
@@ -268,6 +588,9 @@ class MainActivity : AppCompatActivity() {
                     viewModel.effects.collect { effect ->
                         when (effect) {
                             is UiEffect.SaveSignedDocument -> requestSave(effect)
+                            UiEffect.ChooseBatchFolder -> try {
+                                chooseBatchFolder.launch(null)
+                            } catch (_: RuntimeException) { viewModel.reportSavePickerUnavailable() }
                             UiEffect.SaveVerificationReport -> try {
                                 createVerificationReport.launch(getString(R.string.verification_report_filename))
                             } catch (_: RuntimeException) { viewModel.cancelReportExport() }
@@ -282,6 +605,8 @@ class MainActivity : AppCompatActivity() {
         if (lastDocumentUri != state.document?.uri) {
             lastDocumentUri = state.document?.uri
             sealPageInfo = null
+            // Las posiciones por página y el CSV pertenecen al documento anterior.
+            sealSettings = sealSettings.copy(placements = emptyMap(), csvCode = "")
         }
         backendStatusTitle.setText(
             if (state.backend.available) {
@@ -379,6 +704,8 @@ class MainActivity : AppCompatActivity() {
         pendingSaveActions.visibility = if (state.canRetryPendingOutput) View.VISIBLE else View.GONE
         retrySaveButton.isEnabled = state.canRetryPendingOutput
         discardPendingOutputButton.isEnabled = state.canDiscardPendingOutput
+        renderTools(state)
+        renderDocuments(state)
 
         when (val result = state.result) {
             OperationResult.Idle -> {
@@ -463,7 +790,8 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton(R.string.help_close, null)
             .setNeutralButton(R.string.about_release_notes) { _, _ ->
                 MaterialAlertDialogBuilder(this).setTitle(R.string.about_release_notes)
-                    .setMessage(R.string.release_notes_content).setPositiveButton(R.string.help_close, null).show()
+                    .setMessage(getString(R.string.release_notes_wave2b) + "\n\n" + getString(R.string.release_notes_content))
+                    .setPositiveButton(R.string.help_close, null).show()
             }
             .setNegativeButton(R.string.open_help) { _, _ -> showHelp() }
             .show()
@@ -473,12 +801,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun selectedSignatureFormat(): String = when (binding.signatureFormat.selectedItemPosition) {
-        1 -> "pades"
-        2 -> "cades"
-        3 -> "xades"
-        else -> "auto"
-    }
+    private fun selectedSignatureFormat(): String =
+        formatMenu.getOrElse(binding.signatureFormat.selectedItemPosition) { "auto" }
 
     private fun isPdf(file: SelectedFile): Boolean =
         file.mimeType.equals("application/pdf", ignoreCase = true) || file.displayName.endsWith(".pdf", ignoreCase = true)
@@ -775,7 +1099,8 @@ class MainActivity : AppCompatActivity() {
     private fun showHelp() {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.help_title)
-            .setMessage(R.string.help_content)
+            .setMessage(getString(R.string.help_content) + "\n\n" + getString(R.string.help_tools_content) +
+                "\n\n" + getString(R.string.help_documents_content))
             .setPositiveButton(R.string.help_close, null)
             .show()
     }

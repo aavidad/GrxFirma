@@ -24,7 +24,5 @@ object SigningOptions {
     }
 
     fun supported(format: String, action: String, profile: String): Boolean =
-        format in listOf("cades", "pades", "xades") && action in listOf("sign", "cosign", "countersign") &&
-            profile in listOf("baseline", "t", "lt", "lta") && !(format == "pades" && (action == "countersign" || profile == "lta")) &&
-            !(format == "xades" && profile in listOf("lt", "lta"))
+        FormatPolicy.supported(format, action, profile)
 }

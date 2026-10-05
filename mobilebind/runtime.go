@@ -116,6 +116,7 @@ func newPlatformFacade(platform string, includeAndroidIntent bool, temporaryDire
 
 	facade := newFacade(signUseCase, verifyUseCase, selectUseCase)
 	facade.importService = importUseCase
+	facade.batchService = application.NuevoProcessBatchUseCase(store, store, signEngine, approval, nil, nil)
 	facade.profileService = profileUseCase
 	facade.session = store
 	facade.temporaryDirectory = temporaryDirectory
@@ -269,6 +270,19 @@ type mobileContract struct {
 	Signing         mobileSigningContract  `json:"signing"`
 	Verification    mobileVerifyContract   `json:"verification"`
 	Limits          mobileLimitsContract   `json:"limits"`
+	Protection      mobileProtectContract  `json:"protection"`
+	Hash            mobileHashContract     `json:"hash"`
+}
+
+type mobileProtectContract struct {
+	Containers    []string `json:"containers"`
+	MaxRecipients int      `json:"max_recipients"`
+	Decryption    []string `json:"decryption"`
+}
+
+type mobileHashContract struct {
+	Algorithms []string `json:"algorithms"`
+	Formats    []string `json:"formats"`
 }
 
 type mobileIdentityContract struct {
@@ -284,6 +298,7 @@ type mobileVerifyContract struct {
 }
 
 type mobileSigningContract struct {
+	Formats          []string            `json:"formats"`
 	ProfilesByFormat map[string][]string `json:"profiles_by_format"`
 	ActionsByFormat  map[string][]string `json:"actions_by_format"`
 	TSAURLSchemes    []string            `json:"tsa_url_schemes"`
@@ -296,6 +311,8 @@ type mobileLimitsContract struct {
 	SignedOutputBytes int `json:"signed_output_bytes"`
 	CertificateBytes  int `json:"certificate_bytes"`
 	PasswordBytes     int `json:"password_bytes"`
+	BatchItems        int `json:"batch_items"`
+	BatchInputBytes   int `json:"batch_input_bytes"`
 }
 
 func buildMobileContract(platform string, androidIntent bool) (string, error) {
@@ -314,7 +331,15 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			"platform_profile":   true,
 			"clear_session":      true,
 			"android_intent":     androidIntent,
-			"process_batch":      false,
+			"process_batch":      true,
+			"hash":               true,
+			"protect":            true,
+			"unprotect":          true,
+			"protect_sign":       true,
+			"verifactu_validate": true,
+			"eni_document":       true,
+			"eni_validate":       true,
+			"csv_legend":         true,
 			"remote_exchange":    false,
 		},
 		IdentityStore: mobileIdentityContract{
@@ -325,14 +350,11 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 		Approval: "native_ui_explicit_action",
 		Signing: mobileSigningContract{
 			Actions:          []string{"sign", "cosign", "countersign"},
-			ProfilesByFormat: map[string][]string{"CAdES": {"baseline", "t", "lt", "lta"}, "PAdES": {"baseline", "t", "lt"}, "XAdES": {"baseline", "t"}},
-			ActionsByFormat:  map[string][]string{"CAdES": {"sign", "cosign", "countersign"}, "PAdES": {"sign", "cosign"}, "XAdES": {"sign", "cosign", "countersign"}},
+			Formats:          append([]string(nil), mobileFormatOrder...),
+			ProfilesByFormat: contractProfilesByFormat(),
+			ActionsByFormat:  contractActionsByFormat(),
 			TSAURLSchemes:    []string{"http", "https"},
-			KeyTypesByFormat: map[string][]string{
-				"CAdES": {"RSA", "ECDSA"},
-				"PAdES": {"RSA", "ECDSA"},
-				"XAdES": {"RSA"},
-			},
+			KeyTypesByFormat: contractKeyTypesByFormat(),
 		},
 		Verification: mobileVerifyContract{
 			CryptographicIntegrity: true,
@@ -344,6 +366,17 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			SignedOutputBytes: maxSignedDocumentBytes,
 			CertificateBytes:  maxCertificateBytes,
 			PasswordBytes:     maxPasswordBytes,
+			BatchItems:        maxBatchItems,
+			BatchInputBytes:   maxBatchInputBytes,
+		},
+		Protection: mobileProtectContract{
+			Containers:    []string{"cms", "authenvelopeddata", "cms-encrypted", "signedandenvelopeddata"},
+			MaxRecipients: maxProtectionRecipients,
+			Decryption:    []string{"session_pkcs12_rsa", "transient_aes256_key"},
+		},
+		Hash: mobileHashContract{
+			Algorithms: []string{"SHA-256", "SHA-1", "SHA-384", "SHA-512"},
+			Formats:    []string{"hex", "base64", "bin"},
 		},
 	}
 	raw, err := json.Marshal(contract)

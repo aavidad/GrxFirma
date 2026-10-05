@@ -10,6 +10,16 @@ import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SignedOutput
 import es.dipgra.grxfirma.android.model.VerificationSummary
 import es.dipgra.grxfirma.android.model.SignatureInspection
+import es.dipgra.grxfirma.android.model.BatchItemResult
+import es.dipgra.grxfirma.android.model.HashCheck
+import es.dipgra.grxfirma.android.model.HashOutput
+import es.dipgra.grxfirma.android.model.ProtectionRequest
+import es.dipgra.grxfirma.android.model.CsvLegend
+import es.dipgra.grxfirma.android.model.EniCatalogs
+import es.dipgra.grxfirma.android.model.EniDocument
+import es.dipgra.grxfirma.android.model.EniRequest
+import es.dipgra.grxfirma.android.model.EniValidation
+import es.dipgra.grxfirma.android.model.VeriFactuReport
 
 data class CoreReadiness(
     val available: Boolean,
@@ -43,7 +53,72 @@ interface CoreBridge {
     }
 
     fun clearSession()
+
+    /** Huellas, protección y lote solo se ofrecen si el AAR los declara. */
+    val toolsAvailable: Boolean get() = false
+
+    fun createHash(document: LoadedFile, algorithm: String, format: String): HashOutput = toolsUnavailable()
+
+    fun checkHash(document: LoadedFile, hashFile: LoadedFile): HashCheck = toolsUnavailable()
+
+    /** [secret] es la clave de EncryptedData en Base64; se borra siempre. */
+    fun protect(document: LoadedFile, request: ProtectionRequest, secret: CharArray?): SignedOutput {
+        secret?.fill('\u0000')
+        toolsUnavailable()
+    }
+
+    /** [secret] es la clave de EncryptedData en Base64; se borra siempre. */
+    fun unprotect(document: LoadedFile, secret: CharArray?): SignedOutput {
+        secret?.fill('\u0000')
+        toolsUnavailable()
+    }
+
+    fun signBatch(
+        documents: List<LoadedFile>,
+        format: String,
+        certificateId: String,
+        options: Map<String, String>,
+    ): List<BatchItemResult> = toolsUnavailable()
+
+    /** Formatos de firma que declara el AAR; uno antiguo solo trae los tres básicos. */
+    val signingFormats: List<String> get() = SignatureFormats.BASIC
+
+    /** Servicios de documentos opcionales que el AAR declara y enlaza. */
+    val documentServices: Set<String> get() = emptySet()
+
+    fun validateVeriFactu(records: List<LoadedFile>): VeriFactuReport = toolsUnavailable()
+
+    fun createEniDocument(signature: LoadedFile, original: LoadedFile?, request: EniRequest): EniDocument =
+        toolsUnavailable()
+
+    fun validateEni(document: LoadedFile): EniValidation = toolsUnavailable()
+
+    /** Sin el método del AAR se usan los códigos NTI conocidos por la app. */
+    fun eniCatalogs(): EniCatalogs = SignatureFormats.DEFAULT_ENI_CATALOGS
+
+    fun csvLegend(code: String, url: String, text: String): CsvLegend = toolsUnavailable()
 }
+
+/** Nombres de servicio del contrato para las herramientas de documentos. */
+object DocumentServices {
+    const val VERIFACTU = "verifactu_validate"
+    const val ENI_DOCUMENT = "eni_document"
+    const val ENI_VALIDATE = "eni_validate"
+    const val CSV_LEGEND = "csv_legend"
+    val ALL = listOf(VERIFACTU, ENI_DOCUMENT, ENI_VALIDATE, CSV_LEGEND)
+}
+
+object SignatureFormats {
+    val BASIC = listOf("cades", "pades", "xades")
+    val ALL = listOf("cades", "pades", "xades", "xmldsig", "odf", "ooxml", "facturae", "asic-xades", "verifactu")
+    val DEFAULT_ENI_CATALOGS = EniCatalogs(
+        documentStates = listOf("EE01", "EE02", "EE03", "EE04", "EE99"),
+        documentTypes = (1..20).map { "TD" + it.toString().padStart(2, '0') } + "TD99",
+        fileStates = listOf("E01", "E02", "E03"),
+    )
+}
+
+private fun toolsUnavailable(): Nothing = throw CoreUnavailableException("TOOLS_UNAVAILABLE")
 
 interface ExternalIdentityBridge {
     fun installExternalIdentity(certificate: ByteArray, chain: List<ByteArray>, signDigest: (ByteArray, String) -> ByteArray): CertificateSummary

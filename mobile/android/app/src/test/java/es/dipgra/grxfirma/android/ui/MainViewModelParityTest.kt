@@ -61,4 +61,45 @@ class MainViewModelParityTest {
         assertFalse(exporting.canDiscardPendingOutput)
         assertFalse(report.toUiText().accredited())
     }
+
+    @Test fun `tools stay disabled without a production core and erase rejected secrets`() {
+        val vm = model()
+        assertFalse(vm.state.value.toolsAvailable)
+        assertFalse(vm.state.value.canUseTools)
+        val key = "AAAA".toCharArray()
+        val confirmation = "AAAA".toCharArray()
+        vm.protect(key, confirmation, sign = false)
+        assertArrayEquals(CharArray(4), key)
+        assertArrayEquals(CharArray(4), confirmation)
+        assertEquals(OperationResult.Error(UiText.Resource(R.string.error_document_required)), vm.state.value.result)
+        val other = "BBBB".toCharArray()
+        vm.unprotect(other)
+        assertArrayEquals(CharArray(4), other)
+        vm.signBatch("auto")
+        assertEquals(OperationResult.Error(UiText.Resource(R.string.error_batch_required)), vm.state.value.result)
+        vm.createHash()
+        assertEquals(OperationResult.Error(UiText.Resource(R.string.error_document_required)), vm.state.value.result)
+    }
+
+    @Test fun `tool settings are validated and kept in state`() {
+        val vm = model()
+        vm.updateToolSettings("SHA-512", "bin", "cms-encrypted", false)
+        val state = vm.state.value
+        assertEquals("SHA-512", state.hashAlgorithm)
+        assertEquals("bin", state.hashFormat)
+        assertTrue(state.usesTransientKey)
+        assertFalse(state.protectForMe)
+        assertThrows(IllegalArgumentException::class.java) { vm.updateToolSettings("MD5", "hex", "cms", true) }
+        assertThrows(IllegalArgumentException::class.java) { vm.updateToolSettings("SHA-256", "hex", "compressed", true) }
+    }
+
+    @Test fun `protect and sign and batch exclude the DNIe and EncryptedData`() {
+        val certificate = es.dipgra.grxfirma.android.model.CertificateSummary("id", "Persona", "CA", "ff")
+        val ready = MainUiState(CoreReadiness(true, "ready", ""), certificate = certificate, toolsAvailable = true)
+        assertTrue(ready.canUseTools)
+        assertFalse(ready.canSignBatch) // sin ficheros
+        assertFalse(ready.copy(certificateExternal = true).canProtectAndSign)
+        assertFalse(ready.copy(protectionContainer = "cms-encrypted").canProtectAndSign)
+        assertFalse(ready.copy(awaitingSave = true, pendingKind = PendingKind.TOOL).canUseTools)
+    }
 }

@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<!-- Huellas, protección CMS y firma por lotes. Se incluye en activity_main. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/toolsSectionTitle"
+        style="@style/TextAppearance.Material3.TitleLarge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/section_spacing"
+        android:text="@string/tools_section"
+        android:textColor="@color/on_surface"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/toolsHelper"
+        style="@style/TextAppearance.Material3.BodyMedium"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/tools_helper"
+        android:textColor="@color/on_surface" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/toggleBatchButton"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="start|center_vertical"
+        android:minHeight="48dp"
+        android:text="@string/batch_title"
+        app:icon="@drawable/ic_expand_more"
+        app:iconGravity="end" />
+
+    <LinearLayout
+        android:id="@+id/batchGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="0dp"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/batch_helper"
+            android:textColor="@color/on_surface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/selectBatchButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:minHeight="48dp"
+            android:text="@string/batch_select" />
+
+        <TextView
+            android:id="@+id/batchSummary"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/batch_none"
+            android:textColor="@color/on_surface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/clearBatchButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:minHeight="48dp"
+            android:text="@string/batch_clear"
+            android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/signBatchButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/batch_sign" />
+
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/toggleHashButton"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="start|center_vertical"
+        android:minHeight="48dp"
+        android:text="@string/hash_title"
+        app:icon="@drawable/ic_expand_more"
+        app:iconGravity="end" />
+
+    <LinearLayout
+        android:id="@+id/hashGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="0dp"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/hash_helper"
+            android:textColor="@color/on_surface" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.LabelLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:labelFor="@id/hashAlgorithm"
+            android:text="@string/hash_algorithm"
+            android:textColor="@color/on_surface" />
+
+        <Spinner
+            android:id="@+id/hashAlgorithm"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:entries="@array/hash_algorithms"
+            android:spinnerMode="dropdown" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.LabelLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:labelFor="@id/hashFormat"
+            android:text="@string/hash_format"
+            android:textColor="@color/on_surface" />
+
+        <Spinner
+            android:id="@+id/hashFormat"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:entries="@array/hash_formats"
+            android:spinnerMode="dropdown" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/createHashButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:minHeight="48dp"
+            android:text="@string/hash_create" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/checkHashButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/hash_check" />
+
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/toggleProtectButton"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="start|center_vertical"
+        android:minHeight="48dp"
+        android:text="@string/protect_title"
+        app:icon="@drawable/ic_expand_more"
+        app:iconGravity="end" />
+
+    <LinearLayout
+        android:id="@+id/protectGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="0dp"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/protect_helper"
+            android:textColor="@color/on_surface" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.LabelLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:labelFor="@id/protectionContainer"
+            android:text="@string/protect_container"
+            android:textColor="@color/on_surface" />
+
+        <Spinner
+            android:id="@+id/protectionContainer"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:entries="@array/protect_containers"
+            android:spinnerMode="dropdown" />
+
+        <CheckBox
+            android:id="@+id/protectForMe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/protect_for_me" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/addRecipientButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/protect_add_recipient" />
+
+        <TextView
+            android:id="@+id/recipientsSummary"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/protect_recipients_none"
+            android:textColor="@color/on_surface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/clearRecipientsButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:minHeight="48dp"
+            android:text="@string/protect_clear_recipients"
+            android:visibility="gone" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/protectKeyLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:hint="@string/protect_key"
+            app:endIconMode="password_toggle"
+            app:helperText="@string/protect_key_helper">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/protectKey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="noExcludeDescendants"
+                android:inputType="textPassword|textNoSuggestions"
+                android:maxLength="44"
+                android:minHeight="48dp"
+                android:saveEnabled="false"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/protectKeyConfirmLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:hint="@string/protect_key_confirm"
+            app:endIconMode="password_toggle">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/protectKeyConfirm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="noExcludeDescendants"
+                android:inputType="textPassword|textNoSuggestions"
+                android:maxLength="44"
+                android:minHeight="48dp"
+                android:saveEnabled="false"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/generateKeyButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:minHeight="48dp"
+            android:text="@string/protect_generate_key" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/protectButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:minHeight="48dp"
+            android:text="@string/protect_button" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/protectSignButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/protect_sign_button" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:text="@string/unprotect_helper"
+            android:textColor="@color/on_surface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/unprotectButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/unprotect_button" />
+
+    </LinearLayout>
+</LinearLayout>

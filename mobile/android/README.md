@@ -222,7 +222,7 @@ El flujo local es real: importacion PKCS#12, catalogo y seleccion de la
 identidad de sesion, firma CAdES/PAdES (RSA o ECDSA), XAdES (RSA), verificacion
 y guardado SAF. Al verificar una firma separada CAdES, la interfaz permite
 seleccionar el documento original opcional que exige el verificador. No se
-habilitan flujos remotos, lotes, biometria ni persistencia de la clave. Solo se
+habilitan flujos remotos, biometria ni persistencia de la clave. Solo se
 conserva una identidad en memoria. La acción visible `Olvidar certificado`,
 descartar el resultado sin guardarlo y el cierre del modelo de pantalla llaman
 a `clearSession()`; terminar el proceso también elimina el estado por diseño.
@@ -315,6 +315,76 @@ muestran literalmente; el JSON exportado conserva el informe del motor.
 avidad@dipgra.es, ayuda y las novedades locales de esta oleada. Para producción
 hay que reconstruir el AAR v2 y fijar su nuevo SHA-256; no se ha generado ni
 publicado un APK con estos cambios.
+
+## Segunda oleada (parte A): lote, huellas y protección
+
+La sección plegable «Más herramientas» añade tres grupos:
+
+- **Firmar varios ficheros**: `ACTION_OPEN_DOCUMENT` con
+  `EXTRA_ALLOW_MULTIPLE` (hasta 16 ficheros y 32 MiB en total). Se firman con
+  `processBatchJSON`, una sola aprobación y el formato, perfil y TSA elegidos;
+  sin sello visible y siempre con la operación «firma». El resultado se muestra
+  por fichero y las firmas se guardan en una carpeta elegida con
+  `ACTION_OPEN_DOCUMENT_TREE`, sin persistir el permiso. Si alguna no se puede
+  guardar, sigue en memoria para elegir otra carpeta. El DNIe pide PIN en cada
+  firma y no se ofrece para el lote.
+- **Huella de un fichero**: SHA-256, SHA-1, SHA-384 o SHA-512 en hexadecimal
+  (`.hexhash`), Base64 (`.hashb64`) o binario (`.hash`), con el mismo contenido
+  que guarda el escritorio. La comprobación lee el fichero de huella (máximo
+  4 KiB) y deduce formato y algoritmo como el escritorio.
+- **Proteger o desproteger**: CMS EnvelopedData, AuthEnvelopedData o
+  EncryptedData. Los destinatarios son certificados públicos elegidos con SAF
+  (máximo 16, 64 KiB cada uno) y, si se marca, el certificado de la sesión;
+  Android no guarda libreta de destinatarios. EncryptedData usa una clave
+  AES-256 en Base64 canónico que se escribe dos veces o se genera con
+  `SecureRandom`; viaja como `CharArray`/`byte[]` y se borra tras usarse.
+  «Proteger y firmar» crea SignedAndEnvelopedData con el PKCS#12 de la sesión.
+  Desproteger usa la clave RSA del PKCS#12 importado o la clave de
+  EncryptedData; el DNIe no expone descifrado.
+
+Descartar un resultado de estas herramientas no olvida el certificado de la
+sesión; descartar una firma sí, como antes. Los campos de clave excluyen
+autocompletado y no guardan estado.
+
+Pendiente: sello visible y cofirma en el lote, DNIe en lote y en proteger y
+firmar, perfil alto (ML-KEM) y libreta persistente de destinatarios, huellas de
+carpetas completas y abrir SignedAndEnvelopedData de firmantes cuya cadena no
+alcance las anclas del sistema.
+
+## Segunda oleada (parte B): formatos, Veri*Factu, ENI y leyenda CSV
+
+- **Formatos de escritorio**: el desplegable añade XMLdSig, ODF, OOXML,
+  FacturaE, ASiC-XAdES y «Registro Veri*Factu» cuando el AAR los declara en
+  `signing.formats`. Firman con el motor de escritorio, solo con RSA y solo en
+  perfil B (sin TSA). XMLdSig, ODF y OOXML admiten cofirma. «Automático» sigue
+  las reglas de escritorio por extensión y añade el MIME de SAF y la raíz
+  `Facturae` del XML. Veri*Factu se elige a mano, como en escritorio, y no se
+  firma en lote.
+- **Leyenda CSV y sello por página**: el editor del sello permite poner el
+  sello en varias páginas, cada una con su posición y giro, y estampar la
+  leyenda CSV (código, URL HTTPS de cotejo con `{csv}`, texto opcional y QR).
+  `csvLegendJSON` valida el código y normaliza la URL con el IDN del motor
+  antes de aceptar el editor. El código CSV no se guarda en preferencias y se
+  olvida al cambiar de documento.
+- **Veri*Factu y ENI**: sección plegable nueva. La comprobación de registros
+  admite hasta 64 XML (10 MiB cada uno, 32 MiB en total) y muestra, por
+  registro, la huella calculada y cada incidencia con la clave del motor. No
+  consulta a la AEAT. El documento ENI se crea con la firma elegida como
+  documento (y el original si la firma es separada), órganos DIR3, origen,
+  estado de elaboración y tipo documental en desplegables con los códigos NTI
+  de `eniCatalogsJSON`, y fecha de captura con `MaterialDatePicker` (sin
+  fechas futuras). Se guarda por SAF como resultado de herramienta. La
+  comprobación de un ENI revisa la estructura, no las firmas.
+
+Las claves `verifactu.*`, `eni.validacion.*`, `eni.codigo.*` y `csv.error.*`
+se traducen con los catálogos empaquetados en `assets/locales`, generados por
+clave desde los de escritorio.
+
+Pendiente: expediente ENI (carpeta de documentos con índice firmado),
+exportar el informe Veri*Factu a un fichero, leer el QR tributario y la
+consulta a la AEAT, perfiles T para los formatos nuevos y sello visible en el
+lote. La revisión de usabilidad independiente y la prueba en dispositivo de
+esta parte siguen pendientes.
 
 Comprobaciones locales adicionales:
 

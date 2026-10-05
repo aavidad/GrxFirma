@@ -28,6 +28,9 @@ class SealCanvasView(context: Context) : View(context) {
     var settings: SealSettings = SealSettings(enabled = true)
         set(value) { field = value; contentDescription = context.getString(R.string.seal_canvas_description, value.rotation); invalidate() }
     var onEdited: ((SealSettings) -> Unit)? = null
+    /** En «varias páginas», false indica que esta página aún no lleva sello. */
+    var sealOnPage: Boolean = true
+        set(value) { field = value; invalidate() }
 
     private val border = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF005A46.toInt(); style = Paint.Style.STROKE; strokeWidth = 3f * resources.displayMetrics.density }
     private val handle = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF005A46.toInt(); style = Paint.Style.FILL }
@@ -74,7 +77,7 @@ class SealCanvasView(context: Context) : View(context) {
         val right = left + r.w * width
         val bottom = top + r.h * height
         canvas.withRotation(settings.rotation.toFloat(), (left + right) / 2f, (top + bottom) / 2f) {
-            val seal = sealBitmap
+            val seal = sealBitmap?.takeIf { sealOnPage }
             if (seal != null) {
                 sealDst.set(left, top, right, bottom)
                 drawBitmap(seal, null, sealDst, null)

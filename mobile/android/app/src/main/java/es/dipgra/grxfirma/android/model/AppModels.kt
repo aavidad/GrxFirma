@@ -55,3 +55,78 @@ data class VerificationSummary(
 data class SignerSummary(val id: String, val subject: String, val issuer: String, val fingerprint: String)
 
 data class SignatureInspection(val hasSignature: Boolean, val format: String = "")
+
+data class HashOutput(
+    val algorithm: String,
+    val format: String,
+    val hash: String,
+    val bytes: ByteArray,
+    val extension: String,
+)
+
+data class HashCheck(
+    val valid: Boolean,
+    val algorithm: String,
+    val expected: String,
+    val actual: String,
+)
+
+/** Contenedores CMS del escritorio que Android ofrece. */
+data class ProtectionRequest(
+    val container: String,
+    val recipients: List<ByteArray> = emptyList(),
+    val includeSessionCertificate: Boolean = false,
+    val sign: Boolean = false,
+    val certificateId: String = "",
+)
+
+data class BatchItemResult(
+    val sourceName: String,
+    val output: SignedOutput?,
+)
+
+/** Incidencia con clave de localización cerrada del motor (verifactu.*, eni.*). */
+data class EngineIssue(val field: String, val key: String, val level: String)
+
+data class VeriFactuRecord(
+    val file: String,
+    val type: String,
+    val hash: String,
+    val calculatedHash: String,
+    val previousHash: String,
+    val signed: Boolean,
+    val valid: Boolean,
+    val issues: List<EngineIssue>,
+)
+
+data class VeriFactuReport(
+    val valid: Boolean,
+    val errors: Int,
+    val warnings: Int,
+    val records: List<VeriFactuRecord>,
+)
+
+/** Códigos oficiales de la NTI que ofrece el motor. */
+data class EniCatalogs(
+    val documentStates: List<String>,
+    val documentTypes: List<String>,
+    val fileStates: List<String>,
+)
+
+/** Metadatos obligatorios del documento ENI; la fecha va en RFC 3339. */
+data class EniRequest(
+    val organs: List<String>,
+    val origin: String,
+    val state: String,
+    val documentType: String,
+    val identifier: String = "",
+    val sourceIdentifier: String = "",
+    val captureDate: String = "",
+    val contentFormat: String = "",
+)
+
+data class EniDocument(val bytes: ByteArray, val signatureType: String)
+
+data class EniValidation(val valid: Boolean, val issues: List<EngineIssue>)
+
+data class CsvLegend(val url: String, val text: String)

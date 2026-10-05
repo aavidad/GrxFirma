@@ -8,6 +8,7 @@ package es.dipgra.grxfirma.android.files
 import android.content.ContentResolver
 import android.database.Cursor
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SelectedFile
@@ -17,6 +18,19 @@ interface DocumentRepository {
     fun loadDocument(file: SelectedFile): LoadedFile
     fun loadCertificate(file: SelectedFile): LoadedFile
     fun write(uri: Uri, bytes: ByteArray)
+
+    /** Lee un fichero con un límite propio (registros Veri*Factu, firmas para ENI). */
+    fun loadBounded(file: SelectedFile, maximumBytes: Int): LoadedFile = loadDocument(file).also {
+        if (it.bytes.size > maximumBytes) {
+            it.bytes.fill(0)
+            throw InvalidDocumentException("El documento supera el tamaño permitido.")
+        }
+    }
+
+    /** Crea un documento nuevo dentro de una carpeta elegida con SAF. */
+    fun writeToTree(folder: Uri, displayName: String, mimeType: String, bytes: ByteArray) {
+        throw InvalidDocumentException("Este repositorio no admite carpetas.")
+    }
 }
 
 open class ContentRepository(private val resolver: ContentResolver) : DocumentRepository {
@@ -53,6 +67,9 @@ open class ContentRepository(private val resolver: ContentResolver) : DocumentRe
         label = "El documento",
     )
 
+    override fun loadBounded(file: SelectedFile, maximumBytes: Int): LoadedFile =
+        load(file = file, maximumBytes = maximumBytes, label = "El documento")
+
     override fun loadCertificate(file: SelectedFile): LoadedFile = load(
         file = file,
         maximumBytes = DocumentPolicy.MAX_CERTIFICATE_BYTES,
@@ -67,6 +84,20 @@ open class ContentRepository(private val resolver: ContentResolver) : DocumentRe
             output.write(bytes)
             output.flush()
         } ?: throw InvalidDocumentException("Android no ha permitido abrir el destino seleccionado.")
+    }
+
+    override fun writeToTree(folder: Uri, displayName: String, mimeType: String, bytes: ByteArray) {
+        require(folder.scheme == ContentResolver.SCHEME_CONTENT) {
+            "La carpeta debe ser una URI content:// de Android."
+        }
+        val parent = DocumentsContract.buildDocumentUriUsingTree(folder, DocumentsContract.getTreeDocumentId(folder))
+        val created = DocumentsContract.createDocument(
+            resolver,
+            parent,
+            sanitizeMimeType(mimeType, "application/octet-stream"),
+            DocumentPolicy.sanitizeDisplayName(displayName, "documento"),
+        ) ?: throw InvalidDocumentException("Android no ha permitido crear el fichero en la carpeta elegida.")
+        write(created, bytes)
     }
 
     private fun load(file: SelectedFile, maximumBytes: Int, label: String): LoadedFile {

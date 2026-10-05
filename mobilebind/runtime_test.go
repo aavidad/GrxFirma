@@ -287,7 +287,7 @@ func TestFacadeRejectsUndeclaredSigningModes(t *testing.T) {
 	}
 
 	undeclaredFormat := baseRequest
-	undeclaredFormat.Format = "xmldsig"
+	undeclaredFormat.Format = "pkcs1"
 	if _, err := facade.SignJSON(mustJSON(t, undeclaredFormat)); err == nil {
 		t.Fatal("SignJSON() debe rechazar formatos no declarados en el contrato")
 	}

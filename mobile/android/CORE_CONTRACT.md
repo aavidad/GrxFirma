@@ -39,6 +39,16 @@ signJSON(String) -> String
 sealPreviewJSON(String) -> String
 verifyJSON(String) -> String
 inspectSignatureJSON(String) -> String
+processBatchJSON(String) -> String
+createHashJSON(String) -> String
+checkHashJSON(String) -> String
+protectJSON(String, byte[]) -> String
+unprotectJSON(String, byte[]) -> String
+validateVeriFactuJSON(String) -> String
+createENIDocumentJSON(String) -> String
+validateENIJSON(String) -> String
+eniCatalogsJSON() -> String
+csvLegendJSON(String) -> String
 ```
 
 Android usa `importCertificateSecretBytesJSON`: PKCS#12 y contraseña UTF-8
@@ -182,3 +192,97 @@ El informe permanece separado del resultado de firma y del guardado. Una
 verificación que falla no impide guardar la firma ni se presenta como éxito.
 `verifyJSON` conserva firmantes, resúmenes, dictamen, cobertura, evidencias,
 advertencias y errores; el JSON se puede exportar mediante SAF.
+
+## Herramientas: huellas, protección y lote
+
+`createHashJSON` recibe `content_base64`, `algorithm` (SHA-256, SHA-1,
+SHA-384 o SHA-512) y `format` (`hex`, `base64` o `bin`). Devuelve `hash`,
+`output_base64` y `extension`. El contenido del fichero es el mismo que guarda
+el escritorio: hexadecimal en minúsculas terminado en `h` (`.hexhash`), Base64
+(`.hashb64`) o los bytes del resumen (`.hash`). `checkHashJSON` recibe el
+documento, `hash_file_base64` (máximo 4 KiB) y `hash_file_name`; deduce formato
+y algoritmo como el escritorio y devuelve `valid`, `expected_hash` y
+`actual_hash`.
+
+`protectJSON(payload, secret)` usa los contenedores CMS del escritorio:
+`cms` (EnvelopedData, `.enveloped`), `authenvelopeddata`
+(`.authenveloped.p7m`) y `cms-encrypted` (EncryptedData, `.encrypted.p7m`).
+Los destinatarios llegan en `recipients[].certificate_base64` (X.509 público
+DER o PEM, máximo 16) y, con `include_session_certificate`, el certificado de
+la sesión. Se aplican las mismas reglas que al importar un destinatario en
+escritorio: RSA de 2048 bits o más, vigente, no CA y con cifrado de clave.
+Android no guarda libreta de destinatarios. Para EncryptedData, `secret` es la
+clave AES-256 en Base64 canónico (44 bytes ASCII); el núcleo borra el buffer al
+volver. Con `sign: true` crea SignedAndEnvelopedData firmado con la identidad
+PKCS#12 de la sesión; el DNIe no se admite en esta operación.
+
+`unprotectJSON(payload, secret)` detecta el contenedor por su contenido y usa la
+clave RSA de la identidad PKCS#12 importada o la clave transitoria. El DNIe no
+expone descifrado. Los fallos se devuelven con un mensaje cerrado que no
+distingue entre clave errónea y destinatario ajeno.
+
+`processBatchJSON` firma hasta 16 documentos (32 MiB en total) con una única
+aprobación y la identidad de la sesión. Cada documento pasa las mismas
+validaciones que `signJSON` (nombre, MIME, acción, perfil y TSA). La respuesta
+trae `items[]` en el orden de entrada, cada uno con `ok` y la firma o un error
+propio. No admite `session`: `remote_exchange` sigue en `false`. El DNIe exige
+PIN por firma, así que Android no le ofrece el lote.
+
+El contrato declara `process_batch`, `hash`, `protect`, `unprotect` y
+`protect_sign`, además de `limits.batch_items`, `limits.batch_input_bytes`,
+`protection` y `hash`.
+
+## Formatos de escritorio, Veri*Factu, ENI y leyenda CSV
+
+`signJSON` admite además `xmldsig`, `odf`, `ooxml`, `facturae`, `asic-xades`
+y `verifactu`, con el motor de firma del escritorio. Con `format` vacío o
+`auto` la fachada aplica las reglas de escritorio por extensión (PDF, OOXML,
+ODF, `.asics`, `.dsig`/`.xmlsig`, XML) y las completa con el MIME de SAF y,
+para XML, con el primer elemento del contenido: un XML cuya raíz es
+`Facturae` se firma como FacturaE. Veri*Factu nunca se elige solo.
+
+| Formato | Acciones | Perfiles | Claves |
+| --- | --- | --- | --- |
+| XMLdSig | sign, cosign | baseline | RSA |
+| ODF | sign, cosign | baseline | RSA |
+| OOXML | sign, cosign | baseline | RSA |
+| FacturaE | sign | baseline | RSA |
+| ASiC-XAdES | sign | baseline | RSA |
+| VeriFactu | sign | baseline | RSA |
+
+Estos formatos no reciben TSA. Con una identidad ECDSA, `signJSON` responde
+con el mensaje cerrado «El formato elegido solo admite certificados con clave
+RSA.». Si el XML no es un registro Veri*Factu responde `verifactu.root`; los
+demás rechazos del motor Veri*Factu llegan como su clave `verifactu.*`. El
+lote admite los mismos formatos salvo Veri*Factu.
+
+`validateVeriFactuJSON` recibe `files[]` (`name`, `content_base64`), hasta 64
+registros de 10 MiB y 32 MiB en total, y devuelve `valid`, `errors`,
+`warnings` y `records[]` con `file`, `type`, `hash`, `calculated_hash`,
+`previous_hash`, `signed`, `valid` e `issues[]` (`field`, `key`, `level`).
+Las claves son las del catálogo de escritorio (`verifactu.*`); Android las
+traduce. No consulta a la AEAT ni usa la red.
+
+`createENIDocumentJSON` recibe `signature_base64`, `original_base64`
+(obligatorio para CAdES explícita), `organs[]` (DIR3), `origin`
+(`ciudadano` o `administracion`), `state` (EE01-EE04, EE99),
+`document_type` (TD01-TD20, TD99), `identifier`, `source_identifier`,
+`capture_date` (RFC 3339) y `content_format`. Devuelve `content_base64` y
+`signature_type` (TF02-TF06). Los errores son claves cerradas:
+`eni.validacion.*` del motor y `eni.error.unsigned_pdf`,
+`eni.error.explicit_cades`, `eni.error.unrecognized`,
+`eni.error.content_format` y `eni.error.origin`. `validateENIJSON` devuelve
+`valid` e `issues[]` con claves `eni.validacion.*`; no verifica las firmas.
+`eniCatalogsJSON` devuelve `document_states`, `document_types` y
+`file_states`. El expediente ENI (carpeta de documentos con índice firmado)
+no está en Android.
+
+`csvLegendJSON` recibe `csv`, `csv_url` y `csv_text` y devuelve `url`
+(normalizada por el motor, con el dominio IDN en ASCII) y `text`. Los errores
+son `csv.error.code_missing`, `code_invalid`, `url_missing`, `url_invalid` y
+`text_invalid`. La firma PAdES recibe la leyenda con las opciones `csv`,
+`csvUrl`, `csvText` y `csvQR`.
+
+El contrato declara `signing.formats` y los servicios `verifactu_validate`,
+`eni_document`, `eni_validate` y `csv_legend`. Android enlaza estos métodos
+como opcionales: con un AAR anterior oculta lo que no esté declarado.
