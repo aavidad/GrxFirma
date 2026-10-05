@@ -89,6 +89,7 @@ public:
   Q_INVOKABLE void validateInvoice(const QString &inputPath);
   Q_INVOKABLE void validateVeriFactu(const QString &inputPath);
   Q_INVOKABLE void readVeriFactuQR(const QString &url);
+  Q_INVOKABLE void readVeriFactuQRFile(const QString &inputPath);
   Q_INVOKABLE void queryVeriFactuQR(const QString &url);
   Q_INVOKABLE void detectVeriFactu(const QString &inputPath);
   Q_INVOKABLE void generateENIDocument(const QVariantMap &params);
