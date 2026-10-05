@@ -421,6 +421,7 @@ Window {
             return tr("Configuración manual del proxy")
         case "direct":
         case "none":
+        case "disabled":
             return tr("Sin proxy")
         default:
             return value
