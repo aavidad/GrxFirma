@@ -106,6 +106,76 @@ public sealed class DesktopRemoteSigningClientTests
     }
 
     [TestMethod]
+    public async Task ProtectAndSign_SendsSecretsAsBase64AndErasesThem()
+    {
+        var transport = new RecordingIpcClient();
+        var client = new DesktopOperationsClient(transport);
+        var pin = Encoding.UTF8.GetBytes("1234");
+        var otp = Encoding.UTF8.GetBytes("567890");
+        string? wire = null;
+        transport.OnSend = parameters => wire = JsonSerializer.Serialize(parameters, parameters.GetType(), WireOptions);
+
+        await client.ProtectAndSignAsync(NewProtection(pin, otp));
+
+        Assert.AreEqual("protect_sign", transport.Calls.Single().Action);
+        Assert.IsNotNull(wire);
+        using var document = JsonDocument.Parse(wire);
+        Assert.AreEqual(Convert.ToBase64String(Encoding.UTF8.GetBytes("1234")), document.RootElement.GetProperty("remotePin").GetString());
+        Assert.AreEqual(Convert.ToBase64String(Encoding.UTF8.GetBytes("567890")), document.RootElement.GetProperty("remoteOtp").GetString());
+        Assert.IsTrue(pin.All(b => b == 0));
+        Assert.IsTrue(otp.All(b => b == 0));
+    }
+
+    [TestMethod]
+    public async Task ProtectAndSign_InvalidSecretIsErasedAndNotSent()
+    {
+        var transport = new RecordingIpcClient();
+        var client = new DesktopOperationsClient(transport);
+        var pin = Encoding.UTF8.GetBytes("12\n34");
+
+        await Assert.ThrowsExactlyAsync<ArgumentException>(() => client.ProtectAndSignAsync(NewProtection(pin, null)));
+
+        Assert.AreEqual(0, transport.Calls.Count);
+        Assert.IsTrue(pin.All(b => b == 0));
+    }
+
+    [TestMethod]
+    public void ProtectWithoutSigning_RejectsSecretsAndErasesThem()
+    {
+        var transport = new RecordingIpcClient();
+        var client = new DesktopOperationsClient(transport);
+        var pin = Encoding.UTF8.GetBytes("1234");
+        var otp = Encoding.UTF8.GetBytes("567890");
+
+        Assert.ThrowsExactly<ArgumentException>(() => { _ = client.ProtectAsync(NewProtection(pin, null)); });
+        Assert.ThrowsExactly<ArgumentException>(() => { _ = client.UnprotectAsync(NewProtection(null, otp)); });
+
+        Assert.AreEqual(0, transport.Calls.Count);
+        Assert.IsTrue(pin.All(b => b == 0));
+        Assert.IsTrue(otp.All(b => b == 0));
+    }
+
+    [TestMethod]
+    public void NeedsSecrets_OnlyForRemoteCertificatesThatAskForThem()
+    {
+        Assert.IsFalse(RemoteSigningInput.NeedsSecrets(null));
+        Assert.IsFalse(RemoteSigningInput.NeedsSecrets(new CertificateInfo { RemotePin = true }));
+        Assert.IsFalse(RemoteSigningInput.NeedsSecrets(new CertificateInfo { Remote = true }));
+        Assert.IsTrue(RemoteSigningInput.NeedsSecrets(new CertificateInfo { Remote = true, RemotePin = true }));
+        Assert.IsTrue(RemoteSigningInput.NeedsSecrets(new CertificateInfo { Remote = true, RemoteOtp = true }));
+    }
+
+    private static ProtectionParameters NewProtection(byte[]? pin, byte[]? otp) => new()
+    {
+        InputPath = @"C:\docs\a.pdf",
+        CertificateId = new string('b', 64),
+        Profile = "compat",
+        RecipientIds = ["recipient-1"],
+        RemotePin = pin,
+        RemoteOtp = otp,
+    };
+
+    [TestMethod]
     public void Results_AreSanitizedAndNeverCarryTokens()
     {
         var status = JsonSerializer.Deserialize<RemoteSigningStatus>(

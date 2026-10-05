@@ -54,10 +54,29 @@ public sealed partial class ProtectPage : Page
         ViewModel = new ProtectPageViewModel(
             _session,
             app.FilePickerService);
+        ViewModel.RemoteSecretsPrompt = PromptRemoteSecretsAsync;
         InitializeComponent();
     }
 
     public ProtectPageViewModel ViewModel { get; }
+
+    // Mismo diálogo de PIN/OTP que Firmar para el certificado remoto que
+    // firma en «Proteger y firmar».
+    private async Task<RemoteSigningSecrets?> PromptRemoteSecretsAsync(
+        CertificateInfo certificate,
+        CancellationToken cancellationToken)
+    {
+        if (XamlRoot is null)
+        {
+            return null;
+        }
+        return await RemoteSigningDialogs.PromptSecretsAsync(
+            XamlRoot,
+            ActualTheme,
+            _session,
+            certificate,
+            cancellationToken);
+    }
 
     private async void OnShareMyCertificateClick(object sender, RoutedEventArgs args)
     {

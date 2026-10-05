@@ -39,6 +39,9 @@ public sealed record ProtectionSignerItem
 {
     public required string Id { get; init; }
     public required string Label { get; init; }
+
+    // Datos del certificado para saber si es remoto y pide PIN u OTP.
+    public CertificateInfo? Certificate { get; init; }
 }
 
 public sealed class ProtectPageViewModel
@@ -577,6 +580,7 @@ public sealed class ProtectPageViewModel
                             Label = string.IsNullOrWhiteSpace(label)
                                 ? "Certificado sin titular"
                                 : label,
+                            Certificate = certificate,
                         };
                     })
                     .Take(MaximumCatalogItems)
@@ -633,6 +637,13 @@ public sealed class ProtectPageViewModel
             isProtectedInput: true,
             cancellationToken);
 
+    /// <summary>
+    /// Pide el PIN y el OTP del certificado remoto que firma en «Proteger y
+    /// firmar», con el mismo diálogo que Firmar. Devuelve null si la persona
+    /// cancela.
+    /// </summary>
+    public Func<CertificateInfo, CancellationToken, Task<RemoteSigningSecrets?>>? RemoteSecretsPrompt { get; set; }
+
     public async Task<OperationDiagnostic?> ProtectAsync(
         byte[]? transientSecret,
         byte[]? transientSecretConfirmation,
@@ -640,6 +651,7 @@ public sealed class ProtectPageViewModel
     {
         CancellationTokenSource? operationCancellation = null;
         Dictionary<string, string>? options = null;
+        RemoteSigningSecrets? remoteSecrets = null;
         try
         {
             var validation = ValidateBeforeProtect(
@@ -691,6 +703,29 @@ public sealed class ProtectPageViewModel
             // La extensión se propone antes del diálogo. Conservar exactamente
             // el destino confirmado, incluida su autorización de sobrescritura.
 
+            // Un certificado remoto que pide PIN u OTP los recibe aquí, para
+            // esta única operación; nunca se guardan ni se reenvían solos.
+            var signer = signToo ? SelectedSigningCertificate! : null;
+            if (signer is not null &&
+                RemoteSigningInput.NeedsSecrets(signer.Certificate))
+            {
+                var prompt = RemoteSecretsPrompt;
+                if (prompt is null)
+                {
+                    ProtectValidationMessage =
+                        Localizer.Text("csc.error.secreto_no_pedido");
+                    return null;
+                }
+                remoteSecrets = await prompt(
+                    signer.Certificate!,
+                    operationCancellation.Token);
+                if (remoteSecrets is null)
+                {
+                    ProtectValidationMessage = "Operación cancelada";
+                    return null;
+                }
+            }
+
             options = new Dictionary<string, string>(
                 StringComparer.Ordinal)
             {
@@ -702,9 +737,7 @@ public sealed class ProtectPageViewModel
             {
                 InputPath = _protectInputPath!,
                 OutputPath = outputPath,
-                CertificateId = signToo
-                    ? SelectedSigningCertificate!.Id
-                    : null,
+                CertificateId = signer?.Id,
                 CertificateIndex = 0,
                 Profile = SelectedProfile!.Value,
                 RecipientIds = encryptedData
@@ -718,6 +751,8 @@ public sealed class ProtectPageViewModel
                 SymmetricKey = encryptedData
                     ? transientSecret
                     : null,
+                RemotePin = remoteSecrets?.Pin,
+                RemoteOtp = remoteSecrets?.Otp,
             };
             ProtectValidationMessage = signToo
                 ? "Protegiendo y firmando el documento…"
@@ -732,6 +767,7 @@ public sealed class ProtectPageViewModel
             if (!IsSuccessful(result))
             {
                 ProtectValidationMessage =
+                    RemoteSigningFailureMessage(result.ErrorCode) ??
                     "La protección no se completó. Abra el diagnóstico para conocer el fallo.";
                 return OperationDiagnosticMapper.FromResult(result);
             }
@@ -798,6 +834,7 @@ public sealed class ProtectPageViewModel
         finally
         {
             options?.Clear();
+            remoteSecrets?.Dispose();
             ZeroTransientSecret(transientSecret);
             ZeroTransientSecret(transientSecretConfirmation);
             if (operationCancellation is not null)
@@ -806,6 +843,11 @@ public sealed class ProtectPageViewModel
             }
         }
     }
+
+    private static string? RemoteSigningFailureMessage(string? errorCode) =>
+        RemoteSigningInput.MessageKey(errorCode) is { } key
+            ? Localizer.Text(key)
+            : null;
 
     public async Task<OperationDiagnostic?> UnprotectAsync(
         byte[]? transientSecret,

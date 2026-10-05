@@ -1049,6 +1049,17 @@ public sealed record ProtectionParameters
     // tras SendAsync. Nunca se representa esta clave como string administrada.
     [JsonPropertyName("secretB64")]
     public byte[]? SymmetricKey { get; init; }
+
+    /// <summary>
+    /// PIN y OTP del certificado remoto que firma en «Proteger y firmar».
+    /// Binarios por la misma razón que en SignParameters; el cliente los
+    /// borra al terminar y los rechaza en las acciones que no firman.
+    /// </summary>
+    [JsonPropertyName("remotePin")]
+    public byte[]? RemotePin { get; init; }
+
+    [JsonPropertyName("remoteOtp")]
+    public byte[]? RemoteOtp { get; init; }
 }
 
 public sealed record ProtectionResult

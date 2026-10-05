@@ -16,6 +16,8 @@ DIALOGS = (SRC / "GrxFirma.WinUI" / "Views" / "RemoteSigningDialogs.cs").read_te
 SIGN_PAGE = (SRC / "GrxFirma.WinUI" / "Views" / "SignPage.xaml.cs").read_text(encoding="utf-8")
 SIGN_XAML = (SRC / "GrxFirma.WinUI" / "Views" / "SignPage.xaml").read_text(encoding="utf-8")
 VIEW_MODEL = (SRC / "GrxFirma.WinUI" / "ViewModels" / "SignPageViewModel.cs").read_text(encoding="utf-8")
+PROTECT_PAGE = (SRC / "GrxFirma.WinUI" / "Views" / "ProtectPage.xaml.cs").read_text(encoding="utf-8")
+PROTECT_VIEW_MODEL = (SRC / "GrxFirma.WinUI" / "ViewModels" / "ProtectPageViewModel.cs").read_text(encoding="utf-8")
 CORE_CONTRACTS = (SRC / "GrxFirma.WinUI.Core" / "Operations" / "DesktopRemoteSigningContracts.cs").read_text(encoding="utf-8")
 CLIENT = (SRC / "GrxFirma.WinUI.Core" / "Operations" / "DesktopOperationsClient.cs").read_text(encoding="utf-8")
 CATALOG = json.loads((ROOT / "internal" / "adapters" / "outbound" / "common" / "localizador"
@@ -41,7 +43,7 @@ class RemoteSigningContractTests(unittest.TestCase):
         self.assertIn("ViewModel.RemoteSecretsPrompt = PromptRemoteSecretsAsync;", SIGN_PAGE)
         self.assertEqual(2, VIEW_MODEL.count("remoteSecrets?.Dispose();"))
         self.assertIn('Localizer.Text("csc.error.otp_lote")', VIEW_MODEL)
-        self.assertEqual(3, CLIENT.count("return SendWithRemoteSecretsAsync<"))
+        self.assertEqual(4, CLIENT.count("return SendWithRemoteSecretsAsync<"))
         self.assertIn("CryptographicOperations.ZeroMemory(remotePin)", CLIENT)
 
     def test_batch_with_otp_needs_multisign_and_must_fit(self) -> None:
@@ -62,8 +64,21 @@ class RemoteSigningContractTests(unittest.TestCase):
         self.assertLess(guard, DIALOGS.index("urlBox.Text = current.ServiceUrl;"))
         self.assertIn('"prohibitedByPolicy"', CORE_CONTRACTS)
 
+    def test_protect_and_sign_asks_for_remote_secrets_like_sign(self) -> None:
+        self.assertIn("ViewModel.RemoteSecretsPrompt = PromptRemoteSecretsAsync;", PROTECT_PAGE)
+        self.assertIn("RemoteSigningDialogs.PromptSecretsAsync(", PROTECT_PAGE)
+        protect = PROTECT_VIEW_MODEL[PROTECT_VIEW_MODEL.index("public async Task<OperationDiagnostic?> ProtectAsync("):]
+        protect = protect[:protect.index("public async Task<OperationDiagnostic?> UnprotectAsync(")]
+        self.assertIn("RemoteSigningInput.NeedsSecrets(signer.Certificate)", protect)
+        self.assertIn("RemotePin = remoteSecrets?.Pin,", protect)
+        self.assertIn("RemoteOtp = remoteSecrets?.Otp,", protect)
+        self.assertIn("remoteSecrets?.Dispose();", protect[protect.index("finally"):])
+        self.assertIn("Certificate = certificate,", PROTECT_VIEW_MODEL)
+        # Proteger sin firmar y desproteger nunca envían secretos remotos.
+        self.assertEqual(2, CLIENT.count("RejectRemoteSecrets(parameters);"))
+
     def test_every_key_exists_in_the_catalog(self) -> None:
-        keys = set(re.findall(r'"(csc\.(?:gui|error)\.[a-z_]+)"', DIALOGS + SIGN_XAML + VIEW_MODEL))
+        keys = set(re.findall(r'"(csc\.(?:gui|error)\.[a-z_]+)"', DIALOGS + SIGN_XAML + VIEW_MODEL + PROTECT_VIEW_MODEL + CLIENT))
         self.assertTrue(keys)
         self.assertEqual(set(), keys - set(CATALOG))
 

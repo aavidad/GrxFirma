@@ -237,6 +237,14 @@ public static class RemoteSigningInput
     /// Devuelve la clave de catálogo del error de firma remota que indica el
     /// motor («csc_otp_lote» → «csc.error.otp_lote»), o null si no lo es.
     /// </summary>
+    /// <summary>
+    /// Un certificado remoto pide el diálogo de PIN/OTP antes de firmar si
+    /// el prestador exige alguno de los dos.
+    /// </summary>
+    public static bool NeedsSecrets(CertificateInfo? certificate) =>
+        certificate is { Remote: true } &&
+        (certificate.RemotePin || certificate.RemoteOtp);
+
     public static string? MessageKey(string? errorCode)
     {
         if (string.IsNullOrEmpty(errorCode) || errorCode.Length > 64 ||

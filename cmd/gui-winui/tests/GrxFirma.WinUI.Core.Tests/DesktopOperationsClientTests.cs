@@ -918,7 +918,9 @@ public sealed class DesktopOperationsClientTests
             "returnProtectedB64",
             "returnUnprotectedB64",
             "options",
-            "secretB64");
+            "secretB64",
+            "remotePin",
+            "remoteOtp");
         AssertJsonPropertyNames<ProtectionResult>(
             "outputPath",
             "protectedContentBase64",

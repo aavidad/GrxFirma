@@ -384,21 +384,43 @@ public sealed class DesktopOperationsClient
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
+        RejectRemoteSecrets(parameters);
         return _ipcClient.SendAsync<ProtectionParameters, ProtectionResult>(
             DesktopOperationActions.Protect,
             parameters,
             cancellationToken);
     }
 
+    /// <summary>
+    /// Si el certificado que firma es remoto, el PIN y el OTP viajan con la
+    /// petición y sus buffers quedan sobrescritos al terminar.
+    /// </summary>
     public Task<IpcCallResult<ProtectionResult>> ProtectAndSignAsync(
         ProtectionParameters parameters,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
-        return _ipcClient.SendAsync<ProtectionParameters, ProtectionResult>(
+        return SendWithRemoteSecretsAsync<ProtectionParameters, ProtectionResult>(
             DesktopOperationActions.ProtectAndSign,
             parameters,
+            parameters.RemotePin,
+            parameters.RemoteOtp,
             cancellationToken);
+    }
+
+    /// <summary>
+    /// Proteger sin firmar y desproteger no usan el certificado remoto: unos
+    /// secretos aquí son un error del llamador; se borran y no se envían.
+    /// </summary>
+    private static void RejectRemoteSecrets(ProtectionParameters parameters)
+    {
+        if (parameters.RemotePin is null && parameters.RemoteOtp is null)
+        {
+            return;
+        }
+        if (parameters.RemotePin is not null) CryptographicOperations.ZeroMemory(parameters.RemotePin);
+        if (parameters.RemoteOtp is not null) CryptographicOperations.ZeroMemory(parameters.RemoteOtp);
+        throw new ArgumentException("csc.error.secreto_no_pedido", nameof(parameters));
     }
 
     public Task<IpcCallResult<UnprotectResult>> UnprotectAsync(
@@ -406,6 +428,7 @@ public sealed class DesktopOperationsClient
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
+        RejectRemoteSecrets(parameters);
         return _ipcClient.SendAsync<ProtectionParameters, UnprotectResult>(
             DesktopOperationActions.Unprotect,
             parameters,
