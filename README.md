@@ -21,7 +21,7 @@ concreta.
 - Android 8.0 (API 26) o posterior: aplicación nativa en Kotlin.
 - macOS e iOS: no hay versiones. No dispongo de un Mac ni de un iPhone para
   compilarlas y probarlas. Si quieres que existan, préstame o regálame uno y
-  me pongo con ello (avidad@dipgra.es). En el repositorio queda código de
+  me pongo con ello 😄 (avidad@dipgra.es). En el repositorio queda código de
   partida sin validar.
 
 ## Funciones principales
