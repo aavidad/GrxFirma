@@ -612,9 +612,11 @@ class MainViewModel(
             snapshot.usesTransientKey && sign -> R.string.error_protect_sign_identity
             snapshot.usesTransientKey && (!ToolsPolicy.canonicalAesKey(secret) || !secret.contentEquals(confirmation)) ->
                 R.string.error_protect_key
+            // Sin identidad válida para firmar (o con DNIe) se avisa antes que de
+            // los destinatarios: es lo que impide la operación.
+            sign && (snapshot.certificate == null || snapshot.certificateExternal) -> R.string.error_protect_sign_identity
             !snapshot.usesTransientKey && snapshot.recipients.isEmpty() && !snapshot.canProtectForMe ->
                 R.string.error_protect_recipients_required
-            sign && (snapshot.certificate == null || snapshot.certificateExternal) -> R.string.error_protect_sign_identity
             else -> null
         }
         confirmation.fill('\u0000')
