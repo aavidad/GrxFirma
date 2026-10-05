@@ -36,6 +36,9 @@ type ClaveLocal struct {
 	priv  crypto.Signer
 	cert  *x509.Certificate
 	chain []*x509.Certificate
+	// lote, si no es nil, permite autorizar a la vez las firmas de un lote
+	// (véase key_lote.go).
+	lote AutorizadorLote
 }
 
 // NuevaClaveLocal crea una ClaveLocal a partir de una clave privada y su certificado.

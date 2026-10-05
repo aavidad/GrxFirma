@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"grxfirma/internal/domain"
@@ -85,11 +86,28 @@ func (uc *ProcessBatchUseCase) Ejecutar(ctx context.Context, cmd ProcessBatchCom
 	}
 	defer ports.CloseSigningKey(clave)
 
+	capacidad := 1
+	claveLote, agrupable := clave.(ports.BatchSigningKey)
+	if agrupable && len(cmd.Jobs) > 1 {
+		capacidad, err = claveLote.BatchCapacity(len(cmd.Jobs))
+		if err != nil {
+			uc.auditarLote(ctx, cmd, cert, false, err)
+			return BatchResult{}, fmt.Errorf("no se puede autorizar el lote con esta clave: %w", err)
+		}
+	}
+
 	_ = uc.publicarEvento(ctx, "lote_iniciado", fmt.Sprintf("trabajos=%d", len(cmd.Jobs)))
 
 	resultado := BatchResult{
 		Results: make([]SignResult, 0, len(cmd.Jobs)),
 		Errores: make(map[int]error),
+	}
+
+	if capacidad > 1 {
+		uc.procesarPorGrupos(ctx, cmd, clave, claveLote, capacidad, cert, &resultado)
+		_ = uc.publicarEvento(ctx, "lote_completado", fmt.Sprintf("errores=%d", len(resultado.Errores)))
+		uc.auditarLote(ctx, cmd, cert, resultado.TodosExitosos(), nil)
+		return resultado, nil
 	}
 
 	for i, job := range cmd.Jobs {
@@ -127,6 +145,102 @@ func (uc *ProcessBatchUseCase) Ejecutar(ctx context.Context, cmd ProcessBatchCom
 	_ = uc.publicarEvento(ctx, "lote_completado", fmt.Sprintf("errores=%d", len(resultado.Errores)))
 	uc.auditarLote(ctx, cmd, cert, resultado.TodosExitosos(), nil)
 	return resultado, nil
+}
+
+// salidaTrabajo es el resultado de un trabajo firmado dentro de un grupo.
+type salidaTrabajo struct {
+	firma    domain.SignatureResult
+	err      error
+	duracion time.Duration
+}
+
+// procesarPorGrupos firma el lote en grupos de hasta capacidad trabajos con
+// una sola autorización por grupo. Los trabajos de un grupo se firman a la
+// vez: la clave necesita todos sus resúmenes antes de autorizar. Eventos,
+// auditoría y métricas se registran después, en el orden del lote. Con
+// StopOnError se conservan los resultados anteriores al primer fallo y se
+// descartan los posteriores del mismo grupo, que ya no se devuelven.
+func (uc *ProcessBatchUseCase) procesarPorGrupos(
+	ctx context.Context,
+	cmd ProcessBatchCommand,
+	clave ports.SigningKey,
+	claveLote ports.BatchSigningKey,
+	capacidad int,
+	cert domain.CertificateRef,
+	resultado *BatchResult,
+) {
+	for inicio := 0; inicio < len(cmd.Jobs); inicio += capacidad {
+		if err := ctx.Err(); err != nil {
+			resultado.Errores[inicio] = err
+			return
+		}
+		fin := min(inicio+capacidad, len(cmd.Jobs))
+		for i := inicio; i < fin; i++ {
+			_ = uc.publicarEvento(ctx, "trabajo_lote_iniciado", fmt.Sprintf("indice=%d", i))
+		}
+		salidas := uc.firmarGrupo(ctx, cmd.Jobs[inicio:fin], clave, claveLote)
+		for k, salida := range salidas {
+			i := inicio + k
+			job := cmd.Jobs[i]
+			if salida.err != nil {
+				resultado.Errores[i] = fmt.Errorf("trabajo %d: %w", i, salida.err)
+				uc.auditarTrabajo(ctx, i, job, cert, false, salida.err)
+				if uc.metricas != nil {
+					uc.metricas.RecordSign(ctx, string(job.Format), "error", salida.duracion)
+				}
+				if cmd.StopOnError {
+					return
+				}
+				continue
+			}
+			resultado.Results = append(resultado.Results, SignResult{Result: salida.firma, CertificateUsed: cert})
+			uc.auditarTrabajo(ctx, i, job, cert, true, nil)
+			if uc.metricas != nil {
+				uc.metricas.RecordSign(ctx, string(job.Format), "ok", salida.duracion)
+			}
+			_ = uc.publicarEvento(ctx, "trabajo_lote_completado", fmt.Sprintf("indice=%d", i))
+		}
+	}
+}
+
+// firmarGrupo firma los trabajos de un grupo. Un grupo de uno (el resto de
+// un lote) usa la clave normal.
+func (uc *ProcessBatchUseCase) firmarGrupo(
+	ctx context.Context,
+	trabajos []domain.SignatureJob,
+	clave ports.SigningKey,
+	claveLote ports.BatchSigningKey,
+) []salidaTrabajo {
+	salidas := make([]salidaTrabajo, len(trabajos))
+	if len(trabajos) == 1 {
+		inicio := time.Now()
+		salidas[0].firma, salidas[0].err = uc.motor.Sign(ctx, trabajos[0], clave)
+		salidas[0].duracion = time.Since(inicio)
+		return salidas
+	}
+	lote, err := claveLote.BeginBatch(ctx, len(trabajos))
+	if err != nil {
+		for k := range salidas {
+			salidas[k].err = fmt.Errorf("no se pudo autorizar el grupo de firmas: %w", err)
+		}
+		return salidas
+	}
+	defer lote.Close()
+	var wg sync.WaitGroup
+	for k := range trabajos {
+		wg.Add(1)
+		go func(k int) {
+			defer wg.Done()
+			// Done siempre, también si el trabajo falla antes de firmar: si
+			// no, el resto del grupo esperaría su resumen.
+			defer lote.Done(k)
+			inicio := time.Now()
+			salidas[k].firma, salidas[k].err = uc.motor.Sign(ctx, trabajos[k], lote.Key(k))
+			salidas[k].duracion = time.Since(inicio)
+		}(k)
+	}
+	wg.Wait()
+	return salidas
 }
 
 // Execute expone el caso de uso con el nombre neutro esperado por los adaptadores.
