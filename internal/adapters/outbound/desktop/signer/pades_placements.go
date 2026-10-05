@@ -187,24 +187,18 @@ func aplicarPosicionesSello(signData *pdfsign.SignData, options map[string]strin
 			v.X < 0 || v.Y < 0 || v.W <= 0 || v.H <= 0 || v.X+v.W > 1 || v.Y+v.H > 1 {
 			return fmt.Errorf("el rectángulo del sello debe quedar dentro de la página %d", entry.Page)
 		}
-		x0, y0, x1, y1, err := cajaVisiblePagina(r.Page(entry.Page))
-		if err != nil {
-			return err
-		}
-		width, height := x1-x0, y1-y0
-		if !numeroFinitoSello(width) || !numeroFinitoSello(height) || width <= 0 || height <= 0 || width > 14400 || height > 14400 {
-			return fmt.Errorf("dimensiones inválidas de la página %d", entry.Page)
-		}
-		w, h := v.W*width, v.H*height
-		rect, err := cajaSelloGirado(x0+v.X*width, y0+v.Y*height, w, h, float64(entry.Rotation), x0, y0, width, height)
+		marco, err := marcoVisiblePagina(r.Page(entry.Page))
 		if err != nil {
 			return fmt.Errorf("página %d: %w", entry.Page, err)
 		}
-		copyOptions := make(map[string]string, len(options)+3)
-		for k, val := range options {
-			copyOptions[k] = val
+		// Las fracciones se refieren a la página tal como se ve (con /Rotate).
+		width, height := marco.dimensionesVisibles()
+		w, h := v.W*width, v.H*height
+		rect, giroImagen, err := marco.colocarSello(v.X*width, v.Y*height, w, h, float64(entry.Rotation))
+		if err != nil {
+			return fmt.Errorf("página %d: %w", entry.Page, err)
 		}
-		copyOptions["rotation"] = strconv.Itoa(entry.Rotation)
+		copyOptions := opcionesConGiroImagen(options, giroImagen)
 		img, err := componerImagenSelloParaFirma(signData.Signature.Info, copyOptions, w, h)
 		if err != nil {
 			return err

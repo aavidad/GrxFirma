@@ -77,14 +77,14 @@ func TestMotorFirmaGo_PAdESGiroLibreSeVeGirado(t *testing.T) {
 			if d := math.Abs(math.Remainder(angulo-esperado, 180)); d > 4 {
 				t.Fatalf("la tinta del sello está orientada a %.1f°, se esperaba %.0f° (diferencia %.1f°)", angulo, esperado, d)
 			}
-			// La franja verde marca el borde izquierdo de la tarjeta: distingue
-			// 30° de 210°.
-			vx, vy, n := centroVerde(pagina, recorte)
+			// La barra de acento marca el borde izquierdo de la tarjeta:
+			// distingue 30° de 210°.
+			vx, vy, n := centroAcento(pagina, recorte)
 			if n == 0 {
-				t.Fatal("no aparece la franja verde del sello en la página renderizada")
+				t.Fatal("no aparece la barra de acento del sello en la página renderizada")
 			}
 			if (vx-cx)*math.Cos(r)+(vy-cy)*math.Sin(r) >= 0 {
-				t.Fatalf("la franja verde no queda a la izquierda de la tarjeta girada %d°", grados)
+				t.Fatalf("la barra de acento no queda a la izquierda de la tarjeta girada %d°", grados)
 			}
 			guardarRevisionGiro(t, grados, firmado, pagina)
 		})
@@ -200,13 +200,16 @@ func orientacionTinta(img image.Image, zona image.Rectangle) (angulo, alargamien
 	return angulo, math.Sqrt((traza + raiz) / 2 / menor), cx, cy
 }
 
-func centroVerde(img image.Image, zona image.Rectangle) (cx, cy float64, n int) {
+// centroAcento devuelve el centro de la barra de acento del sello (azul
+// #206bc4, en el borde izquierdo de una tarjeta apaisada). El texto azul
+// marino es más oscuro y no cuenta.
+func centroAcento(img image.Image, zona image.Rectangle) (cx, cy float64, n int) {
 	zona = zona.Intersect(img.Bounds())
 	for py := zona.Min.Y; py < zona.Max.Y; py++ {
 		for px := zona.Min.X; px < zona.Max.X; px++ {
 			r, g, b, _ := img.At(px, py).RGBA()
 			r, g, b = r>>8, g>>8, b>>8
-			if g > 120 && g > r+30 && g > b+30 {
+			if b > 150 && b > r+80 && b > g+40 {
 				cx += float64(px)
 				cy += float64(py)
 				n++

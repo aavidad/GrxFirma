@@ -6,8 +6,11 @@
 package pdfpreview
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
+	"image/png"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -80,6 +83,74 @@ func TestParsearSalidaPdfinfo_RespetaLaOrientacion(t *testing.T) {
 	}
 	if ancho <= alto {
 		t.Fatalf("un apaisado debe tener ancho > alto, y fue %v x %v", ancho, alto)
+	}
+}
+
+// pdftoppm dibuja la página ya girada; las dimensiones deben ser las de la
+// página tal como se ve, que es como el motor interpreta el sello.
+func TestParsearSalidaPdfinfo_AplicaRotate(t *testing.T) {
+	t.Parallel()
+	for _, c := range []struct {
+		rot         string
+		ancho, alto float64
+	}{{"0", 490, 780}, {"90", 780, 490}, {"180", 490, 780}, {"270", 780, 490}} {
+		salida := "Pages:           1\nPage    1 size:  490 x 780 pts\nPage    1 rot:   " + c.rot + "\n"
+		ancho, alto, _, ok := parsearSalidaPdfinfo(salida)
+		if !ok || ancho != c.ancho || alto != c.alto {
+			t.Errorf("rot %s: %v x %v (ok=%v), se esperaba %v x %v", c.rot, ancho, alto, ok, c.ancho, c.alto)
+		}
+	}
+}
+
+// Con /Rotate y una CropBox distinta de la MediaBox, la imagen y las
+// dimensiones deben describir la misma caja: la CropBox girada.
+func TestRenderizarPagina_RotateYCropBoxCoinciden(t *testing.T) {
+	for _, tool := range []string{"pdftoppm", "pdfinfo"} {
+		if _, err := exec.LookPath(tool); err != nil {
+			t.Skipf("%s no disponible", tool)
+		}
+	}
+	objs := []string{
+		"<< /Type /Catalog /Pages 2 0 R >>",
+		"<< /Type /Pages /Kids [3 0 R] /Count 1 /Rotate 90 >>",
+		"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /CropBox [10 20 500 800] >>",
+	}
+	var b bytes.Buffer
+	b.WriteString("%PDF-1.7\n")
+	offsets := make([]int, len(objs))
+	for i, o := range objs {
+		offsets[i] = b.Len()
+		fmt.Fprintf(&b, "%d 0 obj\n%s\nendobj\n", i+1, o)
+	}
+	xref := b.Len()
+	fmt.Fprintf(&b, "xref\n0 %d\n0000000000 65535 f \n", len(objs)+1)
+	for _, off := range offsets {
+		fmt.Fprintf(&b, "%010d 00000 n \n", off)
+	}
+	fmt.Fprintf(&b, "trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n", len(objs)+1, xref)
+	ruta := filepath.Join(t.TempDir(), "girado.pdf")
+	if err := os.WriteFile(ruta, b.Bytes(), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	b64, width, height, _, err := New().WithDPI(72).RenderizarPagina(context.Background(), ruta, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if width != 780 || height != 490 {
+		t.Fatalf("dimensiones %v x %v, se esperaba la CropBox girada 780 x 490", width, height)
+	}
+	data, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	img, err := png.Decode(bytes.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// -scale-to puede cambiar la escala; la proporción debe ser la misma.
+	bw, bh := float64(img.Bounds().Dx()), float64(img.Bounds().Dy())
+	if d := bw/bh - width/height; d > 0.01 || d < -0.01 {
+		t.Fatalf("la imagen mide %vx%v y no tiene la proporción de %vx%v", bw, bh, width, height)
 	}
 }
 
