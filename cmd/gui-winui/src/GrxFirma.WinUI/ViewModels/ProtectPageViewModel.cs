@@ -49,10 +49,8 @@ public sealed class ProtectPageViewModel
 {
     private const int MaximumCatalogItems = 128;
     private const int Aes256SecretBytes = 32;
-    private const string CompatRecipientGuidance =
-        "El perfil compatible requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. " +
-        "Los certificados opacos del almacén de Windows siguen disponibles para firmar, pero no se ofrecen para cifrado; " +
-        "cargue un P12/PFX apto o cambie al perfil alto.";
+    private static string CompatRecipientGuidance =>
+        Localizer.Text("winui.proteger.el_perfil_compatible_requiere_una");
 
     private readonly DesktopOperationSession _session;
     private readonly IFilePickerService _filePicker;
@@ -72,16 +70,16 @@ public sealed class ProtectPageViewModel
     private string _protectInputDisplayName = string.Empty;
     private string _unprotectInputDisplayName = string.Empty;
     private string _protectValidationMessage =
-        "Seleccione un documento y al menos un destinatario.";
+        Localizer.Text("winui.proteger.seleccione_un_documento_y_al_menos_un");
     private string _unprotectValidationMessage =
-        "Seleccione un contenedor protegido.";
+        Localizer.Text("winui.proteger.seleccione_un_contenedor_protegido");
     private string _protectResultMessage =
-        "No se ha ejecutado ninguna protección.";
+        Localizer.Text("winui.proteger.no_se_ha_ejecutado_ninguna_proteccion");
     private string _unprotectResultMessage =
-        "No se ha ejecutado ninguna desprotección.";
+        Localizer.Text("winui.proteger.no_se_ha_ejecutado_ninguna_desproteccion");
     private int _selectedRecipientCount;
     private string _selectedRecipientSummary =
-        "No hay destinatarios seleccionados.";
+        Localizer.Text("winui.proteger.no_hay_destinatarios_seleccionados");
     private bool _isProtectAndSign;
     private bool _supportsProtectAndSign;
     private bool _isBusy;
@@ -102,9 +100,9 @@ public sealed class ProtectPageViewModel
         DesktopOperationSession session,
         IFilePickerService filePicker)
         : base(
-            "Proteger",
-            "Protege documentos para destinatarios concretos o con una clave efímera, y recupera ambos tipos de contenedor.",
-            "La protección no está disponible porque el motor local no ha publicado protection_recipients, protect y unprotect.")
+            Localizer.Text("winui.comun.proteger"),
+            Localizer.Text("winui.proteger.protege_documentos_para_destinatarios"),
+            Localizer.Text("winui.proteger.la_proteccion_no_esta_disponible_porque"))
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(filePicker);
@@ -117,27 +115,27 @@ public sealed class ProtectPageViewModel
 
     public IReadOnlyList<ProtectionProfileOption> Profiles { get; } =
     [
-        new("Compatible RSA-OAEP", "compat"),
-        new("Alta seguridad ML-KEM + X25519", "alto"),
+        new("winui.proteger.compatible_rsa_oaep", "compat"),
+        new("winui.proteger.alta_seguridad_ml_kem_x25519", "alto"),
     ];
 
     public IReadOnlyList<ProtectionContainerOption> Containers { get; } =
     [
         new(
-            "JSON GrxFirma (.afp)",
+            "winui.proteger.json_grxfirma_afp",
             "json",
             SaveFilePickerProfile.ProtectedJson),
         new(
-            "CMS EnvelopedData (.enveloped)",
+            "winui.proteger.cms_envelopeddata_enveloped",
             "cms",
             SaveFilePickerProfile.CmsEnveloped),
         new(
-            "CMS EncryptedData — requiere clave efímera segura",
+            "winui.proteger.cms_encrypteddata_requiere_clave_efimera",
             "cms-encrypted",
             SaveFilePickerProfile.CmsEncrypted,
             RequiresTransientSecret: true),
         new(
-            "CMS AuthEnvelopedData (.authenveloped.p7m)",
+            "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
             "authenvelopeddata",
             SaveFilePickerProfile.CmsAuthEnveloped),
     ];
@@ -377,7 +375,7 @@ public sealed class ProtectPageViewModel
             _session.Supports(DesktopOperationActions.Certificates);
         SetOperationAvailability(
             available,
-            "Motor local conectado. Protección y desprotección están disponibles.");
+            Localizer.Text("winui.proteger.motor_local_conectado_proteccion_y"));
         if (!available)
         {
             CancelCurrentOperation();
@@ -412,10 +410,10 @@ public sealed class ProtectPageViewModel
         SelectedRecipientCount = _selectedRecipientIds.Count;
         SelectedRecipientSummary =
             SelectedRecipientCount == 0
-                ? "No hay destinatarios seleccionados."
+                ? Localizer.Text("winui.proteger.no_hay_destinatarios_seleccionados")
                 : SelectedRecipientCount == 1
-                    ? "1 destinatario seleccionado."
-                    : $"{SelectedRecipientCount} destinatarios seleccionados.";
+                    ? Localizer.Text("winui.proteger.1_destinatario_seleccionado")
+                    : Localizer.Format("winui.proteger.destinatarios_seleccionados", SelectedRecipientCount);
         UpdateValidationMessages();
         UpdateCommandStates();
     }
@@ -427,7 +425,7 @@ public sealed class ProtectPageViewModel
         if (string.IsNullOrWhiteSpace(path)) return null;
         if (!_session.TryGetOperations(DesktopOperationActions.ProtectionRecipientImport, out var operations))
         {
-            ProtectValidationMessage = "El motor local no permite añadir destinatarios públicos.";
+            ProtectValidationMessage = Localizer.Text("winui.proteger.el_motor_local_no_permite_anadir");
             return null;
         }
         var result = await operations.ImportProtectionRecipientAsync(new() { Path = path }, cancellationToken);
@@ -436,7 +434,7 @@ public sealed class ProtectPageViewModel
             ProtectValidationMessage = result.SafeUserMessage;
             return OperationDiagnosticMapper.FromResult(result);
         }
-        ProtectValidationMessage = "Certificado público añadido. Seleccione el destinatario para proteger.";
+        ProtectValidationMessage = Localizer.Text("winui.proteger.certificado_publico_anadido_seleccione");
         return await RefreshCatalogsAsync(cancellationToken);
     }
 
@@ -446,7 +444,7 @@ public sealed class ProtectPageViewModel
         var id = _selectedRecipientIds[0];
         if (!_session.TryGetOperations(DesktopOperationActions.ProtectionRecipientRemove, out var operations))
         {
-            ProtectValidationMessage = "El motor local no permite quitar destinatarios públicos.";
+            ProtectValidationMessage = Localizer.Text("winui.proteger.el_motor_local_no_permite_quitar");
             return null;
         }
         var result = await operations.RemoveProtectionRecipientAsync(new() { Id = id }, cancellationToken);
@@ -455,7 +453,7 @@ public sealed class ProtectPageViewModel
             ProtectValidationMessage = result.SafeUserMessage;
             return OperationDiagnosticMapper.FromResult(result);
         }
-        ProtectValidationMessage = "Destinatario importado quitado.";
+        ProtectValidationMessage = Localizer.Text("winui.proteger.destinatario_importado_quitado");
         return await RefreshCatalogsAsync(cancellationToken);
     }
 
@@ -479,7 +477,7 @@ public sealed class ProtectPageViewModel
             out var operationCancellation))
         {
             ProtectValidationMessage =
-                "Espere a que termine la operación actual antes de actualizar destinatarios.";
+                Localizer.Text("winui.proteger.espere_a_que_termine_la_operacion_actual");
             return null;
         }
 
@@ -490,18 +488,18 @@ public sealed class ProtectPageViewModel
                 out var operations))
             {
                 ProtectValidationMessage =
-                    "El motor local no ofrece el catálogo de destinatarios.";
+                    Localizer.Text("winui.proteger.el_motor_local_no_ofrece_el_catalogo_de");
                 return null;
             }
 
-            ProtectValidationMessage = "Consultando destinatarios de protección…";
+            ProtectValidationMessage = Localizer.Text("winui.proteger.consultando_destinatarios_de_proteccion");
             var recipientsResult =
                 await operations.GetProtectionRecipientsAsync(
                     operationCancellation.Token);
             if (!IsSuccessful(recipientsResult))
             {
                 ProtectValidationMessage =
-                    "El motor local no pudo cargar los destinatarios.";
+                    Localizer.Text("winui.proteger.el_motor_local_no_pudo_cargar_los");
                 return OperationDiagnosticMapper.FromResult(recipientsResult);
             }
             if (recipientsResult.Data is null)
@@ -522,11 +520,11 @@ public sealed class ProtectPageViewModel
                     {
                         Id = recipient.Id,
                         Label = recipient.Label,
-                        Detail = Localizer.Format("Origen: {0} · Perfil: {1}",
+                        Detail = Localizer.Format("winui.proteger.origen_perfil",
                             Localizer.Text(OriginLabel(recipient.Origin)),
                             Localizer.Text(recipient.Profile)) +
                             (string.IsNullOrWhiteSpace(recipient.Algorithm) ? "" :
-                                Localizer.Format(" · Algoritmo: {0}", recipient.Algorithm)),
+                                Localizer.Format("winui.proteger.algoritmo", recipient.Algorithm)),
                         Profile = recipient.Profile,
                         Origin = recipient.Origin,
                         AuthEnvelopedDataCompatible =
@@ -548,7 +546,7 @@ public sealed class ProtectPageViewModel
                 if (!IsSuccessful(certificateResult))
                 {
                     ProtectValidationMessage =
-                        "No se pudieron cargar los certificados para proteger y firmar.";
+                        Localizer.Text("winui.proteger.no_se_pudieron_cargar_los_certificados");
                     return OperationDiagnosticMapper.FromResult(
                         certificateResult);
                 }
@@ -578,7 +576,7 @@ public sealed class ProtectPageViewModel
                         {
                             Id = certificate.Id,
                             Label = string.IsNullOrWhiteSpace(label)
-                                ? "Certificado sin titular"
+                                ? Localizer.Text("winui.comun.certificado_sin_titular")
                                 : label,
                             Certificate = certificate,
                         };
@@ -600,7 +598,7 @@ public sealed class ProtectPageViewModel
         catch (OperationCanceledException exception)
         {
             ProtectValidationMessage =
-                "La actualización de destinatarios se canceló.";
+                Localizer.Text("winui.proteger.la_actualizacion_de_destinatarios_se");
             return OperationDiagnosticMapper.FromException(
                 exception,
                 operationCancellation.Token);
@@ -608,13 +606,13 @@ public sealed class ProtectPageViewModel
         catch (IpcClientException exception)
         {
             ProtectValidationMessage =
-                "Falló la comunicación segura al consultar destinatarios.";
+                Localizer.Text("winui.proteger.fallo_la_comunicacion_segura_al");
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             ProtectValidationMessage =
-                "La aplicación no pudo cargar los destinatarios.";
+                Localizer.Text("winui.proteger.la_aplicacion_no_pudo_cargar_los");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -667,7 +665,7 @@ public sealed class ProtectPageViewModel
                 out operationCancellation))
             {
                 ProtectValidationMessage =
-                    "Ya hay una operación en curso. Espere o cancélela.";
+                    Localizer.Text("winui.proteger.ya_hay_una_operacion_en_curso_espere_o");
                 return null;
             }
 
@@ -679,7 +677,7 @@ public sealed class ProtectPageViewModel
             if (!_session.TryGetOperations(action, out var operations))
             {
                 ProtectValidationMessage =
-                    "El motor local no ofrece la operación de protección seleccionada.";
+                    Localizer.Text("winui.proteger.el_motor_local_no_ofrece_la_operacion_de");
                 return null;
             }
 
@@ -689,7 +687,7 @@ public sealed class ProtectPageViewModel
                 ? SaveFilePickerProfile.CmsSignedEnveloped
                 : container.SaveProfile;
             ProtectValidationMessage =
-                "Elija dónde guardar el documento protegido. La operación aún no ha comenzado.";
+                Localizer.Text("winui.proteger.elija_donde_guardar_el_documento");
             var outputPath = await _filePicker.PickSaveFileAsync(
                 saveProfile,
                 SuggestedOutputName(_protectInputPath!),
@@ -697,7 +695,7 @@ public sealed class ProtectPageViewModel
             if (string.IsNullOrWhiteSpace(outputPath))
             {
                 ProtectValidationMessage =
-                    "No se eligió un destino. No se ha protegido ningún documento.";
+                    Localizer.Text("winui.proteger.no_se_eligio_un_destino_no_se_ha");
                 return null;
             }
             // La extensión se propone antes del diálogo. Conservar exactamente
@@ -721,7 +719,7 @@ public sealed class ProtectPageViewModel
                     operationCancellation.Token);
                 if (remoteSecrets is null)
                 {
-                    ProtectValidationMessage = "Operación cancelada";
+                    ProtectValidationMessage = Localizer.Text("winui.comun.operacion_cancelada");
                     return null;
                 }
             }
@@ -755,8 +753,8 @@ public sealed class ProtectPageViewModel
                 RemoteOtp = remoteSecrets?.Otp,
             };
             ProtectValidationMessage = signToo
-                ? "Protegiendo y firmando el documento…"
-                : "Protegiendo el documento…";
+                ? Localizer.Text("winui.proteger.protegiendo_y_firmando_el_documento")
+                : Localizer.Text("winui.proteger.protegiendo_el_documento");
             var result = signToo
                 ? await operations.ProtectAndSignAsync(
                     parameters,
@@ -768,7 +766,7 @@ public sealed class ProtectPageViewModel
             {
                 ProtectValidationMessage =
                     RemoteSigningFailureMessage(result.ErrorCode) ??
-                    "La protección no se completó. Abra el diagnóstico para conocer el fallo.";
+                    Localizer.Text("winui.proteger.la_proteccion_no_se_completo_abra_el");
                 return OperationDiagnosticMapper.FromResult(result);
             }
             if (result.Data is null ||
@@ -776,7 +774,7 @@ public sealed class ProtectPageViewModel
                 !encryptedData && result.Data.RecipientCount <= 0)
             {
                 ProtectValidationMessage =
-                    "El motor confirmó la protección, pero no devolvió un resultado completo.";
+                    Localizer.Text("winui.proteger.el_motor_confirmo_la_proteccion_pero_no");
                 return InvalidResultDiagnostic(
                     result,
                     "MISSING_PROTECTION_OUTPUT");
@@ -785,7 +783,7 @@ public sealed class ProtectPageViewModel
                 !HasNonEmptyOutput(outputPath))
             {
                 ProtectValidationMessage =
-                    "El motor no confirmó el fichero protegido solicitado. No se mostrará un éxito falso.";
+                    Localizer.Text("winui.proteger.el_motor_no_confirmo_el_fichero");
                 return InvalidResultDiagnostic(
                     result,
                     "PROTECTION_OUTPUT_NOT_FOUND");
@@ -793,16 +791,16 @@ public sealed class ProtectPageViewModel
 
             _protectOutputPath = outputPath;
             ProtectResultMessage = encryptedData
-                ? Localizer.Format("Protección CMS EncryptedData completada: {0}.",
+                ? Localizer.Format("winui.proteger.proteccion_cms_encrypteddata_completada",
                     SafeFileName(outputPath))
                 : Localizer.Format(signToo
-                        ? "Protección firmada completada para {0} destinatario(s): {1}."
-                        : "Protección completada para {0} destinatario(s): {1}.",
+                        ? "winui.proteger.proteccion_firmada_completada_para"
+                        : "winui.proteger.proteccion_completada_para_destinatario",
                     result.Data.RecipientCount, SafeFileName(outputPath));
             ProtectValidationMessage =
                 encryptedData
-                    ? "El documento protegido está listo. Conserve la clave efímera fuera de la aplicación para poder recuperarlo."
-                    : "El documento protegido está listo para abrir.";
+                    ? Localizer.Text("winui.proteger.el_documento_protegido_esta_listo")
+                    : Localizer.Text("winui.proteger.el_documento_protegido_esta_listo_para");
             UpdateCommandStates();
             return null;
         }
@@ -814,7 +812,7 @@ public sealed class ProtectPageViewModel
         catch (OperationCanceledException exception)
         {
             ProtectValidationMessage =
-                "La protección se canceló antes de completarse.";
+                Localizer.Text("winui.proteger.la_proteccion_se_cancelo_antes_de");
             return OperationDiagnosticMapper.FromException(
                 exception,
                 operationCancellation?.Token ?? cancellationToken);
@@ -822,13 +820,13 @@ public sealed class ProtectPageViewModel
         catch (IpcClientException exception)
         {
             ProtectValidationMessage =
-                "Falló la comunicación segura durante la protección.";
+                Localizer.Text("winui.proteger.fallo_la_comunicacion_segura_durante_la");
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             ProtectValidationMessage =
-                "La aplicación no pudo completar la protección.";
+                Localizer.Text("winui.proteger.la_aplicacion_no_pudo_completar_la");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -867,7 +865,7 @@ public sealed class ProtectPageViewModel
                 out operationCancellation))
             {
                 UnprotectValidationMessage =
-                    "Ya hay una operación en curso. Espere o cancélela.";
+                    Localizer.Text("winui.proteger.ya_hay_una_operacion_en_curso_espere_o");
                 return null;
             }
 
@@ -877,13 +875,13 @@ public sealed class ProtectPageViewModel
                 out var operations))
             {
                 UnprotectValidationMessage =
-                    "El motor local no ofrece la operación unprotect.";
+                    Localizer.Text("winui.proteger.el_motor_local_no_ofrece_la_operacion");
                 return null;
             }
 
             UnprotectValidationMessage = IsEncryptedDataUnprotectSelected
-                ? "Desprotegiendo CMS EncryptedData con la clave efímera…"
-                : "Desprotegiendo con la clave disponible en el almacén…";
+                ? Localizer.Text("winui.proteger.desprotegiendo_cms_encrypteddata_con_la")
+                : Localizer.Text("winui.proteger.desprotegiendo_con_la_clave_disponible");
             var result = await operations.UnprotectAsync(
                 new ProtectionParameters
                 {
@@ -902,14 +900,14 @@ public sealed class ProtectPageViewModel
             if (!IsSuccessful(result))
             {
                 UnprotectValidationMessage =
-                    "La desprotección no se completó. Abra el diagnóstico para conocer el fallo.";
+                    Localizer.Text("winui.proteger.la_desproteccion_no_se_completo_abra_el");
                 return OperationDiagnosticMapper.FromResult(result);
             }
             if (result.Data is null ||
                 string.IsNullOrWhiteSpace(result.Data.OutputPath))
             {
                 UnprotectValidationMessage =
-                    "El motor confirmó la desprotección, pero no devolvió una salida válida.";
+                    Localizer.Text("winui.proteger.el_motor_confirmo_la_desproteccion_pero");
                 return InvalidResultDiagnostic(
                     result,
                     "MISSING_UNPROTECTED_OUTPUT");
@@ -917,7 +915,7 @@ public sealed class ProtectPageViewModel
             if (!HasNonEmptyOutput(result.Data.OutputPath))
             {
                 UnprotectValidationMessage =
-                    "El fichero desprotegido no está disponible. No se mostrará un éxito falso.";
+                    Localizer.Text("winui.proteger.el_fichero_desprotegido_no_esta");
                 return InvalidResultDiagnostic(
                     result,
                     "UNPROTECTED_OUTPUT_NOT_FOUND");
@@ -925,9 +923,9 @@ public sealed class ProtectPageViewModel
 
             _unprotectOutputPath = result.Data.OutputPath;
             UnprotectResultMessage =
-                $"Documento recuperado como {SafeFileName(result.Data.OutputPath)}.";
+                Localizer.Format("winui.proteger.documento_recuperado_como", SafeFileName(result.Data.OutputPath));
             UnprotectValidationMessage =
-                "La desprotección terminó correctamente. Puede abrir el resultado.";
+                Localizer.Text("winui.proteger.la_desproteccion_termino_correctamente");
             UpdateCommandStates();
             return null;
         }
@@ -939,7 +937,7 @@ public sealed class ProtectPageViewModel
         catch (OperationCanceledException exception)
         {
             UnprotectValidationMessage =
-                "La desprotección se canceló antes de completarse.";
+                Localizer.Text("winui.proteger.la_desproteccion_se_cancelo_antes_de");
             return OperationDiagnosticMapper.FromException(
                 exception,
                 operationCancellation?.Token ?? cancellationToken);
@@ -947,13 +945,13 @@ public sealed class ProtectPageViewModel
         catch (IpcClientException exception)
         {
             UnprotectValidationMessage =
-                "Falló la comunicación segura durante la desprotección.";
+                Localizer.Text("winui.proteger.fallo_la_comunicacion_segura_durante_la_2");
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             UnprotectValidationMessage =
-                "La aplicación no pudo completar la desprotección.";
+                Localizer.Text("winui.proteger.la_aplicacion_no_pudo_completar_la_2");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -998,12 +996,12 @@ public sealed class ProtectPageViewModel
                 if (isProtectedInput)
                 {
                     UnprotectValidationMessage =
-                        "No se seleccionó ningún contenedor protegido.";
+                        Localizer.Text("winui.proteger.no_se_selecciono_ningun_contenedor");
                 }
                 else
                 {
                     ProtectValidationMessage =
-                        "No se seleccionó ningún documento para proteger.";
+                        Localizer.Text("winui.proteger.no_se_selecciono_ningun_documento_para");
                 }
                 return null;
             }
@@ -1039,12 +1037,12 @@ public sealed class ProtectPageViewModel
             if (isProtectedInput)
             {
                 UnprotectValidationMessage =
-                    "No se pudo abrir el selector de contenedores.";
+                    Localizer.Text("winui.proteger.no_se_pudo_abrir_el_selector_de");
             }
             else
             {
                 ProtectValidationMessage =
-                    "No se pudo abrir el selector de documentos.";
+                    Localizer.Text("winui.comun.no_se_pudo_abrir_el_selector_de");
             }
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -1102,11 +1100,11 @@ public sealed class ProtectPageViewModel
     {
         if (!IsOperationConnected)
         {
-            return "Conecte el motor local antes de proteger un documento.";
+            return Localizer.Text("winui.proteger.conecte_el_motor_local_antes_de_proteger");
         }
         if (string.IsNullOrWhiteSpace(_protectInputPath))
         {
-            return "Seleccione el documento que desea proteger.";
+            return Localizer.Text("winui.proteger.seleccione_el_documento_que_desea");
         }
         if (!File.Exists(_protectInputPath))
         {
@@ -1114,33 +1112,33 @@ public sealed class ProtectPageViewModel
             ProtectInputDisplayName = string.Empty;
             ClearProtectedOutput();
             UpdateCommandStates();
-            return "El documento seleccionado ya no está disponible.";
+            return Localizer.Text("winui.proteger.el_documento_seleccionado_ya_no_esta");
         }
         if (SelectedProfile is null || SelectedContainer is null)
         {
-            return "Seleccione un perfil y un contenedor de protección.";
+            return Localizer.Text("winui.proteger.seleccione_un_perfil_y_un_contenedor_de");
         }
         var encryptedData = SelectedContainer.RequiresTransientSecret;
         if (encryptedData &&
             !IsAes256Secret(transientSecret))
         {
-            return "Introduzca una clave efímera Base64 canónica de 32 bytes (44 caracteres).";
+            return Localizer.Text("winui.proteger.introduzca_una_clave_efimera_base64");
         }
         if (encryptedData &&
             !TransientSecretsMatch(
                 transientSecret,
                 transientSecretConfirmation))
         {
-            return "La confirmación no coincide con la clave efímera.";
+            return Localizer.Text("winui.proteger.la_confirmacion_no_coincide_con_la_clave");
         }
         if (!encryptedData && _selectedRecipientIds.Count == 0)
         {
-            return "Seleccione al menos un destinatario compatible.";
+            return Localizer.Text("winui.proteger.seleccione_al_menos_un_destinatario");
         }
         if (IsProtectAndSign &&
             SelectedSigningCertificate is null)
         {
-            return "Seleccione el certificado que firmará el contenedor protegido.";
+            return Localizer.Text("winui.proteger.seleccione_el_certificado_que_firmara_el");
         }
         return null;
     }
@@ -1149,26 +1147,26 @@ public sealed class ProtectPageViewModel
     {
         if (!IsOperationConnected)
         {
-            return "Conecte el motor local antes de desproteger.";
+            return Localizer.Text("winui.proteger.conecte_el_motor_local_antes_de");
         }
         if (string.IsNullOrWhiteSpace(_unprotectInputPath))
         {
-            return "Seleccione el contenedor que desea desproteger.";
+            return Localizer.Text("winui.proteger.seleccione_el_contenedor_que_desea");
         }
         if (!File.Exists(_unprotectInputPath))
         {
             _unprotectInputPath = null;
             IsEncryptedDataUnprotectSelected = false;
             UnprotectInputDisplayName =
-                Localizer.Text("Ningún contenedor seleccionado");
+                Localizer.Text("winui.proteger.ningun_contenedor_seleccionado");
             ClearUnprotectedOutput();
             UpdateCommandStates();
-            return "El contenedor seleccionado ya no está disponible.";
+            return Localizer.Text("winui.proteger.el_contenedor_seleccionado_ya_no_esta");
         }
         if (IsEncryptedDataUnprotectSelected &&
             !IsAes256Secret(transientSecret))
         {
-            return "Este contenedor EncryptedData requiere una clave efímera Base64 canónica de 32 bytes (44 caracteres).";
+            return Localizer.Text("winui.proteger.este_contenedor_encrypteddata_requiere");
         }
         return null;
     }
@@ -1177,29 +1175,29 @@ public sealed class ProtectPageViewModel
     {
         ProtectValidationMessage =
             !IsOperationConnected
-                ? "Conecte el motor local para habilitar la protección."
+                ? Localizer.Text("winui.proteger.conecte_el_motor_local_para_habilitar_la")
                 : string.IsNullOrWhiteSpace(_protectInputPath)
-                    ? "Seleccione el documento que desea proteger."
+                    ? Localizer.Text("winui.proteger.seleccione_el_documento_que_desea")
                     : SelectedContainer?.RequiresTransientSecret == true
-                        ? "Introduzca y confirme la clave efímera Base64. No se guardará en la aplicación."
+                        ? Localizer.Text("winui.proteger.introduzca_y_confirme_la_clave_efimera")
                         : _selectedRecipientIds.Count == 0
                             ? VisibleRecipients.Count == 0
                                 ? SelectedProfile?.Value == "compat"
                                     ? CompatRecipientGuidance
-                                    : "No hay destinatarios compatibles con el perfil y contenedor elegidos."
-                                : "Seleccione al menos un destinatario compatible."
+                                    : Localizer.Text("winui.proteger.no_hay_destinatarios_compatibles_con_el")
+                                : Localizer.Text("winui.proteger.seleccione_al_menos_un_destinatario")
                             : IsProtectAndSign &&
                               SelectedSigningCertificate is null
-                                ? "Seleccione el certificado de firma."
-                                : "Documento y destinatarios preparados para proteger.";
+                                ? Localizer.Text("winui.proteger.seleccione_el_certificado_de_firma")
+                                : Localizer.Text("winui.proteger.documento_y_destinatarios_preparados");
         UnprotectValidationMessage =
             !IsOperationConnected
-                ? "Conecte el motor local para habilitar la desprotección."
+                ? Localizer.Text("winui.proteger.conecte_el_motor_local_para_habilitar_la_2")
                 : string.IsNullOrWhiteSpace(_unprotectInputPath)
-                    ? "Seleccione el contenedor que desea desproteger."
+                    ? Localizer.Text("winui.proteger.seleccione_el_contenedor_que_desea")
                     : IsEncryptedDataUnprotectSelected
-                        ? "Introduzca la clave efímera Base64 usada al crear este EncryptedData."
-                        : "Contenedor preparado para desproteger con el almacén local.";
+                        ? Localizer.Text("winui.proteger.introduzca_la_clave_efimera_base64_usada")
+                        : Localizer.Text("winui.proteger.contenedor_preparado_para_desproteger");
     }
 
     private void UpdateCommandStates()
@@ -1280,7 +1278,7 @@ public sealed class ProtectPageViewModel
     {
         _protectOutputPath = null;
         ProtectResultMessage =
-            "No se ha ejecutado ninguna protección con esta selección.";
+            Localizer.Text("winui.proteger.no_se_ha_ejecutado_ninguna_proteccion_2");
         UpdateCommandStates();
     }
 
@@ -1288,7 +1286,7 @@ public sealed class ProtectPageViewModel
     {
         _unprotectOutputPath = null;
         UnprotectResultMessage =
-            "No se ha ejecutado ninguna desprotección con esta selección.";
+            Localizer.Text("winui.proteger.no_se_ha_ejecutado_ninguna_desproteccion_2");
         UpdateCommandStates();
     }
 
@@ -1301,12 +1299,12 @@ public sealed class ProtectPageViewModel
             if (isProtectedOutput)
             {
                 ProtectValidationMessage =
-                    "Todavía no hay un documento protegido que abrir.";
+                    Localizer.Text("winui.proteger.todavia_no_hay_un_documento_protegido");
             }
             else
             {
                 UnprotectValidationMessage =
-                    "Todavía no hay un documento recuperado que abrir.";
+                    Localizer.Text("winui.proteger.todavia_no_hay_un_documento_recuperado");
             }
             return null;
         }
@@ -1352,9 +1350,9 @@ public sealed class ProtectPageViewModel
 
     private static string OriginLabel(string origin) => origin switch
     {
-        "importado" => "Importado",
-        "otras_personas" => "Otras personas (Windows)",
-        _ => "Propio",
+        "importado" => Localizer.Text("winui.proteger.importado"),
+        "otras_personas" => Localizer.Text("winui.proteger.otras_personas_windows"),
+        _ => Localizer.Text("winui.proteger.propio"),
     };
 
     private static bool IsKnownEncryptedDataPath(string? path) =>
@@ -1397,7 +1395,7 @@ public sealed class ProtectPageViewModel
         var baseName = Path.GetFileNameWithoutExtension(inputPath);
         return string.IsNullOrWhiteSpace(baseName)
             ? Localizer.Text("documento-protegido")
-            : baseName + Localizer.Text("-protegido");
+            : baseName + Localizer.Text("winui.proteger.protegido");
     }
 
     private static string SafeFileName(string path)

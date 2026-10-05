@@ -23,22 +23,22 @@ public sealed partial class ProtectPage : Page
     private const int Aes256SecretBytes = 32;
     private const int Aes256SecretBase64Characters = 44;
 
-    private static readonly SecurePasswordPromptRequest
-        ProtectSecretPrompt = new(
-            "Clave efímera de protección",
-            "&Clave AES-256 en Base64 (44 caracteres):",
+    private static SecurePasswordPromptRequest
+        ProtectSecretPrompt => new(
+            Localizer.Text("winui.proteger.clave_efimera_de_proteccion"),
+            Localizer.Text("winui.proteger.clave_aes_256_en_base64_44_caracteres"),
             Aes256SecretBase64Characters);
 
-    private static readonly SecurePasswordPromptRequest
-        ProtectSecretConfirmationPrompt = new(
-            "Confirmar clave efímera",
-            "&Repita la misma clave Base64:",
+    private static SecurePasswordPromptRequest
+        ProtectSecretConfirmationPrompt => new(
+            Localizer.Text("winui.proteger.confirmar_clave_efimera"),
+            Localizer.Text("winui.proteger.repita_la_misma_clave_base64"),
             Aes256SecretBase64Characters);
 
-    private static readonly SecurePasswordPromptRequest
-        UnprotectSecretPrompt = new(
-            "Clave efímera de desprotección",
-            "&Clave usada al crear el EncryptedData:",
+    private static SecurePasswordPromptRequest
+        UnprotectSecretPrompt => new(
+            Localizer.Text("winui.proteger.clave_efimera_de_desproteccion"),
+            Localizer.Text("winui.proteger.clave_usada_al_crear_el_encrypteddata"),
             Aes256SecretBase64Characters);
 
     private readonly DesktopOperationSession _session;

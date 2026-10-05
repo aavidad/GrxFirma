@@ -253,7 +253,11 @@
   "report.section.errors",
   "report.size_bytes",
   "seal.verify",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "winui.proteger.json_grxfirma_afp",
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
+  "winui.proteger.origen_perfil"
  ],
  "de": [
   " + base64",
@@ -362,7 +366,9 @@
   "subtitle",
   "title",
   "token_settings.check_hardware",
-  "width"
+  "width",
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m"
  ],
  "en": [
   " + base64",
@@ -457,7 +463,9 @@
   "❌ Error: ",
   "eni.codigo.EE01",
   "report.size_bytes",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m"
  ],
  "eu": [
   " + base64",
@@ -550,7 +558,10 @@
   "title",
   "width",
   "❌ Error: ",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "winui.proteger.json_grxfirma_afp",
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m"
  ],
  "fr": [
   " + base64",
@@ -683,7 +694,11 @@
   "eni.codigo.TD04",
   "eni.codigo.TD06",
   "eni.codigo.TD07",
-  "eni.codigo.TD08"
+  "eni.codigo.TD08",
+  "winui.proteger.compatible_rsa_oaep",
+  "winui.proteger.json_grxfirma_afp",
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m"
  ],
  "gl": [
   "paridad.lote3.eni.capture_time",
@@ -1482,7 +1497,20 @@
   "seal.location",
   "seal.reason",
   "seal.verify",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "winui.comun.operacion_cancelada",
+  "winui.proteger.json_grxfirma_afp",
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
+  "winui.proteger.1_destinatario_seleccionado",
+  "winui.proteger.destinatarios_seleccionados",
+  "winui.proteger.destinatario_importado_quitado",
+  "winui.proteger.algoritmo",
+  "winui.proteger.proteccion_cms_encrypteddata_completada",
+  "winui.proteger.proteccion_completada_para_destinatario",
+  "winui.proteger.documento_recuperado_como",
+  "winui.proteger.importado",
+  "winui.proteger.propio"
  ],
  "it": [
   " + base64",
@@ -1630,7 +1658,11 @@
   "csc.gui.remoto",
   "csc.gui.titulo",
   "seal.reason",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "winui.proteger.json_grxfirma_afp",
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
+  "winui.proteger.algoritmo"
  ],
  "pt": [
   "paridad.lote3.eni.capture_time",
@@ -1977,7 +2009,15 @@
   "seal.issued_by",
   "seal.reason",
   "seal.verify",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "winui.comun.proteger",
+  "winui.proteger.json_grxfirma_afp",
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
+  "winui.proteger.algoritmo",
+  "winui.proteger.documento_recuperado_como",
+  "winui.proteger.importado",
+  "winui.proteger.protegido"
  ],
  "va": [
   "paridad.lote3.eni.capture_time",
@@ -2267,7 +2307,11 @@
   "report.section.errors",
   "report.size_bytes",
   "seal.verify",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "winui.proteger.json_grxfirma_afp",
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
+  "winui.proteger.origen_perfil"
  ],
  "zh": [
   " + base64",
@@ -2338,6 +2382,8 @@
   "source",
   "subtitle",
   "title",
-  "width"
+  "width",
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m"
  ]
 }
