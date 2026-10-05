@@ -96,6 +96,22 @@ class UsabilityReviewTest {
         assertNull(vm.state.value.certificate)
     }
 
+    @Test fun `certified date and time keep the signature profile coherent`() {
+        val vm = MainViewModel(repository, FakeCore(), dispatcher,
+            InMemorySettingsStore(AppSettings(tsaUrl = "https://tsa.example/tsr")))
+        vm.updateSigningSettings("sign", "baseline", true, "")
+        assertEquals("t", vm.state.value.signatureProfile)
+        assertEquals("se propone el servicio de Preferencias", "https://tsa.example/tsr", vm.state.value.tsaUrl)
+        vm.updateSigningSettings("sign", "lta", true, "https://tsa.example/tsr")
+        assertEquals("lta", vm.state.value.signatureProfile)
+        vm.updateSigningSettings("sign", "lta", false, "https://tsa.example/tsr")
+        assertEquals("baseline", vm.state.value.signatureProfile)
+        vm.updateSigningSettings("sign", "lt", false, "https://tsa.example/tsr")
+        assertEquals(true, vm.state.value.tsaEnabled)
+        vm.updateSigningSettings("sign", "baseline", true, "https://tsa.example/tsr")
+        assertEquals(false, vm.state.value.tsaEnabled)
+    }
+
     @Test fun `timeout setting falls back to five minutes`() {
         assertEquals(5, AppSettings(sessionTimeoutMinutes = 7).sanitized().sessionTimeoutMinutes)
         assertEquals(0, AppSettings(sessionTimeoutMinutes = 0).sanitized().sessionTimeoutMinutes)

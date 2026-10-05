@@ -399,8 +399,20 @@ class MainViewModel(
         if (!mutableState.value.canReplaceSelection) return
         require(action in listOf("sign", "cosign", "countersign"))
         require(profile in listOf("baseline", "t", "lt", "lta"))
-        mutableState.value = mutableState.value.copy(signatureAction = action, signatureProfile = profile,
-            tsaEnabled = tsaEnabled, tsaUrl = tsaUrl.take(2048))
+        val previous = mutableState.value
+        // La fecha y hora certificadas y el perfil van juntos: T, LT y LTA la
+        // necesitan y B no la lleva. Se ajusta lo que la persona no ha tocado.
+        var chosenProfile = profile
+        var withTimestamp = tsaEnabled
+        if (tsaEnabled != previous.tsaEnabled) {
+            chosenProfile = if (!tsaEnabled) "baseline" else if (profile == "baseline") "t" else profile
+        } else if (profile != previous.signatureProfile) {
+            withTimestamp = profile != "baseline"
+        }
+        // Al activarla con el campo vacío se propone el servicio de Preferencias.
+        val url = if (withTimestamp && tsaUrl.isBlank()) previous.settings.tsaUrl else tsaUrl
+        mutableState.value = previous.copy(signatureAction = action, signatureProfile = chosenProfile,
+            tsaEnabled = withTimestamp, tsaUrl = url.take(2048))
     }
 
     fun acceptCoSignSuggestion() {
