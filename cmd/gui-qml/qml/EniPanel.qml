@@ -101,7 +101,7 @@ Item {
             panel.statusKey = "paridad.lote3.eni.creating"
             panel.statusArg = ""
             panel.bridge.generateENIDocument({inputPath: panel.signaturePath, originalPath: panel.originalPath,
-                                              outputPath: output, options: panel.documentOptions()})
+                                              outputPath: output, overwriteConfirmed: true, options: panel.documentOptions()})
         }
     }
     FileDialog { id: fileSave; title: tr("paridad.lote3.eni.save_file"); fileMode: FileDialog.SaveFile
@@ -113,7 +113,8 @@ Item {
             panel.busy = true
             panel.statusKey = "paridad.lote3.eni.creating"
             panel.statusArg = ""
-            panel.bridge.generateENIFile({directoryPath: panel.directoryPath, outputPath: output,
+            // Las dos rutas salen de un diálogo de guardar que ya pidió confirmación.
+            panel.bridge.generateENIFile({directoryPath: panel.directoryPath, outputPath: output, overwriteConfirmed: true,
                                           certificateId: panel.certificateId(cert), options: panel.fileOptions()})
         }
     }

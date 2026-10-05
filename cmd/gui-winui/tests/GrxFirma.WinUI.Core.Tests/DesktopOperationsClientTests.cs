@@ -41,6 +41,28 @@ public sealed class DesktopOperationsClientTests
     }
 
     [TestMethod]
+    public void OverwriteConfirmed_OnlyTravelsWhenTheSaveDialogConfirmed()
+    {
+        using var unconfirmed = JsonDocument.Parse(JsonSerializer.Serialize(
+            new SignParameters { InputPath = "a.pdf", OutputPath = "a_firmado.pdf" }));
+        Assert.IsFalse(unconfirmed.RootElement.TryGetProperty("overwriteConfirmed", out _));
+
+        using var sign = JsonDocument.Parse(JsonSerializer.Serialize(
+            new SignParameters { InputPath = "a.pdf", OutputPath = "a_firmado.pdf", OverwriteConfirmed = true }));
+        Assert.IsTrue(sign.RootElement.GetProperty("overwriteConfirmed").GetBoolean());
+
+        using var protection = JsonDocument.Parse(JsonSerializer.Serialize(
+            new ProtectionParameters { InputPath = "a.pdf", Profile = "compat", OverwriteConfirmed = true }));
+        Assert.IsTrue(protection.RootElement.GetProperty("overwriteConfirmed").GetBoolean());
+
+        using var export = JsonDocument.Parse(JsonSerializer.Serialize(new CertificateExportPublicParameters
+        {
+            CertificateId = "mio", OutputPath = @"C:\docs\mio.cer", Format = "der", OverwriteConfirmed = true,
+        }));
+        Assert.IsTrue(export.RootElement.GetProperty("overwriteConfirmed").GetBoolean());
+    }
+
+    [TestMethod]
     public async Task Methods_SendExactActionsAndParameterTypes()
     {
         var transport = new RecordingIpcClient();
@@ -918,6 +940,7 @@ public sealed class DesktopOperationsClientTests
             "profile",
             "recipientIds",
             "overwrite",
+            "overwriteConfirmed",
             "saveToDisk",
             "returnProtectedB64",
             "returnUnprotectedB64",

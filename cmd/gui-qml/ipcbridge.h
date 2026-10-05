@@ -93,7 +93,10 @@ public:
   Q_INVOKABLE void cscConnect();
   Q_INVOKABLE void cscDisconnect();
   Q_INVOKABLE void cscSendOtp(const QString &certificateId);
-  Q_INVOKABLE void createFacturae(const QVariantMap &draft, const QString &outputPath);
+  // overwriteConfirmed: la ruta viene de un diálogo de guardar del sistema que
+  // ya preguntó antes de reemplazar. Sin él, el motor aplica la preferencia.
+  Q_INVOKABLE void createFacturae(const QVariantMap &draft, const QString &outputPath,
+                                  bool overwriteConfirmed = false);
   Q_INVOKABLE void validateInvoice(const QString &inputPath);
   Q_INVOKABLE void validateVeriFactu(const QString &inputPath);
   Q_INVOKABLE void readVeriFactuQR(const QString &url);

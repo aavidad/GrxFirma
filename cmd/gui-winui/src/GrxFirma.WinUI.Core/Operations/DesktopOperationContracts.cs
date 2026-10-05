@@ -23,6 +23,13 @@ public sealed record CertificateExportPublicParameters
 
     [JsonPropertyName("format")]
     public required string Format { get; init; }
+
+    // Solo true cuando la persona confirmó el reemplazo de OutputPath en el
+    // diálogo de guardar del sistema. Sin él, el motor aplica la preferencia
+    // de sobrescritura y nunca reemplaza en silencio.
+    [JsonPropertyName("overwriteConfirmed")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool OverwriteConfirmed { get; init; }
 }
 
 public sealed record CertificateExportPublicResult
@@ -478,6 +485,13 @@ public sealed record SignParameters
 
     [JsonPropertyName("overwrite")]
     public string Overwrite { get; init; } = string.Empty;
+
+    // Solo true cuando la persona confirmó el reemplazo de OutputPath en el
+    // diálogo de guardar del sistema. Sin él, el motor aplica la preferencia
+    // de sobrescritura y nunca reemplaza en silencio.
+    [JsonPropertyName("overwriteConfirmed")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool OverwriteConfirmed { get; init; }
 
     [JsonPropertyName("saveToDisk")]
     public bool SaveToDisk { get; init; } = true;
@@ -1036,6 +1050,13 @@ public sealed record ProtectionParameters
 
     [JsonPropertyName("overwrite")]
     public string Overwrite { get; init; } = string.Empty;
+
+    // Solo true cuando la persona confirmó el reemplazo de OutputPath en el
+    // diálogo de guardar del sistema. Sin él, el motor aplica la preferencia
+    // de sobrescritura y nunca reemplaza en silencio.
+    [JsonPropertyName("overwriteConfirmed")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool OverwriteConfirmed { get; init; }
 
     [JsonPropertyName("saveToDisk")]
     public bool SaveToDisk { get; init; } = true;

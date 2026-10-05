@@ -1513,10 +1513,12 @@ bool IpcBridge::setStartupEnabled(bool enabled) {
 #endif
 }
 
-void IpcBridge::createFacturae(const QVariantMap &draft, const QString &outputPath) {
+void IpcBridge::createFacturae(const QVariantMap &draft, const QString &outputPath,
+                               bool overwriteConfirmed) {
   sendRequest(QStringLiteral("facturae_create"),
               {{QStringLiteral("draft"), draft},
-               {QStringLiteral("outputPath"), outputPath}});
+               {QStringLiteral("outputPath"), outputPath},
+               {QStringLiteral("overwriteConfirmed"), overwriteConfirmed}});
 }
 
 void IpcBridge::validateInvoice(const QString &inputPath) {

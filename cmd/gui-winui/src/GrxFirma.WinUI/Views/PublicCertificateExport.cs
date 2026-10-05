@@ -95,6 +95,9 @@ internal static class PublicCertificateExport
             CertificateId = certificateId,
             OutputPath = path,
             Format = format,
+            // Ruta elegida en el selector de guardar, que ya preguntó antes
+            // de reemplazar un fichero existente.
+            OverwriteConfirmed = true,
         }, cancellationToken);
         if (!result.IsSuccess)
         {

@@ -2881,7 +2881,9 @@ public sealed class SignPageViewModel
                     ? format.Value
                     : "pades",
                 Action = action.Value,
-                Overwrite = "force",
+                // El selector de guardar ya pidió confirmación si el
+                // fichero existía; el motor solo reemplaza con este aviso.
+                OverwriteConfirmed = true,
                 SaveToDisk = true,
                 ReturnSignatureBase64 = false,
                 VisibleSeal = visibleSeal,

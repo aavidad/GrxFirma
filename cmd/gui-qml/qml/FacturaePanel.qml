@@ -124,7 +124,8 @@ Item {
             if (path === "") return
             panel.busy = true
             panel.setStatus("facturae.creating")
-            panel.bridge.createFacturae(panel.draft(), path)
+            // El diálogo de guardar ya pidió confirmación si el fichero existía.
+            panel.bridge.createFacturae(panel.draft(), path, true)
         }
     }
     FileDialog {
