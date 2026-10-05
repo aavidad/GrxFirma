@@ -435,8 +435,15 @@ contrato declara `verify_report_html`), la respuesta trae además
 (`informeverificacion.HTML`, autocontenido, con CSP sin scripts y valores
 escapados), de 4 MiB como máximo. Como el móvil no evalúa la confianza con las
 anclas del sistema, el informe nunca declara «firma válida»: si el documento no
-ha cambiado dice «firma íntegra · validez del certificado no acreditada». La
-plantilla está en castellano, igual que en escritorio.
+ha cambiado dice «firma íntegra · validez del certificado no acreditada». El
+informe sale en el idioma y la zona que la app fija con `SetRegion`.
+
+`details` conserva las evidencias técnicas tal como las da el verificador
+(«formato_detectado=PAdES»). La respuesta trae también
+`details_text`, la misma lista en el idioma de la app («Detected format:
+PAdES»), elemento a elemento. Android la usa en pantalla si tiene la misma
+longitud que `details`, y la quita del JSON de datos técnicos que guarda la
+persona.
 
 ## QR tributario desde imagen y varias identidades por sesión
 

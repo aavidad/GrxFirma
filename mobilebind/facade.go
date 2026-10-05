@@ -15,6 +15,8 @@ import (
 	"time"
 
 	mobileinbound "grxfirma/internal/adapters/inbound/mobile"
+	"grxfirma/internal/adapters/outbound/common/informeverificacion"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/adapters/outbound/common/updatecheck"
 	desktopsigner "grxfirma/internal/adapters/outbound/desktop/signer"
@@ -221,9 +223,11 @@ type verifyRequest struct {
 }
 
 type verifyResponse struct {
-	Valid             bool                `json:"valid"`
-	Reason            string              `json:"reason"`
-	Details           []string            `json:"details"`
+	Valid   bool     `json:"valid"`
+	Reason  string   `json:"reason"`
+	Details []string `json:"details"`
+	// DetailsText son las mismas evidencias redactadas en el idioma de la app.
+	DetailsText       []string            `json:"details_text,omitempty"`
 	Signers           []string            `json:"signers"`
 	Format            string              `json:"format,omitempty"`
 	Coverage          string              `json:"coverage,omitempty"`
@@ -621,10 +625,15 @@ func (f *Facade) VerifyJSON(payload string) (string, error) {
 		}
 		reportHTML = base64.StdEncoding.EncodeToString(html)
 	}
+	details := sanitizeOutputStrings(result.Verification.Details, 64, 500)
+	idioma, _ := f.region()
+	detailsText := sanitizeOutputStrings(informeverificacion.TraducirDetalles(
+		localizador.Para(idiomaOCastellano(idioma)), details), 64, 500)
 	return marshal(verifyResponse{
 		Valid:             result.Verification.Valid,
 		Reason:            sanitizeOutputText(result.Verification.Reason, 500),
-		Details:           sanitizeOutputStrings(result.Verification.Details, 64, 500),
+		Details:           details,
+		DetailsText:       detailsText,
 		Signers:           signers,
 		Format:            sanitizeOutputText(result.Verification.Format, 64),
 		Coverage:          sanitizeOutputText(result.Verification.Coverage, 64),

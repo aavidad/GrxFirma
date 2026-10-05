@@ -128,6 +128,15 @@ class CoreJsonCodecTest {
     }
 
     @Test
+    fun `verification shows localized evidence and keeps raw keys in the technical json`() {
+        val response = """{"valid":true,"details":["formato_detectado=PAdES"],"details_text":["Detected format: PAdES"]}"""
+        val actual = CoreJsonCodec.parseVerification(response)
+        assertEquals(listOf("Detected format: PAdES"), actual.details)
+        assertTrue(actual.reportJson.contains("formato_detectado=PAdES"))
+        assertFalse(actual.reportJson.contains("details_text"))
+    }
+
+    @Test
     fun `unknown verification values fail closed in the Android model`() {
         val actual = CoreJsonCodec.parseVerification(
             """{"valid":true,"integrity_status":"invented","revocation_mode":"invented"}""",

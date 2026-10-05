@@ -103,14 +103,14 @@ func HTML(d Datos) ([]byte, error) {
 		Firmantes:    limpiarFirmantes(r.SignerSummaries),
 		Advertencias: limpiarLista(traducirLista(tr, r.Warnings)),
 		Errores:      limpiarLista(traducirLista(tr, r.Errors)),
-		Detalles:     limpiarLista(traducirLista(tr, r.Details)),
+		Detalles:     limpiarLista(TraducirDetalles(loc, r.Details)),
 		Evidencias:   limpiarEvidencias(r.Evidence),
 		Rotulos:      rotulos,
 		Pie:          loc.T("report.footer", pie),
 		Aspectos: []aspecto{
-			nuevoAspecto(loc, tr, "report.aspect.integrity", r.Integrity),
-			nuevoAspecto(loc, tr, "report.aspect.certificate", r.Certificate),
-			nuevoAspecto(loc, tr, "report.aspect.trust", r.Trust),
+			nuevoAspecto(loc, tr, "report.aspect.integrity", sinDetallesRepetidos(r.Integrity, r.Details)),
+			nuevoAspecto(loc, tr, "report.aspect.certificate", sinDetallesRepetidos(r.Certificate, r.Details)),
+			nuevoAspecto(loc, tr, "report.aspect.trust", sinDetallesRepetidos(r.Trust, r.Details)),
 		},
 	}
 	switch {
@@ -134,8 +134,28 @@ func HTML(d Datos) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+// sinDetallesRepetidos quita de un aspecto las evidencias que ya salen en
+// «Detalles técnicos»: el informe no las repite dos veces.
+func sinDetallesRepetidos(a domain.VerificationAspect, generales []string) domain.VerificationAspect {
+	if len(a.Details) == 0 || len(generales) == 0 {
+		return a
+	}
+	ya := make(map[string]bool, len(generales))
+	for _, d := range generales {
+		ya[d] = true
+	}
+	propios := make([]string, 0, len(a.Details))
+	for _, d := range a.Details {
+		if !ya[d] {
+			propios = append(propios, d)
+		}
+	}
+	a.Details = propios
+	return a
+}
+
 func nuevoAspecto(loc *localizador.Localizador, tr func(string) string, clave string, a domain.VerificationAspect) aspecto {
-	out := aspecto{Nombre: loc.T(clave), Motivo: limpiar(tr(a.Reason)), Detalle: limpiarLista(traducirLista(tr, a.Details))}
+	out := aspecto{Nombre: loc.T(clave), Motivo: limpiar(tr(a.Reason)), Detalle: limpiarLista(TraducirDetalles(loc, a.Details))}
 	switch a.Status {
 	case domain.VerificationStatusValid:
 		out.Estado, out.Clase = loc.T("report.status.valid"), "ok"

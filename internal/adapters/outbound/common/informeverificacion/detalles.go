@@ -1,0 +1,66 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// Autoría: Alberto Avidad Fernández
+// Licencia: EUPL 1.2 o posterior
+// SPDX-License-Identifier: EUPL-1.2
+
+package informeverificacion
+
+import (
+	"regexp"
+	"strconv"
+	"strings"
+
+	"grxfirma/internal/adapters/outbound/common/localizador"
+)
+
+const prefijoDetalle = "verificacion.detalle."
+
+var (
+	coberturaFirmaPDF = regexp.MustCompile(`^cobertura_firma_pdf_(\d{1,4})$`)
+	revisionHasta     = regexp.MustCompile(`^revision_hasta_(\d{1,12})_de_(\d{1,12})$`)
+)
+
+// TraducirDetalle convierte una evidencia técnica del verificador
+// («formato_detectado=PAdES») en una línea del catálogo del idioma
+// («Detected format: PAdES»). Las frases ya catalogadas se traducen por su
+// literal; lo que el catálogo no conoce se deja tal cual.
+func TraducirDetalle(loc *localizador.Localizador, linea string) string {
+	clave, valor, ok := strings.Cut(linea, "=")
+	if !ok || clave == "" || strings.ContainsAny(clave, " \t") {
+		return loc.T(linea)
+	}
+	var rotulo string
+	if m := coberturaFirmaPDF.FindStringSubmatch(clave); m != nil {
+		n, _ := strconv.Atoi(m[1])
+		rotulo = loc.T(prefijoDetalle+"cobertura_firma_pdf", n)
+	} else if id := prefijoDetalle + clave; loc.T(id) != id {
+		rotulo = loc.T(id)
+	} else {
+		return linea
+	}
+	return loc.T(prefijoDetalle+"formato", rotulo, traducirValorDetalle(loc, valor))
+}
+
+func traducirValorDetalle(loc *localizador.Localizador, valor string) string {
+	if m := revisionHasta.FindStringSubmatch(valor); m != nil {
+		hasta, _ := strconv.ParseInt(m[1], 10, 64)
+		total, _ := strconv.ParseInt(m[2], 10, 64)
+		return loc.T(prefijoDetalle+"valor.revision_hasta", hasta, total)
+	}
+	if id := prefijoDetalle + "valor." + valor; valor != "" && loc.T(id) != id {
+		return loc.T(id)
+	}
+	return valor
+}
+
+// TraducirDetalles aplica TraducirDetalle a una lista.
+func TraducirDetalles(loc *localizador.Localizador, lineas []string) []string {
+	if len(lineas) == 0 {
+		return nil
+	}
+	out := make([]string, len(lineas))
+	for i, linea := range lineas {
+		out[i] = TraducirDetalle(loc, linea)
+	}
+	return out
+}

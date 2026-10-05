@@ -172,10 +172,15 @@ object CoreJsonCodec {
         val htmlBase64 = json.optString("report_html_base64")
         json.remove("report_html_base64")
         if (json.toString().length > 512 * 1024) throw CoreContractException("REPORT_TOO_LARGE")
+        // En pantalla, las evidencias redactadas en el idioma de la app; el JSON
+        // de datos técnicos conserva las claves originales del motor.
+        val detailsText = json.optJSONArray("details_text").toCleanStrings()
+        json.remove("details_text")
+        val rawDetails = json.optJSONArray("details").toCleanStrings()
         return VerificationSummary(
             valid = json.optBoolean("valid", false),
             reason = cleanText(json.optString("reason")),
-            details = json.optJSONArray("details").toCleanStrings(),
+            details = if (detailsText.size == rawDetails.size && detailsText.isNotEmpty()) detailsText else rawDetails,
             signers = json.optJSONArray("signers").toCleanStrings(),
             format = cleanText(json.optString("format")),
             coverage = cleanText(json.optString("coverage")),

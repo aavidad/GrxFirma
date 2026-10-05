@@ -253,7 +253,8 @@
   "report.section.errors",
   "report.size_bytes",
   "seal.verify",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "verificacion.detalle.perfil"
  ],
  "de": [
   " + base64",
@@ -362,7 +363,8 @@
   "subtitle",
   "title",
   "token_settings.check_hardware",
-  "width"
+  "width",
+  "verificacion.detalle.contenedor"
  ],
  "en": [
   " + base64",
@@ -1482,7 +1484,11 @@
   "seal.location",
   "seal.reason",
   "seal.verify",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "verificacion.detalle.formato_detectado",
+  "verificacion.detalle.perfil",
+  "verificacion.detalle.valor.documento_completo",
+  "verificacion.detalle.valor.ok"
  ],
  "it": [
   " + base64",
@@ -1630,7 +1636,8 @@
   "csc.gui.remoto",
   "csc.gui.titulo",
   "seal.reason",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "verificacion.detalle.valor.documento_completo"
  ],
  "pt": [
   "paridad.lote3.eni.capture_time",
@@ -1977,7 +1984,9 @@
   "seal.issued_by",
   "seal.reason",
   "seal.verify",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "verificacion.detalle.perfil",
+  "verificacion.detalle.valor.documento_completo"
  ],
  "va": [
   "paridad.lote3.eni.capture_time",
@@ -2267,7 +2276,11 @@
   "report.section.errors",
   "report.size_bytes",
   "seal.verify",
-  "report.size_byte_one"
+  "report.size_byte_one",
+  "verificacion.detalle.cobertura_firma_pdf",
+  "verificacion.detalle.firma_pdf",
+  "verificacion.detalle.perfil",
+  "verificacion.detalle.policy"
  ],
  "zh": [
   " + base64",
