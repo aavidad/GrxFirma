@@ -6286,5 +6286,21 @@
   "winui.verificar.no_determinada": "未确定",
   "winui.acerca.desconocida": "未知",
   "winui.verificar.completa": "完整",
-  "winui.verificar.parcial": "部分"
+  "winui.verificar.parcial": "部分",
+  "winui.firmar.preparado": "已准备",
+  "winui.firmar.cancelado": "已取消",
+  "winui.firmar.estado_firmado": "已签名",
+  "winui.firmar.documento_firmado": "已签名文档",
+  "winui.proteger.documento_protegido": "已加密文档",
+  "winui.proteger.documento": "文档",
+  "winui.huella.coincide": "匹配",
+  "winui.huella.hexadecimal": "十六进制",
+  "winui.huella.binario": "二进制",
+  "winui.firmar.la_credencial_se_instalara_de_forma": "凭据将永久安装到当前 Windows 用户的个人证书存储区（Cert:\\CurrentUser\\My）。本应用及其他可访问该存储区的程序都能使用它。仅在希望将凭据保留在此处时继续。",
+  "winui.selector.nombre_certificado_publico": "公钥证书",
+  "winui.selector.nombre_firma": "签名",
+  "winui.selector.nombre_contenedor_firmado": "已签名容器",
+  "winui.selector.nombre_informe_huella": "哈希报告",
+  "winui.selector.nombre_documento_protegido_firmado": "已加密已签名文档",
+  "winui.selector.nombre_diagnostico": "诊断"
 }

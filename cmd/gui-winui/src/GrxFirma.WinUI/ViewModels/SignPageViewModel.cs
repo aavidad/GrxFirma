@@ -4271,7 +4271,7 @@ public sealed class SignPageViewModel
         BatchItems = _batchInputPaths
             .Select(path => new BatchSignDisplayItem(
                 SafeFileName(path),
-                Localizer.Text("Preparado"),
+                Localizer.Text("winui.firmar.preparado"),
                 Localizer.Text("winui.firmar.pendiente_de_ejecutar"),
                 false,
                 null))
@@ -4324,7 +4324,7 @@ public sealed class SignPageViewModel
                     StringComparison.Ordinal)
                     ? item with
                     {
-                        Status = Localizer.Text("Cancelado"),
+                        Status = Localizer.Text("winui.firmar.cancelado"),
                         Detail =
                             Localizer.Text("winui.firmar.no_existe_confirmacion_de_salida_para"),
                     }
@@ -4448,7 +4448,7 @@ public sealed class SignPageViewModel
             successCount++;
             visibleItems.Add(new BatchSignDisplayItem(
                 SafeFileName(expectedPath),
-                "Firmado",
+                Localizer.Text("winui.firmar.estado_firmado"),
                 Localizer.Format("winui.firmar.salida_confirmada",
                     SafeFileName(item.OutputPath)),
                 true,
@@ -5090,7 +5090,7 @@ public sealed class SignPageViewModel
     {
         var baseName = Path.GetFileNameWithoutExtension(inputPath);
         return string.IsNullOrWhiteSpace(baseName)
-            ? Localizer.Text("documento-firmado")
+            ? Localizer.Text("winui.firmar.documento_firmado")
             : baseName + Localizer.Text("winui.firmar.firmado");
     }
 

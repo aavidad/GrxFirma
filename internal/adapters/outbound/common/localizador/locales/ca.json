@@ -6286,5 +6286,21 @@
   "winui.verificar.no_determinada": "no determinada",
   "winui.acerca.desconocida": "desconeguda",
   "winui.verificar.completa": "completa",
-  "winui.verificar.parcial": "parcial"
+  "winui.verificar.parcial": "parcial",
+  "winui.firmar.preparado": "Preparat",
+  "winui.firmar.cancelado": "Cancel·lat",
+  "winui.firmar.estado_firmado": "Signat",
+  "winui.firmar.documento_firmado": "document-signat",
+  "winui.proteger.documento_protegido": "document-protegit",
+  "winui.proteger.documento": "document",
+  "winui.huella.coincide": "Coincideix",
+  "winui.huella.hexadecimal": "hexadecimal",
+  "winui.huella.binario": "binari",
+  "winui.firmar.la_credencial_se_instalara_de_forma": "La credencial s'instal·larà de manera permanent al magatzem personal de l'usuari actual de Windows (Cert:\\CurrentUser\\My). Aquesta aplicació i altres programes amb accés al magatzem la podran utilitzar. Continueu només si voleu conservar-la allí.",
+  "winui.selector.nombre_certificado_publico": "certificat-public",
+  "winui.selector.nombre_firma": "signatura",
+  "winui.selector.nombre_contenedor_firmado": "contenidor-signat",
+  "winui.selector.nombre_informe_huella": "informe-empremta",
+  "winui.selector.nombre_documento_protegido_firmado": "document-protegit-signat",
+  "winui.selector.nombre_diagnostico": "diagnostic"
 }

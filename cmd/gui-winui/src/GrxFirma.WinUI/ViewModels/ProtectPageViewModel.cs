@@ -1394,7 +1394,7 @@ public sealed class ProtectPageViewModel
     {
         var baseName = Path.GetFileNameWithoutExtension(inputPath);
         return string.IsNullOrWhiteSpace(baseName)
-            ? Localizer.Text("documento-protegido")
+            ? Localizer.Text("winui.proteger.documento_protegido")
             : baseName + Localizer.Text("winui.proteger.protegido");
     }
 
@@ -1404,12 +1404,12 @@ public sealed class ProtectPageViewModel
         {
             var name = Path.GetFileName(path);
             return string.IsNullOrWhiteSpace(name)
-                ? Localizer.Text("documento")
+                ? Localizer.Text("winui.proteger.documento")
                 : name;
         }
         catch
         {
-            return Localizer.Text("documento");
+            return Localizer.Text("winui.proteger.documento");
         }
     }
 

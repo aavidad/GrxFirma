@@ -413,28 +413,28 @@ public sealed class WindowsFilePickerService : IFilePickerService
         profile switch
         {
             SaveFilePickerProfile.PublicCertificate =>
-                new("winui.selector.certificado_publico_x_509", "certificado-publico", [".cer", ".pem"]),
+                new("winui.selector.certificado_publico_x_509", "winui.selector.nombre_certificado_publico", [".cer", ".pem"]),
             SaveFilePickerProfile.SignedPdf =>
-                new("winui.selector.documento_pdf_firmado", "documento-firmado", [".pdf"]),
+                new("winui.selector.documento_pdf_firmado", "winui.firmar.documento_firmado", [".pdf"]),
             SaveFilePickerProfile.CadesSignature =>
-                new("winui.selector.firma_cades", "firma", [".p7s"]),
+                new("winui.selector.firma_cades", "winui.selector.nombre_firma", [".p7s"]),
             SaveFilePickerProfile.XadesSignature =>
-                new("winui.selector.firma_xades", "firma", [".xsig"]),
+                new("winui.selector.firma_xades", "winui.selector.nombre_firma", [".xsig"]),
             SaveFilePickerProfile.XmlDsigSignature =>
-                new("winui.selector.firma_xmldsig", "firma", [".dsig"]),
+                new("winui.selector.firma_xmldsig", "winui.selector.nombre_firma", [".dsig"]),
             SaveFilePickerProfile.FacturaeXml =>
                 new(
                     "Facturae 3.2.2",
                     "facturae",
                     [".xml", ".xsig"]),
             SaveFilePickerProfile.AsicContainer =>
-                new("winui.selector.contenedor_asic", "contenedor-firmado", [".asics", ".asice"]),
+                new("winui.selector.contenedor_asic", "winui.selector.nombre_contenedor_firmado", [".asics", ".asice"]),
             SaveFilePickerProfile.HashManifest =>
-                new("winui.selector.informe_de_huella", "informe-huella", [".hashreport", ".hash"]),
+                new("winui.selector.informe_de_huella", "winui.selector.nombre_informe_huella", [".hashreport", ".hash"]),
             SaveFilePickerProfile.ProtectedContainer =>
                 new(
-                    Localizer.Text("winui.selector.documento_protegido"),
-                    "documento-protegido",
+                    "winui.selector.documento_protegido",
+                    "winui.proteger.documento_protegido",
                     [
                         ".afp",
                         ".enveloped",
@@ -444,31 +444,31 @@ public sealed class WindowsFilePickerService : IFilePickerService
                     ]),
             SaveFilePickerProfile.ProtectedJson =>
                 new(
-                    Localizer.Text("winui.selector.sobre_protegido_grxfirma"),
-                    "documento-protegido",
+                    "winui.selector.sobre_protegido_grxfirma",
+                    "winui.proteger.documento_protegido",
                     [".afp"]),
             SaveFilePickerProfile.CmsEnveloped =>
                 new(
                     "CMS EnvelopedData",
-                    "documento-protegido",
+                    "winui.proteger.documento_protegido",
                     [".enveloped"]),
             SaveFilePickerProfile.CmsEncrypted =>
                 new(
                     "CMS EncryptedData",
-                    "documento-protegido",
+                    "winui.proteger.documento_protegido",
                     [".encrypted.p7m"]),
             SaveFilePickerProfile.CmsAuthEnveloped =>
                 new(
                     "CMS AuthEnvelopedData",
-                    "documento-protegido",
+                    "winui.proteger.documento_protegido",
                     [".authenveloped.p7m"]),
             SaveFilePickerProfile.CmsSignedEnveloped =>
                 new(
                     "CMS SignedAndEnvelopedData",
-                    "documento-protegido-firmado",
+                    "winui.selector.nombre_documento_protegido_firmado",
                     [".signedenveloped.p7m"]),
             SaveFilePickerProfile.DiagnosticReport =>
-                new("winui.selector.informe_de_diagnostico", "diagnostico", [".json", ".txt"]),
+                new("winui.selector.informe_de_diagnostico", "winui.selector.nombre_diagnostico", [".json", ".txt"]),
             SaveFilePickerProfile.VerificationReport =>
                 new(SealUiCatalog.Text(Localizer.Language,
                     "winui.parity.verify.export"),
@@ -490,7 +490,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
             _ => throw new ArgumentOutOfRangeException(
                 nameof(profile),
                 profile,
-                Localizer.Text("winui.selector.perfil_de_guardado_no_soportado")),
+                "winui.selector.perfil_de_guardado_no_soportado"),
         };
 
     private static string SafeSuggestedFileName(
@@ -498,7 +498,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
         SavePickerPolicy policy)
     {
         var candidate = string.IsNullOrWhiteSpace(suggestedFileName)
-            ? policy.DefaultBaseName
+            ? Localizer.Text(policy.DefaultBaseName)
             : Path.GetFileNameWithoutExtension(
                 Path.GetFileName(suggestedFileName.Trim()));
         var invalidCharacters = Path.GetInvalidFileNameChars();
@@ -530,7 +530,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
             .TrimEnd(' ', '.');
         if (string.IsNullOrWhiteSpace(normalized))
         {
-            normalized = policy.DefaultBaseName;
+            normalized = Localizer.Text(policy.DefaultBaseName);
         }
         var deviceBaseName = normalized.Split('.', 2)[0];
         if (ReservedWindowsNames.Contains(deviceBaseName))

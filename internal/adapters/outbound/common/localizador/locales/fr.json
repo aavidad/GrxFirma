@@ -6286,5 +6286,21 @@
   "winui.verificar.no_determinada": "indéterminée",
   "winui.acerca.desconocida": "inconnue",
   "winui.verificar.completa": "complète",
-  "winui.verificar.parcial": "partielle"
+  "winui.verificar.parcial": "partielle",
+  "winui.firmar.preparado": "Prêt",
+  "winui.firmar.cancelado": "Annulé",
+  "winui.firmar.estado_firmado": "Signé",
+  "winui.firmar.documento_firmado": "document-signe",
+  "winui.proteger.documento_protegido": "document-protege",
+  "winui.proteger.documento": "document",
+  "winui.huella.coincide": "Correspond",
+  "winui.huella.hexadecimal": "hexadécimal",
+  "winui.huella.binario": "binaire",
+  "winui.firmar.la_credencial_se_instalara_de_forma": "Le certificat et sa clé privée seront installés durablement dans le magasin personnel de l'utilisateur Windows actuel (Cert:\\CurrentUser\\My). Cette application et d'autres programmes ayant accès à ce magasin pourront les utiliser. Ne continuez que si vous souhaitez les y conserver.",
+  "winui.selector.nombre_certificado_publico": "certificat-public",
+  "winui.selector.nombre_firma": "signature",
+  "winui.selector.nombre_contenedor_firmado": "conteneur-signe",
+  "winui.selector.nombre_informe_huella": "rapport-empreinte",
+  "winui.selector.nombre_documento_protegido_firmado": "document-protege-signe",
+  "winui.selector.nombre_diagnostico": "diagnostic"
 }

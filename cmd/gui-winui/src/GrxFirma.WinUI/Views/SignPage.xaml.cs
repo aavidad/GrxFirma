@@ -891,7 +891,7 @@ public sealed partial class SignPage : Page
             RequestedTheme = ActualTheme,
             Title = Localizer.Text("winui.firmar.importar_en_el_almacen_de_windows"),
             Content =
-                "La credencial se instalará de forma persistente en el almacén personal del usuario actual de Windows (Cert:\\CurrentUser\\My). Podrá usarla esta aplicación y otros programas con acceso a ese almacén. Continúe solo si quiere conservarla allí.",
+                Localizer.Text("winui.firmar.la_credencial_se_instalara_de_forma"),
             PrimaryButtonText = Localizer.Text("winui.firmar.importar_en_windows"),
             CloseButtonText = Localizer.Text("winui.comun.cancelar"),
             DefaultButton = ContentDialogButton.Close,

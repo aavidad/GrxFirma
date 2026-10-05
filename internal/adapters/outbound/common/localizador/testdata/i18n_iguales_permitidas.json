@@ -287,7 +287,9 @@
   "winui.huella.xml_grxfirma",
   "winui.verificar.no_determinada",
   "winui.verificar.completa",
-  "winui.verificar.parcial"
+  "winui.verificar.parcial",
+  "winui.proteger.documento",
+  "winui.huella.hexadecimal"
  ],
  "de": [
   " + base64",
@@ -501,7 +503,8 @@
   "winui.proteger.cms_envelopeddata_enveloped",
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
   "winui.comun.facturae",
-  "winui.ajustes.manual"
+  "winui.ajustes.manual",
+  "winui.huella.hexadecimal"
  ],
  "eu": [
   " + base64",
@@ -746,7 +749,9 @@
   "winui.acerca.version",
   "winui.huella.base64_grxfirma_hashb64",
   "winui.huella.xml_grxfirma_hashfiles",
-  "winui.huella.xml_grxfirma"
+  "winui.huella.xml_grxfirma",
+  "winui.proteger.documento",
+  "winui.selector.nombre_firma"
  ],
  "gl": [
   "paridad.lote3.eni.capture_time",
@@ -1673,7 +1678,15 @@
   "winui.verificar.valida",
   "winui.verificar.con_avisos",
   "winui.verificar.completa",
-  "winui.verificar.parcial"
+  "winui.verificar.parcial",
+  "winui.firmar.preparado",
+  "winui.firmar.cancelado",
+  "winui.proteger.documento",
+  "winui.huella.coincide",
+  "winui.huella.hexadecimal",
+  "winui.huella.binario",
+  "winui.selector.nombre_certificado_publico",
+  "winui.selector.nombre_diagnostico"
  ],
  "it": [
   " + base64",
@@ -1836,7 +1849,10 @@
   "winui.huella.binario_hash",
   "winui.huella.xml_grxfirma_hashfiles",
   "winui.huella.xml_grxfirma",
-  "winui.verificar.completa"
+  "winui.verificar.completa",
+  "winui.proteger.documento",
+  "winui.huella.binario",
+  "winui.selector.nombre_firma"
  ],
  "pt": [
   "paridad.lote3.eni.capture_time",
@@ -2235,7 +2251,13 @@
   "winui.verificar.formato_cobertura",
   "winui.verificar.valida",
   "winui.verificar.completa",
-  "winui.verificar.parcial"
+  "winui.verificar.parcial",
+  "winui.firmar.cancelado",
+  "winui.proteger.documento_protegido",
+  "winui.proteger.documento",
+  "winui.huella.hexadecimal",
+  "winui.selector.nombre_certificado_publico",
+  "winui.selector.nombre_diagnostico"
  ],
  "va": [
   "paridad.lote3.eni.capture_time",
@@ -2562,7 +2584,9 @@
   "winui.huella.xml_grxfirma",
   "winui.verificar.no_determinada",
   "winui.verificar.completa",
-  "winui.verificar.parcial"
+  "winui.verificar.parcial",
+  "winui.proteger.documento",
+  "winui.huella.hexadecimal"
  ],
  "zh": [
   " + base64",

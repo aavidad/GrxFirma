@@ -6286,5 +6286,21 @@
   "winui.verificar.no_determinada": "non determinata",
   "winui.acerca.desconocida": "sconosciuta",
   "winui.verificar.completa": "completa",
-  "winui.verificar.parcial": "parziale"
+  "winui.verificar.parcial": "parziale",
+  "winui.firmar.preparado": "Pronto",
+  "winui.firmar.cancelado": "Annullato",
+  "winui.firmar.estado_firmado": "Firmato",
+  "winui.firmar.documento_firmado": "documento-firmato",
+  "winui.proteger.documento_protegido": "documento-protetto",
+  "winui.proteger.documento": "documento",
+  "winui.huella.coincide": "Corrisponde",
+  "winui.huella.hexadecimal": "esadecimale",
+  "winui.huella.binario": "binario",
+  "winui.firmar.la_credencial_se_instalara_de_forma": "La credenziale sarà installata in modo permanente nell'archivio personale dell'utente Windows corrente (Cert:\\CurrentUser\\My). Questa applicazione e altri programmi con accesso all'archivio potranno usarla. Continua solo se vuoi conservarla lì.",
+  "winui.selector.nombre_certificado_publico": "certificato-pubblico",
+  "winui.selector.nombre_firma": "firma",
+  "winui.selector.nombre_contenedor_firmado": "contenitore-firmato",
+  "winui.selector.nombre_informe_huella": "rapporto-impronta",
+  "winui.selector.nombre_documento_protegido_firmado": "documento-protetto-firmato",
+  "winui.selector.nombre_diagnostico": "diagnostica"
 }

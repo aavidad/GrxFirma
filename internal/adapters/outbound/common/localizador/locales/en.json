@@ -6286,5 +6286,21 @@
   "winui.verificar.no_determinada": "undetermined",
   "winui.acerca.desconocida": "unknown",
   "winui.verificar.completa": "full",
-  "winui.verificar.parcial": "partial"
+  "winui.verificar.parcial": "partial",
+  "winui.firmar.preparado": "Ready",
+  "winui.firmar.cancelado": "Canceled",
+  "winui.firmar.estado_firmado": "Signed",
+  "winui.firmar.documento_firmado": "signed-document",
+  "winui.proteger.documento_protegido": "protected-document",
+  "winui.proteger.documento": "document",
+  "winui.huella.coincide": "Matches",
+  "winui.huella.hexadecimal": "hexadecimal",
+  "winui.huella.binario": "binary",
+  "winui.firmar.la_credencial_se_instalara_de_forma": "The credential will be installed permanently in the current Windows user's personal store (Cert:\\CurrentUser\\My). This application and other programs with access to that store can use it. Continue only if you want to keep it there.",
+  "winui.selector.nombre_certificado_publico": "public-certificate",
+  "winui.selector.nombre_firma": "signature",
+  "winui.selector.nombre_contenedor_firmado": "signed-container",
+  "winui.selector.nombre_informe_huella": "hash-report",
+  "winui.selector.nombre_documento_protegido_firmado": "signed-protected-document",
+  "winui.selector.nombre_diagnostico": "diagnostics"
 }

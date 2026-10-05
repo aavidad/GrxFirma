@@ -79,7 +79,7 @@ public sealed class HashPageViewModel
         DesktopOperationSession session,
         IFilePickerService filePicker)
         : base(
-            "Huellas",
+            Localizer.Text("winui.ventana.huellas"),
             Localizer.Text("winui.huella.crea_o_comprueba_huellas_de_ficheros_y"),
             Localizer.Text("winui.huella.las_huellas_no_estan_disponibles_porque"))
     {
@@ -618,7 +618,7 @@ public sealed class HashPageViewModel
         }
         else
         {
-            AddResultItems(items, "Coincide", data.VisibleMatchingHash);
+            AddResultItems(items, Localizer.Text("winui.huella.coincide"), data.VisibleMatchingHash);
             AddResultItems(
                 items,
                 Localizer.Text("winui.huella.no_coincide"),
@@ -800,9 +800,9 @@ public sealed class HashPageViewModel
     private static string FormatLabel(string? format) =>
         format?.Trim().ToLowerInvariant() switch
         {
-            "hex" => "hexadecimal",
+            "hex" => Localizer.Text("winui.huella.hexadecimal"),
             "base64" => "Base64",
-            "bin" => "binario",
+            "bin" => Localizer.Text("winui.huella.binario"),
             "xml" or "hashfiles" => Localizer.Text("winui.huella.xml_grxfirma"),
             "txt" or "txthashfiles" => Localizer.Text("winui.huella.texto_grxfirma"),
             "csv" => "CSV",
