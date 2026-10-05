@@ -106,6 +106,13 @@ import android.content.pm.PackageManager
 import es.dipgra.grxfirma.android.qr.QrCapture
 import es.dipgra.grxfirma.android.qr.QrImagePreparer
 import es.dipgra.grxfirma.android.ui.IdentityPanel
+import es.dipgra.grxfirma.android.ui.VerificationCard
+import es.dipgra.grxfirma.android.model.VerificationSummary
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 
 private const val STATE_EXPANDED_TOOLS = "expanded_tools"
 private const val ENI_DATE_PICKER = "eni_capture_date"
@@ -141,6 +148,8 @@ class MainActivity : AppCompatActivity() {
     private var updatingCertificateFilter = false
     private var menuEnabled = true
     private var lastResult: OperationResult? = null
+    private var lastVerification: VerificationSummary? = null
+    private var verificationTechnicalExpanded = false
     /** Momento (reloj `elapsedRealtime`) desde el que cuenta el cierre automático; 0 en primer plano. */
     private var backgroundSince = 0L
     /** Hay un selector o diálogo de guardado del sistema abierto por la app. */
@@ -447,6 +456,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         renderMainToggles()
+        toggleVerificationTechnicalButton.setOnClickListener {
+            verificationTechnicalExpanded = !verificationTechnicalExpanded
+            renderVerification(viewModel.state.value)
+        }
         exportReportButton.setOnClickListener { viewModel.exportVerificationReport() }
         exportReportHtmlButton.setOnClickListener { viewModel.exportVerificationReport(printable = true) }
         useCosignButton.setOnClickListener { viewModel.acceptCoSignSuggestion() }
@@ -1021,12 +1034,6 @@ class MainActivity : AppCompatActivity() {
         }
         editVisibleSealButton.visibility = if (pdfSelected && sealSettings.enabled) View.VISIBLE else View.GONE
         editVisibleSealButton.isEnabled = state.canReplaceSelection
-        verificationDetail.setTextColor(ContextCompat.getColor(this@MainActivity, when {
-            state.postSignVerificationFailed -> R.color.status_warning
-            state.verification?.integrityStatus == "invalid" -> R.color.error
-            state.verification?.toUiText()?.accredited() == true -> R.color.primary
-            else -> R.color.on_surface
-        }))
         verifyButton.isEnabled = state.canVerify
         certificatePasswordLayout.isEnabled = !state.busy
         signatureFormat.isEnabled = state.canReplaceSelection
@@ -1047,12 +1054,7 @@ class MainActivity : AppCompatActivity() {
         updatingSigningControls = false
         useCosignButton.visibility = if (state.coSignSuggested) View.VISIBLE else View.GONE
         useCosignButton.isEnabled = state.canReplaceSelection
-        verificationDetail.text = if (state.verification != null || state.postSignVerificationFailed) {
-            getString(R.string.verification_document, state.verifiedDocumentName) + "\n" +
-                (state.verification?.toUiText()?.resolve(this@MainActivity)
-                    ?: getString(R.string.post_sign_verification_failed))
-        } else ""
-        verificationDetail.visibility = if (state.verification != null || state.postSignVerificationFailed) View.VISIBLE else View.GONE
+        renderVerification(state)
         exportReportButton.visibility = if (state.verification?.reportJson?.isNotEmpty() == true) View.VISIBLE else View.GONE
         exportReportButton.isEnabled = state.canExportReport
         exportReportHtmlButton.visibility = if (state.verification?.reportHtml?.isNotEmpty() == true) View.VISIBLE else View.GONE
@@ -1079,14 +1081,11 @@ class MainActivity : AppCompatActivity() {
                 resultDetail.visibility = View.GONE
             }
             is OperationResult.Success -> {
-                resultTitle.text = result.title.resolve(this@MainActivity)
-                val verification = result.detail as? UiText.Verification
-                val color = when {
-                    verification == null -> R.color.primary
-                    !verification.valid || verification.integrityStatus == "invalid" -> R.color.error
-                    verification.accredited() -> R.color.primary
-                    else -> R.color.status_warning
-                }
+                // Tras verificar, el título es el veredicto: no hay otra conclusión que lo contradiga.
+                val verdict = (result.detail as? UiText.Verification)?.let(VerificationCard::verdict)
+                resultTitle.text = if (verdict != null) getString(VerificationCard.title(verdict))
+                    else result.title.resolve(this@MainActivity)
+                val color = verdict?.let(VerificationCard::color) ?: R.color.primary
                 resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, color))
                 renderDetail(if (result.detail is UiText.Verification) null else result.detail?.resolve(this@MainActivity))
             }
@@ -1158,6 +1157,50 @@ class MainActivity : AppCompatActivity() {
                 resources.getQuantityString(R.plurals.minutes, minutes, minutes))
             else getString(R.string.certificate_open_status_manual, certificate.subject)
         }
+    }
+
+    /**
+     * Verificación de la última operación: resumen en lenguaje llano y, plegadas,
+     * las evidencias técnicas. Tras firmar, la primera línea da el veredicto de
+     * la firma creada; tras verificar, el veredicto ya es el título.
+     */
+    private fun renderVerification(state: MainUiState) = with(binding) {
+        val verification = state.verification?.toUiText()
+        if (state.verification !== lastVerification) {
+            lastVerification = state.verification
+            verificationTechnicalExpanded = false
+        }
+        val shown = verification != null || state.postSignVerificationFailed
+        verificationDetail.visibility = if (shown) View.VISIBLE else View.GONE
+        val text = SpannableStringBuilder()
+        if (verification != null) {
+            val isResult = (state.result as? OperationResult.Success)?.detail is UiText.Verification
+            if (!isResult) {
+                val verdict = VerificationCard.verdict(verification)
+                val start = text.length
+                text.append(getString(R.string.verification_post_sign, getString(VerificationCard.title(verdict))))
+                text.setSpan(ForegroundColorSpan(ContextCompat.getColor(this@MainActivity, VerificationCard.color(verdict))),
+                    start, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                text.setSpan(StyleSpan(Typeface.BOLD), start, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                text.append("\n")
+            }
+            text.append(getString(R.string.verification_document, state.verifiedDocumentName)).append("\n")
+            text.append(verification.resolve(this@MainActivity))
+        } else if (state.postSignVerificationFailed) {
+            text.append(getString(R.string.verification_document, state.verifiedDocumentName)).append("\n")
+            val start = text.length
+            text.append(getString(R.string.post_sign_verification_failed))
+            text.setSpan(ForegroundColorSpan(ContextCompat.getColor(this@MainActivity, R.color.status_warning)),
+                start, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        verificationDetail.text = text
+        toggleVerificationTechnicalButton.visibility = if (verification != null) View.VISIBLE else View.GONE
+        val expanded = verification != null && verificationTechnicalExpanded
+        toggleVerificationTechnicalButton.setIconResource(if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
+        ViewCompat.setStateDescription(toggleVerificationTechnicalButton,
+            getString(if (expanded) R.string.state_expanded else R.string.state_collapsed))
+        verificationTechnical.visibility = if (expanded) View.VISIBLE else View.GONE
+        verificationTechnical.text = if (expanded) VerificationCard.technical(this@MainActivity, verification!!) else ""
     }
 
     private fun renderDetail(detail: String?) = with(binding.resultDetail) {

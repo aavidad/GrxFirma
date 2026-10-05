@@ -72,96 +72,9 @@ fun UiText.resolve(context: Context): String = when (this) {
         format.format(java.util.Date.from(instant))
     } catch (_: Exception) { iso }
     is UiText.Engine -> if (EngineKeys.isClosed(key)) EngineText.resolve(context, key) else context.getString(R.string.error_core_operation)
-    is UiText.Verification -> buildList {
-        add(
-            context.getString(
-                when {
-                    reason == "revocación no concluyente" -> R.string.verification_revocation_inconclusive
-                    !valid || integrityStatus == "invalid" -> R.string.verification_result_invalid
-                    accredited() -> R.string.verification_result_accredited
-                    else -> R.string.verification_result_incomplete
-                },
-            ),
-        )
-        add(
-            context.getString(
-                R.string.verification_integrity,
-                context.verificationStatusLabel(integrityStatus),
-            ),
-        )
-        add(
-            context.getString(
-                R.string.verification_certificate,
-                context.verificationStatusLabel(certificateStatus),
-            ),
-        )
-        add(
-            context.getString(
-                R.string.verification_trust,
-                context.verificationStatusLabel(trustStatus),
-            ),
-        )
-        add(
-            context.getString(
-                R.string.verification_revocation,
-                context.revocationModeLabel(revocationMode),
-            ),
-        )
-        if (format.isNotBlank()) add(context.getString(R.string.verification_format, format))
-        add(context.getString(R.string.verification_coverage, context.getString(when (coverage) {
-            "full", "total", "whole_document" -> R.string.coverage_full
-            "partial", "partial_document" -> R.string.coverage_partial
-            "detached" -> R.string.coverage_detached
-            else -> R.string.verification_status_unknown
-        })))
-        if (reason.isNotBlank()) add(context.getString(R.string.verification_verdict, EngineText.resolve(context, reason)))
-        if (signerSummaries.isNotEmpty()) {
-            signerSummaries.forEach { signer ->
-                add(context.getString(R.string.verification_signer_detail,
-                    signer.subject.ifBlank { signer.id }, signer.issuer, signer.fingerprint))
-            }
-        } else signers.forEach { add(context.getString(R.string.verification_signer, it)) }
-        details.forEach { add(context.getString(R.string.verification_evidence, EngineText.resolve(context, it))) }
-        warnings.forEach { add(context.getString(R.string.verification_warning, EngineText.resolve(context, it))) }
-        errors.forEach { add(context.getString(R.string.verification_error, EngineText.resolve(context, it))) }
-        add(context.resources.getQuantityString(R.plurals.verification_signers, signerCount, signerCount))
-        if (warningCount > 0) {
-            add(
-                context.resources.getQuantityString(
-                    R.plurals.verification_warnings,
-                    warningCount,
-                    warningCount,
-                ),
-            )
-        }
-        if (errorCount > 0) {
-            add(
-                context.resources.getQuantityString(
-                    R.plurals.verification_errors,
-                    errorCount,
-                    errorCount,
-                ),
-            )
-        }
-    }.joinToString("\n")
+    // El resumen en lenguaje llano; las evidencias van aparte en VerificationCard.technical.
+    is UiText.Verification -> VerificationCard.summary(this).joinToString("\n") { it.resolve(context) }
 }
-
-private fun Context.verificationStatusLabel(status: String): String = getString(
-    when (status) {
-        "valid" -> R.string.verification_status_valid
-        "invalid" -> R.string.verification_status_invalid
-        "warning" -> R.string.verification_status_warning
-        else -> R.string.verification_status_unknown
-    },
-)
-
-private fun Context.revocationModeLabel(mode: String): String = getString(
-    when (mode) {
-        "embedded_evidence_only" -> R.string.revocation_embedded_only
-        "online" -> R.string.revocation_online
-        else -> R.string.revocation_not_available
-    },
-)
 
 sealed interface OperationResult {
     data object Idle : OperationResult
@@ -178,6 +91,8 @@ data class MainUiState(
     val certificateFile: SelectedFile? = null,
     val certificate: CertificateSummary? = null,
     val busy: Boolean = false,
+    /** Contraseña del fichero de certificado incorrecta: se marca en su campo. */
+    val certificatePasswordError: UiText? = null,
     val awaitingSave: Boolean = false,
     val result: OperationResult = OperationResult.Idle,
     val verification: VerificationSummary? = null,
@@ -290,6 +205,18 @@ data class MainUiState(
     val canReplaceSelection: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
     val canAcceptIncomingDocument: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
 }
+
+/**
+ * La tarjeta de resultado solo enseña la última operación: al empezar otra
+ * (o al dar un resultado que no es una verificación) se borran el resultado
+ * y la verificación anteriores, con sus botones de informe.
+ */
+fun MainUiState.clearedResult(result: OperationResult = OperationResult.Idle): MainUiState = copy(
+    result = result,
+    verification = null,
+    verifiedDocumentName = "",
+    postSignVerificationFailed = false,
+)
 
 /** Qué espera guardarse: una firma, un fichero de una herramienta o el lote. */
 enum class PendingKind { SIGNATURE, TOOL, BATCH }

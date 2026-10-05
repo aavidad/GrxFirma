@@ -118,10 +118,6 @@
     <string name="result_error">No s’ha pogut completar l’operació</string>
     <string name="result_signed">Signatura %1$s creada amb %2$s. Seleccioneu on desar el resultat.</string>
     <string name="verification_result_title">Resultat de la verificació</string>
-    <string name="verification_result_accredited">Signatura íntegra i acreditada.</string>
-    <string name="verification_result_incomplete">Verificació incompleta: no s\'ha pogut comprovar el certificat o qui el va emetre. Reviseu el detall.</string>
-    <string name="verification_result_invalid">Signatura no vàlida o integritat no garantida.</string>
-    <string name="verification_revocation_inconclusive">No s’ha pogut comprovar la revocació del certificat. La signatura no es considera vàlida.</string>
     <string name="verification_integrity">Integritat criptogràfica: %1$s</string>
     <string name="verification_certificate">Vigència i ús del certificat: %1$s</string>
     <string name="verification_trust">Confiança de la cadena: %1$s</string>
@@ -166,16 +162,6 @@
         <item quantity="other">%1$d signants detectats</item>
         <item quantity="many">%1$d signants detectats</item>
     </plurals>
-    <plurals name="verification_warnings">
-        <item quantity="one">%1$d advertiment tècnic</item>
-        <item quantity="other">%1$d advertiments tècnics</item>
-        <item quantity="many">%1$d advertiments tècnics</item>
-    </plurals>
-    <plurals name="verification_errors">
-        <item quantity="one">%1$d error de verificació</item>
-        <item quantity="other">%1$d errors de verificació</item>
-        <item quantity="many">%1$d errors de verificació</item>
-    </plurals>
     <string name="signature_action">Operació de signatura</string>
     <string name="signature_profile">Perfil de signatura</string>
     <string name="action_sign">Signar</string>
@@ -200,7 +186,6 @@
     <string name="coverage_full">Document complet</string>
     <string name="coverage_partial">Cobertura parcial</string>
     <string name="coverage_detached">Signatura separada del document</string>
-    <string name="verification_verdict">Conclusió: %1$s</string>
     <string name="verification_signer">Signant: %1$s</string>
     <string name="verification_signer_detail">Signant: %1$s\nEmissor: %2$s\nEmpremta: %3$s</string>
     <string name="verification_evidence">Evidència: %1$s</string>
@@ -213,7 +198,7 @@
     <string name="about_release_notes">Novetats</string>
     <string name="release_notes_content">Altres funcions: signatura de diversos fitxers alhora; empremtes compatibles amb l\'escriptori; protecció de fitxers per a persones concretes o amb clau; cosignatura i contrasignatura; data i hora certificades; verificació detallada amb informe; onze idiomes.</string>
     <string name="signed_document_name">%1$s-signat.%2$s</string>
-    <string name="verification_document">Document de l’informe: %1$s</string>
+    <string name="verification_document">Document: %1$s</string>
     <string name="tools_helper">Signatura de diversos fitxers, empremtes i protecció de fitxers. Fan servir el document i el certificat triats a dalt.</string>
     <string name="tools_unavailable">Aquestes eines no estan disponibles en aquesta instal·lació.</string>
     <string name="state_expanded">desplegat</string>
@@ -645,4 +630,21 @@
         <item quantity="many">Hi ha %1$d certificats oberts. Trieu amb quin signar.</item>
         <item quantity="other">Hi ha %1$d certificats oberts. Trieu amb quin signar.</item>
     </plurals>
+    <string name="verdict_valid">Signatura vàlida</string>
+    <string name="verdict_intact_unchecked">Signatura íntegra; no s\'ha pogut comprovar el certificat</string>
+    <string name="verdict_incomplete">No s\'ha pogut comprovar la signatura del tot</string>
+    <string name="verdict_revocation_inconclusive">Signatura no confirmada: no s\'ha pogut saber si el certificat està revocat</string>
+    <string name="verdict_invalid">Signatura no vàlida</string>
+    <string name="verification_post_sign">Comprovació de la signatura creada: %1$s</string>
+    <string name="verification_signed_by">Signat per: %1$s</string>
+    <string name="verification_integrity_ok">El document no s\'ha modificat des que es va signar.</string>
+    <string name="verification_integrity_bad">El document s\'ha modificat després de signar-lo o la signatura està malmesa.</string>
+    <string name="verification_integrity_unknown">No s\'ha pogut comprovar si el document s\'ha modificat.</string>
+    <string name="verification_partial">La signatura no cobreix tot el document: hi ha contingut afegit després de signar.</string>
+    <string name="verification_certificate_ok">El certificat de qui va signar és vàlid i de confiança.</string>
+    <string name="verification_certificate_bad">El certificat de qui va signar no és vàlid: pot estar caducat, revocat o no servir per signar.</string>
+    <string name="verification_certificate_unknown">No s\'ha pogut comprovar en aquest mòbil el certificat de qui va signar.</string>
+    <string name="verification_revocation_unknown">No s\'ha pogut saber si el certificat estava revocat en signar.</string>
+    <string name="verification_technical_toggle">Detalls tècnics</string>
+    <string name="verification_reason">Motiu: %1$s</string>
 </resources>

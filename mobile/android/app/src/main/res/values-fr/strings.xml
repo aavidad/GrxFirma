@@ -118,10 +118,6 @@
     <string name="result_error">Impossible de terminer l’opération</string>
     <string name="result_signed">Signature %1$s créée avec %2$s. Choisissez où enregistrer le résultat.</string>
     <string name="verification_result_title">Résultat de la vérification</string>
-    <string name="verification_result_accredited">Signature intègre et reconnue.</string>
-    <string name="verification_result_incomplete">Vérification incomplète : le certificat ou son émetteur n\'a pas pu être vérifié. Consultez le détail.</string>
-    <string name="verification_result_invalid">Signature invalide ou intégrité non garantie.</string>
-    <string name="verification_revocation_inconclusive">La révocation du certificat n’a pas pu être vérifiée. La signature n’est pas considérée comme valide.</string>
     <string name="verification_integrity">Intégrité cryptographique : %1$s</string>
     <string name="verification_certificate">Validité et usage du certificat : %1$s</string>
     <string name="verification_trust">Confiance de la chaîne : %1$s</string>
@@ -166,16 +162,6 @@
         <item quantity="other">%1$d signataires détectés</item>
         <item quantity="many">%1$d signataires détectés</item>
     </plurals>
-    <plurals name="verification_warnings">
-        <item quantity="one">%1$d avertissement technique</item>
-        <item quantity="other">%1$d avertissements techniques</item>
-        <item quantity="many">%1$d avertissements techniques</item>
-    </plurals>
-    <plurals name="verification_errors">
-        <item quantity="one">%1$d erreur de vérification</item>
-        <item quantity="other">%1$d erreurs de vérification</item>
-        <item quantity="many">%1$d erreurs de vérification</item>
-    </plurals>
     <string name="signature_action">Opération de signature</string>
     <string name="signature_profile">Profil de signature</string>
     <string name="action_sign">Signer</string>
@@ -200,7 +186,6 @@
     <string name="coverage_full">Document entier</string>
     <string name="coverage_partial">Couverture partielle</string>
     <string name="coverage_detached">Signature détachée</string>
-    <string name="verification_verdict">Conclusion : %1$s</string>
     <string name="verification_signer">Signataire : %1$s</string>
     <string name="verification_signer_detail">Signataire : %1$s\nÉmetteur : %2$s\nEmpreinte : %3$s</string>
     <string name="verification_evidence">Preuve : %1$s</string>
@@ -213,7 +198,7 @@
     <string name="about_release_notes">Nouveautés</string>
     <string name="release_notes_content">Autres fonctions : signature de plusieurs fichiers à la fois ; empreintes compatibles avec la version ordinateur ; protection de fichiers pour des personnes précises ou avec une clé ; cosignature et contre-signature ; date et heure certifiées ; vérification détaillée avec rapport ; onze langues.</string>
     <string name="signed_document_name">%1$s-signe.%2$s</string>
-    <string name="verification_document">Document du rapport : %1$s</string>
+    <string name="verification_document">Document : %1$s</string>
     <string name="tools_helper">Signature de plusieurs fichiers, empreintes et protection de fichiers. Ils utilisent le document et le certificat choisis plus haut.</string>
     <string name="tools_unavailable">Ces outils ne sont pas disponibles dans cette installation.</string>
     <string name="state_expanded">développé</string>
@@ -645,4 +630,21 @@
         <item quantity="many">%1$d certificats sont ouverts. Choisissez celui avec lequel signer.</item>
         <item quantity="other">%1$d certificats sont ouverts. Choisissez celui avec lequel signer.</item>
     </plurals>
+    <string name="verdict_valid">Signature valide</string>
+    <string name="verdict_intact_unchecked">Signature intacte ; le certificat n\'a pas pu être vérifié</string>
+    <string name="verdict_incomplete">La signature n\'a pas pu être entièrement vérifiée</string>
+    <string name="verdict_revocation_inconclusive">Signature non confirmée : impossible de savoir si le certificat est révoqué</string>
+    <string name="verdict_invalid">Signature non valide</string>
+    <string name="verification_post_sign">Vérification de la signature créée : %1$s</string>
+    <string name="verification_signed_by">Signé par : %1$s</string>
+    <string name="verification_integrity_ok">Le document n\'a pas été modifié depuis sa signature.</string>
+    <string name="verification_integrity_bad">Le document a été modifié après sa signature, ou la signature est endommagée.</string>
+    <string name="verification_integrity_unknown">Impossible de vérifier si le document a été modifié.</string>
+    <string name="verification_partial">La signature ne couvre pas tout le document : du contenu a été ajouté après la signature.</string>
+    <string name="verification_certificate_ok">Le certificat du signataire est valide et de confiance.</string>
+    <string name="verification_certificate_bad">Le certificat du signataire n\'est pas valide : il peut être expiré, révoqué ou non prévu pour signer.</string>
+    <string name="verification_certificate_unknown">Le certificat du signataire n\'a pas pu être vérifié sur ce téléphone.</string>
+    <string name="verification_revocation_unknown">Impossible de savoir si le certificat était révoqué au moment de la signature.</string>
+    <string name="verification_technical_toggle">Détails techniques</string>
+    <string name="verification_reason">Motif : %1$s</string>
 </resources>

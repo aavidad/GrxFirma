@@ -118,10 +118,6 @@
     <string name="result_error">The operation could not be completed</string>
     <string name="result_signed">%1$s signature created with %2$s. Select where to save the result.</string>
     <string name="verification_result_title">Verification result</string>
-    <string name="verification_result_accredited">Signature integrity and trust are established.</string>
-    <string name="verification_result_incomplete">Incomplete verification: the certificate or who issued it could not be checked. See the details.</string>
-    <string name="verification_result_invalid">Invalid signature or integrity not guaranteed.</string>
-    <string name="verification_revocation_inconclusive">Certificate revocation could not be checked. The signature is not considered valid.</string>
     <string name="verification_integrity">Cryptographic integrity: %1$s</string>
     <string name="verification_certificate">Certificate validity and usage: %1$s</string>
     <string name="verification_trust">Chain trust: %1$s</string>
@@ -165,14 +161,6 @@
         <item quantity="one">%1$d signer detected</item>
         <item quantity="other">%1$d signers detected</item>
     </plurals>
-    <plurals name="verification_warnings">
-        <item quantity="one">%1$d technical warning</item>
-        <item quantity="other">%1$d technical warnings</item>
-    </plurals>
-    <plurals name="verification_errors">
-        <item quantity="one">%1$d verification error</item>
-        <item quantity="other">%1$d verification errors</item>
-    </plurals>
     <string name="signature_action">Signing operation</string>
     <string name="signature_profile">Signature profile</string>
     <string name="action_sign">Sign</string>
@@ -197,7 +185,6 @@
     <string name="coverage_full">Entire document</string>
     <string name="coverage_partial">Partial coverage</string>
     <string name="coverage_detached">Detached signature</string>
-    <string name="verification_verdict">Conclusion: %1$s</string>
     <string name="verification_signer">Signer: %1$s</string>
     <string name="verification_signer_detail">Signer: %1$s\nIssuer: %2$s\nFingerprint: %3$s</string>
     <string name="verification_evidence">Evidence: %1$s</string>
@@ -210,7 +197,7 @@
     <string name="about_release_notes">Release notes</string>
     <string name="release_notes_content">Other features: signing several files at once; hashes compatible with desktop; file protection for specific people or with a key; co-signing and countersigning; certified date and time; detailed verification with report; eleven languages.</string>
     <string name="signed_document_name">%1$s-signed.%2$s</string>
-    <string name="verification_document">Report document: %1$s</string>
+    <string name="verification_document">Document: %1$s</string>
     <string name="tools_helper">Sign several files, file fingerprints and file protection. They use the document and certificate chosen above.</string>
     <string name="tools_unavailable">These tools are not available in this installation.</string>
     <string name="state_expanded">expanded</string>
@@ -626,4 +613,21 @@
         <item quantity="one">%1$d certificate is open. Choose which one to sign with.</item>
         <item quantity="other">%1$d certificates are open. Choose which one to sign with.</item>
     </plurals>
+    <string name="verdict_valid">Valid signature</string>
+    <string name="verdict_intact_unchecked">Signature intact; the certificate could not be checked</string>
+    <string name="verdict_incomplete">The signature could not be fully checked</string>
+    <string name="verdict_revocation_inconclusive">Signature not confirmed: it could not be checked whether the certificate is revoked</string>
+    <string name="verdict_invalid">Invalid signature</string>
+    <string name="verification_post_sign">Check of the new signature: %1$s</string>
+    <string name="verification_signed_by">Signed by: %1$s</string>
+    <string name="verification_integrity_ok">The document has not been changed since it was signed.</string>
+    <string name="verification_integrity_bad">The document was changed after it was signed, or the signature is damaged.</string>
+    <string name="verification_integrity_unknown">It could not be checked whether the document has been changed.</string>
+    <string name="verification_partial">The signature does not cover the whole document: content was added after signing.</string>
+    <string name="verification_certificate_ok">The signer\'s certificate is valid and trusted.</string>
+    <string name="verification_certificate_bad">The signer\'s certificate is not valid: it may be expired, revoked or not allowed for signing.</string>
+    <string name="verification_certificate_unknown">The signer\'s certificate could not be checked on this phone.</string>
+    <string name="verification_revocation_unknown">It could not be checked whether the certificate was revoked at signing time.</string>
+    <string name="verification_technical_toggle">Technical details</string>
+    <string name="verification_reason">Reason: %1$s</string>
 </resources>

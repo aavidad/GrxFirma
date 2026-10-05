@@ -134,10 +134,7 @@ class MainViewModel(
             DocumentPolicy.requireAllowedSize(
                 selected.sizeBytes,
                 DocumentPolicy.MAX_CERTIFICATE_BYTES)
-            mutableState.value = mutableState.value.copy(
-                certificateFile = selected,
-                result = OperationResult.Idle,
-            )
+            mutableState.value = mutableState.value.clearedResult().copy(certificateFile = selected, certificatePasswordError = null)
         }
     }
 
@@ -199,11 +196,22 @@ class MainViewModel(
             setError(UiText.Resource(R.string.error_password_required))
             return
         }
+        mutableState.value = mutableState.value.copy(certificatePasswordError = null)
         launchOperation(onFinished = { password.fill('\u0000') }) {
             try {
                 val loaded = repository.loadCertificate(selected)
                 try {
-                    val certificate = core.importCertificate(loaded.bytes, password)
+                    val certificate = try {
+                        core.importCertificate(loaded.bytes, password)
+                    } catch (error: Exception) {
+                        val text = error.toUserText()
+                        // Contraseña mala: el aviso va en su campo, no en la tarjeta de resultado.
+                        if (text == UiText.Resource(R.string.error_pkcs12_password_or_legacy)) {
+                            mutableState.value = mutableState.value.copy(certificatePasswordError = text)
+                            return@launchOperation
+                        }
+                        throw error
+                    }
                     val details = loadCertificateDetails()
                     mutableState.value = mutableState.value.withIdentity(SessionIdentity(certificate, external = false)).copy(
                         certificateDetails = details.first,
@@ -323,10 +331,9 @@ class MainViewModel(
                 certificate = selected?.certificate,
                 certificateExternal = selected?.external == true,
                 certificateDetails = loadCertificateDetails().first,
-                result = OperationResult.Success(
-                    UiText.Resource(R.string.result_identity_closed, listOf(identity.certificate.subject)),
-                ),
-            )
+            ).clearedResult(OperationResult.Success(
+                UiText.Resource(R.string.result_identity_closed, listOf(identity.certificate.subject)),
+            ))
         } catch (error: Exception) {
             setError(error.toUserText())
         }
@@ -497,7 +504,7 @@ class MainViewModel(
 
     private fun inspectExistingSignature(document: es.dipgra.grxfirma.android.model.SelectedFile) {
         if (!core.readiness.available) return
-        launchOperation {
+        launchOperation(clearsResult = false) {
             val loaded = repository.loadDocument(document)
             try {
                 val inspection = try { core.inspectSignature(loaded) } catch (_: Exception) { SignatureInspection(false) }
@@ -531,7 +538,7 @@ class MainViewModel(
         val report = if (kind == ReportKind.VERIFICATION_HTML) verification.reportHtml else verification.reportJson
         if (report.isEmpty()) return cancelReportExport()
         mutableState.value = mutableState.value.copy(awaitingReportSave = false)
-        launchOperation {
+        launchOperation(clearsResult = false) {
             val bytes = report.encodeToByteArray()
             try {
                 repository.write(uri, bytes)
@@ -633,8 +640,8 @@ class MainViewModel(
         if (snapshot.busy || snapshot.awaitingSave || snapshot.awaitingReportSave) return AutoClose.POSTPONED
         identityEpoch.incrementAndGet()
         closeAllIdentities()
-        mutableState.value = mutableState.value.copy(certificateFile = null,
-            result = OperationResult.Notice(UiText.Resource(R.string.certificate_closed_timeout)))
+        mutableState.value = mutableState.value.copy(certificateFile = null)
+            .clearedResult(OperationResult.Notice(UiText.Resource(R.string.certificate_closed_timeout)))
         return AutoClose.CLOSED
     }
 
@@ -651,9 +658,8 @@ class MainViewModel(
                 certificateDetails = emptyList(),
                 certificateFile = null,
                 certificateExternal = false,
-                result = OperationResult.Success(UiText.Resource(
-                    if (several) R.string.result_certificates_forgotten else R.string.result_certificate_forgotten)),
-            )
+            ).clearedResult(OperationResult.Success(UiText.Resource(
+                if (several) R.string.result_certificates_forgotten else R.string.result_certificate_forgotten)))
         } catch (error: Exception) {
             setError(error.toUserText())
         }
@@ -734,9 +740,8 @@ class MainViewModel(
             }
             val selected = repository.inspect(uri, "destinatario.cer", "application/pkix-cert")
             DocumentPolicy.requireAllowedSize(selected.sizeBytes, ToolsPolicy.MAX_RECIPIENT_BYTES)
-            mutableState.value = mutableState.value.copy(
+            mutableState.value = mutableState.value.clearedResult().copy(
                 recipients = (mutableState.value.recipients + selected).distinctBy { it.uri },
-                result = OperationResult.Idle,
             )
         }
     }
@@ -858,7 +863,7 @@ class MainViewModel(
                 setError(UiText.Resource(it))
                 return@runInspect
             }
-            mutableState.value = mutableState.value.copy(batchDocuments = selected, result = OperationResult.Idle)
+            mutableState.value = mutableState.value.clearedResult().copy(batchDocuments = selected)
         }
     }
 
@@ -1033,7 +1038,7 @@ class MainViewModel(
                 setError(UiText.Resource(it))
                 return@runInspect
             }
-            mutableState.value = mutableState.value.copy(verifactuRecords = selected, veriFactuReport = null, result = OperationResult.Idle)
+            mutableState.value = mutableState.value.clearedResult().copy(verifactuRecords = selected, veriFactuReport = null)
         }
     }
 
@@ -1175,7 +1180,7 @@ class MainViewModel(
         settingsStore.save(clean)
         mutableState.value = mutableState.value.copy(settings = clean, signatureProfile = clean.defaultProfile,
             tsaEnabled = clean.tsaEnabled, tsaUrl = clean.tsaUrl,
-            result = OperationResult.Success(UiText.Resource(R.string.preferences_saved)))
+        ).clearedResult(OperationResult.Success(UiText.Resource(R.string.preferences_saved)))
         return true
     }
 
@@ -1186,7 +1191,7 @@ class MainViewModel(
         val defaults = settingsStore.load()
         mutableState.value = mutableState.value.copy(settings = defaults, signatureProfile = defaults.defaultProfile,
             tsaEnabled = defaults.tsaEnabled, tsaUrl = defaults.tsaUrl,
-            result = OperationResult.Success(UiText.Resource(R.string.preferences_restored)))
+        ).clearedResult(OperationResult.Success(UiText.Resource(R.string.preferences_restored)))
     }
 
     fun loadDiagnostics() {
@@ -1200,7 +1205,7 @@ class MainViewModel(
         val snapshot = mutableState.value
         if (!snapshot.canProbeTsa) return
         mutableState.value = snapshot.copy(tsaProbe = null)
-        launchOperation {
+        launchOperation(clearsResult = false) {
             val probe = core.probeTimestampAuthority(snapshot.tsaUrl)
             mutableState.value = mutableState.value.copy(tsaProbe = probe)
         }
@@ -1271,7 +1276,7 @@ class MainViewModel(
                 return@launchOperation
             }
             val current = mutableState.value
-            mutableState.value = current.copy(result = OperationResult.Idle,
+            mutableState.value = current.clearedResult().copy(
                 wave4 = current.wave4.copy(eniFileDocuments = documents, eniFileSkipped = skipped))
         }
     }
@@ -1380,7 +1385,7 @@ class MainViewModel(
         if (!snapshot.awaitingReportSave || snapshot.reportKind != ReportKind.VERIFACTU) return
         val report = snapshot.veriFactuReport ?: return cancelReportExport()
         mutableState.value = snapshot.copy(awaitingReportSave = false)
-        launchOperation {
+        launchOperation(clearsResult = false) {
             val bytes = VeriFactuText.exportJson(report, localized).encodeToByteArray()
             try {
                 repository.write(uri, bytes)
@@ -1396,7 +1401,7 @@ class MainViewModel(
     fun checkUpdate(currentVersion: String) {
         if (!mutableState.value.canCheckUpdate) return
         mutableState.value = mutableState.value.copy(updateCheck = null)
-        launchOperation {
+        launchOperation(clearsResult = false) {
             val check = core.checkUpdate(currentVersion)
             mutableState.value = mutableState.value.copy(updateCheck = check)
         }
@@ -1419,8 +1424,14 @@ class MainViewModel(
         }
     }
 
+    /**
+     * [clearsResult]: una operación nueva vacía la tarjeta de resultado para no
+     * mezclarla con la anterior. Guardar lo que ya está en pantalla (la firma,
+     * un informe) o las consultas que se muestran en su propio diálogo no la tocan.
+     */
     private fun launchOperation(
         allowAwaitingSave: Boolean = false,
+        clearsResult: Boolean = !allowAwaitingSave,
         onFinished: () -> Unit = {},
         block: suspend () -> Unit,
     ) {
@@ -1428,7 +1439,8 @@ class MainViewModel(
             onFinished()
             return
         }
-        mutableState.value = mutableState.value.copy(busy = true)
+        val current = mutableState.value
+        mutableState.value = (if (clearsResult) current.clearedResult() else current).copy(busy = true)
         viewModelScope.launch {
             try {
                 withContext(ioDispatcher) { block() }

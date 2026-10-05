@@ -118,10 +118,6 @@
     <string name="result_error">无法完成操作</string>
     <string name="result_signed">已使用 %2$s 创建 %1$s 签名。请选择保存位置。</string>
     <string name="verification_result_title">核验结果</string>
-    <string name="verification_result_accredited">签名完整且可信。</string>
-    <string name="verification_result_incomplete">验证不完整：无法检查证书或其签发者。请查看详细信息。</string>
-    <string name="verification_result_invalid">签名无效或完整性无法保证。</string>
-    <string name="verification_revocation_inconclusive">无法核实证书吊销状态。此签名不视为有效。</string>
     <string name="verification_integrity">加密完整性：%1$s</string>
     <string name="verification_certificate">证书有效期与用途：%1$s</string>
     <string name="verification_trust">证书链信任：%1$s</string>
@@ -164,12 +160,6 @@
     <plurals name="verification_signers">
         <item quantity="other">检测到 %1$d 位签名者</item>
     </plurals>
-    <plurals name="verification_warnings">
-        <item quantity="other">%1$d 条技术警告</item>
-    </plurals>
-    <plurals name="verification_errors">
-        <item quantity="other">%1$d 个验证错误</item>
-    </plurals>
     <string name="signature_action">签名操作</string>
     <string name="signature_profile">签名配置级别</string>
     <string name="action_sign">签名</string>
@@ -194,7 +184,6 @@
     <string name="coverage_full">完整文档</string>
     <string name="coverage_partial">部分覆盖</string>
     <string name="coverage_detached">分离式签名</string>
-    <string name="verification_verdict">结论：%1$s</string>
     <string name="verification_signer">签名者：%1$s</string>
     <string name="verification_signer_detail">签名者：%1$s\n颁发者：%2$s\n指纹：%3$s</string>
     <string name="verification_evidence">证据：%1$s</string>
@@ -207,7 +196,7 @@
     <string name="about_release_notes">更新说明</string>
     <string name="release_notes_content">其他功能：一次签署多个文件；与桌面版兼容的哈希；为特定人员或用密钥保护文件；联署和副署；认证日期和时间；附报告的详细验证；十一种语言。</string>
     <string name="signed_document_name">%1$s-已签名.%2$s</string>
-    <string name="verification_document">报告对应文档：%1$s</string>
+    <string name="verification_document">文档：%1$s</string>
     <string name="tools_helper">批量签名、文件摘要和文件保护。这些工具使用上方选择的文档和证书。</string>
     <string name="tools_unavailable">此安装不提供这些工具。</string>
     <string name="state_expanded">已展开</string>
@@ -607,4 +596,21 @@
     <plurals name="identities_open">
         <item quantity="other">已打开 %1$d 个证书。请选择用哪个签名。</item>
     </plurals>
+    <string name="verdict_valid">签名有效</string>
+    <string name="verdict_intact_unchecked">签名完整；无法检查证书</string>
+    <string name="verdict_incomplete">无法完整检查签名</string>
+    <string name="verdict_revocation_inconclusive">签名未确认：无法确定证书是否已被吊销</string>
+    <string name="verdict_invalid">签名无效</string>
+    <string name="verification_post_sign">新签名检查：%1$s</string>
+    <string name="verification_signed_by">签名人：%1$s</string>
+    <string name="verification_integrity_ok">文档自签名后未被修改。</string>
+    <string name="verification_integrity_bad">文档在签名后被修改，或签名已损坏。</string>
+    <string name="verification_integrity_unknown">无法检查文档是否被修改。</string>
+    <string name="verification_partial">签名未覆盖整个文档：签名后添加了内容。</string>
+    <string name="verification_certificate_ok">签名人的证书有效且可信。</string>
+    <string name="verification_certificate_bad">签名人的证书无效：可能已过期、已被吊销或不能用于签名。</string>
+    <string name="verification_certificate_unknown">无法在本手机上检查签名人的证书。</string>
+    <string name="verification_revocation_unknown">无法确定签名时证书是否已被吊销。</string>
+    <string name="verification_technical_toggle">技术详情</string>
+    <string name="verification_reason">原因：%1$s</string>
 </resources>

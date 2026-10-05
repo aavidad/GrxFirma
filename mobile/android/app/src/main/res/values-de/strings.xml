@@ -118,10 +118,6 @@
     <string name="result_error">Vorgang konnte nicht abgeschlossen werden</string>
     <string name="result_signed">Signatur %1$s mit %2$s erstellt. Wählen Sie einen Speicherort.</string>
     <string name="verification_result_title">Prüfergebnis</string>
-    <string name="verification_result_accredited">Signatur intakt und vertrauenswürdig.</string>
-    <string name="verification_result_incomplete">Prüfung unvollständig: Das Zertifikat oder sein Aussteller konnte nicht geprüft werden. Sehen Sie sich die Details an.</string>
-    <string name="verification_result_invalid">Signatur ungültig oder Integrität nicht gewährleistet.</string>
-    <string name="verification_revocation_inconclusive">Der Widerruf des Zertifikats konnte nicht geprüft werden. Die Signatur gilt nicht als gültig.</string>
     <string name="verification_integrity">Kryptografische Integrität: %1$s</string>
     <string name="verification_certificate">Gültigkeit und Verwendung des Zertifikats: %1$s</string>
     <string name="verification_trust">Vertrauen in die Kette: %1$s</string>
@@ -165,14 +161,6 @@
         <item quantity="one">%1$d Unterzeichner erkannt</item>
         <item quantity="other">%1$d Unterzeichner erkannt</item>
     </plurals>
-    <plurals name="verification_warnings">
-        <item quantity="one">%1$d technische Warnung</item>
-        <item quantity="other">%1$d technische Warnungen</item>
-    </plurals>
-    <plurals name="verification_errors">
-        <item quantity="one">%1$d Prüffehler</item>
-        <item quantity="other">%1$d Prüffehler</item>
-    </plurals>
     <string name="signature_action">Signaturvorgang</string>
     <string name="signature_profile">Signaturprofil</string>
     <string name="action_sign">Signieren</string>
@@ -197,7 +185,6 @@
     <string name="coverage_full">Gesamtes Dokument</string>
     <string name="coverage_partial">Teilweise Abdeckung</string>
     <string name="coverage_detached">Getrennte Signatur</string>
-    <string name="verification_verdict">Ergebnis: %1$s</string>
     <string name="verification_signer">Unterzeichner: %1$s</string>
     <string name="verification_signer_detail">Unterzeichner: %1$s\nAussteller: %2$s\nFingerabdruck: %3$s</string>
     <string name="verification_evidence">Nachweis: %1$s</string>
@@ -210,7 +197,7 @@
     <string name="about_release_notes">Neuerungen</string>
     <string name="release_notes_content">Weitere Funktionen: mehrere Dateien gleichzeitig signieren; Hashes kompatibel mit dem Desktop; Dateischutz für bestimmte Personen oder mit Schlüssel; Mit- und Gegensignatur; zertifiziertes Datum und Uhrzeit; detaillierte Prüfung mit Bericht; elf Sprachen.</string>
     <string name="signed_document_name">%1$s-signiert.%2$s</string>
-    <string name="verification_document">Dokument des Berichts: %1$s</string>
+    <string name="verification_document">Dokument: %1$s</string>
     <string name="tools_helper">Mehrere Dateien signieren, Prüfsummen und Dateischutz. Sie verwenden das oben gewählte Dokument und Zertifikat.</string>
     <string name="tools_unavailable">Diese Werkzeuge sind in dieser Installation nicht verfügbar.</string>
     <string name="state_expanded">ausgeklappt</string>
@@ -626,4 +613,21 @@
         <item quantity="one">%1$d Zertifikat ist geöffnet. Wählen Sie, mit welchem Sie signieren.</item>
         <item quantity="other">%1$d Zertifikate sind geöffnet. Wählen Sie, mit welchem Sie signieren.</item>
     </plurals>
+    <string name="verdict_valid">Gültige Signatur</string>
+    <string name="verdict_intact_unchecked">Signatur unverändert; das Zertifikat konnte nicht geprüft werden</string>
+    <string name="verdict_incomplete">Die Signatur konnte nicht vollständig geprüft werden</string>
+    <string name="verdict_revocation_inconclusive">Signatur nicht bestätigt: Es ließ sich nicht prüfen, ob das Zertifikat widerrufen ist</string>
+    <string name="verdict_invalid">Ungültige Signatur</string>
+    <string name="verification_post_sign">Prüfung der erstellten Signatur: %1$s</string>
+    <string name="verification_signed_by">Signiert von: %1$s</string>
+    <string name="verification_integrity_ok">Das Dokument wurde seit der Signatur nicht verändert.</string>
+    <string name="verification_integrity_bad">Das Dokument wurde nach der Signatur verändert oder die Signatur ist beschädigt.</string>
+    <string name="verification_integrity_unknown">Es ließ sich nicht prüfen, ob das Dokument verändert wurde.</string>
+    <string name="verification_partial">Die Signatur deckt nicht das ganze Dokument ab: Nach der Signatur wurde Inhalt hinzugefügt.</string>
+    <string name="verification_certificate_ok">Das Zertifikat der unterzeichnenden Person ist gültig und vertrauenswürdig.</string>
+    <string name="verification_certificate_bad">Das Zertifikat der unterzeichnenden Person ist ungültig: Es kann abgelaufen, widerrufen oder nicht zum Signieren zugelassen sein.</string>
+    <string name="verification_certificate_unknown">Das Zertifikat der unterzeichnenden Person konnte auf diesem Handy nicht geprüft werden.</string>
+    <string name="verification_revocation_unknown">Es ließ sich nicht prüfen, ob das Zertifikat beim Signieren widerrufen war.</string>
+    <string name="verification_technical_toggle">Technische Details</string>
+    <string name="verification_reason">Grund: %1$s</string>
 </resources>

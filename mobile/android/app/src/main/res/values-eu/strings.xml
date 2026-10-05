@@ -118,10 +118,6 @@
     <string name="result_error">Ezin izan da eragiketa burutu</string>
     <string name="result_signed">%1$s sinadura sortu da %2$s erabiliz. Hautatu non gorde emaitza.</string>
     <string name="verification_result_title">Egiaztapenaren emaitza</string>
-    <string name="verification_result_accredited">Sinadura osorik eta egiaztatuta.</string>
-    <string name="verification_result_incomplete">Egiaztapen osatugabea: ezin izan da egiaztatu ziurtagiria edo nork eman zuen. Begiratu xehetasunak.</string>
-    <string name="verification_result_invalid">Sinadura baliogabea edo osotasuna ez dago bermatuta.</string>
-    <string name="verification_revocation_inconclusive">Ezin izan da ziurtagiriaren ezeztapena egiaztatu. Sinadura ez da baliozkotzat hartzen.</string>
     <string name="verification_integrity">Osotasun kriptografikoa: %1$s</string>
     <string name="verification_certificate">Ziurtagiriaren indarraldia eta erabilera: %1$s</string>
     <string name="verification_trust">Katearen konfiantza: %1$s</string>
@@ -165,14 +161,6 @@
         <item quantity="one">%1$d sinatzaile aurkitu da</item>
         <item quantity="other">%1$d sinatzaile aurkitu dira</item>
     </plurals>
-    <plurals name="verification_warnings">
-        <item quantity="one">%1$d ohar tekniko</item>
-        <item quantity="other">%1$d ohar tekniko</item>
-    </plurals>
-    <plurals name="verification_errors">
-        <item quantity="one">%1$d egiaztapen-errore</item>
-        <item quantity="other">%1$d egiaztapen-errore</item>
-    </plurals>
     <string name="signature_action">Sinadura-eragiketa</string>
     <string name="signature_profile">Sinadura-profila</string>
     <string name="action_sign">Sinatu</string>
@@ -197,7 +185,6 @@
     <string name="coverage_full">Dokumentu osoa</string>
     <string name="coverage_partial">Estaldura partziala</string>
     <string name="coverage_detached">Dokumentutik bereizitako sinadura</string>
-    <string name="verification_verdict">Ondorioa: %1$s</string>
     <string name="verification_signer">Sinatzailea: %1$s</string>
     <string name="verification_signer_detail">Sinatzailea: %1$s\nJaulkitzailea: %2$s\nHatz-marka: %3$s</string>
     <string name="verification_evidence">Ebidentzia: %1$s</string>
@@ -210,7 +197,7 @@
     <string name="about_release_notes">Berritasunak</string>
     <string name="release_notes_content">Beste funtzio batzuk: hainbat fitxategi aldi berean sinatzea; mahaigainekoarekin bateragarriak diren aztarnak; fitxategiak pertsona jakinentzat edo gakoarekin babestea; kosinadura eta kontrasinadura; data eta ordu ziurtatuak; egiaztapen zehatza txostenarekin; hamaika hizkuntza.</string>
     <string name="signed_document_name">%1$s-sinatuta.%2$s</string>
-    <string name="verification_document">Txostenaren dokumentua: %1$s</string>
+    <string name="verification_document">Dokumentua: %1$s</string>
     <string name="tools_helper">Hainbat fitxategi sinatzea, hatz-markak eta fitxategien babesa. Goian aukeratutako dokumentua eta ziurtagiria erabiltzen dituzte.</string>
     <string name="tools_unavailable">Tresna hauek ez daude erabilgarri instalazio honetan.</string>
     <string name="state_expanded">zabalduta</string>
@@ -626,4 +613,21 @@
         <item quantity="one">%1$d ziurtagiri dago irekita. Aukeratu zeinekin sinatu.</item>
         <item quantity="other">%1$d ziurtagiri daude irekita. Aukeratu zeinekin sinatu.</item>
     </plurals>
+    <string name="verdict_valid">Sinadura baliozkoa</string>
+    <string name="verdict_intact_unchecked">Sinadura osorik dago; ezin izan da ziurtagiria egiaztatu</string>
+    <string name="verdict_incomplete">Ezin izan da sinadura osorik egiaztatu</string>
+    <string name="verdict_revocation_inconclusive">Sinadura ez da berretsi: ezin izan da jakin ziurtagiria baliogabetuta dagoen</string>
+    <string name="verdict_invalid">Sinadura ez da baliozkoa</string>
+    <string name="verification_post_sign">Sortutako sinaduraren egiaztapena: %1$s</string>
+    <string name="verification_signed_by">Sinatzailea: %1$s</string>
+    <string name="verification_integrity_ok">Dokumentua ez da aldatu sinatu zenetik.</string>
+    <string name="verification_integrity_bad">Dokumentua aldatu egin da sinatu ondoren, edo sinadura hondatuta dago.</string>
+    <string name="verification_integrity_unknown">Ezin izan da egiaztatu dokumentua aldatu den.</string>
+    <string name="verification_partial">Sinadurak ez du dokumentu osoa hartzen: sinatu ondoren edukia gehitu da.</string>
+    <string name="verification_certificate_ok">Sinatzailearen ziurtagiria baliozkoa eta fidagarria da.</string>
+    <string name="verification_certificate_bad">Sinatzailearen ziurtagiria ez da baliozkoa: iraungita edo baliogabetuta egon daiteke, edo ez du balio sinatzeko.</string>
+    <string name="verification_certificate_unknown">Ezin izan da mugikor honetan sinatzailearen ziurtagiria egiaztatu.</string>
+    <string name="verification_revocation_unknown">Ezin izan da jakin ziurtagiria baliogabetuta zegoen sinatzean.</string>
+    <string name="verification_technical_toggle">Xehetasun teknikoak</string>
+    <string name="verification_reason">Arrazoia: %1$s</string>
 </resources>

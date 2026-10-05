@@ -558,6 +558,28 @@
                             android:textIsSelectable="true"
                             android:visibility="gone" />
 
+                        <!-- Evidencias del motor: plegadas de inicio, para quien las necesite. -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/toggleVerificationTechnicalButton"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="start|center_vertical"
+                            android:minHeight="48dp"
+                            android:text="@string/verification_technical_toggle"
+                            android:visibility="gone"
+                            app:icon="@drawable/ic_expand_more"
+                            app:iconGravity="end" />
+
+                        <TextView
+                            android:id="@+id/verificationTechnical"
+                            style="@style/TextAppearance.Material3.BodySmall"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/on_surface"
+                            android:textIsSelectable="true"
+                            android:visibility="gone" />
+
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/exportReportHtmlButton"
                             android:layout_width="match_parent"

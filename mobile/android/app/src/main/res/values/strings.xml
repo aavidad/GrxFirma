@@ -118,10 +118,6 @@
     <string name="result_error">No se pudo completar la operación</string>
     <string name="result_signed">Firma %1$s creada con %2$s. Seleccione dónde guardar el resultado.</string>
     <string name="verification_result_title">Resultado de verificación</string>
-    <string name="verification_result_accredited">Firma íntegra y acreditada.</string>
-    <string name="verification_result_incomplete">Verificación incompleta: no se ha podido comprobar el certificado o quién lo emitió. Revise el detalle.</string>
-    <string name="verification_result_invalid">Firma inválida o integridad no garantizada.</string>
-    <string name="verification_revocation_inconclusive">No se pudo comprobar la revocación del certificado. La firma no se considera válida.</string>
     <string name="verification_integrity">Integridad criptográfica: %1$s</string>
     <string name="verification_certificate">Vigencia y uso del certificado: %1$s</string>
     <string name="verification_trust">Confianza de la cadena: %1$s</string>
@@ -165,14 +161,6 @@
         <item quantity="one">%1$d firmante detectado</item>
         <item quantity="other">%1$d firmantes detectados</item>
     </plurals>
-    <plurals name="verification_warnings">
-        <item quantity="one">%1$d advertencia técnica; consulte la ayuda</item>
-        <item quantity="other">%1$d advertencias técnicas; consulte la ayuda</item>
-    </plurals>
-    <plurals name="verification_errors">
-        <item quantity="one">%1$d error de verificación</item>
-        <item quantity="other">%1$d errores de verificación</item>
-    </plurals>
     <string name="signature_action">Operación de firma</string>
     <string name="signature_profile">Perfil de firma</string>
     <string name="action_sign">Firmar</string>
@@ -197,7 +185,6 @@
     <string name="coverage_full">Documento completo</string>
     <string name="coverage_partial">Cobertura parcial</string>
     <string name="coverage_detached">Firma separada del documento</string>
-    <string name="verification_verdict">Conclusión: %1$s</string>
     <string name="verification_signer">Firmante: %1$s</string>
     <string name="verification_signer_detail">Firmante: %1$s\nEmisor: %2$s\nHuella: %3$s</string>
     <string name="verification_evidence">Evidencia: %1$s</string>
@@ -210,7 +197,7 @@
     <string name="about_release_notes">Novedades</string>
     <string name="release_notes_content">Otras funciones: firma de varios ficheros a la vez; huellas compatibles con escritorio; protección de ficheros para personas concretas o con clave; cofirma y contrafirma; fecha y hora certificadas; verificación detallada con informe; once idiomas.</string>
     <string name="signed_document_name">%1$s-firmado.%2$s</string>
-    <string name="verification_document">Documento del informe: %1$s</string>
+    <string name="verification_document">Documento: %1$s</string>
     <string name="tools_helper">Firma de varios ficheros, huellas y protección de ficheros. Usan el documento y el certificado elegidos arriba.</string>
     <string name="tools_unavailable">Estas herramientas no están disponibles en esta instalación.</string>
     <string name="state_expanded">desplegado</string>
@@ -626,4 +613,21 @@
         <item quantity="one">Hay %1$d certificado abierto. Elija con cuál firmar.</item>
         <item quantity="other">Hay %1$d certificados abiertos. Elija con cuál firmar.</item>
     </plurals>
+    <string name="verdict_valid">Firma válida</string>
+    <string name="verdict_intact_unchecked">Firma íntegra; no se pudo comprobar el certificado</string>
+    <string name="verdict_incomplete">No se pudo comprobar la firma por completo</string>
+    <string name="verdict_revocation_inconclusive">Firma no confirmada: no se pudo saber si el certificado está revocado</string>
+    <string name="verdict_invalid">Firma no válida</string>
+    <string name="verification_post_sign">Comprobación de la firma creada: %1$s</string>
+    <string name="verification_signed_by">Firmado por: %1$s</string>
+    <string name="verification_integrity_ok">El documento no se ha modificado desde que se firmó.</string>
+    <string name="verification_integrity_bad">El documento se ha modificado después de firmarse o la firma está dañada.</string>
+    <string name="verification_integrity_unknown">No se ha podido comprobar si el documento se ha modificado.</string>
+    <string name="verification_partial">La firma no cubre todo el documento: hay contenido añadido después de firmar.</string>
+    <string name="verification_certificate_ok">El certificado de quien firmó es válido y de confianza.</string>
+    <string name="verification_certificate_bad">El certificado de quien firmó no es válido: puede estar caducado, revocado o no servir para firmar.</string>
+    <string name="verification_certificate_unknown">No se ha podido comprobar en este móvil el certificado de quien firmó.</string>
+    <string name="verification_revocation_unknown">No se ha podido saber si el certificado estaba revocado al firmar.</string>
+    <string name="verification_technical_toggle">Detalles técnicos</string>
+    <string name="verification_reason">Motivo: %1$s</string>
 </resources>
