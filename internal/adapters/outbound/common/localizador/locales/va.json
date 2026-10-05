@@ -4969,6 +4969,8 @@
   ,"csc.error.pares_oauth_invalidos": "La llista firma_remota_csc_oauth_permitidos té una entrada mal escrita. Aviseu qui administra l'equip informàtic."
   ,"csc.error.otp_lote": "Este certificat remot demana un codi d'un sol ús per a cada firma. Firmeu els documents d'un en un."
   ,"csc.error.secreto_no_pedido": "Falta el PIN o el codi d'un sol ús, o s'ha enviat per a un certificat que no és remot. Torneu a firmar i escriviu-los quan es demanen."
+  ,"csc.error.adicional_con_secretos": "En una firma amb diversos firmants, només el primer pot utilitzar un certificat remot que demane PIN o codi d’un sol ús. Poseu eixe certificat com a primer firmant o firmeu per separat."
+  ,"csc.error.proteger_con_secretos": "Este certificat remot demana PIN o codi d’un sol ús, i «Protegir i signar» no els pot demanar. Firmeu primer el document i protegiu-lo després, o utilitzeu un altre certificat."
   ,"csc.gui.titulo": "Firma remota"
   ,"csc.gui.descripcion": "Firmeu amb un certificat que guarda un prestador de confiança. De l'equip només ix el resum del document, mai el document."
   ,"csc.gui.url": "Adreça del servici de firma"

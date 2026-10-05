@@ -21,9 +21,13 @@ type claveSecretos struct{}
 // Lleva el PIN y el OTP que ha escrito la persona y recoge el último error
 // del servicio para que la interfaz lo explique. El PIN se puede leer más de
 // una vez (una firma por documento); el OTP, solo una, porque el prestador
-// no lo acepta dos veces.
+// no lo acepta dos veces. Los secretos están ligados al certificado para el
+// que se escribieron: la sesión no los entrega a otra credencial aunque viaje
+// en el mismo contexto (por ejemplo, los firmantes adicionales de una
+// multifirma).
 type Peticion struct {
 	mu       sync.Mutex
+	certID   string
 	pin      []byte
 	otp      []byte
 	otpUsado bool
@@ -31,11 +35,18 @@ type Peticion struct {
 }
 
 // ContextoConSecretos devuelve un contexto con el PIN y el OTP de esta
-// firma (pueden estar vacíos). No copia los valores: quien llama los
-// conserva y debe borrarlos cuando termine la petición.
-func ContextoConSecretos(ctx context.Context, pin, otp []byte) (context.Context, *Peticion) {
-	p := &Peticion{pin: pin, otp: otp}
+// firma (pueden estar vacíos), válidos solo para el certificado certID. No
+// copia los valores: quien llama los conserva y debe borrarlos cuando
+// termine la petición.
+func ContextoConSecretos(ctx context.Context, certID string, pin, otp []byte) (context.Context, *Peticion) {
+	p := &Peticion{certID: certID, pin: pin, otp: otp}
 	return context.WithValue(ctx, claveSecretos{}, p), p
+}
+
+// paraCertificado indica si los secretos de la petición se escribieron para
+// este certificado. Un identificador vacío no coincide con ninguno.
+func (p *Peticion) paraCertificado(certID string) bool {
+	return p != nil && p.certID != "" && p.certID == certID
 }
 
 // Error devuelve el último error de la firma remota en esta petición.

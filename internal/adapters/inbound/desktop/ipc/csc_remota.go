@@ -95,18 +95,39 @@ type paramsCSCCertificado struct {
 // decidir si el certificado es remoto. encoding/json decodifica el Base64 de
 // remotePin y remoteOtp directamente en []byte, que se puede borrar.
 type paramsFirmaRemota struct {
-	CertificateID    string `json:"certificateId"`
-	CertificateIndex int    `json:"certificateIndex"`
-	RemotePIN        []byte `json:"remotePin"`
-	RemoteOTP        []byte `json:"remoteOtp"`
+	CertificateID            string   `json:"certificateId"`
+	CertificateIndex         int      `json:"certificateIndex"`
+	AdditionalCertificateIDs []string `json:"additionalCertificateIds"`
+	RemotePIN                []byte   `json:"remotePin"`
+	RemoteOTP                []byte   `json:"remoteOtp"`
 }
 
 func isRemoteSigningAction(action string) bool {
 	switch action {
-	case "sign", "sign_batch", "sign_multicosign":
+	case "sign", "sign_batch", "sign_multicosign", "protect_sign":
 		return true
 	}
 	return false
+}
+
+// certResuelto guarda en el contexto de la petición el certificado que
+// prepararFirmaRemota ha resuelto, para que el manejador de la acción firme
+// con ese mismo y no vuelva a resolver un índice contra una lista que otra
+// petición haya podido refrescar entretanto.
+type certResuelto struct {
+	id       string
+	indice   int
+	resuelto string
+}
+
+type claveCertResuelto struct{}
+
+func certResueltoDe(ctx context.Context, certID string, indice int) (string, bool) {
+	r, ok := ctx.Value(claveCertResuelto{}).(certResuelto)
+	if !ok || r.id != strings.TrimSpace(certID) || r.indice != indice {
+		return "", false
+	}
+	return r.resuelto, true
 }
 
 // decodeCSCParams exige un único objeto JSON sin campos desconocidos.
@@ -287,9 +308,16 @@ func (m *Manejador) prepararFirmaRemota(ctx context.Context, action string, raw 
 		resp := m.cscInvalid(action)
 		return ctx, nil, func() {}, &resp
 	}
-	certID := strings.TrimSpace(p.CertificateID)
-	if certID == "" {
-		certID = m.resolverCertID(p.CertificateIndex)
+	// El certificado se resuelve una sola vez: el manejador de la acción
+	// recupera este mismo del contexto.
+	certID, err := m.resolverCertIDPreferido(ctx, p.CertificateID, p.CertificateIndex)
+	if err != nil {
+		certID = ""
+	}
+	if certID != "" {
+		ctx = context.WithValue(ctx, claveCertResuelto{}, certResuelto{
+			id: strings.TrimSpace(p.CertificateID), indice: p.CertificateIndex, resuelto: certID,
+		})
 	}
 	var (
 		cred   cscremota.CredencialRemota
@@ -297,6 +325,19 @@ func (m *Manejador) prepararFirmaRemota(ctx context.Context, action string, raw 
 	)
 	if m.CSC != nil && certID != "" {
 		cred, remota = m.CSC.Credencial(certID)
+	}
+	// Los secretos de la petición son del firmante principal. Un firmante
+	// adicional remoto que pida PIN u OTP no tendría con qué firmar.
+	if action == "sign_multicosign" && m.CSC != nil {
+		for _, id := range p.AdditionalCertificateIDs {
+			for _, candidato := range []string{id, strings.TrimSpace(id)} {
+				if c, ok := m.CSC.Credencial(candidato); ok && (c.PIN || c.OTP) {
+					liberar()
+					resp := m.cscError(action, &csc.Error{Codigo: cscremota.CodigoAdicionalConSecretos})
+					return ctx, nil, func() {}, &resp
+				}
+			}
+		}
 	}
 	if !remota {
 		if conSecretos {
@@ -311,7 +352,12 @@ func (m *Manejador) prepararFirmaRemota(ctx context.Context, action string, raw 
 		resp := m.cscError(action, &csc.Error{Codigo: cscremota.CodigoOTPLote})
 		return ctx, nil, func() {}, &resp
 	}
-	ctx, peticion := cscremota.ContextoConSecretos(ctx, p.RemotePIN, p.RemoteOTP)
+	if action == "protect_sign" && ((cred.PIN && len(p.RemotePIN) == 0) || (cred.OTP && len(p.RemoteOTP) == 0)) {
+		liberar()
+		resp := m.cscError(action, &csc.Error{Codigo: cscremota.CodigoProtegerConSecretos})
+		return ctx, nil, func() {}, &resp
+	}
+	ctx, peticion := cscremota.ContextoConSecretos(ctx, certID, p.RemotePIN, p.RemoteOTP)
 	return ctx, peticion, liberar, nil
 }
 

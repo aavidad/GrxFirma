@@ -4969,6 +4969,8 @@
   ,"csc.error.pares_oauth_invalidos": "firma_remota_csc_oauth_permitidos zerrendak gaizki idatzitako sarrera bat du. Jakinarazi ordenagailua kudeatzen duenari."
   ,"csc.error.otp_lote": "Urruneko ziurtagiri honek erabilera bakarreko kode bat eskatzen du sinadura bakoitzeko. Sinatu dokumentuak banan-banan."
   ,"csc.error.secreto_no_pedido": "PINa edo erabilera bakarreko kodea falta da, edo urrunekoa ez den ziurtagiri baterako bidali da. Sinatu berriro eta idatzi eskatzen direnean."
+  ,"csc.error.adicional_con_secretos": "Sinatzaile bat baino gehiagoko sinaduran, lehenengoak bakarrik erabil dezake PINa edo erabilera bakarreko kodea eskatzen duen urruneko ziurtagiria. Jarri ziurtagiri hori lehen sinatzaile gisa edo sinatu bereizita."
+  ,"csc.error.proteger_con_secretos": "Urruneko ziurtagiri honek PINa edo erabilera bakarreko kodea eskatzen du, eta «Babestu eta sinatu» aukerak ezin ditu eskatu. Sinatu lehenik dokumentua eta babestu gero, edo erabili beste ziurtagiri bat."
   ,"csc.gui.titulo": "Urruneko sinadura"
   ,"csc.gui.descripcion": "Sinatu konfiantzazko zerbitzu-emaile batek gordetzen duen ziurtagiriarekin. Ordenagailutik dokumentuaren laburpena bakarrik ateratzen da, inoiz ez dokumentua."
   ,"csc.gui.url": "Sinadura-zerbitzuaren helbidea"

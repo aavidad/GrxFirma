@@ -4969,6 +4969,8 @@
   ,"csc.error.pares_oauth_invalidos": "A lista firma_remota_csc_oauth_permitidos ten unha entrada mal escrita. Avise a quen administra o equipo."
   ,"csc.error.otp_lote": "Este certificado remoto pide un código dun só uso para cada sinatura. Asine os documentos dun en un."
   ,"csc.error.secreto_no_pedido": "Falta o PIN ou o código dun só uso, ou enviouse para un certificado que non é remoto. Volva asinar e escríbaos cando se pidan."
+  ,"csc.error.adicional_con_secretos": "Nunha sinatura con varios asinantes, só o primeiro pode usar un certificado remoto que pida PIN ou código dun só uso. Poña ese certificado como primeiro asinante ou asine por separado."
+  ,"csc.error.proteger_con_secretos": "Este certificado remoto pide PIN ou código dun só uso, e «Protexer e asinar» non pode pedilos. Asine primeiro o documento e protéxao despois, ou use outro certificado."
   ,"csc.gui.titulo": "Sinatura remota"
   ,"csc.gui.descripcion": "Asine cun certificado que garda un prestador de confianza. Do equipo só sae o resumo do documento, nunca o documento."
   ,"csc.gui.url": "Enderezo do servizo de sinatura"

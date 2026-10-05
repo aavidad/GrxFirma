@@ -4969,6 +4969,8 @@
   ,"csc.error.pares_oauth_invalidos": "firma_remota_csc_oauth_permitidos 列表中有格式错误的条目。请告知此计算机的管理员。"
   ,"csc.error.otp_lote": "此远程证书每次签名都需要一次性验证码。请逐个签署文档。"
   ,"csc.error.secreto_no_pedido": "缺少 PIN 或一次性验证码，或者它被发送给了非远程证书。请重新签名，并在提示时输入。"
+  ,"csc.error.adicional_con_secretos": "多人签名时，只有第一位签名人可以使用需要 PIN 或一次性验证码的远程证书。请将该证书设为第一位签名人，或分开签名。"
+  ,"csc.error.proteger_con_secretos": "此远程证书需要 PIN 或一次性验证码，而“保护并签名”无法请求这些信息。请先签署文档再进行保护，或使用其他证书。"
   ,"csc.gui.titulo": "远程签名"
   ,"csc.gui.descripcion": "使用由可信服务商保管的证书签名。离开本机的只有文档摘要，绝不是文档本身。"
   ,"csc.gui.url": "签名服务地址"

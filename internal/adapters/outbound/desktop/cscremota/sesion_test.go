@@ -165,7 +165,21 @@ func TestSesionCompletaConPINyOTP(t *testing.T) {
 	}
 
 	pin, otp := []byte(csctest.PIN), []byte(csctest.OTP)
-	ctxFirma, peticion := cscremota.ContextoConSecretos(ctx, pin, otp)
+	ctxFirma, peticion := cscremota.ContextoConSecretos(ctx, rsaRef.ID, pin, otp)
+	// Los secretos son del certificado RSA: otra credencial que los pide no
+	// puede firmar con ellos aunque viaje en el mismo contexto.
+	for _, r := range refs {
+		if r.ID != rsaRef.ID {
+			if _, err := sesion.KeyFor(ctxFirma, r); cscremota.CodigoVisible(err) != cscremota.CodigoSecretoNoPedido {
+				t.Fatalf("secretos de otro certificado: %v", err)
+			}
+		}
+	}
+	// Ligados a un identificador vacío no valen para ninguno.
+	ctxVacio, _ := cscremota.ContextoConSecretos(ctx, "", pin, otp)
+	if _, err := sesion.KeyFor(ctxVacio, rsaRef); cscremota.CodigoVisible(err) != cscremota.CodigoSecretoNoPedido {
+		t.Fatalf("secretos sin certificado: %v", err)
+	}
 	clave, err := sesion.KeyFor(ctxFirma, rsaRef)
 	if err != nil {
 		t.Fatalf("KeyFor: %v", err)

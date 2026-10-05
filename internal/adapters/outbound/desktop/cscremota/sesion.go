@@ -67,6 +67,12 @@ const (
 	CodigoParesOAuthInvalidos csc.Codigo = "pares_oauth_invalidos"
 	CodigoOTPLote             csc.Codigo = "otp_lote"
 	CodigoSecretoNoPedido     csc.Codigo = "secreto_no_pedido"
+	// CodigoAdicionalConSecretos: en una multifirma solo el firmante
+	// principal puede usar un certificado remoto que pide PIN u OTP.
+	CodigoAdicionalConSecretos csc.Codigo = "adicional_con_secretos"
+	// CodigoProtegerConSecretos: «proteger y firmar» con un certificado
+	// remoto que pide PIN u OTP sin que la petición los traiga.
+	CodigoProtegerConSecretos csc.Codigo = "proteger_con_secretos"
 )
 
 // ErrNoAplicable indica que el certificado pedido no es remoto: el proveedor
@@ -453,11 +459,21 @@ func (s *Sesion) KeyFor(ctx context.Context, ref domain.CertificateRef) (ports.S
 		s.Desconectar()
 		return nil, err
 	}
+	peticion := peticionDe(ctx)
+	if peticion != nil && !peticion.paraCertificado(ref.ID) {
+		// El PIN y el OTP de esta petición son de otro certificado. Una
+		// credencial que los necesita no puede firmar con ellos; una que no
+		// los necesita firma sin verlos.
+		if necesitaSecretos(r) {
+			return nil, nuevoError(CodigoSecretoNoPedido)
+		}
+		ctx = context.WithValue(ctx, claveSecretos{}, (*Peticion)(nil))
+	}
 	firmante, err := cliente.Firmante(ctx, r.cred)
 	if err != nil {
 		return nil, err
 	}
-	envuelto := &firmanteAnotado{firmante: firmante, peticion: peticionDe(ctx)}
+	envuelto := &firmanteAnotado{firmante: firmante, peticion: peticion}
 	return deskSigner.NuevaClaveLocalConCadena(envuelto, r.cred.Certificado, r.cred.Cadena), nil
 }
 
@@ -475,6 +491,10 @@ func (s *Sesion) listaLocked() []CredencialRemota {
 		lista = append(lista, describir(s.creds[id]))
 	}
 	return lista
+}
+
+func necesitaSecretos(r *remota) bool {
+	return r.cred.Modo == csc.ModoExplicito && (r.cred.PIN || r.cred.OTP)
 }
 
 func describir(r *remota) CredencialRemota {

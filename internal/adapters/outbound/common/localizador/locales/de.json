@@ -4969,6 +4969,8 @@
   ,"csc.error.pares_oauth_invalidos": "Die Liste firma_remota_csc_oauth_permitidos enthält einen fehlerhaften Eintrag. Wenden Sie sich an die Verwaltung dieses Computers."
   ,"csc.error.otp_lote": "Dieses Fernzertifikat verlangt für jede Signatur einen Einmalcode. Signieren Sie die Dokumente einzeln."
   ,"csc.error.secreto_no_pedido": "PIN oder Einmalcode fehlen oder wurden für ein Zertifikat gesendet, das kein Fernzertifikat ist. Signieren Sie erneut und geben Sie sie bei Aufforderung ein."
+  ,"csc.error.adicional_con_secretos": "Wenn mehrere Personen unterschreiben, kann nur die erste ein Remote-Zertifikat verwenden, das eine PIN oder einen Einmalcode verlangt. Setzen Sie dieses Zertifikat an die erste Stelle oder unterschreiben Sie getrennt."
+  ,"csc.error.proteger_con_secretos": "Dieses Remote-Zertifikat verlangt eine PIN oder einen Einmalcode, und „Schützen und signieren“ kann diese nicht abfragen. Signieren Sie das Dokument zuerst und schützen Sie es danach, oder verwenden Sie ein anderes Zertifikat."
   ,"csc.gui.titulo": "Fernsignatur"
   ,"csc.gui.descripcion": "Signieren Sie mit einem Zertifikat, das ein Vertrauensdiensteanbieter verwahrt. Nur der Hashwert verlässt den Computer, nie das Dokument."
   ,"csc.gui.url": "Adresse des Signaturdienstes"

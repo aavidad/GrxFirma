@@ -3152,6 +3152,9 @@ func (m *Manejador) resolverCertID(indice int) string {
 // resolverCertIDPreferido da precedencia a certificateId cuando el cliente lo
 // proporciona. certificateIndex sigue siendo el fallback para clientes legacy.
 func (m *Manejador) resolverCertIDPreferido(ctx context.Context, certID string, indice int) (string, error) {
+	if resuelto, ok := certResueltoDe(ctx, certID, indice); ok {
+		return resuelto, nil
+	}
 	certID = strings.TrimSpace(certID)
 	if certID == "" {
 		return m.resolverCertID(indice), nil

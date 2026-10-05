@@ -4969,6 +4969,8 @@
   ,"csc.error.pares_oauth_invalidos": "L'elenco firma_remota_csc_oauth_permitidos contiene una voce scritta male. Avvisi chi amministra il computer."
   ,"csc.error.otp_lote": "Questo certificato remoto chiede un codice monouso per ogni firma. Firmi i documenti uno alla volta."
   ,"csc.error.secreto_no_pedido": "Manca il PIN o il codice monouso, oppure è stato inviato per un certificato che non è remoto. Firmi di nuovo e li inserisca quando richiesti."
+  ,"csc.error.adicional_con_secretos": "In una firma con più firmatari, solo il primo può usare un certificato remoto che richiede PIN o codice monouso. Imposti quel certificato come primo firmatario o firmi separatamente."
+  ,"csc.error.proteger_con_secretos": "Questo certificato remoto richiede PIN o codice monouso e «Proteggi e firma» non può chiederli. Firmi prima il documento e lo protegga dopo, oppure usi un altro certificato."
   ,"csc.gui.titulo": "Firma remota"
   ,"csc.gui.descripcion": "Firmi con un certificato custodito da un prestatore di fiducia. Dal computer esce solo l'impronta del documento, mai il documento."
   ,"csc.gui.url": "Indirizzo del servizio di firma"
