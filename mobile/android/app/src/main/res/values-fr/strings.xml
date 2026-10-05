@@ -54,7 +54,7 @@
     <string name="no_certificate_file">Vous n\'avez choisi aucun fichier de certificat</string>
     <string name="certificate_password">Mot de passe du certificat</string>
     <string name="certificate_password_helper">Le mot de passe sert à l’importation et n’est pas conservé durablement.</string>
-    <string name="import_certificate">Certificat d\'importation</string>
+    <string name="import_certificate">Importer un certificat</string>
     <string name="forget_certificate">Fermer le certificat</string>
     <string name="no_certificate">Aucun certificat prêt</string>
     <string name="certificate_summary">%1$s\nÉmetteur : %2$s</string>

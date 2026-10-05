@@ -171,7 +171,7 @@
   "*.dipgra.es": "*.dipgra.es",
   "*.gob.es": "*.gob.es",
   "+ CERTIFICADOS": "+ CERTIFICATS",
-  "+%1 más": "+%1 más",
+  "+%1 más": "+%1 més",
   ",": ",",
   "--- INICIO DE LOGS ---\n": "--- INICIO DE LOGS ---\n",
   "--- INICIO DE LOGS ---\\n": "--- INICI DE LOGS ---\\n",
@@ -195,7 +195,7 @@
   "90°": "90°",
   "<b>Emisor:</b> ": "<b>Emissor:</b> ",
   "<b>Estado:</b> ": "<b>Estat:</b> ",
-  "<b>Huella:</b> ": "<b>petjada:</b> ",
+  "<b>Huella:</b> ": "<b>Empremta digital:</b> ",
   "<b>Nº Serie:</b> ": "<b>Nº Sèrie:</b> ",
   "<b>Titular:</b> ": "<b>Titular:</b> ",
   "<b>Válido hasta:</b> ": "<b>Vàlid fins a:</b> ",
@@ -210,7 +210,7 @@
   "Abriendo el selector de fichero solicitado por la web": "S'està obrint el selector de fitxer sol·licitat pel web",
   "Abrir": "Obrir",
   "Abrir Ayuda": "Obrir Ajuda",
-  "Abrir OpenAPI": "Open OpenAPI",
+  "Abrir OpenAPI": "Obrir OpenAPI",
   "Abrir VALIDE": "Obrir VALIDE",
   "Abrir ayuda": "Obrir ajuda",
   "Abrir desprotegido": "Obrir desprotegit",
@@ -256,7 +256,7 @@
   "Almacén seguro del proxy disponible": "Magatzem segur del proxy disponible",
   "Almacén seguro del proxy no disponible": "Magatzem segur del proxy no disponible",
   "Alto": "Alt",
-  "Alto (0..1)": "Alt (0..1)",
+  "Alto (0..1)": "Alçada (0..1)",
   "Ametista": "Ametista",
   "Ana, representante, sello...": "Anna, representant, segell...",
   "Ancho (0..1)": "Ample (0..1)",
@@ -454,7 +454,7 @@
   "Cofirmar": "Cosignar",
   "Coinciden": "Coincideixen",
   "Coinciden: ": "Coincideixen: ",
-  "Cola de log redactada": "Cua de log redactada",
+  "Cola de log redactada": "Cua de log anonimitzada",
   "Colapsar menú": "Col·lapsar menú",
   "Colapsar panel de certificados": "Col·lapsar panell de certificats",
   "Compacto": "Compacte",
@@ -497,7 +497,7 @@
   "Confianza: ": "Confiança: ",
   "Confianza: Raíces de AAPP instaladas correctamente.": "Confiança: Arrels d'AAPP instal·lades correctament.",
   "Confiar en este emisor": "Confia en l'API local",
-  "Confiar en la API local": "Confiar a l'API local",
+  "Confiar en la API local": "Confiar en l'API local",
   "Configuración": "Configuració",
   "Configuración automática del sistema": "Configuració automàtica del sistema",
   "Configuración cargada": "Configuració carregada",
@@ -821,7 +821,7 @@
   "Expone la API REST solo en este equipo, para integraciones locales y consola web.": "Exposa l'API REST només en aquest equip, per a integracions locals i consola web.",
   "Exportando destinatario...": "S'està exportant el destinatari...",
   "Exportar destinatario alto": "Exportar destinatari fort",
-  "FIRMA DIGITAL": "DIGITAL SIGNATURE",
+  "FIRMA DIGITAL": "SIGNATURA DIGITAL",
   "FIRMAR": "SIGNAR",
   "FNMT, AC, CA...": "FNMT, AC, CA...",
   "FNMT, ACCV, ...": "FNMT, ACCV, ...",
@@ -943,7 +943,7 @@
   "Hexadecimal": "Hexadecimal",
   "Host / IP:": "Host/IP:",
   "Huella": "Empremta",
-  "Huella SHA-256: ": "Petjada SHA-256: ",
+  "Huella SHA-256: ": "Empremta SHA-256: ",
   "Huella copiada al portapapeles.": "Empremta copiada al porta-retalls.",
   "Huella del certificado copiada al portapapeles.": "Empremta del certificat copiada al porta-retalls.",
   "Huella o manifiesto": "Empremta o manifest",
@@ -1072,7 +1072,7 @@
   "Lote firmado, con incidencias de verificación en algunos resultados.": "Lot signat, amb incidències de verificació en alguns resultats.",
   "Lote firmado. Verificando resultados...": "Lot signat. Verificant resultats...",
   "Lote o selección múltiple": "Lot o selecció múltiple",
-  "Lote: ": "Lote: ",
+  "Lote: ": "Lot: ",
   "Lugar de firma FacturaE": "Lloc de signatura FacturaE",
   "Manifiesto de huellas generado.": "Manifest d'empremtes generat.",
   "Mantener esta sesión web en segundo plano al cerrar": "Mantindre aquesta sessió web en segon pla en tancar",
@@ -1085,7 +1085,7 @@
   "Mientras la cofirma múltiple guiada esté activa, la salida final se entregará en memoria/base64 y se bloquearán temporalmente las opciones de guardado en disco.": "Mentre la cofirma múltiple guiada estiga activa, l'eixida final es lliurarà en memòria/base64 i es bloquejaran temporalment les opcions de guardat al disc.",
   "Minimalista Luz": "Minimalista clar",
   "Misma ruta o nombre derivado": "Mateixa ruta o nom derivat",
-  "Modo": "Modo",
+  "Modo": "Mode",
   "Modo Experto": "Mode Expert",
   "Modo REST activo. Arrancando backend Go...": "Mode REST actiu. Arrencant el backend Go...",
   "Modo backend no soportado": "Mode de backend no compatible",
@@ -1712,7 +1712,7 @@
   "Sí": "Sí",
   "Sí hay certificados disponibles, pero el actual puede no servir para esta operación.": "Sí que hi ha certificats disponibles, però l'actual pot no servir per a esta operació.",
   "TEMA VISUAL": "TEMA VISUAL",
-  "TRAZA DE LA OPERACIÓN": "TRAZA DE LA OPERACIÓN",
+  "TRAZA DE LA OPERACIÓN": "TRAÇA DE L'OPERACIÓ",
   "TRAZA DEL SISTEMA (redactada)": "TRAÇA DEL SISTEMA (redactada)",
   "Te deja en la validación lista para seleccionar el fichero.": "Et deixa a la validació a punt per seleccionar el fitxer.",
   "Te lleva a la pestaña de firma.": "Et porta a la pestanya de signatura.",
@@ -1724,7 +1724,7 @@
   "Terminal Hacker": "Terminal hacker",
   "Texto": "Text",
   "Tip: Use 'admin123' para este demo": "Tip: Utilitzeu 'admin123' per a aquest demo",
-  "Tipo": "Tipo",
+  "Tipo": "Tipus",
   "Tipo de selección": "Tipus de selecció",
   "Tipo detectado:": "Tipus detectat:",
   "Tipo probable del firmado: ": "Tipus probable del signat: ",
@@ -2409,7 +2409,7 @@
   "✓ Firma válida": "✓ Signatura vàlida",
   "✗ Firma inválida": "✗ Signatura no vàlida",
   "❌ ": "❌ ",
-  "❌ ERROR DEL BACKEND: ": "❌ BACKEND ERROR: ",
+  "❌ ERROR DEL BACKEND: ": "❌ ERROR DEL BACKEND: ",
   "❌ El fichero no existe: ": "❌ El fitxer no existeix: ",
   "❌ Error de red: ": "❌ Error de xarxa: ",
   "❌ Error en Socket: ": "❌ Error de socket: ",
@@ -2607,7 +2607,7 @@
   ,"Acerca de": "Quant a"
   ,"Acerca de GrxFirma": "Quant a GrxFirma"
   ,"Información de versión, autoría y licencia de la aplicación": "Informació de la versió, l'autoria i la llicència de l'aplicació"
-  ,"Logotipo de GrxFirma": "Logotip d'GrxFirma"
+  ,"Logotipo de GrxFirma": "Logotip de GrxFirma"
   ,"Versión %1": "Versió %1"
   ,"Autoría: Alberto Avidad Fernández": "Autoria: Alberto Avidad Fernández"
   ,"Derechos de autor (C) 2026 Alberto Avidad Fernández.": "Drets d'autor (C) 2026 Alberto Avidad Fernández."
@@ -5591,7 +5591,7 @@
   ,"winui.certificados.titular": "Titular"
   ,"winui.certificados.nif_identificador": "NIF / identificador"
   ,"winui.certificados.organizacion": "Organització"
-  ,"winui.certificados.tipo": "Tipo"
+  ,"winui.certificados.tipo": "Tipus"
   ,"winui.certificados.emisor_2": "Emissor"
   ,"winui.certificados.numero_de_serie": "Número de sèrie"
   ,"winui.certificados.estado": "Estat"

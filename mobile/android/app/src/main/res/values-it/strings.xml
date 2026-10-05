@@ -655,7 +655,7 @@
     <string name="pref_seal_language">Lingua del sigillo</string>
     <string name="pref_seal_language_helper">Lingua dei testi del sigillo visibile nel PDF firmato.</string>
     <string name="pref_seal_language_app">Come l\'applicazione</string>
-    <string name="pref_tsa_url">URL di marcatura</string>
+    <string name="pref_tsa_url">URL di marcatura temporale</string>
     <string name="seal_edit_change">Modifica il sigillo</string>
     <string name="seal_edit_change_all">Modifica il sigillo (tutte le pagine)</string>
     <string name="seal_edit_change_page">Modifica il sigillo (pagina %1$d)</string>

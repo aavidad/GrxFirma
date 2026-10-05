@@ -54,7 +54,7 @@
     <string name="no_certificate_file">Não escolheu nenhum ficheiro de certificado</string>
     <string name="certificate_password">Palavra-passe do certificado</string>
     <string name="certificate_password_helper">A palavra-passe é usada durante a importação e não é guardada de forma persistente.</string>
-    <string name="import_certificate">Certificado de importação</string>
+    <string name="import_certificate">Importar certificado</string>
     <string name="forget_certificate">Fechar certificado</string>
     <string name="no_certificate">Nenhum certificado preparado</string>
     <string name="certificate_summary">%1$s\nEmissor: %2$s</string>
@@ -655,7 +655,7 @@
     <string name="pref_seal_language">Idioma do selo</string>
     <string name="pref_seal_language_helper">Idioma dos textos do selo visível no PDF assinado.</string>
     <string name="pref_seal_language_app">Igual à aplicação</string>
-    <string name="pref_tsa_url">URL de carimbo</string>
+    <string name="pref_tsa_url">URL de carimbo temporal</string>
     <string name="seal_edit_change">Alterar o selo</string>
     <string name="seal_edit_change_all">Alterar o selo (todas as páginas)</string>
     <string name="seal_edit_change_page">Alterar o selo (página %1$d)</string>
