@@ -11,6 +11,10 @@ import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SignedOutput
 import es.dipgra.grxfirma.android.model.VerificationSummary
 import es.dipgra.grxfirma.android.model.SignerSummary
+import es.dipgra.grxfirma.android.model.BatchItemResult
+import es.dipgra.grxfirma.android.model.HashCheck
+import es.dipgra.grxfirma.android.model.HashOutput
+import es.dipgra.grxfirma.android.model.ProtectionRequest
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -18,6 +22,8 @@ import java.util.Base64
 
 object CoreJsonCodec {
     const val CONTRACT_VERSION = 2
+    const val MAX_HASH_FILE_BYTES = 4 * 1024
+    private val TOOL_SERVICES = listOf("process_batch", "hash", "protect", "unprotect", "protect_sign")
 
     fun signRequest(
         document: LoadedFile,
@@ -102,6 +108,10 @@ object CoreJsonCodec {
 
     fun parseSigned(raw: String, originalName: String, outputName: (String, String) -> String = { base, extension -> "$base.$extension" }): SignedOutput {
         val json = parseObject(raw, "firma")
+        return signedOutput(json, originalName, outputName)
+    }
+
+    private fun signedOutput(json: JSONObject, originalName: String, outputName: (String, String) -> String): SignedOutput {
         val format = requiredText(json, "format")
         val algorithm = requiredText(json, "algorithm")
         val encoded = requiredText(json, "signed_content_base64", allowLong = true)
@@ -147,6 +157,127 @@ object CoreJsonCodec {
             },
             reportJson = json.toString(2),
         )
+    }
+
+    /** Las herramientas se habilitan solo si el contrato las declara todas. */
+    fun toolsDeclared(raw: String): Boolean {
+        val services = parseObject(raw, "contrato").optJSONObject("services") ?: return false
+        return TOOL_SERVICES.all { services.optBoolean(it, false) } && !services.optBoolean("remote_exchange", false)
+    }
+
+    fun hashRequest(document: LoadedFile, algorithm: String, format: String): String = JSONObject()
+        .put("content_base64", Base64.getEncoder().encodeToString(document.bytes))
+        .put("algorithm", algorithm)
+        .put("format", format)
+        .toString()
+
+    fun parseHash(raw: String): HashOutput {
+        val json = parseObject(raw, "huella")
+        val extension = requiredText(json, "extension")
+        requireField(extension in listOf("hexhash", "hashb64", "hash")) { "HASH_EXTENSION_INVALID" }
+        return HashOutput(
+            algorithm = requiredText(json, "algorithm"),
+            format = requiredText(json, "format"),
+            hash = requiredText(json, "hash"),
+            bytes = decodeBounded(requiredText(json, "output_base64", allowLong = true), MAX_HASH_FILE_BYTES),
+            extension = extension,
+        )
+    }
+
+    fun hashCheckRequest(document: LoadedFile, hashFile: LoadedFile): String = JSONObject()
+        .put("content_base64", Base64.getEncoder().encodeToString(document.bytes))
+        .put("hash_file_base64", Base64.getEncoder().encodeToString(hashFile.bytes))
+        .put("hash_file_name", hashFile.displayName)
+        .toString()
+
+    fun parseHashCheck(raw: String): HashCheck {
+        val json = parseObject(raw, "comprobación de huella")
+        return HashCheck(
+            valid = json.optBoolean("valid", false),
+            algorithm = requiredText(json, "algorithm"),
+            expected = requiredText(json, "expected_hash"),
+            actual = requiredText(json, "actual_hash"),
+        )
+    }
+
+    fun protectRequest(document: LoadedFile, request: ProtectionRequest): String = JSONObject()
+        .put("name", document.displayName)
+        .put("content_base64", Base64.getEncoder().encodeToString(document.bytes))
+        .put("mime_type", document.mimeType)
+        .put("container", request.container)
+        .apply {
+            if (request.recipients.isNotEmpty()) {
+                put("recipients", JSONArray(request.recipients.map {
+                    JSONObject().put("certificate_base64", Base64.getEncoder().encodeToString(it))
+                }))
+            }
+            if (request.includeSessionCertificate) put("include_session_certificate", true)
+            if (request.sign) put("sign", true).put("certificate_id", request.certificateId)
+        }
+        .toString()
+
+    fun unprotectRequest(document: LoadedFile): String = JSONObject()
+        .put("name", document.displayName)
+        .put("content_base64", Base64.getEncoder().encodeToString(document.bytes))
+        .put("mime_type", document.mimeType)
+        .toString()
+
+    /** Respuesta de proteger o desproteger: un fichero listo para guardar por SAF. */
+    fun parseFileOutput(raw: String, label: String, fallbackName: String): SignedOutput {
+        val json = parseObject(raw, label)
+        val bytes = decodeBounded(requiredText(json, "content_base64", allowLong = true), DocumentPolicy.MAX_SIGNED_OUTPUT_BYTES)
+        val mime = cleanText(json.optString("mime_type")).takeIf {
+            it.matches(Regex("[a-z0-9][a-z0-9!#$&^_.+-]*/[a-z0-9][a-z0-9!#$&^_.+-]*"))
+        } ?: "application/octet-stream"
+        return SignedOutput(
+            bytes = bytes,
+            displayName = DocumentPolicy.sanitizeDisplayName(json.optString("name"), fallbackName),
+            mimeType = mime,
+            format = cleanText(json.optString("container")),
+            algorithm = "",
+        )
+    }
+
+    fun batchRequest(
+        documents: List<LoadedFile>,
+        format: String,
+        certificateId: String,
+        options: Map<String, String>,
+    ): String = JSONObject()
+        .put("certificate_id", certificateId)
+        .put("options", JSONObject(options))
+        .put("items", JSONArray(documents.map { document ->
+            JSONObject()
+                .put("name", document.displayName)
+                .put("content_base64", Base64.getEncoder().encodeToString(document.bytes))
+                .put("mime_type", document.mimeType)
+                .put("format", if (format == "auto") "" else format)
+                .put("action", "sign")
+        }))
+        .toString()
+
+    fun parseBatch(
+        raw: String,
+        documents: List<LoadedFile>,
+        outputName: (String, String) -> String = { base, extension -> "$base.$extension" },
+    ): List<BatchItemResult> {
+        val items = parseObject(raw, "lote").optJSONArray("items")
+            ?: throw CoreContractException("BATCH_ITEMS_MISSING")
+        requireField(items.length() == documents.size) { "BATCH_ITEMS_MISMATCH" }
+        val results = ArrayList<BatchItemResult>(documents.size)
+        try {
+            for (index in documents.indices) {
+                val item = items.optJSONObject(index) ?: throw CoreContractException("BATCH_ITEM_INVALID")
+                requireField(item.optInt("index", -1) == index) { "BATCH_ITEM_ORDER" }
+                val name = documents[index].displayName
+                val output = if (item.optBoolean("ok", false)) signedOutput(item, name, outputName) else null
+                results += BatchItemResult(name, output)
+            }
+        } catch (error: Exception) {
+            results.forEach { it.output?.bytes?.fill(0) }
+            throw error
+        }
+        return results
     }
 
     private fun verificationStatus(raw: String): String = when (raw.trim().lowercase()) {

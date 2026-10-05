@@ -55,3 +55,32 @@ data class VerificationSummary(
 data class SignerSummary(val id: String, val subject: String, val issuer: String, val fingerprint: String)
 
 data class SignatureInspection(val hasSignature: Boolean, val format: String = "")
+
+data class HashOutput(
+    val algorithm: String,
+    val format: String,
+    val hash: String,
+    val bytes: ByteArray,
+    val extension: String,
+)
+
+data class HashCheck(
+    val valid: Boolean,
+    val algorithm: String,
+    val expected: String,
+    val actual: String,
+)
+
+/** Contenedores CMS del escritorio que Android ofrece. */
+data class ProtectionRequest(
+    val container: String,
+    val recipients: List<ByteArray> = emptyList(),
+    val includeSessionCertificate: Boolean = false,
+    val sign: Boolean = false,
+    val certificateId: String = "",
+)
+
+data class BatchItemResult(
+    val sourceName: String,
+    val output: SignedOutput?,
+)

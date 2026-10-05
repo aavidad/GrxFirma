@@ -16,4 +16,10 @@ internal object SecretEncoding {
             ByteArray(buffer.remaining()).also { buffer.get(it) }
         } finally { if (buffer.hasArray()) buffer.array().fill(0) }
     }
+
+    /** Clave Base64 de EncryptedData: solo ASCII imprimible, hasta 64 caracteres. */
+    fun ascii(secret: CharArray): ByteArray {
+        require(secret.size in 1..64 && secret.all { it.code in 0x21..0x7e })
+        return ByteArray(secret.size) { secret[it].code.toByte() }
+    }
 }

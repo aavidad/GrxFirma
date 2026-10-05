@@ -12,6 +12,10 @@ import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SignedOutput
 import es.dipgra.grxfirma.android.model.VerificationSummary
 import es.dipgra.grxfirma.android.model.SignatureInspection
+import es.dipgra.grxfirma.android.model.BatchItemResult
+import es.dipgra.grxfirma.android.model.HashCheck
+import es.dipgra.grxfirma.android.model.HashOutput
+import es.dipgra.grxfirma.android.model.ProtectionRequest
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -22,6 +26,7 @@ class ReflectiveGomobileBridge private constructor(
     private val methods: Map<String, Method>,
     override val engineVersion: String,
     private val outputName: (String, String) -> String,
+    override val toolsAvailable: Boolean = false,
 ) : CoreBridge, ExternalIdentityBridge {
     override val readiness = CoreReadiness(
         available = true,
@@ -93,6 +98,58 @@ class ReflectiveGomobileBridge private constructor(
         val json = org.json.JSONObject(invokeJson("inspectSignatureJSON", CoreJsonCodec.verifyRequest(document)))
         val format = json.optString("format").lowercase().takeIf { it in listOf("cades", "pades", "xades") }.orEmpty()
         return SignatureInspection(json.optBoolean("has_signature", false), format)
+    }
+
+    override fun createHash(document: LoadedFile, algorithm: String, format: String): HashOutput =
+        CoreJsonCodec.parseHash(invokeTool("createHashJSON", CoreJsonCodec.hashRequest(document, algorithm, format)))
+
+    override fun checkHash(document: LoadedFile, hashFile: LoadedFile): HashCheck =
+        CoreJsonCodec.parseHashCheck(invokeTool("checkHashJSON", CoreJsonCodec.hashCheckRequest(document, hashFile)))
+
+    override fun protect(document: LoadedFile, request: ProtectionRequest, secret: CharArray?): SignedOutput {
+        var encoded = ByteArray(0)
+        try {
+            if (secret != null && secret.isNotEmpty()) encoded = SecretEncoding.ascii(secret)
+            return CoreJsonCodec.parseFileOutput(
+                invokeTool("protectJSON", CoreJsonCodec.protectRequest(document, request), encoded),
+                "protección",
+                document.displayName,
+            )
+        } finally {
+            encoded.fill(0)
+            secret?.fill('\u0000')
+        }
+    }
+
+    override fun unprotect(document: LoadedFile, secret: CharArray?): SignedOutput {
+        var encoded = ByteArray(0)
+        try {
+            if (secret != null && secret.isNotEmpty()) encoded = SecretEncoding.ascii(secret)
+            return CoreJsonCodec.parseFileOutput(
+                invokeTool("unprotectJSON", CoreJsonCodec.unprotectRequest(document), encoded),
+                "desprotección",
+                document.displayName,
+            )
+        } finally {
+            encoded.fill(0)
+            secret?.fill('\u0000')
+        }
+    }
+
+    override fun signBatch(
+        documents: List<LoadedFile>,
+        format: String,
+        certificateId: String,
+        options: Map<String, String>,
+    ): List<BatchItemResult> = CoreJsonCodec.parseBatch(
+        invokeTool("processBatchJSON", CoreJsonCodec.batchRequest(documents, format, certificateId, options)),
+        documents,
+        outputName,
+    )
+
+    private fun invokeTool(name: String, vararg payload: Any): String {
+        if (!toolsAvailable) throw CoreUnavailableException("TOOLS_UNAVAILABLE")
+        return invokeJson(name, *payload)
     }
 
     override fun clearSession() {
@@ -186,9 +243,28 @@ class ReflectiveGomobileBridge private constructor(
                         ),
                     )
                 }
-            return ReflectiveGomobileBridge(facade, required, CoreJsonCodec.engineVersion(contract)) { base, extension ->
-                context.getString(es.dipgra.grxfirma.android.R.string.signed_document_name, base, extension)
-            }
+            // Las herramientas son opcionales: un AAR anterior sigue firmando y
+            // verificando, pero no ofrece huellas, protección ni lote.
+            val tools = listOf(
+                "processBatchJSON" to arrayOf<Class<*>>(String::class.java),
+                "createHashJSON" to arrayOf<Class<*>>(String::class.java),
+                "checkHashJSON" to arrayOf<Class<*>>(String::class.java),
+                "protectJSON" to arrayOf(String::class.java, ByteArray::class.java),
+                "unprotectJSON" to arrayOf(String::class.java, ByteArray::class.java),
+            ).mapNotNull { (name, types) ->
+                try { name to facadeClass.getMethod(name, *types) } catch (_: NoSuchMethodException) { null }
+            }.toMap()
+            required.putAll(tools)
+            val toolsAvailable = tools.size == 5 && CoreJsonCodec.toolsDeclared(contract)
+            return ReflectiveGomobileBridge(
+                facade,
+                required,
+                CoreJsonCodec.engineVersion(contract),
+                { base, extension ->
+                    context.getString(es.dipgra.grxfirma.android.R.string.signed_document_name, base, extension)
+                },
+                toolsAvailable,
+            )
         }
 
         private fun unavailable(code: String, error: Throwable): CoreBridge = UnavailableCoreBridge(

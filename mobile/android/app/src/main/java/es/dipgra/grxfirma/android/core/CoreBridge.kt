@@ -10,6 +10,10 @@ import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SignedOutput
 import es.dipgra.grxfirma.android.model.VerificationSummary
 import es.dipgra.grxfirma.android.model.SignatureInspection
+import es.dipgra.grxfirma.android.model.BatchItemResult
+import es.dipgra.grxfirma.android.model.HashCheck
+import es.dipgra.grxfirma.android.model.HashOutput
+import es.dipgra.grxfirma.android.model.ProtectionRequest
 
 data class CoreReadiness(
     val available: Boolean,
@@ -43,7 +47,35 @@ interface CoreBridge {
     }
 
     fun clearSession()
+
+    /** Huellas, protección y lote solo se ofrecen si el AAR los declara. */
+    val toolsAvailable: Boolean get() = false
+
+    fun createHash(document: LoadedFile, algorithm: String, format: String): HashOutput = toolsUnavailable()
+
+    fun checkHash(document: LoadedFile, hashFile: LoadedFile): HashCheck = toolsUnavailable()
+
+    /** [secret] es la clave de EncryptedData en Base64; se borra siempre. */
+    fun protect(document: LoadedFile, request: ProtectionRequest, secret: CharArray?): SignedOutput {
+        secret?.fill('\u0000')
+        toolsUnavailable()
+    }
+
+    /** [secret] es la clave de EncryptedData en Base64; se borra siempre. */
+    fun unprotect(document: LoadedFile, secret: CharArray?): SignedOutput {
+        secret?.fill('\u0000')
+        toolsUnavailable()
+    }
+
+    fun signBatch(
+        documents: List<LoadedFile>,
+        format: String,
+        certificateId: String,
+        options: Map<String, String>,
+    ): List<BatchItemResult> = toolsUnavailable()
 }
+
+private fun toolsUnavailable(): Nothing = throw CoreUnavailableException("TOOLS_UNAVAILABLE")
 
 interface ExternalIdentityBridge {
     fun installExternalIdentity(certificate: ByteArray, chain: List<ByteArray>, signDigest: (ByteArray, String) -> ByteArray): CertificateSummary
