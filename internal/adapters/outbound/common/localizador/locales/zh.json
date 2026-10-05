@@ -6408,4 +6408,9 @@
   ,"proteccion.destinatario.autoridad": "该证书属于证书颁发机构，而不是收件人。"
   ,"proteccion.destinatario.maximo": "已导入 128 个收件人，已达上限。请先移除一个再添加。"
   ,"proteccion.destinatario.generico": "无法导入公钥证书。请确认它是允许加密的 X.509 DER 或 PEM 证书。"
+  ,"Windows: vuelve a funcionar el sello elegido por la persona en los portales (Canarias y otros): el botón «Firmar con el sello aquí» se activa y, si la vista falla, se puede firmar sin sello o cancelar. La ventana se cierra sola si el portal deja de esperar.": "Windows：门户网站（加那利等）中由用户选择位置的印章恢复正常：“在此处用印章签名”按钮会启用；如果预览失败，可以不加印章签名或取消。门户停止等待时窗口会自动关闭。"
+  ,"Windows: «Desproteger» ya no falla ni cierra la aplicación; «Confirmar antes de firmar» funciona; el informe imprimible es la opción principal al verificar; y toda la interfaz se traduce al idioma elegido.": "Windows：“取消保护”不再失败或导致应用关闭；“签名前确认”生效；验证时可打印报告成为主要选项；整个界面都会翻译为所选语言。"
+  ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu：在 Windows 和 Linux 中，AEAT 查询能正确解读其回复（已找到、未找到或无法核对），报告也会区分警告和错误。"
+  ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux：所有主题（包括浅色主题）对比度良好，复选框和输入框清晰易读，鼠标滚轮可滚动到“立即签名”，界面适配窄窗口。"
+  ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android：批量签名会显示签名保存在哪个文件夹；印章和预览显示相同的颁发者；使用大字体时，偏好设置和印章编辑器也显示正常。"
 }
