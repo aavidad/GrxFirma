@@ -18,8 +18,9 @@ No se publica ningún asset si falta una credencial o si falla cualquiera de
 estos controles:
 
 - Authenticode y sello de tiempo de todos los instaladores y ejecutables
-  distribuidos en Windows; los binarios propios exigen la huella oficial y las
-  firmas válidas de proveedor se conservan;
+  distribuidos en Windows, firmados con SignPath Foundation o con un PFX
+  propio; los binarios propios exigen la huella oficial y las firmas válidas
+  de proveedor se conservan;
 - verificación independiente de los ZIP Windows en un segundo runner;
 - Developer ID Application, Developer ID Installer, Hardened Runtime,
   Gatekeeper, notarización y ticket grapado del PKG macOS, repetidos después en
@@ -38,9 +39,15 @@ Los workflows de pruebas, compatibilidad y smoke no usan estas credenciales y
 pueden seguir generando artefactos sin firma. Esos artefactos no son releases
 oficiales ni deben redistribuirse como tales.
 
-No existe un modo degradado de publicación Windows. Sin un certificado
-Authenticode oficial vigente, su PFX, contraseña y huella fijada, el job de
-release falla antes de publicar. Un instalador local sin firma o firmado con
+No existe un modo degradado de publicación Windows. La firma puede venir de
+SignPath Foundation (`SIGNPATH_API_TOKEN` y `SIGNPATH_ORGANIZATION_ID`, solo
+en etiquetas sin sufijo de prueba) o de un certificado Authenticode propio (su
+PFX y contraseña). `scripts/release/select-windows-signing-mode.sh` elige la
+vía según los secretos presentes y falla si no hay ninguna completa o si una
+está a medias. En los dos casos hace falta la huella fijada; sin ella, el job
+de release falla antes de publicar. El funcionamiento de SignPath está en
+[distribucion/SIGNPATH.md](distribucion/SIGNPATH.md) y la guía para crear los
+certificados en [distribucion/CERTIFICADOS.md](distribucion/CERTIFICADOS.md). Un instalador local sin firma o firmado con
 una identidad de pruebas sigue siendo un candidato técnico, nunca la release
 pública.
 
@@ -54,8 +61,16 @@ Configurar estos secretos en el repositorio o en la organización:
 
 | Secreto | Contenido |
 | --- | --- |
-| `WINDOWS_SIGNING_PFX_BASE64` | PKCS#12/PFX Base64 con una identidad privada válida para firma de código |
-| `WINDOWS_SIGNING_PFX_PASSWORD` | Contraseña del PFX |
+| `WINDOWS_SIGNING_PFX_BASE64` | PKCS#12/PFX Base64 con una identidad privada válida para firma de código (vía PFX) |
+| `WINDOWS_SIGNING_PFX_PASSWORD` | Contraseña del PFX (vía PFX) |
+| `SIGNPATH_API_TOKEN` | Token de API de SignPath para enviar las solicitudes de firma (vía SignPath) |
+| `SIGNPATH_ORGANIZATION_ID` | Identificador de la organización en SignPath (vía SignPath) |
+| `ANDROID_SIGNING_KEYSTORE_BASE64` | Almacén PKCS12 de la clave Android oficial, en Base64 |
+| `GRXFIRMA_ANDROID_KEYSTORE_PASSWORD` | Contraseña del almacén Android oficial |
+| `GRXFIRMA_ANDROID_KEY_PASSWORD` | Contraseña de la clave Android oficial (en PKCS12, la misma) |
+| `ANDROID_QA_KEYSTORE_BASE64` | Almacén PKCS12 de la clave QA para la prueba de reproducibilidad |
+| `ANDROID_QA_KEYSTORE_PASSWORD` | Contraseña del almacén QA |
+| `ANDROID_QA_KEY_PASSWORD` | Contraseña de la clave QA |
 | `WEB_EXT_API_KEY` | Identificador de API JWT de addons.mozilla.org para firmar el XPI Firefox no listado |
 | `WEB_EXT_API_SECRET` | Secreto de API JWT de addons.mozilla.org; solo se expone al job aislado que firma el XPI |
 | `MACOS_APPLICATION_CERT_P12_BASE64` | P12 Base64 de `Developer ID Application` |
@@ -92,7 +107,7 @@ leer las huellas esperadas:
 
 | Variable | Valor esperado |
 | --- | --- |
-| `WINDOWS_SIGNING_CERT_THUMBPRINT` | Huella SHA-1 de 40 hexadecimales del certificado Authenticode |
+| `WINDOWS_SIGNING_CERT_THUMBPRINT` | Huella SHA-1 de 40 hexadecimales del certificado Authenticode (el de SignPath Foundation o el propio) |
 | `WINDOWS_TIMESTAMP_URL` | URL HTTP de timestamp Authenticode; si está vacía se usa DigiCert |
 | `MACOS_CODESIGN_IDENTITY` | Nombre completo de `Developer ID Application: ... (TEAMID)` |
 | `MACOS_INSTALLER_IDENTITY` | Nombre completo de `Developer ID Installer: ... (TEAMID)` |
@@ -100,6 +115,10 @@ leer las huellas esperadas:
 | `MACOS_NOTARY_KEY_ID` | Key ID de 10 caracteres de la clave API |
 | `MACOS_NOTARY_ISSUER_ID` | Issuer UUID de App Store Connect |
 | `RELEASE_GPG_FINGERPRINT` | Huella completa de 40 o 64 hexadecimales de la clave OpenPGP |
+| `GRXFIRMA_ANDROID_KEY_ALIAS` | Alias de la clave Android oficial |
+| `GRXFIRMA_ANDROID_SIGNING_CERT_SHA256` | Huella SHA-256 (64 hexadecimales) del certificado Android oficial |
+| `ANDROID_QA_KEY_ALIAS` | Alias de la clave QA |
+| `ANDROID_QA_SIGNING_CERT_SHA256` | Huella SHA-256 del certificado QA |
 
 Las huellas son anclas de confianza y deben publicarse también por un canal
 independiente del propio GitHub Release. Incluir la clave pública junto a una

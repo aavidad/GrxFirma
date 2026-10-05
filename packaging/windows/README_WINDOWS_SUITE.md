@@ -310,8 +310,11 @@ Cómo funciona y qué implica:
 - La solicitud es un formulario en signpath.org y la revisa una persona;
   debe hacerla quien administra el proyecto.
 
-Esta alternativa no está configurada en el workflow oficial actual. Hasta que
-se apruebe, integre y fije su huella, no desbloquea la publicación.
+El workflow oficial ya admite esta vía: si encuentra los secretos de SignPath,
+las etiquetas sin sufijo de prueba se firman con SignPath en lugar del PFX.
+Hace falta que SignPath apruebe el proyecto y fijar la huella de su
+certificado. Véanse `docs/distribucion/SIGNPATH.md` y
+`docs/distribucion/CERTIFICADOS.md`.
 
 ## Observaciones
 

@@ -54,6 +54,12 @@ def main() -> int:
     require(policy, "check-official-release-policy.py", "release-policy")
     require(policy, "fetch-depth: 0", "release-policy")
     require(policy, "merge-base --is-ancestor", "release-policy")
+    require(policy, "select-windows-signing-mode.sh", "release-policy")
+    require(
+        policy,
+        "windows-signing-mode: ${{ steps.windows-signing.outputs.mode }}",
+        "release-policy",
+    )
 
     for job_name in (
         "build-firefox-extension",
@@ -98,6 +104,36 @@ def main() -> int:
         "choco install nsis --version 3.12.0",
         "build-windows",
     )
+    require(
+        windows,
+        "needs.release-policy.outputs.windows-signing-mode",
+        "build-windows",
+    )
+    require(windows, "-notin @('pfx', 'signpath')", "build-windows")
+    pfx_gate = "if: ${{ env.WINDOWS_SIGNING_MODE == 'pfx' }}"
+    signpath_gate = "if: ${{ env.WINDOWS_SIGNING_MODE == 'signpath' }}"
+    if windows.count(pfx_gate) != 1:
+        raise SystemExit("build-windows must gate the PFX finalizer exactly once")
+    finalize_pfx = windows.index("finalize-windows-release.ps1")
+    if windows.rfind(pfx_gate, 0, finalize_pfx) < 0:
+        raise SystemExit("the PFX finalizer must run only in pfx mode")
+    signpath_actions = windows.count("signpath/github-action-submit-signing-request@")
+    if signpath_actions != 2:
+        raise SystemExit("build-windows must submit exactly two SignPath rounds")
+    if windows.count(signpath_gate) != 7:
+        raise SystemExit("every SignPath step must run only in signpath mode")
+    for phase in ("-Phase Prepare", "-Phase Installers", "-Phase Complete"):
+        require(windows, phase, "build-windows SignPath finalizer")
+    require(windows, "finalize-windows-release-signpath.ps1", "build-windows")
+    if windows.count("wait-for-completion: true") != 2:
+        raise SystemExit("SignPath rounds must wait for the signed artifact")
+    if windows.count("output-artifact-directory:") != 2:
+        raise SystemExit("SignPath rounds must download the signed artifact")
+    if "continue-on-error" in windows:
+        raise SystemExit("SignPath steps must fail closed")
+    for job_name in ("verify-windows", "publish", "release-policy"):
+        if "signpath/github-action-submit-signing-request@" in job_block(text, job_name):
+            raise SystemExit(f"{job_name} must not submit SignPath requests")
 
     for job_name in ("build-linux", "build-windows", "build-macos"):
         platform = job_block(text, job_name)
@@ -199,6 +235,8 @@ def main() -> int:
     required_context = {
         "secrets.WINDOWS_SIGNING_PFX_BASE64",
         "secrets.WINDOWS_SIGNING_PFX_PASSWORD",
+        "secrets.SIGNPATH_API_TOKEN",
+        "secrets.SIGNPATH_ORGANIZATION_ID",
         "vars.WINDOWS_SIGNING_CERT_THUMBPRINT",
         "secrets.ANDROID_SIGNING_KEYSTORE_BASE64",
         "secrets.GRXFIRMA_ANDROID_KEYSTORE_PASSWORD",
