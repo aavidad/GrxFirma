@@ -230,3 +230,48 @@ func TestSecretoValido(t *testing.T) {
 		t.Fatal("secreto no válido aceptado")
 	}
 }
+
+type catalogoFijo struct{ refs []domain.CertificateRef }
+
+func (c *catalogoFijo) List(context.Context) ([]domain.CertificateRef, error) { return c.refs, nil }
+
+// Una credencial remota con la huella de un certificado local no se ofrece:
+// el mismo identificador designaría dos claves distintas.
+func TestSesionDescartaCredencialesConHuellaLocal(t *testing.T) {
+	s := csctest.Nuevo(t)
+	var permitida atomic.Bool
+	permitida.Store(true)
+	ctx := context.Background()
+	locales := &catalogoFijo{}
+	sesion := cscremota.Nueva(cscremota.Opciones{
+		ConfigDir:     t.TempDir(),
+		HTTP:          s.Client(),
+		Navegador:     s.Navegador(),
+		CatalogoLocal: locales,
+		CargarConfig: func() (config.Config, config.Policy, error) {
+			cfg := config.Default()
+			cfg.FirmaRemotaCSC = permitida.Load()
+			return cfg, config.Policy{}, nil
+		},
+	})
+	t.Cleanup(func() { _ = sesion.Close() })
+	if _, err := sesion.Configurar(ctx, s.URL, csctest.ClientID); err != nil {
+		t.Fatal(err)
+	}
+	creds, descartadas, err := sesion.Conectar(ctx)
+	if err != nil || len(creds) != 2 || descartadas != 0 {
+		t.Fatalf("sin coincidencias: %d %d %v", len(creds), descartadas, err)
+	}
+	repetida := creds[0].Ref
+	locales.refs = []domain.CertificateRef{{ID: strings.ToUpper(repetida.ID), Fingerprint: strings.ToUpper(repetida.Fingerprint), Subject: "CN=Local"}}
+	creds, descartadas, err = sesion.Conectar(ctx)
+	if err != nil || len(creds) != 1 || descartadas != 1 || creds[0].Ref.ID == repetida.ID {
+		t.Fatalf("con coincidencia: %+v %d %v", creds, descartadas, err)
+	}
+	if _, ok := sesion.Credencial(repetida.ID); ok {
+		t.Fatal("la credencial repetida sigue disponible")
+	}
+	if _, err := sesion.KeyFor(ctx, repetida); !errors.Is(err, cscremota.ErrNoAplicable) {
+		t.Fatalf("KeyFor de la repetida: %v", err)
+	}
+}

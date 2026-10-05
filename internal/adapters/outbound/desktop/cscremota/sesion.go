@@ -91,6 +91,11 @@ type Opciones struct {
 	TextoCallback string
 	// CargarConfig sustituye la lectura de config.json y de la política (pruebas).
 	CargarConfig func() (config.Config, config.Policy, error)
+	// CatalogoLocal son los certificados locales (almacenes del sistema,
+	// PKCS#12, tarjetas). Al conectar se descarta toda credencial remota con
+	// la huella de uno local: el mismo identificador no puede designar una
+	// clave local y otra del prestador.
+	CatalogoLocal ports.CertificateCatalog
 }
 
 // Estado resume la sesión para la interfaz. No incluye tokens.
@@ -304,6 +309,7 @@ func (s *Sesion) Conectar(ctx context.Context) ([]CredencialRemota, int, error) 
 	if err != nil {
 		return nil, 0, err
 	}
+	locales := s.huellasLocales(ctx)
 	creds := make(map[string]*remota, len(ids))
 	orden := make([]string, 0, len(ids))
 	descartadas := 0
@@ -322,6 +328,12 @@ func (s *Sesion) Conectar(ctx context.Context) ([]CredencialRemota, int, error) 
 			descartadas++
 			continue
 		}
+		// Coincide con un certificado local: se omite y la interfaz avisa
+		// de que hay certificados remotos que no se muestran.
+		if locales[strings.ToLower(ref.ID)] || locales[strings.ToLower(ref.Fingerprint)] {
+			descartadas++
+			continue
+		}
 		creds[ref.ID] = &remota{cred: cred, ref: ref}
 		orden = append(orden, ref.ID)
 	}
@@ -333,6 +345,29 @@ func (s *Sesion) Conectar(ctx context.Context) ([]CredencialRemota, int, error) 
 	}
 	s.creds, s.orden, s.conectada = creds, orden, true
 	return s.listaLocked(), descartadas, nil
+}
+
+// huellasLocales devuelve los identificadores y huellas de los certificados
+// locales, en minúsculas. Si el catálogo local no responde, la firma remota
+// sigue disponible: el proveedor de claves consulta antes las fuentes
+// locales, así que un identificador repetido nunca acaba en el prestador.
+func (s *Sesion) huellasLocales(ctx context.Context) map[string]bool {
+	huellas := map[string]bool{}
+	if s.opc.CatalogoLocal == nil {
+		return huellas
+	}
+	refs, err := s.opc.CatalogoLocal.List(ctx)
+	if err != nil {
+		return huellas
+	}
+	for _, r := range refs {
+		for _, v := range []string{r.ID, r.Fingerprint} {
+			if v = strings.ToLower(strings.TrimSpace(v)); v != "" {
+				huellas[v] = true
+			}
+		}
+	}
+	return huellas
 }
 
 // Desconectar revoca los tokens y borra de la memoria el cliente y los
