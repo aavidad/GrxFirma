@@ -92,6 +92,10 @@ func TestCreateAndValidateENIDocument(t *testing.T) {
 	if _, err := facade.CreateENIDocumentJSON(mustJSON(t, request)); err == nil || err.Error() != eniErrorExplicitCAdES {
 		t.Fatalf("la CAdES explícita necesita el original: %v", err)
 	}
+	request.OriginalBase64 = base64.StdEncoding.EncodeToString([]byte("acta de otra sesión"))
+	if _, err := facade.CreateENIDocumentJSON(mustJSON(t, request)); err == nil || err.Error() != eniErrorMismatch {
+		t.Fatalf("un original ajeno debe rechazarse: %v", err)
+	}
 	request.OriginalBase64 = base64.StdEncoding.EncodeToString(original)
 	raw, err = facade.CreateENIDocumentJSON(mustJSON(t, request))
 	if err != nil {
@@ -179,10 +183,73 @@ func TestCSVLegendNormalizesIDNAndReportsField(t *testing.T) {
 		{csvLegendRequest{Code: "A", URL: "http://sede.example"}, csvErrorURLInvalid},
 		{csvLegendRequest{Code: "A", URL: "https://user@sede.example"}, csvErrorURLInvalid},
 		{csvLegendRequest{Code: "A", URL: "https://sede.example", Text: "a\nb"}, csvErrorTextInvalid},
+		{csvLegendRequest{Code: "AB\u202eC", URL: "https://sede.example"}, csvErrorCodeInvalid},
+		{csvLegendRequest{Code: "A\u200bB", URL: "https://sede.example"}, csvErrorCodeInvalid},
+		{csvLegendRequest{Code: "A", URL: "https://sede.example/\u2066x\u2069"}, csvErrorURLInvalid},
+		{csvLegendRequest{Code: "A", URL: "https://sede.example/x?csv=\ufeff{csv}"}, csvErrorURLInvalid},
+		{csvLegendRequest{Code: "A", URL: "https://sede.example", Text: "a\u202eb"}, csvErrorTextInvalid},
+		{csvLegendRequest{Code: "A", URL: "https://sede.example", Text: "a\x1bb"}, csvErrorTextInvalid},
 	}
 	for _, tc := range cases {
 		if _, err := facade.CSVLegendJSON(mustJSON(t, tc.request)); err == nil || err.Error() != tc.key {
 			t.Errorf("%+v: %v; se esperaba %s", tc.request, err, tc.key)
 		}
+	}
+}
+
+func TestENIAndBatchJSONLimitsAreProportional(t *testing.T) {
+	encoded := func(n int) int { return base64.StdEncoding.EncodedLen(n) }
+	for _, tc := range []struct {
+		name          string
+		limit, needed int
+		previous      int
+	}{
+		{"ENI", maxENIJSONBytes, encoded(maxENIInputBytes), 108 << 20},
+		{"expediente ENI", maxENIFileJSONBytes, encoded(maxENIFileInputBytes), 48 << 20},
+		{"lote", maxBatchJSONBytes, encoded(maxBatchInputBytes) + maxBatchItems*encoded(maxBatchSealImageBytes), 96 << 20},
+	} {
+		if tc.limit < tc.needed+512<<10 || tc.limit > tc.needed+2<<20 || tc.limit >= tc.previous {
+			t.Errorf("%s: límite %d para %d bytes de Base64 (antes %d)", tc.name, tc.limit, tc.needed, tc.previous)
+		}
+	}
+}
+
+func TestCreateENIDocumentRejectsOversizedSignaturePlusOriginal(t *testing.T) {
+	facade := newAndroidFacadeForTest(t)
+	request := eniDocumentRequest{
+		SignatureBase64: base64.StdEncoding.EncodeToString(make([]byte, maxSignedDocumentBytes-1024)),
+		OriginalBase64:  base64.StdEncoding.EncodeToString(make([]byte, 2048)),
+		Organs:          []string{"L01180877"},
+		Origin:          "administracion",
+		State:           "EE01",
+		DocumentType:    "TD10",
+	}
+	if _, err := facade.CreateENIDocumentJSON(mustJSON(t, request)); err == nil || !strings.Contains(err.Error(), "limite") {
+		t.Fatalf("firma y original por encima del tope: %v", err)
+	}
+}
+
+func TestSanitizeOutputTextRemovesFormatCharacters(t *testing.T) {
+	got := sanitizeOutputText("A\u202eB\u200bC\u2066D\u2069\ufeffE\u00adF\x1bG\nH", 100)
+	if got != "ABCDEFG\nH" {
+		t.Fatalf("texto saneado: %q", got)
+	}
+	facade := newAndroidFacadeForTest(t)
+	record := veriFactuRecord("12345678/G33", "", "2024-01-01T19:20:30+01:00")
+	hash, err := commonsigner.RecalcularHuellaVeriFactu(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	altered := strings.Replace(string(record), "<Huella>"+hash, "<Huella>\u202e"+hash, 1)
+	raw, err := facade.ValidateVeriFactuJSON(mustJSON(t, veriFactuValidateRequest{Files: []veriFactuFileRequest{
+		{Name: "a.xml", ContentBase64: base64.StdEncoding.EncodeToString([]byte(altered))},
+	}}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var report veriFactuValidateResponse
+	decodeResponse(t, raw, &report)
+	if report.Valid || len(report.Records) != 1 || strings.ContainsRune(report.Records[0].Hash, '\u202e') {
+		t.Fatalf("informe: %+v", report)
 	}
 }

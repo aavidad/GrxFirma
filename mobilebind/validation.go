@@ -27,7 +27,12 @@ const (
 	maxVerifyJSONBytes     = 108 << 20
 	maxImportJSONBytes     = 6 << 20
 	maxSelectJSONBytes     = 16 << 10
-	maxBatchJSONBytes      = 96 << 20
+	// maxBatchJSONBytes: Base64 de la entrada total del lote (4/3), la
+	// imagen del sello que Android repite en cada documento (hasta 2 MiB)
+	// y 2 MiB para nombres y opciones. Unos 87 MiB, antes 96 MiB.
+	maxBatchJSONBytes = (maxBatchInputBytes+maxBatchItems*maxBatchSealImageBytes)/3*4 + 2<<20
+	// maxBatchSealImageBytes es la imagen de sello que admite Android.
+	maxBatchSealImageBytes = 2 << 20
 	maxRemoteJSONBytes     = 64 << 20
 	maxIntentJSONBytes     = 48 << 20
 	maxOptions             = 32
@@ -162,13 +167,25 @@ func validateSignatureAction(action string) error {
 	}
 }
 
+// containsControlOrFormat detecta caracteres de control (Cc) o de formato
+// (Cf: marcas Bidi, anchura cero, U+FEFF...), que no se ven pero cambian lo
+// que se muestra o se estampa.
+func containsControlOrFormat(value string) bool {
+	return strings.ContainsFunc(value, func(r rune) bool {
+		return unicode.Is(unicode.Cc, r) || unicode.Is(unicode.Cf, r)
+	})
+}
+
 func safeOperationError(operation string) error {
 	return newFacadeError("la operacion de " + operation + " no pudo completarse")
 }
 
+// sanitizeOutputText prepara un texto para mostrarlo: quita los caracteres
+// de control (salvo salto de línea y tabulador) y los de formato (Cf: marcas
+// Bidi, anchura cero, U+FEFF...), que podrían alterar lo que se ve.
 func sanitizeOutputText(value string, maximumRunes int) string {
 	clean := strings.Map(func(r rune) rune {
-		if unicode.IsControl(r) && r != '\n' && r != '\t' {
+		if (unicode.IsControl(r) && r != '\n' && r != '\t') || unicode.Is(unicode.Cf, r) {
 			return -1
 		}
 		return r

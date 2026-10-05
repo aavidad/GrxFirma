@@ -73,6 +73,15 @@
     "https://ca fé.es",
     "https://café.es:-1",
     "https://caf%C3%A9.es/verificar",
-    "https://café.es:000443"
+    "https://café.es:000443",
+    "https://sede.es/verificar\u202e",
+    "https://sede.es/\u202ecod\u202c",
+    "https://sede.es/\u2066x\u2069",
+    "https://sede.es/\u200bverificar",
+    "https://sede.es/ver\u200dificar",
+    "https://sede.es/verificar?csv=\ufeffA",
+    "https://sede.es/ver\u00adificar",
+    "https://sede.es/\u0085x",
+    "https://sede.es/x\udb40\udc01"
   ]
 }

@@ -4973,4 +4973,5 @@
   ,"verifactu.qr_not_found": "Ez da QR irakurgarririk aurkitu irudian ezta PDFaren lehen bost orrietan ere. Saiatu irudi garbiago batekin edo moztu QRaren eremua."
   ,"verifactu.qr_timeout": "QRaren bilaketak gehieneko denbora gainditu du. Saiatu irudi txikiago edo moztu batekin."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu eta cotejar-qr-verifactu aukerek QRaren URLa edo PNG, JPEG edo PDF fitxategi bat onartzen dute -entrada aukeran."
+  ,"eni.error.signature_mismatch": "Sinadura ez dator bat jatorrizko dokumentuarekin, edo dokumentua sinatu ondoren aldatu da. Egiaztatu jatorrizko dokumentu zuzena aukeratu duzula."
 }

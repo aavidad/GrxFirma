@@ -180,6 +180,13 @@ Android oficial externa al repositorio.
 El perfil predeterminado es `baseline`. Para T/LT/LTA exige `options.tsaURL`;
 B con TSA produce T. La fachada rechaza credenciales, fragmentos, esquemas
 ajenos a HTTP(S), puertos inválidos y perfiles que el formato no genera.
+La TSA solo la configura la persona usuaria. Se admite `http` por
+compatibilidad con TSA públicas como la de la FNMT y con TSA internas de la
+organización; de la respuesta RFC 3161 se comprueban la firma, la huella y
+el nonce. La red del núcleo Go (TSA, OCSP, CRL) no pasa por la pila de
+Java, así que
+`usesCleartextTraffic=false` del manifiesto Android no la limita: las reglas
+de esquema, credenciales y redirecciones son las de la fachada.
 PAdES no admite contrafirma ni LTA; XAdES no admite LT/LTA en este motor.
 CAdES usa los firmadores comunes de cofirma, contrafirma, TSA y revocación.
 El sellado CAdES-T conserva los firmantes y los atributos de contrafirma.
@@ -233,7 +240,9 @@ aprobación y la identidad de la sesión. Cada documento pasa las mismas
 validaciones que `signJSON` (nombre, MIME, acción, perfil y TSA). La respuesta
 trae `items[]` en el orden de entrada, cada uno con `ok` y la firma o un error
 propio. No admite `session`: `remote_exchange` sigue en `false`. El DNIe exige
-PIN por firma, así que Android no le ofrece el lote.
+PIN por firma, así que Android no le ofrece el lote. El JSON del lote admite
+unos 87 MiB: el Base64 de los 32 MiB de documentos más una imagen de sello de
+hasta 2 MiB repetida en cada documento y 2 MiB para nombres y opciones.
 
 El contrato declara `process_batch`, `hash`, `protect`, `unprotect` y
 `protect_sign`, además de `limits.batch_items`, `limits.batch_input_bytes`,
@@ -278,10 +287,16 @@ traduce. No consulta a la AEAT ni usa la red.
 `signature_type` (TF02-TF06). Los errores son claves cerradas:
 `eni.validacion.*` del motor y `eni.error.unsigned_pdf`,
 `eni.error.explicit_cades`, `eni.error.unrecognized`,
-`eni.error.content_format` y `eni.error.origin`. `validateENIJSON` devuelve
+`eni.error.content_format`, `eni.error.origin` y
+`eni.error.signature_mismatch`. Antes de envolver, la fachada coteja sin red
+que la firma corresponde al original (el `messageDigest` de la CAdES
+explícita, las referencias de la XAdES separada) y que el PDF firmado no se
+ha alterado; si falla, responde `eni.error.signature_mismatch`. `validateENIJSON` devuelve
 `valid` e `issues[]` con claves `eni.validacion.*`; no verifica las firmas.
 `eniCatalogsJSON` devuelve `document_states`, `document_types` y
-`file_states`. El expediente ENI (carpeta de documentos con índice firmado)
+`file_states`. La firma y el original suman como máximo 48 MiB (una firma
+implícita o PAdES llega sola; una separada es pequeña frente a su original de
+hasta 32 MiB) y el JSON admite 65 MiB. El expediente ENI (carpeta de documentos con índice firmado)
 no está en Android.
 
 `csvLegendJSON` recibe `csv`, `csv_url` y `csv_text` y devuelve `url`
@@ -357,7 +372,8 @@ Nunca descarga ni instala nada.
 
 `createENIFileJSON` crea un expediente ENI con la operación
 `generar-expediente` del escritorio. Recibe `documents[]` (`name`,
-`content_base64`; documentos ENI en XML, hasta 64 y 32 MiB en total),
+`content_base64`; documentos ENI en XML, hasta 64 y 32 MiB en total; el JSON
+admite unos 44 MiB),
 `certificate_id`, `organs[]` (DIR3), `classification` (código SIA o
 `<DIR3>_PRO_<id>`), `state` (`E01`, `E02` o `E03`, de
 `eni.EstadosExpediente`), `identifier` opcional, `opening_date` opcional en

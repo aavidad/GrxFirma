@@ -20,8 +20,14 @@ import (
 	"grxfirma/internal/adapters/outbound/common/localizador"
 )
 
-// MaxXMLBytes limita también el contenido base64 de documentos existentes.
-const MaxXMLBytes = 150 * 1024 * 1024
+// MaxContenidoBytes limita la suma del contenido y los datos de firma de un
+// documento ENI (una firma CAdES implícita repite el contenido).
+const MaxContenidoBytes = 100 * 1024 * 1024
+
+// MaxXMLBytes limita el XML ENI que se lee o valida: el Base64 de
+// MaxContenidoBytes (4/3) más 4 MiB para metadatos y envolturas. Cubre todo
+// documento que pueda generar Generar sin admitir picos mayores de memoria.
+const MaxXMLBytes = MaxContenidoBytes/3*4 + 4*1024*1024
 const nsDS = "http://www.w3.org/2000/09/xmldsig#"
 
 var reXMLID = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_.-]{0,127}$`)
@@ -49,6 +55,33 @@ func textoSeguro(s string, max int) bool {
 	}
 	return true
 }
+
+// lectorSinBlancos entrega el texto sin espacios, tabuladores ni saltos de
+// línea XML e indica si había algún otro carácter.
+type lectorSinBlancos struct {
+	r     io.Reader
+	datos bool
+}
+
+func (l *lectorSinBlancos) Read(p []byte) (int, error) {
+	for {
+		n, err := l.r.Read(p)
+		w := 0
+		for _, c := range p[:n] {
+			if c != ' ' && c != '\t' && c != '\r' && c != '\n' {
+				p[w] = c
+				w++
+			}
+		}
+		if w > 0 {
+			l.datos = true
+		}
+		if w > 0 || err != nil {
+			return w, err
+		}
+	}
+}
+
 func fechaValida(s string) bool {
 	if len(s) > 35 || !reFecha.MatchString(s) {
 		return false
@@ -310,9 +343,11 @@ func ValidarXML(data []byte) []Problema {
 		case ns == nsContenido && name == "NombreFormato":
 			value(n, path, reFormato.MatchString(s))
 		case (ns == nsContenido && name == "ValorBinario") || (ns == nsFirma && name == "FirmaBase64"):
-			compact := strings.Join(strings.Fields(s), "")
-			_, err := io.Copy(io.Discard, base64.NewDecoder(base64.StdEncoding, strings.NewReader(compact)))
-			value(n, path, err == nil && compact != "")
+			// Se descodifica en flujo saltando el espacio en blanco, sin
+			// copiar el Base64 completo (puede ocupar más de 100 MiB).
+			sinBlancos := &lectorSinBlancos{r: strings.NewReader(s)}
+			_, err := io.Copy(io.Discard, base64.NewDecoder(base64.StdEncoding, sinBlancos))
+			value(n, path, err == nil && sinBlancos.datos)
 		case ns == nsFirma && name == "TipoFirma":
 			value(n, path, tiposFirma[TipoFirma(s)])
 		case ns == nsFirma && name == "ReferenciaFirma":

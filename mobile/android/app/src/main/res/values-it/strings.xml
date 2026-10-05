@@ -627,4 +627,5 @@
     <string name="error_folder_too_many">La cartella contiene troppi file. Scegline una con meno file.</string>
     <string name="export_verification_report_html">Salva rapporto stampabile (HTML)</string>
     <string name="verification_report_html_filename">rapporto-verifica.html</string>
+    <string name="eni_error_signature_mismatch">La firma non corrisponde al documento originale oppure il documento è stato modificato dopo la firma. Verifichi di aver scelto l\'originale corretto.</string>
 </resources>

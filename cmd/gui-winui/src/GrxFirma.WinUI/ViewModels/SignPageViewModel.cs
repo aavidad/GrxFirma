@@ -3191,7 +3191,7 @@ public sealed class SignPageViewModel
         if (field is null or "csvCode")
         {
             if (code.Length == 0) return ("csvCode", "csv.error.code_missing");
-            if (code.Length > 128 || code.Any(char.IsControl)) return ("csvCode", "csv.error.code_invalid");
+            if (code.Length > 128 || code.Any(char.IsControl) || VerificationUrlNormalizer.ContainsFormatCharacter(code)) return ("csvCode", "csv.error.code_invalid");
         }
         if (field is null or "csvUrl")
         {
@@ -3199,7 +3199,7 @@ public sealed class SignPageViewModel
             if (!TryNormalizeCsvUrl(url, code, out _)) return ("csvUrl", "csv.error.url_invalid");
         }
         if ((field is null || field == "csvText") &&
-            (text.Length > 512 || text.Any(char.IsControl)))
+            (text.Length > 512 || text.Any(char.IsControl) || VerificationUrlNormalizer.ContainsFormatCharacter(text)))
             return ("csvText", "csv.error.text_invalid");
         return null;
     }

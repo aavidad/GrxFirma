@@ -627,4 +627,5 @@
     <string name="error_folder_too_many">Le dossier contient trop de fichiers. Choisissez-en un qui en contient moins.</string>
     <string name="export_verification_report_html">Enregistrer le rapport imprimable (HTML)</string>
     <string name="verification_report_html_filename">rapport-verification.html</string>
+    <string name="eni_error_signature_mismatch">La signature ne correspond pas au document original ou le document a été modifié après sa signature. Vérifiez que vous avez choisi le bon original.</string>
 </resources>

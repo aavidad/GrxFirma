@@ -609,4 +609,5 @@
     <string name="error_folder_too_many">O cartafol ten demasiados ficheiros. Escolla un con menos.</string>
     <string name="export_verification_report_html">Gardar informe imprimible (HTML)</string>
     <string name="verification_report_html_filename">informe-verificacion.html</string>
+    <string name="eni_error_signature_mismatch">A sinatura non corresponde ao documento orixinal ou o documento modificouse despois de asinalo. Comprobe que escolleu o orixinal correcto.</string>
 </resources>

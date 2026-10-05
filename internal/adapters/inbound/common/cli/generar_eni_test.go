@@ -111,3 +111,26 @@ func TestRunGenerarENI_CAdESImplicitaYExplicita(t *testing.T) {
 		t.Fatalf("rc=%d stderr=%s", rc, stderr.String())
 	}
 }
+
+func TestRunGenerarENI_RechazaOriginalAjeno(t *testing.T) {
+	tmp := t.TempDir()
+	firma := filepath.Join(tmp, "explicita.csig")
+	if err := os.WriteFile(firma, firmaCAdESPrueba(t, []byte("%PDF-1.7\ndocumento firmado"), false), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ajeno := filepath.Join(tmp, "otro.pdf")
+	if err := os.WriteFile(ajeno, []byte("%PDF-1.7\notro documento"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr strings.Builder
+	a := New(nil, nil)
+	a.Stdout, a.Stderr = &stdout, &stderr
+	rc := a.Run(context.Background(), []string{"-operacion", "generar-eni", "-entrada", firma, "-original", ajeno,
+		"-opcion", "eni.organo=L01180877", "-opcion", "eni.origen=ciudadano", "-opcion", "eni.tipoDocumental=TD14"})
+	if rc == 0 || !strings.Contains(stderr.String(), "no corresponde al documento original") {
+		t.Fatalf("rc=%d stderr=%s", rc, stderr.String())
+	}
+	if _, err := os.Stat(filepath.Join(tmp, "explicita_eni.xml")); err == nil {
+		t.Fatal("se generó el ENI con un original ajeno")
+	}
+}

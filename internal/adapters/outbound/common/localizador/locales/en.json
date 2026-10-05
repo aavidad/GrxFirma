@@ -4973,4 +4973,5 @@
   ,"verifactu.qr_not_found": "No readable QR was found in the image or in the first five pages of the PDF. Try a sharper image or crop the QR area."
   ,"verifactu.qr_timeout": "The QR search took longer than allowed. Try a smaller or cropped image."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu and cotejar-qr-verifactu accept in -entrada the QR URL or a PNG, JPEG or PDF file."
+  ,"eni.error.signature_mismatch": "The signature does not match the original document, or the document was changed after it was signed. Check that you chose the correct original."
 }

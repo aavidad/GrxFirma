@@ -143,3 +143,38 @@ func TestXSDOficialOpcional(t *testing.T) {
 		})
 	}
 }
+
+func TestLimiteXMLProporcionadoAlContenido(t *testing.T) {
+	// El Base64 del contenido máximo cabe con margen y el tope no excede
+	// 4/3 del contenido más 4 MiB (antes 150 MiB).
+	base64Max := (MaxContenidoBytes + 2) / 3 * 4
+	if MaxXMLBytes < base64Max+1<<20 || MaxXMLBytes > base64Max+4<<20 || MaxXMLBytes >= 150<<20 {
+		t.Fatalf("MaxXMLBytes=%d no es proporcionado a MaxContenidoBytes=%d", MaxXMLBytes, MaxContenidoBytes)
+	}
+	if issues := ValidarXML(make([]byte, MaxXMLBytes+1)); len(issues) != 1 || issues[0].Clave != "eni.validacion.limit" {
+		t.Fatalf("XML sobre el límite: %v", issues)
+	}
+}
+
+func TestValidarXMLBase64ConSaltosYVacio(t *testing.T) {
+	valid, err := Generar(documentoPrueba(), ahoraPrueba)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := string(valid)
+	inicio := strings.Index(s, "<enifile:ValorBinario>") + len("<enifile:ValorBinario>")
+	fin := strings.Index(s, "</enifile:ValorBinario>")
+	b64 := s[inicio:fin]
+	var envuelto strings.Builder
+	for i := 0; i < len(b64); i += 4 {
+		envuelto.WriteString(" \r\n\t" + b64[i:min(i+4, len(b64))])
+	}
+	if issues := ValidarXML([]byte(s[:inicio] + envuelto.String() + "\n" + s[fin:])); len(issues) != 0 {
+		t.Fatalf("Base64 con espacios y saltos de línea rechazado: %v", issues)
+	}
+	for nombre, valor := range map[string]string{"vacío": " \n\t ", "espacio Unicode": b64[:4] + " " + b64[4:], "truncado": b64[:len(b64)-1]} {
+		if issues := ValidarXML([]byte(s[:inicio] + valor + s[fin:])); len(issues) == 0 {
+			t.Errorf("Base64 %s aceptado", nombre)
+		}
+	}
+}

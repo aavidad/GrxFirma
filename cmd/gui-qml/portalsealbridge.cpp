@@ -20,6 +20,10 @@ QString PortalSealBridge::normalizeVerificationUrl(const QString &raw) const {
   return VerificationUrl::normalize(raw);
 }
 
+bool PortalSealBridge::hasControlOrFormat(const QString &value) const {
+  return VerificationUrl::hasControlOrFormat(value);
+}
+
 bool PortalSealBridge::load(const QString &requestPath) {
   const QFileInfo requestInfo(requestPath);
   if (!requestInfo.isFile() || requestInfo.isSymLink() ||

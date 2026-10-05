@@ -9,12 +9,19 @@ namespace GrxFirma.WinUI.Core.Operations;
 
 public static class VerificationUrlNormalizer
 {
+    // Caracteres de formato (Cf): marcas Bidi, anchura cero, U+FEFF... No se
+    // ven, pero cambian lo que se muestra frente a lo que se abre. Se recorren
+    // por runas para detectar también los de fuera del plano básico.
+    public static bool ContainsFormatCharacter(string value) =>
+        value.EnumerateRunes().Any(r => System.Text.Rune.GetUnicodeCategory(r) == UnicodeCategory.Format);
+
     public static bool TryNormalize(string? raw, out string normalized)
     {
         normalized = string.Empty;
         var value = raw?.Trim() ?? string.Empty;
         if (value.Length == 0 || value.Length > 2048 ||
-            value.Any(c => char.IsWhiteSpace(c) || char.IsControl(c) || c == '\\'))
+            value.Any(c => char.IsWhiteSpace(c) || char.IsControl(c) || c == '\\') ||
+            ContainsFormatCharacter(value))
             return false;
         if (!value.Contains("://", StringComparison.Ordinal))
         {

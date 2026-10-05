@@ -93,7 +93,7 @@ func TipoDocumentalValido(td string) bool {
 // Validar comprueba los metadatos y firmas antes de generar el documento.
 func (d *Documento) Validar() error {
 	m := &d.Metadatos
-	if len(d.Contenido) > 100*1024*1024 || len(m.Organos) > 128 || len(d.Firmas) > 128 {
+	if len(d.Contenido) > MaxContenidoBytes || len(m.Organos) > 128 || len(d.Firmas) > 128 {
 		return problema("documento", "limit")
 	}
 	if !fechaTiempoValida(m.FechaCaptura) {
@@ -105,7 +105,7 @@ func (d *Documento) Validar() error {
 	total := int64(len(d.Contenido))
 	for _, f := range d.Firmas {
 		total += int64(len(f.Datos))
-		if total > 100*1024*1024 {
+		if total > MaxContenidoBytes {
 			return problema("firma", "limit")
 		}
 	}

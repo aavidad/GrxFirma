@@ -4973,4 +4973,5 @@
   ,"verifactu.qr_not_found": "在图像或 PDF 的前五页中未找到可读的二维码。请使用更清晰的图像或裁剪二维码区域。"
   ,"verifactu.qr_timeout": "查找二维码超过了最长时间。请尝试更小或裁剪过的图像。"
   ,"verifactu.cli_qr_input": "leer-qr-verifactu 和 cotejar-qr-verifactu 的 -entrada 参数接受二维码 URL 或 PNG、JPEG、PDF 文件。"
+  ,"eni.error.signature_mismatch": "签名与原始文档不符，或文档在签名后已被修改。请确认您选择了正确的原始文档。"
 }

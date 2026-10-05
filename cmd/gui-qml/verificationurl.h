@@ -55,12 +55,29 @@ inline bool validBidi(const QString &domain) {
   return true;
 }
 
+// Caracteres de control (Cc) o de formato (Cf): marcas Bidi, anchura cero,
+// U+FEFF... No se ven, pero alteran lo que se muestra frente a lo que se abre
+// o se estampa. Se recorre por puntos de código para cubrir los de fuera del
+// plano básico; un sustituto suelto también se rechaza.
+inline bool hasControlOrFormat(const QString &value) {
+  if (!value.isValidUtf16())
+    return true;
+  for (const char32_t c : value.toUcs4()) {
+    const auto category = QChar::category(c);
+    if (category == QChar::Other_Control || category == QChar::Other_Format)
+      return true;
+  }
+  return false;
+}
+
 inline QString normalize(const QString &raw) {
   QString value = raw.trimmed();
   if (value.isEmpty() || value.size() > 2048)
     return {};
+  if (hasControlOrFormat(value))
+    return {};
   for (const QChar c : value) {
-    if (c.isSpace() || c.category() == QChar::Other_Control || c == u'\\')
+    if (c.isSpace() || c == u'\\')
       return {};
   }
   if (!value.contains(QStringLiteral("://"))) {

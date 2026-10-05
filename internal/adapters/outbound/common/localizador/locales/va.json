@@ -4973,4 +4973,5 @@
   ,"verifactu.qr_not_found": "No s’ha trobat cap QR llegible en la imatge ni en les cinc primeres pàgines del PDF. Proveu amb una imatge més nítida o retalleu la zona del QR."
   ,"verifactu.qr_timeout": "La busca del QR ha superat el temps màxim. Proveu amb una imatge més xicoteta o retallada."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu i cotejar-qr-verifactu accepten en -entrada l’URL del QR o un fitxer PNG, JPEG o PDF."
+  ,"eni.error.signature_mismatch": "La firma no correspon al document original o el document s'ha modificat després de firmar-lo. Comproveu que heu triat l'original correcte."
 }

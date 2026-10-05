@@ -37,4 +37,14 @@ public sealed class VerificationUrlNormalizerTests
             Assert.IsFalse(VerificationUrlNormalizer.TryNormalize(item.GetString(), out _), item.GetString());
         }
     }
+
+    [TestMethod]
+    public void FormatCharactersAreDetectedInAndOutsideTheBasicPlane()
+    {
+        foreach (var value in new[] { "a\u202eb", "\u2066x\u2069", "a\u200bb", "\ufeffA", "a\u00adb", "x\U000E0001" })
+        {
+            Assert.IsTrue(VerificationUrlNormalizer.ContainsFormatCharacter(value), value);
+        }
+        Assert.IsFalse(VerificationUrlNormalizer.ContainsFormatCharacter("ABC-123 café ñ"));
+    }
 }

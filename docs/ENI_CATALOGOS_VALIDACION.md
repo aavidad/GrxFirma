@@ -23,7 +23,8 @@ de nombres, secuencias, cardinalidades, metadatos, contenido binario, índice y
 envolturas de firma. No comprueba la integridad criptográfica de XMLDSig ni
 sustituye la validación con los XSD oficiales. Rechaza DTD, referencias externas,
 atributos inesperados y referencias a identificadores ausentes. Admite un BOM
-UTF-8. Limita el XML a 150 MiB, la profundidad a 64, los elementos a 20 000,
+UTF-8. Limita el XML a unos 137 MiB (el Base64 de los 100 MiB de contenido y
+firmas, más 4 MiB para metadatos y envolturas), la profundidad a 64, los elementos a 20 000,
 los atributos por elemento a 64 y el informe a 256 incidencias. Al alcanzar
 el límite del informe devuelve una incidencia de límite, sin ocultar que se
 ha alcanzado. El contenido y los datos de firma suman como máximo 100 MiB;

@@ -17,6 +17,7 @@ object EngineKeys {
 
     private val LOCAL = mapOf(
         "eni.error.unsigned_pdf" to R.string.eni_error_unsigned_pdf,
+        "eni.error.signature_mismatch" to R.string.eni_error_signature_mismatch,
         "eni.error.explicit_cades" to R.string.eni_error_explicit_cades,
         "eni.error.unrecognized" to R.string.eni_error_unrecognized,
         "eni.error.content_format" to R.string.eni_error_content_format,

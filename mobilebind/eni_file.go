@@ -30,7 +30,9 @@ const (
 	maxENIFileDocuments = 64
 	// maxENIFileInputBytes suma los documentos; el JSON lleva su Base64.
 	maxENIFileInputBytes = maxDocumentBytes
-	maxENIFileJSONBytes  = 48 << 20
+	// maxENIFileJSONBytes: Base64 de la entrada (4/3) más 1 MiB para
+	// nombres y metadatos; unos 44 MiB, antes 48 MiB.
+	maxENIFileJSONBytes  = maxENIFileInputBytes/3*4 + 1<<20
 	maxENIInterested     = 16
 	maxENIInterestedLen  = 128
 	maxENIClassification = 64

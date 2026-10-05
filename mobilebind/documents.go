@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 
 	"grxfirma/internal/adapters/outbound/common/eni"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
@@ -25,9 +24,15 @@ import (
 // las traduce con sus recursos; el núcleo no envía textos para mostrar.
 
 const (
-	maxVeriFactuFiles      = 64
-	maxVeriFactuJSONBytes  = 45 << 20
-	maxENIJSONBytes        = 108 << 20
+	maxVeriFactuFiles     = 64
+	maxVeriFactuJSONBytes = 45 << 20
+	// maxENIInputBytes suma firma y original: una firma implícita o PAdES
+	// llega sola y una separada (CAdES explícita, XAdES) es pequeña frente a
+	// su original de hasta maxDocumentBytes.
+	maxENIInputBytes = maxSignedDocumentBytes
+	// maxENIJSONBytes es el Base64 de maxENIInputBytes (4/3) más 1 MiB de
+	// metadatos: 65 MiB, antes 108 MiB.
+	maxENIJSONBytes        = maxENIInputBytes/3*4 + 1<<20
 	maxENIOrgans           = 16
 	maxIssueFieldRunes     = 160
 	eniErrorUnsignedPDF    = "eni.error.unsigned_pdf"
@@ -35,6 +40,7 @@ const (
 	eniErrorUnrecognized   = "eni.error.unrecognized"
 	eniErrorContentFormat  = "eni.error.content_format"
 	eniErrorOrigin         = "eni.error.origin"
+	eniErrorMismatch       = "eni.error.signature_mismatch"
 	csvErrorCodeMissing    = "csv.error.code_missing"
 	csvErrorCodeInvalid    = "csv.error.code_invalid"
 	csvErrorURLMissing     = "csv.error.url_missing"
@@ -224,6 +230,9 @@ func (f *Facade) CreateENIDocumentJSON(payload string) (string, error) {
 		}
 		defer zeroBytes(original)
 	}
+	if len(signature)+len(original) > maxENIInputBytes {
+		return "", newFacadeError("original_base64 supera el limite permitido")
+	}
 	doc, err := eniDocumentFromSignature(signature, original, req)
 	if err != nil {
 		return "", err
@@ -253,6 +262,9 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 		if !bytes.Contains(signature, []byte("/ByteRange")) {
 			return doc, newFacadeError(eniErrorUnsignedPDF)
 		}
+		if commonsigner.ComprobarIntegridadPAdES(context.Background(), signature) != nil {
+			return doc, newFacadeError(eniErrorMismatch)
+		}
 		doc.Contenido, doc.NombreFormato = signature, "PDF"
 		doc.Firmas = []eni.Firma{{Tipo: eni.FirmaPAdES}}
 	case len(trimmed) > 0 && trimmed[0] == 0x30:
@@ -267,11 +279,17 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 			if len(original) == 0 {
 				return doc, newFacadeError(eniErrorExplicitCAdES)
 			}
+			if commonsigner.CotejarCAdESExplicita(signature, original) != nil {
+				return doc, newFacadeError(eniErrorMismatch)
+			}
 			doc.Contenido = original
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaCAdESExplicit, Datos: signature}}
 		}
 	case bytes.HasPrefix(trimmed, []byte("<")) && bytes.Contains(signature, []byte("http://www.w3.org/2000/09/xmldsig#")):
 		if len(original) > 0 {
+			if commonsigner.CotejarXAdESSeparada(signature, original) != nil {
+				return doc, newFacadeError(eniErrorMismatch)
+			}
 			doc.Contenido = original
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaXAdESDetached, Datos: signature}}
 		} else {
@@ -443,11 +461,11 @@ func (f *Facade) CSVLegendJSON(payload string) (string, error) {
 	switch {
 	case code == "":
 		return "", newFacadeError(csvErrorCodeMissing)
-	case len(code) > maxCSVCodeBytes || strings.ContainsFunc(code, unicode.IsControl):
+	case len(code) > maxCSVCodeBytes || containsControlOrFormat(code):
 		return "", newFacadeError(csvErrorCodeInvalid)
 	case strings.TrimSpace(req.URL) == "":
 		return "", newFacadeError(csvErrorURLMissing)
-	case len(req.Text) > maxCSVTextBytes || strings.ContainsFunc(req.Text, unicode.IsControl):
+	case len(req.Text) > maxCSVTextBytes || containsControlOrFormat(req.Text):
 		return "", newFacadeError(csvErrorTextInvalid)
 	}
 	address, text, _, err := desktopsigner.ResolverLeyendaCSV(map[string]string{

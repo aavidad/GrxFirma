@@ -627,4 +627,5 @@
     <string name="error_folder_too_many">La carpeta té massa fitxers. Trieu-ne una amb menys.</string>
     <string name="export_verification_report_html">Desar l\'informe imprimible (HTML)</string>
     <string name="verification_report_html_filename">informe-verificacio.html</string>
+    <string name="eni_error_signature_mismatch">La signatura no correspon al document original o el document s\'ha modificat després de signar-lo. Comproveu que heu triat l\'original correcte.</string>
 </resources>
