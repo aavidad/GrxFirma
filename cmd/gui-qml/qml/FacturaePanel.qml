@@ -6,7 +6,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtQuick.Dialogs 6.2
+import QtQuick.Dialogs
 
 Item {
     id: panel
@@ -116,6 +116,23 @@ Item {
                     : (message && message.indexOf("facturae.error.") === 0
                          ? tr(message) : tr("facturae.error.input"))
         }
+        function onVerifactuValidated(ok, result, message) {
+            panel.busy = false
+            panel.invoiceResult = ok ? result : null
+            panel.statusText = ok ? tr(result.valid ? "verifactu.valid" : "verifactu.invalid") : message
+        }
+        function onVerifactuQRFinished(action, ok, result, message) {
+            panel.busy = false
+            if (action === "read_verifactu_qr") {
+                qrArea.readResult = ok ? result : null
+                qrArea.text = ok ? tr("verifactu.qr_nif") + ": " + result.nif + "\n" +
+                    tr("verifactu.qr_number") + ": " + result.numserie + "\n" +
+                    tr("verifactu.qr_date") + ": " + result.fecha + "\n" +
+                    tr("verifactu.qr_amount") + ": " + result.importe : message
+            } else {
+                qrArea.text = ok ? JSON.stringify(result.response, null, 2) : message
+            }
+        }
         function onInvoiceValidated(ok, result, message) {
             panel.busy = false
             panel.invoiceResult = ok ? result : null
@@ -123,6 +140,18 @@ Item {
                     ? (result.valid ? tr("paridad.lote3.invoice.valid") : tr("paridad.lote3.invoice.invalid"))
                     : tr("paridad.lote3.invoice.failed").replace("%1", message)
         }
+    }
+    FileDialog {
+        id: verifactuFileDialog
+        title: tr("verifactu.choose")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [tr("paridad.lote3.invoice.filter")]
+        onAccepted: { panel.invoiceResult = null; panel.statusText = tr("paridad.lote3.invoice.validating"); panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFile)) }
+    }
+    FolderDialog {
+        id: verifactuFolderDialog
+        title: tr("verifactu.folder")
+        onAccepted: { panel.invoiceResult = null; panel.statusText = tr("paridad.lote3.invoice.validating"); panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFolder)) }
     }
     ScrollView {
         anchors.fill: parent
@@ -241,7 +270,7 @@ Item {
                 Accessible.name: text
             }
             Repeater {
-                model: panel.invoiceResult ? panel.invoiceResult.issues : []
+                model: panel.invoiceResult && panel.invoiceResult.issues ? panel.invoiceResult.issues : []
                 delegate: Label {
                     required property var modelData
                     text: (modelData.level === "error" ? tr("paridad.lote3.invoice.error") : tr("paridad.lote3.invoice.warning")) + " · " + modelData.field + ": " + modelData.message
@@ -249,6 +278,31 @@ Item {
                     Accessible.name: text
                 }
             }
+            Label { text: tr("verifactu.title"); font.bold: true; color: panel.theme.textColor; Layout.fillWidth: true }
+            Label { text: tr("verifactu.scope"); textFormat: Text.PlainText; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            RowLayout {
+                Layout.fillWidth: true
+                Button { text: tr("verifactu.choose"); enabled: !panel.busy; Accessible.name: text; onClicked: verifactuFileDialog.open() }
+                Button { text: tr("verifactu.folder"); enabled: !panel.busy; Accessible.name: text; onClicked: verifactuFolderDialog.open() }
+            }
+            TextArea {
+                text: panel.invoiceResult && panel.invoiceResult.format === "VeriFactu" ? panel.invoiceResult.report : ""
+                visible: text.length > 0; readOnly: true; wrapMode: TextEdit.Wrap
+                Accessible.name: tr("paridad.lote3.invoice.report")
+                color: panel.theme.textColor; Layout.fillWidth: true
+            }
+            Label { text: tr("verifactu.qr_title"); color: panel.theme.textColor; font.bold: true; Layout.fillWidth: true }
+            TextField {
+                id: qrInput; enabled: !panel.busy; Layout.fillWidth: true; Accessible.name: tr("verifactu.qr_url_label")
+                placeholderText: tr("verifactu.qr_url_label"); selectByMouse: true
+                onTextChanged: { qrArea.readResult = null; qrArea.text = "" }
+            }
+            Label { text: tr("verifactu.qr_notice"); textFormat: Text.PlainText; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            RowLayout {
+                Button { text: tr("verifactu.qr_read"); enabled: !panel.busy && qrInput.text.length > 0; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.readVeriFactuQR(qrInput.text) } }
+                Button { text: tr("verifactu.qr_query"); enabled: !panel.busy && qrArea.readResult !== null; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.queryVeriFactuQR(qrArea.readResult.url) } }
+            }
+            TextArea { id: qrArea; property var readResult: null; readOnly: true; wrapMode: TextEdit.Wrap; Layout.fillWidth: true; color: panel.theme.textColor; Accessible.name: tr("verifactu.qr_title") }
             Label { text: tr("facturae.face_note"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true

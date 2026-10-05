@@ -1230,6 +1230,12 @@ void IpcBridge::failActionDueToConnection(const QString &action,
     emit smartcardStatusReceived(false, QVariantList(), safeMessage);
   } else if (action == "facturae_create") {
     emit facturaeCreated(false, QVariantMap(), safeMessage);
+  } else if (action == "validate_verifactu") {
+    emit verifactuValidated(false, QVariantMap(), safeMessage);
+  } else if (action == "detect_verifactu") {
+    emit verifactuDetected(false, QVariantMap());
+  } else if (action == "read_verifactu_qr" || action == "query_verifactu_qr") {
+    emit verifactuQRFinished(action, false, QVariantMap(), safeMessage);
   } else if (action == "validate_invoice") {
     emit invoiceValidated(false, QVariantMap(), safeMessage);
   } else if (action == "generate_eni_document" || action == "generate_eni_file") {
@@ -1464,6 +1470,19 @@ void IpcBridge::createFacturae(const QVariantMap &draft, const QString &outputPa
 
 void IpcBridge::validateInvoice(const QString &inputPath) {
   sendRequest(QStringLiteral("validate_invoice"), {{QStringLiteral("inputPath"), inputPath}});
+}
+
+void IpcBridge::validateVeriFactu(const QString &inputPath) {
+  sendRequest(QStringLiteral("validate_verifactu"), {{QStringLiteral("inputPath"), inputPath}});
+}
+void IpcBridge::detectVeriFactu(const QString &inputPath) {
+  sendRequest(QStringLiteral("detect_verifactu"), {{QStringLiteral("inputPath"), inputPath}});
+}
+void IpcBridge::readVeriFactuQR(const QString &url) {
+  sendRequest(QStringLiteral("read_verifactu_qr"), {{QStringLiteral("url"), url}});
+}
+void IpcBridge::queryVeriFactuQR(const QString &url) {
+  sendRequest(QStringLiteral("query_verifactu_qr"), {{QStringLiteral("url"), url}});
 }
 
 void IpcBridge::generateENIDocument(const QVariantMap &params) {
@@ -1884,6 +1903,18 @@ void IpcBridge::onReadyRead() {
     if (action == QStringLiteral("facturae_create")) {
       emit facturaeCreated(ok, ok ? data.toObject().toVariantMap() : QVariantMap(),
                            ok ? QString() : errMsg);
+      continue;
+    }
+    if (action == QStringLiteral("detect_verifactu")) {
+      emit verifactuDetected(ok, ok ? data.toObject().toVariantMap() : QVariantMap());
+      continue;
+    }
+    if (action == QStringLiteral("validate_verifactu")) {
+      emit verifactuValidated(ok, ok ? data.toObject().toVariantMap() : QVariantMap(), ok ? QString() : errMsg);
+      continue;
+    }
+    if (action == QStringLiteral("read_verifactu_qr") || action == QStringLiteral("query_verifactu_qr")) {
+      emit verifactuQRFinished(action, ok, ok ? data.toObject().toVariantMap() : QVariantMap(), ok ? QString() : errMsg);
       continue;
     }
     if (action == QStringLiteral("validate_invoice")) {
