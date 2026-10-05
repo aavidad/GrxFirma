@@ -58,7 +58,8 @@ class RemoteSigningContractTests(unittest.TestCase):
         self.assertIn("multiCosign: useGuidedMultiCosign", VIEW_MODEL)
 
     def test_policy_prohibition_is_explained_without_offering_config(self) -> None:
-        self.assertIn("status.Data?.ProhibitedByPolicy == true", DIALOGS)
+        self.assertIn("status.Data?.ProhibitedByPolicy == true && status.Data.UserConfigured", DIALOGS)
+        self.assertIn('"userConfigured"', CORE_CONTRACTS)
         self.assertIn('Localizer.Text("csc.error.prohibida")', DIALOGS)
         guard = DIALOGS.index("if (current is { ProhibitedByPolicy: true })")
         self.assertLess(guard, DIALOGS.index("urlBox.Text = current.ServiceUrl;"))

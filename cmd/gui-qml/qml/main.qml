@@ -4451,7 +4451,9 @@ Window {
             if (action === "csc_status") {
                 window.cscState = ok ? data : ({})
                 window.cscAllowed = ok && data.allowed === true
-                window.cscProhibited = ok && data.prohibitedByPolicy === true
+                // Prohibida: el botón solo aparece, para explicarlo, a quien ya
+                // la tenía configurada; no a toda la organización.
+                window.cscProhibited = ok && data.prohibitedByPolicy === true && data.userConfigured === true
                 if (!window.cscAllowed && !window.cscProhibited && cscRemoteDialog.opened) cscRemoteDialog.close()
                 if (ok && data.discovered === true)
                     window.cscDiscovery = { serviceHost: data.serviceHost, oauthHost: data.oauthHost, serviceName: data.serviceName }

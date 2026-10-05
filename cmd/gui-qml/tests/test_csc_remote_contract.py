@@ -84,7 +84,7 @@ class CscRemoteContractTests(unittest.TestCase):
         self.assertIn("window.cscAllowed = ok && data.allowed === true", QML)
 
     def test_policy_prohibition_is_explained_without_offering_config(self) -> None:
-        self.assertIn("window.cscProhibited = ok && data.prohibitedByPolicy === true", QML)
+        self.assertIn("window.cscProhibited = ok && data.prohibitedByPolicy === true && data.userConfigured === true", QML)
         dialog = block(QML, "id: cscRemoteDialog")
         self.assertIn('visible: window.cscProhibited\n                text: tr("csc.error.prohibida")', dialog)
         self.assertIn("id: cscServiceUrlField\n                visible: window.cscAllowed", dialog)

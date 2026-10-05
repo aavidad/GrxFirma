@@ -450,7 +450,8 @@ public sealed partial class SignPage : Page
     }
 
     // Firma remota CSC: el botón aparece si el motor la permite o si la
-    // política la prohíbe (el cuadro lo explica); no, si solo está desactivada.
+    // política la prohíbe a quien ya la tenía configurada (el cuadro lo
+    // explica); no, si solo está desactivada o nadie la había configurado.
     private async Task UpdateRemoteSigningButtonAsync()
     {
         var cancellation = _pageCancellation;
