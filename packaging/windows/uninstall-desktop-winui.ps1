@@ -26,9 +26,9 @@ if (Test-Path -Path $runKey) {
     }
 }
 $programsDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
-$startMenuDir = Join-Path $programsDir "Diputación de Granada"
+$startMenuDir = Join-Path $programsDir "GrxFirma"
 $shortcutPath = Join-Path $startMenuDir "GrxFirma - Windows nativo.lnk"
-$legacyStartMenuDir = Join-Path $programsDir "GrxFirma"
+$legacyStartMenuDir = Join-Path $programsDir "Diputación de Granada"
 $legacyShortcutPath = Join-Path $legacyStartMenuDir "GrxFirma - Windows nativo.lnk"
 
 $expectedFrontend = [System.IO.Path]::GetFullPath(

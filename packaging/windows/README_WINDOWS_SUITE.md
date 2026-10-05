@@ -302,7 +302,7 @@ Cómo funciona y qué implica:
 - La clave privada viviría en el HSM del servicio y la firma se integraría con
   GitHub Actions.
 - **El publisher que ve el usuario en Windows es "SignPath Foundation"**, no
-  "Diputación de Granada". Elimina el aviso de "editor desconocido", pero no
+  "Alberto Avidad Fernández". Elimina el aviso de "editor desconocido", pero no
   muestra la identidad propia. Para un despliegue institucional oficial puede
   preferirse igualmente un certificado OV/EV propio (las variables
   `WINDOWS_SIGNCODE_*` de arriba quedan listas para ese caso).
@@ -425,7 +425,7 @@ Para publicar en la Store:
 
 1. Reservar el nombre siguiendo la
    [documentación oficial de Partner Center](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/reserve-your-apps-name)
-   (cuenta de empresa de la Diputación).
+   (cuenta de desarrollador del editor).
 2. Copiar de ahí `Identity/Name` y `Publisher` (formato `CN=GUID`) y
    lanzar el workflow con esos valores (inputs `identity_name` y
    `publisher`). **Sin los valores reales del Partner Center la Store
@@ -455,7 +455,7 @@ Los valores se describen en `docs/POLITICA_MAQUINA.md`.
 
 Software libre bajo licencia EUPL 1.2 o posterior.
 
-Autor: Oficina de Software Libre de la Diputacion de Granada.
+Autoría: Alberto Avidad Fernández
 
 Sin garantía:
 - esta herramienta se entrega SIN GARANTÍA de ningún tipo.
