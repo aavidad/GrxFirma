@@ -9,6 +9,8 @@ import pathlib
 import unittest
 import xml.etree.ElementTree as ET
 
+from winui_catalog import read_with_catalog
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 APP = ROOT / "cmd" / "gui-winui" / "src" / "GrxFirma.WinUI"
@@ -45,12 +47,12 @@ QT_MAIN = ROOT / "cmd" / "gui-qml" / "qml" / "main.qml"
 class CertificatesAndSignFunctionalContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.certificates_xaml = CERTIFICATES_XAML.read_text(encoding="utf-8")
-        self.certificates_code = CERTIFICATES_CODE.read_text(encoding="utf-8")
-        self.certificates_vm = CERTIFICATES_VM.read_text(encoding="utf-8")
+        self.certificates_code = read_with_catalog(CERTIFICATES_CODE)
+        self.certificates_vm = read_with_catalog(CERTIFICATES_VM)
         self.sign_xaml = SIGN_XAML.read_text(encoding="utf-8")
-        self.sign_code = SIGN_CODE.read_text(encoding="utf-8")
-        self.sign_vm = SIGN_VM.read_text(encoding="utf-8")
-        self.credential_file = CREDENTIAL_FILE.read_text(encoding="utf-8")
+        self.sign_code = read_with_catalog(SIGN_CODE)
+        self.sign_vm = read_with_catalog(SIGN_VM)
+        self.credential_file = read_with_catalog(CREDENTIAL_FILE)
 
     def test_xaml_is_well_formed_and_lifecycle_is_explicit(self) -> None:
         for path in (CERTIFICATES_XAML, SIGN_XAML):

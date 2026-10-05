@@ -17,7 +17,8 @@ import re
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 LOCALES = ROOT / "internal/adapters/outbound/common/localizador/locales"
-_KEY = r'"(winui\.[a-z0-9_.]+)"'
+# Las claves winui.parity.* son anteriores y las pruebas las citan por nombre.
+_KEY = r'"(winui\.(?!parity\.)[a-z0-9_.]+)"'
 
 
 def spanish_catalog():

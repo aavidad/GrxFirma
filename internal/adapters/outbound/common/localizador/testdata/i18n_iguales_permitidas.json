@@ -257,7 +257,10 @@
   "winui.proteger.json_grxfirma_afp",
   "winui.proteger.cms_envelopeddata_enveloped",
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
-  "winui.proteger.origen_perfil"
+  "winui.proteger.origen_perfil",
+  "winui.comun.facturae",
+  "winui.firmar.en_espera",
+  "winui.firmar.carpeta_seleccionada"
  ],
  "de": [
   " + base64",
@@ -368,7 +371,8 @@
   "token_settings.check_hardware",
   "width",
   "winui.proteger.cms_envelopeddata_enveloped",
-  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m"
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
+  "winui.comun.facturae"
  ],
  "en": [
   " + base64",
@@ -465,7 +469,8 @@
   "report.size_bytes",
   "report.size_byte_one",
   "winui.proteger.cms_envelopeddata_enveloped",
-  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m"
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
+  "winui.comun.facturae"
  ],
  "eu": [
   " + base64",
@@ -561,7 +566,8 @@
   "report.size_byte_one",
   "winui.proteger.json_grxfirma_afp",
   "winui.proteger.cms_envelopeddata_enveloped",
-  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m"
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
+  "winui.comun.facturae"
  ],
  "fr": [
   " + base64",
@@ -698,7 +704,10 @@
   "winui.proteger.compatible_rsa_oaep",
   "winui.proteger.json_grxfirma_afp",
   "winui.proteger.cms_envelopeddata_enveloped",
-  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m"
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
+  "winui.comun.facturae",
+  "winui.firmar.firma",
+  "winui.firmar.contacto"
  ],
  "gl": [
   "paridad.lote3.eni.capture_time",
@@ -1510,7 +1519,18 @@
   "winui.proteger.proteccion_completada_para_destinatario",
   "winui.proteger.documento_recuperado_como",
   "winui.proteger.importado",
-  "winui.proteger.propio"
+  "winui.proteger.propio",
+  "winui.comun.cancelar",
+  "winui.comun.automatico",
+  "winui.comun.facturae",
+  "winui.firmar.institucional_con_emblema",
+  "winui.firmar.en_espera",
+  "winui.firmar.documento_s_seleccionado_s",
+  "winui.firmar.documento_pdf_seleccionado",
+  "winui.firmar.documento_seleccionado",
+  "winui.firmar.importar_en_windows",
+  "winui.firmar.motivo",
+  "winui.firmar.contacto"
  ],
  "it": [
   " + base64",
@@ -1662,7 +1682,10 @@
   "winui.proteger.json_grxfirma_afp",
   "winui.proteger.cms_envelopeddata_enveloped",
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
-  "winui.proteger.algoritmo"
+  "winui.proteger.algoritmo",
+  "winui.comun.facturae",
+  "winui.firmar.cofirma",
+  "winui.firmar.motivo"
  ],
  "pt": [
   "paridad.lote3.eni.capture_time",
@@ -2017,7 +2040,13 @@
   "winui.proteger.algoritmo",
   "winui.proteger.documento_recuperado_como",
   "winui.proteger.importado",
-  "winui.proteger.protegido"
+  "winui.proteger.protegido",
+  "winui.comun.cancelar",
+  "winui.comun.automatico",
+  "winui.comun.facturae",
+  "winui.firmar.ultima_pagina",
+  "winui.firmar.motivo",
+  "winui.firmar.contacto"
  ],
  "va": [
   "paridad.lote3.eni.capture_time",
@@ -2311,7 +2340,12 @@
   "winui.proteger.json_grxfirma_afp",
   "winui.proteger.cms_envelopeddata_enveloped",
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
-  "winui.proteger.origen_perfil"
+  "winui.proteger.origen_perfil",
+  "winui.comun.facturae",
+  "winui.firmar.cofirma",
+  "winui.firmar.contrafirma",
+  "winui.firmar.en_espera",
+  "winui.firmar.carpeta_seleccionada"
  ],
  "zh": [
   " + base64",
@@ -2384,6 +2418,7 @@
   "title",
   "width",
   "winui.proteger.cms_envelopeddata_enveloped",
-  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m"
+  "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
+  "winui.comun.facturae"
  ]
 }

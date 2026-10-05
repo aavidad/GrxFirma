@@ -70,8 +70,8 @@ public sealed class SignPageViewModel
         256L * 1024 * 1024;
     private const int MaximumPageSelectionLength = 128;
     private const int MaximumQrUrlLength = 1024;
-    private const string OrientativeSealMessage =
-        "Muestra orientativa de posición y giro. El sello definitivo se genera con el certificado; revíselo en el PDF firmado.";
+    private static string OrientativeSealMessage =>
+        Localizer.Text("winui.firmar.muestra_orientativa_de_posicion_y_giro");
     private const long MaximumSealImageBytes = 10 * 1024 * 1024;
     private const int MaximumSealPreviewBytes = 16 * 1024 * 1024;
     private const int MaximumMetadataLength = 256;
@@ -102,16 +102,16 @@ public sealed class SignPageViewModel
     private string? _batchOutputDirectory;
     private string _inputDisplayName = string.Empty;
     private string _batchInputSummary =
-        "No se han seleccionado documentos para el lote.";
+        Localizer.Text("winui.firmar.no_se_han_seleccionado_documentos_para");
     private string _batchOutputSummary =
-        "No se ha seleccionado una carpeta de salida.";
+        Localizer.Text("winui.firmar.no_se_ha_seleccionado_una_carpeta_de");
     private string _batchProgressText =
-        "El lote aún no se ha ejecutado.";
+        Localizer.Text("winui.firmar.el_lote_aun_no_se_ha_ejecutado");
     private IReadOnlyList<BatchSignDisplayItem> _batchItems = [];
     private string _resultMessage =
-        "No se ha ejecutado ninguna firma.";
+        Localizer.Text("winui.firmar.no_se_ha_ejecutado_ninguna_firma");
     private string _validationMessage =
-        "Seleccione un documento y un certificado para firmar.";
+        Localizer.Text("winui.firmar.seleccione_un_documento_y_un_certificado");
     private bool _isBusy;
     private bool _canSelectDocument;
     private bool _canRefreshCertificates;
@@ -136,7 +136,7 @@ public sealed class SignPageViewModel
     private bool _canConfigureGuidedMultiCosign;
     private bool _canSelectAdditionalSigners;
     private string _guidedMultiCosignSummary =
-        "Seleccione un documento compatible y un certificado principal.";
+        Localizer.Text("winui.firmar.seleccione_un_documento_compatible_y_un");
     private bool _visibleSealEnabled;
     private bool _canConfigureVisibleSeal;
     private bool _canRefreshVisibleSealPreview;
@@ -175,7 +175,7 @@ public sealed class SignPageViewModel
     private string _signatureLocation = string.Empty;
     private string _signatureContact = string.Empty;
     private string _visibleSealPreviewMessage =
-        "Active el sello y cargue la previsualización para obtener la geometría real del PDF.";
+        Localizer.Text("winui.firmar.active_el_sello_y_cargue_la");
     private ReadOnlyMemory<byte> _visibleSealPreviewImage =
         ReadOnlyMemory<byte>.Empty;
     private double _previewPageWidth;
@@ -196,9 +196,9 @@ public sealed class SignPageViewModel
         IFilePickerService filePicker,
         IPdfPreviewService? pdfPreview = null)
         : base(
-            "Firmar",
-            "Firma, cofirma o contrafirma documentos con un certificado de Windows o un archivo P12/PFX.",
-            "La firma no está disponible porque el motor local no ha publicado certificates y sign.")
+            Localizer.Text("winui.comun.firmar"),
+            Localizer.Text("winui.firmar.firma_cofirma_o_contrafirma_documentos"),
+            Localizer.Text("winui.firmar.la_firma_no_esta_disponible_porque_el"))
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(filePicker);
@@ -215,9 +215,9 @@ public sealed class SignPageViewModel
 
     public IReadOnlyList<SignActionOption> Actions { get; } =
     [
-        new("Firma", "sign"),
-        new("Cofirma", "cosign"),
-        new("Contrafirma", "countersign"),
+        new("winui.firmar.firma", "sign"),
+        new("winui.firmar.cofirma", "cosign"),
+        new("winui.firmar.contrafirma", "countersign"),
     ];
 
     private bool _verifactuInput;
@@ -227,17 +227,17 @@ public sealed class SignPageViewModel
         : StandardFormats;
     private IReadOnlyList<SignatureFormatOption> StandardFormats { get; } =
     [
-        new("Automático", "", SaveFilePickerProfile.CadesSignature),
+        new("winui.comun.automatico", "", SaveFilePickerProfile.CadesSignature),
         new("PAdES", "pades", SaveFilePickerProfile.SignedPdf),
         new("CAdES", "cades", SaveFilePickerProfile.CadesSignature),
         new("XAdES", "xades", SaveFilePickerProfile.XadesSignature),
-        new("XMLdSig", "xmldsig", SaveFilePickerProfile.XmlDsigSignature),
-        new("ODF", "odf", SaveFilePickerProfile.CadesSignature),
-        new("OOXML", "ooxml", SaveFilePickerProfile.CadesSignature),
-        new("FacturaE", "facturae", SaveFilePickerProfile.FacturaeXml),
+        new("winui.firmar.xmldsig", "xmldsig", SaveFilePickerProfile.XmlDsigSignature),
+        new("winui.comun.odf", "odf", SaveFilePickerProfile.CadesSignature),
+        new("winui.comun.ooxml", "ooxml", SaveFilePickerProfile.CadesSignature),
+        new("winui.comun.facturae", "facturae", SaveFilePickerProfile.FacturaeXml),
         // El backend Go y la GUI Qt generan actualmente .p7s para este
         // formato en el flujo sign, incluso cuando el contenido es ASiC.
-        new("ASiC-XAdES", "asic-xades", SaveFilePickerProfile.CadesSignature),
+        new("winui.comun.asic_xades", "asic-xades", SaveFilePickerProfile.CadesSignature),
     ];
 
     public IReadOnlyList<SignatureProfileOption> Profiles { get; } =
@@ -253,7 +253,7 @@ public sealed class SignPageViewModel
         get;
     } =
     [
-        new("Sin rotación", 0),
+        new("winui.firmar.sin_rotacion", 0),
         new("90°", 90),
         new("180°", 180),
         new("270°", 270),
@@ -265,17 +265,17 @@ public sealed class SignPageViewModel
     } =
     [
         new(
-            "Institucional con emblema",
+            "winui.firmar.institucional_con_emblema",
             "institucional",
-            "Emblema de firma de la Diputación a la izquierda y los datos de la firma a la derecha."),
+            "winui.firmar.emblema_de_firma_de_la_diputacion_a_la"),
         new(
-            "Solo texto",
+            "winui.firmar.solo_texto",
             "texto",
-            "Sello sobrio con los datos de la firma, sin imágenes."),
+            "winui.firmar.sello_sobrio_con_los_datos_de_la_firma"),
         new(
-            "Imagen propia",
+            "winui.firmar.imagen_propia",
             "imagen",
-            "Una imagen PNG o JPEG suya (logotipo, firma manuscrita escaneada…) junto a los datos de la firma."),
+            "winui.firmar.una_imagen_png_o_jpeg_suya_logotipo"),
     ];
 
     public IReadOnlyList<VisibleSealPageModeOption> VisibleSealPageModes
@@ -283,10 +283,10 @@ public sealed class SignPageViewModel
         get;
     } =
     [
-        new("Primera página", "first"),
-        new("Última página", "last"),
-        new("Todas las páginas", "all"),
-        new("Páginas concretas", "custom"),
+        new("winui.firmar.primera_pagina", "first"),
+        new("winui.firmar.ultima_pagina", "last"),
+        new("winui.firmar.todas_las_paginas", "all"),
+        new("winui.firmar.paginas_concretas", "custom"),
     ];
 
     public IReadOnlyList<CertificateListItem> Certificates
@@ -341,7 +341,7 @@ public sealed class SignPageViewModel
         var secrets = await prompt(source, cancellationToken);
         if (secrets is null)
         {
-            ValidationMessage = "Operación cancelada";
+            ValidationMessage = Localizer.Text("winui.comun.operacion_cancelada");
             return (false, null);
         }
         return (true, secrets);
@@ -1110,8 +1110,8 @@ public sealed class SignPageViewModel
 
     public string VisibleSealImageSummary =>
         string.IsNullOrWhiteSpace(_visibleSealImagePath)
-            ? "Ninguna imagen elegida."
-            : Localizer.Format("Imagen: {0}",
+            ? Localizer.Text("winui.firmar.ninguna_imagen_elegida")
+            : Localizer.Format("winui.firmar.imagen",
                 Path.GetFileName(_visibleSealImagePath));
 
     public string VisibleSealCsvLabel => SealText("paridad.lote3.csv.enable");
@@ -1318,8 +1318,8 @@ public sealed class SignPageViewModel
 
     public string VisibleSealPreviewText => VisibleSealKeepText
         ? (_portalSealMode && !string.IsNullOrWhiteSpace(_portalSignerName)
-            ? _portalSignerName : "Identidad · ubicación · fecha")
-        : "Rótulo sin datos personales";
+            ? _portalSignerName : Localizer.Text("winui.firmar.identidad_ubicacion_fecha"))
+        : Localizer.Text("winui.firmar.rotulo_sin_datos_personales");
 
     public void ConfigurePortalSealDocument(string path, string signerName)
     {
@@ -1347,7 +1347,7 @@ public sealed class SignPageViewModel
     public int PortalTotalPages => _previewTotalPages;
 
     public string VisibleSealGeometrySummary =>
-        Localizer.Format("Tamaño: {0} × {1} mm · Giro: {2}°",
+        Localizer.Format("winui.firmar.tamano_mm_giro",
             (VisibleSealPreviewWidth * 25.4 / 72).ToString("0.#",
                 System.Globalization.CultureInfo.CurrentCulture),
             (VisibleSealPreviewHeight * 25.4 / 72).ToString("0.#",
@@ -1358,10 +1358,10 @@ public sealed class SignPageViewModel
     public string VisibleSealReadabilityHint =>
         _visibleSealRotationDegrees % 180 != 0 &&
         VisibleSealPreviewWidth > VisibleSealPreviewHeight
-            ? "Para leer mejor el texto girado, use una zona más alta que ancha."
+            ? Localizer.Text("winui.firmar.para_leer_mejor_el_texto_girado_use_una")
             : Math.Min(VisibleSealPreviewWidth, VisibleSealPreviewHeight) < 28
-                ? "La zona es pequeña: amplíela si el texto resulta difícil de leer."
-                : "Deje libre el texto del documento y compruebe el resultado antes de enviarlo.";
+                ? Localizer.Text("winui.firmar.la_zona_es_pequena_ampliela_si_el_texto")
+                : Localizer.Text("winui.firmar.deje_libre_el_texto_del_documento_y");
 
     public string? OutputPath => _outputPath;
 
@@ -1372,7 +1372,7 @@ public sealed class SignPageViewModel
             _session.Supports(DesktopOperationActions.Sign);
         SetOperationAvailability(
             available,
-            "Motor local conectado. La firma y el almacén de certificados están disponibles.");
+            Localizer.Text("winui.firmar.motor_local_conectado_la_firma_y_el"));
         if (!available)
         {
             CancelCurrentOperation();
@@ -1439,7 +1439,7 @@ public sealed class SignPageViewModel
             out var operationCancellation))
         {
             ValidationMessage =
-                "Espere a que termine la operación actual antes de actualizar certificados.";
+                Localizer.Text("winui.firmar.espere_a_que_termine_la_operacion_actual");
             return null;
         }
 
@@ -1450,11 +1450,11 @@ public sealed class SignPageViewModel
                 out var operations))
             {
                 ValidationMessage =
-                    "No se pueden cargar certificados: el motor local no ofrece certificates.";
+                    Localizer.Text("winui.firmar.no_se_pueden_cargar_certificados_el");
                 return null;
             }
 
-            ValidationMessage = "Consultando certificados aptos para firma…";
+            ValidationMessage = Localizer.Text("winui.firmar.consultando_certificados_aptos_para");
             var result = await operations.GetCertificatesAsync(
                 operationCancellation.Token);
             if (!result.IsSuccess ||
@@ -1464,13 +1464,13 @@ public sealed class SignPageViewModel
                     StringComparison.Ordinal))
             {
                 ValidationMessage =
-                    "El motor local no pudo cargar los certificados de firma.";
+                    Localizer.Text("winui.firmar.el_motor_local_no_pudo_cargar_los");
                 return OperationDiagnosticMapper.FromResult(result);
             }
             if (result.Data is null)
             {
                 ValidationMessage =
-                    "El motor confirmó la consulta, pero no devolvió un catálogo válido.";
+                    Localizer.Text("winui.comun.el_motor_confirmo_la_consulta_pero_no");
                 return InvalidResultDiagnostic(
                     result,
                     "MISSING_CERTIFICATE_CATALOG");
@@ -1490,7 +1490,7 @@ public sealed class SignPageViewModel
         catch (OperationCanceledException exception)
         {
             ValidationMessage =
-                "La consulta de certificados se canceló.";
+                Localizer.Text("winui.firmar.la_consulta_de_certificados_se_cancelo");
             return OperationDiagnosticMapper.FromException(
                 exception,
                 operationCancellation.Token);
@@ -1498,13 +1498,13 @@ public sealed class SignPageViewModel
         catch (IpcClientException exception)
         {
             ValidationMessage =
-                "Falló la comunicación segura al cargar certificados.";
+                Localizer.Text("winui.firmar.fallo_la_comunicacion_segura_al_cargar");
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             ValidationMessage =
-                "La aplicación no pudo cargar los certificados.";
+                Localizer.Text("winui.firmar.la_aplicacion_no_pudo_cargar_los");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -1521,7 +1521,7 @@ public sealed class SignPageViewModel
             out var operationCancellation))
         {
             ValidationMessage =
-                "Espere a que termine la operación actual antes de seleccionar una credencial.";
+                Localizer.Text("winui.firmar.espere_a_que_termine_la_operacion_actual_2");
             return null;
         }
 
@@ -1533,7 +1533,7 @@ public sealed class SignPageViewModel
             if (string.IsNullOrWhiteSpace(selectedPath))
             {
                 ValidationMessage =
-                    "No se seleccionó ninguna credencial.";
+                    Localizer.Text("winui.firmar.no_se_selecciono_ninguna_credencial");
                 return null;
             }
 
@@ -1541,7 +1541,7 @@ public sealed class SignPageViewModel
                 selectedPath);
             _selectedCredentialPath = selectedPath;
             ValidationMessage =
-                $"{DesktopCertificateCredentialFile.SafeDisplayName(selectedPath)} preparada. Introduzca su contraseña para continuar.";
+                Localizer.Format("winui.firmar.preparada_introduzca_su_contrasena_para", DesktopCertificateCredentialFile.SafeDisplayName(selectedPath));
             RaisePropertyChanged(nameof(HasPreparedCredential));
             return null;
         }
@@ -1553,7 +1553,7 @@ public sealed class SignPageViewModel
         catch (OperationCanceledException)
         {
             ValidationMessage =
-                "La selección de la credencial se canceló.";
+                Localizer.Text("winui.firmar.la_seleccion_de_la_credencial_se_cancelo");
             return null;
         }
         catch (InvalidDataException exception)
@@ -1566,7 +1566,7 @@ public sealed class SignPageViewModel
         {
             DiscardPreparedCredential();
             ValidationMessage =
-                "No se pudo preparar la credencial seleccionada.";
+                Localizer.Text("winui.firmar.no_se_pudo_preparar_la_credencial");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -1592,14 +1592,14 @@ public sealed class SignPageViewModel
             if (string.IsNullOrWhiteSpace(path))
             {
                 ValidationMessage =
-                    "Seleccione primero una credencial P12, PFX, PEM, CER o CRT.";
+                    Localizer.Text("winui.firmar.seleccione_primero_una_credencial_p12");
                 return null;
             }
             if (password.Length >
                 DesktopOperationsClient.MaximumPasswordBytes)
             {
                 ValidationMessage =
-                    "La contraseña supera el límite de seguridad permitido.";
+                    Localizer.Text("winui.comun.la_contrasena_supera_el_limite_de");
                 return null;
             }
             if (!TryBeginOperation(
@@ -1607,7 +1607,7 @@ public sealed class SignPageViewModel
                 out operationCancellation))
             {
                 ValidationMessage =
-                    "Espere a que termine la operación actual antes de cargar otra credencial.";
+                    Localizer.Text("winui.firmar.espere_a_que_termine_la_operacion_actual_3");
                 return null;
             }
 
@@ -1617,8 +1617,8 @@ public sealed class SignPageViewModel
             if (!_session.TryGetOperations(action, out var operations))
             {
                 ValidationMessage = importIntoWindows
-                    ? "El motor local no permite importar en el almacén de Windows."
-                    : "El motor local no permite usar credenciales temporales.";
+                    ? Localizer.Text("winui.firmar.el_motor_local_no_permite_importar_en_el")
+                    : Localizer.Text("winui.firmar.el_motor_local_no_permite_usar");
                 return null;
             }
 
@@ -1633,7 +1633,7 @@ public sealed class SignPageViewModel
                     DesktopOperationActions.CertificateAccessOptions))
                 {
                     ValidationMessage =
-                        "El motor no permite comprobar el almacén oficial de Windows.";
+                        Localizer.Text("winui.firmar.el_motor_no_permite_comprobar_el_almacen");
                     return null;
                 }
 
@@ -1643,7 +1643,7 @@ public sealed class SignPageViewModel
                 if (!IsSuccessful(options))
                 {
                     ValidationMessage =
-                        "No se pudo comprobar el almacén oficial de Windows.";
+                        Localizer.Text("winui.firmar.no_se_pudo_comprobar_el_almacen_oficial");
                     return OperationDiagnosticMapper.FromResult(options);
                 }
                 var windowsTarget = options.Data?.ImportTargets
@@ -1654,12 +1654,12 @@ public sealed class SignPageViewModel
                 if (windowsTarget is null)
                 {
                     ValidationMessage =
-                        "El almacén personal oficial de Windows no está disponible.";
+                        Localizer.Text("winui.firmar.el_almacen_personal_oficial_de_windows");
                     return null;
                 }
 
                 ValidationMessage =
-                    "Importando la credencial en el almacén personal del usuario de Windows…";
+                    Localizer.Text("winui.firmar.importando_la_credencial_en_el_almacen");
                 var importResult =
                     await operations.ImportCertificateToStoreAsync(
                         new ImportCertificateToStoreParameters
@@ -1673,7 +1673,7 @@ public sealed class SignPageViewModel
                     string.IsNullOrWhiteSpace(importResult.Data))
                 {
                     ValidationMessage =
-                        "Windows no confirmó la importación de la credencial.";
+                        Localizer.Text("winui.firmar.windows_no_confirmo_la_importacion_de_la");
                     return OperationDiagnosticMapper.FromResult(
                         importResult);
                 }
@@ -1681,7 +1681,7 @@ public sealed class SignPageViewModel
             else
             {
                 ValidationMessage =
-                    "Cargando la credencial solo para esta sesión…";
+                    Localizer.Text("winui.firmar.cargando_la_credencial_solo_para_esta");
                 var temporaryResult =
                     await operations.UseTemporaryCertificateAsync(
                         new UseTemporaryCertificateParameters
@@ -1693,7 +1693,7 @@ public sealed class SignPageViewModel
                 if (!IsSuccessful(temporaryResult))
                 {
                     ValidationMessage =
-                        "No se pudo cargar la credencial temporal.";
+                        Localizer.Text("winui.firmar.no_se_pudo_cargar_la_credencial_temporal");
                     return OperationDiagnosticMapper.FromResult(
                         temporaryResult);
                 }
@@ -1702,7 +1702,7 @@ public sealed class SignPageViewModel
                     string.IsNullOrWhiteSpace(temporaryResult.Data.Id))
                 {
                     ValidationMessage =
-                        "El motor no confirmó una credencial temporal utilizable.";
+                        Localizer.Text("winui.comun.el_motor_no_confirmo_una_credencial");
                     return InvalidResultDiagnostic(
                         temporaryResult,
                         "MISSING_TEMPORARY_CERTIFICATE");
@@ -1719,7 +1719,7 @@ public sealed class SignPageViewModel
                 catalogResult.Data is null)
             {
                 ValidationMessage =
-                    "La credencial se añadió, pero no se pudo actualizar el selector.";
+                    Localizer.Text("winui.firmar.la_credencial_se_anadio_pero_no_se_pudo");
                 return OperationDiagnosticMapper.FromResult(catalogResult);
             }
 
@@ -1735,7 +1735,7 @@ public sealed class SignPageViewModel
                     StringComparison.Ordinal))
             {
                 ValidationMessage =
-                    "La credencial temporal se cargó, pero no apareció como certificado apto para firma.";
+                    Localizer.Text("winui.firmar.la_credencial_temporal_se_cargo_pero_no");
                 return InvalidResultDiagnostic(
                     catalogResult,
                     "TEMPORARY_CERTIFICATE_NOT_IN_CATALOG");
@@ -1743,8 +1743,8 @@ public sealed class SignPageViewModel
 
             DiscardPreparedCredential();
             ValidationMessage = importIntoWindows
-                ? "Credencial importada en el almacén personal de Windows y selector actualizado."
-                : "Credencial temporal cargada y seleccionada. No se ha instalado en Windows.";
+                ? Localizer.Text("winui.firmar.credencial_importada_en_el_almacen")
+                : Localizer.Text("winui.firmar.credencial_temporal_cargada_y");
             return null;
         }
         catch (OperationCanceledException)
@@ -1755,7 +1755,7 @@ public sealed class SignPageViewModel
         catch (OperationCanceledException exception)
         {
             ValidationMessage =
-                "La carga de la credencial se canceló.";
+                Localizer.Text("winui.firmar.la_carga_de_la_credencial_se_cancelo");
             return OperationDiagnosticMapper.FromException(
                 exception,
                 operationCancellation?.Token ?? cancellationToken);
@@ -1763,13 +1763,13 @@ public sealed class SignPageViewModel
         catch (IpcClientException exception)
         {
             ValidationMessage =
-                "Falló la comunicación segura al cargar la credencial.";
+                Localizer.Text("winui.firmar.fallo_la_comunicacion_segura_al_cargar_2");
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             ValidationMessage =
-                "No se pudo leer o cargar la credencial seleccionada.";
+                Localizer.Text("winui.firmar.no_se_pudo_leer_o_cargar_la_credencial");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -1805,9 +1805,9 @@ public sealed class SignPageViewModel
         ValidationMessage = exception is
             SecurePasswordPromptException promptException
             ? Localizer.Format(
-                "No se pudo capturar la contraseña de la credencial. Código de soporte: {0}.",
+                "winui.firmar.no_se_pudo_capturar_la_contrasena_de_la",
                 promptException.SupportCode)
-            : "No se pudo capturar la contraseña de la credencial.";
+            : Localizer.Text("winui.firmar.no_se_pudo_capturar_la_contrasena_de_la_2");
         return OperationDiagnosticMapper.FromException(exception);
     }
 
@@ -1819,7 +1819,7 @@ public sealed class SignPageViewModel
             out var operationCancellation))
         {
             ValidationMessage =
-                "Espere a que termine la operación actual antes de seleccionar otro documento.";
+                Localizer.Text("winui.firmar.espere_a_que_termine_la_operacion_actual_4");
             return null;
         }
 
@@ -1831,7 +1831,7 @@ public sealed class SignPageViewModel
             if (string.IsNullOrWhiteSpace(selectedPath))
             {
                 ValidationMessage =
-                    "No se seleccionó ningún documento. La firma no se ha iniciado.";
+                    Localizer.Text("winui.firmar.no_se_selecciono_ningun_documento_la");
                 return null;
             }
 
@@ -1860,13 +1860,13 @@ public sealed class SignPageViewModel
         catch (OperationCanceledException)
         {
             ValidationMessage =
-                "La selección del documento se canceló; no se ha iniciado ninguna firma.";
+                Localizer.Text("winui.firmar.la_seleccion_del_documento_se_cancelo_no");
             return null;
         }
         catch (Exception exception)
         {
             ValidationMessage =
-                "No se pudo abrir el selector de documentos.";
+                Localizer.Text("winui.comun.no_se_pudo_abrir_el_selector_de");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -1883,7 +1883,7 @@ public sealed class SignPageViewModel
             out var operationCancellation))
         {
             ValidationMessage =
-                "Espere a que termine la operación actual antes de modificar el lote.";
+                Localizer.Text("winui.firmar.espere_a_que_termine_la_operacion_actual_5");
             return null;
         }
 
@@ -1895,7 +1895,7 @@ public sealed class SignPageViewModel
             if (selectedPaths.Count == 0)
             {
                 ValidationMessage =
-                    "No se añadieron documentos al lote.";
+                    Localizer.Text("winui.firmar.no_se_anadieron_documentos_al_lote");
                 return null;
             }
 
@@ -1916,7 +1916,7 @@ public sealed class SignPageViewModel
             _batchExplicitInputPaths = explicitPaths;
             ApplyBatchSelection(combinedPaths);
             ValidationMessage =
-                $"{combinedPaths.Count} documento(s) preparados. Seleccione la carpeta de salida.";
+                Localizer.Format("winui.firmar.documento_s_preparados_seleccione_la", combinedPaths.Count);
             return null;
         }
         catch (OperationCanceledException)
@@ -1927,13 +1927,13 @@ public sealed class SignPageViewModel
         catch (OperationCanceledException)
         {
             ValidationMessage =
-                "La selección de documentos para el lote se canceló.";
+                Localizer.Text("winui.firmar.la_seleccion_de_documentos_para_el_lote");
             return null;
         }
         catch (Exception exception)
         {
             ValidationMessage =
-                "No se pudo completar la selección de documentos del lote.";
+                Localizer.Text("winui.firmar.no_se_pudo_completar_la_seleccion_de");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -1950,7 +1950,7 @@ public sealed class SignPageViewModel
             out var operationCancellation))
         {
             ValidationMessage =
-                "Espere a que termine la operación actual antes de modificar el lote.";
+                Localizer.Text("winui.firmar.espere_a_que_termine_la_operacion_actual_5");
             return null;
         }
 
@@ -1961,7 +1961,7 @@ public sealed class SignPageViewModel
             if (string.IsNullOrWhiteSpace(selectedDirectory))
             {
                 ValidationMessage =
-                    "No se añadió ninguna carpeta al lote.";
+                    Localizer.Text("winui.firmar.no_se_anadio_ninguna_carpeta_al_lote");
                 return null;
             }
             if (!TryEnumerateBatchDirectory(
@@ -1983,7 +1983,7 @@ public sealed class SignPageViewModel
             _batchDirectoryInputPaths = directoryInputs;
             ApplyBatchSelection(combinedPaths);
             ValidationMessage =
-                $"{combinedPaths.Count} documento(s) preparados, incluidos los ficheros de la carpeta seleccionada.";
+                Localizer.Format("winui.firmar.documento_s_preparados_incluidos_los", combinedPaths.Count);
             return null;
         }
         catch (OperationCanceledException)
@@ -1994,13 +1994,13 @@ public sealed class SignPageViewModel
         catch (OperationCanceledException)
         {
             ValidationMessage =
-                "La selección de la carpeta del lote se canceló.";
+                Localizer.Text("winui.firmar.la_seleccion_de_la_carpeta_del_lote_se");
             return null;
         }
         catch (Exception exception)
         {
             ValidationMessage =
-                "No se pudo leer la carpeta seleccionada para el lote.";
+                Localizer.Text("winui.firmar.no_se_pudo_leer_la_carpeta_seleccionada");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -2017,7 +2017,7 @@ public sealed class SignPageViewModel
             out var operationCancellation))
         {
             ValidationMessage =
-                "Espere a que termine la operación actual antes de cambiar la salida.";
+                Localizer.Text("winui.firmar.espere_a_que_termine_la_operacion_actual_6");
             return null;
         }
 
@@ -2028,7 +2028,7 @@ public sealed class SignPageViewModel
             if (string.IsNullOrWhiteSpace(selectedDirectory))
             {
                 ValidationMessage =
-                    "No se cambió la carpeta de salida del lote.";
+                    Localizer.Text("winui.firmar.no_se_cambio_la_carpeta_de_salida_del");
                 return null;
             }
 
@@ -2036,12 +2036,12 @@ public sealed class SignPageViewModel
             if (!Directory.Exists(fullPath))
             {
                 ValidationMessage =
-                    "La carpeta de salida seleccionada ya no está disponible.";
+                    Localizer.Text("winui.firmar.la_carpeta_de_salida_seleccionada_ya_no");
                 return null;
             }
 
             _batchOutputDirectory = fullPath;
-            BatchOutputSummary = Localizer.Format("Salida: {0}",
+            BatchOutputSummary = Localizer.Format("winui.firmar.salida",
                 SafeDirectoryName(fullPath));
             ResetBatchResults();
             UpdateValidationMessage();
@@ -2056,13 +2056,13 @@ public sealed class SignPageViewModel
         catch (OperationCanceledException)
         {
             ValidationMessage =
-                "La selección de la carpeta de salida se canceló.";
+                Localizer.Text("winui.firmar.la_seleccion_de_la_carpeta_de_salida_se");
             return null;
         }
         catch (Exception exception)
         {
             ValidationMessage =
-                "No se pudo seleccionar la carpeta de salida del lote.";
+                Localizer.Text("winui.firmar.no_se_pudo_seleccionar_la_carpeta_de");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -2083,7 +2083,7 @@ public sealed class SignPageViewModel
         _batchInputPaths = [];
         _batchSourceDirectory = null;
         BatchInputSummary =
-            "No se han seleccionado documentos para el lote.";
+            Localizer.Text("winui.firmar.no_se_han_seleccionado_documentos_para");
         ResetBatchResults();
         UpdateValidationMessage();
         UpdateCommandStates();
@@ -2106,7 +2106,7 @@ public sealed class SignPageViewModel
             out var operationCancellation))
         {
             ValidationMessage =
-                "Ya hay una operación en curso. Espere o cancélela antes de iniciar el lote.";
+                Localizer.Text("winui.firmar.ya_hay_una_operacion_en_curso_espere_o");
             return null;
         }
 
@@ -2119,7 +2119,7 @@ public sealed class SignPageViewModel
                 out var operations))
             {
                 ValidationMessage =
-                    "El motor local no ofrece la operación sign_batch.";
+                    Localizer.Text("winui.firmar.el_motor_local_no_ofrece_la_operacion");
                 return null;
             }
 
@@ -2132,14 +2132,14 @@ public sealed class SignPageViewModel
                 currentPaths.Count != inputPaths.Length)
             {
                 ValidationMessage = string.IsNullOrWhiteSpace(inputError)
-                    ? "La selección del lote cambió. Seleccione de nuevo sus documentos."
+                    ? Localizer.Text("winui.firmar.la_seleccion_del_lote_cambio_seleccione")
                     : inputError;
                 return null;
             }
             if (!Directory.Exists(outputDirectory))
             {
                 ValidationMessage =
-                    "La carpeta de salida del lote ya no está disponible.";
+                    Localizer.Text("winui.firmar.la_carpeta_de_salida_del_lote_ya_no_esta");
                 return null;
             }
             if (HasBatchOutputNameCollision(
@@ -2148,7 +2148,7 @@ public sealed class SignPageViewModel
                 out var collisionName))
             {
                 ValidationMessage =
-                    $"Dos documentos generarían la misma salida ({collisionName}). Cambie la selección para evitar sobrescrituras.";
+                    Localizer.Format("winui.firmar.dos_documentos_generarian_la_misma", collisionName);
                 return null;
             }
 
@@ -2190,8 +2190,8 @@ public sealed class SignPageViewModel
             BatchItems = currentPaths
                 .Select(path => new BatchSignDisplayItem(
                     SafeFileName(path),
-                    "En espera",
-                    "Pendiente de respuesta del motor local.",
+                    Localizer.Text("winui.firmar.en_espera"),
+                    Localizer.Text("winui.firmar.pendiente_de_respuesta_del_motor_local"),
                     false,
                     null))
                 .ToArray();
@@ -2200,9 +2200,9 @@ public sealed class SignPageViewModel
             BatchProgressValue = 0;
             IsBatchProgressIndeterminate = true;
             BatchProgressText =
-                $"Firmando lote de {currentPaths.Count} documento(s)…";
+                Localizer.Format("winui.firmar.firmando_lote_de_documento_s", currentPaths.Count);
             ValidationMessage =
-                "El lote está en curso. Puede cancelarlo; los resultados parciales solo se confirmarán cuando responda el motor.";
+                Localizer.Text("winui.firmar.el_lote_esta_en_curso_puede_cancelarlo");
             batchStarted = true;
 
             var result = await operations.SignBatchAsync(
@@ -2242,19 +2242,19 @@ public sealed class SignPageViewModel
             {
                 MarkBatchNotProcessed(
                     currentPaths,
-                    "El motor no confirmó la ejecución del lote.");
+                    Localizer.Text("winui.firmar.el_motor_no_confirmo_la_ejecucion_del"));
                 ValidationMessage =
                     RemoteSigningFailureMessage(result.ErrorCode) ??
-                    "El lote no se completó. Abra el diagnóstico para conocer el punto de fallo.";
+                    Localizer.Text("winui.firmar.el_lote_no_se_completo_abra_el");
                 return OperationDiagnosticMapper.FromResult(result);
             }
             if (result.Data is null)
             {
                 MarkBatchNotProcessed(
                     currentPaths,
-                    "El motor no devolvió resultados por documento.");
+                    Localizer.Text("winui.firmar.el_motor_no_devolvio_resultados_por"));
                 ValidationMessage =
-                    "El motor confirmó la petición, pero no devolvió un resultado de lote válido.";
+                    Localizer.Text("winui.firmar.el_motor_confirmo_la_peticion_pero_no");
                 return InvalidResultDiagnostic(
                     result,
                     "MISSING_BATCH_RESULT");
@@ -2268,11 +2268,11 @@ public sealed class SignPageViewModel
                 out var failureCount);
             BatchProgressValue = currentPaths.Count;
             BatchProgressText = Localizer.Format(
-                "Lote finalizado: {0} correcto(s), {1} fallido(s).",
+                "winui.firmar.lote_finalizado_correcto_s_fallido_s",
                 successCount, failureCount);
             ValidationMessage = failureCount == 0 && protocolCoherent
-                ? "Todos los documentos tienen una salida no vacía confirmada por el motor."
-                : "El lote terminó con incidencias. Revise cada documento y el diagnóstico antes de continuar.";
+                ? Localizer.Text("winui.firmar.todos_los_documentos_tienen_una_salida")
+                : Localizer.Text("winui.firmar.el_lote_termino_con_incidencias_revise");
 
             if (!protocolCoherent)
             {
@@ -2301,7 +2301,7 @@ public sealed class SignPageViewModel
             {
                 MarkPendingBatchAsCancelled();
                 ValidationMessage =
-                    "El lote se canceló. Solo se consideran válidas las salidas ya confirmadas en la lista.";
+                    Localizer.Text("winui.firmar.el_lote_se_cancelo_solo_se_consideran");
             }
             return OperationDiagnosticMapper.FromException(
                 exception,
@@ -2314,7 +2314,7 @@ public sealed class SignPageViewModel
                 MarkPendingBatchAsUnconfirmed();
             }
             ValidationMessage =
-                "Falló la comunicación segura durante la firma por lotes.";
+                Localizer.Text("winui.firmar.fallo_la_comunicacion_segura_durante_la");
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
@@ -2324,7 +2324,7 @@ public sealed class SignPageViewModel
                 MarkPendingBatchAsUnconfirmed();
             }
             ValidationMessage =
-                "La aplicación no pudo completar la firma por lotes.";
+                Localizer.Text("winui.firmar.la_aplicacion_no_pudo_completar_la_firma");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -2371,7 +2371,7 @@ public sealed class SignPageViewModel
             }
         }
         VisibleSealPreviewMessage +=
-            $" Ha elegido «Última página»: el documento tiene {lastPage} página(s) y el sello irá en la {lastPage}.";
+            Localizer.Format("winui.firmar.ha_elegido_ultima_pagina_el_documento", lastPage, lastPage);
         return null;
     }
 
@@ -2387,7 +2387,7 @@ public sealed class SignPageViewModel
             return VisibleSealValidationDiagnostic(
                 "VISIBLE_SEAL_PREVIEW_INPUT_INVALID",
                 localValidation,
-                "Corrija la selección del PDF o de páginas y vuelva a cargar la previsualización.",
+                Localizer.Text("winui.firmar.corrija_la_seleccion_del_pdf_o_de"),
                 DiagnosticStepStatus.Failure);
         }
         if (!TryBeginOperation(
@@ -2395,7 +2395,7 @@ public sealed class SignPageViewModel
             out var operationCancellation))
         {
             ValidationMessage =
-                "Ya hay otra operación en curso. Espere o cancélela antes de cargar la previsualización.";
+                Localizer.Text("winui.firmar.ya_hay_otra_operacion_en_curso_espere_o");
             return null;
         }
 
@@ -2412,39 +2412,39 @@ public sealed class SignPageViewModel
                     out operations))
             {
                 ValidationMessage =
-                    "El motor local no ofrece la previsualización PDF necesaria para calcular un sello seguro.";
+                    Localizer.Text("winui.firmar.el_motor_local_no_ofrece_la");
                 return VisibleSealValidationDiagnostic(
                     "PDF_PREVIEW_NOT_AVAILABLE",
                     ValidationMessage,
-                    "Actualice o reinicie el motor local y compruebe que anuncia pdf_preview.",
+                    Localizer.Text("winui.firmar.actualice_o_reinicie_el_motor_local_y"),
                     DiagnosticStepStatus.Skipped);
             }
 
             ClearVisibleSealPreview();
             ValidationMessage =
-                $"Cargando la geometría real de la página {previewPage}…";
+                Localizer.Format("winui.firmar.cargando_la_geometria_real_de_la_pagina", previewPage);
             if (!TryReadFileStamp(
                 inputPath!,
                 out var fileLengthBefore,
                 out var fileWriteBefore))
             {
                 ValidationMessage =
-                    "No se pudo comprobar el PDF antes de previsualizarlo.";
+                    Localizer.Text("winui.firmar.no_se_pudo_comprobar_el_pdf_antes_de");
                 return VisibleSealValidationDiagnostic(
                     "PDF_PREVIEW_INPUT_UNAVAILABLE",
                     ValidationMessage,
-                    "Seleccione de nuevo el PDF y repita la previsualización.",
+                    Localizer.Text("winui.firmar.seleccione_de_nuevo_el_pdf_y_repita_la"),
                     DiagnosticStepStatus.Failure);
             }
             using var previewGuard = OpenPdfReadGuard(inputPath!);
             if (previewGuard is null)
             {
                 ValidationMessage =
-                    "No se pudo bloquear el PDF contra cambios durante la previsualización.";
+                    Localizer.Text("winui.firmar.no_se_pudo_bloquear_el_pdf_contra");
                 return VisibleSealValidationDiagnostic(
                     "PDF_PREVIEW_INPUT_UNAVAILABLE",
                     ValidationMessage,
-                    "Cierre el programa que está modificando el PDF y vuelva a intentarlo.",
+                    Localizer.Text("winui.firmar.cierre_el_programa_que_esta_modificando"),
                     DiagnosticStepStatus.Failure);
             }
             previewDigestBefore = await ComputeSha256Async(
@@ -2470,11 +2470,11 @@ public sealed class SignPageViewModel
                 catch
                 {
                     ValidationMessage =
-                        "Windows no pudo generar la previsualización nativa del PDF.";
+                        Localizer.Text("winui.firmar.windows_no_pudo_generar_la");
                     return VisibleSealValidationDiagnostic(
                         "WINDOWS_PDF_PREVIEW_FAILED",
                         ValidationMessage,
-                        "Compruebe que el PDF se abre correctamente, selecciónelo de nuevo y repita la previsualización.",
+                        Localizer.Text("winui.firmar.compruebe_que_el_pdf_se_abre"),
                         DiagnosticStepStatus.Failure);
                 }
             }
@@ -2495,7 +2495,7 @@ public sealed class SignPageViewModel
                 {
                     ClearBytes(ipcResult.Data?.Data);
                     ValidationMessage =
-                        "No se pudo previsualizar el PDF. Abra el diagnóstico para conocer el punto de fallo.";
+                        Localizer.Text("winui.firmar.no_se_pudo_previsualizar_el_pdf_abra_el");
                     return OperationDiagnosticMapper.FromResult(ipcResult);
                 }
                 previewResult = ipcResult.Data;
@@ -2511,7 +2511,7 @@ public sealed class SignPageViewModel
                     ? VisibleSealValidationDiagnostic(
                         "INVALID_WINDOWS_PDF_PREVIEW_RESULT",
                         previewError,
-                        "Seleccione de nuevo el PDF y repita la previsualización.",
+                        Localizer.Text("winui.firmar.seleccione_de_nuevo_el_pdf_y_repita_la"),
                         DiagnosticStepStatus.Failure)
                     : InvalidResultDiagnostic(
                         ipcResult,
@@ -2532,11 +2532,11 @@ public sealed class SignPageViewModel
                     previewDigestAfter))
             {
                 ValidationMessage =
-                    "El PDF cambió mientras se generaba la previsualización. No se usará esa geometría.";
+                    Localizer.Text("winui.firmar.el_pdf_cambio_mientras_se_generaba_la");
                 return VisibleSealValidationDiagnostic(
                     "PDF_CHANGED_DURING_PREVIEW",
                     ValidationMessage,
-                    "Cierre el programa que está modificando el PDF y vuelva a cargar la previsualización.",
+                    Localizer.Text("winui.firmar.cierre_el_programa_que_esta_modificando_2"),
                     DiagnosticStepStatus.Failure);
             }
 
@@ -2572,21 +2572,21 @@ public sealed class SignPageViewModel
                 return VisibleSealValidationDiagnostic(
                     "VISIBLE_SEAL_PAGE_SELECTION_INVALID",
                     pageError,
-                    "Indique páginas existentes, por ejemplo 1, 1,3-5 o all.",
+                    Localizer.Text("winui.firmar.indique_paginas_existentes_por_ejemplo_1"),
                     DiagnosticStepStatus.Failure);
             }
 
             _visibleSealPages = normalizedPages;
             RaisePropertyChanged(nameof(VisibleSealPages));
             VisibleSealPreviewMessage = Localizer.Format(
-                "PDF real: página {0} de {1}, {2} × {3} puntos. El sello se muestra con su aspecto real dentro de la zona marcada.",
+                "winui.firmar.pdf_real_pagina_de_puntos_el_sello_se",
                 _previewCurrentPage, _previewTotalPages,
                 _previewPageWidth.ToString("0.##",
                     System.Globalization.CultureInfo.CurrentCulture),
                 _previewPageHeight.ToString("0.##",
                     System.Globalization.CultureInfo.CurrentCulture));
             ValidationMessage =
-                "Previsualización preparada. Revise posición, tamaño y orientación antes de firmar.";
+                Localizer.Text("winui.firmar.previsualizacion_preparada_revise");
             UpdateCommandStates();
             return null;
         }
@@ -2598,7 +2598,7 @@ public sealed class SignPageViewModel
         catch (OperationCanceledException exception)
         {
             ValidationMessage =
-                "La carga de la previsualización se canceló.";
+                Localizer.Text("winui.firmar.la_carga_de_la_previsualizacion_se");
             return OperationDiagnosticMapper.FromException(
                 exception,
                 operationCancellation.Token);
@@ -2606,13 +2606,13 @@ public sealed class SignPageViewModel
         catch (IpcClientException exception)
         {
             ValidationMessage =
-                "Falló la comunicación segura al previsualizar el PDF.";
+                Localizer.Text("winui.firmar.fallo_la_comunicacion_segura_al");
             return OperationDiagnosticMapper.FromException(exception);
         }
         catch (Exception exception)
         {
             ValidationMessage =
-                "La aplicación no pudo preparar la previsualización PDF.";
+                Localizer.Text("winui.firmar.la_aplicacion_no_pudo_preparar_la");
             return OperationDiagnosticMapper.FromException(exception);
         }
         finally
@@ -2647,7 +2647,7 @@ public sealed class SignPageViewModel
             return VisibleSealValidationDiagnostic(
                 visibleSealErrorCode,
                 visibleSealError,
-                "Corrija la configuración indicada y vuelva a cargar la previsualización si se solicita.",
+                Localizer.Text("winui.firmar.corrija_la_configuracion_indicada_y"),
                 DiagnosticStepStatus.Failure);
         }
         if (!TryBeginOperation(
@@ -2655,7 +2655,7 @@ public sealed class SignPageViewModel
             out var operationCancellation))
         {
             ValidationMessage =
-                "Ya hay una firma en curso. Espere o cancele esa operación.";
+                Localizer.Text("winui.firmar.ya_hay_una_firma_en_curso_espere_o");
             return null;
         }
 
@@ -2676,8 +2676,8 @@ public sealed class SignPageViewModel
                 out var operations))
             {
                 ValidationMessage = useGuidedMultiCosign
-                    ? "No se puede cofirmar con varios certificados: el motor local no ofrece sign_multicosign."
-                    : "No se puede firmar: el motor local no ofrece la operación sign.";
+                    ? Localizer.Text("winui.firmar.no_se_puede_cofirmar_con_varios")
+                    : Localizer.Text("winui.firmar.no_se_puede_firmar_el_motor_local_no");
                 return null;
             }
 
@@ -2707,7 +2707,7 @@ public sealed class SignPageViewModel
             }
             var saveProfile = ResolveSaveProfile(format, inputPath);
             ValidationMessage =
-                "Elija dónde guardar el resultado. La firma aún no se ha iniciado.";
+                Localizer.Text("winui.firmar.elija_donde_guardar_el_resultado_la");
             var outputPath = await _filePicker.PickSaveFileAsync(
                 saveProfile,
                 SuggestedOutputName(inputPath),
@@ -2715,24 +2715,24 @@ public sealed class SignPageViewModel
             if (string.IsNullOrWhiteSpace(outputPath))
             {
                 ValidationMessage =
-                    "No se eligió un destino. No se ha realizado ninguna firma.";
+                    Localizer.Text("winui.firmar.no_se_eligio_un_destino_no_se_ha");
                 return null;
             }
 
             if (visibleSeal is not null)
             {
                 ValidationMessage =
-                    "Comprobando que el PDF no ha cambiado desde la previsualización…";
+                    Localizer.Text("winui.firmar.comprobando_que_el_pdf_no_ha_cambiado");
                 signInputGuard = OpenPdfReadGuard(inputPath);
                 if (signInputGuard is null ||
                     _previewFileDigest is null)
                 {
                     ValidationMessage =
-                        "No se pudo inmovilizar el PDF para firmarlo con la geometría previsualizada.";
+                        Localizer.Text("winui.firmar.no_se_pudo_inmovilizar_el_pdf_para");
                     return VisibleSealValidationDiagnostic(
                         "VISIBLE_SEAL_INPUT_GUARD_FAILED",
                         ValidationMessage,
-                        "Cierre el programa que está modificando el PDF, cargue de nuevo la previsualización y repita la firma.",
+                        Localizer.Text("winui.firmar.cierre_el_programa_que_esta_modificando_3"),
                         DiagnosticStepStatus.Failure);
                 }
                 expectedSignInputDigest =
@@ -2745,11 +2745,11 @@ public sealed class SignPageViewModel
                     expectedSignInputDigest))
                 {
                     ValidationMessage =
-                        "El contenido del PDF cambió después de previsualizarlo. La firma no se ha iniciado.";
+                        Localizer.Text("winui.firmar.el_contenido_del_pdf_cambio_despues_de");
                     return VisibleSealValidationDiagnostic(
                         "PDF_CHANGED_AFTER_PREVIEW",
                         ValidationMessage,
-                        "Cargue de nuevo la previsualización del PDF actual antes de firmar.",
+                        Localizer.Text("winui.firmar.cargue_de_nuevo_la_previsualizacion_del"),
                         DiagnosticStepStatus.Failure);
                 }
                 ClearBytes(signInputDigest);
@@ -2766,8 +2766,8 @@ public sealed class SignPageViewModel
             }
             remoteSecrets = remote.Secrets;
             ValidationMessage = useGuidedMultiCosign
-                ? "Aplicando el firmante principal y las cofirmas adicionales en el orden mostrado…"
-                : "Firmando el documento…";
+                ? Localizer.Text("winui.firmar.aplicando_el_firmante_principal_y_las")
+                : Localizer.Text("winui.firmar.firmando_el_documento");
             var signParameters = new SignParameters
             {
                 RemotePin = remoteSecrets?.Pin,
@@ -2811,14 +2811,14 @@ public sealed class SignPageViewModel
             {
                 ValidationMessage =
                     RemoteSigningFailureMessage(result.ErrorCode) ??
-                    "La firma no se completó. Abra el diagnóstico para conocer el punto de fallo.";
+                    Localizer.Text("winui.firmar.la_firma_no_se_completo_abra_el");
                 return OperationDiagnosticMapper.FromResult(result);
             }
             if (result.Data is null ||
                 string.IsNullOrWhiteSpace(result.Data.OutputPath))
             {
                 ValidationMessage =
-                    "El motor confirmó la operación, pero no devolvió una salida válida.";
+                    Localizer.Text("winui.firmar.el_motor_confirmo_la_operacion_pero_no");
                 return InvalidResultDiagnostic(
                     result,
                     "MISSING_SIGNATURE_OUTPUT");
@@ -2827,7 +2827,7 @@ public sealed class SignPageViewModel
                 !HasNonEmptyOutput(outputPath))
             {
                 ValidationMessage =
-                    "El motor no confirmó el fichero de salida solicitado. No se mostrará un éxito falso.";
+                    Localizer.Text("winui.firmar.el_motor_no_confirmo_el_fichero_de");
                 return InvalidResultDiagnostic(
                     result,
                     "SIGNATURE_OUTPUT_NOT_FOUND");
@@ -2846,14 +2846,14 @@ public sealed class SignPageViewModel
                     expectedSignInputDigest))
                 {
                     ResultMessage =
-                        $"La firma se guardó como {SafeFileName(outputPath)}, pero el PDF de origen cambió durante la operación.";
+                        Localizer.Format("winui.firmar.la_firma_se_guardo_como_pero_el_pdf_de", SafeFileName(outputPath));
                     ValidationMessage =
-                        "No use el resultado hasta revisar el diagnóstico: no se puede asegurar que el sello corresponda a la previsualización.";
+                        Localizer.Text("winui.firmar.no_use_el_resultado_hasta_revisar_el");
                     UpdateCommandStates();
                     return VisibleSealValidationDiagnostic(
                         "PDF_CHANGED_DURING_SIGN",
                         ValidationMessage,
-                        "Cierre el programa que modifica el PDF y repita la firma desde una previsualización nueva.",
+                        Localizer.Text("winui.firmar.cierre_el_programa_que_modifica_el_pdf_y"),
                         DiagnosticStepStatus.Failure);
                 }
                 ClearBytes(signInputDigest);
@@ -2863,7 +2863,7 @@ public sealed class SignPageViewModel
             {
                 postValidationStarted = true;
                 ValidationMessage =
-                    "La firma se guardó. Comprobando ahora su validez…";
+                    Localizer.Text("winui.firmar.la_firma_se_guardo_comprobando_ahora_su");
                 var verification = await operations.VerifyAsync(
                     PostSignVerification.Create(
                         outputPath,
@@ -2878,18 +2878,18 @@ public sealed class SignPageViewModel
                         StringComparison.Ordinal))
                 {
                     ResultMessage =
-                        $"La firma se guardó como {SafeFileName(outputPath)}, pero no pudo validarse automáticamente.";
+                        Localizer.Format("winui.firmar.la_firma_se_guardo_como_pero_no_pudo", SafeFileName(outputPath));
                     ValidationMessage =
-                        "El fichero firmado existe, pero su validación posterior falló. Abra el diagnóstico antes de usarlo.";
+                        Localizer.Text("winui.firmar.el_fichero_firmado_existe_pero_su");
                     UpdateCommandStates();
                     return OperationDiagnosticMapper.FromResult(verification);
                 }
                 if (!IsCoherentVerification(verification.Data))
                 {
                     ResultMessage =
-                        $"La firma se guardó como {SafeFileName(outputPath)}, pero el resultado de validación no es utilizable.";
+                        Localizer.Format("winui.firmar.la_firma_se_guardo_como_pero_el", SafeFileName(outputPath));
                     ValidationMessage =
-                        "El motor no devolvió evidencias coherentes para la validación posterior.";
+                        Localizer.Text("winui.firmar.el_motor_no_devolvio_evidencias");
                     UpdateCommandStates();
                     return InvalidResultDiagnostic(
                         verification,
@@ -2899,9 +2899,9 @@ public sealed class SignPageViewModel
                     verification.Data!))
                 {
                     ResultMessage =
-                        $"La firma se guardó como {SafeFileName(outputPath)}, pero no superó la validación.";
+                        Localizer.Format("winui.firmar.la_firma_se_guardo_como_pero_no_supero", SafeFileName(outputPath));
                     ValidationMessage =
-                        "La firma generada no es válida. No la utilice y abra el diagnóstico.";
+                        Localizer.Text("winui.firmar.la_firma_generada_no_es_valida_no_la");
                     UpdateCommandStates();
                     return InvalidResultDiagnostic(
                         verification,
@@ -2910,22 +2910,22 @@ public sealed class SignPageViewModel
 
                 ResultMessage = verification.Data!.IsValid
                     ? useGuidedMultiCosign
-                        ? $"Cofirma múltiple completada, guardada y validada como {SafeFileName(outputPath)}."
-                        : $"Firma completada, guardada y validada como {SafeFileName(outputPath)}."
+                        ? Localizer.Format("winui.firmar.cofirma_multiple_completada_guardada_y", SafeFileName(outputPath))
+                        : Localizer.Format("winui.firmar.firma_completada_guardada_y_validada", SafeFileName(outputPath))
                     : useGuidedMultiCosign
-                        ? $"Cofirma múltiple completada y guardada como {SafeFileName(outputPath)}. La integridad se validó, pero la confianza no quedó establecida."
-                        : $"Firma completada y guardada como {SafeFileName(outputPath)}. La integridad se validó, pero la confianza no quedó establecida.";
+                        ? Localizer.Format("winui.firmar.cofirma_multiple_completada_y_guardada", SafeFileName(outputPath))
+                        : Localizer.Format("winui.firmar.firma_completada_y_guardada_como_la", SafeFileName(outputPath));
                 ValidationMessage = PostValidationSuccessMessage(
                     verification.Data);
             }
             else
             {
                 ResultMessage = useGuidedMultiCosign
-                    ? $"Cofirma múltiple completada y guardada como {SafeFileName(outputPath)}."
-                    : $"Firma completada y guardada como {SafeFileName(outputPath)}.";
+                    ? Localizer.Format("winui.firmar.cofirma_multiple_completada_y_guardada_2", SafeFileName(outputPath))
+                    : Localizer.Format("winui.firmar.firma_completada_y_guardada_como", SafeFileName(outputPath));
                 ValidationMessage = useGuidedMultiCosign
-                    ? "La cofirma múltiple terminó correctamente, pero no se solicitó su validación posterior."
-                    : "La firma terminó correctamente, pero no se solicitó su validación posterior.";
+                    ? Localizer.Text("winui.firmar.la_cofirma_multiple_termino")
+                    : Localizer.Text("winui.firmar.la_firma_termino_correctamente_pero_no");
             }
             operationCancellation.Token.ThrowIfCancellationRequested();
             CompletedSignPresentationId = Guid.NewGuid();
@@ -2943,15 +2943,15 @@ public sealed class SignPageViewModel
                 !string.IsNullOrWhiteSpace(_outputPath))
             {
                 ResultMessage =
-                    $"La firma se guardó como {SafeFileName(_outputPath)}, pero su validación se canceló.";
+                    Localizer.Format("winui.firmar.la_firma_se_guardo_como_pero_su", SafeFileName(_outputPath));
                 ValidationMessage =
-                    "El fichero firmado existe, pero no terminó la validación posterior.";
+                    Localizer.Text("winui.firmar.el_fichero_firmado_existe_pero_no");
                 UpdateCommandStates();
             }
             else
             {
                 ValidationMessage =
-                    "La firma se canceló antes de completarse.";
+                    Localizer.Text("winui.firmar.la_firma_se_cancelo_antes_de_completarse");
             }
             return OperationDiagnosticMapper.FromException(
                 exception,
@@ -2963,15 +2963,15 @@ public sealed class SignPageViewModel
                 !string.IsNullOrWhiteSpace(_outputPath))
             {
                 ResultMessage =
-                    $"La firma se guardó como {SafeFileName(_outputPath)}, pero no pudo validarse.";
+                    Localizer.Format("winui.firmar.la_firma_se_guardo_como_pero_no_pudo_2", SafeFileName(_outputPath));
                 ValidationMessage =
-                    "Falló la comunicación segura durante la validación posterior; la firma no se presenta como validada.";
+                    Localizer.Text("winui.firmar.fallo_la_comunicacion_segura_durante_la_2");
                 UpdateCommandStates();
             }
             else
             {
                 ValidationMessage =
-                    "Falló la comunicación segura durante la firma.";
+                    Localizer.Text("winui.firmar.fallo_la_comunicacion_segura_durante_la_3");
             }
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -2981,15 +2981,15 @@ public sealed class SignPageViewModel
                 !string.IsNullOrWhiteSpace(_outputPath))
             {
                 ResultMessage =
-                    $"La firma se guardó como {SafeFileName(_outputPath)}, pero no pudo validarse.";
+                    Localizer.Format("winui.firmar.la_firma_se_guardo_como_pero_no_pudo_2", SafeFileName(_outputPath));
                 ValidationMessage =
-                    "La aplicación no pudo completar la validación posterior; la firma no se presenta como validada.";
+                    Localizer.Text("winui.firmar.la_aplicacion_no_pudo_completar_la");
                 UpdateCommandStates();
             }
             else
             {
                 ValidationMessage =
-                    "La aplicación no pudo completar la firma.";
+                    Localizer.Text("winui.firmar.la_aplicacion_no_pudo_completar_la_firma_2");
             }
             return OperationDiagnosticMapper.FromException(exception);
         }
@@ -3008,14 +3008,14 @@ public sealed class SignPageViewModel
         if (string.IsNullOrWhiteSpace(_outputPath))
         {
             ValidationMessage =
-                "Todavía no hay un resultado de firma que se pueda abrir.";
+                Localizer.Text("winui.firmar.todavia_no_hay_un_resultado_de_firma_que");
             UpdateCommandStates();
             return null;
         }
         if (!File.Exists(_outputPath))
         {
             ValidationMessage =
-                "El fichero firmado ya no está disponible en el destino elegido.";
+                Localizer.Text("winui.firmar.el_fichero_firmado_ya_no_esta_disponible");
             ClearOutput();
             return OperationDiagnosticMapper.FromResult(
                 new IpcCallResult<object>
@@ -3043,7 +3043,7 @@ public sealed class SignPageViewModel
             !Directory.Exists(_batchOutputDirectory))
         {
             ValidationMessage =
-                "La carpeta de salida del lote ya no está disponible.";
+                Localizer.Text("winui.firmar.la_carpeta_de_salida_del_lote_ya_no_esta");
             UpdateCommandStates();
             return OperationDiagnosticMapper.FromResult(
                 new IpcCallResult<object>
@@ -3068,11 +3068,11 @@ public sealed class SignPageViewModel
     {
         ClearVisibleSealPreview();
         ValidationMessage =
-            "Windows no pudo representar de forma segura la imagen de previsualización. La firma no se ha iniciado.";
+            Localizer.Text("winui.firmar.windows_no_pudo_representar_de_forma");
         return VisibleSealValidationDiagnostic(
             "PDF_PREVIEW_IMAGE_INVALID",
             ValidationMessage,
-            "Vuelva a cargar la previsualización. Si se repite, pruebe otro PDF y conserve el diagnóstico.",
+            Localizer.Text("winui.firmar.vuelva_a_cargar_la_previsualizacion_si"),
             DiagnosticStepStatus.Failure);
     }
 
@@ -3120,7 +3120,7 @@ public sealed class SignPageViewModel
                 file.Length is <= 0 or > MaximumSealImageBytes)
             {
                 VisibleSealStampMessage =
-                    "La imagen del sello debe ser un PNG o JPEG de hasta 10 MB.";
+                    Localizer.Text("winui.firmar.la_imagen_del_sello_debe_ser_un_png_o");
                 return null;
             }
             _visibleSealImagePath = selectedPath;
@@ -3166,7 +3166,7 @@ public sealed class SignPageViewModel
                 if (string.IsNullOrWhiteSpace(_visibleSealImagePath))
                 {
                     error =
-                        "Ha elegido «Imagen propia»: seleccione la imagen PNG o JPEG del sello.";
+                        Localizer.Text("winui.firmar.ha_elegido_imagen_propia_seleccione_la");
                     return false;
                 }
                 imagePath = _visibleSealImagePath;
@@ -3344,9 +3344,9 @@ public sealed class SignPageViewModel
                 VisibleSealStampMessage = appearanceError;
                 return;
             }
-            TryNormalizeMetadata(SignatureReason, "motivo", out var reason, out _);
-            TryNormalizeMetadata(SignatureLocation, "ubicación", out var location, out _);
-            TryNormalizeMetadata(SignatureContact, "contacto", out var contact, out _);
+            TryNormalizeMetadata(SignatureReason, "winui.firmar.motivo", out var reason, out _);
+            TryNormalizeMetadata(SignatureLocation, "winui.firmar.ubicacion", out var location, out _);
+            TryNormalizeMetadata(SignatureContact, "winui.firmar.contacto", out var contact, out _);
             var result = await operations.GetSealPreviewAsync(
                 new SealPreviewParameters
                 {
@@ -3383,13 +3383,13 @@ public sealed class SignPageViewModel
             {
                 VisibleSealStampImage = ReadOnlyMemory<byte>.Empty;
                 VisibleSealStampMessage =
-                    "No se pudo generar la vista previa del sello con estas opciones. Revise la imagen, el QR o el tamaño de la zona.";
+                    Localizer.Text("winui.firmar.no_se_pudo_generar_la_vista_previa_del");
                 return;
             }
             VisibleSealStampImage = result.Data.Image;
             VisibleSealStampMessage = SelectedCertificate is null
-                ? "Vista previa real del sello. Elija un certificado para ver su nombre; ahora se muestra un nombre de ejemplo."
-                : "Vista previa real del sello con el certificado elegido. La fecha definitiva será la del momento de la firma.";
+                ? Localizer.Text("winui.firmar.vista_previa_real_del_sello_elija_un")
+                : Localizer.Text("winui.firmar.vista_previa_real_del_sello_con_el");
         }
         catch (OperationCanceledException)
         {
@@ -3400,7 +3400,7 @@ public sealed class SignPageViewModel
             {
                 VisibleSealStampImage = ReadOnlyMemory<byte>.Empty;
                 VisibleSealStampMessage =
-                    "El motor local no pudo generar la vista previa del sello; se muestra una muestra orientativa.";
+                    Localizer.Text("winui.firmar.el_motor_local_no_pudo_generar_la_vista");
             }
         }
     }
@@ -3441,11 +3441,11 @@ public sealed class SignPageViewModel
     {
         if (!IsOperationConnected)
         {
-            return "No se puede firmar porque el motor local no está conectado.";
+            return Localizer.Text("winui.firmar.no_se_puede_firmar_porque_el_motor_local");
         }
         if (string.IsNullOrWhiteSpace(_inputPath))
         {
-            return "Seleccione el documento que desea firmar.";
+            return Localizer.Text("winui.firmar.seleccione_el_documento_que_desea_firmar");
         }
         if (!File.Exists(_inputPath))
         {
@@ -3454,49 +3454,49 @@ public sealed class SignPageViewModel
             InputDisplayName = string.Empty;
             ClearOutput();
             UpdateCommandStates();
-            return "El documento seleccionado ya no está disponible. Selecciónelo de nuevo.";
+            return Localizer.Text("winui.firmar.el_documento_seleccionado_ya_no_esta");
         }
         if (SelectedCertificate is null)
         {
-            return "Seleccione un certificado apto para firma.";
+            return Localizer.Text("winui.firmar.seleccione_un_certificado_apto_para");
         }
         if (!SelectedCertificate.CanSign)
         {
-            return $"El certificado seleccionado no es válido para firmar. {SelectedCertificate.StatusReason}";
+            return Localizer.Format("winui.firmar.el_certificado_seleccionado_no_es_valido", SelectedCertificate.StatusReason);
         }
         if (SelectedAction is null)
         {
-            return "Seleccione si desea firmar, cofirmar o contrafirmar.";
+            return Localizer.Text("winui.firmar.seleccione_si_desea_firmar_cofirmar_o");
         }
         if (SelectedFormat is null)
         {
-            return "Seleccione un formato de firma.";
+            return Localizer.Text("winui.firmar.seleccione_un_formato_de_firma");
         }
         if (SelectedProfile is null)
         {
-            return "Seleccione un perfil de firma.";
+            return Localizer.Text("winui.firmar.seleccione_un_perfil_de_firma");
         }
         if (GuidedMultiCosignEnabled)
         {
             if (!_session.Supports(
                 DesktopOperationActions.SignMultiCosign))
             {
-                return "El motor local no ofrece la cofirma múltiple guiada.";
+                return Localizer.Text("winui.firmar.el_motor_local_no_ofrece_la_cofirma");
             }
             if (string.Equals(
                 SelectedAction.Value,
                 "countersign",
                 StringComparison.Ordinal))
             {
-                return "La cofirma múltiple guiada no admite contrafirma.";
+                return Localizer.Text("winui.firmar.la_cofirma_multiple_guiada_no_admite");
             }
             if (!IsGuidedMultiCosignFormatSupported())
             {
-                return "La cofirma múltiple guiada solo está disponible para PAdES, ODF u OOXML.";
+                return Localizer.Text("winui.firmar.la_cofirma_multiple_guiada_solo_esta");
             }
             if (_selectedAdditionalCertificateIds.Count == 0)
             {
-                return "Seleccione al menos un certificado adicional distinto del firmante principal.";
+                return Localizer.Text("winui.firmar.seleccione_al_menos_un_certificado");
             }
         }
         return null;
@@ -3512,75 +3512,75 @@ public sealed class SignPageViewModel
         contact = null;
         if (!IsOperationConnected)
         {
-            return "No se puede firmar el lote porque el motor local no está conectado.";
+            return Localizer.Text("winui.firmar.no_se_puede_firmar_el_lote_porque_el");
         }
         if (!BatchModeEnabled ||
             !_session.Supports(DesktopOperationActions.SignBatch))
         {
-            return "Active la firma por lotes y compruebe que el motor ofrece sign_batch.";
+            return Localizer.Text("winui.firmar.active_la_firma_por_lotes_y_compruebe");
         }
         if (_batchInputPaths.Count == 0)
         {
-            return "Seleccione varios documentos o una carpeta para el lote.";
+            return Localizer.Text("winui.firmar.seleccione_varios_documentos_o_una");
         }
         if (_batchInputPaths.Count > MaximumBatchDocuments)
         {
-            return $"El lote admite como máximo {MaximumBatchDocuments} documentos.";
+            return Localizer.Format("winui.firmar.el_lote_admite_como_maximo_documentos", MaximumBatchDocuments);
         }
         if (string.IsNullOrWhiteSpace(_batchOutputDirectory) ||
             !Directory.Exists(_batchOutputDirectory))
         {
-            return "Seleccione una carpeta de salida válida para el lote.";
+            return Localizer.Text("winui.firmar.seleccione_una_carpeta_de_salida_valida");
         }
         if (SelectedCertificate?.CanSign != true)
         {
-            return "Seleccione un certificado apto para firmar el lote.";
+            return Localizer.Text("winui.firmar.seleccione_un_certificado_apto_para_2");
         }
         if (SelectedAction is null)
         {
-            return "Seleccione la operación de firma del lote.";
+            return Localizer.Text("winui.firmar.seleccione_la_operacion_de_firma_del");
         }
         if (SelectedFormat is null)
         {
-            return "Seleccione el formato de firma del lote.";
+            return Localizer.Text("winui.firmar.seleccione_el_formato_de_firma_del_lote");
         }
         if (SelectedProfile is null)
         {
-            return "Seleccione el perfil de firma del lote.";
+            return Localizer.Text("winui.firmar.seleccione_el_perfil_de_firma_del_lote");
         }
         if (VisibleSealEnabled)
         {
-            return "El sello visible requiere previsualización por documento y no está habilitado en el lote.";
+            return Localizer.Text("winui.firmar.el_sello_visible_requiere");
         }
         if (GuidedMultiCosignEnabled)
         {
             if (!_session.Supports(
                 DesktopOperationActions.SignMultiCosign))
             {
-                return "El motor local no ofrece la cofirma múltiple usada por el lote.";
+                return Localizer.Text("winui.firmar.el_motor_local_no_ofrece_la_cofirma_2");
             }
             if (_selectedAdditionalCertificateIds.Count == 0)
             {
-                return "Seleccione al menos un certificado adicional para la cofirma múltiple del lote.";
+                return Localizer.Text("winui.firmar.seleccione_al_menos_un_certificado_2");
             }
             if (!IsGuidedMultiCosignFormatSupported())
             {
-                return "La cofirma múltiple del lote solo admite PAdES, ODF u OOXML explícitos.";
+                return Localizer.Text("winui.firmar.la_cofirma_multiple_del_lote_solo_admite");
             }
         }
         if (!TryNormalizeMetadata(
             SignatureReason,
-            "motivo",
+            "winui.firmar.motivo",
             out reason,
             out var metadataError) ||
             !TryNormalizeMetadata(
                 SignatureLocation,
-                "ubicación",
+                "winui.firmar.ubicacion",
                 out location,
                 out metadataError) ||
             !TryNormalizeMetadata(
                 SignatureContact,
-                "contacto",
+                "winui.firmar.contacto",
                 out contact,
                 out metadataError))
         {
@@ -3597,16 +3597,16 @@ public sealed class SignPageViewModel
         previewPage = 1;
         if (!VisibleSealEnabled)
         {
-            return "Active primero el sello visible.";
+            return Localizer.Text("winui.firmar.active_primero_el_sello_visible");
         }
         if (!IsVisibleSealSupportedByCurrentSelection())
         {
-            return "El sello visible requiere un PDF, formato PAdES o Automático y un motor que ofrezca pdf_preview.";
+            return Localizer.Text("winui.firmar.el_sello_visible_requiere_un_pdf_formato");
         }
         if (string.IsNullOrWhiteSpace(inputPath) ||
             !File.Exists(inputPath))
         {
-            return "El PDF seleccionado ya no está disponible. Selecciónelo de nuevo.";
+            return Localizer.Text("winui.firmar.el_pdf_seleccionado_ya_no_esta");
         }
         if (!TryParsePageSelection(
             VisibleSealPages,
@@ -3647,7 +3647,7 @@ public sealed class SignPageViewModel
         {
             errorCode = "VISIBLE_SEAL_NOT_SUPPORTED";
             error =
-                "El sello visible solo puede aplicarse a un PDF con formato PAdES o Automático y con pdf_preview disponible.";
+                Localizer.Text("winui.firmar.el_sello_visible_solo_puede_aplicarse_a");
             return false;
         }
         if (!TryParsePageSelection(
@@ -3678,7 +3678,7 @@ public sealed class SignPageViewModel
         {
             errorCode = "VISIBLE_SEAL_PREVIEW_REQUIRED";
             error =
-                "La previsualización no corresponde al PDF y a la página actuales. Cárguela de nuevo antes de firmar.";
+                Localizer.Text("winui.firmar.la_previsualizacion_no_corresponde_al");
             return false;
         }
         if (!TryValidateVisibleSealGeometry(out error))
@@ -3689,7 +3689,7 @@ public sealed class SignPageViewModel
         if (_visibleSealRotationDegrees is < 0 or > 359)
         {
             errorCode = "VISIBLE_SEAL_ROTATION_INVALID";
-            error = "Indique un giro entre 0 y 359 grados.";
+            error = Localizer.Text("winui.firmar.indique_un_giro_entre_0_y_359_grados");
             return false;
         }
         if (!TryBuildSealAppearance(
@@ -3703,17 +3703,17 @@ public sealed class SignPageViewModel
         }
         if (!TryNormalizeMetadata(
             SignatureReason,
-            "motivo",
+            "winui.firmar.motivo",
             out reason,
             out error) ||
             !TryNormalizeMetadata(
                 SignatureLocation,
-                "ubicación",
+                "winui.firmar.ubicacion",
                 out location,
                 out error) ||
             !TryNormalizeMetadata(
                 SignatureContact,
-                "contacto",
+                "winui.firmar.contacto",
                 out contact,
                 out error))
         {
@@ -3774,7 +3774,7 @@ public sealed class SignPageViewModel
         if (!IsOperationConnected)
         {
             ValidationMessage =
-                "Conecte el motor local para habilitar la firma.";
+                Localizer.Text("winui.firmar.conecte_el_motor_local_para_habilitar_la");
             return;
         }
         if (BatchModeEnabled)
@@ -3782,91 +3782,91 @@ public sealed class SignPageViewModel
             if (_batchInputPaths.Count == 0)
             {
                 ValidationMessage =
-                    "Añada varios documentos o una carpeta al lote.";
+                    Localizer.Text("winui.firmar.anada_varios_documentos_o_una_carpeta_al");
                 return;
             }
             if (string.IsNullOrWhiteSpace(_batchOutputDirectory))
             {
                 ValidationMessage =
-                    "Seleccione la carpeta donde se guardarán las firmas del lote.";
+                    Localizer.Text("winui.firmar.seleccione_la_carpeta_donde_se_guardaran");
                 return;
             }
             if (SelectedCertificate is null)
             {
                 ValidationMessage =
-                    "Seleccione el certificado que se aplicará a todo el lote.";
+                    Localizer.Text("winui.firmar.seleccione_el_certificado_que_se");
                 return;
             }
             if (!SelectedCertificate.CanSign)
             {
-                ValidationMessage = $"No válido para firmar. {SelectedCertificate.StatusReason}";
+                ValidationMessage = Localizer.Format("winui.firmar.no_valido_para_firmar", SelectedCertificate.StatusReason);
                 return;
             }
             if (GuidedMultiCosignEnabled &&
                 _selectedAdditionalCertificateIds.Count == 0)
             {
                 ValidationMessage =
-                    "Seleccione al menos un certificado adicional para la cofirma múltiple del lote.";
+                    Localizer.Text("winui.firmar.seleccione_al_menos_un_certificado_2");
                 return;
             }
             ValidationMessage =
-                $"{_batchInputPaths.Count} documento(s), certificado y salida preparados para firmar por lotes.";
+                Localizer.Format("winui.firmar.documento_s_certificado_y_salida", _batchInputPaths.Count);
             return;
         }
         if (string.IsNullOrWhiteSpace(_inputPath))
         {
             ValidationMessage =
-                "Seleccione el documento que desea firmar.";
+                Localizer.Text("winui.firmar.seleccione_el_documento_que_desea_firmar");
             return;
         }
         if (SelectedCertificate is null)
         {
             ValidationMessage = Certificates.Count == 0
-                ? "No hay certificados aptos para firma en el almacén."
-                : "Seleccione un certificado apto para firma.";
+                ? Localizer.Text("winui.firmar.no_hay_certificados_aptos_para_firma_en")
+                : Localizer.Text("winui.firmar.seleccione_un_certificado_apto_para");
             return;
         }
         if (!SelectedCertificate.CanSign)
         {
-            ValidationMessage = $"No válido para firmar. {SelectedCertificate.StatusReason}";
+            ValidationMessage = Localizer.Format("winui.firmar.no_valido_para_firmar", SelectedCertificate.StatusReason);
             return;
         }
         if (GuidedMultiCosignEnabled &&
             _selectedAdditionalCertificateIds.Count == 0)
         {
             ValidationMessage =
-                "Seleccione al menos un certificado adicional para la cofirma múltiple guiada.";
+                Localizer.Text("winui.firmar.seleccione_al_menos_un_certificado_3");
             return;
         }
         if (!VisibleSealEnabled)
         {
             ValidationMessage = GuidedMultiCosignEnabled
-                ? "Documento y firmantes preparados para la cofirma múltiple guiada."
-                : "Documento y certificado preparados para firmar.";
+                ? Localizer.Text("winui.firmar.documento_y_firmantes_preparados_para_la")
+                : Localizer.Text("winui.firmar.documento_y_certificado_preparados_para");
             return;
         }
         if (!IsVisibleSealSupportedByCurrentSelection())
         {
             ValidationMessage =
-                "El sello visible requiere un PDF, formato PAdES o Automático y pdf_preview disponible.";
+                Localizer.Text("winui.firmar.el_sello_visible_requiere_un_pdf_formato_2");
             return;
         }
         if (VisibleSealPreviewImage.IsEmpty)
         {
             ValidationMessage =
-                "Cargue la previsualización real del PDF antes de firmar con sello visible.";
+                Localizer.Text("winui.firmar.cargue_la_previsualizacion_real_del_pdf");
             return;
         }
         if (!_isPreviewImageRendered)
         {
             ValidationMessage =
-                "Windows está comprobando la imagen de previsualización. Espere antes de firmar.";
+                Localizer.Text("winui.firmar.windows_esta_comprobando_la_imagen_de");
             return;
         }
         ValidationMessage = TryValidateVisibleSealGeometry(out var error)
             ? GuidedMultiCosignEnabled
-                ? "Documento, firmantes y sello visible preparados para la cofirma múltiple guiada."
-                : "Documento, certificado y sello visible preparados para firmar."
+                ? Localizer.Text("winui.firmar.documento_firmantes_y_sello_visible")
+                : Localizer.Text("winui.firmar.documento_certificado_y_sello_visible")
             : error;
     }
 
@@ -3874,7 +3874,7 @@ public sealed class SignPageViewModel
     {
         CompletedSignPresentationId = Guid.Empty;
         _outputPath = null;
-        ResultMessage = "No se ha ejecutado ninguna firma con esta selección.";
+        ResultMessage = Localizer.Text("winui.firmar.no_se_ha_ejecutado_ninguna_firma_con");
         UpdateCommandStates();
     }
 
@@ -4046,7 +4046,7 @@ public sealed class SignPageViewModel
             DesktopOperationActions.SignMultiCosign))
         {
             GuidedMultiCosignSummary =
-                "El motor local no ha publicado sign_multicosign.";
+                Localizer.Text("winui.firmar.el_motor_local_no_ha_publicado_sign");
             return;
         }
         if (string.Equals(
@@ -4055,31 +4055,31 @@ public sealed class SignPageViewModel
             StringComparison.Ordinal))
         {
             GuidedMultiCosignSummary =
-                "La cofirma múltiple guiada admite Firma o Cofirma, no Contrafirma.";
+                Localizer.Text("winui.firmar.la_cofirma_multiple_guiada_admite_firma");
             return;
         }
         if (!IsGuidedMultiCosignFormatSupported())
         {
             GuidedMultiCosignSummary =
-                "Disponible únicamente para PAdES, ODF u OOXML. En Automático se usa el tipo del documento.";
+                Localizer.Text("winui.firmar.disponible_unicamente_para_pades_odf_u");
             return;
         }
         if (AdditionalSignerCandidates.Count == 0)
         {
             GuidedMultiCosignSummary =
-                "Se necesitan al menos dos certificados de firma distintos.";
+                Localizer.Text("winui.firmar.se_necesitan_al_menos_dos_certificados");
             return;
         }
         if (!GuidedMultiCosignEnabled)
         {
             GuidedMultiCosignSummary =
-                "Actívela para aplicar primero el certificado principal y después los adicionales.";
+                Localizer.Text("winui.firmar.activela_para_aplicar_primero_el");
             return;
         }
         if (_selectedAdditionalCertificateIds.Count == 0)
         {
             GuidedMultiCosignSummary =
-                "Seleccione al menos un certificado adicional. Se aplicarán en el orden mostrado.";
+                Localizer.Text("winui.firmar.seleccione_al_menos_un_certificado_4");
             return;
         }
 
@@ -4094,11 +4094,11 @@ public sealed class SignPageViewModel
         var remaining =
             _selectedAdditionalCertificateIds.Count - names.Length;
         var suffix = remaining > 0
-            ? Localizer.Format(" y {0} más", remaining)
+            ? Localizer.Format("winui.firmar.y_mas", remaining)
             : string.Empty;
         GuidedMultiCosignSummary = Localizer.Format(
-            "Principal: {0}. Después: {1}{2}.",
-            SelectedCertificate?.DisplayName ?? Localizer.Text("no definido"),
+            "winui.firmar.principal_despues",
+            SelectedCertificate?.DisplayName ?? Localizer.Text("winui.firmar.no_definido"),
             string.Join(", ", names), suffix);
     }
 
@@ -4243,8 +4243,8 @@ public sealed class SignPageViewModel
         _isPreviewImageRendered = false;
         VisibleSealPreviewImage = ReadOnlyMemory<byte>.Empty;
         VisibleSealPreviewMessage = VisibleSealEnabled
-            ? "Cargue la previsualización para obtener la geometría real de la página seleccionada."
-            : "Active el sello y cargue la previsualización para obtener la geometría real del PDF.";
+            ? Localizer.Text("winui.firmar.cargue_la_previsualizacion_para_obtener")
+            : Localizer.Text("winui.firmar.active_el_sello_y_cargue_la");
         RaiseVisibleSealPreviewGeometryChanged();
         UpdateCommandStates();
     }
@@ -4256,10 +4256,10 @@ public sealed class SignPageViewModel
         var folderSuffix = string.IsNullOrWhiteSpace(
             _batchSourceDirectory)
             ? string.Empty
-            : Localizer.Format(" Incluye la carpeta {0}.",
+            : Localizer.Format("winui.firmar.incluye_la_carpeta",
                 SafeDirectoryName(_batchSourceDirectory));
         BatchInputSummary = Localizer.Format(
-            "{0} documento(s) seleccionado(s).{1}",
+            "winui.firmar.documento_s_seleccionado_s",
             combinedPaths.Count, folderSuffix);
         ResetBatchResults();
         UpdateValidationMessage();
@@ -4272,7 +4272,7 @@ public sealed class SignPageViewModel
             .Select(path => new BatchSignDisplayItem(
                 SafeFileName(path),
                 Localizer.Text("Preparado"),
-                "Pendiente de ejecutar.",
+                Localizer.Text("winui.firmar.pendiente_de_ejecutar"),
                 false,
                 null))
             .ToArray();
@@ -4281,8 +4281,8 @@ public sealed class SignPageViewModel
         BatchProgressValue = 0;
         IsBatchProgressIndeterminate = false;
         BatchProgressText = _batchInputPaths.Count == 0
-            ? "El lote aún no se ha configurado."
-            : "El lote está preparado y aún no se ha ejecutado.";
+            ? Localizer.Text("winui.firmar.el_lote_aun_no_se_ha_configurado")
+            : Localizer.Text("winui.firmar.el_lote_esta_preparado_y_aun_no_se_ha");
         UpdateCommandStates();
     }
 
@@ -4301,7 +4301,7 @@ public sealed class SignPageViewModel
         BatchItems = paths
             .Select(path => new BatchSignDisplayItem(
                 SafeFileName(path),
-                "No procesado",
+                Localizer.Text("winui.firmar.no_procesado"),
                 detail,
                 false,
                 null))
@@ -4310,7 +4310,7 @@ public sealed class SignPageViewModel
         BatchProgressValue = 0;
         IsBatchProgressIndeterminate = false;
         BatchProgressText =
-            "El motor no confirmó resultados del lote.";
+            Localizer.Text("winui.firmar.el_motor_no_confirmo_resultados_del_lote");
         UpdateCommandStates();
     }
 
@@ -4320,20 +4320,20 @@ public sealed class SignPageViewModel
             .Select(item =>
                 string.Equals(
                     item.Status,
-                    "En espera",
+                    Localizer.Text("winui.firmar.en_espera"),
                     StringComparison.Ordinal)
                     ? item with
                     {
                         Status = Localizer.Text("Cancelado"),
                         Detail =
-                            "No existe confirmación de salida para este documento.",
+                            Localizer.Text("winui.firmar.no_existe_confirmacion_de_salida_para"),
                     }
                     : item)
             .ToArray();
         HasBatchResults = true;
         IsBatchProgressIndeterminate = false;
         BatchProgressText =
-            "Lote cancelado antes de recibir resultados confirmados.";
+            Localizer.Text("winui.firmar.lote_cancelado_antes_de_recibir");
         UpdateCommandStates();
     }
 
@@ -4343,20 +4343,20 @@ public sealed class SignPageViewModel
             .Select(item =>
                 string.Equals(
                     item.Status,
-                    "En espera",
+                    Localizer.Text("winui.firmar.en_espera"),
                     StringComparison.Ordinal)
                     ? item with
                     {
-                        Status = "Sin confirmar",
+                        Status = Localizer.Text("winui.firmar.sin_confirmar"),
                         Detail =
-                            "La comunicación terminó sin confirmar una salida utilizable.",
+                            Localizer.Text("winui.firmar.la_comunicacion_termino_sin_confirmar"),
                     }
                     : item)
             .ToArray();
         HasBatchResults = true;
         IsBatchProgressIndeterminate = false;
         BatchProgressText =
-            "No se recibieron resultados confirmados del lote.";
+            Localizer.Text("winui.firmar.no_se_recibieron_resultados_confirmados");
         UpdateCommandStates();
     }
 
@@ -4408,8 +4408,8 @@ public sealed class SignPageViewModel
                 failureCount++;
                 visibleItems.Add(new BatchSignDisplayItem(
                     SafeFileName(expectedPath),
-                    "Sin resultado",
-                    "El motor omitió el resultado de este documento.",
+                    Localizer.Text("winui.comun.sin_resultado"),
+                    Localizer.Text("winui.firmar.el_motor_omitio_el_resultado_de_este"),
                     false,
                     null));
                 coherent = false;
@@ -4420,9 +4420,9 @@ public sealed class SignPageViewModel
                 failureCount++;
                 visibleItems.Add(new BatchSignDisplayItem(
                     SafeFileName(expectedPath),
-                    "Falló",
+                    Localizer.Text("winui.firmar.fallo"),
                     string.IsNullOrWhiteSpace(item.Error)
-                        ? "El motor indicó un fallo sin detalle adicional."
+                        ? Localizer.Text("winui.firmar.el_motor_indico_un_fallo_sin_detalle")
                         : item.Error,
                     false,
                     null));
@@ -4437,8 +4437,8 @@ public sealed class SignPageViewModel
                 failureCount++;
                 visibleItems.Add(new BatchSignDisplayItem(
                     SafeFileName(expectedPath),
-                    "Salida no confirmada",
-                    "La respuesta no corresponde a un fichero no vacío dentro de la carpeta elegida.",
+                    Localizer.Text("winui.firmar.salida_no_confirmada"),
+                    Localizer.Text("winui.firmar.la_respuesta_no_corresponde_a_un_fichero"),
                     false,
                     null));
                 coherent = false;
@@ -4449,7 +4449,7 @@ public sealed class SignPageViewModel
             visibleItems.Add(new BatchSignDisplayItem(
                 SafeFileName(expectedPath),
                 "Firmado",
-                Localizer.Format("Salida confirmada: {0}",
+                Localizer.Format("winui.firmar.salida_confirmada",
                     SafeFileName(item.OutputPath)),
                 true,
                 item.OutputPath));
@@ -4493,7 +4493,7 @@ public sealed class SignPageViewModel
             {
                 normalizedPaths = [];
                 error =
-                    "Uno de los documentos seleccionados tiene una ruta no válida.";
+                    Localizer.Text("winui.firmar.uno_de_los_documentos_seleccionados");
                 return false;
             }
             if (!file.Exists ||
@@ -4502,7 +4502,7 @@ public sealed class SignPageViewModel
             {
                 normalizedPaths = [];
                 error =
-                    $"El documento {SafeFileName(fullPath)} no existe, está vacío o supera 100 MB.";
+                    Localizer.Format("winui.firmar.el_documento_no_existe_esta_vacio_o", SafeFileName(fullPath));
                 return false;
             }
             if (!seen.Add(fullPath))
@@ -4513,7 +4513,7 @@ public sealed class SignPageViewModel
             {
                 normalizedPaths = [];
                 error =
-                    $"El lote admite como máximo {MaximumBatchDocuments} documentos.";
+                    Localizer.Format("winui.firmar.el_lote_admite_como_maximo_documentos", MaximumBatchDocuments);
                 return false;
             }
             totalBytes += file.Length;
@@ -4521,7 +4521,7 @@ public sealed class SignPageViewModel
             {
                 normalizedPaths = [];
                 error =
-                    "El lote supera 256 MB en conjunto. Divídalo en varios lotes para evitar agotar la memoria.";
+                    Localizer.Text("winui.firmar.el_lote_supera_256_mb_en_conjunto");
                 return false;
             }
             normalized.Add(fullPath);
@@ -4557,7 +4557,7 @@ public sealed class SignPageViewModel
             if (!Directory.Exists(directoryPath))
             {
                 error =
-                    "La carpeta seleccionada ya no está disponible.";
+                    Localizer.Text("winui.firmar.la_carpeta_seleccionada_ya_no_esta");
                 return false;
             }
 
@@ -4587,7 +4587,7 @@ public sealed class SignPageViewModel
             if (candidates.Length == 0)
             {
                 error =
-                    "La carpeta seleccionada no contiene ficheros normales.";
+                    Localizer.Text("winui.firmar.la_carpeta_seleccionada_no_contiene");
                 return false;
             }
             return TryNormalizeBatchPaths(
@@ -4598,7 +4598,7 @@ public sealed class SignPageViewModel
         catch
         {
             error =
-                "No se pudo enumerar de forma segura la carpeta seleccionada.";
+                Localizer.Text("winui.firmar.no_se_pudo_enumerar_de_forma_segura_la");
             return false;
         }
     }
@@ -4692,12 +4692,12 @@ public sealed class SignPageViewModel
                 Path.TrimEndingDirectorySeparator(path);
             var name = Path.GetFileName(normalized);
             return string.IsNullOrWhiteSpace(name)
-                ? Localizer.Text("carpeta seleccionada")
+                ? Localizer.Text("winui.firmar.carpeta_seleccionada")
                 : name;
         }
         catch
         {
-            return Localizer.Text("carpeta seleccionada");
+            return Localizer.Text("winui.firmar.carpeta_seleccionada");
         }
     }
 
@@ -4717,21 +4717,21 @@ public sealed class SignPageViewModel
             value > 100))
         {
             error =
-                "X, Y, ancho y alto deben ser porcentajes entre 0 y 100.";
+                Localizer.Text("winui.firmar.x_y_ancho_y_alto_deben_ser_porcentajes");
             return false;
         }
         if (VisibleSealWidthPercent <= 0 ||
             VisibleSealHeightPercent <= 0)
         {
             error =
-                "El ancho y el alto del sello deben ser mayores que cero.";
+                Localizer.Text("winui.firmar.el_ancho_y_el_alto_del_sello_deben_ser");
             return false;
         }
         if (VisibleSealXPercent + VisibleSealWidthPercent > 100 ||
             VisibleSealYPercent + VisibleSealHeightPercent > 100)
         {
             error =
-                "La zona del sello debe quedar completamente dentro de la página.";
+                Localizer.Text("winui.firmar.la_zona_del_sello_debe_quedar");
             return false;
         }
         return true;
@@ -4750,7 +4750,7 @@ public sealed class SignPageViewModel
         if (string.IsNullOrWhiteSpace(raw))
         {
             error =
-                "Indique las páginas del sello: 1, 1,3-5 o all.";
+                Localizer.Text("winui.firmar.indique_las_paginas_del_sello_1_1_3_5_o");
             return false;
         }
         if (raw.Length > MaximumPageSelectionLength ||
@@ -4759,7 +4759,7 @@ public sealed class SignPageViewModel
                 !char.IsWhiteSpace(character)))
         {
             error =
-                "La selección de páginas es demasiado larga o contiene caracteres no admitidos.";
+                Localizer.Text("winui.firmar.la_seleccion_de_paginas_es_demasiado");
             return false;
         }
 
@@ -4782,7 +4782,7 @@ public sealed class SignPageViewModel
             parts.Any(string.IsNullOrWhiteSpace))
         {
             error =
-                "La selección de páginas no es válida. Use 1, 1,3-5 o all.";
+                Localizer.Text("winui.firmar.la_seleccion_de_paginas_no_es_valida_use");
             return false;
         }
 
@@ -4801,7 +4801,7 @@ public sealed class SignPageViewModel
                 start > 1_000_000)
             {
                 error =
-                    "La selección de páginas no es válida. Use números positivos y rangos como 3-5.";
+                    Localizer.Text("winui.firmar.la_seleccion_de_paginas_no_es_valida_use_2");
                 return false;
             }
 
@@ -4816,13 +4816,13 @@ public sealed class SignPageViewModel
                  end > 1_000_000))
             {
                 error =
-                    "Cada rango de páginas debe ir de menor a mayor, por ejemplo 3-5.";
+                    Localizer.Text("winui.firmar.cada_rango_de_paginas_debe_ir_de_menor_a");
                 return false;
             }
             if (totalPages > 0 && end > totalPages)
             {
                 error =
-                    $"La selección incluye la página {end}, pero el PDF solo tiene {totalPages}.";
+                    Localizer.Format("winui.firmar.la_seleccion_incluye_la_pagina_pero_el", end, totalPages);
                 return false;
             }
             if (!firstPageAssigned)
@@ -4851,7 +4851,7 @@ public sealed class SignPageViewModel
     {
         previewImage = ReadOnlyMemory<byte>.Empty;
         error =
-            "El motor no devolvió una previsualización PDF coherente.";
+            Localizer.Text("winui.firmar.el_motor_no_devolvio_una");
         if (result is null)
         {
             return false;
@@ -4904,7 +4904,7 @@ public sealed class SignPageViewModel
             value.Any(char.IsControl))
         {
             error = Localizer.Format(
-                "El campo {0} admite hasta {1} caracteres de texto en una sola línea.",
+                "winui.firmar.el_campo_admite_hasta_caracteres_de",
                 Localizer.Text(label), MaximumMetadataLength);
             return false;
         }
@@ -5006,10 +5006,10 @@ public sealed class SignPageViewModel
             FailureCode = failureCode,
             UserMessage = userMessage,
             ExpertMessage =
-                "La validación local detuvo la operación antes de enviar datos al motor criptográfico.",
+                Localizer.Text("winui.firmar.la_validacion_local_detuvo_la_operacion"),
             LikelyOwner = "local",
             ResponsibilityMessage =
-                "El fallo se ha detectado en la configuración local del sello; no procede del portal ni de @firma.",
+                Localizer.Text("winui.firmar.el_fallo_se_ha_detectado_en_la"),
             SuggestedAction = suggestedAction,
             UserCanResolveDirectly = true,
             Steps =
@@ -5017,17 +5017,17 @@ public sealed class SignPageViewModel
                 new OperationDiagnosticStep
                 {
                     Code = "document_selected",
-                    Label = "Documento PDF seleccionado",
+                    Label = Localizer.Text("winui.firmar.documento_pdf_seleccionado"),
                     Status = DiagnosticStepStatus.Success,
                     Owner = "local",
                     UserMessage =
-                        "La aplicación dispone de una selección local para revisar.",
+                        Localizer.Text("winui.firmar.la_aplicacion_dispone_de_una_seleccion"),
                     EvidenceRef = "phase:input",
                 },
                 new OperationDiagnosticStep
                 {
                     Code = failureCode,
-                    Label = "Configuración del sello visible",
+                    Label = Localizer.Text("winui.firmar.configuracion_del_sello_visible"),
                     Status = status,
                     Owner = "local",
                     UserMessage = userMessage,
@@ -5037,11 +5037,11 @@ public sealed class SignPageViewModel
                 new OperationDiagnosticStep
                 {
                     Code = "sign_not_started",
-                    Label = "Firma criptográfica",
+                    Label = Localizer.Text("winui.firmar.firma_criptografica"),
                     Status = DiagnosticStepStatus.Skipped,
                     Owner = "local",
                     UserMessage =
-                        "La firma no se inició porque la configuración no era segura.",
+                        Localizer.Text("winui.firmar.la_firma_no_se_inicio_porque_la"),
                     EvidenceRef = "phase:operation",
                 },
             ],
@@ -5091,7 +5091,7 @@ public sealed class SignPageViewModel
         var baseName = Path.GetFileNameWithoutExtension(inputPath);
         return string.IsNullOrWhiteSpace(baseName)
             ? Localizer.Text("documento-firmado")
-            : baseName + Localizer.Text("-firmado");
+            : baseName + Localizer.Text("winui.firmar.firmado");
     }
 
     private static string SafeFileName(string path)
@@ -5100,12 +5100,12 @@ public sealed class SignPageViewModel
         {
             var fileName = Path.GetFileName(path);
             return string.IsNullOrWhiteSpace(fileName)
-                ? Localizer.Text("documento seleccionado")
+                ? Localizer.Text("winui.firmar.documento_seleccionado")
                 : fileName;
         }
         catch
         {
-            return Localizer.Text("documento seleccionado");
+            return Localizer.Text("winui.firmar.documento_seleccionado");
         }
     }
 
@@ -5145,13 +5145,13 @@ public sealed class SignPageViewModel
         return trust switch
         {
             "valid" =>
-                "La firma terminó y la validación confirmó integridad y confianza.",
+                Localizer.Text("winui.firmar.la_firma_termino_y_la_validacion"),
             "invalid" =>
-                "La firma es criptográficamente válida, pero el certificado no es de confianza. Revise el detalle antes de usarla.",
+                Localizer.Text("winui.firmar.la_firma_es_criptograficamente_valida"),
             "warning" =>
-                "La firma es criptográficamente válida y la confianza presenta avisos. Revise el detalle antes de usarla.",
+                Localizer.Text("winui.firmar.la_firma_es_criptograficamente_valida_y"),
             _ =>
-                "La firma es criptográficamente válida, pero la confianza no se pudo determinar.",
+                Localizer.Text("winui.firmar.la_firma_es_criptograficamente_valida_2"),
         };
     }
 
