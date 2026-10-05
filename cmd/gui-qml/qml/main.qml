@@ -724,6 +724,9 @@ Window {
     property var cscPendingSecrets: null
     property var cscSecretCertificate: null
     property int cscSecretCertIndex: -1
+    // Operación que espera el PIN/OTP remoto: "sign" (Firmar) o "protect"
+    // («Proteger y firmar»).
+    property string cscSecretPurpose: "sign"
     property int verificationPendingCount: 0
     property int hashPendingCount: 0
     // Se conserva el estado local hasta que terminen operaciones y diálogos.
@@ -2678,13 +2681,49 @@ Window {
         backend.cscStatus()
     }
 
-    function openRemoteSecretDialog(selectedCertIndex, cert) {
+    function openRemoteSecretDialog(selectedCertIndex, cert, purpose) {
         window.cscSecretCertIndex = selectedCertIndex
+        window.cscSecretPurpose = purpose === "protect" ? "protect" : "sign"
         window.cscSecretCertificate = cert
         cscPinField.text = ""
         cscOtpField.text = ""
         cscSecretStatus.text = ""
         cscRemoteSecretDialog.open()
+    }
+
+    // «Proteger y firmar» con un certificado remoto que pide PIN u OTP los
+    // pide con el mismo diálogo que Firmar y los entrega una sola vez.
+    function executeProtectSignRequest() {
+        const index = window.selectedCertIndex
+        const cert = index >= 0 && index < window.certificates.length
+                ? window.certificates[index] : null
+        // Unos secretos escritos para otro certificado no se reutilizan nunca.
+        if (window.cscPendingSecrets !== null && (!cert
+                || String(window.cscPendingSecrets.certificateId) !== String(cert.id || ""))) {
+            window.cscPendingSecrets = null
+        }
+        if (window.certificateNeedsRemoteSecrets(cert) && window.cscPendingSecrets === null) {
+            window.openRemoteSecretDialog(index, cert, "protect")
+            return
+        }
+        const payload = {
+            profile: window.protectProfile,
+            overwrite: "rename",
+            saveToDisk: true,
+            signToo: true,
+            options: { container: "signedandenvelopeddata" }
+        }
+        if (cert && String(cert.id || "") !== "")
+            payload.certificateId = String(cert.id)
+        window.protectResult = null
+        window.protectionInProgress = true
+        window.attachRemoteSecrets(payload)
+        backend.protectFileAdvanced(
+            window.protectInputPath,
+            window.protectOutputPath,
+            window.protectSelectedRecipientIds,
+            index,
+            payload)
     }
 
     function clearRemoteSecretFields() {
@@ -6950,8 +6989,12 @@ Window {
             }
             window.clearRemoteSecretFields()
             const index = window.cscSecretCertIndex
+            const purpose = window.cscSecretPurpose
             cscRemoteSecretDialog.close()
-            window.executeSignRequest(index)
+            if (purpose === "protect")
+                window.executeProtectSignRequest()
+            else
+                window.executeSignRequest(index)
         }
 
         ColumnLayout {
@@ -7506,6 +7549,7 @@ Window {
         }
         function onProtectionFinished(success, message, result) {
             window.protectionInProgress = false
+            window.cscPendingSecrets = null
             window.clearTransientProtectionSecrets()
             window.statusMessage = message
             window.protectResult = success ? result : { error: message }
@@ -12548,22 +12592,7 @@ Window {
                                         Button {
                                             text: tr("Proteger y firmar")
                                             enabled: !window.protectionInProgress && window.protectInputPath !== "" && window.protectSelectedRecipientIds.length > 0 && window.selectedCertIndex !== -1 && window.protectProfile === "compat" && window.protectContainer !== "authenvelopeddata" && window.protectContainer !== "cms-encrypted"
-                                            onClicked: {
-                                                window.protectResult = null
-                                                window.protectionInProgress = true
-                                                backend.protectFileAdvanced(
-                                                    window.protectInputPath,
-                                                    window.protectOutputPath,
-                                                    window.protectSelectedRecipientIds,
-                                                    window.selectedCertIndex,
-                                                    {
-                                                        profile: window.protectProfile,
-                                                        overwrite: "rename",
-                                                        saveToDisk: true,
-                                                        signToo: true,
-                                                        options: { container: "signedandenvelopeddata" }
-                                                    })
-                                            }
+                                            onClicked: window.executeProtectSignRequest()
                                         }
                                         BusyIndicator {
                                             running: window.protectionInProgress

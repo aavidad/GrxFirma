@@ -7,6 +7,8 @@
 #include "transientsecret.h"
 
 #include <QElapsedTimer>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QUuid>
@@ -18,6 +20,8 @@ class IpcBridgeTransientSecretTest : public QObject {
 private slots:
   void disconnectedProtectIsNotDeferred();
   void disconnectedUnprotectIsNotDeferred();
+  void disconnectedRemoteProtectSignIsNotDeferred();
+  void remoteSecretsTravelOnlyWithProtectSign();
   void droppedProtectResponseFailsExactlyOnce();
   void droppedUnprotectResponseFailsExactlyOnce();
   void droppedVerifyResponseFailsExactlyOnce();
@@ -186,6 +190,87 @@ void IpcBridgeTransientSecretTest::disconnectedUnprotectIsNotDeferred() {
   QVERIFY(!finished.takeFirst().at(0).toBool());
   QVERIFY(bridge.m_deferredRequest.isEmpty());
   QVERIFY(bridge.m_deferredAction.isEmpty());
+}
+
+static QVariantMap remoteProtectOptions(bool signToo) {
+  return {{QStringLiteral("profile"), QStringLiteral("compat")},
+          {QStringLiteral("signToo"), signToo},
+          {QStringLiteral("certificateId"), QString(64, QLatin1Char('a'))},
+          {QStringLiteral("remotePin"), QStringLiteral("1234")},
+          {QStringLiteral("remoteOtp"), QStringLiteral("567890")}};
+}
+
+void IpcBridgeTransientSecretTest::disconnectedRemoteProtectSignIsNotDeferred() {
+  IpcBridge bridge;
+  QSignalSpy finished(&bridge, &IpcBridge::protectionFinished);
+
+  bridge.protectFileAdvanced(QStringLiteral("/tmp/documento.pdf"), QString(),
+                             {QStringLiteral("destinatario")}, 0,
+                             remoteProtectOptions(true));
+
+  // El PIN/OTP es de una sola firma: nunca se repite tras reconectar.
+  QVERIFY(bridge.m_deferredRequest.isEmpty());
+  QVERIFY(bridge.m_deferredAction.isEmpty());
+  QCOMPARE(finished.count(), 1);
+  QVERIFY(!finished.takeFirst().at(0).toBool());
+}
+
+// Devuelve la siguiente petición de protección; el bridge envía otras al
+// conectar (estado del arranque TLS, por ejemplo) que aquí no interesan.
+static QJsonObject readProtectRequest(QLocalSocket *peer, QByteArray &buffer) {
+  QElapsedTimer timer;
+  timer.start();
+  while (timer.elapsed() < 3000) {
+    const qsizetype end = buffer.indexOf('\n');
+    if (end < 0) {
+      if (peer->bytesAvailable() == 0)
+        peer->waitForReadyRead(100);
+      buffer += peer->readAll();
+      continue;
+    }
+    const QJsonObject request =
+        QJsonDocument::fromJson(buffer.left(end)).object();
+    buffer.remove(0, end + 1);
+    if (request.value(QStringLiteral("action")).toString().startsWith(
+            QStringLiteral("protect")))
+      return request;
+  }
+  return {};
+}
+
+void IpcBridgeTransientSecretTest::remoteSecretsTravelOnlyWithProtectSign() {
+  IpcBridge bridge;
+  QLocalServer server;
+  QLocalSocket *peer = connectPeer(bridge, server);
+  QVERIFY(peer);
+  QByteArray buffer;
+
+  bridge.protectFileAdvanced(QStringLiteral("/tmp/documento.pdf"), QString(),
+                             {QStringLiteral("destinatario")}, 0,
+                             remoteProtectOptions(true));
+  const QJsonObject signed_ = readProtectRequest(peer, buffer);
+  QCOMPARE(signed_.value(QStringLiteral("action")).toString(),
+           QStringLiteral("protect_sign"));
+  const QJsonObject signParams =
+      signed_.value(QStringLiteral("params")).toObject();
+  QCOMPARE(signParams.value(QStringLiteral("remotePin")).toString(),
+           QString::fromLatin1(QByteArray("1234").toBase64()));
+  QCOMPARE(signParams.value(QStringLiteral("remoteOtp")).toString(),
+           QString::fromLatin1(QByteArray("567890").toBase64()));
+  QCOMPARE(signParams.value(QStringLiteral("certificateId")).toString(),
+           QString(64, QLatin1Char('a')));
+
+  bridge.protectFileAdvanced(QStringLiteral("/tmp/documento.pdf"), QString(),
+                             {QStringLiteral("destinatario")}, 0,
+                             remoteProtectOptions(false));
+  const QJsonObject plain = readProtectRequest(peer, buffer);
+  QCOMPARE(plain.value(QStringLiteral("action")).toString(),
+           QStringLiteral("protect"));
+  const QJsonObject plainParams =
+      plain.value(QStringLiteral("params")).toObject();
+  QVERIFY(!plainParams.contains(QStringLiteral("remotePin")));
+  QVERIFY(!plainParams.contains(QStringLiteral("remoteOtp")));
+  QVERIFY(!plainParams.contains(QStringLiteral("certificateId")));
 }
 
 void IpcBridgeTransientSecretTest::droppedProtectResponseFailsExactlyOnce() {

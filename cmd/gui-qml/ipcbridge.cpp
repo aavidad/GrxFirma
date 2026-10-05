@@ -1624,7 +1624,17 @@ void IpcBridge::protectFileAdvanced(const QString &inputPath,
   QVariantMap optionMap = options.value("options").toMap();
   if (!optionMap.isEmpty())
     params["options"] = optionMap;
+  // Solo «Proteger y firmar» usa el certificado remoto: el PIN/OTP va ligado
+  // al certificado elegido y nunca acompaña a una protección sin firma.
+  if (signToo) {
+    const QString certificateId =
+        options.value(QStringLiteral("certificateId")).toString().trimmed();
+    if (!certificateId.isEmpty())
+      params["certificateId"] = certificateId;
+    ipcMoveRemoteSigningSecrets(params, options);
+  }
   sendRequest(action, params);
+  ipcForgetRemoteSigningSecrets(params);
   QString secretB64 =
       optionMap.value(QStringLiteral("secret_b64")).toString();
   optionMap.insert(QStringLiteral("secret_b64"), QString());

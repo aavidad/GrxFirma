@@ -58,6 +58,23 @@ class CscRemoteContractTests(unittest.TestCase):
         self.assertIn("window.cscPendingSecrets = null", block(QML, "function onBatchSigningFinished("))
         self.assertNotRegex(dialog, r"console\.log")
 
+    def test_protect_and_sign_asks_for_remote_secrets_like_sign(self) -> None:
+        protect = block(QML, "function executeProtectSignRequest(")
+        self.assertIn("window.certificateNeedsRemoteSecrets(cert) && window.cscPendingSecrets === null", protect)
+        self.assertIn('window.openRemoteSecretDialog(index, cert, "protect")', protect)
+        self.assertIn("String(window.cscPendingSecrets.certificateId) !== String(cert.id", protect)
+        self.assertLess(protect.index("window.attachRemoteSecrets(payload)"), protect.index("backend.protectFileAdvanced("))
+        submit = block(QML, "function submitSecrets(")
+        self.assertIn('if (purpose === "protect")', submit)
+        self.assertIn("window.executeProtectSignRequest()", submit)
+        self.assertIn("onClicked: window.executeProtectSignRequest()", QML)
+        self.assertIn("window.cscPendingSecrets = null", block(QML, "function onProtectionFinished("))
+        bridge = block(BRIDGE, "void IpcBridge::protectFileAdvanced(")
+        guarded = block(bridge, "if (signToo) {")
+        self.assertIn("ipcMoveRemoteSigningSecrets(params, options);", guarded)
+        self.assertIn("ipcForgetRemoteSigningSecrets(params);", bridge)
+        self.assertLess(bridge.index("ipcForgetRemoteSigningSecrets(params);"), bridge.index("params.clear();"))
+
     def test_hosts_are_shown_before_connecting_and_panel_follows_engine(self) -> None:
         dialog = block(QML, "id: cscRemoteDialog")
         self.assertLess(dialog.index("csc.gui.host_servicio"), dialog.index("backend.cscConnect()"))
