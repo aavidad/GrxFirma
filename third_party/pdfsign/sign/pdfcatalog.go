@@ -187,6 +187,20 @@ func (context *SignContext) createCatalog() ([]byte, error) {
 
 // serializeCatalogEntry takes a pdf.Value and serializes it to the given writer.
 func (context *SignContext) serializeCatalogEntry(w io.Writer, rootObjId uint32, value pdf.Value) {
+	context.serializarEntrada(w, rootObjId, value, 0)
+}
+
+// maxNivelesSerializacion corta la recursión de serializeCatalogEntry.
+// AutoFirmaV2: una referencia del objeto a sí mismo (/Yo 3 0 R dentro del
+// objeto 3) no se distingue de un valor directo y se expandía sin fin hasta
+// agotar la pila. El lector ya limita el anidamiento real de los valores
+// directos por debajo de este número.
+const maxNivelesSerializacion = 1024
+
+func (context *SignContext) serializarEntrada(w io.Writer, rootObjId uint32, value pdf.Value, nivel int) {
+	if nivel > maxNivelesSerializacion {
+		panic(fmt.Errorf("el objeto %d se referencia a sí mismo o anida demasiados valores", rootObjId))
+	}
 	if ptr := value.GetPtr(); ptr.GetID() != 0 && ptr.GetID() != rootObjId {
 		// Indirect object
 		_, _ = fmt.Fprintf(w, "%d %d R", ptr.GetID(), ptr.GetGen())
@@ -223,7 +237,7 @@ func (context *SignContext) serializeCatalogEntry(w io.Writer, rootObjId uint32,
 				_, _ = fmt.Fprint(w, " ") // Space between items
 			}
 			_, _ = fmt.Fprintf(w, "/%s ", key)
-			context.serializeCatalogEntry(w, rootObjId, value.Key(key))
+			context.serializarEntrada(w, rootObjId, value.Key(key), nivel+1)
 		}
 		_, _ = fmt.Fprint(w, ">>")
 	case pdf.Array:
@@ -232,7 +246,7 @@ func (context *SignContext) serializeCatalogEntry(w io.Writer, rootObjId uint32,
 			if idx > 0 {
 				_, _ = fmt.Fprint(w, " ") // Space between items
 			}
-			context.serializeCatalogEntry(w, rootObjId, value.Index(idx))
+			context.serializarEntrada(w, rootObjId, value.Index(idx), nivel+1)
 		}
 		_, _ = fmt.Fprint(w, "]")
 	case pdf.Stream:
