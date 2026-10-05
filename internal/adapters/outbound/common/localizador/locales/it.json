@@ -2831,7 +2831,7 @@
   ,"winui.parity.support.issue.3": "Controlla e salva il riepilogo per il supporto."
   ,"winui.parity.rest.open_error": "Impossibile aprire la console. Controlla il browser predefinito."
   ,"winui.parity.rest.other": "Un altro server usa la porta 63118. Puoi arrestare solo il server avviato qui."
-  ,"winui.parity.verify.filename": "rapporto-verifica"
+  ,"winui.parity.verify.filename": "rapporto_verifica"
   ,"winui.parity.support.filename": "segnalazione"
   ,"facturae.accounting": "Ufficio contabile (DIR3)"
   ,"facturae.address": "Indirizzo"

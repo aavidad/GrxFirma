@@ -2831,7 +2831,7 @@
   ,"winui.parity.support.issue.3": "Reveja e guarde o resumo para suporte."
   ,"winui.parity.rest.open_error": "Não foi possível abrir a consola. Verifique o navegador predefinido."
   ,"winui.parity.rest.other": "Outro servidor ocupa a porta 63118. Só pode parar o servidor iniciado aqui."
-  ,"winui.parity.verify.filename": "relatorio-verificacao"
+  ,"winui.parity.verify.filename": "relatorio_verificacao"
   ,"winui.parity.support.filename": "ocorrencia"
   ,"facturae.accounting": "Serviço contabilístico (DIR3)"
   ,"facturae.address": "Morada"

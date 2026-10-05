@@ -2831,7 +2831,7 @@
   ,"winui.parity.support.issue.3": "Berrikusi eta gorde laburpena laguntzarako."
   ,"winui.parity.rest.open_error": "Ezin izan da kontsola ireki. Egiaztatu arakatzaile lehenetsia."
   ,"winui.parity.rest.other": "Beste zerbitzari batek 63118 ataka erabiltzen du. Hemen abiarazitakoa bakarrik geldi dezakezu."
-  ,"winui.parity.verify.filename": "egiaztapen-txostena"
+  ,"winui.parity.verify.filename": "egiaztapen_txostena"
   ,"winui.parity.support.filename": "gorabehera"
   ,"facturae.accounting": "Kontabilitate bulegoa (DIR3)"
   ,"facturae.address": "Helbidea"

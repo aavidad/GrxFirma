@@ -2831,7 +2831,7 @@
   ,"winui.parity.support.issue.3": "Reviseu i deseu el resum per a suport."
   ,"winui.parity.rest.open_error": "No s’ha pogut obrir la consola. Comproveu el navegador predeterminat."
   ,"winui.parity.rest.other": "Un altre servidor ocupa el port 63118. Només podeu aturar el servidor iniciat aquí."
-  ,"winui.parity.verify.filename": "informe-verificacio"
+  ,"winui.parity.verify.filename": "informe_verificacio"
   ,"winui.parity.support.filename": "incidència"
   ,"facturae.accounting": "Oficina comptable (DIR3)"
   ,"facturae.address": "Adreça"

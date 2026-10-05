@@ -977,11 +977,12 @@ Window {
         return suggestedSaveUrl(path, suggestVerificationReportName(path))
     }
 
-    // Informe imprimible del motor: «documento-informe-verificacion.html».
+    // Informe imprimible del motor: «documento_informe_verificacion.html»,
+    // con la misma forma que el resumen («documento_resumen_validacion.txt»).
     function suggestVerificationHtmlReportName(path) {
         const stem = fileStem(path)
         const suffix = tr("winui.parity.verify.filename")
-        return (stem !== "" ? stem + "-" : "") + suffix + ".html"
+        return (stem !== "" ? stem + "_" : "") + suffix + ".html"
     }
 
     function normalizeSealImagePath(path) {
@@ -5099,13 +5100,21 @@ Window {
         return tr("winui.verificar.no_determinada")
     }
 
+    // «certificate.subject» → «Titular del certificado», con el mismo
+    // catálogo que el informe del motor; un tipo desconocido se deja igual.
+    function verificationEvidenceTypeText(type) {
+        const key = "report.evidence." + String(type || "").trim()
+        const text = tr(key)
+        return text !== key ? text : String(type)
+    }
+
     function verificationEvidenceText(details) {
         if (!details || !details.evidence || details.evidence.length === 0)
             return tr("No disponible")
         let rows = []
         for (let i = 0; i < details.evidence.length; i++) {
             const item = details.evidence[i]
-            const type = item && item.type ? item.type : tr("No disponible")
+            const type = item && item.type ? verificationEvidenceTypeText(item.type) : tr("No disponible")
             const summary = item && item.summary ? item.summary : ""
             rows.push(tr("Tipo: ") + type + (summary !== "" ? " · " + summary : ""))
         }
@@ -10469,6 +10478,7 @@ Window {
                                             }
                                             Text {
                                                 text: verificationArrayText(window.currentOutputVerificationDetails ? window.currentOutputVerificationDetails.warnings : [])
+                                                textFormat: Text.PlainText
                                                 color: "white"
                                                 opacity: 0.9
                                                 font.pixelSize: 12
@@ -10551,6 +10561,7 @@ Window {
                                                 }
                                                 Text {
                                                     text: tr("Detalles: ") + verificationAspectDetailsText(modelData.value)
+                                                    textFormat: Text.PlainText
                                                     color: "white"
                                                     opacity: 0.8
                                                     font.pixelSize: 12
@@ -10586,6 +10597,7 @@ Window {
                                         }
                                         Text {
                                             text: verificationEvidenceText(window.currentOutputVerificationDetails)
+                                            textFormat: Text.PlainText
                                             color: "white"
                                             opacity: 0.9
                                             font.pixelSize: 12
@@ -10914,6 +10926,7 @@ Window {
                                                         }
                                                         Text {
                                                             text: verificationArrayText(modelData.verifyDetails ? modelData.verifyDetails.warnings : [])
+                                                            textFormat: Text.PlainText
                                                             color: "white"
                                                             opacity: 0.9
                                                             font.pixelSize: 12
@@ -10947,6 +10960,7 @@ Window {
                                                         }
                                                         Text {
                                                             text: verificationArrayText(modelData.verifyDetails ? modelData.verifyDetails.errors : [])
+                                                            textFormat: Text.PlainText
                                                             color: "white"
                                                             opacity: 0.9
                                                             font.pixelSize: 12
@@ -10982,6 +10996,7 @@ Window {
                                                     }
                                                     Text {
                                                         text: verificationSignerSummariesText(modelData.verifyDetails)
+                                                        textFormat: Text.PlainText
                                                         color: "white"
                                                         opacity: 0.9
                                                         font.pixelSize: 12
@@ -11016,6 +11031,7 @@ Window {
                                                     }
                                                     Text {
                                                         text: verificationEvidenceText(modelData.verifyDetails)
+                                                        textFormat: Text.PlainText
                                                         color: "white"
                                                         opacity: 0.9
                                                         font.pixelSize: 12
@@ -12392,6 +12408,7 @@ Window {
                                                         }
                                                         Text {
                                                             text: tr("Detalles: ") + verificationAspectDetailsText(modelData.value)
+                                                            textFormat: Text.PlainText
                                                             color: verifyTab.subPanelText
                                                             opacity: 0.82
                                                             font.pixelSize: 12
@@ -12446,6 +12463,7 @@ Window {
 
                                                 Text {
                                                     text: window.verificationSignerSummariesText(verifyTab.verifyDetails)
+                                                    textFormat: Text.PlainText
                                                     color: verifyTab.subPanelText
                                                     font.pixelSize: 12
                                                     wrapMode: Text.Wrap
@@ -12495,6 +12513,7 @@ Window {
 
                                                 Text {
                                                     text: window.verificationSignerTechnicalText(verifyTab.verifyDetails)
+                                                    textFormat: Text.PlainText
                                                     color: verifyTab.subPanelText
                                                     opacity: 0.9
                                                     wrapMode: Text.Wrap
@@ -12704,6 +12723,7 @@ Window {
 
                                                 Text {
                                                     text: verificationEvidenceText(verifyTab.verifyDetails)
+                                                    textFormat: Text.PlainText
                                                     color: verifyTab.subPanelText
                                                     opacity: 0.9
                                                     wrapMode: Text.Wrap

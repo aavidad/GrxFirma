@@ -2831,7 +2831,7 @@
   ,"winui.parity.support.issue.3": "Review and save the summary for support."
   ,"winui.parity.rest.open_error": "Could not open the console. Check the default browser."
   ,"winui.parity.rest.other": "Port 63118 is used by another server. You can stop only the server started here."
-  ,"winui.parity.verify.filename": "verification-report"
+  ,"winui.parity.verify.filename": "verification_report"
   ,"winui.parity.support.filename": "incident"
   ,"facturae.accounting": "Accounting office (DIR3)"
   ,"facturae.address": "Address"
