@@ -21,6 +21,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.core.view.isGone
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -304,7 +305,7 @@ class SealEditorDialog(
     /** Limita el lienzo al hueco que dejan en el diálogo los textos y la primera fila de botones. */
     private fun fitCanvasToDialog(scroll: View, column: View, around: List<View>) {
         if (scroll.height <= 0) return
-        val reserved = column.paddingTop + around.sumOf { if (it.visibility == View.GONE) 0 else it.height } + dp(16)
+        val reserved = column.paddingTop + around.sumOf { if (it.isGone) 0 else it.height } + dp(16)
         val available = scroll.height - reserved
         val limit = (activity.resources.displayMetrics.heightPixels * 0.55f).toInt()
         if (available >= dp(120)) canvas.maxPageHeight = available.coerceAtMost(limit)
