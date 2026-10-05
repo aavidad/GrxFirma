@@ -62,6 +62,20 @@ Window {
     property int sidebarCollapsedWidth: 74
     property int sidebarPreferredWidth: sidebarCollapsed ? sidebarCollapsedWidth : sidebarExpandedWidth
     property bool rightSidebarCollapsed: false
+    // Por debajo de 960 px la barra derecha se pliega sola para dejar sitio al contenido;
+    // al volver a ensanchar se despliega si la plegó la ventana y no la persona.
+    readonly property bool narrowWindow: width < 960
+    property bool rightSidebarAutoCollapsed: false
+    function applyNarrowRightSidebar() {
+        if (narrowWindow && !rightSidebarCollapsed) {
+            rightSidebarAutoCollapsed = true
+            rightSidebarCollapsed = true
+        } else if (!narrowWindow && rightSidebarAutoCollapsed) {
+            rightSidebarAutoCollapsed = false
+            rightSidebarCollapsed = false
+        }
+    }
+    onNarrowWindowChanged: applyNarrowRightSidebar()
     property bool signCertificatePanelCollapsed: true
     property bool selectedCertificateUsable: certificateCanSign(selectedCertData)
     property int rightSidebarExpandedWidth: 320
@@ -3879,6 +3893,7 @@ Window {
         backend.expertMode = appSettings.expertMode
         window.sidebarCollapsed = appSettings.leftSidebarCollapsed
         window.rightSidebarCollapsed = appSettings.rightSidebarCollapsed
+        window.applyNarrowRightSidebar()
         window.signCertificatePanelCollapsed = appSettings.signCertificatePanelCollapsed
         if (appSettings.language !== "") {
             window.appLanguage = appSettings.language
@@ -4041,14 +4056,17 @@ Window {
     }
 
     onRightSidebarCollapsedChanged: {
-        if (settingsLoaded) {
+        if (settingsLoaded && !rightSidebarAutoCollapsed) {
             appSettings.rightSidebarCollapsed = rightSidebarCollapsed
         }
     }
 
     onSignCertificatePanelCollapsedChanged: {
         if (settingsLoaded) appSettings.signCertificatePanelCollapsed = signCertificatePanelCollapsed
-        if (!signCertificatePanelCollapsed) rightSidebarCollapsed = false
+        if (!signCertificatePanelCollapsed) {
+            rightSidebarAutoCollapsed = false
+            rightSidebarCollapsed = false
+        }
     }
 
     onSignReasonChanged: { scheduleSettingsSave(); scheduleSealPreview() }
@@ -8296,8 +8314,8 @@ Window {
             Item {
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 40
-                    spacing: 40
+                    anchors.margins: window.narrowWindow ? 16 : 40
+                    spacing: window.narrowWindow ? 16 : 40
 
                     Rectangle {
                         Layout.fillWidth: true
@@ -8314,47 +8332,60 @@ Window {
                         rightPadding: 26
                         topPadding: 16
                         bottomPadding: 26
-                        contentWidth: Math.max(availableWidth, signMainOuterContent.implicitWidth)
+                        // Solo desplazamiento vertical: el contenido se ajusta al ancho.
+                        contentWidth: availableWidth
                         clip: true
                         ScrollBar.vertical.policy: ScrollBar.AsNeeded
-                        ScrollBar.horizontal.policy: ScrollBar.AsNeeded
+                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                         ScrollBar.vertical.width: 18
-                        ScrollBar.horizontal.height: 18
 
                         ColumnLayout {
                             id: signMainOuterContent
-                            width: Math.max(signMainOuterScroll.availableWidth, implicitWidth)
+                            width: signMainOuterScroll.availableWidth
                             spacing: 20
 
-                            RowLayout {
+                            // Título y acciones: en ventanas estrechas las acciones bajan de línea.
+                            GridLayout {
                                 Layout.fillWidth: true
-                                spacing: 12
+                                columns: signMainOuterScroll.availableWidth < 560 ? 1 : 2
+                                columnSpacing: 12
+                                rowSpacing: 8
 
                                 Text {
                                     text: tr("Firma Digital")
                                     font.pixelSize: 32
                                     font.bold: true
                                     color: currentTheme.textColor
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 1
+                                    wrapMode: Text.WordWrap
                                 }
 
-                                Item { Layout.fillWidth: true }
+                                AdaptiveRow {
+                                    Layout.preferredWidth: Math.min(parent.width, naturalWidth)
+                                    Layout.fillWidth: false
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    spacing: 12
 
-                                Text {
-                                    visible: window.backendSettingsDirty
-                                    text: tr("Cambios sin guardar")
-                                    color: currentTheme.secondaryTextColor
-                                    font.pixelSize: 12
-                                }
+                                    Text {
+                                        height: 36
+                                        verticalAlignment: Text.AlignVCenter
+                                        visible: window.backendSettingsDirty
+                                        text: tr("Cambios sin guardar")
+                                        color: currentTheme.secondaryTextColor
+                                        font.pixelSize: 12
+                                    }
 
-                                ThemedButton {
-                                    text: tr("Guardar preferencias")
-                                    enabled: window.backendSettingsDirty
-                                    onClicked: saveBackendSettings()
-                                }
-                                ThemedButton {
-                                    text: tr("Descartar cambios")
-                                    visible: window.backendSettingsDirty
-                                    onClicked: discardBackendSettingsChanges(false)
+                                    ThemedButton {
+                                        text: tr("Guardar preferencias")
+                                        enabled: window.backendSettingsDirty
+                                        onClicked: saveBackendSettings()
+                                    }
+                                    ThemedButton {
+                                        text: tr("Descartar cambios")
+                                        visible: window.backendSettingsDirty
+                                        onClicked: discardBackendSettingsChanges(false)
+                                    }
                                 }
                             }
 
@@ -8415,6 +8446,7 @@ Window {
                                             }
                                         }
                                         Text {
+                                            Layout.preferredWidth: 1
                                             id: signResultHeading
                                             Layout.fillWidth: true
                                             text: window.signResultKind === "success"
@@ -8471,7 +8503,7 @@ Window {
                                         color: "#ffe0e0"
                                         wrapMode: Text.WordWrap
                                     }
-                                    RowLayout {
+                                    AdaptiveRow {
                                         Layout.fillWidth: true
                                         spacing: 10
                                         ThemedButton {
@@ -8499,7 +8531,6 @@ Window {
                                             onClicked: window.requestSignConfirmation(window.selectedCertIndex)
                                             Accessible.name: text
                                         }
-                                        Item { Layout.fillWidth: true }
                                     }
                                 }
                             }
@@ -8588,6 +8619,7 @@ Window {
                                                 contentItem: ColumnLayout {
                                                     spacing: 2
                                                     Text {
+                                                        wrapMode: Text.WordWrap
                                                         Layout.fillWidth: true
                                                         text: window.certificateDisplayName(modelData)
                                                         color: certificateOption.highlighted
@@ -8686,7 +8718,7 @@ Window {
                                     wrapMode: Text.WordWrap
                                     Layout.maximumWidth: parent.width - 40
                                 }
-                                RowLayout {
+                                AdaptiveRow {
                                     Layout.alignment: Qt.AlignCenter
                                     spacing: 10
                                     ThemedButton {
@@ -8747,12 +8779,17 @@ Window {
                                     color: currentTheme.secondaryTextColor
                                     font.pixelSize: 10; font.bold: true 
                                 }
-                                RowLayout {
+                                // En estrecho la ruta ocupa la fila entera y los botones bajan debajo.
+                                GridLayout {
                                     visible: !window.isBatchMode()
                                     Layout.fillWidth: true
+                                    columns: signMainOuterScroll.availableWidth < 560 ? 3 : 4
+                                    columnSpacing: 5
+                                    rowSpacing: 5
                                     ThemedTextField {
                                         text: window.currentOutputPath
                                         Layout.fillWidth: true
+                                        Layout.columnSpan: signMainOuterScroll.availableWidth < 560 ? 3 : 1
                                         Layout.preferredHeight: 44
                                         placeholderText: tr("Destino automático...")
                                         onTextChanged: window.currentOutputPath = text
@@ -8861,20 +8898,21 @@ Window {
                                 anchors.fill: parent
                                 anchors.margins: 12
                                 clip: true
-                                contentWidth: optionsCol.implicitWidth
+                                contentWidth: width
                                 contentHeight: optionsCol.implicitHeight
                                 interactive: false
                                 boundsBehavior: Flickable.StopAtBounds
-                                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
                                 ColumnLayout {
                                     id: optionsCol
-                                    width: Math.max(scrollOpts.width, implicitWidth)
+                                    width: scrollOpts.width
                                     spacing: 10
 
-                                RowLayout {
+                                GridLayout {
+                                    columns: signMainOuterScroll.availableWidth < 560 ? 1 : Math.min(3, Math.max(1, Math.floor(signMainOuterScroll.availableWidth / 160)))
+                                    columnSpacing: 10
+                                    rowSpacing: 10
                                     Layout.fillWidth: true
-                                    spacing: 10
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("Operación"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
@@ -8948,7 +8986,7 @@ Window {
                                         anchors.margins: 10
                                         spacing: 8
 
-                                        RowLayout {
+                                        AdaptiveRow {
                                             Layout.fillWidth: true
                                             ThemedCheckBox {
                                                 id: multiCosignCheckBox
@@ -8961,7 +8999,6 @@ Window {
                                                 ToolTip.text: tr("Firma o cofirma el mismo documento con varios certificados en secuencia, generando una única salida final.")
                                             }
                                             Binding { target: multiCosignCheckBox; property: "checked"; value: window.multiCosignEnabled }
-                                            Item { Layout.fillWidth: true }
                                             ThemedButton {
                                                 text: tr("Seleccionar certificados…")
                                                 enabled: window.multiCosignEnabled && selectedCertIndex !== -1
@@ -9085,6 +9122,7 @@ Window {
                                             Text { text: window.signSealLogoOpacityPercent + " %"; color: currentTheme.textColor; font.pixelSize: 12 }
                                         }
                                         ThemedCheckBox {
+                                            Layout.fillWidth: true
                                             id: signQREnabledCheckBox
                                             text: tr("sign.seal.include_verification_qr")
                                             Accessible.name: text
@@ -9111,7 +9149,7 @@ Window {
                                         }
                                         Binding { target: signQRContentField; property: "text"; value: window.signQRContent; when: !signQRContentField.activeFocus }
                                         Text { Layout.fillWidth: true; visible: window.signFieldError("qr") !== ""; text: "⚠ " + tr(window.signFieldError("qr")); color: currentTheme.errorColor; wrapMode: Text.WordWrap; Accessible.role: Accessible.StaticText }
-                                        ThemedCheckBox { id: csvEnabledCheck; text: tr("paridad.lote3.csv.enable"); checked: window.signCSVEnabled; Accessible.name: text; onToggled: window.signCSVEnabled = checked }
+                                        ThemedCheckBox { Layout.fillWidth: true; id: csvEnabledCheck; text: tr("paridad.lote3.csv.enable"); checked: window.signCSVEnabled; Accessible.name: text; onToggled: window.signCSVEnabled = checked }
                                         Binding { target: csvEnabledCheck; property: "checked"; value: window.signCSVEnabled }
                                         Label { text: tr("paridad.lote3.csv.notice"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                                         ThemedTextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.code"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvCode") ? tr(window.signFieldError("csvCode")) : ""; maximumLength: 128; text: window.signCSVCode; hasError: window.signFieldError("csvCode") !== ""; errorColor: currentTheme.errorColor
@@ -9126,7 +9164,7 @@ Window {
                                             onTextChanged: { window.signCSVText = text; if (window.signFieldError("csvText")) window.validateSignField("csvText") }
                                             onEditingFinished: window.validateSignField("csvText") }
                                         Text { Layout.fillWidth: true; visible: window.signFieldError("csvText") !== ""; text: "⚠ " + tr(window.signFieldError("csvText")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
-                                        ThemedCheckBox { id: csvQrCheck; visible: window.signCSVEnabled; text: tr("paridad.lote3.csv.qr"); checked: window.signCSVQR; Accessible.name: text; onToggled: window.signCSVQR = checked }
+                                        ThemedCheckBox { Layout.fillWidth: true; id: csvQrCheck; visible: window.signCSVEnabled; text: tr("paridad.lote3.csv.qr"); checked: window.signCSVQR; Accessible.name: text; onToggled: window.signCSVQR = checked }
                                         Text {
                                             Layout.fillWidth: true
                                             visible: window.signQREnabled
@@ -9141,7 +9179,10 @@ Window {
                                     }
                                 }
 
-                                RowLayout {
+                                GridLayout {
+                                    columns: signMainOuterScroll.availableWidth < 560 ? 1 : Math.min(7, Math.max(1, Math.floor(signMainOuterScroll.availableWidth / 160)))
+                                    columnSpacing: 10
+                                    rowSpacing: 10
                                     Layout.fillWidth: true
                                     visible: signVisibleSeal
                                     enabled: signVisibleSeal
@@ -9172,7 +9213,7 @@ Window {
                                             }
                                         }
                                         Text { Layout.fillWidth: true; visible: window.signFieldError("pages") !== ""; text: "⚠ " + tr(window.signFieldError("pages")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
-                                        RowLayout {
+                                        AdaptiveRow {
                                             ThemedButton { text: tr("Primera"); onClicked: { signSealAllPages = false; signSealPages = "1"; applyPageSelectionValidity(); requestPdfPreview() } }
                                             ThemedButton { text: tr("Última"); enabled: previewTotalPages > 0; onClicked: { signSealAllPages = false; signSealPages = String(previewTotalPages); applyPageSelectionValidity(); requestPdfPreview() } }
                                             ThemedButton { text: tr("Todas"); onClicked: { signSealAllPages = true; applyPageSelectionValidity(); requestPdfPreview() } }
@@ -9186,6 +9227,7 @@ Window {
                                             wrapMode: Text.WordWrap
                                         }
                                         ThemedCheckBox {
+                                            Layout.fillWidth: true
                                             id: signSealAllPagesCheckBox
                                             text: tr("Todas las páginas")
                                             checked: signSealAllPages
@@ -9200,6 +9242,7 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         ThemedCheckBox {
+                                            Layout.fillWidth: true
                                             id: sealPerPageCheckBox
                                             text: tr("sign.seal.one_by_one")
                                             Accessible.name: text
@@ -9211,7 +9254,7 @@ Window {
                                             }
                                         }
                                         Binding { target: sealPerPageCheckBox; property: "checked"; value: window.signSealPerPage }
-                                        RowLayout {
+                                        AdaptiveRow {
                                             visible: window.signSealPerPage
                                             ThemedButton {
                                                 text: tr("sign.seal.apply_all_pages")
@@ -9357,7 +9400,7 @@ Window {
                                             // La imagen solo se dibuja en el sello: sin firma visible no tiene sentido.
                                             visible: window.signVisibleSeal
                                             Text { text: tr("Imagen de firma (opcional)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                            RowLayout {
+                                            AdaptiveRow {
                                                 Layout.fillWidth: true
                                                 ThemedButton {
                                                     text: tr("Usar logo GrxFirma")
@@ -9401,7 +9444,10 @@ Window {
                                             }
                                         }
 
-                                        RowLayout {
+                                        GridLayout {
+                                            columns: signMainOuterScroll.availableWidth < 560 ? 1 : 2
+                                            columnSpacing: 10
+                                            rowSpacing: 10
                                             Layout.fillWidth: true
                                             ColumnLayout {
                                                 Layout.fillWidth: true
@@ -9444,7 +9490,7 @@ Window {
                                     }
                                 }
 
-                                RowLayout {
+                                AdaptiveRow {
                                     visible: signVisibleSeal && supportsVisibleSeal()
                                     Layout.alignment: Qt.AlignRight
                                     spacing: 10
@@ -9479,7 +9525,7 @@ Window {
                                             color: currentTheme.textColor
                                             font.pixelSize: 12
                                             elide: Text.ElideRight
-                                            Layout.preferredWidth: 320
+                                            Layout.fillWidth: true; Layout.preferredWidth: 1; Layout.maximumWidth: 320
                                         }
                                         ThemedButton { text: ">"; Accessible.name: tr("Documento siguiente"); enabled: previewDocumentIndex < currentBatchPaths.length - 1; onClicked: goToPreviewDocument(previewDocumentIndex + 1) }
                                         ThemedButton { text: ">|"; Accessible.name: tr("Último documento"); enabled: previewDocumentIndex < currentBatchPaths.length - 1; onClicked: goToPreviewDocument(currentBatchPaths.length - 1) }
@@ -9514,6 +9560,7 @@ Window {
                                     visible: currentBatchPaths.length > 1 && signVisibleSeal && supportsVisibleSeal()
                                     Layout.fillWidth: true
                                     ThemedCheckBox {
+                                        Layout.fillWidth: true
                                         text: tr("Personalizar el sello para este PDF")
                                         checked: window.batchSealOverrideEnabled
                                         Accessible.name: text
@@ -9930,7 +9977,7 @@ Window {
                             }
                         }
 
-                        RowLayout {
+                        AdaptiveRow {
                             spacing: 10
                                 ThemedButton {
                                     text: window.signingInProgress ? tr("⌛ Firmando...") : (window.autoVerificationInProgress ? tr("⌛ Verificando...") : tr("Firmar ahora"))
@@ -10139,6 +10186,7 @@ Window {
                                                     spacing: 8
 
                                                     Text {
+                                                        Layout.preferredWidth: 1
                                                         text: modelData.label + ": " + verificationStatusText(modelData.value && modelData.value.status ? modelData.value.status : "")
                                                         color: verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : "")
                                                         font.bold: true
@@ -10262,6 +10310,7 @@ Window {
                                             RowLayout {
                                                 Layout.fillWidth: true
                                                 Text {
+                                                    Layout.preferredWidth: 1
                                                     Layout.fillWidth: true
                                                     text: window.basename(modelData.inputPath || "")
                                                     color: currentTheme.textColor
@@ -10305,7 +10354,7 @@ Window {
                                                 wrapMode: Text.WordWrap
                                             }
 
-                                            RowLayout {
+                                            AdaptiveRow {
                                                 visible: !!modelData.error || !!modelData.outputPath || (modelData.ok && modelData.verifyDone && !!modelData.verifyDetails)
                                                 Layout.fillWidth: true
                                                 spacing: 8
@@ -10671,7 +10720,7 @@ Window {
                             anchors.margins: window.rightSidebarCollapsed ? 10 : 20
                             spacing: window.rightSidebarCollapsed ? 10 : 15
                             
-                            RowLayout {
+                            AdaptiveRow {
                                 Layout.fillWidth: true
                                 ThemedButton {
                                     visible: !window.rightSidebarCollapsed
@@ -10702,7 +10751,6 @@ Window {
                                     ToolTip.delay: 350
                                     ToolTip.text: tr("Buscar certificados en Firefox/NSS")
                                 }
-                                Item { Layout.fillWidth: true; visible: !window.rightSidebarCollapsed }
                                 ToolButton {
                                     text: tr("Ocultar")
                                     onClicked: {
@@ -10919,6 +10967,8 @@ Window {
                                         RowLayout {
                                             Layout.fillWidth: true
                                             Text {
+                                                wrapMode: Text.WordWrap
+                                                Layout.preferredWidth: 1
                                                 text: modelData.subjectName || modelData.subject || tr("Certificado")
                                                 color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -10961,6 +11011,7 @@ Window {
                                             Accessible.name: text
                                         }
                                         Text {
+                                            wrapMode: Text.WordWrap
                                             Layout.fillWidth: true
                                             text: tr("Vence: %1").arg(window.certificateExpiry(modelData))
                                             color: cardContents.parent.emphasized
@@ -10968,6 +11019,7 @@ Window {
                                             font.pixelSize: 11
                                         }
                                         Text {
+                                            wrapMode: Text.WordWrap
                                             Layout.fillWidth: true
                                             text: tr("Emisor: %1").arg(modelData.issuerName || modelData.issuer || tr("Desconocido"))
                                             color: cardContents.parent.emphasized
@@ -11291,7 +11343,7 @@ Window {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: verifyTab.width < 760 ? 16 : 40
+                    anchors.margins: window.narrowWindow ? 16 : 40
                     spacing: 40
 
                     Rectangle {
@@ -11481,6 +11533,7 @@ Window {
                                     spacing: 8
 
                                     Text {
+                                        Layout.preferredWidth: 1
                                         Layout.fillWidth: true
                                         text: tr("Huellas e integridad")
                                         font.pixelSize: 22
@@ -11578,7 +11631,7 @@ Window {
                                 GridLayout {
                                     visible: verifyHashPanel.expanded
                                     Layout.fillWidth: true
-                                    columns: verifyHashPanel.width < 560 ? 1 : 2
+                                    columns: verifyMainOuterScroll.availableWidth < 560 ? 1 : 2
                                     columnSpacing: 12
                                     rowSpacing: 12
 
@@ -11892,6 +11945,7 @@ Window {
                                                         spacing: 8
 
                                                         Text {
+                                                            Layout.preferredWidth: 1
                                                             Layout.fillWidth: true
                                                             text: tr("Resumen de verificación")
                                                             color: verifyTab.subPanelTitle
@@ -11966,6 +12020,7 @@ Window {
                                                             spacing: 8
 
                                                             Text {
+                                                                Layout.preferredWidth: 1
                                                                 text: modelData.label + ": " + verificationStatusText(modelData.value && modelData.value.status ? modelData.value.status : "")
                                                                 color: Contrast.accentOn(verifyTab.subPanelColor, verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : ""))
                                                                 font.bold: true
@@ -12032,6 +12087,7 @@ Window {
                                                     spacing: 8
 
                                                     Text {
+                                                        Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
                                                         text: tr("Firmantes") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.signers) ? verifyTab.verifyDetails.signers.length : 0) + ")"
                                                         color: verifyTab.subPanelTitle
@@ -12083,6 +12139,7 @@ Window {
                                                     spacing: 8
 
                                                     Text {
+                                                        Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
                                                         text: tr("Firmantes resumidos") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.signerSummaries) ? verifyTab.verifyDetails.signerSummaries.length : 0) + ")"
                                                         color: verifyTab.subPanelTitle
@@ -12132,6 +12189,7 @@ Window {
                                                     spacing: 8
 
                                                     Text {
+                                                        Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
                                                         text: tr("verificacion.ver_detalles_tecnicos") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details.length : 0) + ")"
                                                         color: verifyTab.subPanelTitle
@@ -12184,6 +12242,7 @@ Window {
                                                     spacing: 8
 
                                                     Text {
+                                                        Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
                                                         text: tr("Advertencias") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.warnings) ? verifyTab.verifyDetails.warnings.length : 0) + ")"
                                                         color: verifyTab.subPanelWarning
@@ -12236,6 +12295,7 @@ Window {
                                                     spacing: 8
 
                                                     Text {
+                                                        Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
                                                         text: tr("Errores") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.errors) ? verifyTab.verifyDetails.errors.length : 0) + ")"
                                                         color: verifyTab.subPanelError
@@ -12288,6 +12348,7 @@ Window {
                                                     spacing: 8
 
                                                     Text {
+                                                        Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
                                                         text: tr("Evidencias") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.evidence) ? verifyTab.verifyDetails.evidence.length : 0) + ")"
                                                         color: verifyTab.subPanelTitle
@@ -12376,8 +12437,8 @@ Window {
                 id: protectTab
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 40
-                    spacing: 40
+                    anchors.margins: window.narrowWindow ? 16 : 40
+                    spacing: window.narrowWindow ? 16 : 40
 
                     Rectangle {
                         Layout.fillWidth: true
@@ -12394,32 +12455,25 @@ Window {
                             rightPadding: 26
                             topPadding: 16
                             bottomPadding: 26
-                            contentWidth: Math.max(
-                                              availableWidth,
-                                              protectMainOuterContent.implicitWidth,
-                                              protectionCard.implicitWidth,
-                                              unprotectCard.implicitWidth)
+                            // Solo desplazamiento vertical: las tarjetas se ajustan al ancho.
+                            contentWidth: availableWidth
                             clip: true
                             ScrollBar.vertical.policy: ScrollBar.AsNeeded
-                            ScrollBar.horizontal.policy: ScrollBar.AsNeeded
+                            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                             ScrollBar.vertical.width: 18
-                            ScrollBar.horizontal.height: 18
 
                             ColumnLayout {
                                 id: protectMainOuterContent
-                                implicitWidth: Math.max(protectionCard.implicitWidth, unprotectCard.implicitWidth)
-                                width: Math.max(protectMainOuterScroll.availableWidth, implicitWidth)
+                                width: protectMainOuterScroll.availableWidth
                                 spacing: 24
 
                                 Rectangle {
                                     id: protectionCard
                                     Layout.fillWidth: true
-                                    Layout.minimumWidth: protectionCardColumn.implicitWidth + 32
                                     radius: 16
                                     color: currentTheme.cardColor
                                     border.color: Qt.rgba(1, 1, 1, currentTheme.borderOpacity)
                                     border.width: 1
-                                    implicitWidth: protectionCardColumn.implicitWidth + 32
                                     implicitHeight: protectionCardColumn.implicitHeight + 32
 
                                     ColumnLayout {
@@ -12442,8 +12496,7 @@ Window {
                                         Layout.fillWidth: true
                                     }
 
-                                    RowLayout {
-                                        Layout.fillWidth: true
+                                    AdaptiveRow {
                                         spacing: 12
 
                                         ThemedButton {
@@ -12454,13 +12507,12 @@ Window {
                                             text: tr("Cargar destinatarios")
                                             onClicked: backend.loadProtectionRecipients()
                                         }
-                                        Item { Layout.fillWidth: true }
-                                        Text {
-                                            text: tr("Certificado para proteger firmando: %1").arg(window.selectedCertData ? window.certificateDisplayName(window.selectedCertData) : tr("No seleccionado"))
-                                            color: currentTheme.secondaryTextColor
-                                            wrapMode: Text.WordWrap
-                                            Layout.maximumWidth: 420
-                                        }
+                                    }
+                                    Text {
+                                        text: tr("Certificado para proteger firmando: %1").arg(window.selectedCertData ? window.certificateDisplayName(window.selectedCertData) : tr("No seleccionado"))
+                                        color: currentTheme.secondaryTextColor
+                                        wrapMode: Text.WordWrap
+                                        Layout.fillWidth: true
                                     }
 
                                     Text {
@@ -12470,9 +12522,11 @@ Window {
                                         Layout.fillWidth: true
                                     }
 
-                                    RowLayout {
+                                    GridLayout {
+                                        columns: protectMainOuterScroll.availableWidth < 560 ? 1 : Math.min(3, Math.max(1, Math.floor(protectMainOuterScroll.availableWidth / 160)))
+                                        columnSpacing: 12
+                                        rowSpacing: 10
                                         Layout.fillWidth: true
-                                        spacing: 12
 
                                         ColumnLayout {
                                             Layout.fillWidth: true
@@ -12552,6 +12606,7 @@ Window {
                                             spacing: 8
 
                                             Text {
+                                                wrapMode: Text.WordWrap
                                                 Layout.fillWidth: true
                                                 text: tr("Clave transitoria de EncryptedData")
                                                 color: currentTheme.textColor
@@ -12666,6 +12721,8 @@ Window {
                                                     RowLayout {
                                                         Layout.fillWidth: true
                                                         Text {
+                                                            wrapMode: Text.WordWrap
+                                                            Layout.preferredWidth: 1
                                                             Layout.fillWidth: true
                                                             text: tr("Origen: %1").arg(String(modelData.origin || "propio") === "importado" ? tr("importado") : (String(modelData.origin || "propio") === "otras_personas" ? tr("otras personas") : tr("certificado propio")))
                                                             color: currentTheme.secondaryTextColor
@@ -12783,12 +12840,10 @@ Window {
                                 Rectangle {
                                     id: unprotectCard
                                     Layout.fillWidth: true
-                                    Layout.minimumWidth: unprotectCardColumn.implicitWidth + 32
                                     radius: 16
                                     color: currentTheme.cardColor
                                     border.color: Qt.rgba(1, 1, 1, currentTheme.borderOpacity)
                                     border.width: 1
-                                    implicitWidth: unprotectCardColumn.implicitWidth + 32
                                     implicitHeight: unprotectCardColumn.implicitHeight + 32
 
                                     ColumnLayout {
@@ -12854,6 +12909,7 @@ Window {
                                         spacing: 8
 
                                         Text {
+                                            wrapMode: Text.WordWrap
                                             Layout.fillWidth: true
                                             text: tr("Clave transitoria de EncryptedData")
                                             color: currentTheme.textColor
@@ -12994,7 +13050,7 @@ Window {
                             anchors.margins: window.rightSidebarCollapsed ? 10 : 20
                             spacing: window.rightSidebarCollapsed ? 10 : 15
 
-                            RowLayout {
+                            AdaptiveRow {
                                 Layout.fillWidth: true
                                 ThemedButton {
                                     visible: !window.rightSidebarCollapsed
@@ -13025,10 +13081,12 @@ Window {
                                     ToolTip.delay: 350
                                     ToolTip.text: tr("Buscar certificados en Firefox/NSS")
                                 }
-                                Item { Layout.fillWidth: true; visible: !window.rightSidebarCollapsed }
                                 ToolButton {
                                     text: window.rightSidebarCollapsed ? "«" : "»"
-                                    onClicked: window.rightSidebarCollapsed = !window.rightSidebarCollapsed
+                                    onClicked: {
+                                        window.rightSidebarAutoCollapsed = false
+                                        window.rightSidebarCollapsed = !window.rightSidebarCollapsed
+                                    }
                                     Accessible.name: window.rightSidebarCollapsed ? tr("Expandir panel de certificados") : tr("Colapsar panel de certificados")
                                     ToolTip.visible: hovered
                                     ToolTip.delay: 350
@@ -13224,6 +13282,8 @@ Window {
                                         RowLayout {
                                             Layout.fillWidth: true
                                             Text {
+                                                wrapMode: Text.WordWrap
+                                                Layout.preferredWidth: 1
                                                 text: modelData.subjectName || modelData.subject || tr("Certificado")
                                                 color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -13266,6 +13326,7 @@ Window {
                                             Accessible.name: text
                                         }
                                         Text {
+                                            wrapMode: Text.WordWrap
                                             Layout.fillWidth: true
                                             text: tr("Vence: %1").arg(window.certificateExpiry(modelData))
                                             color: cardContents.parent.emphasized
@@ -13273,6 +13334,7 @@ Window {
                                             font.pixelSize: 11
                                         }
                                         Text {
+                                            wrapMode: Text.WordWrap
                                             Layout.fillWidth: true
                                             text: tr("Emisor: %1").arg(modelData.issuerName || modelData.issuer || tr("Desconocido"))
                                             color: cardContents.parent.emphasized
