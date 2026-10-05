@@ -171,7 +171,7 @@
   "*.dipgra.es": "*.dipgra.es",
   "*.gob.es": "*.gob.es",
   "+ CERTIFICADOS": "+ CERTIFICATES",
-  "+%1 más": "+%1 más",
+  "+%1 más": "+%1 more",
   ",": ",",
   "--- INICIO DE LOGS ---\n": "--- INICIO DE LOGS ---\n",
   "--- INICIO DE LOGS ---\\n": "--- INICIO DE LOGS ---\n",
@@ -187,7 +187,7 @@
   "/ruta/de/salida/opcional": "/optional/output/path",
   "/ruta/de/salida/opcional.afp o .enveloped": "/optional/output/path.afp or .enveloped",
   "0°": "0°",
-  "1 o 1,3-5": "1 or 1.3-5",
+  "1 o 1,3-5": "1 or 1,3-5",
   "18001": "18001",
   "180°": "180°",
   "270°": "270°",
@@ -210,7 +210,7 @@
   "Abriendo el selector de fichero solicitado por la web": "Opening the file picker requested by the website",
   "Abrir": "Open",
   "Abrir Ayuda": "Open Help",
-  "Abrir OpenAPI": "OpenAPI",
+  "Abrir OpenAPI": "Open OpenAPI",
   "Abrir VALIDE": "Open VALIDE",
   "Abrir ayuda": "Open help",
   "Abrir desprotegido": "Open unprotected file",
@@ -732,7 +732,7 @@
   "Entrega efectiva": "Effective delivery",
   "Entrega efectiva en cofirma múltiple": "Effective delivery in multiple co-signing",
   "Enviar incidencia": "Send incident",
-  "Error": "Mistake",
+  "Error": "Error",
   "Error 400: Los parámetros enviados no son válidos para el servidor.": "Error 400: the parameters sent are not valid for the server.",
   "Error IPC: ": "IPC error: ",
   "Error REST: ": "REST error: ",
@@ -953,7 +953,7 @@
   "Huellas de Certificados Cliente (SHA-256 CSV):": "Client certificate fingerprints (SHA-256 CSV):",
   "Huellas e integridad": "Hashes and integrity",
   "Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)": "Hashes and manifests (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)",
-  "ID:": "\nID:\n",
+  "ID:": "ID:",
   "Id": "Id",
   "Identificador de política": "Policy identifier",
   "Identificador de política FacturaE": "FacturaE policy identifier",
@@ -1072,7 +1072,7 @@
   "Lote firmado, con incidencias de verificación en algunos resultados.": "Signed batch, with verification issues in some results.",
   "Lote firmado. Verificando resultados...": "Signed lot. Verifying results...",
   "Lote o selección múltiple": "Batch or multiple selection",
-  "Lote: ": "Lote: ",
+  "Lote: ": "Batch: ",
   "Lugar de firma FacturaE": "FacturaE signing place",
   "Manifiesto de huellas generado.": "Hash manifest generated.",
   "Mantener esta sesión web en segundo plano al cerrar": "Keep this web session running in the background when closing",
@@ -1085,7 +1085,7 @@
   "Mientras la cofirma múltiple guiada esté activa, la salida final se entregará en memoria/base64 y se bloquearán temporalmente las opciones de guardado en disco.": "While guided multiple co-signing is active, the final output will be delivered in memory/base64 and the save-to-disk options will be temporarily locked.",
   "Minimalista Luz": "Light Minimal",
   "Misma ruta o nombre derivado": "Same path or derived name",
-  "Modo": "Modo",
+  "Modo": "Mode",
   "Modo Experto": "Expert Mode",
   "Modo REST activo. Arrancando backend Go...": "REST mode active. Starting Go backend...",
   "Modo backend no soportado": "Unsupported backend mode",
@@ -1410,7 +1410,7 @@
   "Qué puede hacer por ti ahora": "What it can do for you now",
   "RED Y SEGURIDAD": "NETWORK AND SECURITY",
   "REST local": "Local REST",
-  "REST: ": "\nREST: ",
+  "REST: ": "REST: ",
   "RUTA DE ENTRADA": "INPUT PATH",
   "RUTA DE SALIDA (PDF FIRMADO)": "OUTPUT PATH (SIGNED PDF)",
   "Razón": "Reason",
@@ -1507,7 +1507,7 @@
   "Ruta pendiente de informe": "Report path pending",
   "Ruta protegida": "Protected path",
   "Rutas completas del perfil de usuario": "Full user profile paths",
-  "SELECCIÓN DE LOTE": "LOT SELECTION",
+  "SELECCIÓN DE LOTE": "BATCH SELECTION",
   "SHA-1": "SHA-1",
   "SHA-256": "SHA-256",
   "SHA-384": "SHA-384",
@@ -1724,7 +1724,7 @@
   "Terminal Hacker": "Hacker Terminal",
   "Texto": "Text",
   "Tip: Use 'admin123' para este demo": "Tip: use 'admin123' for this demo",
-  "Tipo": "Tipo",
+  "Tipo": "Type",
   "Tipo de selección": "Selection type",
   "Tipo detectado:": "Detected type:",
   "Tipo probable del firmado: ": "Likely type of the signed file: ",
@@ -5591,7 +5591,7 @@
   ,"winui.certificados.titular": "Holder"
   ,"winui.certificados.nif_identificador": "NIF / identifier"
   ,"winui.certificados.organizacion": "Organization"
-  ,"winui.certificados.tipo": "Tipo"
+  ,"winui.certificados.tipo": "Type"
   ,"winui.certificados.emisor_2": "Issuer"
   ,"winui.certificados.numero_de_serie": "Serial number"
   ,"winui.certificados.estado": "Status"

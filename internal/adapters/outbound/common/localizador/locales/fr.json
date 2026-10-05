@@ -171,7 +171,7 @@
   "*.dipgra.es": "*.dipgra.es",
   "*.gob.es": "*.gob.es",
   "+ CERTIFICADOS": "+ CERTIFICATS",
-  "+%1 más": "+%1 más",
+  "+%1 más": "+%1 de plus",
   ",": ",",
   "--- INICIO DE LOGS ---\n": "--- INICIO DE LOGS ---\n",
   "--- INICIO DE LOGS ---\\n": "--- DÉBUT DES JOURNAUX ---\\n",
@@ -197,7 +197,7 @@
   "<b>Estado:</b> ": "<b>État :</b> ",
   "<b>Huella:</b> ": "<b>Empreinte :</b> ",
   "<b>Nº Serie:</b> ": "<b>Numéro de série :</b> ",
-  "<b>Titular:</b> ": "<b>Propriétaire :</b> ",
+  "<b>Titular:</b> ": "<b>Titulaire :</b> ",
   "<b>Válido hasta:</b> ": "<b>Valide jusqu'au :</b> ",
   "API base:": "API base :",
   "ASiC-XAdES": "ASiC-XAdES",
@@ -210,7 +210,7 @@
   "Abriendo el selector de fichero solicitado por la web": "Ouverture du sélecteur de fichier demandé par le site web",
   "Abrir": "Ouvrir",
   "Abrir Ayuda": "Ouvrir l'aide",
-  "Abrir OpenAPI": "Open OpenAPI",
+  "Abrir OpenAPI": "Ouvrir OpenAPI",
   "Abrir VALIDE": "Ouvrir VALIDE",
   "Abrir ayuda": "Ouvrir l’aide",
   "Abrir desprotegido": "Ouvrir le fichier déprotégé",
@@ -228,7 +228,7 @@
   "Activar sello visible": "Activer le cachet visible",
   "Activar sello visible (PAdES)": "Activer le cachet visible (PAdES)",
   "Actual: ": "Actuelle : ",
-  "Actualizar": "Mise à jour",
+  "Actualizar": "Actualiser",
   "Actualizar certificados": "Mettre à jour les certificats",
   "Actualizar estado": "Actualiser l'état",
   "Actuará como firmante inicial del artefacto resultante.": "Agira comme signataire initial de l’artefact résultant.",
@@ -256,7 +256,7 @@
   "Almacén seguro del proxy disponible": "Magasin proxy sécurisé disponible",
   "Almacén seguro del proxy no disponible": "Magasin proxy sécurisé indisponible",
   "Alto": "Élevé",
-  "Alto (0..1)": "Élevé (0..1)",
+  "Alto (0..1)": "Hauteur (0..1)",
   "Ametista": "Améthyste",
   "Ana, representante, sello...": "Ana, représentante, cachet...",
   "Ancho (0..1)": "Largeur (0..1)",
@@ -368,11 +368,11 @@
   "Cada elemento cargado en el navegador quedara disponible como referencia local durante la autoverificacion del lote.": "Chaque élément chargé dans le navigateur restera disponible comme référence locale pendant l’auto-vérification du lot.",
   "Cadena de firmantes": "Chaîne des signataires",
   "Caduca en días: ": "Expire dans : ",
-  "Caducado": "Péchu",
+  "Caducado": "Expiré",
   "Caducados": "Expirés",
   "Caducidad": "Expiration",
   "Cambia a PAdES o desactiva el sello visible para evitar una configuración incompatible.": "Passez à PAdES ou désactivez le sceau visible pour éviter une configuration incompatible.",
-  "Cambiar": "Changement",
+  "Cambiar": "Changer",
   "Cambiar a Cofirmar": "Passer à Cosigner",
   "Cambiar clave": "Changer le mot de passe",
   "Cambiar clave de seguridad": "Changer la clé de sécurité",
@@ -454,7 +454,7 @@
   "Cofirmar": "Co-signer",
   "Coinciden": "Correspondances",
   "Coinciden: ": "Correspondent : ",
-  "Cola de log redactada": "File de log rédigée",
+  "Cola de log redactada": "File de journal expurgée",
   "Colapsar menú": "Réduire le menu",
   "Colapsar panel de certificados": "Réduire le panneau des certificats",
   "Compacto": "Compact",
@@ -497,7 +497,7 @@
   "Confianza: ": "Confiance : ",
   "Confianza: Raíces de AAPP instaladas correctamente.": "Confiance : les racines AAPP sont correctement installées.",
   "Confiar en este emisor": "Faire confiance à l'API locale",
-  "Confiar en la API local": "Faites confiance à l'API locale",
+  "Confiar en la API local": "Faire confiance à l'API locale",
   "Configuración": "Configuration",
   "Configuración automática del sistema": "Configuration automatique du système",
   "Configuración cargada": "Configuration chargée",
@@ -550,7 +550,7 @@
   "Código estable: %1": "Code stable : %1",
   "Código postal": "Code postal",
   "Código postal de firma": "Code postal de signature",
-  "DETALLES DE LA FIRMA": "DÉTAILS DES SIGNATURES",
+  "DETALLES DE LA FIRMA": "DÉTAILS DE LA SIGNATURE",
   "DPAPI de usuario": "DPAPI utilisateur",
   "Datos de la firma": "Détails de la signature",
   "Debe cargar un archivo PDF antes de realizar la firma.": "Vous devez charger un fichier PDF avant de signer.",
@@ -662,7 +662,7 @@
   "Dominio eliminado: %1": "Domaine supprimé : %1",
   "Dominio u origen a permitir, por ejemplo https://sede.example.es": "Domaine ou origine à autoriser, par exemple https://sede.example.es",
   "Dominios permitidos": "Domaines autorisés",
-  "Días caducado: ": "Jours d'expiration : ",
+  "Días caducado: ": "Jours depuis l'expiration : ",
   "Días restantes: ": "Jours restants : ",
   "EDICIÓN EN VIVO HABILITADA": "ÉDITION EN DIRECT ACTIVÉE",
   "ERROR": "ERROR",
@@ -820,8 +820,8 @@
   "Explorar Logs": "Explorer les journaux",
   "Expone la API REST solo en este equipo, para integraciones locales y consola web.": "Exposez l'API REST sur cette machine uniquement, pour les intégrations sur site et dans la console Web.",
   "Exportando destinatario...": "Exportation du destinataire...",
-  "Exportar destinatario alto": "Exporter le destinataire élevé",
-  "FIRMA DIGITAL": "DIGITAL SIGNATURE",
+  "Exportar destinatario alto": "Exporter le destinataire fort",
+  "FIRMA DIGITAL": "SIGNATURE NUMÉRIQUE",
   "FIRMAR": "SIGNER",
   "FNMT, AC, CA...": "FNMT, AC, CA...",
   "FNMT, ACCV, ...": "FNMT, ACCV, ...",
@@ -887,8 +887,8 @@
   "Firmantes resumidos": "Résumé des signataires",
   "Firmantes resumidos: ": "Résumé des signataires : ",
   "Firmantes: ": "Signataires : ",
-  "Firmar": "Signe",
-  "Firmar ahora": "Signez maintenant",
+  "Firmar": "Signer",
+  "Firmar ahora": "Signer maintenant",
   "Firmar igualmente": "Signer quand même",
   "Formato": "Format",
   "Formato de huella por defecto para ficheros": "Format d'empreinte par défaut pour les fichiers",
@@ -953,7 +953,7 @@
   "Huellas de Certificados Cliente (SHA-256 CSV):": "Empreintes digitales du certificat client (SHA-256 CSV) :",
   "Huellas e integridad": "Empreintes et intégrité",
   "Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)": "Empreintes et manifestes (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)",
-  "ID:": "IDENTIFIANT:",
+  "ID:": "ID :",
   "Id": "Id",
   "Identificador de política": "Identifiant de la politique",
   "Identificador de política FacturaE": "Identifiant de politique FacturaE",
@@ -963,9 +963,9 @@
   "Importando certificado...": "Importation du certificat...",
   "Importando destinatario...": "Importation du destinataire...",
   "Importar P12/PFX": "Importer un P12/PFX",
-  "Importar certificado": "Certificat d'importation",
-  "Importar destinatario alto": "Importer le destinataire élevé",
-  "Importar...": "Matière...",
+  "Importar certificado": "Importer un certificat",
+  "Importar destinatario alto": "Importer le destinataire fort",
+  "Importar...": "Importer...",
   "Imágenes (*.png *.jpg *.jpeg)": "Images (*.png *.jpg *.jpeg)",
   "Incidencia conocida": "Incident connu",
   "Incidencia preparada copiada al portapapeles.": "Incident préparé copié dans le presse-papiers.",
@@ -979,7 +979,7 @@
   "Informe diagnóstico": "Rapport de diagnostic",
   "Informe: ": "Rapport : ",
   "Inicializando el flujo de firma web": "Initialisation du flux de signature web",
-  "Iniciando...": "Départ...",
+  "Iniciando...": "Démarrage...",
   "Iniciar servidor": "Démarrer le serveur",
   "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "Insère un tampon graphique dans le PDF indiquant qu'il a été signé numériquement.",
   "Instala el motor de firma como servicio de tu usuario (no de sistema),\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installe le moteur de signature comme service de votre utilisateur (et non du système),\npour qu’il démarre automatiquement et ait accès à vos certificats personnels.",
@@ -992,7 +992,7 @@
   "Integridad": "Intégrité",
   "Integridad: ": "Intégrité : ",
   "Intenta firmar el PDF incluso si su estructura está ligeramente dañada o no cumple estrictamente el estándar ISO.": "Essayez de signer le PDF même si sa structure est légèrement endommagée ou n'est pas strictement conforme à la norme ISO.",
-  "Intentando abrir web en:": "J'essaie d'ouvrir le site Web dans :",
+  "Intentando abrir web en:": "Tentative d'ouverture du site web :",
   "Interfaz web local de GrxFirma para firmar documentos y configurar sello visible PAdES sin depender de la extensión completa.": "Interface web locale de GrxFirma pour signer des documents et configurer le cachet visible PAdES sans dépendre de l'extension complète.",
   "Interpretando la petición recibida": "Interprétation de la demande reçue",
   "Introduzca clave...": "Entrez le mot de passe...",
@@ -1057,7 +1057,7 @@
   "Lanza la validación y revisa razón, firmantes y advertencias.": "Lancez la validation et vérifiez la raison, les signataires et les avertissements.",
   "Lanza la validación y revisa si falta el original o aparece algún aviso.": "Lancez la validation et vérifiez si l'original est manquant ou si un avertissement apparaît.",
   "Leyendo firmantes previos para completar el sello...": "Lecture des signataires précédents pour compléter le cachet...",
-  "Limpiar": "Faire le ménage",
+  "Limpiar": "Effacer",
   "Limpiar Log": "Effacer le journal",
   "Linux": "Linux",
   "Lista de dominios permitidos para llamadas desde el navegador (CORS)": "Liste des domaines autorisés pour les appels depuis le navigateur (CORS)",
@@ -1072,7 +1072,7 @@
   "Lote firmado, con incidencias de verificación en algunos resultados.": "Lot signé, avec des problèmes de vérification dans certains résultats.",
   "Lote firmado. Verificando resultados...": "Lot signé. Vérification des résultats...",
   "Lote o selección múltiple": "Lot ou sélection multiple",
-  "Lote: ": "Lote: ",
+  "Lote: ": "Lot : ",
   "Lugar de firma FacturaE": "Lieu de signature FacturaE",
   "Manifiesto de huellas generado.": "Manifeste d'empreintes généré.",
   "Mantener esta sesión web en segundo plano al cerrar": "Garder cette session web en arrière-plan à la fermeture",
@@ -1085,7 +1085,7 @@
   "Mientras la cofirma múltiple guiada esté activa, la salida final se entregará en memoria/base64 y se bloquearán temporalmente las opciones de guardado en disco.": "Tant que la cosignature multiple guidée est active, la sortie finale sera remise en mémoire/base64 et les options d'enregistrement sur disque seront temporairement bloquées.",
   "Minimalista Luz": "Minimaliste clair",
   "Misma ruta o nombre derivado": "Même chemin ou nom dérivé",
-  "Modo": "Modo",
+  "Modo": "Mode",
   "Modo Experto": "Mode expert",
   "Modo REST activo. Arrancando backend Go...": "Mode REST actif. Démarrage du backend Go...",
   "Modo backend no soportado": "Mode backend non pris en charge",
@@ -1106,7 +1106,7 @@
   "Motivo, ubicación y contacto se incrustarán como metadatos PAdES.": "Le motif, le lieu et le contact seront intégrés comme métadonnées PAdES.",
   "Motivo: ": "Motif : ",
   "Muestra certificados presentes en el almacén pero no aptos para firma. Es útil para diagnóstico, pero normalmente conviene ocultarlos.": "Affiche les certificats présents dans le magasin mais non aptes à la signature. Utile pour le diagnostic, mais il vaut normalement mieux les masquer.",
-  "Muestra de Firma": "Échantillon de signature",
+  "Muestra de Firma": "Aperçu de la signature",
   "Muestra de sello visible": "Aperçu du cachet visible",
   "Muestra los certificados que ya han expirado en la lista de selección.": "Affiche les certificats déjà expirés dans la liste de sélection.",
   "Muestra los certificados que ya han expirado en la selection de certificados.": "Affiche les certificats déjà expirés dans la sélection de certificats.",
@@ -1199,7 +1199,7 @@
   "ODF": "ODF",
   "ODF firmado": "ODF signé",
   "ODF original": "ODF original",
-  "OK": "D'ACCORD",
+  "OK": "OK",
   "OOXML": "OOXML",
   "OOXML firmado": "OOXML signé",
   "OOXML original": "OOXML original",
@@ -1410,8 +1410,8 @@
   "Qué puede hacer por ti ahora": "Ce que vous pouvez faire maintenant",
   "RED Y SEGURIDAD": "RÉSEAU ET SÉCURITÉ",
   "REST local": "REST local",
-  "REST: ": "REPOS: ",
-  "RUTA DE ENTRADA": "VOIE D'ENTRÉE",
+  "REST: ": "REST : ",
+  "RUTA DE ENTRADA": "CHEMIN D'ENTRÉE",
   "RUTA DE SALIDA (PDF FIRMADO)": "VOIE DE SORTIE (PDF SIGNÉ)",
   "Razón": "Raison",
   "Razón técnica visible: %1": "Raison technique visible : %1",
@@ -1435,7 +1435,7 @@
   "Reintentando conexión IPC... (": "Nouvelle tentative de connexion IPC... (",
   "Reintentando la validación desde el asistente.": "Nouvelle tentative de validation depuis l'assistant.",
   "Reintentar validación": "Réessayer la validation",
-  "Renombrar": "Rebaptiser",
+  "Renombrar": "Renommer",
   "Repetir clave": "Répéter le mot de passe",
   "Repita la clave...": "Répétez la clé...",
   "Representación": "Représentation",
@@ -1507,7 +1507,7 @@
   "Ruta pendiente de informe": "Chemin en attente de rapport",
   "Ruta protegida": "Chemin protégé",
   "Rutas completas del perfil de usuario": "Chemins complets du profil utilisateur",
-  "SELECCIÓN DE LOTE": "SÉLECTION DES LOTS",
+  "SELECCIÓN DE LOTE": "SÉLECTION DU LOT",
   "SHA-1": "SHA-1",
   "SHA-256": "SHA-256",
   "SHA-384": "SHA-384",
@@ -1692,7 +1692,7 @@
   "Sin proxy": "Sans proxy",
   "Sin ruta de salida, se generará un artefacto con extensión ": "Sans chemin de sortie, un artefact avec l'extension sera généré : ",
   "Sobrescribir salida": "Écraser la sortie",
-  "Sobrescritura": "Écraser",
+  "Sobrescritura": "Écrasement",
   "Socket activo encontrado. Conectando...": "Socket actif trouvé. Connexion...",
   "Socket muerto encontrado. Limpiando y arrancando...": "Socket mort trouvé. Nettoyage et démarrage...",
   "Socket no encontrado. Arrancando backend Go...": "Socket introuvable. Démarrage du backend Go...",
@@ -1712,7 +1712,7 @@
   "Sí": "Oui",
   "Sí hay certificados disponibles, pero el actual puede no servir para esta operación.": "Des certificats sont disponibles, mais l'actuel peut ne pas convenir à cette opération.",
   "TEMA VISUAL": "THÈME VISUEL",
-  "TRAZA DE LA OPERACIÓN": "TRAZA DE LA OPERACIÓN",
+  "TRAZA DE LA OPERACIÓN": "TRACE DE L'OPÉRATION",
   "TRAZA DEL SISTEMA (redactada)": "TRACE DU SYSTÈME (expurgée)",
   "Te deja en la validación lista para seleccionar el fichero.": "Vous place dans la validation, prêt à sélectionner le fichier.",
   "Te lleva a la pestaña de firma.": "Vous amène à l'onglet de signature.",
@@ -1724,13 +1724,13 @@
   "Terminal Hacker": "Terminal hacker",
   "Texto": "Texte",
   "Tip: Use 'admin123' para este demo": "Astuce : utilisez « admin123 » pour cette démo",
-  "Tipo": "Tipo",
+  "Tipo": "Type",
   "Tipo de selección": "Type de sélection",
   "Tipo detectado:": "Type détecté :",
   "Tipo probable del firmado: ": "Type probable du fichier signé : ",
   "Tipo probable del original: ": "Type probable de l'original : ",
   "Tipo:": "Type :",
-  "Tipo: ": "Gars: ",
+  "Tipo: ": "Type : ",
   "Titular: ": "Titulaire: ",
   "Todas las páginas": "Toutes les pages",
   "Todas las páginas por defecto en firma visible": "Toutes les pages par défaut dans la signature visible",
@@ -1759,7 +1759,7 @@
   "Usuario": "Utilisateur",
   "Utilidades de huellas": "Outils d'empreinte",
   "VERIFICAR": "VÉRIFIER",
-  "Vaciar Almacén TLS": "Magasin TLS vide",
+  "Vaciar Almacén TLS": "Vider le magasin TLS",
   "Vaciar almacén TLS local": "Vider le magasin TLS local",
   "Valida el documento y revisa si falta el original o aparece algún aviso.": "Validez le document et vérifiez si l'original manque ou si un avertissement apparaît.",
   "Validación completada": "Validation terminée",
@@ -1780,7 +1780,7 @@
   "Ver": "Voir",
   "Ver Original": "Voir l'original",
   "Ver archivo (Abrir externamente)": "Afficher le fichier (ouvert en externe)",
-  "Ver firmado": "Voir signé",
+  "Ver firmado": "Voir le fichier signé",
   "Verificacion posterior": "Vérification postérieure",
   "Verificación automática": "Vérification automatique",
   "Verificación de Firma": "Vérification de signature",
@@ -1930,7 +1930,7 @@
   "dependiente de la plataforma": "dépendant de la plateforme",
   "desactivada": "désactivée",
   "descarga disponible": "téléchargement disponible",
-  "desconocido": "un étranger",
+  "desconocido": "inconnu",
   "directorio": "répertoire",
   "disco": "disque",
   "disco + base64": "disque + base64",
@@ -1939,7 +1939,7 @@
   "downloadSignedBatch": "downloadSignedBatch",
   "dropLabel": "dropLabel",
   "emisor": "émetteur",
-  "emisor no confiable": "expéditeur peu fiable",
+  "emisor no confiable": "émetteur non fiable",
   "en memoria": "en mémoire",
   "enableMultiCosign": "enableMultiCosign",
   "enableMultiCosignHelp": "enableMultiCosignHelp",
@@ -2364,7 +2364,7 @@
   "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "ℹ️ Aucun gestionnaire de certificats natif trouvé (seahorse/kleopatra).",
   "↶ Rotar Firma": "↶ Rotation de la signature",
   "↺  Valores por defecto": "↺ Valeurs par défaut",
-  "↻ Actualizar estado": "↻ Statut de mise à jour",
+  "↻ Actualizar estado": "↻ Actualiser l'état",
   "↻ Rotar Documento": "↻ Rotation du document",
   "⌛ Firmando...": "⌛ Signature en cours...",
   "⌛ Verificando...": "⌛ Vérification...",
@@ -2409,7 +2409,7 @@
   "✓ Firma válida": "✓ Signature valide",
   "✗ Firma inválida": "✗ Signature invalide",
   "❌ ": "❌ ",
-  "❌ ERROR DEL BACKEND: ": "❌ BACKEND ERROR: ",
+  "❌ ERROR DEL BACKEND: ": "❌ ERREUR DU BACKEND : ",
   "❌ El fichero no existe: ": "❌ Le fichier n'existe pas : ",
   "❌ Error de red: ": "❌ Erreur réseau : ",
   "❌ Error en Socket: ": "❌ Erreur de socket : ",
@@ -2605,9 +2605,9 @@
   ,"Error al comprobar huella: ": "Erreur lors de la vérification de l'empreinte : "
   ,"ACERCA DE": "À PROPOS"
   ,"Acerca de": "À propos"
-  ,"Acerca de GrxFirma": "À propos d’GrxFirma"
+  ,"Acerca de GrxFirma": "À propos de GrxFirma"
   ,"Información de versión, autoría y licencia de la aplicación": "Informations sur la version, l’auteur et la licence de l’application"
-  ,"Logotipo de GrxFirma": "Logo d’GrxFirma"
+  ,"Logotipo de GrxFirma": "Logo de GrxFirma"
   ,"Versión %1": "Version %1"
   ,"Autoría: Alberto Avidad Fernández": "Auteur : Alberto Avidad Fernández"
   ,"Derechos de autor (C) 2026 Alberto Avidad Fernández.": "Droits d’auteur (C) 2026 Alberto Avidad Fernández."
@@ -5248,7 +5248,7 @@
   ,"winui.proteger.repita_la_misma_clave_base64": "&Ressaisissez la même clé Base64 :"
   ,"winui.proteger.clave_efimera_de_desproteccion": "Clé éphémère pour retirer la protection"
   ,"winui.proteger.clave_usada_al_crear_el_encrypteddata": "&Clé utilisée pour créer EncryptedData :"
-  ,"winui.comun.firmar": "Signe"
+  ,"winui.comun.firmar": "Signer"
   ,"winui.comun.cancelar": "Annuler"
   ,"winui.comun.el_motor_confirmo_la_consulta_pero_no": "Le moteur a confirmé la consultation, mais n’a renvoyé aucun catalogue valide."
   ,"winui.comun.la_contrasena_supera_el_limite_de": "Le mot de passe dépasse la limite de sécurité autorisée."
@@ -5571,7 +5571,7 @@
   ,"winui.certificados.tarjeta_detectada_pero_no_aparecen": "Carte détectée, mais aucun certificat de signature n’apparaît. Le pilote du fabricant manque ; pour le DNIe, téléchargez-le depuis le site officiel."
   ,"winui.comun.comprobacion_no_disponible": "Vérification indisponible"
   ,"winui.certificados.emisor_desconocido": "Émetteur inconnu"
-  ,"winui.certificados.caducado": "Péchu"
+  ,"winui.certificados.caducado": "Expiré"
   ,"winui.certificados.disponible_para_firmar": "Disponible pour signer"
   ,"winui.certificados.solo_consulta": "Consultation uniquement"
   ,"winui.certificados.caducado_el": "Expiré le {date}"
@@ -5591,7 +5591,7 @@
   ,"winui.certificados.titular": "Titulaire"
   ,"winui.certificados.nif_identificador": "NIF / identifiant"
   ,"winui.certificados.organizacion": "Organisation"
-  ,"winui.certificados.tipo": "Tipo"
+  ,"winui.certificados.tipo": "Type"
   ,"winui.certificados.emisor_2": "Émetteur"
   ,"winui.certificados.numero_de_serie": "Numéro de série"
   ,"winui.certificados.estado": "État"
@@ -6035,7 +6035,7 @@
   ,"winui.ventana.actualizado_a_1_ver_novedades": "Mis à jour vers %1 : voir les nouveautés"
   ,"winui.ventana.no_se_pudo_iniciar_la_conexion_segura": "Impossible d'établir la connexion sécurisée avec le moteur local."
   ,"winui.comun.ayuda": "Aide"
-  ,"winui.comun.acerca_de_grxfirma": "À propos d’GrxFirma"
+  ,"winui.comun.acerca_de_grxfirma": "À propos de GrxFirma"
   ,"winui.ventana.novedades_no_disponibles_en_esta": "Les nouveautés ne sont pas disponibles dans cette installation."
   ,"winui.ventana.novedades_de_grxfirma_1": "Nouveautés de GrxFirma %1"
   ,"winui.ventana.entendido": "Compris"

@@ -655,7 +655,7 @@
     <string name="pref_seal_language">Idioma del segell</string>
     <string name="pref_seal_language_helper">Idioma dels textos del segell visible al PDF signat.</string>
     <string name="pref_seal_language_app">El mateix que l\'aplicació</string>
-    <string name="pref_tsa_url">URL de segellat</string>
+    <string name="pref_tsa_url">URL de segellat de temps</string>
     <string name="seal_edit_change">Canvia el segell</string>
     <string name="seal_edit_change_all">Canvia el segell (totes les pàgines)</string>
     <string name="seal_edit_change_page">Canvia el segell (pàgina %1$d)</string>

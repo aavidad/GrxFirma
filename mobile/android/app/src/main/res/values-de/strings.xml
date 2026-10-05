@@ -572,7 +572,7 @@
     <string name="batch_seal_error">Das sichtbare Siegel für %1$s konnte nicht vorbereitet werden. Entfernen Sie dieses PDF aus dem Stapel oder signieren Sie ohne Siegel.</string>
     <string name="batch_dnie_hint">Beim DNIe wird die PIN nur einmal für den ganzen Stapel abgefragt. Halten Sie den DNIe bis zum Ende an das Telefon.</string>
     <string name="batch_helper_wave4">Wählen Sie bis zu 16 Dateien (insgesamt 32 MB). Sie werden mit dem geöffneten Zertifikat (Datei oder DNIe) und den erweiterten Signaturoptionen signiert. Wählen Sie danach einen Ordner zum Speichern der Signaturen.</string>
-    <string name="result_batch_cosigned">Stapel gegengezeichnet</string>
+    <string name="result_batch_cosigned">Stapel mitsigniert</string>
     <string name="error_protect_sign_identity_any">Zum Schützen und Signieren bereiten Sie in Schritt 2 ein Zertifikat vor (Datei oder DNIe) und wählen ein Format „Für bestimmte Personen“.</string>
     <string name="release_notes_wave4">Außerdem in dieser Version: ENI-Akten mit signiertem Index; mehrere Dateien mit sichtbarem Siegel oder Mitsignatur signieren; DNIe im Stapel (PIN nur einmal) und bei Schützen und signieren.</string>
     <plurals name="expediente_documents_count">

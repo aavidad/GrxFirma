@@ -637,7 +637,7 @@
     <string name="pref_seal_language">Zigiluaren hizkuntza</string>
     <string name="pref_seal_language_helper">PDF sinatuko zigilu ikusgaiaren testuen hizkuntza.</string>
     <string name="pref_seal_language_app">Aplikazioaren berdina</string>
-    <string name="pref_tsa_url">Zigilatze-URLa</string>
+    <string name="pref_tsa_url">Denbora-zigiluaren URLa</string>
     <string name="seal_edit_change">Aldatu zigilua</string>
     <string name="seal_edit_change_all">Aldatu zigilua (orrialde guztiak)</string>
     <string name="seal_edit_change_page">Aldatu zigilua (%1$d. orrialdea)</string>

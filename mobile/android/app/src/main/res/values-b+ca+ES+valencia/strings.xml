@@ -91,7 +91,7 @@
     <string name="seal_color_blue">Blau</string>
     <string name="seal_color_gray">Gris fosc</string>
     <string name="seal_all_pages">Aplicar a totes les pàgines</string>
-    <string name="seal_one_page">Només estea pàgina</string>
+    <string name="seal_one_page">Només esta pàgina</string>
     <string name="seal_preview_loading">Actualitzant la previsualització real…</string>
     <string name="seal_preview_ready">Previsualització real actualitzada</string>
     <string name="seal_preview_error">No s\'ha pogut preparar el segell amb estes dades. Proveu una altra imatge o un altre estil.</string>
@@ -655,7 +655,7 @@
     <string name="pref_seal_language">Idioma del segell</string>
     <string name="pref_seal_language_helper">Idioma dels textos del segell visible en el PDF firmat.</string>
     <string name="pref_seal_language_app">El mateix que l\'aplicació</string>
-    <string name="pref_tsa_url">URL de segellat</string>
+    <string name="pref_tsa_url">URL de segellat de temps</string>
     <string name="seal_edit_change">Canvia el segell</string>
     <string name="seal_edit_change_all">Canvia el segell (totes les pàgines)</string>
     <string name="seal_edit_change_page">Canvia el segell (pàgina %1$d)</string>
