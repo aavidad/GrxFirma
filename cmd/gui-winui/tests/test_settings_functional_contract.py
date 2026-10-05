@@ -260,6 +260,15 @@ class SettingsFunctionalContractTests(unittest.TestCase):
         self.assertIn("if (CanSave && _validationError is not null)", self.vm)
         self.assertNotIn("editor seguro de sello PDF", self.xaml)
 
+    def test_visible_seal_default_preference_is_applied_when_signing(self):
+        ui = pathlib.Path(__file__).resolve().parents[1] / "src" / "GrxFirma.WinUI"
+        page = (ui / "Views" / "SignPage.xaml.cs").read_text(encoding="utf-8")
+        vm = (ui / "ViewModels" / "SignPageViewModel.cs").read_text(encoding="utf-8")
+        self.assertIn("ViewModel.SetVisibleSealPreference(result.Data.VisiblePdfSeal == true);", page)
+        self.assertIn("if (_portalSealSession is null)", page)
+        self.assertIn("_visibleSealPreferenceApplied = true;", vm)
+        self.assertIn("ApplyVisibleSealPreferenceOnce();", vm.split("CanRefreshVisibleSealPreview =", 1)[1])
+
     def test_settings_sources_do_not_log_or_write_sensitive_values(self):
         combined = "\n".join(
             (

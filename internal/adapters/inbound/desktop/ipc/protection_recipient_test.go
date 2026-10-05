@@ -8,8 +8,10 @@ package ipc
 import (
 	"context"
 	"encoding/json"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"grxfirma/internal/adapters/outbound/common/protector"
@@ -18,7 +20,7 @@ import (
 func TestIPCImportarYQuitarDestinatarioPublico(t *testing.T) {
 	ctx := context.Background()
 	book := protector.NuevoLocalPublicRecipientBook(t.TempDir())
-	m := &Manejador{Destinatarios: &protector.LocalCombinedKeyring{Public: book}}
+	m := &Manejador{Loc: localizador.Para("en"), Destinatarios: &protector.LocalCombinedKeyring{Public: book}}
 	cert := generarDestinatarioAuthEnvelopedIPC(t, "sintetico")
 	path := filepath.Join(t.TempDir(), "sintetico.cer")
 	if err := os.WriteFile(path, cert.CertificateDER, 0o600); err != nil {
@@ -51,7 +53,8 @@ func TestIPCImportarYQuitarDestinatarioPublico(t *testing.T) {
 	if err := os.WriteFile(path, []byte("-----BEGIN PRIVATE KEY-----"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if result := m.handleProtectionRecipientImport(ctx, params); result.OK || result.Diagnostic == nil || result.Diagnostic.UserMessage == "" {
-		t.Fatalf("rechazo sin explicación: %+v", result)
+	if result := m.handleProtectionRecipientImport(ctx, params); result.OK || result.Diagnostic == nil ||
+		!strings.Contains(result.Diagnostic.UserMessage, "private key") {
+		t.Fatalf("rechazo sin explicación traducida: %+v", result)
 	}
 }

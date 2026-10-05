@@ -1001,6 +1001,26 @@ public sealed class SignPageViewModel
     private string SealText(string key) => GrxFirma.WinUI.Services.SealUiCatalog.Text(_sealUiLanguage, key);
 
     // Preferencia «Idioma del sello» de la configuración (signSealLanguage).
+    // Preferencia «Sello visible en PDF como valor predeterminado» (como en
+    // Qt): la casilla empieza marcada la primera vez que el documento admite
+    // sello. Si la persona la desmarca, no se vuelve a marcar en esta página.
+    private bool _visibleSealPreference;
+    private bool _visibleSealPreferenceApplied;
+
+    public void SetVisibleSealPreference(bool enabled)
+    {
+        _visibleSealPreference = enabled;
+        ApplyVisibleSealPreferenceOnce();
+    }
+
+    private void ApplyVisibleSealPreferenceOnce()
+    {
+        if (!_visibleSealPreference || _visibleSealPreferenceApplied ||
+            !CanConfigureVisibleSeal) return;
+        _visibleSealPreferenceApplied = true;
+        VisibleSealEnabled = true;
+    }
+
     public void SetSealLanguagePreference(string? preference)
     {
         if (string.Equals(
@@ -4020,6 +4040,7 @@ public sealed class SignPageViewModel
         CanRefreshVisibleSealPreview =
             CanConfigureVisibleSeal &&
             VisibleSealEnabled;
+        ApplyVisibleSealPreferenceOnce();
         CanSelectDocument =
             IsOperationConnected &&
             !IsBusy &&

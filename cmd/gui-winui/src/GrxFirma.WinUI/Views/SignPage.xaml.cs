@@ -1475,6 +1475,9 @@ public sealed partial class SignPage : Page
                 result.Data.Language);
             ViewModel.SetSealUiLanguage(result.Data.Language);
             ViewModel.SetSealLanguagePreference(result.Data.SealLanguage);
+            // El portal decide su propio sello; la preferencia es para la firma normal.
+            if (_portalSealSession is null)
+                ViewModel.SetVisibleSealPreference(result.Data.VisiblePdfSeal == true);
             if (_certificatePanelPreferenceRevision == 0)
             {
                 _certificatePanelExpanded = result.Data.SignCertificatePanelExpanded == true;

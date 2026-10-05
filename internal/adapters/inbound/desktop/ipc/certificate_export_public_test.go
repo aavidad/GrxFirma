@@ -18,6 +18,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -74,7 +75,7 @@ func TestCertificateExportPublic_DERyPEMSinClavePrivada(t *testing.T) {
 
 func TestCertificateExportPublic_RechazaCertificadoNoAptoYRutaInsegura(t *testing.T) {
 	der := generarCertificadoExportableIPC(t, x509.KeyUsageDigitalSignature)
-	m := &Manejador{Catalogo: &stubCatalogo{certs: []domain.CertificateRef{{
+	m := &Manejador{Loc: localizador.Para("es"), Catalogo: &stubCatalogo{certs: []domain.CertificateRef{{
 		ID: "firma", DER: der, HasSigningKey: true, HasLocalDecryptionKey: true,
 	}}}}
 	path := filepath.Join(t.TempDir(), "no-creado.cer")
@@ -91,6 +92,14 @@ func TestCertificateExportPublic_RechazaCertificadoNoAptoYRutaInsegura(t *testin
 	if response.OK || !strings.Contains(response.Error, "clave privada no está disponible") {
 		t.Fatalf("certificado ajeno aceptado: %+v", response)
 	}
+	// El aviso sale del catálogo en el idioma de la interfaz.
+	m.Loc = localizador.Para("en")
+	response = m.despachar(context.Background(), peticion{Action: "certificate_export_public", Params: params})
+	if response.OK || !strings.Contains(response.Error, "private key is not available") ||
+		response.Diagnostic == nil || !strings.Contains(response.Diagnostic.SuggestedAction, "2048 bits") {
+		t.Fatalf("aviso sin traducir: %+v", response)
+	}
+	m.Loc = localizador.Para("es")
 	m.Catalogo = &stubCatalogo{certs: []domain.CertificateRef{{ID: "firma", DER: generarCertificadoExportableIPC(t, x509.KeyUsageKeyEncipherment), HasSigningKey: true, HasLocalDecryptionKey: true}}}
 	params, _ = json.Marshal(map[string]string{"certificateId": "firma", "outputPath": "/etc/ssh/clave.cer"})
 	response = m.despachar(context.Background(), peticion{Action: "certificate_export_public", Params: params})
@@ -126,7 +135,7 @@ func TestCertificateExportPublic_RechazaClavesNoRSAOInsuficientes(t *testing.T) 
 	}
 	for _, key := range []crypto.Signer{weak, ec} {
 		der := certificarClavePublicaIPC(t, key, x509.KeyUsageKeyEncipherment)
-		m := &Manejador{Catalogo: &stubCatalogo{certs: []domain.CertificateRef{{ID: "mio", DER: der, HasSigningKey: true, HasLocalDecryptionKey: true}}}}
+		m := &Manejador{Loc: localizador.Para("es"), Catalogo: &stubCatalogo{certs: []domain.CertificateRef{{ID: "mio", DER: der, HasSigningKey: true, HasLocalDecryptionKey: true}}}}
 		response := m.despachar(context.Background(), peticion{Action: "certificate_export_public", Params: json.RawMessage(`{"certificateId":"mio"}`)})
 		if response.OK || !strings.Contains(response.Error, "RSA de al menos 2048 bits") {
 			t.Fatalf("clave no compatible aceptada o motivo ausente: %+v", response)

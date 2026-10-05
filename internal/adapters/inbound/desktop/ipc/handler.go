@@ -489,10 +489,10 @@ func (m *Manejador) handleCertificateExportPublic(ctx context.Context, raw json.
 		Format        string `json:"format"`
 	}
 	if err := json.Unmarshal(raw, &params); err != nil || strings.TrimSpace(params.CertificateID) == "" {
-		return respuesta{OK: false, Action: action, Error: "debe seleccionar un certificado del catálogo"}
+		return respuesta{OK: false, Action: action, Error: m.t("certificado.exportar.seleccione")}
 	}
 	if m.Catalogo == nil {
-		return respuesta{OK: false, Action: action, Error: "catálogo de certificados no configurado"}
+		return respuesta{OK: false, Action: action, Error: m.t("error.catalogo_no_configurado")}
 	}
 	// Consultar de nuevo evita exportar una entrada obsoleta de la caché.
 	refs, err := m.Catalogo.List(ctx)
@@ -503,25 +503,25 @@ func (m *Manejador) handleCertificateExportPublic(ctx context.Context, raw json.
 	for _, ref := range refs {
 		if ref.ID == params.CertificateID {
 			if !ref.HasLocalDecryptionKey {
-				return certificateExportPublicRejected("Este certificado no servirá para que le protejan archivos con GrxFirma: su clave privada no está disponible para Desproteger RSA-OAEP. Importe una credencial P12/PFX propia con clave RSA compatible.")
+				return m.certificateExportPublicRejected(m.t("certificado.exportar.sin_clave_descifrado"))
 			}
 			der = ref.DER
 			break
 		}
 	}
 	if len(der) == 0 {
-		return respuesta{OK: false, Action: action, Error: "certificado no encontrado o sin certificado X.509 público"}
+		return respuesta{OK: false, Action: action, Error: m.t("certificado.exportar.no_encontrado")}
 	}
 	recipient, err := protector.ValidatePublicRecipientCertificate(der)
 	if err != nil {
-		return certificateExportPublicRejected("Este certificado no servirá para que le protejan archivos: " + mensajeRechazoDestinatarioPublico(err))
+		return m.certificateExportPublicRejected(m.t("certificado.exportar.no_apto", m.mensajeRechazoDestinatarioPublico(err)))
 	}
 	format := strings.ToLower(strings.TrimSpace(params.Format))
 	if format == "" {
 		format = "der"
 	}
 	if format != "der" && format != "pem" {
-		return respuesta{OK: false, Action: action, Error: "formato de certificado público no válido"}
+		return respuesta{OK: false, Action: action, Error: m.t("certificado.exportar.formato_no_valido")}
 	}
 	outputPath := strings.TrimSpace(params.OutputPath)
 	if outputPath != "" {
@@ -530,7 +530,7 @@ func (m *Manejador) handleCertificateExportPublic(ctx context.Context, raw json.
 		}
 		ext := strings.ToLower(filepath.Ext(outputPath))
 		if (format == "der" && ext != ".cer") || (format == "pem" && ext != ".pem") {
-			return respuesta{OK: false, Action: action, Error: "la extensión de salida debe ser .cer para DER o .pem para PEM"}
+			return respuesta{OK: false, Action: action, Error: m.t("certificado.exportar.extension")}
 		}
 		data := recipient.CertificateDER
 		if format == "pem" {
@@ -550,11 +550,11 @@ func (m *Manejador) handleCertificateExportPublic(ctx context.Context, raw json.
 	}}
 }
 
-func certificateExportPublicRejected(message string) respuesta {
+func (m *Manejador) certificateExportPublicRejected(message string) respuesta {
 	return respuesta{OK: false, Action: "certificate_export_public", Error: message,
 		Diagnostic: &resultadoDiagnosticoGuiado{
 			Category: "app_local", UserMessage: message, ExpertMessage: message,
-			SuggestedAction:        "Seleccione un certificado propio RSA vigente de al menos 2048 bits con keyEncipherment.",
+			SuggestedAction:        m.t("certificado.exportar.accion"),
 			UserCanResolveDirectly: true,
 		}}
 }
@@ -1301,7 +1301,7 @@ func (m *Manejador) handleVerificacion(ctx context.Context, raw json.RawMessage)
 
 func (m *Manejador) handleProtectionRecipients(ctx context.Context) respuesta {
 	if m.Destinatarios == nil {
-		return respuesta{OK: false, Action: "protection_recipients", Error: "catalogo de destinatarios de proteccion no configurado"}
+		return respuesta{OK: false, Action: "protection_recipients", Error: m.t("proteccion.destinatario.libro_no_configurado")}
 	}
 	recipients, err := m.Destinatarios.List(ctx)
 	if err != nil {
@@ -1333,13 +1333,13 @@ func (m *Manejador) handleProtectionRecipientImport(ctx context.Context, raw jso
 	const action = "protection_recipient_import"
 	store, ok := m.Destinatarios.(publicProtectionRecipients)
 	if !ok {
-		return respuesta{OK: false, Action: action, Error: "libro de destinatarios públicos no configurado"}
+		return respuesta{OK: false, Action: action, Error: m.t("proteccion.destinatario.libro_no_configurado")}
 	}
 	var params struct {
 		Path string `json:"path"`
 	}
 	if err := json.Unmarshal(raw, &params); err != nil {
-		return respuesta{OK: false, Action: action, Error: "parámetros no válidos"}
+		return respuesta{OK: false, Action: action, Error: m.t("error.formato_invalido")}
 	}
 	if err := validarRutaLectura(params.Path); err != nil {
 		return respuesta{OK: false, Action: action, Error: err.Error()}
@@ -1350,36 +1350,38 @@ func (m *Manejador) handleProtectionRecipientImport(ctx context.Context, raw jso
 	}
 	recipient, err := store.ImportPublic(ctx, data)
 	if err != nil {
-		message := mensajeRechazoDestinatarioPublico(err)
+		message := m.mensajeRechazoDestinatarioPublico(err)
 		return respuesta{OK: false, Action: action, Error: message, Diagnostic: &resultadoDiagnosticoGuiado{
 			Category: "app_local", UserMessage: message, ExpertMessage: message,
-			SuggestedAction: "Seleccione un certificado X.509 público RSA vigente con permiso de cifrado.", UserCanResolveDirectly: true,
+			SuggestedAction: m.t("proteccion.destinatario.accion"), UserCanResolveDirectly: true,
 		}}
 	}
 	return respuesta{OK: true, Action: action, Data: map[string]string{"id": recipient.ID}}
 }
 
-func mensajeRechazoDestinatarioPublico(err error) string {
+// mensajeRechazoDestinatarioPublico traduce el motivo técnico del rechazo
+// (texto interno del protector) a una frase del catálogo.
+func (m *Manejador) mensajeRechazoDestinatarioPublico(err error) string {
 	message := err.Error()
 	switch {
 	case strings.Contains(message, "clave privada"), strings.Contains(message, "P12/PFX"):
-		return "El fichero contiene una clave privada o es un P12/PFX. Seleccione solo el certificado público .cer, .crt, .pem o .der."
+		return m.t("proteccion.destinatario.clave_privada")
 	case strings.Contains(message, "caducado"):
-		return "El certificado está caducado o todavía no es válido. Solicite un certificado público vigente al destinatario."
+		return m.t("proteccion.destinatario.caducado")
 	case strings.Contains(message, "KeyUsage"):
-		return "El certificado no autoriza el cifrado RSA-OAEP en KeyUsage. Solicite uno con keyEncipherment."
+		return m.t("proteccion.destinatario.key_usage")
 	case strings.Contains(message, "clave pública RSA"):
-		return "El perfil compatible requiere un certificado público RSA de al menos 2048 bits apto para cifrado."
+		return m.t("proteccion.destinatario.rsa")
 	case strings.Contains(message, "64 KiB"):
-		return "El certificado supera el límite de 64 KiB o está vacío."
+		return m.t("proteccion.destinatario.tamano")
 	case strings.Contains(message, "único certificado"):
-		return "Seleccione un único certificado X.509 público en el fichero PEM."
+		return m.t("proteccion.destinatario.unico")
 	case strings.Contains(message, "autoridad"):
-		return "El certificado pertenece a una autoridad, no a un destinatario."
+		return m.t("proteccion.destinatario.autoridad")
 	case strings.Contains(message, "128 destinatarios"):
-		return "El libro ya contiene el máximo de 128 destinatarios importados."
+		return m.t("proteccion.destinatario.maximo")
 	default:
-		return "No se pudo importar el certificado público. Compruebe que sea un X.509 DER o PEM apto para cifrado."
+		return m.t("proteccion.destinatario.generico")
 	}
 }
 
@@ -1387,13 +1389,13 @@ func (m *Manejador) handleProtectionRecipientRemove(ctx context.Context, raw jso
 	const action = "protection_recipient_remove"
 	store, ok := m.Destinatarios.(publicProtectionRecipients)
 	if !ok {
-		return respuesta{OK: false, Action: action, Error: "libro de destinatarios públicos no configurado"}
+		return respuesta{OK: false, Action: action, Error: m.t("proteccion.destinatario.libro_no_configurado")}
 	}
 	var params struct {
 		ID string `json:"id"`
 	}
 	if err := json.Unmarshal(raw, &params); err != nil {
-		return respuesta{OK: false, Action: action, Error: "parámetros no válidos"}
+		return respuesta{OK: false, Action: action, Error: m.t("error.formato_invalido")}
 	}
 	if err := store.RemovePublic(ctx, params.ID); err != nil {
 		return respuesta{OK: false, Action: action, Error: err.Error()}
