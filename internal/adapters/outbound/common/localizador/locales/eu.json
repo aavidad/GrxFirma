@@ -6413,4 +6413,8 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: AEATi egindako kontsultak ondo interpretatzen du haren erantzuna (aurkitua, aurkitu gabea edo egiaztaezina) Windows-en eta Linux-en, eta txostenak abisuak eta erroreak bereizten ditu."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: kontraste ona gai guztietan (argietan ere bai), kontrol-lauki eta eremu irakurgarriak, saguaren gurpilak «Sinatu orain» arte iristen da eta pantailak leiho estuetara egokitzen dira."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: loteak adierazten du zein karpetatan gorde diren sinadurak, zigiluak eta aurrebistak igorle bera erakusten dute, eta Hobespenak eta zigilu-editorea ondo ikusten dira letra handiarekin."
+  ,"El fichero elegido no es un PDF": "Aukeratutako fitxategia ez da PDF bat"
+  ,"El portal pide una firma PAdES, que solo admite documentos PDF, y el fichero elegido no es un PDF. No se ha firmado nada. Vuelva a iniciar la firma en el portal y elija un fichero PDF.": "Atariak PAdES sinadura eskatzen du, eta PDF dokumentuak soilik onartzen ditu; aukeratutako fitxategia ez da PDF bat. Ez da ezer sinatu. Hasi berriro sinadura atarian eta aukeratu PDF fitxategi bat."
+  ,"Ficheros permitidos (%s)": "Baimendutako fitxategiak (%s)"
+  ,"Todos los ficheros (*.*)": "Fitxategi guztiak (*.*)"
 }

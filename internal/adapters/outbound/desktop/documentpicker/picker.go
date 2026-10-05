@@ -30,6 +30,25 @@ func (f ResolveFunc) ResolveDocument(ctx context.Context) (SelectedDocument, err
 	return f(ctx)
 }
 
+// FilteredResolver es un Resolver que sabe limitar los ficheros ofrecidos.
+type FilteredResolver interface {
+	Resolver
+	ResolveDocumentFiltered(ctx context.Context, filter ports.DocumentFilter) (SelectedDocument, error)
+}
+
+// ResolveFilteredFunc adapta una función con filtro a FilteredResolver.
+type ResolveFilteredFunc func(ctx context.Context, filter ports.DocumentFilter) (SelectedDocument, error)
+
+// ResolveDocument ejecuta la función sin filtro.
+func (f ResolveFilteredFunc) ResolveDocument(ctx context.Context) (SelectedDocument, error) {
+	return f(ctx, ports.DocumentFilter{})
+}
+
+// ResolveDocumentFiltered ejecuta la función con el filtro indicado.
+func (f ResolveFilteredFunc) ResolveDocumentFiltered(ctx context.Context, filter ports.DocumentFilter) (SelectedDocument, error) {
+	return f(ctx, filter)
+}
+
 // SelectedDocument representa la carga cruda devuelta por la UI del selector documental.
 type SelectedDocument struct {
 	Name     string
@@ -49,6 +68,13 @@ func Nuevo(resolver Resolver) *Picker {
 
 // Pick abre el selector documental y traduce el resultado a dominio.
 func (p Picker) Pick(ctx context.Context) (domain.Document, error) {
+	return p.PickFiltered(ctx, ports.DocumentFilter{})
+}
+
+// PickFiltered abre el selector limitado a las extensiones del filtro. Si el
+// resolver no sabe filtrar, se abre sin filtro y la validación posterior del
+// contenido sigue protegiendo la firma.
+func (p Picker) PickFiltered(ctx context.Context, filter ports.DocumentFilter) (domain.Document, error) {
 	if err := ctx.Err(); err != nil {
 		return domain.Document{}, err
 	}
@@ -56,7 +82,15 @@ func (p Picker) Pick(ctx context.Context) (domain.Document, error) {
 		return domain.Document{}, errors.New("desktop-document-picker: selector documental no configurado")
 	}
 
-	selected, err := p.resolver.ResolveDocument(ctx)
+	var (
+		selected SelectedDocument
+		err      error
+	)
+	if filtered, ok := p.resolver.(FilteredResolver); ok {
+		selected, err = filtered.ResolveDocumentFiltered(ctx, filter)
+	} else {
+		selected, err = p.resolver.ResolveDocument(ctx)
+	}
 	if err != nil {
 		return domain.Document{}, err
 	}
@@ -72,4 +106,4 @@ func (p Picker) Pick(ctx context.Context) (domain.Document, error) {
 	return domain.NewDocument(name, selected.Content, mimeType)
 }
 
-var _ ports.DocumentPicker = (*Picker)(nil)
+var _ ports.FilteredDocumentPicker = (*Picker)(nil)

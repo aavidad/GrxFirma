@@ -6413,4 +6413,8 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: la consulta a l'AEAT interpreta bé la resposta (trobada, no trobada o no contrastable) en Windows i Linux, i l'informe distingix avisos d'errors."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: bon contrast en tots els temes (també els clars), caselles i camps llegibles, la roda del ratolí arriba fins a «Firma ara» i les pantalles s'adapten a finestres estretes."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: el lot indica en quina carpeta s'han guardat les firmes, el segell i la vista prèvia mostren el mateix emissor, i Preferències i l'editor del segell es veuen bé amb lletra gran."
+  ,"El fichero elegido no es un PDF": "El fitxer triat no és un PDF"
+  ,"El portal pide una firma PAdES, que solo admite documentos PDF, y el fichero elegido no es un PDF. No se ha firmado nada. Vuelva a iniciar la firma en el portal y elija un fichero PDF.": "El portal demana una firma PAdES, que només admet documents PDF, i el fitxer triat no és un PDF. No s'ha firmat res. Torne a iniciar la firma en el portal i trie un fitxer PDF."
+  ,"Ficheros permitidos (%s)": "Fitxers permesos (%s)"
+  ,"Todos los ficheros (*.*)": "Tots els fitxers (*.*)"
 }

@@ -6413,4 +6413,8 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: the AEAT query correctly interprets its response (found, not found or not verifiable) on Windows and Linux, and the report distinguishes warnings from errors."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: good contrast in every theme (including light ones), readable checkboxes and fields, the mouse wheel reaches «Sign now» and screens adapt to narrow windows."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: the batch says which folder the signatures were saved in, the seal and the preview show the same issuer, and Preferences and the seal editor look right with large text."
+  ,"El fichero elegido no es un PDF": "The selected file is not a PDF"
+  ,"El portal pide una firma PAdES, que solo admite documentos PDF, y el fichero elegido no es un PDF. No se ha firmado nada. Vuelva a iniciar la firma en el portal y elija un fichero PDF.": "The portal asks for a PAdES signature, which only accepts PDF documents, and the selected file is not a PDF. Nothing has been signed. Start the signature again from the portal and choose a PDF file."
+  ,"Ficheros permitidos (%s)": "Allowed files (%s)"
+  ,"Todos los ficheros (*.*)": "All files (*.*)"
 }
