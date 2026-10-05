@@ -1,6 +1,10 @@
 package sign
 
 import (
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/hex"
 	"fmt"
 	"math"
@@ -8,9 +12,40 @@ import (
 
 const (
 	signaturePlaceholderBaseLength = 1024
+	// signedAttributesAllowance covers the signed attributes (content type,
+	// signing time, message digest, signing-certificate-v2, policy and
+	// commitment) and the SignerInfo/SignedData structure.
+	signedAttributesAllowance = 1536
+	// defaultSignatureValueLength is used when the key size is unknown: it
+	// fits RSA-8192 and any ECDSA curve.
+	defaultSignatureValueLength = 1024
 	// Bound allocations derived from certificates and revocation responses.
 	maxSignaturePlaceholderLength = 64 << 20
 )
+
+// estimatedSignatureValueLength returns an upper bound of the encoded
+// signature value for the signer's key.
+func estimatedSignatureValueLength(signer crypto.Signer, cert *x509.Certificate) int {
+	var pub crypto.PublicKey
+	if signer != nil {
+		pub = signer.Public()
+	} else if cert != nil {
+		pub = cert.PublicKey
+	}
+	switch k := pub.(type) {
+	case *rsa.PublicKey:
+		if k.N != nil {
+			return (k.N.BitLen()+7)/8 + 16
+		}
+	case *ecdsa.PublicKey:
+		if k.Curve != nil {
+			// DER SEQUENCE of two INTEGERs, each up to the curve size plus a
+			// sign byte.
+			return 2*((k.Curve.Params().BitSize+7)/8+3) + 8
+		}
+	}
+	return defaultSignatureValueLength
+}
 
 func checkedAddUint32(base uint32, delta int) (uint32, error) {
 	delta32, err := checkedUint32(int64(delta), "increment")
