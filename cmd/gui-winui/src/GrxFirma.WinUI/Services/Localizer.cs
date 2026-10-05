@@ -66,15 +66,18 @@ internal static class Localizer
     // avisos se agrupan en un único recorrido diferido, como mucho cada 300 ms.
     // Recorrer el árbol en cada LayoutUpdated dejaba la aplicación consumiendo
     // CPU y memoria sin parar.
-    public static void Attach(FrameworkElement root)
+    // La ventana cierra la puerta devuelta en su evento Closed: el recorrido
+    // que siga en cola al apagarse el despachador ya no toca el árbol.
+    public static DeferredTreePass Attach(FrameworkElement root)
     {
         ArgumentNullException.ThrowIfNull(root);
+        var gate = new DeferredTreePass();
         var pending = false;
         var last = DateTimeOffset.MinValue;
         var queue = root.DispatcherQueue;
         root.LayoutUpdated += (_, _) =>
         {
-            if (pending || queue is null) return;
+            if (pending || queue is null || gate.IsClosed) return;
             pending = true;
             var wait = last + RescanInterval - DateTimeOffset.UtcNow;
             async void Run()
@@ -82,7 +85,7 @@ internal static class Localizer
                 try
                 {
                     if (wait > TimeSpan.Zero) await Task.Delay(wait);
-                    Apply(root);
+                    gate.TryRun(() => Apply(root));
                 }
                 finally
                 {
@@ -94,6 +97,7 @@ internal static class Localizer
         };
         Apply(root);
         last = DateTimeOffset.UtcNow;
+        return gate;
     }
 
     public static void Apply(DependencyObject root)

@@ -62,6 +62,10 @@ public partial class App : Application
         RegistrarErrorNoControlado(e.Exception);
         if (_window is null || e.Exception is null) return;
         e.Handled = true;
+        // Con la ventana ya cerrada la aplicación está saliendo: el fallo
+        // queda registrado y no se intenta mostrar un aviso sobre un árbol
+        // XAML destruido.
+        if (Volatile.Read(ref _windowClosed) != 0) return;
         _window.ShowUnexpectedError(e.Exception);
     }
 
