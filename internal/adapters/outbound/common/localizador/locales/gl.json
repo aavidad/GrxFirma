@@ -54,7 +54,7 @@
   "La tarjeta requiere autorización. Al firmar se pedirá el PIN o la confirmación en el lector; todavía no se ha comprobado el acceso a la clave privada.": "A tarxeta require autorización. Ao asinar pedirase o PIN ou a confirmación no lector; aínda non se comprobou o acceso á clave privada.",
   "identity.local.selector.title": "GrxFirma — Identidade reforzada",
   "identity.local.selector.prompt": "Orixe: %s\nFinalidade: %s\nOperación: %s\n\nSeleccione o certificado que desexa usar.",
-  "identity.local.selector.certificate": "%d · %s · Emisor: %s · Válido ata: %s · Pegada: %s",
+  "identity.local.selector.certificate": "%d · %s · Emisor: %s · Válido ata: %s · Pegada dixital: %s",
   "identity.local.selector.no_expiry": "caducidade non dispoñible",
   "identity.local.selector.use": "Usar certificado",
   "identity.local.selector.cancel": "Cancelar",
@@ -83,11 +83,11 @@
   "Registro de auditoría": "Rexistro de auditoría",
   "Registro de auditoría íntegro: %d registros.": "Rexistro de auditoría íntegro: %d rexistros.",
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Os rexistros máis antigos retiráronse pola política de retención; a cadea compróbase desde o primeiro conservado.",
-  "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d rexistros son anteriores á cadea de pegadas e non se poden comprobar.",
+  "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d rexistros son anteriores á cadea de resumos (hash) e non se poden comprobar.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Comproba a cadea de pegadas do rexistro de auditoría: detecta rexistros alterados, inseridos ou borrados. Para acreditar tamén que non se recortou o final, asina o ficheiro co teu certificado ao entregalo.",
+  "cli.help.audit": "Comproba a cadea de resumos (hash) do rexistro de auditoría: detecta rexistros alterados, inseridos ou borrados. Para acreditar tamén que non se recortou o final, asina o ficheiro co teu certificado ao entregalo.",
   "cli.help.report_usage": "-informe <informe.html>",
-  "cli.help.report": "Coa verificación, garda un informe de validación en HTML imprimible co veredicto, as comprobacións, os asinantes e a pegada SHA-256 do ficheiro verificado.",
+  "cli.help.report": "Coa verificación, garda un informe de validación en HTML imprimible co veredicto, as comprobacións, os asinantes e o resumo SHA-256 do ficheiro verificado.",
   "Informe de validación": "Informe de validación",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Le sen eco o contrasinal dun PDF cifrado (de usuario ou de propietario) para asinalo conservando o seu cifrado. Tamén se admite a variable GRXFIRMA_PDF_PASSWORD, que se borra ao lela; nunca se acepta como argumento.",
@@ -244,11 +244,11 @@
   "Ajustes guardados": "Axustes gardados",
   "Ajustes guardados correctamente": "Axustes gardados correctamente",
   "Ajustes guardados.": "Axustes gardados.",
-  "Al desactivar la cofirma múltiple guiada se restaurarán tus preferencias previas de salida.": "Ao desactivar a cofirma múltiple guiada restauraranse as túas preferencias previas de saída.",
+  "Al desactivar la cofirma múltiple guiada se restaurarán tus preferencias previas de salida.": "Ao desactivar a cosinatura múltiple guiada restauraranse as túas preferencias previas de saída.",
   "Al iniciar, selecciona automáticamente el último certificado usado para firmar.": "No inicio, selecciona automaticamente o último certificado utilizado para a sinatura.",
   "Algoritmo": "Algoritmo",
   "Algoritmo de huella por defecto": "Algoritmo de pegada por defecto",
-  "Algoritmo en auto-detección desde la huella o el manifiesto.": "Algoritmo en autodetección desde a pegada ou o manifesto.",
+  "Algoritmo en auto-detección desde la huella o el manifiesto.": "Algoritmo en autodetección desde o resumo ou o manifesto.",
   "Algoritmo forzado para la comprobación: ": "Algoritmo forzado para a comprobación: ",
   "Almacen seguro de proxy": "Almacén seguro do proxy",
   "Almacén TLS limpiado.": "Almacén TLS limpado.",
@@ -287,7 +287,7 @@
   "Arrastra o selecciona un PDF": "Arrastra ou selecciona un PDF",
   "Arrastra un archivo firmado para verificar": "Arrastra un ficheiro asinado para verificalo",
   "Artefacto a verificar": "Artefacto para verificar",
-  "Artefacto de huella esperado: ": "Artefacto de pegada esperado: ",
+  "Artefacto de huella esperado: ": "Artefacto de resumo esperado: ",
   "Artefacto esperado": "Artefacto esperado",
   "Artefacto firmado y original preparados para validación avanzada.": "Artefacto asinado e orixinal preparados para validación avanzada.",
   "Artefacto protegido esperado: ": "Artefacto protexido esperado: ",
@@ -321,7 +321,7 @@
   "Avisos:": "Avisos:",
   "Ayuda": "Axuda",
   "Ayuda paso a paso para la operación actual": "Axuda paso a paso para a operación actual",
-  "Añade al menos un cofirmante adicional para completar la cofirma múltiple guiada.": "Engade polo menos un coasinante adicional para completar a cofirma múltiple guiada.",
+  "Añade al menos un cofirmante adicional para completar la cofirma múltiple guiada.": "Engade polo menos un coasinante adicional para completar a cosinatura múltiple guiada.",
   "Añade el original solo si la firma es detached o la validación lo pide.": "Engade o orixinal só se a sinatura é detached ou a validación o pide.",
   "Añadiendo nuevo dominio a la lista...": "Engadindo un novo dominio á lista...",
   "Añadir Dominio": "Engadir dominio",
@@ -341,7 +341,7 @@
   "Backend local disponible.": "Backend local dispoñible.",
   "Backend:": "Backend:",
   "Base64": "Base64",
-  "Base64 del digest de la política": "Base64 do dixesto da política",
+  "Base64 del digest de la política": "Base64 do resumo da política",
   "Baseline B": "Baseline B",
   "Baseline B/T aplica a PAdES, CAdES y XAdES. LT/LTA solo aplica de forma efectiva a CAdES.": "Baseline B/T aplícase a PAdES, CAdES e XAdES. LT/LTA só se aplica de forma efectiva a CAdES.",
   "Baseline T": "Baseline T",
@@ -462,7 +462,7 @@
   "Compatibilidad de validación no evaluable sin ambos artefactos.": "A compatibilidade de validación non é avaliable sen ambos os artefactos.",
   "Compatibilidad estricta": "Compatibilidade estrita",
   "Comprobación de directorio finalizada.": "Comprobación do directorio finalizada.",
-  "Comprobación de huella finalizada.": "Comprobación da pegada finalizada.",
+  "Comprobación de huella finalizada.": "Comprobación do resumo finalizada.",
   "Comprobación online del certificado": "Comprobación en liña do certificado",
   "Comprobación online del certificado finalizada.": "Comprobación en liña do certificado finalizada.",
   "Comprobado: ": "Comprobado: ",
@@ -533,7 +533,7 @@
   "Copiar JSON de verificación": "Copiar JSON da verificación",
   "Copiar JSON del certificado": "Copiar JSON do certificado",
   "Copiar diagnóstico": "Copiar diagnóstico",
-  "Copiar huella": "Copiar pegada",
+  "Copiar huella": "Copiar pegada dixital",
   "Copiar huella al portapapeles por defecto": "Copiar a pegada ao portapapeis por defecto",
   "Copiar informe": "Copiar informe",
   "Copiar resumen": "Copiar resumo",
@@ -679,8 +679,8 @@
   "El QR se incorporará dentro del sello visible.": "O QR incorporarase dentro do selo visible.",
   "El almacén seguro de secretos de proxy está disponible para este backend local.": "O almacén seguro de segredos do proxy está dispoñible para este backend local.",
   "El almacén seguro de secretos de proxy no está listo; el proxy autenticado puede quedar limitado en este equipo.": "O almacén seguro de segredos do proxy non está listo; o proxy autenticado pode quedar limitado neste equipo.",
-  "El artefacto de huella coincide con el modo seleccionado.": "O artefacto de pegada dixital coincide co modo seleccionado.",
-  "El artefacto de huella parece de ": "O artefacto de pegada dixital semella ser de ",
+  "El artefacto de huella coincide con el modo seleccionado.": "O artefacto de resumo coincide co modo seleccionado.",
+  "El artefacto de huella parece de ": "O artefacto de resumo semella ser de ",
   "El backend no está preparado para comprobar online el certificado.": "O backend non está preparado para comprobar en liña o certificado.",
   "El backend seguro de proxy esta disponible para este firmador local.": "O backend seguro do proxy está dispoñible para este asinador local.",
   "El backend seguro de proxy no esta listo; el proxy autenticado puede quedar limitado en este equipo.": "O backend seguro do proxy non está listo; o proxy autenticado pode quedar limitado neste equipo.",
@@ -942,13 +942,13 @@
   "Haz la operación y vuelve aquí si algo no queda claro.": "Fai a operación e volve aquí se algo non queda claro.",
   "Hexadecimal": "Hexadecimal",
   "Host / IP:": "Host/IP:",
-  "Huella": "Pegada",
+  "Huella": "Pegada dixital",
   "Huella SHA-256: ": "Pegada dixital SHA-256: ",
   "Huella copiada al portapapeles.": "Pegada copiada ao portapapeis.",
   "Huella del certificado copiada al portapapeles.": "Pegada dixital do certificado copiada ao portapapeis.",
-  "Huella o manifiesto": "Pegada ou manifesto",
+  "Huella o manifiesto": "Resumo ou manifesto",
   "Huella o manifiesto: ": "Pegada ou manifesto: ",
-  "Huella válida.": "Pegada válida.",
+  "Huella válida.": "Resumo válido.",
   "Huella: ": "Pegada: ",
   "Huellas de Certificados Cliente (SHA-256 CSV):": "Pegadas dixitais do certificado do cliente (SHA-256 CSV):",
   "Huellas e integridad": "Pegadas e integridade",
@@ -1023,7 +1023,7 @@
   "La firma ha fallado": "A sinatura fallou",
   "La firma se guardara en la ruta de salida indicada y, si activas base64, tambien volvera al navegador.": "A sinatura gardarase na ruta de saída indicada e, se activas base64, tamén volverá ao navegador.",
   "La firma visible solo se aplica a PAdES (PDF).": "A sinatura visible só se aplica a PAdES (PDF).",
-  "La huella no coincide con el fichero.": "A pegada non coincide co ficheiro.",
+  "La huella no coincide con el fichero.": "O resumo non coincide co ficheiro.",
   "La imagen seleccionada solo vive en esta sesión web local y no se guarda como ajuste persistente.": "A imaxe seleccionada só vive nesta sesión web local e non se garda como axuste persistente.",
   "La incidencia exportable se generará al preparar un informe para soporte.": "A incidencia exportable xerarase ao preparar un informe para soporte.",
   "La incidencia ya está guardada en local y se enviará solo al destino HTTPS que indiques.": "A incidencia xa está gardada en local e enviarase só ao destino HTTPS que indiques.",
@@ -1074,7 +1074,7 @@
   "Lote o selección múltiple": "Lote ou selección múltiple",
   "Lote: ": "Lote: ",
   "Lugar de firma FacturaE": "Lugar de sinatura FacturaE",
-  "Manifiesto de huellas generado.": "Manifesto de pegadas xerado.",
+  "Manifiesto de huellas generado.": "Manifesto de resumos xerado.",
   "Mantener esta sesión web en segundo plano al cerrar": "Manter esta sesión web en segundo plano ao pechar",
   "Mantener texto sobre imagen por defecto": "Manter texto sobre imaxe por defecto",
   "Mantener texto sobre la imagen": "Mantén o texto na imaxe",
@@ -1174,10 +1174,10 @@
   "No se pudo determinar la compatibilidad exacta del par.": "Non se puido determinar a compatibilidade exacta do par.",
   "No se pudo enviar la petición IPC: ": "Non se puido enviar a petición IPC: ",
   "No se pudo estimar el stack de firma probable.": "Non se puido estimar a pila de sinatura probable.",
-  "No se pudo inferir el artefacto esperado de huella.": "Non se puido inferir o artefacto esperado da pegada.",
+  "No se pudo inferir el artefacto esperado de huella.": "Non se puido inferir o artefacto esperado do resumo.",
   "No se pudo inferir el artefacto firmado esperado.": "Non se puido inferir o artefacto asinado esperado.",
   "No se pudo inferir el contenedor protegido por extensión.": "Non se puido inferir o contedor protexido pola extensión.",
-  "No se pudo inferir el tipo del artefacto de huella.": "Non se puido inferir o tipo do artefacto da pegada.",
+  "No se pudo inferir el tipo del artefacto de huella.": "Non se puido inferir o tipo do artefacto do resumo.",
   "No se pudo inferir el tipo probable del firmado.": "Non se puido inferir o tipo probable do asinado.",
   "No se pudo leer el log en %s\n\n%s": "Non se puido ler o rexistro en %s\n\n%s",
   "No se pudo localizar el destinatario seleccionado.": "Non se puido localizar o destinatario seleccionado.",
@@ -1286,10 +1286,10 @@
   "Pendiente de artefacto protegido.": "Pendente de artefacto protexido.",
   "Pendiente de documento firmado": "Pendente de documento asinado",
   "Pendiente de firmado para estimar el stack.": "Pendente de asinado para estimar a pila.",
-  "Pendiente de huella o manifiesto": "Pendente de pegada ou manifesto",
+  "Pendiente de huella o manifiesto": "Pendente de resumo ou manifesto",
   "Pendiente de origen": "Pendente de orixe",
-  "Pendiente de origen o huella para comprobar.": "Pendente de orixe ou pegada para comprobar.",
-  "Pendiente de origen para crear huella.": "Pendente de orixe para crear a pegada.",
+  "Pendiente de origen o huella para comprobar.": "Pendente de orixe ou resumo para comprobar.",
+  "Pendiente de origen para crear huella.": "Pendente de orixe para crear o resumo.",
   "Pendiente de origen para desproteger.": "Pendente de orixe para desprotexer.",
   "Pendiente de origen para firmar.": "Pendente de orixe para asinar.",
   "Pendiente de pareja de validación.": "Pendente de parella de validación.",
@@ -1316,9 +1316,9 @@
   "Plan de desprotección listo.": "Plan de desprotección listo.",
   "Plan de firma": "Plan de sinatura",
   "Plan de firma listo.": "Plan de sinatura listo.",
-  "Plan de huella": "Plan de pegada",
-  "Plan de huella listo para fichero.": "Plan de pegada listo para ficheiro.",
-  "Plan de huella listo para manifiesto de directorio.": "Plan de pegada listo para manifesto de directorio.",
+  "Plan de huella": "Plan de resumo",
+  "Plan de huella listo para fichero.": "Plan de resumo listo para ficheiro.",
+  "Plan de huella listo para manifiesto de directorio.": "Plan de resumo listo para manifesto de directorio.",
   "Plan de validación": "Plan de validación",
   "Plan de validación listo con original de referencia.": "Plan de validación listo con orixinal de referencia.",
   "Plan de validación listo sin documento original.": "Plan de validación listo sen documento orixinal.",
@@ -1496,7 +1496,7 @@
   "Rotación del sello visible por defecto": "Rotación do selo visible por defecto",
   "Ruta de salida": "Ruta de saída",
   "Ruta de salida opcional": "Ruta de saída opcional",
-  "Ruta del fichero de huella": "Ruta do ficheiro de pegada",
+  "Ruta del fichero de huella": "Ruta do ficheiro de resumo",
   "Ruta del informe (.hashreport)": "Ruta do informe (.hashreport)",
   "Ruta del manifiesto": "Ruta do manifesto",
   "Ruta desprotegida": "Ruta desprotexida",
@@ -1757,7 +1757,7 @@
   "Usar logo GrxFirma": "Usar logotipo de GrxFirma",
   "Usar solo certificados de firma": "Usar só certificados de sinatura",
   "Usuario": "Usuario",
-  "Utilidades de huellas": "Utilidades de pegadas",
+  "Utilidades de huellas": "Utilidades de resumos (hash)",
   "VERIFICAR": "VALIDAR",
   "Vaciar Almacén TLS": "Baleirar almacén TLS",
   "Vaciar almacén TLS local": "Baleirar o almacén TLS local",
@@ -1985,7 +1985,7 @@
   "fileHelp": "fileHelp",
   "filesSelectedCount": "filesSelectedCount",
   "format": "format",
-  "formatConfigFacturaEHash": "Pegada da política",
+  "formatConfigFacturaEHash": "Resumo da política",
   "formatConfigFacturaEIdentifier": "Identificador da política",
   "formatConfigFacturaENone": "Sen configuración específica de FacturaE",
   "formatConfigFacturaEPlace": "Lugar da sinatura",
@@ -2503,7 +2503,7 @@
   "Usar certificado sin instalar": "Usar o certificado sen instalar",
   "Usar certificado solo durante esta sesión": "Usar o certificado só durante esta sesión",
   "Validación avanzada": "Validación avanzada",
-  "Comprueba firmas, certificados y huellas sin enviar documentos fuera de este equipo.": "Comproba sinaturas, certificados e pegadas sen enviar documentos fóra deste equipo.",
+  "Comprueba firmas, certificados y huellas sin enviar documentos fuera de este equipo.": "Comproba sinaturas, certificados e resumos (hash) sen enviar documentos fóra deste equipo.",
   "Selecciona un certificado del catálogo local para revisar su vigencia y estado de revocación.": "Selecciona un certificado do catálogo local para revisar a súa vixencia e o estado de revogación.",
   "Entrada": "Entrada",
   "No válido": "Non válido",
@@ -2512,7 +2512,7 @@
   "Selecciona primero los ficheros necesarios.": "Selecciona primeiro os ficheiros necesarios.",
   "informe-validacion.json": "informe-validacion.json",
   "informe-certificado.json": "informe-certificado.json",
-  "informe-huella.json": "informe-pegada.json",
+  "informe-huella.json": "informe-resumo.json",
   "El backend no está preparado para validar el certificado.": "O backend non está preparado para validar o certificado.",
   "No se pudo acceder al almacén de confianza del sistema.": "Non se puido acceder ao almacén de confianza do sistema.",
   "El almacén de confianza del sistema está vacío.": "O almacén de confianza do sistema está baleiro.",
@@ -2588,21 +2588,21 @@
   ,"Este CMS genérico es EncryptedData y usa una clave transitoria": "Este CMS xenérico é EncryptedData e usa unha clave transitoria"
   ,"Introduzca la misma clave AES-256 en Base64 usada al proteger. Se enviará una sola vez al motor local y no se guardará.": "Introduza a mesma clave AES-256 en Base64 usada ao protexer. Enviarase unha soa vez ao motor local e non se gardará."
   ,"La clave transitoria debe ser Base64 canónico de 32 bytes (44 caracteres).": "A clave transitoria debe ser Base64 canónico de 32 bytes (44 caracteres)."
-  ,"Calculando huella...": "Calculando a pegada..."
+  ,"Calculando huella...": "Calculando o resumo..."
   ,"Indica una ruta local de directorio para generar el manifiesto.": "Indica unha ruta local de directorio para xerar o manifesto."
   ,"Selecciona un fichero o indica una ruta local.": "Selecciona un ficheiro ou indica unha ruta local."
   ,"Descargar manifiesto": "Baixar manifesto"
   ,"Entradas": "Entradas"
-  ,"Manifiesto hash de directorio generado.": "Manifesto de pegadas do directorio xerado."
-  ,"Descargar huella": "Baixar pegada"
-  ,"Huella generada correctamente.": "Pegada xerada correctamente."
-  ,"Huella generada.": "Pegada xerada."
-  ,"Error al generar huella: ": "Erro ao xerar a pegada: "
+  ,"Manifiesto hash de directorio generado.": "Manifesto de resumos do directorio xerado."
+  ,"Descargar huella": "Baixar resumo"
+  ,"Huella generada correctamente.": "Resumo xerado correctamente."
+  ,"Huella generada.": "Resumo xerado."
+  ,"Error al generar huella: ": "Erro ao xerar o resumo: "
   ,"Comprobando integridad...": "Comprobando a integridade..."
   ,"Indica una ruta local de directorio para comprobar el manifiesto.": "Indica unha ruta local de directorio para comprobar o manifesto."
-  ,"Selecciona un fichero de huella/manifiesto o indica su ruta.": "Selecciona un ficheiro de pegada ou manifesto, ou indica a súa ruta."
+  ,"Selecciona un fichero de huella/manifiesto o indica su ruta.": "Selecciona un ficheiro de resumo ou manifesto, ou indica a súa ruta."
   ,"Esperada": "Esperada"
-  ,"Error al comprobar huella: ": "Erro ao comprobar a pegada: "
+  ,"Error al comprobar huella: ": "Erro ao comprobar o resumo: "
   ,"ACERCA DE": "ACERCA DE"
   ,"Acerca de": "Acerca de"
   ,"Acerca de GrxFirma": "Acerca de GrxFirma"
@@ -2856,7 +2856,7 @@
   ,"facturae.error.number": "Indique un número de factura válido (máximo 20 caracteres)."
   ,"facturae.error.output": "Non se puido gardar o XML. Escolla un ficheiro .xml nun cartafol onde poida escribir."
   ,"facturae.error.party": "Revise o NIF e o nome ou razón social de ambas as partes."
-  ,"facturae.error.payment": "Indique un IBAN válido e un vencemento posterior á expedición."
+  ,"facturae.error.payment": "Indique xuntos un IBAN válido e un vencemento posterior á expedición."
   ,"facturae.face_note": "FACe ábrese no navegador. Asine a factura antes de enviala; abrir FACe non a remite automaticamente."
   ,"facturae.file_reference": "Referencia do expediente (opcional)"
   ,"facturae.first_surname": "Primeiro apelido"
@@ -4876,7 +4876,7 @@
   ,"verifactu.signed": "O rexistro xa está asinado."
   ,"verifactu.key": "Cómpre unha clave RSA cun certificado vixente e apto para asinar."
   ,"verifactu.input": "Escolla un ficheiro XML ou un cartafol de rexistros accesible."
-  ,"verifactu.hash": "O rexistro modificouse despois de xerarse: a súa pegada non coincide. Pídalle ao seu programa de facturación que o volva xerar."
+  ,"verifactu.hash": "O rexistro modificouse despois de xerarse: o seu resumo (hash) non coincide. Pídalle ao seu programa de facturación que o volva xerar."
   ,"verifactu.chain": "Este rexistro non enlaza co anterior da serie. Comprobe que o cartafol contén todos os rexistros en orde."
   ,"verifactu.duplicate": "Hai rexistros coa mesma pegada na cadea."
   ,"verifactu.previous_missing": "O rexistro anterior non está na selección. Non se pode comprobar esta ligazón da cadea."
@@ -4887,7 +4887,7 @@
   ,"verifactu.empty": "A selección non contén rexistros XML."
   ,"verifactu.valid": "Rexistro comprobado sen erros."
   ,"verifactu.invalid": "O rexistro presenta erros."
-  ,"verifactu.hash_label": "Pegada calculada"
+  ,"verifactu.hash_label": "Resumo calculado"
   ,"verifactu.choose": "Escoller rexistro XML"
   ,"verifactu.folder": "Escoller cartafol de rexistros"
   ,"verifactu.qr_title": "Ler QR tributario"
@@ -4906,7 +4906,7 @@
   ,"verifactu.output": "Garde o informe nun ficheiro distinto do rexistro de entrada."
   ,"verifactu.root_detail": "A raíz debe ser RegistroAlta, RegistroAnulacion ou RegistroEvento, co espazo de nomes da AEAT."
   ,"verifactu.profile_detail": "A sinatura non cumpre o perfil XAdES envolto coa política AGE e RSA-SHA256 ou RSA-SHA512."
-  ,"verifactu.hash_detail": "A pegada non coincide coa calculada a partir dos campos do rexistro."
+  ,"verifactu.hash_detail": "O resumo non coincide co calculado a partir dos campos do rexistro."
   ,"verifactu.chain_detail": "O encadeamento, a identidade do rexistro anterior ou a orde das datas non coincide."
   ,"verifactu.signature_detail": "A sinatura XAdES está alterada ou non abrangue o rexistro completo."
   ,"verifactu.export": "Exportar o informe Veri*Factu"
@@ -5475,16 +5475,16 @@
   ,"winui.firmar.documento_s_certificado_y_salida": "{0} documento(s), certificado e saída preparados para a sinatura por lotes."
   ,"winui.firmar.no_hay_certificados_aptos_para_firma_en": "Non hai certificados aptos para asinar no almacén."
   ,"winui.firmar.seleccione_al_menos_un_certificado_3": "Seleccione polo menos un certificado adicional para a coasinatura múltiple guiada."
-  ,"winui.firmar.documento_y_firmantes_preparados_para_la": "Documento e asinantes preparados para a coasinatura múltiple guiada."
+  ,"winui.firmar.documento_y_firmantes_preparados_para_la": "Documento e asinantes preparados para a cosinatura múltiple guiada."
   ,"winui.firmar.documento_y_certificado_preparados_para": "Documento e certificado preparados para asinar."
   ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato_2": "O selo visible require un PDF, formato PAdES ou Automático e pdf_preview dispoñible."
   ,"winui.firmar.cargue_la_previsualizacion_real_del_pdf": "Cargue a previsualización real do PDF antes de asinar cun selo visible."
   ,"winui.firmar.windows_esta_comprobando_la_imagen_de": "Windows está comprobando a imaxe de previsualización. Agarde antes de asinar."
-  ,"winui.firmar.documento_firmantes_y_sello_visible": "Documento, asinantes e selo visible preparados para a coasinatura múltiple guiada."
+  ,"winui.firmar.documento_firmantes_y_sello_visible": "Documento, asinantes e selo visible preparados para a cosinatura múltiple guiada."
   ,"winui.firmar.documento_certificado_y_sello_visible": "Documento, certificado e selo visible preparados para asinar."
   ,"winui.firmar.no_se_ha_ejecutado_ninguna_firma_con": "Non se executou ningunha sinatura con esta selección."
   ,"winui.firmar.el_motor_local_no_ha_publicado_sign": "O motor local non publicou sign_multicosign."
-  ,"winui.firmar.la_cofirma_multiple_guiada_admite_firma": "A coasinatura múltiple guiada admite Sinatura ou Coasinatura, pero non Contrasinatura."
+  ,"winui.firmar.la_cofirma_multiple_guiada_admite_firma": "A cosinatura múltiple guiada admite Sinatura ou Cosinatura, pero non Contrasinatura."
   ,"winui.firmar.disponible_unicamente_para_pades_odf_u": "Dispoñible só para PAdES, ODF ou OOXML. En Automático utilízase o tipo de documento."
   ,"winui.firmar.se_necesitan_al_menos_dos_certificados": "Precísanse polo menos dous certificados de sinatura distintos."
   ,"winui.firmar.activela_para_aplicar_primero_el": "Actívea para aplicar primeiro o certificado principal e despois os adicionais."
@@ -5559,7 +5559,7 @@
   ,"winui.firmar.la_carpeta_del_documento_firmado_ya_no": "O cartafol do documento asinado xa non está dispoñible. Comprobe o destino de gardado."
   ,"winui.firmar.motivo": "motivo"
   ,"winui.firmar.contacto": "contacto"
-  ,"winui.certificados.la_aptitud_se_basa_en_la_informacion": "A aptitude baséase na información local. Use «Actualizar a validez en liña» para consultar a revogación."
+  ,"winui.certificados.la_aptitud_se_basa_en_la_informacion": "A aptitude baséase na información local. Use «Actualizar validez en liña» para consultar a revogación."
   ,"winui.certificados.ficha_completa_del_certificado": "Ficha completa do certificado"
   ,"winui.certificados.verificar_certificado": "Verificar o certificado"
   ,"winui.comun.cerrar": "Pechar"
@@ -5599,7 +5599,7 @@
   ,"winui.certificados.desconocido": "Descoñecido"
   ,"winui.certificados.dias_caducado": "Días desde a caducidade"
   ,"winui.certificados.dias_restantes": "Días restantes"
-  ,"winui.certificados.huella_sha_256": "Pegada SHA-256"
+  ,"winui.certificados.huella_sha_256": "Pegada dixital SHA-256"
   ,"winui.certificados.no_serie_nif": "N.º de serie / NIF"
   ,"winui.certificados.persona_fisica": "Persoa física"
   ,"winui.certificados.representante_de_entidad": "Representante de entidade"
@@ -6044,7 +6044,7 @@
   ,"winui.ventana.ver_novedades": "Ver novidades"
   ,"winui.ventana.ahora_no": "Agora non"
   ,"winui.comun.verificar": "Verificar"
-  ,"winui.ventana.huellas": "Pegadas dixitais"
+  ,"winui.ventana.huellas": "Resumos (hash)"
   ,"winui.comun.facturae_y_face": "Facturae, FACe e Veri*Factu"
   ,"winui.comun.acerca_de": "Acerca de"
   ,"winui.ventana.hay_una_version_nueva_de_grxfirma_1": "Hai unha nova versión de GrxFirma (%1). Tes a %2."
@@ -6074,7 +6074,7 @@
   ,"winui.selector.firma_xades": "Sinatura XAdES"
   ,"winui.selector.firma_xmldsig": "Sinatura XMLDSig"
   ,"winui.selector.contenedor_asic": "Contedor ASiC"
-  ,"winui.selector.informe_de_huella": "Informe de pegada dixital"
+  ,"winui.selector.informe_de_huella": "Informe de resumo (hash)"
   ,"winui.selector.documento_protegido": "Documento protexido"
   ,"winui.selector.sobre_protegido_grxfirma": "Sobre protexido de GrxFirma"
   ,"winui.selector.informe_de_diagnostico": "Informe de diagnóstico"
@@ -6207,45 +6207,45 @@
   ,"winui.huella.xml_grxfirma_hashfiles": "XML GrxFirma (.hashfiles)"
   ,"winui.huella.texto_grxfirma_txthashfiles": "Texto GrxFirma (.txthashfiles)"
   ,"winui.huella.csv_csv": "CSV (.csv)"
-  ,"winui.huella.crear_huella": "Crear pegada"
-  ,"winui.huella.seleccione_una_operacion_y_un_origen": "Seleccione unha operación e unha orixe para crear ou comprobar unha pegada dixital."
+  ,"winui.huella.crear_huella": "Crear resumo"
+  ,"winui.huella.seleccione_una_operacion_y_un_origen": "Seleccione unha operación e unha orixe para crear ou comprobar un resumo."
   ,"winui.huella.sin_evidencias_del_motor_local": "Sen evidencias do motor local."
-  ,"winui.huella.crea_o_comprueba_huellas_de_ficheros_y": "Crea ou comproba pegadas dixitais de ficheiros e directorios sen asinar o contido."
-  ,"winui.huella.las_huellas_no_estan_disponibles_porque": "As pegadas dixitais non están dispoñibles porque o motor local non publicou todas as operacións necesarias."
-  ,"winui.huella.comprobar_huella": "Comprobar pegada"
+  ,"winui.huella.crea_o_comprueba_huellas_de_ficheros_y": "Crea ou comproba resumos (hash) de ficheiros e directorios sen asinar o contido."
+  ,"winui.huella.las_huellas_no_estan_disponibles_porque": "Os resumos non están dispoñibles porque o motor local non publicou todas as operacións necesarias."
+  ,"winui.huella.comprobar_huella": "Comprobar resumo"
   ,"winui.huella.formato_de_manifiesto_no_admitido": "Formato de manifesto non admitido"
   ,"winui.huella.manifiesto_no_valido": "Manifesto non válido"
   ,"winui.huella.seleccione_un_manifiesto_hashfiles": "Seleccione un manifesto .hashfiles, .txthashfiles, .csv, .xml ou .txt. Un .hashreport é un informe de saída, non un manifesto."
-  ,"winui.huella.seleccione_una_huella_hexhash_hashb64_o": "Seleccione unha pegada dixital .hexhash, .hashb64 ou .hash. Un .hashreport é un informe de saída, non unha pegada de entrada."
-  ,"winui.huella.creando_huella": "Creando a pegada dixital…"
-  ,"winui.huella.comprobando_huella": "Comprobando a pegada dixital…"
+  ,"winui.huella.seleccione_una_huella_hexhash_hashb64_o": "Seleccione un resumo .hexhash, .hashb64 ou .hash. Un .hashreport é un informe de saída, non un resumo de entrada."
+  ,"winui.huella.creando_huella": "Creando o resumo…"
+  ,"winui.huella.comprobando_huella": "Comprobando o resumo…"
   ,"winui.huella.el_motor_local_esta_procesando_el": "O motor local está procesando o contido seleccionado."
   ,"winui.comun.la_operacion_se_detuvo_antes_de_obtener": "A operación detívose antes de obter un resultado."
-  ,"winui.huella.la_operacion_termino_sin_un_resultado_de": "A operación rematou sen un resultado de pegada dixital."
+  ,"winui.huella.la_operacion_termino_sin_un_resultado_de": "A operación rematou sen un resultado de resumo."
   ,"winui.huella.falta_el_manifiesto": "Falta o manifesto"
-  ,"winui.huella.seleccione_el_fichero_de_huella_o": "Seleccione o ficheiro de pegada dixital ou manifesto que se vai comprobar."
-  ,"winui.huella.huella_creada": "Pegada dixital creada"
-  ,"winui.huella.la_huella_se_ha_creado_y_guardado": "A pegada dixital creouse e gardouse mediante o motor local."
+  ,"winui.huella.seleccione_el_fichero_de_huella_o": "Seleccione o ficheiro de resumo ou manifesto que se vai comprobar."
+  ,"winui.huella.huella_creada": "Resumo creado"
+  ,"winui.huella.la_huella_se_ha_creado_y_guardado": "O resumo creouse e gardouse mediante o motor local."
   ,"winui.huella.algoritmo_formato_salida": "Algoritmo: {0}. Formato: {1}. Saída: {2}."
   ,"winui.huella.entradas_incluidas": "Entradas incluídas: {0}"
   ,"winui.huella.se_incluyeron_subdirectorios": "Incluíronse subdirectorios."
   ,"winui.huella.no_se_incluyeron_subdirectorios": "Non se incluíron subdirectorios."
-  ,"winui.huella.huella": "Pegada dixital: {0}"
+  ,"winui.huella.huella": "Resumo: {0}"
   ,"winui.huella.no_disponible": "non dispoñible"
-  ,"winui.huella.la_huella_coincide": "A pegada dixital coincide"
-  ,"winui.huella.la_huella_no_coincide": "A pegada dixital non coincide"
-  ,"winui.huella.el_contenido_comprobado_coincide_con_la": "O contido comprobado coincide coa pegada dixital gardada."
+  ,"winui.huella.la_huella_coincide": "O resumo coincide"
+  ,"winui.huella.la_huella_no_coincide": "O resumo non coincide"
+  ,"winui.huella.el_contenido_comprobado_coincide_con_la": "O contido comprobado coincide co resumo gardado."
   ,"winui.huella.el_contenido_ha_cambiado_falta": "O contido cambiou, falta información ou o manifesto non corresponde á orixe."
   ,"winui.huella.algoritmo_detectado_formato": "Algoritmo detectado: {0}. Formato: {1}."
   ,"winui.huella.esperada": "Esperada: {0}"
   ,"winui.huella.calculada": "Calculada: {0}"
   ,"winui.huella.no_coincide": "Non coincide"
   ,"winui.huella.sin_fichero": "Sen ficheiro"
-  ,"winui.huella.sin_huella": "Sen pegada dixital"
+  ,"winui.huella.sin_huella": "Sen resumo"
   ,"winui.huella.informe_de_comprobacion": "Informe de comprobación: {0}"
-  ,"winui.huella.motor_local_listo_para_crear_y_comprobar": "Motor local preparado para crear e comprobar pegadas dixitais."
+  ,"winui.huella.motor_local_listo_para_crear_y_comprobar": "Motor local preparado para crear e comprobar resumos."
   ,"winui.comun.resultado_no_utilizable": "Resultado non utilizable"
-  ,"winui.huella.el_motor_local_no_devolvio_datos_de": "O motor local non devolveu datos de pegada dixital coherentes."
+  ,"winui.huella.el_motor_local_no_devolvio_datos_de": "O motor local non devolveu datos de resumo coherentes."
   ,"winui.huella.revise_los_datos_seleccionados_antes_de": "Revise os datos seleccionados antes de continuar."
   ,"winui.huella.elemento_sin_nombre": "elemento sen nome"
   ,"winui.huella.xml_grxfirma": "XML GrxFirma"
@@ -6325,7 +6325,7 @@
   ,"winui.selector.nombre_certificado_publico": "certificado-publico"
   ,"winui.selector.nombre_firma": "sinatura"
   ,"winui.selector.nombre_contenedor_firmado": "contedor-asinado"
-  ,"winui.selector.nombre_informe_huella": "informe-pegada"
+  ,"winui.selector.nombre_informe_huella": "informe-resumo"
   ,"winui.selector.nombre_documento_protegido_firmado": "documento-protexido-asinado"
   ,"winui.selector.nombre_diagnostico": "diagnostico"
   ,"sign.need_certificate": "Escolla un certificado para poder asinar."
@@ -6346,8 +6346,8 @@
   ,"verifactu.qr_empty": "Pegue o URL do QR ou escolla unha imaxe."
   ,"verifactu.field.file": "Ficheiro"
   ,"verifactu.field.signature": "Sinatura"
-  ,"verifactu.field.hash": "Pegada"
-  ,"verifactu.field.hash_type": "Tipo de pegada"
+  ,"verifactu.field.hash": "Resumo (hash)"
+  ,"verifactu.field.hash_type": "Tipo de resumo"
   ,"verifactu.field.date": "Data e hora do rexistro"
   ,"verifactu.field.chain": "Encadeamento"
   ,"verifactu.field.element": "Campo «%1» do rexistro"
