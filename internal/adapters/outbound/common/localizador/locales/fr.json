@@ -54,7 +54,7 @@
   "La tarjeta requiere autorización. Al firmar se pedirá el PIN o la confirmación en el lector; todavía no se ha comprobado el acceso a la clave privada.": "La carte nécessite une autorisation. Lors de la signature, vous devrez saisir le code PIN ou confirmer sur le lecteur ; l’accès à la clé privée n’a pas encore été vérifié.",
   "identity.local.selector.title": "GrxFirma — Identité renforcée",
   "identity.local.selector.prompt": "Origine : %s\nFinalité : %s\nOpération : %s\n\nSélectionnez le certificat à utiliser.",
-  "identity.local.selector.certificate": "%d · %s · Émetteur : %s · Valide jusqu’au : %s · Empreinte : %s",
+  "identity.local.selector.certificate": "%d · %s · Émetteur : %s · Valide jusqu’au : %s · Empreinte numérique : %s",
   "identity.local.selector.no_expiry": "date d’expiration indisponible",
   "identity.local.selector.use": "Utiliser le certificat",
   "identity.local.selector.cancel": "Annuler",
@@ -163,7 +163,7 @@
   " y no coincide con el modo actual.": " et ne correspond pas au mode actuel.",
   " | No coinciden: ": " | Ne correspondent pas : ",
   " | Sin fichero: ": " | Sans fichier : ",
-  " | Sin hash: ": " | Sans empreinte : ",
+  " | Sin hash: ": " | Sans hachage : ",
   "%1 cert.": "%1 cert.",
   "%1 documento(s) en lote": "%1 document(s) dans le lot",
   "%1 ficheros seleccionados": "%1 fichiers sélectionnés",
@@ -533,7 +533,7 @@
   "Copiar JSON de verificación": "Copier le JSON de vérification",
   "Copiar JSON del certificado": "Copier le JSON du certificat",
   "Copiar diagnóstico": "Copier le diagnostic",
-  "Copiar huella": "Copier l'empreinte",
+  "Copiar huella": "Copier l'empreinte numérique",
   "Copiar huella al portapapeles por defecto": "Copier la valeur de hachage dans le presse-papiers par défaut",
   "Copiar informe": "Copier le rapport",
   "Copiar resumen": "Copier le résumé",
@@ -838,7 +838,7 @@
   "Fichero protegido": "Fichier protégé",
   "Fichero protegido: %1": "Fichier protégé : %1",
   "Fichero seleccionado": "Fichier sélectionné",
-  "Fichero sin hash": "Fichier sans empreinte",
+  "Fichero sin hash": "Fichier sans hachage",
   "Fichero(s) seleccionado(s)": "Fichier(s) sélectionné(s)",
   "Fichero: ": "Fichier : ",
   "Fichero: %1": "Fichier : %1",
@@ -931,8 +931,8 @@
   "Habilita opciones avanzadas de diagnóstico y configuración.": "Permet des options avancées de diagnostic et de configuration.",
   "Habilitar HTTPS local": "Activer le HTTPS local",
   "Hash Base64 de la política FacturaE": "Hash Base64 de la politique FacturaE",
-  "Hash de política": "Empreinte de la politique",
-  "Hash sin fichero": "Empreinte sans fichier",
+  "Hash de política": "Hachage de la politique",
+  "Hash sin fichero": "Hachage sans fichier",
   "Hay cambios en las preferencias de la app que todavía no se han guardado.": "Des modifications des préférences de l'application n'ont pas encore été enregistrées.",
   "Hay certificados aptos para firma visibles.": "Des certificats aptes à la signature sont visibles.",
   "Hay certificados aptos, pero ninguno queda visible con los filtros actuales.": "Des certificats adaptés existent, mais aucun n'est visible avec les filtres actuels.",
@@ -942,7 +942,7 @@
   "Haz la operación y vuelve aquí si algo no queda claro.": "Effectuez l'opération et revenez ici si quelque chose n'est pas clair.",
   "Hexadecimal": "Hexadécimal",
   "Host / IP:": "Hôte/IP :",
-  "Huella": "Empreinte",
+  "Huella": "Hachage",
   "Huella SHA-256: ": "Empreinte numérique SHA-256 : ",
   "Huella copiada al portapapeles.": "Valeur de hachage copiée dans le presse-papiers.",
   "Huella del certificado copiada al portapapeles.": "Empreinte du certificat copiée dans le presse-papiers.",
@@ -2996,7 +2996,7 @@
   "Firma XAdES": "Signature XAdES",
   "Firma XMLdSig": "Signature XMLDSig",
   "Contenedor ASiC": "Conteneur ASiC",
-  "Informe de huella": "Rapport d’empreinte numérique",
+  "Informe de huella": "Rapport de hachage",
   "Documento protegido": "Document protégé",
   "Sobre protegido GrxFirma": "Enveloppe protégée GrxFirma",
   "Informe de diagnóstico": "Rapport de diagnostic",
@@ -3404,7 +3404,7 @@
   ,"Válido hasta": "Valide jusqu’au"
   ,"Días caducado": "Jours depuis l’expiration"
   ,"Días restantes": "Jours restants"
-  ,"Huella SHA-256": "Empreinte SHA-256"
+  ,"Huella SHA-256": "Empreinte numérique SHA-256"
   ,"Nº Serie / NIF": "Nº de série / NIF"
   ,"Representante de entidad": "Représentant d’une entité"
   ,"No identificado": "Non identifié"
@@ -4433,34 +4433,34 @@
   ,"con avisos": "avec avertissements"
   ,"no determinada": "indéterminée"
   ,"Ningún manifiesto seleccionado": "Aucun manifeste sélectionné"
-  ,"Seleccione una operación y un origen para crear o comprobar una huella.": "Sélectionnez une opération et une source pour créer ou vérifier une empreinte."
+  ,"Seleccione una operación y un origen para crear o comprobar una huella.": "Sélectionnez une opération et une source pour créer ou vérifier un hachage."
   ,"Sin evidencias del motor local.": "Aucune preuve du moteur local."
-  ,"Crea o comprueba huellas de ficheros y directorios sin firmar el contenido.": "Crée ou vérifie les empreintes de fichiers et répertoires sans signer leur contenu."
-  ,"Las huellas no están disponibles porque el motor local no ha publicado todas las operaciones necesarias.": "Les empreintes sont indisponibles car le moteur local n'a pas publié toutes les opérations nécessaires."
+  ,"Crea o comprueba huellas de ficheros y directorios sin firmar el contenido.": "Crée ou vérifie les hachages de fichiers et répertoires sans signer leur contenu."
+  ,"Las huellas no están disponibles porque el motor local no ha publicado todas las operaciones necesarias.": "Les hachages sont indisponibles car le moteur local n'a pas publié toutes les opérations nécessaires."
   ,"Formato de manifiesto no admitido": "Format de manifeste non pris en charge"
   ,"Manifiesto no válido": "Manifeste invalide"
   ,"Seleccione un manifiesto .hashfiles, .txthashfiles, .csv, .xml o .txt. Un .hashreport es un informe de salida, no un manifiesto.": "Sélectionnez un manifeste .hashfiles, .txthashfiles, .csv, .xml ou .txt. Un .hashreport est un rapport de sortie, pas un manifeste."
-  ,"Seleccione una huella .hexhash, .hashb64 o .hash. Un .hashreport es un informe de salida, no una huella de entrada.": "Sélectionnez une empreinte .hexhash, .hashb64 ou .hash. Un .hashreport est un rapport de sortie, pas une empreinte d'entrée."
-  ,"Creando huella…": "Création de l'empreinte…"
-  ,"Comprobando huella…": "Vérification de l'empreinte…"
+  ,"Seleccione una huella .hexhash, .hashb64 o .hash. Un .hashreport es un informe de salida, no una huella de entrada.": "Sélectionnez un hachage .hexhash, .hashb64 ou .hash. Un .hashreport est un rapport de sortie, pas un hachage d'entrée."
+  ,"Creando huella…": "Création du hachage…"
+  ,"Comprobando huella…": "Vérification du hachage…"
   ,"El motor local está procesando el contenido seleccionado.": "Le moteur local traite le contenu sélectionné."
-  ,"La operación terminó sin un resultado de huella.": "L'opération s'est terminée sans résultat d'empreinte."
+  ,"La operación terminó sin un resultado de huella.": "L'opération s'est terminée sans résultat de hachage."
   ,"Falta el manifiesto": "Manifeste manquant"
-  ,"Seleccione el fichero de huella o manifiesto que se va a comprobar.": "Sélectionnez le fichier d'empreinte ou de manifeste à vérifier."
-  ,"Huella creada": "Empreinte créée"
-  ,"La huella se ha creado y guardado mediante el motor local.": "L'empreinte a été créée et enregistrée par le moteur local."
+  ,"Seleccione el fichero de huella o manifiesto que se va a comprobar.": "Sélectionnez le fichier de hachage ou de manifeste à vérifier."
+  ,"Huella creada": "Hachage créé"
+  ,"La huella se ha creado y guardado mediante el motor local.": "Le hachage a été créé et enregistré par le moteur local."
   ,"Se incluyeron subdirectorios.": "Les sous-répertoires ont été inclus."
   ,"No se incluyeron subdirectorios.": "Les sous-répertoires n'ont pas été inclus."
-  ,"La huella coincide": "L'empreinte correspond"
-  ,"La huella no coincide": "L'empreinte ne correspond pas"
-  ,"El contenido comprobado coincide con la huella almacenada.": "Le contenu vérifié correspond à l'empreinte enregistrée."
+  ,"La huella coincide": "Le hachage correspond"
+  ,"La huella no coincide": "Le hachage ne correspond pas"
+  ,"El contenido comprobado coincide con la huella almacenada.": "Le contenu vérifié correspond au hachage enregistré."
   ,"El contenido ha cambiado, falta información o el manifiesto no corresponde con el origen.": "Le contenu a changé, des données manquent ou le manifeste ne correspond pas à la source."
   ,"No coincide": "Ne correspond pas"
   ,"Sin fichero": "Aucun fichier"
-  ,"Sin huella": "Aucune empreinte"
+  ,"Sin huella": "Aucun hachage"
   ,"Informe de comprobación: {0}": "Rapport de vérification : {0}"
-  ,"Motor local listo para crear y comprobar huellas.": "Moteur local prêt à créer et vérifier des empreintes."
-  ,"El motor local no devolvió datos de huella coherentes.": "Le moteur local n'a renvoyé aucune donnée d'empreinte cohérente."
+  ,"Motor local listo para crear y comprobar huellas.": "Moteur local prêt à créer et vérifier des hachages."
+  ,"El motor local no devolvió datos de huella coherentes.": "Le moteur local n'a renvoyé aucune donnée de hachage cohérente."
   ,"Revise los datos seleccionados antes de continuar.": "Vérifiez les données sélectionnées avant de continuer."
   ,"no determinado": "indéterminé"
   ,"Seleccione un documento y al menos un destinatario.": "Sélectionnez un document et au moins un destinataire."
@@ -4555,7 +4555,7 @@
   ,"Protección completada para {0} destinatario(s): {1}.": "Protection terminée pour {0} destinataire(s) : {1}."
   ,"Algoritmo: {0}. Formato: {1}. Salida: {2}.": "Algorithme : {0}. Format : {1}. Sortie : {2}."
   ,"Entradas incluidas: {0}": "Entrées incluses : {0}"
-  ,"Huella: {0}": "Empreinte : {0}"
+  ,"Huella: {0}": "Hachage : {0}"
   ,"Algoritmo detectado: {0}. Formato: {1}.": "Algorithme détecté : {0}. Format : {1}."
   ,"Esperada: {0}": "Attendue : {0}"
   ,"Calculada: {0}": "Calculée : {0}"
@@ -4878,7 +4878,7 @@
   ,"verifactu.input": "Choisissez un fichier XML ou un dossier d’enregistrements accessible."
   ,"verifactu.hash": "L’enregistrement a été modifié après sa création : son hachage ne correspond pas. Demandez à votre logiciel de facturation de le générer à nouveau."
   ,"verifactu.chain": "Cet enregistrement n’est pas lié au précédent de la série. Vérifiez que le dossier contient tous les enregistrements dans l’ordre."
-  ,"verifactu.duplicate": "Des enregistrements de la chaîne ont la même empreinte."
+  ,"verifactu.duplicate": "Des enregistrements de la chaîne ont le même hachage."
   ,"verifactu.previous_missing": "L’enregistrement précédent est absent de la sélection. Ce lien de la chaîne ne peut pas être vérifié."
   ,"verifactu.signature": "La signature de l’enregistrement a été modifiée ou ne couvre pas tout l’enregistrement. Signez-le à nouveau avec le format « Enregistrement Veri*Factu »."
   ,"verifactu.certificate": "Le certificat n’était pas valide à la date de l’enregistrement."
@@ -4920,7 +4920,7 @@
   ,"verifactu.qr_aeat_unknown": "L’AEAT a répondu, mais GrxFirma ne reconnaît pas le résultat. Consultez la réponse technique ou vérifiez la facture sur le site de l’AEAT."
   ,"verifactu.qr_technical": "Afficher la réponse technique"
   ,"verifactu.qr_technical_hide": "Masquer la réponse technique"
-  ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu : signe les enregistrements de facturation fournis par un logiciel de facturation au format exigé par l'AEAT, et vérifie les enregistrements déjà signés : empreinte chaînée, signature et structure. GrxFirma ne génère, ne conserve ni n'envoie aucun enregistrement."
+  ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu : signe les enregistrements de facturation fournis par un logiciel de facturation au format exigé par l'AEAT, et vérifie les enregistrements déjà signés : hachage chaîné, signature et structure. GrxFirma ne génère, ne conserve ni n'envoie aucun enregistrement."
   ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu : lit l'URL du QR code fiscal d'une facture et affiche ses données ; uniquement si vous le demandez, la vérifie auprès du service public de l'AEAT."
   ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Cachet visible : avec « Dessiner la zone », vous définissez sa position et sa taille en faisant glisser sur la page, comme dans AutoFirma. Également au clavier. Sous Windows et Linux, et dans l'éditeur ouvert par les portails."
   ,"Android: cofirma y contrafirma, perfiles con sello de tiempo, verificación automática tras firmar, verificación detallada con informe exportable, los once idiomas con selector propio y pantalla «Acerca de».": "Android : cosignature et contre-signature, profils avec horodatage, vérification automatique après la signature, vérification détaillée avec rapport exportable, les onze langues avec leur propre sélecteur et un écran « À propos »."
@@ -4961,7 +4961,7 @@
   ,"csc.cli.hosts": "Service de signature : %s. Autorisation sur : %s. Le navigateur s’ouvre pour que vous autorisiez l’accès."
   ,"csc.cli.pares_oauth_invalidos": "La liste firma_remota_csc_oauth_permitidos contient une entrée mal formée. Utilisez le format service=autorisation, par exemple firma.prestataire.fr=auth.prestataire.fr."
   ,"csc.error.oauth_otro_host": "Le service demande d’autoriser l’accès sur un autre hôte. Par sécurité, ce n’est pas permis sauf s’il figure dans firma_remota_csc_oauth_permitidos."
-  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android : signature par lots, création et vérification d'empreintes, et chiffrement et déchiffrement de fichiers, comme sur ordinateur."
+  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android : signature par lots, création et vérification de hachages, et chiffrement et déchiffrement de fichiers, comme sur ordinateur."
   ,"Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.": "Android : signature en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES et enregistrements Veri*Factu ; légende CSV et cachet à une position différente sur chaque page ; création et vérification de documents ENI."
   ,"Firma remota con certificados de prestadores compatibles con la API CSC, desde la línea de órdenes. Viene desactivada: solo funciona si la organización la habilita en su política o en la configuración. Aún no se ha probado con prestadores reales.": "Signature à distance avec des certificats de prestataires compatibles avec l'API CSC, en ligne de commande. Elle est désactivée par défaut : elle ne fonctionne que si l'organisation l'active dans sa politique ou sa configuration. Pas encore testée avec de vrais prestataires."
   ,"csc.error.desactivada": "La signature à distance n'est pas activée sur cet ordinateur. Votre organisation l'active, ou «firma_remota_csc» dans config.json."
@@ -5599,7 +5599,7 @@
   ,"winui.certificados.desconocido": "Inconnu"
   ,"winui.certificados.dias_caducado": "Jours depuis l’expiration"
   ,"winui.certificados.dias_restantes": "Jours restants"
-  ,"winui.certificados.huella_sha_256": "Empreinte SHA-256"
+  ,"winui.certificados.huella_sha_256": "Empreinte numérique SHA-256"
   ,"winui.certificados.no_serie_nif": "Nº de série / NIF"
   ,"winui.certificados.persona_fisica": "Personne physique"
   ,"winui.certificados.representante_de_entidad": "Représentant d’une entité"

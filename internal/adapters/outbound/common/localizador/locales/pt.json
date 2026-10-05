@@ -942,7 +942,7 @@
   "Haz la operación y vuelve aquí si algo no queda claro.": "Faça a operação e volte aqui se algo não ficar claro.",
   "Hexadecimal": "Hexadecimal",
   "Host / IP:": "Host/IP:",
-  "Huella": "Impressão digital",
+  "Huella": "Valor de hash",
   "Huella SHA-256: ": "Impressão digital SHA-256: ",
   "Huella copiada al portapapeles.": "Hash copiado para a área de transferência.",
   "Huella del certificado copiada al portapapeles.": "Impressão digital do certificado copiada para a área de transferência.",
@@ -2996,7 +2996,7 @@
   "Firma XAdES": "Assinatura XAdES",
   "Firma XMLdSig": "Assinatura XMLDSig",
   "Contenedor ASiC": "Contentor ASiC",
-  "Informe de huella": "Relatório de impressão digital",
+  "Informe de huella": "Relatório de hash",
   "Documento protegido": "Documento protegido",
   "Sobre protegido GrxFirma": "Envelope protegido do GrxFirma",
   "Informe de diagnóstico": "Relatório de diagnóstico",
@@ -4433,34 +4433,34 @@
   ,"con avisos": "com avisos"
   ,"no determinada": "não determinada"
   ,"Ningún manifiesto seleccionado": "Nenhum manifesto selecionado"
-  ,"Seleccione una operación y un origen para crear o comprobar una huella.": "Selecione uma operação e uma origem para criar ou verificar uma impressão digital."
+  ,"Seleccione una operación y un origen para crear o comprobar una huella.": "Selecione uma operação e uma origem para criar ou verificar um hash."
   ,"Sin evidencias del motor local.": "Sem evidências do motor local."
-  ,"Crea o comprueba huellas de ficheros y directorios sin firmar el contenido.": "Cria ou verifica impressões digitais de ficheiros e diretórios sem assinar o conteúdo."
-  ,"Las huellas no están disponibles porque el motor local no ha publicado todas las operaciones necesarias.": "As operações de impressão digital estão indisponíveis porque o motor local não publicou todas as operações necessárias."
+  ,"Crea o comprueba huellas de ficheros y directorios sin firmar el contenido.": "Cria ou verifica hashes de ficheiros e diretórios sem assinar o conteúdo."
+  ,"Las huellas no están disponibles porque el motor local no ha publicado todas las operaciones necesarias.": "As operações de hash estão indisponíveis porque o motor local não publicou todas as operações necessárias."
   ,"Formato de manifiesto no admitido": "Formato de manifesto não suportado"
   ,"Manifiesto no válido": "Manifesto inválido"
   ,"Seleccione un manifiesto .hashfiles, .txthashfiles, .csv, .xml o .txt. Un .hashreport es un informe de salida, no un manifiesto.": "Selecione um manifesto .hashfiles, .txthashfiles, .csv, .xml ou .txt. Um .hashreport é um relatório de saída, não um manifesto."
-  ,"Seleccione una huella .hexhash, .hashb64 o .hash. Un .hashreport es un informe de salida, no una huella de entrada.": "Selecione uma impressão digital .hexhash, .hashb64 ou .hash. Um .hashreport é um relatório de saída, não uma impressão de entrada."
-  ,"Creando huella…": "A criar a impressão digital…"
-  ,"Comprobando huella…": "A verificar a impressão digital…"
+  ,"Seleccione una huella .hexhash, .hashb64 o .hash. Un .hashreport es un informe de salida, no una huella de entrada.": "Selecione um hash .hexhash, .hashb64 ou .hash. Um .hashreport é um relatório de saída, não um hash de entrada."
+  ,"Creando huella…": "A criar o hash…"
+  ,"Comprobando huella…": "A verificar o hash…"
   ,"El motor local está procesando el contenido seleccionado.": "O motor local está a processar o conteúdo selecionado."
-  ,"La operación terminó sin un resultado de huella.": "A operação terminou sem um resultado de impressão digital."
+  ,"La operación terminó sin un resultado de huella.": "A operação terminou sem um resultado de hash."
   ,"Falta el manifiesto": "Manifesto em falta"
-  ,"Seleccione el fichero de huella o manifiesto que se va a comprobar.": "Selecione o ficheiro de impressão digital ou manifesto a verificar."
-  ,"Huella creada": "Impressão digital criada"
-  ,"La huella se ha creado y guardado mediante el motor local.": "A impressão digital foi criada e guardada pelo motor local."
+  ,"Seleccione el fichero de huella o manifiesto que se va a comprobar.": "Selecione o ficheiro de hash ou manifesto a verificar."
+  ,"Huella creada": "Hash criado"
+  ,"La huella se ha creado y guardado mediante el motor local.": "O hash foi criado e guardado pelo motor local."
   ,"Se incluyeron subdirectorios.": "Foram incluídos subdiretórios."
   ,"No se incluyeron subdirectorios.": "Não foram incluídos subdiretórios."
-  ,"La huella coincide": "A impressão digital corresponde"
-  ,"La huella no coincide": "A impressão digital não corresponde"
-  ,"El contenido comprobado coincide con la huella almacenada.": "O conteúdo verificado corresponde à impressão digital guardada."
+  ,"La huella coincide": "O hash corresponde"
+  ,"La huella no coincide": "O hash não corresponde"
+  ,"El contenido comprobado coincide con la huella almacenada.": "O conteúdo verificado corresponde ao hash guardado."
   ,"El contenido ha cambiado, falta información o el manifiesto no corresponde con el origen.": "O conteúdo foi alterado, falta informação ou o manifesto não corresponde à origem."
   ,"No coincide": "Não corresponde"
   ,"Sin fichero": "Sem ficheiro"
-  ,"Sin huella": "Sem impressão digital"
+  ,"Sin huella": "Sem hash"
   ,"Informe de comprobación: {0}": "Relatório de verificação: {0}"
-  ,"Motor local listo para crear y comprobar huellas.": "Motor local pronto para criar e verificar impressões digitais."
-  ,"El motor local no devolvió datos de huella coherentes.": "O motor local não devolveu dados coerentes de impressão digital."
+  ,"Motor local listo para crear y comprobar huellas.": "Motor local pronto para criar e verificar hashes."
+  ,"El motor local no devolvió datos de huella coherentes.": "O motor local não devolveu dados coerentes de hash."
   ,"Revise los datos seleccionados antes de continuar.": "Reveja os dados selecionados antes de continuar."
   ,"no determinado": "não determinado"
   ,"Seleccione un documento y al menos un destinatario.": "Selecione um documento e pelo menos um destinatário."
@@ -4555,7 +4555,7 @@
   ,"Protección completada para {0} destinatario(s): {1}.": "Proteção concluída para {0} destinatário(s): {1}."
   ,"Algoritmo: {0}. Formato: {1}. Salida: {2}.": "Algoritmo: {0}. Formato: {1}. Saída: {2}."
   ,"Entradas incluidas: {0}": "Entradas incluídas: {0}"
-  ,"Huella: {0}": "Impressão digital: {0}"
+  ,"Huella: {0}": "Valor de hash: {0}"
   ,"Algoritmo detectado: {0}. Formato: {1}.": "Algoritmo detetado: {0}. Formato: {1}."
   ,"Esperada: {0}": "Esperada: {0}"
   ,"Calculada: {0}": "Calculada: {0}"
@@ -4878,7 +4878,7 @@
   ,"verifactu.input": "Escolha um ficheiro XML ou uma pasta de registos acessível."
   ,"verifactu.hash": "O registo foi alterado depois de ser gerado: o seu hash não coincide. Peça ao seu programa de faturação que o gere de novo."
   ,"verifactu.chain": "Este registo não está ligado ao anterior da série. Verifique se a pasta contém todos os registos por ordem."
-  ,"verifactu.duplicate": "Existem registos com a mesma impressão digital na cadeia."
+  ,"verifactu.duplicate": "Existem registos com o mesmo hash na cadeia."
   ,"verifactu.previous_missing": "O registo anterior não está na seleção. Não é possível verificar esta ligação da cadeia."
   ,"verifactu.signature": "A assinatura do registo foi alterada ou não abrange todo o registo. Assine-o de novo com o formato «Registo Veri*Factu»."
   ,"verifactu.certificate": "O certificado não era válido na data do registo."
@@ -4920,7 +4920,7 @@
   ,"verifactu.qr_aeat_unknown": "A AEAT respondeu, mas o GrxFirma não reconhece o resultado. Reveja a resposta técnica ou consulte a fatura no portal da AEAT."
   ,"verifactu.qr_technical": "Ver resposta técnica"
   ,"verifactu.qr_technical_hide": "Ocultar resposta técnica"
-  ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: assina os registos de faturação entregues por um programa de faturação no formato exigido pela AEAT e verifica registos já assinados: impressão digital encadeada, assinatura e estrutura. O GrxFirma não gera, guarda nem envia registos."
+  ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: assina os registos de faturação entregues por um programa de faturação no formato exigido pela AEAT e verifica registos já assinados: hash encadeado, assinatura e estrutura. O GrxFirma não gera, guarda nem envia registos."
   ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu: lê o URL do QR fiscal de uma fatura e mostra os seus dados; só se o pedir, confronta-o com o serviço público da AEAT."
   ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Selo visível: com «Desenhar área» marca a sua posição e tamanho arrastando sobre a página, como no AutoFirma. Também com o teclado. Em Windows e Linux, e no editor que os portais abrem."
   ,"Android: cofirma y contrafirma, perfiles con sello de tiempo, verificación automática tras firmar, verificación detallada con informe exportable, los once idiomas con selector propio y pantalla «Acerca de».": "Android: coassinatura e contra-assinatura, perfis com carimbo temporal, verificação automática após assinar, verificação detalhada com relatório exportável, os onze idiomas com seletor próprio e ecrã «Acerca de»."
@@ -4961,7 +4961,7 @@
   ,"csc.cli.hosts": "Serviço de assinatura: %s. Autorização em: %s. O navegador abre-se para que autorize o acesso."
   ,"csc.cli.pares_oauth_invalidos": "A lista firma_remota_csc_oauth_permitidos tem uma entrada mal escrita. Use o formato servico=autorizacao, por exemplo firma.prestador.pt=auth.prestador.pt."
   ,"csc.error.oauth_otro_host": "O serviço pede para autorizar o acesso noutro host. Por segurança não é permitido, salvo se constar de firma_remota_csc_oauth_permitidos."
-  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android: assinatura em lote, criar e verificar impressões digitais, e cifrar e decifrar ficheiros, como no computador."
+  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android: assinatura em lote, criar e verificar hashes, e cifrar e decifrar ficheiros, como no computador."
   ,"Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.": "Android: assinatura em XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES e registos Veri*Factu; legenda CSV e selo com posição diferente em cada página; criar e verificar documentos ENI."
   ,"Firma remota con certificados de prestadores compatibles con la API CSC, desde la línea de órdenes. Viene desactivada: solo funciona si la organización la habilita en su política o en la configuración. Aún no se ha probado con prestadores reales.": "Assinatura remota com certificados de prestadores compatíveis com a API CSC, a partir da linha de comandos. Vem desativada: só funciona se a organização a ativar na sua política ou na configuração. Ainda não foi testada com prestadores reais."
   ,"csc.error.desactivada": "A assinatura remota não está ativada neste computador. Ativa-a a sua organização ou «firma_remota_csc» em config.json."

@@ -54,7 +54,7 @@
   "La tarjeta requiere autorización. Al firmar se pedirá el PIN o la confirmación en el lector; todavía no se ha comprobado el acceso a la clave privada.": "La targeta requereix autorització. En signar es demanarà el PIN o la confirmació al lector; encara no s’ha comprovat l’accés a la clau privada.",
   "identity.local.selector.title": "GrxFirma — Identitat reforçada",
   "identity.local.selector.prompt": "Origen: %s\nFinalitat: %s\nOperació: %s\n\nSeleccioneu el certificat que voleu utilitzar.",
-  "identity.local.selector.certificate": "%d · %s · Emissor: %s · Vàlid fins a: %s · Empremta: %s",
+  "identity.local.selector.certificate": "%d · %s · Emissor: %s · Vàlid fins a: %s · Empremta digital: %s",
   "identity.local.selector.no_expiry": "caducitat no disponible",
   "identity.local.selector.use": "Utilitza el certificat",
   "identity.local.selector.cancel": "Cancel·la",
@@ -373,7 +373,7 @@
   "Caducidad": "Caducitat",
   "Cambia a PAdES o desactiva el sello visible para evitar una configuración incompatible.": "Canvia a PAdES o desactiva el segell visible per a evitar una configuració incompatible.",
   "Cambiar": "Canviar",
-  "Cambiar a Cofirmar": "Canviar a Cofirmar",
+  "Cambiar a Cofirmar": "Canviar a Cosignar",
   "Cambiar clave": "Canviar clau",
   "Cambiar clave de seguridad": "Canviar la clau de seguretat",
   "Cambiar ubicación del archivo de salida": "Canviar ubicació del fitxer de sortida",
@@ -449,8 +449,8 @@
   "Cofirma múltiple aplicada": "Cosignatura múltiple aplicada",
   "Cofirma múltiple guiada": "Cosignatura múltiple guiada",
   "Cofirma: %1": "Cosignatura: %1",
-  "Cofirmantes": "Cofirmants",
-  "Cofirmantes: %1": "Cofirmants: %1",
+  "Cofirmantes": "Cosignants",
+  "Cofirmantes: %1": "Cosignants: %1",
   "Cofirmar": "Cosignar",
   "Coinciden": "Coincideixen",
   "Coinciden: ": "Coincideixen: ",
@@ -533,7 +533,7 @@
   "Copiar JSON de verificación": "Copiar JSON de verificació",
   "Copiar JSON del certificado": "Copiar JSON del certificat",
   "Copiar diagnóstico": "Copiar diagnòstic",
-  "Copiar huella": "Copiar empremta",
+  "Copiar huella": "Copiar l'empremta digital",
   "Copiar huella al portapapeles por defecto": "Copia el resum al porta-retalls per defecte",
   "Copiar informe": "Copiar l'informe",
   "Copiar resumen": "Copiar resum",
@@ -838,7 +838,7 @@
   "Fichero protegido": "Fitxer protegit",
   "Fichero protegido: %1": "Fitxer protegit: %1",
   "Fichero seleccionado": "Fitxer seleccionat",
-  "Fichero sin hash": "Fitxer sense empremta",
+  "Fichero sin hash": "Fitxer sense resum",
   "Fichero(s) seleccionado(s)": "Fitxer(s) seleccionat(s)",
   "Fichero: ": "Fitxer: ",
   "Fichero: %1": "Fitxer: %1",
@@ -882,7 +882,7 @@
   "Firmante principal: %1": "Signant principal: %1",
   "Firmantes": "Signants",
   "Firmantes adicionales": "Signants addicionals",
-  "Firmantes adicionales actualizados.": "Cofirmants addicionals actualitzats.",
+  "Firmantes adicionales actualizados.": "Cosignants addicionals actualitzats.",
   "Firmantes detectados: %1": "Signants detectats: %1",
   "Firmantes resumidos": "Resum dels signants",
   "Firmantes resumidos: ": "Resum dels signants: ",
@@ -932,7 +932,7 @@
   "Habilitar HTTPS local": "Habilitar HTTPS local",
   "Hash Base64 de la política FacturaE": "Hash Base64 de la política FacturaE",
   "Hash de política": "Hash de la política",
-  "Hash sin fichero": "Empremta sense fitxer",
+  "Hash sin fichero": "Resum sense fitxer",
   "Hay cambios en las preferencias de la app que todavía no se han guardado.": "Hi ha canvis en les preferències de l'aplicació que encara no s'han guardat.",
   "Hay certificados aptos para firma visibles.": "Hi ha certificats aptes per a signatura visibles.",
   "Hay certificados aptos, pero ninguno queda visible con los filtros actuales.": "Hi ha certificats aptes, però cap queda visible amb els filtres actuals.",
@@ -942,7 +942,7 @@
   "Haz la operación y vuelve aquí si algo no queda claro.": "Feu l'operació i torneu aquí si alguna cosa no queda clara.",
   "Hexadecimal": "Hexadecimal",
   "Host / IP:": "Host/IP:",
-  "Huella": "Empremta",
+  "Huella": "Resum",
   "Huella SHA-256: ": "Empremta digital SHA-256: ",
   "Huella copiada al portapapeles.": "Resum copiat al porta-retalls.",
   "Huella del certificado copiada al portapapeles.": "Empremta del certificat copiada al porta-retalls.",
@@ -1015,7 +1015,7 @@
   "La cofirma múltiple guiada está desactivada.": "La cosignatura múltiple guiada està desactivada.",
   "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "La cosignatura múltiple guiada només està disponible per a un document únic en les accions signar o cosignar.",
   "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "La cosignatura múltiple guiada només està disponible per a signar o cosignar, no per a contrasignar.",
-  "La cofirma múltiple guiada solo está disponible para un único documento, no para lotes.": "La cofirma múltiple guiada només està disponible per a un únic document, no per a lots.",
+  "La cofirma múltiple guiada solo está disponible para un único documento, no para lotes.": "La cosignatura múltiple guiada només està disponible per a un únic document, no per a lots.",
   "La confirmación de la clave no coincide.": "La confirmació de la clau no coincideix.",
   "La consola usa este token para endpoints protegidos como firma, verificación, ajustes o diagnóstico.": "La consola utilitza aquest testimoni per a endpoints protegits com signatura, verificació, ajustos o diagnòstic.",
   "La exportación JSON de verificación estará disponible tras ejecutar una verificación rápida o una autoverificación posterior a la firma.": "L'exportació JSON de verificació estarà disponible després d'executar una verificació ràpida o una autoverificació posterior a la signatura.",
@@ -2996,7 +2996,7 @@
   "Firma XAdES": "Signatura XAdES",
   "Firma XMLdSig": "Signatura XMLDSig",
   "Contenedor ASiC": "Contenidor ASiC",
-  "Informe de huella": "Informe d’empremta digital",
+  "Informe de huella": "Informe de resum",
   "Documento protegido": "Document protegit",
   "Sobre protegido GrxFirma": "Sobre protegit de GrxFirma",
   "Informe de diagnóstico": "Informe de diagnòstic",
@@ -3404,7 +3404,7 @@
   ,"Válido hasta": "Vàlid fins al"
   ,"Días caducado": "Dies des de la caducitat"
   ,"Días restantes": "Dies restants"
-  ,"Huella SHA-256": "Empremta SHA-256"
+  ,"Huella SHA-256": "Empremta digital SHA-256"
   ,"Nº Serie / NIF": "Núm. de sèrie / NIF"
   ,"Representante de entidad": "Representant d’entitat"
   ,"No identificado": "No identificat"
@@ -4433,34 +4433,34 @@
   ,"con avisos": "amb avisos"
   ,"no determinada": "no determinada"
   ,"Ningún manifiesto seleccionado": "Cap manifest seleccionat"
-  ,"Seleccione una operación y un origen para crear o comprobar una huella.": "Seleccioneu una operació i un origen per crear o comprovar una empremta digital."
+  ,"Seleccione una operación y un origen para crear o comprobar una huella.": "Seleccioneu una operació i un origen per crear o comprovar un resum."
   ,"Sin evidencias del motor local.": "Sense evidències del motor local."
-  ,"Crea o comprueba huellas de ficheros y directorios sin firmar el contenido.": "Crea o comprova empremtes digitals de fitxers i directoris sense signar el contingut."
-  ,"Las huellas no están disponibles porque el motor local no ha publicado todas las operaciones necesarias.": "Les empremtes digitals no estan disponibles perquè el motor local no ha publicat totes les operacions necessàries."
+  ,"Crea o comprueba huellas de ficheros y directorios sin firmar el contenido.": "Crea o comprova resums de fitxers i directoris sense signar el contingut."
+  ,"Las huellas no están disponibles porque el motor local no ha publicado todas las operaciones necesarias.": "Els resums no estan disponibles perquè el motor local no ha publicat totes les operacions necessàries."
   ,"Formato de manifiesto no admitido": "Format de manifest no admès"
   ,"Manifiesto no válido": "Manifest no vàlid"
   ,"Seleccione un manifiesto .hashfiles, .txthashfiles, .csv, .xml o .txt. Un .hashreport es un informe de salida, no un manifiesto.": "Seleccioneu un manifest .hashfiles, .txthashfiles, .csv, .xml o .txt. Un .hashreport és un informe de sortida, no un manifest."
-  ,"Seleccione una huella .hexhash, .hashb64 o .hash. Un .hashreport es un informe de salida, no una huella de entrada.": "Seleccioneu una empremta digital .hexhash, .hashb64 o .hash. Un .hashreport és un informe de sortida, no una empremta d'entrada."
-  ,"Creando huella…": "S'està creant l'empremta digital…"
-  ,"Comprobando huella…": "S'està comprovant l'empremta digital…"
+  ,"Seleccione una huella .hexhash, .hashb64 o .hash. Un .hashreport es un informe de salida, no una huella de entrada.": "Seleccioneu un resum .hexhash, .hashb64 o .hash. Un .hashreport és un informe de sortida, no un resum d'entrada."
+  ,"Creando huella…": "S'està creant el resum…"
+  ,"Comprobando huella…": "S'està comprovant el resum…"
   ,"El motor local está procesando el contenido seleccionado.": "El motor local està processant el contingut seleccionat."
-  ,"La operación terminó sin un resultado de huella.": "L'operació ha acabat sense cap resultat d'empremta digital."
+  ,"La operación terminó sin un resultado de huella.": "L'operació ha acabat sense cap resultat de resum."
   ,"Falta el manifiesto": "Falta el manifest"
-  ,"Seleccione el fichero de huella o manifiesto que se va a comprobar.": "Seleccioneu el fitxer d'empremta digital o manifest que es comprovarà."
-  ,"Huella creada": "Empremta digital creada"
-  ,"La huella se ha creado y guardado mediante el motor local.": "L'empremta digital s'ha creat i desat mitjançant el motor local."
+  ,"Seleccione el fichero de huella o manifiesto que se va a comprobar.": "Seleccioneu el fitxer de resum o manifest que es comprovarà."
+  ,"Huella creada": "Resum creat"
+  ,"La huella se ha creado y guardado mediante el motor local.": "El resum s'ha creat i desat mitjançant el motor local."
   ,"Se incluyeron subdirectorios.": "S'han inclòs subdirectoris."
   ,"No se incluyeron subdirectorios.": "No s'han inclòs subdirectoris."
-  ,"La huella coincide": "L'empremta digital coincideix"
-  ,"La huella no coincide": "L'empremta digital no coincideix"
-  ,"El contenido comprobado coincide con la huella almacenada.": "El contingut comprovat coincideix amb l'empremta digital desada."
+  ,"La huella coincide": "El resum coincideix"
+  ,"La huella no coincide": "El resum no coincideix"
+  ,"El contenido comprobado coincide con la huella almacenada.": "El contingut comprovat coincideix amb el resum desat."
   ,"El contenido ha cambiado, falta información o el manifiesto no corresponde con el origen.": "El contingut ha canviat, falten dades o el manifest no correspon a l'origen."
   ,"No coincide": "No coincideix"
   ,"Sin fichero": "Sense fitxer"
-  ,"Sin huella": "Sense empremta digital"
+  ,"Sin huella": "Sense resum"
   ,"Informe de comprobación: {0}": "Informe de comprovació: {0}"
-  ,"Motor local listo para crear y comprobar huellas.": "Motor local preparat per crear i comprovar empremtes digitals."
-  ,"El motor local no devolvió datos de huella coherentes.": "El motor local no ha retornat dades d'empremta digital coherents."
+  ,"Motor local listo para crear y comprobar huellas.": "Motor local preparat per crear i comprovar resums."
+  ,"El motor local no devolvió datos de huella coherentes.": "El motor local no ha retornat dades de resum coherents."
   ,"Revise los datos seleccionados antes de continuar.": "Reviseu les dades seleccionades abans de continuar."
   ,"no determinado": "no determinat"
   ,"Seleccione un documento y al menos un destinatario.": "Seleccioneu un document i almenys un destinatari."
@@ -4555,7 +4555,7 @@
   ,"Protección completada para {0} destinatario(s): {1}.": "Protecció completada per a {0} destinatari(s): {1}."
   ,"Algoritmo: {0}. Formato: {1}. Salida: {2}.": "Algorisme: {0}. Format: {1}. Sortida: {2}."
   ,"Entradas incluidas: {0}": "Entrades incloses: {0}"
-  ,"Huella: {0}": "Empremta digital: {0}"
+  ,"Huella: {0}": "Resum: {0}"
   ,"Algoritmo detectado: {0}. Formato: {1}.": "Algorisme detectat: {0}. Format: {1}."
   ,"Esperada: {0}": "Esperada: {0}"
   ,"Calculada: {0}": "Calculada: {0}"
@@ -4878,7 +4878,7 @@
   ,"verifactu.input": "Trieu un fitxer XML o una carpeta de registres accessible."
   ,"verifactu.hash": "El registre s’ha modificat després de generar-se: el seu resum (hash) no coincideix. Demaneu al vostre programa de facturació que el torni a generar."
   ,"verifactu.chain": "Aquest registre no enllaça amb l’anterior de la sèrie. Comproveu que la carpeta conté tots els registres en ordre."
-  ,"verifactu.duplicate": "Hi ha registres amb la mateixa empremta a la cadena."
+  ,"verifactu.duplicate": "Hi ha registres amb el mateix resum a la cadena."
   ,"verifactu.previous_missing": "El registre anterior no és a la selecció. No es pot comprovar aquest enllaç de la cadena."
   ,"verifactu.signature": "La signatura del registre està alterada o no cobreix tot el registre. Torneu a signar-lo amb el format «Registre Veri*Factu»."
   ,"verifactu.certificate": "El certificat no era vàlid en la data del registre."
@@ -4920,7 +4920,7 @@
   ,"verifactu.qr_aeat_unknown": "L’AEAT ha respost, però GrxFirma no reconeix el resultat. Reviseu la resposta tècnica o consulteu la factura a la seu de l’AEAT."
   ,"verifactu.qr_technical": "Veure la resposta tècnica"
   ,"verifactu.qr_technical_hide": "Amagar la resposta tècnica"
-  ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: signa els registres de facturació que lliura un programa de facturació amb el format que exigeix l'AEAT, i comprova registres ja signats: empremta encadenada, signatura i estructura. GrxFirma no genera, desa ni envia registres."
+  ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: signa els registres de facturació que lliura un programa de facturació amb el format que exigeix l'AEAT, i comprova registres ja signats: resum encadenat, signatura i estructura. GrxFirma no genera, desa ni envia registres."
   ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu: llegeix l'URL del QR tributari d'una factura i en mostra les dades; només si ho demaneu, la contrasta amb el servei públic de l'AEAT."
   ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Segell visible: amb «Dibuixa l'àrea» en marqueu la posició i la mida arrossegant sobre la pàgina, com a AutoFirma. També amb el teclat. A Windows i Linux, i a l'editor que obren els portals."
   ,"Android: cofirma y contrafirma, perfiles con sello de tiempo, verificación automática tras firmar, verificación detallada con informe exportable, los once idiomas con selector propio y pantalla «Acerca de».": "Android: cosignatura i contrasignatura, perfils amb segell de temps, verificació automàtica després de signar, verificació detallada amb informe exportable, els onze idiomes amb selector propi i pantalla «Quant a»."
@@ -4961,7 +4961,7 @@
   ,"csc.cli.hosts": "Servei de signatura: %s. Autorització a: %s. S’obre el navegador perquè autoritzeu l’accés."
   ,"csc.cli.pares_oauth_invalidos": "La llista firma_remota_csc_oauth_permitidos té una entrada mal escrita. Feu servir el format servei=autoritzacio, per exemple firma.prestador.cat=auth.prestador.cat."
   ,"csc.error.oauth_otro_host": "El servei demana autoritzar l’accés en un altre host. Per seguretat no es permet llevat que figuri a firma_remota_csc_oauth_permitidos."
-  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android: signatura per lots, crear i comprovar empremtes, i xifrar i desxifrar fitxers, com a l'escriptori."
+  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android: signatura per lots, crear i comprovar resums, i xifrar i desxifrar fitxers, com a l'escriptori."
   ,"Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.": "Android: signatura en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES i registres Veri*Factu; llegenda CSV i segell amb posició diferent a cada pàgina; crear i comprovar documents ENI."
   ,"Firma remota con certificados de prestadores compatibles con la API CSC, desde la línea de órdenes. Viene desactivada: solo funciona si la organización la habilita en su política o en la configuración. Aún no se ha probado con prestadores reales.": "Signatura remota amb certificats de prestadors compatibles amb l'API CSC, des de la línia d'ordres. Ve desactivada: només funciona si l'organització l'habilita a la seva política o a la configuració. Encara no s'ha provat amb prestadors reals."
   ,"csc.error.desactivada": "La signatura remota no està activada en aquest equip. L'activa la vostra organització o «firma_remota_csc» a config.json."
@@ -5599,7 +5599,7 @@
   ,"winui.certificados.desconocido": "Desconegut"
   ,"winui.certificados.dias_caducado": "Dies des de la caducitat"
   ,"winui.certificados.dias_restantes": "Dies restants"
-  ,"winui.certificados.huella_sha_256": "Empremta SHA-256"
+  ,"winui.certificados.huella_sha_256": "Empremta digital SHA-256"
   ,"winui.certificados.no_serie_nif": "Núm. de sèrie / NIF"
   ,"winui.certificados.persona_fisica": "Persona física"
   ,"winui.certificados.representante_de_entidad": "Representant d’entitat"

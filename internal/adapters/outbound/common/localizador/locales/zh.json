@@ -942,7 +942,7 @@
   "Haz la operación y vuelve aquí si algo no queda claro.": "请执行操作；如有不清楚之处，请回到此处。",
   "Hexadecimal": "十六进制",
   "Host / IP:": "主机/IP：",
-  "Huella": "指纹",
+  "Huella": "哈希",
   "Huella SHA-256: ": "SHA-256 指纹： ",
   "Huella copiada al portapapeles.": "哈希已复制到剪贴板。",
   "Huella del certificado copiada al portapapeles.": "证书指纹已复制到剪贴板。",

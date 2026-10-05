@@ -87,7 +87,7 @@
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
   "cli.help.audit": "Verifica la catena di hash del registro di audit: rileva record alterati, inseriti o cancellati. Per dimostrare anche che la parte finale non è stata tagliata, firma il file con il tuo certificato al momento della consegna.",
   "cli.help.report_usage": "-informe <informe.html>",
-  "cli.help.report": "Con la verifica, salva un rapporto di convalida in HTML stampabile con l'esito, i controlli, i firmatari e l'impronta SHA-256 del file verificato.",
+  "cli.help.report": "Con la verifica, salva un rapporto di convalida in HTML stampabile con l'esito, i controlli, i firmatari e l'hash SHA-256 del file verificato.",
   "Informe de validación": "Rapporto di convalida",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Legge senza eco la password di un PDF cifrato (utente o proprietario) per firmarlo mantenendone la cifratura. È accettata anche la variabile GRXFIRMA_PDF_PASSWORD, che viene cancellata alla lettura; non è mai accettata come argomento.",
@@ -248,7 +248,7 @@
   "Al iniciar, selecciona automáticamente el último certificado usado para firmar.": "All'avvio seleziona automaticamente l'ultimo certificato utilizzato per la firma.",
   "Algoritmo": "Algoritmo",
   "Algoritmo de huella por defecto": "Algoritmo di hash predefinito",
-  "Algoritmo en auto-detección desde la huella o el manifiesto.": "Algoritmo rilevato automaticamente dall’impronta o dal manifesto.",
+  "Algoritmo en auto-detección desde la huella o el manifiesto.": "Algoritmo rilevato automaticamente dall’hash o dal manifesto.",
   "Algoritmo forzado para la comprobación: ": "Algoritmo forzato per la verifica: ",
   "Almacen seguro de proxy": "Archivio proxy sicuro",
   "Almacén TLS limpiado.": "Archivio TLS svuotato.",
@@ -287,7 +287,7 @@
   "Arrastra o selecciona un PDF": "Trascina o seleziona un PDF",
   "Arrastra un archivo firmado para verificar": "Trascina un file firmato per verificare",
   "Artefacto a verificar": "Artefatto da verificare",
-  "Artefacto de huella esperado: ": "Artefatto di impronta previsto: ",
+  "Artefacto de huella esperado: ": "Artefatto di hash previsto: ",
   "Artefacto esperado": "Artefatto previsto",
   "Artefacto firmado y original preparados para validación avanzada.": "Artefatto firmato e originale preparati per la validazione avanzata.",
   "Artefacto protegido esperado: ": "Artefatto protetto previsto: ",
@@ -445,13 +445,13 @@
   "Cobertura": "Copertura",
   "Cobertura: ": "Copertura: ",
   "Cofirma": "Cofirma",
-  "Cofirma múltiple": "Co-firma multipla",
-  "Cofirma múltiple aplicada": "Co-firma multipla applicata",
-  "Cofirma múltiple guiada": "Co-firma multipla guidata",
+  "Cofirma múltiple": "Cofirma multipla",
+  "Cofirma múltiple aplicada": "Cofirma multipla applicata",
+  "Cofirma múltiple guiada": "Cofirma multipla guidata",
   "Cofirma: %1": "Cofirma: %1",
-  "Cofirmantes": "Co-firmatari",
-  "Cofirmantes: %1": "Co-firmatari: %1",
-  "Cofirmar": "Co-firmare",
+  "Cofirmantes": "Cofirmatari",
+  "Cofirmantes: %1": "Cofirmatari: %1",
+  "Cofirmar": "Cofirma",
   "Coinciden": "Corrispondenti",
   "Coinciden: ": "Coincidono: ",
   "Cola de log redactada": "Ultime righe del log anonimizzate",
@@ -462,7 +462,7 @@
   "Compatibilidad de validación no evaluable sin ambos artefactos.": "La compatibilità di validazione non è valutabile senza entrambi gli artefatti.",
   "Compatibilidad estricta": "Compatibilità rigorosa",
   "Comprobación de directorio finalizada.": "Controllo directory completato.",
-  "Comprobación de huella finalizada.": "Controllo impronta completato.",
+  "Comprobación de huella finalizada.": "Controllo hash completato.",
   "Comprobación online del certificado": "Verifica online del certificato",
   "Comprobación online del certificado finalizada.": "Verifica online del certificato terminata.",
   "Comprobado: ": "Verificato: ",
@@ -522,7 +522,7 @@
   "Content-Type": "Content-Type",
   "Contraer todo": "Comprimi tutto",
   "Contrafirma": "Controfirma",
-  "Contrafirmar": "Controfirmare",
+  "Contrafirmar": "Controfirma",
   "Contraseña": "Password",
   "Contraseña del Certificado": "Password del certificato",
   "Contraseña...": "Password...",
@@ -533,7 +533,7 @@
   "Copiar JSON de verificación": "Copia JSON di verifica",
   "Copiar JSON del certificado": "Copia JSON del certificato",
   "Copiar diagnóstico": "Copia diagnostica",
-  "Copiar huella": "Copia impronta",
+  "Copiar huella": "Copia impronta digitale",
   "Copiar huella al portapapeles por defecto": "Copia l'hash negli appunti per impostazione predefinita",
   "Copiar informe": "Copia rapporto",
   "Copiar resumen": "Copia riepilogo",
@@ -679,8 +679,8 @@
   "El QR se incorporará dentro del sello visible.": "Il QR sarà incorporato nel timbro visibile.",
   "El almacén seguro de secretos de proxy está disponible para este backend local.": "L'archivio sicuro dei segreti proxy è disponibile per questo backend locale.",
   "El almacén seguro de secretos de proxy no está listo; el proxy autenticado puede quedar limitado en este equipo.": "L'archivio sicuro dei segreti proxy non è pronto; il proxy autenticato potrebbe essere limitato su questo computer.",
-  "El artefacto de huella coincide con el modo seleccionado.": "L'artefatto dell'impronta corrisponde alla modalità selezionata.",
-  "El artefacto de huella parece de ": "L'artefatto dell'impronta sembra di tipo ",
+  "El artefacto de huella coincide con el modo seleccionado.": "L'artefatto di hash corrisponde alla modalità selezionata.",
+  "El artefacto de huella parece de ": "L'artefatto di hash sembra di tipo ",
   "El backend no está preparado para comprobar online el certificado.": "Il backend non è pronto per verificare online il certificato.",
   "El backend seguro de proxy esta disponible para este firmador local.": "Il backend proxy sicuro è disponibile per questo programma di firma locale.",
   "El backend seguro de proxy no esta listo; el proxy autenticado puede quedar limitado en este equipo.": "Il backend proxy sicuro non è pronto; il proxy autenticato potrebbe essere limitato su questa macchina.",
@@ -838,7 +838,7 @@
   "Fichero protegido": "File protetto",
   "Fichero protegido: %1": "File protetto: %1",
   "Fichero seleccionado": "File selezionato",
-  "Fichero sin hash": "File senza impronta",
+  "Fichero sin hash": "File senza hash",
   "Fichero(s) seleccionado(s)": "File selezionato/i",
   "Fichero: ": "File: ",
   "Fichero: %1": "File: %1",
@@ -932,7 +932,7 @@
   "Habilitar HTTPS local": "Abilita HTTPS locale",
   "Hash Base64 de la política FacturaE": "Hash Base64 della politica FacturaE",
   "Hash de política": "Hash della policy",
-  "Hash sin fichero": "Impronta senza file",
+  "Hash sin fichero": "Hash senza file",
   "Hay cambios en las preferencias de la app que todavía no se han guardado.": "Ci sono modifiche alle preferenze dell'app non ancora salvate.",
   "Hay certificados aptos para firma visibles.": "Sono visibili certificati adatti alla firma.",
   "Hay certificados aptos, pero ninguno queda visible con los filtros actuales.": "Ci sono certificati adatti, ma nessuno è visibile con i filtri attuali.",
@@ -942,13 +942,13 @@
   "Haz la operación y vuelve aquí si algo no queda claro.": "Esegui l'operazione e torna qui se qualcosa non ti è chiaro.",
   "Hexadecimal": "Esadecimale",
   "Host / IP:": "Host/IP:",
-  "Huella": "Impronta",
+  "Huella": "Valore hash",
   "Huella SHA-256: ": "Impronta digitale SHA-256: ",
   "Huella copiada al portapapeles.": "Hash copiato negli appunti.",
-  "Huella del certificado copiada al portapapeles.": "Impronta del certificato copiata negli appunti.",
-  "Huella o manifiesto": "Impronta o manifesto",
+  "Huella del certificado copiada al portapapeles.": "Impronta digitale del certificato copiata negli appunti.",
+  "Huella o manifiesto": "Hash o manifesto",
   "Huella o manifiesto: ": "Hash o manifesto: ",
-  "Huella válida.": "Impronta valida.",
+  "Huella válida.": "Hash valido.",
   "Huella: ": "Impronta: ",
   "Huellas de Certificados Cliente (SHA-256 CSV):": "Impronte digitali del certificato client (SHA-256 CSV):",
   "Huellas e integridad": "Hash e integrità",
@@ -1015,7 +1015,7 @@
   "La cofirma múltiple guiada está desactivada.": "La cofirma multipla guidata è disattivata.",
   "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "La cofirma multipla guidata è disponibile solo per un documento singolo nelle azioni di firma o cofirma.",
   "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "La cofirma multipla guidata è disponibile solo per firmare o cofirmare, non per controfirmare.",
-  "La cofirma múltiple guiada solo está disponible para un único documento, no para lotes.": "La co-firma multipla guidata è disponibile solo per un singolo documento, non per lotti.",
+  "La cofirma múltiple guiada solo está disponible para un único documento, no para lotes.": "La cofirma multipla guidata è disponibile solo per un singolo documento, non per lotti.",
   "La confirmación de la clave no coincide.": "La conferma della chiave non corrisponde.",
   "La consola usa este token para endpoints protegidos como firma, verificación, ajustes o diagnóstico.": "La console usa questo token per gli endpoint protetti come firma, verifica, impostazioni o diagnostica.",
   "La exportación JSON de verificación estará disponible tras ejecutar una verificación rápida o una autoverificación posterior a la firma.": "L'esportazione JSON di verifica sarà disponibile dopo una verifica rapida o una verifica automatica successiva alla firma.",
@@ -1023,7 +1023,7 @@
   "La firma ha fallado": "La firma non è riuscita",
   "La firma se guardara en la ruta de salida indicada y, si activas base64, tambien volvera al navegador.": "La firma verrà salvata nel percorso di output indicato e, se attivi base64, tornerà anche al browser.",
   "La firma visible solo se aplica a PAdES (PDF).": "La firma visibile vale solo per PAdES (PDF).",
-  "La huella no coincide con el fichero.": "L'impronta non corrisponde al file.",
+  "La huella no coincide con el fichero.": "L'hash non corrisponde al file.",
   "La imagen seleccionada solo vive en esta sesión web local y no se guarda como ajuste persistente.": "L'immagine selezionata esiste solo in questa sessione web locale e non viene salvata come impostazione persistente.",
   "La incidencia exportable se generará al preparar un informe para soporte.": "La segnalazione esportabile verrà generata quando si prepara un rapporto per l'assistenza.",
   "La incidencia ya está guardada en local y se enviará solo al destino HTTPS que indiques.": "La segnalazione è già salvata localmente e verrà inviata solo alla destinazione HTTPS indicata.",
@@ -1074,7 +1074,7 @@
   "Lote o selección múltiple": "Lotto o selezione multipla",
   "Lote: ": "Lotto: ",
   "Lugar de firma FacturaE": "Luogo di firma FacturaE",
-  "Manifiesto de huellas generado.": "Manifesto delle impronte generato.",
+  "Manifiesto de huellas generado.": "Manifesto degli hash generato.",
   "Mantener esta sesión web en segundo plano al cerrar": "Mantieni questa sessione web in background alla chiusura",
   "Mantener texto sobre imagen por defecto": "Mantieni per impostazione predefinita il testo sopra l'immagine",
   "Mantener texto sobre la imagen": "Mantieni il testo sull'immagine",
@@ -1169,15 +1169,15 @@
   "No se pudo copiar el JSON del certificado.": "Impossibile copiare il JSON del certificato.",
   "No se pudo copiar el resumen de validación.": "Impossibile copiare il riepilogo di validazione.",
   "No se pudo copiar el resumen para soporte.": "Impossibile copiare il riepilogo per l'assistenza.",
-  "No se pudo copiar la huella del certificado.": "Impossibile copiare l'impronta del certificato.",
+  "No se pudo copiar la huella del certificado.": "Impossibile copiare l'impronta digitale del certificato.",
   "No se pudo copiar la incidencia preparada.": "Non è stato possibile copiare la segnalazione preparata.",
   "No se pudo determinar la compatibilidad exacta del par.": "Impossibile determinare l'esatta compatibilità della coppia.",
   "No se pudo enviar la petición IPC: ": "Non è stato possibile inviare la richiesta IPC: ",
   "No se pudo estimar el stack de firma probable.": "Impossibile stimare il probabile stack di firma.",
-  "No se pudo inferir el artefacto esperado de huella.": "Impossibile dedurre l'artefatto previsto dell'impronta.",
+  "No se pudo inferir el artefacto esperado de huella.": "Impossibile dedurre l'artefatto di hash previsto.",
   "No se pudo inferir el artefacto firmado esperado.": "Impossibile dedurre l'artefatto firmato previsto.",
   "No se pudo inferir el contenedor protegido por extensión.": "Impossibile dedurre il contenitore protetto dall'estensione.",
-  "No se pudo inferir el tipo del artefacto de huella.": "Impossibile dedurre il tipo dell'artefatto dell'impronta.",
+  "No se pudo inferir el tipo del artefacto de huella.": "Impossibile dedurre il tipo dell'artefatto di hash.",
   "No se pudo inferir el tipo probable del firmado.": "Impossibile dedurre il tipo probabile del file firmato.",
   "No se pudo leer el log en %s\n\n%s": "Impossibile leggere il log in %s\n\n%s",
   "No se pudo localizar el destinatario seleccionado.": "Impossibile individuare il destinatario selezionato.",
@@ -1233,7 +1233,7 @@
   "Opcional. Estos datos se enviarán como SignatureProductionPlace al firmar FacturaE.": "Opzionale. Questi dati saranno inviati come SignatureProductionPlace durante la firma FacturaE.",
   "Opcional. Estos datos se incrustan en la firma PAdES y no sustituyen al certificado ni al sello visible.": "Opzionale. Questi dati vengono incorporati nella firma PAdES e non sostituiscono né il certificato né il timbro visibile.",
   "Opcional. Se envía en Authorization: Bearer ...": "Facoltativo. Viene inviato in Authorization: Bearer ...",
-  "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible cuando no usas imagen personalizada.": "Facoltativo. Se indichi un testo o un URL, viene incorporato un QR all’interno del sigillo visibile quando non usi un’immagine personalizzata.",
+  "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible cuando no usas imagen personalizada.": "Facoltativo. Se indichi un testo o un URL, viene incorporato un QR all’interno del timbro visibile quando non usi un’immagine personalizzata.",
   "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible y puede combinarse con imagen personalizada.": "Opzionale. Se indichi un testo o un URL, un QR viene incorporato nel timbro visibile e può essere combinato con un’immagine personalizzata.",
   "Opcional. Si indicas una TSA, el backend la usará para perfiles con sello de tiempo.": "Facoltativo. Se indichi una TSA, il backend la userà per i profili con marca temporale.",
   "Opcional. Si informa identificador y hash, se enviarán al backend como política explícita de FacturaE.": "Opzionale. Se vengono forniti identificatore e hash, saranno inviati al backend come politica FacturaE esplicita.",
@@ -1286,10 +1286,10 @@
   "Pendiente de artefacto protegido.": "In attesa dell'artefatto protetto.",
   "Pendiente de documento firmado": "In attesa del documento firmato",
   "Pendiente de firmado para estimar el stack.": "In attesa del file firmato per stimare lo stack.",
-  "Pendiente de huella o manifiesto": "In attesa di impronta o manifesto",
+  "Pendiente de huella o manifiesto": "In attesa di hash o manifesto",
   "Pendiente de origen": "In attesa dell'origine",
-  "Pendiente de origen o huella para comprobar.": "In attesa di origine o impronta da verificare.",
-  "Pendiente de origen para crear huella.": "In attesa dell'origine per creare l'impronta.",
+  "Pendiente de origen o huella para comprobar.": "In attesa di origine o hash da verificare.",
+  "Pendiente de origen para crear huella.": "In attesa dell'origine per creare l'hash.",
   "Pendiente de origen para desproteger.": "In attesa dell'origine per rimuovere la protezione.",
   "Pendiente de origen para firmar.": "In attesa dell'origine per firmare.",
   "Pendiente de pareja de validación.": "In attesa della coppia di validazione.",
@@ -1316,9 +1316,9 @@
   "Plan de desprotección listo.": "Piano di rimozione della protezione pronto.",
   "Plan de firma": "Piano di firma",
   "Plan de firma listo.": "Piano di firma pronto.",
-  "Plan de huella": "Piano dell'impronta",
-  "Plan de huella listo para fichero.": "Piano dell'impronta pronto per il file.",
-  "Plan de huella listo para manifiesto de directorio.": "Piano dell'impronta pronto per il manifesto della directory.",
+  "Plan de huella": "Piano di hash",
+  "Plan de huella listo para fichero.": "Piano di hash pronto per il file.",
+  "Plan de huella listo para manifiesto de directorio.": "Piano di hash pronto per il manifesto della directory.",
   "Plan de validación": "Piano di validazione",
   "Plan de validación listo con original de referencia.": "Piano di validazione pronto con originale di riferimento.",
   "Plan de validación listo sin documento original.": "Piano di validazione pronto senza documento originale.",
@@ -1345,7 +1345,7 @@
   "Preparar incidencia": "Prepara segnalazione",
   "Preparar validación": "Preparare la convalida",
   "Preset aplicado: %1": "Preset applicato: %1",
-  "Presets del sello": "Preset del sigillo",
+  "Presets del sello": "Preset del timbro",
   "Previos: %1": "Precedenti: %1",
   "Previsualización": "Anteprima",
   "Primer documento": "Primo documento",
@@ -1390,7 +1390,7 @@
   "QML: Preview obsoleta ignorada para página": "QML: anteprima obsoleta ignorata per la pagina",
   "QML: Previsualización recibida OK, tamaño:": "QML: Anteprima ricevuta OK, dimensioni:",
   "QR": "QR",
-  "QR del sello": "QR del sigillo",
+  "QR del sello": "QR del timbro",
   "Qt.openUrlExternally falló:": "Qt.openUrlEsternamente non riuscito:",
   "Qualifier de política": "Qualifier della policy",
   "Qualifier de política FacturaE (SPURI)": "Qualifier della politica FacturaE (SPURI)",
@@ -1448,7 +1448,7 @@
   "Restaura el tema y opciones a fábrica": "Ripristina il tema e le opzioni alle impostazioni di fabbrica",
   "Restaurado desde la sesión anterior.": "Ripristinato dalla sessione precedente.",
   "Restaurar": "Ripristina",
-  "Restaurar sello": "Ripristina sigillo",
+  "Restaurar sello": "Ripristina timbro",
   "Resultado": "Risultato",
   "Resultado de desprotección": "Risultato della deprotezione",
   "Resultado de huella": "Risultato hash",
@@ -1496,7 +1496,7 @@
   "Rotación del sello visible por defecto": "Rotazione predefinita del timbro visibile",
   "Ruta de salida": "Percorso di output",
   "Ruta de salida opcional": "Percorso di uscita opzionale",
-  "Ruta del fichero de huella": "Percorso del file di impronta",
+  "Ruta del fichero de huella": "Percorso del file di hash",
   "Ruta del informe (.hashreport)": "Percorso del rapporto (.hashreport)",
   "Ruta del manifiesto": "Percorso del manifesto",
   "Ruta desprotegida": "Percorso senza protezione",
@@ -1757,7 +1757,7 @@
   "Usar logo GrxFirma": "Usa logo GrxFirma",
   "Usar solo certificados de firma": "Usa solo certificati di firma",
   "Usuario": "Utente",
-  "Utilidades de huellas": "Strumenti di impronta",
+  "Utilidades de huellas": "Strumenti di hash",
   "VERIFICAR": "VERIFICA",
   "Vaciar Almacén TLS": "Svuota archivio TLS",
   "Vaciar almacén TLS local": "Svuota l'archivio TLS locale",
@@ -1985,7 +1985,7 @@
   "fileHelp": "fileHelp",
   "filesSelectedCount": "filesSelectedCount",
   "format": "format",
-  "formatConfigFacturaEHash": "Impronta della policy",
+  "formatConfigFacturaEHash": "Hash della policy",
   "formatConfigFacturaEIdentifier": "Identificatore della policy",
   "formatConfigFacturaENone": "Nessuna configurazione specifica per FacturaE",
   "formatConfigFacturaEPlace": "Luogo della firma",
@@ -2503,7 +2503,7 @@
   "Usar certificado sin instalar": "Usa certificato senza installarlo",
   "Usar certificado solo durante esta sesión": "Usa certificato solo per questa sessione",
   "Validación avanzada": "Validazione avanzata",
-  "Comprueba firmas, certificados y huellas sin enviar documentos fuera de este equipo.": "Verifica firme, certificati e impronte senza inviare documenti fuori da questo computer.",
+  "Comprueba firmas, certificados y huellas sin enviar documentos fuera de este equipo.": "Verifica firme, certificati e hash senza inviare documenti fuori da questo computer.",
   "Selecciona un certificado del catálogo local para revisar su vigencia y estado de revocación.": "Seleziona un certificato dal catalogo locale per verificarne validità e stato di revoca.",
   "Entrada": "Ingresso",
   "No válido": "Non valido",
@@ -2512,7 +2512,7 @@
   "Selecciona primero los ficheros necesarios.": "Seleziona prima i file necessari.",
   "informe-validacion.json": "rapporto-validazione.json",
   "informe-certificado.json": "rapporto-certificato.json",
-  "informe-huella.json": "rapporto-impronta.json",
+  "informe-huella.json": "rapporto-hash.json",
   "El backend no está preparado para validar el certificado.": "Il backend non è pronto per convalidare il certificato.",
   "No se pudo acceder al almacén de confianza del sistema.": "Impossibile accedere all'archivio di attendibilità del sistema.",
   "El almacén de confianza del sistema está vacío.": "L'archivio di attendibilità del sistema è vuoto.",
@@ -2588,21 +2588,21 @@
   ,"Este CMS genérico es EncryptedData y usa una clave transitoria": "Questo CMS generico è EncryptedData e usa una chiave temporanea"
   ,"Introduzca la misma clave AES-256 en Base64 usada al proteger. Se enviará una sola vez al motor local y no se guardará.": "Inserire la stessa chiave AES-256 in Base64 usata per la protezione. Verrà inviata una sola volta al motore locale e non verrà salvata."
   ,"La clave transitoria debe ser Base64 canónico de 32 bytes (44 caracteres).": "La chiave temporanea deve essere la codifica Base64 canonica di 32 byte (44 caratteri)."
-  ,"Calculando huella...": "Calcolo dell'impronta..."
+  ,"Calculando huella...": "Calcolo dell'hash..."
   ,"Indica una ruta local de directorio para generar el manifiesto.": "Indica un percorso locale della directory per generare il manifesto."
   ,"Selecciona un fichero o indica una ruta local.": "Seleziona un file o indica un percorso locale."
   ,"Descargar manifiesto": "Scarica manifesto"
   ,"Entradas": "Voci"
-  ,"Manifiesto hash de directorio generado.": "Manifesto delle impronte della directory generato."
-  ,"Descargar huella": "Scarica impronta"
-  ,"Huella generada correctamente.": "Impronta generata correttamente."
-  ,"Huella generada.": "Impronta generata."
-  ,"Error al generar huella: ": "Errore durante la generazione dell'impronta: "
+  ,"Manifiesto hash de directorio generado.": "Manifesto degli hash della directory generato."
+  ,"Descargar huella": "Scarica hash"
+  ,"Huella generada correctamente.": "Hash generato correttamente."
+  ,"Huella generada.": "Hash generato."
+  ,"Error al generar huella: ": "Errore durante la generazione dell'hash: "
   ,"Comprobando integridad...": "Verifica dell'integrità..."
   ,"Indica una ruta local de directorio para comprobar el manifiesto.": "Indica un percorso locale della directory per verificare il manifesto."
-  ,"Selecciona un fichero de huella/manifiesto o indica su ruta.": "Seleziona un file di impronta o manifesto, oppure indicane il percorso."
+  ,"Selecciona un fichero de huella/manifiesto o indica su ruta.": "Seleziona un file di hash o manifesto, oppure indicane il percorso."
   ,"Esperada": "Attesa"
-  ,"Error al comprobar huella: ": "Errore durante la verifica dell'impronta: "
+  ,"Error al comprobar huella: ": "Errore durante la verifica dell'hash: "
   ,"ACERCA DE": "INFORMAZIONI"
   ,"Acerca de": "Informazioni"
   ,"Acerca de GrxFirma": "Informazioni su GrxFirma"
@@ -2751,7 +2751,7 @@
   ,"portal.seal.sign_here": "Firma qui con il timbro"
   ,"portal.seal.sign_without": "Firma senza timbro visibile"
   ,"portal.seal.cancel": "Annulla"
-  ,"portal.seal.style": "Aspetto del sigillo"
+  ,"portal.seal.style": "Aspetto del timbro"
   ,"portal.seal.logo": "Logo istituzionale"
   ,"portal.seal.text": "Solo testo"
   ,"portal.seal.error.result": "L’editor ha restituito un risultato non valido. Il documento non è stato firmato."
@@ -2996,7 +2996,7 @@
   "Firma XAdES": "Firma XAdES",
   "Firma XMLdSig": "Firma XMLDSig",
   "Contenedor ASiC": "Contenitore ASiC",
-  "Informe de huella": "Rapporto sulle impronte digitali",
+  "Informe de huella": "Rapporto hash",
   "Documento protegido": "Documento protetto",
   "Sobre protegido GrxFirma": "Busta protetta GrxFirma",
   "Informe de diagnóstico": "Rapporto diagnostico",
@@ -3404,7 +3404,7 @@
   ,"Válido hasta": "Valido fino al"
   ,"Días caducado": "Giorni dalla scadenza"
   ,"Días restantes": "Giorni rimanenti"
-  ,"Huella SHA-256": "Impronta SHA-256"
+  ,"Huella SHA-256": "Impronta digitale SHA-256"
   ,"Nº Serie / NIF": "N. di serie / NIF"
   ,"Representante de entidad": "Rappresentante di ente"
   ,"No identificado": "Non identificato"
@@ -3966,13 +3966,13 @@
   ,"Opciones avanzadas de firma": "Opzioni avanzate di firma"
   ,"Opciones avanzadas": "Opzioni avanzate"
   ,"Usa la geometría real obtenida del PDF y solo se habilita para PAdES o Automático.": "Usa la geometria reale del PDF ed è disponibile solo per PAdES o Automatico."
-  ,"Añadir sello visible en documentos PDF": "Aggiungi un sigillo visibile ai documenti PDF"
+  ,"Añadir sello visible en documentos PDF": "Aggiungi un timbro visibile ai documenti PDF"
   ,"Añadir sello visible en PDF": "Aggiungi un timbro visibile al PDF"
   ,"Configuración del sello visible": "Impostazioni del timbro visibile"
   ,"Elija el aspecto del sello y en qué páginas estamparlo. Después cargue la previsualización: arrastre el sello para colocarlo y su esquina para ampliarlo o reducirlo. También puede ajustarlo con el teclado: X se mide desde la izquierda e Y desde abajo.": "Scegli l'aspetto del timbro e le pagine su cui apporlo. Poi carica l'anteprima: trascina il timbro per posizionarlo e l'angolo per ridimensionarlo. Puoi anche regolarlo con la tastiera: X si misura da sinistra e Y dal basso."
   ,"Institucional muestra el emblema de firma de la Diputación; también puede usar solo texto o una imagen propia.": "Lo stile istituzionale mostra l'emblema di firma della Diputación; puoi usare anche solo testo o un'immagine personale."
   ,"Estilo del sello visible": "Stile del timbro visibile"
-  ,"Estilo del sello": "Stile del sigillo"
+  ,"Estilo del sello": "Stile del timbro"
   ,"Elegir imagen del sello": "Scegli l'immagine del timbro"
   ,"Incluye en el sello el nombre del firmante, la fecha y el emisor del certificado; sin esta opción conserva únicamente el rótulo de firma digital.": "Include nel timbro il nome del firmatario, la data e l'emittente del certificato; senza questa opzione resta solo la dicitura della firma digitale."
   ,"Mostrar identidad ubicación y fecha en el sello": "Mostra identità, luogo e data nel timbro"
@@ -4151,20 +4151,20 @@
   ,"Revise los datos y vuelva a intentarlo.": "Controlla i dati e riprova."
   ,"La carpeta del documento firmado ya no está disponible. Compruebe el destino de guardado.": "La cartella del documento firmato non è più disponibile. Controlla la destinazione di salvataggio."
   ,"No se ha ejecutado ninguna firma": "Nessuna firma eseguita"
-  ,"Muestra orientativa de posición y giro. El sello definitivo se genera con el certificado; revíselo en el PDF firmado.": "Posizione e rotazione sono indicative. Il sigillo finale viene generato con il certificato: controllalo nel PDF firmato."
+  ,"Muestra orientativa de posición y giro. El sello definitivo se genera con el certificado; revíselo en el PDF firmado.": "Posizione e rotazione sono indicative. Il timbro finale viene generato con il certificato: controllalo nel PDF firmato."
   ,"No se han seleccionado documentos para el lote.": "Nessun documento selezionato per il batch."
   ,"No se ha seleccionado una carpeta de salida.": "Nessuna cartella di destinazione selezionata."
   ,"El lote aún no se ha ejecutado.": "Il batch non è ancora stato eseguito."
   ,"No se ha ejecutado ninguna firma.": "Nessuna firma eseguita."
   ,"Seleccione un documento y un certificado para firmar.": "Seleziona un documento e un certificato per firmare."
   ,"Seleccione un documento compatible y un certificado principal.": "Seleziona un documento compatibile e un certificato principale."
-  ,"Active el sello y cargue la previsualización para obtener la geometría real del PDF.": "Attiva il sigillo e carica l'anteprima per ottenere la geometria reale del PDF."
+  ,"Active el sello y cargue la previsualización para obtener la geometría real del PDF.": "Attiva il timbro e carica l'anteprima per ottenere la geometria reale del PDF."
   ,"Firma, cofirma o contrafirma documentos con un certificado de Windows o un archivo P12/PFX.": "Firma, apponi una cofirma o controfirma ai documenti con un certificato Windows o un file P12/PFX."
   ,"La firma no está disponible porque el motor local no ha publicado certificates y sign.": "La firma non è disponibile perché il motore locale non ha pubblicato certificates e sign."
   ,"Sin rotación": "Nessuna rotazione"
   ,"Institucional con emblema": "Istituzionale con emblema"
   ,"Emblema de firma de la Diputación a la izquierda y los datos de la firma a la derecha.": "Emblema di firma della Diputación a sinistra e dati della firma a destra."
-  ,"Sello sobrio con los datos de la firma, sin imágenes.": "Sigillo sobrio con i dati della firma, senza immagini."
+  ,"Sello sobrio con los datos de la firma, sin imágenes.": "Timbro sobrio con i dati della firma, senza immagini."
   ,"Una imagen PNG o JPEG suya (logotipo, firma manuscrita escaneada…) junto a los datos de la firma.": "Una tua immagine PNG o JPEG (logo, firma autografa scansionata…) insieme ai dati della firma."
   ,"Identidad · ubicación · fecha": "Identità · luogo · data"
   ,"Rótulo sin datos personales": "Dicitura senza dati personali"
@@ -4239,10 +4239,10 @@
   ,"El lote se canceló. Solo se consideran válidas las salidas ya confirmadas en la lista.": "Il batch è stato annullato. Solo gli output già confermati nell'elenco sono considerati validi."
   ,"Falló la comunicación segura durante la firma por lotes.": "La comunicazione sicura non è riuscita durante la firma del batch."
   ,"La aplicación no pudo completar la firma por lotes.": "L'applicazione non è riuscita a completare la firma del batch."
-  ," Ha elegido «Última página»: el documento tiene {0} página(s) y el sello irá en la {0}.": " Hai scelto «Ultima pagina»: il documento ha {0} pagine e il sigillo sarà sulla pagina {0}."
+  ," Ha elegido «Última página»: el documento tiene {0} página(s) y el sello irá en la {0}.": " Hai scelto «Ultima pagina»: il documento ha {0} pagine e il timbro sarà sulla pagina {0}."
   ,"Corrija la selección del PDF o de páginas y vuelva a cargar la previsualización.": "Correggi la selezione del PDF o delle pagine e ricarica l'anteprima."
   ,"Ya hay otra operación en curso. Espere o cancélela antes de cargar la previsualización.": "Un'altra operazione è in corso. Attendi o annullala prima di caricare l'anteprima."
-  ,"El motor local no ofrece la previsualización PDF necesaria para calcular un sello seguro.": "Il motore locale non offre l'anteprima PDF necessaria per calcolare un sigillo sicuro."
+  ,"El motor local no ofrece la previsualización PDF necesaria para calcular un sello seguro.": "Il motore locale non offre l'anteprima PDF necessaria per calcolare un timbro sicuro."
   ,"Actualice o reinicie el motor local y compruebe que anuncia pdf_preview.": "Aggiorna o riavvia il motore locale e verifica che annunci pdf_preview."
   ,"Cargando la geometría real de la página {0}…": "Caricamento della geometria reale della pagina {0}…"
   ,"No se pudo comprobar el PDF antes de previsualizarlo.": "Impossibile verificare il PDF prima dell'anteprima."
@@ -4261,7 +4261,7 @@
   ,"La aplicación no pudo preparar la previsualización PDF.": "L'applicazione non è riuscita a preparare l'anteprima PDF."
   ,"Corrija la configuración indicada y vuelva a cargar la previsualización si se solicita.": "Correggi le impostazioni indicate e ricarica l'anteprima se richiesto."
   ,"Ya hay una firma en curso. Espere o cancele esa operación.": "Una firma è già in corso. Attendi o annulla l'operazione."
-  ,"No se puede cofirmar con varios certificados: el motor local no ofrece sign_multicosign.": "Impossibile apporre co-firme con più certificati: il motore locale non supporta sign_multicosign."
+  ,"No se puede cofirmar con varios certificados: el motor local no ofrece sign_multicosign.": "Impossibile apporre cofirme con più certificati: il motore locale non supporta sign_multicosign."
   ,"No se puede firmar: el motor local no ofrece la operación sign.": "Impossibile firmare: il motore locale non supporta l'operazione sign."
   ,"Elija dónde guardar el resultado. La firma aún no se ha iniciado.": "Scegli dove salvare il risultato. La firma non è ancora iniziata."
   ,"No se eligió un destino. No se ha realizado ninguna firma.": "Nessuna destinazione scelta. Nessuna firma eseguita."
@@ -4270,13 +4270,13 @@
   ,"Cierre el programa que está modificando el PDF, cargue de nuevo la previsualización y repita la firma.": "Chiudi il programma che modifica il PDF, ricarica l'anteprima e firma di nuovo."
   ,"El contenido del PDF cambió después de previsualizarlo. La firma no se ha iniciado.": "Il contenuto del PDF è cambiato dopo l'anteprima. La firma non è iniziata."
   ,"Cargue de nuevo la previsualización del PDF actual antes de firmar.": "Ricarica l'anteprima del PDF corrente prima di firmare."
-  ,"Aplicando el firmante principal y las cofirmas adicionales en el orden mostrado…": "Applicazione del firmatario principale e delle co-firme aggiuntive nell'ordine mostrato…"
+  ,"Aplicando el firmante principal y las cofirmas adicionales en el orden mostrado…": "Applicazione del firmatario principale e delle cofirme aggiuntive nell'ordine mostrato…"
   ,"Firmando el documento…": "Firma del documento in corso…"
   ,"La firma no se completó. Abra el diagnóstico para conocer el punto de fallo.": "La firma non è stata completata. Apri la diagnostica per sapere dove si è verificato l'errore."
   ,"El motor confirmó la operación, pero no devolvió una salida válida.": "Il motore ha confermato l'operazione, ma non ha restituito un output valido."
   ,"El motor no confirmó el fichero de salida solicitado. No se mostrará un éxito falso.": "Il motore non ha confermato il file di output richiesto. Non verrà segnalato un falso successo."
   ,"La firma se guardó como {0}, pero el PDF de origen cambió durante la operación.": "La firma è stata salvata come {0}, ma il PDF originale è cambiato durante l'operazione."
-  ,"No use el resultado hasta revisar el diagnóstico: no se puede asegurar que el sello corresponda a la previsualización.": "Non usare il risultato prima di aver esaminato la diagnostica: non si può garantire che il sigillo corrisponda all'anteprima."
+  ,"No use el resultado hasta revisar el diagnóstico: no se puede asegurar que el sello corresponda a la previsualización.": "Non usare il risultato prima di aver esaminato la diagnostica: non si può garantire che il timbro corrisponda all'anteprima."
   ,"Cierre el programa que modifica el PDF y repita la firma desde una previsualización nueva.": "Chiudi il programma che modifica il PDF e firma di nuovo partendo da una nuova anteprima."
   ,"La firma se guardó. Comprobando ahora su validez…": "Firma salvata. Verifica della validità in corso…"
   ,"La firma se guardó como {0}, pero no pudo validarse automáticamente.": "La firma è stata salvata come {0}, ma non è stato possibile convalidarla automaticamente."
@@ -4285,13 +4285,13 @@
   ,"El motor no devolvió evidencias coherentes para la validación posterior.": "Il motore non ha restituito evidenze coerenti per la convalida successiva."
   ,"La firma se guardó como {0}, pero no superó la validación.": "La firma è stata salvata come {0}, ma non ha superato la convalida."
   ,"La firma generada no es válida. No la utilice y abra el diagnóstico.": "La firma generata non è valida. Non usarla e apri la diagnostica."
-  ,"Cofirma múltiple completada, guardada y validada como {0}.": "Co-firma multipla completata, salvata e convalidata come {0}."
+  ,"Cofirma múltiple completada, guardada y validada como {0}.": "Cofirma multipla completata, salvata e convalidata come {0}."
   ,"Firma completada, guardada y validada como {0}.": "Firma completata, salvata e convalidata come {0}."
-  ,"Cofirma múltiple completada y guardada como {0}. La integridad se validó, pero la confianza no quedó establecida.": "Co-firma multipla completata e salvata come {0}. L'integrità è stata convalidata, ma l'attendibilità non è stata stabilita."
+  ,"Cofirma múltiple completada y guardada como {0}. La integridad se validó, pero la confianza no quedó establecida.": "Cofirma multipla completata e salvata come {0}. L'integrità è stata convalidata, ma l'attendibilità non è stata stabilita."
   ,"Firma completada y guardada como {0}. La integridad se validó, pero la confianza no quedó establecida.": "Firma completata e salvata come {0}. L'integrità è stata convalidata, ma l'attendibilità non è stata stabilita."
-  ,"Cofirma múltiple completada y guardada como {0}.": "Co-firma multipla completata e salvata come {0}."
+  ,"Cofirma múltiple completada y guardada como {0}.": "Cofirma multipla completata e salvata come {0}."
   ,"Firma completada y guardada como {0}.": "Firma completata e salvata come {0}."
-  ,"La cofirma múltiple terminó correctamente, pero no se solicitó su validación posterior.": "La co-firma multipla è riuscita, ma non è stata richiesta una convalida successiva."
+  ,"La cofirma múltiple terminó correctamente, pero no se solicitó su validación posterior.": "La cofirma multipla è riuscita, ma non è stata richiesta una convalida successiva."
   ,"La firma terminó correctamente, pero no se solicitó su validación posterior.": "La firma è riuscita, ma non è stata richiesta una convalida successiva."
   ,"La firma se guardó como {0}, pero su validación se canceló.": "La firma è stata salvata come {0}, ma la convalida è stata annullata."
   ,"El fichero firmado existe, pero no terminó la validación posterior.": "Il file firmato esiste, ma la convalida successiva non è stata completata."
@@ -4305,12 +4305,12 @@
   ,"El fichero firmado ya no está disponible en el destino elegido.": "Il file firmato non è più disponibile nella destinazione scelta."
   ,"Windows no pudo representar de forma segura la imagen de previsualización. La firma no se ha iniciado.": "Windows non è riuscito a visualizzare in modo sicuro l'immagine di anteprima. La firma non è iniziata."
   ,"Vuelva a cargar la previsualización. Si se repite, pruebe otro PDF y conserve el diagnóstico.": "Ricarica l'anteprima. Se il problema si ripete, prova un altro PDF e conserva la diagnostica."
-  ,"La imagen del sello debe ser un PNG o JPEG de hasta 10 MB.": "L'immagine del sigillo deve essere un PNG o JPEG di massimo 10 MB."
-  ,"Ha elegido «Imagen propia»: seleccione la imagen PNG o JPEG del sello.": "Hai scelto «Immagine personale»: seleziona l'immagine PNG o JPEG del sigillo."
-  ,"No se pudo generar la vista previa del sello con estas opciones. Revise la imagen, el QR o el tamaño de la zona.": "Impossibile generare l'anteprima del sigillo con queste opzioni. Controlla immagine, codice QR o dimensioni dell'area."
-  ,"Vista previa real del sello. Elija un certificado para ver su nombre; ahora se muestra un nombre de ejemplo.": "Anteprima effettiva del sigillo. Scegli un certificato per vederne il nome; per ora è mostrato un nome di esempio."
-  ,"Vista previa real del sello con el certificado elegido. La fecha definitiva será la del momento de la firma.": "Anteprima effettiva del sigillo con il certificato scelto. La data definitiva sarà quella della firma."
-  ,"El motor local no pudo generar la vista previa del sello; se muestra una muestra orientativa.": "Il motore locale non è riuscito a generare l'anteprima del sigillo; viene mostrato un esempio indicativo."
+  ,"La imagen del sello debe ser un PNG o JPEG de hasta 10 MB.": "L'immagine del timbro deve essere un PNG o JPEG di massimo 10 MB."
+  ,"Ha elegido «Imagen propia»: seleccione la imagen PNG o JPEG del sello.": "Hai scelto «Immagine personale»: seleziona l'immagine PNG o JPEG del timbro."
+  ,"No se pudo generar la vista previa del sello con estas opciones. Revise la imagen, el QR o el tamaño de la zona.": "Impossibile generare l'anteprima del timbro con queste opzioni. Controlla immagine, codice QR o dimensioni dell'area."
+  ,"Vista previa real del sello. Elija un certificado para ver su nombre; ahora se muestra un nombre de ejemplo.": "Anteprima effettiva del timbro. Scegli un certificato per vederne il nome; per ora è mostrato un nome di esempio."
+  ,"Vista previa real del sello con el certificado elegido. La fecha definitiva será la del momento de la firma.": "Anteprima effettiva del timbro con il certificato scelto. La data definitiva sarà quella della firma."
+  ,"El motor local no pudo generar la vista previa del sello; se muestra una muestra orientativa.": "Il motore locale non è riuscito a generare l'anteprima del timbro; viene mostrato un esempio indicativo."
   ,"No se puede firmar porque el motor local no está conectado.": "Impossibile firmare perché il motore locale non è connesso."
   ,"Seleccione el documento que desea firmar.": "Seleziona il documento da firmare."
   ,"El documento seleccionado ya no está disponible. Selecciónelo de nuevo.": "Il documento selezionato non è più disponibile. Selezionalo di nuovo."
@@ -4318,9 +4318,9 @@
   ,"El certificado seleccionado no es válido para firmar. {0}": "Il certificato selezionato non è valido per la firma. {0}"
   ,"Seleccione un formato de firma.": "Seleziona un formato di firma."
   ,"Seleccione un perfil de firma.": "Seleziona un profilo di firma."
-  ,"El motor local no ofrece la cofirma múltiple guiada.": "Il motore locale non supporta la co-firma multipla guidata."
-  ,"La cofirma múltiple guiada no admite contrafirma.": "La co-firma multipla guidata non supporta la controfirma."
-  ,"La cofirma múltiple guiada solo está disponible para PAdES, ODF u OOXML.": "La co-firma multipla guidata è disponibile solo per PAdES, ODF o OOXML."
+  ,"El motor local no ofrece la cofirma múltiple guiada.": "Il motore locale non supporta la cofirma multipla guidata."
+  ,"La cofirma múltiple guiada no admite contrafirma.": "La cofirma multipla guidata non supporta la controfirma."
+  ,"La cofirma múltiple guiada solo está disponible para PAdES, ODF u OOXML.": "La cofirma multipla guidata è disponibile solo per PAdES, ODF o OOXML."
   ,"Seleccione al menos un certificado adicional distinto del firmante principal.": "Seleziona almeno un certificato aggiuntivo diverso da quello del firmatario principale."
   ,"No se puede firmar el lote porque el motor local no está conectado.": "Impossibile firmare il batch perché il motore locale non è connesso."
   ,"Active la firma por lotes y compruebe que el motor ofrece sign_batch.": "Attiva la firma in batch e verifica che il motore supporti sign_batch."
@@ -4331,14 +4331,14 @@
   ,"Seleccione la operación de firma del lote.": "Seleziona l'operazione di firma del batch."
   ,"Seleccione el formato de firma del lote.": "Seleziona il formato della firma del batch."
   ,"Seleccione el perfil de firma del lote.": "Seleziona il profilo della firma del batch."
-  ,"El sello visible requiere previsualización por documento y no está habilitado en el lote.": "Il sigillo visibile richiede un'anteprima per ogni documento ed è disattivato per i batch."
-  ,"El motor local no ofrece la cofirma múltiple usada por el lote.": "Il motore locale non supporta la co-firma multipla usata dal batch."
-  ,"Seleccione al menos un certificado adicional para la cofirma múltiple del lote.": "Seleziona almeno un certificato aggiuntivo per la co-firma multipla del batch."
-  ,"La cofirma múltiple del lote solo admite PAdES, ODF u OOXML explícitos.": "La co-firma multipla del batch ammette solo PAdES, ODF o OOXML selezionati esplicitamente."
-  ,"Active primero el sello visible.": "Attiva prima il sigillo visibile."
-  ,"El sello visible requiere un PDF, formato PAdES o Automático y un motor que ofrezca pdf_preview.": "Il sigillo visibile richiede un PDF, il formato PAdES o Automatico e un motore che supporti pdf_preview."
+  ,"El sello visible requiere previsualización por documento y no está habilitado en el lote.": "Il timbro visibile richiede un'anteprima per ogni documento ed è disattivato per i batch."
+  ,"El motor local no ofrece la cofirma múltiple usada por el lote.": "Il motore locale non supporta la cofirma multipla usata dal batch."
+  ,"Seleccione al menos un certificado adicional para la cofirma múltiple del lote.": "Seleziona almeno un certificato aggiuntivo per la cofirma multipla del batch."
+  ,"La cofirma múltiple del lote solo admite PAdES, ODF u OOXML explícitos.": "La cofirma multipla del batch ammette solo PAdES, ODF o OOXML selezionati esplicitamente."
+  ,"Active primero el sello visible.": "Attiva prima il timbro visibile."
+  ,"El sello visible requiere un PDF, formato PAdES o Automático y un motor que ofrezca pdf_preview.": "Il timbro visibile richiede un PDF, il formato PAdES o Automatico e un motore che supporti pdf_preview."
   ,"El PDF seleccionado ya no está disponible. Selecciónelo de nuevo.": "Il PDF selezionato non è più disponibile. Selezionalo di nuovo."
-  ,"El sello visible solo puede aplicarse a un PDF con formato PAdES o Automático y con pdf_preview disponible.": "Il sigillo visibile può essere applicato solo a un PDF in formato PAdES o Automatico quando pdf_preview è disponibile."
+  ,"El sello visible solo puede aplicarse a un PDF con formato PAdES o Automático y con pdf_preview disponible.": "Il timbro visibile può essere applicato solo a un PDF in formato PAdES o Automatico quando pdf_preview è disponibile."
   ,"La previsualización no corresponde al PDF y a la página actuales. Cárguela de nuevo antes de firmar.": "L'anteprima non corrisponde al PDF e alla pagina correnti. Ricaricala prima di firmare."
   ,"Indique un giro entre 0 y 359 grados.": "Indica una rotazione da 0 a 359 gradi."
   ,"Conecte el motor local para habilitar la firma.": "Collega il motore locale per abilitare la firma."
@@ -4348,17 +4348,17 @@
   ,"No válido para firmar. {0}": "Non valido per la firma. {0}"
   ,"{0} documento(s), certificado y salida preparados para firmar por lotes.": "{0} documenti, certificato e output pronti per la firma in batch."
   ,"No hay certificados aptos para firma en el almacén.": "Nell'archivio non ci sono certificati idonei alla firma."
-  ,"Seleccione al menos un certificado adicional para la cofirma múltiple guiada.": "Seleziona almeno un certificato aggiuntivo per la co-firma multipla guidata."
-  ,"Documento y firmantes preparados para la cofirma múltiple guiada.": "Documento e firmatari pronti per la co-firma multipla guidata."
+  ,"Seleccione al menos un certificado adicional para la cofirma múltiple guiada.": "Seleziona almeno un certificato aggiuntivo per la cofirma multipla guidata."
+  ,"Documento y firmantes preparados para la cofirma múltiple guiada.": "Documento e firmatari pronti per la cofirma multipla guidata."
   ,"Documento y certificado preparados para firmar.": "Documento e certificato pronti per la firma."
-  ,"El sello visible requiere un PDF, formato PAdES o Automático y pdf_preview disponible.": "Il sigillo visibile richiede un PDF, il formato PAdES o Automatico e pdf_preview disponibile."
-  ,"Cargue la previsualización real del PDF antes de firmar con sello visible.": "Carica l'anteprima effettiva del PDF prima di firmare con un sigillo visibile."
+  ,"El sello visible requiere un PDF, formato PAdES o Automático y pdf_preview disponible.": "Il timbro visibile richiede un PDF, il formato PAdES o Automatico e pdf_preview disponibile."
+  ,"Cargue la previsualización real del PDF antes de firmar con sello visible.": "Carica l'anteprima effettiva del PDF prima di firmare con un timbro visibile."
   ,"Windows está comprobando la imagen de previsualización. Espere antes de firmar.": "Windows sta verificando l'immagine di anteprima. Attendi prima di firmare."
-  ,"Documento, firmantes y sello visible preparados para la cofirma múltiple guiada.": "Documento, firmatari e sigillo visibile pronti per la co-firma multipla guidata."
-  ,"Documento, certificado y sello visible preparados para firmar.": "Documento, certificato e sigillo visibile pronti per la firma."
+  ,"Documento, firmantes y sello visible preparados para la cofirma múltiple guiada.": "Documento, firmatari e timbro visibile pronti per la cofirma multipla guidata."
+  ,"Documento, certificado y sello visible preparados para firmar.": "Documento, certificato e timbro visibile pronti per la firma."
   ,"No se ha ejecutado ninguna firma con esta selección.": "Nessuna firma è stata eseguita con questa selezione."
   ,"El motor local no ha publicado sign_multicosign.": "Il motore locale non ha pubblicato sign_multicosign."
-  ,"La cofirma múltiple guiada admite Firma o Cofirma, no Contrafirma.": "La co-firma multipla guidata supporta Firma o Co-firma, ma non Controfirma."
+  ,"La cofirma múltiple guiada admite Firma o Cofirma, no Contrafirma.": "La cofirma multipla guidata supporta Firma o Cofirma, ma non Controfirma."
   ,"Disponible únicamente para PAdES, ODF u OOXML. En Automático se usa el tipo del documento.": "Disponibile solo per PAdES, ODF o OOXML. Automatico usa il tipo di documento."
   ,"Se necesitan al menos dos certificados de firma distintos.": "Sono necessari almeno due certificati di firma diversi."
   ,"Actívela para aplicar primero el certificado principal y después los adicionales.": "Attivala per applicare prima il certificato principale e poi quelli aggiuntivi."
@@ -4388,9 +4388,9 @@
   ,"La carpeta seleccionada ya no está disponible.": "La cartella selezionata non è più disponibile."
   ,"La carpeta seleccionada no contiene ficheros normales.": "La cartella selezionata non contiene file normali."
   ,"No se pudo enumerar de forma segura la carpeta seleccionada.": "Impossibile elencare in modo sicuro la cartella selezionata."
-  ,"El ancho y el alto del sello deben ser mayores que cero.": "La larghezza e l'altezza del sigillo devono essere maggiori di zero."
-  ,"La zona del sello debe quedar completamente dentro de la página.": "L'area del sigillo deve rientrare completamente nella pagina."
-  ,"Indique las páginas del sello: 1, 1,3-5 o all.": "Indica le pagine del sigillo: 1, 1,3-5 o all."
+  ,"El ancho y el alto del sello deben ser mayores que cero.": "La larghezza e l'altezza del timbro devono essere maggiori di zero."
+  ,"La zona del sello debe quedar completamente dentro de la página.": "L'area del timbro deve rientrare completamente nella pagina."
+  ,"Indique las páginas del sello: 1, 1,3-5 o all.": "Indica le pagine del timbro: 1, 1,3-5 o all."
   ,"La selección de páginas es demasiado larga o contiene caracteres no admitidos.": "La selezione delle pagine è troppo lunga o contiene caratteri non supportati."
   ,"La selección de páginas no es válida. Use 1, 1,3-5 o all.": "Selezione delle pagine non valida. Usa 1, 1,3-5 o all."
   ,"La selección de páginas no es válida. Use números positivos y rangos como 3-5.": "Selezione delle pagine non valida. Usa numeri positivi e intervalli come 3-5."
@@ -4399,7 +4399,7 @@
   ,"El motor no devolvió una previsualización PDF coherente.": "Il motore non ha restituito un'anteprima PDF coerente."
   ,"El campo {0} admite hasta {1} caracteres de texto en una sola línea.": "Il campo {0} consente fino a {1} caratteri di testo su una sola riga."
   ,"La validación local detuvo la operación antes de enviar datos al motor criptográfico.": "La convalida locale ha interrotto l'operazione prima di inviare dati al motore crittografico."
-  ,"El fallo se ha detectado en la configuración local del sello; no procede del portal ni de @firma.": "Il problema è stato rilevato nelle impostazioni locali del sigillo; non proviene dal portale né da @firma."
+  ,"El fallo se ha detectado en la configuración local del sello; no procede del portal ni de @firma.": "Il problema è stato rilevato nelle impostazioni locali del timbro; non proviene dal portale né da @firma."
   ,"Documento PDF seleccionado": "Documento PDF selezionato"
   ,"La aplicación dispone de una selección local para revisar.": "L'applicazione dispone di una selezione locale da controllare."
   ,"Firma criptográfica": "Firma crittografica"
@@ -4433,34 +4433,34 @@
   ,"con avisos": "con avvisi"
   ,"no determinada": "non determinata"
   ,"Ningún manifiesto seleccionado": "Nessun manifesto selezionato"
-  ,"Seleccione una operación y un origen para crear o comprobar una huella.": "Seleziona un'operazione e un'origine per creare o verificare un'impronta digitale."
+  ,"Seleccione una operación y un origen para crear o comprobar una huella.": "Seleziona un'operazione e un'origine per creare o verificare un hash."
   ,"Sin evidencias del motor local.": "Nessuna evidenza dal motore locale."
-  ,"Crea o comprueba huellas de ficheros y directorios sin firmar el contenido.": "Crea o verifica impronte di file e directory senza firmarne il contenuto."
-  ,"Las huellas no están disponibles porque el motor local no ha publicado todas las operaciones necesarias.": "Le operazioni sulle impronte non sono disponibili perché il motore locale non ha pubblicato tutte le operazioni necessarie."
+  ,"Crea o comprueba huellas de ficheros y directorios sin firmar el contenido.": "Crea o verifica hash di file e directory senza firmarne il contenuto."
+  ,"Las huellas no están disponibles porque el motor local no ha publicado todas las operaciones necesarias.": "Le operazioni di hash non sono disponibili perché il motore locale non ha pubblicato tutte le operazioni necessarie."
   ,"Formato de manifiesto no admitido": "Formato del manifesto non supportato"
   ,"Manifiesto no válido": "Manifesto non valido"
   ,"Seleccione un manifiesto .hashfiles, .txthashfiles, .csv, .xml o .txt. Un .hashreport es un informe de salida, no un manifiesto.": "Seleziona un manifesto .hashfiles, .txthashfiles, .csv, .xml o .txt. Un .hashreport è un rapporto di output, non un manifesto."
-  ,"Seleccione una huella .hexhash, .hashb64 o .hash. Un .hashreport es un informe de salida, no una huella de entrada.": "Seleziona un'impronta .hexhash, .hashb64 o .hash. Un .hashreport è un rapporto di output, non un'impronta di input."
-  ,"Creando huella…": "Creazione dell'impronta in corso…"
-  ,"Comprobando huella…": "Verifica dell'impronta in corso…"
+  ,"Seleccione una huella .hexhash, .hashb64 o .hash. Un .hashreport es un informe de salida, no una huella de entrada.": "Seleziona un hash .hexhash, .hashb64 o .hash. Un .hashreport è un rapporto di output, non un hash di input."
+  ,"Creando huella…": "Creazione dell'hash in corso…"
+  ,"Comprobando huella…": "Verifica dell'hash in corso…"
   ,"El motor local está procesando el contenido seleccionado.": "Il motore locale sta elaborando il contenuto selezionato."
-  ,"La operación terminó sin un resultado de huella.": "L'operazione è terminata senza un risultato di impronta."
+  ,"La operación terminó sin un resultado de huella.": "L'operazione è terminata senza un risultato di hash."
   ,"Falta el manifiesto": "Manifesto mancante"
-  ,"Seleccione el fichero de huella o manifiesto que se va a comprobar.": "Seleziona il file di impronta o manifesto da verificare."
-  ,"Huella creada": "Impronta creata"
-  ,"La huella se ha creado y guardado mediante el motor local.": "L'impronta è stata creata e salvata dal motore locale."
+  ,"Seleccione el fichero de huella o manifiesto que se va a comprobar.": "Seleziona il file di hash o manifesto da verificare."
+  ,"Huella creada": "Hash creato"
+  ,"La huella se ha creado y guardado mediante el motor local.": "L'hash è stato creato e salvato dal motore locale."
   ,"Se incluyeron subdirectorios.": "Sono state incluse le sottodirectory."
   ,"No se incluyeron subdirectorios.": "Le sottodirectory non sono state incluse."
-  ,"La huella coincide": "L'impronta corrisponde"
-  ,"La huella no coincide": "L'impronta non corrisponde"
-  ,"El contenido comprobado coincide con la huella almacenada.": "Il contenuto verificato corrisponde all'impronta salvata."
+  ,"La huella coincide": "L'hash corrisponde"
+  ,"La huella no coincide": "L'hash non corrisponde"
+  ,"El contenido comprobado coincide con la huella almacenada.": "Il contenuto verificato corrisponde all'hash salvato."
   ,"El contenido ha cambiado, falta información o el manifiesto no corresponde con el origen.": "Il contenuto è cambiato, mancano informazioni o il manifesto non corrisponde all'origine."
   ,"No coincide": "Non corrisponde"
   ,"Sin fichero": "Nessun file"
-  ,"Sin huella": "Nessuna impronta"
+  ,"Sin huella": "Nessun hash"
   ,"Informe de comprobación: {0}": "Rapporto di verifica: {0}"
-  ,"Motor local listo para crear y comprobar huellas.": "Motore locale pronto a creare e verificare impronte."
-  ,"El motor local no devolvió datos de huella coherentes.": "Il motore locale non ha restituito dati di impronta coerenti."
+  ,"Motor local listo para crear y comprobar huellas.": "Motore locale pronto a creare e verificare hash."
+  ,"El motor local no devolvió datos de huella coherentes.": "Il motore locale non ha restituito dati di hash coerenti."
   ,"Revise los datos seleccionados antes de continuar.": "Controlla i dati selezionati prima di continuare."
   ,"no determinado": "non determinato"
   ,"Seleccione un documento y al menos un destinatario.": "Seleziona un documento e almeno un destinatario."
@@ -4546,7 +4546,7 @@
   ,"Firmado": "Firmato"
   ,"no definido": "non definito"
   ,"Principal: {0}. Después: {1}{2}.": "Principale: {0}. Poi: {1}{2}."
-  ,"PDF real: página {0} de {1}, {2} × {3} puntos. El sello se muestra con su aspecto real dentro de la zona marcada.": "PDF reale: pagina {0} di {1}, {2} × {3} punti. Il sigillo è mostrato con il suo aspetto reale nell'area contrassegnata."
+  ,"PDF real: página {0} de {1}, {2} × {3} puntos. El sello se muestra con su aspecto real dentro de la zona marcada.": "PDF reale: pagina {0} di {1}, {2} × {3} punti. Il timbro è mostrato con il suo aspetto reale nell'area contrassegnata."
   ,"Importado": "Importato"
   ,"Propio": "Proprio"
   ,"Origen: {0} · Perfil: {1}": "Origine: {0} · Profilo: {1}"
@@ -4555,7 +4555,7 @@
   ,"Protección completada para {0} destinatario(s): {1}.": "Protezione completata per {0} destinatari: {1}."
   ,"Algoritmo: {0}. Formato: {1}. Salida: {2}.": "Algoritmo: {0}. Formato: {1}. Output: {2}."
   ,"Entradas incluidas: {0}": "Voci incluse: {0}"
-  ,"Huella: {0}": "Impronta: {0}"
+  ,"Huella: {0}": "Valore hash: {0}"
   ,"Algoritmo detectado: {0}. Formato: {1}.": "Algoritmo rilevato: {0}. Formato: {1}."
   ,"Esperada: {0}": "Attesa: {0}"
   ,"Calculada: {0}": "Calcolata: {0}"
@@ -4575,7 +4575,7 @@
   ,"parcial": "parziale"
   ,"El perfil compatible requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén de Windows siguen disponibles para firmar, pero no se ofrecen para cifrado; cargue un P12/PFX apto o cambie al perfil alto.": "Il profilo compatibile richiede un'identità RSA con chiave privata decifrabile, ad esempio un P12/PFX autorizzato. I certificati opachi dell'archivio Windows restano disponibili per firmare, ma non vengono offerti per la cifratura; carica un P12/PFX idoneo oppure passa al profilo alto."
   ,"No se pudo capturar la contraseña de la credencial. Código de soporte: {0}.": "Impossibile acquisire la password della credenziale. Codice di assistenza: {0}."
-  ,"Seleccione si desea firmar, cofirmar o contrafirmar.": "Scegli se firmare, apporre una co-firma o una controfirma."
+  ,"Seleccione si desea firmar, cofirmar o contrafirmar.": "Scegli se firmare, apporre una cofirma o una controfirma."
   ,"X, Y, ancho y alto deben ser porcentajes entre 0 y 100.": "X, Y, larghezza e altezza devono essere percentuali da 0 a 100."
   ,"Verificando…": "Verifica in corso…"
   ,"1 destinatario seleccionado.": "1 destinatario selezionato."
@@ -4791,7 +4791,7 @@
   ,"csv.error.url_invalid": "L'URL di verifica non è valido: deve essere un indirizzo https:// senza utente, password o spazi (usa %20 per gli spazi)."
   ,"csv.error.text_invalid": "Il testo della dicitura CSV non può superare i 512 caratteri né contenere a capo."
   ,"Crear documentos y expedientes ENI desde la aplicación, en Windows y Linux.": "Creare documenti e fascicoli ENI dall'applicazione, su Windows e Linux."
-  ,"Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.": "Legenda CSV di verifica nel sigillo PAdES (codice e URL dell'amministrazione), su Windows e Linux."
+  ,"Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.": "Legenda CSV di verifica nel timbro PAdES (codice e URL dell'amministrazione), su Windows e Linux."
   ,"Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.": "Validare fatture FacturaE, UBL e CII dall'applicazione, con rapporto esportabile, su Windows e Linux."
   ,"Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».": "Windows: aggiornare con GrxFirma aperta ora funziona. Il programma di installazione chiude l'applicazione, installa la nuova versione e la riapre; prima falliva con «L'installazione PowerShell della suite non è riuscita con codice 1»."
   ,"Windows: si la conexión con el motor local se interrumpe, GrxFirma vuelve a conectar sola en la siguiente operación. Antes la aplicación podía quedarse sin motor («falla todo») hasta cerrarla del todo.": "Windows: se la connessione con il motore locale si interrompe, GrxFirma si riconnette da sola alla successiva operazione. Prima l'applicazione poteva restare senza motore («fallisce tutto») fino alla chiusura completa."
@@ -4876,9 +4876,9 @@
   ,"verifactu.signed": "Il registro è già firmato."
   ,"verifactu.key": "È richiesta una chiave RSA con un certificato valido e idoneo alla firma."
   ,"verifactu.input": "Scegliere un file XML o una cartella di registri accessibile."
-  ,"verifactu.hash": "Il registro è stato modificato dopo la generazione: la sua impronta non corrisponde. Chiedi al programma di fatturazione di generarlo di nuovo."
+  ,"verifactu.hash": "Il registro è stato modificato dopo la generazione: il suo hash non corrisponde. Chiedi al programma di fatturazione di generarlo di nuovo."
   ,"verifactu.chain": "Questo registro non è collegato al precedente della serie. Controlla che la cartella contenga tutti i registri in ordine."
-  ,"verifactu.duplicate": "Nella catena ci sono registri con la stessa impronta."
+  ,"verifactu.duplicate": "Nella catena ci sono registri con lo stesso hash."
   ,"verifactu.previous_missing": "Il registro precedente non è nella selezione. Questo collegamento della catena non può essere controllato."
   ,"verifactu.signature": "La firma del registro è alterata o non copre l’intero registro. Firmalo di nuovo con il formato «Registro Veri*Factu»."
   ,"verifactu.certificate": "Il certificato non era valido alla data del registro."
@@ -4887,7 +4887,7 @@
   ,"verifactu.empty": "La selezione non contiene registri XML."
   ,"verifactu.valid": "Registro controllato senza errori."
   ,"verifactu.invalid": "Il registro presenta errori."
-  ,"verifactu.hash_label": "Impronta calcolata"
+  ,"verifactu.hash_label": "Hash calcolato"
   ,"verifactu.choose": "Scegliere un registro XML"
   ,"verifactu.folder": "Scegliere una cartella di registri"
   ,"verifactu.qr_title": "Leggere il QR fiscale"
@@ -4906,7 +4906,7 @@
   ,"verifactu.output": "Salvare il rapporto in un file diverso dal registro di ingresso."
   ,"verifactu.root_detail": "La radice deve essere RegistroAlta, RegistroAnulacion o RegistroEvento nello spazio dei nomi dell’AEAT."
   ,"verifactu.profile_detail": "La firma non rispetta il profilo XAdES incorporato con politica AGE e RSA-SHA256 o RSA-SHA512."
-  ,"verifactu.hash_detail": "L’impronta non corrisponde a quella calcolata dai campi del registro."
+  ,"verifactu.hash_detail": "L’hash non corrisponde a quello calcolato dai campi del registro."
   ,"verifactu.chain_detail": "Il collegamento, l’identità del registro precedente o l’ordine delle date non corrisponde."
   ,"verifactu.signature_detail": "La firma XAdES è stata alterata o non copre l’intero registro."
   ,"verifactu.export": "Esporta il rapporto Veri*Factu"
@@ -4920,11 +4920,11 @@
   ,"verifactu.qr_aeat_unknown": "L’AEAT ha risposto, ma GrxFirma non riconosce il risultato. Controlli la risposta tecnica o verifichi la fattura sul sito dell’AEAT."
   ,"verifactu.qr_technical": "Mostra la risposta tecnica"
   ,"verifactu.qr_technical_hide": "Nascondi la risposta tecnica"
-  ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: firma i registri di fatturazione forniti da un programma di fatturazione nel formato richiesto dall'AEAT e verifica i registri già firmati: impronta concatenata, firma e struttura. GrxFirma non genera, conserva né invia registri."
+  ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: firma i registri di fatturazione forniti da un programma di fatturazione nel formato richiesto dall'AEAT e verifica i registri già firmati: hash concatenato, firma e struttura. GrxFirma non genera, conserva né invia registri."
   ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu: legge l'URL del QR fiscale di una fattura e ne mostra i dati; solo se lo chiedi, la confronta con il servizio pubblico dell'AEAT."
-  ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Sigillo visibile: con «Disegna area» ne indichi posizione e dimensione trascinando sulla pagina, come in AutoFirma. Anche da tastiera. Su Windows e Linux, e nell'editor aperto dai portali."
+  ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Timbro visibile: con «Disegna area» ne indichi posizione e dimensione trascinando sulla pagina, come in AutoFirma. Anche da tastiera. Su Windows e Linux, e nell'editor aperto dai portali."
   ,"Android: cofirma y contrafirma, perfiles con sello de tiempo, verificación automática tras firmar, verificación detallada con informe exportable, los once idiomas con selector propio y pantalla «Acerca de».": "Android: cofirma e controfirma, profili con marca temporale, verifica automatica dopo la firma, verifica dettagliata con report esportabile, le undici lingue con selettore proprio e schermata «Informazioni»."
-  ,"csc.help": "Firma remota CSC (prototipo, disattivata per impostazione predefinita):\n  Si attiva con \"firma_remota_csc\": true in config.json o con la politica dell’organizzazione, che prevale sempre.\n  grxfirma -csc-url <https://...> -csc-client-id <id> -csc-listar-credenciales\n  grxfirma -csc-url <https://...> -csc-client-id <id> -csc-credencial <id> -entrada doc.pdf -salida firmado.pdf -formato pades\n  -csc-url <url>            Indirizzo https del servizio di firma del prestatore\n  -csc-client-id <id>       Identificativo client fornito dal prestatore (senza segreto)\n  -csc-credencial <id>      Certificato remoto con cui si firma\n  -csc-listar-credenciales  Mostra i certificati remoti dell’account\n  L’autorizzazione avviene nel browser, sullo stesso host del servizio, e il PIN o il codice OTP vengono letti dall’input standard. Dal computer esce solo l’impronta del documento."
+  ,"csc.help": "Firma remota CSC (prototipo, disattivata per impostazione predefinita):\n  Si attiva con \"firma_remota_csc\": true in config.json o con la politica dell’organizzazione, che prevale sempre.\n  grxfirma -csc-url <https://...> -csc-client-id <id> -csc-listar-credenciales\n  grxfirma -csc-url <https://...> -csc-client-id <id> -csc-credencial <id> -entrada doc.pdf -salida firmado.pdf -formato pades\n  -csc-url <url>            Indirizzo https del servizio di firma del prestatore\n  -csc-client-id <id>       Identificativo client fornito dal prestatore (senza segreto)\n  -csc-credencial <id>      Certificato remoto con cui si firma\n  -csc-listar-credenciales  Mostra i certificati remoti dell’account\n  L’autorizzazione avviene nel browser, sullo stesso host del servizio, e il PIN o il codice OTP vengono letti dall’input standard. Dal computer esce solo l’hash del documento."
   ,"csc.cli.opcion_invalida": "L’opzione %s non esiste o manca il valore."
   ,"csc.cli.incompatible": "La firma remota non si può combinare con un certificato locale (-contenedor-p12, -certificado-pem) né con il server REST."
   ,"csc.cli.desactivada": "La firma remota è disattivata. È possibile attivarla con \"firma_remota_csc\": true in config.json, salvo diversa decisione della politica dell’organizzazione."
@@ -4961,8 +4961,8 @@
   ,"csc.cli.hosts": "Servizio di firma: %s. Autorizzazione su: %s. Si apre il browser per autorizzare l’accesso."
   ,"csc.cli.pares_oauth_invalidos": "L’elenco firma_remota_csc_oauth_permitidos contiene una voce scritta male. Usare il formato servizio=autorizzazione, ad esempio firma.prestatore.it=auth.prestatore.it."
   ,"csc.error.oauth_otro_host": "Il servizio chiede di autorizzare l’accesso su un altro host. Per sicurezza non è consentito, salvo che sia in firma_remota_csc_oauth_permitidos."
-  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android: firma in lotto, creazione e verifica di impronte, e cifratura e decifratura di file, come su desktop."
-  ,"Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.": "Android: firma in XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES e registri Veri*Factu; legenda CSV e sigillo con posizione diversa su ogni pagina; creazione e verifica di documenti ENI."
+  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android: firma in lotto, creazione e verifica di hash, e cifratura e decifratura di file, come su desktop."
+  ,"Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.": "Android: firma in XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES e registri Veri*Factu; legenda CSV e timbro con posizione diversa su ogni pagina; creazione e verifica di documenti ENI."
   ,"Firma remota con certificados de prestadores compatibles con la API CSC, desde la línea de órdenes. Viene desactivada: solo funciona si la organización la habilita en su política o en la configuración. Aún no se ha probado con prestadores reales.": "Firma remota con certificati di prestatori compatibili con l'API CSC, da riga di comando. È disattivata: funziona solo se l'organizzazione la abilita nella propria policy o configurazione. Non ancora provata con prestatori reali."
   ,"csc.error.desactivada": "La firma remota non è attivata su questo computer. La attiva la sua organizzazione o «firma_remota_csc» in config.json."
   ,"csc.error.no_configurada": "Verifichi prima il servizio di firma remota."
@@ -5014,12 +5014,12 @@
   ,"eni.error.signature_mismatch": "La firma non corrisponde al documento originale oppure il documento è stato modificato dopo la firma. Verifichi di aver scelto l'originale corretto."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: schermata a passi, risultato visibile al termine, conferma prima di scartare una firma, chiusura automatica del certificato dopo qualche minuto in background e testi più chiari."
   ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android: dati e scadenza del certificato con verifica di revoca, preferenze, diagnostica, ricerca di nuove versioni, tema chiaro o scuro e report di verifica stampabile."
-  ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android: fascicolo ENI, lotto con sigillo visibile o cofirma, e DNIe nel lotto e in «proteggi e firma» chiedendo il PIN una sola volta. Il DNIe via NFC ora accetta il certificato di firma della carta."
+  ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android: fascicolo ENI, lotto con timbro visibile o cofirma, e DNIe nel lotto e in «proteggi e firma» chiedendo il PIN una sola volta. Il DNIe via NFC ora accetta il certificato di firma della carta."
   ,"Windows y Linux: firma remota con prestadores compatibles con CSC desde la propia aplicación, si la organización la permite; si la prohíbe, se indica claramente.": "Windows e Linux: firma remota con prestatori compatibili con CSC dall'applicazione stessa, se l'organizzazione la consente; se la vieta, viene indicato chiaramente."
   ,"Veri*Factu: el QR tributario también se lee desde una imagen o un PDF, y la comprobación rechaza registros con contenido añadido dentro de la firma.": "Veri*Factu: il QR fiscale si legge anche da un'immagine o da un PDF, e la verifica rifiuta i registri con contenuto aggiunto all'interno della firma."
   ,"ENI: antes de crear el documento se comprueba que la firma corresponde al original elegido.": "ENI: prima di creare il documento si verifica che la firma corrisponda all'originale scelto."
   ,"Se leen bien las configuraciones guardadas con el Bloc de notas antiguo o con PowerShell 5 (con marca BOM).": "Le configurazioni salvate con il vecchio Blocco note o con PowerShell 5 (con marcatore BOM) vengono lette correttamente."
-  ,"Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.": "Windows e Linux: schermate di fatture, Veri*Factu ed ENI più chiare e accessibili: Veri*Factu ha una sezione propria, la data si sceglie senza formati tecnici, contrasto migliore in tutti i temi e il sigillo si disegna anche da tastiera."
+  ,"Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.": "Windows e Linux: schermate di fatture, Veri*Factu ed ENI più chiare e accessibili: Veri*Factu ha una sezione propria, la data si sceglie senza formati tecnici, contrasto migliore in tutti i temi e il timbro si disegna anche da tastiera."
   ,"csc.error.sesion_caducada": "La sessione con il prestatore è scaduta. Si colleghi di nuovo al servizio di firma remota per continuare a firmare."
   ,"csc.error.oauth_metadatos": "Il server di autorizzazione del prestatore non pubblica una configurazione valida. Avvisi il suo prestatore."
   ,"csc.error.lote_repetido": "Un documento del lotto ha richiesto una seconda firma quando l'autorizzazione del lotto era già stata usata. Firmi di nuovo quel documento."
@@ -5116,12 +5116,12 @@
   ,"cli.help.seal_language": "Lingua delle etichette del timbro visibile. Per impostazione predefinita, la lingua della CLI."
   ,"seal.preview.signer_sample": "Nome del firmatario"
   ,"report.size_byte_one": "%d byte"
-  ,"settings.seal_language.label": "Lingua del sigillo"
+  ,"settings.seal_language.label": "Lingua del timbro"
   ,"settings.seal_language.interface": "Uguale all'applicazione"
   ,"settings.seal_language.help": "Lingua delle etichette del timbro visibile. Scegli ad esempio lo spagnolo perché i documenti presentati alla pubblica amministrazione spagnola riportino il timbro in questa lingua anche se l'applicazione è in un'altra lingua."
   ,"Firma remota: un lote completo con un solo PIN o código, si el prestador lo admite; «Proteger y firmar» con certificado remoto; la sesión se renueva sola y se listan todas las credenciales.": "Firma remota: un lotto completo con un solo PIN o codice, se il prestatore lo consente; «Proteggi e firma» con certificato remoto; la sessione si rinnova da sola e vengono elencate tutte le credenziali."
-  ,"El sello visible y el informe de verificación salen en el idioma de la aplicación, con la hora local y su zona. En Configuración se puede fijar un idioma del sello, por ejemplo el español para documentos de la Administración.": "Il sigillo visibile e il report di verifica appaiono nella lingua dell'applicazione, con l'ora locale e il suo fuso. Nelle Impostazioni si può fissare una lingua del sigillo, per esempio lo spagnolo per i documenti della pubblica amministrazione."
-  ,"Android: lectura del QR tributario con la cámara o desde una imagen, varios certificados abiertos a la vez, resultado con un veredicto claro y detalles técnicos plegados, y editor del sello más cómodo.": "Android: lettura del QR fiscale con la fotocamera o da un'immagine, più certificati aperti contemporaneamente, risultato con un verdetto chiaro e dettagli tecnici compressi, ed editor del sigillo più comodo."
+  ,"El sello visible y el informe de verificación salen en el idioma de la aplicación, con la hora local y su zona. En Configuración se puede fijar un idioma del sello, por ejemplo el español para documentos de la Administración.": "Il timbro visibile e il report di verifica appaiono nella lingua dell'applicazione, con l'ora locale e il suo fuso. Nelle Impostazioni si può fissare una lingua del timbro, per esempio lo spagnolo per i documenti della pubblica amministrazione."
+  ,"Android: lectura del QR tributario con la cámara o desde una imagen, varios certificados abiertos a la vez, resultado con un veredicto claro y detalles técnicos plegados, y editor del sello más cómodo.": "Android: lettura del QR fiscale con la fotocamera o da un'immagine, più certificati aperti contemporaneamente, risultato con un verdetto chiaro e dettagli tecnici compressi, ed editor del timbro più comodo."
   ,"Android: textos más claros y sin tecnicismos, el informe imprimible como opción principal y el cierre automático del certificado ya no salta mientras se elige un fichero ni con una firma sin guardar.": "Android: testi più chiari e senza tecnicismi, il report stampabile come opzione principale, e la chiusura automatica del certificato non scatta più mentre si sceglie un file né con una firma non salvata."
   ,"verificacion.detalle.formato": "%s: %s"
   ,"verificacion.detalle.formato_detectado": "Formato rilevato"
@@ -5599,7 +5599,7 @@
   ,"winui.certificados.desconocido": "Sconosciuto"
   ,"winui.certificados.dias_caducado": "Giorni dalla scadenza"
   ,"winui.certificados.dias_restantes": "Giorni rimanenti"
-  ,"winui.certificados.huella_sha_256": "Impronta SHA-256"
+  ,"winui.certificados.huella_sha_256": "Impronta digitale SHA-256"
   ,"winui.certificados.no_serie_nif": "N. di serie / NIF"
   ,"winui.certificados.persona_fisica": "Persona fisica"
   ,"winui.certificados.representante_de_entidad": "Rappresentante di ente"
@@ -6044,7 +6044,7 @@
   ,"winui.ventana.ver_novedades": "Scopri le novità"
   ,"winui.ventana.ahora_no": "Non ora"
   ,"winui.comun.verificar": "Verifica"
-  ,"winui.ventana.huellas": "Impronte"
+  ,"winui.ventana.huellas": "Hash"
   ,"winui.comun.facturae_y_face": "Facturae, FACe e Veri*Factu"
   ,"winui.comun.acerca_de": "Informazioni"
   ,"winui.ventana.hay_una_version_nueva_de_grxfirma_1": "È disponibile una nuova versione di GrxFirma (%1). Hai la %2."
@@ -6074,7 +6074,7 @@
   ,"winui.selector.firma_xades": "Firma XAdES"
   ,"winui.selector.firma_xmldsig": "Firma XMLDSig"
   ,"winui.selector.contenedor_asic": "Contenitore ASiC"
-  ,"winui.selector.informe_de_huella": "Rapporto delle impronte"
+  ,"winui.selector.informe_de_huella": "Rapporto hash"
   ,"winui.selector.documento_protegido": "Documento protetto"
   ,"winui.selector.sobre_protegido_grxfirma": "Busta protetta GrxFirma"
   ,"winui.selector.informe_de_diagnostico": "Rapporto diagnostico"
@@ -6207,45 +6207,45 @@
   ,"winui.huella.xml_grxfirma_hashfiles": "XML GrxFirma (.hashfiles)"
   ,"winui.huella.texto_grxfirma_txthashfiles": "Testo GrxFirma (.txthashfiles)"
   ,"winui.huella.csv_csv": "CSV (.csv)"
-  ,"winui.huella.crear_huella": "Crea impronta"
-  ,"winui.huella.seleccione_una_operacion_y_un_origen": "Seleziona un'operazione e un'origine per creare o verificare un'impronta."
+  ,"winui.huella.crear_huella": "Crea hash"
+  ,"winui.huella.seleccione_una_operacion_y_un_origen": "Seleziona un'operazione e un'origine per creare o verificare un hash."
   ,"winui.huella.sin_evidencias_del_motor_local": "Nessuna evidenza dal motore locale."
-  ,"winui.huella.crea_o_comprueba_huellas_de_ficheros_y": "Crea o verifica impronte di file e directory senza firmarne il contenuto."
-  ,"winui.huella.las_huellas_no_estan_disponibles_porque": "Le operazioni sulle impronte non sono disponibili perché il motore locale non ha pubblicato tutte le operazioni necessarie."
-  ,"winui.huella.comprobar_huella": "Verifica impronta"
+  ,"winui.huella.crea_o_comprueba_huellas_de_ficheros_y": "Crea o verifica hash di file e directory senza firmarne il contenuto."
+  ,"winui.huella.las_huellas_no_estan_disponibles_porque": "Le operazioni di hash non sono disponibili perché il motore locale non ha pubblicato tutte le operazioni necessarie."
+  ,"winui.huella.comprobar_huella": "Verifica hash"
   ,"winui.huella.formato_de_manifiesto_no_admitido": "Formato del manifesto non supportato"
   ,"winui.huella.manifiesto_no_valido": "Manifesto non valido"
   ,"winui.huella.seleccione_un_manifiesto_hashfiles": "Seleziona un manifesto .hashfiles, .txthashfiles, .csv, .xml o .txt. Un .hashreport è un rapporto di output, non un manifesto."
-  ,"winui.huella.seleccione_una_huella_hexhash_hashb64_o": "Seleziona un'impronta .hexhash, .hashb64 o .hash. Un .hashreport è un rapporto di output, non un'impronta di input."
-  ,"winui.huella.creando_huella": "Creazione dell'impronta in corso…"
-  ,"winui.huella.comprobando_huella": "Verifica dell'impronta in corso…"
+  ,"winui.huella.seleccione_una_huella_hexhash_hashb64_o": "Seleziona un hash .hexhash, .hashb64 o .hash. Un .hashreport è un rapporto di output, non un hash di input."
+  ,"winui.huella.creando_huella": "Creazione dell'hash in corso…"
+  ,"winui.huella.comprobando_huella": "Verifica dell'hash in corso…"
   ,"winui.huella.el_motor_local_esta_procesando_el": "Il motore locale sta elaborando il contenuto selezionato."
   ,"winui.comun.la_operacion_se_detuvo_antes_de_obtener": "L'operazione si è fermata prima di ottenere un risultato."
-  ,"winui.huella.la_operacion_termino_sin_un_resultado_de": "L'operazione è terminata senza un risultato di impronta."
+  ,"winui.huella.la_operacion_termino_sin_un_resultado_de": "L'operazione è terminata senza un risultato di hash."
   ,"winui.huella.falta_el_manifiesto": "Manifesto mancante"
-  ,"winui.huella.seleccione_el_fichero_de_huella_o": "Seleziona il file di impronta o manifesto da verificare."
-  ,"winui.huella.huella_creada": "Impronta creata"
-  ,"winui.huella.la_huella_se_ha_creado_y_guardado": "L'impronta è stata creata e salvata dal motore locale."
+  ,"winui.huella.seleccione_el_fichero_de_huella_o": "Seleziona il file di hash o manifesto da verificare."
+  ,"winui.huella.huella_creada": "Hash creato"
+  ,"winui.huella.la_huella_se_ha_creado_y_guardado": "L'hash è stato creato e salvato dal motore locale."
   ,"winui.huella.algoritmo_formato_salida": "Algoritmo: {0}. Formato: {1}. Output: {2}."
   ,"winui.huella.entradas_incluidas": "Voci incluse: {0}"
   ,"winui.huella.se_incluyeron_subdirectorios": "Sono state incluse le sottodirectory."
   ,"winui.huella.no_se_incluyeron_subdirectorios": "Le sottodirectory non sono state incluse."
-  ,"winui.huella.huella": "Impronta: {0}"
+  ,"winui.huella.huella": "Valore hash: {0}"
   ,"winui.huella.no_disponible": "non disponibile"
-  ,"winui.huella.la_huella_coincide": "L'impronta corrisponde"
-  ,"winui.huella.la_huella_no_coincide": "L'impronta non corrisponde"
-  ,"winui.huella.el_contenido_comprobado_coincide_con_la": "Il contenuto verificato corrisponde all'impronta salvata."
+  ,"winui.huella.la_huella_coincide": "L'hash corrisponde"
+  ,"winui.huella.la_huella_no_coincide": "L'hash non corrisponde"
+  ,"winui.huella.el_contenido_comprobado_coincide_con_la": "Il contenuto verificato corrisponde all'hash salvato."
   ,"winui.huella.el_contenido_ha_cambiado_falta": "Il contenuto è cambiato, mancano informazioni o il manifesto non corrisponde all'origine."
   ,"winui.huella.algoritmo_detectado_formato": "Algoritmo rilevato: {0}. Formato: {1}."
   ,"winui.huella.esperada": "Attesa: {0}"
   ,"winui.huella.calculada": "Calcolata: {0}"
   ,"winui.huella.no_coincide": "Non corrisponde"
   ,"winui.huella.sin_fichero": "Nessun file"
-  ,"winui.huella.sin_huella": "Nessuna impronta"
+  ,"winui.huella.sin_huella": "Nessun hash"
   ,"winui.huella.informe_de_comprobacion": "Rapporto di verifica: {0}"
-  ,"winui.huella.motor_local_listo_para_crear_y_comprobar": "Motore locale pronto a creare e verificare impronte."
+  ,"winui.huella.motor_local_listo_para_crear_y_comprobar": "Motore locale pronto a creare e verificare hash."
   ,"winui.comun.resultado_no_utilizable": "Risultato non utilizzabile"
-  ,"winui.huella.el_motor_local_no_devolvio_datos_de": "Il motore locale non ha restituito dati di impronta coerenti."
+  ,"winui.huella.el_motor_local_no_devolvio_datos_de": "Il motore locale non ha restituito dati di hash coerenti."
   ,"winui.huella.revise_los_datos_seleccionados_antes_de": "Controlla i dati selezionati prima di continuare."
   ,"winui.huella.elemento_sin_nombre": "elemento senza nome"
   ,"winui.huella.xml_grxfirma": "XML GrxFirma"
@@ -6325,7 +6325,7 @@
   ,"winui.selector.nombre_certificado_publico": "certificato-pubblico"
   ,"winui.selector.nombre_firma": "firma"
   ,"winui.selector.nombre_contenedor_firmado": "contenitore-firmato"
-  ,"winui.selector.nombre_informe_huella": "rapporto-impronta"
+  ,"winui.selector.nombre_informe_huella": "rapporto-hash"
   ,"winui.selector.nombre_documento_protegido_firmado": "documento-protetto-firmato"
   ,"winui.selector.nombre_diagnostico": "diagnostica"
   ,"sign.need_certificate": "Scelga un certificato per poter firmare."
@@ -6346,8 +6346,8 @@
   ,"verifactu.qr_empty": "Incolli l'URL del QR o scelga un'immagine."
   ,"verifactu.field.file": "File"
   ,"verifactu.field.signature": "Firma"
-  ,"verifactu.field.hash": "Impronta"
-  ,"verifactu.field.hash_type": "Tipo di impronta"
+  ,"verifactu.field.hash": "Valore hash"
+  ,"verifactu.field.hash_type": "Tipo di hash"
   ,"verifactu.field.date": "Data e ora del record"
   ,"verifactu.field.chain": "Concatenamento"
   ,"verifactu.field.element": "Campo «%1» del record"
@@ -6408,11 +6408,11 @@
   ,"proteccion.destinatario.autoridad": "Il certificato appartiene a un'autorità di certificazione, non a un destinatario."
   ,"proteccion.destinatario.maximo": "Ci sono già 128 destinatari importati, il massimo. Ne rimuova uno prima di aggiungerne un altro."
   ,"proteccion.destinatario.generico": "Impossibile importare il certificato pubblico. Verifichi che sia un X.509 DER o PEM adatto alla cifratura."
-  ,"Windows: vuelve a funcionar el sello elegido por la persona en los portales (Canarias y otros): el botón «Firmar con el sello aquí» se activa y, si la vista falla, se puede firmar sin sello o cancelar. La ventana se cierra sola si el portal deja de esperar.": "Windows: torna a funzionare il sigillo scelto dalla persona nei portali (Canarie e altri): il pulsante «Firma con il sigillo qui» si attiva e, se l'anteprima non riesce, si può firmare senza sigillo o annullare. La finestra si chiude da sola se il portale smette di attendere."
+  ,"Windows: vuelve a funcionar el sello elegido por la persona en los portales (Canarias y otros): el botón «Firmar con el sello aquí» se activa y, si la vista falla, se puede firmar sin sello o cancelar. La ventana se cierra sola si el portal deja de esperar.": "Windows: torna a funzionare il timbro scelto dalla persona nei portali (Canarie e altri): il pulsante «Firma qui con il timbro» si attiva e, se l'anteprima non riesce, si può firmare senza timbro o annullare. La finestra si chiude da sola se il portale smette di attendere."
   ,"Windows: «Desproteger» ya no falla ni cierra la aplicación; «Confirmar antes de firmar» funciona; el informe imprimible es la opción principal al verificar; y toda la interfaz se traduce al idioma elegido.": "Windows: «Rimuovi protezione» non fallisce più né chiude l'applicazione; «Conferma prima di firmare» funziona; il report stampabile è l'opzione principale durante la verifica; e tutta l'interfaccia viene tradotta nella lingua scelta."
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: la consultazione dell'AEAT interpreta correttamente la risposta (trovata, non trovata o non verificabile) su Windows e Linux, e il report distingue gli avvisi dagli errori."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: buon contrasto in tutti i temi (anche quelli chiari), caselle e campi leggibili, la rotella del mouse arriva fino a «Firma ora» e le schermate si adattano a finestre strette."
-  ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: il lotto indica in quale cartella sono state salvate le firme, il sigillo e l'anteprima mostrano lo stesso emittente, e Preferenze ed editor del sigillo si vedono bene con testo grande."
+  ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: il lotto indica in quale cartella sono state salvate le firme, il timbro e l'anteprima mostrano lo stesso emittente, e Preferenze ed editor del timbro si vedono bene con testo grande."
   ,"El fichero elegido no es un PDF": "Il file scelto non è un PDF"
   ,"Ficheros permitidos (%s)": "File consentiti (%s)"
   ,"Todos los ficheros (*.*)": "Tutti i file (*.*)"

@@ -942,7 +942,7 @@
   "Haz la operación y vuelve aquí si algo no queda claro.": "Run the operation and come back here if anything is unclear.",
   "Hexadecimal": "Hexadecimal",
   "Host / IP:": "Host/IP:",
-  "Huella": "Fingerprint",
+  "Huella": "Hash",
   "Huella SHA-256: ": "SHA-256 fingerprint: ",
   "Huella copiada al portapapeles.": "Hash copied to clipboard.",
   "Huella del certificado copiada al portapapeles.": "Certificate fingerprint copied to clipboard.",
