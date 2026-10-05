@@ -913,6 +913,14 @@ Window {
         return fileUrlFromLocalPath(folder !== "" ? folder.replace(/\/$/, "") + "/" + name : name)
     }
 
+    // El diálogo propio de Qt (sin diálogo nativo del sistema) elige el
+    // nombre propuesto pero deja vacío el campo «Nombre del fichero» si ese
+    // fichero aún no existe; la ayuda de C++ lo escribe al abrirse.
+    function showProposedSaveName() {
+        if (typeof saveDialogNames !== "undefined" && saveDialogNames)
+            Qt.callLater(saveDialogNames.showProposedNames)
+    }
+
     // Abre un diálogo de guardar con carpeta y nombre propuestos.
     function openSaveDialog(dialog, documentPath, fileName) {
         const folder = suggestedSaveFolder(documentPath)
@@ -5282,6 +5290,7 @@ Window {
         title: tr("Seleccionar destino del PDF firmado")
         currentFile: window.fileUrlFromLocalPath(window.currentOutputPath)
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         nameFilters: [tr("Archivos PDF (*.pdf)")]
         onAccepted: {
             window.currentOutputPath = localPathFromUrl(selectedFile)
@@ -5354,6 +5363,7 @@ Window {
         id: verifyReportSaveDialog
         title: tr("Guardar informe de verificación")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         currentFile: suggestVerificationReportPath(verifyTab.verifyFilePath)
         nameFilters: [tr("Informe JSON (*.json)"), tr("Todos los archivos (*)")]
         onAccepted: {
@@ -5371,6 +5381,7 @@ Window {
         id: verifyHtmlReportSaveDialog
         title: tr("winui.parity.verify.export_html")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         nameFilters: [tr("verificacion.informe_html.filtro"), tr("Todos los archivos (*)")]
         onAccepted: {
             backend.saveTextReport(localPathFromUrl(selectedFile),
@@ -5384,6 +5395,7 @@ Window {
         id: verifySummarySaveDialog
         title: tr("Guardar resumen de validación")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         currentFile: suggestVerificationSummaryPath(verifyTab.verifyFilePath)
         nameFilters: [tr("Resumen de validación (*.txt)"), tr("Todos los archivos (*)")]
         onAccepted: {
@@ -6047,6 +6059,7 @@ Window {
         id: certificateValidationSaveDialog
         title: tr("Guardar informe de validación del certificado")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         currentFile: suggestCertificateValidationReportPath()
         nameFilters: [tr("Informe JSON (*.json)"), tr("Todos los archivos (*)")]
         onAccepted: {
@@ -6064,6 +6077,7 @@ Window {
         id: supportIncidentSaveDialog
         title: tr("Guardar incidencia preparada")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         currentFile: suggestSupportIncidentPath()
         nameFilters: [tr("Informe de incidencia (*.txt)"), tr("Todos los archivos (*)")]
         onAccepted: {
@@ -7172,6 +7186,7 @@ Window {
         id: publicCertificateSaveDialog
         title: tr("Exportar certificado público")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         nameFilters: [tr("Certificado público DER (*.cer)"), tr("Certificado público PEM (*.pem)")]
         onAccepted: {
             let path = localPathFromUrl(selectedFile)

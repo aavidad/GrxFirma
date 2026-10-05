@@ -52,6 +52,7 @@ HEADERS += \
         officialupdatechecker.h \
         linuxstartupregistration.h \
         processarguments.h \
+        savedialognames.h \
         processenvironment.h \
         residentagent.h \
         releasenotes.h \

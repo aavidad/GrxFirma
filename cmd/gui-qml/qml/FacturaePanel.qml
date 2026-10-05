@@ -120,6 +120,7 @@ Item {
         id: saveDialog
         title: tr("facturae.save_title")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible && typeof saveDialogNames !== "undefined" && saveDialogNames) Qt.callLater(saveDialogNames.showProposedNames)
         nameFilters: [tr("facturae.xml_filter")]
         onAccepted: {
             const path = panel.localPath(selectedFile)
@@ -152,6 +153,7 @@ Item {
         id: invoiceReportDialog
         title: tr("paridad.lote3.invoice.export")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible && typeof saveDialogNames !== "undefined" && saveDialogNames) Qt.callLater(saveDialogNames.showProposedNames)
         nameFilters: [tr("paridad.lote3.report.filter")]
         onAccepted: {
             const path = panel.localPath(selectedFile)
@@ -165,6 +167,7 @@ Item {
         id: verifactuReportDialog
         title: tr("paridad.lote3.invoice.export")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible && typeof saveDialogNames !== "undefined" && saveDialogNames) Qt.callLater(saveDialogNames.showProposedNames)
         nameFilters: [tr("paridad.lote3.report.filter")]
         onAccepted: {
             const path = panel.localPath(selectedFile)

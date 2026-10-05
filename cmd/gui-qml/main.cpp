@@ -11,6 +11,7 @@
 #include "processenvironment.h"
 #include "portalsealbridge.h"
 #include "residentagent.h"
+#include "savedialognames.h"
 #include "releasenotes.h"
 #include "qttranslations.h"
 #include "translatorbridge.h"
@@ -447,6 +448,8 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("appVersion",
                                            QCoreApplication::applicationVersion());
   engine.rootContext()->setContextProperty("guiAssetsDir", guiAssetsDir);
+  SaveDialogNames saveDialogNames;
+  engine.rootContext()->setContextProperty("saveDialogNames", &saveDialogNames);
   // Carpeta que se propone al guardar cuando no hay un documento de referencia.
   QString documentsFolder =
       QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);

@@ -93,6 +93,7 @@ Item {
     FolderDialog { acceptLabel: panel.tr("Seleccionar carpeta"); rejectLabel: panel.tr("Cancelar"); id: folderPicker; title: tr("paridad.lote3.eni.folder")
         onAccepted: { panel.directoryPath = panel.localPath(selectedFolder); if (panel.directoryPath !== "") panel.fileMessageKey = "" } }
     FileDialog { acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir"); rejectLabel: panel.tr("Cancelar"); id: documentSave; title: tr("paridad.lote3.eni.save_document"); fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible && typeof saveDialogNames !== "undefined" && saveDialogNames) Qt.callLater(saveDialogNames.showProposedNames)
         nameFilters: [tr("paridad.lote3.eni.xml_filter")]
         onAccepted: {
             const output = panel.localPath(selectedFile)
@@ -105,6 +106,7 @@ Item {
         }
     }
     FileDialog { acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir"); rejectLabel: panel.tr("Cancelar"); id: fileSave; title: tr("paridad.lote3.eni.save_file"); fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible && typeof saveDialogNames !== "undefined" && saveDialogNames) Qt.callLater(saveDialogNames.showProposedNames)
         nameFilters: [tr("paridad.lote3.eni.xml_filter")]
         onAccepted: {
             const output = panel.localPath(selectedFile)
