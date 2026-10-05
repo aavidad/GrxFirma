@@ -145,10 +145,34 @@ func enviar(ctx context.Context, cliente *http.Client, destino string, token []b
 		return nuevoError(CodigoURLInvalida, "", err)
 	}
 	req.Header.Set("Content-Type", tipo)
-	req.Header.Set("Accept", "application/json")
 	if len(token) > 0 {
 		req.Header.Set("Authorization", "Bearer "+string(token))
 	}
+	return hacer(cliente, req, respuesta)
+}
+
+// obtenerJSON hace un GET sin autorización (metadatos RFC 8414) con los
+// mismos límites que el resto de peticiones.
+func obtenerJSON(ctx context.Context, cliente *http.Client, destino string, respuesta any) error {
+	if _, err := validarURLSegura(destino); err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, destino, nil)
+	if err != nil {
+		return nuevoError(CodigoURLInvalida, "", err)
+	}
+	return hacer(cliente, req, respuesta)
+}
+
+// es401 indica que el servicio rechazó el token portador.
+func es401(err error) bool {
+	var e *Error
+	return errors.As(err, &e) && e.Codigo == CodigoServicio &&
+		(e.Detalle == "401" || strings.HasPrefix(e.Detalle, "401/"))
+}
+
+func hacer(cliente *http.Client, req *http.Request, respuesta any) error {
+	req.Header.Set("Accept", "application/json")
 	resp, err := cliente.Do(req)
 	if err != nil {
 		if errors.Is(err, errRedireccion) {

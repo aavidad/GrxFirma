@@ -42,12 +42,16 @@ type Credencial struct {
 	Cadena      []*x509.Certificate
 	// SCAL es "1" o "2". Con SCAL2 la autorización queda ligada a los
 	// resúmenes concretos que se van a firmar.
-	SCAL        string
-	Modo        ModoAutorizacion
-	PIN         bool
-	OTP         bool
-	OTPEnLinea  bool
-	Algoritmos  []string
+	SCAL       string
+	Modo       ModoAutorizacion
+	PIN        bool
+	OTP        bool
+	OTPEnLinea bool
+	Algoritmos []string
+	// Multisign es el número máximo de firmas que el servicio admite con
+	// una sola autorización (campo «multisign» de credentials/info). 0 o 1
+	// significa que cada firma necesita su propia autorización.
+	Multisign   int
 	authDataV21 bool
 }
 
@@ -101,6 +105,38 @@ func (s *textoSCAL) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// numeroMultisign acepta «multisign» como número (CSC 2.0 y posteriores) o
+// como booleano (algunos servicios). Un booleano verdadero no dice cuántas
+// firmas caben y se toma el máximo del cliente; un valor inválido, como 1.
+type numeroMultisign int
+
+func (m *numeroMultisign) UnmarshalJSON(b []byte) error {
+	b = bytes.TrimSpace(b)
+	switch string(b) {
+	case "true":
+		*m = numeroMultisign(MaxFirmasLote)
+		return nil
+	case "false", "null":
+		*m = 1
+		return nil
+	}
+	var n json.Number
+	if err := json.Unmarshal(b, &n); err != nil {
+		*m = 1
+		return nil
+	}
+	v, err := n.Int64()
+	switch {
+	case err != nil || v < 1:
+		*m = 1
+	case v > MaxFirmasLote:
+		*m = numeroMultisign(MaxFirmasLote)
+	default:
+		*m = numeroMultisign(v)
+	}
+	return nil
+}
+
 type presencia struct {
 	Presence string `json:"presence"`
 	Type     string `json:"type"`
@@ -129,7 +165,8 @@ type respuestaInfoCredencial struct {
 		Mode    string       `json:"mode"`
 		Objects []objetoAuth `json:"objects"`
 	} `json:"auth"`
-	SCAL textoSCAL `json:"SCAL"`
+	SCAL      textoSCAL       `json:"SCAL"`
+	Multisign numeroMultisign `json:"multisign"`
 }
 
 type peticionInfoCredencial struct {
@@ -159,13 +196,9 @@ func (c *Cliente) Credencial(ctx context.Context, id string) (*Credencial, error
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	t, err := c.tokenSesion()
-	if err != nil {
-		return nil, err
-	}
 	var r respuestaInfoCredencial
 	peticion := peticionInfoCredencial{CredentialID: id, Certificates: "chain", CertInfo: true, AuthInfo: true}
-	if err := postJSON(ctx, c.http, unirRuta(c.base, "credentials/info"), t, peticion, &r); err != nil {
+	if err := c.postServicio(ctx, "credentials/info", peticion, &r); err != nil {
 		return nil, err
 	}
 	return interpretarCredencial(id, r)
@@ -204,6 +237,10 @@ func interpretarCredencial(id string, r respuestaInfoCredencial) (*Credencial, e
 		Cadena:      cadenaEncadenada(certs),
 		SCAL:        strings.TrimSpace(string(r.SCAL)),
 		Algoritmos:  append([]string(nil), r.Key.Algo...),
+		Multisign:   int(r.Multisign),
+	}
+	if cred.Multisign < 1 {
+		cred.Multisign = 1
 	}
 	if cred.SCAL == "" {
 		cred.SCAL = "1"
