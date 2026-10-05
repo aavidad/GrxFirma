@@ -31,6 +31,7 @@ GroupBox {
     Accessible.name: title
 
     function t(key) { return translate("token_settings." + key) }
+    function appText(key) { const translator = panel.translate; return translator(key) }
     function load() {
         if (!supported || busy) return
         busy = true
@@ -169,6 +170,8 @@ GroupBox {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? panel.appText("Guardar") : panel.appText("Abrir")
+        rejectLabel: panel.appText("Cancelar")
         id: modulePicker
         title: panel.t("add")
         fileMode: FileDialog.OpenFiles
@@ -176,6 +179,7 @@ GroupBox {
     }
     ThemedDialog {
         theme: panel.theme
+        translate: panel.translate
         id: discardDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -192,6 +196,7 @@ GroupBox {
     }
     ThemedDialog {
         theme: panel.theme
+        translate: panel.translate
         id: saveDialog
         parent: Overlay.overlay
         anchors.centerIn: parent

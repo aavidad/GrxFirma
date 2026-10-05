@@ -421,7 +421,9 @@
   "winui.firmar.confirmar.formato",
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
   "winui.proteger.cms_envelopeddata_enveloped",
-  "report.signer.organization"
+  "report.signer.organization",
+  "qt.filedialog.filter",
+  "qt.qstandardpaths.downloads"
  ],
  "en": [
   " + base64",
@@ -1753,7 +1755,11 @@
   "report.technical.issuer_dn",
   "report.technical.subject_dn",
   "winui.selector.documento_recuperado",
-  "winui.selector.nombre_documento_recuperado"
+  "winui.selector.nombre_documento_recuperado",
+  "verificacion.informe_html.filtro",
+  "qt.filedialog.filter",
+  "qt.folderbreadcrumbbar.up",
+  "qt.qstandardpaths.downloads"
  ],
  "it": [
   " + base64",
@@ -1925,7 +1931,8 @@
   "winui.selector.firma_xades",
   "winui.selector.nombre_firma",
   "winui.verificar.completa",
-  "❌ Error: "
+  "❌ Error: ",
+  "qt.filedialog.filter"
  ],
  "pt": [
   " + base64",
@@ -2354,7 +2361,9 @@
   "report.signer.identifier",
   "report.technical.subject_dn",
   "winui.selector.documento_recuperado",
-  "winui.selector.nombre_documento_recuperado"
+  "winui.selector.nombre_documento_recuperado",
+  "qt.filedialog.filter",
+  "qt.folderbreadcrumbbar.up"
  ],
  "va": [
   " + base64",

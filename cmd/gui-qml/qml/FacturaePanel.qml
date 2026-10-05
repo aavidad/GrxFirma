@@ -115,6 +115,8 @@ Item {
         }
     }
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir")
+        rejectLabel: panel.tr("Cancelar")
         id: saveDialog
         title: tr("facturae.save_title")
         fileMode: FileDialog.SaveFile
@@ -128,6 +130,8 @@ Item {
         }
     }
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir")
+        rejectLabel: panel.tr("Cancelar")
         id: invoiceOpenDialog
         title: tr("paridad.lote3.invoice.choose")
         fileMode: FileDialog.OpenFile
@@ -142,6 +146,8 @@ Item {
         }
     }
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir")
+        rejectLabel: panel.tr("Cancelar")
         id: invoiceReportDialog
         title: tr("paridad.lote3.invoice.export")
         fileMode: FileDialog.SaveFile
@@ -153,6 +159,8 @@ Item {
         }
     }
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir")
+        rejectLabel: panel.tr("Cancelar")
         id: verifactuReportDialog
         title: tr("paridad.lote3.invoice.export")
         fileMode: FileDialog.SaveFile
@@ -203,6 +211,8 @@ Item {
         }
     }
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir")
+        rejectLabel: panel.tr("Cancelar")
         id: verifactuFileDialog
         title: tr("verifactu.choose")
         fileMode: FileDialog.OpenFile
@@ -210,6 +220,8 @@ Item {
         onAccepted: { panel.verifactuResult = null; panel.verifactuError = ""; panel.verifactuStatusKey = "paridad.lote3.invoice.validating"; panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFile)) }
     }
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir")
+        rejectLabel: panel.tr("Cancelar")
         id: qrFileDialog
         title: tr("verifactu.qr_from_file")
         fileMode: FileDialog.OpenFile
@@ -224,6 +236,8 @@ Item {
         }
     }
     FolderDialog {
+        acceptLabel: panel.tr("Seleccionar carpeta")
+        rejectLabel: panel.tr("Cancelar")
         id: verifactuFolderDialog
         title: tr("verifactu.folder")
         onAccepted: { panel.verifactuResult = null; panel.verifactuError = ""; panel.verifactuStatusKey = "paridad.lote3.invoice.validating"; panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFolder)) }

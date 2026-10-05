@@ -64,3 +64,15 @@ function accentOn(background, accent, minimum) {
     }
     return readableOn(background)
 }
+
+// Gris que deja legibles a la vez el texto negro y el texto del tema. El
+// selector de ficheros de Qt (estilo Fusion) pinta su panel lateral y la
+// barra de carpetas sobre palette.light: el panel con el texto negro por
+// defecto de Qt y la barra con el color de texto de los botones. En temas
+// oscuros, este gris da el mismo contraste a los dos.
+function balancedSurface(textColor) {
+    const target = Math.sqrt(0.05 * (luminance(textColor) + 0.05)) - 0.05
+    const v = target <= 0.0031308 ? 12.92 * target : 1.055 * Math.pow(target, 1 / 2.4) - 0.055
+    const level = Math.max(0, Math.min(1, v))
+    return Qt.rgba(level, level, level, 1)
+}

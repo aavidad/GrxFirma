@@ -25,6 +25,16 @@ TestCase {
             contentItem: Label { text: "Test" }
         }
     }
+    Component {
+        id: translatedFactory
+        ThemedDialog {
+            theme: testCase.theme
+            title: "Test"
+            standardButtons: Dialog.Ok | Dialog.Cancel
+            translate: function(key) { return "[" + key + "]" }
+            contentItem: Label { text: "Test" }
+        }
+    }
     SignalSpy { id: acceptedSpy; target: testCase.dialog; signalName: "accepted" }
     SignalSpy { id: rejectedSpy; target: testCase.dialog; signalName: "rejected" }
     function init() {
@@ -54,5 +64,16 @@ TestCase {
     function test_standard_button_rejects() {
         mouseClick(dialog.standardButton(Dialog.Cancel))
         compare(rejectedSpy.count, 1)
+    }
+    // Los botones estándar salen en el idioma de la aplicación, no en el del sistema.
+    function test_standard_buttons_use_application_translator() {
+        const translated = createTemporaryObject(translatedFactory, testCase)
+        translated.open()
+        tryCompare(translated, "opened", true)
+        compare(translated.standardButton(Dialog.Ok).text, "[Aceptar]")
+        compare(translated.standardButton(Dialog.Cancel).text, "[Cancelar]")
+        translated.translate = function(key) { return "<" + key + ">" }
+        compare(translated.standardButton(Dialog.Ok).text, "<Aceptar>")
+        translated.close()
     }
 }
