@@ -369,11 +369,13 @@ public sealed partial class SignPage : Page
             if (ready) _portalPreviewFailed = false;
             _portalSignButton!.IsEnabled = ready;
             _portalStatusText!.Visibility = ready ? Visibility.Collapsed : Visibility.Visible;
-            var status = Label(_portalPreviewFailed
-                ? "portal.seal.preview_failed" : "portal.seal.preview_loading");
-            if (!ready && _portalStatusText.Text != status)
+            // Se recuerda la clave mostrada: no se comparan textos traducidos.
+            var statusKey = _portalPreviewFailed
+                ? "portal.seal.preview_failed" : "portal.seal.preview_loading";
+            if (!ready && statusKey != _portalStatusKey)
             {
-                _portalStatusText.Text = status;
+                _portalStatusKey = statusKey;
+                _portalStatusText.Text = Label(statusKey);
                 if (_portalPreviewFailed &&
                     FrameworkElementAutomationPeer
                         .FromElement(_portalStatusText) is { } peer)
@@ -388,6 +390,7 @@ public sealed partial class SignPage : Page
     private Action? _portalUpdateNavigation;
     private TextBlock? _portalStatusText;
     private bool _portalPreviewFailed;
+    private string _portalStatusKey = "portal.seal.preview_loading";
     private int _portalRefreshInProgress;
     private static readonly TimeSpan PortalSealPreviewTimeout = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan PortalSealPreviewRetryDelay = TimeSpan.FromMilliseconds(400);
