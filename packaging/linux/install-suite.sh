@@ -261,12 +261,10 @@ PRIMARY_CHROME_ORIGINS="$(build_primary_chrome_origins)"
 for dir in "${NM_CHROME}" "${NM_CHROMIUM}" "${NM_EDGE}" "${NM_BRAVE}" "${NM_VIVALDI}" "${NM_OPERA}"; do
   write_chrome_manifest "${dir}/com.grxfirma.native.json" "com.grxfirma.native" "${PRIMARY_CHROME_ORIGINS}"
   write_chrome_manifest "${dir}/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${PRIMARY_CHROME_ORIGINS}"
-  write_chrome_manifest "${dir}/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\""
 done
 
 write_firefox_manifest "${NM_FIREFOX}/com.grxfirma.native.json" "com.grxfirma.native" "\"${FIREFOX_EXT_ID}\""
 write_firefox_manifest "${NM_FIREFOX}/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "\"${FIREFOX_EXT_ID}\""
-write_firefox_manifest "${NM_FIREFOX}/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"portafirmas@dipgra.es\""
 
 # Paquetes de extension con el nombre de versiones anteriores.
 rm -f "${USEREXTDIR}/firefox/dipgra-extension-firefox.xpi" \

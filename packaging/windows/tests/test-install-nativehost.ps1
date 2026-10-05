@@ -39,6 +39,18 @@ foreach ($functionName in $requiredFunctions) {
     . ([ScriptBlock]::Create($definition.Extent.Text))
 }
 
+# La extension portafirmas no forma parte de GrxFirma: el instalador no debe
+# registrar su host ni autorizar sus identificadores.
+$installScriptText = [IO.File]::ReadAllText($scriptPath)
+foreach ($forbidden in @("portafirmas@dipgra.es", "ipkpimgjhkjibkbhfdhggjldlaetbcoa")) {
+    if ($installScriptText.Contains($forbidden)) {
+        throw "install-nativehost.ps1 todavia autoriza $forbidden"
+    }
+}
+if ($installScriptText -match 'Name\s*=\s*"io\.github\.aavidad\.portafirmas"') {
+    throw "install-nativehost.ps1 todavia registra el host io.github.aavidad.portafirmas"
+}
+
 $uninstallScriptPath = Join-Path (Split-Path -Parent $PSScriptRoot) "uninstall-nativehost.ps1"
 $uninstallTokens = $null
 $uninstallParseErrors = $null
@@ -341,7 +353,7 @@ try {
     )) {
         New-Item -ItemType Directory -Force -Path $dir | Out-Null
     }
-    foreach ($legacyHostName in @("com.dipgra.grxfirma", "com.dipgra.portafirmas")) {
+    foreach ($legacyHostName in @("com.dipgra.grxfirma", "com.dipgra.portafirmas", "io.github.aavidad.portafirmas")) {
         foreach ($suffix in @("chrome.json", "firefox.json")) {
             [IO.File]::WriteAllText((Join-Path $legacyManifests "$legacyHostName.$suffix"), "{}")
         }
@@ -371,10 +383,10 @@ try {
     } finally {
         $env:ProgramFiles = $previousProgramFiles
     }
-    Assert-True ($script:legacyRegistryCalls.Count -eq 14) `
-        "La migracion no reviso los siete navegadores para los dos hosts anteriores"
+    Assert-True ($script:legacyRegistryCalls.Count -eq 21) `
+        "La migracion no reviso los siete navegadores para los tres hosts anteriores"
     Assert-True (@($script:legacyRegistryCalls | Where-Object {
-        $_.Path -notmatch '\\com\.dipgra\.(grxfirma|portafirmas)$'
+        $_.Path -notmatch '\\(com\.dipgra\.(grxfirma|portafirmas)|io\.github\.aavidad\.portafirmas)$'
     }).Count -eq 0) "La migracion intento retirar un host que no es de versiones anteriores"
     Assert-True (@($script:legacyRegistryCalls | Where-Object {
         $_.Path -eq "Software\Mozilla\NativeMessagingHosts\com.dipgra.grxfirma" -and
@@ -382,6 +394,12 @@ try {
     }).Count -eq 1) "La migracion no comprueba que el host anterior de Firefox apunte a esta instalacion"
     Assert-True (@(Get-ChildItem -LiteralPath $legacyManifests -Filter "com.dipgra.*").Count -eq 0) `
         "La migracion dejo manifiestos de hosts anteriores"
+    Assert-True (@(Get-ChildItem -LiteralPath $legacyManifests -Filter "io.github.aavidad.portafirmas.*").Count -eq 0) `
+        "La migracion dejo manifiestos del host de portafirmas"
+    Assert-True (@($script:legacyRegistryCalls | Where-Object {
+        $_.Path -eq "Software\Google\Chrome\NativeMessagingHosts\io.github.aavidad.portafirmas" -and
+            $_.Expected -eq (Join-Path $legacyManifests "io.github.aavidad.portafirmas.chrome.json")
+    }).Count -eq 1) "La migracion no comprueba que el host de portafirmas apunte a esta instalacion"
     Assert-True (Test-Path -LiteralPath $currentManifest) "La migracion borro un manifiesto vigente"
     Assert-True (-not (Test-Path -LiteralPath $legacyProfileXpi)) `
         "La migracion no retiro la extension Firefox anterior instalada por GrxFirma"

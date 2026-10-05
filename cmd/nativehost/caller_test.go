@@ -228,3 +228,66 @@ func TestBuiltinChromiumIDsExcludePublicExampleID(t *testing.T) {
 		}
 	}
 }
+
+// La extensión «portafirmas» de la Diputación no forma parte de GrxFirma: ni
+// su manifiesto ni sus identificadores deben autorizar llamadas al motor, ni
+// siquiera cuando el manifiesto apunta al binario instalado.
+func TestNativeCaller_RechazaManifiestoEIDsDePortafirmas(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", "")
+	const (
+		portafirmasHost      = "io.github.aavidad.portafirmas"
+		portafirmasFirefoxID = "portafirmas@dipgra.es"
+		portafirmasChromeID  = "ipkpimgjhkjibkbhfdhggjldlaetbcoa"
+	)
+	dir := t.TempDir()
+	home := filepath.Join(dir, "home")
+	executable := filepath.Join(dir, "bin", "grxfirma-nativehost")
+	writeTestFile(t, executable, []byte("host"), 0o700)
+
+	for _, id := range builtinChromiumExtensionIDs {
+		if id == portafirmasChromeID {
+			t.Fatal("el ID Chromium de portafirmas no puede estar autorizado de serie")
+		}
+	}
+	if _, ok := nativeHostManifestNames[portafirmasHost]; ok {
+		t.Fatal("el nombre de host de portafirmas no puede estar permitido")
+	}
+
+	chromeManifest := filepath.Join(
+		home, ".config", "google-chrome", "NativeMessagingHosts", portafirmasHost+".json",
+	)
+	writeTestManifest(t, chromeManifest, nativeHostManifest{
+		Name:           portafirmasHost,
+		Path:           executable,
+		Type:           "stdio",
+		AllowedOrigins: []string{"chrome-extension://" + portafirmasChromeID + "/"},
+	})
+	firefoxManifest := filepath.Join(home, ".mozilla", "native-messaging-hosts", portafirmasHost+".json")
+	writeTestManifest(t, firefoxManifest, nativeHostManifest{
+		Name:              portafirmasHost,
+		Path:              executable,
+		Type:              "stdio",
+		AllowedExtensions: []string{portafirmasFirefoxID},
+	})
+	if _, ok := readNativeHostManifest(firefoxManifest); ok {
+		t.Fatal("el manifiesto de portafirmas no debe aceptarse")
+	}
+
+	policy := newNativeCallerPolicy(executable, home, false)
+	if _, ok := policy.chromiumIDs[portafirmasChromeID]; ok {
+		t.Fatal("el ID Chromium de portafirmas no debe entrar en la lista de llamantes")
+	}
+	if _, ok := policy.firefoxIDs[portafirmasFirefoxID]; ok {
+		t.Fatal("el ID Firefox de portafirmas no debe entrar en la lista de llamantes")
+	}
+	if got, err := nativeCallerFromArgs(
+		[]string{"chrome-extension://" + portafirmasChromeID + "/"}, policy,
+	); err == nil {
+		t.Fatalf("la extensión Chromium de portafirmas se aceptó como %q", got)
+	}
+	if got, err := nativeCallerFromArgs(
+		[]string{firefoxManifest, portafirmasFirefoxID}, policy,
+	); err == nil {
+		t.Fatalf("la extensión Firefox de portafirmas se aceptó como %q", got)
+	}
+}

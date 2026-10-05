@@ -91,13 +91,17 @@ error: el build macOS requiere macOS real o una toolchain Darwin cruzada configu
 - Los nombres de host registrados son:
   - `com.grxfirma.native`
   - `io.github.aavidad.grxfirma`
-  - `io.github.aavidad.portafirmas`
+- GrxFirma no registra el host de la extensión «portafirmas»
+  (`portafirmas@dipgra.es` en Firefox, `ipkpimgjhkjibkbhfdhggjldlaetbcoa` en
+  Chrome), que no forma parte de la aplicación, y el host nativo rechaza sus
+  llamadas.
 - Las versiones anteriores registraban `com.dipgra.grxfirma`,
-  `com.dipgra.portafirmas` y la extensión de Firefox `extension@dipgra.es`. Al
-  instalar o actualizar se borran los registros y manifiestos con esos nombres
-  que apuntan a esta instalación, y las copias de la extensión anterior que
-  GrxFirma dejó en los perfiles de Firefox. El desinstalador limpia los nombres
-  nuevos y los anteriores.
+  `com.dipgra.portafirmas` y la extensión de Firefox `extension@dipgra.es`, y
+  algunas también `io.github.aavidad.portafirmas`. Al instalar o actualizar se
+  borran los manifiestos con esos nombres que apuntan a esta instalación, y las copias
+  de la extensión anterior que GrxFirma dejó en los perfiles de Firefox. Los que
+  apuntan a otro programa se conservan. El desinstalador limpia los nombres
+  nuevos y los anteriores con la misma comprobación.
 
 ## Licencia
 

@@ -131,8 +131,9 @@ uninstall_user() {
   manifest_names=(
     "com.grxfirma.native.json"
     "io.github.aavidad.grxfirma.json"
+    # Nombres de versiones anteriores y del host de la extension «portafirmas»,
+    # que ya no forma parte de GrxFirma; solo se retiran si apuntan a este host.
     "io.github.aavidad.portafirmas.json"
-    # Nombres de versiones anteriores.
     "com.dipgra.grxfirma.json"
     "com.dipgra.portafirmas.json"
   )

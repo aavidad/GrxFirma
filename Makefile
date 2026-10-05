@@ -315,9 +315,12 @@ bridge-user: install-user
 	            "$(USERLIBDIR)" > "$$dir/com.grxfirma.native.json"; \
 	        printf '{\n  "name": "io.github.aavidad.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://$(CHROME_EXT_ID)/"]\n}\n' \
 	            "$(USERLIBDIR)" > "$$dir/io.github.aavidad.grxfirma.json"; \
-	        printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"]\n}\n' \
-	            "$(USERLIBDIR)" > "$$dir/io.github.aavidad.portafirmas.json"; \
-	        rm -f "$$dir/com.dipgra.grxfirma.json" "$$dir/com.dipgra.portafirmas.json"; \
+	        rm -f "$$dir/com.dipgra.grxfirma.json"; \
+	        for legacy in io.github.aavidad.portafirmas com.dipgra.portafirmas; do \
+	            if grep -qF '"$(USERLIBDIR)/browser-bridge.sh"' "$$dir/$$legacy.json" 2>/dev/null; then \
+	                rm -f "$$dir/$$legacy.json"; \
+	            fi; \
+	        done; \
 	        echo "  Manifest instalado en $$dir"; \
 	    fi \
 	done
@@ -327,9 +330,13 @@ bridge-user: install-user
 	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/com.grxfirma.native.json"
 	@printf '{\n  "name": "io.github.aavidad.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["$(FIREFOX_EXT_ID)"]\n}\n' \
 	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/io.github.aavidad.grxfirma.json"
-	@printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["portafirmas@dipgra.es"]\n}\n' \
-	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/io.github.aavidad.portafirmas.json"
-	@rm -f "$(NM_FIREFOX)/com.dipgra.grxfirma.json" "$(NM_FIREFOX)/com.dipgra.portafirmas.json"
+	@rm -f "$(NM_FIREFOX)/com.dipgra.grxfirma.json"
+	@# Portafirmas no forma parte de GrxFirma: retirar solo los manifiestos propios.
+	@for legacy in io.github.aavidad.portafirmas com.dipgra.portafirmas; do \
+	    if grep -qF '"$(USERLIBDIR)/browser-bridge.sh"' "$(NM_FIREFOX)/$$legacy.json" 2>/dev/null; then \
+	        rm -f "$(NM_FIREFOX)/$$legacy.json"; \
+	    fi; \
+	done
 	@echo "  Manifest instalado en $(NM_FIREFOX)"
 	@echo "Bridge de navegadores instalado."
 	@echo "  Certificados: coloca tus .p12 en $(USERCFGDIR)"

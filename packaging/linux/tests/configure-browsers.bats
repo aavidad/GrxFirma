@@ -115,3 +115,27 @@ configure_browsers() {
   [ ! -e "${TEST_PROFILE}/extensions/extension@dipgra.es.xpi" ]
   [ -f "${firefox_dir}/io.github.aavidad.grxfirma.json" ]
 }
+
+@test "no registra el host de portafirmas y retira solo el que apunta a GrxFirma" {
+  write_metadata false
+  local chrome_dir="${TEST_HOME}/.config/google-chrome/NativeMessagingHosts"
+  local edge_dir="${TEST_HOME}/.config/microsoft-edge/NativeMessagingHosts"
+  local firefox_dir="${TEST_HOME}/.mozilla/native-messaging-hosts"
+  mkdir -p "${chrome_dir}" "${edge_dir}" "${firefox_dir}"
+  printf '{"name":"io.github.aavidad.portafirmas","path":"/usr/lib/grxfirma/bin/browser-bridge.sh"}\n' \
+    > "${chrome_dir}/io.github.aavidad.portafirmas.json"
+  printf '{"name":"io.github.aavidad.portafirmas","path":"%s/.local/lib/grxfirma/bin/browser-bridge.sh"}\n' "${TEST_HOME}" \
+    > "${firefox_dir}/io.github.aavidad.portafirmas.json"
+  printf '{"name":"io.github.aavidad.portafirmas","path":"/opt/portafirmas/host"}\n' \
+    > "${edge_dir}/io.github.aavidad.portafirmas.json"
+
+  run configure_browsers
+
+  [ "$status" -eq 0 ]
+  [ ! -e "${chrome_dir}/io.github.aavidad.portafirmas.json" ]
+  [ ! -e "${firefox_dir}/io.github.aavidad.portafirmas.json" ]
+  [ -f "${edge_dir}/io.github.aavidad.portafirmas.json" ]
+  [ -f "${chrome_dir}/io.github.aavidad.grxfirma.json" ]
+  run grep -Rq 'portafirmas@dipgra.es\|ipkpimgjhkjibkbhfdhggjldlaetbcoa' "${chrome_dir}" "${firefox_dir}"
+  [ "$status" -eq 1 ]
+}

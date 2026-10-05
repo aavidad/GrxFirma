@@ -87,8 +87,9 @@ function Get-FirefoxProfileDirectory {
 $nativeHosts = @(
     "com.grxfirma.native",
     "io.github.aavidad.grxfirma",
+    # Nombres de versiones anteriores y del host de la extension portafirmas, que
+    # ya no forma parte de GrxFirma; se retiran solo si apuntan a esta instalacion.
     "io.github.aavidad.portafirmas",
-    # Nombres de versiones anteriores; se retiran solo si apuntan a esta instalacion.
     "com.dipgra.grxfirma",
     "com.dipgra.portafirmas"
 )

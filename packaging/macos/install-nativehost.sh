@@ -175,22 +175,19 @@ write_firefox_manifest() {
 for dir in "$MANIFEST_DIR_CHROME" "$MANIFEST_DIR_CHROMIUM" "$MANIFEST_DIR_EDGE" "$MANIFEST_DIR_BRAVE" "$MANIFEST_DIR_VIVALDI" "$MANIFEST_DIR_OPERA"; do
   write_chrome_manifest "$dir/com.grxfirma.native.json" "com.grxfirma.native" "${CHROME_ORIGINS[@]}"
   write_chrome_manifest "$dir/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${CHROME_ORIGINS[@]}"
-  write_chrome_manifest \
-    "$dir/io.github.aavidad.portafirmas.json" \
-    "io.github.aavidad.portafirmas" \
-    "chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"
 done
 
 write_firefox_manifest "$MANIFEST_DIR_FIREFOX/com.grxfirma.native.json" "com.grxfirma.native" "grxfirma@aavidad.github.io"
 write_firefox_manifest "$MANIFEST_DIR_FIREFOX/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "grxfirma@aavidad.github.io"
-write_firefox_manifest "$MANIFEST_DIR_FIREFOX/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "portafirmas@dipgra.es"
 
 # Las versiones anteriores registraban los hosts com.dipgra.* y la extension
-# Firefox extension@dipgra.es. Se retiran solo los manifiestos que apuntan a
-# este host y las copias del XPI identicas a la que instalo GrxFirma.
+# Firefox extension@dipgra.es, y algunas tambien el host de la extension
+# «portafirmas», que no forma parte de GrxFirma. Se retiran solo los
+# manifiestos que apuntan a este host y las copias del XPI identicas a la que
+# instalo GrxFirma; los de otros productos no se tocan.
 legacy_host_path="$(json_quote "${DST_BIN}")"
 for dir in "$MANIFEST_DIR_CHROME" "$MANIFEST_DIR_CHROMIUM" "$MANIFEST_DIR_EDGE" "$MANIFEST_DIR_BRAVE" "$MANIFEST_DIR_VIVALDI" "$MANIFEST_DIR_OPERA" "$MANIFEST_DIR_FIREFOX"; do
-  for legacy_name in com.dipgra.grxfirma com.dipgra.portafirmas; do
+  for legacy_name in com.dipgra.grxfirma com.dipgra.portafirmas io.github.aavidad.portafirmas; do
     legacy_manifest="${dir}/${legacy_name}.json"
     [[ -f "${legacy_manifest}" && ! -L "${legacy_manifest}" ]] || continue
     if grep -Fq "\"path\": ${legacy_host_path}" "${legacy_manifest}"; then

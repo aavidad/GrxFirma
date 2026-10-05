@@ -162,9 +162,11 @@ function Remove-LegacyNativeHostInstallation {
     )
 
     # Las versiones anteriores usaban para los hosts y la extension el espacio de nombres
-    # com.dipgra y el ID extension@dipgra.es. Solo se retira lo que apunta a
-    # esta instalacion para no dejar hosts huerfanos ni tocar registros ajenos.
-    foreach ($legacyHost in @("com.dipgra.grxfirma", "com.dipgra.portafirmas")) {
+    # com.dipgra y el ID extension@dipgra.es, y algunas registraban tambien el
+    # host de la extension portafirmas, que no forma parte de GrxFirma. Solo se
+    # retira lo que apunta a esta instalacion para no dejar hosts huerfanos ni
+    # tocar registros ajenos.
+    foreach ($legacyHost in @("com.dipgra.grxfirma", "com.dipgra.portafirmas", "io.github.aavidad.portafirmas")) {
         foreach ($target in @(
             @{ BaseKey = "Software\Google\Chrome\NativeMessagingHosts"; Manifest = "$legacyHost.chrome.json" },
             @{ BaseKey = "Software\Chromium\NativeMessagingHosts"; Manifest = "$legacyHost.chrome.json" },
@@ -683,13 +685,6 @@ $hosts = @(
         Name = "io.github.aavidad.grxfirma"
         ChromeOrigins = @("chrome-extension://pkefjandjcgdmhoonmhnllikibobijgg/") + $extraChromiumOrigins
         FirefoxExtensions = @("grxfirma@aavidad.github.io")
-    },
-    @{
-        Name = "io.github.aavidad.portafirmas"
-        ChromeOrigins = @(
-            "chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"
-        )
-        FirefoxExtensions = @("portafirmas@dipgra.es")
     }
 )
 

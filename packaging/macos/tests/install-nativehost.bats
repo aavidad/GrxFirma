@@ -198,3 +198,29 @@ PY
   [ "$status" -eq 0 ]
   [ -f "${PROFILE}/extensions/extension@dipgra.es.xpi" ]
 }
+
+@test "no registra el host de portafirmas y retira solo el que apunta a GrxFirma" {
+  local support="${TEST_HOME}/Library/Application Support"
+  local host_bin="${support}/GrxFirma/NativeHost/grxfirma-nativehost"
+  local chrome_dir="${support}/Google/Chrome/NativeMessagingHosts"
+  local edge_dir="${support}/Microsoft Edge/NativeMessagingHosts"
+  local firefox_dir="${support}/Mozilla/NativeMessagingHosts"
+  mkdir -p "${chrome_dir}" "${edge_dir}" "${firefox_dir}"
+  printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "path": "%s",\n  "type": "stdio"\n}\n' "${host_bin}" \
+    > "${chrome_dir}/io.github.aavidad.portafirmas.json"
+  printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "path": "%s",\n  "type": "stdio"\n}\n' "${host_bin}" \
+    > "${firefox_dir}/io.github.aavidad.portafirmas.json"
+  printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "path": "/opt/portafirmas/host",\n  "type": "stdio"\n}\n' \
+    > "${edge_dir}/io.github.aavidad.portafirmas.json"
+  write_firefox_metadata false
+
+  run run_installer
+
+  [ "$status" -eq 0 ]
+  [ ! -e "${chrome_dir}/io.github.aavidad.portafirmas.json" ]
+  [ ! -e "${firefox_dir}/io.github.aavidad.portafirmas.json" ]
+  [ -f "${edge_dir}/io.github.aavidad.portafirmas.json" ]
+  [ -f "${chrome_dir}/io.github.aavidad.grxfirma.json" ]
+  run grep -Rq 'portafirmas@dipgra.es\|ipkpimgjhkjibkbhfdhggjldlaetbcoa' "${chrome_dir}" "${firefox_dir}"
+  [ "$status" -eq 1 ]
+}

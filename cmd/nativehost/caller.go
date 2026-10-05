@@ -21,10 +21,9 @@ import (
 )
 
 const (
-	officialChromiumExtensionID   = "pkefjandjcgdmhoonmhnllikibobijgg"
-	officialFirefoxExtensionID    = "grxfirma@aavidad.github.io"
-	portafirmasFirefoxExtensionID = "portafirmas@dipgra.es"
-	maxNativeManifestBytes        = 64 * 1024
+	officialChromiumExtensionID = "pkefjandjcgdmhoonmhnllikibobijgg"
+	officialFirefoxExtensionID  = "grxfirma@aavidad.github.io"
+	maxNativeManifestBytes      = 64 * 1024
 )
 
 var (
@@ -32,13 +31,11 @@ var (
 	firefoxExtensionIDPattern  = regexp.MustCompile(`^[A-Za-z0-9._@{}-]{1,128}$`)
 	parentWindowArgPattern     = regexp.MustCompile(`^--parent-window=[0-9]+$`)
 	nativeHostManifestNames    = map[string]struct{}{
-		"com.grxfirma.native":           {},
-		"io.github.aavidad.grxfirma":    {},
-		"io.github.aavidad.portafirmas": {},
+		"com.grxfirma.native":        {},
+		"io.github.aavidad.grxfirma": {},
 	}
 	builtinChromiumExtensionIDs = []string{
 		officialChromiumExtensionID,
-		"ipkpimgjhkjibkbhfdhggjldlaetbcoa",
 	}
 )
 
@@ -68,7 +65,6 @@ func newNativeCallerPolicy(executable, home string, allowDevelopment bool) nativ
 		policy.addChromiumID(id)
 	}
 	policy.addFirefoxID(officialFirefoxExtensionID)
-	policy.addFirefoxID(portafirmasFirefoxExtensionID)
 
 	for _, path := range installedChromiumIDCandidates(policy.executable) {
 		if id, ok := readSingleChromiumID(path); ok {
@@ -201,7 +197,6 @@ func nativeManifestCandidates(executable, home string) []string {
 	names := []string{
 		"com.grxfirma.native.json",
 		"io.github.aavidad.grxfirma.json",
-		"io.github.aavidad.portafirmas.json",
 	}
 	addDir := func(dir string) {
 		if strings.TrimSpace(dir) == "" {

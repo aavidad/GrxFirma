@@ -737,12 +737,10 @@ for dir in \
 do
   write_chrome_manifest "${dir}/com.grxfirma.native.json" "com.grxfirma.native" "${CHROMIUM_ALLOWED_ORIGINS}"
   write_chrome_manifest "${dir}/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${CHROMIUM_ALLOWED_ORIGINS}"
-  write_chrome_manifest "${dir}/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" '"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"'
 done
 
 write_firefox_manifest "${PKG_ROOT}/usr/lib/mozilla/native-messaging-hosts/com.grxfirma.native.json" "com.grxfirma.native" '"grxfirma@aavidad.github.io"'
 write_firefox_manifest "${PKG_ROOT}/usr/lib/mozilla/native-messaging-hosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" '"grxfirma@aavidad.github.io"'
-write_firefox_manifest "${PKG_ROOT}/usr/lib/mozilla/native-messaging-hosts/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" '"portafirmas@dipgra.es"'
 
 
 RUNTIME_DEPENDS="$(
@@ -962,9 +960,18 @@ for dir in \
   "${TARGET_HOME}/snap/firefox/common/.mozilla/native-messaging-hosts" \
   "${TARGET_HOME}/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts"
 do
-  rm -f "${dir}/com.grxfirma.native.json" "${dir}/io.github.aavidad.grxfirma.json" "${dir}/io.github.aavidad.portafirmas.json"
+  rm -f "${dir}/com.grxfirma.native.json" "${dir}/io.github.aavidad.grxfirma.json"
   # Nombres de versiones anteriores.
-  rm -f "${dir}/com.dipgra.grxfirma.json" "${dir}/com.dipgra.portafirmas.json"
+  rm -f "${dir}/com.dipgra.grxfirma.json"
+  # La extensión «portafirmas» no forma parte de GrxFirma: solo se retiran sus
+  # manifiestos cuando apuntan a una instalación de GrxFirma.
+  for name in com.dipgra.portafirmas io.github.aavidad.portafirmas; do
+    manifest="${dir}/${name}.json"
+    [[ -f "${manifest}" && ! -L "${manifest}" ]] || continue
+    if grep -Eq '"path"[[:space:]]*:[[:space:]]*"[^"]*/grxfirma/[^"]*"' "${manifest}"; then
+      rm -f -- "${manifest}"
+    fi
+  done
 done
 for root in \
   "${TARGET_HOME}/.mozilla/firefox" \
