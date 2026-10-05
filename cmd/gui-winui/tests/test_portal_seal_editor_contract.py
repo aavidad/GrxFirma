@@ -66,5 +66,54 @@ class PortalSealEditorContract(unittest.TestCase):
         confirm = confirm[:confirm.index("\n    }\n")]
         self.assertIn("RaisePropertyChanged(nameof(CanDrawVisibleSealArea))", confirm)
 
+
+    # Regresión 0.0.118: al mover el sello quedaba en cola una traducción
+    # diferida (LayoutUpdated + 300 ms). Al pulsar «Firmar con el sello aquí»
+    # la ventana se cerraba, el despachador ejecutaba esa pasada sobre el árbol
+    # destruido (COMException E_UNEXPECTED en un async void) y el proceso
+    # terminaba con error aunque result.json ya estuviera escrito.
+    def test_deferred_translation_never_touches_a_closed_window(self):
+        localizer = (ROOT / "Services/Localizer.cs").read_text(encoding="utf-8")
+        attach = localizer[localizer.index("public static DeferredTreePass Attach"):
+                           localizer.index("public static void Apply")]
+        self.assertIn("gate.IsClosed", attach)
+        self.assertIn("gate.TryRun(() => Apply(root))", attach)
+        self.assertNotIn("\n                    Apply(root);", attach)
+        self.assertIn("return gate;", attach)
+        window = (ROOT / "MainWindow.xaml.cs").read_text(encoding="utf-8")
+        self.assertIn("_localization = Localizer.Attach(AppRoot);", window)
+        closed = window[window.index("private void OnClosed("):]
+        closed = closed[:closed.index("\n    }\n")]
+        self.assertIn("_localization.Close();", closed)
+        app = (ROOT / "App.xaml.cs").read_text(encoding="utf-8")
+        handler = app[app.index("private void OnUnhandledException"):
+                      app.index("private static void RegistrarErrorNoControlado")]
+        self.assertLess(handler.index("e.Handled = true;"),
+                        handler.index("Volatile.Read(ref _windowClosed) != 0"))
+        self.assertLess(handler.index("Volatile.Read(ref _windowClosed) != 0"),
+                        handler.index("_window.ShowUnexpectedError"))
+
+    # Regresión 0.0.118: la salida normal del editor caía con c000000d al
+    # descargar Windows.Data.Pdf (dispositivo D3D11 WARP liberado con el grupo
+    # de hilos ya cerrado). En modo portal el proceso termina al cerrarse la
+    # ventana, después de dejar escrita la decisión.
+    def test_portal_editor_terminates_after_writing_the_decision(self):
+        app = (ROOT / "App.xaml.cs").read_text(encoding="utf-8")
+        closed = app[app.index("private async void OnMainWindowClosed"):
+                     app.index("private static async Task DisposeClientQuietlyAsync")]
+        portal = closed.index("if (_portalSealSession is not null)")
+        self.assertLess(closed.index("Interlocked.Exchange(ref _windowClosed, 1)"), portal)
+        self.assertLess(portal, closed.index("_portalSealSession.CancelOnClose();"))
+        self.assertLess(closed.index("_portalSealSession.CancelOnClose();"),
+                        closed.index("PortalSealProcessExit.Terminate(_portalSealSession);"))
+        self.assertLess(closed.index("PortalSealProcessExit.Terminate"),
+                        closed.index("_lifetimeCancellation.Cancel();"))
+        exit_source = (ROOT / "Services/PortalSealProcessExit.cs").read_text(encoding="utf-8")
+        self.assertIn("TerminateProcess(GetCurrentProcess(), (uint)session.ExitCode)", exit_source)
+        session = (ROOT.parent / "GrxFirma.WinUI.Core/Operations/PortalSealSession.cs").read_text(
+            encoding="utf-8")
+        self.assertIn("public int ExitCode => IsCompleted ? 0 : 1;", session)
+
+
 if __name__ == "__main__":
     unittest.main()

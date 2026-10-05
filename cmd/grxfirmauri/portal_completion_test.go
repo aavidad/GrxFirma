@@ -69,7 +69,9 @@ func TestPortalCompletionNewRequestCancelsAndRestarts(t *testing.T) {
 	}
 }
 
-func TestPortalCompletionFailureDoesNotClose(t *testing.T) {
+// Tras un fallo o una cancelación el aviso queda a la vista y se cierra solo
+// al vencer su plazo. En 0.0.118 seguía abierto hasta pulsar «Cerrar».
+func TestPortalCompletionFailureClosesAfterNotice(t *testing.T) {
 	now := time.Unix(100, 0)
 	completion := newPortalCompletion(func() time.Time { return now })
 	var displayed []string
@@ -77,16 +79,53 @@ func TestPortalCompletionFailureDoesNotClose(t *testing.T) {
 	completion.delivered("signature")
 	completion.failure()
 	completion.display()
-	now = now.Add(10 * time.Second)
-	if completion.expire(nil) {
-		t.Fatal("un fallo cerró la ventana")
-	}
-	_, _, _, failed := completion.snapshot()
-	if !failed {
-		t.Fatal("no se conservó el estado de fallo")
-	}
 	if len(displayed) != 0 {
 		t.Fatalf("el fallo se anunció como entrega: %v", displayed)
+	}
+	now = now.Add(portalFailureCloseDelay - time.Second)
+	if completion.expire(nil) {
+		t.Fatal("el aviso de fallo se cerró antes de poder leerlo")
+	}
+	kind, seconds, closeNow, failed := completion.snapshot()
+	if kind != "" || seconds != 1 || closeNow || !failed {
+		t.Fatalf("estado del aviso: %q, %d, %t, %t", kind, seconds, closeNow, failed)
+	}
+	completion.display()
+	if len(displayed) != 0 {
+		t.Fatalf("el aviso de fallo se ocultó: %v", displayed)
+	}
+	now = now.Add(time.Second)
+	closed := false
+	if !completion.expire(func() { closed = true }) || !closed {
+		t.Fatal("el aviso de fallo no se cerró al vencer el plazo")
+	}
+}
+
+func TestPortalCompletionNewRequestStopsFailureNotice(t *testing.T) {
+	now := time.Unix(100, 0)
+	completion := newPortalCompletion(func() time.Time { return now })
+	completion.failure()
+	now = now.Add(3 * time.Second)
+	completion.received()
+	now = now.Add(portalFailureCloseDelay)
+	if completion.expire(nil) {
+		t.Fatal("el plazo del fallo anterior cerró una operación nueva")
+	}
+	if _, _, _, failed := completion.snapshot(); failed {
+		t.Fatal("la operación nueva heredó el fallo anterior")
+	}
+}
+
+func TestPortalCancelledResult(t *testing.T) {
+	for _, value := range []string{"CANCEL", " cancel ", "Cancel"} {
+		if !portalCancelledResult(legacyws.Resultado{Tipo: "firma", Texto: value}) {
+			t.Errorf("%q no se reconoció como cancelación", value)
+		}
+	}
+	for _, value := range []string{"", "SAF_01: error", "ERR-01", "BASE64", "CANCELADO"} {
+		if portalCancelledResult(legacyws.Resultado{Tipo: "firma", Texto: value}) {
+			t.Errorf("%q se tomó por cancelación", value)
+		}
 	}
 }
 

@@ -6439,4 +6439,6 @@
   ,"winui.selector.nombre_documento_recuperado": "已恢复的文档"
   ,"winui.verificar.informe_guardado": "报告已保存。"
   ,"winui.verificar.datos_tecnicos_guardados": "技术数据已保存。"
+  ,"portal.operation.cancelled_title": "操作已取消"
+  ,"portal.operation.cancelled_body": "您已取消操作，网站已知晓。此窗口将在几秒钟后自动关闭。"
 }

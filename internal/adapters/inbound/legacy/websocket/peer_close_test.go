@@ -8,6 +8,7 @@ package websocket
 import (
 	"bufio"
 	"context"
+	"errors"
 	"net"
 	"testing"
 	"time"
@@ -81,4 +82,25 @@ func TestWatchPeerCloseSeDetieneSinCancelarYPermiteSeguirLeyendo(t *testing.T) {
 	if err != nil || first != 0x89 {
 		t.Fatalf("tras parar la vigilancia la conexión debe seguir legible: %x %v", first, err)
 	}
+}
+
+// Regresión: al abandonar el portal, el contexto cancelado se traducía en
+// CANCEL y afirmauri decía «Ha cancelado la operación» sin que nadie lo hiciera.
+func TestNotifyMessageOutcomeDistinguishesAbandonedPortal(t *testing.T) {
+	var handled []Resultado
+	var failed []error
+	hooks := &SessionHooks{
+		OnMessageHandled: func(r Resultado) { handled = append(handled, r) },
+		OnMessageError:   func(_ string, err error) { failed = append(failed, err) },
+	}
+	cancel := Resultado{Tipo: "firma", Texto: "CANCEL"}
+	notifyMessageOutcome(hooks, "sign", cancel, false)
+	if len(handled) != 1 || len(failed) != 0 {
+		t.Fatalf("la cancelación con el portal presente debe llegar como resultado: %v %v", handled, failed)
+	}
+	notifyMessageOutcome(hooks, "sign", cancel, true)
+	if len(handled) != 1 || len(failed) != 1 || !errors.Is(failed[0], ErrPortalSinRespuesta) {
+		t.Fatalf("con el portal cerrado debe notificarse como entrega fallida: %v %v", handled, failed)
+	}
+	notifyMessageOutcome(nil, "sign", cancel, true)
 }

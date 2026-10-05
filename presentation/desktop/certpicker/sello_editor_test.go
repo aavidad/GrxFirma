@@ -188,6 +188,66 @@ func TestEjecutarEditorSelloBorraTemporales(t *testing.T) {
 	}
 }
 
+// Regresión 0.0.118: el editor WinUI escribía la posición movida y caía al
+// salir; el error del proceso descartaba esa decisión y aparecía el diálogo
+// de posiciones fijas. Solo se aprovecha un resultado completo y válido.
+func TestEjecutarEditorSelloAprovechaResultadoValidoTrasFallo(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("prueba del proceso simulado en Linux")
+	}
+	root := t.TempDir()
+	program := filepath.Join(root, "editor.sh")
+	resultFile := filepath.Join(root, "result.txt")
+	script := "#!/bin/sh\npython3 -c 'import json,sys; r=json.load(open(sys.argv[1])); open(r[\"resultPath\"],\"w\").write(open(sys.argv[2]).read())' \"$2\" " + strconv.Quote(resultFile) + "\n"
+	old := resolverEjecutableEditorSello
+	resolverEjecutableEditorSello = func() (string, error) { return program, nil }
+	t.Cleanup(func() { resolverEjecutableEditorSello = old })
+	movido := `{"action":"place","visibleSealPlacements":[{"page":1,"rect":{"x":0.1,"y":0.7,"w":0.3,"h":0.08},"rotation":0}]}`
+	tests := []struct {
+		name, result, exit string
+		want               string
+	}{
+		{"posición movida y código de error", movido, "exit 3", movido},
+		{"posición movida y caída por señal", movido, "kill -SEGV $$", movido},
+		{"cancelación y código de error", `{"action":"cancel"}`, "exit 1", `{"action":"cancel"}`},
+		{"sin sello y código de error", `{"action":"without"}`, "exit 1", `{"action":"without"}`},
+		{"JSON truncado", movido[:40], "exit 1", ""},
+		{"colocación fuera de la página", `{"action":"place","visibleSealPlacements":[{"page":1,"rect":{"x":0.9,"y":0.7,"w":0.3,"h":0.08},"rotation":0}]}`, "exit 1", ""},
+		{"página inexistente", `{"action":"place","visibleSealPlacements":[{"page":2,"rect":{"x":0.1,"y":0.1,"w":0.3,"h":0.08},"rotation":0}]}`, "exit 1", ""},
+		{"clave duplicada", `{"action":"without","action":"place"}`, "exit 1", ""},
+		{"campo desconocido", `{"action":"without","extra":1}`, "exit 1", ""},
+		{"datos tras el JSON", `{"action":"without"} {}`, "exit 1", ""},
+		{"vacío", "", "exit 1", ""},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if err := os.WriteFile(resultFile, []byte(tc.result), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(program, []byte(script+tc.exit+"\n"), 0700); err != nil {
+				t.Fatal(err)
+			}
+			raw, err := EjecutarEditorSello(context.Background(), domain.Document{Content: pdffixture.Minimal()}, "")
+			if tc.want == "" {
+				if !errors.Is(err, ErrEditorSelloNoDisponible) || raw != nil {
+					t.Fatalf("debía volver al diálogo: resultado=%q error=%v", raw, err)
+				}
+				return
+			}
+			if err != nil || string(raw) != tc.want {
+				t.Fatalf("resultado=%q error=%v", raw, err)
+			}
+		})
+	}
+	// Sin result.json el error del proceso sigue llevando al diálogo.
+	if err := os.WriteFile(program, []byte("#!/bin/sh\nexit 1\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := EjecutarEditorSello(context.Background(), domain.Document{Content: pdffixture.Minimal()}, ""); !errors.Is(err, ErrEditorSelloNoDisponible) {
+		t.Fatalf("sin resultado=%v", err)
+	}
+}
+
 func TestPDFProtegidoVuelveAlDialogo(t *testing.T) {
 	qpdf, err := exec.LookPath("qpdf")
 	if err != nil {

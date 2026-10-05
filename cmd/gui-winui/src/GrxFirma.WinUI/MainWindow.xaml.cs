@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using GrxFirma.WinUI.Controls;
+using GrxFirma.WinUI.Core.Localization;
 using GrxFirma.WinUI.Core.Operations;
 using GrxFirma.WinUI.Services;
 using GrxFirma.WinUI.ViewModels;
@@ -27,6 +28,7 @@ public sealed partial class MainWindow : Window
     private string _updateReleaseUrl = string.Empty;
     private readonly IHelpLauncherService _helpLauncher =
         new WindowsHelpLauncherService();
+    private readonly DeferredTreePass _localization;
 
     public MainWindow()
     {
@@ -35,7 +37,7 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         ApplyControlLanguage();
         RefreshProgrammaticLanguage();
-        Localizer.Attach(AppRoot);
+        _localization = Localizer.Attach(AppRoot);
         ConfigureInitialWindow();
         SetFacturaeNavigationVisibility(
             _app.FacturaeToolsEnabled);
@@ -465,6 +467,7 @@ public sealed partial class MainWindow : Window
         object sender,
         WindowEventArgs args)
     {
+        _localization.Close();
         _app.FacturaeToolsEnabledChanged -=
             OnFacturaeToolsEnabledChanged;
         Closed -= OnClosed;

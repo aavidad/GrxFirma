@@ -6439,4 +6439,6 @@
   ,"winui.selector.nombre_documento_recuperado": "wiederhergestelltes-dokument"
   ,"winui.verificar.informe_guardado": "Bericht gespeichert."
   ,"winui.verificar.datos_tecnicos_guardados": "Technische Daten gespeichert."
+  ,"portal.operation.cancelled_title": "Vorgang abgebrochen"
+  ,"portal.operation.cancelled_body": "Sie haben den Vorgang abgebrochen, und die Website weiß Bescheid. Dieses Fenster schließt sich in wenigen Sekunden von selbst."
 }

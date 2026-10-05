@@ -6439,4 +6439,6 @@
   ,"winui.selector.nombre_documento_recuperado": "documento-recuperado"
   ,"winui.verificar.informe_guardado": "Informe gardado."
   ,"winui.verificar.datos_tecnicos_guardados": "Datos técnicos gardados."
+  ,"portal.operation.cancelled_title": "Operación cancelada"
+  ,"portal.operation.cancelled_body": "Cancelou a operación e a web xa o sabe. Esta xanela pecharase soa nuns segundos."
 }

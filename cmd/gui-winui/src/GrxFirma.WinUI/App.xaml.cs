@@ -65,6 +65,10 @@ public partial class App : Application
         RegistrarErrorNoControlado(e.Exception);
         if (_window is null || e.Exception is null) return;
         e.Handled = true;
+        // Con la ventana ya cerrada la aplicación está saliendo: el fallo
+        // queda registrado y no se intenta mostrar un aviso sobre un árbol
+        // XAML destruido.
+        if (Volatile.Read(ref _windowClosed) != 0) return;
         _window.ShowUnexpectedError(e.Exception);
     }
 
@@ -448,6 +452,16 @@ public partial class App : Application
     {
         if (Interlocked.Exchange(ref _windowClosed, 1) != 0)
         {
+            return;
+        }
+
+        // El editor del portal termina aquí: result.json ya está escrito y la
+        // salida normal puede caer al descargar Windows.Data.Pdf (véase
+        // PortalSealProcessExit).
+        if (_portalSealSession is not null)
+        {
+            _portalSealSession.CancelOnClose();
+            PortalSealProcessExit.Terminate(_portalSealSession);
             return;
         }
 
