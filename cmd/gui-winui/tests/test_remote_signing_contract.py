@@ -40,7 +40,7 @@ class RemoteSigningContractTests(unittest.TestCase):
         self.assertIn("ViewModel.RemoteSecretsPrompt = PromptRemoteSecretsAsync;", SIGN_PAGE)
         self.assertEqual(2, VIEW_MODEL.count("remoteSecrets?.Dispose();"))
         self.assertIn('Localizer.Text("csc.error.otp_lote")', VIEW_MODEL)
-        self.assertEqual(3, CLIENT.count("SendWithRemoteSecretsAsync<"))
+        self.assertEqual(3, CLIENT.count("return SendWithRemoteSecretsAsync<"))
         self.assertIn("CryptographicOperations.ZeroMemory(remotePin)", CLIENT)
 
     def test_every_key_exists_in_the_catalog(self) -> None:
