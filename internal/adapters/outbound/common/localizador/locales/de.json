@@ -5465,7 +5465,7 @@
   ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "Ein sichtbares Siegel erfordert eine PDF-Datei, das Format PAdES oder Automatisch und eine Engine mit pdf_preview."
   ,"winui.firmar.el_pdf_seleccionado_ya_no_esta": "Die ausgewählte PDF-Datei ist nicht mehr verfügbar. Wählen Sie sie erneut aus."
   ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "Das sichtbare Siegel kann nur auf eine PDF-Datei im Format PAdES oder Automatisch angewendet werden, wenn pdf_preview verfügbar ist."
-  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "Die Vorschau stimmt nicht mit der aktuellen PDF-Datei und Seite überein. Laden Sie sie vor dem Signieren erneut."
+  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "Die Siegelvorschau stimmt nicht mit der aktuellen PDF-Datei und Seite überein. Wählen Sie vor dem Signieren unter „Erweiterte Optionen“ „Vorschau laden“."
   ,"winui.firmar.indique_un_giro_entre_0_y_359_grados": "Geben Sie eine Drehung von 0 bis 359 Grad an."
   ,"winui.firmar.conecte_el_motor_local_para_habilitar_la": "Verbinden Sie die lokale Engine, um das Signieren zu ermöglichen."
   ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Fügen Sie dem Stapel mehrere Dokumente oder einen Ordner hinzu."
@@ -6413,4 +6413,5 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: Die Abfrage bei der AEAT wertet deren Antwort korrekt aus (gefunden, nicht gefunden oder nicht abgleichbar) unter Windows und Linux, und der Bericht unterscheidet Warnungen von Fehlern."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: guter Kontrast in allen Designs (auch den hellen), lesbare Kontrollkästchen und Felder, das Mausrad erreicht „Jetzt signieren“ und die Bildschirme passen sich schmalen Fenstern an."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: Der Stapel zeigt an, in welchem Ordner die Signaturen gespeichert wurden, Siegel und Vorschau zeigen denselben Aussteller, und Einstellungen sowie Siegeleditor werden auch bei großer Schrift korrekt angezeigt."
+  ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Es wurde nichts signiert: Die Vorschau des sichtbaren Siegels konnte nicht geladen werden. Wählen Sie unter „Erweiterte Optionen“ „Vorschau laden“ und signieren Sie erneut, oder deaktivieren Sie „Sichtbares Siegel zum PDF hinzufügen“, um ohne Siegel zu signieren."
 }

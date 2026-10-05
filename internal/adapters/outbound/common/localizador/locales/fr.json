@@ -5465,7 +5465,7 @@
   ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "Un cachet visible nécessite un PDF, le format PAdES ou Automatique et un moteur proposant pdf_preview."
   ,"winui.firmar.el_pdf_seleccionado_ya_no_esta": "Le PDF sélectionné n'est plus disponible. Sélectionnez-le à nouveau."
   ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "Le cachet visible ne peut être appliqué qu'à un PDF au format PAdES ou Automatique lorsque pdf_preview est disponible."
-  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "L'aperçu ne correspond pas au PDF et à la page actuels. Rechargez-le avant de signer."
+  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "L'aperçu du cachet ne correspond pas au PDF et à la page actuels. Cliquez sur « Charger l'aperçu » dans « Options avancées » avant de signer."
   ,"winui.firmar.indique_un_giro_entre_0_y_359_grados": "Indiquez une rotation de 0 à 359 degrés."
   ,"winui.firmar.conecte_el_motor_local_para_habilitar_la": "Connectez le moteur local pour activer la signature."
   ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Ajoutez plusieurs documents ou un dossier au lot."
@@ -6413,4 +6413,5 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu : la consultation de l'AEAT interprète correctement sa réponse (trouvée, non trouvée ou non vérifiable) sous Windows et Linux, et le rapport distingue les avertissements des erreurs."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux : bon contraste dans tous les thèmes (y compris les clairs), cases et champs lisibles, la molette de la souris atteint « Signer maintenant » et les écrans s'adaptent aux fenêtres étroites."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android : le lot indique dans quel dossier les signatures ont été enregistrées, le cachet et l'aperçu affichent le même émetteur, et les Préférences et l'éditeur de cachet s'affichent bien en grand texte."
+  ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Rien n'a été signé : l'aperçu du cachet visible n'a pas pu être chargé. Cliquez sur « Charger l'aperçu » dans « Options avancées » et signez à nouveau, ou décochez « Ajouter un cachet visible au PDF » pour signer sans cachet."
 }

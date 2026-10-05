@@ -5465,7 +5465,7 @@
   ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "可见印章需要 PDF、PAdES 或自动格式，以及支持 pdf_preview 的引擎。"
   ,"winui.firmar.el_pdf_seleccionado_ya_no_esta": "所选 PDF 不再可用。请重新选择。"
   ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "只有在 pdf_preview 可用时，才能将可见印章应用于 PAdES 或自动格式的 PDF。"
-  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "预览与当前 PDF 和页面不匹配。签名前请重新加载。"
+  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "印章预览与当前 PDF 和页面不匹配。签名前请在“高级选项”中点击“加载预览”。"
   ,"winui.firmar.indique_un_giro_entre_0_y_359_grados": "请输入 0 至 359 度之间的旋转角度。"
   ,"winui.firmar.conecte_el_motor_local_para_habilitar_la": "连接本地引擎以启用签名。"
   ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "向批次添加多个文档或一个文件夹。"
@@ -6413,4 +6413,5 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu：在 Windows 和 Linux 中，AEAT 查询能正确解读其回复（已找到、未找到或无法核对），报告也会区分警告和错误。"
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux：所有主题（包括浅色主题）对比度良好，复选框和输入框清晰易读，鼠标滚轮可滚动到“立即签名”，界面适配窄窗口。"
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android：批量签名会显示签名保存在哪个文件夹；印章和预览显示相同的颁发者；使用大字体时，偏好设置和印章编辑器也显示正常。"
+  ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "未签名：无法加载可见印章的预览。请在“高级选项”中点击“加载预览”后重新签名，或取消勾选“为 PDF 添加可见印章”以不带印章签名。"
 }

@@ -568,7 +568,11 @@ class CertificatesAndSignFunctionalContractTests(unittest.TestCase):
             self.sign_vm,
         )
         self.assertIn(
-            "!PathsEqual(_previewInputPath, _inputPath)",
+            "PathsEqual(_previewInputPath, _inputPath) &&",
+            self.sign_vm,
+        )
+        self.assertIn(
+            "if (!IsVisibleSealPreviewCurrent(previewPage))",
             self.sign_vm,
         )
         self.assertIn(

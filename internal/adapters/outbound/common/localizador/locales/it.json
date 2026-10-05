@@ -5465,7 +5465,7 @@
   ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "Il sigillo visibile richiede un PDF, il formato PAdES o Automatico e un motore che supporti pdf_preview."
   ,"winui.firmar.el_pdf_seleccionado_ya_no_esta": "Il PDF selezionato non è più disponibile. Selezionalo di nuovo."
   ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "Il sigillo visibile può essere applicato solo a un PDF in formato PAdES o Automatico quando pdf_preview è disponibile."
-  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "L'anteprima non corrisponde al PDF e alla pagina correnti. Ricaricala prima di firmare."
+  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "L'anteprima del sigillo non corrisponde al PDF e alla pagina correnti. Premi «Carica l'anteprima» in «Opzioni avanzate» prima di firmare."
   ,"winui.firmar.indique_un_giro_entre_0_y_359_grados": "Indica una rotazione da 0 a 359 gradi."
   ,"winui.firmar.conecte_el_motor_local_para_habilitar_la": "Collega il motore locale per abilitare la firma."
   ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Aggiungi più documenti o una cartella al batch."
@@ -6413,4 +6413,5 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: la consultazione dell'AEAT interpreta correttamente la risposta (trovata, non trovata o non verificabile) su Windows e Linux, e il report distingue gli avvisi dagli errori."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: buon contrasto in tutti i temi (anche quelli chiari), caselle e campi leggibili, la rotella del mouse arriva fino a «Firma ora» e le schermate si adattano a finestre strette."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: il lotto indica in quale cartella sono state salvate le firme, il sigillo e l'anteprima mostrano lo stesso emittente, e Preferenze ed editor del sigillo si vedono bene con testo grande."
+  ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Non è stato firmato nulla: non è stato possibile caricare l'anteprima del sigillo visibile. Premi «Carica l'anteprima» in «Opzioni avanzate» e firma di nuovo, oppure deseleziona «Aggiungi un sigillo visibile al PDF» per firmare senza sigillo."
 }

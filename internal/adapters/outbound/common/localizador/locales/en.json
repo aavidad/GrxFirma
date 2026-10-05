@@ -5465,7 +5465,7 @@
   ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "A visible seal requires a PDF, PAdES or Automatic format, and an engine that supports pdf_preview."
   ,"winui.firmar.el_pdf_seleccionado_ya_no_esta": "The selected PDF is no longer available. Select it again."
   ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "The visible seal can be applied only to a PDF in PAdES or Automatic format when pdf_preview is available."
-  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "The preview does not match the current PDF and page. Reload it before signing."
+  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "The seal preview does not match the current PDF and page. Select “Load preview” in “Advanced options” before signing."
   ,"winui.firmar.indique_un_giro_entre_0_y_359_grados": "Enter a rotation from 0 to 359 degrees."
   ,"winui.firmar.conecte_el_motor_local_para_habilitar_la": "Connect the local engine to enable signing."
   ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Add several documents or a folder to the batch."
@@ -6413,4 +6413,5 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: the AEAT query correctly interprets its response (found, not found or not verifiable) on Windows and Linux, and the report distinguishes warnings from errors."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: good contrast in every theme (including light ones), readable checkboxes and fields, the mouse wheel reaches «Sign now» and screens adapt to narrow windows."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: the batch says which folder the signatures were saved in, the seal and the preview show the same issuer, and Preferences and the seal editor look right with large text."
+  ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Nothing was signed: the visible seal preview could not be loaded. Select “Load preview” in “Advanced options” and sign again, or clear “Add visible seal to PDF” to sign without a seal."
 }

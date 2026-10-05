@@ -5465,7 +5465,7 @@
   ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "Zigilu ikusgaiak PDF bat, PAdES edo Automatikoa formatua eta pdf_preview eskaintzen duen motor bat behar ditu."
   ,"winui.firmar.el_pdf_seleccionado_ya_no_esta": "Hautatutako PDFa ez dago erabilgarri. Hautatu berriro."
   ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "Zigilu ikusgaia PAdES edo Automatikoa formatuan dagoen PDF bati soilik aplika dakioke, pdf_preview erabilgarri dagoenean."
-  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "Aurrebista ez dator bat uneko PDFarekin eta orriarekin. Kargatu berriro sinatu aurretik."
+  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "Zigiluaren aurrebista ez dator bat uneko PDFarekin eta orriarekin. Sakatu «Kargatu aurrebista» «Aukera aurreratuak» atalean sinatu aurretik."
   ,"winui.firmar.indique_un_giro_entre_0_y_359_grados": "Adierazi 0 eta 359 gradu arteko biraketa."
   ,"winui.firmar.conecte_el_motor_local_para_habilitar_la": "Konektatu tokiko motorra sinadura gaitzeko."
   ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Gehitu hainbat dokumentu edo karpeta bat multzora."
@@ -6413,4 +6413,5 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: AEATi egindako kontsultak ondo interpretatzen du haren erantzuna (aurkitua, aurkitu gabea edo egiaztaezina) Windows-en eta Linux-en, eta txostenak abisuak eta erroreak bereizten ditu."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: kontraste ona gai guztietan (argietan ere bai), kontrol-lauki eta eremu irakurgarriak, saguaren gurpilak «Sinatu orain» arte iristen da eta pantailak leiho estuetara egokitzen dira."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: loteak adierazten du zein karpetatan gorde diren sinadurak, zigiluak eta aurrebistak igorle bera erakusten dute, eta Hobespenak eta zigilu-editorea ondo ikusten dira letra handiarekin."
+  ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Ez da sinatu: ezin izan da zigilu ikusgaiaren aurrebista kargatu. Sakatu «Kargatu aurrebista» «Aukera aurreratuak» atalean eta sinatu berriro, edo kendu marka «Gehitu zigilu ikusgai bat PDFari» aukerari zigilurik gabe sinatzeko."
 }

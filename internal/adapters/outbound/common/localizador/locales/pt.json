@@ -5465,7 +5465,7 @@
   ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "Um selo visível exige um PDF, formato PAdES ou Automático e um motor que disponibilize pdf_preview."
   ,"winui.firmar.el_pdf_seleccionado_ya_no_esta": "O PDF selecionado já não está disponível. Selecione-o novamente."
   ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "O selo visível só pode ser aplicado a um PDF em formato PAdES ou Automático quando pdf_preview estiver disponível."
-  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "A pré-visualização não corresponde ao PDF e à página atuais. Recarregue-a antes de assinar."
+  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "A pré-visualização do selo não corresponde ao PDF e à página atuais. Prima «Carregar pré-visualização» em «Opções avançadas» antes de assinar."
   ,"winui.firmar.indique_un_giro_entre_0_y_359_grados": "Indique uma rotação entre 0 e 359 graus."
   ,"winui.firmar.conecte_el_motor_local_para_habilitar_la": "Ligue o motor local para ativar a assinatura."
   ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Adicione vários documentos ou uma pasta ao lote."
@@ -6413,4 +6413,5 @@
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: a consulta à AEAT interpreta bem a sua resposta (encontrada, não encontrada ou não verificável) em Windows e Linux, e o relatório distingue avisos de erros."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: bom contraste em todos os temas (também nos claros), caixas e campos legíveis, a roda do rato chega a «Assinar agora» e os ecrãs adaptam-se a janelas estreitas."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: o lote indica em que pasta foram guardadas as assinaturas, o selo e a pré-visualização mostram o mesmo emissor, e as Preferências e o editor do selo veem-se bem com letra grande."
+  ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Nada foi assinado: não foi possível carregar a pré-visualização do selo visível. Prima «Carregar pré-visualização» em «Opções avançadas» e assine novamente, ou desmarque «Adicionar selo visível ao PDF» para assinar sem selo."
 }
