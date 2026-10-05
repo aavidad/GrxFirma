@@ -26,13 +26,13 @@ public sealed class VerifyPageViewModel
     private bool _canExportReport;
     private string _signedFileName = string.Empty;
     private string _originalFileName = string.Empty;
-    private string _resultTitle = "Sin resultado";
+    private string _resultTitle = Localizer.Text("winui.comun.sin_resultado");
     private string _resultMessage =
-        "No se presupone la validez de ninguna firma hasta recibir evidencias del motor.";
-    private string _integritySummary = "Integridad: sin datos";
-    private string _certificateSummary = "Certificado: sin datos";
-    private string _trustSummary = "Confianza: sin datos";
-    private string _formatSummary = "Formato y cobertura: sin datos";
+        Localizer.Text("winui.verificar.no_se_presupone_la_validez_de_ninguna");
+    private string _integritySummary = Localizer.Text("winui.verificar.integridad_sin_datos");
+    private string _certificateSummary = Localizer.Text("winui.verificar.certificado_sin_datos");
+    private string _trustSummary = Localizer.Text("winui.verificar.confianza_sin_datos");
+    private string _formatSummary = Localizer.Text("winui.verificar.formato_y_cobertura_sin_datos");
     private IReadOnlyList<string> _signers = [];
     private IReadOnlyList<string> _warnings = [];
     private IReadOnlyList<string> _details = [];
@@ -48,9 +48,9 @@ public sealed class VerifyPageViewModel
         DesktopOperationSession session,
         IFilePickerService filePicker)
         : base(
-            "Verificar",
-            "Comprueba la integridad, los firmantes, la cobertura y la confianza de una firma.",
-            "La verificación no está disponible porque el motor local no ha publicado la operación necesaria.")
+            Localizer.Text("winui.comun.verificar"),
+            Localizer.Text("winui.verificar.comprueba_la_integridad_los_firmantes_la"),
+            Localizer.Text("winui.verificar.la_verificacion_no_esta_disponible"))
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(filePicker);
@@ -70,7 +70,7 @@ public sealed class VerifyPageViewModel
 
     public string OriginalFileName
     {
-        get => string.IsNullOrEmpty(_originalFileName) ? Localizer.Text("No seleccionado") : _originalFileName;
+        get => string.IsNullOrEmpty(_originalFileName) ? Localizer.Text("winui.verificar.no_seleccionado") : _originalFileName;
         private set => SetProperty(ref _originalFileName, value);
     }
 
@@ -311,9 +311,9 @@ public sealed class VerifyPageViewModel
         _operationCancellation = operationCancellation;
         SetBusy(true);
         ResetResult();
-        ResultTitle = "Verificando…";
+        ResultTitle = Localizer.Text("winui.verificar.verificando");
         ResultMessage =
-            "El motor local está comprobando la firma. No cierre la aplicación.";
+            Localizer.Text("winui.verificar.el_motor_local_esta_comprobando_la_firma");
 
         try
         {
@@ -328,7 +328,7 @@ public sealed class VerifyPageViewModel
             {
                 HasResult = true;
                 ResultSeverity = InfoBarSeverity.Error;
-                ResultTitle = "No se pudo verificar";
+                ResultTitle = Localizer.Text("winui.verificar.no_se_pudo_verificar");
                 ResultMessage = result.SafeUserMessage;
                 RequestDiagnostic(OperationDiagnosticMapper.FromResult(result));
                 return;
@@ -337,9 +337,9 @@ public sealed class VerifyPageViewModel
             {
                 HasResult = true;
                 ResultSeverity = InfoBarSeverity.Error;
-                ResultTitle = "Resultado no utilizable";
+                ResultTitle = Localizer.Text("winui.comun.resultado_no_utilizable");
                 ResultMessage =
-                    "El motor local no devolvió evidencias de verificación coherentes.";
+                    Localizer.Text("winui.verificar.el_motor_local_no_devolvio_evidencias_de");
                 RequestDiagnostic(OperationDiagnosticMapper.FromException(
                     new InvalidOperationException()));
                 return;
@@ -352,17 +352,17 @@ public sealed class VerifyPageViewModel
         {
             HasResult = true;
             ResultSeverity = InfoBarSeverity.Warning;
-            ResultTitle = "Verificación cancelada";
+            ResultTitle = Localizer.Text("winui.verificar.verificacion_cancelada");
             ResultMessage =
-                "La operación se detuvo antes de obtener un resultado.";
+                Localizer.Text("winui.comun.la_operacion_se_detuvo_antes_de_obtener");
         }
         catch (Exception exception)
         {
             HasResult = true;
             ResultSeverity = InfoBarSeverity.Error;
-            ResultTitle = "No se pudo verificar";
+            ResultTitle = Localizer.Text("winui.verificar.no_se_pudo_verificar");
             ResultMessage =
-                "La operación terminó sin un resultado de verificación.";
+                Localizer.Text("winui.verificar.la_operacion_termino_sin_un_resultado_de");
             RequestDiagnostic(OperationDiagnosticMapper.FromException(
                 exception,
                 operationCancellation.Token));
@@ -390,7 +390,7 @@ public sealed class VerifyPageViewModel
             _session.Supports(DesktopOperationActions.Verify);
         SetOperationAvailability(
             available,
-            "Motor local listo para verificar firmas.");
+            Localizer.Text("winui.verificar.motor_local_listo_para_verificar_firmas"));
         if (!available)
         {
             _operationCancellation?.Cancel();
@@ -438,18 +438,18 @@ public sealed class VerifyPageViewModel
             data.Reason,
             512,
             hasXmlCompatibility
-                ? "La firma solo supera comprobaciones de compatibilidad histórica; no se acredita su validez conforme a XMLDSig."
+                ? Localizer.Text("winui.verificar.la_firma_solo_supera_comprobaciones_de")
                 : hasValidSignatureEvidence
-                    ? "El motor confirmó la integridad criptográfica de la firma."
-                    : "El motor indicó que la firma no es válida.");
-        IntegritySummary = AspectSummary("Integridad", data.Integrity);
+                    ? Localizer.Text("winui.verificar.el_motor_confirmo_la_integridad")
+                    : Localizer.Text("winui.verificar.el_motor_indico_que_la_firma_no_es"));
+        IntegritySummary = AspectSummary(Localizer.Text("winui.verificar.integridad"), data.Integrity);
         CertificateSummary = AspectSummary(
-            "Certificado",
+            Localizer.Text("winui.verificar.certificado"),
             data.Certificate);
-        TrustSummary = AspectSummary("Confianza", data.Trust);
-        FormatSummary = Localizer.Format("Formato: {0}. Cobertura: {1}.",
+        TrustSummary = AspectSummary(Localizer.Text("winui.verificar.confianza"), data.Trust);
+        FormatSummary = Localizer.Format("winui.verificar.formato_cobertura",
             SafeIpcText.Clean(data.Format, 80,
-                Localizer.Text("no determinado")),
+                Localizer.Text("winui.comun.no_determinado")),
             Localizer.Text(CoverageLabel(data.Coverage)));
 
         Signers = data.VisibleSignerSummaries
@@ -469,7 +469,7 @@ public sealed class VerifyPageViewModel
         {
             warnings.Insert(
                 0,
-                "La confianza del certificado no ha sido determinada; no equivale a una identidad de confianza.");
+                Localizer.Text("winui.verificar.la_confianza_del_certificado_no_ha_sido"));
         }
         Warnings = warnings.Take(MaximumVisibleItems).ToArray();
 
@@ -480,9 +480,9 @@ public sealed class VerifyPageViewModel
             .Concat(data.VisibleEvidence.Select(
                 item => Localizer.Format("{0}: {1}",
                     Localizer.VisibleText(SafeIpcText.Clean(item.Type, 80,
-                        Localizer.Text("Evidencia"))),
+                        Localizer.Text("winui.verificar.evidencia"))),
                     Localizer.VisibleText(SafeIpcText.Clean(item.Summary, 320,
-                        Localizer.Text("sin detalle"))))))
+                        Localizer.Text("winui.verificar.sin_detalle"))))))
             .Where(static item => !string.IsNullOrWhiteSpace(item))
             .Distinct(StringComparer.Ordinal)
             .Take(MaximumVisibleItems)
@@ -495,13 +495,13 @@ public sealed class VerifyPageViewModel
         CanExportReport = false;
         HasResult = false;
         ResultSeverity = InfoBarSeverity.Informational;
-        ResultTitle = "Sin resultado";
+        ResultTitle = Localizer.Text("winui.comun.sin_resultado");
         ResultMessage =
-            "No se presupone la validez de ninguna firma hasta recibir evidencias del motor.";
-        IntegritySummary = "Integridad: sin datos";
-        CertificateSummary = "Certificado: sin datos";
-        TrustSummary = "Confianza: sin datos";
-        FormatSummary = "Formato y cobertura: sin datos";
+            Localizer.Text("winui.verificar.no_se_presupone_la_validez_de_ninguna");
+        IntegritySummary = Localizer.Text("winui.verificar.integridad_sin_datos");
+        CertificateSummary = Localizer.Text("winui.verificar.certificado_sin_datos");
+        TrustSummary = Localizer.Text("winui.verificar.confianza_sin_datos");
+        FormatSummary = Localizer.Text("winui.verificar.formato_y_cobertura_sin_datos");
         Signers = [];
         Warnings = [];
         Details = [];
@@ -529,10 +529,10 @@ public sealed class VerifyPageViewModel
         var status = NormalizeAspectStatus(aspect.Status);
         var statusLabel = status switch
         {
-            "valid" => "válida",
-            "invalid" => "no válida",
-            "warning" => "con avisos",
-            _ => "no determinada",
+            "valid" => Localizer.Text("winui.verificar.valida"),
+            "invalid" => Localizer.Text("winui.verificar.no_valida"),
+            "warning" => Localizer.Text("winui.verificar.con_avisos"),
+            _ => Localizer.Text("winui.verificar.no_determinada"),
         };
         var reason = SafeIpcText.Clean(aspect.Reason, 320, string.Empty);
         return string.IsNullOrEmpty(reason)
@@ -545,14 +545,14 @@ public sealed class VerifyPageViewModel
     private static string CoverageLabel(string? coverage) =>
         coverage?.Trim().ToLowerInvariant() switch
         {
-            "full" => "completa",
-            "partial" => "parcial",
-            _ => "no determinada",
+            "full" => Localizer.Text("winui.verificar.completa"),
+            "partial" => Localizer.Text("winui.verificar.parcial"),
+            _ => Localizer.Text("winui.verificar.no_determinada"),
         };
 
     private static string DisplayFileName(string path) =>
         SafeIpcText.Clean(
             Path.GetFileName(path),
             256,
-            Localizer.Text("Fichero seleccionado"));
+            Localizer.Text("winui.comun.fichero_seleccionado"));
 }

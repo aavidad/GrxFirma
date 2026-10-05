@@ -161,7 +161,7 @@ public partial class App : Application
             {
                 var language = Localizer.Language;
                 var message = SealUiCatalog.Text(language,
-                    "Actualizado a %1: ver novedades").Replace("%1", _releaseNotes.InstalledVersion);
+                    "winui.ventana.actualizado_a_1_ver_novedades").Replace("%1", _releaseNotes.InstalledVersion);
                 _tray.ShowReleaseNotesNotification(message);
             }
             else
@@ -253,7 +253,7 @@ public partial class App : Application
                 return;
             }
             EnqueueOnUi(() => _window?.ViewModel.SetConnectionFailure(
-                Localizer.Text("No se pudo iniciar la conexión segura con el motor local.")));
+                Localizer.Text("winui.ventana.no_se_pudo_iniciar_la_conexion_segura")));
         }
     }
 

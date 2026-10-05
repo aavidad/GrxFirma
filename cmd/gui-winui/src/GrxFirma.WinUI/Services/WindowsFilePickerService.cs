@@ -153,7 +153,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
         if (Encoding.UTF8.GetByteCount(contents) > MaximumTextFileBytes)
         {
             throw new ArgumentException(
-                "El informe de texto supera el límite permitido.",
+                Localizer.Text("winui.selector.el_informe_de_texto_supera_el_limite"),
                 nameof(contents));
         }
 
@@ -198,7 +198,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
             var picker = new FolderPicker
             {
                 SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-                CommitButtonText = Localizer.Text("Seleccionar carpeta"),
+                CommitButtonText = Localizer.Text("winui.selector.seleccionar_carpeta"),
             };
             // WinRT exige al menos un filtro también para FolderPicker. Este
             // comodín no permite seleccionar ficheros: el diálogo solo expone
@@ -226,7 +226,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
         {
             SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
             ViewMode = PickerViewMode.List,
-            CommitButtonText = Localizer.Text("Seleccionar"),
+            CommitButtonText = Localizer.Text("winui.selector.seleccionar"),
         };
         foreach (var extension in OpenExtensions(profile))
         {
@@ -244,7 +244,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
         if (windowHandle == 0)
         {
             throw new InvalidOperationException(
-                "La ventana propietaria todavía no está disponible.");
+                Localizer.Text("winui.comun.la_ventana_propietaria_todavia_no_esta"));
         }
         var policy = SavePolicy(profile);
         var picker = new Microsoft.Windows.Storage.Pickers.FileSavePicker(
@@ -252,7 +252,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
         {
             SuggestedStartLocation =
                 Microsoft.Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
-            CommitButtonText = Localizer.Text("Guardar"),
+            CommitButtonText = Localizer.Text("winui.selector.guardar"),
             ShowOverwritePrompt = true,
             DefaultFileExtension = policy.Extensions[0],
             SuggestedFileName = SafeSuggestedFileName(suggestedFileName, policy),
@@ -269,7 +269,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
         var picker = new FileSavePicker
         {
             SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-            CommitButtonText = Localizer.Text("Guardar"),
+            CommitButtonText = Localizer.Text("winui.selector.guardar"),
             DefaultFileExtension = policy.Extensions[0],
             SuggestedFileName = SafeSuggestedFileName(
                 suggestedFileName,
@@ -288,7 +288,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
         if (windowHandle == 0)
         {
             throw new InvalidOperationException(
-                "La ventana propietaria todavía no está disponible.");
+                Localizer.Text("winui.comun.la_ventana_propietaria_todavia_no_esta"));
         }
         InitializeWithWindow.Initialize(picker, windowHandle);
     }
@@ -405,7 +405,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
             _ => throw new ArgumentOutOfRangeException(
                 nameof(profile),
                 profile,
-                "Perfil de apertura no soportado."),
+                Localizer.Text("winui.selector.perfil_de_apertura_no_soportado")),
         };
 
     private static SavePickerPolicy SavePolicy(
@@ -413,27 +413,27 @@ public sealed class WindowsFilePickerService : IFilePickerService
         profile switch
         {
             SaveFilePickerProfile.PublicCertificate =>
-                new("Certificado público X.509", "certificado-publico", [".cer", ".pem"]),
+                new("winui.selector.certificado_publico_x_509", "certificado-publico", [".cer", ".pem"]),
             SaveFilePickerProfile.SignedPdf =>
-                new("Documento PDF firmado", "documento-firmado", [".pdf"]),
+                new("winui.selector.documento_pdf_firmado", "documento-firmado", [".pdf"]),
             SaveFilePickerProfile.CadesSignature =>
-                new("Firma CAdES", "firma", [".p7s"]),
+                new("winui.selector.firma_cades", "firma", [".p7s"]),
             SaveFilePickerProfile.XadesSignature =>
-                new("Firma XAdES", "firma", [".xsig"]),
+                new("winui.selector.firma_xades", "firma", [".xsig"]),
             SaveFilePickerProfile.XmlDsigSignature =>
-                new("Firma XMLdSig", "firma", [".dsig"]),
+                new("winui.selector.firma_xmldsig", "firma", [".dsig"]),
             SaveFilePickerProfile.FacturaeXml =>
                 new(
                     "Facturae 3.2.2",
                     "facturae",
                     [".xml", ".xsig"]),
             SaveFilePickerProfile.AsicContainer =>
-                new("Contenedor ASiC", "contenedor-firmado", [".asics", ".asice"]),
+                new("winui.selector.contenedor_asic", "contenedor-firmado", [".asics", ".asice"]),
             SaveFilePickerProfile.HashManifest =>
-                new("Informe de huella", "informe-huella", [".hashreport", ".hash"]),
+                new("winui.selector.informe_de_huella", "informe-huella", [".hashreport", ".hash"]),
             SaveFilePickerProfile.ProtectedContainer =>
                 new(
-                    "Documento protegido",
+                    Localizer.Text("winui.selector.documento_protegido"),
                     "documento-protegido",
                     [
                         ".afp",
@@ -444,7 +444,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
                     ]),
             SaveFilePickerProfile.ProtectedJson =>
                 new(
-                    "Sobre protegido GrxFirma",
+                    Localizer.Text("winui.selector.sobre_protegido_grxfirma"),
                     "documento-protegido",
                     [".afp"]),
             SaveFilePickerProfile.CmsEnveloped =>
@@ -468,7 +468,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
                     "documento-protegido-firmado",
                     [".signedenveloped.p7m"]),
             SaveFilePickerProfile.DiagnosticReport =>
-                new("Informe de diagnóstico", "diagnostico", [".json", ".txt"]),
+                new("winui.selector.informe_de_diagnostico", "diagnostico", [".json", ".txt"]),
             SaveFilePickerProfile.VerificationReport =>
                 new(SealUiCatalog.Text(Localizer.Language,
                     "winui.parity.verify.export"),
@@ -490,7 +490,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
             _ => throw new ArgumentOutOfRangeException(
                 nameof(profile),
                 profile,
-                "Perfil de guardado no soportado."),
+                Localizer.Text("winui.selector.perfil_de_guardado_no_soportado")),
         };
 
     private static string SafeSuggestedFileName(

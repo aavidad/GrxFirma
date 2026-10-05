@@ -44,7 +44,7 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
         {
             throw new ArgumentOutOfRangeException(
                 nameof(page),
-                "La página PDF debe ser positiva.");
+                Localizer.Text("winui.vistapdf.la_pagina_pdf_debe_ser_positiva"));
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -55,13 +55,13 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
         if (document.PageCount is 0 or > 1_000_000)
         {
             throw new InvalidDataException(
-                "Windows no devolvió un número de páginas PDF válido.");
+                Localizer.Text("winui.vistapdf.windows_no_devolvio_un_numero_de_paginas"));
         }
         if ((uint)page > document.PageCount)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(page),
-                Localizer.Fill("El PDF solo contiene {count} páginas.",
+                Localizer.Fill("winui.vistapdf.el_pdf_solo_contiene_paginas",
                     ("count", document.PageCount.ToString())));
         }
 
@@ -72,7 +72,7 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
             !IsPositiveFinite(mediaBox.Height))
         {
             throw new InvalidDataException(
-                "Windows no devolvió dimensiones PDF válidas.");
+                Localizer.Text("winui.vistapdf.windows_no_devolvio_dimensiones_pdf"));
         }
 
         var scale = Math.Min(
@@ -94,7 +94,7 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
         if (output.Size is < 8 or > MaximumPngBytes)
         {
             throw new InvalidDataException(
-                "La previsualización PDF nativa excede el límite seguro.");
+                Localizer.Text("winui.vistapdf.la_previsualizacion_pdf_nativa_excede_el"));
         }
 
         output.Seek(0);
@@ -105,7 +105,7 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
         if (loaded != length)
         {
             throw new EndOfStreamException(
-                "Windows no devolvió la previsualización PDF completa.");
+                Localizer.Text("winui.vistapdf.windows_no_devolvio_la_previsualizacion"));
         }
         var data = new byte[checked((int)length)];
         reader.ReadBytes(data);
@@ -125,7 +125,7 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
         if (string.IsNullOrWhiteSpace(path))
         {
             throw new ArgumentException(
-                "La ruta PDF no puede quedar vacía.",
+                Localizer.Text("winui.vistapdf.la_ruta_pdf_no_puede_quedar_vacia"),
                 nameof(path));
         }
         var normalizedPath = Path.GetFullPath(path);
@@ -136,21 +136,21 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
                 StringComparison.OrdinalIgnoreCase))
         {
             throw new ArgumentException(
-                "La previsualización nativa solo admite rutas PDF locales.",
+                Localizer.Text("winui.vistapdf.la_previsualizacion_nativa_solo_admite"),
                 nameof(path));
         }
         var file = new FileInfo(normalizedPath);
         if (!file.Exists || file.Length is <= 0 or > MaximumInputBytes)
         {
             throw new IOException(
-                "El PDF no existe, está vacío o supera el límite seguro.");
+                Localizer.Text("winui.vistapdf.el_pdf_no_existe_esta_vacio_o_supera_el"));
         }
         if (
             (file.Attributes & System.IO.FileAttributes.ReparsePoint) != 0
         )
         {
             throw new IOException(
-                "La previsualización no admite enlaces o puntos de reanálisis.");
+                Localizer.Text("winui.vistapdf.la_previsualizacion_no_admite_enlaces_o"));
         }
         return normalizedPath;
     }

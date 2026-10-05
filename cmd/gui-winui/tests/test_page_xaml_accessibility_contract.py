@@ -7,6 +7,8 @@ import pathlib
 import unittest
 import xml.etree.ElementTree as ET
 
+from winui_catalog import read_with_catalog
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 VIEWS_DIRECTORY = ROOT / "cmd/gui-winui/src/GrxFirma.WinUI/Views"
@@ -235,7 +237,7 @@ class PageXamlAccessibilityContractTest(unittest.TestCase):
                 tab_indices = []
                 for control in controls:
                     if control.get(XAML_NAME) == "ReleaseNotesButton":
-                        code = (VIEWS_DIRECTORY / (page_name + ".cs")).read_text(encoding="utf-8")
+                        code = read_with_catalog(VIEWS_DIRECTORY / (page_name + ".cs"))
                         self.assertIn("AutomationProperties.SetName(", code)
                         self.assertIn("AutomationProperties.SetHelpText(", code)
                         self.assertIn('"Novedades"', code)

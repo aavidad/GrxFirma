@@ -30,7 +30,7 @@ public sealed record SecurePasswordPromptRequest
         {
             throw new ArgumentOutOfRangeException(
                 nameof(maximumCharacters),
-                Localizer.Fill("El límite debe estar entre 1 y {maximum} caracteres.",
+                Localizer.Fill("winui.contrasena.el_limite_debe_estar_entre_1_y",
                     ("maximum", MaximumSupportedCharacters.ToString())));
         }
 
@@ -55,7 +55,7 @@ public sealed record SecurePasswordPromptRequest
             value.IndexOfAny(['\r', '\n']) >= 0)
         {
             throw new ArgumentException(
-                "El texto visible del diálogo no es válido.",
+                Localizer.Text("winui.contrasena.el_texto_visible_del_dialogo_no_es"),
                 parameterName);
         }
 

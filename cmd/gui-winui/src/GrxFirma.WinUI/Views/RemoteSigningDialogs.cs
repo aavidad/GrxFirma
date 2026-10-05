@@ -259,7 +259,7 @@ internal static class RemoteSigningDialogs
             RequestedTheme = theme,
             Title = Localizer.Text("csc.gui.titulo"),
             Content = new ScrollViewer { Content = panel },
-            CloseButtonText = Localizer.Text("Cerrar"),
+            CloseButtonText = Localizer.Text("winui.comun.cerrar"),
             DefaultButton = ContentDialogButton.Close,
         };
 
@@ -430,7 +430,7 @@ internal static class RemoteSigningDialogs
             RequestedTheme = theme,
             Title = Localizer.Text("csc.gui.titulo"),
             Content = message,
-            CloseButtonText = Localizer.Text("Cerrar"),
+            CloseButtonText = Localizer.Text("winui.comun.cerrar"),
             DefaultButton = ContentDialogButton.Close,
         };
         await Localizer.ShowAsync(dialog);
