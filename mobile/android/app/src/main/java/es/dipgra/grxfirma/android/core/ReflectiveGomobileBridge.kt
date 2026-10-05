@@ -22,6 +22,12 @@ import es.dipgra.grxfirma.android.model.EniDocument
 import es.dipgra.grxfirma.android.model.EniRequest
 import es.dipgra.grxfirma.android.model.EniValidation
 import es.dipgra.grxfirma.android.model.VeriFactuReport
+import es.dipgra.grxfirma.android.model.CertificateDetails
+import es.dipgra.grxfirma.android.model.EngineDiagnostics
+import es.dipgra.grxfirma.android.model.RevocationCheck
+import es.dipgra.grxfirma.android.model.TsaProbe
+import es.dipgra.grxfirma.android.model.UpdateCheck
+import es.dipgra.grxfirma.android.model.VeriFactuQr
 import es.dipgra.grxfirma.android.model.BatchItemInput
 import es.dipgra.grxfirma.android.model.EniFileRequest
 import es.dipgra.grxfirma.android.model.EniFileResult
@@ -38,6 +44,7 @@ class ReflectiveGomobileBridge private constructor(
     override val toolsAvailable: Boolean = false,
     override val signingFormats: List<String> = SignatureFormats.BASIC,
     override val documentServices: Set<String> = emptySet(),
+    override val platformServices: Set<String> = emptySet(),
     override val capabilities: Set<String> = emptySet(),
 ) : CoreBridge, ExternalIdentityBridge {
     override val readiness = CoreReadiness(
@@ -104,7 +111,9 @@ class ReflectiveGomobileBridge private constructor(
         )
 
     override fun verify(document: LoadedFile, original: LoadedFile?): VerificationSummary = CoreJsonCodec.parseVerification(
-        invokeJson("verifyJSON", CoreJsonCodec.verifyRequest(document, original)),
+        // El informe imprimible solo se pide a un AAR que lo declara: uno antiguo rechazaría el campo.
+        invokeJson("verifyJSON", CoreJsonCodec.verifyRequest(document, original,
+            includeHtmlReport = PlatformServices.VERIFY_REPORT_HTML in platformServices)),
     )
 
     override fun inspectSignature(document: LoadedFile): SignatureInspection {
@@ -181,6 +190,40 @@ class ReflectiveGomobileBridge private constructor(
     override fun csvLegend(code: String, url: String, text: String): CsvLegend = CoreJsonCodec.parseCsvLegend(
         invokeDocumentService(DocumentServices.CSV_LEGEND, "csvLegendJSON", CoreJsonCodec.csvLegendRequest(code, url, text)),
     )
+
+    override fun certificateDetails(): CertificateDetails =
+        CoreJsonCodec.parseCertificateDetails(invokePlatform(PlatformServices.CERTIFICATE_DETAILS, "certificateDetailsJSON"))
+
+    override fun checkCertificateRevocation(certificateId: String): RevocationCheck = CoreJsonCodec.parseRevocation(
+        invokePlatform(PlatformServices.CERTIFICATE_ONLINE, "checkCertificateRevocationJSON",
+            CoreJsonCodec.certificateRequest(certificateId)),
+    )
+
+    override fun diagnostics(): EngineDiagnostics =
+        CoreJsonCodec.parseDiagnostics(invokePlatform(PlatformServices.DIAGNOSTICS, "diagnosticsJSON"))
+
+    override fun probeTimestampAuthority(url: String): TsaProbe = CoreJsonCodec.parseTsaProbe(
+        invokePlatform(PlatformServices.TSA_PROBE, "probeTimestampAuthorityJSON", CoreJsonCodec.urlRequest(url)),
+    )
+
+    override fun readVeriFactuQr(url: String): VeriFactuQr = CoreJsonCodec.parseVeriFactuQr(
+        invokePlatform(PlatformServices.VERIFACTU_QR_READ, "readVeriFactuQRJSON", CoreJsonCodec.urlRequest(url)),
+    )
+
+    override fun queryVeriFactuQr(url: String): String = CoreJsonCodec.parseVeriFactuQuery(
+        invokePlatform(PlatformServices.VERIFACTU_QR_QUERY, "queryVeriFactuQRJSON", CoreJsonCodec.urlRequest(url)),
+    )
+
+    override fun checkUpdate(currentVersion: String): UpdateCheck = CoreJsonCodec.parseUpdateCheck(
+        invokePlatform(PlatformServices.UPDATE_CHECK, "checkUpdateJSON", CoreJsonCodec.updateRequest(currentVersion)),
+    )
+
+    private fun invokePlatform(service: String, name: String, vararg payload: Any): String {
+        if (service !in platformServices) throw CoreUnavailableException("TOOLS_UNAVAILABLE")
+        val method = methods[name] ?: throw CoreUnavailableException("TOOLS_UNAVAILABLE")
+        return invoke(method, facade, *payload) as? String
+            ?: throw CoreContractException("El método '$name' no devolvió texto JSON.")
+    }
 
     override fun createEniFile(documents: List<LoadedFile>, certificateId: String, request: EniFileRequest): EniFileResult =
         Wave4Codec.parseEniFile(invokeDocumentService(DocumentServices.ENI_FILE, "createENIFileJSON",
@@ -324,16 +367,40 @@ class ReflectiveGomobileBridge private constructor(
             documentMethods.values.forEach { (name, method) -> required[name] = method }
             try { required["eniCatalogsJSON"] = facadeClass.getMethod("eniCatalogsJSON") } catch (_: NoSuchMethodException) { }
             val documentServices = CoreJsonCodec.documentServices(contract).filter { it in documentMethods }.toSet()
+            // Tercera oleada, también opcional: un AAR anterior simplemente no la ofrece.
+            val platformMethods = listOf(
+                Triple(PlatformServices.CERTIFICATE_DETAILS, "certificateDetailsJSON", false),
+                Triple(PlatformServices.CERTIFICATE_ONLINE, "checkCertificateRevocationJSON", true),
+                Triple(PlatformServices.DIAGNOSTICS, "diagnosticsJSON", false),
+                Triple(PlatformServices.TSA_PROBE, "probeTimestampAuthorityJSON", true),
+                Triple(PlatformServices.VERIFACTU_QR_READ, "readVeriFactuQRJSON", true),
+                Triple(PlatformServices.VERIFACTU_QR_QUERY, "queryVeriFactuQRJSON", true),
+                Triple(PlatformServices.UPDATE_CHECK, "checkUpdateJSON", true),
+            ).mapNotNull { (service, name, withPayload) ->
+                try {
+                    val method = if (withPayload) facadeClass.getMethod(name, String::class.java) else facadeClass.getMethod(name)
+                    required[name] = method
+                    service
+                } catch (_: NoSuchMethodException) { null }
+            }
+            val platformServices = CoreJsonCodec.platformServices(contract)
+                .filter { it in platformMethods || it == PlatformServices.VERIFY_REPORT_HTML }.toSet()
             return ReflectiveGomobileBridge(
                 facade,
                 required,
                 CoreJsonCodec.engineVersion(contract),
                 { base, extension ->
-                    context.getString(es.dipgra.grxfirma.android.R.string.signed_document_name, base, extension)
+                    // La política se lee en cada firma: cambiarla en Preferencias se aplica ya.
+                    es.dipgra.grxfirma.android.settings.OutputNames.name(
+                        es.dipgra.grxfirma.android.settings.AppPreferences(context).load().outputName, base, extension,
+                        context.getString(es.dipgra.grxfirma.android.R.string.signed_document_name),
+                        context.getString(es.dipgra.grxfirma.android.R.string.signed_document_name_desktop),
+                    )
                 },
                 toolsAvailable,
                 CoreJsonCodec.signingFormats(contract),
                 documentServices,
+                platformServices,
                 if (toolsAvailable) Wave4Codec.capabilities(contract) else emptySet(),
             )
         }
@@ -350,7 +417,7 @@ class ReflectiveGomobileBridge private constructor(
             val cause = if (error is InvocationTargetException) error.targetException else error
             return cause.message
                 .orEmpty()
-                .filter { it == '\n' || !it.isISOControl() }
+                .filter { it == '\n' || !DisplayText.hidden(it) }
                 .replace(Regex("(?i)[A-Za-z0-9+/]{80,}={0,2}"), "[dato omitido]")
                 .trim()
                 .take(400)

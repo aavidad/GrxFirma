@@ -14,14 +14,11 @@ import android.os.ParcelFileDescriptor
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.ArrayAdapter
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.SeekBar
-import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.lifecycleScope
@@ -39,6 +36,7 @@ import es.dipgra.grxfirma.android.model.SelectedFile
 import es.dipgra.grxfirma.android.ui.MainViewModel
 import java.io.File
 import java.util.Base64
+import es.dipgra.grxfirma.android.ui.DropdownField
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -55,6 +53,8 @@ class SealEditorDialog(
     private val chooseImage: () -> Unit,
     private val onSaved: (SealSettings, Int, Int, Int) -> Unit,
     private val onClosed: () -> Unit,
+    /** Avisos que bloquean la apertura: la actividad los muestra en un Snackbar. */
+    private val onError: (Int) -> Unit = {},
 ) {
     private var settings = initial.copy(enabled = true)
     private var tempPdf: File? = null
@@ -67,7 +67,7 @@ class SealEditorDialog(
     private var previewValid = false
     private lateinit var qrAddress: EditText
     private lateinit var qrCheck: CheckBox
-    private lateinit var logoSpinner: Spinner
+    private lateinit var logoDropdown: DropdownField
     private lateinit var pageToggle: MaterialButton
     private lateinit var pagesSummary: TextView
     private var csvJob: Job? = null
@@ -92,14 +92,14 @@ class SealEditorDialog(
             } catch (_: Exception) {
                 tempPdf?.delete()
                 onClosed()
-                Toast.makeText(activity, R.string.seal_pdf_error, Toast.LENGTH_LONG).show()
+                onError(R.string.seal_pdf_error)
             }
         }
     }
 
     fun customImageSelected() {
         settings = settings.copy(logo = "custom")
-        if (::logoSpinner.isInitialized) logoSpinner.setSelection(2)
+        if (::logoDropdown.isInitialized) logoDropdown.select(2)
         refreshPreview()
     }
 
@@ -206,24 +206,13 @@ class SealEditorDialog(
         }
         column.addView(qrAddress)
 
-        column.addView(label(R.string.seal_style))
-        logoSpinner = Spinner(activity).apply {
-            adapter = ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item, listOf(
-                activity.getString(R.string.seal_logo_none),
-                activity.getString(R.string.seal_logo_institutional),
-                activity.getString(R.string.seal_logo_custom),
-            ))
-            minimumHeight = dp(48)
-            setSelection(when (settings.logo) { "institutional" -> 1; "custom" -> 2; else -> 0 })
-            onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    settings = settings.copy(logo = listOf("none", "institutional", "custom")[position])
-                    refreshPreview()
-                }
-                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
-            }
+        val logoField = dropdown(R.string.seal_style, listOf(R.string.seal_logo_none, R.string.seal_logo_institutional,
+            R.string.seal_logo_custom), when (settings.logo) { "institutional" -> 1; "custom" -> 2; else -> 0 }) { position ->
+            settings = settings.copy(logo = listOf("none", "institutional", "custom")[position])
+            refreshPreview()
         }
-        column.addView(logoSpinner)
+        logoDropdown = logoField.second
+        column.addView(logoField.first)
         column.addView(button(R.string.seal_choose_image) { chooseImage() })
         column.addView(CheckBox(activity).apply {
             setText(R.string.seal_show_text)
@@ -234,51 +223,29 @@ class SealEditorDialog(
                 refreshPreview()
             }
         })
-        column.addView(label(R.string.seal_text_color))
-        column.addView(Spinner(activity).apply {
-            adapter = ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item, listOf(
-                activity.getString(R.string.seal_color_black),
-                activity.getString(R.string.seal_color_blue),
-                activity.getString(R.string.seal_color_gray),
-            ))
-            minimumHeight = dp(48)
-            setSelection(when (settings.textColor) { "blue" -> 1; "darkgray" -> 2; else -> 0 })
-            onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    settings = settings.copy(textColor = listOf("black", "blue", "darkgray")[position])
-                    refreshPreview()
-                }
-                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+        column.addView(dropdown(R.string.seal_text_color, listOf(R.string.seal_color_black, R.string.seal_color_blue,
+            R.string.seal_color_gray), when (settings.textColor) { "blue" -> 1; "darkgray" -> 2; else -> 0 }) { position ->
+            settings = settings.copy(textColor = listOf("black", "blue", "darkgray")[position])
+            refreshPreview()
+        }.first)
+        lateinit var pagesMode: DropdownField
+        val pagesField = dropdown(R.string.seal_pages_mode, listOf(R.string.seal_one_page, R.string.seal_all_pages,
+            R.string.seal_pages_custom), when { settings.perPage -> 2; settings.allPages -> 1; else -> 0 }) { position ->
+            if (position == 1 && pages.size > SealSettings.MAX_PLACEMENTS) {
+                pagesMode.select(0)
+                return@dropdown
             }
-        })
-        column.addView(label(R.string.seal_pages_mode))
-        column.addView(Spinner(activity).apply {
-            adapter = ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item, listOf(
-                activity.getString(R.string.seal_one_page),
-                activity.getString(R.string.seal_all_pages),
-                activity.getString(R.string.seal_pages_custom),
-            ))
-            contentDescription = activity.getString(R.string.seal_pages_mode)
-            minimumHeight = dp(48)
-            setSelection(when { settings.perPage -> 2; settings.allPages -> 1; else -> 0 })
-            onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    if (position == 1 && pages.size > SealSettings.MAX_PLACEMENTS) {
-                        setSelection(0)
-                        return
-                    }
-                    settings = when (position) {
-                        1 -> settings.copy(allPages = true, perPage = false)
-                        2 -> settings.copy(allPages = false, perPage = true)
-                            .let { if (it.placements.isEmpty()) it.withPagePlacement(it.page) else it.loadPage(it.page) }
-                        else -> settings.copy(allPages = false, perPage = false)
-                    }
-                    updatePageControls()
-                    refreshPreview()
-                }
-                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+            settings = when (position) {
+                1 -> settings.copy(allPages = true, perPage = false)
+                2 -> settings.copy(allPages = false, perPage = true)
+                    .let { if (it.placements.isEmpty()) it.withPagePlacement(it.page) else it.loadPage(it.page) }
+                else -> settings.copy(allPages = false, perPage = false)
             }
-        })
+            updatePageControls()
+            refreshPreview()
+        }
+        pagesMode = pagesField.second
+        column.addView(pagesField.first)
         pageToggle = button(R.string.seal_page_add) { togglePage() }
         column.addView(pageToggle)
         pagesSummary = label(R.string.seal_pages_none).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
@@ -311,7 +278,7 @@ class SealEditorDialog(
 
     private fun saveIfValid(actual: androidx.appcompat.app.AlertDialog) {
         if (settings.csvEnabled && !csvValid) {
-            Toast.makeText(activity, R.string.seal_invalid_settings, Toast.LENGTH_LONG).show()
+            showProblem(R.string.seal_invalid_settings)
             return
         }
         try {
@@ -328,7 +295,7 @@ class SealEditorDialog(
             onSaved(settings, pages.size, w, h)
             actual.dismiss()
         } catch (_: Exception) {
-            Toast.makeText(activity, R.string.seal_invalid_settings, Toast.LENGTH_LONG).show()
+            showProblem(R.string.seal_invalid_settings)
         }
     }
 
@@ -369,7 +336,7 @@ class SealEditorDialog(
                     refreshPreview()
                 }
             } catch (_: Exception) {
-                Toast.makeText(activity, R.string.seal_pdf_error, Toast.LENGTH_LONG).show()
+                showProblem(R.string.seal_pdf_error)
             }
         }
     }
@@ -379,6 +346,7 @@ class SealEditorDialog(
         canvas.settings = settings
         previewValid = false
         previewStatus.setText(R.string.seal_preview_loading)
+        previewStatus.setTextColor(androidx.core.content.ContextCompat.getColor(activity, R.color.on_surface))
         previewJob?.cancel()
         previewJob = activity.lifecycleScope.launch {
             delay(300)
@@ -542,7 +510,31 @@ class SealEditorDialog(
     } else null
 
     private fun row() = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL }
-    private fun weighted() = LinearLayout.LayoutParams(0, dp(48), 1f)
+    // Alto según el contenido: con letra grande el texto no se corta.
+    private fun weighted() = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+
+    /** Campo desplegable con su etiqueta, como en el resto de la app. */
+    private fun dropdown(label: Int, options: List<Int>, selected: Int, onSelected: (Int) -> Unit): Pair<TextInputLayout, DropdownField> {
+        val layout = TextInputLayout(activity, null, com.google.android.material.R.attr.textInputOutlinedExposedDropdownMenuStyle)
+        layout.hint = activity.getString(label)
+        val field = DropdownField(layout.context).apply {
+            minHeight = dp(48)
+            setItems(options.map(activity::getString))
+            select(selected)
+            onItemSelected = onSelected
+        }
+        layout.addView(field, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        layout.setPadding(0, dp(8), 0, 0)
+        return layout to field
+    }
+
+    /** Problema dentro del editor: se muestra y se anuncia en la línea de estado. */
+    private fun showProblem(message: Int) {
+        if (!::previewStatus.isInitialized) return onError(message)
+        previewStatus.setText(message)
+        previewStatus.setTextColor(androidx.core.content.ContextCompat.getColor(activity, R.color.error))
+        previewStatus.announceForAccessibility(previewStatus.text)
+    }
     private fun label(id: Int) = TextView(activity).apply {
         setText(id)
         textSize = 16f
@@ -557,6 +549,10 @@ class SealEditorDialog(
             R.string.seal_right -> activity.getString(R.string.seal_move_right)
             R.string.seal_up -> activity.getString(R.string.seal_move_up)
             R.string.seal_down -> activity.getString(R.string.seal_move_down)
+            R.string.seal_smaller -> activity.getString(R.string.seal_smaller_desc)
+            R.string.seal_larger -> activity.getString(R.string.seal_larger_desc)
+            R.string.seal_rotate_left -> activity.getString(R.string.seal_rotate_left_desc)
+            R.string.seal_rotate_right -> activity.getString(R.string.seal_rotate_right_desc)
             else -> activity.getString(id)
         }
         setOnClickListener { action() }

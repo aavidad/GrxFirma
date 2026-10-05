@@ -7,6 +7,7 @@ package es.dipgra.grxfirma.android
 
 import android.content.ContentValues
 import android.content.Context
+import android.view.View
 import android.content.Intent
 import android.os.Environment
 import android.provider.MediaStore
@@ -22,6 +23,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import java.util.ArrayList
 import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.not
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
 
@@ -32,23 +34,21 @@ class MainActivityTest {
     @Test
     fun buildShowsHonestBackendState() {
         ActivityScenario.launch(MainActivity::class.java).use {
-            onView(withId(R.id.backendStatusTitle))
-                .check(
-                    matches(
-                        withText(
-                            if (productionCore) {
-                                R.string.backend_ready_title
-                            } else {
-                                R.string.backend_unavailable_title
-                            },
-                        ),
-                    ),
-                )
+            // Con todo correcto la tarjeta se oculta; si no puede firmar, lo dice.
+            if (productionCore) {
+                it.onActivity { activity ->
+                    assertEquals(View.GONE, activity.findViewById<View>(R.id.backendStatusCard).visibility)
+                }
+            } else {
+                onView(withId(R.id.backendStatusTitle)).check(matches(withText(R.string.backend_unavailable_title)))
+            }
             onView(withId(R.id.selectDocumentButton)).check(matches(isDisplayed()))
             onView(withId(R.id.selectOriginalDocumentButton)).check(matches(isDisplayed()))
             onView(withId(R.id.signButton)).check(matches(not(isEnabled())))
             onView(withId(R.id.verifyButton)).check(matches(not(isEnabled())))
-            onView(withId(R.id.helpButton)).check(matches(isDisplayed())).perform(click())
+            onView(withId(R.id.actionHint)).check(matches(withText(
+                if (productionCore) R.string.hint_need_document else R.string.hint_unavailable)))
+            TestMenus.open(R.id.action_help, R.string.menu_help)
             onView(withText(R.string.help_title)).check(matches(isDisplayed()))
         }
     }

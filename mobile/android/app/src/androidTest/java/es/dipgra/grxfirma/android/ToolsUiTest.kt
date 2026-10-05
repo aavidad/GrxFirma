@@ -24,6 +24,7 @@ class ToolsUiTest {
                 assertEquals(View.GONE, it.findViewById<View>(R.id.hashGroup).visibility)
                 assertEquals(View.GONE, it.findViewById<View>(R.id.protectGroup).visibility)
             }
+            TestMenus.expand(R.id.toggleOtherToolsButton)
             onView(withId(R.id.toggleBatchButton)).perform(scrollTo(), click())
             onView(withId(R.id.selectBatchButton)).perform(scrollTo()).check(matches(isDisplayed()))
             onView(withId(R.id.signBatchButton)).check(matches(isNotEnabled()))

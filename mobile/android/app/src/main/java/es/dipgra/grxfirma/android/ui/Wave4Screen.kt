@@ -5,8 +5,6 @@
 package es.dipgra.grxfirma.android.ui
 
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -65,8 +63,7 @@ internal class Wave4Screen(
             expanded = !expanded
             renderToggle(this)
         }
-        expedienteState.adapter = ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item,
-            ExpedientePolicy.STATES.map(::codeLabel))
+        expedienteState.setItems(ExpedientePolicy.STATES.map(::codeLabel))
         expedienteFolderButton.setOnClickListener {
             try { chooseFolder.launch(null) } catch (_: RuntimeException) { viewModel.reportPickerError() }
         }
@@ -105,12 +102,8 @@ internal class Wave4Screen(
     }
 
     private fun configureBatch(view: SectionBatchWave4Binding) = with(view) {
-        batchAction.adapter = ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item,
-            listOf(activity.getString(R.string.batch_action_sign), activity.getString(R.string.batch_action_cosign)))
-        batchAction.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) = update()
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
+        batchAction.setItems(listOf(activity.getString(R.string.batch_action_sign), activity.getString(R.string.batch_action_cosign)))
+        batchAction.onItemSelected = { update() }
         batchSealCheck.setOnCheckedChangeListener { _, _ -> update() }
     }
 
@@ -166,15 +159,14 @@ internal class Wave4Screen(
     private fun renderBatch(view: SectionBatchWave4Binding, state: MainUiState) = with(view) {
         val idle = state.canReplaceSelection
         val cosign = state.batchCosignAvailable
-        batchActionLabel.visibility = if (cosign) View.VISIBLE else View.GONE
-        batchAction.visibility = batchActionLabel.visibility
+        batchActionLayout.visibility = if (cosign) View.VISIBLE else View.GONE
         batchAction.isEnabled = idle
         batchSealCheck.visibility = if (state.batchSealAvailable) View.VISIBLE else View.GONE
         batchSealCheck.isEnabled = idle
         batchSealHelper.visibility = if (state.batchSealAvailable && state.wave4.batchSeal) View.VISIBLE else View.GONE
         batchDnieHint.visibility = if (state.certificateExternal && state.externalBatchAvailable) View.VISIBLE else View.GONE
         updating = true
-        batchAction.setSelection(if (state.wave4.batchAction == "cosign") 1 else 0)
+        batchAction.select(if (state.wave4.batchAction == "cosign") 1 else 0)
         batchSealCheck.isChecked = state.wave4.batchSeal
         updating = false
     }

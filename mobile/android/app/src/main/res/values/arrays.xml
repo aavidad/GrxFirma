@@ -16,6 +16,8 @@
     <string-array name="hash_algorithms"><item>@string/hash_alg_sha256</item><item>@string/hash_alg_sha1</item><item>SHA-384</item><item>SHA-512</item></string-array>
     <string-array name="hash_formats"><item>@string/hash_format_hex</item><item>@string/hash_format_base64</item><item>@string/hash_format_bin</item></string-array>
     <string-array name="protect_containers"><item>@string/container_enveloped</item><item>@string/container_authenveloped</item><item>@string/container_encrypted</item></string-array>
+    <string-array name="output_name_policies"><item>@string/output_name_suffix</item><item>@string/output_name_desktop</item><item>@string/output_name_original</item></string-array>
+    <string-array name="themes"><item>@string/theme_system</item><item>@string/theme_light</item><item>@string/theme_dark</item></string-array>
     <string-array name="language_tags" translatable="false"><item></item><item>es</item><item>en</item><item>ca</item><item>ca-ES-valencia</item><item>gl</item><item>eu</item><item>fr</item><item>de</item><item>it</item><item>pt</item><item>zh</item></string-array>
     <string-array name="language_names"><item>@string/language_system</item><item>Español</item><item>English</item><item>Català</item><item>Valencià</item><item>Galego</item><item>Euskara</item><item>Français</item><item>Deutsch</item><item>Italiano</item><item>Português</item><item>中文</item></string-array>
 </resources>

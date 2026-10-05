@@ -209,6 +209,11 @@ class SealPreferences(context: Context) {
         csvQr = preferences.getBoolean("csv_qr", true),
     )
 
+    /** Vuelve a los valores predeterminados del sello. */
+    fun clear() {
+        preferences.edit { clear() }
+    }
+
     fun save(settings: SealSettings) {
         preferences.edit {
             putBoolean("enabled", settings.enabled)

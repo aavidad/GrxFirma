@@ -17,6 +17,27 @@ import java.io.File
  * aplica: su código es propio de cada documento.
  */
 object BatchSeal {
+    /** Subdirectorio de noBackupFilesDir con las copias temporales de cada PDF. */
+    const val WORK_DIRECTORY = ".grxfirma-lote"
+
+    /**
+     * Vacía las copias que pudieran quedar de un cierre inesperado. Se llama al
+     * abrir la app y al empezar cada lote; nunca sigue enlaces simbólicos.
+     */
+    fun clearWorkDirectory(directory: File) {
+        val entries = directory.listFiles() ?: return
+        for (entry in entries) {
+            if (java.nio.file.Files.isSymbolicLink(entry.toPath())) {
+                entry.delete()
+                continue
+            }
+            if (entry.isFile) {
+                try { entry.writeBytes(ByteArray(entry.length().toInt().coerceIn(0, 64 shl 20))) } catch (_: Exception) { }
+            }
+            entry.deleteRecursively()
+        }
+    }
+
     /** Ajusta las páginas del sello al número de páginas de un PDF concreto. */
     fun settingsFor(base: SealSettings, pageCount: Int): SealSettings {
         require(pageCount >= 1)
@@ -51,6 +72,11 @@ class PdfBatchSealPlanner(
     private val settings: SealSettings,
     private val imageBase64: String?,
 ) : BatchSealPlanner {
+    init {
+        // Cada lote empieza sin copias de lotes anteriores.
+        BatchSeal.clearWorkDirectory(workDirectory)
+    }
+
     override fun options(file: LoadedFile): Map<String, String>? {
         if (!workDirectory.isDirectory && !workDirectory.mkdirs()) return null
         val temporary = try { File.createTempFile("lote", ".pdf", workDirectory) } catch (_: Exception) { return null }

@@ -36,13 +36,14 @@ class ParityUiTest {
 
     @Test fun operationProfilesAboutAndLanguageSelectorAreReachable() {
         ActivityScenario.launch(MainActivity::class.java).use {
+            TestMenus.expand(R.id.toggleSigningOptionsButton)
             onView(withId(R.id.signatureAction)).perform(scrollTo())
             onView(withId(R.id.signatureProfile)).perform(scrollTo())
             onView(withId(R.id.tsaEnabled)).perform(scrollTo())
-            onView(withId(R.id.aboutButton)).perform(scrollTo(), click())
+            TestMenus.open(R.id.action_about, R.string.about_title)
             onView(withId(android.R.id.message)).check(matches(withText(containsString(BuildConfig.VERSION_NAME))))
             onView(withText(R.string.help_close)).perform(click())
-            onView(withId(R.id.languageButton)).perform(scrollTo(), click())
+            TestMenus.open(R.id.action_language, R.string.language_title)
             it.onActivity { activity ->
                 assertEquals(12, activity.resources.getStringArray(R.array.language_names).size)
             }
@@ -55,7 +56,7 @@ class ParityUiTest {
         // Cambiar de idioma recrea la actividad; cada paso usa un lanzamiento
         // nuevo para no pulsar un diálogo que aún se está redibujando.
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            onView(withId(R.id.languageButton)).perform(scrollTo(), click())
+            TestMenus.open(R.id.action_language, R.string.language_title)
             onView(withText(names[2])).inRoot(isDialog()).perform(click())
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
             // En API 33+ la consulta necesita una actividad viva.
@@ -64,7 +65,7 @@ class ParityUiTest {
             }
         }
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            onView(withId(R.id.languageButton)).perform(scrollTo(), click())
+            TestMenus.open(R.id.action_language, R.string.language_title)
             // La lista se abre desplazada hasta el idioma marcado: onData
             // vuelve a la primera opción («seguir al sistema») antes de pulsarla.
             onData(anything()).inRoot(isDialog()).atPosition(0).perform(click())

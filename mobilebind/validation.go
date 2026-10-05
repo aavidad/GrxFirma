@@ -218,16 +218,8 @@ func validateSigningOptions(format, action string, options map[string]string) er
 	}
 	tsa := options["tsaURL"]
 	if tsa != "" {
-		endpoint, err := url.Parse(tsa)
-		if err != nil || endpoint.Hostname() == "" || endpoint.User != nil || endpoint.Fragment != "" || strings.Contains(tsa, "#") ||
-			(endpoint.Scheme != "http" && endpoint.Scheme != "https") || endpoint.Opaque != "" || strings.TrimSpace(tsa) != tsa {
-			return newFacadeError("URL HTTP(S) de TSA invalida")
-		}
-		if port := endpoint.Port(); port != "" {
-			number, err := strconv.Atoi(port)
-			if err != nil || number < 1 || number > 65535 {
-				return newFacadeError("puerto de TSA invalido")
-			}
+		if err := validateTSAURL(tsa); err != nil {
+			return err
 		}
 	}
 	if (profile == "t" || profile == "lt" || profile == "lta") && tsa == "" {
@@ -246,6 +238,26 @@ func validateSigningOptions(format, action string, options map[string]string) er
 	// Los formatos que solo generan B no deben recibir una TSA que se ignoraría.
 	if tsa != "" && !slices.Contains(mobileFormats[format].profiles, "t") {
 		return newFacadeError("perfil no soportado para este formato")
+	}
+	return nil
+}
+
+// validateTSAURL aplica las mismas reglas a la firma y a la prueba de la TSA:
+// HTTP(S), con host, sin credenciales, fragmento ni espacios, y puerto válido.
+func validateTSAURL(tsa string) error {
+	if len(tsa) > maxOptionValueBytes {
+		return newFacadeError("URL HTTP(S) de TSA invalida")
+	}
+	endpoint, err := url.Parse(tsa)
+	if err != nil || endpoint.Hostname() == "" || endpoint.User != nil || endpoint.Fragment != "" || strings.Contains(tsa, "#") ||
+		(endpoint.Scheme != "http" && endpoint.Scheme != "https") || endpoint.Opaque != "" || strings.TrimSpace(tsa) != tsa {
+		return newFacadeError("URL HTTP(S) de TSA invalida")
+	}
+	if port := endpoint.Port(); port != "" {
+		number, err := strconv.Atoi(port)
+		if err != nil || number < 1 || number > 65535 {
+			return newFacadeError("puerto de TSA invalido")
+		}
 	}
 	return nil
 }

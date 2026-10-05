@@ -23,13 +23,13 @@ interface DocumentRepository {
     fun loadBounded(file: SelectedFile, maximumBytes: Int): LoadedFile = loadDocument(file).also {
         if (it.bytes.size > maximumBytes) {
             it.bytes.fill(0)
-            throw InvalidDocumentException("El documento supera el tamaño permitido.")
+            throw InvalidDocumentException(DocumentProblem.TOO_LARGE)
         }
     }
 
     /** Crea un documento nuevo dentro de una carpeta elegida con SAF. */
     fun writeToTree(folder: Uri, displayName: String, mimeType: String, bytes: ByteArray) {
-        throw InvalidDocumentException("Este repositorio no admite carpetas.")
+        throw InvalidDocumentException(DocumentProblem.TREE_UNSUPPORTED)
     }
 
     /**
@@ -37,15 +37,13 @@ interface DocumentRepository {
      * [maximumEntries]. El permiso de la carpeta no se persiste.
      */
     fun listTree(folder: Uri, maximumEntries: Int): List<SelectedFile> {
-        throw InvalidDocumentException("Este repositorio no admite carpetas.")
+        throw InvalidDocumentException(DocumentProblem.TREE_UNSUPPORTED)
     }
 }
 
 open class ContentRepository(private val resolver: ContentResolver) : DocumentRepository {
     override fun inspect(uri: Uri, fallbackName: String, fallbackMime: String): SelectedFile {
-        require(uri.scheme == ContentResolver.SCHEME_CONTENT) {
-            "Solo se admiten URI content:// proporcionadas por Android."
-        }
+        require(uri.scheme == ContentResolver.SCHEME_CONTENT)
         var displayName: String? = null
         var size: Long? = null
         resolver.query(
@@ -72,46 +70,38 @@ open class ContentRepository(private val resolver: ContentResolver) : DocumentRe
     override fun loadDocument(file: SelectedFile): LoadedFile = load(
         file = file,
         maximumBytes = DocumentPolicy.MAX_DOCUMENT_BYTES,
-        label = "El documento",
     )
 
     override fun loadBounded(file: SelectedFile, maximumBytes: Int): LoadedFile =
-        load(file = file, maximumBytes = maximumBytes, label = "El documento")
+        load(file = file, maximumBytes = maximumBytes)
 
     override fun loadCertificate(file: SelectedFile): LoadedFile = load(
         file = file,
         maximumBytes = DocumentPolicy.MAX_CERTIFICATE_BYTES,
-        label = "El certificado",
     )
 
     override fun write(uri: Uri, bytes: ByteArray) {
-        require(uri.scheme == ContentResolver.SCHEME_CONTENT) {
-            "El destino debe ser una URI content:// de Android."
-        }
+        require(uri.scheme == ContentResolver.SCHEME_CONTENT)
         resolver.openOutputStream(uri, "w")?.use { output ->
             output.write(bytes)
             output.flush()
-        } ?: throw InvalidDocumentException("Android no ha permitido abrir el destino seleccionado.")
+        } ?: throw InvalidDocumentException(DocumentProblem.DESTINATION_UNAVAILABLE)
     }
 
     override fun writeToTree(folder: Uri, displayName: String, mimeType: String, bytes: ByteArray) {
-        require(folder.scheme == ContentResolver.SCHEME_CONTENT) {
-            "La carpeta debe ser una URI content:// de Android."
-        }
+        require(folder.scheme == ContentResolver.SCHEME_CONTENT)
         val parent = DocumentsContract.buildDocumentUriUsingTree(folder, DocumentsContract.getTreeDocumentId(folder))
         val created = DocumentsContract.createDocument(
             resolver,
             parent,
             sanitizeMimeType(mimeType, "application/octet-stream"),
             DocumentPolicy.sanitizeDisplayName(displayName, "documento"),
-        ) ?: throw InvalidDocumentException("Android no ha permitido crear el fichero en la carpeta elegida.")
+        ) ?: throw InvalidDocumentException(DocumentProblem.CREATE_FAILED)
         write(created, bytes)
     }
 
     override fun listTree(folder: Uri, maximumEntries: Int): List<SelectedFile> {
-        require(folder.scheme == ContentResolver.SCHEME_CONTENT) {
-            "La carpeta debe ser una URI content:// de Android."
-        }
+        require(folder.scheme == ContentResolver.SCHEME_CONTENT)
         val children = DocumentsContract.buildChildDocumentsUriUsingTree(folder, DocumentsContract.getTreeDocumentId(folder))
         val columns = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
@@ -123,7 +113,7 @@ open class ContentRepository(private val resolver: ContentResolver) : DocumentRe
         resolver.query(children, columns, null, null, null)?.use { cursor ->
             while (cursor.moveToNext()) {
                 if (files.size >= maximumEntries) {
-                    throw InvalidDocumentException("La carpeta tiene demasiados ficheros.")
+                    throw InvalidDocumentException(DocumentProblem.TOO_MANY_ENTRIES)
                 }
                 val id = cursor.optionalString(DocumentsContract.Document.COLUMN_DOCUMENT_ID) ?: continue
                 val mime = cursor.optionalString(DocumentsContract.Document.COLUMN_MIME_TYPE)
@@ -136,15 +126,15 @@ open class ContentRepository(private val resolver: ContentResolver) : DocumentRe
                     sizeBytes = cursor.optionalLong(DocumentsContract.Document.COLUMN_SIZE),
                 )
             }
-        } ?: throw InvalidDocumentException("Android no ha permitido leer la carpeta elegida.")
+        } ?: throw InvalidDocumentException(DocumentProblem.FOLDER_UNREADABLE)
         return files
     }
 
-    private fun load(file: SelectedFile, maximumBytes: Int, label: String): LoadedFile {
-        DocumentPolicy.requireAllowedSize(file.sizeBytes, maximumBytes, label)
+    private fun load(file: SelectedFile, maximumBytes: Int): LoadedFile {
+        DocumentPolicy.requireAllowedSize(file.sizeBytes, maximumBytes)
         val bytes = resolver.openInputStream(file.uri)?.use { input ->
-            DocumentPolicy.readBounded(input, maximumBytes, label)
-        } ?: throw InvalidDocumentException("Android no ha permitido abrir ${file.displayName}.")
+            DocumentPolicy.readBounded(input, maximumBytes)
+        } ?: throw InvalidDocumentException(DocumentProblem.SOURCE_UNREADABLE)
         return LoadedFile(file.displayName, file.mimeType, bytes)
     }
 }

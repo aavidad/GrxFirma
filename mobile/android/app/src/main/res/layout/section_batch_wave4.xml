@@ -11,21 +11,20 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/batchActionLabel"
-        style="@style/TextAppearance.Material3.LabelLarge"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/batchActionLayout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/control_spacing"
-        android:labelFor="@id/batchAction"
-        android:text="@string/batch_action_label"
-        android:textColor="@color/on_surface" />
+        android:hint="@string/batch_action_label">
 
-    <Spinner
-        android:id="@+id/batchAction"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:spinnerMode="dropdown" />
+        <es.dipgra.grxfirma.android.ui.DropdownField
+            android:id="@+id/batchAction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <CheckBox
         android:id="@+id/batchSealCheck"

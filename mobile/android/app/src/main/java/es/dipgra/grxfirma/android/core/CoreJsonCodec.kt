@@ -23,6 +23,13 @@ import es.dipgra.grxfirma.android.model.EniRequest
 import es.dipgra.grxfirma.android.model.EniValidation
 import es.dipgra.grxfirma.android.model.VeriFactuRecord
 import es.dipgra.grxfirma.android.model.VeriFactuReport
+import es.dipgra.grxfirma.android.model.CertificateDetail
+import es.dipgra.grxfirma.android.model.CertificateDetails
+import es.dipgra.grxfirma.android.model.EngineDiagnostics
+import es.dipgra.grxfirma.android.model.RevocationCheck
+import es.dipgra.grxfirma.android.model.TsaProbe
+import es.dipgra.grxfirma.android.model.UpdateCheck
+import es.dipgra.grxfirma.android.model.VeriFactuQr
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -60,7 +67,7 @@ object CoreJsonCodec {
         32 * 1024 * 1024,
     )
 
-    fun verifyRequest(document: LoadedFile, original: LoadedFile? = null): String = JSONObject()
+    fun verifyRequest(document: LoadedFile, original: LoadedFile? = null, includeHtmlReport: Boolean = false): String = JSONObject()
         .put("name", document.displayName)
         .put("content_base64", Base64.getEncoder().encodeToString(document.bytes))
         .put("mime_type", document.mimeType)
@@ -72,6 +79,7 @@ object CoreJsonCodec {
                 )
             }
         }
+        .apply { if (includeHtmlReport) put("include_html_report", true) }
         .toString()
 
     fun selectCertificateRequest(): String = JSONObject()
@@ -159,8 +167,11 @@ object CoreJsonCodec {
         }
 
     fun parseVerification(raw: String): VerificationSummary {
-        if (raw.length > 512 * 1024) throw CoreContractException("REPORT_TOO_LARGE")
+        if (raw.length > MAX_VERIFICATION_RESPONSE_CHARS) throw CoreContractException("REPORT_TOO_LARGE")
         val json = parseObject(raw, "verificación")
+        val htmlBase64 = json.optString("report_html_base64")
+        json.remove("report_html_base64")
+        if (json.toString().length > 512 * 1024) throw CoreContractException("REPORT_TOO_LARGE")
         return VerificationSummary(
             valid = json.optBoolean("valid", false),
             reason = cleanText(json.optString("reason")),
@@ -184,8 +195,14 @@ object CoreJsonCodec {
                 }
             },
             reportJson = json.toString(2),
+            reportHtml = if (htmlBase64.isBlank()) "" else decodeBounded(htmlBase64, MAX_REPORT_HTML_BYTES).let { bytes ->
+                try { bytes.decodeToString() } finally { bytes.fill(0) }
+            },
         )
     }
+
+    private const val MAX_REPORT_HTML_BYTES = 4 * 1024 * 1024
+    private const val MAX_VERIFICATION_RESPONSE_CHARS = 512 * 1024 + 6 * 1024 * 1024
 
     /** Las herramientas se habilitan solo si el contrato las declara todas. */
     fun toolsDeclared(raw: String): Boolean {
@@ -354,6 +371,7 @@ object CoreJsonCodec {
                     ))
                 }
             },
+            reportJson = raw,
         )
     }
 
@@ -417,6 +435,135 @@ object CoreJsonCodec {
         return CsvLegend(url, requiredText(json, "text"))
     }
 
+    fun platformServices(raw: String): Set<String> {
+        val services = parseObject(raw, "contrato").optJSONObject("services") ?: return emptySet()
+        return PlatformServices.ALL.filter { services.optBoolean(it, false) }.toSet()
+    }
+
+    fun certificateRequest(certificateId: String): String = JSONObject().put("certificate_id", certificateId).toString()
+
+    fun urlRequest(url: String): String = JSONObject().put("url", url).toString()
+
+    fun updateRequest(currentVersion: String): String = JSONObject().put("current_version", currentVersion).toString()
+
+    fun parseCertificateDetails(raw: String): CertificateDetails {
+        val json = parseObject(raw, "certificado")
+        val items = json.optJSONArray("certificates") ?: JSONArray()
+        return CertificateDetails(
+            expiringSoonDays = json.optInt("expiring_soon_days", 30).coerceIn(1, 365),
+            certificates = buildList {
+                for (index in 0 until minOf(items.length(), 16)) {
+                    val item = items.optJSONObject(index) ?: continue
+                    add(CertificateDetail(
+                        id = requiredText(item, "certificate_id"),
+                        subject = cleanText(item.optString("subject")),
+                        issuer = cleanText(item.optString("issuer")),
+                        fingerprint = cleanText(item.optString("fingerprint")),
+                        nif = cleanText(item.optString("nif")),
+                        organization = cleanText(item.optString("organization")),
+                        kind = closed(item.optString("kind"), CERTIFICATE_KINDS, "desconocido"),
+                        keyType = closed(item.optString("key_type"), listOf("RSA", "ECDSA"), ""),
+                        keyBits = item.optInt("key_bits", 0).coerceIn(0, 16384),
+                        notBefore = cleanText(item.optString("not_before")),
+                        notAfter = cleanText(item.optString("not_after")),
+                        daysLeft = item.optInt("days_left", 0),
+                        status = closed(item.optString("status"), CERTIFICATE_STATUSES, "valid"),
+                        external = item.optBoolean("external", false),
+                        canEncrypt = item.optBoolean("can_encrypt", false),
+                        hasOcsp = item.optBoolean("has_ocsp", false),
+                        hasCrl = item.optBoolean("has_crl", false),
+                    ))
+                }
+            },
+        )
+    }
+
+    fun parseRevocation(raw: String): RevocationCheck {
+        val json = parseObject(raw, "revocación")
+        return RevocationCheck(
+            status = closed(json.optString("status"), listOf("valid", "revoked", "inconclusive", "unavailable"), "unavailable"),
+            method = closed(json.optString("method"), listOf("OCSP", "CRL"), ""),
+            checkedAt = cleanText(json.optString("checked_at")),
+            revokedAt = cleanText(json.optString("revoked_at")),
+            hasOcsp = json.optBoolean("has_ocsp", false),
+            hasCrl = json.optBoolean("has_crl", false),
+        )
+    }
+
+    fun parseDiagnostics(raw: String): EngineDiagnostics {
+        val json = parseObject(raw, "diagnóstico")
+        return EngineDiagnostics(
+            engineVersion = cleanText(json.optString("engine_version")).take(64),
+            contractVersion = json.optInt("contract_version", 0),
+            platform = cleanText(json.optString("platform")).take(32),
+            goVersion = cleanText(json.optString("go_version")).take(64),
+            architecture = cleanText(json.optString("architecture")).take(64),
+            engineTimeUtc = cleanText(json.optString("engine_time_utc")).take(64),
+            sessionIdentity = json.optBoolean("session_identity", false),
+        )
+    }
+
+    fun parseTsaProbe(raw: String): TsaProbe {
+        val json = parseObject(raw, "TSA")
+        return TsaProbe(
+            status = closed(json.optString("status"), TSA_STATUSES, "bad_response"),
+            https = json.optBoolean("https", false),
+            tsaTime = cleanText(json.optString("tsa_time")),
+            localTime = cleanText(json.optString("local_time")),
+            skewSeconds = json.optLong("skew_seconds", 0),
+            elapsedMillis = json.optLong("elapsed_ms", 0).coerceAtLeast(0),
+        )
+    }
+
+    fun parseVeriFactuQr(raw: String): VeriFactuQr {
+        val json = parseObject(raw, "QR")
+        val url = requiredText(json, "url")
+        val scheme = try { java.net.URI(url).scheme.orEmpty() } catch (_: java.net.URISyntaxException) { "" }
+        requireField(scheme == "https") { "QR_URL_INVALID" }
+        return VeriFactuQr(
+            url = url,
+            nif = requiredText(json, "nif"),
+            number = requiredText(json, "numserie"),
+            date = requiredText(json, "fecha"),
+            amount = requiredText(json, "importe"),
+            verifiable = json.optBoolean("verifiable", false),
+            test = json.optBoolean("test", false),
+        )
+    }
+
+    /** JSON de la AEAT con sangría; se muestra literal y acotado. */
+    fun parseVeriFactuQuery(raw: String): String {
+        if (raw.length > MAX_AEAT_RESPONSE_CHARS) throw CoreContractException("AEAT_RESPONSE_TOO_LARGE")
+        val response = parseObject(raw, "AEAT").opt("response") ?: throw CoreContractException("AEAT_RESPONSE_MISSING")
+        val text = when (response) {
+            is JSONObject -> response.toString(2)
+            is JSONArray -> response.toString(2)
+            else -> response.toString()
+        }
+        return text.filter { it == '\n' || !DisplayText.hidden(it) }.take(MAX_AEAT_DISPLAY_CHARS)
+    }
+
+    fun parseUpdateCheck(raw: String): UpdateCheck {
+        val json = parseObject(raw, "versión")
+        val url = cleanText(json.optString("url"))
+        return UpdateCheck(
+            status = closed(json.optString("status"), listOf("newer", "current", "not_comparable", "no_releases", "error"), "error"),
+            errorCode = cleanText(json.optString("error_code")).take(64),
+            current = cleanText(json.optString("current")).take(32),
+            latest = cleanText(json.optString("latest")).take(32),
+            url = if (AppLinks.isOfficialRelease(url)) url else "",
+        )
+    }
+
+    private fun closed(value: String, allowed: List<String>, fallback: String): String =
+        value.trim().takeIf { it in allowed } ?: fallback
+
+    private val CERTIFICATE_KINDS = listOf("fisica", "representacion", "sello", "empleado_publico", "desconocido")
+    private val CERTIFICATE_STATUSES = listOf("valid", "expiring_soon", "expired", "not_yet_valid")
+    private val TSA_STATUSES = listOf("ok", "invalid_url", "unreachable", "timeout", "rejected", "bad_response")
+    private const val MAX_AEAT_RESPONSE_CHARS = 400 * 1024
+    private const val MAX_AEAT_DISPLAY_CHARS = 16 * 1024
+
     internal fun parseIssues(items: JSONArray?): List<EngineIssue> = buildList {
         if (items != null) for (index in 0 until minOf(items.length(), MAX_REPORT_ITEMS)) {
             val item = items.optJSONObject(index) ?: continue
@@ -465,7 +612,7 @@ object CoreJsonCodec {
     }
 
     private fun cleanText(value: String): String = value
-        .filter { it == '\n' || it == '\t' || !it.isISOControl() }
+        .filter { it == '\n' || it == '\t' || !DisplayText.hidden(it) }
         .trim()
         .take(500)
 

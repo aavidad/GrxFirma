@@ -21,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.core.widget.doAfterTextChanged
-import android.widget.AdapterView
 import android.text.util.Linkify
 import android.text.method.LinkMovementMethod
 import androidx.core.content.ContextCompat
@@ -57,20 +56,43 @@ import es.dipgra.grxfirma.android.model.EniRequest
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointBackward
 import com.google.android.material.datepicker.MaterialDatePicker
-import android.widget.ArrayAdapter
 import java.text.DateFormat
 import java.util.Date
 import java.util.TimeZone
 import es.dipgra.grxfirma.android.ui.UiEffect
+import es.dipgra.grxfirma.android.ui.AppFacts
+import es.dipgra.grxfirma.android.ui.CertificateFilter
+import es.dipgra.grxfirma.android.ui.CertificateText
+import es.dipgra.grxfirma.android.ui.DiagnosticsText
+import es.dipgra.grxfirma.android.ui.QrText
+import es.dipgra.grxfirma.android.ui.UpdateText
+import es.dipgra.grxfirma.android.ui.LanguageTags
+import es.dipgra.grxfirma.android.ui.PlatformServicesVisibility
+import androidx.core.net.toUri
+import es.dipgra.grxfirma.android.ui.VeriFactuText
+import es.dipgra.grxfirma.android.core.AppLinks
+import es.dipgra.grxfirma.android.databinding.DialogDiagnosticsBinding
+import es.dipgra.grxfirma.android.databinding.DialogPreferencesBinding
+import es.dipgra.grxfirma.android.model.UpdateCheck
+import es.dipgra.grxfirma.android.settings.AppPreferences
+import es.dipgra.grxfirma.android.settings.AppSettings
+import es.dipgra.grxfirma.android.settings.OutputNames
 import es.dipgra.grxfirma.android.ui.Wave4Screen
 import es.dipgra.grxfirma.android.ui.eniFileAvailable
 import es.dipgra.grxfirma.android.ui.externalBatchAvailable
 import es.dipgra.grxfirma.android.ui.batchSealAvailable
 import es.dipgra.grxfirma.android.seal.PdfBatchSealPlanner
+import es.dipgra.grxfirma.android.seal.BatchSeal
 import es.dipgra.grxfirma.android.ui.UiText
 import es.dipgra.grxfirma.android.ui.resolve
 import es.dipgra.grxfirma.android.ui.toUiText
 import kotlinx.coroutines.launch
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import android.view.Menu
+import android.view.MenuItem
+import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import java.util.Base64
 import java.util.concurrent.atomic.AtomicBoolean
@@ -101,12 +123,21 @@ class MainActivity : AppCompatActivity() {
     private var formatMenu: List<String> = emptyList()
     private var eniStates: List<String> = emptyList()
     private var eniTypes: List<String> = emptyList()
+    private var diagnosticsDialog: DialogDiagnosticsBinding? = null
+    private var shownUpdateCheck: UpdateCheck? = null
+    private var updatingCertificateFilter = false
+    private var menuEnabled = true
+    private var lastResult: OperationResult? = null
+    private var backgroundSince = 0L
+    private val closeHandler = Handler(Looper.getMainLooper())
+    private val closeCertificateTask = Runnable { closeCertificateIfInactive() }
     private lateinit var wave4: Wave4Screen
 
     private val viewModel: MainViewModel by viewModels {
         MainViewModel.Factory(
             ContentRepository(contentResolver),
             ReflectiveGomobileBridge.create(applicationContext),
+            AppPreferences(applicationContext),
         )
     }
 
@@ -170,6 +201,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val createVeriFactuReport = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        val report = viewModel.state.value.veriFactuReport
+        if (uri != null && report != null) {
+            viewModel.saveVeriFactuReport(uri, VeriFactuText.lines(report).resolve(this))
+        } else viewModel.cancelReportExport()
+    }
+
+    private val createVerificationHtml = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/html"),
+    ) { uri ->
+        if (uri != null) viewModel.saveVerificationReport(uri) else viewModel.cancelReportExport()
+    }
+
     private val createVerificationReport = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json"),
     ) { uri ->
@@ -177,6 +223,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AppPreferences.applyTheme(this)
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, true)
         if (BuildConfig.CORE_MODE == "production") {
@@ -186,6 +233,7 @@ class MainActivity : AppCompatActivity() {
         sealPreferences = SealPreferences(this)
         sealSettings = sealPreferences.load()
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         with(binding) {
             ViewCompat.setAccessibilityHeading(documentSectionTitle, true)
             ViewCompat.setAccessibilityHeading(certificateSectionTitle, true)
@@ -199,7 +247,12 @@ class MainActivity : AppCompatActivity() {
         wave4.bind(binding.documents.expediente, binding.tools.batchWave4,
             savedInstanceState?.getBoolean(STATE_EXPANDED_EXPEDIENTE) == true)
         releaseLegacyPersistedPermissions()
+        // Copias temporales del lote que un cierre inesperado pudo dejar. Al girar
+        // la pantalla con un lote en curso no se tocan: el lote aún las usa.
+        if (!viewModel.state.value.busy) BatchSeal.clearWorkDirectory(File(noBackupFilesDir, BatchSeal.WORK_DIRECTORY))
         configureActions()
+        // El formato por defecto solo se aplica al abrir; al girar se conserva el elegido.
+        if (savedInstanceState == null) selectDefaultFormat()
         collectViewModel()
         if (savedInstanceState == null) handleIncomingIntent(intent)
     }
@@ -223,10 +276,57 @@ class MainActivity : AppCompatActivity() {
         dnieSession?.close()
         dnieSession = null
         binding.certificatePassword.text?.clear()
+        closeHandler.removeCallbacks(closeCertificateTask)
         super.onDestroy()
     }
 
+    override fun onStart() {
+        super.onStart()
+        closeHandler.removeCallbacks(closeCertificateTask)
+        closeCertificateIfInactive()
+        backgroundSince = 0L
+    }
+
+    /** Cierra el certificado si la app lleva en segundo plano más del tiempo elegido. */
+    private fun closeCertificateIfInactive() {
+        if (backgroundSince == 0L) return
+        viewModel.closeCertificateAfterBackground(SystemClock.elapsedRealtime() - backgroundSince)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        val state = viewModel.state.value
+        listOf(R.id.action_language, R.id.action_preferences, R.id.action_about).forEach {
+            menu.findItem(it)?.isEnabled = menuEnabled
+        }
+        menu.findItem(R.id.action_diagnostics)?.isVisible = state.diagnosticsAvailable
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.action_help -> { showHelp(); true }
+        R.id.action_language -> { showLanguageSelector(); true }
+        R.id.action_preferences -> { showPreferences(); true }
+        R.id.action_diagnostics -> { showDiagnostics(); true }
+        R.id.action_about -> { showAbout(); true }
+        else -> super.onOptionsItemSelected(item)
+    }
+
+    /** Aviso que bloquea una acción: se lee y no desaparece mientras TalkBack lo anuncia. */
+    private fun showMessage(message: Int, action: Int? = null, onAction: (() -> Unit)? = null) {
+        val snackbar = Snackbar.make(binding.rootLayout, message, Snackbar.LENGTH_LONG)
+        if (action != null && onAction != null) snackbar.setAction(action) { onAction() }
+        snackbar.show()
+    }
+
     override fun onStop() {
+        backgroundSince = SystemClock.elapsedRealtime()
+        val minutes = viewModel.state.value.settings.sessionTimeoutMinutes
+        if (minutes > 0) closeHandler.postDelayed(closeCertificateTask, minutes * 60_000L)
         stopDnieReading()
         if (dnieSession != null) {
             dnieSession?.close()
@@ -252,19 +352,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
         clearOriginalDocumentButton.setOnClickListener { viewModel.clearOriginalDocument() }
-        helpButton.setOnClickListener { showHelp() }
-        aboutButton.setOnClickListener { showAbout() }
-        languageButton.setOnClickListener { showLanguageSelector() }
-        exportReportButton.setOnClickListener { viewModel.exportVerificationReport() }
-        useCosignButton.setOnClickListener { viewModel.acceptCoSignSuggestion() }
-        val signingListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updateSigningSettings()
+        listOf(toggleSigningOptionsButton to signingOptionsGroup, toggleOtherToolsButton to otherToolsGroup)
+            .forEach { (toggle, group) ->
+                toggle.setOnClickListener {
+                    if (!expandedTools.remove(group.id)) expandedTools += group.id
+                    renderMainToggles()
+                }
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
-        signatureAction.onItemSelectedListener = signingListener
-        signatureProfile.onItemSelectedListener = signingListener
+        renderMainToggles()
+        exportReportButton.setOnClickListener { viewModel.exportVerificationReport() }
+        exportReportHtmlButton.setOnClickListener { viewModel.exportVerificationReport(printable = true) }
+        useCosignButton.setOnClickListener { viewModel.acceptCoSignSuggestion() }
+        signatureAction.onItemSelected = { updateSigningSettings() }
+        signatureProfile.onItemSelected = { updateSigningSettings() }
+        signatureFormat.onItemSelected = { renderSigningSummary(viewModel.state.value) }
         tsaEnabled.setOnCheckedChangeListener { _, _ -> updateSigningSettings() }
         tsaUrl.doAfterTextChanged { updateSigningSettings() }
         selectCertificateFileButton.setOnClickListener {
@@ -325,18 +426,94 @@ class MainActivity : AppCompatActivity() {
         }
         verifyButton.setOnClickListener { viewModel.verify() }
         retrySaveButton.setOnClickListener { viewModel.retryPendingOutput() }
-        discardPendingOutputButton.setOnClickListener { viewModel.discardPendingOutput() }
+        discardPendingOutputButton.setOnClickListener { confirmDiscard() }
         configureTools()
         configureFormats()
         configureDocuments()
+        configureCertificatePanel()
+    }
+
+    private fun selectDefaultFormat() {
+        val index = formatMenu.indexOf(viewModel.state.value.settings.defaultFormat)
+        if (index >= 0) binding.signatureFormat.select(index)
+    }
+
+    private fun configureCertificatePanel() = with(binding.certificatePanel) {
+        certificateKindFilter.setItems(
+            listOf(getString(R.string.cert_filter_all)) + CertificateFilter.KINDS.map { getString(CertificateText.kindLabel(it)) })
+        certificateKindFilter.onItemSelected = { updateCertificateFilter() }
+        certificateFilter.doAfterTextChanged { updateCertificateFilter() }
+        checkCertificateOnlineButton.setOnClickListener { viewModel.checkCertificateOnline() }
+    }
+
+    private fun updateCertificateFilter() {
+        if (updatingCertificateFilter) return
+        val panel = binding.certificatePanel
+        val position = panel.certificateKindFilter.selectedItemPosition
+        viewModel.updateCertificateFilter(panel.certificateFilter.text?.toString().orEmpty(),
+            if (position <= 0) "" else CertificateFilter.KINDS.getOrElse(position - 1) { "" })
+    }
+
+    private fun renderCertificatePanel(state: MainUiState) = with(binding.certificatePanel) {
+        val available = state.certificatePanelAvailable && state.certificate != null
+        certificateFilterGroup.visibility = if (available && state.showsCertificateFilter) View.VISIBLE else View.GONE
+        val shown = if (state.showsCertificateFilter) state.filteredCertificates else state.certificateDetails
+        if (state.showsCertificateFilter) {
+            certificateFilterCount.text = if (shown.isEmpty()) getString(R.string.cert_filter_none) else
+                resources.getQuantityString(R.plurals.cert_filter_count, shown.size, shown.size)
+        }
+        certificateDetail.visibility = if (available && shown.isNotEmpty()) View.VISIBLE else View.GONE
+        certificateDetail.text = shown.joinToString("\n\n") { CertificateText.lines(it).resolve(this@MainActivity) }
+        certificateDetail.setTextColor(ContextCompat.getColor(this@MainActivity,
+            if (shown.any(CertificateText::warns)) R.color.status_warning else R.color.on_surface))
+        checkCertificateOnlineButton.visibility = if (state.certificate != null &&
+            PlatformServicesVisibility.online(state)) View.VISIBLE else View.GONE
+        checkCertificateOnlineButton.isEnabled = state.canCheckCertificateOnline
+        updatingCertificateFilter = true
+        if (certificateFilter.text?.toString() != state.certificateFilter) certificateFilter.setText(state.certificateFilter)
+        certificateKindFilter.select(CertificateFilter.KINDS.indexOf(state.certificateKindFilter) + 1)
+        updatingCertificateFilter = false
+    }
+
+    private fun renderMainToggles() = with(binding) {
+        listOf(toggleSigningOptionsButton to signingOptionsGroup, toggleOtherToolsButton to otherToolsGroup)
+            .forEach { (toggle, group) ->
+                val expanded = group.id in expandedTools
+                group.visibility = if (expanded) View.VISIBLE else View.GONE
+                toggle.setIconResource(if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
+                ViewCompat.setStateDescription(toggle,
+                    getString(if (expanded) R.string.state_expanded else R.string.state_collapsed))
+            }
+    }
+
+    /** Resumen de las opciones avanzadas cuando están plegadas. */
+    private fun renderSigningSummary(state: MainUiState) {
+        val action = when (state.signatureAction) {
+            "cosign" -> R.string.action_cosign
+            "countersign" -> R.string.action_countersign
+            else -> R.string.action_sign
+        }
+        binding.signingOptionsSummary.text = getString(R.string.signing_options_summary, getString(action),
+            getString(FormatPolicy.label(selectedSignatureFormat())),
+            getString(if (state.tsaEnabled) R.string.summary_tsa else R.string.summary_no_tsa))
+    }
+
+    /** Descartar es irreversible: se confirma antes, con el botón seguro por defecto. */
+    private fun confirmDiscard() {
+        val signature = viewModel.state.value.pendingKind == PendingKind.SIGNATURE
+        MaterialAlertDialogBuilder(this)
+            .setTitle(if (signature) R.string.discard_confirm_title else R.string.discard_tool_confirm_title)
+            .setMessage(if (signature) R.string.discard_confirm_message else R.string.discard_tool_confirm_message)
+            .setPositiveButton(if (signature) R.string.discard_keep_signature else R.string.discard_keep_result, null)
+            .setNegativeButton(R.string.discard_confirm_action) { _, _ -> viewModel.discardPendingOutput() }
+            .show()
     }
 
     /** El desplegable ofrece solo los formatos que declara el núcleo. */
     private fun configureFormats() {
         val declared = viewModel.state.value.signingFormats
         formatMenu = listOf("auto") + FormatPolicy.MENU_ORDER.filter { it in declared }
-        binding.signatureFormat.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
-            formatMenu.map { getString(FormatPolicy.label(it)) })
+        binding.signatureFormat.setItems(formatMenu.map { getString(FormatPolicy.label(it)) })
     }
 
     private fun configureDocuments() = with(binding.documents) {
@@ -354,16 +531,22 @@ class MainActivity : AppCompatActivity() {
         }
         clearVerifactuButton.setOnClickListener { viewModel.clearVeriFactuRecords() }
         checkVerifactuButton.setOnClickListener { viewModel.checkVeriFactu() }
+        exportVerifactuButton.setOnClickListener { viewModel.exportVeriFactuReport() }
+        readQrButton.setOnClickListener { viewModel.readVeriFactuQr(qrUrl.text?.toString().orEmpty()) }
+        queryAeatButton.setOnClickListener { viewModel.queryAeat() }
+        qrUrl.doAfterTextChanged {
+            val qr = viewModel.state.value.veriFactuQr
+            if (qr != null && it?.toString()?.trim() != qr.url) viewModel.clearVeriFactuQr()
+        }
         val catalogs = viewModel.eniCatalogs()
         eniStates = catalogs.documentStates
         eniTypes = catalogs.documentTypes
-        eniOrigin.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
-            listOf(getString(R.string.eni_origin_administration), getString(R.string.eni_origin_citizen)))
-        eniState.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
-            eniStates.map(::eniCodeLabel))
-        eniDocumentType.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
-            eniTypes.map(::eniCodeLabel))
-        eniDocumentType.setSelection(eniTypes.indexOf("TD99").coerceAtLeast(0))
+        eniOrigin.setItems(listOf(getString(R.string.eni_origin_administration), getString(R.string.eni_origin_citizen)))
+        eniState.setItems(eniStates.map(::eniCodeLabel))
+        eniDocumentType.setItems(eniTypes.map(::eniCodeLabel))
+        if (eniDocumentType.text.isNullOrEmpty() || eniDocumentType.selectedItemPosition == 0) {
+            eniDocumentType.select(eniTypes.indexOf("TD99").coerceAtLeast(0))
+        }
         eniCaptureDateButton.setOnClickListener { showEniDatePicker() }
         eniCaptureDateClearButton.setOnClickListener { viewModel.updateEniCaptureDate(null) }
         createEniButton.setOnClickListener { createEni() }
@@ -436,6 +619,22 @@ class MainActivity : AppCompatActivity() {
         clearVerifactuButton.visibility = if (state.verifactuRecords.isEmpty()) View.GONE else View.VISIBLE
         clearVerifactuButton.isEnabled = idle
         checkVerifactuButton.isEnabled = state.canCheckVeriFactu
+        exportVerifactuButton.visibility = if (state.veriFactuReport != null) View.VISIBLE else View.GONE
+        exportVerifactuButton.isEnabled = state.canExportVeriFactu
+        qrGroup.visibility = if (state.qrReadAvailable) View.VISIBLE else View.GONE
+        qrUrlLayout.isEnabled = idle
+        readQrButton.isEnabled = state.canReadQr
+        queryAeatButton.visibility = if (PlatformServicesVisibility.aeat(state)) View.VISIBLE else View.GONE
+        queryAeatButton.isEnabled = state.canQueryAeat
+        val qrText = buildList {
+            state.veriFactuQr?.let { add(QrText.lines(it).resolve(this@MainActivity)) }
+            state.qrError?.let { add(it.resolve(this@MainActivity)) }
+            if (state.aeatResponse.isNotEmpty()) add(getString(R.string.qr_aeat_response) + "\n" + state.aeatResponse)
+        }.joinToString("\n\n")
+        qrResult.text = qrText
+        qrResult.visibility = if (qrText.isEmpty()) View.GONE else View.VISIBLE
+        qrResult.setTextColor(ContextCompat.getColor(this@MainActivity,
+            if (state.qrError != null) R.color.error else R.color.on_surface))
         listOf(eniOrgansLayout, eniSourceLayout, eniIdentifierLayout, eniContentFormatLayout).forEach { it.isEnabled = idle }
         listOf(eniOrigin, eniState, eniDocumentType).forEach { it.isEnabled = idle }
         eniCaptureDateSummary.text = state.eniCaptureDate?.let {
@@ -460,15 +659,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         renderToolToggles()
-        val toolListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updateToolSettings()
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
-        hashAlgorithm.onItemSelectedListener = toolListener
-        hashFormat.onItemSelectedListener = toolListener
-        protectionContainer.onItemSelectedListener = toolListener
+        hashAlgorithm.onItemSelected = { updateToolSettings() }
+        hashFormat.onItemSelected = { updateToolSettings() }
+        protectionContainer.onItemSelected = { updateToolSettings() }
         protectForMe.setOnCheckedChangeListener { _, _ -> updateToolSettings() }
         selectBatchButton.setOnClickListener {
             try { openBatchDocuments.launch(arrayOf("*/*")) } catch (_: RuntimeException) { viewModel.reportPickerError() }
@@ -564,7 +757,7 @@ class MainActivity : AppCompatActivity() {
         protectForMe.visibility = if (transient) View.GONE else View.VISIBLE
         protectForMe.isEnabled = idle && state.certificate != null && !state.certificateExternal
         addRecipientButton.visibility = protectForMe.visibility
-        addRecipientButton.isEnabled = idle && state.recipients.size < ToolsPolicy.MAX_RECIPIENTS
+        addRecipientButton.isEnabled = state.canUseTools && state.recipients.size < ToolsPolicy.MAX_RECIPIENTS
         recipientsSummary.visibility = protectForMe.visibility
         recipientsSummary.text = if (state.recipients.isEmpty()) getString(R.string.protect_recipients_none) else
             resources.getQuantityString(R.plurals.protect_recipients_count, state.recipients.size, state.recipients.size) +
@@ -586,9 +779,9 @@ class MainActivity : AppCompatActivity() {
             if (state.pendingKind == PendingKind.SIGNATURE) R.string.discard_pending_output else R.string.discard_pending_tool_output,
         )
         updatingToolControls = true
-        hashAlgorithm.setSelection(ToolsPolicy.HASH_ALGORITHMS.indexOf(state.hashAlgorithm).coerceAtLeast(0))
-        hashFormat.setSelection(ToolsPolicy.HASH_FORMATS.indexOf(state.hashFormat).coerceAtLeast(0))
-        protectionContainer.setSelection(ToolsPolicy.CONTAINERS.indexOf(state.protectionContainer).coerceAtLeast(0))
+        hashAlgorithm.select(ToolsPolicy.HASH_ALGORITHMS.indexOf(state.hashAlgorithm).coerceAtLeast(0))
+        hashFormat.select(ToolsPolicy.HASH_FORMATS.indexOf(state.hashFormat).coerceAtLeast(0))
+        protectionContainer.select(ToolsPolicy.CONTAINERS.indexOf(state.protectionContainer).coerceAtLeast(0))
         protectForMe.isChecked = state.protectForMe
         updatingToolControls = false
     }
@@ -604,6 +797,13 @@ class MainActivity : AppCompatActivity() {
                             UiEffect.ChooseBatchFolder -> try {
                                 chooseBatchFolder.launch(null)
                             } catch (_: RuntimeException) { viewModel.reportSavePickerUnavailable() }
+                            UiEffect.SaveVerificationHtml -> try {
+                                createVerificationHtml.launch(getString(R.string.verification_report_html_filename))
+                            } catch (_: RuntimeException) { viewModel.cancelReportExport() }
+                            UiEffect.SaveVeriFactuReport -> try {
+                                createVeriFactuReport.launch(getString(R.string.verifactu_report_filename))
+                            } catch (_: RuntimeException) { viewModel.cancelReportExport() }
+                            is UiEffect.OpenRelease -> openRelease(effect.url)
                             UiEffect.SaveVerificationReport -> try {
                                 createVerificationReport.launch(getString(R.string.verification_report_filename))
                             } catch (_: RuntimeException) { viewModel.cancelReportExport() }
@@ -685,7 +885,7 @@ class MainActivity : AppCompatActivity() {
             state.postSignVerificationFailed -> R.color.status_warning
             state.verification?.integrityStatus == "invalid" -> R.color.error
             state.verification?.toUiText()?.accredited() == true -> R.color.primary
-            else -> R.color.status_warning
+            else -> R.color.on_surface
         }))
         verifyButton.isEnabled = state.canVerify
         certificatePasswordLayout.isEnabled = !state.busy
@@ -694,12 +894,14 @@ class MainActivity : AppCompatActivity() {
         signatureProfile.isEnabled = state.canReplaceSelection
         tsaEnabled.isEnabled = state.canReplaceSelection
         tsaUrl.isEnabled = state.canReplaceSelection && state.tsaEnabled
-        languageButton.isEnabled = state.canReplaceSelection
-        aboutButton.isEnabled = state.canReplaceSelection
-        helpButton.isEnabled = state.canReplaceSelection
+        tsaUrlLayout.visibility = if (state.tsaEnabled) View.VISIBLE else View.GONE
+        if (menuEnabled != state.canReplaceSelection) {
+            menuEnabled = state.canReplaceSelection
+            invalidateOptionsMenu()
+        }
         updatingSigningControls = true
-        signatureAction.setSelection(listOf("sign", "cosign", "countersign").indexOf(state.signatureAction).coerceAtLeast(0))
-        signatureProfile.setSelection(listOf("baseline", "t", "lt", "lta").indexOf(state.signatureProfile).coerceAtLeast(0))
+        signatureAction.select(listOf("sign", "cosign", "countersign").indexOf(state.signatureAction).coerceAtLeast(0))
+        signatureProfile.select(listOf("baseline", "t", "lt", "lta").indexOf(state.signatureProfile).coerceAtLeast(0))
         tsaEnabled.isChecked = state.tsaEnabled
         if (tsaUrl.text.toString() != state.tsaUrl) tsaUrl.setText(state.tsaUrl)
         updatingSigningControls = false
@@ -713,12 +915,19 @@ class MainActivity : AppCompatActivity() {
         verificationDetail.visibility = if (state.verification != null || state.postSignVerificationFailed) View.VISIBLE else View.GONE
         exportReportButton.visibility = if (state.verification?.reportJson?.isNotEmpty() == true) View.VISIBLE else View.GONE
         exportReportButton.isEnabled = state.canExportReport
+        exportReportHtmlButton.visibility = if (state.verification?.reportHtml?.isNotEmpty() == true) View.VISIBLE else View.GONE
+        exportReportHtmlButton.isEnabled = state.canExportReport
         progressContainer.visibility = if (state.busy) View.VISIBLE else View.GONE
         pendingSaveActions.visibility = if (state.canRetryPendingOutput) View.VISIBLE else View.GONE
         retrySaveButton.isEnabled = state.canRetryPendingOutput
         discardPendingOutputButton.isEnabled = state.canDiscardPendingOutput
         renderTools(state)
         renderDocuments(state)
+        renderCertificatePanel(state)
+        renderDiagnostics(state)
+        renderUpdateCheck(state)
+        renderSigningSummary(state)
+        renderHints(state)
         wave4.render(state)
 
         when (val result = state.result) {
@@ -741,6 +950,11 @@ class MainActivity : AppCompatActivity() {
                 resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, color))
                 renderDetail(if (result.detail is UiText.Verification) null else result.detail?.resolve(this@MainActivity))
             }
+            is OperationResult.Notice -> {
+                resultTitle.text = result.detail.resolve(this@MainActivity)
+                resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_surface))
+                renderDetail(null)
+            }
             is OperationResult.Error -> {
                 // Durante una operación el PIN sigue en uso (lote): no se toca.
                 if (!state.busy) {
@@ -755,6 +969,53 @@ class MainActivity : AppCompatActivity() {
                 renderDetail(result.detail.resolve(this@MainActivity))
             }
         }
+        revealResult(state.result)
+    }
+
+    /**
+     * Tras cada operación el resultado se desplaza a la vista; TalkBack lo
+     * anuncia por su región viva sin forzar el foco.
+     */
+    private fun revealResult(result: OperationResult) {
+        val previous = lastResult
+        lastResult = result
+        if (previous == null || result === previous || result == OperationResult.Idle) return
+        binding.contentScroll.post {
+            val top = binding.contentColumn.top + binding.resultCard.top
+            binding.contentScroll.smoothScrollTo(0, (top - resources.getDimensionPixelSize(R.dimen.control_spacing)).coerceAtLeast(0))
+        }
+    }
+
+    /** Explica qué falta cuando Firmar, Verificar o el DNIe están desactivados. */
+    private fun renderHints(state: MainUiState) = with(binding) {
+        backendStatusCard.visibility = if (state.backend.available) View.GONE else View.VISIBLE
+        val action = when {
+            state.busy || state.awaitingSave -> null
+            !state.backend.available -> R.string.hint_unavailable
+            state.document == null -> R.string.hint_need_document
+            state.certificate == null -> R.string.hint_need_certificate
+            else -> null
+        }
+        actionHint.visibility = if (action == null) View.GONE else View.VISIBLE
+        if (action != null) actionHint.setText(action)
+        val dnie = when {
+            !state.backend.available -> null
+            nfcAdapter == null -> R.string.dnie_hint_no_nfc
+            state.document == null -> R.string.dnie_hint_document_first
+            else -> null
+        }
+        dnieHint.visibility = if (dnie == null) View.GONE else View.VISIBLE
+        if (dnie != null) dnieHint.setText(dnie)
+        selectDnieNfcButton.isEnabled = state.canReplaceSelection && state.backend.available &&
+            nfcAdapter != null && state.document != null
+        val certificate = state.certificate
+        openCertificateStatus.visibility = if (certificate != null && !state.certificateExternal) View.VISIBLE else View.GONE
+        if (certificate != null && !state.certificateExternal) {
+            val minutes = state.settings.sessionTimeoutMinutes
+            openCertificateStatus.text = if (minutes > 0) getString(R.string.certificate_open_status, certificate.subject,
+                resources.getQuantityString(R.plurals.minutes, minutes, minutes))
+            else getString(R.string.certificate_open_status_manual, certificate.subject)
+        }
     }
 
     private fun renderDetail(detail: String?) = with(binding.resultDetail) {
@@ -765,9 +1026,17 @@ class MainActivity : AppCompatActivity() {
     private fun SelectedFile.summaryText(): String = getString(
         R.string.document_summary,
         displayName,
-        mimeType,
+        typeLabel(),
         formatSize(sizeBytes),
     )
+
+    /** Tipo corto para la persona (PDF, XML…), no el tipo MIME. */
+    private fun SelectedFile.typeLabel(): String {
+        val extension = displayName.substringAfterLast('.', "").takeIf { it.length in 1..5 && it.all(Char::isLetterOrDigit) }
+        return extension?.uppercase(java.util.Locale.ROOT)
+            ?: android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)?.uppercase(java.util.Locale.ROOT)
+            ?: getString(R.string.unknown_value)
+    }
 
     private fun formatSize(bytes: Long?): String = when {
         bytes == null -> getString(R.string.unknown_value)
@@ -790,11 +1059,11 @@ class MainActivity : AppCompatActivity() {
         val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.language_title)
-            .setSingleChoiceItems(R.array.language_names, tags.indexOf(current).coerceAtLeast(0)) { dialog, index ->
+            .setSingleChoiceItems(R.array.language_names, LanguageTags.indexFor(current, tags.toList())) { dialog, index ->
                 dialog.dismiss()
                 AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tags[index]))
             }
-            .setNegativeButton(R.string.help_close, null)
+            .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
@@ -803,15 +1072,20 @@ class MainActivity : AppCompatActivity() {
             ?: getString(R.string.unknown_value)
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.about_title)
-            .setMessage(getString(R.string.about_content, BuildConfig.VERSION_NAME, engine))
+            .setMessage(getString(R.string.about_content, BuildConfig.VERSION_NAME, engine, AppLinks.CONTACT_EMAIL) + "\n\n" +
+                getString(R.string.about_release_link, AppLinks.RELEASES))
             .setPositiveButton(R.string.help_close, null)
             .setNeutralButton(R.string.about_release_notes) { _, _ ->
                 MaterialAlertDialogBuilder(this).setTitle(R.string.about_release_notes)
-                    .setMessage(getString(R.string.release_notes_wave4) + "\n\n" + getString(R.string.release_notes_wave2b) +
+                    .setMessage(getString(R.string.release_notes_wave3) + "\n\n" + getString(R.string.release_notes_wave4) + "\n\n" + getString(R.string.release_notes_wave2b) +
                         "\n\n" + getString(R.string.release_notes_content))
                     .setPositiveButton(R.string.help_close, null).show()
             }
-            .setNegativeButton(R.string.open_help) { _, _ -> showHelp() }
+            .apply {
+                if (viewModel.state.value.updateCheckAvailable) {
+                    setNegativeButton(R.string.about_check_updates) { _, _ -> viewModel.checkUpdate(BuildConfig.VERSION_NAME) }
+                }
+            }
             .show()
         dialog.findViewById<android.widget.TextView>(android.R.id.message)?.let {
             Linkify.addLinks(it, Linkify.EMAIL_ADDRESSES or Linkify.WEB_URLS)
@@ -830,7 +1104,7 @@ class MainActivity : AppCompatActivity() {
         val document = viewModel.state.value.document
         if (document == null || !isPdf(document)) return
         if (viewModel.state.value.certificate == null) {
-            android.widget.Toast.makeText(this, R.string.seal_certificate_required, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.seal_certificate_required)
             return
         }
         sealEditorOpen = true
@@ -838,7 +1112,7 @@ class MainActivity : AppCompatActivity() {
             chooseImage = {
                 try { openSealImage.launch(arrayOf("image/png", "image/jpeg")) }
                 catch (_: RuntimeException) {
-                    android.widget.Toast.makeText(this, R.string.error_picker_unavailable, android.widget.Toast.LENGTH_LONG).show()
+                    showMessage(R.string.error_picker_unavailable)
                 }
             },
             onSaved = { settings, count, width, height ->
@@ -849,7 +1123,8 @@ class MainActivity : AppCompatActivity() {
             onClosed = {
                 sealEditorOpen = false
                 sealEditor = null
-            })
+            },
+            onError = { showMessage(it) })
         sealEditor?.show()
     }
 
@@ -862,7 +1137,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (format != "auto" && format != "pades") {
             dnieSession?.clearPin()
-            android.widget.Toast.makeText(this, R.string.seal_pdf_only, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.seal_pdf_only)
             return
         }
         val pageInfo = sealPageInfo
@@ -880,14 +1155,14 @@ class MainActivity : AppCompatActivity() {
             viewModel.sign("pades", options)
         } catch (_: Exception) {
             dnieSession?.clearPin()
-            android.widget.Toast.makeText(this, R.string.seal_invalid_settings, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.seal_invalid_settings)
         }
     }
 
     private fun importSealImage(uri: Uri) {
         try {
             val bytes = contentResolver.openInputStream(uri)?.use {
-                DocumentPolicy.readBounded(it, 2 * 1024 * 1024, getString(R.string.seal_image))
+                DocumentPolicy.readBounded(it, 2 * 1024 * 1024)
             } ?: throw IllegalArgumentException()
             try {
                 val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -898,7 +1173,7 @@ class MainActivity : AppCompatActivity() {
             } finally { bytes.fill(0) }
             sealEditor?.customImageSelected()
         } catch (_: Exception) {
-            android.widget.Toast.makeText(this, R.string.seal_image_error, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.seal_image_error)
         }
     }
 
@@ -959,7 +1234,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun startDnieSelection() {
         if (viewModel.state.value.document == null) {
-            android.widget.Toast.makeText(this, R.string.dnie_document_first, android.widget.Toast.LENGTH_LONG).show()
+            showMessage(R.string.dnie_document_first, R.string.snack_choose_document) {
+                try { openDocument.launch(arrayOf("*/*")) } catch (_: RuntimeException) { viewModel.reportPickerError() }
+            }
             return
         }
         val adapter = nfcAdapter
@@ -984,14 +1261,11 @@ class MainActivity : AppCompatActivity() {
             isSaveEnabled = false
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
         }
-        val layout = TextInputLayout(this).apply {
-            hint = getString(R.string.dnie_can_label)
-            addView(field)
-        }
+        val layout = secretInputLayout(R.string.dnie_can_label, field, password = false)
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.dnie_can_title)
             .setMessage(R.string.dnie_can_help)
-            .setView(layout)
+            .setView(layout.parent as View)
             .setPositiveButton(R.string.dnie_can_continue, null)
             .setNegativeButton(R.string.dnie_cancel) { _, _ -> field.text?.clear() }
             .create()
@@ -1075,15 +1349,12 @@ class MainActivity : AppCompatActivity() {
             isSaveEnabled = false
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
         }
-        val layout = TextInputLayout(this).apply {
-            hint = getString(R.string.dnie_pin_label)
-            addView(field)
-        }
+        val layout = secretInputLayout(R.string.dnie_pin_label, field, password = true)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.dnie_pin_title)
             .setMessage(R.string.dnie_pin_help)
-            .setView(layout)
+            .setView(layout.parent as View)
             .setPositiveButton(R.string.dnie_pin_confirm, null)
             .setNegativeButton(R.string.dnie_cancel) { _, _ -> field.text?.clear() }
             .create()
@@ -1114,6 +1385,170 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    private fun showPreferences() {
+        if (!viewModel.state.value.canReplaceSelection) return
+        val dialogBinding = DialogPreferencesBinding.inflate(layoutInflater)
+        val current = viewModel.state.value.settings
+        val formats = formatMenu
+        with(dialogBinding) {
+            prefFormat.setItems(formats.map { getString(FormatPolicy.label(it)) })
+            prefFormat.select(formats.indexOf(current.defaultFormat).coerceAtLeast(0))
+            prefProfile.select(AppSettings.PROFILES.indexOf(current.defaultProfile).coerceAtLeast(0))
+            prefSessionTimeout.setItems(AppSettings.TIMEOUTS.map {
+                if (it == 0) getString(R.string.timeout_never) else resources.getQuantityString(R.plurals.minutes, it, it)
+            })
+            prefSessionTimeout.select(AppSettings.TIMEOUTS.indexOf(current.sessionTimeoutMinutes).coerceAtLeast(0))
+            prefTsaEnabled.isChecked = current.tsaEnabled
+            prefTsaUrl.setText(current.tsaUrl)
+            prefTsaUrlLayout.isEnabled = current.tsaEnabled
+            prefTsaEnabled.setOnCheckedChangeListener { _, checked -> prefTsaUrlLayout.isEnabled = checked }
+            prefOutputName.select(OutputNames.POLICIES.indexOf(current.outputName).coerceAtLeast(0))
+            prefTheme.select(AppSettings.THEMES.indexOf(current.theme).coerceAtLeast(0))
+        }
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.preferences_title)
+            .setView(dialogBinding.root)
+            .setPositiveButton(R.string.preferences_save, null)
+            .setNegativeButton(R.string.preferences_cancel, null)
+            .create()
+        dialogBinding.prefRestore.setOnClickListener {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.preferences_restore)
+                .setMessage(R.string.preferences_restore_confirm)
+                .setPositiveButton(R.string.preferences_restore_action) { _, _ ->
+                    dialog.dismiss()
+                    restoreDefaults()
+                }
+                .setNegativeButton(R.string.preferences_cancel, null)
+                .show()
+        }
+        dialog.setOnShowListener {
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val settings = with(dialogBinding) {
+                    AppSettings(
+                        defaultFormat = formats.getOrElse(prefFormat.selectedItemPosition) { "auto" },
+                        defaultProfile = AppSettings.PROFILES.getOrElse(prefProfile.selectedItemPosition) { "baseline" },
+                        tsaEnabled = prefTsaEnabled.isChecked,
+                        tsaUrl = prefTsaUrl.text?.toString()?.trim().orEmpty(),
+                        outputName = OutputNames.POLICIES.getOrElse(prefOutputName.selectedItemPosition) { OutputNames.SUFFIX },
+                        theme = AppSettings.THEMES.getOrElse(prefTheme.selectedItemPosition) { AppSettings.THEME_SYSTEM },
+                        sessionTimeoutMinutes = AppSettings.TIMEOUTS.getOrElse(prefSessionTimeout.selectedItemPosition) {
+                            AppSettings.DEFAULT_TIMEOUT
+                        },
+                    )
+                }
+                if (viewModel.savePreferences(settings)) {
+                    dialogBinding.prefTsaUrlLayout.error = null
+                    dialog.dismiss()
+                    selectDefaultFormat()
+                    AppCompatDelegate.setDefaultNightMode(AppSettings.nightMode(settings.theme))
+                } else {
+                    dialogBinding.prefTsaUrlLayout.error = getString(R.string.error_tsa_configuration)
+                }
+            }
+        }
+        dialog.show()
+    }
+
+    /** Restaura preferencias y sello; los certificados y documentos no cambian. */
+    private fun restoreDefaults() {
+        viewModel.restoreDefaultPreferences()
+        sealPreferences.clear()
+        sealImageFile.delete()
+        sealSettings = sealPreferences.load()
+        sealPageInfo = null
+        selectDefaultFormat()
+        render(viewModel.state.value)
+        AppCompatDelegate.setDefaultNightMode(AppSettings.nightMode(AppSettings.THEME_SYSTEM))
+    }
+
+    private fun showDiagnostics() {
+        viewModel.loadDiagnostics()
+        val dialogBinding = DialogDiagnosticsBinding.inflate(layoutInflater)
+        dialogBinding.diagnosticsProbeTsa.setOnClickListener { viewModel.probeTsa() }
+        dialogBinding.diagnosticsCopy.setOnClickListener { copyDiagnostics() }
+        diagnosticsDialog = dialogBinding
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.diagnostics_title)
+            .setView(dialogBinding.root)
+            .setPositiveButton(R.string.help_close, null)
+            .setOnDismissListener { diagnosticsDialog = null }
+            .show()
+        renderDiagnostics(viewModel.state.value)
+    }
+
+    private fun diagnosticsText(state: MainUiState): String {
+        val facts = AppFacts(
+            appVersion = BuildConfig.VERSION_NAME,
+            sourceCommit = BuildConfig.SOURCE_COMMIT,
+            coreSha256 = BuildConfig.CORE_EXPECTED_SHA256,
+            androidRelease = android.os.Build.VERSION.RELEASE,
+            sdk = android.os.Build.VERSION.SDK_INT,
+            language = resources.configuration.locales[0].toLanguageTag(),
+            deviceTimeIso = java.time.OffsetDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString(),
+            timeZone = TimeZone.getDefault().id,
+        )
+        return DiagnosticsText.lines(facts, state.diagnostics, state.tsaUrl, state.tsaProbe).resolve(this)
+    }
+
+    private fun renderDiagnostics(state: MainUiState) {
+        val dialogBinding = diagnosticsDialog ?: return
+        dialogBinding.diagnosticsReport.text = diagnosticsText(state)
+        dialogBinding.diagnosticsProbeTsa.isEnabled = state.canProbeTsa
+        dialogBinding.diagnosticsProbeTsa.visibility = if (PlatformServicesVisibility.tsa(state)) View.VISIBLE else View.GONE
+    }
+
+    /** Copia el informe sin datos personales; Android 13+ muestra su propio aviso. */
+    private fun copyDiagnostics() {
+        val text = getString(R.string.diag_report_title) + "\n\n" + diagnosticsText(viewModel.state.value)
+        val clipboard = getSystemService(android.content.ClipboardManager::class.java) ?: return
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText(getString(R.string.diag_report_title), text))
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
+            showMessage(R.string.diag_copied)
+        }
+    }
+
+    private fun renderUpdateCheck(state: MainUiState) {
+        val check = state.updateCheck ?: run { shownUpdateCheck = null; return }
+        if (check === shownUpdateCheck) return
+        shownUpdateCheck = check
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.update_title)
+            .setMessage(UpdateText.lines(check).resolve(this))
+            .setPositiveButton(R.string.help_close, null)
+            .apply {
+                if (check.status == "newer" || check.status == "current" || check.status == "not_comparable") {
+                    setNeutralButton(R.string.update_open_release) { _, _ -> viewModel.openRelease() }
+                }
+            }
+            .setOnDismissListener { viewModel.dismissUpdateCheck() }
+            .show()
+    }
+
+    /** Solo se abre una publicación del repositorio oficial por HTTPS; nunca se descarga nada. */
+    private fun openRelease(url: String) {
+        if (!AppLinks.isOfficialRelease(url)) return
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, url.toUri()).addCategory(Intent.CATEGORY_BROWSABLE))
+        } catch (_: android.content.ActivityNotFoundException) {
+            viewModel.reportPickerError()
+        }
+    }
+
+    /** Campo con contorno y márgenes del diálogo; el PIN se puede mostrar u ocultar. */
+    private fun secretInputLayout(hint: Int, field: TextInputEditText, password: Boolean): TextInputLayout {
+        val layout = TextInputLayout(this, null, com.google.android.material.R.attr.textInputOutlinedStyle)
+        layout.hint = getString(hint)
+        if (password) layout.endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
+        layout.addView(field)
+        val padding = (24 * resources.displayMetrics.density).toInt()
+        android.widget.FrameLayout(this).apply {
+            setPadding(padding, padding / 3, padding, 0)
+            addView(layout)
+        }
+        return layout
+    }
+
     /** Acceso de las pantallas de la cuarta oleada al DNIe de la sesión. */
     private val dnieAccess = object : Wave4Screen.DnieAccess {
         override fun withPin(hold: Boolean, action: () -> Unit) {
@@ -1138,19 +1573,32 @@ class MainActivity : AppCompatActivity() {
                 val bytes = sealImageFile.readBytes()
                 try { Base64.getEncoder().encodeToString(bytes) } finally { bytes.fill(0) }
             } else null
-            PdfBatchSealPlanner(File(noBackupFilesDir, ".grxfirma-lote"), sealSettings, image)
+            PdfBatchSealPlanner(File(noBackupFilesDir, BatchSeal.WORK_DIRECTORY), sealSettings, image)
         } catch (_: Exception) {
             null
         }
     }
 
+    /** Ayuda por apartados: cada uno en pasos cortos, sin un bloque largo que desplazar. */
     private fun showHelp() {
-        val documentsHelp = if (viewModel.state.value.eniFileAvailable) R.string.help_documents_content_wave4
-            else R.string.help_documents_content
+        val topics = listOf(
+            R.string.help_topic_sign to R.string.help_sign_content,
+            R.string.help_topic_dnie to R.string.help_dnie_content,
+            R.string.help_topic_verify to R.string.help_verify_content,
+            R.string.help_topic_tools to R.string.help_tools_content,
+            R.string.help_topic_privacy to R.string.help_privacy_content,
+        )
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.help_title)
-            .setMessage(getString(R.string.help_content) + "\n\n" + getString(R.string.help_tools_content) +
-                "\n\n" + getString(documentsHelp))
+            .setItems(topics.map { getString(it.first) }.toTypedArray()) { _, index ->
+                val (title, content) = topics[index]
+                MaterialAlertDialogBuilder(this)
+                    .setTitle(title)
+                    .setMessage(content)
+                    .setPositiveButton(R.string.help_close, null)
+                    .setNeutralButton(R.string.menu_help) { _, _ -> showHelp() }
+                    .show()
+            }
             .setPositiveButton(R.string.help_close, null)
             .show()
     }

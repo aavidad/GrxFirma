@@ -20,6 +20,12 @@ import es.dipgra.grxfirma.android.model.EniDocument
 import es.dipgra.grxfirma.android.model.EniRequest
 import es.dipgra.grxfirma.android.model.EniValidation
 import es.dipgra.grxfirma.android.model.VeriFactuReport
+import es.dipgra.grxfirma.android.model.CertificateDetails
+import es.dipgra.grxfirma.android.model.EngineDiagnostics
+import es.dipgra.grxfirma.android.model.RevocationCheck
+import es.dipgra.grxfirma.android.model.TsaProbe
+import es.dipgra.grxfirma.android.model.UpdateCheck
+import es.dipgra.grxfirma.android.model.VeriFactuQr
 import es.dipgra.grxfirma.android.model.BatchItemInput
 import es.dipgra.grxfirma.android.model.EniFileRequest
 import es.dipgra.grxfirma.android.model.EniFileResult
@@ -101,6 +107,26 @@ interface CoreBridge {
 
     fun csvLegend(code: String, url: String, text: String): CsvLegend = toolsUnavailable()
 
+    /** Servicios de la tercera oleada que el AAR declara y enlaza. */
+    val platformServices: Set<String> get() = emptySet()
+
+    fun certificateDetails(): CertificateDetails = toolsUnavailable()
+
+    /** Consulta OCSP/CRL; solo tras pulsar «Comprobar en línea». */
+    fun checkCertificateRevocation(certificateId: String): RevocationCheck = toolsUnavailable()
+
+    fun diagnostics(): EngineDiagnostics = toolsUnavailable()
+
+    /** Pide un sello de tiempo de prueba a la TSA indicada. */
+    fun probeTimestampAuthority(url: String): TsaProbe = toolsUnavailable()
+
+    fun readVeriFactuQr(url: String): VeriFactuQr = toolsUnavailable()
+
+    /** Devuelve el JSON de la AEAT; solo tras pulsar «Cotejar con la AEAT». */
+    fun queryVeriFactuQr(url: String): String = toolsUnavailable()
+
+    fun checkUpdate(currentVersion: String): UpdateCheck = toolsUnavailable()
+
     // --- Cuarta oleada: expediente ENI y lote con operación y opciones por documento ---
 
     /** Capacidades declaradas por el contrato (véase Wave4Capabilities). */
@@ -111,6 +137,20 @@ interface CoreBridge {
 
     fun signBatchItems(items: List<BatchItemInput>, certificateId: String, options: Map<String, String>): List<BatchItemResult> =
         toolsUnavailable()
+}
+
+/** Nombres de servicio del contrato para la tercera oleada. */
+object PlatformServices {
+    const val CERTIFICATE_DETAILS = "certificate_details"
+    const val CERTIFICATE_ONLINE = "certificate_online_check"
+    const val DIAGNOSTICS = "diagnostics"
+    const val TSA_PROBE = "tsa_probe"
+    const val VERIFACTU_QR_READ = "verifactu_qr_read"
+    const val VERIFACTU_QR_QUERY = "verifactu_qr_query"
+    const val UPDATE_CHECK = "update_check"
+    const val VERIFY_REPORT_HTML = "verify_report_html"
+    val ALL = listOf(CERTIFICATE_DETAILS, CERTIFICATE_ONLINE, DIAGNOSTICS, TSA_PROBE,
+        VERIFACTU_QR_READ, VERIFACTU_QR_QUERY, UPDATE_CHECK, VERIFY_REPORT_HTML)
 }
 
 /** Nombres de servicio del contrato para las herramientas de documentos. */

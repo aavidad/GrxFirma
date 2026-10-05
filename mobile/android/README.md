@@ -271,7 +271,7 @@ sesiones.
 
 ## Controles de seguridad
 
-- solo permisos NFC e `INTERNET`; este último permite la TSA y obtener evidencias LT/LTA, sin permisos de almacenamiento amplios;
+- solo permisos NFC e `INTERNET`; este último permite la TSA, obtener evidencias LT/LTA y, solo cuando la persona lo pulsa, OCSP/CRL del certificado, el cotejo con la AEAT y la consulta de versiones en GitHub. Kotlin no abre conexiones: lo hace el núcleo Go. Sin permisos de almacenamiento amplios;
 - TSA HTTP(S) elegida por la persona y validada sin credenciales ni fragmento; los controles Android generales conservan la prohibición de tráfico en claro, mientras el cliente Go admite HTTP como el motor de escritorio;
 - copias de seguridad y transferencia de datos deshabilitadas;
 - documentos abiertos exclusivamente mediante URI `content://`;
@@ -386,6 +386,77 @@ consulta a la AEAT, perfiles T para los formatos nuevos y sello visible en el
 lote. La revisión de usabilidad independiente y la prueba en dispositivo de
 esta parte siguen pendientes.
 
+## Tercera oleada: certificado, preferencias, diagnóstico, QR y versiones
+
+- **Certificado**: bajo el certificado de la sesión aparece hasta cuándo es
+  válido, con aviso escrito (no solo color) si caduca en 30 días o menos,
+  además del tipo, NIF, organización, clave y origen (fichero o DNIe).
+  «Comprobar con el emisor si está revocado» consulta OCSP o CRL con el
+  comprobador de escritorio, que filtra direcciones internas; solo se envía
+  el número de serie. La verificación de firmas no cambia: sigue con
+  evidencias embebidas. El filtro por NIF, organización o tipo solo aparece
+  con más de un certificado; hoy la sesión guarda uno, así que de momento
+  no se ve.
+- **Preferencias**: formato y perfil por defecto, TSA, nombre propuesto al
+  guardar (`-firmado`, `_firmado` como en escritorio o el nombre original) y
+  tema del sistema, claro u oscuro. Un perfil T/LT/LTA exige una TSA válida.
+  «Restaurar valores predeterminados» vuelve a los valores de fábrica y
+  borra también el sello visible y su imagen. Se guardan en
+  SharedPreferences privadas sin cifrar porque no contienen nada sensible:
+  el gate estático rechaza claves con nombres de contraseña, PIN, clave o
+  certificado.
+- **Diagnóstico**: versión y commit de la app, versión y contrato del motor,
+  SHA-256 del núcleo, Android, idioma, reloj del dispositivo y del motor, y
+  el host de la TSA (sin ruta ni parámetros). «Probar la conexión con la
+  TSA» pide un sello RFC 3161 sobre un resumen aleatorio y avisa si el reloj
+  difiere más de dos minutos. «Copiar informe para soporte» copia ese texto,
+  sin titular, NIF, huellas ni nombres de documento.
+- **Veri*Factu**: «Exportar informe» guarda por SAF un JSON con el informe en
+  el idioma de la app y la respuesta del motor. «Leer QR tributario» valida
+  la URL pegada con `LeerQRVeriFactu` de escritorio sin usar la red. «Cotejar
+  con la AEAT» solo se activa tras una lectura válida y envía los cuatro
+  datos del QR con `ConsultarQRVeriFactu` (HTTPS, hosts oficiales, sin
+  redirecciones ni proxy, 12 s). La respuesta se muestra literal.
+- **Versiones**: «Acerca de» enlaza a las novedades publicadas en GitHub y
+  ofrece «Buscar actualizaciones», que consulta la API pública de releases
+  de `aavidad/GrxFirma` solo al pulsarlo (10 s, sin proxy, redirecciones al
+  mismo origen). No descarga nada; solo abre la página de la versión si es
+  del repositorio oficial.
+
+Todo es opcional para la app: un AAR anterior sin estos métodos los oculta.
+El AAR productivo hay que reconstruirlo y fijar su nuevo SHA-256.
+
+Pendiente: revisión de usabilidad independiente y prueba en dispositivo
+(las pruebas instrumentadas de `WaveThreeUiTest` están escritas pero no se
+han ejecutado); leer el QR desde la cámara o una imagen; más de una
+identidad por sesión para que el filtro de certificados tenga uso.
+
+## Revisión de usabilidad y accesibilidad
+
+La pantalla principal sigue tres pasos: «1. Documento», «2. Certificado» y
+«3. Firmar o verificar». El resultado sale en una tarjeta justo debajo de los
+botones; al terminar una operación se desplaza a la vista y TalkBack lo lee
+por su región viva. Ayuda, Idioma, Preferencias, Diagnóstico y Acerca de están
+en el menú de la barra. Las opciones avanzadas de firma (operación, perfil,
+fecha y hora certificadas y formato) y «Otras herramientas» están plegadas, y
+un resumen dice qué se usará si no se abren.
+
+- Si Firmar, Verificar o el DNIe están desactivados, un texto explica qué
+  falta.
+- Descartar una firma o un resultado sin guardar pide confirmación; después
+  aparece un aviso neutro, no un error.
+- El certificado PKCS#12 se cierra solo si la app pasa en segundo plano más
+  del tiempo elegido en Preferencias (1, 5 o 15 minutos, o nunca; 5 por
+  defecto). Mientras está abierto, junto a Firmar se indica cuál es.
+- Los avisos que bloquean una acción salen en un Snackbar o dentro del editor
+  del sello, no en un Toast.
+- Los desplegables son campos `ExposedDropdownMenu` (`ui/DropdownField`), con
+  etiqueta y sin cortar las opciones largas.
+- La ayuda está dividida en apartados.
+
+Pendiente de esa revisión: un buzón institucional de contacto y comprobar con TalkBack y un móvil con NFC el editor del sello, los
+diálogos del DNIe y la tarjeta de resultado con un núcleo de producción.
+
 Comprobaciones locales adicionales:
 
 ```bash
@@ -402,7 +473,7 @@ verificación posterior, exportación y selección de idioma están en `src/andr
 
 ## Cuarta oleada: expediente ENI, lote con sello y cofirma, DNIe
 
-- **Expediente ENI** (en «Veri*Factu y ENI»): se elige con
+- **Expediente ENI** (en «Otras herramientas», sección «Veri*Factu y ENI»): se elige con
   `ACTION_OPEN_DOCUMENT_TREE` la carpeta de documentos ENI, sin persistir el
   permiso. Entran los ficheros XML (hasta 64 y 32 MiB en total; se examinan como
   mucho 512 entradas), en orden alfabético como en escritorio; el resto se
@@ -413,11 +484,12 @@ verificación posterior, exportación y selección de idioma están en `src/andr
   un documento ENI, se indica por su nombre y no se firma nada. El expediente
   se guarda por SAF como resultado de herramienta.
 - **Lote**: operación «Firmar» o «Cofirmar» y casilla para añadir el sello
-  visible a los PDF. Se usa el sello guardado en «Firma visible» adaptado a
+  visible a los PDF. Se usa el sello colocado con «Colocar el sello», adaptado a
   cada PDF: la página elegida (o la última si el PDF es más corto), todas las
   páginas (hasta 128) o las posiciones por página que existan. Para medir el
   PDF, `PdfRenderer` lee una copia temporal en `noBackupFilesDir` que se
-  sobrescribe y se borra enseguida. La leyenda CSV no se añade en lote.
+  sobrescribe y se borra enseguida; ese directorio se vacía además al abrir la
+  app y al empezar cada lote, por si un cierre inesperado dejó alguna copia. La leyenda CSV no se añade en lote.
 - **DNIe en lote y en «proteger y firmar»**: el PIN se pide una vez. En el lote
   se guarda solo en memoria, dentro del `PasswordCallback` de jmulticard,
   hasta que termina la operación, y se borra también si no llega a empezar.
@@ -434,9 +506,24 @@ verificación posterior, exportación y selección de idioma están en `src/andr
   ASiC-XAdES: el motor de escritorio no los admite (solo CAdES, PAdES y XAdES
   añaden sello de tiempo), así que siguen limitados al perfil B.
 
-Los textos nuevos están en `res/values*/strings_ola4.xml` (once idiomas) y las
-pantallas en `section_expediente.xml` y `section_batch_wave4.xml`.
-`check_locales.py` comprueba todos los `strings*.xml` de cada idioma.
+Tras la fusión con la tercera oleada, los textos de esta oleada están en
+`strings.xml` de cada idioma (los valida `check_locales.py`) y las pantallas
+`section_expediente.xml` y `section_batch_wave4.xml` cuelgan de «Otras
+herramientas», con los desplegables como campos.
+
+## Informe imprimible y endurecimiento
+
+- «Guardar informe imprimible (HTML)» guarda el informe de escritorio
+  (`informeverificacion`), autocontenido y sin scripts, además del JSON
+  técnico. En el móvil nunca dice «firma válida», porque la confianza en el
+  emisor no se evalúa con anclas del sistema. La plantilla está en castellano,
+  como en escritorio.
+- Lo que se muestra (nombres de fichero, huellas, informe Veri*Factu,
+  errores del núcleo) quita los caracteres de control y también los de
+  formato (marcas Bidi y de ancho cero) para que nada aparente otra cosa.
+- La contraseña del certificado no se guarda en el estado de la vista.
+- Los errores de fichero son códigos cerrados (`DocumentProblem`) que la
+  interfaz traduce; no hay frases en castellano en ese código.
 
 Pendiente: probar en un móvil real el lote con DNIe 3.0 y 4.0 (varias firmas
 seguidas con un solo PIN, PIN erróneo a mitad de lote y retirada de la tarjeta),
