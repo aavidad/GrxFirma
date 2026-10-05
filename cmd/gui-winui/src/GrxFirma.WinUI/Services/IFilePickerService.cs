@@ -14,6 +14,7 @@ public enum OpenFilePickerProfile
     HashManifest,
     ProtectedContainer,
     SealImage,
+    VeriFactuQrSource,
 }
 
 public enum SaveFilePickerProfile

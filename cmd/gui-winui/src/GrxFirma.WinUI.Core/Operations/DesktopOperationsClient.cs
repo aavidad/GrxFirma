@@ -141,6 +141,22 @@ public sealed class DesktopOperationsClient
             new { url }, cancellationToken);
     }
 
+    // Solo PNG o JPEG: el motor lee la ruta, la valida y aplica sus límites.
+    public Task<IpcCallResult<VeriFactuQrResult>> ReadVeriFactuQrFromFileAsync(string inputPath, CancellationToken cancellationToken = default)
+    {
+        if (VeriFactuQrInput.IsPdfSource(inputPath)) throw new ArgumentException(null, nameof(inputPath));
+        return _ipcClient.SendAsync<object, VeriFactuQrResult>(DesktopOperationActions.ReadVeriFactuQr,
+            new { inputPath }, cancellationToken);
+    }
+
+    // Página de un PDF ya rasterizada en PNG por la aplicación.
+    public Task<IpcCallResult<VeriFactuQrResult>> ReadVeriFactuQrFromImageAsync(byte[] imageB64, CancellationToken cancellationToken = default)
+    {
+        VeriFactuQrInput.EnsureImagePayload(imageB64);
+        return _ipcClient.SendAsync<object, VeriFactuQrResult>(DesktopOperationActions.ReadVeriFactuQr,
+            new { imageB64 }, cancellationToken);
+    }
+
     public Task<IpcCallResult<VeriFactuQrQueryResult>> QueryVeriFactuQrAsync(string url, CancellationToken cancellationToken = default)
     {
         VeriFactuQrInput.EnsureAllowedAuthority(url);

@@ -16,10 +16,27 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
     private const ulong MaximumPngBytes = 2_900_000;
     private const double PdfPointsPerDip = 72d / 96d;
     private const double MaximumRenderDimension = 1_200;
+    // Un QR tributario mide de 30 a 40 mm: a 1 200 px por página A4 cada
+    // módulo ocuparía menos de 3 px. Con 2 000 px se lee con holgura y el PNG
+    // de una factura sigue por debajo del tope de la línea IPC.
+    private const double CodeReadingRenderDimension = 2_000;
 
-    public async Task<PdfPreviewResult> RenderPageAsync(
+    public Task<PdfPreviewResult> RenderPageAsync(
         string path,
         int page,
+        CancellationToken cancellationToken) =>
+        RenderPageCoreAsync(path, page, MaximumRenderDimension, cancellationToken);
+
+    public Task<PdfPreviewResult> RenderPageForCodeReadingAsync(
+        string path,
+        int page,
+        CancellationToken cancellationToken) =>
+        RenderPageCoreAsync(path, page, CodeReadingRenderDimension, cancellationToken);
+
+    private async Task<PdfPreviewResult> RenderPageCoreAsync(
+        string path,
+        int page,
+        double maximumRenderDimension,
         CancellationToken cancellationToken)
     {
         var normalizedPath = ValidateInput(path);
@@ -60,7 +77,7 @@ public sealed class WindowsPdfPreviewService : IPdfPreviewService
 
         var scale = Math.Min(
             1,
-            MaximumRenderDimension /
+            maximumRenderDimension /
                 Math.Max(mediaBox.Width, mediaBox.Height));
         var destinationWidth = checked(
             (uint)Math.Max(1, Math.Round(mediaBox.Width * scale)));

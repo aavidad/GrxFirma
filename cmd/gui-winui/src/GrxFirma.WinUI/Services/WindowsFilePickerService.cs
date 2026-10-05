@@ -395,6 +395,13 @@ public sealed class WindowsFilePickerService : IFilePickerService
                 ".jpg",
                 ".jpeg",
             ],
+            OpenFilePickerProfile.VeriFactuQrSource =>
+            [
+                ".png",
+                ".jpg",
+                ".jpeg",
+                ".pdf",
+            ],
             _ => throw new ArgumentOutOfRangeException(
                 nameof(profile),
                 profile,

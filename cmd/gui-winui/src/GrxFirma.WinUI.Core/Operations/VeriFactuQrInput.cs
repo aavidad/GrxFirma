@@ -23,4 +23,34 @@ public static class VeriFactuQrInput
         }
         throw new ArgumentException(null, nameof(url));
     }
+
+    // La página rasterizada viaja en una línea IPC de 4 MB y base64 añade un
+    // tercio: el mismo tope que la vista previa nativa de PDF.
+    public const int MaximumImagePayloadBytes = 2_900_000;
+
+    // true: PDF, que la aplicación rasteriza con Windows.Data.Pdf porque el
+    // motor de Windows no tiene Poppler. false: PNG o JPEG, que el motor lee
+    // de la ruta con sus propios límites. Cualquier otra ruta se rechaza.
+    public static bool IsPdfSource(string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        if (path.Length is 0 or > 32_767 || path.Any(char.IsControl) ||
+            path.Trim().Length != path.Length || !Path.IsPathFullyQualified(path))
+            throw new ArgumentException(null, nameof(path));
+        var extension = Path.GetExtension(path);
+        if (string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase)) return true;
+        string[] images = [".png", ".jpg", ".jpeg"];
+        foreach (var image in images)
+        {
+            if (string.Equals(extension, image, StringComparison.OrdinalIgnoreCase)) return false;
+        }
+        throw new ArgumentException(null, nameof(path));
+    }
+
+    public static void EnsureImagePayload(byte[] image)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        if (image.Length is 0 or > MaximumImagePayloadBytes)
+            throw new ArgumentException(null, nameof(image));
+    }
 }
