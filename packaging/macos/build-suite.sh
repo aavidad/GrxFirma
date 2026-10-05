@@ -547,7 +547,7 @@ if [[ ! -f "${desktop_plist}" ]]; then
   echo "error: la aplicacion Qt no contiene Info.plist" >&2
   exit 1
 fi
-set_plist_string "${desktop_plist}" "CFBundleIdentifier" "es.dipgra.grxfirma.desktop"
+set_plist_string "${desktop_plist}" "CFBundleIdentifier" "io.github.aavidad.grxfirma.desktop"
 set_plist_string "${desktop_plist}" "CFBundleShortVersionString" "${VERSION}"
 set_plist_string "${desktop_plist}" "CFBundleVersion" "${VERSION}"
 set_plist_string "${desktop_plist}" "LSMinimumSystemVersion" "11.0"
@@ -570,7 +570,7 @@ cat > "${APP_DIR}/Contents/Info.plist" <<EOF
 <dict>
   <key>CFBundleName</key><string>GrxFirma AfirmaURI</string>
   <key>CFBundleDisplayName</key><string>GrxFirma AfirmaURI</string>
-  <key>CFBundleIdentifier</key><string>es.dipgra.grxfirma.afirmauri</string>
+  <key>CFBundleIdentifier</key><string>io.github.aavidad.grxfirma.afirmauri</string>
   <key>CFBundleVersion</key><string>${VERSION}</string>
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
   <key>CFBundleExecutable</key><string>grxfirma-afirmauri</string>
@@ -580,7 +580,7 @@ cat > "${APP_DIR}/Contents/Info.plist" <<EOF
   <key>CFBundleURLTypes</key>
   <array>
     <dict>
-      <key>CFBundleURLName</key><string>es.dipgra.grxfirma.afirma</string>
+      <key>CFBundleURLName</key><string>io.github.aavidad.grxfirma.afirma</string>
       <key>CFBundleURLSchemes</key>
       <array><string>afirma</string></array>
     </dict>
@@ -674,12 +674,12 @@ fi
 EOF
   chmod 755 "${local_root}/Library/Application Support/GrxFirma/register-user.sh"
 
-  cat > "${local_root}/Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist" <<'EOF'
+  cat > "${local_root}/Library/LaunchAgents/io.github.aavidad.grxfirma.register-user.plist" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>es.dipgra.grxfirma.register-user</string>
+  <key>Label</key><string>io.github.aavidad.grxfirma.register-user</string>
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
@@ -692,7 +692,7 @@ EOF
 </plist>
 EOF
   if command -v plutil >/dev/null 2>&1; then
-    plutil -lint "${local_root}/Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist" >/dev/null
+    plutil -lint "${local_root}/Library/LaunchAgents/io.github.aavidad.grxfirma.register-user.plist" >/dev/null
   fi
   ln -s "/Library/Application Support/GrxFirma/grxfirma" "${local_root}/usr/local/bin/grxfirma"
 
@@ -700,6 +700,13 @@ EOF
 #!/usr/bin/env bash
 set -euo pipefail
 register_script="/Library/Application Support/GrxFirma/register-user.sh"
+# Las versiones anteriores instalaban el agente y el recibo con el
+# identificador es.dipgra.grxfirma; el nuevo agente los sustituye.
+legacy_agent="/Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist"
+if [[ -f "${legacy_agent}" && ! -L "${legacy_agent}" ]]; then
+  rm -f -- "${legacy_agent}"
+fi
+/usr/sbin/pkgutil --forget es.dipgra.grxfirma.suite >/dev/null 2>&1 || true
 console_user="$(stat -f '%Su' /dev/console 2>/dev/null || true)"
 if [[ -n "${console_user}" && "${console_user}" != "root" && "${console_user}" != "loginwindow" ]]; then
   console_home="$(dscl . -read "/Users/${console_user}" NFSHomeDirectory 2>/dev/null | awk '{print $2}')"
@@ -719,7 +726,7 @@ EOF
     --root "${local_root}"
     --scripts "${pkg_scripts_dir}"
     --ownership recommended
-    --identifier "es.dipgra.grxfirma.suite"
+    --identifier "io.github.aavidad.grxfirma.suite"
     --version "${VERSION}"
     --install-location "/"
     "${PKG_PATH}"

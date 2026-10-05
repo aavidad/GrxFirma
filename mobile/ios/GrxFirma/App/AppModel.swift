@@ -47,7 +47,7 @@ final class AppModel: ObservableObject {
             let configuration = try AppConfiguration.load()
             let repository = try DocumentRepository(configuration: configuration)
             let keychain = KeychainStore(
-                service: "es.dipgra.grxfirma.state",
+                service: "io.github.aavidad.grxfirma.state",
                 accessGroup: nil
             )
             let secureState = SecureStateStore(keychain: keychain)

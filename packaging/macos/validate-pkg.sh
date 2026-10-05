@@ -42,7 +42,7 @@ required=(
   "Library/Application Support/GrxFirma/uninstall-suite.sh"
   "Library/Application Support/GrxFirma/register-user.sh"
   "Library/Application Support/GrxFirma/extensions/grxfirma-extension-firefox.metadata.json"
-  "Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist"
+  "Library/LaunchAgents/io.github.aavidad.grxfirma.register-user.plist"
   "usr/local/bin/grxfirma"
 )
 

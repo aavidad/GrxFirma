@@ -268,7 +268,8 @@ uninstall_system() {
   local cli_target="/Library/Application Support/GrxFirma/grxfirma"
   local afirma_app="/Applications/GrxFirma AfirmaURI.app"
   local desktop_app="/Applications/GrxFirma Desktop Qt.app"
-  local launch_agent="/Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist"
+  local launch_agent="/Library/LaunchAgents/io.github.aavidad.grxfirma.register-user.plist"
+  local legacy_launch_agent="/Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist"
   local lsregister="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
   local target
 
@@ -282,6 +283,7 @@ uninstall_system() {
     "${afirma_app}"
     "${desktop_app}"
     "${launch_agent}"
+    "${legacy_launch_agent}"
   )
   for target in "${system_targets[@]}"; do
     if [[ "${target}" == "${cli_link}" ]]; then
@@ -306,7 +308,7 @@ uninstall_system() {
 
   remove_exact_tree "${afirma_app}"
   remove_exact_tree "${desktop_app}"
-  rm -f -- "${launch_agent}"
+  rm -f -- "${launch_agent}" "${legacy_launch_agent}"
   remove_exact_tree "${support}"
   echo "Payload PKG de GrxFirma desinstalado."
 }
