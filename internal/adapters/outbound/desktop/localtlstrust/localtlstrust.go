@@ -27,8 +27,14 @@ const (
 	nicknameLocalhost             = "GrxFirma localhost"
 	nicknameLocalhostRoot         = "GrxFirma Local Root CA"
 	managedLocalCAOwnershipMarker = "GrxFirma Managed Local TLS CA v1"
-	managedTrustInventorySuffix   = ".grxfirma-trust.json"
-	maxTrustPEMFileBytes          = 1024 * 1024
+	// ManagedLocalCAOrganization es la organización de las CAs locales nuevas.
+	ManagedLocalCAOrganization = "GrxFirma"
+	// legacyManagedLocalCAOrganization figura en las CAs creadas por versiones
+	// anteriores. Se sigue reconociendo para reutilizarlas, renovarlas y
+	// retirarlas al desinstalar sin dejar CAs huérfanas en los almacenes.
+	legacyManagedLocalCAOrganization = "Diputacion de Granada"
+	managedTrustInventorySuffix      = ".grxfirma-trust.json"
+	maxTrustPEMFileBytes             = 1024 * 1024
 )
 
 // EnsureTrusted instala el certificado TLS local en el almacén de confianza del sistema actual.
@@ -122,12 +128,19 @@ func IsManagedLocalCA(cert *x509.Certificate) bool {
 		!cert.IsCA ||
 		!cert.BasicConstraintsValid ||
 		cert.Subject.CommonName != nicknameLocalhostRoot ||
-		!containsExact(cert.Subject.Organization, "Diputacion de Granada") ||
+		!managedLocalCAOrganizationValid(cert.Subject.Organization) ||
 		!containsExact(cert.Subject.OrganizationalUnit, managedLocalCAOwnershipMarker) ||
 		cert.KeyUsage&x509.KeyUsageCertSign == 0 {
 		return false
 	}
 	return cert.CheckSignatureFrom(cert) == nil
+}
+
+// managedLocalCAOrganizationValid acepta la organización actual y la de las
+// CAs ya instaladas por versiones anteriores.
+func managedLocalCAOrganizationValid(values []string) bool {
+	return containsExact(values, ManagedLocalCAOrganization) ||
+		containsExact(values, legacyManagedLocalCAOrganization)
 }
 
 func containsExact(values []string, expected string) bool {

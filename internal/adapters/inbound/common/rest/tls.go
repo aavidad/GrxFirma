@@ -170,7 +170,7 @@ func EnsureLocalhostCertificate(dir, prefix string) (string, string, error) {
 		SerialNumber: big.NewInt(time.Now().UnixNano()),
 		Subject: pkix.Name{
 			CommonName:   "localhost",
-			Organization: []string{"Diputacion de Granada"},
+			Organization: []string{localtlstrust.ManagedLocalCAOrganization},
 		},
 		NotBefore:             time.Now().Add(-1 * time.Hour),
 		NotAfter:              time.Now().Add(180 * 24 * time.Hour),
@@ -236,7 +236,7 @@ func EnsureLocalhostCertificateWithLocalCA(dir, prefix string) (string, string, 
 			SerialNumber: big.NewInt(time.Now().UnixNano()),
 			Subject: pkix.Name{
 				CommonName:   "GrxFirma Local Root CA",
-				Organization: []string{"Diputacion de Granada"},
+				Organization: []string{localtlstrust.ManagedLocalCAOrganization},
 				Country:      []string{"ES"},
 			},
 			NotBefore:             time.Now().Add(-1 * time.Hour),
