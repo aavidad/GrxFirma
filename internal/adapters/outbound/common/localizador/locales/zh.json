@@ -2740,7 +2740,7 @@
   ,"revocación no concluyente": "无法核实证书吊销状态。此签名不视为有效。"
   ,"rest.verify_v2.error.limit": "v2 验证限制超出允许范围"
   ,"portal.seal.title": "在 PDF 上放置印章"
-  ,"portal.seal.instructions": "您正在使用的签名网站请您选择签名的位置。拖动印章即可移动，使用角上的圆圈调整大小，使用箭头旋转。您也可以在“精确调整”中输入位置。"
+  ,"portal.seal.instructions": "您正在使用的签名网站请您选择签名的位置。拖动印章即可移动，使用右下角调整大小，使用带箭头的圆圈（↻）旋转。您也可以在“精确调整”中输入位置。"
   ,"portal.seal.fine_tune": "精确调整"
   ,"portal.seal.page": "第 %1 页，共 %2 页"
   ,"portal.seal.previous_page": "上一页"

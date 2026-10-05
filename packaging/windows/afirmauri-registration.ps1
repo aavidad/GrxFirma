@@ -456,6 +456,153 @@ function Write-AfirmaProtocolSnapshot {
     }
 }
 
+# Nombres de icono que versiones publicadas anteriores copiaron junto al
+# ejecutable y registraron en DefaultIcon. Hasta la 0.0.118 era
+# grxfirma-diputacion.ico; las versiones sin icono propio usaban el propio
+# ejecutable, que se acepta siempre.
+$script:AfirmaLegacyIconFileNames = @(
+    "grxfirma-diputacion.ico"
+)
+
+function New-AfirmaProtocolOwnerSet {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$Plan
+    )
+
+    return [pscustomobject]@{
+        OwnerValues = @($Plan | ForEach-Object {
+            New-AfirmaOwnedValueSnapshot -Plan $_
+        })
+    }
+}
+
+function Get-AfirmaProtocolLegacyOwnerSets {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProtocolKey,
+        [Parameter(Mandatory = $true)]
+        [string]$ExecutablePath,
+        [string]$IconPath = ""
+    )
+
+    # Solo cambia DefaultIcon y siempre dentro de la carpeta del ejecutable
+    # actual. La orden shell\open\command sigue siendo la del ejecutable
+    # instalado, así que no se acepta ningún valor de otra ruta o producto.
+    $separatorIndex = $ExecutablePath.LastIndexOfAny([char[]]@('\', '/'))
+    if ($separatorIndex -le 0) {
+        throw "La ruta del ejecutable de afirma:// no es absoluta."
+    }
+    $installDir = $ExecutablePath.Substring(0, $separatorIndex)
+    $candidateIcons = @("") + @(
+        $script:AfirmaLegacyIconFileNames | ForEach-Object {
+            "$installDir\$_"
+        }
+    )
+
+    $currentSet = New-AfirmaProtocolOwnerSet -Plan @(
+        Get-AfirmaProtocolRegistrationPlan `
+            -ProtocolKey $ProtocolKey `
+            -ExecutablePath $ExecutablePath `
+            -IconPath $IconPath
+    )
+    $sets = @()
+    foreach ($candidateIcon in $candidateIcons) {
+        $candidateSet = New-AfirmaProtocolOwnerSet -Plan @(
+            Get-AfirmaProtocolRegistrationPlan `
+                -ProtocolKey $ProtocolKey `
+                -ExecutablePath $ExecutablePath `
+                -IconPath $candidateIcon
+        )
+        if (Test-AfirmaRegistrySnapshotsEqual `
+                -Left $candidateSet.OwnerValues[2] `
+                -Right $currentSet.OwnerValues[2]) {
+            continue
+        }
+        $sets += $candidateSet
+    }
+    return $sets
+}
+
+function Assert-AfirmaProtocolLegacyOwnerSets {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$Plan,
+        [object[]]$OwnerSets = @()
+    )
+
+    foreach ($ownerSet in @($OwnerSets)) {
+        $owners = @($ownerSet.OwnerValues)
+        if ($owners.Count -ne $Plan.Count) {
+            throw "El plan de migracion del protocolo afirma:// esta incompleto."
+        }
+        for ($index = 0; $index -lt $Plan.Count; $index++) {
+            $expected = New-AfirmaOwnedValueSnapshot -Plan $Plan[$index]
+            if (-not [string]::Equals(
+                    [string]$owners[$index].Path,
+                    [string]$expected.Path,
+                    [System.StringComparison]::OrdinalIgnoreCase
+                ) -or
+                -not [string]::Equals(
+                    [string]$owners[$index].Name,
+                    [string]$expected.Name,
+                    [System.StringComparison]::Ordinal
+                ) -or
+                -not [bool]$owners[$index].ValueExisted -or
+                [string]$owners[$index].Kind -ne
+                    [Microsoft.Win32.RegistryValueKind]::String.ToString()) {
+                throw "El plan de migracion del protocolo afirma:// no es valido."
+            }
+            # Solo DefaultIcon puede diferir del plan actual.
+            if ($index -ne 2 -and
+                -not (Test-AfirmaRegistrySnapshotsEqual `
+                    -Left $owners[$index] `
+                    -Right $expected)) {
+                throw "El plan de migracion del protocolo afirma:// cambia valores distintos del icono."
+            }
+        }
+    }
+}
+
+function Test-AfirmaOwnerValuesMatchSet {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$Values,
+        [Parameter(Mandatory = $true)]
+        [object[]]$OwnerValues
+    )
+
+    if ($Values.Count -ne $OwnerValues.Count) {
+        return $false
+    }
+    for ($index = 0; $index -lt $Values.Count; $index++) {
+        if (-not (Test-AfirmaRegistrySnapshotsEqual `
+                -Left $Values[$index] `
+                -Right $OwnerValues[$index])) {
+            return $false
+        }
+    }
+    return $true
+}
+
+function Find-AfirmaMatchingOwnerSet {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$Values,
+        [Parameter(Mandatory = $true)]
+        [object[]]$OwnerSets
+    )
+
+    foreach ($ownerSet in $OwnerSets) {
+        if (Test-AfirmaOwnerValuesMatchSet `
+                -Values $Values `
+                -OwnerValues @($ownerSet.OwnerValues)) {
+            return $ownerSet
+        }
+    }
+    return $null
+}
+
 function Read-AfirmaProtocolSnapshot {
     param(
         [Parameter(Mandatory = $true)]
@@ -464,14 +611,11 @@ function Read-AfirmaProtocolSnapshot {
         [string]$ProtocolKey,
         [Parameter(Mandatory = $true)]
         [object[]]$Plan,
-        [object[]]$AcceptedLegacyOwnerValues = @()
+        [object[]]$AcceptedLegacyOwnerSets = @()
     )
 
-    $legacyOwners = @($AcceptedLegacyOwnerValues)
-    if ($legacyOwners.Count -ne 0 -and
-        $legacyOwners.Count -ne $Plan.Count) {
-        throw "El plan de migracion del protocolo afirma:// esta incompleto."
-    }
+    $legacySets = @($AcceptedLegacyOwnerSets)
+    Assert-AfirmaProtocolLegacyOwnerSets -Plan $Plan -OwnerSets $legacySets
 
     $file = Get-Item -LiteralPath $Path -ErrorAction Stop
     if ($file.Length -gt 1048576) {
@@ -497,8 +641,6 @@ function Read-AfirmaProtocolSnapshot {
     if ($owners.Count -ne $Plan.Count -or $snapshots.Count -ne $Plan.Count) {
         throw "La instantanea del protocolo afirma:// esta incompleta."
     }
-    $matchesCurrentOwner = $true
-    $matchesLegacyOwner = $legacyOwners.Count -eq $Plan.Count
     for ($index = 0; $index -lt $Plan.Count; $index++) {
         foreach ($record in @($owners[$index], $snapshots[$index])) {
             if (-not [string]::Equals(
@@ -519,18 +661,6 @@ function Read-AfirmaProtocolSnapshot {
                 [Microsoft.Win32.RegistryValueKind]::String.ToString()) {
             throw "La instantanea del protocolo afirma:// contiene un marcador de propiedad no valido."
         }
-        $expectedOwner = New-AfirmaOwnedValueSnapshot -Plan $Plan[$index]
-        if (-not (Test-AfirmaRegistrySnapshotsEqual `
-                -Left $owners[$index] `
-                -Right $expectedOwner)) {
-            $matchesCurrentOwner = $false
-        }
-        if ($matchesLegacyOwner -and
-            -not (Test-AfirmaRegistrySnapshotsEqual `
-                -Left $owners[$index] `
-                -Right $legacyOwners[$index])) {
-            $matchesLegacyOwner = $false
-        }
         if ([bool]$snapshots[$index].ValueExisted) {
             try {
                 ConvertFrom-AfirmaSnapshotValue -Snapshot $snapshots[$index] |
@@ -540,7 +670,11 @@ function Read-AfirmaProtocolSnapshot {
             }
         }
     }
-    if (-not $matchesCurrentOwner -and -not $matchesLegacyOwner) {
+
+    $acceptedSets = @(New-AfirmaProtocolOwnerSet -Plan $Plan) + $legacySets
+    if ($null -eq (Find-AfirmaMatchingOwnerSet `
+            -Values $owners `
+            -OwnerSets $acceptedSets)) {
         throw "La instantanea del protocolo afirma:// no pertenece a este ejecutable."
     }
     return [pscustomobject]@{
@@ -576,28 +710,22 @@ function Install-AfirmaProtocolRegistration {
         [string]$ExecutablePath,
         [string]$IconPath = "",
         [Parameter(Mandatory = $true)]
-        [string]$SnapshotPath
+        [string]$SnapshotPath,
+        # Comprueba la propiedad sin escribir registro ni instantánea.
+        [switch]$ValidateOnly
     )
 
     $plan = @(Get-AfirmaProtocolRegistrationPlan `
         -ProtocolKey $ProtocolKey `
         -ExecutablePath $ExecutablePath `
         -IconPath $IconPath)
-    $ownerValues = @($plan | ForEach-Object {
-        New-AfirmaOwnedValueSnapshot -Plan $_
-    })
-    $legacyPlan = @(Get-AfirmaProtocolRegistrationPlan `
+    $currentSet = New-AfirmaProtocolOwnerSet -Plan $plan
+    $ownerValues = @($currentSet.OwnerValues)
+    $legacySets = @(Get-AfirmaProtocolLegacyOwnerSets `
         -ProtocolKey $ProtocolKey `
-        -ExecutablePath $ExecutablePath)
-    $legacyOwnerValues = @($legacyPlan | ForEach-Object {
-        New-AfirmaOwnedValueSnapshot -Plan $_
-    })
-    $acceptedLegacyOwnerValues = @()
-    if (-not (Test-AfirmaRegistrySnapshotsEqual `
-            -Left $ownerValues[2] `
-            -Right $legacyOwnerValues[2])) {
-        $acceptedLegacyOwnerValues = $legacyOwnerValues
-    }
+        -ExecutablePath $ExecutablePath `
+        -IconPath $IconPath)
+    $acceptedSets = @($currentSet) + $legacySets
     $currentValues = @($plan | ForEach-Object {
         Get-AfirmaRegistryValueSnapshot `
             -Path ([string]$_.Path) `
@@ -612,11 +740,23 @@ function Install-AfirmaProtocolRegistration {
             -Path $SnapshotPath `
             -ProtocolKey $ProtocolKey `
             -Plan $plan `
-            -AcceptedLegacyOwnerValues $acceptedLegacyOwnerValues
+            -AcceptedLegacyOwnerSets $legacySets
         for ($index = 0; $index -lt $plan.Count; $index++) {
             $knownOwner = Test-AfirmaRegistrySnapshotsEqual `
                 -Left $currentValues[$index] `
                 -Right $state.OwnerValues[$index]
+            if (-not $knownOwner) {
+                # Un valor que escribió esta misma instalación en otra
+                # versión (por ejemplo, el icono anterior) sigue siendo propio.
+                foreach ($acceptedSet in $acceptedSets) {
+                    if (Test-AfirmaRegistrySnapshotsEqual `
+                            -Left $currentValues[$index] `
+                            -Right $acceptedSet.OwnerValues[$index]) {
+                        $knownOwner = $true
+                        break
+                    }
+                }
+            }
             $knownPrevious = Test-AfirmaRegistrySnapshotsEqual `
                 -Left $currentValues[$index] `
                 -Right $state.Snapshots[$index]
@@ -626,22 +766,20 @@ function Install-AfirmaProtocolRegistration {
         }
         $originalValues = @($state.Snapshots)
     } else {
-        $legacyOwned = $true
-        for ($index = 0; $index -lt $plan.Count; $index++) {
-            if (-not (Test-AfirmaRegistrySnapshotsEqual `
-                    -Left $currentValues[$index] `
-                    -Right $ownerValues[$index])) {
-                $legacyOwned = $false
-                break
-            }
-        }
-        if ($legacyOwned) {
+        $ownedSet = Find-AfirmaMatchingOwnerSet `
+            -Values $currentValues `
+            -OwnerSets $acceptedSets
+        if ($null -ne $ownedSet) {
             $originalValues = @($plan | ForEach-Object {
                 New-AfirmaAbsentValueSnapshot -Plan $_
             })
         } else {
             $originalValues = @($currentValues)
         }
+    }
+
+    if ($ValidateOnly) {
+        return
     }
 
     Write-AfirmaProtocolSnapshot `

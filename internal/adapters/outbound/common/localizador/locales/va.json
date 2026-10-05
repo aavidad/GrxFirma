@@ -2740,7 +2740,7 @@
   ,"revocación no concluyente": "No s’ha pogut comprovar la revocació del certificat. La signatura no es considera vàlida."
   ,"rest.verify_v2.error.limit": "El límit de verificació v2 està fora de l’interval permés"
   ,"portal.seal.title": "Col·locar el segell en el PDF"
-  ,"portal.seal.instructions": "La web des de la qual signeu vos demana que trieu on va la signatura. Arrossegueu el segell per a moure’l, useu el cercle del cantó per a canviar-ne la grandària i la fletxa per a girar-lo. També podeu escriure la posició en «Ajust precís»."
+  ,"portal.seal.instructions": "La web des de la qual signeu vos demana que trieu on va la signatura. Arrossegueu el segell per a moure’l, useu el cantó inferior dret per a canviar-ne la grandària i el cercle amb la fletxa (↻) per a girar-lo. També podeu escriure la posició en «Ajust precís»."
   ,"portal.seal.fine_tune": "Ajust precís"
   ,"portal.seal.page": "Pàgina %1 de %2"
   ,"portal.seal.previous_page": "Pàgina anterior"
