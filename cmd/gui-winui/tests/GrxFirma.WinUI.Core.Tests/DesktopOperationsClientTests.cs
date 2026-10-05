@@ -815,7 +815,11 @@ public sealed class DesktopOperationsClientTests
             "organizacion",
             "nif",
             "caducado",
-            "diasCaducidad");
+            "diasCaducidad",
+            "remote",
+            "remotePin",
+            "remoteOtp",
+            "remoteOtpOnline");
         AssertJsonPropertyNames<ValidateCertificateOnlineParameters>(
             "certificateId");
         AssertJsonPropertyNames<CertificateOnlineValidationResult>(

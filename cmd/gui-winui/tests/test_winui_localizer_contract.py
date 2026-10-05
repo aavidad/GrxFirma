@@ -184,7 +184,7 @@ def is_machine_literal(path, value):
     if (re.fullmatch(r"[A-Z][A-Z0-9_]*_[A-Z0-9_]+", value)
             or re.fullmatch(r"(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])", value)
             or re.fullmatch(r"[a-z0-9]+(?:[-_][a-z0-9]+)+", value)
-            or value.startswith(("eni.", "exp.", "winui.", "phase:"))
+            or value.startswith(("eni.", "exp.", "winui.", "csc.", "phase:"))
             or value.endswith(("Brush", "Style"))):
         return True
     return False

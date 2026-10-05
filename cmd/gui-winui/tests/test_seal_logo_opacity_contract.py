@@ -29,7 +29,7 @@ class SealLogoOpacityContractTests(unittest.TestCase):
         self.assertEqual(slider.get("Minimum"), "0")
         self.assertEqual(slider.get("Maximum"), "100")
         self.assertEqual(slider.get("StepFrequency"), "1")
-        self.assertEqual(slider.get("TabIndex"), "24")
+        self.assertEqual(slider.get("TabIndex"), "25")
         self.assertIn("VisibleSealLogoOpacityLabel", slider.get("Header", ""))
         self.assertIn(
             "VisibleSealLogoOpacityLabel",
