@@ -394,6 +394,11 @@ func posicionSelloElegida(options map[string]string, pos string, pdfData []byte)
 		n = total + n + 1
 	}
 	x0, y0, x1, y1 := cajaPagina(r.Page(n))
+	if g := giroPagina(r.Page(n)); g == 90 || g == 270 {
+		// Las esquinas se refieren a la página tal como se ve; las coordenadas
+		// de AutoFirma Java en una página girada usan la caja girada.
+		x0, y0, x1, y1 = y0, x0, y1, x1
+	}
 	ancho, alto := math.Min(anchoSelloElegido, x1-x0-2*margenSelloElegido), altoSelloElegido
 	if ancho <= 0 || y1-y0 < alto+2*margenSelloElegido {
 		return nil, fmt.Errorf("la página %d es demasiado pequeña para el sello", n)

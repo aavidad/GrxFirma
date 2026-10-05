@@ -124,6 +124,11 @@ func firmarPAdESConPdfsign(doc domain.Document, clave *ClaveLocal, options map[s
 		if boxErr != nil {
 			return domain.SignatureResult{}, boxErr
 		}
+		if g := giroPagina(r.Page(page)); g == 90 || g == 270 {
+			// Caja de la página tal como se ve. ajustarSelloAPaginasGiradas
+			// lleva después el sello a la página sin girar.
+			x0, y0, x1, y1 = y0, x0, y1, x1
+		}
 		options["visibleSealPageWidth"] = strconv.FormatFloat(x1-x0, 'f', -1, 64)
 		options["visibleSealPageHeight"] = strconv.FormatFloat(y1-y0, 'f', -1, 64)
 		options["visibleSealPageX"] = strconv.FormatFloat(x0, 'f', -1, 64)
@@ -152,6 +157,9 @@ func firmarPAdESConPdfsign(doc domain.Document, clave *ClaveLocal, options map[s
 		CertificateChains: construirCadenaPdfsign(clave),
 	}
 	if err := aplicarOpcionesAparienciaPdfsign(&signData, options); err != nil {
+		return domain.SignatureResult{}, err
+	}
+	if err := ajustarSelloAPaginasGiradas(&signData, options, doc.Content); err != nil {
 		return domain.SignatureResult{}, err
 	}
 	if err := aplicarPosicionesSello(&signData, options, doc.Content); err != nil {
