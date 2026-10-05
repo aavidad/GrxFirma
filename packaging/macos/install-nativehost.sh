@@ -178,8 +178,7 @@ for dir in "$MANIFEST_DIR_CHROME" "$MANIFEST_DIR_CHROMIUM" "$MANIFEST_DIR_EDGE" 
   write_chrome_manifest \
     "$dir/io.github.aavidad.portafirmas.json" \
     "io.github.aavidad.portafirmas" \
-    "chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/" \
-    "chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"
+    "chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"
 done
 
 write_firefox_manifest "$MANIFEST_DIR_FIREFOX/com.grxfirma.native.json" "com.grxfirma.native" "grxfirma@aavidad.github.io"

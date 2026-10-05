@@ -39,7 +39,6 @@ var (
 	builtinChromiumExtensionIDs = []string{
 		officialChromiumExtensionID,
 		"ipkpimgjhkjibkbhfdhggjldlaetbcoa",
-		"knldjmfmopnpolahpmmgbagdohdnhkik",
 	}
 )
 

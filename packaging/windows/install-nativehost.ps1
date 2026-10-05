@@ -687,8 +687,7 @@ $hosts = @(
     @{
         Name = "io.github.aavidad.portafirmas"
         ChromeOrigins = @(
-            "chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/",
-            "chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"
+            "chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"
         )
         FirefoxExtensions = @("portafirmas@dipgra.es")
     }

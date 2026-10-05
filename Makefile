@@ -315,7 +315,7 @@ bridge-user: install-user
 	            "$(USERLIBDIR)" > "$$dir/com.grxfirma.native.json"; \
 	        printf '{\n  "name": "io.github.aavidad.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://$(CHROME_EXT_ID)/"]\n}\n' \
 	            "$(USERLIBDIR)" > "$$dir/io.github.aavidad.grxfirma.json"; \
-	        printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/","chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"]\n}\n' \
+	        printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"]\n}\n' \
 	            "$(USERLIBDIR)" > "$$dir/io.github.aavidad.portafirmas.json"; \
 	        rm -f "$$dir/com.dipgra.grxfirma.json" "$$dir/com.dipgra.portafirmas.json"; \
 	        echo "  Manifest instalado en $$dir"; \

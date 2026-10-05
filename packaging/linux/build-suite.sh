@@ -737,7 +737,7 @@ for dir in \
 do
   write_chrome_manifest "${dir}/com.grxfirma.native.json" "com.grxfirma.native" "${CHROMIUM_ALLOWED_ORIGINS}"
   write_chrome_manifest "${dir}/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${CHROMIUM_ALLOWED_ORIGINS}"
-  write_chrome_manifest "${dir}/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" '"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/","chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"'
+  write_chrome_manifest "${dir}/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" '"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"'
 done
 
 write_firefox_manifest "${PKG_ROOT}/usr/lib/mozilla/native-messaging-hosts/com.grxfirma.native.json" "com.grxfirma.native" '"grxfirma@aavidad.github.io"'

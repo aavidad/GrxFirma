@@ -218,3 +218,13 @@ func writeTestFile(t *testing.T, path string, content []byte, mode os.FileMode) 
 		t.Fatalf("escribir %s: %v", path, err)
 	}
 }
+
+// El ID del ejemplo público de Native Messaging de Chrome lo puede reproducir
+// cualquiera con la clave publicada; nunca debe estar autorizado.
+func TestBuiltinChromiumIDsExcludePublicExampleID(t *testing.T) {
+	for _, id := range builtinChromiumExtensionIDs {
+		if id == "knldjmfmopnpolahpmmgbagdohdnhkik" {
+			t.Fatalf("el ID de ejemplo público de Chrome no puede estar autorizado")
+		}
+	}
+}
