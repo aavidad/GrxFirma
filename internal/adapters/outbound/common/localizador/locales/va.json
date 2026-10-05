@@ -4935,7 +4935,7 @@
   ,"csc.error.no_configurada": "Comproveu primer el servici de firma remota."
   ,"csc.error.no_conectada": "La sessió amb el servici de firma remota s'ha tancat. Torneu a connectar."
   ,"csc.error.pares_oauth_invalidos": "La llista firma_remota_csc_oauth_permitidos té una entrada mal escrita. Aviseu qui administra l'equip informàtic."
-  ,"csc.error.otp_lote": "Este certificat remot demana un codi d'un sol ús per a cada firma. Firmeu els documents d'un en un."
+  ,"csc.error.otp_lote": "El vostre prestador no permet autoritzar diverses firmes amb un mateix codi d'un sol ús. Firmeu els documents d'un en un."
   ,"csc.error.secreto_no_pedido": "Falta el PIN o el codi d'un sol ús, o s'ha enviat per a un certificat que no és remot. Torneu a firmar i escriviu-los quan es demanen."
   ,"csc.gui.titulo": "Firma remota"
   ,"csc.gui.descripcion": "Firmeu amb un certificat que guarda un prestador de confiança. De l'equip només ix el resum del document, mai el document."
@@ -4974,4 +4974,9 @@
   ,"verifactu.qr_timeout": "La busca del QR ha superat el temps màxim. Proveu amb una imatge més xicoteta o retallada."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu i cotejar-qr-verifactu accepten en -entrada l’URL del QR o un fitxer PNG, JPEG o PDF."
   ,"eni.error.signature_mismatch": "La firma no correspon al document original o el document s'ha modificat després de firmar-lo. Comproveu que heu triat l'original correcte."
+  ,"csc.error.sesion_caducada": "La sessió amb el prestador ha caducat. Torneu a connectar amb el servici de firma remota per a continuar firmant."
+  ,"csc.error.oauth_metadatos": "El servidor d'autorització del prestador no publica una configuració vàlida. Aviseu el vostre prestador."
+  ,"csc.error.lote_repetido": "Un document del lot ha necessitat una segona firma i l'autorització del lot ja s'havia utilitzat. Torneu a firmar eixe document."
+  ,"csc.error.lote_mixto": "Els documents del lot necessiten algorismes de firma diferents i no es poden autoritzar junts. Firmeu-los en lots separats."
+  ,"csc.error.otp_lote_excede": "El lot té més documents dels que el vostre prestador permet autoritzar amb un sol codi. Dividiu-lo en lots més xicotets."
 }

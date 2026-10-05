@@ -4935,7 +4935,7 @@
   ,"csc.error.no_configurada": "Egiaztatu lehenik urruneko sinadura-zerbitzua."
   ,"csc.error.no_conectada": "Urruneko sinadura-zerbitzuarekiko saioa itxi da. Konektatu berriro."
   ,"csc.error.pares_oauth_invalidos": "firma_remota_csc_oauth_permitidos zerrendak gaizki idatzitako sarrera bat du. Jakinarazi ordenagailua kudeatzen duenari."
-  ,"csc.error.otp_lote": "Urruneko ziurtagiri honek erabilera bakarreko kode bat eskatzen du sinadura bakoitzeko. Sinatu dokumentuak banan-banan."
+  ,"csc.error.otp_lote": "Zure hornitzaileak ez du uzten erabilera bakarreko kode berarekin hainbat sinadura baimentzen. Sinatu dokumentuak banan-banan."
   ,"csc.error.secreto_no_pedido": "PINa edo erabilera bakarreko kodea falta da, edo urrunekoa ez den ziurtagiri baterako bidali da. Sinatu berriro eta idatzi eskatzen direnean."
   ,"csc.gui.titulo": "Urruneko sinadura"
   ,"csc.gui.descripcion": "Sinatu konfiantzazko zerbitzu-emaile batek gordetzen duen ziurtagiriarekin. Ordenagailutik dokumentuaren laburpena bakarrik ateratzen da, inoiz ez dokumentua."
@@ -4974,4 +4974,9 @@
   ,"verifactu.qr_timeout": "QRaren bilaketak gehieneko denbora gainditu du. Saiatu irudi txikiago edo moztu batekin."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu eta cotejar-qr-verifactu aukerek QRaren URLa edo PNG, JPEG edo PDF fitxategi bat onartzen dute -entrada aukeran."
   ,"eni.error.signature_mismatch": "Sinadura ez dator bat jatorrizko dokumentuarekin, edo dokumentua sinatu ondoren aldatu da. Egiaztatu jatorrizko dokumentu zuzena aukeratu duzula."
+  ,"csc.error.sesion_caducada": "Hornitzailearekiko saioa iraungi da. Konektatu berriro urruneko sinadura-zerbitzuarekin sinatzen jarraitzeko."
+  ,"csc.error.oauth_metadatos": "Hornitzailearen baimen-zerbitzariak ez du konfigurazio baliodunik argitaratzen. Jakinarazi zure hornitzaileari."
+  ,"csc.error.lote_repetido": "Sortako dokumentu batek bigarren sinadura bat behar izan du, eta sortaren baimena erabilita zegoen. Sinatu berriro dokumentu hori."
+  ,"csc.error.lote_mixto": "Sortako dokumentuek sinadura-algoritmo desberdinak behar dituzte eta ezin dira batera baimendu. Sinatu itzazu sorta bereizietan."
+  ,"csc.error.otp_lote_excede": "Sortak zure hornitzaileak kode bakar batekin baimentzen uzten duena baino dokumentu gehiago ditu. Zatitu sorta txikiagoetan."
 }

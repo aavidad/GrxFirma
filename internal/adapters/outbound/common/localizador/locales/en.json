@@ -4935,7 +4935,7 @@
   ,"csc.error.no_configurada": "Check the remote signing service first."
   ,"csc.error.no_conectada": "The session with the remote signing service has ended. Connect again."
   ,"csc.error.pares_oauth_invalidos": "The firma_remota_csc_oauth_permitidos list has a malformed entry. Tell whoever manages this computer."
-  ,"csc.error.otp_lote": "This remote certificate asks for a one-time code for each signature. Sign the documents one at a time."
+  ,"csc.error.otp_lote": "Your provider does not allow several signatures to be authorised with the same one-time code. Sign the documents one at a time."
   ,"csc.error.secreto_no_pedido": "The PIN or one-time code is missing, or it was sent for a certificate that is not remote. Sign again and enter them when asked."
   ,"csc.gui.titulo": "Remote signing"
   ,"csc.gui.descripcion": "Sign with a certificate kept by a trust service provider. Only the document digest leaves this computer, never the document."
@@ -4974,4 +4974,9 @@
   ,"verifactu.qr_timeout": "The QR search took longer than allowed. Try a smaller or cropped image."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu and cotejar-qr-verifactu accept in -entrada the QR URL or a PNG, JPEG or PDF file."
   ,"eni.error.signature_mismatch": "The signature does not match the original document, or the document was changed after it was signed. Check that you chose the correct original."
+  ,"csc.error.sesion_caducada": "The session with the provider has expired. Connect to the remote signing service again to keep signing."
+  ,"csc.error.oauth_metadatos": "The provider's authorisation server does not publish a valid configuration. Let your provider know."
+  ,"csc.error.lote_repetido": "A document in the batch needed a second signature and the batch authorisation had already been used. Sign that document again."
+  ,"csc.error.lote_mixto": "The documents in the batch need different signature algorithms and cannot be authorised together. Sign them in separate batches."
+  ,"csc.error.otp_lote_excede": "The batch has more documents than your provider allows to authorise with a single code. Split it into smaller batches."
 }

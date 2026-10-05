@@ -4935,7 +4935,7 @@
   ,"csc.error.no_configurada": "Verifichi prima il servizio di firma remota."
   ,"csc.error.no_conectada": "La sessione con il servizio di firma remota si è chiusa. Si colleghi di nuovo."
   ,"csc.error.pares_oauth_invalidos": "L'elenco firma_remota_csc_oauth_permitidos contiene una voce scritta male. Avvisi chi amministra il computer."
-  ,"csc.error.otp_lote": "Questo certificato remoto chiede un codice monouso per ogni firma. Firmi i documenti uno alla volta."
+  ,"csc.error.otp_lote": "Il suo prestatore non consente di autorizzare più firme con lo stesso codice monouso. Firmi i documenti uno alla volta."
   ,"csc.error.secreto_no_pedido": "Manca il PIN o il codice monouso, oppure è stato inviato per un certificato che non è remoto. Firmi di nuovo e li inserisca quando richiesti."
   ,"csc.gui.titulo": "Firma remota"
   ,"csc.gui.descripcion": "Firmi con un certificato custodito da un prestatore di fiducia. Dal computer esce solo l'impronta del documento, mai il documento."
@@ -4974,4 +4974,9 @@
   ,"verifactu.qr_timeout": "La ricerca del QR ha superato il tempo massimo. Provi con un’immagine più piccola o ritagliata."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu e cotejar-qr-verifactu accettano in -entrada l’URL del QR o un file PNG, JPEG o PDF."
   ,"eni.error.signature_mismatch": "La firma non corrisponde al documento originale oppure il documento è stato modificato dopo la firma. Verifichi di aver scelto l'originale corretto."
+  ,"csc.error.sesion_caducada": "La sessione con il prestatore è scaduta. Si colleghi di nuovo al servizio di firma remota per continuare a firmare."
+  ,"csc.error.oauth_metadatos": "Il server di autorizzazione del prestatore non pubblica una configurazione valida. Avvisi il suo prestatore."
+  ,"csc.error.lote_repetido": "Un documento del lotto ha richiesto una seconda firma quando l'autorizzazione del lotto era già stata usata. Firmi di nuovo quel documento."
+  ,"csc.error.lote_mixto": "I documenti del lotto richiedono algoritmi di firma diversi e non si possono autorizzare insieme. Li firmi in lotti separati."
+  ,"csc.error.otp_lote_excede": "Il lotto contiene più documenti di quanti il suo prestatore consenta di autorizzare con un solo codice. Lo divida in lotti più piccoli."
 }

@@ -4935,7 +4935,7 @@
   ,"csc.error.no_configurada": "Verifique primeiro o serviço de assinatura remota."
   ,"csc.error.no_conectada": "A sessão com o serviço de assinatura remota terminou. Volte a ligar."
   ,"csc.error.pares_oauth_invalidos": "A lista firma_remota_csc_oauth_permitidos tem uma entrada mal escrita. Avise quem administra o computador."
-  ,"csc.error.otp_lote": "Este certificado remoto pede um código de utilização única para cada assinatura. Assine os documentos um de cada vez."
+  ,"csc.error.otp_lote": "O seu prestador não permite autorizar várias assinaturas com o mesmo código de utilização única. Assine os documentos um de cada vez."
   ,"csc.error.secreto_no_pedido": "Falta o PIN ou o código de utilização única, ou foi enviado para um certificado que não é remoto. Assine novamente e escreva-os quando forem pedidos."
   ,"csc.gui.titulo": "Assinatura remota"
   ,"csc.gui.descripcion": "Assine com um certificado guardado por um prestador de confiança. Do computador só sai o resumo do documento, nunca o documento."
@@ -4974,4 +4974,9 @@
   ,"verifactu.qr_timeout": "A procura do QR excedeu o tempo máximo. Experimente uma imagem mais pequena ou recortada."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu e cotejar-qr-verifactu aceitam em -entrada o URL do QR ou um ficheiro PNG, JPEG ou PDF."
   ,"eni.error.signature_mismatch": "A assinatura não corresponde ao documento original ou o documento foi alterado depois de assinado. Verifique se escolheu o original correto."
+  ,"csc.error.sesion_caducada": "A sessão com o prestador expirou. Volte a ligar-se ao serviço de assinatura remota para continuar a assinar."
+  ,"csc.error.oauth_metadatos": "O servidor de autorização do prestador não publica uma configuração válida. Avise o seu prestador."
+  ,"csc.error.lote_repetido": "Um documento do lote precisou de uma segunda assinatura e a autorização do lote já tinha sido usada. Volte a assinar esse documento."
+  ,"csc.error.lote_mixto": "Os documentos do lote precisam de algoritmos de assinatura diferentes e não podem ser autorizados em conjunto. Assine-os em lotes separados."
+  ,"csc.error.otp_lote_excede": "O lote tem mais documentos do que o seu prestador permite autorizar com um só código. Divida-o em lotes mais pequenos."
 }

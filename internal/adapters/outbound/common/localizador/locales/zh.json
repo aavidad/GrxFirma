@@ -4935,7 +4935,7 @@
   ,"csc.error.no_configurada": "请先检查远程签名服务。"
   ,"csc.error.no_conectada": "与远程签名服务的会话已结束。请重新连接。"
   ,"csc.error.pares_oauth_invalidos": "firma_remota_csc_oauth_permitidos 列表中有格式错误的条目。请告知此计算机的管理员。"
-  ,"csc.error.otp_lote": "此远程证书每次签名都需要一次性验证码。请逐个签署文档。"
+  ,"csc.error.otp_lote": "您的服务提供方不允许用同一个一次性验证码授权多个签名。请逐个签署文档。"
   ,"csc.error.secreto_no_pedido": "缺少 PIN 或一次性验证码，或者它被发送给了非远程证书。请重新签名，并在提示时输入。"
   ,"csc.gui.titulo": "远程签名"
   ,"csc.gui.descripcion": "使用由可信服务商保管的证书签名。离开本机的只有文档摘要，绝不是文档本身。"
@@ -4974,4 +4974,9 @@
   ,"verifactu.qr_timeout": "查找二维码超过了最长时间。请尝试更小或裁剪过的图像。"
   ,"verifactu.cli_qr_input": "leer-qr-verifactu 和 cotejar-qr-verifactu 的 -entrada 参数接受二维码 URL 或 PNG、JPEG、PDF 文件。"
   ,"eni.error.signature_mismatch": "签名与原始文档不符，或文档在签名后已被修改。请确认您选择了正确的原始文档。"
+  ,"csc.error.sesion_caducada": "与服务提供方的会话已过期。请重新连接远程签名服务以继续签名。"
+  ,"csc.error.oauth_metadatos": "服务提供方的授权服务器没有发布有效的配置。请告知您的服务提供方。"
+  ,"csc.error.lote_repetido": "批处理中的某个文档需要第二次签名，但该批次的授权已经用过。请重新签署该文档。"
+  ,"csc.error.lote_mixto": "批处理中的文档需要不同的签名算法，无法一起授权。请分批签署。"
+  ,"csc.error.otp_lote_excede": "该批次的文档数量超过了您的服务提供方允许用一个验证码授权的数量。请拆分成更小的批次。"
 }

@@ -4935,7 +4935,7 @@
   ,"csc.error.no_configurada": "Prüfen Sie zuerst den Fernsignaturdienst."
   ,"csc.error.no_conectada": "Die Sitzung mit dem Fernsignaturdienst wurde beendet. Verbinden Sie sich erneut."
   ,"csc.error.pares_oauth_invalidos": "Die Liste firma_remota_csc_oauth_permitidos enthält einen fehlerhaften Eintrag. Wenden Sie sich an die Verwaltung dieses Computers."
-  ,"csc.error.otp_lote": "Dieses Fernzertifikat verlangt für jede Signatur einen Einmalcode. Signieren Sie die Dokumente einzeln."
+  ,"csc.error.otp_lote": "Ihr Anbieter erlaubt nicht, mehrere Signaturen mit demselben Einmalcode zu autorisieren. Signieren Sie die Dokumente einzeln."
   ,"csc.error.secreto_no_pedido": "PIN oder Einmalcode fehlen oder wurden für ein Zertifikat gesendet, das kein Fernzertifikat ist. Signieren Sie erneut und geben Sie sie bei Aufforderung ein."
   ,"csc.gui.titulo": "Fernsignatur"
   ,"csc.gui.descripcion": "Signieren Sie mit einem Zertifikat, das ein Vertrauensdiensteanbieter verwahrt. Nur der Hashwert verlässt den Computer, nie das Dokument."
@@ -4974,4 +4974,9 @@
   ,"verifactu.qr_timeout": "Die Suche nach dem QR-Code hat die Höchstzeit überschritten. Versuchen Sie ein kleineres oder zugeschnittenes Bild."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu und cotejar-qr-verifactu akzeptieren in -entrada die QR-URL oder eine PNG-, JPEG- oder PDF-Datei."
   ,"eni.error.signature_mismatch": "Die Signatur passt nicht zum Originaldokument, oder das Dokument wurde nach der Signatur geändert. Prüfen Sie, ob Sie das richtige Original gewählt haben."
+  ,"csc.error.sesion_caducada": "Die Sitzung mit dem Anbieter ist abgelaufen. Verbinden Sie sich erneut mit dem Fernsignaturdienst, um weiter zu signieren."
+  ,"csc.error.oauth_metadatos": "Der Autorisierungsserver des Anbieters veröffentlicht keine gültige Konfiguration. Informieren Sie Ihren Anbieter."
+  ,"csc.error.lote_repetido": "Ein Dokument des Stapels brauchte eine zweite Signatur, die Autorisierung des Stapels war aber schon verbraucht. Signieren Sie dieses Dokument erneut."
+  ,"csc.error.lote_mixto": "Die Dokumente des Stapels brauchen unterschiedliche Signaturalgorithmen und lassen sich nicht gemeinsam autorisieren. Signieren Sie sie in getrennten Stapeln."
+  ,"csc.error.otp_lote_excede": "Der Stapel enthält mehr Dokumente, als Ihr Anbieter mit einem einzigen Code autorisieren lässt. Teilen Sie ihn in kleinere Stapel auf."
 }
