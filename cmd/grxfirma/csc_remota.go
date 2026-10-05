@@ -251,7 +251,7 @@ func (e entornoCSC) abrirNavegador(ctx context.Context, destino string) error {
 	}
 	_, _ = fmt.Fprintln(e.errores, e.t("csc.cli.hosts", textoSeguro(e.hostServicio), textoSeguro(hostOAuth)))
 	if e.navegador == nil {
-		return errors.New("csc: no browser")
+		return &csc.Error{Codigo: csc.CodigoNavegador}
 	}
 	return e.navegador(ctx, destino)
 }
