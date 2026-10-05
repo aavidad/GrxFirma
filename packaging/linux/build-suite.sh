@@ -771,7 +771,7 @@ Priority: optional
 Architecture: ${PKG_ARCH}
 Maintainer: Diputacion de Granada <avidad@dipgra.es>
 Depends: ${RUNTIME_DEPENDS}
-Recommends: zenity | kdialog | qarma
+Recommends: zenity | kdialog | qarma, qt6-translations-l10n
 Suggests: bubblewrap (>= 0.11.1), pinentry-qt | pinentry-gnome3 | pinentry-gtk2
 Description: GrxFirma para Linux
  CLI, interfaz desktop, handler afirma:// y Native Messaging Host.
