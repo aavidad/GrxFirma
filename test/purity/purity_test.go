@@ -86,6 +86,15 @@ var dependenciasPermitidas = []string{
 	// github.com/skip2/go-qrcode: generación local del QR embebido en el sello visible PAdES.
 	// Se usa solo para componer la apariencia visual del sello en el adaptador desktop/signer.
 	"github.com/skip2/go-qrcode",
+	// github.com/makiuchi-d/gozxing: lectura del QR tributario Veri*Factu desde
+	// una imagen o un PDF rasterizado. Adaptación a Go puro de ZXing (sin CGo ni
+	// red), licencia MIT con el aviso Apache-2.0 de ZXing. Implementar a mano la
+	// detección, la corrección de perspectiva y Reed-Solomon sería claramente
+	// peor. Confinada a outbound/common/signer/verifactu_qr_imagen.go, que limita
+	// bytes, dimensiones, píxeles y tiempo antes de llamarla.
+	"github.com/makiuchi-d/gozxing",
+	// golang.org/x/xerrors: dependencia transitiva de gozxing (equipo Go).
+	"golang.org/x/xerrors",
 	// golang.org/x/sys: syscalls de plataforma para Windows CertStore (T034) y macOS Keychain (T035).
 	// Misma familia que golang.org/x/crypto; mantenida por el equipo Go.
 	"golang.org/x/sys",
@@ -180,6 +189,37 @@ func TestJCSConfinadoAlAdaptador(t *testing.T) {
 			}
 			if strings.Contains(string(contenido), "github.com/gowebpki/jcs") {
 				t.Errorf("JCS cruzó la frontera hexagonal: %s", path)
+			}
+			return nil
+		})
+		if err != nil {
+			t.Fatalf("revisar %s: %v", directorio, err)
+		}
+	}
+}
+
+// TestGozxingConfinadoAlLectorQR mantiene el decodificador QR detrás de los
+// límites de verifactu_qr_imagen.go.
+func TestGozxingConfinadoAlLectorQR(t *testing.T) {
+	raiz := raizModulo(t)
+	for _, relativo := range []string{"internal", "cmd", "presentation"} {
+		directorio := filepath.Join(raiz, filepath.FromSlash(relativo))
+		if _, err := os.Stat(directorio); err != nil {
+			continue
+		}
+		err := filepath.WalkDir(directorio, func(path string, entrada os.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if entrada.IsDir() || filepath.Ext(path) != ".go" || filepath.Base(path) == "verifactu_qr_imagen.go" {
+				return nil
+			}
+			contenido, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			if strings.Contains(string(contenido), "github.com/makiuchi-d/gozxing") {
+				t.Errorf("gozxing fuera del lector QR acotado: %s", path)
 			}
 			return nil
 		})
