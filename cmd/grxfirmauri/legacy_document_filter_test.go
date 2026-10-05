@@ -186,3 +186,35 @@ func TestLegacyDocumentoNoPDF_TraduccionesCompletasYSinCancel(t *testing.T) {
 		}
 	}
 }
+
+// El aviso usa la misma fórmula que las aplicaciones de escritorio cuando no
+// se firma («No se ha firmado: …»), en todos los idiomas.
+func TestLegacyDocumentoNoPDF_MismaFormulaQueEscritorio(t *testing.T) {
+	dir := filepath.Join("..", "..", "internal", "adapters", "outbound", "common", "localizador", "locales")
+	ficheros, err := filepath.Glob(filepath.Join(dir, "*.json"))
+	if err != nil || len(ficheros) != 11 {
+		t.Fatalf("catálogos = %d (%v)", len(ficheros), err)
+	}
+	formula := func(texto string) string {
+		if i := strings.IndexAny(texto, ":："); i > 0 {
+			return texto[:i]
+		}
+		return ""
+	}
+	for _, f := range ficheros {
+		raw, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var cat map[string]string
+		if err := json.Unmarshal(raw, &cat); err != nil {
+			t.Fatalf("%s: %v", f, err)
+		}
+		for _, clave := range []string{"winui.firmar.sello_sin_vista_previa_antes_de_firmar", "sign.seal.preview_unavailable_before_sign"} {
+			esperada := formula(cat[clave])
+			if esperada == "" || formula(cat[legacyDocumentoNoPDFDetailID]) != esperada {
+				t.Errorf("%s: el aviso no PDF %q no empieza como %q (%s)", filepath.Base(f), cat[legacyDocumentoNoPDFDetailID], esperada, clave)
+			}
+		}
+	}
+}

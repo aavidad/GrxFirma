@@ -3781,6 +3781,7 @@ Window {
         const payload = buildSignPayload()
         if (payload === null && signPayloadNeedsPreview && resumedAfterPreview) {
             window.statusMessage = ""
+            signValidationErrorDialog.heading = tr("sign.seal.preview_unavailable_heading")
             signValidationErrorDialog.errorMessage = tr("sign.seal.preview_unavailable_before_sign")
             signValidationErrorDialog.open()
             return
@@ -4186,6 +4187,9 @@ Window {
     property bool signPayloadNeedsPreview: false
     property int signAfterPreviewCertIndex: -1
     property bool signAfterPreviewResumed: false
+    // Mientras se espera la vista del PDF, «Firmar ahora» queda desactivado
+    // y el aviso de espera se ve y se anuncia junto al botón.
+    readonly property bool signWaitingForPreview: signAfterPreviewCertIndex >= 0
 
     Timer {
         id: signAfterPreviewTimeout
@@ -4208,6 +4212,7 @@ Window {
             return
         }
         window.statusMessage = ""
+        signValidationErrorDialog.heading = tr("sign.seal.preview_unavailable_heading")
         signValidationErrorDialog.errorMessage = tr("sign.seal.preview_unavailable_before_sign")
         signValidationErrorDialog.open()
     }
@@ -5440,10 +5445,13 @@ Window {
         anchors.centerIn: parent
         standardButtons: Dialog.Ok
         property string errorMessage: ""
+        // Titular propio para avisos que no son requisitos sin completar.
+        property string heading: ""
+        onClosed: heading = ""
         ColumnLayout {
             spacing: 10
             Text {
-                text: tr("⚠️ Requisitos faltantes")
+                text: signValidationErrorDialog.heading !== "" ? signValidationErrorDialog.heading : tr("⚠️ Requisitos faltantes")
                 color: currentTheme.textColor
                 font.bold: true
             }
@@ -10037,6 +10045,7 @@ Window {
                                     palette.button: (window.signingInProgress || window.autoVerificationInProgress) ? currentTheme.secondaryTextColor : currentTheme.primaryColor
                                     palette.buttonText: "white"
                                     enabled: !window.signingInProgress && !window.autoVerificationInProgress
+                                             && !window.signWaitingForPreview
                                              && window.selectedCertificateUsable
                                     ToolTip.visible: hovered && !window.selectedCertificateUsable
                                     ToolTip.text: window.certificateStatusReason(window.selectedCertData)
@@ -10083,6 +10092,17 @@ Window {
                                     signVisibleSeal = false
                                 }
                             }
+                        }
+
+                        // Espera de la vista del PDF antes de firmar con sello visible.
+                        Text {
+                            Layout.fillWidth: true
+                            visible: window.signWaitingForPreview
+                            text: tr("sign.seal.preview_loading_before_sign")
+                            color: currentTheme.textColor
+                            wrapMode: Text.WordWrap
+                            Accessible.role: Accessible.AlertMessage
+                            Accessible.name: text
                         }
 
                         // Motivo visible cuando «Firmar ahora» está desactivado por el certificado.

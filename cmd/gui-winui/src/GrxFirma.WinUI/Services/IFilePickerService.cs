@@ -68,6 +68,15 @@ public interface IFilePickerService
         string? suggestedFileName = null,
         CancellationToken cancellationToken = default);
 
+    // Igual que PickAndSaveTextFileAsync, pero devuelve la ruta donde quedó
+    // el fichero para decírsela a la persona (vacía si el sistema no la da),
+    // o null si cerró el diálogo sin guardar.
+    Task<string?> PickAndSaveTextFileToPathAsync(
+        SaveFilePickerProfile profile,
+        string contents,
+        string? suggestedFileName = null,
+        CancellationToken cancellationToken = default);
+
     Task<string?> PickFolderAsync(
         CancellationToken cancellationToken = default);
 }

@@ -65,7 +65,9 @@ internal static class PickerLanguage
     {
         if (FindFlyoutButton(picker) is not { } button) return;
         AutomationProperties.SetName(button,
-            string.IsNullOrWhiteSpace(value) ? label : label + ": " + value);
+            string.IsNullOrWhiteSpace(value)
+                ? label
+                : Localizer.Fill("winui.selector.etiqueta_valor", ("label", label), ("value", value)));
     }
 
     private static Button? FindFlyoutButton(DependencyObject root)

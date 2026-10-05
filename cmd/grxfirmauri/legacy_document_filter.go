@@ -22,7 +22,7 @@ import (
 // isLegacyCancellation trataría el error como una cancelación.
 const (
 	legacyDocumentoNoPDFTitleID  = "El fichero elegido no es un PDF"
-	legacyDocumentoNoPDFDetailID = "El portal pide una firma PAdES, que solo admite documentos PDF, y el fichero elegido no es un PDF. No se ha firmado nada. Vuelva a iniciar la firma en el portal y elija un fichero PDF."
+	legacyDocumentoNoPDFDetailID = "No se ha firmado: el portal pide una firma PAdES, que solo admite documentos PDF, y el fichero elegido no es un PDF. Vuelva a iniciar la firma en el portal y elija un fichero PDF."
 	// Etiquetas del filtro del selector nativo de Windows.
 	legacyFiltroPermitidosID = "Ficheros permitidos (%s)"
 	legacyFiltroTodosID      = "Todos los ficheros (*.*)"

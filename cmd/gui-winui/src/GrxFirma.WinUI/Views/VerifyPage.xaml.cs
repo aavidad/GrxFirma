@@ -28,7 +28,23 @@ public sealed partial class VerifyPage : Page
         {
             if (change.PropertyName is nameof(VerifyPageViewModel.HasHtmlReport)
                 or nameof(VerifyPageViewModel.CanExportReport)) RefreshExportLabels();
+            if (change.PropertyName == nameof(VerifyPageViewModel.ReportSavedMessage))
+                AnnounceReportSaved();
         };
+    }
+
+    // El lector de pantalla no oye el cambio de texto por sí solo: se lanza
+    // el evento cuando el enlace ya ha escrito el mensaje nuevo.
+    private void AnnounceReportSaved()
+    {
+        if (string.IsNullOrEmpty(ViewModel.ReportSavedMessage)) return;
+        _ = DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            if (string.IsNullOrEmpty(ReportSavedText.Text)) return;
+            var peer = Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer.FromElement(ReportSavedText) ??
+                Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer.CreatePeerForElement(ReportSavedText);
+            peer?.RaiseAutomationEvent(Microsoft.UI.Xaml.Automation.Peers.AutomationEvents.LiveRegionChanged);
+        });
     }
 
     public VerifyPageViewModel ViewModel { get; }

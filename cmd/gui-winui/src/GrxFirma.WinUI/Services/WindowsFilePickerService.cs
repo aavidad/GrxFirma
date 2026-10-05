@@ -147,6 +147,14 @@ public sealed class WindowsFilePickerService : IFilePickerService
         SaveFilePickerProfile profile,
         string contents,
         string? suggestedFileName = null,
+        CancellationToken cancellationToken = default) =>
+        await PickAndSaveTextFileToPathAsync(
+            profile, contents, suggestedFileName, cancellationToken) is not null;
+
+    public async Task<string?> PickAndSaveTextFileToPathAsync(
+        SaveFilePickerProfile profile,
+        string contents,
+        string? suggestedFileName = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(contents);
@@ -170,17 +178,17 @@ public sealed class WindowsFilePickerService : IFilePickerService
             cancellationToken.ThrowIfCancellationRequested();
             if (file is null)
             {
-                return false;
+                return null;
             }
 
             // Tras la confirmación del diálogo el informe es pequeño y se
             // completa como una única escritura sobre el StorageFile elegido.
-            // No se devuelve ni se vuelve a abrir su ruta.
+            // La ruta solo se devuelve para mostrarla; no se vuelve a abrir.
             await FileIO.WriteTextAsync(
                 file,
                 contents,
                 Windows.Storage.Streams.UnicodeEncoding.Utf8);
-            return true;
+            return file.Path ?? string.Empty;
         }
         finally
         {

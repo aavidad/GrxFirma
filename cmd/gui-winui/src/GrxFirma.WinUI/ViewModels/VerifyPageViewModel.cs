@@ -204,10 +204,13 @@ public sealed class VerifyPageViewModel
         try
         {
             ReportSavedMessage = string.Empty;
-            if (await _filePicker.PickAndSaveTextFileAsync(
+            var savedPath = await _filePicker.PickAndSaveTextFileToPathAsync(
                 SaveFilePickerProfile.VerificationReportHtml, _reportResult.ReportHtml,
-                null, _pageLifetime.Token))
-                ReportSavedMessage = Localizer.Text("winui.verificar.informe_guardado");
+                null, _pageLifetime.Token);
+            if (savedPath is not null)
+                ReportSavedMessage = string.IsNullOrWhiteSpace(savedPath)
+                    ? Localizer.Text("winui.verificar.informe_guardado")
+                    : Localizer.Format("winui.verificar.informe_guardado_en", savedPath);
         }
         catch (OperationCanceledException) when (_pageLifetime?.IsCancellationRequested == true) { }
         catch (Exception exception)
@@ -224,10 +227,13 @@ public sealed class VerifyPageViewModel
             var json = VerificationReport.Serialize(
                 _reportResult, _signedFilePath, _originalFilePath, DateTimeOffset.UtcNow);
             ReportSavedMessage = string.Empty;
-            if (await _filePicker.PickAndSaveTextFileAsync(
+            var savedPath = await _filePicker.PickAndSaveTextFileToPathAsync(
                 SaveFilePickerProfile.VerificationReport, json,
-                null, _pageLifetime.Token))
-                ReportSavedMessage = Localizer.Text("winui.verificar.datos_tecnicos_guardados");
+                null, _pageLifetime.Token);
+            if (savedPath is not null)
+                ReportSavedMessage = string.IsNullOrWhiteSpace(savedPath)
+                    ? Localizer.Text("winui.verificar.datos_tecnicos_guardados")
+                    : Localizer.Format("winui.verificar.datos_tecnicos_guardados_en", savedPath);
         }
         catch (OperationCanceledException) when (_pageLifetime?.IsCancellationRequested == true) { }
         catch (Exception exception)

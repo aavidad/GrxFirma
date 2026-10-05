@@ -1026,6 +1026,13 @@
                             </StackPanel>
                         </Expander>
 
+                        <!-- Espera y aviso de la vista previa del sello antes de firmar. -->
+                        <InfoBar
+                            x:Name="SealPreviewBeforeSignNotice"
+                            AutomationProperties.LiveSetting="Assertive"
+                            IsClosable="False"
+                            IsOpen="False" />
+
                         <TextBlock
                             AutomationProperties.LiveSetting="Polite"
                             Foreground="{ThemeResource AppMutedTextBrush}"

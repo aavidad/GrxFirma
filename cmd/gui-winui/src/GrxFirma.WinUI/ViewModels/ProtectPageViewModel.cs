@@ -940,13 +940,16 @@ public sealed class ProtectPageViewModel
             // Como en Proteger, se pregunta dónde guardar. El motor ya lo ha
             // escrito junto al contenedor sin sobrescribir nada; si se elige
             // otro destino se mueve allí, y si no, queda donde está.
-            _unprotectOutputPath = await ChooseUnprotectedDestinationAsync(
+            var (destination, destinationProblem) = await ChooseUnprotectedDestinationAsync(
                 result.Data.OutputPath,
                 string.IsNullOrWhiteSpace(result.Data.DocumentName)
                     ? SafeFileName(result.Data.OutputPath)
                     : result.Data.DocumentName,
                 operationCancellation.Token);
-            UnprotectResultMessage =
+            _unprotectOutputPath = destination;
+            // Si no se pudo llevar al destino elegido, el resultado lo dice y
+            // explica dónde quedó.
+            UnprotectResultMessage = destinationProblem ??
                 Localizer.Format("winui.proteger.documento_recuperado_en", _unprotectOutputPath);
             UnprotectValidationMessage =
                 Localizer.Text("winui.proteger.la_desproteccion_termino_correctamente");
@@ -988,7 +991,9 @@ public sealed class ProtectPageViewModel
         }
     }
 
-    private async Task<string> ChooseUnprotectedDestinationAsync(
+    // Devuelve dónde quedó el documento y, si no está donde la persona
+    // eligió, el aviso que lo explica.
+    private async Task<(string Path, string? Problem)> ChooseUnprotectedDestinationAsync(
         string writtenPath,
         string suggestedName,
         CancellationToken cancellationToken)
@@ -1003,21 +1008,23 @@ public sealed class ProtectPageViewModel
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            return writtenPath;
+            return (writtenPath, Localizer.Format(
+                "winui.proteger.selector_destino_no_disponible", writtenPath));
         }
         if (string.IsNullOrWhiteSpace(chosen) || PathsEqual(chosen, writtenPath))
         {
-            return writtenPath;
+            return (writtenPath, null);
         }
         try
         {
             // El diálogo ya ha pedido confirmación si el destino existía.
             File.Move(writtenPath, chosen, overwrite: true);
-            return chosen;
+            return (chosen, null);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            return writtenPath;
+            return (writtenPath, Localizer.Format(
+                "winui.proteger.no_se_pudo_guardar_en_destino", chosen, writtenPath));
         }
     }
 
