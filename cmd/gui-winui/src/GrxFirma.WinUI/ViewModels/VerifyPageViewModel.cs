@@ -179,6 +179,20 @@ public sealed class VerifyPageViewModel
         private set => SetProperty(ref _signedBySummary, value);
     }
 
+    // Confirmación tras guardar el informe: antes no se veía nada.
+    private string _reportSavedMessage = string.Empty;
+    public string ReportSavedMessage
+    {
+        get => _reportSavedMessage;
+        private set
+        {
+            if (SetProperty(ref _reportSavedMessage, value))
+                RaisePropertyChanged(nameof(HasReportSavedMessage));
+        }
+    }
+
+    public bool HasReportSavedMessage => ReportSavedMessage.Length > 0;
+
     public async Task ExportReportAsync()
     {
         if (!CanExportReport || _reportResult is null || _pageLifetime is null) return;
@@ -189,9 +203,11 @@ public sealed class VerifyPageViewModel
         }
         try
         {
-            await _filePicker.PickAndSaveTextFileAsync(
+            ReportSavedMessage = string.Empty;
+            if (await _filePicker.PickAndSaveTextFileAsync(
                 SaveFilePickerProfile.VerificationReportHtml, _reportResult.ReportHtml,
-                null, _pageLifetime.Token);
+                null, _pageLifetime.Token))
+                ReportSavedMessage = Localizer.Text("winui.verificar.informe_guardado");
         }
         catch (OperationCanceledException) when (_pageLifetime?.IsCancellationRequested == true) { }
         catch (Exception exception)
@@ -207,9 +223,11 @@ public sealed class VerifyPageViewModel
         {
             var json = VerificationReport.Serialize(
                 _reportResult, _signedFilePath, _originalFilePath, DateTimeOffset.UtcNow);
-            await _filePicker.PickAndSaveTextFileAsync(
+            ReportSavedMessage = string.Empty;
+            if (await _filePicker.PickAndSaveTextFileAsync(
                 SaveFilePickerProfile.VerificationReport, json,
-                null, _pageLifetime.Token);
+                null, _pageLifetime.Token))
+                ReportSavedMessage = Localizer.Text("winui.verificar.datos_tecnicos_guardados");
         }
         catch (OperationCanceledException) when (_pageLifetime?.IsCancellationRequested == true) { }
         catch (Exception exception)
@@ -557,6 +575,7 @@ public sealed class VerifyPageViewModel
     private void ResetResult()
     {
         _reportResult = null;
+        ReportSavedMessage = string.Empty;
         CanExportReport = false;
         HasHtmlReport = false;
         SignedBySummary = string.Empty;

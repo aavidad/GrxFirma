@@ -6433,4 +6433,6 @@
   ,"winui.proteger.documento_recuperado_en": "Dokumentua berreskuratu eta hemen gorde da: {0}."
   ,"winui.selector.documento_recuperado": "Berreskuratutako dokumentua"
   ,"winui.selector.nombre_documento_recuperado": "berreskuratutako-dokumentua"
+  ,"winui.verificar.informe_guardado": "Txostena gorde da."
+  ,"winui.verificar.datos_tecnicos_guardados": "Datu teknikoak gorde dira."
 }

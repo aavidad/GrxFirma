@@ -6433,4 +6433,6 @@
   ,"winui.proteger.documento_recuperado_en": "Dokument wiederhergestellt und unter {0} gespeichert."
   ,"winui.selector.documento_recuperado": "Wiederhergestelltes Dokument"
   ,"winui.selector.nombre_documento_recuperado": "wiederhergestelltes-dokument"
+  ,"winui.verificar.informe_guardado": "Bericht gespeichert."
+  ,"winui.verificar.datos_tecnicos_guardados": "Technische Daten gespeichert."
 }
