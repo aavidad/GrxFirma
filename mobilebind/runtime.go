@@ -686,7 +686,10 @@ func validateImportedIdentity(identity *sessionIdentity) error {
 	if now.Before(identity.certificate.NotBefore) || now.After(identity.certificate.NotAfter) {
 		return errMobileCertificateNotCurrent
 	}
-	if identity.certificate.KeyUsage != 0 && identity.certificate.KeyUsage&x509.KeyUsageDigitalSignature == 0 {
+	// Como escritorio (signingpolicy): firma digital o no repudio. El
+	// certificado de firma del DNIe solo lleva no repudio.
+	if identity.certificate.KeyUsage != 0 &&
+		identity.certificate.KeyUsage&(x509.KeyUsageDigitalSignature|x509.KeyUsageContentCommitment) == 0 {
 		return errMobileSigningIdentityUnsupported
 	}
 	switch publicKey := identity.certificate.PublicKey.(type) {

@@ -392,6 +392,29 @@ func TestImportRejectsCertificateWithoutDigitalSignatureUsage(t *testing.T) {
 	}
 }
 
+// El certificado de FIRMA del DNIe solo lleva no repudio (contentCommitment);
+// escritorio lo admite y el móvil debe hacer lo mismo.
+func TestImportAcceptsNonRepudiationOnlyCertificateLikeDNIe(t *testing.T) {
+	facade := newAndroidFacadeForTest(t)
+	now := time.Now().UTC()
+	p12 := ephemeralRSAPKCS12WithProperties(
+		t,
+		"no-repudio",
+		2048,
+		now.Add(-time.Hour),
+		now.Add(time.Hour),
+		x509.KeyUsageContentCommitment,
+	)
+	defer zeroBytes(p12)
+
+	if _, err := facade.ImportCertificateJSON(mustJSON(t, importCertificateRequest{
+		DataBase64: base64.StdEncoding.EncodeToString(p12),
+		Password:   "no-repudio",
+	})); err != nil {
+		t.Fatalf("un certificado solo con no repudio debe admitirse para firmar: %v", err)
+	}
+}
+
 func TestFacadeConcurrentSignAndVerify(t *testing.T) {
 	facade := newAndroidFacadeForTest(t)
 	certificateID := importEphemeralIdentity(t, facade, "concurrente")

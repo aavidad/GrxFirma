@@ -150,8 +150,10 @@ internal class DnieNfcSession private constructor(
                     card.getCertificate(alias)?.let { alias to it }
                 }
                 val selected = candidates.firstOrNull { (alias, cert) ->
+                    // keyUsage[0] es firma digital y [1] no repudio; el certificado
+                    // de FIRMA del DNIe solo lleva no repudio (como admite escritorio).
                     alias.contains("firma", ignoreCase = true) && card.getPrivateKey(alias) != null &&
-                        cert.keyUsage?.getOrNull(0) != false
+                        cert.keyUsage.let { it == null || it.getOrNull(0) == true || it.getOrNull(1) == true }
                 } ?: throw IllegalArgumentException("SIGN_CERT_MISSING")
                 selected.second.checkValidity()
                 val availableCa = candidates.map { it.second }.filter { it.basicConstraints >= 0 && it != selected.second }
