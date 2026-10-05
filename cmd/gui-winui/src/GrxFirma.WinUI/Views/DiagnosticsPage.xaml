@@ -281,21 +281,21 @@
                             Spacing="8">
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Consulta recuentos y estados saneados, sin exportar rutas ni certificados."
-                                AutomationProperties.Name="Actualizar diagnóstico TLS local"
+                                AutomationProperties.Name="Actualizar TLS"
                                 Click="OnRefreshTlsClick"
                                 Content="Actualizar TLS"
                                 IsEnabled="{x:Bind ViewModel.CanRefreshTlsStatus, Mode=OneWay}"
                                 TabIndex="4" />
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Solicita confirmación antes de crear la CA local e instalar su confianza para el usuario actual."
-                                AutomationProperties.Name="Instalar confianza TLS local"
+                                AutomationProperties.Name="Instalar confianza local"
                                 Click="OnInstallTlsTrustClick"
                                 Content="Instalar confianza local"
                                 IsEnabled="{x:Bind ViewModel.CanInstallTlsTrust, Mode=OneWay}"
                                 TabIndex="5" />
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Solicita confirmación y retira solo la confianza y los artefactos inventariados por GrxFirma."
-                                AutomationProperties.Name="Retirar confianza TLS local"
+                                AutomationProperties.Name="Retirar confianza local"
                                 Click="OnClearTlsTrustClick"
                                 Content="Retirar confianza local"
                                 IsEnabled="{x:Bind ViewModel.CanClearTlsTrust, Mode=OneWay}"
@@ -331,7 +331,7 @@
                         TabIndex="8" />
                     <Button MinHeight="40"
                         AutomationProperties.HelpText="Abre el mismo resultado con detalle técnico saneado para soporte."
-                        AutomationProperties.Name="Abrir diagnóstico detallado"
+                        AutomationProperties.Name="Ver detalle"
                         Click="OnOpenDetailedDiagnosticClick"
                         Content="Ver detalle"
                         IsEnabled="{x:Bind ViewModel.CanOpenDetailedDiagnostic, Mode=OneWay}"

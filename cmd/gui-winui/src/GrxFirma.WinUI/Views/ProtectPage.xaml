@@ -116,7 +116,8 @@
                                 x:Name="ProtectBrowseButton"
                                 Grid.Row="1"
                                 VerticalAlignment="Bottom"
-                                AutomationProperties.Name="Seleccionar documento para proteger"
+                                AutomationProperties.Name="Examinar…"
+                                AutomationProperties.HelpText="Seleccionar documento para proteger"
                                 Click="OnSelectProtectInputClick"
                                 Content="Examinar…"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -133,7 +134,8 @@
                                 <RowDefinition x:Name="ContainerRow" Height="Auto" />
                             </Grid.RowDefinitions>
                             <ComboBox
-                                AutomationProperties.Name="Perfil de protección"
+                                AutomationProperties.Name="Perfil criptográfico"
+                                AutomationProperties.HelpText="Perfil de protección"
                                 DisplayMemberPath="Label"
                                 Header="Perfil criptográfico"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -143,7 +145,8 @@
                             <ComboBox
                                 x:Name="ContainerCombo"
                                 Grid.Row="1"
-                                AutomationProperties.Name="Formato del contenedor protegido"
+                                AutomationProperties.Name="Formato de salida"
+                                AutomationProperties.HelpText="Formato del contenedor protegido"
                                 DisplayMemberPath="Label"
                                 Header="Formato de salida"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -246,7 +249,8 @@
                             IsEnabled="{x:Bind ViewModel.CanUseProtectAndSign, Mode=OneWay}"
                             TabIndex="8" />
                         <ComboBox
-                            AutomationProperties.Name="Certificado para firmar el contenedor"
+                            AutomationProperties.Name="Certificado de firma"
+                            AutomationProperties.HelpText="Certificado para firmar el contenedor"
                             DisplayMemberPath="Label"
                             Header="Certificado de firma"
                             IsEnabled="{x:Bind ViewModel.CanSelectSigningCertificate, Mode=OneWay}"
@@ -275,7 +279,8 @@
                                 Style="{StaticResource AccentButtonStyle}"
                                 TabIndex="10" />
                             <Button MinHeight="40"
-                                AutomationProperties.Name="Cancelar protección"
+                                AutomationProperties.Name="Cancelar operación"
+                                AutomationProperties.HelpText="Cancelar protección"
                                 Click="OnCancelClick"
                                 Content="Cancelar operación"
                                 IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
@@ -306,7 +311,8 @@
                                 <Button MinHeight="40"
                                     x:Name="ProtectResultButton"
                                     HorizontalAlignment="Stretch"
-                                    AutomationProperties.Name="Abrir documento protegido"
+                                    AutomationProperties.Name="Abrir resultado"
+                                    AutomationProperties.HelpText="Abrir documento protegido"
                                     Click="OnOpenProtectedResultClick"
                                     Content="Abrir resultado"
                                     IsEnabled="{x:Bind ViewModel.CanOpenProtectedOutput, Mode=OneWay}"
@@ -337,7 +343,8 @@
                                 <RowDefinition x:Name="UnprotectBrowseRow" Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBox
-                                AutomationProperties.Name="Contenedor que se va a desproteger"
+                                AutomationProperties.Name="Contenedor protegido"
+                                AutomationProperties.HelpText="Contenedor que se va a desproteger"
                                 Header="Contenedor protegido"
                                 MinHeight="40"
                                 IsReadOnly="True"
@@ -348,7 +355,8 @@
                                 x:Name="UnprotectBrowseButton"
                                 Grid.Row="1"
                                 VerticalAlignment="Bottom"
-                                AutomationProperties.Name="Seleccionar contenedor protegido"
+                                AutomationProperties.Name="Examinar…"
+                                AutomationProperties.HelpText="Seleccionar contenedor protegido"
                                 Click="OnSelectUnprotectInputClick"
                                 Content="Examinar…"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -393,7 +401,8 @@
                                 Style="{StaticResource AccentButtonStyle}"
                                 TabIndex="15" />
                             <Button MinHeight="40"
-                                AutomationProperties.Name="Cancelar desprotección"
+                                AutomationProperties.Name="Cancelar operación"
+                                AutomationProperties.HelpText="Cancelar desprotección"
                                 Click="OnCancelClick"
                                 Content="Cancelar operación"
                                 IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
@@ -424,7 +433,8 @@
                                 <Button MinHeight="40"
                                     x:Name="UnprotectResultButton"
                                     HorizontalAlignment="Stretch"
-                                    AutomationProperties.Name="Abrir documento recuperado"
+                                    AutomationProperties.Name="Abrir resultado"
+                                    AutomationProperties.HelpText="Abrir documento recuperado"
                                     Click="OnOpenUnprotectedResultClick"
                                     Content="Abrir resultado"
                                     IsEnabled="{x:Bind ViewModel.CanOpenUnprotectedOutput, Mode=OneWay}"

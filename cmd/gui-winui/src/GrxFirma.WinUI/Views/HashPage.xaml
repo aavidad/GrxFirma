@@ -149,7 +149,8 @@
                                 x:Name="OriginBrowseButton"
                                 Grid.Row="1"
                                 VerticalAlignment="Bottom"
-                                AutomationProperties.Name="Seleccionar origen para la huella"
+                                AutomationProperties.Name="Examinar…"
+                                AutomationProperties.HelpText="Seleccionar origen para la huella"
                                 Click="OnSelectInputClick"
                                 Content="Examinar…"
                                 IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
@@ -169,7 +170,8 @@
                                 <RowDefinition x:Name="ManifestBrowseRow" Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBox
-                                AutomationProperties.Name="Manifiesto de huella"
+                                AutomationProperties.Name="Huella o manifiesto que se va a comprobar"
+                                AutomationProperties.HelpText="Manifiesto de huella"
                                 Header="Huella o manifiesto que se va a comprobar"
                                 MinHeight="40"
                                 IsReadOnly="True"
@@ -199,7 +201,8 @@
                             </Grid.RowDefinitions>
                             <ComboBox
                                 x:Name="HashAlgorithmCombo"
-                                AutomationProperties.Name="Algoritmo de huella"
+                                AutomationProperties.Name="Algoritmo seguro"
+                                AutomationProperties.HelpText="Algoritmo de huella"
                                 Header="Algoritmo seguro"
                                 IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
                                 ItemsSource="{x:Bind ViewModel.Algorithms}"

@@ -220,7 +220,7 @@
                             TextWrapping="Wrap" />
                         <CheckBox
                             AutomationProperties.HelpText="La preferencia se conserva, pero la firma WinUI no la usa hasta disponer del editor seguro de sello PDF."
-                            AutomationProperties.Name="Sello visible en PDF"
+                            AutomationProperties.Name="Sello visible en PDF como valor predeterminado"
                             Content="Sello visible en PDF como valor predeterminado"
                             IsChecked="{x:Bind ViewModel.VisiblePdfSeal, Mode=TwoWay}"
                             IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
@@ -279,7 +279,8 @@
                             <TextBox
                                 x:Name="ProxyHostTextBox"
                                 Grid.Row="1"
-                                AutomationProperties.Name="Servidor proxy"
+                                AutomationProperties.Name="Host o IP"
+                                AutomationProperties.HelpText="Servidor proxy"
                                 Header="Host o IP"
                                 IsEnabled="{x:Bind ViewModel.CanEditManualProxy, Mode=OneWay}"
                                 MaxLength="512"
@@ -317,7 +318,7 @@
                         </Grid>
                         <TextBox
                             AutomationProperties.HelpText="Indique una URL, host o patrón por línea."
-                            AutomationProperties.Name="Exclusiones del proxy"
+                            AutomationProperties.Name="URLs y hosts excluidos"
                             AcceptsReturn="True"
                             Header="URLs y hosts excluidos"
                             IsEnabled="{x:Bind ViewModel.CanEditManualProxy, Mode=OneWay}"
@@ -469,7 +470,8 @@
                     <Button MinHeight="40"
                         x:Name="SaveButton"
                         HorizontalAlignment="Stretch"
-                        AutomationProperties.Name="Guardar configuración"
+                        AutomationProperties.Name="Guardar preferencias"
+                        AutomationProperties.HelpText="Guardar configuración"
                         Click="OnSaveClick"
                         Content="Guardar preferencias"
                         IsEnabled="{x:Bind ViewModel.CanSave, Mode=OneWay}"

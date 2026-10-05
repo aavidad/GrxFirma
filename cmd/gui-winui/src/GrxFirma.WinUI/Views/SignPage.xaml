@@ -154,7 +154,8 @@
                             TabIndex="1" />
                         <Button MinHeight="40"
                             x:Name="ReviewSignButton"
-                            AutomationProperties.Name="Revisar datos de firma para volver a intentarlo"
+                            AutomationProperties.Name="Revisar y volver a firmar"
+                            AutomationProperties.HelpText="Revisar datos de firma para volver a intentarlo"
                             Click="OnReviewSignClick"
                             Content="Revisar y volver a firmar"
                             Visibility="Collapsed"
@@ -201,7 +202,8 @@
                                 x:Name="DocumentBrowseButton"
                                 Grid.Row="1"
                                 VerticalAlignment="Bottom"
-                                AutomationProperties.Name="Seleccionar documento para firmar"
+                                AutomationProperties.Name="Examinar…"
+                                AutomationProperties.HelpText="Seleccionar documento para firmar"
                                 Click="OnSelectDocumentClick"
                                 Content="Examinar…"
                                 IsEnabled="{x:Bind ViewModel.CanSelectDocument, Mode=OneWay}"
@@ -233,19 +235,22 @@
                                     Orientation="Horizontal"
                                     Spacing="8">
                                     <Button MinHeight="40"
-                                        AutomationProperties.Name="Añadir documentos al lote"
+                                        AutomationProperties.Name="Añadir archivos…"
+                                        AutomationProperties.HelpText="Añadir documentos al lote"
                                         Click="OnSelectBatchFilesClick"
                                         Content="Añadir archivos…"
                                         IsEnabled="{x:Bind ViewModel.CanSelectBatchSources, Mode=OneWay}"
                                         TabIndex="6" />
                                     <Button MinHeight="40"
-                                        AutomationProperties.Name="Añadir carpeta al lote"
+                                        AutomationProperties.Name="Elegir carpeta…"
+                                        AutomationProperties.HelpText="Añadir carpeta al lote"
                                         Click="OnSelectBatchFolderClick"
                                         Content="Elegir carpeta…"
                                         IsEnabled="{x:Bind ViewModel.CanSelectBatchSources, Mode=OneWay}"
                                         TabIndex="7" />
                                     <Button MinHeight="40"
-                                        AutomationProperties.Name="Vaciar selección del lote"
+                                        AutomationProperties.Name="Vaciar lote"
+                                        AutomationProperties.HelpText="Vaciar selección del lote"
                                         Click="OnClearBatchSelectionClick"
                                         Content="Vaciar lote"
                                         IsEnabled="{x:Bind ViewModel.CanSelectBatchSources, Mode=OneWay}"
@@ -380,7 +385,7 @@
                                     <Button MinHeight="40"
                                         HorizontalAlignment="Stretch"
                                         AutomationProperties.HelpText="Vuelve a consultar los certificados aptos del almacén personal oficial de Windows."
-                                        AutomationProperties.Name="Buscar certificados en Windows"
+                                        AutomationProperties.Name="Buscar en Windows"
                                         Click="OnRefreshCertificatesClick"
                                         IsEnabled="{x:Bind ViewModel.CanRefreshCertificates, Mode=OneWay}"
                                         TabIndex="14">
@@ -392,7 +397,7 @@
                                     <Button MinHeight="40"
                                         HorizontalAlignment="Stretch"
                                         AutomationProperties.HelpText="Carga un P12, PFX, PEM, CER o CRT únicamente en memoria hasta cerrar la sesión."
-                                        AutomationProperties.Name="Usar archivo de certificado solo durante esta sesión"
+                                        AutomationProperties.Name="Cargar P12/PFX…"
                                         Click="OnUseTemporaryCredentialClick"
                                         IsEnabled="{x:Bind ViewModel.CanUseTemporaryCredential, Mode=OneWay}"
                                         TabIndex="15">
@@ -404,7 +409,7 @@
                                     <Button MinHeight="40"
                                         HorizontalAlignment="Stretch"
                                         AutomationProperties.HelpText="Importa persistentemente un P12 o PFX en Cert:\CurrentUser\My después de una confirmación explícita."
-                                        AutomationProperties.Name="Importar archivo de certificado en Windows"
+                                        AutomationProperties.Name="Importar archivo en Windows"
                                         Click="OnImportCredentialToWindowsClick"
                                         IsEnabled="{x:Bind ViewModel.CanImportCredentialToWindows, Mode=OneWay}"
                                         TabIndex="16">
@@ -1192,7 +1197,8 @@
                         <InfoBar.ActionButton>
                             <Button
                                 MinHeight="40"
-                                AutomationProperties.Name="Renovar certificado próximo a caducar en la FNMT"
+                                AutomationProperties.Name="Renovar en la FNMT"
+                                AutomationProperties.HelpText="Renovar certificado próximo a caducar en la FNMT"
                                 Click="OnRenewPanelFnmtClick"
                                 Content="Renovar en la FNMT"
                                 TabIndex="61"
@@ -1327,20 +1333,22 @@
                                     TextWrapping="Wrap" />
                                 <Button MinHeight="40"
                                     AutomationProperties.HelpText="Abre en el navegador la página oficial de renovación del certificado de ciudadano de la FNMT."
-                                    AutomationProperties.Name="Renovar el certificado en la FNMT"
+                                    AutomationProperties.Name="Renovar en la FNMT"
                                     Click="OnRenewPanelFnmtClick"
                                     Content="Renovar en la FNMT"
                                     Style="{StaticResource AccentButtonStyle}"
                                     TabIndex="63" />
                             </StackPanel>
                             <Button MinHeight="40"
-                                AutomationProperties.Name="Usar certificado como predeterminado"
+                                AutomationProperties.Name="Usar como predeterminado"
+                                AutomationProperties.HelpText="Usar certificado como predeterminado"
                                 Click="OnSetPanelDefaultCertificateClick"
                                 Content="Usar como predeterminado"
                                 IsEnabled="{x:Bind CertificatePanel.CanSetSelectedAsDefault, Mode=OneWay}"
                                 TabIndex="64" />
                             <Button MinHeight="40"
-                                AutomationProperties.Name="Quitar certificado predeterminado"
+                                AutomationProperties.Name="Quitar predeterminado"
+                                AutomationProperties.HelpText="Quitar certificado predeterminado"
                                 Click="OnClearPanelDefaultCertificateClick"
                                 Content="Quitar predeterminado"
                                 IsEnabled="{x:Bind CertificatePanel.CanClearDefaultCertificate, Mode=OneWay}"

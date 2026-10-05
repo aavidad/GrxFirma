@@ -26,7 +26,7 @@ class CertificatesDefaultClearContractTests(unittest.TestCase):
 
     def test_clear_action_is_accessible_and_bound_to_safe_state(self) -> None:
         fragment = self.xaml.split(
-            'AutomationProperties.Name="Quitar certificado predeterminado"',
+            'AutomationProperties.Name="Quitar predeterminado"',
             maxsplit=1,
         )[1].split("</Button>", maxsplit=1)[0]
         self.assertIn('Click="OnClearDefaultCertificateClick"', fragment)

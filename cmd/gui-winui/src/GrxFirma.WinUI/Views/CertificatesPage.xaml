@@ -105,7 +105,8 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBox
-                            AutomationProperties.Name="Filtrar certificados"
+                            AutomationProperties.Name="Buscar"
+                            AutomationProperties.HelpText="Filtrar certificados"
                             Header="Buscar"
                             MinHeight="40"
                             IsEnabled="{x:Bind ViewModel.IsOperationConnected, Mode=OneWay}"
@@ -126,7 +127,7 @@
                             Grid.Row="2"
                             VerticalAlignment="Bottom"
                             AutomationProperties.HelpText="Selecciona una credencial sin copiar su contenido ni su contraseña a controles de texto."
-                            AutomationProperties.Name="Seleccionar credencial para importar"
+                            AutomationProperties.Name="Elegir credencial…"
                             Click="OnSelectImportCredentialClick"
                             Content="Elegir credencial…"
                             IsEnabled="{x:Bind ViewModel.CanSelectCredential, Mode=OneWay}"
@@ -215,7 +216,8 @@
                             <ComboBox
                                 Grid.Row="1"
                                 Grid.ColumnSpan="2"
-                                AutomationProperties.Name="Destino de la credencial"
+                                AutomationProperties.Name="Uso y destino"
+                                AutomationProperties.HelpText="Destino de la credencial"
                                 Header="Uso y destino"
                                 IsEnabled="{x:Bind ViewModel.CanSelectCredential, Mode=OneWay}"
                                 ItemsSource="{x:Bind ViewModel.ImportOptions, Mode=OneWay}"
@@ -244,7 +246,8 @@
                             <Button MinHeight="40"
                                 Grid.Row="2"
                                 Grid.Column="1"
-                                AutomationProperties.Name="Cargar o importar credencial"
+                                AutomationProperties.Name="Cargar / importar"
+                                AutomationProperties.HelpText="Cargar o importar credencial"
                                 Click="OnImportCredentialClick"
                                 Content="Cargar / importar"
                                 IsEnabled="{x:Bind ViewModel.CanImportCredential, Mode=OneWay}"
@@ -282,7 +285,8 @@
                             <InfoBar.ActionButton>
                                 <Button
                                     MinHeight="40"
-                                    AutomationProperties.Name="Renovar certificado próximo a caducar en la FNMT"
+                                    AutomationProperties.Name="Renovar en la FNMT"
+                                    AutomationProperties.HelpText="Renovar certificado próximo a caducar en la FNMT"
                                     Click="OnRenewFnmtClick"
                                     Content="Renovar en la FNMT"
                                     TabIndex="13"
@@ -442,7 +446,7 @@
                                     <Button
                                         MinHeight="40"
                                         AutomationProperties.HelpText="Abre en el navegador la página oficial de renovación del certificado de ciudadano de la FNMT."
-                                        AutomationProperties.Name="Renovar el certificado en la FNMT"
+                                        AutomationProperties.Name="Renovar en la FNMT"
                                         Click="OnRenewFnmtClick"
                                         Content="Renovar en la FNMT"
                                         Style="{StaticResource AccentButtonStyle}"
@@ -469,7 +473,7 @@
                             <Button MinHeight="40"
                                 x:Name="SetDefaultCertificateButton"
                                 AutomationProperties.HelpText="Guarda la identidad estable del certificado mediante las preferencias tipadas del motor local."
-                                AutomationProperties.Name="Usar certificado como predeterminado"
+                                AutomationProperties.Name="Usar como predeterminado"
                                 Click="OnSetDefaultCertificateClick"
                                 IsEnabled="{x:Bind ViewModel.CanSetSelectedAsDefault, Mode=OneWay}"
                                 TabIndex="17">
@@ -481,7 +485,7 @@
                             <Button MinHeight="40"
                                 x:Name="ClearDefaultCertificateButton"
                                 AutomationProperties.HelpText="Quita la preferencia guardada sin modificar el resto de la configuración."
-                                AutomationProperties.Name="Quitar certificado predeterminado"
+                                AutomationProperties.Name="Quitar predeterminado"
                                 Click="OnClearDefaultCertificateClick"
                                 IsEnabled="{x:Bind ViewModel.CanClearDefaultCertificate, Mode=OneWay}"
                                 TabIndex="18">
@@ -517,7 +521,7 @@
                             <Button MinHeight="40"
                                 x:Name="OpenCertificateManagerButton"
                                 AutomationProperties.HelpText="Abre el gestor que el motor local ha descubierto y autorizado."
-                                AutomationProperties.Name="Abrir gestor de certificados de Windows"
+                                AutomationProperties.Name="Abrir gestor de Windows"
                                 Click="OnOpenCertificateManagerClick"
                                 IsEnabled="{x:Bind ViewModel.CanOpenCertificateManager, Mode=OneWay}"
                                 TabIndex="22">
@@ -528,7 +532,7 @@
                             </Button>
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Retira de memoria la credencial temporal seleccionada sin modificar almacenes persistentes."
-                                AutomationProperties.Name="Retirar credencial temporal seleccionada"
+                                AutomationProperties.Name="Retirar temporal seleccionada"
                                 Click="OnRemoveTemporaryCertificateClick"
                                 IsEnabled="{x:Bind ViewModel.CanRemoveSelectedTemporary, Mode=OneWay}"
                                 TabIndex="23">
@@ -539,7 +543,7 @@
                             </Button>
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Retira de memoria todas las credenciales cargadas solo para esta sesión."
-                                AutomationProperties.Name="Retirar todas las credenciales temporales"
+                                AutomationProperties.Name="Retirar todas las temporales"
                                 Click="OnClearTemporaryCertificatesClick"
                                 IsEnabled="{x:Bind ViewModel.CanClearTemporaryCertificates, Mode=OneWay}"
                                 TabIndex="24">

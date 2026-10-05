@@ -111,7 +111,8 @@
                                 x:Name="SignedBrowseButton"
                                 Grid.Row="1"
                                 VerticalAlignment="Bottom"
-                                AutomationProperties.Name="Seleccionar fichero firmado"
+                                AutomationProperties.Name="Examinar…"
+                                AutomationProperties.HelpText="Seleccionar fichero firmado"
                                 Click="OnSelectSignedFileClick"
                                 Content="Examinar…"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -128,7 +129,8 @@
                                 <RowDefinition x:Name="OriginalActionsRow" Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBox
-                                AutomationProperties.Name="Fichero original para firma separada"
+                                AutomationProperties.Name="Original, solo para firmas separadas"
+                                AutomationProperties.HelpText="Fichero original para firma separada"
                                 Header="Original, solo para firmas separadas"
                                 MinHeight="40"
                                 IsReadOnly="True"
@@ -143,7 +145,8 @@
                                 VerticalAlignment="Bottom">
                                 <Button MinHeight="40"
                                     VerticalAlignment="Bottom"
-                                    AutomationProperties.Name="Seleccionar fichero original"
+                                    AutomationProperties.Name="Seleccionar original…"
+                                    AutomationProperties.HelpText="Seleccionar fichero original"
                                     Click="OnSelectOriginalFileClick"
                                     Content="Seleccionar original…"
                                     IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -191,7 +194,8 @@
                                 TabIndex="7"
                             AutomationProperties.Name="{Binding Content, ElementName=ExportJsonReportButton}" />
                             <Button MinHeight="40"
-                                AutomationProperties.Name="Cancelar verificación"
+                                AutomationProperties.Name="Cancelar operación"
+                                AutomationProperties.HelpText="Cancelar verificación"
                                 Click="OnCancelClick"
                                 Content="Cancelar operación"
                                 IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
