@@ -5,7 +5,10 @@
 
 param(
     [string]$InstallDir = "$env:LOCALAPPDATA\Programs\GrxFirma\AfirmaURI",
-    [switch]$SilentInstall
+    [switch]$SilentInstall,
+    # Comprueba, sin cambiar nada, que la carpeta y el protocolo afirma://
+    # pertenecen a esta instalación. La suite lo usa antes de detener procesos.
+    [switch]$ValidateOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -59,6 +62,19 @@ if ($previousInstallExisted -and
     (-not (Test-GrxFirmaInstallMarker -Path $InstallDir -Component "AfirmaURI")) -and
     (-not (Test-Path -LiteralPath (Join-Path $InstallDir "grxfirma-afirmauri.exe") -PathType Leaf))) {
     throw "La ruta contiene datos que no pertenecen a GrxFirma y no se modificara: $InstallDir"
+}
+
+$protocolKey = "Software\Classes\afirma"
+$protocolSnapshot = Join-Path $InstallDir "afirma-protocol-snapshot.json"
+if ($ValidateOnly) {
+    Install-AfirmaProtocolRegistration `
+        -ProtocolKey $protocolKey `
+        -ExecutablePath (Join-Path $InstallDir "grxfirma-afirmauri.exe") `
+        -IconPath (Join-Path $InstallDir "grxfirma.ico") `
+        -SnapshotPath $protocolSnapshot `
+        -ValidateOnly
+    Write-Host "Protocolo afirma:// comprobado sin cambios."
+    return
 }
 
 Stop-GrxFirmaInstalledProcesses -Path $InstallDir -Component "AfirmaURI"
@@ -120,8 +136,6 @@ try {
         Remove-Item -LiteralPath $legacyDebugHandler -Force
     }
 
-    $protocolKey = "Software\Classes\afirma"
-    $protocolSnapshot = Join-Path $InstallDir "afirma-protocol-snapshot.json"
     Install-AfirmaProtocolRegistration `
         -ProtocolKey $protocolKey `
         -ExecutablePath $exeTarget `
