@@ -13,6 +13,7 @@ namespace GrxFirma.WinUI;
 
 public partial class App : Application
 {
+    private static readonly TimeSpan IpcCloseTimeout = TimeSpan.FromSeconds(3);
     private MainWindow? _window;
     private ReconnectingIpcClient? _ipcClient;
     private readonly CancellationTokenSource _lifetimeCancellation = new();
@@ -448,7 +449,7 @@ public partial class App : Application
         }
     }
 
-    private async void OnMainWindowClosed(object sender, WindowEventArgs args)
+    private void OnMainWindowClosed(object sender, WindowEventArgs args)
     {
         if (Interlocked.Exchange(ref _windowClosed, 1) != 0)
         {
@@ -457,14 +458,21 @@ public partial class App : Application
 
         // El editor del portal termina aquí: result.json ya está escrito y la
         // salida normal puede caer al descargar Windows.Data.Pdf (véase
-        // PortalSealProcessExit).
+        // ImmediateProcessExit).
         if (_portalSealSession is not null)
         {
             _portalSealSession.CancelOnClose();
-            PortalSealProcessExit.Terminate(_portalSealSession);
+            ImmediateProcessExit.Terminate(_portalSealSession.ExitCode);
             return;
         }
 
+        // Salida normal (bandeja → Salir, o cerrar la ventana si no se queda
+        // en la bandeja). Primero el cierre ordenado: los ajustes ya los ha
+        // guardado el motor al pulsar Guardar y los registros se escriben al
+        // momento; se retira la bandeja y se cierra el canal con el motor,
+        // con plazo. Después el proceso termina sin descargar DLL, porque tras
+        // usar la vista previa PDF la descarga de Windows.Data.Pdf cae en
+        // equipos sin GPU (véase ImmediateProcessExit).
         _lifetimeCancellation.Cancel();
         RestServer.Dispose();
         _tray?.Dispose();
@@ -473,8 +481,11 @@ public partial class App : Application
         if (client is not null)
         {
             OperationSession.Detach(client);
-            await DisposeClientQuietlyAsync(client);
+            _ = BoundedShutdownStep.Run(
+                () => DisposeClientQuietlyAsync(client),
+                IpcCloseTimeout);
         }
+        ImmediateProcessExit.Terminate(0);
     }
 
     private static async Task DisposeClientQuietlyAsync(
