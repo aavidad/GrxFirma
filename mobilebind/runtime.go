@@ -116,6 +116,7 @@ func newPlatformFacade(platform string, includeAndroidIntent bool, temporaryDire
 
 	facade := newFacade(signUseCase, verifyUseCase, selectUseCase)
 	facade.importService = importUseCase
+	facade.batchService = application.NuevoProcessBatchUseCase(store, store, signEngine, approval, nil, nil)
 	facade.profileService = profileUseCase
 	facade.session = store
 	facade.temporaryDirectory = temporaryDirectory
@@ -269,6 +270,19 @@ type mobileContract struct {
 	Signing         mobileSigningContract  `json:"signing"`
 	Verification    mobileVerifyContract   `json:"verification"`
 	Limits          mobileLimitsContract   `json:"limits"`
+	Protection      mobileProtectContract  `json:"protection"`
+	Hash            mobileHashContract     `json:"hash"`
+}
+
+type mobileProtectContract struct {
+	Containers    []string `json:"containers"`
+	MaxRecipients int      `json:"max_recipients"`
+	Decryption    []string `json:"decryption"`
+}
+
+type mobileHashContract struct {
+	Algorithms []string `json:"algorithms"`
+	Formats    []string `json:"formats"`
 }
 
 type mobileIdentityContract struct {
@@ -296,6 +310,8 @@ type mobileLimitsContract struct {
 	SignedOutputBytes int `json:"signed_output_bytes"`
 	CertificateBytes  int `json:"certificate_bytes"`
 	PasswordBytes     int `json:"password_bytes"`
+	BatchItems        int `json:"batch_items"`
+	BatchInputBytes   int `json:"batch_input_bytes"`
 }
 
 func buildMobileContract(platform string, androidIntent bool) (string, error) {
@@ -314,7 +330,11 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			"platform_profile":   true,
 			"clear_session":      true,
 			"android_intent":     androidIntent,
-			"process_batch":      false,
+			"process_batch":      true,
+			"hash":               true,
+			"protect":            true,
+			"unprotect":          true,
+			"protect_sign":       true,
 			"remote_exchange":    false,
 		},
 		IdentityStore: mobileIdentityContract{
@@ -344,6 +364,17 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			SignedOutputBytes: maxSignedDocumentBytes,
 			CertificateBytes:  maxCertificateBytes,
 			PasswordBytes:     maxPasswordBytes,
+			BatchItems:        maxBatchItems,
+			BatchInputBytes:   maxBatchInputBytes,
+		},
+		Protection: mobileProtectContract{
+			Containers:    []string{"cms", "authenvelopeddata", "cms-encrypted", "signedandenvelopeddata"},
+			MaxRecipients: maxProtectionRecipients,
+			Decryption:    []string{"session_pkcs12_rsa", "transient_aes256_key"},
+		},
+		Hash: mobileHashContract{
+			Algorithms: []string{"SHA-256", "SHA-1", "SHA-384", "SHA-512"},
+			Formats:    []string{"hex", "base64", "bin"},
 		},
 	}
 	raw, err := json.Marshal(contract)
