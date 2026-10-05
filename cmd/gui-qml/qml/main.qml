@@ -686,6 +686,8 @@ Window {
     property bool signingInProgress: false
     // Firma remota CSC: el motor decide si está permitida y guarda la sesión.
     property bool cscAllowed: false
+    // La política de la organización la prohíbe: se explica, no se ofrece.
+    property bool cscProhibited: false
     property var cscState: ({})
     property var cscDiscovery: null
     property bool cscBusy: false
@@ -4342,7 +4344,8 @@ Window {
             if (action === "csc_status") {
                 window.cscState = ok ? data : ({})
                 window.cscAllowed = ok && data.allowed === true
-                if (!window.cscAllowed && cscRemoteDialog.opened) cscRemoteDialog.close()
+                window.cscProhibited = ok && data.prohibitedByPolicy === true
+                if (!window.cscAllowed && !window.cscProhibited && cscRemoteDialog.opened) cscRemoteDialog.close()
                 if (ok && data.discovered === true)
                     window.cscDiscovery = { serviceHost: data.serviceHost, oauthHost: data.oauthHost, serviceName: data.serviceName }
                 else if (ok)
@@ -6749,13 +6752,25 @@ Window {
                 color: currentTheme.secondaryTextColor
                 wrapMode: Text.WordWrap
             }
+            Text {
+                Layout.fillWidth: true
+                visible: window.cscProhibited
+                text: tr("csc.error.prohibida")
+                color: currentTheme.textColor
+                font.bold: true
+                wrapMode: Text.WordWrap
+                Accessible.role: Accessible.AlertMessage
+                Accessible.name: text
+            }
             Label {
+                visible: window.cscAllowed
                 text: tr("csc.gui.url")
                 color: currentTheme.textColor
                 font.bold: true
             }
             TextField {
                 id: cscServiceUrlField
+                visible: window.cscAllowed
                 Layout.fillWidth: true
                 enabled: !window.cscBusy && window.cscState.connected !== true
                 inputMethodHints: Qt.ImhUrlCharactersOnly | Qt.ImhNoAutoUppercase
@@ -6765,17 +6780,20 @@ Window {
             }
             Text {
                 Layout.fillWidth: true
+                visible: window.cscAllowed
                 text: tr("csc.gui.url_ayuda")
                 color: currentTheme.secondaryTextColor
                 wrapMode: Text.WordWrap
             }
             Label {
+                visible: window.cscAllowed
                 text: tr("csc.gui.client_id")
                 color: currentTheme.textColor
                 font.bold: true
             }
             TextField {
                 id: cscClientIdField
+                visible: window.cscAllowed
                 Layout.fillWidth: true
                 enabled: !window.cscBusy && window.cscState.connected !== true
                 inputMethodHints: Qt.ImhNoAutoUppercase | Qt.ImhNoPredictiveText
@@ -6784,7 +6802,7 @@ Window {
             }
             Button {
                 text: window.cscBusy && window.cscDiscovery === null ? tr("csc.gui.comprobando") : tr("csc.gui.comprobar")
-                visible: window.cscState.connected !== true
+                visible: window.cscAllowed && window.cscState.connected !== true
                 enabled: !window.cscBusy && cscServiceUrlField.text.trim() !== "" && cscClientIdField.text.trim() !== ""
                 onClicked: {
                     window.cscBusy = true
@@ -10443,7 +10461,7 @@ Window {
                             }
 
                             Button {
-                                visible: window.cscAllowed && !window.rightSidebarCollapsed
+                                visible: (window.cscAllowed || window.cscProhibited) && !window.rightSidebarCollapsed
                                 Layout.fillWidth: true
                                 text: tr("csc.gui.titulo")
                                 Accessible.name: tr("csc.gui.titulo")

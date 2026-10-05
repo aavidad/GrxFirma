@@ -63,8 +63,15 @@ class CscRemoteContractTests(unittest.TestCase):
         self.assertLess(dialog.index("csc.gui.host_servicio"), dialog.index("backend.cscConnect()"))
         self.assertIn("csc.gui.host_oauth", dialog)
         self.assertIn("textFormat: Text.PlainText", dialog)
-        self.assertIn("visible: window.cscAllowed && !window.rightSidebarCollapsed", QML)
+        self.assertIn("visible: (window.cscAllowed || window.cscProhibited) && !window.rightSidebarCollapsed", QML)
         self.assertIn("window.cscAllowed = ok && data.allowed === true", QML)
+
+    def test_policy_prohibition_is_explained_without_offering_config(self) -> None:
+        self.assertIn("window.cscProhibited = ok && data.prohibitedByPolicy === true", QML)
+        dialog = block(QML, "id: cscRemoteDialog")
+        self.assertIn('visible: window.cscProhibited\n                text: tr("csc.error.prohibida")', dialog)
+        self.assertIn("id: cscServiceUrlField\n                visible: window.cscAllowed", dialog)
+        self.assertIn("id: cscClientIdField\n                visible: window.cscAllowed", dialog)
 
     def test_every_csc_text_key_is_in_the_catalog(self) -> None:
         catalog = json.loads((LOCALES / "es.json").read_text(encoding="utf-8"))
