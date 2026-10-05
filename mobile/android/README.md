@@ -248,9 +248,10 @@ scripts/mobile/android/test-visible-seal.sh
 
 El PKCS#12 cruza JNI como un buffer mutable, sin la copia Base64 que existía en
 el contrato inicial, y se sobrescribe en ambos lados cuando deja de usarse. La
-contraseña aún debe cruzar como `String` por la API generada por `gobind`: por
-ello la limpieza es de mejor esfuerzo y no se promete borrado perfecto del heap
-administrado.
+contraseña se recoge como `CharArray`, se codifica directamente a bytes UTF-8 y
+cruza JNI como buffer mutable con `importCertificateSecretBytesJSON`. Se limpia
+en ambos lados, incluso en errores y cancelaciones. La biblioteca PKCS#12 Go
+aún necesita una conversión interna a `string`, cuyo borrado no puede garantizarse.
 
 PAdES usa temporalmente un subdirectorio privado con permisos `0700` dentro de
 `noBackupFilesDir`; los archivos de trabajo se intentan eliminar al terminar y
@@ -258,8 +259,9 @@ la fachada vuelve a limpiar ese directorio al iniciarse y al borrar la sesion.
 La integridad de firma se verifica localmente. Como el nucleo mobile no integra
 todavia las anclas de confianza del sistema, la pantalla separa integridad,
 vigencia del certificado, confianza y revocación. Nunca presenta una validez
-global cuando la confianza es desconocida; la revocacion se limita a evidencias
-embebidas.
+global cuando la confianza es desconocida; la revocación durante la verificación se limita a evidencias
+embebidas. Los perfiles LT/LTA de firma pueden obtener evidencias por red con
+el proveedor seguro de escritorio; esa obtención no activa la verificación en línea.
 
 La app solicita permisos SAF transitorios de lectura/escritura y no los
 persiste. Al arrancar libera permisos persistentes que pudieran quedar de
@@ -269,7 +271,8 @@ sesiones.
 
 ## Controles de seguridad
 
-- sin permiso `INTERNET` ni trafico en claro;
+- solo permisos NFC e `INTERNET`; este último permite la TSA y obtener evidencias LT/LTA, sin permisos de almacenamiento amplios;
+- TSA HTTP(S) elegida por la persona y validada sin credenciales ni fragmento; los controles Android generales conservan la prohibición de tráfico en claro, mientras el cliente Go admite HTTP como el motor de escritorio;
 - copias de seguridad y transferencia de datos deshabilitadas;
 - documentos abiertos exclusivamente mediante URI `content://`;
 - permisos SAF de alcance transitorio, sin retención entre sesiones;
@@ -278,8 +281,51 @@ sesiones.
 - identidad PKCS#12 limitada a una por sesion, con borrado explícito desde la UI;
 - resultados de firma limitados a 48 MiB y borrados de memoria al guardarlos;
 - errores del nucleo saneados antes de cruzar el enlace JNI;
-- ayuda local en español e inglés, estados de verificación separados y
+- ayuda local en los once idiomas de escritorio, estados de verificación separados y
   encabezados accesibles para lector de pantalla;
 - `FLAG_SECURE` activo en producción para impedir capturas del documento,
   certificados, contraseña y resultados;
 - release bloqueada sin AAR fijado por hash y firma externa.
+
+## Primera oleada de paridad Android
+
+La interfaz incluye operación de firma, cofirma o contrafirma, perfiles B/T/LT/LTA
+y configuración TSA. Se propone cofirma cuando el motor detecta firmas en el
+documento. El formato automático conserva el formato detectado al cofirmar.
+CAdES admite los cuatro perfiles; PAdES B/T/LT y firma/cofirma; XAdES B/T.
+Las combinaciones restantes se rechazan con una explicación, sin bajar de nivel.
+
+Cada salida se verifica antes de pedir destino de guardado. El dictamen se
+conserva al guardar y distingue integridad, vigencia, confianza y revocación.
+La pantalla muestra firmantes, emisor, huella, cobertura y evidencias. El botón
+«Exportar informe JSON de verificación» abre `ACTION_CREATE_DOCUMENT` con
+`application/json`; cancelar o fallar permite reintentar sin repetir la firma.
+
+El selector propio permite seguir al sistema o elegir es, en, ca, valencià,
+gl, eu, fr, de, it, pt o zh. Se usa `AppCompatDelegate.setApplicationLocales`,
+con persistencia de AppCompat en versiones antiguas y el gestor del sistema en
+Android 13 y posteriores. Valencià usa `ca-ES-valencia` y recursos
+`values-b+ca+ES+valencia`. Los textos de interfaz y los parámetros están en los
+once catálogos Android; los diagnósticos del motor que coinciden con el catálogo
+de escritorio usan un subconjunto empaquetado en `assets/locales`.
+Los datos de identidad y los detalles técnicos sin traducción coincidente se
+muestran literalmente; el JSON exportado conserva el informe del motor.
+
+«Acerca de» muestra versiones de app y motor, EUPL 1.2 o posterior, el contacto
+avidad@dipgra.es, ayuda y las novedades locales de esta oleada. Para producción
+hay que reconstruir el AAR v2 y fijar su nuevo SHA-256; no se ha generado ni
+publicado un APK con estos cambios.
+
+Comprobaciones locales adicionales:
+
+```bash
+python3 scripts/mobile/android/check_locales.py
+python3 scripts/mobile/android/sync_verification_locales.py
+GOFLAGS=-buildvcs=false GOCACHE=/tmp/codex-and1-gocache go test ./mobilebind/...
+```
+
+`check_locales.py` comprueba cobertura, duplicados, parámetros y referencias.
+`sync_verification_locales.py` actualiza los diagnósticos empaquetados desde el
+catálogo desktop y los recursos Android. Las pruebas Kotlin de estado, opciones,
+JSON, contraseñas y ViewModel están en `src/test`; los recorridos de guardado,
+verificación posterior, exportación y selección de idioma están en `src/androidTest`.

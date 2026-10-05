@@ -3,7 +3,7 @@
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
-# Contrato AAR Android v1
+# Contrato AAR Android v2
 
 El AAR de produccion debe proceder de `gomobile bind ./mobilebind` y contener
 `libgojni.so` para `armeabi-v7a`, `arm64-v8a` y `x86_64`.
@@ -33,17 +33,20 @@ clearSession()
 selectCertificateJSON(String) -> String
 importCertificateJSON(String) -> String
 importCertificateBytesJSON(byte[], String) -> String
+importCertificateSecretBytesJSON(byte[], byte[]) -> String
 installExternalIdentityJSON(String, mobilebind.ExternalDigestSigner) -> String
 signJSON(String) -> String
 sealPreviewJSON(String) -> String
 verifyJSON(String) -> String
+inspectSignatureJSON(String) -> String
 ```
 
-Android usa `importCertificateBytesJSON` para no crear una segunda copia
-Base64 del PKCS#12 en la capa Kotlin. `importCertificateJSON` se conserva por
-compatibilidad del contrato. Los buffers mutables se sobrescriben al terminar;
-la contraseña cruza como `String` por una limitación explícita de `gobind` y no
-se declara borrado perfecto del heap administrado.
+Android usa `importCertificateSecretBytesJSON`: PKCS#12 y contraseña UTF-8
+cruzan JNI como buffers mutables. Kotlin conserva la contraseña en `CharArray`
+y limpia los buffers también cuando falla la importación. Los dos métodos
+anteriores se conservan por compatibilidad. La biblioteca PKCS#12 Go todavía
+requiere una conversión interna a `string`; no se promete borrado perfecto de
+esa copia ni del heap administrado.
 
 `installExternalIdentityJSON` recibe el certificado de FIRMA y, si están
 disponibles, las CA intermedias en DER codificado Base64. El callback recibe
@@ -60,7 +63,7 @@ renderizada por `PdfRenderer`.
 
 ```json
 {
-  "contract_version": 1,
+  "contract_version": 2,
   "platform": "android",
   "services": {
     "sign": true,
@@ -88,7 +91,18 @@ El contrato operativo actual tambien declara, sin sobrestimar capacidades:
   },
   "approval": "native_ui_explicit_action",
   "signing": {
-    "actions": ["sign"],
+    "actions": ["sign", "cosign", "countersign"],
+    "profiles_by_format": {
+      "CAdES": ["baseline", "t", "lt", "lta"],
+      "PAdES": ["baseline", "t", "lt"],
+      "XAdES": ["baseline", "t"]
+    },
+    "actions_by_format": {
+      "CAdES": ["sign", "cosign", "countersign"],
+      "PAdES": ["sign", "cosign"],
+      "XAdES": ["sign", "cosign", "countersign"]
+    },
+    "tsa_url_schemes": ["http", "https"],
     "key_types_by_format": {
       "CAdES": ["RSA", "ECDSA"],
       "PAdES": ["RSA", "ECDSA"],
@@ -144,3 +158,27 @@ La fachada Go implementa este contrato. El AAR no se versiona: debe generarse
 desde un commit limpio con `scripts/mobile/android/build-core-aar.sh`, fijarse
 por SHA-256 y pasar este gate. `productionRelease` sigue requiriendo la firma
 Android oficial externa al repositorio.
+
+`signJSON` recibe la operación en `action` y el perfil en `options.profile`.
+El perfil predeterminado es `baseline`. Para T/LT/LTA exige `options.tsaURL`;
+B con TSA produce T. La fachada rechaza credenciales, fragmentos, esquemas
+ajenos a HTTP(S), puertos inválidos y perfiles que el formato no genera.
+PAdES no admite contrafirma ni LTA; XAdES no admite LT/LTA en este motor.
+CAdES usa los firmadores comunes de cofirma, contrafirma, TSA y revocación.
+El sellado CAdES-T conserva los firmantes y los atributos de contrafirma.
+
+`inspectSignatureJSON` devuelve `has_signature` y `format`. Reutiliza los
+parsers del motor y admite CAdES separado sin el original. Permite proponer
+cofirma; su resultado no acredita integridad ni confianza.
+
+El contrato incluye `engine_version`, fijado desde `VERSION.txt` al construir
+el AAR con `-X grxfirma/mobilebind.engineVersion`. Un AAR sin sellado declara
+`development`; Android lo muestra como versión no disponible. La app rechaza
+un AAR v1 y exige los nuevos métodos v2 antes de habilitar operaciones.
+
+Después de firmar, Android verifica la salida real. Para CAdES usa el original
+firmado o, en cofirma/contrafirma, el original que haya seleccionado la persona.
+El informe permanece separado del resultado de firma y del guardado. Una
+verificación que falla no impide guardar la firma ni se presenta como éxito.
+`verifyJSON` conserva firmantes, resúmenes, dictamen, cobertura, evidencias,
+advertencias y errores; el JSON se puede exportar mediante SAF.
