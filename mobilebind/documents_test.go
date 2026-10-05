@@ -179,6 +179,12 @@ func TestCSVLegendNormalizesIDNAndReportsField(t *testing.T) {
 		{csvLegendRequest{Code: "A", URL: "http://sede.example"}, csvErrorURLInvalid},
 		{csvLegendRequest{Code: "A", URL: "https://user@sede.example"}, csvErrorURLInvalid},
 		{csvLegendRequest{Code: "A", URL: "https://sede.example", Text: "a\nb"}, csvErrorTextInvalid},
+		{csvLegendRequest{Code: "AB\u202eC", URL: "https://sede.example"}, csvErrorCodeInvalid},
+		{csvLegendRequest{Code: "A\u200bB", URL: "https://sede.example"}, csvErrorCodeInvalid},
+		{csvLegendRequest{Code: "A", URL: "https://sede.example/\u2066x\u2069"}, csvErrorURLInvalid},
+		{csvLegendRequest{Code: "A", URL: "https://sede.example/x?csv=\ufeff{csv}"}, csvErrorURLInvalid},
+		{csvLegendRequest{Code: "A", URL: "https://sede.example", Text: "a\u202eb"}, csvErrorTextInvalid},
+		{csvLegendRequest{Code: "A", URL: "https://sede.example", Text: "a\x1bb"}, csvErrorTextInvalid},
 	}
 	for _, tc := range cases {
 		if _, err := facade.CSVLegendJSON(mustJSON(t, tc.request)); err == nil || err.Error() != tc.key {

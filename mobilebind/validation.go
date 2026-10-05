@@ -162,6 +162,15 @@ func validateSignatureAction(action string) error {
 	}
 }
 
+// containsControlOrFormat detecta caracteres de control (Cc) o de formato
+// (Cf: marcas Bidi, anchura cero, U+FEFF...), que no se ven pero cambian lo
+// que se muestra o se estampa.
+func containsControlOrFormat(value string) bool {
+	return strings.ContainsFunc(value, func(r rune) bool {
+		return unicode.Is(unicode.Cc, r) || unicode.Is(unicode.Cf, r)
+	})
+}
+
 func safeOperationError(operation string) error {
 	return newFacadeError("la operacion de " + operation + " no pudo completarse")
 }

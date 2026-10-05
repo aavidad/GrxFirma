@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 
 	"grxfirma/internal/adapters/outbound/common/eni"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
@@ -443,11 +442,11 @@ func (f *Facade) CSVLegendJSON(payload string) (string, error) {
 	switch {
 	case code == "":
 		return "", newFacadeError(csvErrorCodeMissing)
-	case len(code) > maxCSVCodeBytes || strings.ContainsFunc(code, unicode.IsControl):
+	case len(code) > maxCSVCodeBytes || containsControlOrFormat(code):
 		return "", newFacadeError(csvErrorCodeInvalid)
 	case strings.TrimSpace(req.URL) == "":
 		return "", newFacadeError(csvErrorURLMissing)
-	case len(req.Text) > maxCSVTextBytes || strings.ContainsFunc(req.Text, unicode.IsControl):
+	case len(req.Text) > maxCSVTextBytes || containsControlOrFormat(req.Text):
 		return "", newFacadeError(csvErrorTextInvalid)
 	}
 	address, text, _, err := desktopsigner.ResolverLeyendaCSV(map[string]string{

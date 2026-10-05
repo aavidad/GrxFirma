@@ -138,7 +138,7 @@ Window {
         const url = normalizedCsvUrl(signCSVUrl)
         if (!field || field === "csvCode") {
             if (code === "") return "csv.error.code_missing"
-            if (code.length > 128 || /[\r\n\t]/.test(code)) return "csv.error.code_invalid"
+            if (code.length > 128 || portalSeal.hasControlOrFormat(code)) return "csv.error.code_invalid"
         }
         if (!field || field === "csvUrl") {
             if (signCSVUrl.trim() === "") return "csv.error.url_missing"
@@ -148,7 +148,7 @@ Window {
                 return "csv.error.url_invalid"
         }
         if ((!field || field === "csvText") &&
-                (signCSVText.length > 512 || /[\r\n\t]/.test(signCSVText)))
+                (signCSVText.length > 512 || portalSeal.hasControlOrFormat(signCSVText)))
             return "csv.error.text_invalid"
         return ""
     }

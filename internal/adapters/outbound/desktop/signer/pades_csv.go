@@ -49,7 +49,7 @@ func leerOpcionesLeyendaCSV(options map[string]string) (opcionesLeyendaCSV, bool
 	if codigo == "" {
 		return opcionesLeyendaCSV{}, false, nil
 	}
-	if len(codigo) > maxLongitudCSV || strings.ContainsAny(codigo, "\r\n\t") {
+	if len(codigo) > maxLongitudCSV || contieneControlOFormato(codigo) {
 		return opcionesLeyendaCSV{}, false, fmt.Errorf("el código CSV no es válido")
 	}
 	direccion := strings.ReplaceAll(strings.TrimSpace(valorOpcion(options, "csvUrl")), "{csv}", url.QueryEscape(codigo))
@@ -61,7 +61,7 @@ func leerOpcionesLeyendaCSV(options map[string]string) (opcionesLeyendaCSV, bool
 	if texto == "" {
 		texto = textoLeyendaCSVDefec
 	}
-	if len(texto) > maxLongitudCSVTexto || strings.ContainsAny(texto, "\r\n\t") {
+	if len(texto) > maxLongitudCSVTexto || contieneControlOFormato(texto) {
 		return opcionesLeyendaCSV{}, false, fmt.Errorf("el texto de la leyenda CSV supera el límite permitido")
 	}
 	texto = strings.NewReplacer("{csv}", codigo, "{url}", direccion).Replace(texto)

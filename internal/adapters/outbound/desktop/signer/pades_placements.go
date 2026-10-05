@@ -34,6 +34,17 @@ type sealPlacement struct {
 	Rotation int `json:"rotation"`
 }
 
+// contieneControlOFormato indica si el texto lleva caracteres de control
+// (Cc) o de formato (Cf): marcas bidireccionales (U+202A-202E, U+2066-2069),
+// caracteres de anchura cero (U+200B-200F), U+FEFF y similares. No se ven o
+// alteran el orden visual, y permitirían mostrar en el sello o en el QR una
+// dirección o un código distinto del que realmente contiene.
+func contieneControlOFormato(s string) bool {
+	return strings.ContainsFunc(s, func(r rune) bool {
+		return unicode.Is(unicode.Cc, r) || unicode.Is(unicode.Cf, r)
+	})
+}
+
 // normalizarURLQRSello se ejecuta en el motor, también para solicitudes que
 // no pasaron por una interfaz de escritorio.
 func normalizarURLQRSello(raw string) (string, error) {
@@ -41,7 +52,7 @@ func normalizarURLQRSello(raw string) (string, error) {
 	if value == "" {
 		return "", nil
 	}
-	if len(value) > 2048 || strings.Contains(value, "\\") || strings.IndexFunc(value, func(r rune) bool { return unicode.IsSpace(r) || unicode.IsControl(r) }) >= 0 {
+	if len(value) > 2048 || strings.Contains(value, "\\") || strings.ContainsFunc(value, unicode.IsSpace) || contieneControlOFormato(value) {
 		return "", fmt.Errorf("el QR exige una dirección HTTPS válida, sin espacios ni caracteres de control")
 	}
 	if !strings.Contains(value, "://") {
