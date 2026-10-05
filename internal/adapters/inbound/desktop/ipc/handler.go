@@ -68,6 +68,10 @@ var directoriosSistemaProhibidos = []string{
 	"/etc/shadow", "/etc/passwd", // ficheros criticos individuales
 	"/etc/ssh",         // claves de host SSH
 	"/etc/ssl/private", // claves TLS del sistema
+	"/etc/master.passwd",
+	// En macOS /etc y /var son enlaces a /private; EvalSymlinks devuelve esta forma.
+	"/private/etc/passwd", "/private/etc/master.passwd", "/private/etc/ssh",
+	"/private/etc/ssl/private", "/private/var/root",
 }
 
 type tlsIPCDependencies struct {
