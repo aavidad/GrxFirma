@@ -454,9 +454,7 @@ un resumen dice qué se usará si no se abren.
   etiqueta y sin cortar las opciones largas.
 - La ayuda está dividida en apartados.
 
-Pendiente de esa revisión: guardar el informe de verificación en HTML legible
-como en escritorio (Android sigue guardando JSON); un buzón institucional de
-contacto; y comprobar con TalkBack y un móvil con NFC el editor del sello, los
+Pendiente de esa revisión: un buzón institucional de contacto y comprobar con TalkBack y un móvil con NFC el editor del sello, los
 diálogos del DNIe y la tarjeta de resultado con un núcleo de producción.
 
 Comprobaciones locales adicionales:
@@ -475,7 +473,7 @@ verificación posterior, exportación y selección de idioma están en `src/andr
 
 ## Cuarta oleada: expediente ENI, lote con sello y cofirma, DNIe
 
-- **Expediente ENI** (en «Veri*Factu y ENI»): se elige con
+- **Expediente ENI** (en «Otras herramientas», sección «Veri*Factu y ENI»): se elige con
   `ACTION_OPEN_DOCUMENT_TREE` la carpeta de documentos ENI, sin persistir el
   permiso. Entran los ficheros XML (hasta 64 y 32 MiB en total; se examinan como
   mucho 512 entradas), en orden alfabético como en escritorio; el resto se
@@ -486,11 +484,12 @@ verificación posterior, exportación y selección de idioma están en `src/andr
   un documento ENI, se indica por su nombre y no se firma nada. El expediente
   se guarda por SAF como resultado de herramienta.
 - **Lote**: operación «Firmar» o «Cofirmar» y casilla para añadir el sello
-  visible a los PDF. Se usa el sello guardado en «Firma visible» adaptado a
+  visible a los PDF. Se usa el sello colocado con «Colocar el sello», adaptado a
   cada PDF: la página elegida (o la última si el PDF es más corto), todas las
   páginas (hasta 128) o las posiciones por página que existan. Para medir el
   PDF, `PdfRenderer` lee una copia temporal en `noBackupFilesDir` que se
-  sobrescribe y se borra enseguida. La leyenda CSV no se añade en lote.
+  sobrescribe y se borra enseguida; ese directorio se vacía además al abrir la
+  app y al empezar cada lote, por si un cierre inesperado dejó alguna copia. La leyenda CSV no se añade en lote.
 - **DNIe en lote y en «proteger y firmar»**: el PIN se pide una vez. En el lote
   se guarda solo en memoria, dentro del `PasswordCallback` de jmulticard,
   hasta que termina la operación, y se borra también si no llega a empezar.
@@ -507,9 +506,24 @@ verificación posterior, exportación y selección de idioma están en `src/andr
   ASiC-XAdES: el motor de escritorio no los admite (solo CAdES, PAdES y XAdES
   añaden sello de tiempo), así que siguen limitados al perfil B.
 
-Los textos nuevos están en `res/values*/strings_ola4.xml` (once idiomas) y las
-pantallas en `section_expediente.xml` y `section_batch_wave4.xml`.
-`check_locales.py` comprueba todos los `strings*.xml` de cada idioma.
+Tras la fusión con la tercera oleada, los textos de esta oleada están en
+`strings.xml` de cada idioma (los valida `check_locales.py`) y las pantallas
+`section_expediente.xml` y `section_batch_wave4.xml` cuelgan de «Otras
+herramientas», con los desplegables como campos.
+
+## Informe imprimible y endurecimiento
+
+- «Guardar informe imprimible (HTML)» guarda el informe de escritorio
+  (`informeverificacion`), autocontenido y sin scripts, además del JSON
+  técnico. En el móvil nunca dice «firma válida», porque la confianza en el
+  emisor no se evalúa con anclas del sistema. La plantilla está en castellano,
+  como en escritorio.
+- Lo que se muestra (nombres de fichero, huellas, informe Veri*Factu,
+  errores del núcleo) quita los caracteres de control y también los de
+  formato (marcas Bidi y de ancho cero) para que nada aparente otra cosa.
+- La contraseña del certificado no se guarda en el estado de la vista.
+- Los errores de fichero son códigos cerrados (`DocumentProblem`) que la
+  interfaz traduce; no hay frases en castellano en ese código.
 
 Pendiente: probar en un móvil real el lote con DNIe 3.0 y 4.0 (varias firmas
 seguidas con un solo PIN, PIN erróneo a mitad de lote y retirada de la tarjeta),
