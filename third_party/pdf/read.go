@@ -77,6 +77,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"sync/atomic"
 )
 
 // A Reader is a single PDF file open for reading.
@@ -92,7 +93,16 @@ type Reader struct {
 	XrefInformation ReaderXrefInformation
 	PDFVersion      string
 	xrefLimit       int64
+	// AutoFirmaV2: objetos comprimidos que se están resolviendo a la vez.
+	// Un flujo de objetos cuyo /Length o /Extends lleva a un objeto de ese
+	// mismo flujo recursaba sin fin.
+	resolviendoObjStm atomic.Int32
 }
+
+const (
+	maxAnidamientoObjStm = 32
+	maxCadenaExtends     = 64
+)
 
 type ReaderXrefInformation struct {
 	StartPos               int64
@@ -1051,9 +1061,18 @@ func (r *Reader) resolve(parent objptr, x interface{}) Value {
 		}
 		var obj object
 		if xref.inStream {
+			if r.resolviendoObjStm.Add(1) > maxAnidamientoObjStm {
+				r.resolviendoObjStm.Add(-1)
+				panic(fmt.Errorf("malformed PDF: flujos de objetos recursivos al cargar %v", ptr))
+			}
+			defer r.resolviendoObjStm.Add(-1)
 			strm := r.resolve(parent, xref.stream)
+			saltos := 0
 		Search:
 			for {
+				if saltos++; saltos > maxCadenaExtends {
+					panic(fmt.Errorf("malformed PDF: cadena /Extends demasiado larga al cargar %v", ptr))
+				}
 				if strm.Kind() != Stream {
 					panic("not a stream")
 				}

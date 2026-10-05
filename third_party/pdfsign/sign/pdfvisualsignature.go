@@ -198,6 +198,10 @@ func (context *SignContext) visualSignatureDescription() string {
 	return strings.Join(parts, " | ")
 }
 
+// maxPaginasTodas es el mismo tope de páginas expandidas que aplica la
+// aplicación (maxVisibleSealExpandedPages).
+const maxPaginasTodas = 20000
+
 func (context *SignContext) resolveAppearancePages() ([]uint32, error) {
 	if len(context.SignData.Appearance.PerPage) > 0 {
 		pages := make([]uint32, len(context.SignData.Appearance.PerPage))
@@ -212,6 +216,19 @@ func (context *SignContext) resolveAppearancePages() ([]uint32, error) {
 	}
 
 	if context.SignData.Appearance.AllPages {
+		// AutoFirmaV2: /Count no es de confianza. Se limita como el resto de
+		// expansiones de páginas y se comprueba contra el árbol real antes de
+		// reservar memoria.
+		if totalPages > maxPaginasTodas {
+			return nil, fmt.Errorf("el documento declara %d páginas; el sello en todas admite como máximo %d", totalPages, maxPaginasTodas)
+		}
+		reales, err := context.PDFReader.ValidarArbolPaginas(maxPaginasTodas)
+		if err != nil {
+			return nil, err
+		}
+		if reales != totalPages {
+			return nil, fmt.Errorf("árbol de páginas no válido: /Count %d y %d páginas reales", totalPages, reales)
+		}
 		pages := make([]uint32, totalPages)
 		for i := 0; i < totalPages; i++ {
 			pages[i] = uint32(i + 1)
@@ -330,35 +347,86 @@ func (context *SignContext) createIncPageUpdate(pageNumber, annot uint32) ([]byt
 	return page_buffer.Bytes(), nil
 }
 
-// Helper function to find a page by its number
+// findPageByNumber devuelve la hoja /Type /Page número pageNumber (desde 1)
+// recorriendo el árbol en orden, sin fiarse de los /Count.
 func findPageByNumber(pages pdf.Value, pageNumber uint32) (pdf.Value, error) {
-	page, remaining, err := findPageByNumberRec(pages, pageNumber)
+	noEncontrada := fmt.Errorf("page number %d not found", pageNumber)
+	if pageNumber == 0 {
+		return pdf.Value{}, noEncontrada
+	}
+	var encontrada pdf.Value
+	resto := pageNumber
+	err := recorrerHojas(pages, func(hoja pdf.Value) bool {
+		if resto == 1 {
+			encontrada = hoja
+			return false
+		}
+		resto--
+		return true
+	})
 	if err != nil {
 		return pdf.Value{}, err
 	}
-	if remaining != 0 {
-		return pdf.Value{}, fmt.Errorf("page number %d not found", pageNumber)
+	if encontrada.IsNull() {
+		return pdf.Value{}, noEncontrada
 	}
-	return page, nil
+	return encontrada, nil
 }
 
-// Internal recursive helper that returns the found page and the remaining page number to find.
-func findPageByNumberRec(pages pdf.Value, pageNumber uint32) (pdf.Value, uint32, error) {
-	if pages.Key("Type").Name() == "Pages" {
-		kids := pages.Key("Kids")
-		for i := 0; i < kids.Len(); i++ {
-			page, remaining, err := findPageByNumberRec(kids.Index(i), pageNumber)
-			if err == nil && remaining == 0 {
-				return page, 0, nil
-			}
-			pageNumber = remaining
-		}
-		return pdf.Value{}, pageNumber, fmt.Errorf("page number %d not found", pageNumber)
-	} else if pages.Key("Type").Name() == "Page" {
-		if pageNumber == 1 {
-			return pages, 0, nil
-		}
-		return pdf.Value{}, pageNumber - 1, nil
+// recorrerHojas llama a fn con cada hoja /Type /Page del árbol, en orden,
+// hasta que fn devuelve false.
+//
+// AutoFirmaV2: el recorrido es iterativo y acotado. El árbol de páginas no
+// es de confianza: un /Kids que vuelve a un antecesor, un nodo repetido o un
+// árbol de miles de niveles devuelven un error en lugar de colgar la firma o
+// agotar la pila.
+func recorrerHojas(pages pdf.Value, fn func(pdf.Value) bool) error {
+	switch pages.Key("Type").Name() {
+	case "Page":
+		fn(pages)
+		return nil
+	case "Pages":
+	default:
+		return nil
 	}
-	return pdf.Value{}, pageNumber, fmt.Errorf("page number %d not found", pageNumber)
+	type marco struct {
+		kids pdf.Value
+		id   uint32 // objeto del nodo, para distinguir hijos directos
+		i    int
+	}
+	raiz, _ := pages.ObjectReference()
+	vistos := map[uint32]bool{raiz: true}
+	pila := []marco{{kids: pages.Key("Kids"), id: raiz}}
+	for len(pila) > 0 {
+		m := &pila[len(pila)-1]
+		if m.i >= m.kids.Len() {
+			pila = pila[:len(pila)-1]
+			continue
+		}
+		kid := m.kids.Index(m.i)
+		m.i++
+		padre := m.id
+		// Un hijo indirecto lleva su propio número de objeto; uno directo,
+		// el de su contenedor. Los repetidos y los ciclos se rechazan; un
+		// objeto que se contiene a sí mismo lo corta el límite de niveles.
+		id, _ := kid.ObjectReference()
+		if id != 0 && id != padre {
+			if vistos[id] {
+				return fmt.Errorf("árbol de páginas no válido: el objeto %d aparece más de una vez", id)
+			}
+			vistos[id] = true
+		}
+		switch kid.Key("Type").Name() {
+		case "Pages":
+			if len(pila) >= pdf.MaxProfundidadArbolPaginas {
+				return fmt.Errorf("árbol de páginas no válido: más de %d niveles", pdf.MaxProfundidadArbolPaginas)
+			}
+			pila = append(pila, marco{kids: kid.Key("Kids"), id: id})
+		case "Page":
+			if !fn(kid) {
+				return nil
+			}
+		}
+	}
+	return nil
 }

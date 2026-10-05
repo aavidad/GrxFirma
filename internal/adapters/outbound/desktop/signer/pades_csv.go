@@ -79,7 +79,8 @@ func ResolverLeyendaCSV(options map[string]string) (direccion, texto string, act
 	return opciones.direccion, opciones.texto, true, nil
 }
 
-// leyendaCSV devuelve un sello por página con la leyenda CSV.
+// leyendaCSV devuelve un sello por página con la leyenda CSV, en el margen
+// inferior de la página tal como se ve (con su CropBox y su /Rotate).
 func leyendaCSV(options map[string]string, pdfData []byte) ([]pdfsign.StampImage, error) {
 	opciones, activa, err := leerOpcionesLeyendaCSV(options)
 	if err != nil || !activa {
@@ -89,33 +90,57 @@ func leyendaCSV(options map[string]string, pdfData []byte) ([]pdfsign.StampImage
 	if err != nil {
 		return nil, fmt.Errorf("no se pudo leer el PDF: %w", err)
 	}
+	// El /Count no es de confianza: no se recorre ni se reserva memoria por
+	// encima de las estampas que admite una firma.
 	total := r.NumPage()
-	imagenes := map[int][]byte{} // por ancho en puntos, para no repetir el renderizado
-	out := make([]pdfsign.StampImage, 0, total)
+	if total > pdfsign.MaxSellosImagen {
+		return nil, fmt.Errorf("la leyenda CSV admite documentos de hasta %d páginas", pdfsign.MaxSellosImagen)
+	}
+	type claveImagen struct{ ancho, giro int }
+	imagenes := map[claveImagen][]byte{} // para no repetir el renderizado
+	out := make([]pdfsign.StampImage, 0, max(total, 0))
 	for p := 1; p <= total; p++ {
-		x0, y0, x1, _ := cajaPagina(r.Page(p))
-		ancho := x1 - x0 - 2*margenLeyendaCSVPt
-		if ancho < 120 {
+		m := marcoLeyendaCSV(r.Page(p))
+		anchoVisto, altoVisto := m.dimensionesVisibles()
+		ancho := anchoVisto - 2*margenLeyendaCSVPt
+		if ancho < 120 || altoVisto < altoLeyendaCSVPt+6 {
 			return nil, fmt.Errorf("la página %d es demasiado estrecha para la leyenda CSV", p)
 		}
-		clave := int(ancho)
+		rect, giroImagen, err := m.colocarSello(margenLeyendaCSVPt, 6, ancho, altoLeyendaCSVPt, 0)
+		if err != nil {
+			return nil, fmt.Errorf("página %d: %w", p, err)
+		}
+		clave := claveImagen{int(ancho), int(giroImagen)}
 		if _, ok := imagenes[clave]; !ok {
-			if imagenes[clave], err = imagenLeyendaCSV(opciones, ancho); err != nil {
+			img, err := imagenLeyendaCSV(opciones, ancho)
+			if err != nil {
+				return nil, err
+			}
+			// En una página girada la imagen descuenta el giro para leerse
+			// derecha en pantalla.
+			if imagenes[clave], err = rotarImagenPNGSiProcede(img, int(giroImagen)); err != nil {
 				return nil, err
 			}
 		}
-		rect := [4]float64{x0 + margenLeyendaCSVPt, y0 + 6, x0 + margenLeyendaCSVPt + ancho, y0 + 6 + altoLeyendaCSVPt}
 		out = append(out, pdfsign.StampImage{Page: uint32(p), Rect: rect, Image: imagenes[clave]}) // #nosec G115 -- 1 <= p <= NumPage.
 	}
 	return out, nil
 }
 
+// marcoLeyendaCSV devuelve la caja visible de la página o, en documentos
+// antiguos sin MediaBox válida, un A4 con el /Rotate de la página.
+func marcoLeyendaCSV(page pdf.Page) marcoPagina {
+	if m, err := marcoVisiblePagina(page); err == nil {
+		return m
+	}
+	x0, y0, x1, y1 := cajaPagina(page)
+	return marcoPagina{x0: x0, y0: y0, ancho: x1 - x0, alto: y1 - y0, giro: giroPagina(page)}
+}
+
 // cajaPagina devuelve la MediaBox de la página (heredable) o A4 por defecto.
 func cajaPagina(p pdf.Page) (x0, y0, x1, y1 float64) {
-	caja := p.V.Key("MediaBox")
-	for n := p.V.Key("Parent"); caja.Len() != 4 && !n.IsNull(); n = n.Key("Parent") {
-		caja = n.Key("MediaBox")
-	}
+	// Heredado corta las cadenas /Parent circulares o demasiado largas.
+	caja := p.Heredado("MediaBox")
 	if caja.Len() != 4 {
 		return 0, 0, 595.28, 841.89
 	}

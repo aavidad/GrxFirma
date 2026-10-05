@@ -8,6 +8,11 @@ import (
 
 const maxStamps = 32
 
+// MaxSellosImagen es el número máximo de imágenes estampadas (Stamps) por
+// firma, para que quien las prepara pueda rechazar antes un documento con
+// más páginas sin recorrerlo entero.
+const MaxSellosImagen = maxStamps
+
 // crearSellosImagen añade las imágenes pedidas como anotaciones /Stamp
 // bloqueadas e imprimibles. Visualmente equivale al estampado de AutoFirma
 // Java sin reescribir el contenido ni los recursos heredados de la página.

@@ -58,7 +58,7 @@ func ber2der(ber []byte) ([]byte, error) {
 	//fmt.Printf("--> ber2der: Transcoding %d bytes\n", len(ber))
 	out := new(bytes.Buffer)
 
-	obj, _, err := readObject(ber, 0)
+	obj, _, err := readObject(ber, 0, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,15 @@ func encodeLength(out *bytes.Buffer, length int) error {
 // lengthOctetsHeader maps the number of length octets (1..8) to its byte value.
 var lengthOctetsHeader = [9]byte{0, 1, 2, 3, 4, 5, 6, 7, 8}
 
-func readObject(ber []byte, offset int) (asn1Object, int, error) {
+// maxAnidamientoBER limita los niveles de objetos construidos. AutoFirmaV2:
+// la firma de un PDF que se verifica no es de confianza y una cadena de
+// SEQUENCE anidadas agotaba la pila.
+const maxAnidamientoBER = 128
+
+func readObject(ber []byte, offset, nivel int) (asn1Object, int, error) {
+	if nivel > maxAnidamientoBER {
+		return nil, 0, errors.New("ber2der: anidamiento excesivo")
+	}
 	berLen := len(ber)
 	if offset >= berLen {
 		return nil, 0, errors.New("ber2der: offset is after end of ber data")
@@ -196,7 +204,7 @@ func readObject(ber []byte, offset int) (asn1Object, int, error) {
 		for (offset < contentEnd) || indefinite {
 			var subObj asn1Object
 			var err error
-			subObj, offset, err = readObject(ber, offset)
+			subObj, offset, err = readObject(ber, offset, nivel+1)
 			if err != nil {
 				return nil, 0, err
 			}

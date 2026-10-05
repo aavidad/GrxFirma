@@ -47,6 +47,19 @@ type buffer struct {
 	key         []byte
 	useAES      bool
 	objptr      objptr
+	anidamiento int // AutoFirmaV2: niveles abiertos de arrays, diccionarios y obj
+}
+
+// maxAnidamientoObjetos limita los arrays, diccionarios y definiciones obj
+// anidados. AutoFirmaV2: sin límite, «[[[[...» agotaba la pila de Go, un
+// error fatal que no se puede recuperar.
+const maxAnidamientoObjetos = 512
+
+func (b *buffer) abrirNivel() {
+	b.anidamiento++
+	if b.anidamiento > maxAnidamientoObjetos {
+		b.errorf("malformed PDF: anidamiento de objetos excesivo (más de %d niveles)", maxAnidamientoObjetos)
+	}
 }
 
 // newBuffer returns a new buffer reading from r at the given offset.
@@ -432,9 +445,15 @@ func (b *buffer) readObject() object {
 			b.unreadToken(tok)
 			return nil
 		case "<<":
-			return b.readDict()
+			b.abrirNivel()
+			x := b.readDict()
+			b.anidamiento--
+			return x
 		case "[":
-			return b.readArray()
+			b.abrirNivel()
+			x := b.readArray()
+			b.anidamiento--
+			return x
 		}
 
 		b.errorf("unexpected keyword %q parsing object", kw)
@@ -459,7 +478,9 @@ func (b *buffer) readObject() object {
 			case keyword("obj"):
 				old := b.objptr
 				b.objptr = objptr{uint32(t1), uint16(t2)} // #nosec G115 -- rango comprobado arriba.
+				b.abrirNivel()
 				obj := b.readObject()
+				b.anidamiento--
 				if _, ok := obj.(stream); !ok {
 					tok4 := b.readToken()
 					if tok4 != keyword("endobj") {

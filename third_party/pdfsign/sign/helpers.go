@@ -15,25 +15,14 @@ import (
 	"golang.org/x/text/transform"
 )
 
+// findFirstPage devuelve la primera página del árbol con el recorrido
+// acotado de findPageByNumber.
 func findFirstPage(parent pdf.Value) (pdf.Value, error) {
-	value_type := parent.Key("Type").String()
-	if value_type == "/Pages" {
-		for i := 0; i < parent.Key("Kids").Len(); i++ {
-			kid := parent.Key("Kids").Index(i)
-			recurse_parent, recurse_err := findFirstPage(kid)
-			if recurse_err == nil {
-				return recurse_parent, recurse_err
-			}
-		}
-
+	page, err := findPageByNumber(parent, 1)
+	if err != nil {
 		return parent, errors.New("could not find first page")
 	}
-
-	if value_type == "/Page" {
-		return parent, nil
-	}
-
-	return parent, errors.New("could not find first page")
+	return page, nil
 }
 
 func pdfString(text string) string {

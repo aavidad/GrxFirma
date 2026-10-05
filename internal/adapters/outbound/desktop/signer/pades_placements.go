@@ -217,16 +217,9 @@ func aplicarPosicionesSello(signData *pdfsign.SignData, options map[string]strin
 // La caja debe proceder del documento real; no se usa el A4 de reserva que
 // sirve para colocar elementos opcionales en documentos antiguos.
 func cajaVisiblePagina(page pdf.Page) (float64, float64, float64, float64, error) {
-	media := page.V.Key("MediaBox")
-	crop := page.V.Key("CropBox")
-	for parent, depth := page.V.Key("Parent"), 0; !parent.IsNull() && (media.Len() != 4 || crop.Len() != 4) && depth < 64; parent, depth = parent.Key("Parent"), depth+1 {
-		if media.Len() != 4 {
-			media = parent.Key("MediaBox")
-		}
-		if crop.Len() != 4 {
-			crop = parent.Key("CropBox")
-		}
-	}
+	// Heredado corta las cadenas /Parent circulares o demasiado largas.
+	media := page.Heredado("MediaBox")
+	crop := page.Heredado("CropBox")
 	if media.Len() != 4 {
 		return 0, 0, 0, 0, fmt.Errorf("la página PDF no tiene una caja real válida")
 	}

@@ -15,7 +15,13 @@ import (
 // widget, y se reescribe su diccionario conservando todas sus claves; solo
 // se añaden /V y, si hay imagen de sello, una apariencia ajustada a su /Rect.
 
-const maxProfundidadCampos = 32
+const (
+	maxProfundidadCampos = 32
+	// maxNodosCampos acota el recorrido del formulario. AutoFirmaV2: un
+	// /Kids que repite el mismo hijo en cada nivel crece de forma
+	// exponencial aunque la profundidad esté limitada.
+	maxNodosCampos = 50000
+)
 
 type campoExistente struct {
 	valor pdf.Value
@@ -24,18 +30,36 @@ type campoExistente struct {
 }
 
 func (context *SignContext) buscarCampoFirma(nombre string) (campoExistente, error) {
-	acroForm := context.PDFReader.Trailer().Key("Root").Key("AcroForm")
+	return buscarCampoFirmaEn(context.PDFReader, nombre)
+}
+
+func buscarCampoFirmaEn(rdr *pdf.Reader, nombre string) (campoExistente, error) {
+	acroForm := rdr.Trailer().Key("Root").Key("AcroForm")
 	if acroForm.IsNull() {
 		return campoExistente{}, fmt.Errorf("el PDF no tiene formulario: no existe el campo de firma %q", nombre)
 	}
 	var encontrado []campoExistente
+	vistos := make(map[uint32]bool)
+	nodos := 0
 	var recorrer func(campos pdf.Value, prefijo, ftHeredado string, profundidad int) error
 	recorrer = func(campos pdf.Value, prefijo, ftHeredado string, profundidad int) error {
 		if profundidad > maxProfundidadCampos {
 			return errors.New("formulario con anidamiento excesivo")
 		}
+		contenedor, _ := campos.ObjectReference()
 		for i := 0; i < campos.Len(); i++ {
+			if nodos++; nodos > maxNodosCampos {
+				return errors.New("formulario con demasiados campos")
+			}
 			campo := campos.Index(i)
+			// Un campo indirecto que ya se ha visitado (ciclo o repetición)
+			// no se recorre otra vez.
+			if id, _ := campo.ObjectReference(); id != 0 && id != contenedor {
+				if vistos[id] {
+					continue
+				}
+				vistos[id] = true
+			}
 			parcial := campo.Key("T").Text()
 			completo := parcial
 			if prefijo != "" && parcial != "" {
@@ -83,6 +107,43 @@ func (context *SignContext) buscarCampoFirma(nombre string) (campoExistente, err
 	default:
 		return campoExistente{}, fmt.Errorf("el nombre de campo %q es ambiguo", nombre)
 	}
+}
+
+// PaginaCampoFirma devuelve la página en la que está el widget del campo de
+// firma vacío nombre, localizado con las mismas reglas que la firma
+// (signatureField). Usa /P del widget y, si falta, busca el widget en las
+// /Annots de las páginas. Devuelve una página nula si no la encuentra.
+func PaginaCampoFirma(rdr *pdf.Reader, nombre string) (pdf.Page, error) {
+	if !nombreCampoValido(nombre) {
+		return pdf.Page{}, fmt.Errorf("nombre de campo de firma no válido")
+	}
+	campo, err := buscarCampoFirmaEn(rdr, nombre)
+	if err != nil {
+		return pdf.Page{}, err
+	}
+	if p := campo.valor.Key("P"); p.Key("Type").Name() == "Page" {
+		return pdf.Page{V: p}, nil
+	}
+	// Un solo recorrido del árbol, acotado en páginas y anotaciones.
+	var pagina pdf.Page
+	vistas := 0
+	err = recorrerHojas(rdr.Trailer().Key("Root").Key("Pages"), func(hoja pdf.Value) bool {
+		if vistas++; vistas > maxPaginasTodas {
+			return false
+		}
+		annots := hoja.Key("Annots")
+		for i := 0; i < annots.Len() && i < maxNodosCampos; i++ {
+			if id, _ := annots.Index(i).ObjectReference(); id == campo.id {
+				pagina = pdf.Page{V: hoja}
+				return false
+			}
+		}
+		return true
+	})
+	if err != nil {
+		return pdf.Page{}, err
+	}
+	return pagina, nil
 }
 
 // rellenarCampoFirma reescribe el campo existente apuntando a la firma.

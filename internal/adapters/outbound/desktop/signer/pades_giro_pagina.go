@@ -48,10 +48,8 @@ func marcoVisiblePagina(page pdf.Page) (marcoPagina, error) {
 // sea un múltiplo entero de 90 se trata como 0, igual que pdf.js; el PDF de
 // entrada no es de confianza y un valor raro no debe impedir firmar.
 func giroPagina(page pdf.Page) int {
-	v := page.V.Key("Rotate")
-	for parent, depth := page.V.Key("Parent"), 0; v.IsNull() && !parent.IsNull() && depth < 64; parent, depth = parent.Key("Parent"), depth+1 {
-		v = parent.Key("Rotate")
-	}
+	// Heredado corta las cadenas /Parent circulares o demasiado largas.
+	v := page.Heredado("Rotate")
 	var n int64
 	switch v.Kind() {
 	case pdf.Integer:
@@ -131,6 +129,31 @@ func (m marcoPagina) colocarSello(u, v, w, h, grados float64) ([4]float64, float
 	// porque el giro de la página lleva cajas alineadas a cajas alineadas.
 	rect, err := cajaSelloGirado(cx-w/2, cy-h/2, w, h, giroImagen, m.x0, m.y0, m.ancho, m.alto)
 	return rect, giroImagen, err
+}
+
+// rectanguloVistoAUsuario lleva un rectángulo alineado de la página vista
+// (esquina inferior izquierda en (u, v), medida desde la de la página vista,
+// y w x h puntos) al espacio de usuario de la página sin girar. A diferencia
+// de colocarSello no lo desplaza para que quepa: es una transformación pura,
+// para elementos que AutoFirma Java permite sacar de la página. Devuelve
+// también el giro horario que debe llevar la imagen.
+func (m marcoPagina) rectanguloVistoAUsuario(u, v, w, h float64) ([4]float64, float64) {
+	switch m.giro {
+	case 90:
+		x := m.x0 + m.ancho - v - h
+		y := m.y0 + u
+		return [4]float64{x, y, x + h, y + w}, 270
+	case 180:
+		x := m.x0 + m.ancho - u - w
+		y := m.y0 + m.alto - v - h
+		return [4]float64{x, y, x + w, y + h}, 180
+	case 270:
+		x := m.x0 + v
+		y := m.y0 + m.alto - u - w
+		return [4]float64{x, y, x + h, y + w}, 90
+	default:
+		return [4]float64{m.x0 + u, m.y0 + v, m.x0 + u + w, m.y0 + v + h}, 0
+	}
 }
 
 // opcionesConGiroImagen copia las opciones con el giro de la imagen que
@@ -216,6 +239,37 @@ func ajustarSelloAPaginasGiradas(signData *pdfsign.SignData, options map[string]
 		placements = append(placements, pdfsign.PageAppearance{Page: p, Rect: rect, Image: img})
 	}
 	signData.Appearance.PerPage = placements
+	return nil
+}
+
+// ajustarCampoFirmaAPaginaGirada gira la imagen del sello que va en un campo
+// de firma existente (signatureField) cuando su página tiene /Rotate. El
+// widget conserva su /Rect, en el espacio de usuario sin girar, y la imagen
+// descuenta el giro de la página para leerse derecha en pantalla. Sin
+// /Rotate, o si no se encuentra la página del campo, no cambia nada; los
+// errores del campo los notifica pdfsign al firmar.
+func ajustarCampoFirmaAPaginaGirada(signData *pdfsign.SignData, options map[string]string, pdfData []byte) error {
+	if signData == nil || signData.Appearance.FieldName == "" || len(signData.Appearance.Image) == 0 {
+		return nil
+	}
+	r, err := abrirPDF(pdfData, options)
+	if err != nil {
+		return err
+	}
+	page, err := pdfsign.PaginaCampoFirma(r, signData.Appearance.FieldName)
+	if err != nil || page.V.IsNull() {
+		return nil
+	}
+	m := marcoPagina{giro: giroPagina(page)}
+	if m.giro == 0 {
+		return nil
+	}
+	_, giroImagen := m.rectanguloVistoAUsuario(0, 0, 1, 1)
+	img, err := rotarImagenPNGSiProcede(signData.Appearance.Image, int(giroImagen))
+	if err != nil {
+		return fmt.Errorf("PAdES pdfsign: girando el sello del campo: %w", err)
+	}
+	signData.Appearance.Image = img
 	return nil
 }
 
