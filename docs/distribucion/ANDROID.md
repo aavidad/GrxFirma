@@ -1,5 +1,5 @@
-<!-- Derechos de autor (C) 2026 Diputación de Granada. -->
-<!-- Autoría: Oficina de Software Libre de la Diputación de Granada. -->
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
 <!-- Licencia: EUPL-1.2 -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
