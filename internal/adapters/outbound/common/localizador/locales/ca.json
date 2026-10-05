@@ -2746,6 +2746,7 @@
   ,"portal.seal.previous_page": "Pàgina anterior"
   ,"portal.seal.next_page": "Pàgina següent"
   ,"portal.seal.preview_error": "No s’ha pogut mostrar el PDF. Feu servir «Ajust precís» o «Signar sense segell visible»."
+  ,"portal.seal.preview_failed": "No s’ha pogut mostrar el PDF, de manera que no es pot col·locar el segell. Podeu triar «Signar sense segell visible» o «Cancel·lar»."
   ,"portal.seal.preview_loading": "Carregant la vista del PDF…"
   ,"portal.seal.sign_here": "Signar amb el segell aquí"
   ,"portal.seal.sign_without": "Signar sense segell visible"

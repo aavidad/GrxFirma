@@ -388,13 +388,6 @@ public partial class App : Application
         _window?.Close();
     }
 
-    internal void FallbackPortalSeal()
-    {
-        _portalSealSession = null;
-        _exitRequested = true;
-        _window?.Close();
-    }
-
     private void OnMainWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
     {
         if (_portalSealSession is not null)

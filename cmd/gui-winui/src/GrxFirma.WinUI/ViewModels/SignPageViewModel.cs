@@ -3085,6 +3085,8 @@ public sealed class SignPageViewModel
         _isPreviewImageRendered = true;
         UpdateValidationMessage();
         UpdateCommandStates();
+        // La página ya se ve: dibujar el área y firmar en el portal dependen de ello.
+        RaisePropertyChanged(nameof(CanDrawVisibleSealArea));
     }
 
     // La página del PDF se carga sola al activar el sello o cambiar de

@@ -2746,6 +2746,7 @@
   ,"portal.seal.previous_page": "Vorherige Seite"
   ,"portal.seal.next_page": "Nächste Seite"
   ,"portal.seal.preview_error": "Das PDF konnte nicht angezeigt werden. Verwenden Sie „Feinjustierung“ oder „Ohne sichtbares Siegel signieren“."
+  ,"portal.seal.preview_failed": "Das PDF konnte nicht angezeigt werden, daher lässt sich das Siegel nicht platzieren. Wählen Sie „Ohne sichtbares Siegel signieren“ oder „Abbrechen“."
   ,"portal.seal.preview_loading": "PDF-Vorschau wird geladen…"
   ,"portal.seal.sign_here": "Hier mit sichtbarem Siegel signieren"
   ,"portal.seal.sign_without": "Ohne sichtbares Siegel signieren"

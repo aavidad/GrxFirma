@@ -2746,6 +2746,7 @@
   ,"portal.seal.previous_page": "Page précédente"
   ,"portal.seal.next_page": "Page suivante"
   ,"portal.seal.preview_error": "Impossible d’afficher le PDF. Utilisez « Réglage précis » ou « Signer sans cachet visible »."
+  ,"portal.seal.preview_failed": "Impossible d’afficher le PDF : le cachet ne peut pas être placé. Vous pouvez choisir « Signer sans cachet visible » ou « Annuler »."
   ,"portal.seal.preview_loading": "Chargement de l’aperçu du PDF…"
   ,"portal.seal.sign_here": "Signer avec le cachet ici"
   ,"portal.seal.sign_without": "Signer sans cachet visible"

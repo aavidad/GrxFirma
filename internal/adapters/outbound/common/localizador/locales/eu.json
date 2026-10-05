@@ -2746,6 +2746,7 @@
   ,"portal.seal.previous_page": "Aurreko orria"
   ,"portal.seal.next_page": "Hurrengo orria"
   ,"portal.seal.preview_error": "Ezin izan da PDFa erakutsi. Erabili «Doikuntza zehatza» edo «Sinatu zigilu ikusgarririk gabe»."
+  ,"portal.seal.preview_failed": "Ezin izan da PDFa erakutsi, eta ezin da zigilua kokatu. «Sinatu zigilu ikusgarririk gabe» edo «Utzi» aukera dezakezu."
   ,"portal.seal.preview_loading": "PDFaren aurrebista kargatzen…"
   ,"portal.seal.sign_here": "Sinatu hemen zigiluarekin"
   ,"portal.seal.sign_without": "Sinatu zigilu ikusgarririk gabe"

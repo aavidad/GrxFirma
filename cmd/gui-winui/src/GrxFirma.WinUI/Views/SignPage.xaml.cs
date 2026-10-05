@@ -221,6 +221,9 @@ public sealed partial class SignPage : Page
         _portalSealSession = session;
         ViewModel.ConfigurePortalSealDocument(session.DocumentPath, session.SignerName);
         if (IsLoaded) ConfigurePortalSealLayout(session);
+        // MainWindow entrega la sesión después de OnLoaded: la vista del PDF
+        // se pide aquí o nunca se habilitaría «Firmar con el sello aquí».
+        if (IsLoaded && _isSubscribed) _ = RefreshPortalSealAsync();
     }
 
     private void ConfigurePortalSealLayout(PortalSealSession session)
@@ -273,6 +276,15 @@ public sealed partial class SignPage : Page
                 ((App)Application.Current).CompletePortalSeal();
         };
         actions.Children.Add(cancel);
+        // Explica por qué «Firmar con el sello aquí» espera y, si la vista del
+        // PDF falla, que quedan «Firmar sin sello visible» y «Cancelar».
+        _portalStatusText = new TextBlock
+        {
+            Text = Label("portal.seal.preview_loading"), TextWrapping = TextWrapping.Wrap,
+            MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetLiveSetting(_portalStatusText,
+            AutomationLiveSetting.Assertive);
 
         var content = new StackPanel { Spacing = 16, Padding = new Thickness(20) };
         content.Children.Add(new TextBlock
@@ -286,6 +298,7 @@ public sealed partial class SignPage : Page
             MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Left,
         });
         content.Children.Add(actions);
+        content.Children.Add(_portalStatusText);
         content.Children.Add(pageControls);
         var geometry = new Grid { ColumnSpacing = 8 };
         for (var index = 0; index < 5; index++)
@@ -352,40 +365,68 @@ public sealed partial class SignPage : Page
                 .Replace("%2", Math.Max(1, ViewModel.PortalTotalPages).ToString(CultureInfo.CurrentCulture));
             previous.IsEnabled = ViewModel.CanGoToPreviousSealPage;
             next.IsEnabled = ViewModel.CanGoToNextSealPage;
-            _portalSignButton!.IsEnabled = ViewModel.PortalSealPlacement() is not null;
+            var ready = ViewModel.PortalSealPlacement() is not null;
+            if (ready) _portalPreviewFailed = false;
+            _portalSignButton!.IsEnabled = ready;
+            _portalStatusText!.Visibility = ready ? Visibility.Collapsed : Visibility.Visible;
+            var status = Label(_portalPreviewFailed
+                ? "portal.seal.preview_failed" : "portal.seal.preview_loading");
+            if (!ready && _portalStatusText.Text != status)
+            {
+                _portalStatusText.Text = status;
+                if (_portalPreviewFailed &&
+                    FrameworkElementAutomationPeer
+                        .FromElement(_portalStatusText) is { } peer)
+                    peer.RaiseAutomationEvent(
+                        AutomationEvents.LiveRegionChanged);
+            }
         }
         _portalUpdateNavigation = UpdateNavigation;
         UpdateNavigation();
     }
 
     private Action? _portalUpdateNavigation;
+    private TextBlock? _portalStatusText;
+    private bool _portalPreviewFailed;
     private int _portalRefreshInProgress;
+    private static readonly TimeSpan PortalSealPreviewTimeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan PortalSealPreviewRetryDelay = TimeSpan.FromMilliseconds(400);
+    private const int PortalSealPreviewAttempts = 5;
 
     private async Task RefreshPortalSealAsync()
     {
         if (_portalSealSession is null ||
             Interlocked.Exchange(ref _portalRefreshInProgress, 1) != 0) return;
+        var token = _pageCancellation?.Token ?? CancellationToken.None;
         try
         {
-            // La primera vista puede coincidir con el renderizado inicial de la
-            // página; solo se recurre al diálogo de reserva si tras varios
-            // intentos no hay una página del PDF sobre la que situar el sello.
-            var token = _pageCancellation?.Token ?? CancellationToken.None;
-            for (var intento = 0; intento < 5; intento++)
-            {
-                await ViewModel.RefreshVisibleSealPreviewAsync(token);
-                await UpdateVisibleSealPreviewImageAsync();
-                _portalUpdateNavigation?.Invoke();
-                if (token.IsCancellationRequested || ViewModel.PortalSealPlacement() is not null)
-                    return;
-                await Task.Delay(400, token);
-            }
-            ((App)Application.Current).FallbackPortalSeal();
+            // Se espera con plazo: si la vista del PDF falla o no llega, se
+            // avisa y quedan «Firmar sin sello visible» y «Cancelar».
+            var ready = await PortalSealPreviewWait.WaitAsync(
+                () => ViewModel.PortalSealPlacement() is not null,
+                () => ViewModel.VisibleSealPreviewImage.IsEmpty,
+                async () =>
+                {
+                    await ViewModel.RefreshVisibleSealPreviewAsync(token);
+                    await UpdateVisibleSealPreviewImageAsync();
+                },
+                PortalSealPreviewTimeout,
+                PortalSealPreviewRetryDelay,
+                PortalSealPreviewAttempts,
+                TimeProvider.System,
+                token);
+            _portalPreviewFailed = !ready;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
+            return;
+        }
+        catch (Exception)
+        {
+            _portalPreviewFailed = true;
         }
         finally { Interlocked.Exchange(ref _portalRefreshInProgress, 0); }
+        _portalUpdateNavigation?.Invoke();
     }
 
     private async Task NavigatePortalPageAsync(int step)
@@ -394,10 +435,10 @@ public sealed partial class SignPage : Page
         await ViewModel.NavigateVisibleSealPageAsync(step,
             _pageCancellation?.Token ?? CancellationToken.None);
         await UpdateVisibleSealPreviewImageAsync();
-        _portalUpdateNavigation?.Invoke();
         if (_pageCancellation?.IsCancellationRequested != true &&
             ViewModel.PortalSealPlacement() is null)
-            ((App)Application.Current).FallbackPortalSeal();
+            _portalPreviewFailed = true;
+        _portalUpdateNavigation?.Invoke();
     }
 
     public SignPageViewModel ViewModel { get; }
@@ -1498,6 +1539,8 @@ public sealed partial class SignPage : Page
     {
         // Sin vista previa lista no se puede dibujar: el botón queda desactivado.
         VisibleSealDrawToggle.IsEnabled = ViewModel.CanDrawVisibleSealArea || VisibleSealDrawToggle.IsChecked == true;
+        // En el editor del portal el botón de firmar sigue a la vista del PDF.
+        _portalUpdateNavigation?.Invoke();
         if (args.PropertyName is nameof(SignPageViewModel.VisibleSealPreviewImage)
             or nameof(SignPageViewModel.InputDisplayName)
             or nameof(SignPageViewModel.VisibleSealEnabled))

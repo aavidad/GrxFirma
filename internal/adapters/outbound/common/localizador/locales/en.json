@@ -2746,6 +2746,7 @@
   ,"portal.seal.previous_page": "Previous page"
   ,"portal.seal.next_page": "Next page"
   ,"portal.seal.preview_error": "The PDF could not be shown. Use “Fine adjustment” or “Sign without a visible seal”."
+  ,"portal.seal.preview_failed": "The PDF could not be shown, so the seal cannot be placed. You can choose “Sign without a visible seal” or “Cancel”."
   ,"portal.seal.preview_loading": "Loading PDF preview…"
   ,"portal.seal.sign_here": "Sign with the seal here"
   ,"portal.seal.sign_without": "Sign without a visible seal"

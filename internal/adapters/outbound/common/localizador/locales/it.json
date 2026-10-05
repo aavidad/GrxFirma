@@ -2746,6 +2746,7 @@
   ,"portal.seal.previous_page": "Pagina precedente"
   ,"portal.seal.next_page": "Pagina successiva"
   ,"portal.seal.preview_error": "Impossibile mostrare il PDF. Usa «Regolazione precisa» o «Firma senza sigillo visibile»."
+  ,"portal.seal.preview_failed": "Impossibile mostrare il PDF, quindi il sigillo non può essere posizionato. Puoi scegliere «Firma senza sigillo visibile» o «Annulla»."
   ,"portal.seal.preview_loading": "Caricamento anteprima PDF…"
   ,"portal.seal.sign_here": "Firma qui con il sigillo"
   ,"portal.seal.sign_without": "Firma senza sigillo visibile"

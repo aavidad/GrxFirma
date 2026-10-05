@@ -2746,6 +2746,7 @@
   ,"portal.seal.previous_page": "上一页"
   ,"portal.seal.next_page": "下一页"
   ,"portal.seal.preview_error": "无法显示 PDF。请使用“精确调整”或“不显示印章并签名”。"
+  ,"portal.seal.preview_failed": "无法显示 PDF，因此无法放置印章。您可以选择“不显示印章并签名”或“取消”。"
   ,"portal.seal.preview_loading": "正在加载 PDF 预览…"
   ,"portal.seal.sign_here": "在此处加盖印章并签名"
   ,"portal.seal.sign_without": "不显示印章并签名"

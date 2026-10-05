@@ -2746,6 +2746,7 @@
   ,"portal.seal.previous_page": "Página anterior"
   ,"portal.seal.next_page": "Página siguiente"
   ,"portal.seal.preview_error": "No se pudo mostrar el PDF. Use «Ajuste preciso» o «Firmar sin sello visible»."
+  ,"portal.seal.preview_failed": "No se pudo mostrar el PDF, así que no se puede colocar el sello. Puede elegir «Firmar sin sello visible» o «Cancelar»."
   ,"portal.seal.preview_loading": "Cargando la vista del PDF…"
   ,"portal.seal.sign_here": "Firmar con el sello aquí"
   ,"portal.seal.sign_without": "Firmar sin sello visible"
