@@ -90,6 +90,8 @@ func (m *MotorFirmaGo) Sign(ctx context.Context, job domain.SignatureJob, key po
 		return m.firmarXAdES(ctx, job, clave, ahora)
 	case domain.SignatureFormat("XMLdSig"):
 		return m.firmarXMLDSig(ctx, job, clave, ahora)
+	case commonsigner.FormatVeriFactu:
+		return commonsigner.NewVeriFactuSigner().Sign(ctx, job, clave.ToLocalSigningKey())
 	case domain.SignatureFormat("FacturaE"):
 		return commonsigner.NewFacturaESigner().Sign(ctx, job, clave.ToLocalSigningKey())
 	case domain.SignatureFormat("ASiC-XAdES"):
