@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 #
-# T114 — Gate de seguridad de release.
+# Gate de seguridad de release.
 #
 # Controles no negociables previos a publicar. Falla (exit 1) si cualquiera no
 # se cumple. Reutilizable como job de CI. Agrupa:
@@ -97,7 +97,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 5. La decisión de arquitectura de T096 prohíbe cargar código aportado por el
+# 5. La decisión de arquitectura sobre extensibilidad prohíbe cargar código aportado por el
 #    usuario dentro del proceso que maneja documentos, certificados y claves.
 # ---------------------------------------------------------------------------
 if ! python3 "${ROOT_DIR}/scripts/ci/check_no_runtime_plugins.py" --root "${ROOT_DIR}"; then

@@ -59,6 +59,7 @@ SLASH_EXTENSIONS = frozenset(
     {
         ".c",
         ".cpp",
+        ".java",
         ".cs",
         ".go",
         ".h",
@@ -78,6 +79,7 @@ HASH_EXTENSIONS = frozenset(
     {
         ".bats",
         ".desktop",
+        ".env",
         ".pro",
         ".properties",
         ".ps1",

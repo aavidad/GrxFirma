@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 #
-# T113 — Higiene de release y secretos locales.
+# Higiene de release y secretos locales.
 #
 # Falla si detecta artefactos sensibles de depuracion (logs de claves TLS,
 # claves privadas SSH, ficheros .env, etc.) en el arbol o en un directorio de

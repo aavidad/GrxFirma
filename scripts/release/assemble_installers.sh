@@ -43,7 +43,7 @@ copy_if_exists "${RELEASE_DIR}/windows-cli/*-setup.exe" "${INSTALLERS_DIR}/windo
 copy_if_exists "${RELEASE_DIR}/macos-suite/*.tar.gz" "${INSTALLERS_DIR}/macos"
 copy_if_exists "${RELEASE_DIR}/macos-suite/*.pkg" "${INSTALLERS_DIR}/macos"
 
-# T113: verifica que ningun artefacto sensible se haya colado en los paquetes
+# Verifica que ningun artefacto sensible se haya colado en los paquetes
 # finales antes de sellarlos con checksums.
 "${ROOT_DIR}/scripts/release/check-secrets.sh" "${INSTALLERS_DIR}"
 

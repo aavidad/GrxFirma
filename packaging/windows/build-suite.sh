@@ -51,7 +51,7 @@ EOF
 # configurado, el build sale sin firmar y Windows SmartScreen avisará al
 # usuario. Con WINDOWS_SIGNCODE_PFX definido, todos los .exe y el instalador
 # NSIS se firman y sellan con RFC 3161. La password se lee de fichero
-# (-readpass) para que nunca aparezca en argv (misma política que T111).
+# (-readpass) para que nunca aparezca en argv (misma política que el resto de secretos).
 WINDOWS_SIGNCODE_TS_URL="${WINDOWS_SIGNCODE_TS_URL:-http://timestamp.digicert.com}"
 
 authenticode_enabled() {
