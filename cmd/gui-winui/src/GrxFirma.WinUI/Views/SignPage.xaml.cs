@@ -956,6 +956,10 @@ public sealed partial class SignPage : Page
                 IsTextSelectionEnabled = true,
             };
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(text, label.Text + ": " + value);
+            // El valor ya se anuncia con su etiqueta: la etiqueta suelta no se
+            // lee otra vez («Documento», «Documento: prueba.pdf»).
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetAccessibilityView(
+                label, Microsoft.UI.Xaml.Automation.Peers.AccessibilityView.Raw);
             Grid.SetRow(label, row);
             Grid.SetRow(text, row);
             Grid.SetColumn(text, 1);
@@ -972,11 +976,12 @@ public sealed partial class SignPage : Page
         }
         var content = new StackPanel { Spacing = 16 };
         content.Children.Add(rows);
+        // Color de texto normal del diálogo: el gris atenuado no llegaba a
+        // 4,5:1 sobre el fondo del diálogo en tema oscuro (WCAG 1.4.3).
         content.Children.Add(new TextBlock
         {
             Text = Localizer.Text("winui.firmar.confirmar.ayuda"),
             TextWrapping = TextWrapping.Wrap,
-            Foreground = (Brush)Application.Current.Resources["AppMutedTextBrush"],
         });
 
         var dialog = new ContentDialog
@@ -1883,6 +1888,12 @@ public sealed partial class SignPage : Page
     {
         CancelVisibleSealDrawing();
         var visibility = VisibleSealDrawToggle.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        // Al salir del modo dibujo se conserva el alto que ocupaba la ayuda:
+        // si no, la página saltaba unos 50 px justo al soltar el ratón.
+        VisibleSealDrawControls.MinHeight =
+            visibility == Visibility.Collapsed && VisibleSealDrawHelp.Visibility == Visibility.Visible
+                ? VisibleSealDrawControls.ActualHeight
+                : 0;
         VisibleSealDrawInput.Visibility = visibility;
         VisibleSealDrawHelp.Visibility = visibility;
         if (visibility == Visibility.Visible) VisibleSealDrawInput.Focus(FocusState.Keyboard);
