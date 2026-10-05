@@ -15,7 +15,10 @@ import android.provider.Settings
 import android.text.InputType
 import android.view.WindowManager
 import android.view.View
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityOptionsCompat
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -44,6 +47,7 @@ import es.dipgra.grxfirma.android.seal.SealEditorDialog
 import es.dipgra.grxfirma.android.seal.SealPreferences
 import es.dipgra.grxfirma.android.seal.SealSettings
 import es.dipgra.grxfirma.android.files.DocumentPolicy
+import es.dipgra.grxfirma.android.ui.AutoClose
 import es.dipgra.grxfirma.android.ui.MainUiState
 import es.dipgra.grxfirma.android.ui.MainViewModel
 import es.dipgra.grxfirma.android.ui.OperationResult
@@ -101,6 +105,10 @@ import java.util.concurrent.atomic.AtomicLong
 private const val STATE_EXPANDED_TOOLS = "expanded_tools"
 private const val ENI_DATE_PICKER = "eni_capture_date"
 private const val STATE_EXPANDED_EXPEDIENTE = "expanded_expediente"
+/** Margen antes de empezar a contar el cierre automático si se sale con un selector del sistema abierto. */
+private const val PICKER_GRACE_MS = 15 * 60_000L
+/** Nueva comprobación del cierre automático si al vencer había una operación o un guardado pendiente. */
+private const val CLOSE_RETRY_MS = 30_000L
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -128,9 +136,18 @@ class MainActivity : AppCompatActivity() {
     private var updatingCertificateFilter = false
     private var menuEnabled = true
     private var lastResult: OperationResult? = null
+    /** Momento (reloj `elapsedRealtime`) desde el que cuenta el cierre automático; 0 en primer plano. */
     private var backgroundSince = 0L
+    /** Hay un selector o diálogo de guardado del sistema abierto por la app. */
+    private var systemPickerOpen = false
     private val closeHandler = Handler(Looper.getMainLooper())
-    private val closeCertificateTask = Runnable { closeCertificateIfInactive() }
+    private val closeCertificateTask = Runnable {
+        when (closeCertificateIfInactive()) {
+            AutoClose.NOT_DUE -> scheduleCloseCheck()
+            AutoClose.POSTPONED -> scheduleCloseCheck(retry = true)
+            else -> Unit
+        }
+    }
     private lateinit var wave4: Wave4Screen
 
     private val viewModel: MainViewModel by viewModels {
@@ -141,56 +158,56 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    private val openDocument = registerPicker(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
             viewModel.selectDocument(it)
         }
     }
 
     private val openOriginalDocument =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        registerPicker(ActivityResultContracts.OpenDocument()) { uri ->
             uri?.let {
                 viewModel.selectOriginalDocument(it)
             }
         }
 
-    private val openCertificate = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    private val openCertificate = registerPicker(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
             viewModel.selectCertificateFile(it)
         }
     }
 
-    private val openSealImage = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    private val openSealImage = registerPicker(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) importSealImage(uri)
     }
 
     private val openBatchDocuments =
-        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        registerPicker(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
             viewModel.selectBatchDocuments(uris)
         }
 
-    private val openHashFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    private val openHashFile = registerPicker(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let(viewModel::checkHash)
     }
 
-    private val openRecipient = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    private val openRecipient = registerPicker(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let(viewModel::addRecipient)
     }
 
     private val openVeriFactuRecords =
-        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        registerPicker(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
             viewModel.selectVeriFactuRecords(uris)
         }
 
-    private val openEniDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    private val openEniDocument = registerPicker(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let(viewModel::validateEni)
     }
 
-    private val chooseBatchFolder = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+    private val chooseBatchFolder = registerPicker(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri != null) viewModel.saveBatchOutputs(uri) else viewModel.reportSavePickerCancelled()
     }
 
-    private val createSignedDocument = registerForActivityResult(
+    private val createSignedDocument = registerPicker(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
         val uri = result.data?.data
@@ -201,7 +218,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val createVeriFactuReport = registerForActivityResult(
+    private val createVeriFactuReport = registerPicker(
         ActivityResultContracts.CreateDocument("application/json"),
     ) { uri ->
         val report = viewModel.state.value.veriFactuReport
@@ -210,16 +227,40 @@ class MainActivity : AppCompatActivity() {
         } else viewModel.cancelReportExport()
     }
 
-    private val createVerificationHtml = registerForActivityResult(
+    private val createVerificationHtml = registerPicker(
         ActivityResultContracts.CreateDocument("text/html"),
     ) { uri ->
         if (uri != null) viewModel.saveVerificationReport(uri) else viewModel.cancelReportExport()
     }
 
-    private val createVerificationReport = registerForActivityResult(
+    private val createVerificationReport = registerPicker(
         ActivityResultContracts.CreateDocument("application/json"),
     ) { uri ->
         if (uri != null) viewModel.saveVerificationReport(uri) else viewModel.cancelReportExport()
+    }
+
+    /**
+     * Registra un selector del sistema y anota cuándo está abierto: mientras la
+     * persona busca una carpeta o un fichero no cuenta el cierre automático.
+     */
+    private fun <I, O> registerPicker(contract: ActivityResultContract<I, O>, callback: (O) -> Unit): ActivityResultLauncher<I> {
+        val launcher = registerForActivityResult(contract) { result ->
+            systemPickerOpen = false
+            callback(result)
+        }
+        return object : ActivityResultLauncher<I>() {
+            override val contract: ActivityResultContract<I, *> get() = launcher.contract
+            override fun launch(input: I, options: ActivityOptionsCompat?) {
+                systemPickerOpen = true
+                try {
+                    launcher.launch(input, options)
+                } catch (error: RuntimeException) {
+                    systemPickerOpen = false
+                    throw error
+                }
+            }
+            override fun unregister() = launcher.unregister()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -288,9 +329,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** Cierra el certificado si la app lleva en segundo plano más del tiempo elegido. */
-    private fun closeCertificateIfInactive() {
-        if (backgroundSince == 0L) return
-        viewModel.closeCertificateAfterBackground(SystemClock.elapsedRealtime() - backgroundSince)
+    private fun closeCertificateIfInactive(): AutoClose {
+        if (backgroundSince == 0L) return AutoClose.NOT_APPLICABLE
+        return viewModel.closeCertificateAfterBackground(SystemClock.elapsedRealtime() - backgroundSince)
+    }
+
+    /**
+     * Programa la siguiente comprobación con el mismo reloj monótono que mide
+     * el plazo. El temporizador del sistema puede retrasarse con el móvil en
+     * reposo; por eso también se comprueba al volver a la app.
+     */
+    private fun scheduleCloseCheck(retry: Boolean = false) {
+        closeHandler.removeCallbacks(closeCertificateTask)
+        val minutes = viewModel.state.value.settings.sessionTimeoutMinutes
+        if (backgroundSince == 0L || minutes <= 0) return
+        val remaining = backgroundSince + minutes * 60_000L - SystemClock.elapsedRealtime()
+        closeHandler.postDelayed(closeCertificateTask, if (retry) CLOSE_RETRY_MS else remaining.coerceAtLeast(1_000L))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -316,17 +370,24 @@ class MainActivity : AppCompatActivity() {
         else -> super.onOptionsItemSelected(item)
     }
 
-    /** Aviso que bloquea una acción: se lee y no desaparece mientras TalkBack lo anuncia. */
+    /**
+     * Aviso que bloquea una acción. Si ofrece una acción no desaparece solo:
+     * se queda hasta que la persona la usa o lo descarta (WCAG 2.2.1).
+     */
     private fun showMessage(message: Int, action: Int? = null, onAction: (() -> Unit)? = null) {
-        val snackbar = Snackbar.make(binding.rootLayout, message, Snackbar.LENGTH_LONG)
-        if (action != null && onAction != null) snackbar.setAction(action) { onAction() }
-        snackbar.show()
+        if (action != null && onAction != null) {
+            Snackbar.make(binding.rootLayout, message, Snackbar.LENGTH_INDEFINITE)
+                .setAction(action) { onAction() }.show()
+        } else {
+            Snackbar.make(binding.rootLayout, message, Snackbar.LENGTH_LONG).show()
+        }
     }
 
     override fun onStop() {
-        backgroundSince = SystemClock.elapsedRealtime()
-        val minutes = viewModel.state.value.settings.sessionTimeoutMinutes
-        if (minutes > 0) closeHandler.postDelayed(closeCertificateTask, minutes * 60_000L)
+        // Con un selector del sistema abierto la persona sigue trabajando: el plazo
+        // empieza a contar tras un margen, por si deja el selector abierto y se va.
+        backgroundSince = SystemClock.elapsedRealtime() + if (systemPickerOpen) PICKER_GRACE_MS else 0L
+        scheduleCloseCheck()
         stopDnieReading()
         if (dnieSession != null) {
             dnieSession?.close()

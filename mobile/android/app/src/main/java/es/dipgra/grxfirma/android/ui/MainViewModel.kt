@@ -531,20 +531,23 @@ class MainViewModel(
     }
 
     /**
-     * Cierra el PKCS#12 si la app ha pasado en segundo plano el tiempo elegido.
-     * El DNIe ya se cierra al salir de la pantalla. Devuelve true si lo cerró.
+     * Cierra el PKCS#12 si la app ha pasado en segundo plano el tiempo elegido
+     * (medido con el reloj monótono `SystemClock.elapsedRealtime`). El DNIe ya
+     * se cierra al salir de la pantalla. Si el plazo ha vencido pero hay una
+     * operación en curso o un resultado sin guardar, devuelve POSTPONED para
+     * que se vuelva a comprobar más tarde: nunca se abandona la comprobación.
      */
-    fun closeCertificateAfterBackground(elapsedMillis: Long): Boolean {
+    fun closeCertificateAfterBackground(elapsedMillis: Long): AutoClose {
         val snapshot = mutableState.value
         val minutes = snapshot.settings.sessionTimeoutMinutes
-        if (snapshot.certificate == null || snapshot.certificateExternal || minutes <= 0 || snapshot.busy) return false
-        if (elapsedMillis < minutes * 60_000L) return false
+        if (snapshot.certificate == null || snapshot.certificateExternal || minutes <= 0) return AutoClose.NOT_APPLICABLE
+        if (elapsedMillis < minutes * 60_000L) return AutoClose.NOT_DUE
+        if (snapshot.busy || snapshot.awaitingSave || snapshot.awaitingReportSave) return AutoClose.POSTPONED
         identityEpoch.incrementAndGet()
         try { core.clearSession() } catch (_: Exception) { }
         mutableState.value = mutableState.value.copy(certificate = null, certificateDetails = emptyList(),
-            certificateFile = null, result = if (snapshot.awaitingSave) snapshot.result
-            else OperationResult.Notice(UiText.Resource(R.string.certificate_closed_timeout)))
-        return true
+            certificateFile = null, result = OperationResult.Notice(UiText.Resource(R.string.certificate_closed_timeout)))
+        return AutoClose.CLOSED
     }
 
     fun forgetCertificate() {

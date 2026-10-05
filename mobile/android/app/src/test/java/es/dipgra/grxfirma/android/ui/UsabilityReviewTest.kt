@@ -23,10 +23,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -67,9 +65,9 @@ class UsabilityReviewTest {
     @Test fun `PKCS12 closes after the chosen time in the background with a neutral notice`() {
         val core = FakeCore()
         val vm = withCertificate(core, 5)
-        assertFalse(vm.closeCertificateAfterBackground(4 * 60_000L))
+        assertEquals(AutoClose.NOT_DUE, vm.closeCertificateAfterBackground(4 * 60_000L))
         assertNotNull(vm.state.value.certificate)
-        assertTrue(vm.closeCertificateAfterBackground(5 * 60_000L))
+        assertEquals(AutoClose.CLOSED, vm.closeCertificateAfterBackground(5 * 60_000L))
         assertNull(vm.state.value.certificate)
         assertEquals(1, core.cleared)
         assertEquals(OperationResult.Notice(UiText.Resource(R.string.certificate_closed_timeout)), vm.state.value.result)
@@ -77,8 +75,25 @@ class UsabilityReviewTest {
 
     @Test fun `zero minutes never closes the certificate by itself`() {
         val vm = withCertificate(FakeCore(), 0)
-        assertFalse(vm.closeCertificateAfterBackground(24 * 3_600_000L))
+        assertEquals(AutoClose.NOT_APPLICABLE, vm.closeCertificateAfterBackground(24 * 3_600_000L))
         assertNotNull(vm.state.value.certificate)
+    }
+
+    @Test fun `an operation in progress or an unsaved result postpones the close instead of dropping it`() {
+        val core = FakeCore()
+        val vm = withCertificate(core, 5)
+        val field = MainViewModel::class.java.getDeclaredField("mutableState").apply { isAccessible = true }
+        @Suppress("UNCHECKED_CAST")
+        val state = field.get(vm) as kotlinx.coroutines.flow.MutableStateFlow<MainUiState>
+        state.value = state.value.copy(busy = true)
+        assertEquals(AutoClose.POSTPONED, vm.closeCertificateAfterBackground(10 * 60_000L))
+        state.value = state.value.copy(busy = false, awaitingSave = true)
+        assertEquals(AutoClose.POSTPONED, vm.closeCertificateAfterBackground(10 * 60_000L))
+        assertNotNull(vm.state.value.certificate)
+        assertEquals(0, core.cleared)
+        state.value = state.value.copy(awaitingSave = false)
+        assertEquals(AutoClose.CLOSED, vm.closeCertificateAfterBackground(10 * 60_000L))
+        assertNull(vm.state.value.certificate)
     }
 
     @Test fun `timeout setting falls back to five minutes`() {

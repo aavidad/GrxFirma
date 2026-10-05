@@ -283,6 +283,9 @@ enum class PendingKind { SIGNATURE, TOOL, BATCH }
 /** Qué informe se está exportando por SAF. */
 enum class ReportKind { VERIFICATION, VERIFICATION_HTML, VERIFACTU }
 
+/** Resultado de comprobar el cierre automático del certificado tras el segundo plano. */
+enum class AutoClose { CLOSED, NOT_DUE, POSTPONED, NOT_APPLICABLE }
+
 sealed interface UiEffect {
     data class SaveSignedDocument(val displayName: String, val mimeType: String) : UiEffect
     data object SaveVerificationReport : UiEffect
