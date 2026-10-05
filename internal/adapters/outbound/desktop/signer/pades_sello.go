@@ -21,6 +21,8 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/f64"
+
+	"grxfirma/internal/adapters/outbound/common/localizador"
 )
 
 // Sello visible de GrxFirma: tarjeta blanca con barra de acento en los
@@ -96,25 +98,32 @@ func lineasSelloModerno(info pdfsign.SignDataSignatureInfo, keepText bool, signe
 			return out
 		}
 	}
-	out := []lineaSello{{texto: "FIRMADO DIGITALMENTE", relativo: 0.62, color: etiqueta, maxLin: 1}}
+	textos := estilo.textos
+	if textos == nil {
+		textos = localizador.Para("es")
+	}
+	firmado := textos.T("seal.digitally_signed")
+	out := []lineaSello{{texto: firmado, relativo: 0.62, color: etiqueta, maxLin: 1}}
 	if !keepText {
-		out[0] = lineaSello{texto: "FIRMADO DIGITALMENTE", negrita: true, relativo: 1, color: nombre, maxLin: 2}
+		out[0] = lineaSello{texto: firmado, negrita: true, relativo: 1, color: nombre, maxLin: 2}
 		return out
 	}
 	if n := normalizarLineaSello(info.Name); n != "" {
 		out = append(out, lineaSello{texto: n, negrita: true, relativo: 1, color: nombre, maxLin: 2})
 	}
 	if !info.Date.IsZero() {
-		out = append(out, lineaSello{texto: "Fecha: " + info.Date.Format("02/01/2006 15:04"), relativo: 0.74, color: detalle, maxLin: 1})
+		out = append(out, lineaSello{texto: textos.T("seal.date", textos.FechaHora(info.Date, estilo.zona, false)), relativo: 0.74, color: detalle, maxLin: 1})
 	}
 	if r := normalizarLineaSello(info.Reason); r != "" && r != motivoPorDefectoPAdES {
-		out = append(out, lineaSello{texto: "Motivo: " + r, relativo: 0.74, color: detalle, maxLin: 2})
+		out = append(out, lineaSello{texto: textos.T("seal.reason", r), relativo: 0.74, color: detalle, maxLin: 2})
 	}
 	if l := normalizarLineaSello(info.Location); l != "" {
+		// «Certificado: <emisor>» y «Certificado digital» son marcas internas
+		// del valor /Location que pone el firmador, no texto del sello.
 		if emisor, ok := strings.CutPrefix(l, "Certificado: "); ok {
-			out = append(out, lineaSello{texto: "Emitido por " + emisor, relativo: 0.66, color: etiqueta, maxLin: 1})
+			out = append(out, lineaSello{texto: textos.T("seal.issued_by", emisor), relativo: 0.66, color: etiqueta, maxLin: 1})
 		} else if l != "Certificado digital" {
-			out = append(out, lineaSello{texto: "Lugar: " + l, relativo: 0.74, color: detalle, maxLin: 1})
+			out = append(out, lineaSello{texto: textos.T("seal.location", l), relativo: 0.74, color: detalle, maxLin: 1})
 		}
 	}
 	if s := normalizarLineaSello(signerSummary); s != "" {
@@ -236,7 +245,11 @@ func renderizarSelloModerno(info pdfsign.SignDataSignatureInfo, ancho, alto int,
 	var qr image.Image
 	rotuloQR := ""
 	if strings.TrimSpace(qrContent) != "" {
-		rotuloQR = "Verificar"
+		textos := estilo.textos
+		if textos == nil {
+			textos = localizador.Para("es")
+		}
+		rotuloQR = textos.T("seal.verify")
 	}
 	espacio := int(math.Max(3, menor*0.06))
 	texto := contenido

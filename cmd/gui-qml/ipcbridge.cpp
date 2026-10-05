@@ -46,6 +46,16 @@ static QString it(const QString &key) {
 
 static QStringList IpcBridgeExpectedLocalTLSPins();
 
+// El sello visible se escribe por defecto en el idioma de la interfaz. Si el
+// usuario fijó otro idioma en la configuración, el motor lo impone.
+static QVariantMap ipcWithInterfaceSealLanguage(QVariantMap extraOptions) {
+  auto *tr = TranslatorBridge::shared();
+  if (tr && !tr->locale().isEmpty() &&
+      !extraOptions.contains(QStringLiteral("sealLanguage")))
+    extraOptions.insert(QStringLiteral("sealLanguage"), tr->locale());
+  return extraOptions;
+}
+
 static bool readCredentialFileIPC(const QString &path, QByteArray *data,
                                   QString *error) {
   if (!data || !error)
@@ -1374,9 +1384,8 @@ void IpcBridge::signFileAdvanced(const QString &inputPath,
   params["reason"] = options.value("reason").toString();
   params["location"] = options.value("location").toString();
   params["contactInfo"] = options.value("contactInfo").toString();
-  if (options.contains("extraOptions")) {
-    params["extraOptions"] = options.value("extraOptions").toMap();
-  }
+  params["extraOptions"] =
+      ipcWithInterfaceSealLanguage(options.value("extraOptions").toMap());
   if (options.contains("visibleSeal")) {
     params["visibleSeal"] = options.value("visibleSeal").toMap();
   }
@@ -1408,9 +1417,8 @@ void IpcBridge::signFileMultiAdvanced(const QString &inputPath,
   params["reason"] = options.value("reason").toString();
   params["location"] = options.value("location").toString();
   params["contactInfo"] = options.value("contactInfo").toString();
-  if (options.contains("extraOptions")) {
-    params["extraOptions"] = options.value("extraOptions").toMap();
-  }
+  params["extraOptions"] =
+      ipcWithInterfaceSealLanguage(options.value("extraOptions").toMap());
   if (options.contains("visibleSeal")) {
     params["visibleSeal"] = options.value("visibleSeal").toMap();
   }
@@ -1442,9 +1450,8 @@ void IpcBridge::signBatchAdvanced(const QVariantList &inputPaths,
   params["reason"] = options.value("reason").toString();
   params["location"] = options.value("location").toString();
   params["contactInfo"] = options.value("contactInfo").toString();
-  if (options.contains("extraOptions")) {
-    params["extraOptions"] = options.value("extraOptions").toMap();
-  }
+  params["extraOptions"] =
+      ipcWithInterfaceSealLanguage(options.value("extraOptions").toMap());
   if (options.contains("visibleSeal")) {
     params["visibleSeal"] = options.value("visibleSeal").toMap();
   }
@@ -1581,11 +1588,15 @@ void IpcBridge::getSealPreview(const QVariantMap &options,
                              it(QStringLiteral("Sin conexión con el motor de firma")));
     return;
   }
+  QVariantMap previewOptions = options;
+  previewOptions.insert(QStringLiteral("extraOptions"),
+                        ipcWithInterfaceSealLanguage(
+                            options.value(QStringLiteral("extraOptions")).toMap()));
   const quint64 seq = ++m_requestSeq;
   QJsonObject req{{QStringLiteral("requestId"), id},
                   {QStringLiteral("traceId"), ipcNewCorrelationId(QStringLiteral("seal-trace"), seq)},
                   {QStringLiteral("action"), QStringLiteral("seal_preview")},
-                  {QStringLiteral("params"), QJsonObject::fromVariantMap(options)}};
+                  {QStringLiteral("params"), QJsonObject::fromVariantMap(previewOptions)}};
   const QByteArray payload = QJsonDocument(req).toJson(QJsonDocument::Compact) + '\n';
   // Solo conservamos el contexto de la última vista. Las peticiones previas
   // siguen procesándose en el motor; su respuesta se descarta al llegar.
