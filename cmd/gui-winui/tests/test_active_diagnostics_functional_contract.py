@@ -9,6 +9,8 @@ import pathlib
 import unittest
 import xml.etree.ElementTree as ET
 
+from winui_catalog import read_with_catalog
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 APP = ROOT / "cmd" / "gui-winui" / "src" / "GrxFirma.WinUI"
@@ -34,8 +36,8 @@ class ActiveDiagnosticsFunctionalContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.xaml = XAML.read_text(encoding="utf-8")
-        cls.code = CODE.read_text(encoding="utf-8")
-        cls.view_model = VIEW_MODEL.read_text(encoding="utf-8")
+        cls.code = read_with_catalog(CODE)
+        cls.view_model = read_with_catalog(VIEW_MODEL)
         cls.contracts = CONTRACTS.read_text(encoding="utf-8")
         cls.client = CLIENT.read_text(encoding="utf-8")
         cls.go_protocol = GO_PROTOCOL.read_text(encoding="utf-8")

@@ -15,10 +15,10 @@ namespace GrxFirma.WinUI.Views;
 
 public sealed partial class SettingsPage : Page
 {
-    private static readonly SecurePasswordPromptRequest
-        ProxyPasswordPrompt = new(
-            "Contraseña del proxy",
-            "&Contraseña que se protegerá para el usuario actual:",
+    private static SecurePasswordPromptRequest
+        ProxyPasswordPrompt => new(
+            Localizer.Text("winui.ajustes.contrasena_del_proxy"),
+            Localizer.Text("winui.ajustes.contrasena_que_se_protegera_para_el"),
             maximumCharacters:
                 GrxFirma.WinUI.Core.Operations
                     .DesktopOperationsClient.MaximumPasswordBytes);
@@ -299,9 +299,9 @@ public sealed partial class SettingsPage : Page
             _startupLoaded = true;
             var dialog = new ContentDialog
             {
-                Title = "No se pudo cambiar el inicio con Windows",
-                Content = "Compruebe que GrxFirma esté instalada para este usuario en su ubicación habitual y vuelva a intentarlo.",
-                CloseButtonText = "Aceptar",
+                Title = Localizer.Text("winui.ajustes.no_se_pudo_cambiar_el_inicio_con_windows"),
+                Content = Localizer.Text("winui.ajustes.compruebe_que_grxfirma_este_instalada"),
+                CloseButtonText = Localizer.Text("winui.comun.aceptar"),
                 XamlRoot = XamlRoot,
             };
             await Localizer.ShowAsync(dialog);
@@ -405,11 +405,11 @@ public sealed partial class SettingsPage : Page
         {
             XamlRoot = XamlRoot,
             RequestedTheme = ActualTheme,
-            Title = "Quitar credenciales protegidas",
+            Title = Localizer.Text("winui.ajustes.quitar_credenciales_protegidas"),
             Content =
-                "El proxy manual quedará sin autenticación protegida. Esta acción no cambia el host ni el puerto configurados.",
-            PrimaryButtonText = "Quitar credenciales",
-            CloseButtonText = "Cancelar",
+                Localizer.Text("winui.ajustes.el_proxy_manual_quedara_sin"),
+            PrimaryButtonText = Localizer.Text("winui.ajustes.quitar_credenciales"),
+            CloseButtonText = Localizer.Text("winui.comun.cancelar"),
             DefaultButton = ContentDialogButton.Close,
         };
         if (await Localizer.ShowAsync(confirmation) ==

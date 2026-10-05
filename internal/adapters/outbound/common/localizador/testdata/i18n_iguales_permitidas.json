@@ -270,7 +270,12 @@
   "winui.certificados.retirada_no_disponible",
   "winui.certificados.credencial_temporal_retirada",
   "winui.certificados.gestor_de_windows_no_disponible",
-  "winui.certificados.retirar"
+  "winui.certificados.retirar",
+  "winui.diagnostico.diagnostico_grxfirma",
+  "winui.diagnostico.material_tls_local",
+  "winui.diagnostico.material_tls_local_disponible",
+  "winui.diagnostico.plataforma_firma",
+  "winui.ajustes.manual"
  ],
  "de": [
   " + base64",
@@ -383,7 +388,8 @@
   "winui.proteger.cms_envelopeddata_enveloped",
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
   "winui.comun.facturae",
-  "winui.certificados.estado"
+  "winui.certificados.estado",
+  "winui.comun.aceptar"
  ],
  "en": [
   " + base64",
@@ -481,7 +487,8 @@
   "report.size_byte_one",
   "winui.proteger.cms_envelopeddata_enveloped",
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
-  "winui.comun.facturae"
+  "winui.comun.facturae",
+  "winui.ajustes.manual"
  ],
  "eu": [
   " + base64",
@@ -718,7 +725,8 @@
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
   "winui.comun.facturae",
   "winui.firmar.firma",
-  "winui.firmar.contacto"
+  "winui.firmar.contacto",
+  "winui.diagnostico.diagnostico_grxfirma"
  ],
  "gl": [
   "paridad.lote3.eni.capture_time",
@@ -1577,7 +1585,34 @@
   "winui.certificados.retirar",
   "winui.certificados.retirar_todas",
   "winui.certificados.continuar",
-  "winui.certificados.certificado_publico"
+  "winui.certificados.certificado_publico",
+  "winui.diagnostico.diagnostico_grxfirma",
+  "winui.diagnostico.exportacion_cancelada",
+  "winui.comun.configuracion",
+  "winui.comun.diagnostico",
+  "winui.comun.aceptar",
+  "winui.comun.comprobacion_cancelada",
+  "winui.diagnostico.indeterminado",
+  "winui.diagnostico.diagnostico_en_curso",
+  "winui.diagnostico.material_tls_local",
+  "winui.diagnostico.comprobacion_tls_cancelada",
+  "winui.diagnostico.confianza_tls_local_instalada",
+  "winui.diagnostico.instalacion_tls_cancelada",
+  "winui.diagnostico.confianza_tls_local_retirada",
+  "winui.diagnostico.retirada_tls_cancelada",
+  "winui.diagnostico.diagnostico_cancelado",
+  "winui.diagnostico.plataforma_firma",
+  "winui.diagnostico.paso_observado",
+  "winui.diagnostico.comprobacion_local",
+  "winui.ajustes.minimalista_claro",
+  "winui.ajustes.manual",
+  "winui.ajustes.preferencias_cargadas",
+  "winui.ajustes.carga_cancelada",
+  "winui.ajustes.seleccione_un_idioma_admitido",
+  "winui.ajustes.seleccione_un_tema_visual_admitido",
+  "winui.ajustes.seleccione_un_tipo_de_proxy_admitido",
+  "winui.ajustes.modo_en_uso_proxy_desactivado",
+  "winui.diagnostico.instalar_confianza_tls_local"
  ],
  "it": [
   " + base64",
@@ -1732,7 +1767,8 @@
   "winui.proteger.algoritmo",
   "winui.comun.facturae",
   "winui.firmar.cofirma",
-  "winui.firmar.motivo"
+  "winui.firmar.motivo",
+  "winui.comun.aceptar"
  ],
  "pt": [
   "paridad.lote3.eni.capture_time",
@@ -2104,7 +2140,15 @@
   "winui.certificados.credencial_importada",
   "winui.certificados.recomendado",
   "winui.certificados.continuar",
-  "winui.certificados.certificado_publico"
+  "winui.certificados.certificado_publico",
+  "winui.diagnostico.diagnostico_grxfirma",
+  "winui.comun.diagnostico",
+  "winui.diagnostico.indeterminado",
+  "winui.diagnostico.material_tls_local",
+  "winui.diagnostico.diagnostico_cancelado",
+  "winui.diagnostico.plataforma_firma",
+  "winui.ajustes.minimalista_claro",
+  "winui.ajustes.manual"
  ],
  "va": [
   "paridad.lote3.eni.capture_time",
@@ -2413,7 +2457,12 @@
   "winui.certificados.retirada_no_disponible",
   "winui.certificados.credencial_temporal_retirada",
   "winui.certificados.gestor_de_windows_no_disponible",
-  "winui.certificados.retirar"
+  "winui.certificados.retirar",
+  "winui.diagnostico.diagnostico_grxfirma",
+  "winui.diagnostico.material_tls_local",
+  "winui.diagnostico.material_tls_local_disponible",
+  "winui.diagnostico.plataforma_firma",
+  "winui.ajustes.manual"
  ],
  "zh": [
   " + base64",
