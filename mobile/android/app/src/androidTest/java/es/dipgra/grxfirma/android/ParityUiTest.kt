@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.Espresso.onData
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.action.ViewActions.click
@@ -23,6 +24,7 @@ import org.hamcrest.Matchers.containsString
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.hamcrest.Matchers.anything
 import org.junit.Test
 
 class ParityUiTest {
@@ -50,19 +52,22 @@ class ParityUiTest {
     @Test fun choosingEnglishAndSystemUsesTheAppLocaleDelegate() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val names = context.resources.getStringArray(R.array.language_names)
+        // Cambiar de idioma recrea la actividad; cada paso usa un lanzamiento
+        // nuevo para no pulsar un diálogo que aún se está redibujando.
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             onView(withId(R.id.languageButton)).perform(scrollTo(), click())
             onView(withText(names[2])).inRoot(isDialog()).perform(click())
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+            // En API 33+ la consulta necesita una actividad viva.
             scenario.onActivity {
                 assertEquals("en", AppCompatDelegate.getApplicationLocales()[0]?.language)
             }
+        }
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             onView(withId(R.id.languageButton)).perform(scrollTo(), click())
-            scenario.onActivity { activity ->
-                // The system option is localized after the first recreation.
-                names[0] = activity.getString(R.string.language_system)
-            }
-            onView(withText(names[0])).inRoot(isDialog()).perform(click())
+            // La lista se abre desplazada hasta el idioma marcado: onData
+            // vuelve a la primera opción («seguir al sistema») antes de pulsarla.
+            onData(anything()).inRoot(isDialog()).atPosition(0).perform(click())
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
             scenario.onActivity {
                 assertEquals(0, AppCompatDelegate.getApplicationLocales().size())
