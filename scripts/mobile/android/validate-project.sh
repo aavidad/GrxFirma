@@ -15,6 +15,7 @@ if [[ -n "${JAVA_HOME:-}" ]]; then
 fi
 
 python3 "$SCRIPT_DIR/validate_project.py"
+python3 "$SCRIPT_DIR/check_locales.py"
 python3 -m unittest discover -s "$SCRIPT_DIR/tests" -p 'test_*.py'
 
 (
