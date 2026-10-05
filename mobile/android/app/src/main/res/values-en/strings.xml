@@ -3,12 +3,10 @@
 <!-- Autoría: Alberto Avidad Fernández -->
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
-
 <resources>
     <string name="app_name">GrxFirma</string>
     <string name="screen_title">Sign and verify</string>
     <string name="screen_subtitle">Local operation on this device</string>
-
     <string name="backend_ready_title">Signature core available</string>
     <string name="backend_unavailable_title">Signature core unavailable</string>
     <string name="backend_ready_detail">The mobile contract and cryptographic services have been checked.</string>
@@ -19,7 +17,6 @@
     <string name="help_title">Using GrxFirma on Android</string>
     <string name="help_content">1. Select a document in Android or share it with GrxFirma.\n\n2. To sign, import a protected PKCS#12 file or tap “DNIe over NFC”. For NFC, enter the six CAN digits printed on the DNIe and hold the card against the back of the phone. The SIGNATURE certificate is used and the PIN is requested when signing. The private key stays on the card.\n\n3. Choose automatic, PAdES, CAdES or XAdES format and confirm signing. Save the result with the Android picker. Tap “Forget certificate” when finished.\n\n4. Verification reports cryptographic integrity, certificate validity, chain trust and revocation availability separately. Without Internet access, it can only consider revocation evidence embedded in the signature.\n\nThe screen accepts one document per operation. Screenshots are blocked in the production build.</string>
     <string name="help_close">Close</string>
-
     <string name="document_section">Document</string>
     <string name="document_helper">Select the document you want to sign or verify.</string>
     <string name="select_document">Select document</string>
@@ -28,8 +25,7 @@
     <string name="original_document_helper">To verify a detached signature such as CAdES, also select the original document. Leave this empty for signatures that already contain the document.</string>
     <string name="select_original_document">Select original for detached signature</string>
     <string name="no_original_document">No original document selected (optional)</string>
-    <string name="clear_original_document">Remove original document</string>
-
+    <string name="clear_original_document">Remove original file</string>
     <string name="certificate_section">Signing certificate</string>
     <string name="certificate_helper">Choose a PKCS#12 file or use your DNIe over NFC. The DNIe key stays on the card.</string>
     <string name="dnie_nfc_choice">DNIe over NFC</string>
@@ -68,7 +64,6 @@
     <string name="forget_certificate">Forget certificate and clear session</string>
     <string name="no_certificate">No certificate prepared</string>
     <string name="certificate_summary">%1$s\nIssuer: %2$s\nFingerprint: %3$s</string>
-
     <string name="operation_section">Operation</string>
     <string name="signature_format">Signature format</string>
     <string name="format_auto">Automatic</string>
@@ -98,7 +93,7 @@
     <string name="seal_rotate_left">↶ 15°</string>
     <string name="seal_rotate_right">↻ 15°</string>
     <string name="seal_opacity">Seal opacity (0–100%)</string>
-    <string name="seal_qr">Add verification QR</string>
+    <string name="seal_qr">Add verification QR code</string>
     <string name="seal_qr_address">QR HTTPS address</string>
     <string name="seal_style">Style and image</string>
     <string name="seal_logo_none">No logo</string>
@@ -124,7 +119,6 @@
     <string name="seal_image_error">The image could not be used. Select a PNG or JPEG up to 2 MiB.</string>
     <string name="verify_document">Verify signature</string>
     <string name="operation_in_progress">Processing operation…</string>
-
     <string name="result_section">Result</string>
     <string name="result_idle">No operation has been run yet.</string>
     <string name="result_success">Operation completed</string>
@@ -133,8 +127,8 @@
     <string name="verification_result_title">Verification result</string>
     <string name="verification_result_accredited">Signature integrity and trust are established.</string>
     <string name="verification_result_incomplete">Verification incomplete: certificate or trust not established.</string>
-    <string name="verification_result_invalid">Invalid signature or integrity not established.</string>
-	<string name="verification_revocation_inconclusive">Certificate revocation could not be checked. The signature is not considered valid.</string>
+    <string name="verification_result_invalid">Invalid signature or integrity not guaranteed.</string>
+    <string name="verification_revocation_inconclusive">Certificate revocation could not be checked. The signature is not considered valid.</string>
     <string name="verification_integrity">Cryptographic integrity: %1$s</string>
     <string name="verification_certificate">Certificate validity and usage: %1$s</string>
     <string name="verification_trust">Chain trust: %1$s</string>
@@ -153,7 +147,6 @@
     <string name="result_save_cancelled">Save cancelled; the result and session certificate have been discarded.</string>
     <string name="retry_save">Retry save</string>
     <string name="discard_pending_output">Discard signed result</string>
-
     <string name="error_document_required">Select a document first.</string>
     <string name="error_certificate_required">Select or import a certificate first.</string>
     <string name="error_password_required">Enter the PKCS#12 password.</string>
@@ -171,22 +164,59 @@
     <string name="error_certificate_not_current">The certificate is not currently valid. Use a valid certificate; renew it if it has expired.</string>
     <string name="error_signing_identity_unsupported">The certificate or its key is not suitable for signing on Android. Use a signing certificate with RSA of at least 2048 bits or ECDSA of at least 256 bits.</string>
     <string name="error_operation_failed">The operation failed. Review your selection and try again.</string>
-
     <string name="size_bytes">%1$d B</string>
     <string name="size_kib">%1$.1f KiB</string>
     <string name="size_mib">%1$.1f MiB</string>
-    <string name="unknown_value">Unavailable</string>
-
+    <string name="unknown_value">Not available</string>
     <plurals name="verification_signers">
         <item quantity="one">%1$d signer detected</item>
         <item quantity="other">%1$d signers detected</item>
     </plurals>
     <plurals name="verification_warnings">
-        <item quantity="one">%1$d technical warning; see Help</item>
-        <item quantity="other">%1$d technical warnings; see Help</item>
+        <item quantity="one">%1$d technical warning</item>
+        <item quantity="other">%1$d technical warnings</item>
     </plurals>
     <plurals name="verification_errors">
         <item quantity="one">%1$d verification error</item>
         <item quantity="other">%1$d verification errors</item>
     </plurals>
+    <string name="signature_action">Signing operation</string>
+    <string name="signature_profile">Signature profile</string>
+    <string name="action_sign">Sign</string>
+    <string name="action_cosign">Co-sign</string>
+    <string name="action_countersign">Counter-sign</string>
+    <string name="profile_b">Baseline B</string>
+    <string name="profile_t">Baseline T</string>
+    <string name="profile_lt">Baseline LT</string>
+    <string name="profile_lta">Baseline LTA</string>
+    <string name="suggest_cosign">This document contains signatures. Use co-signing</string>
+    <string name="tsa_enabled">Enable timestamping (TSA)</string>
+    <string name="tsa_url">TSA URL (HTTP or HTTPS)</string>
+    <string name="tsa_helper">T and higher require a TSA. LT/LTA also check certificate revocation. B with a TSA produces T.</string>
+    <string name="error_tsa_configuration">Enable the TSA and enter an HTTP or HTTPS URL without credentials or a fragment.</string>
+    <string name="error_signature_combination">Unavailable combination: PAdES supports sign/co-sign and B/T/LT; XAdES supports B/T; CAdES supports B/T/LT/LTA and all three operations.</string>
+    <string name="post_sign_verification_failed">Signature created. Automatic verification failed; save it and verify it later.</string>
+    <string name="export_verification_report">Export JSON verification report</string>
+    <string name="verification_report_filename">informe-verificacion.json</string>
+    <string name="error_report_export">The report was not saved. You can retry the export; the destination may contain a partial file.</string>
+    <string name="result_report_saved">Verification report saved.</string>
+    <string name="verification_coverage">Coverage: %1$s</string>
+    <string name="coverage_full">Entire document</string>
+    <string name="coverage_partial">Partial coverage</string>
+    <string name="coverage_detached">Detached signature</string>
+    <string name="verification_verdict">Engine verdict: %1$s</string>
+    <string name="verification_signer">Signer: %1$s</string>
+    <string name="verification_signer_detail">Signer: %1$s\nIssuer: %2$s\nFingerprint: %3$s</string>
+    <string name="verification_evidence">Evidence: %1$s</string>
+    <string name="verification_warning">Warning: %1$s</string>
+    <string name="verification_error">Error: %1$s</string>
+    <string name="language_title">Application language</string>
+    <string name="language_system">Follow system language</string>
+    <string name="about_title">About GrxFirma</string>
+    <string name="about_content">Application: %1$s\nEngine: %2$s\nLicence: EUPL 1.2 or later\nContact: avidad@dipgra.es</string>
+    <string name="about_release_notes">Release notes</string>
+    <string name="release_notes_content">First Android parity wave: co-signing and counter-signing; signature profiles and TSA; automatic and detailed verification; JSON report export; eleven languages and About.\n\nPAdES: B/T/LT and sign/co-sign. XAdES: B/T. CAdES: B/T/LT/LTA. Mobile verification checks integrity and embedded evidence; it does not establish trust using system anchors or check revocation online.</string>
+    <string name="engine_trust_warning">Cryptographic integrity checked; system chain trust has not been evaluated.</string>
+    <string name="signed_document_name">%1$s-signed.%2$s</string>
+    <string name="verification_document">Report document: %1$s</string>
 </resources>

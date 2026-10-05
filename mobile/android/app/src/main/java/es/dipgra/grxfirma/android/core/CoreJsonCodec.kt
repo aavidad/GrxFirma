@@ -10,25 +10,27 @@ import es.dipgra.grxfirma.android.model.CertificateSummary
 import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SignedOutput
 import es.dipgra.grxfirma.android.model.VerificationSummary
+import es.dipgra.grxfirma.android.model.SignerSummary
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.Base64
 
 object CoreJsonCodec {
-    const val CONTRACT_VERSION = 1
+    const val CONTRACT_VERSION = 2
 
     fun signRequest(
         document: LoadedFile,
         format: String,
         certificateId: String,
         options: Map<String, String> = emptyMap(),
+        action: String = "sign",
     ): String = JSONObject()
         .put("name", document.displayName)
         .put("content_base64", Base64.getEncoder().encodeToString(document.bytes))
         .put("mime_type", document.mimeType)
         .put("format", format)
-        .put("action", "sign")
+        .put("action", action)
         .put("certificate_id", certificateId)
         .put("options", JSONObject(options))
         .toString()
@@ -57,16 +59,13 @@ object CoreJsonCodec {
         }
         .toString()
 
-    fun importCertificateRequest(data: ByteArray, password: CharArray): String = JSONObject()
-        .put("data_base64", Base64.getEncoder().encodeToString(data))
-        .put("password", password.concatToString())
-        .toString()
-
     fun selectCertificateRequest(): String = JSONObject()
         .put("subject_filter", "")
         .put("issuer_filter", "")
         .put("solo_no_caducados", true)
         .toString()
+
+    fun engineVersion(raw: String): String = cleanText(parseObject(raw, "contract").optString("engine_version"))
 
     fun parseContract(raw: String) {
         val json = parseObject(raw, "contrato")
@@ -76,6 +75,12 @@ object CoreJsonCodec {
         requireField(json.optString("platform") == "android") {
             "El AAR no declara la plataforma Android."
         }
+        val signing = json.optJSONObject("signing")
+            ?: throw CoreContractException("SIGNING_CAPABILITIES_MISSING")
+        val actions = signing.optJSONArray("actions").toCleanStrings()
+        requireField(actions.containsAll(listOf("sign", "cosign", "countersign"))) { "SIGNING_ACTIONS_MISSING" }
+        requireField(signing.optJSONObject("profiles_by_format")?.optJSONArray("CAdES")
+            .toCleanStrings().containsAll(listOf("baseline", "t", "lt", "lta"))) { "SIGNING_PROFILES_MISSING" }
         val services = json.optJSONObject("services")
             ?: throw CoreContractException("El AAR no declara sus servicios.")
         for (service in listOf("sign", "verify", "select_certificate", "import_certificate", "external_signer")) {
@@ -95,7 +100,7 @@ object CoreJsonCodec {
         )
     }
 
-    fun parseSigned(raw: String, originalName: String): SignedOutput {
+    fun parseSigned(raw: String, originalName: String, outputName: (String, String) -> String = { base, extension -> "$base.$extension" }): SignedOutput {
         val json = parseObject(raw, "firma")
         val format = requiredText(json, "format")
         val algorithm = requiredText(json, "algorithm")
@@ -106,16 +111,17 @@ object CoreJsonCodec {
             "xades", "xmldsig" -> "xml"
             else -> "p7s"
         }
-        val base = originalName.substringBeforeLast('.').ifBlank { "documento" }.take(120)
+        val base = originalName.substringBeforeLast('.').ifBlank { "document" }.take(120)
         val mime = when (extension) {
             "pdf" -> "application/pdf"
             "xml" -> "application/xml"
             else -> "application/pkcs7-signature"
         }
-        return SignedOutput(bytes, "$base-firmado.$extension", mime, format, algorithm)
+        return SignedOutput(bytes, outputName(base, extension), mime, format, algorithm)
     }
 
     fun parseVerification(raw: String): VerificationSummary {
+        if (raw.length > 512 * 1024) throw CoreContractException("REPORT_TOO_LARGE")
         val json = parseObject(raw, "verificación")
         return VerificationSummary(
             valid = json.optBoolean("valid", false),
@@ -130,6 +136,16 @@ object CoreJsonCodec {
             revocationMode = revocationMode(json.optString("revocation_mode")),
             warnings = json.optJSONArray("warnings").toCleanStrings(),
             errors = json.optJSONArray("errors").toCleanStrings(),
+            signerSummaries = json.optJSONArray("signer_summaries").let { items ->
+                buildList {
+                    if (items != null) for (i in 0 until minOf(items.length(), 64)) {
+                        val item = items.optJSONObject(i) ?: continue
+                        add(SignerSummary(cleanText(item.optString("id")), cleanText(item.optString("subject")),
+                            cleanText(item.optString("issuer")), cleanText(item.optString("fingerprint"))))
+                    }
+                }
+            },
+            reportJson = json.toString(2),
         )
     }
 

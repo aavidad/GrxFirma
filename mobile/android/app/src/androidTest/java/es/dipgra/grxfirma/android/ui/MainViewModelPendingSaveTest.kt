@@ -141,16 +141,86 @@ class MainViewModelPendingSaveTest {
         )
     }
 
+    @Test
+    fun automaticVerificationKeepsItsVerdictAfterSaving() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        val core = FakeCore()
+        val vm = preparedViewModel(FakeRepository(), core, dispatcher)
+        assertEquals(1, core.signedVerificationCalls)
+        assertFalse(core.usedOriginalForSignedOutput) // PAdES is embedded.
+        assertFalse(vm.state.value.verification!!.toUiText().accredited())
+        vm.savePendingOutput(DESTINATION_URI)
+        advanceUntilIdle()
+        assertEquals("valid", vm.state.value.verification!!.integrityStatus)
+        assertTrue(vm.state.value.canExportReport)
+    }
+
+    @Test
+    fun failedAutomaticVerificationStillAllowsSavingTheSignature() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        val core = FakeCore().apply { automaticVerificationFails = true }
+        val vm = preparedViewModel(FakeRepository(), core, dispatcher)
+        assertTrue(vm.state.value.postSignVerificationFailed)
+        assertTrue(vm.state.value.canRetryPendingOutput)
+        assertEquals(null, vm.state.value.verification)
+        vm.savePendingOutput(DESTINATION_URI)
+        advanceUntilIdle()
+        assertFalse(vm.state.value.awaitingSave)
+        assertTrue(vm.state.value.postSignVerificationFailed)
+    }
+
+    @Test
+    fun signedInputSuggestsCoSignAndForwardsProfileAndTSA() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        val core = FakeCore()
+        val vm = preparedViewModel(FakeRepository(), core, dispatcher) {
+            assertTrue(it.state.value.coSignSuggested)
+            it.acceptCoSignSuggestion()
+            it.updateSigningSettings("cosign", "t", true, "http://tsa.example/rfc3161")
+        }
+        assertEquals("cosign", core.lastAction)
+        assertEquals("t", core.lastOptions["profile"])
+        assertEquals("http://tsa.example/rfc3161", core.lastOptions["tsaURL"])
+        assertTrue(vm.state.value.awaitingSave)
+    }
+
+    @Test
+    fun reportExportNeverWritesSignatureBytesAndSurvivesCancellation() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        val repository = FakeRepository()
+        val vm = preparedViewModel(repository, FakeCore(), dispatcher)
+        vm.savePendingOutput(DESTINATION_URI)
+        advanceUntilIdle()
+        vm.exportVerificationReport()
+        assertTrue(vm.state.value.awaitingReportSave)
+        assertFalse(vm.state.value.canReplaceSelection)
+        vm.cancelReportExport()
+        assertTrue(vm.state.value.canExportReport)
+        vm.exportVerificationReport()
+        vm.saveVerificationReport(DESTINATION_URI)
+        advanceUntilIdle()
+        assertEquals(vm.state.value.verification!!.reportJson, repository.writes.last().decodeToString())
+        assertFalse(vm.state.value.awaitingReportSave)
+        assertEquals(OperationResult.Success(UiText.Resource(R.string.result_report_saved)), vm.state.value.result)
+    }
+
     private fun TestScope.preparedViewModel(
         repository: FakeRepository,
         core: FakeCore,
         dispatcher: TestDispatcher,
+        beforeSign: (MainViewModel) -> Unit = {},
     ): MainViewModel {
         val viewModel = MainViewModel(repository, core, dispatcher)
         viewModel.selectDocument(DOCUMENT_URI)
+        advanceUntilIdle()
         viewModel.selectCertificateFile(CERTIFICATE_URI)
         viewModel.importCertificate(charArrayOf('p'))
         advanceUntilIdle()
+        beforeSign(viewModel)
         viewModel.sign("pades")
         advanceUntilIdle()
         return viewModel
@@ -182,6 +252,11 @@ class MainViewModelPendingSaveTest {
 
     private class FakeCore : CoreBridge {
         override val readiness = CoreReadiness(true, "ready", "Disponible")
+        var automaticVerificationFails = false
+        var signedVerificationCalls = 0
+        var lastAction = ""
+        var lastOptions = emptyMap<String, String>()
+        var usedOriginalForSignedOutput = false
         var signCalls = 0
         var clearSessionCalls = 0
         val output = SignedOutput(SIGNED_BYTES.copyOf(), "firmado.pdf", "application/pdf", "PAdES", "SHA-256")
@@ -190,15 +265,25 @@ class MainViewModelPendingSaveTest {
 
         override fun importCertificate(data: ByteArray, password: CharArray): CertificateSummary = certificate()
 
-        override fun sign(document: LoadedFile, format: String, certificateId: String, options: Map<String, String>): SignedOutput {
+        override fun sign(document: LoadedFile, format: String, certificateId: String, options: Map<String, String>, action: String): SignedOutput {
             signCalls += 1
+            lastAction = action
+            lastOptions = options
             return output
         }
 
         override fun sealPreview(certificateId: String, options: Map<String, String>): ByteArray = byteArrayOf()
 
-        override fun verify(document: LoadedFile, original: LoadedFile?): VerificationSummary =
-            throw UnsupportedOperationException()
+        override fun verify(document: LoadedFile, original: LoadedFile?): VerificationSummary {
+            if (document.bytes.contentEquals(SIGNED_BYTES)) {
+                signedVerificationCalls++
+                usedOriginalForSignedOutput = original != null
+                if (automaticVerificationFails) throw IllegalStateException("Verification failed")
+            }
+            return VerificationSummary(false, "", listOf("evidence"), listOf("id"), "PAdES", "full",
+                "valid", "unknown", "unknown", "embedded_evidence_only", listOf("warning"), emptyList(),
+                reportJson = "{\"valid\":false,\"signers\":[\"id\"]}")
+        }
 
         override fun clearSession() {
             clearSessionCalls += 1

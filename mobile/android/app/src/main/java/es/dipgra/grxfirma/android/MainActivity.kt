@@ -18,6 +18,12 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import androidx.core.widget.doAfterTextChanged
+import android.widget.AdapterView
+import android.text.util.Linkify
+import android.text.method.LinkMovementMethod
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -45,6 +51,7 @@ import es.dipgra.grxfirma.android.ui.OperationResult
 import es.dipgra.grxfirma.android.ui.UiEffect
 import es.dipgra.grxfirma.android.ui.UiText
 import es.dipgra.grxfirma.android.ui.resolve
+import es.dipgra.grxfirma.android.ui.toUiText
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Base64
@@ -60,6 +67,7 @@ class MainActivity : AppCompatActivity() {
     private var sealEditorOpen = false
     private var updatingSealCheck = false
     private var lastDocumentUri: Uri? = null
+    private var updatingSigningControls = false
     private val sealImageFile: File by lazy { File(noBackupFilesDir, "visible-seal-image") }
     private var pendingCan: CharArray? = null
     private var dnieSession: DnieNfcSession? = null
@@ -106,6 +114,12 @@ class MainActivity : AppCompatActivity() {
         } else {
             viewModel.reportSavePickerCancelled()
         }
+    }
+
+    private val createVerificationReport = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        if (uri != null) viewModel.saveVerificationReport(uri) else viewModel.cancelReportExport()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -171,6 +185,20 @@ class MainActivity : AppCompatActivity() {
         }
         clearOriginalDocumentButton.setOnClickListener { viewModel.clearOriginalDocument() }
         helpButton.setOnClickListener { showHelp() }
+        aboutButton.setOnClickListener { showAbout() }
+        languageButton.setOnClickListener { showLanguageSelector() }
+        exportReportButton.setOnClickListener { viewModel.exportVerificationReport() }
+        useCosignButton.setOnClickListener { viewModel.acceptCoSignSuggestion() }
+        val signingListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateSigningSettings()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+        signatureAction.onItemSelectedListener = signingListener
+        signatureProfile.onItemSelectedListener = signingListener
+        tsaEnabled.setOnCheckedChangeListener { _, _ -> updateSigningSettings() }
+        tsaUrl.doAfterTextChanged { updateSigningSettings() }
         selectCertificateFileButton.setOnClickListener {
             stopDnieReading()
             if (dnieSession != null) {
@@ -193,7 +221,8 @@ class MainActivity : AppCompatActivity() {
         selectDnieNfcButton.setOnClickListener { startDnieSelection() }
         cancelDnieScanButton.setOnClickListener { stopDnieReading() }
         importCertificateButton.setOnClickListener {
-            val password = certificatePassword.text?.toString().orEmpty().toCharArray()
+            val editable = certificatePassword.text
+            val password = CharArray(editable?.length ?: 0) { editable!![it] }
             certificatePassword.text?.clear()
             certificatePasswordLayout.error = null
             if (password.isEmpty()) {
@@ -239,6 +268,9 @@ class MainActivity : AppCompatActivity() {
                     viewModel.effects.collect { effect ->
                         when (effect) {
                             is UiEffect.SaveSignedDocument -> requestSave(effect)
+                            UiEffect.SaveVerificationReport -> try {
+                                createVerificationReport.launch(getString(R.string.verification_report_filename))
+                            } catch (_: RuntimeException) { viewModel.cancelReportExport() }
                         }
                     }
                 }
@@ -311,9 +343,38 @@ class MainActivity : AppCompatActivity() {
         }
         editVisibleSealButton.visibility = if (pdfSelected && sealSettings.enabled) View.VISIBLE else View.GONE
         editVisibleSealButton.isEnabled = state.canReplaceSelection
+        verificationDetail.setTextColor(ContextCompat.getColor(this@MainActivity, when {
+            state.postSignVerificationFailed -> R.color.status_warning
+            state.verification?.integrityStatus == "invalid" -> R.color.error
+            state.verification?.toUiText()?.accredited() == true -> R.color.primary
+            else -> R.color.status_warning
+        }))
         verifyButton.isEnabled = state.canVerify
         certificatePasswordLayout.isEnabled = !state.busy
-        signatureFormat.isEnabled = !state.busy
+        signatureFormat.isEnabled = state.canReplaceSelection
+        signatureAction.isEnabled = state.canReplaceSelection
+        signatureProfile.isEnabled = state.canReplaceSelection
+        tsaEnabled.isEnabled = state.canReplaceSelection
+        tsaUrl.isEnabled = state.canReplaceSelection && state.tsaEnabled
+        languageButton.isEnabled = state.canReplaceSelection
+        aboutButton.isEnabled = state.canReplaceSelection
+        helpButton.isEnabled = state.canReplaceSelection
+        updatingSigningControls = true
+        signatureAction.setSelection(listOf("sign", "cosign", "countersign").indexOf(state.signatureAction).coerceAtLeast(0))
+        signatureProfile.setSelection(listOf("baseline", "t", "lt", "lta").indexOf(state.signatureProfile).coerceAtLeast(0))
+        tsaEnabled.isChecked = state.tsaEnabled
+        if (tsaUrl.text.toString() != state.tsaUrl) tsaUrl.setText(state.tsaUrl)
+        updatingSigningControls = false
+        useCosignButton.visibility = if (state.coSignSuggested) View.VISIBLE else View.GONE
+        useCosignButton.isEnabled = state.canReplaceSelection
+        verificationDetail.text = if (state.verification != null || state.postSignVerificationFailed) {
+            getString(R.string.verification_document, state.verifiedDocumentName) + "\n" +
+                (state.verification?.toUiText()?.resolve(this@MainActivity)
+                    ?: getString(R.string.post_sign_verification_failed))
+        } else ""
+        verificationDetail.visibility = if (state.verification != null || state.postSignVerificationFailed) View.VISIBLE else View.GONE
+        exportReportButton.visibility = if (state.verification?.reportJson?.isNotEmpty() == true) View.VISIBLE else View.GONE
+        exportReportButton.isEnabled = state.canExportReport
         progressContainer.visibility = if (state.busy) View.VISIBLE else View.GONE
         pendingSaveActions.visibility = if (state.canRetryPendingOutput) View.VISIBLE else View.GONE
         retrySaveButton.isEnabled = state.canRetryPendingOutput
@@ -337,7 +398,7 @@ class MainActivity : AppCompatActivity() {
                     else -> R.color.status_warning
                 }
                 resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, color))
-                renderDetail(result.detail?.resolve(this@MainActivity))
+                renderDetail(if (result.detail is UiText.Verification) null else result.detail?.resolve(this@MainActivity))
             }
             is OperationResult.Error -> {
                 dnieSession?.consumeSigningError()?.let { error ->
@@ -369,6 +430,47 @@ class MainActivity : AppCompatActivity() {
         bytes < 1024 -> getString(R.string.size_bytes, bytes)
         bytes < 1024 * 1024 -> getString(R.string.size_kib, bytes / 1024.0)
         else -> getString(R.string.size_mib, bytes / (1024.0 * 1024.0))
+    }
+
+    private fun updateSigningSettings() {
+        if (updatingSigningControls) return
+        viewModel.updateSigningSettings(
+            listOf("sign", "cosign", "countersign").getOrElse(binding.signatureAction.selectedItemPosition) { "sign" },
+            listOf("baseline", "t", "lt", "lta").getOrElse(binding.signatureProfile.selectedItemPosition) { "baseline" },
+            binding.tsaEnabled.isChecked, binding.tsaUrl.text?.toString().orEmpty(),
+        )
+    }
+
+    private fun showLanguageSelector() {
+        val tags = resources.getStringArray(R.array.language_tags)
+        val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.language_title)
+            .setSingleChoiceItems(R.array.language_names, tags.indexOf(current).coerceAtLeast(0)) { dialog, index ->
+                dialog.dismiss()
+                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tags[index]))
+            }
+            .setNegativeButton(R.string.help_close, null)
+            .show()
+    }
+
+    private fun showAbout() {
+        val engine = viewModel.engineVersion.takeIf { it.isNotBlank() && it != "development" }
+            ?: getString(R.string.unknown_value)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.about_title)
+            .setMessage(getString(R.string.about_content, BuildConfig.VERSION_NAME, engine))
+            .setPositiveButton(R.string.help_close, null)
+            .setNeutralButton(R.string.about_release_notes) { _, _ ->
+                MaterialAlertDialogBuilder(this).setTitle(R.string.about_release_notes)
+                    .setMessage(R.string.release_notes_content).setPositiveButton(R.string.help_close, null).show()
+            }
+            .setNegativeButton(R.string.open_help) { _, _ -> showHelp() }
+            .show()
+        dialog.findViewById<android.widget.TextView>(android.R.id.message)?.let {
+            Linkify.addLinks(it, Linkify.EMAIL_ADDRESSES or Linkify.WEB_URLS)
+            it.movementMethod = LinkMovementMethod.getInstance()
+        }
     }
 
     private fun selectedSignatureFormat(): String = when (binding.signatureFormat.selectedItemPosition) {

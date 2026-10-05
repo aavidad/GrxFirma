@@ -11,6 +11,7 @@ import es.dipgra.grxfirma.android.model.CertificateSummary
 import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SignedOutput
 import es.dipgra.grxfirma.android.model.VerificationSummary
+import es.dipgra.grxfirma.android.model.SignatureInspection
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -19,6 +20,8 @@ import java.util.Base64
 class ReflectiveGomobileBridge private constructor(
     private val facade: Any,
     private val methods: Map<String, Method>,
+    override val engineVersion: String,
+    private val outputName: (String, String) -> String,
 ) : CoreBridge, ExternalIdentityBridge {
     override val readiness = CoreReadiness(
         available = true,
@@ -30,18 +33,17 @@ class ReflectiveGomobileBridge private constructor(
         invokeJson("selectCertificateJSON", CoreJsonCodec.selectCertificateRequest()),
     )
 
-    override fun importCertificate(data: ByteArray, password: CharArray): CertificateSummary =
-        try {
-            CoreJsonCodec.parseCertificate(
-                invokeJson(
-                    "importCertificateBytesJSON",
-                    data,
-                    password.concatToString(),
-                ),
-            )
+    override fun importCertificate(data: ByteArray, password: CharArray): CertificateSummary {
+        var encoded: ByteArray? = null
+        return try {
+            encoded = SecretEncoding.utf8(password)
+            CoreJsonCodec.parseCertificate(invokeJson("importCertificateSecretBytesJSON", data, encoded))
         } finally {
+            encoded?.fill(0)
+            password.fill('\u0000')
             data.fill(0)
         }
+    }
 
     override fun installExternalIdentity(
         certificate: ByteArray,
@@ -70,10 +72,12 @@ class ReflectiveGomobileBridge private constructor(
         format: String,
         certificateId: String,
         options: Map<String, String>,
+        action: String,
     ): SignedOutput =
         CoreJsonCodec.parseSigned(
-            invokeJson("signJSON", CoreJsonCodec.signRequest(document, format, certificateId, options)),
+            invokeJson("signJSON", CoreJsonCodec.signRequest(document, format, certificateId, options, action)),
             document.displayName,
+            outputName,
         )
 
     override fun sealPreview(certificateId: String, options: Map<String, String>): ByteArray =
@@ -84,6 +88,12 @@ class ReflectiveGomobileBridge private constructor(
     override fun verify(document: LoadedFile, original: LoadedFile?): VerificationSummary = CoreJsonCodec.parseVerification(
         invokeJson("verifyJSON", CoreJsonCodec.verifyRequest(document, original)),
     )
+
+    override fun inspectSignature(document: LoadedFile): SignatureInspection {
+        val json = org.json.JSONObject(invokeJson("inspectSignatureJSON", CoreJsonCodec.verifyRequest(document)))
+        val format = json.optString("format").lowercase().takeIf { it in listOf("cades", "pades", "xades") }.orEmpty()
+        return SignatureInspection(json.optBoolean("has_signature", false), format)
+    }
 
     override fun clearSession() {
         val method = methods["clearSession"]
@@ -158,6 +168,7 @@ class ReflectiveGomobileBridge private constructor(
                 "signJSON",
                 "sealPreviewJSON",
                 "verifyJSON",
+                "inspectSignatureJSON",
             ).associateWith { facadeClass.getMethod(it, String::class.java) }
                 .toMutableMap()
                 .apply {
@@ -167,15 +178,17 @@ class ReflectiveGomobileBridge private constructor(
                     ))
                     put("clearSession", facadeClass.getMethod("clearSession"))
                     put(
-                        "importCertificateBytesJSON",
+                        "importCertificateSecretBytesJSON",
                         facadeClass.getMethod(
-                            "importCertificateBytesJSON",
+                            "importCertificateSecretBytesJSON",
                             ByteArray::class.java,
-                            String::class.java,
+                            ByteArray::class.java,
                         ),
                     )
                 }
-            return ReflectiveGomobileBridge(facade, required)
+            return ReflectiveGomobileBridge(facade, required, CoreJsonCodec.engineVersion(contract)) { base, extension ->
+                context.getString(es.dipgra.grxfirma.android.R.string.signed_document_name, base, extension)
+            }
         }
 
         private fun unavailable(code: String, error: Throwable): CoreBridge = UnavailableCoreBridge(

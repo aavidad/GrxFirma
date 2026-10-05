@@ -14,6 +14,8 @@ import es.dipgra.grxfirma.android.core.CoreUnavailableException
 import es.dipgra.grxfirma.android.files.InvalidDocumentException
 import es.dipgra.grxfirma.android.model.CertificateSummary
 import es.dipgra.grxfirma.android.model.SelectedFile
+import es.dipgra.grxfirma.android.model.VerificationSummary
+import es.dipgra.grxfirma.android.model.SignerSummary
 
 sealed interface UiText {
     data class Resource(@param:StringRes val id: Int, val arguments: List<Any> = emptyList()) : UiText
@@ -28,6 +30,12 @@ sealed interface UiText {
         val revocationMode: String,
         val warningCount: Int,
         val errorCount: Int,
+        val coverage: String = "",
+        val signers: List<String> = emptyList(),
+        val signerSummaries: List<SignerSummary> = emptyList(),
+        val details: List<String> = emptyList(),
+        val warnings: List<String> = emptyList(),
+        val errors: List<String> = emptyList(),
     ) : UiText {
         fun accredited(): Boolean = valid &&
             integrityStatus == "valid" &&
@@ -74,6 +82,22 @@ fun UiText.resolve(context: Context): String = when (this) {
             ),
         )
         if (format.isNotBlank()) add(context.getString(R.string.verification_format, format))
+        add(context.getString(R.string.verification_coverage, context.getString(when (coverage) {
+            "full", "total", "whole_document" -> R.string.coverage_full
+            "partial", "partial_document" -> R.string.coverage_partial
+            "detached" -> R.string.coverage_detached
+            else -> R.string.verification_status_unknown
+        })))
+        if (reason.isNotBlank()) add(context.getString(R.string.verification_verdict, EngineText.resolve(context, reason)))
+        if (signerSummaries.isNotEmpty()) {
+            signerSummaries.forEach { signer ->
+                add(context.getString(R.string.verification_signer_detail,
+                    signer.subject.ifBlank { signer.id }, signer.issuer, signer.fingerprint))
+            }
+        } else signers.forEach { add(context.getString(R.string.verification_signer, it)) }
+        details.forEach { add(context.getString(R.string.verification_evidence, EngineText.resolve(context, it))) }
+        warnings.forEach { add(context.getString(R.string.verification_warning, EngineText.resolve(context, it))) }
+        errors.forEach { add(context.getString(R.string.verification_error, EngineText.resolve(context, it))) }
         add(context.resources.getQuantityString(R.plurals.verification_signers, signerCount, signerCount))
         if (warningCount > 0) {
             add(
@@ -128,23 +152,35 @@ data class MainUiState(
     val busy: Boolean = false,
     val awaitingSave: Boolean = false,
     val result: OperationResult = OperationResult.Idle,
+    val verification: VerificationSummary? = null,
+    val verifiedDocumentName: String = "",
+    val postSignVerificationFailed: Boolean = false,
+    val signatureAction: String = "sign",
+    val signatureProfile: String = "baseline",
+    val tsaEnabled: Boolean = false,
+    val tsaUrl: String = "",
+    val coSignSuggested: Boolean = false,
+    val detectedSignatureFormat: String = "",
+    val awaitingReportSave: Boolean = false,
 ) {
+    val canExportReport: Boolean get() = verification?.reportJson?.isNotEmpty() == true && !busy && !awaitingSave && !awaitingReportSave
     val canImportCertificate: Boolean
-        get() = backend.available && certificateFile != null && !busy && !awaitingSave
+        get() = backend.available && certificateFile != null && !busy && !awaitingSave && !awaitingReportSave
     val canSign: Boolean
-        get() = backend.available && document != null && certificate != null && !busy && !awaitingSave
+        get() = backend.available && document != null && certificate != null && !busy && !awaitingSave && !awaitingReportSave
     val canVerify: Boolean
-        get() = backend.available && document != null && !busy && !awaitingSave
+        get() = backend.available && document != null && !busy && !awaitingSave && !awaitingReportSave
     val canForgetCertificate: Boolean
-        get() = backend.available && certificate != null && !busy && !awaitingSave
+        get() = backend.available && certificate != null && !busy && !awaitingSave && !awaitingReportSave
     val canRetryPendingOutput: Boolean get() = awaitingSave && !busy
     val canDiscardPendingOutput: Boolean get() = awaitingSave && !busy
-    val canReplaceSelection: Boolean get() = !busy && !awaitingSave
-    val canAcceptIncomingDocument: Boolean get() = !busy && !awaitingSave
+    val canReplaceSelection: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
+    val canAcceptIncomingDocument: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
 }
 
 sealed interface UiEffect {
     data class SaveSignedDocument(val displayName: String, val mimeType: String) : UiEffect
+    data object SaveVerificationReport : UiEffect
 }
 
 fun Throwable.toUserText(): UiText {
@@ -170,3 +206,8 @@ private const val CORE_CERTIFICATE_NOT_CURRENT_MESSAGE =
     "El certificado no está vigente. Use un certificado vigente; si ha caducado, renuévelo."
 private const val CORE_SIGNING_IDENTITY_UNSUPPORTED_MESSAGE =
     "El certificado o su clave no son aptos para firmar en Android. Use un certificado de firma con RSA de al menos 2048 bits o ECDSA de al menos 256 bits."
+
+fun VerificationSummary.toUiText() = UiText.Verification(
+    valid, reason, format, signers.size, integrityStatus, certificateStatus, trustStatus,
+    revocationMode, warnings.size, errors.size, coverage, signers, signerSummaries, details, warnings, errors,
+)

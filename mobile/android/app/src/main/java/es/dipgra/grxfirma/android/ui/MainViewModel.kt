@@ -15,9 +15,11 @@ import es.dipgra.grxfirma.android.core.ExternalIdentityBridge
 import es.dipgra.grxfirma.android.nfc.DnieError
 import es.dipgra.grxfirma.android.nfc.DnieErrors
 import es.dipgra.grxfirma.android.nfc.DnieNfcSession
-import es.dipgra.grxfirma.android.files.ContentRepository
+import es.dipgra.grxfirma.android.files.DocumentRepository
 import es.dipgra.grxfirma.android.files.DocumentPolicy
 import es.dipgra.grxfirma.android.model.SignedOutput
+import es.dipgra.grxfirma.android.model.LoadedFile
+import es.dipgra.grxfirma.android.model.SignatureInspection
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -30,7 +32,7 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicLong
 
 class MainViewModel(
-    private val repository: ContentRepository,
+    private val repository: DocumentRepository,
     private val core: CoreBridge,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
@@ -42,6 +44,7 @@ class MainViewModel(
 
     private var pendingOutput: SignedOutput? = null
     private val identityEpoch = AtomicLong()
+    val engineVersion: String get() = core.engineVersion
 
     fun selectDocument(uri: Uri) {
         if (!mutableState.value.canReplaceSelection) {
@@ -55,7 +58,9 @@ class MainViewModel(
                 DocumentPolicy.MAX_DOCUMENT_BYTES,
                 "El documento",
             )
-            mutableState.value = mutableState.value.copy(document = selected, result = OperationResult.Idle)
+            mutableState.value = mutableState.value.copy(document = selected, result = OperationResult.Idle,
+                verification = null, postSignVerificationFailed = false, signatureAction = "sign", coSignSuggested = false, detectedSignatureFormat = "")
+            inspectExistingSignature(selected)
         }
     }
 
@@ -73,6 +78,8 @@ class MainViewModel(
             )
             mutableState.value = mutableState.value.copy(
                 originalDocument = selected,
+                verification = null,
+                postSignVerificationFailed = false,
                 result = OperationResult.Idle,
             )
         }
@@ -82,6 +89,8 @@ class MainViewModel(
         if (!mutableState.value.canReplaceSelection) return
         mutableState.value = mutableState.value.copy(
             originalDocument = null,
+            verification = null,
+            postSignVerificationFailed = false,
             result = OperationResult.Idle,
         )
     }
@@ -146,6 +155,10 @@ class MainViewModel(
     }
 
     fun importCertificate(password: CharArray) {
+        if (!mutableState.value.canReplaceSelection) {
+            password.fill('\u0000')
+            return
+        }
         val selected = mutableState.value.certificateFile
         if (selected == null) {
             password.fill('\u0000')
@@ -157,7 +170,7 @@ class MainViewModel(
             setError(UiText.Resource(R.string.error_password_required))
             return
         }
-        launchOperation {
+        launchOperation(onFinished = { password.fill('\u0000') }) {
             try {
                 val loaded = repository.loadCertificate(selected)
                 try {
@@ -256,11 +269,43 @@ class MainViewModel(
         launchOperation {
             val loaded = repository.loadDocument(document)
             try {
-                val output = core.sign(loaded, format, certificate.id, options)
+                val configured = try {
+                    SigningOptions.create(snapshot.signatureProfile, snapshot.tsaEnabled, snapshot.tsaUrl)
+                } catch (_: Exception) {
+                    setError(UiText.Resource(R.string.error_tsa_configuration))
+                    return@launchOperation
+                }
+                val effectiveFormat = if (format == "auto") when {
+                    snapshot.signatureAction != "sign" && snapshot.detectedSignatureFormat.isNotBlank() -> snapshot.detectedSignatureFormat
+                    document.mimeType == "application/pdf" || document.displayName.endsWith(".pdf", true) -> "pades"
+                    document.mimeType.contains("xml") || document.displayName.endsWith(".xml", true) -> "xades"
+                    else -> "cades"
+                } else format
+                if (!SigningOptions.supported(effectiveFormat, snapshot.signatureAction, snapshot.signatureProfile)) {
+                    setError(UiText.Resource(R.string.error_signature_combination))
+                    return@launchOperation
+                }
+                val output = core.sign(loaded, effectiveFormat, certificate.id, options + configured, snapshot.signatureAction)
                 pendingOutput?.bytes?.fill(0)
                 pendingOutput = output
+                // The output remains saveable even if verification cannot run.
+                // Detached signatures need the input for sign, and the separately
+                // selected original for co/countersign (never the old signature).
+                var original: LoadedFile? = null
+                val verification = try {
+                    original = if (!output.format.equals("cades", true)) null else
+                        if (snapshot.signatureAction == "sign") loaded else snapshot.originalDocument?.let(repository::loadDocument)
+                    core.verify(LoadedFile(output.displayName, output.mimeType, output.bytes), original)
+                } catch (_: Exception) {
+                    null
+                } finally {
+                    if (original !== loaded) original?.bytes?.fill(0)
+                }
                 mutableState.value = mutableState.value.copy(
                     awaitingSave = true,
+                    verification = verification,
+                    verifiedDocumentName = output.displayName,
+                    postSignVerificationFailed = verification == null,
                     result = OperationResult.Success(
                         UiText.Resource(R.string.result_success),
                         UiText.Resource(
@@ -277,6 +322,8 @@ class MainViewModel(
     }
 
     fun verify() {
+        if (!mutableState.value.canReplaceSelection) return
+        mutableState.value = mutableState.value.copy(verification = null, postSignVerificationFailed = false)
         val snapshot = mutableState.value
         val document = snapshot.document
         if (document == null) {
@@ -290,26 +337,73 @@ class MainViewModel(
                 original = snapshot.originalDocument?.let(repository::loadDocument)
                 val verification = core.verify(loaded, original)
                 mutableState.value = mutableState.value.copy(
+                    verification = verification,
+                    verifiedDocumentName = document.displayName,
+                    postSignVerificationFailed = false,
+                    coSignSuggested = verification.signers.isNotEmpty() || verification.signerSummaries.isNotEmpty(),
+                    detectedSignatureFormat = verification.format.lowercase().takeIf { it in listOf("cades", "pades", "xades") }.orEmpty(),
                     result = OperationResult.Success(
                         UiText.Resource(R.string.verification_result_title),
-                        UiText.Verification(
-                            valid = verification.valid,
-                            reason = verification.reason,
-                            format = verification.format,
-                            signerCount = verification.signers.size,
-                            integrityStatus = verification.integrityStatus,
-                            certificateStatus = verification.certificateStatus,
-                            trustStatus = verification.trustStatus,
-                            revocationMode = verification.revocationMode,
-                            warningCount = verification.warnings.size,
-                            errorCount = verification.errors.size,
-                        ),
+                        verification.toUiText(),
                     ),
                 )
             } finally {
                 loaded.bytes.fill(0)
                 original?.bytes?.fill(0)
             }
+        }
+    }
+
+    fun updateSigningSettings(action: String, profile: String, tsaEnabled: Boolean, tsaUrl: String) {
+        if (!mutableState.value.canReplaceSelection) return
+        require(action in listOf("sign", "cosign", "countersign"))
+        require(profile in listOf("baseline", "t", "lt", "lta"))
+        mutableState.value = mutableState.value.copy(signatureAction = action, signatureProfile = profile,
+            tsaEnabled = tsaEnabled, tsaUrl = tsaUrl.take(2048))
+    }
+
+    fun acceptCoSignSuggestion() {
+        if (!mutableState.value.canReplaceSelection) return
+        mutableState.value = mutableState.value.copy(signatureAction = "cosign", coSignSuggested = false)
+    }
+
+    private fun inspectExistingSignature(document: es.dipgra.grxfirma.android.model.SelectedFile) {
+        if (!core.readiness.available) return
+        launchOperation {
+            val loaded = repository.loadDocument(document)
+            try {
+                val inspection = try { core.inspectSignature(loaded) } catch (_: Exception) { SignatureInspection(false) }
+                mutableState.value = mutableState.value.copy(coSignSuggested = inspection.hasSignature,
+                    detectedSignatureFormat = inspection.format)
+            } finally { loaded.bytes.fill(0) }
+        }
+    }
+
+    fun exportVerificationReport() {
+        if (!mutableState.value.canExportReport) return
+        mutableState.value = mutableState.value.copy(awaitingReportSave = true)
+        viewModelScope.launch { effectChannel.send(UiEffect.SaveVerificationReport) }
+    }
+
+    fun cancelReportExport() {
+        if (!mutableState.value.awaitingReportSave) return
+        mutableState.value = mutableState.value.copy(awaitingReportSave = false,
+            result = OperationResult.Error(UiText.Resource(R.string.error_report_export)))
+    }
+
+    fun saveVerificationReport(uri: Uri) {
+        if (!mutableState.value.awaitingReportSave) return
+        val report = mutableState.value.verification?.reportJson ?: return cancelReportExport()
+        mutableState.value = mutableState.value.copy(awaitingReportSave = false)
+        launchOperation {
+            val bytes = report.encodeToByteArray()
+            try {
+                repository.write(uri, bytes)
+                mutableState.value = mutableState.value.copy(
+                    result = OperationResult.Success(UiText.Resource(R.string.result_report_saved)))
+            } catch (_: Exception) {
+                setError(UiText.Resource(R.string.error_report_export))
+            } finally { bytes.fill(0) }
         }
     }
 
@@ -380,9 +474,13 @@ class MainViewModel(
 
     private fun launchOperation(
         allowAwaitingSave: Boolean = false,
+        onFinished: () -> Unit = {},
         block: suspend () -> Unit,
     ) {
-        if (mutableState.value.busy || (!allowAwaitingSave && mutableState.value.awaitingSave)) return
+        if (mutableState.value.busy || mutableState.value.awaitingReportSave || (!allowAwaitingSave && mutableState.value.awaitingSave)) {
+            onFinished()
+            return
+        }
         mutableState.value = mutableState.value.copy(busy = true)
         viewModelScope.launch {
             try {
@@ -392,7 +490,7 @@ class MainViewModel(
             } finally {
                 mutableState.value = mutableState.value.copy(busy = false)
             }
-        }
+        }.invokeOnCompletion { onFinished() }
     }
 
     private fun setError(text: UiText) {
@@ -411,7 +509,7 @@ class MainViewModel(
     }
 
     class Factory(
-        private val repository: ContentRepository,
+        private val repository: DocumentRepository,
         private val core: CoreBridge,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

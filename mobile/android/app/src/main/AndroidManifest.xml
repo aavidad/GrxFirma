@@ -7,6 +7,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
 
     <uses-feature
@@ -14,6 +15,7 @@
         android:required="false" />
 
     <application
+        android:localeConfig="@xml/locales_config"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
@@ -32,6 +34,9 @@
             android:name="es.dipgra.grxfirma.CORE_SHA256"
             android:value="${coreSha256}" />
 
+        <service android:name="androidx.appcompat.app.AppLocalesMetadataHolderService" android:enabled="false" android:exported="false">
+            <meta-data android:name="autoStoreLocales" android:value="true" />
+        </service>
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -52,8 +52,8 @@ def validate(root: pathlib.Path) -> None:
         node.get(f"{ANDROID}name") for node in manifest.findall("uses-permission")
     }
     require(
-        "android.permission.INTERNET" not in permissions,
-        "La app no debe pedir INTERNET",
+        permissions == {"android.permission.NFC", "android.permission.INTERNET"},
+        "Solo se permiten NFC (DNIe) e INTERNET (TSA y evidencias LT/LTA); no almacenamiento amplio",
     )
     application = manifest.find("application")
     require(application is not None, "Falta application en el manifiesto")

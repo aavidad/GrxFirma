@@ -48,4 +48,10 @@ data class VerificationSummary(
     val revocationMode: String,
     val warnings: List<String>,
     val errors: List<String>,
+    val signerSummaries: List<SignerSummary> = emptyList(),
+    val reportJson: String = "",
 )
+
+data class SignerSummary(val id: String, val subject: String, val issuer: String, val fingerprint: String)
+
+data class SignatureInspection(val hasSignature: Boolean, val format: String = "")

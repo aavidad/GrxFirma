@@ -1,14 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
 <!-- Autoría: Alberto Avidad Fernández -->
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
-
 <resources>
     <string name="app_name">GrxFirma</string>
     <string name="screen_title">Firma y verificación</string>
     <string name="screen_subtitle">Operación local en este dispositivo</string>
-
     <string name="backend_ready_title">Núcleo de firma disponible</string>
     <string name="backend_unavailable_title">Núcleo de firma no disponible</string>
     <string name="backend_ready_detail">Contrato móvil y servicios criptográficos comprobados.</string>
@@ -19,7 +17,6 @@
     <string name="help_title">Cómo usar GrxFirma en Android</string>
     <string name="help_content">1. Seleccione un documento desde Android o compártalo con GrxFirma.\n\n2. Para firmar, importe un PKCS#12 protegido o pulse «DNIe por NFC». En el segundo caso, introduzca el CAN de seis dígitos impreso en el DNIe y mantenga la tarjeta junto a la parte trasera del móvil. Se utilizará el certificado de FIRMA y se pedirá el PIN al firmar. La clave privada permanece en la tarjeta.\n\n3. Elija formato automático, PAdES, CAdES o XAdES y confirme la firma. El resultado se guarda mediante el selector de Android. Pulse «Olvidar certificado» cuando termine.\n\n4. La verificación informa por separado de integridad criptográfica, vigencia del certificado, confianza y disponibilidad de revocación. Sin conexión a Internet, solo puede considerar evidencias de revocación incluidas en la firma.\n\nLa pantalla admite un documento por operación. Las capturas están bloqueadas en la versión productiva.</string>
     <string name="help_close">Cerrar</string>
-
     <string name="document_section">Documento</string>
     <string name="document_helper">Seleccione el documento que desea firmar o verificar.</string>
     <string name="select_document">Seleccionar documento</string>
@@ -28,8 +25,7 @@
     <string name="original_document_helper">Para verificar una firma separada, como CAdES, seleccione también el documento original. Déjelo vacío para firmas que ya contienen el documento.</string>
     <string name="select_original_document">Seleccionar original para firma separada</string>
     <string name="no_original_document">Ningún documento original seleccionado (opcional)</string>
-    <string name="clear_original_document">Quitar documento original</string>
-
+    <string name="clear_original_document">Quitar fichero original</string>
     <string name="certificate_section">Certificado de firma</string>
     <string name="certificate_helper">Elija un PKCS#12 o use el DNIe por NFC. La clave del DNIe permanece en la tarjeta.</string>
     <string name="dnie_nfc_choice">DNIe por NFC</string>
@@ -68,7 +64,6 @@
     <string name="forget_certificate">Olvidar certificado y limpiar sesión</string>
     <string name="no_certificate">Ningún certificado preparado</string>
     <string name="certificate_summary">%1$s\nEmisor: %2$s\nHuella: %3$s</string>
-
     <string name="operation_section">Operación</string>
     <string name="signature_format">Formato de firma</string>
     <string name="format_auto">Automático</string>
@@ -98,7 +93,7 @@
     <string name="seal_rotate_left">↶ 15°</string>
     <string name="seal_rotate_right">↻ 15°</string>
     <string name="seal_opacity">Opacidad del sello (0–100 %)</string>
-    <string name="seal_qr">Añadir QR de verificación</string>
+    <string name="seal_qr">Añadir código QR de verificación</string>
     <string name="seal_qr_address">Dirección HTTPS del QR</string>
     <string name="seal_style">Estilo e imagen</string>
     <string name="seal_logo_none">Sin logo</string>
@@ -124,17 +119,16 @@
     <string name="seal_image_error">No se pudo usar la imagen. Seleccione un PNG o JPEG de hasta 2 MiB.</string>
     <string name="verify_document">Verificar firma</string>
     <string name="operation_in_progress">Procesando la operación…</string>
-
     <string name="result_section">Resultado</string>
     <string name="result_idle">Todavía no se ha ejecutado ninguna operación.</string>
     <string name="result_success">Operación completada</string>
     <string name="result_error">No se pudo completar la operación</string>
     <string name="result_signed">Firma %1$s creada con %2$s. Seleccione dónde guardar el resultado.</string>
-    <string name="verification_result_title">Resultado de la verificación</string>
+    <string name="verification_result_title">Resultado de verificación</string>
     <string name="verification_result_accredited">Firma íntegra y acreditada.</string>
     <string name="verification_result_incomplete">Verificación incompleta: certificado o confianza sin acreditar.</string>
-    <string name="verification_result_invalid">Firma no válida o integridad no garantizada.</string>
-	<string name="verification_revocation_inconclusive">No se pudo comprobar la revocación del certificado. La firma no se considera válida.</string>
+    <string name="verification_result_invalid">Firma inválida o integridad no garantizada.</string>
+    <string name="verification_revocation_inconclusive">No se pudo comprobar la revocación del certificado. La firma no se considera válida.</string>
     <string name="verification_integrity">Integridad criptográfica: %1$s</string>
     <string name="verification_certificate">Vigencia y uso del certificado: %1$s</string>
     <string name="verification_trust">Confianza de la cadena: %1$s</string>
@@ -153,7 +147,6 @@
     <string name="result_save_cancelled">Guardado cancelado; el resultado y el certificado de la sesión se han descartado.</string>
     <string name="retry_save">Reintentar guardado</string>
     <string name="discard_pending_output">Descartar resultado firmado</string>
-
     <string name="error_document_required">Seleccione primero un documento.</string>
     <string name="error_certificate_required">Seleccione o importe primero un certificado.</string>
     <string name="error_password_required">Introduzca la contraseña del PKCS#12.</string>
@@ -171,12 +164,10 @@
     <string name="error_certificate_not_current">El certificado no está vigente. Use un certificado vigente; si ha caducado, renuévelo.</string>
     <string name="error_signing_identity_unsupported">El certificado o su clave no son aptos para firmar en Android. Use un certificado de firma con RSA de al menos 2048 bits o ECDSA de al menos 256 bits.</string>
     <string name="error_operation_failed">La operación ha fallado. Revise la selección e inténtelo de nuevo.</string>
-
     <string name="size_bytes">%1$d B</string>
     <string name="size_kib">%1$.1f KiB</string>
     <string name="size_mib">%1$.1f MiB</string>
     <string name="unknown_value">No disponible</string>
-
     <plurals name="verification_signers">
         <item quantity="one">%1$d firmante detectado</item>
         <item quantity="other">%1$d firmantes detectados</item>
@@ -189,4 +180,43 @@
         <item quantity="one">%1$d error de verificación</item>
         <item quantity="other">%1$d errores de verificación</item>
     </plurals>
+    <string name="signature_action">Operación de firma</string>
+    <string name="signature_profile">Perfil de firma</string>
+    <string name="action_sign">Firma</string>
+    <string name="action_cosign">Cofirma</string>
+    <string name="action_countersign">Contrafirma</string>
+    <string name="profile_b">Baseline B</string>
+    <string name="profile_t">Baseline T</string>
+    <string name="profile_lt">Baseline LT</string>
+    <string name="profile_lta">Baseline LTA</string>
+    <string name="suggest_cosign">El documento tiene firmas. Usar cofirma</string>
+    <string name="tsa_enabled">Activar sello de tiempo (TSA)</string>
+    <string name="tsa_url">URL de TSA (HTTP o HTTPS)</string>
+    <string name="tsa_helper">T y superiores requieren TSA. LT/LTA consultan además la revocación del certificado. B con TSA genera T.</string>
+    <string name="error_tsa_configuration">Active la TSA e introduzca una URL HTTP o HTTPS sin credenciales ni fragmento.</string>
+    <string name="error_signature_combination">Combinación no disponible: PAdES admite firma/cofirma y B/T/LT; XAdES admite B/T; CAdES admite B/T/LT/LTA y las tres operaciones.</string>
+    <string name="post_sign_verification_failed">Firma creada. No se pudo verificar automáticamente; guárdela y verifíquela después.</string>
+    <string name="export_verification_report">Exportar informe JSON de verificación</string>
+    <string name="verification_report_filename">informe-verificacion.json</string>
+    <string name="error_report_export">El informe no se ha guardado. Puede reintentar la exportación; el destino puede contener un archivo parcial.</string>
+    <string name="result_report_saved">Informe de verificación guardado.</string>
+    <string name="verification_coverage">Cobertura: %1$s</string>
+    <string name="coverage_full">Documento completo</string>
+    <string name="coverage_partial">Cobertura parcial</string>
+    <string name="coverage_detached">Firma separada del documento</string>
+    <string name="verification_verdict">Dictamen del motor: %1$s</string>
+    <string name="verification_signer">Firmante: %1$s</string>
+    <string name="verification_signer_detail">Firmante: %1$s\nEmisor: %2$s\nHuella: %3$s</string>
+    <string name="verification_evidence">Evidencia: %1$s</string>
+    <string name="verification_warning">Advertencia: %1$s</string>
+    <string name="verification_error">Error: %1$s</string>
+    <string name="language_title">Idioma de la aplicación</string>
+    <string name="language_system">Seguir al sistema</string>
+    <string name="about_title">Acerca de GrxFirma</string>
+    <string name="about_content">Aplicación: %1$s\nMotor: %2$s\nLicencia: EUPL 1.2 o posterior\nContacto: avidad@dipgra.es</string>
+    <string name="about_release_notes">Novedades</string>
+    <string name="release_notes_content">Primera oleada de paridad Android: cofirma y contrafirma; perfiles de firma y TSA; verificación automática y detallada; exportación de informes JSON; once idiomas y Acerca de.\n\nPAdES: B/T/LT y firma/cofirma. XAdES: B/T. CAdES: B/T/LT/LTA. La verificación móvil comprueba la integridad y las evidencias incluidas; no acredita la confianza con anclas del sistema ni consulta la revocación en línea.</string>
+    <string name="engine_trust_warning">La integridad criptografica se ha verificado, pero la confianza de la cadena no esta evaluada por el sistema.</string>
+    <string name="signed_document_name">%1$s-firmado.%2$s</string>
+    <string name="verification_document">Documento del informe: %1$s</string>
 </resources>

@@ -11,4 +11,8 @@
         <item>@string/format_cades</item>
         <item>@string/format_xades</item>
     </string-array>
+    <string-array name="signature_actions"><item>@string/action_sign</item><item>@string/action_cosign</item><item>@string/action_countersign</item></string-array>
+    <string-array name="signature_profiles"><item>@string/profile_b</item><item>@string/profile_t</item><item>@string/profile_lt</item><item>@string/profile_lta</item></string-array>
+    <string-array name="language_tags" translatable="false"><item></item><item>es</item><item>en</item><item>ca</item><item>ca-ES-valencia</item><item>gl</item><item>eu</item><item>fr</item><item>de</item><item>it</item><item>pt</item><item>zh</item></string-array>
+    <string-array name="language_names"><item>@string/language_system</item><item>Español</item><item>English</item><item>Català</item><item>Valencià</item><item>Galego</item><item>Euskara</item><item>Français</item><item>Deutsch</item><item>Italiano</item><item>Português</item><item>中文</item></string-array>
 </resources>

@@ -12,8 +12,15 @@ import android.provider.OpenableColumns
 import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SelectedFile
 
-open class ContentRepository(private val resolver: ContentResolver) {
-    open fun inspect(uri: Uri, fallbackName: String, fallbackMime: String): SelectedFile {
+interface DocumentRepository {
+    fun inspect(uri: Uri, fallbackName: String, fallbackMime: String): SelectedFile
+    fun loadDocument(file: SelectedFile): LoadedFile
+    fun loadCertificate(file: SelectedFile): LoadedFile
+    fun write(uri: Uri, bytes: ByteArray)
+}
+
+open class ContentRepository(private val resolver: ContentResolver) : DocumentRepository {
+    override fun inspect(uri: Uri, fallbackName: String, fallbackMime: String): SelectedFile {
         require(uri.scheme == ContentResolver.SCHEME_CONTENT) {
             "Solo se admiten URI content:// proporcionadas por Android."
         }
@@ -40,19 +47,19 @@ open class ContentRepository(private val resolver: ContentResolver) {
         )
     }
 
-    open fun loadDocument(file: SelectedFile): LoadedFile = load(
+    override fun loadDocument(file: SelectedFile): LoadedFile = load(
         file = file,
         maximumBytes = DocumentPolicy.MAX_DOCUMENT_BYTES,
         label = "El documento",
     )
 
-    open fun loadCertificate(file: SelectedFile): LoadedFile = load(
+    override fun loadCertificate(file: SelectedFile): LoadedFile = load(
         file = file,
         maximumBytes = DocumentPolicy.MAX_CERTIFICATE_BYTES,
         label = "El certificado",
     )
 
-    open fun write(uri: Uri, bytes: ByteArray) {
+    override fun write(uri: Uri, bytes: ByteArray) {
         require(uri.scheme == ContentResolver.SCHEME_CONTENT) {
             "El destino debe ser una URI content:// de Android."
         }

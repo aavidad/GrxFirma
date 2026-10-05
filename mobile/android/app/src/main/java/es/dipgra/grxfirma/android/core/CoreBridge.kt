@@ -9,6 +9,7 @@ import es.dipgra.grxfirma.android.model.CertificateSummary
 import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SignedOutput
 import es.dipgra.grxfirma.android.model.VerificationSummary
+import es.dipgra.grxfirma.android.model.SignatureInspection
 
 data class CoreReadiness(
     val available: Boolean,
@@ -17,6 +18,7 @@ data class CoreReadiness(
 )
 
 interface CoreBridge {
+    val engineVersion: String get() = ""
     val readiness: CoreReadiness
 
     fun selectCertificate(): CertificateSummary
@@ -28,11 +30,17 @@ interface CoreBridge {
         format: String,
         certificateId: String,
         options: Map<String, String> = emptyMap(),
+        action: String = "sign",
     ): SignedOutput
 
     fun sealPreview(certificateId: String, options: Map<String, String>): ByteArray
 
     fun verify(document: LoadedFile, original: LoadedFile? = null): VerificationSummary
+
+    fun inspectSignature(document: LoadedFile): SignatureInspection {
+        val report = verify(document)
+        return SignatureInspection(report.signers.isNotEmpty() || report.signerSummaries.isNotEmpty(), report.format.lowercase())
+    }
 
     fun clearSession()
 }
@@ -57,6 +65,7 @@ class UnavailableCoreBridge(override val readiness: CoreReadiness) : CoreBridge 
         format: String,
         certificateId: String,
         options: Map<String, String>,
+        action: String,
     ): SignedOutput = unavailable()
 
     override fun sealPreview(certificateId: String, options: Map<String, String>): ByteArray = unavailable()

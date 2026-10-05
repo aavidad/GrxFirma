@@ -97,6 +97,20 @@
                     android:minHeight="48dp"
                     android:text="@string/open_help" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/languageButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/language_title" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/aboutButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/about_title" />
                 <TextView
                     android:id="@+id/documentSectionTitle"
                     style="@style/TextAppearance.Material3.TitleLarge"
@@ -300,6 +314,42 @@
                     android:textColor="@color/on_surface"
                     android:textStyle="bold" />
 
+                <TextView style="@style/TextAppearance.Material3.LabelLarge" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/control_spacing" android:labelFor="@id/signatureAction" android:text="@string/signature_action" />
+                <Spinner
+                    android:id="@+id/signatureAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:entries="@array/signature_actions"
+                    android:spinnerMode="dropdown" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/useCosignButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/suggest_cosign" />
+                <TextView style="@style/TextAppearance.Material3.LabelLarge" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/control_spacing" android:labelFor="@id/signatureProfile" android:text="@string/signature_profile" />
+                <Spinner
+                    android:id="@+id/signatureProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:entries="@array/signature_profiles"
+                    android:spinnerMode="dropdown" />
+                <CheckBox
+                    android:id="@+id/tsaEnabled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/tsa_enabled" />
+                <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/tsa_url" app:helperText="@string/tsa_helper">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/tsaUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textUri"
+                    android:maxLength="2048"
+                    android:singleLine="true" />
+                </com.google.android.material.textfield.TextInputLayout>
                 <TextView
                     style="@style/TextAppearance.Material3.LabelLarge"
                     android:layout_width="match_parent"
@@ -430,7 +480,15 @@
                     android:layout_marginTop="4dp"
                     android:textColor="@color/on_surface"
                     android:textIsSelectable="true"
-                    android:visibility="gone" />
+                    android:visibility="gone" /><TextView android:id="@+id/verificationDetail" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/control_spacing" android:textIsSelectable="true" android:visibility="gone" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/exportReportButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/export_verification_report" />
+
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>

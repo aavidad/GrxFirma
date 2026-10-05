@@ -56,8 +56,9 @@ class CoreJsonCodecTest {
     fun `contract requires every security critical service`() {
         val valid = """
             {
-              "contract_version": 1,
+              "contract_version": 2,
               "platform": "android",
+              "signing": {"actions":["sign","cosign","countersign"], "profiles_by_format":{"CAdES":["baseline","t","lt","lta"]}},
               "services": {
                 "sign": true,
                 "verify": true,
@@ -90,7 +91,7 @@ class CoreJsonCodecTest {
         val actual = CoreJsonCodec.parseSigned(response, "contrato.pdf")
 
         assertArrayEquals(signed, actual.bytes)
-        assertEquals("contrato-firmado.pdf", actual.displayName)
+        assertEquals("contrato.pdf", actual.displayName)
         assertEquals("application/pdf", actual.mimeType)
     }
 
@@ -148,6 +149,34 @@ class CoreJsonCodecTest {
 
         assertThrows(CoreContractException::class.java) {
             CoreJsonCodec.parseSigned(response, "contrato.pdf")
+        }
+    }
+    @Test
+    fun `co and countersign actions and TSA profiles reach the facade`() {
+        for (action in listOf("cosign", "countersign")) {
+            val request = JSONObject(CoreJsonCodec.signRequest(document, "cades", "id",
+                mapOf("profile" to "lt", "tsaURL" to "http://tsa.example"), action))
+            assertEquals(action, request.getString("action"))
+            assertEquals("lt", request.getJSONObject("options").getString("profile"))
+        }
+    }
+
+    @Test
+    fun `signer summaries and full report survive parsing`() {
+        val raw = """{"valid":false,"coverage":"partial","details":["evidence"],
+            "signer_summaries":[{"id":"id","subject":"S","issuer":"I","fingerprint":"F"}],
+            "warnings":["warning"],"errors":["error"]}"""
+        val report = CoreJsonCodec.parseVerification(raw)
+        assertEquals("S", report.signerSummaries.single().subject)
+        assertEquals("partial", report.coverage)
+        assertEquals("evidence", report.details.single())
+        assertEquals("I", JSONObject(report.reportJson).getJSONArray("signer_summaries").getJSONObject(0).getString("issuer"))
+    }
+
+    @Test
+    fun `an old AAR cannot enable the new flows`() {
+        assertThrows(CoreContractException::class.java) {
+            CoreJsonCodec.parseContract("""{"contract_version":1,"platform":"android"}""")
         }
     }
 }
