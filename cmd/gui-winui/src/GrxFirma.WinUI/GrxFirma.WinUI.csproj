@@ -18,7 +18,7 @@
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>..\..\..\..\packaging\windows\grxfirma-diputacion.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\..\..\packaging\windows\grxfirma.ico</ApplicationIcon>
     <RootNamespace>GrxFirma.WinUI</RootNamespace>
     <AssemblyName>grxfirma-winui</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -37,17 +37,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\..\..\..\packaging\windows\grxfirma-diputacion.ico">
-      <Link>Assets\grxfirma-diputacion.ico</Link>
+    <Content Include="..\..\..\..\packaging\windows\grxfirma.ico">
+      <Link>Assets\grxfirma.ico</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-      <TargetPath>Assets\grxfirma-diputacion.ico</TargetPath>
+      <TargetPath>Assets\grxfirma.ico</TargetPath>
     </Content>
-    <Content Include="..\..\..\gui-qml\assets\logo-dipgra.png">
-      <Link>Assets\logo-dipgra.png</Link>
+    <Content Include="..\..\..\gui-qml\assets\grxfirma-simbolo.png">
+      <Link>Assets\grxfirma-simbolo.png</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-      <TargetPath>Assets\logo-dipgra.png</TargetPath>
+      <TargetPath>Assets\grxfirma-simbolo.png</TargetPath>
     </Content>
     <Content Include="..\..\..\..\VERSION.txt">
       <Link>VERSION.txt</Link>

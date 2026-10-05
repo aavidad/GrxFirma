@@ -7,4 +7,4 @@
 
 // Regenerar con scripts/branding/regenerate_windows_resources.sh.
 1 RT_MANIFEST "grxfirmauri_windows_amd64.manifest"
-1 ICON "../../assets/branding/grxfirma-diputacion.ico"
+1 ICON "../../assets/branding/grxfirma.ico"

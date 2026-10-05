@@ -5499,7 +5499,7 @@ Window {
                 Image {
                     anchors.fill: parent
                     anchors.margins: 16
-                    source: "../assets/Logo-Horizontal-Color.png"
+                    source: "../assets/grxfirma-logo-horizontal.png"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                     Accessible.role: Accessible.Graphic
@@ -8516,29 +8516,28 @@ Window {
                     Layout.fillWidth: true
                     Layout.preferredHeight: window.sidebarCollapsed ? 64 : 220
                     Image {
-                        source: "../assets/Logo-Horizontal-Color.png"
+                        // Con fondo oscuro, el rótulo va en claro.
+                        source: Contrast.luminance(currentTheme.sidebarColor) < 0.25
+                                ? "../assets/grxfirma-logo-horizontal-negativo.png"
+                                : "../assets/grxfirma-logo-horizontal.png"
                         visible: !window.sidebarCollapsed
                         anchors.fill: parent
                         fillMode: Image.PreserveAspectFit
                         anchors.margins: 8
+                        smooth: true
+                        Accessible.role: Accessible.Graphic
+                        Accessible.name: tr("Logotipo de GrxFirma")
                     }
-                    Rectangle {
+                    Image {
                         visible: window.sidebarCollapsed
                         anchors.centerIn: parent
                         width: 48
                         height: 48
-                        radius: 12
-                        color: Qt.rgba(1, 1, 1, 0.92)
-                        border.color: Qt.rgba(0, 0, 0, currentTheme.borderOpacity + 0.12)
-                        border.width: 1
-                        Image {
-                            anchors.centerIn: parent
-                            width: parent.width - 10
-                            height: parent.height - 10
-                            source: "../assets/logo-dipgra.png"
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-                        }
+                        source: "../assets/grxfirma-simbolo.png"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        Accessible.role: Accessible.Graphic
+                        Accessible.name: tr("Logotipo de GrxFirma")
                     }
                 }
 

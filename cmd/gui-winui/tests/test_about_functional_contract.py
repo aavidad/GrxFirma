@@ -63,13 +63,13 @@ class AboutFunctionalContractTests(unittest.TestCase):
             "Software libre bajo la licencia EUPL 1.2 o posterior.",
         ):
             self.assertIn(visible_text, self.xaml)
-        self.assertIn('Source="ms-appx:///Assets/logo-dipgra.png"', self.xaml)
+        self.assertIn('Source="ms-appx:///Assets/grxfirma-simbolo.png"', self.xaml)
         self.assertIn("ViewModel.VersionText", self.xaml)
 
     def test_canonical_logo_and_version_are_published(self) -> None:
         for project_contract in (
-            r"<Link>Assets\logo-dipgra.png</Link>",
-            r"<TargetPath>Assets\logo-dipgra.png</TargetPath>",
+            r"<Link>Assets\grxfirma-simbolo.png</Link>",
+            r"<TargetPath>Assets\grxfirma-simbolo.png</TargetPath>",
             r'<Content Include="..\..\..\..\VERSION.txt">',
             r"<TargetPath>VERSION.txt</TargetPath>",
             "<CopyToPublishDirectory>Always</CopyToPublishDirectory>",

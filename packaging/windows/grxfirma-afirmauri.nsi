@@ -28,10 +28,10 @@ Unicode True
 !endif
 
 !ifndef MUI_ICON
-  !define MUI_ICON "${STAGE_DIR}\grxfirma-diputacion.ico"
+  !define MUI_ICON "${STAGE_DIR}\grxfirma.ico"
 !endif
 !ifndef MUI_UNICON
-  !define MUI_UNICON "${STAGE_DIR}\grxfirma-diputacion.ico"
+  !define MUI_UNICON "${STAGE_DIR}\grxfirma.ico"
 !endif
 
 Name "GrxFirma AfirmaURI"
@@ -65,13 +65,15 @@ Section "Handler afirma://" SEC01
   File "${STAGE_DIR}\invoke-uninstall-silent.ps1"
   File "${STAGE_DIR}\README_AFIRMAURI_WINDOWS.md"
   File "${STAGE_DIR}\VERSION.txt"
-  File "${STAGE_DIR}\grxfirma-diputacion.ico"
+  File "${STAGE_DIR}\grxfirma.ico"
+  ; Nombre anterior del icono del producto.
+  Delete "$INSTDIR\grxfirma-diputacion.ico"
 
   WriteRegStr HKCU "Software\GrxFirmaAfirmaURI" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayName" "GrxFirma AfirmaURI"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayVersion" "${VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "Publisher" "Alberto Avidad Fernandez - OSL Diputacion de Granada"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayIcon" "$INSTDIR\grxfirma-diputacion.ico"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayIcon" "$INSTDIR\grxfirma.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "QuietUninstallString" '"$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR"'
@@ -123,6 +125,7 @@ Section "Uninstall"
   Delete "$INSTDIR\invoke-uninstall-silent.ps1"
   Delete "$INSTDIR\README_AFIRMAURI_WINDOWS.md"
   Delete "$INSTDIR\VERSION.txt"
+  Delete "$INSTDIR\grxfirma.ico"
   Delete "$INSTDIR\grxfirma-diputacion.ico"
   Delete "$INSTDIR\uninstall.exe"
   Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma AfirmaURI - Documentación.lnk"

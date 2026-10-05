@@ -715,7 +715,7 @@ foreach ($idiomaAdmx in @("es-ES", "en-US")) {
     Copy-Item (Join-Path $Raiz "packaging/windows/admx/$idiomaAdmx/GrxFirma.adml") (Join-Path $Escenario "policies/$idiomaAdmx/GrxFirma.adml") -Force
 }
 Copy-Item (Join-Path $Raiz "packaging/windows/admx/GrxFirma.admx") (Join-Path $Escenario "policies/GrxFirma.admx") -Force
-Copy-Item (Join-Path $Raiz "packaging/windows/grxfirma-diputacion.ico") (Join-Path $Escenario "grxfirma-diputacion.ico") -Force
+Copy-Item (Join-Path $Raiz "packaging/windows/grxfirma.ico") (Join-Path $Escenario "grxfirma.ico") -Force
 Copy-Item (Join-Path $Raiz "packaging/windows/install-suite.ps1") (Join-Path $Escenario "install-suite.ps1") -Force
 Copy-Item (Join-Path $Raiz "packaging/windows/install-nativehost.ps1") (Join-Path $Escenario "install-nativehost.ps1") -Force
 Copy-Item (Join-Path $Raiz "packaging/windows/install-afirmauri.ps1") (Join-Path $Escenario "install-afirmauri.ps1") -Force

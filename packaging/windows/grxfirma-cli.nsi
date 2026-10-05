@@ -26,10 +26,10 @@ Unicode True
 !endif
 
 !ifndef MUI_ICON
-  !define MUI_ICON "${STAGE_DIR}\grxfirma-diputacion.ico"
+  !define MUI_ICON "${STAGE_DIR}\grxfirma.ico"
 !endif
 !ifndef MUI_UNICON
-  !define MUI_UNICON "${STAGE_DIR}\grxfirma-diputacion.ico"
+  !define MUI_UNICON "${STAGE_DIR}\grxfirma.ico"
 !endif
 
 Name "GrxFirma CLI"
@@ -58,13 +58,15 @@ Section "CLI principal" SEC01
   File "${STAGE_DIR}\grxfirma.exe"
   File "${STAGE_DIR}\README_CLI_WINDOWS.md"
   File "${STAGE_DIR}\VERSION.txt"
-  File "${STAGE_DIR}\grxfirma-diputacion.ico"
+  File "${STAGE_DIR}\grxfirma.ico"
+  ; Nombre anterior del icono del producto.
+  Delete "$INSTDIR\grxfirma-diputacion.ico"
 
   WriteRegStr HKCU "Software\GrxFirmaCLI" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "DisplayName" "GrxFirma CLI"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "DisplayVersion" "${VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "Publisher" "Alberto Avidad Fernandez - OSL Diputacion de Granada"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "DisplayIcon" "$INSTDIR\grxfirma-diputacion.ico"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "DisplayIcon" "$INSTDIR\grxfirma.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "NoModify" 1
@@ -87,6 +89,7 @@ Section "Uninstall"
   Delete "$INSTDIR\grxfirma.exe"
   Delete "$INSTDIR\README_CLI_WINDOWS.md"
   Delete "$INSTDIR\VERSION.txt"
+  Delete "$INSTDIR\grxfirma.ico"
   Delete "$INSTDIR\grxfirma-diputacion.ico"
   Delete "$INSTDIR\uninstall.exe"
   Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma CLI - Documentación.lnk"

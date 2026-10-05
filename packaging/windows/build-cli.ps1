@@ -49,7 +49,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Copy-Item (Join-Path $Raiz "packaging/windows/README_CLI_WINDOWS.md") (Join-Path $Escenario "README_CLI_WINDOWS.md") -Force
-Copy-Item (Join-Path $Raiz "packaging/windows/grxfirma-diputacion.ico") (Join-Path $Escenario "grxfirma-diputacion.ico") -Force
+Copy-Item (Join-Path $Raiz "packaging/windows/grxfirma.ico") (Join-Path $Escenario "grxfirma.ico") -Force
 Set-Content -Path (Join-Path $Escenario "VERSION.txt") -Value $Version -Encoding UTF8
 
 if (Test-Path $Zip) {

@@ -63,7 +63,7 @@
                         Height="112"
                         HorizontalAlignment="Left"
                         AutomationProperties.Name="Logotipo de GrxFirma"
-                        Source="ms-appx:///Assets/logo-dipgra.png"
+                        Source="ms-appx:///Assets/grxfirma-simbolo.png"
                         Stretch="Uniform" />
                     <TextBlock
                         AutomationProperties.HeadingLevel="Level2"

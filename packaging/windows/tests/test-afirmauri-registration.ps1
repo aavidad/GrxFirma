@@ -77,7 +77,7 @@ Assert-True (
 Assert-True (
     [string]$plan[2].Value -eq "$executablePath,0"
 ) "DefaultIcon no apunta al ejecutable instalado"
-$iconPath = "C:\Users\Test\AppData\Local\Programs\GrxFirma\AfirmaURI\grxfirma-diputacion.ico"
+$iconPath = "C:\Users\Test\AppData\Local\Programs\GrxFirma\AfirmaURI\grxfirma.ico"
 $brandedPlan = @(Get-AfirmaProtocolRegistrationPlan `
     -ProtocolKey $protocolKey `
     -ExecutablePath $executablePath `

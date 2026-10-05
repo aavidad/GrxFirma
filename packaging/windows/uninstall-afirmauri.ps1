@@ -25,7 +25,7 @@ if (-not (Test-Path -LiteralPath $registrationHelpers -PathType Leaf)) {
 $InstallDir = Resolve-GrxFirmaInstallPath -Path $InstallDir -Component "AfirmaURI"
 $protocolKey = "Software\Classes\afirma"
 $exeTarget = Join-Path $InstallDir "grxfirma-afirmauri.exe"
-$iconTarget = Join-Path $InstallDir "grxfirma-diputacion.ico"
+$iconTarget = Join-Path $InstallDir "grxfirma.ico"
 $protocolSnapshot = Join-Path $InstallDir "afirma-protocol-snapshot.json"
 
 Stop-GrxFirmaInstalledProcesses -Path $InstallDir -Component "AfirmaURI"

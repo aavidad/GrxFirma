@@ -265,7 +265,7 @@ if ($useSharedLauncher) {
 }
 $shortcut.WorkingDirectory = $InstallDir
 $shortcut.Description = "GrxFirma Desktop Qt/QML"
-$shortcut.IconLocation = (Join-Path $InstallDir "assets\grxfirma-diputacion.ico") + ",0"
+$shortcut.IconLocation = (Join-Path $InstallDir "assets\grxfirma.ico") + ",0"
 $shortcut.Save()
 
 Write-Host "Desktop Qt/QML instalado en: $InstallDir"

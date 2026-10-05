@@ -34,7 +34,7 @@
                         Width="36"
                         Height="36"
                         AutomationProperties.Name="Icono de GrxFirma"
-                        Source="ms-appx:///Assets/logo-dipgra.png"
+                        Source="ms-appx:///Assets/grxfirma-simbolo.png"
                         Stretch="Uniform" />
                     <TextBlock
                         VerticalAlignment="Center"

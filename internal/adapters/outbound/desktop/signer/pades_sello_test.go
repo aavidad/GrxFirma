@@ -37,7 +37,7 @@ func TestSelloModerno_ConservaLaProporcion(t *testing.T) {
 	}
 }
 
-// El emblema institucional se dibuja con sus colores corporativos.
+// El emblema institucional (la capucha de GrxFirma en tono suave) se dibuja.
 func TestSelloModerno_EmblemaInstitucional(t *testing.T) {
 	raw, err := generarImagenSelloPAdES(testInfoPAdES(), 260, 80, true, "", "", emblemaFirmaPNG, estiloTextoSello{})
 	if err != nil {
@@ -45,17 +45,17 @@ func TestSelloModerno_EmblemaInstitucional(t *testing.T) {
 	}
 	img := decodificarPrueba(t, raw)
 	b := img.Bounds()
-	verdes := 0
+	tonos := 0
 	for y := b.Min.Y; y < b.Max.Y; y += 2 {
 		for x := b.Min.X + b.Dx()/20; x < b.Min.X+b.Dx()/3; x += 2 {
-			r, g, bb, a := img.At(x, y).RGBA()
-			if a > 0xC000 && g > 0xB000 && r > 0x9000 && r < 0xC000 && bb < 0x7000 {
-				verdes++
+			r, _, bb, a := img.At(x, y).RGBA()
+			if a > 0xC000 && bb > 0x9000 && bb > r+0x1800 && r > 0x6000 && r < 0xB800 {
+				tonos++
 			}
 		}
 	}
-	if verdes < 50 {
-		t.Fatalf("no se aprecia el emblema institucional (%d píxeles verdes)", verdes)
+	if tonos < 50 {
+		t.Fatalf("no se aprecia el emblema institucional (%d píxeles del emblema)", tonos)
 	}
 }
 

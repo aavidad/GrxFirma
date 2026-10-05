@@ -42,11 +42,11 @@ class AboutDialogContractTest(unittest.TestCase):
         ):
             self.assertIn(visible_text, about)
         self.assertIn(
-            'source: "../assets/Logo-Horizontal-Color.png"',
+            'source: "../assets/grxfirma-logo-horizontal.png"',
             about,
         )
         self.assertIn(
-            "<file>assets/Logo-Horizontal-Color.png</file>",
+            "<file>assets/grxfirma-logo-horizontal.png</file>",
             QRC,
         )
 
