@@ -69,10 +69,10 @@ const (
 	CodigoSecretoNoPedido     csc.Codigo = "secreto_no_pedido"
 	// CodigoAdicionalConSecretos: en una multifirma solo el firmante
 	// principal puede usar un certificado remoto que pide PIN u OTP.
-	CodigoAdicionalConSecretos csc.Codigo = "adicional_con_secretos"
+	CodigoAdicionalConSecretos csc.Codigo = "adicional_con_secretos" // #nosec G101 -- código de error, no un secreto.
 	// CodigoProtegerConSecretos: «proteger y firmar» con un certificado
 	// remoto que pide PIN u OTP sin que la petición los traiga.
-	CodigoProtegerConSecretos csc.Codigo = "proteger_con_secretos"
+	CodigoProtegerConSecretos csc.Codigo = "proteger_con_secretos" // #nosec G101 -- código de error, no un secreto.
 )
 
 // ErrNoAplicable indica que el certificado pedido no es remoto: el proveedor
