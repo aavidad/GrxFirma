@@ -6,6 +6,8 @@
 <RCC>
   <qresource prefix="/">
     <file>qml/main.qml</file>
+    <file>qml/SealDrawArea.qml</file>
+    <file>qml/SealDrawGeometry.js</file>
     <file>qml/ThemedDialog.qml</file>
     <file>qml/NavButton.qml</file>
     <file>qml/DiagnosticTimeline.qml</file>
