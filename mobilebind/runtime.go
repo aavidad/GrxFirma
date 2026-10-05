@@ -313,6 +313,7 @@ type mobileLimitsContract struct {
 	PasswordBytes     int `json:"password_bytes"`
 	BatchItems        int `json:"batch_items"`
 	BatchInputBytes   int `json:"batch_input_bytes"`
+	ENIFileDocuments  int `json:"eni_file_documents"`
 }
 
 func buildMobileContract(platform string, androidIntent bool) (string, error) {
@@ -341,6 +342,13 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			"eni_validate":       true,
 			"csv_legend":         true,
 			"remote_exchange":    false,
+			// Cuarta oleada Android: expediente ENI, lote con sello y cofirma,
+			// y DNIe (firmador externo) en lote y en proteger y firmar.
+			"eni_file":                     true,
+			"batch_visible_seal":           true,
+			"batch_cosign":                 true,
+			"external_signer_batch":        true,
+			"external_signer_protect_sign": true,
 		},
 		IdentityStore: mobileIdentityContract{
 			Mode:          "memory_session",
@@ -368,6 +376,7 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			PasswordBytes:     maxPasswordBytes,
 			BatchItems:        maxBatchItems,
 			BatchInputBytes:   maxBatchInputBytes,
+			ENIFileDocuments:  maxENIFileDocuments,
 		},
 		Protection: mobileProtectContract{
 			Containers:    []string{"cms", "authenvelopeddata", "cms-encrypted", "signedandenvelopeddata"},
