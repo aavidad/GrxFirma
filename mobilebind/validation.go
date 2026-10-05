@@ -11,6 +11,7 @@ import (
 	"io"
 	"mime"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode"
@@ -138,24 +139,18 @@ func validateOptions(options map[string]string) error {
 	return nil
 }
 
-func resolveSignatureFormat(requested, name, mimeType string) (string, error) {
+func resolveSignatureFormat(requested, name, mimeType string, content []byte) (string, error) {
 	normalized := strings.ToLower(strings.TrimSpace(requested))
 	switch normalized {
-	case "cades", "pades", "xades":
-		return normalized, nil
 	case "", "auto":
-	default:
+		return detectSignatureFormat(name, mimeType, content), nil
+	case "asicxades", "xades-asic-s":
+		normalized = "asic-xades"
+	}
+	if _, ok := mobileFormats[normalized]; !ok {
 		return "", newFacadeError("format no esta habilitado en mobile")
 	}
-	mediaType, _, _ := mime.ParseMediaType(mimeType)
-	switch {
-	case mediaType == "application/pdf" || strings.HasSuffix(strings.ToLower(name), ".pdf"):
-		return "pades", nil
-	case strings.Contains(mediaType, "xml") || strings.HasSuffix(strings.ToLower(name), ".xml"):
-		return "xades", nil
-	default:
-		return "cades", nil
-	}
+	return normalized, nil
 }
 
 func validateSignatureAction(action string) error {
@@ -238,11 +233,19 @@ func validateSigningOptions(format, action string, options map[string]string) er
 	if (profile == "t" || profile == "lt" || profile == "lta") && tsa == "" {
 		return newFacadeError("el perfil requiere una TSA configurada")
 	}
-	if format == "xades" && (profile == "lt" || profile == "lta") || format == "pades" && profile == "lta" {
+	if err := validateFormatAction(format, action); err != nil {
+		return err
+	}
+	effective := profile
+	if effective == "" {
+		effective = "baseline"
+	}
+	if !slices.Contains(mobileFormats[format].profiles, effective) {
 		return newFacadeError("perfil no soportado para este formato")
 	}
-	if format == "pades" && strings.EqualFold(strings.TrimSpace(action), "countersign") {
-		return newFacadeError("PAdES no admite contrafirma; use CAdES o XAdES")
+	// Los formatos que solo generan B no deben recibir una TSA que se ignoraría.
+	if tsa != "" && !slices.Contains(mobileFormats[format].profiles, "t") {
+		return newFacadeError("perfil no soportado para este formato")
 	}
 	return nil
 }

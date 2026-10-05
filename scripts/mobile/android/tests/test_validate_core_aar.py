@@ -84,6 +84,11 @@ class ValidateCoreAarTest(unittest.TestCase):
               public String checkHashJSON(String value) { return value; }
               public String protectJSON(String value, byte[] secret) { return value; }
               public String unprotectJSON(String value, byte[] secret) { return value; }
+              public String validateVeriFactuJSON(String value) { return value; }
+              public String createENIDocumentJSON(String value) { return value; }
+              public String validateENIJSON(String value) { return value; }
+              public String eniCatalogsJSON() { return "{}"; }
+              public String csvLegendJSON(String value) { return value; }
               public String verifyJSON(String value) { return value; }
             }
             """,

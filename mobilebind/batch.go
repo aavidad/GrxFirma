@@ -77,6 +77,8 @@ func (f *Facade) ProcessBatchJSON(payload string) (string, error) {
 		total += len(input.Contenido)
 		items = append(items, input)
 	}
+	// Un formato solo RSA con una identidad ECDSA falla en su posición, como
+	// cualquier otro error del motor, y no detiene el resto del lote.
 	cmd, err := application.NewProcessBatchCommandWithDefaults(items, req.Options)
 	if err != nil {
 		return "", newFacadeError("solicitud de lote no valida")
@@ -129,13 +131,6 @@ func mobileBatchItem(item batchItemRequest, defaults map[string]string, remainin
 	if strings.TrimSpace(merged["profile"]) == "" {
 		merged["profile"] = "baseline"
 	}
-	format, err := resolveSignatureFormat(item.Format, item.Name, item.MIMEType)
-	if err != nil {
-		return application.BatchItemInput{}, err
-	}
-	if err := validateSigningOptions(format, item.Action, merged); err != nil {
-		return application.BatchItemInput{}, err
-	}
 	if remaining <= 0 {
 		return application.BatchItemInput{}, newFacadeError("el lote supera el tamano total permitido")
 	}
@@ -145,6 +140,18 @@ func mobileBatchItem(item batchItemRequest, defaults map[string]string, remainin
 		if len(item.ContentBase64) > base64.StdEncoding.EncodedLen(limit) && limit < maxDocumentBytes {
 			return application.BatchItemInput{}, newFacadeError("el lote supera el tamano total permitido")
 		}
+		return application.BatchItemInput{}, err
+	}
+	format, err := resolveSignatureFormat(item.Format, item.Name, item.MIMEType, content)
+	if err == nil {
+		err = validateSigningOptions(format, item.Action, merged)
+	}
+	if err == nil && format == "verifactu" {
+		// Cada registro se comprueba y firma por separado; no se firma en lote.
+		err = newFacadeError("format no esta habilitado en mobile")
+	}
+	if err != nil {
+		zeroBytes(content)
 		return application.BatchItemInput{}, err
 	}
 	return application.BatchItemInput{

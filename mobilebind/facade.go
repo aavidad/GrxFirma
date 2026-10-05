@@ -447,8 +447,11 @@ func (f *Facade) SignJSON(payload string) (string, error) {
 	}
 	defer zeroBytes(content)
 
-	format, err := resolveSignatureFormat(req.Format, req.Name, req.MIMEType)
+	format, err := resolveSignatureFormat(req.Format, req.Name, req.MIMEType, content)
 	if err != nil {
+		return "", err
+	}
+	if err := f.checkFormatPrerequisites(format, req.CertificateID, content); err != nil {
 		return "", err
 	}
 	if req.Options == nil {
@@ -476,7 +479,7 @@ func (f *Facade) SignJSON(payload string) (string, error) {
 	defer cancel()
 	result, err := f.signService.Execute(ctx, cmd)
 	if err != nil {
-		return "", safeOperationError("firma")
+		return "", signingError(err)
 	}
 	if len(result.Result.Data) == 0 || len(result.Result.Data) > maxSignedDocumentBytes {
 		zeroBytes(result.Result.Data)

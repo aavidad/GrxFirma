@@ -298,6 +298,7 @@ type mobileVerifyContract struct {
 }
 
 type mobileSigningContract struct {
+	Formats          []string            `json:"formats"`
 	ProfilesByFormat map[string][]string `json:"profiles_by_format"`
 	ActionsByFormat  map[string][]string `json:"actions_by_format"`
 	TSAURLSchemes    []string            `json:"tsa_url_schemes"`
@@ -335,6 +336,10 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			"protect":            true,
 			"unprotect":          true,
 			"protect_sign":       true,
+			"verifactu_validate": true,
+			"eni_document":       true,
+			"eni_validate":       true,
+			"csv_legend":         true,
 			"remote_exchange":    false,
 		},
 		IdentityStore: mobileIdentityContract{
@@ -345,14 +350,11 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 		Approval: "native_ui_explicit_action",
 		Signing: mobileSigningContract{
 			Actions:          []string{"sign", "cosign", "countersign"},
-			ProfilesByFormat: map[string][]string{"CAdES": {"baseline", "t", "lt", "lta"}, "PAdES": {"baseline", "t", "lt"}, "XAdES": {"baseline", "t"}},
-			ActionsByFormat:  map[string][]string{"CAdES": {"sign", "cosign", "countersign"}, "PAdES": {"sign", "cosign"}, "XAdES": {"sign", "cosign", "countersign"}},
+			Formats:          append([]string(nil), mobileFormatOrder...),
+			ProfilesByFormat: contractProfilesByFormat(),
+			ActionsByFormat:  contractActionsByFormat(),
 			TSAURLSchemes:    []string{"http", "https"},
-			KeyTypesByFormat: map[string][]string{
-				"CAdES": {"RSA", "ECDSA"},
-				"PAdES": {"RSA", "ECDSA"},
-				"XAdES": {"RSA"},
-			},
+			KeyTypesByFormat: contractKeyTypesByFormat(),
 		},
 		Verification: mobileVerifyContract{
 			CryptographicIntegrity: true,

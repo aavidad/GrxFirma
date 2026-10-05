@@ -44,6 +44,11 @@ createHashJSON(String) -> String
 checkHashJSON(String) -> String
 protectJSON(String, byte[]) -> String
 unprotectJSON(String, byte[]) -> String
+validateVeriFactuJSON(String) -> String
+createENIDocumentJSON(String) -> String
+validateENIJSON(String) -> String
+eniCatalogsJSON() -> String
+csvLegendJSON(String) -> String
 ```
 
 Android usa `importCertificateSecretBytesJSON`: PKCS#12 y contraseña UTF-8
@@ -226,3 +231,58 @@ PIN por firma, así que Android no le ofrece el lote.
 El contrato declara `process_batch`, `hash`, `protect`, `unprotect` y
 `protect_sign`, además de `limits.batch_items`, `limits.batch_input_bytes`,
 `protection` y `hash`.
+
+## Formatos de escritorio, Veri*Factu, ENI y leyenda CSV
+
+`signJSON` admite además `xmldsig`, `odf`, `ooxml`, `facturae`, `asic-xades`
+y `verifactu`, con el motor de firma del escritorio. Con `format` vacío o
+`auto` la fachada aplica las reglas de escritorio por extensión (PDF, OOXML,
+ODF, `.asics`, `.dsig`/`.xmlsig`, XML) y las completa con el MIME de SAF y,
+para XML, con el primer elemento del contenido: un XML cuya raíz es
+`Facturae` se firma como FacturaE. Veri*Factu nunca se elige solo.
+
+| Formato | Acciones | Perfiles | Claves |
+| --- | --- | --- | --- |
+| XMLdSig | sign, cosign | baseline | RSA |
+| ODF | sign, cosign | baseline | RSA |
+| OOXML | sign, cosign | baseline | RSA |
+| FacturaE | sign | baseline | RSA |
+| ASiC-XAdES | sign | baseline | RSA |
+| VeriFactu | sign | baseline | RSA |
+
+Estos formatos no reciben TSA. Con una identidad ECDSA, `signJSON` responde
+con el mensaje cerrado «El formato elegido solo admite certificados con clave
+RSA.». Si el XML no es un registro Veri*Factu responde `verifactu.root`; los
+demás rechazos del motor Veri*Factu llegan como su clave `verifactu.*`. El
+lote admite los mismos formatos salvo Veri*Factu.
+
+`validateVeriFactuJSON` recibe `files[]` (`name`, `content_base64`), hasta 64
+registros de 10 MiB y 32 MiB en total, y devuelve `valid`, `errors`,
+`warnings` y `records[]` con `file`, `type`, `hash`, `calculated_hash`,
+`previous_hash`, `signed`, `valid` e `issues[]` (`field`, `key`, `level`).
+Las claves son las del catálogo de escritorio (`verifactu.*`); Android las
+traduce. No consulta a la AEAT ni usa la red.
+
+`createENIDocumentJSON` recibe `signature_base64`, `original_base64`
+(obligatorio para CAdES explícita), `organs[]` (DIR3), `origin`
+(`ciudadano` o `administracion`), `state` (EE01-EE04, EE99),
+`document_type` (TD01-TD20, TD99), `identifier`, `source_identifier`,
+`capture_date` (RFC 3339) y `content_format`. Devuelve `content_base64` y
+`signature_type` (TF02-TF06). Los errores son claves cerradas:
+`eni.validacion.*` del motor y `eni.error.unsigned_pdf`,
+`eni.error.explicit_cades`, `eni.error.unrecognized`,
+`eni.error.content_format` y `eni.error.origin`. `validateENIJSON` devuelve
+`valid` e `issues[]` con claves `eni.validacion.*`; no verifica las firmas.
+`eniCatalogsJSON` devuelve `document_states`, `document_types` y
+`file_states`. El expediente ENI (carpeta de documentos con índice firmado)
+no está en Android.
+
+`csvLegendJSON` recibe `csv`, `csv_url` y `csv_text` y devuelve `url`
+(normalizada por el motor, con el dominio IDN en ASCII) y `text`. Los errores
+son `csv.error.code_missing`, `code_invalid`, `url_missing`, `url_invalid` y
+`text_invalid`. La firma PAdES recibe la leyenda con las opciones `csv`,
+`csvUrl`, `csvText` y `csvQR`.
+
+El contrato declara `signing.formats` y los servicios `verifactu_validate`,
+`eni_document`, `eni_validate` y `csv_legend`. Android enlaza estos métodos
+como opcionales: con un AAR anterior oculta lo que no esté declarado.

@@ -46,6 +46,11 @@ FACADE_METHODS = (
     "checkHashJSON(java.lang.String)",
     "protectJSON(java.lang.String, byte[])",
     "unprotectJSON(java.lang.String, byte[])",
+    "validateVeriFactuJSON(java.lang.String)",
+    "createENIDocumentJSON(java.lang.String)",
+    "validateENIJSON(java.lang.String)",
+    "eniCatalogsJSON()",
+    "csvLegendJSON(java.lang.String)",
 )
 
 

@@ -68,6 +68,17 @@ func leerOpcionesLeyendaCSV(options map[string]string) (opcionesLeyendaCSV, bool
 	return opcionesLeyendaCSV{codigo: codigo, direccion: direccion, texto: texto, qr: !strings.EqualFold(valorOpcion(options, "csvQR"), "false")}, true, nil
 }
 
+// ResolverLeyendaCSV valida csv, csvUrl y csvText con las reglas de la firma
+// y devuelve la dirección de cotejo normalizada (dominio IDN en ASCII) y el
+// texto final, para que una interfaz avise antes de firmar.
+func ResolverLeyendaCSV(options map[string]string) (direccion, texto string, activa bool, err error) {
+	opciones, activa, err := leerOpcionesLeyendaCSV(options)
+	if err != nil || !activa {
+		return "", "", activa, err
+	}
+	return opciones.direccion, opciones.texto, true, nil
+}
+
 // leyendaCSV devuelve un sello por página con la leyenda CSV.
 func leyendaCSV(options map[string]string, pdfData []byte) ([]pdfsign.StampImage, error) {
 	opciones, activa, err := leerOpcionesLeyendaCSV(options)
