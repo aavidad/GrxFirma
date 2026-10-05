@@ -41,8 +41,9 @@ const (
 	// El sello de tiempo de la firma: su firma y su huella sobre el valor
 	// de firma se han comprobado.
 	SigningTimeSourceTimestamp = "timestamp"
-	// El atributo firmado signingTime: lo protege la firma comprobada, pero
-	// es la hora del equipo de quien firmó.
+	// El atributo firmado signingTime o, en PAdES, la /M del diccionario de
+	// firma dentro del rango firmado: lo protege la firma comprobada, pero es
+	// la hora del equipo de quien firmó.
 	SigningTimeSourceSignedAttribute = "signed_attribute"
 )
 

@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"grxfirma/internal/domain"
@@ -49,6 +50,9 @@ type pdfEmbeddedSignature struct {
 	ContentsFrom int
 	ContentsTo   int
 	RevisionEnd  int
+	// SigningTimeM es /M del diccionario de firma, solo si está dentro del
+	// rango firmado y tiene zona horaria.
+	SigningTimeM time.Time
 }
 
 type pdfDictionaryRange struct {
@@ -85,6 +89,14 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		result, signers, err := v.cades.VerifyDetachedCMSWithAnchors(ctx, cmsDER, signedBytes, anchors)
 		if err != nil {
 			return domain.VerificationResult{}, nil, err
+		}
+		// Sin fecha en el CMS (lo normal en PAdES), la /M firmada del PDF.
+		if len(result.SigningTimes) == 0 && !signature.SigningTimeM.IsZero() && len(signers) == 1 {
+			result.SigningTimes = []domain.VerificationSigningTime{{
+				Fingerprint: signers[0].Fingerprint,
+				Time:        signature.SigningTimeM,
+				Source:      domain.SigningTimeSourceSignedAttribute,
+			}}
 		}
 
 		aggregate = mergePAdESVerificationResult(aggregate, result)
@@ -233,6 +245,7 @@ func extractPDFEmbeddedSignaturesWithTimestamps(pdfBytes []byte, timestamps bool
 			SubFilter:    subFilter,
 			ContentsFrom: dict.Start + contentsFrom,
 			ContentsTo:   dict.Start + contentsTo,
+			SigningTimeM: extractPDFSigningTimeM(block, dict.Start, byteRange),
 		}
 		revisionEnd, err := validatePDFSignatureByteRange(len(pdfBytes), signature)
 		if err != nil {
