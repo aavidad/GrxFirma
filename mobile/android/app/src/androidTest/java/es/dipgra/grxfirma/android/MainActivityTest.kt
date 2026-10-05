@@ -48,7 +48,7 @@ class MainActivityTest {
             onView(withId(R.id.verifyButton)).check(matches(not(isEnabled())))
             onView(withId(R.id.actionHint)).check(matches(withText(
                 if (productionCore) R.string.hint_need_document else R.string.hint_unavailable)))
-            TestMenus.open(R.id.action_help, R.string.menu_help)
+            TestMenus.open(R.id.action_help, R.string.help_title)
             onView(withText(R.string.help_title)).check(matches(isDisplayed()))
         }
     }
