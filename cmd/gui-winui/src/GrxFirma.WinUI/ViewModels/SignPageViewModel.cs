@@ -147,6 +147,7 @@ public sealed class SignPageViewModel
     private double _visibleSealHeightPercent = 12;
     private bool _visibleSealKeepText = true;
     private double _visibleSealLogoOpacityPercent = 100;
+    private string? _sealLanguagePreference;
     private string _visibleSealLogoOpacityLabel = string.Empty;
     private string _visibleSealOpacityHelp = string.Empty;
     private int _visibleSealRotationDegrees;
@@ -954,6 +955,23 @@ public sealed class SignPageViewModel
     public string VisibleSealRotateHandleHelp => SealText("sign.seal.rotate_help");
 
     private string SealText(string key) => GrxFirma.WinUI.Services.SealUiCatalog.Text(_sealUiLanguage, key);
+
+    // Preferencia «Idioma del sello» de la configuración (signSealLanguage).
+    public void SetSealLanguagePreference(string? preference)
+    {
+        if (string.Equals(
+            _sealLanguagePreference,
+            preference,
+            StringComparison.Ordinal))
+        {
+            return;
+        }
+        _sealLanguagePreference = preference;
+        if (VisibleSealEnabled)
+        {
+            ScheduleSealStampPreview();
+        }
+    }
 
     public void SetSealUiLanguage(string? language)
     {
@@ -3159,14 +3177,18 @@ public sealed class SignPageViewModel
             "visibleSealLogoOpacityPercent",
             ((int)VisibleSealLogoOpacityPercent).ToString(
                 System.Globalization.CultureInfo.InvariantCulture));
-        // El sello se escribe en el idioma de la interfaz; si la
-        // configuración fija otro (signSealLanguage), el motor lo impone.
-        if (!string.IsNullOrWhiteSpace(Localizer.Language))
+        // El sello se escribe en el idioma fijado en la configuración
+        // (signSealLanguage) o, si sigue a la interfaz, en el de la interfaz.
+        // El motor impone igualmente el idioma fijo.
+        var sealLanguage = DesktopSettingsDocument.EffectiveSealLanguage(
+            _sealLanguagePreference,
+            Localizer.Language);
+        if (sealLanguage is not null)
         {
             extraOptions = MergeExtraOptions(
                 extraOptions,
                 "sealLanguage",
-                Localizer.Language);
+                sealLanguage);
         }
         if (VisibleSealQrEnabled)
         {

@@ -1358,6 +1358,7 @@ public sealed partial class SignPage : Page
             ViewModel.VisibleSealOpacityHelp = SealUiCatalog.SealOpacityHelp(
                 result.Data.Language);
             ViewModel.SetSealUiLanguage(result.Data.Language);
+            ViewModel.SetSealLanguagePreference(result.Data.SealLanguage);
             if (_certificatePanelPreferenceRevision == 0)
             {
                 _certificatePanelExpanded = result.Data.SignCertificatePanelExpanded == true;

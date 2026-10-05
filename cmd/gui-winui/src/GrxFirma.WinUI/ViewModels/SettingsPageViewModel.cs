@@ -27,6 +27,7 @@ public sealed class SettingsPageViewModel
     private SettingsOption _selectedLanguage;
     private SettingsOption _selectedTheme;
     private SettingsOption _selectedDefaultFormat;
+    private SettingsOption _selectedSealLanguage;
     private SettingsOption _selectedProxyType;
     private string _proxyHost = string.Empty;
     private string _proxyPortText = "8080";
@@ -85,6 +86,7 @@ public sealed class SettingsPageViewModel
         _selectedLanguage = FindOption(Languages, Localizer.Language);
         _selectedTheme = Themes[0];
         _selectedDefaultFormat = DefaultFormats[0];
+        _selectedSealLanguage = SealLanguages[0];
         _selectedProxyType = ProxyTypes[0];
     }
 
@@ -93,6 +95,26 @@ public sealed class SettingsPageViewModel
 
     public IReadOnlyList<SettingsOption> Languages { get; } =
     [
+        new("Español", "es"),
+        new("Català", "ca"),
+        new("Valencià", "va"),
+        new("Euskara", "eu"),
+        new("Galego", "gl"),
+        new("English", "en"),
+        new("Deutsch", "de"),
+        new("Français", "fr"),
+        new("Português", "pt"),
+        new("Italiano", "it"),
+        new("中文", "zh"),
+    ];
+
+    // Idioma de los rótulos del sello visible. La primera opción sigue al
+    // idioma de la aplicación; las demás lo fijan (p. ej. castellano para
+    // documentos de la Administración).
+    public IReadOnlyList<SettingsOption> SealLanguages { get; } =
+    [
+        new("El mismo que la aplicación",
+            DesktopSettingsDocument.SealLanguageFollowsInterface),
         new("Español", "es"),
         new("Català", "ca"),
         new("Valencià", "va"),
@@ -168,6 +190,20 @@ public sealed class SettingsPageViewModel
             if (value is not null &&
                 DefaultFormats.Contains(value) &&
                 SetProperty(ref _selectedDefaultFormat, value))
+            {
+                MarkDirty();
+            }
+        }
+    }
+
+    public SettingsOption SelectedSealLanguage
+    {
+        get => _selectedSealLanguage;
+        set
+        {
+            if (value is not null &&
+                SealLanguages.Contains(value) &&
+                SetProperty(ref _selectedSealLanguage, value))
             {
                 MarkDirty();
             }
@@ -990,6 +1026,12 @@ public sealed class SettingsPageViewModel
             StrictSignatureCompatibility =
                 safeSnapshot.StrictSignatureCompatibility ?? true;
             VisiblePdfSeal = safeSnapshot.VisiblePdfSeal ?? false;
+            SelectedSealLanguage = FindOption(
+                SealLanguages,
+                DesktopSettingsDocument.IsSupportedLanguage(
+                    safeSnapshot.SealLanguage)
+                    ? safeSnapshot.SealLanguage!
+                    : DesktopSettingsDocument.SealLanguageFollowsInterface);
             TsaEnabled = safeSnapshot.TsaEnabled ?? false;
             TsaUrl = safeSnapshot.TsaUrl ?? string.Empty;
             FacturaeToolsEnabled =
@@ -1050,6 +1092,7 @@ public sealed class SettingsPageViewModel
             StrictSignatureCompatibility =
                 StrictSignatureCompatibility,
             VisiblePdfSeal = VisiblePdfSeal,
+            SealLanguage = SelectedSealLanguage.Value,
             TsaEnabled = TsaEnabled,
             TsaUrl = TsaUrl.Trim(),
             FacturaeToolsEnabled = FacturaeToolsEnabled,
@@ -1093,6 +1136,11 @@ public sealed class SettingsPageViewModel
         }
         if (!DesktopSettingsDocument.IsSupportedLanguage(
             SelectedLanguage.Value))
+        {
+            return "Seleccione un idioma admitido.";
+        }
+        if (!DesktopSettingsDocument.IsSupportedSealLanguage(
+            SelectedSealLanguage.Value))
         {
             return "Seleccione un idioma admitido.";
         }
