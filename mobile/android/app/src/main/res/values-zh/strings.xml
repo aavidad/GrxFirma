@@ -368,8 +368,8 @@
     <string name="diagnostics_button">诊断</string>
     <string name="preferences_title">偏好设置</string>
     <string name="preferences_helper">适用于每次新签名。不会保存密码、PIN、证书或文档。</string>
-    <string name="pref_default_format">默认签名格式</string>
-    <string name="pref_default_profile">默认签名配置</string>
+    <string name="pref_default_format">签名格式</string>
+    <string name="pref_default_profile">签名配置</string>
     <string name="pref_tsa_enabled">默认添加认证日期和时间</string>
     <string name="pref_output_name">保存时建议的名称</string>
     <string name="output_name_suffix">在文件名后添加“-已签名”</string>
@@ -380,7 +380,7 @@
     <string name="theme_system">跟随系统</string>
     <string name="theme_light">浅色</string>
     <string name="theme_dark">深色</string>
-    <string name="preferences_save">保存偏好设置</string>
+    <string name="preferences_save">保存</string>
     <string name="preferences_cancel">取消</string>
     <string name="preferences_restore">恢复默认值</string>
     <string name="preferences_restore_confirm">将恢复格式、配置、TSA、保存名称、主题和可见印章。您的证书和文档不会改变。</string>
@@ -619,4 +619,5 @@
     <string name="pref_seal_language">印章语言</string>
     <string name="pref_seal_language_helper">已签名 PDF 中可见印章文字的语言。</string>
     <string name="pref_seal_language_app">与应用相同</string>
+    <string name="pref_tsa_url">时间戳地址</string>
 </resources>

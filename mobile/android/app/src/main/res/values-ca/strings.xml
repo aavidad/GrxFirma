@@ -390,8 +390,8 @@
     <string name="diagnostics_button">Diagnòstic</string>
     <string name="preferences_title">Preferències</string>
     <string name="preferences_helper">S\'apliquen a cada signatura nova. No es desen contrasenyes, PIN, certificats ni documents.</string>
-    <string name="pref_default_format">Format de signatura per defecte</string>
-    <string name="pref_default_profile">Perfil de signatura per defecte</string>
+    <string name="pref_default_format">Format de signatura</string>
+    <string name="pref_default_profile">Perfil de signatura</string>
     <string name="pref_tsa_enabled">Afegir data i hora certificades per defecte</string>
     <string name="pref_output_name">Nom proposat en desar</string>
     <string name="output_name_suffix">Afegir «-signat» al nom</string>
@@ -402,7 +402,7 @@
     <string name="theme_system">Igual que el sistema</string>
     <string name="theme_light">Clar</string>
     <string name="theme_dark">Fosc</string>
-    <string name="preferences_save">Desar les preferències</string>
+    <string name="preferences_save">Desa</string>
     <string name="preferences_cancel">Cancel·lar</string>
     <string name="preferences_restore">Restaurar els valors per defecte</string>
     <string name="preferences_restore_confirm">Es restauraran el format, el perfil, la TSA, el nom en desar, el tema i el segell visible. Els vostres certificats i documents no canvien.</string>
@@ -655,4 +655,5 @@
     <string name="pref_seal_language">Idioma del segell</string>
     <string name="pref_seal_language_helper">Idioma dels textos del segell visible al PDF signat.</string>
     <string name="pref_seal_language_app">El mateix que l\'aplicació</string>
+    <string name="pref_tsa_url">URL de segellat</string>
 </resources>

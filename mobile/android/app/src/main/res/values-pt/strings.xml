@@ -390,8 +390,8 @@
     <string name="diagnostics_button">Diagnóstico</string>
     <string name="preferences_title">Preferências</string>
     <string name="preferences_helper">Aplicam-se a cada nova assinatura. Não são guardadas palavras-passe, PIN, certificados nem documentos.</string>
-    <string name="pref_default_format">Formato de assinatura predefinido</string>
-    <string name="pref_default_profile">Perfil de assinatura predefinido</string>
+    <string name="pref_default_format">Formato de assinatura</string>
+    <string name="pref_default_profile">Perfil de assinatura</string>
     <string name="pref_tsa_enabled">Adicionar data e hora certificadas por predefinição</string>
     <string name="pref_output_name">Nome proposto ao guardar</string>
     <string name="output_name_suffix">Acrescentar «-assinado» ao nome</string>
@@ -402,7 +402,7 @@
     <string name="theme_system">Igual ao sistema</string>
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Escuro</string>
-    <string name="preferences_save">Guardar preferências</string>
+    <string name="preferences_save">Guardar</string>
     <string name="preferences_cancel">Cancelar</string>
     <string name="preferences_restore">Repor as predefinições</string>
     <string name="preferences_restore_confirm">Serão repostos o formato, o perfil, a TSA, o nome ao guardar, o tema e o selo visível. Os seus certificados e documentos não mudam.</string>
@@ -655,4 +655,5 @@
     <string name="pref_seal_language">Idioma do selo</string>
     <string name="pref_seal_language_helper">Idioma dos textos do selo visível no PDF assinado.</string>
     <string name="pref_seal_language_app">Igual à aplicação</string>
+    <string name="pref_tsa_url">URL de carimbo</string>
 </resources>

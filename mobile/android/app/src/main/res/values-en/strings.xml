@@ -379,8 +379,8 @@
     <string name="diagnostics_button">Diagnostics</string>
     <string name="preferences_title">Preferences</string>
     <string name="preferences_helper">They apply to every new signature. Passwords, PINs, certificates and documents are never stored.</string>
-    <string name="pref_default_format">Default signature format</string>
-    <string name="pref_default_profile">Default signature profile</string>
+    <string name="pref_default_format">Signature format</string>
+    <string name="pref_default_profile">Signature profile</string>
     <string name="pref_tsa_enabled">Add a certified date and time by default</string>
     <string name="pref_output_name">Suggested name when saving</string>
     <string name="output_name_suffix">Add “-signed” to the name</string>
@@ -391,7 +391,7 @@
     <string name="theme_system">Same as the system</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
-    <string name="preferences_save">Save preferences</string>
+    <string name="preferences_save">Save</string>
     <string name="preferences_cancel">Cancel</string>
     <string name="preferences_restore">Restore defaults</string>
     <string name="preferences_restore_confirm">The format, profile, TSA, saving name, theme and visible seal will be restored. Your certificates and documents do not change.</string>
@@ -637,4 +637,5 @@
     <string name="pref_seal_language">Seal language</string>
     <string name="pref_seal_language_helper">Language of the visible seal text in the signed PDF.</string>
     <string name="pref_seal_language_app">Same as the app</string>
+    <string name="pref_tsa_url">Timestamp URL</string>
 </resources>

@@ -379,8 +379,8 @@
     <string name="diagnostics_button">Diagnóstico</string>
     <string name="preferences_title">Preferencias</string>
     <string name="preferences_helper">Se aplican a cada firma nueva. No se guardan contraseñas, PIN, certificados ni documentos.</string>
-    <string name="pref_default_format">Formato de firma por defecto</string>
-    <string name="pref_default_profile">Perfil de firma por defecto</string>
+    <string name="pref_default_format">Formato de firma</string>
+    <string name="pref_default_profile">Perfil de firma</string>
     <string name="pref_tsa_enabled">Añadir fecha y hora certificadas por defecto</string>
     <string name="pref_output_name">Nombre propuesto al guardar</string>
     <string name="output_name_suffix">Añadir «-firmado» al nombre</string>
@@ -391,7 +391,7 @@
     <string name="theme_system">Igual que el sistema</string>
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Oscuro</string>
-    <string name="preferences_save">Guardar preferencias</string>
+    <string name="preferences_save">Guardar</string>
     <string name="preferences_cancel">Cancelar</string>
     <string name="preferences_restore">Restaurar valores predeterminados</string>
     <string name="preferences_restore_confirm">Se restaurarán el formato, el perfil, la TSA, el nombre al guardar, el tema y el sello visible. Sus certificados y documentos no cambian.</string>
@@ -637,4 +637,5 @@
     <string name="pref_seal_language">Idioma del sello</string>
     <string name="pref_seal_language_helper">Idioma de los textos del sello visible en el PDF firmado.</string>
     <string name="pref_seal_language_app">Igual que la aplicación</string>
+    <string name="pref_tsa_url">URL de sellado</string>
 </resources>

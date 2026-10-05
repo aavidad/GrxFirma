@@ -379,8 +379,8 @@
     <string name="diagnostics_button">Diagnostikoa</string>
     <string name="preferences_title">Hobespenak</string>
     <string name="preferences_helper">Sinadura berri guztiei aplikatzen zaizkie. Ez da pasahitzik, PINik, ziurtagiririk edo dokumenturik gordetzen.</string>
-    <string name="pref_default_format">Sinadura-formatu lehenetsia</string>
-    <string name="pref_default_profile">Sinadura-profil lehenetsia</string>
+    <string name="pref_default_format">Sinadura-formatua</string>
+    <string name="pref_default_profile">Sinadura-profila</string>
     <string name="pref_tsa_enabled">Gehitu data eta ordu ziurtatuak lehenespenez</string>
     <string name="pref_output_name">Gordetzean proposatutako izena</string>
     <string name="output_name_suffix">Gehitu «-sinatuta» izenari</string>
@@ -391,7 +391,7 @@
     <string name="theme_system">Sistemaren berdina</string>
     <string name="theme_light">Argia</string>
     <string name="theme_dark">Iluna</string>
-    <string name="preferences_save">Gorde hobespenak</string>
+    <string name="preferences_save">Gorde</string>
     <string name="preferences_cancel">Utzi</string>
     <string name="preferences_restore">Berrezarri balio lehenetsiak</string>
     <string name="preferences_restore_confirm">Formatua, profila, TSA, gordetzeko izena, gaia eta zigilu ikusgaia berrezarriko dira. Zure ziurtagiriak eta dokumentuak ez dira aldatzen.</string>
@@ -637,4 +637,5 @@
     <string name="pref_seal_language">Zigiluaren hizkuntza</string>
     <string name="pref_seal_language_helper">PDF sinatuko zigilu ikusgaiaren testuen hizkuntza.</string>
     <string name="pref_seal_language_app">Aplikazioaren berdina</string>
+    <string name="pref_tsa_url">Zigilatze-URLa</string>
 </resources>
