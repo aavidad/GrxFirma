@@ -9,6 +9,7 @@
   <resources>
     <stringTable>
       <string id="SUPPORTED_GrxFirma_0_0_90">GrxFirma 0.0.90 o posterior</string>
+      <string id="SUPPORTED_GrxFirma_CSC">GrxFirma con firma remota CSC (prototipo)</string>
       <string id="Cat_GrxFirma">GrxFirma</string>
       <string id="Cat_Origenes">Orígenes de confianza</string>
       <string id="Cat_Operacion">Operación</string>
@@ -62,6 +63,16 @@ Deshabilitada o sin configurar: el servicio REST está desactivado (valor por de
       <string id="PermitirRutasDirectas_Help">REBAJA LA SEGURIDAD. Permite que una web indique rutas locales absolutas en las operaciones load, save y signandsave. Sin esta directiva el usuario elige siempre el fichero.</string>
       <string id="AprobacionAutomaticaNativehost">Firmar desde la extensión sin confirmación</string>
       <string id="AprobacionAutomaticaNativehost_Help">REBAJA LA SEGURIDAD. Permite firmar desde la extensión del navegador sin mostrar el diálogo de confirmación al usuario. Solo para puestos dedicados y controlados.</string>
+      <string id="FirmaRemotaCSC">Firma remota con certificados de un prestador (CSC)</string>
+      <string id="FirmaRemotaCSC_Help">Firma con certificados que custodia un prestador de servicios de confianza mediante la API del Cloud Signature Consortium. Es un prototipo y no se ha probado con prestadores reales.
+
+Habilitada: el usuario puede usar la firma remota desde la línea de órdenes.
+
+Deshabilitada: la firma remota no se puede usar, aunque el usuario la active en su configuración.
+
+Sin configurar: decide el ajuste "firma_remota_csc" del config.json del usuario (desactivado por defecto).</string>
+      <string id="FirmaRemotaCSCOAuth">Servidores de autorización de firma remota permitidos en otro host</string>
+      <string id="FirmaRemotaCSCOAuth_Help">Por seguridad, GrxFirma solo acepta que el servicio de firma remota envíe la autorización a un servidor OAuth en su mismo host y puerto. Si un prestador usa un host distinto, añada aquí una línea por prestador con el formato servicio=autorizacion, por ejemplo firma.prestador.es=auth.prestador.es o firma.prestador.es=auth.prestador.es:8443. Esta lista sustituye a la del usuario. Una línea mal escrita invalida la lista y la firma remota no se permite.</string>
     </stringTable>
     <presentationTable>
       <presentation id="AllowedDomains"><multiTextBox refId="AllowedDomains_List">Orígenes (uno por línea):</multiTextBox></presentation>
@@ -70,6 +81,7 @@ Deshabilitada o sin configurar: el servicio REST está desactivado (valor por de
       <presentation id="DirectorioP12"><textBox refId="DirectorioP12_Ruta"><label>Carpeta:</label></textBox></presentation>
       <presentation id="TimeoutOperacion"><decimalTextBox refId="TimeoutOperacion_Segundos" defaultValue="30">Segundos:</decimalTextBox></presentation>
       <presentation id="MaxTamanoDocumento"><decimalTextBox refId="MaxTamanoDocumento_Bytes" defaultValue="52428800">Bytes:</decimalTextBox></presentation>
+      <presentation id="FirmaRemotaCSCOAuth"><multiTextBox refId="FirmaRemotaCSCOAuth_List">Pares servicio=autorizacion (uno por línea):</multiTextBox></presentation>
     </presentationTable>
   </resources>
 </policyDefinitionResources>

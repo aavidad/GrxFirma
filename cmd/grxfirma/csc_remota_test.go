@@ -24,16 +24,16 @@ import (
 
 func TestExtraerFlagsCSC(t *testing.T) {
 	opc, resto := extraerFlagsCSC([]string{
-		"-operacion", "firmar", "-csc-activar", "--csc-url", "https://csc.example.org",
+		"-operacion", "firmar", "--csc-url", "https://csc.example.org",
 		"-csc-client-id=cliente", "-csc-credencial", "cred-1", "-entrada", "a.pdf",
 	})
-	if !opc.activar || opc.url != "https://csc.example.org" || opc.clientID != "cliente" || opc.credencial != "cred-1" || opc.opcionMala != "" {
+	if opc.url != "https://csc.example.org" || opc.clientID != "cliente" || opc.credencial != "cred-1" || opc.opcionMala != "" {
 		t.Fatalf("opciones: %+v", opc)
 	}
 	if !reflect.DeepEqual(resto, []string{"-operacion", "firmar", "-entrada", "a.pdf"}) {
 		t.Fatalf("resto: %v", resto)
 	}
-	for _, args := range [][]string{{"-csc-url"}, {"-csc-url", "-entrada"}, {"-csc-desconocida"}, {"-csc-activar=si"}} {
+	for _, args := range [][]string{{"-csc-url"}, {"-csc-url", "-entrada"}, {"-csc-desconocida"}, {"-csc-activar"}} {
 		if opc, _ := extraerFlagsCSC(args); opc.opcionMala == "" || !opc.solicitada() {
 			t.Fatalf("%v debió marcarse como opción inválida: %+v", args, opc)
 		}
@@ -94,26 +94,60 @@ func TestEjecutarCSCDesactivadaYProhibida(t *testing.T) {
 		t.Fatalf("sin activar: code=%d salida=%q", code, e.errores.String())
 	}
 
-	activada := base
-	activada.activar = true
+	// La línea de órdenes ya no puede activarla: -csc-activar no existe.
+	opc, _ := extraerFlagsCSC([]string{"-csc-activar", "-csc-url", "https://csc.example.org", "-csc-client-id", "c", "-csc-listar-credenciales"})
+	e = nuevoEntornoPruebaCSC(t, nil, "", "")
+	if code := ejecutarCSC(e.entornoCSC, opc, false, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.cli.opcion_invalida", "-csc-activar")) {
+		t.Fatalf("-csc-activar: code=%d salida=%q", code, e.errores.String())
+	}
+
 	e = nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true}`, `{"firma_remota_csc": false}`)
-	if code := ejecutarCSC(e.entornoCSC, activada, false, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.cli.desactivada")) {
+	if code := ejecutarCSC(e.entornoCSC, base, false, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.cli.desactivada")) {
 		t.Fatalf("la política debe prohibirla: code=%d salida=%q", code, e.errores.String())
 	}
 
-	e = nuevoEntornoPruebaCSC(t, nil, "", "")
-	if code := ejecutarCSC(e.entornoCSC, activada, true, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.cli.incompatible")) {
+	e = nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true}`, `{"firma_remota_csc": tru`)
+	if code := ejecutarCSC(e.entornoCSC, base, false, nil); code != 2 {
+		t.Fatalf("una política ilegible no puede autorizar: code=%d", code)
+	}
+
+	e = nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true, "firma_remota_csc_oauth_permitidos": ["mal"]}`, "")
+	if code := ejecutarCSC(e.entornoCSC, base, false, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.cli.pares_oauth_invalidos")) {
+		t.Fatalf("pares mal formados: code=%d salida=%q", code, e.errores.String())
+	}
+
+	e = nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true}`, "")
+	if code := ejecutarCSC(e.entornoCSC, base, true, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.cli.incompatible")) {
 		t.Fatalf("con credenciales locales: code=%d salida=%q", code, e.errores.String())
 	}
 
-	e = nuevoEntornoPruebaCSC(t, nil, "", "")
-	if code := ejecutarCSC(e.entornoCSC, opcionesCSC{activar: true, listar: true}, false, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.cli.faltan_opciones")) {
+	e = nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true}`, "")
+	if code := ejecutarCSC(e.entornoCSC, opcionesCSC{listar: true}, false, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.cli.faltan_opciones")) {
 		t.Fatalf("sin URL: code=%d salida=%q", code, e.errores.String())
 	}
 
-	e = nuevoEntornoPruebaCSC(t, nil, "", "")
-	if code := ejecutarCSC(e.entornoCSC, opcionesCSC{activar: true, url: "http://csc.example.org", clientID: "c", listar: true}, false, nil); code != 1 || !strings.Contains(e.errores.String(), es.T("csc.error.solo_https")) {
+	e = nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true}`, "")
+	if code := ejecutarCSC(e.entornoCSC, opcionesCSC{url: "http://csc.example.org", clientID: "c", listar: true}, false, nil); code != 1 || !strings.Contains(e.errores.String(), es.T("csc.error.solo_https")) {
 		t.Fatalf("http plano: code=%d salida=%q", code, e.errores.String())
+	}
+}
+
+func TestEjecutarCSCPermitidaPorPoliticaYOAuthAjenoRechazado(t *testing.T) {
+	es := localizador.Para("es")
+	s := csctest.Nuevo(t)
+	e := nuevoEntornoPruebaCSC(t, s, "", `{"firma_remota_csc": true}`)
+	if code := ejecutarCSC(e.entornoCSC, opcionesCSC{url: s.URL, clientID: csctest.ClientID, listar: true}, false, nil); code != 0 {
+		t.Fatalf("la política debe bastar: code=%d errores=%q", code, e.errores.String())
+	}
+
+	s.Configurar(func(s *csctest.Servidor) { s.OAuthURL = "https://oauth.otro-host.invalid" })
+	e = nuevoEntornoPruebaCSC(t, s, `{"firma_remota_csc": true}`, "")
+	e.navegador = func(context.Context, string) error {
+		t.Fatal("no debe abrirse el navegador hacia un servidor OAuth ajeno")
+		return nil
+	}
+	if code := ejecutarCSC(e.entornoCSC, opcionesCSC{url: s.URL, clientID: csctest.ClientID, listar: true}, false, nil); code != 1 || !strings.Contains(e.errores.String(), es.T("csc.error.oauth_otro_host")) {
+		t.Fatalf("OAuth en otro host: code=%d errores=%q", code, e.errores.String())
 	}
 }
 
@@ -130,8 +164,12 @@ func TestEjecutarCSCListaCredenciales(t *testing.T) {
 			t.Fatalf("falta %q en la salida:\n%s", esperado, salida)
 		}
 	}
-	if !strings.Contains(e.errores.String(), s.URL+"/oauth2/authorize?") {
-		t.Fatalf("la CLI debe mostrar el URL de autorización: %q", e.errores.String())
+	host := strings.TrimPrefix(s.URL, "https://")
+	if !strings.Contains(e.errores.String(), localizador.Para("es").T("csc.cli.hosts", host, host)) {
+		t.Fatalf("la CLI debe mostrar los dos hosts: %q", e.errores.String())
+	}
+	if strings.Contains(e.errores.String(), "state=") || strings.Contains(e.errores.String(), "/oauth2/authorize") {
+		t.Fatalf("la CLI no debe escribir el URL con el state: %q", e.errores.String())
 	}
 	s.Leer(func(s *csctest.Servidor) {
 		if s.Revocados != 1 {
@@ -158,7 +196,7 @@ func TestEjecutarCSCFirmaConLaCLIReal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	e := nuevoEntornoPruebaCSC(t, s, "", "")
+	e := nuevoEntornoPruebaCSC(t, s, `{"firma_remota_csc": true}`, "")
 	e.stdin = &lectorByteAByte{r: strings.NewReader(csctest.PIN + "\n" + csctest.OTP + "\n")}
 	var argsRecibidos []string
 	e.ejecutarCLI = func(remota *fuenteRemota, args []string) int {
@@ -169,7 +207,7 @@ func TestEjecutarCSCFirmaConLaCLIReal(t *testing.T) {
 		}
 		return adaptador.Run(context.Background(), args)
 	}
-	opc := opcionesCSC{activar: true, url: s.URL, clientID: csctest.ClientID, credencial: csctest.CredencialRSA}
+	opc := opcionesCSC{url: s.URL, clientID: csctest.ClientID, credencial: csctest.CredencialRSA}
 	args := []string{"-operacion", "firmar", "-entrada", entrada, "-salida", salida, "-formato", "cades"}
 	if code := ejecutarCSC(e.entornoCSC, opc, false, args); code != 0 {
 		t.Fatalf("code=%d errores=%q salida=%q", code, e.errores.String(), e.salida.String())

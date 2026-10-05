@@ -9,6 +9,7 @@
   <resources>
     <stringTable>
       <string id="SUPPORTED_GrxFirma_0_0_90">GrxFirma 0.0.90 or later</string>
+      <string id="SUPPORTED_GrxFirma_CSC">GrxFirma with CSC remote signing (prototype)</string>
       <string id="Cat_GrxFirma">GrxFirma</string>
       <string id="Cat_Origenes">Trusted origins</string>
       <string id="Cat_Operacion">Operation</string>
@@ -62,6 +63,16 @@ Disabled or not configured: the REST service is off (default), even if the user 
       <string id="PermitirRutasDirectas_Help">LOWERS SECURITY. Allows a site to specify absolute local paths in load, save and signandsave operations. Without this policy the user always chooses the file.</string>
       <string id="AprobacionAutomaticaNativehost">Sign from the extension without confirmation</string>
       <string id="AprobacionAutomaticaNativehost_Help">LOWERS SECURITY. Allows signing from the browser extension without showing the confirmation dialog. Only for dedicated, controlled workstations.</string>
+      <string id="FirmaRemotaCSC">Remote signing with certificates held by a provider (CSC)</string>
+      <string id="FirmaRemotaCSC_Help">Signing with certificates held by a trust service provider through the Cloud Signature Consortium API. It is a prototype and has not been tested with real providers.
+
+Enabled: the user can use remote signing from the command line.
+
+Disabled: remote signing cannot be used, even if the user turns it on in their settings.
+
+Not configured: the "firma_remota_csc" setting in the user's config.json decides (off by default).</string>
+      <string id="FirmaRemotaCSCOAuth">Remote signing authorisation servers allowed on another host</string>
+      <string id="FirmaRemotaCSCOAuth_Help">For security, GrxFirma only accepts a remote signing service that sends authorisation to an OAuth server on the same host and port. If a provider uses a different host, add one line per provider here in the form service=authorisation, for example firma.provider.example=auth.provider.example or firma.provider.example=auth.provider.example:8443. This list replaces the user's list. A malformed line invalidates the list and remote signing is not allowed.</string>
     </stringTable>
     <presentationTable>
       <presentation id="AllowedDomains"><multiTextBox refId="AllowedDomains_List">Origins (one per line):</multiTextBox></presentation>
@@ -70,6 +81,7 @@ Disabled or not configured: the REST service is off (default), even if the user 
       <presentation id="DirectorioP12"><textBox refId="DirectorioP12_Ruta"><label>Folder:</label></textBox></presentation>
       <presentation id="TimeoutOperacion"><decimalTextBox refId="TimeoutOperacion_Segundos" defaultValue="30">Seconds:</decimalTextBox></presentation>
       <presentation id="MaxTamanoDocumento"><decimalTextBox refId="MaxTamanoDocumento_Bytes" defaultValue="52428800">Bytes:</decimalTextBox></presentation>
+      <presentation id="FirmaRemotaCSCOAuth"><multiTextBox refId="FirmaRemotaCSCOAuth_List">service=authorisation pairs (one per line):</multiTextBox></presentation>
     </presentationTable>
   </resources>
 </policyDefinitionResources>

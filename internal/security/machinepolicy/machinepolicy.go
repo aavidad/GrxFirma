@@ -37,6 +37,8 @@ const (
 	AprobacionAutomaticaHost = "aprobacion_automatica_nativehost"
 	PermitirSHA1Legacy       = "permitir_sha1_legacy"
 	PermitirCMSAESECBLegacy  = "permitir_cms_aes_ecb_legacy"
+	FirmaRemotaCSC           = "firma_remota_csc"
+	FirmaRemotaCSCOAuth      = "firma_remota_csc_oauth_permitidos"
 )
 
 // Native indica si la plataforma dispone de un almacén de política de

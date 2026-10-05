@@ -12,6 +12,7 @@
   <supportedOn>
     <definitions>
       <definition name="SUPPORTED_GrxFirma_0_0_90" displayName="$(string.SUPPORTED_GrxFirma_0_0_90)" />
+      <definition name="SUPPORTED_GrxFirma_CSC" displayName="$(string.SUPPORTED_GrxFirma_CSC)" />
     </definitions>
   </supportedOn>
   <categories>
@@ -67,6 +68,19 @@
       <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
       <enabledValue><decimal value="1" /></enabledValue>
       <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="FirmaRemotaCSC" class="Machine" displayName="$(string.FirmaRemotaCSC)" explainText="$(string.FirmaRemotaCSC_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="firma_remota_csc">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_CSC" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="FirmaRemotaCSCOAuth" class="Machine" displayName="$(string.FirmaRemotaCSCOAuth)" explainText="$(string.FirmaRemotaCSCOAuth_Help)" presentation="$(presentation.FirmaRemotaCSCOAuth)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_CSC" />
+      <elements>
+        <multiText id="FirmaRemotaCSCOAuth_List" valueName="firma_remota_csc_oauth_permitidos" required="true" />
+      </elements>
     </policy>
     <policy name="NivelLog" class="Machine" displayName="$(string.NivelLog)" explainText="$(string.NivelLog_Help)" presentation="$(presentation.NivelLog)" key="SOFTWARE\Policies\GrxFirma">
       <parentCategory ref="Operacion" />

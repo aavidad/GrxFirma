@@ -12,6 +12,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -29,7 +30,6 @@ import (
 
 // opcionesCSC recoge las opciones de la firma remota CSC (prototipo).
 type opcionesCSC struct {
-	activar    bool
 	url        string
 	clientID   string
 	credencial string
@@ -38,7 +38,7 @@ type opcionesCSC struct {
 }
 
 func (o opcionesCSC) solicitada() bool {
-	return o.activar || o.listar || o.url != "" || o.clientID != "" || o.credencial != "" || o.opcionMala != ""
+	return o.listar || o.url != "" || o.clientID != "" || o.credencial != "" || o.opcionMala != ""
 }
 
 // extraerFlagsCSC retira del argv las opciones -csc-*. Ninguna lleva
@@ -56,8 +56,6 @@ func extraerFlagsCSC(args []string) (cfg opcionesCSC, resto []string) {
 			continue
 		}
 		switch nombre {
-		case "csc-activar":
-			cfg.activar = true
 		case "csc-listar-credenciales":
 			cfg.listar = true
 		default:
@@ -92,6 +90,9 @@ type entornoCSC struct {
 	politicaDir string
 	httpBase    *http.Client
 	navegador   func(context.Context, string) error
+	// hostServicio se muestra junto al del servidor OAuth antes de abrir
+	// el navegador.
+	hostServicio string
 	// ejecutarCLI lanza el adaptador CLI con la credencial remota como única
 	// fuente de certificados.
 	ejecutarCLI func(remota *fuenteRemota, args []string) int
@@ -147,8 +148,12 @@ func ejecutarCSC(e entornoCSC, opc opcionesCSC, locales bool, args []string) int
 		e.logger.ErrorContext(e.ctx, "política ilegible", "op", "csc-policy", "error", err)
 		return avisar("csc.cli.desactivada")
 	}
-	if !cfg.FirmaRemotaCSCActiva(opc.activar, politica) {
+	if !cfg.FirmaRemotaCSCActiva(politica) {
 		return avisar("csc.cli.desactivada")
+	}
+	pares, err := csc.ParsearParesOAuth(cfg.FirmaRemotaCSCOAuth)
+	if err != nil {
+		return avisar("csc.cli.pares_oauth_invalidos")
 	}
 	if strings.TrimSpace(opc.url) == "" || strings.TrimSpace(opc.clientID) == "" {
 		return avisar("csc.cli.faltan_opciones")
@@ -157,7 +162,11 @@ func ejecutarCSC(e entornoCSC, opc opcionesCSC, locales bool, args []string) int
 		return avisar("csc.cli.falta_credencial")
 	}
 
+	if u, err := url.Parse(strings.TrimSpace(opc.url)); err == nil {
+		e.hostServicio = u.Host
+	}
 	cliente, err := csc.Nuevo(csc.Opciones{
+		ParesOAuth:     pares,
 		URLServicio:    strings.TrimSpace(opc.url),
 		ClientID:       strings.TrimSpace(opc.clientID),
 		HTTP:           e.httpBase,
@@ -232,17 +241,19 @@ func (e entornoCSC) listar(cliente *csc.Cliente) int {
 	return 0
 }
 
-// abrirNavegador muestra siempre el URL, por si no hay escritorio o el
-// navegador no se abre, y después intenta abrirlo.
+// abrirNavegador muestra a qué servicio y a qué servidor de autorización se
+// va a dar acceso y abre el navegador. No escribe el URL: lleva el state de
+// la petición y no debe quedar en la terminal ni en registros.
 func (e entornoCSC) abrirNavegador(ctx context.Context, destino string) error {
-	_, _ = fmt.Fprintln(e.errores, e.t("csc.cli.abrir_url"))
-	_, _ = fmt.Fprintln(e.errores, destino)
-	if e.navegador != nil {
-		if err := e.navegador(ctx, destino); err != nil {
-			_, _ = fmt.Fprintln(e.errores, e.t("csc.cli.navegador_manual"))
-		}
+	hostOAuth := ""
+	if u, err := url.Parse(destino); err == nil {
+		hostOAuth = u.Host
 	}
-	return nil
+	_, _ = fmt.Fprintln(e.errores, e.t("csc.cli.hosts", textoSeguro(e.hostServicio), textoSeguro(hostOAuth)))
+	if e.navegador == nil {
+		return errors.New("csc: no browser")
+	}
+	return e.navegador(ctx, destino)
 }
 
 func (e entornoCSC) pedirSecreto(_ context.Context, tipo csc.TipoSecreto) ([]byte, error) {
