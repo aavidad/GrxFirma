@@ -193,6 +193,8 @@ echo "$FIRE_APP_ID" > "$BANCO/fire-app-id.txt"
 
 # --- Tomcat (CATALINA_BASE propio, solo 127.0.0.1) --------------------------------
 TB="$BANCO/tomcat"
+# Si quedó un Tomcat del banco en marcha, se detiene antes de rehacer su directorio.
+FIRE_BANCO_DIR="$BANCO" "$AQUI/parar.sh" >/dev/null
 rm -rf "$TB"; mkdir -p "$TB"/{conf,logs,temp,webapps,work,bin}
 cp "$CATALINA_HOME/conf/web.xml" "$CATALINA_HOME/conf/logging.properties" "$CATALINA_HOME/conf/context.xml" "$TB/conf/"
 cat > "$TB/conf/server.xml" <<EOF

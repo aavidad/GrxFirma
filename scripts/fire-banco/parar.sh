@@ -15,4 +15,10 @@ if [[ -f "$TB/tomcat.pid" ]] && kill -0 "$(cat "$TB/tomcat.pid")" 2>/dev/null; t
   CATALINA_BASE="$TB" "$BANCO/tools/apache-tomcat-$TOMCAT_VERSION/bin/catalina.sh" stop 20 -force >/dev/null 2>&1 || true
 fi
 rm -f "$TB/tomcat.pid"
+# Respaldo: un Tomcat del banco sin fichero pid (por ejemplo, si se borró el directorio).
+for pid in $(pgrep -u "$(id -u)" -f -- "-Dcatalina.base=$TB( |$)" || true); do
+  kill "$pid" 2>/dev/null || true
+  for _ in $(seq 1 20); do kill -0 "$pid" 2>/dev/null || break; sleep 0.5; done
+  kill -9 "$pid" 2>/dev/null || true
+done
 echo "[fire-banco] Tomcat detenido"
