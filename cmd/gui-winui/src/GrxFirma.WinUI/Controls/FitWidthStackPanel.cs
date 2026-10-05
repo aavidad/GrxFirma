@@ -9,12 +9,12 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace GrxFirma.WinUI.Controls;
 
-// Pila vertical que no deja a ningún hijo pedir más ancho del disponible.
-// Un desplegable pide el ancho de su elemento más largo y, en una pila
-// normal, ese ancho subía hasta la ventana y cortaba la página por la
-// derecha (ENI a 1280 px, WCAG 1.4.10). Aquí cada hijo se mide y se coloca
-// como mucho con el ancho que recibe la pila: sin mínimo fijo, se ajusta al
-// contenedor.
+// Pila vertical que ocupa exactamente el ancho que recibe: ningún hijo pide
+// más (sin mínimo fijo, cada uno se ajusta al contenedor) y la pila tampoco
+// pide menos. En ENI, el contenido pedía 751 px pero se dibujaba con los
+// 1000 del MaxWidth de la página: el ScrollViewer lo centraba según lo
+// pedido y la página quedaba desplazada y cortada por la derecha a 1280 px
+// (WCAG 1.4.10).
 public sealed class FitWidthStackPanel : Panel
 {
     public double Spacing { get; set; }
@@ -38,7 +38,7 @@ public sealed class FitWidthStackPanel : Panel
             width = Math.Max(width, limited ? Math.Min(desired.Width, availableSize.Width) : desired.Width);
             height += desired.Height + (visible++ > 0 ? Spacing : 0);
         }
-        return new Size(width, height);
+        return new Size(limited ? availableSize.Width : width, height);
     }
 
     protected override Size ArrangeOverride(Size finalSize)
