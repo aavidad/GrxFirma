@@ -173,8 +173,8 @@
   "+ CERTIFICADOS": "+ ZIURTAGIRIAK",
   "+%1 más": "+%1 gehiago",
   ",": ",",
-  "--- INICIO DE LOGS ---\n": "--- INICIO DE LOGS ---\n",
-  "--- INICIO DE LOGS ---\\n": "--- ERREGISTROEN HASIERA ---\\n",
+  "--- INICIO DE LOGS ---\n": "--- ERREGISTROEN HASIERA ---\n",
+  "--- INICIO DE LOGS ---\\n": "--- ERREGISTROEN HASIERA ---\n",
   "--- LOGS REINICIADOS [": "--- ERREGISTROAK BERREZARRI [",
   "/ruta/al/documento.afp o .enveloped": "/bidea/dokumentua.afp edo .enveloped",
   "/ruta/al/documento.bin": "/bidea/dokumentua.bin",
@@ -264,7 +264,7 @@
   "Antes de guardar o enviar nada, este es el paquete de soporte que se preparará para ti.": "Ezer gorde edo bidali aurretik, hau da zuretzat prestatuko den laguntza-paketea.",
   "Aplica a PAdES, CAdES y XAdES. LT/LTA solo tiene efecto real en CAdES.": "PAdES, CAdES eta XAdESi aplikatzen zaie. LT/LTAk benetako eragina CAdESen soilik du.",
   "Aplica perfiles de firma más restrictivos para maximizar la compatibilidad con administraciones públicas.": "Sinadura-profil murriztaileagoak aplikatzea administrazio publikoekin bateragarritasuna maximizatzeko.",
-  "Aplica un estilo rápido al sello visible sin tener que recolocar todos los campos a mano.": "Aplikatu estilo azkar bat zigilu ikusgarriari eremu guztiak eskuz berriro kokatu gabe.",
+  "Aplica un estilo rápido al sello visible sin tener que recolocar todos los campos a mano.": "Aplikatu estilo azkar bat zigilu ikusgaiari eremu guztiak eskuz berriro kokatu gabe.",
   "Aplicabilidad de metadatos": "Metadatuen aplikagarritasuna",
   "Aplicación en este equipo": "Aplikazioa ekipo honetan",
   "Aplicación local": "Aplikazio lokala",
@@ -352,7 +352,7 @@
   "Buscando certificados en almacenes NSS/Firefox...": "Ziurtagiriak NSS/Firefox biltegietan bilatzen...",
   "Buscar certificado": "Ziurtagiria bilatu",
   "Buscar certificados en Firefox/NSS": "Bilatu ziurtagiriak Firefox/NSS-n",
-  "CARPETA DE SALIDA DEL LOTE": "LOTEKO IRTEERAKO KAPETA",
+  "CARPETA DE SALIDA DEL LOTE": "SORTAREN IRTEERAKO KARPETA",
   "CAdES": "CAdES",
   "CAdES-LT": "CAdES-LT",
   "CAdES-LTA": "CAdES-LTA",
@@ -471,7 +471,7 @@
   "Comprobando si el documento ya estaba firmado...": "Dokumentua lehendik sinatuta zegoen egiaztatzen...",
   "Comprobando...": "Egiaztatzen...",
   "Comprobar Certs": "Egiaztatu Ziurtagiriak",
-  "Comprobar huella": "Egiaztatu hatz-marka",
+  "Comprobar huella": "Egiaztatu hash-a",
   "Comprobar revocación online": "Egiaztatu online errebokazioa",
   "Comprueba advertencias de confianza, integridad o certificado.": "Egiaztatu konfiantzari, osotasunari edo ziurtagiriari buruzko abisuak.",
   "Comprueba si falta el original o si aparece algún aviso sobre confianza o certificado.": "Egiaztatu originala falta den edo konfiantzari edo ziurtagiriari buruzko abisurik agertzen den.",
@@ -510,7 +510,7 @@
   "Confirma que el documento y el certificado siguen seleccionados.": "Baieztatu dokumentua eta ziurtagiria oraindik hautatuta daudela.",
   "Confirmar antes de firmar": "Sinatu aurretik baieztatu",
   "Confirmar firma": "Berretsi sinadura",
-  "Confirmo que quiero enviar esta incidencia al destino indicado.": "Berretsi nahi dudala intzidentzia adierazitako helbidera bidaltzea.",
+  "Confirmo que quiero enviar esta incidencia al destino indicado.": "Berresten dut intzidentzia adierazitako helmugara bidali nahi dudala.",
   "Consola completa": "Kontsola osoa",
   "Consola web lista.": "Web kontsola prest.",
   "Consola web local para firma, verificación, certificados, ajustes y diagnóstico, sobre la API REST del propio backend.": "Sinatzeko, egiaztatzeko, ziurtagirietarako, ezarpenetarako eta diagnostikorako web kontsola lokala, backend-aren REST APIaren gainean.",
@@ -534,17 +534,17 @@
   "Copiar JSON del certificado": "Kopiatu ziurtagiriaren JSONa",
   "Copiar diagnóstico": "Kopiatu diagnostikoa",
   "Copiar huella": "Kopiatu hatz-marka",
-  "Copiar huella al portapapeles por defecto": "Kopiatu hatz-marka arbelera modu lehenetsian",
+  "Copiar huella al portapapeles por defecto": "Kopiatu hash-a arbelera modu lehenetsian",
   "Copiar informe": "Kopiatu txostena",
   "Copiar resumen": "Laburpena kopiatu",
   "Copiar resumen de validación": "Kopiatu baliozkotzearen laburpena",
   "Copiar resumen para soporte": "Kopiatu laguntzarako laburpena",
   "Corporativo": "Korporatiboa",
   "Corregido en: %1": "Zuzenduta honetan: %1",
-  "Crea o comprueba huellas de ficheros y manifiestos de directorio.": "Sortu edo egiaztatu fitxategien hatz-markak eta direktorio-manifestuak.",
+  "Crea o comprueba huellas de ficheros y manifiestos de directorio.": "Sortu edo egiaztatu fitxategien hash-ak eta direktorio-manifestuak.",
   "Crear clave de acceso": "Sortu sarbide-gakoa",
   "Crear clave de seguridad": "Sortu segurtasun-gakoa",
-  "Crear huella": "Sortu hatz-marka",
+  "Crear huella": "Sortu hash-a",
   "Cristal Oscuro": "Kristal Iluna",
   "Cuando llegue la petición, se mostrará el selector de documento o de certificado como en V1.": "Eskaera iristean, dokumentu- edo ziurtagiri-hautatzailea erakutsiko da V1ean bezala.",
   "Código estable: %1": "Kode egonkorra: %1",
@@ -557,19 +557,19 @@
   "Debe cargar un archivo PDF y seleccionar un certificado para poder firmar.": "PDF fitxategi bat kargatu eta ziurtagiri bat hautatu behar duzu sinatu ahal izateko.",
   "Debe cargar uno o varios documentos antes de realizar la firma.": "Dokumentu bat edo gehiago igo behar dituzu sinatu aurretik.",
   "Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.": "Dokumentu bat edo gehiago igo eta sinatzeko ziurtagiri bat hautatu behar duzu.",
-  "Debe definir un firmante principal válido para la cofirma múltiple guiada.": "Sinatzaile nagusi baliodun bat zehaztu behar duzu gidatutako kofirma anitzerako.",
+  "Debe definir un firmante principal válido para la cofirma múltiple guiada.": "Sinatzaile nagusi baliodun bat zehaztu behar duzu gidatutako kosinadura anitzerako.",
   "Debe indicar el certificado a comprobar.": "Egiaztatu beharreko ziurtagiria adierazi behar duzu.",
   "Debe indicar el certificado que quiere comprobar.": "Egiaztatu nahi duzun ziurtagiria adierazi behar duzu.",
   "Debe indicar un dominio u origen para añadirlo.": "Domeinu edo jatorri bat adierazi behar duzu gehitzeko.",
-  "Debe seleccionar al menos un certificado adicional para la cofirma múltiple guiada.": "Gutxienez ziurtagiri gehigarri bat hautatu behar duzu gidatutako kofirma anitzerako.",
+  "Debe seleccionar al menos un certificado adicional para la cofirma múltiple guiada.": "Gutxienez ziurtagiri gehigarri bat hautatu behar duzu gidatutako kosinadura anitzerako.",
   "Debe seleccionar un certificado de la lista para poder firmar el documento.": "Zerrendako ziurtagiri bat hautatu behar duzu dokumentua sinatzeko.",
-  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Hatz-marka digitalak sortzeko eta egiaztatzeko aurrehautatutako algoritmoa zehazten du.",
+  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Hash-ak sortzeko eta egiaztatzeko aurrehautatutako algoritmoa zehazten du.",
   "Define el comportamiento por defecto cuando el archivo de salida ya existe.": "Irteerako fitxategia lehendik badago, portaera lehenetsia zehazten du.",
-  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Fitxategien hatz-markak sortzean edo egiaztatzean aurrehautatutako formatua zehazten du.",
+  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Fitxategien hash-ak sortzean edo egiaztatzean aurrehautatutako formatua zehazten du.",
   "Define el formato preseleccionado al crear o comprobar manifiestos de directorio.": "Direktorioen manifestuak sortzean edo egiaztatzean aurrehautatutako formatua zehazten du.",
   "Define el motivo preseleccionado que se incrustará en la firma cuando proceda.": "Dagokionean sinaduran txertatuko den aurrehautatutako arrazoia zehazten du.",
   "Define el papel preseleccionado del firmante al generar firmas FacturaE.": "FacturaE sinadurak sortzean sinatzailearen aurrez hautatutako rola ezartzen du.",
-  "Define el perfil preseleccionado para CAdES, XAdES y PAdES. El perfil T requiere TSA operativa.": "CAdES, XAdES eta PAdESerako aurrez hautatutako profila ezartzen du. T profilak TSA eragilea behar du.",
+  "Define el perfil preseleccionado para CAdES, XAdES y PAdES. El perfil T requiere TSA operativa.": "CAdES, XAdES eta PAdESerako aurrez hautatutako profila ezartzen du. T profilak martxan dagoen TSA bat behar du.",
   "Define el subfiltro PAdES preseleccionado para firmas PDF cuando el backend lo soporte.": "PDF sinaduretarako aurrez hautatutako PAdES azpifiltroa ezartzen du backendak onartzen duenean.",
   "Define la rotación preseleccionada para la firma visible PAdES.": "PAdES sinadura ikusgaiarentzako aurrehautatutako biraketa zehazten du.",
   "Define la versión de política preseleccionada al firmar facturas FacturaE.": "FacturaE fakturak sinatzean aurrez hautatutako politika bertsioa ezartzen du.",
@@ -676,7 +676,7 @@
   "Ejecutando...": "Exekutatzen...",
   "El JSON de opciones debe ser un objeto.": "Aukeren JSONa objektu bat izan behar da.",
   "El QR requiere sello visible activo sobre PDF.": "QRak PDF batean zigilua ikusgai eta aktibo egotea behar du.",
-  "El QR se incorporará dentro del sello visible.": "QRa zigilua ikusgaian txertatuko da.",
+  "El QR se incorporará dentro del sello visible.": "QRa zigilu ikusgaian txertatuko da.",
   "El almacén seguro de secretos de proxy está disponible para este backend local.": "Proxy sekretuen biltegi segurua erabilgarri dago tokiko backend honetarako.",
   "El almacén seguro de secretos de proxy no está listo; el proxy autenticado puede quedar limitado en este equipo.": "Proxy sekretuen biltegi segurua ez dago prest; autentifikatutako proxya mugatuta gera daiteke ekipo honetan.",
   "El artefacto de huella coincide con el modo seleccionado.": "Hatz-markaren artefaktua hautatutako moduarekin bat dator.",
@@ -690,7 +690,7 @@
   "El certificado es válido para firma, pero caduca pronto.": "Ziurtagiriak sinatzeko balio du, baina laster iraungiko da.",
   "El certificado es válido y apto para firma.": "Ziurtagiria baliozkoa da eta sinatzeko egokia da.",
   "El certificado está caducado y no debe usarse para firmar.": "Ziurtagiria iraungita dago eta ez da erabili behar sinatzeko.",
-  "El certificado figura como revocado por su entidad emisora.": "Ziurtagiria bere igorle-erakundeak errebokatuta agertzen da.",
+  "El certificado figura como revocado por su entidad emisora.": "Ziurtagiria bere jaulkitzaile-erakundeak errebokatuta agertzen da.",
   "El certificado no está marcado como utilizable para firma.": "Ziurtagiria ez dago sinatzeko erabilgarri gisa markatu.",
   "El certificado seleccionado actual queda fuera de los filtros.": "Une honetan hautatutako ziurtagiria iragazkietatik kanpo geratzen da.",
   "El certificado seleccionado está caducado o expirado.": "Hautatutako ziurtagiria iraungita dago.",
@@ -702,7 +702,7 @@
   "El fichero indicado no existe": "Adierazitako fitxategia ez da existitzen",
   "El firmado y el original parecen de tipos distintos.": "Sinatutakoa eta jatorrizkoa mota desberdinekoak direla dirudi.",
   "El firmante principal se aplicará primero. Los certificados marcados aquí se aplicarán después como cofirmas secuenciales.": "Sinatzaile nagusia aplikatuko da lehenik. Hemen markatutako ziurtagiriak gero gehituko dira kosinadura sekuentzial gisa.",
-  "El flujo de documentos ya firmados se ha ido afinando para redirigir hacia cofirma.": "Sinatutako dokumentuen fluxua aldi bereko sinadurara birbideratzeko fintzen joan da.",
+  "El flujo de documentos ya firmados se ha ido afinando para redirigir hacia cofirma.": "Sinatutako dokumentuen fluxua kosinadurara birbideratzeko fintzen joan da.",
   "El flujo de firma está preparado. Revisa operación, formato y certificado antes de continuar.": "Sinadura-fluxua prest dago. Jarraitu aurretik berrikusi eragiketa, formatua eta ziurtagiria.",
   "El navegador no permite copiar el resumen automáticamente en este contexto.": "Nabigatzaileak ez du uzten laburpena automatikoki kopiatzen testuinguru honetan.",
   "El navegador ya está comunicándose con GrxFirma": "Nabigatzailea dagoeneko GrxFirmarekin komunikatzen ari da",
@@ -818,7 +818,7 @@
   "Expandir todo": "Zabaldu dena",
   "Experto": "Aditua",
   "Explorar Logs": "Arakatu logak",
-  "Expone la API REST solo en este equipo, para integraciones locales y consola web.": "Erakutsi REST APIa makina honetan soilik, lokaletan eta web kontsolaren integrazioetarako.",
+  "Expone la API REST solo en este equipo, para integraciones locales y consola web.": "REST APIa ekipo honetan soilik eskaintzen du, tokiko integrazioetarako eta web kontsolarako.",
   "Exportando destinatario...": "Hartzailea esportatzen...",
   "Exportar destinatario alto": "Esportatu goi-mailako hartzailea",
   "FIRMA DIGITAL": "SINADURA DIGITALA",
@@ -891,7 +891,7 @@
   "Firmar ahora": "Sinatu orain",
   "Firmar igualmente": "Sinatu hala ere",
   "Formato": "Formatua",
-  "Formato de huella por defecto para ficheros": "Fitxategien hatz-marken formatu lehenetsia",
+  "Formato de huella por defecto para ficheros": "Fitxategien hash-en formatu lehenetsia",
   "Formato de manifiesto por defecto para directorios": "Direktorioen manifestuen formatu lehenetsia",
   "Formato detectado: %1": "Detektatutako formatua: %1",
   "Formato por defecto": "Formatu lehenetsia",
@@ -944,15 +944,15 @@
   "Host / IP:": "Ostalaria/IP:",
   "Huella": "Hatz-marka",
   "Huella SHA-256: ": "SHA-256 hatz-marka: ",
-  "Huella copiada al portapapeles.": "Hatz-marka arbelera kopiatu da.",
+  "Huella copiada al portapapeles.": "Hash-a arbelera kopiatu da.",
   "Huella del certificado copiada al portapapeles.": "Ziurtagiriaren hatz-marka arbelean kopiatu da.",
   "Huella o manifiesto": "Hatz-marka edo manifestua",
   "Huella o manifiesto: ": "Hash-a edo manifestua: ",
   "Huella válida.": "Hatz-marka baliozkoa.",
   "Huella: ": "Hash-a: ",
   "Huellas de Certificados Cliente (SHA-256 CSV):": "Bezeroaren ziurtagiriaren hatz-markak (SHA-256 CSV):",
-  "Huellas e integridad": "Hatz-markak eta osotasuna",
-  "Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)": "Hatz-markak eta manifestuak (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)",
+  "Huellas e integridad": "Hash-ak eta osotasuna",
+  "Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)": "Hash-ak eta manifestuak (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)",
   "ID:": "ID:",
   "Id": "Id",
   "Identificador de política": "Politikaren identifikatzailea",
@@ -983,8 +983,8 @@
   "Iniciar servidor": "Abiarazi zerbitzaria",
   "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "PDFan zigilu grafiko bat txertatzen du digitalki sinatuta dagoela adieraziz.",
   "Instala el motor de firma como servicio de tu usuario (no de sistema),\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Sinadura-motorra zure erabiltzailearen zerbitzu gisa instalatzen du (ez sistemarena),\nautomatikoki abiatu eta zure ziurtagiri pertsonaletara sarbidea izan dezan.",
-  "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Instalatu sinadura-motorra zure erabiltzailearentzat (ez sistema) zerbitzu gisa, \\n, automatikoki abiarazteko eta zure ziurtagiri pertsonaletarako sarbidea izan dezan.",
-  "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "Instalatu tokiko HTTPS ziurtagiriaren fidagarritasuna REST web kontsola irekitzeko, arakatzailearen agindurik gabe.",
+  "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Sinadura-motorra zure erabiltzailearen zerbitzu gisa instalatzen du (ez sistemarena),\nautomatikoki abiatu eta zure ziurtagiri pertsonaletara sarbidea izan dezan.",
+  "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "Instalatu tokiko HTTPS ziurtagiriaren konfiantza REST web kontsola nabigatzailearen abisurik gabe irekitzeko.",
   "Instalar confianza TLS local": "Instalatu TLS konfiantza lokala",
   "Instalar raíces públicas": "Instalatu TLS konfiantza lokala",
   "Instalar servicio": "Instalatu zerbitzua",
@@ -1014,7 +1014,7 @@
   "La clave indicada no es correcta.": "Adierazitako gakoa ez da zuzena.",
   "La cofirma múltiple guiada está desactivada.": "Aldi bereko sinadura anitz gidatua desaktibatuta dago.",
   "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "Aldi bereko sinadura anitz gidatua dokumentu bakarrerako soilik dago erabilgarri, sinatu edo aldi bereko sinadura ekintzetan.",
-  "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "Gidatutako kofirma anitza sinatzeko edo kofirmatzeko bakarrik dago erabilgarri, ez kontrafirmatzeko.",
+  "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "Gidatutako kosinadura anitza sinatzeko edo kosinatzeko bakarrik dago erabilgarri, ez kontrasinatzeko.",
   "La cofirma múltiple guiada solo está disponible para un único documento, no para lotes.": "Kosinadura anizkoitz gidatua dokumentu bakarrerako baino ez dago erabilgarri, ez loteetarako.",
   "La confirmación de la clave no coincide.": "Gakoaren baieztapena ez dator bat.",
   "La consola usa este token para endpoints protegidos como firma, verificación, ajustes o diagnóstico.": "Kontsolak token hau erabiltzen du sinadura, egiaztapena, ezarpenak edo diagnostikoa bezalako endpoint babestuetarako.",
@@ -1068,9 +1068,9 @@
   "Lote activo: %1": "Sorta aktiboa: %1",
   "Lote completado con incidencias.": "Sorta intzidentziekin amaitu da.",
   "Lote firmado correctamente.": "Lotea ondo sinatu da.",
-  "Lote firmado y verificado correctamente.": "Lotea behar bezala sinatu eta egiaztatuta.",
-  "Lote firmado, con incidencias de verificación en algunos resultados.": "Lote sinatua, emaitza batzuetan egiaztapen-arazoekin.",
-  "Lote firmado. Verificando resultados...": "Sinatutako lotea. Emaitzak egiaztatzen...",
+  "Lote firmado y verificado correctamente.": "Sorta behar bezala sinatu eta egiaztatu da.",
+  "Lote firmado, con incidencias de verificación en algunos resultados.": "Sorta sinatu da, baina emaitza batzuetan egiaztapen-arazoak daude.",
+  "Lote firmado. Verificando resultados...": "Sorta sinatu da. Emaitzak egiaztatzen...",
   "Lote o selección múltiple": "Sorta edo hautapen anitza",
   "Lote: ": "Sorta: ",
   "Lugar de firma FacturaE": "FacturaE sinadura-lekua",
@@ -1264,10 +1264,10 @@
   "PDF original": "PDF jatorrizkoa",
   "Panel de Diagnóstico Experto": "Adituen Diagnostiko Panela",
   "Paquete de soporte listo para exportar": "Laguntza-paketea esportatzeko prest",
-  "Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.": "REST API lokala arakatzailearen galderik gabe irekitzeko, instalatu tokiko TLS ziurtagiriaren konfiantza.",
+  "Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.": "REST API lokala nabigatzailearen abisurik gabe irekitzeko, instalatu tokiko TLS ziurtagiriaren konfiantza.",
   "Para modificar la lista de dominios permitidos (NM/CORS) debe identificarse como administrador del sistema.": "Baimendutako domeinuen zerrenda aldatzeko (NM/CORS) sistema-administratzaile gisa identifikatu behar duzu.",
   "Para modificar la lista de dominios permitidos y las conexiones seguras debe identificarse.": "Baimendutako domeinuen zerrenda eta konexio seguruak aldatzeko, identifikatu egin behar zara.",
-  "Para previsualizar el sello en un lote por carpeta, seleccione uno o varios PDF concretos. La firma visible solo se aplica a PAdES (PDF).": "Zigilua karpeta bakoitzeko sorta batean aurreikusteko, hautatu PDF zehatz bat edo gehiago. Ikusgai den sinadura PAdES-i soilik dagokio (PDF).",
+  "Para previsualizar el sello en un lote por carpeta, seleccione uno o varios PDF concretos. La firma visible solo se aplica a PAdES (PDF).": "Zigilua karpeta bidezko sorta batean aurreikusteko, hautatu PDF zehatz bat edo gehiago. Ikusgai den sinadura PAdES-i soilik dagokio (PDF).",
   "Para que las firmas de este emisor (FNMT, etc.) sean válidas, debe instalar las raíces de confianza.": "API REST lokala nabigatzailearen abisurik gabe irekitzeko, instalatu TLS ziurtagiri lokalaren konfiantza.",
   "Parece depender de red o de un servicio externo.": "Sarearen edo kanpoko zerbitzu baten araberakoa dela dirudi.",
   "Parece depender del certificado o de su disponibilidad en este equipo.": "Ziurtagiriaren edo ekipo honetan duen erabilgarritasunaren araberakoa dela dirudi.",
@@ -1308,7 +1308,7 @@
   "Personalizada": "Pertsonalizatua",
   "Petición JSON inválida.": "JSON eskaera baliogabea.",
   "Petición incorrecta: el servidor rechazó los datos (Bad Request).": "Eskaera okerra: zerbitzariak datuak baztertu ditu (Bad Request).",
-  "Pide confirmación explícita antes de lanzar una firma o una firma por lote.": "Eskatu berrespen esplizitua sinadura edo lote bidezko sinadura bat abiatu aurretik.",
+  "Pide confirmación explícita antes de lanzar una firma o una firma por lote.": "Eskatu berrespen esplizitua sinadura edo sorta bidezko sinadura bat abiatu aurretik.",
   "Plan de cofirma múltiple": "Aldi bereko sinadura anitzaren plana",
   "Plan de comprobación listo para fichero.": "Egiaztapen-plana fitxategirako prest.",
   "Plan de comprobación listo para manifiesto de directorio.": "Egiaztapen-plana direktorio-manifesturako prest.",
@@ -1412,7 +1412,7 @@
   "REST local": "Tokiko REST",
   "REST: ": "REST: ",
   "RUTA DE ENTRADA": "SARRERA-BIDEA",
-  "RUTA DE SALIDA (PDF FIRMADO)": "IRTEERA IBILBIDEA (PDF SINATUTA)",
+  "RUTA DE SALIDA (PDF FIRMADO)": "IRTEERA-BIDEA (PDF SINATUA)",
   "Razón": "Arrazoia",
   "Razón técnica visible: %1": "Ikusgai dagoen arrazoi teknikoa: %1",
   "Razón: ": "Arrazoia: ",
@@ -1445,7 +1445,7 @@
   "Responsabilidad probable: %1": "Erantzukizun probablea: %1",
   "Responsable probable: %1": "Arduradun probablea: %1",
   "Respuesta de certificados recibida: ": "Ziurtagirien erantzuna jaso da: ",
-  "Restaura el tema y opciones a fábrica": "Berrezarri gaia eta aukerak fabrikara",
+  "Restaura el tema y opciones a fábrica": "Berrezarri gaia eta aukerak fabrikako balioetara",
   "Restaurado desde la sesión anterior.": "Aurreko saiotik berreskuratu da.",
   "Restaurar": "Berreskuratu",
   "Restaurar sello": "Leheneratu zigilua",
@@ -1533,7 +1533,7 @@
   "Se ha abierto el gestor de certificados.": "Ziurtagirien kudeatzailea ireki da.",
   "Se ha abierto la configuración de certificados del navegador.": "Nabigatzailearen ziurtagirien konfigurazioa ireki da.",
   "Se ha borrado el certificado predeterminado.": "Ziurtagiri lehenetsia ezabatu da.",
-  "Se ha cambiado la operación a Cofirmar.": "Eragiketa Aldi bereko sinadura izatera aldatu da.",
+  "Se ha cambiado la operación a Cofirmar.": "Eragiketa «Kosinatu» aukerara aldatu da.",
   "Se ha establecido un certificado predeterminado.": "Ziurtagiri lehenetsia ezarri da.",
   "Se incluirá": "Sartuko da",
   "Se incluirá un resumen saneado de la incidencia y un extracto técnico mínimo.": "Intzidentziaren laburpen garbitu bat eta gutxieneko erauzketa teknikoa sartuko dira.",
@@ -1542,7 +1542,7 @@
   "Se ocultará": "Ezkutatuko da",
   "Se reutilizará en la próxima sesión si sigue disponible.": "Hurrengo saioan berrerabiliko da, eskuragarri jarraitzen badu.",
   "Se va a iniciar la firma del documento actual con el certificado seleccionado. Revise la selección antes de continuar.": "Uneko dokumentuaren sinadura hasiko da hautatutako ziurtagiriarekin. Berrikusi hautaketa jarraitu aurretik.",
-  "Se va a iniciar una firma por lote con el certificado seleccionado. Revise la selección antes de continuar.": "Hautatutako ziurtagiriarekin lote bidezko sinadura hasiko da. Berrikusi hautaketa jarraitu aurretik.",
+  "Se va a iniciar una firma por lote con el certificado seleccionado. Revise la selección antes de continuar.": "Hautatutako ziurtagiriarekin sorta bidezko sinadura hasiko da. Berrikusi hautaketa jarraitu aurretik.",
   "Se verificará el artefacto firmado con validación avanzada y sin original de referencia.": "Sinatutako artefaktua baliozkotze aurreratuarekin eta erreferentziazko jatorrizkorik gabe egiaztatuko da.",
   "Sección activa": "Atal aktiboa",
   "Secret Service": "Secret Service",
@@ -1590,7 +1590,7 @@
   "Seleccionar certificados…": "Hautatu ziurtagiriak…",
   "Seleccionar cualquier fichero de la carpeta a comprobar": "Hautatu egiaztatu beharreko karpetako edozein fitxategi",
   "Seleccionar cualquier fichero de la carpeta de entrada": "Hautatu sarrerako karpetako edozein fitxategi",
-  "Seleccionar cualquier fichero de la carpeta de salida del lote": "Hautatu batch irteerako karpetako edozein fitxategi",
+  "Seleccionar cualquier fichero de la carpeta de salida del lote": "Hautatu sortaren irteerako karpetako edozein fitxategi",
   "Seleccionar destino del PDF firmado": "Hautatu sinatutako PDFaren helmuga",
   "Seleccionar documento": "Hautatu dokumentua",
   "Seleccionar documento PDF": "Hautatu PDF dokumentua",
@@ -1616,7 +1616,7 @@
   "Selección": "Hautapena",
   "Selección cancelada": "Hautapena bertan behera utzi da",
   "Selección cargada en navegador": "Hautapena nabigatzailean kargatu da",
-  "Selección de páginas inválida. Usa 1, 1,3-5 o all.": "Orri-hautaketa baliogabea. Erabili 1, 1,3-5 edo guztiak.",
+  "Selección de páginas inválida. Usa 1, 1,3-5 o all.": "Orri-hautaketa baliogabea. Erabili 1, 1,3-5 edo all.",
   "Sello": "Zigilua",
   "Sello restaurado a valores por defecto.": "Zigilua lehenetsitako balioetara leheneratu da.",
   "Sello visible": "Zigilu ikusgaia",
@@ -1638,13 +1638,13 @@
   "Si no eliges un formato manualmente, esta preferencia se usará al preparar la firma.": "Formatu bat eskuz aukeratzen ez baduzu, hobespen hau erabiliko da sinadura prestatzean.",
   "Si parece un fallo externo, anota lo ocurrido y vuelve a intentarlo más tarde.": "Kanpoko hutsegitea dirudienean, idatzi gertatutakoa eta saiatu berriro geroago.",
   "Si persiste, abre ayuda o exporta diagnóstico para soporte.": "Jarraitzen badu, ireki laguntza edo esportatu diagnostikoa laguntzarako.",
-  "Si quieres añadir otra firma sobre el mismo documento, lo correcto normalmente es usar Cofirmar.": "Dokumentu berean beste sinadura bat gehitu nahi baduzu, normalean Aldi bereko sinadura erabiltzea da zuzena.",
+  "Si quieres añadir otra firma sobre el mismo documento, lo correcto normalmente es usar Cofirmar.": "Dokumentu berean beste sinadura bat gehitu nahi baduzu, normalean «Kosinatu» erabiltzea da zuzena.",
   "Si se activa y solo hay un certificado disponible, la aplicación lo seleccionará automáticamente al cargar el catálogo.": "Aktibatzen bada eta ziurtagiri bakarra badago erabilgarri, aplikazioak automatikoki hautatuko du katalogoa kargatzean.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación intentará guardarlas y cerrará sin mostrar el diálogo de confirmación.": "Aktibatzen bada, gorde gabeko hobespenekin ixten denean aplikazioak gordetzen saiatuko da eta berrespen-elkarrizketa erakutsi gabe itxiko da.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación las guardará y continuará sin mostrar el diálogo de confirmación.": "Aktibatuta badago, ixtean gordetzeke dauden hobespenak aplikazioak gordeko ditu eta berrespen-elkarrizketarik gabe jarraituko du.",
-  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "Aktibatzen bada, direktorioen hatz-markak egiaztatzean txostena gordetzea proposatuko da lehenespenez.",
-  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "Aktibatzen bada, direktorioen hatz-markak sortzean edo egiaztatzean modu errekurtsiboa markatuta egongo da lehenespenez.",
-  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "Aktibatzen bada, hatz-marka sinple bat sortzean automatikoki arbelera kopiatuko da.",
+  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "Aktibatzen bada, direktorioen hash-ak egiaztatzean txostena gordetzea proposatuko da lehenespenez.",
+  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "Aktibatzen bada, direktorioen hash-ak sortzean edo egiaztatzean modu errekurtsiboa markatuta egongo da lehenespenez.",
+  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "Aktibatzen bada, hash sinple bat sortzean automatikoki arbelera kopiatuko da.",
   "Si se activa, al preparar firmas PDF se propondrá por defecto la firma visible.": "Aktibatzen bada, PDF sinadurak prestatzean sinadura ikusgaia proposatuko da lehenespenez.",
   "Si se activa, al preparar una firma visible PAdES se propondrá por defecto aplicarla en todas las páginas.": "Aktibatzen bada, PAdES sinadura ikusgai bat prestatzean orrialde guztietan aplikatzea proposatuko da lehenespenez.",
   "Si se activa, al pulsar cerrar la ventana la aplicación se minimizará y seguirá lista para futuras firmas.": "Hau aktibatuta badago, leihoa ixtean aplikazioa minimizatu egingo da eta etorkizuneko sinaduretarako prest jarraituko du.",
@@ -2393,7 +2393,7 @@
   "⚙️  Preferencias Generales": "⚙️ Hobespen orokorrak",
   "⚙️ Modo administrador habilitado.": "⚙️ Administratzaile modua gaituta.",
   "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "⚠ Tokiko IPC interfazetik deskonektatuta (REST modu esklusiboa edo motorra geldituta).",
-  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ Garrantzitsua: zure erabiltzaile-saioko zerbitzu gisa instalatzen da (ez sistemaren zerbitzu gisa), denda pertsonalean zure ziurtagirietarako sarbidea izan dezan. Sistema-zerbitzuek ezin dute erabiltzaile-ziurtagirietara sartu.",
+  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ Garrantzitsua: zure erabiltzaile-saioko zerbitzu gisa instalatzen da (ez sistemaren zerbitzu gisa), biltegi pertsonaleko zure ziurtagirietarako sarbidea izan dezan. Sistema-zerbitzuek ezin dute erabiltzaile-ziurtagirietara sartu.",
   "⚠️": "⚠️",
   "⚠️ Conexión IPC cerrada.": "⚠️ IPC konexioa itxi da.",
   "⚠️ No hay conexión con el motor.": "⚠️ Ez dago motorrarekin konexiorik.",
@@ -2437,7 +2437,7 @@
   "🔑 Clave de Seguridad Requerida": "🔑 Segurtasun-giltza behar da",
   "🔑 Configure la clave de acceso para Seguridad y Dominios": "🔑 Konfiguratu Segurtasuna eta Domeinuak atzitzeko gakoa",
   "🔑 Contraseña Requerida": "🔑 Pasahitza beharrezkoa da",
-  "🔧  Servicio de Usuario al Inicio de Sesión": "🔧 Erabiltzaile Zerbitzua Saioa hasita",
+  "🔧  Servicio de Usuario al Inicio de Sesión": "🔧 Erabiltzaile-zerbitzua saioa hastean",
   "🗂️  Formato automático por tipo de documento": "🗂️  Formatu automatikoa dokumentu motaren arabera",
   "🗑": "🗑",
   "🛑 Deteniendo backend...": "🛑 Backend-a gelditzen...",
@@ -2466,14 +2466,14 @@
   "Requerido salvo autenticación por certificado. Se envía como Bearer.": "Beharrezkoa, ziurtagiri bidezko autentifikazioa erabiltzen ez bada. Bearer token gisa bidaltzen da.",
   "Personalizar el sello para este PDF": "Pertsonalizatu PDF honen zigilua",
   "Este PDF usa su propia posición y rango de páginas.": "PDF honek bere kokapena eta orrialde-tartea erabiltzen ditu.",
-  "Este PDF usa la plantilla global del lote.": "PDF honek lotearen txantiloi globala erabiltzen du.",
+  "Este PDF usa la plantilla global del lote.": "PDF honek sortaren txantiloi globala erabiltzen du.",
   "Válida y confiable": "Baliozkoa eta fidagarria",
   "No válida": "Ez da baliozkoa",
   "Integridad válida; confianza no evaluada": "Osotasuna baliozkoa; konfiantza ez da ebaluatu",
   "Verificación incompleta": "Egiaztapena osatu gabe",
   "Integridad válida; confianza no evaluada.": "Osotasuna baliozkoa; konfiantza ez da ebaluatu.",
   "Firma completada; integridad válida, confianza no evaluada.": "Sinadura osatu da; osotasuna baliozkoa da, konfiantza ez da ebaluatu.",
-  "Lote firmado. Integridad válida, pero confianza no evaluada en algunos resultados.": "Lotea sinatu da. Osotasuna baliozkoa da, baina emaitza batzuen konfiantza ez da ebaluatu.",
+  "Lote firmado. Integridad válida, pero confianza no evaluada en algunos resultados.": "Sorta sinatu da. Osotasuna baliozkoa da, baina emaitza batzuen konfiantza ez da ebaluatu.",
   "Abrir gestor de certificados": "Ireki ziurtagiri-kudeatzailea",
   "Almacén persistente de destino": "Helburuko biltegi iraunkorra",
   "Certificado temporal cargado solo en memoria para esta sesión.": "Aldi baterako ziurtagiria memorian bakarrik kargatu da saio honetarako.",
@@ -2627,7 +2627,7 @@
   ,"La última versión publicada es %1, pero este build de desarrollo no se puede comparar automáticamente.": "Argitaratutako azken bertsioa %1 da, baina garapen-build hau ezin da automatikoki alderatu."
   ,"GrxFirma está actualizado (%1).": "GrxFirma eguneratuta dago (%1)."
   ,"Avisar de nuevas versiones": "Bertsio berrien berri eman"
-  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "Abiaraztean, azken GitHub Release behin kontsultatzen du. GitHub-era HTTPS konexioa eta GrxFirma identifikatzailea bakarrik bidaltzen ditu; ez du dokumenturik, ziurtagiririk edo sinadura-daturik bidaltzen."
+  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "Abiaraztean, azken GitHub Release behin kontsultatzen du. GitHub-era HTTPS konexioa eta biltegi ofizialaren bidea bakarrik bidaltzen ditu; ez du dokumenturik, ziurtagiririk edo sinadura-daturik bidaltzen."
   ,"Comprobación de versiones finalizada.": "Bertsioen egiaztapena amaitu da."
   ,"La comprobación segura de versiones necesita el motor local IPC. Abra GrxFirma desde el lanzador instalado y vuelva a intentarlo; la firma local no queda bloqueada.": "Bertsioen egiaztapen seguruak tokiko IPC motorra behar du. Ireki GrxFirma instalatutako abiarazletik eta saiatu berriro; tokiko sinadurak erabilgarri jarraitzen du."
   ,"No se puede comprobar la versión porque el servicio de actualizaciones no está configurado. Reinstale GrxFirma desde el repositorio oficial.": "Ezin da bertsioa egiaztatu eguneratze-zerbitzua konfiguratu gabe dagoelako. Berrinstalatu GrxFirma biltegi ofizialetik."
@@ -2703,7 +2703,7 @@
   "Ocultar": "Ezkutatu",
   "Seleccione un certificado": "Hautatu ziurtagiri bat",
   "No dispone de clave utilizable para firmar": "Ez dago sinatzeko gako erabilgarririk",
-  "Seleccione certificados válidos para la cofirma múltiple": "Hautatu ziurtagiri baliodunak sinadura partekatu anitzerako",
+  "Seleccione certificados válidos para la cofirma múltiple": "Hautatu ziurtagiri baliodunak kosinadura anitzerako",
   "No hay certificados propios disponibles.": "Ez dago norberaren ziurtagiririk erabilgarri.",
   "Exportar certificado público": "Esportatu ziurtagiri publikoa",
   "Certificado público DER (*.cer)": "DER ziurtagiri publikoa (*.cer)",
@@ -2745,11 +2745,11 @@
   ,"portal.seal.page": "%1. orria / %2"
   ,"portal.seal.previous_page": "Aurreko orria"
   ,"portal.seal.next_page": "Hurrengo orria"
-  ,"portal.seal.preview_error": "Ezin izan da PDFa erakutsi. Erabili «Doikuntza zehatza» edo «Sinatu zigilu ikusgarririk gabe»."
-  ,"portal.seal.preview_failed": "Ezin izan da PDFa erakutsi, eta ezin da zigilua kokatu. «Sinatu zigilu ikusgarririk gabe» edo «Utzi» aukera dezakezu."
+  ,"portal.seal.preview_error": "Ezin izan da PDFa erakutsi. Erabili «Doikuntza zehatza» edo «Sinatu zigilu ikusgairik gabe»."
+  ,"portal.seal.preview_failed": "Ezin izan da PDFa erakutsi, eta ezin da zigilua kokatu. «Sinatu zigilu ikusgairik gabe» edo «Utzi» aukera dezakezu."
   ,"portal.seal.preview_loading": "PDFaren aurrebista kargatzen…"
   ,"portal.seal.sign_here": "Sinatu hemen zigiluarekin"
-  ,"portal.seal.sign_without": "Sinatu zigilu ikusgarririk gabe"
+  ,"portal.seal.sign_without": "Sinatu zigilu ikusgairik gabe"
   ,"portal.seal.cancel": "Utzi"
   ,"portal.seal.style": "Zigiluaren itxura"
   ,"portal.seal.logo": "Erakundearen logotipoa"
@@ -2975,7 +2975,7 @@
   "paridad.lote3.eni.creating": "ENI fitxategia sortzen…",
   "paridad.lote3.invoice.filename": "faktura-txostena",
   "paridad.lote3.eni.filename": "eni-dokumentua",
-  "Huellas": "Hatz-markak",
+  "Huellas": "Hash-ak",
   "Complementos": "Osagarriak",
   "Diagnóstico": "Diagnostikoa",
   "Facturae y FACe": "Facturae, FACe eta Veri*Factu",
@@ -3183,9 +3183,9 @@
   ,"Dominio de autenticación del proxy": "Proxyaren autentifikazio-domeinua"
   ,"Usuario del proxy": "Proxyaren erabiltzailea"
   ,"usuario": "erabiltzailea"
-  ,"Guardar o cambiar credenciales del proxy": "Gorde edo aldatu proxyaren egiaztagiriak"
-  ,"Guardar o cambiar credenciales": "Gorde edo aldatu egiaztagiriak"
-  ,"Quitar credenciales del proxy": "Kendu proxyaren egiaztagiriak"
+  ,"Guardar o cambiar credenciales del proxy": "Gorde edo aldatu proxyaren kredentzialak"
+  ,"Guardar o cambiar credenciales": "Gorde edo aldatu kredentzialak"
+  ,"Quitar credenciales del proxy": "Kendu proxyaren kredentzialak"
   ,"Quitar credenciales": "Kendu egiaztagiriak"
   ,"Recargar configuración": "Birkargatu ezarpenak"
   ,"Guardar configuración": "Gorde ezarpenak"
@@ -3196,16 +3196,16 @@
   ,"Al cerrar la ventana, GrxFirma permanece disponible en la bandeja del sistema.": "Leihoa ixtean, GrxFirmak sistemaren erretiluan erabilgarri jarraitzen du."
   ,"Inicia GrxFirma oculto para este usuario. No aprueba ninguna firma.": "GrxFirma ezkutuan abiarazten du erabiltzaile honentzat. Ez du sinadurarik onartzen."
   ,"Al iniciar, consulta una vez la última GitHub Release. No envía documentos, certificados ni datos de firma.": "Abiatzean, GitHubeko azken argitalpena behin kontsultatzen du. Ez du dokumenturik, ziurtagiririk edo sinadura-daturik bidaltzen."
-  ,"La consulta HTTPS se dirige al repositorio oficial de GitHub. Puede desactivarla; «Comprobar actualizaciones» seguirá disponible en «Acerca de» cuando quiera usarla manualmente.": "HTTPS kontsulta GitHubeko biltegi ofizialera egiten da. Desaktiba dezakezu; «Egiaztatu eguneratzeak» aukera «Honi buruz» atalean erabilgarri egongo da eskuz erabiltzeko."
+  ,"La consulta HTTPS se dirige al repositorio oficial de GitHub. Puede desactivarla; «Comprobar actualizaciones» seguirá disponible en «Acerca de» cuando quiera usarla manualmente.": "HTTPS kontsulta GitHubeko biltegi ofizialera egiten da. Desaktiba dezakezu; «Eguneraketak egiaztatu» aukera «Honi buruz» atalean erabilgarri egongo da eskuz erabiltzeko."
   ,"Muestra u oculta una sección independiente para crear facturas electrónicas y seguir la remisión oficial a FACe.": "Faktura elektronikoak sortzeko eta FACe-ra aurkezteko prozesu ofiziala jarraitzeko atal bereizia erakusten edo ezkutatzen du."
   ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "Lehenespenez desaktibatuta dago. Aktibatzean, «Facturae, FACe eta Veri*Factu» atal bereizi gisa agertuko da; GrxFirmaren ohiko funtzioak ez dira aldatzen."
   ,"La preferencia se conserva, pero la firma WinUI no la usa hasta disponer del editor seguro de sello PDF.": "Hobespena gordetzen da, baina WinUI sinadurak ez du erabiliko PDF zigilua editatzeko tresna segurua egon arte."
   ,"El sello visible solo es compatible con selección automática de formato o PAdES.": "Zigilu ikusgaia formatuaren hautaketa automatikoarekin edo PAdESekin soilik da bateragarria."
-  ,"Las credenciales se administran únicamente mediante el almacén protegido del sistema.": "Egiaztagiriak sistemaren biltegi babestuaren bidez soilik kudeatzen dira."
+  ,"Las credenciales se administran únicamente mediante el almacén protegido del sistema.": "Kredentzialak sistemaren biltegi babestuaren bidez soilik kudeatzen dira."
   ,"Indique una URL, host o patrón por línea.": "Idatzi URL, ostalari edo eredu bat lerro bakoitzean."
   ,"La contraseña se solicita en un diálogo nativo de Windows, se envía una sola vez y nunca aparece en esta pantalla.": "Pasahitza Windowsen jatorrizko elkarrizketa-koadro batean eskatzen da, behin bakarrik bidaltzen da eta ez da inoiz pantaila honetan agertzen."
   ,"Windows abrirá un diálogo nativo que mantiene la contraseña en memoria borrable.": "Windows-ek jatorrizko elkarrizketa-koadro bat irekiko du; pasahitza ezaba daitekeen memorian gordeko du."
-  ,"Solicita confirmación antes de retirar la credencial del almacén protegido.": "Berrespena eskatzen du egiaztagiria biltegi babestutik kendu aurretik."
+  ,"Solicita confirmación antes de retirar la credencial del almacén protegido.": "Berrespena eskatzen du kredentziala biltegi babestutik kendu aurretik."
   ,"Descarta los cambios locales y vuelve a leer las preferencias persistidas.": "Tokiko aldaketak baztertzen ditu eta gordetako hobespenak berriro irakurtzen ditu."
   ,"proxy-corporativo": "proxy-korporatiboa"
   ,"Contenido de certificados": "Ziurtagirien edukia"
@@ -3214,11 +3214,11 @@
   ,"Seleccionar credencial para importar": "Hautatu inportatzeko egiaztagiria"
   ,"Elegir credencial…": "Aukeratu egiaztagiria…"
   ,"DNIe o tarjeta": "NANe edo txartela"
-  ,"Abrir web oficial del DNIe": "Ireki NANe-ren webgune ofiziala"
-  ,"Web oficial del DNIe": "NANe-ren webgune ofiziala"
-  ,"Destino de la credencial": "Egiaztagiriaren helmuga"
+  ,"Abrir web oficial del DNIe": "Ireki DNIe-ren webgune ofiziala"
+  ,"Web oficial del DNIe": "DNIe-ren webgune ofiziala"
+  ,"Destino de la credencial": "Kredentzialaren helmuga"
   ,"Uso y destino": "Erabilera eta helmuga"
-  ,"Cargar o importar credencial": "Kargatu edo inportatu egiaztagiria"
+  ,"Cargar o importar credencial": "Kargatu edo inportatu kredentziala"
   ,"Cargar / importar": "Kargatu / inportatu"
   ,"Caducidad del certificado": "Ziurtagiriaren iraungipena"
   ,"Renovar certificado próximo a caducar en la FNMT": "Laster iraungiko den ziurtagiria FNMTn berritu"
@@ -3238,7 +3238,7 @@
   ,"Retirar todas las credenciales temporales": "Kendu aldi baterako egiaztagiri guztiak"
   ,"Retirar todas las temporales": "Kendu aldi baterako guztiak"
   ,"Operación de certificados en curso": "Ziurtagirien eragiketa abian da"
-  ,"Selecciona una credencial sin copiar su contenido ni su contraseña a controles de texto.": "Egiaztagiri bat hautatzen du, edukia edo pasahitza testu-kontroletara kopiatu gabe."
+  ,"Selecciona una credencial sin copiar su contenido ni su contraseña a controles de texto.": "Kredentzial bat hautatzen du, edukia edo pasahitza testu-kontroletara kopiatu gabe."
   ,"Admite P12, PFX, PEM, CER y CRT hasta 2 MiB.": "2 MiB arteko P12, PFX, PEM, CER eta CRT fitxategiak onartzen ditu."
   ,"La contraseña se solicita en una ventana nativa protegida y se borra al finalizar.": "Pasahitza babestutako jatorrizko leiho batean eskatzen da eta amaitzean ezabatzen da."
   ,"Seleccione un certificado para ver todos sus datos.": "Hautatu ziurtagiri bat haren datu guztiak ikusteko."
@@ -3247,8 +3247,8 @@
   ,"Quita la preferencia guardada sin modificar el resto de la configuración.": "Gordetako hobespena kentzen du, gainerako ezarpenak aldatu gabe."
   ,"Muestra la aptitud y la ficha completa del certificado seleccionado.": "Hautatutako ziurtagiriaren egokitasuna eta fitxa osoa erakusten ditu."
   ,"Abre el gestor que el motor local ha descubierto y autorizado.": "Tokiko motorrak aurkitu eta baimendu duen kudeatzailea irekitzen du."
-  ,"Retira de memoria la credencial temporal seleccionada sin modificar almacenes persistentes.": "Hautatutako aldi baterako egiaztagiria memoriatik kentzen du, biltegi iraunkorrak aldatu gabe."
-  ,"Retira de memoria todas las credenciales cargadas solo para esta sesión.": "Saio honetarako soilik kargatutako egiaztagiri guztiak memoriatik kentzen ditu."
+  ,"Retira de memoria la credencial temporal seleccionada sin modificar almacenes persistentes.": "Hautatutako aldi baterako kredentziala memoriatik kentzen du, biltegi iraunkorrak aldatu gabe."
+  ,"Retira de memoria todas las credenciales cargadas solo para esta sesión.": "Saio honetarako soilik kargatutako kredentzial guztiak memoriatik kentzen ditu."
   ,"Contenido de diagnóstico": "Diagnostikoaren edukia"
   ,"Disponibilidad del asistente": "Laguntzailearen erabilgarritasuna"
   ,"Resultado comprensible": "Emaitza ulergarria"
@@ -3935,14 +3935,14 @@
   ,"Seleccionar documento para firmar": "Hautatu sinatu beharreko dokumentua"
   ,"Examinar…": "Arakatu…"
   ,"Permite seleccionar hasta 128 documentos mediante selección múltiple y una carpeta adicional. El motor conserva los resultados parciales por documento.": "Hautapen anitzaren bidez gehienez 128 dokumentu eta karpeta gehigarri bat hauta daitezke. Motorrak dokumentu bakoitzaren emaitza partzialak gordetzen ditu."
-  ,"Activar firma por lotes": "Aktibatu multzokako sinadura"
+  ,"Activar firma por lotes": "Aktibatu sorta bidezko sinadura"
   ,"Firma por lotes": "Multzokako sinadura"
-  ,"El lote usa un único certificado, operación, formato y perfil. El sello visible se desactiva porque exige previsualización individual.": "Multzoak ziurtagiri, eragiketa, formatu eta profil bakarra erabiltzen ditu. Zigilu ikusgaia desgaituta dago, banakako aurrebista behar duelako."
-  ,"Añadir documentos al lote": "Gehitu dokumentuak multzora"
+  ,"El lote usa un único certificado, operación, formato y perfil. El sello visible se desactiva porque exige previsualización individual.": "Sortak ziurtagiri, eragiketa, formatu eta profil bakarra erabiltzen ditu. Zigilu ikusgaia desgaituta dago, banakako aurrebista behar duelako."
+  ,"Añadir documentos al lote": "Gehitu dokumentuak sortara"
   ,"Añadir archivos…": "Gehitu fitxategiak…"
-  ,"Añadir carpeta al lote": "Gehitu karpeta bat multzora"
+  ,"Añadir carpeta al lote": "Gehitu karpeta bat sortara"
   ,"Elegir carpeta…": "Aukeratu karpeta…"
-  ,"Vaciar selección del lote": "Hustu multzoko hautapena"
+  ,"Vaciar selección del lote": "Hustu sortaren hautapena"
   ,"Vaciar lote": "Hustu multzoa"
   ,"Carpeta de salida…": "Irteerako karpeta…"
   ,"Operación de firma": "Sinadura-eragiketa"
@@ -4031,15 +4031,15 @@
   ,"Firma el documento mediante el motor local autenticado y el certificado seleccionado.": "Dokumentua sinatzen du autentifikatutako tokiko motorrarekin eta hautatutako ziurtagiriarekin."
   ,"Firmar documento": "Sinatu dokumentua"
   ,"Envía la selección completa a sign_batch y conserva los resultados parciales confirmados por el motor.": "Hautapen osoa sign_batch eragiketara bidaltzen du eta motorrak baieztatutako emaitza partzialak gordetzen ditu."
-  ,"Firmar lote de documentos": "Sinatu dokumentu multzoa"
+  ,"Firmar lote de documentos": "Sinatu dokumentu-sorta"
   ,"Firmar lote": "Sinatu multzoa"
   ,"Cancelar operación de firma": "Utzi sinadura-eragiketa"
   ,"Operación de firma en curso": "Sinadura-eragiketa abian da"
-  ,"Progreso de firma por lotes": "Multzokako sinaduraren aurrerapena"
+  ,"Progreso de firma por lotes": "Sorta bidezko sinaduraren aurrerapena"
   ,"Resultado del lote": "Multzoaren emaitza"
-  ,"Estado de la firma por lotes": "Multzokako sinaduraren egoera"
+  ,"Estado de la firma por lotes": "Sorta bidezko sinaduraren egoera"
   ,"Resultados de firma por documento": "Dokumentukako sinadura-emaitzak"
-  ,"Abrir carpeta de resultados del lote": "Ireki multzoko emaitzen karpeta"
+  ,"Abrir carpeta de resultados del lote": "Ireki sortaren emaitzen karpeta"
   ,"Abrir carpeta de resultados": "Ireki emaitzen karpeta"
   ,"Ocultar panel de certificados": "Ezkutatu ziurtagirien panela"
   ,"Importar certificados": "Inportatu ziurtagiriak"
@@ -4065,28 +4065,28 @@
   ,"Verificación en curso": "Egiaztapena abian da"
   ,"Resultado de verificación": "Egiaztapenaren emaitza"
   ,"Avisos y errores": "Abisuak eta erroreak"
-  ,"Contenido de huellas": "Hatz-marken edukia"
-  ,"Disponibilidad de huellas": "Hatz-marken erabilgarritasuna"
+  ,"Contenido de huellas": "Hash-en edukia"
+  ,"Disponibilidad de huellas": "Hash-en erabilgarritasuna"
   ,"Crear o comprobar": "Sortu edo egiaztatu"
   ,"Usar un fichero": "Erabili fitxategi bat"
   ,"Usar un directorio": "Erabili direktorio bat"
-  ,"Origen para la huella": "Hatz-markaren jatorria"
+  ,"Origen para la huella": "Hash-aren jatorria"
   ,"Ningún origen seleccionado": "Ez da jatorririk hautatu"
-  ,"Seleccionar origen para la huella": "Hautatu hatz-markaren jatorria"
-  ,"Manifiesto de huella": "Hatz-marken manifestua"
-  ,"Huella o manifiesto que se va a comprobar": "Egiaztatuko den hatz-marka edo manifestua"
-  ,"Seleccione una huella o manifiesto": "Hautatu hatz-marka edo manifestu bat"
+  ,"Seleccionar origen para la huella": "Hautatu hash-aren jatorria"
+  ,"Manifiesto de huella": "Hash-manifestua"
+  ,"Huella o manifiesto que se va a comprobar": "Egiaztatuko den hash-a edo manifestua"
+  ,"Seleccione una huella o manifiesto": "Hautatu hash bat edo manifestu bat"
   ,"Los informes .hashreport son salidas de comprobación y no se aceptan como manifiestos.": ".hashreport txostenak egiaztapenaren irteerak dira eta ez dira manifestutzat onartzen."
-  ,"Seleccionar manifiesto de huella": "Hautatu hatz-marken manifestua"
+  ,"Seleccionar manifiesto de huella": "Hautatu hash-manifestua"
   ,"Seleccionar manifiesto…": "Hautatu manifestua…"
-  ,"Algoritmo de huella": "Hatz-markaren algoritmoa"
+  ,"Algoritmo de huella": "Hash-algoritmoa"
   ,"Algoritmo seguro": "Algoritmo segurua"
-  ,"Formato de la huella": "Hatz-markaren formatua"
+  ,"Formato de la huella": "Hash-aren formatua"
   ,"Solo se aplica a directorios.": "Direktorioei soilik aplikatzen zaie."
   ,"Incluir subdirectorios": "Sartu azpidirektorioak"
-  ,"Ejecutar operación de huella": "Exekutatu hatz-markaren eragiketa"
-  ,"Cancelar operación de huella": "Utzi hatz-markaren eragiketa"
-  ,"Operación de huella en curso": "Hatz-markaren eragiketa abian da"
+  ,"Ejecutar operación de huella": "Exekutatu hash-eragiketa"
+  ,"Cancelar operación de huella": "Utzi hash-eragiketa"
+  ,"Operación de huella en curso": "Hash-eragiketa abian da"
   ,"Contenido de protección y desprotección": "Babesaren eta babesa kentzearen edukia"
   ,"Disponibilidad de protección": "Babesaren erabilgarritasuna"
   ,"Proteger documento": "Babestu dokumentua"
@@ -4896,7 +4896,7 @@
   ,"verifactu.qr_read": "QRaren datuak irakurri"
   ,"verifactu.qr_query": "Kontsultatu AEATen"
   ,"verifactu.qr_url": "Helbide hau ez da AEATen QR bat. Kopiatu fakturaren QRaren helbide osoa (https://www2.agenciatributaria.gob.es/ helbidearekin hasten da) edo erabili «Irakurri irudi edo PDF batetik»."
-  ,"verifactu.qr_params": "QRari datuak falta zaizkio edo soberan ditu. Igorlearen IFZa eta fakturaren zenbakia, data eta zenbatekoa eraman behar ditu."
+  ,"verifactu.qr_params": "QRari datuak falta zaizkio edo soberan ditu. Jaulkitzailearen IFZa eta fakturaren zenbakia, data eta zenbatekoa eraman behar ditu."
   ,"verifactu.qr_service": "Ezin izan da AEAT kontsultatu ezarritako denboran edo erantzuna ez da baliozkoa."
   ,"verifactu.qr_nif": "Jaulkitzailearen IFZa"
   ,"verifactu.qr_number": "Zenbakia eta seriea"
@@ -5033,14 +5033,14 @@
   ,"seal.issued_by": "Jaulkitzailea: %s"
   ,"seal.location": "Lekua: %s"
   ,"seal.verify": "Egiaztatu"
-  ,"report.title": "Sinadura elektronikoaren balioztatze-txostena"
+  ,"report.title": "Linux aplikazioak Windowsen berritasunak dakartza: zigiluaren benetako aurrebista, estiloak, QR kodea, orrialdeak eta biraketa librea; ziurtagirien egoera eta iraungipena FNMT berritzearekin; DNIe eta txartelen gida; hartzaile publikoak Babestu atalean; eta berritasunak Honi buruz atalean."
   ,"report.verdict.valid": "SINADURA BALIOZKOA"
   ,"report.verdict.valid_warnings": "SINADURA BALIOZKOA, OHARREKIN"
   ,"report.verdict.invalid": "SINADURA BALIOGABEA"
   ,"report.verdict.intact_unproven": "SINADURA OSORIK · ZIURTAGIRIAREN BALIOZKOTASUNA EZ DA EGIAZTATU"
   ,"report.verdict.unproven": "BALIOZKOTASUNA EZ DA EGIAZTATU"
   ,"report.aspect.integrity": "Dokumentuaren osotasuna"
-  ,"report.aspect.certificate": "Ziurtagiriaren indarraldia eta ezeztapena"
+  ,"report.aspect.certificate": "Ziurtagiriaren indarraldia eta errebokazioa"
   ,"report.aspect.trust": "Jaulkitzailearekiko konfiantza"
   ,"report.status.valid": "Zuzena"
   ,"report.status.invalid": "Okerra"
@@ -5052,7 +5052,7 @@
   ,"report.size_bytes": "%d byte"
   ,"report.section.document": "Egiaztatutako dokumentua"
   ,"report.field.name": "Izena"
-  ,"report.field.hash": "SHA-256 hatz-marka"
+  ,"report.field.hash": "SHA-256 hash-a"
   ,"report.field.size": "Tamaina"
   ,"report.field.format": "Sinadura-formatua"
   ,"report.field.coverage": "Estaldura"
@@ -5065,7 +5065,7 @@
   ,"report.section.warnings": "Oharrak"
   ,"report.section.evidence": "Ebidentziak"
   ,"report.section.details": "Xehetasun teknikoak"
-  ,"report.footer": "%s aplikazioak sortua. Txosten honek adierazitako datan egindako tokiko egiaztapenaren emaitza deskribatzen du; SHA-256 hatz-markak egiaztatutako fitxategi zehatza identifikatzen du. Ez du balioztatze-zerbitzu kualifikatu bat ordezten."
+  ,"report.footer": "%s aplikazioak sortua. Txosten honek adierazitako datan egindako tokiko egiaztapenaren emaitza deskribatzen du; SHA-256 hash-ak egiaztatutako fitxategi zehatza identifikatzen du. Ez du balioztatze-zerbitzu kualifikatu bat ordezten."
   ,"firma CAdES válida": "CAdES sinadura baliozkoa"
   ,"firma XAdES valida": "XAdES sinadura baliozkoa"
   ,"firma XMLdSig valida": "XMLdSig sinadura baliozkoa"
@@ -5252,7 +5252,7 @@
   ,"winui.comun.cancelar": "Utzi"
   ,"winui.comun.el_motor_confirmo_la_consulta_pero_no": "Motorrak kontsulta baieztatu du, baina ez du baliozko katalogorik itzuli."
   ,"winui.comun.la_contrasena_supera_el_limite_de": "Pasahitzak baimendutako segurtasun-muga gainditzen du."
-  ,"winui.comun.el_motor_no_confirmo_una_credencial": "Motorrak ez du aldi baterako egiaztagiri erabilgarririk baieztatu."
+  ,"winui.comun.el_motor_no_confirmo_una_credencial": "Motorrak ez du aldi baterako kredentzial erabilgarririk baieztatu."
   ,"winui.comun.sin_resultado": "Emaitzarik gabe"
   ,"winui.comun.automatico": "Automatikoa"
   ,"winui.comun.odf": "ODF"
@@ -5260,9 +5260,9 @@
   ,"winui.comun.facturae": "FacturaE"
   ,"winui.comun.asic_xades": "ASiC-XAdES"
   ,"winui.firmar.muestra_orientativa_de_posicion_y_giro": "Kokapenaren eta biraketaren gutxi gorabeherako irudia. Behin betiko zigilua ziurtagiriarekin sortzen da; berrikusi sinatutako PDFan."
-  ,"winui.firmar.no_se_han_seleccionado_documentos_para": "Ez da multzorako dokumenturik hautatu."
+  ,"winui.firmar.no_se_han_seleccionado_documentos_para": "Ez da sortarako dokumenturik hautatu."
   ,"winui.firmar.no_se_ha_seleccionado_una_carpeta_de": "Ez da irteerako karpetarik hautatu."
-  ,"winui.firmar.el_lote_aun_no_se_ha_ejecutado": "Multzoa oraindik ez da exekutatu."
+  ,"winui.firmar.el_lote_aun_no_se_ha_ejecutado": "Sorta oraindik ez da exekutatu."
   ,"winui.firmar.no_se_ha_ejecutado_ninguna_firma": "Oraindik ez da sinadurarik egin."
   ,"winui.firmar.seleccione_un_documento_y_un_certificado": "Hautatu dokumentu eta ziurtagiri bat sinatzeko."
   ,"winui.firmar.seleccione_un_documento_compatible_y_un": "Hautatu dokumentu bateragarri bat eta ziurtagiri nagusi bat."
@@ -5328,40 +5328,40 @@
   ,"winui.firmar.espere_a_que_termine_la_operacion_actual_4": "Itxaron uneko eragiketa amaitu arte beste dokumentu bat hautatu aurretik."
   ,"winui.firmar.no_se_selecciono_ningun_documento_la": "Ez da dokumenturik hautatu. Sinadura ez da hasi."
   ,"winui.firmar.la_seleccion_del_documento_se_cancelo_no": "Dokumentuaren hautapena bertan behera geratu da; ez da sinadurarik hasi."
-  ,"winui.firmar.espere_a_que_termine_la_operacion_actual_5": "Itxaron uneko eragiketa amaitu arte multzoa aldatu aurretik."
-  ,"winui.firmar.no_se_anadieron_documentos_al_lote": "Ez da dokumenturik gehitu multzora."
+  ,"winui.firmar.espere_a_que_termine_la_operacion_actual_5": "Itxaron uneko eragiketa amaitu arte sorta aldatu aurretik."
+  ,"winui.firmar.no_se_anadieron_documentos_al_lote": "Ez da dokumenturik gehitu sortara."
   ,"winui.firmar.documento_s_preparados_seleccione_la": "{0} dokumentu prest. Hautatu irteerako karpeta."
-  ,"winui.firmar.la_seleccion_de_documentos_para_el_lote": "Multzoko dokumentuen hautapena bertan behera geratu da."
-  ,"winui.firmar.no_se_pudo_completar_la_seleccion_de": "Ezin izan da multzoko dokumentuen hautapena osatu."
-  ,"winui.firmar.no_se_anadio_ninguna_carpeta_al_lote": "Ez da karpetarik gehitu multzora."
+  ,"winui.firmar.la_seleccion_de_documentos_para_el_lote": "Sortako dokumentuen hautapena bertan behera geratu da."
+  ,"winui.firmar.no_se_pudo_completar_la_seleccion_de": "Ezin izan da sortako dokumentuen hautapena osatu."
+  ,"winui.firmar.no_se_anadio_ninguna_carpeta_al_lote": "Ez da karpetarik gehitu sortara."
   ,"winui.firmar.documento_s_preparados_incluidos_los": "{0} dokumentu prest, hautatutako karpetako fitxategiak barne."
-  ,"winui.firmar.la_seleccion_de_la_carpeta_del_lote_se": "Multzoko karpetaren hautapena bertan behera geratu da."
-  ,"winui.firmar.no_se_pudo_leer_la_carpeta_seleccionada": "Ezin izan da multzorako hautatutako karpeta irakurri."
+  ,"winui.firmar.la_seleccion_de_la_carpeta_del_lote_se": "Sortako karpetaren hautapena bertan behera geratu da."
+  ,"winui.firmar.no_se_pudo_leer_la_carpeta_seleccionada": "Ezin izan da sortarako hautatutako karpeta irakurri."
   ,"winui.firmar.espere_a_que_termine_la_operacion_actual_6": "Itxaron uneko eragiketa amaitu arte irteera aldatu aurretik."
-  ,"winui.firmar.no_se_cambio_la_carpeta_de_salida_del": "Multzoko irteerako karpeta ez da aldatu."
+  ,"winui.firmar.no_se_cambio_la_carpeta_de_salida_del": "Sortako irteerako karpeta ez da aldatu."
   ,"winui.firmar.la_carpeta_de_salida_seleccionada_ya_no": "Hautatutako irteerako karpeta ez dago erabilgarri."
   ,"winui.firmar.salida": "Irteera: {0}"
   ,"winui.firmar.la_seleccion_de_la_carpeta_de_salida_se": "Irteerako karpetaren hautapena bertan behera geratu da."
-  ,"winui.firmar.no_se_pudo_seleccionar_la_carpeta_de": "Ezin izan da multzoko irteerako karpeta hautatu."
-  ,"winui.firmar.ya_hay_una_operacion_en_curso_espere_o": "Eragiketa bat abian da dagoeneko. Itxaron edo utzi bertan behera multzoa hasi aurretik."
+  ,"winui.firmar.no_se_pudo_seleccionar_la_carpeta_de": "Ezin izan da sortako irteerako karpeta hautatu."
+  ,"winui.firmar.ya_hay_una_operacion_en_curso_espere_o": "Eragiketa bat abian da dagoeneko. Itxaron edo utzi bertan behera sorta hasi aurretik."
   ,"winui.firmar.el_motor_local_no_ofrece_la_operacion": "Tokiko motorrak ez du sign_batch eragiketa eskaintzen."
-  ,"winui.firmar.la_seleccion_del_lote_cambio_seleccione": "Multzoko hautapena aldatu da. Hautatu berriro dokumentuak."
-  ,"winui.firmar.la_carpeta_de_salida_del_lote_ya_no_esta": "Multzoko irteerako karpeta ez dago erabilgarri."
+  ,"winui.firmar.la_seleccion_del_lote_cambio_seleccione": "Sortako hautapena aldatu da. Hautatu berriro dokumentuak."
+  ,"winui.firmar.la_carpeta_de_salida_del_lote_ya_no_esta": "Sortako irteerako karpeta ez dago erabilgarri."
   ,"winui.firmar.dos_documentos_generarian_la_misma": "Bi dokumentuk irteera bera sortuko lukete ({0}). Aldatu hautapena gainidazketak saihesteko."
   ,"winui.firmar.en_espera": "Zain"
   ,"winui.firmar.pendiente_de_respuesta_del_motor_local": "Tokiko motorraren erantzunaren zain."
   ,"winui.firmar.firmando_lote_de_documento_s": "Sorta sinatzen. Dokumentuak: {0}…"
-  ,"winui.firmar.el_lote_esta_en_curso_puede_cancelarlo": "Multzoa abian da. Bertan behera utz daiteke; emaitza partzialak motorrak erantzun ondoren bakarrik baieztatuko dira."
-  ,"winui.firmar.el_motor_no_confirmo_la_ejecucion_del": "Motorrak ez du multzoaren exekuzioa baieztatu."
-  ,"winui.firmar.el_lote_no_se_completo_abra_el": "Multzoa ez da osatu. Ireki diagnostikoa hutsegitea non gertatu den jakiteko."
+  ,"winui.firmar.el_lote_esta_en_curso_puede_cancelarlo": "Sorta abian da. Bertan behera utz daiteke; emaitza partzialak motorrak erantzun ondoren bakarrik baieztatuko dira."
+  ,"winui.firmar.el_motor_no_confirmo_la_ejecucion_del": "Motorrak ez du sortaren exekuzioa baieztatu."
+  ,"winui.firmar.el_lote_no_se_completo_abra_el": "Sorta ez da osatu. Ireki diagnostikoa hutsegitea non gertatu den jakiteko."
   ,"winui.firmar.el_motor_no_devolvio_resultados_por": "Motorrak ez du dokumentukako emaitzarik itzuli."
-  ,"winui.firmar.el_motor_confirmo_la_peticion_pero_no": "Motorrak eskaera baieztatu du, baina ez du baliozko multzo-emaitzarik itzuli."
+  ,"winui.firmar.el_motor_confirmo_la_peticion_pero_no": "Motorrak eskaera baieztatu du, baina ez du baliozko sorta-emaitzarik itzuli."
   ,"winui.firmar.lote_finalizado_correcto_s_fallido_s": "Sorta amaituta. Zuzenak: {0}. Errorearekin: {1}."
   ,"winui.firmar.todos_los_documentos_tienen_una_salida": "Dokumentu guztiek motorrak baieztatutako irteera ez-huts bat dute."
-  ,"winui.firmar.el_lote_termino_con_incidencias_revise": "Multzoa gorabeherekin amaitu da. Berrikusi dokumentu bakoitza eta diagnostikoa jarraitu aurretik."
-  ,"winui.firmar.el_lote_se_cancelo_solo_se_consideran": "Multzoa bertan behera utzi da. Zerrendan baieztatutako irteerak bakarrik dira baliozkoak."
-  ,"winui.firmar.fallo_la_comunicacion_segura_durante_la": "Komunikazio seguruak huts egin du multzokako sinaduran."
-  ,"winui.firmar.la_aplicacion_no_pudo_completar_la_firma": "Aplikazioak ezin izan du multzokako sinadura osatu."
+  ,"winui.firmar.el_lote_termino_con_incidencias_revise": "Sorta gorabeherekin amaitu da. Berrikusi dokumentu bakoitza eta diagnostikoa jarraitu aurretik."
+  ,"winui.firmar.el_lote_se_cancelo_solo_se_consideran": "Sorta bertan behera utzi da. Zerrendan baieztatutako irteerak bakarrik dira baliozkoak."
+  ,"winui.firmar.fallo_la_comunicacion_segura_durante_la": "Komunikazio seguruak huts egin du sorta bidezko sinaduran."
+  ,"winui.firmar.la_aplicacion_no_pudo_completar_la_firma": "Aplikazioak ezin izan du sorta bidezko sinadura osatu."
   ,"winui.firmar.ha_elegido_ultima_pagina_el_documento": " «Azken orria» hautatu duzu: dokumentuak {0} orri ditu eta zigilua {1}. orrian jarriko da."
   ,"winui.firmar.corrija_la_seleccion_del_pdf_o_de": "Zuzendu PDFaren edo orrien hautapena eta kargatu berriro aurrebista."
   ,"winui.firmar.ya_hay_otra_operacion_en_curso_espere_o": "Beste eragiketa bat abian da. Itxaron edo utzi bertan behera aurrebista kargatu aurretik."
@@ -5448,19 +5448,19 @@
   ,"winui.firmar.la_cofirma_multiple_guiada_no_admite": "Gidatutako kosinadura anizkoitzak ez du kontrasinadura onartzen."
   ,"winui.firmar.la_cofirma_multiple_guiada_solo_esta": "Gidatutako kosinadura anizkoitza PAdES, ODF edo OOXML formatuetarako soilik dago erabilgarri."
   ,"winui.firmar.seleccione_al_menos_un_certificado": "Hautatu sinatzaile nagusiarenaz bestelako ziurtagiri gehigarri bat gutxienez."
-  ,"winui.firmar.no_se_puede_firmar_el_lote_porque_el": "Ezin da multzoa sinatu, tokiko motorra ez dagoelako konektatuta."
-  ,"winui.firmar.active_la_firma_por_lotes_y_compruebe": "Aktibatu multzokako sinadura eta egiaztatu motorrak sign_batch eskaintzen duela."
-  ,"winui.firmar.seleccione_varios_documentos_o_una": "Hautatu hainbat dokumentu edo karpeta bat multzorako."
-  ,"winui.firmar.el_lote_admite_como_maximo_documentos": "Multzoak gehienez {0} dokumentu onartzen ditu."
-  ,"winui.firmar.seleccione_una_carpeta_de_salida_valida": "Hautatu baliozko irteerako karpeta bat multzorako."
-  ,"winui.firmar.seleccione_un_certificado_apto_para_2": "Hautatu multzoa sinatzeko ziurtagiri egoki bat."
-  ,"winui.firmar.seleccione_la_operacion_de_firma_del": "Hautatu multzoko sinadura-eragiketa."
-  ,"winui.firmar.seleccione_el_formato_de_firma_del_lote": "Hautatu multzoko sinadura-formatua."
-  ,"winui.firmar.seleccione_el_perfil_de_firma_del_lote": "Hautatu multzoko sinadura-profila."
-  ,"winui.firmar.el_sello_visible_requiere": "Zigilu ikusgaiak dokumentu bakoitzaren aurrebista behar du, eta ez dago gaituta multzorako."
-  ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma_2": "Tokiko motorrak ez du multzoak erabiltzen duen kosinadura anizkoitza eskaintzen."
-  ,"winui.firmar.seleccione_al_menos_un_certificado_2": "Hautatu ziurtagiri gehigarri bat gutxienez multzoko kosinadura anizkoitzerako."
-  ,"winui.firmar.la_cofirma_multiple_del_lote_solo_admite": "Multzoko kosinadura anizkoitzak berariaz hautatutako PAdES, ODF edo OOXML soilik onartzen ditu."
+  ,"winui.firmar.no_se_puede_firmar_el_lote_porque_el": "Ezin da sorta sinatu, tokiko motorra ez dagoelako konektatuta."
+  ,"winui.firmar.active_la_firma_por_lotes_y_compruebe": "Aktibatu sorta bidezko sinadura eta egiaztatu motorrak sign_batch eskaintzen duela."
+  ,"winui.firmar.seleccione_varios_documentos_o_una": "Hautatu hainbat dokumentu edo karpeta bat sortarako."
+  ,"winui.firmar.el_lote_admite_como_maximo_documentos": "Sortak gehienez {0} dokumentu onartzen ditu."
+  ,"winui.firmar.seleccione_una_carpeta_de_salida_valida": "Hautatu baliozko irteerako karpeta bat sortarako."
+  ,"winui.firmar.seleccione_un_certificado_apto_para_2": "Hautatu sorta sinatzeko ziurtagiri egoki bat."
+  ,"winui.firmar.seleccione_la_operacion_de_firma_del": "Hautatu sortako sinadura-eragiketa."
+  ,"winui.firmar.seleccione_el_formato_de_firma_del_lote": "Hautatu sortako sinadura-formatua."
+  ,"winui.firmar.seleccione_el_perfil_de_firma_del_lote": "Hautatu sortako sinadura-profila."
+  ,"winui.firmar.el_sello_visible_requiere": "Zigilu ikusgaiak dokumentu bakoitzaren aurrebista behar du, eta ez dago gaituta sortarako."
+  ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma_2": "Tokiko motorrak ez du sortak erabiltzen duen kosinadura anizkoitza eskaintzen."
+  ,"winui.firmar.seleccione_al_menos_un_certificado_2": "Hautatu ziurtagiri gehigarri bat gutxienez sortako kosinadura anizkoitzerako."
+  ,"winui.firmar.la_cofirma_multiple_del_lote_solo_admite": "Sortako kosinadura anizkoitzak berariaz hautatutako PAdES, ODF edo OOXML soilik onartzen ditu."
   ,"winui.firmar.active_primero_el_sello_visible": "Aktibatu lehenik zigilu ikusgaia."
   ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "Zigilu ikusgaiak PDF bat, PAdES edo Automatikoa formatua eta pdf_preview eskaintzen duen motor bat behar ditu."
   ,"winui.firmar.el_pdf_seleccionado_ya_no_esta": "Hautatutako PDFa ez dago erabilgarri. Hautatu berriro."
@@ -5468,11 +5468,11 @@
   ,"winui.firmar.la_previsualizacion_no_corresponde_al": "Zigiluaren aurrebista ez dator bat uneko PDFarekin eta orriarekin. Sakatu «Kargatu aurrebista» «Aukera aurreratuak» atalean sinatu aurretik."
   ,"winui.firmar.indique_un_giro_entre_0_y_359_grados": "Adierazi 0 eta 359 gradu arteko biraketa."
   ,"winui.firmar.conecte_el_motor_local_para_habilitar_la": "Konektatu tokiko motorra sinadura gaitzeko."
-  ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Gehitu hainbat dokumentu edo karpeta bat multzora."
-  ,"winui.firmar.seleccione_la_carpeta_donde_se_guardaran": "Hautatu multzoko sinadurak gordetzeko karpeta."
-  ,"winui.firmar.seleccione_el_certificado_que_se": "Hautatu multzo osoari aplikatuko zaion ziurtagiria."
+  ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Gehitu hainbat dokumentu edo karpeta bat sortara."
+  ,"winui.firmar.seleccione_la_carpeta_donde_se_guardaran": "Hautatu sortako sinadurak gordetzeko karpeta."
+  ,"winui.firmar.seleccione_el_certificado_que_se": "Hautatu sorta osoari aplikatuko zaion ziurtagiria."
   ,"winui.firmar.no_valido_para_firmar": "Ez da baliozkoa sinatzeko. {0}"
-  ,"winui.firmar.documento_s_certificado_y_salida": "{0} dokumentu, ziurtagiria eta irteera prest daude multzokako sinadurarako."
+  ,"winui.firmar.documento_s_certificado_y_salida": "{0} dokumentu, ziurtagiria eta irteera prest daude sorta bidezko sinadurarako."
   ,"winui.firmar.no_hay_certificados_aptos_para_firma_en": "Biltegian ez dago sinatzeko ziurtagiri egokirik."
   ,"winui.firmar.seleccione_al_menos_un_certificado_3": "Hautatu ziurtagiri gehigarri bat gutxienez gidatutako kosinadura anizkoitzerako."
   ,"winui.firmar.documento_y_firmantes_preparados_para_la": "Dokumentua eta sinatzaileak prest daude gidatutako kosinadura anizkoitzerako."

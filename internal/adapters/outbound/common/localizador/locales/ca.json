@@ -83,11 +83,11 @@
   "Registro de auditoría": "Registre d'auditoria",
   "Registro de auditoría íntegro: %d registros.": "Registre d'auditoria íntegre: %d registres.",
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Els registres més antics es van retirar per la política de retenció; la cadena es comprova des del primer conservat.",
-  "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d registres són anteriors a la cadena d'empremtes i no es poden comprovar.",
+  "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d registres són anteriors a la cadena de resums (hash) i no es poden comprovar.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Comprova la cadena d'empremtes del registre d'auditoria: detecta registres alterats, inserits o esborrats. Per acreditar també que no s'ha retallat el final, signa el fitxer amb el teu certificat en lliurar-lo.",
+  "cli.help.audit": "Comprova la cadena de resums (hash) del registre d'auditoria: detecta registres alterats, inserits o esborrats. Per acreditar també que no s'ha retallat el final, signa el fitxer amb el teu certificat en lliurar-lo.",
   "cli.help.report_usage": "-informe <informe.html>",
-  "cli.help.report": "Amb la verificació, desa un informe de validació en HTML imprimible amb el veredicte, les comprovacions, els signants i l'empremta SHA-256 del fitxer verificat.",
+  "cli.help.report": "Amb la verificació, desa un informe de validació en HTML imprimible amb el veredicte, les comprovacions, els signants i el resum SHA-256 del fitxer verificat.",
   "Informe de validación": "Informe de validació",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Llegeix sense eco la contrasenya d'un PDF xifrat (d'usuari o de propietari) per signar-lo conservant-ne el xifratge. També s'admet la variable GRXFIRMA_PDF_PASSWORD, que s'esborra en llegir-la; mai no s'accepta com a argument.",
@@ -105,8 +105,8 @@
   "cli.help.facturae_check": "Revisa una factura FacturaE, UBL o CII: totals (regles EN 16931 en UBL i CII), impostos, NIF/NIE/CIF i centres DIR3 que exigeix FACe.",
   "cli.help.facturae_check_exit": "Retorna 0 si no hi ha errors i 1 si FACe o el receptor rebutjarien la factura.",
   "cli.help.summary": "Resum d’opcions:",
-  "cli.help.title": "Mode CLI d’grxfirma",
-  "El perfil compat requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "El perfil compat requereix una identitat RSA amb clau privada capaç de desxifrar, per exemple un P12/PFX autoritzat. Els certificats opacs del sistema continuen disponibles per signar; carregueu un P12/PFX apte o useu el perfil alt.",
+  "cli.help.title": "Mode CLI de grxfirma",
+  "El perfil compat requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "El perfil compat requereix una identitat RSA amb clau privada desxifrable, per exemple un P12/PFX autoritzat. Els certificats opacs del magatzem del sistema continuen disponibles per signar; carregueu un P12/PFX apte o useu el perfil alt.",
   "No hay identidades para el perfil compat. Requiere una clave RSA descifrable, por ejemplo desde un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "No hi ha identitats per al perfil compat. Requereix una clau RSA capaç de desxifrar, per exemple d’un P12/PFX autoritzat. Els certificats opacs del sistema continuen disponibles per signar; carregueu un P12/PFX apte o useu el perfil alt.",
   "Perfil de protección/cifrado. compat exige una identidad RSA cuya clave privada pueda desproteger, por ejemplo un P12/PFX autorizado.": "Perfil de protecció/xifratge. compat exigeix una identitat RSA amb una clau privada capaç de desxifrar, per exemple un P12/PFX autoritzat.",
   "Los certificados opacos del almacén del sistema siguen disponibles para firmar, pero no se anuncian para cifrado compat; carga un P12/PFX apto o usa alto.": "Els certificats opacs del magatzem del sistema continuen disponibles per signar, però no s’anuncien per al xifratge compat; carregueu un P12/PFX apte o useu alt.",
@@ -173,8 +173,8 @@
   "+ CERTIFICADOS": "+ CERTIFICATS",
   "+%1 más": "+%1 més",
   ",": ",",
-  "--- INICIO DE LOGS ---\n": "--- INICIO DE LOGS ---\n",
-  "--- INICIO DE LOGS ---\\n": "--- INICI DE LOGS ---\\n",
+  "--- INICIO DE LOGS ---\n": "--- INICI DE LOGS ---\n",
+  "--- INICIO DE LOGS ---\\n": "--- INICI DE LOGS ---\n",
   "--- LOGS REINICIADOS [": "--- LOGS REINICIATS [",
   "/ruta/al/documento.afp o .enveloped": "/ruta/al/document.afp o .enveloped",
   "/ruta/al/documento.bin": "/ruta/al/document.bin",
@@ -244,11 +244,11 @@
   "Ajustes guardados": "Ajustos desats",
   "Ajustes guardados correctamente": "Ajustos desats correctament",
   "Ajustes guardados.": "Ajustos desats.",
-  "Al desactivar la cofirma múltiple guiada se restaurarán tus preferencias previas de salida.": "En desactivar la cofirma múltiple guiada es restauraran les preferències d’eixida anteriors.",
-  "Al iniciar, selecciona automáticamente el último certificado usado para firmar.": "En iniciar, seleccioneu automàticament l'últim certificat utilitzat per signar.",
+  "Al desactivar la cofirma múltiple guiada se restaurarán tus preferencias previas de salida.": "En desactivar la cosignatura múltiple guiada es restauraran les preferències d’eixida anteriors.",
+  "Al iniciar, selecciona automáticamente el último certificado usado para firmar.": "En iniciar, selecciona automàticament l'últim certificat utilitzat per signar.",
   "Algoritmo": "Algorisme",
-  "Algoritmo de huella por defecto": "Algorisme d'empremta per defecte",
-  "Algoritmo en auto-detección desde la huella o el manifiesto.": "Algoritme en autodetecció des de l’empremta o el manifest.",
+  "Algoritmo de huella por defecto": "Algorisme de resum per defecte",
+  "Algoritmo en auto-detección desde la huella o el manifiesto.": "Algoritme en autodetecció des del resum o el manifest.",
   "Algoritmo forzado para la comprobación: ": "Algoritme forçat per a la comprovació: ",
   "Almacen seguro de proxy": "Magatzem segur del proxy",
   "Almacén TLS limpiado.": "Magatzem TLS netejat.",
@@ -287,7 +287,7 @@
   "Arrastra o selecciona un PDF": "Arrossegueu o seleccioneu un PDF",
   "Arrastra un archivo firmado para verificar": "Arrossega un fitxer signat per verificar",
   "Artefacto a verificar": "Artefacte a verificar",
-  "Artefacto de huella esperado: ": "Artefacte d’empremta esperat: ",
+  "Artefacto de huella esperado: ": "Artefacte de resum esperat: ",
   "Artefacto esperado": "Artefacte esperat",
   "Artefacto firmado y original preparados para validación avanzada.": "Artefacte signat i original preparats per a validació avançada.",
   "Artefacto protegido esperado: ": "Artefacte protegit esperat: ",
@@ -321,7 +321,7 @@
   "Avisos:": "Advertiments:",
   "Ayuda": "Ajuda",
   "Ayuda paso a paso para la operación actual": "Ajuda pas a pas per a l'operació actual",
-  "Añade al menos un cofirmante adicional para completar la cofirma múltiple guiada.": "Afig almenys un cofirmant addicional per a completar la cofirma múltiple guiada.",
+  "Añade al menos un cofirmante adicional para completar la cofirma múltiple guiada.": "Afig almenys un cosignant addicional per a completar la cosignatura múltiple guiada.",
   "Añade el original solo si la firma es detached o la validación lo pide.": "Afig l'original només si la signatura és detached o la validació ho demana.",
   "Añadiendo nuevo dominio a la lista...": "Afegint nou domini a la llista...",
   "Añadir Dominio": "Afegir Domini",
@@ -404,7 +404,7 @@
   "Certificado importado correctamente.": "Certificat importat correctament.",
   "Certificado importado.": "Certificat importat.",
   "Certificado local": "Certificat local",
-  "Certificado o dispositivo de firma": "Certificat o dispositiu de firma",
+  "Certificado o dispositivo de firma": "Certificat o dispositiu de signatura",
   "Certificado operativo": "Certificat operatiu",
   "Certificado para proteger firmando: %1": "Certificat per a protegir signant: %1",
   "Certificado preparado": "Certificat preparat",
@@ -462,7 +462,7 @@
   "Compatibilidad de validación no evaluable sin ambos artefactos.": "La compatibilitat de validació no es pot avaluar sense tots dos artefactes.",
   "Compatibilidad estricta": "Compatibilitat estricta",
   "Comprobación de directorio finalizada.": "Comprovació del directori finalitzada.",
-  "Comprobación de huella finalizada.": "Comprovació de l'empremta finalitzada.",
+  "Comprobación de huella finalizada.": "Comprovació del resum finalitzada.",
   "Comprobación online del certificado": "Comprovació en línia del certificat",
   "Comprobación online del certificado finalizada.": "Comprovació en línia del certificat finalitzada.",
   "Comprobado: ": "Comprovat: ",
@@ -471,7 +471,7 @@
   "Comprobando si el documento ya estaba firmado...": "S'està comprovant si el document ja estava signat...",
   "Comprobando...": "Comprovant...",
   "Comprobar Certs": "Comprovar Certs",
-  "Comprobar huella": "Comprovar empremta",
+  "Comprobar huella": "Comprovar resum",
   "Comprobar revocación online": "Comprovar la revocació en línia",
   "Comprueba advertencias de confianza, integridad o certificado.": "Comprova els avisos de confiança, integritat o certificat.",
   "Comprueba si falta el original o si aparece algún aviso sobre confianza o certificado.": "Comproveu si falta l'original o si apareix algun avís sobre confiança o certificat.",
@@ -534,17 +534,17 @@
   "Copiar JSON del certificado": "Copiar JSON del certificat",
   "Copiar diagnóstico": "Copiar diagnòstic",
   "Copiar huella": "Copiar empremta",
-  "Copiar huella al portapapeles por defecto": "Copia l'empremta al porta-retalls per defecte",
+  "Copiar huella al portapapeles por defecto": "Copia el resum al porta-retalls per defecte",
   "Copiar informe": "Copiar l'informe",
   "Copiar resumen": "Copiar resum",
   "Copiar resumen de validación": "Copiar el resum de validació",
   "Copiar resumen para soporte": "Copiar el resum per a suport",
   "Corporativo": "Corporatiu",
   "Corregido en: %1": "Corregit a: %1",
-  "Crea o comprueba huellas de ficheros y manifiestos de directorio.": "Crea o comprova empremtes de fitxers i manifests de directori.",
+  "Crea o comprueba huellas de ficheros y manifiestos de directorio.": "Crea o comprova resums de fitxers i manifests de directori.",
   "Crear clave de acceso": "Crear clau d'accés",
   "Crear clave de seguridad": "Crear la clau de seguretat",
-  "Crear huella": "Crear empremta",
+  "Crear huella": "Crear resum",
   "Cristal Oscuro": "Cristall fosc",
   "Cuando llegue la petición, se mostrará el selector de documento o de certificado como en V1.": "Quan arribe la petició, es mostrarà el selector de document o de certificat com a la V1.",
   "Código estable: %1": "Codi estable: %1",
@@ -557,15 +557,15 @@
   "Debe cargar un archivo PDF y seleccionar un certificado para poder firmar.": "Heu de carregar un fitxer PDF i seleccionar un certificat per poder signar.",
   "Debe cargar uno o varios documentos antes de realizar la firma.": "Heu de carregar un o més documents abans de fer la signatura.",
   "Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.": "Heu de carregar un o més documents i seleccionar un certificat per poder signar.",
-  "Debe definir un firmante principal válido para la cofirma múltiple guiada.": "Heu de definir un signant principal vàlid per a la cofirma múltiple guiada.",
+  "Debe definir un firmante principal válido para la cofirma múltiple guiada.": "Heu de definir un signant principal vàlid per a la cosignatura múltiple guiada.",
   "Debe indicar el certificado a comprobar.": "Cal indicar el certificat que s'ha de comprovar.",
   "Debe indicar el certificado que quiere comprobar.": "Cal indicar el certificat que voleu comprovar.",
   "Debe indicar un dominio u origen para añadirlo.": "Cal indicar un domini o origen per afegir-lo.",
-  "Debe seleccionar al menos un certificado adicional para la cofirma múltiple guiada.": "Heu de seleccionar almenys un certificat addicional per a la cofirma múltiple guiada.",
+  "Debe seleccionar al menos un certificado adicional para la cofirma múltiple guiada.": "Heu de seleccionar almenys un certificat addicional per a la cosignatura múltiple guiada.",
   "Debe seleccionar un certificado de la lista para poder firmar el documento.": "Heu de seleccionar un certificat de la llista per poder signar el document.",
-  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Defineix l'algorisme preseleccionat per crear i comprovar empremtes digitals.",
+  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Defineix l'algorisme preseleccionat per crear i comprovar resums.",
   "Define el comportamiento por defecto cuando el archivo de salida ya existe.": "Defineix el comportament per defecte quan el fitxer de sortida ja existeix.",
-  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Defineix el format preseleccionat en crear o comprovar empremtes de fitxers.",
+  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Defineix el format preseleccionat en crear o comprovar resums de fitxers.",
   "Define el formato preseleccionado al crear o comprobar manifiestos de directorio.": "Defineix el format preseleccionat en crear o comprovar manifestos de directori.",
   "Define el motivo preseleccionado que se incrustará en la firma cuando proceda.": "Defineix el motiu preseleccionat que s'incrustarà a la signatura quan escaigui.",
   "Define el papel preseleccionado del firmante al generar firmas FacturaE.": "Defineix el paper preseleccionat del signant en generar signatures FacturaE.",
@@ -679,14 +679,14 @@
   "El QR se incorporará dentro del sello visible.": "El QR s’incorporarà dins del segell visible.",
   "El almacén seguro de secretos de proxy está disponible para este backend local.": "El magatzem segur de secrets del proxy està disponible per a aquest backend local.",
   "El almacén seguro de secretos de proxy no está listo; el proxy autenticado puede quedar limitado en este equipo.": "El magatzem segur de secrets del proxy no està preparat; el proxy autenticat pot quedar limitat en aquest equip.",
-  "El artefacto de huella coincide con el modo seleccionado.": "L’artefacte d’empremta coincideix amb el mode seleccionat.",
-  "El artefacto de huella parece de ": "L’artefacte d’empremta pareix de ",
+  "El artefacto de huella coincide con el modo seleccionado.": "L’artefacte de resum coincideix amb el mode seleccionat.",
+  "El artefacto de huella parece de ": "L’artefacte de resum pareix de ",
   "El backend no está preparado para comprobar online el certificado.": "El backend no està preparat per comprovar en línia el certificat.",
-  "El backend seguro de proxy esta disponible para este firmador local.": "El backend segur de proxy està disponible per a este firmador local.",
+  "El backend seguro de proxy esta disponible para este firmador local.": "El backend segur de proxy està disponible per a este signador local.",
   "El backend seguro de proxy no esta listo; el proxy autenticado puede quedar limitado en este equipo.": "El backend segur de proxy no està preparat; el proxy autenticat pot quedar limitat en este equip.",
   "El bloque de certificado permite filtrar, autoseleccionar o recordar el firmante activo entre sesiones.": "El bloc de certificat permet filtrar, autoseleccionar o recordar el signant actiu entre sessions.",
   "El certificado actual actuará como firmante principal y los adicionales se encadenarán sobre el mismo artefacto.": "El certificat actual actuarà com a signant principal i els addicionals s'encadenaran sobre el mateix artefacte.",
-  "El certificado elegido aquí firmará primero. Los demás se añadirán como cofirmas en secuencia.": "El certificat triat ací signarà primer. La resta s’afegirà després com a cofirmes seqüencials.",
+  "El certificado elegido aquí firmará primero. Los demás se añadirán como cofirmas en secuencia.": "El certificat triat ací signarà primer. La resta s’afegirà després com a cosignatures seqüencials.",
   "El certificado es válido para firma, pero caduca pronto.": "El certificat és vàlid per a signatura, però caduca aviat.",
   "El certificado es válido y apto para firma.": "El certificat és vàlid i apte per a signatura.",
   "El certificado está caducado y no debe usarse para firmar.": "El certificat està caducat i no s'ha de fer servir per signar.",
@@ -701,15 +701,15 @@
   "El documento seleccionado ya contiene una firma electrónica.": "El document seleccionat ja conté una signatura electrònica.",
   "El fichero indicado no existe": "El fitxer indicat no existeix",
   "El firmado y el original parecen de tipos distintos.": "El document signat i l'original semblen de tipus diferents.",
-  "El firmante principal se aplicará primero. Los certificados marcados aquí se aplicarán después como cofirmas secuenciales.": "El signant principal s’aplicarà primer. Els certificats marcats ací s’afegiran després com a cofirmes seqüencials.",
-  "El flujo de documentos ya firmados se ha ido afinando para redirigir hacia cofirma.": "El flux de documents ja signats s'ha anat afinant per redirigir cap a la cofirma.",
+  "El firmante principal se aplicará primero. Los certificados marcados aquí se aplicarán después como cofirmas secuenciales.": "El signant principal s’aplicarà primer. Els certificats marcats ací s’afegiran després com a cosignatures seqüencials.",
+  "El flujo de documentos ya firmados se ha ido afinando para redirigir hacia cofirma.": "El flux de documents ja signats s'ha anat afinant per redirigir cap a la cosignatura.",
   "El flujo de firma está preparado. Revisa operación, formato y certificado antes de continuar.": "El flux de signatura està preparat. Revisa l’operació, el format i el certificat abans de continuar.",
   "El navegador no permite copiar el resumen automáticamente en este contexto.": "El navegador no permet copiar el resum automàticament en aquest context.",
   "El navegador ya está comunicándose con GrxFirma": "El navegador ja s'està comunicant amb GrxFirma",
   "El perfil alto usa siempre contenedor json (.afp).": "El perfil alt usa sempre contenidor json (.afp).",
   "El perfil compat usará contenedor json (.afp).": "El perfil compat usarà contenidor json (.afp).",
   "El perfil compat usará sobre CMS interoperable (.enveloped).": "El perfil compat usarà sobre CMS interoperable (.enveloped).",
-  "El sello visible solo se aplica cuando el formato efectivo de firma es PAdES.": "El segell visible només s'aplica quan el format efectiu de firma és PAdES.",
+  "El sello visible solo se aplica cuando el formato efectivo de firma es PAdES.": "El segell visible només s'aplica quan el format efectiu de signatura és PAdES.",
   "El servicio de revocación no ha dado un estado concluyente para este certificado.": "El servei de revocació no ha donat un estat concloent per a aquest certificat.",
   "El último estado visible indica: %1": "L’últim estat visible indica: %1",
   "Elegir imagen…": "Escollir imatge…",
@@ -722,15 +722,15 @@
   "Emparejamiento": "Emparellament",
   "Empieza seleccionando un documento o un lote de documentos para firmar.": "Comença seleccionant un document o un lot de documents per a signar.",
   "Empleado público": "Empleat públic",
-  "En este modo guiado la salida final se mantiene en memoria/descarga; la persistencia en disco específica requiere un endpoint nativo de cofirma múltiple.": "En este mode guiat, l’eixida final es manté en memòria/descàrrega; la persistència específica en disc requerix un endpoint natiu de cofirma múltiple.",
+  "En este modo guiado la salida final se mantiene en memoria/descarga; la persistencia en disco específica requiere un endpoint nativo de cofirma múltiple.": "En este mode guiat, l’eixida final es manté en memòria/descàrrega; la persistència específica en disc requerix un endpoint natiu de cosignatura múltiple.",
   "En lote cargado desde navegador, la salida se entregara por respuesta web; para persistencia en disco hacen falta rutas por elemento.": "En un lot carregat des del navegador, l’eixida s’entrega per resposta web; per a persistència en disc calen rutes per element.",
-  "Encadena una firma inicial y varias cofirmas sobre un único documento usando el backend REST actual.": "Encadena una signatura inicial i diverses cofirmes sobre un únic document utilitzant el backend REST actual.",
+  "Encadena una firma inicial y varias cofirmas sobre un único documento usando el backend REST actual.": "Encadena una signatura inicial i diverses cosignatures sobre un únic document utilitzant el backend REST actual.",
   "Entorno:": "Entorn:",
   "Entrada preparada: %1": "Entrada preparada: %1",
   "Entrada: ": "Entrada: ",
   "Entrega": "Lliurament",
   "Entrega efectiva": "Lliurament efectiu",
-  "Entrega efectiva en cofirma múltiple": "Lliurament efectiu en cofirma múltiple",
+  "Entrega efectiva en cofirma múltiple": "Lliurament efectiu en cosignatura múltiple",
   "Enviar incidencia": "Enviar incidència",
   "Error": "Error",
   "Error 400: Los parámetros enviados no son válidos para el servidor.": "Error 400: els paràmetres enviats no són vàlids per al servidor.",
@@ -771,7 +771,7 @@
   "Error importando certificado: ": "Error important certificat: ",
   "Error instalando certificados": "Error instal·lant els certificats",
   "Error instalando la confianza TLS local": "Error instal·lant la confiança TLS local",
-  "Error instalando raíces de confianza: ": "Error instal·lant arrels de confiança: ",
+  "Error instalando raíces de confianza: ": "Error instal·lant la confiança TLS local: ",
   "Error si existe": "Error si existeix",
   "Error: ": "Error: ",
   "Error: Ruta IPC vacía": "Error: ruta IPC buida",
@@ -865,7 +865,7 @@
   "Firma múltiple finalizada.": "Signatura múltiple finalitzada.",
   "Firma no válida.": "Signatura no vàlida.",
   "Firma no válida: ": "Signatura no vàlida: ",
-  "Firma o cofirma el mismo documento con varios certificados en secuencia, generando una única salida final.": "Signa o cofirma el mateix document amb diversos certificats en seqüència, generant una única eixida final.",
+  "Firma o cofirma el mismo documento con varios certificados en secuencia, generando una única salida final.": "Signa o cosigna el mateix document amb diversos certificats en seqüència, generant una única eixida final.",
   "Firma valida": "Signatura vàlida",
   "Firma verificada correctamente.": "Signatura verificada correctament.",
   "Firma visible (PAdES)": "Signatura visible (PAdES)",
@@ -874,7 +874,7 @@
   "Firma válida.": "Signatura vàlida.",
   "Firma íntegra y confiable.": "Signatura íntegra i fiable.",
   "Firma íntegra, pero con advertencias de confianza o certificado.": "Signatura íntegra, però amb advertiments de confiança o certificat.",
-  "Firma: Certificado importado con éxito.": "Firma: Certificat importat amb èxit.",
+  "Firma: Certificado importado con éxito.": "Signatura: Certificat importat amb èxit.",
   "Firmado y original parecen compatibles para validación.": "El document signat i l'original semblen compatibles per a la validació.",
   "Firmador web": "Signador web",
   "Firmante": "Signant",
@@ -891,7 +891,7 @@
   "Firmar ahora": "Signar ara",
   "Firmar igualmente": "Signar igualment",
   "Formato": "Format",
-  "Formato de huella por defecto para ficheros": "Format d'empremta per defecte per a fitxers",
+  "Formato de huella por defecto para ficheros": "Format de resum per defecte per a fitxers",
   "Formato de manifiesto por defecto para directorios": "Format de manifest per defecte per a directoris",
   "Formato detectado: %1": "Format detectat: %1",
   "Formato por defecto": "Format per defecte",
@@ -943,16 +943,16 @@
   "Hexadecimal": "Hexadecimal",
   "Host / IP:": "Host/IP:",
   "Huella": "Empremta",
-  "Huella SHA-256: ": "Empremta SHA-256: ",
-  "Huella copiada al portapapeles.": "Empremta copiada al porta-retalls.",
+  "Huella SHA-256: ": "Empremta digital SHA-256: ",
+  "Huella copiada al portapapeles.": "Resum copiat al porta-retalls.",
   "Huella del certificado copiada al portapapeles.": "Empremta del certificat copiada al porta-retalls.",
-  "Huella o manifiesto": "Empremta o manifest",
-  "Huella o manifiesto: ": "Empremta o manifest: ",
-  "Huella válida.": "Empremta vàlida.",
+  "Huella o manifiesto": "Resum o manifest",
+  "Huella o manifiesto: ": "Resum o manifest: ",
+  "Huella válida.": "Resum vàlid.",
   "Huella: ": "Empremta: ",
-  "Huellas de Certificados Cliente (SHA-256 CSV):": "Petjades de Certificats Client (SHA-256 CSV):",
-  "Huellas e integridad": "Empremtes i integritat",
-  "Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)": "Empremtes i manifests (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)",
+  "Huellas de Certificados Cliente (SHA-256 CSV):": "Empremtes digitals de certificats client (SHA-256 CSV):",
+  "Huellas e integridad": "Resums i integritat",
+  "Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)": "Resums i manifests (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)",
   "ID:": "ID:",
   "Id": "Id",
   "Identificador de política": "Identificador de la política",
@@ -1012,9 +1012,9 @@
   "La app sí detecta certificados, pero puede que el filtro actual o el tipo de certificado no encajen con la operación.": "L'aplicació sí que detecta certificats, però pot ser que el filtre actual o el tipus de certificat no s'ajusten a l'operació.",
   "La clave debe tener al menos 6 caracteres.": "La clau ha de tindre almenys 6 caràcters.",
   "La clave indicada no es correcta.": "La clau indicada no és correcta.",
-  "La cofirma múltiple guiada está desactivada.": "La cofirma múltiple guiada està desactivada.",
-  "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "La cofirma múltiple guiada només està disponible per a un document únic en les accions signar o cofirmar.",
-  "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "La cofirma múltiple guiada només està disponible per a signar o cofirmar, no per a contrasignar.",
+  "La cofirma múltiple guiada está desactivada.": "La cosignatura múltiple guiada està desactivada.",
+  "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "La cosignatura múltiple guiada només està disponible per a un document únic en les accions signar o cosignar.",
+  "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "La cosignatura múltiple guiada només està disponible per a signar o cosignar, no per a contrasignar.",
   "La cofirma múltiple guiada solo está disponible para un único documento, no para lotes.": "La cofirma múltiple guiada només està disponible per a un únic document, no per a lots.",
   "La confirmación de la clave no coincide.": "La confirmació de la clau no coincideix.",
   "La consola usa este token para endpoints protegidos como firma, verificación, ajustes o diagnóstico.": "La consola utilitza aquest testimoni per a endpoints protegits com signatura, verificació, ajustos o diagnòstic.",
@@ -1023,12 +1023,12 @@
   "La firma ha fallado": "La signatura ha fallat",
   "La firma se guardara en la ruta de salida indicada y, si activas base64, tambien volvera al navegador.": "La signatura es guardarà a la ruta d'eixida indicada i, si actives base64, també tornarà al navegador.",
   "La firma visible solo se aplica a PAdES (PDF).": "La signatura visible només s'aplica a PAdES (PDF).",
-  "La huella no coincide con el fichero.": "L'empremta no coincideix amb el fitxer.",
+  "La huella no coincide con el fichero.": "El resum no coincideix amb el fitxer.",
   "La imagen seleccionada solo vive en esta sesión web local y no se guarda como ajuste persistente.": "La imatge seleccionada només viu en aquesta sessió web local i no es desa com a ajust persistent.",
   "La incidencia exportable se generará al preparar un informe para soporte.": "La incidència exportable es generarà en preparar un informe per a suport.",
   "La incidencia ya está guardada en local y se enviará solo al destino HTTPS que indiques.": "La incidència ja està desada en local i s'enviarà només a la destinació HTTPS que indiquis.",
   "La operación ha terminado correctamente": "L'operació ha acabat correctament",
-  "La política especial de salida para cofirma múltiple no está activa.": "La política especial d'eixida per a la cofirma múltiple no està activa.",
+  "La política especial de salida para cofirma múltiple no está activa.": "La política especial d'eixida per a la cosignatura múltiple no està activa.",
   "La preferencia guardada ya no está disponible en el catálogo actual.": "La preferència guardada ja no està disponible al catàleg actual.",
   "La ruta de salida coincide con el artefacto esperado: ": "La ruta d'eixida coincideix amb l'artefacte esperat: ",
   "La ruta de salida coincide con la extensión esperada ": "La ruta d'eixida coincideix amb l'extensió esperada ",
@@ -1074,7 +1074,7 @@
   "Lote o selección múltiple": "Lot o selecció múltiple",
   "Lote: ": "Lot: ",
   "Lugar de firma FacturaE": "Lloc de signatura FacturaE",
-  "Manifiesto de huellas generado.": "Manifest d'empremtes generat.",
+  "Manifiesto de huellas generado.": "Manifest de resums generat.",
   "Mantener esta sesión web en segundo plano al cerrar": "Mantindre aquesta sessió web en segon pla en tancar",
   "Mantener texto sobre imagen por defecto": "Mantén el text sobre la imatge per defecte",
   "Mantener texto sobre la imagen": "Mantenir text sobre la imatge",
@@ -1082,7 +1082,7 @@
   "Manual": "Manual",
   "Metadatos de la firma": "Metadades de la signatura",
   "Metadatos del certificado seleccionado": "Metadades del certificat seleccionat",
-  "Mientras la cofirma múltiple guiada esté activa, la salida final se entregará en memoria/base64 y se bloquearán temporalmente las opciones de guardado en disco.": "Mentre la cofirma múltiple guiada estiga activa, l'eixida final es lliurarà en memòria/base64 i es bloquejaran temporalment les opcions de guardat al disc.",
+  "Mientras la cofirma múltiple guiada esté activa, la salida final se entregará en memoria/base64 y se bloquearán temporalmente las opciones de guardado en disco.": "Mentre la cosignatura múltiple guiada estiga activa, l'eixida final es lliurarà en memòria/base64 i es bloquejaran temporalment les opcions de guardat al disc.",
   "Minimalista Luz": "Minimalista clar",
   "Misma ruta o nombre derivado": "Mateixa ruta o nom derivat",
   "Modo": "Mode",
@@ -1140,7 +1140,7 @@
   "No hay ningún certificado seleccionado.": "No hi ha cap certificat seleccionat.",
   "No hay original de referencia: se validará solo el artefacto firmado.": "No hi ha original de referència: es validarà només l'artefacte signat.",
   "No hay proveedor de claves configurado para comprobar el certificado.": "No hi ha cap proveïdor de claus configurat per comprovar el certificat.",
-  "No hay un fallo de firma concreto registrado todavía. Selecciona documento y certificado para reproducirlo.": "Encara no hi ha cap error concret de firma registrat. Selecciona document i certificat per a reproduir-lo.",
+  "No hay un fallo de firma concreto registrado todavía. Selecciona documento y certificado para reproducirlo.": "Encara no hi ha cap error concret de signatura registrat. Selecciona document i certificat per a reproduir-lo.",
   "No se encontró el certificado indicado.": "No s'ha trobat el certificat indicat.",
   "No se encontró un gestor de certificados disponible.": "No s'ha trobat cap gestor de certificats disponible.",
   "No se encuentra el servidor de firma interno.": "No es troba el servidor de signatura intern.",
@@ -1150,7 +1150,7 @@
   "No se han encontrado certificados compatibles": "No s'han trobat certificats compatibles",
   "No se pudieron cargar los certificados: ": "No s'han pogut carregar els certificats: ",
   "No se pudieron cargar los destinatarios de protección: ": "No s'han pogut carregar els destinataris de protecció: ",
-  "No se pudo abrir Acceso a Llaveros.": "No s'ha pogut obrir Accés a Claus.",
+  "No se pudo abrir Acceso a Llaveros.": "No s'ha pogut obrir Accés a Clauers.",
   "No se pudo abrir el archivo de certificado.": "No s'ha pogut obrir el fitxer de certificat.",
   "No se pudo abrir el fichero firmado": "No s'ha pogut obrir el fitxer signat",
   "No se pudo abrir el recurso solicitado": "No s'ha pogut obrir el recurs sol·licitat",
@@ -1174,10 +1174,10 @@
   "No se pudo determinar la compatibilidad exacta del par.": "No s'ha pogut determinar la compatibilitat exacta del parell.",
   "No se pudo enviar la petición IPC: ": "No s'ha pogut enviar la petició IPC: ",
   "No se pudo estimar el stack de firma probable.": "No s'ha pogut estimar la pila de signatura probable.",
-  "No se pudo inferir el artefacto esperado de huella.": "No s'ha pogut inferir l'artefacte d'empremta esperat.",
+  "No se pudo inferir el artefacto esperado de huella.": "No s'ha pogut inferir l'artefacte de resum esperat.",
   "No se pudo inferir el artefacto firmado esperado.": "No s'ha pogut inferir l'artefacte signat esperat.",
   "No se pudo inferir el contenedor protegido por extensión.": "No s'ha pogut inferir el contenidor protegit per l'extensió.",
-  "No se pudo inferir el tipo del artefacto de huella.": "No s'ha pogut inferir el tipus de l'artefacte d'empremta.",
+  "No se pudo inferir el tipo del artefacto de huella.": "No s'ha pogut inferir el tipus de l'artefacte de resum.",
   "No se pudo inferir el tipo probable del firmado.": "No s'ha pogut inferir el tipus probable del signat.",
   "No se pudo leer el log en %s\n\n%s": "No s'ha pogut llegir el registre a %s\n\n%s",
   "No se pudo localizar el destinatario seleccionado.": "No s'ha pogut localitzar el destinatari seleccionat.",
@@ -1286,10 +1286,10 @@
   "Pendiente de artefacto protegido.": "Pendent d'artefacte protegit.",
   "Pendiente de documento firmado": "Pendent de document signat",
   "Pendiente de firmado para estimar el stack.": "Pendent de signat per estimar la pila.",
-  "Pendiente de huella o manifiesto": "Pendent d'empremta o manifest",
+  "Pendiente de huella o manifiesto": "Pendent de resum o manifest",
   "Pendiente de origen": "Pendent d'origen",
-  "Pendiente de origen o huella para comprobar.": "Pendent d'origen o empremta per comprovar.",
-  "Pendiente de origen para crear huella.": "Pendent d'origen per crear l'empremta.",
+  "Pendiente de origen o huella para comprobar.": "Pendent d'origen o resum per comprovar.",
+  "Pendiente de origen para crear huella.": "Pendent d'origen per crear el resum.",
   "Pendiente de origen para desproteger.": "Pendent d'origen per desprotegir.",
   "Pendiente de origen para firmar.": "Pendent d'origen per signar.",
   "Pendiente de pareja de validación.": "Pendent del parell de validació.",
@@ -1300,7 +1300,7 @@
   "Perfil: %1 | Destinatario: %2": "Perfil: %1 | Destinatari: %2",
   "Perfil: %1 | Destinatarios: %2": "Perfil: %1 | Destinataris: %2",
   "Perla Lujosa": "Perla luxosa",
-  "Permite firmar, cofirmar o contrafirmar directamente desde el firmador web local.": "Permet signar, cofirmar o contrasignar directament des del signador web local.",
+  "Permite firmar, cofirmar o contrafirmar directamente desde el firmador web local.": "Permet signar, cosignar o contrasignar directament des del signador web local.",
   "Permite intentar firmar PDF con incidencias estructurales. No se recomienda salvo integración heredada o documentos de terceros que no puedas regenerar.": "Permet intentar signar PDF amb incidències estructurals. No es recomana tret d'integració heretada o documents de tercers que no pugueu regenerar.",
   "Permitir PDF inválido": "Permetre PDF invàlid",
   "Persistencia efectiva": "Persistència efectiva",
@@ -1309,16 +1309,16 @@
   "Petición JSON inválida.": "Petició JSON no vàlida.",
   "Petición incorrecta: el servidor rechazó los datos (Bad Request).": "Petició incorrecta: el servidor ha rebutjat les dades (Bad Request).",
   "Pide confirmación explícita antes de lanzar una firma o una firma por lote.": "Demana confirmació explícita abans d’iniciar una signatura o una signatura per lots.",
-  "Plan de cofirma múltiple": "Pla de cofirma múltiple",
+  "Plan de cofirma múltiple": "Pla de cosignatura múltiple",
   "Plan de comprobación listo para fichero.": "Pla de comprovació preparat per a fitxer.",
   "Plan de comprobación listo para manifiesto de directorio.": "Pla de comprovació preparat per a manifest de directori.",
   "Plan de desprotección": "Pla de desprotecció",
   "Plan de desprotección listo.": "Pla de desprotecció preparat.",
   "Plan de firma": "Pla de signatura",
   "Plan de firma listo.": "Pla de signatura preparat.",
-  "Plan de huella": "Pla d'empremta",
-  "Plan de huella listo para fichero.": "Pla d'empremta preparat per a fitxer.",
-  "Plan de huella listo para manifiesto de directorio.": "Pla d'empremta preparat per a manifest de directori.",
+  "Plan de huella": "Pla de resum",
+  "Plan de huella listo para fichero.": "Pla de resum preparat per a fitxer.",
+  "Plan de huella listo para manifiesto de directorio.": "Pla de resum preparat per a manifest de directori.",
   "Plan de validación": "Pla de validació",
   "Plan de validación listo con original de referencia.": "Pla de validació preparat amb original de referència.",
   "Plan de validación listo sin documento original.": "Pla de validació preparat sense document original.",
@@ -1374,9 +1374,9 @@
   "Proxy obligatorio para esta conexión": "Servidor intermediari (proxy) obligatori per a aquesta connexió",
   "Puedes arrastrar documentos al área superior o indicar una ruta local sin subir el fichero al navegador.": "Pots arrossegar documents a l'àrea superior o indicar una ruta local sense pujar el fitxer al navegador.",
   "Puedes arrastrar y redimensionar el sello. El backend recibirá coordenadas seguras y normalizadas.": "Podeu arrossegar i redimensionar el segell. El backend rebrà coordenades segures i normalitzades.",
-  "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "Pots llançar l'operació ara o continuar afinant el segell visible, el perfil o les metadades abans de firmar.",
+  "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "Pots llançar l'operació ara o continuar afinant el segell visible, el perfil o les metadades abans de signar.",
   "Puedes pedir al backend que seleccione automáticamente el certificado más adecuado según los filtros visibles.": "Pots demanar al backend que seleccione automàticament el certificat més adequat segons els filtres visibles.",
-  "Puedes usar un PNG/JPG como fondo del sello. Si mantienes el texto, se dibujará encima como marca de agua.": "Pots utilitzar un PNG/JPG com a fons del segell. Si mantens el text, es dibuixarà a sobre com a marca daigua.",
+  "Puedes usar un PNG/JPG como fondo del sello. Si mantienes el texto, se dibujará encima como marca de agua.": "Pots utilitzar un PNG/JPG com a fons del segell. Si mantens el text, es dibuixarà a sobre com a marca d'aigua.",
   "Puerto:": "Port:",
   "Página": "Pàgina",
   "Página %1/%2": "Pàgina %1/%2",
@@ -1451,7 +1451,7 @@
   "Restaurar sello": "Restaurar segell",
   "Resultado": "Resultat",
   "Resultado de desprotección": "Resultat de desprotecció",
-  "Resultado de huella": "Resultat de l’empremta",
+  "Resultado de huella": "Resultat del resum",
   "Resultado de instalación de confianza TLS local.": "Resultat de la instal·lació de la confiança TLS local.",
   "Resultado de instalación de raíces.": "Resultat de la instal·lació de la confiança TLS local.",
   "Resultado de protección": "Resultat de protecció",
@@ -1482,8 +1482,8 @@
   "Revisa el último mensaje y comprueba si el problema parece de conexión, del certificado o de la app.": "Revisa l'últim missatge i comprova si el problema sembla de connexió, del certificat o de l'app.",
   "Revisa filtros activos, vigencia y aptitud para firma.": "Revisa els filtres actius, la vigència i l’aptitud per a signar.",
   "Revisa la razón de validación y si falta el original.": "Revisa la raó de validació i si falta l'original.",
-  "Revisa la selección de páginas del sello visible antes de firmar.": "Revisa la selecció de pàgines del segell visible abans de firmar.",
-  "Revisa los filtros, la vigencia y si el certificado sirve para firmar.": "Revisa els filtres, la vigència i si el certificat serveix per a firmar.",
+  "Revisa la selección de páginas del sello visible antes de firmar.": "Revisa la selecció de pàgines del segell visible abans de signar.",
+  "Revisa los filtros, la vigencia y si el certificado sirve para firmar.": "Revisa els filtres, la vigència i si el certificat serveix per a signar.",
   "Revisar certificado": "Revisar el certificat",
   "Revisar certificados": "Revisa els certificats",
   "Revocación online: ": "Revocació en línia: ",
@@ -1496,7 +1496,7 @@
   "Rotación del sello visible por defecto": "Rotació del segell visible per defecte",
   "Ruta de salida": "Ruta de sortida",
   "Ruta de salida opcional": "Ruta d'eixida opcional",
-  "Ruta del fichero de huella": "Ruta del fitxer d'empremta",
+  "Ruta del fichero de huella": "Ruta del fitxer de resum",
   "Ruta del informe (.hashreport)": "Ruta de l’informe (.hashreport)",
   "Ruta del manifiesto": "Ruta del manifest",
   "Ruta desprotegida": "Ruta desprotegida",
@@ -1521,24 +1521,24 @@
   "Salida: ": "Eixida: ",
   "Salida: %1": "Eixida: %1",
   "Se aplicará una contrafirma sobre la firma ya presente en el artefacto seleccionado.": "S'aplicarà una contrasignatura sobre la signatura ja present a l'artefacte seleccionat.",
-  "Se añadirá como cofirmante, manteniendo la firma ya existente.": "S'afegirà com a cofirmant, mantenint la signatura ja existent.",
-  "Se añadirá una cofirma al artefacto ya firmado, manteniendo la firma existente.": "S'afegirà una cofirma a l'artefacte ja signat, mantenint la signatura existent.",
-  "Se añadirá una cofirma y, a continuación, se encadenarán cofirmas adicionales sobre el mismo artefacto.": "S'afegirà una cofirma i, a continuació, s'encadenaran cofirmes addicionals sobre el mateix artefacte.",
+  "Se añadirá como cofirmante, manteniendo la firma ya existente.": "S'afegirà com a cosignant, mantenint la signatura ja existent.",
+  "Se añadirá una cofirma al artefacto ya firmado, manteniendo la firma existente.": "S'afegirà una cosignatura a l'artefacte ja signat, mantenint la signatura existent.",
+  "Se añadirá una cofirma y, a continuación, se encadenarán cofirmas adicionales sobre el mismo artefacto.": "S'afegirà una cosignatura i, a continuació, s'encadenaran cosignatures addicionals sobre el mateix artefacte.",
   "Se enviará la incidencia estructurada, la previsualización del paquete, el manifiesto y una cola de log redactada. No se enviarán documentos originales, rutas completas del perfil ni secretos.": "S'enviarà la incidència estructurada, la previsualització del paquet, el manifest i les últimes línies del registre anonimitzades. No s'enviaran documents originals, rutes completes del perfil ni secrets.",
   "Las incidencias locales se eliminan automáticamente a los 30 días y solo se conservan las 50 más recientes.": "Les incidències locals s'eliminen automàticament al cap de 30 dies i només se'n conserven les 50 més recents.",
-  "Se generará una firma inicial y después se añadirán cofirmas encadenadas sobre el mismo artefacto.": "Es generarà una signatura inicial i després s'afegiran cofirmes encadenades sobre el mateix artefacte.",
+  "Se generará una firma inicial y después se añadirán cofirmas encadenadas sobre el mismo artefacto.": "Es generarà una signatura inicial i després s'afegiran cosignatures encadenades sobre el mateix artefacte.",
   "Se generará una firma nueva por cada elemento del lote seleccionado.": "Es generarà una signatura nova per cada element del lot seleccionat.",
   "Se generará una firma nueva sobre el documento seleccionado.": "Es generarà una signatura nova sobre el document seleccionat.",
-  "Se ha abierto Acceso a Llaveros.": "S'ha obert Accés a Claus.",
+  "Se ha abierto Acceso a Llaveros.": "S'ha obert Accés a Clauers.",
   "Se ha abierto el gestor de certificados.": "S'ha obert el gestor de certificats.",
   "Se ha abierto la configuración de certificados del navegador.": "S'ha obert la configuració de certificats del navegador.",
   "Se ha borrado el certificado predeterminado.": "S'ha esborrat el certificat predeterminat.",
-  "Se ha cambiado la operación a Cofirmar.": "S'ha canviat l'operació a Cofirmar.",
+  "Se ha cambiado la operación a Cofirmar.": "S'ha canviat l'operació a Cosignar.",
   "Se ha establecido un certificado predeterminado.": "S'ha establit un certificat predeterminat.",
   "Se incluirá": "S'inclourà",
   "Se incluirá un resumen saneado de la incidencia y un extracto técnico mínimo.": "S'inclourà un resum sanejat de la incidència i un extracte tècnic mínim.",
   "Se intentará aplicar una contrafirma sobre cada elemento del lote seleccionado.": "S'intentarà aplicar una contrasignatura sobre cada element del lot seleccionat.",
-  "Se intentará añadir una cofirma sobre cada elemento del lote seleccionado.": "S'intentarà afegir una cofirma sobre cada element del lot seleccionat.",
+  "Se intentará añadir una cofirma sobre cada elemento del lote seleccionado.": "S'intentarà afegir una cosignatura sobre cada element del lot seleccionat.",
   "Se ocultará": "S'ocultarà",
   "Se reutilizará en la próxima sesión si sigue disponible.": "Es reutilitzarà en la propera sessió si continua disponible.",
   "Se va a iniciar la firma del documento actual con el certificado seleccionado. Revise la selección antes de continuar.": "S’iniciarà la signatura del document actual amb el certificat seleccionat. Reviseu la selecció abans de continuar.",
@@ -1549,7 +1549,7 @@
   "Secretos, tokens y cabeceras sensibles": "Secrets, tokens i capçaleres sensibles",
   "Seguridad y Dominios": "Seguretat i Dominis",
   "Selecciona al menos un destinatario de protección.": "Seleccioneu almenys un destinatari de protecció.",
-  "Selecciona al menos un firmante adicional para la cofirma múltiple.": "Selecciona almenys un signant addicional per a la cofirma múltiple.",
+  "Selecciona al menos un firmante adicional para la cofirma múltiple.": "Selecciona almenys un signant addicional per a la cosignatura múltiple.",
   "Selecciona el fichero firmado antes de reintentar la validación.": "Selecciona el fitxer signat abans de reintentar la validació.",
   "Selecciona el fichero firmado que quieres validar.": "Selecciona el fitxer signat que vols validar.",
   "Selecciona exactamente un destinatario de protección.": "Selecciona exactament un destinatari de protecció.",
@@ -1563,7 +1563,7 @@
   "Selecciona primero uno o varios ficheros.": "Selecciona primer un o diversos fitxers.",
   "Selecciona un archivo o indica una ruta local.": "Seleccioneu un fitxer o indiqueu una ruta local.",
   "Selecciona un certificado": "Selecciona un certificat",
-  "Selecciona un certificado antes de firmar o validar la participación del firmante.": "Selecciona un certificat abans de firmar o validar la participació del signant.",
+  "Selecciona un certificado antes de firmar o validar la participación del firmante.": "Selecciona un certificat abans de signar o validar la participació del signant.",
   "Selecciona un certificado para exportar su resumen visible como JSON.": "Selecciona un certificat per exportar-ne el resum visible com a JSON.",
   "Selecciona un certificado para ver cómo participará en la operación elegida.": "Selecciona un certificat per veure com participarà en l'operació triada.",
   "Selecciona un documento firmado o indica una ruta local.": "Seleccioneu un document signat o indiqueu una ruta local.",
@@ -1598,12 +1598,12 @@
   "Seleccionar documento original de referencia": "Seleccionar document original de referència",
   "Seleccionar fichero": "Selecciona un fitxer",
   "Seleccionar fichero a proteger": "Seleccionar fitxer a protegir",
-  "Seleccionar fichero para huella": "Seleccionar fitxer per a empremta",
+  "Seleccionar fichero para huella": "Seleccionar fitxer per al resum",
   "Seleccionar fichero protegido": "Seleccionar fitxer protegit",
   "Seleccionar fichero(s)": "Seleccionar fitxer(s)",
   "Seleccionar fichero...": "Seleccionar fitxer...",
-  "Seleccionar huella": "Seleccionar empremta",
-  "Seleccionar huella o manifiesto": "Seleccionar empremta o manifest",
+  "Seleccionar huella": "Seleccionar resum",
+  "Seleccionar huella o manifiesto": "Seleccionar resum o manifest",
   "Seleccionar imagen": "Selecciona una imatge",
   "Seleccionar imagen de firma": "Seleccionar imatge de signatura",
   "Seleccionar original...": "Seleccionar original...",
@@ -1638,13 +1638,13 @@
   "Si no eliges un formato manualmente, esta preferencia se usará al preparar la firma.": "Si no trieu un format manualment, aquesta preferència s'utilitzarà en preparar la signatura.",
   "Si parece un fallo externo, anota lo ocurrido y vuelve a intentarlo más tarde.": "Si sembla un error extern, anota el que ha passat i torna-ho a intentar més tard.",
   "Si persiste, abre ayuda o exporta diagnóstico para soporte.": "Si persistix, obri l'ajuda o exporta un diagnòstic per al suport.",
-  "Si quieres añadir otra firma sobre el mismo documento, lo correcto normalmente es usar Cofirmar.": "Si vols afegir una altra signatura sobre el mateix document, el correcte normalment és usar Cofirmar.",
+  "Si quieres añadir otra firma sobre el mismo documento, lo correcto normalmente es usar Cofirmar.": "Si vols afegir una altra signatura sobre el mateix document, el correcte normalment és usar Cosignar.",
   "Si se activa y solo hay un certificado disponible, la aplicación lo seleccionará automáticamente al cargar el catálogo.": "Si s'activa i només hi ha un certificat disponible, l'aplicació el seleccionarà automàticament en carregar el catàleg.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación intentará guardarlas y cerrará sin mostrar el diálogo de confirmación.": "Si s'activa, en tancar amb preferències pendents l'aplicació intentarà desar-les i tancarà sense mostrar el diàleg de confirmació.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación las guardará y continuará sin mostrar el diálogo de confirmación.": "Si sactiva, en tancar amb preferències pendents laplicació les guardarà i continuarà sense mostrar el diàleg de confirmació.",
-  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "Si s'activa, en comprovar empremtes de directoris es proposarà per defecte desar l'informe.",
-  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "Si s'activa, en crear o comprovar empremtes de directoris es marcarà per defecte el mode recursiu.",
-  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "Si s'activa, en generar una empremta simple es copiarà automàticament al porta-retalls.",
+  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "Si s'activa, en comprovar resums de directoris es proposarà per defecte desar l'informe.",
+  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "Si s'activa, en crear o comprovar resums de directoris es marcarà per defecte el mode recursiu.",
+  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "Si s'activa, en generar un resum simple es copiarà automàticament al porta-retalls.",
   "Si se activa, al preparar firmas PDF se propondrá por defecto la firma visible.": "Si s'activa, en preparar signatures PDF es proposarà per defecte la signatura visible.",
   "Si se activa, al preparar una firma visible PAdES se propondrá por defecto aplicarla en todas las páginas.": "Si s'activa, en preparar una signatura visible PAdES es proposarà per defecte aplicar-la a totes les pàgines.",
   "Si se activa, al pulsar cerrar la ventana la aplicación se minimizará y seguirá lista para futuras firmas.": "Si s'activa, en prémer per tancar la finestra l'aplicació es minimitzarà i continuarà preparada per a signatures futures.",
@@ -1701,7 +1701,7 @@
   "Solo en memoria": "Només en memòria",
   "Solo logo": "Només logotip",
   "Solo no caducados": "Només no caducats",
-  "Solo se pueden exportar destinatarios del perfil alto.": "Només es poden exportar destinataris del perfil fort.",
+  "Solo se pueden exportar destinatarios del perfil alto.": "Només es poden exportar destinataris del perfil alt.",
   "Solo utilizables": "Només utilitzables",
   "Stack de firma probable: ": "Pila de signatura probable: ",
   "Subfiltro PAdES": "Subfiltre PAdES",
@@ -1738,13 +1738,13 @@
   "Todavía no está claro si depende de tu equipo o de un servicio externo.": "Encara no està clar si depén del teu equip o d'un servei extern.",
   "Todavía no hay una razón de validación disponible. Ejecuta la validación para obtener contexto.": "Encara no hi ha una raó de validació disponible. Executa la validació per a obtindre context.",
   "Todavía no se ha lanzado la comprobación online.": "Encara no s'ha llançat la comprovació en línia.",
-  "Todo listo para firmar con la configuración actual.": "Tot a punt per a firmar amb la configuració actual.",
+  "Todo listo para firmar con la configuración actual.": "Tot a punt per a signar amb la configuració actual.",
   "Todos": "Tots",
   "Todos los archivos (*)": "Tots els fitxers (*)",
   "Token de Seguridad:": "Token de Seguretat:",
   "Total": "Total",
   "TraceId: %1": "TraceId: %1",
-  "Tras cofirmar, se validara el artefacto final manteniendo la firma principal existente.": "Després de cofirmar, es validarà l'artefacte final mantenint la signatura principal existent.",
+  "Tras cofirmar, se validara el artefacto final manteniendo la firma principal existente.": "Després de cosignar, es validarà l'artefacte final mantenint la signatura principal existent.",
   "Tras contrafirmar, se validara el artefacto final con la nueva contrafirma aplicada.": "Després de contrasignar, es validarà l'artefacte final amb la nova contrasignatura aplicada.",
   "Tras firmar, se validara automaticamente el artefacto resultante.": "Després de signar, es validarà automàticament l'artefacte resultant.",
   "URL TSA": "URL TSA",
@@ -1757,7 +1757,7 @@
   "Usar logo GrxFirma": "Usa el logotip GrxFirma",
   "Usar solo certificados de firma": "Usar només certificats de signatura",
   "Usuario": "Usuari",
-  "Utilidades de huellas": "Utilitats d'empremtes",
+  "Utilidades de huellas": "Utilitats de resums",
   "VERIFICAR": "VERIFICAR",
   "Vaciar Almacén TLS": "Buidar Magatzem TLS",
   "Vaciar almacén TLS local": "Buida el magatzem TLS local",
@@ -1985,7 +1985,7 @@
   "fileHelp": "fileHelp",
   "filesSelectedCount": "filesSelectedCount",
   "format": "format",
-  "formatConfigFacturaEHash": "Empremta de la política",
+  "formatConfigFacturaEHash": "Resum de la política",
   "formatConfigFacturaEIdentifier": "Identificador de la política",
   "formatConfigFacturaENone": "Sense configuració específica de FacturaE",
   "formatConfigFacturaEPlace": "Lloc de signatura",
@@ -2016,7 +2016,7 @@
   "height": "height",
   "help.certs.body": "El panell dret mostra els certificats disponibles. Pots inspeccionar-ne les dades, comprovar-ne la validesa i usar-los per signar o autenticar-te segons el flux. Si no n’apareix cap, pots usar un P12/PFX només durant la sessió o importar-lo expressament en un magatzem del sistema o del navegador.",
   "help.certs.title": "Certificats",
-  "help.more.body": "Per a operacions avançades també pots usar la consola web local i la línia d’ordres d’GrxFirma.",
+  "help.more.body": "Per a operacions avançades també pots usar la consola web local i la línia d’ordres de GrxFirma.",
   "help.more.title": "Més informació",
   "help.security.body": "Revisa sempre el lloc que demana una signatura o un certificat. No confirmis operacions que no esperaves. Fes servir el mode resident i la compatibilitat web només quan calgui.",
   "help.security.title": "Seguretat",
@@ -2357,7 +2357,7 @@
   "Último documento": "Últim document",
   "Último estado visible: %1": "Últim estat visible: %1",
   "• ": "• ",
-  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ El servidor REST detectat està actiu, però no va ser iniciat per aquesta finestra. Atureu-lo des del trà o des de la instància que el va arrencar.",
+  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ El servidor REST detectat està actiu, però no va ser iniciat per aquesta finestra. Atureu-lo des de la safata del sistema o des de la instància que el va arrencar.",
   "ℹ️ ": "ℹ️ ",
   "ℹ️ Chequeo exhaustivo de certificados completado.": "ℹ️ Comprovació exhaustiva dels certificats completada.",
   "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "ℹ️ L'informe de diagnòstic s'ha copiat al porta-retalls.",
@@ -2371,9 +2371,9 @@
   "⏳  Sellado de Tiempo (TSA)": "⏳ Segellat de Temps (TSA)",
   "▶ Ver detalles": "▶ Veure els detalls",
   "▼ Ocultar detalles": "▼ Ocultar els detalls",
-  "● Comprobando estado del servidor...": "● Comprovar estat del servidor...",
+  "● Comprobando estado del servidor...": "● Comprovant l'estat del servidor...",
   "● Estado desconocido (Sin conexión)": "● Estat desconegut (Sense connexió)",
-  "● Servicio activo y corriendo": "● Servei actiu i corrent",
+  "● Servicio activo y corriendo": "● Servei actiu i en execució",
   "● Servicio instalado pero parado": "● Servei instal·lat però aturat",
   "● Servicio no instalado": "● Servei no instal·lat",
   "● Servidor API REST en ejecución": "● Servidor API REST en execució",
@@ -2393,7 +2393,7 @@
   "⚙️  Preferencias Generales": "⚙️ Preferències Generals",
   "⚙️ Modo administrador habilitado.": "⚙️ Mode administrador habilitat.",
   "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "⚠ Desconnectat de la interfície IPC local (mode REST exclusiu, o motor aturat).",
-  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ Important: s'instal·la com a servei de la vostra sessió d'usuari (no com a servei de sistema), perquè tingueu accés als vostres certificats del magatzem personal. Els serveis del sistema no poden accedir als certificats de l'usuari.",
+  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ Important: s'instal·la com a servei de la vostra sessió d'usuari (no com a servei de sistema), perquè tingui accés als certificats del vostre magatzem personal. Els serveis del sistema no poden accedir als certificats de l'usuari.",
   "⚠️": "⚠️",
   "⚠️ Conexión IPC cerrada.": "⚠️ Connexió IPC tancada.",
   "⚠️ No hay conexión con el motor.": "⚠️ No hi ha connexió amb el motor.",
@@ -2503,7 +2503,7 @@
   "Usar certificado sin instalar": "Usar el certificat sense instal·lar",
   "Usar certificado solo durante esta sesión": "Usar el certificat només durant aquesta sessió",
   "Validación avanzada": "Validació avançada",
-  "Comprueba firmas, certificados y huellas sin enviar documentos fuera de este equipo.": "Comprova signatures, certificats i empremtes sense enviar documents fora d'aquest equip.",
+  "Comprueba firmas, certificados y huellas sin enviar documentos fuera de este equipo.": "Comprova signatures, certificats i resums sense enviar documents fora d'aquest equip.",
   "Selecciona un certificado del catálogo local para revisar su vigencia y estado de revocación.": "Selecciona un certificat del catàleg local per revisar-ne la vigència i l'estat de revocació.",
   "Entrada": "Entrada",
   "No válido": "No vàlid",
@@ -2512,7 +2512,7 @@
   "Selecciona primero los ficheros necesarios.": "Selecciona primer els fitxers necessaris.",
   "informe-validacion.json": "informe-validacio.json",
   "informe-certificado.json": "informe-certificat.json",
-  "informe-huella.json": "informe-empremta.json",
+  "informe-huella.json": "informe-resum.json",
   "El backend no está preparado para validar el certificado.": "El backend no està preparat per validar el certificat.",
   "No se pudo acceder al almacén de confianza del sistema.": "No s'ha pogut accedir al magatzem de confiança del sistema.",
   "El almacén de confianza del sistema está vacío.": "El magatzem de confiança del sistema és buit.",
@@ -2588,21 +2588,21 @@
   ,"Este CMS genérico es EncryptedData y usa una clave transitoria": "Aquest CMS genèric és EncryptedData i utilitza una clau transitòria"
   ,"Introduzca la misma clave AES-256 en Base64 usada al proteger. Se enviará una sola vez al motor local y no se guardará.": "Introduïu la mateixa clau AES-256 en Base64 utilitzada per protegir. S'enviarà una sola vegada al motor local i no es desarà."
   ,"La clave transitoria debe ser Base64 canónico de 32 bytes (44 caracteres).": "La clau transitòria ha de ser Base64 canònic de 32 bytes (44 caràcters)."
-  ,"Calculando huella...": "Calculant l'empremta..."
+  ,"Calculando huella...": "Calculant el resum..."
   ,"Indica una ruta local de directorio para generar el manifiesto.": "Indica una ruta local de directori per generar el manifest."
   ,"Selecciona un fichero o indica una ruta local.": "Selecciona un fitxer o indica una ruta local."
   ,"Descargar manifiesto": "Descarregar manifest"
   ,"Entradas": "Entrades"
-  ,"Manifiesto hash de directorio generado.": "Manifest d'empremtes del directori generat."
-  ,"Descargar huella": "Descarregar empremta"
-  ,"Huella generada correctamente.": "Empremta generada correctament."
-  ,"Huella generada.": "Empremta generada."
-  ,"Error al generar huella: ": "Error en generar l'empremta: "
+  ,"Manifiesto hash de directorio generado.": "Manifest de resums del directori generat."
+  ,"Descargar huella": "Descarregar resum"
+  ,"Huella generada correctamente.": "Resum generat correctament."
+  ,"Huella generada.": "Resum generat."
+  ,"Error al generar huella: ": "Error en generar el resum: "
   ,"Comprobando integridad...": "Comprovant la integritat..."
   ,"Indica una ruta local de directorio para comprobar el manifiesto.": "Indica una ruta local de directori per comprovar el manifest."
-  ,"Selecciona un fichero de huella/manifiesto o indica su ruta.": "Selecciona un fitxer d'empremta o de manifest, o indica'n la ruta."
+  ,"Selecciona un fichero de huella/manifiesto o indica su ruta.": "Selecciona un fitxer de resum o de manifest, o indica'n la ruta."
   ,"Esperada": "Esperada"
-  ,"Error al comprobar huella: ": "Error en comprovar l'empremta: "
+  ,"Error al comprobar huella: ": "Error en comprovar el resum: "
   ,"ACERCA DE": "QUANT A"
   ,"Acerca de": "Quant a"
   ,"Acerca de GrxFirma": "Quant a GrxFirma"
@@ -2627,7 +2627,7 @@
   ,"La última versión publicada es %1, pero este build de desarrollo no se puede comparar automáticamente.": "L'última versió publicada és %1, però aquesta compilació de desenvolupament no es pot comparar automàticament."
   ,"GrxFirma está actualizado (%1).": "GrxFirma està actualitzat (%1)."
   ,"Avisar de nuevas versiones": "Avisar de versions noves"
-  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "En iniciar, consulta una vegada l'última GitHub Release. Només envia a GitHub la connexió HTTPS i l'identificador GrxFirma; no envia documents, certificats ni dades de signatura."
+  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "En iniciar, consulta una vegada l'última GitHub Release. Només envia a GitHub la connexió HTTPS i la ruta del repositori oficial; no envia documents, certificats ni dades de signatura."
   ,"Comprobación de versiones finalizada.": "Comprovació de versions finalitzada."
   ,"La comprobación segura de versiones necesita el motor local IPC. Abra GrxFirma desde el lanzador instalado y vuelva a intentarlo; la firma local no queda bloqueada.": "La comprovació segura de versions necessita el motor local IPC. Obriu GrxFirma des del llançador instal·lat i torneu-ho a provar; la signatura local continua disponible."
   ,"No se puede comprobar la versión porque el servicio de actualizaciones no está configurado. Reinstale GrxFirma desde el repositorio oficial.": "No es pot comprovar la versió perquè el servei d'actualitzacions no està configurat. Reinstal·leu GrxFirma des del repositori oficial."
@@ -2703,7 +2703,7 @@
   "Ocultar": "Amagar",
   "Seleccione un certificado": "Seleccioneu un certificat",
   "No dispone de clave utilizable para firmar": "No disposa de cap clau utilitzable per signar",
-  "Seleccione certificados válidos para la cofirma múltiple": "Seleccioneu certificats vàlids per a la cofirma múltiple",
+  "Seleccione certificados válidos para la cofirma múltiple": "Seleccioneu certificats vàlids per a la cosignatura múltiple",
   "No hay certificados propios disponibles.": "No hi ha certificats propis disponibles.",
   "Exportar certificado público": "Exportar el certificat públic",
   "Certificado público DER (*.cer)": "Certificat públic DER (*.cer)",
@@ -2772,10 +2772,10 @@
   "Ver novedades": "Veure les novetats",
   "Ahora no": "Ara no"
   ,"winui.parity.verify.export": "Exporta l'informe JSON"
-  ,"winui.parity.tsa.enabled": "Utilitza una marca de temps"
-  ,"winui.parity.tsa.url": "URL del servidor de marca de temps"
-  ,"winui.parity.tsa.invalid": "Indiqueu un URL HTTP o HTTPS vàlid per al servidor de marca de temps."
-  ,"winui.parity.tsa.unavailable": "No s'han pogut consultar els ajustos de la marca de temps. Torneu-ho a provar."
+  ,"winui.parity.tsa.enabled": "Utilitza un segell de temps"
+  ,"winui.parity.tsa.url": "URL del servidor de segell de temps"
+  ,"winui.parity.tsa.invalid": "Indiqueu un URL HTTP o HTTPS vàlid per al servidor de segell de temps."
+  ,"winui.parity.tsa.unavailable": "No s'han pogut consultar els ajustos del segell de temps. Torneu-ho a provar."
   ,"winui.parity.certs.person": "Persona física"
   ,"winui.parity.certs.representative": "Representant"
   ,"winui.parity.certs.seal": "Segell d'entitat"
@@ -2856,7 +2856,7 @@
   ,"facturae.error.number": "Indica un número de factura vàlid (màxim 20 caràcters)."
   ,"facturae.error.output": "No s'ha pogut desar l'XML. Tria un fitxer .xml en una carpeta on puguis escriure."
   ,"facturae.error.party": "Revisa el NIF i el nom o raó social de les dues parts."
-  ,"facturae.error.payment": "Indica un IBAN vàlid i un venciment posterior a l'emissió."
+  ,"facturae.error.payment": "Indica alhora un IBAN vàlid i un venciment posterior a l'emissió."
   ,"facturae.face_note": "FACe s'obre al navegador. Signa la factura abans d'enviar-la; obrir FACe no la remet automàticament."
   ,"facturae.file_reference": "Referència d'expedient (opcional)"
   ,"facturae.first_surname": "Primer cognom"
@@ -2975,7 +2975,7 @@
   "paridad.lote3.eni.creating": "Creant l’arxiu ENI…",
   "paridad.lote3.invoice.filename": "informe-factura",
   "paridad.lote3.eni.filename": "document-eni",
-  "Huellas": "Empremtes digitals",
+  "Huellas": "Resums",
   "Complementos": "Complements",
   "Diagnóstico": "Diagnòstic",
   "Facturae y FACe": "Facturae, FACe i Veri*Factu",
@@ -3136,7 +3136,7 @@
   ,"Abrir remisión oficial de facturas en FACe": "Obrir la presentació oficial de factures a FACe"
   ,"Remitir factura en FACe": "Presentar la factura a FACe"
   ,"5. Descargue y conserve el justificante": "5. Descarregueu i conserveu el justificant"
-  ,"No dé la factura por presentada hasta que FACe le entregue el justificante.": "Ez considereu presentada la factura fins que FACe us lliuri el justificant."
+  ,"No dé la factura por presentada hasta que FACe le entregue el justificante.": "No considereu presentada la factura fins que FACe us lliuri el justificant."
   ,"Confirmo que he guardado el justificante de FACe": "Confirmo que he desat el justificant de FACe"
   ,"He guardado el justificante con su número de registro y CSV.": "He desat el justificant amb el número de registre i el CSV."
   ,"Verificar CSV del justificante en FACe": "Verificar el CSV del justificant a FACe"
@@ -3853,7 +3853,7 @@
   ,"Titular": "Titular"
   ,"desconocida": "desconeguda"
   ,"Persona jurídica": "Persona jurídica"
-  ,"GrxFirma comprueba en segundo plano si hay una versión nueva al arrancar y cada 5 horas mientras sigue abierta o en la bandeja. Lo hace aunque el motor local no responda y sin esperas si no hay internet, y avisa con «Descargar e instalar», «Ver novedades» y «Ahora no».": "GrxFirma comprova en segon pla si hi ha una versió nova en arrencar i cada 5 hores mentre continua oberta o a la safata del sistema. Ho fa encara que el motor local no respongui i sense esperes si no hi ha internet, i avisa amb «Descarregar i instal·lar», «Veure novetats» i «Ara no»."
+  ,"GrxFirma comprueba en segundo plano si hay una versión nueva al arrancar y cada 5 horas mientras sigue abierta o en la bandeja. Lo hace aunque el motor local no responda y sin esperas si no hay internet, y avisa con «Descargar e instalar», «Ver novedades» y «Ahora no».": "GrxFirma comprova en segon pla si hi ha una versió nova en arrencar i cada 5 hores mentre continua oberta o a la safata del sistema. Ho fa encara que el motor local no respongui i sense esperes si no hi ha internet, i avisa amb «Baixar i instal·lar», «Veure les novetats» i «Ara no»."
   ,"Windows: exportar el informe de verificación, configurar el sello de tiempo, filtrar certificados por NIF, organización o tipo, controlar el servidor REST y usar el asistente de soporte, como en Linux.": "Windows: exportar l’informe de verificació, configurar el segell de temps, filtrar certificats per NIF, organització o tipus, controlar el servidor REST i utilitzar l’assistent de suport, com a Linux."
   ,"Linux: generador de facturas FacturaE, estado del lector de tarjetas y arranque automático con la sesión, como en Windows.": "Linux: generador de factures FacturaE, estat del lector de targetes i inici automàtic amb la sessió, com a Windows."
   ,"Linux: se retira la pestaña de pruebas internas, que mostraba resultados ficticios, y ya no aparece «Cambios sin guardar» al abrir la aplicación.": "Linux: es retira la pestanya de proves internes, que mostrava resultats ficticis, i ja no apareix «Canvis sense desar» en obrir l’aplicació."
@@ -4058,35 +4058,35 @@
   ,"Seleccionar fichero original": "Seleccionar el fitxer original"
   ,"Seleccionar original…": "Seleccionar l'original…"
   ,"Quitar fichero original": "Llevar el fitxer original"
-  ,"Seleccione un original solo para una firma CAdES separada de su contenido. Los PDF, XML y contenedores firmados se verifican sin ese archivo. Si seleccionó uno por error, pulse Quitar; no se ignorará silenciosamente.": "Seleccioneu un original només per a una signatura CAdES separada del seu contingut. Els PDF, XML i contenidors signats es verifiquen sense aquest fitxer. Si n'heu seleccionat un per error, premeu Llevar; no s'ignorarà en silenci."
+  ,"Seleccione un original solo para una firma CAdES separada de su contenido. Los PDF, XML y contenedores firmados se verifican sin ese archivo. Si seleccionó uno por error, pulse Quitar; no se ignorará silenciosamente.": "Seleccioneu un original només per a una signatura CAdES separada del seu contingut. Els PDF, XML i contenidors signats es verifiquen sense aquest fitxer. Si n'heu seleccionat un per error, premeu Treu; no s'ignorarà en silenci."
   ,"Comprueba la firma mediante el motor local autenticado.": "Comprova la signatura mitjançant el motor local autenticat."
   ,"Verificar firma": "Verificar la signatura"
   ,"Cancelar verificación": "Cancel·lar la verificació"
   ,"Verificación en curso": "Verificació en curs"
   ,"Resultado de verificación": "Resultat de la verificació"
   ,"Avisos y errores": "Avisos i errors"
-  ,"Contenido de huellas": "Contingut d'empremtes digitals"
-  ,"Disponibilidad de huellas": "Disponibilitat de les empremtes digitals"
+  ,"Contenido de huellas": "Contingut de resums"
+  ,"Disponibilidad de huellas": "Disponibilitat dels resums"
   ,"Crear o comprobar": "Crear o comprovar"
   ,"Usar un fichero": "Utilitzar un fitxer"
   ,"Usar un directorio": "Utilitzar un directori"
-  ,"Origen para la huella": "Origen de l'empremta digital"
+  ,"Origen para la huella": "Origen per al resum"
   ,"Ningún origen seleccionado": "Cap origen seleccionat"
-  ,"Seleccionar origen para la huella": "Seleccionar l'origen de l'empremta digital"
-  ,"Manifiesto de huella": "Manifest d'empremtes digitals"
-  ,"Huella o manifiesto que se va a comprobar": "Empremta digital o manifest que es comprovarà"
-  ,"Seleccione una huella o manifiesto": "Seleccioneu una empremta digital o un manifest"
+  ,"Seleccionar origen para la huella": "Seleccionar l'origen per al resum"
+  ,"Manifiesto de huella": "Manifest de resums"
+  ,"Huella o manifiesto que se va a comprobar": "Resum o manifest que es comprovarà"
+  ,"Seleccione una huella o manifiesto": "Seleccioneu un resum o un manifest"
   ,"Los informes .hashreport son salidas de comprobación y no se aceptan como manifiestos.": "Els informes .hashreport són resultats de comprovació i no s'accepten com a manifests."
-  ,"Seleccionar manifiesto de huella": "Seleccionar el manifest d'empremtes digitals"
+  ,"Seleccionar manifiesto de huella": "Seleccionar el manifest de resums"
   ,"Seleccionar manifiesto…": "Seleccionar manifest…"
-  ,"Algoritmo de huella": "Algorisme d'empremta digital"
+  ,"Algoritmo de huella": "Algorisme de resum"
   ,"Algoritmo seguro": "Algorisme segur"
-  ,"Formato de la huella": "Format de l'empremta digital"
+  ,"Formato de la huella": "Format del resum"
   ,"Solo se aplica a directorios.": "Només s'aplica als directoris."
   ,"Incluir subdirectorios": "Incloure subdirectoris"
-  ,"Ejecutar operación de huella": "Executar l'operació d'empremta digital"
-  ,"Cancelar operación de huella": "Cancel·lar l'operació d'empremta digital"
-  ,"Operación de huella en curso": "Operació d'empremta digital en curs"
+  ,"Ejecutar operación de huella": "Executar l'operació de resum"
+  ,"Cancelar operación de huella": "Cancel·lar l'operació de resum"
+  ,"Operación de huella en curso": "Operació de resum en curs"
   ,"Contenido de protección y desprotección": "Contingut de protecció i desprotecció"
   ,"Disponibilidad de protección": "Disponibilitat de la protecció"
   ,"Proteger documento": "Protegir el document"
@@ -4137,7 +4137,7 @@
   ,"Almacén personal de Windows": "Magatzem personal de Windows"
   ,"Use Buscar en Windows o Actualizar para consultar los certificados disponibles. Importar en Windows es una acción distinta: conserva la credencial en el almacén personal tras su confirmación.": "Utilitzeu Cercar al Windows o Actualitzar per consultar els certificats disponibles. Importar al Windows és una acció diferent: conserva la credencial al magatzem personal després de confirmar-ho."
   ,"Tarjetas, DNIe y tokens USB": "Targetes, DNIe i tokens USB"
-  ,"Conecte el lector, inserte la tarjeta y pulse «Usar DNIe o tarjeta». Windows necesita el controlador del fabricante para mostrar sus certificados. Si falta, consulte la web oficial del DNIe o la del fabricante. Al firmar, el controlador solicitará el PIN; no lo escriba en esta aplicación. La disponibilidad depende del dispositivo y del proveedor: no se garantiza compatibilidad universal.": "Connecteu el lector, inseriu la targeta i premeu «Utilitzar DNIe o targeta». Windows necessita el controlador del fabricant per mostrar-ne els certificats. Si falta, consulteu el web oficial del DNIe o el del fabricant. En signar, el controlador sol·licitarà el PIN; no l'escriviu en aquesta aplicació. La disponibilitat depèn del dispositiu i del proveïdor: no es garanteix la compatibilitat universal."
+  ,"Conecte el lector, inserte la tarjeta y pulse «Usar DNIe o tarjeta». Windows necesita el controlador del fabricante para mostrar sus certificados. Si falta, consulte la web oficial del DNIe o la del fabricante. Al firmar, el controlador solicitará el PIN; no lo escriba en esta aplicación. La disponibilidad depende del dispositivo y del proveedor: no se garantiza compatibilidad universal.": "Connecteu el lector, inseriu la targeta i premeu «Fes servir el DNIe o una targeta». Windows necessita el controlador del fabricant per mostrar-ne els certificats. Si falta, consulteu el web oficial del DNIe o el del fabricant. En signar, el controlador sol·licitarà el PIN; no l'escriviu en aquesta aplicació. La disponibilitat depèn del dispositiu i del proveïdor: no es garanteix la compatibilitat universal."
   ,"Cl@ve Firma: depende del trámite": "Cl@ve Firma: depèn del tràmit"
   ,"Es un servicio de firma que debe ofrecer e integrar la sede o el trámite. No es un certificado local y no puede añadirse a este selector desde GrxFirma. Si el trámite ofrece Cl@ve Firma, siga esa opción en su propia sede.": "És un servei de signatura que ha d'oferir i integrar la seu o el tràmit. No és un certificat local i no es pot afegir a aquest selector des de GrxFirma. Si el tràmit ofereix Cl@ve Firma, seguiu aquesta opció a la seu corresponent."
   ,"Importar en el almacén de Windows": "Importar al magatzem de Windows"
@@ -4876,7 +4876,7 @@
   ,"verifactu.signed": "El registre ja està signat."
   ,"verifactu.key": "Cal una clau RSA amb un certificat vigent i apte per signar."
   ,"verifactu.input": "Trieu un fitxer XML o una carpeta de registres accessible."
-  ,"verifactu.hash": "El registre s’ha modificat després de generar-se: la seva empremta no coincideix. Demaneu al vostre programa de facturació que el torni a generar."
+  ,"verifactu.hash": "El registre s’ha modificat després de generar-se: el seu resum (hash) no coincideix. Demaneu al vostre programa de facturació que el torni a generar."
   ,"verifactu.chain": "Aquest registre no enllaça amb l’anterior de la sèrie. Comproveu que la carpeta conté tots els registres en ordre."
   ,"verifactu.duplicate": "Hi ha registres amb la mateixa empremta a la cadena."
   ,"verifactu.previous_missing": "El registre anterior no és a la selecció. No es pot comprovar aquest enllaç de la cadena."
@@ -4887,7 +4887,7 @@
   ,"verifactu.empty": "La selecció no conté registres XML."
   ,"verifactu.valid": "Registre comprovat sense errors."
   ,"verifactu.invalid": "El registre presenta errors."
-  ,"verifactu.hash_label": "Empremta calculada"
+  ,"verifactu.hash_label": "Resum calculat"
   ,"verifactu.choose": "Triar registre XML"
   ,"verifactu.folder": "Triar carpeta de registres"
   ,"verifactu.qr_title": "Llegir QR tributari"
@@ -4906,7 +4906,7 @@
   ,"verifactu.output": "Deseu l’informe en un fitxer diferent del registre d’entrada."
   ,"verifactu.root_detail": "L’arrel ha de ser RegistroAlta, RegistroAnulacion o RegistroEvento, amb l’espai de noms de l’AEAT."
   ,"verifactu.profile_detail": "La signatura no compleix el perfil XAdES embolcallat amb política AGE i RSA-SHA256 o RSA-SHA512."
-  ,"verifactu.hash_detail": "L’empremta no coincideix amb la calculada a partir dels camps del registre."
+  ,"verifactu.hash_detail": "El resum no coincideix amb el calculat a partir dels camps del registre."
   ,"verifactu.chain_detail": "L’encadenament, la identitat del registre anterior o l’ordre de les dates no coincideix."
   ,"verifactu.signature_detail": "La signatura XAdES està alterada o no cobreix el registre complet."
   ,"verifactu.export": "Exportar l’informe Veri*Factu"
@@ -5052,7 +5052,7 @@
   ,"report.size_bytes": "%d bytes"
   ,"report.section.document": "Document verificat"
   ,"report.field.name": "Nom"
-  ,"report.field.hash": "Empremta SHA-256"
+  ,"report.field.hash": "Resum SHA-256"
   ,"report.field.size": "Mida"
   ,"report.field.format": "Format de signatura"
   ,"report.field.coverage": "Cobertura"
@@ -5060,12 +5060,12 @@
   ,"report.section.checks": "Comprovacions"
   ,"report.section.signers": "Signants"
   ,"report.signer.issuer": "Emissor"
-  ,"report.signer.fingerprint": "Empremta"
+  ,"report.signer.fingerprint": "Empremta digital"
   ,"report.section.errors": "Errors"
   ,"report.section.warnings": "Advertiments"
   ,"report.section.evidence": "Evidències"
   ,"report.section.details": "Detalls tècnics"
-  ,"report.footer": "Generat per %s. Aquest informe descriu el resultat de la verificació local en la data indicada; l'empremta SHA-256 identifica el fitxer exacte verificat. No substitueix un servei de validació qualificat."
+  ,"report.footer": "Generat per %s. Aquest informe descriu el resultat de la verificació local en la data indicada; el resum SHA-256 identifica el fitxer exacte verificat. No substitueix un servei de validació qualificat."
   ,"firma CAdES válida": "Signatura CAdES vàlida"
   ,"firma XAdES valida": "Signatura XAdES vàlida"
   ,"firma XMLdSig valida": "Signatura XMLdSig vàlida"
@@ -5559,7 +5559,7 @@
   ,"winui.firmar.la_carpeta_del_documento_firmado_ya_no": "La carpeta del document signat ja no està disponible. Comproveu la destinació de desament."
   ,"winui.firmar.motivo": "motiu"
   ,"winui.firmar.contacto": "contacte"
-  ,"winui.certificados.la_aptitud_se_basa_en_la_informacion": "L’aptitud es basa en la informació local. Utilitzeu «Actualitzar la validesa en línia» per consultar la revocació."
+  ,"winui.certificados.la_aptitud_se_basa_en_la_informacion": "L’aptitud es basa en la informació local. Utilitzeu «Actualitzar validesa en línia» per consultar la revocació."
   ,"winui.certificados.ficha_completa_del_certificado": "Fitxa completa del certificat"
   ,"winui.certificados.verificar_certificado": "Verificar certificat"
   ,"winui.comun.cerrar": "Tancar"
@@ -5794,7 +5794,7 @@
   ,"winui.comun.diagnostico": "Diagnòstic"
   ,"winui.comun.aceptar": "Accepta"
   ,"winui.comun.comprobacion_cancelada": "Comprovació cancel·lada"
-  ,"winui.diagnostico.pulse_ejecutar_diagnostico_para": "Premeu «Executar diagnòstic» per comprovar només les fases que publica el motor local."
+  ,"winui.diagnostico.pulse_ejecutar_diagnostico_para": "Premeu «Executa el diagnòstic» per comprovar només les fases que publica el motor local."
   ,"winui.diagnostico.indeterminado": "Indeterminat"
   ,"winui.diagnostico.todavia_no_se_ha_observado_ningun_fallo": "Encara no s’ha observat cap fallada."
   ,"winui.diagnostico.ejecute_el_diagnostico_cuando_el_motor": "Executeu el diagnòstic quan el motor local estigui connectat."
@@ -6044,7 +6044,7 @@
   ,"winui.ventana.ver_novedades": "Veure les novetats"
   ,"winui.ventana.ahora_no": "Ara no"
   ,"winui.comun.verificar": "Verificar"
-  ,"winui.ventana.huellas": "Empremtes digitals"
+  ,"winui.ventana.huellas": "Resums (hash)"
   ,"winui.comun.facturae_y_face": "Facturae, FACe i Veri*Factu"
   ,"winui.comun.acerca_de": "Quant a"
   ,"winui.ventana.hay_una_version_nueva_de_grxfirma_1": "Hi ha una versió nova de GrxFirma (%1). Tens la %2."
@@ -6074,7 +6074,7 @@
   ,"winui.selector.firma_xades": "Signatura XAdES"
   ,"winui.selector.firma_xmldsig": "Signatura XMLDSig"
   ,"winui.selector.contenedor_asic": "Contenidor ASiC"
-  ,"winui.selector.informe_de_huella": "Informe d’empremta digital"
+  ,"winui.selector.informe_de_huella": "Informe de resum (hash)"
   ,"winui.selector.documento_protegido": "Document protegit"
   ,"winui.selector.sobre_protegido_grxfirma": "Sobre protegit de GrxFirma"
   ,"winui.selector.informe_de_diagnostico": "Informe de diagnòstic"
@@ -6117,7 +6117,7 @@
   ,"winui.vistapdf.la_ruta_pdf_no_puede_quedar_vacia": "La ruta del PDF no pot estar buida."
   ,"winui.vistapdf.la_previsualizacion_nativa_solo_admite": "La previsualització nativa només admet rutes de PDF locals."
   ,"winui.vistapdf.el_pdf_no_existe_esta_vacio_o_supera_el": "El PDF no existeix, és buit o supera el límit segur."
-  ,"winui.vistapdf.la_previsualizacion_no_admite_enlaces_o": "La previsualització no admet enllaços ni punts d’anàlisi."
+  ,"winui.vistapdf.la_previsualizacion_no_admite_enlaces_o": "La previsualització no admet enllaços ni punts de reanàlisi."
   ,"winui.contrasena.windows_no_pudo_completar_el_dialogo": "Windows no ha pogut completar el diàleg segur de contrasenya."
   ,"winui.contrasena.el_codigo_de_soporte_es_obligatorio": "El codi de suport és obligatori."
   ,"winui.contrasena.ya_hay_una_solicitud_segura_de": "Ja hi ha una sol·licitud segura de contrasenya activa."
@@ -6207,45 +6207,45 @@
   ,"winui.huella.xml_grxfirma_hashfiles": "XML GrxFirma (.hashfiles)"
   ,"winui.huella.texto_grxfirma_txthashfiles": "Text GrxFirma (.txthashfiles)"
   ,"winui.huella.csv_csv": "CSV (.csv)"
-  ,"winui.huella.crear_huella": "Crear empremta"
-  ,"winui.huella.seleccione_una_operacion_y_un_origen": "Seleccioneu una operació i un origen per crear o comprovar una empremta digital."
+  ,"winui.huella.crear_huella": "Crear resum"
+  ,"winui.huella.seleccione_una_operacion_y_un_origen": "Seleccioneu una operació i un origen per crear o comprovar un resum (hash)."
   ,"winui.huella.sin_evidencias_del_motor_local": "Sense evidències del motor local."
-  ,"winui.huella.crea_o_comprueba_huellas_de_ficheros_y": "Crea o comprova empremtes digitals de fitxers i directoris sense signar el contingut."
-  ,"winui.huella.las_huellas_no_estan_disponibles_porque": "Les empremtes digitals no estan disponibles perquè el motor local no ha publicat totes les operacions necessàries."
-  ,"winui.huella.comprobar_huella": "Comprovar empremta"
+  ,"winui.huella.crea_o_comprueba_huellas_de_ficheros_y": "Crea o comprova resums (hash) de fitxers i directoris sense signar el contingut."
+  ,"winui.huella.las_huellas_no_estan_disponibles_porque": "Els resums no estan disponibles perquè el motor local no ha publicat totes les operacions necessàries."
+  ,"winui.huella.comprobar_huella": "Comprovar resum"
   ,"winui.huella.formato_de_manifiesto_no_admitido": "Format de manifest no admès"
   ,"winui.huella.manifiesto_no_valido": "Manifest no vàlid"
   ,"winui.huella.seleccione_un_manifiesto_hashfiles": "Seleccioneu un manifest .hashfiles, .txthashfiles, .csv, .xml o .txt. Un .hashreport és un informe de sortida, no un manifest."
-  ,"winui.huella.seleccione_una_huella_hexhash_hashb64_o": "Seleccioneu una empremta digital .hexhash, .hashb64 o .hash. Un .hashreport és un informe de sortida, no una empremta d'entrada."
-  ,"winui.huella.creando_huella": "S'està creant l'empremta digital…"
-  ,"winui.huella.comprobando_huella": "S'està comprovant l'empremta digital…"
+  ,"winui.huella.seleccione_una_huella_hexhash_hashb64_o": "Seleccioneu un resum .hexhash, .hashb64 o .hash. Un .hashreport és un informe de sortida, no un resum d'entrada."
+  ,"winui.huella.creando_huella": "S'està creant el resum…"
+  ,"winui.huella.comprobando_huella": "S'està comprovant el resum…"
   ,"winui.huella.el_motor_local_esta_procesando_el": "El motor local està processant el contingut seleccionat."
   ,"winui.comun.la_operacion_se_detuvo_antes_de_obtener": "L'operació s'ha aturat abans d'obtenir un resultat."
-  ,"winui.huella.la_operacion_termino_sin_un_resultado_de": "L'operació ha acabat sense cap resultat d'empremta digital."
+  ,"winui.huella.la_operacion_termino_sin_un_resultado_de": "L'operació ha acabat sense cap resultat de resum."
   ,"winui.huella.falta_el_manifiesto": "Falta el manifest"
-  ,"winui.huella.seleccione_el_fichero_de_huella_o": "Seleccioneu el fitxer d'empremta digital o manifest que es comprovarà."
-  ,"winui.huella.huella_creada": "Empremta digital creada"
-  ,"winui.huella.la_huella_se_ha_creado_y_guardado": "L'empremta digital s'ha creat i desat mitjançant el motor local."
+  ,"winui.huella.seleccione_el_fichero_de_huella_o": "Seleccioneu el fitxer de resum o el manifest que es comprovarà."
+  ,"winui.huella.huella_creada": "Resum creat"
+  ,"winui.huella.la_huella_se_ha_creado_y_guardado": "El resum s'ha creat i desat mitjançant el motor local."
   ,"winui.huella.algoritmo_formato_salida": "Algorisme: {0}. Format: {1}. Sortida: {2}."
   ,"winui.huella.entradas_incluidas": "Entrades incloses: {0}"
   ,"winui.huella.se_incluyeron_subdirectorios": "S'han inclòs subdirectoris."
   ,"winui.huella.no_se_incluyeron_subdirectorios": "No s'han inclòs subdirectoris."
-  ,"winui.huella.huella": "Empremta digital: {0}"
+  ,"winui.huella.huella": "Resum: {0}"
   ,"winui.huella.no_disponible": "no disponible"
-  ,"winui.huella.la_huella_coincide": "L'empremta digital coincideix"
-  ,"winui.huella.la_huella_no_coincide": "L'empremta digital no coincideix"
-  ,"winui.huella.el_contenido_comprobado_coincide_con_la": "El contingut comprovat coincideix amb l'empremta digital desada."
+  ,"winui.huella.la_huella_coincide": "El resum coincideix"
+  ,"winui.huella.la_huella_no_coincide": "El resum no coincideix"
+  ,"winui.huella.el_contenido_comprobado_coincide_con_la": "El contingut comprovat coincideix amb el resum desat."
   ,"winui.huella.el_contenido_ha_cambiado_falta": "El contingut ha canviat, falten dades o el manifest no correspon a l'origen."
   ,"winui.huella.algoritmo_detectado_formato": "Algorisme detectat: {0}. Format: {1}."
   ,"winui.huella.esperada": "Esperada: {0}"
   ,"winui.huella.calculada": "Calculada: {0}"
   ,"winui.huella.no_coincide": "No coincideix"
   ,"winui.huella.sin_fichero": "Sense fitxer"
-  ,"winui.huella.sin_huella": "Sense empremta digital"
+  ,"winui.huella.sin_huella": "Sense resum"
   ,"winui.huella.informe_de_comprobacion": "Informe de comprovació: {0}"
-  ,"winui.huella.motor_local_listo_para_crear_y_comprobar": "Motor local preparat per crear i comprovar empremtes digitals."
+  ,"winui.huella.motor_local_listo_para_crear_y_comprobar": "Motor local preparat per crear i comprovar resums."
   ,"winui.comun.resultado_no_utilizable": "Resultat no utilitzable"
-  ,"winui.huella.el_motor_local_no_devolvio_datos_de": "El motor local no ha retornat dades d'empremta digital coherents."
+  ,"winui.huella.el_motor_local_no_devolvio_datos_de": "El motor local no ha retornat dades de resum coherents."
   ,"winui.huella.revise_los_datos_seleccionados_antes_de": "Reviseu les dades seleccionades abans de continuar."
   ,"winui.huella.elemento_sin_nombre": "element sense nom"
   ,"winui.huella.xml_grxfirma": "XML GrxFirma"
@@ -6325,7 +6325,7 @@
   ,"winui.selector.nombre_certificado_publico": "certificat-public"
   ,"winui.selector.nombre_firma": "signatura"
   ,"winui.selector.nombre_contenedor_firmado": "contenidor-signat"
-  ,"winui.selector.nombre_informe_huella": "informe-empremta"
+  ,"winui.selector.nombre_informe_huella": "informe-resum"
   ,"winui.selector.nombre_documento_protegido_firmado": "document-protegit-signat"
   ,"winui.selector.nombre_diagnostico": "diagnostic"
   ,"sign.need_certificate": "Trieu un certificat per poder signar."
@@ -6346,8 +6346,8 @@
   ,"verifactu.qr_empty": "Enganxeu l'URL del QR o trieu una imatge."
   ,"verifactu.field.file": "Fitxer"
   ,"verifactu.field.signature": "Signatura"
-  ,"verifactu.field.hash": "Empremta"
-  ,"verifactu.field.hash_type": "Tipus d'empremta"
+  ,"verifactu.field.hash": "Resum (hash)"
+  ,"verifactu.field.hash_type": "Tipus de resum"
   ,"verifactu.field.date": "Data i hora del registre"
   ,"verifactu.field.chain": "Encadenament"
   ,"verifactu.field.element": "Camp «%1» del registre"

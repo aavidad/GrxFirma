@@ -106,7 +106,7 @@
   "cli.help.facturae_check_exit": "Renvoie 0 sans erreur et 1 si FACe ou le destinataire rejetteraient la facture.",
   "cli.help.summary": "Résumé des options :",
   "cli.help.title": "Mode CLI de grxfirma",
-  "El perfil compat requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "Le profil compat exige une identité RSA avec une clé privée capable de déchiffrer, par exemple un P12/PFX autorisé. Les certificats opaques du système restent disponibles pour signer ; chargez un P12/PFX approprié ou utilisez le profil élevé.",
+  "El perfil compat requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "Le profil compat exige une identité RSA avec une clé privée déchiffrable, par exemple un P12/PFX autorisé. Les certificats opaques du système restent disponibles pour signer ; chargez un P12/PFX approprié ou utilisez le profil élevé.",
   "No hay identidades para el perfil compat. Requiere una clave RSA descifrable, por ejemplo desde un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "Aucune identité n’est disponible pour le profil compat. Il exige une clé RSA capable de déchiffrer, par exemple depuis un P12/PFX autorisé. Les certificats opaques du système restent disponibles pour signer ; chargez un P12/PFX approprié ou utilisez le profil élevé.",
   "Perfil de protección/cifrado. compat exige una identidad RSA cuya clave privada pueda desproteger, por ejemplo un P12/PFX autorizado.": "Profil de protection/chiffrement. compat exige une identité RSA dont la clé privée peut déchiffrer, par exemple un P12/PFX autorisé.",
   "Los certificados opacos del almacén del sistema siguen disponibles para firmar, pero no se anuncian para cifrado compat; carga un P12/PFX apto o usa alto.": "Les certificats opaques du magasin système restent disponibles pour signer mais ne sont pas proposés pour le chiffrement compat ; chargez un P12/PFX approprié ou utilisez élevé.",
@@ -173,8 +173,8 @@
   "+ CERTIFICADOS": "+ CERTIFICATS",
   "+%1 más": "+%1 de plus",
   ",": ",",
-  "--- INICIO DE LOGS ---\n": "--- INICIO DE LOGS ---\n",
-  "--- INICIO DE LOGS ---\\n": "--- DÉBUT DES JOURNAUX ---\\n",
+  "--- INICIO DE LOGS ---\n": "--- DÉBUT DES JOURNAUX ---\n",
+  "--- INICIO DE LOGS ---\\n": "--- DÉBUT DES JOURNAUX ---\n",
   "--- LOGS REINICIADOS [": "--- RÉINITIALISATION DES JOURNAUX [",
   "/ruta/al/documento.afp o .enveloped": "/chemin/vers/document.afp ou .enveloped",
   "/ruta/al/documento.bin": "/chemin/vers/document.bin",
@@ -195,7 +195,7 @@
   "90°": "90°",
   "<b>Emisor:</b> ": "<b>Émetteur :</b> ",
   "<b>Estado:</b> ": "<b>État :</b> ",
-  "<b>Huella:</b> ": "<b>Empreinte :</b> ",
+  "<b>Huella:</b> ": "<b>Empreinte numérique :</b> ",
   "<b>Nº Serie:</b> ": "<b>Numéro de série :</b> ",
   "<b>Titular:</b> ": "<b>Titulaire :</b> ",
   "<b>Válido hasta:</b> ": "<b>Valide jusqu'au :</b> ",
@@ -247,7 +247,7 @@
   "Al desactivar la cofirma múltiple guiada se restaurarán tus preferencias previas de salida.": "La désactivation de la cosignature multiple guidée restaurera vos préférences de sortie précédentes.",
   "Al iniciar, selecciona automáticamente el último certificado usado para firmar.": "Au démarrage, il sélectionne automatiquement le dernier certificat utilisé pour la signature.",
   "Algoritmo": "Algorithme",
-  "Algoritmo de huella por defecto": "Algorithme d’empreinte par défaut",
+  "Algoritmo de huella por defecto": "Algorithme de hachage par défaut",
   "Algoritmo en auto-detección desde la huella o el manifiesto.": "Algorithme détecté automatiquement à partir de le hachage ou du manifeste.",
   "Algoritmo forzado para la comprobación: ": "Algorithme forcé pour la vérification : ",
   "Almacen seguro de proxy": "Magasin proxy sécurisé",
@@ -264,7 +264,7 @@
   "Antes de guardar o enviar nada, este es el paquete de soporte que se preparará para ti.": "Avant de sauvegarder ou d'envoyer quoi que ce soit, voici le paquet de support qui sera préparé pour vous.",
   "Aplica a PAdES, CAdES y XAdES. LT/LTA solo tiene efecto real en CAdES.": "S'applique à PAdES, CAdES et XAdES. LT/LTA n'a d'effet réel que pour CAdES.",
   "Aplica perfiles de firma más restrictivos para maximizar la compatibilidad con administraciones públicas.": "Appliquez des profils de signature plus restrictifs pour maximiser la compatibilité avec les administrations publiques.",
-  "Aplica un estilo rápido al sello visible sin tener que recolocar todos los campos a mano.": "Applique un style rapide au sceau visible sans avoir à repositionner tous les champs à la main.",
+  "Aplica un estilo rápido al sello visible sin tener que recolocar todos los campos a mano.": "Applique un style rapide au cachet visible sans avoir à repositionner tous les champs à la main.",
   "Aplicabilidad de metadatos": "Applicabilité des métadonnées",
   "Aplicación en este equipo": "Application sur cet appareil",
   "Aplicación local": "Application locale",
@@ -471,7 +471,7 @@
   "Comprobando si el documento ya estaba firmado...": "Vérification de la présence d'une signature dans le document...",
   "Comprobando...": "Vérification...",
   "Comprobar Certs": "Vérifier les certificats",
-  "Comprobar huella": "Vérifier l'empreinte",
+  "Comprobar huella": "Vérifier le hachage",
   "Comprobar revocación online": "Vérifier la révocation en ligne",
   "Comprueba advertencias de confianza, integridad o certificado.": "Vérifiez les avertissements de confiance, d’intégrité ou de certificat.",
   "Comprueba si falta el original o si aparece algún aviso sobre confianza o certificado.": "Vérifiez si l'original est manquant ou si un avertissement de confiance ou de certificat apparaît.",
@@ -534,17 +534,17 @@
   "Copiar JSON del certificado": "Copier le JSON du certificat",
   "Copiar diagnóstico": "Copier le diagnostic",
   "Copiar huella": "Copier l'empreinte",
-  "Copiar huella al portapapeles por defecto": "Copier l'empreinte dans le presse-papiers par défaut",
+  "Copiar huella al portapapeles por defecto": "Copier la valeur de hachage dans le presse-papiers par défaut",
   "Copiar informe": "Copier le rapport",
   "Copiar resumen": "Copier le résumé",
   "Copiar resumen de validación": "Copier le résumé de validation",
   "Copiar resumen para soporte": "Copier le résumé pour le support",
   "Corporativo": "Entreprise",
   "Corregido en: %1": "Corrigé dans : %1",
-  "Crea o comprueba huellas de ficheros y manifiestos de directorio.": "Crée ou vérifie des empreintes de fichiers et des manifestes de répertoire.",
+  "Crea o comprueba huellas de ficheros y manifiestos de directorio.": "Crée ou vérifie des valeurs de hachage de fichiers et des manifestes de répertoire.",
   "Crear clave de acceso": "Créer un mot de passe d'accès",
   "Crear clave de seguridad": "Créer une clé de sécurité",
-  "Crear huella": "Créer une empreinte",
+  "Crear huella": "Calculer le hachage",
   "Cristal Oscuro": "Cristal sombre",
   "Cuando llegue la petición, se mostrará el selector de documento o de certificado como en V1.": "À l'arrivée de la demande, le sélecteur de document ou de certificat s'affichera comme dans V1.",
   "Código estable: %1": "Code stable : %1",
@@ -555,17 +555,17 @@
   "Datos de la firma": "Détails de la signature",
   "Debe cargar un archivo PDF antes de realizar la firma.": "Vous devez charger un fichier PDF avant de signer.",
   "Debe cargar un archivo PDF y seleccionar un certificado para poder firmar.": "Vous devez charger un fichier PDF et sélectionner un certificat pour pouvoir signer.",
-  "Debe cargar uno o varios documentos antes de realizar la firma.": "Vous devez télécharger un ou plusieurs documents avant de signer.",
-  "Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.": "Vous devez télécharger un ou plusieurs documents et sélectionner un certificat à signer.",
-  "Debe definir un firmante principal válido para la cofirma múltiple guiada.": "Vous devez définir un signataire principal valide pour la co-signature multiple guidée.",
+  "Debe cargar uno o varios documentos antes de realizar la firma.": "Vous devez charger un ou plusieurs documents avant de signer.",
+  "Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.": "Vous devez charger un ou plusieurs documents et sélectionner un certificat pour pouvoir signer.",
+  "Debe definir un firmante principal válido para la cofirma múltiple guiada.": "Vous devez définir un signataire principal valide pour la cosignature multiple guidée.",
   "Debe indicar el certificado a comprobar.": "Vous devez indiquer le certificat à vérifier.",
   "Debe indicar el certificado que quiere comprobar.": "Vous devez indiquer le certificat que vous souhaitez vérifier.",
   "Debe indicar un dominio u origen para añadirlo.": "Vous devez indiquer un domaine ou une origine à ajouter.",
-  "Debe seleccionar al menos un certificado adicional para la cofirma múltiple guiada.": "Vous devez sélectionner au moins un certificat supplémentaire pour la co-signature multiple guidée.",
+  "Debe seleccionar al menos un certificado adicional para la cofirma múltiple guiada.": "Vous devez sélectionner au moins un certificat supplémentaire pour la cosignature multiple guidée.",
   "Debe seleccionar un certificado de la lista para poder firmar el documento.": "Vous devez sélectionner un certificat dans la liste pour signer le document.",
-  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Définit l'algorithme présélectionné pour créer et vérifier les empreintes numériques.",
+  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Définit l'algorithme présélectionné pour créer et vérifier les valeurs de hachage.",
   "Define el comportamiento por defecto cuando el archivo de salida ya existe.": "Définit le comportement par défaut lorsque le fichier de sortie existe déjà.",
-  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Définit le format présélectionné pour créer ou vérifier les empreintes de fichiers.",
+  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Définit le format présélectionné pour créer ou vérifier les valeurs de hachage de fichiers.",
   "Define el formato preseleccionado al crear o comprobar manifiestos de directorio.": "Définit le format présélectionné pour créer ou vérifier les manifestes de répertoire.",
   "Define el motivo preseleccionado que se incrustará en la firma cuando proceda.": "Définit le motif présélectionné qui sera intégré à la signature le cas échéant.",
   "Define el papel preseleccionado del firmante al generar firmas FacturaE.": "Définit le rôle du signataire présélectionné lors de la génération de signatures FacturaE.",
@@ -686,9 +686,9 @@
   "El backend seguro de proxy no esta listo; el proxy autenticado puede quedar limitado en este equipo.": "Le backend proxy sécurisé n'est pas prêt ; le proxy authentifié peut être limité sur cette machine.",
   "El bloque de certificado permite filtrar, autoseleccionar o recordar el firmante activo entre sesiones.": "Le bloc de certificat permet de filtrer, de sélectionner automatiquement ou de mémoriser le signataire actif entre les sessions.",
   "El certificado actual actuará como firmante principal y los adicionales se encadenarán sobre el mismo artefacto.": "Le certificat actuel agira comme signataire principal et les supplémentaires seront chaînés sur le même artefact.",
-  "El certificado elegido aquí firmará primero. Los demás se añadirán como cofirmas en secuencia.": "Le certificat choisi ici signera en premier. Les autres seront ensuite ajoutés comme co-signatures séquentielles.",
+  "El certificado elegido aquí firmará primero. Los demás se añadirán como cofirmas en secuencia.": "Le certificat choisi ici signera en premier. Les autres seront ensuite ajoutés comme cosignatures séquentielles.",
   "El certificado es válido para firma, pero caduca pronto.": "Le certificat est valable pour la signature, mais expire bientôt.",
-  "El certificado es válido y apto para firma.": "Le certificat est valide et peut être signé.",
+  "El certificado es válido y apto para firma.": "Le certificat est valide et apte à la signature.",
   "El certificado está caducado y no debe usarse para firmar.": "Le certificat est expiré et ne doit pas être utilisé pour la signature.",
   "El certificado figura como revocado por su entidad emisora.": "Le certificat figure comme révoqué par son autorité émettrice.",
   "El certificado no está marcado como utilizable para firma.": "Le certificat n'est pas marqué comme utilisable pour la signature.",
@@ -701,7 +701,7 @@
   "El documento seleccionado ya contiene una firma electrónica.": "Le document sélectionné contient déjà une signature électronique.",
   "El fichero indicado no existe": "Le fichier indiqué n'existe pas",
   "El firmado y el original parecen de tipos distintos.": "Le document signé et l'original semblent être de types différents.",
-  "El firmante principal se aplicará primero. Los certificados marcados aquí se aplicarán después como cofirmas secuenciales.": "Le signataire principal sera appliqué en premier. Les certificats sélectionnés ici seront ensuite ajoutés comme co-signatures séquentielles.",
+  "El firmante principal se aplicará primero. Los certificados marcados aquí se aplicarán después como cofirmas secuenciales.": "Le signataire principal sera appliqué en premier. Les certificats sélectionnés ici seront ensuite ajoutés comme cosignatures séquentielles.",
   "El flujo de documentos ya firmados se ha ido afinando para redirigir hacia cofirma.": "Le flux des documents déjà signés a été affiné pour rediriger vers la cosignature.",
   "El flujo de firma está preparado. Revisa operación, formato y certificado antes de continuar.": "Le flux de signature est prêt. Vérifiez l’opération, le format et le certificat avant de continuer.",
   "El navegador no permite copiar el resumen automáticamente en este contexto.": "Le navigateur ne permet pas de copier automatiquement le résumé dans ce contexte.",
@@ -771,7 +771,7 @@
   "Error importando certificado: ": "Erreur lors de l'importation du certificat : ",
   "Error instalando certificados": "Erreur lors de l'installation des certificats",
   "Error instalando la confianza TLS local": "Erreur lors de l'installation de la confiance TLS locale",
-  "Error instalando raíces de confianza: ": "Erreur lors de l'installation des racines approuvées : ",
+  "Error instalando raíces de confianza: ": "Erreur lors de l'installation de la confiance TLS locale : ",
   "Error si existe": "Erreur si existe",
   "Error: ": "Erreur : ",
   "Error: Ruta IPC vacía": "Erreur : chemin IPC vide",
@@ -818,7 +818,7 @@
   "Expandir todo": "Tout développer",
   "Experto": "Expert",
   "Explorar Logs": "Explorer les journaux",
-  "Expone la API REST solo en este equipo, para integraciones locales y consola web.": "Exposez l'API REST sur cette machine uniquement, pour les intégrations sur site et dans la console Web.",
+  "Expone la API REST solo en este equipo, para integraciones locales y consola web.": "Expose l'API REST uniquement sur cet ordinateur, pour les intégrations locales et la console web.",
   "Exportando destinatario...": "Exportation du destinataire...",
   "Exportar destinatario alto": "Exporter le destinataire fort",
   "FIRMA DIGITAL": "SIGNATURE NUMÉRIQUE",
@@ -865,7 +865,7 @@
   "Firma múltiple finalizada.": "Signature multiple terminée.",
   "Firma no válida.": "Signature non valide.",
   "Firma no válida: ": "Signature non valide : ",
-  "Firma o cofirma el mismo documento con varios certificados en secuencia, generando una única salida final.": "Signe ou co-signe le même document avec plusieurs certificats en séquence, en générant une seule sortie finale.",
+  "Firma o cofirma el mismo documento con varios certificados en secuencia, generando una única salida final.": "Signe ou cosigne le même document avec plusieurs certificats en séquence, en générant une seule sortie finale.",
   "Firma valida": "Signature valide",
   "Firma verificada correctamente.": "Signature vérifiée correctement.",
   "Firma visible (PAdES)": "Signature visible (PAdES)",
@@ -891,7 +891,7 @@
   "Firmar ahora": "Signer maintenant",
   "Firmar igualmente": "Signer quand même",
   "Formato": "Format",
-  "Formato de huella por defecto para ficheros": "Format d'empreinte par défaut pour les fichiers",
+  "Formato de huella por defecto para ficheros": "Format de hachage par défaut pour les fichiers",
   "Formato de manifiesto por defecto para directorios": "Format de manifeste par défaut pour les répertoires",
   "Formato detectado: %1": "Format détecté : %1",
   "Formato por defecto": "Format par défaut",
@@ -943,16 +943,16 @@
   "Hexadecimal": "Hexadécimal",
   "Host / IP:": "Hôte/IP :",
   "Huella": "Empreinte",
-  "Huella SHA-256: ": "Empreinte digitale SHA-256 : ",
-  "Huella copiada al portapapeles.": "Empreinte copiée dans le presse-papiers.",
+  "Huella SHA-256: ": "Empreinte numérique SHA-256 : ",
+  "Huella copiada al portapapeles.": "Valeur de hachage copiée dans le presse-papiers.",
   "Huella del certificado copiada al portapapeles.": "Empreinte du certificat copiée dans le presse-papiers.",
   "Huella o manifiesto": "Hachage ou manifeste",
-  "Huella o manifiesto: ": "Empreinte ou manifeste : ",
+  "Huella o manifiesto: ": "Hachage ou manifeste : ",
   "Huella válida.": "Hachage valide.",
   "Huella: ": "Empreinte : ",
-  "Huellas de Certificados Cliente (SHA-256 CSV):": "Empreintes digitales du certificat client (SHA-256 CSV) :",
-  "Huellas e integridad": "Empreintes et intégrité",
-  "Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)": "Empreintes et manifestes (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)",
+  "Huellas de Certificados Cliente (SHA-256 CSV):": "Empreintes numériques des certificats clients (SHA-256 CSV) :",
+  "Huellas e integridad": "Hachage et intégrité",
+  "Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)": "Valeurs de hachage et manifestes (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)",
   "ID:": "ID :",
   "Id": "Id",
   "Identificador de política": "Identifiant de la politique",
@@ -981,10 +981,10 @@
   "Inicializando el flujo de firma web": "Initialisation du flux de signature web",
   "Iniciando...": "Démarrage...",
   "Iniciar servidor": "Démarrer le serveur",
-  "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "Insère un tampon graphique dans le PDF indiquant qu'il a été signé numériquement.",
+  "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "Insère un cachet graphique dans le PDF indiquant qu'il a été signé numériquement.",
   "Instala el motor de firma como servicio de tu usuario (no de sistema),\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installe le moteur de signature comme service de votre utilisateur (et non du système),\npour qu’il démarre automatiquement et ait accès à vos certificats personnels.",
-  "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installez le moteur de signature en tant que service pour votre utilisateur (et non votre système), \\n, afin qu'il démarre automatiquement et ait accès à vos certificats personnels.",
-  "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "Installez l'approbation de certificat HTTPS local pour ouvrir la console Web REST sans invite du navigateur.",
+  "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installe le moteur de signature comme service de votre utilisateur (et non du système),\npour qu’il démarre automatiquement et ait accès à vos certificats personnels.",
+  "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "Installe la confiance dans le certificat HTTPS local pour ouvrir la console web REST sans avertissement du navigateur.",
   "Instalar confianza TLS local": "Installer la confiance TLS locale",
   "Instalar raíces públicas": "Installer la confiance TLS locale",
   "Instalar servicio": "Installer le service",
@@ -1014,7 +1014,7 @@
   "La clave indicada no es correcta.": "La clé indiquée n'est pas correcte.",
   "La cofirma múltiple guiada está desactivada.": "La cosignature multiple guidée est désactivée.",
   "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "La cosignature multiple guidée n'est disponible que pour un document unique dans les actions signer ou cosigner.",
-  "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "La co-signature multiple guidée n’est disponible que pour signer ou cosigner, pas pour contre-signer.",
+  "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "La cosignature multiple guidée n’est disponible que pour signer ou cosigner, pas pour contresigner.",
   "La cofirma múltiple guiada solo está disponible para un único documento, no para lotes.": "La co-signature multiple guidée est disponible uniquement pour un document unique, pas pour des lots.",
   "La confirmación de la clave no coincide.": "La confirmation de la clé ne correspond pas.",
   "La consola usa este token para endpoints protegidos como firma, verificación, ajustes o diagnóstico.": "La console utilise ce jeton pour les endpoints protégés comme la signature, la vérification, les paramètres ou le diagnostic.",
@@ -1204,7 +1204,7 @@
   "OOXML firmado": "OOXML signé",
   "OOXML original": "OOXML original",
   "Oculta certificados que no aportan NIF o identificador equivalente en los datos extraídos por el catálogo.": "Masque les certificats qui ne fournissent pas de NIF ou d’identifiant équivalent dans les données extraites par le catalogue.",
-  "Oculta certificados sin organización informada. Útil para priorizar representación, sello o certificados corporativos.": "Masque les certificats sans organisation renseignée. Utile pour privilégier la représentation, le sceau ou les certificats d’entreprise.",
+  "Oculta certificados sin organización informada. Útil para priorizar representación, sello o certificados corporativos.": "Masque les certificats sans organisation renseignée. Utile pour privilégier la représentation, le cachet ou les certificats d’entreprise.",
   "Oculta los certificados presentes en el almacén que no son aptos para firmar. Si además activas la vista de diagnóstico, seguirán pudiendo verse desactivando este filtro.": "Masque les certificats présents dans le magasin qui ne sont pas aptes à signer. Si vous activez aussi la vue de diagnostic, ils resteront visibles en désactivant ce filtre.",
   "Ocultar a bandeja": "Masquer dans la barre d'état",
   "Ocultar caducados": "Masquer les expirés",
@@ -1231,7 +1231,7 @@
   "Opcional. Este bloque expone política, rol y lugar de firma que el backend FacturaE ya consume de forma real.": "Facultatif. Ce bloc expose la politique, le rôle et le lieu de signature que le backend FacturaE utilise déjà réellement.",
   "Opcional. Estos campos solo se aplican cuando el formato efectivo es FacturaE.": "Facultatif. Ces champs ne s'appliquent que lorsque le format effectif est FacturaE.",
   "Opcional. Estos datos se enviarán como SignatureProductionPlace al firmar FacturaE.": "Optionnel. Ces données seront envoyées comme SignatureProductionPlace lors de la signature FacturaE.",
-  "Opcional. Estos datos se incrustan en la firma PAdES y no sustituyen al certificado ni al sello visible.": "Optionnel. Ces données sont intégrées dans la signature PAdES et ne remplacent ni le certificat ni le sceau visible.",
+  "Opcional. Estos datos se incrustan en la firma PAdES y no sustituyen al certificado ni al sello visible.": "Optionnel. Ces données sont intégrées dans la signature PAdES et ne remplacent ni le certificat ni le cachet visible.",
   "Opcional. Se envía en Authorization: Bearer ...": "Facultatif. Envoyé dans Authorization: Bearer ...",
   "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible cuando no usas imagen personalizada.": "Optionnel. Si vous indiquez un texte ou une URL, un QR est intégré dans le sceau visible lorsque vous n’utilisez pas d’image personnalisée.",
   "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible y puede combinarse con imagen personalizada.": "Optionnel. Si vous indiquez un texte ou une URL, un QR est intégré dans le cachet visible et peut être combiné avec une image personnalisée.",
@@ -1240,7 +1240,7 @@
   "Opcional. Si se deja vacío, cada fichero se guarda junto al original.": "Facultatif. S'il est laissé vide, chaque fichier est enregistré à côté de l'original.",
   "Opcional. Si se indica, el backend la usará para perfiles con sello de tiempo.": "Facultatif. Si elle est indiquée, le backend l'utilisera pour les profils avec horodatage.",
   "Opcional: 6F:..., 8A:...": "En option : 6F :..., 8A :...",
-  "Opcional: token de acceso bearer": "En option : jeton d'accès au porteur",
+  "Opcional: token de acceso bearer": "En option : jeton d'accès Bearer",
   "Opciones JSON": "Options JSON",
   "OpenAPI": "OpenAPI",
   "Operación": "Opération",
@@ -1264,10 +1264,10 @@
   "PDF original": "PDF original",
   "Panel de Diagnóstico Experto": "Panneau de diagnostic expert",
   "Paquete de soporte listo para exportar": "Paquet de support prêt à exporter",
-  "Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.": "Pour ouvrir l'API REST locale sans invite du navigateur, installez l'approbation de certificat TLS local.",
+  "Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.": "Pour ouvrir l'API REST locale sans avertissement du navigateur, installez la confiance dans le certificat TLS local.",
   "Para modificar la lista de dominios permitidos (NM/CORS) debe identificarse como administrador del sistema.": "Pour modifier la liste des domaines autorisés (NM/CORS), vous devez vous identifier en tant qu'administrateur système.",
   "Para modificar la lista de dominios permitidos y las conexiones seguras debe identificarse.": "Pour modifier la liste des domaines autorisés et des connexions sécurisées, vous devez vous identifier.",
-  "Para previsualizar el sello en un lote por carpeta, seleccione uno o varios PDF concretos. La firma visible solo se aplica a PAdES (PDF).": "Pour prévisualiser le tampon dans un lot par dossier, sélectionnez un ou plusieurs PDF spécifiques. La signature visible s'applique uniquement aux PAdES (PDF).",
+  "Para previsualizar el sello en un lote por carpeta, seleccione uno o varios PDF concretos. La firma visible solo se aplica a PAdES (PDF).": "Pour prévisualiser le cachet dans un lot par dossier, sélectionnez un ou plusieurs PDF spécifiques. La signature visible s'applique uniquement aux PAdES (PDF).",
   "Para que las firmas de este emisor (FNMT, etc.) sean válidas, debe instalar las raíces de confianza.": "Pour ouvrir l'API REST locale sans avertissements du navigateur, installez la confiance du certificat TLS local.",
   "Parece depender de red o de un servicio externo.": "Cela semble dépendre du réseau ou d'un service externe.",
   "Parece depender del certificado o de su disponibilidad en este equipo.": "Cela semble dépendre du certificat ou de sa disponibilité sur cet ordinateur.",
@@ -1376,7 +1376,7 @@
   "Puedes arrastrar y redimensionar el sello. El backend recibirá coordenadas seguras y normalizadas.": "Vous pouvez faire glisser et redimensionner le cachet. Le backend recevra des coordonnées sûres et normalisées.",
   "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "Vous pouvez lancer l'opération maintenant ou continuer à ajuster le cachet visible, le profil ou les métadonnées avant de signer.",
   "Puedes pedir al backend que seleccione automáticamente el certificado más adecuado según los filtros visibles.": "Vous pouvez demander au backend de sélectionner automatiquement le certificat le plus adapté selon les filtres visibles.",
-  "Puedes usar un PNG/JPG como fondo del sello. Si mantienes el texto, se dibujará encima como marca de agua.": "Vous pouvez utiliser un PNG/JPG comme arrière-plan du tampon. Si vous conservez le texte, il sera dessiné dessus en filigrane.",
+  "Puedes usar un PNG/JPG como fondo del sello. Si mantienes el texto, se dibujará encima como marca de agua.": "Vous pouvez utiliser un PNG/JPG comme arrière-plan du cachet. Si vous conservez le texte, il sera dessiné dessus en filigrane.",
   "Puerto:": "Port:",
   "Página": "Page",
   "Página %1/%2": "Page %1/%2",
@@ -1412,7 +1412,7 @@
   "REST local": "REST local",
   "REST: ": "REST : ",
   "RUTA DE ENTRADA": "CHEMIN D'ENTRÉE",
-  "RUTA DE SALIDA (PDF FIRMADO)": "VOIE DE SORTIE (PDF SIGNÉ)",
+  "RUTA DE SALIDA (PDF FIRMADO)": "CHEMIN DE SORTIE (PDF SIGNÉ)",
   "Razón": "Raison",
   "Razón técnica visible: %1": "Raison technique visible : %1",
   "Razón: ": "Raison: ",
@@ -1445,13 +1445,13 @@
   "Responsabilidad probable: %1": "Responsabilité probable : %1",
   "Responsable probable: %1": "Responsable probable : %1",
   "Respuesta de certificados recibida: ": "Réponse des certificats reçue : ",
-  "Restaura el tema y opciones a fábrica": "Restaurer le thème et les options à l'usine",
+  "Restaura el tema y opciones a fábrica": "Rétablit le thème et les options d’usine",
   "Restaurado desde la sesión anterior.": "Restauré depuis la session précédente.",
   "Restaurar": "Restaurer",
   "Restaurar sello": "Réinitialiser le sceau",
   "Resultado": "Résultat",
   "Resultado de desprotección": "Résultat de la déprotection",
-  "Resultado de huella": "Résultat de l’empreinte",
+  "Resultado de huella": "Résultat du hachage",
   "Resultado de instalación de confianza TLS local.": "Résultat de l'installation de la confiance TLS locale.",
   "Resultado de instalación de raíces.": "Résultat de l'installation de la confiance TLS locale.",
   "Resultado de protección": "Résultat de la protection",
@@ -1598,12 +1598,12 @@
   "Seleccionar documento original de referencia": "Sélectionner le document original de référence",
   "Seleccionar fichero": "Sélectionner un fichier",
   "Seleccionar fichero a proteger": "Sélectionner le fichier à protéger",
-  "Seleccionar fichero para huella": "Sélectionner le fichier pour l’empreinte",
+  "Seleccionar fichero para huella": "Sélectionner le fichier à hacher",
   "Seleccionar fichero protegido": "Sélectionner le fichier protégé",
   "Seleccionar fichero(s)": "Sélectionner le(s) fichier(s)",
   "Seleccionar fichero...": "Sélectionnez le fichier...",
-  "Seleccionar huella": "Sélectionner l’empreinte",
-  "Seleccionar huella o manifiesto": "Sélectionner l’empreinte ou le manifeste",
+  "Seleccionar huella": "Sélectionner le fichier de hachage",
+  "Seleccionar huella o manifiesto": "Sélectionner le fichier de hachage ou le manifeste",
   "Seleccionar imagen": "Sélectionner une image",
   "Seleccionar imagen de firma": "Sélectionnez l'image de signature",
   "Seleccionar original...": "Sélectionner l’original...",
@@ -1616,9 +1616,9 @@
   "Selección": "Sélection",
   "Selección cancelada": "Sélection annulée",
   "Selección cargada en navegador": "Sélection chargée dans le navigateur",
-  "Selección de páginas inválida. Usa 1, 1,3-5 o all.": "Sélection de page invalide. Utilisez 1, 1,3-5 ou tous.",
+  "Selección de páginas inválida. Usa 1, 1,3-5 o all.": "Sélection de pages invalide. Utilisez 1, 1,3-5 ou all.",
   "Sello": "Cachet",
-  "Sello restaurado a valores por defecto.": "Sceau restauré aux valeurs par défaut.",
+  "Sello restaurado a valores por defecto.": "Cachet restauré aux valeurs par défaut.",
   "Sello visible": "Cachet visible",
   "Serie": "Série",
   "Servicio externo": "Service externe",
@@ -1642,9 +1642,9 @@
   "Si se activa y solo hay un certificado disponible, la aplicación lo seleccionará automáticamente al cargar el catálogo.": "Si cette option est activée et qu'un seul certificat est disponible, l'application le sélectionnera automatiquement au chargement du catalogue.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación intentará guardarlas y cerrará sin mostrar el diálogo de confirmación.": "Si cette option est activée, à la fermeture avec des préférences en attente, l'application essaiera de les enregistrer et se fermera sans afficher la boîte de dialogue de confirmation.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación las guardará y continuará sin mostrar el diálogo de confirmación.": "Si cette option est activée, lors de la fermeture avec des préférences en attente, lapplication les enregistrera et continuera sans afficher la boîte de confirmation.",
-  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "Si cette option est activée, lors de la vérification des empreintes de répertoires, l'enregistrement du rapport sera proposé par défaut.",
-  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "Si cette option est activée, lors de la création ou de la vérification des empreintes de répertoires, le mode récursif sera coché par défaut.",
-  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "Si cette option est activée, lors de la génération d'une empreinte simple, elle sera copiée automatiquement dans le presse-papiers.",
+  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "Si cette option est activée, lors de la vérification des valeurs de hachage de répertoires, l'enregistrement du rapport sera proposé par défaut.",
+  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "Si cette option est activée, lors de la création ou de la vérification des valeurs de hachage de répertoires, le mode récursif sera coché par défaut.",
+  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "Si cette option est activée, la valeur de hachage générée pour un fichier sera copiée automatiquement dans le presse-papiers.",
   "Si se activa, al preparar firmas PDF se propondrá por defecto la firma visible.": "Si cette option est activée, lors de la préparation de signatures PDF, la signature visible sera proposée par défaut.",
   "Si se activa, al preparar una firma visible PAdES se propondrá por defecto aplicarla en todas las páginas.": "Si cette option est activée, lors de la préparation d'une signature visible PAdES, son application à toutes les pages sera proposée par défaut.",
   "Si se activa, al pulsar cerrar la ventana la aplicación se minimizará y seguirá lista para futuras firmas.": "Si cette option est activée, lorsque vous fermez la fenêtre, l'application sera réduite et restera prête pour de futures signatures.",
@@ -1751,7 +1751,7 @@
   "URLs excluidas del proxy:": "URL exclues du proxy :",
   "Ubicación": "Emplacement",
   "Una URL o patrón por línea, por ejemplo:\nlocalhost\n127.0.0.1\n*.dipgra.es": "Une URL ou un motif par ligne, par exemple :\nlocalhost\n127.0.0.1\n*.dipgra.es",
-  "Una URL o patrón por línea, por ejemplo:\\nlocalhost\\n127.0.0.1\\n*.dipgra.es": "Une URL ou un motif par ligne, par exemple :\\\\nlocalhost\\\\n127.0.0.1\\\\n*.dipgra.es",
+  "Una URL o patrón por línea, por ejemplo:\\nlocalhost\\n127.0.0.1\\n*.dipgra.es": "Une URL ou un motif par ligne, par exemple :\\nlocalhost\\n127.0.0.1\\n*.dipgra.es",
   "Usa valores como 1, 2,4-6 o all para indicar páginas válidas.": "Utilisez des valeurs comme 1, 2,4-6 ou all pour indiquer des pages valides.",
   "Usar como predeterminado": "Définir par défaut",
   "Usar logo GrxFirma": "Utiliser le logo GrxFirma",
@@ -1779,7 +1779,7 @@
   "Vence: ": "Expire : ",
   "Ver": "Voir",
   "Ver Original": "Voir l'original",
-  "Ver archivo (Abrir externamente)": "Afficher le fichier (ouvert en externe)",
+  "Ver archivo (Abrir externamente)": "Afficher le fichier (ouvrir en externe)",
   "Ver firmado": "Voir le fichier signé",
   "Verificacion posterior": "Vérification postérieure",
   "Verificación automática": "Vérification automatique",
@@ -2016,11 +2016,11 @@
   "height": "height",
   "help.certs.body": "Le panneau de droite affiche les certificats disponibles. Vous pouvez consulter leurs détails, vérifier leur validité et les utiliser pour signer ou vous authentifier selon le flux. Si aucun certificat n’apparaît, vous pouvez utiliser un P12/PFX uniquement pour la session en cours ou l’importer explicitement dans un magasin du système ou du navigateur.",
   "help.certs.title": "Certificats",
-  "help.more.body": "Pour les opérations avancées, vous pouvez aussi utiliser la console web locale et la ligne de commande d’GrxFirma.",
+  "help.more.body": "Pour les opérations avancées, vous pouvez aussi utiliser la console web locale et la ligne de commande de GrxFirma.",
   "help.more.title": "Plus d’informations",
   "help.security.body": "Vérifiez toujours le site qui demande une signature ou un certificat. N’approuvez pas d’opérations inattendues. Utilisez le mode résident et la compatibilité web seulement si nécessaire.",
   "help.security.title": "Sécurité",
-  "help.sign.body": "Utilisez l’onglet Signer pour signer un fichier, plusieurs fichiers ou un dossier complet. Pour les PDF au format PAdES, vous pouvez activer un sceau visible, la rotation, un QR, des métadonnées et des pages spécifiques ou toutes les pages. Vous pouvez garder les sélecteurs ouverts ou positionner le sceau sans vous presser : le canal connecté accepte jusqu’à 30 minutes d’inactivité.",
+  "help.sign.body": "Utilisez l’onglet Signer pour signer un fichier, plusieurs fichiers ou un dossier complet. Pour les PDF au format PAdES, vous pouvez activer un cachet visible, la rotation, un QR, des métadonnées et des pages spécifiques ou toutes les pages. Vous pouvez garder les sélecteurs ouverts ou positionner le cachet sans vous presser : le canal connecté accepte jusqu’à 30 minutes d’inactivité.",
   "help.sign.title": "Signer des documents",
   "help.subtitle": "Guide rapide d’utilisation de l’application.",
   "help.title": "Aide d’GrxFirma",
@@ -2393,7 +2393,7 @@
   "⚙️  Preferencias Generales": "⚙️ Préférences générales",
   "⚙️ Modo administrador habilitado.": "⚙️ Mode administrateur activé.",
   "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "⚠ Déconnecté de l'interface IPC locale (mode REST exclusif, ou moteur arrêté).",
-  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ Important : il est installé en tant que service de votre session utilisateur (et non en tant que service système), afin qu'il ait accès à vos certificats dans la boutique personnelle. Les services système ne peuvent pas accéder aux certificats utilisateur.",
+  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ Important : il est installé en tant que service de votre session utilisateur (et non en tant que service système), afin qu'il ait accès à vos certificats du magasin personnel. Les services système ne peuvent pas accéder aux certificats utilisateur.",
   "⚠️": "⚠️",
   "⚠️ Conexión IPC cerrada.": "⚠️ Connexion IPC fermée.",
   "⚠️ No hay conexión con el motor.": "⚠️ Aucune connexion avec le moteur.",
@@ -2627,7 +2627,7 @@
   ,"La última versión publicada es %1, pero este build de desarrollo no se puede comparar automáticamente.": "La dernière version publiée est %1, mais cette compilation de développement ne peut pas être comparée automatiquement."
   ,"GrxFirma está actualizado (%1).": "GrxFirma est à jour (%1)."
   ,"Avisar de nuevas versiones": "Avertir des nouvelles versions"
-  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "Au démarrage, consulte une fois la dernière GitHub Release. Seuls la connexion HTTPS et l'identifiant GrxFirma sont envoyés à GitHub ; aucun document, certificat ou donnée de signature n'est envoyé."
+  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "Au démarrage, consulte une fois la dernière GitHub Release. Seuls la connexion HTTPS et le chemin du dépôt officiel sont transmis à GitHub ; aucun document, certificat ou donnée de signature n'est envoyé."
   ,"Comprobación de versiones finalizada.": "Vérification des versions terminée."
   ,"La comprobación segura de versiones necesita el motor local IPC. Abra GrxFirma desde el lanzador instalado y vuelva a intentarlo; la firma local no queda bloqueada.": "La vérification sécurisée des versions nécessite le moteur IPC local. Ouvrez GrxFirma depuis le lanceur installé et réessayez ; la signature locale reste disponible."
   ,"No se puede comprobar la versión porque el servicio de actualizaciones no está configurado. Reinstale GrxFirma desde el repositorio oficial.": "Impossible de vérifier la version car le service de mise à jour n'est pas configuré. Réinstallez GrxFirma depuis le dépôt officiel."
@@ -2674,7 +2674,7 @@
   ,"Primera": "Première"
   ,"Renovar en la FNMT": "Renouveler auprès de la FNMT"
   ,"Selecciona una imagen PNG o JPEG para el sello.": "Sélectionnez une image PNG ou JPEG pour le cachet."
-  ,"Selección de páginas inválida. Usa 1, 1,3-5 o todas.": "Sélection de pages non valide. Utilisez 1, 1,3-5 ou toutes."
+  ,"Selección de páginas inválida. Usa 1, 1,3-5 o todas.": "Sélection de pages non valide. Utilisez 1, 1,3-5 ou all."
   ,"Solo texto": "Texte seulement"
   ,"Tarjeta detectada. Se actualiza la lista de certificados; puede que necesites configurar el módulo PKCS#11.": "Carte détectée. La liste des certificats est en cours d'actualisation ; vous devrez peut-être configurer le module PKCS#11."
   ,"Todas": "Toutes"
@@ -2781,7 +2781,7 @@
   ,"winui.parity.certs.seal": "Cachet d'organisation"
   ,"winui.parity.certs.employee": "Agent public"
   ,"winui.parity.certs.type": "Type de certificat"
-  ,"winui.parity.certs.nif": "Avec identifiant ou numéro de série"
+  ,"winui.parity.certs.nif": "Uniquement avec NIF ou numéro de série"
   ,"winui.parity.certs.organization": "Avec organisation"
   ,"winui.parity.rest.title": "Serveur REST local"
   ,"winui.parity.rest.token": "Jeton d'accès de cette session"
@@ -2975,7 +2975,7 @@
   "paridad.lote3.eni.creating": "Création du fichier ENI…",
   "paridad.lote3.invoice.filename": "rapport-facture",
   "paridad.lote3.eni.filename": "document-eni",
-  "Huellas": "Empreintes",
+  "Huellas": "Hachage",
   "Complementos": "Extensions",
   "Diagnóstico": "Diagnostic",
   "Facturae y FACe": "Facturae, FACe et Veri*Factu",
@@ -3226,7 +3226,7 @@
   ,"Datos del certificado seleccionado": "Données du certificat sélectionné"
   ,"Ficha del certificado": "Fiche du certificat"
   ,"Renovar el certificado en la FNMT": "Renouveler le certificat auprès de la FNMT"
-  ,"Usar certificado como predeterminado": "Utiliser le certificat par défaut"
+  ,"Usar certificado como predeterminado": "Définir comme certificat par défaut"
   ,"Quitar certificado predeterminado": "Supprimer le certificat par défaut"
   ,"Verificar certificado seleccionado": "Vérifier le certificat sélectionné"
   ,"Refrescar validez online del certificado": "Actualiser la validité du certificat en ligne"
@@ -4065,28 +4065,28 @@
   ,"Verificación en curso": "Vérification en cours"
   ,"Resultado de verificación": "Résultat de la vérification"
   ,"Avisos y errores": "Avertissements et erreurs"
-  ,"Contenido de huellas": "Contenu des empreintes"
-  ,"Disponibilidad de huellas": "Disponibilité des empreintes"
+  ,"Contenido de huellas": "Contenu des valeurs de hachage"
+  ,"Disponibilidad de huellas": "Disponibilité du hachage"
   ,"Crear o comprobar": "Créer ou vérifier"
   ,"Usar un fichero": "Utiliser un fichier"
   ,"Usar un directorio": "Utiliser un répertoire"
-  ,"Origen para la huella": "Source de l'empreinte"
+  ,"Origen para la huella": "Source du hachage"
   ,"Ningún origen seleccionado": "Aucune source sélectionnée"
-  ,"Seleccionar origen para la huella": "Sélectionner la source de l'empreinte"
-  ,"Manifiesto de huella": "Manifeste des empreintes"
-  ,"Huella o manifiesto que se va a comprobar": "Empreinte ou manifeste à vérifier"
-  ,"Seleccione una huella o manifiesto": "Sélectionnez une empreinte ou un manifeste"
+  ,"Seleccionar origen para la huella": "Sélectionner la source du hachage"
+  ,"Manifiesto de huella": "Manifeste de hachage"
+  ,"Huella o manifiesto que se va a comprobar": "Valeur de hachage ou manifeste à vérifier"
+  ,"Seleccione una huella o manifiesto": "Sélectionnez une valeur de hachage ou un manifeste"
   ,"Los informes .hashreport son salidas de comprobación y no se aceptan como manifiestos.": "Les rapports .hashreport sont des résultats de vérification et ne sont pas acceptés comme manifestes."
-  ,"Seleccionar manifiesto de huella": "Sélectionner le manifeste des empreintes"
+  ,"Seleccionar manifiesto de huella": "Sélectionner le manifeste de hachage"
   ,"Seleccionar manifiesto…": "Sélectionner un manifeste…"
-  ,"Algoritmo de huella": "Algorithme d'empreinte"
+  ,"Algoritmo de huella": "Algorithme de hachage"
   ,"Algoritmo seguro": "Algorithme sûr"
-  ,"Formato de la huella": "Format de l'empreinte"
+  ,"Formato de la huella": "Format du hachage"
   ,"Solo se aplica a directorios.": "S'applique uniquement aux répertoires."
   ,"Incluir subdirectorios": "Inclure les sous-répertoires"
-  ,"Ejecutar operación de huella": "Exécuter l'opération d'empreinte"
-  ,"Cancelar operación de huella": "Annuler l'opération d'empreinte"
-  ,"Operación de huella en curso": "Opération d'empreinte en cours"
+  ,"Ejecutar operación de huella": "Exécuter le calcul de hachage"
+  ,"Cancelar operación de huella": "Annuler le calcul de hachage"
+  ,"Operación de huella en curso": "Calcul de hachage en cours"
   ,"Contenido de protección y desprotección": "Contenu de la protection et du déchiffrement"
   ,"Disponibilidad de protección": "Disponibilité de la protection"
   ,"Proteger documento": "Protéger le document"
@@ -4137,7 +4137,7 @@
   ,"Almacén personal de Windows": "Magasin personnel de Windows"
   ,"Use Buscar en Windows o Actualizar para consultar los certificados disponibles. Importar en Windows es una acción distinta: conserva la credencial en el almacén personal tras su confirmación.": "Utilisez Rechercher dans Windows ou Actualiser pour consulter les certificats disponibles. L'importation dans Windows est une action distincte : elle conserve le certificat dans le magasin personnel après confirmation."
   ,"Tarjetas, DNIe y tokens USB": "Cartes, DNIe et jetons USB"
-  ,"Conecte el lector, inserte la tarjeta y pulse «Usar DNIe o tarjeta». Windows necesita el controlador del fabricante para mostrar sus certificados. Si falta, consulte la web oficial del DNIe o la del fabricante. Al firmar, el controlador solicitará el PIN; no lo escriba en esta aplicación. La disponibilidad depende del dispositivo y del proveedor: no se garantiza compatibilidad universal.": "Connectez le lecteur, insérez la carte et cliquez sur « Utiliser le DNIe ou une carte ». Windows a besoin du pilote du fabricant pour afficher les certificats. S'il manque, consultez le site officiel du DNIe ou celui du fabricant. Lors de la signature, le pilote demandera le code PIN ; ne le saisissez pas dans cette application. La disponibilité dépend de l'appareil et du fournisseur : la compatibilité universelle n'est pas garantie."
+  ,"Conecte el lector, inserte la tarjeta y pulse «Usar DNIe o tarjeta». Windows necesita el controlador del fabricante para mostrar sus certificados. Si falta, consulte la web oficial del DNIe o la del fabricante. Al firmar, el controlador solicitará el PIN; no lo escriba en esta aplicación. La disponibilidad depende del dispositivo y del proveedor: no se garantiza compatibilidad universal.": "Connectez le lecteur, insérez la carte et cliquez sur « Utiliser un DNIe ou une carte ». Windows a besoin du pilote du fabricant pour afficher les certificats. S'il manque, consultez le site officiel du DNIe ou celui du fabricant. Lors de la signature, le pilote demandera le code PIN ; ne le saisissez pas dans cette application. La disponibilité dépend de l'appareil et du fournisseur : la compatibilité universelle n'est pas garantie."
   ,"Cl@ve Firma: depende del trámite": "Cl@ve Firma : selon la démarche"
   ,"Es un servicio de firma que debe ofrecer e integrar la sede o el trámite. No es un certificado local y no puede añadirse a este selector desde GrxFirma. Si el trámite ofrece Cl@ve Firma, siga esa opción en su propia sede.": "Ce service de signature doit être proposé et intégré par le portail ou la démarche. Ce n'est pas un certificat local et il ne peut pas être ajouté à ce sélecteur depuis GrxFirma. Si la démarche propose Cl@ve Firma, utilisez cette option sur son propre portail."
   ,"Importar en el almacén de Windows": "Importer dans le magasin Windows"
@@ -4973,7 +4973,7 @@
   ,"csc.error.adicional_con_secretos": "Lorsque plusieurs personnes signent, seul le premier signataire peut utiliser un certificat distant qui demande un code PIN ou un code à usage unique. Placez ce certificat en premier ou signez séparément."
   ,"csc.error.proteger_con_secretos": "Ce certificat distant demande un code PIN ou un code à usage unique, et ils ne sont pas arrivés. Appuyez de nouveau sur « Protéger et signer » et saisissez-les lorsqu’ils sont demandés."
   ,"csc.gui.titulo": "Signature à distance"
-  ,"csc.gui.descripcion": "Signez avec un certificat conservé par un prestataire de confiance. Seule l'empreinte du document quitte l'ordinateur, jamais le document."
+  ,"csc.gui.descripcion": "Signez avec un certificat conservé par un prestataire de confiance. Seule la valeur de hachage du document quitte l'ordinateur, jamais le document."
   ,"csc.gui.url": "Adresse du service de signature"
   ,"csc.gui.url_ayuda": "Commence par https://. Votre prestataire vous la fournit."
   ,"csc.gui.client_id": "Identifiant client"
@@ -5052,7 +5052,7 @@
   ,"report.size_bytes": "%d octets"
   ,"report.section.document": "Document vérifié"
   ,"report.field.name": "Nom"
-  ,"report.field.hash": "Empreinte SHA-256"
+  ,"report.field.hash": "Valeur de hachage SHA-256"
   ,"report.field.size": "Taille"
   ,"report.field.format": "Format de signature"
   ,"report.field.coverage": "Couverture"
@@ -5060,12 +5060,12 @@
   ,"report.section.checks": "Vérifications"
   ,"report.section.signers": "Signataires"
   ,"report.signer.issuer": "Émetteur"
-  ,"report.signer.fingerprint": "Empreinte"
+  ,"report.signer.fingerprint": "Empreinte numérique"
   ,"report.section.errors": "Erreurs"
   ,"report.section.warnings": "Avertissements"
   ,"report.section.evidence": "Preuves"
   ,"report.section.details": "Détails techniques"
-  ,"report.footer": "Généré par %s. Ce rapport décrit le résultat de la vérification locale à la date indiquée ; l'empreinte SHA-256 identifie le fichier exact vérifié. Il ne remplace pas un service de validation qualifié."
+  ,"report.footer": "Généré par %s. Ce rapport décrit le résultat de la vérification locale à la date indiquée ; la valeur de hachage SHA-256 identifie le fichier exact vérifié. Il ne remplace pas un service de validation qualifié."
   ,"firma CAdES válida": "Signature CAdES valide"
   ,"firma XAdES valida": "Signature XAdES valide"
   ,"firma XMLdSig valida": "Signature XMLdSig valide"
@@ -5264,7 +5264,7 @@
   ,"winui.firmar.no_se_ha_seleccionado_una_carpeta_de": "Aucun dossier de sortie sélectionné."
   ,"winui.firmar.el_lote_aun_no_se_ha_ejecutado": "Le lot n'a pas encore été exécuté."
   ,"winui.firmar.no_se_ha_ejecutado_ninguna_firma": "Aucune signature n'a encore été effectuée."
-  ,"winui.firmar.seleccione_un_documento_y_un_certificado": "Sélectionnez un document et un certificat à signer."
+  ,"winui.firmar.seleccione_un_documento_y_un_certificado": "Sélectionnez un document et un certificat pour signer."
   ,"winui.firmar.seleccione_un_documento_compatible_y_un": "Sélectionnez un document compatible et un certificat principal."
   ,"winui.firmar.active_el_sello_y_cargue_la": "Activez le cachet et chargez l'aperçu pour obtenir la géométrie réelle du PDF."
   ,"winui.firmar.firma_cofirma_o_contrafirma_documentos": "Signez, cosignez ou contresignez des documents avec un certificat Windows ou un fichier P12/PFX."
@@ -5303,7 +5303,7 @@
   ,"winui.firmar.espere_a_que_termine_la_operacion_actual_2": "Attendez la fin de l'opération en cours avant de sélectionner un certificat."
   ,"winui.firmar.no_se_selecciono_ninguna_credencial": "Aucun certificat sélectionné."
   ,"winui.firmar.preparada_introduzca_su_contrasena_para": "{0} est prêt. Saisissez son mot de passe pour continuer."
-  ,"winui.firmar.la_seleccion_de_la_credencial_se_cancelo": "La sélection de le certificat a été annulée."
+  ,"winui.firmar.la_seleccion_de_la_credencial_se_cancelo": "La sélection du certificat a été annulée."
   ,"winui.firmar.no_se_pudo_preparar_la_credencial": "Impossible de préparer le certificat sélectionné."
   ,"winui.firmar.seleccione_primero_una_credencial_p12": "Sélectionnez d'abord un fichier P12, PFX, PEM, CER ou CRT."
   ,"winui.firmar.espere_a_que_termine_la_operacion_actual_3": "Attendez la fin de l'opération en cours avant de charger un autre certificat."
@@ -5312,19 +5312,19 @@
   ,"winui.firmar.el_motor_no_permite_comprobar_el_almacen": "Le moteur ne permet pas de vérifier le magasin officiel de Windows."
   ,"winui.firmar.no_se_pudo_comprobar_el_almacen_oficial": "Impossible de vérifier le magasin officiel de Windows."
   ,"winui.firmar.el_almacen_personal_oficial_de_windows": "Le magasin personnel officiel de Windows est indisponible."
-  ,"winui.firmar.importando_la_credencial_en_el_almacen": "Importation de le certificat dans le magasin personnel de l'utilisateur Windows…"
-  ,"winui.firmar.windows_no_confirmo_la_importacion_de_la": "Windows n'a pas confirmé l'importation de le certificat."
-  ,"winui.firmar.cargando_la_credencial_solo_para_esta": "Chargement de le certificat pour cette session uniquement…"
+  ,"winui.firmar.importando_la_credencial_en_el_almacen": "Importation du certificat dans le magasin personnel de l'utilisateur Windows…"
+  ,"winui.firmar.windows_no_confirmo_la_importacion_de_la": "Windows n'a pas confirmé l'importation du certificat."
+  ,"winui.firmar.cargando_la_credencial_solo_para_esta": "Chargement du certificat pour cette session uniquement…"
   ,"winui.firmar.no_se_pudo_cargar_la_credencial_temporal": "Impossible de charger le certificat temporaire."
   ,"winui.firmar.la_credencial_se_anadio_pero_no_se_pudo": "Le certificat a été ajouté, mais le sélecteur n'a pas pu être actualisé."
   ,"winui.firmar.la_credencial_temporal_se_cargo_pero_no": "Le certificat temporaire a été chargé, mais n'apparaît pas comme certificat apte à signer."
   ,"winui.firmar.credencial_importada_en_el_almacen": "Certificat importé dans le magasin personnel de Windows et sélecteur actualisé."
   ,"winui.firmar.credencial_temporal_cargada_y": "Certificat temporaire chargé et sélectionné. Il n'a pas été installé dans Windows."
-  ,"winui.firmar.la_carga_de_la_credencial_se_cancelo": "Le chargement de le certificat a été annulé."
-  ,"winui.firmar.fallo_la_comunicacion_segura_al_cargar_2": "La communication sécurisée a échoué pendant le chargement de le certificat."
+  ,"winui.firmar.la_carga_de_la_credencial_se_cancelo": "Le chargement du certificat a été annulé."
+  ,"winui.firmar.fallo_la_comunicacion_segura_al_cargar_2": "La communication sécurisée a échoué pendant le chargement du certificat."
   ,"winui.firmar.no_se_pudo_leer_o_cargar_la_credencial": "Impossible de lire ou charger le certificat sélectionné."
   ,"winui.firmar.no_se_pudo_capturar_la_contrasena_de_la": "Impossible de saisir le mot de passe du certificat. Code d'assistance : {0}."
-  ,"winui.firmar.no_se_pudo_capturar_la_contrasena_de_la_2": "Impossible de saisir le mot de passe de le certificat."
+  ,"winui.firmar.no_se_pudo_capturar_la_contrasena_de_la_2": "Impossible de saisir le mot de passe du certificat."
   ,"winui.firmar.espere_a_que_termine_la_operacion_actual_4": "Attendez la fin de l'opération en cours avant de sélectionner un autre document."
   ,"winui.firmar.no_se_selecciono_ningun_documento_la": "Aucun document n'a été sélectionné. La signature n'a pas commencé."
   ,"winui.firmar.la_seleccion_del_documento_se_cancelo_no": "La sélection du document a été annulée ; aucune signature n'a commencé."
