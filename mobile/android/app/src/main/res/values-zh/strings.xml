@@ -191,7 +191,7 @@
     <string name="tsa_url">TSA 地址（HTTP 或 HTTPS）</string>
     <string name="tsa_helper">T 及以上级别需要 TSA。LT/LTA 还会查询证书吊销状态。B 启用 TSA 后生成 T。</string>
     <string name="error_tsa_configuration">请启用 TSA，输入不含凭据或片段标识的 HTTP 或 HTTPS 地址。</string>
-    <string name="error_signature_combination">此组合不可用：PAdES 支持签名/联合签名及 B/T/LT；XAdES 支持 B/T；CAdES 支持 B/T/LT/LTA 和三种操作。</string>
+    <string name="error_signature_combination">此格式不支持该组合。PAdES：签名和联合签名，B/T/LT。XAdES：B/T。CAdES：B/T/LT/LTA 及三种操作。XMLdSig、ODF 和 OOXML：签名和联合签名，仅 B。FacturaE、ASiC-XAdES 和 Veri*Factu：仅 B 签名。</string>
     <string name="post_sign_verification_failed">签名已创建。无法自动验证；请保存后再进行验证。</string>
     <string name="export_verification_report">导出 JSON 验证报告</string>
     <string name="verification_report_filename">informe-verificacion.json</string>
@@ -306,5 +306,88 @@
     </plurals>
     <plurals name="protect_recipients_count">
         <item quantity="other">已添加 %1$d 个接收者</item>
+    </plurals>
+    <string name="format_xmldsig">XMLdSig</string>
+    <string name="format_odf">ODF</string>
+    <string name="format_ooxml">OOXML</string>
+    <string name="format_facturae">FacturaE</string>
+    <string name="format_asic_xades">ASiC-XAdES</string>
+    <string name="format_verifactu">Veri*Factu 记录签名</string>
+    <string name="issue_line">%1$s: %2$s</string>
+    <string name="verifactu_record_header">%1$s [%2$s]</string>
+    <string name="error_format_requires_rsa">此格式仅接受带 RSA 密钥的证书。请使用其他证书，或选择 CAdES 或 PAdES。</string>
+    <string name="error_batch_verifactu">Veri*Factu 记录需逐个签名：请将该记录选为文档，并使用“Veri*Factu 记录签名”格式签名。</string>
+    <string name="issue_warning_line">%1$s（警告）：%2$s</string>
+    <string name="release_notes_wave2b">第二阶段 B 部分：使用桌面引擎进行 XMLdSig、ODF、OOXML、FacturaE、ASiC-XAdES 和 Veri*Factu 签名；在不查询 AEAT 的情况下检查 Veri*Factu 记录；创建和检查 ENI 文档；CSV 核验说明，以及在多个页面上放置印章并为每页设置位置。</string>
+    <string name="help_documents_content">6. 在“签名格式”中还可以选择 XMLdSig、ODF、OOXML、FacturaE、ASiC-XAdES 或“Veri*Factu 记录签名”。这些格式需要 RSA 证书，并生成 B 级签名。对于 PDF，印章编辑器可以添加行政机关提供的 CSV 说明，并将印章放在多个页面上，每页位置可不同。\n\n7. 在“Veri*Factu 和 ENI”中，可以检查开票记录（结构、摘要、链接和签名）而不向 AEAT 发送任何内容；根据选作文档的签名创建 ENI 文档；检查 ENI 的结构。包含多个文档的 ENI 卷宗仅在桌面版中提供。</string>
+    <string name="documents_section">Veri*Factu 和 ENI</string>
+    <string name="documents_helper">检查 Veri*Factu 开票记录，并创建或检查 ENI 电子文档。不会向 AEAT 或其他行政机关发送任何内容。</string>
+    <string name="documents_unavailable">这些工具需要包含它们的加密核心。</string>
+    <string name="verifactu_title">检查 Veri*Factu 记录</string>
+    <string name="verifactu_helper">最多选择 64 个 XML 记录（每个 10 MiB，总计 32 MiB）。将检查每条记录的结构、摘要、链接和签名。</string>
+    <string name="verifactu_sign_hint">要签署记录，请在上方将其选为文档，并使用“Veri*Factu 记录签名”格式签名。</string>
+    <string name="verifactu_choose">选择 XML 记录…</string>
+    <string name="verifactu_none">未选择记录。</string>
+    <string name="verifactu_clear">移除记录</string>
+    <string name="verifactu_check">检查记录</string>
+    <string name="verifactu_result_valid">记录检查完毕，无错误</string>
+    <string name="verifactu_result_invalid">记录存在错误</string>
+    <string name="error_verifactu_too_many">最多可选择 64 条记录，每条不超过 10 MiB，总计不超过 32 MiB。</string>
+    <string name="eni_title">ENI 电子文档</string>
+    <string name="eni_helper">使用上方选作文档的签名（PAdES、CAdES 或 XAdES）及其必填元数据创建 ENI 文档，或检查已有的 ENI。</string>
+    <string name="eni_organ">主管机关（DIR3，必填）</string>
+    <string name="eni_organ_helper">一个或多个 DIR3 代码（一个大写字母加八位数字），以逗号分隔。</string>
+    <string name="eni_origin">来源</string>
+    <string name="eni_origin_administration">行政机关</string>
+    <string name="eni_origin_citizen">公民</string>
+    <string name="eni_state">编制状态</string>
+    <string name="eni_doc_type">文档类型</string>
+    <string name="eni_code_label">%1$s · %2$s</string>
+    <string name="eni_source">源文档的 ENI 标识符（仅限副本）</string>
+    <string name="eni_identifier">ENI 标识符（可选；留空则自动生成）</string>
+    <string name="eni_content_format">内容格式（可选，例如 PDF）</string>
+    <string name="eni_capture_date_now">采集日期：创建文档的时间</string>
+    <string name="eni_capture_date_value">采集日期：%1$s</string>
+    <string name="eni_capture_date_choose">选择采集日期…</string>
+    <string name="eni_capture_date_clear">使用当前日期</string>
+    <string name="eni_capture_date_title">采集日期</string>
+    <string name="eni_original_hint">如果签名为分离式（CAdES 或 XAdES），还请通过“选择分离式签名的原文”选择已签名的文档。</string>
+    <string name="eni_create">创建 ENI 文档</string>
+    <string name="eni_validate_scope">此检查仅审查 ENI 1.0 结构及其元数据，不验证其中包含的签名。</string>
+    <string name="eni_validate">检查 ENI…</string>
+    <string name="eni_created">ENI 文档已创建</string>
+    <string name="eni_created_detail">ENI 签名类型：%1$s。文件：%2$s</string>
+    <string name="eni_invalid">%1$s 不符合 ENI 1.0 结构。</string>
+    <string name="eni_error_unsigned_pdf">该 PDF 未签名。</string>
+    <string name="eni_error_unrecognized">该文件不是可识别的 PAdES、CAdES 或 XAdES 签名。</string>
+    <string name="eni_error_explicit_cades">该 CAdES 签名为分离式：还请通过“选择分离式签名的原文”选择已签名的文档。</string>
+    <string name="eni_error_content_format">无法识别内容格式：请在“内容格式”中填写（例如 PDF）。</string>
+    <string name="eni_error_origin">请选择来源：行政机关或公民。</string>
+    <string name="seal_pages_mode">带印章的页面</string>
+    <string name="seal_pages_custom">多个页面，每页位置单独设置</string>
+    <string name="seal_page_add">在此页放置印章</string>
+    <string name="seal_page_remove">移除此页的印章</string>
+    <string name="seal_pages_selected">带印章的页面：%1$s</string>
+    <string name="seal_pages_none">没有页面带印章。请移动印章或点按“在此页放置印章”。</string>
+    <string name="csv_enable">添加 CSV 核验说明</string>
+    <string name="csv_notice">CSV 代码由行政机关签发。GrxFirma 仅印制您提供的代码，绝不生成官方代码。</string>
+    <string name="csv_placement_note">说明打印在每页的下边距，并受签名保护。</string>
+    <string name="csv_code">CSV 代码（最多 128 个字符）</string>
+    <string name="csv_url">HTTPS 核验地址（可包含 {csv}）</string>
+    <string name="csv_text">说明文字（可选；可包含 {csv} 和 {url}）</string>
+    <string name="csv_qr">添加核验二维码</string>
+    <string name="csv_preview">核验地址：%1$s\n说明：%2$s</string>
+    <string name="csv_checking">正在检查说明…</string>
+    <plurals name="verifactu_selected">
+        <item quantity="other">已选择 %1$d 条记录</item>
+    </plurals>
+    <plurals name="verifactu_record_count">
+        <item quantity="other">已检查 %1$d 条记录</item>
+    </plurals>
+    <plurals name="verifactu_error_count">
+        <item quantity="other">%1$d 个错误</item>
+    </plurals>
+    <plurals name="verifactu_warning_count">
+        <item quantity="other">%1$d 个警告</item>
     </plurals>
 </resources>

@@ -70,11 +70,21 @@ object ToolsPolicy {
     }
 
     /** Formato que aplicará el núcleo cuando se elige «automático». */
-    fun effectiveFormat(format: String, name: String, mimeType: String): String = when {
-        format != "auto" -> format
-        mimeType == "application/pdf" || name.endsWith(".pdf", true) -> "pades"
-        mimeType.contains("xml") || name.endsWith(".xml", true) -> "xades"
-        else -> "cades"
+    fun effectiveFormat(format: String, name: String, mimeType: String, head: ByteArray? = null): String =
+        if (format != "auto") format else FormatPolicy.detect(name, mimeType, head)
+
+    const val MAX_VERIFACTU_FILES = 64
+    const val MAX_VERIFACTU_FILE_BYTES = 10 * 1024 * 1024
+    const val MAX_VERIFACTU_TOTAL_BYTES: Long = DocumentPolicy.MAX_DOCUMENT_BYTES.toLong()
+
+    /** Devuelve el error de la selección de registros Veri*Factu o null. */
+    @StringRes
+    fun veriFactuProblem(sizes: List<Long?>): Int? = when {
+        sizes.isEmpty() -> R.string.verifactu_none
+        sizes.size > MAX_VERIFACTU_FILES -> R.string.error_verifactu_too_many
+        sizes.any { it != null && it > MAX_VERIFACTU_FILE_BYTES } -> R.string.error_verifactu_too_many
+        sizes.sumOf { it ?: 0L } > MAX_VERIFACTU_TOTAL_BYTES -> R.string.error_verifactu_too_many
+        else -> null
     }
 
     fun hashFileName(documentName: String, extension: String): String =

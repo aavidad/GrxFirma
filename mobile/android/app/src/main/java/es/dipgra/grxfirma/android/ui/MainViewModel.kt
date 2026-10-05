@@ -22,6 +22,10 @@ import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.model.SignatureInspection
 import es.dipgra.grxfirma.android.model.BatchItemResult
 import es.dipgra.grxfirma.android.model.ProtectionRequest
+import es.dipgra.grxfirma.android.model.CsvLegend
+import es.dipgra.grxfirma.android.model.EniCatalogs
+import es.dipgra.grxfirma.android.model.EniRequest
+import es.dipgra.grxfirma.android.core.SignatureFormats
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -39,7 +43,12 @@ class MainViewModel(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(
-        MainUiState(backend = core.readiness, toolsAvailable = core.readiness.available && core.toolsAvailable),
+        MainUiState(
+            backend = core.readiness,
+            toolsAvailable = core.readiness.available && core.toolsAvailable,
+            signingFormats = core.signingFormats,
+            documentServices = if (core.readiness.available) core.documentServices else emptySet(),
+        ),
     )
     val state: StateFlow<MainUiState> = mutableState.asStateFlow()
 
@@ -280,20 +289,21 @@ class MainViewModel(
         launchOperation {
             val loaded = repository.loadDocument(document)
             try {
-                val configured = try {
-                    SigningOptions.create(snapshot.signatureProfile, snapshot.tsaEnabled, snapshot.tsaUrl)
-                } catch (_: Exception) {
-                    setError(UiText.Resource(R.string.error_tsa_configuration))
-                    return@launchOperation
-                }
                 val effectiveFormat = if (format == "auto") when {
                     snapshot.signatureAction != "sign" && snapshot.detectedSignatureFormat.isNotBlank() -> snapshot.detectedSignatureFormat
-                    document.mimeType == "application/pdf" || document.displayName.endsWith(".pdf", true) -> "pades"
-                    document.mimeType.contains("xml") || document.displayName.endsWith(".xml", true) -> "xades"
-                    else -> "cades"
+                    else -> FormatPolicy.detect(document.displayName, document.mimeType, loaded.bytes)
                 } else format
-                if (!SigningOptions.supported(effectiveFormat, snapshot.signatureAction, snapshot.signatureProfile)) {
+                if (effectiveFormat !in snapshot.signingFormats ||
+                    !SigningOptions.supported(effectiveFormat, snapshot.signatureAction, snapshot.signatureProfile)) {
                     setError(UiText.Resource(R.string.error_signature_combination))
+                    return@launchOperation
+                }
+                // Los formatos que solo generan B no reciben la TSA.
+                val withTimestamp = snapshot.tsaEnabled && FormatPolicy.acceptsTimestamp(effectiveFormat)
+                val configured = try {
+                    SigningOptions.create(snapshot.signatureProfile, withTimestamp, snapshot.tsaUrl)
+                } catch (_: Exception) {
+                    setError(UiText.Resource(R.string.error_tsa_configuration))
                     return@launchOperation
                 }
                 val output = core.sign(loaded, effectiveFormat, certificate.id, options + configured, snapshot.signatureAction)
@@ -351,7 +361,7 @@ class MainViewModel(
                     verifiedDocumentName = document.displayName,
                     postSignVerificationFailed = false,
                     coSignSuggested = verification.signers.isNotEmpty() || verification.signerSummaries.isNotEmpty(),
-                    detectedSignatureFormat = verification.format.lowercase().takeIf { it in listOf("cades", "pades", "xades") }.orEmpty(),
+                    detectedSignatureFormat = verification.format.lowercase().takeIf { it in mutableState.value.signingFormats }.orEmpty(),
                     result = OperationResult.Success(
                         UiText.Resource(R.string.verification_result_title),
                         verification.toUiText(),
@@ -715,9 +725,11 @@ class MainViewModel(
             certificate == null -> R.string.error_certificate_required
             snapshot.certificateExternal -> R.string.batch_dnie_unavailable
             !snapshot.canSignBatch -> -1
+            snapshot.batchDocuments.any { ToolsPolicy.effectiveFormat(format, it.displayName, it.mimeType) == "verifactu" } ->
+                R.string.error_batch_verifactu
             snapshot.batchDocuments.any {
-                !SigningOptions.supported(ToolsPolicy.effectiveFormat(format, it.displayName, it.mimeType), "sign",
-                    snapshot.signatureProfile)
+                val effective = ToolsPolicy.effectiveFormat(format, it.displayName, it.mimeType)
+                effective !in snapshot.signingFormats || !SigningOptions.supported(effective, "sign", snapshot.signatureProfile)
             } -> R.string.error_signature_combination
             else -> null
         }
@@ -726,8 +738,12 @@ class MainViewModel(
             return
         }
         launchOperation {
+            // Con formatos solo B en la selección, el lote se firma sin TSA.
+            val withTimestamp = snapshot.tsaEnabled && snapshot.batchDocuments.all {
+                FormatPolicy.acceptsTimestamp(ToolsPolicy.effectiveFormat(format, it.displayName, it.mimeType))
+            }
             val configured = try {
-                SigningOptions.create(snapshot.signatureProfile, snapshot.tsaEnabled, snapshot.tsaUrl)
+                SigningOptions.create(snapshot.signatureProfile, withTimestamp, snapshot.tsaUrl)
             } catch (_: Exception) {
                 setError(UiText.Resource(R.string.error_tsa_configuration))
                 return@launchOperation
@@ -804,6 +820,119 @@ class MainViewModel(
             // Las firmas no guardadas siguen en memoria para elegir otra carpeta.
             mutableState.value = mutableState.value.copy(result = OperationResult.Error(UiText.Lines(
                 listOf(UiText.Resource(R.string.error_tool_save_failed)) + lines)))
+        }
+    }
+
+    // --- Veri*Factu, ENI y leyenda CSV ---
+
+    suspend fun csvLegend(code: String, url: String, text: String): CsvLegend =
+        withContext(ioDispatcher) { core.csvLegend(code, url, text) }
+
+    fun eniCatalogs(): EniCatalogs = try { core.eniCatalogs() } catch (_: Exception) { SignatureFormats.DEFAULT_ENI_CATALOGS }
+
+    fun selectVeriFactuRecords(uris: List<Uri>) {
+        if (!mutableState.value.canReplaceSelection) return reportBusyIncomingIntent()
+        if (uris.isEmpty()) return
+        runInspect {
+            if (uris.size > ToolsPolicy.MAX_VERIFACTU_FILES) {
+                setError(UiText.Resource(R.string.error_verifactu_too_many))
+                return@runInspect
+            }
+            val selected = uris.distinct().map { repository.inspect(it, "registro.xml", "application/xml") }
+            ToolsPolicy.veriFactuProblem(selected.map { it.sizeBytes })?.let {
+                setError(UiText.Resource(it))
+                return@runInspect
+            }
+            mutableState.value = mutableState.value.copy(verifactuRecords = selected, result = OperationResult.Idle)
+        }
+    }
+
+    fun clearVeriFactuRecords() {
+        if (!mutableState.value.canReplaceSelection) return
+        mutableState.value = mutableState.value.copy(verifactuRecords = emptyList())
+    }
+
+    /** Comprueba los registros sin consultar a la AEAT y muestra el informe por registro. */
+    fun checkVeriFactu() {
+        val snapshot = mutableState.value
+        if (!snapshot.canCheckVeriFactu) return
+        launchOperation {
+            val loaded = ArrayList<LoadedFile>(snapshot.verifactuRecords.size)
+            try {
+                var total = 0L
+                for (record in snapshot.verifactuRecords) {
+                    val file = repository.loadBounded(record, ToolsPolicy.MAX_VERIFACTU_FILE_BYTES)
+                    loaded += file
+                    total += file.bytes.size
+                    if (total > ToolsPolicy.MAX_VERIFACTU_TOTAL_BYTES) {
+                        setError(UiText.Resource(R.string.error_verifactu_too_many))
+                        return@launchOperation
+                    }
+                }
+                val report = core.validateVeriFactu(loaded)
+                val lines = VeriFactuText.lines(report)
+                mutableState.value = mutableState.value.copy(result = if (report.valid)
+                    OperationResult.Success(UiText.Resource(R.string.verifactu_result_valid), lines)
+                else OperationResult.Error(UiText.Lines(listOf(UiText.Resource(R.string.verifactu_result_invalid), lines))))
+            } finally {
+                loaded.forEach { it.bytes.fill(0) }
+            }
+        }
+    }
+
+    fun updateEniCaptureDate(utcMidnight: Long?) {
+        if (!mutableState.value.canReplaceSelection) return
+        mutableState.value = mutableState.value.copy(eniCaptureDate = utcMidnight)
+    }
+
+    /**
+     * Crea el documento ENI con la firma elegida como documento y, si la firma
+     * es separada, con el documento original. El resultado se guarda por SAF.
+     */
+    fun createEni(request: EniRequest) {
+        val snapshot = mutableState.value
+        val document = snapshot.document ?: return setError(UiText.Resource(R.string.error_document_required))
+        if (!snapshot.canCreateEni) return
+        if (!EniForm.organsValid(request.organs)) return setError(UiText.Engine("eni.validacion.dir3"))
+        launchOperation {
+            val signature = repository.loadBounded(document, DocumentPolicy.MAX_SIGNED_OUTPUT_BYTES)
+            var original: LoadedFile? = null
+            try {
+                original = snapshot.originalDocument?.let(repository::loadDocument)
+                val created = core.createEniDocument(signature, original, request)
+                val name = EniForm.outputName(document.displayName)
+                val detail = UiText.Resource(R.string.eni_created_detail, listOf(created.signatureType, name))
+                replacePending(SignedOutput(created.bytes, name, "application/xml", "ENI", created.signatureType),
+                    PendingKind.TOOL, detail)
+                mutableState.value = mutableState.value.copy(awaitingSave = true,
+                    result = OperationResult.Success(UiText.Resource(R.string.eni_created), detail))
+                effectChannel.send(UiEffect.SaveSignedDocument(name, "application/xml"))
+            } finally {
+                signature.bytes.fill(0)
+                original?.bytes?.fill(0)
+            }
+        }
+    }
+
+    /** Revisa la estructura de un ENI elegido por SAF; no verifica sus firmas. */
+    fun validateEni(uri: Uri) {
+        if (!mutableState.value.canValidateEni) return
+        launchOperation {
+            val selected = repository.inspect(uri, "documento-eni.xml", "application/xml")
+            DocumentPolicy.requireAllowedSize(selected.sizeBytes, DocumentPolicy.MAX_DOCUMENT_BYTES, "El documento")
+            val loaded = repository.loadDocument(selected)
+            try {
+                val validation = core.validateEni(loaded)
+                val issues = validation.issues.map { UiText.Resource(R.string.issue_line, listOf(it.field, UiText.Engine(it.key))) }
+                mutableState.value = mutableState.value.copy(result = if (validation.valid)
+                    OperationResult.Success(UiText.Engine("eni.validacion.valid"),
+                        UiText.Resource(R.string.eni_validate_scope))
+                else OperationResult.Error(UiText.Lines(
+                    listOf(UiText.Resource(R.string.eni_invalid, listOf(selected.displayName))) + issues +
+                        UiText.Resource(R.string.eni_validate_scope))))
+            } finally {
+                loaded.bytes.fill(0)
+            }
         }
     }
 

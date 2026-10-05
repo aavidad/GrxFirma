@@ -12,6 +12,8 @@ import es.dipgra.grxfirma.android.R
 import es.dipgra.grxfirma.android.core.CoreContractException
 import es.dipgra.grxfirma.android.core.CoreReadiness
 import es.dipgra.grxfirma.android.core.CoreUnavailableException
+import es.dipgra.grxfirma.android.core.DocumentServices
+import es.dipgra.grxfirma.android.core.SignatureFormats
 import es.dipgra.grxfirma.android.files.InvalidDocumentException
 import es.dipgra.grxfirma.android.model.CertificateSummary
 import es.dipgra.grxfirma.android.model.SelectedFile
@@ -22,6 +24,8 @@ sealed interface UiText {
     data class Resource(@param:StringRes val id: Int, val arguments: List<Any> = emptyList()) : UiText
     data class Plural(@param:PluralsRes val id: Int, val count: Int) : UiText
     data class Lines(val lines: List<UiText>) : UiText
+    /** Clave cerrada del catálogo del motor (verifactu.*, eni.*, csv.error.*). */
+    data class Engine(val key: String) : UiText
     data class Verification(
         val valid: Boolean,
         val reason: String = "",
@@ -51,6 +55,7 @@ fun UiText.resolve(context: Context): String = when (this) {
     is UiText.Resource -> context.getString(id, *arguments.map { if (it is UiText) it.resolve(context) else it }.toTypedArray())
     is UiText.Plural -> context.resources.getQuantityString(id, count, count)
     is UiText.Lines -> lines.joinToString("\n") { it.resolve(context) }
+    is UiText.Engine -> if (EngineKeys.isClosed(key)) EngineText.resolve(context, key) else context.getString(R.string.error_core_operation)
     is UiText.Verification -> buildList {
         add(
             context.getString(
@@ -176,8 +181,21 @@ data class MainUiState(
     val protectForMe: Boolean = true,
     val recipients: List<SelectedFile> = emptyList(),
     val batchDocuments: List<SelectedFile> = emptyList(),
+    val signingFormats: List<String> = SignatureFormats.BASIC,
+    val documentServices: Set<String> = emptySet(),
+    val verifactuRecords: List<SelectedFile> = emptyList(),
+    /** Fecha de captura ENI elegida en el calendario (medianoche UTC) o null para «ahora». */
+    val eniCaptureDate: Long? = null,
 ) {
     private val idle: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
+    private fun offers(service: String): Boolean = backend.available && service in documentServices
+    val verifactuAvailable: Boolean get() = offers(DocumentServices.VERIFACTU)
+    val eniDocumentAvailable: Boolean get() = offers(DocumentServices.ENI_DOCUMENT)
+    val eniValidateAvailable: Boolean get() = offers(DocumentServices.ENI_VALIDATE)
+    val csvLegendAvailable: Boolean get() = offers(DocumentServices.CSV_LEGEND)
+    val canCheckVeriFactu: Boolean get() = verifactuAvailable && idle && verifactuRecords.isNotEmpty()
+    val canCreateEni: Boolean get() = eniDocumentAvailable && idle && document != null
+    val canValidateEni: Boolean get() = eniValidateAvailable && idle
     val canUseTools: Boolean get() = backend.available && toolsAvailable && idle
     val canHash: Boolean get() = canUseTools && document != null
     val canProtect: Boolean get() = canUseTools && document != null
@@ -226,7 +244,13 @@ fun Throwable.toUserText(): UiText {
             CORE_PROTECTION_RECIPIENT_MESSAGE -> R.string.error_protect_recipient
             CORE_UNPROTECT_FAILED_MESSAGE -> R.string.error_unprotect_failed
             CORE_PROTECT_SIGN_IDENTITY_MESSAGE -> R.string.error_protect_sign_identity
-            else -> R.string.error_core_operation
+            CORE_FORMAT_REQUIRES_RSA_MESSAGE -> R.string.error_format_requires_rsa
+            else -> {
+                val key = message.orEmpty()
+                EngineKeys.localResource(key)?.let { return UiText.Resource(it) }
+                if (EngineKeys.isClosed(key)) return UiText.Engine(key)
+                R.string.error_core_operation
+            }
         }
         else -> R.string.error_operation_failed
     }
@@ -250,6 +274,8 @@ private const val CORE_PROTECTION_RECIPIENT_MESSAGE =
     "El certificado del destinatario no permite cifrar. Use un certificado público RSA vigente de al menos 2048 bits con cifrado de clave."
 private const val CORE_UNPROTECT_FAILED_MESSAGE =
     "No se pudo desproteger el fichero. Compruebe que va dirigido a su certificado o que la clave es correcta."
+private const val CORE_FORMAT_REQUIRES_RSA_MESSAGE =
+    "El formato elegido solo admite certificados con clave RSA."
 private const val CORE_PROTECT_SIGN_IDENTITY_MESSAGE =
     "Para proteger y firmar hace falta un certificado PKCS#12 importado en la sesión."
 

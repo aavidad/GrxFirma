@@ -19,6 +19,11 @@ data class SealRect(val x: Float = 0.60f, val y: Float = 0.06f, val w: Float = 0
         listOf(x, y, w, h).all(Float::isFinite)
 }
 
+/** Posición propia del sello en una página concreta. */
+data class SealPlacement(val rect: SealRect, val rotation: Int) {
+    fun valid(): Boolean = rect.valid() && rotation in 0..359
+}
+
 data class SealSettings(
     val enabled: Boolean = false,
     val rect: SealRect = SealRect(),
@@ -31,25 +36,60 @@ data class SealSettings(
     val logo: String = "none",
     val keepText: Boolean = true,
     val textColor: String = "black",
+    /** Varias páginas, cada una con su posición (como el editor de escritorio). */
+    val perPage: Boolean = false,
+    /** Depende del documento abierto: no se guarda en las preferencias. */
+    val placements: Map<Int, SealPlacement> = emptyMap(),
+    val csvEnabled: Boolean = false,
+    /** El CSV lo emite la Administración para cada documento: no se guarda. */
+    val csvCode: String = "",
+    val csvUrl: String = "",
+    val csvText: String = "",
+    val csvQr: Boolean = true,
 ) {
+    /** Guarda la posición actual como la de [number] y la incluye en la lista. */
+    fun withPagePlacement(number: Int): SealSettings =
+        copy(placements = placements + (number to SealPlacement(rect, rotation)))
+
+    fun withoutPage(number: Int): SealSettings = copy(placements = placements - number)
+
+    /** Al cambiar de página se edita la posición propia de esa página, si la tiene. */
+    fun loadPage(number: Int): SealSettings {
+        val stored = placements[number] ?: return copy(page = number)
+        return copy(page = number, rect = stored.rect, rotation = stored.rotation)
+    }
+
+    /** Lista de páginas y posiciones que recibirá el motor. */
+    fun placementList(pageCount: Int): List<Pair<Int, SealPlacement>> = when {
+        perPage -> {
+            require(placements.isNotEmpty() && placements.size <= MAX_PLACEMENTS)
+            require(placements.all { (number, placement) -> number in 1..pageCount && placement.valid() })
+            placements.toSortedMap().toList()
+        }
+        allPages -> {
+            require(pageCount <= MAX_PLACEMENTS)
+            (1..pageCount).map { it to SealPlacement(rect, rotation) }
+        }
+        else -> listOf(page to SealPlacement(rect, rotation))
+    }
+
     fun options(pageCount: Int, pageWidth: Int, pageHeight: Int, imageBase64: String? = null): Map<String, String> {
         require(enabled && rect.valid() && rotation in 0..359 && opacity in 0..100)
-        require(pageCount >= 1 && page in 1..pageCount && (!allPages || pageCount <= 128))
+        require(pageCount >= 1 && page in 1..pageCount && (!allPages || pageCount <= MAX_PLACEMENTS))
         require(pageWidth > 0 && pageHeight > 0)
         require(logo in setOf("none", "institutional", "custom"))
         require(textColor in setOf("black", "blue", "darkgray"))
         require(keepText || logo != "none" || qrEnabled)
         val placements = JSONArray()
-        val pages = if (allPages) 1..pageCount else page..page
-        for (number in pages) {
+        for ((number, placement) in placementList(pageCount)) {
             placements.put(JSONObject()
                 .put("page", number)
                 .put("rect", JSONObject()
-                    .put("x", rect.x.toDouble())
-                    .put("y", rect.y.toDouble())
-                    .put("w", rect.w.toDouble())
-                    .put("h", rect.h.toDouble()))
-                .put("rotation", rotation))
+                    .put("x", placement.rect.x.toDouble())
+                    .put("y", placement.rect.y.toDouble())
+                    .put("w", placement.rect.w.toDouble())
+                    .put("h", placement.rect.h.toDouble()))
+                .put("rotation", placement.rotation))
         }
         return buildMap {
             put("visibleSeal", "true")
@@ -65,7 +105,32 @@ data class SealSettings(
                 put("visibleSealImageBase64", imageBase64)
             }
             if (qrEnabled) put("qrContent", normalizedHttps(qrAddress))
+            putAll(csvOptions())
         }
+    }
+
+    /** Opciones de la leyenda CSV del motor; la URL la normaliza el motor. */
+    fun csvOptions(): Map<String, String> {
+        if (!csvEnabled) return emptyMap()
+        val code = csvCode.trim()
+        val url = csvUrl.trim()
+        val text = csvText.trim()
+        require(code.isNotEmpty() && code.length <= MAX_CSV_CODE && code.none(Char::isISOControl))
+        require(url.isNotEmpty() && url.length <= MAX_CSV_URL)
+        require(text.length <= MAX_CSV_TEXT && text.none(Char::isISOControl))
+        return buildMap {
+            put("csv", code)
+            put("csvUrl", url)
+            if (text.isNotEmpty()) put("csvText", text)
+            put("csvQR", csvQr.toString())
+        }
+    }
+
+    companion object {
+        const val MAX_PLACEMENTS = 128
+        const val MAX_CSV_CODE = 128
+        const val MAX_CSV_URL = 2048
+        const val MAX_CSV_TEXT = 512
     }
 }
 
@@ -130,6 +195,7 @@ class SealPreferences(context: Context) {
         opacity = preferences.getInt("opacity", 100).coerceIn(0, 100),
         page = preferences.getInt("page", 1).coerceAtLeast(1),
         allPages = preferences.getBoolean("all_pages", false),
+        perPage = preferences.getBoolean("per_page", false),
         qrEnabled = preferences.getBoolean("qr_enabled", false),
         qrAddress = preferences.getString("qr_address", "").orEmpty(),
         logo = preferences.getString("logo", "none").orEmpty().takeIf { it in setOf("none", "institutional", "custom") } ?: "none",
@@ -137,6 +203,10 @@ class SealPreferences(context: Context) {
         textColor = preferences.getString("text_color", "black").orEmpty().takeIf {
             it in setOf("black", "blue", "darkgray")
         } ?: "black",
+        csvEnabled = preferences.getBoolean("csv_enabled", false),
+        csvUrl = preferences.getString("csv_url", "").orEmpty().take(SealSettings.MAX_CSV_URL),
+        csvText = preferences.getString("csv_text", "").orEmpty().take(SealSettings.MAX_CSV_TEXT),
+        csvQr = preferences.getBoolean("csv_qr", true),
     )
 
     fun save(settings: SealSettings) {
@@ -149,6 +219,9 @@ class SealPreferences(context: Context) {
             putBoolean("qr_enabled", settings.qrEnabled).putString("qr_address", settings.qrAddress)
             putString("logo", settings.logo)
             putBoolean("keep_text", settings.keepText).putString("text_color", settings.textColor)
+            putBoolean("per_page", settings.perPage)
+            putBoolean("csv_enabled", settings.csvEnabled).putString("csv_url", settings.csvUrl)
+            putString("csv_text", settings.csvText).putBoolean("csv_qr", settings.csvQr)
         }
     }
 }

@@ -27,6 +27,12 @@ import androidx.core.view.ViewCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import androidx.core.widget.doAfterTextChanged
+import es.dipgra.grxfirma.android.ui.EngineKeys
+import es.dipgra.grxfirma.android.ui.resolve
+import es.dipgra.grxfirma.android.ui.toUserText
 import es.dipgra.grxfirma.android.R
 import es.dipgra.grxfirma.android.files.ContentRepository
 import es.dipgra.grxfirma.android.model.SelectedFile
@@ -61,8 +67,15 @@ class SealEditorDialog(
     private var previewValid = false
     private lateinit var qrAddress: EditText
     private lateinit var qrCheck: CheckBox
-    private lateinit var allPages: CheckBox
     private lateinit var logoSpinner: Spinner
+    private lateinit var pageToggle: MaterialButton
+    private lateinit var pagesSummary: TextView
+    private var csvJob: Job? = null
+    private var csvValid = false
+    private var csvStatus: TextView? = null
+    private var csvCodeLayout: TextInputLayout? = null
+    private var csvUrlLayout: TextInputLayout? = null
+    private var csvTextLayout: TextInputLayout? = null
 
     fun show() {
         activity.lifecycleScope.launch {
@@ -71,8 +84,9 @@ class SealEditorDialog(
                 pages = info
                 settings = settings.copy(
                     page = settings.page.coerceIn(1, pages.size),
-                    allPages = settings.allPages && pages.size <= 128,
-                )
+                    allPages = settings.allPages && pages.size <= SealSettings.MAX_PLACEMENTS,
+                    placements = settings.placements.filterKeys { it in 1..pages.size },
+                ).let { if (it.perPage) it.loadPage(it.page) else it }
                 buildDialog()
                 showPage()
             } catch (_: Exception) {
@@ -118,7 +132,12 @@ class SealEditorDialog(
         column.addView(instructions)
         canvas = SealCanvasView(activity).apply {
             settings = this@SealEditorDialog.settings
-            onEdited = { this@SealEditorDialog.settings = it; refreshPreview() }
+            onEdited = { edited ->
+                // En «varias páginas», mover el sello lo coloca en la página actual.
+                this@SealEditorDialog.settings = if (edited.perPage) edited.withPagePlacement(edited.page) else edited
+                updatePageControls()
+                refreshPreview()
+            }
         }
         column.addView(canvas, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         previewStatus = label(R.string.seal_preview_loading).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
@@ -232,15 +251,40 @@ class SealEditorDialog(
                 override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
             }
         })
-        allPages = CheckBox(activity).apply {
-            setText(R.string.seal_all_pages)
-            minHeight = dp(48)
-            isChecked = settings.allPages
-            isEnabled = pages.size <= 128
-            setOnCheckedChangeListener { _, checked -> settings = settings.copy(allPages = checked) }
-        }
-        column.addView(allPages)
-        column.addView(button(R.string.seal_one_page) { allPages.isChecked = false })
+        column.addView(label(R.string.seal_pages_mode))
+        column.addView(Spinner(activity).apply {
+            adapter = ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item, listOf(
+                activity.getString(R.string.seal_one_page),
+                activity.getString(R.string.seal_all_pages),
+                activity.getString(R.string.seal_pages_custom),
+            ))
+            contentDescription = activity.getString(R.string.seal_pages_mode)
+            minimumHeight = dp(48)
+            setSelection(when { settings.perPage -> 2; settings.allPages -> 1; else -> 0 })
+            onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    if (position == 1 && pages.size > SealSettings.MAX_PLACEMENTS) {
+                        setSelection(0)
+                        return
+                    }
+                    settings = when (position) {
+                        1 -> settings.copy(allPages = true, perPage = false)
+                        2 -> settings.copy(allPages = false, perPage = true)
+                            .let { if (it.placements.isEmpty()) it.withPagePlacement(it.page) else it.loadPage(it.page) }
+                        else -> settings.copy(allPages = false, perPage = false)
+                    }
+                    updatePageControls()
+                    refreshPreview()
+                }
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+            }
+        })
+        pageToggle = button(R.string.seal_page_add) { togglePage() }
+        column.addView(pageToggle)
+        pagesSummary = label(R.string.seal_pages_none).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
+        column.addView(pagesSummary)
+        updatePageControls()
+        if (viewModel.state.value.csvLegendAvailable) buildCsvSection(column)
 
         dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.seal_visible)
@@ -250,6 +294,7 @@ class SealEditorDialog(
             .create().also { actual ->
                 actual.setOnDismissListener {
                     previewJob?.cancel()
+                    csvJob?.cancel()
                     canvas.pageBitmap?.recycle()
                     canvas.sealBitmap?.recycle()
                     tempPdf?.delete()
@@ -265,14 +310,19 @@ class SealEditorDialog(
     }
 
     private fun saveIfValid(actual: androidx.appcompat.app.AlertDialog) {
+        if (settings.csvEnabled && !csvValid) {
+            Toast.makeText(activity, R.string.seal_invalid_settings, Toast.LENGTH_LONG).show()
+            return
+        }
         try {
             val (w, h) = pages[settings.page - 1]
             require(previewValid)
             val image = imageBase64()
             settings.options(pages.size, w, h, image)
-            val targets = if (settings.allPages) pages else listOf(w to h)
-            require(targets.all { (pw, ph) ->
-                val (bw, bh) = SealGeometry.rotatedBounds(settings.rect, settings.rotation, pw.toFloat() / ph)
+            // Cada página con sello comprueba su propia posición y su tamaño de página.
+            require(settings.placementList(pages.size).all { (number, placement) ->
+                val (pw, ph) = pages[number - 1]
+                val (bw, bh) = SealGeometry.rotatedBounds(placement.rect, placement.rotation, pw.toFloat() / ph)
                 bw <= 1f && bh <= 1f
             })
             onSaved(settings, pages.size, w, h)
@@ -285,7 +335,8 @@ class SealEditorDialog(
     private fun changePage(delta: Int) {
         val next = (settings.page + delta).coerceIn(1, pages.size)
         if (next != settings.page) {
-            settings = settings.copy(page = next)
+            settings = if (settings.perPage) settings.loadPage(next) else settings.copy(page = next)
+            updatePageControls()
             showPage()
         }
     }
@@ -334,7 +385,9 @@ class SealEditorDialog(
             try {
                 val (w, h) = pages[settings.page - 1]
                 val image = imageBase64()
-                val options = settings.copy(rotation = 0).options(pages.size, w, h, image)
+                // La imagen del sello no depende de las páginas elegidas ni de la leyenda CSV.
+                val options = settings.copy(rotation = 0, perPage = false, allPages = false, csvEnabled = false)
+                    .options(pages.size, w, h, image)
                 val png = viewModel.previewSeal(options)
                 val bitmap = withContext(Dispatchers.Default) { BitmapFactory.decodeByteArray(png, 0, png.size) }
                 png.fill(0)
@@ -361,8 +414,126 @@ class SealEditorDialog(
         try {
             val (w, h) = pages[settings.page - 1]
             val fitted = next.copy(rect = SealGeometry.fit(next.rect, next.rotation, w.toFloat() / h))
-            if (fitted.rect.valid()) { settings = fitted; refreshPreview() }
+            if (fitted.rect.valid()) {
+                settings = if (fitted.perPage) fitted.withPagePlacement(fitted.page) else fitted
+                updatePageControls()
+                refreshPreview()
+            }
         } catch (_: IllegalArgumentException) { /* Sin cambio. */ }
+    }
+
+    private fun togglePage() {
+        settings = if (settings.page in settings.placements) settings.withoutPage(settings.page)
+        else settings.withPagePlacement(settings.page)
+        updatePageControls()
+    }
+
+    private fun updatePageControls() {
+        if (!::pageToggle.isInitialized) return
+        val custom = settings.perPage
+        pageToggle.visibility = if (custom) View.VISIBLE else View.GONE
+        pagesSummary.visibility = pageToggle.visibility
+        val onPage = settings.page in settings.placements
+        pageToggle.setText(if (onPage) R.string.seal_page_remove else R.string.seal_page_add)
+        pageToggle.contentDescription = pageToggle.text
+        pagesSummary.text = if (settings.placements.isEmpty()) activity.getString(R.string.seal_pages_none)
+        else activity.getString(R.string.seal_pages_selected, settings.placements.keys.sorted().joinToString(", "))
+        if (::canvas.isInitialized) canvas.sealOnPage = !custom || onPage
+    }
+
+    /** Leyenda CSV: el motor valida y normaliza la URL antes de aceptar el editor. */
+    private fun buildCsvSection(column: LinearLayout) {
+        val group = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        val enable = CheckBox(activity).apply {
+            setText(R.string.csv_enable)
+            minHeight = dp(48)
+            isChecked = settings.csvEnabled
+        }
+        column.addView(enable)
+        group.addView(label(R.string.csv_notice))
+        group.addView(label(R.string.csv_placement_note))
+        csvCodeLayout = textField(group, R.string.csv_code, settings.csvCode, SealSettings.MAX_CSV_CODE,
+            android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) {
+            settings = settings.copy(csvCode = it); validateCsv()
+        }
+        csvUrlLayout = textField(group, R.string.csv_url, settings.csvUrl, SealSettings.MAX_CSV_URL,
+            android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_URI) {
+            settings = settings.copy(csvUrl = it); validateCsv()
+        }
+        csvTextLayout = textField(group, R.string.csv_text, settings.csvText, SealSettings.MAX_CSV_TEXT,
+            android.text.InputType.TYPE_CLASS_TEXT) {
+            settings = settings.copy(csvText = it); validateCsv()
+        }
+        group.addView(CheckBox(activity).apply {
+            setText(R.string.csv_qr)
+            minHeight = dp(48)
+            isChecked = settings.csvQr
+            setOnCheckedChangeListener { _, checked -> settings = settings.copy(csvQr = checked) }
+        })
+        csvStatus = label(R.string.csv_checking).apply {
+            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+            setTextIsSelectable(true)
+        }
+        group.addView(csvStatus)
+        group.visibility = if (settings.csvEnabled) View.VISIBLE else View.GONE
+        enable.setOnCheckedChangeListener { _, checked ->
+            settings = settings.copy(csvEnabled = checked)
+            group.visibility = if (checked) View.VISIBLE else View.GONE
+            validateCsv()
+        }
+        column.addView(group)
+        if (settings.csvEnabled) validateCsv()
+    }
+
+    private fun textField(
+        parent: LinearLayout, hint: Int, value: String, maximum: Int, type: Int, changed: (String) -> Unit,
+    ): TextInputLayout {
+        val layout = TextInputLayout(activity).apply { this.hint = activity.getString(hint) }
+        val field = TextInputEditText(layout.context).apply {
+            inputType = type
+            setSingleLine(true)
+            filters = arrayOf(android.text.InputFilter.LengthFilter(maximum))
+            importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
+            minHeight = dp(48)
+            setText(value)
+            doAfterTextChanged { changed(it?.toString().orEmpty()) }
+        }
+        layout.addView(field)
+        parent.addView(layout)
+        return layout
+    }
+
+    private fun validateCsv() {
+        csvValid = false
+        csvJob?.cancel()
+        listOf(csvCodeLayout, csvUrlLayout, csvTextLayout).forEach { it?.error = null }
+        if (!settings.csvEnabled) {
+            csvValid = true
+            return
+        }
+        csvStatus?.setText(R.string.csv_checking)
+        val snapshot = settings
+        csvJob = activity.lifecycleScope.launch {
+            delay(400)
+            try {
+                val legend = viewModel.csvLegend(snapshot.csvCode, snapshot.csvUrl, snapshot.csvText)
+                if (dialog == null) return@launch
+                csvValid = true
+                csvStatus?.text = activity.getString(R.string.csv_preview, legend.url, legend.text)
+            } catch (error: kotlinx.coroutines.CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (dialog == null) return@launch
+                val key = (error as? es.dipgra.grxfirma.android.core.CoreContractException)?.message.orEmpty()
+                val message = error.toUserText().resolve(activity)
+                when (EngineKeys.csvField(key)) {
+                    "code" -> csvCodeLayout?.error = message
+                    "url" -> csvUrlLayout?.error = message
+                    "text" -> csvTextLayout?.error = message
+                }
+                csvStatus?.text = message
+            }
+        }
     }
 
     private fun imageBase64(): String? = if (settings.logo == "custom" && imageFile.isFile && imageFile.length() in 1..(2L shl 20)) {
