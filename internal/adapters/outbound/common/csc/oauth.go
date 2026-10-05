@@ -29,7 +29,10 @@ const (
 	EsperaAutorizacionPorDefecto = 5 * time.Minute
 	rutaCallback                 = "/callback"
 	maxTokenBytes                = 16 * 1024
-	bytesAleatorios              = 32
+	// maxVidaToken acota expires_in: evita desbordar time.Duration y que un
+	// servidor declare tokens prácticamente eternos.
+	maxVidaToken    = 24 * time.Hour
+	bytesAleatorios = 32
 )
 
 // token es un token OAuth en memoria bloqueada (best effort) que se borra
@@ -169,9 +172,10 @@ func (c *Cliente) autorizarOAuth(ctx context.Context, scope string, extra url.Va
 	return c.canjearCodigo(ctx, codigo, redireccion, verificador)
 }
 
-// manejadorCallback acepta una única respuesta en GET /callback. Un state
-// distinto, ausente o un Host inesperado terminan el flujo: se prefiere
-// fallar cerrado antes que aceptar un código que no se pidió.
+// manejadorCallback acepta una única respuesta en GET /callback con el state
+// de esta petición. Un state distinto o ausente, otra ruta, otro método o un
+// Host inesperado reciben un error y no cuentan: nunca se acepta un código
+// que no se pidió ni se deja que un tercero aborte la espera.
 func (c *Cliente) manejadorCallback(direccion, estado string, entregar func(resultadoCallback)) http.Handler {
 	responder := func(w http.ResponseWriter, estadoHTTP int) {
 		cabecera := w.Header()
@@ -196,8 +200,10 @@ func (c *Cliente) manejadorCallback(direccion, estado string, entregar func(resu
 		q := r.URL.Query()
 		recibido := q.Get("state")
 		if recibido == "" || subtle.ConstantTimeCompare([]byte(recibido), []byte(estado)) != 1 {
+			// No se entrega nada: una petición ajena (otra web u otro
+			// proceso local) no puede abortar el flujo. Se sigue esperando
+			// el state correcto hasta el tiempo máximo.
 			responder(w, http.StatusBadRequest)
-			entregar(resultadoCallback{err: nuevoError(CodigoStateInvalido, "", nil)})
 			return
 		}
 		if fallo := q.Get("error"); fallo != "" {
@@ -227,23 +233,43 @@ func (c *Cliente) canjearCodigo(ctx context.Context, codigo, redireccion, verifi
 	campos.Set("code_verifier", verificador)
 
 	var respuesta respuestaToken
-	defer secmem.Zeroize(respuesta.AccessToken)
+	// La closure lee el campo al salir: un defer con el argumento directo
+	// lo evaluaría aquí, cuando todavía es nil.
+	defer func() { secmem.Zeroize(respuesta.AccessToken) }()
 	if err := postFormulario(ctx, c.http, destino.String(), campos, &respuesta); err != nil {
 		return nil, err
 	}
-	if respuesta.TokenType != "" && !strings.EqualFold(respuesta.TokenType, "Bearer") {
+	return tokenDesdeRespuesta(&respuesta)
+}
+
+// tokenDesdeRespuesta copia el token a memoria protegida y borra siempre el
+// texto decodificado de la respuesta.
+func tokenDesdeRespuesta(r *respuestaToken) (*token, error) {
+	defer func() { secmem.Zeroize(r.AccessToken) }()
+	if r.TokenType != "" && !strings.EqualFold(r.TokenType, "Bearer") {
 		return nil, nuevoError(CodigoRespuestaInvalida, "token_type", nil)
 	}
-	valor, err := cadenaJSONSinCopia(respuesta.AccessToken)
+	valor, err := cadenaJSONSinCopia(r.AccessToken)
 	if err != nil {
 		return nil, err
 	}
 	t := &token{valor: secmem.New(valor)}
 	secmem.Zeroize(valor)
-	if respuesta.ExpiresIn > 0 {
-		t.caduca = time.Now().Add(time.Duration(respuesta.ExpiresIn) * time.Second)
+	if r.ExpiresIn > 0 {
+		t.caduca = time.Now().Add(duracionAcotada(r.ExpiresIn))
 	}
 	return t, nil
+}
+
+// duracionAcotada convierte segundos a time.Duration sin desbordar.
+func duracionAcotada(segundos int64) time.Duration {
+	if segundos <= 0 {
+		return 0
+	}
+	if segundos > int64(maxVidaToken/time.Second) {
+		return maxVidaToken
+	}
+	return time.Duration(segundos) * time.Second
 }
 
 // cadenaJSONSinCopia extrae el contenido de una cadena JSON sin crear un

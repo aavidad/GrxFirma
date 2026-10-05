@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestCallbackRechazaHostRutaYMetodoAjenos(t *testing.T) {
@@ -22,6 +23,9 @@ func TestCallbackRechazaHostRutaYMetodoAjenos(t *testing.T) {
 		{http.MethodGet, "/otra?state=estado&code=x", "127.0.0.1:5555", http.StatusNotFound},
 		{http.MethodPost, "/callback?state=estado&code=x", "127.0.0.1:5555", http.StatusNotFound},
 		{http.MethodGet, "/callback?state=estado&code=x", "malicioso.example:5555", http.StatusBadRequest},
+		{http.MethodGet, "/callback?state=otro&code=x", "127.0.0.1:5555", http.StatusBadRequest},
+		{http.MethodGet, "/callback?code=x", "127.0.0.1:5555", http.StatusBadRequest},
+		{http.MethodGet, "/callback?state=otro&error=access_denied", "127.0.0.1:5555", http.StatusBadRequest},
 	}
 	for _, caso := range casos {
 		req := httptest.NewRequest(caso.metodo, caso.destino, nil)
@@ -57,6 +61,15 @@ func TestCadenaJSONSinCopia(t *testing.T) {
 	for _, mala := range []string{`""`, `123`, `"a`, "\"a\x01b\""} {
 		if _, err := cadenaJSONSinCopia([]byte(mala)); err == nil {
 			t.Fatalf("%q debió rechazarse", mala)
+		}
+	}
+}
+
+func TestDuracionAcotadaNoDesborda(t *testing.T) {
+	casos := map[int64]time.Duration{-5: 0, 0: 0, 60: time.Minute, 1 << 62: maxVidaToken, 86401: maxVidaToken}
+	for segundos, esperado := range casos {
+		if got := duracionAcotada(segundos); got != esperado {
+			t.Errorf("duracionAcotada(%d) = %v, se esperaba %v", segundos, got, esperado)
 		}
 	}
 }

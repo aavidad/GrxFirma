@@ -4912,7 +4912,6 @@
   ,"csc.error.servicio": "签名服务拒绝了该请求。"
   ,"csc.error.red": "无法连接签名服务，或其证书不受信任。"
   ,"csc.error.sin_oauth": "该服务不支持 OAuth 2.0 授权码方式，而这是唯一允许的方式。"
-  ,"csc.error.state_invalido": "授权响应与本次请求不符，已丢弃。"
   ,"csc.error.autorizacion_denegada": "授权已在浏览器中被拒绝。"
   ,"csc.error.autorizacion_caducada": "授权未及时完成或已过期。"
   ,"csc.error.navegador": "无法在浏览器中启动授权。"

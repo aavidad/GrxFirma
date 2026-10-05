@@ -4912,7 +4912,6 @@
   ,"csc.error.servicio": "O serviço de assinatura recusou o pedido."
   ,"csc.error.red": "Não foi possível ligar ao serviço de assinatura ou o seu certificado não é de confiança."
   ,"csc.error.sin_oauth": "O serviço não oferece autorização OAuth 2.0 com código, a única aceite."
-  ,"csc.error.state_invalido": "A resposta de autorização não corresponde a este pedido e foi descartada."
   ,"csc.error.autorizacion_denegada": "A autorização foi recusada no navegador."
   ,"csc.error.autorizacion_caducada": "A autorização não foi concluída a tempo ou expirou."
   ,"csc.error.navegador": "Não foi possível iniciar a autorização no navegador."

@@ -4912,7 +4912,6 @@
   ,"csc.error.servicio": "El servei de firma ha rebutjat la petició."
   ,"csc.error.red": "No s’ha pogut connectar amb el servei de firma o el seu certificat no és de confiança."
   ,"csc.error.sin_oauth": "El servei no oferix autorització OAuth 2.0 amb codi, que és l’única admesa."
-  ,"csc.error.state_invalido": "La resposta d’autorització no correspon a esta petició i s’ha descartat."
   ,"csc.error.autorizacion_denegada": "L’autorització s’ha denegat en el navegador."
   ,"csc.error.autorizacion_caducada": "L’autorització no s’ha completat a temps o ha caducat ja."
   ,"csc.error.navegador": "No s’ha pogut iniciar l’autorització en el navegador."

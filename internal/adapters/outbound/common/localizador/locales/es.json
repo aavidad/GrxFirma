@@ -4912,7 +4912,6 @@
   ,"csc.error.servicio": "El servicio de firma rechazó la petición."
   ,"csc.error.red": "No se pudo conectar con el servicio de firma o su certificado no es de confianza."
   ,"csc.error.sin_oauth": "El servicio no ofrece autorización OAuth 2.0 con código, que es la única admitida."
-  ,"csc.error.state_invalido": "La respuesta de autorización no corresponde a esta petición y se ha descartado."
   ,"csc.error.autorizacion_denegada": "La autorización se ha denegado en el navegador."
   ,"csc.error.autorizacion_caducada": "La autorización no se completó a tiempo o ha caducado."
   ,"csc.error.navegador": "No se pudo iniciar la autorización en el navegador."

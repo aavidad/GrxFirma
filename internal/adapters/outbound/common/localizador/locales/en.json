@@ -4912,7 +4912,6 @@
   ,"csc.error.servicio": "The signing service rejected the request."
   ,"csc.error.red": "Could not connect to the signing service, or its certificate is not trusted."
   ,"csc.error.sin_oauth": "The service does not offer OAuth 2.0 authorisation code, the only method accepted."
-  ,"csc.error.state_invalido": "The authorisation response does not match this request and was discarded."
   ,"csc.error.autorizacion_denegada": "Authorisation was refused in the browser."
   ,"csc.error.autorizacion_caducada": "Authorisation was not completed in time or has expired."
   ,"csc.error.navegador": "Could not start authorisation in the browser."

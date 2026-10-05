@@ -4912,7 +4912,6 @@
   ,"csc.error.servicio": "Sinadura-zerbitzuak eskaera baztertu du."
   ,"csc.error.red": "Ezin izan da sinadura-zerbitzuarekin konektatu, edo haren ziurtagiria ez da fidagarria."
   ,"csc.error.sin_oauth": "Zerbitzuak ez du kode bidezko OAuth 2.0 baimenik eskaintzen, eta hori da onartzen den bakarra."
-  ,"csc.error.state_invalido": "Baimen-erantzuna ez dator bat eskaera honekin, eta baztertu egin da."
   ,"csc.error.autorizacion_denegada": "Baimena ukatu egin da nabigatzailean."
   ,"csc.error.autorizacion_caducada": "Baimena ez da garaiz osatu edo iraungi egin da."
   ,"csc.error.navegador": "Ezin izan da baimena nabigatzailean abiarazi."

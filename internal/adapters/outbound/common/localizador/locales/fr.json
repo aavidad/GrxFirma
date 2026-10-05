@@ -4912,7 +4912,6 @@
   ,"csc.error.servicio": "Le service de signature a refusé la demande."
   ,"csc.error.red": "Connexion impossible au service de signature, ou son certificat n’est pas de confiance."
   ,"csc.error.sin_oauth": "Le service ne propose pas l’autorisation OAuth 2.0 par code, seule méthode acceptée."
-  ,"csc.error.state_invalido": "La réponse d’autorisation ne correspond pas à cette demande et a été écartée."
   ,"csc.error.autorizacion_denegada": "L’autorisation a été refusée dans le navigateur."
   ,"csc.error.autorizacion_caducada": "L’autorisation n’a pas été terminée à temps ou a expiré."
   ,"csc.error.navegador": "Impossible de lancer l’autorisation dans le navigateur."

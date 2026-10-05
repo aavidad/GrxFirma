@@ -4912,7 +4912,6 @@
   ,"csc.error.servicio": "Der Signaturdienst hat die Anfrage abgelehnt."
   ,"csc.error.red": "Keine Verbindung zum Signaturdienst, oder sein Zertifikat ist nicht vertrauenswürdig."
   ,"csc.error.sin_oauth": "Der Dienst bietet keine OAuth-2.0-Freigabe per Code an, die als einzige zulässig ist."
-  ,"csc.error.state_invalido": "Die Freigabeantwort gehört nicht zu dieser Anfrage und wurde verworfen."
   ,"csc.error.autorizacion_denegada": "Die Freigabe wurde im Browser verweigert."
   ,"csc.error.autorizacion_caducada": "Die Freigabe wurde nicht rechtzeitig abgeschlossen oder ist abgelaufen."
   ,"csc.error.navegador": "Die Freigabe im Browser ließ sich nicht starten."

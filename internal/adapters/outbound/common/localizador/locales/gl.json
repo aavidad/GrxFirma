@@ -4912,7 +4912,6 @@
   ,"csc.error.servicio": "O servizo de sinatura rexeitou a petición."
   ,"csc.error.red": "Non se puido conectar co servizo de sinatura ou o seu certificado non é de confianza."
   ,"csc.error.sin_oauth": "O servizo non ofrece autorización OAuth 2.0 con código, que é a única admitida."
-  ,"csc.error.state_invalido": "A resposta de autorización non corresponde a esta petición e descartouse."
   ,"csc.error.autorizacion_denegada": "A autorización denegouse no navegador."
   ,"csc.error.autorizacion_caducada": "A autorización non se completou a tempo ou caducou."
   ,"csc.error.navegador": "Non se puido iniciar a autorización no navegador."

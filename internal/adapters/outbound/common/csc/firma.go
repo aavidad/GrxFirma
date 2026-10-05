@@ -277,14 +277,21 @@ func (c *Cliente) autorizarCredencial(ctx context.Context, cred *Credencial, res
 		}
 	}
 	var respuesta respuestaAutorizar
-	defer secmem.Zeroize(respuesta.SADTexto)
+	defer func() { secmem.Zeroize(respuesta.SADTexto) }()
 	if err := postJSON(ctx, c.http, unirRuta(c.base, "credentials/authorize"), t, peticion, &respuesta); err != nil {
 		return nil, err
 	}
-	if len(respuesta.SADTexto) == 0 || len(respuesta.SADTexto) > maxSADBytes {
+	return sadDesdeRespuesta(&respuesta)
+}
+
+// sadDesdeRespuesta copia el SAD a memoria protegida y borra siempre el
+// texto decodificado de la respuesta.
+func sadDesdeRespuesta(r *respuestaAutorizar) (*autorizacionCredencial, error) {
+	defer func() { secmem.Zeroize(r.SADTexto) }()
+	if len(r.SADTexto) == 0 || len(r.SADTexto) > maxSADBytes {
 		return nil, nuevoError(CodigoRespuestaInvalida, "SAD", nil)
 	}
-	return &autorizacionCredencial{sad: secmem.New(respuesta.SADTexto)}, nil
+	return &autorizacionCredencial{sad: secmem.New(r.SADTexto)}, nil
 }
 
 type peticionFirmarHash struct {

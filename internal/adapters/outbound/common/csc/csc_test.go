@@ -249,12 +249,22 @@ func TestSignRechazaResumenesYAlgoritmosNoAdmitidos(t *testing.T) {
 	esperarCodigo(t, err, csc.CodigoAlgoritmoNoSoportado)
 }
 
-func TestStateDistintoAbortaLaAutorizacion(t *testing.T) {
+func TestStateDistintoNoSeAceptaYLaEsperaCaduca(t *testing.T) {
 	s := csctest.Nuevo(t)
 	s.Configurar(func(s *csctest.Servidor) { s.StateFalso = true })
-	cliente := nuevoCliente(t, s)
-	err := cliente.Autorizar(context.Background())
-	esperarCodigo(t, err, csc.CodigoStateInvalido)
+	cliente, err := csc.Nuevo(csc.Opciones{
+		URLServicio:        s.URL,
+		ClientID:           csctest.ClientID,
+		HTTP:               s.Client(),
+		AbrirNavegador:     s.Navegador(),
+		EsperaAutorizacion: 300 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = cliente.Close() }()
+	err = cliente.Autorizar(context.Background())
+	esperarCodigo(t, err, csc.CodigoAutorizacionCaducada)
 	if _, err := cliente.ListarCredenciales(context.Background()); csc.CodigoDe(err) != csc.CodigoAutorizacionCaducada {
 		t.Fatalf("sin token no debe poder listar: %v", err)
 	}
