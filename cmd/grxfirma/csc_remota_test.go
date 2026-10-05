@@ -20,6 +20,7 @@ import (
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/testsupport/csctest"
+	"grxfirma/internal/testsupport/pdffixture"
 )
 
 func TestExtraerFlagsCSC(t *testing.T) {
@@ -246,5 +247,62 @@ func TestEjecutarCSCFirmaConLaCLIReal(t *testing.T) {
 func TestTextoSeguroQuitaControles(t *testing.T) {
 	if got := textoSeguro("CN=a\x1b[31m\nb"); got != "CN=a?[31m?b" {
 		t.Fatalf("textoSeguro = %q", got)
+	}
+}
+
+// TestEjecutarCSCLoteConUnSoloPINyOTP firma con la CLI real una carpeta de
+// PDF con un prestador que admite varias firmas por autorización: el PIN y
+// el OTP se escriben una vez y el servicio autoriza el lote entero de una vez.
+func TestEjecutarCSCLoteConUnSoloPINyOTP(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("APPDATA", filepath.Join(home, "AppData", "Roaming"))
+	t.Setenv("LOCALAPPDATA", filepath.Join(home, "AppData", "Local"))
+	s := csctest.Nuevo(t)
+	s.Configurar(func(s *csctest.Servidor) { s.Modo, s.SCAL, s.Multisign = "explicit", "2", 10 })
+
+	carpeta, salida := t.TempDir(), t.TempDir()
+	for _, nombre := range []string{"a.pdf", "b.pdf", "c.pdf"} {
+		if err := os.WriteFile(filepath.Join(carpeta, nombre), pdffixture.Minimal(), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	e := nuevoEntornoPruebaCSC(t, s, `{"firma_remota_csc": true}`, "")
+	// Solo hay un PIN y un OTP en la entrada: un segundo pedido fallaría.
+	e.stdin = &lectorByteAByte{r: strings.NewReader(csctest.PIN + "\n" + csctest.OTP + "\n")}
+	e.ejecutarCLI = func(remota *fuenteRemota, args []string) int {
+		adaptador, err := construirAdaptadorCon("", "", "", "", remota)
+		if err != nil {
+			t.Fatalf("construirAdaptadorCon: %v", err)
+		}
+		adaptador.Stdout = e.salida
+		return adaptador.Run(context.Background(), args)
+	}
+	opc := opcionesCSC{url: s.URL, clientID: csctest.ClientID, credencial: csctest.CredencialRSA}
+	args := []string{"-operacion", "firmar", "-lote", carpeta, "-salida", salida, "-formato", "pades"}
+	if code := ejecutarCSC(e.entornoCSC, opc, false, args); code != 0 {
+		t.Fatalf("code=%d errores=%q salida=%q", code, e.errores.String(), e.salida.String())
+	}
+	s.Leer(func(s *csctest.Servidor) {
+		if s.Autorizaciones != 1 || s.UltimoNumSignatures != 3 || s.OTPEnviados != 1 || len(s.ResumenesFirmados) != 3 {
+			t.Fatalf("autorizaciones=%d numSignatures=%d otp=%d firmados=%d",
+				s.Autorizaciones, s.UltimoNumSignatures, s.OTPEnviados, len(s.ResumenesFirmados))
+		}
+	})
+	firmados, err := os.ReadDir(salida)
+	if err != nil || len(firmados) != 3 {
+		t.Fatalf("firmados=%d err=%v salida=%q", len(firmados), err, e.salida.String())
+	}
+	anclas := domain.CertificateChain{DERCertificates: [][]byte{s.CA.Raw}}
+	for _, f := range firmados {
+		datos, err := os.ReadFile(filepath.Join(salida, f.Name()))
+		if err != nil {
+			t.Fatal(err)
+		}
+		doc, _ := domain.NewDocument(f.Name(), datos, "application/pdf")
+		vr, _, err := commonsigner.NewMultiVerifier().Verify(context.Background(), doc, anclas)
+		if err != nil || vr.Integrity.Status != domain.VerificationStatusValid {
+			t.Fatalf("%s no verifica: %v %+v", f.Name(), err, vr.Integrity)
+		}
 	}
 }

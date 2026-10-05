@@ -23,8 +23,8 @@ import (
 	"grxfirma/internal/adapters/inbound/common/secretinput"
 	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/common/csc"
+	"grxfirma/internal/adapters/outbound/desktop/cscremota"
 	"grxfirma/internal/adapters/outbound/desktop/proxyhttp"
-	deskSigner "grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/appdirs"
 )
 
@@ -195,12 +195,14 @@ func ejecutarCSC(e entornoCSC, opc opcionesCSC, locales bool, args []string) int
 	if err != nil {
 		return e.fallo(err)
 	}
-	firmante, err := cliente.Firmante(e.ctx, cred)
+	// Con un lote (-lote), si el prestador admite varias firmas por
+	// autorización, se pide un solo PIN u OTP por grupo de documentos.
+	clave, err := cscremota.NuevaClave(e.ctx, cliente, cred, nil)
 	if err != nil {
 		return e.fallo(err)
 	}
 	ref := cred.Referencia()
-	remota := &fuenteRemota{ref: ref, clave: deskSigner.NuevaClaveLocalConCadena(firmante, cred.Certificado, cred.Cadena)}
+	remota := &fuenteRemota{ref: ref, clave: clave}
 	if !tieneSeleccionCertificado(args) {
 		args = append(args, "-certificado", ref.ID)
 	}
