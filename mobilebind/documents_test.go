@@ -228,3 +228,28 @@ func TestCreateENIDocumentRejectsOversizedSignaturePlusOriginal(t *testing.T) {
 		t.Fatalf("firma y original por encima del tope: %v", err)
 	}
 }
+
+func TestSanitizeOutputTextRemovesFormatCharacters(t *testing.T) {
+	got := sanitizeOutputText("A\u202eB\u200bC\u2066D\u2069\ufeffE\u00adF\x1bG\nH", 100)
+	if got != "ABCDEFG\nH" {
+		t.Fatalf("texto saneado: %q", got)
+	}
+	facade := newAndroidFacadeForTest(t)
+	record := veriFactuRecord("12345678/G33", "", "2024-01-01T19:20:30+01:00")
+	hash, err := commonsigner.RecalcularHuellaVeriFactu(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	altered := strings.Replace(string(record), "<Huella>"+hash, "<Huella>\u202e"+hash, 1)
+	raw, err := facade.ValidateVeriFactuJSON(mustJSON(t, veriFactuValidateRequest{Files: []veriFactuFileRequest{
+		{Name: "a.xml", ContentBase64: base64.StdEncoding.EncodeToString([]byte(altered))},
+	}}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var report veriFactuValidateResponse
+	decodeResponse(t, raw, &report)
+	if report.Valid || len(report.Records) != 1 || strings.ContainsRune(report.Records[0].Hash, '\u202e') {
+		t.Fatalf("informe: %+v", report)
+	}
+}

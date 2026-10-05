@@ -377,3 +377,30 @@ func concatenarBytes(partes ...[]byte) []byte {
 	}
 	return out
 }
+
+func TestVeriFactuInformeQuitaCaracteresDeFormato(t *testing.T) {
+	data := vfTestXML("RegistroAlta", "12345678/G33", "", "2024-01-01T19:20:30+01:00")
+	hash, _ := RecalcularHuellaVeriFactu(data)
+	alterado := bytes.Replace(data, []byte("<Huella>"+hash), []byte("<Huella>\u202e"+hash+"\u200b"), 1)
+	nombre := "fac\u202etura\u2066.xml"
+	result := ValidarRegistrosVeriFactu(context.Background(), map[string][]byte{nombre: alterado})
+	if len(result.Records) != 1 {
+		t.Fatalf("%+v", result)
+	}
+	r := result.Records[0]
+	if result.Valid || r.Valid {
+		t.Fatal("una huella con caracteres de formato debe invalidar el registro")
+	}
+	for campo, valor := range map[string]string{"file": r.File, "hash": r.Hash, "previousHash": r.PreviousHash, "type": r.Type} {
+		if strings.ContainsAny(valor, "\u202e\u200b\u2066") {
+			t.Errorf("%s conserva caracteres de formato: %q", campo, valor)
+		}
+	}
+	if r.Hash != hash || r.File != "factura.xml" {
+		t.Fatalf("valores visibles: %q %q", r.Hash, r.File)
+	}
+	result.Localize(func(k string) string { return k })
+	if strings.ContainsAny(result.Report, "\u202e\u200b\u2066") {
+		t.Fatalf("el informe conserva caracteres de formato: %q", result.Report)
+	}
+}

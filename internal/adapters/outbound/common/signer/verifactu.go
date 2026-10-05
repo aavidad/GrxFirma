@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/domain"
@@ -480,6 +481,12 @@ func ValidarRegistrosVeriFactu(ctx context.Context, files map[string][]byte) Ver
 	}
 	for i := range result.Records {
 		r := &result.Records[i]
+		// Ya validados y encadenados, los valores que se muestran pierden los
+		// caracteres de control y de formato (Bidi, anchura cero...).
+		r.File = vfTextoVisible(r.File, 260)
+		r.Type = vfTextoVisible(r.Type, 64)
+		r.Hash = vfTextoVisible(r.Hash, 128)
+		r.PreviousHash = vfTextoVisible(r.PreviousHash, 128)
 		r.Valid = true
 		for _, p := range r.Issues {
 			if p.Level == "error" {
@@ -498,6 +505,21 @@ func ValidarRegistrosVeriFactu(ctx context.Context, files map[string][]byte) Ver
 	return result
 }
 
+// vfTextoVisible quita los caracteres de control (Cc) y de formato (Cf) y
+// recorta el texto a maxRunas para mostrarlo en un informe.
+func vfTextoVisible(s string, maxRunas int) string {
+	limpio := strings.Map(func(r rune) rune {
+		if unicode.Is(unicode.Cc, r) || unicode.Is(unicode.Cf, r) {
+			return -1
+		}
+		return r
+	}, s)
+	if runas := []rune(limpio); len(runas) > maxRunas {
+		limpio = string(runas[:maxRunas])
+	}
+	return limpio
+}
+
 func (r *VeriFactuValidationResult) Localize(t func(string) string) {
 	var b strings.Builder
 	fmt.Fprintln(&b, t("verifactu.scope"))
@@ -505,7 +527,7 @@ func (r *VeriFactuValidationResult) Localize(t func(string) string) {
 		fmt.Fprintln(&b, t("verifactu.empty"))
 	}
 	for _, record := range r.Records {
-		fmt.Fprintf(&b, "\n%s [%s]\n", filepath.Base(record.File), record.Type)
+		fmt.Fprintf(&b, "\n%s [%s]\n", vfTextoVisible(filepath.Base(record.File), 260), vfTextoVisible(record.Type, 64))
 		fmt.Fprintf(&b, "%s: %s\n", t("verifactu.hash_label"), record.CalculatedHash)
 		for _, p := range record.Issues {
 			fmt.Fprintf(&b, "%s: %s\n", p.Field, t(p.Key))

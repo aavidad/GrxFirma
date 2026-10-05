@@ -180,9 +180,12 @@ func safeOperationError(operation string) error {
 	return newFacadeError("la operacion de " + operation + " no pudo completarse")
 }
 
+// sanitizeOutputText prepara un texto para mostrarlo: quita los caracteres
+// de control (salvo salto de línea y tabulador) y los de formato (Cf: marcas
+// Bidi, anchura cero, U+FEFF...), que podrían alterar lo que se ve.
 func sanitizeOutputText(value string, maximumRunes int) string {
 	clean := strings.Map(func(r rune) rune {
-		if unicode.IsControl(r) && r != '\n' && r != '\t' {
+		if (unicode.IsControl(r) && r != '\n' && r != '\t') || unicode.Is(unicode.Cf, r) {
 			return -1
 		}
 		return r
