@@ -447,7 +447,8 @@ public sealed partial class SignPage : Page
         await UpdateRemoteSigningButtonAsync();
     }
 
-    // Firma remota CSC: el botón solo aparece si el motor la permite.
+    // Firma remota CSC: el botón aparece si el motor la permite o si la
+    // política la prohíbe (el cuadro lo explica); no, si solo está desactivada.
     private async Task UpdateRemoteSigningButtonAsync()
     {
         var cancellation = _pageCancellation;
@@ -457,7 +458,7 @@ public sealed partial class SignPage : Page
         }
         try
         {
-            var allowed = await RemoteSigningDialogs.IsAllowedAsync(
+            var allowed = await RemoteSigningDialogs.ShouldShowButtonAsync(
                 _session,
                 cancellation.Token);
             RemoteSigningButton.Visibility = allowed

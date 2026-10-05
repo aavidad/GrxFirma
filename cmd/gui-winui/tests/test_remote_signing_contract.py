@@ -16,6 +16,7 @@ DIALOGS = (SRC / "GrxFirma.WinUI" / "Views" / "RemoteSigningDialogs.cs").read_te
 SIGN_PAGE = (SRC / "GrxFirma.WinUI" / "Views" / "SignPage.xaml.cs").read_text(encoding="utf-8")
 SIGN_XAML = (SRC / "GrxFirma.WinUI" / "Views" / "SignPage.xaml").read_text(encoding="utf-8")
 VIEW_MODEL = (SRC / "GrxFirma.WinUI" / "ViewModels" / "SignPageViewModel.cs").read_text(encoding="utf-8")
+CORE_CONTRACTS = (SRC / "GrxFirma.WinUI.Core" / "Operations" / "DesktopRemoteSigningContracts.cs").read_text(encoding="utf-8")
 CLIENT = (SRC / "GrxFirma.WinUI.Core" / "Operations" / "DesktopOperationsClient.cs").read_text(encoding="utf-8")
 CATALOG = json.loads((ROOT / "internal" / "adapters" / "outbound" / "common" / "localizador"
                       / "locales" / "es.json").read_text(encoding="utf-8"))
@@ -36,12 +37,19 @@ class RemoteSigningContractTests(unittest.TestCase):
     def test_button_follows_engine_and_secrets_are_disposed(self) -> None:
         self.assertIn('x:Name="RemoteSigningButton"', SIGN_XAML)
         self.assertIn('Visibility="Collapsed"', SIGN_XAML.split('x:Name="RemoteSigningButton"')[1][:600])
-        self.assertIn("RemoteSigningDialogs.IsAllowedAsync", SIGN_PAGE)
+        self.assertIn("RemoteSigningDialogs.ShouldShowButtonAsync", SIGN_PAGE)
         self.assertIn("ViewModel.RemoteSecretsPrompt = PromptRemoteSecretsAsync;", SIGN_PAGE)
         self.assertEqual(2, VIEW_MODEL.count("remoteSecrets?.Dispose();"))
         self.assertIn('Localizer.Text("csc.error.otp_lote")', VIEW_MODEL)
         self.assertEqual(3, CLIENT.count("return SendWithRemoteSecretsAsync<"))
         self.assertIn("CryptographicOperations.ZeroMemory(remotePin)", CLIENT)
+
+    def test_policy_prohibition_is_explained_without_offering_config(self) -> None:
+        self.assertIn("status.Data?.ProhibitedByPolicy == true", DIALOGS)
+        self.assertIn('Localizer.Text("csc.error.prohibida")', DIALOGS)
+        guard = DIALOGS.index("if (current is { ProhibitedByPolicy: true })")
+        self.assertLess(guard, DIALOGS.index("urlBox.Text = current.ServiceUrl;"))
+        self.assertIn('"prohibitedByPolicy"', CORE_CONTRACTS)
 
     def test_every_key_exists_in_the_catalog(self) -> None:
         keys = set(re.findall(r'"(csc\.(?:gui|error)\.[a-z_]+)"', DIALOGS + SIGN_XAML + VIEW_MODEL))

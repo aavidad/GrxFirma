@@ -114,6 +114,12 @@ public sealed class DesktopRemoteSigningClientTests
         Assert.IsTrue(status.Allowed);
         Assert.IsFalse(status.ServiceHost.Any(char.IsControl));
         Assert.AreEqual("auth.example", status.OAuthHost);
+        Assert.IsFalse(status.ProhibitedByPolicy);
+        var prohibited = JsonSerializer.Deserialize<RemoteSigningStatus>(
+            """{"allowed":false,"prohibitedByPolicy":true}""");
+        Assert.IsNotNull(prohibited);
+        Assert.IsTrue(prohibited.ProhibitedByPolicy);
+        Assert.IsFalse(prohibited.Allowed);
         Assert.IsFalse(typeof(RemoteSigningStatus).GetProperties().Any(p => p.Name.Contains("Token", StringComparison.OrdinalIgnoreCase)));
 
         var connection = JsonSerializer.Deserialize<RemoteSigningConnection>(

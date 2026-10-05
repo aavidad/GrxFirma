@@ -21,7 +21,11 @@ namespace GrxFirma.WinUI.Views;
 /// </summary>
 internal static class RemoteSigningDialogs
 {
-    public static async Task<bool> IsAllowedAsync(
+    /// <summary>
+    /// El botón se muestra si la firma remota está permitida o si la
+    /// política la prohíbe (para explicarlo); no, si solo está desactivada.
+    /// </summary>
+    public static async Task<bool> ShouldShowButtonAsync(
         DesktopOperationSession session,
         CancellationToken cancellationToken)
     {
@@ -32,7 +36,8 @@ internal static class RemoteSigningDialogs
         try
         {
             var status = await operations.GetRemoteSigningStatusAsync(cancellationToken);
-            return status.IsSuccess && status.Data?.Allowed == true;
+            return status.IsSuccess &&
+                (status.Data?.Allowed == true || status.Data?.ProhibitedByPolicy == true);
         }
         catch (IpcClientException)
         {
@@ -261,6 +266,11 @@ internal static class RemoteSigningDialogs
         try
         {
             await RefreshStatusAsync();
+            if (current is { ProhibitedByPolicy: true })
+            {
+                await ShowProhibitedAsync(xamlRoot, theme);
+                return;
+            }
             if (current is not { Allowed: true })
             {
                 return;
@@ -408,6 +418,22 @@ internal static class RemoteSigningDialogs
             pinBox.Password = string.Empty;
             otpBox.Password = string.Empty;
         }
+    }
+
+    private static async Task ShowProhibitedAsync(XamlRoot xamlRoot, ElementTheme theme)
+    {
+        var message = Paragraph(Localizer.Text("csc.error.prohibida"));
+        AutomationProperties.SetLiveSetting(message, AutomationLiveSetting.Assertive);
+        var dialog = new ContentDialog
+        {
+            XamlRoot = xamlRoot,
+            RequestedTheme = theme,
+            Title = Localizer.Text("csc.gui.titulo"),
+            Content = message,
+            CloseButtonText = Localizer.Text("Cerrar"),
+            DefaultButton = ContentDialogButton.Close,
+        };
+        await Localizer.ShowAsync(dialog);
     }
 
     private static string FailureText(string? errorCode) =>

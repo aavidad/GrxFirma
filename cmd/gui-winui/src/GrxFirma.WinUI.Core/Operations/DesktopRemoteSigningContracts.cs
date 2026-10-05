@@ -48,6 +48,13 @@ public sealed record RemoteSigningStatus
     [JsonPropertyName("allowed")]
     public bool Allowed { get; init; }
 
+    /// <summary>
+    /// La política de la organización prohíbe la firma remota: se explica a
+    /// la persona y no se le sugiere config.json.
+    /// </summary>
+    [JsonPropertyName("prohibitedByPolicy")]
+    public bool ProhibitedByPolicy { get; init; }
+
     [JsonPropertyName("serviceUrl")]
     public string ServiceUrl
     {

@@ -79,7 +79,10 @@ WinUI y Qt usan la misma sesión, que vive en el motor
 
 - `csc_status` dice si la firma remota está permitida (se vuelve a leer la
   política en cada operación) y devuelve la dirección y el client_id guardados.
-  El botón «Firma remota» solo aparece si está permitida.
+  Si la política de la organización la prohíbe, añade `prohibitedByPolicy`: el
+  botón «Firma remota» se muestra y el cuadro solo explica que la política no
+  la permite. Si solo está desactivada en `config.json`, el botón no aparece.
+  La CLI distingue igual los dos casos.
 - `csc_configure` valida la dirección y el client_id con las reglas de la CLI,
   consulta `/info` sin abrir el navegador y devuelve el host del servicio y el
   del servidor de autorización (los nombres internacionalizados, en punycode).
