@@ -5113,4 +5113,9 @@
   ,"sin OCSP ni CRL disponibles": "Aucun OCSP ni CRL disponible"
   ,"sin respuesta concluyente del servicio de revocación": "Le service de révocation n'a pas donné de réponse concluante"
   ,"cli.help.seal_language": "Langue des libellés du cachet visible. Par défaut, la langue de la CLI."
+  ,"seal.preview.signer_sample": "Nom du signataire"
+  ,"report.size_byte_one": "%d octet"
+  ,"settings.seal_language.label": "Langue du cachet"
+  ,"settings.seal_language.interface": "Identique à l'application"
+  ,"settings.seal_language.help": "Langue des libellés du cachet visible. Choisissez par exemple l'espagnol pour que les documents remis à l'administration espagnole portent le cachet dans cette langue même si l'application est dans une autre langue."
 }

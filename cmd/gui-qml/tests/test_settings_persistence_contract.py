@@ -45,6 +45,24 @@ class SettingsPersistenceContractTest(unittest.TestCase):
         self.assertIn("logoOpacityPercent: defaults.logoOpacityPercent", QML)
         self.assertEqual(QML.count('text: window.signSealLogoOpacityPercent + " %"'), 2)
 
+    def test_seal_language_is_saved_restored_and_sent(self) -> None:
+        self.assertIn('property string signSealLanguage: ""', QML)
+        self.assertIn(
+            'signSealLanguage: window.signSealLanguage === "" ? "interface" : window.signSealLanguage',
+            QML,
+        )
+        self.assertIn("window.signSealLanguage = normalizedSealLanguage(s.signSealLanguage)", QML)
+        appearance = re.search(
+            r"function sealAppearanceOptions\(\) \{(?P<body>.*?)\n    \}", QML, re.DOTALL
+        )
+        self.assertIsNotNone(appearance)
+        self.assertIn("options.sealLanguage = fixedSealLanguage", appearance.group("body"))
+        combo = QML.split("id: settingsSealLanguageCombo", 1)[1].split("Binding {", 1)[0]
+        self.assertIn('Accessible.name: tr("settings.seal_language.label")', combo)
+        self.assertIn('Accessible.description: tr("settings.seal_language.help")', combo)
+        self.assertIn("markBackendSettingsDirty()", combo)
+        self.assertIn('{ code: "", name: tr("settings.seal_language.interface") }', QML)
+
 
 if __name__ == "__main__":
     unittest.main()

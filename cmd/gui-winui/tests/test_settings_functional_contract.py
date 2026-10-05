@@ -39,6 +39,9 @@ class SettingsFunctionalContractTests(unittest.TestCase):
         cls.xaml_path = APP / "Views/SettingsPage.xaml"
         cls.xaml = cls.xaml_path.read_text(encoding="utf-8")
         cls.go_settings = GO_SETTINGS.read_text(encoding="utf-8")
+        cls.go_settings_language = (
+            ROOT / "internal/ports/seal_language.go"
+        ).read_text(encoding="utf-8")
         cls.qml = QML.read_text(encoding="utf-8")
 
     def test_core_uses_exact_get_and_save_actions(self):
@@ -264,6 +267,26 @@ class SettingsFunctionalContractTests(unittest.TestCase):
             "Directory.Create",
         ):
             self.assertNotIn(forbidden, combined)
+
+    def test_seal_language_is_editable_saved_and_used_by_signing(self):
+        self.assertIn('[JsonPropertyName("signSealLanguage")]', self.contracts)
+        self.assertIn('"signSealLanguage"', self.go_settings_language)
+        self.assertIn("SealLanguage = SelectedSealLanguage.Value", self.vm)
+        self.assertIn("DesktopSettingsDocument.SealLanguageFollowsInterface", self.vm)
+        root = ET.fromstring(self.xaml)
+        combo = next(
+            element for element in root.iter()
+            if element.tag.endswith("}ComboBox")
+            and element.get("{http://schemas.microsoft.com/winfx/2006/xaml}Name") == "SealLanguageCombo"
+        )
+        self.assertEqual(combo.get("AutomationProperties.Name"), "Idioma del sello")
+        self.assertIn("SelectedSealLanguage", combo.get("SelectedItem", ""))
+        self.assertIn("ViewModel.SealLanguages", combo.get("ItemsSource", ""))
+        sign_vm = (APP / "ViewModels/SignPageViewModel.cs").read_text(encoding="utf-8")
+        self.assertIn("DesktopSettingsDocument.EffectiveSealLanguage(", sign_vm)
+        sign_page = (APP / "Views/SignPage.xaml.cs").read_text(encoding="utf-8")
+        self.assertIn("ViewModel.SetSealLanguagePreference(result.Data.SealLanguage);", sign_page)
+        self.assertIn('signSealLanguage: window.signSealLanguage', self.qml)
 
 
 if __name__ == "__main__":

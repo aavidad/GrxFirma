@@ -165,6 +165,11 @@ public sealed record DesktopSettingsDocument
     [JsonPropertyName("signSealLogoOpacityPercent")]
     public int? SealLogoOpacityPercent { get; init; }
 
+    // Idioma de los rótulos del sello visible: «interface» (o vacío) sigue
+    // al idioma de la interfaz; un código admitido fija ese idioma.
+    [JsonPropertyName("signSealLanguage")]
+    public string? SealLanguage { get; init; }
+
     [JsonPropertyName("signSealPerPage")]
     public bool? SealPerPage { get; init; }
 
@@ -269,6 +274,7 @@ public sealed record DesktopSettingsDocument
             ProxyExcludedUrls = NormalizeProxyExcludedUrls(
                 ProxyExcludedUrls),
             SealPlacements = NormalizeSealPlacements(SealPlacements),
+            SealLanguage = NormalizeSealLanguage(SealLanguage),
             ProxySecretId = null,
             ProxyRealm = null,
             AdditionalSettings = preserved,
@@ -278,6 +284,30 @@ public sealed record DesktopSettingsDocument
     public static bool IsSupportedLanguage(string? value) =>
         value is "es" or "ca" or "va" or "eu" or "gl" or "en" or
             "de" or "fr" or "pt" or "it" or "zh";
+
+    public const string SealLanguageFollowsInterface = "interface";
+
+    public static bool IsSupportedSealLanguage(string? value) =>
+        value == SealLanguageFollowsInterface || IsSupportedLanguage(value);
+
+    /// <summary>
+    /// Idioma que se envía en sealLanguage: el fijado en la configuración o,
+    /// si sigue a la interfaz, el de la interfaz.
+    /// </summary>
+    public static string? EffectiveSealLanguage(
+        string? preference,
+        string? interfaceLanguage)
+    {
+        var fixedLanguage = NormalizeSealLanguage(preference);
+        if (fixedLanguage is not null &&
+            fixedLanguage != SealLanguageFollowsInterface)
+        {
+            return fixedLanguage;
+        }
+        return string.IsNullOrWhiteSpace(interfaceLanguage)
+            ? null
+            : interfaceLanguage.Trim();
+    }
 
     public static bool IsSupportedTheme(int? value) =>
         value is >= 0 and <= 2;
@@ -305,6 +335,21 @@ public sealed record DesktopSettingsDocument
         return trimmed.Length <= maximumCharacters
             ? trimmed
             : trimmed[..maximumCharacters];
+    }
+
+    // Un valor desconocido no se pierde en silencio: vuelve a «seguir a la
+    // interfaz», que es lo mismo que hace el motor con él.
+    private static string? NormalizeSealLanguage(string? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        var normalized = value.Trim().ToLowerInvariant();
+        return IsSupportedLanguage(normalized)
+            ? normalized
+            : SealLanguageFollowsInterface;
     }
 
     private static IReadOnlyList<string> NormalizeProxyExcludedUrls(

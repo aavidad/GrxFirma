@@ -38,6 +38,49 @@ public sealed class DesktopSettingsClientTests
     }
 
     [TestMethod]
+    public void SealLanguage_IsTypedAndNormalizedOnSave()
+    {
+        var fixedLanguage = JsonSerializer.Deserialize<DesktopSettingsDocument>(
+            """
+            {"signSealLanguage":" ES "}
+            """)!;
+        Assert.AreEqual("es", fixedLanguage.CreateSafeSaveSnapshot().SealLanguage);
+        Assert.IsFalse(fixedLanguage.AdditionalSettings.ContainsKey("signSealLanguage"));
+
+        var unknown = JsonSerializer.Deserialize<DesktopSettingsDocument>(
+            """
+            {"signSealLanguage":"klingon"}
+            """)!;
+        Assert.AreEqual(
+            DesktopSettingsDocument.SealLanguageFollowsInterface,
+            unknown.CreateSafeSaveSnapshot().SealLanguage);
+
+        var absent = JsonSerializer.Deserialize<DesktopSettingsDocument>("{}")!;
+        Assert.IsNull(absent.CreateSafeSaveSnapshot().SealLanguage);
+
+        using var wire = JsonDocument.Parse(JsonSerializer.Serialize(
+            new DesktopSettingsDocument { SealLanguage = "gl" },
+            WireOptions));
+        Assert.AreEqual(
+            "gl",
+            wire.RootElement.GetProperty("signSealLanguage").GetString());
+    }
+
+    [TestMethod]
+    public void EffectiveSealLanguage_PrefersFixedLanguageOverInterface()
+    {
+        Assert.AreEqual("es", DesktopSettingsDocument.EffectiveSealLanguage("es", "en"));
+        Assert.AreEqual("en", DesktopSettingsDocument.EffectiveSealLanguage("interface", "en"));
+        Assert.AreEqual("en", DesktopSettingsDocument.EffectiveSealLanguage(null, "en"));
+        Assert.AreEqual("en", DesktopSettingsDocument.EffectiveSealLanguage("", "en"));
+        Assert.AreEqual("en", DesktopSettingsDocument.EffectiveSealLanguage("xx", "en"));
+        Assert.IsNull(DesktopSettingsDocument.EffectiveSealLanguage(null, " "));
+        Assert.IsTrue(DesktopSettingsDocument.IsSupportedSealLanguage("interface"));
+        Assert.IsTrue(DesktopSettingsDocument.IsSupportedSealLanguage("zh"));
+        Assert.IsFalse(DesktopSettingsDocument.IsSupportedSealLanguage(""));
+    }
+
+    [TestMethod]
     public async Task Methods_SendExactActionsTypesAndCancellation()
     {
         var transport = new RecordingIpcClient();
