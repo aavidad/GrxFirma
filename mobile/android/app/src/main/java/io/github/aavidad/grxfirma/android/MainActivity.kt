@@ -1321,11 +1321,36 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    /** Cabecera de «Acerca de»: el logotipo de la aplicación sobre el título. */
+    private fun aboutHeader(): View {
+        val density = resources.displayMetrics.density
+        val padding = (24 * density).toInt()
+        val logoSize = (144 * density).toInt()
+        return android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            gravity = android.view.Gravity.CENTER_HORIZONTAL
+            setPadding(padding, padding, padding, 0)
+            addView(android.widget.ImageView(this@MainActivity).apply {
+                setImageResource(R.drawable.grxfirma_logo_carbon)
+                contentDescription = getString(R.string.app_name)
+                scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                layoutParams = android.widget.LinearLayout.LayoutParams(logoSize, logoSize)
+            })
+            addView(android.widget.TextView(this@MainActivity).apply {
+                setText(R.string.about_title)
+                setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_HeadlineSmall)
+                gravity = android.view.Gravity.CENTER_HORIZONTAL
+                ViewCompat.setAccessibilityHeading(this, true)
+                setPadding(0, (16 * density).toInt(), 0, 0)
+            })
+        }
+    }
+
     private fun showAbout() {
         val engine = viewModel.engineVersion.takeIf { it.isNotBlank() && it != "development" }
             ?: getString(R.string.unknown_value)
         val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.about_title)
+            .setCustomTitle(aboutHeader())
             // Las acciones van primero y «Cerrar» al final cuando Material apila los botones
             // (positivo, negativo, neutro): por eso «Cerrar» es el neutro.
             .setMessage(getString(R.string.about_content, BuildConfig.VERSION_NAME, engine, AppLinks.CONTACT_EMAIL))

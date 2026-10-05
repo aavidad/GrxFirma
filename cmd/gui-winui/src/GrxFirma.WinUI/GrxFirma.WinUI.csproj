@@ -43,11 +43,17 @@
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
       <TargetPath>Assets\grxfirma.ico</TargetPath>
     </Content>
-    <Content Include="..\..\..\gui-qml\assets\grxfirma-simbolo.png">
-      <Link>Assets\grxfirma-simbolo.png</Link>
+    <Content Include="..\..\..\gui-qml\assets\grxfirma-logo-carbon-96.png">
+      <Link>Assets\grxfirma-logo-carbon-96.png</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-      <TargetPath>Assets\grxfirma-simbolo.png</TargetPath>
+      <TargetPath>Assets\grxfirma-logo-carbon-96.png</TargetPath>
+    </Content>
+    <Content Include="..\..\..\gui-qml\assets\grxfirma-logo-carbon-256.png">
+      <Link>Assets\grxfirma-logo-carbon-256.png</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <TargetPath>Assets\grxfirma-logo-carbon-256.png</TargetPath>
     </Content>
     <Content Include="..\..\..\..\VERSION.txt">
       <Link>VERSION.txt</Link>

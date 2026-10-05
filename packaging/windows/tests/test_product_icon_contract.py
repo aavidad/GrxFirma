@@ -58,7 +58,9 @@ class ProductIconContractTests(unittest.TestCase):
 
         self.assertIn("<ApplicationIcon>", project)
         self.assertIn("grxfirma.ico", project)
-        self.assertIn("grxfirma-simbolo.png", project)
+        self.assertIn("grxfirma-logo-carbon-96.png", project)
+        self.assertIn("grxfirma-logo-carbon-96.png", window)
+        self.assertIn('AutomationProperties.Name="GrxFirma"', window)
         self.assertIn('Text="GrxFirma"', window)
         self.assertIn("$shortcut.IconLocation", installer)
 
