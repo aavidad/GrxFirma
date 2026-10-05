@@ -1913,6 +1913,20 @@ Window {
         return currentBatchDirectory !== "" || currentBatchPaths.length > 1
     }
 
+    // Un lote con OTP solo se firma si el prestador autoriza varias firmas
+    // con un código (multisign) y el lote cabe. Con una carpeta el motor
+    // cuenta los documentos y lo rechaza antes de firmar si no caben.
+    function remoteBatchOtpBlockKey(certificate) {
+        if (!window.isBatchMode() || !certificate || certificate.remoteOtp !== true)
+            return ""
+        const capacity = Number(certificate.remoteMultiSign || 1)
+        if (window.multiCosignEnabled || !(capacity > 1))
+            return "csc.error.otp_lote"
+        if (currentBatchDirectory === "" && currentBatchPaths.length > capacity)
+            return "csc.error.otp_lote_excede"
+        return ""
+    }
+
     function rememberSessionDocumentPath(path) {
         const normalized = String(path || "").trim()
         if (normalized === "")
@@ -3625,9 +3639,11 @@ Window {
             window.cscPendingSecrets = null
         }
         if (remoteCertificate && remoteCertificate.remote === true) {
-            if (window.isBatchMode() && remoteCertificate.remoteOtp === true) {
+            const batchOtpBlock = window.remoteBatchOtpBlockKey(remoteCertificate)
+            if (batchOtpBlock !== "") {
                 window.cscPendingSecrets = null
-                signValidationErrorDialog.errorMessage = tr("csc.error.otp_lote")
+                signValidationErrorDialog.errorMessage = batchOtpBlock === "csc.error.otp_lote_excede"
+                        ? tr("csc.error.otp_lote_excede") : tr("csc.error.otp_lote")
                 signValidationErrorDialog.open()
                 return
             }

@@ -920,6 +920,10 @@ public sealed record CertificateInfo
 
     [JsonPropertyName("remoteOtpOnline")]
     public bool RemoteOtpOnline { get; init; }
+
+    // Firmas que el prestador autoriza con un solo PIN u OTP (multisign).
+    [JsonPropertyName("remoteMultiSign")]
+    public int RemoteMultiSign { get; init; }
 }
 
 public sealed record ProtectionRecipientsParameters;
