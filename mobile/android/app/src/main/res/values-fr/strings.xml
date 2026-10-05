@@ -604,7 +604,7 @@
     <string name="error_document_empty">Le fichier est vide. Choisissez-en un autre.</string>
     <string name="error_folder_too_many">Le dossier contient trop de fichiers. Choisissez-en un qui en contient moins.</string>
     <string name="export_verification_report_html">Enregistrer le rapport imprimable (HTML)</string>
-    <string name="verification_report_html_filename">rapport-verification-%1$s.html</string>
+    <string name="verification_report_html_filename">%1$s_rapport_verification.html</string>
     <string name="eni_error_signature_mismatch">La signature ne correspond pas au document original ou le document a été modifié après sa signature. Vérifiez que vous avez choisi le bon original.</string>
     <string name="qr_take_photo">Prendre une photo du QR</string>
     <string name="qr_choose_image">Choisir une image du QR</string>

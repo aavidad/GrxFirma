@@ -587,7 +587,7 @@
     <string name="error_document_empty">Fitxategia hutsik dago. Aukeratu beste bat.</string>
     <string name="error_folder_too_many">Karpetak fitxategi gehiegi ditu. Aukeratu gutxiago dituen bat.</string>
     <string name="export_verification_report_html">Gorde txosten inprimagarria (HTML)</string>
-    <string name="verification_report_html_filename">egiaztapen-txostena-%1$s.html</string>
+    <string name="verification_report_html_filename">%1$s_egiaztapen_txostena.html</string>
     <string name="eni_error_signature_mismatch">Sinadura ez dator bat jatorrizko dokumentuarekin, edo dokumentua sinatu ondoren aldatu da. Egiaztatu jatorrizko dokumentu zuzena aukeratu duzula.</string>
     <string name="qr_take_photo">Atera QRaren argazki bat</string>
     <string name="qr_choose_image">Aukeratu QRaren irudi bat</string>

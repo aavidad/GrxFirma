@@ -587,7 +587,7 @@
     <string name="error_document_empty">The file is empty. Choose another one.</string>
     <string name="error_folder_too_many">The folder has too many files. Choose a folder with fewer.</string>
     <string name="export_verification_report_html">Save printable report (HTML)</string>
-    <string name="verification_report_html_filename">verification-report-%1$s.html</string>
+    <string name="verification_report_html_filename">%1$s_verification_report.html</string>
     <string name="eni_error_signature_mismatch">The signature does not match the original document, or the document was changed after it was signed. Check that you chose the correct original.</string>
     <string name="qr_take_photo">Take a photo of the QR code</string>
     <string name="qr_choose_image">Choose an image of the QR code</string>

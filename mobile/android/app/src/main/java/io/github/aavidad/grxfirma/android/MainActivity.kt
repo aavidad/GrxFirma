@@ -1260,11 +1260,15 @@ class MainActivity : AppCompatActivity() {
         verificationTechnical.text = if (expanded) VerificationCard.technical(this@MainActivity, verification!!) else ""
     }
 
-    /** «informe-verificacion-contrato.html»: el nombre propuesto dice de qué documento es. */
+    /**
+     * El nombre propuesto dice de qué documento es: «contrato_informe_verificacion.html»
+     * (como en escritorio) o «informe-verificacion-contrato.json».
+     */
     private fun reportFileName(pattern: Int): String {
         val stem = viewModel.state.value.verifiedDocumentName.substringBeforeLast('.').trim()
-        val name = getString(pattern, stem).let { if (stem.isEmpty()) it.replace("-.", ".") else it }
-        return DocumentPolicy.sanitizeDisplayName(name, getString(pattern, "").replace("-.", "."))
+        val withoutStem = getString(pattern, "").replace("-.", ".").removePrefix("_")
+        val name = if (stem.isEmpty()) withoutStem else getString(pattern, stem)
+        return DocumentPolicy.sanitizeDisplayName(name, withoutStem)
     }
 
     private fun renderDetail(detail: String?) = with(binding.resultDetail) {
