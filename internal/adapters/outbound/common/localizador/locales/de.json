@@ -4964,4 +4964,5 @@
   ,"csc.gui.cancelar": "Signatur abbrechen"
   ,"csc.gui.navegador_firma": "Ihr Anbieter bittet Sie im Browser, diese Signatur freizugeben."
   ,"csc.gui.falta_dato": "Geben Sie die verlangte PIN und den Code ein."
+  ,"csc.error.prohibida": "Die Richtlinie Ihrer Organisation erlaubt keine Fernsignatur."
 }

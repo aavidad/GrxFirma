@@ -28,6 +28,7 @@ type entornoCSCIPC struct {
 	servidor  *csctest.Servidor
 	sesion    *cscremota.Sesion
 	permitida *atomic.Bool
+	prohibir  *atomic.Bool
 }
 
 func nuevoEntornoCSCIPC(t *testing.T, modo string) entornoCSCIPC {
@@ -36,6 +37,7 @@ func nuevoEntornoCSCIPC(t *testing.T, modo string) entornoCSCIPC {
 	s.Configurar(func(s *csctest.Servidor) { s.Modo = modo })
 	permitida := &atomic.Bool{}
 	permitida.Store(true)
+	prohibir := &atomic.Bool{}
 	sesion := cscremota.Nueva(cscremota.Opciones{
 		ConfigDir: t.TempDir(),
 		HTTP:      s.Client(),
@@ -43,13 +45,17 @@ func nuevoEntornoCSCIPC(t *testing.T, modo string) entornoCSCIPC {
 		CargarConfig: func() (config.Config, config.Policy, error) {
 			cfg := config.Default()
 			cfg.FirmaRemotaCSC = permitida.Load()
+			if prohibir.Load() {
+				falso := false
+				return cfg, config.Policy{FirmaRemotaCSC: &falso}, nil
+			}
 			return cfg, config.Policy{}, nil
 		},
 	})
 	t.Cleanup(func() { _ = sesion.Close() })
 	firmar := application.NuevoSignDocumentUseCase(sesion, sesion, desktopsigner.NuevoMotorFirmaGo(nil), aprobacionFirmaContrato{}, nil, nil)
 	m := &Manejador{Catalogo: sesion, Firmar: firmar, CSC: sesion}
-	return entornoCSCIPC{m: m, servidor: s, sesion: sesion, permitida: permitida}
+	return entornoCSCIPC{m: m, servidor: s, sesion: sesion, permitida: permitida, prohibir: prohibir}
 }
 
 func pedirIPC(t *testing.T, m *Manejador, accion string, params any) respuesta {
@@ -205,10 +211,24 @@ func TestCSCIPCFlujoCompletoConPINyOTP(t *testing.T) {
 		t.Fatalf("PIN con control: %+v", resp)
 	}
 
-	// La política la retira: la sesión desaparece.
+	// Una política que la prohíbe se distingue de la desactivada.
+	e.prohibir.Store(true)
+	resp = pedirIPC(t, e.m, "csc_status", map[string]any{})
+	if estado := resp.Data.(resultadoCSCEstado); !resp.OK || estado.Allowed || !estado.ProhibitedByPolicy {
+		t.Fatalf("csc_status con política en contra: %+v", resp)
+	}
+	resp = pedirIPC(t, e.m, "csc_connect", map[string]any{})
+	if resp.OK || resp.ErrorCode != "csc_prohibida" {
+		t.Fatalf("csc_connect con política en contra: %+v", resp)
+	}
+	e.prohibir.Store(false)
+	pedirIPC(t, e.m, "csc_configure", map[string]any{"serviceUrl": e.servidor.URL, "clientId": csctest.ClientID})
+	pedirIPC(t, e.m, "csc_connect", map[string]any{})
+
+	// La configuración la retira: la sesión desaparece.
 	e.permitida.Store(false)
 	resp = pedirIPC(t, e.m, "csc_status", map[string]any{})
-	if !resp.OK || resp.Data.(resultadoCSCEstado).Allowed {
+	if estado := resp.Data.(resultadoCSCEstado); !resp.OK || estado.Allowed || estado.ProhibitedByPolicy {
 		t.Fatalf("csc_status tras retirar: %+v", resp)
 	}
 	e.permitida.Store(true)

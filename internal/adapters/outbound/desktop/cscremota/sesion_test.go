@@ -53,13 +53,34 @@ func TestSesionDesactivadaNoOfreceNada(t *testing.T) {
 	s := csctest.Nuevo(t)
 	var permitida atomic.Bool
 	sesion, _ := nuevaSesion(t, s, &permitida)
-	if sesion.Estado().Permitida {
-		t.Fatal("la firma remota no debía estar permitida")
+	if e := sesion.Estado(); e.Permitida || e.Prohibida {
+		t.Fatalf("sin decisión de la política no está prohibida, solo desactivada: %+v", e)
 	}
 	_, err := sesion.Configurar(context.Background(), s.URL, csctest.ClientID)
 	codigo(t, err, cscremota.CodigoDesactivada)
 	_, _, err = sesion.Conectar(context.Background())
 	codigo(t, err, cscremota.CodigoDesactivada)
+}
+
+func TestSesionProhibidaPorLaPoliticaLoDiceAsi(t *testing.T) {
+	s := csctest.Nuevo(t)
+	falso := false
+	sesion := cscremota.Nueva(cscremota.Opciones{
+		ConfigDir: t.TempDir(),
+		HTTP:      s.Client(),
+		Navegador: s.Navegador(),
+		CargarConfig: func() (config.Config, config.Policy, error) {
+			cfg := config.Default()
+			cfg.FirmaRemotaCSC = true
+			return cfg, config.Policy{FirmaRemotaCSC: &falso}, nil
+		},
+	})
+	t.Cleanup(func() { _ = sesion.Close() })
+	_, err := sesion.Configurar(context.Background(), s.URL, csctest.ClientID)
+	codigo(t, err, cscremota.CodigoProhibida)
+	if e := sesion.Estado(); e.Permitida || !e.Prohibida {
+		t.Fatalf("prohibida por la política: %+v", e)
+	}
 }
 
 func TestSesionValidaComoLaCLI(t *testing.T) {

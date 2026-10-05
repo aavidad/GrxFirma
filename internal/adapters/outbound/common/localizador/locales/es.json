@@ -4964,4 +4964,5 @@
   ,"csc.gui.cancelar": "Cancelar la firma"
   ,"csc.gui.navegador_firma": "Su prestador pedirá en el navegador que autorice esta firma."
   ,"csc.gui.falta_dato": "Escriba el PIN y el código que se piden."
+  ,"csc.error.prohibida": "La política de su organización no permite la firma remota."
 }

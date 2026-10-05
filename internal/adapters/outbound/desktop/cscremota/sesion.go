@@ -61,6 +61,7 @@ const (
 // clave de catálogo "csc.error.<codigo>".
 const (
 	CodigoDesactivada         csc.Codigo = "desactivada"
+	CodigoProhibida           csc.Codigo = "prohibida"
 	CodigoNoConfigurada       csc.Codigo = "no_configurada"
 	CodigoNoConectada         csc.Codigo = "no_conectada"
 	CodigoParesOAuthInvalidos csc.Codigo = "pares_oauth_invalidos"
@@ -94,7 +95,10 @@ type Opciones struct {
 
 // Estado resume la sesión para la interfaz. No incluye tokens.
 type Estado struct {
-	Permitida    bool
+	Permitida bool
+	// Prohibida indica que no está permitida porque la política de la
+	// organización lo decide así (config.json no puede cambiarlo).
+	Prohibida    bool
 	URL          string
 	ClientID     string
 	Descubierto  bool
@@ -169,7 +173,13 @@ func (s *Sesion) permiso() ([]csc.ParOAuth, error) {
 		}
 	}
 	// Una configuración o una política ilegibles no pueden autorizar nada.
-	if err != nil || !cfg.FirmaRemotaCSCActiva(politica) {
+	if err != nil {
+		return nil, nuevoError(CodigoDesactivada)
+	}
+	if !cfg.FirmaRemotaCSCActiva(politica) {
+		if config.FirmaRemotaCSCProhibida(politica) {
+			return nil, nuevoError(CodigoProhibida)
+		}
 		return nil, nuevoError(CodigoDesactivada)
 	}
 	pares, err := csc.ParsearParesOAuth(cfg.FirmaRemotaCSCOAuth)
@@ -193,11 +203,12 @@ func (s *Sesion) Permitida() bool {
 
 // Estado devuelve el estado de la sesión y la configuración guardada.
 func (s *Sesion) Estado() Estado {
-	permitida := s.Permitida()
+	_, errPermiso := s.permiso()
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if !permitida {
-		return Estado{}
+	if errPermiso != nil {
+		s.cerrarLocked()
+		return Estado{Prohibida: CodigoVisible(errPermiso) == CodigoProhibida}
 	}
 	s.cargarLocked()
 	return Estado{

@@ -4964,4 +4964,5 @@
   ,"csc.gui.cancelar": "Annuler la signature"
   ,"csc.gui.navegador_firma": "Votre prestataire vous demandera d'autoriser cette signature dans le navigateur."
   ,"csc.gui.falta_dato": "Saisissez le PIN et le code demandés."
+  ,"csc.error.prohibida": "La politique de votre organisation n'autorise pas la signature à distance."
 }

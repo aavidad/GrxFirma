@@ -46,14 +46,17 @@ type SesionCSC interface {
 }
 
 type resultadoCSCEstado struct {
-	Allowed     bool   `json:"allowed"`
-	ServiceURL  string `json:"serviceUrl"`
-	ClientID    string `json:"clientId"`
-	Discovered  bool   `json:"discovered"`
-	Connected   bool   `json:"connected"`
-	ServiceHost string `json:"serviceHost"`
-	OAuthHost   string `json:"oauthHost"`
-	ServiceName string `json:"serviceName"`
+	Allowed bool `json:"allowed"`
+	// ProhibitedByPolicy distingue la prohibición de la organización de la
+	// firma remota simplemente desactivada en config.json.
+	ProhibitedByPolicy bool   `json:"prohibitedByPolicy"`
+	ServiceURL         string `json:"serviceUrl"`
+	ClientID           string `json:"clientId"`
+	Discovered         bool   `json:"discovered"`
+	Connected          bool   `json:"connected"`
+	ServiceHost        string `json:"serviceHost"`
+	OAuthHost          string `json:"oauthHost"`
+	ServiceName        string `json:"serviceName"`
 }
 
 type resultadoCSCDescubrimiento struct {
@@ -166,14 +169,15 @@ func (m *Manejador) handleCSC(ctx context.Context, action string, raw json.RawMe
 		}
 		e := m.CSC.Estado()
 		return respuesta{OK: true, Action: action, Data: resultadoCSCEstado{
-			Allowed:     e.Permitida,
-			ServiceURL:  e.URL,
-			ClientID:    e.ClientID,
-			Discovered:  e.Descubierto,
-			Connected:   e.Conectada,
-			ServiceHost: e.HostServicio,
-			OAuthHost:   e.HostOAuth,
-			ServiceName: e.Nombre,
+			Allowed:            e.Permitida,
+			ProhibitedByPolicy: e.Prohibida,
+			ServiceURL:         e.URL,
+			ClientID:           e.ClientID,
+			Discovered:         e.Descubierto,
+			Connected:          e.Conectada,
+			ServiceHost:        e.HostServicio,
+			OAuthHost:          e.HostOAuth,
+			ServiceName:        e.Nombre,
 		}}
 	case "csc_configure":
 		var p paramsCSCConfigurar

@@ -363,3 +363,10 @@ func (cfg Config) FirmaRemotaCSCActiva(politica Policy) bool {
 	}
 	return cfg.FirmaRemotaCSC
 }
+
+// FirmaRemotaCSCProhibida indica que la política de la organización prohíbe
+// la firma remota. Sirve para explicarlo a la persona: en ese caso
+// config.json no puede activarla.
+func FirmaRemotaCSCProhibida(politica Policy) bool {
+	return politica.FirmaRemotaCSC != nil && !*politica.FirmaRemotaCSC
+}

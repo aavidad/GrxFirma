@@ -4964,4 +4964,5 @@
   ,"csc.gui.cancelar": "Utzi sinadura"
   ,"csc.gui.navegador_firma": "Zure zerbitzu-emaileak nabigatzailean eskatuko dizu sinadura hau baimentzeko."
   ,"csc.gui.falta_dato": "Idatzi eskatzen diren PINa eta kodea."
+  ,"csc.error.prohibida": "Zure erakundearen politikak ez du urruneko sinadura baimentzen."
 }
