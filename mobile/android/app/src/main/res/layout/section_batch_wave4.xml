@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<!-- Opciones del lote de la cuarta oleada: cofirma, sello visible y DNIe.
+     Se incluye en el grupo del lote de section_tools. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/batchActionLabel"
+        style="@style/TextAppearance.Material3.LabelLarge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/control_spacing"
+        android:labelFor="@id/batchAction"
+        android:text="@string/batch_action_label"
+        android:textColor="@color/on_surface" />
+
+    <Spinner
+        android:id="@+id/batchAction"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:spinnerMode="dropdown" />
+
+    <CheckBox
+        android:id="@+id/batchSealCheck"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:minHeight="48dp"
+        android:text="@string/batch_seal_check" />
+
+    <TextView
+        android:id="@+id/batchSealHelper"
+        style="@style/TextAppearance.Material3.BodyMedium"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/batch_seal_helper"
+        android:textColor="@color/on_surface"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/batchDnieHint"
+        style="@style/TextAppearance.Material3.BodyMedium"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/batch_dnie_hint"
+        android:textColor="@color/on_surface"
+        android:visibility="gone" />
+
+</LinearLayout>

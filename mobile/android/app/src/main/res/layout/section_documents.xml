@@ -319,4 +319,10 @@
 
     </LinearLayout>
 
+    <include
+        android:id="@+id/expediente"
+        layout="@layout/section_expediente"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
 </LinearLayout>

@@ -186,6 +186,9 @@ data class MainUiState(
     val verifactuRecords: List<SelectedFile> = emptyList(),
     /** Fecha de captura ENI elegida en el calendario (medianoche UTC) o null para «ahora». */
     val eniCaptureDate: Long? = null,
+    /** Capacidades de la cuarta oleada declaradas por el núcleo. */
+    val capabilities: Set<String> = emptySet(),
+    val wave4: Wave4State = Wave4State(),
 ) {
     private val idle: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
     private fun offers(service: String): Boolean = backend.available && service in documentServices
@@ -200,10 +203,12 @@ data class MainUiState(
     val canHash: Boolean get() = canUseTools && document != null
     val canProtect: Boolean get() = canUseTools && document != null
     val canProtectAndSign: Boolean
-        get() = canProtect && certificate != null && !certificateExternal && protectionContainer != "cms-encrypted"
+        get() = canProtect && certificate != null && (!certificateExternal || externalProtectSignAvailable) &&
+            protectionContainer != "cms-encrypted"
     val canUnprotect: Boolean get() = canUseTools && document != null
     val canSignBatch: Boolean
-        get() = canUseTools && batchDocuments.isNotEmpty() && certificate != null && !certificateExternal
+        get() = canUseTools && batchDocuments.isNotEmpty() && certificate != null &&
+            (!certificateExternal || externalBatchAvailable)
     val usesTransientKey: Boolean get() = protectionContainer == "cms-encrypted"
     /** El certificado de FIRMA del DNIe no sirve para cifrar; solo el PKCS#12. */
     val canProtectForMe: Boolean get() = protectForMe && certificate != null && !certificateExternal

@@ -217,7 +217,8 @@ type unprotectResponse struct {
 // ProtectJSON cifra un fichero con los contenedores CMS del escritorio:
 // EnvelopedData y AuthEnvelopedData para destinatarios X.509 RSA, o
 // EncryptedData con una clave AES-256 transitoria. Con sign=true crea
-// SignedAndEnvelopedData firmado con la identidad PKCS#12 de la sesión.
+// SignedAndEnvelopedData firmado con la identidad de la sesión (PKCS#12 o
+// DNIe, que solo firma el resumen; véase external_cms.go).
 // secret contiene la clave Base64 en ASCII; se borra antes de volver.
 func (f *Facade) ProtectJSON(payload string, secret []byte) (string, error) {
 	defer zeroBytes(secret)
@@ -277,7 +278,7 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (string, error) {
 	var protected domain.ProtectedPayload
 	certificateID := ""
 	if req.Sign {
-		if !f.session.hasLocalIdentity() {
+		if !f.session.hasSigningIdentity() {
 			return "", newFacadeError(mobileProtectSignIdentityMessage)
 		}
 		cmd, err := application.NewProtectAndSignCommand(req.Name, content, req.MIMEType,
@@ -523,12 +524,8 @@ func (s *sessionIdentityStore) certificateDER() ([]byte, bool) {
 	return append([]byte(nil), s.identity.certificate.Raw...), true
 }
 
-func (s *sessionIdentityStore) hasLocalIdentity() bool {
+func (s *sessionIdentityStore) hasSigningIdentity() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if s.identity == nil {
-		return false
-	}
-	_, external := s.identity.signer.(*externalRSASigner)
-	return !external
+	return s.identity != nil && s.identity.signer != nil
 }

@@ -31,6 +31,14 @@ interface DocumentRepository {
     fun writeToTree(folder: Uri, displayName: String, mimeType: String, bytes: ByteArray) {
         throw InvalidDocumentException("Este repositorio no admite carpetas.")
     }
+
+    /**
+     * Ficheros (no subcarpetas) de una carpeta elegida con SAF, hasta
+     * [maximumEntries]. El permiso de la carpeta no se persiste.
+     */
+    fun listTree(folder: Uri, maximumEntries: Int): List<SelectedFile> {
+        throw InvalidDocumentException("Este repositorio no admite carpetas.")
+    }
 }
 
 open class ContentRepository(private val resolver: ContentResolver) : DocumentRepository {
@@ -98,6 +106,38 @@ open class ContentRepository(private val resolver: ContentResolver) : DocumentRe
             DocumentPolicy.sanitizeDisplayName(displayName, "documento"),
         ) ?: throw InvalidDocumentException("Android no ha permitido crear el fichero en la carpeta elegida.")
         write(created, bytes)
+    }
+
+    override fun listTree(folder: Uri, maximumEntries: Int): List<SelectedFile> {
+        require(folder.scheme == ContentResolver.SCHEME_CONTENT) {
+            "La carpeta debe ser una URI content:// de Android."
+        }
+        val children = DocumentsContract.buildChildDocumentsUriUsingTree(folder, DocumentsContract.getTreeDocumentId(folder))
+        val columns = arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.COLUMN_SIZE,
+        )
+        val files = ArrayList<SelectedFile>()
+        resolver.query(children, columns, null, null, null)?.use { cursor ->
+            while (cursor.moveToNext()) {
+                if (files.size >= maximumEntries) {
+                    throw InvalidDocumentException("La carpeta tiene demasiados ficheros.")
+                }
+                val id = cursor.optionalString(DocumentsContract.Document.COLUMN_DOCUMENT_ID) ?: continue
+                val mime = cursor.optionalString(DocumentsContract.Document.COLUMN_MIME_TYPE)
+                if (mime == DocumentsContract.Document.MIME_TYPE_DIR) continue
+                files += SelectedFile(
+                    uri = DocumentsContract.buildDocumentUriUsingTree(folder, id),
+                    displayName = DocumentPolicy.sanitizeDisplayName(
+                        cursor.optionalString(DocumentsContract.Document.COLUMN_DISPLAY_NAME), "documento.xml"),
+                    mimeType = sanitizeMimeType(mime, "application/octet-stream"),
+                    sizeBytes = cursor.optionalLong(DocumentsContract.Document.COLUMN_SIZE),
+                )
+            }
+        } ?: throw InvalidDocumentException("Android no ha permitido leer la carpeta elegida.")
+        return files
     }
 
     private fun load(file: SelectedFile, maximumBytes: Int, label: String): LoadedFile {

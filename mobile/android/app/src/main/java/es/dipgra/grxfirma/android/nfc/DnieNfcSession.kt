@@ -10,7 +10,6 @@ import android.nfc.tech.IsoDep
 import es.gob.jmulticard.CryptoHelper
 import es.gob.jmulticard.android.nfc.AndroidNfcConnection
 import es.gob.jmulticard.callback.CustomTextInputCallback
-import es.gob.jmulticard.card.dnie.DnieNfc
 import java.security.cert.X509Certificate
 import javax.security.auth.callback.Callback
 import javax.security.auth.callback.CallbackHandler
@@ -23,7 +22,7 @@ internal object DnieInput {
 
 internal class DnieNfcSession private constructor(
     private val connection: AndroidNfcConnection,
-    private val card: DnieNfc,
+    private val card: GrxDnieNfc,
     private val alias: String,
     val certificate: X509Certificate,
     val chain: List<X509Certificate>,
@@ -31,10 +30,13 @@ internal class DnieNfcSession private constructor(
     private var passwordCallback: PasswordCallback? = null
     @Volatile private var signingError: Throwable? = null
     @Volatile private var signingRetriesLeft: Int = -1
+    private val pinHold = DniePinHold()
 
     /** La tarjeta recibe solo un DigestInfo PKCS#1, nunca un documento ni una clave exportada. */
     @Synchronized fun signDigest(digest: ByteArray, hashName: String): ByteArray {
-        val pin = passwordCallback ?: throw IllegalStateException("PIN_REQUIRED")
+        // Tras un fallo en una operación de varias firmas no se vuelve a usar el PIN.
+        if (!pinHold.mayContactCard()) throw IllegalStateException("OPERATION_ABORTED")
+        passwordCallback ?: throw IllegalStateException("PIN_REQUIRED")
         val header = when (hashName) {
             "SHA-256" -> byteArrayOf(0x30,0x31,0x30,0x0d,0x06,0x09,0x60,0x86.toByte(),0x48,0x01,0x65,0x03,0x04,0x02,0x01,0x05,0x00,0x04,0x20)
             "SHA-384" -> byteArrayOf(0x30,0x41,0x30,0x0d,0x06,0x09,0x60,0x86.toByte(),0x48,0x01,0x65,0x03,0x04,0x02,0x02,0x05,0x00,0x04,0x30)
@@ -51,30 +53,57 @@ internal class DnieNfcSession private constructor(
         block[2 + paddingLength] = 0
         header.copyInto(block, 3 + paddingLength)
         digest.copyInto(block, 3 + paddingLength + header.size)
+        var signed = false
         try {
-            // cipherData abre el canal CWA de PIN y lo verifica con el callback.
-            // Verificar aquí enviaría el PIN dos veces y fuera de ese canal.
-            return card.cipherData(block, card.getPrivateKey(alias))
+            // cipherData abre el canal CWA de PIN y lo verifica con el callback;
+            // después se cierra para que cada firma vuelva a verificar el PIN.
+            return card.signDigestInfo(block, card.getPrivateKey(alias)).also { signed = true }
         } catch (error: Exception) {
             signingRetriesLeft = try { card.pinRetriesLeft } catch (_: Exception) { -1 }
-            signingError = error
+            if (signingError == null) signingError = error
+            pinHold.failed()
             throw error
         } finally {
             block.fill(0)
-            pin.clearPassword()
-            passwordCallback = null
-            card.setPasswordCallback(null)
+            if (!signed || !pinHold.keepPinAfterSuccess()) clearPinLocked()
         }
     }
 
     @Synchronized fun setPin(pin: CharArray) {
         require(DnieInput.validPin(pin))
+        signingError = null
+        installPinLocked(pin)
+    }
+
+    /**
+     * Pide el PIN una sola vez para varias firmas seguidas (lote). El PIN queda
+     * en memoria, dentro del PasswordCallback, hasta [endOperation].
+     */
+    @Synchronized fun beginOperation(pin: CharArray) {
+        require(DnieInput.validPin(pin))
+        signingError = null
+        installPinLocked(pin)
+        pinHold.begin()
+    }
+
+    @Synchronized fun endOperation() {
+        pinHold.end()
+        clearPinLocked()
+    }
+
+    @Synchronized fun clearPin() {
+        pinHold.end()
+        clearPinLocked()
+    }
+
+    private fun installPinLocked(pin: CharArray) {
         passwordCallback?.clearPassword()
+        // PasswordCallback guarda su propia copia; quien llama borra la suya.
         passwordCallback = PasswordCallback("", false).also { it.password = pin }
         card.setPasswordCallback(passwordCallback)
     }
 
-    @Synchronized fun clearPin() {
+    private fun clearPinLocked() {
         passwordCallback?.clearPassword()
         passwordCallback = null
         card.setPasswordCallback(null)
@@ -116,7 +145,7 @@ internal class DnieNfcSession private constructor(
                 // getDnieNfc compara un ATR completo, pero AndroidNfcConnection.reset()
                 // devuelve solo los bytes históricos de IsoDep. El constructor abre
                 // PACE y valida la tarjeta mediante las respuestas APDU reales.
-                val card = DnieNfc(connection, null, helper, handler)
+                val card = GrxDnieNfc(connection, helper, handler)
                 val candidates = card.aliases.mapNotNull { alias ->
                     card.getCertificate(alias)?.let { alias to it }
                 }

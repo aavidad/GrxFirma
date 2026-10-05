@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Cuarta oleada Android: expediente ENI, lote con sello y cofirma, DNIe. -->
+<resources>
+    <string name="expediente_title">Fascicolo ENI</string>
+    <string name="expediente_helper">Riunisce in un fascicolo i documenti ENI di una cartella e ne firma l’indice.</string>
+    <string name="expediente_select_folder">Scegli la cartella dei documenti ENI</string>
+    <string name="expediente_none">Nessuna cartella scelta. Deve contenere documenti ENI in XML.</string>
+    <string name="expediente_clear">Rimuovi la cartella</string>
+    <string name="expediente_organs">Organi DIR3 (obbligatorio)</string>
+    <string name="expediente_organs_helper">Uno o più codici separati da virgole, per esempio L01180877.</string>
+    <string name="expediente_classification">Classificazione del procedimento (obbligatorio)</string>
+    <string name="expediente_classification_helper">Codice SIA, oppure codice DIR3 seguito da _PRO_ e da un identificativo.</string>
+    <string name="expediente_state">Stato del fascicolo</string>
+    <string name="expediente_identifier">Identificativo del fascicolo (facoltativo)</string>
+    <string name="expediente_identifier_helper">Se lo lascia vuoto, ne viene generato uno.</string>
+    <string name="expediente_interested">Soggetti interessati (facoltativo)</string>
+    <string name="expediente_interested_helper">Separi ogni persona con un punto e virgola.</string>
+    <string name="expediente_opening_now">Data di apertura: oggi</string>
+    <string name="expediente_opening_value">Data di apertura: %1$s</string>
+    <string name="expediente_opening_choose">Scegli la data di apertura</string>
+    <string name="expediente_opening_clear">Usa la data di oggi</string>
+    <string name="expediente_opening_title">Data di apertura del fascicolo</string>
+    <string name="expediente_sign_hint">L’indice viene firmato con il certificato della sessione, che deve avere una chiave RSA. Con il DNIe, il PIN viene chiesto una volta.</string>
+    <string name="expediente_create">Crea e firma il fascicolo</string>
+    <string name="expediente_error_no_xml">La cartella non contiene documenti XML. Scelga la cartella con i documenti ENI.</string>
+    <string name="expediente_error_too_many">La cartella contiene più di 64 documenti. Ne rimuova alcuni o divida il fascicolo.</string>
+    <string name="expediente_error_too_large">I documenti superano 32 MiB. Rimuova documenti dalla cartella.</string>
+    <string name="expediente_invalid_documents">Il fascicolo non è stato creato. Questi file non sono documenti ENI validi:</string>
+    <string name="expediente_created">Fascicolo creato e firmato. Scelga dove salvarlo.</string>
+    <string name="expediente_output_name">File: %1$s</string>
+    <string name="batch_action_label">Operazione del lotto</string>
+    <string name="batch_action_sign">Firma</string>
+    <string name="batch_action_cosign">Cofirma (aggiungi la mia firma a file già firmati)</string>
+    <string name="batch_seal_check">Aggiungi il sigillo visibile ai PDF</string>
+    <string name="batch_seal_helper">Si usa il sigillo salvato in «Firma visibile». Se un PDF ha meno pagine di quella scelta, il sigillo va sull’ultima. La legenda CSV non viene aggiunta nel lotto.</string>
+    <string name="batch_seal_error">Impossibile preparare il sigillo visibile di %1$s. Rimuova quel PDF dal lotto o firmi senza sigillo.</string>
+    <string name="batch_dnie_hint">Con il DNIe, il PIN viene chiesto una sola volta per tutto il lotto. Tenga il DNIe appoggiato al telefono fino alla fine.</string>
+    <string name="batch_helper_wave4">Scelga fino a 16 file (32 MiB in totale). Vengono firmati con il certificato della sessione (PKCS#12 o DNIe) e con il formato, il profilo e la TSA scelti sopra. Al termine, scelga una cartella in cui salvare le firme.</string>
+    <string name="result_batch_cosigned">Lotto cofirmato</string>
+    <string name="error_protect_sign_identity_any">Per proteggere e firmare serve un certificato nella sessione (PKCS#12 o DNIe) e un formato per destinatari.</string>
+    <string name="help_documents_content_wave4">6. In «Formato di firma» può scegliere anche XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES o «Registro Veri*Factu». Questi formati richiedono un certificato RSA e producono firma B. Nei PDF, l’editor del sigillo permette di aggiungere la legenda CSV e di collocare il sigillo su più pagine.\n\n7. In «Veri*Factu ed ENI» può verificare registri di fatturazione senza inviare nulla all’AEAT, creare un documento ENI dalla firma scelta e verificare la struttura di un ENI.\n\n8. In «Fascicolo ENI» scelga la cartella con i documenti ENI, compili organi, classificazione e stato, e tocchi «Crea e firma il fascicolo». I documenti sono ordinati per nome e l’indice viene firmato con il suo certificato.</string>
+    <string name="release_notes_wave4">Quarta ondata: fascicolo ENI con indice firmato; lotto con sigillo visibile sui PDF e con cofirma; DNIe nel lotto (PIN chiesto una volta) e in proteggi e firma. XMLdSig, ODF, OOXML, FacturaE e ASiC-XAdES firmano ancora solo nel profilo B, come il motore desktop.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">%1$d documento ENI</item>
+        <item quantity="many">%1$d documenti ENI</item>
+        <item quantity="other">%1$d documenti ENI</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">%1$d file non XML è stato escluso</item>
+        <item quantity="many">%1$d file non XML sono stati esclusi</item>
+        <item quantity="other">%1$d file non XML sono stati esclusi</item>
+    </plurals>
+</resources>

@@ -15,6 +15,16 @@ FORMAT = re.compile(r"%\d+\$[-+.\d]*[sdf]")
 
 
 def read(path):
+    """Lee strings.xml y los catálogos propios (strings_*.xml) de la carpeta."""
+    records = {}
+    for part in sorted(path.parent.glob("strings*.xml")):
+        for name, record in read_file(part).items():
+            assert name not in records, f"{part}: recurso duplicado {name}"
+            records[name] = record
+    return records
+
+
+def read_file(path):
     records = {}
     for node in ET.parse(path).getroot():
         name = node.attrib["name"]
