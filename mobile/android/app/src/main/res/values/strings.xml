@@ -607,4 +607,6 @@
     <string name="error_document_too_large">El fichero es demasiado grande. Los documentos pueden ocupar hasta 32 MB y los certificados hasta 4 MB.</string>
     <string name="error_document_empty">El fichero está vacío. Elija otro.</string>
     <string name="error_folder_too_many">La carpeta tiene demasiados ficheros. Elija una carpeta con menos.</string>
+    <string name="export_verification_report_html">Guardar informe imprimible (HTML)</string>
+    <string name="verification_report_html_filename">informe-verificacion.html</string>
 </resources>

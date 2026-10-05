@@ -57,4 +57,29 @@ class CoreJsonCodecWaveThreeTest {
         assertThrows(CoreContractException::class.java) { CoreJsonCodec.parseVeriFactuQuery("""{"otro":1}""") }
         assertFalse(CoreJsonCodec.parseVeriFactuQuery("""{"response":"a\u0007b"}""").contains('\u0007'))
     }
+
+    @Test fun `printable report travels apart from the technical JSON`() {
+        val html = "<!DOCTYPE html><p>Informe</p>"
+        val raw = JSONObject().put("valid", false).put("integrity_status", "valid")
+            .put("report_html_base64", java.util.Base64.getEncoder().encodeToString(html.toByteArray())).toString()
+        val summary = CoreJsonCodec.parseVerification(raw)
+        assertEquals(html, summary.reportHtml)
+        assertFalse(summary.reportJson.contains("report_html_base64"))
+        assertEquals("", CoreJsonCodec.parseVerification("""{"valid":true}""").reportHtml)
+    }
+
+    @Test fun `HTML report is requested only when the core declares it`() {
+        val file = es.dipgra.grxfirma.android.model.LoadedFile("a.p7s", "application/pkcs7-signature", byteArrayOf(1))
+        assertFalse(CoreJsonCodec.verifyRequest(file).contains("include_html_report"))
+        assertTrue(JSONObject(CoreJsonCodec.verifyRequest(file, includeHtmlReport = true)).getBoolean("include_html_report"))
+    }
+
+    @Test fun `displayed engine text drops Bidi and zero-width characters`() {
+        val raw = """{"valid":true,"records":[{"file":"fac\u202Etura\u200B.xml","hash":"ab\uFEFFcd","previous_hash":"\u2066ef"}]}"""
+        val record = CoreJsonCodec.parseVeriFactu(raw).records.single()
+        assertEquals("factura.xml", record.file)
+        assertEquals("abcd", record.hash)
+        assertEquals("ef", record.previousHash)
+        assertTrue(DisplayText.hidden('\u202E') && DisplayText.hidden('\u200B') && !DisplayText.hidden('é'))
+    }
 }

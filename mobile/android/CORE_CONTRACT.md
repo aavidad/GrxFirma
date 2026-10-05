@@ -392,3 +392,14 @@ El contrato declara los servicios `eni_file`, `batch_visible_seal`,
 `batch_cosign`, `external_signer_batch` y `external_signer_protect_sign`, y
 `limits.eni_file_documents`. Android los trata como opcionales: con un AAR
 anterior mantiene el comportamiento previo.
+
+## Informe de verificación imprimible
+
+Con `include_html_report: true` en la petición de `verifyJSON` (solo si el
+contrato declara `verify_report_html`), la respuesta trae además
+`report_html_base64`: el mismo informe HTML de escritorio
+(`informeverificacion.HTML`, autocontenido, con CSP sin scripts y valores
+escapados), de 4 MiB como máximo. Como el móvil no evalúa la confianza con las
+anclas del sistema, el informe nunca declara «firma válida»: si el documento no
+ha cambiado dice «firma íntegra · validez del certificado no acreditada». La
+plantilla está en castellano, igual que en escritorio.

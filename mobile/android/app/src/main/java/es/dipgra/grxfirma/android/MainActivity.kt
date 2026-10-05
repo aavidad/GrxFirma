@@ -210,6 +210,12 @@ class MainActivity : AppCompatActivity() {
         } else viewModel.cancelReportExport()
     }
 
+    private val createVerificationHtml = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/html"),
+    ) { uri ->
+        if (uri != null) viewModel.saveVerificationReport(uri) else viewModel.cancelReportExport()
+    }
+
     private val createVerificationReport = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json"),
     ) { uri ->
@@ -355,6 +361,7 @@ class MainActivity : AppCompatActivity() {
             }
         renderMainToggles()
         exportReportButton.setOnClickListener { viewModel.exportVerificationReport() }
+        exportReportHtmlButton.setOnClickListener { viewModel.exportVerificationReport(printable = true) }
         useCosignButton.setOnClickListener { viewModel.acceptCoSignSuggestion() }
         signatureAction.onItemSelected = { updateSigningSettings() }
         signatureProfile.onItemSelected = { updateSigningSettings() }
@@ -790,6 +797,9 @@ class MainActivity : AppCompatActivity() {
                             UiEffect.ChooseBatchFolder -> try {
                                 chooseBatchFolder.launch(null)
                             } catch (_: RuntimeException) { viewModel.reportSavePickerUnavailable() }
+                            UiEffect.SaveVerificationHtml -> try {
+                                createVerificationHtml.launch(getString(R.string.verification_report_html_filename))
+                            } catch (_: RuntimeException) { viewModel.cancelReportExport() }
                             UiEffect.SaveVeriFactuReport -> try {
                                 createVeriFactuReport.launch(getString(R.string.verifactu_report_filename))
                             } catch (_: RuntimeException) { viewModel.cancelReportExport() }
@@ -905,6 +915,8 @@ class MainActivity : AppCompatActivity() {
         verificationDetail.visibility = if (state.verification != null || state.postSignVerificationFailed) View.VISIBLE else View.GONE
         exportReportButton.visibility = if (state.verification?.reportJson?.isNotEmpty() == true) View.VISIBLE else View.GONE
         exportReportButton.isEnabled = state.canExportReport
+        exportReportHtmlButton.visibility = if (state.verification?.reportHtml?.isNotEmpty() == true) View.VISIBLE else View.GONE
+        exportReportHtmlButton.isEnabled = state.canExportReport
         progressContainer.visibility = if (state.busy) View.VISIBLE else View.GONE
         pendingSaveActions.visibility = if (state.canRetryPendingOutput) View.VISIBLE else View.GONE
         retrySaveButton.isEnabled = state.canRetryPendingOutput

@@ -607,4 +607,6 @@
     <string name="error_document_too_large">Fitxategia handiegia da. Dokumentuek 32 MB arte har dezakete eta ziurtagiriek 4 MB arte.</string>
     <string name="error_document_empty">Fitxategia hutsik dago. Aukeratu beste bat.</string>
     <string name="error_folder_too_many">Karpetak fitxategi gehiegi ditu. Aukeratu gutxiago dituen bat.</string>
+    <string name="export_verification_report_html">Gorde txosten inprimagarria (HTML)</string>
+    <string name="verification_report_html_filename">egiaztapen-txostena.html</string>
 </resources>

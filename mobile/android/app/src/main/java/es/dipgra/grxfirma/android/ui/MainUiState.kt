@@ -281,13 +281,14 @@ data class MainUiState(
 enum class PendingKind { SIGNATURE, TOOL, BATCH }
 
 /** Qué informe se está exportando por SAF. */
-enum class ReportKind { VERIFICATION, VERIFACTU }
+enum class ReportKind { VERIFICATION, VERIFICATION_HTML, VERIFACTU }
 
 sealed interface UiEffect {
     data class SaveSignedDocument(val displayName: String, val mimeType: String) : UiEffect
     data object SaveVerificationReport : UiEffect
     data object ChooseBatchFolder : UiEffect
     data object SaveVeriFactuReport : UiEffect
+    data object SaveVerificationHtml : UiEffect
     /** Abre la publicación oficial en el navegador; la URL ya está comprobada. */
     data class OpenRelease(val url: String) : UiEffect
 }

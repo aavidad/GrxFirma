@@ -607,4 +607,6 @@
     <string name="error_document_too_large">The file is too large. Documents can be up to 32 MB and certificates up to 4 MB.</string>
     <string name="error_document_empty">The file is empty. Choose another one.</string>
     <string name="error_folder_too_many">The folder has too many files. Choose a folder with fewer.</string>
+    <string name="export_verification_report_html">Save printable report (HTML)</string>
+    <string name="verification_report_html_filename">verification-report.html</string>
 </resources>

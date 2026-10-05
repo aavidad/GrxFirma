@@ -558,6 +558,14 @@
                             android:visibility="gone" />
 
                         <com.google.android.material.button.MaterialButton
+                            android:id="@+id/exportReportHtmlButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="48dp"
+                            android:text="@string/export_verification_report_html"
+                            android:visibility="gone" />
+
+                        <com.google.android.material.button.MaterialButton
                     android:id="@+id/exportReportButton"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"

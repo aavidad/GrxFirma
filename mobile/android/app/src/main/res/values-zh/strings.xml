@@ -589,4 +589,6 @@
     <string name="error_document_too_large">文件过大。文档最大 32 MB，证书最大 4 MB。</string>
     <string name="error_document_empty">文件为空。请选择其他文件。</string>
     <string name="error_folder_too_many">文件夹中的文件过多。请选择文件较少的文件夹。</string>
+    <string name="export_verification_report_html">保存可打印报告（HTML）</string>
+    <string name="verification_report_html_filename">验证报告.html</string>
 </resources>

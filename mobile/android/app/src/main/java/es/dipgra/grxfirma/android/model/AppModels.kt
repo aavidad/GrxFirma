@@ -50,6 +50,8 @@ data class VerificationSummary(
     val errors: List<String>,
     val signerSummaries: List<SignerSummary> = emptyList(),
     val reportJson: String = "",
+    /** Informe imprimible de escritorio (HTML autocontenido, sin scripts); vacío si el AAR no lo ofrece. */
+    val reportHtml: String = "",
 )
 
 data class SignerSummary(val id: String, val subject: String, val issuer: String, val fingerprint: String)

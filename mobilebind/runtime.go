@@ -349,6 +349,7 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			"verifactu_qr_read":        true,
 			"verifactu_qr_query":       true,
 			"update_check":             true,
+			"verify_report_html":       true,
 			"remote_exchange":          false,
 			// Cuarta oleada Android: expediente ENI, lote con sello y cofirma,
 			// y DNIe (firmador externo) en lote y en proteger y firmar.

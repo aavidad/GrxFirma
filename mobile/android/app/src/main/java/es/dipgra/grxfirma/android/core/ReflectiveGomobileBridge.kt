@@ -111,7 +111,9 @@ class ReflectiveGomobileBridge private constructor(
         )
 
     override fun verify(document: LoadedFile, original: LoadedFile?): VerificationSummary = CoreJsonCodec.parseVerification(
-        invokeJson("verifyJSON", CoreJsonCodec.verifyRequest(document, original)),
+        // El informe imprimible solo se pide a un AAR que lo declara: uno antiguo rechazaría el campo.
+        invokeJson("verifyJSON", CoreJsonCodec.verifyRequest(document, original,
+            includeHtmlReport = PlatformServices.VERIFY_REPORT_HTML in platformServices)),
     )
 
     override fun inspectSignature(document: LoadedFile): SignatureInspection {
@@ -381,7 +383,8 @@ class ReflectiveGomobileBridge private constructor(
                     service
                 } catch (_: NoSuchMethodException) { null }
             }
-            val platformServices = CoreJsonCodec.platformServices(contract).filter { it in platformMethods }.toSet()
+            val platformServices = CoreJsonCodec.platformServices(contract)
+                .filter { it in platformMethods || it == PlatformServices.VERIFY_REPORT_HTML }.toSet()
             return ReflectiveGomobileBridge(
                 facade,
                 required,

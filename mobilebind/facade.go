@@ -213,6 +213,8 @@ type verifyRequest struct {
 	ContentBase64  string `json:"content_base64"`
 	MIMEType       string `json:"mime_type"`
 	OriginalBase64 string `json:"original_content_base64"`
+	// IncludeHTMLReport pide además el informe imprimible de escritorio.
+	IncludeHTMLReport bool `json:"include_html_report,omitempty"`
 }
 
 type verifyResponse struct {
@@ -229,6 +231,7 @@ type verifyResponse struct {
 	SignerSummaries   []verifySignerBrief `json:"signer_summaries,omitempty"`
 	Warnings          []string            `json:"warnings,omitempty"`
 	Errors            []string            `json:"errors,omitempty"`
+	ReportHTMLBase64  string              `json:"report_html_base64,omitempty"`
 }
 
 type verifySignerBrief struct {
@@ -606,6 +609,14 @@ func (f *Facade) VerifyJSON(payload string) (string, error) {
 		trustStatus = domain.VerificationStatusUnknown
 		warnings = append(warnings, "La integridad criptografica se ha verificado, pero la confianza de la cadena no esta evaluada por el sistema.")
 	}
+	reportHTML := ""
+	if req.IncludeHTMLReport {
+		html, err := f.verificationReportHTML(req.Name, content, result.Verification)
+		if err != nil {
+			return "", safeOperationError("informe de verificacion")
+		}
+		reportHTML = base64.StdEncoding.EncodeToString(html)
+	}
 	return marshal(verifyResponse{
 		Valid:             result.Verification.Valid,
 		Reason:            sanitizeOutputText(result.Verification.Reason, 500),
@@ -620,6 +631,7 @@ func (f *Facade) VerifyJSON(payload string) (string, error) {
 		SignerSummaries:   summaries,
 		Warnings:          warnings,
 		Errors:            sanitizeOutputStrings(result.Verification.Errors, 64, 500),
+		ReportHTMLBase64:  reportHTML,
 	})
 }
 

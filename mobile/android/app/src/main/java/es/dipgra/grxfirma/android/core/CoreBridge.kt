@@ -148,8 +148,9 @@ object PlatformServices {
     const val VERIFACTU_QR_READ = "verifactu_qr_read"
     const val VERIFACTU_QR_QUERY = "verifactu_qr_query"
     const val UPDATE_CHECK = "update_check"
+    const val VERIFY_REPORT_HTML = "verify_report_html"
     val ALL = listOf(CERTIFICATE_DETAILS, CERTIFICATE_ONLINE, DIAGNOSTICS, TSA_PROBE,
-        VERIFACTU_QR_READ, VERIFACTU_QR_QUERY, UPDATE_CHECK)
+        VERIFACTU_QR_READ, VERIFACTU_QR_QUERY, UPDATE_CHECK, VERIFY_REPORT_HTML)
 }
 
 /** Nombres de servicio del contrato para las herramientas de documentos. */

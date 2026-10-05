@@ -420,10 +420,15 @@ class MainViewModel(
         }
     }
 
-    fun exportVerificationReport() {
+    /** [printable] guarda el informe HTML de escritorio en lugar del JSON técnico. */
+    fun exportVerificationReport(printable: Boolean = false) {
         if (!mutableState.value.canExportReport) return
-        mutableState.value = mutableState.value.copy(awaitingReportSave = true, reportKind = ReportKind.VERIFICATION)
-        viewModelScope.launch { effectChannel.send(UiEffect.SaveVerificationReport) }
+        if (printable && mutableState.value.verification?.reportHtml.isNullOrEmpty()) return
+        mutableState.value = mutableState.value.copy(awaitingReportSave = true,
+            reportKind = if (printable) ReportKind.VERIFICATION_HTML else ReportKind.VERIFICATION)
+        viewModelScope.launch {
+            effectChannel.send(if (printable) UiEffect.SaveVerificationHtml else UiEffect.SaveVerificationReport)
+        }
     }
 
     fun cancelReportExport() {
@@ -433,8 +438,11 @@ class MainViewModel(
     }
 
     fun saveVerificationReport(uri: Uri) {
-        if (!mutableState.value.awaitingReportSave || mutableState.value.reportKind != ReportKind.VERIFICATION) return
-        val report = mutableState.value.verification?.reportJson ?: return cancelReportExport()
+        val kind = mutableState.value.reportKind
+        if (!mutableState.value.awaitingReportSave || (kind != ReportKind.VERIFICATION && kind != ReportKind.VERIFICATION_HTML)) return
+        val verification = mutableState.value.verification ?: return cancelReportExport()
+        val report = if (kind == ReportKind.VERIFICATION_HTML) verification.reportHtml else verification.reportJson
+        if (report.isEmpty()) return cancelReportExport()
         mutableState.value = mutableState.value.copy(awaitingReportSave = false)
         launchOperation {
             val bytes = report.encodeToByteArray()

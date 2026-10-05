@@ -67,7 +67,7 @@ object CoreJsonCodec {
         32 * 1024 * 1024,
     )
 
-    fun verifyRequest(document: LoadedFile, original: LoadedFile? = null): String = JSONObject()
+    fun verifyRequest(document: LoadedFile, original: LoadedFile? = null, includeHtmlReport: Boolean = false): String = JSONObject()
         .put("name", document.displayName)
         .put("content_base64", Base64.getEncoder().encodeToString(document.bytes))
         .put("mime_type", document.mimeType)
@@ -79,6 +79,7 @@ object CoreJsonCodec {
                 )
             }
         }
+        .apply { if (includeHtmlReport) put("include_html_report", true) }
         .toString()
 
     fun selectCertificateRequest(): String = JSONObject()
@@ -166,8 +167,11 @@ object CoreJsonCodec {
         }
 
     fun parseVerification(raw: String): VerificationSummary {
-        if (raw.length > 512 * 1024) throw CoreContractException("REPORT_TOO_LARGE")
+        if (raw.length > MAX_VERIFICATION_RESPONSE_CHARS) throw CoreContractException("REPORT_TOO_LARGE")
         val json = parseObject(raw, "verificación")
+        val htmlBase64 = json.optString("report_html_base64")
+        json.remove("report_html_base64")
+        if (json.toString().length > 512 * 1024) throw CoreContractException("REPORT_TOO_LARGE")
         return VerificationSummary(
             valid = json.optBoolean("valid", false),
             reason = cleanText(json.optString("reason")),
@@ -191,8 +195,14 @@ object CoreJsonCodec {
                 }
             },
             reportJson = json.toString(2),
+            reportHtml = if (htmlBase64.isBlank()) "" else decodeBounded(htmlBase64, MAX_REPORT_HTML_BYTES).let { bytes ->
+                try { bytes.decodeToString() } finally { bytes.fill(0) }
+            },
         )
     }
+
+    private const val MAX_REPORT_HTML_BYTES = 4 * 1024 * 1024
+    private const val MAX_VERIFICATION_RESPONSE_CHARS = 512 * 1024 + 6 * 1024 * 1024
 
     /** Las herramientas se habilitan solo si el contrato las declara todas. */
     fun toolsDeclared(raw: String): Boolean {
