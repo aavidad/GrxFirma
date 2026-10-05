@@ -21,6 +21,13 @@ var catalogoMotor = sync.OnceValue(func() *localizador.Localizador { return loca
 
 func textoMotor(clave string) string { return catalogoMotor().T(clave) }
 
+func idiomaOCastellano(idioma string) string {
+	if idioma == "" {
+		return "es"
+	}
+	return idioma
+}
+
 // maxReportHTMLBytes acota el informe que cruza JNI.
 const maxReportHTMLBytes = 4 << 20
 
@@ -29,10 +36,12 @@ const maxReportHTMLBytes = 4 << 20
 // confianza no está evaluada: el informe no puede declarar la firma válida,
 // así que muestra «firma íntegra · validez del certificado no acreditada».
 func (f *Facade) verificationReportHTML(name string, content []byte, result domain.VerificationResult) ([]byte, error) {
+	idioma, zona := f.region()
 	if !f.systemTrustAnchors {
 		result.Valid = false
 		result.Trust.Status = domain.VerificationStatusUnknown
-		result.Trust.Reason = textoMotor("movil.informe.confianza_no_evaluada")
+		// El informe se redacta entero en el idioma de la app.
+		result.Trust.Reason = localizador.Para(idiomaOCastellano(idioma)).T("movil.informe.confianza_no_evaluada")
 	}
 	html, err := informeverificacion.HTML(informeverificacion.Datos{
 		NombreDocumento: sanitizeOutputText(name, 200),
@@ -40,6 +49,8 @@ func (f *Facade) verificationReportHTML(name string, content []byte, result doma
 		Resultado:       result,
 		Fecha:           f.now(),
 		VersionApp:      engineVersion,
+		Idioma:          idioma,
+		Zona:            zona,
 	})
 	if err != nil {
 		return nil, err

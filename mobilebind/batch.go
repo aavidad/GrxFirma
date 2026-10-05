@@ -62,6 +62,7 @@ func (f *Facade) ProcessBatchJSON(payload string) (string, error) {
 	if err := validateOptions(req.Options); err != nil {
 		return "", err
 	}
+	req.Options = f.withRegionOptions(req.Options)
 	items := make([]application.BatchItemInput, 0, len(req.Items))
 	defer func() {
 		for index := range items {

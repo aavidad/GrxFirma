@@ -83,6 +83,9 @@ type Facade struct {
 	systemTrustAnchors   bool
 	revocationMode       string
 	timeout              time.Duration
+	regionMu             sync.RWMutex
+	language             string
+	timeZone             *time.Location
 	// Dependencias de red sustituibles en pruebas; nil usa el motor real.
 	clock              func() time.Time
 	revocationCheck    func(context.Context, [][]byte) (commonsigner.CertificateOnlineRevocationResult, error)
@@ -196,11 +199,8 @@ func (f *Facade) SealPreviewJSON(payload string) (string, error) {
 	if !ok {
 		return "", newFacadeError("certificado de sesión no disponible")
 	}
-	options := make(map[string]string, len(req.Options))
-	for key, value := range req.Options {
-		options[key] = value
-	}
-	image, err := desktopsigner.PrevisualizarSello(options, ref.Subject, ref.Issuer, time.Now())
+	options := f.withRegionOptions(req.Options)
+	image, err := desktopsigner.PrevisualizarSello(options, ref.Subject, ref.Issuer, f.now())
 	if err != nil {
 		return "", safeOperationError("vista previa del sello")
 	}
@@ -471,6 +471,7 @@ func (f *Facade) SignJSON(payload string) (string, error) {
 	if strings.TrimSpace(req.Options["profile"]) == "" {
 		req.Options["profile"] = "baseline"
 	}
+	req.Options = f.withRegionOptions(req.Options)
 	if err := validateSigningOptions(format, req.Action, req.Options); err != nil {
 		return "", err
 	}
