@@ -6414,4 +6414,6 @@
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: bo contraste en todos os temas (tamén os claros), caixas e campos lexibles, a roda do rato chega ata «Asinar agora» e as pantallas adáptanse a xanelas estreitas."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: o lote indica en que cartafol se gardaron as sinaturas, o selo e a vista previa amosan o mesmo emisor, e Preferencias e o editor do selo vense ben con letra grande."
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Non se asinou: non se puido cargar a previsualización do selo visible. Prema «Cargar a previsualización» en «Opcións avanzadas» e volva asinar, ou desmarque «Engadir un selo visible ao PDF» para asinar sen selo."
+  ,"sign.seal.preview_loading_before_sign": "Cargando a vista do PDF para colocar o selo. A sinatura continuará en canto estea lista."
+  ,"sign.seal.preview_unavailable_before_sign": "Non se asinou: non se puido cargar a vista do PDF para colocar o selo. Comprobe que o PDF se abre ben e volva asinar, ou desmarque «Sinatura visible (PAdES)» para asinar sen selo."
 }

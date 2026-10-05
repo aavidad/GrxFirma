@@ -3731,6 +3731,8 @@ Window {
     }
 
     function executeSignRequest(selectedCertIndex) {
+        const resumedAfterPreview = signAfterPreviewResumed
+        signAfterPreviewResumed = false
         const certificate = selectedCertIndex >= 0 && selectedCertIndex < window.certificates.length
                 ? window.certificates[selectedCertIndex] : null
         if (!window.certificateCanSign(certificate)) {
@@ -3775,7 +3777,22 @@ Window {
             focusSignField(firstSignFieldError)
             return
         }
+        signPayloadNeedsPreview = false
         const payload = buildSignPayload()
+        if (payload === null && signPayloadNeedsPreview && resumedAfterPreview) {
+            window.statusMessage = ""
+            signValidationErrorDialog.errorMessage = tr("sign.seal.preview_unavailable_before_sign")
+            signValidationErrorDialog.open()
+            return
+        }
+        if (payload === null && signPayloadNeedsPreview) {
+            // Falta la vista del PDF para situar el sello: se carga y la
+            // firma sigue sola al llegar; si no llega a tiempo, se explica.
+            signAfterPreviewCertIndex = selectedCertIndex
+            signAfterPreviewTimeout.restart()
+            window.statusMessage = tr("sign.seal.preview_loading_before_sign")
+            return
+        }
         if (payload === null) {
             signValidationErrorDialog.errorMessage = tr("Selección de páginas inválida. Usa 1, 1,3-5 o all.")
             signValidationErrorDialog.open()
@@ -4084,6 +4101,7 @@ Window {
     onSignFormatChanged: {
         if (portalSealMode) return
         scheduleSettingsSave()
+        if (signVisibleSeal && supportsVisibleSeal()) Qt.callLater(requestPdfPreview)
         if (multiCosignEnabled && !supportsGuidedMultiCosignFormat()) {
             multiCosignEnabled = false
         }
@@ -4163,6 +4181,35 @@ Window {
         if (v < 0.0) return 0.0
         if (v > 1.0) return 1.0
         return v
+    }
+
+    property bool signPayloadNeedsPreview: false
+    property int signAfterPreviewCertIndex: -1
+    property bool signAfterPreviewResumed: false
+
+    Timer {
+        id: signAfterPreviewTimeout
+        interval: 20000
+        onTriggered: window.resumeSignAfterPreview(false)
+    }
+
+    // La firma pedida sin vista del PDF continúa al llegar la vista; nunca
+    // termina en un fallo de firma ni en un mensaje de páginas inválidas.
+    function resumeSignAfterPreview(ok) {
+        if (signAfterPreviewCertIndex < 0) return
+        const certIndex = signAfterPreviewCertIndex
+        signAfterPreviewCertIndex = -1
+        signAfterPreviewTimeout.stop()
+        if (ok) {
+            Qt.callLater(function() {
+                window.signAfterPreviewResumed = true
+                window.executeSignRequest(certIndex)
+            })
+            return
+        }
+        window.statusMessage = ""
+        signValidationErrorDialog.errorMessage = tr("sign.seal.preview_unavailable_before_sign")
+        signValidationErrorDialog.open()
     }
 
     function requestPdfPreview() {
@@ -4274,12 +4321,14 @@ Window {
                 previewTotalPages = totalPages
                 scheduleSealPreview()
                 pdfPageImage.source = "data:image/png;base64," + data;
+                window.resumeSignAfterPreview(true)
             } else {
                 previewPageWidthPoints = 0
                 previewPageHeightPoints = 0
                 previewGeometryPath = ""
                 previewGeometryPage = 0
                 console.log(tr("Error de previsualización: ") + data);
+                window.resumeSignAfterPreview(false)
             }
         }
     }
@@ -4576,6 +4625,7 @@ Window {
                     || previewGeometryPath !== previewInputPath()
                     || previewGeometryPage !== previewCurrentPage) {
                 statusMessage = tr("Previsualización")
+                signPayloadNeedsPreview = true
                 requestPdfPreview()
                 return null
             }

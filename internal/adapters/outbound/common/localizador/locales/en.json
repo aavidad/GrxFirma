@@ -6414,4 +6414,6 @@
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: good contrast in every theme (including light ones), readable checkboxes and fields, the mouse wheel reaches «Sign now» and screens adapt to narrow windows."
   ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: the batch says which folder the signatures were saved in, the seal and the preview show the same issuer, and Preferences and the seal editor look right with large text."
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Nothing was signed: the visible seal preview could not be loaded. Select “Load preview” in “Advanced options” and sign again, or clear “Add visible seal to PDF” to sign without a seal."
+  ,"sign.seal.preview_loading_before_sign": "Loading the PDF preview to place the seal. Signing will continue as soon as it is ready."
+  ,"sign.seal.preview_unavailable_before_sign": "Nothing was signed: the PDF preview needed to place the seal could not be loaded. Check that the PDF opens correctly and sign again, or clear “Visible signature (PAdES)” to sign without a seal."
 }
