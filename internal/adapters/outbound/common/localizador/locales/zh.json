@@ -5118,4 +5118,8 @@
   ,"settings.seal_language.label": "印章语言"
   ,"settings.seal_language.interface": "与应用程序相同"
   ,"settings.seal_language.help": "可见印章标签的语言。例如选择西班牙语，即使应用程序使用其他语言，提交给西班牙公共行政部门的文件也会带有西班牙语印章。"
+  ,"Firma remota: un lote completo con un solo PIN o código, si el prestador lo admite; «Proteger y firmar» con certificado remoto; la sesión se renueva sola y se listan todas las credenciales.": "远程签名：如果服务商支持，整批文件只需一个 PIN 或验证码；可用远程证书“保护并签名”；会话自动续期，并列出全部凭据。"
+  ,"El sello visible y el informe de verificación salen en el idioma de la aplicación, con la hora local y su zona. En Configuración se puede fijar un idioma del sello, por ejemplo el español para documentos de la Administración.": "可见印章和验证报告使用应用的语言，并显示本地时间及时区。可在设置中固定印章语言，例如为政府文件使用西班牙语。"
+  ,"Android: lectura del QR tributario con la cámara o desde una imagen, varios certificados abiertos a la vez, resultado con un veredicto claro y detalles técnicos plegados, y editor del sello más cómodo.": "Android：可用相机或从图片读取税务二维码，可同时打开多个证书，结果显示明确结论并折叠技术细节，印章编辑器也更方便。"
+  ,"Android: textos más claros y sin tecnicismos, el informe imprimible como opción principal y el cierre automático del certificado ya no salta mientras se elige un fichero ni con una firma sin guardar.": "Android：文字更清晰、少用术语；可打印报告成为主要选项；选择文件时或签名尚未保存时，证书不再自动关闭。"
 }
