@@ -6416,4 +6416,13 @@
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Non se asinou: non se puido cargar a previsualización do selo visible. Prema «Cargar a previsualización» en «Opcións avanzadas» e volva asinar, ou desmarque «Engadir un selo visible ao PDF» para asinar sen selo."
   ,"sign.seal.preview_loading_before_sign": "Cargando a vista do PDF para colocar o selo. A sinatura continuará en canto estea lista."
   ,"sign.seal.preview_unavailable_before_sign": "Non se asinou: non se puido cargar a vista do PDF para colocar o selo. Comprobe que o PDF se abre ben e volva asinar, ou desmarque «Sinatura visible (PAdES)» para asinar sen selo."
+  ,"report.signer.identifier": "NIF / identificador"
+  ,"report.signer.organization": "Organización"
+  ,"report.signer.signing_time": "Data da sinatura"
+  ,"report.signer.time_from_timestamp": "%s, segundo o selo de tempo"
+  ,"report.signer.time_declared": "%s, hora do equipo de quen asinou (protéxea a sinatura; non hai selo de tempo)"
+  ,"report.technical.subject_dn": "Titular (DN): %s"
+  ,"report.technical.issuer_dn": "Emisor (DN): %s"
+  ,"report.evidence.revocation": "Revogación"
+  ,"verificacion.detalle.cadena_firmante": "Certificados na cadea do asinante %d"
 }

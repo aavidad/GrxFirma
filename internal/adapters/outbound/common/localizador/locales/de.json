@@ -6416,4 +6416,13 @@
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Es wurde nichts signiert: Die Vorschau des sichtbaren Siegels konnte nicht geladen werden. Wählen Sie unter „Erweiterte Optionen“ „Vorschau laden“ und signieren Sie erneut, oder deaktivieren Sie „Sichtbares Siegel zum PDF hinzufügen“, um ohne Siegel zu signieren."
   ,"sign.seal.preview_loading_before_sign": "Die PDF-Vorschau zum Platzieren des Siegels wird geladen. Das Signieren wird fortgesetzt, sobald sie bereit ist."
   ,"sign.seal.preview_unavailable_before_sign": "Es wurde nichts signiert: Die PDF-Vorschau zum Platzieren des Siegels konnte nicht geladen werden. Prüfen Sie, ob sich die PDF-Datei korrekt öffnen lässt, und signieren Sie erneut, oder deaktivieren Sie „Sichtbare Signatur (PAdES)“, um ohne Siegel zu signieren."
+  ,"report.signer.identifier": "Steuer-ID / Kennung"
+  ,"report.signer.organization": "Organisation"
+  ,"report.signer.signing_time": "Zeitpunkt der Signatur"
+  ,"report.signer.time_from_timestamp": "%s, laut Zeitstempel"
+  ,"report.signer.time_declared": "%s, Uhrzeit des Rechners der signierenden Person (durch die Signatur geschützt; kein Zeitstempel)"
+  ,"report.technical.subject_dn": "Inhaber (DN): %s"
+  ,"report.technical.issuer_dn": "Aussteller (DN): %s"
+  ,"report.evidence.revocation": "Widerruf"
+  ,"verificacion.detalle.cadena_firmante": "Zertifikate in der Kette der signierenden Person %d"
 }

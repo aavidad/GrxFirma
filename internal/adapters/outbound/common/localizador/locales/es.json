@@ -6416,4 +6416,13 @@
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "No se ha firmado: no se pudo cargar la vista previa del sello visible. Pulse «Cargar previsualización» en «Opciones avanzadas» y vuelva a firmar, o desmarque «Añadir sello visible en PDF» para firmar sin sello."
   ,"sign.seal.preview_loading_before_sign": "Cargando la vista del PDF para colocar el sello. La firma continuará en cuanto esté lista."
   ,"sign.seal.preview_unavailable_before_sign": "No se ha firmado: no se pudo cargar la vista del PDF para colocar el sello. Compruebe que el PDF se abre bien y vuelva a firmar, o desmarque «Firma visible (PAdES)» para firmar sin sello."
+  ,"report.signer.identifier": "NIF / identificador"
+  ,"report.signer.organization": "Organización"
+  ,"report.signer.signing_time": "Fecha de la firma"
+  ,"report.signer.time_from_timestamp": "%s, según el sello de tiempo"
+  ,"report.signer.time_declared": "%s, hora del equipo de quien firmó (la protege la firma; no hay sello de tiempo)"
+  ,"report.technical.subject_dn": "Titular (DN): %s"
+  ,"report.technical.issuer_dn": "Emisor (DN): %s"
+  ,"report.evidence.revocation": "Revocación"
+  ,"verificacion.detalle.cadena_firmante": "Certificados en la cadena del firmante %d"
 }

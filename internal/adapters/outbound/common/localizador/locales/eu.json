@@ -6416,4 +6416,13 @@
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Ez da sinatu: ezin izan da zigilu ikusgaiaren aurrebista kargatu. Sakatu «Kargatu aurrebista» «Aukera aurreratuak» atalean eta sinatu berriro, edo kendu marka «Gehitu zigilu ikusgai bat PDFari» aukerari zigilurik gabe sinatzeko."
   ,"sign.seal.preview_loading_before_sign": "PDFaren bista kargatzen zigilua kokatzeko. Sinadurak jarraituko du prest dagoenean."
   ,"sign.seal.preview_unavailable_before_sign": "Ez da sinatu: ezin izan da PDFaren bista kargatu zigilua kokatzeko. Egiaztatu PDFa ondo irekitzen dela eta sinatu berriro, edo kendu marka «Sinadura ikusgaia (PAdES)» aukerari zigilurik gabe sinatzeko."
+  ,"report.signer.identifier": "IFZ / identifikatzailea"
+  ,"report.signer.organization": "Erakundea"
+  ,"report.signer.signing_time": "Sinaduraren data"
+  ,"report.signer.time_from_timestamp": "%s, denbora-zigiluaren arabera"
+  ,"report.signer.time_declared": "%s, sinatu zuenaren ordenagailuko ordua (sinadurak babesten du; ez dago denbora-zigilurik)"
+  ,"report.technical.subject_dn": "Titularra (DN): %s"
+  ,"report.technical.issuer_dn": "Jaulkitzailea (DN): %s"
+  ,"report.evidence.revocation": "Errebokazioa"
+  ,"verificacion.detalle.cadena_firmante": "%d. sinatzailearen kateko ziurtagiriak"
 }

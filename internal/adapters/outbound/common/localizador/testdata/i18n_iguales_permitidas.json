@@ -300,7 +300,9 @@
   "winui.verificar.no_determinada",
   "winui.verificar.parcial",
   "Última",
-  "❌ Error: "
+  "❌ Error: ",
+  "report.signer.identifier",
+  "report.technical.subject_dn"
  ],
  "de": [
   " + base64",
@@ -417,7 +419,8 @@
   "winui.comun.facturae",
   "winui.firmar.confirmar.formato",
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
-  "winui.proteger.cms_envelopeddata_enveloped"
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "report.signer.organization"
  ],
  "en": [
   " + base64",
@@ -773,7 +776,8 @@
   "winui.proteger.compatible_rsa_oaep",
   "winui.proteger.documento",
   "winui.proteger.json_grxfirma_afp",
-  "winui.selector.nombre_firma"
+  "winui.selector.nombre_firma",
+  "report.signer.organization"
  ],
  "gl": [
   " + base64",
@@ -1728,7 +1732,11 @@
   "🔄 Solicitando certificados vía %1...",
   "🔍 Solicitando verificación IPC para: ",
   "🗂️  Formato automático por tipo de documento",
-  "🛡️ Instalar Certificados Raíz de Administraciones Públicas"
+  "🛡️ Instalar Certificados Raíz de Administraciones Públicas",
+  "report.signer.identifier",
+  "report.signer.organization",
+  "report.technical.issuer_dn",
+  "report.technical.subject_dn"
  ],
  "it": [
   " + base64",
@@ -2317,7 +2325,9 @@
   "Última página",
   "Último documento",
   "✅ Conectores de navegador reinstalados.",
-  "🗂️  Formato automático por tipo de documento"
+  "🗂️  Formato automático por tipo de documento",
+  "report.signer.identifier",
+  "report.technical.subject_dn"
  ],
  "va": [
   " + base64",
@@ -2660,7 +2670,9 @@
   "winui.verificar.parcial",
   "Última",
   "❌ Error en Socket: ",
-  "❌ Error: "
+  "❌ Error: ",
+  "report.signer.identifier",
+  "report.technical.subject_dn"
  ],
  "zh": [
   " + base64",

@@ -6416,4 +6416,13 @@
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Non è stato firmato nulla: non è stato possibile caricare l'anteprima del sigillo visibile. Premi «Carica l'anteprima» in «Opzioni avanzate» e firma di nuovo, oppure deseleziona «Aggiungi un sigillo visibile al PDF» per firmare senza sigillo."
   ,"sign.seal.preview_loading_before_sign": "Caricamento dell'anteprima del PDF per posizionare il sigillo. La firma continuerà appena sarà pronta."
   ,"sign.seal.preview_unavailable_before_sign": "Non è stato firmato nulla: non è stato possibile caricare l'anteprima del PDF per posizionare il sigillo. Verifica che il PDF si apra correttamente e firma di nuovo, oppure deseleziona «Firma visibile (PAdES)» per firmare senza sigillo."
+  ,"report.signer.identifier": "Codice fiscale / identificativo"
+  ,"report.signer.organization": "Organizzazione"
+  ,"report.signer.signing_time": "Data della firma"
+  ,"report.signer.time_from_timestamp": "%s, secondo la marca temporale"
+  ,"report.signer.time_declared": "%s, ora del computer di chi ha firmato (protetta dalla firma; nessuna marca temporale)"
+  ,"report.technical.subject_dn": "Titolare (DN): %s"
+  ,"report.technical.issuer_dn": "Emittente (DN): %s"
+  ,"report.evidence.revocation": "Revoca"
+  ,"verificacion.detalle.cadena_firmante": "Certificati nella catena del firmatario %d"
 }

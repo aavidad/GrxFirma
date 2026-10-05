@@ -6416,4 +6416,13 @@
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "No s'ha signat: no s'ha pogut carregar la previsualització del segell visible. Premeu «Carregar la previsualització» a «Opcions avançades» i torneu a signar, o desmarqueu «Afegir un segell visible al PDF» per signar sense segell."
   ,"sign.seal.preview_loading_before_sign": "S'està carregant la vista del PDF per col·locar el segell. La signatura continuarà tan bon punt estigui a punt."
   ,"sign.seal.preview_unavailable_before_sign": "No s'ha signat: no s'ha pogut carregar la vista del PDF per col·locar el segell. Comproveu que el PDF s'obre bé i torneu a signar, o desmarqueu «Signatura visible (PAdES)» per signar sense segell."
+  ,"report.signer.identifier": "NIF / identificador"
+  ,"report.signer.organization": "Organització"
+  ,"report.signer.signing_time": "Data de la signatura"
+  ,"report.signer.time_from_timestamp": "%s, segons el segell de temps"
+  ,"report.signer.time_declared": "%s, hora de l'equip de qui va signar (la protegeix la signatura; no hi ha segell de temps)"
+  ,"report.technical.subject_dn": "Titular (DN): %s"
+  ,"report.technical.issuer_dn": "Emissor (DN): %s"
+  ,"report.evidence.revocation": "Revocació"
+  ,"verificacion.detalle.cadena_firmante": "Certificats de la cadena del signant %d"
 }

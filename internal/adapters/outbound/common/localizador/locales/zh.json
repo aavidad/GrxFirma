@@ -6416,4 +6416,13 @@
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "未签名：无法加载可见印章的预览。请在“高级选项”中点击“加载预览”后重新签名，或取消勾选“为 PDF 添加可见印章”以不带印章签名。"
   ,"sign.seal.preview_loading_before_sign": "正在加载 PDF 预览以放置印章。预览就绪后将继续签名。"
   ,"sign.seal.preview_unavailable_before_sign": "未签名：无法加载放置印章所需的 PDF 预览。请确认 PDF 能正常打开后重新签名，或取消勾选“可见签名 (PAdES)”以不带印章签名。"
+  ,"report.signer.identifier": "税号 / 标识符"
+  ,"report.signer.organization": "组织"
+  ,"report.signer.signing_time": "签名时间"
+  ,"report.signer.time_from_timestamp": "%s，依据时间戳"
+  ,"report.signer.time_declared": "%s，签名者电脑的时间（受签名保护；无时间戳）"
+  ,"report.technical.subject_dn": "持有人 (DN)：%s"
+  ,"report.technical.issuer_dn": "颁发者 (DN)：%s"
+  ,"report.evidence.revocation": "吊销状态"
+  ,"verificacion.detalle.cadena_firmante": "签名者 %d 证书链中的证书数"
 }

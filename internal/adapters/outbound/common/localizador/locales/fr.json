@@ -6416,4 +6416,13 @@
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Rien n'a été signé : l'aperçu du cachet visible n'a pas pu être chargé. Cliquez sur « Charger l'aperçu » dans « Options avancées » et signez à nouveau, ou décochez « Ajouter un cachet visible au PDF » pour signer sans cachet."
   ,"sign.seal.preview_loading_before_sign": "Chargement de l'aperçu du PDF pour placer le cachet. La signature continuera dès qu'il sera prêt."
   ,"sign.seal.preview_unavailable_before_sign": "Rien n'a été signé : l'aperçu du PDF nécessaire pour placer le cachet n'a pas pu être chargé. Vérifiez que le PDF s'ouvre correctement et signez à nouveau, ou décochez « Signature visible (PAdES) » pour signer sans cachet."
+  ,"report.signer.identifier": "NIF / identifiant"
+  ,"report.signer.organization": "Organisation"
+  ,"report.signer.signing_time": "Date de la signature"
+  ,"report.signer.time_from_timestamp": "%s, selon l'horodatage"
+  ,"report.signer.time_declared": "%s, heure de l'ordinateur du signataire (protégée par la signature ; pas d'horodatage)"
+  ,"report.technical.subject_dn": "Titulaire (DN) : %s"
+  ,"report.technical.issuer_dn": "Émetteur (DN) : %s"
+  ,"report.evidence.revocation": "Révocation"
+  ,"verificacion.detalle.cadena_firmante": "Certificats de la chaîne du signataire %d"
 }

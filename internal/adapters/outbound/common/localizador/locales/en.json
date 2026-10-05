@@ -6416,4 +6416,13 @@
   ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Nothing was signed: the visible seal preview could not be loaded. Select “Load preview” in “Advanced options” and sign again, or clear “Add visible seal to PDF” to sign without a seal."
   ,"sign.seal.preview_loading_before_sign": "Loading the PDF preview to place the seal. Signing will continue as soon as it is ready."
   ,"sign.seal.preview_unavailable_before_sign": "Nothing was signed: the PDF preview needed to place the seal could not be loaded. Check that the PDF opens correctly and sign again, or clear “Visible signature (PAdES)” to sign without a seal."
+  ,"report.signer.identifier": "Tax ID / identifier"
+  ,"report.signer.organization": "Organisation"
+  ,"report.signer.signing_time": "Signing time"
+  ,"report.signer.time_from_timestamp": "%s, according to the timestamp"
+  ,"report.signer.time_declared": "%s, clock of the signer's computer (protected by the signature; no timestamp)"
+  ,"report.technical.subject_dn": "Holder (DN): %s"
+  ,"report.technical.issuer_dn": "Issuer (DN): %s"
+  ,"report.evidence.revocation": "Revocation"
+  ,"verificacion.detalle.cadena_firmante": "Certificates in the chain of signer %d"
 }
