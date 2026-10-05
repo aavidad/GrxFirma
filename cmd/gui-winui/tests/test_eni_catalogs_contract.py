@@ -23,5 +23,14 @@ class EniCatalogsContract(unittest.TestCase):
         self.assertNotIn("_docState.Text", page)
         self.assertNotIn("_fileState.Text", page)
 
+
+    def test_missing_input_is_explained_next_to_the_button(self):
+        code = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI/Views/EniPage.xaml.cs").read_text(encoding="utf-8")
+        for key in ("required_signature", "required_folder", "required_certificate", "no_file", "no_folder",
+                    "organ_document", "organ_file", "identifier_file", "capture_time", "open_time"):
+            self.assertIn('"paridad.lote3.eni.' + key + '"', code)
+        self.assertNotIn('"paridad.lote3.eni.required"', code)
+        self.assertIn('T("eni.codigo." + code) + " (" + code + ")"', code)
+
 if __name__ == "__main__":
     unittest.main()

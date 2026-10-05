@@ -48,3 +48,22 @@ class VeriFactuContract(unittest.TestCase):
         self.assertIn("StandardFormats.Concat(new[] { VeriFactuFormat })", code)
         self.assertIn("PathsEqual(_inputPath ?? string.Empty, path)", code)
         self.assertIn('ItemsSource="{x:Bind ViewModel.Formats, Mode=OneWay}"', (APP / "Views/SignPage.xaml").read_text(encoding="utf-8"))
+
+    def test_verifactu_is_its_own_card_with_results_next_to_its_actions(self):
+        xaml = (APP / "Views/FacturaePage.xaml").read_text(encoding="utf-8")
+        code = (APP / "Views/FacturaePage.xaml.cs").read_text(encoding="utf-8")
+        root = ET.parse(APP / "Views/FacturaePage.xaml").getroot()
+        name = "{http://schemas.microsoft.com/winfx/2006/xaml}Name"
+        card = next(e for e in root.iter() if e.get(name) == "VeriFactuCard")
+        inside = {e.get(name) for e in card.iter() if e.get(name)}
+        for control in ("ValidateVeriFactuButton", "VeriFactuSummary", "VeriFactuReport", "VeriFactuQrInput", "VeriFactuQrReport"):
+            self.assertIn(control, inside)
+        # Fuera del paso 3 de FACe: la tarjeta no contiene la casilla del validador oficial.
+        self.assertNotIn("El validador oficial no muestra errores", ET.tostring(card, encoding="unicode"))
+        names = [e.get("AutomationProperties.Name") for e in card.iter() if e.get("AutomationProperties.Name")]
+        self.assertEqual(len(names), len(set(names)) + 1)  # El Expander y su texto comparten nombre.
+        self.assertNotIn("InvoiceValidationSummary.Text = T(result.Data.Valid ? \"verifactu.valid\"", code)
+        self.assertIn("VeriFactuQrResponse.Classify(raw)", code)
+        self.assertNotIn("Response.ToString() : result.SafeUserMessage", code)
+        self.assertNotIn('AutomationProperties.LiveSetting="Assertive"\n                    IsClosable="False"\n                    IsOpen="True"', xaml)
+

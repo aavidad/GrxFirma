@@ -7,6 +7,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Dialogs
+import "VeriFactuResponse.js" as VeriFactuResponse
 
 Item {
     id: panel
@@ -18,6 +19,9 @@ Item {
     property bool busy: false
     property string statusText: ""
     property var invoiceResult: null
+    property var verifactuResult: null
+    property string verifactuStatus: ""
+    property string qrTechnical: ""
     property string invoicePath: ""
     signal signRequested()
     function tr(key) { return translate(key) }
@@ -106,6 +110,17 @@ Item {
                 panel.reportSaver(path, panel.invoiceResult.report)
         }
     }
+    FileDialog {
+        id: verifactuReportDialog
+        title: tr("paridad.lote3.invoice.export")
+        fileMode: FileDialog.SaveFile
+        nameFilters: [tr("paridad.lote3.report.filter")]
+        onAccepted: {
+            const path = panel.localPath(selectedFile)
+            if (path !== "" && panel.verifactuResult && panel.reportSaver)
+                panel.reportSaver(path, panel.verifactuResult.report)
+        }
+    }
     Connections {
         target: panel.bridge
         ignoreUnknownSignals: true
@@ -118,19 +133,22 @@ Item {
         }
         function onVerifactuValidated(ok, result, message) {
             panel.busy = false
-            panel.invoiceResult = ok ? result : null
-            panel.statusText = ok ? tr(result.valid ? "verifactu.valid" : "verifactu.invalid") : message
+            panel.verifactuResult = ok ? result : null
+            panel.verifactuStatus = ok ? tr(result.valid ? "verifactu.valid" : "verifactu.invalid") : message
         }
         function onVerifactuQRFinished(action, ok, result, message) {
             panel.busy = false
             if (action === "read_verifactu_qr") {
-                qrArea.readResult = ok ? result : null
+                panel.qrTechnical = ""
+            qrArea.readResult = ok ? result : null
                 qrArea.text = ok ? tr("verifactu.qr_nif") + ": " + result.nif + "\n" +
                     tr("verifactu.qr_number") + ": " + result.numserie + "\n" +
                     tr("verifactu.qr_date") + ": " + result.fecha + "\n" +
                     tr("verifactu.qr_amount") + ": " + result.importe : message
             } else {
-                qrArea.text = ok ? JSON.stringify(result.response, null, 2) : message
+                // Una frase para la persona; el JSON queda tras «Ver respuesta técnica».
+                qrArea.text = ok ? tr(VeriFactuResponse.classify(result.response)) : message
+                panel.qrTechnical = ok ? JSON.stringify(result.response, null, 2) : ""
             }
         }
         function onInvoiceValidated(ok, result, message) {
@@ -146,7 +164,7 @@ Item {
         title: tr("verifactu.choose")
         fileMode: FileDialog.OpenFile
         nameFilters: [tr("paridad.lote3.invoice.filter")]
-        onAccepted: { panel.invoiceResult = null; panel.statusText = tr("paridad.lote3.invoice.validating"); panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFile)) }
+        onAccepted: { panel.verifactuResult = null; panel.verifactuStatus = tr("paridad.lote3.invoice.validating"); panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFile)) }
     }
     FileDialog {
         id: qrFileDialog
@@ -156,6 +174,7 @@ Item {
         onAccepted: {
             qrInput.text = ""
             qrArea.readResult = null
+            panel.qrTechnical = ""
             qrArea.text = tr("verifactu.qr_reading")
             panel.busy = true
             panel.bridge.readVeriFactuQRFile(panel.localPath(selectedFile))
@@ -164,7 +183,7 @@ Item {
     FolderDialog {
         id: verifactuFolderDialog
         title: tr("verifactu.folder")
-        onAccepted: { panel.invoiceResult = null; panel.statusText = tr("paridad.lote3.invoice.validating"); panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFolder)) }
+        onAccepted: { panel.verifactuResult = null; panel.verifactuStatus = tr("paridad.lote3.invoice.validating"); panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFolder)) }
     }
     ScrollView {
         anchors.fill: parent
@@ -291,24 +310,43 @@ Item {
                     Accessible.name: text
                 }
             }
-            Label { text: tr("verifactu.title"); font.bold: true; color: panel.theme.textColor; Layout.fillWidth: true }
+            Label { text: tr("facturae.face_note"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            RowLayout {
+                Layout.fillWidth: true
+                Button { text: tr("facturae.validate_face"); Accessible.name: text; onClicked: Qt.openUrlExternally("https://proveedores.face.gob.es/proveedores/validar-factura") }
+                Button { text: tr("facturae.submit_face"); Accessible.name: text; onClicked: Qt.openUrlExternally("https://proveedores.face.gob.es/proveedores/remitir-factura") }
+            }
+            Rectangle { Layout.fillWidth: true; Layout.topMargin: 12; height: 1; color: panel.theme.secondaryTextColor; opacity: 0.4 }
+            Label { text: tr("verifactu.title"); font.bold: true; font.pixelSize: 20; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             Label { text: tr("verifactu.scope"); textFormat: Text.PlainText; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true
                 Button { text: tr("verifactu.choose"); enabled: !panel.busy; Accessible.name: text; onClicked: verifactuFileDialog.open() }
                 Button { text: tr("verifactu.folder"); enabled: !panel.busy; Accessible.name: text; onClicked: verifactuFolderDialog.open() }
             }
-            TextArea {
-                text: panel.invoiceResult && panel.invoiceResult.format === "VeriFactu" ? panel.invoiceResult.report : ""
-                visible: text.length > 0; readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText
-                Accessible.name: tr("paridad.lote3.invoice.report")
-                color: panel.theme.textColor; Layout.fillWidth: true
+            // Resultado junto a sus botones, como región viva.
+            Label {
+                objectName: "verifactuSummary"
+                text: panel.verifactuStatus !== "" ? panel.verifactuStatus : tr("verifactu.empty_state")
+                color: panel.verifactuStatus !== "" ? panel.theme.textColor : panel.theme.secondaryTextColor
+                wrapMode: Text.WordWrap; Layout.fillWidth: true
+                Accessible.role: Accessible.AlertMessage; Accessible.name: text
             }
-            Label { text: tr("verifactu.qr_title"); color: panel.theme.textColor; font.bold: true; Layout.fillWidth: true }
+            TextArea {
+                objectName: "verifactuReport"
+                text: panel.verifactuResult ? panel.verifactuResult.report : ""
+                visible: text.length > 0; readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText
+                Accessible.name: tr("verifactu.report")
+                color: panel.theme.textColor; Layout.fillWidth: true
+                background: Rectangle { color: panel.theme.cardColor ? panel.theme.cardColor : "transparent"; border.color: panel.theme.secondaryTextColor; radius: 4 }
+            }
+            Button { text: tr("verifactu.export"); visible: !!panel.verifactuResult; Accessible.name: text; onClicked: verifactuReportDialog.open() }
+            Label { text: tr("verifactu.qr_title"); color: panel.theme.textColor; font.bold: true; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+            Label { text: tr("verifactu.qr_url_field"); color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true
                 TextField {
-                    id: qrInput; enabled: !panel.busy; Layout.fillWidth: true; Accessible.name: tr("verifactu.qr_url_label")
+                    id: qrInput; enabled: !panel.busy; Layout.fillWidth: true; Accessible.name: tr("verifactu.qr_url_field"); Accessible.description: tr("verifactu.qr_url_label")
                     placeholderText: tr("verifactu.qr_url_label"); selectByMouse: true
                     onTextChanged: { qrArea.readResult = null; qrArea.text = "" }
                 }
@@ -319,12 +357,23 @@ Item {
                 Button { text: tr("verifactu.qr_read"); enabled: !panel.busy && qrInput.text.length > 0; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.readVeriFactuQR(qrInput.text) } }
                 Button { objectName: "qrQueryButton"; text: tr("verifactu.qr_query"); enabled: !panel.busy && qrArea.readResult !== null; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.queryVeriFactuQR(qrArea.readResult.url) } }
             }
-            TextArea { id: qrArea; objectName: "qrResultArea"; property var readResult: null; readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText; Layout.fillWidth: true; color: panel.theme.textColor; Accessible.name: tr("verifactu.qr_title") }
-            Label { text: tr("facturae.face_note"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-            RowLayout {
-                Layout.fillWidth: true
-                Button { text: tr("facturae.validate_face"); Accessible.name: text; onClicked: Qt.openUrlExternally("https://proveedores.face.gob.es/proveedores/validar-factura") }
-                Button { text: tr("facturae.submit_face"); Accessible.name: text; onClicked: Qt.openUrlExternally("https://proveedores.face.gob.es/proveedores/remitir-factura") }
+            Label { text: tr("verifactu.qr_query_help"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            // Fondo del tema: con el blanco por defecto el texto claro no se veía.
+            TextArea {
+                id: qrArea; objectName: "qrResultArea"; property var readResult: null; readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText; Layout.fillWidth: true
+                color: panel.theme.textColor; Accessible.name: tr("verifactu.qr_result")
+                onTextChanged: if (text === "") panel.qrTechnical = ""
+                background: Rectangle { color: panel.theme.cardColor ? panel.theme.cardColor : "transparent"; border.color: panel.theme.secondaryTextColor; radius: 4 }
+            }
+            Button {
+                id: qrTechnicalButton; objectName: "qrTechnicalButton"; checkable: true; visible: panel.qrTechnical !== ""
+                text: checked ? tr("verifactu.qr_technical_hide") : tr("verifactu.qr_technical"); Accessible.name: text
+            }
+            TextArea {
+                objectName: "qrTechnicalArea"; visible: qrTechnicalButton.checked && panel.qrTechnical !== ""; text: panel.qrTechnical
+                readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText; Layout.fillWidth: true
+                color: panel.theme.textColor; Accessible.name: tr("verifactu.qr_technical")
+                background: Rectangle { color: panel.theme.cardColor ? panel.theme.cardColor : "transparent"; border.color: panel.theme.secondaryTextColor; radius: 4 }
             }
             Item { Layout.preferredHeight: 24 }
         }

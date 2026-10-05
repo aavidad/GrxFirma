@@ -2740,12 +2740,13 @@
   ,"revocación no concluyente": "No s’ha pogut comprovar la revocació del certificat. La signatura no es considera vàlida."
   ,"rest.verify_v2.error.limit": "El límit de verificació v2 està fora de l’interval permés"
   ,"portal.seal.title": "Col·locar el segell en el PDF"
-  ,"portal.seal.instructions": "La web ha demanat que trieu on va la firma. Arrossegueu el segell per a moure'l, useu el cercle del cantó per a canviar-ne la grandària i la fletxa per a girar-lo."
+  ,"portal.seal.instructions": "La web des de la qual firmeu vos demana que trieu on va la firma. Arrossegueu el segell per a moure’l, useu el cercle del cantó per a canviar-ne la grandària i la fletxa per a girar-lo. També podeu escriure la posició en «Ajust precís»."
   ,"portal.seal.fine_tune": "Ajust precís"
   ,"portal.seal.page": "Pàgina %1 de %2"
   ,"portal.seal.previous_page": "Pàgina anterior"
   ,"portal.seal.next_page": "Pàgina següent"
-  ,"portal.seal.preview_error": "Carregant la vista del PDF…"
+  ,"portal.seal.preview_error": "No s’ha pogut mostrar el PDF. Useu «Ajust precís» o «Signar sense segell visible»."
+  ,"portal.seal.preview_loading": "Carregant la vista del PDF…"
   ,"portal.seal.sign_here": "Signar amb el segell ací"
   ,"portal.seal.sign_without": "Signar sense segell visible"
   ,"portal.seal.cancel": "Cancel·lar"
@@ -2889,15 +2890,15 @@
   ,"facturae.startup_on": "GrxFirma s'iniciarà amb la sessió."
   ,"facturae.submit_face": "Presentar a FACe"
   ,"facturae.tax_id": "NIF"
-  ,"facturae.title": "Facturae i FACe"
+  ,"facturae.title": "Facturae, FACe i Veri*Factu"
   ,"facturae.town": "Població"
   ,"facturae.validate_face": "Validar a FACe"
   ,"facturae.vat": "IVA (%)"
   ,"facturae.xml_filter": "Facturae XML (*.xml)"
   ,"smartcard.pcsc_unavailable": "PC/SC no està disponible en este equip. Instal·la o activa pcscd."
   ,"smartcard.pcsc_error": "PC/SC no ha pogut consultar el lector."
-  ,"facturae.enable_label": "Activar les eines Facturae i FACe"
-  ,"facturae.enable_help": "Mostra el generador Facturae i els enllaços oficials de FACe.",
+  ,"facturae.enable_label": "Activar les ferramentes de facturació (Facturae, FACe i Veri*Factu)"
+  ,"facturae.enable_help": "Mostra el generador Facturae, la comprovació de registres Veri*Factu i els enllaços oficials de FACe.",
   "paridad.lote3.csv.code": "Codi CSV (màxim 128 caràcters)",
   "paridad.lote3.csv.enable": "Estampa la llegenda CSV de verificació",
   "paridad.lote3.csv.invalid": "Reviseu el CSV, l’URL HTTPS i les longituds màximes.",
@@ -2906,7 +2907,7 @@
   "paridad.lote3.csv.text_optional": "Text de la llegenda (opcional)",
   "paridad.lote3.csv.url": "URL HTTPS de verificació ({csv} permés)",
   "paridad.lote3.eni.administration": "Administració",
-  "paridad.lote3.eni.capture_date": "Data de captura (ISO 8601)",
+  "paridad.lote3.eni.capture_date": "Data de captura",
   "paridad.lote3.eni.certificate": "Certificat per a firmar l’índex",
   "paridad.lote3.eni.certificates_failed": "No s’han pogut carregar els certificats.",
   "paridad.lote3.eni.citizen": "Ciutadà",
@@ -2914,17 +2915,17 @@
   "paridad.lote3.eni.create_document": "Crea el document ENI",
   "paridad.lote3.eni.create_file": "Crea l’expedient ENI",
   "paridad.lote3.eni.created": "Fitxer ENI creat: %1",
-  "paridad.lote3.eni.doc_type": "Tipus documental (TD99)",
+  "paridad.lote3.eni.doc_type": "Tipus documental",
   "paridad.lote3.eni.document": "Document ENI",
   "paridad.lote3.eni.failed": "No s’ha pogut crear el fitxer ENI: %1",
   "paridad.lote3.eni.file": "Expedient ENI",
-  "paridad.lote3.eni.file_state": "Estat de l’expedient (E01)",
+  "paridad.lote3.eni.file_state": "Estat de l’expedient",
   "paridad.lote3.eni.folder": "Tria una carpeta de documents ENI",
-  "paridad.lote3.eni.format_optional": "Format del contingut si no es reconeix",
-  "paridad.lote3.eni.identifier_optional": "Identificador (opcional)",
+  "paridad.lote3.eni.format_optional": "Format del contingut (opcional, per exemple PDF)",
+  "paridad.lote3.eni.identifier_optional": "Identificador ENI del document (opcional; si el deixeu buit, es genera)",
   "paridad.lote3.eni.interested_optional": "Persones interessades (opcional)",
   "paridad.lote3.eni.nav": "Documents ENI",
-  "paridad.lote3.eni.open_date": "Data d’obertura (ISO 8601)",
+  "paridad.lote3.eni.open_date": "Data d’obertura",
   "paridad.lote3.eni.organ": "Òrgan responsable (DIR3, obligatori)",
   "paridad.lote3.eni.origin": "Origen",
   "paridad.lote3.eni.original": "Tria l’original per a una firma separada",
@@ -2933,11 +2934,24 @@
   "paridad.lote3.eni.save_document": "Guarda el document ENI",
   "paridad.lote3.eni.save_file": "Guarda l’expedient ENI",
   "paridad.lote3.eni.signature": "Tria una firma PAdES, CAdES o XAdES",
-  "paridad.lote3.eni.source_optional": "Document d’origen d’una còpia",
-  "paridad.lote3.eni.state": "Estat d’elaboració (EE01)",
+  "paridad.lote3.eni.source_optional": "Identificador ENI del document d’origen (només còpies)",
+  "paridad.lote3.eni.state": "Estat d’elaboració",
   "paridad.lote3.eni.title": "Crea documents i expedients ENI",
   "paridad.lote3.eni.unavailable": "El motor local no oferix esta operació ENI.",
   "paridad.lote3.eni.xml_filter": "Document XML (*.xml)",
+  "paridad.lote3.eni.organ_document": "Òrgan responsable del document (DIR3, obligatori)",
+  "paridad.lote3.eni.organ_file": "Òrgan responsable de l’expedient (DIR3, obligatori)",
+  "paridad.lote3.eni.organ_hint": "Un o diversos codis DIR3 (una lletra majúscula i huit xifres), separats per comes. Exemple: L01180877.",
+  "paridad.lote3.eni.identifier_file": "Identificador ENI de l’expedient (opcional; si el deixeu buit, es genera)",
+  "paridad.lote3.eni.capture_time": "Hora de captura",
+  "paridad.lote3.eni.open_time": "Hora d’obertura",
+  "paridad.lote3.eni.date_hint": "dd/mm/aaaa",
+  "paridad.lote3.eni.time_hint": "hh:mm (24 hores)",
+  "paridad.lote3.eni.no_file": "Cap fitxer triat",
+  "paridad.lote3.eni.no_folder": "Cap carpeta triada",
+  "paridad.lote3.eni.required_signature": "Trieu primer la firma (PAdES, CAdES o XAdES).",
+  "paridad.lote3.eni.required_folder": "Trieu la carpeta amb els documents ENI.",
+  "paridad.lote3.eni.required_certificate": "No hi ha certificats disponibles per a firmar l’índex. Instal·leu-ne o importeu-ne un en «Certificats».",
   "paridad.lote3.invoice.choose": "Tria una factura",
   "paridad.lote3.invoice.empty": "Trieu una factura per a vore els errors i avisos.",
   "paridad.lote3.invoice.error": "Error",
@@ -2963,7 +2977,7 @@
   "Huellas": "Empremtes digitals",
   "Complementos": "Complements",
   "Diagnóstico": "Diagnòstic",
-  "Facturae y FACe": "Facturae i FACe",
+  "Facturae y FACe": "Facturae, FACe i Veri*Factu",
   "Guardar": "Guarda",
   "Recargar": "Torna a carregar",
   "Buscar": "Busca",
@@ -3183,7 +3197,7 @@
   ,"Al iniciar, consulta una vez la última GitHub Release. No envía documentos, certificados ni datos de firma.": "En iniciar-se, consulta una vegada l’última versió de GitHub. No envia documents, certificats ni dades de firma."
   ,"La consulta HTTPS se dirige al repositorio oficial de GitHub. Puede desactivarla; «Comprobar actualizaciones» seguirá disponible en «Acerca de» cuando quiera usarla manualmente.": "La consulta HTTPS es dirigix al repositori oficial de GitHub. Pot desactivar-la; «Comprovar actualitzacions» continuarà disponible en «Quant a» per a usar-la manualment."
   ,"Muestra u oculta una sección independiente para crear facturas electrónicas y seguir la remisión oficial a FACe.": "Mostra o oculta una secció independent per a crear factures electròniques i seguir-ne la presentació oficial en FACe."
-  ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "Està desactivat per defecte. En activar-lo apareixerà «Facturae i FACe» com una secció separada; les funcions habituals de GrxFirma no canvien."
+  ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "Està desactivat per defecte. En activar-lo apareixerà «Facturae, FACe i Veri*Factu» com una secció separada; les funcions habituals de GrxFirma no canvien."
   ,"La preferencia se conserva, pero la firma WinUI no la usa hasta disponer del editor seguro de sello PDF.": "La preferència es conserva, però la firma WinUI no la utilitza fins que hi haja un editor segur del segell PDF."
   ,"El sello visible solo es compatible con selección automática de formato o PAdES.": "El segell visible només és compatible amb la selecció automàtica del format o amb PAdES."
   ,"Las credenciales se administran únicamente mediante el almacén protegido del sistema.": "Les credencials només es gestionen mitjançant el magatzem protegit del sistema."
@@ -4791,22 +4805,23 @@
   ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma te lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "Si un camp té un error, es marca en roig amb el motiu davall i, en firmar o guardar, GrxFirma vos porta a eixe camp; el diagnòstic i l'assistent oferixen «Corregir» per a anar-hi directament. En Windows i Linux."
   ,"Leyenda CSV: cada problema tiene su propio mensaje (falta el código, la URL no es válida…) y la dirección puede escribirse sin https://.": "Llegenda CSV: cada problema té el seu propi missatge (falta el codi, la URL no és vàlida…) i l'adreça es pot escriure sense https://."
   ,"Windows: se admiten servidores de sello de tiempo con dirección http://, como el de la FNMT, igual que en Linux y en AutoFirma Java.": "Windows: s'admeten servidors de segell de temps amb adreça http://, com el de la FNMT, igual que en Linux i en AutoFirma Java.",
-  "eni.validacion.dir3": "Indica codis DIR3: una lletra majúscula i huit xifres, separats per comes.",
-  "eni.validacion.identifier": "Usa ES_<DIR3>_<AAAA>_<id>, amb un id d’1 a 30 caràcters (lletres, xifres o guió baix).",
-  "eni.validacion.date": "Tria una data vàlida o escriu RFC 3339 amb fus horari.",
-  "eni.validacion.classification": "Indica un codi SIA numèric o <DIR3>_PRO_<id> (fins a 30 caràcters).",
+  "eni.validacion.dir3": "Indiqueu un o diversos codis DIR3 (una lletra majúscula i huit xifres), separats per comes. Exemple: L01180877.",
+  "eni.validacion.identifier": "Useu ES_<DIR3>_<AAAA>_<id>, amb un id d’1 a 30 caràcters (lletres, xifres o guió baix).",
+  "eni.validacion.date": "Trieu una data i una hora vàlides.",
+  "eni.validacion.classification": "Indiqueu un codi SIA numèric o <DIR3>_PRO_<id> (fins a 30 caràcters).",
   "eni.validacion.source": "La còpia autèntica necessita un identificador ENI d’origen vàlid.",
-  "eni.validacion.format": "Usa un nom de format de fins a 32 caràcters: lletres, xifres, punt, signe més o guió.",
+  "eni.validacion.format": "Useu un nom de format de fins a 32 caràcters: lletres, xifres, punt, signe més o guió.",
   "eni.validacion.text": "El text supera el límit o conté caràcters de control.",
   "eni.validacion.calendar": "Obrir el calendari",
   "eni.validacion.previous": "Mes anterior",
   "eni.validacion.next": "Mes següent",
+  "eni.validacion.calendar_help": "Useu les fletxes per a canviar de dia, Re Pàg i Av Pàg per a canviar de mes, i Retorn per a triar el dia.",
   "eni.validacion.structure": "Element obligatori, orde o espai de noms incorrecte.",
   "eni.validacion.value": "Valor ENI no vàlid.",
   "eni.validacion.xml": "El document XML no és vàlid o conté declaracions prohibides.",
   "eni.validacion.limit": "El document XML supera els límits de grandària, profunditat o elements.",
   "eni.validacion.valid": "El document XML ENI complix la validació estructural.",
-  "eni.validacion.input": "Indica el document XML ENI amb -entrada.",
+  "eni.validacion.input": "Indiqueu el document XML ENI amb -entrada.",
   "eni.validacion.help": "-operacion validar-eni -entrada <fitxer.xml>",
   "eni.codigo.EE01": "Original",
   "eni.codigo.EE02": "Còpia electrònica autèntica amb canvi de format",
@@ -4843,27 +4858,28 @@
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "Les adreces de verificació del QR i de la llegenda CSV admeten dominis amb accents o enyes, per exemple «https://sede.almuñécar.es/verificar»."
   ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: els diàlegs es lligen bé amb qualsevol tema; el text ja no ix clar sobre fons clar.",
   "sign.seal.draw_area": "Dibuixar l’àrea",
-  "sign.seal.draw_help": "Arrossegueu sobre la pàgina per dibuixar l’àrea del segell. Amb el mode actiu, les fletxes mouen un cantó i Majúscules + fletxes l’oposat. Retorn confirma; Esc cancel·la.",
+  "sign.seal.draw_help": "Arrossegueu sobre la pàgina per a dibuixar l’àrea del segell. Amb el teclat: les fletxes mouen el cantó superior esquerre i Majúscules + fletxes, l’inferior dret. Retorn aplica l’àrea; Esc la descarta.",
   "sign.seal.draw_too_small": "L’àrea és massa menuda. Dibuixeu un rectangle més gran; es conserva el segell anterior.",
   "sign.seal.draw_applied": "Àrea del segell actualitzada en esta pàgina.",
   "sign.seal.draw_cancelled": "Dibuix cancel·lat. Es conserva el segell anterior."
+  ,"sign.seal.draw_position": "Àrea: esquerra %1 %, des de dalt %2 %, amplària %3 %, altura %4 %"
   ,"verifactu.title": "Comprovar registres Veri*Factu"
   ,"verifactu.profile_label": "Registre Veri*Factu"
-  ,"verifactu.scope": "Esta ferramenta firma i comprova registres aportats per un programa de facturació. No genera ni emmagatzema registres, ni els remet a l’AEAT."
+  ,"verifactu.scope": "Comprova registres Veri*Factu que genera el vostre programa de facturació. GrxFirma no els crea, no els guarda i no els envia a l’AEAT: l’enviament el fa el vostre programa de facturació. Per a firmar un registre, useu «Firmar» amb el format «Registre Veri*Factu»."
   ,"verifactu.limit": "S’ha superat el límit de grandària o complexitat."
   ,"verifactu.xml": "L’XML no és vàlid. No es permeten DTD ni entitats externes."
-  ,"verifactu.root": "L’arrel ha de ser RegistroAlta, RegistroAnulacion o RegistroEvento, amb l’espai de noms de l’AEAT."
+  ,"verifactu.root": "El fitxer no és un registre Veri*Factu. Trieu l’XML que va generar el vostre programa de facturació."
   ,"verifactu.structure": "Falta un camp obligatori o hi ha elements fora d’orde, repetits o no admesos per l’esquema."
   ,"verifactu.value": "El valor no complix el format, la longitud o els valors permesos per l’esquema."
-  ,"verifactu.profile": "La firma no complix el perfil XAdES embolcallat amb política AGE i RSA-SHA256 o RSA-SHA512."
+  ,"verifactu.profile": "La firma no és del tipus que exigix l’AEAT. Torneu a firmar amb el format «Registre Veri*Factu»."
   ,"verifactu.signed": "El registre ja està firmat."
   ,"verifactu.key": "Cal una clau RSA amb un certificat vigent i apte per a firmar."
   ,"verifactu.input": "Trieu un fitxer XML o una carpeta de registres accessible."
-  ,"verifactu.hash": "L’empremta no coincidix amb la calculada a partir dels camps del registre."
-  ,"verifactu.chain": "L’encadenament, la identitat del registre anterior o l’orde de les dates no coincidix."
+  ,"verifactu.hash": "El registre s’ha modificat després de generar-se: la seua empremta no coincidix. Demaneu al vostre programa de facturació que el torne a generar."
+  ,"verifactu.chain": "Este registre no enllaça amb l’anterior de la sèrie. Comproveu que la carpeta conté tots els registres en orde."
   ,"verifactu.duplicate": "Hi ha registres amb la mateixa empremta en la cadena."
   ,"verifactu.previous_missing": "El registre anterior no està en la selecció. No es pot comprovar este enllaç de la cadena."
-  ,"verifactu.signature": "La firma XAdES està alterada o no cobrix el registre complet."
+  ,"verifactu.signature": "La firma del registre està alterada o no cobrix tot el registre. Torneu a firmar-lo amb el format «Registre Veri*Factu»."
   ,"verifactu.certificate": "El certificat no era vàlid en la data del registre."
   ,"verifactu.trust": "Integritat de la firma comprovada. La qualificació, revocació històrica i representació de l’emissor requerixen una comprovació addicional."
   ,"verifactu.unsigned": "El registre no conté firma."
@@ -4887,6 +4903,22 @@
   ,"verifactu.qr_amount": "Import total"
   ,"verifactu.cli_usage": "Ús de les ordres: -operacion validar-verifactu|leer-qr-verifactu|cotejar-qr-verifactu -entrada ..."
   ,"verifactu.output": "Guardeu l’informe en un fitxer diferent del registre d’entrada."
+  ,"verifactu.root_detail": "L’arrel ha de ser RegistroAlta, RegistroAnulacion o RegistroEvento, amb l’espai de noms de l’AEAT."
+  ,"verifactu.profile_detail": "La firma no complix el perfil XAdES embolcallat amb política AGE i RSA-SHA256 o RSA-SHA512."
+  ,"verifactu.hash_detail": "L’empremta no coincidix amb la calculada a partir dels camps del registre."
+  ,"verifactu.chain_detail": "L’encadenament, la identitat del registre anterior o l’orde de les dates no coincidix."
+  ,"verifactu.signature_detail": "La firma XAdES està alterada o no cobrix el registre complet."
+  ,"verifactu.export": "Exportar l’informe Veri*Factu"
+  ,"verifactu.report": "Informe de la comprovació Veri*Factu"
+  ,"verifactu.empty_state": "Trieu un registre XML o una carpeta de registres per a comprovar-los."
+  ,"verifactu.qr_url_field": "URL del codi QR"
+  ,"verifactu.qr_result": "Resultat del QR"
+  ,"verifactu.qr_query_help": "Pregunta a l’AEAT si té registrada una factura amb estes dades."
+  ,"verifactu.qr_aeat_found": "L’AEAT té registrada una factura amb estes dades."
+  ,"verifactu.qr_aeat_not_found": "L’AEAT no troba cap factura amb estes dades. Comproveu el NIF, el número, la data i l’import."
+  ,"verifactu.qr_aeat_unknown": "L’AEAT ha respost, però GrxFirma no reconeix el resultat. Reviseu la resposta tècnica o consulteu la factura en la seu de l’AEAT."
+  ,"verifactu.qr_technical": "Vore la resposta tècnica"
+  ,"verifactu.qr_technical_hide": "Amagar la resposta tècnica"
   ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: firma els registres de facturació que entrega un programa de facturació amb el format que exigix l'AEAT, i comprova registres ja firmats: empremta encadenada, firma i estructura. GrxFirma no genera, guarda ni envia registres."
   ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu: llig la URL del QR tributari d'una factura i en mostra les dades; només si ho demaneu, la contrasta amb el servici públic de l'AEAT."
   ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Segell visible: amb «Dibuixa l'àrea» en marqueu la posició i la grandària arrossegant sobre la pàgina, com en AutoFirma. També amb el teclat. En Windows i Linux, i en l'editor que obrin els portals."

@@ -520,6 +520,16 @@ func vfTextoVisible(s string, maxRunas int) string {
 	return limpio
 }
 
+// vfDetalleTecnico acompaña en el informe a los mensajes en lenguaje llano con
+// el detalle técnico (elementos, perfil de firma, huella o encadenamiento).
+var vfDetalleTecnico = map[string]string{
+	"verifactu.root":      "verifactu.root_detail",
+	"verifactu.profile":   "verifactu.profile_detail",
+	"verifactu.hash":      "verifactu.hash_detail",
+	"verifactu.chain":     "verifactu.chain_detail",
+	"verifactu.signature": "verifactu.signature_detail",
+}
+
 func (r *VeriFactuValidationResult) Localize(t func(string) string) {
 	var b strings.Builder
 	fmt.Fprintln(&b, t("verifactu.scope"))
@@ -531,6 +541,9 @@ func (r *VeriFactuValidationResult) Localize(t func(string) string) {
 		fmt.Fprintf(&b, "%s: %s\n", t("verifactu.hash_label"), record.CalculatedHash)
 		for _, p := range record.Issues {
 			fmt.Fprintf(&b, "%s: %s\n", p.Field, t(p.Key))
+			if detalle, ok := vfDetalleTecnico[p.Key]; ok {
+				fmt.Fprintf(&b, "    %s\n", t(detalle))
+			}
 		}
 		if len(record.Issues) == 0 {
 			fmt.Fprintln(&b, t("verifactu.valid"))

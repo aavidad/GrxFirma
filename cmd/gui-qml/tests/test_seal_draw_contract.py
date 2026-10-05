@@ -48,12 +48,14 @@ for (let i=0; i<300; i++) {
         for expected in ("portalSealEditor.parent = portalSealCanvas", "id: sealDrawButton",
                          "sealDrawArea.cancel(); loadPageSeal()", "window.addSealToPage()",
                          "window.savePageSeal()", "window.signSealY = rect.y",
-                         'tr("sign.seal.draw_help")'):
+                         'tr("sign.seal.draw_help")', 'tr("sign.seal.draw_position")',
+                         "sealDrawButton.forceActiveFocus()", "color: currentTheme.cardColor"):
             self.assertIn(expected, source)
         draw = (ROOT / "cmd/gui-qml/qml/SealDrawArea.qml").read_text(encoding="utf-8")
         self.assertNotIn("signSealRotation =", source[source.index("onCommitted: (rect)"):source.index("onFeedback: (key)")])
         for expected in ("Qt.Key_Escape", "Qt.ShiftModifier", "Qt.Key_Return",
-                         "acceptedButtons: Qt.LeftButton", "preventStealing: true", "onCanceled: drawArea.cancel()"):
+                         "acceptedButtons: Qt.LeftButton", "preventStealing: true", "onCanceled: drawArea.cancel()",
+                         "signal finished()", "keyboardMoved(rectangle)", "visible: drawArea.activeFocus"):
             self.assertIn(expected, draw)
 
 

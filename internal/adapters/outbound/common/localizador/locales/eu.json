@@ -2740,12 +2740,13 @@
   ,"revocación no concluyente": "Ezin izan da ziurtagiriaren ezeztapena egiaztatu. Sinadura ez da baliozkotzat hartzen."
   ,"rest.verify_v2.error.limit": "v2 egiaztapenaren muga baimendutako tartetik kanpo dago"
   ,"portal.seal.title": "Jarri zigilua PDFan"
-  ,"portal.seal.instructions": "Webguneak sinadura non jarri aukeratzeko eskatu du. Arrastatu zigilua mugitzeko, erabili izkinako zirkulua tamaina aldatzeko eta gezia biratzeko."
+  ,"portal.seal.instructions": "Sinatzen ari zaren webguneak sinadura non jarri aukeratzeko eskatzen dizu. Arrastatu zigilua mugitzeko, erabili izkinako zirkulua tamaina aldatzeko eta gezia biratzeko. Posizioa «Doikuntza zehatza» atalean ere idatz dezakezu."
   ,"portal.seal.fine_tune": "Doikuntza zehatza"
   ,"portal.seal.page": "%1. orria / %2"
   ,"portal.seal.previous_page": "Aurreko orria"
   ,"portal.seal.next_page": "Hurrengo orria"
-  ,"portal.seal.preview_error": "PDFaren aurrebista kargatzen…"
+  ,"portal.seal.preview_error": "Ezin izan da PDFa erakutsi. Erabili «Doikuntza zehatza» edo «Sinatu zigilu ikusgarririk gabe»."
+  ,"portal.seal.preview_loading": "PDFaren aurrebista kargatzen…"
   ,"portal.seal.sign_here": "Sinatu hemen zigiluarekin"
   ,"portal.seal.sign_without": "Sinatu zigilu ikusgarririk gabe"
   ,"portal.seal.cancel": "Utzi"
@@ -2889,15 +2890,15 @@
   ,"facturae.startup_on": "GrxFirma saioarekin abiaraziko da."
   ,"facturae.submit_face": "Aurkeztu FACen"
   ,"facturae.tax_id": "IFZ"
-  ,"facturae.title": "Facturae eta FACe"
+  ,"facturae.title": "Facturae, FACe eta Veri*Factu"
   ,"facturae.town": "Herria"
   ,"facturae.validate_face": "Baliozkotu FACen"
   ,"facturae.vat": "BEZa (%)"
   ,"facturae.xml_filter": "Facturae XML (*.xml)"
   ,"smartcard.pcsc_unavailable": "PC/SC ez dago erabilgarri ordenagailu honetan. Instalatu edo abiarazi pcscd."
   ,"smartcard.pcsc_error": "PC/SCk ezin izan du irakurgailua egiaztatu."
-  ,"facturae.enable_label": "Gaitu Facturae eta FACe tresnak"
-  ,"facturae.enable_help": "Facturae sortzailea eta FACeko esteka ofizialak erakusten ditu.",
+  ,"facturae.enable_label": "Gaitu fakturazio-tresnak (Facturae, FACe eta Veri*Factu)"
+  ,"facturae.enable_help": "Facturae sortzailea, Veri*Factu erregistroen egiaztapena eta FACeko esteka ofizialak erakusten ditu.",
   "paridad.lote3.csv.code": "CSV kodea (gehienez 128 karaktere)",
   "paridad.lote3.csv.enable": "Egiaztatzeko CSV legenda ezarri",
   "paridad.lote3.csv.invalid": "Egiaztatu CSV kodea, HTTPS URLa eta gehieneko luzerak.",
@@ -2906,7 +2907,7 @@
   "paridad.lote3.csv.text_optional": "Legendaren testua (aukerakoa)",
   "paridad.lote3.csv.url": "Egiaztatzeko HTTPS URLa ({csv} onartzen da)",
   "paridad.lote3.eni.administration": "Administrazioa",
-  "paridad.lote3.eni.capture_date": "Jasotze-data (ISO 8601)",
+  "paridad.lote3.eni.capture_date": "Jasotze-data",
   "paridad.lote3.eni.certificate": "Indizea sinatzeko ziurtagiria",
   "paridad.lote3.eni.certificates_failed": "Ezin izan dira ziurtagiriak kargatu.",
   "paridad.lote3.eni.citizen": "Herritarra",
@@ -2914,17 +2915,17 @@
   "paridad.lote3.eni.create_document": "Sortu ENI dokumentua",
   "paridad.lote3.eni.create_file": "Sortu ENI espedientea",
   "paridad.lote3.eni.created": "ENI fitxategia sortu da: %1",
-  "paridad.lote3.eni.doc_type": "Dokumentu mota (TD99)",
+  "paridad.lote3.eni.doc_type": "Dokumentu mota",
   "paridad.lote3.eni.document": "ENI dokumentua",
   "paridad.lote3.eni.failed": "Ezin izan da ENI fitxategia sortu: %1",
   "paridad.lote3.eni.file": "ENI espedientea",
-  "paridad.lote3.eni.file_state": "Espedientearen egoera (E01)",
+  "paridad.lote3.eni.file_state": "Espedientearen egoera",
   "paridad.lote3.eni.folder": "Aukeratu ENI dokumentuen karpeta",
-  "paridad.lote3.eni.format_optional": "Edukiaren formatua, ezagutzen ez bada",
-  "paridad.lote3.eni.identifier_optional": "Identifikatzailea (aukerakoa)",
+  "paridad.lote3.eni.format_optional": "Edukiaren formatua (aukerakoa, adibidez PDF)",
+  "paridad.lote3.eni.identifier_optional": "Dokumentuaren ENI identifikatzailea (aukerakoa; hutsik uzten baduzu, sortu egiten da)",
   "paridad.lote3.eni.interested_optional": "Interesdunak (aukerakoa)",
   "paridad.lote3.eni.nav": "ENI dokumentuak",
-  "paridad.lote3.eni.open_date": "Irekitze-data (ISO 8601)",
+  "paridad.lote3.eni.open_date": "Irekitze-data",
   "paridad.lote3.eni.organ": "Organo arduraduna (DIR3, nahitaezkoa)",
   "paridad.lote3.eni.origin": "Jatorria",
   "paridad.lote3.eni.original": "Aukeratu sinadura bereiziaren jatorrizkoa",
@@ -2933,11 +2934,24 @@
   "paridad.lote3.eni.save_document": "Gorde ENI dokumentua",
   "paridad.lote3.eni.save_file": "Gorde ENI espedientea",
   "paridad.lote3.eni.signature": "Aukeratu PAdES, CAdES edo XAdES sinadura",
-  "paridad.lote3.eni.source_optional": "Kopiaren jatorrizko dokumentua",
-  "paridad.lote3.eni.state": "Prestaketa-egoera (EE01)",
+  "paridad.lote3.eni.source_optional": "Jatorrizko dokumentuaren ENI identifikatzailea (kopietan soilik)",
+  "paridad.lote3.eni.state": "Prestaketa-egoera",
   "paridad.lote3.eni.title": "Sortu ENI dokumentuak eta espedienteak",
   "paridad.lote3.eni.unavailable": "Tokiko motorrak ez du ENI eragiketa hau onartzen.",
   "paridad.lote3.eni.xml_filter": "XML dokumentua (*.xml)",
+  "paridad.lote3.eni.organ_document": "Dokumentuaren organo arduraduna (DIR3, nahitaezkoa)",
+  "paridad.lote3.eni.organ_file": "Espedientearen organo arduraduna (DIR3, nahitaezkoa)",
+  "paridad.lote3.eni.organ_hint": "DIR3 kode bat edo gehiago (letra larri bat eta zortzi zifra), komaz bereizita. Adibidea: L01180877.",
+  "paridad.lote3.eni.identifier_file": "Espedientearen ENI identifikatzailea (aukerakoa; hutsik uzten baduzu, sortu egiten da)",
+  "paridad.lote3.eni.capture_time": "Jasotze-ordua",
+  "paridad.lote3.eni.open_time": "Irekitze-ordua",
+  "paridad.lote3.eni.date_hint": "ee/hh/uuuu",
+  "paridad.lote3.eni.time_hint": "hh:mm (24 orduko)",
+  "paridad.lote3.eni.no_file": "Ez da fitxategirik aukeratu",
+  "paridad.lote3.eni.no_folder": "Ez da karpetarik aukeratu",
+  "paridad.lote3.eni.required_signature": "Aukeratu lehenik sinadura (PAdES, CAdES edo XAdES).",
+  "paridad.lote3.eni.required_folder": "Aukeratu ENI dokumentuak dituen karpeta.",
+  "paridad.lote3.eni.required_certificate": "Ez dago indizea sinatzeko ziurtagiririk. Instalatu edo inportatu bat «Ziurtagiriak» atalean.",
   "paridad.lote3.invoice.choose": "Aukeratu faktura",
   "paridad.lote3.invoice.empty": "Aukeratu faktura erroreak eta oharrak ikusteko.",
   "paridad.lote3.invoice.error": "Akatsa",
@@ -2963,7 +2977,7 @@
   "Huellas": "Hatz-markak",
   "Complementos": "Osagarriak",
   "Diagnóstico": "Diagnostikoa",
-  "Facturae y FACe": "Facturae eta FACe",
+  "Facturae y FACe": "Facturae, FACe eta Veri*Factu",
   "Guardar": "Gorde",
   "Recargar": "Berriro kargatu",
   "Buscar": "Bilatu",
@@ -3183,7 +3197,7 @@
   ,"Al iniciar, consulta una vez la última GitHub Release. No envía documentos, certificados ni datos de firma.": "Abiatzean, GitHubeko azken argitalpena behin kontsultatzen du. Ez du dokumenturik, ziurtagiririk edo sinadura-daturik bidaltzen."
   ,"La consulta HTTPS se dirige al repositorio oficial de GitHub. Puede desactivarla; «Comprobar actualizaciones» seguirá disponible en «Acerca de» cuando quiera usarla manualmente.": "HTTPS kontsulta GitHubeko biltegi ofizialera egiten da. Desaktiba dezakezu; «Egiaztatu eguneratzeak» aukera «Honi buruz» atalean erabilgarri egongo da eskuz erabiltzeko."
   ,"Muestra u oculta una sección independiente para crear facturas electrónicas y seguir la remisión oficial a FACe.": "Faktura elektronikoak sortzeko eta FACe-ra aurkezteko prozesu ofiziala jarraitzeko atal bereizia erakusten edo ezkutatzen du."
-  ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "Lehenespenez desaktibatuta dago. Aktibatzean, «Facturae eta FACe» atal bereizi gisa agertuko da; GrxFirmaren ohiko funtzioak ez dira aldatzen."
+  ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "Lehenespenez desaktibatuta dago. Aktibatzean, «Facturae, FACe eta Veri*Factu» atal bereizi gisa agertuko da; GrxFirmaren ohiko funtzioak ez dira aldatzen."
   ,"La preferencia se conserva, pero la firma WinUI no la usa hasta disponer del editor seguro de sello PDF.": "Hobespena gordetzen da, baina WinUI sinadurak ez du erabiliko PDF zigilua editatzeko tresna segurua egon arte."
   ,"El sello visible solo es compatible con selección automática de formato o PAdES.": "Zigilu ikusgaia formatuaren hautaketa automatikoarekin edo PAdESekin soilik da bateragarria."
   ,"Las credenciales se administran únicamente mediante el almacén protegido del sistema.": "Egiaztagiriak sistemaren biltegi babestuaren bidez soilik kudeatzen dira."
@@ -4791,16 +4805,17 @@
   ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma te lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "Eremu batek errorea badu, gorriz markatzen da eta arrazoia azpian agertzen da; sinatzean edo gordetzean, GrxFirmak eremu horretara eramaten zaitu. Diagnostikoak eta laguntzaileak «Zuzendu» eskaintzen dute zuzenean joateko. Windows-en eta Linux-en."
   ,"Leyenda CSV: cada problema tiene su propio mensaje (falta el código, la URL no es válida…) y la dirección puede escribirse sin https://.": "CSV legenda: arazo bakoitzak bere mezua du (kodea falta da, URLa ez da baliozkoa…) eta helbidea https:// gabe idatz daiteke."
   ,"Windows: se admiten servidores de sello de tiempo con dirección http://, como el de la FNMT, igual que en Linux y en AutoFirma Java.": "Windows: http:// helbidea duten denbora-zigilu zerbitzariak onartzen dira, FNMTrena adibidez, Linux-en eta AutoFirma Java-n bezala.",
-  "eni.validacion.dir3": "Sartu DIR3 kodeak: letra larri bat eta zortzi zifra, komaz bereizita.",
+  "eni.validacion.dir3": "Adierazi DIR3 kode bat edo gehiago (letra larri bat eta zortzi zifra), komaz bereizita. Adibidea: L01180877.",
   "eni.validacion.identifier": "Erabili ES_<DIR3>_<UUUU>_<id>, 1 eta 30 karaktere arteko id batekin (letrak, zifrak edo azpimarrak).",
-  "eni.validacion.date": "Hautatu baliozko data edo idatzi RFC 3339 ordu-eremuarekin.",
-  "eni.validacion.classification": "Sartu zenbakizko SIA kode bat edo <DIR3>_PRO_<id> (gehienez 30 karaktere).",
+  "eni.validacion.date": "Aukeratu baliozko data eta ordua.",
+  "eni.validacion.classification": "Adierazi zenbakizko SIA kode bat edo <DIR3>_PRO_<id> (gehienez 30 karaktere).",
   "eni.validacion.source": "Benetako kopiak jatorrizko ENI identifikatzaile balioduna behar du.",
   "eni.validacion.format": "Erabili gehienez 32 karaktereko formatu-izena: letrak, zifrak, puntua, plus zeinua edo marratxoa.",
   "eni.validacion.text": "Testuak muga gainditzen du edo kontrol-karaktereak ditu.",
   "eni.validacion.calendar": "Ireki egutegia",
   "eni.validacion.previous": "Aurreko hilabetea",
   "eni.validacion.next": "Hurrengo hilabetea",
+  "eni.validacion.calendar_help": "Erabili geziak eguna aldatzeko, Orri gora eta Orri behera hilabetea aldatzeko, eta Sartu eguna aukeratzeko.",
   "eni.validacion.structure": "Nahitaezko elementua, ordena edo izen-espazioa okerra da.",
   "eni.validacion.value": "ENI balioa ez da balioduna.",
   "eni.validacion.xml": "XMLa ez da balioduna edo debekatutako deklarazioak ditu.",
@@ -4843,27 +4858,28 @@
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "QR kodearen eta CSV legendaren egiaztapen-helbideek azentuak edo eñea dituzten domeinuak onartzen dituzte, adibidez «https://sede.almuñécar.es/verificar»."
   ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: elkarrizketa-koadroak ondo irakurtzen dira edozein gairekin; testua ez da jada argi agertzen hondo argiaren gainean.",
   "sign.seal.draw_area": "Marraztu eremua",
-  "sign.seal.draw_help": "Arrastatu orrian zigiluaren eremua marrazteko. Modua aktibatuta dagoenean, geziek izkina bat mugitzen dute, eta Maius + geziek aurkakoa. Sartu teklak berresten du; Esc teklak bertan behera uzten du.",
+  "sign.seal.draw_help": "Arrastatu orrian zigiluaren eremua marrazteko. Teklatuarekin: geziek goiko ezkerreko izkina mugitzen dute, eta Maius + geziek beheko eskuinekoa. Sartu teklak eremua aplikatzen du; Esc teklak baztertzen du.",
   "sign.seal.draw_too_small": "Eremua txikiegia da. Marraztu laukizuzen handiagoa; aurreko zigilua mantenduko da.",
   "sign.seal.draw_applied": "Zigiluaren eremua eguneratu da orri honetan.",
   "sign.seal.draw_cancelled": "Marrazketa bertan behera utzi da. Aurreko zigilua mantendu da."
+  ,"sign.seal.draw_position": "Eremua: ezkerretik % %1, goitik % %2, zabalera % %3, altuera % %4"
   ,"verifactu.title": "Veri*Factu erregistroak egiaztatu"
   ,"verifactu.profile_label": "Veri*Factu erregistroa"
-  ,"verifactu.scope": "Tresna honek fakturazio-programa batek emandako erregistroak sinatu eta egiaztatzen ditu. Ez du erregistrorik sortzen edo gordetzen, ezta AEATera bidaltzen ere."
+  ,"verifactu.scope": "Zure fakturazio-programak sortzen dituen Veri*Factu erregistroak egiaztatzen ditu. GrxFirmak ez ditu sortzen, ez gordetzen eta ez AEATera bidaltzen: bidalketa zure fakturazio-programak egiten du. Erregistro bat sinatzeko, erabili «Sinatu», «Veri*Factu erregistroa» formatuarekin."
   ,"verifactu.limit": "Tamaina edo konplexutasun muga gainditu da."
   ,"verifactu.xml": "XMLa ez da baliozkoa. DTDak eta kanpoko entitateak ez dira onartzen."
-  ,"verifactu.root": "Erroak RegistroAlta, RegistroAnulacion edo RegistroEvento izan behar du, AEATen izen-espazioarekin."
+  ,"verifactu.root": "Fitxategia ez da Veri*Factu erregistro bat. Aukeratu zure fakturazio-programak sortutako XMLa."
   ,"verifactu.structure": "Nahitaezko eremu bat falta da, edo elementuak ordenatik kanpo, errepikatuta edo eskemak onartu gabe daude."
   ,"verifactu.value": "Balioak ez ditu eskemaren formatua, luzera edo onartutako balioak betetzen."
-  ,"verifactu.profile": "Sinadurak ez du AGE politika eta RSA-SHA256 edo RSA-SHA512 dituen XAdES bilduaren profila betetzen."
+  ,"verifactu.profile": "Sinadura ez da AEATek eskatzen duen motakoa. Sinatu berriro «Veri*Factu erregistroa» formatuarekin."
   ,"verifactu.signed": "Erregistroa sinatuta dago jada."
   ,"verifactu.key": "RSA gako bat eta sinatzeko egokia den indarreko ziurtagiri bat behar dira."
   ,"verifactu.input": "Aukeratu eskuragarri dagoen XML fitxategi bat edo erregistro-karpeta bat."
-  ,"verifactu.hash": "Aztarna ez dator bat erregistroaren eremuetatik kalkulatutakoarekin."
-  ,"verifactu.chain": "Kateatzea, aurreko erregistroaren identitatea edo daten ordena ez dator bat."
+  ,"verifactu.hash": "Erregistroa sortu ondoren aldatu da: bere aztarna ez dator bat. Eskatu zure fakturazio-programari berriro sortzeko."
+  ,"verifactu.chain": "Erregistro hau ez dago serieko aurrekoarekin lotuta. Egiaztatu karpetak erregistro guztiak ordenan dituela."
   ,"verifactu.duplicate": "Katean aztarna bera duten erregistroak daude."
   ,"verifactu.previous_missing": "Aurreko erregistroa ez dago hautaketan. Ezin da katearen lotura hau egiaztatu."
-  ,"verifactu.signature": "XAdES sinadura aldatu da edo ez du erregistro osoa estaltzen."
+  ,"verifactu.signature": "Erregistroaren sinadura aldatuta dago edo ez du erregistro osoa hartzen. Sinatu berriro «Veri*Factu erregistroa» formatuarekin."
   ,"verifactu.certificate": "Ziurtagiria ez zen baliozkoa erregistroaren datan."
   ,"verifactu.trust": "Sinaduraren osotasuna egiaztatu da. Kualifikazioak, ezeztapen historikoak eta igorlearen ordezkaritzak beste egiaztapen bat behar dute."
   ,"verifactu.unsigned": "Erregistroak ez du sinadurarik."
@@ -4887,6 +4903,22 @@
   ,"verifactu.qr_amount": "Zenbateko osoa"
   ,"verifactu.cli_usage": "Erabilera: -operacion validar-verifactu|leer-qr-verifactu|cotejar-qr-verifactu -entrada ..."
   ,"verifactu.output": "Gorde txostena sarrerako erregistroa ez den beste fitxategi batean."
+  ,"verifactu.root_detail": "Erroak RegistroAlta, RegistroAnulacion edo RegistroEvento izan behar du, AEATen izen-espazioarekin."
+  ,"verifactu.profile_detail": "Sinadurak ez du AGE politika eta RSA-SHA256 edo RSA-SHA512 dituen XAdES bilduaren profila betetzen."
+  ,"verifactu.hash_detail": "Aztarna ez dator bat erregistroaren eremuetatik kalkulatutakoarekin."
+  ,"verifactu.chain_detail": "Kateatzea, aurreko erregistroaren identitatea edo daten ordena ez dator bat."
+  ,"verifactu.signature_detail": "XAdES sinadura aldatu da edo ez du erregistro osoa estaltzen."
+  ,"verifactu.export": "Esportatu Veri*Factu txostena"
+  ,"verifactu.report": "Veri*Factu egiaztapenaren txostena"
+  ,"verifactu.empty_state": "Aukeratu XML erregistro bat edo erregistroen karpeta bat egiaztatzeko."
+  ,"verifactu.qr_url_field": "QR kodearen URLa"
+  ,"verifactu.qr_result": "QRaren emaitza"
+  ,"verifactu.qr_query_help": "AEATi galdetzen dio datu hauekin fakturarik erregistratuta duen."
+  ,"verifactu.qr_aeat_found": "AEATek datu hauekin erregistratutako faktura bat du."
+  ,"verifactu.qr_aeat_not_found": "AEATek ez du datu hauekin fakturarik aurkitzen. Egiaztatu IFZ, zenbakia, data eta zenbatekoa."
+  ,"verifactu.qr_aeat_unknown": "AEATek erantzun du, baina GrxFirmak ez du emaitza ezagutzen. Berrikusi erantzun teknikoa edo kontsultatu faktura AEATen egoitzan."
+  ,"verifactu.qr_technical": "Ikusi erantzun teknikoa"
+  ,"verifactu.qr_technical_hide": "Ezkutatu erantzun teknikoa"
   ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: fakturazio-programa batek emandako fakturazio-erregistroak sinatzen ditu AEATek eskatzen duen formatuan, eta jada sinatutako erregistroak egiaztatzen ditu: kateatutako aztarna, sinadura eta egitura. GrxFirmak ez du erregistrorik sortzen, gordetzen edo bidaltzen."
   ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu: faktura baten QR fiskalaren URLa irakurtzen du eta haren datuak erakusten ditu; eskatzen baduzu bakarrik, AEATen zerbitzu publikoarekin egiaztatzen du."
   ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Zigilu ikusgaia: «Marraztu eremua» aukerarekin haren kokapena eta tamaina markatzen dituzu orriaren gainean arrastatuz, AutoFirman bezala. Teklatuarekin ere bai. Windows-en eta Linux-en, eta atariek irekitzen duten editorean."

@@ -564,7 +564,6 @@
                 </Border>
 
                 <InfoBar
-                    AutomationProperties.LiveSetting="Assertive"
                     IsClosable="False"
                     IsOpen="True"
                     Message="GrxFirma no sube la factura por usted en este modo. El envío solo termina cuando FACe muestra la confirmación y usted descarga el justificante con número de registro y CSV."
@@ -638,36 +637,15 @@
                         </StackPanel>
                         <TextBlock x:Name="LocalValidationTitle" AutomationProperties.HeadingLevel="Level2" Style="{StaticResource SectionTitleTextStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button x:Name="ValidateInvoiceButton" MinHeight="40" AutomationProperties.Name="{x:Bind LocalValidationTitle.Text, Mode=OneWay}" TabIndex="44" Click="OnValidateInvoiceClick" />
-                            <Button x:Name="ExportInvoiceReportButton" MinHeight="40" AutomationProperties.Name="{x:Bind LocalValidationTitle.Text, Mode=OneWay}" TabIndex="45" Click="OnExportInvoiceReportClick" IsEnabled="False" />
+                            <Button x:Name="ValidateInvoiceButton" AutomationProperties.Name="Elegir factura" MinHeight="40" TabIndex="44" Click="OnValidateInvoiceClick" />
+                            <Button x:Name="ExportInvoiceReportButton" AutomationProperties.Name="Exportar informe" MinHeight="40" TabIndex="45" Click="OnExportInvoiceReportClick" IsEnabled="False" />
                         </StackPanel>
                         <TextBlock x:Name="InvoiceValidationSummary" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" />
-                        <TextBox x:Name="InvoiceValidationReport" AutomationProperties.Name="{x:Bind LocalValidationTitle.Text, Mode=OneWay}" TabIndex="46" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
-                        <TextBlock x:Name="VeriFactuTitle" AutomationProperties.HeadingLevel="Level2" Style="{StaticResource SectionTitleTextStyle}" />
-                        <TextBlock x:Name="VeriFactuScope" TextWrapping="Wrap" />
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button x:Name="ValidateVeriFactuButton" MinHeight="40" TabIndex="47" AutomationProperties.Name="{x:Bind VeriFactuTitle.Text, Mode=OneWay}" Click="OnValidateVeriFactuClick" />
-                            <Button x:Name="ValidateVeriFactuFolderButton" MinHeight="40" TabIndex="48" AutomationProperties.Name="{x:Bind VeriFactuTitle.Text, Mode=OneWay}" Click="OnValidateVeriFactuFolderClick" />
-                        </StackPanel>
-                        <TextBlock x:Name="VeriFactuQrTitle" AutomationProperties.HeadingLevel="Level2" Style="{StaticResource SectionTitleTextStyle}" />
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="VeriFactuQrInput" Grid.Column="0" MinHeight="40" TabIndex="49" AutomationProperties.Name="{x:Bind VeriFactuQrTitle.Text, Mode=OneWay}" TextChanged="OnVeriFactuQrTextChanged" />
-                            <Button x:Name="ReadVeriFactuQrFileButton" Grid.Column="1" MinHeight="40" VerticalAlignment="Bottom" TabIndex="50" AutomationProperties.Name="{x:Bind VeriFactuQrTitle.Text, Mode=OneWay}" Click="OnReadVeriFactuQrFileClick" />
-                        </Grid>
-                        <TextBlock x:Name="VeriFactuQrNotice" TextWrapping="Wrap" />
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button x:Name="ReadVeriFactuQrButton" MinHeight="40" TabIndex="51" AutomationProperties.Name="{x:Bind VeriFactuQrTitle.Text, Mode=OneWay}" Click="OnReadVeriFactuQrClick" />
-                            <Button x:Name="QueryVeriFactuQrButton" MinHeight="40" TabIndex="52" AutomationProperties.Name="{x:Bind VeriFactuQrTitle.Text, Mode=OneWay}" Click="OnQueryVeriFactuQrClick" IsEnabled="False" />
-                        </StackPanel>
-                        <TextBox x:Name="VeriFactuQrReport" TabIndex="53" AutomationProperties.Name="{x:Bind VeriFactuQrTitle.Text, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
+                        <TextBox x:Name="InvoiceValidationReport" AutomationProperties.Name="Informe de validación" TabIndex="46" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
                         <CheckBox
                             AutomationProperties.Name="Confirmo que FACe no muestra errores de validación"
                             Content="El validador oficial no muestra errores que impidan la remisión."
-                            TabIndex="54" />
+                            TabIndex="47" />
                     </StackPanel>
                 </Border>
 
@@ -691,7 +669,7 @@
                                 Content="Remitir factura en FACe"
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
                                 Style="{StaticResource AccentButtonStyle}"
-                                TabIndex="55" />
+                                TabIndex="48" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -712,7 +690,7 @@
                         <CheckBox
                             AutomationProperties.Name="Confirmo que he guardado el justificante de FACe"
                             Content="He guardado el justificante con su número de registro y CSV."
-                            TabIndex="56" />
+                            TabIndex="49" />
                         <StackPanel
                             x:Name="ReceiptActions"
                             Orientation="Vertical"
@@ -722,13 +700,13 @@
                                 Click="OnOpenReceiptVerificationClick"
                                 Content="Verificar CSV del justificante"
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
-                                TabIndex="57" />
+                                TabIndex="50" />
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Consultar estado de factura en FACe"
                                 Click="OnOpenInvoiceStatusClick"
                                 Content="Consultar estado de la factura"
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
-                                TabIndex="58" />
+                                TabIndex="51" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -746,6 +724,40 @@
                             Foreground="{ThemeResource AppMutedTextBrush}"
                             Text="Guía revisada en julio de 2026. Si el portal cambia, prevalecen siempre las instrucciones mostradas por el Portal FACe Proveedores."
                             TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Veri*Factu es una sección propia, fuera de los pasos de FACe. -->
+                <Border x:Name="VeriFactuCard" Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock x:Name="VeriFactuTitle" AutomationProperties.HeadingLevel="Level2" Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock x:Name="VeriFactuScope" TextWrapping="Wrap" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="ValidateVeriFactuButton" AutomationProperties.Name="Elegir registro XML" MinHeight="40" TabIndex="52" Click="OnValidateVeriFactuClick" />
+                            <Button x:Name="ValidateVeriFactuFolderButton" AutomationProperties.Name="Elegir carpeta de registros" MinHeight="40" TabIndex="53" Click="OnValidateVeriFactuFolderClick" />
+                        </StackPanel>
+                        <TextBlock x:Name="VeriFactuSummary" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" />
+                        <TextBox x:Name="VeriFactuReport" AutomationProperties.Name="Informe de la comprobación Veri*Factu" TabIndex="54" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" Visibility="Collapsed" />
+                        <Button x:Name="ExportVeriFactuReportButton" AutomationProperties.Name="Exportar informe Veri*Factu" MinHeight="40" TabIndex="55" Click="OnExportVeriFactuReportClick" Visibility="Collapsed" />
+                        <TextBlock x:Name="VeriFactuQrTitle" AutomationProperties.HeadingLevel="Level2" Style="{StaticResource SectionTitleTextStyle}" />
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="VeriFactuQrInput" AutomationProperties.Name="URL del código QR" Grid.Column="0" MinHeight="40" TabIndex="56" TextChanged="OnVeriFactuQrTextChanged" />
+                            <Button x:Name="ReadVeriFactuQrFileButton" AutomationProperties.Name="Leer desde imagen o PDF" Grid.Column="1" MinHeight="40" VerticalAlignment="Bottom" TabIndex="57" Click="OnReadVeriFactuQrFileClick" />
+                        </Grid>
+                        <TextBlock x:Name="VeriFactuQrNotice" TextWrapping="Wrap" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="ReadVeriFactuQrButton" AutomationProperties.Name="Leer datos del QR" MinHeight="40" TabIndex="58" Click="OnReadVeriFactuQrClick" />
+                            <Button x:Name="QueryVeriFactuQrButton" AutomationProperties.Name="Consultar AEAT" MinHeight="40" TabIndex="59" Click="OnQueryVeriFactuQrClick" IsEnabled="False" />
+                        </StackPanel>
+                        <TextBlock x:Name="VeriFactuQrQueryHelp" Foreground="{ThemeResource AppMutedTextBrush}" TextWrapping="Wrap" />
+                        <TextBox x:Name="VeriFactuQrReport" AutomationProperties.Name="Resultado del QR" TabIndex="60" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
+                        <Expander x:Name="VeriFactuQrTechnical" AutomationProperties.Name="Ver respuesta técnica" TabIndex="61" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Visibility="Collapsed">
+                            <TextBox x:Name="VeriFactuQrTechnicalText" AutomationProperties.Name="Ver respuesta técnica" TabIndex="62" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="80" />
+                        </Expander>
                     </StackPanel>
                 </Border>
 

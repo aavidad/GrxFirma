@@ -43,7 +43,7 @@ class TextAreaPlainTextContract(unittest.TestCase):
         panel = (QML / "FacturaePanel.qml").read_text(encoding="utf-8")
         qr = panel.split("id: qrArea", 1)[1].split("}", 1)[0]
         self.assertIn("textFormat: TextEdit.PlainText", qr)
-        informe = panel.split('=== "VeriFactu" ? panel.invoiceResult.report', 1)[1].split("}", 1)[0]
+        informe = panel.split('objectName: "verifactuReport"', 1)[1].split("}", 1)[0]
         self.assertIn("textFormat: TextEdit.PlainText", informe)
 
 

@@ -36,6 +36,15 @@ class SealDrawContract(unittest.TestCase):
                          "SealDrawGeometry.Normalize", "AutomationEvents.LiveRegionChanged"):
             self.assertIn(expected, source)
 
+    def test_enter_and_escape_leave_the_mode_and_position_is_announced(self):
+        source = (UI / "Views/SignPage.xaml.cs").read_text(encoding="utf-8")
+        keys = source[source.index("private void OnVisibleSealDrawKeyDown"):source.index("private void OnVisibleSealMovePointerPressed")]
+        self.assertEqual(2, keys.count("ExitVisibleSealDrawMode()"))
+        self.assertIn("ScheduleSealDrawPositionAnnouncement()", keys)
+        self.assertIn('"sign.seal.draw_position"', source)
+        self.assertIn("VisibleSealDrawToggle.Focus(FocusState.Keyboard)", source)
+        self.assertIn("VisibleSealDrawToggle.IsEnabled = ViewModel.CanDrawVisibleSealArea", source)
+
     def test_portal_moves_controls_only_after_loaded(self):
         source = (UI / "Views/SignPage.xaml.cs").read_text(encoding="utf-8")
         configure = source[source.index("internal void ConfigurePortalSeal"):source.index("private void ConfigurePortalSealLayout")]

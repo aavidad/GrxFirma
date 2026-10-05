@@ -855,7 +855,7 @@
                                                 Content="{x:Bind ViewModel.VisibleSealDrawAreaLabel, Mode=OneWay}"
                                                 AutomationProperties.Name="{x:Bind ViewModel.VisibleSealDrawAreaLabel, Mode=OneWay}"
                                                 AutomationProperties.HelpText="{x:Bind ViewModel.VisibleSealDrawAreaHelp, Mode=OneWay}"
-                                                MinHeight="40" HorizontalAlignment="Left" TabIndex="50"
+                                                MinHeight="40" HorizontalAlignment="Left" TabIndex="50" IsEnabled="False"
                                                 Checked="OnVisibleSealDrawModeChanged" Unchecked="OnVisibleSealDrawModeChanged"
                                                 KeyDown="OnVisibleSealDrawKeyDown" />
                                             <TextBlock x:Name="VisibleSealDrawHelp" Visibility="Collapsed"

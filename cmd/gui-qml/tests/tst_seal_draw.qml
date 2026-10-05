@@ -23,6 +23,8 @@ Item {
         when: windowShown
         SignalSpy { id: committed; target: area; signalName: "committed" }
         SignalSpy { id: feedback; target: area; signalName: "feedback" }
+        SignalSpy { id: finished; target: area; signalName: "finished" }
+        SignalSpy { id: moved; target: area; signalName: "keyboardMoved" }
         function init() {
             area.drawing = false
             area.drawMode = true
@@ -30,6 +32,8 @@ Item {
             area.forceActiveFocus()
             committed.clear()
             feedback.clear()
+            finished.clear()
+            moved.clear()
         }
         function test_reverse_drag_and_bottom_origin() {
             mousePress(area, 350, 560)
@@ -81,6 +85,18 @@ Item {
             fuzzyCompare(rect.y, 0.29, 1e-9)
             fuzzyCompare(rect.w, 0.39, 1e-9)
             fuzzyCompare(rect.h, 0.21, 1e-9)
+        }
+        function test_enter_applies_and_escape_discards_then_leave_the_mode() {
+            keyClick(Qt.Key_Right)
+            compare(moved.count, 1)
+            fuzzyCompare(moved.signalArguments[0][0].x, 0.21, 1e-9)
+            keyClick(Qt.Key_Return)
+            compare(committed.count, 1)
+            compare(finished.count, 1)
+            area.forceActiveFocus()
+            keyClick(Qt.Key_Escape)
+            compare(finished.count, 2)
+            compare(committed.count, 1)
         }
         function test_losing_preview_or_switching_mode_cancels() {
             keyClick(Qt.Key_Right)
