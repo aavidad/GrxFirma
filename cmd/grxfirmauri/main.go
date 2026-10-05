@@ -644,6 +644,20 @@ func isLegacyLaunchTerminalResult(result string) bool {
 	return result == "SAVE_OK" || result == "OK"
 }
 
+// portalCancelledResult reconoce la respuesta CANCEL: la persona canceló y
+// el portal ya lo sabe. No es un fallo de entrega.
+func portalCancelledResult(result legacyws.Resultado) bool {
+	return strings.EqualFold(strings.TrimSpace(result.Texto), "CANCEL")
+}
+
+// showPortalCancelled explica la cancelación con su propio texto; el aviso
+// se cierra solo al vencer el plazo, como tras un fallo.
+func showPortalCancelled(completion *portalCompletion) {
+	completion.failure()
+	setProtocolCompletionUI(true)
+	setProtocolPhase("operation_cancelled", tl("portal.operation.cancelled_title"), tl("portal.operation.cancelled_body"))
+}
+
 func successfulPortalResult(result legacyws.Resultado, expectedType string) bool {
 	if !strings.EqualFold(strings.TrimSpace(result.Tipo), expectedType) {
 		return false
@@ -744,6 +758,8 @@ func handleWebSocketLaunchRequest(
 					if successfulPortalResult(resultado, "firma") {
 						completion.delivered("signature")
 						completion.display()
+					} else if portalCancelledResult(resultado) {
+						showPortalCancelled(completion)
 					} else {
 						completion.failure()
 						setProtocolCompletionUI(true)
@@ -757,6 +773,8 @@ func handleWebSocketLaunchRequest(
 					if successfulPortalResult(resultado, "selectcert") {
 						completion.delivered("certificate")
 						completion.display()
+					} else if portalCancelledResult(resultado) {
+						showPortalCancelled(completion)
 					} else {
 						completion.failure()
 						setProtocolCompletionUI(true)
@@ -1054,7 +1072,7 @@ func setProtocolPhase(phase, status, detail string) {
 	// Las decisiones automáticas de la operación se explican siempre al
 	// usuario junto al estado, no solo en el registro.
 	updateProtocolUI(status, detailWithStartupTLSTrustNotice(avisos.ConAvisos(detail)))
-	if phase == "operation_failed" {
+	if phase == "operation_failed" || phase == "operation_cancelled" {
 		portalErrorUI()
 	}
 }
