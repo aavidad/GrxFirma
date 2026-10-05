@@ -382,6 +382,36 @@ static bool ipcHasTransientProtectionSecret(const QVariantMap &params) {
   return !options.value(QStringLiteral("secret_b64")).toString().isEmpty();
 }
 
+static bool ipcHasRemoteSigningSecret(const QVariantMap &params) {
+  return params.contains(QStringLiteral("remotePin")) ||
+         params.contains(QStringLiteral("remoteOtp"));
+}
+
+// El PIN y el OTP de un certificado remoto viajan en Base64 (el motor los
+// decodifica en []byte y los borra). Se retiran de las opciones de QML y se
+// borran las copias controladas por el bridge.
+static void ipcMoveRemoteSigningSecrets(QVariantMap &params,
+                                        const QVariantMap &options) {
+  const QString keys[] = {QStringLiteral("remotePin"),
+                          QStringLiteral("remoteOtp")};
+  for (const QString &key : keys) {
+    QString value = options.value(key).toString();
+    if (value.isEmpty())
+      continue;
+    QByteArray bytes = value.toUtf8();
+    QByteArray encoded = bytes.toBase64();
+    params.insert(key, QString::fromLatin1(encoded));
+    TransientSecret::zeroize(value);
+    TransientSecret::zeroize(bytes);
+    TransientSecret::zeroize(encoded);
+  }
+}
+
+static void ipcForgetRemoteSigningSecrets(QVariantMap &params) {
+  params.remove(QStringLiteral("remotePin"));
+  params.remove(QStringLiteral("remoteOtp"));
+}
+
 static QString ipcNewCorrelationId(const QString &prefix, quint64 seq) {
   return QStringLiteral("%1-%2-%3")
       .arg(prefix)
@@ -1085,6 +1115,12 @@ bool IpcBridge::queueDeferredRequest(const QString &action,
   if (action == "get_token_settings" || action == "save_token_settings" ||
       action == "diagnose_token_settings")
     return false;
+  if (action.startsWith(QStringLiteral("csc_")) ||
+      ipcHasRemoteSigningSecret(params)) {
+    // Conectar abre el navegador y el PIN/OTP es de una sola firma: nunca se
+    // repiten solos tras una reconexión.
+    return false;
+  }
   if (ipcHasTransientProtectionSecret(params)) {
     // EncryptedData usa una clave de una sola operación: no debe sobrevivir en
     // la cola de reconexión ni reintentarse sin una nueva acción del usuario.
@@ -1228,6 +1264,8 @@ void IpcBridge::failActionDueToConnection(const QString &action,
     emit certificateAccessOptionsLoaded(false, QVariantMap(), safeMessage);
   } else if (action == "smartcard_status") {
     emit smartcardStatusReceived(false, QVariantList(), safeMessage);
+  } else if (action.startsWith(QStringLiteral("csc_"))) {
+    emit cscFinished(action, false, QVariantMap(), safeMessage);
   } else if (action == "facturae_create") {
     emit facturaeCreated(false, QVariantMap(), safeMessage);
   } else if (action == "validate_verifactu") {
@@ -1342,7 +1380,9 @@ void IpcBridge::signFileAdvanced(const QString &inputPath,
   if (options.contains("visibleSeal")) {
     params["visibleSeal"] = options.value("visibleSeal").toMap();
   }
+  ipcMoveRemoteSigningSecrets(params, options);
   sendRequest("sign", params);
+  ipcForgetRemoteSigningSecrets(params);
 }
 
 void IpcBridge::signFileMultiAdvanced(const QString &inputPath,
@@ -1374,7 +1414,9 @@ void IpcBridge::signFileMultiAdvanced(const QString &inputPath,
   if (options.contains("visibleSeal")) {
     params["visibleSeal"] = options.value("visibleSeal").toMap();
   }
+  ipcMoveRemoteSigningSecrets(params, options);
   sendRequest("sign_multicosign", params);
+  ipcForgetRemoteSigningSecrets(params);
 }
 
 void IpcBridge::signBatchAdvanced(const QVariantList &inputPaths,
@@ -1409,7 +1451,9 @@ void IpcBridge::signBatchAdvanced(const QVariantList &inputPaths,
   if (options.contains("documentOverrides")) {
     params["documentOverrides"] = options.value("documentOverrides").toList();
   }
+  ipcMoveRemoteSigningSecrets(params, options);
   sendRequest("sign_batch", params);
+  ipcForgetRemoteSigningSecrets(params);
 }
 
 void IpcBridge::verifyFile(const QString &inputPath) {
@@ -1491,6 +1535,32 @@ void IpcBridge::generateENIDocument(const QVariantMap &params) {
 
 void IpcBridge::generateENIFile(const QVariantMap &params) {
   sendRequest(QStringLiteral("generate_eni_file"), params);
+}
+
+void IpcBridge::cscStatus() {
+  sendRequest(QStringLiteral("csc_status"), QVariantMap());
+}
+
+void IpcBridge::cscConfigure(const QString &serviceUrl,
+                             const QString &clientId) {
+  QVariantMap params;
+  params.insert(QStringLiteral("serviceUrl"), serviceUrl.trimmed());
+  params.insert(QStringLiteral("clientId"), clientId.trimmed());
+  sendRequest(QStringLiteral("csc_configure"), params);
+}
+
+void IpcBridge::cscConnect() {
+  sendRequest(QStringLiteral("csc_connect"), QVariantMap());
+}
+
+void IpcBridge::cscDisconnect() {
+  sendRequest(QStringLiteral("csc_disconnect"), QVariantMap());
+}
+
+void IpcBridge::cscSendOtp(const QString &certificateId) {
+  QVariantMap params;
+  params.insert(QStringLiteral("certificateId"), certificateId.trimmed());
+  sendRequest(QStringLiteral("csc_send_otp"), params);
 }
 
 void IpcBridge::requestSmartcardStatus() {
@@ -1933,6 +2003,17 @@ void IpcBridge::onReadyRead() {
       emit smartcardStatusReceived(ok,
                                    data.toObject().value(QStringLiteral("readers")).toArray().toVariantList(),
                                    ok ? QString() : errMsg);
+      continue;
+    }
+
+    if (action.startsWith(QStringLiteral("csc_"))) {
+      emit cscFinished(action, ok,
+                       ok ? data.toObject().toVariantMap() : QVariantMap(),
+                       ok ? QString() : errMsg);
+      if (ok && (action == QStringLiteral("csc_connect") ||
+                 action == QStringLiteral("csc_disconnect") ||
+                 action == QStringLiteral("csc_configure")))
+        refreshCertificates();
       continue;
     }
 
