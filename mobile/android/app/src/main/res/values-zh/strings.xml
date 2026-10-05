@@ -88,6 +88,7 @@
     <string name="seal_choose_image">选择图像</string>
     <string name="seal_show_text">显示签名信息</string>
     <string name="seal_text_color">文字颜色</string>
+    <string name="seal_color_auto">默认</string>
     <string name="seal_color_black">黑色</string>
     <string name="seal_color_blue">蓝色</string>
     <string name="seal_color_gray">深灰色</string>

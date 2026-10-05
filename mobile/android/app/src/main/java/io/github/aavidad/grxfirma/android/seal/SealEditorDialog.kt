@@ -126,7 +126,14 @@ class SealEditorDialog(
     }
 
     private fun buildDialog() {
-        val scroll = android.widget.ScrollView(activity)
+        // La barra de desplazamiento queda siempre visible y el borde inferior se
+        // difumina: así se ve que hay más ajustes debajo de los botones.
+        val scroll = android.widget.ScrollView(activity).apply {
+            isVerticalScrollBarEnabled = true
+            isScrollbarFadingEnabled = false
+            isVerticalFadingEdgeEnabled = true
+            setFadingEdgeLength(dp(24))
+        }
         val column = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             val pad = dp(16)
@@ -247,9 +254,9 @@ class SealEditorDialog(
                 refreshPreview()
             }
         })
-        column.addView(dropdown(R.string.seal_text_color, listOf(R.string.seal_color_black, R.string.seal_color_blue,
-            R.string.seal_color_gray), when (settings.textColor) { "blue" -> 1; "darkgray" -> 2; else -> 0 }) { position ->
-            settings = settings.copy(textColor = listOf("black", "blue", "darkgray")[position])
+        column.addView(dropdown(R.string.seal_text_color, listOf(R.string.seal_color_auto, R.string.seal_color_black,
+            R.string.seal_color_blue, R.string.seal_color_gray), SealSettings.TEXT_COLORS.indexOf(settings.textColor).coerceAtLeast(0)) { position ->
+            settings = settings.copy(textColor = SealSettings.TEXT_COLORS[position])
             refreshPreview()
         }.first)
         lateinit var pagesMode: DropdownField
@@ -294,15 +301,15 @@ class SealEditorDialog(
                 }
                 actual.show()
                 actual.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)
-                // Al abrir deben verse la página, su estado y la primera fila de botones.
-                scroll.post { fitCanvasToDialog(scroll, column, listOf(instructions, previewStatus, pageLabel, navigation, controlsLabel, move)) }
+                // Al abrir deben verse la página, su estado y las dos filas de botones enteras.
+                scroll.post { fitCanvasToDialog(scroll, column, listOf(instructions, previewStatus, pageLabel, navigation, controlsLabel, move, sizeAndRotation)) }
                 actual.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                     saveIfValid(actual)
                 }
             }
     }
 
-    /** Limita el lienzo al hueco que dejan en el diálogo los textos y la primera fila de botones. */
+    /** Limita el lienzo al hueco que dejan en el diálogo los textos y las filas de botones. */
     private fun fitCanvasToDialog(scroll: View, column: View, around: List<View>) {
         if (scroll.height <= 0) return
         val reserved = column.paddingTop + around.sumOf { if (it.isGone) 0 else it.height } + dp(16)

@@ -88,6 +88,7 @@
     <string name="seal_choose_image">Hautatu irudia</string>
     <string name="seal_show_text">Erakutsi sinaduraren datuak</string>
     <string name="seal_text_color">Testuaren kolorea</string>
+    <string name="seal_color_auto">Lehenetsia</string>
     <string name="seal_color_black">Beltza</string>
     <string name="seal_color_blue">Urdina</string>
     <string name="seal_color_gray">Gris iluna</string>

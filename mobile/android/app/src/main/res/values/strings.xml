@@ -88,6 +88,7 @@
     <string name="seal_choose_image">Seleccionar imagen</string>
     <string name="seal_show_text">Mostrar datos de la firma</string>
     <string name="seal_text_color">Color del texto</string>
+    <string name="seal_color_auto">Predeterminado</string>
     <string name="seal_color_black">Negro</string>
     <string name="seal_color_blue">Azul</string>
     <string name="seal_color_gray">Gris oscuro</string>

@@ -33,9 +33,11 @@ data class SealSettings(
     val allPages: Boolean = false,
     val qrEnabled: Boolean = false,
     val qrAddress: String = "",
-    val logo: String = "none",
+    /** Como en el escritorio: emblema institucional y colores propios del sello. */
+    val logo: String = "institutional",
     val keepText: Boolean = true,
-    val textColor: String = "black",
+    /** «auto» no envía color: el motor usa los colores del sello de escritorio. */
+    val textColor: String = "auto",
     /** Varias páginas, cada una con su posición (como el editor de escritorio). */
     val perPage: Boolean = false,
     /** Depende del documento abierto: no se guarda en las preferencias. */
@@ -78,7 +80,7 @@ data class SealSettings(
         require(pageCount >= 1 && page in 1..pageCount && (!allPages || pageCount <= MAX_PLACEMENTS))
         require(pageWidth > 0 && pageHeight > 0)
         require(logo in setOf("none", "institutional", "custom"))
-        require(textColor in setOf("black", "blue", "darkgray"))
+        require(textColor in TEXT_COLORS)
         require(keepText || logo != "none" || qrEnabled)
         val placements = JSONArray()
         for ((number, placement) in placementList(pageCount)) {
@@ -98,7 +100,7 @@ data class SealSettings(
             put("visibleSealRectH", (rect.h * pageHeight).toString())
             put("visibleSealLogoOpacityPercent", opacity.toString())
             put("visibleSealKeepText", keepText.toString())
-            put("layer2FontColor", textColor)
+            if (textColor != "auto") put("layer2FontColor", textColor)
             if (logo == "institutional") put("visibleSealLogo", "institucional")
             if (logo == "custom") {
                 require(!imageBase64.isNullOrBlank())
@@ -128,6 +130,8 @@ data class SealSettings(
 
     companion object {
         const val MAX_PLACEMENTS = 128
+        /** Orden del desplegable «Color del texto». */
+        val TEXT_COLORS = listOf("auto", "black", "blue", "darkgray")
         const val MAX_CSV_CODE = 128
         const val MAX_CSV_URL = 2048
         const val MAX_CSV_TEXT = 512
@@ -198,11 +202,11 @@ class SealPreferences(context: Context) {
         perPage = preferences.getBoolean("per_page", false),
         qrEnabled = preferences.getBoolean("qr_enabled", false),
         qrAddress = preferences.getString("qr_address", "").orEmpty(),
-        logo = preferences.getString("logo", "none").orEmpty().takeIf { it in setOf("none", "institutional", "custom") } ?: "none",
+        logo = preferences.getString("logo", "institutional").orEmpty().takeIf { it in setOf("none", "institutional", "custom") } ?: "institutional",
         keepText = preferences.getBoolean("keep_text", true),
-        textColor = preferences.getString("text_color", "black").orEmpty().takeIf {
-            it in setOf("black", "blue", "darkgray")
-        } ?: "black",
+        textColor = preferences.getString("text_color", "auto").orEmpty().takeIf {
+            it in SealSettings.TEXT_COLORS
+        } ?: "auto",
         csvEnabled = preferences.getBoolean("csv_enabled", false),
         csvUrl = preferences.getString("csv_url", "").orEmpty().take(SealSettings.MAX_CSV_URL),
         csvText = preferences.getString("csv_text", "").orEmpty().take(SealSettings.MAX_CSV_TEXT),
