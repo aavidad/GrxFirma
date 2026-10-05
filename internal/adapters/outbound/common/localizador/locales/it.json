@@ -6466,4 +6466,5 @@
   ,"qt.sidebar.add_favorite": "Aggiungi ai preferiti"
   ,"qt.folderbreadcrumbbar.up": "Su"
   ,"qt.qstandardpaths.downloads": "Scaricati"
+  ,"error.salida_existe": "Esiste già un file con questo nome e la preferenza di sovrascrittura non consente di sostituirlo: %s"
 }

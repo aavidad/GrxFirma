@@ -6466,4 +6466,5 @@
   ,"qt.sidebar.add_favorite": "Zu Favoriten hinzufügen"
   ,"qt.folderbreadcrumbbar.up": "Nach oben"
   ,"qt.qstandardpaths.downloads": "Downloads"
+  ,"error.salida_existe": "Eine Datei mit diesem Namen ist bereits vorhanden und die Einstellung zum Überschreiben erlaubt nicht, sie zu ersetzen: %s"
 }

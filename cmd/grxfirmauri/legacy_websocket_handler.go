@@ -65,25 +65,29 @@ type legacyLoadPicker func(ctx context.Context, initialPath, extensions string, 
 type legacySavePicker func(ctx context.Context, defaultPath, extensions string) (string, error)
 
 type legacyWebSocketHandler struct {
-	signUC        signDocumentExecutor
-	batchUC       processBatchExecutor
-	approval      ports.UserApproval
-	catalogo      ports.CertificateCatalog
-	selector      certpicker.CertSelector
-	documentos    ports.DocumentPicker
-	keys          ports.SigningKeyProvider
-	retrieve      *triphase.Executor
-	batchRemote   remoteBatchExecutor
-	loadPicker    legacyLoadPicker
-	savePicker    legacySavePicker
-	afterSave     func(savedPath string, size int)
-	afterTerminal func(op afirmauri.TipoOperacion, result string)
-	stickyMu      sync.Mutex
-	stickyID      string
-	cacheMu       sync.RWMutex
-	cacheCerts    []domain.CertificateRef
-	cacheErr      error
-	cacheLoaded   bool
+	signUC      signDocumentExecutor
+	batchUC     processBatchExecutor
+	approval    ports.UserApproval
+	catalogo    ports.CertificateCatalog
+	selector    certpicker.CertSelector
+	documentos  ports.DocumentPicker
+	keys        ports.SigningKeyProvider
+	retrieve    *triphase.Executor
+	batchRemote remoteBatchExecutor
+	loadPicker  legacyLoadPicker
+	savePicker  legacySavePicker
+	// savePickerConfirmsOverwrite indica que savePicker es un diálogo de
+	// guardar del sistema que ya pregunta antes de reemplazar un fichero. Solo
+	// entonces se reemplaza el destino elegido; en otro caso se renombra.
+	savePickerConfirmsOverwrite bool
+	afterSave                   func(savedPath string, size int)
+	afterTerminal               func(op afirmauri.TipoOperacion, result string)
+	stickyMu                    sync.Mutex
+	stickyID                    string
+	cacheMu                     sync.RWMutex
+	cacheCerts                  []domain.CertificateRef
+	cacheErr                    error
+	cacheLoaded                 bool
 }
 
 func (h *legacyWebSocketHandler) withApproval(approval ports.UserApproval) *legacyWebSocketHandler {
@@ -240,6 +244,8 @@ func newLegacyWebSocketHandler(
 		batchRemote: batchRemote,
 		loadPicker:  selectLegacyLoadPaths,
 		savePicker:  selectLegacySaveTargetPath,
+
+		savePickerConfirmsOverwrite: legacySavePickerConfirmsOverwrite,
 	}
 	if !certpicker.SupportsCredentialLoading(selector) {
 		go h.warmCertificates(context.Background())
@@ -972,12 +978,17 @@ func (h *legacyWebSocketHandler) pickLegacyLoadPaths(ctx context.Context, initia
 	return picker(ctx, initialPath, extensions, multi)
 }
 
-func (h *legacyWebSocketHandler) pickLegacySaveTarget(ctx context.Context, defaultPath, extensions string) (string, error) {
+// pickLegacySaveTarget devuelve la ruta elegida y si la persona ya confirmó en
+// el diálogo del sistema que puede reemplazarse.
+func (h *legacyWebSocketHandler) pickLegacySaveTarget(ctx context.Context, defaultPath, extensions string) (string, bool, error) {
 	picker := legacySavePicker(selectLegacySaveTargetPath)
+	confirms := legacySavePickerConfirmsOverwrite
 	if h != nil && h.savePicker != nil {
 		picker = h.savePicker
+		confirms = h.savePickerConfirmsOverwrite
 	}
-	return picker(ctx, defaultPath, extensions)
+	path, err := picker(ctx, defaultPath, extensions)
+	return path, confirms, err
 }
 
 func (h *legacyWebSocketHandler) handleSave(ctx context.Context, solicitud afirmauri.Solicitud) string {
@@ -997,7 +1008,7 @@ func (h *legacyWebSocketHandler) handleSave(ctx context.Context, solicitud afirm
 	if err != nil {
 		return "SAF_05: No se pudo determinar ruta de guardado"
 	}
-	selectedPath, err := h.pickLegacySaveTarget(ctx, targetPath, effectiveLegacySaveExtensions(solicitud.LegacyParams, ".bin"))
+	selectedPath, overwriteConfirmed, err := h.pickLegacySaveTarget(ctx, targetPath, effectiveLegacySaveExtensions(solicitud.LegacyParams, ".bin"))
 	if err != nil {
 		if isLegacySaveCancellation(err) {
 			return "CANCEL"
@@ -1015,7 +1026,7 @@ func (h *legacyWebSocketHandler) handleSave(ctx context.Context, solicitud afirm
 	if !ok {
 		return "SAF_05: Ruta fuera del ámbito permitido"
 	}
-	savedPath, err := writeLegacySavedFile(targetPath, data)
+	savedPath, err := writeLegacySavedFile(targetPath, data, overwriteConfirmed)
 	if err != nil {
 		return "SAF_05: No se pudo guardar el fichero"
 	}
@@ -1276,7 +1287,7 @@ func (h *legacyWebSocketHandler) handleSignAndSave(ctx context.Context, solicitu
 	if err != nil {
 		return "SAF_05: No se pudo determinar ruta de guardado", nil
 	}
-	selectedPath, err := h.pickLegacySaveTarget(ctx, targetPath, effectiveLegacySaveExtensions(solicitud.LegacyParams, defaultSignedExtension(cmd.Format)))
+	selectedPath, overwriteConfirmed, err := h.pickLegacySaveTarget(ctx, targetPath, effectiveLegacySaveExtensions(solicitud.LegacyParams, defaultSignedExtension(cmd.Format)))
 	if err != nil {
 		if isLegacySaveCancellation(err) {
 			return "CANCEL", nil
@@ -1294,7 +1305,7 @@ func (h *legacyWebSocketHandler) handleSignAndSave(ctx context.Context, solicitu
 	if !ok {
 		return "SAF_05: Ruta fuera del ámbito permitido", nil
 	}
-	savedPath, err := writeLegacySavedFile(targetPath, resultado.Result.Data)
+	savedPath, err := writeLegacySavedFile(targetPath, resultado.Result.Data, overwriteConfirmed)
 	if err != nil {
 		return "SAF_05: No se pudo guardar el fichero firmado", nil
 	}
@@ -1660,9 +1671,16 @@ func resolveLegacyWritablePath(rawPath string) (string, bool) {
 	return cleanPath, true
 }
 
-func writeLegacySavedFile(targetPath string, data []byte) (string, error) {
-	writer := desktopfilesystem.NuevoEscritorResultado(desktopfilesystem.PoliticaForzar)
-	return writer.Escribir(targetPath, data)
+// writeLegacySavedFile solo reemplaza un fichero existente si la persona lo
+// confirmó en el diálogo de guardar del sistema. Sin esa confirmación (por
+// ejemplo, en la compilación sin interfaz, que acepta la ruta propuesta por el
+// portal) se guarda con otro nombre y se devuelve la ruta real.
+func writeLegacySavedFile(targetPath string, data []byte, overwriteConfirmed bool) (string, error) {
+	politica := desktopfilesystem.PoliticaRenombrar
+	if overwriteConfirmed {
+		politica = desktopfilesystem.PoliticaForzar
+	}
+	return desktopfilesystem.NuevoEscritorResultado(politica).Escribir(targetPath, data)
 }
 
 // Las rutas que el usuario elige en el diálogo nativo son decisión suya, como

@@ -2206,8 +2206,8 @@ func TestDespachar_SignBatch_RenameReservaSalidasUnicas(
 		t.Fatalf("sign_batch OK=false, error=%s", resp.Error)
 	}
 	for path, expected := range map[string]string{
-		filepath.Join(outputDir, "documento_firmado.pdf"):   "signed-a",
-		filepath.Join(outputDir, "documento_2_firmado.pdf"): "signed-b",
+		filepath.Join(outputDir, "documento_firmado.pdf"):     "signed-a",
+		filepath.Join(outputDir, "documento_firmado_001.pdf"): "signed-b",
 	} {
 		content, err := os.ReadFile(path)
 		if err != nil {

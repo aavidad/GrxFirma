@@ -109,6 +109,8 @@ type metaFirmaLote struct {
 	format     string
 	options    map[string]string
 	content    []byte
+	// politica de sobrescritura resuelta una vez para todo el lote.
+	politica filesystem.PoliticaSobreescritura
 }
 
 // VerifySignatureUseCase define el contrato minimo para verificar firmas.
@@ -274,7 +276,7 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 	case "certificate_export_public":
 		resp = m.handleCertificateExportPublic(ctx, p.Params)
 	case "facturae_create":
-		resp = handleFacturaeCreate(ctx, p.Params)
+		resp = m.handleFacturaeCreate(ctx, p.Params)
 	case "validate_eni":
 		resp = m.handleValidateENI(ctx, p.Params)
 	case "validate_verifactu", "read_verifactu_qr", "query_verifactu_qr", "detect_verifactu":
@@ -484,9 +486,10 @@ func (m *Manejador) handleCertificados(ctx context.Context, accion string) respu
 func (m *Manejador) handleCertificateExportPublic(ctx context.Context, raw json.RawMessage) respuesta {
 	const action = "certificate_export_public"
 	var params struct {
-		CertificateID string `json:"certificateId"`
-		OutputPath    string `json:"outputPath"`
-		Format        string `json:"format"`
+		CertificateID      string `json:"certificateId"`
+		OutputPath         string `json:"outputPath"`
+		Format             string `json:"format"`
+		OverwriteConfirmed bool   `json:"overwriteConfirmed,omitempty"`
 	}
 	if err := json.Unmarshal(raw, &params); err != nil || strings.TrimSpace(params.CertificateID) == "" {
 		return respuesta{OK: false, Action: action, Error: m.t("certificado.exportar.seleccione")}
@@ -539,9 +542,10 @@ func (m *Manejador) handleCertificateExportPublic(ctx context.Context, raw json.
 		if err := ctx.Err(); err != nil {
 			return respuesta{OK: false, Action: action, Error: err.Error()}
 		}
-		outputPath, err = filesystem.NuevoEscritorResultado(filesystem.PoliticaForzar).Escribir(outputPath, data)
+		requested := outputPath
+		outputPath, err = m.guardarSalidaEstrictaIPC(ctx, outputPath, "", params.OverwriteConfirmed, data)
 		if err != nil {
-			return respuesta{OK: false, Action: action, Error: err.Error()}
+			return respuesta{OK: false, Action: action, Error: m.mensajeErrorSalidaIPC(err, requested, err.Error())}
 		}
 	}
 	return respuesta{OK: true, Action: action, Data: map[string]any{
@@ -726,7 +730,7 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 
 	outputPath := params.OutputPath
 	if outputPath == "" {
-		outputPath = rutaSalida(params.InputPath, formato, params.Overwrite)
+		outputPath = rutaSalida(params.InputPath, formato)
 	}
 	// Una llamada nativa puede terminar después de la desconexión. No iniciar
 	// el commit si ya se conoce la cancelación; un commit ya iniciado no se
@@ -734,11 +738,13 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}
 	}
-	if err := securefile.WriteFileAtomic(outputPath, result.Result.Data, 0o600); err != nil {
+	requestedPath := outputPath
+	outputPath, err = m.guardarSalidaIPC(ctx, outputPath, params.Overwrite, params.OverwriteConfirmed, result.Result.Data)
+	if err != nil {
 		return respuesta{
 			OK:     false,
 			Action: "sign",
-			Error:  "no se pudo guardar el resultado firmado",
+			Error:  m.mensajeErrorSalidaIPC(err, requestedPath, "no se pudo guardar el resultado firmado"),
 		}
 	}
 
@@ -822,16 +828,18 @@ func (m *Manejador) handleFirmaMultiCofirma(ctx context.Context, raw json.RawMes
 
 	outputPath := params.OutputPath
 	if outputPath == "" {
-		outputPath = rutaSalida(params.InputPath, formato, params.Overwrite)
+		outputPath = rutaSalida(params.InputPath, formato)
 	}
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: "sign_multicosign", Error: err.Error()}
 	}
-	if err := securefile.WriteFileAtomic(outputPath, result.Result.Data, 0o600); err != nil {
+	requestedPath := outputPath
+	outputPath, err = m.guardarSalidaIPC(ctx, outputPath, params.Overwrite, params.OverwriteConfirmed, result.Result.Data)
+	if err != nil {
 		return respuesta{
 			OK:     false,
 			Action: "sign_multicosign",
-			Error:  "no se pudo guardar el resultado firmado",
+			Error:  m.mensajeErrorSalidaIPC(err, requestedPath, "no se pudo guardar el resultado firmado"),
 		}
 	}
 	return respuesta{OK: true, Action: "sign_multicosign", Data: resultadoFirma{OutputPath: outputPath, Format: string(result.Result.Format)}}
@@ -924,6 +932,9 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 	}
 	isMultiCosign := len(params.AdditionalCertificateIDs) > 0
 	reservedOutputs := make(map[string]struct{}, len(inputPaths))
+	// En el lote no hay diálogo de guardar por fichero: siempre manda la
+	// política (la de la petición o, si no llega, la preferencia guardada).
+	politicaLote := m.politicaSalidaIPC(ctx, params.Overwrite, false)
 	var aggregateSize int64
 	var preferenciasFirma ports.DocumentoConfiguracionUsuario
 	preferenciasCargadas := false
@@ -968,7 +979,7 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 			inputPath,
 			params.OutputDir,
 			formato,
-			params.Overwrite,
+			politicaLote,
 			reservedOutputs,
 		)
 		if err != nil {
@@ -990,6 +1001,7 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 			format:     formato,
 			options:    opciones,
 			content:    contenido,
+			politica:   politicaLote,
 		})
 	}
 
@@ -1050,15 +1062,16 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 		if err := ctx.Err(); err != nil {
 			return respuesta{OK: false, Action: "sign_batch", Error: err.Error()}
 		}
-		if err := securefile.WriteFileAtomic(meta.outputPath, signed.Result.Data, 0o600); err != nil {
-			item.Error = "no se pudo guardar el resultado firmado"
+		finalPath, err := filesystem.NuevoEscritorResultado(meta.politica).EscribirEnDirectorioExistente(meta.outputPath, signed.Result.Data)
+		if err != nil {
+			item.Error = m.mensajeErrorSalidaIPC(err, meta.outputPath, "no se pudo guardar el resultado firmado")
 			failCount++
 			items = append(items, item)
 			continue
 		}
 
 		item.OK = true
-		item.OutputPath = meta.outputPath
+		item.OutputPath = finalPath
 		item.Format = string(signed.Result.Format)
 		okCount++
 		items = append(items, item)
@@ -1148,14 +1161,15 @@ func (m *Manejador) handleFirmaLoteMultiCofirma(ctx context.Context, params para
 		if err := ctx.Err(); err != nil {
 			return respuesta{OK: false, Action: "sign_batch", Error: err.Error()}
 		}
-		if err := securefile.WriteFileAtomic(meta.outputPath, result.Result.Data, 0o600); err != nil {
-			item.Error = "no se pudo guardar el resultado firmado"
+		finalPath, err := filesystem.NuevoEscritorResultado(meta.politica).EscribirEnDirectorioExistente(meta.outputPath, result.Result.Data)
+		if err != nil {
+			item.Error = m.mensajeErrorSalidaIPC(err, meta.outputPath, "no se pudo guardar el resultado firmado")
 			failCount++
 			items = append(items, item)
 			continue
 		}
 		item.OK = true
-		item.OutputPath = meta.outputPath
+		item.OutputPath = finalPath
 		item.Format = string(result.Result.Format)
 		okCount++
 		items = append(items, item)
@@ -1460,17 +1474,13 @@ func (m *Manejador) handleProtect(ctx context.Context, raw json.RawMessage) resp
 		outputPath = construirSalidaProtegidaRutaIPC(params.InputPath, result.Protected.Document.Name)
 	}
 	if saveToDisk {
-		politica := filesystem.PoliticaRenombrar
-		if strings.EqualFold(strings.TrimSpace(params.Overwrite), "force") || strings.EqualFold(strings.TrimSpace(params.Overwrite), "true") {
-			politica = filesystem.PoliticaForzar
-		}
-		writer := filesystem.NuevoEscritorResultado(politica)
 		if err := ctx.Err(); err != nil {
 			return respuesta{OK: false, Action: "protect", Error: err.Error()}
 		}
-		outputPath, err = writer.Escribir(outputPath, result.Protected.Document.Content)
+		requestedPath := outputPath
+		outputPath, err = m.guardarSalidaEstrictaIPC(ctx, outputPath, params.Overwrite, params.OverwriteConfirmed, result.Protected.Document.Content)
 		if err != nil {
-			return respuesta{OK: false, Action: "protect", Error: err.Error()}
+			return respuesta{OK: false, Action: "protect", Error: m.mensajeErrorSalidaIPC(err, requestedPath, err.Error())}
 		}
 	}
 	resp := resultadoProteccion{
@@ -1557,17 +1567,13 @@ func (m *Manejador) handleProtectSign(ctx context.Context, raw json.RawMessage) 
 		outputPath = construirSalidaProtegidaRutaIPC(params.InputPath, result.Protected.Document.Name)
 	}
 	if saveToDisk {
-		politica := filesystem.PoliticaRenombrar
-		if strings.EqualFold(strings.TrimSpace(params.Overwrite), "force") || strings.EqualFold(strings.TrimSpace(params.Overwrite), "true") {
-			politica = filesystem.PoliticaForzar
-		}
-		writer := filesystem.NuevoEscritorResultado(politica)
 		if err := ctx.Err(); err != nil {
 			return respuesta{OK: false, Action: "protect_sign", Error: err.Error()}
 		}
-		outputPath, err = writer.Escribir(outputPath, result.Protected.Document.Content)
+		requestedPath := outputPath
+		outputPath, err = m.guardarSalidaEstrictaIPC(ctx, outputPath, params.Overwrite, params.OverwriteConfirmed, result.Protected.Document.Content)
 		if err != nil {
-			return respuesta{OK: false, Action: "protect_sign", Error: err.Error()}
+			return respuesta{OK: false, Action: "protect_sign", Error: m.mensajeErrorSalidaIPC(err, requestedPath, err.Error())}
 		}
 	}
 	resp := resultadoProteccion{
@@ -1637,17 +1643,13 @@ func (m *Manejador) handleUnprotect(ctx context.Context, raw json.RawMessage) re
 		outputPath = construirSalidaDesprotegidaRutaIPC(params.InputPath, result.Unprotected.Document.Name)
 	}
 	if saveToDisk {
-		politica := filesystem.PoliticaRenombrar
-		if strings.EqualFold(strings.TrimSpace(params.Overwrite), "force") || strings.EqualFold(strings.TrimSpace(params.Overwrite), "true") {
-			politica = filesystem.PoliticaForzar
-		}
-		writer := filesystem.NuevoEscritorResultado(politica)
 		if err := ctx.Err(); err != nil {
 			return respuesta{OK: false, Action: "unprotect", Error: err.Error()}
 		}
-		outputPath, err = writer.Escribir(outputPath, result.Unprotected.Document.Content)
+		requestedPath := outputPath
+		outputPath, err = m.guardarSalidaEstrictaIPC(ctx, outputPath, params.Overwrite, params.OverwriteConfirmed, result.Unprotected.Document.Content)
 		if err != nil {
-			return respuesta{OK: false, Action: "unprotect", Error: err.Error()}
+			return respuesta{OK: false, Action: "unprotect", Error: m.mensajeErrorSalidaIPC(err, requestedPath, err.Error())}
 		}
 	}
 	resp := resultadoDesproteccion{
@@ -1751,13 +1753,13 @@ func (m *Manejador) handleHashCreateFichero(ctx context.Context, params paramsHa
 	if err := validarRutaEscritura(outputPath); err != nil {
 		return respuesta{OK: false, Action: "hash_create", Error: err.Error()}
 	}
-	writer := filesystem.NuevoEscritorResultado(filesystem.PoliticaForzar)
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: "hash_create", Error: err.Error()}
 	}
-	outputPath, err = writer.Escribir(outputPath, serializarHashCreadoIPC(result))
+	requestedPath := outputPath
+	outputPath, err = m.guardarSalidaEstrictaIPC(ctx, outputPath, "", params.OverwriteConfirmed, serializarHashCreadoIPC(result))
 	if err != nil {
-		return respuesta{OK: false, Action: "hash_create", Error: err.Error()}
+		return respuesta{OK: false, Action: "hash_create", Error: m.mensajeErrorSalidaIPC(err, requestedPath, err.Error())}
 	}
 
 	return respuesta{OK: true, Action: "hash_create", Data: resultadoHash{
@@ -1796,13 +1798,13 @@ func (m *Manejador) handleHashCreateDirectorio(ctx context.Context, params param
 	if err := validarRutaEscritura(outputPath); err != nil {
 		return respuesta{OK: false, Action: "hash_create", Error: err.Error()}
 	}
-	writer := filesystem.NuevoEscritorResultado(filesystem.PoliticaForzar)
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: "hash_create", Error: err.Error()}
 	}
-	outputPath, err = writer.Escribir(outputPath, result.Data)
+	requestedPath := outputPath
+	outputPath, err = m.guardarSalidaEstrictaIPC(ctx, outputPath, "", params.OverwriteConfirmed, result.Data)
 	if err != nil {
-		return respuesta{OK: false, Action: "hash_create", Error: err.Error()}
+		return respuesta{OK: false, Action: "hash_create", Error: m.mensajeErrorSalidaIPC(err, requestedPath, err.Error())}
 	}
 
 	return respuesta{OK: true, Action: "hash_create", Data: resultadoHashDirectorio{
@@ -1922,13 +1924,13 @@ func (m *Manejador) handleHashCheckDirectorio(ctx context.Context, params params
 			if err := validarRutaEscritura(outputPath); err != nil {
 				return respuesta{OK: false, Action: "hash_check", Error: err.Error()}
 			}
-			writer := filesystem.NuevoEscritorResultado(filesystem.PoliticaForzar)
 			if err := ctx.Err(); err != nil {
 				return respuesta{OK: false, Action: "hash_check", Error: err.Error()}
 			}
-			outputPath, err = writer.Escribir(outputPath, reportData)
+			requestedPath := outputPath
+			outputPath, err = m.guardarSalidaEstrictaIPC(ctx, outputPath, "", params.OverwriteConfirmed, reportData)
 			if err != nil {
-				return respuesta{OK: false, Action: "hash_check", Error: err.Error()}
+				return respuesta{OK: false, Action: "hash_check", Error: m.mensajeErrorSalidaIPC(err, requestedPath, err.Error())}
 			}
 			data.ReportOutputPath = outputPath
 		}
@@ -3774,81 +3776,43 @@ func clamp01(v float64) float64 {
 	return v
 }
 
-// rutaSalida calcula la ruta de salida para el fichero firmado.
-func rutaSalida(inputPath, formato, overwrite string) string {
+// rutaSalida calcula la ruta de salida propuesta para el fichero firmado. La
+// decisión sobre un fichero existente (renombrar, fallar o reemplazar) no se
+// toma aquí, sino al escribir con guardarSalidaIPC.
+func rutaSalida(inputPath, formato string) string {
 	dir := filepath.Dir(inputPath)
 	ext := filepath.Ext(inputPath)
 	base := strings.TrimSuffix(filepath.Base(inputPath), ext)
-	sufijo := sufijoSalidaFirma(formato)
-	salida := filepath.Join(dir, base+sufijo)
-
-	if overwrite == "overwrite" || overwrite == "force" {
-		return salida
-	}
-	if _, err := os.Stat(salida); os.IsNotExist(err) {
-		return salida
-	}
-	for i := 2; i < 100; i++ {
-		candidato := filepath.Join(dir, fmt.Sprintf("%s_%d%s", base, i, sufijo))
-		if _, err := os.Stat(candidato); os.IsNotExist(err) {
-			return candidato
-		}
-	}
-	return salida
+	return filepath.Join(dir, base+sufijoSalidaFirma(formato))
 }
 
+// reservarRutaSalidaLote propone la ruta de salida de un documento del lote.
+// Con «force» rechaza que dos documentos del mismo lote apunten al mismo
+// fichero, porque uno reemplazaría al otro. Con las demás políticas no hace
+// falta: la escritura es exclusiva y el segundo se renombra o falla.
 func reservarRutaSalidaLote(
 	inputPath,
 	outputDir,
-	formato,
-	overwrite string,
+	formato string,
+	politica filesystem.PoliticaSobreescritura,
 	reserved map[string]struct{},
 ) (string, error) {
 	baseInput := inputPath
 	if outputDir != "" {
 		baseInput = filepath.Join(outputDir, filepath.Base(inputPath))
 	}
-	dir := filepath.Dir(baseInput)
-	ext := filepath.Ext(baseInput)
-	base := strings.TrimSuffix(filepath.Base(baseInput), ext)
-	suffix := sufijoSalidaFirma(formato)
-	candidate := filepath.Join(dir, base+suffix)
-
-	if overwrite == "overwrite" || overwrite == "force" {
-		key := normalizarClaveRutaLote(candidate)
-		if _, collision := reserved[key]; collision {
-			return "", errors.New(
-				"varios documentos del lote producirían la misma ruta de salida",
-			)
-		}
-		reserved[key] = struct{}{}
+	candidate := rutaSalida(baseInput, formato)
+	if politica != filesystem.PoliticaForzar {
 		return candidate, nil
 	}
-
-	for index := 1; index <= maxIPCBatchDocuments+1; index++ {
-		if index > 1 {
-			candidate = filepath.Join(
-				dir,
-				fmt.Sprintf("%s_%d%s", base, index, suffix),
-			)
-		}
-		key := normalizarClaveRutaLote(candidate)
-		if _, collision := reserved[key]; collision {
-			continue
-		}
-		if _, err := os.Lstat(candidate); err == nil {
-			continue
-		} else if !errors.Is(err, os.ErrNotExist) {
-			return "", errors.New(
-				"no se pudo comprobar una ruta de salida del lote",
-			)
-		}
-		reserved[key] = struct{}{}
-		return candidate, nil
+	key := normalizarClaveRutaLote(candidate)
+	if _, collision := reserved[key]; collision {
+		return "", errors.New(
+			"varios documentos del lote producirían la misma ruta de salida",
+		)
 	}
-	return "", errors.New(
-		"no se pudo reservar una ruta de salida única para el lote",
-	)
+	reserved[key] = struct{}{}
+	return candidate, nil
 }
 
 func sufijoSalidaFirma(formato string) string {

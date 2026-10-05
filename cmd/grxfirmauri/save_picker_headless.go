@@ -11,6 +11,9 @@ import (
 	"context"
 )
 
+// Sin interfaz no hay diálogo que pregunte antes de reemplazar.
+const legacySavePickerConfirmsOverwrite = false
+
 func selectLegacySaveTargetPath(_ context.Context, defaultPath string, _ string) (string, error) {
 	return defaultPath, nil
 }

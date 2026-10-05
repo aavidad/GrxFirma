@@ -6466,4 +6466,5 @@
   ,"qt.sidebar.add_favorite": "Afegeix als preferits"
   ,"qt.folderbreadcrumbbar.up": "Amunt"
   ,"qt.qstandardpaths.downloads": "Baixades"
+  ,"error.salida_existe": "Ja existeix un fitxer amb aquest nom i la preferència de sobreescriptura no permet substituir-lo: %s"
 }

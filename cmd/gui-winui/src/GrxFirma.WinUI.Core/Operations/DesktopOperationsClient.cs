@@ -175,15 +175,17 @@ public sealed class DesktopOperationsClient
 
     public Task<IpcCallResult<EniGenerationResult>> GenerateEniDocumentAsync(
         string inputPath, string? originalPath, string outputPath,
-        IReadOnlyDictionary<string, string> options, CancellationToken cancellationToken = default) =>
+        IReadOnlyDictionary<string, string> options, bool overwriteConfirmed = false,
+        CancellationToken cancellationToken = default) =>
         _ipcClient.SendAsync<object, EniGenerationResult>(DesktopOperationActions.GenerateEniDocument,
-            new { inputPath, originalPath, outputPath, options }, cancellationToken);
+            new { inputPath, originalPath, outputPath, options, overwriteConfirmed }, cancellationToken);
 
     public Task<IpcCallResult<EniGenerationResult>> GenerateEniFileAsync(
         string directoryPath, string outputPath, string certificateId,
-        IReadOnlyDictionary<string, string> options, CancellationToken cancellationToken = default) =>
+        IReadOnlyDictionary<string, string> options, bool overwriteConfirmed = false,
+        CancellationToken cancellationToken = default) =>
         _ipcClient.SendAsync<object, EniGenerationResult>(DesktopOperationActions.GenerateEniFile,
-            new { directoryPath, outputPath, certificateId, options }, cancellationToken);
+            new { directoryPath, outputPath, certificateId, options, overwriteConfirmed }, cancellationToken);
 
     public Task<IpcCallResult<CertificateOnlineValidationResult>>
         ValidateCertificateOnlineAsync(

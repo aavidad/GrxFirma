@@ -6466,4 +6466,5 @@
   ,"qt.sidebar.add_favorite": "Ajouter aux favoris"
   ,"qt.folderbreadcrumbbar.up": "Dossier parent"
   ,"qt.qstandardpaths.downloads": "Téléchargements"
+  ,"error.salida_existe": "Un fichier portant ce nom existe déjà et la préférence d’écrasement ne permet pas de le remplacer : %s"
 }

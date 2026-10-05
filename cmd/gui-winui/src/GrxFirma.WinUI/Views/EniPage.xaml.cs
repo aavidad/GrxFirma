@@ -337,7 +337,7 @@ public sealed partial class EniPage : Page
         _status.Text = T("paridad.lote3.eni.creating");
         try
         {
-            var result = await operations.GenerateEniDocumentAsync(_signatureFile, _originalFile, output, options);
+            var result = await operations.GenerateEniDocumentAsync(_signatureFile, _originalFile, output, options, overwriteConfirmed: true);
             ShowResult(_documentMessage, _createDocument, result.IsSuccess && result.Data is not null
                 ? T("paridad.lote3.eni.created").Replace("%1", result.Data.OutputPath)
                 : T("paridad.lote3.eni.failed").Replace("%1", result.SafeUserMessage));
@@ -377,7 +377,7 @@ public sealed partial class EniPage : Page
         _status.Text = T("paridad.lote3.eni.creating");
         try
         {
-            var result = await operations.GenerateEniFileAsync(_folder, output, certificate.Id, options);
+            var result = await operations.GenerateEniFileAsync(_folder, output, certificate.Id, options, overwriteConfirmed: true);
             ShowResult(_fileMessage, _createFile, result.IsSuccess && result.Data is not null
                 ? T("paridad.lote3.eni.created").Replace("%1", result.Data.OutputPath)
                 : T("paridad.lote3.eni.failed").Replace("%1", result.SafeUserMessage));

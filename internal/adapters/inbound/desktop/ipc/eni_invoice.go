@@ -90,6 +90,9 @@ type eniDocumentParams struct {
 	OriginalPath string            `json:"originalPath"`
 	OutputPath   string            `json:"outputPath"`
 	Options      map[string]string `json:"options"`
+	// OverwriteConfirmed: la persona confirmó el reemplazo en un diálogo de
+	// guardar del sistema. Sin él se aplica la preferencia de sobrescritura.
+	OverwriteConfirmed bool `json:"overwriteConfirmed,omitempty"`
 }
 
 func (m *Manejador) handleGenerateENIDocument(ctx context.Context, raw json.RawMessage) respuesta {
@@ -135,10 +138,11 @@ func (m *Manejador) handleGenerateENIDocument(ctx context.Context, raw json.RawM
 	if err := ctx.Err(); err != nil {
 		return respuesta{Action: action, Error: err.Error()}
 	}
-	if err := securefile.WriteFileAtomic(p.OutputPath, output, 0o600); err != nil {
-		return respuesta{Action: action, Error: err.Error()}
+	finalPath, err := m.guardarSalidaIPC(ctx, p.OutputPath, "", p.OverwriteConfirmed, output)
+	if err != nil {
+		return respuesta{Action: action, Error: m.mensajeErrorSalidaIPC(err, p.OutputPath, err.Error())}
 	}
-	return respuesta{OK: true, Action: action, Data: map[string]any{"outputPath": p.OutputPath}}
+	return respuesta{OK: true, Action: action, Data: map[string]any{"outputPath": finalPath}}
 }
 
 type eniFileParams struct {
@@ -146,6 +150,8 @@ type eniFileParams struct {
 	OutputPath    string            `json:"outputPath"`
 	CertificateID string            `json:"certificateId"`
 	Options       map[string]string `json:"options"`
+	// OverwriteConfirmed: igual que en eniDocumentParams.
+	OverwriteConfirmed bool `json:"overwriteConfirmed,omitempty"`
 }
 
 func (m *Manejador) handleGenerateENIFile(ctx context.Context, raw json.RawMessage) respuesta {
@@ -253,10 +259,11 @@ func (m *Manejador) handleGenerateENIFile(ctx context.Context, raw json.RawMessa
 	if len(output) == 0 {
 		return respuesta{Action: action, Error: errors.New("el expediente está vacío").Error()}
 	}
-	if err := securefile.WriteFileAtomic(p.OutputPath, output, 0o600); err != nil {
-		return respuesta{Action: action, Error: err.Error()}
+	finalPath, err := m.guardarSalidaIPC(ctx, p.OutputPath, "", p.OverwriteConfirmed, output)
+	if err != nil {
+		return respuesta{Action: action, Error: m.mensajeErrorSalidaIPC(err, p.OutputPath, err.Error())}
 	}
-	return respuesta{OK: true, Action: action, Data: map[string]any{"outputPath": p.OutputPath, "documents": len(docs)}}
+	return respuesta{OK: true, Action: action, Data: map[string]any{"outputPath": finalPath, "documents": len(docs)}}
 }
 
 func (m *Manejador) handleValidateENI(ctx context.Context, raw json.RawMessage) respuesta {

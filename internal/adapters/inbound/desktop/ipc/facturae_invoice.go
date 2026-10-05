@@ -18,8 +18,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-
-	"grxfirma/internal/adapters/outbound/common/securefile"
 )
 
 const facturaeNamespace = "http://www.facturae.gob.es/formato/Versiones/Facturaev3_2_2.xml"
@@ -65,6 +63,9 @@ type facturaeDraft struct {
 type facturaeCreateParams struct {
 	Draft      facturaeDraft `json:"draft"`
 	OutputPath string        `json:"outputPath"`
+	// OverwriteConfirmed: la persona confirmó el reemplazo en un diálogo de
+	// guardar del sistema. Sin él se aplica la preferencia de sobrescritura.
+	OverwriteConfirmed bool `json:"overwriteConfirmed,omitempty"`
 }
 type facturaeComputedLine struct {
 	line      facturaeLine
@@ -534,7 +535,7 @@ func facturaeXML(d facturaeDraft, lines []facturaeComputedLine, taxes []facturae
 	return out.Bytes(), nil
 }
 
-func handleFacturaeCreate(ctx context.Context, raw json.RawMessage) respuesta {
+func (m *Manejador) handleFacturaeCreate(ctx context.Context, raw json.RawMessage) respuesta {
 	const action = "facturae_create"
 	var params facturaeCreateParams
 	if err := json.Unmarshal(raw, &params); err != nil {
@@ -561,8 +562,9 @@ func handleFacturaeCreate(ctx context.Context, raw json.RawMessage) respuesta {
 	if params.OutputPath == "" {
 		return respuesta{OK: true, Action: action, Data: map[string]string{"xml": string(data), "total": total}}
 	}
-	if err := securefile.WriteFileAtomic(params.OutputPath, data, 0o600); err != nil {
-		return respuesta{Action: action, Error: "facturae.error.output"}
+	finalPath, err := m.guardarSalidaIPC(ctx, params.OutputPath, "", params.OverwriteConfirmed, data)
+	if err != nil {
+		return respuesta{Action: action, Error: m.mensajeErrorSalidaIPC(err, params.OutputPath, "facturae.error.output")}
 	}
-	return respuesta{OK: true, Action: action, Data: map[string]string{"outputPath": params.OutputPath, "total": total}}
+	return respuesta{OK: true, Action: action, Data: map[string]string{"outputPath": finalPath, "total": total}}
 }

@@ -6466,4 +6466,5 @@
   ,"qt.sidebar.add_favorite": "添加收藏"
   ,"qt.folderbreadcrumbbar.up": "向上"
   ,"qt.qstandardpaths.downloads": "下载"
+  ,"error.salida_existe": "已存在同名文件，覆盖设置不允许替换它：%s"
 }

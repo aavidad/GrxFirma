@@ -71,8 +71,8 @@ func TestDeudaI18nCLINoAumenta(t *testing.T) {
 			segmentos: 1,
 		},
 		"internal/adapters/inbound/common/cli/adapter.go/error": {
-			palabras:  229,
-			segmentos: 39,
+			palabras:  216,
+			segmentos: 37,
 		},
 		"internal/adapters/inbound/common/cli/adapter.go/help": {
 			palabras:  556,

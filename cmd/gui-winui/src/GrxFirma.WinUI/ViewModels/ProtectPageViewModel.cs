@@ -750,7 +750,9 @@ public sealed class ProtectPageViewModel
                 RecipientIds = encryptedData
                     ? []
                     : _selectedRecipientIds.ToArray(),
-                Overwrite = "force",
+                // El selector de guardar ya pidió confirmación si el
+                // fichero existía; el motor solo reemplaza con este aviso.
+                OverwriteConfirmed = true,
                 SaveToDisk = true,
                 ReturnProtectedBase64 = false,
                 ReturnUnprotectedBase64 = false,

@@ -6466,4 +6466,5 @@
   ,"qt.sidebar.add_favorite": "Adicionar aos favoritos"
   ,"qt.folderbreadcrumbbar.up": "Subir"
   ,"qt.qstandardpaths.downloads": "Transferências"
+  ,"error.salida_existe": "Já existe um ficheiro com esse nome e a preferência de substituição não permite substituí-lo: %s"
 }

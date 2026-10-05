@@ -6466,4 +6466,5 @@
   ,"qt.sidebar.add_favorite": "Gehitu gogokoetara"
   ,"qt.folderbreadcrumbbar.up": "Gora"
   ,"qt.qstandardpaths.downloads": "Deskargak"
+  ,"error.salida_existe": "Izen hori duen fitxategi bat badago jada, eta gainidazteko hobespenak ez du ordezkatzen uzten: %s"
 }

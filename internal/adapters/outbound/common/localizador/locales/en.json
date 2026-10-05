@@ -6466,4 +6466,5 @@
   ,"qt.sidebar.add_favorite": "Add Favorite"
   ,"qt.folderbreadcrumbbar.up": "Up"
   ,"qt.qstandardpaths.downloads": "Downloads"
+  ,"error.salida_existe": "A file with that name already exists and the overwrite preference does not allow replacing it: %s"
 }

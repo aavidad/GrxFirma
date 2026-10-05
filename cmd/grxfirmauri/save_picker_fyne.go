@@ -16,6 +16,10 @@ import (
 	"strings"
 )
 
+// Los diálogos usados (Win32 con OFN_OVERWRITEPROMPT, zenity/qarma con
+// --confirm-overwrite, kdialog y osascript) preguntan antes de reemplazar.
+const legacySavePickerConfirmsOverwrite = true
+
 func selectLegacySaveTargetPath(ctx context.Context, defaultPath string, exts string) (string, error) {
 	defaultPath = effectiveLegacySaveDefaultPath(defaultPath)
 	if nativeProtocolUIEnabled() {
