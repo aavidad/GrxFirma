@@ -106,7 +106,7 @@
   "cli.help.facturae_check_exit": "Restituisce 0 se non ci sono errori e 1 se FACe o il destinatario rifiuterebbero la fattura.",
   "cli.help.summary": "Riepilogo delle opzioni:",
   "cli.help.title": "Modalità CLI di grxfirma",
-  "El perfil compat requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "Il profilo compat richiede un’identità RSA con chiave privata capace di decifrare, ad esempio un P12/PFX autorizzato. I certificati opachi del sistema restano disponibili per la firma; caricare un P12/PFX idoneo o usare il profilo alto.",
+  "El perfil compat requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "Il profilo compat richiede un’identità RSA con chiave privata decifrabile, ad esempio un P12/PFX autorizzato. I certificati opachi dell’archivio di sistema restano disponibili per la firma; caricare un P12/PFX idoneo o usare il profilo alto.",
   "No hay identidades para el perfil compat. Requiere una clave RSA descifrable, por ejemplo desde un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "Non sono disponibili identità per il profilo compat. È richiesta una chiave RSA capace di decifrare, ad esempio da un P12/PFX autorizzato. I certificati opachi del sistema restano disponibili per la firma; caricare un P12/PFX idoneo o usare il profilo alto.",
   "Perfil de protección/cifrado. compat exige una identidad RSA cuya clave privada pueda desproteger, por ejemplo un P12/PFX autorizado.": "Profilo di protezione/cifratura. compat richiede un’identità RSA la cui chiave privata possa decifrare, ad esempio un P12/PFX autorizzato.",
   "Los certificados opacos del almacén del sistema siguen disponibles para firmar, pero no se anuncian para cifrado compat; carga un P12/PFX apto o usa alto.": "I certificati opachi dell’archivio di sistema restano disponibili per la firma ma non vengono proposti per la cifratura compat; caricare un P12/PFX idoneo o usare alto.",
@@ -165,7 +165,7 @@
   " | Sin fichero: ": " | Senza file: ",
   " | Sin hash: ": " | Senza hash: ",
   "%1 cert.": "%1 certificato.",
-  "%1 documento(s) en lote": "%1 documento/i in lotto",
+  "%1 documento(s) en lote": "%1 documento/i nel lotto",
   "%1 ficheros seleccionados": "%1 file selezionati",
   "%d fichero(s)": "%d file",
   "*.dipgra.es": "*.dipgra.es",
@@ -173,8 +173,8 @@
   "+ CERTIFICADOS": "+ CERTIFICATI",
   "+%1 más": "+%1 altri",
   ",": ",",
-  "--- INICIO DE LOGS ---\n": "--- INICIO DE LOGS ---\n",
-  "--- INICIO DE LOGS ---\\n": "--- INIZIO LOG ---\\n",
+  "--- INICIO DE LOGS ---\n": "--- INIZIO LOG ---\n",
+  "--- INICIO DE LOGS ---\\n": "--- INIZIO LOG ---\n",
   "--- LOGS REINICIADOS [": "--- RESET LOG [",
   "/ruta/al/documento.afp o .enveloped": "/percorso/al/documento.afp o .enveloped",
   "/ruta/al/documento.bin": "/percorso/al/documento.bin",
@@ -247,7 +247,7 @@
   "Al desactivar la cofirma múltiple guiada se restaurarán tus preferencias previas de salida.": "Disattivando la cofirma multipla guidata verranno ripristinate le preferenze di output precedenti.",
   "Al iniciar, selecciona automáticamente el último certificado usado para firmar.": "All'avvio seleziona automaticamente l'ultimo certificato utilizzato per la firma.",
   "Algoritmo": "Algoritmo",
-  "Algoritmo de huella por defecto": "Algoritmo di impronta predefinito",
+  "Algoritmo de huella por defecto": "Algoritmo di hash predefinito",
   "Algoritmo en auto-detección desde la huella o el manifiesto.": "Algoritmo rilevato automaticamente dall’impronta o dal manifesto.",
   "Algoritmo forzado para la comprobación: ": "Algoritmo forzato per la verifica: ",
   "Almacen seguro de proxy": "Archivio proxy sicuro",
@@ -264,7 +264,7 @@
   "Antes de guardar o enviar nada, este es el paquete de soporte que se preparará para ti.": "Prima di salvare o inviare qualsiasi cosa, questo è il pacchetto di supporto che verrà preparato per te.",
   "Aplica a PAdES, CAdES y XAdES. LT/LTA solo tiene efecto real en CAdES.": "Si applica a PAdES, CAdES e XAdES. LT/LTA ha effetto reale solo in CAdES.",
   "Aplica perfiles de firma más restrictivos para maximizar la compatibilidad con administraciones públicas.": "Applicare profili di firma più restrittivi per massimizzare la compatibilità con le pubbliche amministrazioni.",
-  "Aplica un estilo rápido al sello visible sin tener que recolocar todos los campos a mano.": "Applica uno stile rapido al sigillo visibile senza riposizionare manualmente tutti i campi.",
+  "Aplica un estilo rápido al sello visible sin tener que recolocar todos los campos a mano.": "Applica uno stile rapido al timbro visibile senza riposizionare manualmente tutti i campi.",
   "Aplicabilidad de metadatos": "Applicabilità dei metadati",
   "Aplicación en este equipo": "Applicazione su questo dispositivo",
   "Aplicación local": "Applicazione locale",
@@ -352,7 +352,7 @@
   "Buscando certificados en almacenes NSS/Firefox...": "Ricerca certificati negli archivi NSS/Firefox...",
   "Buscar certificado": "Cerca certificato",
   "Buscar certificados en Firefox/NSS": "Cerca certificati in Firefox/NSS",
-  "CARPETA DE SALIDA DEL LOTE": "CARTELLA DI USCITA BATCH",
+  "CARPETA DE SALIDA DEL LOTE": "CARTELLA DI OUTPUT DEL LOTTO",
   "CAdES": "CAdES",
   "CAdES-LT": "CAdES-LT",
   "CAdES-LTA": "CAdES-LTA",
@@ -471,7 +471,7 @@
   "Comprobando si el documento ya estaba firmado...": "Verifica se il documento era già firmato...",
   "Comprobando...": "Verifica in corso...",
   "Comprobar Certs": "Controlla i certificati",
-  "Comprobar huella": "Verifica impronta",
+  "Comprobar huella": "Verifica hash",
   "Comprobar revocación online": "Verifica revoca online",
   "Comprueba advertencias de confianza, integridad o certificado.": "Controlla gli avvisi di fiducia, integrità o certificato.",
   "Comprueba si falta el original o si aparece algún aviso sobre confianza o certificado.": "Controlla se manca l'originale o se compare qualche avviso sulla fiducia o sul certificato.",
@@ -510,7 +510,7 @@
   "Confirma que el documento y el certificado siguen seleccionados.": "Conferma che il documento e il certificato siano ancora selezionati.",
   "Confirmar antes de firmar": "Conferma prima di firmare",
   "Confirmar firma": "Conferma firma",
-  "Confirmo que quiero enviar esta incidencia al destino indicado.": "Confermo di voler inviare questo incidente alla destinazione indicata.",
+  "Confirmo que quiero enviar esta incidencia al destino indicado.": "Confermo di voler inviare questa segnalazione alla destinazione indicata.",
   "Consola completa": "Console completa",
   "Consola web lista.": "Console web pronta.",
   "Consola web local para firma, verificación, certificados, ajustes y diagnóstico, sobre la API REST del propio backend.": "Console web locale per firma, verifica, certificati, impostazioni e diagnostica, basata sull'API REST del backend stesso.",
@@ -534,17 +534,17 @@
   "Copiar JSON del certificado": "Copia JSON del certificato",
   "Copiar diagnóstico": "Copia diagnostica",
   "Copiar huella": "Copia impronta",
-  "Copiar huella al portapapeles por defecto": "Copia l'impronta negli appunti per impostazione predefinita",
+  "Copiar huella al portapapeles por defecto": "Copia l'hash negli appunti per impostazione predefinita",
   "Copiar informe": "Copia rapporto",
   "Copiar resumen": "Copia riepilogo",
   "Copiar resumen de validación": "Copia riepilogo di validazione",
   "Copiar resumen para soporte": "Copia riepilogo per l'assistenza",
   "Corporativo": "Aziendale",
   "Corregido en: %1": "Corretto in: %1",
-  "Crea o comprueba huellas de ficheros y manifiestos de directorio.": "Crea o verifica impronte di file e manifesti di directory.",
+  "Crea o comprueba huellas de ficheros y manifiestos de directorio.": "Crea o verifica gli hash di file e i manifest di directory.",
   "Crear clave de acceso": "Crea password di accesso",
   "Crear clave de seguridad": "Crea chiave di sicurezza",
-  "Crear huella": "Crea impronta",
+  "Crear huella": "Crea hash",
   "Cristal Oscuro": "Cristallo scuro",
   "Cuando llegue la petición, se mostrará el selector de documento o de certificado como en V1.": "All'arrivo della richiesta verrà mostrato il selettore del documento o del certificato come in V1.",
   "Código estable: %1": "Codice stabile: %1",
@@ -556,16 +556,16 @@
   "Debe cargar un archivo PDF antes de realizar la firma.": "Devi caricare un file PDF prima di eseguire la firma.",
   "Debe cargar un archivo PDF y seleccionar un certificado para poder firmar.": "Devi caricare un file PDF e selezionare un certificato per poter firmare.",
   "Debe cargar uno o varios documentos antes de realizar la firma.": "È necessario caricare uno o più documenti prima di firmare.",
-  "Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.": "Devi caricare uno o più documenti e selezionare un certificato da firmare.",
+  "Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.": "Devi caricare uno o più documenti e selezionare un certificato per poter firmare.",
   "Debe definir un firmante principal válido para la cofirma múltiple guiada.": "Devi definire un firmatario principale valido per la cofirma multipla guidata.",
   "Debe indicar el certificado a comprobar.": "Indicare il certificato da verificare.",
   "Debe indicar el certificado que quiere comprobar.": "Indicare il certificato che si vuole verificare.",
   "Debe indicar un dominio u origen para añadirlo.": "Indicare un dominio o un'origine da aggiungere.",
   "Debe seleccionar al menos un certificado adicional para la cofirma múltiple guiada.": "Devi selezionare almeno un certificato aggiuntivo per la cofirma multipla guidata.",
   "Debe seleccionar un certificado de la lista para poder firmar el documento.": "È necessario selezionare un certificato dall'elenco per poter firmare il documento.",
-  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Definisce l'algoritmo preselezionato per creare e verificare le impronte digitali.",
+  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Definisce l'algoritmo preselezionato per creare e verificare gli hash.",
   "Define el comportamiento por defecto cuando el archivo de salida ya existe.": "Definisce il comportamento predefinito quando il file di destinazione esiste già.",
-  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Definisce il formato preselezionato per creare o verificare le impronte dei file.",
+  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Definisce il formato preselezionato per creare o verificare gli hash dei file.",
   "Define el formato preseleccionado al crear o comprobar manifiestos de directorio.": "Definisce il formato preselezionato per creare o verificare i manifest di directory.",
   "Define el motivo preseleccionado que se incrustará en la firma cuando proceda.": "Definisce il motivo preselezionato che verrà incorporato nella firma quando necessario.",
   "Define el papel preseleccionado del firmante al generar firmas FacturaE.": "Definisce il ruolo del firmatario preselezionato durante la generazione di firme FacturaE.",
@@ -676,7 +676,7 @@
   "Ejecutando...": "Esecuzione in corso...",
   "El JSON de opciones debe ser un objeto.": "Il JSON delle opzioni deve essere un oggetto.",
   "El QR requiere sello visible activo sobre PDF.": "Il QR richiede un timbro visibile attivo su PDF.",
-  "El QR se incorporará dentro del sello visible.": "Il QR sarà incorporato nel sigillo visibile.",
+  "El QR se incorporará dentro del sello visible.": "Il QR sarà incorporato nel timbro visibile.",
   "El almacén seguro de secretos de proxy está disponible para este backend local.": "L'archivio sicuro dei segreti proxy è disponibile per questo backend locale.",
   "El almacén seguro de secretos de proxy no está listo; el proxy autenticado puede quedar limitado en este equipo.": "L'archivio sicuro dei segreti proxy non è pronto; il proxy autenticato potrebbe essere limitato su questo computer.",
   "El artefacto de huella coincide con el modo seleccionado.": "L'artefatto dell'impronta corrisponde alla modalità selezionata.",
@@ -686,7 +686,7 @@
   "El backend seguro de proxy no esta listo; el proxy autenticado puede quedar limitado en este equipo.": "Il backend proxy sicuro non è pronto; il proxy autenticato potrebbe essere limitato su questa macchina.",
   "El bloque de certificado permite filtrar, autoseleccionar o recordar el firmante activo entre sesiones.": "Il blocco del certificato consente di filtrare, selezionare automaticamente o ricordare il firmatario attivo tra le sessioni.",
   "El certificado actual actuará como firmante principal y los adicionales se encadenarán sobre el mismo artefacto.": "Il certificato attuale agirà come firmatario principale e quelli aggiuntivi verranno concatenati sullo stesso artefatto.",
-  "El certificado elegido aquí firmará primero. Los demás se añadirán como cofirmas en secuencia.": "Il certificato scelto qui firmerà per primo. Gli altri verranno aggiunti successivamente come co-firme sequenziali.",
+  "El certificado elegido aquí firmará primero. Los demás se añadirán como cofirmas en secuencia.": "Il certificato scelto qui firmerà per primo. Gli altri verranno aggiunti successivamente come cofirme sequenziali.",
   "El certificado es válido para firma, pero caduca pronto.": "Il certificato è valido per la firma, ma scade a breve.",
   "El certificado es válido y apto para firma.": "Il certificato è valido e idoneo alla firma.",
   "El certificado está caducado y no debe usarse para firmar.": "Il certificato è scaduto e non deve essere utilizzato per la firma.",
@@ -701,7 +701,7 @@
   "El documento seleccionado ya contiene una firma electrónica.": "Il documento selezionato contiene già una firma elettronica.",
   "El fichero indicado no existe": "Il file indicato non esiste",
   "El firmado y el original parecen de tipos distintos.": "Il firmato e l'originale sembrano essere di tipi diversi.",
-  "El firmante principal se aplicará primero. Los certificados marcados aquí se aplicarán después como cofirmas secuenciales.": "Il firmatario principale verrà applicato per primo. I certificati selezionati qui verranno poi aggiunti come co-firme sequenziali.",
+  "El firmante principal se aplicará primero. Los certificados marcados aquí se aplicarán después como cofirmas secuenciales.": "Il firmatario principale verrà applicato per primo. I certificati selezionati qui verranno poi aggiunti come cofirme sequenziali.",
   "El flujo de documentos ya firmados se ha ido afinando para redirigir hacia cofirma.": "Il flusso dei documenti già firmati è stato via via perfezionato per reindirizzare verso la cofirma.",
   "El flujo de firma está preparado. Revisa operación, formato y certificado antes de continuar.": "Il flusso di firma è pronto. Verifica operazione, formato e certificato prima di continuare.",
   "El navegador no permite copiar el resumen automáticamente en este contexto.": "Il browser non consente di copiare automaticamente il riepilogo in questo contesto.",
@@ -771,7 +771,7 @@
   "Error importando certificado: ": "Errore durante l'importazione del certificato: ",
   "Error instalando certificados": "Errore nell'installazione dei certificati",
   "Error instalando la confianza TLS local": "Errore nell'installazione della fiducia TLS locale",
-  "Error instalando raíces de confianza: ": "Errore durante l'installazione di radici attendibili: ",
+  "Error instalando raíces de confianza: ": "Errore durante l'installazione della fiducia TLS locale: ",
   "Error si existe": "Errore se esiste",
   "Error: ": "Errore: ",
   "Error: Ruta IPC vacía": "Errore: percorso IPC vuoto",
@@ -801,7 +801,7 @@
   "Estas preferencias se aplican al construir el payload de firma. Sirven para fijar un baseline más compatible o más permisivo según el entorno.": "Queste preferenze si applicano alla costruzione del payload di firma. Servono a fissare una baseline più compatibile o più permissiva a seconda dell'ambiente.",
   "Estas preferencias se aplican al preparar una firma nueva si no cambias manualmente la operación, el formato o la política de salida.": "Queste preferenze si applicano quando prepari una nuova firma, se non modifichi manualmente l'operazione, il formato o la politica di output.",
   "Estas preferencias solo se usan cuando el formato por defecto está en Auto. Permiten acercar el comportamiento de V2 a la lógica por tipo documental de AutoFirma 1.9.": "Queste preferenze si usano solo quando il formato predefinito è Auto. Permettono di avvicinare il comportamento di V2 alla logica per tipo di documento di AutoFirma 1.9.",
-  "Este asistente puede resumir el contexto actual y orientarte antes de exportar una incidencia.": "Questo assistente può riassumere il contesto attuale e guidarti prima di esportare un incidente.",
+  "Este asistente puede resumir el contexto actual y orientarte antes de exportar una incidencia.": "Questo assistente può riassumere il contesto attuale e guidarti prima di esportare una segnalazione.",
   "Este asistente resume el contexto actual, sugiere los siguientes pasos y deja a mano el soporte técnico sin abrir un chat libre.": "Questo assistente riassume il contesto attuale, suggerisce i passaggi successivi e tiene a portata di mano il supporto tecnico senza aprire una chat libera.",
   "Este destinatario compat usará contenedor json (.afp).": "Questo destinatario compat userà un contenitore json (.afp).",
   "Este destinatario compat usará sobre CMS interoperable.": "Questo destinatario compat userà una busta CMS interoperabile.",
@@ -818,7 +818,7 @@
   "Expandir todo": "Espandi tutto",
   "Experto": "Esperto",
   "Explorar Logs": "Esplora log",
-  "Expone la API REST solo en este equipo, para integraciones locales y consola web.": "Esponi l'API REST solo su questa macchina, per le integrazioni locali e della console Web.",
+  "Expone la API REST solo en este equipo, para integraciones locales y consola web.": "Espone l'API REST solo su questo computer, per le integrazioni locali e la console Web.",
   "Exportando destinatario...": "Esportazione del destinatario...",
   "Exportar destinatario alto": "Esporta destinatario forte",
   "FIRMA DIGITAL": "FIRMA DIGITALE",
@@ -865,7 +865,7 @@
   "Firma múltiple finalizada.": "Firma multipla terminata.",
   "Firma no válida.": "Firma non valida.",
   "Firma no válida: ": "Firma non valida: ",
-  "Firma o cofirma el mismo documento con varios certificados en secuencia, generando una única salida final.": "Firma o co-firma lo stesso documento con più certificati in sequenza, generando un’unica uscita finale.",
+  "Firma o cofirma el mismo documento con varios certificados en secuencia, generando una única salida final.": "Firma o cofirma lo stesso documento con più certificati in sequenza, generando un’unica uscita finale.",
   "Firma valida": "Firma valida",
   "Firma verificada correctamente.": "Firma verificata correttamente.",
   "Firma visible (PAdES)": "Firma visibile (PAdES)",
@@ -891,7 +891,7 @@
   "Firmar ahora": "Firma adesso",
   "Firmar igualmente": "Firma comunque",
   "Formato": "Formato",
-  "Formato de huella por defecto para ficheros": "Formato predefinito dell'impronta per i file",
+  "Formato de huella por defecto para ficheros": "Formato predefinito dell'hash per i file",
   "Formato de manifiesto por defecto para directorios": "Formato predefinito del manifest per le directory",
   "Formato detectado: %1": "Formato rilevato: %1",
   "Formato por defecto": "Formato predefinito",
@@ -926,7 +926,7 @@
   "Guardar resumen": "Salva riepilogo",
   "Guardar resumen de validación": "Salva riepilogo di validazione",
   "Guardar y cerrar": "Salva e chiudi",
-  "Habilita el uso de un servidor de sellado de tiempo para añadir una marca de tiempo a las firmas.": "Abilita l'uso di un server di marcatura temporale per aggiungere una marcatura temporale alle firme.",
+  "Habilita el uso de un servidor de sellado de tiempo para añadir una marca de tiempo a las firmas.": "Abilita l'uso di un server di marca temporale per aggiungere una marca temporale alle firme.",
   "Habilita el uso de un servidor proxy para las conexiones de red.": "Abilita l'uso di un server proxy per le connessioni di rete.",
   "Habilita opciones avanzadas de diagnóstico y configuración.": "Abilita opzioni avanzate di diagnostica e configurazione.",
   "Habilitar HTTPS local": "Abilita HTTPS locale",
@@ -944,15 +944,15 @@
   "Host / IP:": "Host/IP:",
   "Huella": "Impronta",
   "Huella SHA-256: ": "Impronta digitale SHA-256: ",
-  "Huella copiada al portapapeles.": "Impronta copiata negli appunti.",
+  "Huella copiada al portapapeles.": "Hash copiato negli appunti.",
   "Huella del certificado copiada al portapapeles.": "Impronta del certificato copiata negli appunti.",
   "Huella o manifiesto": "Impronta o manifesto",
   "Huella o manifiesto: ": "Hash o manifesto: ",
   "Huella válida.": "Impronta valida.",
   "Huella: ": "Impronta: ",
   "Huellas de Certificados Cliente (SHA-256 CSV):": "Impronte digitali del certificato client (SHA-256 CSV):",
-  "Huellas e integridad": "Impronte e integrità",
-  "Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)": "Impronte e manifesti (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)",
+  "Huellas e integridad": "Hash e integrità",
+  "Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)": "Hash e manifest (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)",
   "ID:": "ID:",
   "Id": "Id",
   "Identificador de política": "Identificatore della policy",
@@ -983,8 +983,8 @@
   "Iniciar servidor": "Avvia server",
   "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "Inserisce un timbro grafico nel PDF indicando che è stato firmato digitalmente.",
   "Instala el motor de firma como servicio de tu usuario (no de sistema),\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installa il motore di firma come servizio del tuo utente (non di sistema),\ncosì da avviarsi automaticamente e avere accesso ai tuoi certificati personali.",
-  "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installa il motore di firma come servizio per il tuo utente (non sistema), \\n, in modo che si avvii automaticamente e abbia accesso ai tuoi certificati personali.",
-  "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "Installa il certificato HTTPS locale attendibile per aprire la console Web REST senza richieste del browser.",
+  "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installa il motore di firma come servizio del tuo utente (non di sistema),\ncosì da avviarsi automaticamente e avere accesso ai tuoi certificati personali.",
+  "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "Installa il certificato HTTPS locale come attendibile per aprire la console Web REST senza avvisi del browser.",
   "Instalar confianza TLS local": "Installa la fiducia TLS locale",
   "Instalar raíces públicas": "Installa la fiducia TLS locale",
   "Instalar servicio": "Installa servizio",
@@ -1026,7 +1026,7 @@
   "La huella no coincide con el fichero.": "L'impronta non corrisponde al file.",
   "La imagen seleccionada solo vive en esta sesión web local y no se guarda como ajuste persistente.": "L'immagine selezionata esiste solo in questa sessione web locale e non viene salvata come impostazione persistente.",
   "La incidencia exportable se generará al preparar un informe para soporte.": "La segnalazione esportabile verrà generata quando si prepara un rapporto per l'assistenza.",
-  "La incidencia ya está guardada en local y se enviará solo al destino HTTPS que indiques.": "L'incidente è già salvato localmente e verrà inviato solo alla destinazione HTTPS indicata.",
+  "La incidencia ya está guardada en local y se enviará solo al destino HTTPS que indiques.": "La segnalazione è già salvata localmente e verrà inviata solo alla destinazione HTTPS indicata.",
   "La operación ha terminado correctamente": "L'operazione è terminata correttamente",
   "La política especial de salida para cofirma múltiple no está activa.": "La policy speciale di output per la cofirma multipla non è attiva.",
   "La preferencia guardada ya no está disponible en el catálogo actual.": "La preferenza salvata non è più disponibile nel catalogo attuale.",
@@ -1050,7 +1050,7 @@
   "La validación ha fallado o tiene incidencias: %1": "La validazione non è riuscita o presenta problemi: %1",
   "La validación tiene incidencias. Revisa la razón mostrada y decide si necesitas el original, otro certificado o soporte.": "La validazione presenta problemi. Controlla il motivo mostrato e valuta se hai bisogno dell'originale, di un altro certificato o del supporto.",
   "La ventana se cerrará automáticamente al terminar la sesión del portal.": "La finestra si chiuderà automaticamente al termine della sessione del portale.",
-  "La verificación ha devuelto incidencias.": "La verifica ha restituito incidenti.",
+  "La verificación ha devuelto incidencias.": "La verifica ha restituito dei problemi.",
   "La vista previa muestra el PDF activo del lote. De momento la misma posición del sello se aplica al resto del lote.": "L'anteprima mostra il PDF attivo del batch. Attualmente per il resto del lotto vale la stessa posizione del timbro.",
   "Lanza la operación y usa este asistente si algo no queda claro.": "Avvia l’operazione e usa questo assistente se qualcosa non è chiaro.",
   "Lanza la validación con el fichero actual.": "Avvia la validazione con il file attuale.",
@@ -1231,7 +1231,7 @@
   "Opcional. Este bloque expone política, rol y lugar de firma que el backend FacturaE ya consume de forma real.": "Facoltativo. Questo blocco espone policy, ruolo e luogo di firma che il backend FacturaE già utilizza realmente.",
   "Opcional. Estos campos solo se aplican cuando el formato efectivo es FacturaE.": "Facoltativo. Questi campi si applicano solo quando il formato effettivo è FacturaE.",
   "Opcional. Estos datos se enviarán como SignatureProductionPlace al firmar FacturaE.": "Opzionale. Questi dati saranno inviati come SignatureProductionPlace durante la firma FacturaE.",
-  "Opcional. Estos datos se incrustan en la firma PAdES y no sustituyen al certificado ni al sello visible.": "Opzionale. Questi dati vengono incorporati nella firma PAdES e non sostituiscono né il certificato né il sigillo visibile.",
+  "Opcional. Estos datos se incrustan en la firma PAdES y no sustituyen al certificado ni al sello visible.": "Opzionale. Questi dati vengono incorporati nella firma PAdES e non sostituiscono né il certificato né il timbro visibile.",
   "Opcional. Se envía en Authorization: Bearer ...": "Facoltativo. Viene inviato in Authorization: Bearer ...",
   "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible cuando no usas imagen personalizada.": "Facoltativo. Se indichi un testo o un URL, viene incorporato un QR all’interno del sigillo visibile quando non usi un’immagine personalizzata.",
   "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible y puede combinarse con imagen personalizada.": "Opzionale. Se indichi un testo o un URL, un QR viene incorporato nel timbro visibile e può essere combinato con un’immagine personalizzata.",
@@ -1240,7 +1240,7 @@
   "Opcional. Si se deja vacío, cada fichero se guarda junto al original.": "Opzionale. Se lasciato vuoto, ogni file viene salvato accanto all'originale.",
   "Opcional. Si se indica, el backend la usará para perfiles con sello de tiempo.": "Facoltativo. Se indicata, il backend la userà per i profili con marca temporale.",
   "Opcional: 6F:..., 8A:...": "Opzionale: 6F:..., 8A:...",
-  "Opcional: token de acceso bearer": "Facoltativo: token di accesso al portatore",
+  "Opcional: token de acceso bearer": "Facoltativo: token di accesso bearer",
   "Opciones JSON": "Opzioni JSON",
   "OpenAPI": "OpenAPI",
   "Operación": "Operazione",
@@ -1264,10 +1264,10 @@
   "PDF original": "PDF originale",
   "Panel de Diagnóstico Experto": "Pannello diagnostico esperto",
   "Paquete de soporte listo para exportar": "Pacchetto di supporto pronto per l'esportazione",
-  "Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.": "Per aprire l'API REST locale senza richieste del browser, installa l'attendibilità del certificato TLS locale.",
+  "Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.": "Per aprire l'API REST locale senza avvisi del browser, installa il certificato TLS locale come attendibile.",
   "Para modificar la lista de dominios permitidos (NM/CORS) debe identificarse como administrador del sistema.": "Per modificare l'elenco dei domini consentiti (NM/CORS) è necessario identificarsi come amministratore di sistema.",
   "Para modificar la lista de dominios permitidos y las conexiones seguras debe identificarse.": "Per modificare l'elenco dei domini consentiti e delle connessioni sicure è necessario identificarsi.",
-  "Para previsualizar el sello en un lote por carpeta, seleccione uno o varios PDF concretos. La firma visible solo se aplica a PAdES (PDF).": "Per visualizzare l'anteprima del timbro in batch per cartella, seleziona uno o più PDF specifici. La firma visibile vale solo per PAdES (PDF).",
+  "Para previsualizar el sello en un lote por carpeta, seleccione uno o varios PDF concretos. La firma visible solo se aplica a PAdES (PDF).": "Per visualizzare l'anteprima del timbro in un lotto per cartella, seleziona uno o più PDF specifici. La firma visibile vale solo per PAdES (PDF).",
   "Para que las firmas de este emisor (FNMT, etc.) sean válidas, debe instalar las raíces de confianza.": "Per aprire l'API REST locale senza avvisi del browser, installa la fiducia del certificato TLS locale.",
   "Parece depender de red o de un servicio externo.": "Sembra dipendere dalla rete o da un servizio esterno.",
   "Parece depender del certificado o de su disponibilidad en este equipo.": "Sembra dipendere dal certificato o dalla sua disponibilità su questo computer.",
@@ -1406,7 +1406,7 @@
   "Qué está pasando": "Cosa sta succedendo",
   "Qué está pasando: %1": "Che cosa sta succedendo: %1",
   "Qué hacer ahora: %1": "Cosa fare ora: %1",
-  "Qué incluirá la incidencia": "Cosa includerà l'incidente",
+  "Qué incluirá la incidencia": "Cosa includerà la segnalazione",
   "Qué puede hacer por ti ahora": "Cosa può fare per te adesso",
   "RED Y SEGURIDAD": "RETE E SICUREZZA",
   "REST local": "REST locale",
@@ -1536,7 +1536,7 @@
   "Se ha cambiado la operación a Cofirmar.": "L'operazione è stata cambiata in Cofirma.",
   "Se ha establecido un certificado predeterminado.": "È stato impostato un certificato predefinito.",
   "Se incluirá": "Sarà incluso",
-  "Se incluirá un resumen saneado de la incidencia y un extracto técnico mínimo.": "Verrà incluso un riepilogo sanificato dell'incidente e un estratto tecnico minimo.",
+  "Se incluirá un resumen saneado de la incidencia y un extracto técnico mínimo.": "Verrà incluso un riepilogo anonimizzato della segnalazione e un estratto tecnico minimo.",
   "Se intentará aplicar una contrafirma sobre cada elemento del lote seleccionado.": "Si tenterà di applicare una controfirma su ogni elemento del lotto selezionato.",
   "Se intentará añadir una cofirma sobre cada elemento del lote seleccionado.": "Si tenterà di aggiungere una cofirma su ogni elemento del lotto selezionato.",
   "Se ocultará": "Sarà nascosto",
@@ -1590,7 +1590,7 @@
   "Seleccionar certificados…": "Seleziona certificati…",
   "Seleccionar cualquier fichero de la carpeta a comprobar": "Seleziona un qualsiasi file della cartella da verificare",
   "Seleccionar cualquier fichero de la carpeta de entrada": "Seleziona un file qualsiasi dalla cartella di input",
-  "Seleccionar cualquier fichero de la carpeta de salida del lote": "Seleziona qualsiasi file dalla cartella di output batch",
+  "Seleccionar cualquier fichero de la carpeta de salida del lote": "Seleziona qualsiasi file dalla cartella di output del lotto",
   "Seleccionar destino del PDF firmado": "Seleziona la destinazione del PDF firmato",
   "Seleccionar documento": "Seleziona documento",
   "Seleccionar documento PDF": "Seleziona documento PDF",
@@ -1616,9 +1616,9 @@
   "Selección": "Selezione",
   "Selección cancelada": "Selezione annullata",
   "Selección cargada en navegador": "Selezione caricata nel browser",
-  "Selección de páginas inválida. Usa 1, 1,3-5 o all.": "Selezione della pagina non valida. Utilizzare 1, 1,3-5 o tutti.",
+  "Selección de páginas inválida. Usa 1, 1,3-5 o all.": "Selezione delle pagine non valida. Usa 1, 1,3-5 o all.",
   "Sello": "Sigillo",
-  "Sello restaurado a valores por defecto.": "Sigillo ripristinato ai valori predefiniti.",
+  "Sello restaurado a valores por defecto.": "Timbro ripristinato ai valori predefiniti.",
   "Sello visible": "Timbro visibile",
   "Serie": "Serie",
   "Servicio externo": "Servizio esterno",
@@ -1642,9 +1642,9 @@
   "Si se activa y solo hay un certificado disponible, la aplicación lo seleccionará automáticamente al cargar el catálogo.": "Se attivata e c'è un solo certificato disponibile, l'applicazione lo selezionerà automaticamente al caricamento dell'elenco.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación intentará guardarlas y cerrará sin mostrar el diálogo de confirmación.": "Se attivata, alla chiusura con preferenze in sospeso l'applicazione proverà a salvarle e si chiuderà senza mostrare la finestra di conferma.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación las guardará y continuará sin mostrar el diálogo de confirmación.": "Se attivato, alla chiusura con preferenze in sospeso lapplicazione le salverà e continuerà senza mostrare la finestra di conferma.",
-  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "Se attivata, quando verifichi le impronte delle directory verrà proposto per impostazione predefinita di salvare il report.",
-  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "Se attivata, quando crei o verifichi le impronte delle directory verrà selezionata per impostazione predefinita la modalità ricorsiva.",
-  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "Se attivata, quando generi un'impronta semplice questa verrà copiata automaticamente negli appunti.",
+  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "Se attivata, quando verifichi gli hash delle directory verrà proposto per impostazione predefinita di salvare il report.",
+  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "Se attivata, quando crei o verifichi gli hash delle directory verrà selezionata per impostazione predefinita la modalità ricorsiva.",
+  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "Se attivata, quando generi un hash semplice questo verrà copiato automaticamente negli appunti.",
   "Si se activa, al preparar firmas PDF se propondrá por defecto la firma visible.": "Se attivata, quando prepari firme PDF verrà proposta per impostazione predefinita la firma visibile.",
   "Si se activa, al preparar una firma visible PAdES se propondrá por defecto aplicarla en todas las páginas.": "Se attivata, quando prepari una firma visibile PAdES verrà proposto per impostazione predefinita di applicarla a tutte le pagine.",
   "Si se activa, al pulsar cerrar la ventana la aplicación se minimizará y seguirá lista para futuras firmas.": "Se attivato, quando chiudi la finestra l'applicazione verrà ridotta a icona e resterà pronta per firme future.",
@@ -2020,7 +2020,7 @@
   "help.more.title": "Ulteriori informazioni",
   "help.security.body": "Controlla sempre il sito che richiede una firma o un certificato. Non approvare operazioni inattese. Usa la modalità residente e la compatibilità web solo quando necessario.",
   "help.security.title": "Sicurezza",
-  "help.sign.body": "Usa la scheda Firma per firmare un file, più file o un’intera cartella. Per i PDF in formato PAdES puoi attivare sigillo visibile, rotazione, QR, metadati e pagine specifiche o tutte le pagine. Puoi lasciare aperti i selettori o posizionare il sigillo con calma: il canale connesso consente fino a 30 minuti di inattività.",
+  "help.sign.body": "Usa la scheda Firma per firmare un file, più file o un’intera cartella. Per i PDF in formato PAdES puoi attivare timbro visibile, rotazione, QR, metadati e pagine specifiche o tutte le pagine. Puoi lasciare aperti i selettori o posizionare il timbro con calma: il canale connesso consente fino a 30 minuti di inattività.",
   "help.sign.title": "Firmare documenti",
   "help.subtitle": "Guida rapida all’uso dell’applicazione.",
   "help.title": "Aiuto di GrxFirma",
@@ -2357,7 +2357,7 @@
   "Último documento": "Ultimo documento",
   "Último estado visible: %1": "Ultimo stato visibile: %1",
   "• ": "• ",
-  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ Il server REST rilevato è attivo, ma non è stato avviato da questa finestra. Interromperlo dal vassoio o dall'istanza che lo ha avviato.",
+  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ Il server REST rilevato è attivo, ma non è stato avviato da questa finestra. Interromperlo dall'area di notifica o dall'istanza che lo ha avviato.",
   "ℹ️ ": "ℹ️ ",
   "ℹ️ Chequeo exhaustivo de certificados completado.": "ℹ️ Verifica approfondita dei certificati completata.",
   "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "ℹ️ Il report di diagnostica è stato copiato negli appunti.",
@@ -2368,7 +2368,7 @@
   "↻ Rotar Documento": "↻ Ruota documento",
   "⌛ Firmando...": "⌛ Firma in corso...",
   "⌛ Verificando...": "⌛ Controllo...",
-  "⏳  Sellado de Tiempo (TSA)": "⏳ Timestamp (TSA)",
+  "⏳  Sellado de Tiempo (TSA)": "⏳  Marca temporale (TSA)",
   "▶ Ver detalles": "▶ Mostra dettagli",
   "▼ Ocultar detalles": "▼ Nascondi dettagli",
   "● Comprobando estado del servidor...": "● Controllo dello stato del server...",
@@ -2445,7 +2445,7 @@
   "🛡️  Política de firma por defecto": "🛡️  Politica di firma predefinita",
   "🛡️ Control de Dominios Permitidos": "🛡️ Controllo dei domini consentiti",
   "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "🛡️ Installa la fiducia TLS locale",
-  "🛡️ Instalar confianza TLS local": "🛡️ Installa il trust TLS locale",
+  "🛡️ Instalar confianza TLS local": "🛡️ Installa la fiducia TLS locale",
   "🌐  Navegadores y certificados locales": "🌐  Browser e certificati locali",
   "Repara la integración con Chrome, Chromium, Edge, Brave y Firefox, incluyendo perfiles Snap o Flatpak cuando existan. Usa estas opciones si una web no consigue abrir GrxFirma o si el navegador no confía en la conexión local.": "Ripara l'integrazione con Chrome, Chromium, Edge, Brave e Firefox, inclusi i profili Snap o Flatpak quando presenti. Usa queste opzioni se un sito web non riesce ad aprire GrxFirma o se il browser non si fida della connessione locale.",
   "Reinstalar conectores de navegadores": "Reinstalla connettori del browser",
@@ -2550,11 +2550,11 @@
   "Diagnosticando...": "Diagnosi in corso...",
   "Diagnosticar ahora": "Diagnostica ora",
   "Diagnóstico activo": "Diagnosi attiva",
-  "Diagnóstico activo completado e integrado en una incidencia nueva.": "Diagnosi attiva completata e integrata in un nuovo rapporto di incidente.",
-  "Diagnóstico activo completado; no se pudo guardar la incidencia.": "Diagnosi attiva completata; non è stato possibile salvare il rapporto di incidente.",
+  "Diagnóstico activo completado e integrado en una incidencia nueva.": "Diagnosi attiva completata e integrata in una nuova segnalazione.",
+  "Diagnóstico activo completado; no se pudo guardar la incidencia.": "Diagnosi attiva completata; non è stato possibile salvare la segnalazione.",
   "Ejecutando diagnóstico activo acotado...": "Esecuzione della diagnosi attiva limitata...",
   "El resultado es orientativo y no se presenta como una certeza.": "Il risultato è indicativo e non viene presentato come una certezza.",
-  "El resultado usará categorías limitadas y se añadirá como bloque separado a una nueva versión de la incidencia local.": "Il risultato userà categorie limitate e verrà aggiunto come blocco separato a una nuova versione del rapporto di incidente locale.",
+  "El resultado usará categorías limitadas y se añadirá como bloque separado a una nueva versión de la incidencia local.": "Il risultato userà categorie limitate e verrà aggiunto come blocco separato a una nuova versione della segnalazione locale.",
   "La operación ya ha fallado. Si aceptas, GrxFirma hará ahora comprobaciones acotadas para orientar la causa probable.": "L'operazione è già fallita. Se accetti, GrxFirma eseguirà ora controlli limitati per individuare la causa probabile.",
   "Negociación TLS": "Negoziazione TLS",
   "No se enviarán documentos, certificados, rutas, direcciones IP, credenciales ni errores crudos.": "Non verranno inviati documenti, certificati, percorsi, indirizzi IP, credenziali o errori non elaborati.",
@@ -2627,7 +2627,7 @@
   ,"La última versión publicada es %1, pero este build de desarrollo no se puede comparar automáticamente.": "L'ultima versione pubblicata è %1, ma questa build di sviluppo non può essere confrontata automaticamente."
   ,"GrxFirma está actualizado (%1).": "GrxFirma è aggiornato (%1)."
   ,"Avisar de nuevas versiones": "Avvisa delle nuove versioni"
-  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "All'avvio consulta una volta l'ultima GitHub Release. Invia a GitHub solo la connessione HTTPS e l'identificatore GrxFirma; non invia documenti, certificati o dati di firma."
+  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "All'avvio consulta una volta l'ultima GitHub Release. Invia a GitHub solo la connessione HTTPS e il percorso del repository ufficiale; non invia documenti, certificati o dati di firma."
   ,"Comprobación de versiones finalizada.": "Verifica delle versioni completata."
   ,"La comprobación segura de versiones necesita el motor local IPC. Abra GrxFirma desde el lanzador instalado y vuelva a intentarlo; la firma local no queda bloqueada.": "La verifica sicura delle versioni richiede il motore IPC locale. Aprire GrxFirma dal launcher installato e riprovare; la firma locale rimane disponibile."
   ,"No se puede comprobar la versión porque el servicio de actualizaciones no está configurado. Reinstale GrxFirma desde el repositorio oficial.": "Impossibile verificare la versione perché il servizio di aggiornamento non è configurato. Reinstallare GrxFirma dal repository ufficiale."
@@ -2674,7 +2674,7 @@
   ,"Primera": "Prima"
   ,"Renovar en la FNMT": "Rinnova presso la FNMT"
   ,"Selecciona una imagen PNG o JPEG para el sello.": "Seleziona un'immagine PNG o JPEG per il timbro."
-  ,"Selección de páginas inválida. Usa 1, 1,3-5 o todas.": "Selezione delle pagine non valida. Usa 1, 1,3-5 oppure tutte."
+  ,"Selección de páginas inválida. Usa 1, 1,3-5 o todas.": "Selezione delle pagine non valida. Usa 1, 1,3-5 oppure all."
   ,"Solo texto": "Solo testo"
   ,"Tarjeta detectada. Se actualiza la lista de certificados; puede que necesites configurar el módulo PKCS#11.": "Carta rilevata. Aggiornamento dell'elenco dei certificati; potrebbe essere necessario configurare il modulo PKCS#11."
   ,"Todas": "Tutte"
@@ -2703,7 +2703,7 @@
   "Ocultar": "Nascondi",
   "Seleccione un certificado": "Seleziona un certificato",
   "No dispone de clave utilizable para firmar": "Nessuna chiave utilizzabile per firmare",
-  "Seleccione certificados válidos para la cofirma múltiple": "Seleziona certificati validi per la firma congiunta multipla",
+  "Seleccione certificados válidos para la cofirma múltiple": "Seleziona certificati validi per la cofirma multipla",
   "No hay certificados propios disponibles.": "Nessun certificato personale disponibile.",
   "Exportar certificado público": "Esporta certificato pubblico",
   "Certificado público DER (*.cer)": "Certificato pubblico DER (*.cer)",
@@ -2739,25 +2739,25 @@
   ,"Actualizado a %1: ver novedades": "Aggiornato alla %1: vedi le novità"
   ,"revocación no concluyente": "Non è stato possibile verificare la revoca del certificato. La firma non è considerata valida."
   ,"rest.verify_v2.error.limit": "Il limite di verifica v2 è fuori dall’intervallo consentito"
-  ,"portal.seal.title": "Posiziona il sigillo sul PDF"
-  ,"portal.seal.instructions": "Il sito da cui sta firmando le chiede di scegliere dove va la firma. Trascini il sigillo per spostarlo, usi il cerchio nell’angolo per ridimensionarlo e la freccia per ruotarlo. Può anche scrivere la posizione in «Regolazione precisa»."
+  ,"portal.seal.title": "Posiziona il timbro sul PDF"
+  ,"portal.seal.instructions": "Il sito da cui sta firmando le chiede di scegliere dove va la firma. Trascini il timbro per spostarlo, usi il cerchio nell’angolo per ridimensionarlo e la freccia per ruotarlo. Può anche scrivere la posizione in «Regolazione precisa»."
   ,"portal.seal.fine_tune": "Regolazione precisa"
   ,"portal.seal.page": "Pagina %1 di %2"
   ,"portal.seal.previous_page": "Pagina precedente"
   ,"portal.seal.next_page": "Pagina successiva"
-  ,"portal.seal.preview_error": "Impossibile mostrare il PDF. Usa «Regolazione precisa» o «Firma senza sigillo visibile»."
-  ,"portal.seal.preview_failed": "Impossibile mostrare il PDF, quindi il sigillo non può essere posizionato. Puoi scegliere «Firma senza sigillo visibile» o «Annulla»."
+  ,"portal.seal.preview_error": "Impossibile mostrare il PDF. Usa «Regolazione precisa» o «Firma senza timbro visibile»."
+  ,"portal.seal.preview_failed": "Impossibile mostrare il PDF, quindi il timbro non può essere posizionato. Puoi scegliere «Firma senza timbro visibile» o «Annulla»."
   ,"portal.seal.preview_loading": "Caricamento anteprima PDF…"
-  ,"portal.seal.sign_here": "Firma qui con il sigillo"
-  ,"portal.seal.sign_without": "Firma senza sigillo visibile"
+  ,"portal.seal.sign_here": "Firma qui con il timbro"
+  ,"portal.seal.sign_without": "Firma senza timbro visibile"
   ,"portal.seal.cancel": "Annulla"
   ,"portal.seal.style": "Aspetto del sigillo"
   ,"portal.seal.logo": "Logo istituzionale"
   ,"portal.seal.text": "Solo testo"
   ,"portal.seal.error.result": "L’editor ha restituito un risultato non valido. Il documento non è stato firmato."
-  ,"portal.seal.error.placement": "La posizione del sigillo non è valida o è fuori dal PDF. Il documento non è stato firmato."
+  ,"portal.seal.error.placement": "La posizione del timbro non è valida o è fuori dal PDF. Il documento non è stato firmato."
   ,"portal.seal.error.prepare": "Impossibile preparare il PDF per l’editor. Riprovare a firmare."
-  ,"portal.seal.notice.editor_title": "Editor del sigillo non disponibile"
+  ,"portal.seal.notice.editor_title": "Editor del timbro non disponibile"
   ,"portal.seal.notice.editor_body": "Impossibile aprire l’editor visivo. Scegliere una posizione nella finestra."
   ,"portal.seal.notice.preview_title": "Anteprima non disponibile"
   ,"portal.seal.notice.preview_body": "Il PDF non è disponibile o è protetto. Scegliere una posizione nella finestra."
@@ -2773,15 +2773,15 @@
   "Ahora no": "Non ora"
   ,"winui.parity.verify.export": "Esporta rapporto JSON"
   ,"winui.parity.tsa.enabled": "Usa una marca temporale"
-  ,"winui.parity.tsa.url": "URL del server di marcatura temporale"
-  ,"winui.parity.tsa.invalid": "Inserisci un URL HTTP o HTTPS valido per il server di marcatura temporale."
+  ,"winui.parity.tsa.url": "URL del server di marca temporale"
+  ,"winui.parity.tsa.invalid": "Inserisci un URL HTTP o HTTPS valido per il server di marca temporale."
   ,"winui.parity.tsa.unavailable": "Impossibile leggere le impostazioni della marca temporale. Riprova."
   ,"winui.parity.certs.person": "Persona fisica"
   ,"winui.parity.certs.representative": "Rappresentante"
   ,"winui.parity.certs.seal": "Sigillo dell'ente"
   ,"winui.parity.certs.employee": "Dipendente pubblico"
   ,"winui.parity.certs.type": "Tipo di certificato"
-  ,"winui.parity.certs.nif": "Solo con identificativo o numero di serie"
+  ,"winui.parity.certs.nif": "Solo con NIF o numero di serie"
   ,"winui.parity.certs.organization": "Solo con organizzazione"
   ,"winui.parity.rest.title": "Server REST locale"
   ,"winui.parity.rest.token": "Token di accesso per questa sessione"
@@ -2901,11 +2901,11 @@
   ,"facturae.enable_label": "Attiva gli strumenti di fatturazione (Facturae, FACe e Veri*Factu)"
   ,"facturae.enable_help": "Mostra il generatore Facturae, il controllo dei registri Veri*Factu e i collegamenti ufficiali a FACe.",
   "paridad.lote3.csv.code": "Codice CSV (massimo 128 caratteri)",
-  "paridad.lote3.csv.enable": "Apponi la legenda CSV di verifica",
+  "paridad.lote3.csv.enable": "Apponi la dicitura CSV di verifica",
   "paridad.lote3.csv.invalid": "Controlla il CSV, l’URL HTTPS e le lunghezze massime.",
   "paridad.lote3.csv.notice": "Il CSV è emesso dall’Amministrazione. GrxFirma appone solo il codice fornito; non crea mai un codice ufficiale.",
   "paridad.lote3.csv.qr": "Aggiungi QR di verifica",
-  "paridad.lote3.csv.text_optional": "Testo della legenda (facoltativo)",
+  "paridad.lote3.csv.text_optional": "Testo della dicitura (facoltativo)",
   "paridad.lote3.csv.url": "URL HTTPS di verifica ({csv} consentito)",
   "paridad.lote3.eni.administration": "Amministrazione",
   "paridad.lote3.eni.capture_date": "Data di acquisizione",
@@ -2975,7 +2975,7 @@
   "paridad.lote3.eni.creating": "Creazione del file ENI…",
   "paridad.lote3.invoice.filename": "rapporto-fattura",
   "paridad.lote3.eni.filename": "documento-eni",
-  "Huellas": "Impronte digitali",
+  "Huellas": "Hash",
   "Complementos": "Componenti aggiuntivi",
   "Diagnóstico": "Diagnostica",
   "Facturae y FACe": "Facturae, FACe e Veri*Factu",
@@ -3853,7 +3853,7 @@
   ,"Titular": "Titolare"
   ,"desconocida": "sconosciuta"
   ,"Persona jurídica": "Persona giuridica"
-  ,"GrxFirma comprueba en segundo plano si hay una versión nueva al arrancar y cada 5 horas mientras sigue abierta o en la bandeja. Lo hace aunque el motor local no responda y sin esperas si no hay internet, y avisa con «Descargar e instalar», «Ver novedades» y «Ahora no».": "GrxFirma verifica in background la presenza di una nuova versione all’avvio e ogni 5 ore finché resta aperto o nell’area di notifica. Lo fa anche se il motore locale non risponde e senza attese quando manca Internet, con le opzioni «Scarica e installa», «Novità» e «Non ora»."
+  ,"GrxFirma comprueba en segundo plano si hay una versión nueva al arrancar y cada 5 horas mientras sigue abierta o en la bandeja. Lo hace aunque el motor local no responda y sin esperas si no hay internet, y avisa con «Descargar e instalar», «Ver novedades» y «Ahora no».": "GrxFirma verifica in background la presenza di una nuova versione all’avvio e ogni 5 ore finché resta aperto o nell’area di notifica. Lo fa anche se il motore locale non risponde e senza attese quando manca Internet, con le opzioni «Scarica e installa», «Scopri le novità» e «Non ora»."
   ,"Windows: exportar el informe de verificación, configurar el sello de tiempo, filtrar certificados por NIF, organización o tipo, controlar el servidor REST y usar el asistente de soporte, como en Linux.": "Windows: esportazione dei rapporti di verifica, configurazione delle marche temporali, filtro dei certificati per NIF, organizzazione o tipo, controllo del server REST e uso dell’assistente di supporto, come su Linux."
   ,"Linux: generador de facturas FacturaE, estado del lector de tarjetas y arranque automático con la sesión, como en Windows.": "Linux: generatore di fatture FacturaE, stato del lettore di schede e avvio automatico con la sessione, come su Windows."
   ,"Linux: se retira la pestaña de pruebas internas, que mostraba resultados ficticios, y ya no aparece «Cambios sin guardar» al abrir la aplicación.": "Linux: rimossa la scheda dei test interni, che mostrava risultati fittizi; «Modifiche non salvate» non appare più all’apertura."
@@ -3902,7 +3902,7 @@
   ,"En Windows, el instalador vuelve a crear el acceso a GrxFirma en el menú Inicio y, por defecto, en el escritorio.": "Su Windows, il programma di installazione crea di nuovo un collegamento a GrxFirma nel menu Start e, per impostazione predefinita, sul desktop."
   ,"Nuevo icono de GrxFirma.": "Nuova icona di GrxFirma."
   ,"GrxFirma se queda en la bandeja del sistema al cerrar la ventana (se puede desactivar en Ajustes), con opción de iniciarse con Windows.": "GrxFirma resta nell’area di notifica alla chiusura della finestra (disattivabile nelle Impostazioni), con un’opzione per l’avvio con Windows."
-  ,"La aplicación de Linux incorpora las novedades de Windows: vista previa real del sello, estilos, QR, páginas y giro libre; estado y caducidad de los certificados con acceso a la renovación FNMT; guía para DNIe y tarjetas; destinatarios públicos en Proteger; y novedades en Acerca de.": "L’applicazione Linux include ora le novità Windows: anteprima reale del timbro, stili, QR, pagine e rotazione libera; stato e scadenza dei certificati con rinnovo FNMT; guida per DNIe e schede; destinatari pubblici in Proteggi; novità in Informazioni."
+  ,"La aplicación de Linux incorpora las novedades de Windows: vista previa real del sello, estilos, QR, páginas y giro libre; estado y caducidad de los certificados con acceso a la renovación FNMT; guía para DNIe y tarjetas; destinatarios públicos en Proteger; y novedades en Acerca de.": "L’applicazione Linux include ora le novità Windows: anteprima reale del timbro, stili, QR, pagine e rotazione libera; stato e scadenza dei certificati con rinnovo FNMT; guida per DNIe e smart card; destinatari pubblici in Proteggi; novità in Informazioni."
   ,"En Windows, los programas se instalan en %LOCALAPPDATA%\\Programs\\GrxFirma y los datos del usuario se guardan aparte en %LOCALAPPDATA%\\GrxFirma, de modo que reinstalar o actualizar ya no falla después de haber usado la aplicación.": "Su Windows, i programmi vengono installati in %LOCALAPPDATA%\\Programs\\GrxFirma e i dati utente sono conservati separatamente in %LOCALAPPDATA%\\GrxFirma, quindi reinstallazione e aggiornamento non falliscono più dopo l’uso."
   ,"En Windows, la instalación y las actualizaciones guardan los programas en %LOCALAPPDATA%\\Programs\\GrxFirma. Los datos de uso y la configuración permanecen en sus carpetas de usuario al desinstalar.": "Su Windows, installazione e aggiornamenti salvano i programmi in %LOCALAPPDATA%\\Programs\\GrxFirma. Dati d’uso e impostazioni restano nelle cartelle dell’utente dopo la disinstallazione."
   ,"Corregida la conexión con los portales web en equipos donde nunca se había usado la aplicación: el certificado local que usa el navegador para comunicarse con GrxFirma no quedaba como de confianza. Ahora el instalador lo instala por la vía normal de Windows, que pide una única confirmación.": "Corrette le connessioni ai portali sui computer in cui l’applicazione non era mai stata usata: il certificato locale del browser per comunicare con GrxFirma non risultava attendibile. Il programma di installazione ora lo installa tramite la normale procedura Windows, con una sola conferma."
@@ -3935,14 +3935,14 @@
   ,"Seleccionar documento para firmar": "Seleziona il documento da firmare"
   ,"Examinar…": "Sfoglia…"
   ,"Permite seleccionar hasta 128 documentos mediante selección múltiple y una carpeta adicional. El motor conserva los resultados parciales por documento.": "Consente di selezionare fino a 128 documenti con la selezione multipla e una cartella aggiuntiva. Il motore conserva i risultati parziali per ciascun documento."
-  ,"Activar firma por lotes": "Attiva la firma in batch"
+  ,"Activar firma por lotes": "Attiva la firma in lotto"
   ,"Firma por lotes": "Firma in batch"
-  ,"El lote usa un único certificado, operación, formato y perfil. El sello visible se desactiva porque exige previsualización individual.": "Il batch usa un solo certificato, un'operazione, un formato e un profilo. Il sigillo visibile è disattivato perché richiede un'anteprima per ogni documento."
-  ,"Añadir documentos al lote": "Aggiungi documenti al batch"
+  ,"El lote usa un único certificado, operación, formato y perfil. El sello visible se desactiva porque exige previsualización individual.": "Il lotto usa un solo certificato, un'operazione, un formato e un profilo. Il timbro visibile è disattivato perché richiede un'anteprima per ogni documento."
+  ,"Añadir documentos al lote": "Aggiungi documenti al lotto"
   ,"Añadir archivos…": "Aggiungi file…"
-  ,"Añadir carpeta al lote": "Aggiungi una cartella al batch"
+  ,"Añadir carpeta al lote": "Aggiungi una cartella al lotto"
   ,"Elegir carpeta…": "Scegli cartella…"
-  ,"Vaciar selección del lote": "Svuota la selezione del batch"
+  ,"Vaciar selección del lote": "Svuota la selezione del lotto"
   ,"Vaciar lote": "Svuota il batch"
   ,"Carpeta de salida…": "Cartella di destinazione…"
   ,"Operación de firma": "Operazione di firma"
@@ -3959,87 +3959,87 @@
   ,"Importa persistentemente un P12 o PFX en Cert:\\CurrentUser\\My después de una confirmación explícita.": "Importa in modo permanente un P12 o PFX in Cert:\\CurrentUser\\My dopo una conferma esplicita."
   ,"Importar archivo de certificado en Windows": "Importa il file del certificato in Windows"
   ,"Importar archivo en Windows": "Importa file in Windows"
-  ,"Aplica primero el certificado principal y después los certificados adicionales como cofirmas secuenciales, generando una única salida.": "Applica prima il certificato principale e poi quelli aggiuntivi come co-firme successive, producendo un unico file di output."
-  ,"Activar cofirma múltiple guiada": "Attiva la firma congiunta multipla guidata"
+  ,"Aplica primero el certificado principal y después los certificados adicionales como cofirmas secuenciales, generando una única salida.": "Applica prima il certificato principale e poi quelli aggiuntivi come cofirme sequenziali, producendo un unico file di output."
+  ,"Activar cofirma múltiple guiada": "Attiva la cofirma multipla guidata"
   ,"Seleccione uno o más certificados distintos del principal. Se aplicarán en el orden mostrado.": "Seleziona uno o più certificati diversi da quello principale. Verranno applicati nell'ordine mostrato."
-  ,"Certificados adicionales para cofirma múltiple": "Certificati aggiuntivi per la firma congiunta multipla"
+  ,"Certificados adicionales para cofirma múltiple": "Certificati aggiuntivi per la cofirma multipla"
   ,"Opciones avanzadas de firma": "Opzioni avanzate di firma"
   ,"Opciones avanzadas": "Opzioni avanzate"
   ,"Usa la geometría real obtenida del PDF y solo se habilita para PAdES o Automático.": "Usa la geometria reale del PDF ed è disponibile solo per PAdES o Automatico."
   ,"Añadir sello visible en documentos PDF": "Aggiungi un sigillo visibile ai documenti PDF"
-  ,"Añadir sello visible en PDF": "Aggiungi un sigillo visibile al PDF"
-  ,"Configuración del sello visible": "Impostazioni del sigillo visibile"
-  ,"Elija el aspecto del sello y en qué páginas estamparlo. Después cargue la previsualización: arrastre el sello para colocarlo y su esquina para ampliarlo o reducirlo. También puede ajustarlo con el teclado: X se mide desde la izquierda e Y desde abajo.": "Scegli l'aspetto del sigillo e le pagine su cui apporlo. Poi carica l'anteprima: trascina il sigillo per posizionarlo e l'angolo per ridimensionarlo. Puoi anche regolarlo con la tastiera: X si misura da sinistra e Y dal basso."
+  ,"Añadir sello visible en PDF": "Aggiungi un timbro visibile al PDF"
+  ,"Configuración del sello visible": "Impostazioni del timbro visibile"
+  ,"Elija el aspecto del sello y en qué páginas estamparlo. Después cargue la previsualización: arrastre el sello para colocarlo y su esquina para ampliarlo o reducirlo. También puede ajustarlo con el teclado: X se mide desde la izquierda e Y desde abajo.": "Scegli l'aspetto del timbro e le pagine su cui apporlo. Poi carica l'anteprima: trascina il timbro per posizionarlo e l'angolo per ridimensionarlo. Puoi anche regolarlo con la tastiera: X si misura da sinistra e Y dal basso."
   ,"Institucional muestra el emblema de firma de la Diputación; también puede usar solo texto o una imagen propia.": "Lo stile istituzionale mostra l'emblema di firma della Diputación; puoi usare anche solo testo o un'immagine personale."
-  ,"Estilo del sello visible": "Stile del sigillo visibile"
+  ,"Estilo del sello visible": "Stile del timbro visibile"
   ,"Estilo del sello": "Stile del sigillo"
-  ,"Elegir imagen del sello": "Scegli l'immagine del sigillo"
-  ,"Incluye en el sello el nombre del firmante, la fecha y el emisor del certificado; sin esta opción conserva únicamente el rótulo de firma digital.": "Include nel sigillo il nome del firmatario, la data e l'emittente del certificato; senza questa opzione resta solo la dicitura della firma digitale."
-  ,"Mostrar identidad ubicación y fecha en el sello": "Mostra identità, luogo e data nel sigillo"
+  ,"Elegir imagen del sello": "Scegli l'immagine del timbro"
+  ,"Incluye en el sello el nombre del firmante, la fecha y el emisor del certificado; sin esta opción conserva únicamente el rótulo de firma digital.": "Include nel timbro il nome del firmatario, la data e l'emittente del certificato; senza questa opzione resta solo la dicitura della firma digitale."
+  ,"Mostrar identidad ubicación y fecha en el sello": "Mostra identità, luogo e data nel timbro"
   ,"Mostrar identidad, ubicación y fecha": "Mostra identità, luogo e data"
-  ,"Añade al sello un código QR que abre la dirección indicada para que cualquiera pueda comprobar el documento.": "Aggiunge al sigillo un codice QR che apre l'indirizzo indicato, così chiunque può verificare il documento."
-  ,"Añadir código QR de verificación al sello": "Aggiungi un codice QR di verifica al sigillo"
+  ,"Añade al sello un código QR que abre la dirección indicada para que cualquiera pueda comprobar el documento.": "Aggiunge al timbro un codice QR che apre l'indirizzo indicato, così chiunque può verificare il documento."
+  ,"Añadir código QR de verificación al sello": "Aggiungi un codice QR di verifica al timbro"
   ,"Añadir código QR de verificación": "Aggiungi un codice QR di verifica"
   ,"Dirección HTTPS completa que abrirá el QR, por ejemplo la página de verificación de su sede electrónica.": "Indirizzo HTTPS completo aperto dal codice QR, ad esempio la pagina di verifica del portale istituzionale."
   ,"Dirección de verificación del QR": "Indirizzo di verifica del QR"
   ,"Dirección de verificación (HTTPS)": "Indirizzo di verifica (HTTPS)"
   ,"https://sede.ejemplo.es/verificar": "https://sede.ejemplo.es/verificar"
   ,"Primera, última, todas las páginas o una lista concreta.": "Prima pagina, ultima pagina, tutte le pagine o un elenco specifico."
-  ,"Páginas donde estampar el sello": "Pagine su cui apporre il sigillo"
+  ,"Páginas donde estampar el sello": "Pagine su cui apporre il timbro"
   ,"Estampar en": "Apponi su"
   ,"Use una página, una lista o un rango; por ejemplo 1, 1,3-5 o all.": "Indica una pagina, un elenco o un intervallo; ad esempio 1, 1,3-5 o all."
-  ,"Páginas del sello visible": "Pagine del sigillo visibile"
+  ,"Páginas del sello visible": "Pagine del timbro visibile"
   ,"Páginas concretas": "Pagine specifiche"
   ,"1, 1,3-5 o all": "1, 1,3-5 o all"
-  ,"Cargar previsualización PDF para el sello": "Carica l'anteprima PDF del sigillo"
+  ,"Cargar previsualización PDF para el sello": "Carica l'anteprima PDF del timbro"
   ,"Cargar previsualización": "Carica l'anteprima"
   ,"Porcentaje desde el borde izquierdo.": "Percentuale dal bordo sinistro."
-  ,"Posición horizontal del sello en porcentaje": "Posizione orizzontale del sigillo in percentuale"
+  ,"Posición horizontal del sello en porcentaje": "Posizione orizzontale del timbro in percentuale"
   ,"X (%)": "X (%)"
   ,"Porcentaje desde el borde inferior.": "Percentuale dal bordo inferiore."
-  ,"Posición vertical del sello en porcentaje": "Posizione verticale del sigillo in percentuale"
+  ,"Posición vertical del sello en porcentaje": "Posizione verticale del timbro in percentuale"
   ,"Y (%)": "Y (%)"
-  ,"Ancho del sello en porcentaje": "Larghezza del sigillo in percentuale"
-  ,"Alto del sello en porcentaje": "Altezza del sigillo in percentuale"
+  ,"Ancho del sello en porcentaje": "Larghezza del timbro in percentuale"
+  ,"Alto del sello en porcentaje": "Altezza del timbro in percentuale"
   ,"Giros rápidos de 90 grados. Para otro ángulo use el campo de grados o la barra.": "Rotazioni rapide di 90 gradi. Per un altro angolo, usa il campo dei gradi o il cursore."
-  ,"Rotación del sello visible": "Rotazione del sigillo visibile"
+  ,"Rotación del sello visible": "Rotazione del timbro visibile"
   ,"Giro": "Rotazione"
   ,"Giro libre": "Rotazione libera"
   ,"Cualquier ángulo entre 0 y 359 grados, en sentido horario.": "Qualsiasi angolo da 0 a 359 gradi in senso orario."
-  ,"Giro libre del sello en grados": "Rotazione libera del sigillo in gradi"
+  ,"Giro libre del sello en grados": "Rotazione libera del timbro in gradi"
   ,"Grados": "Gradi"
-  ,"Barra de giro del sello": "Cursore di rotazione del sigillo"
+  ,"Barra de giro del sello": "Cursore di rotazione del timbro"
   ,"Motivo de la firma PDF": "Motivo della firma PDF"
   ,"Motivo (opcional)": "Motivo (facoltativo)"
-  ,"Si se muestra el texto, esta ubicación forma parte del sello generado.": "Se il testo è visualizzato, questo luogo farà parte del sigillo generato."
+  ,"Si se muestra el texto, esta ubicación forma parte del sello generado.": "Se il testo è visualizzato, questo luogo farà parte del timbro generato."
   ,"Ubicación de la firma PDF": "Luogo della firma PDF"
   ,"Ubicación (opcional)": "Luogo (facoltativo)"
   ,"Contacto de la firma PDF": "Contatto della firma PDF"
   ,"Contacto (opcional)": "Contatto (facoltativo)"
-  ,"Arrastre la zona azul para mover el sello. Arrastre su esquina inferior derecha para cambiar el tamaño. Los campos numéricos ofrecen una alternativa precisa mediante teclado.": "Trascina l'area blu per spostare il sigillo. Trascina l'angolo in basso a destra per ridimensionarlo. I campi numerici consentono regolazioni precise con la tastiera."
-  ,"Editor visual de posición del sello sobre la página PDF": "Editor visivo della posizione del sigillo sulla pagina PDF"
+  ,"Arrastre la zona azul para mover el sello. Arrastre su esquina inferior derecha para cambiar el tamaño. Los campos numéricos ofrecen una alternativa precisa mediante teclado.": "Trascina l'area blu per spostare il timbro. Trascina l'angolo in basso a destra per ridimensionarlo. I campi numerici consentono regolazioni precise con la tastiera."
+  ,"Editor visual de posición del sello sobre la página PDF": "Editor visivo della posizione del timbro sulla pagina PDF"
   ,"Previsualización de la página PDF": "Anteprima della pagina PDF"
-  ,"Arrastre para mover la zona del sello. Use el tirador de la esquina inferior derecha para redimensionarla.": "Trascina per spostare l'area del sigillo. Usa la maniglia nell'angolo in basso a destra per ridimensionarla."
-  ,"Zona del sello visible": "Area del sigillo visibile"
-  ,"Vista previa real del sello": "Anteprima effettiva del sigillo"
+  ,"Arrastre para mover la zona del sello. Use el tirador de la esquina inferior derecha para redimensionarla.": "Trascina per spostare l'area del timbro. Usa la maniglia nell'angolo in basso a destra per ridimensionarla."
+  ,"Zona del sello visible": "Area del timbro visibile"
+  ,"Vista previa real del sello": "Anteprima effettiva del timbro"
   ,"FIRMADO DIGITALMENTE": "FIRMATO DIGITALMENTE"
-  ,"Arrastre para cambiar el ancho y el alto del sello.": "Trascina per modificare larghezza e altezza del sigillo."
-  ,"Redimensionar zona del sello": "Ridimensiona l'area del sigillo"
+  ,"Arrastre para cambiar el ancho y el alto del sello.": "Trascina per modificare larghezza e altezza del timbro."
+  ,"Redimensionar zona del sello": "Ridimensiona l'area del timbro"
   ,"Arrastrar para cambiar el tamaño": "Trascina per ridimensionare"
   ,"Comprueba la firma generada mediante la operación verify antes de mostrar el resultado como validado.": "Verifica la firma generata con l'operazione verify prima di mostrare il risultato come convalidato."
   ,"Validar el resultado al terminar": "Convalida il risultato al termine"
   ,"Firma el documento mediante el motor local autenticado y el certificado seleccionado.": "Firma il documento usando il motore locale autenticato e il certificato selezionato."
   ,"Firmar documento": "Firma documento"
   ,"Envía la selección completa a sign_batch y conserva los resultados parciales confirmados por el motor.": "Invia l'intera selezione a sign_batch e conserva i risultati parziali confermati dal motore."
-  ,"Firmar lote de documentos": "Firma un batch di documenti"
+  ,"Firmar lote de documentos": "Firma un lotto di documenti"
   ,"Firmar lote": "Firma batch"
   ,"Cancelar operación de firma": "Annulla l'operazione di firma"
   ,"Operación de firma en curso": "Operazione di firma in corso"
-  ,"Progreso de firma por lotes": "Avanzamento della firma in batch"
+  ,"Progreso de firma por lotes": "Avanzamento della firma in lotto"
   ,"Resultado del lote": "Risultato del batch"
-  ,"Estado de la firma por lotes": "Stato della firma in batch"
+  ,"Estado de la firma por lotes": "Stato della firma in lotto"
   ,"Resultados de firma por documento": "Risultati della firma per documento"
-  ,"Abrir carpeta de resultados del lote": "Apri la cartella dei risultati del batch"
+  ,"Abrir carpeta de resultados del lote": "Apri la cartella dei risultati del lotto"
   ,"Abrir carpeta de resultados": "Apri la cartella dei risultati"
   ,"Ocultar panel de certificados": "Nascondi il pannello dei certificati"
   ,"Importar certificados": "Importa certificati"
@@ -4065,28 +4065,28 @@
   ,"Verificación en curso": "Verifica in corso"
   ,"Resultado de verificación": "Risultato della verifica"
   ,"Avisos y errores": "Avvisi ed errori"
-  ,"Contenido de huellas": "Contenuto delle impronte digitali"
-  ,"Disponibilidad de huellas": "Disponibilità delle impronte digitali"
+  ,"Contenido de huellas": "Contenuto degli hash"
+  ,"Disponibilidad de huellas": "Disponibilità degli hash"
   ,"Crear o comprobar": "Crea o verifica"
   ,"Usar un fichero": "Usa un file"
   ,"Usar un directorio": "Usa una directory"
-  ,"Origen para la huella": "Origine dell'impronta digitale"
+  ,"Origen para la huella": "Origine per l'hash"
   ,"Ningún origen seleccionado": "Nessuna origine selezionata"
-  ,"Seleccionar origen para la huella": "Seleziona l'origine dell'impronta digitale"
-  ,"Manifiesto de huella": "Manifesto delle impronte digitali"
-  ,"Huella o manifiesto que se va a comprobar": "Impronta digitale o manifesto da verificare"
-  ,"Seleccione una huella o manifiesto": "Seleziona un'impronta digitale o un manifesto"
+  ,"Seleccionar origen para la huella": "Seleziona l'origine per l'hash"
+  ,"Manifiesto de huella": "Manifest di hash"
+  ,"Huella o manifiesto que se va a comprobar": "Hash o manifest da verificare"
+  ,"Seleccione una huella o manifiesto": "Seleziona un hash o un manifest"
   ,"Los informes .hashreport son salidas de comprobación y no se aceptan como manifiestos.": "I report .hashreport sono risultati della verifica e non sono accettati come manifesti."
-  ,"Seleccionar manifiesto de huella": "Seleziona il manifesto delle impronte digitali"
+  ,"Seleccionar manifiesto de huella": "Seleziona il manifest di hash"
   ,"Seleccionar manifiesto…": "Seleziona manifesto…"
-  ,"Algoritmo de huella": "Algoritmo dell'impronta digitale"
+  ,"Algoritmo de huella": "Algoritmo di hash"
   ,"Algoritmo seguro": "Algoritmo sicuro"
-  ,"Formato de la huella": "Formato dell'impronta digitale"
+  ,"Formato de la huella": "Formato dell'hash"
   ,"Solo se aplica a directorios.": "Si applica solo alle directory."
   ,"Incluir subdirectorios": "Includi sottodirectory"
-  ,"Ejecutar operación de huella": "Esegui l'operazione sulle impronte digitali"
-  ,"Cancelar operación de huella": "Annulla l'operazione sulle impronte digitali"
-  ,"Operación de huella en curso": "Operazione sulle impronte digitali in corso"
+  ,"Ejecutar operación de huella": "Esegui l'operazione di hash"
+  ,"Cancelar operación de huella": "Annulla l'operazione di hash"
+  ,"Operación de huella en curso": "Operazione di hash in corso"
   ,"Contenido de protección y desprotección": "Contenuto della protezione e decrittazione"
   ,"Disponibilidad de protección": "Disponibilità della protezione"
   ,"Proteger documento": "Proteggi documento"
@@ -4789,7 +4789,7 @@
   ,"csv.error.code_invalid": "Il codice CSV non può superare i 128 caratteri né contenere a capo o tabulazioni."
   ,"csv.error.url_missing": "Manca l'URL di verifica del CSV."
   ,"csv.error.url_invalid": "L'URL di verifica non è valido: deve essere un indirizzo https:// senza utente, password o spazi (usa %20 per gli spazi)."
-  ,"csv.error.text_invalid": "Il testo della legenda CSV non può superare i 512 caratteri né contenere a capo."
+  ,"csv.error.text_invalid": "Il testo della dicitura CSV non può superare i 512 caratteri né contenere a capo."
   ,"Crear documentos y expedientes ENI desde la aplicación, en Windows y Linux.": "Creare documenti e fascicoli ENI dall'applicazione, su Windows e Linux."
   ,"Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.": "Legenda CSV di verifica nel sigillo PAdES (codice e URL dell'amministrazione), su Windows e Linux."
   ,"Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.": "Validare fatture FacturaE, UBL e CII dall'applicazione, con rapporto esportabile, su Windows e Linux."
@@ -4859,10 +4859,10 @@
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "Gli indirizzi di verifica del QR e della legenda CSV accettano domini con accenti o ñ, per esempio «https://sede.almuñécar.es/verificar»."
   ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: le finestre di dialogo si leggono bene con qualsiasi tema; il testo non appare più chiaro su sfondo chiaro.",
   "sign.seal.draw_area": "Disegna area",
-  "sign.seal.draw_help": "Trascina sulla pagina per disegnare l’area del sigillo. Con la tastiera: le frecce spostano l’angolo in alto a sinistra e Maiusc + frecce quello in basso a destra. Invio applica l’area; Esc la scarta.",
-  "sign.seal.draw_too_small": "L’area è troppo piccola. Disegna un rettangolo più grande; il sigillo precedente viene mantenuto.",
-  "sign.seal.draw_applied": "Area del sigillo aggiornata su questa pagina.",
-  "sign.seal.draw_cancelled": "Disegno annullato. Il sigillo precedente viene mantenuto."
+  "sign.seal.draw_help": "Trascina sulla pagina per disegnare l’area del timbro. Con la tastiera: le frecce spostano l’angolo in alto a sinistra e Maiusc + frecce quello in basso a destra. Invio applica l’area; Esc la scarta.",
+  "sign.seal.draw_too_small": "L’area è troppo piccola. Disegna un rettangolo più grande; il timbro precedente viene mantenuto.",
+  "sign.seal.draw_applied": "Area del timbro aggiornata su questa pagina.",
+  "sign.seal.draw_cancelled": "Disegno annullato. Il timbro precedente viene mantenuto."
   ,"sign.seal.draw_position": "Area: sinistra %1%, dall’alto %2%, larghezza %3%, altezza %4%"
   ,"verifactu.title": "Controllare i registri Veri*Factu"
   ,"verifactu.profile_label": "Registro Veri*Factu per la firma"
@@ -4973,7 +4973,7 @@
   ,"csc.error.adicional_con_secretos": "In una firma con più firmatari, solo il primo può usare un certificato remoto che richiede PIN o codice monouso. Imposti quel certificato come primo firmatario o firmi separatamente."
   ,"csc.error.proteger_con_secretos": "Questo certificato remoto richiede PIN o codice monouso, che non sono arrivati. Prema di nuovo «Proteggi e firma» e li scriva quando vengono richiesti."
   ,"csc.gui.titulo": "Firma remota"
-  ,"csc.gui.descripcion": "Firmi con un certificato custodito da un prestatore di fiducia. Dal computer esce solo l'impronta del documento, mai il documento."
+  ,"csc.gui.descripcion": "Firmi con un certificato custodito da un prestatore di fiducia. Dal computer esce solo l'hash del documento, mai il documento."
   ,"csc.gui.url": "Indirizzo del servizio di firma"
   ,"csc.gui.url_ayuda": "Inizia con https://. Gliela fornisce il suo prestatore."
   ,"csc.gui.client_id": "Identificativo client"
@@ -5052,7 +5052,7 @@
   ,"report.size_bytes": "%d byte"
   ,"report.section.document": "Documento verificato"
   ,"report.field.name": "Nome"
-  ,"report.field.hash": "Impronta SHA-256"
+  ,"report.field.hash": "Hash SHA-256"
   ,"report.field.size": "Dimensione"
   ,"report.field.format": "Formato della firma"
   ,"report.field.coverage": "Copertura"
@@ -5060,12 +5060,12 @@
   ,"report.section.checks": "Verifiche"
   ,"report.section.signers": "Firmatari"
   ,"report.signer.issuer": "Emittente"
-  ,"report.signer.fingerprint": "Impronta"
+  ,"report.signer.fingerprint": "Impronta digitale"
   ,"report.section.errors": "Errori"
   ,"report.section.warnings": "Avvisi"
   ,"report.section.evidence": "Evidenze"
   ,"report.section.details": "Dettagli tecnici"
-  ,"report.footer": "Generato da %s. Questo rapporto descrive il risultato della verifica locale alla data indicata; l'impronta SHA-256 identifica il file esatto verificato. Non sostituisce un servizio di convalida qualificato."
+  ,"report.footer": "Generato da %s. Questo rapporto descrive il risultato della verifica locale alla data indicata; l'hash SHA-256 identifica il file esatto verificato. Non sostituisce un servizio di convalida qualificato."
   ,"firma CAdES válida": "Firma CAdES valida"
   ,"firma XAdES valida": "Firma XAdES valida"
   ,"firma XMLdSig valida": "Firma XMLdSig valida"
@@ -5118,7 +5118,7 @@
   ,"report.size_byte_one": "%d byte"
   ,"settings.seal_language.label": "Lingua del sigillo"
   ,"settings.seal_language.interface": "Uguale all'applicazione"
-  ,"settings.seal_language.help": "Lingua delle etichette del sigillo visibile. Scegli ad esempio lo spagnolo perché i documenti presentati alla pubblica amministrazione spagnola riportino il sigillo in questa lingua anche se l'applicazione è in un'altra lingua."
+  ,"settings.seal_language.help": "Lingua delle etichette del timbro visibile. Scegli ad esempio lo spagnolo perché i documenti presentati alla pubblica amministrazione spagnola riportino il timbro in questa lingua anche se l'applicazione è in un'altra lingua."
   ,"Firma remota: un lote completo con un solo PIN o código, si el prestador lo admite; «Proteger y firmar» con certificado remoto; la sesión se renueva sola y se listan todas las credenciales.": "Firma remota: un lotto completo con un solo PIN o codice, se il prestatore lo consente; «Proteggi e firma» con certificato remoto; la sessione si rinnova da sola e vengono elencate tutte le credenziali."
   ,"El sello visible y el informe de verificación salen en el idioma de la aplicación, con la hora local y su zona. En Configuración se puede fijar un idioma del sello, por ejemplo el español para documentos de la Administración.": "Il sigillo visibile e il report di verifica appaiono nella lingua dell'applicazione, con l'ora locale e il suo fuso. Nelle Impostazioni si può fissare una lingua del sigillo, per esempio lo spagnolo per i documenti della pubblica amministrazione."
   ,"Android: lectura del QR tributario con la cámara o desde una imagen, varios certificados abiertos a la vez, resultado con un veredicto claro y detalles técnicos plegados, y editor del sello más cómodo.": "Android: lettura del QR fiscale con la fotocamera o da un'immagine, più certificati aperti contemporaneamente, risultato con un verdetto chiaro e dettagli tecnici compressi, ed editor del sigillo più comodo."
@@ -5168,7 +5168,7 @@
   ,"winui.proteger.1_destinatario_seleccionado": "1 destinatario selezionato."
   ,"winui.proteger.destinatarios_seleccionados": "{0} destinatari selezionati."
   ,"winui.proteger.el_motor_local_no_permite_anadir": "Il motore locale non supporta l'aggiunta di destinatari pubblici."
-  ,"winui.proteger.certificado_publico_anadido_seleccione": "Certificato pubblico aggiunto. Seleziona il destinatario da proteggere."
+  ,"winui.proteger.certificado_publico_anadido_seleccione": "Certificato pubblico aggiunto. Seleziona il destinatario per la protezione."
   ,"winui.proteger.el_motor_local_no_permite_quitar": "Il motore locale non supporta la rimozione di destinatari pubblici."
   ,"winui.proteger.destinatario_importado_quitado": "Destinatario importato rimosso."
   ,"winui.proteger.espere_a_que_termine_la_operacion_actual": "Attendi il termine dell'operazione in corso prima di aggiornare i destinatari."
@@ -5259,14 +5259,14 @@
   ,"winui.comun.ooxml": "OOXML"
   ,"winui.comun.facturae": "FacturaE"
   ,"winui.comun.asic_xades": "ASiC-XAdES"
-  ,"winui.firmar.muestra_orientativa_de_posicion_y_giro": "Posizione e rotazione sono indicative. Il sigillo finale viene generato con il certificato: controllalo nel PDF firmato."
-  ,"winui.firmar.no_se_han_seleccionado_documentos_para": "Nessun documento selezionato per il batch."
+  ,"winui.firmar.muestra_orientativa_de_posicion_y_giro": "Posizione e rotazione sono indicative. Il timbro finale viene generato con il certificato: controllalo nel PDF firmato."
+  ,"winui.firmar.no_se_han_seleccionado_documentos_para": "Nessun documento selezionato per il lotto."
   ,"winui.firmar.no_se_ha_seleccionado_una_carpeta_de": "Nessuna cartella di destinazione selezionata."
-  ,"winui.firmar.el_lote_aun_no_se_ha_ejecutado": "Il batch non è ancora stato eseguito."
+  ,"winui.firmar.el_lote_aun_no_se_ha_ejecutado": "Il lotto non è ancora stato eseguito."
   ,"winui.firmar.no_se_ha_ejecutado_ninguna_firma": "Nessuna firma eseguita."
   ,"winui.firmar.seleccione_un_documento_y_un_certificado": "Seleziona un documento e un certificato per firmare."
   ,"winui.firmar.seleccione_un_documento_compatible_y_un": "Seleziona un documento compatibile e un certificato principale."
-  ,"winui.firmar.active_el_sello_y_cargue_la": "Attiva il sigillo e carica l'anteprima per ottenere la geometria reale del PDF."
+  ,"winui.firmar.active_el_sello_y_cargue_la": "Attiva il timbro e carica l'anteprima per ottenere la geometria reale del PDF."
   ,"winui.firmar.firma_cofirma_o_contrafirma_documentos": "Firma, apponi una cofirma o controfirma ai documenti con un certificato Windows o un file P12/PFX."
   ,"winui.firmar.la_firma_no_esta_disponible_porque_el": "La firma non è disponibile perché il motore locale non ha pubblicato certificates e sign."
   ,"winui.firmar.firma": "Operazione di firma"
@@ -5277,7 +5277,7 @@
   ,"winui.firmar.institucional_con_emblema": "Istituzionale con emblema"
   ,"winui.firmar.emblema_de_firma_de_la_diputacion_a_la": "Emblema di firma della Diputación a sinistra e dati della firma a destra."
   ,"winui.firmar.solo_texto": "Solo testo"
-  ,"winui.firmar.sello_sobrio_con_los_datos_de_la_firma": "Sigillo sobrio con i dati della firma, senza immagini."
+  ,"winui.firmar.sello_sobrio_con_los_datos_de_la_firma": "Timbro sobrio con i dati della firma, senza immagini."
   ,"winui.firmar.imagen_propia": "Immagine personale"
   ,"winui.firmar.una_imagen_png_o_jpeg_suya_logotipo": "Una tua immagine PNG o JPEG (logo, firma autografa scansionata…) insieme ai dati della firma."
   ,"winui.firmar.primera_pagina": "Prima pagina"
@@ -5328,44 +5328,44 @@
   ,"winui.firmar.espere_a_que_termine_la_operacion_actual_4": "Attendi il termine dell'operazione in corso prima di selezionare un altro documento."
   ,"winui.firmar.no_se_selecciono_ningun_documento_la": "Nessun documento selezionato. La firma non è iniziata."
   ,"winui.firmar.la_seleccion_del_documento_se_cancelo_no": "La selezione del documento è stata annullata; nessuna firma è iniziata."
-  ,"winui.firmar.espere_a_que_termine_la_operacion_actual_5": "Attendi il termine dell'operazione in corso prima di modificare il batch."
-  ,"winui.firmar.no_se_anadieron_documentos_al_lote": "Nessun documento è stato aggiunto al batch."
+  ,"winui.firmar.espere_a_que_termine_la_operacion_actual_5": "Attendi il termine dell'operazione in corso prima di modificare il lotto."
+  ,"winui.firmar.no_se_anadieron_documentos_al_lote": "Nessun documento è stato aggiunto al lotto."
   ,"winui.firmar.documento_s_preparados_seleccione_la": "{0} documenti pronti. Seleziona la cartella di destinazione."
-  ,"winui.firmar.la_seleccion_de_documentos_para_el_lote": "La selezione dei documenti del batch è stata annullata."
-  ,"winui.firmar.no_se_pudo_completar_la_seleccion_de": "Impossibile completare la selezione dei documenti del batch."
-  ,"winui.firmar.no_se_anadio_ninguna_carpeta_al_lote": "Nessuna cartella è stata aggiunta al batch."
+  ,"winui.firmar.la_seleccion_de_documentos_para_el_lote": "La selezione dei documenti del lotto è stata annullata."
+  ,"winui.firmar.no_se_pudo_completar_la_seleccion_de": "Impossibile completare la selezione dei documenti del lotto."
+  ,"winui.firmar.no_se_anadio_ninguna_carpeta_al_lote": "Nessuna cartella è stata aggiunta al lotto."
   ,"winui.firmar.documento_s_preparados_incluidos_los": "{0} documenti pronti, inclusi i file della cartella selezionata."
-  ,"winui.firmar.la_seleccion_de_la_carpeta_del_lote_se": "La selezione della cartella del batch è stata annullata."
-  ,"winui.firmar.no_se_pudo_leer_la_carpeta_seleccionada": "Impossibile leggere la cartella selezionata per il batch."
+  ,"winui.firmar.la_seleccion_de_la_carpeta_del_lote_se": "La selezione della cartella del lotto è stata annullata."
+  ,"winui.firmar.no_se_pudo_leer_la_carpeta_seleccionada": "Impossibile leggere la cartella selezionata per il lotto."
   ,"winui.firmar.espere_a_que_termine_la_operacion_actual_6": "Attendi il termine dell'operazione in corso prima di cambiare l'output."
-  ,"winui.firmar.no_se_cambio_la_carpeta_de_salida_del": "La cartella di destinazione del batch non è stata cambiata."
+  ,"winui.firmar.no_se_cambio_la_carpeta_de_salida_del": "La cartella di destinazione del lotto non è stata cambiata."
   ,"winui.firmar.la_carpeta_de_salida_seleccionada_ya_no": "La cartella di destinazione selezionata non è più disponibile."
   ,"winui.firmar.salida": "Uscita: {0}"
   ,"winui.firmar.la_seleccion_de_la_carpeta_de_salida_se": "La selezione della cartella di destinazione è stata annullata."
-  ,"winui.firmar.no_se_pudo_seleccionar_la_carpeta_de": "Impossibile selezionare la cartella di destinazione del batch."
-  ,"winui.firmar.ya_hay_una_operacion_en_curso_espere_o": "Un'operazione è già in corso. Attendi o annullala prima di avviare il batch."
+  ,"winui.firmar.no_se_pudo_seleccionar_la_carpeta_de": "Impossibile selezionare la cartella di destinazione del lotto."
+  ,"winui.firmar.ya_hay_una_operacion_en_curso_espere_o": "Un'operazione è già in corso. Attendi o annullala prima di avviare il lotto."
   ,"winui.firmar.el_motor_local_no_ofrece_la_operacion": "Il motore locale non supporta l'operazione sign_batch."
-  ,"winui.firmar.la_seleccion_del_lote_cambio_seleccione": "La selezione del batch è cambiata. Seleziona di nuovo i documenti."
-  ,"winui.firmar.la_carpeta_de_salida_del_lote_ya_no_esta": "La cartella di destinazione del batch non è più disponibile."
+  ,"winui.firmar.la_seleccion_del_lote_cambio_seleccione": "La selezione del lotto è cambiata. Seleziona di nuovo i documenti."
+  ,"winui.firmar.la_carpeta_de_salida_del_lote_ya_no_esta": "La cartella di destinazione del lotto non è più disponibile."
   ,"winui.firmar.dos_documentos_generarian_la_misma": "Due documenti produrrebbero lo stesso output ({0}). Cambia la selezione per evitare sovrascritture."
   ,"winui.firmar.en_espera": "In attesa"
   ,"winui.firmar.pendiente_de_respuesta_del_motor_local": "In attesa della risposta del motore locale."
   ,"winui.firmar.firmando_lote_de_documento_s": "Firma del lotto in corso. Documenti: {0}…"
-  ,"winui.firmar.el_lote_esta_en_curso_puede_cancelarlo": "Il batch è in esecuzione. Puoi annullarlo; i risultati parziali saranno confermati solo quando il motore risponderà."
-  ,"winui.firmar.el_motor_no_confirmo_la_ejecucion_del": "Il motore non ha confermato l'esecuzione del batch."
-  ,"winui.firmar.el_lote_no_se_completo_abra_el": "Il batch non è stato completato. Apri la diagnostica per sapere dove si è verificato l'errore."
+  ,"winui.firmar.el_lote_esta_en_curso_puede_cancelarlo": "Il lotto è in esecuzione. Puoi annullarlo; i risultati parziali saranno confermati solo quando il motore risponderà."
+  ,"winui.firmar.el_motor_no_confirmo_la_ejecucion_del": "Il motore non ha confermato l'esecuzione del lotto."
+  ,"winui.firmar.el_lote_no_se_completo_abra_el": "Il lotto non è stato completato. Apri la diagnostica per sapere dove si è verificato l'errore."
   ,"winui.firmar.el_motor_no_devolvio_resultados_por": "Il motore non ha restituito risultati per documento."
-  ,"winui.firmar.el_motor_confirmo_la_peticion_pero_no": "Il motore ha confermato la richiesta, ma non ha restituito un risultato di batch valido."
+  ,"winui.firmar.el_motor_confirmo_la_peticion_pero_no": "Il motore ha confermato la richiesta, ma non ha restituito un risultato di lotto valido."
   ,"winui.firmar.lote_finalizado_correcto_s_fallido_s": "Lotto completato. Riusciti: {0}. Con errore: {1}."
   ,"winui.firmar.todos_los_documentos_tienen_una_salida": "Ogni documento ha un output non vuoto confermato dal motore."
-  ,"winui.firmar.el_lote_termino_con_incidencias_revise": "Il batch è terminato con problemi. Controlla ogni documento e la diagnostica prima di continuare."
-  ,"winui.firmar.el_lote_se_cancelo_solo_se_consideran": "Il batch è stato annullato. Solo gli output già confermati nell'elenco sono considerati validi."
-  ,"winui.firmar.fallo_la_comunicacion_segura_durante_la": "La comunicazione sicura non è riuscita durante la firma del batch."
-  ,"winui.firmar.la_aplicacion_no_pudo_completar_la_firma": "L'applicazione non è riuscita a completare la firma del batch."
+  ,"winui.firmar.el_lote_termino_con_incidencias_revise": "Il lotto è terminato con problemi. Controlla ogni documento e la diagnostica prima di continuare."
+  ,"winui.firmar.el_lote_se_cancelo_solo_se_consideran": "Il lotto è stato annullato. Solo gli output già confermati nell'elenco sono considerati validi."
+  ,"winui.firmar.fallo_la_comunicacion_segura_durante_la": "La comunicazione sicura non è riuscita durante la firma del lotto."
+  ,"winui.firmar.la_aplicacion_no_pudo_completar_la_firma": "L'applicazione non è riuscita a completare la firma del lotto."
   ,"winui.firmar.ha_elegido_ultima_pagina_el_documento": " Hai scelto «Ultima pagina»: il documento ha {0} pagina(e) e il timbro sarà inserito nella {1}."
   ,"winui.firmar.corrija_la_seleccion_del_pdf_o_de": "Correggi la selezione del PDF o delle pagine e ricarica l'anteprima."
   ,"winui.firmar.ya_hay_otra_operacion_en_curso_espere_o": "Un'altra operazione è in corso. Attendi o annullala prima di caricare l'anteprima."
-  ,"winui.firmar.el_motor_local_no_ofrece_la": "Il motore locale non offre l'anteprima PDF necessaria per calcolare un sigillo sicuro."
+  ,"winui.firmar.el_motor_local_no_ofrece_la": "Il motore locale non offre l'anteprima PDF necessaria per calcolare un timbro sicuro."
   ,"winui.firmar.actualice_o_reinicie_el_motor_local_y": "Aggiorna o riavvia il motore locale e verifica che annunci pdf_preview."
   ,"winui.firmar.cargando_la_geometria_real_de_la_pagina": "Caricamento della geometria reale della pagina {0}…"
   ,"winui.firmar.no_se_pudo_comprobar_el_pdf_antes_de": "Impossibile verificare il PDF prima dell'anteprima."
@@ -5378,14 +5378,14 @@
   ,"winui.firmar.el_pdf_cambio_mientras_se_generaba_la": "Il PDF è cambiato durante la generazione dell'anteprima. La geometria non verrà usata."
   ,"winui.firmar.cierre_el_programa_que_esta_modificando_2": "Chiudi il programma che modifica il PDF e ricarica l'anteprima."
   ,"winui.firmar.indique_paginas_existentes_por_ejemplo_1": "Indica pagine esistenti, ad esempio 1, 1,3-5 o all."
-  ,"winui.firmar.pdf_real_pagina_de_puntos_el_sello_se": "PDF reale: pagina {0} di {1}, {2} × {3} punti. Il sigillo è mostrato con il suo aspetto reale nell'area contrassegnata."
+  ,"winui.firmar.pdf_real_pagina_de_puntos_el_sello_se": "PDF reale: pagina {0} di {1}, {2} × {3} punti. Il timbro è mostrato con il suo aspetto reale nell'area contrassegnata."
   ,"winui.firmar.previsualizacion_preparada_revise": "Anteprima pronta. Controlla posizione, dimensioni e orientamento prima di firmare."
   ,"winui.firmar.la_carga_de_la_previsualizacion_se": "Il caricamento dell'anteprima è stato annullato."
   ,"winui.firmar.fallo_la_comunicacion_segura_al": "La comunicazione sicura non è riuscita durante l'anteprima del PDF."
   ,"winui.firmar.la_aplicacion_no_pudo_preparar_la": "L'applicazione non è riuscita a preparare l'anteprima PDF."
   ,"winui.firmar.corrija_la_configuracion_indicada_y": "Correggi le impostazioni indicate e ricarica l'anteprima se richiesto."
   ,"winui.firmar.ya_hay_una_firma_en_curso_espere_o": "Una firma è già in corso. Attendi o annulla l'operazione."
-  ,"winui.firmar.no_se_puede_cofirmar_con_varios": "Impossibile apporre co-firme con più certificati: il motore locale non supporta sign_multicosign."
+  ,"winui.firmar.no_se_puede_cofirmar_con_varios": "Impossibile apporre cofirme con più certificati: il motore locale non supporta sign_multicosign."
   ,"winui.firmar.no_se_puede_firmar_el_motor_local_no": "Impossibile firmare: il motore locale non supporta l'operazione sign."
   ,"winui.firmar.elija_donde_guardar_el_resultado_la": "Scegli dove salvare il risultato. La firma non è ancora iniziata."
   ,"winui.firmar.no_se_eligio_un_destino_no_se_ha": "Nessuna destinazione scelta. Nessuna firma eseguita."
@@ -5394,13 +5394,13 @@
   ,"winui.firmar.cierre_el_programa_que_esta_modificando_3": "Chiudi il programma che modifica il PDF, ricarica l'anteprima e firma di nuovo."
   ,"winui.firmar.el_contenido_del_pdf_cambio_despues_de": "Il contenuto del PDF è cambiato dopo l'anteprima. La firma non è iniziata."
   ,"winui.firmar.cargue_de_nuevo_la_previsualizacion_del": "Ricarica l'anteprima del PDF corrente prima di firmare."
-  ,"winui.firmar.aplicando_el_firmante_principal_y_las": "Applicazione del firmatario principale e delle co-firme aggiuntive nell'ordine mostrato…"
+  ,"winui.firmar.aplicando_el_firmante_principal_y_las": "Applicazione del firmatario principale e delle cofirme aggiuntive nell'ordine mostrato…"
   ,"winui.firmar.firmando_el_documento": "Firma del documento in corso…"
   ,"winui.firmar.la_firma_no_se_completo_abra_el": "La firma non è stata completata. Apri la diagnostica per sapere dove si è verificato l'errore."
   ,"winui.firmar.el_motor_confirmo_la_operacion_pero_no": "Il motore ha confermato l'operazione, ma non ha restituito un output valido."
   ,"winui.firmar.el_motor_no_confirmo_el_fichero_de": "Il motore non ha confermato il file di output richiesto. Non verrà segnalato un falso successo."
   ,"winui.firmar.la_firma_se_guardo_como_pero_el_pdf_de": "La firma è stata salvata come {0}, ma il PDF originale è cambiato durante l'operazione."
-  ,"winui.firmar.no_use_el_resultado_hasta_revisar_el": "Non usare il risultato prima di aver esaminato la diagnostica: non si può garantire che il sigillo corrisponda all'anteprima."
+  ,"winui.firmar.no_use_el_resultado_hasta_revisar_el": "Non usare il risultato prima di aver esaminato la diagnostica: non si può garantire che il timbro corrisponda all'anteprima."
   ,"winui.firmar.cierre_el_programa_que_modifica_el_pdf_y": "Chiudi il programma che modifica il PDF e firma di nuovo partendo da una nuova anteprima."
   ,"winui.firmar.la_firma_se_guardo_comprobando_ahora_su": "Firma salvata. Verifica della validità in corso…"
   ,"winui.firmar.la_firma_se_guardo_como_pero_no_pudo": "La firma è stata salvata come {0}, ma non è stato possibile convalidarla automaticamente."
@@ -5409,13 +5409,13 @@
   ,"winui.firmar.el_motor_no_devolvio_evidencias": "Il motore non ha restituito evidenze coerenti per la convalida successiva."
   ,"winui.firmar.la_firma_se_guardo_como_pero_no_supero": "La firma è stata salvata come {0}, ma non ha superato la convalida."
   ,"winui.firmar.la_firma_generada_no_es_valida_no_la": "La firma generata non è valida. Non usarla e apri la diagnostica."
-  ,"winui.firmar.cofirma_multiple_completada_guardada_y": "Co-firma multipla completata, salvata e convalidata come {0}."
+  ,"winui.firmar.cofirma_multiple_completada_guardada_y": "Cofirma multipla completata, salvata e convalidata come {0}."
   ,"winui.firmar.firma_completada_guardada_y_validada": "Firma completata, salvata e convalidata come {0}."
-  ,"winui.firmar.cofirma_multiple_completada_y_guardada": "Co-firma multipla completata e salvata come {0}. L'integrità è stata convalidata, ma l'attendibilità non è stata stabilita."
+  ,"winui.firmar.cofirma_multiple_completada_y_guardada": "Cofirma multipla completata e salvata come {0}. L'integrità è stata convalidata, ma l'attendibilità non è stata stabilita."
   ,"winui.firmar.firma_completada_y_guardada_como_la": "Firma completata e salvata come {0}. L'integrità è stata convalidata, ma l'attendibilità non è stata stabilita."
-  ,"winui.firmar.cofirma_multiple_completada_y_guardada_2": "Co-firma multipla completata e salvata come {0}."
+  ,"winui.firmar.cofirma_multiple_completada_y_guardada_2": "Cofirma multipla completata e salvata come {0}."
   ,"winui.firmar.firma_completada_y_guardada_como": "Firma completata e salvata come {0}."
-  ,"winui.firmar.la_cofirma_multiple_termino": "La co-firma multipla è riuscita, ma non è stata richiesta una convalida successiva."
+  ,"winui.firmar.la_cofirma_multiple_termino": "La cofirma multipla è riuscita, ma non è stata richiesta una convalida successiva."
   ,"winui.firmar.la_firma_termino_correctamente_pero_no": "La firma è riuscita, ma non è stata richiesta una convalida successiva."
   ,"winui.firmar.la_firma_se_guardo_como_pero_su": "La firma è stata salvata come {0}, ma la convalida è stata annullata."
   ,"winui.firmar.el_fichero_firmado_existe_pero_no": "Il file firmato esiste, ma la convalida successiva non è stata completata."
@@ -5429,52 +5429,52 @@
   ,"winui.firmar.el_fichero_firmado_ya_no_esta_disponible": "Il file firmato non è più disponibile nella destinazione scelta."
   ,"winui.firmar.windows_no_pudo_representar_de_forma": "Windows non è riuscito a visualizzare in modo sicuro l'immagine di anteprima. La firma non è iniziata."
   ,"winui.firmar.vuelva_a_cargar_la_previsualizacion_si": "Ricarica l'anteprima. Se il problema si ripete, prova un altro PDF e conserva la diagnostica."
-  ,"winui.firmar.la_imagen_del_sello_debe_ser_un_png_o": "L'immagine del sigillo deve essere un PNG o JPEG di massimo 10 MB."
-  ,"winui.firmar.ha_elegido_imagen_propia_seleccione_la": "Hai scelto «Immagine personale»: seleziona l'immagine PNG o JPEG del sigillo."
+  ,"winui.firmar.la_imagen_del_sello_debe_ser_un_png_o": "L'immagine del timbro deve essere un PNG o JPEG di massimo 10 MB."
+  ,"winui.firmar.ha_elegido_imagen_propia_seleccione_la": "Hai scelto «Immagine personale»: seleziona l'immagine PNG o JPEG del timbro."
   ,"winui.firmar.ubicacion": "luogo"
-  ,"winui.firmar.no_se_pudo_generar_la_vista_previa_del": "Impossibile generare l'anteprima del sigillo con queste opzioni. Controlla immagine, codice QR o dimensioni dell'area."
-  ,"winui.firmar.vista_previa_real_del_sello_elija_un": "Anteprima effettiva del sigillo. Scegli un certificato per vederne il nome; per ora è mostrato un nome di esempio."
-  ,"winui.firmar.vista_previa_real_del_sello_con_el": "Anteprima effettiva del sigillo con il certificato scelto. La data definitiva sarà quella della firma."
-  ,"winui.firmar.el_motor_local_no_pudo_generar_la_vista": "Il motore locale non è riuscito a generare l'anteprima del sigillo; viene mostrato un esempio indicativo."
+  ,"winui.firmar.no_se_pudo_generar_la_vista_previa_del": "Impossibile generare l'anteprima del timbro con queste opzioni. Controlla immagine, codice QR o dimensioni dell'area."
+  ,"winui.firmar.vista_previa_real_del_sello_elija_un": "Anteprima effettiva del timbro. Scegli un certificato per vederne il nome; per ora è mostrato un nome di esempio."
+  ,"winui.firmar.vista_previa_real_del_sello_con_el": "Anteprima effettiva del timbro con il certificato scelto. La data definitiva sarà quella della firma."
+  ,"winui.firmar.el_motor_local_no_pudo_generar_la_vista": "Il motore locale non è riuscito a generare l'anteprima del timbro; viene mostrato un esempio indicativo."
   ,"winui.firmar.no_se_puede_firmar_porque_el_motor_local": "Impossibile firmare perché il motore locale non è connesso."
   ,"winui.firmar.seleccione_el_documento_que_desea_firmar": "Seleziona il documento da firmare."
   ,"winui.firmar.el_documento_seleccionado_ya_no_esta": "Il documento selezionato non è più disponibile. Selezionalo di nuovo."
   ,"winui.firmar.seleccione_un_certificado_apto_para": "Seleziona un certificato idoneo alla firma."
   ,"winui.firmar.el_certificado_seleccionado_no_es_valido": "Il certificato selezionato non è valido per la firma. {0}"
-  ,"winui.firmar.seleccione_si_desea_firmar_cofirmar_o": "Scegli se firmare, apporre una co-firma o una controfirma."
+  ,"winui.firmar.seleccione_si_desea_firmar_cofirmar_o": "Scegli se firmare, apporre una cofirma o una controfirma."
   ,"winui.firmar.seleccione_un_formato_de_firma": "Seleziona un formato di firma."
   ,"winui.firmar.seleccione_un_perfil_de_firma": "Seleziona un profilo di firma."
-  ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma": "Il motore locale non supporta la co-firma multipla guidata."
-  ,"winui.firmar.la_cofirma_multiple_guiada_no_admite": "La co-firma multipla guidata non supporta la controfirma."
-  ,"winui.firmar.la_cofirma_multiple_guiada_solo_esta": "La co-firma multipla guidata è disponibile solo per PAdES, ODF o OOXML."
+  ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma": "Il motore locale non supporta la cofirma multipla guidata."
+  ,"winui.firmar.la_cofirma_multiple_guiada_no_admite": "La cofirma multipla guidata non supporta la controfirma."
+  ,"winui.firmar.la_cofirma_multiple_guiada_solo_esta": "La cofirma multipla guidata è disponibile solo per PAdES, ODF o OOXML."
   ,"winui.firmar.seleccione_al_menos_un_certificado": "Seleziona almeno un certificato aggiuntivo diverso da quello del firmatario principale."
-  ,"winui.firmar.no_se_puede_firmar_el_lote_porque_el": "Impossibile firmare il batch perché il motore locale non è connesso."
-  ,"winui.firmar.active_la_firma_por_lotes_y_compruebe": "Attiva la firma in batch e verifica che il motore supporti sign_batch."
-  ,"winui.firmar.seleccione_varios_documentos_o_una": "Seleziona più documenti o una cartella per il batch."
-  ,"winui.firmar.el_lote_admite_como_maximo_documentos": "Il batch ammette al massimo {0} documenti."
-  ,"winui.firmar.seleccione_una_carpeta_de_salida_valida": "Seleziona una cartella di destinazione valida per il batch."
-  ,"winui.firmar.seleccione_un_certificado_apto_para_2": "Seleziona un certificato idoneo alla firma del batch."
-  ,"winui.firmar.seleccione_la_operacion_de_firma_del": "Seleziona l'operazione di firma del batch."
-  ,"winui.firmar.seleccione_el_formato_de_firma_del_lote": "Seleziona il formato della firma del batch."
-  ,"winui.firmar.seleccione_el_perfil_de_firma_del_lote": "Seleziona il profilo della firma del batch."
-  ,"winui.firmar.el_sello_visible_requiere": "Il sigillo visibile richiede un'anteprima per ogni documento ed è disattivato per i batch."
-  ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma_2": "Il motore locale non supporta la co-firma multipla usata dal batch."
-  ,"winui.firmar.seleccione_al_menos_un_certificado_2": "Seleziona almeno un certificato aggiuntivo per la co-firma multipla del batch."
-  ,"winui.firmar.la_cofirma_multiple_del_lote_solo_admite": "La co-firma multipla del batch ammette solo PAdES, ODF o OOXML selezionati esplicitamente."
-  ,"winui.firmar.active_primero_el_sello_visible": "Attiva prima il sigillo visibile."
-  ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "Il sigillo visibile richiede un PDF, il formato PAdES o Automatico e un motore che supporti pdf_preview."
+  ,"winui.firmar.no_se_puede_firmar_el_lote_porque_el": "Impossibile firmare il lotto perché il motore locale non è connesso."
+  ,"winui.firmar.active_la_firma_por_lotes_y_compruebe": "Attiva la firma per lotti e verifica che il motore supporti sign_batch."
+  ,"winui.firmar.seleccione_varios_documentos_o_una": "Seleziona più documenti o una cartella per il lotto."
+  ,"winui.firmar.el_lote_admite_como_maximo_documentos": "Il lotto ammette al massimo {0} documenti."
+  ,"winui.firmar.seleccione_una_carpeta_de_salida_valida": "Seleziona una cartella di destinazione valida per il lotto."
+  ,"winui.firmar.seleccione_un_certificado_apto_para_2": "Seleziona un certificato idoneo alla firma del lotto."
+  ,"winui.firmar.seleccione_la_operacion_de_firma_del": "Seleziona l'operazione di firma del lotto."
+  ,"winui.firmar.seleccione_el_formato_de_firma_del_lote": "Seleziona il formato della firma del lotto."
+  ,"winui.firmar.seleccione_el_perfil_de_firma_del_lote": "Seleziona il profilo della firma del lotto."
+  ,"winui.firmar.el_sello_visible_requiere": "Il timbro visibile richiede un'anteprima per ogni documento ed è disattivato per i lotti."
+  ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma_2": "Il motore locale non supporta la cofirma multipla usata dal lotto."
+  ,"winui.firmar.seleccione_al_menos_un_certificado_2": "Seleziona almeno un certificato aggiuntivo per la cofirma multipla del lotto."
+  ,"winui.firmar.la_cofirma_multiple_del_lote_solo_admite": "La cofirma multipla del lotto ammette solo PAdES, ODF o OOXML selezionati esplicitamente."
+  ,"winui.firmar.active_primero_el_sello_visible": "Attiva prima il timbro visibile."
+  ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "Il timbro visibile richiede un PDF, il formato PAdES o Automatico e un motore che supporti pdf_preview."
   ,"winui.firmar.el_pdf_seleccionado_ya_no_esta": "Il PDF selezionato non è più disponibile. Selezionalo di nuovo."
-  ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "Il sigillo visibile può essere applicato solo a un PDF in formato PAdES o Automatico quando pdf_preview è disponibile."
-  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "L'anteprima del sigillo non corrisponde al PDF e alla pagina correnti. Premi «Carica l'anteprima» in «Opzioni avanzate» prima di firmare."
+  ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "Il timbro visibile può essere applicato solo a un PDF in formato PAdES o Automatico quando pdf_preview è disponibile."
+  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "L'anteprima del timbro non corrisponde al PDF e alla pagina correnti. Premi «Carica l'anteprima» in «Opzioni avanzate» prima di firmare."
   ,"winui.firmar.indique_un_giro_entre_0_y_359_grados": "Indica una rotazione da 0 a 359 gradi."
   ,"winui.firmar.conecte_el_motor_local_para_habilitar_la": "Collega il motore locale per abilitare la firma."
-  ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Aggiungi più documenti o una cartella al batch."
-  ,"winui.firmar.seleccione_la_carpeta_donde_se_guardaran": "Seleziona la cartella in cui salvare le firme del batch."
-  ,"winui.firmar.seleccione_el_certificado_que_se": "Seleziona il certificato da applicare all'intero batch."
+  ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Aggiungi più documenti o una cartella al lotto."
+  ,"winui.firmar.seleccione_la_carpeta_donde_se_guardaran": "Seleziona la cartella in cui salvare le firme del lotto."
+  ,"winui.firmar.seleccione_el_certificado_que_se": "Seleziona il certificato da applicare all'intero lotto."
   ,"winui.firmar.no_valido_para_firmar": "Non valido per la firma. {0}"
-  ,"winui.firmar.documento_s_certificado_y_salida": "{0} documenti, certificato e output pronti per la firma in batch."
+  ,"winui.firmar.documento_s_certificado_y_salida": "{0} documenti, certificato e output pronti per la firma per lotti."
   ,"winui.firmar.no_hay_certificados_aptos_para_firma_en": "Nell'archivio non ci sono certificati idonei alla firma."
-  ,"winui.firmar.seleccione_al_menos_un_certificado_3": "Seleziona almeno un certificato aggiuntivo per la co-firma multipla guidata."
+  ,"winui.firmar.seleccione_al_menos_un_certificado_3": "Seleziona almeno un certificato aggiuntivo per la cofirma multipla guidata."
   ,"winui.firmar.documento_y_firmantes_preparados_para_la": "Documento e firmatari pronti per la cofirma multipla guidata."
   ,"winui.firmar.documento_y_certificado_preparados_para": "Documento e certificato pronti per la firma."
   ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato_2": "Il timbro visibile richiede un PDF, il formato PAdES o Automatico e pdf_preview disponibile."
