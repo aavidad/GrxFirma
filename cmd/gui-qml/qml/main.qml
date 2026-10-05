@@ -3092,7 +3092,7 @@ Window {
     property string defaultHashFormatDirectory: "xml"
     property bool defaultHashRecursive: true
     property bool defaultHashSaveReport: false
-    property bool confirmToSign: false
+    property bool confirmToSign: true
     property bool omitAskOnClose: false
     property string closeBehavior: "resident"
     property int webCompatibilityDurationMinutes: 30

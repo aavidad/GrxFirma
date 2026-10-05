@@ -25,6 +25,16 @@ public sealed record SignatureFormatOption(
     public string Label => Localizer.Text(SourceLabel);
 }
 
+// Datos que se enseñan antes de firmar cuando «Confirmar antes de firmar»
+// está activo (preferencia confirmToSign; por defecto, activa).
+public sealed record SignConfirmationSummary(
+    string Documents,
+    string Certificate,
+    string Operation,
+    string Format,
+    bool VisibleSeal,
+    bool Batch);
+
 public sealed record SignatureProfileOption(string SourceLabel, string Value)
 {
     public string Label => Localizer.Text(SourceLabel);
@@ -300,6 +310,25 @@ public sealed class SignPageViewModel
     /// diálogo con campos de contraseña. Devuelve null si la persona cancela.
     /// </summary>
     public Func<CertificateInfo, CancellationToken, Task<RemoteSigningSecrets?>>? RemoteSecretsPrompt { get; set; }
+
+    /// <summary>
+    /// Muestra el resumen de la firma y devuelve true si la persona confirma.
+    /// Solo se usa con la preferencia «Confirmar antes de firmar» activa.
+    /// </summary>
+    public Func<SignConfirmationSummary, CancellationToken, Task<bool>>? SignConfirmationPrompt { get; set; }
+
+    private async Task<bool> ConfirmSignAsync(
+        bool required,
+        SignConfirmationSummary summary,
+        CancellationToken cancellationToken)
+    {
+        if (!required) return true;
+        var prompt = SignConfirmationPrompt;
+        if (prompt is null) return true;
+        if (await prompt(summary, cancellationToken)) return true;
+        ValidationMessage = Localizer.Text("winui.firmar.confirmar.cancelada");
+        return false;
+    }
 
     private async Task<(bool Proceed, RemoteSigningSecrets? Secrets)> PrepareRemoteSigningAsync(
         CertificateListItem certificate,
@@ -2158,6 +2187,7 @@ public sealed class SignPageViewModel
             var profile = SelectedProfile!;
             var useGuidedMultiCosign = GuidedMultiCosignEnabled;
             string? batchTsaUrl = null;
+            var confirmBatch = true;
             if (_session.Supports(DesktopOperationActions.GetSettings))
             {
                 var settings = await operations.GetSettingsAsync(operationCancellation.Token);
@@ -2166,6 +2196,7 @@ public sealed class SignPageViewModel
                     ValidationMessage = SealText("winui.parity.tsa.unavailable");
                     return null;
                 }
+                confirmBatch = settings.Data.ConfirmBeforeSigning ?? true;
                 if (settings.Data.TsaEnabled == true)
                 {
                     if (!TsaConfiguration.TryNormalize(true, settings.Data.TsaUrl, out var normalized))
@@ -2175,6 +2206,23 @@ public sealed class SignPageViewModel
                     }
                     batchTsaUrl = normalized;
                 }
+            }
+            if (!await ConfirmSignAsync(
+                confirmBatch,
+                new SignConfirmationSummary(
+                    Localizer.Fill(
+                        currentPaths.Count == 1
+                            ? "winui.firmar.confirmar.documentos_uno"
+                            : "winui.firmar.confirmar.documentos_varios",
+                        ("count", currentPaths.Count.ToString(System.Globalization.CultureInfo.CurrentCulture))),
+                    certificate.DisplayName,
+                    action.Label,
+                    format.Label,
+                    false,
+                    true),
+                operationCancellation.Token))
+            {
+                return null;
             }
             var remote = await PrepareRemoteSigningAsync(
                 certificate,
@@ -2687,6 +2735,7 @@ public sealed class SignPageViewModel
             var format = SelectedFormat!;
             var profile = SelectedProfile!;
             string? tsaUrl = null;
+            var confirmSign = true;
             if (_session.Supports(DesktopOperationActions.GetSettings))
             {
                 var settings = await operations.GetSettingsAsync(operationCancellation.Token);
@@ -2695,6 +2744,7 @@ public sealed class SignPageViewModel
                     ValidationMessage = SealText("winui.parity.tsa.unavailable");
                     return null;
                 }
+                confirmSign = settings.Data.ConfirmBeforeSigning ?? true;
                 if (settings.Data.TsaEnabled == true)
                 {
                     if (!TsaConfiguration.TryNormalize(true, settings.Data.TsaUrl, out var normalized))
@@ -2704,6 +2754,19 @@ public sealed class SignPageViewModel
                     }
                     tsaUrl = normalized;
                 }
+            }
+            if (!await ConfirmSignAsync(
+                confirmSign,
+                new SignConfirmationSummary(
+                    SafeFileName(inputPath),
+                    certificate.DisplayName,
+                    action.Label,
+                    format.Label,
+                    visibleSeal is not null,
+                    false),
+                operationCancellation.Token))
+            {
+                return null;
             }
             var saveProfile = ResolveSaveProfile(format, inputPath);
             ValidationMessage =
