@@ -41,6 +41,7 @@ class AppPreferencesTest {
     @Test fun `only official GitHub releases can be opened`() {
         assertTrue(AppLinks.isOfficialRelease(AppLinks.RELEASES))
         assertTrue(AppLinks.isOfficialRelease("https://github.com/aavidad/GrxFirma/releases/tag/v0.0.120"))
+        assertTrue(AppLinks.isOfficialRelease("https://github.com/aavidad/GrxFirma/releases/tag/v2.0.1-rc_1"))
         listOf(
             "http://github.com/aavidad/GrxFirma/releases/tag/v1",
             "https://github.com.evil.test/aavidad/GrxFirma/releases/tag/v1",
@@ -51,6 +52,13 @@ class AppPreferencesTest {
             "https://user@github.com/aavidad/GrxFirma/releases/tag/v1",
             "https://github.com:444/aavidad/GrxFirma/releases/tag/v1",
             "https://github.com/aavidad/GrxFirma/releases/tag/../../evil",
+            "https://github.com/aavidad/GrxFirma/releases/tag/%2e%2e/%2e%2e/evil",
+            "https://github.com/aavidad/GrxFirma/releases/tag/%2E%2E",
+            "https://github.com/aavidad/GrxFirma/releases/tag/v1%2fx",
+            "https://github.com/aavidad/GrxFirma/releases/tag/v1/../../x",
+            "https://github.com/aavidad/GrxFirma/releases/tag/v1/",
+            "https://github.com/aavidad/GrxFirma/releases/tag/.",
+            "https://GitHub.com/aavidad/GrxFirma/releases/tag/v1",
         ).forEach { assertFalse(it, AppLinks.isOfficialRelease(it)) }
     }
 }

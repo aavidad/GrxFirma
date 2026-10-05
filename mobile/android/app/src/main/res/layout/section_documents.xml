@@ -13,7 +13,7 @@
 
     <TextView
         android:id="@+id/documentsSectionTitle"
-        style="@style/TextAppearance.Material3.TitleLarge"
+        style="@style/TextAppearance.Material3.TitleMedium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/section_spacing"

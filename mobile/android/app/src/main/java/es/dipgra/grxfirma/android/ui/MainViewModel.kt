@@ -474,8 +474,20 @@ class MainViewModel(
         if (!mutableState.value.canReplaceSelection) return
         require(action in listOf("sign", "cosign", "countersign"))
         require(profile in listOf("baseline", "t", "lt", "lta"))
-        mutableState.value = mutableState.value.copy(signatureAction = action, signatureProfile = profile,
-            tsaEnabled = tsaEnabled, tsaUrl = tsaUrl.take(2048))
+        val previous = mutableState.value
+        // La fecha y hora certificadas y el perfil van juntos: T, LT y LTA la
+        // necesitan y B no la lleva. Se ajusta lo que la persona no ha tocado.
+        var chosenProfile = profile
+        var withTimestamp = tsaEnabled
+        if (tsaEnabled != previous.tsaEnabled) {
+            chosenProfile = if (!tsaEnabled) "baseline" else if (profile == "baseline") "t" else profile
+        } else if (profile != previous.signatureProfile) {
+            withTimestamp = profile != "baseline"
+        }
+        // Al activarla con el campo vacío se propone el servicio de Preferencias.
+        val url = if (withTimestamp && tsaUrl.isBlank()) previous.settings.tsaUrl else tsaUrl
+        mutableState.value = previous.copy(signatureAction = action, signatureProfile = chosenProfile,
+            tsaEnabled = withTimestamp, tsaUrl = url.take(2048))
     }
 
     fun acceptCoSignSuggestion() {
@@ -608,20 +620,22 @@ class MainViewModel(
 
     /**
      * Cierra todos los certificados abiertos si la app ha pasado en segundo
-     * plano el tiempo elegido. El DNIe ya se cierra antes, al salir de la
-     * pantalla. Devuelve true si cerró alguno.
+     * plano el tiempo elegido (reloj monótono `SystemClock.elapsedRealtime`).
+     * El DNIe ya se cierra al salir de la pantalla. Si el plazo ha vencido pero
+     * hay una operación en curso o un resultado sin guardar, devuelve POSTPONED
+     * para que se vuelva a comprobar más tarde: nunca se abandona la comprobación.
      */
-    fun closeCertificateAfterBackground(elapsedMillis: Long): Boolean {
+    fun closeCertificateAfterBackground(elapsedMillis: Long): AutoClose {
         val snapshot = mutableState.value
         val minutes = snapshot.settings.sessionTimeoutMinutes
-        if ((snapshot.certificate == null && snapshot.identities.isEmpty()) || minutes <= 0 || snapshot.busy) return false
-        if (elapsedMillis < minutes * 60_000L) return false
+        if ((snapshot.certificate == null && snapshot.identities.isEmpty()) || minutes <= 0) return AutoClose.NOT_APPLICABLE
+        if (elapsedMillis < minutes * 60_000L) return AutoClose.NOT_DUE
+        if (snapshot.busy || snapshot.awaitingSave || snapshot.awaitingReportSave) return AutoClose.POSTPONED
         identityEpoch.incrementAndGet()
         closeAllIdentities()
         mutableState.value = mutableState.value.copy(certificateFile = null,
-            result = if (snapshot.awaitingSave) snapshot.result
-            else OperationResult.Notice(UiText.Resource(R.string.certificate_closed_timeout)))
-        return true
+            result = OperationResult.Notice(UiText.Resource(R.string.certificate_closed_timeout)))
+        return AutoClose.CLOSED
     }
 
     /** Cierra todos los certificados abiertos (con uno solo, ese). */

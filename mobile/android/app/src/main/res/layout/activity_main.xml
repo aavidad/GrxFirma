@@ -139,10 +139,11 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/selectOriginalDocumentButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:gravity="start|center_vertical"
                     android:minHeight="48dp"
                     android:text="@string/select_original_document" />
 
@@ -567,7 +568,7 @@
 
                         <com.google.android.material.button.MaterialButton
                     android:id="@+id/exportReportButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"

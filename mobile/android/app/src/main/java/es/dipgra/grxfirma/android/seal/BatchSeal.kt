@@ -10,6 +10,12 @@ import android.os.ParcelFileDescriptor
 import es.dipgra.grxfirma.android.model.LoadedFile
 import es.dipgra.grxfirma.android.ui.BatchSealPlanner
 import java.io.File
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 
 /**
  * Sello visible en el lote. Se usa el sello guardado en «Firma visible»
@@ -20,21 +26,46 @@ object BatchSeal {
     /** Subdirectorio de noBackupFilesDir con las copias temporales de cada PDF. */
     const val WORK_DIRECTORY = ".grxfirma-lote"
 
+    /** Bloque de ceros con que se sobrescriben las copias antes de borrarlas. */
+    private const val WIPE_BLOCK = 64 * 1024
+
     /**
      * Vacía las copias que pudieran quedar de un cierre inesperado. Se llama al
-     * abrir la app y al empezar cada lote; nunca sigue enlaces simbólicos.
+     * abrir la app y al empezar cada lote. Solo toca ficheros regulares del
+     * primer nivel, nunca sigue enlaces ni entra en subdirectorios, y un fallo
+     * no se propaga: no debe impedir que la app arranque.
      */
     fun clearWorkDirectory(directory: File) {
-        val entries = directory.listFiles() ?: return
-        for (entry in entries) {
-            if (java.nio.file.Files.isSymbolicLink(entry.toPath())) {
-                entry.delete()
-                continue
+        try {
+            val root = directory.toPath()
+            if (!Files.isDirectory(root, LinkOption.NOFOLLOW_LINKS)) return
+            Files.newDirectoryStream(root).use { entries ->
+                for (entry in entries) {
+                    try {
+                        if (!Files.isRegularFile(entry, LinkOption.NOFOLLOW_LINKS)) continue
+                        wipe(entry)
+                        Files.deleteIfExists(entry)
+                    } catch (_: Exception) {
+                        // Se sigue con el resto; la copia se intentará borrar en el próximo arranque.
+                    }
+                }
             }
-            if (entry.isFile) {
-                try { entry.writeBytes(ByteArray(entry.length().toInt().coerceIn(0, 64 shl 20))) } catch (_: Exception) { }
+        } catch (_: Exception) {
+        }
+    }
+
+    /** Sobrescribe con ceros por bloques, sin cargar el fichero en memoria. */
+    private fun wipe(path: Path) {
+        FileChannel.open(path, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS).use { channel ->
+            val zeros = ByteBuffer.allocate(WIPE_BLOCK)
+            var remaining = channel.size()
+            channel.position(0)
+            while (remaining > 0) {
+                zeros.clear()
+                if (remaining < WIPE_BLOCK) zeros.limit(remaining.toInt())
+                remaining -= channel.write(zeros)
             }
-            entry.deleteRecursively()
+            channel.force(true)
         }
     }
 
