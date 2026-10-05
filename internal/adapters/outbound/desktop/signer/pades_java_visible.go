@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/digitorus/pdf"
 	pdfsign "github.com/digitorus/pdfsign/sign"
 
 	"grxfirma/internal/adapters/outbound/common/localizador"
@@ -343,6 +344,11 @@ func imagenesJava(options map[string]string, pdfData []byte) ([]pdfsign.StampIma
 			return nil, fmt.Errorf("imagePage no válida: %s", v)
 		}
 	}
+	if pagina == 0 && total > pdfsign.MaxSellosImagen {
+		// El /Count no es de confianza: no se expande por encima de las
+		// estampas que admite una firma.
+		return nil, fmt.Errorf("la imagen en todas las páginas admite documentos de hasta %d páginas", pdfsign.MaxSellosImagen)
+	}
 	var paginas []int
 	switch {
 	case pagina == 0:
@@ -355,13 +361,42 @@ func imagenesJava(options map[string]string, pdfData []byte) ([]pdfsign.StampIma
 		paginas = []int{pagina}
 	}
 	out := make([]pdfsign.StampImage, 0, len(paginas))
+	girada := map[int][]byte{0: img}
 	for _, p := range paginas {
 		if p < 1 || p > total {
 			return nil, fmt.Errorf("página de la imagen fuera del documento: %d", p)
 		}
-		out = append(out, pdfsign.StampImage{Page: uint32(p), Rect: rect, Image: img}) // #nosec G115 -- 1 <= p <= NumPage.
+		rectPagina, imgPagina, err := imagenJavaEnPagina(r.Page(p), rect, img, girada)
+		if err != nil {
+			return nil, fmt.Errorf("imagen en la página %d: %w", p, err)
+		}
+		out = append(out, pdfsign.StampImage{Page: uint32(p), Rect: rectPagina, Image: imgPagina}) // #nosec G115 -- 1 <= p <= NumPage.
 	}
 	return out, nil
+}
+
+// imagenJavaEnPagina sitúa la imagen de AutoFirma Java en la página. Las
+// coordenadas se refieren a la página tal como se ve, con el mismo origen que
+// el sello (marcoPagina.origenVisible); sin /Rotate el rectángulo no cambia.
+// En una página girada se lleva el rectángulo al espacio de usuario sin girar
+// y la imagen descuenta el giro de la página para verse derecha.
+func imagenJavaEnPagina(page pdf.Page, rect [4]float64, img []byte, girada map[int][]byte) ([4]float64, []byte, error) {
+	if giroPagina(page) == 0 {
+		return rect, img, nil
+	}
+	m, err := marcoVisiblePagina(page)
+	if err != nil {
+		return [4]float64{}, nil, err
+	}
+	ox, oy := m.origenVisible()
+	rectPagina, giroImagen := m.rectanguloVistoAUsuario(rect[0]-ox, rect[1]-oy, rect[2]-rect[0], rect[3]-rect[1])
+	clave := int(giroImagen)
+	if _, ok := girada[clave]; !ok {
+		if girada[clave], err = rotarImagenPNGSiProcede(img, clave); err != nil {
+			return [4]float64{}, nil, err
+		}
+	}
+	return rectPagina, girada[clave], nil
 }
 
 // Tamaño y margen del sello situado por el usuario, en puntos.

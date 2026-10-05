@@ -162,6 +162,9 @@ func firmarPAdESConPdfsign(doc domain.Document, clave *ClaveLocal, options map[s
 	if err := ajustarSelloAPaginasGiradas(&signData, options, doc.Content); err != nil {
 		return domain.SignatureResult{}, err
 	}
+	if err := ajustarCampoFirmaAPaginaGirada(&signData, options, doc.Content); err != nil {
+		return domain.SignatureResult{}, err
+	}
 	if err := aplicarPosicionesSello(&signData, options, doc.Content); err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("PAdES: %w", err)
 	}
