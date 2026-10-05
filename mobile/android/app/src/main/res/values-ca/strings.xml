@@ -171,14 +171,17 @@
     <plurals name="verification_signers">
         <item quantity="one">%1$d signant detectat</item>
         <item quantity="other">%1$d signants detectats</item>
+        <item quantity="many">%1$d signants detectats</item>
     </plurals>
     <plurals name="verification_warnings">
         <item quantity="one">%1$d advertiment tècnic</item>
         <item quantity="other">%1$d advertiments tècnics</item>
+        <item quantity="many">%1$d advertiments tècnics</item>
     </plurals>
     <plurals name="verification_errors">
         <item quantity="one">%1$d error de verificació</item>
         <item quantity="other">%1$d errors de verificació</item>
+        <item quantity="many">%1$d errors de verificació</item>
     </plurals>
     <string name="signature_action">Operació de signatura</string>
     <string name="signature_profile">Perfil de signatura</string>
@@ -216,7 +219,6 @@
     <string name="about_content">Aplicació: %1$s\nMotor: %2$s\nLlicència: EUPL 1.2 o posterior\nContacte: avidad@dipgra.es</string>
     <string name="about_release_notes">Novetats</string>
     <string name="release_notes_content">Primera onada de paritat Android: cosignatura i contrasignatura; perfils i TSA; verificació automàtica i detallada; informes JSON; onze idiomes i Quant a.\n\nPAdES: B/T/LT i signatura/cosignatura. XAdES: B/T. CAdES: B/T/LT/LTA. La verificació mòbil comprova la integritat i les evidències incloses; no acredita la confiança amb ancoratges del sistema ni consulta la revocació en línia.</string>
-    <string name="engine_trust_warning">Integritat criptogràfica comprovada; el sistema no ha avaluat la confiança de la cadena.</string>
     <string name="signed_document_name">%1$s-signat.%2$s</string>
     <string name="verification_document">Document de l’informe: %1$s</string>
 </resources>

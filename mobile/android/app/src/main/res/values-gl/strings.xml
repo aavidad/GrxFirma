@@ -216,7 +216,6 @@
     <string name="about_content">Aplicación: %1$s\nMotor: %2$s\nLicenza: EUPL 1.2 ou posterior\nContacto: avidad@dipgra.es</string>
     <string name="about_release_notes">Novidades</string>
     <string name="release_notes_content">Primeira vaga de paridade Android: cosinatura e contrasinatura; perfís e TSA; verificación automática e detallada; informes JSON; once idiomas e Acerca de.\n\nPAdES: B/T/LT e sinatura/cosinatura. XAdES: B/T. CAdES: B/T/LT/LTA. A verificación móbil comproba integridade e evidencias incluídas; non acredita a confianza con áncoras do sistema nin consulta a revogación en liña.</string>
-    <string name="engine_trust_warning">Integridade criptográfica comprobada; o sistema non avaliou a confianza da cadea.</string>
     <string name="signed_document_name">%1$s-asinado.%2$s</string>
     <string name="verification_document">Documento do informe: %1$s</string>
 </resources>

@@ -216,7 +216,6 @@
     <string name="about_content">Aplikazioa: %1$s\nMotorra: %2$s\nLizentzia: EUPL 1.2 edo berriagoa\nKontaktua: avidad@dipgra.es</string>
     <string name="about_release_notes">Berritasunak</string>
     <string name="release_notes_content">Android parekotasunaren lehen urratsa: baterako sinadura eta kontrasinadura; profilak eta TSA; egiaztapen automatiko eta xehea; JSON txostenak; hamaika hizkuntza eta aplikazioari buruzko informazioa.\n\nPAdES: B/T/LT eta sinadura/baterako sinadura. XAdES: B/T. CAdES: B/T/LT/LTA. Mugikorreko egiaztapenak osotasuna eta txertatutako ebidentziak egiaztatzen ditu; ez du konfiantza sistemako aingurekin egiaztatzen, ezta errebokazioa linean kontsultatzen ere.</string>
-    <string name="engine_trust_warning">Osotasun kriptografikoa egiaztatuta; sistemak ez du katearen konfiantza ebaluatu.</string>
     <string name="signed_document_name">%1$s-sinatuta.%2$s</string>
     <string name="verification_document">Txostenaren dokumentua: %1$s</string>
 </resources>

@@ -171,14 +171,17 @@
     <plurals name="verification_signers">
         <item quantity="one">%1$d firmatario rilevato</item>
         <item quantity="other">%1$d firmatari rilevati</item>
+        <item quantity="many">%1$d firmatari rilevati</item>
     </plurals>
     <plurals name="verification_warnings">
         <item quantity="one">%1$d avviso tecnico</item>
         <item quantity="other">%1$d avvisi tecnici</item>
+        <item quantity="many">%1$d avvisi tecnici</item>
     </plurals>
     <plurals name="verification_errors">
         <item quantity="one">%1$d errore di verifica</item>
         <item quantity="other">%1$d errori di verifica</item>
+        <item quantity="many">%1$d errori di verifica</item>
     </plurals>
     <string name="signature_action">Operazione di firma</string>
     <string name="signature_profile">Profilo di firma</string>
@@ -216,7 +219,6 @@
     <string name="about_content">Applicazione: %1$s\nMotore: %2$s\nLicenza: EUPL 1.2 o successiva\nContatto: avidad@dipgra.es</string>
     <string name="about_release_notes">Novità</string>
     <string name="release_notes_content">Prima fase di parità Android: cofirma e controfirma; profili e TSA; verifica automatica e dettagliata; rapporti JSON; undici lingue e Informazioni.\n\nPAdES: B/T/LT e firma/cofirma. XAdES: B/T. CAdES: B/T/LT/LTA. La verifica mobile controlla integrità ed evidenze incluse; non accerta l’attendibilità con ancore di sistema né consulta la revoca online.</string>
-    <string name="engine_trust_warning">Integrità crittografica verificata; attendibilità della catena non valutata dal sistema.</string>
     <string name="signed_document_name">%1$s-firmato.%2$s</string>
     <string name="verification_document">Documento del rapporto: %1$s</string>
 </resources>

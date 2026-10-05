@@ -19,12 +19,26 @@ import org.junit.Test
 class SecurityConfigurationTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
 
+    // La red solo la usa el motor para el sello de tiempo (TSA) que configure
+    // el usuario; no se pide ningún otro permiso de red ni de ubicación.
     @Test
-    fun applicationDoesNotRequestInternetPermission() {
+    fun onlyInternetIsRequestedForTimestamping() {
         assertEquals(
-            PackageManager.PERMISSION_DENIED,
+            PackageManager.PERMISSION_GRANTED,
             context.packageManager.checkPermission(Manifest.permission.INTERNET, context.packageName),
         )
+        for (permission in listOf(
+            Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+        )) {
+            assertEquals(
+                permission,
+                PackageManager.PERMISSION_DENIED,
+                context.packageManager.checkPermission(permission, context.packageName),
+            )
+        }
     }
 
     @Test

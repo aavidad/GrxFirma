@@ -169,15 +169,12 @@
     <string name="size_mib">%1$.1f MiB</string>
     <string name="unknown_value">不可用</string>
     <plurals name="verification_signers">
-        <item quantity="one">检测到 %1$d 位签名者</item>
         <item quantity="other">检测到 %1$d 位签名者</item>
     </plurals>
     <plurals name="verification_warnings">
-        <item quantity="one">%1$d 条技术警告</item>
         <item quantity="other">%1$d 条技术警告</item>
     </plurals>
     <plurals name="verification_errors">
-        <item quantity="one">%1$d 个验证错误</item>
         <item quantity="other">%1$d 个验证错误</item>
     </plurals>
     <string name="signature_action">签名操作</string>
@@ -216,7 +213,6 @@
     <string name="about_content">应用：%1$s\n核心：%2$s\n许可：EUPL 1.2 或更高版本\n联系：avidad@dipgra.es</string>
     <string name="about_release_notes">更新说明</string>
     <string name="release_notes_content">Android 功能对齐第一阶段：联合签名和反签名；签名级别与 TSA；自动与详细验证；JSON 报告；十一种语言及“关于”。\n\nPAdES：B/T/LT 与签名/联合签名。XAdES：B/T。CAdES：B/T/LT/LTA。移动验证检查完整性和内嵌证据，不通过系统信任锚确认信任，也不在线查询吊销状态。</string>
-    <string name="engine_trust_warning">已验证加密完整性；系统尚未评估证书链信任。</string>
     <string name="signed_document_name">%1$s-已签名.%2$s</string>
     <string name="verification_document">报告对应文档：%1$s</string>
 </resources>

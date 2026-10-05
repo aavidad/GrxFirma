@@ -12,6 +12,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -51,7 +52,7 @@ class ParityUiTest {
         val names = context.resources.getStringArray(R.array.language_names)
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             onView(withId(R.id.languageButton)).perform(scrollTo(), click())
-            onView(withText(names[2])).perform(click())
+            onView(withText(names[2])).inRoot(isDialog()).perform(click())
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
             scenario.onActivity {
                 assertEquals("en", AppCompatDelegate.getApplicationLocales()[0]?.language)
@@ -61,7 +62,7 @@ class ParityUiTest {
                 // The system option is localized after the first recreation.
                 names[0] = activity.getString(R.string.language_system)
             }
-            onView(withText(names[0])).perform(click())
+            onView(withText(names[0])).inRoot(isDialog()).perform(click())
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
             scenario.onActivity {
                 assertEquals(0, AppCompatDelegate.getApplicationLocales().size())
