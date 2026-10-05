@@ -247,7 +247,12 @@
   "eni.codigo.TD10",
   "eni.codigo.TD13",
   "eni.codigo.TD17",
-  "eni.codigo.TD19"
+  "eni.codigo.TD19",
+  "report.coverage.unknown",
+  "report.field.coverage",
+  "report.section.errors",
+  "report.size_bytes",
+  "seal.verify"
  ],
  "de": [
   " + base64",
@@ -449,7 +454,8 @@
   "token_settings.check_hardware",
   "width",
   "❌ Error: ",
-  "eni.codigo.EE01"
+  "eni.codigo.EE01",
+  "report.size_bytes"
  ],
  "eu": [
   " + base64",
@@ -1459,7 +1465,20 @@
   "csc.gui.desconectar",
   "csc.gui.enviar_codigo",
   "csc.gui.host_oauth",
-  "csc.gui.remoto"
+  "csc.gui.remoto",
+  "report.field.coverage",
+  "report.field.size",
+  "report.section.details",
+  "report.section.document",
+  "report.section.evidence",
+  "report.signer.issuer",
+  "report.size_bytes",
+  "report.status.invalid",
+  "report.status.valid",
+  "seal.issued_by",
+  "seal.location",
+  "seal.reason",
+  "seal.verify"
  ],
  "it": [
   " + base64",
@@ -1605,7 +1624,8 @@
   "❌ Error: ",
   "eni.codigo.TD15",
   "csc.gui.remoto",
-  "csc.gui.titulo"
+  "csc.gui.titulo",
+  "seal.reason"
  ],
  "pt": [
   "paridad.lote3.eni.capture_time",
@@ -1945,7 +1965,13 @@
   "eni.codigo.TD17",
   "csc.gui.client_id",
   "csc.gui.enviar_codigo",
-  "csc.gui.remoto"
+  "csc.gui.remoto",
+  "report.field.coverage",
+  "report.section.document",
+  "report.size_bytes",
+  "seal.issued_by",
+  "seal.reason",
+  "seal.verify"
  ],
  "va": [
   "paridad.lote3.eni.capture_time",
@@ -2229,7 +2255,12 @@
   "eni.codigo.TD13",
   "eni.codigo.TD17",
   "eni.codigo.TD19",
-  "csc.gui.titulo"
+  "csc.gui.titulo",
+  "report.coverage.unknown",
+  "report.field.coverage",
+  "report.section.errors",
+  "report.size_bytes",
+  "seal.verify"
  ],
  "zh": [
   " + base64",

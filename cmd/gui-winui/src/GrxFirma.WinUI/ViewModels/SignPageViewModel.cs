@@ -3159,6 +3159,15 @@ public sealed class SignPageViewModel
             "visibleSealLogoOpacityPercent",
             ((int)VisibleSealLogoOpacityPercent).ToString(
                 System.Globalization.CultureInfo.InvariantCulture));
+        // El sello se escribe en el idioma de la interfaz; si la
+        // configuración fija otro (signSealLanguage), el motor lo impone.
+        if (!string.IsNullOrWhiteSpace(Localizer.Language))
+        {
+            extraOptions = MergeExtraOptions(
+                extraOptions,
+                "sealLanguage",
+                Localizer.Language);
+        }
         if (VisibleSealQrEnabled)
         {
             if (!TryNormalizeVerificationUrl(

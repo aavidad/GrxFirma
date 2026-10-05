@@ -41,6 +41,7 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/filesystem"
 	"grxfirma/internal/adapters/outbound/desktop/localtlstrust"
 	"grxfirma/internal/adapters/outbound/desktop/proxysecretstore"
+	desktopsigner "grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/adapters/outbound/desktop/usersettings"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
@@ -698,6 +699,7 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 	if err != nil {
 		return respuesta{OK: false, Action: "sign", Error: m.localizarErrorOpacidadLogoSello(err)}
 	}
+	opciones = m.aplicarIdiomaSelloConfigurado(ctx, formato, opciones)
 	opciones, err = m.aplicarOpcionesFirmaPredeterminadas(ctx, formato, opciones)
 	if err != nil {
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}
@@ -792,6 +794,7 @@ func (m *Manejador) handleFirmaMultiCofirma(ctx context.Context, raw json.RawMes
 	if err != nil {
 		return respuesta{OK: false, Action: "sign_multicosign", Error: m.localizarErrorOpacidadLogoSello(err)}
 	}
+	opciones = m.aplicarIdiomaSelloConfigurado(ctx, formato, opciones)
 	opciones, err = m.aplicarOpcionesFirmaPredeterminadas(ctx, formato, opciones)
 	if err != nil {
 		return respuesta{OK: false, Action: "sign_multicosign", Error: err.Error()}
@@ -952,6 +955,7 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 		if err != nil {
 			return respuesta{OK: false, Action: "sign_batch", Error: m.localizarErrorOpacidadLogoSello(err)}
 		}
+		opciones = m.aplicarIdiomaSelloConfigurado(ctx, formato, opciones)
 		if ports.NecesitaOpcionesFirmaPredeterminadas(formato, opciones) && !preferenciasCargadas {
 			// Un default de UX no debe convertir el store de preferencias en
 			// dependencia de disponibilidad de la firma.
@@ -2216,6 +2220,49 @@ func (m *Manejador) aplicarOpcionesFirmaPredeterminadas(ctx context.Context, for
 		return explicitas, nil
 	}
 	return ports.AplicarOpcionesFirmaPredeterminadas(doc, formato, explicitas), nil
+}
+
+// aplicarIdiomaSelloConfigurado impone el idioma fijo del sello si la
+// configuración lo define; si no, se respeta el que envía la interfaz
+// (sealLanguage en extraOptions). Solo afecta a PAdES, el único formato con
+// sello visible, y solo cuando la firma lleva sello: una preferencia de
+// aspecto no debe hacer depender del almacén de ajustes al resto de firmas.
+func (m *Manejador) aplicarIdiomaSelloConfigurado(ctx context.Context, formato string, opciones map[string]string) map[string]string {
+	if m.Settings == nil || !strings.EqualFold(strings.TrimSpace(formato), "pades") || !llevaSelloVisible(opciones) {
+		return opciones
+	}
+	doc, err := m.cargarPreferenciasFirma(ctx)
+	if err != nil {
+		return opciones
+	}
+	fijo := ports.IdiomaSelloFijo(doc)
+	if fijo == "" {
+		return opciones
+	}
+	resultado := make(map[string]string, len(opciones)+1)
+	for k, v := range opciones {
+		if !strings.EqualFold(k, desktopsigner.OpcionIdiomaSello) {
+			resultado[k] = v
+		}
+	}
+	resultado[desktopsigner.OpcionIdiomaSello] = fijo
+	return resultado
+}
+
+func llevaSelloVisible(opciones map[string]string) bool {
+	for k, v := range opciones {
+		switch strings.ToLower(k) {
+		case "visibleseal":
+			if strings.EqualFold(strings.TrimSpace(v), "true") {
+				return true
+			}
+		case "visiblesealplacements", "signaturefield", "layer2text":
+			if strings.TrimSpace(v) != "" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (m *Manejador) cargarPreferenciasFirma(ctx context.Context) (ports.DocumentoConfiguracionUsuario, error) {

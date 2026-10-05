@@ -7,7 +7,7 @@
 # Detiene el Tomcat del banco FIRe.
 set -euo pipefail
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=scripts/fire-banco/versiones.env
+# shellcheck disable=SC1091 source=scripts/fire-banco/versiones.env
 source "$AQUI/versiones.env"
 BANCO="${FIRE_BANCO_DIR:-/tmp/fire-banco}"
 TB="$BANCO/tomcat"
