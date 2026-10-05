@@ -158,29 +158,14 @@ Item {
         Accessible.role: Accessible.AlertMessage
         Accessible.name: text
     }
-    // Botones y combos con los colores del tema y un anillo de foco visible.
-    component EniButton: Button {
-        id: eniButton
+    // Botones con el componente común (colores del tema y anillo de foco de 2 px).
+    component EniButton: ThemedButton {
         Layout.fillWidth: true
         Layout.maximumWidth: 520
-        Accessible.name: text
         palette.button: panel.theme.cardColor
         palette.buttonText: panel.theme.textColor
-        contentItem: Label {
-            text: eniButton.text
-            color: panel.theme.textColor
-            opacity: eniButton.enabled ? 1 : 0.6
-            wrapMode: Text.WordWrap
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-        }
-        background: Rectangle {
-            implicitHeight: 40
-            radius: 4
-            color: eniButton.down ? Qt.darker(panel.theme.cardColor, 1.2) : panel.theme.cardColor
-            border.color: eniButton.activeFocus ? panel.focusColor : panel.theme.secondaryTextColor
-            border.width: eniButton.activeFocus ? 2 : 1
-        }
+        palette.highlight: panel.focusColor
+        palette.mid: panel.theme.secondaryTextColor
     }
     component EniCombo: ComboBox {
         id: eniCombo
