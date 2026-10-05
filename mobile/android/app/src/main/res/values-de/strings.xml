@@ -74,18 +74,10 @@
     <string name="seal_previous">Zurück</string>
     <string name="seal_next">Weiter</string>
     <string name="seal_accessible_controls">Position und Drehung einstellen</string>
-    <string name="seal_left">←</string>
-    <string name="seal_right">→</string>
-    <string name="seal_up">↑</string>
-    <string name="seal_down">↓</string>
     <string name="seal_move_left">Siegel nach links bewegen</string>
     <string name="seal_move_right">Siegel nach rechts bewegen</string>
     <string name="seal_move_up">Siegel nach oben bewegen</string>
     <string name="seal_move_down">Siegel nach unten bewegen</string>
-    <string name="seal_smaller">− Größe</string>
-    <string name="seal_larger">+ Größe</string>
-    <string name="seal_rotate_left">↶ 15°</string>
-    <string name="seal_rotate_right">↻ 15°</string>
     <string name="seal_opacity">Deckkraft des Siegels (0–100 %)</string>
     <string name="seal_qr">Prüf-QR-Code hinzufügen</string>
     <string name="seal_qr_address">HTTPS-Adresse des QR-Codes</string>
@@ -103,7 +95,7 @@
     <string name="seal_one_page">Nur diese Seite</string>
     <string name="seal_preview_loading">Echte Vorschau wird aktualisiert…</string>
     <string name="seal_preview_ready">Echte Vorschau aktualisiert</string>
-    <string name="seal_preview_error">Vorschau konnte nicht erstellt werden. Prüfen Sie das Siegel vor dem Anwenden.</string>
+    <string name="seal_preview_error">Das Siegel konnte mit diesen Angaben nicht erstellt werden. Versuchen Sie ein anderes Bild oder einen anderen Stil.</string>
     <string name="seal_apply">Siegel anwenden</string>
     <string name="seal_pdf_error">PDF konnte nicht angezeigt werden. Wählen Sie eine andere gültige Datei.</string>
     <string name="seal_certificate_required">Richten Sie zuerst in Schritt 2 ein Zertifikat ein, um das echte Siegel zu sehen.</string>
@@ -631,4 +623,9 @@
     <string name="verification_technical_toggle">Technische Details</string>
     <string name="verification_reason">Grund: %1$s</string>
     <string name="cert_fingerprint">Fingerabdruck: %1$s</string>
+    <string name="seal_qr_address_example">https://beispiel.de/pruefen</string>
+    <string name="seal_qr_address_required">Geben Sie die https://-Adresse ein, die der QR-Code öffnen soll.</string>
+    <string name="seal_qr_address_https">Die QR-Adresse muss mit https:// beginnen.</string>
+    <string name="seal_image_required">Wählen Sie Ihr Bild mit „Bild auswählen“ oder stellen Sie den Stil auf „Ohne Logo“.</string>
+    <string name="seal_placed_press_sign">Siegel platziert. Tippen Sie auf „Dokument signieren“, um abzuschließen.</string>
 </resources>

@@ -514,7 +514,7 @@ class MainActivity : AppCompatActivity() {
             if (usesDnie()) {
                 val document = viewModel.state.value.document
                 if (sealSettings.enabled && document != null && isPdf(document) && sealPageInfo == null) {
-                    showSealEditor()
+                    showSealEditor(continueSigning = true)
                 } else {
                     showDniePinDialog()
                 }
@@ -1292,7 +1292,11 @@ class MainActivity : AppCompatActivity() {
     private fun isPdf(file: SelectedFile): Boolean =
         file.mimeType.equals("application/pdf", ignoreCase = true) || file.displayName.endsWith(".pdf", ignoreCase = true)
 
-    private fun showSealEditor() {
+    /**
+     * [continueSigning]: el editor se abrió al pulsar «Firmar documento»; tras
+     * «Aplicar sello» la firma sigue sola. Si no, se dice cómo terminar.
+     */
+    private fun showSealEditor(continueSigning: Boolean = false) {
         if (sealEditorOpen) return
         val document = viewModel.state.value.document
         if (document == null || !isPdf(document)) return
@@ -1312,6 +1316,15 @@ class MainActivity : AppCompatActivity() {
                 sealSettings = settings
                 sealPageInfo = Triple(count, width, height)
                 sealPreferences.save(settings)
+                // Tras cerrarse el editor: la firma sigue o se explica el paso siguiente.
+                binding.rootLayout.post {
+                    when {
+                        !continueSigning -> showMessage(R.string.seal_placed_press_sign)
+                        !viewModel.state.value.canSign -> Unit
+                        usesDnie() -> showDniePinDialog()
+                        else -> signWithSealIfSelected()
+                    }
+                }
             },
             onClosed = {
                 sealEditorOpen = false
@@ -1336,7 +1349,7 @@ class MainActivity : AppCompatActivity() {
         val pageInfo = sealPageInfo
         if (pageInfo == null) {
             dnieSession?.clearPin()
-            showSealEditor()
+            showSealEditor(continueSigning = true)
             return
         }
         try {

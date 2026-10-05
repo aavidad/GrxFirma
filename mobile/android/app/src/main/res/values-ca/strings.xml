@@ -74,18 +74,10 @@
     <string name="seal_previous">Anterior</string>
     <string name="seal_next">Següent</string>
     <string name="seal_accessible_controls">Ajustos de posició i gir</string>
-    <string name="seal_left">←</string>
-    <string name="seal_right">→</string>
-    <string name="seal_up">↑</string>
-    <string name="seal_down">↓</string>
     <string name="seal_move_left">Moure el segell a l’esquerra</string>
     <string name="seal_move_right">Moure el segell a la dreta</string>
     <string name="seal_move_up">Moure el segell amunt</string>
     <string name="seal_move_down">Moure el segell avall</string>
-    <string name="seal_smaller">− mida</string>
-    <string name="seal_larger">+ mida</string>
-    <string name="seal_rotate_left">↶ 15°</string>
-    <string name="seal_rotate_right">↻ 15°</string>
     <string name="seal_opacity">Opacitat del segell (0–100 %)</string>
     <string name="seal_qr">Afegir un codi QR de verificació</string>
     <string name="seal_qr_address">Adreça HTTPS del QR</string>
@@ -103,7 +95,7 @@
     <string name="seal_one_page">Només aquesta pàgina</string>
     <string name="seal_preview_loading">Actualitzant la previsualització real…</string>
     <string name="seal_preview_ready">Previsualització real actualitzada</string>
-    <string name="seal_preview_error">No s’ha pogut generar la previsualització. Reviseu el segell abans d’aplicar-lo.</string>
+    <string name="seal_preview_error">No s\'ha pogut preparar el segell amb aquestes dades. Proveu una altra imatge o un altre estil.</string>
     <string name="seal_apply">Aplicar segell</string>
     <string name="seal_pdf_error">No s’ha pogut mostrar el PDF. Seleccioneu un altre fitxer vàlid.</string>
     <string name="seal_certificate_required">Prepareu primer un certificat al pas 2 per veure el segell real.</string>
@@ -648,4 +640,9 @@
     <string name="verification_technical_toggle">Detalls tècnics</string>
     <string name="verification_reason">Motiu: %1$s</string>
     <string name="cert_fingerprint">Empremta: %1$s</string>
+    <string name="seal_qr_address_example">https://seu.exemple.cat/verificar</string>
+    <string name="seal_qr_address_required">Escriviu l\'adreça https:// que obrirà el QR.</string>
+    <string name="seal_qr_address_https">L\'adreça del QR ha de començar per https://.</string>
+    <string name="seal_image_required">Trieu la imatge amb «Selecciona una imatge» o canvieu l\'estil a «Sense logotip».</string>
+    <string name="seal_placed_press_sign">Segell col·locat. Premeu «Signar el document» per acabar.</string>
 </resources>

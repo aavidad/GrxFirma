@@ -74,18 +74,10 @@
     <string name="seal_previous">Précédente</string>
     <string name="seal_next">Suivante</string>
     <string name="seal_accessible_controls">Réglages de position et rotation</string>
-    <string name="seal_left">←</string>
-    <string name="seal_right">→</string>
-    <string name="seal_up">↑</string>
-    <string name="seal_down">↓</string>
     <string name="seal_move_left">Déplacer le sceau à gauche</string>
     <string name="seal_move_right">Déplacer le sceau à droite</string>
     <string name="seal_move_up">Déplacer le sceau vers le haut</string>
     <string name="seal_move_down">Déplacer le sceau vers le bas</string>
-    <string name="seal_smaller">− taille</string>
-    <string name="seal_larger">+ taille</string>
-    <string name="seal_rotate_left">↶ 15°</string>
-    <string name="seal_rotate_right">↻ 15°</string>
     <string name="seal_opacity">Opacité du sceau (0–100 %)</string>
     <string name="seal_qr">Ajouter un code QR de vérification</string>
     <string name="seal_qr_address">Adresse HTTPS du QR</string>
@@ -103,7 +95,7 @@
     <string name="seal_one_page">Cette page uniquement</string>
     <string name="seal_preview_loading">Actualisation de l’aperçu réel…</string>
     <string name="seal_preview_ready">Aperçu réel actualisé</string>
-    <string name="seal_preview_error">Impossible de générer l’aperçu. Vérifiez le sceau avant de l’appliquer.</string>
+    <string name="seal_preview_error">Le cachet n\'a pas pu être préparé avec ces réglages. Essayez une autre image ou un autre style.</string>
     <string name="seal_apply">Appliquer le sceau</string>
     <string name="seal_pdf_error">Impossible d’afficher le PDF. Sélectionnez un autre fichier valide.</string>
     <string name="seal_certificate_required">Préparez d\'abord un certificat à l\'étape 2 pour voir le vrai cachet.</string>
@@ -648,4 +640,9 @@
     <string name="verification_technical_toggle">Détails techniques</string>
     <string name="verification_reason">Motif : %1$s</string>
     <string name="cert_fingerprint">Empreinte : %1$s</string>
+    <string name="seal_qr_address_example">https://exemple.fr/verifier</string>
+    <string name="seal_qr_address_required">Saisissez l\'adresse https:// que le QR ouvrira.</string>
+    <string name="seal_qr_address_https">L\'adresse du QR doit commencer par https://.</string>
+    <string name="seal_image_required">Choisissez votre image avec « Sélectionner une image » ou passez le style à « Sans logo ».</string>
+    <string name="seal_placed_press_sign">Cachet placé. Appuyez sur « Signer le document » pour terminer.</string>
 </resources>

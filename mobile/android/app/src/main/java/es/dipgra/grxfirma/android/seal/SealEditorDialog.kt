@@ -66,6 +66,8 @@ class SealEditorDialog(
     private lateinit var previewStatus: TextView
     private var previewValid = false
     private lateinit var qrAddress: EditText
+    private lateinit var qrAddressLayout: TextInputLayout
+    private lateinit var navigation: LinearLayout
     private lateinit var qrCheck: CheckBox
     private lateinit var logoDropdown: DropdownField
     private lateinit var pageToggle: MaterialButton
@@ -139,28 +141,34 @@ class SealEditorDialog(
                 refreshPreview()
             }
         }
-        column.addView(canvas, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        // La página no ocupa toda la ventana: debajo deben asomar los botones de ajuste.
+        canvas.maxPageHeight = (activity.resources.displayMetrics.heightPixels * 0.55f).toInt()
+        column.addView(canvas, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            .apply { gravity = android.view.Gravity.CENTER_HORIZONTAL })
         previewStatus = label(R.string.seal_preview_loading).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
         column.addView(previewStatus)
         pageLabel = label(R.string.seal_page_placeholder).apply { textAlignment = View.TEXT_ALIGNMENT_CENTER }
         column.addView(pageLabel)
-        val navigation = row()
-        navigation.addView(button(R.string.seal_previous) { changePage(-1) }, weighted())
-        navigation.addView(button(R.string.seal_next) { changePage(1) }, weighted())
+        // Con una sola página no hay a dónde ir: la navegación no se muestra.
+        navigation = row()
+        navigation.addView(button(R.string.seal_previous, outlined = true) { changePage(-1) }, weighted())
+        navigation.addView(button(R.string.seal_next, outlined = true) { changePage(1) }, weighted())
+        navigation.visibility = if (pages.size > 1) View.VISIBLE else View.GONE
         column.addView(navigation)
 
+        // Iconos con su descripción: no hay palabras que se corten con letra grande.
         column.addView(label(R.string.seal_accessible_controls))
         val move = row()
-        move.addView(button(R.string.seal_left) { adjust(dx = -0.02f) }, weighted())
-        move.addView(button(R.string.seal_right) { adjust(dx = 0.02f) }, weighted())
-        move.addView(button(R.string.seal_up) { adjust(dy = 0.02f) }, weighted())
-        move.addView(button(R.string.seal_down) { adjust(dy = -0.02f) }, weighted())
+        move.addView(iconButton(R.drawable.ic_seal_left, R.string.seal_move_left) { adjust(dx = -0.02f) }, weighted())
+        move.addView(iconButton(R.drawable.ic_seal_right, R.string.seal_move_right) { adjust(dx = 0.02f) }, weighted())
+        move.addView(iconButton(R.drawable.ic_seal_up, R.string.seal_move_up) { adjust(dy = 0.02f) }, weighted())
+        move.addView(iconButton(R.drawable.ic_seal_down, R.string.seal_move_down) { adjust(dy = -0.02f) }, weighted())
         column.addView(move)
         val sizeAndRotation = row()
-        sizeAndRotation.addView(button(R.string.seal_smaller) { adjust(dw = -0.02f, dh = -0.01f) }, weighted())
-        sizeAndRotation.addView(button(R.string.seal_larger) { adjust(dw = 0.02f, dh = 0.01f) }, weighted())
-        sizeAndRotation.addView(button(R.string.seal_rotate_left) { adjust(angle = -15) }, weighted())
-        sizeAndRotation.addView(button(R.string.seal_rotate_right) { adjust(angle = 15) }, weighted())
+        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_smaller, R.string.seal_smaller_desc) { adjust(dw = -0.02f, dh = -0.01f) }, weighted())
+        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_larger, R.string.seal_larger_desc) { adjust(dw = 0.02f, dh = 0.01f) }, weighted())
+        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_rotate_left, R.string.seal_rotate_left_desc) { adjust(angle = -15) }, weighted())
+        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_rotate_right, R.string.seal_rotate_right_desc) { adjust(angle = 15) }, weighted())
         column.addView(sizeAndRotation)
 
         column.addView(label(R.string.seal_opacity))
@@ -183,18 +191,24 @@ class SealEditorDialog(
             isChecked = settings.qrEnabled
             setOnCheckedChangeListener { _, checked ->
                 settings = settings.copy(qrEnabled = checked)
-                qrAddress.visibility = if (checked) View.VISIBLE else View.GONE
+                qrAddressLayout.visibility = if (checked) View.VISIBLE else View.GONE
                 refreshPreview()
             }
         }
         column.addView(qrCheck)
-        qrAddress = EditText(activity).apply {
+        // Campo con contorno y ejemplo, como los demás; su error se ve en el propio campo.
+        qrAddressLayout = TextInputLayout(activity, null, com.google.android.material.R.attr.textInputOutlinedStyle).apply {
             hint = activity.getString(R.string.seal_qr_address)
-            contentDescription = activity.getString(R.string.seal_qr_address)
+            placeholderText = activity.getString(R.string.seal_qr_address_example)
+            visibility = if (settings.qrEnabled) View.VISIBLE else View.GONE
+            setPadding(0, dp(8), 0, 0)
+        }
+        qrAddress = TextInputEditText(qrAddressLayout.context).apply {
             setSingleLine(true)
+            minHeight = dp(48)
+            importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
             inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_URI
             setText(settings.qrAddress)
-            visibility = if (settings.qrEnabled) View.VISIBLE else View.GONE
             addTextChangedListener(object : android.text.TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -204,7 +218,8 @@ class SealEditorDialog(
                 override fun afterTextChanged(s: android.text.Editable?) = Unit
             })
         }
-        column.addView(qrAddress)
+        qrAddressLayout.addView(qrAddress, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        column.addView(qrAddressLayout)
 
         val logoField = dropdown(R.string.seal_style, listOf(R.string.seal_logo_none, R.string.seal_logo_institutional,
             R.string.seal_logo_custom), when (settings.logo) { "institutional" -> 1; "custom" -> 2; else -> 0 }) { position ->
@@ -277,6 +292,11 @@ class SealEditorDialog(
     }
 
     private fun saveIfValid(actual: androidx.appcompat.app.AlertDialog) {
+        settingsProblem()?.let { problem ->
+            showProblem(problem)
+            if (problem != R.string.seal_image_required) qrAddress.requestFocus()
+            return
+        }
         if (settings.csvEnabled && !csvValid) {
             showProblem(R.string.seal_invalid_settings)
             return
@@ -341,10 +361,35 @@ class SealEditorDialog(
         }
     }
 
+    /**
+     * Lo que falta para poder generar el sello, dicho en concreto. La dirección
+     * del QR se marca además en su campo.
+     */
+    private fun settingsProblem(): Int? {
+        val address = settings.qrAddress.trim()
+        val problem = when {
+            settings.qrEnabled && address.isEmpty() -> R.string.seal_qr_address_required
+            settings.qrEnabled && !address.startsWith("https://", ignoreCase = true) -> R.string.seal_qr_address_https
+            settings.logo == "custom" && !(imageFile.isFile && imageFile.length() in 1..(2L shl 20)) -> R.string.seal_image_required
+            else -> null
+        }
+        if (::qrAddressLayout.isInitialized) {
+            qrAddressLayout.error = if (problem == R.string.seal_qr_address_required || problem == R.string.seal_qr_address_https)
+                activity.getString(problem) else null
+        }
+        return problem
+    }
+
     fun refreshPreview() {
         if (dialog == null || pages.isEmpty()) return
         canvas.settings = settings
         previewValid = false
+        settingsProblem()?.let { problem ->
+            previewJob?.cancel()
+            canvas.sealBitmap = null
+            showProblem(problem, announce = false)
+            return
+        }
         previewStatus.setText(R.string.seal_preview_loading)
         previewStatus.setTextColor(androidx.core.content.ContextCompat.getColor(activity, R.color.on_surface))
         previewJob?.cancel()
@@ -363,11 +408,15 @@ class SealEditorDialog(
                     canvas.sealBitmap?.recycle()
                     canvas.sealBitmap = bitmap
                     previewValid = bitmap != null
-                    previewStatus.setText(if (previewValid) R.string.seal_preview_ready else R.string.seal_preview_error)
+                    if (previewValid) previewStatus.setText(R.string.seal_preview_ready)
+                    else showProblem(R.string.seal_preview_error, announce = false)
                 }
+            } catch (error: kotlinx.coroutines.CancellationException) {
+                // Otra vista previa ha sustituido a esta: no es un error.
+                throw error
             } catch (_: Exception) {
                 canvas.sealBitmap = null
-                previewStatus.setText(R.string.seal_preview_error)
+                showProblem(R.string.seal_preview_error, announce = false)
             }
         }
     }
@@ -529,11 +578,11 @@ class SealEditorDialog(
     }
 
     /** Problema dentro del editor: se muestra y se anuncia en la línea de estado. */
-    private fun showProblem(message: Int) {
+    private fun showProblem(message: Int, announce: Boolean = true) {
         if (!::previewStatus.isInitialized) return onError(message)
         previewStatus.setText(message)
         previewStatus.setTextColor(androidx.core.content.ContextCompat.getColor(activity, R.color.error))
-        previewStatus.announceForAccessibility(previewStatus.text)
+        if (announce) previewStatus.announceForAccessibility(previewStatus.text)
     }
     private fun label(id: Int) = TextView(activity).apply {
         setText(id)
@@ -541,22 +590,27 @@ class SealEditorDialog(
         setPadding(0, dp(8), 0, dp(8))
         ViewCompat.setAccessibilityHeading(this, id == R.string.seal_accessible_controls)
     }
-    private fun button(id: Int, action: () -> Unit) = MaterialButton(activity).apply {
-        setText(id)
-        minHeight = dp(48)
-        contentDescription = when (id) {
-            R.string.seal_left -> activity.getString(R.string.seal_move_left)
-            R.string.seal_right -> activity.getString(R.string.seal_move_right)
-            R.string.seal_up -> activity.getString(R.string.seal_move_up)
-            R.string.seal_down -> activity.getString(R.string.seal_move_down)
-            R.string.seal_smaller -> activity.getString(R.string.seal_smaller_desc)
-            R.string.seal_larger -> activity.getString(R.string.seal_larger_desc)
-            R.string.seal_rotate_left -> activity.getString(R.string.seal_rotate_left_desc)
-            R.string.seal_rotate_right -> activity.getString(R.string.seal_rotate_right_desc)
-            else -> activity.getString(id)
+    /** [outlined]: botón secundario, para que no compita con «Aplicar sello». */
+    private fun button(id: Int, outlined: Boolean = false, action: () -> Unit) =
+        (if (outlined) MaterialButton(activity, null, com.google.android.material.R.attr.materialButtonOutlinedStyle)
+        else MaterialButton(activity)).apply {
+            setText(id)
+            minHeight = dp(48)
+            setOnClickListener { action() }
         }
-        setOnClickListener { action() }
-    }
+
+    /** Botón de solo icono: TalkBack lee [description] y una pulsación larga la muestra. */
+    private fun iconButton(icon: Int, description: Int, action: () -> Unit) =
+        MaterialButton(activity, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            setIconResource(icon)
+            iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+            iconPadding = 0
+            minHeight = dp(48)
+            minWidth = dp(48)
+            contentDescription = activity.getString(description)
+            androidx.appcompat.widget.TooltipCompat.setTooltipText(this, contentDescription)
+            setOnClickListener { action() }
+        }
     private fun dp(value: Int) = (value * activity.resources.displayMetrics.density).toInt()
 
     private inline fun <T> withRenderer(file: File, block: (PdfRenderer) -> T): T =

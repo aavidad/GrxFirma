@@ -74,18 +74,10 @@
     <string name="seal_previous">Precedente</string>
     <string name="seal_next">Successiva</string>
     <string name="seal_accessible_controls">Regolazioni di posizione e rotazione</string>
-    <string name="seal_left">←</string>
-    <string name="seal_right">→</string>
-    <string name="seal_up">↑</string>
-    <string name="seal_down">↓</string>
     <string name="seal_move_left">Spostare il sigillo a sinistra</string>
     <string name="seal_move_right">Spostare il sigillo a destra</string>
     <string name="seal_move_up">Spostare il sigillo in alto</string>
     <string name="seal_move_down">Spostare il sigillo in basso</string>
-    <string name="seal_smaller">− dimensione</string>
-    <string name="seal_larger">+ dimensione</string>
-    <string name="seal_rotate_left">↶ 15°</string>
-    <string name="seal_rotate_right">↻ 15°</string>
     <string name="seal_opacity">Opacità del sigillo (0–100 %)</string>
     <string name="seal_qr">Aggiungi un codice QR di verifica</string>
     <string name="seal_qr_address">Indirizzo HTTPS del QR</string>
@@ -103,7 +95,7 @@
     <string name="seal_one_page">Solo questa pagina</string>
     <string name="seal_preview_loading">Aggiornamento dell’anteprima reale…</string>
     <string name="seal_preview_ready">Anteprima reale aggiornata</string>
-    <string name="seal_preview_error">Impossibile generare l’anteprima. Controllare il sigillo prima di applicarlo.</string>
+    <string name="seal_preview_error">Non è stato possibile preparare il sigillo con questi dati. Provi con un\'altra immagine o un altro stile.</string>
     <string name="seal_apply">Applicare sigillo</string>
     <string name="seal_pdf_error">Impossibile mostrare il PDF. Selezionare un altro file valido.</string>
     <string name="seal_certificate_required">Prepara prima un certificato al passo 2 per vedere il sigillo reale.</string>
@@ -648,4 +640,9 @@
     <string name="verification_technical_toggle">Dettagli tecnici</string>
     <string name="verification_reason">Motivo: %1$s</string>
     <string name="cert_fingerprint">Impronta: %1$s</string>
+    <string name="seal_qr_address_example">https://esempio.it/verifica</string>
+    <string name="seal_qr_address_required">Scriva l\'indirizzo https:// che aprirà il QR.</string>
+    <string name="seal_qr_address_https">L\'indirizzo del QR deve iniziare con https://.</string>
+    <string name="seal_image_required">Scelga l\'immagine con «Seleziona immagine» o cambi lo stile in «Senza logo».</string>
+    <string name="seal_placed_press_sign">Sigillo posizionato. Tocchi «Firma documento» per terminare.</string>
 </resources>

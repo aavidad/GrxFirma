@@ -74,18 +74,10 @@
     <string name="seal_previous">Aurrekoa</string>
     <string name="seal_next">Hurrengoa</string>
     <string name="seal_accessible_controls">Kokapen- eta biraketa-doikuntzak</string>
-    <string name="seal_left">←</string>
-    <string name="seal_right">→</string>
-    <string name="seal_up">↑</string>
-    <string name="seal_down">↓</string>
     <string name="seal_move_left">Mugitu zigilua ezkerrera</string>
     <string name="seal_move_right">Mugitu zigilua eskuinera</string>
     <string name="seal_move_up">Mugitu zigilua gora</string>
     <string name="seal_move_down">Mugitu zigilua behera</string>
-    <string name="seal_smaller">− tamaina</string>
-    <string name="seal_larger">+ tamaina</string>
-    <string name="seal_rotate_left">↶ 15°</string>
-    <string name="seal_rotate_right">↻ 15°</string>
     <string name="seal_opacity">Zigiluaren opakutasuna (0–100 %)</string>
     <string name="seal_qr">Gehitu egiaztatzeko QR kodea</string>
     <string name="seal_qr_address">QRaren HTTPS helbidea</string>
@@ -103,7 +95,7 @@
     <string name="seal_one_page">Orrialde hau bakarrik</string>
     <string name="seal_preview_loading">Benetako aurrebista eguneratzen…</string>
     <string name="seal_preview_ready">Benetako aurrebista eguneratuta</string>
-    <string name="seal_preview_error">Ezin izan da aurrebista sortu. Berrikusi zigilua aplikatu aurretik.</string>
+    <string name="seal_preview_error">Ezin izan da zigilua prestatu datu hauekin. Probatu beste irudi edo estilo batekin.</string>
     <string name="seal_apply">Aplikatu zigilua</string>
     <string name="seal_pdf_error">Ezin izan da PDFa erakutsi. Hautatu beste fitxategi baliozko bat.</string>
     <string name="seal_certificate_required">Prestatu lehenik ziurtagiri bat 2. urratsean benetako zigilua ikusteko.</string>
@@ -631,4 +623,9 @@
     <string name="verification_technical_toggle">Xehetasun teknikoak</string>
     <string name="verification_reason">Arrazoia: %1$s</string>
     <string name="cert_fingerprint">Hatz-marka: %1$s</string>
+    <string name="seal_qr_address_example">https://egoitza.adibidea.eus/egiaztatu</string>
+    <string name="seal_qr_address_required">Idatzi QR kodeak irekiko duen https:// helbidea.</string>
+    <string name="seal_qr_address_https">QR kodearen helbideak https:// hasiera izan behar du.</string>
+    <string name="seal_image_required">Aukeratu zure irudia «Hautatu irudia» erabiliz, edo aldatu estiloa «Logorik gabe» aukerara.</string>
+    <string name="seal_placed_press_sign">Zigilua jarrita. Sakatu «Sinatu dokumentua» amaitzeko.</string>
 </resources>

@@ -74,18 +74,10 @@
     <string name="seal_previous">Anterior</string>
     <string name="seal_next">Seguinte</string>
     <string name="seal_accessible_controls">Ajustes de posição e rotação</string>
-    <string name="seal_left">←</string>
-    <string name="seal_right">→</string>
-    <string name="seal_up">↑</string>
-    <string name="seal_down">↓</string>
     <string name="seal_move_left">Mover selo para a esquerda</string>
     <string name="seal_move_right">Mover selo para a direita</string>
     <string name="seal_move_up">Mover selo para cima</string>
     <string name="seal_move_down">Mover selo para baixo</string>
-    <string name="seal_smaller">− tamanho</string>
-    <string name="seal_larger">+ tamanho</string>
-    <string name="seal_rotate_left">↶ 15°</string>
-    <string name="seal_rotate_right">↻ 15°</string>
     <string name="seal_opacity">Opacidade do selo (0–100 %)</string>
     <string name="seal_qr">Adicionar código QR de verificação</string>
     <string name="seal_qr_address">Endereço HTTPS do QR</string>
@@ -103,7 +95,7 @@
     <string name="seal_one_page">Só esta página</string>
     <string name="seal_preview_loading">A atualizar a pré-visualização real…</string>
     <string name="seal_preview_ready">Pré-visualização real atualizada</string>
-    <string name="seal_preview_error">Não foi possível gerar a pré-visualização. Reveja o selo antes de o aplicar.</string>
+    <string name="seal_preview_error">Não foi possível preparar o selo com estes dados. Experimente outra imagem ou outro estilo.</string>
     <string name="seal_apply">Aplicar selo</string>
     <string name="seal_pdf_error">Não foi possível mostrar o PDF. Selecione outro ficheiro válido.</string>
     <string name="seal_certificate_required">Prepare primeiro um certificado no passo 2 para ver o selo real.</string>
@@ -648,4 +640,9 @@
     <string name="verification_technical_toggle">Detalhes técnicos</string>
     <string name="verification_reason">Motivo: %1$s</string>
     <string name="cert_fingerprint">Impressão digital: %1$s</string>
+    <string name="seal_qr_address_example">https://exemplo.pt/verificar</string>
+    <string name="seal_qr_address_required">Escreva o endereço https:// que o QR vai abrir.</string>
+    <string name="seal_qr_address_https">O endereço do QR tem de começar por https://.</string>
+    <string name="seal_image_required">Escolha a sua imagem com «Selecionar imagem» ou mude o estilo para «Sem logótipo».</string>
+    <string name="seal_placed_press_sign">Selo colocado. Toque em «Assinar documento» para terminar.</string>
 </resources>

@@ -74,18 +74,10 @@
     <string name="seal_previous">上一页</string>
     <string name="seal_next">下一页</string>
     <string name="seal_accessible_controls">位置和旋转调整</string>
-    <string name="seal_left">←</string>
-    <string name="seal_right">→</string>
-    <string name="seal_up">↑</string>
-    <string name="seal_down">↓</string>
     <string name="seal_move_left">向左移动印章</string>
     <string name="seal_move_right">向右移动印章</string>
     <string name="seal_move_up">向上移动印章</string>
     <string name="seal_move_down">向下移动印章</string>
-    <string name="seal_smaller">− 大小</string>
-    <string name="seal_larger">+ 大小</string>
-    <string name="seal_rotate_left">↶ 15°</string>
-    <string name="seal_rotate_right">↻ 15°</string>
     <string name="seal_opacity">印章不透明度（0–100 %）</string>
     <string name="seal_qr">添加核验二维码</string>
     <string name="seal_qr_address">二维码的 HTTPS 地址</string>
@@ -103,7 +95,7 @@
     <string name="seal_one_page">仅此页</string>
     <string name="seal_preview_loading">正在更新实际预览…</string>
     <string name="seal_preview_ready">实际预览已更新</string>
-    <string name="seal_preview_error">无法生成预览。应用前请检查印章。</string>
+    <string name="seal_preview_error">无法用这些设置生成印章。请换一张图片或换一种样式。</string>
     <string name="seal_apply">应用印章</string>
     <string name="seal_pdf_error">无法显示 PDF。请选择其他有效文件。</string>
     <string name="seal_certificate_required">请先在第 2 步准备证书，才能看到真实印章。</string>
@@ -614,4 +606,9 @@
     <string name="verification_technical_toggle">技术详情</string>
     <string name="verification_reason">原因：%1$s</string>
     <string name="cert_fingerprint">指纹：%1$s</string>
+    <string name="seal_qr_address_example">https://example.cn/verify</string>
+    <string name="seal_qr_address_required">请输入二维码要打开的 https:// 地址。</string>
+    <string name="seal_qr_address_https">二维码地址必须以 https:// 开头。</string>
+    <string name="seal_image_required">请通过“选择图像”选择图片，或将样式改为“无标志”。</string>
+    <string name="seal_placed_press_sign">印章已放置。点击“签署文档”完成。</string>
 </resources>

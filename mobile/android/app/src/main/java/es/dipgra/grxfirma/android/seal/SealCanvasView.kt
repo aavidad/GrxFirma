@@ -54,11 +54,24 @@ class SealCanvasView(context: Context) : View(context) {
         contentDescription = context.getString(R.string.seal_canvas_description, 0)
     }
 
+    /**
+     * Alto máximo de la página en píxeles (0 = sin límite). Con él asoman bajo
+     * la página los botones de ajuste que anuncia el texto de ayuda.
+     */
+    var maxPageHeight: Int = 0
+        set(value) { field = value; requestLayout() }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val w = MeasureSpec.getSize(widthMeasureSpec)
+        var w = MeasureSpec.getSize(widthMeasureSpec)
         val bitmap = pageBitmap
-        val h = if (bitmap == null || bitmap.width <= 0) w * 4 / 3 else w * bitmap.height / bitmap.width
-        setMeasuredDimension(w, h.coerceAtLeast(1))
+        val ratio = if (bitmap == null || bitmap.width <= 0) 4f / 3f else bitmap.height.toFloat() / bitmap.width
+        var h = (w * ratio).toInt()
+        if (maxPageHeight in 1 until h) {
+            // Se reduce la página entera, sin recortarla ni deformarla.
+            h = maxPageHeight
+            w = (h / ratio).toInt()
+        }
+        setMeasuredDimension(w.coerceAtLeast(1), h.coerceAtLeast(1))
     }
 
     // Rectángulos reutilizados: onDraw no debe reservar memoria en cada fotograma.
