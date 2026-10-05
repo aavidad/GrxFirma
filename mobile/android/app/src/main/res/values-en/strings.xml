@@ -5,7 +5,6 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <resources>
     <string name="app_name">GrxFirma</string>
-    <string name="screen_title">Sign and verify</string>
     <string name="backend_ready_title">Ready to sign</string>
     <string name="backend_unavailable_title">This installation cannot sign</string>
     <string name="backend_ready_detail">The app works correctly on this phone.</string>
@@ -122,7 +121,7 @@
     <string name="revocation_embedded_only">embedded evidence only; online checking unavailable</string>
     <string name="revocation_online">online checking available</string>
     <string name="revocation_not_available">unavailable</string>
-    <string name="result_certificate_imported">Certificate prepared: %1$s</string>
+    <string name="result_certificate_imported">Certificate open: %1$s</string>
     <string name="result_certificate_forgotten">Certificate closed.</string>
     <string name="result_saved">Signed document saved.</string>
     <string name="result_save_cancelled">Signature discarded. The certificate has been closed.</string>
@@ -162,7 +161,7 @@
     <string name="profile_t">With certified date (T)</string>
     <string name="profile_lt">For long-term keeping (LT)</string>
     <string name="profile_lta">Very long-term archive (LTA)</string>
-    <string name="suggest_cosign">This document contains signatures. Use co-signing</string>
+    <string name="suggest_cosign">Add my signature to the existing ones</string>
     <string name="tsa_enabled">Add a certified date and time</string>
     <string name="tsa_url">Timestamp service address</string>
     <string name="tsa_helper">Some procedures require it. It needs an Internet connection and the timestamp service address given by your organisation.</string>
@@ -170,7 +169,7 @@
     <string name="error_signature_combination">This format does not support that option. Choose the basic signature or set the format to Automatic in the advanced options.</string>
     <string name="post_sign_verification_failed">Signature created. Automatic verification failed; save it and verify it later.</string>
     <string name="export_verification_report">Save technical data (JSON)</string>
-    <string name="verification_report_filename">informe-verificacion.json</string>
+    <string name="verification_report_filename">informe-verificacion-%1$s.json</string>
     <string name="error_report_export">The report was not saved. You can retry the export; the destination may contain a partial file.</string>
     <string name="result_report_saved">Verification report saved.</string>
     <string name="verification_coverage">Coverage: %1$s</string>
@@ -334,7 +333,7 @@
     <string name="eni_validate_scope">The check reviews the ENI 1.0 structure and its metadata; it does not verify the signatures it contains.</string>
     <string name="eni_validate">Check an ENI…</string>
     <string name="eni_created">ENI document created</string>
-    <string name="eni_created_detail">ENI signature type: %1$s. File: %2$s</string>
+    <string name="eni_created_detail">File: %1$s. Choose where to save it.</string>
     <string name="eni_invalid">%1$s does not meet the ENI 1.0 structure.</string>
     <string name="eni_error_unsigned_pdf">The PDF is not signed.</string>
     <string name="eni_error_unrecognized">The file is not a recognised PAdES, CAdES or XAdES signature.</string>
@@ -380,7 +379,7 @@
     <string name="pref_default_profile">Default signature profile</string>
     <string name="pref_tsa_enabled">Add a certified date and time by default</string>
     <string name="pref_output_name">Suggested name when saving</string>
-    <string name="output_name_suffix">Add “-signed” (contract-signed.pdf)</string>
+    <string name="output_name_suffix">Add “-signed” to the name</string>
     <string name="output_name_desktop">Add “_signed”, as on desktop (contract_signed.pdf)</string>
     <string name="output_name_original">Keep the document name (contract.pdf)</string>
     <string name="signed_document_name_desktop">%1$s_signed.%2$s</string>
@@ -453,7 +452,6 @@
     <string name="diag_copied">Report copied. It contains no personal data.</string>
     <string name="diag_report_title">GrxFirma for Android diagnostic report</string>
     <string name="about_check_updates">Check for updates</string>
-    <string name="about_release_link">What\'s new in each version: %1$s</string>
     <string name="update_title">Updates</string>
     <string name="update_newer">A new GrxFirma version is available: %1$s. You have %2$s installed.</string>
     <string name="update_current">GrxFirma is up to date (%1$s).</string>
@@ -586,7 +584,7 @@
     <string name="error_document_empty">The file is empty. Choose another one.</string>
     <string name="error_folder_too_many">The folder has too many files. Choose a folder with fewer.</string>
     <string name="export_verification_report_html">Save printable report (HTML)</string>
-    <string name="verification_report_html_filename">verification-report.html</string>
+    <string name="verification_report_html_filename">verification-report-%1$s.html</string>
     <string name="eni_error_signature_mismatch">The signature does not match the original document, or the document was changed after it was signed. Check that you chose the correct original.</string>
     <string name="qr_take_photo">Take a photo of the QR code</string>
     <string name="qr_choose_image">Choose an image of the QR code</string>
@@ -630,4 +628,7 @@
     <string name="seal_placed_press_sign">Seal placed. Tap “Sign document” to finish.</string>
     <string name="error_protect_own_certificate">Your certificate cannot be used to protect files. Untick “Include my certificate as a recipient” or add another person\'s certificate.</string>
     <string name="error_unprotect_not_protected">This document is not protected. To unprotect, choose a .enveloped, .p7m or .afp file.</string>
+    <string name="cosign_notice">This document is already signed.</string>
+    <string name="help_other_topics">Other topics</string>
+    <string name="diag_probe_tsa_hint">To test it, first set up a timestamp service (TSA) in Preferences or in the signing options.</string>
 </resources>

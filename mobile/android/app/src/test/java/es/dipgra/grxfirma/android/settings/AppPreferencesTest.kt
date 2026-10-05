@@ -27,6 +27,8 @@ class AppPreferencesTest {
         val desktop = "%1\$s_firmado.%2\$s"
         assertEquals("contrato-firmado.pdf", OutputNames.name(OutputNames.SUFFIX, "contrato", "pdf", suffix, desktop))
         assertEquals("contrato_firmado.pdf", OutputNames.name(OutputNames.DESKTOP, "contrato", "pdf", suffix, desktop))
+        assertEquals("contrato-firmado.pdf", OutputNames.name(OutputNames.SUFFIX, "contrato-firmado", "pdf", suffix, desktop))
+        assertEquals("contrato_firmado.pdf", OutputNames.name(OutputNames.DESKTOP, "contrato_firmado", "pdf", suffix, desktop))
         assertEquals("contrato.p7s", OutputNames.name(OutputNames.ORIGINAL, "contrato", "p7s", suffix, desktop))
         assertEquals("contrato-firmado.pdf", OutputNames.name("desconocida", "contrato", "pdf", suffix, desktop))
     }

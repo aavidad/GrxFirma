@@ -5,7 +5,6 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <resources>
     <string name="app_name">GrxFirma</string>
-    <string name="screen_title">Firma y verificación</string>
     <string name="backend_ready_title">Listo para firmar</string>
     <string name="backend_unavailable_title">Esta instalación no puede firmar</string>
     <string name="backend_ready_detail">La aplicación funciona correctamente en este móvil.</string>
@@ -122,7 +121,7 @@
     <string name="revocation_embedded_only">solo evidencias incluidas; consulta en línea no disponible</string>
     <string name="revocation_online">consulta en línea disponible</string>
     <string name="revocation_not_available">no disponible</string>
-    <string name="result_certificate_imported">Certificado preparado: %1$s</string>
+    <string name="result_certificate_imported">Certificado abierto: %1$s</string>
     <string name="result_certificate_forgotten">Certificado cerrado.</string>
     <string name="result_saved">Documento firmado guardado correctamente.</string>
     <string name="result_save_cancelled">Firma descartada. Se ha cerrado el certificado.</string>
@@ -162,7 +161,7 @@
     <string name="profile_t">Con fecha certificada (T)</string>
     <string name="profile_lt">Para conservar a largo plazo (LT)</string>
     <string name="profile_lta">Archivo a muy largo plazo (LTA)</string>
-    <string name="suggest_cosign">El documento tiene firmas. Usar cofirma</string>
+    <string name="suggest_cosign">Añadir mi firma a las existentes</string>
     <string name="tsa_enabled">Añadir fecha y hora certificadas</string>
     <string name="tsa_url">Dirección del servicio de sellado</string>
     <string name="tsa_helper">Algunos trámites lo exigen. Necesita conexión a Internet y la dirección del servicio de sellado que le indique su organización.</string>
@@ -170,7 +169,7 @@
     <string name="error_signature_combination">Este formato no admite esa opción. Elija la firma básica o cambie el formato a Automático en las opciones avanzadas.</string>
     <string name="post_sign_verification_failed">Firma creada. No se pudo verificar automáticamente; guárdela y verifíquela después.</string>
     <string name="export_verification_report">Guardar datos técnicos (JSON)</string>
-    <string name="verification_report_filename">informe-verificacion.json</string>
+    <string name="verification_report_filename">informe-verificacion-%1$s.json</string>
     <string name="error_report_export">El informe no se ha guardado. Puede reintentar la exportación; el destino puede contener un fichero parcial.</string>
     <string name="result_report_saved">Informe de verificación guardado.</string>
     <string name="verification_coverage">Cobertura: %1$s</string>
@@ -334,7 +333,7 @@
     <string name="eni_validate_scope">La comprobación revisa la estructura ENI 1.0 y sus metadatos; no verifica las firmas que contiene.</string>
     <string name="eni_validate">Comprobar un ENI…</string>
     <string name="eni_created">Documento ENI creado</string>
-    <string name="eni_created_detail">Tipo de firma ENI: %1$s. Fichero: %2$s</string>
+    <string name="eni_created_detail">Fichero: %1$s. Elija dónde guardarlo.</string>
     <string name="eni_invalid">%1$s no cumple la estructura ENI 1.0.</string>
     <string name="eni_error_unsigned_pdf">El PDF no está firmado.</string>
     <string name="eni_error_unrecognized">El fichero no es una firma PAdES, CAdES o XAdES reconocida.</string>
@@ -380,7 +379,7 @@
     <string name="pref_default_profile">Perfil de firma por defecto</string>
     <string name="pref_tsa_enabled">Añadir fecha y hora certificadas por defecto</string>
     <string name="pref_output_name">Nombre propuesto al guardar</string>
-    <string name="output_name_suffix">Añadir «-firmado» (contrato-firmado.pdf)</string>
+    <string name="output_name_suffix">Añadir «-firmado» al nombre</string>
     <string name="output_name_desktop">Añadir «_firmado», como en escritorio (contrato_firmado.pdf)</string>
     <string name="output_name_original">Mantener el nombre del documento (contrato.pdf)</string>
     <string name="signed_document_name_desktop">%1$s_firmado.%2$s</string>
@@ -453,7 +452,6 @@
     <string name="diag_copied">Informe copiado. No contiene datos personales.</string>
     <string name="diag_report_title">Informe de diagnóstico de GrxFirma para Android</string>
     <string name="about_check_updates">Buscar actualizaciones</string>
-    <string name="about_release_link">Novedades de cada versión: %1$s</string>
     <string name="update_title">Actualizaciones</string>
     <string name="update_newer">Hay una versión nueva de GrxFirma: %1$s. Tiene instalada la %2$s.</string>
     <string name="update_current">GrxFirma está actualizado (%1$s).</string>
@@ -586,7 +584,7 @@
     <string name="error_document_empty">El fichero está vacío. Elija otro.</string>
     <string name="error_folder_too_many">La carpeta tiene demasiados ficheros. Elija una carpeta con menos.</string>
     <string name="export_verification_report_html">Guardar informe imprimible (HTML)</string>
-    <string name="verification_report_html_filename">informe-verificacion.html</string>
+    <string name="verification_report_html_filename">informe-verificacion-%1$s.html</string>
     <string name="eni_error_signature_mismatch">La firma no corresponde al documento original o el documento se ha modificado después de firmarlo. Compruebe que ha elegido el original correcto.</string>
     <string name="qr_take_photo">Hacer una foto del QR</string>
     <string name="qr_choose_image">Elegir una imagen del QR</string>
@@ -630,4 +628,7 @@
     <string name="seal_placed_press_sign">Sello colocado. Pulse «Firmar documento» para terminar.</string>
     <string name="error_protect_own_certificate">Su certificado no sirve para proteger ficheros. Desmarque «Incluir mi certificado como destinatario» o añada el certificado de otra persona.</string>
     <string name="error_unprotect_not_protected">Este documento no está protegido. Para desproteger, elija un fichero .enveloped, .p7m o .afp.</string>
+    <string name="cosign_notice">Este documento ya tiene firmas.</string>
+    <string name="help_other_topics">Otros temas</string>
+    <string name="diag_probe_tsa_hint">Para probarla, configure antes un servicio de sellado de tiempo (TSA) en Preferencias o en las opciones de firma.</string>
 </resources>

@@ -5,7 +5,6 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <resources>
     <string name="app_name">GrxFirma</string>
-    <string name="screen_title">Signatura i verificació</string>
     <string name="backend_ready_title">A punt per a firmar</string>
     <string name="backend_unavailable_title">Esta instal·lació no pot firmar</string>
     <string name="backend_ready_detail">L\'aplicació funciona correctament en este mòbil.</string>
@@ -122,7 +121,7 @@
     <string name="revocation_embedded_only">només evidències incloses; consulta en línia no disponible</string>
     <string name="revocation_online">consulta en línia disponible</string>
     <string name="revocation_not_available">no disponible</string>
-    <string name="result_certificate_imported">Certificat preparat: %1$s</string>
+    <string name="result_certificate_imported">Certificat obert: %1$s</string>
     <string name="result_certificate_forgotten">Certificat tancat.</string>
     <string name="result_saved">Document signat guardat correctament.</string>
     <string name="result_save_cancelled">Firma descartada. S\'ha tancat el certificat.</string>
@@ -163,7 +162,7 @@
     <string name="profile_t">Amb data certificada (T)</string>
     <string name="profile_lt">Per a conservar a llarg termini (LT)</string>
     <string name="profile_lta">Arxiu a molt llarg termini (LTA)</string>
-    <string name="suggest_cosign">El document té signatures. Utilitzar cosignatura</string>
+    <string name="suggest_cosign">Afegir la meua firma a les existents</string>
     <string name="tsa_enabled">Afegir data i hora certificades</string>
     <string name="tsa_url">Adreça del servici de segellat</string>
     <string name="tsa_helper">Alguns tràmits ho exigixen. Cal connexió a Internet i l\'adreça del servici de segellat que vos indique la vostra organització.</string>
@@ -171,7 +170,7 @@
     <string name="error_signature_combination">Este format no admet eixa opció. Trieu la firma bàsica o canvieu el format a Automàtic en les opcions avançades.</string>
     <string name="post_sign_verification_failed">Signatura creada. No s’ha pogut verificar automàticament; guarde-la i verifiqueu-la després.</string>
     <string name="export_verification_report">Guardar les dades tècniques (JSON)</string>
-    <string name="verification_report_filename">informe-verificacion.json</string>
+    <string name="verification_report_filename">informe-verificacion-%1$s.json</string>
     <string name="error_report_export">L’informe no s’ha guardat. Podeu tornar a exportar-lo; la destinació pot contenir un fitxer parcial.</string>
     <string name="result_report_saved">Informe de verificació guardat.</string>
     <string name="verification_coverage">Cobertura: %1$s</string>
@@ -340,7 +339,7 @@
     <string name="eni_validate_scope">La comprovació revisa l’estructura ENI 1.0 i les metadades; no verifica les signatures que conté.</string>
     <string name="eni_validate">Comprova un ENI…</string>
     <string name="eni_created">Document ENI creat</string>
-    <string name="eni_created_detail">Tipus de signatura ENI: %1$s. Fitxer: %2$s</string>
+    <string name="eni_created_detail">Fitxer: %1$s. Trieu on guardar-lo.</string>
     <string name="eni_invalid">%1$s no compleix l’estructura ENI 1.0.</string>
     <string name="eni_error_unsigned_pdf">El PDF no està signat.</string>
     <string name="eni_error_unrecognized">El fitxer no és una signatura PAdES, CAdES o XAdES reconeguda.</string>
@@ -390,7 +389,7 @@
     <string name="pref_default_profile">Perfil de firma per defecte</string>
     <string name="pref_tsa_enabled">Afegir data i hora certificades per defecte</string>
     <string name="pref_output_name">Nom proposat en guardar</string>
-    <string name="output_name_suffix">Afegir «-firmat» (contracte-firmat.pdf)</string>
+    <string name="output_name_suffix">Afegir «-firmat» al nom</string>
     <string name="output_name_desktop">Afegir «_firmat», com en l\'escriptori (contracte_firmat.pdf)</string>
     <string name="output_name_original">Mantindre el nom del document (contracte.pdf)</string>
     <string name="signed_document_name_desktop">%1$s_firmat.%2$s</string>
@@ -463,7 +462,6 @@
     <string name="diag_copied">Informe copiat. No conté dades personals.</string>
     <string name="diag_report_title">Informe de diagnòstic de GrxFirma per a Android</string>
     <string name="about_check_updates">Buscar actualitzacions</string>
-    <string name="about_release_link">Novetats de cada versió: %1$s</string>
     <string name="update_title">Actualitzacions</string>
     <string name="update_newer">Hi ha una versió nova de GrxFirma: %1$s. Teniu instal·lada la %2$s.</string>
     <string name="update_current">GrxFirma està actualitzat (%1$s).</string>
@@ -602,7 +600,7 @@
     <string name="error_document_empty">El fitxer està buit. Trieu-ne un altre.</string>
     <string name="error_folder_too_many">La carpeta té massa fitxers. Trieu-ne una amb menys.</string>
     <string name="export_verification_report_html">Guardar l\'informe imprimible (HTML)</string>
-    <string name="verification_report_html_filename">informe-verificacio.html</string>
+    <string name="verification_report_html_filename">informe-verificacio-%1$s.html</string>
     <string name="eni_error_signature_mismatch">La firma no correspon al document original o el document s\'ha modificat després de firmar-lo. Comproveu que heu triat l\'original correcte.</string>
     <string name="qr_take_photo">Fer una foto del QR</string>
     <string name="qr_choose_image">Triar una imatge del QR</string>
@@ -647,4 +645,7 @@
     <string name="seal_placed_press_sign">Segell col·locat. Polseu «Signar el document» per a acabar.</string>
     <string name="error_protect_own_certificate">El vostre certificat no servix per a protegir fitxers. Desmarqueu «Incloure el meu certificat com a destinatari» o afegiu el certificat d\'una altra persona.</string>
     <string name="error_unprotect_not_protected">Este document no està protegit. Per a desprotegir, trieu un fitxer .enveloped, .p7m o .afp.</string>
+    <string name="cosign_notice">Este document ja té firmes.</string>
+    <string name="help_other_topics">Altres temes</string>
+    <string name="diag_probe_tsa_hint">Per a provar-la, configureu abans un servei de segellat de temps (TSA) en Preferències o en les opcions de firma.</string>
 </resources>

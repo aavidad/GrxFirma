@@ -219,7 +219,6 @@ class MainViewModel(
                         expiringSoonDays = details.second,
                         certificateFile = null,
                         result = OperationResult.Success(
-                            UiText.Resource(R.string.result_success),
                             UiText.Resource(R.string.result_certificate_imported, listOf(certificate.subject)),
                         ),
                     )
@@ -1110,7 +1109,7 @@ class MainViewModel(
                 original = snapshot.originalDocument?.let(repository::loadDocument)
                 val created = core.createEniDocument(signature, original, request)
                 val name = EniForm.outputName(document.displayName)
-                val detail = UiText.Resource(R.string.eni_created_detail, listOf(created.signatureType, name))
+                val detail = UiText.Resource(R.string.eni_created_detail, listOf(name))
                 replacePending(SignedOutput(created.bytes, name, "application/xml", "ENI", created.signatureType),
                     PendingKind.TOOL, detail)
                 mutableState.value = mutableState.value.copy(awaitingSave = true,

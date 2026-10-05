@@ -177,14 +177,24 @@ object UpdateText {
 
 /** Lectura del QR tributario y respuesta de la AEAT. */
 object QrText {
-    fun lines(qr: VeriFactuQr): UiText.Lines = UiText.Lines(buildList {
-        add(UiText.Resource(R.string.issue_line, listOf(UiText.Engine("verifactu.qr_nif"), qr.nif)))
-        add(UiText.Resource(R.string.issue_line, listOf(UiText.Engine("verifactu.qr_number"), qr.number)))
-        add(UiText.Resource(R.string.issue_line, listOf(UiText.Engine("verifactu.qr_date"), qr.date)))
-        add(UiText.Resource(R.string.issue_line, listOf(UiText.Engine("verifactu.qr_amount"), qr.amount)))
-        add(UiText.Resource(if (qr.verifiable) R.string.qr_verifactu else R.string.qr_not_verifactu))
-        if (qr.test) add(UiText.Resource(R.string.qr_test_environment))
-    })
+    /** [includeTest] = false cuando la pantalla pinta aparte, en color de aviso, el entorno de pruebas. */
+    fun lines(qr: VeriFactuQr, locale: java.util.Locale = java.util.Locale.getDefault(), includeTest: Boolean = true): UiText.Lines =
+        UiText.Lines(buildList {
+            add(UiText.Resource(R.string.issue_line, listOf(UiText.Engine("verifactu.qr_nif"), qr.nif)))
+            add(UiText.Resource(R.string.issue_line, listOf(UiText.Engine("verifactu.qr_number"), qr.number)))
+            add(UiText.Resource(R.string.issue_line, listOf(UiText.Engine("verifactu.qr_date"), qr.date)))
+            add(UiText.Resource(R.string.issue_line, listOf(UiText.Engine("verifactu.qr_amount"), amount(qr.amount, locale))))
+            add(UiText.Resource(if (qr.verifiable) R.string.qr_verifactu else R.string.qr_not_verifactu))
+            if (includeTest && qr.test) add(UiText.Resource(R.string.qr_test_environment))
+        })
+
+    /** «241.4» del QR tributario → «241,40 €» en el idioma del móvil. Si no es un número, tal cual. */
+    fun amount(raw: String, locale: java.util.Locale): String = try {
+        val value = java.math.BigDecimal(raw.trim())
+        java.text.NumberFormat.getCurrencyInstance(locale).apply {
+            currency = java.util.Currency.getInstance("EUR")
+        }.format(value)
+    } catch (_: Exception) { raw }
 }
 
 /** JSON exportado: el informe traducido y la respuesta del motor, sin cambios. */

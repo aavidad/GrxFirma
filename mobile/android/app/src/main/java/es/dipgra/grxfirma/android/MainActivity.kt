@@ -687,6 +687,7 @@ class MainActivity : AppCompatActivity() {
         eniTypes = catalogs.documentTypes
         eniOrigin.setItems(listOf(getString(R.string.eni_origin_administration), getString(R.string.eni_origin_citizen)))
         eniState.setItems(eniStates.map(::eniCodeLabel))
+        eniState.onItemSelected = { renderEniSource() }
         eniDocumentType.setItems(eniTypes.map(::eniCodeLabel))
         if (eniDocumentType.text.isNullOrEmpty() || eniDocumentType.selectedItemPosition == 0) {
             eniDocumentType.select(eniTypes.indexOf("TD99").coerceAtLeast(0))
@@ -699,6 +700,13 @@ class MainActivity : AppCompatActivity() {
                 openEniDocument.launch(arrayOf("text/xml", "application/xml", "application/octet-stream"))
             } catch (_: RuntimeException) { viewModel.reportPickerError() }
         }
+    }
+
+    private fun eniIsOriginal(): Boolean = eniStates.getOrElse(binding.documents.eniState.selectedItemPosition) { "EE01" } == "EE01"
+
+    /** El identificador del documento de origen solo tiene sentido en las copias. */
+    private fun renderEniSource() {
+        binding.documents.eniSourceLayout.visibility = if (eniIsOriginal()) View.GONE else View.VISIBLE
     }
 
     /** Código oficial seguido de su descripción del catálogo del motor. */
@@ -732,7 +740,7 @@ class MainActivity : AppCompatActivity() {
             state = eniStates.getOrElse(eniState.selectedItemPosition) { "EE01" },
             documentType = eniTypes.getOrElse(eniDocumentType.selectedItemPosition) { "TD99" },
             identifier = eniIdentifier.text?.toString()?.trim().orEmpty(),
-            sourceIdentifier = eniSource.text?.toString()?.trim().orEmpty(),
+            sourceIdentifier = if (eniIsOriginal()) "" else eniSource.text?.toString()?.trim().orEmpty(),
             captureDate = EniForm.captureDate(viewModel.state.value.eniCaptureDate),
             contentFormat = eniContentFormat.text?.toString()?.trim().orEmpty(),
         ))
@@ -777,16 +785,28 @@ class MainActivity : AppCompatActivity() {
         state.veriFactuQr?.let { qr -> if (qrUrl.text?.toString()?.trim() != qr.url) qrUrl.setText(qr.url) }
         queryAeatButton.visibility = if (PlatformServicesVisibility.aeat(state)) View.VISIBLE else View.GONE
         queryAeatButton.isEnabled = state.canQueryAeat
-        val qrText = buildList {
-            state.veriFactuQr?.let { add(QrText.lines(it).resolve(this@MainActivity)) }
-            state.qrError?.let { add(it.resolve(this@MainActivity)) }
-            if (state.aeatResponse.isNotEmpty()) add(getString(R.string.qr_aeat_response) + "\n" + state.aeatResponse)
-        }.joinToString("\n\n")
+        val qrText = SpannableStringBuilder()
+        fun paragraph(text: CharSequence) { if (qrText.isNotEmpty()) qrText.append("\n\n"); qrText.append(text) }
+        state.veriFactuQr?.let { qr ->
+            paragraph(QrText.lines(qr, resources.configuration.locales[0], includeTest = false).resolve(this@MainActivity))
+            if (qr.test) {
+                // El entorno de pruebas es un aviso: color de aviso y negrita, no texto normal.
+                qrText.append("\n")
+                val start = qrText.length
+                qrText.append(getString(R.string.qr_test_environment))
+                qrText.setSpan(ForegroundColorSpan(ContextCompat.getColor(this@MainActivity, R.color.status_warning)),
+                    start, qrText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                qrText.setSpan(StyleSpan(Typeface.BOLD), start, qrText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
+        state.qrError?.let { paragraph(it.resolve(this@MainActivity)) }
+        if (state.aeatResponse.isNotEmpty()) paragraph(getString(R.string.qr_aeat_response) + "\n" + state.aeatResponse)
         qrResult.text = qrText
         qrResult.visibility = if (qrText.isEmpty()) View.GONE else View.VISIBLE
         qrResult.setTextColor(ContextCompat.getColor(this@MainActivity,
             if (state.qrError != null) R.color.error else R.color.on_surface))
         listOf(eniOrgansLayout, eniSourceLayout, eniIdentifierLayout, eniContentFormatLayout).forEach { it.isEnabled = idle }
+        renderEniSource()
         listOf(eniOrigin, eniState, eniDocumentType).forEach { it.isEnabled = idle }
         eniCaptureDateSummary.text = state.eniCaptureDate?.let {
             val format = DateFormat.getDateInstance(DateFormat.LONG).apply { timeZone = TimeZone.getTimeZone("UTC") }
@@ -950,14 +970,14 @@ class MainActivity : AppCompatActivity() {
                                 chooseBatchFolder.launch(null)
                             } catch (_: RuntimeException) { viewModel.reportSavePickerUnavailable() }
                             UiEffect.SaveVerificationHtml -> try {
-                                createVerificationHtml.launch(getString(R.string.verification_report_html_filename))
+                                createVerificationHtml.launch(reportFileName(R.string.verification_report_html_filename))
                             } catch (_: RuntimeException) { viewModel.cancelReportExport() }
                             UiEffect.SaveVeriFactuReport -> try {
                                 createVeriFactuReport.launch(getString(R.string.verifactu_report_filename))
                             } catch (_: RuntimeException) { viewModel.cancelReportExport() }
                             is UiEffect.OpenRelease -> openRelease(effect.url)
                             UiEffect.SaveVerificationReport -> try {
-                                createVerificationReport.launch(getString(R.string.verification_report_filename))
+                                createVerificationReport.launch(reportFileName(R.string.verification_report_filename))
                             } catch (_: RuntimeException) { viewModel.cancelReportExport() }
                         }
                     }
@@ -1062,6 +1082,7 @@ class MainActivity : AppCompatActivity() {
         if (tsaUrl.text.toString() != state.tsaUrl) tsaUrl.setText(state.tsaUrl)
         updatingSigningControls = false
         useCosignButton.visibility = if (state.coSignSuggested) View.VISIBLE else View.GONE
+        cosignNotice.visibility = useCosignButton.visibility
         useCosignButton.isEnabled = state.canReplaceSelection
         renderVerification(state)
         exportReportButton.visibility = if (state.verification?.reportJson?.isNotEmpty() == true) View.VISIBLE else View.GONE
@@ -1212,6 +1233,13 @@ class MainActivity : AppCompatActivity() {
         verificationTechnical.text = if (expanded) VerificationCard.technical(this@MainActivity, verification!!) else ""
     }
 
+    /** «informe-verificacion-contrato.html»: el nombre propuesto dice de qué documento es. */
+    private fun reportFileName(pattern: Int): String {
+        val stem = viewModel.state.value.verifiedDocumentName.substringBeforeLast('.').trim()
+        val name = getString(pattern, stem).let { if (stem.isEmpty()) it.replace("-.", ".") else it }
+        return DocumentPolicy.sanitizeDisplayName(name, getString(pattern, "").replace("-.", "."))
+    }
+
     private fun renderDetail(detail: String?) = with(binding.resultDetail) {
         text = detail.orEmpty()
         visibility = if (detail.isNullOrBlank()) View.GONE else View.VISIBLE
@@ -1266,9 +1294,9 @@ class MainActivity : AppCompatActivity() {
             ?: getString(R.string.unknown_value)
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.about_title)
-            .setMessage(getString(R.string.about_content, BuildConfig.VERSION_NAME, engine, AppLinks.CONTACT_EMAIL) + "\n\n" +
-                getString(R.string.about_release_link, AppLinks.RELEASES))
-            .setPositiveButton(R.string.help_close, null)
+            // Las acciones van primero y «Cerrar» al final, también cuando Material apila los botones.
+            .setMessage(getString(R.string.about_content, BuildConfig.VERSION_NAME, engine, AppLinks.CONTACT_EMAIL))
+            .setNegativeButton(R.string.help_close, null)
             .setNeutralButton(R.string.about_release_notes) { _, _ ->
                 MaterialAlertDialogBuilder(this).setTitle(R.string.about_release_notes)
                     .setMessage(getString(R.string.release_notes_wave3) + "\n\n" + getString(R.string.release_notes_wave4) + "\n\n" + getString(R.string.release_notes_wave2b) +
@@ -1277,7 +1305,7 @@ class MainActivity : AppCompatActivity() {
             }
             .apply {
                 if (viewModel.state.value.updateCheckAvailable) {
-                    setNegativeButton(R.string.about_check_updates) { _, _ -> viewModel.checkUpdate(BuildConfig.VERSION_NAME) }
+                    setPositiveButton(R.string.about_check_updates) { _, _ -> viewModel.checkUpdate(BuildConfig.VERSION_NAME) }
                 }
             }
             .show()
@@ -1703,6 +1731,9 @@ class MainActivity : AppCompatActivity() {
         dialogBinding.diagnosticsReport.text = diagnosticsText(state)
         dialogBinding.diagnosticsProbeTsa.isEnabled = state.canProbeTsa
         dialogBinding.diagnosticsProbeTsa.visibility = if (PlatformServicesVisibility.tsa(state)) View.VISIBLE else View.GONE
+        // Si el botón está desactivado por falta de servicio, se dice qué hacer.
+        dialogBinding.diagnosticsProbeTsaHint.visibility =
+            if (PlatformServicesVisibility.tsa(state) && state.tsaUrl.isBlank()) View.VISIBLE else View.GONE
     }
 
     /** Copia el informe sin datos personales; Android 13+ muestra su propio aviso. */
@@ -1803,7 +1834,7 @@ class MainActivity : AppCompatActivity() {
                     .setTitle(title)
                     .setMessage(content)
                     .setPositiveButton(R.string.help_close, null)
-                    .setNeutralButton(R.string.menu_help) { _, _ -> showHelp() }
+                    .setNeutralButton(R.string.help_other_topics) { _, _ -> showHelp() }
                     .show()
             }
             .setPositiveButton(R.string.help_close, null)

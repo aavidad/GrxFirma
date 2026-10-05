@@ -25,7 +25,7 @@
             android:background="@color/primary"
             android:elevation="0dp"
             android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
-            app:title="@string/screen_title"
+            app:title="@string/app_name"
             app:titleTextColor="@color/on_primary" />
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -329,6 +329,17 @@
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
                     android:text="@string/seal_edit"
+                    android:visibility="gone" />
+
+                <!-- Aviso y acción por separado: primero el hecho, después qué se puede hacer. -->
+                <TextView
+                    android:id="@+id/cosignNotice"
+                    style="@style/TextAppearance.Material3.BodyMedium"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/cosign_notice"
+                    android:textColor="@color/on_surface"
                     android:visibility="gone" />
 
                 <com.google.android.material.button.MaterialButton

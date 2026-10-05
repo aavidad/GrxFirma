@@ -5,7 +5,6 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <resources>
     <string name="app_name">GrxFirma</string>
-    <string name="screen_title">Assinatura e verificação</string>
     <string name="backend_ready_title">Pronto para assinar</string>
     <string name="backend_unavailable_title">Esta instalação não pode assinar</string>
     <string name="backend_ready_detail">A aplicação funciona corretamente neste telemóvel.</string>
@@ -122,7 +121,7 @@
     <string name="revocation_embedded_only">apenas evidências incluídas; consulta online indisponível</string>
     <string name="revocation_online">consulta online disponível</string>
     <string name="revocation_not_available">indisponível</string>
-    <string name="result_certificate_imported">Certificado preparado: %1$s</string>
+    <string name="result_certificate_imported">Certificado aberto: %1$s</string>
     <string name="result_certificate_forgotten">Certificado fechado.</string>
     <string name="result_saved">Documento assinado guardado corretamente.</string>
     <string name="result_save_cancelled">Assinatura descartada. O certificado foi fechado.</string>
@@ -163,7 +162,7 @@
     <string name="profile_t">Com data certificada (T)</string>
     <string name="profile_lt">Para conservar a longo prazo (LT)</string>
     <string name="profile_lta">Arquivo a muito longo prazo (LTA)</string>
-    <string name="suggest_cosign">O documento tem assinaturas. Usar coassinatura</string>
+    <string name="suggest_cosign">Acrescentar a minha assinatura às existentes</string>
     <string name="tsa_enabled">Adicionar data e hora certificadas</string>
     <string name="tsa_url">Endereço do serviço de carimbo</string>
     <string name="tsa_helper">Alguns procedimentos exigem-no. Precisa de ligação à Internet e do endereço do serviço de carimbo indicado pela sua organização.</string>
@@ -171,7 +170,7 @@
     <string name="error_signature_combination">Este formato não admite essa opção. Escolha a assinatura básica ou mude o formato para Automático nas opções avançadas.</string>
     <string name="post_sign_verification_failed">Assinatura criada. Não foi possível verificar automaticamente; guarde-a e verifique-a depois.</string>
     <string name="export_verification_report">Guardar dados técnicos (JSON)</string>
-    <string name="verification_report_filename">informe-verificacion.json</string>
+    <string name="verification_report_filename">informe-verificacion-%1$s.json</string>
     <string name="error_report_export">O relatório não foi guardado. Pode tentar exportar novamente; o destino pode conter um ficheiro parcial.</string>
     <string name="result_report_saved">Relatório de verificação guardado.</string>
     <string name="verification_coverage">Cobertura: %1$s</string>
@@ -340,7 +339,7 @@
     <string name="eni_validate_scope">A verificação analisa a estrutura ENI 1.0 e os seus metadados; não verifica as assinaturas que contém.</string>
     <string name="eni_validate">Verificar um ENI…</string>
     <string name="eni_created">Documento ENI criado</string>
-    <string name="eni_created_detail">Tipo de assinatura ENI: %1$s. Ficheiro: %2$s</string>
+    <string name="eni_created_detail">Ficheiro: %1$s. Escolha onde o guardar.</string>
     <string name="eni_invalid">%1$s não cumpre a estrutura ENI 1.0.</string>
     <string name="eni_error_unsigned_pdf">O PDF não está assinado.</string>
     <string name="eni_error_unrecognized">O ficheiro não é uma assinatura PAdES, CAdES ou XAdES reconhecida.</string>
@@ -390,7 +389,7 @@
     <string name="pref_default_profile">Perfil de assinatura predefinido</string>
     <string name="pref_tsa_enabled">Adicionar data e hora certificadas por predefinição</string>
     <string name="pref_output_name">Nome proposto ao guardar</string>
-    <string name="output_name_suffix">Acrescentar «-assinado» (contrato-assinado.pdf)</string>
+    <string name="output_name_suffix">Acrescentar «-assinado» ao nome</string>
     <string name="output_name_desktop">Acrescentar «_assinado», como no computador (contrato_assinado.pdf)</string>
     <string name="output_name_original">Manter o nome do documento (contrato.pdf)</string>
     <string name="signed_document_name_desktop">%1$s_assinado.%2$s</string>
@@ -463,7 +462,6 @@
     <string name="diag_copied">Relatório copiado. Não contém dados pessoais.</string>
     <string name="diag_report_title">Relatório de diagnóstico do GrxFirma para Android</string>
     <string name="about_check_updates">Procurar atualizações</string>
-    <string name="about_release_link">Novidades de cada versão: %1$s</string>
     <string name="update_title">Atualizações</string>
     <string name="update_newer">Está disponível uma nova versão do GrxFirma: %1$s. Tem instalada a %2$s.</string>
     <string name="update_current">O GrxFirma está atualizado (%1$s).</string>
@@ -602,7 +600,7 @@
     <string name="error_document_empty">O ficheiro está vazio. Escolha outro.</string>
     <string name="error_folder_too_many">A pasta tem demasiados ficheiros. Escolha uma com menos.</string>
     <string name="export_verification_report_html">Guardar relatório imprimível (HTML)</string>
-    <string name="verification_report_html_filename">relatorio-verificacao.html</string>
+    <string name="verification_report_html_filename">relatorio-verificacao-%1$s.html</string>
     <string name="eni_error_signature_mismatch">A assinatura não corresponde ao documento original ou o documento foi alterado depois de assinado. Verifique se escolheu o original correto.</string>
     <string name="qr_take_photo">Tirar uma foto do QR</string>
     <string name="qr_choose_image">Escolher uma imagem do QR</string>
@@ -647,4 +645,7 @@
     <string name="seal_placed_press_sign">Selo colocado. Toque em «Assinar documento» para terminar.</string>
     <string name="error_protect_own_certificate">O seu certificado não serve para proteger ficheiros. Desmarque «Incluir o meu certificado como destinatário» ou adicione o certificado de outra pessoa.</string>
     <string name="error_unprotect_not_protected">Este documento não está protegido. Para desproteger, escolha um ficheiro .enveloped, .p7m ou .afp.</string>
+    <string name="cosign_notice">Este documento já tem assinaturas.</string>
+    <string name="help_other_topics">Outros temas</string>
+    <string name="diag_probe_tsa_hint">Para a testar, configure primeiro um serviço de carimbo temporal (TSA) em Preferências ou nas opções de assinatura.</string>
 </resources>

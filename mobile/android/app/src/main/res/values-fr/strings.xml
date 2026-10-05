@@ -5,7 +5,6 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <resources>
     <string name="app_name">GrxFirma</string>
-    <string name="screen_title">Signature et vérification</string>
     <string name="backend_ready_title">Prêt à signer</string>
     <string name="backend_unavailable_title">Cette installation ne peut pas signer</string>
     <string name="backend_ready_detail">L\'application fonctionne correctement sur ce téléphone.</string>
@@ -122,7 +121,7 @@
     <string name="revocation_embedded_only">preuves intégrées uniquement ; consultation en ligne indisponible</string>
     <string name="revocation_online">consultation en ligne disponible</string>
     <string name="revocation_not_available">indisponible</string>
-    <string name="result_certificate_imported">Certificat prêt : %1$s</string>
+    <string name="result_certificate_imported">Certificat ouvert : %1$s</string>
     <string name="result_certificate_forgotten">Certificat fermé.</string>
     <string name="result_saved">Document signé enregistré.</string>
     <string name="result_save_cancelled">Signature abandonnée. Le certificat a été fermé.</string>
@@ -163,7 +162,7 @@
     <string name="profile_t">Avec date certifiée (T)</string>
     <string name="profile_lt">Pour une conservation à long terme (LT)</string>
     <string name="profile_lta">Archivage à très long terme (LTA)</string>
-    <string name="suggest_cosign">Ce document contient des signatures. Utiliser la cosignature</string>
+    <string name="suggest_cosign">Ajouter ma signature aux signatures existantes</string>
     <string name="tsa_enabled">Ajouter une date et une heure certifiées</string>
     <string name="tsa_url">Adresse du service d\'horodatage</string>
     <string name="tsa_helper">Certaines démarches l\'exigent. Il faut une connexion Internet et l\'adresse du service d\'horodatage indiquée par votre organisation.</string>
@@ -171,7 +170,7 @@
     <string name="error_signature_combination">Ce format n\'accepte pas cette option. Choisissez la signature de base ou passez le format sur Automatique dans les options avancées.</string>
     <string name="post_sign_verification_failed">Signature créée. La vérification automatique a échoué ; enregistrez-la et vérifiez-la ensuite.</string>
     <string name="export_verification_report">Enregistrer les données techniques (JSON)</string>
-    <string name="verification_report_filename">informe-verificacion.json</string>
+    <string name="verification_report_filename">informe-verificacion-%1$s.json</string>
     <string name="error_report_export">Rapport non enregistré. Vous pouvez réessayer ; la destination peut contenir un fichier partiel.</string>
     <string name="result_report_saved">Rapport de vérification enregistré.</string>
     <string name="verification_coverage">Couverture : %1$s</string>
@@ -340,7 +339,7 @@
     <string name="eni_validate_scope">La vérification contrôle la structure ENI 1.0 et ses métadonnées ; elle ne vérifie pas les signatures qu’il contient.</string>
     <string name="eni_validate">Vérifier un ENI…</string>
     <string name="eni_created">Document ENI créé</string>
-    <string name="eni_created_detail">Type de signature ENI : %1$s. Fichier : %2$s</string>
+    <string name="eni_created_detail">Fichier : %1$s. Choisissez où l\'enregistrer.</string>
     <string name="eni_invalid">%1$s ne respecte pas la structure ENI 1.0.</string>
     <string name="eni_error_unsigned_pdf">Le PDF n\'est pas signé.</string>
     <string name="eni_error_unrecognized">Le fichier n\'est pas une signature PAdES, CAdES ou XAdES reconnue.</string>
@@ -390,7 +389,7 @@
     <string name="pref_default_profile">Profil de signature par défaut</string>
     <string name="pref_tsa_enabled">Ajouter une date et une heure certifiées par défaut</string>
     <string name="pref_output_name">Nom proposé à l\'enregistrement</string>
-    <string name="output_name_suffix">Ajouter « -signe » (contrat-signe.pdf)</string>
+    <string name="output_name_suffix">Ajouter « -signe » au nom</string>
     <string name="output_name_desktop">Ajouter « _signe », comme sur ordinateur (contrat_signe.pdf)</string>
     <string name="output_name_original">Conserver le nom du document (contrat.pdf)</string>
     <string name="signed_document_name_desktop">%1$s_signe.%2$s</string>
@@ -463,7 +462,6 @@
     <string name="diag_copied">Rapport copié. Il ne contient aucune donnée personnelle.</string>
     <string name="diag_report_title">Rapport de diagnostic de GrxFirma pour Android</string>
     <string name="about_check_updates">Rechercher des mises à jour</string>
-    <string name="about_release_link">Nouveautés de chaque version : %1$s</string>
     <string name="update_title">Mises à jour</string>
     <string name="update_newer">Une nouvelle version de GrxFirma est disponible : %1$s. La version %2$s est installée.</string>
     <string name="update_current">GrxFirma est à jour (%1$s).</string>
@@ -602,7 +600,7 @@
     <string name="error_document_empty">Le fichier est vide. Choisissez-en un autre.</string>
     <string name="error_folder_too_many">Le dossier contient trop de fichiers. Choisissez-en un qui en contient moins.</string>
     <string name="export_verification_report_html">Enregistrer le rapport imprimable (HTML)</string>
-    <string name="verification_report_html_filename">rapport-verification.html</string>
+    <string name="verification_report_html_filename">rapport-verification-%1$s.html</string>
     <string name="eni_error_signature_mismatch">La signature ne correspond pas au document original ou le document a été modifié après sa signature. Vérifiez que vous avez choisi le bon original.</string>
     <string name="qr_take_photo">Prendre une photo du QR</string>
     <string name="qr_choose_image">Choisir une image du QR</string>
@@ -647,4 +645,7 @@
     <string name="seal_placed_press_sign">Cachet placé. Appuyez sur « Signer le document » pour terminer.</string>
     <string name="error_protect_own_certificate">Votre certificat ne permet pas de protéger des fichiers. Décochez « Inclure mon certificat comme destinataire » ou ajoutez le certificat d\'une autre personne.</string>
     <string name="error_unprotect_not_protected">Ce document n\'est pas protégé. Pour le déprotéger, choisissez un fichier .enveloped, .p7m ou .afp.</string>
+    <string name="cosign_notice">Ce document contient déjà des signatures.</string>
+    <string name="help_other_topics">Autres sujets</string>
+    <string name="diag_probe_tsa_hint">Pour la tester, configurez d\'abord un service d\'horodatage (TSA) dans Préférences ou dans les options de signature.</string>
 </resources>

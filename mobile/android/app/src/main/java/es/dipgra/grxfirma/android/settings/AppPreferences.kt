@@ -111,12 +111,17 @@ object OutputNames {
      * [suffixPattern] y [desktopPattern] son los recursos traducidos
      * («%1$s-firmado.%2$s» y «%1$s_firmado.%2$s»).
      */
-    fun name(policy: String, base: String, extension: String, suffixPattern: String, desktopPattern: String): String =
-        when (policy) {
-            DESKTOP -> String.format(Locale.ROOT, desktopPattern, base, extension)
-            ORIGINAL -> "$base.$extension"
-            else -> String.format(Locale.ROOT, suffixPattern, base, extension)
+    fun name(policy: String, base: String, extension: String, suffixPattern: String, desktopPattern: String): String {
+        val pattern = when (policy) {
+            DESKTOP -> desktopPattern
+            ORIGINAL -> return "$base.$extension"
+            else -> suffixPattern
         }
+        // Un documento ya firmado no acaba en «-firmado-firmado» al cofirmarlo.
+        val marker = String.format(Locale.ROOT, pattern, "", extension).removeSuffix(".$extension")
+        if (marker.isNotEmpty() && base.endsWith(marker, ignoreCase = true)) return "$base.$extension"
+        return String.format(Locale.ROOT, pattern, base, extension)
+    }
 }
 
 /** Almacén en memoria para pruebas y para el modelo sin contexto. */

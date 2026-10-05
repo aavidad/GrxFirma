@@ -5,7 +5,6 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <resources>
     <string name="app_name">GrxFirma</string>
-    <string name="screen_title">签名与验证</string>
     <string name="backend_ready_title">可以签名</string>
     <string name="backend_unavailable_title">此安装无法签名</string>
     <string name="backend_ready_detail">应用在此手机上运行正常。</string>
@@ -122,7 +121,7 @@
     <string name="revocation_embedded_only">仅检查内嵌证据；在线查询不可用</string>
     <string name="revocation_online">在线查询可用</string>
     <string name="revocation_not_available">不可用</string>
-    <string name="result_certificate_imported">证书已就绪：%1$s</string>
+    <string name="result_certificate_imported">证书已打开：%1$s</string>
     <string name="result_certificate_forgotten">证书已关闭。</string>
     <string name="result_saved">已成功保存签名文档。</string>
     <string name="result_save_cancelled">已放弃签名。证书已关闭。</string>
@@ -161,7 +160,7 @@
     <string name="profile_t">含认证日期（T）</string>
     <string name="profile_lt">长期保存（LT）</string>
     <string name="profile_lta">超长期归档（LTA）</string>
-    <string name="suggest_cosign">文档已有签名。使用联合签名</string>
+    <string name="suggest_cosign">在现有签名之外添加我的签名</string>
     <string name="tsa_enabled">添加认证日期和时间</string>
     <string name="tsa_url">时间戳服务地址</string>
     <string name="tsa_helper">部分手续要求此项。需要联网，并填写您所在机构提供的时间戳服务地址。</string>
@@ -169,7 +168,7 @@
     <string name="error_signature_combination">此格式不支持该选项。请选择基础签名，或在高级选项中将格式改为“自动”。</string>
     <string name="post_sign_verification_failed">签名已创建。无法自动验证；请保存后再进行验证。</string>
     <string name="export_verification_report">保存技术数据（JSON）</string>
-    <string name="verification_report_filename">informe-verificacion.json</string>
+    <string name="verification_report_filename">informe-verificacion-%1$s.json</string>
     <string name="error_report_export">报告未保存。可以重试导出；目标位置可能包含部分文件。</string>
     <string name="result_report_saved">验证报告已保存。</string>
     <string name="verification_coverage">覆盖范围：%1$s</string>
@@ -328,7 +327,7 @@
     <string name="eni_validate_scope">此检查仅审查 ENI 1.0 结构及其元数据，不验证其中包含的签名。</string>
     <string name="eni_validate">检查 ENI…</string>
     <string name="eni_created">ENI 文档已创建</string>
-    <string name="eni_created_detail">ENI 签名类型：%1$s。文件：%2$s</string>
+    <string name="eni_created_detail">文件：%1$s。请选择保存位置。</string>
     <string name="eni_invalid">%1$s 不符合 ENI 1.0 结构。</string>
     <string name="eni_error_unsigned_pdf">该 PDF 未签名。</string>
     <string name="eni_error_unrecognized">该文件不是可识别的 PAdES、CAdES 或 XAdES 签名。</string>
@@ -370,7 +369,7 @@
     <string name="pref_default_profile">默认签名配置</string>
     <string name="pref_tsa_enabled">默认添加认证日期和时间</string>
     <string name="pref_output_name">保存时建议的名称</string>
-    <string name="output_name_suffix">添加“-已签名”（合同-已签名.pdf）</string>
+    <string name="output_name_suffix">在文件名后添加“-已签名”</string>
     <string name="output_name_desktop">添加“_已签名”，与桌面版相同（合同_已签名.pdf）</string>
     <string name="output_name_original">保留文档名称（合同.pdf）</string>
     <string name="signed_document_name_desktop">%1$s_已签名.%2$s</string>
@@ -443,7 +442,6 @@
     <string name="diag_copied">报告已复制，不含个人数据。</string>
     <string name="diag_report_title">GrxFirma Android 版诊断报告</string>
     <string name="about_check_updates">检查更新</string>
-    <string name="about_release_link">各版本更新内容：%1$s</string>
     <string name="update_title">更新</string>
     <string name="update_newer">有新的 GrxFirma 版本可用：%1$s。当前安装的是 %2$s。</string>
     <string name="update_current">GrxFirma 已是最新版本（%1$s）。</string>
@@ -570,7 +568,7 @@
     <string name="error_document_empty">文件为空。请选择其他文件。</string>
     <string name="error_folder_too_many">文件夹中的文件过多。请选择文件较少的文件夹。</string>
     <string name="export_verification_report_html">保存可打印报告（HTML）</string>
-    <string name="verification_report_html_filename">验证报告.html</string>
+    <string name="verification_report_html_filename">验证报告-%1$s.html</string>
     <string name="eni_error_signature_mismatch">签名与原始文档不符，或文档在签名后已被修改。请确认您选择了正确的原始文档。</string>
     <string name="qr_take_photo">拍摄二维码</string>
     <string name="qr_choose_image">选择二维码图片</string>
@@ -613,4 +611,7 @@
     <string name="seal_placed_press_sign">印章已放置。点击“签署文档”完成。</string>
     <string name="error_protect_own_certificate">您的证书不能用于保护文件。请取消勾选“将我的证书列为接收者”，或添加其他人的证书。</string>
     <string name="error_unprotect_not_protected">此文档未受保护。如需解除保护，请选择 .enveloped、.p7m 或 .afp 文件。</string>
+    <string name="cosign_notice">此文档已有签名。</string>
+    <string name="help_other_topics">其他主题</string>
+    <string name="diag_probe_tsa_hint">如需测试，请先在偏好设置或签名选项中配置时间戳服务（TSA）。</string>
 </resources>

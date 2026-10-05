@@ -5,7 +5,6 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <resources>
     <string name="app_name">GrxFirma</string>
-    <string name="screen_title">Sinadura eta egiaztapena</string>
     <string name="backend_ready_title">Sinatzeko prest</string>
     <string name="backend_unavailable_title">Instalazio honek ezin du sinatu</string>
     <string name="backend_ready_detail">Aplikazioak ondo funtzionatzen du mugikor honetan.</string>
@@ -122,7 +121,7 @@
     <string name="revocation_embedded_only">txertatutako ebidentziak soilik; lineako kontsulta ez dago erabilgarri</string>
     <string name="revocation_online">lineako kontsulta erabilgarri</string>
     <string name="revocation_not_available">ez dago erabilgarri</string>
-    <string name="result_certificate_imported">Ziurtagiria prest: %1$s</string>
+    <string name="result_certificate_imported">Ziurtagiria irekita: %1$s</string>
     <string name="result_certificate_forgotten">Ziurtagiria itxita.</string>
     <string name="result_saved">Sinatutako dokumentua behar bezala gordeta.</string>
     <string name="result_save_cancelled">Sinadura baztertu da. Ziurtagiria itxi da.</string>
@@ -162,7 +161,7 @@
     <string name="profile_t">Data ziurtatuarekin (T)</string>
     <string name="profile_lt">Epe luzean gordetzeko (LT)</string>
     <string name="profile_lta">Oso epe luzeko artxiboa (LTA)</string>
-    <string name="suggest_cosign">Dokumentuak sinadurak ditu. Erabili baterako sinadura</string>
+    <string name="suggest_cosign">Gehitu nire sinadura lehendik daudenei</string>
     <string name="tsa_enabled">Gehitu data eta ordu ziurtatuak</string>
     <string name="tsa_url">Zigilatze-zerbitzuaren helbidea</string>
     <string name="tsa_helper">Izapide batzuek eskatzen dute. Interneteko konexioa eta zure erakundeak adierazitako zigilatze-zerbitzuaren helbidea behar ditu.</string>
@@ -170,7 +169,7 @@
     <string name="error_signature_combination">Formatu honek ez du aukera hori onartzen. Aukeratu oinarrizko sinadura edo aldatu formatua Automatikora aukera aurreratuetan.</string>
     <string name="post_sign_verification_failed">Sinadura sortuta. Egiaztapen automatikoak huts egin du; gorde eta egiaztatu gero.</string>
     <string name="export_verification_report">Gorde datu teknikoak (JSON)</string>
-    <string name="verification_report_filename">informe-verificacion.json</string>
+    <string name="verification_report_filename">informe-verificacion-%1$s.json</string>
     <string name="error_report_export">Txostena ez da gorde. Esportazioa berriro saia dezakezu; helmugan fitxategi partzial bat egon daiteke.</string>
     <string name="result_report_saved">Egiaztapen-txostena gordeta.</string>
     <string name="verification_coverage">Estaldura: %1$s</string>
@@ -334,7 +333,7 @@
     <string name="eni_validate_scope">Egiaztapenak ENI 1.0 egitura eta metadatuak berrikusten ditu; ez ditu egiaztatzen barnean dituen sinadurak.</string>
     <string name="eni_validate">Egiaztatu ENI bat…</string>
     <string name="eni_created">ENI dokumentua sortu da</string>
-    <string name="eni_created_detail">ENI sinadura mota: %1$s. Fitxategia: %2$s</string>
+    <string name="eni_created_detail">Fitxategia: %1$s. Aukeratu non gorde.</string>
     <string name="eni_invalid">%1$s ez dator bat ENI 1.0 egiturarekin.</string>
     <string name="eni_error_unsigned_pdf">PDFa ez dago sinatuta.</string>
     <string name="eni_error_unrecognized">Fitxategia ez da PAdES, CAdES edo XAdES sinadura ezagun bat.</string>
@@ -380,7 +379,7 @@
     <string name="pref_default_profile">Sinadura-profil lehenetsia</string>
     <string name="pref_tsa_enabled">Gehitu data eta ordu ziurtatuak lehenespenez</string>
     <string name="pref_output_name">Gordetzean proposatutako izena</string>
-    <string name="output_name_suffix">Gehitu «-sinatuta» (kontratua-sinatuta.pdf)</string>
+    <string name="output_name_suffix">Gehitu «-sinatuta» izenari</string>
     <string name="output_name_desktop">Gehitu «_sinatuta», mahaigainekoan bezala (kontratua_sinatuta.pdf)</string>
     <string name="output_name_original">Mantendu dokumentuaren izena (kontratua.pdf)</string>
     <string name="signed_document_name_desktop">%1$s_sinatuta.%2$s</string>
@@ -453,7 +452,6 @@
     <string name="diag_copied">Txostena kopiatu da. Ez du datu pertsonalik.</string>
     <string name="diag_report_title">Android-erako GrxFirma diagnostiko-txostena</string>
     <string name="about_check_updates">Bilatu eguneratzeak</string>
-    <string name="about_release_link">Bertsio bakoitzaren berritasunak: %1$s</string>
     <string name="update_title">Eguneratzeak</string>
     <string name="update_newer">GrxFirma-ren bertsio berria dago: %1$s. %2$s bertsioa duzu instalatuta.</string>
     <string name="update_current">GrxFirma eguneratuta dago (%1$s).</string>
@@ -586,7 +584,7 @@
     <string name="error_document_empty">Fitxategia hutsik dago. Aukeratu beste bat.</string>
     <string name="error_folder_too_many">Karpetak fitxategi gehiegi ditu. Aukeratu gutxiago dituen bat.</string>
     <string name="export_verification_report_html">Gorde txosten inprimagarria (HTML)</string>
-    <string name="verification_report_html_filename">egiaztapen-txostena.html</string>
+    <string name="verification_report_html_filename">egiaztapen-txostena-%1$s.html</string>
     <string name="eni_error_signature_mismatch">Sinadura ez dator bat jatorrizko dokumentuarekin, edo dokumentua sinatu ondoren aldatu da. Egiaztatu jatorrizko dokumentu zuzena aukeratu duzula.</string>
     <string name="qr_take_photo">Atera QRaren argazki bat</string>
     <string name="qr_choose_image">Aukeratu QRaren irudi bat</string>
@@ -630,4 +628,7 @@
     <string name="seal_placed_press_sign">Zigilua jarrita. Sakatu «Sinatu dokumentua» amaitzeko.</string>
     <string name="error_protect_own_certificate">Zure ziurtagiriak ez du balio fitxategiak babesteko. Kendu marka «Sartu nire ziurtagiria hartzaile gisa» aukerari, edo gehitu beste pertsona baten ziurtagiria.</string>
     <string name="error_unprotect_not_protected">Dokumentu hau ez dago babestuta. Babesa kentzeko, aukeratu .enveloped, .p7m edo .afp fitxategi bat.</string>
+    <string name="cosign_notice">Dokumentu honek badu sinadurarik.</string>
+    <string name="help_other_topics">Beste gai batzuk</string>
+    <string name="diag_probe_tsa_hint">Probatzeko, konfiguratu lehenago denbora-zigilatzeko zerbitzu bat (TSA) Hobespenetan edo sinadura-aukeretan.</string>
 </resources>
