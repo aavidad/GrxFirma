@@ -6482,4 +6482,10 @@
   ,"report.evidence.certificate.subject": "Titolare del certificato"
   ,"report.evidence.certificate.issuer": "Emittente del certificato"
   ,"report.evidence.xml.canonicalization.compatibility": "Compatibilità della canonicalizzazione XML"
+  ,"Nuevo logotipo de GrxFirma, y la aplicación figura a nombre de su autor.": "Nuovo logo di GrxFirma e l'applicazione risulta a nome del suo autore."
+  ,"El sello visible queda donde se coloca también en páginas giradas, como los escaneos en horizontal, y con cualquier ángulo de giro.": "Il timbro visibile resta dove viene collocato anche nelle pagine ruotate, come le scansioni orizzontali, e con qualsiasi angolo di rotazione."
+  ,"Más seguridad: un PDF manipulado ya no puede bloquear la aplicación ni agotar la memoria, y solo la extensión de GrxFirma puede conectar con el programa.": "Più sicurezza: un PDF manipolato non può più bloccare l'applicazione né esaurire la memoria, e solo l'estensione di GrxFirma può collegarsi al programma."
+  ,"Verificación: los datos del certificado y los errores de la cadena se muestran legibles y traducidos en todas las plataformas.": "Verifica: i dati del certificato e gli errori della catena sono mostrati in forma leggibile e tradotta su tutte le piattaforme."
+  ,"Linux: se ve el nombre propuesto al guardar, las firmas seguidas se numeran _001, _002… y los interruptores tienen nombre para los lectores de pantalla.": "Linux: al salvataggio compare il nome proposto, le firme consecutive sono numerate _001, _002… e gli interruttori hanno un nome per i lettori di schermo."
+  ,"La extensión de navegador y la app de Android usan identificadores nuevos; al actualizar se retiran los registros antiguos.": "L'estensione del browser e l'app Android usano nuovi identificatori; con l'aggiornamento vengono rimosse le vecchie registrazioni."
 }

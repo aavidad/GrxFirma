@@ -6482,4 +6482,10 @@
   ,"report.evidence.certificate.subject": "证书持有人"
   ,"report.evidence.certificate.issuer": "证书签发者"
   ,"report.evidence.xml.canonicalization.compatibility": "XML 规范化兼容性"
+  ,"Nuevo logotipo de GrxFirma, y la aplicación figura a nombre de su autor.": "GrxFirma 启用新标志，应用程序以作者本人的名义发布。"
+  ,"El sello visible queda donde se coloca también en páginas giradas, como los escaneos en horizontal, y con cualquier ángulo de giro.": "在旋转过的页面（例如横向扫描件）上，可见印章同样会停留在放置的位置，并支持任意旋转角度。"
+  ,"Más seguridad: un PDF manipulado ya no puede bloquear la aplicación ni agotar la memoria, y solo la extensión de GrxFirma puede conectar con el programa.": "更安全：被篡改的 PDF 不再能使应用程序卡死或耗尽内存，并且只有 GrxFirma 扩展可以连接到程序。"
+  ,"Verificación: los datos del certificado y los errores de la cadena se muestran legibles y traducidos en todas las plataformas.": "验证：所有平台都会以可读且已翻译的形式显示证书信息和证书链错误。"
+  ,"Linux: se ve el nombre propuesto al guardar, las firmas seguidas se numeran _001, _002… y los interruptores tienen nombre para los lectores de pantalla.": "Linux：保存时会显示建议的文件名，连续签名按 _001、_002… 编号，开关控件为屏幕阅读器提供了名称。"
+  ,"La extensión de navegador y la app de Android usan identificadores nuevos; al actualizar se retiran los registros antiguos.": "浏览器扩展和 Android 应用使用新的标识符；更新时会移除旧的注册信息。"
 }

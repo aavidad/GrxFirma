@@ -6482,4 +6482,10 @@
   ,"report.evidence.certificate.subject": "Ziurtagiriaren titularra"
   ,"report.evidence.certificate.issuer": "Ziurtagiriaren igorlea"
   ,"report.evidence.xml.canonicalization.compatibility": "XML kanonizazioaren bateragarritasuna"
+  ,"Nuevo logotipo de GrxFirma, y la aplicación figura a nombre de su autor.": "GrxFirmaren logotipo berria, eta aplikazioa bere egilearen izenean agertzen da."
+  ,"El sello visible queda donde se coloca también en páginas giradas, como los escaneos en horizontal, y con cualquier ángulo de giro.": "Zigilu ikusgaia jartzen den tokian geratzen da orri biratuetan ere, hala nola horizontalean eskaneatutakoetan, eta edozein biraketa-angelurekin."
+  ,"Más seguridad: un PDF manipulado ya no puede bloquear la aplicación ni agotar la memoria, y solo la extensión de GrxFirma puede conectar con el programa.": "Segurtasun handiagoa: PDF manipulatu batek ezin du aplikazioa blokeatu ezta memoria agortu ere, eta GrxFirmaren luzapenak bakarrik konekta daiteke programarekin."
+  ,"Verificación: los datos del certificado y los errores de la cadena se muestran legibles y traducidos en todas las plataformas.": "Egiaztapena: ziurtagiriaren datuak eta katearen erroreak irakurgarri eta itzulita erakusten dira plataforma guztietan."
+  ,"Linux: se ve el nombre propuesto al guardar, las firmas seguidas se numeran _001, _002… y los interruptores tienen nombre para los lectores de pantalla.": "Linux: gordetzean proposatutako izena ikusten da, jarraian egindako sinadurak _001, _002… zenbakitzen dira eta etengailuek izena dute pantaila-irakurgailuentzat."
+  ,"La extensión de navegador y la app de Android usan identificadores nuevos; al actualizar se retiran los registros antiguos.": "Nabigatzailearen luzapenak eta Androideko aplikazioak identifikatzaile berriak erabiltzen dituzte; eguneratzean erregistro zaharrak kentzen dira."
 }

@@ -7,6 +7,15 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.119 — 2026-10-05
+
+- Nuevo logotipo de GrxFirma, y la aplicación figura a nombre de su autor.
+- El sello visible queda donde se coloca también en páginas giradas, como los escaneos en horizontal, y con cualquier ángulo de giro.
+- Más seguridad: un PDF manipulado ya no puede bloquear la aplicación ni agotar la memoria, y solo la extensión de GrxFirma puede conectar con el programa.
+- Verificación: los datos del certificado y los errores de la cadena se muestran legibles y traducidos en todas las plataformas.
+- Linux: se ve el nombre propuesto al guardar, las firmas seguidas se numeran _001, _002… y los interruptores tienen nombre para los lectores de pantalla.
+- La extensión de navegador y la app de Android usan identificadores nuevos; al actualizar se retiran los registros antiguos.
+
 ## 0.0.118 — 2026-10-05
 
 - Windows: vuelve a funcionar el sello elegido por la persona en los portales (Canarias y otros): el botón «Firmar con el sello aquí» se activa y, si la vista falla, se puede firmar sin sello o cancelar. La ventana se cierra sola si el portal deja de esperar.
