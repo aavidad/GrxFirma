@@ -281,6 +281,10 @@
         <item quantity="one">%1$d signature saved in the folder</item>
         <item quantity="other">%1$d signatures saved in the folder</item>
     </plurals>
+    <plurals name="batch_saved_count_named">
+        <item quantity="one">%1$d signature saved in the folder “%2$s”</item>
+        <item quantity="other">%1$d signatures saved in the folder “%2$s”</item>
+    </plurals>
     <plurals name="protect_recipients_count">
         <item quantity="one">%1$d recipient added</item>
         <item quantity="other">%1$d recipients added</item>

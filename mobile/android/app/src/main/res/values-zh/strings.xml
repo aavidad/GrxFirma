@@ -276,6 +276,9 @@
     <plurals name="batch_saved_count">
         <item quantity="other">%1$d 个签名已保存到文件夹</item>
     </plurals>
+    <plurals name="batch_saved_count_named">
+        <item quantity="other">已将 %1$d 个签名保存到文件夹“%2$s”</item>
+    </plurals>
     <plurals name="protect_recipients_count">
         <item quantity="other">已添加 %1$d 个接收者</item>
     </plurals>

@@ -1024,7 +1024,7 @@ class MainViewModel(
         if (failed == 0) {
             clearPending()
             mutableState.value = mutableState.value.copy(awaitingSave = false, result = OperationResult.Success(
-                UiText.Plural(R.plurals.batch_saved_count, saved), UiText.Lines(lines)))
+                batchSavedText(saved, repository.treeDisplayName(folder)), UiText.Lines(lines)))
         } else {
             // Las firmas no guardadas siguen en memoria para elegir otra carpeta.
             mutableState.value = mutableState.value.copy(result = OperationResult.Error(UiText.Lines(
@@ -1509,4 +1509,11 @@ class MainViewModel(
             return MainViewModel(repository, core, Dispatchers.IO, settings) as T
         }
     }
+}
+
+/** Resumen del lote guardado: nombra la carpeta si se conoce, sin caracteres ocultos. */
+internal fun batchSavedText(saved: Int, folderName: String?): UiText {
+    val name = folderName?.let { es.dipgra.grxfirma.android.core.DisplayText.clean(it).trim() }.orEmpty()
+    return if (name.isEmpty()) UiText.Plural(R.plurals.batch_saved_count, saved)
+    else UiText.Plural(R.plurals.batch_saved_count_named, saved, listOf(name))
 }

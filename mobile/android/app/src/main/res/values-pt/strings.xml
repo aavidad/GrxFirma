@@ -286,6 +286,11 @@
         <item quantity="many">%1$d assinaturas guardadas na pasta</item>
         <item quantity="other">%1$d assinaturas guardadas na pasta</item>
     </plurals>
+    <plurals name="batch_saved_count_named">
+        <item quantity="one">%1$d assinatura guardada na pasta «%2$s»</item>
+        <item quantity="many">%1$d assinaturas guardadas na pasta «%2$s»</item>
+        <item quantity="other">%1$d assinaturas guardadas na pasta «%2$s»</item>
+    </plurals>
     <plurals name="protect_recipients_count">
         <item quantity="one">%1$d destinatário adicionado</item>
         <item quantity="many">%1$d destinatários adicionados</item>

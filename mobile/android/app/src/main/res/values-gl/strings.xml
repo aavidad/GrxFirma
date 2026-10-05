@@ -281,6 +281,10 @@
         <item quantity="one">%1$d sinatura gardada no cartafol</item>
         <item quantity="other">%1$d sinaturas gardadas no cartafol</item>
     </plurals>
+    <plurals name="batch_saved_count_named">
+        <item quantity="one">%1$d sinatura gardada no cartafol «%2$s»</item>
+        <item quantity="other">%1$d sinaturas gardadas no cartafol «%2$s»</item>
+    </plurals>
     <plurals name="protect_recipients_count">
         <item quantity="one">%1$d destinatario engadido</item>
         <item quantity="other">%1$d destinatarios engadidos</item>

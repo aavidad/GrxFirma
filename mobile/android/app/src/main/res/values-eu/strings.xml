@@ -281,6 +281,10 @@
         <item quantity="one">Sinadura %1$d karpetan gordeta</item>
         <item quantity="other">%1$d sinadura karpetan gordeta</item>
     </plurals>
+    <plurals name="batch_saved_count_named">
+        <item quantity="one">%1$d sinadura «%2$s» karpetan gorde da</item>
+        <item quantity="other">%1$d sinadura «%2$s» karpetan gorde dira</item>
+    </plurals>
     <plurals name="protect_recipients_count">
         <item quantity="one">Hartzaile %1$d gehituta</item>
         <item quantity="other">%1$d hartzaile gehituta</item>

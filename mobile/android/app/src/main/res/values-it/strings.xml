@@ -286,6 +286,11 @@
         <item quantity="many">%1$d firme salvate nella cartella</item>
         <item quantity="other">%1$d firme salvate nella cartella</item>
     </plurals>
+    <plurals name="batch_saved_count_named">
+        <item quantity="one">%1$d firma salvata nella cartella «%2$s»</item>
+        <item quantity="many">%1$d firme salvate nella cartella «%2$s»</item>
+        <item quantity="other">%1$d firme salvate nella cartella «%2$s»</item>
+    </plurals>
     <plurals name="protect_recipients_count">
         <item quantity="one">%1$d destinatario aggiunto</item>
         <item quantity="many">%1$d destinatari aggiunti</item>

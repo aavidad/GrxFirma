@@ -286,6 +286,11 @@
         <item quantity="many">%1$d signatures enregistrées dans le dossier</item>
         <item quantity="other">%1$d signatures enregistrées dans le dossier</item>
     </plurals>
+    <plurals name="batch_saved_count_named">
+        <item quantity="one">%1$d signature enregistrée dans le dossier « %2$s »</item>
+        <item quantity="many">%1$d signatures enregistrées dans le dossier « %2$s »</item>
+        <item quantity="other">%1$d signatures enregistrées dans le dossier « %2$s »</item>
+    </plurals>
     <plurals name="protect_recipients_count">
         <item quantity="one">%1$d destinataire ajouté</item>
         <item quantity="many">%1$d destinataires ajoutés</item>

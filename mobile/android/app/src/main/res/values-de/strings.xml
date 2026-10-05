@@ -281,6 +281,10 @@
         <item quantity="one">%1$d Signatur im Ordner gespeichert</item>
         <item quantity="other">%1$d Signaturen im Ordner gespeichert</item>
     </plurals>
+    <plurals name="batch_saved_count_named">
+        <item quantity="one">%1$d Signatur im Ordner „%2$s“ gespeichert</item>
+        <item quantity="other">%1$d Signaturen im Ordner „%2$s“ gespeichert</item>
+    </plurals>
     <plurals name="protect_recipients_count">
         <item quantity="one">%1$d Empfänger hinzugefügt</item>
         <item quantity="other">%1$d Empfänger hinzugefügt</item>

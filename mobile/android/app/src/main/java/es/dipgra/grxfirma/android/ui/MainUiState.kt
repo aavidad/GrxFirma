@@ -30,7 +30,7 @@ import es.dipgra.grxfirma.android.settings.AppSettings
 
 sealed interface UiText {
     data class Resource(@param:StringRes val id: Int, val arguments: List<Any> = emptyList()) : UiText
-    data class Plural(@param:PluralsRes val id: Int, val count: Int) : UiText
+    data class Plural(@param:PluralsRes val id: Int, val count: Int, val arguments: List<Any> = emptyList()) : UiText
     data class Lines(val lines: List<UiText>) : UiText
     /** Clave cerrada del catálogo del motor (verifactu.*, eni.*, csv.error.*). */
     data class Engine(val key: String) : UiText
@@ -63,7 +63,7 @@ sealed interface UiText {
 
 fun UiText.resolve(context: Context): String = when (this) {
     is UiText.Resource -> context.getString(id, *arguments.map { if (it is UiText) it.resolve(context) else it }.toTypedArray())
-    is UiText.Plural -> context.resources.getQuantityString(id, count, count)
+    is UiText.Plural -> context.resources.getQuantityString(id, count, count, *arguments.toTypedArray())
     is UiText.Lines -> lines.joinToString("\n") { it.resolve(context) }
     is UiText.DateTime -> try {
         val instant = java.time.OffsetDateTime.parse(iso).toInstant()
