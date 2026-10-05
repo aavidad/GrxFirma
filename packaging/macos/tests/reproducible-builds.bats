@@ -93,8 +93,8 @@ PY
 
   run grep -F 'GRXFIRMA_BUILD_CHROMIUM_CRX:-0' "${BATS_TEST_DIRNAME}/../build-suite.sh"
   [ "$status" -eq 0 ]
-  run grep -F 'dipgra-extension-*' "${BATS_TEST_DIRNAME}/../build-suite.sh"
+  run grep -F 'grxfirma-extension-*' "${BATS_TEST_DIRNAME}/../build-suite.sh"
   [ "$status" -ne 0 ]
-  run grep -F 'dipgra-extension-firefox.metadata.json' "${BATS_TEST_DIRNAME}/../build-suite.sh"
+  run grep -F 'grxfirma-extension-firefox.metadata.json' "${BATS_TEST_DIRNAME}/../build-suite.sh"
   [ "$status" -eq 0 ]
 }

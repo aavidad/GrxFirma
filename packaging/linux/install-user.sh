@@ -113,7 +113,7 @@ fi
 
 echo "==> Generando extensiones de navegador"
 bash "${ROOT_DIR}/packaging/browser-extensions/build.sh"
-cp "${ROOT_DIR}"/packaging/browser-extensions/dipgra-extension-* "${STAGE_DIR}/extensions/"
+cp "${ROOT_DIR}"/packaging/browser-extensions/grxfirma-extension-* "${STAGE_DIR}/extensions/"
 
 echo "==> Instalando en el usuario"
 (cd "${STAGE_DIR}" && ./install-suite.sh)

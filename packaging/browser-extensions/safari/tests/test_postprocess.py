@@ -75,7 +75,7 @@ def target_sections(app_name: str, extension_name: str) -> tuple[str, str]:
 
 
 class PostprocessTests(unittest.TestCase):
-    bundle_id = "es.dipgra.grxfirma.safari"
+    bundle_id = "io.github.aavidad.grxfirma.safari"
     extension_id = bundle_id + ".Extension"
 
     def make_project(

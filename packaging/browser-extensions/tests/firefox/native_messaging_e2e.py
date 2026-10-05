@@ -31,9 +31,9 @@ from urllib.request import Request, urlopen
 import zipfile
 
 
-EXTENSION_ID = "extension@dipgra.es"
+EXTENSION_ID = "grxfirma@aavidad.github.io"
 EXTENSION_UUID = "8bb4947c-109d-4c05-bf91-3f1bca4de10b"
-HOST_NAME = "com.dipgra.grxfirma"
+HOST_NAME = "io.github.aavidad.grxfirma"
 W3C_ELEMENT_KEY = "element-6066-11e4-a52e-4f735466cecf"
 
 REPO_ROOT = Path(__file__).resolve().parents[4]

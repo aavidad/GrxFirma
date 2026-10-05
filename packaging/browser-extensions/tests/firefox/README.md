@@ -13,9 +13,9 @@ Recorrido verificado:
 1. compila `cmd/nativehost` con Go y la etiqueta cerrada `production`, o
    valida y usa el host precompilado indicado para probar un paquete instalado;
 2. genera un XPI temporal con el mismo empaquetador de produccion;
-3. registra `com.dipgra.grxfirma` en
+3. registra `io.github.aavidad.grxfirma` en
    `.mozilla/native-messaging-hosts` del home real de la cuenta del sistema;
-4. instala temporalmente `extension@dipgra.es` en un perfil nuevo;
+4. instala temporalmente `grxfirma@aavidad.github.io` en un perfil nuevo;
 5. abre el `popup.html` real desde el contexto privilegiado de automatizacion y
    vuelve al contexto de contenido para inspeccionar el DOM;
 6. exige respuesta de `ping` y de `getCertificates`;
@@ -84,13 +84,13 @@ del portal. Si el operador ha autorizado expresamente la integracion y el
 dialogo no aparece, la autorizacion equivalente es:
 
 ```bash
-flatpak permission-set webextensions com.dipgra.grxfirma snap.firefox yes
+flatpak permission-set webextensions io.github.aavidad.grxfirma snap.firefox yes
 ```
 
 Puede auditarse con `flatpak permissions webextensions` y revocarse con:
 
 ```bash
-flatpak permission-remove webextensions com.dipgra.grxfirma snap.firefox
+flatpak permission-remove webextensions io.github.aavidad.grxfirma snap.firefox
 ```
 
 ## Limites

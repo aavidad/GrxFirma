@@ -11,17 +11,17 @@ setup() {
   mkdir -p "${INSTALLER}/extensions" "${PROFILE}"
   cp "${BATS_TEST_DIRNAME}/../install-nativehost.sh" "${INSTALLER}/install-nativehost.sh"
   printf 'native-host' > "${INSTALLER}/grxfirma-nativehost"
-  printf 'test-xpi' > "${INSTALLER}/extensions/dipgra-extension-firefox.xpi"
-  printf 'chromium-zip' > "${INSTALLER}/extensions/dipgra-extension-chromium.zip"
+  printf 'test-xpi' > "${INSTALLER}/extensions/grxfirma-extension-firefox.xpi"
+  printf 'chromium-zip' > "${INSTALLER}/extensions/grxfirma-extension-chromium.zip"
   : > "${PROFILE}/prefs.js"
 }
 
 write_firefox_metadata() {
   local signed="$1"
   local hash
-  hash="$(shasum -a 256 "${INSTALLER}/extensions/dipgra-extension-firefox.xpi" | awk '{print $1}')"
-  printf '{"extension_id":"extension@dipgra.es","signed":%s,"xpi_sha256":"%s"}\n' "${signed}" "${hash}" \
-    > "${INSTALLER}/extensions/dipgra-extension-firefox.metadata.json"
+  hash="$(shasum -a 256 "${INSTALLER}/extensions/grxfirma-extension-firefox.xpi" | awk '{print $1}')"
+  printf '{"extension_id":"grxfirma@aavidad.github.io","signed":%s,"xpi_sha256":"%s"}\n' "${signed}" "${hash}" \
+    > "${INSTALLER}/extensions/grxfirma-extension-firefox.metadata.json"
 }
 
 run_installer() {
@@ -34,7 +34,7 @@ run_installer() {
   run run_installer
 
   [ "$status" -eq 0 ]
-  [ ! -e "${PROFILE}/extensions/extension@dipgra.es.xpi" ]
+  [ ! -e "${PROFILE}/extensions/grxfirma@aavidad.github.io.xpi" ]
 }
 
 @test "installs a signed Firefox extension with matching hash" {
@@ -43,29 +43,29 @@ run_installer() {
   run run_installer
 
   [ "$status" -eq 0 ]
-  [ -f "${PROFILE}/extensions/extension@dipgra.es.xpi" ]
+  [ -f "${PROFILE}/extensions/grxfirma@aavidad.github.io.xpi" ]
 }
 
 @test "rejects a Firefox extension modified after metadata generation" {
   write_firefox_metadata true
-  printf 'tampered' >> "${INSTALLER}/extensions/dipgra-extension-firefox.xpi"
+  printf 'tampered' >> "${INSTALLER}/extensions/grxfirma-extension-firefox.xpi"
 
   run run_installer
 
   [ "$status" -eq 0 ]
-  [ ! -e "${PROFILE}/extensions/extension@dipgra.es.xpi" ]
+  [ ! -e "${PROFILE}/extensions/grxfirma@aavidad.github.io.xpi" ]
 }
 
 @test "rejects ambiguous Firefox metadata with duplicate keys" {
   local hash
-  hash="$(shasum -a 256 "${INSTALLER}/extensions/dipgra-extension-firefox.xpi" | awk '{print $1}')"
-  printf '{"extension_id":"extension@dipgra.es","signed":false,"signed":true,"xpi_sha256":"%s"}\n' "${hash}" \
-    > "${INSTALLER}/extensions/dipgra-extension-firefox.metadata.json"
+  hash="$(shasum -a 256 "${INSTALLER}/extensions/grxfirma-extension-firefox.xpi" | awk '{print $1}')"
+  printf '{"extension_id":"grxfirma@aavidad.github.io","signed":false,"signed":true,"xpi_sha256":"%s"}\n' "${hash}" \
+    > "${INSTALLER}/extensions/grxfirma-extension-firefox.metadata.json"
 
   run run_installer
 
   [ "$status" -eq 0 ]
-  [ ! -e "${PROFILE}/extensions/extension@dipgra.es.xpi" ]
+  [ ! -e "${PROFILE}/extensions/grxfirma@aavidad.github.io.xpi" ]
 }
 
 @test "writes valid manifests when the home path needs JSON escaping" {
@@ -153,4 +153,48 @@ PY
 
   [ "$status" -eq 0 ]
   [ ! -e "${TEST_HOME}/Library/Application Support/Google/Chrome/External Extensions/${chrome_id}.json" ]
+}
+
+@test "retira los hosts y la extension de versiones anteriores propios" {
+  local support="${TEST_HOME}/Library/Application Support"
+  local host_bin="${support}/GrxFirma/NativeHost/grxfirma-nativehost"
+  local chrome_dir="${support}/Google/Chrome/NativeMessagingHosts"
+  local edge_dir="${support}/Microsoft Edge/NativeMessagingHosts"
+  local firefox_dir="${support}/Mozilla/NativeMessagingHosts"
+  local ext_dir="${support}/GrxFirma/Extensions"
+  mkdir -p "${chrome_dir}" "${edge_dir}" "${firefox_dir}" "${ext_dir}/firefox" "${ext_dir}/chromium" "${PROFILE}/extensions"
+  printf '{\n  "name": "com.dipgra.grxfirma",\n  "path": "%s",\n  "type": "stdio"\n}\n' "${host_bin}" \
+    > "${chrome_dir}/com.dipgra.grxfirma.json"
+  printf '{\n  "name": "com.dipgra.portafirmas",\n  "path": "%s",\n  "type": "stdio"\n}\n' "${host_bin}" \
+    > "${firefox_dir}/com.dipgra.portafirmas.json"
+  printf '{\n  "name": "com.dipgra.portafirmas",\n  "path": "/opt/otro/host",\n  "type": "stdio"\n}\n' \
+    > "${edge_dir}/com.dipgra.portafirmas.json"
+  printf 'xpi-anterior' > "${ext_dir}/firefox/dipgra-extension-firefox.xpi"
+  printf 'zip-anterior' > "${ext_dir}/chromium/dipgra-extension-chromium.zip"
+  cp "${ext_dir}/firefox/dipgra-extension-firefox.xpi" "${PROFILE}/extensions/extension@dipgra.es.xpi"
+  write_firefox_metadata false
+
+  run run_installer
+
+  [ "$status" -eq 0 ]
+  [ ! -e "${chrome_dir}/com.dipgra.grxfirma.json" ]
+  [ ! -e "${firefox_dir}/com.dipgra.portafirmas.json" ]
+  [ -f "${edge_dir}/com.dipgra.portafirmas.json" ]
+  [ ! -e "${PROFILE}/extensions/extension@dipgra.es.xpi" ]
+  [ ! -e "${ext_dir}/firefox/dipgra-extension-firefox.xpi" ]
+  [ ! -e "${ext_dir}/chromium/dipgra-extension-chromium.zip" ]
+  [ -f "${chrome_dir}/io.github.aavidad.grxfirma.json" ]
+}
+
+@test "conserva una extension anterior que no coincide con la instalada por GrxFirma" {
+  local ext_dir="${TEST_HOME}/Library/Application Support/GrxFirma/Extensions"
+  mkdir -p "${ext_dir}/firefox" "${PROFILE}/extensions"
+  printf 'xpi-anterior' > "${ext_dir}/firefox/dipgra-extension-firefox.xpi"
+  printf 'xpi-del-usuario' > "${PROFILE}/extensions/extension@dipgra.es.xpi"
+  write_firefox_metadata false
+
+  run run_installer
+
+  [ "$status" -eq 0 ]
+  [ -f "${PROFILE}/extensions/extension@dipgra.es.xpi" ]
 }

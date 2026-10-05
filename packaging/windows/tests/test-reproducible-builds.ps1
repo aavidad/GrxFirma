@@ -121,13 +121,13 @@ try {
             throw "Falta hacer explicito el CRX no reproducible en $($script.Name)"
         }
         if ($script.Name -in @("build-nativehost.ps1", "build-suite.ps1")) {
-            if ($content.Contains("dipgra-extension-*")) {
+            if ($content.Contains("grxfirma-extension-*")) {
                 throw "$($script.Name) empaqueta artefactos de navegador no aprobados por comodin"
             }
             foreach ($approvedExtensionAsset in @(
-                "dipgra-extension-chromium.zip",
-                "dipgra-extension-firefox.xpi",
-                "dipgra-extension-firefox.metadata.json"
+                "grxfirma-extension-chromium.zip",
+                "grxfirma-extension-firefox.xpi",
+                "grxfirma-extension-firefox.metadata.json"
             )) {
                 if (-not $content.Contains($approvedExtensionAsset)) {
                     throw "$($script.Name) no empaqueta $approvedExtensionAsset"

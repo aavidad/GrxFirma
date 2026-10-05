@@ -455,7 +455,7 @@ def command_validate(args: argparse.Namespace) -> None:
     }
     if (
         android_evidence.get("schema_version") != 1
-        or android_evidence.get("package") != "es.dipgra.grxfirma"
+        or android_evidence.get("package") != "io.github.aavidad.grxfirma"
         or not VERSION_RE.fullmatch(android_evidence.get("version_name", ""))
         or android_evidence.get("version_name")
         != str(release_metadata.get("tag", "")).removeprefix("v")

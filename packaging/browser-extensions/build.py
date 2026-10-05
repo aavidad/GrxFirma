@@ -24,10 +24,10 @@ import zipfile
 ROOT = Path(__file__).resolve().parent
 SRC_DIR = ROOT / "src"
 
-CHROMIUM_ZIP = ROOT / "dipgra-extension-chromium.zip"
-FIREFOX_XPI = ROOT / "dipgra-extension-firefox.xpi"
-FIREFOX_UNSIGNED_XPI = ROOT / "dipgra-extension-firefox-unsigned.xpi"
-FIREFOX_METADATA = ROOT / "dipgra-extension-firefox.metadata.json"
+CHROMIUM_ZIP = ROOT / "grxfirma-extension-chromium.zip"
+FIREFOX_XPI = ROOT / "grxfirma-extension-firefox.xpi"
+FIREFOX_UNSIGNED_XPI = ROOT / "grxfirma-extension-firefox-unsigned.xpi"
+FIREFOX_METADATA = ROOT / "grxfirma-extension-firefox.metadata.json"
 
 EXCLUDED_NAMES = {
     ".DS_Store",

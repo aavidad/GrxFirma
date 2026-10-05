@@ -47,8 +47,8 @@ ${prefix}Library/Application Support/GrxFirma/grxfirma-nativehost
 ${prefix}Library/Application Support/GrxFirma/install-nativehost.sh
 ${prefix}Library/Application Support/GrxFirma/uninstall-suite.sh
 ${prefix}Library/Application Support/GrxFirma/register-user.sh
-${prefix}Library/Application Support/GrxFirma/extensions/dipgra-extension-firefox.metadata.json
-${prefix}Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist
+${prefix}Library/Application Support/GrxFirma/extensions/grxfirma-extension-firefox.metadata.json
+${prefix}Library/LaunchAgents/io.github.aavidad.grxfirma.register-user.plist
 ${prefix}usr/local/bin/grxfirma
 EOF
 }

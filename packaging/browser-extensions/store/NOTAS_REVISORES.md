@@ -16,7 +16,7 @@ En Windows, el instalador de GrxFirma registra la ficha de tienda para Chrome y 
 ### Funciones y permisos
 
 - `storage`: conserva los sitios añadidos por el usuario y, durante unos minutos, un PDF precargado y su token de un solo uso en `storage.session`. `storage.managed` permite leer sitios fijados por la organización.
-- `nativeMessaging`: conecta con el host `com.dipgra.grxfirma` instalado por la aplicación. La extensión no firma sin GrxFirma.
+- `nativeMessaging`: conecta con el host `io.github.aavidad.grxfirma` instalado por la aplicación. La extensión no firma sin GrxFirma.
 - `scripting`: registra de forma dinámica el detector de PDF en sitios nuevos después de obtener permiso; el puente de identidad no se registra allí.
 - `host_permissions`: `https://*.dipgra.es/*` y `https://*.savia.net/*` son los portales de fábrica para el botón de PDF y la prueba de identidad. `https://127.0.0.1/*` da acceso al firmador local de GrxFirma.
 - `optional_host_permissions`: permite pedir acceso a un sitio HTTPS al añadirlo en «Sitios de confianza». La solicitud se hace con el gesto del usuario. Al quitar el sitio, la extensión retira el permiso y el detector. Los sitios añadidos por el usuario solo reciben el botón de PDF.
@@ -40,7 +40,7 @@ On Windows, the GrxFirma installer registers the store listing for Chrome and Ed
 ### Features and permissions
 
 - `storage`: keeps user-added sites and, for a few minutes, a preloaded PDF and one-use token in `storage.session`. `storage.managed` supplies sites fixed by an organization.
-- `nativeMessaging`: connects to the `com.dipgra.grxfirma` host installed by the desktop application. The extension cannot sign without GrxFirma.
+- `nativeMessaging`: connects to the `io.github.aavidad.grxfirma` host installed by the desktop application. The extension cannot sign without GrxFirma.
 - `scripting`: dynamically registers the PDF detector on new sites after permission is granted. It does not register the identity bridge there.
 - `host_permissions`: `https://*.dipgra.es/*` and `https://*.savia.net/*` are the built-in portals for the PDF button and identity proof. `https://127.0.0.1/*` reaches GrxFirma's local signer.
 - `optional_host_permissions`: lets the user grant HTTPS access when adding a trusted site. The request follows a user gesture. Removing a site removes its permission and PDF detector. User-added sites get only the PDF button.

@@ -40,7 +40,7 @@ var protocoloUI struct {
 	restoreTop func()
 }
 
-const legacyFyneAppID = "es.dipgra.grxfirma.afirmauri"
+const legacyFyneAppID = "io.github.aavidad.grxfirma.afirmauri"
 
 func newLegacyFyneApp() fyne.App {
 	a := app.NewWithID(legacyFyneAppID)

@@ -38,11 +38,11 @@ class VerifyReleaseArtifactsTest(unittest.TestCase):
                     "Verified using v4 scheme (APK Signature Scheme v4): false\n"
                     f"Signer #1 certificate SHA-256 digest: {fingerprint}\n"
                 ),
-                "package: name='es.dipgra.grxfirma' versionCode='1000' versionName='0.1.0'\n",
+                "package: name='io.github.aavidad.grxfirma' versionCode='1000' versionName='0.1.0'\n",
                 (
-                    "A: android:name=\"es.dipgra.grxfirma.SOURCE_COMMIT\"\n"
+                    "A: android:name=\"io.github.aavidad.grxfirma.SOURCE_COMMIT\"\n"
                     f"A: android:value=\"{'a' * 40}\"\n"
-                    "A: android:name=\"es.dipgra.grxfirma.CORE_SHA256\"\n"
+                    "A: android:name=\"io.github.aavidad.grxfirma.CORE_SHA256\"\n"
                     f"A: android:value=\"{'b' * 64}\"\n"
                 ),
             ]

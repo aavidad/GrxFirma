@@ -95,7 +95,7 @@ cat > "${APP_DIR}/Contents/Info.plist" <<EOF
 <dict>
   <key>CFBundleName</key><string>GrxFirma AfirmaURI</string>
   <key>CFBundleDisplayName</key><string>GrxFirma AfirmaURI</string>
-  <key>CFBundleIdentifier</key><string>es.dipgra.grxfirma.afirmauri</string>
+  <key>CFBundleIdentifier</key><string>io.github.aavidad.grxfirma.afirmauri</string>
   <key>CFBundleVersion</key><string>${VERSION}</string>
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
   <key>CFBundleExecutable</key><string>grxfirma-afirmauri</string>
@@ -105,7 +105,7 @@ cat > "${APP_DIR}/Contents/Info.plist" <<EOF
   <key>CFBundleURLTypes</key>
   <array>
     <dict>
-      <key>CFBundleURLName</key><string>es.dipgra.grxfirma.afirma</string>
+      <key>CFBundleURLName</key><string>io.github.aavidad.grxfirma.afirma</string>
       <key>CFBundleURLSchemes</key>
       <array><string>afirma</string></array>
     </dict>

@@ -24,7 +24,8 @@ $requiredFunctions = @(
     "Test-FirefoxXpiApproved",
     "Write-Utf8NoBom",
     "Register-ChromiumUpdateUrlExtension",
-    "Get-RegisteredStoreExtensionIds"
+    "Get-RegisteredStoreExtensionIds",
+    "Remove-LegacyNativeHostInstallation"
 )
 foreach ($functionName in $requiredFunctions) {
     $definition = $ast.FindAll({
@@ -161,7 +162,7 @@ try {
     [IO.File]::WriteAllBytes($xpi, [Text.Encoding]::UTF8.GetBytes("test-xpi"))
     $hash = (Get-FileHash -Path $xpi -Algorithm SHA256).Hash.ToLowerInvariant()
     $metadata = @{
-        extension_id = "extension@dipgra.es"
+        extension_id = "grxfirma@aavidad.github.io"
         signed = $true
         version = "1.0.0"
         xpi_sha256 = $hash
@@ -175,6 +176,7 @@ try {
     $packagedFirefoxXpi = Join-Path $tmp "packaged-firefox.xpi"
     [IO.File]::WriteAllText($packagedFirefoxXpi, "signed-firefox-package")
     $packagedFirefoxHash = (Get-FileHash -LiteralPath $packagedFirefoxXpi -Algorithm SHA256).Hash
+    $packagedFirefoxHashes = @($packagedFirefoxHash)
     $ownedFirefoxXpi = Join-Path $tmp "owned-firefox.xpi"
     Copy-Item -LiteralPath $packagedFirefoxXpi -Destination $ownedFirefoxXpi
     Remove-FirefoxXpiIfOwned -Path $ownedFirefoxXpi
@@ -327,6 +329,71 @@ try {
     Assert-True $invalidIdRejected "Se acepto un ID Chromium no valido"
     $env:GRXFIRMA_CHROMIUM_EXTENSION_ID = $null
 
+    $legacyRoot = Join-Path $tmp "legacy-migration"
+    $legacyManifests = Join-Path $legacyRoot "manifests"
+    $legacyExtensions = Join-Path $legacyRoot "extensions"
+    $legacyProfile = Join-Path $legacyRoot "profile"
+    foreach ($dir in @(
+        $legacyManifests,
+        (Join-Path $legacyExtensions "firefox"),
+        (Join-Path $legacyExtensions "chromium"),
+        (Join-Path $legacyProfile "extensions")
+    )) {
+        New-Item -ItemType Directory -Force -Path $dir | Out-Null
+    }
+    foreach ($legacyHostName in @("com.dipgra.grxfirma", "com.dipgra.portafirmas")) {
+        foreach ($suffix in @("chrome.json", "firefox.json")) {
+            [IO.File]::WriteAllText((Join-Path $legacyManifests "$legacyHostName.$suffix"), "{}")
+        }
+    }
+    $currentManifest = Join-Path $legacyManifests "io.github.aavidad.grxfirma.chrome.json"
+    [IO.File]::WriteAllText($currentManifest, "{}")
+    $legacyPackagedXpi = Join-Path $legacyExtensions "firefox\dipgra-extension-firefox.xpi"
+    [IO.File]::WriteAllText($legacyPackagedXpi, "legacy-signed-xpi")
+    [IO.File]::WriteAllText((Join-Path $legacyExtensions "firefox\dipgra-extension-firefox.metadata.json"), "{}")
+    [IO.File]::WriteAllText((Join-Path $legacyExtensions "chromium\dipgra-extension-chromium.zip"), "zip")
+    $legacyProfileXpi = Join-Path $legacyProfile "extensions\extension@dipgra.es.xpi"
+    Copy-Item -LiteralPath $legacyPackagedXpi -Destination $legacyProfileXpi
+
+    $script:legacyRegistryCalls = @()
+    function Remove-LegacyNativeHostRegistration {
+        param([string]$Path, [string]$ExpectedValue)
+        $script:legacyRegistryCalls += [pscustomobject]@{ Path = $Path; Expected = $ExpectedValue }
+        return $true
+    }
+    function Get-FirefoxProfileDirectory {
+        return @(Get-Item -LiteralPath $legacyProfile)
+    }
+    $previousProgramFiles = $env:ProgramFiles
+    $env:ProgramFiles = Join-Path $legacyRoot "no-program-files"
+    try {
+        Remove-LegacyNativeHostInstallation -ManifestsDir $legacyManifests -ExtensionsDir $legacyExtensions 3>$null
+    } finally {
+        $env:ProgramFiles = $previousProgramFiles
+    }
+    Assert-True ($script:legacyRegistryCalls.Count -eq 14) `
+        "La migracion no reviso los siete navegadores para los dos hosts anteriores"
+    Assert-True (@($script:legacyRegistryCalls | Where-Object {
+        $_.Path -notmatch '\\com\.dipgra\.(grxfirma|portafirmas)$'
+    }).Count -eq 0) "La migracion intento retirar un host que no es de versiones anteriores"
+    Assert-True (@($script:legacyRegistryCalls | Where-Object {
+        $_.Path -eq "Software\Mozilla\NativeMessagingHosts\com.dipgra.grxfirma" -and
+            $_.Expected -eq (Join-Path $legacyManifests "com.dipgra.grxfirma.firefox.json")
+    }).Count -eq 1) "La migracion no comprueba que el host anterior de Firefox apunte a esta instalacion"
+    Assert-True (@(Get-ChildItem -LiteralPath $legacyManifests -Filter "com.dipgra.*").Count -eq 0) `
+        "La migracion dejo manifiestos de hosts anteriores"
+    Assert-True (Test-Path -LiteralPath $currentManifest) "La migracion borro un manifiesto vigente"
+    Assert-True (-not (Test-Path -LiteralPath $legacyProfileXpi)) `
+        "La migracion no retiro la extension Firefox anterior instalada por GrxFirma"
+    Assert-True (@(Get-ChildItem -LiteralPath $legacyExtensions -Recurse -Filter "dipgra-extension-*").Count -eq 0) `
+        "La migracion dejo paquetes de extension con el nombre anterior"
+
+    [IO.File]::WriteAllText($legacyPackagedXpi, "legacy-signed-xpi")
+    [IO.File]::WriteAllText($legacyProfileXpi, "xpi-replaced-by-user")
+    Remove-LegacyNativeHostInstallation -ManifestsDir $legacyManifests -ExtensionsDir $legacyExtensions 3>$null
+    Assert-True (Test-Path -LiteralPath $legacyProfileXpi) `
+        "La migracion retiro una extension Firefox que no coincide con la instalada por GrxFirma"
+
     if ($runningOnWindows) {
         foreach ($functionName in @(
             "Set-RegistroCadena",
@@ -352,6 +419,16 @@ try {
             throw "Falta la funcion Remove-RegistryValueIfOwned"
         }
         . ([ScriptBlock]::Create($removeRegistryDefinition.Extent.Text))
+
+        $legacyRegistryDefinition = $ast.FindAll({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+                $node.Name -eq "Remove-LegacyNativeHostRegistration"
+        }, $true) | Select-Object -First 1
+        if ($null -eq $legacyRegistryDefinition) {
+            throw "Falta la funcion Remove-LegacyNativeHostRegistration"
+        }
+        . ([ScriptBlock]::Create($legacyRegistryDefinition.Extent.Text))
 
         $testRegistryRoot = "Software\GrxFirma\Tests\NativeHost-$([guid]::NewGuid().ToString('N'))"
         try {
@@ -472,6 +549,25 @@ try {
                 ) "El desinstalador retiro un registro Chromium reemplazado"
             } finally {
                 $registryKey.Dispose()
+            }
+
+            $legacyHostKey = "$testRegistryRoot\com.dipgra.grxfirma"
+            $ownedLegacyManifest = "C:\GrxFirma\NativeHost\manifests\com.dipgra.grxfirma.chrome.json"
+            Set-RegistroCadena $legacyHostKey "" $ownedLegacyManifest
+            Assert-True (Remove-LegacyNativeHostRegistration -Path $legacyHostKey -ExpectedValue $ownedLegacyManifest) `
+                "La migracion no retiro el host anterior propio"
+            $legacyKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($legacyHostKey, $false)
+            Assert-True ($null -eq $legacyKey) "La migracion dejo vacia la clave del host anterior"
+
+            Set-RegistroCadena $legacyHostKey "" "C:\Otra\manifiesto.json"
+            Assert-True (-not (Remove-LegacyNativeHostRegistration -Path $legacyHostKey -ExpectedValue $ownedLegacyManifest 3>$null)) `
+                "La migracion retiro un host anterior que apunta a otra instalacion"
+            $legacyKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($legacyHostKey, $false)
+            try {
+                Assert-True ($legacyKey.GetValue("") -eq "C:\Otra\manifiesto.json") `
+                    "La migracion altero un host ajeno"
+            } finally {
+                $legacyKey.Dispose()
             }
         } finally {
             [Microsoft.Win32.Registry]::CurrentUser.DeleteSubKeyTree($testRegistryRoot, $false)

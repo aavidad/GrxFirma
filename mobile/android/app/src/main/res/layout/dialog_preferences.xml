@@ -32,7 +32,7 @@
             android:layout_marginTop="@dimen/control_spacing"
             android:hint="@string/pref_default_format">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/prefFormat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -47,7 +47,7 @@
             android:layout_marginTop="8dp"
             android:hint="@string/pref_default_profile">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/prefProfile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -89,7 +89,7 @@
             android:layout_marginTop="@dimen/control_spacing"
             android:hint="@string/pref_output_name">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/prefOutputName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -107,7 +107,7 @@
             android:hint="@string/pref_seal_language"
             app:helperText="@string/pref_seal_language_helper">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/prefSealLanguage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -122,7 +122,7 @@
             android:layout_marginTop="8dp"
             android:hint="@string/pref_theme">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/prefTheme"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -138,7 +138,7 @@
             android:layout_marginTop="8dp"
             android:hint="@string/pref_certificate_timeout">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/prefSessionTimeout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

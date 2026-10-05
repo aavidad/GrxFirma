@@ -56,10 +56,10 @@ def sha256(path: Path) -> str:
 
 
 def artifact_paths() -> dict[str, Path]:
-    firefox_unsigned = EXTENSION_ROOT / "dipgra-extension-firefox-unsigned.xpi"
-    firefox = firefox_unsigned if firefox_unsigned.is_file() else EXTENSION_ROOT / "dipgra-extension-firefox.xpi"
+    firefox_unsigned = EXTENSION_ROOT / "grxfirma-extension-firefox-unsigned.xpi"
+    firefox = firefox_unsigned if firefox_unsigned.is_file() else EXTENSION_ROOT / "grxfirma-extension-firefox.xpi"
     return {
-        "chromium": EXTENSION_ROOT / "dipgra-extension-chromium.zip",
+        "chromium": EXTENSION_ROOT / "grxfirma-extension-chromium.zip",
         "firefox": firefox,
     }
 

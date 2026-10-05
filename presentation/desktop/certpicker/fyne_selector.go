@@ -38,7 +38,7 @@ type FyneSelector struct {
 	restore           func()
 }
 
-const fyneSelectorAppID = "es.dipgra.grxfirma.afirmauri"
+const fyneSelectorAppID = "io.github.aavidad.grxfirma.afirmauri"
 
 // New crea un FyneSelector listo para usar.
 func New() *FyneSelector {

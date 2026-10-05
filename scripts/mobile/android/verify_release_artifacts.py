@@ -320,16 +320,16 @@ def verify(
     if not package:
         raise ValueError("aapt no pudo leer versión y paquete del APK")
     if (
-        package.group(1) != "es.dipgra.grxfirma"
+        package.group(1) != "io.github.aavidad.grxfirma"
         or package.group(2) != str(version_code)
         or package.group(3) != version_name
     ):
         raise ValueError("metadatos de versión o paquete Android inesperados")
     manifest = run_text([str(aapt), "dump", "xmltree", str(apk), "AndroidManifest.xml"])
     if (
-        "es.dipgra.grxfirma.SOURCE_COMMIT" not in manifest
+        "io.github.aavidad.grxfirma.SOURCE_COMMIT" not in manifest
         or source_commit not in manifest.lower()
-        or "es.dipgra.grxfirma.CORE_SHA256" not in manifest
+        or "io.github.aavidad.grxfirma.CORE_SHA256" not in manifest
         or core_sha256 not in manifest.lower()
     ):
         raise ValueError("el APK no contiene sourceCommit y AAR exactos")
@@ -346,7 +346,7 @@ def verify(
         )
     return {
         "schema_version": 1,
-        "package": "es.dipgra.grxfirma",
+        "package": "io.github.aavidad.grxfirma",
         "version_name": version_name,
         "version_code": version_code,
         "source_commit": source_commit,

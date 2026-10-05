@@ -9,9 +9,9 @@ set -euo pipefail
 TARGET_HOME="${GRXFIRMA_TARGET_HOME:-${HOME}}"
 DESKTOP_ID="${GRXFIRMA_DESKTOP_ID:-grxfirma.desktop}"
 BROWSER_BRIDGE="${GRXFIRMA_BROWSER_BRIDGE:-/usr/lib/grxfirma/bin/browser-bridge.sh}"
-FIREFOX_XPI="${GRXFIRMA_FIREFOX_XPI:-/usr/lib/grxfirma/extensions/dipgra-extension-firefox.xpi}"
-FIREFOX_METADATA="${GRXFIRMA_FIREFOX_METADATA:-/usr/lib/grxfirma/extensions/dipgra-extension-firefox.metadata.json}"
-FIREFOX_EXT_ID="${FIREFOX_EXT_ID:-extension@dipgra.es}"
+FIREFOX_XPI="${GRXFIRMA_FIREFOX_XPI:-/usr/lib/grxfirma/extensions/grxfirma-extension-firefox.xpi}"
+FIREFOX_METADATA="${GRXFIRMA_FIREFOX_METADATA:-/usr/lib/grxfirma/extensions/grxfirma-extension-firefox.metadata.json}"
+FIREFOX_EXT_ID="${FIREFOX_EXT_ID:-grxfirma@aavidad.github.io}"
 CHROME_EXT_ID="${CHROME_EXT_ID:-pkefjandjcgdmhoonmhnllikibobijgg}"
 EXTRA_CHROME_EXT_ID="${EXTRA_CHROME_EXT_ID:-}"
 
@@ -116,6 +116,45 @@ EOF
   mv -f -- "${tmp}" "${target}"
 }
 
+# Las versiones anteriores registraban los hosts com.dipgra.* y la extensión
+# Firefox extension@dipgra.es. Se retiran solo los manifiestos que apuntan a
+# una instalación de GrxFirma para no dejar hosts huérfanos.
+remove_legacy_native_hosts() {
+  local dir name manifest
+  for dir in \
+    "${TARGET_HOME}/.config/google-chrome/NativeMessagingHosts" \
+    "${TARGET_HOME}/.config/chromium/NativeMessagingHosts" \
+    "${TARGET_HOME}/.config/microsoft-edge/NativeMessagingHosts" \
+    "${TARGET_HOME}/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts" \
+    "${TARGET_HOME}/.config/vivaldi/NativeMessagingHosts" \
+    "${TARGET_HOME}/.config/vivaldi-snapshot/NativeMessagingHosts" \
+    "${TARGET_HOME}/.config/opera/NativeMessagingHosts" \
+    "${TARGET_HOME}/.config/opera-beta/NativeMessagingHosts" \
+    "${TARGET_HOME}/.config/opera-developer/NativeMessagingHosts" \
+    "${TARGET_HOME}/.mozilla/native-messaging-hosts" \
+    "${TARGET_HOME}/snap/firefox/common/.mozilla/native-messaging-hosts" \
+    "${TARGET_HOME}/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts"
+  do
+    for name in com.dipgra.grxfirma com.dipgra.portafirmas; do
+      manifest="${dir}/${name}.json"
+      [[ -f "${manifest}" && ! -L "${manifest}" ]] || continue
+      if grep -Eq '"path"[[:space:]]*:[[:space:]]*"[^"]*/grxfirma/[^"]*"' "${manifest}"; then
+        rm -f -- "${manifest}"
+        log "Host anterior retirado: ${manifest}"
+      fi
+    done
+  done
+}
+
+remove_legacy_firefox_extension() {
+  local profile="$1"
+  local legacy="${profile}/extensions/extension@dipgra.es.xpi"
+  if [[ -f "${legacy}" && ! -L "${legacy}" ]]; then
+    rm -f -- "${legacy}"
+    log "Extension Firefox anterior retirada: ${legacy}"
+  fi
+}
+
 primary_chrome_origins() {
   local origins="\"chrome-extension://${CHROME_EXT_ID}/\""
   if [[ -n "${EXTRA_CHROME_EXT_ID}" && "${EXTRA_CHROME_EXT_ID}" != "${CHROME_EXT_ID}" ]]; then
@@ -140,15 +179,15 @@ install_chromium_family_manifests() {
 
   if have_cmd google-chrome || have_cmd google-chrome-stable || [[ -d /opt/google/chrome ]]; then
     write_chrome_manifest "${TARGET_HOME}/.config/google-chrome/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/google-chrome/NativeMessagingHosts/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/google-chrome/NativeMessagingHosts/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
+    write_chrome_manifest "${TARGET_HOME}/.config/google-chrome/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
+    write_chrome_manifest "${TARGET_HOME}/.config/google-chrome/NativeMessagingHosts/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
     log "Chrome detectado/configurado"
   fi
 
   if have_cmd chromium || have_cmd chromium-browser || is_snap_installed chromium || is_flatpak_installed org.chromium.Chromium; then
     write_chrome_manifest "${TARGET_HOME}/.config/chromium/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/chromium/NativeMessagingHosts/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/chromium/NativeMessagingHosts/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
+    write_chrome_manifest "${TARGET_HOME}/.config/chromium/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
+    write_chrome_manifest "${TARGET_HOME}/.config/chromium/NativeMessagingHosts/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
     if is_snap_installed chromium || is_flatpak_installed org.chromium.Chromium; then
       log "Chromium confinado detectado: Native Messaging requiere un portal o despliegue permitido por el paquete"
     fi
@@ -157,15 +196,15 @@ install_chromium_family_manifests() {
 
   if have_cmd microsoft-edge || have_cmd microsoft-edge-stable || [[ -d /opt/microsoft/msedge ]]; then
     write_chrome_manifest "${TARGET_HOME}/.config/microsoft-edge/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/microsoft-edge/NativeMessagingHosts/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/microsoft-edge/NativeMessagingHosts/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
+    write_chrome_manifest "${TARGET_HOME}/.config/microsoft-edge/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
+    write_chrome_manifest "${TARGET_HOME}/.config/microsoft-edge/NativeMessagingHosts/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
     log "Edge detectado/configurado"
   fi
 
   if have_cmd brave-browser || is_flatpak_installed com.brave.Browser || [[ -d /opt/brave.com/brave ]]; then
     write_chrome_manifest "${TARGET_HOME}/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
+    write_chrome_manifest "${TARGET_HOME}/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
+    write_chrome_manifest "${TARGET_HOME}/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
     if is_flatpak_installed com.brave.Browser; then
       log "Brave Flatpak detectado: Native Messaging requiere un portal o despliegue permitido por el paquete"
     fi
@@ -174,11 +213,11 @@ install_chromium_family_manifests() {
 
   if have_cmd vivaldi || have_cmd vivaldi-stable || [[ -d /opt/vivaldi ]]; then
     write_chrome_manifest "${TARGET_HOME}/.config/vivaldi/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/vivaldi/NativeMessagingHosts/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/vivaldi/NativeMessagingHosts/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
+    write_chrome_manifest "${TARGET_HOME}/.config/vivaldi/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
+    write_chrome_manifest "${TARGET_HOME}/.config/vivaldi/NativeMessagingHosts/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
     write_chrome_manifest "${TARGET_HOME}/.config/vivaldi-snapshot/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/vivaldi-snapshot/NativeMessagingHosts/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/vivaldi-snapshot/NativeMessagingHosts/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
+    write_chrome_manifest "${TARGET_HOME}/.config/vivaldi-snapshot/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
+    write_chrome_manifest "${TARGET_HOME}/.config/vivaldi-snapshot/NativeMessagingHosts/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
     log "Vivaldi detectado/configurado"
   fi
   if is_snap_installed vivaldi; then
@@ -189,8 +228,8 @@ install_chromium_family_manifests() {
     # Opera documenta el fallback de Chrome para Native Messaging. Conservamos
     # además sus perfiles habituales para builds Chromium que los consulten.
     write_chrome_manifest "${TARGET_HOME}/.config/opera/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/opera/NativeMessagingHosts/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "${origins}"
-    write_chrome_manifest "${TARGET_HOME}/.config/opera/NativeMessagingHosts/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
+    write_chrome_manifest "${TARGET_HOME}/.config/opera/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
+    write_chrome_manifest "${TARGET_HOME}/.config/opera/NativeMessagingHosts/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
     if is_flatpak_installed com.opera.Opera; then
       log "Opera Flatpak detectado: el host externo depende de los permisos de su paquete"
     fi
@@ -203,6 +242,7 @@ configure_firefox_profile() {
   [[ -d "${profile}" ]] || return 0
 
   mkdir -p "${profile}/extensions"
+  remove_legacy_firefox_extension "${profile}"
   if [[ -f "${FIREFOX_XPI}" ]] && firefox_xpi_is_signed; then
     install -m 644 "${FIREFOX_XPI}" "${profile}/extensions/${FIREFOX_EXT_ID}.xpi" || true
   fi
@@ -274,8 +314,8 @@ install_firefox_integration() {
   local dir
   for dir in "${nm_dirs[@]}"; do
     write_firefox_manifest "${dir}/com.grxfirma.native.json" "com.grxfirma.native" "\"${FIREFOX_EXT_ID}\""
-    write_firefox_manifest "${dir}/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "\"${FIREFOX_EXT_ID}\""
-    write_firefox_manifest "${dir}/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "\"portafirmas@dipgra.es\""
+    write_firefox_manifest "${dir}/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "\"${FIREFOX_EXT_ID}\""
+    write_firefox_manifest "${dir}/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"portafirmas@dipgra.es\""
   done
 
   local roots=(
@@ -303,6 +343,7 @@ register_afirma_scheme() {
   fi
 }
 
+remove_legacy_native_hosts
 install_chromium_family_manifests
 install_firefox_integration
 register_afirma_scheme

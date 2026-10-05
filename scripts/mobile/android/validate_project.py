@@ -98,8 +98,8 @@ def validate(root: pathlib.Path) -> None:
         require(token in build, f"Falta gate Android: {token}")
     manifest_text = manifest_path.read_text(encoding="utf-8")
     for token in (
-        "es.dipgra.grxfirma.SOURCE_COMMIT",
-        "es.dipgra.grxfirma.CORE_SHA256",
+        "io.github.aavidad.grxfirma.SOURCE_COMMIT",
+        "io.github.aavidad.grxfirma.CORE_SHA256",
     ):
         require(token in manifest_text, f"Falta trazabilidad Android: {token}")
     release_verifier = (

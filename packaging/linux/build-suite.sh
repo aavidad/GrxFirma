@@ -210,9 +210,9 @@ build_chromium_extension_assets() {
   version="$(extract_extension_version "${zip_path}")"
   ext_id="$(compute_extension_id "${pem}")"
 
-  cp "${crx}" "${out_dir}/dipgra-extension-chromium.crx"
-  printf '%s\n' "${ext_id}" > "${out_dir}/dipgra-extension-chromium.id"
-  printf '%s\n' "${version}" > "${out_dir}/dipgra-extension-chromium.version"
+  cp "${crx}" "${out_dir}/grxfirma-extension-chromium.crx"
+  printf '%s\n' "${ext_id}" > "${out_dir}/grxfirma-extension-chromium.id"
+  printf '%s\n' "${version}" > "${out_dir}/grxfirma-extension-chromium.version"
 
   if [[ -n "${key_path}" ]]; then
     echo "CRX Chromium generado con clave estable local: ${key_path}" >&2
@@ -256,9 +256,9 @@ required = {
     f"{stage_name}/icons/hicolor/48x48/apps/grxfirma.png",
     f"{stage_name}/icons/hicolor/128x128/apps/grxfirma.png",
     f"{stage_name}/icons/hicolor/256x256/apps/grxfirma.png",
-    f"{stage_name}/extensions/dipgra-extension-chromium.zip",
-    f"{stage_name}/extensions/dipgra-extension-firefox.xpi",
-    f"{stage_name}/extensions/dipgra-extension-firefox.metadata.json",
+    f"{stage_name}/extensions/grxfirma-extension-chromium.zip",
+    f"{stage_name}/extensions/grxfirma-extension-firefox.xpi",
+    f"{stage_name}/extensions/grxfirma-extension-firefox.metadata.json",
 }
 if expect_help:
     required.add(f"{stage_name}/help/")
@@ -318,8 +318,8 @@ validate_deb_artifact() {
     "./usr/bin/grxfirma-afirmauri"
     "./usr/lib/grxfirma/bin/grxfirma-nativehost"
     "./usr/lib/grxfirma/bin/grxfirma-pkcs11-worker"
-    "./usr/lib/grxfirma/extensions/dipgra-extension-chromium.zip"
-    "./usr/lib/grxfirma/extensions/dipgra-extension-firefox.metadata.json"
+    "./usr/lib/grxfirma/extensions/grxfirma-extension-chromium.zip"
+    "./usr/lib/grxfirma/extensions/grxfirma-extension-firefox.metadata.json"
     "./usr/share/doc/grxfirma/BUILDINFO"
     "./usr/share/doc/grxfirma/README_LINUX_SUITE.md"
     "./usr/share/icons/hicolor/scalable/apps/grxfirma.svg"
@@ -630,12 +630,12 @@ fi
 install -m 755 "${STAGE_DIR}/grxfirma-afirmauri" "${PKG_ROOT}/usr/bin/grxfirma-afirmauri"
 install -m 755 "${STAGE_DIR}/grxfirma-nativehost" "${PKG_ROOT}/usr/lib/grxfirma/bin/grxfirma-nativehost"
 install -m 755 "${STAGE_DIR}/grxfirma-pkcs11-worker" "${PKG_ROOT}/usr/lib/grxfirma/bin/grxfirma-pkcs11-worker"
-install -m 644 "${STAGE_DIR}/extensions/dipgra-extension-chromium.zip" "${PKG_ROOT}/usr/lib/grxfirma/extensions/dipgra-extension-chromium.zip"
-if [[ -f "${STAGE_DIR}/extensions/dipgra-extension-firefox.xpi" ]]; then
-  install -m 644 "${STAGE_DIR}/extensions/dipgra-extension-firefox.xpi" "${PKG_ROOT}/usr/lib/grxfirma/extensions/dipgra-extension-firefox.xpi"
+install -m 644 "${STAGE_DIR}/extensions/grxfirma-extension-chromium.zip" "${PKG_ROOT}/usr/lib/grxfirma/extensions/grxfirma-extension-chromium.zip"
+if [[ -f "${STAGE_DIR}/extensions/grxfirma-extension-firefox.xpi" ]]; then
+  install -m 644 "${STAGE_DIR}/extensions/grxfirma-extension-firefox.xpi" "${PKG_ROOT}/usr/lib/grxfirma/extensions/grxfirma-extension-firefox.xpi"
 fi
-if [[ -f "${STAGE_DIR}/extensions/dipgra-extension-firefox.metadata.json" ]]; then
-  install -m 644 "${STAGE_DIR}/extensions/dipgra-extension-firefox.metadata.json" "${PKG_ROOT}/usr/lib/grxfirma/extensions/dipgra-extension-firefox.metadata.json"
+if [[ -f "${STAGE_DIR}/extensions/grxfirma-extension-firefox.metadata.json" ]]; then
+  install -m 644 "${STAGE_DIR}/extensions/grxfirma-extension-firefox.metadata.json" "${PKG_ROOT}/usr/lib/grxfirma/extensions/grxfirma-extension-firefox.metadata.json"
 fi
 install -m 644 "${STAGE_DIR}/README_LINUX_SUITE.md" "${PKG_ROOT}/usr/share/doc/grxfirma/README_LINUX_SUITE.md"
 for icon_size in 48 128 256; do
@@ -720,8 +720,8 @@ EOF
 }
 
 CHROMIUM_ALLOWED_ORIGINS='"chrome-extension://pkefjandjcgdmhoonmhnllikibobijgg/"'
-if [[ -f "${STAGE_DIR}/extensions/dipgra-extension-chromium.id" ]]; then
-  CHROMIUM_PACKAGE_ID="$(tr -d '\r\n' < "${STAGE_DIR}/extensions/dipgra-extension-chromium.id")"
+if [[ -f "${STAGE_DIR}/extensions/grxfirma-extension-chromium.id" ]]; then
+  CHROMIUM_PACKAGE_ID="$(tr -d '\r\n' < "${STAGE_DIR}/extensions/grxfirma-extension-chromium.id")"
   if [[ -n "${CHROMIUM_PACKAGE_ID}" && "${CHROMIUM_PACKAGE_ID}" != "pkefjandjcgdmhoonmhnllikibobijgg" ]]; then
     CHROMIUM_ALLOWED_ORIGINS+=",\"chrome-extension://${CHROMIUM_PACKAGE_ID}/\""
   fi
@@ -736,13 +736,13 @@ for dir in \
   "${PKG_ROOT}/etc/opt/opera/native-messaging-hosts"
 do
   write_chrome_manifest "${dir}/com.grxfirma.native.json" "com.grxfirma.native" "${CHROMIUM_ALLOWED_ORIGINS}"
-  write_chrome_manifest "${dir}/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "${CHROMIUM_ALLOWED_ORIGINS}"
-  write_chrome_manifest "${dir}/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" '"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/","chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"'
+  write_chrome_manifest "${dir}/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${CHROMIUM_ALLOWED_ORIGINS}"
+  write_chrome_manifest "${dir}/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" '"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/","chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"'
 done
 
-write_firefox_manifest "${PKG_ROOT}/usr/lib/mozilla/native-messaging-hosts/com.grxfirma.native.json" "com.grxfirma.native" '"extension@dipgra.es"'
-write_firefox_manifest "${PKG_ROOT}/usr/lib/mozilla/native-messaging-hosts/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" '"extension@dipgra.es"'
-write_firefox_manifest "${PKG_ROOT}/usr/lib/mozilla/native-messaging-hosts/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" '"portafirmas@dipgra.es"'
+write_firefox_manifest "${PKG_ROOT}/usr/lib/mozilla/native-messaging-hosts/com.grxfirma.native.json" "com.grxfirma.native" '"grxfirma@aavidad.github.io"'
+write_firefox_manifest "${PKG_ROOT}/usr/lib/mozilla/native-messaging-hosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" '"grxfirma@aavidad.github.io"'
+write_firefox_manifest "${PKG_ROOT}/usr/lib/mozilla/native-messaging-hosts/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" '"portafirmas@dipgra.es"'
 
 
 RUNTIME_DEPENDS="$(
@@ -848,8 +848,8 @@ if [[ -n "${target_user}" && "${target_user}" != "root" ]] && command -v getent 
       GRXFIRMA_TARGET_HOME="${target_home}" \
       GRXFIRMA_DESKTOP_ID="grxfirma.desktop" \
       GRXFIRMA_BROWSER_BRIDGE="/usr/lib/grxfirma/bin/browser-bridge.sh" \
-      GRXFIRMA_FIREFOX_XPI="/usr/lib/grxfirma/extensions/dipgra-extension-firefox.xpi" \
-      GRXFIRMA_FIREFOX_METADATA="/usr/lib/grxfirma/extensions/dipgra-extension-firefox.metadata.json" \
+      GRXFIRMA_FIREFOX_XPI="/usr/lib/grxfirma/extensions/grxfirma-extension-firefox.xpi" \
+      GRXFIRMA_FIREFOX_METADATA="/usr/lib/grxfirma/extensions/grxfirma-extension-firefox.metadata.json" \
       /usr/lib/grxfirma/bin/configure-browsers.sh || true
   fi
 fi
@@ -962,7 +962,9 @@ for dir in \
   "${TARGET_HOME}/snap/firefox/common/.mozilla/native-messaging-hosts" \
   "${TARGET_HOME}/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts"
 do
-  rm -f "${dir}/com.grxfirma.native.json" "${dir}/com.dipgra.grxfirma.json" "${dir}/com.dipgra.portafirmas.json"
+  rm -f "${dir}/com.grxfirma.native.json" "${dir}/io.github.aavidad.grxfirma.json" "${dir}/io.github.aavidad.portafirmas.json"
+  # Nombres de versiones anteriores.
+  rm -f "${dir}/com.dipgra.grxfirma.json" "${dir}/com.dipgra.portafirmas.json"
 done
 for root in \
   "${TARGET_HOME}/.mozilla/firefox" \
@@ -970,6 +972,7 @@ for root in \
   "${TARGET_HOME}/.var/app/org.mozilla.firefox/.mozilla/firefox"
 do
   [[ -d "${root}" ]] || continue
+  find "${root}" -mindepth 3 -maxdepth 3 -path '*/extensions/grxfirma@aavidad.github.io.xpi' -type f -delete 2>/dev/null || true
   find "${root}" -mindepth 3 -maxdepth 3 -path '*/extensions/extension@dipgra.es.xpi' -type f -delete 2>/dev/null || true
 done
 EOS
