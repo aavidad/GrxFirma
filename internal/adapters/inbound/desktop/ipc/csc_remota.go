@@ -334,8 +334,9 @@ func (m *Manejador) prepararFirmaRemota(ctx context.Context, action string, raw 
 		cred, remota = m.CSC.Credencial(certID)
 	}
 	// Los secretos de la petición son del firmante principal. Un firmante
-	// adicional remoto que pida PIN u OTP no tendría con qué firmar.
-	if action == "sign_multicosign" && m.CSC != nil {
+	// adicional remoto que pida PIN u OTP no tendría con qué firmar, ni en
+	// la multifirma de un documento ni en la de un lote.
+	if (action == "sign_multicosign" || action == "sign_batch") && len(p.AdditionalCertificateIDs) > 0 && m.CSC != nil {
 		for _, id := range p.AdditionalCertificateIDs {
 			for _, candidato := range []string{id, strings.TrimSpace(id)} {
 				if c, ok := m.CSC.Credencial(candidato); ok && (c.PIN || c.OTP) {

@@ -286,6 +286,14 @@ func TestCSCIPCSecretosLigadosAlFirmantePrincipal(t *testing.T) {
 	if resp.OK || resp.ErrorCode != "csc_adicional_con_secretos" {
 		t.Fatalf("adicional remoto con secretos: %+v", resp)
 	}
+	// También en la multifirma por lotes.
+	resp = pedirIPC(t, e.m, "sign_batch", map[string]any{
+		"inputPaths": []string{entrada}, "certificateId": principal, "format": "cades",
+		"additionalCertificateIds": []string{adicional}, "remotePin": pin,
+	})
+	if resp.OK || resp.ErrorCode != "csc_adicional_con_secretos" {
+		t.Fatalf("lote de multifirma con adicional remoto con secretos: %+v", resp)
+	}
 
 	// «Proteger y firmar» con un certificado remoto sin sus secretos se
 	// rechaza con un mensaje propio en lugar de un fallo genérico.
