@@ -2,6 +2,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """Los elementos de listas y desplegables tienen nombre accesible legible.
 
 El lector de pantalla anunciaba «ProtectionRecipientItem { Id = …, Label = …}»

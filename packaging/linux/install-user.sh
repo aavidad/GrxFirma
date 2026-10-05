@@ -87,8 +87,8 @@ cp "${ROOT_DIR}/packaging/linux/install-suite.sh" "${STAGE_DIR}/install-suite.sh
 cp "${ROOT_DIR}/packaging/linux/configure-browsers.sh" "${STAGE_DIR}/configure-browsers.sh"
 cp "${ROOT_DIR}/packaging/linux/runtime-dependencies.sh" "${STAGE_DIR}/check-runtime-dependencies.sh"
 cp "${ROOT_DIR}/packaging/linux/README_LINUX_SUITE.md" "${STAGE_DIR}/README_LINUX_SUITE.md"
-cp "${ROOT_DIR}/grxfirma.desktop" "${STAGE_DIR}/grxfirma.desktop"
-cp "${ROOT_DIR}/grxfirma-manual.desktop" "${STAGE_DIR}/grxfirma-manual.desktop"
+cp "${ROOT_DIR}/packaging/linux/grxfirma.desktop" "${STAGE_DIR}/grxfirma.desktop"
+cp "${ROOT_DIR}/packaging/linux/grxfirma-manual.desktop" "${STAGE_DIR}/grxfirma-manual.desktop"
 for icon_size in 48 128 256; do
   icon_dir="${STAGE_DIR}/icons/hicolor/${icon_size}x${icon_size}/apps"
   mkdir -p "${icon_dir}"
@@ -113,7 +113,7 @@ fi
 
 echo "==> Generando extensiones de navegador"
 bash "${ROOT_DIR}/packaging/browser-extensions/build.sh"
-cp "${ROOT_DIR}"/packaging/browser-extensions/dipgra-extension-* "${STAGE_DIR}/extensions/"
+cp "${ROOT_DIR}"/packaging/browser-extensions/grxfirma-extension-* "${STAGE_DIR}/extensions/"
 
 echo "==> Instalando en el usuario"
 (cd "${STAGE_DIR}" && ./install-suite.sh)

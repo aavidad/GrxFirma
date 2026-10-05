@@ -2,6 +2,7 @@
 // Autoría: Alberto Avidad Fernández
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
+
 using System.Net;
 using System.Text;
 using GrxFirma.WinUI.Core.Operations;

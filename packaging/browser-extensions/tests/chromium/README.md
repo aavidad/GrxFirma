@@ -14,7 +14,7 @@ Recorrido verificado:
    valida y usa el host precompilado indicado para probar un paquete instalado;
 2. valida y descomprime el ZIP Chromium generado por produccion;
 3. carga la extension MV3 en un perfil temporal;
-4. registra `com.dipgra.grxfirma` dentro del perfil y de un
+4. registra `io.github.aavidad.grxfirma` dentro del perfil y de un
    `XDG_CONFIG_HOME` aislado;
 5. exige que un host inexistente produzca el error esperado;
 6. ejecuta `runtime.connectNative`, `ping` y `getCertificates` reales;

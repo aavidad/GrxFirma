@@ -203,7 +203,7 @@ Apple tampoco garantiza un PKG idéntico entre versiones de `pkgbuild`.
 
 Software libre bajo licencia EUPL 1.2 o posterior.
 
-Autor: Oficina de Software Libre de la Diputacion de Granada.
+Autoría: Alberto Avidad Fernández
 
 Sin garantía:
 - esta herramienta se entrega SIN GARANTÍA de ningún tipo.

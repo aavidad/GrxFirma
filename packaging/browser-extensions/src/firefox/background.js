@@ -35,7 +35,7 @@ const MAX_IDENTITY_SIGNATURE_BYTES = 512 * 1024;
 const MAX_IDENTITY_CERTIFICATE_BYTES = 64 * 1024;
 let identityProofInProgress = false;
 // Configure the correct Native Host name
-const NATIVE_HOST_NAME = "com.dipgra.grxfirma";
+const NATIVE_HOST_NAME = "io.github.aavidad.grxfirma";
 
 function nativeChannelUserGuidance() {
     return grxfirmaExt.i18n.message('popupNativeHostUnavailable');

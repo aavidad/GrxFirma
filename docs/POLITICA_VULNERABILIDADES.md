@@ -7,7 +7,7 @@
 
 Fecha inicial: 2026-03-20.
 Última revisión: 2026-07-26.
-Autor: Oficina de Software Libre de la Diputacion de Granada.
+Autoría: Alberto Avidad Fernández
 Estado: documento operativo vivo.
 
 ---

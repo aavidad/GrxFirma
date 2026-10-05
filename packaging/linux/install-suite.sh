@@ -34,14 +34,14 @@ NM_VIVALDI="${HOME}/.config/vivaldi/NativeMessagingHosts"
 NM_OPERA="${HOME}/.config/opera/NativeMessagingHosts"
 NM_FIREFOX="${HOME}/.mozilla/native-messaging-hosts"
 
-FIREFOX_XPI="${SELF_DIR}/extensions/dipgra-extension-firefox.xpi"
-FIREFOX_METADATA="${SELF_DIR}/extensions/dipgra-extension-firefox.metadata.json"
-CHROMIUM_ZIP="${SELF_DIR}/extensions/dipgra-extension-chromium.zip"
-CHROMIUM_CRX="${SELF_DIR}/extensions/dipgra-extension-chromium.crx"
-CHROMIUM_CRX_ID_FILE="${SELF_DIR}/extensions/dipgra-extension-chromium.id"
+FIREFOX_XPI="${SELF_DIR}/extensions/grxfirma-extension-firefox.xpi"
+FIREFOX_METADATA="${SELF_DIR}/extensions/grxfirma-extension-firefox.metadata.json"
+CHROMIUM_ZIP="${SELF_DIR}/extensions/grxfirma-extension-chromium.zip"
+CHROMIUM_CRX="${SELF_DIR}/extensions/grxfirma-extension-chromium.crx"
+CHROMIUM_CRX_ID_FILE="${SELF_DIR}/extensions/grxfirma-extension-chromium.id"
 
 CHROME_EXT_ID="${CHROME_EXT_ID:-pkefjandjcgdmhoonmhnllikibobijgg}"
-FIREFOX_EXT_ID="${FIREFOX_EXT_ID:-extension@dipgra.es}"
+FIREFOX_EXT_ID="${FIREFOX_EXT_ID:-grxfirma@aavidad.github.io}"
 EXTRA_CHROME_EXT_ID=""
 if [[ -f "${CHROMIUM_CRX_ID_FILE}" ]]; then
   EXTRA_CHROME_EXT_ID="$(tr -d '\r\n' < "${CHROMIUM_CRX_ID_FILE}")"
@@ -260,20 +260,27 @@ PRIMARY_CHROME_ORIGINS="$(build_primary_chrome_origins)"
 
 for dir in "${NM_CHROME}" "${NM_CHROMIUM}" "${NM_EDGE}" "${NM_BRAVE}" "${NM_VIVALDI}" "${NM_OPERA}"; do
   write_chrome_manifest "${dir}/com.grxfirma.native.json" "com.grxfirma.native" "${PRIMARY_CHROME_ORIGINS}"
-  write_chrome_manifest "${dir}/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "${PRIMARY_CHROME_ORIGINS}"
-  write_chrome_manifest "${dir}/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\",\"chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/\""
+  write_chrome_manifest "${dir}/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${PRIMARY_CHROME_ORIGINS}"
+  write_chrome_manifest "${dir}/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/\""
 done
 
 write_firefox_manifest "${NM_FIREFOX}/com.grxfirma.native.json" "com.grxfirma.native" "\"${FIREFOX_EXT_ID}\""
-write_firefox_manifest "${NM_FIREFOX}/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "\"${FIREFOX_EXT_ID}\""
-write_firefox_manifest "${NM_FIREFOX}/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "\"portafirmas@dipgra.es\""
+write_firefox_manifest "${NM_FIREFOX}/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "\"${FIREFOX_EXT_ID}\""
+write_firefox_manifest "${NM_FIREFOX}/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "\"portafirmas@dipgra.es\""
+
+# Paquetes de extension con el nombre de versiones anteriores.
+rm -f "${USEREXTDIR}/firefox/dipgra-extension-firefox.xpi" \
+  "${USEREXTDIR}/firefox/dipgra-extension-firefox.metadata.json" \
+  "${USEREXTDIR}/chromium/dipgra-extension-chromium.zip" \
+  "${USEREXTDIR}/chromium/dipgra-extension-chromium.crx" \
+  "${USEREXTDIR}/chromium/dipgra-extension-chromium.id"
 
 if [[ -f "${FIREFOX_XPI}" ]]; then
-  install -m 644 "${FIREFOX_XPI}" "${USEREXTDIR}/firefox/dipgra-extension-firefox.xpi"
+  install -m 644 "${FIREFOX_XPI}" "${USEREXTDIR}/firefox/grxfirma-extension-firefox.xpi"
   if [[ -f "${FIREFOX_METADATA}" ]]; then
-    install -m 644 "${FIREFOX_METADATA}" "${USEREXTDIR}/firefox/dipgra-extension-firefox.metadata.json"
+    install -m 644 "${FIREFOX_METADATA}" "${USEREXTDIR}/firefox/grxfirma-extension-firefox.metadata.json"
   else
-    rm -f "${USEREXTDIR}/firefox/dipgra-extension-firefox.metadata.json"
+    rm -f "${USEREXTDIR}/firefox/grxfirma-extension-firefox.metadata.json"
   fi
   if firefox_xpi_is_signed; then
     for firefox_root in \
@@ -293,20 +300,20 @@ if [[ -f "${FIREFOX_XPI}" ]]; then
 fi
 
 if [[ -f "${CHROMIUM_ZIP}" ]]; then
-  install -m 644 "${CHROMIUM_ZIP}" "${USEREXTDIR}/chromium/dipgra-extension-chromium.zip"
+  install -m 644 "${CHROMIUM_ZIP}" "${USEREXTDIR}/chromium/grxfirma-extension-chromium.zip"
 fi
 if [[ -f "${CHROMIUM_CRX}" ]]; then
-  install -m 644 "${CHROMIUM_CRX}" "${USEREXTDIR}/chromium/dipgra-extension-chromium.crx"
+  install -m 644 "${CHROMIUM_CRX}" "${USEREXTDIR}/chromium/grxfirma-extension-chromium.crx"
 fi
 if [[ -f "${CHROMIUM_CRX_ID_FILE}" ]]; then
-  install -m 644 "${CHROMIUM_CRX_ID_FILE}" "${USEREXTDIR}/chromium/dipgra-extension-chromium.id"
+  install -m 644 "${CHROMIUM_CRX_ID_FILE}" "${USEREXTDIR}/chromium/grxfirma-extension-chromium.id"
 fi
 
 GRXFIRMA_TARGET_HOME="${HOME}" \
 GRXFIRMA_DESKTOP_ID="grxfirma.desktop" \
 GRXFIRMA_BROWSER_BRIDGE="${USERLIBDIR}/browser-bridge.sh" \
-GRXFIRMA_FIREFOX_XPI="${USEREXTDIR}/firefox/dipgra-extension-firefox.xpi" \
-GRXFIRMA_FIREFOX_METADATA="${USEREXTDIR}/firefox/dipgra-extension-firefox.metadata.json" \
+GRXFIRMA_FIREFOX_XPI="${USEREXTDIR}/firefox/grxfirma-extension-firefox.xpi" \
+GRXFIRMA_FIREFOX_METADATA="${USEREXTDIR}/firefox/grxfirma-extension-firefox.metadata.json" \
 CHROME_EXT_ID="${CHROME_EXT_ID}" \
 EXTRA_CHROME_EXT_ID="${EXTRA_CHROME_EXT_ID}" \
 FIREFOX_EXT_ID="${FIREFOX_EXT_ID}" \

@@ -86,6 +86,9 @@ function Get-FirefoxProfileDirectory {
 
 $nativeHosts = @(
     "com.grxfirma.native",
+    "io.github.aavidad.grxfirma",
+    "io.github.aavidad.portafirmas",
+    # Nombres de versiones anteriores; se retiran solo si apuntan a esta instalacion.
     "com.dipgra.grxfirma",
     "com.dipgra.portafirmas"
 )
@@ -151,10 +154,12 @@ if (Test-Path -LiteralPath $registrationsPath -PathType Leaf) {
     }
 }
 
-$packagedFirefoxXpi = Join-Path $InstallDir "extensions\firefox\dipgra-extension-firefox.xpi"
-$packagedFirefoxHash = $null
-if (Test-Path -LiteralPath $packagedFirefoxXpi -PathType Leaf) {
-    $packagedFirefoxHash = (Get-FileHash -LiteralPath $packagedFirefoxXpi -Algorithm SHA256).Hash
+$packagedFirefoxHashes = @()
+foreach ($packagedFirefoxName in @("grxfirma-extension-firefox.xpi", "dipgra-extension-firefox.xpi")) {
+    $packagedFirefoxXpi = Join-Path $InstallDir "extensions\firefox\$packagedFirefoxName"
+    if (Test-Path -LiteralPath $packagedFirefoxXpi -PathType Leaf) {
+        $packagedFirefoxHashes += (Get-FileHash -LiteralPath $packagedFirefoxXpi -Algorithm SHA256).Hash
+    }
 }
 
 function Remove-FirefoxXpiIfOwned {
@@ -162,32 +167,40 @@ function Remove-FirefoxXpiIfOwned {
         [Parameter(Mandatory = $true)]
         [string]$Path
     )
-    if ([string]::IsNullOrWhiteSpace($packagedFirefoxHash) -or
+    if (@($packagedFirefoxHashes).Count -eq 0 -or
         (-not (Test-Path -LiteralPath $Path -PathType Leaf))) {
         return
     }
     $actualHash = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
-    if (-not $actualHash.Equals($packagedFirefoxHash, [System.StringComparison]::OrdinalIgnoreCase)) {
+    $owned = @($packagedFirefoxHashes | Where-Object {
+        $actualHash.Equals([string]$_, [System.StringComparison]::OrdinalIgnoreCase)
+    }).Count -gt 0
+    if (-not $owned) {
         Write-Warning "Se conserva la extension Firefox porque fue actualizada o reemplazada: $Path"
         return
     }
     Remove-Item -LiteralPath $Path -Force
 }
 
+$firefoxXpiNames = @("grxfirma@aavidad.github.io.xpi", "extension@dipgra.es.xpi")
 foreach ($profileDir in Get-FirefoxProfileDirectory) {
-    $xpiPath = Join-Path $profileDir.FullName "extensions\extension@dipgra.es.xpi"
-    Remove-FirefoxXpiIfOwned -Path $xpiPath
+    foreach ($firefoxXpiName in $firefoxXpiNames) {
+        $xpiPath = Join-Path $profileDir.FullName "extensions\$firefoxXpiName"
+        Remove-FirefoxXpiIfOwned -Path $xpiPath
+    }
 }
 
 foreach ($firefoxDir in @($env:ProgramFiles, ${env:ProgramFiles(x86)})) {
     if ([string]::IsNullOrWhiteSpace($firefoxDir)) {
         continue
     }
-    $distributionXpi = Join-Path $firefoxDir "Mozilla Firefox\distribution\extensions\extension@dipgra.es.xpi"
-    try {
-        Remove-FirefoxXpiIfOwned -Path $distributionXpi
-    } catch {
-        Write-Warning "No se pudo eliminar la extension global de Firefox '$distributionXpi': $($_.Exception.Message)"
+    foreach ($firefoxXpiName in $firefoxXpiNames) {
+        $distributionXpi = Join-Path $firefoxDir "Mozilla Firefox\distribution\extensions\$firefoxXpiName"
+        try {
+            Remove-FirefoxXpiIfOwned -Path $distributionXpi
+        } catch {
+            Write-Warning "No se pudo eliminar la extension global de Firefox '$distributionXpi': $($_.Exception.Message)"
+        }
     }
 }
 

@@ -137,7 +137,7 @@ final class ShareViewController: UIViewController {
         importTask?.cancel()
         removeCopiedFiles()
         let error = NSError(
-            domain: "es.dipgra.grxfirma.share",
+            domain: "io.github.aavidad.grxfirma.share",
             code: NSUserCancelledError,
             userInfo: [NSLocalizedDescriptionKey: "Importación cancelada por el usuario."]
         )

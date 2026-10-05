@@ -332,9 +332,9 @@ build_chromium_extension_assets() {
   version="$(extract_extension_version "${zip_path}")"
   ext_id="$(compute_extension_id "${pem}")"
 
-  cp "${crx}" "${out_dir}/dipgra-extension-chromium.crx"
-  printf '%s\n' "${ext_id}" > "${out_dir}/dipgra-extension-chromium.id"
-  printf '%s\n' "${version}" > "${out_dir}/dipgra-extension-chromium.version"
+  cp "${crx}" "${out_dir}/grxfirma-extension-chromium.crx"
+  printf '%s\n' "${ext_id}" > "${out_dir}/grxfirma-extension-chromium.id"
+  printf '%s\n' "${version}" > "${out_dir}/grxfirma-extension-chromium.version"
 }
 
 codesign_if_enabled() {
@@ -387,9 +387,9 @@ required = {
     f"{stage_name}/install-desktop-qml.sh",
     f"{stage_name}/uninstall-suite.sh",
     f"{stage_name}/VERSION.txt",
-    f"{stage_name}/extensions/dipgra-extension-chromium.zip",
-    f"{stage_name}/extensions/dipgra-extension-firefox.xpi",
-    f"{stage_name}/extensions/dipgra-extension-firefox.metadata.json",
+    f"{stage_name}/extensions/grxfirma-extension-chromium.zip",
+    f"{stage_name}/extensions/grxfirma-extension-firefox.xpi",
+    f"{stage_name}/extensions/grxfirma-extension-firefox.metadata.json",
 }
 with tarfile.open(tar_path, "r:gz") as archive:
     names = set(archive.getnames())
@@ -547,7 +547,7 @@ if [[ ! -f "${desktop_plist}" ]]; then
   echo "error: la aplicacion Qt no contiene Info.plist" >&2
   exit 1
 fi
-set_plist_string "${desktop_plist}" "CFBundleIdentifier" "es.dipgra.grxfirma.desktop"
+set_plist_string "${desktop_plist}" "CFBundleIdentifier" "io.github.aavidad.grxfirma.desktop"
 set_plist_string "${desktop_plist}" "CFBundleShortVersionString" "${VERSION}"
 set_plist_string "${desktop_plist}" "CFBundleVersion" "${VERSION}"
 set_plist_string "${desktop_plist}" "LSMinimumSystemVersion" "11.0"
@@ -570,7 +570,7 @@ cat > "${APP_DIR}/Contents/Info.plist" <<EOF
 <dict>
   <key>CFBundleName</key><string>GrxFirma AfirmaURI</string>
   <key>CFBundleDisplayName</key><string>GrxFirma AfirmaURI</string>
-  <key>CFBundleIdentifier</key><string>es.dipgra.grxfirma.afirmauri</string>
+  <key>CFBundleIdentifier</key><string>io.github.aavidad.grxfirma.afirmauri</string>
   <key>CFBundleVersion</key><string>${VERSION}</string>
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
   <key>CFBundleExecutable</key><string>grxfirma-afirmauri</string>
@@ -580,7 +580,7 @@ cat > "${APP_DIR}/Contents/Info.plist" <<EOF
   <key>CFBundleURLTypes</key>
   <array>
     <dict>
-      <key>CFBundleURLName</key><string>es.dipgra.grxfirma.afirma</string>
+      <key>CFBundleURLName</key><string>io.github.aavidad.grxfirma.afirma</string>
       <key>CFBundleURLSchemes</key>
       <array><string>afirma</string></array>
     </dict>
@@ -604,9 +604,9 @@ cp "${ROOT_DIR}/packaging/macos/README_DESKTOP_QML_MACOS.md" "${STAGE_DIR}/READM
 mkdir -p "${STAGE_DIR}/extensions"
 bash "${ROOT_DIR}/packaging/browser-extensions/build.sh"
 for extension_asset in \
-  dipgra-extension-chromium.zip \
-  dipgra-extension-firefox.xpi \
-  dipgra-extension-firefox.metadata.json; do
+  grxfirma-extension-chromium.zip \
+  grxfirma-extension-firefox.xpi \
+  grxfirma-extension-firefox.metadata.json; do
   extension_source="${ROOT_DIR}/packaging/browser-extensions/${extension_asset}"
   if [[ ! -f "${extension_source}" ]]; then
     echo "error: falta el artefacto de navegador aprobado: ${extension_source}" >&2
@@ -614,7 +614,7 @@ for extension_asset in \
   fi
   cp "${extension_source}" "${STAGE_DIR}/extensions/"
 done
-build_chromium_extension_assets "${ROOT_DIR}/packaging/browser-extensions/dipgra-extension-chromium.zip" "${STAGE_DIR}/extensions"
+build_chromium_extension_assets "${ROOT_DIR}/packaging/browser-extensions/grxfirma-extension-chromium.zip" "${STAGE_DIR}/extensions"
 if [[ "${GRXFIRMA_BUILD_SAFARI:-0}" == "1" ]]; then
   SAFARI_PROJECT_DIR="${STAGE_DIR}/safari" \
     bash "${ROOT_DIR}/packaging/browser-extensions/build-safari.sh"
@@ -674,12 +674,12 @@ fi
 EOF
   chmod 755 "${local_root}/Library/Application Support/GrxFirma/register-user.sh"
 
-  cat > "${local_root}/Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist" <<'EOF'
+  cat > "${local_root}/Library/LaunchAgents/io.github.aavidad.grxfirma.register-user.plist" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>es.dipgra.grxfirma.register-user</string>
+  <key>Label</key><string>io.github.aavidad.grxfirma.register-user</string>
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
@@ -692,7 +692,7 @@ EOF
 </plist>
 EOF
   if command -v plutil >/dev/null 2>&1; then
-    plutil -lint "${local_root}/Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist" >/dev/null
+    plutil -lint "${local_root}/Library/LaunchAgents/io.github.aavidad.grxfirma.register-user.plist" >/dev/null
   fi
   ln -s "/Library/Application Support/GrxFirma/grxfirma" "${local_root}/usr/local/bin/grxfirma"
 
@@ -700,6 +700,13 @@ EOF
 #!/usr/bin/env bash
 set -euo pipefail
 register_script="/Library/Application Support/GrxFirma/register-user.sh"
+# Las versiones anteriores instalaban el agente y el recibo con el
+# identificador es.dipgra.grxfirma; el nuevo agente los sustituye.
+legacy_agent="/Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist"
+if [[ -f "${legacy_agent}" && ! -L "${legacy_agent}" ]]; then
+  rm -f -- "${legacy_agent}"
+fi
+/usr/sbin/pkgutil --forget es.dipgra.grxfirma.suite >/dev/null 2>&1 || true
 console_user="$(stat -f '%Su' /dev/console 2>/dev/null || true)"
 if [[ -n "${console_user}" && "${console_user}" != "root" && "${console_user}" != "loginwindow" ]]; then
   console_home="$(dscl . -read "/Users/${console_user}" NFSHomeDirectory 2>/dev/null | awk '{print $2}')"
@@ -719,7 +726,7 @@ EOF
     --root "${local_root}"
     --scripts "${pkg_scripts_dir}"
     --ownership recommended
-    --identifier "es.dipgra.grxfirma.suite"
+    --identifier "io.github.aavidad.grxfirma.suite"
     --version "${VERSION}"
     --install-location "/"
     "${PKG_PATH}"

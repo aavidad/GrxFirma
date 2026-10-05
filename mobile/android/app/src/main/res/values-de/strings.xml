@@ -3,6 +3,7 @@
 <!-- Autoría: Alberto Avidad Fernández -->
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
+
 <resources>
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">Bereit zum Signieren</string>
@@ -587,7 +588,7 @@
     <string name="error_document_empty">Die Datei ist leer. Wählen Sie eine andere.</string>
     <string name="error_folder_too_many">Der Ordner enthält zu viele Dateien. Wählen Sie einen mit weniger.</string>
     <string name="export_verification_report_html">Druckbaren Bericht speichern (HTML)</string>
-    <string name="verification_report_html_filename">pruefbericht-%1$s.html</string>
+    <string name="verification_report_html_filename">%1$s_pruefbericht.html</string>
     <string name="eni_error_signature_mismatch">Die Signatur passt nicht zum Originaldokument, oder das Dokument wurde nach der Signatur geändert. Prüfen Sie, ob Sie das richtige Original gewählt haben.</string>
     <string name="qr_take_photo">QR-Code fotografieren</string>
     <string name="qr_choose_image">Bild des QR-Codes auswählen</string>

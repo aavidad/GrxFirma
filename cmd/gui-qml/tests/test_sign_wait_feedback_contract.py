@@ -2,6 +2,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """La espera de la vista del PDF antes de firmar se ve junto al botón, se
 anuncia y bloquea «Firmar ahora»; su fallo tiene un titular propio
 (revisión de usabilidad de 0.0.118)."""

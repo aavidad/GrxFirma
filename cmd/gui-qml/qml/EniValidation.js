@@ -2,6 +2,7 @@
 // Autoría: Alberto Avidad Fernández
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
+
 .pragma library
 
 function safe(text, limit) { return text.length <= limit && !/[\x00-\x1f\x7f-\x9f]/.test(text) }

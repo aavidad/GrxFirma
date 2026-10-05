@@ -106,9 +106,9 @@ PY
 
   run grep -F 'GRXFIRMA_BUILD_CHROMIUM_CRX:-0' "${BATS_TEST_DIRNAME}/../build-suite.sh"
   [ "$status" -eq 0 ]
-  run grep -F 'dipgra-extension-*' "${BATS_TEST_DIRNAME}/../build-suite.sh"
+  run grep -F 'grxfirma-extension-*' "${BATS_TEST_DIRNAME}/../build-suite.sh"
   [ "$status" -ne 0 ]
-  run grep -F 'dipgra-extension-firefox.metadata.json' "${BATS_TEST_DIRNAME}/../build-suite.sh"
+  run grep -F 'grxfirma-extension-firefox.metadata.json' "${BATS_TEST_DIRNAME}/../build-suite.sh"
   [ "$status" -eq 0 ]
 
   for script in \
@@ -132,12 +132,12 @@ PY
   [ "$status" -eq 0 ]
   run grep -F '"${STAGE_DIR}/BUILDINFO" "${PKG_ROOT}/usr/share/doc/grxfirma/BUILDINFO"' "${script}"
   [ "$status" -eq 0 ]
-  run grep -F '"${STAGE_DIR}/extensions/dipgra-extension-chromium.zip" "${PKG_ROOT}/usr/lib/grxfirma/extensions/dipgra-extension-chromium.zip"' "${script}"
+  run grep -F '"${STAGE_DIR}/extensions/grxfirma-extension-chromium.zip" "${PKG_ROOT}/usr/lib/grxfirma/extensions/grxfirma-extension-chromium.zip"' "${script}"
   [ "$status" -eq 0 ]
 }
 
 @test "protocol handler is hidden and an invocation without URI opens the desktop" {
-  run grep -Fx 'NoDisplay=true' "${BATS_TEST_DIRNAME}/../../../grxfirma.desktop"
+  run grep -Fx 'NoDisplay=true' "${BATS_TEST_DIRNAME}/../grxfirma.desktop"
   [ "$status" -eq 0 ]
   run grep -F 'if [[ -z "${uri}" ]]; then' "${BATS_TEST_DIRNAME}/../build-suite.sh"
   [ "$status" -eq 0 ]

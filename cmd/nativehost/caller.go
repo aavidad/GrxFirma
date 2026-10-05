@@ -22,7 +22,7 @@ import (
 
 const (
 	officialChromiumExtensionID   = "pkefjandjcgdmhoonmhnllikibobijgg"
-	officialFirefoxExtensionID    = "extension@dipgra.es"
+	officialFirefoxExtensionID    = "grxfirma@aavidad.github.io"
 	portafirmasFirefoxExtensionID = "portafirmas@dipgra.es"
 	maxNativeManifestBytes        = 64 * 1024
 )
@@ -32,14 +32,13 @@ var (
 	firefoxExtensionIDPattern  = regexp.MustCompile(`^[A-Za-z0-9._@{}-]{1,128}$`)
 	parentWindowArgPattern     = regexp.MustCompile(`^--parent-window=[0-9]+$`)
 	nativeHostManifestNames    = map[string]struct{}{
-		"com.grxfirma.native":    {},
-		"com.dipgra.grxfirma":    {},
-		"com.dipgra.portafirmas": {},
+		"com.grxfirma.native":           {},
+		"io.github.aavidad.grxfirma":    {},
+		"io.github.aavidad.portafirmas": {},
 	}
 	builtinChromiumExtensionIDs = []string{
 		officialChromiumExtensionID,
 		"ipkpimgjhkjibkbhfdhggjldlaetbcoa",
-		"knldjmfmopnpolahpmmgbagdohdnhkik",
 	}
 )
 
@@ -189,11 +188,11 @@ func installedChromiumIDCandidates(executable string) []string {
 	}
 	dir := filepath.Dir(executable)
 	return uniqueCleanPaths([]string{
-		filepath.Join(dir, "extensions", "dipgra-extension-chromium.id"),
-		filepath.Join(dir, "extensions", "chromium", "dipgra-extension-chromium.id"),
-		filepath.Join(dir, "..", "extensions", "dipgra-extension-chromium.id"),
-		filepath.Join(dir, "..", "extensions", "chromium", "dipgra-extension-chromium.id"),
-		filepath.Join(dir, "..", "Extensions", "chromium", "dipgra-extension-chromium.id"),
+		filepath.Join(dir, "extensions", "grxfirma-extension-chromium.id"),
+		filepath.Join(dir, "extensions", "chromium", "grxfirma-extension-chromium.id"),
+		filepath.Join(dir, "..", "extensions", "grxfirma-extension-chromium.id"),
+		filepath.Join(dir, "..", "extensions", "chromium", "grxfirma-extension-chromium.id"),
+		filepath.Join(dir, "..", "Extensions", "chromium", "grxfirma-extension-chromium.id"),
 	})
 }
 
@@ -201,8 +200,8 @@ func nativeManifestCandidates(executable, home string) []string {
 	var candidates []string
 	names := []string{
 		"com.grxfirma.native.json",
-		"com.dipgra.grxfirma.json",
-		"com.dipgra.portafirmas.json",
+		"io.github.aavidad.grxfirma.json",
+		"io.github.aavidad.portafirmas.json",
 	}
 	addDir := func(dir string) {
 		if strings.TrimSpace(dir) == "" {

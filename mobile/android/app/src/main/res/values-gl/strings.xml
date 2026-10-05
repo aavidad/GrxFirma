@@ -3,6 +3,7 @@
 <!-- Autoría: Alberto Avidad Fernández -->
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
+
 <resources>
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">Listo para asinar</string>
@@ -587,7 +588,7 @@
     <string name="error_document_empty">O ficheiro está baleiro. Escolla outro.</string>
     <string name="error_folder_too_many">O cartafol ten demasiados ficheiros. Escolla un con menos.</string>
     <string name="export_verification_report_html">Gardar informe imprimible (HTML)</string>
-    <string name="verification_report_html_filename">informe-verificacion-%1$s.html</string>
+    <string name="verification_report_html_filename">%1$s_informe_verificacion.html</string>
     <string name="eni_error_signature_mismatch">A sinatura non corresponde ao documento orixinal ou o documento modificouse despois de asinalo. Comprobe que escolleu o orixinal correcto.</string>
     <string name="qr_take_photo">Facer unha foto do QR</string>
     <string name="qr_choose_image">Escoller unha imaxe do QR</string>

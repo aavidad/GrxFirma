@@ -8,7 +8,7 @@
 Fecha inicial: 2026-03-20.
 
 Última revisión técnica: 2026-07-29.
-Autor: Oficina de Software Libre de la Diputacion de Granada.
+Autoría: Alberto Avidad Fernández
 Estado: mapa operativo vivo.
 
 ---

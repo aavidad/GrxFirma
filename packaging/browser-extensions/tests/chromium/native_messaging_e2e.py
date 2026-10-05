@@ -28,13 +28,13 @@ from typing import Any, Iterator
 import zipfile
 
 
-HOST_NAME = "com.dipgra.grxfirma"
+HOST_NAME = "io.github.aavidad.grxfirma"
 BACKGROUND_PATH = "background.js"
 MAX_PACKAGE_BYTES = 20 * 1024 * 1024
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_PACKAGE = (
-    REPO_ROOT / "packaging" / "browser-extensions" / "dipgra-extension-chromium.zip"
+    REPO_ROOT / "packaging" / "browser-extensions" / "grxfirma-extension-chromium.zip"
 )
 
 NEGATIVE_ROUNDTRIP = r"""

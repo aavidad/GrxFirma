@@ -1,3 +1,8 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
 # Los PDF de prueba contienen offsets byte a byte; Windows no debe convertir LF a CRLF.
 third_party/pdf/testdata/*.pdf -text
 # Corpus del dictamen v2: huellas SHA-256 sobre los bytes exactos.

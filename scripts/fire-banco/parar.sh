@@ -3,6 +3,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 #
 # Detiene el Tomcat del banco FIRe.
 set -euo pipefail

@@ -102,12 +102,12 @@ jobs:
         working-directory: third_party/pdf
         run: go test -count=1 ./...
 
-      # T032: variante nativa del catálogo NSS (libnss3 vía CGo, opt-in con
+      # Variante nativa del catálogo NSS (libnss3 vía CGo, opt-in con
       # -tags nss_cgo). Prueba contra una base NSS real creada con certutil.
-      - name: Test NSS CGo (T032)
+      - name: Test NSS CGo
         run: |
           go vet -tags nss_cgo ./internal/adapters/outbound/desktop/nssstore/
           go test -tags nss_cgo ./internal/adapters/outbound/desktop/nssstore/ -count=1
 
-      - name: Release security gate (T113/T114)
+      - name: Release security gate
         run: ./scripts/release/check-release-gate.sh

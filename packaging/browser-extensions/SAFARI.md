@@ -110,7 +110,7 @@ Variables admitidas:
 SAFARI_EXTENSION_SRC=packaging/browser-extensions/src/chromium
 SAFARI_PROJECT_DIR=release/safari-web-extension
 SAFARI_APP_NAME="GrxFirma Safari"
-SAFARI_BUNDLE_ID=es.dipgra.grxfirma.safari
+SAFARI_BUNDLE_ID=io.github.aavidad.grxfirma.safari
 SAFARI_MIN_MACOS=12.3
 SAFARI_DEFAULT_ENDPOINT=https://127.0.0.1:63118
 ```
@@ -212,7 +212,7 @@ xcrun stapler staple "GrxFirma Safari.app"
 ```
 
 Las dos salidas de entitlements deben mostrar exactamente el mismo access group
-expandido, por ejemplo `TEAMID.es.dipgra.grxfirma.safari.shared`.
+expandido, por ejemplo `TEAMID.io.github.aavidad.grxfirma.safari.shared`.
 
 La entrega no se considera cerrada hasta verificar el artefacto firmado en otra
 cuenta de usuario, con Safari estable, y registrar versiones de macOS, Safari,

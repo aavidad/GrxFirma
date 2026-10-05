@@ -3,6 +3,7 @@
 <!-- Autoría: Alberto Avidad Fernández -->
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
+
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
     <locale android:name="es" />
     <locale android:name="en" />

@@ -1,3 +1,8 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
 Las coincidencias ENI autorizadas son traducciones con la misma grafía,
 no textos pendientes de traducir. Esta tabla justifica cada entrada nueva.
 

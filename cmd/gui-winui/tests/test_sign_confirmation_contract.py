@@ -2,6 +2,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """«Confirmar antes de firmar» se respeta en WinUI (recorrido 0.0.117, A3)."""
 
 import unittest

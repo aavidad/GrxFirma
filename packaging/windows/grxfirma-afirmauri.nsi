@@ -72,7 +72,7 @@ Section "Handler afirma://" SEC01
   WriteRegStr HKCU "Software\GrxFirmaAfirmaURI" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayName" "GrxFirma AfirmaURI"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayVersion" "${VERSION}"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "Publisher" "Alberto Avidad Fernandez - OSL Diputacion de Granada"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "Publisher" "Alberto Avidad Fernández"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayIcon" "$INSTDIR\grxfirma.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -96,11 +96,14 @@ SectionEnd
 
 Section -post
   SetShellVarContext current
-  CreateDirectory "$SMPROGRAMS\Diputación de Granada"
+  CreateDirectory "$SMPROGRAMS\GrxFirma"
+  Delete "$SMPROGRAMS\GrxFirma\GrxFirma AfirmaURI - Documentación.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma AfirmaURI - Documentación.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma AfirmaURI.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma AfirmaURI.lnk"
-  CreateShortcut "$SMPROGRAMS\Diputación de Granada\GrxFirma AfirmaURI - Documentación.lnk" "$INSTDIR\README_AFIRMAURI_WINDOWS.md"
-  CreateShortcut "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma AfirmaURI.lnk" "$INSTDIR\uninstall.exe"
+  RMDir "$SMPROGRAMS\Diputación de Granada"
+  CreateShortcut "$SMPROGRAMS\GrxFirma\GrxFirma AfirmaURI - Documentación.lnk" "$INSTDIR\README_AFIRMAURI_WINDOWS.md"
+  CreateShortcut "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma AfirmaURI.lnk" "$INSTDIR\uninstall.exe"
 SectionEnd
 
 Section "Uninstall"
@@ -128,11 +131,12 @@ Section "Uninstall"
   Delete "$INSTDIR\grxfirma.ico"
   Delete "$INSTDIR\grxfirma-diputacion.ico"
   Delete "$INSTDIR\uninstall.exe"
-  Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma AfirmaURI - Documentación.lnk"
-  Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma AfirmaURI.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\GrxFirma AfirmaURI - Documentación.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma AfirmaURI.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma AfirmaURI - Documentación.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma AfirmaURI.lnk"
   RMDir "$SMPROGRAMS\Diputación de Granada"
+  RMDir "$SMPROGRAMS\GrxFirma"
   RMDir "$INSTDIR"
   RMDir "$LOCALAPPDATA\Programs\GrxFirma"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI"

@@ -43,7 +43,7 @@
             android:layout_marginTop="8dp"
             android:hint="@string/cert_filter_kind">
 
-            <es.dipgra.grxfirma.android.ui.DropdownField
+            <io.github.aavidad.grxfirma.android.ui.DropdownField
                 android:id="@+id/certificateKindFilter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

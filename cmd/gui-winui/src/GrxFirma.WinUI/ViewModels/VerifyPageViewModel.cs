@@ -562,13 +562,16 @@ public sealed class VerifyPageViewModel
         }
         Warnings = warnings.Take(MaximumVisibleItems).ToArray();
 
+        // Los detalles llegan como claves del motor («error_cadena=x509_caducado»);
+        // se traducen con el mismo catálogo que Qt y el informe.
         Details = data.VisibleDetails
             .Concat(data.Integrity.VisibleDetails)
             .Concat(data.Certificate.VisibleDetails)
             .Concat(data.Trust.VisibleDetails)
+            .Select(static line => VerificationDetailText.Detail(line))
             .Concat(data.VisibleEvidence.Select(
                 item => Localizer.Format("{0}: {1}",
-                    Localizer.VisibleText(SafeIpcText.Clean(item.Type, 80,
+                    VerificationDetailText.EvidenceType(SafeIpcText.Clean(item.Type, 80,
                         Localizer.Text("winui.verificar.evidencia"))),
                     Localizer.VisibleText(SafeIpcText.Clean(item.Summary, 320,
                         Localizer.Text("winui.verificar.sin_detalle"))))))

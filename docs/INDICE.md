@@ -8,6 +8,7 @@
 ## Uso
 
 - [Guía de operador](operador.md)
+- [Uso avanzado: línea de órdenes, variables y protección](USO_AVANZADO.md)
 - [Novedades](NOVEDADES.md)
 - [Límites conocidos](LIMITES_Y_EXCLUSIONES.md)
 - [Diagnóstico](DIAGNOSTICO_OPERACIONES_Y_TRAZAS.md)

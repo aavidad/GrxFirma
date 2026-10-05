@@ -2,6 +2,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """Verificar: informe HTML como acción principal, firmante y foco (0.0.117, M2-M3)."""
 
 import unittest

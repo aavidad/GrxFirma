@@ -13,9 +13,9 @@
 #
 # Variables (con valores por defecto SOLO válidos para pruebas locales;
 # para la Store deben ser los del Partner Center):
-#   MSIX_IDENTITY_NAME       p. ej. DiputacionGranada.GrxFirma
+#   MSIX_IDENTITY_NAME       p. ej. GrxFirma.GrxFirma
 #   MSIX_PUBLISHER           p. ej. CN=XXXXXXXX-XXXX-... (el del Partner Center)
-#   MSIX_PUBLISHER_DISPLAY   p. ej. Diputación de Granada
+#   MSIX_PUBLISHER_DISPLAY   p. ej. Alberto Avidad Fernández
 
 $ErrorActionPreference = "Stop"
 
@@ -28,9 +28,9 @@ $Layout = Join-Path $OutDir "layout"
 $Plantilla = Join-Path $Raiz "packaging/windows/msix/AppxManifest.xml.in"
 $AssetsDir = Join-Path $Raiz "packaging/windows/msix/Assets"
 
-$IdentityName = if ($env:MSIX_IDENTITY_NAME) { $env:MSIX_IDENTITY_NAME } else { "DiputacionGranada.GrxFirma" }
-$Publisher = if ($env:MSIX_PUBLISHER) { $env:MSIX_PUBLISHER } else { "CN=Diputacion de Granada" }
-$PublisherDisplay = if ($env:MSIX_PUBLISHER_DISPLAY) { $env:MSIX_PUBLISHER_DISPLAY } else { "Diputación de Granada" }
+$IdentityName = if ($env:MSIX_IDENTITY_NAME) { $env:MSIX_IDENTITY_NAME } else { "GrxFirma.GrxFirma" }
+$Publisher = if ($env:MSIX_PUBLISHER) { $env:MSIX_PUBLISHER } else { "CN=Alberto Avidad Fernandez" }
+$PublisherDisplay = if ($env:MSIX_PUBLISHER_DISPLAY) { $env:MSIX_PUBLISHER_DISPLAY } else { "Alberto Avidad Fernández" }
 
 # Versión MSIX: cuatro componentes numéricos. La Store exige que el último sea 0.
 $versionFile = Join-Path $Raiz "VERSION.txt"

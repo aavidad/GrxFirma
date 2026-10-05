@@ -2,6 +2,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """Avisos que se ven y se oyen: espera y fallo de la vista previa antes de
 firmar, informe guardado en Verificar y destino no disponible en Proteger
 (revisión de usabilidad de 0.0.118)."""

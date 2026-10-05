@@ -3,6 +3,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """Empaqueta solo los mensajes del catálogo desktop que utiliza el verificador."""
 import json
 import re

@@ -76,7 +76,7 @@ val androidScripts = layout.projectDirectory.dir("../../../scripts/mobile/androi
 fun quoted(value: String): String = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
 
 android {
-    namespace = "es.dipgra.grxfirma.android"
+    namespace = "io.github.aavidad.grxfirma.android"
     compileSdk = 36
     buildToolsVersion = "36.0.0"
 
@@ -89,7 +89,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "es.dipgra.grxfirma"
+        applicationId = "io.github.aavidad.grxfirma"
         minSdk = 26
         targetSdk = 36
         versionCode = configuredVersionCode

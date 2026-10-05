@@ -235,7 +235,7 @@ if [[ ! -f "${desktop_plist}" ]]; then
   echo "error: la aplicacion Qt no contiene Info.plist" >&2
   exit 1
 fi
-set_plist_string "${desktop_plist}" "CFBundleIdentifier" "es.dipgra.grxfirma.desktop"
+set_plist_string "${desktop_plist}" "CFBundleIdentifier" "io.github.aavidad.grxfirma.desktop"
 set_plist_string "${desktop_plist}" "CFBundleShortVersionString" "${VERSION}"
 set_plist_string "${desktop_plist}" "CFBundleVersion" "${VERSION}"
 set_plist_string "${desktop_plist}" "LSMinimumSystemVersion" "11.0"

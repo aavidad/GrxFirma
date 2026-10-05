@@ -134,7 +134,7 @@ _grxfirma_generate_debian_depends() {
 Source: ${package_name}
 Section: utils
 Priority: optional
-Maintainer: Diputacion de Granada <avidad@dipgra.es>
+Maintainer: Alberto Avidad Fernández <avidad@dipgra.es>
 Standards-Version: 4.6.2
 
 Package: ${package_name}

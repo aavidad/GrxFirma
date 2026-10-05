@@ -97,7 +97,7 @@
 #if GRXFIRMA_PRODUCTION_CORE
 - (AFV2CoreCallResult *)call:(NSString * _Nullable (^)(NSError **))operation code:(NSString *)code {
     if (!self.available || self.facade == nil) {
-        NSError *error = [NSError errorWithDomain:@"es.dipgra.grxfirma.core"
+        NSError *error = [NSError errorWithDomain:@"io.github.aavidad.grxfirma.core"
                                              code:1
                                          userInfo:@{NSLocalizedDescriptionKey: self.readinessDetail}];
         return [AFV2CoreCallResult failure:self.readinessCode error:error];
@@ -105,7 +105,7 @@
     NSError *error = nil;
     NSString *value = operation(&error);
     if (value == nil || error != nil) {
-        NSError *reported = error ?: [NSError errorWithDomain:@"es.dipgra.grxfirma.core"
+        NSError *reported = error ?: [NSError errorWithDomain:@"io.github.aavidad.grxfirma.core"
                                                           code:2
                                                       userInfo:@{NSLocalizedDescriptionKey: @"Respuesta vacía del núcleo."}];
         return [AFV2CoreCallResult failure:code error:reported];
@@ -114,7 +114,7 @@
 }
 #else
 - (AFV2CoreCallResult *)unavailable {
-    NSError *error = [NSError errorWithDomain:@"es.dipgra.grxfirma.core"
+    NSError *error = [NSError errorWithDomain:@"io.github.aavidad.grxfirma.core"
                                          code:3
                                      userInfo:@{NSLocalizedDescriptionKey: self.readinessDetail}];
     return [AFV2CoreCallResult failure:self.readinessCode error:error];
@@ -125,14 +125,14 @@
 #if GRXFIRMA_PRODUCTION_CORE
     if (!self.available || self.facade == nil) {
         return [AFV2CoreCallResult failure:self.readinessCode
-                                     error:[NSError errorWithDomain:@"es.dipgra.grxfirma.core"
+                                     error:[NSError errorWithDomain:@"io.github.aavidad.grxfirma.core"
                                                                code:4
                                                            userInfo:@{NSLocalizedDescriptionKey: self.readinessDetail}]];
     }
     NSString *value = [self.facade mobileContractJSON];
     if (value == nil || value.length == 0) {
         return [AFV2CoreCallResult failure:@"contract_failed"
-                                     error:[NSError errorWithDomain:@"es.dipgra.grxfirma.core"
+                                     error:[NSError errorWithDomain:@"io.github.aavidad.grxfirma.core"
                                                                code:5
                                                            userInfo:@{NSLocalizedDescriptionKey: @"Contrato mobile vacío."}]];
     }

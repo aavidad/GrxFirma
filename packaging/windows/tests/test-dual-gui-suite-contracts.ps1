@@ -458,7 +458,7 @@ try {
         }
         $shortcutPath = Join-Path `
             $env:APPDATA `
-            "Microsoft\Windows\Start Menu\Programs\Diputación de Granada\GrxFirma - Windows nativo.lnk"
+            "Microsoft\Windows\Start Menu\Programs\GrxFirma\GrxFirma - Windows nativo.lnk"
         if (-not (Test-Path -LiteralPath $shortcutPath -PathType Leaf)) {
             throw "No se creo el acceso directo WinUI."
         }

@@ -3,6 +3,7 @@
 <!-- Autoría: Alberto Avidad Fernández -->
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
+
 <resources>
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">A punt per signar</string>
@@ -604,7 +605,7 @@
     <string name="error_document_empty">El fitxer és buit. Trieu-ne un altre.</string>
     <string name="error_folder_too_many">La carpeta té massa fitxers. Trieu-ne una amb menys.</string>
     <string name="export_verification_report_html">Desar l\'informe imprimible (HTML)</string>
-    <string name="verification_report_html_filename">informe-verificacio-%1$s.html</string>
+    <string name="verification_report_html_filename">%1$s_informe_verificacio.html</string>
     <string name="eni_error_signature_mismatch">La signatura no correspon al document original o el document s\'ha modificat després de signar-lo. Comproveu que heu triat l\'original correcte.</string>
     <string name="qr_take_photo">Fer una foto del QR</string>
     <string name="qr_choose_image">Triar una imatge del QR</string>

@@ -2,6 +2,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """Proteger sin jerga y con estado vacío (recorrido Windows 0.0.117, M6)."""
 
 import unittest

@@ -124,11 +124,22 @@ foreach ($item in Get-ChildItem -LiteralPath $appSource -Force) {
         -Force
 }
 $programsDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
-$startMenuDir = Join-Path $programsDir "Diputación de Granada"
+$startMenuDir = Join-Path $programsDir "GrxFirma"
+# Versiones anteriores creaban el acceso en esta carpeta; se retira solo el
+# propio y la carpeta se elimina únicamente si queda vacía.
+$legacyStartMenuDir = Join-Path $programsDir "Diputación de Granada"
 New-Item -ItemType Directory -Force -Path $startMenuDir | Out-Null
-$legacyShortcut = Join-Path $programsDir "GrxFirma\GrxFirma - Windows nativo.lnk"
+$legacyShortcut = Join-Path $legacyStartMenuDir "GrxFirma - Windows nativo.lnk"
 if (Test-Path -LiteralPath $legacyShortcut -PathType Leaf) {
     Remove-Item -LiteralPath $legacyShortcut -Force
+}
+if (Test-Path -LiteralPath $legacyStartMenuDir -PathType Container) {
+    $legacyRemaining = @(
+        Get-ChildItem -LiteralPath $legacyStartMenuDir -Force -ErrorAction SilentlyContinue
+    )
+    if ($legacyRemaining.Count -eq 0) {
+        Remove-Item -LiteralPath $legacyStartMenuDir -Force
+    }
 }
 Remove-Item -LiteralPath (Join-Path $startMenuDir "GrxFirma - Windows nativo.lnk") -Force -ErrorAction SilentlyContinue
 $shortcutPath = Join-Path $startMenuDir "GrxFirma - Windows nativo.lnk"

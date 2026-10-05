@@ -20,12 +20,12 @@ MANIFEST_DIR_FIREFOX="${HOME}/Library/Application Support/Mozilla/NativeMessagin
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC_BIN="${SELF_DIR}/grxfirma-nativehost"
 DST_BIN="${BASE_DIR}/grxfirma-nativehost"
-FIREFOX_XPI="${SELF_DIR}/extensions/dipgra-extension-firefox.xpi"
-FIREFOX_METADATA="${SELF_DIR}/extensions/dipgra-extension-firefox.metadata.json"
-CHROMIUM_ZIP="${SELF_DIR}/extensions/dipgra-extension-chromium.zip"
-CHROMIUM_CRX="${SELF_DIR}/extensions/dipgra-extension-chromium.crx"
-CHROMIUM_ID_FILE="${SELF_DIR}/extensions/dipgra-extension-chromium.id"
-CHROMIUM_VERSION_FILE="${SELF_DIR}/extensions/dipgra-extension-chromium.version"
+FIREFOX_XPI="${SELF_DIR}/extensions/grxfirma-extension-firefox.xpi"
+FIREFOX_METADATA="${SELF_DIR}/extensions/grxfirma-extension-firefox.metadata.json"
+CHROMIUM_ZIP="${SELF_DIR}/extensions/grxfirma-extension-chromium.zip"
+CHROMIUM_CRX="${SELF_DIR}/extensions/grxfirma-extension-chromium.crx"
+CHROMIUM_ID_FILE="${SELF_DIR}/extensions/grxfirma-extension-chromium.id"
+CHROMIUM_VERSION_FILE="${SELF_DIR}/extensions/grxfirma-extension-chromium.version"
 EXTERNAL_DIR_CHROME="${HOME}/Library/Application Support/Google/Chrome/External Extensions"
 EXTERNAL_DIR_CHROMIUM="${HOME}/Library/Application Support/Chromium/External Extensions"
 EXTERNAL_DIR_EDGE="${HOME}/Library/Application Support/Microsoft Edge/External Extensions"
@@ -174,17 +174,47 @@ write_firefox_manifest() {
 
 for dir in "$MANIFEST_DIR_CHROME" "$MANIFEST_DIR_CHROMIUM" "$MANIFEST_DIR_EDGE" "$MANIFEST_DIR_BRAVE" "$MANIFEST_DIR_VIVALDI" "$MANIFEST_DIR_OPERA"; do
   write_chrome_manifest "$dir/com.grxfirma.native.json" "com.grxfirma.native" "${CHROME_ORIGINS[@]}"
-  write_chrome_manifest "$dir/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "${CHROME_ORIGINS[@]}"
+  write_chrome_manifest "$dir/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${CHROME_ORIGINS[@]}"
   write_chrome_manifest \
-    "$dir/com.dipgra.portafirmas.json" \
-    "com.dipgra.portafirmas" \
-    "chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/" \
-    "chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"
+    "$dir/io.github.aavidad.portafirmas.json" \
+    "io.github.aavidad.portafirmas" \
+    "chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"
 done
 
-write_firefox_manifest "$MANIFEST_DIR_FIREFOX/com.grxfirma.native.json" "com.grxfirma.native" "extension@dipgra.es"
-write_firefox_manifest "$MANIFEST_DIR_FIREFOX/com.dipgra.grxfirma.json" "com.dipgra.grxfirma" "extension@dipgra.es"
-write_firefox_manifest "$MANIFEST_DIR_FIREFOX/com.dipgra.portafirmas.json" "com.dipgra.portafirmas" "portafirmas@dipgra.es"
+write_firefox_manifest "$MANIFEST_DIR_FIREFOX/com.grxfirma.native.json" "com.grxfirma.native" "grxfirma@aavidad.github.io"
+write_firefox_manifest "$MANIFEST_DIR_FIREFOX/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "grxfirma@aavidad.github.io"
+write_firefox_manifest "$MANIFEST_DIR_FIREFOX/io.github.aavidad.portafirmas.json" "io.github.aavidad.portafirmas" "portafirmas@dipgra.es"
+
+# Las versiones anteriores registraban los hosts com.dipgra.* y la extension
+# Firefox extension@dipgra.es. Se retiran solo los manifiestos que apuntan a
+# este host y las copias del XPI identicas a la que instalo GrxFirma.
+legacy_host_path="$(json_quote "${DST_BIN}")"
+for dir in "$MANIFEST_DIR_CHROME" "$MANIFEST_DIR_CHROMIUM" "$MANIFEST_DIR_EDGE" "$MANIFEST_DIR_BRAVE" "$MANIFEST_DIR_VIVALDI" "$MANIFEST_DIR_OPERA" "$MANIFEST_DIR_FIREFOX"; do
+  for legacy_name in com.dipgra.grxfirma com.dipgra.portafirmas; do
+    legacy_manifest="${dir}/${legacy_name}.json"
+    [[ -f "${legacy_manifest}" && ! -L "${legacy_manifest}" ]] || continue
+    if grep -Fq "\"path\": ${legacy_host_path}" "${legacy_manifest}"; then
+      rm -f -- "${legacy_manifest}"
+    fi
+  done
+done
+legacy_packaged_xpi="$EXT_DIR/firefox/dipgra-extension-firefox.xpi"
+if [[ -f "${legacy_packaged_xpi}" && ! -L "${legacy_packaged_xpi}" ]]; then
+  legacy_xpi_hash="$(shasum -a 256 "${legacy_packaged_xpi}" | awk '{print $1}')"
+  for prof in "${HOME}"/Library/Application\ Support/Firefox/Profiles/*; do
+    legacy_profile_xpi="${prof}/extensions/extension@dipgra.es.xpi"
+    [[ -f "${legacy_profile_xpi}" && ! -L "${legacy_profile_xpi}" ]] || continue
+    if [[ "$(shasum -a 256 "${legacy_profile_xpi}" | awk '{print $1}')" == "${legacy_xpi_hash}" ]]; then
+      rm -f -- "${legacy_profile_xpi}"
+    fi
+  done
+fi
+rm -f "$EXT_DIR/firefox/dipgra-extension-firefox.xpi" \
+  "$EXT_DIR/firefox/dipgra-extension-firefox.metadata.json" \
+  "$EXT_DIR/chromium/dipgra-extension-chromium.zip" \
+  "$EXT_DIR/chromium/dipgra-extension-chromium.crx" \
+  "$EXT_DIR/chromium/dipgra-extension-chromium.id" \
+  "$EXT_DIR/chromium/dipgra-extension-chromium.version"
 
 firefox_xpi_is_approved() {
   [[ -f "${FIREFOX_XPI}" && -f "${FIREFOX_METADATA}" ]] || return 1
@@ -203,7 +233,7 @@ firefox_xpi_is_approved() {
     extension_id="$(/usr/bin/plutil -extract extension_id raw -o - "${FIREFOX_METADATA}" 2>/dev/null)" || return 1
     signed="$(/usr/bin/plutil -extract signed raw -o - "${FIREFOX_METADATA}" 2>/dev/null)" || return 1
     expected="$(/usr/bin/plutil -extract xpi_sha256 raw -o - "${FIREFOX_METADATA}" 2>/dev/null)" || return 1
-    [[ "${extension_id}" == "extension@dipgra.es" ]] || return 1
+    [[ "${extension_id}" == "grxfirma@aavidad.github.io" ]] || return 1
     [[ "${signed}" == "true" ]] || return 1
     [[ "${expected}" =~ ^[0-9a-fA-F]{64}$ ]] || return 1
     actual="$(shasum -a 256 "${FIREFOX_XPI}" | awk '{print $1}')"
@@ -238,7 +268,7 @@ except (OSError, UnicodeError, ValueError):
 expected = payload.get("xpi_sha256")
 if (
     payload.get("signed") is not True
-    or payload.get("extension_id") != "extension@dipgra.es"
+    or payload.get("extension_id") != "grxfirma@aavidad.github.io"
     or not isinstance(expected, str)
     or re.fullmatch(r"[0-9a-fA-F]{64}", expected) is None
 ):
@@ -252,17 +282,17 @@ PY
 }
 
 if [[ -f "$FIREFOX_XPI" ]]; then
-  install -m 644 "$FIREFOX_XPI" "$EXT_DIR/firefox/dipgra-extension-firefox.xpi"
+  install -m 644 "$FIREFOX_XPI" "$EXT_DIR/firefox/grxfirma-extension-firefox.xpi"
   if [[ -f "${FIREFOX_METADATA}" ]]; then
-    install -m 644 "${FIREFOX_METADATA}" "$EXT_DIR/firefox/dipgra-extension-firefox.metadata.json"
+    install -m 644 "${FIREFOX_METADATA}" "$EXT_DIR/firefox/grxfirma-extension-firefox.metadata.json"
   else
-    rm -f "$EXT_DIR/firefox/dipgra-extension-firefox.metadata.json"
+    rm -f "$EXT_DIR/firefox/grxfirma-extension-firefox.metadata.json"
   fi
   if firefox_xpi_is_approved && [[ -d "${HOME}/Library/Application Support/Firefox/Profiles" ]]; then
     for prof in "${HOME}"/Library/Application\ Support/Firefox/Profiles/*; do
       [[ -d "${prof}" && -f "${prof}/prefs.js" ]] || continue
       mkdir -p "${prof}/extensions"
-      install -m 644 "$FIREFOX_XPI" "${prof}/extensions/extension@dipgra.es.xpi"
+      install -m 644 "$FIREFOX_XPI" "${prof}/extensions/grxfirma@aavidad.github.io.xpi"
     done
   elif ! firefox_xpi_is_approved; then
     echo "Aviso: el XPI Firefox no esta firmado/aprobado o no coincide con su SHA-256; no se instala en perfiles estables." >&2
@@ -270,12 +300,12 @@ if [[ -f "$FIREFOX_XPI" ]]; then
 fi
 
 if [[ -f "$CHROMIUM_ZIP" ]]; then
-  install -m 644 "$CHROMIUM_ZIP" "$EXT_DIR/chromium/dipgra-extension-chromium.zip"
+  install -m 644 "$CHROMIUM_ZIP" "$EXT_DIR/chromium/grxfirma-extension-chromium.zip"
 fi
 if [[ -f "$CHROMIUM_CRX" && -f "$CHROMIUM_ID_FILE" && -f "$CHROMIUM_VERSION_FILE" ]]; then
-  install -m 644 "$CHROMIUM_CRX" "$EXT_DIR/chromium/dipgra-extension-chromium.crx"
-  install -m 644 "$CHROMIUM_ID_FILE" "$EXT_DIR/chromium/dipgra-extension-chromium.id"
-  install -m 644 "$CHROMIUM_VERSION_FILE" "$EXT_DIR/chromium/dipgra-extension-chromium.version"
+  install -m 644 "$CHROMIUM_CRX" "$EXT_DIR/chromium/grxfirma-extension-chromium.crx"
+  install -m 644 "$CHROMIUM_ID_FILE" "$EXT_DIR/chromium/grxfirma-extension-chromium.id"
+  install -m 644 "$CHROMIUM_VERSION_FILE" "$EXT_DIR/chromium/grxfirma-extension-chromium.version"
 fi
 
 register_external_update() {

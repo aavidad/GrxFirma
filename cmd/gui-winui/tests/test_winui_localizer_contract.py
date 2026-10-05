@@ -63,6 +63,11 @@ C_SHARP_FORMAT_EXCEPTIONS = {
     ("Services/WindowsHelpLauncherService.cs", "ayuda-{expression}.pdf"),
     ("Services/SingleInstanceSignal.cs", "D:P(A;;0x001F0003;;;{expression})(A;;0x001F0003;;;SY)"),
     ("Controls/OperationDiagnosticDialog.xaml.cs", "diagnostico-grxfirma-{expression}"),
+    # Prefijos de familias de claves del catálogo (como TraducirDetalle en Go):
+    # el sufijo es el código del motor y la clave completa se busca en tiempo de ejecución.
+    ("GrxFirma.WinUI.Core/Operations/VerificationDetailText.cs", "verificacion.detalle."),
+    ("GrxFirma.WinUI.Core/Operations/VerificationDetailText.cs", "verificacion.detalle.valor."),
+    ("GrxFirma.WinUI.Core/Operations/VerificationDetailText.cs", "report.evidence."),
     ("App.xaml.cs", "{DateTimeOffset.Now:O} {error.GetType().FullName} 0x{error.HResult:X8}{Environment.NewLine}{error}{Environment.NewLine}{Environment.NewLine}"),
 }
 LANGUAGE_SELF_NAMES = {"Español", "Català", "Valencià", "Euskara", "Galego",

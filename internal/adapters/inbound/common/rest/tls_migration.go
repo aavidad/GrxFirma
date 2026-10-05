@@ -115,10 +115,13 @@ func legacyRESTLeafOwned(leaf, root *x509.Certificate) bool {
 	if leaf.CheckSignatureFrom(root) == nil {
 		return true
 	}
-	// La antigua orden CLI generaba una hoja autofirmada con este perfil.
+	// La antigua orden CLI generaba una hoja autofirmada con este perfil; las
+	// versiones anteriores usaban otra organización y se siguen reconociendo.
 	return bytes.Equal(leaf.RawIssuer, leaf.RawSubject) &&
 		leaf.Subject.CommonName == "localhost" &&
-		len(leaf.Subject.Organization) == 1 && leaf.Subject.Organization[0] == "Diputacion de Granada" &&
+		len(leaf.Subject.Organization) == 1 &&
+		(leaf.Subject.Organization[0] == localtlstrust.ManagedLocalCAOrganization ||
+			leaf.Subject.Organization[0] == "Diputacion de Granada") &&
 		len(leaf.DNSNames) == 1 && leaf.DNSNames[0] == "localhost" &&
 		len(leaf.IPAddresses) == 1 && leaf.IPAddresses[0].String() == "127.0.0.1" &&
 		leaf.CheckSignature(leaf.SignatureAlgorithm, leaf.RawTBSCertificate, leaf.Signature) == nil

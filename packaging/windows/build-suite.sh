@@ -51,7 +51,7 @@ EOF
 # configurado, el build sale sin firmar y Windows SmartScreen avisará al
 # usuario. Con WINDOWS_SIGNCODE_PFX definido, todos los .exe y el instalador
 # NSIS se firman y sellan con RFC 3161. La password se lee de fichero
-# (-readpass) para que nunca aparezca en argv (misma política que T111).
+# (-readpass) para que nunca aparezca en argv (misma política que el resto de secretos).
 WINDOWS_SIGNCODE_TS_URL="${WINDOWS_SIGNCODE_TS_URL:-http://timestamp.digicert.com}"
 
 authenticode_enabled() {
@@ -352,9 +352,9 @@ required = {
     f"{stage_name}/install-path-safety.ps1",
     f"{stage_name}/invoke-uninstall-silent.ps1",
     f"{stage_name}/VERSION.txt",
-    f"{stage_name}/extensions/dipgra-extension-chromium.zip",
-    f"{stage_name}/extensions/dipgra-extension-firefox.xpi",
-    f"{stage_name}/extensions/dipgra-extension-firefox.metadata.json",
+    f"{stage_name}/extensions/grxfirma-extension-chromium.zip",
+    f"{stage_name}/extensions/grxfirma-extension-firefox.xpi",
+    f"{stage_name}/extensions/grxfirma-extension-firefox.metadata.json",
 }
 if qt_integrated:
     required |= {
@@ -589,9 +589,9 @@ build_chromium_extension_assets() {
   version="$(extract_extension_version "${zip_path}")"
   ext_id="$(compute_extension_id "${pem}")"
 
-  cp "${crx}" "${out_dir}/dipgra-extension-chromium.crx"
-  printf '%s\n' "${ext_id}" > "${out_dir}/dipgra-extension-chromium.id"
-  printf '%s\n' "${version}" > "${out_dir}/dipgra-extension-chromium.version"
+  cp "${crx}" "${out_dir}/grxfirma-extension-chromium.crx"
+  printf '%s\n' "${ext_id}" > "${out_dir}/grxfirma-extension-chromium.id"
+  printf '%s\n' "${version}" > "${out_dir}/grxfirma-extension-chromium.version"
 }
 
 case "${ARCH}" in

@@ -70,7 +70,7 @@ class WinUiParityContractTest(unittest.TestCase):
         self.assertIn('signQREnabled && signQRContent.trim() !== ""', qml_function('buildSignPayload'))
         self.assertIn('text: tr("sign.seal.include_verification_qr")', QML)
         self.assertIn('id: signSealLogoOpacitySlider', QML.split('id: sealPresetsLayout', 1)[1].split('id: padesMetaLayout', 1)[0])
-        self.assertIn('signQREnabled: window.signQREnabled', qml_function('saveBackendSettings'))
+        self.assertIn('signQREnabled: window.signQREnabled', qml_function('backendSettingsPayload'))
         self.assertIn('window.signQREnabled = s.signQREnabled === undefined', QML)
 
     def test_logo_opacity_reaches_real_preview_and_document_overrides(self) -> None:

@@ -87,7 +87,7 @@ func maybeRunDesktopApp(ctx context.Context, stderr io.Writer, frontend, rutaP12
 func newDesktopManualUI(servicios *serviciosGrxFirma) *desktopManualUI {
 	executablePath, _ := os.Executable()
 	ui := &desktopManualUI{
-		app:       app.NewWithID("org.dipgra.grxfirma.desktop"),
+		app:       app.NewWithID("io.github.aavidad.grxfirma.desktop"),
 		servicios: servicios,
 	}
 	for _, iconPath := range []string{

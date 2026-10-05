@@ -130,6 +130,9 @@ uninstall_user() {
   )
   manifest_names=(
     "com.grxfirma.native.json"
+    "io.github.aavidad.grxfirma.json"
+    "io.github.aavidad.portafirmas.json"
+    # Nombres de versiones anteriores.
     "com.dipgra.grxfirma.json"
     "com.dipgra.portafirmas.json"
   )
@@ -141,7 +144,8 @@ uninstall_user() {
 
   extension_ids=("pkefjandjcgdmhoonmhnllikibobijgg")
   for id_file in \
-    "${SELF_DIR}/extensions/dipgra-extension-chromium.id" \
+    "${SELF_DIR}/extensions/grxfirma-extension-chromium.id" \
+    "${base}/Extensions/chromium/grxfirma-extension-chromium.id" \
     "${base}/Extensions/chromium/dipgra-extension-chromium.id"; do
     if [[ -f "${id_file}" && ! -L "${id_file}" ]]; then
       add_extension_id "$(tr -d '\r\n' < "${id_file}")"
@@ -192,35 +196,42 @@ sha256_file() {
 
 remove_firefox_extension_if_owned() {
   local base="$1"
-  local source_xpi=""
-  local candidate expected target profile
+  local candidate target profile xpi_name hash known owned
+  local -a expected_hashes=()
   for candidate in \
-    "${SELF_DIR}/extensions/dipgra-extension-firefox.xpi" \
+    "${SELF_DIR}/extensions/grxfirma-extension-firefox.xpi" \
+    "${base}/Extensions/firefox/grxfirma-extension-firefox.xpi" \
     "${base}/Extensions/firefox/dipgra-extension-firefox.xpi"; do
     if [[ -f "${candidate}" && ! -L "${candidate}" ]]; then
-      source_xpi="${candidate}"
-      break
+      expected_hashes+=("$(sha256_file "${candidate}")")
     fi
   done
-  [[ -n "${source_xpi}" ]] || return 0
-  expected="$(sha256_file "${source_xpi}")"
+  [[ "${#expected_hashes[@]}" -gt 0 ]] || return 0
 
   local profiles="${HOME}/Library/Application Support/Firefox/Profiles"
   [[ -d "${profiles}" && ! -L "${profiles}" ]] || return 0
   for profile in "${profiles}"/*; do
     [[ -d "${profile}" && ! -L "${profile}" ]] || continue
-    target="${profile}/extensions/extension@dipgra.es.xpi"
-    [[ -f "${target}" && ! -L "${target}" ]] || continue
-    if has_symlink_between "$(dirname "${target}")" "${HOME}"; then
-      echo "Aviso: no se elimina una extension Firefox bajo una ruta simbolica: ${target}" >&2
-      continue
-    fi
-    if [[ "$(sha256_file "${target}")" == "${expected}" ]]; then
-      rm -f -- "${target}"
-      rmdir -- "$(dirname "${target}")" >/dev/null 2>&1 || true
-    else
-      echo "Aviso: se conserva una extension Firefox modificada: ${target}" >&2
-    fi
+    # extension@dipgra.es es el ID de versiones anteriores.
+    for xpi_name in "grxfirma@aavidad.github.io.xpi" "extension@dipgra.es.xpi"; do
+      target="${profile}/extensions/${xpi_name}"
+      [[ -f "${target}" && ! -L "${target}" ]] || continue
+      if has_symlink_between "$(dirname "${target}")" "${HOME}"; then
+        echo "Aviso: no se elimina una extension Firefox bajo una ruta simbolica: ${target}" >&2
+        continue
+      fi
+      hash="$(sha256_file "${target}")"
+      owned=0
+      for known in "${expected_hashes[@]}"; do
+        [[ "${hash}" != "${known}" ]] || owned=1
+      done
+      if [[ "${owned}" == "1" ]]; then
+        rm -f -- "${target}"
+        rmdir -- "$(dirname "${target}")" >/dev/null 2>&1 || true
+      else
+        echo "Aviso: se conserva una extension Firefox modificada: ${target}" >&2
+      fi
+    done
   done
 }
 
@@ -257,7 +268,8 @@ uninstall_system() {
   local cli_target="/Library/Application Support/GrxFirma/grxfirma"
   local afirma_app="/Applications/GrxFirma AfirmaURI.app"
   local desktop_app="/Applications/GrxFirma Desktop Qt.app"
-  local launch_agent="/Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist"
+  local launch_agent="/Library/LaunchAgents/io.github.aavidad.grxfirma.register-user.plist"
+  local legacy_launch_agent="/Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist"
   local lsregister="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
   local target
 
@@ -271,6 +283,7 @@ uninstall_system() {
     "${afirma_app}"
     "${desktop_app}"
     "${launch_agent}"
+    "${legacy_launch_agent}"
   )
   for target in "${system_targets[@]}"; do
     if [[ "${target}" == "${cli_link}" ]]; then
@@ -295,7 +308,7 @@ uninstall_system() {
 
   remove_exact_tree "${afirma_app}"
   remove_exact_tree "${desktop_app}"
-  rm -f -- "${launch_agent}"
+  rm -f -- "${launch_agent}" "${legacy_launch_agent}"
   remove_exact_tree "${support}"
   echo "Payload PKG de GrxFirma desinstalado."
 }

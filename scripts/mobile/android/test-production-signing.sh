@@ -10,10 +10,10 @@ SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(CDPATH='' cd -- "$SCRIPT_DIR/../../.." && pwd)
 PROJECT_DIR="$ROOT_DIR/mobile/android"
 SDK_ROOT=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}
-PACKAGE=es.dipgra.grxfirma.debug
-TEST_PACKAGE=es.dipgra.grxfirma.debug.test
+PACKAGE=io.github.aavidad.grxfirma.debug
+TEST_PACKAGE=io.github.aavidad.grxfirma.debug.test
 RUNNER=androidx.test.runner.AndroidJUnitRunner
-TEST_CLASS=${GRXFIRMA_ANDROID_TEST_CLASS:-es.dipgra.grxfirma.android.CoreProductionSigningTest}
+TEST_CLASS=${GRXFIRMA_ANDROID_TEST_CLASS:-io.github.aavidad.grxfirma.android.CoreProductionSigningTest}
 PDF_ARTIFACT=${GRXFIRMA_ANDROID_PDF_ARTIFACT:-firma-android-qa-pades.pdf}
 PASSWORD=valor-prueba
 SUBJECT="GrxFirma Android QA synthetic"

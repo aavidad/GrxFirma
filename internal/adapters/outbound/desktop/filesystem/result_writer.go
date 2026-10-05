@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -183,20 +185,54 @@ func (e *EscritorResultado) resolverRuta(ruta string) (string, os.FileMode, erro
 	}
 }
 
-// generarRutaAlternativa genera una ruta alternativa añadiendo un sufijo numerico.
+// generarRutaAlternativa genera una ruta alternativa añadiendo un sufijo
+// numerico. Si la ruta ya termina en un sufijo de este tipo («_001»), sigue
+// esa serie («_002») en lugar de encadenar otro («_001_001»): pasa al firmar
+// varias veces seguidas el mismo documento cuando la interfaz propone la
+// ruta resultante de la firma anterior.
 func generarRutaAlternativa(ruta string) (string, error) {
 	ext := filepath.Ext(ruta)
 	base := ruta[:len(ruta)-len(ext)]
 
-	for i := 1; i <= 999; i++ {
-		candidata := fmt.Sprintf("%s_%03d%s", base, i, ext)
-		if _, err := os.Lstat(candidata); errors.Is(err, os.ErrNotExist) {
-			return candidata, nil
-		} else if err != nil {
-			return "", fmt.Errorf("no se pudo comprobar una ruta alternativa: %w", err)
+	if raiz, numero, ok := separarSufijoNumerico(base); ok {
+		candidata, encontrada, err := buscarRutaLibre(raiz, ext, numero+1)
+		if err != nil || encontrada {
+			return candidata, err
 		}
 	}
+	candidata, encontrada, err := buscarRutaLibre(base, ext, 1)
+	if err != nil || encontrada {
+		return candidata, err
+	}
 	return "", fmt.Errorf("no se pudo encontrar una ruta alternativa para: %s", ruta)
+}
+
+// separarSufijoNumerico reconoce el sufijo «_NNN» (tres cifras) que añade
+// generarRutaAlternativa.
+func separarSufijoNumerico(base string) (string, int, bool) {
+	coincidencia := sufijoNumericoAlternativo.FindStringSubmatch(base)
+	if coincidencia == nil {
+		return "", 0, false
+	}
+	numero, err := strconv.Atoi(coincidencia[2])
+	if err != nil {
+		return "", 0, false
+	}
+	return coincidencia[1], numero, true
+}
+
+var sufijoNumericoAlternativo = regexp.MustCompile(`^(.*[^/\\])_([0-9]{3})$`)
+
+func buscarRutaLibre(base, ext string, desde int) (string, bool, error) {
+	for i := desde; i <= 999; i++ {
+		candidata := fmt.Sprintf("%s_%03d%s", base, i, ext)
+		if _, err := os.Lstat(candidata); errors.Is(err, os.ErrNotExist) {
+			return candidata, true, nil
+		} else if err != nil {
+			return "", false, fmt.Errorf("no se pudo comprobar una ruta alternativa: %w", err)
+		}
+	}
+	return "", false, nil
 }
 
 func contieneComponentePadre(ruta string) bool {

@@ -38,7 +38,7 @@ function Install-FirefoxExtension {
         return
     }
 
-    $xpiName = "extension@dipgra.es.xpi"
+    $xpiName = "grxfirma@aavidad.github.io.xpi"
     $profileTargets = @()
     foreach ($profileDir in Get-FirefoxProfileDirectory) {
         $profileExtensionDir = Join-Path $profileDir.FullName "extensions"
@@ -91,7 +91,7 @@ function Test-FirefoxXpiApproved {
 
     try {
         $metadata = Get-Content -Path $MetadataPath -Raw | ConvertFrom-Json
-        if ($metadata.signed -ne $true -or $metadata.extension_id -ne "extension@dipgra.es") {
+        if ($metadata.signed -ne $true -or $metadata.extension_id -ne "grxfirma@aavidad.github.io") {
             return $false
         }
         $expectedHash = [string]$metadata.xpi_sha256
@@ -103,6 +103,131 @@ function Test-FirefoxXpiApproved {
     } catch {
         Write-Warning "No se pudo validar el metadato del XPI Firefox: $($_.Exception.Message)"
         return $false
+    }
+}
+
+function Remove-LegacyNativeHostRegistration {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedValue
+    )
+
+    $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($Path, $true)
+    if ($null -eq $key) {
+        return $false
+    }
+    $deleteKey = $false
+    try {
+        if (@($key.GetValueNames()) -notcontains "") {
+            return $false
+        }
+        $actual = [string]$key.GetValue(
+            "",
+            $null,
+            [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames
+        )
+        $owned = $false
+        try {
+            $owned = [string]::Equals(
+                [System.IO.Path]::GetFullPath($actual),
+                [System.IO.Path]::GetFullPath($ExpectedValue),
+                [System.StringComparison]::OrdinalIgnoreCase
+            )
+        } catch {
+            $owned = $false
+        }
+        if (-not $owned) {
+            Write-Warning "Se conserva HKCU:\$Path porque no apunta a esta instalacion."
+            return $false
+        }
+        $key.DeleteValue("", $false)
+        $deleteKey = ($key.ValueCount -eq 0) -and ($key.SubKeyCount -eq 0)
+    } finally {
+        $key.Dispose()
+    }
+    if ($deleteKey) {
+        [Microsoft.Win32.Registry]::CurrentUser.DeleteSubKey($Path, $false)
+    }
+    return $true
+}
+
+function Remove-LegacyNativeHostInstallation {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ManifestsDir,
+        [Parameter(Mandatory = $true)]
+        [string]$ExtensionsDir
+    )
+
+    # Las versiones anteriores usaban para los hosts y la extension el espacio de nombres
+    # com.dipgra y el ID extension@dipgra.es. Solo se retira lo que apunta a
+    # esta instalacion para no dejar hosts huerfanos ni tocar registros ajenos.
+    foreach ($legacyHost in @("com.dipgra.grxfirma", "com.dipgra.portafirmas")) {
+        foreach ($target in @(
+            @{ BaseKey = "Software\Google\Chrome\NativeMessagingHosts"; Manifest = "$legacyHost.chrome.json" },
+            @{ BaseKey = "Software\Chromium\NativeMessagingHosts"; Manifest = "$legacyHost.chrome.json" },
+            @{ BaseKey = "Software\Microsoft\Edge\NativeMessagingHosts"; Manifest = "$legacyHost.chrome.json" },
+            @{ BaseKey = "Software\BraveSoftware\Brave-Browser\NativeMessagingHosts"; Manifest = "$legacyHost.chrome.json" },
+            @{ BaseKey = "Software\Vivaldi\NativeMessagingHosts"; Manifest = "$legacyHost.chrome.json" },
+            @{ BaseKey = "Software\Opera Software\NativeMessagingHosts"; Manifest = "$legacyHost.chrome.json" },
+            @{ BaseKey = "Software\Mozilla\NativeMessagingHosts"; Manifest = "$legacyHost.firefox.json" }
+        )) {
+            try {
+                Remove-LegacyNativeHostRegistration `
+                    -Path "$($target.BaseKey)\$legacyHost" `
+                    -ExpectedValue (Join-Path $ManifestsDir $target.Manifest) | Out-Null
+            } catch {
+                Write-Warning "No se pudo retirar el host anterior HKCU:\$($target.BaseKey)\$($legacyHost): $($_.Exception.Message)"
+            }
+        }
+        foreach ($suffix in @("chrome.json", "firefox.json")) {
+            $legacyManifest = Join-Path $ManifestsDir "$legacyHost.$suffix"
+            if (Test-Path -LiteralPath $legacyManifest -PathType Leaf) {
+                Remove-Item -LiteralPath $legacyManifest -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+
+    $legacyPackagedXpi = Join-Path $ExtensionsDir "firefox\dipgra-extension-firefox.xpi"
+    if (Test-Path -LiteralPath $legacyPackagedXpi -PathType Leaf) {
+        $legacyHash = (Get-FileHash -LiteralPath $legacyPackagedXpi -Algorithm SHA256).Hash
+        $legacyTargets = @()
+        foreach ($profileDir in Get-FirefoxProfileDirectory) {
+            $legacyTargets += Join-Path $profileDir.FullName "extensions\extension@dipgra.es.xpi"
+        }
+        foreach ($firefoxDir in @($env:ProgramFiles, ${env:ProgramFiles(x86)})) {
+            if (-not [string]::IsNullOrWhiteSpace($firefoxDir)) {
+                $legacyTargets += Join-Path $firefoxDir "Mozilla Firefox\distribution\extensions\extension@dipgra.es.xpi"
+            }
+        }
+        foreach ($legacyTarget in $legacyTargets | Select-Object -Unique) {
+            if (-not (Test-Path -LiteralPath $legacyTarget -PathType Leaf)) {
+                continue
+            }
+            try {
+                $actualHash = (Get-FileHash -LiteralPath $legacyTarget -Algorithm SHA256).Hash
+                if ($actualHash.Equals($legacyHash, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    Remove-Item -LiteralPath $legacyTarget -Force
+                } else {
+                    Write-Warning "Se conserva la extension Firefox anterior porque fue actualizada o reemplazada: $legacyTarget"
+                }
+            } catch {
+                Write-Warning "No se pudo retirar la extension Firefox anterior '$legacyTarget': $($_.Exception.Message)"
+            }
+        }
+    }
+
+    foreach ($legacyFile in @(
+        "firefox\dipgra-extension-firefox.xpi",
+        "firefox\dipgra-extension-firefox.metadata.json",
+        "chromium\dipgra-extension-chromium.zip"
+    )) {
+        $legacyPath = Join-Path $ExtensionsDir $legacyFile
+        if (Test-Path -LiteralPath $legacyPath -PathType Leaf) {
+            Remove-Item -LiteralPath $legacyPath -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
@@ -518,9 +643,9 @@ $extensionsDir = Join-Path $InstallDir "extensions"
 New-Item -ItemType Directory -Force -Path (Join-Path $extensionsDir "firefox") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $extensionsDir "chromium") | Out-Null
 
-$firefoxXpiSource = Join-Path $baseDir "extensions\\dipgra-extension-firefox.xpi"
-$firefoxMetadataSource = Join-Path $baseDir "extensions\\dipgra-extension-firefox.metadata.json"
-$chromiumZipSource = Join-Path $baseDir "extensions\\dipgra-extension-chromium.zip"
+$firefoxXpiSource = Join-Path $baseDir "extensions\\grxfirma-extension-firefox.xpi"
+$firefoxMetadataSource = Join-Path $baseDir "extensions\\grxfirma-extension-firefox.metadata.json"
+$chromiumZipSource = Join-Path $baseDir "extensions\\grxfirma-extension-chromium.zip"
 $registrationsPath = Join-Path $extensionsDir "chromium\registrations.json"
 $registeredStoreIds = Get-RegisteredStoreExtensionIds -RegistrationInventoryPath $registrationsPath
 $chromiumExtensionId = $env:GRXFIRMA_CHROMIUM_EXTENSION_ID
@@ -552,18 +677,17 @@ $hosts = @(
     @{
         Name = "com.grxfirma.native"
         ChromeOrigins = @("chrome-extension://pkefjandjcgdmhoonmhnllikibobijgg/") + $extraChromiumOrigins
-        FirefoxExtensions = @("extension@dipgra.es")
+        FirefoxExtensions = @("grxfirma@aavidad.github.io")
     },
     @{
-        Name = "com.dipgra.grxfirma"
+        Name = "io.github.aavidad.grxfirma"
         ChromeOrigins = @("chrome-extension://pkefjandjcgdmhoonmhnllikibobijgg/") + $extraChromiumOrigins
-        FirefoxExtensions = @("extension@dipgra.es")
+        FirefoxExtensions = @("grxfirma@aavidad.github.io")
     },
     @{
-        Name = "com.dipgra.portafirmas"
+        Name = "io.github.aavidad.portafirmas"
         ChromeOrigins = @(
-            "chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/",
-            "chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"
+            "chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"
         )
         FirefoxExtensions = @("portafirmas@dipgra.es")
     }
@@ -614,8 +738,8 @@ foreach ($nativeHost in $hosts) {
 
 $installFirefoxXpi = $false
 if (Test-Path $firefoxXpiSource) {
-    Copy-Item $firefoxXpiSource (Join-Path $extensionsDir "firefox\\dipgra-extension-firefox.xpi") -Force
-    $firefoxMetadataTarget = Join-Path $extensionsDir "firefox\\dipgra-extension-firefox.metadata.json"
+    Copy-Item $firefoxXpiSource (Join-Path $extensionsDir "firefox\\grxfirma-extension-firefox.xpi") -Force
+    $firefoxMetadataTarget = Join-Path $extensionsDir "firefox\\grxfirma-extension-firefox.metadata.json"
     if (Test-Path $firefoxMetadataSource) {
         Copy-Item $firefoxMetadataSource $firefoxMetadataTarget -Force
     } elseif (Test-Path $firefoxMetadataTarget) {
@@ -628,9 +752,12 @@ if (Test-Path $firefoxXpiSource) {
     }
 }
 if (Test-Path $chromiumZipSource) {
-    Copy-Item $chromiumZipSource (Join-Path $extensionsDir "chromium\\dipgra-extension-chromium.zip") -Force
+    Copy-Item $chromiumZipSource (Join-Path $extensionsDir "chromium\\grxfirma-extension-chromium.zip") -Force
 }
 foreach ($oldExtensionFile in @(
+    "grxfirma-extension-chromium.crx",
+    "grxfirma-extension-chromium.id",
+    "grxfirma-extension-chromium.version",
     "dipgra-extension-chromium.crx",
     "dipgra-extension-chromium.id",
     "dipgra-extension-chromium.version"
@@ -696,6 +823,11 @@ if ($installFirefoxXpi) {
     } catch {
         Write-Warning "No se pudo completar el despliegue opcional de Firefox: $($_.Exception.Message)"
     }
+}
+try {
+    Remove-LegacyNativeHostInstallation -ManifestsDir $manifestsDir -ExtensionsDir $extensionsDir
+} catch {
+    Write-Warning "No se pudieron retirar los registros anteriores de Native Messaging: $($_.Exception.Message)"
 }
 
 Write-Output "NativeHost instalado en: $InstallDir"

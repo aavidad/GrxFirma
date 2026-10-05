@@ -236,7 +236,10 @@ if ($msvcRedistributables.Count -gt 0) {
     Install-MsvcRedistributable -Installers $msvcRedistributables
 }
 $programsDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
-$startMenuDir = Join-Path $programsDir "Diputación de Granada"
+$startMenuDir = Join-Path $programsDir "GrxFirma"
+# Versiones anteriores creaban los accesos en esta carpeta; se retiran solo los
+# propios y la carpeta se elimina únicamente si queda vacía.
+$legacyStartMenuDir = Join-Path $programsDir "Diputación de Granada"
 New-Item -ItemType Directory -Force -Path $startMenuDir | Out-Null
 
 $wshell = New-Object -ComObject WScript.Shell
@@ -245,13 +248,17 @@ $shortcutName = if ($useSharedLauncher) {
 } else {
     "GrxFirma Desktop Qt.lnk"
 }
-$legacyShortcut = Join-Path (Join-Path $programsDir "GrxFirma") $shortcutName
-if (Test-Path -LiteralPath $legacyShortcut -PathType Leaf) {
-    Remove-Item -LiteralPath $legacyShortcut -Force
-}
 foreach ($oldName in @("GrxFirma - Qt.lnk", "GrxFirma Desktop Qt.lnk")) {
     Remove-Item -LiteralPath (Join-Path $startMenuDir $oldName) -Force -ErrorAction SilentlyContinue
-    Remove-Item -LiteralPath (Join-Path (Join-Path $programsDir "GrxFirma") $oldName) -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath (Join-Path $legacyStartMenuDir $oldName) -Force -ErrorAction SilentlyContinue
+}
+if (Test-Path -LiteralPath $legacyStartMenuDir -PathType Container) {
+    $legacyRemaining = @(
+        Get-ChildItem -LiteralPath $legacyStartMenuDir -Force -ErrorAction SilentlyContinue
+    )
+    if ($legacyRemaining.Count -eq 0) {
+        Remove-Item -LiteralPath $legacyStartMenuDir -Force
+    }
 }
 $shortcut = $wshell.CreateShortcut((Join-Path $startMenuDir $shortcutName))
 $shortcut.TargetPath = if ($useSharedLauncher) {

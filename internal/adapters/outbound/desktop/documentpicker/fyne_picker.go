@@ -27,7 +27,7 @@ import (
 	"grxfirma/internal/ports"
 )
 
-const fyneDocumentPickerAppID = "es.dipgra.grxfirma.afirmauri"
+const fyneDocumentPickerAppID = "io.github.aavidad.grxfirma.afirmauri"
 
 // NewFyne crea un selector documental interactivo basado en Fyne.
 func NewFyne() *Picker {

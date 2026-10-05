@@ -712,7 +712,7 @@
   "El sello visible solo se aplica cuando el formato efectivo de firma es PAdES.": "Le cachet visible ne s'applique que lorsque le format de signature effectif est PAdES.",
   "El servicio de revocación no ha dado un estado concluyente para este certificado.": "Le service de révocation n'a pas fourni d'état concluant pour ce certificat.",
   "El último estado visible indica: %1": "Le dernier état visible indique : %1",
-  "Elegir imagen…": "Choisissez une image…",
+  "Elegir imagen…": "Choisir une image…",
   "Elementos descargables": "Éléments téléchargeables",
   "Elige el certificado con el que quieres continuar para firmar": "Choisissez le certificat avec lequel vous souhaitez continuer pour signer",
   "Elige un certificado adecuado y revisa el formato de firma.": "Choisissez un certificat approprié et vérifiez le format de signature.",
@@ -1233,7 +1233,7 @@
   "Opcional. Estos datos se enviarán como SignatureProductionPlace al firmar FacturaE.": "Optionnel. Ces données seront envoyées comme SignatureProductionPlace lors de la signature FacturaE.",
   "Opcional. Estos datos se incrustan en la firma PAdES y no sustituyen al certificado ni al sello visible.": "Optionnel. Ces données sont intégrées dans la signature PAdES et ne remplacent ni le certificat ni le cachet visible.",
   "Opcional. Se envía en Authorization: Bearer ...": "Facultatif. Envoyé dans Authorization: Bearer ...",
-  "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible cuando no usas imagen personalizada.": "Optionnel. Si vous indiquez un texte ou une URL, un QR est intégré dans le sceau visible lorsque vous n’utilisez pas d’image personnalisée.",
+  "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible cuando no usas imagen personalizada.": "Optionnel. Si vous indiquez un texte ou une URL, un QR est intégré dans le cachet visible lorsque vous n’utilisez pas d’image personnalisée.",
   "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible y puede combinarse con imagen personalizada.": "Optionnel. Si vous indiquez un texte ou une URL, un QR est intégré dans le cachet visible et peut être combiné avec une image personnalisée.",
   "Opcional. Si indicas una TSA, el backend la usará para perfiles con sello de tiempo.": "Facultatif. Si vous indiquez une TSA, le backend l'utilisera pour les profils avec horodatage.",
   "Opcional. Si informa identificador y hash, se enviarán al backend como política explícita de FacturaE.": "Optionnel. Si un identifiant et un hash sont fournis, ils seront envoyés au backend comme politique FacturaE explicite.",
@@ -1345,7 +1345,7 @@
   "Preparar incidencia": "Préparer l'incident",
   "Preparar validación": "Préparer la validation",
   "Preset aplicado: %1": "Préréglage appliqué : %1",
-  "Presets del sello": "Préréglages du sceau",
+  "Presets del sello": "Préréglages du cachet",
   "Previos: %1": "Précédents : %1",
   "Previsualización": "Aperçu",
   "Primer documento": "Premier document",
@@ -1390,7 +1390,7 @@
   "QML: Preview obsoleta ignorada para página": "QML : aperçu obsolète ignoré pour la page",
   "QML: Previsualización recibida OK, tamaño:": "QML : Aperçu reçu OK, taille :",
   "QR": "QR",
-  "QR del sello": "QR du sceau",
+  "QR del sello": "QR du cachet",
   "Qt.openUrlExternally falló:": "Qt.openUrlExternally a échoué :",
   "Qualifier de política": "Qualifier de la politique",
   "Qualifier de política FacturaE (SPURI)": "Qualifier de politique FacturaE (SPURI)",
@@ -1448,7 +1448,7 @@
   "Restaura el tema y opciones a fábrica": "Rétablit le thème et les options d’usine",
   "Restaurado desde la sesión anterior.": "Restauré depuis la session précédente.",
   "Restaurar": "Restaurer",
-  "Restaurar sello": "Réinitialiser le sceau",
+  "Restaurar sello": "Réinitialiser le cachet",
   "Resultado": "Résultat",
   "Resultado de desprotección": "Résultat de la déprotection",
   "Resultado de huella": "Résultat du hachage",
@@ -1585,32 +1585,32 @@
   "Seleccionar carpeta": "Sélectionner un dossier",
   "Seleccionar carpeta de entrada": "Sélectionner le dossier d'entrée",
   "Seleccionar carpeta de salida del lote": "Sélectionner le dossier de sortie du lot",
-  "Seleccionar certificado personal (.p12, .pfx)": "Sélectionnez un certificat personnel (.p12, .pfx)",
+  "Seleccionar certificado personal (.p12, .pfx)": "Sélectionner un certificat personnel (.p12, .pfx)",
   "Seleccionar certificados...": "Sélectionner des certificats...",
   "Seleccionar certificados…": "Sélectionner des certificats…",
   "Seleccionar cualquier fichero de la carpeta a comprobar": "Sélectionner n’importe quel fichier du dossier à vérifier",
   "Seleccionar cualquier fichero de la carpeta de entrada": "Sélectionnez n'importe quel fichier dans le dossier d'entrée",
   "Seleccionar cualquier fichero de la carpeta de salida del lote": "Sélectionnez n'importe quel fichier dans le dossier de sortie par lots",
-  "Seleccionar destino del PDF firmado": "Sélectionnez la destination du PDF signé",
+  "Seleccionar destino del PDF firmado": "Sélectionner la destination du PDF signé",
   "Seleccionar documento": "Sélectionner un document",
   "Seleccionar documento PDF": "Sélectionner un document PDF",
-  "Seleccionar documento firmado": "Sélectionnez le document signé",
+  "Seleccionar documento firmado": "Sélectionner le document signé",
   "Seleccionar documento original de referencia": "Sélectionner le document original de référence",
   "Seleccionar fichero": "Sélectionner un fichier",
   "Seleccionar fichero a proteger": "Sélectionner le fichier à protéger",
   "Seleccionar fichero para huella": "Sélectionner le fichier à hacher",
   "Seleccionar fichero protegido": "Sélectionner le fichier protégé",
   "Seleccionar fichero(s)": "Sélectionner le(s) fichier(s)",
-  "Seleccionar fichero...": "Sélectionnez le fichier...",
+  "Seleccionar fichero...": "Sélectionner un fichier...",
   "Seleccionar huella": "Sélectionner le fichier de hachage",
   "Seleccionar huella o manifiesto": "Sélectionner le fichier de hachage ou le manifeste",
   "Seleccionar imagen": "Sélectionner une image",
-  "Seleccionar imagen de firma": "Sélectionnez l'image de signature",
+  "Seleccionar imagen de firma": "Sélectionner l'image de signature",
   "Seleccionar original...": "Sélectionner l’original...",
   "Seleccionar protegido...": "Sélectionner le fichier protégé...",
   "Seleccionar todos": "Tout sélectionner",
-  "Seleccionar varios": "Sélectionnez plusieurs",
-  "Seleccionar varios documentos": "Sélectionnez plusieurs documents",
+  "Seleccionar varios": "Sélectionner plusieurs",
+  "Seleccionar varios documentos": "Sélectionner plusieurs documents",
   "Seleccione un archivo...": "Sélectionnez un fichier...",
   "Seleccione varios ficheros o una carpeta...": "Sélectionnez plusieurs fichiers ou un dossier...",
   "Selección": "Sélection",
@@ -2831,7 +2831,7 @@
   ,"winui.parity.support.issue.3": "Examinez et enregistrez le résumé pour l'assistance."
   ,"winui.parity.rest.open_error": "Impossible d’ouvrir la console. Vérifiez le navigateur par défaut."
   ,"winui.parity.rest.other": "Un autre serveur utilise le port 63118. Vous ne pouvez arrêter que celui démarré ici."
-  ,"winui.parity.verify.filename": "rapport-verification"
+  ,"winui.parity.verify.filename": "rapport_verification"
   ,"winui.parity.support.filename": "incident"
   ,"facturae.accounting": "Bureau comptable (DIR3)"
   ,"facturae.address": "Adresse"
@@ -6470,4 +6470,16 @@
   ,"La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.": "L'option « Renommer » ne remplace plus jamais un fichier existant : le nouveau est enregistré avec un numéro (_001) et n'est écrasé que si vous le confirmez dans la boîte d'enregistrement."
   ,"Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.": "Linux : le rapport de vérification affiche le signataire par son nom et la date de signature, le rapport imprimable peut être enregistré et les boîtes de dialogue s'affichent dans la langue de l'application."
   ,"Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.": "Traductions révisées dans les 10 langues : des centaines de textes traduits avec un mauvais sens ont été corrigés."
+  ,"verificacion.detalle.error_cadena": "Chaîne du certificat"
+  ,"verificacion.detalle.valor.x509_autoridad_desconocida": "émis par une autorité qui ne fait pas partie des autorités de confiance"
+  ,"verificacion.detalle.valor.x509_caducado": "un certificat de la chaîne a expiré ou n’est pas encore valide"
+  ,"verificacion.detalle.valor.x509_uso_no_permitido": "le certificat n’est pas autorisé pour cet usage"
+  ,"verificacion.detalle.valor.x509_emisor_no_autorizado": "l’autorité émettrice n’est pas autorisée à émettre ce certificat"
+  ,"verificacion.detalle.valor.x509_nombre_no_coincide": "le nom du certificat ne correspond pas à celui attendu"
+  ,"verificacion.detalle.valor.x509_algoritmo_inseguro": "la chaîne utilise un algorithme de signature non sûr"
+  ,"verificacion.detalle.valor.x509_cadena_demasiado_larga": "la chaîne comporte trop de certificats intermédiaires"
+  ,"verificacion.detalle.valor.x509_otro": "impossible à valider"
+  ,"report.evidence.certificate.subject": "Titulaire du certificat"
+  ,"report.evidence.certificate.issuer": "Émetteur du certificat"
+  ,"report.evidence.xml.canonicalization.compatibility": "Compatibilité de la canonicalisation XML"
 }

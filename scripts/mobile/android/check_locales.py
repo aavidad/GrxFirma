@@ -3,6 +3,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """Comprueba cobertura, duplicados, parámetros y referencias de los 11 idiomas."""
 import re
 from pathlib import Path

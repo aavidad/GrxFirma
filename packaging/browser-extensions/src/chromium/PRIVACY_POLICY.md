@@ -25,4 +25,4 @@ La descarga de un PDF contacta al portal donde se encuentra el archivo, con las 
 
 ## Contacto
 
-Oficina de Software Libre de la Diputación de Granada.
+Alberto Avidad Fernández, autor y mantenedor de GrxFirma.

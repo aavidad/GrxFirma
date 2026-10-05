@@ -30,10 +30,10 @@
         android:usesCleartextTraffic="false">
 
         <meta-data
-            android:name="es.dipgra.grxfirma.SOURCE_COMMIT"
+            android:name="io.github.aavidad.grxfirma.SOURCE_COMMIT"
             android:value="${sourceCommit}" />
         <meta-data
-            android:name="es.dipgra.grxfirma.CORE_SHA256"
+            android:name="io.github.aavidad.grxfirma.CORE_SHA256"
             android:value="${coreSha256}" />
 
         <!-- Foto del QR tributario: la app de cámara escribe en un fichero

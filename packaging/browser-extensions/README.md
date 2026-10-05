@@ -32,7 +32,7 @@ Para generar paquetes en un directorio externo al repositorio:
 python3 packaging/browser-extensions/build.py --output-dir /ruta/de/salida
 ```
 
-Sin `--output-dir`, los artefactos se escriben en `packaging/browser-extensions/`. El comando genera `dipgra-extension-chromium.zip`, `dipgra-extension-firefox-unsigned.xpi`, `dipgra-extension-firefox.xpi` y `dipgra-extension-firefox.metadata.json`. Si no se proporciona una firma Mozilla, el último XPI es una copia de desarrollo sin firmar: Firefox Release/ESR exige uno firmado. Para exigirlo en una compilación de distribución, define `GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI=1` y proporciona `GRXFIRMA_FIREFOX_SIGNED_XPI` o las credenciales de `web-ext` previstas por `build.py`.
+Sin `--output-dir`, los artefactos se escriben en `packaging/browser-extensions/`. El comando genera `grxfirma-extension-chromium.zip`, `grxfirma-extension-firefox-unsigned.xpi`, `grxfirma-extension-firefox.xpi` y `grxfirma-extension-firefox.metadata.json`. Si no se proporciona una firma Mozilla, el último XPI es una copia de desarrollo sin firmar: Firefox Release/ESR exige uno firmado. Para exigirlo en una compilación de distribución, define `GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI=1` y proporciona `GRXFIRMA_FIREFOX_SIGNED_XPI` o las credenciales de `web-ext` previstas por `build.py`.
 
 Los instaladores de GrxFirma deben tomar los artefactos recién generados desde la misma fuente. En Windows, el instalador registra la ficha de tienda para Chrome y Edge si están configurados sus IDs publicados (`GRXFIRMA_CHROMIUM_EXTENSION_ID` y `GRXFIRMA_EDGE_EXTENSION_ID`). Ambos navegadores solicitan confirmación al usuario; el instalador no coloca una copia privada de esas extensiones. No se deben reutilizar los ZIP/XPI antiguos de agosto: contienen el nombre del host previo.
 
@@ -43,7 +43,7 @@ python3 -m unittest discover -s packaging/browser-extensions/tests -p 'test_buil
 node --test packaging/browser-extensions/tests/*.test.mjs
 ```
 
-El paquete debe usar el host `com.dipgra.grxfirma` y los prefijos `grxfirma-`. La extensión usa `storage` para la configuración y una precarga temporal del PDF, `nativeMessaging` para la aplicación local y `scripting` para registrar el detector en sitios que el usuario concede. `host_permissions` cubre los dominios de fábrica y el servicio local `https://127.0.0.1`; `optional_host_permissions` permite pedir acceso HTTPS a un sitio nuevo solo cuando el usuario lo añade. La identidad no se activa por ese permiso opcional.
+El paquete debe usar el host `io.github.aavidad.grxfirma` y los prefijos `grxfirma-`. La extensión usa `storage` para la configuración y una precarga temporal del PDF, `nativeMessaging` para la aplicación local y `scripting` para registrar el detector en sitios que el usuario concede. `host_permissions` cubre los dominios de fábrica y el servicio local `https://127.0.0.1`; `optional_host_permissions` permite pedir acceso HTTPS a un sitio nuevo solo cuando el usuario lo añade. La identidad no se activa por ese permiso opcional.
 
 Los textos visibles están en `_locales/es` y `_locales/en`. Al modificarlos, actualiza ambos catálogos y ejecuta `tests/i18n.test.mjs`.
 

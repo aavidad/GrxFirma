@@ -3,6 +3,7 @@
 <!-- Autoría: Alberto Avidad Fernández -->
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
+
 <policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
   <displayName>GrxFirma</displayName>
   <description>GrxFirma computer policies. They are applied in HKLM\SOFTWARE\Policies\GrxFirma and cannot be changed by non-administrators.</description>

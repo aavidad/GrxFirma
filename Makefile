@@ -68,7 +68,7 @@ NM_FIREFOX  := $(HOME)/.mozilla/native-messaging-hosts
 
 # ID de la extension Chrome/Chromium y Firefox
 CHROME_EXT_ID  ?= pkefjandjcgdmhoonmhnllikibobijgg
-FIREFOX_EXT_ID ?= extension@dipgra.es
+FIREFOX_EXT_ID ?= grxfirma@aavidad.github.io
 
 .PHONY: all build build-gui build-uri build-bridge build-qt-bootstrap build-pkcs11-worker build-qt-qml windows-cli windows-cli-zip windows-cli-nsis \
         windows-nativehost windows-nativehost-zip windows-suite windows-desktop-qml windows-desktop-qml-nsis \
@@ -202,8 +202,8 @@ install: build build-gui build-uri build-bridge
 	@if [ -f "$(QTGUI_PATH)" ]; then echo "Frontend Qt instalado en $(DESTDIR)$(BINDIR)/$(BINARY_QT)"; else echo "Frontend Qt no instalado (compila antes con make build-qt-qml si lo necesitas)."; fi
 
 desktop: install
-	install -D -m 644 grxfirma.desktop $(DESTDIR)$(APPDIR)/$(BINARY).desktop
-	install -D -m 644 grxfirma-manual.desktop $(DESTDIR)$(APPDIR)/$(BINARY)-manual.desktop
+	install -D -m 644 packaging/linux/grxfirma.desktop $(DESTDIR)$(APPDIR)/$(BINARY).desktop
+	install -D -m 644 packaging/linux/grxfirma-manual.desktop $(DESTDIR)$(APPDIR)/$(BINARY)-manual.desktop
 	rm -f $(DESTDIR)$(APPDIR)/$(BINARY)-manual-debug.desktop
 	rm -f $(DESTDIR)$(APPDIR)/$(BINARY)-debug.desktop
 	@if command -v update-desktop-database >/dev/null 2>&1; then \
@@ -313,10 +313,11 @@ bridge-user: install-user
 	    if [ -d "$$dir" ]; then \
 	        printf '{\n  "name": "com.grxfirma.native",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://$(CHROME_EXT_ID)/"]\n}\n' \
 	            "$(USERLIBDIR)" > "$$dir/com.grxfirma.native.json"; \
-	        printf '{\n  "name": "com.dipgra.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://$(CHROME_EXT_ID)/"]\n}\n' \
-	            "$(USERLIBDIR)" > "$$dir/com.dipgra.grxfirma.json"; \
-	        printf '{\n  "name": "com.dipgra.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/","chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"]\n}\n' \
-	            "$(USERLIBDIR)" > "$$dir/com.dipgra.portafirmas.json"; \
+	        printf '{\n  "name": "io.github.aavidad.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://$(CHROME_EXT_ID)/"]\n}\n' \
+	            "$(USERLIBDIR)" > "$$dir/io.github.aavidad.grxfirma.json"; \
+	        printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/"]\n}\n' \
+	            "$(USERLIBDIR)" > "$$dir/io.github.aavidad.portafirmas.json"; \
+	        rm -f "$$dir/com.dipgra.grxfirma.json" "$$dir/com.dipgra.portafirmas.json"; \
 	        echo "  Manifest instalado en $$dir"; \
 	    fi \
 	done
@@ -324,19 +325,20 @@ bridge-user: install-user
 	@mkdir -p "$(NM_FIREFOX)"
 	@printf '{\n  "name": "com.grxfirma.native",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["$(FIREFOX_EXT_ID)"]\n}\n' \
 	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/com.grxfirma.native.json"
-	@printf '{\n  "name": "com.dipgra.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["$(FIREFOX_EXT_ID)"]\n}\n' \
-	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/com.dipgra.grxfirma.json"
-	@printf '{\n  "name": "com.dipgra.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["portafirmas@dipgra.es"]\n}\n' \
-	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/com.dipgra.portafirmas.json"
+	@printf '{\n  "name": "io.github.aavidad.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["$(FIREFOX_EXT_ID)"]\n}\n' \
+	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/io.github.aavidad.grxfirma.json"
+	@printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["portafirmas@dipgra.es"]\n}\n' \
+	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/io.github.aavidad.portafirmas.json"
+	@rm -f "$(NM_FIREFOX)/com.dipgra.grxfirma.json" "$(NM_FIREFOX)/com.dipgra.portafirmas.json"
 	@echo "  Manifest instalado en $(NM_FIREFOX)"
 	@echo "Bridge de navegadores instalado."
 	@echo "  Certificados: coloca tus .p12 en $(USERCFGDIR)"
 
 desktop-user: install-user
 	@mkdir -p "$(USERAPP)"
-	@sed 's|^Exec=.*|Exec=$(USERLIBDIR)/afirmauri-handler.sh %u|' grxfirma.desktop > $(USERAPP)/$(BINARY).desktop
+	@sed 's|^Exec=.*|Exec=$(USERLIBDIR)/afirmauri-handler.sh %u|' packaging/linux/grxfirma.desktop > $(USERAPP)/$(BINARY).desktop
 	@chmod 644 $(USERAPP)/$(BINARY).desktop
-	install -D -m 644 grxfirma-manual.desktop $(USERAPP)/$(BINARY)-manual.desktop
+	install -D -m 644 packaging/linux/grxfirma-manual.desktop $(USERAPP)/$(BINARY)-manual.desktop
 	rm -f $(USERAPP)/$(BINARY)-manual-debug.desktop
 	rm -f $(USERAPP)/$(BINARY)-debug.desktop
 	@if command -v update-desktop-database >/dev/null 2>&1; then \
@@ -348,7 +350,7 @@ desktop-user: install-user
 	@echo "Esquema afirma:// registrado para el usuario"
 
 desktop-user-debug: install-user
-	install -D -m 644 grxfirma-debug.desktop $(USERAPP)/$(BINARY)-debug.desktop
+	install -D -m 644 packaging/linux/grxfirma-debug.desktop $(USERAPP)/$(BINARY)-debug.desktop
 	@if command -v update-desktop-database >/dev/null 2>&1; then \
 	    update-desktop-database $(USERAPP); \
 	fi

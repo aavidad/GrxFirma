@@ -18,11 +18,9 @@ if (-not (Test-Path -LiteralPath $pathSafety -PathType Leaf)) {
 
 $InstallDir = Resolve-GrxFirmaInstallPath -Path $InstallDir -Component "DesktopQML"
 $programsDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
-$startMenuDir = Join-Path $programsDir "Diputación de Granada"
-$legacyStartMenuDir = Join-Path $programsDir "GrxFirma"
+$startMenuDir = Join-Path $programsDir "GrxFirma"
+$legacyStartMenuDir = Join-Path $programsDir "Diputación de Granada"
 $shortcutPaths = @(
-    (Join-Path $startMenuDir "GrxFirma Desktop Qt.lnk"),
-    (Join-Path $startMenuDir "GrxFirma - Qt.lnk"),
     (Join-Path $startMenuDir "GrxFirma Desktop Qt.lnk"),
     (Join-Path $startMenuDir "GrxFirma - Qt.lnk"),
     (Join-Path $legacyStartMenuDir "GrxFirma Desktop Qt.lnk"),
@@ -45,15 +43,6 @@ function Stop-InstalledDesktopProcesses {
         }
     }
 }
-if (Test-Path $legacyStartMenuDir) {
-    $legacyRemaining = @(
-        Get-ChildItem -Path $legacyStartMenuDir -Force -ErrorAction SilentlyContinue
-    )
-    if ($legacyRemaining.Count -eq 0) {
-        Remove-Item $legacyStartMenuDir -Force
-    }
-}
-
 Stop-InstalledDesktopProcesses
 
 foreach ($shortcutPath in $shortcutPaths) {
@@ -61,10 +50,12 @@ foreach ($shortcutPath in $shortcutPaths) {
         Remove-Item -LiteralPath $shortcutPath -Force
     }
 }
-if (Test-Path $startMenuDir) {
-    $remaining = @(Get-ChildItem -Path $startMenuDir -Force -ErrorAction SilentlyContinue)
-    if ($remaining.Count -eq 0) {
-        Remove-Item $startMenuDir -Force
+foreach ($menuDir in @($startMenuDir, $legacyStartMenuDir)) {
+    if (Test-Path -LiteralPath $menuDir -PathType Container) {
+        $remaining = @(Get-ChildItem -LiteralPath $menuDir -Force -ErrorAction SilentlyContinue)
+        if ($remaining.Count -eq 0) {
+            Remove-Item -LiteralPath $menuDir -Force
+        }
     }
 }
 Remove-GrxFirmaInstallDirectory `

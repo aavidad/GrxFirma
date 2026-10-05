@@ -500,7 +500,7 @@ private final class BoundedRequest: NSObject, URLSessionDataDelegate, URLSession
         configuration.urlCredentialStorage = nil
 
         let queue = OperationQueue()
-        queue.name = "es.dipgra.grxfirma.safari.http"
+        queue.name = "io.github.aavidad.grxfirma.safari.http"
         queue.maxConcurrentOperationCount = 1
         let session = URLSession(configuration: configuration, delegate: self, delegateQueue: queue)
         self.session = session

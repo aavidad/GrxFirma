@@ -7,18 +7,14 @@
 
 ## Objetivo
 
-Este documento resume cómo instalar, operar, diagnosticar y transicionar de AutoFirma V1 a GrxFirma en entornos reales. Está orientado a soporte, despliegue de escritorio y validación funcional antes del switchover.
+Este documento resume cómo instalar, operar, diagnosticar y transicionar de AutoFirma V1 a GrxFirma en entornos reales. Está orientado a soporte, despliegue de escritorio y validación funcional antes del cambio de versión.
 
-## Identidad reforzada v1 todavía no publicable
+## Identidad reforzada v1
 
-El núcleo genérico de `identidad-reforzada/v1` dispone de política exacta,
-canonicalización, consumo efímero de un solo uso, verificación completa, evidencia
-durable, rutas opcionales y puente local Native Messaging. Las fuentes del host y de
-las extensiones Chromium/Firefox tienen pruebas automáticas, pero esta capacidad aún
-no cuenta con paquete reconstruido ni campaña física de navegador. No la anuncie ni
-la active en producción hasta completar esa validación. Los
-endpoints legacy `/auth/challenge` y `/auth/verify` solo protegen el REST local y no
-acreditan una sesión, rol o permiso de la aplicación integradora.
+La identidad reforzada (`identidad-reforzada/v1`) es una función experimental y
+no está activada en los paquetes publicados. Los endpoints legacy
+`/auth/challenge` y `/auth/verify` solo protegen el REST local y no acreditan
+una sesión, rol o permiso de la aplicación integradora.
 
 ## Requisitos por plataforma
 
@@ -50,15 +46,9 @@ Mínimos esperados:
 
 ### Android e iPhone
 
-Estado actual:
-
-- Android dispone de aplicación nativa Kotlin y núcleo real generado con
-  `gomobile bind`; está validada en emulador, pero todavía no existe una
-  publicación oficial firmada ni campaña en dispositivo físico;
-- iPhone/iPad sigue pendiente de implementación y validación en Xcode y
-  dispositivo Apple;
-- no autorizar un switchover móvil hasta aprobar firma, distribución y pruebas
-  en hardware real.
+- Android tiene una aplicación nativa en Kotlin que usa el núcleo Go mediante
+  `gomobile bind`.
+- El código de iPhone/iPad está en el repositorio, pero no se ha validado.
 
 Uso básico en Android:
 
@@ -274,7 +264,7 @@ La disponibilidad puede diagnosticarse desde la GUI, `/signer` o:
 GET /settings/proxy/secret-store/status
 ```
 
-Para el acta de release, probar alta, rotación, uso y borrado con una cuenta de
+Antes de desplegar, conviene probar alta, rotación, uso y borrado con una cuenta de
 proxy de ensayo en cada SO y comprobar que ni settings ni logs contienen
 usuario/password.
 
@@ -552,15 +542,6 @@ Estado operativo en el árbol actual:
 - el secreto no se persiste ni aparece en logs; las copias controladas se
   sobrescriben al finalizar o cancelar.
 
-La verificación instalada del 29-07-2026 añadió `100/100` pruebas Core sobre
-.NET `10.0.302`, Suite NSIS, coincidencia de hashes entre stage e instalación y
-una firma PAdES completa con el certificado oficial QA de la FNMT. La ejecución
-`20260729T034537032Z-a73efbdd` cargó la previsualización nativa, cambió
-posición/tamaño, aplicó orientación de 90 grados, firmó y volvió a verificar la
-integridad; `pdfsig` confirmó firma válida y cobertura total. Esta evidencia no
-sustituye los flujos desde Firefox/Chrome, los certificados o dispositivos de
-producción ni la revisión manual de accesibilidad.
-
 Las acciones de servicio Windows no se anuncian desde el backend porque no
 están implementadas en esa plataforma. No deben esperarse controles para
 consultar, instalar, iniciar, detener o desinstalar un servicio desde WinUI.
@@ -805,7 +786,7 @@ Comprobar:
 - que `make bridge-user` dejó los manifests en el navegador correcto
 - que la ruta del script `browser-bridge.sh` apunta al binario real
 - que el ID del paquete Chromium coincide con
-  `extensions/chromium/dipgra-extension-chromium.id` cuando exista
+  `extensions/chromium/grxfirma-extension-chromium.id` cuando exista
 - que `allowed_origins` o `allowed_extensions` contienen únicamente las
   extensiones publicadas o gestionadas esperadas
 - que los errores salen por `stderr`, nunca por `stdout`
@@ -828,16 +809,14 @@ Rutas esperadas tras `make bridge-user`:
 - `~/.local/lib/grxfirma/browser-bridge.sh`
 - `~/.local/lib/grxfirma/bin/grxfirma-nativehost`
 - `~/.mozilla/native-messaging-hosts/com.grxfirma.native.json`
-- `~/.mozilla/native-messaging-hosts/com.dipgra.grxfirma.json`
+- `~/.mozilla/native-messaging-hosts/io.github.aavidad.grxfirma.json`
 
 En Chrome, Chromium y Edge los manifests se instalan solo si existe el directorio
 de Native Messaging del navegador en el perfil del usuario.
 
 Para una comprobación de release sin tocar perfiles habituales se deben usar
 los arneses de `packaging/browser-extensions/tests/`. Crean perfiles
-temporales, validan la identidad del host y restauran manifiestos/permisos. En
-la campaña Linux del 29-07-2026 pasaron Brave `150.1.92.144`, Chrome for
-Testing `151.0.7922.47` y Firefox Snap `144.0.2`. Chrome estable no se usa para
+temporales, validan la identidad del host y restauran manifiestos/permisos. Chrome estable no se usa para
 cargar una extensión unpacked si su política de sideload lo impide; la
 distribución real sigue requiriendo tienda o política empresarial. Firefox
 Snap necesita el portal WebExtensions, `geckodriver` y el cliente `flatpak`
@@ -1197,14 +1176,10 @@ make uninstall-user
 3. Si se quiere limpiar del todo el bridge de V2, eliminar manualmente:
    - `~/.local/lib/grxfirma/`
    - `~/.mozilla/native-messaging-hosts/com.grxfirma.native.json`
-   - `~/.mozilla/native-messaging-hosts/com.dipgra.grxfirma.json`
+   - `~/.mozilla/native-messaging-hosts/io.github.aavidad.grxfirma.json`
    - los manifests equivalentes de Chrome, Chromium y Edge si existen
 4. Conservar `audit.jsonl` y `/tmp/grxfirma-metrics.json` para análisis.
 5. Documentar el caso y no eliminar V2 definitivamente hasta aislar la causa.
-
-## Estado de esta guía
-
-Guía operativa lista para despliegue, soporte y transición V1→V2.
 
 ## Evidencia de identidad reforzada
 

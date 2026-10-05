@@ -182,9 +182,9 @@ with zipfile.ZipFile(sys.argv[1]) as zf:
 '@
     $version = (& python -c $versionScript $ZipSource).Trim()
 
-    Copy-Item $crxPath (Join-Path $OutputDir "dipgra-extension-chromium.crx") -Force
-    Set-Content -Path (Join-Path $OutputDir "dipgra-extension-chromium.id") -Value $extensionId -Encoding ASCII
-    Set-Content -Path (Join-Path $OutputDir "dipgra-extension-chromium.version") -Value $version -Encoding ASCII
+    Copy-Item $crxPath (Join-Path $OutputDir "grxfirma-extension-chromium.crx") -Force
+    Set-Content -Path (Join-Path $OutputDir "grxfirma-extension-chromium.id") -Value $extensionId -Encoding ASCII
+    Set-Content -Path (Join-Path $OutputDir "grxfirma-extension-chromium.version") -Value $version -Encoding ASCII
     Remove-Item $tmpRoot -Recurse -Force
 }
 
@@ -542,9 +542,9 @@ function Assert-SuiteZipArtifact {
         "invoke-uninstall-silent.ps1",
         "VERSION.txt",
         "help/NOVEDADES.md",
-        "extensions/dipgra-extension-chromium.zip",
-        "extensions/dipgra-extension-firefox.xpi",
-        "extensions/dipgra-extension-firefox.metadata.json"
+        "extensions/grxfirma-extension-chromium.zip",
+        "extensions/grxfirma-extension-firefox.xpi",
+        "extensions/grxfirma-extension-firefox.metadata.json"
     )
     $requiredDirectories = @()
     $requiredPlugins = @()
