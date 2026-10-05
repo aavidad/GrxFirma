@@ -297,4 +297,40 @@ if (-not $CoreOnly -and $hasDesktopWinUi) {
         -ManagedBySuite
 }
 
+# Las versiones anteriores dejaron accesos en el escritorio con otros nombres.
+# Solo se retiran si apuntan a un programa instalado por GrxFirma o AutoFirmaV2.
+function Remove-GrxFirmaLegacyDesktopShortcuts {
+    param([string]$BaseInstallDir)
+    $roots = @(
+        $BaseInstallDir,
+        (Join-Path $env:LOCALAPPDATA "GrxFirma"),
+        (Join-Path $env:LOCALAPPDATA "AutoFirmaV2"),
+        (Join-Path $env:LOCALAPPDATA "Programs\AutoFirmaV2")
+    ) | ForEach-Object { [System.IO.Path]::GetFullPath($_).TrimEnd('\') + '\' }
+    $names = @("GrxFirma Diputación.lnk", "AutoFirma Diputación.lnk", "AutoFirmaV2.lnk")
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    if ([string]::IsNullOrWhiteSpace($desktop)) { return }
+    $shell = New-Object -ComObject WScript.Shell
+    foreach ($name in $names) {
+        $link = Join-Path $desktop $name
+        if (-not (Test-Path -LiteralPath $link -PathType Leaf)) { continue }
+        try {
+            $target = $shell.CreateShortcut($link).TargetPath
+            if ([string]::IsNullOrWhiteSpace($target)) { continue }
+            $full = [System.IO.Path]::GetFullPath($target)
+            $owned = $roots | Where-Object { $full.StartsWith($_, [System.StringComparison]::OrdinalIgnoreCase) }
+            if ($owned) {
+                Remove-Item -LiteralPath $link -Force
+                Write-Host "Acceso antiguo retirado del escritorio: $name"
+            }
+        } catch {
+            Write-Host "No se pudo revisar el acceso antiguo $name del escritorio: $($_.Exception.Message)"
+        }
+    }
+}
+
+if (-not $CoreOnly) {
+    Remove-GrxFirmaLegacyDesktopShortcuts -BaseInstallDir $BaseInstallDir
+}
+
 Write-Host "Suite instalada en: $BaseInstallDir"
