@@ -30,4 +30,37 @@ public sealed class VeriFactuQrInputTests
     [DataRow("prewww2.aeat.es", "ValidarQRNoVerifactu")]
     public void AcceptsOfficialAuthorities(string host, string path) =>
         VeriFactuQrInput.EnsureAllowedAuthority("https://" + host + "/wlpl/TIKE-CONT/" + path + "?nif=12345678Z&numserie=A&fecha=01-01-2025&importe=1.00");
+
+    [TestMethod]
+    [DataRow("factura.png", false)]
+    [DataRow("factura.JPG", false)]
+    [DataRow("factura.jpeg", false)]
+    [DataRow("factura.Pdf", true)]
+    public void ClassifiesImagesAndPdf(string name, bool isPdf) =>
+        Assert.AreEqual(isPdf, VeriFactuQrInput.IsPdfSource(Path.Combine(Path.GetTempPath(), name)));
+
+    [TestMethod]
+    [DataRow("factura.gif")]
+    [DataRow("factura")]
+    [DataRow("factura.png ")]
+    [DataRow("fact\u0001ura.png")]
+    public void RejectsOtherFiles(string name) =>
+        Assert.ThrowsExactly<ArgumentException>(() => VeriFactuQrInput.IsPdfSource(Path.Combine(Path.GetTempPath(), name)));
+
+    [TestMethod]
+    public void RejectsRelativeEmptyAndNullPaths()
+    {
+        Assert.ThrowsExactly<ArgumentException>(() => VeriFactuQrInput.IsPdfSource("factura.png"));
+        Assert.ThrowsExactly<ArgumentException>(() => VeriFactuQrInput.IsPdfSource(string.Empty));
+        Assert.ThrowsExactly<ArgumentNullException>(() => VeriFactuQrInput.IsPdfSource(null!));
+    }
+
+    [TestMethod]
+    public void BoundsTheRasterizedImage()
+    {
+        VeriFactuQrInput.EnsureImagePayload(new byte[VeriFactuQrInput.MaximumImagePayloadBytes]);
+        Assert.ThrowsExactly<ArgumentException>(() => VeriFactuQrInput.EnsureImagePayload([]));
+        Assert.ThrowsExactly<ArgumentException>(() => VeriFactuQrInput.EnsureImagePayload(new byte[VeriFactuQrInput.MaximumImagePayloadBytes + 1]));
+        Assert.ThrowsExactly<ArgumentNullException>(() => VeriFactuQrInput.EnsureImagePayload(null!));
+    }
 }

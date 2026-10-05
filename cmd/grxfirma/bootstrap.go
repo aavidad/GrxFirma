@@ -31,6 +31,7 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/filesystem"
 	"grxfirma/internal/adapters/outbound/desktop/macoskeychain"
 	"grxfirma/internal/adapters/outbound/desktop/nssstore"
+	"grxfirma/internal/adapters/outbound/desktop/pdfpreview"
 	"grxfirma/internal/adapters/outbound/desktop/proxyhttp"
 	deskSigner "grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/adapters/outbound/desktop/tokenruntime"
@@ -438,5 +439,6 @@ func construirAdaptadorCon(rutaP12, password, rutaCert, rutaClave string, remota
 		WithProteccionFirmada(servicios.protegerFirmando).
 		WithIntercambioProteccion(servicios.exportarProteccion, servicios.importarProteccion).
 		WithConfigDir(servicios.configDir).
+		WithVisorPDF(pdfpreview.New()).
 		WithVersion(version), nil
 }

@@ -20,7 +20,9 @@ TestCase {
         signal verifactuValidated(bool ok, var result, string message)
         signal verifactuQRFinished(string action, bool ok, var result, string message)
         property int qrQueries: 0
+        property var fileReads: []
         function readVeriFactuQR(url) {}
+        function readVeriFactuQRFile(path) { fileReads.push(path) }
         function queryVeriFactuQR(url) { qrQueries++ }
         function validateVeriFactu(path) {}
         function createFacturae(draft, path) {}
@@ -48,6 +50,20 @@ TestCase {
         fake.verifactuQRFinished("read_verifactu_qr", true, {url: "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?nif=12345678Z&numserie=A&fecha=01-01-2025&importe=1", nif: "12345678Z", numserie: "A", fecha: "01-01-2025", importe: "1"}, "")
         compare(fake.qrQueries, 0)
         compare(panel.busy, false)
+    }
+    function test_qr_from_file_shows_data_and_needs_explicit_query() {
+        fake.qrQueries = 0
+        const button = findChild(panel, "qrFromFileButton")
+        verify(button !== null)
+        compare(button.text, "verifactu.qr_from_file")
+        fake.verifactuQRFinished("read_verifactu_qr", true, {url: "https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=89890001K&numserie=12345678-G33&fecha=01-09-2024&importe=241.4", nif: "89890001K", numserie: "12345678-G33", fecha: "01-09-2024", importe: "241.4"}, "")
+        const area = findChild(panel, "qrResultArea")
+        verify(area.text.indexOf("12345678-G33") >= 0)
+        compare(fake.qrQueries, 0)
+        const query = findChild(panel, "qrQueryButton")
+        verify(query.enabled)
+        query.clicked()
+        compare(fake.qrQueries, 1)
     }
     function test_draft_and_result() {
         const draft = panel.draft()

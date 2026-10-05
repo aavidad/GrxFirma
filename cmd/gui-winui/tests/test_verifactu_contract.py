@@ -21,6 +21,27 @@ class VeriFactuContract(unittest.TestCase):
         self.assertIn("StringComparison.Ordinal", (CORE / "Operations/VeriFactuQrInput.cs").read_text(encoding="utf-8"))
         ET.parse(APP / "Views/FacturaePage.xaml")
 
+    def test_qr_from_image_or_pdf_reuses_the_engine_and_explicit_query(self):
+        code = (APP / "Views/FacturaePage.xaml.cs").read_text(encoding="utf-8")
+        client = (CORE / "Operations/DesktopOperationsClient.cs").read_text(encoding="utf-8")
+        picker = (APP / "Services/WindowsFilePickerService.cs").read_text(encoding="utf-8")
+        xaml = (APP / "Views/FacturaePage.xaml").read_text(encoding="utf-8")
+        button = xaml.split('x:Name="ReadVeriFactuQrFileButton"', 1)[1].split("/>", 1)[0]
+        self.assertIn('Click="OnReadVeriFactuQrFileClick"', button)
+        self.assertIn('ReadVeriFactuQrFileButton.Content = T("verifactu.qr_from_file")', code)
+        self.assertIn("OpenFilePickerProfile.VeriFactuQrSource", code)
+        self.assertIn("OpenFilePickerProfile.VeriFactuQrSource =>", picker)
+        # Las imágenes las lee el motor; los PDF se rasterizan con Windows.Data.Pdf.
+        self.assertIn("operations.ReadVeriFactuQrFromFileAsync(path)", code)
+        self.assertIn("preview.RenderPageForCodeReadingAsync(path, page, CancellationToken.None)", code)
+        self.assertIn("operations.ReadVeriFactuQrFromImageAsync(rendered.Data)", code)
+        self.assertIn("global::GrxFirma.WinUI.Core.Operations.VeriFactuQrInput.IsPdfSource(path)", code)
+        self.assertIn("VeriFactuQrInput.EnsureImagePayload(imageB64)", client)
+        self.assertIn("new { imageB64 }", client)
+        # Leer nunca coteja: la consulta sigue en su propio botón.
+        handler = code.split("private async void OnReadVeriFactuQrFileClick", 1)[1].split("private async void OnQueryVeriFactuQrClick", 1)[0]
+        self.assertNotIn("QueryVeriFactuQrAsync", handler)
+
     def test_format_uses_engine_detection_and_refreshes_binding(self):
         code = (APP / "ViewModels/SignPageViewModel.cs").read_text(encoding="utf-8")
         self.assertIn("operations.DetectVeriFactuAsync(path)", code)

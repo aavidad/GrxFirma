@@ -18,6 +18,19 @@ class VeriFactuContract(unittest.TestCase):
         self.assertIn("enabled: !panel.busy", panel)
         self.assertIn("import QtQuick.Dialogs\n", panel)
 
+    def test_qr_can_be_read_from_an_image_or_pdf_without_querying(self):
+        panel = (ROOT / "cmd/gui-qml/qml/FacturaePanel.qml").read_text(encoding="utf-8")
+        bridge = (ROOT / "cmd/gui-qml/ipcbridge.cpp").read_text(encoding="utf-8")
+        self.assertIn('text: tr("verifactu.qr_from_file")', panel)
+        self.assertIn('nameFilters: [tr("verifactu.qr_file_filter")]', panel)
+        self.assertEqual(panel.count("panel.bridge.readVeriFactuQRFile("), 1)
+        self.assertIn("panel.bridge.readVeriFactuQRFile(panel.localPath(selectedFile))", panel)
+        # La lectura desde fichero viaja como inputPath y nunca dispara el cotejo.
+        body = bridge.split("void IpcBridge::readVeriFactuQRFile", 1)[1].split("}", 1)[0]
+        self.assertIn('QStringLiteral("read_verifactu_qr")', body)
+        self.assertIn('QStringLiteral("inputPath")', body)
+        self.assertNotIn("query_verifactu_qr", body)
+
     def test_profile_is_offered_after_namespace_detection(self):
         qml = (ROOT / "cmd/gui-qml/qml/main.qml").read_text(encoding="utf-8")
         self.assertIn("window.verifactuInput ?", qml)

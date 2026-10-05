@@ -1525,6 +1525,10 @@ void IpcBridge::detectVeriFactu(const QString &inputPath) {
 void IpcBridge::readVeriFactuQR(const QString &url) {
   sendRequest(QStringLiteral("read_verifactu_qr"), {{QStringLiteral("url"), url}});
 }
+void IpcBridge::readVeriFactuQRFile(const QString &inputPath) {
+  // El motor valida la ruta, el tipo y los límites; no hay red en la lectura.
+  sendRequest(QStringLiteral("read_verifactu_qr"), {{QStringLiteral("inputPath"), inputPath}});
+}
 void IpcBridge::queryVeriFactuQR(const QString &url) {
   sendRequest(QStringLiteral("query_verifactu_qr"), {{QStringLiteral("url"), url}});
 }

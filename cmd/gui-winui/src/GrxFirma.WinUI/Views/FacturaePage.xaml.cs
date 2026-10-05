@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using GrxFirma.WinUI.Services;
+using GrxFirma.WinUI.Core.Ipc;
 using GrxFirma.WinUI.Core.Operations;
 using System.Globalization;
 using GrxFirma.WinUI.ViewModels;
@@ -18,6 +19,8 @@ public sealed partial class FacturaePage : Page
     private string _invoiceReport = string.Empty;
     private string _verifactuQrUrl = string.Empty;
     private bool _verifactuBusy;
+    // Igual que el motor: el QR tributario va en la factura, normalmente en la primera página.
+    private const int MaximumQrPdfPages = 5;
     private static string T(string key) => SealUiCatalog.Text(Localizer.Language, key);
 
     public FacturaePage()
@@ -41,6 +44,7 @@ public sealed partial class FacturaePage : Page
         VeriFactuQrInput.Header = T("verifactu.qr_url_label");
         VeriFactuQrNotice.Text = T("verifactu.qr_notice");
         ReadVeriFactuQrButton.Content = T("verifactu.qr_read");
+        ReadVeriFactuQrFileButton.Content = T("verifactu.qr_from_file");
         QueryVeriFactuQrButton.Content = T("verifactu.qr_query");
         VeriFactuQrReport.Header = T("verifactu.qr_title");
     }
@@ -120,6 +124,7 @@ public sealed partial class FacturaePage : Page
         ValidateVeriFactuFolderButton.IsEnabled = !busy;
         VeriFactuQrInput.IsEnabled = !busy;
         ReadVeriFactuQrButton.IsEnabled = !busy;
+        ReadVeriFactuQrFileButton.IsEnabled = !busy;
         QueryVeriFactuQrButton.IsEnabled = !busy && _verifactuQrUrl.Length > 0;
     }
 
@@ -169,18 +174,67 @@ public sealed partial class FacturaePage : Page
         try
         {
             var result = await operations.ReadVeriFactuQrAsync(VeriFactuQrInput.Text);
-            if (result.IsSuccess && result.Data is not null)
-            {
-                var qr = result.Data;
-                _verifactuQrUrl = qr.Url;
-                VeriFactuQrReport.Text = T("verifactu.qr_nif") + ": " + qr.Nif + "\n" +
-                    T("verifactu.qr_number") + ": " + qr.Number + "\n" +
-                    T("verifactu.qr_date") + ": " + qr.Date + "\n" +
-                    T("verifactu.qr_amount") + ": " + qr.Amount;
-            }
-            else VeriFactuQrReport.Text = result.SafeUserMessage;
+            ShowVeriFactuQrResult(result);
         }
         catch (Exception) { VeriFactuQrReport.Text = T("verifactu.qr_params"); }
+        finally { SetVeriFactuBusy(false); }
+    }
+
+    // Muestra los cuatro datos del QR y habilita el cotejo explícito solo con
+    // la URL que devuelve el motor tras validarla.
+    private void ShowVeriFactuQrResult(IpcCallResult<VeriFactuQrResult> result)
+    {
+        if (result.IsSuccess && result.Data is not null)
+        {
+            var qr = result.Data;
+            _verifactuQrUrl = qr.Url;
+            VeriFactuQrReport.Text = T("verifactu.qr_nif") + ": " + qr.Nif + "\n" +
+                T("verifactu.qr_number") + ": " + qr.Number + "\n" +
+                T("verifactu.qr_date") + ": " + qr.Date + "\n" +
+                T("verifactu.qr_amount") + ": " + qr.Amount;
+        }
+        else VeriFactuQrReport.Text = result.SafeUserMessage;
+    }
+
+    private async void OnReadVeriFactuQrFileClick(object sender, RoutedEventArgs args)
+    {
+        if (_verifactuBusy) return;
+        var app = (App)Application.Current;
+        if (!app.OperationSession.TryGetOperations(DesktopOperationActions.ReadVeriFactuQr, out var operations)) return;
+        SetVeriFactuBusy(true);
+        try
+        {
+            var path = await app.FilePickerService.PickOpenFileAsync(OpenFilePickerProfile.VeriFactuQrSource);
+            if (string.IsNullOrWhiteSpace(path)) return;
+            // Vaciar la URL limpia el informe; después se indica qué fichero se lee.
+            VeriFactuQrInput.Text = string.Empty;
+            _verifactuQrUrl = string.Empty;
+            VeriFactuQrReport.Text = T("verifactu.qr_reading");
+            // VeriFactuQrInput es también el nombre del cuadro de texto de esta página.
+            if (!global::GrxFirma.WinUI.Core.Operations.VeriFactuQrInput.IsPdfSource(path))
+            {
+                ShowVeriFactuQrResult(await operations.ReadVeriFactuQrFromFileAsync(path));
+                return;
+            }
+            // El motor de Windows no rasteriza PDF: se hace aquí con
+            // Windows.Data.Pdf y se envía cada página como PNG acotado.
+            var preview = new WindowsPdfPreviewService();
+            IpcCallResult<VeriFactuQrResult>? last = null;
+            var total = 1;
+            for (var page = 1; page <= total && page <= MaximumQrPdfPages; page++)
+            {
+                PdfPreviewResult rendered;
+                try { rendered = await preview.RenderPageForCodeReadingAsync(path, page, CancellationToken.None); }
+                // Si la página a 2 000 px supera el tope seguro, se usa la resolución de la vista previa.
+                catch (InvalidDataException) { rendered = await preview.RenderPageAsync(path, page, CancellationToken.None); }
+                total = rendered.TotalPages;
+                last = await operations.ReadVeriFactuQrFromImageAsync(rendered.Data);
+                if (last.IsSuccess) break;
+            }
+            if (last is null) VeriFactuQrReport.Text = T("verifactu.qr_pdf");
+            else ShowVeriFactuQrResult(last);
+        }
+        catch (Exception) { VeriFactuQrReport.Text = T("verifactu.qr_pdf"); }
         finally { SetVeriFactuBusy(false); }
     }
 
