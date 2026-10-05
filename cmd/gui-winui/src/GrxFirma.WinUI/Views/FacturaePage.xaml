@@ -177,6 +177,7 @@
                                         Text="{x:Bind ViewModel.InvoiceSeriesCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                                 <DatePicker
+                                    x:Name="IssueDatePicker"
                                     AutomationProperties.Name="Fecha de expedición"
                                     Date="{x:Bind ViewModel.IssueDate, Mode=TwoWay}"
                                     DayVisible="True"
@@ -539,6 +540,7 @@
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition x:Name="IbanRow" Height="Auto" /></Grid.RowDefinitions>
                                     <DatePicker
+                                        x:Name="InstallmentDueDatePicker"
                                         Grid.Column="0"
                                         AutomationProperties.Name="Fecha de vencimiento"
                                         Date="{x:Bind ViewModel.InstallmentDueDate, Mode=TwoWay}"

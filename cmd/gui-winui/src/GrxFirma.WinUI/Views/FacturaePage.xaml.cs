@@ -34,6 +34,8 @@ public sealed partial class FacturaePage : Page
             app.FilePickerService,
             app.OperationSession);
         InitializeComponent();
+        PickerLanguage.Attach(IssueDatePicker);
+        PickerLanguage.Attach(InstallmentDueDatePicker);
         LocalValidationTitle.Text = T("paridad.lote3.invoice.title");
         ValidateInvoiceButton.Content = T("paridad.lote3.invoice.choose");
         ExportInvoiceReportButton.Content = T("paridad.lote3.invoice.export");

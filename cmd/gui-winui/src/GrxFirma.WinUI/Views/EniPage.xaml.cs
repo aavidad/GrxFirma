@@ -169,6 +169,8 @@ public sealed partial class EniPage : Page
                 if (!string.IsNullOrWhiteSpace(name)) AutomationProperties.SetName(control, name);
             }
         }
+        foreach (var datePicker in new[] { _capture, _opened }) PickerLanguage.Attach(datePicker);
+        foreach (var timePicker in new[] { _captureTime, _openedTime }) PickerLanguage.Attach(timePicker);
         Loaded += async (_, _) => await LoadCertificates();
     }
 
