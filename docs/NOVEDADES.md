@@ -7,6 +7,10 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.121 — 2026-10-06
+
+- Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.
+
 ## 0.0.120 — 2026-10-06
 
 - Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.

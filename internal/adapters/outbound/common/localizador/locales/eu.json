@@ -6490,4 +6490,5 @@
   ,"La extensión de navegador y la app de Android usan identificadores nuevos; al actualizar se retiran los registros antiguos.": "Nabigatzailearen luzapenak eta Androideko aplikazioak identifikatzaile berriak erabiltzen dituzte; eguneratzean erregistro zaharrak kentzen dira."
   ,"Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.": "GRX ikonoa sinadura-trazuarekin itzuli da Windows, Linux, Android eta luzapenean, eta PDFen zigiluak bere ikurra eta koloreak berreskuratzen ditu."
   ,"Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.": "Android: zigiluaren editoreak botoi guztiak erakusten ditu, ziurtagiri mota zuzentzen da, DNIe botoia benetan desgaitzen da NFCrik gabe eta «Honi buruz» trinkoagoa da."
+  ,"Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.": "Windows: eguneratzean, GrxFirmaren aurreko bertsioen lasterbideak kentzen dira mahaigainetik."
 }

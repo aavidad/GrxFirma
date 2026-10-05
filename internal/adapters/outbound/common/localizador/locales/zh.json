@@ -6490,4 +6490,5 @@
   ,"La extensión de navegador y la app de Android usan identificadores nuevos; al actualizar se retiran los registros antiguos.": "浏览器扩展和 Android 应用使用新的标识符；更新时会移除旧的注册信息。"
   ,"Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.": "带签名笔画的 GRX 图标在 Windows、Linux、Android 和扩展中回归，PDF 印章也恢复了原有的徽标和颜色。"
   ,"Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.": "Android：印章编辑器显示全部按钮，证书类型已更正，没有 NFC 时 DNIe 按钮会真正停用，“关于”页面更紧凑。"
+  ,"Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.": "Windows：更新时会从桌面移除旧版 GrxFirma 留下的快捷方式。"
 }

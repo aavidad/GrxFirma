@@ -6490,4 +6490,5 @@
   ,"La extensión de navegador y la app de Android usan identificadores nuevos; al actualizar se retiran los registros antiguos.": "L'extension de navigateur et l'application Android utilisent de nouveaux identifiants ; les anciens enregistrements sont retirés lors de la mise à jour."
   ,"Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.": "L'icône GRX avec le trait de signature revient sous Windows, Linux, Android et dans l'extension, et le cachet des PDF retrouve son emblème et ses couleurs."
   ,"Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.": "Android : l'éditeur du cachet affiche tous ses boutons, le type de certificat est corrigé, le bouton DNIe est vraiment désactivé sans NFC et « À propos » est plus compact."
+  ,"Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.": "Windows : la mise à jour retire du bureau les raccourcis des versions précédentes de GrxFirma."
 }
