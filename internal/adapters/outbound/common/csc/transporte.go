@@ -173,6 +173,9 @@ func es401(err error) bool {
 
 func hacer(cliente *http.Client, req *http.Request, respuesta any) error {
 	req.Header.Set("Accept", "application/json")
+	// #nosec G704 -- quien llama ha validado el destino con validarURLSegura
+	// (https, sin credenciales) y solo es el servicio configurado o un
+	// extremo OAuth que ha superado oauthPermitido; no hay redirecciones.
 	resp, err := cliente.Do(req)
 	if err != nil {
 		if errors.Is(err, errRedireccion) {
