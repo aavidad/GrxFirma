@@ -51,13 +51,17 @@ class VeriFactuContract(unittest.TestCase):
         js = (ROOT / "cmd/gui-qml/qml/VeriFactuResponse.js").read_text(encoding="utf-8").replace(".pragma library", "")
         js += r"""
 const assert = require('assert');
-for (const j of ['{"resultado":"ok"}', '{"resultado":"Factura encontrada"}', '{"estado":"Registrada"}']) assert.strictEqual(classify(JSON.parse(j)), 'verifactu.qr_aeat_found');
-for (const j of ['{"resultado":"Factura no encontrada"}', '{"estado":"KO"}', '{"mensaje":"No se ha identificado la factura"}', '{"result":"NOT_FOUND"}']) assert.strictEqual(classify(JSON.parse(j)), 'verifactu.qr_aeat_not_found');
-assert.strictEqual(classify({x: 1}), 'verifactu.qr_aeat_unknown');
+const answer = (r, m) => ({status: "OK", mensaje: m, visible: "N", crashlytics: "N", respuesta: {resultado: r, nif: "89890001K", numserie: "12345678", fecha: "01-09-2024", importe: "241.40"}});
+assert.strictEqual(classify(answer("00", "Encontrada")), 'verifactu.qr_aeat_found');
+assert.strictEqual(classify(answer("01", "No encontrada")), 'verifactu.qr_aeat_not_found');
+assert.strictEqual(classify(answer("02", "No contrastable")), 'verifactu.qr_aeat_not_verifiable');
+assert.strictEqual(classify(JSON.stringify(answer("02", "No contrastable"))), 'verifactu.qr_aeat_not_verifiable');
+assert.strictEqual(classify({status: "KO", mensaje: "El importe tiene un formato incorrecto", codigo_error: "2005"}), 'verifactu.qr_aeat_rejected');
+for (const j of [{status: "OK"}, {status: "OK", mensaje: "Encontrada"}, {status: "OK", respuesta: {resultado: "99"}}, {resultado: "ok"}, {resultado: "Factura encontrada"}, {x: 1}, [1], "no es json", "", null]) assert.strictEqual(classify(j), 'verifactu.qr_aeat_unknown');
 """
         subprocess.run([node, "-e", js], check=True, cwd=ROOT, timeout=15)
         cs = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI.Core/Operations/VeriFactuQrResponse.cs").read_text(encoding="utf-8")
         qml = (ROOT / "cmd/gui-qml/qml/VeriFactuResponse.js").read_text(encoding="utf-8")
-        for fragment in ("encontrad|encuentr|consta|existe|registrad|identificad", "noencontrad", "not[\\s_-]*found"):
+        for fragment in ('"00"', '"01"', '"02"', '"KO"', "respuesta", "resultado", "qr_aeat_not_verifiable", "qr_aeat_rejected"):
             self.assertIn(fragment, cs)
             self.assertIn(fragment, qml)

@@ -3,50 +3,54 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
-using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace GrxFirma.WinUI.Core.Operations;
 
 // Traduce la respuesta JSON del cotejo de la AEAT a la clave de una frase.
-// La AEAT no publica un esquema estable de esa respuesta: solo se afirma un
-// resultado cuando el texto es inequívoco; si no, se dice que no se reconoce
-// y la pantalla ofrece la respuesta técnica. Mismas reglas que Qt
-// (cmd/gui-qml/qml/VeriFactuResponse.js).
+// Según la especificación del QR de Veri*Factu (apartado 9), "status" solo
+// dice si la consulta se atendió ("OK") o se rechazó ("KO"); el resultado de
+// la factura está en "respuesta.resultado": 00 encontrada, 01 no encontrada
+// (o anulada) y 02 no contrastable (sistema no verificable). Cualquier otra
+// forma se declara no reconocida y la pantalla ofrece la respuesta técnica.
+// Mismas reglas que Qt (cmd/gui-qml/qml/VeriFactuResponse.js).
 public static class VeriFactuQrResponse
 {
     public const string FoundKey = "verifactu.qr_aeat_found";
     public const string NotFoundKey = "verifactu.qr_aeat_not_found";
+    public const string NotVerifiableKey = "verifactu.qr_aeat_not_verifiable";
+    public const string RejectedKey = "verifactu.qr_aeat_rejected";
     public const string UnknownKey = "verifactu.qr_aeat_unknown";
-
-    private static readonly Regex NegativeAnswer = new Regex(@"\bno\s*(?:se\s*)?(?:ha\s*)?(?:encontrad|encuentr|consta|existe|registrad|identificad)|noencontrad|not[\s_-]*found|incorrect|""ko""", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(250));
-    private static readonly Regex PositiveAnswer = new Regex(@"encontrad|correct|consta|registrad|identificad|""ok""|""found""", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(250));
 
     public static string Classify(string? json)
     {
-        var text = Normalize(json);
+        if (string.IsNullOrWhiteSpace(json)) return UnknownKey;
         try
         {
-            if (NegativeAnswer.IsMatch(text)) return NotFoundKey;
-            if (PositiveAnswer.IsMatch(text)) return FoundKey;
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object) return UnknownKey;
+            var status = Text(root, "status");
+            if (string.Equals(status, "KO", StringComparison.OrdinalIgnoreCase)) return RejectedKey;
+            if (!string.Equals(status, "OK", StringComparison.OrdinalIgnoreCase)) return UnknownKey;
+            if (!root.TryGetProperty("respuesta", out var answer) ||
+                answer.ValueKind != JsonValueKind.Object) return UnknownKey;
+            return Text(answer, "resultado") switch
+            {
+                "00" => FoundKey,
+                "01" => NotFoundKey,
+                "02" => NotVerifiableKey,
+                _ => UnknownKey,
+            };
         }
-        catch (RegexMatchTimeoutException)
+        catch (JsonException)
         {
             return UnknownKey;
         }
-        return UnknownKey;
     }
 
-    private static string Normalize(string? json)
-    {
-        var decomposed = (json ?? string.Empty).ToLowerInvariant().Normalize(NormalizationForm.FormD);
-        var builder = new StringBuilder(decomposed.Length);
-        foreach (var character in decomposed)
-        {
-            if (CharUnicodeInfo.GetUnicodeCategory(character) != UnicodeCategory.NonSpacingMark)
-                builder.Append(character);
-        }
-        return builder.ToString();
-    }
+    private static string? Text(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString()?.Trim()
+            : null;
 }
