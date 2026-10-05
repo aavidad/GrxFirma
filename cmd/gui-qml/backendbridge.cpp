@@ -11,6 +11,7 @@
 #include "transientsecret.h"
 #include "translatorbridge.h"
 #include "webcompatibilitylease.h"
+#include <QAccessible>
 #include <QClipboard>
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -36,6 +37,17 @@
 #include <QUrl>
 #include <QUrlQuery>
 #include <cmath>
+
+void BackendBridge::announceAccessible(QObject *target, const QString &text) {
+  if (!target || text.isEmpty()) return;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+  QAccessibleAnnouncementEvent event(target, text);
+#else
+  // Qt anterior a 6.8 obtiene el nombre del aviso mediante su interfaz accesible.
+  QAccessibleEvent event(target, QAccessible::Alert);
+#endif
+  QAccessible::updateAccessibility(&event);
+}
 
 static QString bt(const QString &key) {
   if (auto *tr = TranslatorBridge::shared())

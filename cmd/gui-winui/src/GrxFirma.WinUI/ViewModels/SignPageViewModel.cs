@@ -837,6 +837,40 @@ public sealed class SignPageViewModel
     public string SealApplyAllLabel => SealText("sign.seal.apply_all_pages");
     public string SealPreviousPageLabel => SealText("sign.seal.previous_page");
     public string SealNextPageLabel => SealText("sign.seal.next_page");
+    public bool CanDrawVisibleSealArea => _isPreviewImageRendered &&
+        !VisibleSealPreviewImage.IsEmpty && _previewCurrentPage > 0 &&
+        (_requestedPreviewPage <= 0 || _previewCurrentPage == _requestedPreviewPage) &&
+        PathsEqual(_previewInputPath ?? string.Empty, _inputPath ?? string.Empty);
+
+    public string VisibleSealDrawAreaLabel => SealText("sign.seal.draw_area");
+    public string VisibleSealDrawAreaHelp => SealText("sign.seal.draw_help");
+
+    public bool ApplyDrawnSealArea(SealDrawRect rect)
+    {
+        if (!SealDrawGeometry.IsLargeEnough(rect) ||
+            !double.IsFinite(rect.X) || !double.IsFinite(rect.Y) ||
+            !double.IsFinite(rect.Width) || !double.IsFinite(rect.Height) ||
+            rect.X < 0 || rect.Y < 0 || rect.X + rect.Width > 1 + 1e-12 ||
+            rect.Y + rect.Height > 1 + 1e-12) return false;
+        // La geometría se cambia de una vez: los setters individuales limitan
+        // la tarjeta girada y podrían desplazarla con un tamaño intermedio.
+        _visibleSealXPercent = rect.X * 100;
+        _visibleSealYPercent = rect.Y * 100;
+        _visibleSealWidthPercent = rect.Width * 100;
+        _visibleSealHeightPercent = rect.Height * 100;
+        if (_perPageSealEnabled && _previewCurrentPage > 0)
+        {
+            _sealPlacements[_previewCurrentPage] = CurrentSealPlacement();
+            RaisePropertyChanged(nameof(HasSealOnPreviewPage));
+            RaisePropertyChanged(nameof(SealPageToggleLabel));
+        }
+        OnVisibleSealGeometryChanged();
+        foreach (var name in new[] { nameof(VisibleSealXPercent), nameof(VisibleSealYPercent),
+            nameof(VisibleSealWidthPercent), nameof(VisibleSealHeightPercent) })
+            RaisePropertyChanged(name);
+        return true;
+    }
+
     public string VisibleSealRotateHandleLabel => SealText("sign.seal.rotate_handle");
     public string VisibleSealRotateHandleHelp => SealText("sign.seal.rotate_help");
 
@@ -845,7 +879,7 @@ public sealed class SignPageViewModel
     public void SetSealUiLanguage(string? language)
     {
         _sealUiLanguage = language ?? "es";
-        foreach (var name in new[] { nameof(SealOneByOneLabel), nameof(SealApplyAllLabel), nameof(SealPreviousPageLabel), nameof(SealNextPageLabel), nameof(SealPageToggleLabel), nameof(VisibleSealPageSummary), nameof(VisibleSealRotateHandleLabel), nameof(VisibleSealRotateHandleHelp), nameof(VisibleSealCsvLabel), nameof(VisibleSealCsvNotice), nameof(VisibleSealCsvCodeLabel), nameof(VisibleSealCsvUrlLabel), nameof(VisibleSealCsvTextLabel), nameof(VisibleSealCsvQrLabel) })
+        foreach (var name in new[] { nameof(VisibleSealDrawAreaLabel), nameof(VisibleSealDrawAreaHelp), nameof(SealOneByOneLabel), nameof(SealApplyAllLabel), nameof(SealPreviousPageLabel), nameof(SealNextPageLabel), nameof(SealPageToggleLabel), nameof(VisibleSealPageSummary), nameof(VisibleSealRotateHandleLabel), nameof(VisibleSealRotateHandleHelp), nameof(VisibleSealCsvLabel), nameof(VisibleSealCsvNotice), nameof(VisibleSealCsvCodeLabel), nameof(VisibleSealCsvUrlLabel), nameof(VisibleSealCsvTextLabel), nameof(VisibleSealCsvQrLabel) })
             RaisePropertyChanged(name);
     }
 

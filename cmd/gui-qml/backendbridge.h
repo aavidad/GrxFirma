@@ -30,6 +30,7 @@ class BackendBridge : public QObject {
                  activeDiagnosticsRunningChanged)
 
 public:
+  Q_INVOKABLE void announceAccessible(QObject *target, const QString &text);
   explicit BackendBridge(QObject *parent = nullptr);
   ~BackendBridge();
 

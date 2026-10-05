@@ -7,7 +7,7 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import QtQuick.Dialogs 6.2
+import QtQuick.Dialogs
 import QtQml 2.15
 import Qt.labs.settings 1.1
 
@@ -1810,6 +1810,7 @@ Window {
         const maxPage = Math.max(1, previewTotalPages)
         const clamped = Math.max(1, Math.min(page, maxPage))
         if (previewCurrentPage === clamped) return
+        sealDrawArea.cancel()
         savePageSeal()
         previewCurrentPage = clamped
         requestPdfPreview()
@@ -3936,7 +3937,7 @@ Window {
     onSignQREnabledChanged: { scheduleSettingsSave(); scheduleSealPreview(); if (signFieldError("qr")) validateSignField("qr") }
     onSignSealPerPageChanged: scheduleSettingsSave()
     onSignSealPlacementsChanged: scheduleSettingsSave()
-    onPreviewCurrentPageChanged: loadPageSeal()
+    onPreviewCurrentPageChanged: { sealDrawArea.cancel(); loadPageSeal() }
     onPreferredCertificateIdChanged: scheduleSettingsSave()
 
     Connections {
@@ -8931,11 +8932,47 @@ Window {
                                 Rectangle {
                                     id: portalSealEditor
                                     Layout.fillWidth: true
-                                    Layout.preferredHeight: signVisibleSeal ? pagePreview.height + 20 : 0
+                                    Layout.preferredHeight: signVisibleSeal ? pagePreview.height + sealDrawControls.implicitHeight + 30 : 0
                                     visible: signVisibleSeal && supportsVisibleSeal()
                                     color: "#e8edf4"
                                     border.color: "#c2ccd6"
                                     radius: 8
+
+                                    ColumnLayout {
+                                        id: sealDrawControls
+                                        anchors.top: parent.top
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        anchors.margins: 10
+                                        Button {
+                                            id: sealDrawButton
+                                            text: tr("sign.seal.draw_area")
+                                            checkable: true
+                                            enabled: sealDrawArea.ready
+                                            Accessible.name: text
+                                            Accessible.description: tr("sign.seal.draw_help")
+                                            onToggled: sealDrawArea.drawMode = checked
+                                            Keys.onPressed: (event) => sealDrawArea.handleKey(event)
+                                        }
+                                        Text {
+                                            visible: sealDrawButton.checked
+                                            text: tr("sign.seal.draw_help")
+                                            color: currentTheme.textColor
+                                            wrapMode: Text.WordWrap
+                                            Layout.fillWidth: true
+                                        }
+                                        Text {
+                                            id: sealDrawNotice
+                                            property string messageKey: ""
+                                            text: messageKey ? tr(messageKey) : ""
+                                            visible: text !== ""
+                                            color: currentTheme.textColor
+                                            wrapMode: Text.WordWrap
+                                            Layout.fillWidth: true
+                                            Accessible.role: Accessible.StaticText
+                                            Accessible.name: text
+                                        }
+                                    }
 
                                      Rectangle {
                                          anchors.centerIn: pagePreview
@@ -8950,7 +8987,9 @@ Window {
 
                                      Rectangle {
                                          id: pagePreview
-                                         anchors.centerIn: parent
+                                         anchors.top: sealDrawControls.bottom
+                                         anchors.topMargin: 10
+                                         anchors.horizontalCenter: parent.horizontalCenter
                                          property real pageRatio: 1.0
                                          z: 1
 
@@ -8962,7 +9001,8 @@ Window {
                                              source: ""
                                              visible: source !== ""
                                          }
-                                        width: Math.min(parent.width - 20, 500 / pageRatio)
+                                        width: Math.max(1, Math.min(parent.width - 20, 500 / pageRatio,
+                                            window.portalSealMode ? Math.max(1, parent.height - sealDrawControls.height - 30) / pageRatio : 500 / pageRatio))
                                         height: width * pageRatio
                                         color: "#ffffff"
                                         border.color: "#7f8fa4"
@@ -8977,6 +9017,35 @@ Window {
                                         }
                                         onWidthChanged: syncPreviewFromSeal()
                                         onHeightChanged: syncPreviewFromSeal()
+
+                                        SealDrawArea {
+                                            id: sealDrawArea
+                                            anchors.fill: parent
+                                            z: 100
+                                            ready: pdfPageImage.status === Image.Ready &&
+                                                previewGeometryPath === previewInputPath() &&
+                                                previewGeometryPage === previewCurrentPage
+                                            initialRect: ({x: signSealX, y: signSealY, w: signSealW, h: signSealH})
+                                            accessibleName: tr("sign.seal.draw_area")
+                                            accessibleHelp: tr("sign.seal.draw_help")
+                                            onCommitted: (rect) => {
+                                                // Un único guardado por página, incluso si antes no había sello.
+                                                window.loadingPageSeal = true
+                                                window.signSealX = rect.x
+                                                window.signSealY = rect.y
+                                                window.signSealW = rect.w
+                                                window.signSealH = rect.h
+                                                window.loadingPageSeal = false
+                                                if (window.signSealPerPage) window.addSealToPage()
+                                                window.syncPreviewFromSeal()
+                                                window.savePageSeal()
+                                                window.scheduleSealPreview()
+                                            }
+                                            onFeedback: (key) => {
+                                                sealDrawNotice.messageKey = key
+                                                Qt.callLater(function() { backend.announceAccessible(sealDrawNotice, tr(key)) })
+                                            }
+                                        }
 
                                         Rectangle {
                                             id: sealRect

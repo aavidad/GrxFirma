@@ -4841,5 +4841,10 @@
   ,"ENI: las fechas de captura y de apertura se eligen en un calendario.": "ENI: las fechas de captura y de apertura se eligen en un calendario."
   ,"ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».": "ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>»."
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar»."
-  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro."
+  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.",
+  "sign.seal.draw_area": "Dibujar área",
+  "sign.seal.draw_help": "Arrastre sobre la página para dibujar el área del sello. Con el modo activo, las flechas mueven una esquina y Mayús + flechas la opuesta. Intro confirma; Esc cancela.",
+  "sign.seal.draw_too_small": "El área es demasiado pequeña. Dibuje un rectángulo mayor; se conserva el sello anterior.",
+  "sign.seal.draw_applied": "Área del sello actualizada en esta página.",
+  "sign.seal.draw_cancelled": "Dibujo cancelado. Se conserva el sello anterior."
 }
