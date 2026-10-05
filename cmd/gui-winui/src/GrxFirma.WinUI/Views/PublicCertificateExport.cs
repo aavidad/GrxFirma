@@ -13,8 +13,8 @@ namespace GrxFirma.WinUI.Views;
 
 internal static class PublicCertificateExport
 {
-    private const string ShareMessage =
-        "Es su certificado público: puede enviarlo sin riesgo. Quien lo reciba podrá proteger archivos que solo usted podrá abrir con GrxFirma (Desproteger).";
+    private static string ShareMessage =>
+        Localizer.Text("winui.certificados.es_su_certificado_publico_puede_enviarlo");
 
     internal static async Task ExportAsync(
         DesktopOperationSession session,
@@ -25,7 +25,7 @@ internal static class PublicCertificateExport
     {
         if (!session.TryGetOperations(DesktopOperationActions.CertificateExportPublic, out var operations))
         {
-            await NoticeAsync(xamlRoot, "El motor local no permite exportar certificados públicos.");
+            await NoticeAsync(xamlRoot, Localizer.Text("winui.certificados.el_motor_local_no_permite_exportar"));
             return;
         }
         if (string.IsNullOrWhiteSpace(certificateId))
@@ -33,13 +33,13 @@ internal static class PublicCertificateExport
             var listed = await operations.GetCertificatesAsync(cancellationToken);
             if (!listed.IsSuccess || listed.Data is null || listed.Data.Count == 0)
             {
-                await NoticeAsync(xamlRoot, "No hay certificados propios disponibles.");
+                await NoticeAsync(xamlRoot, Localizer.Text("winui.certificados.no_hay_certificados_propios_disponibles"));
                 return;
             }
             var candidates = listed.Data.Where(c => c.CanSign || c.NeedsUnlock).ToArray();
             if (candidates.Length == 0)
             {
-                await NoticeAsync(xamlRoot, "No hay certificados propios disponibles.");
+                await NoticeAsync(xamlRoot, Localizer.Text("winui.certificados.no_hay_certificados_propios_disponibles"));
                 return;
             }
             if (candidates.Length == 1)
@@ -50,7 +50,7 @@ internal static class PublicCertificateExport
             {
                 var combo = new ComboBox
                 {
-                    Header = "Elija su certificado",
+                    Header = Localizer.Text("winui.certificados.elija_su_certificado"),
                     ItemsSource = candidates,
                     DisplayMemberPath = nameof(CertificateInfo.SubjectName),
                     SelectedIndex = 0,
@@ -59,10 +59,10 @@ internal static class PublicCertificateExport
                 var dialog = new ContentDialog
                 {
                     XamlRoot = xamlRoot,
-                    Title = "Compartir mi certificado",
+                    Title = Localizer.Text("winui.certificados.compartir_mi_certificado"),
                     Content = combo,
-                    PrimaryButtonText = "Continuar",
-                    CloseButtonText = "Cancelar",
+                    PrimaryButtonText = Localizer.Text("winui.certificados.continuar"),
+                    CloseButtonText = Localizer.Text("winui.comun.cancelar"),
                 };
                 if (await Localizer.ShowAsync(dialog) != ContentDialogResult.Primary)
                     return;
@@ -90,7 +90,7 @@ internal static class PublicCertificateExport
             string.IsNullOrWhiteSpace(result.Data.OutputPath) ||
             string.IsNullOrWhiteSpace(result.Data.CertificateDerBase64))
         {
-            await NoticeAsync(xamlRoot, "El motor no confirmó el archivo del certificado público.");
+            await NoticeAsync(xamlRoot, Localizer.Text("winui.certificados.el_motor_no_confirmo_el_archivo_del"));
             return;
         }
         await NoticeAsync(xamlRoot, ShareMessage);
@@ -101,9 +101,9 @@ internal static class PublicCertificateExport
         var dialog = new ContentDialog
         {
             XamlRoot = xamlRoot,
-            Title = "Certificado público",
+            Title = Localizer.Text("winui.certificados.certificado_publico"),
             Content = message,
-            CloseButtonText = "Cerrar",
+            CloseButtonText = Localizer.Text("winui.comun.cerrar"),
         };
         await Localizer.ShowAsync(dialog);
     }

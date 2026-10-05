@@ -577,13 +577,16 @@ class WinUiLocalizerContractTests(unittest.TestCase):
             used.update(re.findall(r'Localizer\.(?:Text|Fill)\(\s*"([^"\n]+)"', source))
             templates.update(re.findall(r'Localizer\.Fill\(\s*"([^"\n]+)"', source))
         self.assertTrue(used)
+        # Las claves winui.* no llevan marcadores: los de referencia son los
+        # del texto español; en las claves heredadas coinciden con la clave.
+        spanish = json.loads((LOCALES / "es.json").read_text(encoding="utf-8"))
         for path in sorted(LOCALES.glob("*.json")):
             catalog = json.loads(path.read_text(encoding="utf-8"))
             with self.subTest(locale=path.stem):
                 self.assertFalse(used - catalog.keys(), sorted(used - catalog.keys()))
                 for key in templates:
                     self.assertEqual(
-                        set(re.findall(r"\{[a-z]+\}", key)),
+                        set(re.findall(r"\{[a-z]+\}", spanish.get(key, key))),
                         set(re.findall(r"\{[a-z]+\}", catalog[key])),
                         f"{path.stem}: placeholders changed in {key!r}")
 

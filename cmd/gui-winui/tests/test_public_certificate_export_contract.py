@@ -9,6 +9,8 @@
 from pathlib import Path
 import unittest
 
+from winui_catalog import read_with_catalog
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -23,7 +25,7 @@ class PublicCertificateExportContract(unittest.TestCase):
         ):
             self.assertIn(label, page)
             self.assertIn(handler, page)
-        shared = (root / "Views/PublicCertificateExport.cs").read_text(encoding="utf-8")
+        shared = read_with_catalog(root / "Views/PublicCertificateExport.cs")
         self.assertIn("SaveFilePickerProfile.PublicCertificate", shared)
         self.assertIn("ExportPublicCertificateAsync", shared)
         self.assertIn("Es su certificado público: puede enviarlo sin riesgo.", shared)
