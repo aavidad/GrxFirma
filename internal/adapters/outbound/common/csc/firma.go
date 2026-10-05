@@ -244,7 +244,7 @@ func (c *Cliente) autorizarCredencial(ctx context.Context, cred *Credencial, res
 		}
 	}()
 	if cred.Modo == ModoExplicito {
-		if cred.OTP && cred.OTPEnLinea {
+		if cred.OTP && cred.OTPEnLinea && !c.opc.EnvioOTPManual {
 			if err := postJSON(ctx, c.http, unirRuta(c.base, "credentials/sendOTP"), t, map[string]string{"credentialID": cred.ID}, nil); err != nil {
 				return nil, err
 			}
@@ -374,6 +374,26 @@ func (c *Cliente) firmarResumenes(ctx context.Context, cred *Credencial, auth *a
 		firmas = append(firmas, f)
 	}
 	return firmas, nil
+}
+
+// EnviarOTP pide al servicio que envíe a la persona el código de un solo
+// uso de una credencial con OTP en línea (credentials/sendOTP). Solo tiene
+// sentido con [Opciones.EnvioOTPManual]; si la credencial no usa OTP en
+// línea, no hace nada.
+func (c *Cliente) EnviarOTP(ctx context.Context, cred *Credencial) error {
+	if cred == nil || !credencialIDValido(cred.ID) {
+		return nuevoError(CodigoCredencialNoValida, "", nil)
+	}
+	if cred.Modo != ModoExplicito || !cred.OTP || !cred.OTPEnLinea {
+		return nil
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	t, err := c.tokenSesion()
+	if err != nil {
+		return err
+	}
+	return postJSON(ctx, c.http, unirRuta(c.base, "credentials/sendOTP"), t, map[string]string{"credentialID": cred.ID}, nil)
 }
 
 // FirmanteRemoto es un crypto.Signer cuya clave privada vive en el servicio

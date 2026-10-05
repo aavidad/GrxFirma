@@ -52,6 +52,7 @@
         android:visibility="gone">
 
         <TextView
+            android:id="@+id/batchHelperText"
             style="@style/TextAppearance.Material3.BodyMedium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -86,6 +87,12 @@
             android:minHeight="48dp"
             android:text="@string/batch_clear"
             android:visibility="gone" />
+
+        <include
+            android:id="@+id/batchWave4"
+            layout="@layout/section_batch_wave4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/signBatchButton"

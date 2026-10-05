@@ -29,7 +29,7 @@ data class AppSettings(
     fun sanitized(): AppSettings = copy(
         defaultFormat = defaultFormat.takeIf { it in FORMATS } ?: "auto",
         defaultProfile = defaultProfile.takeIf { it in PROFILES } ?: "baseline",
-        tsaUrl = tsaUrl.take(MAX_TSA_URL).filter { !it.isISOControl() },
+        tsaUrl = tsaUrl.take(MAX_TSA_URL).filterNot(es.dipgra.grxfirma.android.core.DisplayText::hidden),
         outputName = outputName.takeIf { it in OutputNames.POLICIES } ?: OutputNames.SUFFIX,
         theme = theme.takeIf { it in THEMES } ?: THEME_SYSTEM,
         sessionTimeoutMinutes = sessionTimeoutMinutes.takeIf { it in TIMEOUTS } ?: DEFAULT_TIMEOUT,

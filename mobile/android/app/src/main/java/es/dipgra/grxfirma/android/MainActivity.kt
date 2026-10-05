@@ -77,6 +77,12 @@ import es.dipgra.grxfirma.android.model.UpdateCheck
 import es.dipgra.grxfirma.android.settings.AppPreferences
 import es.dipgra.grxfirma.android.settings.AppSettings
 import es.dipgra.grxfirma.android.settings.OutputNames
+import es.dipgra.grxfirma.android.ui.Wave4Screen
+import es.dipgra.grxfirma.android.ui.eniFileAvailable
+import es.dipgra.grxfirma.android.ui.externalBatchAvailable
+import es.dipgra.grxfirma.android.ui.batchSealAvailable
+import es.dipgra.grxfirma.android.seal.PdfBatchSealPlanner
+import es.dipgra.grxfirma.android.seal.BatchSeal
 import es.dipgra.grxfirma.android.ui.UiText
 import es.dipgra.grxfirma.android.ui.resolve
 import es.dipgra.grxfirma.android.ui.toUiText
@@ -94,6 +100,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 private const val STATE_EXPANDED_TOOLS = "expanded_tools"
 private const val ENI_DATE_PICKER = "eni_capture_date"
+private const val STATE_EXPANDED_EXPEDIENTE = "expanded_expediente"
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -124,6 +131,7 @@ class MainActivity : AppCompatActivity() {
     private var backgroundSince = 0L
     private val closeHandler = Handler(Looper.getMainLooper())
     private val closeCertificateTask = Runnable { closeCertificateIfInactive() }
+    private lateinit var wave4: Wave4Screen
 
     private val viewModel: MainViewModel by viewModels {
         MainViewModel.Factory(
@@ -229,7 +237,13 @@ class MainActivity : AppCompatActivity() {
             ViewCompat.setAccessibilityHeading(documents.documentsSectionTitle, true)
         }
         savedInstanceState?.getIntArray(STATE_EXPANDED_TOOLS)?.let { expandedTools.addAll(it.toList()) }
+        wave4 = Wave4Screen(this, viewModel, dnieAccess)
+        wave4.bind(binding.documents.expediente, binding.tools.batchWave4,
+            savedInstanceState?.getBoolean(STATE_EXPANDED_EXPEDIENTE) == true)
         releaseLegacyPersistedPermissions()
+        // Copias temporales del lote que un cierre inesperado pudo dejar. Al girar
+        // la pantalla con un lote en curso no se tocan: el lote aún las usa.
+        if (!viewModel.state.value.busy) BatchSeal.clearWorkDirectory(File(noBackupFilesDir, BatchSeal.WORK_DIRECTORY))
         configureActions()
         // El formato por defecto solo se aplica al abrir; al girar se conserva el elegido.
         if (savedInstanceState == null) selectDefaultFormat()
@@ -246,6 +260,7 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putIntArray(STATE_EXPANDED_TOOLS, expandedTools.toIntArray())
+        if (::wave4.isInitialized) outState.putBoolean(STATE_EXPANDED_EXPEDIENTE, wave4.isExpanded)
     }
 
     override fun onDestroy() {
@@ -645,7 +660,7 @@ class MainActivity : AppCompatActivity() {
             try { openBatchDocuments.launch(arrayOf("*/*")) } catch (_: RuntimeException) { viewModel.reportPickerError() }
         }
         clearBatchButton.setOnClickListener { viewModel.clearBatchDocuments() }
-        signBatchButton.setOnClickListener { viewModel.signBatch(selectedSignatureFormat()) }
+        signBatchButton.setOnClickListener { wave4.signBatch(selectedSignatureFormat(), batchSealPlanner()) }
         createHashButton.setOnClickListener { viewModel.createHash() }
         checkHashButton.setOnClickListener {
             try { openHashFile.launch(arrayOf("*/*")) } catch (_: RuntimeException) { viewModel.reportPickerError() }
@@ -670,7 +685,7 @@ class MainActivity : AppCompatActivity() {
             protectKeyLayout.helperText = getString(R.string.protect_key_generated)
         }
         protectButton.setOnClickListener { protectWithKey(sign = false) }
-        protectSignButton.setOnClickListener { protectWithKey(sign = true) }
+        protectSignButton.setOnClickListener { dnieAccess.withPin(hold = false) { protectWithKey(sign = true) } }
         unprotectButton.setOnClickListener {
             val key = readAndClear(protectKey)
             protectKeyConfirm.text?.clear()
@@ -724,6 +739,8 @@ class MainActivity : AppCompatActivity() {
         clearBatchButton.visibility = if (state.batchDocuments.isEmpty()) View.GONE else View.VISIBLE
         clearBatchButton.isEnabled = idle
         signBatchButton.isEnabled = state.canSignBatch
+        batchHelperText.setText(if (state.externalBatchAvailable || state.batchSealAvailable)
+            R.string.batch_helper_wave4 else R.string.batch_helper)
         hashAlgorithm.isEnabled = idle
         hashFormat.isEnabled = idle
         createHashButton.isEnabled = state.canHash
@@ -899,6 +916,7 @@ class MainActivity : AppCompatActivity() {
         renderUpdateCheck(state)
         renderSigningSummary(state)
         renderHints(state)
+        wave4.render(state)
 
         when (val result = state.result) {
             OperationResult.Idle -> {
@@ -926,11 +944,14 @@ class MainActivity : AppCompatActivity() {
                 renderDetail(null)
             }
             is OperationResult.Error -> {
-                dnieSession?.consumeSigningError()?.let { error ->
-                    viewModel.reportDnieError(error, dnieSession?.retriesLeft() ?: -1)
-                    return@with
+                // Durante una operación el PIN sigue en uso (lote): no se toca.
+                if (!state.busy) {
+                    dnieSession?.consumeSigningError()?.let { error ->
+                        viewModel.reportDnieError(error, dnieSession?.retriesLeft() ?: -1)
+                        return@with
+                    }
+                    dnieSession?.clearPin()
                 }
-                dnieSession?.clearPin()
                 resultTitle.setText(R.string.result_error)
                 resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.error))
                 renderDetail(result.detail.resolve(this@MainActivity))
@@ -1044,7 +1065,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton(R.string.help_close, null)
             .setNeutralButton(R.string.about_release_notes) { _, _ ->
                 MaterialAlertDialogBuilder(this).setTitle(R.string.about_release_notes)
-                    .setMessage(getString(R.string.release_notes_wave3) + "\n\n" + getString(R.string.release_notes_wave2b) +
+                    .setMessage(getString(R.string.release_notes_wave3) + "\n\n" + getString(R.string.release_notes_wave4) + "\n\n" + getString(R.string.release_notes_wave2b) +
                         "\n\n" + getString(R.string.release_notes_content))
                     .setPositiveButton(R.string.help_close, null).show()
             }
@@ -1129,7 +1150,7 @@ class MainActivity : AppCompatActivity() {
     private fun importSealImage(uri: Uri) {
         try {
             val bytes = contentResolver.openInputStream(uri)?.use {
-                DocumentPolicy.readBounded(it, 2 * 1024 * 1024, getString(R.string.seal_image))
+                DocumentPolicy.readBounded(it, 2 * 1024 * 1024)
             } ?: throw IllegalArgumentException()
             try {
                 val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -1308,7 +1329,7 @@ class MainActivity : AppCompatActivity() {
         binding.cancelDnieScanButton.visibility = View.GONE
     }
 
-    private fun showDniePinDialog() {
+    private fun showDniePinDialog(hold: Boolean = false, onPin: () -> Unit = ::signWithSealIfSelected) {
         val session = dnieSession ?: return
         val field = TextInputEditText(this).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
@@ -1341,9 +1362,9 @@ class MainActivity : AppCompatActivity() {
                     return@setOnClickListener
                 }
                 try {
-                    session.setPin(pin)
+                    if (hold) session.beginOperation(pin) else session.setPin(pin)
                     dialog.dismiss()
-                    signWithSealIfSelected()
+                    onPin()
                 } finally {
                     pin.fill('\u0000')
                 }
@@ -1502,7 +1523,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Ayuda por apartados: cada uno en pasos cortos, sin un bloque largo que desplazar. */
     /** Campo con contorno y márgenes del diálogo; el PIN se puede mostrar u ocultar. */
     private fun secretInputLayout(hint: Int, field: TextInputEditText, password: Boolean): TextInputLayout {
         val layout = TextInputLayout(this, null, com.google.android.material.R.attr.textInputOutlinedStyle)
@@ -1517,6 +1537,37 @@ class MainActivity : AppCompatActivity() {
         return layout
     }
 
+    /** Acceso de las pantallas de la cuarta oleada al DNIe de la sesión. */
+    private val dnieAccess = object : Wave4Screen.DnieAccess {
+        override fun withPin(hold: Boolean, action: () -> Unit) {
+            if (dnieSession != null) showDniePinDialog(hold, action) else action()
+        }
+
+        override fun endOperation() {
+            dnieSession?.endOperation()
+        }
+
+        override fun takeError(): Pair<Throwable, Int>? {
+            val session = dnieSession ?: return null
+            return session.consumeSigningError()?.let { it to session.retriesLeft() }
+        }
+    }
+
+    /** Sello del lote: el guardado en «Firma visible», adaptado a cada PDF. */
+    private fun batchSealPlanner(): PdfBatchSealPlanner? {
+        if (!viewModel.state.value.wave4.batchSeal) return null
+        return try {
+            val image = if (sealSettings.logo == "custom" && sealImageFile.isFile && sealImageFile.length() in 1..(2L shl 20)) {
+                val bytes = sealImageFile.readBytes()
+                try { Base64.getEncoder().encodeToString(bytes) } finally { bytes.fill(0) }
+            } else null
+            PdfBatchSealPlanner(File(noBackupFilesDir, BatchSeal.WORK_DIRECTORY), sealSettings, image)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /** Ayuda por apartados: cada uno en pasos cortos, sin un bloque largo que desplazar. */
     private fun showHelp() {
         val topics = listOf(
             R.string.help_topic_sign to R.string.help_sign_content,

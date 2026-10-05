@@ -54,6 +54,11 @@ type Opciones struct {
 	// ParesOAuth autoriza servidores OAuth en un host distinto del servicio.
 	// Debe venir de la configuración o de la política, nunca del servicio.
 	ParesOAuth []ParOAuth
+	// EnvioOTPManual hace que la firma no pida al servicio el OTP en línea:
+	// lo pide quien llama con [Cliente.EnviarOTP] antes de firmar. Lo usa la
+	// interfaz gráfica, que necesita mostrar el código antes de enviar la
+	// firma; la CLI deja que lo pida la propia autorización.
+	EnvioOTPManual bool
 }
 
 // InfoServicio es la parte de la respuesta de /info que usa el cliente.

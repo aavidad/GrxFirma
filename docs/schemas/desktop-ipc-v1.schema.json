@@ -92,6 +92,18 @@
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "maxProperties": 0}}}
         },
         {
+          "if": {"properties": {"action": {"enum": ["csc_status", "csc_connect", "csc_disconnect"]}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "maxProperties": 0}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "csc_configure"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["serviceUrl", "clientId"], "properties": {"serviceUrl": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^https://"}, "clientId": {"type": "string", "minLength": 1, "maxLength": 256}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "csc_send_otp"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["certificateId"], "properties": {"certificateId": {"type": "string", "pattern": "^[0-9a-f]{1,128}$"}}, "additionalProperties": false}}}
+        },
+        {
           "if": {"properties": {"action": {"enum": ["get_token_settings", "diagnose_token_settings"]}}, "required": ["action"]},
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "maxProperties": 0}}}
         },
@@ -388,6 +400,11 @@
         "clear_temporary_certificates",
         "clear_tls_trust",
         "clock_diagnostics",
+        "csc_configure",
+        "csc_connect",
+        "csc_disconnect",
+        "csc_send_otp",
+        "csc_status",
         "diagnose_token_settings",
         "export_diagnostic",
         "facturae_create",

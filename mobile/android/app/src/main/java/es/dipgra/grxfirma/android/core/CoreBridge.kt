@@ -26,6 +26,9 @@ import es.dipgra.grxfirma.android.model.RevocationCheck
 import es.dipgra.grxfirma.android.model.TsaProbe
 import es.dipgra.grxfirma.android.model.UpdateCheck
 import es.dipgra.grxfirma.android.model.VeriFactuQr
+import es.dipgra.grxfirma.android.model.BatchItemInput
+import es.dipgra.grxfirma.android.model.EniFileRequest
+import es.dipgra.grxfirma.android.model.EniFileResult
 
 data class CoreReadiness(
     val available: Boolean,
@@ -123,6 +126,17 @@ interface CoreBridge {
     fun queryVeriFactuQr(url: String): String = toolsUnavailable()
 
     fun checkUpdate(currentVersion: String): UpdateCheck = toolsUnavailable()
+
+    // --- Cuarta oleada: expediente ENI y lote con operación y opciones por documento ---
+
+    /** Capacidades declaradas por el contrato (véase Wave4Capabilities). */
+    val capabilities: Set<String> get() = emptySet()
+
+    fun createEniFile(documents: List<LoadedFile>, certificateId: String, request: EniFileRequest): EniFileResult =
+        toolsUnavailable()
+
+    fun signBatchItems(items: List<BatchItemInput>, certificateId: String, options: Map<String, String>): List<BatchItemResult> =
+        toolsUnavailable()
 }
 
 /** Nombres de servicio del contrato para la tercera oleada. */
@@ -144,7 +158,8 @@ object DocumentServices {
     const val ENI_DOCUMENT = "eni_document"
     const val ENI_VALIDATE = "eni_validate"
     const val CSV_LEGEND = "csv_legend"
-    val ALL = listOf(VERIFACTU, ENI_DOCUMENT, ENI_VALIDATE, CSV_LEGEND)
+    const val ENI_FILE = "eni_file"
+    val ALL = listOf(VERIFACTU, ENI_DOCUMENT, ENI_VALIDATE, CSV_LEGEND, ENI_FILE)
 }
 
 object SignatureFormats {

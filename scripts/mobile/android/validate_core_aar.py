@@ -58,6 +58,7 @@ FACADE_METHODS = (
     "readVeriFactuQRJSON(java.lang.String)",
     "queryVeriFactuQRJSON(java.lang.String)",
     "checkUpdateJSON(java.lang.String)",
+    "createENIFileJSON(java.lang.String)",
 )
 
 

@@ -99,7 +99,6 @@
     <string name="seal_color_black">Preto</string>
     <string name="seal_color_blue">Azul</string>
     <string name="seal_color_gray">Cinzento escuro</string>
-    <string name="seal_image">A imagem do selo</string>
     <string name="seal_all_pages">Aplicar a todas as páginas</string>
     <string name="seal_one_page">Só esta página</string>
     <string name="seal_preview_loading">A atualizar a pré-visualização real…</string>
@@ -110,7 +109,7 @@
     <string name="seal_certificate_required">Prepare primeiro um certificado no passo 2 para ver o selo real.</string>
     <string name="seal_pdf_only">O selo visível só pode ser usado com documentos PDF e formato PAdES.</string>
     <string name="seal_invalid_settings">Reveja a posição, o tamanho, a imagem e o endereço HTTPS do selo.</string>
-    <string name="seal_image_error">Não foi possível usar a imagem. Selecione um PNG ou JPEG até 2 MiB.</string>
+    <string name="seal_image_error">Não foi possível usar a imagem. Selecione um PNG ou JPEG até 2 MB.</string>
     <string name="verify_document">Verificar assinatura</string>
     <string name="operation_in_progress">A processar a operação…</string>
     <string name="result_section">Resultado</string>
@@ -221,7 +220,7 @@
     <string name="state_expanded">expandido</string>
     <string name="state_collapsed">recolhido</string>
     <string name="batch_title">Assinar vários ficheiros</string>
-    <string name="batch_helper">Escolha até 16 ficheiros (32 MiB no total). São assinados com o certificado PKCS#12 importado e com o formato, o perfil e a TSA escolhidos acima, sem selo visível. No fim, escolha uma pasta para guardar as assinaturas.</string>
+    <string name="batch_helper">Escolha até 16 ficheiros (32 MB no total). São assinados com o certificado PKCS#12 importado e com o formato, o perfil e a TSA escolhidos acima, sem selo visível. No fim, escolha uma pasta para guardar as assinaturas.</string>
     <string name="batch_select">Escolher ficheiros…</string>
     <string name="batch_none">Nenhum ficheiro escolhido.</string>
     <string name="batch_clear">Remover os ficheiros</string>
@@ -234,7 +233,7 @@
     <string name="result_batch_signed">Lote assinado</string>
     <string name="error_batch_required">Escolha pelo menos um ficheiro para o lote.</string>
     <string name="error_batch_too_many">Pode escolher no máximo 16 ficheiros.</string>
-    <string name="error_batch_too_large">Os ficheiros excedem 32 MiB no total.</string>
+    <string name="error_batch_too_large">Os ficheiros excedem 32 MB no total.</string>
     <string name="hash_title">Impressão digital de um ficheiro</string>
     <string name="hash_helper">Calcula ou verifica a impressão digital (hash) do documento escolhido acima. Os ficheiros de impressão digital são os mesmos do GrxFirma para computador.</string>
     <string name="hash_algorithm">Algoritmo</string>
@@ -291,7 +290,7 @@
     <string name="error_tool_save_picker_cancelled">O destino não foi escolhido. O resultado continua na memória: tente guardá-lo novamente ou descarte-o.</string>
     <string name="error_tool_save_picker_unavailable">Não foi possível abrir o seletor de destino. O resultado continua na memória: tente guardá-lo novamente ou descarte-o.</string>
     <string name="discard_pending_tool_output">Descartar o resultado</string>
-    <string name="help_tools_content">Em «Outras ferramentas» pode:\n• assinar até 16 ficheiros de uma vez com um ficheiro de certificado;\n• criar e verificar impressões digitais de um ficheiro;\n• proteger um ficheiro para pessoas concretas ou com uma chave, e abri-lo depois;\n• verificar registos Veri*Factu, ler o QR fiscal e confrontá-lo com a AEAT;\n• criar e verificar documentos ENI.\n\nNas opções avançadas de assinatura também pode escolher os formatos XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES ou Registo Veri*Factu.</string>
+    <string name="help_tools_content">Em «Outras ferramentas» pode:\n• assinar até 16 ficheiros de uma vez com o seu certificado;\n• criar e verificar impressões digitais de um ficheiro;\n• proteger um ficheiro para pessoas concretas ou com uma chave, e abri-lo depois;\n• verificar registos Veri*Factu, ler o QR fiscal e confrontá-lo com a AEAT;\n• criar e verificar documentos ENI;\n• criar um processo ENI com os documentos de uma pasta e assinar o seu índice.\n\nNas opções avançadas de assinatura também pode escolher os formatos XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES ou Registo Veri*Factu.</string>
     <plurals name="batch_selected">
         <item quantity="one">%1$d ficheiro escolhido</item>
         <item quantity="many">%1$d ficheiros escolhidos</item>
@@ -333,7 +332,7 @@
     <string name="documents_helper">Verifica registos de faturação Veri*Factu e cria ou verifica documentos ENI. Nada é enviado à AEAT nem a outras administrações.</string>
     <string name="documents_unavailable">Estas ferramentas precisam de um núcleo criptográfico que as inclua.</string>
     <string name="verifactu_title">Verificar registos Veri*Factu</string>
-    <string name="verifactu_helper">Escolha até 64 registos XML (10 MiB cada e 32 MiB no total). São verificados a estrutura, a impressão digital, o encadeamento e a assinatura de cada registo.</string>
+    <string name="verifactu_helper">Escolha até 64 registos XML (10 MB cada e 32 MB no total). São verificados a estrutura, a impressão digital, o encadeamento e a assinatura de cada registo.</string>
     <string name="verifactu_sign_hint">Para assinar um registo, escolha-o acima como documento e assine com o formato «Registo Veri*Factu».</string>
     <string name="verifactu_choose">Escolher registos XML…</string>
     <string name="verifactu_none">Não há registos escolhidos.</string>
@@ -341,7 +340,7 @@
     <string name="verifactu_check">Verificar os registos</string>
     <string name="verifactu_result_valid">Registos verificados sem erros</string>
     <string name="verifactu_result_invalid">Os registos apresentam erros</string>
-    <string name="error_verifactu_too_many">Pode escolher no máximo 64 registos de até 10 MiB cada e 32 MiB no total.</string>
+    <string name="error_verifactu_too_many">Pode escolher no máximo 64 registos de até 10 MB cada e 32 MB no total.</string>
     <string name="eni_title">Documento ENI</string>
     <string name="eni_helper">Cria um documento ENI com a assinatura escolhida acima como documento (PAdES, CAdES ou XAdES) e os seus metadados obrigatórios, ou verifica um ENI que já tenha.</string>
     <string name="eni_organ">Órgão responsável (DIR3, obrigatório)</string>
@@ -575,4 +574,55 @@
         <item quantity="many">%1$d minutos</item>
         <item quantity="other">%1$d minutos</item>
     </plurals>
+    <string name="expediente_title">Processo ENI</string>
+    <string name="expediente_helper">Reúne num processo os documentos ENI de uma pasta e assina o respetivo índice.</string>
+    <string name="expediente_select_folder">Escolher a pasta de documentos ENI</string>
+    <string name="expediente_none">Não escolheu nenhuma pasta. Deve conter documentos ENI em XML.</string>
+    <string name="expediente_clear">Retirar a pasta</string>
+    <string name="expediente_organs">Órgãos DIR3 (obrigatório)</string>
+    <string name="expediente_organs_helper">Um ou vários códigos separados por vírgulas, por exemplo L01180877.</string>
+    <string name="expediente_classification">Classificação do procedimento (obrigatório)</string>
+    <string name="expediente_classification_helper">Código SIA, ou código DIR3 seguido de _PRO_ e de um identificador.</string>
+    <string name="expediente_state">Estado do processo</string>
+    <string name="expediente_identifier">Identificador do processo (opcional)</string>
+    <string name="expediente_identifier_helper">Se o deixar vazio, é gerado um.</string>
+    <string name="expediente_interested">Interessados (opcional)</string>
+    <string name="expediente_interested_helper">Separe cada pessoa com ponto e vírgula.</string>
+    <string name="expediente_opening_now">Data de abertura: hoje</string>
+    <string name="expediente_opening_value">Data de abertura: %1$s</string>
+    <string name="expediente_opening_choose">Escolher a data de abertura</string>
+    <string name="expediente_opening_clear">Usar a data de hoje</string>
+    <string name="expediente_opening_title">Data de abertura do processo</string>
+    <string name="expediente_sign_hint">O índice é assinado com o certificado da sessão, que deve ter chave RSA. Com o DNIe, o PIN é pedido uma vez.</string>
+    <string name="expediente_create">Criar e assinar o processo</string>
+    <string name="expediente_error_no_xml">A pasta não tem documentos XML. Escolha a pasta que contém os documentos ENI.</string>
+    <string name="expediente_error_too_many">A pasta tem mais de 64 documentos. Retire documentos ou divida o processo.</string>
+    <string name="expediente_error_too_large">Os documentos ocupam mais de 32 MB. Retire documentos da pasta.</string>
+    <string name="expediente_invalid_documents">O processo não foi criado. Estes ficheiros não são documentos ENI válidos:</string>
+    <string name="expediente_created">Processo criado e assinado. Escolha onde o guardar.</string>
+    <string name="expediente_output_name">Ficheiro: %1$s</string>
+    <string name="batch_action_label">Operação do lote</string>
+    <string name="batch_action_sign">Assinar</string>
+    <string name="batch_action_cosign">Coassinar (acrescentar a minha assinatura a ficheiros já assinados)</string>
+    <string name="batch_seal_check">Acrescentar o selo visível aos PDF</string>
+    <string name="batch_seal_helper">É usado o selo colocado com «Colocar o selo». Se um PDF tiver menos páginas do que a escolhida, o selo vai na última. A legenda CSV não é acrescentada no lote.</string>
+    <string name="batch_seal_error">Não foi possível preparar o selo visível de %1$s. Retire esse PDF do lote ou assine sem selo.</string>
+    <string name="batch_dnie_hint">Com o DNIe, o PIN é pedido apenas uma vez para todo o lote. Mantenha o DNIe encostado ao telemóvel até terminar.</string>
+    <string name="batch_helper_wave4">Escolha até 16 ficheiros (32 MB no total). São assinados com o certificado aberto (ficheiro ou DNIe) e com as opções avançadas de assinatura. No fim, escolha uma pasta para guardar as assinaturas.</string>
+    <string name="result_batch_cosigned">Lote coassinado</string>
+    <string name="error_protect_sign_identity_any">Para proteger e assinar é preciso um certificado na sessão (PKCS#12 ou DNIe) e um formato para destinatários.</string>
+    <string name="release_notes_wave4">Também nesta versão: processos ENI com índice assinado; assinatura de vários ficheiros com selo visível ou coassinatura; DNIe no lote (o PIN é pedido uma vez) e em proteger e assinar.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">%1$d documento ENI</item>
+        <item quantity="many">%1$d documentos ENI</item>
+        <item quantity="other">%1$d documentos ENI</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">%1$d ficheiro que não é XML ficou de fora</item>
+        <item quantity="many">%1$d ficheiros que não são XML ficaram de fora</item>
+        <item quantity="other">%1$d ficheiros que não são XML ficaram de fora</item>
+    </plurals>
+    <string name="error_document_too_large">O ficheiro é demasiado grande. Os documentos podem ter até 32 MB e os certificados até 4 MB.</string>
+    <string name="error_document_empty">O ficheiro está vazio. Escolha outro.</string>
+    <string name="error_folder_too_many">A pasta tem demasiados ficheiros. Escolha uma com menos.</string>
 </resources>

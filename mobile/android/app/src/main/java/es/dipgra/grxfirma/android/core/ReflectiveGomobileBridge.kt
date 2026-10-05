@@ -28,6 +28,9 @@ import es.dipgra.grxfirma.android.model.RevocationCheck
 import es.dipgra.grxfirma.android.model.TsaProbe
 import es.dipgra.grxfirma.android.model.UpdateCheck
 import es.dipgra.grxfirma.android.model.VeriFactuQr
+import es.dipgra.grxfirma.android.model.BatchItemInput
+import es.dipgra.grxfirma.android.model.EniFileRequest
+import es.dipgra.grxfirma.android.model.EniFileResult
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -42,6 +45,7 @@ class ReflectiveGomobileBridge private constructor(
     override val signingFormats: List<String> = SignatureFormats.BASIC,
     override val documentServices: Set<String> = emptySet(),
     override val platformServices: Set<String> = emptySet(),
+    override val capabilities: Set<String> = emptySet(),
 ) : CoreBridge, ExternalIdentityBridge {
     override val readiness = CoreReadiness(
         available = true,
@@ -219,6 +223,20 @@ class ReflectiveGomobileBridge private constructor(
             ?: throw CoreContractException("El método '$name' no devolvió texto JSON.")
     }
 
+    override fun createEniFile(documents: List<LoadedFile>, certificateId: String, request: EniFileRequest): EniFileResult =
+        Wave4Codec.parseEniFile(invokeDocumentService(DocumentServices.ENI_FILE, "createENIFileJSON",
+            Wave4Codec.eniFileRequest(documents, certificateId, request)))
+
+    override fun signBatchItems(
+        items: List<BatchItemInput>,
+        certificateId: String,
+        options: Map<String, String>,
+    ): List<BatchItemResult> = CoreJsonCodec.parseBatch(
+        invokeTool("processBatchJSON", Wave4Codec.batchItemsRequest(items, certificateId, options)),
+        items.map { it.file },
+        outputName,
+    )
+
     private fun invokeDocumentService(service: String, name: String, payload: String): String {
         if (service !in documentServices) throw CoreUnavailableException("TOOLS_UNAVAILABLE")
         return invokeJson(name, payload)
@@ -340,6 +358,7 @@ class ReflectiveGomobileBridge private constructor(
                 DocumentServices.ENI_DOCUMENT to "createENIDocumentJSON",
                 DocumentServices.ENI_VALIDATE to "validateENIJSON",
                 DocumentServices.CSV_LEGEND to "csvLegendJSON",
+                DocumentServices.ENI_FILE to "createENIFileJSON",
             ).mapNotNull { (service, name) ->
                 try { service to (name to facadeClass.getMethod(name, String::class.java)) } catch (_: NoSuchMethodException) { null }
             }.toMap()
@@ -379,6 +398,7 @@ class ReflectiveGomobileBridge private constructor(
                 CoreJsonCodec.signingFormats(contract),
                 documentServices,
                 platformServices,
+                if (toolsAvailable) Wave4Codec.capabilities(contract) else emptySet(),
             )
         }
 
@@ -394,7 +414,7 @@ class ReflectiveGomobileBridge private constructor(
             val cause = if (error is InvocationTargetException) error.targetException else error
             return cause.message
                 .orEmpty()
-                .filter { it == '\n' || !it.isISOControl() }
+                .filter { it == '\n' || !DisplayText.hidden(it) }
                 .replace(Regex("(?i)[A-Za-z0-9+/]{80,}={0,2}"), "[dato omitido]")
                 .trim()
                 .take(400)

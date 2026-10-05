@@ -13,19 +13,13 @@ object DocumentPolicy {
     const val MAX_CERTIFICATE_BYTES: Int = 4 * 1024 * 1024
     const val MAX_SIGNED_OUTPUT_BYTES: Int = 48 * 1024 * 1024
 
-    fun requireAllowedSize(sizeBytes: Long?, maximumBytes: Int, label: String) {
-        if (sizeBytes != null && sizeBytes < 0) {
-            throw InvalidDocumentException("El tamaño de $label no es válido.")
-        }
-        if (sizeBytes != null && sizeBytes > maximumBytes) {
-            throw InvalidDocumentException(
-                "$label supera el límite de ${maximumBytes / (1024 * 1024)} MiB.",
-            )
-        }
+    fun requireAllowedSize(sizeBytes: Long?, maximumBytes: Int) {
+        if (sizeBytes != null && sizeBytes < 0) throw InvalidDocumentException(DocumentProblem.INVALID_SIZE)
+        if (sizeBytes != null && sizeBytes > maximumBytes) throw InvalidDocumentException(DocumentProblem.TOO_LARGE)
     }
 
-    fun readBounded(input: InputStream, maximumBytes: Int, label: String): ByteArray {
-        require(maximumBytes > 0) { "maximumBytes debe ser positivo" }
+    fun readBounded(input: InputStream, maximumBytes: Int): ByteArray {
+        require(maximumBytes > 0)
         val output = ByteArrayOutputStream(minOf(maximumBytes, DEFAULT_BUFFER_SIZE * 4))
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
         var total = 0
@@ -36,15 +30,13 @@ object DocumentPolicy {
             total += read
             if (total > maximumBytes) {
                 buffer.fill(0)
-                throw InvalidDocumentException(
-                    "$label supera el límite de ${maximumBytes / (1024 * 1024)} MiB.",
-                )
+                throw InvalidDocumentException(DocumentProblem.TOO_LARGE)
             }
             output.write(buffer, 0, read)
         }
         buffer.fill(0)
         return output.toByteArray().also {
-            if (it.isEmpty()) throw InvalidDocumentException("$label está vacío.")
+            if (it.isEmpty()) throw InvalidDocumentException(DocumentProblem.EMPTY)
         }
     }
 
@@ -53,11 +45,17 @@ object DocumentPolicy {
             .orEmpty()
             .substringAfterLast('/')
             .substringAfterLast('\\')
-            .filterNot { it.isISOControl() }
+            .filterNot(es.dipgra.grxfirma.android.core.DisplayText::hidden)
             .trim()
             .take(160)
         return normalized.ifBlank { fallback }
     }
 }
 
-class InvalidDocumentException(message: String, cause: Throwable? = null) : Exception(message, cause)
+/** Problemas de fichero con código cerrado; la interfaz los traduce con recursos. */
+enum class DocumentProblem {
+    INVALID_SIZE, TOO_LARGE, EMPTY, TREE_UNSUPPORTED, DESTINATION_UNAVAILABLE,
+    CREATE_FAILED, TOO_MANY_ENTRIES, FOLDER_UNREADABLE, SOURCE_UNREADABLE,
+}
+
+class InvalidDocumentException(val problem: DocumentProblem, cause: Throwable? = null) : Exception(problem.name, cause)

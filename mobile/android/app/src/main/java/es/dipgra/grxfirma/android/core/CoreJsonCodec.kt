@@ -530,7 +530,7 @@ object CoreJsonCodec {
             is JSONArray -> response.toString(2)
             else -> response.toString()
         }
-        return text.filter { it == '\n' || !it.isISOControl() }.take(MAX_AEAT_DISPLAY_CHARS)
+        return text.filter { it == '\n' || !DisplayText.hidden(it) }.take(MAX_AEAT_DISPLAY_CHARS)
     }
 
     fun parseUpdateCheck(raw: String): UpdateCheck {
@@ -554,7 +554,7 @@ object CoreJsonCodec {
     private const val MAX_AEAT_RESPONSE_CHARS = 400 * 1024
     private const val MAX_AEAT_DISPLAY_CHARS = 16 * 1024
 
-    private fun parseIssues(items: JSONArray?): List<EngineIssue> = buildList {
+    internal fun parseIssues(items: JSONArray?): List<EngineIssue> = buildList {
         if (items != null) for (index in 0 until minOf(items.length(), MAX_REPORT_ITEMS)) {
             val item = items.optJSONObject(index) ?: continue
             add(EngineIssue(cleanText(item.optString("field")), cleanText(item.optString("key")),
@@ -572,7 +572,7 @@ object CoreJsonCodec {
         else -> "not_available"
     }
 
-    private fun decodeBounded(encoded: String, maximumBytes: Int): ByteArray {
+    internal fun decodeBounded(encoded: String, maximumBytes: Int): ByteArray {
         val maximumEncodedLength = ((maximumBytes.toLong() + 2L) / 3L) * 4L
         if (encoded.length > maximumEncodedLength) {
             throw CoreContractException("El resultado del núcleo supera el límite permitido.")
@@ -602,7 +602,7 @@ object CoreJsonCodec {
     }
 
     private fun cleanText(value: String): String = value
-        .filter { it == '\n' || it == '\t' || !it.isISOControl() }
+        .filter { it == '\n' || it == '\t' || !DisplayText.hidden(it) }
         .trim()
         .take(500)
 

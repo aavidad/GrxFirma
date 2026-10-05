@@ -6,6 +6,7 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -230,7 +231,7 @@ func cargarFicheroUsuario(path string, dst *Config) error {
 	if err != nil {
 		return fmt.Errorf("leer %s: %w", path, err)
 	}
-	if err := json.Unmarshal(data, dst); err != nil {
+	if err := json.Unmarshal(sinBOM(data), dst); err != nil {
 		return fmt.Errorf("parsear %s: %w", path, err)
 	}
 	return nil
@@ -301,7 +302,7 @@ func loadPolicyFile(path string) (Policy, error) {
 		}
 		return raw, fmt.Errorf("leer %s: %w", path, err)
 	}
-	if err := json.Unmarshal(data, &raw); err != nil {
+	if err := json.Unmarshal(sinBOM(data), &raw); err != nil {
 		return raw, fmt.Errorf("parsear %s: %w", path, err)
 	}
 	return raw, nil
@@ -362,4 +363,17 @@ func (cfg Config) FirmaRemotaCSCActiva(politica Policy) bool {
 		return *politica.FirmaRemotaCSC
 	}
 	return cfg.FirmaRemotaCSC
+}
+
+// sinBOM quita la marca UTF-8 inicial que añaden el Bloc de notas antiguo y
+// PowerShell 5 (Set-Content -Encoding utf8); encoding/json la rechaza.
+func sinBOM(data []byte) []byte {
+	return bytes.TrimPrefix(data, []byte("\xEF\xBB\xBF"))
+}
+
+// FirmaRemotaCSCProhibida indica que la política de la organización prohíbe
+// la firma remota. Sirve para explicarlo a la persona: en ese caso
+// config.json no puede activarla.
+func FirmaRemotaCSCProhibida(politica Policy) bool {
+	return politica.FirmaRemotaCSC != nil && !*politica.FirmaRemotaCSC
 }

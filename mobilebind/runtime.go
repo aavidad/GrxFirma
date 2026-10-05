@@ -313,6 +313,7 @@ type mobileLimitsContract struct {
 	PasswordBytes     int `json:"password_bytes"`
 	BatchItems        int `json:"batch_items"`
 	BatchInputBytes   int `json:"batch_input_bytes"`
+	ENIFileDocuments  int `json:"eni_file_documents"`
 }
 
 func buildMobileContract(platform string, androidIntent bool) (string, error) {
@@ -349,6 +350,13 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			"verifactu_qr_query":       true,
 			"update_check":             true,
 			"remote_exchange":          false,
+			// Cuarta oleada Android: expediente ENI, lote con sello y cofirma,
+			// y DNIe (firmador externo) en lote y en proteger y firmar.
+			"eni_file":                     true,
+			"batch_visible_seal":           true,
+			"batch_cosign":                 true,
+			"external_signer_batch":        true,
+			"external_signer_protect_sign": true,
 		},
 		IdentityStore: mobileIdentityContract{
 			Mode:          "memory_session",
@@ -376,6 +384,7 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			PasswordBytes:     maxPasswordBytes,
 			BatchItems:        maxBatchItems,
 			BatchInputBytes:   maxBatchInputBytes,
+			ENIFileDocuments:  maxENIFileDocuments,
 		},
 		Protection: mobileProtectContract{
 			Containers:    []string{"cms", "authenvelopeddata", "cms-encrypted", "signedandenvelopeddata"},
@@ -685,7 +694,10 @@ func validateImportedIdentity(identity *sessionIdentity) error {
 	if now.Before(identity.certificate.NotBefore) || now.After(identity.certificate.NotAfter) {
 		return errMobileCertificateNotCurrent
 	}
-	if identity.certificate.KeyUsage != 0 && identity.certificate.KeyUsage&x509.KeyUsageDigitalSignature == 0 {
+	// Como escritorio (signingpolicy): firma digital o no repudio. El
+	// certificado de firma del DNIe solo lleva no repudio.
+	if identity.certificate.KeyUsage != 0 &&
+		identity.certificate.KeyUsage&(x509.KeyUsageDigitalSignature|x509.KeyUsageContentCommitment) == 0 {
 		return errMobileSigningIdentityUnsupported
 	}
 	switch publicKey := identity.certificate.PublicKey.(type) {

@@ -99,7 +99,6 @@
     <string name="seal_color_black">Noir</string>
     <string name="seal_color_blue">Bleu</string>
     <string name="seal_color_gray">Gris foncé</string>
-    <string name="seal_image">L’image du sceau</string>
     <string name="seal_all_pages">Appliquer à toutes les pages</string>
     <string name="seal_one_page">Cette page uniquement</string>
     <string name="seal_preview_loading">Actualisation de l’aperçu réel…</string>
@@ -110,7 +109,7 @@
     <string name="seal_certificate_required">Préparez d\'abord un certificat à l\'étape 2 pour voir le vrai cachet.</string>
     <string name="seal_pdf_only">Le cachet visible ne peut être utilisé qu\'avec des documents PDF et le format PAdES.</string>
     <string name="seal_invalid_settings">Vérifiez la position, la taille, l’image et l’adresse HTTPS du sceau.</string>
-    <string name="seal_image_error">Image inutilisable. Sélectionnez un PNG ou JPEG de 2 MiB maximum.</string>
+    <string name="seal_image_error">Image inutilisable. Sélectionnez un PNG ou JPEG de 2 MB maximum.</string>
     <string name="verify_document">Vérifier la signature</string>
     <string name="operation_in_progress">Traitement en cours…</string>
     <string name="result_section">Résultat</string>
@@ -221,7 +220,7 @@
     <string name="state_expanded">développé</string>
     <string name="state_collapsed">réduit</string>
     <string name="batch_title">Signer plusieurs fichiers</string>
-    <string name="batch_helper">Choisissez jusqu’à 16 fichiers (32 Mio au total). Ils sont signés avec le certificat PKCS#12 importé et avec le format, le niveau et la TSA choisis plus haut, sans cachet visible. À la fin, choisissez un dossier pour enregistrer les signatures.</string>
+    <string name="batch_helper">Choisissez jusqu’à 16 fichiers (32 Mo au total). Ils sont signés avec le certificat PKCS#12 importé et avec le format, le niveau et la TSA choisis plus haut, sans cachet visible. À la fin, choisissez un dossier pour enregistrer les signatures.</string>
     <string name="batch_select">Choisir des fichiers…</string>
     <string name="batch_none">Aucun fichier choisi.</string>
     <string name="batch_clear">Retirer les fichiers</string>
@@ -234,7 +233,7 @@
     <string name="result_batch_signed">Lot signé</string>
     <string name="error_batch_required">Choisissez au moins un fichier pour le lot.</string>
     <string name="error_batch_too_many">Vous pouvez choisir au maximum 16 fichiers.</string>
-    <string name="error_batch_too_large">Les fichiers dépassent 32 Mio au total.</string>
+    <string name="error_batch_too_large">Les fichiers dépassent 32 Mo au total.</string>
     <string name="hash_title">Empreinte d’un fichier</string>
     <string name="hash_helper">Calcule ou vérifie l’empreinte du document choisi plus haut. Les fichiers d’empreinte sont les mêmes que dans GrxFirma pour ordinateur.</string>
     <string name="hash_algorithm">Algorithme</string>
@@ -291,7 +290,7 @@
     <string name="error_tool_save_picker_cancelled">La destination n’a pas été choisie. Le résultat reste en mémoire : réessayez de l’enregistrer ou abandonnez-le.</string>
     <string name="error_tool_save_picker_unavailable">Impossible d’ouvrir le sélecteur de destination. Le résultat reste en mémoire : réessayez de l’enregistrer ou abandonnez-le.</string>
     <string name="discard_pending_tool_output">Abandonner le résultat</string>
-    <string name="help_tools_content">Dans « Autres outils », vous pouvez :\n• signer jusqu\'à 16 fichiers à la fois avec un fichier de certificat ;\n• créer et vérifier les empreintes d\'un fichier ;\n• protéger un fichier pour des personnes précises ou avec une clé, puis l\'ouvrir ;\n• vérifier des enregistrements Veri*Factu, lire le QR fiscal et le vérifier auprès de l\'AEAT ;\n• créer et vérifier des documents ENI.\n\nDans les options avancées de signature, vous pouvez aussi choisir les formats XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES ou enregistrement Veri*Factu.</string>
+    <string name="help_tools_content">Dans « Autres outils », vous pouvez :\n• signer jusqu\'à 16 fichiers à la fois avec votre certificat ;\n• créer et vérifier les empreintes d\'un fichier ;\n• protéger un fichier pour des personnes précises ou avec une clé, puis l\'ouvrir ;\n• vérifier des enregistrements Veri*Factu, lire le QR fiscal et le vérifier auprès de l\'AEAT ;\n• créer et vérifier des documents ENI ;\n• créer un dossier ENI avec les documents d\'un répertoire et signer son index.\n\nDans les options avancées de signature, vous pouvez aussi choisir les formats XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES ou enregistrement Veri*Factu.</string>
     <plurals name="batch_selected">
         <item quantity="one">%1$d fichier choisi</item>
         <item quantity="many">%1$d fichiers choisis</item>
@@ -333,7 +332,7 @@
     <string name="documents_helper">Vérifie les enregistrements de facturation Veri*Factu et crée ou vérifie des documents électroniques ENI. Rien n’est envoyé à l’AEAT ni à d’autres administrations.</string>
     <string name="documents_unavailable">Ces outils nécessitent un noyau cryptographique qui les inclut.</string>
     <string name="verifactu_title">Vérifier les enregistrements Veri*Factu</string>
-    <string name="verifactu_helper">Choisissez jusqu’à 64 enregistrements XML (10 Mio chacun et 32 Mio au total). La structure, l’empreinte, le chaînage et la signature de chaque enregistrement sont vérifiés.</string>
+    <string name="verifactu_helper">Choisissez jusqu’à 64 enregistrements XML (10 Mo chacun et 32 Mo au total). La structure, l’empreinte, le chaînage et la signature de chaque enregistrement sont vérifiés.</string>
     <string name="verifactu_sign_hint">Pour signer un enregistrement, choisissez-le ci-dessus comme document et signez avec le format « Enregistrement Veri*Factu ».</string>
     <string name="verifactu_choose">Choisir des enregistrements XML…</string>
     <string name="verifactu_none">Aucun enregistrement choisi.</string>
@@ -341,7 +340,7 @@
     <string name="verifactu_check">Vérifier les enregistrements</string>
     <string name="verifactu_result_valid">Enregistrements vérifiés sans erreur</string>
     <string name="verifactu_result_invalid">Les enregistrements présentent des erreurs</string>
-    <string name="error_verifactu_too_many">Vous pouvez choisir au maximum 64 enregistrements de 10 Mio chacun au plus et 32 Mio au total.</string>
+    <string name="error_verifactu_too_many">Vous pouvez choisir au maximum 64 enregistrements de 10 Mo chacun au plus et 32 Mo au total.</string>
     <string name="eni_title">Document électronique ENI</string>
     <string name="eni_helper">Crée un document ENI à partir de la signature choisie ci-dessus comme document (PAdES, CAdES ou XAdES) et de ses métadonnées obligatoires, ou vérifie un ENI existant.</string>
     <string name="eni_organ">Organisme responsable (DIR3, obligatoire)</string>
@@ -575,4 +574,55 @@
         <item quantity="many">%1$d minutes</item>
         <item quantity="other">%1$d minutes</item>
     </plurals>
+    <string name="expediente_title">Dossier ENI</string>
+    <string name="expediente_helper">Regroupe dans un dossier les documents ENI d’un répertoire et signe son index.</string>
+    <string name="expediente_select_folder">Choisir le répertoire des documents ENI</string>
+    <string name="expediente_none">Aucun répertoire choisi. Il doit contenir des documents ENI en XML.</string>
+    <string name="expediente_clear">Retirer le répertoire</string>
+    <string name="expediente_organs">Organes DIR3 (obligatoire)</string>
+    <string name="expediente_organs_helper">Un ou plusieurs codes séparés par des virgules, par exemple L01180877.</string>
+    <string name="expediente_classification">Classement de la procédure (obligatoire)</string>
+    <string name="expediente_classification_helper">Code SIA, ou code DIR3 suivi de _PRO_ et d’un identifiant.</string>
+    <string name="expediente_state">État du dossier</string>
+    <string name="expediente_identifier">Identifiant du dossier (facultatif)</string>
+    <string name="expediente_identifier_helper">S’il est laissé vide, un identifiant est généré.</string>
+    <string name="expediente_interested">Personnes intéressées (facultatif)</string>
+    <string name="expediente_interested_helper">Séparez chaque personne par un point-virgule.</string>
+    <string name="expediente_opening_now">Date d’ouverture : aujourd’hui</string>
+    <string name="expediente_opening_value">Date d’ouverture : %1$s</string>
+    <string name="expediente_opening_choose">Choisir la date d’ouverture</string>
+    <string name="expediente_opening_clear">Utiliser la date du jour</string>
+    <string name="expediente_opening_title">Date d’ouverture du dossier</string>
+    <string name="expediente_sign_hint">L’index est signé avec le certificat de la session, qui doit avoir une clé RSA. Avec le DNIe, le PIN est demandé une fois.</string>
+    <string name="expediente_create">Créer et signer le dossier</string>
+    <string name="expediente_error_no_xml">Le répertoire ne contient aucun document XML. Choisissez celui qui contient les documents ENI.</string>
+    <string name="expediente_error_too_many">Le répertoire contient plus de 64 documents. Retirez-en ou divisez le dossier.</string>
+    <string name="expediente_error_too_large">Les documents dépassent 32 Mo. Retirez des documents du répertoire.</string>
+    <string name="expediente_invalid_documents">Le dossier n’a pas été créé. Ces fichiers ne sont pas des documents ENI valides :</string>
+    <string name="expediente_created">Dossier créé et signé. Choisissez où l’enregistrer.</string>
+    <string name="expediente_output_name">Fichier : %1$s</string>
+    <string name="batch_action_label">Opération du lot</string>
+    <string name="batch_action_sign">Signer</string>
+    <string name="batch_action_cosign">Cosigner (ajouter ma signature à des fichiers déjà signés)</string>
+    <string name="batch_seal_check">Ajouter le cachet visible aux PDF</string>
+    <string name="batch_seal_helper">Le cachet placé avec « Placer le cachet » est utilisé. Si un PDF a moins de pages que celle choisie, le cachet va sur la dernière. La mention CSV n\'est pas ajoutée dans un lot.</string>
+    <string name="batch_seal_error">Impossible de préparer le cachet visible de %1$s. Retirez ce PDF du lot ou signez sans cachet.</string>
+    <string name="batch_dnie_hint">Avec le DNIe, le PIN n’est demandé qu’une fois pour tout le lot. Gardez le DNIe contre le téléphone jusqu’à la fin.</string>
+    <string name="batch_helper_wave4">Choisissez jusqu\'à 16 fichiers (32 Mo au total). Ils sont signés avec le certificat ouvert (fichier ou DNIe) et les options avancées de signature. À la fin, choisissez un dossier pour enregistrer les signatures.</string>
+    <string name="result_batch_cosigned">Lot cosigné</string>
+    <string name="error_protect_sign_identity_any">Pour protéger et signer, il faut un certificat dans la session (PKCS#12 ou DNIe) et un format pour destinataires.</string>
+    <string name="release_notes_wave4">Aussi dans cette version : dossiers ENI avec index signé ; signature de plusieurs fichiers avec cachet visible ou cosignature ; DNIe dans les lots (code PIN demandé une fois) et pour protéger et signer.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">%1$d document ENI</item>
+        <item quantity="many">%1$d documents ENI</item>
+        <item quantity="other">%1$d documents ENI</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">%1$d fichier non XML a été laissé de côté</item>
+        <item quantity="many">%1$d fichiers non XML ont été laissés de côté</item>
+        <item quantity="other">%1$d fichiers non XML ont été laissés de côté</item>
+    </plurals>
+    <string name="error_document_too_large">Le fichier est trop volumineux. Les documents peuvent atteindre 32 Mo et les certificats 4 Mo.</string>
+    <string name="error_document_empty">Le fichier est vide. Choisissez-en un autre.</string>
+    <string name="error_folder_too_many">Le dossier contient trop de fichiers. Choisissez-en un qui en contient moins.</string>
 </resources>

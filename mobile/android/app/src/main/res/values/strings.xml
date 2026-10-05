@@ -99,7 +99,6 @@
     <string name="seal_color_black">Negro</string>
     <string name="seal_color_blue">Azul</string>
     <string name="seal_color_gray">Gris oscuro</string>
-    <string name="seal_image">La imagen del sello</string>
     <string name="seal_all_pages">Aplicar a todas las páginas</string>
     <string name="seal_one_page">Solo esta página</string>
     <string name="seal_preview_loading">Actualizando vista previa real…</string>
@@ -110,7 +109,7 @@
     <string name="seal_certificate_required">Prepare primero un certificado en el paso 2 para ver el sello real.</string>
     <string name="seal_pdf_only">El sello visible solo se puede usar con documentos PDF y formato PAdES.</string>
     <string name="seal_invalid_settings">Revise la posición, el tamaño, la imagen y la dirección HTTPS del sello.</string>
-    <string name="seal_image_error">No se pudo usar la imagen. Seleccione un PNG o JPEG de hasta 2 MiB.</string>
+    <string name="seal_image_error">No se pudo usar la imagen. Seleccione un PNG o JPEG de hasta 2 MB.</string>
     <string name="verify_document">Verificar firma</string>
     <string name="operation_in_progress">Procesando la operación…</string>
     <string name="result_section">Resultado</string>
@@ -218,7 +217,7 @@
     <string name="state_expanded">desplegado</string>
     <string name="state_collapsed">plegado</string>
     <string name="batch_title">Firmar varios ficheros</string>
-    <string name="batch_helper">Elija hasta 16 ficheros (32 MiB en total). Se firman con el certificado PKCS#12 importado y con el formato, el perfil y la TSA elegidos arriba, sin sello visible. Al terminar, elija una carpeta para guardar las firmas.</string>
+    <string name="batch_helper">Elija hasta 16 ficheros (32 MB en total). Se firman con el certificado PKCS#12 importado y con el formato, el perfil y la TSA elegidos arriba, sin sello visible. Al terminar, elija una carpeta para guardar las firmas.</string>
     <string name="batch_select">Elegir ficheros…</string>
     <string name="batch_none">No hay ficheros elegidos.</string>
     <string name="batch_clear">Quitar los ficheros</string>
@@ -231,7 +230,7 @@
     <string name="result_batch_signed">Lote firmado</string>
     <string name="error_batch_required">Elija al menos un fichero para el lote.</string>
     <string name="error_batch_too_many">Puede elegir como máximo 16 ficheros.</string>
-    <string name="error_batch_too_large">Los ficheros superan 32 MiB en total.</string>
+    <string name="error_batch_too_large">Los ficheros superan 32 MB en total.</string>
     <string name="hash_title">Huella de un fichero</string>
     <string name="hash_helper">Calcula o comprueba la huella del documento elegido arriba. Los ficheros de huella son los mismos que en GrxFirma de escritorio.</string>
     <string name="hash_algorithm">Algoritmo</string>
@@ -288,7 +287,7 @@
     <string name="error_tool_save_picker_cancelled">No se completó la selección de destino. El resultado sigue en memoria: reintente guardarlo o descártelo.</string>
     <string name="error_tool_save_picker_unavailable">No se pudo abrir el selector de destino. El resultado sigue en memoria: reintente guardarlo o descártelo.</string>
     <string name="discard_pending_tool_output">Descartar resultado</string>
-    <string name="help_tools_content">En «Otras herramientas» puede:\n• firmar hasta 16 ficheros a la vez con un fichero de certificado;\n• crear y comprobar huellas de un fichero;\n• proteger un fichero para personas concretas o con una clave, y abrirlo después;\n• comprobar registros Veri*Factu, leer el QR tributario y cotejarlo con la AEAT;\n• crear y comprobar documentos ENI.\n\nEn las opciones avanzadas de firma también puede elegir los formatos XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES o Registro Veri*Factu.</string>
+    <string name="help_tools_content">En «Otras herramientas» puede:\n• firmar hasta 16 ficheros a la vez con su certificado;\n• crear y comprobar huellas de un fichero;\n• proteger un fichero para personas concretas o con una clave, y abrirlo después;\n• comprobar registros Veri*Factu, leer el QR tributario y cotejarlo con la AEAT;\n• crear y comprobar documentos ENI;\n• crear un expediente ENI con los documentos de una carpeta y firmar su índice.\n\nEn las opciones avanzadas de firma también puede elegir los formatos XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES o Registro Veri*Factu.</string>
     <plurals name="batch_selected">
         <item quantity="one">%1$d fichero elegido</item>
         <item quantity="other">%1$d ficheros elegidos</item>
@@ -325,7 +324,7 @@
     <string name="documents_helper">Comprueba registros de facturación Veri*Factu y crea o comprueba documentos electrónicos ENI. No se envía nada a la AEAT ni a otras administraciones.</string>
     <string name="documents_unavailable">Estas herramientas necesitan un núcleo criptográfico que las incluya.</string>
     <string name="verifactu_title">Comprobar registros Veri*Factu</string>
-    <string name="verifactu_helper">Elija hasta 64 registros XML (10 MiB cada uno y 32 MiB en total). Se comprueban la estructura, la huella, el encadenamiento y la firma de cada registro.</string>
+    <string name="verifactu_helper">Elija hasta 64 registros XML (10 MB cada uno y 32 MB en total). Se comprueban la estructura, la huella, el encadenamiento y la firma de cada registro.</string>
     <string name="verifactu_sign_hint">Para firmar un registro, elíjalo arriba como documento y firme con el formato «Registro Veri*Factu».</string>
     <string name="verifactu_choose">Elegir registros XML…</string>
     <string name="verifactu_none">No hay registros elegidos.</string>
@@ -333,7 +332,7 @@
     <string name="verifactu_check">Comprobar los registros</string>
     <string name="verifactu_result_valid">Registros comprobados sin errores</string>
     <string name="verifactu_result_invalid">Los registros presentan errores</string>
-    <string name="error_verifactu_too_many">Puede elegir como máximo 64 registros de hasta 10 MiB cada uno y 32 MiB en total.</string>
+    <string name="error_verifactu_too_many">Puede elegir como máximo 64 registros de hasta 10 MB cada uno y 32 MB en total.</string>
     <string name="eni_title">Documento electrónico ENI</string>
     <string name="eni_helper">Crea un documento ENI con la firma elegida arriba como documento (PAdES, CAdES o XAdES) y sus metadatos obligatorios, o comprueba un ENI que ya tenga.</string>
     <string name="eni_organ">Órgano responsable (DIR3, obligatorio)</string>
@@ -559,4 +558,53 @@
         <item quantity="one">%1$d minuto</item>
         <item quantity="other">%1$d minutos</item>
     </plurals>
+    <string name="expediente_title">Expediente ENI</string>
+    <string name="expediente_helper">Reúne en un expediente los documentos ENI de una carpeta y firma su índice.</string>
+    <string name="expediente_select_folder">Elegir la carpeta de documentos ENI</string>
+    <string name="expediente_none">No ha elegido ninguna carpeta. Debe contener documentos ENI en XML.</string>
+    <string name="expediente_clear">Quitar la carpeta</string>
+    <string name="expediente_organs">Órganos DIR3 (obligatorio)</string>
+    <string name="expediente_organs_helper">Uno o varios códigos separados por comas, por ejemplo L01180877.</string>
+    <string name="expediente_classification">Clasificación del procedimiento (obligatorio)</string>
+    <string name="expediente_classification_helper">Código SIA, o código DIR3 seguido de _PRO_ y un identificador.</string>
+    <string name="expediente_state">Estado del expediente</string>
+    <string name="expediente_identifier">Identificador del expediente (opcional)</string>
+    <string name="expediente_identifier_helper">Si lo deja vacío, se genera uno.</string>
+    <string name="expediente_interested">Personas interesadas (opcional)</string>
+    <string name="expediente_interested_helper">Separe cada persona con punto y coma.</string>
+    <string name="expediente_opening_now">Fecha de apertura: hoy</string>
+    <string name="expediente_opening_value">Fecha de apertura: %1$s</string>
+    <string name="expediente_opening_choose">Elegir la fecha de apertura</string>
+    <string name="expediente_opening_clear">Usar la fecha de hoy</string>
+    <string name="expediente_opening_title">Fecha de apertura del expediente</string>
+    <string name="expediente_sign_hint">El índice se firma con el certificado de la sesión, que debe tener clave RSA. Con DNIe, el PIN se pide una vez.</string>
+    <string name="expediente_create">Crear y firmar el expediente</string>
+    <string name="expediente_error_no_xml">La carpeta no tiene documentos XML. Elija la carpeta que contiene los documentos ENI.</string>
+    <string name="expediente_error_too_many">La carpeta tiene más de 64 documentos. Quite documentos o divida el expediente.</string>
+    <string name="expediente_error_too_large">Los documentos ocupan más de 32 MB. Quite documentos de la carpeta.</string>
+    <string name="expediente_invalid_documents">No se ha creado el expediente. Estos ficheros no son documentos ENI válidos:</string>
+    <string name="expediente_created">Expediente creado y firmado. Elija dónde guardarlo.</string>
+    <string name="expediente_output_name">Fichero: %1$s</string>
+    <string name="batch_action_label">Operación del lote</string>
+    <string name="batch_action_sign">Firmar</string>
+    <string name="batch_action_cosign">Cofirmar (añadir mi firma a ficheros ya firmados)</string>
+    <string name="batch_seal_check">Añadir el sello visible a los PDF</string>
+    <string name="batch_seal_helper">Se usa el sello que haya colocado con «Colocar el sello». Si un PDF tiene menos páginas que la elegida, el sello va en la última. La leyenda CSV no se añade en el lote.</string>
+    <string name="batch_seal_error">No se ha podido preparar el sello visible de %1$s. Quite ese PDF del lote o firme sin sello.</string>
+    <string name="batch_dnie_hint">Con DNIe, el PIN se pide una sola vez para todo el lote. Mantenga el DNIe pegado al móvil hasta que termine.</string>
+    <string name="batch_helper_wave4">Elija hasta 16 ficheros (32 MB en total). Se firman con el certificado abierto (fichero o DNIe) y con las opciones avanzadas de firma. Al terminar, elija una carpeta para guardar las firmas.</string>
+    <string name="result_batch_cosigned">Lote cofirmado</string>
+    <string name="error_protect_sign_identity_any">Para proteger y firmar hace falta un certificado en la sesión (PKCS#12 o DNIe) y un formato para destinatarios.</string>
+    <string name="release_notes_wave4">También en esta versión: expedientes ENI con índice firmado; firma de varios ficheros con sello visible o cofirma; DNIe en el lote (el PIN se pide una vez) y en proteger y firmar.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">%1$d documento ENI</item>
+        <item quantity="other">%1$d documentos ENI</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">%1$d fichero que no es XML se ha dejado fuera</item>
+        <item quantity="other">%1$d ficheros que no son XML se han dejado fuera</item>
+    </plurals>
+    <string name="error_document_too_large">El fichero es demasiado grande. Los documentos pueden ocupar hasta 32 MB y los certificados hasta 4 MB.</string>
+    <string name="error_document_empty">El fichero está vacío. Elija otro.</string>
+    <string name="error_folder_too_many">La carpeta tiene demasiados ficheros. Elija una carpeta con menos.</string>
 </resources>

@@ -34,6 +34,11 @@ func TestFirmaRemotaCSCLaPoliticaMandaYSinElLaDecideConfigJSON(t *testing.T) {
 	if cfg.FirmaRemotaCSCActiva(config.Policy{FirmaRemotaCSC: &falso}) {
 		t.Fatal("la política de la organización debe poder prohibirla")
 	}
+	if !config.FirmaRemotaCSCProhibida(config.Policy{FirmaRemotaCSC: &falso}) ||
+		config.FirmaRemotaCSCProhibida(config.Policy{FirmaRemotaCSC: &verdadero}) ||
+		config.FirmaRemotaCSCProhibida(config.Policy{}) {
+		t.Fatal("solo una política explícita en contra cuenta como prohibición")
+	}
 }
 
 func TestFirmaRemotaCSCNoSeActivaPorEntornoYLaPoliticaFicheroSeAplica(t *testing.T) {

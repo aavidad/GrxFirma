@@ -99,7 +99,6 @@
     <string name="seal_color_black">Schwarz</string>
     <string name="seal_color_blue">Blau</string>
     <string name="seal_color_gray">Dunkelgrau</string>
-    <string name="seal_image">Siegelbild</string>
     <string name="seal_all_pages">Auf alle Seiten anwenden</string>
     <string name="seal_one_page">Nur diese Seite</string>
     <string name="seal_preview_loading">Echte Vorschau wird aktualisiert…</string>
@@ -110,7 +109,7 @@
     <string name="seal_certificate_required">Richten Sie zuerst in Schritt 2 ein Zertifikat ein, um das echte Siegel zu sehen.</string>
     <string name="seal_pdf_only">Das sichtbare Siegel ist nur mit PDF-Dokumenten und dem Format PAdES möglich.</string>
     <string name="seal_invalid_settings">Prüfen Sie Position, Größe, Bild und HTTPS-Adresse des Siegels.</string>
-    <string name="seal_image_error">Bild konnte nicht verwendet werden. Wählen Sie PNG oder JPEG bis 2 MiB.</string>
+    <string name="seal_image_error">Bild konnte nicht verwendet werden. Wählen Sie PNG oder JPEG bis 2 MB.</string>
     <string name="verify_document">Signatur prüfen</string>
     <string name="operation_in_progress">Vorgang wird verarbeitet…</string>
     <string name="result_section">Ergebnis</string>
@@ -218,7 +217,7 @@
     <string name="state_expanded">ausgeklappt</string>
     <string name="state_collapsed">eingeklappt</string>
     <string name="batch_title">Mehrere Dateien signieren</string>
-    <string name="batch_helper">Wählen Sie bis zu 16 Dateien (insgesamt 32 MiB). Sie werden mit dem importierten PKCS#12-Zertifikat und mit dem oben gewählten Format, Profil und TSA signiert, ohne sichtbares Siegel. Wählen Sie danach einen Ordner zum Speichern der Signaturen.</string>
+    <string name="batch_helper">Wählen Sie bis zu 16 Dateien (insgesamt 32 MB). Sie werden mit dem importierten PKCS#12-Zertifikat und mit dem oben gewählten Format, Profil und TSA signiert, ohne sichtbares Siegel. Wählen Sie danach einen Ordner zum Speichern der Signaturen.</string>
     <string name="batch_select">Dateien wählen…</string>
     <string name="batch_none">Keine Dateien gewählt.</string>
     <string name="batch_clear">Dateien entfernen</string>
@@ -231,7 +230,7 @@
     <string name="result_batch_signed">Stapel signiert</string>
     <string name="error_batch_required">Wählen Sie mindestens eine Datei für den Stapel.</string>
     <string name="error_batch_too_many">Sie können höchstens 16 Dateien wählen.</string>
-    <string name="error_batch_too_large">Die Dateien überschreiten insgesamt 32 MiB.</string>
+    <string name="error_batch_too_large">Die Dateien überschreiten insgesamt 32 MB.</string>
     <string name="hash_title">Prüfsumme einer Datei</string>
     <string name="hash_helper">Berechnet oder prüft die Prüfsumme des oben gewählten Dokuments. Die Prüfsummendateien sind dieselben wie in GrxFirma für den Desktop.</string>
     <string name="hash_algorithm">Algorithmus</string>
@@ -288,7 +287,7 @@
     <string name="error_tool_save_picker_cancelled">Es wurde kein Ziel gewählt. Das Ergebnis bleibt im Speicher: erneut speichern oder verwerfen.</string>
     <string name="error_tool_save_picker_unavailable">Die Zielauswahl konnte nicht geöffnet werden. Das Ergebnis bleibt im Speicher: erneut speichern oder verwerfen.</string>
     <string name="discard_pending_tool_output">Ergebnis verwerfen</string>
-    <string name="help_tools_content">Unter „Weitere Werkzeuge“ können Sie:\n• bis zu 16 Dateien gleichzeitig mit einer Zertifikatsdatei signieren;\n• Hashes einer Datei erstellen und prüfen;\n• eine Datei für bestimmte Personen oder mit einem Schlüssel schützen und später öffnen;\n• Veri*Factu-Datensätze prüfen, den Steuer-QR-Code lesen und bei der AEAT abgleichen;\n• ENI-Dokumente erstellen und prüfen.\n\nIn den erweiterten Signaturoptionen können Sie auch die Formate XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES oder Veri*Factu-Datensatz wählen.</string>
+    <string name="help_tools_content">Unter „Weitere Werkzeuge“ können Sie:\n• bis zu 16 Dateien gleichzeitig mit Ihrem Zertifikat signieren;\n• Hashes einer Datei erstellen und prüfen;\n• eine Datei für bestimmte Personen oder mit einem Schlüssel schützen und später öffnen;\n• Veri*Factu-Datensätze prüfen, den Steuer-QR-Code lesen und bei der AEAT abgleichen;\n• ENI-Dokumente erstellen und prüfen;\n• eine ENI-Akte mit den Dokumenten eines Ordners erstellen und ihren Index signieren.\n\nIn den erweiterten Signaturoptionen können Sie auch die Formate XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES oder Veri*Factu-Datensatz wählen.</string>
     <plurals name="batch_selected">
         <item quantity="one">%1$d Datei gewählt</item>
         <item quantity="other">%1$d Dateien gewählt</item>
@@ -325,7 +324,7 @@
     <string name="documents_helper">Prüft Veri*Factu-Rechnungsdatensätze und erstellt oder prüft elektronische ENI-Dokumente. Es wird nichts an die AEAT oder andere Verwaltungen gesendet.</string>
     <string name="documents_unavailable">Diese Werkzeuge benötigen einen kryptografischen Kern, der sie enthält.</string>
     <string name="verifactu_title">Veri*Factu-Datensätze prüfen</string>
-    <string name="verifactu_helper">Wählen Sie bis zu 64 XML-Datensätze (je 10 MiB, insgesamt 32 MiB). Struktur, Hash, Verkettung und Signatur jedes Datensatzes werden geprüft.</string>
+    <string name="verifactu_helper">Wählen Sie bis zu 64 XML-Datensätze (je 10 MB, insgesamt 32 MB). Struktur, Hash, Verkettung und Signatur jedes Datensatzes werden geprüft.</string>
     <string name="verifactu_sign_hint">Um einen Datensatz zu signieren, wählen Sie ihn oben als Dokument und signieren Sie mit dem Format „Veri*Factu-Datensatz“.</string>
     <string name="verifactu_choose">XML-Datensätze auswählen…</string>
     <string name="verifactu_none">Keine Datensätze ausgewählt.</string>
@@ -333,7 +332,7 @@
     <string name="verifactu_check">Datensätze prüfen</string>
     <string name="verifactu_result_valid">Datensätze ohne Fehler geprüft</string>
     <string name="verifactu_result_invalid">Die Datensätze enthalten Fehler</string>
-    <string name="error_verifactu_too_many">Sie können höchstens 64 Datensätze mit je bis zu 10 MiB und insgesamt 32 MiB auswählen.</string>
+    <string name="error_verifactu_too_many">Sie können höchstens 64 Datensätze mit je bis zu 10 MB und insgesamt 32 MB auswählen.</string>
     <string name="eni_title">Elektronisches ENI-Dokument</string>
     <string name="eni_helper">Erstellt ein ENI-Dokument aus der oben als Dokument gewählten Signatur (PAdES, CAdES oder XAdES) mit den Pflichtmetadaten oder prüft ein vorhandenes ENI.</string>
     <string name="eni_organ">Zuständige Behörde (DIR3, erforderlich)</string>
@@ -559,4 +558,53 @@
         <item quantity="one">%1$d Minute</item>
         <item quantity="other">%1$d Minuten</item>
     </plurals>
+    <string name="expediente_title">ENI-Akte</string>
+    <string name="expediente_helper">Fasst die ENI-Dokumente eines Ordners zu einer Akte zusammen und signiert ihr Inhaltsverzeichnis.</string>
+    <string name="expediente_select_folder">Ordner mit ENI-Dokumenten wählen</string>
+    <string name="expediente_none">Kein Ordner gewählt. Er muss ENI-Dokumente im XML-Format enthalten.</string>
+    <string name="expediente_clear">Ordner entfernen</string>
+    <string name="expediente_organs">DIR3-Stellen (Pflichtfeld)</string>
+    <string name="expediente_organs_helper">Ein oder mehrere Codes, durch Kommas getrennt, zum Beispiel L01180877.</string>
+    <string name="expediente_classification">Verfahrensklassifikation (Pflichtfeld)</string>
+    <string name="expediente_classification_helper">SIA-Code oder DIR3-Code gefolgt von _PRO_ und einer Kennung.</string>
+    <string name="expediente_state">Status der Akte</string>
+    <string name="expediente_identifier">Kennung der Akte (optional)</string>
+    <string name="expediente_identifier_helper">Wenn Sie das Feld leer lassen, wird eine Kennung erzeugt.</string>
+    <string name="expediente_interested">Beteiligte (optional)</string>
+    <string name="expediente_interested_helper">Trennen Sie die Personen durch Semikolons.</string>
+    <string name="expediente_opening_now">Eröffnungsdatum: heute</string>
+    <string name="expediente_opening_value">Eröffnungsdatum: %1$s</string>
+    <string name="expediente_opening_choose">Eröffnungsdatum wählen</string>
+    <string name="expediente_opening_clear">Heutiges Datum verwenden</string>
+    <string name="expediente_opening_title">Eröffnungsdatum der Akte</string>
+    <string name="expediente_sign_hint">Das Inhaltsverzeichnis wird mit dem Zertifikat der Sitzung signiert, das einen RSA-Schlüssel haben muss. Beim DNIe wird die PIN einmal abgefragt.</string>
+    <string name="expediente_create">Akte erstellen und signieren</string>
+    <string name="expediente_error_no_xml">Der Ordner enthält keine XML-Dokumente. Wählen Sie den Ordner mit den ENI-Dokumenten.</string>
+    <string name="expediente_error_too_many">Der Ordner enthält mehr als 64 Dokumente. Entfernen Sie Dokumente oder teilen Sie die Akte auf.</string>
+    <string name="expediente_error_too_large">Die Dokumente sind größer als 32 MB. Entfernen Sie Dokumente aus dem Ordner.</string>
+    <string name="expediente_invalid_documents">Die Akte wurde nicht erstellt. Diese Dateien sind keine gültigen ENI-Dokumente:</string>
+    <string name="expediente_created">Akte erstellt und signiert. Wählen Sie, wo sie gespeichert wird.</string>
+    <string name="expediente_output_name">Datei: %1$s</string>
+    <string name="batch_action_label">Vorgang für den Stapel</string>
+    <string name="batch_action_sign">Signieren</string>
+    <string name="batch_action_cosign">Gegenzeichnen (meine Signatur zu bereits signierten Dateien hinzufügen)</string>
+    <string name="batch_seal_check">Sichtbares Siegel zu den PDFs hinzufügen</string>
+    <string name="batch_seal_helper">Es wird das mit „Siegel platzieren“ gesetzte Siegel verwendet. Hat ein PDF weniger Seiten als die gewählte, kommt das Siegel auf die letzte Seite. Der CSV-Vermerk wird im Stapel nicht hinzugefügt.</string>
+    <string name="batch_seal_error">Das sichtbare Siegel für %1$s konnte nicht vorbereitet werden. Entfernen Sie dieses PDF aus dem Stapel oder signieren Sie ohne Siegel.</string>
+    <string name="batch_dnie_hint">Beim DNIe wird die PIN nur einmal für den ganzen Stapel abgefragt. Halten Sie den DNIe bis zum Ende an das Telefon.</string>
+    <string name="batch_helper_wave4">Wählen Sie bis zu 16 Dateien (insgesamt 32 MB). Sie werden mit dem geöffneten Zertifikat (Datei oder DNIe) und den erweiterten Signaturoptionen signiert. Wählen Sie danach einen Ordner zum Speichern der Signaturen.</string>
+    <string name="result_batch_cosigned">Stapel gegengezeichnet</string>
+    <string name="error_protect_sign_identity_any">Zum Schützen und Signieren brauchen Sie ein Zertifikat in der Sitzung (PKCS#12 oder DNIe) und ein Empfängerformat.</string>
+    <string name="release_notes_wave4">Außerdem in dieser Version: ENI-Akten mit signiertem Index; mehrere Dateien mit sichtbarem Siegel oder Mitsignatur signieren; DNIe im Stapel (PIN nur einmal) und bei Schützen und signieren.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">%1$d ENI-Dokument</item>
+        <item quantity="other">%1$d ENI-Dokumente</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">%1$d Datei ohne XML wurde ausgelassen</item>
+        <item quantity="other">%1$d Dateien ohne XML wurden ausgelassen</item>
+    </plurals>
+    <string name="error_document_too_large">Die Datei ist zu groß. Dokumente dürfen bis zu 32 MB und Zertifikate bis zu 4 MB groß sein.</string>
+    <string name="error_document_empty">Die Datei ist leer. Wählen Sie eine andere.</string>
+    <string name="error_folder_too_many">Der Ordner enthält zu viele Dateien. Wählen Sie einen mit weniger.</string>
 </resources>

@@ -35,6 +35,7 @@ import (
 	"grxfirma/internal/adapters/inbound/common/secretinput"
 	"grxfirma/internal/adapters/inbound/desktop/ipc"
 	"grxfirma/internal/adapters/outbound/common/config"
+	"grxfirma/internal/adapters/outbound/common/csc"
 	"grxfirma/internal/adapters/outbound/common/hashmanifest"
 	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/common/metrics"
@@ -47,6 +48,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/updatecheck"
 	"grxfirma/internal/adapters/outbound/desktop/certaccess"
 	"grxfirma/internal/adapters/outbound/desktop/certcatalogagg"
+	"grxfirma/internal/adapters/outbound/desktop/cscremota"
 	"grxfirma/internal/adapters/outbound/desktop/filesystem"
 	"grxfirma/internal/adapters/outbound/desktop/localtlstrust"
 	"grxfirma/internal/adapters/outbound/desktop/macoskeychain"
@@ -415,9 +417,22 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 		claves = &proveedorClavesAgregado{fuentes: []ports.SigningKeyProvider{claves, tokens}}
 	}
 
+	httpClient := proxyhttp.New(configDir)
+
+	// Firma remota CSC: la sesión no ofrece nada mientras la política o
+	// config.json no la permitan, y lo vuelve a comprobar en cada operación.
+	sesionCSC := cscremota.Nueva(cscremota.Opciones{
+		ConfigDir:     configDir,
+		HTTP:          httpClient,
+		Navegador:     csc.AbrirNavegadorSistema,
+		Idioma:        idiomaPreferido(configDir),
+		TextoCallback: loc.T("csc.navegador.vuelta"),
+	})
+	catalogo = certcatalogagg.New(catalogo, sesionCSC)
+	claves = &proveedorClavesAgregado{fuentes: []ports.SigningKeyProvider{sesionCSC, claves}}
+
 	// Motor de firma.
 	motor := deskSigner.NuevoMotorFirmaGo(relojReal{})
-	httpClient := proxyhttp.New(configDir)
 	if tsaURL := os.Getenv("GRXFIRMA_TSA_URL"); tsaURL != "" {
 		tsa := tsaclient.New(tsaURL)
 		tsa.HTTPClient = httpClient
@@ -493,9 +508,11 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 	srv.WithProxySecrets(proxysecretstore.New())
 	srv.WithUpdates(updatecheck.NewWithHTTPClient(httpClient), version)
 	srv.WithProtection(ucProteger, ucProtegerFirmando, ucDesproteger, keyringProteccion)
+	srv.WithFirmaRemotaCSC(sesionCSC)
 	go func() {
 		<-ctx.Done()
 		temporaryStore.Clear()
+		_ = sesionCSC.Close()
 	}()
 
 	return srv, socketPath, nil
@@ -558,7 +575,8 @@ func (p *proveedorClavesAgregado) KeyFor(ctx context.Context, ref domain.Certifi
 }
 
 func esErrorProveedorNoAplicable(err error) bool {
-	return errors.Is(err, macoskeychain.ErrNoDisponibleEnEstaPlataforma) ||
+	return errors.Is(err, cscremota.ErrNoAplicable) ||
+		errors.Is(err, macoskeychain.ErrNoDisponibleEnEstaPlataforma) ||
 		errors.Is(err, wincertstore.ErrNoDisponibleEnEstaPlataforma) ||
 		errors.Is(err, tokenruntime.ErrNotApplicable) || errors.Is(err, tokenruntime.ErrIdentityUnknown) ||
 		strings.Contains(strings.ToLower(err.Error()), "nssstore: solo disponible en linux")

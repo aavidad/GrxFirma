@@ -99,7 +99,6 @@
     <string name="seal_color_black">Beltza</string>
     <string name="seal_color_blue">Urdina</string>
     <string name="seal_color_gray">Gris iluna</string>
-    <string name="seal_image">Zigiluaren irudia</string>
     <string name="seal_all_pages">Aplikatu orrialde guztietan</string>
     <string name="seal_one_page">Orrialde hau bakarrik</string>
     <string name="seal_preview_loading">Benetako aurrebista eguneratzen…</string>
@@ -110,7 +109,7 @@
     <string name="seal_certificate_required">Prestatu lehenik ziurtagiri bat 2. urratsean benetako zigilua ikusteko.</string>
     <string name="seal_pdf_only">Zigilu ikusgaia PDF dokumentuekin eta PAdES formatuarekin soilik erabil daiteke.</string>
     <string name="seal_invalid_settings">Berrikusi zigiluaren kokapena, tamaina, irudia eta HTTPS helbidea.</string>
-    <string name="seal_image_error">Ezin izan da irudia erabili. Hautatu gehienez 2 MiB-ko PNG edo JPEG bat.</string>
+    <string name="seal_image_error">Ezin izan da irudia erabili. Hautatu gehienez 2 MB-ko PNG edo JPEG bat.</string>
     <string name="verify_document">Egiaztatu sinadura</string>
     <string name="operation_in_progress">Eragiketa prozesatzen…</string>
     <string name="result_section">Emaitza</string>
@@ -218,7 +217,7 @@
     <string name="state_expanded">zabalduta</string>
     <string name="state_collapsed">bilduta</string>
     <string name="batch_title">Hainbat fitxategi sinatu</string>
-    <string name="batch_helper">Aukeratu 16 fitxategi gehienez (guztira 32 MiB). Inportatutako PKCS#12 ziurtagiriarekin eta goian aukeratutako formatuarekin, profilarekin eta TSArekin sinatzen dira, zigilu ikusgarririk gabe. Amaitzean, aukeratu karpeta bat sinadurak gordetzeko.</string>
+    <string name="batch_helper">Aukeratu 16 fitxategi gehienez (guztira 32 MB). Inportatutako PKCS#12 ziurtagiriarekin eta goian aukeratutako formatuarekin, profilarekin eta TSArekin sinatzen dira, zigilu ikusgarririk gabe. Amaitzean, aukeratu karpeta bat sinadurak gordetzeko.</string>
     <string name="batch_select">Aukeratu fitxategiak…</string>
     <string name="batch_none">Ez dago fitxategirik aukeratuta.</string>
     <string name="batch_clear">Kendu fitxategiak</string>
@@ -231,7 +230,7 @@
     <string name="result_batch_signed">Sorta sinatuta</string>
     <string name="error_batch_required">Aukeratu gutxienez fitxategi bat sortarako.</string>
     <string name="error_batch_too_many">Gehienez 16 fitxategi aukera ditzakezu.</string>
-    <string name="error_batch_too_large">Fitxategiek guztira 32 MiB gainditzen dituzte.</string>
+    <string name="error_batch_too_large">Fitxategiek guztira 32 MB gainditzen dituzte.</string>
     <string name="hash_title">Fitxategi baten hatz-marka</string>
     <string name="hash_helper">Goian aukeratutako dokumentuaren hatz-marka kalkulatzen edo egiaztatzen du. Hatz-marken fitxategiak mahaigaineko GrxFirmakoen berdinak dira.</string>
     <string name="hash_algorithm">Algoritmoa</string>
@@ -288,7 +287,7 @@
     <string name="error_tool_save_picker_cancelled">Ez da helmuga aukeratu. Emaitza memorian dago oraindik: saiatu berriro gordetzen edo baztertu.</string>
     <string name="error_tool_save_picker_unavailable">Ezin izan da helmuga-hautatzailea ireki. Emaitza memorian dago oraindik: saiatu berriro gordetzen edo baztertu.</string>
     <string name="discard_pending_tool_output">Baztertu emaitza</string>
-    <string name="help_tools_content">«Beste tresna batzuk» atalean hau egin dezakezu:\n• 16 fitxategi arte aldi berean sinatu ziurtagiri-fitxategi batekin;\n• fitxategi baten aztarnak sortu eta egiaztatu;\n• fitxategi bat pertsona jakinentzat edo gako batekin babestu, eta gero ireki;\n• Veri*Factu erregistroak egiaztatu, zerga-QRa irakurri eta AEATekin egiaztatu;\n• ENI dokumentuak sortu eta egiaztatu.\n\nSinadura-aukera aurreratuetan XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES edo Veri*Factu erregistro formatuak ere aukera ditzakezu.</string>
+    <string name="help_tools_content">«Beste tresna batzuk» atalean hau egin dezakezu:\n• 16 fitxategi arte aldi berean sinatu zure ziurtagiriarekin;\n• fitxategi baten aztarnak sortu eta egiaztatu;\n• fitxategi bat pertsona jakinentzat edo gako batekin babestu, eta gero ireki;\n• Veri*Factu erregistroak egiaztatu, zerga-QRa irakurri eta AEATekin egiaztatu;\n• ENI dokumentuak sortu eta egiaztatu;\n• karpeta bateko dokumentuekin ENI espediente bat sortu eta haren aurkibidea sinatu.\n\nSinadura-aukera aurreratuetan XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES edo Veri*Factu erregistro formatuak ere aukera ditzakezu.</string>
     <plurals name="batch_selected">
         <item quantity="one">Fitxategi %1$d aukeratuta</item>
         <item quantity="other">%1$d fitxategi aukeratuta</item>
@@ -325,7 +324,7 @@
     <string name="documents_helper">Veri*Factu fakturazio-erregistroak egiaztatzen ditu eta ENI dokumentu elektronikoak sortu edo egiaztatzen ditu. Ez zaio ezer bidaltzen AEATi ez beste administrazioei.</string>
     <string name="documents_unavailable">Tresna hauek barne hartzen dituen nukleo kriptografiko bat behar dute.</string>
     <string name="verifactu_title">Veri*Factu erregistroak egiaztatu</string>
-    <string name="verifactu_helper">Aukeratu gehienez 64 XML erregistro (bakoitza 10 MiB eta guztira 32 MiB). Erregistro bakoitzaren egitura, hatz-marka, kateatzea eta sinadura egiaztatzen dira.</string>
+    <string name="verifactu_helper">Aukeratu gehienez 64 XML erregistro (bakoitza 10 MB eta guztira 32 MB). Erregistro bakoitzaren egitura, hatz-marka, kateatzea eta sinadura egiaztatzen dira.</string>
     <string name="verifactu_sign_hint">Erregistro bat sinatzeko, aukeratu goian dokumentu gisa eta sinatu «Veri*Factu erregistroa» formatuarekin.</string>
     <string name="verifactu_choose">Aukeratu XML erregistroak…</string>
     <string name="verifactu_none">Ez dago erregistrorik aukeratuta.</string>
@@ -333,7 +332,7 @@
     <string name="verifactu_check">Egiaztatu erregistroak</string>
     <string name="verifactu_result_valid">Erregistroak akatsik gabe egiaztatu dira</string>
     <string name="verifactu_result_invalid">Erregistroek akatsak dituzte</string>
-    <string name="error_verifactu_too_many">Gehienez 64 erregistro aukera ditzakezu, bakoitza 10 MiB artekoa eta guztira 32 MiB.</string>
+    <string name="error_verifactu_too_many">Gehienez 64 erregistro aukera ditzakezu, bakoitza 10 MB artekoa eta guztira 32 MB.</string>
     <string name="eni_title">ENI dokumentu elektronikoa</string>
     <string name="eni_helper">ENI dokumentu bat sortzen du goian dokumentu gisa aukeratutako sinadurarekin (PAdES, CAdES edo XAdES) eta derrigorrezko metadatuekin, edo lehendik duzun ENI bat egiaztatzen du.</string>
     <string name="eni_organ">Organo arduraduna (DIR3, nahitaezkoa)</string>
@@ -559,4 +558,53 @@
         <item quantity="one">%1$d minutu</item>
         <item quantity="other">%1$d minutu</item>
     </plurals>
+    <string name="expediente_title">ENI espedientea</string>
+    <string name="expediente_helper">Karpeta bateko ENI dokumentuak espediente batean biltzen ditu eta haren aurkibidea sinatzen du.</string>
+    <string name="expediente_select_folder">Aukeratu ENI dokumentuen karpeta</string>
+    <string name="expediente_none">Ez duzu karpetarik aukeratu. XML formatuko ENI dokumentuak izan behar ditu.</string>
+    <string name="expediente_clear">Kendu karpeta</string>
+    <string name="expediente_organs">DIR3 organoak (derrigorrezkoa)</string>
+    <string name="expediente_organs_helper">Kode bat edo gehiago, komaz bereizita; adibidez, L01180877.</string>
+    <string name="expediente_classification">Prozeduraren sailkapena (derrigorrezkoa)</string>
+    <string name="expediente_classification_helper">SIA kodea, edo DIR3 kodea, _PRO_ eta identifikatzaile bat atzetik dituela.</string>
+    <string name="expediente_state">Espedientearen egoera</string>
+    <string name="expediente_identifier">Espedientearen identifikatzailea (aukerakoa)</string>
+    <string name="expediente_identifier_helper">Hutsik uzten baduzu, bat sortzen da.</string>
+    <string name="expediente_interested">Interesdunak (aukerakoa)</string>
+    <string name="expediente_interested_helper">Bereizi pertsona bakoitza puntu eta komaz.</string>
+    <string name="expediente_opening_now">Irekiera-data: gaur</string>
+    <string name="expediente_opening_value">Irekiera-data: %1$s</string>
+    <string name="expediente_opening_choose">Aukeratu irekiera-data</string>
+    <string name="expediente_opening_clear">Erabili gaurko data</string>
+    <string name="expediente_opening_title">Espedientearen irekiera-data</string>
+    <string name="expediente_sign_hint">Aurkibidea saioko ziurtagiriarekin sinatzen da, eta RSA gakoa izan behar du. DNIarekin, PINa behin eskatzen da.</string>
+    <string name="expediente_create">Sortu eta sinatu espedientea</string>
+    <string name="expediente_error_no_xml">Karpetak ez du XML dokumenturik. Aukeratu ENI dokumentuak dituen karpeta.</string>
+    <string name="expediente_error_too_many">Karpetak 64 dokumentu baino gehiago ditu. Kendu dokumentuak edo zatitu espedientea.</string>
+    <string name="expediente_error_too_large">Dokumentuek 32 MB baino gehiago hartzen dute. Kendu dokumentuak karpetatik.</string>
+    <string name="expediente_invalid_documents">Ez da espedientea sortu. Fitxategi hauek ez dira baliozko ENI dokumentuak:</string>
+    <string name="expediente_created">Espedientea sortu eta sinatu da. Aukeratu non gorde.</string>
+    <string name="expediente_output_name">Fitxategia: %1$s</string>
+    <string name="batch_action_label">Sortaren eragiketa</string>
+    <string name="batch_action_sign">Sinatu</string>
+    <string name="batch_action_cosign">Kosinatu (gehitu nire sinadura sinatuta dauden fitxategiei)</string>
+    <string name="batch_seal_check">Gehitu zigilu ikusgarria PDFei</string>
+    <string name="batch_seal_helper">«Kokatu zigilua» botoiarekin kokatutako zigilua erabiltzen da. PDF batek aukeratutakoa baino orri gutxiago baditu, zigilua azkenean jartzen da. CSV legenda ez da sortan gehitzen.</string>
+    <string name="batch_seal_error">Ezin izan da %1$s fitxategiaren zigilu ikusgarria prestatu. Kendu PDF hori sortatik edo sinatu zigilurik gabe.</string>
+    <string name="batch_dnie_hint">DNIarekin, PINa behin bakarrik eskatzen da sorta osorako. Eutsi DNIa mugikorrari itsatsita amaitu arte.</string>
+    <string name="batch_helper_wave4">Aukeratu gehienez 16 fitxategi (guztira 32 MB). Irekitako ziurtagiriarekin (fitxategia edo NAN elektronikoa) eta sinadura-aukera aurreratuekin sinatzen dira. Amaitzean, aukeratu sinadurak gordetzeko karpeta.</string>
+    <string name="result_batch_cosigned">Sorta kosinatu da</string>
+    <string name="error_protect_sign_identity_any">Babestu eta sinatzeko, ziurtagiri bat behar da saioan (PKCS#12 edo DNIa) eta hartzaileentzako formatu bat.</string>
+    <string name="release_notes_wave4">Bertsio honetan ere: ENI espedienteak aurkibide sinatuarekin; hainbat fitxategi sinatzea zigilu ikusgaiarekin edo kosinadurarekin; NAN elektronikoa sortan (PINa behin eskatzen da) eta babestu eta sinatzean.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">ENI dokumentu %1$d</item>
+        <item quantity="other">%1$d ENI dokumentu</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">XML ez den fitxategi %1$d kanpoan utzi da</item>
+        <item quantity="other">XML ez diren %1$d fitxategi kanpoan utzi dira</item>
+    </plurals>
+    <string name="error_document_too_large">Fitxategia handiegia da. Dokumentuek 32 MB arte har dezakete eta ziurtagiriek 4 MB arte.</string>
+    <string name="error_document_empty">Fitxategia hutsik dago. Aukeratu beste bat.</string>
+    <string name="error_folder_too_many">Karpetak fitxategi gehiegi ditu. Aukeratu gutxiago dituen bat.</string>
 </resources>

@@ -25,6 +25,8 @@ import es.dipgra.grxfirma.android.model.ProtectionRequest
 import es.dipgra.grxfirma.android.model.CsvLegend
 import es.dipgra.grxfirma.android.model.EniCatalogs
 import es.dipgra.grxfirma.android.model.EniRequest
+import es.dipgra.grxfirma.android.model.EniFileRequest
+import es.dipgra.grxfirma.android.model.BatchItemInput
 import es.dipgra.grxfirma.android.core.SignatureFormats
 import es.dipgra.grxfirma.android.core.AppLinks
 import es.dipgra.grxfirma.android.core.PlatformServices
@@ -61,6 +63,7 @@ class MainViewModel(
             signatureProfile = initialSettings.defaultProfile,
             tsaEnabled = initialSettings.tsaEnabled,
             tsaUrl = initialSettings.tsaUrl,
+            capabilities = if (core.readiness.available) core.capabilities else emptySet(),
         ),
     )
     val state: StateFlow<MainUiState> = mutableState.asStateFlow()
@@ -83,9 +86,7 @@ class MainViewModel(
             val selected = repository.inspect(uri, "documento", "application/octet-stream")
             DocumentPolicy.requireAllowedSize(
                 selected.sizeBytes,
-                DocumentPolicy.MAX_DOCUMENT_BYTES,
-                "El documento",
-            )
+                DocumentPolicy.MAX_DOCUMENT_BYTES)
             mutableState.value = mutableState.value.copy(document = selected, result = OperationResult.Idle,
                 verification = null, postSignVerificationFailed = false, signatureAction = "sign", coSignSuggested = false, detectedSignatureFormat = "")
             inspectExistingSignature(selected)
@@ -101,9 +102,7 @@ class MainViewModel(
             val selected = repository.inspect(uri, "documento-original", "application/octet-stream")
             DocumentPolicy.requireAllowedSize(
                 selected.sizeBytes,
-                DocumentPolicy.MAX_DOCUMENT_BYTES,
-                "El documento original",
-            )
+                DocumentPolicy.MAX_DOCUMENT_BYTES)
             mutableState.value = mutableState.value.copy(
                 originalDocument = selected,
                 verification = null,
@@ -132,9 +131,7 @@ class MainViewModel(
             val selected = repository.inspect(uri, "certificado.p12", "application/x-pkcs12")
             DocumentPolicy.requireAllowedSize(
                 selected.sizeBytes,
-                DocumentPolicy.MAX_CERTIFICATE_BYTES,
-                "El certificado",
-            )
+                DocumentPolicy.MAX_CERTIFICATE_BYTES)
             mutableState.value = mutableState.value.copy(
                 certificateFile = selected,
                 result = OperationResult.Idle,
@@ -278,6 +275,10 @@ class MainViewModel(
     }
 
     fun reportDnieError(error: Throwable, retriesLeft: Int = -1) {
+        setError(dnieText(error, retriesLeft))
+    }
+
+    private fun dnieText(error: Throwable, retriesLeft: Int): UiText {
         val resource = when (DnieErrors.from(error, retriesLeft)) {
             DnieError.NFC_MISSING -> R.string.dnie_nfc_missing
             DnieError.NFC_OFF -> R.string.dnie_nfc_off
@@ -291,7 +292,7 @@ class MainViewModel(
             DnieError.OTHER -> R.string.dnie_error
         }
         val args = if (resource == R.string.dnie_pin_wrong) listOf(retriesLeft.coerceAtLeast(0)) else emptyList()
-        setError(UiText.Resource(resource, args))
+        return UiText.Resource(resource, args)
     }
 
     fun sign(format: String, options: Map<String, String> = emptyMap()) {
@@ -596,7 +597,7 @@ class MainViewModel(
         if (!snapshot.canHash) return
         launchOperation {
             val hashFile = repository.inspect(hashUri, "huella", "application/octet-stream")
-            DocumentPolicy.requireAllowedSize(hashFile.sizeBytes, ToolsPolicy.MAX_HASH_FILE_BYTES, "La huella")
+            DocumentPolicy.requireAllowedSize(hashFile.sizeBytes, ToolsPolicy.MAX_HASH_FILE_BYTES)
             val stored = repository.loadCertificate(hashFile)
             val loaded = try { repository.loadDocument(document) } catch (error: Exception) { stored.bytes.fill(0); throw error }
             try {
@@ -628,7 +629,7 @@ class MainViewModel(
                 return@runInspect
             }
             val selected = repository.inspect(uri, "destinatario.cer", "application/pkix-cert")
-            DocumentPolicy.requireAllowedSize(selected.sizeBytes, ToolsPolicy.MAX_RECIPIENT_BYTES, "El certificado")
+            DocumentPolicy.requireAllowedSize(selected.sizeBytes, ToolsPolicy.MAX_RECIPIENT_BYTES)
             mutableState.value = mutableState.value.copy(
                 recipients = (mutableState.value.recipients + selected).distinctBy { it.uri },
                 result = OperationResult.Idle,
@@ -653,7 +654,9 @@ class MainViewModel(
                 R.string.error_protect_key
             // Sin identidad válida para firmar (o con DNIe) se avisa antes que de
             // los destinatarios: es lo que impide la operación.
-            sign && (snapshot.certificate == null || snapshot.certificateExternal) -> R.string.error_protect_sign_identity
+            sign && snapshot.certificate == null -> if (snapshot.externalProtectSignAvailable)
+                R.string.error_protect_sign_identity_any else R.string.error_protect_sign_identity
+            sign && snapshot.certificateExternal && !snapshot.externalProtectSignAvailable -> R.string.error_protect_sign_identity
             !snapshot.usesTransientKey && snapshot.recipients.isEmpty() && !snapshot.canProtectForMe ->
                 R.string.error_protect_recipients_required
             else -> null
@@ -743,7 +746,7 @@ class MainViewModel(
             }
             val selected = uris.distinct().map { repository.inspect(it, "documento", "application/octet-stream") }
             selected.forEach {
-                DocumentPolicy.requireAllowedSize(it.sizeBytes, DocumentPolicy.MAX_DOCUMENT_BYTES, "El documento")
+                DocumentPolicy.requireAllowedSize(it.sizeBytes, DocumentPolicy.MAX_DOCUMENT_BYTES)
             }
             ToolsPolicy.batchProblem(selected.map { it.sizeBytes })?.let {
                 setError(UiText.Resource(it))
@@ -758,27 +761,41 @@ class MainViewModel(
         mutableState.value = mutableState.value.copy(batchDocuments = emptyList())
     }
 
-    fun signBatch(format: String) {
+    /**
+     * Firma o cofirma el lote. Con [sealPlanner], los PDF reciben el sello
+     * visible calculado para cada documento. Con DNIe, [externalError] entrega
+     * el primer fallo de la tarjeta para explicarlo junto al resultado, y
+     * [onFinished] cierra la operación de PIN (también si no llega a empezar).
+     */
+    fun signBatch(
+        format: String,
+        sealPlanner: BatchSealPlanner? = null,
+        externalError: (() -> Pair<Throwable, Int>?)? = null,
+        onFinished: () -> Unit = {},
+    ) {
         val snapshot = mutableState.value
         val certificate = snapshot.certificate
+        val action = if (snapshot.batchCosignAvailable) snapshot.wave4.batchAction else "sign"
+        val seal = sealPlanner != null && snapshot.wave4.batchSeal && snapshot.batchSealAvailable
         val problem: Int? = when {
             snapshot.batchDocuments.isEmpty() -> R.string.error_batch_required
             certificate == null -> R.string.error_certificate_required
-            snapshot.certificateExternal -> R.string.batch_dnie_unavailable
+            snapshot.certificateExternal && !snapshot.externalBatchAvailable -> R.string.batch_dnie_unavailable
             !snapshot.canSignBatch -> -1
             snapshot.batchDocuments.any { ToolsPolicy.effectiveFormat(format, it.displayName, it.mimeType) == "verifactu" } ->
                 R.string.error_batch_verifactu
             snapshot.batchDocuments.any {
                 val effective = ToolsPolicy.effectiveFormat(format, it.displayName, it.mimeType)
-                effective !in snapshot.signingFormats || !SigningOptions.supported(effective, "sign", snapshot.signatureProfile)
+                effective !in snapshot.signingFormats || !SigningOptions.supported(effective, action, snapshot.signatureProfile)
             } -> R.string.error_signature_combination
             else -> null
         }
         if (problem != null || certificate == null) {
+            onFinished()
             if (problem != null && problem != -1) setError(UiText.Resource(problem))
             return
         }
-        launchOperation {
+        launchOperation(onFinished = onFinished) {
             // Con formatos solo B en la selección, el lote se firma sin TSA.
             val withTimestamp = snapshot.tsaEnabled && snapshot.batchDocuments.all {
                 FormatPolicy.acceptsTimestamp(ToolsPolicy.effectiveFormat(format, it.displayName, it.mimeType))
@@ -801,11 +818,28 @@ class MainViewModel(
                         return@launchOperation
                     }
                 }
-                val results = core.signBatch(loaded, format, certificate.id, configured)
+                val results = if (action == "sign" && !seal) {
+                    core.signBatch(loaded, format, certificate.id, configured)
+                } else {
+                    val items = ArrayList<BatchItemInput>(loaded.size)
+                    for (file in loaded) {
+                        val effective = ToolsPolicy.effectiveFormat(format, file.displayName, file.mimeType, file.bytes)
+                        val options = if (seal && effective == "pades") {
+                            sealPlanner?.options(file) ?: run {
+                                setError(UiText.Resource(R.string.batch_seal_error, listOf(file.displayName)))
+                                return@launchOperation
+                            }
+                        } else emptyMap()
+                        items += BatchItemInput(file, format, action, options)
+                    }
+                    core.signBatchItems(items, certificate.id, configured)
+                }
                 clearPending()
                 pendingBatch = results
                 val ok = results.count { it.output != null }
+                val cardProblem = externalError?.invoke()
                 val lines = buildList<UiText> {
+                    cardProblem?.let { (error, retries) -> add(dnieText(error, retries)) }
                     add(UiText.Plural(R.plurals.batch_ok_count, ok))
                     if (ok < results.size) add(UiText.Plural(R.plurals.batch_error_count, results.size - ok))
                     results.forEach {
@@ -819,12 +853,21 @@ class MainViewModel(
                     return@launchOperation
                 }
                 mutableState.value = mutableState.value.copy(awaitingSave = true, pendingKind = PendingKind.BATCH,
-                    result = OperationResult.Success(UiText.Resource(R.string.result_batch_signed), UiText.Lines(lines)))
+                    result = OperationResult.Success(UiText.Resource(
+                        if (action == "cosign") R.string.result_batch_cosigned else R.string.result_batch_signed),
+                        UiText.Lines(lines)))
                 effectChannel.send(UiEffect.ChooseBatchFolder)
             } finally {
                 loaded.forEach { it.bytes.fill(0) }
             }
         }
+    }
+
+    fun updateBatchOptions(action: String, seal: Boolean) {
+        if (!mutableState.value.canReplaceSelection) return
+        require(action in listOf("sign", "cosign"))
+        val current = mutableState.value
+        mutableState.value = current.copy(wave4 = current.wave4.copy(batchAction = action, batchSeal = seal))
     }
 
     fun saveBatchOutputs(folder: Uri) = launchOperation(allowAwaitingSave = true) {
@@ -960,7 +1003,7 @@ class MainViewModel(
         if (!mutableState.value.canValidateEni) return
         launchOperation {
             val selected = repository.inspect(uri, "documento-eni.xml", "application/xml")
-            DocumentPolicy.requireAllowedSize(selected.sizeBytes, DocumentPolicy.MAX_DOCUMENT_BYTES, "El documento")
+            DocumentPolicy.requireAllowedSize(selected.sizeBytes, DocumentPolicy.MAX_DOCUMENT_BYTES)
             val loaded = repository.loadDocument(selected)
             try {
                 val validation = core.validateEni(loaded)
@@ -1071,6 +1114,96 @@ class MainViewModel(
                 mutableState.value = mutableState.value.copy(veriFactuQr = qr)
             } catch (error: Exception) {
                 mutableState.value = mutableState.value.copy(qrError = error.toUserText())
+            }
+        }
+    }
+
+    // --- Expediente ENI (cuarta oleada) ---
+
+    /** Lista los documentos XML de la carpeta elegida; el permiso no se persiste. */
+    fun selectEniFileFolder(folder: Uri) {
+        if (!mutableState.value.canReplaceSelection) return reportBusyIncomingIntent()
+        launchOperation {
+            val entries = repository.listTree(folder, ExpedientePolicy.MAX_FOLDER_ENTRIES)
+            val (documents, skipped) = ExpedientePolicy.partition(entries)
+            ExpedientePolicy.selectionProblem(documents.map { it.sizeBytes })?.let {
+                setError(UiText.Resource(it))
+                return@launchOperation
+            }
+            val current = mutableState.value
+            mutableState.value = current.copy(result = OperationResult.Idle,
+                wave4 = current.wave4.copy(eniFileDocuments = documents, eniFileSkipped = skipped))
+        }
+    }
+
+    fun clearEniFileDocuments() {
+        if (!mutableState.value.canReplaceSelection) return
+        val current = mutableState.value
+        mutableState.value = current.copy(wave4 = current.wave4.copy(eniFileDocuments = emptyList(), eniFileSkipped = 0))
+    }
+
+    fun updateEniFileOpeningDate(utcMidnight: Long?) {
+        if (!mutableState.value.canReplaceSelection) return
+        val current = mutableState.value
+        mutableState.value = current.copy(wave4 = current.wave4.copy(eniFileOpeningDate = utcMidnight))
+    }
+
+    /**
+     * Crea el expediente con los documentos de la carpeta y firma su índice con
+     * el certificado de la sesión. Con DNIe, [onFinished] borra el PIN.
+     */
+    fun createEniFile(request: EniFileRequest, onFinished: () -> Unit = {}) {
+        val snapshot = mutableState.value
+        val certificate = snapshot.certificate
+        val problem: UiText? = when {
+            !snapshot.eniFileAvailable -> UiText.Resource(R.string.error_core_unavailable)
+            certificate == null -> UiText.Resource(R.string.error_certificate_required)
+            snapshot.wave4.eniFileDocuments.isEmpty() -> UiText.Resource(R.string.expediente_error_no_xml)
+            !EniForm.organsValid(request.organs) -> UiText.Engine("eni.validacion.dir3")
+            !ExpedientePolicy.classificationValid(request.classification) -> UiText.Engine("eni.validacion.classification")
+            request.state !in ExpedientePolicy.STATES -> UiText.Engine("eni.validacion.value")
+            !ExpedientePolicy.identifierValid(request.identifier) -> UiText.Engine("eni.validacion.identifier")
+            !ExpedientePolicy.interestedValid(request.interested) -> UiText.Engine("eni.validacion.text")
+            !snapshot.canCreateEniFile -> UiText.Resource(R.string.error_operation_in_progress)
+            else -> null
+        }
+        if (problem != null || certificate == null) {
+            onFinished()
+            problem?.let(::setError)
+            return
+        }
+        launchOperation(onFinished = onFinished) {
+            val loaded = ArrayList<LoadedFile>(snapshot.wave4.eniFileDocuments.size)
+            try {
+                var total = 0L
+                for (document in snapshot.wave4.eniFileDocuments) {
+                    val file = repository.loadBounded(document, DocumentPolicy.MAX_DOCUMENT_BYTES)
+                    loaded += file
+                    total += file.bytes.size
+                    if (total > ExpedientePolicy.MAX_TOTAL_BYTES) {
+                        setError(UiText.Resource(R.string.expediente_error_too_large))
+                        return@launchOperation
+                    }
+                }
+                val created = core.createEniFile(loaded, certificate.id, request)
+                val bytes = created.bytes
+                if (bytes == null) {
+                    mutableState.value = mutableState.value.copy(result = OperationResult.Error(UiText.Lines(
+                        listOf(UiText.Resource(R.string.expediente_invalid_documents)) +
+                            created.issues.map { UiText.Resource(R.string.issue_line, listOf(it.field, UiText.Engine(it.key))) })))
+                    return@launchOperation
+                }
+                val name = ExpedientePolicy.outputName(request.identifier)
+                val detail = UiText.Lines(listOf(
+                    UiText.Plural(R.plurals.expediente_documents_count, created.documents),
+                    UiText.Resource(R.string.expediente_output_name, listOf(name)),
+                ))
+                replacePending(SignedOutput(bytes, name, "application/xml", "ENI", "XAdES"), PendingKind.TOOL, detail)
+                mutableState.value = mutableState.value.copy(awaitingSave = true,
+                    result = OperationResult.Success(UiText.Resource(R.string.expediente_created), detail))
+                effectChannel.send(UiEffect.SaveSignedDocument(name, "application/xml"))
+            } finally {
+                loaded.forEach { it.bytes.fill(0) }
             }
         }
     }

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<!-- Expediente ENI (cuarta oleada). Se incluye en section_documents. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/toggleExpedienteButton"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="start|center_vertical"
+        android:minHeight="48dp"
+        android:text="@string/expediente_title"
+        android:visibility="gone"
+        app:icon="@drawable/ic_expand_more"
+        app:iconGravity="end" />
+
+    <LinearLayout
+        android:id="@+id/expedienteGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="0dp"
+        android:visibility="gone">
+        <TextView
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/expediente_helper"
+            android:textColor="@color/on_surface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/expedienteFolderButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:minHeight="48dp"
+            android:text="@string/expediente_select_folder" />
+
+        <TextView
+            android:id="@+id/expedienteSummary"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/expediente_none"
+            android:textColor="@color/on_surface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/expedienteClearButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:minHeight="48dp"
+            android:text="@string/expediente_clear"
+            android:visibility="gone" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/expedienteOrgansLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:hint="@string/expediente_organs"
+            app:helperText="@string/expediente_organs_helper">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/expedienteOrgans"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="no"
+                android:inputType="textCapCharacters|textNoSuggestions"
+                android:maxLength="160"
+                android:minHeight="48dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/expedienteClassificationLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:hint="@string/expediente_classification"
+            app:helperText="@string/expediente_classification_helper">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/expedienteClassification"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="no"
+                android:inputType="textCapCharacters|textNoSuggestions"
+                android:maxLength="64"
+                android:minHeight="48dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/expedienteStateLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:hint="@string/expediente_state">
+
+            <es.dipgra.grxfirma.android.ui.DropdownField
+                android:id="@+id/expedienteState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/expedienteIdentifierLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:hint="@string/expediente_identifier"
+            app:helperText="@string/expediente_identifier_helper">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/expedienteIdentifier"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="no"
+                android:inputType="text|textNoSuggestions"
+                android:maxLength="64"
+                android:minHeight="48dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/expedienteInterestedLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:hint="@string/expediente_interested"
+            app:helperText="@string/expediente_interested_helper">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/expedienteInterested"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:maxLength="1024"
+                android:minHeight="48dp"
+                android:minLines="2" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/expedienteOpeningSummary"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:text="@string/expediente_opening_now"
+            android:textColor="@color/on_surface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/expedienteOpeningButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/expediente_opening_choose" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/expedienteOpeningClearButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:minHeight="48dp"
+            android:text="@string/expediente_opening_clear"
+            android:visibility="gone" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/expediente_sign_hint"
+            android:textColor="@color/on_surface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/expedienteCreateButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/expediente_create" />
+
+    </LinearLayout>
+
+</LinearLayout>

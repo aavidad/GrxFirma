@@ -18,9 +18,7 @@ class DocumentPolicyTest {
 
         val actual = DocumentPolicy.readBounded(
             ByteArrayInputStream(content),
-            content.size,
-            "El documento",
-        )
+            content.size)
 
         assertArrayEquals(content, actual)
     }
@@ -30,19 +28,24 @@ class DocumentPolicyTest {
         val error = assertThrows(InvalidDocumentException::class.java) {
             DocumentPolicy.readBounded(
                 ByteArrayInputStream(ByteArray(33)),
-                32,
-                "El documento",
-            )
+                32)
         }
 
-        assertEquals("El documento supera el límite de 0 MiB.", error.message)
+        assertEquals(DocumentProblem.TOO_LARGE, error.problem)
     }
 
     @Test
     fun `readBounded rejects empty documents`() {
-        assertThrows(InvalidDocumentException::class.java) {
-            DocumentPolicy.readBounded(ByteArrayInputStream(byteArrayOf()), 32, "El documento")
+        val error = assertThrows(InvalidDocumentException::class.java) {
+            DocumentPolicy.readBounded(ByteArrayInputStream(byteArrayOf()), 32)
         }
+        assertEquals(DocumentProblem.EMPTY, error.problem)
+    }
+
+    @Test
+    fun `displayed names drop Bidi and zero-width characters`() {
+        val name = DocumentPolicy.sanitizeDisplayName("factura\u202Efdp.exe\u200B\uFEFF", "x")
+        assertEquals("facturafdp.exe", name)
     }
 
     @Test

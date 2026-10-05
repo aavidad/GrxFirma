@@ -149,6 +149,10 @@ func ejecutarCSC(e entornoCSC, opc opcionesCSC, locales bool, args []string) int
 		return avisar("csc.cli.desactivada")
 	}
 	if !cfg.FirmaRemotaCSCActiva(politica) {
+		if config.FirmaRemotaCSCProhibida(politica) {
+			// No se sugiere config.json: la política manda sobre él.
+			return avisar("csc.error.prohibida")
+		}
 		return avisar("csc.cli.desactivada")
 	}
 	pares, err := csc.ParsearParesOAuth(cfg.FirmaRemotaCSCOAuth)

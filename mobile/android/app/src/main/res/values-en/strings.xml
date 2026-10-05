@@ -99,7 +99,6 @@
     <string name="seal_color_black">Black</string>
     <string name="seal_color_blue">Blue</string>
     <string name="seal_color_gray">Dark gray</string>
-    <string name="seal_image">Seal image</string>
     <string name="seal_all_pages">Apply to all pages</string>
     <string name="seal_one_page">This page only</string>
     <string name="seal_preview_loading">Updating actual seal preview…</string>
@@ -110,7 +109,7 @@
     <string name="seal_certificate_required">First set up a certificate in step 2 to see the real seal.</string>
     <string name="seal_pdf_only">The visible seal can only be used with PDF documents and the PAdES format.</string>
     <string name="seal_invalid_settings">Check the seal position, size, image, and HTTPS address.</string>
-    <string name="seal_image_error">The image could not be used. Select a PNG or JPEG up to 2 MiB.</string>
+    <string name="seal_image_error">The image could not be used. Select a PNG or JPEG up to 2 MB.</string>
     <string name="verify_document">Verify signature</string>
     <string name="operation_in_progress">Processing operation…</string>
     <string name="result_section">Result</string>
@@ -218,7 +217,7 @@
     <string name="state_expanded">expanded</string>
     <string name="state_collapsed">collapsed</string>
     <string name="batch_title">Sign several files</string>
-    <string name="batch_helper">Choose up to 16 files (32 MiB in total). They are signed with the imported PKCS#12 certificate and with the format, level and TSA chosen above, without a visible seal. When finished, choose a folder to save the signatures.</string>
+    <string name="batch_helper">Choose up to 16 files (32 MB in total). They are signed with the imported PKCS#12 certificate and with the format, level and TSA chosen above, without a visible seal. When finished, choose a folder to save the signatures.</string>
     <string name="batch_select">Choose files…</string>
     <string name="batch_none">No files chosen.</string>
     <string name="batch_clear">Remove the files</string>
@@ -231,7 +230,7 @@
     <string name="result_batch_signed">Batch signed</string>
     <string name="error_batch_required">Choose at least one file for the batch.</string>
     <string name="error_batch_too_many">You can choose up to 16 files.</string>
-    <string name="error_batch_too_large">The files exceed 32 MiB in total.</string>
+    <string name="error_batch_too_large">The files exceed 32 MB in total.</string>
     <string name="hash_title">File fingerprint</string>
     <string name="hash_helper">Calculates or checks the fingerprint (hash) of the document chosen above. The fingerprint files are the same as in GrxFirma for desktop.</string>
     <string name="hash_algorithm">Algorithm</string>
@@ -288,7 +287,7 @@
     <string name="error_tool_save_picker_cancelled">The destination was not chosen. The result is still in memory: retry saving it or discard it.</string>
     <string name="error_tool_save_picker_unavailable">The destination picker could not be opened. The result is still in memory: retry saving it or discard it.</string>
     <string name="discard_pending_tool_output">Discard result</string>
-    <string name="help_tools_content">Under “Other tools” you can:\n• sign up to 16 files at once with a certificate file;\n• create and check file hashes;\n• protect a file for specific people or with a key, and open it later;\n• check Veri*Factu records, read the tax QR code and check it with the AEAT;\n• create and check ENI documents.\n\nIn the advanced signing options you can also choose the XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES or Veri*Factu record formats.</string>
+    <string name="help_tools_content">Under “Other tools” you can:\n• sign up to 16 files at once with your certificate;\n• create and check file hashes;\n• protect a file for specific people or with a key, and open it later;\n• check Veri*Factu records, read the tax QR code and check it with the AEAT;\n• create and check ENI documents;\n• create an ENI file with the documents in a folder and sign its index.\n\nIn the advanced signing options you can also choose the XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES or Veri*Factu record formats.</string>
     <plurals name="batch_selected">
         <item quantity="one">%1$d file chosen</item>
         <item quantity="other">%1$d files chosen</item>
@@ -325,7 +324,7 @@
     <string name="documents_helper">Checks Veri*Factu invoicing records and creates or checks ENI electronic documents. Nothing is sent to the AEAT or to other administrations.</string>
     <string name="documents_unavailable">These tools need a cryptographic core that includes them.</string>
     <string name="verifactu_title">Check Veri*Factu records</string>
-    <string name="verifactu_helper">Choose up to 64 XML records (10 MiB each and 32 MiB in total). The structure, hash, chaining and signature of each record are checked.</string>
+    <string name="verifactu_helper">Choose up to 64 XML records (10 MB each and 32 MB in total). The structure, hash, chaining and signature of each record are checked.</string>
     <string name="verifactu_sign_hint">To sign a record, select it above as the document and sign with the “Veri*Factu record” format.</string>
     <string name="verifactu_choose">Choose XML records…</string>
     <string name="verifactu_none">No records selected.</string>
@@ -333,7 +332,7 @@
     <string name="verifactu_check">Check the records</string>
     <string name="verifactu_result_valid">Records checked without errors</string>
     <string name="verifactu_result_invalid">The records have errors</string>
-    <string name="error_verifactu_too_many">You can choose at most 64 records of up to 10 MiB each and 32 MiB in total.</string>
+    <string name="error_verifactu_too_many">You can choose at most 64 records of up to 10 MB each and 32 MB in total.</string>
     <string name="eni_title">ENI electronic document</string>
     <string name="eni_helper">Creates an ENI document from the signature selected above as the document (PAdES, CAdES or XAdES) and its mandatory metadata, or checks an ENI you already have.</string>
     <string name="eni_organ">Responsible body (DIR3, required)</string>
@@ -559,4 +558,53 @@
         <item quantity="one">%1$d minute</item>
         <item quantity="other">%1$d minutes</item>
     </plurals>
+    <string name="expediente_title">ENI file</string>
+    <string name="expediente_helper">Gathers the ENI documents in a folder into one file and signs its index.</string>
+    <string name="expediente_select_folder">Choose the ENI documents folder</string>
+    <string name="expediente_none">No folder chosen. It must contain ENI documents in XML.</string>
+    <string name="expediente_clear">Remove the folder</string>
+    <string name="expediente_organs">DIR3 bodies (required)</string>
+    <string name="expediente_organs_helper">One or more codes separated by commas, for example L01180877.</string>
+    <string name="expediente_classification">Procedure classification (required)</string>
+    <string name="expediente_classification_helper">SIA code, or a DIR3 code followed by _PRO_ and an identifier.</string>
+    <string name="expediente_state">File status</string>
+    <string name="expediente_identifier">File identifier (optional)</string>
+    <string name="expediente_identifier_helper">If you leave it empty, one is generated.</string>
+    <string name="expediente_interested">Interested parties (optional)</string>
+    <string name="expediente_interested_helper">Separate each person with a semicolon.</string>
+    <string name="expediente_opening_now">Opening date: today</string>
+    <string name="expediente_opening_value">Opening date: %1$s</string>
+    <string name="expediente_opening_choose">Choose the opening date</string>
+    <string name="expediente_opening_clear">Use today’s date</string>
+    <string name="expediente_opening_title">File opening date</string>
+    <string name="expediente_sign_hint">The index is signed with the session certificate, which must have an RSA key. With a DNIe, the PIN is asked once.</string>
+    <string name="expediente_create">Create and sign the file</string>
+    <string name="expediente_error_no_xml">The folder has no XML documents. Choose the folder that contains the ENI documents.</string>
+    <string name="expediente_error_too_many">The folder has more than 64 documents. Remove documents or split the file.</string>
+    <string name="expediente_error_too_large">The documents take up more than 32 MB. Remove documents from the folder.</string>
+    <string name="expediente_invalid_documents">The file was not created. These files are not valid ENI documents:</string>
+    <string name="expediente_created">File created and signed. Choose where to save it.</string>
+    <string name="expediente_output_name">File: %1$s</string>
+    <string name="batch_action_label">Batch operation</string>
+    <string name="batch_action_sign">Sign</string>
+    <string name="batch_action_cosign">Co-sign (add my signature to files already signed)</string>
+    <string name="batch_seal_check">Add the visible seal to the PDFs</string>
+    <string name="batch_seal_helper">The seal you placed with “Place the seal” is used. If a PDF has fewer pages than the one chosen, the seal goes on the last page. The CSV legend is not added in a batch.</string>
+    <string name="batch_seal_error">The visible seal for %1$s could not be prepared. Remove that PDF from the batch or sign without the seal.</string>
+    <string name="batch_dnie_hint">With a DNIe, the PIN is asked only once for the whole batch. Keep the DNIe against the phone until it finishes.</string>
+    <string name="batch_helper_wave4">Choose up to 16 files (32 MB in total). They are signed with the open certificate (file or DNIe) and the advanced signing options. When finished, choose a folder to save the signatures.</string>
+    <string name="result_batch_cosigned">Batch co-signed</string>
+    <string name="error_protect_sign_identity_any">To protect and sign you need a certificate in the session (PKCS#12 or DNIe) and a recipient format.</string>
+    <string name="release_notes_wave4">Also in this version: ENI files with a signed index; signing several files with a visible seal or co-signing; DNIe in batches (PIN asked once) and in protect and sign.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">%1$d ENI document</item>
+        <item quantity="other">%1$d ENI documents</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">%1$d non-XML file was left out</item>
+        <item quantity="other">%1$d non-XML files were left out</item>
+    </plurals>
+    <string name="error_document_too_large">The file is too large. Documents can be up to 32 MB and certificates up to 4 MB.</string>
+    <string name="error_document_empty">The file is empty. Choose another one.</string>
+    <string name="error_folder_too_many">The folder has too many files. Choose a folder with fewer.</string>
 </resources>

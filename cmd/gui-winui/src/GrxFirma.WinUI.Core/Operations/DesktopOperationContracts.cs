@@ -508,6 +508,17 @@ public sealed record SignParameters
 
     [JsonPropertyName("extraOptions")]
     public IReadOnlyDictionary<string, string>? ExtraOptions { get; init; }
+
+    /// <summary>
+    /// PIN del certificado remoto (firma CSC). Binario para que
+    /// System.Text.Json lo envíe en Base64 sin crear un string; el cliente lo
+    /// borra al terminar la petición.
+    /// </summary>
+    [JsonPropertyName("remotePin")]
+    public byte[]? RemotePin { get; init; }
+
+    [JsonPropertyName("remoteOtp")]
+    public byte[]? RemoteOtp { get; init; }
 }
 
 public sealed record BatchSignParameters
@@ -569,6 +580,17 @@ public sealed record BatchSignParameters
         get;
         init;
     }
+
+    /// <summary>
+    /// PIN del certificado remoto (firma CSC). Binario para que
+    /// System.Text.Json lo envíe en Base64 sin crear un string; el cliente lo
+    /// borra al terminar la petición.
+    /// </summary>
+    [JsonPropertyName("remotePin")]
+    public byte[]? RemotePin { get; init; }
+
+    [JsonPropertyName("remoteOtp")]
+    public byte[]? RemoteOtp { get; init; }
 }
 
 public sealed record BatchSignDocumentOverride
@@ -885,6 +907,19 @@ public sealed record CertificateInfo
 
     [JsonPropertyName("diasCaducidad")]
     public int DaysUntilExpiration { get; init; }
+
+    // Firma remota CSC: el certificado lo custodia un prestador.
+    [JsonPropertyName("remote")]
+    public bool Remote { get; init; }
+
+    [JsonPropertyName("remotePin")]
+    public bool RemotePin { get; init; }
+
+    [JsonPropertyName("remoteOtp")]
+    public bool RemoteOtp { get; init; }
+
+    [JsonPropertyName("remoteOtpOnline")]
+    public bool RemoteOtpOnline { get; init; }
 }
 
 public sealed record ProtectionRecipientsParameters;

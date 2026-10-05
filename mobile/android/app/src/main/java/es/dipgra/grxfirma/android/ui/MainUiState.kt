@@ -219,6 +219,9 @@ data class MainUiState(
     val diagnostics: EngineDiagnostics? = null,
     val tsaProbe: TsaProbe? = null,
     val updateCheck: UpdateCheck? = null,
+    /** Capacidades de la cuarta oleada declaradas por el núcleo. */
+    val capabilities: Set<String> = emptySet(),
+    val wave4: Wave4State = Wave4State(),
 ) {
     private val idle: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
     private fun offers(service: String): Boolean = backend.available && service in documentServices
@@ -250,10 +253,12 @@ data class MainUiState(
     val canHash: Boolean get() = canUseTools && document != null
     val canProtect: Boolean get() = canUseTools && document != null
     val canProtectAndSign: Boolean
-        get() = canProtect && certificate != null && !certificateExternal && protectionContainer != "cms-encrypted"
+        get() = canProtect && certificate != null && (!certificateExternal || externalProtectSignAvailable) &&
+            protectionContainer != "cms-encrypted"
     val canUnprotect: Boolean get() = canUseTools && document != null
     val canSignBatch: Boolean
-        get() = canUseTools && batchDocuments.isNotEmpty() && certificate != null && !certificateExternal
+        get() = canUseTools && batchDocuments.isNotEmpty() && certificate != null &&
+            (!certificateExternal || externalBatchAvailable)
     val usesTransientKey: Boolean get() = protectionContainer == "cms-encrypted"
     /** El certificado de FIRMA del DNIe no sirve para cifrar; solo el PKCS#12. */
     val canProtectForMe: Boolean get() = protectForMe && certificate != null && !certificateExternal
@@ -289,7 +294,13 @@ sealed interface UiEffect {
 
 fun Throwable.toUserText(): UiText {
     val resource = when (this) {
-        is InvalidDocumentException, is SecurityException -> R.string.error_document_access
+        is InvalidDocumentException -> when (problem) {
+            es.dipgra.grxfirma.android.files.DocumentProblem.TOO_LARGE -> R.string.error_document_too_large
+            es.dipgra.grxfirma.android.files.DocumentProblem.EMPTY -> R.string.error_document_empty
+            es.dipgra.grxfirma.android.files.DocumentProblem.TOO_MANY_ENTRIES -> R.string.error_folder_too_many
+            else -> R.string.error_document_access
+        }
+        is SecurityException -> R.string.error_document_access
         is CoreUnavailableException -> R.string.error_core_unavailable
         is CoreContractException -> when (message) {
             CORE_PKCS12_DECODE_MESSAGE -> R.string.error_pkcs12_password_or_legacy

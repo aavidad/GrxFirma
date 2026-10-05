@@ -99,7 +99,6 @@
     <string name="seal_color_black">Negre</string>
     <string name="seal_color_blue">Blau</string>
     <string name="seal_color_gray">Gris fosc</string>
-    <string name="seal_image">La imatge del segell</string>
     <string name="seal_all_pages">Aplicar a totes les pàgines</string>
     <string name="seal_one_page">Només estea pàgina</string>
     <string name="seal_preview_loading">Actualitzant la previsualització real…</string>
@@ -110,7 +109,7 @@
     <string name="seal_certificate_required">Prepareu primer un certificat en el pas 2 per a vore el segell real.</string>
     <string name="seal_pdf_only">El segell visible només es pot utilitzar amb documents PDF i format PAdES.</string>
     <string name="seal_invalid_settings">Revise la posició, la mida, la imatge i l’adreça HTTPS del segell.</string>
-    <string name="seal_image_error">No s’ha pogut utilitzar la imatge. Seleccione un PNG o JPEG de fins a 2 MiB.</string>
+    <string name="seal_image_error">No s’ha pogut utilitzar la imatge. Seleccione un PNG o JPEG de fins a 2 MB.</string>
     <string name="verify_document">Verificar la signatura</string>
     <string name="operation_in_progress">Processant l’operació…</string>
     <string name="result_section">Resultat</string>
@@ -221,7 +220,7 @@
     <string name="state_expanded">desplegat</string>
     <string name="state_collapsed">plegat</string>
     <string name="batch_title">Signar diversos fitxers</string>
-    <string name="batch_helper">Trieu fins a 16 fitxers (32 MiB en total). Se signen amb el certificat PKCS#12 importat i amb el format, el perfil i la TSA triats a dalt, sense segell visible. En acabar, trieu una carpeta per a guardar les signatures.</string>
+    <string name="batch_helper">Trieu fins a 16 fitxers (32 MB en total). Se signen amb el certificat PKCS#12 importat i amb el format, el perfil i la TSA triats a dalt, sense segell visible. En acabar, trieu una carpeta per a guardar les signatures.</string>
     <string name="batch_select">Triar fitxers…</string>
     <string name="batch_none">No hi ha cap fitxer triat.</string>
     <string name="batch_clear">Llevar els fitxers</string>
@@ -234,7 +233,7 @@
     <string name="result_batch_signed">Lot signat</string>
     <string name="error_batch_required">Trieu almenys un fitxer per al lot.</string>
     <string name="error_batch_too_many">Podeu triar com a màxim 16 fitxers.</string>
-    <string name="error_batch_too_large">Els fitxers superen 32 MiB en total.</string>
+    <string name="error_batch_too_large">Els fitxers superen 32 MB en total.</string>
     <string name="hash_title">Empremta d’un fitxer</string>
     <string name="hash_helper">Calcula o comprova l’empremta del document triat a dalt. Els fitxers d’empremta són els mateixos que en el GrxFirma d’escriptori.</string>
     <string name="hash_algorithm">Algorisme</string>
@@ -291,7 +290,7 @@
     <string name="error_tool_save_picker_cancelled">No s’ha completat la selecció de destinació. El resultat continua en memòria: torneu a intentar guardar-lo o descarteu-lo.</string>
     <string name="error_tool_save_picker_unavailable">No s’ha pogut obrir el selector de destinació. El resultat continua en memòria: torneu a intentar guardar-lo o descarteu-lo.</string>
     <string name="discard_pending_tool_output">Descartar el resultat</string>
-    <string name="help_tools_content">En «Altres ferramentes» podeu:\n• firmar fins a 16 fitxers alhora amb un fitxer de certificat;\n• crear i comprovar empremtes d\'un fitxer;\n• protegir un fitxer per a persones concretes o amb una clau, i obrir-lo després;\n• comprovar registres Veri*Factu, llegir el QR tributari i acarar-lo amb l\'AEAT;\n• crear i comprovar documents ENI.\n\nEn les opcions avançades de firma també podeu triar els formats XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES o Registre Veri*Factu.</string>
+    <string name="help_tools_content">En «Altres ferramentes» podeu:\n• firmar fins a 16 fitxers alhora amb el vostre certificat;\n• crear i comprovar empremtes d\'un fitxer;\n• protegir un fitxer per a persones concretes o amb una clau, i obrir-lo després;\n• comprovar registres Veri*Factu, llegir el QR tributari i acarar-lo amb l\'AEAT;\n• crear i comprovar documents ENI;\n• crear un expedient ENI amb els documents d\'una carpeta i firmar-ne l\'índex.\n\nEn les opcions avançades de firma també podeu triar els formats XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES o Registre Veri*Factu.</string>
     <plurals name="batch_selected">
         <item quantity="one">%1$d fitxer triat</item>
         <item quantity="many">%1$d fitxers triats</item>
@@ -333,7 +332,7 @@
     <string name="documents_helper">Comprova registres de facturació Veri*Factu i crea o comprova documents electrònics ENI. No s’envia res a l’AEAT ni a altres administracions.</string>
     <string name="documents_unavailable">Estes ferramentes necessiten un nucli criptogràfic que les incloga.</string>
     <string name="verifactu_title">Comprovar registres Veri*Factu</string>
-    <string name="verifactu_helper">Trieu fins a 64 registres XML (10 MiB cadascun i 32 MiB en total). Es comproven l’estructura, l’empremta, l’encadenament i la signatura de cada registre.</string>
+    <string name="verifactu_helper">Trieu fins a 64 registres XML (10 MB cadascun i 32 MB en total). Es comproven l’estructura, l’empremta, l’encadenament i la signatura de cada registre.</string>
     <string name="verifactu_sign_hint">Per a signar un registre, trieu-lo dalt com a document i signeu amb el format «Registre Veri*Factu».</string>
     <string name="verifactu_choose">Tria registres XML…</string>
     <string name="verifactu_none">No hi ha cap registre triat.</string>
@@ -341,7 +340,7 @@
     <string name="verifactu_check">Comprova els registres</string>
     <string name="verifactu_result_valid">Registres comprovats sense errors</string>
     <string name="verifactu_result_invalid">Els registres presenten errors</string>
-    <string name="error_verifactu_too_many">Podeu triar com a màxim 64 registres de fins a 10 MiB cadascun i 32 MiB en total.</string>
+    <string name="error_verifactu_too_many">Podeu triar com a màxim 64 registres de fins a 10 MB cadascun i 32 MB en total.</string>
     <string name="eni_title">Document electrònic ENI</string>
     <string name="eni_helper">Crea un document ENI amb la signatura triada dalt com a document (PAdES, CAdES o XAdES) i les seues metadades obligatòries, o comprova un ENI que ja tingueu.</string>
     <string name="eni_organ">Òrgan responsable (DIR3, obligatori)</string>
@@ -575,4 +574,55 @@
         <item quantity="many">%1$d minuts</item>
         <item quantity="other">%1$d minuts</item>
     </plurals>
+    <string name="expediente_title">Expedient ENI</string>
+    <string name="expediente_helper">Reuneix en un expedient els documents ENI d’una carpeta i en signa l’índex.</string>
+    <string name="expediente_select_folder">Tria la carpeta de documents ENI</string>
+    <string name="expediente_none">No heu triat cap carpeta. Ha de contindre documents ENI en XML.</string>
+    <string name="expediente_clear">Treu la carpeta</string>
+    <string name="expediente_organs">Òrgans DIR3 (obligatori)</string>
+    <string name="expediente_organs_helper">Un o diversos codis separats per comes, per exemple L01180877.</string>
+    <string name="expediente_classification">Classificació del procediment (obligatori)</string>
+    <string name="expediente_classification_helper">Codi SIA, o codi DIR3 seguit de _PRO_ i un identificador.</string>
+    <string name="expediente_state">Estat de l’expedient</string>
+    <string name="expediente_identifier">Identificador de l’expedient (opcional)</string>
+    <string name="expediente_identifier_helper">Si el deixeu buit, se’n genera un.</string>
+    <string name="expediente_interested">Persones interessades (opcional)</string>
+    <string name="expediente_interested_helper">Separeu cada persona amb punt i coma.</string>
+    <string name="expediente_opening_now">Data d’obertura: hui</string>
+    <string name="expediente_opening_value">Data d’obertura: %1$s</string>
+    <string name="expediente_opening_choose">Tria la data d’obertura</string>
+    <string name="expediente_opening_clear">Utilitza la data de hui</string>
+    <string name="expediente_opening_title">Data d’obertura de l’expedient</string>
+    <string name="expediente_sign_hint">L’índex es signa amb el certificat de la sessió, que ha de tenir clau RSA. Amb DNIe, el PIN es demana una vegada.</string>
+    <string name="expediente_create">Crea i signa l’expedient</string>
+    <string name="expediente_error_no_xml">La carpeta no té documents XML. Trieu la carpeta que conté els documents ENI.</string>
+    <string name="expediente_error_too_many">La carpeta té més de 64 documents. Traieu-ne o dividiu l’expedient.</string>
+    <string name="expediente_error_too_large">Els documents ocupen més de 32 MB. Traieu documents de la carpeta.</string>
+    <string name="expediente_invalid_documents">No s’ha creat l’expedient. Aquests fitxers no són documents ENI vàlids:</string>
+    <string name="expediente_created">Expedient creat i signat. Trieu on guardar-lo.</string>
+    <string name="expediente_output_name">Fitxer: %1$s</string>
+    <string name="batch_action_label">Operació del lot</string>
+    <string name="batch_action_sign">Signa</string>
+    <string name="batch_action_cosign">Cosigna (afig la meua signatura a fitxers ja signats)</string>
+    <string name="batch_seal_check">Afig el segell visible als PDF</string>
+    <string name="batch_seal_helper">S\'utilitza el segell que hàgeu col·locat amb «Col·locar el segell». Si un PDF té menys pàgines que la triada, el segell va en l\'última. La llegenda CSV no s\'afig al lot.</string>
+    <string name="batch_seal_error">No s’ha pogut preparar el segell visible de %1$s. Traieu aquest PDF del lot o signeu sense segell.</string>
+    <string name="batch_dnie_hint">Amb DNIe, el PIN es demana només una vegada per a tot el lot. Mantingueu el DNIe arrimat al mòbil fins que acabe.</string>
+    <string name="batch_helper_wave4">Trieu fins a 16 fitxers (32 MB en total). Es firmen amb el certificat obert (fitxer o DNIe) i amb les opcions avançades de firma. En acabar, trieu una carpeta per a guardar les firmes.</string>
+    <string name="result_batch_cosigned">Lot cosignat</string>
+    <string name="error_protect_sign_identity_any">Per protegir i signar cal un certificat a la sessió (PKCS#12 o DNIe) i un format per a destinataris.</string>
+    <string name="release_notes_wave4">També en esta versió: expedients ENI amb índex firmat; firma de diversos fitxers amb segell visible o cofirma; DNIe en el lot (el PIN es demana una vegada) i en protegir i firmar.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">%1$d document ENI</item>
+        <item quantity="many">%1$d documents ENI</item>
+        <item quantity="other">%1$d documents ENI</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">S’ha deixat fora %1$d fitxer que no és XML</item>
+        <item quantity="many">S’han deixat fora %1$d fitxers que no són XML</item>
+        <item quantity="other">S’han deixat fora %1$d fitxers que no són XML</item>
+    </plurals>
+    <string name="error_document_too_large">El fitxer és massa gran. Els documents poden ocupar fins a 32 MB i els certificats fins a 4 MB.</string>
+    <string name="error_document_empty">El fitxer està buit. Trieu-ne un altre.</string>
+    <string name="error_folder_too_many">La carpeta té massa fitxers. Trieu-ne una amb menys.</string>
 </resources>

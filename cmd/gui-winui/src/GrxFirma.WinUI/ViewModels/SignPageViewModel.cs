@@ -294,6 +294,51 @@ public sealed class SignPageViewModel
         private set => SetProperty(ref _certificates, value);
     }
 
+    /// <summary>
+    /// Pide el PIN y el OTP de un certificado remoto (firma CSC) en un
+    /// diálogo con campos de contraseña. Devuelve null si la persona cancela.
+    /// </summary>
+    public Func<CertificateInfo, CancellationToken, Task<RemoteSigningSecrets?>>? RemoteSecretsPrompt { get; set; }
+
+    private async Task<(bool Proceed, RemoteSigningSecrets? Secrets)> PrepareRemoteSigningAsync(
+        CertificateListItem certificate,
+        bool batch,
+        CancellationToken cancellationToken)
+    {
+        var source = certificate.SourceCertificate;
+        if (!source.Remote)
+        {
+            return (true, null);
+        }
+        if (batch && source.RemoteOtp)
+        {
+            ValidationMessage = Localizer.Text("csc.error.otp_lote");
+            return (false, null);
+        }
+        if (!source.RemotePin && !source.RemoteOtp)
+        {
+            return (true, null);
+        }
+        var prompt = RemoteSecretsPrompt;
+        if (prompt is null)
+        {
+            ValidationMessage = Localizer.Text("csc.error.secreto_no_pedido");
+            return (false, null);
+        }
+        var secrets = await prompt(source, cancellationToken);
+        if (secrets is null)
+        {
+            ValidationMessage = "Operación cancelada";
+            return (false, null);
+        }
+        return (true, secrets);
+    }
+
+    private static string? RemoteSigningFailureMessage(string? errorCode) =>
+        RemoteSigningInput.MessageKey(errorCode) is { } key
+            ? Localizer.Text(key)
+            : null;
+
     public CertificateListItem? SelectedCertificate
     {
         get => _selectedCertificate;
@@ -2036,6 +2081,7 @@ public sealed class SignPageViewModel
         }
 
         var batchStarted = false;
+        RemoteSigningSecrets? remoteSecrets = null;
         try
         {
             if (!_session.TryGetOperations(
@@ -2100,6 +2146,15 @@ public sealed class SignPageViewModel
                     batchTsaUrl = normalized;
                 }
             }
+            var remote = await PrepareRemoteSigningAsync(
+                certificate,
+                batch: true,
+                operationCancellation.Token);
+            if (!remote.Proceed)
+            {
+                return null;
+            }
+            remoteSecrets = remote.Secrets;
             BatchItems = currentPaths
                 .Select(path => new BatchSignDisplayItem(
                     SafeFileName(path),
@@ -2121,6 +2176,8 @@ public sealed class SignPageViewModel
             var result = await operations.SignBatchAsync(
                 new BatchSignParameters
                 {
+                    RemotePin = remoteSecrets?.Pin,
+                    RemoteOtp = remoteSecrets?.Otp,
                     InputPaths = currentPaths,
                     // La carpeta se enumera antes de enviar para que la lista
                     // visible y la respuesta esperada sean exactamente iguales.
@@ -2155,6 +2212,7 @@ public sealed class SignPageViewModel
                     currentPaths,
                     "El motor no confirmó la ejecución del lote.");
                 ValidationMessage =
+                    RemoteSigningFailureMessage(result.ErrorCode) ??
                     "El lote no se completó. Abra el diagnóstico para conocer el punto de fallo.";
                 return OperationDiagnosticMapper.FromResult(result);
             }
@@ -2240,6 +2298,7 @@ public sealed class SignPageViewModel
         finally
         {
             IsBatchProgressIndeterminate = false;
+            remoteSecrets?.Dispose();
             EndOperation(operationCancellation);
         }
     }
@@ -2573,6 +2632,7 @@ public sealed class SignPageViewModel
         FileStream? signInputGuard = null;
         byte[]? signInputDigest = null;
         byte[]? expectedSignInputDigest = null;
+        RemoteSigningSecrets? remoteSecrets = null;
         try
         {
             var useGuidedMultiCosign = GuidedMultiCosignEnabled;
@@ -2664,11 +2724,22 @@ public sealed class SignPageViewModel
                 signInputDigest = null;
             }
 
+            var remote = await PrepareRemoteSigningAsync(
+                certificate,
+                batch: false,
+                operationCancellation.Token);
+            if (!remote.Proceed)
+            {
+                return null;
+            }
+            remoteSecrets = remote.Secrets;
             ValidationMessage = useGuidedMultiCosign
                 ? "Aplicando el firmante principal y las cofirmas adicionales en el orden mostrado…"
                 : "Firmando el documento…";
             var signParameters = new SignParameters
             {
+                RemotePin = remoteSecrets?.Pin,
+                RemoteOtp = remoteSecrets?.Otp,
                 InputPath = inputPath,
                 OutputPath = outputPath,
                 CertificateId = certificate.Id,
@@ -2707,6 +2778,7 @@ public sealed class SignPageViewModel
                     StringComparison.Ordinal))
             {
                 ValidationMessage =
+                    RemoteSigningFailureMessage(result.ErrorCode) ??
                     "La firma no se completó. Abra el diagnóstico para conocer el punto de fallo.";
                 return OperationDiagnosticMapper.FromResult(result);
             }
@@ -2894,6 +2966,7 @@ public sealed class SignPageViewModel
             ClearBytes(signInputDigest);
             ClearBytes(expectedSignInputDigest);
             signInputGuard?.Dispose();
+            remoteSecrets?.Dispose();
             EndOperation(operationCancellation);
         }
     }

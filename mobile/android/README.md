@@ -472,3 +472,47 @@ GOFLAGS=-buildvcs=false GOCACHE=/tmp/codex-and1-gocache go test ./mobilebind/...
 catálogo desktop y los recursos Android. Las pruebas Kotlin de estado, opciones,
 JSON, contraseñas y ViewModel están en `src/test`; los recorridos de guardado,
 verificación posterior, exportación y selección de idioma están en `src/androidTest`.
+
+## Cuarta oleada: expediente ENI, lote con sello y cofirma, DNIe
+
+- **Expediente ENI** (en «Veri*Factu y ENI»): se elige con
+  `ACTION_OPEN_DOCUMENT_TREE` la carpeta de documentos ENI, sin persistir el
+  permiso. Entran los ficheros XML (hasta 64 y 32 MiB en total; se examinan como
+  mucho 512 entradas), en orden alfabético como en escritorio; el resto se
+  cuenta y se deja fuera. Se piden órganos DIR3, clasificación, estado
+  (E01-E03 con su descripción del catálogo), identificador e interesados
+  opcionales y fecha de apertura con `MaterialDatePicker` (sin fechas futuras).
+  El índice se firma con el certificado de la sesión (RSA). Si un fichero no es
+  un documento ENI, se indica por su nombre y no se firma nada. El expediente
+  se guarda por SAF como resultado de herramienta.
+- **Lote**: operación «Firmar» o «Cofirmar» y casilla para añadir el sello
+  visible a los PDF. Se usa el sello guardado en «Firma visible» adaptado a
+  cada PDF: la página elegida (o la última si el PDF es más corto), todas las
+  páginas (hasta 128) o las posiciones por página que existan. Para medir el
+  PDF, `PdfRenderer` lee una copia temporal en `noBackupFilesDir` que se
+  sobrescribe y se borra enseguida. La leyenda CSV no se añade en lote.
+- **DNIe en lote y en «proteger y firmar»**: el PIN se pide una vez. En el lote
+  se guarda solo en memoria, dentro del `PasswordCallback` de jmulticard,
+  hasta que termina la operación, y se borra también si no llega a empezar.
+  Después de cada firma se cierra el canal seguro de PIN, igual que hace
+  `DnieNfc.sign` de jmulticard, y la firma siguiente vuelve a abrir PACE y a
+  verificar el PIN con la tarjeta, que es lo que exige la clave de FIRMA. Al
+  primer fallo (PIN erróneo, tarjeta retirada) la app deja de usar la tarjeta
+  para no gastar intentos y explica el motivo junto al resultado de cada
+  fichero. La lectura NFC sigue abierta durante todo el lote: hay que mantener
+  el DNIe apoyado. Límites que no dependen de la app: `PasswordCallback.getPassword`
+  devuelve copias que jmulticard no siempre borra, y jmulticard guarda el CAN en
+  un `String` estático para reabrir PACE.
+- **Perfiles con sello de tiempo** para XMLdSig, ODF, OOXML, FacturaE y
+  ASiC-XAdES: el motor de escritorio no los admite (solo CAdES, PAdES y XAdES
+  añaden sello de tiempo), así que siguen limitados al perfil B.
+
+Los textos nuevos están en `res/values*/strings_ola4.xml` (once idiomas) y las
+pantallas en `section_expediente.xml` y `section_batch_wave4.xml`.
+`check_locales.py` comprueba todos los `strings*.xml` de cada idioma.
+
+Pendiente: probar en un móvil real el lote con DNIe 3.0 y 4.0 (varias firmas
+seguidas con un solo PIN, PIN erróneo a mitad de lote y retirada de la tarjeta),
+el expediente con documentos ENI de otras aplicaciones y la revisión de
+usabilidad independiente. También hay que reconstruir el AAR con
+`createENIFileJSON` y fijar su nuevo SHA-256.
