@@ -274,6 +274,13 @@ type certJSON struct {
 	NIF           string `json:"nif,omitempty"`          // numero de identificacion (ETSI EN 319 412-1)
 	Caducado      bool   `json:"caducado"`               // true si NotAfter < ahora
 	DiasCaducidad int    `json:"diasCaducidad"`          // dias restantes (negativo si ya caducó)
+	// Firma remota CSC: el certificado lo custodia un prestador. Indica qué
+	// datos debe pedir la interfaz antes de firmar; nunca lleva tokens.
+	Remote          bool   `json:"remote,omitempty"`
+	RemoteMode      string `json:"remoteMode,omitempty"`
+	RemotePIN       bool   `json:"remotePin,omitempty"`
+	RemoteOTP       bool   `json:"remoteOtp,omitempty"`
+	RemoteOTPOnline bool   `json:"remoteOtpOnline,omitempty"`
 }
 
 // resultadoFirma es el objeto data de la respuesta "sign".

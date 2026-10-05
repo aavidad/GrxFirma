@@ -447,7 +447,9 @@ func withIPCCorrelation(ctx context.Context, p peticion) (context.Context, error
 func isSensitiveIPCAction(action string) bool {
 	switch strings.ToLower(strings.TrimSpace(action)) {
 	case "proxy_secret_store", "import_certificate", "import_certificate_to_store", "certificate_export_public",
-		"use_temporary_certificate", "protect", "protect_sign", "unprotect", "save_token_settings":
+		"use_temporary_certificate", "protect", "protect_sign", "unprotect", "save_token_settings",
+		// Las firmas pueden traer el PIN o el OTP de un certificado remoto.
+		"sign", "sign_batch", "sign_multicosign":
 		return true
 	default:
 		return false
@@ -590,6 +592,13 @@ func (s *Servidor) WithImportador(i ports.CertificateImporter) *Servidor {
 func (s *Servidor) WithCertificateAccess(access *application.CertificateAccessUseCase, temporary *application.TemporaryCertificateUseCase) *Servidor {
 	s.manejador.CertificateAccess = access
 	s.manejador.TemporaryCertificates = temporary
+	return s
+}
+
+// WithFirmaRemotaCSC conecta la sesión de firma remota CSC. Sin ella, las
+// acciones csc_* informan de que la firma remota no está disponible.
+func (s *Servidor) WithFirmaRemotaCSC(sesion SesionCSC) *Servidor {
+	s.manejador.CSC = sesion
 	return s
 }
 
