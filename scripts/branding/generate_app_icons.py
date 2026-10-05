@@ -7,8 +7,10 @@
 """Genera iconos, logotipos y el emblema del sello a partir de los SVG de marca.
 
 Fuentes en assets/branding: grxfirma-icono.svg y grxfirma-icono-pequeno.svg
-(iconos), grxfirma-simbolo.svg, grxfirma-logo-horizontal.svg y su variante
-negativo (logotipos) y grxfirma-emblema-sello.svg (sello PAdES).
+(icono del programa: «GRX» en blanco y verde sobre azul oscuro con trazo de
+firma; la versión reducida se usa hasta 32 px), grxfirma-simbolo.svg,
+grxfirma-logo-horizontal.svg y su variante negativo (logotipos) y
+grxfirma-emblema-sello.svg (sello PAdES).
 """
 
 from __future__ import annotations
@@ -30,7 +32,8 @@ SYMBOL = BRANDING / "grxfirma-simbolo.svg"
 SEAL = BRANDING / "grxfirma-emblema-sello.svg"
 HORIZONTAL = BRANDING / "grxfirma-logo-horizontal.svg"
 HORIZONTAL_DARK = BRANDING / "grxfirma-logo-horizontal-negativo.svg"
-BACKGROUND = "#103a6e"
+# Fondo del icono del programa (también el del lanzador adaptativo Android).
+BACKGROUND = "#173a4e"
 
 
 def render_svg(source: Path, width: int, height: int | None = None) -> Image.Image:
@@ -131,7 +134,7 @@ def main() -> None:
 
     ios_svg = ROOT / "mobile/ios/GrxFirma/Resources/AppIcon.svg"
     source = LARGE.read_text(encoding="utf-8")
-    title = "  <title>GrxFirma · Capucha</title>"
+    title = "  <title>GrxFirma · Trazo</title>"
     if source.count(title) != 1:
         raise ValueError("El SVG principal no contiene el título esperado")
     ios_svg.write_text(source.replace(
