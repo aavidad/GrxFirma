@@ -18,6 +18,9 @@ Estas notas describen los cambios visibles para quienes usan la aplicación.
 - Windows: GrxFirma ya no termina con error al salir en equipos sin tarjeta gráfica (escritorios remotos, Citrix o máquinas virtuales), y el aviso del portal se cierra solo tras cancelar.
 - Portales: al firmar un PDF solo se ofrecen ficheros PDF y, si se elige otro tipo, se explica el motivo en lugar de mostrar un error genérico.
 - Informe de verificación: el firmante aparece con su nombre, NIF y emisor, y la fecha indica si procede de un sello de tiempo o del reloj del equipo.
+- La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.
+- Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.
+- Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.
 
 ## 0.0.117 — 2026-10-05
 

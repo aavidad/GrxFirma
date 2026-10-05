@@ -6467,4 +6467,7 @@
   ,"qt.folderbreadcrumbbar.up": "Nach oben"
   ,"qt.qstandardpaths.downloads": "Downloads"
   ,"error.salida_existe": "Eine Datei mit diesem Namen ist bereits vorhanden und die Einstellung zum Überschreiben erlaubt nicht, sie zu ersetzen: %s"
+  ,"La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.": "Die Option „Umbenennen“ ersetzt nie mehr eine vorhandene Datei: Die neue wird mit einer Nummer (_001) gespeichert und nur überschrieben, wenn dies im Speichern-Dialog bestätigt wird."
+  ,"Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.": "Linux: Der Prüfbericht zeigt die signierende Person mit Namen und das Signaturdatum, der druckbare Bericht kann gespeichert werden und die Dialoge erscheinen in der Sprache der Anwendung."
+  ,"Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.": "Übersetzungen in allen 10 Sprachen überprüft: Hunderte Texte, die mit falscher Bedeutung übersetzt waren, wurden korrigiert."
 }

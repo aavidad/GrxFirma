@@ -6467,4 +6467,7 @@
   ,"qt.folderbreadcrumbbar.up": "Up"
   ,"qt.qstandardpaths.downloads": "Downloads"
   ,"error.salida_existe": "A file with that name already exists and the overwrite preference does not allow replacing it: %s"
+  ,"La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.": "The “Rename” option never replaces an existing file any more: the new one is saved with a number (_001) and is only overwritten if you confirm it in the save dialog."
+  ,"Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.": "Linux: the verification report shows the signer by name and the signing date, the printable report can be saved, and dialogs appear in the application's language."
+  ,"Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.": "Translations reviewed in all 10 languages: hundreds of texts that had been translated with the wrong meaning are fixed."
 }

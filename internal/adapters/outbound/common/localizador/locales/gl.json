@@ -6467,4 +6467,7 @@
   ,"qt.folderbreadcrumbbar.up": "Subir"
   ,"qt.qstandardpaths.downloads": "Descargas"
   ,"error.salida_existe": "Xa existe un ficheiro con ese nome e a preferencia de sobrescritura non permite substituílo: %s"
+  ,"La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.": "A opción «Renomear» xa non substitúe nunca un ficheiro existente: o novo gárdase cun número (_001) e só se sobrescribe se se confirma no diálogo de gardar."
+  ,"Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.": "Linux: o informe de verificación mostra o asinante polo seu nome e a data da sinatura, pódese gardar o informe imprimible e os diálogos saen no idioma da aplicación."
+  ,"Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.": "Traducións revisadas nos 10 idiomas: corríxense centos de textos que se traduciran cun sentido equivocado."
 }

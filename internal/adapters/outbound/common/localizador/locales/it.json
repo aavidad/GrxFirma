@@ -6467,4 +6467,7 @@
   ,"qt.folderbreadcrumbbar.up": "Su"
   ,"qt.qstandardpaths.downloads": "Scaricati"
   ,"error.salida_existe": "Esiste già un file con questo nome e la preferenza di sovrascrittura non consente di sostituirlo: %s"
+  ,"La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.": "L'opzione «Rinomina» non sostituisce più un file esistente: il nuovo viene salvato con un numero (_001) e viene sovrascritto solo se lo si conferma nella finestra di salvataggio."
+  ,"Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.": "Linux: il rapporto di verifica mostra il firmatario per nome e la data della firma, il rapporto stampabile si può salvare e le finestre di dialogo appaiono nella lingua dell'applicazione."
+  ,"Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.": "Traduzioni riviste in tutte le 10 lingue: corretti centinaia di testi tradotti con un significato sbagliato."
 }

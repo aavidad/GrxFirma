@@ -6467,4 +6467,7 @@
   ,"qt.folderbreadcrumbbar.up": "Gora"
   ,"qt.qstandardpaths.downloads": "Deskargak"
   ,"error.salida_existe": "Izen hori duen fitxategi bat badago jada, eta gainidazteko hobespenak ez du ordezkatzen uzten: %s"
+  ,"La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.": "«Izena aldatu» aukerak ez du inoiz ordezkatzen lehendik dagoen fitxategirik: berria zenbaki batekin gordetzen da (_001), eta gordetzeko elkarrizketan baieztatzen bada bakarrik gainidazten da."
+  ,"Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.": "Linux: egiaztapen-txostenak sinatzailea bere izenarekin eta sinaduraren data erakusten ditu, txosten inprimagarria gorde daiteke eta elkarrizketak aplikazioaren hizkuntzan agertzen dira."
+  ,"Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.": "Itzulpenak 10 hizkuntzetan berrikusi dira: zentzu okerrarekin itzulitako ehunka testu zuzendu dira."
 }

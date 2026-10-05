@@ -6467,4 +6467,7 @@
   ,"qt.folderbreadcrumbbar.up": "Amunt"
   ,"qt.qstandardpaths.downloads": "Baixades"
   ,"error.salida_existe": "Ja existeix un fitxer amb aquest nom i la preferència de sobreescriptura no permet substituir-lo: %s"
+  ,"La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.": "L'opció «Canvia el nom» ja no reemplaça mai un fitxer existent: el nou es desa amb un número (_001) i només se sobreescriu si es confirma al diàleg de desar."
+  ,"Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.": "Linux: l'informe de verificació mostra el signant pel seu nom i la data de la signatura, es pot desar l'informe imprimible i els diàlegs surten en l'idioma de l'aplicació."
+  ,"Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.": "Traduccions revisades en els 10 idiomes: es corregeixen centenars de textos que s'havien traduït amb un sentit equivocat."
 }

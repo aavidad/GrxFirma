@@ -6467,4 +6467,7 @@
   ,"qt.folderbreadcrumbbar.up": "Dossier parent"
   ,"qt.qstandardpaths.downloads": "Téléchargements"
   ,"error.salida_existe": "Un fichier portant ce nom existe déjà et la préférence d’écrasement ne permet pas de le remplacer : %s"
+  ,"La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.": "L'option « Renommer » ne remplace plus jamais un fichier existant : le nouveau est enregistré avec un numéro (_001) et n'est écrasé que si vous le confirmez dans la boîte d'enregistrement."
+  ,"Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.": "Linux : le rapport de vérification affiche le signataire par son nom et la date de signature, le rapport imprimable peut être enregistré et les boîtes de dialogue s'affichent dans la langue de l'application."
+  ,"Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.": "Traductions révisées dans les 10 langues : des centaines de textes traduits avec un mauvais sens ont été corrigés."
 }

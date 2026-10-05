@@ -6467,4 +6467,7 @@
   ,"qt.folderbreadcrumbbar.up": "Subir"
   ,"qt.qstandardpaths.downloads": "Transferências"
   ,"error.salida_existe": "Já existe um ficheiro com esse nome e a preferência de substituição não permite substituí-lo: %s"
+  ,"La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.": "A opção «Mudar o nome» já não substitui nunca um ficheiro existente: o novo é guardado com um número (_001) e só é substituído se o confirmar na caixa de guardar."
+  ,"Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.": "Linux: o relatório de verificação mostra o signatário pelo nome e a data da assinatura, é possível guardar o relatório imprimível e as caixas de diálogo aparecem no idioma da aplicação."
+  ,"Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.": "Traduções revistas nos 10 idiomas: foram corrigidos centenas de textos traduzidos com um sentido errado."
 }

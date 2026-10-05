@@ -6467,4 +6467,7 @@
   ,"qt.folderbreadcrumbbar.up": "向上"
   ,"qt.qstandardpaths.downloads": "下载"
   ,"error.salida_existe": "已存在同名文件，覆盖设置不允许替换它：%s"
+  ,"La opción «Renombrar» ya no reemplaza nunca un fichero existente: el nuevo se guarda con un número (_001) y solo se sobrescribe si se confirma en el diálogo de guardar.": "“重命名”选项不再替换已有文件：新文件会加上编号（_001）保存，只有在保存对话框中确认后才会覆盖。"
+  ,"Linux: el informe de verificación muestra el firmante por su nombre y la fecha de la firma, se puede guardar el informe imprimible y los diálogos salen en el idioma de la aplicación.": "Linux：验证报告按姓名显示签名人并显示签名日期，可以保存可打印报告，对话框使用应用程序的语言。"
+  ,"Traducciones revisadas en los 10 idiomas: se corrigen cientos de textos que se habían traducido con un sentido equivocado.": "已审校全部 10 种语言的译文：修正了数百处意思译错的文本。"
 }
