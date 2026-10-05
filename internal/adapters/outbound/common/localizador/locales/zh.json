@@ -4928,4 +4928,7 @@
   ,"csc.cli.hosts": "签名服务：%s。授权地址：%s。正在打开浏览器以便您授权访问。"
   ,"csc.cli.pares_oauth_invalidos": "firma_remota_csc_oauth_permitidos 列表中有格式错误的条目。请使用 服务=授权 的格式，例如 firma.provider.cn=auth.provider.cn。"
   ,"csc.error.oauth_otro_host": "该服务要求在另一个主机上授权访问。出于安全考虑，除非已列入 firma_remota_csc_oauth_permitidos，否则不允许。"
+  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android：批量签名、创建和校验哈希，以及加密和解密文件，与桌面版一致。"
+  ,"Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.": "Android：支持 XMLDSig、ODF、OOXML、FacturaE、ASiC-XAdES 和 Veri*Factu 记录签名；CSV 图例和每页位置不同的印章；创建和检查 ENI 文档。"
+  ,"Firma remota con certificados de prestadores compatibles con la API CSC, desde la línea de órdenes. Viene desactivada: solo funciona si la organización la habilita en su política o en la configuración. Aún no se ha probado con prestadores reales.": "使用兼容 CSC API 的服务商证书进行远程签名（命令行）。默认关闭：只有组织在其策略或配置中启用后才能使用。尚未在真实服务商处测试。"
 }

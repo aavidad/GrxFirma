@@ -7,6 +7,12 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.115 — 2026-10-05
+
+- Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.
+- Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.
+- Firma remota con certificados de prestadores compatibles con la API CSC, desde la línea de órdenes. Viene desactivada: solo funciona si la organización la habilita en su política o en la configuración. Aún no se ha probado con prestadores reales.
+
 ## 0.0.114 — 2026-10-05
 
 - Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.

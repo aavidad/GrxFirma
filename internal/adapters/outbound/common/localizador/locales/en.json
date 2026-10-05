@@ -4928,4 +4928,7 @@
   ,"csc.cli.hosts": "Signing service: %s. Authorisation at: %s. The browser is opening so you can authorise access."
   ,"csc.cli.pares_oauth_invalidos": "The firma_remota_csc_oauth_permitidos list has a malformed entry. Use the form service=authorisation, for example firma.provider.example=auth.provider.example."
   ,"csc.error.oauth_otro_host": "The service asks for authorisation on another host. For security this is not allowed unless it is listed in firma_remota_csc_oauth_permitidos."
+  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android: batch signing, creating and checking hashes, and encrypting and decrypting files, as on desktop."
+  ,"Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.": "Android: signing in XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES and Veri*Factu records; CSV legend and a seal with a different position on each page; creating and checking ENI documents."
+  ,"Firma remota con certificados de prestadores compatibles con la API CSC, desde la línea de órdenes. Viene desactivada: solo funciona si la organización la habilita en su política o en la configuración. Aún no se ha probado con prestadores reales.": "Remote signing with certificates from providers compatible with the CSC API, from the command line. It comes disabled: it only works if the organisation enables it in its policy or configuration. Not yet tested with real providers."
 }

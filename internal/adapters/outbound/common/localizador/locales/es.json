@@ -4928,4 +4928,7 @@
   ,"csc.cli.hosts": "Servicio de firma: %s. Autorización en: %s. Se abre el navegador para que autorice el acceso."
   ,"csc.cli.pares_oauth_invalidos": "La lista firma_remota_csc_oauth_permitidos tiene una entrada mal escrita. Use el formato servicio=autorizacion, por ejemplo firma.prestador.es=auth.prestador.es."
   ,"csc.error.oauth_otro_host": "El servicio pide autorizar el acceso en otro host. Por seguridad no se permite salvo que esté en firma_remota_csc_oauth_permitidos."
+  ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio."
+  ,"Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.": "Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI."
+  ,"Firma remota con certificados de prestadores compatibles con la API CSC, desde la línea de órdenes. Viene desactivada: solo funciona si la organización la habilita en su política o en la configuración. Aún no se ha probado con prestadores reales.": "Firma remota con certificados de prestadores compatibles con la API CSC, desde la línea de órdenes. Viene desactivada: solo funciona si la organización la habilita en su política o en la configuración. Aún no se ha probado con prestadores reales."
 }
