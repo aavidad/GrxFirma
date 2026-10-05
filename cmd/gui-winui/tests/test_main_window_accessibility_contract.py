@@ -56,7 +56,9 @@ class MainWindowAccessibilityContractTest(unittest.TestCase):
             element for element in self.window.iter()
             if local_name(element) == "NavigationView"
         )
-        self.assertGreaterEqual(int(navigation.get("OpenPaneLength", "0")), 250)
+        # 280: «Facturae, FACe and Veri*Factu» (y «und», «eta») cabe sin
+        # cortarse (recorrido Windows 0.0.118, B10).
+        self.assertGreaterEqual(int(navigation.get("OpenPaneLength", "0")), 280)
         brand = next(
             element for element in navigation.iter()
             if local_name(element) == "TextBlock" and element.get("Text") == "GrxFirma"
