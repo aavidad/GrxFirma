@@ -9060,20 +9060,23 @@ Window {
                                 }
                             }
 
+                            // Ancho fijado por la tarjeta, no por los botones: en idiomas con
+                            // rótulos largos los botones pasan a otra línea y el texto
+                            // seguía su ancho, partido en una palabra por línea.
                             ColumnLayout {
                                 anchors.centerIn: parent
+                                width: Math.max(0, parent.width - 40)
                                 spacing: 15
                                 Text {
                                     text: selectedInputsSummary()
                                     color: currentTheme.textColor
                                     font.pixelSize: 18
-                                    Layout.alignment: Qt.AlignCenter
+                                    Layout.fillWidth: true
                                     horizontalAlignment: Text.AlignHCenter
                                     wrapMode: Text.WordWrap
-                                    Layout.maximumWidth: parent.width - 40
                                 }
                                 AdaptiveRow {
-                                    Layout.alignment: Qt.AlignCenter
+                                    centered: true
                                     spacing: 10
                                     ThemedButton {
                                         text: tr("Seleccionar archivo")
