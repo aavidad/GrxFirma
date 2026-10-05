@@ -6362,4 +6362,11 @@
   ,"winui.firmar.confirmar.ayuda": "Next you will choose where to save the result. You can turn off this confirmation in Settings, under “Confirm before signing”."
   ,"winui.firmar.confirmar.firmar": "Sign"
   ,"winui.firmar.confirmar.cancelada": "Signing cancelled. Nothing has been signed."
+  ,"winui.verificar.valido": "valid"
+  ,"winui.verificar.no_valido": "invalid"
+  ,"winui.verificar.no_determinado": "undetermined"
+  ,"winui.verificar.firmado_por": "Signed by {subject}"
+  ,"winui.parity.verify.export_html": "Save report (HTML)"
+  ,"winui.parity.verify.export_json": "Export technical data (JSON)"
+  ,"winui.parity.verify.html_filter": "Verification report (HTML)"
 }

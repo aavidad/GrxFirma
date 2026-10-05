@@ -6362,4 +6362,11 @@
   ,"winui.firmar.confirmar.ayuda": "接下来您将选择结果的保存位置。您可以在“设置”的“签名前确认”中关闭此确认。"
   ,"winui.firmar.confirmar.firmar": "签署"
   ,"winui.firmar.confirmar.cancelada": "已取消签署。未签署任何内容。"
+  ,"winui.verificar.valido": "有效"
+  ,"winui.verificar.no_valido": "无效"
+  ,"winui.verificar.no_determinado": "未确定"
+  ,"winui.verificar.firmado_por": "签署人：{subject}"
+  ,"winui.parity.verify.export_html": "保存报告（HTML）"
+  ,"winui.parity.verify.export_json": "导出技术数据（JSON）"
+  ,"winui.parity.verify.html_filter": "验证报告（HTML）"
 }

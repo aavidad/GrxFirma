@@ -23,12 +23,29 @@ public sealed partial class VerifyPage : Page
             app.OperationSession,
             app.FilePickerService);
         InitializeComponent();
-        ExportReportButton.Content = Localizer.Text("winui.parity.verify.export");
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
-            ExportReportButton, (string)ExportReportButton.Content);
+        RefreshExportLabels();
+        ViewModel.PropertyChanged += (_, change) =>
+        {
+            if (change.PropertyName is nameof(VerifyPageViewModel.HasHtmlReport)
+                or nameof(VerifyPageViewModel.CanExportReport)) RefreshExportLabels();
+        };
     }
 
     public VerifyPageViewModel ViewModel { get; }
+
+    // Con informe HTML del motor, ese es el botón principal y el JSON queda
+    // como datos técnicos; sin él, el único botón exporta el JSON.
+    private void RefreshExportLabels()
+    {
+        ExportReportButton.Content = Localizer.Text(ViewModel.HasHtmlReport || !ViewModel.CanExportReport
+            ? "winui.parity.verify.export_html"
+            : "winui.parity.verify.export");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            ExportReportButton, (string)ExportReportButton.Content);
+        ExportJsonReportButton.Content = Localizer.Text("winui.parity.verify.export_json");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            ExportJsonReportButton, (string)ExportJsonReportButton.Content);
+    }
 
     private void OnLoaded(object sender, RoutedEventArgs args)
     {
@@ -71,8 +88,16 @@ public sealed partial class VerifyPage : Page
 
     private async void OnVerifyClick(
         object sender,
-        RoutedEventArgs args) =>
+        RoutedEventArgs args)
+    {
         await ViewModel.VerifyAsync();
+        // El foco va al resultado para que se lea; antes quedaba en un panel sin nombre.
+        if (_isLoaded && ViewModel.HasResult)
+        {
+            ResultInfoBar.StartBringIntoView();
+            ResultInfoBar.Focus(FocusState.Programmatic);
+        }
+    }
 
     private void OnCancelClick(
         object sender,
@@ -81,6 +106,9 @@ public sealed partial class VerifyPage : Page
 
     private async void OnExportReportClick(object sender, RoutedEventArgs args) =>
         await ViewModel.ExportReportAsync();
+
+    private async void OnExportJsonReportClick(object sender, RoutedEventArgs args) =>
+        await ViewModel.ExportJsonReportAsync();
 
     private async void OnDiagnosticRequested(
         OperationDiagnostic diagnostic)

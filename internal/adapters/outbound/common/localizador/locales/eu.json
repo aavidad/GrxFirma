@@ -6362,4 +6362,11 @@
   ,"winui.firmar.confirmar.ayuda": "Ondoren, emaitza non gorde aukeratuko duzu. Berrespen hau Konfigurazioan ken dezakezu, «Sinatu aurretik baieztatu» aukeran."
   ,"winui.firmar.confirmar.firmar": "Sinatu"
   ,"winui.firmar.confirmar.cancelada": "Sinadura bertan behera utzi da. Ez da ezer sinatu."
+  ,"winui.verificar.valido": "baliozkoa"
+  ,"winui.verificar.no_valido": "baliogabea"
+  ,"winui.verificar.no_determinado": "zehaztu gabe"
+  ,"winui.verificar.firmado_por": "Sinatzailea: {subject}"
+  ,"winui.parity.verify.export_html": "Gorde txostena (HTML)"
+  ,"winui.parity.verify.export_json": "Esportatu datu teknikoak (JSON)"
+  ,"winui.parity.verify.html_filter": "Egiaztapen-txostena (HTML)"
 }

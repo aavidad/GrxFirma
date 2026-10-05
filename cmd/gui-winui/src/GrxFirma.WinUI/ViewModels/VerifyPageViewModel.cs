@@ -23,6 +23,8 @@ public sealed class VerifyPageViewModel
     private string? _signedFilePath;
     private string? _originalFilePath;
     private VerifyResult? _reportResult;
+    private bool _hasHtmlReport;
+    private string _signedBySummary = string.Empty;
     private bool _canExportReport;
     private string _signedFileName = string.Empty;
     private string _originalFileName = string.Empty;
@@ -164,7 +166,41 @@ public sealed class VerifyPageViewModel
         private set => SetProperty(ref _canExportReport, value);
     }
 
+    // Acción principal: el informe imprimible del motor. Si no llegó, el JSON.
+    public bool HasHtmlReport
+    {
+        get => _hasHtmlReport;
+        private set => SetProperty(ref _hasHtmlReport, value);
+    }
+
+    public string SignedBySummary
+    {
+        get => _signedBySummary;
+        private set => SetProperty(ref _signedBySummary, value);
+    }
+
     public async Task ExportReportAsync()
+    {
+        if (!CanExportReport || _reportResult is null || _pageLifetime is null) return;
+        if (_reportResult.ReportHtml.Length == 0)
+        {
+            await ExportJsonReportAsync();
+            return;
+        }
+        try
+        {
+            await _filePicker.PickAndSaveTextFileAsync(
+                SaveFilePickerProfile.VerificationReportHtml, _reportResult.ReportHtml,
+                null, _pageLifetime.Token);
+        }
+        catch (OperationCanceledException) when (_pageLifetime?.IsCancellationRequested == true) { }
+        catch (Exception exception)
+        {
+            RequestDiagnostic(OperationDiagnosticMapper.FromException(exception));
+        }
+    }
+
+    public async Task ExportJsonReportAsync()
     {
         if (!CanExportReport || _reportResult is null || _pageLifetime is null) return;
         try
@@ -322,6 +358,7 @@ public sealed class VerifyPageViewModel
                 {
                     InputPath = _signedFilePath,
                     OriginalPath = _originalFilePath,
+                    ReportLanguage = Localizer.Language,
                 },
                 operationCancellation.Token);
             if (!result.IsSuccess || result.Outcome != "success")
@@ -420,6 +457,7 @@ public sealed class VerifyPageViewModel
     {
         _reportResult = data;
         CanExportReport = true;
+        HasHtmlReport = data.ReportHtml.Length > 0;
         var trustStatus = NormalizeAspectStatus(data.Trust.Status);
         var hasValidSignatureEvidence =
             VerificationAssessment.HasValidSignatureEvidence(data);
@@ -445,7 +483,8 @@ public sealed class VerifyPageViewModel
         IntegritySummary = AspectSummary(Localizer.Text("winui.verificar.integridad"), data.Integrity);
         CertificateSummary = AspectSummary(
             Localizer.Text("winui.verificar.certificado"),
-            data.Certificate);
+            data.Certificate,
+            masculine: true);
         TrustSummary = AspectSummary(Localizer.Text("winui.verificar.confianza"), data.Trust);
         FormatSummary = Localizer.Format("winui.verificar.formato_cobertura",
             SafeIpcText.Clean(data.Format, 80,
@@ -459,6 +498,12 @@ public sealed class VerifyPageViewModel
             .Distinct(StringComparer.Ordinal)
             .Take(MaximumVisibleItems)
             .ToArray();
+        // Lo primero que busca quien verifica: quién firmó (el motor no da la hora).
+        var names = Signers.Select(DistinguishedNameText.CommonName)
+            .Distinct(StringComparer.Ordinal).ToArray();
+        SignedBySummary = names.Length == 0
+            ? string.Empty
+            : Localizer.Fill("winui.verificar.firmado_por", ("subject", string.Join(", ", names)));
 
         var warnings = data.VisibleWarnings
             .Concat(data.VisibleErrors)
@@ -493,6 +538,8 @@ public sealed class VerifyPageViewModel
     {
         _reportResult = null;
         CanExportReport = false;
+        HasHtmlReport = false;
+        SignedBySummary = string.Empty;
         HasResult = false;
         ResultSeverity = InfoBarSeverity.Informational;
         ResultTitle = Localizer.Text("winui.comun.sin_resultado");
@@ -522,17 +569,19 @@ public sealed class VerifyPageViewModel
             _ => "unknown",
         };
 
+    // masculine: «Certificado: válido»; el resto de aspectos son femeninos.
     private static string AspectSummary(
         string label,
-        VerifyAspect aspect)
+        VerifyAspect aspect,
+        bool masculine = false)
     {
         var status = NormalizeAspectStatus(aspect.Status);
         var statusLabel = status switch
         {
-            "valid" => Localizer.Text("winui.verificar.valida"),
-            "invalid" => Localizer.Text("winui.verificar.no_valida"),
+            "valid" => Localizer.Text(masculine ? "winui.verificar.valido" : "winui.verificar.valida"),
+            "invalid" => Localizer.Text(masculine ? "winui.verificar.no_valido" : "winui.verificar.no_valida"),
             "warning" => Localizer.Text("winui.verificar.con_avisos"),
-            _ => Localizer.Text("winui.verificar.no_determinada"),
+            _ => Localizer.Text(masculine ? "winui.verificar.no_determinado" : "winui.verificar.no_determinada"),
         };
         var reason = SafeIpcText.Clean(aspect.Reason, 320, string.Empty);
         return string.IsNullOrEmpty(reason)

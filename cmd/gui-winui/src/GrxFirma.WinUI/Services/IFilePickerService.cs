@@ -34,6 +34,7 @@ public enum SaveFilePickerProfile
     CmsSignedEnveloped,
     DiagnosticReport,
     VerificationReport,
+    VerificationReportHtml,
     InvoiceReport,
     EniXml,
     SupportIncidentText,

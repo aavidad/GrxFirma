@@ -6362,4 +6362,11 @@
   ,"winui.firmar.confirmar.ayuda": "Després triareu on desar el resultat. Podeu treure aquesta confirmació a Configuració, a «Confirmar abans de signar»."
   ,"winui.firmar.confirmar.firmar": "Signa"
   ,"winui.firmar.confirmar.cancelada": "Signatura cancel·lada. No s'ha signat res."
+  ,"winui.verificar.valido": "vàlid"
+  ,"winui.verificar.no_valido": "no vàlid"
+  ,"winui.verificar.no_determinado": "no determinat"
+  ,"winui.verificar.firmado_por": "Signat per {subject}"
+  ,"winui.parity.verify.export_html": "Desa l'informe (HTML)"
+  ,"winui.parity.verify.export_json": "Exporta les dades tècniques (JSON)"
+  ,"winui.parity.verify.html_filter": "Informe de verificació (HTML)"
 }

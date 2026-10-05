@@ -484,6 +484,11 @@ public sealed class WindowsFilePickerService : IFilePickerService
                     "winui.parity.verify.export"),
                     SealUiCatalog.Text(Localizer.Language,
                     "winui.parity.verify.filename"), [".json"]),
+            SaveFilePickerProfile.VerificationReportHtml =>
+                new(SealUiCatalog.Text(Localizer.Language,
+                    "winui.parity.verify.html_filter"),
+                    SealUiCatalog.Text(Localizer.Language,
+                    "winui.parity.verify.filename"), [".html"]),
             SaveFilePickerProfile.InvoiceReport =>
                 new(SealUiCatalog.Text(Localizer.Language,
                     "paridad.lote3.invoice.report"), SealUiCatalog.Text(Localizer.Language,

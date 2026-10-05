@@ -6362,4 +6362,11 @@
   ,"winui.firmar.confirmar.ayuda": "Poi sceglierà dove salvare il risultato. Può disattivare questa conferma in Impostazioni, alla voce «Conferma prima di firmare»."
   ,"winui.firmar.confirmar.firmar": "Firma"
   ,"winui.firmar.confirmar.cancelada": "Firma annullata. Non è stato firmato nulla."
+  ,"winui.verificar.valido": "valido"
+  ,"winui.verificar.no_valido": "non valido"
+  ,"winui.verificar.no_determinado": "non determinato"
+  ,"winui.verificar.firmado_por": "Firmato da {subject}"
+  ,"winui.parity.verify.export_html": "Salva il rapporto (HTML)"
+  ,"winui.parity.verify.export_json": "Esporta i dati tecnici (JSON)"
+  ,"winui.parity.verify.html_filter": "Rapporto di verifica (HTML)"
 }
