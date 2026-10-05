@@ -1259,6 +1259,7 @@ func (a *Adaptador) ejecutarVerificacion(ctx context.Context, cfg configCLI) int
 		informe, err := informeverificacion.HTML(informeverificacion.Datos{
 			NombreDocumento: filepath.Base(cfg.entrada), Contenido: data,
 			Resultado: resultado.Verification, Fecha: time.Now(), VersionApp: a.Version,
+			Idioma: a.idiomaInterfaz(),
 		})
 		if err == nil {
 			destino, _, _, err = resolverRutaSalida(destino, cfg.sobrescribir)
@@ -1310,19 +1311,18 @@ func (a *Adaptador) ejecutarVerificacion(ctx context.Context, cfg configCLI) int
 		fmt.Fprintf(a.Stdout, "%s: %s\n", a.t("Cobertura", "Cobertura"), coverage)
 	}
 	if resultado.Verification.Reason != "" {
+		// Los motivos del motor son literales que el catálogo traduce usando
+		// el propio literal como clave; la salida JSON los conserva intactos.
 		reason := resultado.Verification.Reason
-		if reason == "revocación no concluyente" {
-			reason = a.t("revocación no concluyente", "revocación no concluyente")
-		}
-		fmt.Fprintf(a.Stdout, "%s: %s\n", a.t("Motivo", "Motivo"), reason)
+		fmt.Fprintf(a.Stdout, "%s: %s\n", a.t("Motivo", "Motivo"), a.textoMotor(reason))
 	}
 	for _, detalle := range resultado.Verification.Details {
-		fmt.Fprintf(a.Stdout, "- %s\n", detalle)
+		fmt.Fprintf(a.Stdout, "- %s\n", a.textoMotor(detalle))
 	}
 	if len(resultado.Verification.Warnings) > 0 {
 		fmt.Fprintf(a.Stdout, "%s:\n", a.t("Advertencias", "Advertencias"))
 		for _, warning := range resultado.Verification.Warnings {
-			fmt.Fprintf(a.Stdout, "- %s\n", warning)
+			fmt.Fprintf(a.Stdout, "- %s\n", a.textoMotor(warning))
 		}
 	}
 	return 0
@@ -3789,6 +3789,15 @@ func construirOpcionesFirmaCompat(cfg configCLI, formato string) map[string]stri
 		}
 	}
 	return out
+}
+
+// textoMotor traduce un literal del motor que el catálogo usa como clave;
+// si no está catalogado (valores técnicos), lo devuelve tal cual.
+func (a *Adaptador) textoMotor(literal string) string {
+	if a.Localizador == nil || literal == "" {
+		return literal
+	}
+	return a.Localizador.T(literal)
 }
 
 // idiomaInterfaz devuelve el idioma del catálogo de la CLI, o "" si el
