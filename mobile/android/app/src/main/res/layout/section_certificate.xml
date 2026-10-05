@@ -59,6 +59,40 @@
             android:textColor="@color/on_surface" />
     </LinearLayout>
 
+    <!-- Certificados abiertos: se elige con cuál firmar y se cierran uno a uno. -->
+    <LinearLayout
+        android:id="@+id/identityGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/identityListTitle"
+            style="@style/TextAppearance.Material3.TitleSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:accessibilityLiveRegion="polite"
+            android:textColor="@color/on_surface" />
+
+        <LinearLayout
+            android:id="@+id/identityList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/identityAddHint"
+        style="@style/TextAppearance.Material3.BodySmall"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/identity_add_hint"
+        android:textColor="@color/on_surface"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/certificateDetail"
         style="@style/TextAppearance.Material3.BodyMedium"

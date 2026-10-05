@@ -7,8 +7,6 @@ package mobilebind
 
 import (
 	"context"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/base64"
 	"errors"
 	"strings"
@@ -278,7 +276,7 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (string, error) {
 	var protected domain.ProtectedPayload
 	certificateID := ""
 	if req.Sign {
-		if !f.session.hasSigningIdentity() {
+		if !f.session.hasSigningIdentity(req.CertificateID) {
 			return "", newFacadeError(mobileProtectSignIdentityMessage)
 		}
 		cmd, err := application.NewProtectAndSignCommand(req.Name, content, req.MIMEType,
@@ -429,7 +427,7 @@ func decodeProtectionSecretText(secret []byte) ([]byte, error) {
 func (f *Facade) recipientCatalog(req protectRequest) (mobileRecipientCatalog, error) {
 	catalog := mobileRecipientCatalog{}
 	if req.IncludeSessionCertificate {
-		der, ok := f.session.certificateDER()
+		der, ok := f.session.certificateDER(req.CertificateID)
 		if !ok {
 			return nil, newFacadeError("certificado de sesión no disponible")
 		}
@@ -478,54 +476,4 @@ func (c mobileRecipientCatalog) Resolve(ctx context.Context, ids []string) ([]do
 		out = append(out, recipient)
 	}
 	return out, nil
-}
-
-// mobileSessionDecryptionKeys entrega una copia PKCS#8 transitoria de la clave
-// RSA importada. El caso de uso la borra al terminar. Un DNIe no expone
-// descifrado y, por tanto, no aporta claves.
-type mobileSessionDecryptionKeys struct {
-	store *sessionIdentityStore
-}
-
-func (k mobileSessionDecryptionKeys) DecryptionKeys(ctx context.Context) ([]domain.ProtectionKeyMaterial, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	if k.store == nil {
-		return nil, nil
-	}
-	k.store.mu.RLock()
-	defer k.store.mu.RUnlock()
-	identity := k.store.identity
-	if identity == nil || identity.certificate == nil {
-		return nil, nil
-	}
-	private, ok := identity.signer.(*rsa.PrivateKey)
-	if !ok || private == nil {
-		return nil, nil
-	}
-	pkcs8, err := x509.MarshalPKCS8PrivateKey(private)
-	if err != nil {
-		return nil, nil
-	}
-	return []domain.ProtectionKeyMaterial{{
-		RecipientID:               identity.reference.ID,
-		RSAOAEP256PrivateKeyPKCS8: pkcs8,
-		CertificateDER:            append([]byte(nil), identity.certificate.Raw...),
-	}}, nil
-}
-
-func (s *sessionIdentityStore) certificateDER() ([]byte, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	if s.identity == nil || s.identity.certificate == nil {
-		return nil, false
-	}
-	return append([]byte(nil), s.identity.certificate.Raw...), true
-}
-
-func (s *sessionIdentityStore) hasSigningIdentity() bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.identity != nil && s.identity.signer != nil
 }

@@ -36,6 +36,18 @@
             android:name="es.dipgra.grxfirma.CORE_SHA256"
             android:value="${coreSha256}" />
 
+        <!-- Foto del QR tributario: la app de cámara escribe en un fichero
+             temporal privado con permiso puntual; no se pide el permiso CAMERA. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.qrcapture"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/qr_capture_paths" />
+        </provider>
+
         <service android:name="androidx.appcompat.app.AppLocalesMetadataHolderService" android:enabled="false" android:exported="false">
             <meta-data android:name="autoStoreLocales" android:value="true" />
         </service>

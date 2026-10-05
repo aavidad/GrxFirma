@@ -127,6 +127,23 @@ interface CoreBridge {
 
     fun checkUpdate(currentVersion: String): UpdateCheck = toolsUnavailable()
 
+    /**
+     * Busca el QR tributario en una imagen PNG o JPEG (foto o imagen elegida).
+     * No usa la red. [image] se borra siempre.
+     */
+    fun readVeriFactuQrImage(image: ByteArray): VeriFactuQr {
+        image.fill(0)
+        toolsUnavailable()
+    }
+
+    // --- Varias identidades por sesión ---
+
+    /** Certificados que pueden estar abiertos a la vez; un AAR anterior admite uno. */
+    val maxIdentities: Int get() = 1
+
+    /** Cierra un certificado de la sesión y devuelve cuántos quedan abiertos. */
+    fun removeIdentity(certificateId: String): Int = toolsUnavailable()
+
     // --- Cuarta oleada: expediente ENI y lote con operación y opciones por documento ---
 
     /** Capacidades declaradas por el contrato (véase Wave4Capabilities). */
@@ -149,8 +166,11 @@ object PlatformServices {
     const val VERIFACTU_QR_QUERY = "verifactu_qr_query"
     const val UPDATE_CHECK = "update_check"
     const val VERIFY_REPORT_HTML = "verify_report_html"
+    const val VERIFACTU_QR_IMAGE = "verifactu_qr_image"
+    const val SESSION_IDENTITIES = "session_identities"
     val ALL = listOf(CERTIFICATE_DETAILS, CERTIFICATE_ONLINE, DIAGNOSTICS, TSA_PROBE,
-        VERIFACTU_QR_READ, VERIFACTU_QR_QUERY, UPDATE_CHECK, VERIFY_REPORT_HTML)
+        VERIFACTU_QR_READ, VERIFACTU_QR_QUERY, UPDATE_CHECK, VERIFY_REPORT_HTML,
+        VERIFACTU_QR_IMAGE, SESSION_IDENTITIES)
 }
 
 /** Nombres de servicio del contrato para las herramientas de documentos. */

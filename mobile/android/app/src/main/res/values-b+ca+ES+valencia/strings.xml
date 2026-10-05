@@ -506,7 +506,7 @@
     <string name="qr_title">Llegir QR tributari</string>
     <string name="qr_url_label">Apegueu l’URL del QR o introduïu-la amb un escàner</string>
     <string name="qr_read">Llegir dades del QR</string>
-    <string name="qr_notice">Llegir l\'URL no envia dades. «Acarar amb l\'AEAT» envia només el NIF, el número, la data i l\'import del QR a l\'Agència Tributària. Esta versió admet l\'URL, no imatges.</string>
+    <string name="qr_notice">Llegir el QR (des de l\'URL, una foto o una imatge) no envia dades. «Acarar amb l\'AEAT» envia només el NIF, el número, la data i l\'import del QR a l\'Agència Tributària.</string>
     <string name="qr_query">Acarar amb l\'AEAT</string>
     <string name="qr_verifactu">Factura emesa amb un sistema Veri*Factu.</string>
     <string name="qr_not_verifactu">Factura emesa amb un sistema que no és Veri*Factu.</string>
@@ -628,4 +628,22 @@
     <string name="export_verification_report_html">Guardar l\'informe imprimible (HTML)</string>
     <string name="verification_report_html_filename">informe-verificacio.html</string>
     <string name="eni_error_signature_mismatch">La firma no correspon al document original o el document s\'ha modificat després de firmar-lo. Comproveu que heu triat l\'original correcte.</string>
+    <string name="qr_take_photo">Fer una foto del QR</string>
+    <string name="qr_choose_image">Triar una imatge del QR</string>
+    <string name="qr_camera_unavailable">No hi ha cap aplicació de càmera disponible. Trieu una imatge del QR o apegueu l\'URL.</string>
+    <string name="qr_error_image">No s\'ha pogut obrir la imatge. Proveu amb una altra foto o amb una captura de pantalla de la factura.</string>
+    <string name="qr_error_not_found">No s\'ha trobat el QR en la imatge. Feu la foto més a prop, amb bona llum i amb el QR sencer, o retalleu la imatge.</string>
+    <string name="qr_error_timeout">La busca del QR ha tardat massa. Proveu amb una imatge més xicoteta o retallada.</string>
+    <string name="error_session_full">Ja teniu oberts tots els certificats que admet l\'aplicació. Tanqueu-ne algun per a obrir-ne un altre.</string>
+    <string name="result_identity_closed">Certificat tancat: %1$s. Els altres continuen oberts.</string>
+    <string name="result_certificates_forgotten">S\'han tancat tots els certificats.</string>
+    <string name="forget_all_certificates">Tancar tots els certificats</string>
+    <string name="identity_close">Tancar</string>
+    <string name="identity_close_description">Tancar el certificat %1$s</string>
+    <string name="identity_add_hint">Podeu obrir un altre certificat o el DNIe sense tancar este. Després trieu amb quin firmar.</string>
+    <plurals name="identities_open">
+        <item quantity="one">Hi ha %1$d certificat obert. Trieu amb quin firmar.</item>
+        <item quantity="many">Hi ha %1$d certificats oberts. Trieu amb quin firmar.</item>
+        <item quantity="other">Hi ha %1$d certificats oberts. Trieu amb quin firmar.</item>
+    </plurals>
 </resources>

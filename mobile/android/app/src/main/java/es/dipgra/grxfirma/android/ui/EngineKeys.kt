@@ -22,6 +22,12 @@ object EngineKeys {
         "eni.error.unrecognized" to R.string.eni_error_unrecognized,
         "eni.error.content_format" to R.string.eni_error_content_format,
         "eni.error.origin" to R.string.eni_error_origin,
+        // Sesión llena y QR desde imagen: textos propios de Android (el
+        // catálogo de escritorio habla también de PDF, que aquí no se lee).
+        "session.full" to R.string.error_session_full,
+        "verifactu.qr_image" to R.string.qr_error_image,
+        "verifactu.qr_not_found" to R.string.qr_error_not_found,
+        "verifactu.qr_timeout" to R.string.qr_error_timeout,
     )
 
     fun isClosed(key: String): Boolean = CATALOGUE_KEY.matches(key)

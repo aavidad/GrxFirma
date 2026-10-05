@@ -97,6 +97,8 @@ class ValidateCoreAarTest(unittest.TestCase):
               public String queryVeriFactuQRJSON(String value) { return value; }
               public String checkUpdateJSON(String value) { return value; }
               public String createENIFileJSON(String value) { return value; }
+              public String readVeriFactuQRImageJSON(byte[] value) { return "{}"; }
+              public String removeSessionIdentityJSON(String value) { return value; }
               public String verifyJSON(String value) { return value; }
             }
             """,

@@ -46,6 +46,7 @@ class ReflectiveGomobileBridge private constructor(
     override val documentServices: Set<String> = emptySet(),
     override val platformServices: Set<String> = emptySet(),
     override val capabilities: Set<String> = emptySet(),
+    override val maxIdentities: Int = 1,
 ) : CoreBridge, ExternalIdentityBridge {
     override val readiness = CoreReadiness(
         available = true,
@@ -218,6 +219,18 @@ class ReflectiveGomobileBridge private constructor(
         invokePlatform(PlatformServices.UPDATE_CHECK, "checkUpdateJSON", CoreJsonCodec.updateRequest(currentVersion)),
     )
 
+    override fun readVeriFactuQrImage(image: ByteArray): VeriFactuQr = try {
+        CoreJsonCodec.parseVeriFactuQr(invokePlatform(PlatformServices.VERIFACTU_QR_IMAGE, "readVeriFactuQRImageJSON", image))
+    } finally {
+        image.fill(0)
+    }
+
+    override fun removeIdentity(certificateId: String): Int {
+        if (maxIdentities <= 1) throw CoreUnavailableException("TOOLS_UNAVAILABLE")
+        return CoreJsonCodec.parseRemainingIdentities(invokePlatform(PlatformServices.SESSION_IDENTITIES,
+            "removeSessionIdentityJSON", CoreJsonCodec.certificateRequest(certificateId)))
+    }
+
     private fun invokePlatform(service: String, name: String, vararg payload: Any): String {
         if (service !in platformServices) throw CoreUnavailableException("TOOLS_UNAVAILABLE")
         val method = methods[name] ?: throw CoreUnavailableException("TOOLS_UNAVAILABLE")
@@ -383,8 +396,20 @@ class ReflectiveGomobileBridge private constructor(
                     service
                 } catch (_: NoSuchMethodException) { null }
             }
+            // QR desde imagen y varias identidades: opcionales, con su propia firma de método.
+            val extraMethods = listOf(
+                Triple(PlatformServices.VERIFACTU_QR_IMAGE, "readVeriFactuQRImageJSON", ByteArray::class.java),
+                Triple(PlatformServices.SESSION_IDENTITIES, "removeSessionIdentityJSON", String::class.java),
+            ).mapNotNull { (service, name, type) ->
+                try {
+                    required[name] = facadeClass.getMethod(name, type)
+                    service
+                } catch (_: NoSuchMethodException) { null }
+            }
             val platformServices = CoreJsonCodec.platformServices(contract)
-                .filter { it in platformMethods || it == PlatformServices.VERIFY_REPORT_HTML }.toSet()
+                .filter { it in platformMethods || it in extraMethods || it == PlatformServices.VERIFY_REPORT_HTML }.toSet()
+            val maxIdentities = if (PlatformServices.SESSION_IDENTITIES in platformServices)
+                CoreJsonCodec.maxIdentities(contract) else 1
             return ReflectiveGomobileBridge(
                 facade,
                 required,
@@ -402,6 +427,7 @@ class ReflectiveGomobileBridge private constructor(
                 documentServices,
                 platformServices,
                 if (toolsAvailable) Wave4Codec.capabilities(contract) else emptySet(),
+                maxIdentities,
             )
         }
 

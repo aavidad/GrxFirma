@@ -223,9 +223,10 @@ identidad de sesion, firma CAdES/PAdES (RSA o ECDSA), XAdES (RSA), verificacion
 y guardado SAF. Al verificar una firma separada CAdES, la interfaz permite
 seleccionar el documento original opcional que exige el verificador. No se
 habilitan flujos remotos, biometria ni persistencia de la clave. Solo se
-conserva una identidad en memoria. La acción visible `Olvidar certificado`,
-descartar el resultado sin guardarlo y el cierre del modelo de pantalla llaman
-a `clearSession()`; terminar el proceso también elimina el estado por diseño.
+conservan en memoria, como mucho, 8 identidades a la vez (véase «Varias
+identidades por sesión»). «Cerrar todos los certificados», descartar una firma
+sin guardarla y el cierre del modelo de pantalla llaman a `clearSession()`;
+terminar el proceso también elimina el estado por diseño.
 No se usa ni se afirma Android Keystore o hardware TEE en este flujo PKCS#12.
 
 Para un PDF, «Firma visible» abre un editor que dibuja la página con
@@ -271,7 +272,7 @@ sesiones.
 
 ## Controles de seguridad
 
-- solo permisos NFC e `INTERNET`; este último permite la TSA, obtener evidencias LT/LTA y, solo cuando la persona lo pulsa, OCSP/CRL del certificado, el cotejo con la AEAT y la consulta de versiones en GitHub. Kotlin no abre conexiones: lo hace el núcleo Go. Sin permisos de almacenamiento amplios;
+- solo permisos NFC e `INTERNET`; la foto del QR usa la app de cámara del sistema, sin el permiso CAMERA. `INTERNET` permite la TSA, obtener evidencias LT/LTA y, solo cuando la persona lo pulsa, OCSP/CRL del certificado, el cotejo con la AEAT y la consulta de versiones en GitHub. Kotlin no abre conexiones: lo hace el núcleo Go. Sin permisos de almacenamiento amplios;
 - la TSA solo la configura la persona usuaria. Se valida sin credenciales ni fragmento y admite HTTP además de HTTPS por compatibilidad con TSA públicas que se usan por HTTP, como la de la FNMT, y con TSA internas de la organización. Antes de incorporar la respuesta RFC 3161 se comprueban su firma, la huella y el nonce;
 - `usesCleartextTraffic=false` (configuración de seguridad de red de Android) solo afecta a las bibliotecas de red de Java y Kotlin. El núcleo Go abre sus propias conexiones y no lo tiene en cuenta: la TSA en HTTP y las consultas de revocación (OCSP y CRL, normalmente en HTTP) salen por él. Las reglas de esquema, credenciales y redirecciones (la TSA no puede redirigir a otro origen) las aplica el núcleo, no esa opción de Android;
 - copias de seguridad y transferencia de datos deshabilitadas;
@@ -279,7 +280,7 @@ sesiones.
 - permisos SAF de alcance transitorio, sin retención entre sesiones;
 - limite de 32 MiB para documentos y 4 MiB para PKCS#12;
 - contrasenas y bytes sensibles no se guardan en preferencias ni estado;
-- identidad PKCS#12 limitada a una por sesion, con borrado explícito desde la UI;
+- hasta 8 identidades por sesión, solo en memoria, que se cierran una a una o todas desde la UI;
 - resultados de firma limitados a 48 MiB y borrados de memoria al guardarlos;
 - errores del nucleo saneados antes de cruzar el enlace JNI;
 - ayuda local en los once idiomas de escritorio, estados de verificación separados y
@@ -396,8 +397,8 @@ esta parte siguen pendientes.
   comprobador de escritorio, que filtra direcciones internas; solo se envía
   el número de serie. La verificación de firmas no cambia: sigue con
   evidencias embebidas. El filtro por NIF, organización o tipo solo aparece
-  con más de un certificado; hoy la sesión guarda uno, así que de momento
-  no se ve.
+  con más de un certificado abierto (véase «Varias identidades por sesión»,
+  al final).
 - **Preferencias**: formato y perfil por defecto, TSA, nombre propuesto al
   guardar (`-firmado`, `_firmado` como en escritorio o el nombre original) y
   tema del sistema, claro u oscuro. Un perfil T/LT/LTA exige una TSA válida.
@@ -531,3 +532,41 @@ seguidas con un solo PIN, PIN erróneo a mitad de lote y retirada de la tarjeta)
 el expediente con documentos ENI de otras aplicaciones y la revisión de
 usabilidad independiente. También hay que reconstruir el AAR con
 `createENIFileJSON` y fijar su nuevo SHA-256.
+
+## QR tributario con la cámara o una imagen y varias identidades por sesión
+
+- **QR tributario**: en «Leer QR tributario» hay dos botones más, «Hacer una
+  foto del QR» y «Elegir una imagen del QR». La foto se pide a la app de cámara
+  del sistema con `ACTION_IMAGE_CAPTURE`, que la guarda en un fichero temporal
+  de `cacheDir/qr-capture` compartido con un `FileProvider` no exportado y
+  permiso de escritura puntual. Así la app no declara el permiso CAMERA ni
+  incluye CameraX. La imagen de la galería se elige con SAF. Si la foto pasa
+  de 20 MiB o 36 megapíxeles, o es HEIC o WebP, `BitmapFactory` la reduce
+  (6000 píxeles de lado como mucho) y la convierte a JPEG antes de pasarla al
+  núcleo. El núcleo la lee con `LeerQRVeriFactuImagen` de escritorio
+  (`readVeriFactuQRImageJSON`), sin red. Los bytes se borran en ambos lados y
+  la foto temporal se sobrescribe y se elimina al terminar, al cancelar y al
+  abrir la app. La URL leída aparece en el campo y el cotejo con la AEAT sigue
+  necesitando que se pulse su botón. Los PDF no se leen en el móvil.
+- **Varias identidades por sesión**: se pueden tener abiertos a la vez varios
+  PKCS#12 y un DNIe (8 como máximo; un DNIe nuevo sustituye al anterior).
+  Con más de uno aparece la lista «Hay N certificados abiertos. Elija con cuál
+  firmar.», con un botón de opción por certificado y «Cerrar» en cada fila. El
+  filtro por NIF, organización o tipo actúa sobre esa lista y el detalle es el
+  del certificado elegido. «Cerrar todos los certificados» los cierra todos, y
+  el cierre automático en segundo plano también. Al salir de la pantalla se
+  cierra solo el DNIe y los PKCS#12 siguen abiertos. Firmar, el lote, el sello,
+  el expediente, «proteger y firmar» y «cifrar también para mí» usan el
+  certificado elegido; desproteger prueba con todos los PKCS#12 abiertos.
+  Ninguna clave se guarda en disco.
+
+Las dos funciones son opcionales: con un AAR anterior la app oculta los
+botones de imagen y conserva una sola identidad. Hay que reconstruir el AAR
+y fijar su nuevo SHA-256.
+
+Pendiente: probar en un móvil real la foto con distintas apps de cámara (y
+qué pasa si el sistema cierra GrxFirma mientras la cámara está abierta), la
+lista de certificados con TalkBack y texto ampliado, y la revisión de
+usabilidad independiente. Las pruebas instrumentadas
+(`MainViewModelIdentitiesTest`, `QrCaptureTest`) están escritas pero no se han
+ejecutado.

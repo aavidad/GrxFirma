@@ -494,7 +494,7 @@
     <string name="qr_title">Zerga-QRa irakurri</string>
     <string name="qr_url_label">Itsatsi QRaren URLa edo sartu eskaner batekin</string>
     <string name="qr_read">QRaren datuak irakurri</string>
-    <string name="qr_notice">URLa irakurtzeak ez du daturik bidaltzen. «Egiaztatu AEATekin» botoiak QRaren IFZ, zenbakia, data eta zenbatekoa soilik bidaltzen dizkio Zerga Agentziari. Bertsio honek URLa onartzen du, ez irudiak.</string>
+    <string name="qr_notice">QRa irakurtzeak (URLtik, argazki batetik edo irudi batetik) ez du daturik bidaltzen. «Egiaztatu AEATekin» botoiak QRaren IFZ, zenbakia, data eta zenbatekoa soilik bidaltzen dizkio Zerga Agentziari.</string>
     <string name="qr_query">Egiaztatu AEATekin</string>
     <string name="qr_verifactu">Veri*Factu sistema batekin egindako faktura.</string>
     <string name="qr_not_verifactu">Veri*Factu ez den sistema batekin egindako faktura.</string>
@@ -610,4 +610,21 @@
     <string name="export_verification_report_html">Gorde txosten inprimagarria (HTML)</string>
     <string name="verification_report_html_filename">egiaztapen-txostena.html</string>
     <string name="eni_error_signature_mismatch">Sinadura ez dator bat jatorrizko dokumentuarekin, edo dokumentua sinatu ondoren aldatu da. Egiaztatu jatorrizko dokumentu zuzena aukeratu duzula.</string>
+    <string name="qr_take_photo">Atera QRaren argazki bat</string>
+    <string name="qr_choose_image">Aukeratu QRaren irudi bat</string>
+    <string name="qr_camera_unavailable">Ez dago kamera-aplikaziorik erabilgarri. Aukeratu QRaren irudi bat edo itsatsi URLa.</string>
+    <string name="qr_error_image">Ezin izan da irudia ireki. Saiatu beste argazki batekin edo fakturaren pantaila-argazki batekin.</string>
+    <string name="qr_error_not_found">Ez da QRrik aurkitu irudian. Atera argazkia hurbilago, argi onarekin eta QR osoa ikusten dela, edo moztu irudia.</string>
+    <string name="qr_error_timeout">QRaren bilaketak gehiegi iraun du. Saiatu irudi txikiago edo moztu batekin.</string>
+    <string name="error_session_full">Aplikazioak onartzen dituen ziurtagiri guztiak irekita dituzu jada. Itxi bat beste bat irekitzeko.</string>
+    <string name="result_identity_closed">Ziurtagiria itxi da: %1$s. Besteak irekita daude oraindik.</string>
+    <string name="result_certificates_forgotten">Ziurtagiri guztiak itxi dira.</string>
+    <string name="forget_all_certificates">Itxi ziurtagiri guztiak</string>
+    <string name="identity_close">Itxi</string>
+    <string name="identity_close_description">Itxi %1$s ziurtagiria</string>
+    <string name="identity_add_hint">Beste ziurtagiri bat edo zure DNIe-a ireki dezakezu hau itxi gabe. Gero, aukeratu zeinekin sinatu.</string>
+    <plurals name="identities_open">
+        <item quantity="one">%1$d ziurtagiri dago irekita. Aukeratu zeinekin sinatu.</item>
+        <item quantity="other">%1$d ziurtagiri daude irekita. Aukeratu zeinekin sinatu.</item>
+    </plurals>
 </resources>

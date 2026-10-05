@@ -494,7 +494,7 @@
     <string name="qr_title">Steuer-QR-Code lesen</string>
     <string name="qr_url_label">QR-URL einfügen oder mit einem Scanner eingeben</string>
     <string name="qr_read">QR-Daten lesen</string>
-    <string name="qr_notice">Das Lesen der URL sendet keine Daten. „Bei der AEAT abgleichen“ sendet nur Steuernummer, Nummer, Datum und Betrag des QR-Codes an die spanische Steuerbehörde. Diese Version akzeptiert die URL, keine Bilder.</string>
+    <string name="qr_notice">Das Lesen des QR-Codes (aus der URL, einem Foto oder einem Bild) sendet keine Daten. „Bei der AEAT abgleichen“ sendet nur Steuernummer, Nummer, Datum und Betrag des QR-Codes an die spanische Steuerbehörde.</string>
     <string name="qr_query">Bei der AEAT abgleichen</string>
     <string name="qr_verifactu">Mit einem Veri*Factu-System ausgestellte Rechnung.</string>
     <string name="qr_not_verifactu">Mit einem Nicht-Veri*Factu-System ausgestellte Rechnung.</string>
@@ -610,4 +610,21 @@
     <string name="export_verification_report_html">Druckbaren Bericht speichern (HTML)</string>
     <string name="verification_report_html_filename">pruefbericht.html</string>
     <string name="eni_error_signature_mismatch">Die Signatur passt nicht zum Originaldokument, oder das Dokument wurde nach der Signatur geändert. Prüfen Sie, ob Sie das richtige Original gewählt haben.</string>
+    <string name="qr_take_photo">QR-Code fotografieren</string>
+    <string name="qr_choose_image">Bild des QR-Codes auswählen</string>
+    <string name="qr_camera_unavailable">Es ist keine Kamera-App verfügbar. Wählen Sie ein Bild des QR-Codes oder fügen Sie die URL ein.</string>
+    <string name="qr_error_image">Das Bild konnte nicht geöffnet werden. Versuchen Sie ein anderes Foto oder einen Screenshot der Rechnung.</string>
+    <string name="qr_error_not_found">Im Bild wurde kein QR-Code gefunden. Fotografieren Sie näher, bei gutem Licht und mit dem ganzen QR-Code, oder schneiden Sie das Bild zu.</string>
+    <string name="qr_error_timeout">Die Suche nach dem QR-Code hat zu lange gedauert. Versuchen Sie ein kleineres oder zugeschnittenes Bild.</string>
+    <string name="error_session_full">Sie haben bereits so viele Zertifikate geöffnet, wie die App zulässt. Schließen Sie eines, um ein anderes zu öffnen.</string>
+    <string name="result_identity_closed">Zertifikat geschlossen: %1$s. Die anderen bleiben geöffnet.</string>
+    <string name="result_certificates_forgotten">Alle Zertifikate wurden geschlossen.</string>
+    <string name="forget_all_certificates">Alle Zertifikate schließen</string>
+    <string name="identity_close">Schließen</string>
+    <string name="identity_close_description">Zertifikat %1$s schließen</string>
+    <string name="identity_add_hint">Sie können ein weiteres Zertifikat oder Ihren DNIe öffnen, ohne dieses zu schließen. Wählen Sie dann, mit welchem Sie signieren.</string>
+    <plurals name="identities_open">
+        <item quantity="one">%1$d Zertifikat ist geöffnet. Wählen Sie, mit welchem Sie signieren.</item>
+        <item quantity="other">%1$d Zertifikate sind geöffnet. Wählen Sie, mit welchem Sie signieren.</item>
+    </plurals>
 </resources>

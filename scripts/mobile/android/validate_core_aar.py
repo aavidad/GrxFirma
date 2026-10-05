@@ -59,6 +59,8 @@ FACADE_METHODS = (
     "queryVeriFactuQRJSON(java.lang.String)",
     "checkUpdateJSON(java.lang.String)",
     "createENIFileJSON(java.lang.String)",
+    "readVeriFactuQRImageJSON(byte[])",
+    "removeSessionIdentityJSON(java.lang.String)",
 )
 
 
