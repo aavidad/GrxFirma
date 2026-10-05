@@ -26,7 +26,7 @@ import (
 )
 
 // Sello visible de GrxFirma: tarjeta blanca con barra de acento en los
-// colores de GrxFirma, emblema opcional (la capucha en tono suave),
+// colores verde y azul marino de GrxFirma, emblema opcional,
 // identidad del firmante destacada, fecha y motivo, y un QR de verificación
 // con su rótulo. El texto se ajusta al tamaño del sello y el contenido se
 // apila en los sellos estrechos o verticales.
@@ -41,8 +41,8 @@ const motivoPorDefectoPAdES = "Firma electrónica avanzada"
 var (
 	colorSelloFondo    = color.NRGBA{255, 255, 255, 250}
 	colorSelloBorde    = color.NRGBA{190, 202, 211, 255}
-	colorSelloAcento   = color.NRGBA{32, 107, 196, 255} // #206bc4
-	colorSelloNombre   = color.NRGBA{16, 58, 110, 255}  // #103a6e
+	colorSelloAcento   = color.NRGBA{172, 203, 73, 255} // #accb49
+	colorSelloNombre   = color.NRGBA{23, 58, 78, 255}   // #173a4e
 	colorSelloEtiqueta = color.NRGBA{91, 107, 120, 255}
 	colorSelloDetalle  = color.NRGBA{51, 67, 79, 255}
 	fuentesSello       struct {

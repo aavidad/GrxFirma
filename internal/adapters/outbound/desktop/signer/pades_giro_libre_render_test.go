@@ -200,8 +200,8 @@ func orientacionTinta(img image.Image, zona image.Rectangle) (angulo, alargamien
 	return angulo, math.Sqrt((traza + raiz) / 2 / menor), cx, cy
 }
 
-// centroAcento devuelve el centro de la barra de acento del sello (azul
-// #206bc4, en el borde izquierdo de una tarjeta apaisada). El texto azul
+// centroAcento devuelve el centro de la barra de acento del sello (verde
+// #accb49, en el borde izquierdo de una tarjeta apaisada). El texto azul
 // marino es más oscuro y no cuenta.
 func centroAcento(img image.Image, zona image.Rectangle) (cx, cy float64, n int) {
 	zona = zona.Intersect(img.Bounds())
@@ -209,7 +209,7 @@ func centroAcento(img image.Image, zona image.Rectangle) (cx, cy float64, n int)
 		for px := zona.Min.X; px < zona.Max.X; px++ {
 			r, g, b, _ := img.At(px, py).RGBA()
 			r, g, b = r>>8, g>>8, b>>8
-			if b > 150 && b > r+80 && b > g+40 {
+			if g > 120 && g > r+30 && g > b+30 {
 				cx += float64(px)
 				cy += float64(py)
 				n++
