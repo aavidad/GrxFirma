@@ -498,12 +498,32 @@ public sealed class VerifyPageViewModel
             .Distinct(StringComparer.Ordinal)
             .Take(MaximumVisibleItems)
             .ToArray();
-        // Lo primero que busca quien verifica: quién firmó (el motor no da la hora).
+        // Lo primero que busca quien verifica: quién firmó y cuándo. La fecha
+        // solo aparece si el motor la obtuvo de forma fiable, con su origen.
         var names = Signers.Select(DistinguishedNameText.CommonName)
             .Distinct(StringComparer.Ordinal).ToArray();
-        SignedBySummary = names.Length == 0
+        var culture = GrxFirma.WinUI.Core.Localization.AppCulture.For(Localizer.Language);
+        var signedBy = names.Select(name =>
+        {
+            foreach (var summary in data.VisibleSignerSummaries)
+            {
+                if (!string.Equals(DistinguishedNameText.CommonName(summary.Subject), name, StringComparison.Ordinal) ||
+                    !SigningTimeText.TryFormat(summary.SigningTime, summary.SigningTimeSource,
+                        culture, TimeZoneInfo.Local, out var date))
+                {
+                    continue;
+                }
+                return Localizer.Fill("winui.verificar.firmante_con_fecha",
+                    ("subject", name), ("date", date),
+                    ("origin", Localizer.Text(summary.SigningTimeSource == SigningTimeText.FromTimestamp
+                        ? "winui.verificar.fecha_segun_sello"
+                        : "winui.verificar.fecha_del_firmante")));
+            }
+            return name;
+        }).ToArray();
+        SignedBySummary = signedBy.Length == 0
             ? string.Empty
-            : Localizer.Fill("winui.verificar.firmado_por", ("subject", string.Join(", ", names)));
+            : Localizer.Fill("winui.verificar.firmado_por", ("subject", string.Join("; ", signedBy)));
 
         var warnings = data.VisibleWarnings
             .Concat(data.VisibleErrors)

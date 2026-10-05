@@ -81,6 +81,7 @@ MACHINE_WORDS = {
     "owner", "pades", "protect", "protocol", "pt", "reason", "remaining",
     "renewal", "representacion", "resident", "revoked", "sello", "service",
     "settings", "shown", "sign", "signable", "store", "subject", "success",
+    "origin", "timestamp", "yyyy-MM-dd'T'HH:mm:ssK",
     "support", "system", "targets", "tls", "total", "unavailable", "unknown",
     "usable", "va", "valid", "verify", "version", "xades", "xmldsig", "zh",
 }

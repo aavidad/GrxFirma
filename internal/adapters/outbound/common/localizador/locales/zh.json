@@ -6425,4 +6425,7 @@
   ,"report.technical.issuer_dn": "颁发者 (DN)：%s"
   ,"report.evidence.revocation": "吊销状态"
   ,"verificacion.detalle.cadena_firmante": "签名者 %d 证书链中的证书数"
+  ,"winui.verificar.firmante_con_fecha": "{subject}，{date}（{origin}）"
+  ,"winui.verificar.fecha_segun_sello": "依据时间戳"
+  ,"winui.verificar.fecha_del_firmante": "签名者电脑的时间；无时间戳"
 }

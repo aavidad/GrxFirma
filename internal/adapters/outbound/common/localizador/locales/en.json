@@ -6425,4 +6425,7 @@
   ,"report.technical.issuer_dn": "Issuer (DN): %s"
   ,"report.evidence.revocation": "Revocation"
   ,"verificacion.detalle.cadena_firmante": "Certificates in the chain of signer %d"
+  ,"winui.verificar.firmante_con_fecha": "{subject} on {date} ({origin})"
+  ,"winui.verificar.fecha_segun_sello": "according to the timestamp"
+  ,"winui.verificar.fecha_del_firmante": "clock of the signer's computer; no timestamp"
 }

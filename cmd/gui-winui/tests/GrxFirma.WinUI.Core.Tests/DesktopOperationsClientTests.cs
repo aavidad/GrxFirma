@@ -859,7 +859,9 @@ public sealed class DesktopOperationsClientTests
             "id",
             "subject",
             "issuer",
-            "fingerprint");
+            "fingerprint",
+            "signingTime",
+            "signingTimeSource");
         AssertJsonPropertyNames<VerifyEvidence>(
             "type",
             "summary");
