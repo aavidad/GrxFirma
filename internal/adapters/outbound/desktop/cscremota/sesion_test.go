@@ -165,7 +165,21 @@ func TestSesionCompletaConPINyOTP(t *testing.T) {
 	}
 
 	pin, otp := []byte(csctest.PIN), []byte(csctest.OTP)
-	ctxFirma, peticion := cscremota.ContextoConSecretos(ctx, pin, otp)
+	ctxFirma, peticion := cscremota.ContextoConSecretos(ctx, rsaRef.ID, pin, otp)
+	// Los secretos son del certificado RSA: otra credencial que los pide no
+	// puede firmar con ellos aunque viaje en el mismo contexto.
+	for _, r := range refs {
+		if r.ID != rsaRef.ID {
+			if _, err := sesion.KeyFor(ctxFirma, r); cscremota.CodigoVisible(err) != cscremota.CodigoSecretoNoPedido {
+				t.Fatalf("secretos de otro certificado: %v", err)
+			}
+		}
+	}
+	// Ligados a un identificador vacío no valen para ninguno.
+	ctxVacio, _ := cscremota.ContextoConSecretos(ctx, "", pin, otp)
+	if _, err := sesion.KeyFor(ctxVacio, rsaRef); cscremota.CodigoVisible(err) != cscremota.CodigoSecretoNoPedido {
+		t.Fatalf("secretos sin certificado: %v", err)
+	}
 	clave, err := sesion.KeyFor(ctxFirma, rsaRef)
 	if err != nil {
 		t.Fatalf("KeyFor: %v", err)
@@ -214,6 +228,8 @@ func TestSesionCompletaConPINyOTP(t *testing.T) {
 	if _, err := sesion.KeyFor(ctx, rsaRef); !errors.Is(err, cscremota.ErrNoAplicable) {
 		t.Fatalf("tras cerrar, KeyFor = %v", err)
 	}
+	// Sin sesión conectada tampoco se pide al prestador que envíe el OTP.
+	codigo(t, sesion.EnviarOTP(ctx, rsaRef.ID), cscremota.CodigoNoConectada)
 	s.Leer(func(s *csctest.Servidor) {
 		if s.Revocados != 1 {
 			t.Fatalf("el token no se revocó al cerrar: %d", s.Revocados)
@@ -228,5 +244,50 @@ func TestSecretoValido(t *testing.T) {
 	if cscremota.SecretoValido([]byte("12\n34")) || cscremota.SecretoValido([]byte{0xff}) ||
 		cscremota.SecretoValido([]byte(strings.Repeat("1", 300))) {
 		t.Fatal("secreto no válido aceptado")
+	}
+}
+
+type catalogoFijo struct{ refs []domain.CertificateRef }
+
+func (c *catalogoFijo) List(context.Context) ([]domain.CertificateRef, error) { return c.refs, nil }
+
+// Una credencial remota con la huella de un certificado local no se ofrece:
+// el mismo identificador designaría dos claves distintas.
+func TestSesionDescartaCredencialesConHuellaLocal(t *testing.T) {
+	s := csctest.Nuevo(t)
+	var permitida atomic.Bool
+	permitida.Store(true)
+	ctx := context.Background()
+	locales := &catalogoFijo{}
+	sesion := cscremota.Nueva(cscremota.Opciones{
+		ConfigDir:     t.TempDir(),
+		HTTP:          s.Client(),
+		Navegador:     s.Navegador(),
+		CatalogoLocal: locales,
+		CargarConfig: func() (config.Config, config.Policy, error) {
+			cfg := config.Default()
+			cfg.FirmaRemotaCSC = permitida.Load()
+			return cfg, config.Policy{}, nil
+		},
+	})
+	t.Cleanup(func() { _ = sesion.Close() })
+	if _, err := sesion.Configurar(ctx, s.URL, csctest.ClientID); err != nil {
+		t.Fatal(err)
+	}
+	creds, descartadas, err := sesion.Conectar(ctx)
+	if err != nil || len(creds) != 2 || descartadas != 0 {
+		t.Fatalf("sin coincidencias: %d %d %v", len(creds), descartadas, err)
+	}
+	repetida := creds[0].Ref
+	locales.refs = []domain.CertificateRef{{ID: strings.ToUpper(repetida.ID), Fingerprint: strings.ToUpper(repetida.Fingerprint), Subject: "CN=Local"}}
+	creds, descartadas, err = sesion.Conectar(ctx)
+	if err != nil || len(creds) != 1 || descartadas != 1 || creds[0].Ref.ID == repetida.ID {
+		t.Fatalf("con coincidencia: %+v %d %v", creds, descartadas, err)
+	}
+	if _, ok := sesion.Credencial(repetida.ID); ok {
+		t.Fatal("la credencial repetida sigue disponible")
+	}
+	if _, err := sesion.KeyFor(ctx, repetida); !errors.Is(err, cscremota.ErrNoAplicable) {
+		t.Fatalf("KeyFor de la repetida: %v", err)
 	}
 }

@@ -22,6 +22,8 @@ public sealed partial class FacturaePage : Page
     private bool _verifactuBusy;
     // Igual que el motor: el QR tributario va en la factura, normalmente en la primera página.
     private const int MaximumQrPdfPages = 5;
+    // Código estable del motor (IPC errorCode) para «QR no encontrado».
+    private const string VeriFactuQrNotFoundCode = "verifactu_qr_not_found";
     private static string T(string key) => SealUiCatalog.Text(Localizer.Language, key);
 
     public FacturaePage()
@@ -252,6 +254,10 @@ public sealed partial class FacturaePage : Page
                 total = rendered.TotalPages;
                 last = await operations.ReadVeriFactuQrFromImageAsync(rendered.Data);
                 if (last.IsSuccess) break;
+                // Solo «no encontrado» justifica probar la página siguiente: un
+                // plazo vencido, otra búsqueda en curso o cualquier otro fallo
+                // se muestran ya, sin lanzar más escaneos sobre el motor.
+                if (!string.Equals(last.ErrorCode, VeriFactuQrNotFoundCode, StringComparison.Ordinal)) break;
             }
             if (last is null) VeriFactuQrReport.Text = T("verifactu.qr_pdf");
             else ShowVeriFactuQrResult(last);

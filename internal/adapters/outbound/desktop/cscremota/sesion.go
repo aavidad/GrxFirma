@@ -64,6 +64,12 @@ const (
 	CodigoParesOAuthInvalidos csc.Codigo = "pares_oauth_invalidos"
 	CodigoOTPLote             csc.Codigo = "otp_lote"
 	CodigoSecretoNoPedido     csc.Codigo = "secreto_no_pedido"
+	// CodigoAdicionalConSecretos: en una multifirma solo el firmante
+	// principal puede usar un certificado remoto que pide PIN u OTP.
+	CodigoAdicionalConSecretos csc.Codigo = "adicional_con_secretos" // #nosec G101 -- código de error, no un secreto.
+	// CodigoProtegerConSecretos: «proteger y firmar» con un certificado
+	// remoto que pide PIN u OTP sin que la petición los traiga.
+	CodigoProtegerConSecretos csc.Codigo = "proteger_con_secretos" // #nosec G101 -- código de error, no un secreto.
 )
 
 // ErrNoAplicable indica que el certificado pedido no es remoto: el proveedor
@@ -88,6 +94,11 @@ type Opciones struct {
 	TextoCallback string
 	// CargarConfig sustituye la lectura de config.json y de la política (pruebas).
 	CargarConfig func() (config.Config, config.Policy, error)
+	// CatalogoLocal son los certificados locales (almacenes del sistema,
+	// PKCS#12, tarjetas). Al conectar se descarta toda credencial remota con
+	// la huella de uno local: el mismo identificador no puede designar una
+	// clave local y otra del prestador.
+	CatalogoLocal ports.CertificateCatalog
 }
 
 // Estado resume la sesión para la interfaz. No incluye tokens.
@@ -304,6 +315,7 @@ func (s *Sesion) Conectar(ctx context.Context) ([]CredencialRemota, int, error) 
 	if err != nil {
 		return nil, 0, err
 	}
+	locales := s.huellasLocales(ctx)
 	creds := make(map[string]*remota, len(ids))
 	orden := make([]string, 0, len(ids))
 	descartadas := 0
@@ -322,6 +334,12 @@ func (s *Sesion) Conectar(ctx context.Context) ([]CredencialRemota, int, error) 
 			descartadas++
 			continue
 		}
+		// Coincide con un certificado local: se omite y la interfaz avisa
+		// de que hay certificados remotos que no se muestran.
+		if locales[strings.ToLower(ref.ID)] || locales[strings.ToLower(ref.Fingerprint)] {
+			descartadas++
+			continue
+		}
 		creds[ref.ID] = &remota{cred: cred, ref: ref}
 		orden = append(orden, ref.ID)
 	}
@@ -333,6 +351,29 @@ func (s *Sesion) Conectar(ctx context.Context) ([]CredencialRemota, int, error) 
 	}
 	s.creds, s.orden, s.conectada = creds, orden, true
 	return s.listaLocked(), descartadas, nil
+}
+
+// huellasLocales devuelve los identificadores y huellas de los certificados
+// locales, en minúsculas. Si el catálogo local no responde, la firma remota
+// sigue disponible: el proveedor de claves consulta antes las fuentes
+// locales, así que un identificador repetido nunca acaba en el prestador.
+func (s *Sesion) huellasLocales(ctx context.Context) map[string]bool {
+	huellas := map[string]bool{}
+	if s.opc.CatalogoLocal == nil {
+		return huellas
+	}
+	refs, err := s.opc.CatalogoLocal.List(ctx)
+	if err != nil {
+		return huellas
+	}
+	for _, r := range refs {
+		for _, v := range []string{r.ID, r.Fingerprint} {
+			if v = strings.ToLower(strings.TrimSpace(v)); v != "" {
+				huellas[v] = true
+			}
+		}
+	}
+	return huellas
 }
 
 // Desconectar revoca los tokens y borra de la memoria el cliente y los
@@ -377,9 +418,9 @@ func (s *Sesion) EnviarOTP(ctx context.Context, certID string) error {
 	}
 	s.mu.Lock()
 	r, ok := s.creds[certID]
-	cliente := s.cliente
+	cliente, conectada := s.cliente, s.conectada
 	s.mu.Unlock()
-	if !ok || cliente == nil {
+	if !ok || !conectada || cliente == nil {
 		return nuevoError(CodigoNoConectada)
 	}
 	return cliente.EnviarOTP(ctx, r.cred)
@@ -418,6 +459,8 @@ func (s *Sesion) KeyFor(ctx context.Context, ref domain.CertificateRef) (ports.S
 		s.Desconectar()
 		return nil, err
 	}
+	// NuevaClave liga el PIN y el OTP de la petición a este certificado,
+	// también en la autorización conjunta de un lote.
 	return NuevaClave(ctx, cliente, r.cred, peticionDe(ctx).anotar)
 }
 
@@ -435,6 +478,10 @@ func (s *Sesion) listaLocked() []CredencialRemota {
 		lista = append(lista, describir(s.creds[id]))
 	}
 	return lista
+}
+
+func necesitaSecretos(cred *csc.Credencial) bool {
+	return cred.Modo == csc.ModoExplicito && (cred.PIN || cred.OTP)
 }
 
 func describir(r *remota) CredencialRemota {

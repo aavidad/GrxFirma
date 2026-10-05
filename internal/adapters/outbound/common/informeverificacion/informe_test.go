@@ -58,3 +58,37 @@ func TestHTML_IntegraPeroCertificadoNoAcreditado(t *testing.T) {
 		t.Fatalf("veredicto inesperado: %v", err)
 	}
 }
+
+// Un U+202E (o cualquier carácter de formato o control) en un texto del
+// documento o del certificado invertiría lo que se lee en el informe.
+func TestHTML_QuitaControlYFormatoDeTodasLasCadenas(t *testing.T) {
+	const rlo = "\u202e"
+	res := domain.NewVerificationFailure("XAdES"+rlo, "motivo"+rlo+"fdp.exe", []string{"detalle" + rlo + "\u200b"})
+	res.Warnings = []string{"aviso" + rlo + "\x07"}
+	res.Errors = []string{"error" + rlo}
+	res.Integrity.Reason = "integridad" + rlo
+	res.Integrity.Details = []string{"det-integridad" + rlo + "\ufeff"}
+	res.Certificate.Reason = "certificado" + "\u2066" + rlo
+	res.Trust.Details = []string{"confianza" + rlo}
+	res.SignerSummaries = []domain.VerificationSignerSummary{{Subject: "CN=Ana" + rlo + "gpj.exe", Issuer: "CN=AC" + rlo, Fingerprint: "ab" + rlo}}
+	res.Evidence = []domain.VerificationEvidence{{Type: "tsa" + rlo, Summary: "sello" + rlo}}
+	out, err := HTML(Datos{NombreDocumento: "doc" + rlo + ".xsig", Resultado: res, Fecha: time.Now(), VersionApp: "2.0" + rlo})
+	if err != nil {
+		t.Fatal(err)
+	}
+	html := string(out)
+	for _, prohibido := range []string{rlo, "\u200b", "\ufeff", "\u2066", "\x07"} {
+		if strings.Contains(html, prohibido) {
+			t.Fatalf("el informe conserva %U", []rune(prohibido)[0])
+		}
+	}
+	for _, esperado := range []string{"CN=Anagpj.exe", "motivofdp.exe", "aviso", "error", "integridad", "det-integridad", "confianza", "sello", "doc.xsig"} {
+		if !strings.Contains(html, esperado) {
+			t.Errorf("falta %q", esperado)
+		}
+	}
+	// No modifica el resultado del llamante.
+	if !strings.Contains(res.SignerSummaries[0].Subject, rlo) {
+		t.Fatal("se ha modificado el resultado original")
+	}
+}

@@ -213,6 +213,28 @@ func TestReleaseDestinationOficialQuedaAncladoAlRepositorio(t *testing.T) {
 	); err == nil {
 		t.Fatal("se aceptó un enlace de descarga en vez de la página de la release")
 	}
+	// La etiqueta es un solo segmento literal: ni barras, ni «..», ni
+	// secuencias escapadas que el navegador resolvería después.
+	for _, malo := range []string{
+		"https://github.com/aavidad/GrxFirma/releases/tag/v2.0.0/../../../../otro/repo",
+		"https://github.com/aavidad/GrxFirma/releases/tag/%2e%2e/%2e%2e/%2e%2e/otro",
+		"https://github.com/aavidad/GrxFirma/releases/tag/%2e%2e",
+		"https://github.com/aavidad/GrxFirma/releases/tag/v2%2f..%2f..",
+		"https://github.com/aavidad/GrxFirma/releases/tag/v2.0.0/",
+		"https://github.com/aavidad/GrxFirma/releases/tag/..",
+	} {
+		if _, err := releaseDestination(endpoint, malo); err == nil {
+			t.Errorf("se aceptó %q", malo)
+		}
+	}
+	for _, bueno := range []string{
+		"https://github.com/aavidad/GrxFirma/releases/tag/0.0.116",
+		"https://github.com/aavidad/GrxFirma/releases/tag/v2.0.1-rc.1",
+	} {
+		if _, err := releaseDestination(endpoint, bueno); err != nil {
+			t.Errorf("se rechazó %q: %v", bueno, err)
+		}
+	}
 	got, err := releaseDestination(
 		endpoint,
 		"https://github.com/aavidad/GrxFirma/releases/tag/v2.0.0",

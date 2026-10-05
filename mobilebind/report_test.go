@@ -49,4 +49,20 @@ func TestVerifyIncludesDesktopHTMLReportOnRequest(t *testing.T) {
 	if !strings.Contains(text, "FIRMA ÍNTEGRA") {
 		t.Fatalf("veredicto inesperado: %s", text[:200])
 	}
+	// El motivo sale del catálogo, no de una clave sin resolver.
+	if strings.Contains(text, "movil.informe") || !strings.Contains(text, "no se evalúa en el móvil") {
+		t.Fatal("el motivo de confianza debe salir del catálogo")
+	}
+}
+
+// La app traduce los avisos del motor usando la frase en castellano como
+// clave de su catálogo: el texto del catálogo del motor debe coincidir.
+func TestTextosMotorSalenDelCatalogo(t *testing.T) {
+	const claveApp = "La integridad criptografica se ha verificado, pero la confianza de la cadena no esta evaluada por el sistema."
+	if got := textoMotor("movil.verificacion.cadena_no_evaluada"); got != claveApp {
+		t.Fatalf("aviso de cadena = %q", got)
+	}
+	if got := textoMotor("movil.informe.confianza_no_evaluada"); got == "movil.informe.confianza_no_evaluada" || got == "" {
+		t.Fatalf("motivo sin resolver: %q", got)
+	}
 }

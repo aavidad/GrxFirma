@@ -18,21 +18,51 @@ import (
 // prestador admite varias firmas por autorización (multisign), un lote se
 // autoriza por grupos con un solo PIN u OTP. anotar recibe los errores del
 // servicio para explicarlos a la persona; puede ser nil.
+//
+// El PIN y el OTP de la petición ([ContextoConSecretos]) solo llegan a esta
+// credencial si se escribieron para su certificado, tanto en la firma de un
+// documento como en cada grupo de un lote. Si son de otro certificado y la
+// credencial los necesita, responde secreto_no_pedido.
 func NuevaClave(ctx context.Context, cliente *csc.Cliente, cred *csc.Credencial, anotar func(error)) (*deskSigner.ClaveLocal, error) {
 	if anotar == nil {
 		anotar = func(error) {}
+	}
+	if cred == nil || cred.Certificado == nil {
+		return nil, &csc.Error{Codigo: csc.CodigoCredencialNoValida}
+	}
+	certID := cred.Referencia().ID
+	ctx, err := ligarSecretos(ctx, certID, cred)
+	if err != nil {
+		return nil, err
 	}
 	firmante, err := cliente.Firmante(ctx, cred)
 	if err != nil {
 		return nil, err
 	}
 	clave := deskSigner.NuevaClaveLocalConCadena(&firmanteAnotado{firmante: firmante, anotar: anotar}, cred.Certificado, cred.Cadena)
-	return clave.ConAutorizadorLote(&autorizadorLote{cliente: cliente, cred: cred, anotar: anotar}), nil
+	return clave.ConAutorizadorLote(&autorizadorLote{cliente: cliente, cred: cred, certID: certID, anotar: anotar}), nil
+}
+
+// ligarSecretos deja en el contexto el PIN y el OTP de la petición solo si
+// son del certificado certID. Si son de otro, una credencial que los
+// necesita no puede firmar con ellos y una que no los necesita firma sin
+// verlos. Sin petición (la CLI pide los secretos por su cuenta) no cambia
+// nada.
+func ligarSecretos(ctx context.Context, certID string, cred *csc.Credencial) (context.Context, error) {
+	peticion := peticionDe(ctx)
+	if peticion == nil || peticion.paraCertificado(certID) {
+		return ctx, nil
+	}
+	if necesitaSecretos(cred) {
+		return nil, nuevoError(CodigoSecretoNoPedido)
+	}
+	return context.WithValue(ctx, claveSecretos{}, (*Peticion)(nil)), nil
 }
 
 type autorizadorLote struct {
 	cliente *csc.Cliente
 	cred    *csc.Credencial
+	certID  string
 	anotar  func(error)
 }
 
@@ -44,7 +74,14 @@ func (a *autorizadorLote) CapacidadLote(total int) (int, error) {
 	return n, err
 }
 
+// IniciarLote recibe el contexto del lote, que no es el de NuevaClave: los
+// secretos se vuelven a ligar al certificado de esta clave.
 func (a *autorizadorLote) IniciarLote(ctx context.Context, n int) (deskSigner.FirmantesLote, error) {
+	ctx, err := ligarSecretos(ctx, a.certID, a.cred)
+	if err != nil {
+		a.anotar(err)
+		return nil, err
+	}
 	lote, err := a.cliente.NuevoLote(ctx, a.cred, n)
 	if err != nil {
 		a.anotar(err)

@@ -251,10 +251,29 @@ func releaseDestination(endpoint *url.URL, raw string) (string, error) {
 		destination.RawQuery != "" ||
 		destination.Fragment != "" ||
 		!strings.HasPrefix(escapedPath, tagPrefix) ||
-		len(escapedPath) == len(tagPrefix) {
+		!etiquetaReleaseValida(escapedPath[len(tagPrefix):]) {
 		return "", fmt.Errorf("destino de release fuera del repositorio oficial")
 	}
 	return destination.String(), nil
+}
+
+// etiquetaReleaseValida admite una etiqueta de versión literal (v2.0.1,
+// 0.0.116, 2.0.1-rc.1+build). Sin barras ni secuencias escapadas como %2e
+// o %2f, el enlace no puede salir de la página de esa release con «..».
+func etiquetaReleaseValida(etiqueta string) bool {
+	if etiqueta == "" || etiqueta == "." || etiqueta == ".." || len(etiqueta) > 128 {
+		return false
+	}
+	for i := 0; i < len(etiqueta); i++ {
+		c := etiqueta[i]
+		switch {
+		case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9':
+		case c == '.', c == '-', c == '_', c == '+':
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 func isOfficialLatestEndpoint(endpoint *url.URL) bool {

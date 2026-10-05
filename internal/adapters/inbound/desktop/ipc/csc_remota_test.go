@@ -20,6 +20,7 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/cscremota"
 	desktopsigner "grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/application"
+	"grxfirma/internal/domain"
 	"grxfirma/internal/testsupport/csctest"
 )
 
@@ -252,5 +253,70 @@ func TestCSCIPCAccionesSensiblesYLargas(t *testing.T) {
 	}
 	if desktopIPCTimeoutDe("csc_connect") != longIPCOperationTimeout {
 		t.Fatal("csc_connect espera al navegador y necesita el tiempo largo")
+	}
+}
+
+func TestCSCIPCSecretosLigadosAlFirmantePrincipal(t *testing.T) {
+	e := nuevoEntornoCSCIPC(t, "explicit")
+	if resp := pedirIPC(t, e.m, "csc_configure", map[string]any{"serviceUrl": e.servidor.URL, "clientId": csctest.ClientID}); !resp.OK {
+		t.Fatalf("csc_configure: %+v", resp)
+	}
+	resp := pedirIPC(t, e.m, "csc_connect", map[string]any{})
+	if !resp.OK {
+		t.Fatalf("csc_connect: %+v", resp)
+	}
+	creds := resp.Data.(resultadoCSCConexion).Credentials
+	if len(creds) != 2 {
+		t.Fatalf("credenciales: %+v", creds)
+	}
+	principal, adicional := creds[0].CertificateID, creds[1].CertificateID
+	pin := base64.StdEncoding.EncodeToString([]byte(csctest.PIN))
+	otp := base64.StdEncoding.EncodeToString([]byte(csctest.OTP))
+	entrada := filepath.Join(t.TempDir(), "doc.txt")
+	if err := os.WriteFile(entrada, []byte("documento"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	// Un firmante adicional remoto que pide PIN u OTP se rechaza antes de
+	// firmar: los secretos de la petición son solo del principal.
+	resp = pedirIPC(t, e.m, "sign_multicosign", map[string]any{
+		"inputPath": entrada, "certificateId": principal, "format": "cades",
+		"additionalCertificateIds": []string{adicional}, "remotePin": pin, "remoteOtp": otp,
+	})
+	if resp.OK || resp.ErrorCode != "csc_adicional_con_secretos" {
+		t.Fatalf("adicional remoto con secretos: %+v", resp)
+	}
+
+	// «Proteger y firmar» con un certificado remoto sin sus secretos se
+	// rechaza con un mensaje propio en lugar de un fallo genérico.
+	resp = pedirIPC(t, e.m, "protect_sign", map[string]any{"inputPath": entrada, "certificateId": principal, "profile": "compatible"})
+	if resp.OK || resp.ErrorCode != "csc_proteger_con_secretos" {
+		t.Fatalf("proteger y firmar sin secretos: %+v", resp)
+	}
+	resp = pedirIPC(t, e.m, "protect_sign", map[string]any{"inputPath": entrada, "certificateId": strings.Repeat("b", 64), "remotePin": pin})
+	if resp.OK || resp.ErrorCode != "csc_secreto_no_pedido" {
+		t.Fatalf("proteger y firmar con secretos para un certificado local: %+v", resp)
+	}
+
+	// El certificado se resuelve una sola vez: aunque la lista cambie entre
+	// la preparación y la firma, el manejador usa el mismo.
+	refs, err := e.sesion.List(context.Background())
+	if err != nil || len(refs) != 2 {
+		t.Fatalf("List: %v %v", refs, err)
+	}
+	e.m.setUltimosCerts(refs)
+	raw, _ := json.Marshal(map[string]any{"certificateIndex": 0, "remotePin": pin})
+	ctx, peticion, liberar, rechazo := e.m.prepararFirmaRemota(context.Background(), "sign", raw)
+	defer liberar()
+	if rechazo != nil || peticion == nil {
+		t.Fatalf("preparar: %+v", rechazo)
+	}
+	e.m.setUltimosCerts([]domain.CertificateRef{refs[1], refs[0]})
+	if id, err := e.m.resolverCertIDPreferido(ctx, "", 0); err != nil || id != refs[0].ID {
+		t.Fatalf("resuelto de nuevo: %q %v (esperado %q)", id, err, refs[0].ID)
+	}
+	// Otro índice no reutiliza la resolución guardada.
+	if id, _ := e.m.resolverCertIDPreferido(ctx, "", 1); id != refs[0].ID {
+		t.Fatalf("índice 1 tras reordenar: %q", id)
 	}
 }

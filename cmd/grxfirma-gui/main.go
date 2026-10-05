@@ -427,9 +427,9 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 		Navegador:     csc.AbrirNavegadorSistema,
 		Idioma:        idiomaPreferido(configDir),
 		TextoCallback: loc.T("csc.navegador.vuelta"),
+		CatalogoLocal: catalogo,
 	})
-	catalogo = certcatalogagg.New(catalogo, sesionCSC)
-	claves = &proveedorClavesAgregado{fuentes: []ports.SigningKeyProvider{sesionCSC, claves}}
+	catalogo, claves = agregarFirmaRemota(catalogo, claves, sesionCSC)
 
 	// Motor de firma.
 	motor := deskSigner.NuevoMotorFirmaGo(relojReal{})
@@ -549,6 +549,22 @@ func (p *proveedorClavesMemoria) KeyFor(_ context.Context, ref domain.Certificat
 		return k, nil
 	}
 	return nil, fmt.Errorf("clave no encontrada para %s", ref.ID)
+}
+
+// fuenteRemota es la sesión de firma remota vista como catálogo y proveedor.
+type fuenteRemota interface {
+	ports.CertificateCatalog
+	ports.SigningKeyProvider
+}
+
+// agregarFirmaRemota coloca la sesión CSC detrás de las fuentes locales en
+// el catálogo y en las claves, con el mismo orden en ambos: el catálogo
+// conserva el primero de dos certificados con la misma huella, y la clave
+// debe salir de esa misma fuente. Con el orden invertido, un certificado
+// remoto con la huella de uno local desviaba la firma local al prestador.
+func agregarFirmaRemota(catalogo ports.CertificateCatalog, claves ports.SigningKeyProvider, remota fuenteRemota) (ports.CertificateCatalog, ports.SigningKeyProvider) {
+	return certcatalogagg.New(catalogo, remota),
+		&proveedorClavesAgregado{fuentes: []ports.SigningKeyProvider{claves, remota}}
 }
 
 type proveedorClavesAgregado struct{ fuentes []ports.SigningKeyProvider }

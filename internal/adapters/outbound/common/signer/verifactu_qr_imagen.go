@@ -19,6 +19,7 @@ import (
 
 	"github.com/makiuchi-d/gozxing"
 	multiqr "github.com/makiuchi-d/gozxing/multi/qrcode"
+	"github.com/makiuchi-d/gozxing/qrcode"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/ports"
@@ -35,11 +36,18 @@ const (
 	// el QR. El QR tributario va en la factura, normalmente en la primera.
 	VeriFactuQRMaxPDFPages = 5
 
-	vfQRMaxSide     = 12000
-	vfQRMaxPixels   = 36_000_000
+	// Una foto de móvil de 12 Mpx (4032x3024) y una página rasterizada por
+	// el visor (lado máximo 4096) caben; un PNG RGBA de 16 bits con este
+	// tope ocupa unos 128 MB decodificado.
+	vfQRMaxSide     = 8192
+	vfQRMaxPixels   = 16_000_000
 	vfQRScanSide    = 2500
 	vfQRTimeout     = 60 * time.Second
 	vfQRPNGMaxBytes = 64 * 1024 * 1024
+	// vfQRMaxPuntos acota los patrones candidatos (de localización y de
+	// alineación) por intento. Una factura tiene uno o dos QR, con menos de
+	// una docena; el tope deja margen para fotos con ruido.
+	vfQRMaxPuntos = 120
 )
 
 // ErrorQRVeriFactuFuente es el error localizable de una fuente del QR que no
@@ -117,7 +125,7 @@ func vfQRDesdePDF(ctx context.Context, ruta string, visor ports.VisualizadorPDF)
 		if e == nil {
 			return qr, nil
 		}
-		if p, ok := e.(vfProblem); ok && (p.Key == "verifactu.qr_timeout" || p.Key == "verifactu.qr_image") {
+		if p, ok := e.(vfProblem); ok && (p.Key == "verifactu.qr_timeout" || p.Key == "verifactu.qr_busy" || p.Key == "verifactu.qr_image") {
 			return VeriFactuQR{}, e
 		}
 		if p, ok := e.(vfProblem); ok && p.Key != "verifactu.qr_not_found" && primerError == nil {
@@ -152,31 +160,62 @@ func vfQRDesdeImagen(ctx context.Context, data []byte) (VeriFactuQR, error) {
 	return vfQRDesdeImagenSinLimiteBytes(ctx, data)
 }
 
+// vfQRSemaforo deja un único escaneo en curso en todo el proceso. La
+// biblioteca de QR no admite cancelación: si vence el plazo, el trabajo
+// sigue hasta terminar, y sin este límite cada reintento sumaría otro núcleo
+// ocupado y otra imagen en memoria. Lo libera la goroutine al acabar, no
+// quien espera, así que una petición que llega mientras sigue en marcha uno
+// vencido se rechaza con qr_busy.
+var vfQRSemaforo = make(chan struct{}, 1)
+
+// vfQRTrabajo es el trabajo protegido por el semáforo; las pruebas lo
+// sustituyen para simular bloqueos y fallos internos.
+var vfQRTrabajo = vfQRProcesar
+
 // vfQRDesdeImagenSinLimiteBytes se usa con el PNG que genera el rasterizador,
 // cuyo tamaño ya acota el visor; las dimensiones se siguen comprobando.
 func vfQRDesdeImagenSinLimiteBytes(ctx context.Context, data []byte) (VeriFactuQR, error) {
+	if ctx.Err() != nil {
+		return VeriFactuQR{}, vfError("qr_timeout")
+	}
+	select {
+	case vfQRSemaforo <- struct{}{}:
+	default:
+		return VeriFactuQR{}, vfError("qr_busy")
+	}
+	type salida struct {
+		qr  VeriFactuQR
+		err error
+	}
+	ch := make(chan salida, 1)
+	trabajo := vfQRTrabajo
+	go func() {
+		var s salida
+		defer func() {
+			// Cubre la decodificación de la imagen, la conversión a gris, la
+			// reducción y la propia biblioteca de QR.
+			if recover() != nil {
+				s = salida{err: vfError("qr_image")}
+			}
+			<-vfQRSemaforo
+			ch <- s
+		}()
+		s.qr, s.err = trabajo(ctx, data)
+	}()
+	select {
+	case <-ctx.Done():
+		return VeriFactuQR{}, vfError("qr_timeout")
+	case s := <-ch:
+		return s.qr, s.err
+	}
+}
+
+func vfQRProcesar(ctx context.Context, data []byte) (VeriFactuQR, error) {
 	img, e := vfQRDecodificar(data)
 	if e != nil {
 		return VeriFactuQR{}, e
 	}
-	textos, e := vfQREscanear(ctx, img)
-	if e != nil {
-		return VeriFactuQR{}, e
-	}
-	var primerError error
-	for _, texto := range textos {
-		qr, e := LeerQRVeriFactu(strings.TrimRight(texto, "\r\n"))
-		if e == nil {
-			return qr, nil
-		}
-		if primerError == nil {
-			primerError = e
-		}
-	}
-	if primerError != nil {
-		return VeriFactuQR{}, primerError
-	}
-	return VeriFactuQR{}, vfError("qr_not_found")
+	return vfQREscanear(ctx, img)
 }
 
 // vfQRDecodificar solo admite PNG y JPEG, reconocidos por su firma y no por
@@ -214,28 +253,13 @@ func vfQRDimensionesAdmitidas(w, h int) bool {
 }
 
 // vfQREscanear prueba primero una versión reducida (más rápida y tolerante al
-// ruido de las fotos) y después la resolución original. La biblioteca no
-// admite cancelación, así que el trabajo se acota con el contexto y con el
-// tamaño máximo de la imagen.
-func vfQREscanear(ctx context.Context, img image.Image) ([]string, error) {
-	type salida struct {
-		textos []string
-		err    error
-	}
-	ch := make(chan salida, 1)
-	go func() {
-		textos, err := vfQREscanearSincrono(ctx, img)
-		ch <- salida{textos, err}
-	}()
-	select {
-	case <-ctx.Done():
-		return nil, vfError("qr_timeout")
-	case s := <-ch:
-		return s.textos, s.err
-	}
-}
-
-func vfQREscanearSincrono(ctx context.Context, img image.Image) ([]string, error) {
+// ruido de las fotos) y después la resolución original. En cada una usa antes
+// el lector de un solo código, que es barato, y solo si no da un QR
+// tributario el lector de varios códigos. La biblioteca no admite
+// cancelación: el trabajo se acota con el tamaño máximo de la imagen y con
+// un tope de patrones candidatos (vfQRMaxPuntos), y se consulta el contexto
+// entre intentos.
+func vfQREscanear(ctx context.Context, img image.Image) (VeriFactuQR, error) {
 	gris := vfQRGris(img)
 	candidatas := []*image.Gray{}
 	b := gris.Bounds()
@@ -243,20 +267,36 @@ func vfQREscanearSincrono(ctx context.Context, img image.Image) ([]string, error
 		candidatas = append(candidatas, vfQRReducir(gris, vfQRScanSide))
 	}
 	candidatas = append(candidatas, gris)
+	var primerError error
 	for _, c := range candidatas {
-		if ctx.Err() != nil {
-			return nil, vfError("qr_timeout")
-		}
-		if textos := vfQRDecodificarCodigos(c); len(textos) > 0 {
-			return textos, nil
+		for _, varios := range []bool{false, true} {
+			if ctx.Err() != nil {
+				return VeriFactuQR{}, vfError("qr_timeout")
+			}
+			for _, texto := range vfQRDecodificarCodigos(c, varios) {
+				qr, e := LeerQRVeriFactu(strings.TrimRight(texto, "\r\n"))
+				if e == nil {
+					return qr, nil
+				}
+				if primerError == nil {
+					primerError = e
+				}
+			}
 		}
 	}
-	return nil, vfError("qr_not_found")
+	if primerError != nil {
+		return VeriFactuQR{}, primerError
+	}
+	return VeriFactuQR{}, vfError("qr_not_found")
 }
 
-func vfQRDecodificarCodigos(img *image.Gray) (textos []string) {
+// vfQRDemasiadosPuntos interrumpe la búsqueda cuando la imagen tiene más
+// patrones candidatos de los que cabe esperar en una factura.
+type vfQRDemasiadosPuntos struct{}
+
+func vfQRDecodificarCodigos(img *image.Gray, varios bool) (textos []string) {
 	// Un QR dañado o malicioso no debe tumbar el motor si la biblioteca
-	// encuentra un caso no previsto.
+	// encuentra un caso no previsto; el tope de puntos también sale por aquí.
 	defer func() {
 		if recover() != nil {
 			textos = nil
@@ -266,9 +306,26 @@ func vfQRDecodificarCodigos(img *image.Gray) (textos []string) {
 	if e != nil {
 		return nil
 	}
+	// La selección de patrones de la biblioteca crece con el cubo de los
+	// candidatos: una imagen con el mismo QR repetido en mosaico la deja
+	// minutos al 100 %. Se cuentan con la llamada de retorno y se aborta.
+	puntos := 0
 	hints := map[gozxing.DecodeHintType]interface{}{
 		gozxing.DecodeHintType_TRY_HARDER:    true,
 		gozxing.DecodeHintType_CHARACTER_SET: "UTF-8",
+		gozxing.DecodeHintType_NEED_RESULT_POINT_CALLBACK: gozxing.ResultPointCallback(func(gozxing.ResultPoint) {
+			puntos++
+			if puntos > vfQRMaxPuntos {
+				panic(vfQRDemasiadosPuntos{})
+			}
+		}),
+	}
+	if !varios {
+		r, e := qrcode.NewQRCodeReader().Decode(bmp, hints)
+		if e != nil || r == nil || len(r.GetText()) > 4096 {
+			return nil
+		}
+		return []string{r.GetText()}
 	}
 	results, e := multiqr.NewQRCodeMultiReader().DecodeMultiple(bmp, hints)
 	if e != nil {

@@ -35,6 +35,10 @@ class VeriFactuContract(unittest.TestCase):
         self.assertIn("operations.ReadVeriFactuQrFromFileAsync(path)", code)
         self.assertIn("preview.RenderPageForCodeReadingAsync(path, page, CancellationToken.None)", code)
         self.assertIn("operations.ReadVeriFactuQrFromImageAsync(rendered.Data)", code)
+        # Solo «no encontrado» pasa a la página siguiente; otro fallo para el bucle.
+        loop = code.split("for (var page = 1;", 1)[1].split("if (last is null)", 1)[0]
+        self.assertIn("if (!string.Equals(last.ErrorCode, VeriFactuQrNotFoundCode, StringComparison.Ordinal)) break;", loop)
+        self.assertIn('private const string VeriFactuQrNotFoundCode = "verifactu_qr_not_found";', code)
         self.assertIn("global::GrxFirma.WinUI.Core.Operations.VeriFactuQrInput.IsPdfSource(path)", code)
         self.assertIn("VeriFactuQrInput.EnsureImagePayload(imageB64)", client)
         self.assertIn("new { imageB64 }", client)
