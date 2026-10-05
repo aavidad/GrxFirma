@@ -6,6 +6,7 @@
 package websocket
 
 import (
+	"bufio"
 	"context"
 	"crypto/sha1" // #nosec G505 -- RFC 6455 mandates SHA-1 only for the WebSocket handshake accept token.
 	"crypto/subtle"
@@ -823,7 +824,12 @@ func serveLegacyWebSocket(ctx context.Context, adapter *Adaptador, hooks *Sessio
 			if hooks != nil && hooks.OnMessageReceived != nil && !esEco {
 				hooks.OnMessageReceived(op)
 			}
-			result, err := adapter.HandleText(ctx, strings.TrimSpace(r.Header.Get("Origin")), message)
+			// Si la web cierra el canal mientras se espera al usuario (por
+			// ejemplo, en el editor del sello), la operación se cancela y no
+			// deja ventanas ni procesos abiertos.
+			handleCtx, stopWatching := watchPeerClose(ctx, conn, buf.Reader)
+			result, err := adapter.HandleText(handleCtx, strings.TrimSpace(r.Header.Get("Origin")), message)
+			stopWatching()
 			if err != nil {
 				reply := legacyWebSocketErrorText(err)
 				trace.WarnContext(ctx, "websocket_handle_error", "operation", op, "error", err, "reply", reply, "origin", r.Header.Get("Origin"), "prefix", truncateForTrace(message, 160))
@@ -855,6 +861,35 @@ func serveLegacyWebSocket(ctx context.Context, adapter *Adaptador, hooks *Sessio
 			trace.WarnContext(ctx, "websocket_unsupported_opcode", "opcode", frame.opcode, "origin", r.Header.Get("Origin"))
 			return fmt.Errorf("websocket: opcode no soportado: %d", frame.opcode)
 		}
+	}
+}
+
+// watchPeerClose cancela el contexto devuelto si el portal cierra la conexión
+// o envía un marco de cierre mientras se atiende un mensaje. Solo mira el
+// siguiente byte sin consumirlo: el bucle principal lo leerá después. La
+// función de parada debe llamarse antes de volver a leer de reader.
+func watchPeerClose(ctx context.Context, conn net.Conn, reader *bufio.Reader) (context.Context, func()) {
+	handleCtx, cancel := context.WithCancel(ctx)
+	// La espera del usuario puede superar websocketReadLimit.
+	_ = conn.SetReadDeadline(time.Time{})
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		first, err := reader.Peek(1)
+		switch {
+		case err != nil:
+			if !errors.Is(err, os.ErrDeadlineExceeded) {
+				cancel()
+			}
+		case first[0]&0x0F == 0x8:
+			cancel()
+		}
+	}()
+	return handleCtx, func() {
+		_ = conn.SetReadDeadline(time.Now())
+		<-done
+		cancel()
+		_ = conn.SetReadDeadline(time.Time{})
 	}
 }
 
