@@ -14,7 +14,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"html/template"
+	"strings"
 	"time"
+	"unicode"
 
 	"grxfirma/internal/domain"
 )
@@ -51,21 +53,24 @@ type vista struct {
 func HTML(d Datos) ([]byte, error) {
 	r := d.Resultado
 	huella := sha256.Sum256(d.Contenido)
+	// html/template escapa el marcado, pero no los caracteres de formato:
+	// un U+202E en el CN o en un aviso invertiría el texto visible del
+	// informe que se entrega a un tercero. Se limpian todas las cadenas.
 	v := vista{
 		Titulo:       "Informe de validación de firma electrónica",
-		Motivo:       r.Reason,
-		Documento:    d.NombreDocumento,
+		Motivo:       limpiar(r.Reason),
+		Documento:    limpiar(d.NombreDocumento),
 		Huella:       hex.EncodeToString(huella[:]),
 		Tamano:       fmt.Sprintf("%d bytes", len(d.Contenido)),
 		Fecha:        d.Fecha.Local().Format("02/01/2006 15:04:05 MST"),
-		Version:      d.VersionApp,
-		Formato:      r.Format,
-		Cobertura:    textoCobertura(r.Coverage),
-		Firmantes:    r.SignerSummaries,
-		Advertencias: r.Warnings,
-		Errores:      r.Errors,
-		Detalles:     r.Details,
-		Evidencias:   r.Evidence,
+		Version:      limpiar(d.VersionApp),
+		Formato:      limpiar(r.Format),
+		Cobertura:    limpiar(textoCobertura(r.Coverage)),
+		Firmantes:    limpiarFirmantes(r.SignerSummaries),
+		Advertencias: limpiarLista(r.Warnings),
+		Errores:      limpiarLista(r.Errors),
+		Detalles:     limpiarLista(r.Details),
+		Evidencias:   limpiarEvidencias(r.Evidence),
 		Aspectos: []aspecto{
 			nuevoAspecto("Integridad del documento", r.Integrity),
 			nuevoAspecto("Vigencia y revocación del certificado", r.Certificate),
@@ -94,7 +99,7 @@ func HTML(d Datos) ([]byte, error) {
 }
 
 func nuevoAspecto(nombre string, a domain.VerificationAspect) aspecto {
-	out := aspecto{Nombre: nombre, Motivo: a.Reason, Detalle: a.Details}
+	out := aspecto{Nombre: nombre, Motivo: limpiar(a.Reason), Detalle: limpiarLista(a.Details)}
 	switch a.Status {
 	case domain.VerificationStatusValid:
 		out.Estado, out.Clase = "Correcto", "ok"
@@ -104,6 +109,55 @@ func nuevoAspecto(nombre string, a domain.VerificationAspect) aspecto {
 		out.Estado, out.Clase = "Con advertencias", "aviso"
 	default:
 		out.Estado, out.Clase = "No comprobado", "nd"
+	}
+	return out
+}
+
+// limpiar quita los caracteres de control y de formato Unicode (Cc y Cf:
+// marcas bidireccionales, espacios de anchura cero, BOM) de un texto que
+// puede venir del documento verificado o de su certificado.
+func limpiar(s string) string {
+	return strings.TrimSpace(strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) {
+			return -1
+		}
+		return r
+	}, s))
+}
+
+func limpiarLista(valores []string) []string {
+	if len(valores) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(valores))
+	for _, v := range valores {
+		if v = limpiar(v); v != "" {
+			out = append(out, v)
+		}
+	}
+	return out
+}
+
+func limpiarFirmantes(firmantes []domain.VerificationSignerSummary) []domain.VerificationSignerSummary {
+	if len(firmantes) == 0 {
+		return nil
+	}
+	out := make([]domain.VerificationSignerSummary, 0, len(firmantes))
+	for _, f := range firmantes {
+		out = append(out, domain.VerificationSignerSummary{
+			ID: limpiar(f.ID), Subject: limpiar(f.Subject), Issuer: limpiar(f.Issuer), Fingerprint: limpiar(f.Fingerprint),
+		})
+	}
+	return out
+}
+
+func limpiarEvidencias(evidencias []domain.VerificationEvidence) []domain.VerificationEvidence {
+	if len(evidencias) == 0 {
+		return nil
+	}
+	out := make([]domain.VerificationEvidence, 0, len(evidencias))
+	for _, e := range evidencias {
+		out = append(out, domain.VerificationEvidence{Type: limpiar(e.Type), Summary: limpiar(e.Summary)})
 	}
 	return out
 }
