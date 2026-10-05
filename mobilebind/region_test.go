@@ -69,7 +69,7 @@ func TestInformeMovilUsaIdiomaYZonaDeLaApp(t *testing.T) {
 	if strings.Contains(text, "no se evalúa en el móvil") {
 		t.Error("el motivo de confianza debe ir en el idioma de la app")
 	}
-	for _, esperado := range []string{`lang="en"`, "05/10/2026 08:25:10 (CEST)", "SIGNATURE INTACT", "Electronic signature validation report"} {
+	for _, esperado := range []string{`lang="en"`, "2026-10-05 08:25:10 (CEST)", "SIGNATURE INTACT", "Electronic signature validation report"} {
 		if !strings.Contains(text, esperado) {
 			t.Errorf("falta %q en el informe", esperado)
 		}

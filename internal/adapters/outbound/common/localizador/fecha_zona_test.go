@@ -28,7 +28,9 @@ func TestFechaHoraMuestraHoraLocalConZona(t *testing.T) {
 		{"zh", Zona("Asia/Shanghai"), false, "2026-10-05 14:25 (CST)"},
 		// Zona sin abreviatura propia en tzdata: se escribe el desfase.
 		{"es", Zona("America/Sao_Paulo"), false, "05/10/2026 03:25 (UTC-03:00)"},
-		{"en", time.UTC, false, "05/10/2026 06:25 (UTC)"},
+		// En inglés «05/10/2026» se leería como 10 de mayo: se usa ISO 8601.
+		{"en", time.UTC, false, "2026-10-05 06:25 (UTC)"},
+		{"en", madrid, true, "2026-10-05 08:25:10 (CEST)"},
 		{"es", time.FixedZone("", 2*3600), false, "05/10/2026 08:25 (UTC+02:00)"},
 	}
 	for _, c := range casos {

@@ -35,7 +35,7 @@ func TestSelloSigueElIdiomaYLaZonaPedidos(t *testing.T) {
 	}{
 		{
 			opciones: map[string]string{OpcionIdiomaSello: "en", OpcionZonaSello: "Europe/Madrid"},
-			quiere:   []string{"DIGITALLY SIGNED", "Date: 05/10/2026 08:25 (CEST)", "Reason: Conformidad", "Issued by AC PRUEBAS"},
+			quiere:   []string{"DIGITALLY SIGNED", "Date: 2026-10-05 08:25 (CEST)", "Reason: Conformidad", "Issued by AC PRUEBAS"},
 			evita:    []string{"FIRMADO", "Fecha", "Emitido"},
 		},
 		{
