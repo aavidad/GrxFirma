@@ -5157,4 +5157,6 @@
   ,"facturae.required": "obligatori"
   ,"facturae.required_legend": "Els camps marcats amb * són obligatoris."
   ,"csc.gui.client_id_ayuda": "Vos el facilita el vostre prestador juntament amb l’adreça del servei."
+  ,"verificacion.detalle.system_roots": "Certificats arrel del sistema"
+  ,"verificacion.detalle.valor.loaded": "carregats"
 }

@@ -5157,4 +5157,6 @@
   ,"facturae.required": "derrigorrezkoa"
   ,"facturae.required_legend": "* ikurra duten eremuak derrigorrezkoak dira."
   ,"csc.gui.client_id_ayuda": "Zure hornitzaileak ematen dizu, zerbitzuaren helbidearekin batera."
+  ,"verificacion.detalle.system_roots": "Sistemaren erro-ziurtagiriak"
+  ,"verificacion.detalle.valor.loaded": "kargatuta"
 }

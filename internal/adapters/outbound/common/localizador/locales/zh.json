@@ -5157,4 +5157,6 @@
   ,"facturae.required": "必填"
   ,"facturae.required_legend": "标有 * 的字段为必填项。"
   ,"csc.gui.client_id_ayuda": "由您的服务提供商连同服务地址一起提供给您。"
+  ,"verificacion.detalle.system_roots": "系统根证书"
+  ,"verificacion.detalle.valor.loaded": "已加载"
 }

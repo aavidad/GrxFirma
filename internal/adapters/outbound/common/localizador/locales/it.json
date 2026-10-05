@@ -5157,4 +5157,6 @@
   ,"facturae.required": "obbligatorio"
   ,"facturae.required_legend": "I campi contrassegnati con * sono obbligatori."
   ,"csc.gui.client_id_ayuda": "Glielo fornisce il suo prestatore insieme all’indirizzo del servizio."
+  ,"verificacion.detalle.system_roots": "Certificati radice del sistema"
+  ,"verificacion.detalle.valor.loaded": "caricati"
 }

@@ -4762,6 +4762,16 @@ Window {
         return "#f39c12"
     }
 
+    // Igual, pero legible sobre un fondo del tema: en temas claros usa tonos
+    // oscuros para mantener contraste AA.
+    function verificationOutcomeColorOn(details, background) {
+        const outcome = verificationOutcomeKind(details)
+        const light = Contrast.luminance(background) > 0.5
+        if (outcome === "trusted") return light ? "#18794e" : "#2ecc71"
+        if (outcome === "invalid") return light ? currentTheme.errorColor : "#ff8a80"
+        return light ? "#8a5300" : "#f39c12"
+    }
+
     function verificationAutoMessage(details) {
         const outcome = verificationOutcomeKind(details)
         if (outcome === "trusted") return tr("Firma completada y verificada correctamente.")
@@ -11796,7 +11806,7 @@ Window {
 
                                         Text { 
                                             text: tr("Estado: ") + verificationOutcomeDisplay(verifyTab.verifyDetails)
-                                            color: verificationOutcomeColor(verifyTab.verifyDetails)
+                                            color: verificationOutcomeColorOn(verifyTab.verifyDetails, currentTheme.sidebarColor)
                                             font.pixelSize: 14
                                             font.bold: true
                                             width: parent.width
@@ -11812,7 +11822,7 @@ Window {
                                         }
                                         Text { 
                                             text: tr("Razón: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.reason ? localizeVisibleDiagnosticText(verifyTab.verifyDetails.reason) : "")
-                                            color: verificationOutcomeColor(verifyTab.verifyDetails)
+                                            color: verificationOutcomeColorOn(verifyTab.verifyDetails, currentTheme.sidebarColor)
                                             font.pixelSize: 12
                                             width: parent.width
                                             wrapMode: Text.Wrap
@@ -15816,9 +15826,9 @@ Window {
         Accessible.name: navButtonRoot.text
         Accessible.description: active ? tr("Sección activa") : tr("Abrir sección")
         Accessible.onPressAction: navButtonRoot.activate()
-        color: active ? currentTheme.primaryColor : "transparent"
+        color: active ? Contrast.legibleFill(currentTheme.primaryColor) : "transparent"
         // Texto legible tanto en temas claros como oscuros; la activa, sobre el color principal.
-        readonly property color labelColor: active ? Contrast.readableOn(currentTheme.primaryColor, "#ffffff") : currentTheme.textColor
+        readonly property color labelColor: active ? Contrast.readableOn(Contrast.legibleFill(currentTheme.primaryColor), "#ffffff") : currentTheme.textColor
         border.color: activeFocus ? (active ? labelColor : currentTheme.focusColor) : "transparent"
         border.width: activeFocus ? 2 : 0
 

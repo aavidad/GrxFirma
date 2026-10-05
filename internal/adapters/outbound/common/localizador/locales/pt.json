@@ -5157,4 +5157,6 @@
   ,"facturae.required": "obrigatório"
   ,"facturae.required_legend": "Os campos marcados com * são obrigatórios."
   ,"csc.gui.client_id_ayuda": "É-lhe fornecido pelo seu prestador juntamente com o endereço do serviço."
+  ,"verificacion.detalle.system_roots": "Certificados raiz do sistema"
+  ,"verificacion.detalle.valor.loaded": "carregados"
 }

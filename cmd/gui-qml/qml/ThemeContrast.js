@@ -5,12 +5,18 @@
 
 .pragma library
 
-// Contraste WCAG entre colores del tema. Recibe colores QML (con r, g y b de 0 a 1).
+// Contraste WCAG entre colores del tema. Acepta colores QML o cadenas «#rrggbb»
+// (los temas se definen como cadenas).
+function toColor(c) {
+    return typeof c === "string" ? Qt.darker(c, 1.0) : c
+}
+
 function channel(v) {
     return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
 }
 
-function luminance(c) {
+function luminance(value) {
+    const c = toColor(value)
     return 0.2126 * channel(c.r) + 0.7152 * channel(c.g) + 0.0722 * channel(c.b)
 }
 
@@ -33,7 +39,7 @@ function readableOn(background, preferred) {
 // Fondo de botón ajustado: si ni el texto casi negro ni el blanco llegan a 4,5:1,
 // se oscurece poco a poco hasta que el blanco lo alcance.
 function legibleFill(background) {
-    let c = background
+    let c = toColor(background)
     const light = Qt.rgba(1, 1, 1, 1)
     const dark = Qt.rgba(0.07, 0.08, 0.1, 1)
     for (let i = 0; i < 6; i++) {

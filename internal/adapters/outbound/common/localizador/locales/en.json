@@ -5157,4 +5157,6 @@
   ,"facturae.required": "required"
   ,"facturae.required_legend": "Fields marked with * are required."
   ,"csc.gui.client_id_ayuda": "Your provider gives it to you together with the service address."
+  ,"verificacion.detalle.system_roots": "System root certificates"
+  ,"verificacion.detalle.valor.loaded": "loaded"
 }

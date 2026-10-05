@@ -5157,4 +5157,6 @@
   ,"facturae.required": "Pflichtfeld"
   ,"facturae.required_legend": "Mit * gekennzeichnete Felder sind Pflichtfelder."
   ,"csc.gui.client_id_ayuda": "Sie erhalten sie von Ihrem Anbieter zusammen mit der Adresse des Dienstes."
+  ,"verificacion.detalle.system_roots": "Stammzertifikate des Systems"
+  ,"verificacion.detalle.valor.loaded": "geladen"
 }
