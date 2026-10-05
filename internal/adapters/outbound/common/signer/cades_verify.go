@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"grxfirma/internal/adapters/outbound/common/certutil"
 	"grxfirma/internal/adapters/outbound/common/revocationclient"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
@@ -68,7 +69,7 @@ func revocationSubjectLabel(cert *x509.Certificate, index int) string {
 	if cn := strings.TrimSpace(cert.Subject.CommonName); cn != "" {
 		return fmt.Sprintf("cert[%d] %s", index, cn)
 	}
-	if name := strings.TrimSpace(cert.Subject.String()); name != "" {
+	if name := strings.TrimSpace(certutil.NombreLegible(cert.Subject)); name != "" {
 		return fmt.Sprintf("cert[%d] %s", index, name)
 	}
 	return fmt.Sprintf("cert[%d]", index)
@@ -289,7 +290,7 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 			})
 		}
 		signerDetails = append(signerDetails, []string{
-			fmt.Sprintf("firmante=%s", signerCert.Subject.String()),
+			fmt.Sprintf("firmante=%s", certutil.NombreLegible(signerCert.Subject)),
 			fmt.Sprintf("algoritmo=%s", signerInfo.SignatureAlgorithm.Algorithm.String()),
 		})
 	}
@@ -984,8 +985,8 @@ func certificateToRef(cert *x509.Certificate) domain.CertificateRef {
 	fingerprint := sha256.Sum256(cert.Raw)
 	return domain.CertificateRef{
 		ID:          cert.SerialNumber.String(),
-		Subject:     cert.Subject.String(),
-		Issuer:      cert.Issuer.String(),
+		Subject:     certutil.NombreLegible(cert.Subject),
+		Issuer:      certutil.NombreLegible(cert.Issuer),
 		NotAfter:    cert.NotAfter,
 		Fingerprint: hex.EncodeToString(fingerprint[:]),
 	}
@@ -1037,8 +1038,8 @@ func applySignerVerificationMetadata(result domain.VerificationResult, signerCer
 			continue
 		}
 		result.Evidence = append(result.Evidence,
-			domain.VerificationEvidence{Type: "certificate.subject", Summary: cert.Subject.String()},
-			domain.VerificationEvidence{Type: "certificate.issuer", Summary: cert.Issuer.String()},
+			domain.VerificationEvidence{Type: "certificate.subject", Summary: certutil.NombreLegible(cert.Subject)},
+			domain.VerificationEvidence{Type: "certificate.issuer", Summary: certutil.NombreLegible(cert.Issuer)},
 		)
 	}
 	if result.Certificate.Status == domain.VerificationStatusInvalid {
@@ -1074,7 +1075,7 @@ func evaluateCertificateAspect(certs []*x509.Certificate) domain.VerificationAsp
 			continue
 		}
 		evaluated++
-		aspect.Details = append(aspect.Details, fmt.Sprintf("subject=%s", cert.Subject.String()))
+		aspect.Details = append(aspect.Details, fmt.Sprintf("subject=%s", certutil.NombreLegible(cert.Subject)))
 		switch {
 		case now.Before(cert.NotBefore):
 			aspect.Status = domain.VerificationStatusInvalid
@@ -1141,7 +1142,7 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 		hasRoots = true
 		fingerprint := certificateFingerprint(anchor)
 		rootFingerprints[fingerprint] = struct{}{}
-		details = append(details, fmt.Sprintf("anchor=%s", anchor.Subject.String()))
+		details = append(details, fmt.Sprintf("anchor=%s", certutil.NombreLegible(anchor.Subject)))
 	}
 
 	// Compatibilidad con proveedores antiguos: una referencia puede designar
@@ -1162,7 +1163,7 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 				hasRoots = true
 				rootFingerprints[fingerprint] = struct{}{}
 			}
-			details = append(details, fmt.Sprintf("anchor=%s", embedded.Subject.String()))
+			details = append(details, fmt.Sprintf("anchor=%s", certutil.NombreLegible(embedded.Subject)))
 			break
 		}
 	}
@@ -1215,7 +1216,7 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 				Reason: MotivoCadenaNoConfiable,
 				Details: append(details,
 					fmt.Sprintf("firmante=%s", signerCert.Subject.CommonName),
-					fmt.Sprintf("signer[%d]: %v", i, err)),
+					DetalleErrorCadena+"="+CodigoErrorX509(err)),
 			}
 		}
 		details = append(details, fmt.Sprintf("signer[%d].chain_length=%d", i, len(chains[0])))

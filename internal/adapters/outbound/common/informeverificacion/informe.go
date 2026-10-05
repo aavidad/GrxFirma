@@ -17,6 +17,7 @@ import (
 	"time"
 	"unicode"
 
+	"grxfirma/internal/adapters/outbound/common/certutil"
 	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/domain"
 )
@@ -282,10 +283,10 @@ func fechaFirma(loc *localizador.Localizador, zona *time.Location, f domain.Veri
 func dnFirmantes(loc *localizador.Localizador, firmantes []domain.VerificationSignerSummary) []string {
 	var out []string
 	for _, f := range firmantes {
-		if dn := limpiar(f.Subject); dn != "" {
+		if dn := dnLegible(f.Subject); dn != "" {
 			out = append(out, loc.T("report.technical.subject_dn", dn))
 		}
-		if dn := limpiar(f.Issuer); dn != "" {
+		if dn := dnLegible(f.Issuer); dn != "" {
 			out = append(out, loc.T("report.technical.issuer_dn", dn))
 		}
 	}
@@ -296,14 +297,20 @@ func dnFirmantes(loc *localizador.Localizador, firmantes []domain.VerificationSi
 func nombresDN(r domain.VerificationResult) []string {
 	var out []string
 	for _, f := range r.SignerSummaries {
-		out = append(out, limpiar(f.Subject), limpiar(f.Issuer))
+		out = append(out, dnLegible(f.Subject), dnLegible(f.Issuer))
 	}
 	for _, e := range r.Evidence {
 		if e.Type == "certificate.subject" || e.Type == "certificate.issuer" {
-			out = append(out, limpiar(e.Summary))
+			out = append(out, dnLegible(e.Summary))
 		}
 	}
 	return out
+}
+
+// dnLegible es el DN para leer: con nombre en los atributos que crypto/x509
+// deja como OID y hexadecimal (nombre y apellidos de la FNMT, por ejemplo).
+func dnLegible(dn string) string {
+	return certutil.DNLegible(limpiar(dn))
 }
 
 // anadirTecnicos añade líneas a los detalles técnicos sin repetir una línea
@@ -346,12 +353,12 @@ func evidenciasLegibles(loc *localizador.Localizador, evidencias []domain.Verifi
 		tipo, resumen := limpiar(e.Type), limpiar(e.Summary)
 		switch tipo {
 		case "certificate.subject":
-			if resumen != "" {
+			if resumen = dnLegible(resumen); resumen != "" {
 				tecnicos = append(tecnicos, loc.T("report.technical.subject_dn", resumen))
 			}
 			continue
 		case "certificate.issuer":
-			if resumen != "" {
+			if resumen = dnLegible(resumen); resumen != "" {
 				tecnicos = append(tecnicos, loc.T("report.technical.issuer_dn", resumen))
 			}
 			continue
@@ -372,9 +379,9 @@ func evidenciasLegibles(loc *localizador.Localizador, evidencias []domain.Verifi
 func separarDetalles(loc *localizador.Localizador, lineas []string) (legibles, enBruto []string) {
 	for _, linea := range lineas {
 		traducida := TraducirDetalle(loc, linea)
-		if clave, _, ok := strings.Cut(linea, "="); ok && traducida == linea &&
+		if clave, _, ok := strings.Cut(linea, "="); ok && traducida == detalleConDNLegible(linea) &&
 			clave != "" && !strings.ContainsAny(clave, " \t") {
-			enBruto = append(enBruto, linea)
+			enBruto = append(enBruto, traducida)
 			continue
 		}
 		legibles = append(legibles, traducida)
