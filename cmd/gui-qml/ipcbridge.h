@@ -85,6 +85,14 @@ public:
   Q_INVOKABLE void importProtectionRecipient(const QString &path);
   Q_INVOKABLE void removeProtectionRecipient(const QString &id);
   Q_INVOKABLE void requestSmartcardStatus();
+  // Firma remota CSC. El motor guarda la sesión; aquí solo llegan el estado,
+  // los hosts y la descripción de los certificados remotos.
+  Q_INVOKABLE void cscStatus();
+  Q_INVOKABLE void cscConfigure(const QString &serviceUrl,
+                                const QString &clientId);
+  Q_INVOKABLE void cscConnect();
+  Q_INVOKABLE void cscDisconnect();
+  Q_INVOKABLE void cscSendOtp(const QString &certificateId);
   Q_INVOKABLE void createFacturae(const QVariantMap &draft, const QString &outputPath);
   Q_INVOKABLE void validateInvoice(const QString &inputPath);
   Q_INVOKABLE void validateVeriFactu(const QString &inputPath);
@@ -200,6 +208,7 @@ signals:
   void protectionRecipientsLoaded(QVariantList recipients);
   void protectionRecipientChanged(bool ok, QString message);
   void smartcardStatusReceived(bool ok, QVariantList readers, QString message);
+  void cscFinished(QString action, bool ok, QVariantMap data, QString message);
   void facturaeCreated(bool ok, QVariantMap result, QString message);
   void invoiceValidated(bool ok, QVariantMap result, QString message);
   void verifactuValidated(bool ok, QVariantMap result, QString message);

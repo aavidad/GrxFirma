@@ -413,3 +413,52 @@ func TestCadenaQueNoEncadenaSeDescarta(t *testing.T) {
 		t.Fatalf("una cadena ajena no debe conservarse: %d", len(cred.Cadena))
 	}
 }
+
+func TestEnvioOTPManualNoPideElCodigoAlFirmar(t *testing.T) {
+	s := csctest.Nuevo(t)
+	s.Configurar(func(s *csctest.Servidor) { s.Modo = "explicit" })
+	pendientes := []string{csctest.PIN, csctest.OTP}
+	cliente, err := csc.Nuevo(csc.Opciones{
+		URLServicio:        s.URL,
+		ClientID:           csctest.ClientID,
+		HTTP:               s.Client(),
+		AbrirNavegador:     s.Navegador(),
+		EsperaAutorizacion: 10 * time.Second,
+		EnvioOTPManual:     true,
+		PedirSecreto: func(_ context.Context, _ csc.TipoSecreto) ([]byte, error) {
+			v := pendientes[0]
+			pendientes = pendientes[1:]
+			return []byte(v), nil
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = cliente.Close() })
+	cred := autorizarYCredencial(t, cliente, csctest.CredencialRSA)
+	if err := cliente.EnviarOTP(context.Background(), cred); err != nil {
+		t.Fatalf("EnviarOTP: %v", err)
+	}
+	firmante, _ := cliente.Firmante(context.Background(), cred)
+	resumen := sha256.Sum256([]byte("x"))
+	if _, err := firmante.Sign(rand.Reader, resumen[:], crypto.SHA256); err != nil {
+		t.Fatalf("Sign: %v", err)
+	}
+	s.Leer(func(s *csctest.Servidor) {
+		if s.OTPEnviados != 1 {
+			t.Fatalf("OTP enviados = %d, se esperaba solo el pedido a mano", s.OTPEnviados)
+		}
+	})
+
+	implicito := csctest.Nuevo(t)
+	otro := nuevoCliente(t, implicito)
+	credImplicita := autorizarYCredencial(t, otro, csctest.CredencialRSA)
+	if err := otro.EnviarOTP(context.Background(), credImplicita); err != nil {
+		t.Fatalf("EnviarOTP sin OTP: %v", err)
+	}
+	implicito.Leer(func(s *csctest.Servidor) {
+		if s.OTPEnviados != 0 {
+			t.Fatal("no debió pedirse OTP a una credencial sin OTP")
+		}
+	})
+}

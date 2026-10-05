@@ -5,7 +5,8 @@
 
 # Firma remota CSC (prototipo)
 
-**Estado:** prototipo en el motor y la línea de órdenes, desactivado por defecto.
+**Estado:** prototipo en el motor, la línea de órdenes y las interfaces de escritorio
+(WinUI y Qt), desactivado por defecto.
 Solo se ha probado contra un servidor CSC simulado. No se ha probado con ningún
 prestador real ni con la firma remota de la cartera europea (EUDI).
 
@@ -71,6 +72,38 @@ credencial pide PIN o código de un solo uso (OTP), se piden por la entrada
 estándar (sin eco en una terminal). Mientras dura la orden, la credencial remota
 es el único certificado disponible, para que no se firme por error con otro.
 
+## Interfaces de escritorio
+
+WinUI y Qt usan la misma sesión, que vive en el motor
+(`internal/adapters/outbound/desktop/cscremota`) y se maneja por el IPC:
+
+- `csc_status` dice si la firma remota está permitida (se vuelve a leer la
+  política en cada operación) y devuelve la dirección y el client_id guardados.
+  Si la política de la organización la prohíbe, añade `prohibitedByPolicy`: el
+  botón «Firma remota» se muestra y el cuadro solo explica que la política no
+  la permite. Si solo está desactivada en `config.json`, el botón no aparece.
+  La CLI distingue igual los dos casos.
+- `csc_configure` valida la dirección y el client_id con las reglas de la CLI,
+  consulta `/info` sin abrir el navegador y devuelve el host del servicio y el
+  del servidor de autorización (los nombres internacionalizados, en punycode).
+  La persona los ve antes de pulsar «Conectar». La dirección y el client_id se
+  guardan en `firma_remota_csc.json`, sin secretos.
+- `csc_connect` abre el navegador del sistema desde el motor, espera la vuelta
+  (como mucho cuatro minutos) y carga los certificados remotos. Aparecen en la
+  lista de certificados junto a los locales, con la marca «Remoto».
+- `csc_disconnect` revoca los tokens y olvida los certificados remotos.
+- `csc_send_otp` pide al prestador el código de un solo uso cuando la
+  credencial lo envía en línea; la interfaz lo ofrece en el cuadro del PIN.
+
+Al firmar con un certificado remoto que pide PIN u OTP, la interfaz los pide en
+campos de contraseña (`PasswordBox` en WinUI, `TextField` con `echoMode`
+`Password` en Qt). Viajan en Base64 dentro de la petición de firma (`remotePin`,
+`remoteOtp`), el motor los decodifica en `[]byte`, solo los acepta para un
+certificado remoto y los borra al terminar. Las acciones de firma pasan a ser
+sensibles: el motor borra sus parámetros y las interfaces no las repiten tras
+una reconexión. Los tokens nunca salen del motor. Un lote con un certificado
+que pide OTP se rechaza, porque el código solo vale para una firma.
+
 ## Seguridad
 
 - Solo `https`, con la validación TLS del sistema (TLS 1.2 o superior). Se
@@ -111,7 +144,8 @@ es el único certificado disponible, para que no se firme por error con otro.
   por el prestador) y `oauth2code`. No hay autenticación `basic` ni descubrimiento
   OAuth por `oauth2Issuer`, ni paginación del listado (máximo 100 credenciales).
 - Algoritmos: RSA PKCS#1 v1.5, RSA-PSS y ECDSA con SHA-256, SHA-384 o SHA-512.
-- Solo la CLI. No hay interfaz gráfica ni integración con `afirma://`.
+- No hay integración con `afirma://` ni con el servicio REST. Las interfaces
+  gráficas no se han probado aún en Windows con un prestador real.
 - No se renueva el token: si caduca durante una orden larga, hay que repetirla.
 
 ## Pruebas
@@ -130,6 +164,13 @@ es el único certificado disponible, para que no se firme por error con otro.
 - `cmd/grxfirma`: opciones, activación y prohibición por política, pares OAuth,
   listado sin escribir el `state` y una firma CAdES completa con la CLI real,
   con PIN y OTP por stdin.
+
+- `internal/adapters/outbound/desktop/cscremota` e IPC (`csc_remota_test.go`):
+  política retirada a mitad de sesión, parámetros estrictos, hosts mostrados,
+  PIN y OTP por petición, OTP de un solo uso, secretos para un certificado
+  local rechazados y una firma CAdES completa por el IPC.
+- Interfaces: contratos Python de Qt y WinUI y pruebas de `WinUI.Core` (sin
+  compilar aquí: no hay SDK de .NET en este equipo).
 
 ## Qué falta para usarlo en producción
 

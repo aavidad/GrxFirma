@@ -370,3 +370,10 @@ func (cfg Config) FirmaRemotaCSCActiva(politica Policy) bool {
 func sinBOM(data []byte) []byte {
 	return bytes.TrimPrefix(data, []byte("\xEF\xBB\xBF"))
 }
+
+// FirmaRemotaCSCProhibida indica que la política de la organización prohíbe
+// la firma remota. Sirve para explicarlo a la persona: en ese caso
+// config.json no puede activarla.
+func FirmaRemotaCSCProhibida(politica Policy) bool {
+	return politica.FirmaRemotaCSC != nil && !*politica.FirmaRemotaCSC
+}

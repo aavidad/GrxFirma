@@ -163,9 +163,12 @@ public sealed record CertificateListItem
             SourceCertificate = certificate,
             CanSign = suitable,
             IsTemporary = isTemporary,
-            TemporaryDisplay = isTemporary
-                ? "Solo durante esta sesión"
-                : "Almacén del sistema",
+            // Firma remota CSC: lo custodia un prestador, no está en el equipo.
+            TemporaryDisplay = certificate.Remote
+                ? Localizer.Text("csc.gui.remoto")
+                : isTemporary
+                    ? "Solo durante esta sesión"
+                    : "Almacén del sistema",
         };
     }
 

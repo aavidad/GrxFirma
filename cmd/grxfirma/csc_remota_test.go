@@ -102,8 +102,10 @@ func TestEjecutarCSCDesactivadaYProhibida(t *testing.T) {
 	}
 
 	e = nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true}`, `{"firma_remota_csc": false}`)
-	if code := ejecutarCSC(e.entornoCSC, base, false, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.cli.desactivada")) {
-		t.Fatalf("la política debe prohibirla: code=%d salida=%q", code, e.errores.String())
+	if code := ejecutarCSC(e.entornoCSC, base, false, nil); code != 2 ||
+		!strings.Contains(e.errores.String(), es.T("csc.error.prohibida")) ||
+		strings.Contains(e.errores.String(), "config.json") {
+		t.Fatalf("la política debe prohibirla sin sugerir config.json: code=%d salida=%q", code, e.errores.String())
 	}
 
 	e = nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true}`, `{"firma_remota_csc": tru`)

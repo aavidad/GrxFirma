@@ -90,6 +90,7 @@ public sealed partial class SignPage : Page
         CertificatePanel = new CertificatesPageViewModel(
             _session,
             app.FilePickerService);
+        ViewModel.RemoteSecretsPrompt = PromptRemoteSecretsAsync;
         InitializeComponent();
         // La superficie recibe el inicio del dibujo desde el control transparente.
         VisibleSealPreviewSurface.AddHandler(UIElement.PointerPressedEvent,
@@ -443,6 +444,103 @@ public sealed partial class SignPage : Page
         await RefreshCertificatesAndShowDiagnosticAsync(
             _pageCancellation.Token);
         await LoadCertificatePanelPreferenceAsync();
+        await UpdateRemoteSigningButtonAsync();
+    }
+
+    // Firma remota CSC: el botón aparece si el motor la permite o si la
+    // política la prohíbe (el cuadro lo explica); no, si solo está desactivada.
+    private async Task UpdateRemoteSigningButtonAsync()
+    {
+        var cancellation = _pageCancellation;
+        if (cancellation is null)
+        {
+            return;
+        }
+        try
+        {
+            var allowed = await RemoteSigningDialogs.ShouldShowButtonAsync(
+                _session,
+                cancellation.Token);
+            RemoteSigningButton.Visibility = allowed
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private async void OnRemoteSigningClick(
+        object sender,
+        RoutedEventArgs args)
+    {
+        var cancellation = _pageCancellation;
+        if (cancellation is null || XamlRoot is null)
+        {
+            return;
+        }
+        var dialogOpen = true;
+        var changed = false;
+        try
+        {
+            await RemoteSigningDialogs.ShowConfigurationAsync(
+                XamlRoot,
+                ActualTheme,
+                _session,
+                () =>
+                {
+                    if (dialogOpen)
+                    {
+                        changed = true;
+                    }
+                    else
+                    {
+                        _ = RefreshAfterRemoteSigningChangeAsync(cancellation.Token);
+                    }
+                },
+                cancellation.Token);
+            dialogOpen = false;
+            if (changed)
+            {
+                await RefreshAfterRemoteSigningChangeAsync(cancellation.Token);
+            }
+            await UpdateRemoteSigningButtonAsync();
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            dialogOpen = false;
+        }
+    }
+
+    private async Task RefreshAfterRemoteSigningChangeAsync(
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await RefreshCertificatesAndShowDiagnosticAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private async Task<RemoteSigningSecrets?> PromptRemoteSecretsAsync(
+        CertificateInfo certificate,
+        CancellationToken cancellationToken)
+    {
+        if (XamlRoot is null)
+        {
+            return null;
+        }
+        return await RemoteSigningDialogs.PromptSecretsAsync(
+            XamlRoot,
+            ActualTheme,
+            _session,
+            certificate,
+            cancellationToken);
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs args)

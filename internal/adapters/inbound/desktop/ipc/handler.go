@@ -37,6 +37,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/adapters/outbound/common/updatecheck"
 	"grxfirma/internal/adapters/outbound/desktop/clockdiagnostic"
+	"grxfirma/internal/adapters/outbound/desktop/cscremota"
 	"grxfirma/internal/adapters/outbound/desktop/filesystem"
 	"grxfirma/internal/adapters/outbound/desktop/localtlstrust"
 	"grxfirma/internal/adapters/outbound/desktop/proxysecretstore"
@@ -200,7 +201,9 @@ type Manejador struct {
 	ClockDiagnostics      ClockDiagnosticProvider
 	UpdateChecker         UpdateChecker
 	CurrentVersion        string
-	smartcardDetector     smartcardDetector
+	// CSC es la sesión de firma remota; nil si el motor no la ofrece.
+	CSC               SesionCSC
+	smartcardDetector smartcardDetector
 
 	settingsMu             sync.Mutex
 	certsMu                sync.RWMutex
@@ -220,15 +223,20 @@ type Manejador struct {
 // el resto 30 segundos.
 func (m *Manejador) despacharConTimeout(parent context.Context, p peticion) respuesta {
 	accion := strings.ToLower(strings.TrimSpace(p.Action))
-	timeout := defaultIPCOperationTimeout
-	switch accion {
-	case "sign", "sign_multicosign", "sign_batch", "protect_sign",
-		"verify", "pdf_preview", "hash_create", "hash_check", "validate_invoice", "validate_eni", "generate_eni_document", "generate_eni_file":
-		timeout = longIPCOperationTimeout
-	}
-	ctx, cancel := context.WithTimeout(parent, timeout)
+	ctx, cancel := context.WithTimeout(parent, desktopIPCTimeoutDe(accion))
 	defer cancel()
 	return m.despachar(ctx, p)
+}
+
+func desktopIPCTimeoutDe(accion string) time.Duration {
+	switch accion {
+	case "sign", "sign_multicosign", "sign_batch", "protect_sign",
+		"verify", "pdf_preview", "hash_create", "hash_check", "validate_invoice", "validate_eni", "generate_eni_document", "generate_eni_file",
+		// Conectar espera a que la persona autorice en el navegador.
+		"csc_connect":
+		return longIPCOperationTimeout
+	}
+	return defaultIPCOperationTimeout
 }
 
 // despachar procesa una peticion y devuelve la respuesta serializada.
@@ -238,7 +246,21 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		return respuesta{OK: false, Action: accion, Error: err.Error()}
 	}
 	var resp respuesta
+	var peticionRemota *cscremota.Peticion
+	if isRemoteSigningAction(accion) {
+		var (
+			liberar func()
+			rechazo *respuesta
+		)
+		ctx, peticionRemota, liberar, rechazo = m.prepararFirmaRemota(ctx, accion, p.Params)
+		defer liberar()
+		if rechazo != nil {
+			return normalizeIPCResponse(*rechazo)
+		}
+	}
 	switch accion {
+	case "csc_status", "csc_configure", "csc_connect", "csc_disconnect", "csc_send_otp":
+		resp = m.handleCSC(ctx, accion, p.Params)
 	case "hello":
 		resp = respuesta{OK: true, Action: accion, Data: desktopIPCHello()}
 	case "ping":
@@ -362,6 +384,7 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 			UserMessage: m.t(resp.Error), ExpertMessage: resp.Error,
 		}
 	}
+	resp = m.explicarFalloRemoto(resp, peticionRemota)
 	return normalizeIPCResponse(resp)
 }
 
@@ -3256,6 +3279,15 @@ func (m *Manejador) certsAJSON(certs []domain.CertificateRef) []certJSON {
 			item.ValidTo = item.NotAfter
 			item.Caducado = caducado
 			item.DiasCaducidad = int(c.NotAfter.Sub(ahora).Hours() / 24)
+		}
+		if m.CSC != nil {
+			if remota, ok := m.CSC.Credencial(c.ID); ok {
+				item.Remote = true
+				item.RemoteMode = string(remota.Modo)
+				item.RemotePIN = remota.PIN
+				item.RemoteOTP = remota.OTP
+				item.RemoteOTPOnline = remota.OTPEnLinea
+			}
 		}
 		items = append(items, item)
 	}

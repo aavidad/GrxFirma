@@ -76,6 +76,11 @@ public static class DesktopOperationActions
         "install_public_roots";
     public const string ClearTlsTrust =
         "clear_tls_trust";
+    public const string CscStatus = "csc_status";
+    public const string CscConfigure = "csc_configure";
+    public const string CscConnect = "csc_connect";
+    public const string CscDisconnect = "csc_disconnect";
+    public const string CscSendOtp = "csc_send_otp";
 }
 
 /// <summary>
@@ -178,14 +183,20 @@ public sealed class DesktopOperationsClient
                 cancellationToken);
     }
 
+    /// <summary>
+    /// Si la firma lleva el PIN o el OTP de un certificado remoto, sus buffers
+    /// quedan sobrescritos al terminar, con éxito o con error.
+    /// </summary>
     public Task<IpcCallResult<SignResult>> SignAsync(
         SignParameters parameters,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
-        return _ipcClient.SendAsync<SignParameters, SignResult>(
+        return SendWithRemoteSecretsAsync<SignParameters, SignResult>(
             DesktopOperationActions.Sign,
             parameters,
+            parameters.RemotePin,
+            parameters.RemoteOtp,
             cancellationToken);
     }
 
@@ -194,9 +205,78 @@ public sealed class DesktopOperationsClient
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
-        return _ipcClient.SendAsync<SignParameters, SignResult>(
+        return SendWithRemoteSecretsAsync<SignParameters, SignResult>(
             DesktopOperationActions.SignMultiCosign,
             parameters,
+            parameters.RemotePin,
+            parameters.RemoteOtp,
+            cancellationToken);
+    }
+
+    private async Task<IpcCallResult<TData>> SendWithRemoteSecretsAsync<TParameters, TData>(
+        string action,
+        TParameters parameters,
+        byte[]? remotePin,
+        byte[]? remoteOtp,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            RemoteSigningInput.ValidateSecret(remotePin, nameof(remotePin));
+            RemoteSigningInput.ValidateSecret(remoteOtp, nameof(remoteOtp));
+            return await _ipcClient.SendAsync<TParameters, TData>(
+                action,
+                parameters,
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (remotePin is not null) CryptographicOperations.ZeroMemory(remotePin);
+            if (remoteOtp is not null) CryptographicOperations.ZeroMemory(remoteOtp);
+        }
+    }
+
+    public Task<IpcCallResult<RemoteSigningStatus>> GetRemoteSigningStatusAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<RemoteSigningStatusParameters, RemoteSigningStatus>(
+            DesktopOperationActions.CscStatus,
+            new RemoteSigningStatusParameters(),
+            cancellationToken);
+
+    public Task<IpcCallResult<RemoteSigningDiscovery>> ConfigureRemoteSigningAsync(
+        string serviceUrl,
+        string clientId,
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<RemoteSigningConfigureParameters, RemoteSigningDiscovery>(
+            DesktopOperationActions.CscConfigure,
+            RemoteSigningInput.Normalize(serviceUrl, clientId),
+            cancellationToken);
+
+    public Task<IpcCallResult<RemoteSigningConnection>> ConnectRemoteSigningAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<RemoteSigningConnectParameters, RemoteSigningConnection>(
+            DesktopOperationActions.CscConnect,
+            new RemoteSigningConnectParameters(),
+            cancellationToken);
+
+    public Task<IpcCallResult<RemoteSigningAck>> DisconnectRemoteSigningAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<RemoteSigningDisconnectParameters, RemoteSigningAck>(
+            DesktopOperationActions.CscDisconnect,
+            new RemoteSigningDisconnectParameters(),
+            cancellationToken);
+
+    public Task<IpcCallResult<RemoteSigningAck>> SendRemoteSigningOtpAsync(
+        string certificateId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!RemoteSigningInput.IsValidCertificateId(certificateId))
+        {
+            throw new ArgumentException("csc.error.parametro_invalido", nameof(certificateId));
+        }
+        return _ipcClient.SendAsync<RemoteSigningSendOtpParameters, RemoteSigningAck>(
+            DesktopOperationActions.CscSendOtp,
+            new RemoteSigningSendOtpParameters { CertificateId = certificateId },
             cancellationToken);
     }
 
@@ -529,9 +609,11 @@ public sealed class DesktopOperationsClient
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
-        return _ipcClient.SendAsync<BatchSignParameters, BatchSignResult>(
+        return SendWithRemoteSecretsAsync<BatchSignParameters, BatchSignResult>(
             DesktopOperationActions.SignBatch,
             parameters,
+            parameters.RemotePin,
+            parameters.RemoteOtp,
             cancellationToken);
     }
 

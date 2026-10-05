@@ -684,6 +684,17 @@ Window {
     property var unprotectResult: null
     property bool unprotectionInProgress: false
     property bool signingInProgress: false
+    // Firma remota CSC: el motor decide si está permitida y guarda la sesión.
+    property bool cscAllowed: false
+    // La política de la organización la prohíbe: se explica, no se ofrece.
+    property bool cscProhibited: false
+    property var cscState: ({})
+    property var cscDiscovery: null
+    property bool cscBusy: false
+    property string cscMessage: ""
+    property var cscPendingSecrets: null
+    property var cscSecretCertificate: null
+    property int cscSecretCertIndex: -1
     property int verificationPendingCount: 0
     property int hashPendingCount: 0
     // Se conserva el estado local hasta que terminen operaciones y diálogos.
@@ -2596,10 +2607,46 @@ Window {
     }
 
     function certificateStatusText(cert) {
-        if (!certificateCanSign(cert)) return "⚠ " + tr("No válido")
+        const remoteMark = cert && cert.remote === true ? " · " + tr("csc.gui.remoto") : ""
+        if (!certificateCanSign(cert)) return "⚠ " + tr("No válido") + remoteMark
         if (cert.validTo && Number(cert.diasCaducidad) >= 0 && Number(cert.diasCaducidad) <= 60)
-            return tr("Caduca pronto")
-        return tr("Válido")
+            return tr("Caduca pronto") + remoteMark
+        return tr("Válido") + remoteMark
+    }
+
+    function certificateNeedsRemoteSecrets(cert) {
+        return !!cert && cert.remote === true && (cert.remotePin === true || cert.remoteOtp === true)
+    }
+
+    // El PIN y el OTP se entregan al bridge una sola vez y se olvidan aquí.
+    function attachRemoteSecrets(payload) {
+        const secrets = window.cscPendingSecrets
+        window.cscPendingSecrets = null
+        if (!secrets) return
+        if (secrets.pin) payload.remotePin = secrets.pin
+        if (secrets.otp) payload.remoteOtp = secrets.otp
+    }
+
+    function openRemoteSigningDialog() {
+        window.cscMessage = ""
+        cscServiceUrlField.text = String(window.cscState.serviceUrl || "")
+        cscClientIdField.text = String(window.cscState.clientId || "")
+        cscRemoteDialog.open()
+        backend.cscStatus()
+    }
+
+    function openRemoteSecretDialog(selectedCertIndex, cert) {
+        window.cscSecretCertIndex = selectedCertIndex
+        window.cscSecretCertificate = cert
+        cscPinField.text = ""
+        cscOtpField.text = ""
+        cscSecretStatus.text = ""
+        cscRemoteSecretDialog.open()
+    }
+
+    function clearRemoteSecretFields() {
+        cscPinField.text = ""
+        cscOtpField.text = ""
     }
 
     function certificateStatusReason(cert) {
@@ -3569,6 +3616,26 @@ Window {
             signValidationErrorDialog.open()
             return
         }
+        const remotePrimaryIndex = window.multiCosignEnabled ? window.effectiveMultiCosignPrimaryIndex() : selectedCertIndex
+        const remoteCertificate = remotePrimaryIndex >= 0 && remotePrimaryIndex < window.certificates.length
+                ? window.certificates[remotePrimaryIndex] : null
+        // Unos secretos escritos para otro certificado no se reutilizan nunca.
+        if (window.cscPendingSecrets !== null && (!remoteCertificate
+                || String(window.cscPendingSecrets.certificateId) !== String(remoteCertificate.id || ""))) {
+            window.cscPendingSecrets = null
+        }
+        if (remoteCertificate && remoteCertificate.remote === true) {
+            if (window.isBatchMode() && remoteCertificate.remoteOtp === true) {
+                window.cscPendingSecrets = null
+                signValidationErrorDialog.errorMessage = tr("csc.error.otp_lote")
+                signValidationErrorDialog.open()
+                return
+            }
+            if (window.certificateNeedsRemoteSecrets(remoteCertificate) && window.cscPendingSecrets === null) {
+                window.openRemoteSecretDialog(selectedCertIndex, remoteCertificate)
+                return
+            }
+        }
         if (window.multiCosignEnabled) {
             const primaryIndex = window.effectiveMultiCosignPrimaryIndex()
             const additional = window.sanitizeMultiCosignIdsForPrimary(
@@ -3632,7 +3699,7 @@ Window {
                 selectCertificateIndex(primaryIndex, false)
             }
             payload.certificateId = certificateId(window.certificates[primaryIndex])
-            backend.signFileMultiAdvanced(window.currentFilePath, window.currentOutputPath, primaryIndex, window.multiCosignCertificateIds, payload)
+            window.attachRemoteSecrets(payload); backend.signFileMultiAdvanced(window.currentFilePath, window.currentOutputPath, primaryIndex, window.multiCosignCertificateIds, payload)
         } else if (window.isBatchMode()) {
             if (window.multiCosignEnabled) {
                 const primaryIndex = window.effectiveMultiCosignPrimaryIndex()
@@ -3647,14 +3714,14 @@ Window {
                 }
                 payload.certificateId = certificateId(window.certificates[primaryIndex])
                 payload.additionalCertificateIds = window.multiCosignCertificateIds.slice()
-                backend.signBatchAdvanced(window.currentBatchPaths, window.currentBatchDirectory, window.currentBatchOutputDir, primaryIndex, payload)
+                window.attachRemoteSecrets(payload); backend.signBatchAdvanced(window.currentBatchPaths, window.currentBatchDirectory, window.currentBatchOutputDir, primaryIndex, payload)
                 return
             }
             payload.certificateId = certificateId(window.certificates[selectedCertIndex])
-            backend.signBatchAdvanced(window.currentBatchPaths, window.currentBatchDirectory, window.currentBatchOutputDir, selectedCertIndex, payload)
+            window.attachRemoteSecrets(payload); backend.signBatchAdvanced(window.currentBatchPaths, window.currentBatchDirectory, window.currentBatchOutputDir, selectedCertIndex, payload)
         } else {
             payload.certificateId = certificateId(window.certificates[selectedCertIndex])
-            backend.signFileAdvanced(window.currentFilePath, window.currentOutputPath, selectedCertIndex, payload)
+            window.attachRemoteSecrets(payload); backend.signFileAdvanced(window.currentFilePath, window.currentOutputPath, selectedCertIndex, payload)
         }
     }
 
@@ -4272,6 +4339,43 @@ Window {
             if (requestId !== window.sealPreviewRequestId) return
             window.sealPreviewImage = ok && image !== "" ? "data:image/png;base64," + image : ""
             window.sealPreviewMessage = ok && image !== "" ? "" : (message || tr("No se pudo generar la vista del sello."))
+        }
+        function onCscFinished(action, ok, data, message) {
+            if (action === "csc_status") {
+                window.cscState = ok ? data : ({})
+                window.cscAllowed = ok && data.allowed === true
+                window.cscProhibited = ok && data.prohibitedByPolicy === true
+                if (!window.cscAllowed && !window.cscProhibited && cscRemoteDialog.opened) cscRemoteDialog.close()
+                if (ok && data.discovered === true)
+                    window.cscDiscovery = { serviceHost: data.serviceHost, oauthHost: data.oauthHost, serviceName: data.serviceName }
+                else if (ok)
+                    window.cscDiscovery = null
+                return
+            }
+            if (action === "csc_send_otp") {
+                cscSecretStatus.text = ok ? tr("csc.gui.codigo_enviado") : message
+                return
+            }
+            window.cscBusy = false
+            if (!ok) {
+                window.cscMessage = message
+                if (action === "csc_configure") window.cscDiscovery = null
+                backend.cscStatus()
+                return
+            }
+            if (action === "csc_configure") {
+                window.cscDiscovery = data
+                window.cscMessage = ""
+            } else if (action === "csc_connect") {
+                const credentials = data.credentials || []
+                window.cscMessage = credentials.length === 0 ? tr("csc.gui.sin_credenciales")
+                        : (Number(data.omitted || 0) > 0 ? tr("csc.gui.conectada") + " " + tr("csc.gui.omitidas")
+                                                         : tr("csc.gui.conectada"))
+            } else if (action === "csc_disconnect") {
+                window.cscDiscovery = null
+                window.cscMessage = ""
+            }
+            backend.cscStatus()
         }
         function onSmartcardStatusReceived(ok, readers, message) {
             if (!ok) {
@@ -6631,6 +6735,264 @@ Window {
 
     ThemedDialog {
         theme: currentTheme
+        id: cscRemoteDialog
+        title: tr("csc.gui.titulo")
+        accessibleDescription: tr("csc.gui.descripcion")
+        modal: true
+        anchors.centerIn: parent
+        width: Math.min(560, window.width - 40)
+        standardButtons: Dialog.Close
+
+        ColumnLayout {
+            width: parent ? parent.width : 520
+            spacing: 10
+            Text {
+                Layout.fillWidth: true
+                text: tr("csc.gui.descripcion")
+                color: currentTheme.secondaryTextColor
+                wrapMode: Text.WordWrap
+            }
+            Text {
+                Layout.fillWidth: true
+                visible: window.cscProhibited
+                text: tr("csc.error.prohibida")
+                color: currentTheme.textColor
+                font.bold: true
+                wrapMode: Text.WordWrap
+                Accessible.role: Accessible.AlertMessage
+                Accessible.name: text
+            }
+            Label {
+                visible: window.cscAllowed
+                text: tr("csc.gui.url")
+                color: currentTheme.textColor
+                font.bold: true
+            }
+            TextField {
+                id: cscServiceUrlField
+                visible: window.cscAllowed
+                Layout.fillWidth: true
+                enabled: !window.cscBusy && window.cscState.connected !== true
+                inputMethodHints: Qt.ImhUrlCharactersOnly | Qt.ImhNoAutoUppercase
+                Accessible.name: tr("csc.gui.url")
+                Accessible.description: tr("csc.gui.url_ayuda")
+                onTextEdited: window.cscDiscovery = null
+            }
+            Text {
+                Layout.fillWidth: true
+                visible: window.cscAllowed
+                text: tr("csc.gui.url_ayuda")
+                color: currentTheme.secondaryTextColor
+                wrapMode: Text.WordWrap
+            }
+            Label {
+                visible: window.cscAllowed
+                text: tr("csc.gui.client_id")
+                color: currentTheme.textColor
+                font.bold: true
+            }
+            TextField {
+                id: cscClientIdField
+                visible: window.cscAllowed
+                Layout.fillWidth: true
+                enabled: !window.cscBusy && window.cscState.connected !== true
+                inputMethodHints: Qt.ImhNoAutoUppercase | Qt.ImhNoPredictiveText
+                Accessible.name: tr("csc.gui.client_id")
+                onTextEdited: window.cscDiscovery = null
+            }
+            Button {
+                text: window.cscBusy && window.cscDiscovery === null ? tr("csc.gui.comprobando") : tr("csc.gui.comprobar")
+                visible: window.cscAllowed && window.cscState.connected !== true
+                enabled: !window.cscBusy && cscServiceUrlField.text.trim() !== "" && cscClientIdField.text.trim() !== ""
+                onClicked: {
+                    window.cscBusy = true
+                    window.cscMessage = ""
+                    window.cscDiscovery = null
+                    backend.cscConfigure(cscServiceUrlField.text, cscClientIdField.text)
+                }
+            }
+            GridLayout {
+                visible: window.cscDiscovery !== null
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: 8
+                Label { text: tr("csc.gui.host_servicio"); color: currentTheme.secondaryTextColor }
+                Label {
+                    Layout.fillWidth: true
+                    text: window.cscDiscovery ? String(window.cscDiscovery.serviceHost || "") : ""
+                    textFormat: Text.PlainText
+                    color: currentTheme.textColor
+                    font.bold: true
+                    wrapMode: Text.WrapAnywhere
+                }
+                Label { text: tr("csc.gui.host_oauth"); color: currentTheme.secondaryTextColor }
+                Label {
+                    Layout.fillWidth: true
+                    text: window.cscDiscovery ? String(window.cscDiscovery.oauthHost || "") : ""
+                    textFormat: Text.PlainText
+                    color: currentTheme.textColor
+                    font.bold: true
+                    wrapMode: Text.WrapAnywhere
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                visible: window.cscDiscovery !== null && window.cscState.connected !== true
+                text: tr("csc.gui.aviso_navegador")
+                color: currentTheme.textColor
+                wrapMode: Text.WordWrap
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Button {
+                    text: tr("csc.gui.conectar")
+                    visible: window.cscDiscovery !== null && window.cscState.connected !== true
+                    enabled: !window.cscBusy
+                    onClicked: {
+                        window.cscBusy = true
+                        window.cscMessage = tr("csc.gui.conectando")
+                        backend.cscConnect()
+                    }
+                }
+                Button {
+                    text: tr("csc.gui.desconectar")
+                    visible: window.cscState.connected === true
+                    enabled: !window.cscBusy
+                    onClicked: {
+                        window.cscBusy = true
+                        backend.cscDisconnect()
+                    }
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                visible: window.cscMessage !== ""
+                text: window.cscMessage
+                textFormat: Text.PlainText
+                color: currentTheme.textColor
+                wrapMode: Text.WordWrap
+                Accessible.role: Accessible.AlertMessage
+                Accessible.name: window.cscMessage
+            }
+        }
+    }
+
+    ThemedDialog {
+        theme: currentTheme
+        id: cscRemoteSecretDialog
+        title: tr("csc.gui.dialogo_titulo")
+        accessibleDescription: tr("csc.gui.dialogo_texto")
+        modal: true
+        anchors.centerIn: parent
+        width: Math.min(460, window.width - 40)
+        standardButtons: Dialog.NoButton
+        closePolicy: Popup.CloseOnEscape
+
+        function submitSecrets() {
+            const cert = window.cscSecretCertificate
+            const needPin = !!cert && cert.remotePin === true
+            const needOtp = !!cert && cert.remoteOtp === true
+            if ((needPin && cscPinField.text === "") || (needOtp && cscOtpField.text === "")) {
+                cscSecretStatus.text = tr("csc.gui.falta_dato")
+                return
+            }
+            window.cscPendingSecrets = {
+                certificateId: String(cert.id || ""),
+                pin: needPin ? cscPinField.text : "",
+                otp: needOtp ? cscOtpField.text : ""
+            }
+            window.clearRemoteSecretFields()
+            const index = window.cscSecretCertIndex
+            cscRemoteSecretDialog.close()
+            window.executeSignRequest(index)
+        }
+
+        ColumnLayout {
+            width: parent ? parent.width : 420
+            spacing: 10
+            Text {
+                Layout.fillWidth: true
+                text: tr("csc.gui.dialogo_texto")
+                color: currentTheme.secondaryTextColor
+                wrapMode: Text.WordWrap
+            }
+            Label {
+                visible: !!window.cscSecretCertificate && window.cscSecretCertificate.remotePin === true
+                text: tr("csc.gui.pin")
+                color: currentTheme.textColor
+                font.bold: true
+            }
+            TextField {
+                id: cscPinField
+                visible: !!window.cscSecretCertificate && window.cscSecretCertificate.remotePin === true
+                Layout.fillWidth: true
+                echoMode: TextInput.Password
+                inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoPredictiveText | Qt.ImhHiddenText
+                Accessible.name: tr("csc.gui.pin")
+                onAccepted: cscRemoteSecretDialog.submitSecrets()
+            }
+            Label {
+                visible: !!window.cscSecretCertificate && window.cscSecretCertificate.remoteOtp === true
+                text: tr("csc.gui.otp")
+                color: currentTheme.textColor
+                font.bold: true
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                visible: !!window.cscSecretCertificate && window.cscSecretCertificate.remoteOtp === true
+                TextField {
+                    id: cscOtpField
+                    Layout.fillWidth: true
+                    echoMode: TextInput.Password
+                    inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoPredictiveText | Qt.ImhHiddenText
+                    Accessible.name: tr("csc.gui.otp")
+                    onAccepted: cscRemoteSecretDialog.submitSecrets()
+                }
+                Button {
+                    visible: !!window.cscSecretCertificate && window.cscSecretCertificate.remoteOtpOnline === true
+                    text: tr("csc.gui.enviar_codigo")
+                    onClicked: {
+                        cscSecretStatus.text = ""
+                        backend.cscSendOtp(String(window.cscSecretCertificate.id || ""))
+                    }
+                }
+            }
+            Text {
+                id: cscSecretStatus
+                Layout.fillWidth: true
+                visible: text !== ""
+                textFormat: Text.PlainText
+                color: currentTheme.textColor
+                wrapMode: Text.WordWrap
+                Accessible.role: Accessible.AlertMessage
+                Accessible.name: text
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Item { Layout.fillWidth: true }
+                Button {
+                    text: tr("csc.gui.cancelar")
+                    onClicked: cscRemoteSecretDialog.close()
+                }
+                Button {
+                    text: tr("csc.gui.firmar")
+                    highlighted: true
+                    onClicked: cscRemoteSecretDialog.submitSecrets()
+                }
+            }
+        }
+        onOpened: {
+            if (cscPinField.visible) cscPinField.forceActiveFocus()
+            else cscOtpField.forceActiveFocus()
+        }
+        onClosed: {
+            window.clearRemoteSecretFields()
+            window.cscSecretCertificate = null
+        }
+    }
+
+    ThemedDialog {
+        theme: currentTheme
         id: importPasswordDialog
         title: tr("Contraseña del Certificado")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -6873,6 +7235,7 @@ Window {
                 return
             }
             console.log(tr("QML: Certificados recibidos:"), certs.length)
+            backend.cscStatus()
             window.certificates = certs
             window.syncCertificateSelection(certs)
             if (certs.length > 0) {
@@ -6928,6 +7291,7 @@ Window {
         }
         function onSigningFinished(success, message, outPath) {
             window.signingInProgress = false
+            window.cscPendingSecrets = null
             window.statusMessage = (success ? "✅ " : "❌ ") + message
             window.signResultGeneration++
             const resultGeneration = window.signResultGeneration
@@ -6962,6 +7326,7 @@ Window {
         }
         function onBatchSigningFinished(success, message, results) {
             window.signingInProgress = false
+            window.cscPendingSecrets = null
             window.currentBatchResults = results || []
             const firstBatchError = window.firstBatchFailureMessage(window.currentBatchResults)
             window.statusMessage = (!success && firstBatchError !== "")
@@ -10093,6 +10458,15 @@ Window {
                                     ToolTip.delay: 350
                                     ToolTip.text: tr("Ocultar")
                                 }
+                            }
+
+                            Button {
+                                visible: (window.cscAllowed || window.cscProhibited) && !window.rightSidebarCollapsed
+                                Layout.fillWidth: true
+                                text: tr("csc.gui.titulo")
+                                Accessible.name: tr("csc.gui.titulo")
+                                Accessible.description: tr("csc.gui.descripcion")
+                                onClicked: window.openRemoteSigningDialog()
                             }
 
                             ColumnLayout {
