@@ -11187,6 +11187,14 @@ Window {
                 property bool hashSaveReport: window.defaultHashSaveReport
                 property var hashCreateResult: null
                 property var hashCheckResult: null
+                // Subpaneles de Verificar con colores del tema: fondo teñido con el color
+                // principal y textos, títulos y estados ajustados a contraste AA (4,5:1).
+                readonly property color subPanelColor: Qt.tint(currentTheme.sidebarColor, Qt.alpha(currentTheme.primaryColor, 0.12))
+                readonly property color subPanelBorder: Qt.alpha(currentTheme.primaryColor, 0.45)
+                readonly property color subPanelText: Contrast.readableOn(subPanelColor, currentTheme.textColor)
+                readonly property color subPanelTitle: Contrast.accentOn(subPanelColor, currentTheme.primaryColor)
+                readonly property color subPanelWarning: Contrast.accentOn(subPanelColor, "#f39c12")
+                readonly property color subPanelError: Contrast.accentOn(subPanelColor, currentTheme.errorColor)
 
                 function collectExpandablePanels(root, out) {
                     if (!root)
@@ -11281,7 +11289,7 @@ Window {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 40
+                    anchors.margins: verifyTab.width < 760 ? 16 : 40
                     spacing: 40
 
                     Rectangle {
@@ -11299,28 +11307,17 @@ Window {
                             rightPadding: 26
                             topPadding: 16
                             bottomPadding: 26
-                            contentWidth: Math.max(
-                                              availableWidth,
-                                              verifyMainOuterContent.implicitWidth,
-                                              verifyInputPanel.implicitWidth,
-                                              verifyHashPanel.implicitWidth,
-                                              verifyDetailsPanel.implicitWidth,
-                                              880)
+                            // Solo desplazamiento vertical: los paneles se ajustan al ancho.
+                            contentWidth: availableWidth
                             contentHeight: verifyMainOuterContent.implicitHeight
                             clip: true
                             ScrollBar.vertical.policy: ScrollBar.AsNeeded
-                            ScrollBar.horizontal.policy: ScrollBar.AsNeeded
+                            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                             ScrollBar.vertical.width: 18
-                            ScrollBar.horizontal.height: 18
 
                             ColumnLayout {
                                 id: verifyMainOuterContent
-                                implicitWidth: Math.max(
-                                                   verifyInputPanel.implicitWidth,
-                                                   verifyHashPanel.implicitWidth,
-                                                   verifyDetailsPanel.implicitWidth,
-                                                   880)
-                                width: Math.max(verifyMainOuterScroll.availableWidth, implicitWidth)
+                                width: verifyMainOuterScroll.availableWidth
                                 spacing: 20
 
                                 Text {
@@ -11328,18 +11325,18 @@ Window {
                                     font.pixelSize: 32
                                     font.bold: true
                                     color: currentTheme.textColor
+                                    Layout.fillWidth: true
+                                    wrapMode: Text.Wrap
                                 }
 
                         Rectangle {
                             id: verifyInputPanel
                             Layout.fillWidth: true
-                            Layout.minimumWidth: 880
-                            Layout.preferredHeight: 300
+                            Layout.preferredHeight: Math.max(300, verifyInputColumn.implicitHeight + 40)
                             radius: 15
                             color: currentTheme.cardColor
                             border.color: currentTheme.primaryColor
                             border.width: verifyDrop.containsDrag ? 3 : 1
-                            implicitWidth: 880
                             
                             DropArea {
                                 id: verifyDrop
@@ -11358,6 +11355,7 @@ Window {
                             }
 
                             ColumnLayout {
+                                id: verifyInputColumn
                                 anchors.centerIn: parent
                                 width: Math.min(parent.width - 40, 640)
                                 spacing: 15
@@ -11379,9 +11377,8 @@ Window {
                                     horizontalAlignment: Text.AlignHCenter
                                     wrapMode: Text.Wrap
                                 }
-                                RowLayout {
-                                    Layout.alignment: Qt.AlignHCenter
-                                    spacing: 8
+                                AdaptiveRow {
+                                    centered: true
 
                                     ThemedButton {
                                         text: tr("Seleccionar fichero...")
@@ -11400,9 +11397,8 @@ Window {
                                     }
                                 }
 
-                                RowLayout {
-                                    Layout.alignment: Qt.AlignHCenter
-                                    spacing: 8
+                                AdaptiveRow {
+                                    centered: true
 
                                     ThemedButton {
                                         text: tr("Seleccionar original...")
@@ -11417,9 +11413,8 @@ Window {
                                         }
                                     }
                                 }
-                                RowLayout {
-                                    Layout.alignment: Qt.AlignHCenter
-                                    spacing: 8
+                                AdaptiveRow {
+                                    centered: true
 
                                     ThemedButton {
                                         text: tr("Asistente")
@@ -11437,9 +11432,8 @@ Window {
                                         onClicked: window.openCurrentCertificateValidation()
                                     }
                                 }
-                                RowLayout {
-                                    Layout.alignment: Qt.AlignHCenter
-                                    spacing: 8
+                                AdaptiveRow {
+                                    centered: true
                                     visible: verifyTab.verifyDetails !== null
 
                                     ThemedButton {
@@ -11468,12 +11462,10 @@ Window {
                             id: verifyHashPanel
                             property bool expanded: false
                             Layout.fillWidth: true
-                            Layout.minimumWidth: Math.max(verifyHashPanelColumn.implicitWidth + 40, 880)
                             radius: 15
                             color: currentTheme.cardColor
                             border.color: currentTheme.primaryColor
                             border.width: 1
-                            implicitWidth: Math.max(verifyHashPanelColumn.implicitWidth + 40, 880)
                             implicitHeight: verifyHashPanelColumn.implicitHeight + 40
 
                             ColumnLayout {
@@ -11524,9 +11516,8 @@ Window {
                                     Layout.fillWidth: true
                                 }
 
-                                RowLayout {
+                                AdaptiveRow {
                                     visible: verifyHashPanel.expanded
-                                    Layout.fillWidth: true
                                     spacing: 10
 
                                     ThemedButton {
@@ -11546,7 +11537,9 @@ Window {
                                 Rectangle {
                                     visible: verifyHashPanel.expanded
                                     Layout.fillWidth: true
-                                    color: "#223244"
+                                    color: verifyTab.subPanelColor
+                                    border.color: verifyTab.subPanelBorder
+                                    border.width: 1
                                     radius: 8
                                     implicitHeight: hashSelectionColumn.implicitHeight + 18
 
@@ -11558,13 +11551,13 @@ Window {
 
                                         Text {
                                             text: tr("Entrada: ") + (verifyTab.hashInputPath !== "" ? verifyTab.hashInputPath : tr("No seleccionada"))
-                                            color: "white"
+                                            color: verifyTab.subPanelText
                                             width: parent.width
                                             wrapMode: Text.WrapAnywhere
                                         }
                                         Text {
                                             text: tr("Tipo: ") + (verifyTab.hashInputIsDirectory ? tr("Directorio") : tr("Fichero"))
-                                            color: "white"
+                                            color: verifyTab.subPanelText
                                             opacity: 0.85
                                             visible: verifyTab.hashInputPath !== ""
                                             width: parent.width
@@ -11572,7 +11565,7 @@ Window {
                                         }
                                         Text {
                                             text: tr("Huella o manifiesto: ") + (verifyTab.hashReferencePath !== "" ? verifyTab.hashReferencePath : tr("No seleccionado"))
-                                            color: "white"
+                                            color: verifyTab.subPanelText
                                             opacity: 0.85
                                             width: parent.width
                                             wrapMode: Text.WrapAnywhere
@@ -11580,10 +11573,12 @@ Window {
                                     }
                                 }
 
-                                RowLayout {
+                                GridLayout {
                                     visible: verifyHashPanel.expanded
                                     Layout.fillWidth: true
-                                    spacing: 12
+                                    columns: verifyHashPanel.width < 560 ? 1 : 2
+                                    columnSpacing: 12
+                                    rowSpacing: 12
 
                                     ColumnLayout {
                                         Layout.fillWidth: true
@@ -11628,9 +11623,8 @@ Window {
                                     }
                                 }
 
-                                RowLayout {
+                                AdaptiveRow {
                                     visible: verifyHashPanel.expanded
-                                    Layout.fillWidth: true
                                     spacing: 12
 
                                     ThemedCheckBox {
@@ -11647,9 +11641,8 @@ Window {
                                     }
                                 }
 
-                                RowLayout {
+                                AdaptiveRow {
                                     visible: verifyHashPanel.expanded
-                                    Layout.fillWidth: true
                                     spacing: 10
 
                                     ThemedButton {
@@ -11684,7 +11677,9 @@ Window {
                                 Rectangle {
                                     visible: verifyHashPanel.expanded && (verifyTab.hashCreateResult !== null || verifyTab.hashCheckResult !== null)
                                     Layout.fillWidth: true
-                                    color: "#223244"
+                                    color: verifyTab.subPanelColor
+                                    border.color: verifyTab.subPanelBorder
+                                    border.width: 1
                                     radius: 8
                                     implicitHeight: hashResultColumn.implicitHeight + 18
 
@@ -11696,7 +11691,7 @@ Window {
 
                                         Text {
                                             text: tr("Resultado de huella")
-                                            color: currentTheme.primaryColor
+                                            color: verifyTab.subPanelTitle
                                             font.bold: true
                                             font.pixelSize: 12
                                             width: parent.width
@@ -11705,14 +11700,14 @@ Window {
                                         Text {
                                             text: verifyTab.hashCreateResult && verifyTab.hashCreateResult.hash ? (tr("Huella: ") + verifyTab.hashCreateResult.hash) : ""
                                             visible: text !== ""
-                                            color: "white"
+                                            color: verifyTab.subPanelText
                                             width: parent.width
                                             wrapMode: Text.WrapAnywhere
                                         }
                                         Text {
                                             text: verifyTab.hashCreateResult && verifyTab.hashCreateResult.outputPath ? (tr("Salida: ") + verifyTab.hashCreateResult.outputPath) : ""
                                             visible: text !== ""
-                                            color: "white"
+                                            color: verifyTab.subPanelText
                                             opacity: 0.88
                                             width: parent.width
                                             wrapMode: Text.WrapAnywhere
@@ -11722,7 +11717,7 @@ Window {
                                                   ? (tr("Estado: ") + (verifyTab.hashCheckResult.valid ? tr("✅ VÁLIDA") : tr("❌ NO VÁLIDA")))
                                                   : ""
                                             visible: text !== ""
-                                            color: "white"
+                                            color: verifyTab.subPanelText
                                             font.bold: true
                                             width: parent.width
                                             wrapMode: Text.Wrap
@@ -11730,7 +11725,7 @@ Window {
                                         Text {
                                             text: verifyTab.hashCheckResult && verifyTab.hashCheckResult.expectedHash ? (tr("Esperada: ") + verifyTab.hashCheckResult.expectedHash) : ""
                                             visible: text !== ""
-                                            color: "white"
+                                            color: verifyTab.subPanelText
                                             opacity: 0.9
                                             width: parent.width
                                             wrapMode: Text.WrapAnywhere
@@ -11738,7 +11733,7 @@ Window {
                                         Text {
                                             text: verifyTab.hashCheckResult && verifyTab.hashCheckResult.actualHash ? (tr("Actual: ") + verifyTab.hashCheckResult.actualHash) : ""
                                             visible: text !== ""
-                                            color: "white"
+                                            color: verifyTab.subPanelText
                                             opacity: 0.9
                                             width: parent.width
                                             wrapMode: Text.WrapAnywhere
@@ -11746,7 +11741,7 @@ Window {
                                         Text {
                                             text: verifyTab.hashCheckResult && verifyTab.hashCheckResult.reportOutputPath ? (tr("Informe: ") + verifyTab.hashCheckResult.reportOutputPath) : ""
                                             visible: text !== ""
-                                            color: "white"
+                                            color: verifyTab.subPanelText
                                             opacity: 0.85
                                             width: parent.width
                                             wrapMode: Text.WrapAnywhere
@@ -11759,7 +11754,7 @@ Window {
                                                      + tr(" | Sin hash: ") + verifyTab.hashCheckResult.file_without_hash.length)
                                                   : ""
                                             visible: text !== ""
-                                            color: "white"
+                                            color: verifyTab.subPanelText
                                             opacity: 0.85
                                             width: parent.width
                                             wrapMode: Text.Wrap
@@ -11768,7 +11763,7 @@ Window {
                                             text: verifyTab.hashCreateResult && verifyTab.hashCreateResult.error ? verifyTab.hashCreateResult.error
                                                   : (verifyTab.hashCheckResult && verifyTab.hashCheckResult.error ? verifyTab.hashCheckResult.error : "")
                                             visible: text !== ""
-                                            color: "#e74c3c"
+                                            color: verifyTab.subPanelError
                                             width: parent.width
                                             wrapMode: Text.Wrap
                                         }
@@ -11781,11 +11776,9 @@ Window {
                                 Rectangle {
                                     id: verifyDetailsPanel
                                     Layout.fillWidth: true
-                                    Layout.minimumWidth: Math.max(verifyDetailsPanelColumn.implicitWidth + 40, 880)
                                     radius: 15
                                     color: currentTheme.sidebarColor
                                     visible: verifyTab.verifyDetails !== null
-                                    implicitWidth: Math.max(verifyDetailsPanelColumn.implicitWidth + 40, 880)
                                     implicitHeight: verifyDetailsPanelColumn.implicitHeight + 40
                             
                             ColumnLayout {
@@ -11796,7 +11789,9 @@ Window {
                                 Text {
                                     text: tr("DETALLES DE LA FIRMA")
                                     font.bold: true
-                                    color: currentTheme.primaryColor
+                                    color: Contrast.accentOn(currentTheme.sidebarColor, currentTheme.primaryColor)
+                                    Layout.fillWidth: true
+                                    wrapMode: Text.Wrap
                                 }
                                 Column {
                                     id: verifyDetailsContentColumn
@@ -11829,9 +11824,8 @@ Window {
                                             visible: verifyTab.verifyDetails && verifyTab.verifyDetails.reason !== undefined
                                         }
 
-                                        RowLayout {
+                                        AdaptiveRow {
                                             width: parent.width
-                                            spacing: 8
 
                                             ThemedButton {
                                                 text: tr("Asistente")
@@ -11857,7 +11851,6 @@ Window {
                                                 visible: verifyTab.verifyDetails !== null
                                                 onClicked: verifyTab.toggleVerifyDetailsPanels()
                                             }
-                                            Item { Layout.fillWidth: true }
                                         }
 
                                         ColumnLayout {
@@ -11877,7 +11870,9 @@ Window {
                                                 property bool expanded: false
                                                 Layout.fillWidth: true
                                                 implicitHeight: Math.max(verificationSummaryColumn.implicitHeight + 20, 52)
-                                                color: "#223244"
+                                                color: verifyTab.subPanelColor
+                                                border.color: verifyTab.subPanelBorder
+                                                border.width: 1
                                                 radius: 8
                                                 visible: verifyTab.verifyDetails && (
                                                     (verifyTab.verifyDetails.format && verifyTab.verifyDetails.format !== "") ||
@@ -11897,7 +11892,7 @@ Window {
                                                         Text {
                                                             Layout.fillWidth: true
                                                             text: tr("Resumen de verificación")
-                                                            color: currentTheme.primaryColor
+                                                            color: verifyTab.subPanelTitle
                                                             font.bold: true
                                                             font.pixelSize: 12
                                                             wrapMode: Text.Wrap
@@ -11912,7 +11907,7 @@ Window {
                                                     }
                                                     Text {
                                                         text: tr("Formato: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.format ? verifyTab.verifyDetails.format : tr("No disponible"))
-                                                        color: "white"
+                                                        color: verifyTab.subPanelText
                                                         opacity: 0.95
                                                         width: parent.width
                                                         wrapMode: Text.Wrap
@@ -11921,7 +11916,7 @@ Window {
                                                     }
                                                     Text {
                                                         text: tr("Formato: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.format ? verifyTab.verifyDetails.format : tr("No disponible"))
-                                                        color: "white"
+                                                        color: verifyTab.subPanelText
                                                         opacity: 0.95
                                                         width: parent.width
                                                         wrapMode: Text.Wrap
@@ -11930,7 +11925,7 @@ Window {
                                                     }
                                                     Text {
                                                         text: tr("Cobertura: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.coverage ? verifyTab.verifyDetails.coverage : tr("No disponible"))
-                                                        color: "white"
+                                                        color: verifyTab.subPanelText
                                                         opacity: 0.95
                                                         width: parent.width
                                                         wrapMode: Text.Wrap
@@ -11951,7 +11946,9 @@ Window {
                                                     Layout.fillWidth: true
                                                     property bool expanded: false
                                                     implicitHeight: Math.max(aspectColumn.implicitHeight + 20, 52)
-                                                    color: "#223244"
+                                                    color: verifyTab.subPanelColor
+                                                    border.color: verifyTab.subPanelBorder
+                                                    border.width: 1
                                                     radius: 8
                                                     visible: modelData.value !== null && modelData.value !== undefined
 
@@ -11968,7 +11965,7 @@ Window {
 
                                                             Text {
                                                                 text: modelData.label + ": " + verificationStatusText(modelData.value && modelData.value.status ? modelData.value.status : "")
-                                                                color: verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : "")
+                                                                color: Contrast.accentOn(verifyTab.subPanelColor, verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : ""))
                                                                 font.bold: true
                                                                 font.pixelSize: 12
                                                                 Layout.fillWidth: true
@@ -11990,7 +11987,7 @@ Window {
                                                         }
                                                         Text {
                                                             text: tr("Razón: ") + ((modelData.value && modelData.value.reason) ? localizeVisibleDiagnosticText(modelData.value.reason) : tr("No disponible"))
-                                                            color: "white"
+                                                            color: verifyTab.subPanelText
                                                             opacity: 0.92
                                                             font.pixelSize: 12
                                                             width: parent.width
@@ -11999,7 +11996,7 @@ Window {
                                                         }
                                                         Text {
                                                             text: tr("Detalles: ") + verificationAspectDetailsText(modelData.value)
-                                                            color: "white"
+                                                            color: verifyTab.subPanelText
                                                             opacity: 0.82
                                                             font.pixelSize: 12
                                                             width: parent.width
@@ -12016,7 +12013,9 @@ Window {
                                             property bool expanded: false
                                             width: parent.width
                                             implicitHeight: Math.max(signersColumn.implicitHeight + 20, 52)
-                                            color: "#223244"
+                                            color: verifyTab.subPanelColor
+                                            border.color: verifyTab.subPanelBorder
+                                            border.width: 1
                                             radius: 8
                                             visible: verifyTab.verifyDetails && verifyTab.verifyDetails.signers && verifyTab.verifyDetails.signers.length > 0
 
@@ -12033,7 +12032,7 @@ Window {
                                                     Text {
                                                         Layout.fillWidth: true
                                                         text: tr("Firmantes") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.signers) ? verifyTab.verifyDetails.signers.length : 0) + ")"
-                                                        color: currentTheme.primaryColor
+                                                        color: verifyTab.subPanelTitle
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         wrapMode: Text.Wrap
@@ -12051,7 +12050,7 @@ Window {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.signers) ? verifyTab.verifyDetails.signers : []
                                                     delegate: Text {
                                                         text: tr("• ") + modelData
-                                                        color: "white"
+                                                        color: verifyTab.subPanelText
                                                         font.pixelSize: 12
                                                         wrapMode: Text.Wrap
                                                         width: signersColumn.width
@@ -12065,7 +12064,9 @@ Window {
                                             property bool expanded: false
                                             width: parent.width
                                             implicitHeight: Math.max(signerSummaryColumn.implicitHeight + 20, 52)
-                                            color: "#223244"
+                                            color: verifyTab.subPanelColor
+                                            border.color: verifyTab.subPanelBorder
+                                            border.width: 1
                                             radius: 8
                                             visible: verifyTab.verifyDetails && verifyTab.verifyDetails.signerSummaries && verifyTab.verifyDetails.signerSummaries.length > 0
 
@@ -12082,7 +12083,7 @@ Window {
                                                     Text {
                                                         Layout.fillWidth: true
                                                         text: tr("Firmantes resumidos") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.signerSummaries) ? verifyTab.verifyDetails.signerSummaries.length : 0) + ")"
-                                                        color: currentTheme.primaryColor
+                                                        color: verifyTab.subPanelTitle
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         wrapMode: Text.Wrap
@@ -12098,7 +12099,7 @@ Window {
 
                                                 Text {
                                                     text: verificationSignerSummariesText(verifyTab.verifyDetails)
-                                                    color: "white"
+                                                    color: verifyTab.subPanelText
                                                     opacity: 0.9
                                                     wrapMode: Text.Wrap
                                                     width: parent.width
@@ -12112,7 +12113,9 @@ Window {
                                             property bool expanded: false
                                             width: parent.width
                                             implicitHeight: Math.max(signatureDataColumn.implicitHeight + 20, 52)
-                                            color: "#223244"
+                                            color: verifyTab.subPanelColor
+                                            border.color: verifyTab.subPanelBorder
+                                            border.width: 1
                                             radius: 8
                                             visible: verifyTab.verifyDetails && verifyTab.verifyDetails.details && verifyTab.verifyDetails.details.length > 0
 
@@ -12129,7 +12132,7 @@ Window {
                                                     Text {
                                                         Layout.fillWidth: true
                                                         text: tr("verificacion.ver_detalles_tecnicos") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details.length : 0) + ")"
-                                                        color: currentTheme.primaryColor
+                                                        color: verifyTab.subPanelTitle
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         wrapMode: Text.Wrap
@@ -12147,7 +12150,7 @@ Window {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details : []
                                                     delegate: Text {
                                                         text: "• " + window.verificationDetailText(modelData)
-                                                        color: "white"
+                                                        color: verifyTab.subPanelText
                                                         opacity: 0.9
                                                         wrapMode: Text.Wrap
                                                         width: signatureDataColumn.width
@@ -12162,7 +12165,9 @@ Window {
                                             property bool expanded: false
                                             width: parent.width
                                             implicitHeight: Math.max(warningsColumn.implicitHeight + 20, 52)
-                                            color: "#223244"
+                                            color: verifyTab.subPanelColor
+                                            border.color: verifyTab.subPanelBorder
+                                            border.width: 1
                                             radius: 8
                                             visible: verifyTab.verifyDetails && verifyTab.verifyDetails.warnings && verifyTab.verifyDetails.warnings.length > 0
 
@@ -12179,7 +12184,7 @@ Window {
                                                     Text {
                                                         Layout.fillWidth: true
                                                         text: tr("Advertencias") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.warnings) ? verifyTab.verifyDetails.warnings.length : 0) + ")"
-                                                        color: "#f39c12"
+                                                        color: verifyTab.subPanelWarning
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         wrapMode: Text.Wrap
@@ -12197,7 +12202,7 @@ Window {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.warnings) ? verifyTab.verifyDetails.warnings : []
                                                     delegate: Text {
                                                         text: "• " + window.localizeVisibleDiagnosticText(modelData)
-                                                        color: "white"
+                                                        color: verifyTab.subPanelText
                                                         opacity: 0.9
                                                         wrapMode: Text.Wrap
                                                         width: warningsColumn.width
@@ -12212,7 +12217,9 @@ Window {
                                             property bool expanded: false
                                             width: parent.width
                                             implicitHeight: Math.max(errorsColumn.implicitHeight + 20, 52)
-                                            color: "#223244"
+                                            color: verifyTab.subPanelColor
+                                            border.color: verifyTab.subPanelBorder
+                                            border.width: 1
                                             radius: 8
                                             visible: verifyTab.verifyDetails && verifyTab.verifyDetails.errors && verifyTab.verifyDetails.errors.length > 0
 
@@ -12229,7 +12236,7 @@ Window {
                                                     Text {
                                                         Layout.fillWidth: true
                                                         text: tr("Errores") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.errors) ? verifyTab.verifyDetails.errors.length : 0) + ")"
-                                                        color: "#e74c3c"
+                                                        color: verifyTab.subPanelError
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         wrapMode: Text.Wrap
@@ -12247,7 +12254,7 @@ Window {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.errors) ? verifyTab.verifyDetails.errors : []
                                                     delegate: Text {
                                                         text: "• " + window.localizeVisibleDiagnosticText(modelData)
-                                                        color: "white"
+                                                        color: verifyTab.subPanelText
                                                         opacity: 0.9
                                                         wrapMode: Text.Wrap
                                                         width: errorsColumn.width
@@ -12262,7 +12269,9 @@ Window {
                                             property bool expanded: false
                                             width: parent.width
                                             implicitHeight: Math.max(evidenceColumn.implicitHeight + 20, 52)
-                                            color: "#223244"
+                                            color: verifyTab.subPanelColor
+                                            border.color: verifyTab.subPanelBorder
+                                            border.width: 1
                                             radius: 8
                                             visible: verifyTab.verifyDetails && verifyTab.verifyDetails.evidence && verifyTab.verifyDetails.evidence.length > 0
 
@@ -12279,7 +12288,7 @@ Window {
                                                     Text {
                                                         Layout.fillWidth: true
                                                         text: tr("Evidencias") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.evidence) ? verifyTab.verifyDetails.evidence.length : 0) + ")"
-                                                        color: currentTheme.primaryColor
+                                                        color: verifyTab.subPanelTitle
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         wrapMode: Text.Wrap
@@ -12295,7 +12304,7 @@ Window {
 
                                                 Text {
                                                     text: verificationEvidenceText(verifyTab.verifyDetails)
-                                                    color: "white"
+                                                    color: verifyTab.subPanelText
                                                     opacity: 0.9
                                                     wrapMode: Text.Wrap
                                                     width: parent.width
@@ -12310,16 +12319,18 @@ Window {
                                             width: parent.width
                                             implicitHeight: trustAlertRow.implicitHeight + 20
                                             visible: verifyTab.verifyDetails && verifyTab.verifyDetails.reason && verifyTab.verifyDetails.reason.indexOf(tr("emisor no confiable")) !== -1
-                                            color: "#34495e"
+                                            color: verifyTab.subPanelColor
                                             radius: 8
-                                            border.color: "#f1c40f"
+                                            border.color: verifyTab.subPanelWarning
                                             border.width: 1
 
-                                            RowLayout {
+                                            GridLayout {
                                                 id: trustAlertRow
                                                 anchors.fill: parent
                                                 anchors.margins: 10
-                                                spacing: 10
+                                                columns: width < 520 ? 2 : 3
+                                                columnSpacing: 10
+                                                rowSpacing: 10
                                                 Text {
                                                     text: tr("⚠️")
                                                     font.pixelSize: 24
@@ -12328,13 +12339,15 @@ Window {
                                                     Layout.fillWidth: true
                                                     Text {
                                                         text: tr("Confianza TLS local")
-                                                        color: "white"
+                                                        color: verifyTab.subPanelText
                                                         font.bold: true
                                                         font.pixelSize: 12
+                                                        wrapMode: Text.WordWrap
+                                                        Layout.fillWidth: true
                                                     }
                                                     Text {
                                                         text: tr("Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.")
-                                                        color: "white"
+                                                        color: verifyTab.subPanelText
                                                         font.pixelSize: 12
                                                         wrapMode: Text.WordWrap
                                                         Layout.fillWidth: true
@@ -12342,6 +12355,7 @@ Window {
                                                 }
                                                 ThemedButton {
                                                     text: tr("Confiar en la API local")
+                                                    Layout.columnSpan: trustAlertRow.columns === 2 ? 2 : 1
                                                     onClicked: backend.installPublicRoots()
                                                     palette.button: "#2ecc71"
                                                     palette.buttonText: "white"

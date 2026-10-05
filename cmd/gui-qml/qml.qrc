@@ -14,6 +14,7 @@
     <file>qml/ThemedButton.qml</file>
     <file>qml/ThemedCheckBox.qml</file>
     <file>qml/ThemedSwitch.qml</file>
+    <file>qml/AdaptiveRow.qml</file>
     <file>qml/DiagnosticTimeline.qml</file>
     <file>qml/TokenSettingsPanel.qml</file>
     <file>qml/FacturaePanel.qml</file>
