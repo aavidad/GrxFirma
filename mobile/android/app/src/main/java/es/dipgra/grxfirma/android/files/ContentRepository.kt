@@ -19,6 +19,14 @@ interface DocumentRepository {
     fun loadCertificate(file: SelectedFile): LoadedFile
     fun write(uri: Uri, bytes: ByteArray)
 
+    /** Lee un fichero con un límite propio (registros Veri*Factu, firmas para ENI). */
+    fun loadBounded(file: SelectedFile, maximumBytes: Int): LoadedFile = loadDocument(file).also {
+        if (it.bytes.size > maximumBytes) {
+            it.bytes.fill(0)
+            throw InvalidDocumentException("El documento supera el tamaño permitido.")
+        }
+    }
+
     /** Crea un documento nuevo dentro de una carpeta elegida con SAF. */
     fun writeToTree(folder: Uri, displayName: String, mimeType: String, bytes: ByteArray) {
         throw InvalidDocumentException("Este repositorio no admite carpetas.")
@@ -58,6 +66,9 @@ open class ContentRepository(private val resolver: ContentResolver) : DocumentRe
         maximumBytes = DocumentPolicy.MAX_DOCUMENT_BYTES,
         label = "El documento",
     )
+
+    override fun loadBounded(file: SelectedFile, maximumBytes: Int): LoadedFile =
+        load(file = file, maximumBytes = maximumBytes, label = "El documento")
 
     override fun loadCertificate(file: SelectedFile): LoadedFile = load(
         file = file,

@@ -84,3 +84,49 @@ data class BatchItemResult(
     val sourceName: String,
     val output: SignedOutput?,
 )
+
+/** Incidencia con clave de localización cerrada del motor (verifactu.*, eni.*). */
+data class EngineIssue(val field: String, val key: String, val level: String)
+
+data class VeriFactuRecord(
+    val file: String,
+    val type: String,
+    val hash: String,
+    val calculatedHash: String,
+    val previousHash: String,
+    val signed: Boolean,
+    val valid: Boolean,
+    val issues: List<EngineIssue>,
+)
+
+data class VeriFactuReport(
+    val valid: Boolean,
+    val errors: Int,
+    val warnings: Int,
+    val records: List<VeriFactuRecord>,
+)
+
+/** Códigos oficiales de la NTI que ofrece el motor. */
+data class EniCatalogs(
+    val documentStates: List<String>,
+    val documentTypes: List<String>,
+    val fileStates: List<String>,
+)
+
+/** Metadatos obligatorios del documento ENI; la fecha va en RFC 3339. */
+data class EniRequest(
+    val organs: List<String>,
+    val origin: String,
+    val state: String,
+    val documentType: String,
+    val identifier: String = "",
+    val sourceIdentifier: String = "",
+    val captureDate: String = "",
+    val contentFormat: String = "",
+)
+
+data class EniDocument(val bytes: ByteArray, val signatureType: String)
+
+data class EniValidation(val valid: Boolean, val issues: List<EngineIssue>)
+
+data class CsvLegend(val url: String, val text: String)

@@ -16,6 +16,12 @@ import es.dipgra.grxfirma.android.model.BatchItemResult
 import es.dipgra.grxfirma.android.model.HashCheck
 import es.dipgra.grxfirma.android.model.HashOutput
 import es.dipgra.grxfirma.android.model.ProtectionRequest
+import es.dipgra.grxfirma.android.model.CsvLegend
+import es.dipgra.grxfirma.android.model.EniCatalogs
+import es.dipgra.grxfirma.android.model.EniDocument
+import es.dipgra.grxfirma.android.model.EniRequest
+import es.dipgra.grxfirma.android.model.EniValidation
+import es.dipgra.grxfirma.android.model.VeriFactuReport
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -27,6 +33,8 @@ class ReflectiveGomobileBridge private constructor(
     override val engineVersion: String,
     private val outputName: (String, String) -> String,
     override val toolsAvailable: Boolean = false,
+    override val signingFormats: List<String> = SignatureFormats.BASIC,
+    override val documentServices: Set<String> = emptySet(),
 ) : CoreBridge, ExternalIdentityBridge {
     override val readiness = CoreReadiness(
         available = true,
@@ -83,6 +91,7 @@ class ReflectiveGomobileBridge private constructor(
             invokeJson("signJSON", CoreJsonCodec.signRequest(document, format, certificateId, options, action)),
             document.displayName,
             outputName,
+            document.mimeType,
         )
 
     override fun sealPreview(certificateId: String, options: Map<String, String>): ByteArray =
@@ -96,7 +105,7 @@ class ReflectiveGomobileBridge private constructor(
 
     override fun inspectSignature(document: LoadedFile): SignatureInspection {
         val json = org.json.JSONObject(invokeJson("inspectSignatureJSON", CoreJsonCodec.verifyRequest(document)))
-        val format = json.optString("format").lowercase().takeIf { it in listOf("cades", "pades", "xades") }.orEmpty()
+        val format = json.optString("format").lowercase().takeIf { it in signingFormats }.orEmpty()
         return SignatureInspection(json.optBoolean("has_signature", false), format)
     }
 
@@ -146,6 +155,33 @@ class ReflectiveGomobileBridge private constructor(
         documents,
         outputName,
     )
+
+    override fun validateVeriFactu(records: List<LoadedFile>): VeriFactuReport = CoreJsonCodec.parseVeriFactu(
+        invokeDocumentService(DocumentServices.VERIFACTU, "validateVeriFactuJSON", CoreJsonCodec.veriFactuRequest(records)),
+    )
+
+    override fun createEniDocument(signature: LoadedFile, original: LoadedFile?, request: EniRequest): EniDocument =
+        CoreJsonCodec.parseEniDocument(invokeDocumentService(DocumentServices.ENI_DOCUMENT, "createENIDocumentJSON",
+            CoreJsonCodec.eniDocumentRequest(signature, original, request)))
+
+    override fun validateEni(document: LoadedFile): EniValidation = CoreJsonCodec.parseEniValidation(
+        invokeDocumentService(DocumentServices.ENI_VALIDATE, "validateENIJSON", CoreJsonCodec.eniValidateRequest(document)),
+    )
+
+    override fun eniCatalogs(): EniCatalogs {
+        val method = methods["eniCatalogsJSON"] ?: return SignatureFormats.DEFAULT_ENI_CATALOGS
+        val raw = invoke(method, facade) as? String ?: return SignatureFormats.DEFAULT_ENI_CATALOGS
+        return CoreJsonCodec.parseEniCatalogs(raw)
+    }
+
+    override fun csvLegend(code: String, url: String, text: String): CsvLegend = CoreJsonCodec.parseCsvLegend(
+        invokeDocumentService(DocumentServices.CSV_LEGEND, "csvLegendJSON", CoreJsonCodec.csvLegendRequest(code, url, text)),
+    )
+
+    private fun invokeDocumentService(service: String, name: String, payload: String): String {
+        if (service !in documentServices) throw CoreUnavailableException("TOOLS_UNAVAILABLE")
+        return invokeJson(name, payload)
+    }
 
     private fun invokeTool(name: String, vararg payload: Any): String {
         if (!toolsAvailable) throw CoreUnavailableException("TOOLS_UNAVAILABLE")
@@ -256,6 +292,19 @@ class ReflectiveGomobileBridge private constructor(
             }.toMap()
             required.putAll(tools)
             val toolsAvailable = tools.size == 5 && CoreJsonCodec.toolsDeclared(contract)
+            // Veri*Factu, ENI y CSV también son opcionales: cada servicio se
+            // ofrece solo si el contrato lo declara y su método está enlazado.
+            val documentMethods = mapOf(
+                DocumentServices.VERIFACTU to "validateVeriFactuJSON",
+                DocumentServices.ENI_DOCUMENT to "createENIDocumentJSON",
+                DocumentServices.ENI_VALIDATE to "validateENIJSON",
+                DocumentServices.CSV_LEGEND to "csvLegendJSON",
+            ).mapNotNull { (service, name) ->
+                try { service to (name to facadeClass.getMethod(name, String::class.java)) } catch (_: NoSuchMethodException) { null }
+            }.toMap()
+            documentMethods.values.forEach { (name, method) -> required[name] = method }
+            try { required["eniCatalogsJSON"] = facadeClass.getMethod("eniCatalogsJSON") } catch (_: NoSuchMethodException) { }
+            val documentServices = CoreJsonCodec.documentServices(contract).filter { it in documentMethods }.toSet()
             return ReflectiveGomobileBridge(
                 facade,
                 required,
@@ -264,6 +313,8 @@ class ReflectiveGomobileBridge private constructor(
                     context.getString(es.dipgra.grxfirma.android.R.string.signed_document_name, base, extension)
                 },
                 toolsAvailable,
+                CoreJsonCodec.signingFormats(contract),
+                documentServices,
             )
         }
 

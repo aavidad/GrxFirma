@@ -14,6 +14,12 @@ import es.dipgra.grxfirma.android.model.BatchItemResult
 import es.dipgra.grxfirma.android.model.HashCheck
 import es.dipgra.grxfirma.android.model.HashOutput
 import es.dipgra.grxfirma.android.model.ProtectionRequest
+import es.dipgra.grxfirma.android.model.CsvLegend
+import es.dipgra.grxfirma.android.model.EniCatalogs
+import es.dipgra.grxfirma.android.model.EniDocument
+import es.dipgra.grxfirma.android.model.EniRequest
+import es.dipgra.grxfirma.android.model.EniValidation
+import es.dipgra.grxfirma.android.model.VeriFactuReport
 
 data class CoreReadiness(
     val available: Boolean,
@@ -73,6 +79,43 @@ interface CoreBridge {
         certificateId: String,
         options: Map<String, String>,
     ): List<BatchItemResult> = toolsUnavailable()
+
+    /** Formatos de firma que declara el AAR; uno antiguo solo trae los tres básicos. */
+    val signingFormats: List<String> get() = SignatureFormats.BASIC
+
+    /** Servicios de documentos opcionales que el AAR declara y enlaza. */
+    val documentServices: Set<String> get() = emptySet()
+
+    fun validateVeriFactu(records: List<LoadedFile>): VeriFactuReport = toolsUnavailable()
+
+    fun createEniDocument(signature: LoadedFile, original: LoadedFile?, request: EniRequest): EniDocument =
+        toolsUnavailable()
+
+    fun validateEni(document: LoadedFile): EniValidation = toolsUnavailable()
+
+    /** Sin el método del AAR se usan los códigos NTI conocidos por la app. */
+    fun eniCatalogs(): EniCatalogs = SignatureFormats.DEFAULT_ENI_CATALOGS
+
+    fun csvLegend(code: String, url: String, text: String): CsvLegend = toolsUnavailable()
+}
+
+/** Nombres de servicio del contrato para las herramientas de documentos. */
+object DocumentServices {
+    const val VERIFACTU = "verifactu_validate"
+    const val ENI_DOCUMENT = "eni_document"
+    const val ENI_VALIDATE = "eni_validate"
+    const val CSV_LEGEND = "csv_legend"
+    val ALL = listOf(VERIFACTU, ENI_DOCUMENT, ENI_VALIDATE, CSV_LEGEND)
+}
+
+object SignatureFormats {
+    val BASIC = listOf("cades", "pades", "xades")
+    val ALL = listOf("cades", "pades", "xades", "xmldsig", "odf", "ooxml", "facturae", "asic-xades", "verifactu")
+    val DEFAULT_ENI_CATALOGS = EniCatalogs(
+        documentStates = listOf("EE01", "EE02", "EE03", "EE04", "EE99"),
+        documentTypes = (1..20).map { "TD" + it.toString().padStart(2, '0') } + "TD99",
+        fileStates = listOf("E01", "E02", "E03"),
+    )
 }
 
 private fun toolsUnavailable(): Nothing = throw CoreUnavailableException("TOOLS_UNAVAILABLE")

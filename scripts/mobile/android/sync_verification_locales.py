@@ -16,6 +16,17 @@ ASSETS = ROOT / "mobile/android/app/src/main/assets/locales"
 LANGUAGES = ("es", "en", "ca", "va", "gl", "eu", "fr", "de", "it", "pt", "zh")
 
 
+# Veri*Factu, ENI y la leyenda CSV devuelven claves cerradas del catálogo
+# desktop: se empaquetan por clave, no por texto español.
+KEY_PREFIXES = ("verifactu.", "eni.validacion.", "eni.codigo.", "csv.error.")
+EXCLUDED_KEYS = {"verifactu.cli_usage", "eni.validacion.input", "eni.validacion.help"}
+
+
+def keyed_messages(catalogue):
+    return {key: value for key, value in catalogue.items()
+            if key.startswith(KEY_PREFIXES) and key not in EXCLUDED_KEYS}
+
+
 def main():
     literals = set()
     for directory in ("internal/adapters/outbound/common/signer", "internal/domain"):
@@ -38,6 +49,7 @@ def main():
         folder = "values" if language == "es" else "values-b+ca+ES+valencia" if language == "va" else f"values-{language}"
         overlay = {node.attrib["name"]: node.text for node in ET.parse(RES / folder / "strings.xml").getroot() if node.tag == "string"}
         messages.update({value: overlay[key] for key, value in source_overlay.items()})
+        messages.update(keyed_messages(catalogue))
         (ASSETS / f"{language}.json").write_text(json.dumps(messages, ensure_ascii=False, indent=2) + "\n")
 
 
