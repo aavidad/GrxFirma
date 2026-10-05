@@ -241,17 +241,8 @@ public sealed partial class MainWindow : Window
     // y PrimaryLanguageOverride para los recursos que se cargan después.
     private void ApplyControlLanguage()
     {
-        var tag = GrxFirma.WinUI.Core.Localization.AppCulture.Tag(Localizer.Language);
-        AppRoot.Language = tag;
-        try
-        {
-            Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = tag;
-        }
-        catch (Exception exception) when (exception is ArgumentException or
-            System.Runtime.InteropServices.COMException or InvalidOperationException)
-        {
-            // Sin soporte en este equipo: quedan solo los formatos de Language.
-        }
+        AppRoot.Language = GrxFirma.WinUI.Core.Localization.AppCulture.Tag(Localizer.Language);
+        StartupLanguage.ApplyOverride(Localizer.Language);
     }
 
     private void RefreshProgrammaticLanguage()

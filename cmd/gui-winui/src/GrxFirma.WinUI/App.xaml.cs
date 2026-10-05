@@ -49,6 +49,9 @@ public partial class App : Application
 
     public App()
     {
+        // Antes de cargar recursos: los controles propios de WinUI toman el
+        // idioma de PrimaryLanguageOverride al crearse.
+        StartupLanguage.Apply();
         InitializeComponent();
         UnhandledException += OnUnhandledException;
     }

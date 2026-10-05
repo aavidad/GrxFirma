@@ -60,7 +60,11 @@ public sealed partial class EniPage : Page
         var now = DateTimeOffset.Now;
         _docOrgan = Field("paridad.lote3.eni.organ_document");
         _docOrgan.Description = Wrapped(T("paridad.lote3.eni.organ_hint"));
-        _capture = new DatePicker { Header = T("paridad.lote3.eni.capture_date"), SelectedDate = now };
+        // El idioma de la aplicación también para mes y día en caliente.
+        var controlLanguage = AppCultureTag();
+        _capture = new DatePicker { Header = T("paridad.lote3.eni.capture_date"), SelectedDate = now, Language = controlLanguage };
+        _captureTime.Language = controlLanguage;
+        _openedTime.Language = controlLanguage;
         _captureTime.Time = now.TimeOfDay;
         _captureTime.Header = T("paridad.lote3.eni.capture_time");
         _docState = Codes("paridad.lote3.eni.state", EniCatalog.EstadosElaboracion, "EE01");
@@ -70,7 +74,7 @@ public sealed partial class EniPage : Page
         _format = Field("paridad.lote3.eni.format_optional", maxLength: 32);
         _fileOrgan = Field("paridad.lote3.eni.organ_file");
         _fileOrgan.Description = Wrapped(T("paridad.lote3.eni.organ_hint"));
-        _opened = new DatePicker { Header = T("paridad.lote3.eni.open_date"), SelectedDate = now };
+        _opened = new DatePicker { Header = T("paridad.lote3.eni.open_date"), SelectedDate = now, Language = controlLanguage };
         _openedTime.Time = now.TimeOfDay;
         _openedTime.Header = T("paridad.lote3.eni.open_time");
         _classification = Field("paridad.lote3.eni.classification", maxLength: 44);
@@ -167,6 +171,9 @@ public sealed partial class EniPage : Page
         }
         Loaded += async (_, _) => await LoadCertificates();
     }
+
+    private static string AppCultureTag() =>
+        GrxFirma.WinUI.Core.Localization.AppCulture.Tag(Localizer.Language);
 
     private static ComboBox Codes(string key, IReadOnlyList<string> codes, string selected)
     {
