@@ -147,6 +147,7 @@ type Adaptador struct {
 	Catalogo             ports.CertificateCatalog
 	Claves               ports.SigningKeyProvider
 	Localizador          ports.Localizador
+	VisorPDF             ports.VisualizadorPDF
 	ConfigDir            string
 	Version              string
 	Stdout               io.Writer
@@ -320,6 +321,13 @@ func (a *Adaptador) WithClaves(claves ports.SigningKeyProvider) *Adaptador {
 // CLI. Si no se configura, el adaptador conserva los textos en castellano.
 func (a *Adaptador) WithLocalizador(localizador ports.Localizador) *Adaptador {
 	a.Localizador = localizador
+	return a
+}
+
+// WithVisorPDF inyecta el rasterizador de páginas PDF que usa la lectura del
+// QR tributario desde un PDF. Sin él, solo se admiten URL e imágenes.
+func (a *Adaptador) WithVisorPDF(visor ports.VisualizadorPDF) *Adaptador {
+	a.VisorPDF = visor
 	return a
 }
 
@@ -3319,6 +3327,7 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("    " + a.t("cli.help.batch", "Firma varios documentos con un único certificado. Con una carpeta firma sus ficheros (máximo 128, sin subcarpetas ni ocultos) y guarda cada firma junto al original o en -salida; los fallos se indican por documento.") + "\n")
 	b.WriteString("  " + a.localizadorENI().T("verifactu.cli_usage") + "\n")
 	b.WriteString("    " + a.localizadorENI().T("verifactu.scope") + "\n")
+	b.WriteString("    " + a.localizadorENI().T("verifactu.cli_qr_input") + "\n")
 	b.WriteString("  " + a.t("cli.help.facturae_check_usage", "-operacion validar-factura -entrada ...") + "\n")
 	b.WriteString("    " + a.t("cli.help.facturae_check", "Revisa una factura FacturaE, UBL o CII: totales (reglas EN 16931 en UBL y CII), impuestos, NIF/NIE/CIF y centros DIR3 que exige FACe.") + "\n")
 	b.WriteString("    " + a.t("cli.help.facturae_check_exit", "Devuelve 0 si no hay errores y 1 si FACe o el receptor rechazarían la factura.") + "\n")

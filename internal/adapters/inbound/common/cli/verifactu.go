@@ -72,21 +72,35 @@ func (a *Adaptador) ejecutarVeriFactu(ctx context.Context, cfg configCLI) int {
 		}
 		return 0
 	}
+	qr, e := a.leerQRVeriFactu(ctx, cfg.entrada)
+	if e != nil {
+		fmt.Fprintln(a.Stderr, signer.TraducirErrorVeriFactu(e, func(k string) string { return loc.T(k) }))
+		return 1
+	}
 	if cfg.operacion == "leer-qr-verifactu" {
-		qr, e := signer.LeerQRVeriFactu(cfg.entrada)
-		if e != nil {
-			fmt.Fprintln(a.Stderr, signer.TraducirErrorVeriFactu(e, func(k string) string { return loc.T(k) }))
-			return 1
-		}
 		data, _ := json.MarshalIndent(qr, "", "  ")
 		fmt.Fprintln(a.Stdout, string(data))
 		return 0
 	}
-	data, e := signer.ConsultarQRVeriFactu(ctx, cfg.entrada)
+	// El cotejo usa solo la URL ya validada que devuelve la lectura.
+	data, e := signer.ConsultarQRVeriFactu(ctx, qr.URL)
 	if e != nil {
 		fmt.Fprintln(a.Stderr, signer.TraducirErrorVeriFactu(e, func(k string) string { return loc.T(k) }))
 		return 1
 	}
 	fmt.Fprintln(a.Stdout, string(data))
 	return 0
+}
+
+// leerQRVeriFactu admite la URL del QR o un fichero PNG, JPEG o PDF. Lo que
+// no sea una ruta con esas extensiones se valida como URL, para que una URL
+// mal escrita reciba el mensaje de URL y no uno de fichero.
+func (a *Adaptador) leerQRVeriFactu(ctx context.Context, entrada string) (signer.VeriFactuQR, error) {
+	switch strings.ToLower(filepath.Ext(entrada)) {
+	case ".png", ".jpg", ".jpeg", ".pdf":
+		if !strings.Contains(entrada, "://") {
+			return signer.LeerQRVeriFactuFichero(ctx, entrada, a.VisorPDF)
+		}
+	}
+	return signer.LeerQRVeriFactu(entrada)
 }
