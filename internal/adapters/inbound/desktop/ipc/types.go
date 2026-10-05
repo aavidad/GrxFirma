@@ -340,6 +340,10 @@ type resultadoVerificacionFirmante struct {
 	Subject     string `json:"subject,omitempty"`
 	Issuer      string `json:"issuer,omitempty"`
 	Fingerprint string `json:"fingerprint,omitempty"`
+	// Fecha de la firma (RFC 3339) y su origen: "timestamp" o
+	// "signed_attribute". Vacíos si el motor no la obtuvo de forma fiable.
+	SigningTime       string `json:"signingTime,omitempty"`
+	SigningTimeSource string `json:"signingTimeSource,omitempty"`
 }
 
 type resultadoVerificacionEvidencia struct {

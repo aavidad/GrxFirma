@@ -449,6 +449,7 @@ func mergePAdESVerificationResult(base, next domain.VerificationResult) domain.V
 	base.Errors = append(base.Errors, next.Errors...)
 	base.Evidence = append(base.Evidence, next.Evidence...)
 	base.Material = base.Material.Anadir(next.Material)
+	base.SigningTimes = append(base.SigningTimes, next.SigningTimes...)
 	base.Integrity = mergeVerificationAspect(base.Integrity, next.Integrity)
 	base.Certificate = mergeVerificationAspect(base.Certificate, next.Certificate)
 	base.Trust = mergeVerificationAspect(base.Trust, next.Trust)

@@ -5,6 +5,11 @@
 
 package domain
 
+import (
+	"strings"
+	"time"
+)
+
 type VerificationAspectStatus string
 
 const (
@@ -25,6 +30,28 @@ type VerificationSignerSummary struct {
 	Subject     string `json:"subject,omitempty"`
 	Issuer      string `json:"issuer,omitempty"`
 	Fingerprint string `json:"fingerprint,omitempty"`
+	// SigningTime (RFC 3339, UTC) y su origen, solo si el verificador pudo
+	// obtenerlos de forma fiable; véase VerificationSigningTime.
+	SigningTime       string `json:"signingTime,omitempty"`
+	SigningTimeSource string `json:"signingTimeSource,omitempty"`
+}
+
+// Origen de la fecha de una firma.
+const (
+	// El sello de tiempo de la firma: su firma y su huella sobre el valor
+	// de firma se han comprobado.
+	SigningTimeSourceTimestamp = "timestamp"
+	// El atributo firmado signingTime: lo protege la firma comprobada, pero
+	// es la hora del equipo de quien firmó.
+	SigningTimeSourceSignedAttribute = "signed_attribute"
+)
+
+// VerificationSigningTime es el instante de una firma que el verificador
+// obtuvo de forma fiable, asociado al certificado firmante por su huella.
+type VerificationSigningTime struct {
+	Fingerprint string
+	Time        time.Time
+	Source      string
 }
 
 type VerificationEvidence struct {
@@ -48,9 +75,12 @@ type VerificationResult struct {
 	Trust       VerificationAspect
 
 	SignerSummaries []VerificationSignerSummary
-	Warnings        []string
-	Errors          []string
-	Evidence        []VerificationEvidence
+	// SigningTimes son las fechas de firma halladas; WithSignerSummaries
+	// las lleva al resumen de cada firmante. No se serializa.
+	SigningTimes []VerificationSigningTime `json:"-"`
+	Warnings     []string
+	Errors       []string
+	Evidence     []VerificationEvidence
 
 	// Material conserva certificados, sellos y coberturas halladas para la
 	// evaluación autónoma posterior. Nunca se serializa.
@@ -108,13 +138,25 @@ func (v VerificationResult) WithSignerSummaries(signers []CertificateRef) Verifi
 		return v
 	}
 	v.SignerSummaries = make([]VerificationSignerSummary, 0, len(signers))
+	usadas := make([]bool, len(v.SigningTimes))
 	for _, signer := range signers {
-		v.SignerSummaries = append(v.SignerSummaries, VerificationSignerSummary{
+		summary := VerificationSignerSummary{
 			ID:          signer.ID,
 			Subject:     signer.Subject,
 			Issuer:      signer.Issuer,
 			Fingerprint: signer.Fingerprint,
-		})
+		}
+		for i, fecha := range v.SigningTimes {
+			if usadas[i] || fecha.Time.IsZero() || signer.Fingerprint == "" ||
+				!strings.EqualFold(fecha.Fingerprint, signer.Fingerprint) {
+				continue
+			}
+			usadas[i] = true
+			summary.SigningTime = fecha.Time.UTC().Format(time.RFC3339)
+			summary.SigningTimeSource = fecha.Source
+			break
+		}
+		v.SignerSummaries = append(v.SignerSummaries, summary)
 	}
 	return v
 }
