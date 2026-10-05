@@ -8840,16 +8840,22 @@ Window {
                         Rectangle {
                             Layout.fillWidth: true
                             implicitHeight: optionsCol.implicitHeight + 24
-                            implicitWidth: optionsCol.implicitWidth + 24
                             radius: 10
                             color: currentTheme.cardColor
                             border.color: Qt.rgba(1, 1, 1, currentTheme.borderOpacity)
-                            // Sin desplazamiento propio: un ScrollView anidado se quedaba con la
-                            // rueda del ratón y la página no llegaba hasta «Firmar ahora».
-                            Item {
+                            // Solo desplaza en horizontal con su barra. Sin interacción propia (y sin
+                            // ScrollView, que filtra la rueda) la rueda llega a la página y se
+                            // alcanza «Firmar ahora».
+                            Flickable {
                                 id: scrollOpts
                                 anchors.fill: parent
                                 anchors.margins: 12
+                                clip: true
+                                contentWidth: optionsCol.implicitWidth
+                                contentHeight: optionsCol.implicitHeight
+                                interactive: false
+                                boundsBehavior: Flickable.StopAtBounds
+                                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
                                 ColumnLayout {
                                     id: optionsCol
