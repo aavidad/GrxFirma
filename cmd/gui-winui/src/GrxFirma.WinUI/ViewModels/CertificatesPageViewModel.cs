@@ -303,7 +303,7 @@ public sealed record CertificateListItem
 
 public sealed record CertificateDetailRow(string Label, string Value)
 {
-    public override string ToString() => Label + ": " + Value;
+    public override string ToString() => Localizer.LabelValue(Label, Value);
 }
 
 public sealed record CertificateImportOption(

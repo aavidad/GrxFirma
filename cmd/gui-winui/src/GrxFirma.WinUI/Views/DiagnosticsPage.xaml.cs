@@ -102,12 +102,12 @@ public sealed partial class DiagnosticsPage : Page
         var plan = CurrentSupportPlan;
         var goal = (SupportGoalCombo.SelectedItem as SettingsOption)?.Label ?? string.Empty;
         var report = SupportAssistantPlan.ExportText(
-            SupportLabel("winui.parity.support.goal") + ": " + goal,
-            SupportLabel("winui.parity.support.current") + ": " + SupportStepText.Text,
-            SupportLabel("winui.parity.support.summary") + ": " + ViewModel.SummaryMessage,
-            SupportLabel("winui.parity.support.owner") + ": " + ViewModel.OwnerLabel,
-            SupportLabel("winui.parity.support.responsibility") + ": " + ViewModel.Responsibility,
-            SupportLabel("winui.parity.support.suggestion") + ": " + ViewModel.SuggestedAction,
+            Localizer.LabelValue(SupportLabel("winui.parity.support.goal"), goal),
+            Localizer.LabelValue(SupportLabel("winui.parity.support.current"), SupportStepText.Text),
+            Localizer.LabelValue(SupportLabel("winui.parity.support.summary"), ViewModel.SummaryMessage),
+            Localizer.LabelValue(SupportLabel("winui.parity.support.owner"), ViewModel.OwnerLabel),
+            Localizer.LabelValue(SupportLabel("winui.parity.support.responsibility"), ViewModel.Responsibility),
+            Localizer.LabelValue(SupportLabel("winui.parity.support.suggestion"), ViewModel.SuggestedAction),
             plan.StepKeys.Select(SupportLabel).ToArray());
         try
         {

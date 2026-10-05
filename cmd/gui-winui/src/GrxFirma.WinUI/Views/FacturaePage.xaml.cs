@@ -236,10 +236,10 @@ public sealed partial class FacturaePage : Page
             if (!string.Equals(VeriFactuQrInput.Text, qr.Url, StringComparison.Ordinal))
                 VeriFactuQrInput.Text = qr.Url;
             var culture = GrxFirma.WinUI.Core.Localization.AppCulture.For(Localizer.Language);
-            VeriFactuQrReport.Text = T("verifactu.qr_nif") + ": " + qr.Nif + "\n" +
-                T("verifactu.qr_number") + ": " + qr.Number + "\n" +
-                T("verifactu.qr_date") + ": " + VeriFactuQrDisplay.Date(qr.Date, culture) + "\n" +
-                T("verifactu.qr_amount") + ": " + VeriFactuQrDisplay.Amount(qr.Amount, culture);
+            VeriFactuQrReport.Text = Localizer.LabelValue(T("verifactu.qr_nif"), qr.Nif) + "\n" +
+                Localizer.LabelValue(T("verifactu.qr_number"), qr.Number) + "\n" +
+                Localizer.LabelValue(T("verifactu.qr_date"), VeriFactuQrDisplay.Date(qr.Date, culture)) + "\n" +
+                Localizer.LabelValue(T("verifactu.qr_amount"), VeriFactuQrDisplay.Amount(qr.Amount, culture));
         }
         else VeriFactuQrReport.Text = result.SafeUserMessage;
     }

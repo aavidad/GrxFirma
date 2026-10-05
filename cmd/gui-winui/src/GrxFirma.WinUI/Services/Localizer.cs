@@ -45,6 +45,10 @@ internal static class Localizer
         string.Format(System.Globalization.CultureInfo.CurrentCulture,
             Catalog.Text(key), arguments);
 
+    /// <summary>Une una etiqueta y su valor con la puntuación de cada idioma.</summary>
+    public static string LabelValue(string label, string? value) =>
+        Fill("winui.selector.etiqueta_valor", ("label", label), ("value", value ?? string.Empty));
+
     public static string Fill(string key, params (string Name, string Value)[] values)
     {
         var replacements = new Dictionary<string, string>(StringComparer.Ordinal);

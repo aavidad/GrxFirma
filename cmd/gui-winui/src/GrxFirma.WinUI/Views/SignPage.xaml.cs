@@ -955,7 +955,7 @@ public sealed partial class SignPage : Page
                 TextWrapping = TextWrapping.Wrap,
                 IsTextSelectionEnabled = true,
             };
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(text, label.Text + ": " + value);
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(text, Localizer.LabelValue(label.Text, value));
             // El valor ya se anuncia con su etiqueta: la etiqueta suelta no se
             // lee otra vez («Documento», «Documento: prueba.pdf»).
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetAccessibilityView(
