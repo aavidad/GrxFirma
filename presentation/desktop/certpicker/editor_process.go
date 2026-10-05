@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -81,10 +82,19 @@ func EjecutarEditorSello(ctx context.Context, documento domain.Document, nombreC
 			terminarGrupoEditorSello(cmd)
 			return nil, limited.Err()
 		}
-		if errors.Is(err, exec.ErrNotFound) {
+		var salida *exec.ExitError
+		if !errors.As(err, &salida) {
 			return nil, ErrEditorSelloNoDisponible
 		}
-		return nil, ErrEditorSelloNoDisponible
+		// El editor llegó a ejecutarse y terminó con error. Si antes dejó una
+		// decisión completa y válida, se respeta: volver al diálogo de
+		// posiciones fijas descartaría el sitio que eligió la persona.
+		raw, err := securefile.ReadFileLimit(resultPath, MaxResultadoEditorSello)
+		if err != nil || !resultadoEditorSelloAceptable(raw, documento) {
+			return nil, ErrEditorSelloNoDisponible
+		}
+		slog.Warn("portal_seal_editor_exit_error_result_used", "exit_code", salida.ExitCode())
+		return raw, nil
 	}
 	raw, err := securefile.ReadFileLimit(resultPath, MaxResultadoEditorSello)
 	if errors.Is(err, os.ErrNotExist) {
@@ -94,6 +104,19 @@ func EjecutarEditorSello(ctx context.Context, documento domain.Document, nombreC
 		return nil, errors.New(tp("portal.seal.error.result"))
 	}
 	return raw, nil
+}
+
+// resultadoEditorSelloAceptable comprueba con las mismas reglas que el
+// consumidor que el resultado de un editor terminado con error es un JSON
+// completo y válido: colocar, firmar sin sello o cancelar. Un fichero
+// truncado o con colocaciones imposibles no se aprovecha.
+func resultadoEditorSelloAceptable(raw []byte, documento domain.Document) bool {
+	paginas, err := paginasPDFEditor(documento)
+	if err != nil {
+		return false
+	}
+	_, _, err = validarResultadoEditorSello(raw, paginas)
+	return err == nil || errors.Is(err, ErrSeleccionCancelada) || errors.Is(err, ErrSinSelloVisible)
 }
 
 func executableEditorSello() (string, error) {
