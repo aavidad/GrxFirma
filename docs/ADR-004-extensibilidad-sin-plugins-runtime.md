@@ -7,7 +7,6 @@
 
 Fecha: 2026-07-26
 Estado: ACEPTADA
-Decisión asociada: `T096`
 
 ## Contexto
 
@@ -130,7 +129,7 @@ y ausencia demostrable de acceso a claves o documentos fuera de la petición.
   integradas sí usan el catálogo i18n común.
 - Una futura necesidad de terceros debe tratarse como una iniciativa nueva,
   preferentemente fuera de proceso y con protocolo mínimo, no como reapertura
-  implícita de `T096`.
+  implícita de esta decisión.
 
 ## Referencias
 

@@ -120,7 +120,7 @@ declara implementado.
 
 ## Relación con escritorio
 
-T063–T065 (WebSocket y REST local) son capacidades exclusivas de escritorio por
+El WebSocket y el REST local son capacidades exclusivas de escritorio por
 compatibilidad. No deben entrar en el camino mobile.
 
 ## Consecuencias

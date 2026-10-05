@@ -137,7 +137,7 @@ PY
 }
 
 @test "protocol handler is hidden and an invocation without URI opens the desktop" {
-  run grep -Fx 'NoDisplay=true' "${BATS_TEST_DIRNAME}/../../../grxfirma.desktop"
+  run grep -Fx 'NoDisplay=true' "${BATS_TEST_DIRNAME}/../grxfirma.desktop"
   [ "$status" -eq 0 ]
   run grep -F 'if [[ -z "${uri}" ]]; then' "${BATS_TEST_DIRNAME}/../build-suite.sh"
   [ "$status" -eq 0 ]

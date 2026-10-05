@@ -93,5 +93,5 @@ Primer aterrizaje ya en repo:
 - Qt/QML expone creación, rotación y borrado mediante IPC local autenticado.
   La operación sensible no se difiere, se redacta completa en logs y zeroiza
   los buffers controlables; `save_settings` no puede alterar sus referencias;
-- el código y las pruebas automáticas de T101 están cerrados. La matriz manual
+- el código y las pruebas automáticas del proxy seguro están cerrados. La matriz manual
   de release conserva Secret Service, Keychain y DPAPI reales.

@@ -273,7 +273,7 @@ entorno protegido no se puede generar ni publicar una release oficial.
 Notas:
 
 - La password se lee de fichero (`-readpass`), nunca de argumentos, para que
-  no quede expuesta en la lista de procesos (misma política que T111).
+  no quede expuesta en la lista de procesos (la misma política que en el resto de secretos).
 - Cada binario se sella con RFC 3161: la firma sigue siendo válida cuando el
   certificado caduque.
 - El launcher/backend Go canónico se firma una sola vez. Después se copian esos
