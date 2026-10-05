@@ -158,7 +158,7 @@ var protocolFallbacks = map[string]map[string]string{
 		"El certificado se usará durante esta sesión de firma. No se instalará ni se guardará la contraseña.": "The certificate will be used during this signing session. It will not be installed and the password will not be saved.",
 		"Continuar":                     "Continue",
 		"TRAZA DE LA OPERACIÓN":         "OPERATION TRACE",
-		"TRAZA DEL SISTEMA (redactada)": "SYSTEM TRACE (redacted)",
+		"TRAZA DEL SISTEMA (redactada)": "SYSTEM TRACE (sanitised)",
 		"Cierra esta ventana o pulsa `Detener servidor` para desactivarlo.": "Close this window or click `Stop server` to deactivate it.",
 
 		graphicsFailureTitleID:       "GrxFirma — graphical interface unavailable",

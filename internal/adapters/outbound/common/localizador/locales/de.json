@@ -83,11 +83,11 @@
   "Registro de auditoría": "Prüfprotokoll",
   "Registro de auditoría íntegro: %d registros.": "Prüfprotokoll unversehrt: %d Einträge.",
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Die ältesten Einträge wurden gemäß Aufbewahrungsrichtlinie entfernt; die Kette wird ab dem ersten erhaltenen Eintrag geprüft.",
-  "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d Einträge stammen aus der Zeit vor der Fingerabdruckkette und können nicht geprüft werden.",
+  "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d Einträge stammen aus der Zeit vor der Hash-Kette und können nicht geprüft werden.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Prüft die Fingerabdruckkette des Prüfprotokolls: erkennt veränderte, eingefügte oder gelöschte Einträge. Um auch nachzuweisen, dass das Ende nicht abgeschnitten wurde, signieren Sie die Datei bei der Übergabe mit Ihrem Zertifikat.",
+  "cli.help.audit": "Prüft die Hash-Kette des Prüfprotokolls: erkennt veränderte, eingefügte oder gelöschte Einträge. Um auch nachzuweisen, dass das Ende nicht abgeschnitten wurde, signieren Sie die Datei bei der Übergabe mit Ihrem Zertifikat.",
   "cli.help.report_usage": "-informe <informe.html>",
-  "cli.help.report": "Speichert bei der Prüfung einen druckbaren HTML-Prüfbericht mit Ergebnis, Prüfungen, Unterzeichnern und dem SHA-256-Fingerabdruck der geprüften Datei.",
+  "cli.help.report": "Speichert bei der Prüfung einen druckbaren HTML-Prüfbericht mit Ergebnis, Prüfungen, Unterzeichnern und dem SHA-256-Hash der geprüften Datei.",
   "Informe de validación": "Prüfbericht",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Liest ohne Echo das Passwort eines verschlüsselten PDF (Benutzer oder Eigentümer), um es unter Beibehaltung der Verschlüsselung zu signieren. Auch die Variable GRXFIRMA_PDF_PASSWORD wird akzeptiert und beim Lesen gelöscht; als Argument wird es nie akzeptiert.",
@@ -106,7 +106,7 @@
   "cli.help.facturae_check_exit": "Gibt 0 ohne Fehler zurück und 1, wenn FACe oder der Empfänger die Rechnung ablehnen würden.",
   "cli.help.summary": "Übersicht der Optionen:",
   "cli.help.title": "grxfirma-CLI-Modus",
-  "El perfil compat requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "Das Profil compat erfordert eine RSA-Identität mit entschlüsselungsfähigem privaten Schlüssel, z. B. eine autorisierte P12/PFX-Datei. Undurchsichtige Systemzertifikate bleiben zum Signieren verfügbar; laden Sie eine geeignete P12/PFX-Datei oder verwenden Sie das Profil hoch.",
+  "El perfil compat requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "Das Profil compat erfordert eine RSA-Identität mit entschlüsselungsfähigem privaten Schlüssel, z. B. eine autorisierte P12/PFX-Datei. Nicht exportierbare Zertifikate aus dem Systemspeicher bleiben zum Signieren verfügbar; laden Sie eine geeignete P12/PFX-Datei oder verwenden Sie das Profil hoch.",
   "No hay identidades para el perfil compat. Requiere una clave RSA descifrable, por ejemplo desde un P12/PFX autorizado. Los certificados opacos del almacén del sistema siguen disponibles para firmar; carga un P12/PFX apto o usa el perfil alto.": "Für das Profil compat sind keine Identitäten verfügbar. Es erfordert einen entschlüsselungsfähigen RSA-Schlüssel, z. B. aus einer autorisierten P12/PFX-Datei. Undurchsichtige Systemzertifikate bleiben zum Signieren verfügbar; laden Sie eine geeignete P12/PFX-Datei oder verwenden Sie das Profil hoch.",
   "Perfil de protección/cifrado. compat exige una identidad RSA cuya clave privada pueda desproteger, por ejemplo un P12/PFX autorizado.": "Schutz-/Verschlüsselungsprofil. compat erfordert eine RSA-Identität, deren privater Schlüssel entschlüsseln kann, z. B. eine autorisierte P12/PFX-Datei.",
   "Los certificados opacos del almacén del sistema siguen disponibles para firmar, pero no se anuncian para cifrado compat; carga un P12/PFX apto o usa alto.": "Undurchsichtige Zertifikate des Systemspeichers bleiben zum Signieren verfügbar, werden aber nicht für compat-Verschlüsselung angeboten; laden Sie eine geeignete P12/PFX-Datei oder verwenden Sie hoch.",
@@ -173,9 +173,9 @@
   "+ CERTIFICADOS": "+ ZERTIFIKATE",
   "+%1 más": "+%1 weitere",
   ",": ",",
-  "--- INICIO DE LOGS ---\n": "--- INICIO DE LOGS ---\n",
+  "--- INICIO DE LOGS ---\n": "--- ANFANG DER PROTOKOLLE ---\n",
   "--- INICIO DE LOGS ---\\n": "--- ANFANG DER PROTOKOLLE ---\\n",
-  "--- LOGS REINICIADOS [": "--- PROTOKOLLE ZURÜCKSETZEN [",
+  "--- LOGS REINICIADOS [": "--- PROTOKOLLE ZURÜCKGESETZT [",
   "/ruta/al/documento.afp o .enveloped": "/pfad/zum/dokument.afp oder .enveloped",
   "/ruta/al/documento.bin": "/pfad/zum/dokument.bin",
   "/ruta/al/documento.pdf": "/pfad/zum/dokument.pdf",
@@ -225,8 +225,8 @@
   "Acción": "Aktion",
   "Activa la preferencia y selecciona un certificado para reutilizarlo en la siguiente sesión.": "Aktivieren Sie die Einstellung und wählen Sie ein Zertifikat aus, um es in der nächsten Sitzung wiederzuverwenden.",
   "Activa perfiles de firma más restrictivos para maximizar la compatibilidad con administraciones públicas y plataformas heredadas.": "Aktiviert restriktivere Signaturprofile, um die Kompatibilität mit Behörden und älteren Plattformen zu maximieren.",
-  "Activar sello visible": "Sichtbares Siegel aktivieren",
-  "Activar sello visible (PAdES)": "Sichtbares Siegel aktivieren (PAdES)",
+  "Activar sello visible": "Sichtbaren Stempel aktivieren",
+  "Activar sello visible (PAdES)": "Sichtbaren Stempel aktivieren (PAdES)",
   "Actual: ": "Aktuell: ",
   "Actualizar": "Aktualisieren",
   "Actualizar certificados": "Zertifikate aktualisieren",
@@ -235,7 +235,7 @@
   "Ademas se devolvera contenido firmado en base64.": "Außerdem wird der signierte Inhalt in Base64 zurückgegeben.",
   "Administrador de credenciales + DPAPI": "Anmeldeinformationsverwaltung + DPAPI",
   "Adobe PKCS#7 detached": "Adobe PKCS#7 detached",
-  "Adoptado del firmador web anterior. Esta vista usa el mismo contrato de sello visible que el backend actual.": "Vom früheren Web-Signaturprogramm übernommen. Diese Ansicht verwendet denselben Vertrag für das sichtbare Siegel wie das aktuelle Backend.",
+  "Adoptado del firmador web anterior. Esta vista usa el mismo contrato de sello visible que el backend actual.": "Vom früheren Web-Signaturprogramm übernommen. Diese Ansicht verwendet denselben Vertrag für den sichtbaren Stempel wie das aktuelle Backend.",
   "Advertencias": "Warnungen",
   "Ahora mismo no hay certificados disponibles. Revisa tu almacén, tu fichero P12 o el acceso al dispositivo.": "Derzeit sind keine Zertifikate verfügbar. Prüfen Sie Ihren Speicher, Ihre P12-Datei oder den Zugriff auf das Gerät.",
   "Ahora mismo no hay certificados visibles en la app. Revisa el almacén, el P12 o el acceso al dispositivo.": "Derzeit sind in der App keine Zertifikate sichtbar. Prüfe den Speicher, die P12-Datei oder den Zugriff auf das Gerät.",
@@ -264,7 +264,7 @@
   "Antes de guardar o enviar nada, este es el paquete de soporte que se preparará para ti.": "Bevor Sie etwas speichern oder senden, ist dies das Support-Paket, das für Sie vorbereitet wird.",
   "Aplica a PAdES, CAdES y XAdES. LT/LTA solo tiene efecto real en CAdES.": "Gilt für PAdES, CAdES und XAdES. LT/LTA wirkt nur bei CAdES tatsächlich.",
   "Aplica perfiles de firma más restrictivos para maximizar la compatibilidad con administraciones públicas.": "Wenden Sie restriktivere Signaturprofile an, um die Kompatibilität mit öffentlichen Verwaltungen zu maximieren.",
-  "Aplica un estilo rápido al sello visible sin tener que recolocar todos los campos a mano.": "Wendet einen schnellen Stil auf das sichtbare Siegel an, ohne alle Felder von Hand neu zu platzieren.",
+  "Aplica un estilo rápido al sello visible sin tener que recolocar todos los campos a mano.": "Wendet einen schnellen Stil auf den sichtbaren Stempel an, ohne alle Felder von Hand neu zu platzieren.",
   "Aplicabilidad de metadatos": "Anwendbarkeit der Metadaten",
   "Aplicación en este equipo": "Anwendung auf diesem Gerät",
   "Aplicación local": "Lokale Anwendung",
@@ -297,7 +297,7 @@
   "Asistente guiado": "Geführter Assistent",
   "Aspectos de verificación": "Prüfaspekte",
   "Asunto": "Betreff",
-  "Atajo visual para configurar el sello sin salir de esta consola. Para previsualización avanzada sigue disponible ": "Visuelle Abkürzung zum Konfigurieren des Siegels, ohne diese Konsole zu verlassen. Für die erweiterte Vorschau bleibt verfügbar ",
+  "Atajo visual para configurar el sello sin salir de esta consola. Para previsualización avanzada sigue disponible ": "Visuelle Abkürzung zum Konfigurieren des Stempels, ohne diese Konsole zu verlassen. Für die erweiterte Vorschau bleibt verfügbar ",
   "Atardecer Cálido": "Warmer Sonnenuntergang",
   "Atención": "Achtung",
   "Aun no hay una seleccion preparada para calcular la persistencia real del resultado.": "Es gibt noch keine vorbereitete Auswahl, um die tatsächliche Persistenz des Ergebnisses zu berechnen.",
@@ -321,7 +321,7 @@
   "Avisos:": "Warnungen:",
   "Ayuda": "Hilfe",
   "Ayuda paso a paso para la operación actual": "Schritt-für-Schritt-Hilfe für die aktuelle Operation",
-  "Añade al menos un cofirmante adicional para completar la cofirma múltiple guiada.": "Fügen Sie mindestens einen zusätzlichen Mitunterzeichner hinzu, um die geführte Mehrfach-Kosignatur abzuschließen.",
+  "Añade al menos un cofirmante adicional para completar la cofirma múltiple guiada.": "Fügen Sie mindestens einen zusätzlichen Kosignatar hinzu, um die geführte Mehrfach-Kosignatur abzuschließen.",
   "Añade el original solo si la firma es detached o la validación lo pide.": "Füge das Original nur hinzu, wenn die Signatur detached ist oder die Validierung es verlangt.",
   "Añadiendo nuevo dominio a la lista...": "Neue Domain zur Liste hinzufügen...",
   "Añadir Dominio": "Domäne hinzufügen",
@@ -371,9 +371,9 @@
   "Caducado": "Abgelaufen",
   "Caducados": "Abgelaufen",
   "Caducidad": "Ablaufdatum",
-  "Cambia a PAdES o desactiva el sello visible para evitar una configuración incompatible.": "Wechseln Sie zu PAdES oder deaktivieren Sie das sichtbare Siegel, um eine inkompatible Konfiguration zu vermeiden.",
+  "Cambia a PAdES o desactiva el sello visible para evitar una configuración incompatible.": "Wechseln Sie zu PAdES oder deaktivieren Sie den sichtbaren Stempel, um eine inkompatible Konfiguration zu vermeiden.",
   "Cambiar": "Ändern",
-  "Cambiar a Cofirmar": "Zu Mitsignatur wechseln",
+  "Cambiar a Cofirmar": "Zu Kosignieren wechseln",
   "Cambiar clave": "Kennwort ändern",
   "Cambiar clave de seguridad": "Sicherheitsschlüssel ändern",
   "Cambiar ubicación del archivo de salida": "Ändern Sie den Speicherort der Ausgabedatei",
@@ -394,7 +394,7 @@
   "Cargar destinatarios": "Empfänger laden",
   "Carpeta seleccionada: %1": "Ausgewählter Ordner: %1",
   "Cerrar": "Schließen",
-  "Cerrar ventana tras firmar": "Schließen Sie das Fenster nach der Unterzeichnung",
+  "Cerrar ventana tras firmar": "Fenster nach dem Signieren schließen",
   "Certificado": "Zertifikat",
   "Certificado TLS local generado. Revisa o reinstala la confianza si el navegador sigue advirtiendo.": "Lokales TLS-Zertifikat erzeugt. Prüfen oder installieren Sie das Vertrauen erneut, wenn der Browser weiterhin warnt.",
   "Certificado TLS local no generado. La consola segura puede no funcionar hasta generarlo e instalar su confianza.": "Lokales TLS-Zertifikat nicht erzeugt. Die sichere Konsole funktioniert möglicherweise nicht, bis es erzeugt und sein Vertrauen installiert wurde.",
@@ -412,7 +412,7 @@
   "Certificado seleccionado automáticamente:": "Zertifikat automatisch ausgewählt:",
   "Certificado seleccionado automáticamente: ": "Zertifikat automatisch ausgewählt: ",
   "Certificado seleccionado: ": "Zertifikat ausgewählt: ",
-  "Certificado válido para firma": "Zur Unterschrift gültiges Zertifikat",
+  "Certificado válido para firma": "Zum Signieren gültiges Zertifikat",
   "Certificado y firma": "Zertifikat und Signatur",
   "Certificado, almacén o dispositivo criptográfico": "Zertifikat, Speicher oder Kryptogerät",
   "Certificado: ": "Zertifikat: ",
@@ -444,17 +444,17 @@
   "Claves privadas": "Private Schlüssel",
   "Cobertura": "Abdeckung",
   "Cobertura: ": "Abdeckung: ",
-  "Cofirma": "Mitsignatur",
+  "Cofirma": "Kosignatur",
   "Cofirma múltiple": "Mehrfach-Kosignatur",
   "Cofirma múltiple aplicada": "Mehrfach-Kosignatur angewendet",
   "Cofirma múltiple guiada": "Geführte Mehrfach-Kosignatur",
-  "Cofirma: %1": "Mitsignatur: %1",
-  "Cofirmantes": "Mitunterzeichner",
-  "Cofirmantes: %1": "Mitunterzeichner: %1",
+  "Cofirma: %1": "Kosignatur: %1",
+  "Cofirmantes": "Kosignatare",
+  "Cofirmantes: %1": "Kosignatare: %1",
   "Cofirmar": "Kosignieren",
   "Coinciden": "Übereinstimmend",
   "Coinciden: ": "Übereinstimmungen: ",
-  "Cola de log redactada": "Bereinigte Log-Warteschlange",
+  "Cola de log redactada": "Letzte Protokollzeilen (anonymisiert)",
   "Colapsar menú": "Menü einklappen",
   "Colapsar panel de certificados": "Fenster „Zertifikate“ ausblenden",
   "Compacto": "Kompakt",
@@ -533,8 +533,8 @@
   "Copiar JSON de verificación": "Prüfungs-JSON kopieren",
   "Copiar JSON del certificado": "Zertifikats-JSON kopieren",
   "Copiar diagnóstico": "Diagnose kopieren",
-  "Copiar huella": "Hash kopieren",
-  "Copiar huella al portapapeles por defecto": "Fingerabdruck standardmäßig in die Zwischenablage kopieren",
+  "Copiar huella": "Fingerabdruck kopieren",
+  "Copiar huella al portapapeles por defecto": "Hash standardmäßig in die Zwischenablage kopieren",
   "Copiar informe": "Bericht kopieren",
   "Copiar resumen": "Zusammenfassung kopieren",
   "Copiar resumen de validación": "Validierungszusammenfassung kopieren",
@@ -563,9 +563,9 @@
   "Debe indicar un dominio u origen para añadirlo.": "Sie müssen eine Domäne oder einen Ursprung angeben, um sie hinzuzufügen.",
   "Debe seleccionar al menos un certificado adicional para la cofirma múltiple guiada.": "Sie müssen mindestens ein zusätzliches Zertifikat für die geführte Mehrfach-Kosignatur auswählen.",
   "Debe seleccionar un certificado de la lista para poder firmar el documento.": "Um das Dokument zu signieren, müssen Sie ein Zertifikat aus der Liste auswählen.",
-  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Legt den voreingestellten Algorithmus zum Erstellen und Prüfen digitaler Fingerabdrücke fest.",
+  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Legt den voreingestellten Algorithmus zum Erstellen und Prüfen von Hashes fest.",
   "Define el comportamiento por defecto cuando el archivo de salida ya existe.": "Legt das Standardverhalten fest, wenn die Ausgabedatei bereits existiert.",
-  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Legt das voreingestellte Format beim Erstellen oder Prüfen von Datei-Fingerabdrücken fest.",
+  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Legt das voreingestellte Format beim Erstellen oder Prüfen von Datei-Hashes fest.",
   "Define el formato preseleccionado al crear o comprobar manifiestos de directorio.": "Legt das voreingestellte Format beim Erstellen oder Prüfen von Verzeichnismanifesten fest.",
   "Define el motivo preseleccionado que se incrustará en la firma cuando proceda.": "Legt den voreingestellten Grund fest, der gegebenenfalls in die Signatur eingebettet wird.",
   "Define el papel preseleccionado del firmante al generar firmas FacturaE.": "Legt die vorausgewählte Rolle des Unterzeichners beim Erzeugen von FacturaE-Signaturen fest.",
@@ -675,8 +675,8 @@
   "Ejecutando operación...": "Vorgang wird ausgeführt...",
   "Ejecutando...": "Wird ausgeführt...",
   "El JSON de opciones debe ser un objeto.": "Die Optionen-JSON muss ein Objekt sein.",
-  "El QR requiere sello visible activo sobre PDF.": "Der QR-Code benötigt ein aktives sichtbares Siegel auf PDF.",
-  "El QR se incorporará dentro del sello visible.": "Der QR-Code wird in das sichtbare Siegel eingebettet.",
+  "El QR requiere sello visible activo sobre PDF.": "Der QR-Code benötigt einen aktiven sichtbaren Stempel auf PDF.",
+  "El QR se incorporará dentro del sello visible.": "Der QR-Code wird in den sichtbaren Stempel eingebettet.",
   "El almacén seguro de secretos de proxy está disponible para este backend local.": "Der sichere Proxy-Geheimnisspeicher ist für dieses lokale Backend verfügbar.",
   "El almacén seguro de secretos de proxy no está listo; el proxy autenticado puede quedar limitado en este equipo.": "Der sichere Proxy-Geheimnisspeicher ist nicht bereit; der authentifizierte Proxy kann auf diesem Gerät eingeschränkt sein.",
   "El artefacto de huella coincide con el modo seleccionado.": "Das Hash-Artefakt entspricht dem gewählten Modus.",
@@ -690,7 +690,7 @@
   "El certificado es válido para firma, pero caduca pronto.": "Das Zertifikat ist zum Signieren gültig, läuft jedoch bald ab.",
   "El certificado es válido y apto para firma.": "Das Zertifikat ist gültig und zum Signieren geeignet.",
   "El certificado está caducado y no debe usarse para firmar.": "Das Zertifikat ist abgelaufen und sollte nicht zum Signieren verwendet werden.",
-  "El certificado figura como revocado por su entidad emisora.": "Das Zertifikat ist laut ausstellender Stelle gesperrt.",
+  "El certificado figura como revocado por su entidad emisora.": "Das Zertifikat wurde laut ausstellender Stelle widerrufen.",
   "El certificado no está marcado como utilizable para firma.": "Das Zertifikat ist nicht als zum Signieren geeignet markiert.",
   "El certificado seleccionado actual queda fuera de los filtros.": "Das aktuell ausgewählte Zertifikat fällt außerhalb der aktiven Filter.",
   "El certificado seleccionado está caducado o expirado.": "Das ausgewählte Zertifikat ist abgelaufen.",
@@ -702,15 +702,15 @@
   "El fichero indicado no existe": "Die angegebene Datei existiert nicht",
   "El firmado y el original parecen de tipos distintos.": "Signiertes Artefakt und Original scheinen unterschiedlichen Typs zu sein.",
   "El firmante principal se aplicará primero. Los certificados marcados aquí se aplicarán después como cofirmas secuenciales.": "Der Hauptunterzeichner wird zuerst angewendet. Die hier ausgewählten Zertifikate werden anschließend als sequentielle Kosignaturen hinzugefügt.",
-  "El flujo de documentos ya firmados se ha ido afinando para redirigir hacia cofirma.": "Der Ablauf für bereits signierte Dokumente wurde schrittweise verfeinert, um zur Mitsignatur weiterzuleiten.",
+  "El flujo de documentos ya firmados se ha ido afinando para redirigir hacia cofirma.": "Der Ablauf für bereits signierte Dokumente wurde schrittweise verfeinert, um zur Kosignatur weiterzuleiten.",
   "El flujo de firma está preparado. Revisa operación, formato y certificado antes de continuar.": "Der Signaturablauf ist bereit. Prüfe Vorgang, Format und Zertifikat, bevor du fortfährst.",
   "El navegador no permite copiar el resumen automáticamente en este contexto.": "Der Browser erlaubt in diesem Kontext kein automatisches Kopieren der Zusammenfassung.",
   "El navegador ya está comunicándose con GrxFirma": "Der Browser kommuniziert bereits mit GrxFirma",
   "El perfil alto usa siempre contenedor json (.afp).": "Das hohe Profil verwendet immer einen JSON-Container (.afp).",
   "El perfil compat usará contenedor json (.afp).": "Das Compat-Profil verwendet einen JSON-Container (.afp).",
   "El perfil compat usará sobre CMS interoperable (.enveloped).": "Das Compat-Profil verwendet einen interoperablen CMS-Umschlag (.enveloped).",
-  "El sello visible solo se aplica cuando el formato efectivo de firma es PAdES.": "Das sichtbare Siegel gilt nur, wenn das effektive Signaturformat PAdES ist.",
-  "El servicio de revocación no ha dado un estado concluyente para este certificado.": "Der Sperrdienst hat für dieses Zertifikat keinen eindeutigen Status geliefert.",
+  "El sello visible solo se aplica cuando el formato efectivo de firma es PAdES.": "Der sichtbare Stempel gilt nur, wenn das effektive Signaturformat PAdES ist.",
+  "El servicio de revocación no ha dado un estado concluyente para este certificado.": "Der Widerrufsdienst hat für dieses Zertifikat keinen eindeutigen Status geliefert.",
   "El último estado visible indica: %1": "Der letzte sichtbare Status lautet: %1",
   "Elegir imagen…": "Bild auswählen…",
   "Elementos descargables": "Herunterladbare Elemente",
@@ -724,7 +724,7 @@
   "Empleado público": "Öffentlicher Bediensteter",
   "En este modo guiado la salida final se mantiene en memoria/descarga; la persistencia en disco específica requiere un endpoint nativo de cofirma múltiple.": "In diesem geführten Modus bleibt die Endausgabe im Speicher/Download; eine gezielte Speicherung auf Datenträger erfordert einen nativen Mehrfach-Kosignatur-Endpunkt.",
   "En lote cargado desde navegador, la salida se entregara por respuesta web; para persistencia en disco hacen falta rutas por elemento.": "Bei einem im Browser geladenen Stapel wird die Ausgabe über die Webantwort geliefert; für die Speicherung auf Datenträger werden Pfade pro Element benötigt.",
-  "Encadena una firma inicial y varias cofirmas sobre un único documento usando el backend REST actual.": "Verkette eine anfängliche Signatur und mehrere Kosignaturen über ein einziges Dokument mit dem aktuellen REST-Backend.",
+  "Encadena una firma inicial y varias cofirmas sobre un único documento usando el backend REST actual.": "Verkettet eine Erstsignatur und mehrere Kosignaturen auf einem einzigen Dokument mit dem aktuellen REST-Backend.",
   "Entorno:": "Umgebung:",
   "Entrada preparada: %1": "Eingabe vorbereitet: %1",
   "Entrada: ": "Eingabe: ",
@@ -771,7 +771,7 @@
   "Error importando certificado: ": "Fehler beim Importieren des Zertifikats: ",
   "Error instalando certificados": "Fehler beim Installieren der Zertifikate",
   "Error instalando la confianza TLS local": "Fehler beim Installieren des lokalen TLS-Vertrauens",
-  "Error instalando raíces de confianza: ": "Fehler beim Installieren vertrauenswürdiger Roots: ",
+  "Error instalando raíces de confianza: ": "Fehler beim Installieren des lokalen TLS-Vertrauens: ",
   "Error si existe": "Fehler, falls vorhanden",
   "Error: ": "Fehler: ",
   "Error: Ruta IPC vacía": "Fehler: IPC-Pfad leer",
@@ -818,7 +818,7 @@
   "Expandir todo": "Alle ausklappen",
   "Experto": "Experte",
   "Explorar Logs": "Logs durchsuchen",
-  "Expone la API REST solo en este equipo, para integraciones locales y consola web.": "Stellen Sie die REST-API nur auf diesem Computer für lokale und Webkonsolenintegrationen bereit.",
+  "Expone la API REST solo en este equipo, para integraciones locales y consola web.": "Stellt die REST-API nur auf diesem Computer bereit, für lokale Integrationen und die Webkonsole.",
   "Exportando destinatario...": "Empfänger wird exportiert...",
   "Exportar destinatario alto": "Starken Empfänger exportieren",
   "FIRMA DIGITAL": "DIGITALE SIGNATUR",
@@ -854,7 +854,7 @@
   "Firma completada correctamente": "Signatur erfolgreich abgeschlossen",
   "Firma completada correctamente.": "Signatur erfolgreich abgeschlossen.",
   "Firma completada satisfactoriamente": "Signatur erfolgreich abgeschlossen",
-  "Firma completada y verificada correctamente.": "Unterschrift korrekt ausgefüllt und verifiziert.",
+  "Firma completada y verificada correctamente.": "Signatur erfolgreich abgeschlossen und verifiziert.",
   "Firma completada, pero la verificación ha devuelto incidencias.": "Die Signatur wurde abgeschlossen, bei der Verifizierung wurden jedoch Probleme zurückgegeben.",
   "Firma completada: ": "Signatur abgeschlossen: ",
   "Firma electrónica avanzada": "Fortgeschrittene elektronische Signatur",
@@ -891,7 +891,7 @@
   "Firmar ahora": "Jetzt signieren",
   "Firmar igualmente": "Trotzdem signieren",
   "Formato": "Format",
-  "Formato de huella por defecto para ficheros": "Standardformat des Fingerabdrucks für Dateien",
+  "Formato de huella por defecto para ficheros": "Standard-Hash-Format für Dateien",
   "Formato de manifiesto por defecto para directorios": "Standardformat des Manifests für Verzeichnisse",
   "Formato detectado: %1": "Erkanntes Format: %1",
   "Formato por defecto": "Standardformat",
@@ -909,7 +909,7 @@
   "Guardar Cambios": "Änderungen speichern",
   "Guardar ajustes": "Einstellungen speichern",
   "Guardar cambios": "Änderungen speichern",
-  "Guardar desprotegido en disco si se usa ruta": "Entschützt auf Datenträger speichern, wenn ein Pfad verwendet wird",
+  "Guardar desprotegido en disco si se usa ruta": "Ohne Schutz auf Datenträger speichern, wenn ein Pfad verwendet wird",
   "Guardar en disco": "Auf Datenträger speichern",
   "Guardar en disco si se usa ruta": "Auf Datenträger speichern, wenn ein Pfad verwendet wird",
   "Guardar incidencia": "Meldung speichern",
@@ -944,9 +944,9 @@
   "Host / IP:": "Host/IP:",
   "Huella": "Hash",
   "Huella SHA-256: ": "SHA-256-Fingerabdruck: ",
-  "Huella copiada al portapapeles.": "Fingerabdruck in die Zwischenablage kopiert.",
+  "Huella copiada al portapapeles.": "Hash in die Zwischenablage kopiert.",
   "Huella del certificado copiada al portapapeles.": "Fingerabdruck des Zertifikats in die Zwischenablage kopiert.",
-  "Huella o manifiesto": "Fingerabdruck oder Manifest",
+  "Huella o manifiesto": "Hash oder Manifest",
   "Huella o manifiesto: ": "Hash oder Manifest: ",
   "Huella válida.": "Hash gültig.",
   "Huella: ": "Hash: ",
@@ -983,8 +983,8 @@
   "Iniciar servidor": "Server starten",
   "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "Fügt einen grafischen Stempel in das PDF ein, der angibt, dass es digital signiert wurde.",
   "Instala el motor de firma como servicio de tu usuario (no de sistema),\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installiert die Signatur-Engine als Dienst Ihres Benutzers (nicht des Systems),\ndamit sie automatisch startet und Zugriff auf Ihre persönlichen Zertifikate hat.",
-  "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installieren Sie die Signatur-Engine als Dienst für Ihren Benutzer (nicht für das System), \\n, damit es automatisch startet und Zugriff auf Ihre persönlichen Zertifikate hat.",
-  "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "Installieren Sie die lokale HTTPS-Zertifikatvertrauensstellung, um die REST-Webkonsole ohne Browser-Eingabeaufforderungen zu öffnen.",
+  "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installiert die Signatur-Engine als Dienst Ihres Benutzers (nicht des Systems),\ndamit sie automatisch startet und Zugriff auf Ihre persönlichen Zertifikate hat.",
+  "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "Installiert das Vertrauen in das lokale HTTPS-Zertifikat, um die REST-Webkonsole ohne Browserwarnungen zu öffnen.",
   "Instalar confianza TLS local": "Lokales TLS-Vertrauen installieren",
   "Instalar raíces públicas": "Lokales TLS-Vertrauen installieren",
   "Instalar servicio": "Dienst installieren",
@@ -993,7 +993,7 @@
   "Integridad: ": "Integrität: ",
   "Intenta firmar el PDF incluso si su estructura está ligeramente dañada o no cumple estrictamente el estándar ISO.": "Versuchen Sie, das PDF zu signieren, auch wenn seine Struktur leicht beschädigt ist oder nicht strikt dem ISO-Standard entspricht.",
   "Intentando abrir web en:": "Website wird geöffnet:",
-  "Interfaz web local de GrxFirma para firmar documentos y configurar sello visible PAdES sin depender de la extensión completa.": "Lokale Weboberfläche von GrxFirma zum Signieren von Dokumenten und zum Konfigurieren des sichtbaren PAdES-Siegels, ohne die vollständige Erweiterung zu benötigen.",
+  "Interfaz web local de GrxFirma para firmar documentos y configurar sello visible PAdES sin depender de la extensión completa.": "Lokale Weboberfläche von GrxFirma zum Signieren von Dokumenten und zum Konfigurieren des sichtbaren PAdES-Stempels, ohne die vollständige Erweiterung zu benötigen.",
   "Interpretando la petición recibida": "Die empfangene Anfrage wird interpretiert",
   "Introduzca clave...": "Passwort eingeben...",
   "Introduzca la contraseña para importar el archivo P12/PFX.": "Geben Sie das Passwort ein, um die P12/PFX-Datei zu importieren.",
@@ -1012,8 +1012,8 @@
   "La app sí detecta certificados, pero puede que el filtro actual o el tipo de certificado no encajen con la operación.": "Die App erkennt Zertifikate, aber der aktuelle Filter oder der Zertifikatstyp passen möglicherweise nicht zum Vorgang.",
   "La clave debe tener al menos 6 caracteres.": "Der Schlüssel muss mindestens 6 Zeichen lang sein.",
   "La clave indicada no es correcta.": "Der angegebene Schlüssel ist nicht korrekt.",
-  "La cofirma múltiple guiada está desactivada.": "Die geführte Mehrfach-Mitsignatur ist deaktiviert.",
-  "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "Die geführte Mehrfach-Mitsignatur ist nur für ein einzelnes Dokument bei den Aktionen Signieren oder Mitsignieren verfügbar.",
+  "La cofirma múltiple guiada está desactivada.": "Die geführte Mehrfach-Kosignatur ist deaktiviert.",
+  "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "Die geführte Mehrfach-Kosignatur ist nur für ein einzelnes Dokument bei den Aktionen Signieren oder Kosignieren verfügbar.",
   "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "Die geführte Mehrfach-Kosignatur ist nur für Signieren oder Kosignieren verfügbar, nicht für Gegensignieren.",
   "La cofirma múltiple guiada solo está disponible para un único documento, no para lotes.": "Die geführte Mehrfach-Kosignatur ist nur für ein einzelnes Dokument verfügbar, nicht für Stapel.",
   "La confirmación de la clave no coincide.": "Die Bestätigung des Schlüssels stimmt nicht überein.",
@@ -1028,7 +1028,7 @@
   "La incidencia exportable se generará al preparar un informe para soporte.": "Der exportierbare Vorfall wird erzeugt, sobald ein Bericht für den Support vorbereitet wird.",
   "La incidencia ya está guardada en local y se enviará solo al destino HTTPS que indiques.": "Der Vorfall ist bereits lokal gespeichert und wird nur an das von Ihnen angegebene HTTPS-Ziel gesendet.",
   "La operación ha terminado correctamente": "Der Vorgang wurde erfolgreich abgeschlossen",
-  "La política especial de salida para cofirma múltiple no está activa.": "Die spezielle Ausgaberichtlinie für Mehrfach-Mitsignatur ist nicht aktiv.",
+  "La política especial de salida para cofirma múltiple no está activa.": "Die spezielle Ausgaberichtlinie für Mehrfach-Kosignatur ist nicht aktiv.",
   "La preferencia guardada ya no está disponible en el catálogo actual.": "Die gespeicherte Einstellung ist im aktuellen Katalog nicht mehr verfügbar.",
   "La ruta de salida coincide con el artefacto esperado: ": "Der Ausgabepfad entspricht dem erwarteten Artefakt: ",
   "La ruta de salida coincide con la extensión esperada ": "Der Ausgabepfad entspricht der erwarteten Erweiterung ",
@@ -1050,7 +1050,7 @@
   "La validación ha fallado o tiene incidencias: %1": "Die Validierung ist fehlgeschlagen oder weist Probleme auf: %1",
   "La validación tiene incidencias. Revisa la razón mostrada y decide si necesitas el original, otro certificado o soporte.": "Die Validierung weist Probleme auf. Prüfen Sie den angezeigten Grund und entscheiden Sie, ob Sie das Original, ein anderes Zertifikat oder Support benötigen.",
   "La ventana se cerrará automáticamente al terminar la sesión del portal.": "Das Fenster wird automatisch geschlossen, wenn die Sitzung des Portals endet.",
-  "La verificación ha devuelto incidencias.": "Die Überprüfung hat Vorfälle zurückgegeben.",
+  "La verificación ha devuelto incidencias.": "Die Überprüfung hat Probleme gemeldet.",
   "La vista previa muestra el PDF activo del lote. De momento la misma posición del sello se aplica al resto del lote.": "Die Vorschau zeigt das aktive PDF des Stapels. Im Moment gilt die gleiche Position des Stempels für den Rest des Loses.",
   "Lanza la operación y usa este asistente si algo no queda claro.": "Starte den Vorgang und nutze diesen Assistenten, wenn etwas unklar bleibt.",
   "Lanza la validación con el fichero actual.": "Startet die Validierung mit der aktuellen Datei.",
@@ -1066,11 +1066,11 @@
   "Los metadatos configurados solo se aplican cuando el formato es PAdES.": "Die konfigurierten Metadaten werden nur angewendet, wenn das Format PAdES ist.",
   "Los metadatos y el QR solo se incorporarán cuando el resultado sea PAdES.": "Metadaten und QR werden nur eingebettet, wenn das Ergebnis PAdES ist.",
   "Lote activo: %1": "Aktiver Stapel: %1",
-  "Lote completado con incidencias.": "Stapel mit Vorfällen abgeschlossen.",
+  "Lote completado con incidencias.": "Stapel mit Problemen abgeschlossen.",
   "Lote firmado correctamente.": "Stapel erfolgreich signiert.",
-  "Lote firmado y verificado correctamente.": "Charge korrekt signiert und verifiziert.",
+  "Lote firmado y verificado correctamente.": "Stapel korrekt signiert und verifiziert.",
   "Lote firmado, con incidencias de verificación en algunos resultados.": "Signierter Stapel, bei einigen Ergebnissen treten Verifizierungsprobleme auf.",
-  "Lote firmado. Verificando resultados...": "Signiertes Los. Ergebnisse werden überprüft...",
+  "Lote firmado. Verificando resultados...": "Stapel signiert. Ergebnisse werden überprüft...",
   "Lote o selección múltiple": "Stapel oder Mehrfachauswahl",
   "Lote: ": "Stapel: ",
   "Lugar de firma FacturaE": "FacturaE-Signaturort",
@@ -1078,11 +1078,11 @@
   "Mantener esta sesión web en segundo plano al cerrar": "Diese Websitzung beim Schließen im Hintergrund weiterlaufen lassen",
   "Mantener texto sobre imagen por defecto": "Text über dem Bild standardmäßig beibehalten",
   "Mantener texto sobre la imagen": "Text auf dem Bild belassen",
-  "Mantener texto visible del sello": "Sichtbaren Siegeltext beibehalten",
+  "Mantener texto visible del sello": "Sichtbaren Stempeltext beibehalten",
   "Manual": "Manuell",
   "Metadatos de la firma": "Signatur-Metadaten",
   "Metadatos del certificado seleccionado": "Metadaten des ausgewählten Zertifikats",
-  "Mientras la cofirma múltiple guiada esté activa, la salida final se entregará en memoria/base64 y se bloquearán temporalmente las opciones de guardado en disco.": "Solange die geführte Mehrfach-Mitsignatur aktiv ist, wird die endgültige Ausgabe im Speicher/als Base64 geliefert, und die Optionen zum Speichern auf dem Datenträger sind vorübergehend gesperrt.",
+  "Mientras la cofirma múltiple guiada esté activa, la salida final se entregará en memoria/base64 y se bloquearán temporalmente las opciones de guardado en disco.": "Solange die geführte Mehrfach-Kosignatur aktiv ist, wird die endgültige Ausgabe im Speicher/als Base64 geliefert, und die Optionen zum Speichern auf dem Datenträger sind vorübergehend gesperrt.",
   "Minimalista Luz": "Minimalistisch Hell",
   "Misma ruta o nombre derivado": "Gleicher Pfad oder abgeleiteter Name",
   "Modo": "Modus",
@@ -1107,7 +1107,7 @@
   "Motivo: ": "Grund: ",
   "Muestra certificados presentes en el almacén pero no aptos para firma. Es útil para diagnóstico, pero normalmente conviene ocultarlos.": "Zeigt Zertifikate an, die im Speicher vorhanden, aber nicht für Signaturen geeignet sind. Das ist für die Diagnose nützlich, normalerweise sollten sie jedoch ausgeblendet bleiben.",
   "Muestra de Firma": "Signaturvorschau",
-  "Muestra de sello visible": "Beispiel für ein sichtbares Siegel",
+  "Muestra de sello visible": "Beispiel für einen sichtbaren Stempel",
   "Muestra los certificados que ya han expirado en la lista de selección.": "Zeigt die bereits abgelaufenen Zertifikate in der Auswahlliste an.",
   "Muestra los certificados que ya han expirado en la selection de certificados.": "Zeigt bereits abgelaufene Zertifikate in der Zertifikatsauswahl an.",
   "Método no permitido": "Methode nicht erlaubt",
@@ -1123,7 +1123,7 @@
   "No": "Nein",
   "No coinciden": "Nicht übereinstimmend",
   "No concluyente": "Nicht eindeutig",
-  "No consta revocación del certificado en este momento.": "Derzeit ist keine Sperrung des Zertifikats bekannt.",
+  "No consta revocación del certificado en este momento.": "Derzeit ist kein Widerruf des Zertifikats bekannt.",
   "No definido": "Nicht definiert",
   "No disponible": "Nicht verfügbar",
   "No hay certificado seleccionado.": "Kein Zertifikat ausgewählt.",
@@ -1174,10 +1174,10 @@
   "No se pudo determinar la compatibilidad exacta del par.": "Die genaue Kompatibilität des Paars konnte nicht ermittelt werden.",
   "No se pudo enviar la petición IPC: ": "Die IPC-Anfrage konnte nicht gesendet werden: ",
   "No se pudo estimar el stack de firma probable.": "Der wahrscheinliche Signatur-Stack konnte nicht geschätzt werden.",
-  "No se pudo inferir el artefacto esperado de huella.": "Das erwartete Fingerabdruck-Artefakt konnte nicht abgeleitet werden.",
+  "No se pudo inferir el artefacto esperado de huella.": "Das erwartete Hash-Artefakt konnte nicht abgeleitet werden.",
   "No se pudo inferir el artefacto firmado esperado.": "Das erwartete signierte Artefakt konnte nicht abgeleitet werden.",
   "No se pudo inferir el contenedor protegido por extensión.": "Der geschützte Container konnte anhand der Erweiterung nicht abgeleitet werden.",
-  "No se pudo inferir el tipo del artefacto de huella.": "Der Typ des Fingerabdruck-Artefakts konnte nicht abgeleitet werden.",
+  "No se pudo inferir el tipo del artefacto de huella.": "Der Typ des Hash-Artefakts konnte nicht abgeleitet werden.",
   "No se pudo inferir el tipo probable del firmado.": "Der wahrscheinliche Typ des signierten Dokuments konnte nicht abgeleitet werden.",
   "No se pudo leer el log en %s\n\n%s": "Das Protokoll in %s konnte nicht gelesen werden\n\n%s",
   "No se pudo localizar el destinatario seleccionado.": "Der ausgewählte Empfänger konnte nicht gefunden werden.",
@@ -1222,7 +1222,7 @@
   "sign.seal.apply_all_pages": "Auf alle Seiten anwenden",
   "sign.seal.remove_this_page": "Von dieser Seite entfernen",
   "sign.seal.add_this_page": "Zu dieser Seite hinzufügen",
-  "sign.seal.no_pages_error": "Fügen Sie vor dem Signieren mindestens einer Seite ein Siegel hinzu.",
+  "sign.seal.no_pages_error": "Fügen Sie vor dem Signieren mindestens einer Seite einen Stempel hinzu.",
   "sign.seal.page_limit": "Sie können bis zu 128 Seiten bearbeiten. Laden Sie eine PDF und wählen Sie die Seiten aus.",
   "sign.seal.previous_page": "Zurück",
   "sign.seal.next_page": "Weiter",
@@ -1231,16 +1231,16 @@
   "Opcional. Este bloque expone política, rol y lugar de firma que el backend FacturaE ya consume de forma real.": "Optional. Dieser Block stellt Richtlinie, Rolle und Signaturort bereit, die das FacturaE-Backend bereits tatsächlich verwendet.",
   "Opcional. Estos campos solo se aplican cuando el formato efectivo es FacturaE.": "Optional. Diese Felder werden nur angewendet, wenn das effektive Format FacturaE ist.",
   "Opcional. Estos datos se enviarán como SignatureProductionPlace al firmar FacturaE.": "Optional. Diese Daten werden beim Signieren von FacturaE als SignatureProductionPlace gesendet.",
-  "Opcional. Estos datos se incrustan en la firma PAdES y no sustituyen al certificado ni al sello visible.": "Optional. Diese Daten werden in die PAdES-Signatur eingebettet und ersetzen weder Zertifikat noch sichtbares Siegel.",
+  "Opcional. Estos datos se incrustan en la firma PAdES y no sustituyen al certificado ni al sello visible.": "Optional. Diese Daten werden in die PAdES-Signatur eingebettet und ersetzen weder Zertifikat noch sichtbaren Stempel.",
   "Opcional. Se envía en Authorization: Bearer ...": "Optional. Wird in Authorization: Bearer ... gesendet",
-  "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible cuando no usas imagen personalizada.": "Optional. Wenn Sie einen Text oder eine URL angeben, wird ein QR-Code in das sichtbare Siegel eingebettet, sofern kein benutzerdefiniertes Bild verwendet wird.",
-  "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible y puede combinarse con imagen personalizada.": "Optional. Wenn Sie Text oder eine URL angeben, wird ein QR-Code in das sichtbare Siegel eingebettet und kann mit einem benutzerdefinierten Bild kombiniert werden.",
+  "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible cuando no usas imagen personalizada.": "Optional. Wenn Sie einen Text oder eine URL angeben, wird ein QR-Code in den sichtbaren Stempel eingebettet, sofern kein benutzerdefiniertes Bild verwendet wird.",
+  "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible y puede combinarse con imagen personalizada.": "Optional. Wenn Sie Text oder eine URL angeben, wird ein QR-Code in den sichtbaren Stempel eingebettet und kann mit einem benutzerdefinierten Bild kombiniert werden.",
   "Opcional. Si indicas una TSA, el backend la usará para perfiles con sello de tiempo.": "Optional. Wenn Sie eine TSA angeben, verwendet das Backend sie für Profile mit Zeitstempel.",
   "Opcional. Si informa identificador y hash, se enviarán al backend como política explícita de FacturaE.": "Optional. Wenn Kennung und Hash angegeben werden, werden sie als explizite FacturaE-Richtlinie an das Backend gesendet.",
   "Opcional. Si se deja vacío, cada fichero se guarda junto al original.": "Optional. Wenn es leer bleibt, wird jede Datei neben dem Original gespeichert.",
   "Opcional. Si se indica, el backend la usará para perfiles con sello de tiempo.": "Optional. Falls angegeben, verwendet das Backend sie für Profile mit Zeitstempel.",
   "Opcional: 6F:..., 8A:...": "Optional: 6F:..., 8A:...",
-  "Opcional: token de acceso bearer": "Optional: Inhaberzugriffstoken",
+  "Opcional: token de acceso bearer": "Optional: Bearer-Zugriffstoken",
   "Opciones JSON": "JSON-Optionen",
   "OpenAPI": "OpenAPI",
   "Operación": "Vorgang",
@@ -1262,9 +1262,9 @@
   "PDF": "PDF",
   "PDF %1/%2: %3": "PDF %1/%2: %3",
   "PDF original": "Original-PDF",
-  "Panel de Diagnóstico Experto": "Experten-Diagnosegremium",
+  "Panel de Diagnóstico Experto": "Experten-Diagnosebereich",
   "Paquete de soporte listo para exportar": "Support-Paket zum Exportieren bereit",
-  "Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.": "Um die lokale REST-API ohne Browser-Eingabeaufforderungen zu öffnen, installieren Sie die lokale TLS-Zertifikatvertrauensstellung.",
+  "Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.": "Um die lokale REST-API ohne Browserwarnungen zu öffnen, installieren Sie das Vertrauen in das lokale TLS-Zertifikat.",
   "Para modificar la lista de dominios permitidos (NM/CORS) debe identificarse como administrador del sistema.": "Um die Liste der zulässigen Domänen (NM/CORS) zu ändern, müssen Sie sich als Systemadministrator identifizieren.",
   "Para modificar la lista de dominios permitidos y las conexiones seguras debe identificarse.": "Um die Liste der erlaubten Domains und sicheren Verbindungen zu ändern, müssen Sie sich authentifizieren.",
   "Para previsualizar el sello en un lote por carpeta, seleccione uno o varios PDF concretos. La firma visible solo se aplica a PAdES (PDF).": "Um eine Vorschau des Stempels in einem Stapel pro Ordner anzuzeigen, wählen Sie eine oder mehrere bestimmte PDFs aus. Die sichtbare Signatur gilt nur für PAdES (PDF).",
@@ -1286,11 +1286,11 @@
   "Pendiente de artefacto protegido.": "Warten auf geschütztes Artefakt.",
   "Pendiente de documento firmado": "Warten auf signiertes Dokument",
   "Pendiente de firmado para estimar el stack.": "Warten auf Signierung zur Schätzung des Stacks.",
-  "Pendiente de huella o manifiesto": "Warten auf Fingerabdruck oder Manifest",
+  "Pendiente de huella o manifiesto": "Warten auf Hash oder Manifest",
   "Pendiente de origen": "Warten auf Ursprung",
-  "Pendiente de origen o huella para comprobar.": "Warten auf Ursprung oder Fingerabdruck zur Prüfung.",
-  "Pendiente de origen para crear huella.": "Warten auf Ursprung zur Erstellung des Fingerabdrucks.",
-  "Pendiente de origen para desproteger.": "Warten auf Ursprung zum Entschützen.",
+  "Pendiente de origen o huella para comprobar.": "Warten auf Ursprung oder Hash zur Prüfung.",
+  "Pendiente de origen para crear huella.": "Warten auf Ursprung zur Erstellung des Hashes.",
+  "Pendiente de origen para desproteger.": "Warten auf Ursprung zum Aufheben des Schutzes.",
   "Pendiente de origen para firmar.": "Warten auf Ursprung zum Signieren.",
   "Pendiente de pareja de validación.": "Warten auf Validierungspaar.",
   "Pendiente de selección": "Warten auf Auswahl",
@@ -1300,7 +1300,7 @@
   "Perfil: %1 | Destinatario: %2": "Profil: %1 | Empfänger: %2",
   "Perfil: %1 | Destinatarios: %2": "Profil: %1 | Empfänger: %2",
   "Perla Lujosa": "Luxuriöse Perle",
-  "Permite firmar, cofirmar o contrafirmar directamente desde el firmador web local.": "Ermöglicht das Signieren, Mitsignieren oder Gegensignieren direkt im lokalen Web-Signierer.",
+  "Permite firmar, cofirmar o contrafirmar directamente desde el firmador web local.": "Ermöglicht das Signieren, Kosignieren oder Gegensignieren direkt im lokalen Web-Signierer.",
   "Permite intentar firmar PDF con incidencias estructurales. No se recomienda salvo integración heredada o documentos de terceros que no puedas regenerar.": "Erlaubt den Versuch, PDF mit strukturellen Mängeln zu signieren. Nicht empfohlen, außer bei älterer Integration oder bei Dokumenten Dritter, die Sie nicht neu erzeugen können.",
   "Permitir PDF inválido": "Ungültiges PDF zulassen",
   "Persistencia efectiva": "Effektive Persistenz",
@@ -1309,16 +1309,16 @@
   "Petición JSON inválida.": "Ungültige JSON-Anfrage.",
   "Petición incorrecta: el servidor rechazó los datos (Bad Request).": "Ungültige Anfrage: Der Server hat die Daten abgelehnt (Bad Request).",
   "Pide confirmación explícita antes de lanzar una firma o una firma por lote.": "Fordert vor dem Start einer Signatur oder Stapelsignatur eine ausdrückliche Bestätigung an.",
-  "Plan de cofirma múltiple": "Plan für Mehrfach-Mitsignatur",
+  "Plan de cofirma múltiple": "Plan für Mehrfach-Kosignatur",
   "Plan de comprobación listo para fichero.": "Prüfplan für Datei bereit.",
   "Plan de comprobación listo para manifiesto de directorio.": "Prüfplan für Verzeichnismanifest bereit.",
   "Plan de desprotección": "Plan zum Aufheben des Schutzes",
-  "Plan de desprotección listo.": "Entschützungsplan bereit.",
+  "Plan de desprotección listo.": "Plan zum Aufheben des Schutzes bereit.",
   "Plan de firma": "Signaturplan",
   "Plan de firma listo.": "Signaturplan bereit.",
-  "Plan de huella": "Fingerabdruckplan",
-  "Plan de huella listo para fichero.": "Fingerabdruckplan für Datei bereit.",
-  "Plan de huella listo para manifiesto de directorio.": "Fingerabdruckplan für Verzeichnismanifest bereit.",
+  "Plan de huella": "Hash-Plan",
+  "Plan de huella listo para fichero.": "Hash-Plan für Datei bereit.",
+  "Plan de huella listo para manifiesto de directorio.": "Hash-Plan für Verzeichnismanifest bereit.",
   "Plan de validación": "Validierungsplan",
   "Plan de validación listo con original de referencia.": "Validierungsplan mit Referenzoriginal bereit.",
   "Plan de validación listo sin documento original.": "Validierungsplan ohne Originaldokument bereit.",
@@ -1345,7 +1345,7 @@
   "Preparar incidencia": "Meldung vorbereiten",
   "Preparar validación": "Validierung vorbereiten",
   "Preset aplicado: %1": "Voreinstellung angewendet: %1",
-  "Presets del sello": "Siegel-Voreinstellungen",
+  "Presets del sello": "Stempel-Voreinstellungen",
   "Previos: %1": "Frühere: %1",
   "Previsualización": "Vorschau",
   "Primer documento": "Erstes Dokument",
@@ -1373,8 +1373,8 @@
   "Proxy manual con credenciales protegidas": "Manueller Proxy mit geschützten Zugangsdaten",
   "Proxy obligatorio para esta conexión": "Proxy für diese Verbindung erforderlich",
   "Puedes arrastrar documentos al área superior o indicar una ruta local sin subir el fichero al navegador.": "Sie können Dokumente in den oberen Bereich ziehen oder einen lokalen Pfad angeben, ohne die Datei in den Browser hochzuladen.",
-  "Puedes arrastrar y redimensionar el sello. El backend recibirá coordenadas seguras y normalizadas.": "Sie können das Siegel ziehen und in der Größe ändern. Das Backend erhält sichere, normalisierte Koordinaten.",
-  "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "Sie können den Vorgang jetzt starten oder sichtbares Siegel, Profil oder Metadaten vor dem Signieren weiter verfeinern.",
+  "Puedes arrastrar y redimensionar el sello. El backend recibirá coordenadas seguras y normalizadas.": "Sie können den Stempel ziehen und in der Größe ändern. Das Backend erhält sichere, normalisierte Koordinaten.",
+  "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "Sie können den Vorgang jetzt starten oder sichtbaren Stempel, Profil oder Metadaten vor dem Signieren weiter verfeinern.",
   "Puedes pedir al backend que seleccione automáticamente el certificado más adecuado según los filtros visibles.": "Sie können das Backend bitten, anhand der sichtbaren Filter automatisch das am besten geeignete Zertifikat auszuwählen.",
   "Puedes usar un PNG/JPG como fondo del sello. Si mantienes el texto, se dibujará encima como marca de agua.": "Sie können ein PNG/JPG als Stempelhintergrund verwenden. Wenn Sie den Text behalten, wird er als Wasserzeichen darüber gezeichnet.",
   "Puerto:": "Port:",
@@ -1390,7 +1390,7 @@
   "QML: Preview obsoleta ignorada para página": "QML: Veraltete Vorschau ignoriert für Seite",
   "QML: Previsualización recibida OK, tamaño:": "QML: Vorschau empfangen OK, Größe:",
   "QR": "QR",
-  "QR del sello": "QR des Siegels",
+  "QR del sello": "QR des Stempels",
   "Qt.openUrlExternally falló:": "Qt.openUrlExternally fehlgeschlagen:",
   "Qualifier de política": "Richtlinien-Qualifier",
   "Qualifier de política FacturaE (SPURI)": "Qualifier der FacturaE-Richtlinie (SPURI)",
@@ -1412,7 +1412,7 @@
   "REST local": "Lokales REST",
   "REST: ": "REST: ",
   "RUTA DE ENTRADA": "EINGABEPFAD",
-  "RUTA DE SALIDA (PDF FIRMADO)": "AUSFAHRTSROUTE (UNTERZEICHNETES PDF)",
+  "RUTA DE SALIDA (PDF FIRMADO)": "AUSGABEPFAD (SIGNIERTES PDF)",
   "Razón": "Grund",
   "Razón técnica visible: %1": "Sichtbarer technischer Grund: %1",
   "Razón: ": "Grund: ",
@@ -1445,10 +1445,10 @@
   "Responsabilidad probable: %1": "Wahrscheinliche Verantwortung: %1",
   "Responsable probable: %1": "Wahrscheinlicher Verantwortlicher: %1",
   "Respuesta de certificados recibida: ": "Zertifikatsantwort empfangen: ",
-  "Restaura el tema y opciones a fábrica": "Stellen Sie das Design und die Optionen auf die Werkseinstellungen zurück",
+  "Restaura el tema y opciones a fábrica": "Stellt Design und Optionen auf die Werkseinstellungen zurück",
   "Restaurado desde la sesión anterior.": "Aus der vorherigen Sitzung wiederhergestellt.",
   "Restaurar": "Wiederherstellen",
-  "Restaurar sello": "Siegel zurücksetzen",
+  "Restaurar sello": "Stempel zurücksetzen",
   "Resultado": "Ergebnis",
   "Resultado de desprotección": "Ergebnis der Schutzaufhebung",
   "Resultado de huella": "Hashergebnis",
@@ -1460,7 +1460,7 @@
   "Resultado rápido": "Schnellergebnis",
   "Resultado visible": "Sichtbares Ergebnis",
   "Resultados del lote": "Stapelergebnisse",
-  "Resume el contexto actual para soporte sin obligarte a revisar el log técnico completo.": "Fasse den aktuellen Kontext für den Support zusammen, ohne dass du das vollständige technische Protokoll prüfen musst.",
+  "Resume el contexto actual para soporte sin obligarte a revisar el log técnico completo.": "Fasst den aktuellen Kontext für den Support zusammen, ohne dass Sie das vollständige technische Protokoll prüfen müssen.",
   "Resume qué querías hacer y en qué paso te has quedado.": "Fasst zusammen, was Sie tun wollten und bei welchem Schritt Sie hängen geblieben sind.",
   "Resumen amigable": "Kurzübersicht",
   "Resumen amigable: %1": "Kurzübersicht: %1",
@@ -1482,7 +1482,7 @@
   "Revisa el último mensaje y comprueba si el problema parece de conexión, del certificado o de la app.": "Prüfen Sie die letzte Meldung und ob das Problem nach Verbindung, Zertifikat oder App aussieht.",
   "Revisa filtros activos, vigencia y aptitud para firma.": "Prüfe aktive Filter, Gültigkeit und Signiereignung.",
   "Revisa la razón de validación y si falta el original.": "Prüfen Sie den Validierungsgrund und ob das Original fehlt.",
-  "Revisa la selección de páginas del sello visible antes de firmar.": "Überprüfen Sie die Seitenauswahl des sichtbaren Siegels vor dem Signieren.",
+  "Revisa la selección de páginas del sello visible antes de firmar.": "Überprüfen Sie die Seitenauswahl des sichtbaren Stempels vor dem Signieren.",
   "Revisa los filtros, la vigencia y si el certificado sirve para firmar.": "Prüfen Sie die Filter, die Gültigkeit und ob das Zertifikat zum Signieren geeignet ist.",
   "Revisar certificado": "Zertifikat prüfen",
   "Revisar certificados": "Zertifikate prüfen",
@@ -1493,10 +1493,10 @@
   "Rol FacturaE por defecto": "Standardrolle für FacturaE",
   "Rol del certificado": "Rolle des Zertifikats",
   "Rotación": "Drehung",
-  "Rotación del sello visible por defecto": "Standarddrehung des sichtbaren Siegels",
+  "Rotación del sello visible por defecto": "Standarddrehung des sichtbaren Stempels",
   "Ruta de salida": "Ausgabepfad",
   "Ruta de salida opcional": "Optionaler Ausgabepfad",
-  "Ruta del fichero de huella": "Pfad der Fingerabdruck-Datei",
+  "Ruta del fichero de huella": "Pfad der Hash-Datei",
   "Ruta del informe (.hashreport)": "Berichtspfad (.hashreport)",
   "Ruta del manifiesto": "Manifestpfad",
   "Ruta desprotegida": "Pfad ohne Schutz",
@@ -1521,24 +1521,24 @@
   "Salida: ": "Ausgabe: ",
   "Salida: %1": "Ausgabe: %1",
   "Se aplicará una contrafirma sobre la firma ya presente en el artefacto seleccionado.": "Auf die bereits im ausgewählten Artefakt vorhandene Signatur wird eine Gegensignatur angewendet.",
-  "Se añadirá como cofirmante, manteniendo la firma ya existente.": "Sie werden als Mitunterzeichner hinzugefügt; die bestehende Signatur bleibt erhalten.",
-  "Se añadirá una cofirma al artefacto ya firmado, manteniendo la firma existente.": "Dem bereits signierten Artefakt wird eine Mitsignatur hinzugefügt; die bestehende Signatur bleibt erhalten.",
-  "Se añadirá una cofirma y, a continuación, se encadenarán cofirmas adicionales sobre el mismo artefacto.": "Es wird eine Mitsignatur hinzugefügt, danach werden weitere Mitsignaturen auf demselben Artefakt verkettet.",
-  "Se enviará la incidencia estructurada, la previsualización del paquete, el manifiesto y una cola de log redactada. No se enviarán documentos originales, rutas completas del perfil ni secretos.": "Der strukturierte Vorfall, die Paketvorschau, das Manifest und eine redigierte Log-Warteschlange werden gesendet. Originaldokumente, vollständige Profilpfade und Geheimnisse werden nicht gesendet.",
+  "Se añadirá como cofirmante, manteniendo la firma ya existente.": "Sie werden als Kosignatar hinzugefügt; die bestehende Signatur bleibt erhalten.",
+  "Se añadirá una cofirma al artefacto ya firmado, manteniendo la firma existente.": "Dem bereits signierten Artefakt wird eine Kosignatur hinzugefügt; die bestehende Signatur bleibt erhalten.",
+  "Se añadirá una cofirma y, a continuación, se encadenarán cofirmas adicionales sobre el mismo artefacto.": "Es wird eine Kosignatur hinzugefügt, danach werden weitere Kosignaturen auf demselben Artefakt verkettet.",
+  "Se enviará la incidencia estructurada, la previsualización del paquete, el manifiesto y una cola de log redactada. No se enviarán documentos originales, rutas completas del perfil ni secretos.": "Der strukturierte Vorfall, die Paketvorschau, das Manifest und die letzten Protokollzeilen in anonymisierter Form werden gesendet. Originaldokumente, vollständige Profilpfade und Geheimnisse werden nicht gesendet.",
   "Las incidencias locales se eliminan automáticamente a los 30 días y solo se conservan las 50 más recientes.": "Lokale Vorfallberichte werden nach 30 Tagen automatisch gelöscht; gespeichert bleiben nur die 50 neuesten.",
-  "Se generará una firma inicial y después se añadirán cofirmas encadenadas sobre el mismo artefacto.": "Es wird zunächst eine Erstsignatur erzeugt, danach werden verkettete Mitsignaturen auf demselben Artefakt hinzugefügt.",
+  "Se generará una firma inicial y después se añadirán cofirmas encadenadas sobre el mismo artefacto.": "Es wird zunächst eine Erstsignatur erzeugt, danach werden verkettete Kosignaturen auf demselben Artefakt hinzugefügt.",
   "Se generará una firma nueva por cada elemento del lote seleccionado.": "Für jedes Element des ausgewählten Stapels wird eine neue Signatur erzeugt.",
   "Se generará una firma nueva sobre el documento seleccionado.": "Auf dem ausgewählten Dokument wird eine neue Signatur erzeugt.",
   "Se ha abierto Acceso a Llaveros.": "Die Schlüsselbundverwaltung wurde geöffnet.",
   "Se ha abierto el gestor de certificados.": "Die Zertifikatsverwaltung wurde geöffnet.",
   "Se ha abierto la configuración de certificados del navegador.": "Die Zertifikatseinstellungen des Browsers wurden geöffnet.",
   "Se ha borrado el certificado predeterminado.": "Das Standardzertifikat wurde gelöscht.",
-  "Se ha cambiado la operación a Cofirmar.": "Der Vorgang wurde auf Mitsignieren umgestellt.",
+  "Se ha cambiado la operación a Cofirmar.": "Der Vorgang wurde auf Kosignieren umgestellt.",
   "Se ha establecido un certificado predeterminado.": "Ein Standardzertifikat wurde festgelegt.",
   "Se incluirá": "Wird enthalten sein",
   "Se incluirá un resumen saneado de la incidencia y un extracto técnico mínimo.": "Eine bereinigte Vorfallzusammenfassung und ein minimaler technischer Auszug werden enthalten sein.",
   "Se intentará aplicar una contrafirma sobre cada elemento del lote seleccionado.": "Es wird versucht, auf jedes Element des ausgewählten Stapels eine Gegensignatur anzuwenden.",
-  "Se intentará añadir una cofirma sobre cada elemento del lote seleccionado.": "Es wird versucht, jedem Element des ausgewählten Stapels eine Mitsignatur hinzuzufügen.",
+  "Se intentará añadir una cofirma sobre cada elemento del lote seleccionado.": "Es wird versucht, jedem Element des ausgewählten Stapels eine Kosignatur hinzuzufügen.",
   "Se ocultará": "Wird verborgen",
   "Se reutilizará en la próxima sesión si sigue disponible.": "Wird in der nächsten Sitzung wiederverwendet, sofern weiterhin verfügbar.",
   "Se va a iniciar la firma del documento actual con el certificado seleccionado. Revise la selección antes de continuar.": "Die Signatur des aktuellen Dokuments mit dem ausgewählten Zertifikat wird gestartet. Bitte prüfen Sie die Auswahl, bevor Sie fortfahren.",
@@ -1549,7 +1549,7 @@
   "Secretos, tokens y cabeceras sensibles": "Geheimnisse, Tokens und sensible Header",
   "Seguridad y Dominios": "Sicherheit und Domänen",
   "Selecciona al menos un destinatario de protección.": "Wählen Sie mindestens einen Empfänger für den Schutz aus.",
-  "Selecciona al menos un firmante adicional para la cofirma múltiple.": "Wählen Sie mindestens einen weiteren Unterzeichner für die Mehrfach-Mitsignatur aus.",
+  "Selecciona al menos un firmante adicional para la cofirma múltiple.": "Wählen Sie mindestens einen weiteren Unterzeichner für die Mehrfach-Kosignatur aus.",
   "Selecciona el fichero firmado antes de reintentar la validación.": "Wählen Sie die signierte Datei aus, bevor Sie die Validierung wiederholen.",
   "Selecciona el fichero firmado que quieres validar.": "Wählen Sie die signierte Datei aus, die Sie validieren möchten.",
   "Selecciona exactamente un destinatario de protección.": "Wählen Sie genau einen Schutzempfänger aus.",
@@ -1616,9 +1616,9 @@
   "Selección": "Auswahl",
   "Selección cancelada": "Auswahl abgebrochen",
   "Selección cargada en navegador": "Auswahl im Browser geladen",
-  "Selección de páginas inválida. Usa 1, 1,3-5 o all.": "Ungültige Seitenauswahl. Verwenden Sie 1, 1, 3-5 oder alle.",
+  "Selección de páginas inválida. Usa 1, 1,3-5 o all.": "Ungültige Seitenauswahl. Verwenden Sie 1, 1,3-5 oder all.",
   "Sello": "Siegel",
-  "Sello restaurado a valores por defecto.": "Siegel auf Standardwerte zurückgesetzt.",
+  "Sello restaurado a valores por defecto.": "Stempel auf Standardwerte zurückgesetzt.",
   "Sello visible": "Sichtbarer Stempel",
   "Serie": "Serie",
   "Servicio externo": "Externer Dienst",
@@ -1638,13 +1638,13 @@
   "Si no eliges un formato manualmente, esta preferencia se usará al preparar la firma.": "Wenn Sie kein Format manuell wählen, wird diese Einstellung beim Vorbereiten der Signatur verwendet.",
   "Si parece un fallo externo, anota lo ocurrido y vuelve a intentarlo más tarde.": "Wenn es wie ein externer Fehler aussieht, notieren Sie, was passiert ist, und versuchen Sie es später erneut.",
   "Si persiste, abre ayuda o exporta diagnóstico para soporte.": "Wenn es weiterhin auftritt, öffnen Sie die Hilfe oder exportieren Sie Diagnosedaten für den Support.",
-  "Si quieres añadir otra firma sobre el mismo documento, lo correcto normalmente es usar Cofirmar.": "Wenn Sie dem selben Dokument eine weitere Signatur hinzufügen möchten, ist in der Regel Mitsignieren die richtige Wahl.",
+  "Si quieres añadir otra firma sobre el mismo documento, lo correcto normalmente es usar Cofirmar.": "Wenn Sie demselben Dokument eine weitere Signatur hinzufügen möchten, ist in der Regel Kosignieren die richtige Wahl.",
   "Si se activa y solo hay un certificado disponible, la aplicación lo seleccionará automáticamente al cargar el catálogo.": "Wenn aktiviert und nur ein Zertifikat verfügbar ist, wählt die Anwendung es beim Laden des Katalogs automatisch aus.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación intentará guardarlas y cerrará sin mostrar el diálogo de confirmación.": "Wenn aktiviert, versucht die Anwendung beim Schließen mit ausstehenden Einstellungen, diese zu speichern, und schließt ohne Bestätigungsdialog.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación las guardará y continuará sin mostrar el diálogo de confirmación.": "Wenn diese Option aktiviert ist, speichert die Anwendung beim Schließen mit ausstehenden Einstellungen diese automatisch und fährt ohne Bestätigungsdialog fort.",
-  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "Wenn aktiviert, wird beim Prüfen von Verzeichnis-Fingerabdrücken standardmäßig vorgeschlagen, den Bericht zu speichern.",
-  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "Wenn aktiviert, wird beim Erstellen oder Prüfen von Verzeichnis-Fingerabdrücken standardmäßig der rekursive Modus markiert.",
-  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "Wenn aktiviert, wird ein einfacher Fingerabdruck beim Erzeugen automatisch in die Zwischenablage kopiert.",
+  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "Wenn aktiviert, wird beim Prüfen von Verzeichnis-Hashes standardmäßig vorgeschlagen, den Bericht zu speichern.",
+  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "Wenn aktiviert, wird beim Erstellen oder Prüfen von Verzeichnis-Hashes standardmäßig der rekursive Modus markiert.",
+  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "Wenn aktiviert, wird ein einfacher Hash beim Erzeugen automatisch in die Zwischenablage kopiert.",
   "Si se activa, al preparar firmas PDF se propondrá por defecto la firma visible.": "Wenn aktiviert, wird beim Vorbereiten von PDF-Signaturen standardmäßig die sichtbare Signatur vorgeschlagen.",
   "Si se activa, al preparar una firma visible PAdES se propondrá por defecto aplicarla en todas las páginas.": "Wenn aktiviert, wird beim Vorbereiten einer sichtbaren PAdES-Signatur standardmäßig vorgeschlagen, sie auf allen Seiten anzuwenden.",
   "Si se activa, al pulsar cerrar la ventana la aplicación se minimizará y seguirá lista para futuras firmas.": "Wenn diese Option aktiviert ist, wird die Anwendung beim Schließen des Fensters minimiert und bleibt für künftige Signaturen bereit.",
@@ -1713,7 +1713,7 @@
   "Sí hay certificados disponibles, pero el actual puede no servir para esta operación.": "Es sind Zertifikate verfügbar, aber das aktuelle ist für diesen Vorgang möglicherweise nicht geeignet.",
   "TEMA VISUAL": "VISUELLES THEMA",
   "TRAZA DE LA OPERACIÓN": "VORGANGSPROTOKOLL",
-  "TRAZA DEL SISTEMA (redactada)": "SYSTEMPROTOKOLL (geschwärzt)",
+  "TRAZA DEL SISTEMA (redactada)": "SYSTEMPROTOKOLL (anonymisiert)",
   "Te deja en la validación lista para seleccionar el fichero.": "Bringt Sie zur Validierung, bereit zur Dateiauswahl.",
   "Te lleva a la pestaña de firma.": "Bringt Sie zum Reiter Signieren.",
   "Te lleva a la pestaña de validación.": "Bringt Sie zum Reiter Validieren.",
@@ -1744,7 +1744,7 @@
   "Token de Seguridad:": "Sicherheitstoken:",
   "Total": "Gesamt",
   "TraceId: %1": "Trace-ID: %1",
-  "Tras cofirmar, se validara el artefacto final manteniendo la firma principal existente.": "Nach dem Mitsignieren wird das endgültige Artefakt validiert, wobei die bestehende Hauptsignatur erhalten bleibt.",
+  "Tras cofirmar, se validara el artefacto final manteniendo la firma principal existente.": "Nach der Kosignatur wird das endgültige Artefakt validiert, wobei die bestehende Hauptsignatur erhalten bleibt.",
   "Tras contrafirmar, se validara el artefacto final con la nueva contrafirma aplicada.": "Nach dem Gegensignieren wird das endgültige Artefakt mit der neu angewendeten Gegensignatur validiert.",
   "Tras firmar, se validara automaticamente el artefacto resultante.": "Nach dem Signieren wird das resultierende Artefakt automatisch validiert.",
   "URL TSA": "URL TSA",
@@ -2020,7 +2020,7 @@
   "help.more.title": "Weitere Informationen",
   "help.security.body": "Prüfen Sie immer die Website, die eine Signatur oder ein Zertifikat anfordert. Bestätigen Sie keine unerwarteten Vorgänge. Verwenden Sie den Resident-Modus und die Web-Kompatibilität nur bei Bedarf.",
   "help.security.title": "Sicherheit",
-  "help.sign.body": "Verwenden Sie den Reiter Signieren, um eine Datei, mehrere Dateien oder einen ganzen Ordner zu signieren. Für PDF im PAdES-Format können Sie sichtbares Siegel, Drehung, QR, Metadaten und einzelne oder alle Seiten aktivieren. Sie können Auswahldialoge geöffnet lassen oder das Siegel in Ruhe positionieren: Der verbundene Kanal erlaubt bis zu 30 Minuten Inaktivität.",
+  "help.sign.body": "Verwenden Sie den Reiter Signieren, um eine Datei, mehrere Dateien oder einen ganzen Ordner zu signieren. Für PDF im PAdES-Format können Sie sichtbaren Stempel, Drehung, QR, Metadaten und einzelne oder alle Seiten aktivieren. Sie können Auswahldialoge geöffnet lassen oder den Stempel in Ruhe positionieren: Der verbundene Kanal erlaubt bis zu 30 Minuten Inaktivität.",
   "help.sign.title": "Dokumente signieren",
   "help.subtitle": "Kurzanleitung zur Verwendung der Anwendung.",
   "help.title": "GrxFirma Hilfe",
@@ -2357,7 +2357,7 @@
   "Último documento": "Letztes Dokument",
   "Último estado visible: %1": "Letzter sichtbarer Status: %1",
   "• ": "• ",
-  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ Der erkannte REST-Server ist aktiv, wurde jedoch in diesem Fenster nicht gestartet. Stoppen Sie es vom Tray oder von der Instanz, die es gestartet hat.",
+  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ Der erkannte REST-Server ist aktiv, wurde aber nicht von diesem Fenster gestartet. Stoppen Sie ihn über den Infobereich oder in der Instanz, die ihn gestartet hat.",
   "ℹ️ ": "ℹ️ ",
   "ℹ️ Chequeo exhaustivo de certificados completado.": "ℹ️ Umfassende Zertifikatsprüfung abgeschlossen.",
   "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "ℹ️ Der Diagnosebericht wurde in die Zwischenablage kopiert.",
@@ -2371,7 +2371,7 @@
   "⏳  Sellado de Tiempo (TSA)": "⏳ Zeitstempel (TSA)",
   "▶ Ver detalles": "▶ Details anzeigen",
   "▼ Ocultar detalles": "▼ Details ausblenden",
-  "● Comprobando estado del servidor...": "● Serverstatus prüfen...",
+  "● Comprobando estado del servidor...": "● Serverstatus wird geprüft...",
   "● Estado desconocido (Sin conexión)": "● Unbekannter Status (Keine Verbindung)",
   "● Servicio activo y corriendo": "● Dienst aktiv und ausgeführt",
   "● Servicio instalado pero parado": "● Dienst installiert, aber gestoppt",
@@ -2445,7 +2445,7 @@
   "🛡️  Política de firma por defecto": "🛡️  Standard-Signaturrichtlinie",
   "🛡️ Control de Dominios Permitidos": "🛡️ Kontrolle der zulässigen Domänen",
   "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "🛡️ Lokales TLS-Vertrauen installieren",
-  "🛡️ Instalar confianza TLS local": "🛡️ Installieren Sie die lokale TLS-Vertrauensstellung",
+  "🛡️ Instalar confianza TLS local": "🛡️ Lokales TLS-Vertrauen installieren",
   "🌐  Navegadores y certificados locales": "🌐  Browser und lokale Zertifikate",
   "Repara la integración con Chrome, Chromium, Edge, Brave y Firefox, incluyendo perfiles Snap o Flatpak cuando existan. Usa estas opciones si una web no consigue abrir GrxFirma o si el navegador no confía en la conexión local.": "Repariert die Integration mit Chrome, Chromium, Edge, Brave und Firefox, einschließlich Snap- oder Flatpak-Profilen, falls vorhanden. Verwenden Sie diese Optionen, wenn eine Website GrxFirma nicht öffnen kann oder der Browser der lokalen Verbindung nicht vertraut.",
   "Reinstalar conectores de navegadores": "Browser-Konnektoren neu installieren",
@@ -2571,7 +2571,7 @@
   "Ejecución de la operación": "Ausführung des Vorgangs",
   "No comprobado": "Nicht geprüft",
   "Omitido": "Übersprungen",
-  "Solo se muestran fases realmente observadas por el motor. Lo que no se pudo comprobar queda como desconocido.": "Es werden nur die vom Modul tatsächlich beobachteten Phasen angezeigt. Nicht prüfbare Angaben bleiben unbekannt.",
+  "Solo se muestran fases realmente observadas por el motor. Lo que no se pudo comprobar queda como desconocido.": "Es werden nur die von der Engine tatsächlich beobachteten Phasen angezeigt. Nicht prüfbare Angaben bleiben unbekannt.",
   "Validación del protocolo": "Protokollvalidierung",
   "Este equipo": "Dieser Computer",
   "Portal o sede": "Portal oder Behördenwebsite",
@@ -2627,7 +2627,7 @@
   ,"La última versión publicada es %1, pero este build de desarrollo no se puede comparar automáticamente.": "Die neueste veröffentlichte Version ist %1, aber dieser Entwicklungsbuild kann nicht automatisch verglichen werden."
   ,"GrxFirma está actualizado (%1).": "GrxFirma ist aktuell (%1)."
   ,"Avisar de nuevas versiones": "Über neue Versionen informieren"
-  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "Beim Start wird einmal die neueste GitHub Release geprüft. An GitHub werden nur die HTTPS-Verbindung und die Kennung GrxFirma gesendet; keine Dokumente, Zertifikate oder Signaturdaten."
+  ,"Al iniciar, consulta una vez la última GitHub Release. Solo envía a GitHub la conexión HTTPS y la ruta del repositorio oficial; no envía documentos, certificados ni datos de firma.": "Beim Start wird einmal die neueste GitHub Release geprüft. An GitHub werden nur die HTTPS-Verbindung und der Pfad des offiziellen Repositorys gesendet; keine Dokumente, Zertifikate oder Signaturdaten."
   ,"Comprobación de versiones finalizada.": "Versionsprüfung abgeschlossen."
   ,"La comprobación segura de versiones necesita el motor local IPC. Abra GrxFirma desde el lanzador instalado y vuelva a intentarlo; la firma local no queda bloqueada.": "Die sichere Versionsprüfung benötigt die lokale IPC-Engine. Öffnen Sie GrxFirma über den installierten Starter und versuchen Sie es erneut; lokales Signieren bleibt verfügbar."
   ,"No se puede comprobar la versión porque el servicio de actualizaciones no está configurado. Reinstale GrxFirma desde el repositorio oficial.": "Die Version kann nicht geprüft werden, weil der Update-Dienst nicht konfiguriert ist. Installieren Sie GrxFirma aus dem offiziellen Repository neu."
@@ -2674,7 +2674,7 @@
   ,"Primera": "Erste"
   ,"Renovar en la FNMT": "Bei der FNMT erneuern"
   ,"Selecciona una imagen PNG o JPEG para el sello.": "Wählen Sie ein PNG- oder JPEG-Bild für den Stempel aus."
-  ,"Selección de páginas inválida. Usa 1, 1,3-5 o todas.": "Ungültige Seitenauswahl. Verwenden Sie 1, 1,3-5 oder alle."
+  ,"Selección de páginas inválida. Usa 1, 1,3-5 o todas.": "Ungültige Seitenauswahl. Verwenden Sie 1, 1,3-5 oder all."
   ,"Solo texto": "Nur Text"
   ,"Tarjeta detectada. Se actualiza la lista de certificados; puede que necesites configurar el módulo PKCS#11.": "Karte erkannt. Die Zertifikatsliste wird aktualisiert; möglicherweise müssen Sie das PKCS#11-Modul konfigurieren."
   ,"Todas": "Alle"
@@ -2703,7 +2703,7 @@
   "Ocultar": "Ausblenden",
   "Seleccione un certificado": "Zertifikat auswählen",
   "No dispone de clave utilizable para firmar": "Kein verwendbarer Schlüssel zum Signieren vorhanden",
-  "Seleccione certificados válidos para la cofirma múltiple": "Wählen Sie gültige Zertifikate für die Mehrfachsignatur aus",
+  "Seleccione certificados válidos para la cofirma múltiple": "Wählen Sie gültige Zertifikate für die Mehrfach-Kosignatur aus",
   "No hay certificados propios disponibles.": "Keine eigenen Zertifikate verfügbar.",
   "Exportar certificado público": "Öffentliches Zertifikat exportieren",
   "Certificado público DER (*.cer)": "Öffentliches DER-Zertifikat (*.cer)",
@@ -2739,25 +2739,25 @@
   ,"Actualizado a %1: ver novedades": "Auf %1 aktualisiert: Neuerungen anzeigen"
   ,"revocación no concluyente": "Der Widerruf des Zertifikats konnte nicht geprüft werden. Die Signatur gilt nicht als gültig."
   ,"rest.verify_v2.error.limit": "Der Grenzwert für die Verifikation v2 liegt außerhalb des zulässigen Bereichs"
-  ,"portal.seal.title": "Siegel auf dem PDF platzieren"
-  ,"portal.seal.instructions": "Die Website, von der aus Sie signieren, bittet Sie, die Position der Signatur zu wählen. Ziehen Sie das Siegel, um es zu verschieben, nutzen Sie den Kreis in der Ecke für die Größe und den Pfeil zum Drehen. Sie können die Position auch unter „Feinjustierung“ eingeben."
+  ,"portal.seal.title": "Stempel auf dem PDF platzieren"
+  ,"portal.seal.instructions": "Die Website, von der aus Sie signieren, bittet Sie, die Position der Signatur zu wählen. Ziehen Sie den Stempel, um ihn zu verschieben, nutzen Sie den Kreis in der Ecke für die Größe und den Pfeil zum Drehen. Sie können die Position auch unter „Feinjustierung“ eingeben."
   ,"portal.seal.fine_tune": "Feinjustierung"
   ,"portal.seal.page": "Seite %1 von %2"
   ,"portal.seal.previous_page": "Vorherige Seite"
   ,"portal.seal.next_page": "Nächste Seite"
-  ,"portal.seal.preview_error": "Das PDF konnte nicht angezeigt werden. Verwenden Sie „Feinjustierung“ oder „Ohne sichtbares Siegel signieren“."
-  ,"portal.seal.preview_failed": "Das PDF konnte nicht angezeigt werden, daher lässt sich das Siegel nicht platzieren. Wählen Sie „Ohne sichtbares Siegel signieren“ oder „Abbrechen“."
+  ,"portal.seal.preview_error": "Das PDF konnte nicht angezeigt werden. Verwenden Sie „Feinjustierung“ oder „Ohne sichtbaren Stempel signieren“."
+  ,"portal.seal.preview_failed": "Das PDF konnte nicht angezeigt werden, daher lässt sich der Stempel nicht platzieren. Wählen Sie „Ohne sichtbaren Stempel signieren“ oder „Abbrechen“."
   ,"portal.seal.preview_loading": "PDF-Vorschau wird geladen…"
-  ,"portal.seal.sign_here": "Hier mit sichtbarem Siegel signieren"
-  ,"portal.seal.sign_without": "Ohne sichtbares Siegel signieren"
+  ,"portal.seal.sign_here": "Hier mit sichtbarem Stempel signieren"
+  ,"portal.seal.sign_without": "Ohne sichtbaren Stempel signieren"
   ,"portal.seal.cancel": "Abbrechen"
-  ,"portal.seal.style": "Darstellung des Siegels"
+  ,"portal.seal.style": "Darstellung des Stempels"
   ,"portal.seal.logo": "Institutionelles Logo"
   ,"portal.seal.text": "Nur Text"
   ,"portal.seal.error.result": "Der Editor lieferte ein ungültiges Ergebnis. Das Dokument wurde nicht signiert."
-  ,"portal.seal.error.placement": "Die Siegelposition ist ungültig oder liegt außerhalb des PDF. Das Dokument wurde nicht signiert."
+  ,"portal.seal.error.placement": "Die Stempelposition ist ungültig oder liegt außerhalb des PDF. Das Dokument wurde nicht signiert."
   ,"portal.seal.error.prepare": "Das PDF konnte nicht für den Editor vorbereitet werden. Wiederholen Sie die Signatur."
-  ,"portal.seal.notice.editor_title": "Siegeleditor nicht verfügbar"
+  ,"portal.seal.notice.editor_title": "Stempeleditor nicht verfügbar"
   ,"portal.seal.notice.editor_body": "Der visuelle Editor konnte nicht geöffnet werden. Wählen Sie eine Position im Dialog."
   ,"portal.seal.notice.preview_title": "Vorschau nicht verfügbar"
   ,"portal.seal.notice.preview_body": "Das PDF ist nicht verfügbar oder geschützt. Wählen Sie eine Position im Dialog."
@@ -2781,7 +2781,7 @@
   ,"winui.parity.certs.seal": "Organisationssiegel"
   ,"winui.parity.certs.employee": "Öffentlich Bedienstete"
   ,"winui.parity.certs.type": "Zertifikatstyp"
-  ,"winui.parity.certs.nif": "Nur mit Kennung oder Seriennummer"
+  ,"winui.parity.certs.nif": "Nur mit Steuer-ID oder Seriennummer"
   ,"winui.parity.certs.organization": "Nur mit Organisation"
   ,"winui.parity.rest.title": "Lokaler REST-Server"
   ,"winui.parity.rest.token": "Zugriffstoken dieser Sitzung"
@@ -2909,7 +2909,7 @@
   "paridad.lote3.csv.url": "HTTPS-Prüfadresse ({csv} möglich)",
   "paridad.lote3.eni.administration": "Verwaltung",
   "paridad.lote3.eni.capture_date": "Erfassungsdatum",
-  "paridad.lote3.eni.certificate": "Zertifikat zum Signieren des Verzeichnisses",
+  "paridad.lote3.eni.certificate": "Zertifikat zum Signieren des Index",
   "paridad.lote3.eni.certificates_failed": "Zertifikate konnten nicht geladen werden.",
   "paridad.lote3.eni.citizen": "Bürgerin oder Bürger",
   "paridad.lote3.eni.classification": "SIA-Code des Verfahrens (Pflichtfeld)",
@@ -3043,7 +3043,7 @@
   ,"Consultar licencia EUPL": "EUPL-Lizenz anzeigen"
   ,"Abre el repositorio oficial fijo de GrxFirma.": "Öffnet das offizielle GrxFirma-Repository."
   ,"Abrir repositorio oficial": "Offizielles Repository öffnen"
-  ,"Consulta una vez la última GitHub Release mediante el motor local; no descarga ni instala archivos.": "Fragt die neueste GitHub-Veröffentlichung einmalig über den lokalen Dienst ab; Dateien werden weder heruntergeladen noch installiert."
+  ,"Consulta una vez la última GitHub Release mediante el motor local; no descarga ni instala archivos.": "Fragt die neueste GitHub-Veröffentlichung einmalig über die lokale Engine ab; Dateien werden weder heruntergeladen noch installiert."
   ,"Abre la página fija de versiones del repositorio oficial.": "Öffnet die Versionsseite des offiziellen Repositorys."
   ,"Ver versiones oficiales": "Offizielle Versionen anzeigen"
   ,"Apertura de información en curso": "Informationen werden geöffnet"
@@ -3196,7 +3196,7 @@
   ,"Al cerrar la ventana, GrxFirma permanece disponible en la bandeja del sistema.": "Wenn Sie das Fenster schließen, bleibt GrxFirma im Infobereich verfügbar."
   ,"Inicia GrxFirma oculto para este usuario. No aprueba ninguna firma.": "Startet GrxFirma für diesen Benutzer im Hintergrund. Es werden keine Signaturen genehmigt."
   ,"Al iniciar, consulta una vez la última GitHub Release. No envía documentos, certificados ni datos de firma.": "Beim Start wird einmal die neueste GitHub-Version geprüft. Dokumente, Zertifikate und Signaturdaten werden nicht gesendet."
-  ,"La consulta HTTPS se dirige al repositorio oficial de GitHub. Puede desactivarla; «Comprobar actualizaciones» seguirá disponible en «Acerca de» cuando quiera usarla manualmente.": "Die HTTPS-Abfrage richtet sich an das offizielle GitHub-Repository. Sie können sie deaktivieren; „Nach Updates suchen“ bleibt unter „Info“ zur manuellen Verwendung verfügbar."
+  ,"La consulta HTTPS se dirige al repositorio oficial de GitHub. Puede desactivarla; «Comprobar actualizaciones» seguirá disponible en «Acerca de» cuando quiera usarla manualmente.": "Die HTTPS-Abfrage richtet sich an das offizielle GitHub-Repository. Sie können sie deaktivieren; „Nach Updates suchen“ bleibt unter „Über“ zur manuellen Verwendung verfügbar."
   ,"Muestra u oculta una sección independiente para crear facturas electrónicas y seguir la remisión oficial a FACe.": "Zeigt oder verbirgt einen eigenen Bereich zum Erstellen elektronischer Rechnungen und zum Verfolgen der offiziellen Einreichung in FACe."
   ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "Diese Option ist standardmäßig deaktiviert. Beim Aktivieren erscheint „Facturae, FACe und Veri*Factu“ als eigener Bereich; die übrigen Funktionen von GrxFirma ändern sich nicht."
   ,"La preferencia se conserva, pero la firma WinUI no la usa hasta disponer del editor seguro de sello PDF.": "Die Einstellung wird gespeichert, aber die WinUI-Signatur verwendet sie erst, wenn ein sicherer PDF-Stempel-Editor verfügbar ist."
@@ -3902,7 +3902,7 @@
   ,"En Windows, el instalador vuelve a crear el acceso a GrxFirma en el menú Inicio y, por defecto, en el escritorio.": "Unter Windows erstellt das Installationsprogramm wieder eine GrxFirma-Verknüpfung im Startmenü und standardmäßig auf dem Desktop."
   ,"Nuevo icono de GrxFirma.": "Neues GrxFirma-Symbol."
   ,"GrxFirma se queda en la bandeja del sistema al cerrar la ventana (se puede desactivar en Ajustes), con opción de iniciarse con Windows.": "GrxFirma bleibt nach dem Schließen des Fensters im Infobereich (in Einstellungen deaktivierbar) und kann mit Windows gestartet werden."
-  ,"La aplicación de Linux incorpora las novedades de Windows: vista previa real del sello, estilos, QR, páginas y giro libre; estado y caducidad de los certificados con acceso a la renovación FNMT; guía para DNIe y tarjetas; destinatarios públicos en Proteger; y novedades en Acerca de.": "Die Linux-Anwendung enthält nun die Windows-Neuerungen: echte Stempelvorschau, Stile, QR, Seitenplatzierung und freie Drehung; Zertifikatsstatus und Ablauf mit FNMT-Erneuerung; DNIe- und Smartcard-Hilfe; öffentliche Empfänger unter Schützen; und Versionshinweise unter Info."
+  ,"La aplicación de Linux incorpora las novedades de Windows: vista previa real del sello, estilos, QR, páginas y giro libre; estado y caducidad de los certificados con acceso a la renovación FNMT; guía para DNIe y tarjetas; destinatarios públicos en Proteger; y novedades en Acerca de.": "Die Linux-Anwendung enthält nun die Windows-Neuerungen: echte Stempelvorschau, Stile, QR, Seitenplatzierung und freie Drehung; Zertifikatsstatus und Ablauf mit FNMT-Erneuerung; DNIe- und Smartcard-Hilfe; öffentliche Empfänger unter Schützen; und Versionshinweise unter Über."
   ,"En Windows, los programas se instalan en %LOCALAPPDATA%\\Programs\\GrxFirma y los datos del usuario se guardan aparte en %LOCALAPPDATA%\\GrxFirma, de modo que reinstalar o actualizar ya no falla después de haber usado la aplicación.": "Unter Windows werden Programme in %LOCALAPPDATA%\\Programs\\GrxFirma installiert und Benutzerdaten getrennt in %LOCALAPPDATA%\\GrxFirma gespeichert; Neuinstallation und Update schlagen nach der Nutzung nicht mehr fehl."
   ,"En Windows, la instalación y las actualizaciones guardan los programas en %LOCALAPPDATA%\\Programs\\GrxFirma. Los datos de uso y la configuración permanecen en sus carpetas de usuario al desinstalar.": "Unter Windows speichern Installation und Updates Programme in %LOCALAPPDATA%\\Programs\\GrxFirma. Nutzungsdaten und Einstellungen bleiben beim Deinstallieren in den Benutzerordnern."
   ,"Corregida la conexión con los portales web en equipos donde nunca se había usado la aplicación: el certificado local que usa el navegador para comunicarse con GrxFirma no quedaba como de confianza. Ahora el instalador lo instala por la vía normal de Windows, que pide una única confirmación.": "Portalverbindungen auf zuvor ungenutzten Computern korrigiert: Dem lokalen Zertifikat des Browsers für die Kommunikation mit GrxFirma wurde nicht vertraut. Das Installationsprogramm richtet das Vertrauen nun über das normale Windows-Verfahren mit einer einzigen Bestätigung ein."
@@ -3937,7 +3937,7 @@
   ,"Permite seleccionar hasta 128 documentos mediante selección múltiple y una carpeta adicional. El motor conserva los resultados parciales por documento.": "Mit der Mehrfachauswahl und einem zusätzlichen Ordner können bis zu 128 Dokumente ausgewählt werden. Die Engine bewahrt Teilergebnisse für jedes Dokument auf."
   ,"Activar firma por lotes": "Stapelverarbeitung für Signaturen aktivieren"
   ,"Firma por lotes": "Stapelsignierung"
-  ,"El lote usa un único certificado, operación, formato y perfil. El sello visible se desactiva porque exige previsualización individual.": "Der Stapel verwendet ein einziges Zertifikat, einen Vorgang, ein Format und ein Profil. Das sichtbare Siegel ist deaktiviert, da jedes Dokument einzeln in der Vorschau geprüft werden muss."
+  ,"El lote usa un único certificado, operación, formato y perfil. El sello visible se desactiva porque exige previsualización individual.": "Der Stapel verwendet ein einziges Zertifikat, einen Vorgang, ein Format und ein Profil. Der sichtbare Stempel ist deaktiviert, da jedes Dokument einzeln in der Vorschau geprüft werden muss."
   ,"Añadir documentos al lote": "Dokumente zum Stapel hinzufügen"
   ,"Añadir archivos…": "Dateien hinzufügen…"
   ,"Añadir carpeta al lote": "Ordner zum Stapel hinzufügen"
@@ -3959,72 +3959,72 @@
   ,"Importa persistentemente un P12 o PFX en Cert:\\CurrentUser\\My después de una confirmación explícita.": "Importiert eine P12- oder PFX-Datei nach ausdrücklicher Bestätigung dauerhaft nach Cert:\\CurrentUser\\My."
   ,"Importar archivo de certificado en Windows": "Zertifikatsdatei in Windows importieren"
   ,"Importar archivo en Windows": "Datei in Windows importieren"
-  ,"Aplica primero el certificado principal y después los certificados adicionales como cofirmas secuenciales, generando una única salida.": "Wendet zuerst das Hauptzertifikat und anschließend die weiteren Zertifikate als aufeinanderfolgende Mitunterzeichnungen an. Es entsteht eine einzige Ausgabedatei."
-  ,"Activar cofirma múltiple guiada": "Geführte Mehrfach-Mitunterzeichnung aktivieren"
+  ,"Aplica primero el certificado principal y después los certificados adicionales como cofirmas secuenciales, generando una única salida.": "Wendet zuerst das Hauptzertifikat und anschließend die weiteren Zertifikate als aufeinanderfolgende Kosignaturen an. Es entsteht eine einzige Ausgabedatei."
+  ,"Activar cofirma múltiple guiada": "Geführte Mehrfach-Kosignatur aktivieren"
   ,"Seleccione uno o más certificados distintos del principal. Se aplicarán en el orden mostrado.": "Wählen Sie ein oder mehrere Zertifikate aus, die sich vom Hauptzertifikat unterscheiden. Sie werden in der angezeigten Reihenfolge angewendet."
-  ,"Certificados adicionales para cofirma múltiple": "Weitere Zertifikate für die Mehrfach-Mitunterzeichnung"
+  ,"Certificados adicionales para cofirma múltiple": "Weitere Zertifikate für die Mehrfach-Kosignatur"
   ,"Opciones avanzadas de firma": "Erweiterte Signaturoptionen"
   ,"Opciones avanzadas": "Erweiterte Optionen"
   ,"Usa la geometría real obtenida del PDF y solo se habilita para PAdES o Automático.": "Verwendet die tatsächliche Geometrie der PDF-Datei und ist nur für PAdES oder Automatisch verfügbar."
-  ,"Añadir sello visible en documentos PDF": "Sichtbares Siegel zu PDF-Dokumenten hinzufügen"
-  ,"Añadir sello visible en PDF": "Sichtbares Siegel zum PDF hinzufügen"
-  ,"Configuración del sello visible": "Einstellungen für das sichtbare Siegel"
-  ,"Elija el aspecto del sello y en qué páginas estamparlo. Después cargue la previsualización: arrastre el sello para colocarlo y su esquina para ampliarlo o reducirlo. También puede ajustarlo con el teclado: X se mide desde la izquierda e Y desde abajo.": "Wählen Sie das Aussehen des Siegels und die Seiten, auf denen es erscheinen soll. Laden Sie dann die Vorschau: Ziehen Sie das Siegel an die gewünschte Stelle und ändern Sie seine Größe über die Ecke. Die Eingabe ist auch per Tastatur möglich: X wird vom linken und Y vom unteren Rand gemessen."
+  ,"Añadir sello visible en documentos PDF": "Sichtbaren Stempel zu PDF-Dokumenten hinzufügen"
+  ,"Añadir sello visible en PDF": "Sichtbaren Stempel zum PDF hinzufügen"
+  ,"Configuración del sello visible": "Einstellungen für den sichtbaren Stempel"
+  ,"Elija el aspecto del sello y en qué páginas estamparlo. Después cargue la previsualización: arrastre el sello para colocarlo y su esquina para ampliarlo o reducirlo. También puede ajustarlo con el teclado: X se mide desde la izquierda e Y desde abajo.": "Wählen Sie das Aussehen des Stempels und die Seiten, auf denen er erscheinen soll. Laden Sie dann die Vorschau: Ziehen Sie den Stempel an die gewünschte Stelle und ändern Sie seine Größe über die Ecke. Die Eingabe ist auch per Tastatur möglich: X wird vom linken und Y vom unteren Rand gemessen."
   ,"Institucional muestra el emblema de firma de la Diputación; también puede usar solo texto o una imagen propia.": "Der institutionelle Stil zeigt das Signaturemblem der Diputación. Sie können auch nur Text oder ein eigenes Bild verwenden."
-  ,"Estilo del sello visible": "Stil des sichtbaren Siegels"
-  ,"Estilo del sello": "Siegelstil"
-  ,"Elegir imagen del sello": "Siegelbild auswählen"
-  ,"Incluye en el sello el nombre del firmante, la fecha y el emisor del certificado; sin esta opción conserva únicamente el rótulo de firma digital.": "Fügt dem Siegel den Namen der unterzeichnenden Person, das Datum und den Zertifikatsaussteller hinzu. Ohne diese Option bleibt nur der Hinweis auf die digitale Signatur."
-  ,"Mostrar identidad ubicación y fecha en el sello": "Identität, Ort und Datum im Siegel anzeigen"
+  ,"Estilo del sello visible": "Stil des sichtbaren Stempels"
+  ,"Estilo del sello": "Stempelstil"
+  ,"Elegir imagen del sello": "Stempelbild auswählen"
+  ,"Incluye en el sello el nombre del firmante, la fecha y el emisor del certificado; sin esta opción conserva únicamente el rótulo de firma digital.": "Fügt dem Stempel den Namen der unterzeichnenden Person, das Datum und den Zertifikatsaussteller hinzu. Ohne diese Option bleibt nur der Hinweis auf die digitale Signatur."
+  ,"Mostrar identidad ubicación y fecha en el sello": "Identität, Ort und Datum im Stempel anzeigen"
   ,"Mostrar identidad, ubicación y fecha": "Identität, Ort und Datum anzeigen"
-  ,"Añade al sello un código QR que abre la dirección indicada para que cualquiera pueda comprobar el documento.": "Fügt dem Siegel einen QR-Code hinzu, der die angegebene Adresse öffnet, damit jeder das Dokument prüfen kann."
-  ,"Añadir código QR de verificación al sello": "Prüf-QR-Code zum Siegel hinzufügen"
+  ,"Añade al sello un código QR que abre la dirección indicada para que cualquiera pueda comprobar el documento.": "Fügt dem Stempel einen QR-Code hinzu, der die angegebene Adresse öffnet, damit jeder das Dokument prüfen kann."
+  ,"Añadir código QR de verificación al sello": "Prüf-QR-Code zum Stempel hinzufügen"
   ,"Añadir código QR de verificación": "Prüf-QR-Code hinzufügen"
   ,"Dirección HTTPS completa que abrirá el QR, por ejemplo la página de verificación de su sede electrónica.": "Vollständige HTTPS-Adresse, die der QR-Code öffnet, etwa die Prüfseite Ihres Verwaltungsportals."
   ,"Dirección de verificación del QR": "Prüfadresse des QR-Codes"
   ,"Dirección de verificación (HTTPS)": "Prüfadresse (HTTPS)"
   ,"https://sede.ejemplo.es/verificar": "https://sede.ejemplo.es/verificar"
   ,"Primera, última, todas las páginas o una lista concreta.": "Erste Seite, letzte Seite, alle Seiten oder eine bestimmte Liste."
-  ,"Páginas donde estampar el sello": "Seiten für das Siegel"
+  ,"Páginas donde estampar el sello": "Seiten für den Stempel"
   ,"Estampar en": "Aufbringen auf"
   ,"Use una página, una lista o un rango; por ejemplo 1, 1,3-5 o all.": "Geben Sie eine Seite, eine Liste oder einen Bereich an, z. B. 1, 1,3-5 oder all."
-  ,"Páginas del sello visible": "Seiten des sichtbaren Siegels"
+  ,"Páginas del sello visible": "Seiten des sichtbaren Stempels"
   ,"Páginas concretas": "Bestimmte Seiten"
   ,"1, 1,3-5 o all": "1, 1,3-5 oder all"
-  ,"Cargar previsualización PDF para el sello": "PDF-Vorschau für das Siegel laden"
+  ,"Cargar previsualización PDF para el sello": "PDF-Vorschau für den Stempel laden"
   ,"Cargar previsualización": "Vorschau laden"
   ,"Porcentaje desde el borde izquierdo.": "Prozentwert vom linken Rand aus."
-  ,"Posición horizontal del sello en porcentaje": "Horizontale Siegelposition in Prozent"
+  ,"Posición horizontal del sello en porcentaje": "Horizontale Stempelposition in Prozent"
   ,"X (%)": "X (%)"
   ,"Porcentaje desde el borde inferior.": "Prozentwert vom unteren Rand aus."
-  ,"Posición vertical del sello en porcentaje": "Vertikale Siegelposition in Prozent"
+  ,"Posición vertical del sello en porcentaje": "Vertikale Stempelposition in Prozent"
   ,"Y (%)": "Y (%)"
-  ,"Ancho del sello en porcentaje": "Siegelbreite in Prozent"
-  ,"Alto del sello en porcentaje": "Siegelhöhe in Prozent"
+  ,"Ancho del sello en porcentaje": "Stempelbreite in Prozent"
+  ,"Alto del sello en porcentaje": "Stempelhöhe in Prozent"
   ,"Giros rápidos de 90 grados. Para otro ángulo use el campo de grados o la barra.": "Schnelle Drehungen um 90 Grad. Für andere Winkel das Gradfeld oder den Schieberegler verwenden."
-  ,"Rotación del sello visible": "Drehung des sichtbaren Siegels"
+  ,"Rotación del sello visible": "Drehung des sichtbaren Stempels"
   ,"Giro": "Drehung"
   ,"Giro libre": "Freie Drehung"
   ,"Cualquier ángulo entre 0 y 359 grados, en sentido horario.": "Ein beliebiger Winkel von 0 bis 359 Grad im Uhrzeigersinn."
-  ,"Giro libre del sello en grados": "Freie Siegeldrehung in Grad"
+  ,"Giro libre del sello en grados": "Freie Stempeldrehung in Grad"
   ,"Grados": "Grad"
-  ,"Barra de giro del sello": "Schieberegler für die Siegeldrehung"
+  ,"Barra de giro del sello": "Schieberegler für die Stempeldrehung"
   ,"Motivo de la firma PDF": "Grund der PDF-Signatur"
   ,"Motivo (opcional)": "Grund (optional)"
-  ,"Si se muestra el texto, esta ubicación forma parte del sello generado.": "Wenn Text angezeigt wird, ist dieser Ort Bestandteil des erzeugten Siegels."
+  ,"Si se muestra el texto, esta ubicación forma parte del sello generado.": "Wenn Text angezeigt wird, ist dieser Ort Bestandteil des erzeugten Stempels."
   ,"Ubicación de la firma PDF": "Ort der PDF-Signatur"
   ,"Ubicación (opcional)": "Ort (optional)"
   ,"Contacto de la firma PDF": "Kontakt für die PDF-Signatur"
   ,"Contacto (opcional)": "Kontakt (optional)"
-  ,"Arrastre la zona azul para mover el sello. Arrastre su esquina inferior derecha para cambiar el tamaño. Los campos numéricos ofrecen una alternativa precisa mediante teclado.": "Ziehen Sie den blauen Bereich, um das Siegel zu verschieben. Ziehen Sie an der unteren rechten Ecke, um die Größe zu ändern. Die Zahlenfelder ermöglichen eine präzise Tastatureingabe."
-  ,"Editor visual de posición del sello sobre la página PDF": "Visueller Editor für die Siegelposition auf der PDF-Seite"
+  ,"Arrastre la zona azul para mover el sello. Arrastre su esquina inferior derecha para cambiar el tamaño. Los campos numéricos ofrecen una alternativa precisa mediante teclado.": "Ziehen Sie den blauen Bereich, um den Stempel zu verschieben. Ziehen Sie an der unteren rechten Ecke, um die Größe zu ändern. Die Zahlenfelder ermöglichen eine präzise Tastatureingabe."
+  ,"Editor visual de posición del sello sobre la página PDF": "Visueller Editor für die Stempelposition auf der PDF-Seite"
   ,"Previsualización de la página PDF": "Vorschau der PDF-Seite"
-  ,"Arrastre para mover la zona del sello. Use el tirador de la esquina inferior derecha para redimensionarla.": "Ziehen Sie, um den Siegelbereich zu verschieben. Ändern Sie seine Größe mit dem Anfasser unten rechts."
-  ,"Zona del sello visible": "Bereich des sichtbaren Siegels"
-  ,"Vista previa real del sello": "Tatsächliche Siegelvorschau"
+  ,"Arrastre para mover la zona del sello. Use el tirador de la esquina inferior derecha para redimensionarla.": "Ziehen Sie, um den Stempelbereich zu verschieben. Ändern Sie seine Größe mit dem Anfasser unten rechts."
+  ,"Zona del sello visible": "Bereich des sichtbaren Stempels"
+  ,"Vista previa real del sello": "Tatsächliche Stempelvorschau"
   ,"FIRMADO DIGITALMENTE": "DIGITAL SIGNIERT"
-  ,"Arrastre para cambiar el ancho y el alto del sello.": "Ziehen Sie, um Breite und Höhe des Siegels zu ändern."
-  ,"Redimensionar zona del sello": "Siegelbereich skalieren"
+  ,"Arrastre para cambiar el ancho y el alto del sello.": "Ziehen Sie, um Breite und Höhe des Stempels zu ändern."
+  ,"Redimensionar zona del sello": "Stempelbereich skalieren"
   ,"Arrastrar para cambiar el tamaño": "Ziehen zum Ändern der Größe"
   ,"Comprueba la firma generada mediante la operación verify antes de mostrar el resultado como validado.": "Prüft die erzeugte Signatur mit dem Vorgang verify, bevor das Ergebnis als validiert angezeigt wird."
   ,"Validar el resultado al terminar": "Ergebnis anschließend validieren"
@@ -4124,7 +4124,7 @@
   ,"Ningún contenedor seleccionado": "Kein Container ausgewählt"
   ,"Seleccionar contenedor protegido": "Geschützten Container auswählen"
   ,"Aviso de desprotección EncryptedData": "Hinweis zur Entschlüsselung von EncryptedData"
-  ,"Los contenedores para certificados usan el almacén local. Los archivos con sufijo .encrypted.p7m solicitan la clave en un diálogo nativo seguro al pulsar Desproteger y la borran de la memoria controlada tras el envío.": "Zertifikatsbasierte Container verwenden den lokalen Speicher. Dateien mit der Endung .encrypted.p7m fragen beim Klick auf Entschlüsseln in einem sicheren nativen Dialog nach dem Schlüssel und löschen ihn nach der Übermittlung aus dem kontrollierten Speicher."
+  ,"Los contenedores para certificados usan el almacén local. Los archivos con sufijo .encrypted.p7m solicitan la clave en un diálogo nativo seguro al pulsar Desproteger y la borran de la memoria controlada tras el envío.": "Zertifikatsbasierte Container verwenden den lokalen Speicher. Dateien mit der Endung .encrypted.p7m fragen beim Klick auf „Schutz aufheben“ in einem sicheren nativen Dialog nach dem Schlüssel und löschen ihn nach der Übermittlung aus dem kontrollierten Speicher."
   ,"Uso de claves": "Schlüsselverwendung"
   ,"Se solicitará la clave Base64 de 44 caracteres usada al crear el contenedor.": "Der beim Erstellen des Containers verwendete Base64-Schlüssel mit 44 Zeichen wird abgefragt."
   ,"Cancelar desprotección": "Entschlüsselung abbrechen"
@@ -4151,20 +4151,20 @@
   ,"Revise los datos y vuelva a intentarlo.": "Prüfen Sie die Daten und versuchen Sie es erneut."
   ,"La carpeta del documento firmado ya no está disponible. Compruebe el destino de guardado.": "Der Ordner des signierten Dokuments ist nicht mehr verfügbar. Prüfen Sie den Speicherort."
   ,"No se ha ejecutado ninguna firma": "Noch keine Signatur ausgeführt"
-  ,"Muestra orientativa de posición y giro. El sello definitivo se genera con el certificado; revíselo en el PDF firmado.": "Position und Drehung sind nur ein Anhaltspunkt. Das endgültige Siegel wird mit dem Zertifikat erzeugt; prüfen Sie es in der signierten PDF-Datei."
+  ,"Muestra orientativa de posición y giro. El sello definitivo se genera con el certificado; revíselo en el PDF firmado.": "Position und Drehung sind nur ein Anhaltspunkt. Der endgültige Stempel wird mit dem Zertifikat erzeugt; prüfen Sie ihn in der signierten PDF-Datei."
   ,"No se han seleccionado documentos para el lote.": "Keine Dokumente für den Stapel ausgewählt."
   ,"No se ha seleccionado una carpeta de salida.": "Kein Ausgabeordner ausgewählt."
   ,"El lote aún no se ha ejecutado.": "Der Stapel wurde noch nicht ausgeführt."
   ,"No se ha ejecutado ninguna firma.": "Noch keine Signatur ausgeführt."
   ,"Seleccione un documento y un certificado para firmar.": "Wählen Sie ein Dokument und ein Zertifikat zum Signieren aus."
   ,"Seleccione un documento compatible y un certificado principal.": "Wählen Sie ein kompatibles Dokument und ein Hauptzertifikat aus."
-  ,"Active el sello y cargue la previsualización para obtener la geometría real del PDF.": "Aktivieren Sie das Siegel und laden Sie die Vorschau, um die tatsächliche PDF-Geometrie zu erhalten."
-  ,"Firma, cofirma o contrafirma documentos con un certificado de Windows o un archivo P12/PFX.": "Signieren, mitunterzeichnen oder gegenzeichnen Sie Dokumente mit einem Windows-Zertifikat oder einer P12/PFX-Datei."
+  ,"Active el sello y cargue la previsualización para obtener la geometría real del PDF.": "Aktivieren Sie den Stempel und laden Sie die Vorschau, um die tatsächliche PDF-Geometrie zu erhalten."
+  ,"Firma, cofirma o contrafirma documentos con un certificado de Windows o un archivo P12/PFX.": "Signieren, kosignieren oder gegensignieren Sie Dokumente mit einem Windows-Zertifikat oder einer P12/PFX-Datei."
   ,"La firma no está disponible porque el motor local no ha publicado certificates y sign.": "Signieren ist nicht verfügbar, da die lokale Engine certificates und sign nicht bereitgestellt hat."
   ,"Sin rotación": "Keine Drehung"
   ,"Institucional con emblema": "Institutionell mit Emblem"
   ,"Emblema de firma de la Diputación a la izquierda y los datos de la firma a la derecha.": "Signaturemblem der Diputación links und Signaturdaten rechts."
-  ,"Sello sobrio con los datos de la firma, sin imágenes.": "Schlichtes Siegel mit Signaturdaten, ohne Bilder."
+  ,"Sello sobrio con los datos de la firma, sin imágenes.": "Schlichter Stempel mit Signaturdaten, ohne Bilder."
   ,"Una imagen PNG o JPEG suya (logotipo, firma manuscrita escaneada…) junto a los datos de la firma.": "Ein eigenes PNG- oder JPEG-Bild (Logo, eingescannte handschriftliche Signatur …) zusammen mit den Signaturdaten."
   ,"Identidad · ubicación · fecha": "Identität · Ort · Datum"
   ,"Rótulo sin datos personales": "Hinweis ohne personenbezogene Daten"
@@ -4239,10 +4239,10 @@
   ,"El lote se canceló. Solo se consideran válidas las salidas ya confirmadas en la lista.": "Der Stapel wurde abgebrochen. Nur die bereits in der Liste bestätigten Ausgabedateien gelten als gültig."
   ,"Falló la comunicación segura durante la firma por lotes.": "Die sichere Kommunikation bei der Stapelsignierung ist fehlgeschlagen."
   ,"La aplicación no pudo completar la firma por lotes.": "Die Anwendung konnte die Stapelsignierung nicht abschließen."
-  ," Ha elegido «Última página»: el documento tiene {0} página(s) y el sello irá en la {0}.": " Sie haben „Letzte Seite“ gewählt: Das Dokument hat {0} Seite(n), und das Siegel erscheint auf Seite {0}."
+  ," Ha elegido «Última página»: el documento tiene {0} página(s) y el sello irá en la {0}.": " Sie haben „Letzte Seite“ gewählt: Das Dokument hat {0} Seite(n), und der Stempel erscheint auf Seite {0}."
   ,"Corrija la selección del PDF o de páginas y vuelva a cargar la previsualización.": "Korrigieren Sie die PDF- oder Seitenauswahl und laden Sie die Vorschau erneut."
   ,"Ya hay otra operación en curso. Espere o cancélela antes de cargar la previsualización.": "Ein anderer Vorgang läuft. Warten Sie oder brechen Sie ihn ab, bevor Sie die Vorschau laden."
-  ,"El motor local no ofrece la previsualización PDF necesaria para calcular un sello seguro.": "Die lokale Engine bietet keine PDF-Vorschau für die sichere Berechnung des Siegels."
+  ,"El motor local no ofrece la previsualización PDF necesaria para calcular un sello seguro.": "Die lokale Engine bietet keine PDF-Vorschau für die sichere Berechnung des Stempels."
   ,"Actualice o reinicie el motor local y compruebe que anuncia pdf_preview.": "Aktualisieren oder starten Sie die lokale Engine neu und prüfen Sie, ob sie pdf_preview anbietet."
   ,"Cargando la geometría real de la página {0}…": "Die tatsächliche Geometrie von Seite {0} wird geladen…"
   ,"No se pudo comprobar el PDF antes de previsualizarlo.": "Die PDF-Datei konnte vor der Vorschau nicht geprüft werden."
@@ -4261,7 +4261,7 @@
   ,"La aplicación no pudo preparar la previsualización PDF.": "Die Anwendung konnte die PDF-Vorschau nicht vorbereiten."
   ,"Corrija la configuración indicada y vuelva a cargar la previsualización si se solicita.": "Korrigieren Sie die angegebenen Einstellungen und laden Sie die Vorschau bei Aufforderung erneut."
   ,"Ya hay una firma en curso. Espere o cancele esa operación.": "Eine Signatur läuft bereits. Warten Sie oder brechen Sie den Vorgang ab."
-  ,"No se puede cofirmar con varios certificados: el motor local no ofrece sign_multicosign.": "Mit mehreren Zertifikaten kann nicht mitunterzeichnet werden: Die lokale Engine unterstützt sign_multicosign nicht."
+  ,"No se puede cofirmar con varios certificados: el motor local no ofrece sign_multicosign.": "Mit mehreren Zertifikaten kann nicht kosigniert werden: Die lokale Engine unterstützt sign_multicosign nicht."
   ,"No se puede firmar: el motor local no ofrece la operación sign.": "Signieren nicht möglich: Die lokale Engine unterstützt den Vorgang sign nicht."
   ,"Elija dónde guardar el resultado. La firma aún no se ha iniciado.": "Wählen Sie einen Speicherort für das Ergebnis. Das Signieren wurde noch nicht gestartet."
   ,"No se eligió un destino. No se ha realizado ninguna firma.": "Es wurde kein Ziel ausgewählt. Es wurde keine Signatur erstellt."
@@ -4270,13 +4270,13 @@
   ,"Cierre el programa que está modificando el PDF, cargue de nuevo la previsualización y repita la firma.": "Schließen Sie das Programm, das die PDF-Datei ändert, laden Sie die Vorschau erneut und signieren Sie erneut."
   ,"El contenido del PDF cambió después de previsualizarlo. La firma no se ha iniciado.": "Der PDF-Inhalt wurde nach der Vorschau geändert. Das Signieren wurde nicht gestartet."
   ,"Cargue de nuevo la previsualización del PDF actual antes de firmar.": "Laden Sie die Vorschau der aktuellen PDF-Datei vor dem Signieren erneut."
-  ,"Aplicando el firmante principal y las cofirmas adicionales en el orden mostrado…": "Hauptunterzeichner und weitere Mitunterzeichnungen werden in der angezeigten Reihenfolge angewendet…"
+  ,"Aplicando el firmante principal y las cofirmas adicionales en el orden mostrado…": "Hauptunterzeichner und weitere Kosignaturen werden in der angezeigten Reihenfolge angewendet…"
   ,"Firmando el documento…": "Dokument wird signiert…"
   ,"La firma no se completó. Abra el diagnóstico para conocer el punto de fallo.": "Die Signatur wurde nicht abgeschlossen. Öffnen Sie die Diagnose, um die Fehlerstelle zu sehen."
   ,"El motor confirmó la operación, pero no devolvió una salida válida.": "Die Engine hat den Vorgang bestätigt, aber keine gültige Ausgabedatei zurückgegeben."
   ,"El motor no confirmó el fichero de salida solicitado. No se mostrará un éxito falso.": "Die Engine hat die angeforderte Ausgabedatei nicht bestätigt. Ein Erfolg wird nicht fälschlich angezeigt."
   ,"La firma se guardó como {0}, pero el PDF de origen cambió durante la operación.": "Die Signatur wurde als {0} gespeichert, aber die ursprüngliche PDF-Datei wurde während des Vorgangs geändert."
-  ,"No use el resultado hasta revisar el diagnóstico: no se puede asegurar que el sello corresponda a la previsualización.": "Verwenden Sie das Ergebnis erst nach Prüfung der Diagnose: Es kann nicht sichergestellt werden, dass das Siegel der Vorschau entspricht."
+  ,"No use el resultado hasta revisar el diagnóstico: no se puede asegurar que el sello corresponda a la previsualización.": "Verwenden Sie das Ergebnis erst nach Prüfung der Diagnose: Es kann nicht sichergestellt werden, dass der Stempel der Vorschau entspricht."
   ,"Cierre el programa que modifica el PDF y repita la firma desde una previsualización nueva.": "Schließen Sie das Programm, das die PDF-Datei ändert, und signieren Sie erneut mit einer neuen Vorschau."
   ,"La firma se guardó. Comprobando ahora su validez…": "Signatur gespeichert. Ihre Gültigkeit wird jetzt geprüft…"
   ,"La firma se guardó como {0}, pero no pudo validarse automáticamente.": "Die Signatur wurde als {0} gespeichert, konnte aber nicht automatisch validiert werden."
@@ -4285,13 +4285,13 @@
   ,"El motor no devolvió evidencias coherentes para la validación posterior.": "Die Engine hat keine schlüssigen Nachweise für die nachträgliche Validierung zurückgegeben."
   ,"La firma se guardó como {0}, pero no superó la validación.": "Die Signatur wurde als {0} gespeichert, hat die Validierung aber nicht bestanden."
   ,"La firma generada no es válida. No la utilice y abra el diagnóstico.": "Die erzeugte Signatur ist ungültig. Verwenden Sie sie nicht und öffnen Sie die Diagnose."
-  ,"Cofirma múltiple completada, guardada y validada como {0}.": "Mehrfach-Mitunterzeichnung abgeschlossen, als {0} gespeichert und validiert."
+  ,"Cofirma múltiple completada, guardada y validada como {0}.": "Mehrfach-Kosignatur abgeschlossen, als {0} gespeichert und validiert."
   ,"Firma completada, guardada y validada como {0}.": "Signatur abgeschlossen, als {0} gespeichert und validiert."
-  ,"Cofirma múltiple completada y guardada como {0}. La integridad se validó, pero la confianza no quedó establecida.": "Mehrfach-Mitunterzeichnung abgeschlossen und als {0} gespeichert. Die Integrität wurde bestätigt, das Vertrauen jedoch nicht festgestellt."
+  ,"Cofirma múltiple completada y guardada como {0}. La integridad se validó, pero la confianza no quedó establecida.": "Mehrfach-Kosignatur abgeschlossen und als {0} gespeichert. Die Integrität wurde bestätigt, das Vertrauen jedoch nicht festgestellt."
   ,"Firma completada y guardada como {0}. La integridad se validó, pero la confianza no quedó establecida.": "Signatur abgeschlossen und als {0} gespeichert. Die Integrität wurde bestätigt, das Vertrauen jedoch nicht festgestellt."
-  ,"Cofirma múltiple completada y guardada como {0}.": "Mehrfach-Mitunterzeichnung abgeschlossen und als {0} gespeichert."
+  ,"Cofirma múltiple completada y guardada como {0}.": "Mehrfach-Kosignatur abgeschlossen und als {0} gespeichert."
   ,"Firma completada y guardada como {0}.": "Signatur abgeschlossen und als {0} gespeichert."
-  ,"La cofirma múltiple terminó correctamente, pero no se solicitó su validación posterior.": "Die Mehrfach-Mitunterzeichnung war erfolgreich, aber eine anschließende Validierung wurde nicht angefordert."
+  ,"La cofirma múltiple terminó correctamente, pero no se solicitó su validación posterior.": "Die Mehrfach-Kosignatur war erfolgreich, aber eine anschließende Validierung wurde nicht angefordert."
   ,"La firma terminó correctamente, pero no se solicitó su validación posterior.": "Das Signieren war erfolgreich, aber eine anschließende Validierung wurde nicht angefordert."
   ,"La firma se guardó como {0}, pero su validación se canceló.": "Die Signatur wurde als {0} gespeichert, aber ihre Validierung wurde abgebrochen."
   ,"El fichero firmado existe, pero no terminó la validación posterior.": "Die signierte Datei ist vorhanden, aber die anschließende Validierung wurde nicht abgeschlossen."
@@ -4305,12 +4305,12 @@
   ,"El fichero firmado ya no está disponible en el destino elegido.": "Die signierte Datei ist am gewählten Speicherort nicht mehr verfügbar."
   ,"Windows no pudo representar de forma segura la imagen de previsualización. La firma no se ha iniciado.": "Windows konnte das Vorschaubild nicht sicher darstellen. Das Signieren wurde nicht gestartet."
   ,"Vuelva a cargar la previsualización. Si se repite, pruebe otro PDF y conserve el diagnóstico.": "Laden Sie die Vorschau erneut. Falls das Problem wieder auftritt, versuchen Sie eine andere PDF-Datei und bewahren Sie die Diagnose auf."
-  ,"La imagen del sello debe ser un PNG o JPEG de hasta 10 MB.": "Das Siegelbild muss eine PNG- oder JPEG-Datei mit höchstens 10 MB sein."
-  ,"Ha elegido «Imagen propia»: seleccione la imagen PNG o JPEG del sello.": "Sie haben „Eigenes Bild“ gewählt: Wählen Sie das PNG- oder JPEG-Bild für das Siegel aus."
-  ,"No se pudo generar la vista previa del sello con estas opciones. Revise la imagen, el QR o el tamaño de la zona.": "Die Siegelvorschau konnte mit diesen Optionen nicht erstellt werden. Prüfen Sie Bild, QR-Code und Bereichsgröße."
-  ,"Vista previa real del sello. Elija un certificado para ver su nombre; ahora se muestra un nombre de ejemplo.": "Tatsächliche Siegelvorschau. Wählen Sie ein Zertifikat, um dessen Namen zu sehen; derzeit wird ein Beispielname angezeigt."
-  ,"Vista previa real del sello con el certificado elegido. La fecha definitiva será la del momento de la firma.": "Tatsächliche Siegelvorschau mit dem ausgewählten Zertifikat. Das endgültige Datum ist das Signaturdatum."
-  ,"El motor local no pudo generar la vista previa del sello; se muestra una muestra orientativa.": "Die lokale Engine konnte die Siegelvorschau nicht erstellen; stattdessen wird ein Beispiel angezeigt."
+  ,"La imagen del sello debe ser un PNG o JPEG de hasta 10 MB.": "Das Stempelbild muss eine PNG- oder JPEG-Datei mit höchstens 10 MB sein."
+  ,"Ha elegido «Imagen propia»: seleccione la imagen PNG o JPEG del sello.": "Sie haben „Eigenes Bild“ gewählt: Wählen Sie das PNG- oder JPEG-Bild für den Stempel aus."
+  ,"No se pudo generar la vista previa del sello con estas opciones. Revise la imagen, el QR o el tamaño de la zona.": "Die Stempelvorschau konnte mit diesen Optionen nicht erstellt werden. Prüfen Sie Bild, QR-Code und Bereichsgröße."
+  ,"Vista previa real del sello. Elija un certificado para ver su nombre; ahora se muestra un nombre de ejemplo.": "Tatsächliche Stempelvorschau. Wählen Sie ein Zertifikat, um dessen Namen zu sehen; derzeit wird ein Beispielname angezeigt."
+  ,"Vista previa real del sello con el certificado elegido. La fecha definitiva será la del momento de la firma.": "Tatsächliche Stempelvorschau mit dem ausgewählten Zertifikat. Das endgültige Datum ist das Signaturdatum."
+  ,"El motor local no pudo generar la vista previa del sello; se muestra una muestra orientativa.": "Die lokale Engine konnte die Stempelvorschau nicht erstellen; stattdessen wird ein Beispiel angezeigt."
   ,"No se puede firmar porque el motor local no está conectado.": "Signieren nicht möglich, da die lokale Engine nicht verbunden ist."
   ,"Seleccione el documento que desea firmar.": "Wählen Sie das zu signierende Dokument aus."
   ,"El documento seleccionado ya no está disponible. Selecciónelo de nuevo.": "Das ausgewählte Dokument ist nicht mehr verfügbar. Wählen Sie es erneut aus."
@@ -4318,9 +4318,9 @@
   ,"El certificado seleccionado no es válido para firmar. {0}": "Das ausgewählte Zertifikat ist zum Signieren ungültig. {0}"
   ,"Seleccione un formato de firma.": "Wählen Sie ein Signaturformat aus."
   ,"Seleccione un perfil de firma.": "Wählen Sie ein Signaturprofil aus."
-  ,"El motor local no ofrece la cofirma múltiple guiada.": "Die lokale Engine unterstützt keine geführte Mehrfach-Mitunterzeichnung."
-  ,"La cofirma múltiple guiada no admite contrafirma.": "Die geführte Mehrfach-Mitunterzeichnung unterstützt kein Gegenzeichnen."
-  ,"La cofirma múltiple guiada solo está disponible para PAdES, ODF u OOXML.": "Die geführte Mehrfach-Mitunterzeichnung ist nur für PAdES, ODF oder OOXML verfügbar."
+  ,"El motor local no ofrece la cofirma múltiple guiada.": "Die lokale Engine unterstützt keine geführte Mehrfach-Kosignatur."
+  ,"La cofirma múltiple guiada no admite contrafirma.": "Die geführte Mehrfach-Kosignatur unterstützt keine Gegensignatur."
+  ,"La cofirma múltiple guiada solo está disponible para PAdES, ODF u OOXML.": "Die geführte Mehrfach-Kosignatur ist nur für PAdES, ODF oder OOXML verfügbar."
   ,"Seleccione al menos un certificado adicional distinto del firmante principal.": "Wählen Sie mindestens ein weiteres Zertifikat aus, das sich vom Hauptunterzeichner-Zertifikat unterscheidet."
   ,"No se puede firmar el lote porque el motor local no está conectado.": "Der Stapel kann nicht signiert werden, da die lokale Engine nicht verbunden ist."
   ,"Active la firma por lotes y compruebe que el motor ofrece sign_batch.": "Aktivieren Sie die Stapelsignierung und prüfen Sie, ob die Engine sign_batch unterstützt."
@@ -4331,14 +4331,14 @@
   ,"Seleccione la operación de firma del lote.": "Wählen Sie den Signaturvorgang für den Stapel aus."
   ,"Seleccione el formato de firma del lote.": "Wählen Sie das Signaturformat für den Stapel aus."
   ,"Seleccione el perfil de firma del lote.": "Wählen Sie das Signaturprofil für den Stapel aus."
-  ,"El sello visible requiere previsualización por documento y no está habilitado en el lote.": "Ein sichtbares Siegel erfordert eine Vorschau für jedes Dokument und ist für Stapel deaktiviert."
-  ,"El motor local no ofrece la cofirma múltiple usada por el lote.": "Die lokale Engine unterstützt die Mehrfach-Mitunterzeichnung für diesen Stapel nicht."
-  ,"Seleccione al menos un certificado adicional para la cofirma múltiple del lote.": "Wählen Sie mindestens ein weiteres Zertifikat für die Mehrfach-Mitunterzeichnung des Stapels aus."
-  ,"La cofirma múltiple del lote solo admite PAdES, ODF u OOXML explícitos.": "Die Mehrfach-Mitunterzeichnung des Stapels akzeptiert nur ausdrücklich gewählte Formate PAdES, ODF oder OOXML."
-  ,"Active primero el sello visible.": "Aktivieren Sie zuerst das sichtbare Siegel."
-  ,"El sello visible requiere un PDF, formato PAdES o Automático y un motor que ofrezca pdf_preview.": "Ein sichtbares Siegel erfordert eine PDF-Datei, das Format PAdES oder Automatisch und eine Engine mit pdf_preview."
+  ,"El sello visible requiere previsualización por documento y no está habilitado en el lote.": "Ein sichtbarer Stempel erfordert eine Vorschau für jedes Dokument und ist für Stapel deaktiviert."
+  ,"El motor local no ofrece la cofirma múltiple usada por el lote.": "Die lokale Engine unterstützt die Mehrfach-Kosignatur für diesen Stapel nicht."
+  ,"Seleccione al menos un certificado adicional para la cofirma múltiple del lote.": "Wählen Sie mindestens ein weiteres Zertifikat für die Mehrfach-Kosignatur des Stapels aus."
+  ,"La cofirma múltiple del lote solo admite PAdES, ODF u OOXML explícitos.": "Die Mehrfach-Kosignatur des Stapels akzeptiert nur ausdrücklich gewählte Formate PAdES, ODF oder OOXML."
+  ,"Active primero el sello visible.": "Aktivieren Sie zuerst den sichtbaren Stempel."
+  ,"El sello visible requiere un PDF, formato PAdES o Automático y un motor que ofrezca pdf_preview.": "Ein sichtbarer Stempel erfordert eine PDF-Datei, das Format PAdES oder Automatisch und eine Engine mit pdf_preview."
   ,"El PDF seleccionado ya no está disponible. Selecciónelo de nuevo.": "Die ausgewählte PDF-Datei ist nicht mehr verfügbar. Wählen Sie sie erneut aus."
-  ,"El sello visible solo puede aplicarse a un PDF con formato PAdES o Automático y con pdf_preview disponible.": "Das sichtbare Siegel kann nur auf eine PDF-Datei im Format PAdES oder Automatisch angewendet werden, wenn pdf_preview verfügbar ist."
+  ,"El sello visible solo puede aplicarse a un PDF con formato PAdES o Automático y con pdf_preview disponible.": "Der sichtbare Stempel kann nur auf eine PDF-Datei im Format PAdES oder Automatisch angewendet werden, wenn pdf_preview verfügbar ist."
   ,"La previsualización no corresponde al PDF y a la página actuales. Cárguela de nuevo antes de firmar.": "Die Vorschau stimmt nicht mit der aktuellen PDF-Datei und Seite überein. Laden Sie sie vor dem Signieren erneut."
   ,"Indique un giro entre 0 y 359 grados.": "Geben Sie eine Drehung von 0 bis 359 Grad an."
   ,"Conecte el motor local para habilitar la firma.": "Verbinden Sie die lokale Engine, um das Signieren zu ermöglichen."
@@ -4348,17 +4348,17 @@
   ,"No válido para firmar. {0}": "Zum Signieren ungültig. {0}"
   ,"{0} documento(s), certificado y salida preparados para firmar por lotes.": "{0} Dokument(e), Zertifikat und Ausgabe für die Stapelsignierung vorbereitet."
   ,"No hay certificados aptos para firma en el almacén.": "Im Speicher sind keine zum Signieren geeigneten Zertifikate vorhanden."
-  ,"Seleccione al menos un certificado adicional para la cofirma múltiple guiada.": "Wählen Sie mindestens ein weiteres Zertifikat für die geführte Mehrfach-Mitunterzeichnung aus."
-  ,"Documento y firmantes preparados para la cofirma múltiple guiada.": "Dokument und Unterzeichner für die geführte Mehrfach-Mitunterzeichnung vorbereitet."
+  ,"Seleccione al menos un certificado adicional para la cofirma múltiple guiada.": "Wählen Sie mindestens ein weiteres Zertifikat für die geführte Mehrfach-Kosignatur aus."
+  ,"Documento y firmantes preparados para la cofirma múltiple guiada.": "Dokument und Unterzeichner für die geführte Mehrfach-Kosignatur vorbereitet."
   ,"Documento y certificado preparados para firmar.": "Dokument und Zertifikat zum Signieren vorbereitet."
-  ,"El sello visible requiere un PDF, formato PAdES o Automático y pdf_preview disponible.": "Ein sichtbares Siegel erfordert eine PDF-Datei, das Format PAdES oder Automatisch und verfügbares pdf_preview."
-  ,"Cargue la previsualización real del PDF antes de firmar con sello visible.": "Laden Sie die tatsächliche PDF-Vorschau, bevor Sie mit sichtbarem Siegel signieren."
+  ,"El sello visible requiere un PDF, formato PAdES o Automático y pdf_preview disponible.": "Ein sichtbarer Stempel erfordert eine PDF-Datei, das Format PAdES oder Automatisch und verfügbares pdf_preview."
+  ,"Cargue la previsualización real del PDF antes de firmar con sello visible.": "Laden Sie die tatsächliche PDF-Vorschau, bevor Sie mit sichtbarem Stempel signieren."
   ,"Windows está comprobando la imagen de previsualización. Espere antes de firmar.": "Windows prüft das Vorschaubild. Warten Sie vor dem Signieren."
-  ,"Documento, firmantes y sello visible preparados para la cofirma múltiple guiada.": "Dokument, Unterzeichner und sichtbares Siegel für die geführte Mehrfach-Mitunterzeichnung vorbereitet."
-  ,"Documento, certificado y sello visible preparados para firmar.": "Dokument, Zertifikat und sichtbares Siegel zum Signieren vorbereitet."
+  ,"Documento, firmantes y sello visible preparados para la cofirma múltiple guiada.": "Dokument, Unterzeichner und sichtbarer Stempel für die geführte Mehrfach-Kosignatur vorbereitet."
+  ,"Documento, certificado y sello visible preparados para firmar.": "Dokument, Zertifikat und sichtbarer Stempel zum Signieren vorbereitet."
   ,"No se ha ejecutado ninguna firma con esta selección.": "Mit dieser Auswahl wurde keine Signatur ausgeführt."
   ,"El motor local no ha publicado sign_multicosign.": "Die lokale Engine hat sign_multicosign nicht bereitgestellt."
-  ,"La cofirma múltiple guiada admite Firma o Cofirma, no Contrafirma.": "Die geführte Mehrfach-Mitunterzeichnung unterstützt Signieren oder Mitunterzeichnen, aber kein Gegenzeichnen."
+  ,"La cofirma múltiple guiada admite Firma o Cofirma, no Contrafirma.": "Die geführte Mehrfach-Kosignatur unterstützt Signatur oder Kosignatur, aber keine Gegensignatur."
   ,"Disponible únicamente para PAdES, ODF u OOXML. En Automático se usa el tipo del documento.": "Nur für PAdES, ODF oder OOXML verfügbar. Automatisch verwendet den Dokumenttyp."
   ,"Se necesitan al menos dos certificados de firma distintos.": "Mindestens zwei verschiedene Signaturzertifikate sind erforderlich."
   ,"Actívela para aplicar primero el certificado principal y después los adicionales.": "Aktivieren Sie die Option, um zuerst das Hauptzertifikat und danach die weiteren anzuwenden."
@@ -4388,9 +4388,9 @@
   ,"La carpeta seleccionada ya no está disponible.": "Der ausgewählte Ordner ist nicht mehr verfügbar."
   ,"La carpeta seleccionada no contiene ficheros normales.": "Der ausgewählte Ordner enthält keine regulären Dateien."
   ,"No se pudo enumerar de forma segura la carpeta seleccionada.": "Der ausgewählte Ordner konnte nicht sicher aufgelistet werden."
-  ,"El ancho y el alto del sello deben ser mayores que cero.": "Breite und Höhe des Siegels müssen größer als null sein."
-  ,"La zona del sello debe quedar completamente dentro de la página.": "Der Siegelbereich muss vollständig innerhalb der Seite liegen."
-  ,"Indique las páginas del sello: 1, 1,3-5 o all.": "Geben Sie die Siegelseiten an: 1, 1,3-5 oder all."
+  ,"El ancho y el alto del sello deben ser mayores que cero.": "Breite und Höhe des Stempels müssen größer als null sein."
+  ,"La zona del sello debe quedar completamente dentro de la página.": "Der Stempelbereich muss vollständig innerhalb der Seite liegen."
+  ,"Indique las páginas del sello: 1, 1,3-5 o all.": "Geben Sie die Stempelseiten an: 1, 1,3-5 oder all."
   ,"La selección de páginas es demasiado larga o contiene caracteres no admitidos.": "Die Seitenauswahl ist zu lang oder enthält unzulässige Zeichen."
   ,"La selección de páginas no es válida. Use 1, 1,3-5 o all.": "Ungültige Seitenauswahl. Verwenden Sie 1, 1,3-5 oder all."
   ,"La selección de páginas no es válida. Use números positivos y rangos como 3-5.": "Ungültige Seitenauswahl. Verwenden Sie positive Zahlen und Bereiche wie 3-5."
@@ -4399,7 +4399,7 @@
   ,"El motor no devolvió una previsualización PDF coherente.": "Die Engine hat keine schlüssige PDF-Vorschau zurückgegeben."
   ,"El campo {0} admite hasta {1} caracteres de texto en una sola línea.": "Das Feld {0} erlaubt bis zu {1} Textzeichen in einer Zeile."
   ,"La validación local detuvo la operación antes de enviar datos al motor criptográfico.": "Die lokale Validierung hat den Vorgang gestoppt, bevor Daten an die kryptografische Engine gesendet wurden."
-  ,"El fallo se ha detectado en la configuración local del sello; no procede del portal ni de @firma.": "Der Fehler wurde in den lokalen Siegeleinstellungen erkannt; er stammt weder vom Portal noch von @firma."
+  ,"El fallo se ha detectado en la configuración local del sello; no procede del portal ni de @firma.": "Der Fehler wurde in den lokalen Stempeleinstellungen erkannt; er stammt weder vom Portal noch von @firma."
   ,"Documento PDF seleccionado": "PDF-Dokument ausgewählt"
   ,"La aplicación dispone de una selección local para revisar.": "In der Anwendung liegt eine lokale Auswahl zur Prüfung vor."
   ,"Firma criptográfica": "Kryptografische Signatur"
@@ -4546,7 +4546,7 @@
   ,"Firmado": "Signiert"
   ,"no definido": "nicht definiert"
   ,"Principal: {0}. Después: {1}{2}.": "Hauptzertifikat: {0}. Danach: {1}{2}."
-  ,"PDF real: página {0} de {1}, {2} × {3} puntos. El sello se muestra con su aspecto real dentro de la zona marcada.": "Tatsächliche PDF-Datei: Seite {0} von {1}, {2} × {3} Punkt. Das Siegel wird mit seinem tatsächlichen Aussehen im markierten Bereich angezeigt."
+  ,"PDF real: página {0} de {1}, {2} × {3} puntos. El sello se muestra con su aspecto real dentro de la zona marcada.": "Tatsächliche PDF-Datei: Seite {0} von {1}, {2} × {3} Punkt. Der Stempel wird mit seinem tatsächlichen Aussehen im markierten Bereich angezeigt."
   ,"Importado": "Importiert"
   ,"Propio": "Eigenes"
   ,"Origen: {0} · Perfil: {1}": "Herkunft: {0} · Profil: {1}"
@@ -4575,7 +4575,7 @@
   ,"parcial": "teilweise"
   ,"El perfil compatible requiere una identidad RSA con clave privada descifrable, por ejemplo un P12/PFX autorizado. Los certificados opacos del almacén de Windows siguen disponibles para firmar, pero no se ofrecen para cifrado; cargue un P12/PFX apto o cambie al perfil alto.": "Das Kompatibilitätsprofil erfordert eine RSA-Identität mit entschlüsselbarem privatem Schlüssel, zum Beispiel eine autorisierte P12/PFX-Datei. Undurchsichtige Zertifikate im Windows-Speicher können weiterhin zum Signieren verwendet werden, werden aber nicht zur Verschlüsselung angeboten; laden Sie eine geeignete P12/PFX-Datei oder wechseln Sie zum hohen Profil."
   ,"No se pudo capturar la contraseña de la credencial. Código de soporte: {0}.": "Das Passwort der Zertifikatsdatei konnte nicht erfasst werden. Support-Code: {0}."
-  ,"Seleccione si desea firmar, cofirmar o contrafirmar.": "Wählen Sie aus, ob Sie signieren, mitunterzeichnen oder gegenzeichnen möchten."
+  ,"Seleccione si desea firmar, cofirmar o contrafirmar.": "Wählen Sie aus, ob Sie signieren, kosignieren oder gegensignieren möchten."
   ,"X, Y, ancho y alto deben ser porcentajes entre 0 y 100.": "X, Y, Breite und Höhe müssen Prozentwerte zwischen 0 und 100 sein."
   ,"Verificando…": "Prüfung läuft…"
   ,"1 destinatario seleccionado.": "1 Empfänger ausgewählt."
@@ -4620,7 +4620,7 @@
   ,"Antes de firmar": "Vor dem Signieren"
   ,"Compruebe que el documento sea el correcto, seleccione un certificado cuyo titular reconozca y revise el formato solicitado por la sede.": "Prüfen Sie, ob das Dokument korrekt ist, wählen Sie ein Zertifikat mit einem Ihnen bekannten Inhaber und prüfen Sie das vom Portal verlangte Format."
   ,"Si una operación falla": "Wenn ein Vorgang fehlschlägt"
-  ,"Abra «Diagnóstico de la operación». La aplicación mostrará únicamente los pasos observados; no repetirá firmas ni realizará comprobaciones activas sin consentimiento.": "Öffnen Sie „Vorgangsdiagnose“. Die Anwendung zeigt nur beobachtete Schritte; sie wiederholt keine Signaturen und führt ohne Zustimmung keine aktiven Prüfungen durch."
+  ,"Abra «Diagnóstico de la operación». La aplicación mostrará únicamente los pasos observados; no repetirá firmas ni realizará comprobaciones activas sin consentimiento.": "Öffnen Sie „Diagnose des Vorgangs“. Die Anwendung zeigt nur beobachtete Schritte; sie wiederholt keine Signaturen und führt ohne Zustimmung keine aktiven Prüfungen durch."
   ,"Privacidad": "Datenschutz"
   ,"Los documentos, parámetros IPC, resultados y secretos no se escriben en los eventos del cliente WinUI. Los detalles técnicos permanecen plegados hasta que el usuario decide consultarlos.": "Dokumente, IPC-Parameter, Ergebnisse und Geheimnisse werden nicht in WinUI-Clientereignisse geschrieben. Technische Details bleiben eingeklappt, bis Sie sie selbst öffnen."
   ,"Compatibilidad histórica; validación estándar no acreditada": "Historische Kompatibilität; Standardvalidierung nicht nachgewiesen"
@@ -4791,14 +4791,14 @@
   ,"csv.error.url_invalid": "Die Prüf-URL ist ungültig: Sie muss eine https://-Adresse ohne Benutzer, Passwort und Leerzeichen sein (verwenden Sie %20 für Leerzeichen)."
   ,"csv.error.text_invalid": "Der Text der CSV-Legende darf höchstens 512 Zeichen lang sein und keine Zeilenumbrüche enthalten."
   ,"Crear documentos y expedientes ENI desde la aplicación, en Windows y Linux.": "ENI-Dokumente und -Akten direkt in der Anwendung erstellen, unter Windows und Linux."
-  ,"Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.": "CSV-Prüflegende im PAdES-Siegel (Code und URL der Verwaltung), unter Windows und Linux."
+  ,"Leyenda CSV de cotejo en el sello PAdES (código y URL de la Administración), en Windows y Linux.": "CSV-Prüflegende im PAdES-Stempel (Code und URL der Verwaltung), unter Windows und Linux."
   ,"Validar facturas FacturaE, UBL y CII desde la aplicación, con informe exportable, en Windows y Linux.": "FacturaE-, UBL- und CII-Rechnungen in der Anwendung prüfen, mit exportierbarem Bericht, unter Windows und Linux."
   ,"Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».": "Windows: Aktualisieren bei geöffnetem GrxFirma funktioniert jetzt. Das Installationsprogramm schließt die Anwendung, installiert die neue Version und öffnet sie wieder; früher schlug es mit „Die PowerShell-Installation der Suite ist mit Code 1 fehlgeschlagen“ fehl."
   ,"Windows: si la conexión con el motor local se interrumpe, GrxFirma vuelve a conectar sola en la siguiente operación. Antes la aplicación podía quedarse sin motor («falla todo») hasta cerrarla del todo.": "Windows: Wird die Verbindung zur lokalen Engine unterbrochen, verbindet sich GrxFirma beim nächsten Vorgang selbst neu. Früher konnte die Anwendung ohne Engine bleiben („alles schlägt fehl“), bis sie vollständig geschlossen wurde."
-  ,"validacion.sello.imagen": "Wählen Sie ein PNG- oder JPEG-Bild für das Siegel aus."
-  ,"validacion.sello.paginas": "Geben Sie gültige Seiten für das Siegel ein (z. B. 1,3-5)."
+  ,"validacion.sello.imagen": "Wählen Sie ein PNG- oder JPEG-Bild für den Stempel aus."
+  ,"validacion.sello.paginas": "Geben Sie gültige Seiten für den Stempel ein (z. B. 1,3-5)."
   ,"validacion.corregir": "Korrigieren"
-  ,"validacion.problemas": "%1 Probleme mit dem sichtbaren Siegel"
+  ,"validacion.problemas": "%1 Probleme mit der sichtbaren Signatur"
   ,"validacion.proxy.host": "Geben Sie nur den Proxy-Host oder die IP-Adresse an, ohne Schema, Pfad oder Zugangsdaten."
   ,"validacion.proxy.puerto": "Der Proxy-Port muss zwischen 1 und 65535 liegen."
   ,"Toda la aplicación aparece en el idioma elegido: se han traducido más de mil textos que seguían en español o en inglés en los diez idiomas disponibles.": "Die gesamte Anwendung erscheint in der gewählten Sprache: Über tausend Texte, die noch auf Spanisch oder Englisch waren, wurden in die zehn verfügbaren Sprachen übersetzt."
@@ -4859,10 +4859,10 @@
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "Die Prüfadressen des QR-Codes und der CSV-Legende akzeptieren Domains mit Akzenten oder ñ, zum Beispiel „https://sede.almuñécar.es/verificar“."
   ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: Dialoge sind mit jedem Design gut lesbar; Text erscheint nicht mehr hell auf hellem Hintergrund.",
   "sign.seal.draw_area": "Bereich zeichnen",
-  "sign.seal.draw_help": "Ziehen Sie auf der Seite, um den Siegelbereich zu zeichnen. Mit der Tastatur: Die Pfeiltasten bewegen die linke obere Ecke, Umschalt + Pfeiltasten die rechte untere. Eingabe übernimmt den Bereich; Esc verwirft ihn.",
-  "sign.seal.draw_too_small": "Der Bereich ist zu klein. Zeichnen Sie ein größeres Rechteck; das bisherige Siegel bleibt erhalten.",
-  "sign.seal.draw_applied": "Siegelbereich auf dieser Seite aktualisiert.",
-  "sign.seal.draw_cancelled": "Zeichnen abgebrochen. Das bisherige Siegel bleibt erhalten."
+  "sign.seal.draw_help": "Ziehen Sie auf der Seite, um den Stempelbereich zu zeichnen. Mit der Tastatur: Die Pfeiltasten bewegen die linke obere Ecke, Umschalt + Pfeiltasten die rechte untere. Eingabe übernimmt den Bereich; Esc verwirft ihn.",
+  "sign.seal.draw_too_small": "Der Bereich ist zu klein. Zeichnen Sie ein größeres Rechteck; der bisherige Stempel bleibt erhalten.",
+  "sign.seal.draw_applied": "Stempelbereich auf dieser Seite aktualisiert.",
+  "sign.seal.draw_cancelled": "Zeichnen abgebrochen. Der bisherige Stempel bleibt erhalten."
   ,"sign.seal.draw_position": "Bereich: links %1 %, oben %2 %, Breite %3 %, Höhe %4 %"
   ,"verifactu.title": "Veri*Factu-Datensätze prüfen"
   ,"verifactu.profile_label": "Veri*Factu-Datensatz"
@@ -4922,8 +4922,8 @@
   ,"verifactu.qr_technical_hide": "Technische Antwort ausblenden"
   ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: signiert die von einem Rechnungsprogramm gelieferten Rechnungsdatensätze im von der AEAT verlangten Format und prüft bereits signierte Datensätze: verkettete Prüfsumme, Signatur und Struktur. GrxFirma erzeugt, speichert oder versendet keine Datensätze."
   ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu: liest die URL des steuerlichen QR-Codes einer Rechnung und zeigt ihre Daten; nur auf Ihren Wunsch wird sie beim öffentlichen Dienst der AEAT abgeglichen."
-  ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Sichtbares Siegel: Mit „Bereich zeichnen“ legen Sie Position und Größe durch Ziehen auf der Seite fest, wie in AutoFirma. Auch per Tastatur. Unter Windows und Linux sowie im Editor, den Portale öffnen."
-  ,"Android: cofirma y contrafirma, perfiles con sello de tiempo, verificación automática tras firmar, verificación detallada con informe exportable, los once idiomas con selector propio y pantalla «Acerca de».": "Android: Mitsignatur und Gegensignatur, Profile mit Zeitstempel, automatische Prüfung nach dem Signieren, detaillierte Prüfung mit exportierbarem Bericht, die elf Sprachen mit eigener Auswahl und ein Bildschirm „Über“."
+  ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Sichtbarer Stempel: Mit „Bereich zeichnen“ legen Sie Position und Größe durch Ziehen auf der Seite fest, wie in AutoFirma. Auch per Tastatur. Unter Windows und Linux sowie im Editor, den Portale öffnen."
+  ,"Android: cofirma y contrafirma, perfiles con sello de tiempo, verificación automática tras firmar, verificación detallada con informe exportable, los once idiomas con selector propio y pantalla «Acerca de».": "Android: Kosignatur und Gegensignatur, Profile mit Zeitstempel, automatische Prüfung nach dem Signieren, detaillierte Prüfung mit exportierbarem Bericht, die elf Sprachen mit eigener Auswahl und ein Bildschirm „Über“."
   ,"csc.help": "CSC-Fernsignatur (Prototyp, standardmäßig aus):\n  Sie wird mit \"firma_remota_csc\": true in config.json oder über die Richtlinie der Organisation eingeschaltet, die immer Vorrang hat.\n  grxfirma -csc-url <https://...> -csc-client-id <id> -csc-listar-credenciales\n  grxfirma -csc-url <https://...> -csc-client-id <id> -csc-credencial <id> -entrada doc.pdf -salida firmado.pdf -formato pades\n  -csc-url <url>            https-Adresse des Signaturdienstes des Anbieters\n  -csc-client-id <id>       Vom Anbieter vergebene Client-Kennung (ohne Geheimnis)\n  -csc-credencial <id>      Entferntes Zertifikat, mit dem signiert wird\n  -csc-listar-credenciales  Zeigt die entfernten Zertifikate des Kontos\n  Die Freigabe erfolgt im Browser auf demselben Host wie der Dienst; PIN oder OTP-Code werden über die Standardeingabe gelesen. Nur der Hashwert des Dokuments verlässt den Rechner."
   ,"csc.cli.opcion_invalida": "Die Option %s gibt es nicht oder ihr fehlt der Wert."
   ,"csc.cli.incompatible": "Die Fernsignatur lässt sich nicht mit einem lokalen Zertifikat (-contenedor-p12, -certificado-pem) oder dem REST-Server kombinieren."
@@ -4962,7 +4962,7 @@
   ,"csc.cli.pares_oauth_invalidos": "Die Liste firma_remota_csc_oauth_permitidos enthält einen fehlerhaften Eintrag. Verwenden Sie das Format dienst=freigabe, zum Beispiel firma.anbieter.de=auth.anbieter.de."
   ,"csc.error.oauth_otro_host": "Der Dienst verlangt die Freigabe auf einem anderen Host. Aus Sicherheitsgründen ist das nur erlaubt, wenn er in firma_remota_csc_oauth_permitidos steht."
   ,"Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.": "Android: Stapelsignatur, Prüfsummen erstellen und prüfen sowie Dateien ver- und entschlüsseln, wie auf dem Desktop."
-  ,"Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.": "Android: Signieren in XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES und Veri*Factu-Datensätzen; CSV-Legende und Siegel mit eigener Position auf jeder Seite; ENI-Dokumente erstellen und prüfen."
+  ,"Android: firma en XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES y registros Veri*Factu; leyenda CSV y sello con posición distinta en cada página; crear y comprobar documentos ENI.": "Android: Signieren in XMLDSig, ODF, OOXML, FacturaE, ASiC-XAdES und Veri*Factu-Datensätzen; CSV-Legende und Stempel mit eigener Position auf jeder Seite; ENI-Dokumente erstellen und prüfen."
   ,"Firma remota con certificados de prestadores compatibles con la API CSC, desde la línea de órdenes. Viene desactivada: solo funciona si la organización la habilita en su política o en la configuración. Aún no se ha probado con prestadores reales.": "Fernsignatur mit Zertifikaten von Anbietern, die mit der CSC-API kompatibel sind, über die Befehlszeile. Sie ist deaktiviert: Sie funktioniert nur, wenn die Organisation sie in ihrer Richtlinie oder Konfiguration freigibt. Noch nicht mit echten Anbietern getestet."
   ,"csc.error.desactivada": "Die Fernsignatur ist auf diesem Computer nicht aktiviert. Ihre Organisation aktiviert sie, oder «firma_remota_csc» in config.json."
   ,"csc.error.no_configurada": "Prüfen Sie zuerst den Fernsignaturdienst."
@@ -5014,12 +5014,12 @@
   ,"eni.error.signature_mismatch": "Die Signatur passt nicht zum Originaldokument, oder das Dokument wurde nach der Signatur geändert. Prüfen Sie, ob Sie das richtige Original gewählt haben."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: schrittweiser Bildschirm, sichtbares Ergebnis am Ende, Bestätigung vor dem Verwerfen einer Signatur, automatisches Schließen des Zertifikats nach einigen Minuten im Hintergrund und klarere Texte."
   ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android: Zertifikatsdaten und Ablauf mit Sperrprüfung, Einstellungen, Diagnose, Suche nach neuen Versionen, helles oder dunkles Design und druckbarer Prüfbericht."
-  ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android: ENI-Akte, Stapel mit sichtbarem Siegel oder Mitsignatur sowie DNIe im Stapel und bei „Schützen und signieren“ mit nur einmaliger PIN-Abfrage. Der DNIe über NFC akzeptiert jetzt das Signaturzertifikat der Karte."
+  ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android: ENI-Akte, Stapel mit sichtbarem Stempel oder Kosignatur sowie DNIe im Stapel und bei „Schützen und signieren“ mit nur einmaliger PIN-Abfrage. Der DNIe über NFC akzeptiert jetzt das Signaturzertifikat der Karte."
   ,"Windows y Linux: firma remota con prestadores compatibles con CSC desde la propia aplicación, si la organización la permite; si la prohíbe, se indica claramente.": "Windows und Linux: Fernsignatur mit CSC-kompatiblen Anbietern direkt in der Anwendung, sofern die Organisation sie erlaubt; ist sie verboten, wird dies klar angezeigt."
   ,"Veri*Factu: el QR tributario también se lee desde una imagen o un PDF, y la comprobación rechaza registros con contenido añadido dentro de la firma.": "Veri*Factu: Der steuerliche QR-Code lässt sich auch aus einem Bild oder PDF lesen, und die Prüfung lehnt Datensätze mit innerhalb der Signatur hinzugefügtem Inhalt ab."
   ,"ENI: antes de crear el documento se comprueba que la firma corresponde al original elegido.": "ENI: Vor dem Erstellen des Dokuments wird geprüft, ob die Signatur zum gewählten Original passt."
   ,"Se leen bien las configuraciones guardadas con el Bloc de notas antiguo o con PowerShell 5 (con marca BOM).": "Mit dem alten Editor oder mit PowerShell 5 (mit BOM-Markierung) gespeicherte Konfigurationen werden korrekt gelesen."
-  ,"Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.": "Windows und Linux: klarere und barrierefreiere Bildschirme für Rechnungen, Veri*Factu und ENI: Veri*Factu hat einen eigenen Bereich, das Datum wird ohne technische Formate gewählt, besserer Kontrast in allen Designs und das Siegel lässt sich auch per Tastatur zeichnen."
+  ,"Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.": "Windows und Linux: klarere und barrierefreiere Bildschirme für Rechnungen, Veri*Factu und ENI: Veri*Factu hat einen eigenen Bereich, das Datum wird ohne technische Formate gewählt, besserer Kontrast in allen Designs und der Stempel lässt sich auch per Tastatur zeichnen."
   ,"csc.error.sesion_caducada": "Die Sitzung mit dem Anbieter ist abgelaufen. Verbinden Sie sich erneut mit dem Fernsignaturdienst, um weiter zu signieren."
   ,"csc.error.oauth_metadatos": "Der Autorisierungsserver des Anbieters veröffentlicht keine gültige Konfiguration. Informieren Sie Ihren Anbieter."
   ,"csc.error.lote_repetido": "Ein Dokument des Stapels brauchte eine zweite Signatur, die Autorisierung des Stapels war aber schon verbraucht. Signieren Sie dieses Dokument erneut."
@@ -5052,7 +5052,7 @@
   ,"report.size_bytes": "%d Byte"
   ,"report.section.document": "Geprüftes Dokument"
   ,"report.field.name": "Dateiname"
-  ,"report.field.hash": "SHA-256-Fingerabdruck"
+  ,"report.field.hash": "SHA-256-Hashwert"
   ,"report.field.size": "Größe"
   ,"report.field.format": "Signaturformat"
   ,"report.field.coverage": "Abdeckung"
@@ -5065,7 +5065,7 @@
   ,"report.section.warnings": "Warnungen"
   ,"report.section.evidence": "Nachweise"
   ,"report.section.details": "Technische Details"
-  ,"report.footer": "Erstellt von %s. Dieser Bericht beschreibt das Ergebnis der lokalen Prüfung zum angegebenen Zeitpunkt; der SHA-256-Fingerabdruck identifiziert die genau geprüfte Datei. Er ersetzt keinen qualifizierten Validierungsdienst."
+  ,"report.footer": "Erstellt von %s. Dieser Bericht beschreibt das Ergebnis der lokalen Prüfung zum angegebenen Zeitpunkt; der SHA-256-Hashwert identifiziert die genau geprüfte Datei. Er ersetzt keinen qualifizierten Validierungsdienst."
   ,"firma CAdES válida": "Gültige CAdES-Signatur"
   ,"firma XAdES valida": "Gültige XAdES-Signatur"
   ,"firma XMLdSig valida": "Gültige XMLdSig-Signatur"
@@ -5113,15 +5113,15 @@
   ,"Compatibilidad histórica; validación XML estándar no acreditada.": "Historische Kompatibilität; Standard-XML-Validierung nicht nachgewiesen."
   ,"sin OCSP ni CRL disponibles": "Weder OCSP noch CRL verfügbar"
   ,"sin respuesta concluyente del servicio de revocación": "Der Widerrufsdienst hat keine eindeutige Antwort geliefert"
-  ,"cli.help.seal_language": "Sprache der Beschriftungen des sichtbaren Siegels. Standardmäßig die Sprache der CLI."
+  ,"cli.help.seal_language": "Sprache der Beschriftungen des sichtbaren Stempels. Standardmäßig die Sprache der CLI."
   ,"seal.preview.signer_sample": "Name des Unterzeichners"
   ,"report.size_byte_one": "%d Byte"
-  ,"settings.seal_language.label": "Sprache des Siegels"
+  ,"settings.seal_language.label": "Sprache des Stempels"
   ,"settings.seal_language.interface": "Wie die Anwendung"
-  ,"settings.seal_language.help": "Sprache der Beschriftungen des sichtbaren Siegels. Wählen Sie zum Beispiel Spanisch, damit Dokumente für die spanische Verwaltung das Siegel auf Spanisch tragen, auch wenn die Anwendung eine andere Sprache verwendet."
+  ,"settings.seal_language.help": "Sprache der Beschriftungen des sichtbaren Stempels. Wählen Sie zum Beispiel Spanisch, damit Dokumente für die spanische Verwaltung den Stempel auf Spanisch tragen, auch wenn die Anwendung eine andere Sprache verwendet."
   ,"Firma remota: un lote completo con un solo PIN o código, si el prestador lo admite; «Proteger y firmar» con certificado remoto; la sesión se renueva sola y se listan todas las credenciales.": "Fernsignatur: ein ganzer Stapel mit nur einer PIN bzw. einem Code, sofern der Anbieter es unterstützt; „Schützen und signieren“ mit Fernzertifikat; die Sitzung erneuert sich selbst und alle Zugangsdaten werden aufgelistet."
-  ,"El sello visible y el informe de verificación salen en el idioma de la aplicación, con la hora local y su zona. En Configuración se puede fijar un idioma del sello, por ejemplo el español para documentos de la Administración.": "Das sichtbare Siegel und der Prüfbericht erscheinen in der Sprache der Anwendung, mit Ortszeit und Zeitzone. In den Einstellungen lässt sich eine feste Siegelsprache wählen, etwa Spanisch für Dokumente der Verwaltung."
-  ,"Android: lectura del QR tributario con la cámara o desde una imagen, varios certificados abiertos a la vez, resultado con un veredicto claro y detalles técnicos plegados, y editor del sello más cómodo.": "Android: Lesen des steuerlichen QR-Codes mit der Kamera oder aus einem Bild, mehrere gleichzeitig geöffnete Zertifikate, Ergebnis mit klarem Urteil und eingeklappten technischen Details sowie ein bequemerer Siegeleditor."
+  ,"El sello visible y el informe de verificación salen en el idioma de la aplicación, con la hora local y su zona. En Configuración se puede fijar un idioma del sello, por ejemplo el español para documentos de la Administración.": "Der sichtbare Stempel und der Prüfbericht erscheinen in der Sprache der Anwendung, mit Ortszeit und Zeitzone. In den Einstellungen lässt sich eine feste Stempelsprache wählen, etwa Spanisch für Dokumente der Verwaltung."
+  ,"Android: lectura del QR tributario con la cámara o desde una imagen, varios certificados abiertos a la vez, resultado con un veredicto claro y detalles técnicos plegados, y editor del sello más cómodo.": "Android: Lesen des steuerlichen QR-Codes mit der Kamera oder aus einem Bild, mehrere gleichzeitig geöffnete Zertifikate, Ergebnis mit klarem Urteil und eingeklappten technischen Details sowie ein bequemerer Stempeleditor."
   ,"Android: textos más claros y sin tecnicismos, el informe imprimible como opción principal y el cierre automático del certificado ya no salta mientras se elige un fichero ni con una firma sin guardar.": "Android: klarere Texte ohne Fachjargon, der druckbare Bericht als Hauptoption, und das automatische Schließen des Zertifikats greift nicht mehr während der Dateiauswahl oder bei einer nicht gespeicherten Signatur."
   ,"verificacion.detalle.formato": "%s: %s"
   ,"verificacion.detalle.formato_detectado": "Erkanntes Format"
@@ -5150,7 +5150,7 @@
   ,"winui.comun.proteger": "Schützen"
   ,"winui.comun.certificado_sin_titular": "Zertifikat ohne Inhaber"
   ,"winui.comun.operacion_cancelada": "Vorgang abgebrochen"
-  ,"winui.proteger.el_perfil_compatible_requiere_una": "Das Kompatibilitätsprofil erfordert eine RSA-Identität mit entschlüsselbarem privatem Schlüssel, zum Beispiel eine autorisierte P12/PFX-Datei. Undurchsichtige Zertifikate im Windows-Speicher können weiterhin zum Signieren verwendet werden, werden aber nicht zur Verschlüsselung angeboten; laden Sie eine geeignete P12/PFX-Datei oder wechseln Sie zum hohen Profil."
+  ,"winui.proteger.el_perfil_compatible_requiere_una": "Das Kompatibilitätsprofil erfordert eine RSA-Identität mit entschlüsselbarem privatem Schlüssel, zum Beispiel eine autorisierte P12/PFX-Datei. Nicht exportierbare Zertifikate im Windows-Speicher können weiterhin zum Signieren verwendet werden, werden aber nicht zur Verschlüsselung angeboten; laden Sie eine geeignete P12/PFX-Datei oder wechseln Sie zum hohen Profil."
   ,"winui.proteger.seleccione_un_documento_y_al_menos_un": "Wählen Sie ein Dokument und mindestens einen Empfänger aus."
   ,"winui.proteger.seleccione_un_contenedor_protegido": "Wählen Sie einen geschützten Container aus."
   ,"winui.proteger.no_se_ha_ejecutado_ninguna_proteccion": "Es wurde noch kein Schutzvorgang ausgeführt."
@@ -5246,7 +5246,7 @@
   ,"winui.proteger.clave_aes_256_en_base64_44_caracteres": "&AES-256-Schlüssel in Base64 (44 Zeichen):"
   ,"winui.proteger.confirmar_clave_efimera": "Temporären Schlüssel bestätigen"
   ,"winui.proteger.repita_la_misma_clave_base64": "&Denselben Base64-Schlüssel erneut eingeben:"
-  ,"winui.proteger.clave_efimera_de_desproteccion": "Temporärer Schlüssel zum Entschützen"
+  ,"winui.proteger.clave_efimera_de_desproteccion": "Temporärer Schlüssel zum Aufheben des Schutzes"
   ,"winui.proteger.clave_usada_al_crear_el_encrypteddata": "&Schlüssel, mit dem EncryptedData erstellt wurde:"
   ,"winui.comun.firmar": "Signieren"
   ,"winui.comun.cancelar": "Abbrechen"
@@ -5259,25 +5259,25 @@
   ,"winui.comun.ooxml": "OOXML"
   ,"winui.comun.facturae": "FacturaE"
   ,"winui.comun.asic_xades": "ASiC-XAdES"
-  ,"winui.firmar.muestra_orientativa_de_posicion_y_giro": "Position und Drehung sind nur ein Anhaltspunkt. Das endgültige Siegel wird mit dem Zertifikat erzeugt; prüfen Sie es in der signierten PDF-Datei."
+  ,"winui.firmar.muestra_orientativa_de_posicion_y_giro": "Position und Drehung sind nur ein Anhaltspunkt. Der endgültige Stempel wird mit dem Zertifikat erzeugt; prüfen Sie ihn in der signierten PDF-Datei."
   ,"winui.firmar.no_se_han_seleccionado_documentos_para": "Keine Dokumente für den Stapel ausgewählt."
   ,"winui.firmar.no_se_ha_seleccionado_una_carpeta_de": "Kein Ausgabeordner ausgewählt."
   ,"winui.firmar.el_lote_aun_no_se_ha_ejecutado": "Der Stapel wurde noch nicht ausgeführt."
   ,"winui.firmar.no_se_ha_ejecutado_ninguna_firma": "Noch keine Signatur ausgeführt."
   ,"winui.firmar.seleccione_un_documento_y_un_certificado": "Wählen Sie ein Dokument und ein Zertifikat zum Signieren aus."
   ,"winui.firmar.seleccione_un_documento_compatible_y_un": "Wählen Sie ein kompatibles Dokument und ein Hauptzertifikat aus."
-  ,"winui.firmar.active_el_sello_y_cargue_la": "Aktivieren Sie das Siegel und laden Sie die Vorschau, um die tatsächliche PDF-Geometrie zu erhalten."
-  ,"winui.firmar.firma_cofirma_o_contrafirma_documentos": "Signieren, mitunterzeichnen oder gegenzeichnen Sie Dokumente mit einem Windows-Zertifikat oder einer P12/PFX-Datei."
+  ,"winui.firmar.active_el_sello_y_cargue_la": "Aktivieren Sie den Stempel und laden Sie die Vorschau, um die tatsächliche PDF-Geometrie zu erhalten."
+  ,"winui.firmar.firma_cofirma_o_contrafirma_documentos": "Signieren, kosignieren oder gegensignieren Sie Dokumente mit einem Windows-Zertifikat oder einer P12/PFX-Datei."
   ,"winui.firmar.la_firma_no_esta_disponible_porque_el": "Signieren ist nicht verfügbar, da die lokale Engine certificates und sign nicht bereitgestellt hat."
   ,"winui.firmar.firma": "Signatur"
-  ,"winui.firmar.cofirma": "Mitsignatur"
+  ,"winui.firmar.cofirma": "Kosignatur"
   ,"winui.firmar.contrafirma": "Gegensignatur"
   ,"winui.firmar.xmldsig": "XMLdSig"
   ,"winui.firmar.sin_rotacion": "Keine Drehung"
   ,"winui.firmar.institucional_con_emblema": "Institutionell mit Emblem"
   ,"winui.firmar.emblema_de_firma_de_la_diputacion_a_la": "Signaturemblem der Diputación links und Signaturdaten rechts."
   ,"winui.firmar.solo_texto": "Nur Text"
-  ,"winui.firmar.sello_sobrio_con_los_datos_de_la_firma": "Schlichtes Siegel mit Signaturdaten, ohne Bilder."
+  ,"winui.firmar.sello_sobrio_con_los_datos_de_la_firma": "Schlichter Stempel mit Signaturdaten, ohne Bilder."
   ,"winui.firmar.imagen_propia": "Eigenes Bild"
   ,"winui.firmar.una_imagen_png_o_jpeg_suya_logotipo": "Ein eigenes PNG- oder JPEG-Bild (Logo, eingescannte handschriftliche Signatur …) zusammen mit den Signaturdaten."
   ,"winui.firmar.primera_pagina": "Erste Seite"
@@ -5365,7 +5365,7 @@
   ,"winui.firmar.ha_elegido_ultima_pagina_el_documento": " Sie haben „Letzte Seite“ gewählt: Das Dokument hat {0} Seite(n), und der Stempel erscheint auf Seite {1}."
   ,"winui.firmar.corrija_la_seleccion_del_pdf_o_de": "Korrigieren Sie die PDF- oder Seitenauswahl und laden Sie die Vorschau erneut."
   ,"winui.firmar.ya_hay_otra_operacion_en_curso_espere_o": "Ein anderer Vorgang läuft. Warten Sie oder brechen Sie ihn ab, bevor Sie die Vorschau laden."
-  ,"winui.firmar.el_motor_local_no_ofrece_la": "Die lokale Engine bietet keine PDF-Vorschau für die sichere Berechnung des Siegels."
+  ,"winui.firmar.el_motor_local_no_ofrece_la": "Die lokale Engine bietet keine PDF-Vorschau für die sichere Berechnung des Stempels."
   ,"winui.firmar.actualice_o_reinicie_el_motor_local_y": "Aktualisieren oder starten Sie die lokale Engine neu und prüfen Sie, ob sie pdf_preview anbietet."
   ,"winui.firmar.cargando_la_geometria_real_de_la_pagina": "Die tatsächliche Geometrie von Seite {0} wird geladen…"
   ,"winui.firmar.no_se_pudo_comprobar_el_pdf_antes_de": "Die PDF-Datei konnte vor der Vorschau nicht geprüft werden."
@@ -5378,14 +5378,14 @@
   ,"winui.firmar.el_pdf_cambio_mientras_se_generaba_la": "Die PDF-Datei wurde während der Vorschauerstellung geändert. Diese Geometrie wird nicht verwendet."
   ,"winui.firmar.cierre_el_programa_que_esta_modificando_2": "Schließen Sie das Programm, das die PDF-Datei ändert, und laden Sie die Vorschau erneut."
   ,"winui.firmar.indique_paginas_existentes_por_ejemplo_1": "Geben Sie vorhandene Seiten an, z. B. 1, 1,3-5 oder all."
-  ,"winui.firmar.pdf_real_pagina_de_puntos_el_sello_se": "Tatsächliche PDF-Datei: Seite {0} von {1}, {2} × {3} Punkt. Das Siegel wird mit seinem tatsächlichen Aussehen im markierten Bereich angezeigt."
+  ,"winui.firmar.pdf_real_pagina_de_puntos_el_sello_se": "Tatsächliche PDF-Datei: Seite {0} von {1}, {2} × {3} Punkt. Der Stempel wird mit seinem tatsächlichen Aussehen im markierten Bereich angezeigt."
   ,"winui.firmar.previsualizacion_preparada_revise": "Vorschau bereit. Prüfen Sie Position, Größe und Ausrichtung vor dem Signieren."
   ,"winui.firmar.la_carga_de_la_previsualizacion_se": "Das Laden der Vorschau wurde abgebrochen."
   ,"winui.firmar.fallo_la_comunicacion_segura_al": "Die sichere Kommunikation bei der PDF-Vorschau ist fehlgeschlagen."
   ,"winui.firmar.la_aplicacion_no_pudo_preparar_la": "Die Anwendung konnte die PDF-Vorschau nicht vorbereiten."
   ,"winui.firmar.corrija_la_configuracion_indicada_y": "Korrigieren Sie die angegebenen Einstellungen und laden Sie die Vorschau bei Aufforderung erneut."
   ,"winui.firmar.ya_hay_una_firma_en_curso_espere_o": "Eine Signatur läuft bereits. Warten Sie oder brechen Sie den Vorgang ab."
-  ,"winui.firmar.no_se_puede_cofirmar_con_varios": "Mit mehreren Zertifikaten kann nicht mitunterzeichnet werden: Die lokale Engine unterstützt sign_multicosign nicht."
+  ,"winui.firmar.no_se_puede_cofirmar_con_varios": "Mit mehreren Zertifikaten kann nicht kosigniert werden: Die lokale Engine unterstützt sign_multicosign nicht."
   ,"winui.firmar.no_se_puede_firmar_el_motor_local_no": "Signieren nicht möglich: Die lokale Engine unterstützt den Vorgang sign nicht."
   ,"winui.firmar.elija_donde_guardar_el_resultado_la": "Wählen Sie einen Speicherort für das Ergebnis. Das Signieren wurde noch nicht gestartet."
   ,"winui.firmar.no_se_eligio_un_destino_no_se_ha": "Es wurde kein Ziel ausgewählt. Es wurde keine Signatur erstellt."
@@ -5394,13 +5394,13 @@
   ,"winui.firmar.cierre_el_programa_que_esta_modificando_3": "Schließen Sie das Programm, das die PDF-Datei ändert, laden Sie die Vorschau erneut und signieren Sie erneut."
   ,"winui.firmar.el_contenido_del_pdf_cambio_despues_de": "Der PDF-Inhalt wurde nach der Vorschau geändert. Das Signieren wurde nicht gestartet."
   ,"winui.firmar.cargue_de_nuevo_la_previsualizacion_del": "Laden Sie die Vorschau der aktuellen PDF-Datei vor dem Signieren erneut."
-  ,"winui.firmar.aplicando_el_firmante_principal_y_las": "Hauptunterzeichner und weitere Mitunterzeichnungen werden in der angezeigten Reihenfolge angewendet…"
+  ,"winui.firmar.aplicando_el_firmante_principal_y_las": "Hauptunterzeichner und weitere Kosignaturen werden in der angezeigten Reihenfolge angewendet…"
   ,"winui.firmar.firmando_el_documento": "Dokument wird signiert…"
   ,"winui.firmar.la_firma_no_se_completo_abra_el": "Die Signatur wurde nicht abgeschlossen. Öffnen Sie die Diagnose, um die Fehlerstelle zu sehen."
   ,"winui.firmar.el_motor_confirmo_la_operacion_pero_no": "Die Engine hat den Vorgang bestätigt, aber keine gültige Ausgabedatei zurückgegeben."
   ,"winui.firmar.el_motor_no_confirmo_el_fichero_de": "Die Engine hat die angeforderte Ausgabedatei nicht bestätigt. Ein Erfolg wird nicht fälschlich angezeigt."
   ,"winui.firmar.la_firma_se_guardo_como_pero_el_pdf_de": "Die Signatur wurde als {0} gespeichert, aber die ursprüngliche PDF-Datei wurde während des Vorgangs geändert."
-  ,"winui.firmar.no_use_el_resultado_hasta_revisar_el": "Verwenden Sie das Ergebnis erst nach Prüfung der Diagnose: Es kann nicht sichergestellt werden, dass das Siegel der Vorschau entspricht."
+  ,"winui.firmar.no_use_el_resultado_hasta_revisar_el": "Verwenden Sie das Ergebnis erst nach Prüfung der Diagnose: Es kann nicht sichergestellt werden, dass der Stempel der Vorschau entspricht."
   ,"winui.firmar.cierre_el_programa_que_modifica_el_pdf_y": "Schließen Sie das Programm, das die PDF-Datei ändert, und signieren Sie erneut mit einer neuen Vorschau."
   ,"winui.firmar.la_firma_se_guardo_comprobando_ahora_su": "Signatur gespeichert. Ihre Gültigkeit wird jetzt geprüft…"
   ,"winui.firmar.la_firma_se_guardo_como_pero_no_pudo": "Die Signatur wurde als {0} gespeichert, konnte aber nicht automatisch validiert werden."
@@ -5409,13 +5409,13 @@
   ,"winui.firmar.el_motor_no_devolvio_evidencias": "Die Engine hat keine schlüssigen Nachweise für die nachträgliche Validierung zurückgegeben."
   ,"winui.firmar.la_firma_se_guardo_como_pero_no_supero": "Die Signatur wurde als {0} gespeichert, hat die Validierung aber nicht bestanden."
   ,"winui.firmar.la_firma_generada_no_es_valida_no_la": "Die erzeugte Signatur ist ungültig. Verwenden Sie sie nicht und öffnen Sie die Diagnose."
-  ,"winui.firmar.cofirma_multiple_completada_guardada_y": "Mehrfach-Mitunterzeichnung abgeschlossen, als {0} gespeichert und validiert."
+  ,"winui.firmar.cofirma_multiple_completada_guardada_y": "Mehrfach-Kosignatur abgeschlossen, als {0} gespeichert und validiert."
   ,"winui.firmar.firma_completada_guardada_y_validada": "Signatur abgeschlossen, als {0} gespeichert und validiert."
-  ,"winui.firmar.cofirma_multiple_completada_y_guardada": "Mehrfach-Mitunterzeichnung abgeschlossen und als {0} gespeichert. Die Integrität wurde bestätigt, das Vertrauen jedoch nicht festgestellt."
+  ,"winui.firmar.cofirma_multiple_completada_y_guardada": "Mehrfach-Kosignatur abgeschlossen und als {0} gespeichert. Die Integrität wurde bestätigt, das Vertrauen jedoch nicht festgestellt."
   ,"winui.firmar.firma_completada_y_guardada_como_la": "Signatur abgeschlossen und als {0} gespeichert. Die Integrität wurde bestätigt, das Vertrauen jedoch nicht festgestellt."
-  ,"winui.firmar.cofirma_multiple_completada_y_guardada_2": "Mehrfach-Mitunterzeichnung abgeschlossen und als {0} gespeichert."
+  ,"winui.firmar.cofirma_multiple_completada_y_guardada_2": "Mehrfach-Kosignatur abgeschlossen und als {0} gespeichert."
   ,"winui.firmar.firma_completada_y_guardada_como": "Signatur abgeschlossen und als {0} gespeichert."
-  ,"winui.firmar.la_cofirma_multiple_termino": "Die Mehrfach-Mitunterzeichnung war erfolgreich, aber eine anschließende Validierung wurde nicht angefordert."
+  ,"winui.firmar.la_cofirma_multiple_termino": "Die Mehrfach-Kosignatur war erfolgreich, aber eine anschließende Validierung wurde nicht angefordert."
   ,"winui.firmar.la_firma_termino_correctamente_pero_no": "Das Signieren war erfolgreich, aber eine anschließende Validierung wurde nicht angefordert."
   ,"winui.firmar.la_firma_se_guardo_como_pero_su": "Die Signatur wurde als {0} gespeichert, aber ihre Validierung wurde abgebrochen."
   ,"winui.firmar.el_fichero_firmado_existe_pero_no": "Die signierte Datei ist vorhanden, aber die anschließende Validierung wurde nicht abgeschlossen."
@@ -5429,24 +5429,24 @@
   ,"winui.firmar.el_fichero_firmado_ya_no_esta_disponible": "Die signierte Datei ist am gewählten Speicherort nicht mehr verfügbar."
   ,"winui.firmar.windows_no_pudo_representar_de_forma": "Windows konnte das Vorschaubild nicht sicher darstellen. Das Signieren wurde nicht gestartet."
   ,"winui.firmar.vuelva_a_cargar_la_previsualizacion_si": "Laden Sie die Vorschau erneut. Falls das Problem wieder auftritt, versuchen Sie eine andere PDF-Datei und bewahren Sie die Diagnose auf."
-  ,"winui.firmar.la_imagen_del_sello_debe_ser_un_png_o": "Das Siegelbild muss eine PNG- oder JPEG-Datei mit höchstens 10 MB sein."
-  ,"winui.firmar.ha_elegido_imagen_propia_seleccione_la": "Sie haben „Eigenes Bild“ gewählt: Wählen Sie das PNG- oder JPEG-Bild für das Siegel aus."
+  ,"winui.firmar.la_imagen_del_sello_debe_ser_un_png_o": "Das Stempelbild muss eine PNG- oder JPEG-Datei mit höchstens 10 MB sein."
+  ,"winui.firmar.ha_elegido_imagen_propia_seleccione_la": "Sie haben „Eigenes Bild“ gewählt: Wählen Sie das PNG- oder JPEG-Bild für den Stempel aus."
   ,"winui.firmar.ubicacion": "Ort"
-  ,"winui.firmar.no_se_pudo_generar_la_vista_previa_del": "Die Siegelvorschau konnte mit diesen Optionen nicht erstellt werden. Prüfen Sie Bild, QR-Code und Bereichsgröße."
-  ,"winui.firmar.vista_previa_real_del_sello_elija_un": "Tatsächliche Siegelvorschau. Wählen Sie ein Zertifikat, um dessen Namen zu sehen; derzeit wird ein Beispielname angezeigt."
-  ,"winui.firmar.vista_previa_real_del_sello_con_el": "Tatsächliche Siegelvorschau mit dem ausgewählten Zertifikat. Das endgültige Datum ist das Signaturdatum."
-  ,"winui.firmar.el_motor_local_no_pudo_generar_la_vista": "Die lokale Engine konnte die Siegelvorschau nicht erstellen; stattdessen wird ein Beispiel angezeigt."
+  ,"winui.firmar.no_se_pudo_generar_la_vista_previa_del": "Die Stempelvorschau konnte mit diesen Optionen nicht erstellt werden. Prüfen Sie Bild, QR-Code und Bereichsgröße."
+  ,"winui.firmar.vista_previa_real_del_sello_elija_un": "Tatsächliche Stempelvorschau. Wählen Sie ein Zertifikat, um dessen Namen zu sehen; derzeit wird ein Beispielname angezeigt."
+  ,"winui.firmar.vista_previa_real_del_sello_con_el": "Tatsächliche Stempelvorschau mit dem ausgewählten Zertifikat. Das endgültige Datum ist das Signaturdatum."
+  ,"winui.firmar.el_motor_local_no_pudo_generar_la_vista": "Die lokale Engine konnte die Stempelvorschau nicht erstellen; stattdessen wird ein Beispiel angezeigt."
   ,"winui.firmar.no_se_puede_firmar_porque_el_motor_local": "Signieren nicht möglich, da die lokale Engine nicht verbunden ist."
   ,"winui.firmar.seleccione_el_documento_que_desea_firmar": "Wählen Sie das zu signierende Dokument aus."
   ,"winui.firmar.el_documento_seleccionado_ya_no_esta": "Das ausgewählte Dokument ist nicht mehr verfügbar. Wählen Sie es erneut aus."
   ,"winui.firmar.seleccione_un_certificado_apto_para": "Wählen Sie ein zum Signieren geeignetes Zertifikat aus."
   ,"winui.firmar.el_certificado_seleccionado_no_es_valido": "Das ausgewählte Zertifikat ist zum Signieren ungültig. {0}"
-  ,"winui.firmar.seleccione_si_desea_firmar_cofirmar_o": "Wählen Sie aus, ob Sie signieren, mitunterzeichnen oder gegenzeichnen möchten."
+  ,"winui.firmar.seleccione_si_desea_firmar_cofirmar_o": "Wählen Sie aus, ob Sie signieren, kosignieren oder gegensignieren möchten."
   ,"winui.firmar.seleccione_un_formato_de_firma": "Wählen Sie ein Signaturformat aus."
   ,"winui.firmar.seleccione_un_perfil_de_firma": "Wählen Sie ein Signaturprofil aus."
-  ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma": "Die lokale Engine unterstützt keine geführte Mehrfach-Mitunterzeichnung."
-  ,"winui.firmar.la_cofirma_multiple_guiada_no_admite": "Die geführte Mehrfach-Mitunterzeichnung unterstützt kein Gegenzeichnen."
-  ,"winui.firmar.la_cofirma_multiple_guiada_solo_esta": "Die geführte Mehrfach-Mitunterzeichnung ist nur für PAdES, ODF oder OOXML verfügbar."
+  ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma": "Die lokale Engine unterstützt keine geführte Mehrfach-Kosignatur."
+  ,"winui.firmar.la_cofirma_multiple_guiada_no_admite": "Die geführte Mehrfach-Kosignatur unterstützt keine Gegensignatur."
+  ,"winui.firmar.la_cofirma_multiple_guiada_solo_esta": "Die geführte Mehrfach-Kosignatur ist nur für PAdES, ODF oder OOXML verfügbar."
   ,"winui.firmar.seleccione_al_menos_un_certificado": "Wählen Sie mindestens ein weiteres Zertifikat aus, das sich vom Hauptunterzeichner-Zertifikat unterscheidet."
   ,"winui.firmar.no_se_puede_firmar_el_lote_porque_el": "Der Stapel kann nicht signiert werden, da die lokale Engine nicht verbunden ist."
   ,"winui.firmar.active_la_firma_por_lotes_y_compruebe": "Aktivieren Sie die Stapelsignierung und prüfen Sie, ob die Engine sign_batch unterstützt."
@@ -5457,15 +5457,15 @@
   ,"winui.firmar.seleccione_la_operacion_de_firma_del": "Wählen Sie den Signaturvorgang für den Stapel aus."
   ,"winui.firmar.seleccione_el_formato_de_firma_del_lote": "Wählen Sie das Signaturformat für den Stapel aus."
   ,"winui.firmar.seleccione_el_perfil_de_firma_del_lote": "Wählen Sie das Signaturprofil für den Stapel aus."
-  ,"winui.firmar.el_sello_visible_requiere": "Ein sichtbares Siegel erfordert eine Vorschau für jedes Dokument und ist für Stapel deaktiviert."
-  ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma_2": "Die lokale Engine unterstützt die Mehrfach-Mitunterzeichnung für diesen Stapel nicht."
-  ,"winui.firmar.seleccione_al_menos_un_certificado_2": "Wählen Sie mindestens ein weiteres Zertifikat für die Mehrfach-Mitunterzeichnung des Stapels aus."
-  ,"winui.firmar.la_cofirma_multiple_del_lote_solo_admite": "Die Mehrfach-Mitunterzeichnung des Stapels akzeptiert nur ausdrücklich gewählte Formate PAdES, ODF oder OOXML."
-  ,"winui.firmar.active_primero_el_sello_visible": "Aktivieren Sie zuerst das sichtbare Siegel."
-  ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "Ein sichtbares Siegel erfordert eine PDF-Datei, das Format PAdES oder Automatisch und eine Engine mit pdf_preview."
+  ,"winui.firmar.el_sello_visible_requiere": "Ein sichtbarer Stempel erfordert eine Vorschau für jedes Dokument und ist für Stapel deaktiviert."
+  ,"winui.firmar.el_motor_local_no_ofrece_la_cofirma_2": "Die lokale Engine unterstützt die Mehrfach-Kosignatur für diesen Stapel nicht."
+  ,"winui.firmar.seleccione_al_menos_un_certificado_2": "Wählen Sie mindestens ein weiteres Zertifikat für die Mehrfach-Kosignatur des Stapels aus."
+  ,"winui.firmar.la_cofirma_multiple_del_lote_solo_admite": "Die Mehrfach-Kosignatur des Stapels akzeptiert nur ausdrücklich gewählte Formate PAdES, ODF oder OOXML."
+  ,"winui.firmar.active_primero_el_sello_visible": "Aktivieren Sie zuerst den sichtbaren Stempel."
+  ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato": "Ein sichtbarer Stempel erfordert eine PDF-Datei, das Format PAdES oder Automatisch und eine Engine mit pdf_preview."
   ,"winui.firmar.el_pdf_seleccionado_ya_no_esta": "Die ausgewählte PDF-Datei ist nicht mehr verfügbar. Wählen Sie sie erneut aus."
-  ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "Das sichtbare Siegel kann nur auf eine PDF-Datei im Format PAdES oder Automatisch angewendet werden, wenn pdf_preview verfügbar ist."
-  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "Die Siegelvorschau stimmt nicht mit der aktuellen PDF-Datei und Seite überein. Wählen Sie vor dem Signieren unter „Erweiterte Optionen“ „Vorschau laden“."
+  ,"winui.firmar.el_sello_visible_solo_puede_aplicarse_a": "Der sichtbare Stempel kann nur auf eine PDF-Datei im Format PAdES oder Automatisch angewendet werden, wenn pdf_preview verfügbar ist."
+  ,"winui.firmar.la_previsualizacion_no_corresponde_al": "Die Stempelvorschau stimmt nicht mit der aktuellen PDF-Datei und Seite überein. Wählen Sie vor dem Signieren unter „Erweiterte Optionen“ „Vorschau laden“."
   ,"winui.firmar.indique_un_giro_entre_0_y_359_grados": "Geben Sie eine Drehung von 0 bis 359 Grad an."
   ,"winui.firmar.conecte_el_motor_local_para_habilitar_la": "Verbinden Sie die lokale Engine, um das Signieren zu ermöglichen."
   ,"winui.firmar.anada_varios_documentos_o_una_carpeta_al": "Fügen Sie dem Stapel mehrere Dokumente oder einen Ordner hinzu."
@@ -5474,17 +5474,17 @@
   ,"winui.firmar.no_valido_para_firmar": "Zum Signieren ungültig. {0}"
   ,"winui.firmar.documento_s_certificado_y_salida": "{0} Dokument(e), Zertifikat und Ausgabe für die Stapelsignierung vorbereitet."
   ,"winui.firmar.no_hay_certificados_aptos_para_firma_en": "Im Speicher sind keine zum Signieren geeigneten Zertifikate vorhanden."
-  ,"winui.firmar.seleccione_al_menos_un_certificado_3": "Wählen Sie mindestens ein weiteres Zertifikat für die geführte Mehrfach-Mitunterzeichnung aus."
-  ,"winui.firmar.documento_y_firmantes_preparados_para_la": "Dokument und Unterzeichner für die geführte Mehrfach-Mitunterzeichnung vorbereitet."
+  ,"winui.firmar.seleccione_al_menos_un_certificado_3": "Wählen Sie mindestens ein weiteres Zertifikat für die geführte Mehrfach-Kosignatur aus."
+  ,"winui.firmar.documento_y_firmantes_preparados_para_la": "Dokument und Unterzeichner für die geführte Mehrfach-Kosignatur vorbereitet."
   ,"winui.firmar.documento_y_certificado_preparados_para": "Dokument und Zertifikat zum Signieren vorbereitet."
-  ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato_2": "Ein sichtbares Siegel erfordert eine PDF-Datei, das Format PAdES oder Automatisch und verfügbares pdf_preview."
-  ,"winui.firmar.cargue_la_previsualizacion_real_del_pdf": "Laden Sie die tatsächliche PDF-Vorschau, bevor Sie mit sichtbarem Siegel signieren."
+  ,"winui.firmar.el_sello_visible_requiere_un_pdf_formato_2": "Ein sichtbarer Stempel erfordert eine PDF-Datei, das Format PAdES oder Automatisch und verfügbares pdf_preview."
+  ,"winui.firmar.cargue_la_previsualizacion_real_del_pdf": "Laden Sie die tatsächliche PDF-Vorschau, bevor Sie mit sichtbarem Stempel signieren."
   ,"winui.firmar.windows_esta_comprobando_la_imagen_de": "Windows prüft das Vorschaubild. Warten Sie vor dem Signieren."
-  ,"winui.firmar.documento_firmantes_y_sello_visible": "Dokument, Unterzeichner und sichtbares Siegel für die geführte Mehrfach-Mitunterzeichnung vorbereitet."
-  ,"winui.firmar.documento_certificado_y_sello_visible": "Dokument, Zertifikat und sichtbares Siegel zum Signieren vorbereitet."
+  ,"winui.firmar.documento_firmantes_y_sello_visible": "Dokument, Unterzeichner und sichtbarer Stempel für die geführte Mehrfach-Kosignatur vorbereitet."
+  ,"winui.firmar.documento_certificado_y_sello_visible": "Dokument, Zertifikat und sichtbarer Stempel zum Signieren vorbereitet."
   ,"winui.firmar.no_se_ha_ejecutado_ninguna_firma_con": "Mit dieser Auswahl wurde keine Signatur ausgeführt."
   ,"winui.firmar.el_motor_local_no_ha_publicado_sign": "Die lokale Engine hat sign_multicosign nicht bereitgestellt."
-  ,"winui.firmar.la_cofirma_multiple_guiada_admite_firma": "Die geführte Mehrfach-Mitunterzeichnung unterstützt Signieren oder Mitunterzeichnen, aber kein Gegenzeichnen."
+  ,"winui.firmar.la_cofirma_multiple_guiada_admite_firma": "Die geführte Mehrfach-Kosignatur unterstützt Signatur oder Kosignatur, aber keine Gegensignatur."
   ,"winui.firmar.disponible_unicamente_para_pades_odf_u": "Nur für PAdES, ODF oder OOXML verfügbar. Automatisch verwendet den Dokumenttyp."
   ,"winui.firmar.se_necesitan_al_menos_dos_certificados": "Mindestens zwei verschiedene Signaturzertifikate sind erforderlich."
   ,"winui.firmar.activela_para_aplicar_primero_el": "Aktivieren Sie die Option, um zuerst das Hauptzertifikat und danach die weiteren anzuwenden."
@@ -5519,9 +5519,9 @@
   ,"winui.firmar.no_se_pudo_enumerar_de_forma_segura_la": "Der ausgewählte Ordner konnte nicht sicher aufgelistet werden."
   ,"winui.firmar.carpeta_seleccionada": "ausgewählter Ordner"
   ,"winui.firmar.x_y_ancho_y_alto_deben_ser_porcentajes": "X, Y, Breite und Höhe müssen Prozentwerte zwischen 0 und 100 sein."
-  ,"winui.firmar.el_ancho_y_el_alto_del_sello_deben_ser": "Breite und Höhe des Siegels müssen größer als null sein."
-  ,"winui.firmar.la_zona_del_sello_debe_quedar": "Der Siegelbereich muss vollständig innerhalb der Seite liegen."
-  ,"winui.firmar.indique_las_paginas_del_sello_1_1_3_5_o": "Geben Sie die Siegelseiten an: 1, 1,3-5 oder all."
+  ,"winui.firmar.el_ancho_y_el_alto_del_sello_deben_ser": "Breite und Höhe des Stempels müssen größer als null sein."
+  ,"winui.firmar.la_zona_del_sello_debe_quedar": "Der Stempelbereich muss vollständig innerhalb der Seite liegen."
+  ,"winui.firmar.indique_las_paginas_del_sello_1_1_3_5_o": "Geben Sie die Stempelseiten an: 1, 1,3-5 oder all."
   ,"winui.firmar.la_seleccion_de_paginas_es_demasiado": "Die Seitenauswahl ist zu lang oder enthält unzulässige Zeichen."
   ,"winui.firmar.la_seleccion_de_paginas_no_es_valida_use": "Ungültige Seitenauswahl. Verwenden Sie 1, 1,3-5 oder all."
   ,"winui.firmar.la_seleccion_de_paginas_no_es_valida_use_2": "Ungültige Seitenauswahl. Verwenden Sie positive Zahlen und Bereiche wie 3-5."
@@ -5530,10 +5530,10 @@
   ,"winui.firmar.el_motor_no_devolvio_una": "Die Engine hat keine schlüssige PDF-Vorschau zurückgegeben."
   ,"winui.firmar.el_campo_admite_hasta_caracteres_de": "Das Feld {0} erlaubt bis zu {1} Textzeichen in einer Zeile."
   ,"winui.firmar.la_validacion_local_detuvo_la_operacion": "Die lokale Validierung hat den Vorgang gestoppt, bevor Daten an die kryptografische Engine gesendet wurden."
-  ,"winui.firmar.el_fallo_se_ha_detectado_en_la": "Der Fehler wurde in den lokalen Siegeleinstellungen erkannt; er stammt weder vom Portal noch von @firma."
+  ,"winui.firmar.el_fallo_se_ha_detectado_en_la": "Der Fehler wurde in den lokalen Stempeleinstellungen erkannt; er stammt weder vom Portal noch von @firma."
   ,"winui.firmar.documento_pdf_seleccionado": "PDF-Dokument ausgewählt"
   ,"winui.firmar.la_aplicacion_dispone_de_una_seleccion": "In der Anwendung liegt eine lokale Auswahl zur Prüfung vor."
-  ,"winui.firmar.configuracion_del_sello_visible": "Einstellungen für das sichtbare Siegel"
+  ,"winui.firmar.configuracion_del_sello_visible": "Einstellungen für den sichtbaren Stempel"
   ,"winui.firmar.firma_criptografica": "Kryptografische Signatur"
   ,"winui.firmar.la_firma_no_se_inicio_porque_la": "Das Signieren wurde nicht gestartet, weil die Einstellungen unsicher waren."
   ,"winui.firmar.firmado": "-signiert"
@@ -6044,7 +6044,7 @@
   ,"winui.ventana.ver_novedades": "Neuerungen ansehen"
   ,"winui.ventana.ahora_no": "Jetzt nicht"
   ,"winui.comun.verificar": "Prüfen"
-  ,"winui.ventana.huellas": "Prüfsummen"
+  ,"winui.ventana.huellas": "Hashwerte"
   ,"winui.comun.facturae_y_face": "Facturae, FACe und Veri*Factu"
   ,"winui.comun.acerca_de": "Über"
   ,"winui.ventana.hay_una_version_nueva_de_grxfirma_1": "Eine neue Version von GrxFirma ist verfügbar (%1). Sie haben %2."
@@ -6074,7 +6074,7 @@
   ,"winui.selector.firma_xades": "XAdES-Signatur"
   ,"winui.selector.firma_xmldsig": "XMLDSig-Signatur"
   ,"winui.selector.contenedor_asic": "ASiC-Container"
-  ,"winui.selector.informe_de_huella": "Prüfsummenbericht"
+  ,"winui.selector.informe_de_huella": "Hash-Bericht"
   ,"winui.selector.documento_protegido": "Geschütztes Dokument"
   ,"winui.selector.sobre_protegido_grxfirma": "Geschützter GrxFirma-Umschlag"
   ,"winui.selector.informe_de_diagnostico": "Diagnosebericht"
@@ -6208,44 +6208,44 @@
   ,"winui.huella.texto_grxfirma_txthashfiles": "GrxFirma-Text (.txthashfiles)"
   ,"winui.huella.csv_csv": "CSV (.csv)"
   ,"winui.huella.crear_huella": "Hash erstellen"
-  ,"winui.huella.seleccione_una_operacion_y_un_origen": "Wählen Sie einen Vorgang und eine Quelle, um eine Prüfsumme zu erstellen oder zu prüfen."
+  ,"winui.huella.seleccione_una_operacion_y_un_origen": "Wählen Sie einen Vorgang und eine Quelle, um einen Hash zu erstellen oder zu prüfen."
   ,"winui.huella.sin_evidencias_del_motor_local": "Keine Nachweise von der lokalen Engine."
-  ,"winui.huella.crea_o_comprueba_huellas_de_ficheros_y": "Erstellt oder prüft Prüfsummen von Dateien und Verzeichnissen, ohne ihren Inhalt zu signieren."
-  ,"winui.huella.las_huellas_no_estan_disponibles_porque": "Prüfsummenfunktionen sind nicht verfügbar, da die lokale Engine nicht alle erforderlichen Vorgänge bereitgestellt hat."
+  ,"winui.huella.crea_o_comprueba_huellas_de_ficheros_y": "Erstellt oder prüft Hashes von Dateien und Verzeichnissen, ohne ihren Inhalt zu signieren."
+  ,"winui.huella.las_huellas_no_estan_disponibles_porque": "Hash-Funktionen sind nicht verfügbar, da die lokale Engine nicht alle erforderlichen Vorgänge bereitgestellt hat."
   ,"winui.huella.comprobar_huella": "Hash prüfen"
   ,"winui.huella.formato_de_manifiesto_no_admitido": "Nicht unterstütztes Manifestformat"
   ,"winui.huella.manifiesto_no_valido": "Ungültiges Manifest"
   ,"winui.huella.seleccione_un_manifiesto_hashfiles": "Wählen Sie ein Manifest im Format .hashfiles, .txthashfiles, .csv, .xml oder .txt. Eine .hashreport-Datei ist ein Ausgabereport, kein Manifest."
-  ,"winui.huella.seleccione_una_huella_hexhash_hashb64_o": "Wählen Sie eine Prüfsumme im Format .hexhash, .hashb64 oder .hash. Eine .hashreport-Datei ist ein Ausgabereport, keine Eingabeprüfsumme."
-  ,"winui.huella.creando_huella": "Prüfsumme wird erstellt…"
-  ,"winui.huella.comprobando_huella": "Prüfsumme wird geprüft…"
+  ,"winui.huella.seleccione_una_huella_hexhash_hashb64_o": "Wählen Sie einen Hash im Format .hexhash, .hashb64 oder .hash. Eine .hashreport-Datei ist ein Ausgabereport, kein Eingabe-Hash."
+  ,"winui.huella.creando_huella": "Hash wird erstellt…"
+  ,"winui.huella.comprobando_huella": "Hash wird geprüft…"
   ,"winui.huella.el_motor_local_esta_procesando_el": "Die lokale Engine verarbeitet den ausgewählten Inhalt."
   ,"winui.comun.la_operacion_se_detuvo_antes_de_obtener": "Der Vorgang wurde gestoppt, bevor ein Ergebnis vorlag."
-  ,"winui.huella.la_operacion_termino_sin_un_resultado_de": "Der Vorgang endete ohne Prüfsummenergebnis."
+  ,"winui.huella.la_operacion_termino_sin_un_resultado_de": "Der Vorgang endete ohne Hash-Ergebnis."
   ,"winui.huella.falta_el_manifiesto": "Manifest fehlt"
-  ,"winui.huella.seleccione_el_fichero_de_huella_o": "Wählen Sie die zu prüfende Prüfsummen- oder Manifestdatei aus."
-  ,"winui.huella.huella_creada": "Prüfsumme erstellt"
-  ,"winui.huella.la_huella_se_ha_creado_y_guardado": "Die Prüfsumme wurde von der lokalen Engine erstellt und gespeichert."
+  ,"winui.huella.seleccione_el_fichero_de_huella_o": "Wählen Sie die zu prüfende Hash- oder Manifestdatei aus."
+  ,"winui.huella.huella_creada": "Hash erstellt"
+  ,"winui.huella.la_huella_se_ha_creado_y_guardado": "Der Hash wurde von der lokalen Engine erstellt und gespeichert."
   ,"winui.huella.algoritmo_formato_salida": "Algorithmus: {0}. Format: {1}. Ausgabe: {2}."
   ,"winui.huella.entradas_incluidas": "Einbezogene Einträge: {0}"
   ,"winui.huella.se_incluyeron_subdirectorios": "Unterverzeichnisse wurden einbezogen."
   ,"winui.huella.no_se_incluyeron_subdirectorios": "Unterverzeichnisse wurden nicht einbezogen."
-  ,"winui.huella.huella": "Prüfsumme: {0}"
+  ,"winui.huella.huella": "Hashwert: {0}"
   ,"winui.huella.no_disponible": "nicht verfügbar"
-  ,"winui.huella.la_huella_coincide": "Prüfsumme stimmt überein"
-  ,"winui.huella.la_huella_no_coincide": "Prüfsumme stimmt nicht überein"
-  ,"winui.huella.el_contenido_comprobado_coincide_con_la": "Der geprüfte Inhalt stimmt mit der gespeicherten Prüfsumme überein."
+  ,"winui.huella.la_huella_coincide": "Hash stimmt überein"
+  ,"winui.huella.la_huella_no_coincide": "Hash stimmt nicht überein"
+  ,"winui.huella.el_contenido_comprobado_coincide_con_la": "Der geprüfte Inhalt stimmt mit dem gespeicherten Hash überein."
   ,"winui.huella.el_contenido_ha_cambiado_falta": "Der Inhalt wurde geändert, Angaben fehlen oder das Manifest stimmt nicht mit der Quelle überein."
   ,"winui.huella.algoritmo_detectado_formato": "Erkannter Algorithmus: {0}. Format: {1}."
   ,"winui.huella.esperada": "Erwartet: {0}"
   ,"winui.huella.calculada": "Berechnet: {0}"
   ,"winui.huella.no_coincide": "Stimmt nicht überein"
   ,"winui.huella.sin_fichero": "Keine Datei"
-  ,"winui.huella.sin_huella": "Keine Prüfsumme"
+  ,"winui.huella.sin_huella": "Kein Hash"
   ,"winui.huella.informe_de_comprobacion": "Prüfbericht: {0}"
-  ,"winui.huella.motor_local_listo_para_crear_y_comprobar": "Lokale Engine bereit zum Erstellen und Prüfen von Prüfsummen."
+  ,"winui.huella.motor_local_listo_para_crear_y_comprobar": "Lokale Engine bereit zum Erstellen und Prüfen von Hashes."
   ,"winui.comun.resultado_no_utilizable": "Unbrauchbares Ergebnis"
-  ,"winui.huella.el_motor_local_no_devolvio_datos_de": "Die lokale Engine hat keine schlüssigen Prüfsummendaten zurückgegeben."
+  ,"winui.huella.el_motor_local_no_devolvio_datos_de": "Die lokale Engine hat keine schlüssigen Hash-Daten zurückgegeben."
   ,"winui.huella.revise_los_datos_seleccionados_antes_de": "Prüfen Sie die ausgewählten Daten, bevor Sie fortfahren."
   ,"winui.huella.elemento_sin_nombre": "unbenanntes Element"
   ,"winui.huella.xml_grxfirma": "GrxFirma-XML"
@@ -6389,9 +6389,9 @@
   ,"Elija quién podrá abrir el documento protegido. Con el formato de clave no hacen falta destinatarios.": "Wählen Sie, wer das geschützte Dokument öffnen darf. Das Schlüsselformat braucht keine Empfänger."
   ,"No hay destinatarios para este nivel de protección. Pruebe con «Alta seguridad» o añada el certificado público de la persona que abrirá el documento.": "Für diese Schutzstufe gibt es keine Empfänger. Versuchen Sie „Hohe Sicherheit“ oder fügen Sie das öffentliche Zertifikat der Person hinzu, die das Dokument öffnen wird."
   ,"GrxFirma usará su certificado de este equipo o, si el documento se protegió con una clave, se la pedirá.": "GrxFirma verwendet Ihr Zertifikat auf diesem Computer oder fragt nach dem Schlüssel, falls das Dokument damit geschützt wurde."
-  ,"La casilla «Añadir sello visible en PDF» empieza marcada al firmar un PDF.": "Das Kästchen „Sichtbares Siegel zum PDF hinzufügen“ ist beim Signieren eines PDF bereits aktiviert."
+  ,"La casilla «Añadir sello visible en PDF» empieza marcada al firmar un PDF.": "Das Kästchen „Sichtbaren Stempel zum PDF hinzufügen“ ist beim Signieren eines PDF bereits aktiviert."
   ,"certificado.exportar.seleccione": "Wählen Sie ein Zertifikat aus der Liste."
-  ,"certificado.exportar.sin_clave_descifrado": "Mit diesem Zertifikat können andere keine Dateien für Sie mit GrxFirma schützen: Sein privater Schlüssel steht zum Entschützen mit dem kompatiblen Profil (RSA-OAEP) nicht zur Verfügung. Importieren Sie eine eigene P12/PFX-Anmeldeinformation mit RSA-Schlüssel."
+  ,"certificado.exportar.sin_clave_descifrado": "Mit diesem Zertifikat können andere keine Dateien für Sie mit GrxFirma schützen: Sein privater Schlüssel steht zum Aufheben des Schutzes mit dem kompatiblen Profil (RSA-OAEP) nicht zur Verfügung. Importieren Sie eine eigene P12/PFX-Anmeldeinformation mit RSA-Schlüssel."
   ,"certificado.exportar.no_apto": "Mit diesem Zertifikat können andere keine Dateien für Sie schützen: %s"
   ,"certificado.exportar.no_encontrado": "Das Zertifikat wurde nicht gefunden oder hat kein öffentliches X.509-Zertifikat."
   ,"certificado.exportar.formato_no_valido": "Ungültiges Format des öffentlichen Zertifikats. Verwenden Sie DER (.cer) oder PEM (.pem)."
@@ -6408,17 +6408,17 @@
   ,"proteccion.destinatario.autoridad": "Das Zertifikat gehört einer Zertifizierungsstelle, nicht einem Empfänger."
   ,"proteccion.destinatario.maximo": "Es gibt bereits 128 importierte Empfänger, das Maximum. Entfernen Sie einen, bevor Sie einen weiteren hinzufügen."
   ,"proteccion.destinatario.generico": "Das öffentliche Zertifikat konnte nicht importiert werden. Prüfen Sie, ob es ein X.509-Zertifikat (DER oder PEM) ist, das Verschlüsselung erlaubt."
-  ,"Windows: vuelve a funcionar el sello elegido por la persona en los portales (Canarias y otros): el botón «Firmar con el sello aquí» se activa y, si la vista falla, se puede firmar sin sello o cancelar. La ventana se cierra sola si el portal deja de esperar.": "Windows: Das von der Person in Portalen gewählte Siegel (Kanaren und andere) funktioniert wieder: Die Schaltfläche „Mit dem Siegel hier signieren“ wird aktiv, und schlägt die Vorschau fehl, kann man ohne Siegel signieren oder abbrechen. Das Fenster schließt sich selbst, wenn das Portal nicht mehr wartet."
+  ,"Windows: vuelve a funcionar el sello elegido por la persona en los portales (Canarias y otros): el botón «Firmar con el sello aquí» se activa y, si la vista falla, se puede firmar sin sello o cancelar. La ventana se cierra sola si el portal deja de esperar.": "Windows: Der von der Person in Portalen gewählte Stempel (Kanaren und andere) funktioniert wieder: Die Schaltfläche „Hier mit sichtbarem Stempel signieren“ wird aktiv, und schlägt die Vorschau fehl, kann man ohne Stempel signieren oder abbrechen. Das Fenster schließt sich selbst, wenn das Portal nicht mehr wartet."
   ,"Windows: «Desproteger» ya no falla ni cierra la aplicación; «Confirmar antes de firmar» funciona; el informe imprimible es la opción principal al verificar; y toda la interfaz se traduce al idioma elegido.": "Windows: „Schutz aufheben“ schlägt nicht mehr fehl und schließt die Anwendung nicht mehr; „Vor dem Signieren bestätigen“ funktioniert; der druckbare Bericht ist beim Prüfen die Hauptoption; und die gesamte Oberfläche wird in die gewählte Sprache übersetzt."
   ,"Veri*Factu: la consulta a la AEAT interpreta bien su respuesta (encontrada, no encontrada o no contrastable) en Windows y Linux, y el informe distingue avisos de errores.": "Veri*Factu: Die Abfrage bei der AEAT wertet deren Antwort korrekt aus (gefunden, nicht gefunden oder nicht abgleichbar) unter Windows und Linux, und der Bericht unterscheidet Warnungen von Fehlern."
   ,"Linux: buen contraste en todos los temas (también los claros), casillas y campos legibles, la rueda del ratón llega hasta «Firmar ahora» y las pantallas se adaptan a ventanas estrechas.": "Linux: guter Kontrast in allen Designs (auch den hellen), lesbare Kontrollkästchen und Felder, das Mausrad erreicht „Jetzt signieren“ und die Bildschirme passen sich schmalen Fenstern an."
-  ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: Der Stapel zeigt an, in welchem Ordner die Signaturen gespeichert wurden, Siegel und Vorschau zeigen denselben Aussteller, und Einstellungen sowie Siegeleditor werden auch bei großer Schrift korrekt angezeigt."
+  ,"Android: el lote indica en qué carpeta se guardaron las firmas, el sello y la vista previa muestran el mismo emisor, y Preferencias y el editor del sello se ven bien con letra grande.": "Android: Der Stapel zeigt an, in welchem Ordner die Signaturen gespeichert wurden, Stempel und Vorschau zeigen denselben Aussteller, und Einstellungen sowie Stempeleditor werden auch bei großer Schrift korrekt angezeigt."
   ,"El fichero elegido no es un PDF": "Die gewählte Datei ist kein PDF"
   ,"Ficheros permitidos (%s)": "Zulässige Dateien (%s)"
   ,"Todos los ficheros (*.*)": "Alle Dateien (*.*)"
-  ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Es wurde nichts signiert: Die Vorschau des sichtbaren Siegels konnte nicht geladen werden. Wählen Sie unter „Erweiterte Optionen“ „Vorschau laden“ und signieren Sie erneut, oder deaktivieren Sie „Sichtbares Siegel zum PDF hinzufügen“, um ohne Siegel zu signieren."
-  ,"sign.seal.preview_loading_before_sign": "Die PDF-Vorschau zum Platzieren des Siegels wird geladen. Das Signieren wird fortgesetzt, sobald sie bereit ist."
-  ,"sign.seal.preview_unavailable_before_sign": "Es wurde nichts signiert: Die PDF-Vorschau zum Platzieren des Siegels konnte nicht geladen werden. Prüfen Sie, ob sich die PDF-Datei korrekt öffnen lässt, und signieren Sie erneut, oder deaktivieren Sie „Sichtbare Signatur (PAdES)“, um ohne Siegel zu signieren."
+  ,"winui.firmar.sello_sin_vista_previa_antes_de_firmar": "Es wurde nichts signiert: Die Vorschau des sichtbaren Stempels konnte nicht geladen werden. Wählen Sie unter „Erweiterte Optionen“ „Vorschau laden“ und signieren Sie erneut, oder deaktivieren Sie „Sichtbaren Stempel zum PDF hinzufügen“, um ohne Stempel zu signieren."
+  ,"sign.seal.preview_loading_before_sign": "Die PDF-Vorschau zum Platzieren des Stempels wird geladen. Das Signieren wird fortgesetzt, sobald sie bereit ist."
+  ,"sign.seal.preview_unavailable_before_sign": "Es wurde nichts signiert: Die PDF-Vorschau zum Platzieren des Stempels konnte nicht geladen werden. Prüfen Sie, ob sich die PDF-Datei korrekt öffnen lässt, und signieren Sie erneut, oder deaktivieren Sie „Sichtbare Signatur (PAdES)“, um ohne Stempel zu signieren."
   ,"report.signer.identifier": "Steuer-ID / Kennung"
   ,"report.signer.organization": "Organisation"
   ,"report.signer.signing_time": "Zeitpunkt der Signatur"

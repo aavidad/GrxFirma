@@ -83,11 +83,11 @@
   "Registro de auditoría": "Audit log",
   "Registro de auditoría íntegro: %d registros.": "Audit log intact: %d records.",
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "The oldest records were removed by the retention policy; the chain is checked from the first record kept.",
-  "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d records predate the fingerprint chain and cannot be checked.",
+  "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d records predate the hash chain and cannot be checked.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Checks the fingerprint chain of the audit log: detects altered, inserted or deleted records. To also prove the end has not been cut, sign the file with your certificate when you hand it over.",
+  "cli.help.audit": "Checks the hash chain of the audit log: detects altered, inserted or deleted records. To also prove the end has not been cut, sign the file with your certificate when you hand it over.",
   "cli.help.report_usage": "-informe <informe.html>",
-  "cli.help.report": "With verification, saves a printable HTML validation report with the verdict, checks, signers and the SHA-256 fingerprint of the verified file.",
+  "cli.help.report": "With verification, saves a printable HTML validation report with the verdict, checks, signers and the SHA-256 hash of the verified file.",
   "Informe de validación": "Validation report",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Reads without echo the password of an encrypted PDF (user or owner) to sign it keeping its encryption. The GRXFIRMA_PDF_PASSWORD variable is also accepted and cleared when read; it is never accepted as an argument.",
@@ -173,8 +173,8 @@
   "+ CERTIFICADOS": "+ CERTIFICATES",
   "+%1 más": "+%1 more",
   ",": ",",
-  "--- INICIO DE LOGS ---\n": "--- INICIO DE LOGS ---\n",
-  "--- INICIO DE LOGS ---\\n": "--- INICIO DE LOGS ---\n",
+  "--- INICIO DE LOGS ---\n": "--- LOG START ---\n",
+  "--- INICIO DE LOGS ---\\n": "--- LOG START ---\n",
   "--- LOGS REINICIADOS [": "--- LOGS RESET [",
   "/ruta/al/documento.afp o .enveloped": "/path/to/document.afp or .enveloped",
   "/ruta/al/documento.bin": "/path/to/document.bin",
@@ -321,7 +321,7 @@
   "Avisos:": "Warnings:",
   "Ayuda": "Help",
   "Ayuda paso a paso para la operación actual": "Step-by-step help for the current operation",
-  "Añade al menos un cofirmante adicional para completar la cofirma múltiple guiada.": "Add at least one additional co-signer to complete guided multi-cosign.",
+  "Añade al menos un cofirmante adicional para completar la cofirma múltiple guiada.": "Add at least one additional co-signer to complete guided multiple co-signing.",
   "Añade el original solo si la firma es detached o la validación lo pide.": "Add the original only if the signature is detached or the validation asks for it.",
   "Añadiendo nuevo dominio a la lista...": "Adding a new domain to the list...",
   "Añadir Dominio": "Add Domain",
@@ -454,7 +454,7 @@
   "Cofirmar": "Co-sign",
   "Coinciden": "Matching",
   "Coinciden: ": "Match: ",
-  "Cola de log redactada": "Redacted log queue",
+  "Cola de log redactada": "Sanitised log tail",
   "Colapsar menú": "Collapse menu",
   "Colapsar panel de certificados": "Collapse certificates panel",
   "Compacto": "Compact",
@@ -533,8 +533,8 @@
   "Copiar JSON de verificación": "Copy verification JSON",
   "Copiar JSON del certificado": "Copy certificate JSON",
   "Copiar diagnóstico": "Copy diagnostics",
-  "Copiar huella": "Copy hash",
-  "Copiar huella al portapapeles por defecto": "Copy digest to clipboard by default",
+  "Copiar huella": "Copy fingerprint",
+  "Copiar huella al portapapeles por defecto": "Copy hash to clipboard by default",
   "Copiar informe": "Copy report",
   "Copiar resumen": "Copy summary",
   "Copiar resumen de validación": "Copy validation summary",
@@ -555,17 +555,17 @@
   "Datos de la firma": "Signature data",
   "Debe cargar un archivo PDF antes de realizar la firma.": "You must load a PDF file before signing.",
   "Debe cargar un archivo PDF y seleccionar un certificado para poder firmar.": "You must load a PDF file and select a certificate before signing.",
-  "Debe cargar uno o varios documentos antes de realizar la firma.": "You must upload one or more documents before signing.",
-  "Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.": "You must upload one or more documents and select a certificate to sign.",
+  "Debe cargar uno o varios documentos antes de realizar la firma.": "You must load one or more documents before signing.",
+  "Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.": "You must load one or more documents and select a certificate to sign.",
   "Debe definir un firmante principal válido para la cofirma múltiple guiada.": "You must define a valid primary signer for guided multi-cosign.",
   "Debe indicar el certificado a comprobar.": "You must indicate the certificate to check.",
   "Debe indicar el certificado que quiere comprobar.": "You must indicate the certificate you want to check.",
   "Debe indicar un dominio u origen para añadirlo.": "Enter a domain or origin to add it.",
   "Debe seleccionar al menos un certificado adicional para la cofirma múltiple guiada.": "You must select at least one additional certificate for guided multi-cosign.",
   "Debe seleccionar un certificado de la lista para poder firmar el documento.": "You must select a certificate from the list before signing the document.",
-  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Defines the preselected algorithm for creating and checking digital digests.",
+  "Define el algoritmo preseleccionado para crear y comprobar huellas digitales.": "Defines the preselected algorithm for creating and checking hashes.",
   "Define el comportamiento por defecto cuando el archivo de salida ya existe.": "Define the default behavior when the output file already exists.",
-  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Defines the preselected format when creating or checking file digests.",
+  "Define el formato preseleccionado al crear o comprobar huellas de ficheros.": "Defines the preselected format when creating or checking file hashes.",
   "Define el formato preseleccionado al crear o comprobar manifiestos de directorio.": "Defines the preselected format when creating or checking directory manifests.",
   "Define el motivo preseleccionado que se incrustará en la firma cuando proceda.": "Defines the preselected reason that will be embedded in the signature when applicable.",
   "Define el papel preseleccionado del firmante al generar firmas FacturaE.": "Defines the signer role preselected when generating FacturaE signatures.",
@@ -771,7 +771,7 @@
   "Error importando certificado: ": "Error importing certificate: ",
   "Error instalando certificados": "Error installing local TLS trust",
   "Error instalando la confianza TLS local": "Error installing local TLS trust",
-  "Error instalando raíces de confianza: ": "Error installing trust roots: ",
+  "Error instalando raíces de confianza: ": "Error installing local TLS trust: ",
   "Error si existe": "Fail if exists",
   "Error: ": "Error: ",
   "Error: Ruta IPC vacía": "Error: empty IPC path",
@@ -944,7 +944,7 @@
   "Host / IP:": "Host/IP:",
   "Huella": "Hash",
   "Huella SHA-256: ": "SHA-256 fingerprint: ",
-  "Huella copiada al portapapeles.": "Digest copied to clipboard.",
+  "Huella copiada al portapapeles.": "Hash copied to clipboard.",
   "Huella del certificado copiada al portapapeles.": "Certificate fingerprint copied to clipboard.",
   "Huella o manifiesto": "Hash or manifest",
   "Huella o manifiesto: ": "Hash or manifest: ",
@@ -981,7 +981,7 @@
   "Inicializando el flujo de firma web": "Initialising the web signing flow",
   "Iniciando...": "Starting...",
   "Iniciar servidor": "Start server",
-  "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "Insert a visible stamp into the PDF indicating that it was digitally signed.",
+  "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "Insert a visible seal into the PDF indicating that it was digitally signed.",
   "Instala el motor de firma como servicio de tu usuario (no de sistema),\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installs the signing engine as a user service (not a system service),\nso it starts automatically and can access your personal certificates.",
   "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Installs the signing engine as a service for your user (not the system),\nso that it starts automatically and has access to your personal certificates.",
   "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "Install trust for the local HTTPS certificate so the REST web console opens without browser warnings.",
@@ -1012,8 +1012,8 @@
   "La app sí detecta certificados, pero puede que el filtro actual o el tipo de certificado no encajen con la operación.": "The app does detect certificates, but the current filter or certificate type may not match the operation.",
   "La clave debe tener al menos 6 caracteres.": "The key must be at least 6 characters long.",
   "La clave indicada no es correcta.": "The key entered is not correct.",
-  "La cofirma múltiple guiada está desactivada.": "Guided multi-cosign is disabled.",
-  "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "Guided multi-cosign is only available for a single document in sign or co-sign actions.",
+  "La cofirma múltiple guiada está desactivada.": "Guided multiple co-signing is disabled.",
+  "La cofirma múltiple guiada solo está disponible para documento único en acciones firmar o cofirmar.": "Guided multiple co-signing is only available for a single document in sign or co-sign actions.",
   "La cofirma múltiple guiada solo está disponible para firmar o cofirmar, no para contrafirmar.": "Guided multi-cosign is only available for signing or co-signing, not for countersigning.",
   "La cofirma múltiple guiada solo está disponible para un único documento, no para lotes.": "Guided multiple co-signing is only available for a single document, not for batches.",
   "La confirmación de la clave no coincide.": "The key confirmation does not match.",
@@ -1050,7 +1050,7 @@
   "La validación ha fallado o tiene incidencias: %1": "Validation failed or has issues: %1",
   "La validación tiene incidencias. Revisa la razón mostrada y decide si necesitas el original, otro certificado o soporte.": "Validation has issues. Review the shown reason and decide whether you need the original, another certificate, or support.",
   "La ventana se cerrará automáticamente al terminar la sesión del portal.": "The window will close automatically when the portal session ends.",
-  "La verificación ha devuelto incidencias.": "The verification has returned incidents.",
+  "La verificación ha devuelto incidencias.": "Verification returned issues.",
   "La vista previa muestra el PDF activo del lote. De momento la misma posición del sello se aplica al resto del lote.": "The preview shows the active PDF of the batch. At the moment the same position of the stamp applies to the rest of the lot.",
   "Lanza la operación y usa este asistente si algo no queda claro.": "Run the operation and use this assistant if anything is unclear.",
   "Lanza la validación con el fichero actual.": "Starts validation with the current file.",
@@ -1069,8 +1069,8 @@
   "Lote completado con incidencias.": "Batch completed with issues.",
   "Lote firmado correctamente.": "Batch signed successfully.",
   "Lote firmado y verificado correctamente.": "Batch signed and verified correctly.",
-  "Lote firmado, con incidencias de verificación en algunos resultados.": "Signed batch, with verification issues in some results.",
-  "Lote firmado. Verificando resultados...": "Signed lot. Verifying results...",
+  "Lote firmado, con incidencias de verificación en algunos resultados.": "Batch signed, but verification found issues in some results.",
+  "Lote firmado. Verificando resultados...": "Batch signed. Verifying results...",
   "Lote o selección múltiple": "Batch or multiple selection",
   "Lote: ": "Batch: ",
   "Lugar de firma FacturaE": "FacturaE signing place",
@@ -1185,7 +1185,7 @@
   "No se pudo preparar el certificado TLS local.": "The local TLS certificate could not be prepared.",
   "No se pudo instalar la confianza TLS local.": "The local TLS trust could not be installed.",
   "No se pudo seleccionar certificado automáticamente:": "A certificate could not be selected automatically:",
-  "No se pudo seleccionar certificado: ": "Could not auto-select certificate: ",
+  "No se pudo seleccionar certificado: ": "Could not select certificate: ",
   "No se seleccionó ningún certificado": "No certificate was selected",
   "No seleccionada": "Not selected",
   "No seleccionado": "Not selected",
@@ -1235,10 +1235,10 @@
   "Opcional. Se envía en Authorization: Bearer ...": "Optional. Sent in Authorization: Bearer ...",
   "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible cuando no usas imagen personalizada.": "Optional. If you provide text or a URL, a QR code is embedded inside the visible seal when no custom image is used.",
   "Opcional. Si indicas un texto o URL, se incrusta un QR dentro del sello visible y puede combinarse con imagen personalizada.": "Optional. If you provide text or a URL, a QR code is embedded in the visible seal and can be combined with a custom image.",
-  "Opcional. Si indicas una TSA, el backend la usará para perfiles con sello de tiempo.": "Optional. If you specify a TSA, the engine will use it for profiles with a time stamp.",
+  "Opcional. Si indicas una TSA, el backend la usará para perfiles con sello de tiempo.": "Optional. If you specify a TSA, the engine will use it for profiles with a timestamp.",
   "Opcional. Si informa identificador y hash, se enviarán al backend como política explícita de FacturaE.": "Optional. If identifier and hash are provided, they will be sent to the backend as an explicit FacturaE policy.",
   "Opcional. Si se deja vacío, cada fichero se guarda junto al original.": "Optional. If left empty, each file is saved next to the original.",
-  "Opcional. Si se indica, el backend la usará para perfiles con sello de tiempo.": "Optional. If specified, the engine will use it for profiles with a time stamp.",
+  "Opcional. Si se indica, el backend la usará para perfiles con sello de tiempo.": "Optional. If specified, the engine will use it for profiles with a timestamp.",
   "Opcional: 6F:..., 8A:...": "Optional: 6F:..., 8A:...",
   "Opcional: token de acceso bearer": "Optional: bearer access token",
   "Opciones JSON": "JSON options",
@@ -1267,7 +1267,7 @@
   "Para abrir la API REST local sin avisos del navegador, instale la confianza del certificado TLS local.": "To open the local REST API without browser warnings, install trust for the local TLS certificate.",
   "Para modificar la lista de dominios permitidos (NM/CORS) debe identificarse como administrador del sistema.": "To modify the allowlist of permitted domains (NM/CORS), you must authenticate as a system administrator.",
   "Para modificar la lista de dominios permitidos y las conexiones seguras debe identificarse.": "To modify the list of allowed domains and secure connections you must authenticate yourself.",
-  "Para previsualizar el sello en un lote por carpeta, seleccione uno o varios PDF concretos. La firma visible solo se aplica a PAdES (PDF).": "To preview the stamp in a batch per folder, select one or more specific PDFs. The visible signature only applies to PAdES (PDF).",
+  "Para previsualizar el sello en un lote por carpeta, seleccione uno o varios PDF concretos. La firma visible solo se aplica a PAdES (PDF).": "To preview the seal in a folder batch, select one or more specific PDFs. The visible signature only applies to PAdES (PDF).",
   "Para que las firmas de este emisor (FNMT, etc.) sean válidas, debe instalar las raíces de confianza.": "To open the local REST API without browser warnings, install trust for the local TLS certificate.",
   "Parece depender de red o de un servicio externo.": "It seems to depend on the network or an external service.",
   "Parece depender del certificado o de su disponibilidad en este equipo.": "It seems to depend on the certificate or its availability on this machine.",
@@ -1493,7 +1493,7 @@
   "Rol FacturaE por defecto": "Default FacturaE role",
   "Rol del certificado": "Certificate role",
   "Rotación": "Rotation",
-  "Rotación del sello visible por defecto": "Default visible signature rotation",
+  "Rotación del sello visible por defecto": "Default visible seal rotation",
   "Ruta de salida": "Output path",
   "Ruta de salida opcional": "Optional output path",
   "Ruta del fichero de huella": "Hash file path",
@@ -1524,7 +1524,7 @@
   "Se añadirá como cofirmante, manteniendo la firma ya existente.": "You will be added as a co-signer, keeping the existing signature.",
   "Se añadirá una cofirma al artefacto ya firmado, manteniendo la firma existente.": "A co-signature will be added to the already signed artifact, keeping the existing signature.",
   "Se añadirá una cofirma y, a continuación, se encadenarán cofirmas adicionales sobre el mismo artefacto.": "A co-signature will be added and then additional co-signatures will be chained on the same artifact.",
-  "Se enviará la incidencia estructurada, la previsualización del paquete, el manifiesto y una cola de log redactada. No se enviarán documentos originales, rutas completas del perfil ni secretos.": "The structured incident, the package preview, the manifest and a redacted log queue will be sent. Original documents, full profile paths and secrets will not be sent.",
+  "Se enviará la incidencia estructurada, la previsualización del paquete, el manifiesto y una cola de log redactada. No se enviarán documentos originales, rutas completas del perfil ni secretos.": "The structured incident, the package preview, the manifest and the last lines of the log, with personal data removed, will be sent. Original documents, full profile paths and secrets will not be sent.",
   "Las incidencias locales se eliminan automáticamente a los 30 días y solo se conservan las 50 más recientes.": "Local incident reports are automatically deleted after 30 days, and only the 50 most recent are retained.",
   "Se generará una firma inicial y después se añadirán cofirmas encadenadas sobre el mismo artefacto.": "An initial signature will be generated and then chained co-signatures will be added on the same artifact.",
   "Se generará una firma nueva por cada elemento del lote seleccionado.": "A new signature will be generated for each item in the selected batch.",
@@ -1549,7 +1549,7 @@
   "Secretos, tokens y cabeceras sensibles": "Secrets, tokens and sensitive headers",
   "Seguridad y Dominios": "Security and Domains",
   "Selecciona al menos un destinatario de protección.": "Select at least one protection recipient.",
-  "Selecciona al menos un firmante adicional para la cofirma múltiple.": "Select at least one additional signer for guided multi-cosign.",
+  "Selecciona al menos un firmante adicional para la cofirma múltiple.": "Select at least one additional signer for multiple co-signing.",
   "Selecciona el fichero firmado antes de reintentar la validación.": "Select the signed file before retrying validation.",
   "Selecciona el fichero firmado que quieres validar.": "Select the signed file you want to validate.",
   "Selecciona exactamente un destinatario de protección.": "Select exactly one protection recipient.",
@@ -1642,9 +1642,9 @@
   "Si se activa y solo hay un certificado disponible, la aplicación lo seleccionará automáticamente al cargar el catálogo.": "If enabled and only one certificate is available, the application will select it automatically when loading the catalog.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación intentará guardarlas y cerrará sin mostrar el diálogo de confirmación.": "If enabled, when closing with pending preferences the application will try to save them and then close without showing the confirmation dialog.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación las guardará y continuará sin mostrar el diálogo de confirmación.": "If enabled, when closing with pending preferences the application will save them and continue without showing the confirmation dialog.",
-  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "If enabled, when checking directory digests the UI will default to saving the report.",
-  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "If enabled, recursive mode will be selected by default when creating or checking directory digests.",
-  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "If enabled, generating a simple digest will automatically copy it to the clipboard.",
+  "Si se activa, al comprobar huellas de directorios se propondrá por defecto guardar el informe.": "If enabled, when checking directory hashes the UI will default to saving the report.",
+  "Si se activa, al crear o comprobar huellas de directorios se marcará por defecto el modo recursivo.": "If enabled, recursive mode will be selected by default when creating or checking directory hashes.",
+  "Si se activa, al generar una huella simple se copiará automáticamente al portapapeles.": "If enabled, generating a simple hash will automatically copy it to the clipboard.",
   "Si se activa, al preparar firmas PDF se propondrá por defecto la firma visible.": "If enabled, preparing PDF signatures will default to proposing a visible signature.",
   "Si se activa, al preparar una firma visible PAdES se propondrá por defecto aplicarla en todas las páginas.": "If enabled, preparing a visible PAdES signature will default to applying it on all pages.",
   "Si se activa, al pulsar cerrar la ventana la aplicación se minimizará y seguirá lista para futuras firmas.": "If enabled, pressing the window close button will minimize the application and keep it ready for future signatures.",
@@ -1690,7 +1690,7 @@
   "Sin perfil/TSA/subfiltro visibles.": "No visible profile/TSA/subfilter.",
   "Sin política/rol/lugar FacturaE visibles.": "No visible FacturaE policy/role/place.",
   "Sin proxy": "No proxy",
-  "Sin ruta de salida, se generará un artefacto con extensión ": "Without an output path, an artifact with extension will be generated ",
+  "Sin ruta de salida, se generará un artefacto con extensión ": "Without an output path, the generated artifact will have the extension ",
   "Sobrescribir salida": "Overwrite output",
   "Sobrescritura": "Overwrite",
   "Socket activo encontrado. Conectando...": "Active socket found. Connecting...",
@@ -1713,7 +1713,7 @@
   "Sí hay certificados disponibles, pero el actual puede no servir para esta operación.": "There are certificates available, but the current one may not work for this operation.",
   "TEMA VISUAL": "VISUAL THEME",
   "TRAZA DE LA OPERACIÓN": "OPERATION TRACE",
-  "TRAZA DEL SISTEMA (redactada)": "SYSTEM TRACE (redacted)",
+  "TRAZA DEL SISTEMA (redactada)": "SYSTEM TRACE (sanitised)",
   "Te deja en la validación lista para seleccionar el fichero.": "Takes you to validation, ready to select the file.",
   "Te lleva a la pestaña de firma.": "Takes you to the signing tab.",
   "Te lleva a la pestaña de validación.": "Takes you to the validation tab.",
@@ -2359,7 +2359,7 @@
   "• ": "• ",
   "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ The detected REST server is active, but it was not started by this window. Stop it from the tray or from the instance that launched it.",
   "ℹ️ ": "ℹ️ ",
-  "ℹ️ Chequeo exhaustivo de certificados completado.": "Exhaustive certificate check completed.",
+  "ℹ️ Chequeo exhaustivo de certificados completado.": "ℹ️ Exhaustive certificate check completed.",
   "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "The diagnostic report has been copied to the clipboard.",
   "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "ℹ️ No native certificate manager found (seahorse/kleopatra).",
   "↶ Rotar Firma": "↶ Rotate Signature",
@@ -2373,7 +2373,7 @@
   "▼ Ocultar detalles": "▼ Hide details",
   "● Comprobando estado del servidor...": "● Checking server status...",
   "● Estado desconocido (Sin conexión)": "● Unknown status (no connection)",
-  "● Servicio activo y corriendo": "● Service installed and running",
+  "● Servicio activo y corriendo": "● Service active and running",
   "● Servicio instalado pero parado": "● Service installed but stopped",
   "● Servicio no instalado": "● Service not installed",
   "● Servidor API REST en ejecución": "● REST API server is running",
@@ -2464,7 +2464,7 @@
   "Reinstalar conectores": "Reinstall connectors",
   "Reinstalar certificados": "Reinstall certificates",
   "Requerido salvo autenticación por certificado. Se envía como Bearer.": "Required unless certificate authentication is used. Sent as a Bearer token.",
-  "Personalizar el sello para este PDF": "Customize the stamp for this PDF",
+  "Personalizar el sello para este PDF": "Customize the seal for this PDF",
   "Este PDF usa su propia posición y rango de páginas.": "This PDF uses its own position and page range.",
   "Este PDF usa la plantilla global del lote.": "This PDF uses the batch-wide template.",
   "Válida y confiable": "Valid and trusted",
@@ -2772,10 +2772,10 @@
   "Ver novedades": "See what’s new",
   "Ahora no": "Not now"
   ,"winui.parity.verify.export": "Export JSON report"
-  ,"winui.parity.tsa.enabled": "Use a time stamp"
-  ,"winui.parity.tsa.url": "Time stamp server URL"
-  ,"winui.parity.tsa.invalid": "Enter a valid HTTP or HTTPS URL for the time stamp server."
-  ,"winui.parity.tsa.unavailable": "Could not read time stamp settings. Try again."
+  ,"winui.parity.tsa.enabled": "Use a timestamp"
+  ,"winui.parity.tsa.url": "Timestamp server URL"
+  ,"winui.parity.tsa.invalid": "Enter a valid HTTP or HTTPS URL for the timestamp server."
+  ,"winui.parity.tsa.unavailable": "Could not read timestamp settings. Try again."
   ,"winui.parity.certs.person": "Individual"
   ,"winui.parity.certs.representative": "Representative"
   ,"winui.parity.certs.seal": "Organization seal"
@@ -2846,7 +2846,7 @@
   ,"facturae.due_date": "Due date"
   ,"facturae.email": "Email (optional)"
   ,"facturae.error.address": "Check the address, town, province and postal code for both parties."
-  ,"facturae.error.amount": "Quantity, price and VAT must be valid; the amount exceeds the supported limit."
+  ,"facturae.error.amount": "Quantity, price and VAT must be valid; the amount cannot exceed the supported limit."
   ,"facturae.error.date": "Enter a valid issue date that is not in the future."
   ,"facturae.error.description": "Check the description and reference lengths."
   ,"facturae.error.dir3": "Each DIR3 code must contain nine letters or digits."
@@ -3168,7 +3168,7 @@
   ,"Firma predeterminada": "Default signature"
   ,"Formato de firma predeterminado": "Default signature format"
   ,"Sello visible en PDF": "Visible PDF stamp"
-  ,"Sello visible en PDF como valor predeterminado": "Visible PDF stamp by default"
+  ,"Sello visible en PDF como valor predeterminado": "Visible PDF seal by default"
   ,"Red y proxy": "Network and proxy"
   ,"Usar proxy": "Use proxy"
   ,"Tipo de proxy": "Proxy type"
@@ -3200,7 +3200,7 @@
   ,"Muestra u oculta una sección independiente para crear facturas electrónicas y seguir la remisión oficial a FACe.": "Shows or hides a separate section for creating electronic invoices and following official submission to FACe."
   ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "It is off by default. Enabling it adds “Facturae, FACe and Veri*Factu” as a separate section; GrxFirma’s usual functions do not change."
   ,"La preferencia se conserva, pero la firma WinUI no la usa hasta disponer del editor seguro de sello PDF.": "The preference is saved, but WinUI signing will not use it until a secure PDF stamp editor is available."
-  ,"El sello visible solo es compatible con selección automática de formato o PAdES.": "The visible stamp is supported only with automatic format selection or PAdES."
+  ,"El sello visible solo es compatible con selección automática de formato o PAdES.": "The visible seal is supported only with automatic format selection or PAdES."
   ,"Las credenciales se administran únicamente mediante el almacén protegido del sistema.": "Credentials are managed only through the system’s protected store."
   ,"Indique una URL, host o patrón por línea.": "Enter one URL, host or pattern per line."
   ,"La contraseña se solicita en un diálogo nativo de Windows, se envía una sola vez y nunca aparece en esta pantalla.": "The password is requested in a native Windows dialog, sent only once and never shown on this screen."
@@ -3902,7 +3902,7 @@
   ,"En Windows, el instalador vuelve a crear el acceso a GrxFirma en el menú Inicio y, por defecto, en el escritorio.": "On Windows, the installer again creates a GrxFirma shortcut in the Start menu and, by default, on the desktop."
   ,"Nuevo icono de GrxFirma.": "New GrxFirma icon."
   ,"GrxFirma se queda en la bandeja del sistema al cerrar la ventana (se puede desactivar en Ajustes), con opción de iniciarse con Windows.": "GrxFirma remains in the system tray when the window closes (this can be disabled in Settings), with an option to start with Windows."
-  ,"La aplicación de Linux incorpora las novedades de Windows: vista previa real del sello, estilos, QR, páginas y giro libre; estado y caducidad de los certificados con acceso a la renovación FNMT; guía para DNIe y tarjetas; destinatarios públicos en Proteger; y novedades en Acerca de.": "The Linux application now includes Windows features: real stamp preview, styles, QR, per-page placement and free rotation; certificate status and expiry with FNMT renewal access; DNIe and smart-card guidance; public recipients in Protect; and release notes in About."
+  ,"La aplicación de Linux incorpora las novedades de Windows: vista previa real del sello, estilos, QR, páginas y giro libre; estado y caducidad de los certificados con acceso a la renovación FNMT; guía para DNIe y tarjetas; destinatarios públicos en Proteger; y novedades en Acerca de.": "The Linux application now includes Windows features: real seal preview, styles, QR, per-page placement and free rotation; certificate status and expiry with FNMT renewal access; DNIe and smart-card guidance; public recipients in Protect; and release notes in About."
   ,"En Windows, los programas se instalan en %LOCALAPPDATA%\\Programs\\GrxFirma y los datos del usuario se guardan aparte en %LOCALAPPDATA%\\GrxFirma, de modo que reinstalar o actualizar ya no falla después de haber usado la aplicación.": "On Windows, programs are installed in %LOCALAPPDATA%\\Programs\\GrxFirma and user data is stored separately in %LOCALAPPDATA%\\GrxFirma, so reinstalling or updating no longer fails after use."
   ,"En Windows, la instalación y las actualizaciones guardan los programas en %LOCALAPPDATA%\\Programs\\GrxFirma. Los datos de uso y la configuración permanecen en sus carpetas de usuario al desinstalar.": "On Windows, installation and updates store programs in %LOCALAPPDATA%\\Programs\\GrxFirma. Usage data and settings remain in the user folders after uninstalling."
   ,"Corregida la conexión con los portales web en equipos donde nunca se había usado la aplicación: el certificado local que usa el navegador para comunicarse con GrxFirma no quedaba como de confianza. Ahora el instalador lo instala por la vía normal de Windows, que pide una única confirmación.": "Fixed portal connections on computers where the application had never been used: the browser’s local certificate for talking to GrxFirma was not trusted. The installer now installs trust through the normal Windows procedure, which asks for one confirmation."
@@ -4985,7 +4985,7 @@
   ,"csc.gui.conectar": "Connect"
   ,"csc.gui.conectando": "Waiting for you to authorise access in the browser…"
   ,"csc.gui.desconectar": "Disconnect"
-  ,"csc.gui.conectada": "Connected. The remote certificates appear in the certificate list marked «Remote»."
+  ,"csc.gui.conectada": "Connected. The remote certificates appear in the certificate list marked “Remote”."
   ,"csc.gui.sin_credenciales": "The account has no remote certificates that can be used for signing."
   ,"csc.gui.omitidas": "Some remote certificates in the account cannot be used and are not shown."
   ,"csc.gui.remoto": "Remote"
@@ -5052,7 +5052,7 @@
   ,"report.size_bytes": "%d bytes"
   ,"report.section.document": "Verified document"
   ,"report.field.name": "Name"
-  ,"report.field.hash": "SHA-256 fingerprint"
+  ,"report.field.hash": "SHA-256 hash"
   ,"report.field.size": "Size"
   ,"report.field.format": "Signature format"
   ,"report.field.coverage": "Coverage"
@@ -5065,7 +5065,7 @@
   ,"report.section.warnings": "Warnings"
   ,"report.section.evidence": "Evidence"
   ,"report.section.details": "Technical details"
-  ,"report.footer": "Generated by %s. This report describes the result of the local verification on the date shown; the SHA-256 fingerprint identifies the exact file verified. It does not replace a qualified validation service."
+  ,"report.footer": "Generated by %s. This report describes the result of the local verification on the date shown; the SHA-256 hash identifies the exact file verified. It does not replace a qualified validation service."
   ,"firma CAdES válida": "Valid CAdES signature"
   ,"firma XAdES valida": "Valid XAdES signature"
   ,"firma XMLdSig valida": "Valid XMLdSig signature"
@@ -5362,7 +5362,7 @@
   ,"winui.firmar.el_lote_se_cancelo_solo_se_consideran": "The batch was canceled. Only outputs already confirmed in the list are considered valid."
   ,"winui.firmar.fallo_la_comunicacion_segura_durante_la": "Secure communication failed during batch signing."
   ,"winui.firmar.la_aplicacion_no_pudo_completar_la_firma": "The application could not complete batch signing."
-  ,"winui.firmar.ha_elegido_ultima_pagina_el_documento": " You chose “Last page”: the document has {0} page(s), and the stamp will appear on page {1}."
+  ,"winui.firmar.ha_elegido_ultima_pagina_el_documento": " You chose “Last page”: the document has {0} page(s), and the seal will appear on page {1}."
   ,"winui.firmar.corrija_la_seleccion_del_pdf_o_de": "Correct the PDF or page selection and reload the preview."
   ,"winui.firmar.ya_hay_otra_operacion_en_curso_espere_o": "Another operation is in progress. Wait or cancel it before loading the preview."
   ,"winui.firmar.el_motor_local_no_ofrece_la": "The local engine does not provide the PDF preview needed to calculate a safe seal."
@@ -5430,7 +5430,7 @@
   ,"winui.firmar.windows_no_pudo_representar_de_forma": "Windows could not safely render the preview image. Signing did not start."
   ,"winui.firmar.vuelva_a_cargar_la_previsualizacion_si": "Reload the preview. If the issue recurs, try another PDF and keep the diagnostic."
   ,"winui.firmar.la_imagen_del_sello_debe_ser_un_png_o": "The seal image must be a PNG or JPEG of up to 10 MB."
-  ,"winui.firmar.ha_elegido_imagen_propia_seleccione_la": "You chose “Own image”: select the seal's PNG or JPEG image."
+  ,"winui.firmar.ha_elegido_imagen_propia_seleccione_la": "You chose “Custom image”: select the seal's PNG or JPEG image."
   ,"winui.firmar.ubicacion": "location"
   ,"winui.firmar.no_se_pudo_generar_la_vista_previa_del": "Could not generate the seal preview with these options. Check the image, QR code or area size."
   ,"winui.firmar.vista_previa_real_del_sello_elija_un": "Actual seal preview. Choose a certificate to see its name; an example name is shown for now."
@@ -5994,7 +5994,7 @@
   ,"winui.ajustes.seleccione_un_idioma_admitido": "Select a supported language."
   ,"winui.ajustes.seleccione_un_tema_visual_admitido": "Select a supported visual theme."
   ,"winui.ajustes.seleccione_un_formato_de_firma_admitido": "Select a supported signature format."
-  ,"winui.ajustes.el_sello_visible_solo_es_compatible_con": "The visible stamp is supported only with automatic format selection or PAdES."
+  ,"winui.ajustes.el_sello_visible_solo_es_compatible_con": "The visible seal is supported only with automatic format selection or PAdES."
   ,"winui.ajustes.seleccione_un_tipo_de_proxy_admitido": "Select a supported proxy type."
   ,"winui.ajustes.el_puerto_del_proxy_debe_estar_entre_1_y": "The proxy port must be between 1 and 65535."
   ,"winui.ajustes.seleccione_proxy_manual_o_desactive_el": "Select a manual proxy or turn off proxy use."
@@ -6329,7 +6329,7 @@
   ,"winui.selector.nombre_documento_protegido_firmado": "signed-protected-document"
   ,"winui.selector.nombre_diagnostico": "diagnostics"
   ,"sign.need_certificate": "Choose a certificate to sign."
-  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "The signer cannot be confirmed: the certificate does not come from a trusted authority (for example, it is a test certificate). Ask the signer to use a recognised certificate, such as an FNMT certificate or a Spanish ID card."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "The signer cannot be confirmed: the certificate does not come from a trusted authority (for example, it is a test certificate). Ask the signer to use a recognised certificate, such as an FNMT certificate or the DNIe (Spanish electronic ID card)."
   ,"verificacion.ver_detalles_tecnicos": "View technical details"
   ,"verificacion.detalle.revocacion.bueno": "not revoked"
   ,"verificacion.detalle.revocacion.revocado": "revoked"
