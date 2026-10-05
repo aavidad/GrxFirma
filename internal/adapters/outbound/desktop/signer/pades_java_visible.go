@@ -20,6 +20,7 @@ import (
 
 	pdfsign "github.com/digitorus/pdfsign/sign"
 
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/domain"
 )
 
@@ -198,7 +199,7 @@ func valorPatronJava(patron string, cert *x509.Certificate, options map[string]s
 		if formato == "" {
 			formato = "dd/MM/yyyy"
 		}
-		return ahora.Format(formatoFechaJava(formato))
+		return ahora.In(zonaSelloDesdeOpciones(options)).Format(formatoFechaJava(formato))
 	case "REASON":
 		return primeraOpcionNoVacia(options, "signReason", "reason", "signatureReason")
 	case "LOCATION":
@@ -228,16 +229,47 @@ func formatoFechaJava(f string) string {
 	return r.Replace(f)
 }
 
-// estiloTextoSello es el texto y la tipografía del sello pedidos por la web.
+// estiloTextoSello es el texto y la tipografía del sello pedidos por la web,
+// y el idioma y la zona horaria con que se escriben sus rótulos y su fecha.
 type estiloTextoSello struct {
 	texto     string
 	tamPuntos float64
 	color     *color.NRGBA
 	escala    float64 // píxeles por punto, lo fija el generador
+	textos    *localizador.Localizador
+	zona      *time.Location
+}
+
+// Opciones del sello que fijan su idioma y su zona horaria. La interfaz que
+// pide la firma envía su idioma (o el fijado en la configuración, p. ej.
+// castellano para documentos de la Administración) y, en el móvil, la zona
+// del dispositivo. Sin ellas se mantiene el castellano y la zona del sistema.
+const (
+	OpcionIdiomaSello = "sealLanguage"
+	OpcionZonaSello   = "sealTimeZone"
+)
+
+func idiomaSelloDesdeOpciones(options map[string]string) *localizador.Localizador {
+	idioma := localizador.Idioma(valorOpcion(options, OpcionIdiomaSello))
+	if idioma == "" {
+		idioma = "es"
+	}
+	return localizador.Para(idioma)
+}
+
+func zonaSelloDesdeOpciones(options map[string]string) *time.Location {
+	if zona := localizador.Zona(valorOpcion(options, OpcionZonaSello)); zona != nil {
+		return zona
+	}
+	return time.Local
 }
 
 func estiloTextoDesdeOpciones(options map[string]string) estiloTextoSello {
-	e := estiloTextoSello{texto: valorOpcion(options, "visibleSealText")}
+	e := estiloTextoSello{
+		texto:  valorOpcion(options, "visibleSealText"),
+		textos: idiomaSelloDesdeOpciones(options),
+		zona:   zonaSelloDesdeOpciones(options),
+	}
 	if raw := strings.TrimSpace(valorOpcion(options, "layer2FontSize")); raw != "" {
 		if v, err := strconv.ParseFloat(raw, 64); err == nil && v > 0 {
 			e.tamPuntos = v

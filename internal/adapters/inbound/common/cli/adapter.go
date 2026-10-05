@@ -194,6 +194,7 @@ type configCLI struct {
 	motivoFirma           string
 	ubicacionFirma        string
 	contactoFirma         string
+	idiomaSello           string
 	disposicionSello      string
 	margenSelloFooter     float64
 	dominio               string
@@ -803,6 +804,8 @@ func parsearArgs(args []string) (configCLI, error) {
 	fs.StringVar(&cfg.ubicacionFirma, "ubicacion-firma", "", "")
 	fs.StringVar(&cfg.contactoFirma, "signature-contact", "", "")
 	fs.StringVar(&cfg.contactoFirma, "contacto-firma", "", "")
+	fs.StringVar(&cfg.idiomaSello, "seal-language", "", "")
+	fs.StringVar(&cfg.idiomaSello, "idioma-sello", "", "")
 	fs.StringVar(&cfg.disposicionSello, "seal-layout", "manual", "")
 	fs.StringVar(&cfg.disposicionSello, "disposicion-sello", "manual", "")
 	fs.Float64Var(&cfg.margenSelloFooter, "seal-footer-margin", 0.02, "")
@@ -949,6 +952,10 @@ func (a *Adaptador) ejecutarFirma(ctx context.Context, cfg configCLI) int {
 	}
 
 	formato := inferirFormatoFirma(cfg.formato, cfg.entrada)
+	if strings.TrimSpace(cfg.idiomaSello) == "" {
+		// Por defecto el sello sigue el idioma de la propia CLI.
+		cfg.idiomaSello = a.idiomaInterfaz()
+	}
 	opciones := construirOpcionesFirmaCompat(cfg, formato)
 	cmd, err := application.NewSignCommand(
 		filepath.Base(cfg.entrada),
@@ -3353,6 +3360,8 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("    Motivo PAdES opcional embebido en la firma.\n")
 	b.WriteString("  -ubicacion-firma <texto> | -signature-location <texto>\n")
 	b.WriteString("    Ubicación PAdES opcional embebida en la firma.\n")
+	b.WriteString("  -idioma-sello <es|en|ca|va|gl|eu|fr|de|it|pt|zh> | -seal-language <es|en|...>\n")
+	b.WriteString("    " + a.t("cli.help.seal_language", "Idioma de los rótulos del sello visible. Por defecto, el idioma de la CLI.") + "\n")
 	b.WriteString("  -contacto-firma <texto> | -signature-contact <texto>\n")
 	b.WriteString("    Contacto PAdES opcional embebido en la firma.\n")
 	b.WriteString("  -tiempo-espera 30s|1m|... | -t 30s\n")
@@ -3773,8 +3782,22 @@ func construirOpcionesFirmaCompat(cfg configCLI, formato string) map[string]stri
 		if contact := strings.TrimSpace(cfg.contactoFirma); contact != "" {
 			out["contactInfo"] = contact
 		}
+		if _, explicito := out["sealLanguage"]; !explicito {
+			if idioma := strings.TrimSpace(cfg.idiomaSello); idioma != "" {
+				out["sealLanguage"] = idioma
+			}
+		}
 	}
 	return out
+}
+
+// idiomaInterfaz devuelve el idioma del catálogo de la CLI, o "" si el
+// localizador inyectado no lo expone.
+func (a *Adaptador) idiomaInterfaz() string {
+	if l, ok := a.Localizador.(interface{ Locale() string }); ok {
+		return l.Locale()
+	}
+	return ""
 }
 
 func normalizarSeleccionPaginasSello(raw string) (string, bool) {

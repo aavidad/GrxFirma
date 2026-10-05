@@ -5112,4 +5112,5 @@
   ,"Compatibilidad histórica; validación XML estándar no acreditada.": "历史兼容；未证实符合标准 XML 验证。"
   ,"sin OCSP ni CRL disponibles": "没有可用的 OCSP 或 CRL"
   ,"sin respuesta concluyente del servicio de revocación": "吊销服务未给出明确答复"
+  ,"cli.help.seal_language": "可见印章标签的语言。默认使用 CLI 的语言。"
 }

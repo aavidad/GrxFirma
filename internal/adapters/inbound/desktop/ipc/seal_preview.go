@@ -45,6 +45,7 @@ func (m *Manejador) handleVistaPreviaSello(ctx context.Context, raw json.RawMess
 	if err != nil {
 		return respuesta{OK: false, Action: accion, Error: m.localizarErrorOpacidadLogoSello(err)}
 	}
+	opciones = m.aplicarIdiomaSelloConfigurado(ctx, "pades", opciones)
 	firmante, emisor := m.identidadParaSello(ctx, p.CertificateID)
 	firmante = nombreFirmanteVistaPrevia(p.CertificateID, p.SignerName, firmante)
 	img, err := desktopsigner.PrevisualizarSello(opciones, firmante, emisor, time.Now())

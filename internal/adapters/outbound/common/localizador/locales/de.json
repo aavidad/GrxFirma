@@ -5112,4 +5112,5 @@
   ,"Compatibilidad histórica; validación XML estándar no acreditada.": "Historische Kompatibilität; Standard-XML-Validierung nicht nachgewiesen."
   ,"sin OCSP ni CRL disponibles": "Weder OCSP noch CRL verfügbar"
   ,"sin respuesta concluyente del servicio de revocación": "Der Widerrufsdienst hat keine eindeutige Antwort geliefert"
+  ,"cli.help.seal_language": "Sprache der Beschriftungen des sichtbaren Siegels. Standardmäßig die Sprache der CLI."
 }
