@@ -9,9 +9,15 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <group android:translateX="15.6" android:translateY="13"
-        android:scaleX="0.3" android:scaleY="0.3">
-        <path android:fillColor="#FFFFFF" android:fillType="evenOdd"
-            android:pathData="M24,262 C26,219 46,197 80,188 C89,185 92,181 90,174 C74,157 68,129 76,105 C84,75 104,41 128,37 C152,41 172,75 180,105 C188,129 182,157 166,174 C164,181 167,185 176,188 C210,197 230,219 232,262 Z M101,116 C113,107 143,107 155,116 C157,138 147,158 128,166 C109,158 99,138 101,116 Z" />
+    <group android:translateX="22" android:translateY="22"
+        android:scaleX="0.25" android:scaleY="0.25">
+        <path android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFF" android:strokeWidth="25"
+            android:strokeLineCap="round" android:strokeLineJoin="round"
+            android:pathData="M130,69 A62,62 0,1 0,130 181 V137 H98" />
+        <path android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFF" android:strokeWidth="25"
+            android:strokeLineCap="round"
+            android:pathData="M151,77 L207,170 M207,77 L151,170" />
     </group>
 </vector>

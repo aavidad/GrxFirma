@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import struct
 import unittest
 from pathlib import Path
@@ -12,6 +13,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 ICON = ROOT / "packaging" / "windows" / "grxfirma.ico"
+# Icono del programa: «GRX» en blanco y verde sobre azul oscuro con un trazo
+# de firma. Es el mismo que llevaba la versión 0.0.118; cambiarlo es una
+# decisión del responsable, no un efecto de renombrar ficheros.
+GRX_ICON_SHA256 = "907036dd4946e741f9935f4b8fb476e35b093bda6d6c91aa1186a584046e1d8b"
+GRX_BACKGROUND = "#173a4e"
+GRX_GREEN = "#accb49"
 
 
 class ProductIconContractTests(unittest.TestCase):
@@ -43,6 +50,43 @@ class ProductIconContractTests(unittest.TestCase):
                 (256, 256),
             },
         )
+
+    def test_program_icon_is_the_grx_drawing_everywhere(self) -> None:
+        self.assertEqual(hashlib.sha256(ICON.read_bytes()).hexdigest(), GRX_ICON_SHA256)
+
+        branding = ROOT / "assets/branding"
+        large = (branding / "grxfirma-icono.svg").read_text(encoding="utf-8")
+        small = (branding / "grxfirma-icono-pequeno.svg").read_text(encoding="utf-8")
+        self.assertIn("<title>GrxFirma · Trazo</title>", large)
+        self.assertIn("<title>GrxFirma · Trazo reducido</title>", small)
+        for source in (large, small):
+            self.assertIn(GRX_BACKGROUND, source)
+            self.assertIn(GRX_GREEN, source)
+        self.assertEqual(
+            (ROOT / "docs/sitio/grxfirma-icono.svg").read_text(encoding="utf-8"),
+            small,
+        )
+        ios = (ROOT / "mobile/ios/GrxFirma/Resources/AppIcon.svg").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("<title>GrxFirma · Trazo</title>", ios)
+
+        android = ROOT / "mobile/android/app/src/main/res"
+        foreground = (android / "drawable/ic_launcher_foreground.xml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(GRX_BACKGROUND.upper(), foreground)
+        self.assertIn(GRX_GREEN.upper(), foreground)
+        colors = (android / "values/colors.xml").read_text(encoding="utf-8")
+        self.assertIn(
+            f'<color name="grxfirma_icon_background">{GRX_BACKGROUND.upper()}</color>',
+            colors,
+        )
+
+        generator = (ROOT / "scripts/branding/generate_app_icons.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(f'BACKGROUND = "{GRX_BACKGROUND}"', generator)
 
     def test_winui_embeds_and_displays_the_brand(self) -> None:
         project = (
