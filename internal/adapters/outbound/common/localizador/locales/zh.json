@@ -2740,12 +2740,13 @@
   ,"revocación no concluyente": "无法核实证书吊销状态。此签名不视为有效。"
   ,"rest.verify_v2.error.limit": "v2 验证限制超出允许范围"
   ,"portal.seal.title": "在 PDF 上放置印章"
-  ,"portal.seal.instructions": "网站请您选择签名的位置。拖动印章即可移动，使用角上的圆圈调整大小，使用箭头旋转。"
+  ,"portal.seal.instructions": "您正在使用的签名网站请您选择签名的位置。拖动印章即可移动，使用角上的圆圈调整大小，使用箭头旋转。您也可以在“精确调整”中输入位置。"
   ,"portal.seal.fine_tune": "精确调整"
   ,"portal.seal.page": "第 %1 页，共 %2 页"
   ,"portal.seal.previous_page": "上一页"
   ,"portal.seal.next_page": "下一页"
-  ,"portal.seal.preview_error": "正在加载 PDF 预览…"
+  ,"portal.seal.preview_error": "无法显示 PDF。请使用“精确调整”或“不显示印章并签名”。"
+  ,"portal.seal.preview_loading": "正在加载 PDF 预览…"
   ,"portal.seal.sign_here": "在此处加盖印章并签名"
   ,"portal.seal.sign_without": "不显示印章并签名"
   ,"portal.seal.cancel": "取消"
@@ -2889,15 +2890,15 @@
   ,"facturae.startup_on": "GrxFirma 将随登录会话启动。"
   ,"facturae.submit_face": "提交至 FACe"
   ,"facturae.tax_id": "税号"
-  ,"facturae.title": "Facturae 和 FACe"
+  ,"facturae.title": "Facturae、FACe 和 Veri*Factu"
   ,"facturae.town": "城镇"
   ,"facturae.validate_face": "在 FACe 验证"
   ,"facturae.vat": "增值税 (%)"
   ,"facturae.xml_filter": "Facturae XML 文件 (*.xml)"
   ,"smartcard.pcsc_unavailable": "此设备无法使用 PC/SC。请安装或启动 pcscd。"
   ,"smartcard.pcsc_error": "PC/SC 无法检查读卡器。"
-  ,"facturae.enable_label": "启用 Facturae 和 FACe 工具"
-  ,"facturae.enable_help": "显示 Facturae 生成器及 FACe 官方链接。",
+  ,"facturae.enable_label": "启用开票工具（Facturae、FACe 和 Veri*Factu）"
+  ,"facturae.enable_help": "显示 Facturae 生成器、Veri*Factu 记录检查及 FACe 官方链接。",
   "paridad.lote3.csv.code": "CSV 代码（最多 128 个字符）",
   "paridad.lote3.csv.enable": "添加 CSV 核验说明",
   "paridad.lote3.csv.invalid": "请检查 CSV、HTTPS 地址及长度限制。",
@@ -2906,7 +2907,7 @@
   "paridad.lote3.csv.text_optional": "说明文字（可选）",
   "paridad.lote3.csv.url": "HTTPS 核验地址（可包含 {csv}）",
   "paridad.lote3.eni.administration": "行政机关",
-  "paridad.lote3.eni.capture_date": "捕获日期（ISO 8601）",
+  "paridad.lote3.eni.capture_date": "捕获日期",
   "paridad.lote3.eni.certificate": "用于签署目录的证书",
   "paridad.lote3.eni.certificates_failed": "无法加载证书。",
   "paridad.lote3.eni.citizen": "公民",
@@ -2914,17 +2915,17 @@
   "paridad.lote3.eni.create_document": "创建 ENI 文档",
   "paridad.lote3.eni.create_file": "创建 ENI 案卷",
   "paridad.lote3.eni.created": "已创建 ENI 文件：%1",
-  "paridad.lote3.eni.doc_type": "文档类型（TD99）",
+  "paridad.lote3.eni.doc_type": "文档类型",
   "paridad.lote3.eni.document": "ENI 文档",
   "paridad.lote3.eni.failed": "无法创建 ENI 文件：%1",
   "paridad.lote3.eni.file": "ENI 案卷",
-  "paridad.lote3.eni.file_state": "案卷状态（E01）",
+  "paridad.lote3.eni.file_state": "案卷状态",
   "paridad.lote3.eni.folder": "选择 ENI 文档文件夹",
-  "paridad.lote3.eni.format_optional": "无法识别时的内容格式",
-  "paridad.lote3.eni.identifier_optional": "标识符（可选）",
+  "paridad.lote3.eni.format_optional": "内容格式（可选，例如 PDF）",
+  "paridad.lote3.eni.identifier_optional": "文档 ENI 标识符（可选；留空则自动生成）",
   "paridad.lote3.eni.interested_optional": "相关人员（可选）",
   "paridad.lote3.eni.nav": "ENI 文档",
-  "paridad.lote3.eni.open_date": "立案日期（ISO 8601）",
+  "paridad.lote3.eni.open_date": "立卷日期",
   "paridad.lote3.eni.organ": "主管机关（DIR3，必填）",
   "paridad.lote3.eni.origin": "来源",
   "paridad.lote3.eni.original": "为分离式签名选择原件",
@@ -2933,11 +2934,24 @@
   "paridad.lote3.eni.save_document": "保存 ENI 文档",
   "paridad.lote3.eni.save_file": "保存 ENI 案卷",
   "paridad.lote3.eni.signature": "选择 PAdES、CAdES 或 XAdES 签名",
-  "paridad.lote3.eni.source_optional": "副本的原始文档",
-  "paridad.lote3.eni.state": "编制状态（EE01）",
+  "paridad.lote3.eni.source_optional": "原始文档的 ENI 标识符（仅限副本）",
+  "paridad.lote3.eni.state": "编制状态",
   "paridad.lote3.eni.title": "创建 ENI 文档和案卷",
   "paridad.lote3.eni.unavailable": "本地引擎不支持此 ENI 操作。",
   "paridad.lote3.eni.xml_filter": "XML 文档（*.xml）",
+  "paridad.lote3.eni.organ_document": "文档主管机关（DIR3，必填）",
+  "paridad.lote3.eni.organ_file": "案卷主管机关（DIR3，必填）",
+  "paridad.lote3.eni.organ_hint": "一个或多个 DIR3 代码（一个大写字母和八位数字），以逗号分隔。示例：L01180877。",
+  "paridad.lote3.eni.identifier_file": "案卷 ENI 标识符（可选；留空则自动生成）",
+  "paridad.lote3.eni.capture_time": "捕获时间",
+  "paridad.lote3.eni.open_time": "立卷时间",
+  "paridad.lote3.eni.date_hint": "日/月/年",
+  "paridad.lote3.eni.time_hint": "时:分（24 小时制）",
+  "paridad.lote3.eni.no_file": "未选择文件",
+  "paridad.lote3.eni.no_folder": "未选择文件夹",
+  "paridad.lote3.eni.required_signature": "请先选择签名文件（PAdES、CAdES 或 XAdES）。",
+  "paridad.lote3.eni.required_folder": "请选择包含 ENI 文档的文件夹。",
+  "paridad.lote3.eni.required_certificate": "没有可用于签署索引的证书。请在“证书”中安装或导入一个。",
   "paridad.lote3.invoice.choose": "选择发票",
   "paridad.lote3.invoice.empty": "选择发票以查看错误和警告。",
   "paridad.lote3.invoice.error": "错误",
@@ -2963,7 +2977,7 @@
   "Huellas": "哈希值",
   "Complementos": "扩展功能",
   "Diagnóstico": "诊断",
-  "Facturae y FACe": "Facturae 与 FACe",
+  "Facturae y FACe": "Facturae、FACe 和 Veri*Factu",
   "Guardar": "保存",
   "Recargar": "重新加载",
   "Buscar": "搜索",
@@ -3183,7 +3197,7 @@
   ,"Al iniciar, consulta una vez la última GitHub Release. No envía documentos, certificados ni datos de firma.": "启动时仅检查一次 GitHub 最新版本。不会发送文档、证书或签名数据。"
   ,"La consulta HTTPS se dirige al repositorio oficial de GitHub. Puede desactivarla; «Comprobar actualizaciones» seguirá disponible en «Acerca de» cuando quiera usarla manualmente.": "HTTPS 检查访问 GitHub 官方仓库。您可关闭自动检查；仍可随时在“关于”中手动“检查更新”。"
   ,"Muestra u oculta una sección independiente para crear facturas electrónicas y seguir la remisión oficial a FACe.": "显示或隐藏用于创建电子发票并了解 FACe 官方提交流程的独立部分。"
-  ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "默认关闭。启用后，“Facturae 和 FACe”将显示为独立部分；GrxFirma 的常用功能不会改变。"
+  ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "默认关闭。启用后，“Facturae、FACe 和 Veri*Factu”将显示为独立部分；GrxFirma 的常用功能不会改变。"
   ,"La preferencia se conserva, pero la firma WinUI no la usa hasta disponer del editor seguro de sello PDF.": "该首选项会保存，但在安全的 PDF 印章编辑器可用之前，WinUI 签名功能不会使用它。"
   ,"El sello visible solo es compatible con selección automática de formato o PAdES.": "可见印章仅兼容自动选择格式或 PAdES。"
   ,"Las credenciales se administran únicamente mediante el almacén protegido del sistema.": "凭据仅通过系统受保护存储进行管理。"
@@ -4791,9 +4805,9 @@
   ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma te lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "如果某个字段有错误，它会以红色标出并在下方显示原因；签名或保存时，GrxFirma 会带你到该字段。诊断和助手提供“更正”按钮，可直接跳转。适用于 Windows 和 Linux。"
   ,"Leyenda CSV: cada problema tiene su propio mensaje (falta el código, la URL no es válida…) y la dirección puede escribirse sin https://.": "CSV 图例：每个问题都有单独的提示（缺少代码、URL 无效……），地址也可以不带 https:// 输入。"
   ,"Windows: se admiten servidores de sello de tiempo con dirección http://, como el de la FNMT, igual que en Linux y en AutoFirma Java.": "Windows：现在接受 http:// 地址的时间戳服务器（例如 FNMT 的服务器），与 Linux 和 AutoFirma Java 一致。",
-  "eni.validacion.dir3": "请输入一个或多个 DIR3 代码：一个大写字母和八位数字，以逗号分隔。",
+  "eni.validacion.dir3": "请输入一个或多个 DIR3 代码（一个大写字母和八位数字），以逗号分隔。示例：L01180877。",
   "eni.validacion.identifier": "请使用 ES_<DIR3>_<年份>_<id>，其中 id 为 1 至 30 个字母、数字或下划线。",
-  "eni.validacion.date": "请选择有效日期或输入含时区的 RFC 3339 日期时间。",
+  "eni.validacion.date": "请选择有效的日期和时间。",
   "eni.validacion.classification": "请输入数字 SIA 代码或 <DIR3>_PRO_<id>（最多 30 个字符）。",
   "eni.validacion.source": "真实副本需要有效的来源 ENI 标识符。",
   "eni.validacion.format": "格式名称最多 32 个字符，可使用字母、数字、点、加号或连字符。",
@@ -4801,6 +4815,7 @@
   "eni.validacion.calendar": "打开日历",
   "eni.validacion.previous": "上个月",
   "eni.validacion.next": "下个月",
+  "eni.validacion.calendar_help": "使用方向键切换日期，使用 Page Up 和 Page Down 切换月份，按 Enter 选择日期。",
   "eni.validacion.structure": "必需元素、顺序或命名空间不正确。",
   "eni.validacion.value": "ENI 值无效。",
   "eni.validacion.xml": "XML 无效或含有禁止的声明。",
@@ -4843,27 +4858,28 @@
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "二维码和 CSV 图例的验证地址支持带重音符号或 ñ 的域名，例如 «https://sede.almuñécar.es/verificar»。"
   ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux：对话框在任何主题下都清晰易读，不再出现浅色背景上的浅色文字。",
   "sign.seal.draw_area": "绘制区域",
-  "sign.seal.draw_help": "在页面上拖动以绘制印章区域。此模式开启时，方向键移动一个角，Shift + 方向键移动对角。按 Enter 确认，按 Esc 取消。",
+  "sign.seal.draw_help": "在页面上拖动以绘制印章区域。使用键盘时：方向键移动左上角，Shift + 方向键移动右下角。按 Enter 应用该区域，按 Esc 放弃。",
   "sign.seal.draw_too_small": "区域太小。请绘制更大的矩形；原有印章将保留。",
   "sign.seal.draw_applied": "此页的印章区域已更新。",
   "sign.seal.draw_cancelled": "绘制已取消。原有印章已保留。"
+  ,"sign.seal.draw_position": "区域：左 %1%，上 %2%，宽 %3%，高 %4%"
   ,"verifactu.title": "检查 Veri*Factu 记录"
   ,"verifactu.profile_label": "Veri*Factu 记录签名"
-  ,"verifactu.scope": "此工具签署并检查由开票软件提供的记录。它不生成或存储记录，也不向 AEAT 提交记录。"
+  ,"verifactu.scope": "检查由您的开票软件生成的 Veri*Factu 记录。GrxFirma 不会创建、保存记录，也不会将其发送给 AEAT：发送由您的开票软件完成。如需签署记录，请使用“签名”，并选择“Veri*Factu 记录”格式。"
   ,"verifactu.limit": "已超出大小或复杂度限制。"
   ,"verifactu.xml": "XML 无效。不允许 DTD 或外部实体。"
-  ,"verifactu.root": "根元素必须是 AEAT 命名空间中的 RegistroAlta、RegistroAnulacion 或 RegistroEvento。"
+  ,"verifactu.root": "该文件不是 Veri*Factu 记录。请选择由您的开票软件生成的 XML。"
   ,"verifactu.structure": "缺少必填字段，或元素顺序错误、重复或不符合模式要求。"
   ,"verifactu.value": "值不符合模式规定的格式、长度或允许值。"
-  ,"verifactu.profile": "签名不符合使用 AGE 策略及 RSA-SHA256 或 RSA-SHA512 的封装式 XAdES 配置。"
+  ,"verifactu.profile": "签名不是 AEAT 要求的类型。请使用“Veri*Factu 记录”格式重新签名。"
   ,"verifactu.signed": "该记录已签署。"
   ,"verifactu.key": "需要 RSA 密钥及有效且适合签名的证书。"
   ,"verifactu.input": "请选择可访问的 XML 文件或记录文件夹。"
-  ,"verifactu.hash": "指纹与根据记录字段计算的指纹不一致。"
-  ,"verifactu.chain": "链式链接、上一条记录的身份或日期顺序不一致。"
+  ,"verifactu.hash": "该记录在生成后被修改过：其哈希值不一致。请让您的开票软件重新生成。"
+  ,"verifactu.chain": "此记录未与该系列的上一条记录相连。请检查文件夹是否按顺序包含所有记录。"
   ,"verifactu.duplicate": "链中存在指纹相同的记录。"
   ,"verifactu.previous_missing": "上一条记录不在所选范围内，无法检查此链式链接。"
-  ,"verifactu.signature": "XAdES 签名已被修改或未覆盖整条记录。"
+  ,"verifactu.signature": "记录的签名已被篡改或未覆盖整条记录。请使用“Veri*Factu 记录”格式重新签名。"
   ,"verifactu.certificate": "证书在记录日期无效。"
   ,"verifactu.trust": "已验证签名完整性。证书资格、历史吊销状态及开票方代表权限需要另行核查。"
   ,"verifactu.unsigned": "记录没有签名。"
@@ -4887,6 +4903,22 @@
   ,"verifactu.qr_amount": "总金额"
   ,"verifactu.cli_usage": "用法: -operacion validar-verifactu|leer-qr-verifactu|cotejar-qr-verifactu -entrada ..."
   ,"verifactu.output": "请将报告保存到与输入记录不同的文件中。"
+  ,"verifactu.root_detail": "根元素必须是 AEAT 命名空间中的 RegistroAlta、RegistroAnulacion 或 RegistroEvento。"
+  ,"verifactu.profile_detail": "签名不符合使用 AGE 策略及 RSA-SHA256 或 RSA-SHA512 的封装式 XAdES 配置。"
+  ,"verifactu.hash_detail": "指纹与根据记录字段计算的指纹不一致。"
+  ,"verifactu.chain_detail": "链式链接、上一条记录的身份或日期顺序不一致。"
+  ,"verifactu.signature_detail": "XAdES 签名已被修改或未覆盖整条记录。"
+  ,"verifactu.export": "导出 Veri*Factu 报告"
+  ,"verifactu.report": "Veri*Factu 检查报告"
+  ,"verifactu.empty_state": "请选择一个 XML 记录或记录文件夹进行检查。"
+  ,"verifactu.qr_url_field": "二维码网址"
+  ,"verifactu.qr_result": "二维码结果"
+  ,"verifactu.qr_query_help": "询问 AEAT 是否登记了包含这些数据的发票。"
+  ,"verifactu.qr_aeat_found": "AEAT 已登记包含这些数据的发票。"
+  ,"verifactu.qr_aeat_not_found": "AEAT 未找到包含这些数据的发票。请检查税号、编号、日期和金额。"
+  ,"verifactu.qr_aeat_unknown": "AEAT 已回复，但 GrxFirma 无法识别结果。请查看技术响应，或在 AEAT 网站上查询该发票。"
+  ,"verifactu.qr_technical": "查看技术响应"
+  ,"verifactu.qr_technical_hide": "隐藏技术响应"
   ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu：按 AEAT 要求的格式为开票程序提供的开票记录签名，并检查已签名的记录：链式哈希、签名和结构。GrxFirma 不生成、不保存也不发送记录。"
   ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu：读取发票税务二维码的 URL 并显示其数据；仅在你要求时，才通过 AEAT 公共服务进行核对。"
   ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "可见印章：使用“绘制区域”，在页面上拖动即可设定其位置和大小，与 AutoFirma 相同。也可用键盘操作。适用于 Windows 和 Linux，以及门户网站打开的编辑器。"

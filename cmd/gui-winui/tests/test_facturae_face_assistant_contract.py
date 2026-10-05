@@ -68,7 +68,7 @@ class FacturaeFaceAssistantContractTests(unittest.TestCase):
             self.contracts,
         )
         self.assertIn(
-            "Activar herramientas Facturae y FACe",
+            "Activar herramientas de facturación (Facturae, FACe y Veri*Factu)",
             self.settings,
         )
         self.assertIn(

@@ -1,5 +1,7 @@
 {
  "ca": [
+  "paridad.lote3.eni.capture_time",
+  "paridad.lote3.eni.date_hint",
   " + base64",
   "%1 cert.",
   "*.dipgra.es",
@@ -675,6 +677,10 @@
   "eni.codigo.TD08"
  ],
  "gl": [
+  "paridad.lote3.eni.capture_time",
+  "paridad.lote3.eni.date_hint",
+  "paridad.lote3.eni.open_time",
+  "paridad.lote3.eni.time_hint",
   " + base64",
   " certificado(s).",
   " correctos).",
@@ -1602,6 +1608,9 @@
   "csc.gui.titulo"
  ],
  "pt": [
+  "paridad.lote3.eni.capture_time",
+  "paridad.lote3.eni.date_hint",
+  "paridad.lote3.eni.time_hint",
   " + base64",
   " certificado(s).",
   " · Algoritmo: {0}",
@@ -1939,6 +1948,8 @@
   "csc.gui.remoto"
  ],
  "va": [
+  "paridad.lote3.eni.capture_time",
+  "paridad.lote3.eni.date_hint",
   " + base64",
   "%1 cert.",
   "*.dipgra.es",

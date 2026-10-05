@@ -2740,12 +2740,13 @@
   ,"revocación no concluyente": "Non è stato possibile verificare la revoca del certificato. La firma non è considerata valida."
   ,"rest.verify_v2.error.limit": "Il limite di verifica v2 è fuori dall’intervallo consentito"
   ,"portal.seal.title": "Posiziona il sigillo sul PDF"
-  ,"portal.seal.instructions": "Il sito chiede di scegliere dove va la firma. Trascina il sigillo per spostarlo, usa il cerchio nell'angolo per ridimensionarlo e la freccia per ruotarlo."
+  ,"portal.seal.instructions": "Il sito da cui sta firmando le chiede di scegliere dove va la firma. Trascini il sigillo per spostarlo, usi il cerchio nell’angolo per ridimensionarlo e la freccia per ruotarlo. Può anche scrivere la posizione in «Regolazione precisa»."
   ,"portal.seal.fine_tune": "Regolazione precisa"
   ,"portal.seal.page": "Pagina %1 di %2"
   ,"portal.seal.previous_page": "Pagina precedente"
   ,"portal.seal.next_page": "Pagina successiva"
-  ,"portal.seal.preview_error": "Caricamento anteprima PDF…"
+  ,"portal.seal.preview_error": "Impossibile mostrare il PDF. Usa «Regolazione precisa» o «Firma senza sigillo visibile»."
+  ,"portal.seal.preview_loading": "Caricamento anteprima PDF…"
   ,"portal.seal.sign_here": "Firma qui con il sigillo"
   ,"portal.seal.sign_without": "Firma senza sigillo visibile"
   ,"portal.seal.cancel": "Annulla"
@@ -2889,15 +2890,15 @@
   ,"facturae.startup_on": "GrxFirma si avvierà con la sessione."
   ,"facturae.submit_face": "Invia a FACe"
   ,"facturae.tax_id": "Codice fiscale"
-  ,"facturae.title": "Facturae e FACe"
+  ,"facturae.title": "Facturae, FACe e Veri*Factu"
   ,"facturae.town": "Città"
   ,"facturae.validate_face": "Convalida su FACe"
   ,"facturae.vat": "IVA (%)"
   ,"facturae.xml_filter": "Facturae XML (*.xml)"
   ,"smartcard.pcsc_unavailable": "PC/SC non è disponibile su questo computer. Installa o avvia pcscd."
   ,"smartcard.pcsc_error": "PC/SC non è riuscito a controllare il lettore."
-  ,"facturae.enable_label": "Attiva gli strumenti Facturae e FACe"
-  ,"facturae.enable_help": "Mostra il generatore Facturae e i collegamenti ufficiali a FACe.",
+  ,"facturae.enable_label": "Attiva gli strumenti di fatturazione (Facturae, FACe e Veri*Factu)"
+  ,"facturae.enable_help": "Mostra il generatore Facturae, il controllo dei registri Veri*Factu e i collegamenti ufficiali a FACe.",
   "paridad.lote3.csv.code": "Codice CSV (massimo 128 caratteri)",
   "paridad.lote3.csv.enable": "Apponi la legenda CSV di verifica",
   "paridad.lote3.csv.invalid": "Controlla il CSV, l’URL HTTPS e le lunghezze massime.",
@@ -2906,7 +2907,7 @@
   "paridad.lote3.csv.text_optional": "Testo della legenda (facoltativo)",
   "paridad.lote3.csv.url": "URL HTTPS di verifica ({csv} consentito)",
   "paridad.lote3.eni.administration": "Amministrazione",
-  "paridad.lote3.eni.capture_date": "Data di acquisizione (ISO 8601)",
+  "paridad.lote3.eni.capture_date": "Data di acquisizione",
   "paridad.lote3.eni.certificate": "Certificato per firmare l’indice",
   "paridad.lote3.eni.certificates_failed": "Impossibile caricare i certificati.",
   "paridad.lote3.eni.citizen": "Cittadino",
@@ -2914,17 +2915,17 @@
   "paridad.lote3.eni.create_document": "Crea documento ENI",
   "paridad.lote3.eni.create_file": "Crea fascicolo ENI",
   "paridad.lote3.eni.created": "File ENI creato: %1",
-  "paridad.lote3.eni.doc_type": "Tipo di documento (TD99)",
+  "paridad.lote3.eni.doc_type": "Tipo di documento",
   "paridad.lote3.eni.document": "Documento ENI",
   "paridad.lote3.eni.failed": "Impossibile creare il file ENI: %1",
   "paridad.lote3.eni.file": "Fascicolo ENI",
-  "paridad.lote3.eni.file_state": "Stato del fascicolo (E01)",
+  "paridad.lote3.eni.file_state": "Stato del fascicolo",
   "paridad.lote3.eni.folder": "Scegli una cartella di documenti ENI",
-  "paridad.lote3.eni.format_optional": "Formato del contenuto se sconosciuto",
-  "paridad.lote3.eni.identifier_optional": "Identificativo (facoltativo)",
+  "paridad.lote3.eni.format_optional": "Formato del contenuto (facoltativo, ad esempio PDF)",
+  "paridad.lote3.eni.identifier_optional": "Identificativo ENI del documento (facoltativo; se lo lasci vuoto viene generato)",
   "paridad.lote3.eni.interested_optional": "Soggetti interessati (facoltativo)",
   "paridad.lote3.eni.nav": "Documenti ENI",
-  "paridad.lote3.eni.open_date": "Data di apertura (ISO 8601)",
+  "paridad.lote3.eni.open_date": "Data di apertura",
   "paridad.lote3.eni.organ": "Ente responsabile (DIR3, obbligatorio)",
   "paridad.lote3.eni.origin": "Origine",
   "paridad.lote3.eni.original": "Scegli l’originale per una firma separata",
@@ -2933,11 +2934,24 @@
   "paridad.lote3.eni.save_document": "Salva documento ENI",
   "paridad.lote3.eni.save_file": "Salva fascicolo ENI",
   "paridad.lote3.eni.signature": "Scegli una firma PAdES, CAdES o XAdES",
-  "paridad.lote3.eni.source_optional": "Documento di origine di una copia",
-  "paridad.lote3.eni.state": "Stato di elaborazione (EE01)",
+  "paridad.lote3.eni.source_optional": "Identificativo ENI del documento di origine (solo copie)",
+  "paridad.lote3.eni.state": "Stato di elaborazione",
   "paridad.lote3.eni.title": "Crea documenti e fascicoli ENI",
   "paridad.lote3.eni.unavailable": "Il motore locale non supporta questa operazione ENI.",
   "paridad.lote3.eni.xml_filter": "Documento XML (*.xml)",
+  "paridad.lote3.eni.organ_document": "Ente responsabile del documento (DIR3, obbligatorio)",
+  "paridad.lote3.eni.organ_file": "Ente responsabile del fascicolo (DIR3, obbligatorio)",
+  "paridad.lote3.eni.organ_hint": "Uno o più codici DIR3 (una lettera maiuscola e otto cifre), separati da virgole. Esempio: L01180877.",
+  "paridad.lote3.eni.identifier_file": "Identificativo ENI del fascicolo (facoltativo; se lo lasci vuoto viene generato)",
+  "paridad.lote3.eni.capture_time": "Ora di acquisizione",
+  "paridad.lote3.eni.open_time": "Ora di apertura",
+  "paridad.lote3.eni.date_hint": "gg/mm/aaaa",
+  "paridad.lote3.eni.time_hint": "hh:mm (24 ore)",
+  "paridad.lote3.eni.no_file": "Nessun file scelto",
+  "paridad.lote3.eni.no_folder": "Nessuna cartella scelta",
+  "paridad.lote3.eni.required_signature": "Scelga prima la firma (PAdES, CAdES o XAdES).",
+  "paridad.lote3.eni.required_folder": "Scelga la cartella con i documenti ENI.",
+  "paridad.lote3.eni.required_certificate": "Non ci sono certificati disponibili per firmare l’indice. Ne installi o importi uno in «Certificati».",
   "paridad.lote3.invoice.choose": "Scegli fattura",
   "paridad.lote3.invoice.empty": "Scegli una fattura per vedere errori e avvisi.",
   "paridad.lote3.invoice.error": "Errore",
@@ -2963,7 +2977,7 @@
   "Huellas": "Impronte digitali",
   "Complementos": "Componenti aggiuntivi",
   "Diagnóstico": "Diagnostica",
-  "Facturae y FACe": "Facturae e FACe",
+  "Facturae y FACe": "Facturae, FACe e Veri*Factu",
   "Guardar": "Salva",
   "Recargar": "Ricarica",
   "Buscar": "Cerca",
@@ -3183,7 +3197,7 @@
   ,"Al iniciar, consulta una vez la última GitHub Release. No envía documentos, certificados ni datos de firma.": "All’avvio controlla una volta l’ultima versione pubblicata su GitHub. Non invia documenti, certificati o dati di firma."
   ,"La consulta HTTPS se dirige al repositorio oficial de GitHub. Puede desactivarla; «Comprobar actualizaciones» seguirá disponible en «Acerca de» cuando quiera usarla manualmente.": "La richiesta HTTPS è diretta al repository ufficiale su GitHub. Si può disattivare; «Controlla aggiornamenti» resta disponibile in «Informazioni» per l’uso manuale."
   ,"Muestra u oculta una sección independiente para crear facturas electrónicas y seguir la remisión oficial a FACe.": "Mostra o nasconde una sezione separata per creare fatture elettroniche e seguire l’invio ufficiale a FACe."
-  ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "È disattivata per impostazione predefinita. Attivandola, «Facturae e FACe» appare come sezione separata; le funzioni abituali di GrxFirma non cambiano."
+  ,"Está desactivado de forma predeterminada. Al activarlo aparecerá «Facturae y FACe» como una sección separada; las funciones habituales de GrxFirma no cambian.": "È disattivata per impostazione predefinita. Attivandola, «Facturae, FACe e Veri*Factu» appare come sezione separata; le funzioni abituali di GrxFirma non cambiano."
   ,"La preferencia se conserva, pero la firma WinUI no la usa hasta disponer del editor seguro de sello PDF.": "La preferenza viene salvata, ma la firma WinUI non la usa finché non sarà disponibile un editor sicuro del timbro PDF."
   ,"El sello visible solo es compatible con selección automática de formato o PAdES.": "Il timbro visibile è compatibile solo con la selezione automatica del formato o con PAdES."
   ,"Las credenciales se administran únicamente mediante el almacén protegido del sistema.": "Le credenziali sono gestite solo tramite l’archivio protetto del sistema."
@@ -4791,22 +4805,23 @@
   ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma te lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "Se un campo contiene un errore, viene evidenziato in rosso con il motivo sotto e, quando firmi o salvi, GrxFirma ti porta a quel campo; la diagnosi e l'assistente offrono «Correggi» per andarci direttamente. Su Windows e Linux."
   ,"Leyenda CSV: cada problema tiene su propio mensaje (falta el código, la URL no es válida…) y la dirección puede escribirse sin https://.": "Legenda CSV: ogni problema ha il proprio messaggio (codice mancante, URL non valido…) e l'indirizzo si può scrivere senza https://."
   ,"Windows: se admiten servidores de sello de tiempo con dirección http://, como el de la FNMT, igual que en Linux y en AutoFirma Java.": "Windows: sono accettati i server di marca temporale con indirizzo http://, come quello della FNMT, come su Linux e in AutoFirma Java.",
-  "eni.validacion.dir3": "Inserisci codici DIR3: una lettera maiuscola e otto cifre, separati da virgole.",
-  "eni.validacion.identifier": "Usa ES_<DIR3>_<AAAA>_<id>, con un id da 1 a 30 caratteri (lettere, cifre o trattini bassi).",
-  "eni.validacion.date": "Scegli una data valida o inserisci RFC 3339 con fuso orario.",
-  "eni.validacion.classification": "Inserisci un codice SIA numerico o <DIR3>_PRO_<id> (massimo 30 caratteri).",
+  "eni.validacion.dir3": "Inserisca uno o più codici DIR3 (una lettera maiuscola e otto cifre), separati da virgole. Esempio: L01180877.",
+  "eni.validacion.identifier": "Usi ES_<DIR3>_<AAAA>_<id>, con un id da 1 a 30 caratteri (lettere, cifre o trattini bassi).",
+  "eni.validacion.date": "Scelga una data e un’ora valide.",
+  "eni.validacion.classification": "Inserisca un codice SIA numerico o <DIR3>_PRO_<id> (massimo 30 caratteri).",
   "eni.validacion.source": "Una copia autentica richiede un identificativo ENI di origine valido.",
-  "eni.validacion.format": "Usa un nome di formato di massimo 32 caratteri: lettere, cifre, punto, segno più o trattino.",
+  "eni.validacion.format": "Usi un nome di formato di massimo 32 caratteri: lettere, cifre, punto, segno più o trattino.",
   "eni.validacion.text": "Il testo supera il limite o contiene caratteri di controllo.",
   "eni.validacion.calendar": "Apri calendario",
   "eni.validacion.previous": "Mese precedente",
   "eni.validacion.next": "Mese successivo",
+  "eni.validacion.calendar_help": "Usi le frecce per cambiare giorno, Pag su e Pag giù per cambiare mese e Invio per scegliere il giorno.",
   "eni.validacion.structure": "Elemento obbligatorio, ordine o spazio dei nomi errato.",
   "eni.validacion.value": "Valore ENI non valido.",
   "eni.validacion.xml": "Il documento XML non è valido o contiene dichiarazioni vietate.",
   "eni.validacion.limit": "Il documento XML supera i limiti di dimensione, profondità o elementi.",
   "eni.validacion.valid": "Il documento XML ENI supera la verifica strutturale.",
-  "eni.validacion.input": "Indica il documento XML ENI con -entrada.",
+  "eni.validacion.input": "Indichi il documento XML ENI con -entrada.",
   "eni.validacion.help": "-operacion validar-eni -entrada <documento.xml>",
   "eni.codigo.EE01": "Originale",
   "eni.codigo.EE02": "Copia elettronica autentica con cambio di formato",
@@ -4843,27 +4858,28 @@
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "Gli indirizzi di verifica del QR e della legenda CSV accettano domini con accenti o ñ, per esempio «https://sede.almuñécar.es/verificar»."
   ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: le finestre di dialogo si leggono bene con qualsiasi tema; il testo non appare più chiaro su sfondo chiaro.",
   "sign.seal.draw_area": "Disegna area",
-  "sign.seal.draw_help": "Trascina sulla pagina per disegnare l’area del sigillo. In questa modalità, le frecce spostano un angolo e Maiusc + frecce l’angolo opposto. Invio conferma; Esc annulla.",
+  "sign.seal.draw_help": "Trascina sulla pagina per disegnare l’area del sigillo. Con la tastiera: le frecce spostano l’angolo in alto a sinistra e Maiusc + frecce quello in basso a destra. Invio applica l’area; Esc la scarta.",
   "sign.seal.draw_too_small": "L’area è troppo piccola. Disegna un rettangolo più grande; il sigillo precedente viene mantenuto.",
   "sign.seal.draw_applied": "Area del sigillo aggiornata su questa pagina.",
   "sign.seal.draw_cancelled": "Disegno annullato. Il sigillo precedente viene mantenuto."
+  ,"sign.seal.draw_position": "Area: sinistra %1%, dall’alto %2%, larghezza %3%, altezza %4%"
   ,"verifactu.title": "Controllare i registri Veri*Factu"
   ,"verifactu.profile_label": "Registro Veri*Factu per la firma"
-  ,"verifactu.scope": "Questo strumento firma e controlla i registri forniti da un programma di fatturazione. Non genera né conserva registri e non li trasmette all’AEAT."
+  ,"verifactu.scope": "Controlla i registri Veri*Factu generati dal programma di fatturazione. GrxFirma non li crea, non li conserva e non li invia all’AEAT: l’invio lo fa il programma di fatturazione. Per firmare un registro, usa «Firma» con il formato «Registro Veri*Factu»."
   ,"verifactu.limit": "È stato superato il limite di dimensione o complessità."
   ,"verifactu.xml": "L’XML non è valido. DTD ed entità esterne non sono consentiti."
-  ,"verifactu.root": "La radice deve essere RegistroAlta, RegistroAnulacion o RegistroEvento nello spazio dei nomi dell’AEAT."
+  ,"verifactu.root": "Il file non è un registro Veri*Factu. Scegli l’XML generato dal programma di fatturazione."
   ,"verifactu.structure": "Manca un campo obbligatorio oppure gli elementi sono fuori ordine, duplicati o non ammessi dallo schema."
   ,"verifactu.value": "Il valore non rispetta il formato, la lunghezza o i valori ammessi dallo schema."
-  ,"verifactu.profile": "La firma non rispetta il profilo XAdES incorporato con politica AGE e RSA-SHA256 o RSA-SHA512."
+  ,"verifactu.profile": "La firma non è del tipo richiesto dall’AEAT. Firma di nuovo con il formato «Registro Veri*Factu»."
   ,"verifactu.signed": "Il registro è già firmato."
   ,"verifactu.key": "È richiesta una chiave RSA con un certificato valido e idoneo alla firma."
   ,"verifactu.input": "Scegliere un file XML o una cartella di registri accessibile."
-  ,"verifactu.hash": "L’impronta non corrisponde a quella calcolata dai campi del registro."
-  ,"verifactu.chain": "Il collegamento, l’identità del registro precedente o l’ordine delle date non corrisponde."
+  ,"verifactu.hash": "Il registro è stato modificato dopo la generazione: la sua impronta non corrisponde. Chiedi al programma di fatturazione di generarlo di nuovo."
+  ,"verifactu.chain": "Questo registro non è collegato al precedente della serie. Controlla che la cartella contenga tutti i registri in ordine."
   ,"verifactu.duplicate": "Nella catena ci sono registri con la stessa impronta."
   ,"verifactu.previous_missing": "Il registro precedente non è nella selezione. Questo collegamento della catena non può essere controllato."
-  ,"verifactu.signature": "La firma XAdES è stata alterata o non copre l’intero registro."
+  ,"verifactu.signature": "La firma del registro è alterata o non copre l’intero registro. Firmalo di nuovo con il formato «Registro Veri*Factu»."
   ,"verifactu.certificate": "Il certificato non era valido alla data del registro."
   ,"verifactu.trust": "Integrità della firma verificata. Qualificazione, revoca storica e rappresentanza dell’emittente richiedono un controllo aggiuntivo."
   ,"verifactu.unsigned": "Il registro non contiene una firma."
@@ -4887,6 +4903,22 @@
   ,"verifactu.qr_amount": "Importo totale"
   ,"verifactu.cli_usage": "Uso dei comandi: -operacion validar-verifactu|leer-qr-verifactu|cotejar-qr-verifactu -entrada ..."
   ,"verifactu.output": "Salvare il rapporto in un file diverso dal registro di ingresso."
+  ,"verifactu.root_detail": "La radice deve essere RegistroAlta, RegistroAnulacion o RegistroEvento nello spazio dei nomi dell’AEAT."
+  ,"verifactu.profile_detail": "La firma non rispetta il profilo XAdES incorporato con politica AGE e RSA-SHA256 o RSA-SHA512."
+  ,"verifactu.hash_detail": "L’impronta non corrisponde a quella calcolata dai campi del registro."
+  ,"verifactu.chain_detail": "Il collegamento, l’identità del registro precedente o l’ordine delle date non corrisponde."
+  ,"verifactu.signature_detail": "La firma XAdES è stata alterata o non copre l’intero registro."
+  ,"verifactu.export": "Esporta il rapporto Veri*Factu"
+  ,"verifactu.report": "Rapporto del controllo Veri*Factu"
+  ,"verifactu.empty_state": "Scelga un registro XML o una cartella di registri per controllarli."
+  ,"verifactu.qr_url_field": "URL del codice QR"
+  ,"verifactu.qr_result": "Risultato del QR"
+  ,"verifactu.qr_query_help": "Chiede all’AEAT se ha registrato una fattura con questi dati."
+  ,"verifactu.qr_aeat_found": "L’AEAT ha registrato una fattura con questi dati."
+  ,"verifactu.qr_aeat_not_found": "L’AEAT non trova alcuna fattura con questi dati. Controlli il NIF, il numero, la data e l’importo."
+  ,"verifactu.qr_aeat_unknown": "L’AEAT ha risposto, ma GrxFirma non riconosce il risultato. Controlli la risposta tecnica o verifichi la fattura sul sito dell’AEAT."
+  ,"verifactu.qr_technical": "Mostra la risposta tecnica"
+  ,"verifactu.qr_technical_hide": "Nascondi la risposta tecnica"
   ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: firma i registri di fatturazione forniti da un programma di fatturazione nel formato richiesto dall'AEAT e verifica i registri già firmati: impronta concatenata, firma e struttura. GrxFirma non genera, conserva né invia registri."
   ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu: legge l'URL del QR fiscale di una fattura e ne mostra i dati; solo se lo chiedi, la confronta con il servizio pubblico dell'AEAT."
   ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Sigillo visibile: con «Disegna area» ne indichi posizione e dimensione trascinando sulla pagina, come in AutoFirma. Anche da tastiera. Su Windows e Linux, e nell'editor aperto dai portali."

@@ -166,8 +166,8 @@
                         <CheckBox
                             x:Name="FacturaeToolsEnabledCheckBox"
                             AutomationProperties.HelpText="Muestra u oculta una sección independiente para crear facturas electrónicas y seguir la remisión oficial a FACe."
-                            AutomationProperties.Name="Activar herramientas Facturae y FACe"
-                            Content="Activar herramientas Facturae y FACe"
+                            AutomationProperties.Name="Activar herramientas de facturación (Facturae, FACe y Veri*Factu)"
+                            Content="Activar herramientas de facturación (Facturae, FACe y Veri*Factu)"
                             IsChecked="{x:Bind ViewModel.FacturaeToolsEnabled, Mode=TwoWay}"
                             IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
                             TabIndex="6" />
