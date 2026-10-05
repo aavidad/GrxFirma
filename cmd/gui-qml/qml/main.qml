@@ -13642,48 +13642,61 @@ Window {
                         rightPadding: 26
                         topPadding: 16
                         bottomPadding: 26
-                        contentWidth: Math.max(configMainOuterScroll.availableWidth, configMainOuterContent.implicitWidth)
+                        // Solo desplazamiento vertical: las secciones se ajustan al ancho.
+                        contentWidth: availableWidth
                         contentHeight: configMainOuterContent.implicitHeight
                         clip: true
                         ScrollBar.vertical.policy: ScrollBar.AsNeeded
-                        ScrollBar.horizontal.policy: ScrollBar.AsNeeded
+                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                         ScrollBar.vertical.width: 18
-                        ScrollBar.horizontal.height: 18
 
                         ColumnLayout {
                         id: configMainOuterContent
-                        width: Math.max(configMainOuterScroll.availableWidth, implicitWidth)
+                        width: configMainOuterScroll.availableWidth
                         spacing: 25
 
-                        RowLayout {
+                        // Título y acciones: en ventanas estrechas las acciones bajan de línea.
+                        GridLayout {
                             Layout.fillWidth: true
-                            spacing: 12
+                            columns: configMainOuterScroll.availableWidth < 560 ? 1 : 2
+                            columnSpacing: 12
+                            rowSpacing: 8
 
                             Text {
                                 text: tr("Configuración")
                                 font.pixelSize: 32
                                 font.bold: true
                                 color: currentTheme.textColor
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 1
+                                wrapMode: Text.WordWrap
                             }
 
-                            Item { Layout.fillWidth: true }
+                            AdaptiveRow {
+                                Layout.preferredWidth: Math.min(parent.width, naturalWidth)
+                                Layout.fillWidth: false
+                                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                spacing: 12
 
-                            Text {
-                                visible: window.backendSettingsDirty
-                                text: tr("Cambios sin guardar")
-                                color: currentTheme.secondaryTextColor
-                                font.pixelSize: 12
-                            }
+                                Text {
+                                    visible: window.backendSettingsDirty
+                                    text: tr("Cambios sin guardar")
+                                    color: currentTheme.secondaryTextColor
+                                    font.pixelSize: 12
+                                    height: 36
+                                    verticalAlignment: Text.AlignVCenter
+                                }
 
-                            ThemedButton {
-                                text: tr("Guardar preferencias")
-                                enabled: window.backendSettingsDirty
-                                onClicked: saveBackendSettings()
-                            }
-                            ThemedButton {
-                                text: tr("Descartar cambios")
-                                visible: window.backendSettingsDirty
-                                onClicked: discardBackendSettingsChanges(false)
+                                ThemedButton {
+                                    text: tr("Guardar preferencias")
+                                    enabled: window.backendSettingsDirty
+                                    onClicked: saveBackendSettings()
+                                }
+                                ThemedButton {
+                                    text: tr("Descartar cambios")
+                                    visible: window.backendSettingsDirty
+                                    onClicked: discardBackendSettingsChanges(false)
+                                }
                             }
                         }
 
@@ -13714,7 +13727,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     visible: isIpcMode
-                                    Text { text: tr("facturae.enable_label"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("facturae.enable_label"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: facturaeToolsSwitch
                                         checked: window.facturaeToolsEnabled
@@ -13730,7 +13743,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     visible: Qt.platform.os === "linux" && isIpcMode
-                                    Text { text: tr("facturae.startup_label"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("facturae.startup_label"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: startupSwitch
                                         checked: window.startupWithSession
@@ -13749,10 +13762,10 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Idioma"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Idioma"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ComboBox {
                                         id: languageCombo
-                                        Layout.preferredWidth: 260
+                                        Layout.preferredWidth: Math.min(260, Math.max(120, parent.width * 0.45))
                                         model: (typeof i18n !== "undefined" && i18n) ? i18n.languages : []
                                         textRole: "name"
                                         function syncCurrentIndex() {
@@ -13774,10 +13787,10 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Tema visual"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Tema visual"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ComboBox {
                                         id: settingsThemeCombo
-                                        Layout.preferredWidth: 260
+                                        Layout.preferredWidth: Math.min(260, Math.max(120, parent.width * 0.45))
                                         model: themes.map(function(_, index) { return themeLabel(index) })
                                         currentIndex: window.currentThemeIndex
                                         // Al traducirse los nombres cambia el modelo y el combo volvía al primero.
@@ -13789,7 +13802,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Modo Experto"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Modo Experto"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: expertModeSwitch
                                         checked: backend.expertMode
@@ -13805,7 +13818,7 @@ Window {
                                 }
                                 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Cerrar ventana tras firmar"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Cerrar ventana tras firmar"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: autoCloseSwitch
                                         checked: window.autoClose
@@ -13821,7 +13834,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Avisar de nuevas versiones"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Avisar de nuevas versiones"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: checkForUpdatesSwitch
                                         checked: window.checkForUpdates
@@ -13838,10 +13851,10 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Algoritmo de huella por defecto"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Algoritmo de huella por defecto"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ComboBox {
                                         id: defaultHashAlgorithmCombo
-                                        Layout.preferredWidth: 180
+                                        Layout.preferredWidth: Math.min(180, Math.max(120, parent.width * 0.45))
                                         model: hashAlgorithmOptions()
                                         textRole: "texto"
                                         currentIndex: optionIndexByValue(model, window.defaultHashAlgorithm)
@@ -13858,7 +13871,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Copiar huella al portapapeles por defecto"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Copiar huella al portapapeles por defecto"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: defaultHashCopyToClipboardSwitch
                                         checked: window.defaultHashCopyToClipboard
@@ -13874,10 +13887,10 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Formato de huella por defecto para ficheros"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Formato de huella por defecto para ficheros"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ComboBox {
                                         id: defaultHashFormatFileCombo
-                                        Layout.preferredWidth: 180
+                                        Layout.preferredWidth: Math.min(180, Math.max(120, parent.width * 0.45))
                                         model: hashFileFormatOptions()
                                         textRole: "texto"
                                         currentIndex: optionIndexByValue(model, window.defaultHashFormatFile)
@@ -13894,10 +13907,10 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Formato de manifiesto por defecto para directorios"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Formato de manifiesto por defecto para directorios"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ComboBox {
                                         id: defaultHashFormatDirectoryCombo
-                                        Layout.preferredWidth: 180
+                                        Layout.preferredWidth: Math.min(180, Math.max(120, parent.width * 0.45))
                                         model: hashDirectoryFormatOptions()
                                         textRole: "texto"
                                         currentIndex: optionIndexByValue(model, window.defaultHashFormatDirectory)
@@ -13914,7 +13927,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Recursivo por defecto en directorios"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Recursivo por defecto en directorios"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: defaultHashRecursiveSwitch
                                         checked: window.defaultHashRecursive
@@ -13931,7 +13944,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Guardar informe por defecto en directorios"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Guardar informe por defecto en directorios"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: defaultHashSaveReportSwitch
                                         checked: window.defaultHashSaveReport
@@ -13948,7 +13961,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Confirmar antes de firmar"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Confirmar antes de firmar"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: confirmToSignSwitch
                                         checked: window.confirmToSign
@@ -13964,7 +13977,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Omitir confirmación al cerrar con cambios sin guardar"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Omitir confirmación al cerrar con cambios sin guardar"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: omitAskOnCloseSwitch
                                         checked: window.omitAskOnClose
@@ -13980,7 +13993,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Dejar residente al cerrar"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Dejar residente al cerrar"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: closeBehaviorSwitch
                                         checked: window.closeBehavior === "resident"
@@ -13996,7 +14009,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Recordar último certificado"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Recordar último certificado"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: stickySignerSwitch
                                         checked: window.stickySigner
@@ -14013,7 +14026,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Autoseleccionar si solo hay un certificado"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Autoseleccionar si solo hay un certificado"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: autoSelectSingleCertificateSwitch
                                         checked: window.autoSelectSingleCertificate
@@ -14030,7 +14043,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Preferir certificado predeterminado al iniciar"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Preferir certificado predeterminado al iniciar"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: preferDefaultCertificateSwitch
                                         checked: window.preferDefaultCertificate
@@ -14047,7 +14060,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Mostrar primero el certificado predeterminado"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Mostrar primero el certificado predeterminado"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: showDefaultCertificateFirstSwitch
                                         checked: window.showDefaultCertificateFirst
@@ -14063,7 +14076,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Mostrar primero certificados aptos para firma"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Mostrar primero certificados aptos para firma"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: showUsableCertificatesFirstSwitch
                                         checked: window.showUsableCertificatesFirst
@@ -14079,7 +14092,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Mostrar primero certificados vigentes"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Mostrar primero certificados vigentes"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: showValidCertificatesFirstSwitch
                                         checked: window.showValidCertificatesFirst
@@ -14095,7 +14108,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Recordar búsqueda de certificados"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Recordar búsqueda de certificados"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: rememberCertificateFilterSwitch
                                         checked: window.rememberCertificateFilter
@@ -14114,7 +14127,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Mostrar certificados caducados"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Mostrar certificados caducados"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: certsExpiredShowSwitch
                                         checked: window.certsExpiredShow
@@ -14131,7 +14144,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Mostrar certificados no utilizables"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Mostrar certificados no utilizables"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: certsInvalidShowSwitch
                                         checked: window.certsInvalidShow
@@ -14148,7 +14161,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Usar solo certificados de firma"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Usar solo certificados de firma"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: useOnlySignatureCertificatesSwitch
                                         checked: window.useOnlySignatureCertificates
@@ -14165,7 +14178,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Requerir NIF en el certificado"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Requerir NIF en el certificado"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: certificateRequireNifSwitch
                                         checked: window.certificateRequireNIF
@@ -14182,7 +14195,7 @@ Window {
                                 }
 
                                 SettingsRowHighlight {
-                                    Text { text: tr("Requerir organización en el certificado"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Requerir organización en el certificado"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: certificateRequireOrganizationSwitch
                                         checked: window.certificateRequireOrganization
@@ -14358,9 +14371,11 @@ Window {
                                     Layout.fillWidth: true
                                 }
 
-                                RowLayout {
+                                GridLayout {
+                                    columns: configMainOuterScroll.availableWidth < 560 ? 1 : Math.min(3, Math.max(1, Math.floor(configMainOuterScroll.availableWidth / 160)))
+                                    columnSpacing: 10
+                                    rowSpacing: 10
                                     Layout.fillWidth: true
-                                    spacing: 10
 
                                     ColumnLayout {
                                         Layout.fillWidth: true
@@ -14475,7 +14490,7 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: tr("Firma visible (PAdES) por defecto"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Firma visible (PAdES) por defecto"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: settingsSignVisibleSealSwitch
                                         onToggled: {
@@ -14492,7 +14507,7 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: tr("Todas las páginas por defecto en firma visible"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Todas las páginas por defecto en firma visible"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: settingsSignSealAllPagesSwitch
                                         checked: window.signSealAllPages
@@ -14509,7 +14524,7 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: tr("Mantener texto sobre imagen por defecto"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Mantener texto sobre imagen por defecto"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: settingsSignSealKeepTextSwitch
                                         checked: window.signSealKeepText
@@ -14550,10 +14565,10 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: tr("settings.seal_language.label"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("settings.seal_language.label"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ComboBox {
                                         id: settingsSealLanguageCombo
-                                        Layout.preferredWidth: 260
+                                        Layout.preferredWidth: Math.min(260, Math.max(120, parent.width * 0.45))
                                         model: window.sealLanguageOptions()
                                         textRole: "name"
                                         Accessible.name: tr("settings.seal_language.label")
@@ -14583,10 +14598,10 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: tr("Rotación del sello visible por defecto"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Rotación del sello visible por defecto"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ComboBox {
                                         id: settingsSignSealRotationCombo
-                                        Layout.preferredWidth: 180
+                                        Layout.preferredWidth: Math.min(180, Math.max(120, parent.width * 0.45))
                                         model: [
                                             { texto: tr("0°"), valor: 0 },
                                             { texto: tr("90°"), valor: 90 },
@@ -14660,9 +14675,11 @@ Window {
                                     }
                                 }
 
-                                RowLayout {
+                                GridLayout {
+                                    columns: configMainOuterScroll.availableWidth < 560 ? 1 : 2
+                                    columnSpacing: 10
+                                    rowSpacing: 10
                                     Layout.fillWidth: true
-                                    spacing: 10
 
                                     ColumnLayout {
                                         Layout.fillWidth: true
@@ -14867,7 +14884,7 @@ Window {
 
                                 GridLayout {
                                     Layout.fillWidth: true
-                                    columns: 2
+                                    columns: configMainOuterScroll.availableWidth < 560 ? 1 : 2
                                     rowSpacing: 12
                                     columnSpacing: 14
 
@@ -14998,7 +15015,7 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: tr("Compatibilidad estricta"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    Text { text: tr("Compatibilidad estricta"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: settingsSignStrictCompatSwitch
                                         checked: window.signStrictCompat
@@ -15031,7 +15048,7 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: tr("⏳  Sellado de Tiempo (TSA)"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor de sellado de tiempo para añadir una marca de tiempo a las firmas.") }
+                                    Text { text: tr("⏳  Sellado de Tiempo (TSA)"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor de sellado de tiempo para añadir una marca de tiempo a las firmas.") ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: tsaEnabledSwitch
                                         checked: window.tsaEnabled
@@ -15119,7 +15136,7 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: tr("🌐  Configuración de Proxy"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor proxy para las conexiones de red.") }
+                                    Text { text: tr("🌐  Configuración de Proxy"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor proxy para las conexiones de red.") ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     ThemedSwitch {
                                         id: proxyEnabledSwitch
                                         checked: window.proxyEnabled
@@ -15131,13 +15148,15 @@ Window {
                                     Binding { target: proxyEnabledSwitch; property: "checked"; value: window.proxyEnabled }
                                 }
 
-                                RowLayout {
+                                GridLayout {
+                                    columns: configMainOuterScroll.availableWidth < 560 ? 1 : Math.min(3, Math.max(1, Math.floor(configMainOuterScroll.availableWidth / 160)))
+                                    columnSpacing: 10
+                                    rowSpacing: 10
                                     Layout.fillWidth: true
                                     enabled: window.proxyEnabled
                                     opacity: enabled ? 1.0 : 0.5
-                                    spacing: 10
                                     ColumnLayout {
-                                        width: 170
+                                        Layout.fillWidth: true
                                         Text { text: tr("Tipo:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                         ComboBox {
                                             id: proxyTypeCombo
@@ -15180,7 +15199,7 @@ Window {
                                         Text { Layout.fillWidth: true; visible: window.settingsFieldError("proxyHost") !== ""; text: "⚠ " + tr(window.settingsFieldError("proxyHost")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                     }
                                     ColumnLayout {
-                                        width: 100
+                                        Layout.fillWidth: true
                                         Text { text: tr("Puerto:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                         ThemedTextField {
                                             id: proxyPortField
@@ -15252,6 +15271,8 @@ Window {
                                         RowLayout {
                                             Layout.fillWidth: true
                                             Text {
+                                                wrapMode: Text.WordWrap
+                                                Layout.preferredWidth: 1
                                                 Layout.fillWidth: true
                                                 text: tr("Autenticación")
                                                 color: currentTheme.textColor
@@ -15364,6 +15385,7 @@ Window {
                                         spacing: 4
 
                                         Text {
+                                            wrapMode: Text.WordWrap
                                             Layout.fillWidth: true
                                             color: currentTheme.textColor
                                             font.bold: true
@@ -15418,7 +15440,7 @@ Window {
                                 anchors { top: parent.top; left: parent.left; right: parent.right; margins: 20 }
                                 spacing: 12
 
-                                Text { text: tr("🌐  Servidor API REST Local"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Expone la API REST solo en este equipo, para integraciones locales y consola web.") }
+                                Text { text: tr("🌐  Servidor API REST Local"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Expone la API REST solo en este equipo, para integraciones locales y consola web.") ; wrapMode: Text.WordWrap }
                                 
                                 // Estado actual del API REST
                                 Rectangle {
@@ -15430,15 +15452,19 @@ Window {
                                     RowLayout {
                                         anchors.fill: parent; anchors.margins: 12; spacing: 10
                                         Text {
+                                            wrapMode: Text.WordWrap
+                                            Layout.preferredWidth: 1
                                             text: configTab.restServerChecking ? tr("● Comprobando estado del servidor...") : (configTab.restServerRunning ? tr("● Servidor API REST en ejecución") : tr("● Servidor detenido"))
                                             color: configTab.restServerChecking ? "#d1d5db" : (configTab.restServerRunning ? "#2ecc71" : "#e74c3c")
                                             font.bold: true; font.pixelSize: 13; Layout.fillWidth: true
                                         }
                                     }
                                 }
-                                RowLayout {
+                                GridLayout {
+                                    columns: configMainOuterScroll.availableWidth < 560 ? 1 : 2
+                                    columnSpacing: 10
+                                    rowSpacing: 10
                                     Layout.fillWidth: true
-                                    spacing: 10
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("Puerto:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
@@ -15451,7 +15477,7 @@ Window {
                                     }
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        Layout.preferredWidth: 300
+                                        Layout.preferredWidth: Math.min(300, Math.max(120, parent.width * 0.45))
                                         Text { text: tr("Token de Seguridad:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                         ThemedTextField {
                                             id: restTokenField
@@ -15506,6 +15532,7 @@ Window {
                                         }
                                     }
                                     Text {
+                                        Layout.preferredWidth: 1
                                         Layout.fillWidth: true
                                         text: tr("Se apagará automáticamente; el estado activo no se guarda.")
                                         color: currentTheme.secondaryTextColor
@@ -15514,7 +15541,7 @@ Window {
                                     }
                                 }
                                 
-                                RowLayout {
+                                AdaptiveRow {
                                     Layout.fillWidth: true; spacing: 10
                                      ThemedButton {
                                         text: tr("Iniciar servidor")
@@ -15551,7 +15578,6 @@ Window {
                                             restStatusRetryTimer.restart()
                                         }
                                     }
-                                    Item { Layout.fillWidth: true } // Spacer
                                     ThemedButton {
                                         text: tr("Abrir web")
                                         icon.name: "applications-internet"
@@ -15614,6 +15640,8 @@ Window {
                                     RowLayout {
                                         anchors.fill: parent; anchors.margins: 12; spacing: 10
                                         Text {
+                                            wrapMode: Text.WordWrap
+                                            Layout.preferredWidth: 1
                                             text: !configTab.svcConnected ? tr("● Estado desconocido (Sin conexión)") :
                                                   configTab.svcRunning ? tr("● Servicio activo y corriendo") :
                                                   configTab.svcInstalled ? tr("● Servicio instalado pero parado") : tr("● Servicio no instalado")
@@ -15700,7 +15728,7 @@ Window {
 
                             RowLayout {
                                 anchors.fill: parent; anchors.margins: 20; spacing: 15
-                                Text { text: tr("↺  Valores por defecto"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true }
+                                Text { text: tr("↺  Valores por defecto"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                 Text { text: tr("Restaura el tema y opciones a fábrica"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                 ThemedButton {
                                     text: tr("Restaurar")
