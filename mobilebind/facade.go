@@ -16,6 +16,7 @@ import (
 
 	mobileinbound "grxfirma/internal/adapters/inbound/mobile"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
+	"grxfirma/internal/adapters/outbound/common/updatecheck"
 	desktopsigner "grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
@@ -82,6 +83,12 @@ type Facade struct {
 	systemTrustAnchors   bool
 	revocationMode       string
 	timeout              time.Duration
+	// Dependencias de red sustituibles en pruebas; nil usa el motor real.
+	clock           func() time.Time
+	revocationCheck func(context.Context, [][]byte) (commonsigner.CertificateOnlineRevocationResult, error)
+	timestampProbe  func(context.Context, string, []byte) ([]byte, error)
+	veriFactuQuery  func(context.Context, string) (json.RawMessage, error)
+	updateCheck     func(context.Context, string) (updatecheck.Resultado, error)
 }
 
 func newFacade(signService signService, verifyService verifyService, selectService selectCertificateService) *Facade {

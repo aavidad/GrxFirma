@@ -51,6 +51,13 @@ FACADE_METHODS = (
     "validateENIJSON(java.lang.String)",
     "eniCatalogsJSON()",
     "csvLegendJSON(java.lang.String)",
+    "certificateDetailsJSON()",
+    "checkCertificateRevocationJSON(java.lang.String)",
+    "diagnosticsJSON()",
+    "probeTimestampAuthorityJSON(java.lang.String)",
+    "readVeriFactuQRJSON(java.lang.String)",
+    "queryVeriFactuQRJSON(java.lang.String)",
+    "checkUpdateJSON(java.lang.String)",
 )
 
 

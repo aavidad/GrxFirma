@@ -49,6 +49,13 @@ createENIDocumentJSON(String) -> String
 validateENIJSON(String) -> String
 eniCatalogsJSON() -> String
 csvLegendJSON(String) -> String
+certificateDetailsJSON() -> String
+checkCertificateRevocationJSON(String) -> String
+diagnosticsJSON() -> String
+probeTimestampAuthorityJSON(String) -> String
+readVeriFactuQRJSON(String) -> String
+queryVeriFactuQRJSON(String) -> String
+checkUpdateJSON(String) -> String
 ```
 
 Android usa `importCertificateSecretBytesJSON`: PKCS#12 y contraseña UTF-8
@@ -286,3 +293,62 @@ son `csv.error.code_missing`, `code_invalid`, `url_missing`, `url_invalid` y
 El contrato declara `signing.formats` y los servicios `verifactu_validate`,
 `eni_document`, `eni_validate` y `csv_legend`. Android enlaza estos métodos
 como opcionales: con un AAR anterior oculta lo que no esté declarado.
+
+## Tercera oleada: certificado, diagnóstico, QR tributario y versiones
+
+Todos estos métodos son opcionales para la app: si un AAR anterior no los
+enlaza o no los declara en `services`, la interfaz oculta la función. Ninguno
+devuelve textos para mostrar; solo estados cerrados y datos. Los que usan red
+solo se llaman tras una acción explícita.
+
+| Servicio | Método | Red |
+| --- | --- | --- |
+| `certificate_details` | `certificateDetailsJSON()` | no |
+| `certificate_online_check` | `checkCertificateRevocationJSON` | OCSP/CRL del certificado |
+| `diagnostics` | `diagnosticsJSON()` | no |
+| `tsa_probe` | `probeTimestampAuthorityJSON` | TSA elegida |
+| `verifactu_qr_read` | `readVeriFactuQRJSON` | no |
+| `verifactu_qr_query` | `queryVeriFactuQRJSON` | servicio público de la AEAT |
+| `update_check` | `checkUpdateJSON` | API pública de GitHub |
+
+`certificateDetailsJSON` devuelve `expiring_soon_days` (30) y
+`certificates[]` con `certificate_id`, `subject`, `issuer`, `fingerprint`,
+`nif`, `organization`, `kind` (`fisica`, `representacion`, `sello`,
+`empleado_publico` o `desconocido`), `key_type`, `key_bits`, `not_before`,
+`not_after` (RFC 3339 UTC), `days_left`, `status` (`valid`, `expiring_soon`,
+`expired`, `not_yet_valid`), `external`, `can_encrypt`, `has_ocsp` y
+`has_crl`. Hoy la sesión guarda como máximo una identidad.
+
+`checkCertificateRevocationJSON` recibe `certificate_id` de la sesión y usa el
+comprobador OCSP/CRL de escritorio (30 s como máximo). Devuelve `status`
+(`valid`, `revoked`, `inconclusive`, `unavailable`), `method` (`OCSP`/`CRL`),
+`checked_at`, `revoked_at`, `has_ocsp` y `has_crl`. No cambia la verificación
+de firmas, que sigue con `revocation: embedded_evidence_only`.
+
+`diagnosticsJSON` devuelve `engine_version`, `contract_version`, `platform`,
+`go_version`, `architecture`, `engine_time_utc` y `session_identity` (booleano).
+No incluye titular, NIF, huella ni rutas.
+
+`probeTimestampAuthorityJSON` recibe `url`, la valida con las reglas de
+`signJSON` y pide un sello RFC 3161 sobre un SHA-256 aleatorio con el cliente
+de firma (nonce y firma de la TSA comprobados, 20 s como máximo). Devuelve
+`status` (`ok`, `invalid_url`, `unreachable`, `timeout`, `rejected`,
+`bad_response`), `https`, `tsa_time`, `local_time`, `skew_seconds` (hora del
+dispositivo menos hora de la TSA) y `elapsed_ms`.
+
+`readVeriFactuQRJSON` recibe `url` y devuelve `url`, `nif`, `numserie`,
+`fecha`, `importe`, `verifiable` y `test`, validados con `LeerQRVeriFactu` de
+escritorio sin acceder a la red. `queryVeriFactuQRJSON` vuelve a validar la URL
+y llama a `ConsultarQRVeriFactu`: HTTPS, hosts y rutas oficiales de la AEAT,
+sin proxy ni redirecciones, TLS 1.2 o superior y 12 s como máximo. Devuelve
+`response` con el JSON de la AEAT (256 KiB como máximo). Los errores son las
+claves `verifactu.qr_url`, `verifactu.qr_params` y `verifactu.qr_service`.
+
+`checkUpdateJSON` recibe `current_version` (`[0-9A-Za-z.+-]`, 32 bytes) y
+consulta `https://api.github.com/repos/aavidad/GrxFirma/releases/latest` con el
+cliente de escritorio (redirecciones solo al mismo origen, respuesta acotada,
+destino `https://github.com/aavidad/GrxFirma/releases/tag/...`) sobre un
+transporte sin proxy, TLS 1.2 o superior y 10 s como máximo. Devuelve
+`status` (`newer`, `current`, `not_comparable`, `no_releases`, `error`),
+`error_code` (los de `updatecheck.ErrorCode`), `current`, `latest` y `url`.
+Nunca descarga ni instala nada.

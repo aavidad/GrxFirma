@@ -340,7 +340,15 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			"eni_document":       true,
 			"eni_validate":       true,
 			"csv_legend":         true,
-			"remote_exchange":    false,
+			// Tercera oleada: cada servicio con red se ejecuta solo a petición.
+			"certificate_details":      true,
+			"certificate_online_check": true,
+			"diagnostics":              true,
+			"tsa_probe":                true,
+			"verifactu_qr_read":        true,
+			"verifactu_qr_query":       true,
+			"update_check":             true,
+			"remote_exchange":          false,
 		},
 		IdentityStore: mobileIdentityContract{
 			Mode:          "memory_session",
