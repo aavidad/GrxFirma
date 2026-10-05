@@ -3,6 +3,7 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
+using GrxFirma.WinUI.Controls;
 using GrxFirma.WinUI.Core.Operations;
 using GrxFirma.WinUI.Services;
 using Microsoft.UI.Xaml.Automation;
@@ -78,7 +79,7 @@ public sealed partial class EniPage : Page
         _interested = Field("paridad.lote3.eni.interested_optional", maxLength: 256);
 
         PageTitle.Text = T("paridad.lote3.eni.title");
-        var document = new StackPanel { Spacing = 8 };
+        var document = new FitWidthStackPanel { Spacing = 8 };
         var documentTitle = new TextBlock { Text = T("paridad.lote3.eni.document"), FontSize = 20, TextWrapping = TextWrapping.Wrap };
         AutomationProperties.SetHeadingLevel(documentTitle, AutomationHeadingLevel.Level2);
         document.Children.Add(documentTitle);
@@ -93,6 +94,7 @@ public sealed partial class EniPage : Page
         AddValidated(document, _docOrgan, () => EniValidation.OrganError(_docOrgan.Text));
         _origin.Header = T("paridad.lote3.eni.origin");
         _origin.HorizontalAlignment = HorizontalAlignment.Stretch;
+        _origin.MinWidth = 0;
         _origin.Items.Add(T("paridad.lote3.eni.administration"));
         _origin.Items.Add(T("paridad.lote3.eni.citizen"));
         _origin.SelectedIndex = 0;
@@ -114,7 +116,7 @@ public sealed partial class EniPage : Page
         document.Children.Add(Message(_documentMessage));
         EniActions.Children.Add(new Border { Child = document, Padding = new Thickness(16), Style = (Style)Application.Current.Resources["AppCardStyle"] });
 
-        var file = new StackPanel { Spacing = 8 };
+        var file = new FitWidthStackPanel { Spacing = 8 };
         var fileTitle = new TextBlock { Text = T("paridad.lote3.eni.file"), FontSize = 20, TextWrapping = TextWrapping.Wrap };
         AutomationProperties.SetHeadingLevel(fileTitle, AutomationHeadingLevel.Level2);
         file.Children.Add(fileTitle);
@@ -133,6 +135,7 @@ public sealed partial class EniPage : Page
         _certificates.Header = T("paridad.lote3.eni.certificate");
         _certificates.DisplayMemberPath = nameof(CertificateInfo.SubjectName);
         _certificates.HorizontalAlignment = HorizontalAlignment.Stretch;
+        _certificates.MinWidth = 0;
         file.Children.Add(_certificates);
         _createFile.Content = Wrapped(T("paridad.lote3.eni.create_file"));
         _createFile.MinHeight = 40;
@@ -167,7 +170,7 @@ public sealed partial class EniPage : Page
 
     private static ComboBox Codes(string key, IReadOnlyList<string> codes, string selected)
     {
-        var combo = new ComboBox { Header = T(key), HorizontalAlignment = HorizontalAlignment.Stretch };
+        var combo = new ComboBox { Header = T(key), HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 0 };
         foreach (var code in codes)
             // Primero el nombre y después el código NTI: «Otros (TD99)».
             combo.Items.Add(new ComboBoxItem { Content = T("eni.codigo." + code) + " (" + code + ")", Tag = code });
@@ -189,14 +192,22 @@ public sealed partial class EniPage : Page
         message.Visibility = text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    // El resultado aparece junto al botón que lo produjo, a la vista, y el foco
-    // vuelve a ese botón al cerrarse el diálogo de guardar.
+    // El resultado aparece junto al botón que lo produjo, a la vista, y recibe
+    // el foco para que el lector lo lea. Se aplaza: al cerrarse el diálogo de
+    // guardar, Windows devuelve el foco a la ventana y se perdía.
     private void ShowResult(TextBlock message, Button button, string text)
     {
         _status.Text = string.Empty;
         ShowMessage(message, text);
-        message.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
-        button.Focus(FocusState.Programmatic);
+        message.IsTextSelectionEnabled = true;
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            if (XamlRoot is null || message.Visibility != Visibility.Visible) return;
+            message.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
+            if (!message.Focus(FocusState.Programmatic)) button.Focus(FocusState.Programmatic);
+            FrameworkElementAutomationPeer.FromElement(message)?
+                .RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+        });
     }
 
     private static void ShowPath(TextBlock label, string path, string emptyKey)
@@ -209,7 +220,7 @@ public sealed partial class EniPage : Page
 
     private static string Code(ComboBox combo) => (combo.SelectedItem as ComboBoxItem)?.Tag as string ?? string.Empty;
 
-    private void AddValidated(StackPanel parent, Control field, Func<string?> validate)
+    private void AddValidated(Panel parent, Control field, Func<string?> validate)
     {
         _validators[field] = validate;
         var message = new TextBlock { TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed,
