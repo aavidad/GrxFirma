@@ -9,7 +9,9 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.view.isNotEmpty
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.radiobutton.MaterialRadioButton
 import es.dipgra.grxfirma.android.R
@@ -47,7 +49,9 @@ object IdentityPanel {
         if (list.tag == key) return
         list.tag = key
         list.removeAllViews()
-        rows.forEach { row ->
+        rows.forEachIndexed { index, row ->
+            // Un divisor entre filas: cada certificado se distingue del siguiente.
+            if (index > 0) list.addView(divider(context))
             list.addView(rowView(context, row, labels.getValue(row.id), state.canChangeIdentity, onSelect, onClose))
         }
     }
@@ -60,16 +64,30 @@ object IdentityPanel {
         if (detail != null && identity.id == state.certificate?.id) {
             return CertificateText.styled(context, detail, heading = identity.certificate.subject)
         }
-        val lines = buildList {
-            add(identity.certificate.subject)
-            if (detail != null) {
-                add(context.getString(CertificateText.kindLabel(detail.kind)))
-                if (detail.nif.isNotBlank()) add(context.getString(R.string.cert_nif, detail.nif))
-                add(CertificateText.expiry(detail).resolve(context))
+        val text = android.text.SpannableStringBuilder(identity.certificate.subject)
+        if (detail != null) {
+            text.append("\n").append(context.getString(CertificateText.kindLabel(detail.kind)))
+            if (detail.nif.isNotBlank()) text.append("\n").append(context.getString(R.string.cert_nif, detail.nif))
+            text.append("\n")
+            val start = text.length
+            text.append(CertificateText.expiry(detail).resolve(context))
+            // El mismo aviso de caducidad que en el certificado elegido.
+            if (CertificateText.warns(detail)) {
+                text.setSpan(android.text.style.ForegroundColorSpan(ContextCompat.getColor(context, R.color.status_warning)),
+                    start, text.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                text.setSpan(android.text.style.StyleSpan(android.graphics.Typeface.BOLD), start, text.length,
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
-            add(context.getString(if (identity.external) R.string.cert_origin_dnie else R.string.cert_origin_file))
         }
-        return lines.joinToString("\n")
+        text.append("\n").append(context.getString(if (identity.external) R.string.cert_origin_dnie else R.string.cert_origin_file))
+        return text
+    }
+
+    private fun divider(context: Context): View = View(context).apply {
+        setBackgroundColor(MaterialColors.getColor(context, com.google.android.material.R.attr.colorOutlineVariant, 0))
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+            context.resources.displayMetrics.density.toInt().coerceAtLeast(1))
     }
 
     private fun rowView(
@@ -83,6 +101,8 @@ object IdentityPanel {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        val gap = (8 * context.resources.displayMetrics.density).toInt()
+        setPadding(0, gap, 0, gap)
         val radio = MaterialRadioButton(context).apply {
             text = label
             isChecked = row.selected

@@ -15,6 +15,8 @@ import android.provider.Settings
 import android.text.InputType
 import android.view.WindowManager
 import android.view.View
+import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
 import android.webkit.MimeTypeMap
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
@@ -149,6 +151,7 @@ class MainActivity : AppCompatActivity() {
     private var shownUpdateCheck: UpdateCheck? = null
     private var updatingCertificateFilter = false
     private var menuEnabled = true
+    private var lastQrText: String? = null
     private var lastResult: OperationResult? = null
     private var lastVerification: VerificationSummary? = null
     private var verificationTechnicalExpanded = false
@@ -502,6 +505,13 @@ class MainActivity : AppCompatActivity() {
             // Contraseña vacía o incorrecta: el modelo la marca en el propio campo.
             viewModel.importCertificate(password)
         }
+        // «Hecho» en el teclado importa, igual que el botón que el teclado tapa.
+        certificatePassword.setOnEditorActionListener { _, actionId, event ->
+            val enter = actionId == EditorInfo.IME_ACTION_DONE ||
+                (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP)
+            if (enter && importCertificateButton.isEnabled) importCertificateButton.performClick()
+            enter
+        }
         forgetCertificateButton.setOnClickListener {
             dnieSession?.close()
             dnieSession = null
@@ -808,6 +818,13 @@ class MainActivity : AppCompatActivity() {
         if (state.aeatResponse.isNotEmpty()) paragraph(getString(R.string.qr_aeat_response) + "\n" + state.aeatResponse)
         qrResult.text = qrText
         qrResult.visibility = if (qrText.isEmpty()) View.GONE else View.VISIBLE
+        // El resultado del QR queda debajo de los botones: se desplaza hasta él,
+        // dentro de su propio bloque, para que quien ve la pantalla note el cambio.
+        val qrShown = qrText.toString()
+        if (lastQrText != null && qrShown.isNotEmpty() && qrShown != lastQrText) {
+            qrResult.post { qrResult.requestRectangleOnScreen(android.graphics.Rect(0, 0, qrResult.width, qrResult.height)) }
+        }
+        lastQrText = qrShown
         qrResult.setTextColor(ContextCompat.getColor(this@MainActivity,
             if (state.qrError != null) R.color.error else R.color.on_surface))
         listOf(eniOrgansLayout, eniSourceLayout, eniIdentifierLayout, eniContentFormatLayout).forEach { it.isEnabled = idle }
@@ -1305,10 +1322,11 @@ class MainActivity : AppCompatActivity() {
             ?: getString(R.string.unknown_value)
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.about_title)
-            // Las acciones van primero y «Cerrar» al final, también cuando Material apila los botones.
+            // Las acciones van primero y «Cerrar» al final cuando Material apila los botones
+            // (positivo, negativo, neutro): por eso «Cerrar» es el neutro.
             .setMessage(getString(R.string.about_content, BuildConfig.VERSION_NAME, engine, AppLinks.CONTACT_EMAIL))
-            .setNegativeButton(R.string.help_close, null)
-            .setNeutralButton(R.string.about_release_notes) { _, _ ->
+            .setNeutralButton(R.string.help_close, null)
+            .setNegativeButton(R.string.about_release_notes) { _, _ ->
                 MaterialAlertDialogBuilder(this).setTitle(R.string.about_release_notes)
                     .setMessage(getString(R.string.release_notes_wave3) + "\n\n" + getString(R.string.release_notes_wave4) + "\n\n" + getString(R.string.release_notes_wave2b) +
                         "\n\n" + getString(R.string.release_notes_content))
