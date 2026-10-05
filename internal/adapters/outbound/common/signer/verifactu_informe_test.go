@@ -53,4 +53,14 @@ func TestVeriFactuFicheroQueNoEsXML(t *testing.T) {
 	if result.Summary != "El registro presenta 1 error. Consulte el detalle en el informe." {
 		t.Fatalf("resumen: %q", result.Summary)
 	}
+	// Recorrido Windows 0.0.118 (B6): sin «[]», sin huella vacía y sin la
+	// explicación de la raíz XML, que no ayuda ante un PDF.
+	for _, prohibido := range []string{"[]", loc.T("verifactu.hash_label") + ":", loc.T("verifactu.root_detail")} {
+		if strings.Contains(result.Report, prohibido) {
+			t.Errorf("el informe de un PDF no debe contener %q: %q", prohibido, result.Report)
+		}
+	}
+	if !strings.HasPrefix(result.Report, "factura.pdf\n") {
+		t.Errorf("el informe debe empezar por el nombre del fichero: %q", result.Report)
+	}
 }

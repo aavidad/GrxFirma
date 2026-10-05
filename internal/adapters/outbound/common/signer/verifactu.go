@@ -152,7 +152,10 @@ type VeriFactuRecordResult struct {
 	Issues         []vfProblem `json:"issues"`
 	root           *vfNode
 	chain          string
-	date           time.Time
+	// noEsXML: un PDF o una imagen elegidos por error; el informe no les
+	// pone tipo, huella ni la explicación técnica de la raíz XML.
+	noEsXML bool
+	date    time.Time
 }
 type VeriFactuValidationResult struct {
 	Format   string                  `json:"format"`
@@ -340,6 +343,7 @@ func ValidarRegistrosVeriFactu(ctx context.Context, files map[string][]byte) Ver
 				// Un PDF o una imagen elegidos por error no son «XML no
 				// válido»: no son un registro Veri*Factu.
 				r.add("XML", "root", "error")
+				r.noEsXML = true
 			} else if p, ok := e.(vfProblem); ok {
 				p.Field, p.Level = "XML", "error"
 				r.Issues = append(r.Issues, p)
@@ -585,15 +589,23 @@ func (r *VeriFactuValidationResult) Localize(t func(string) string) {
 		if i > 0 {
 			fmt.Fprintln(&b)
 		}
-		fmt.Fprintf(&b, "%s [%s]\n", vfTextoVisible(filepath.Base(record.File), 260), vfTextoVisible(record.Type, 64))
-		fmt.Fprintf(&b, "%s: %s\n", t("verifactu.hash_label"), record.CalculatedHash)
+		// Sin tipo ni huella (no es un registro) no se escriben «[]» ni una
+		// «Huella calculada:» vacía.
+		if tipo := vfTextoVisible(record.Type, 64); tipo != "" {
+			fmt.Fprintf(&b, "%s [%s]\n", vfTextoVisible(filepath.Base(record.File), 260), tipo)
+		} else {
+			fmt.Fprintln(&b, vfTextoVisible(filepath.Base(record.File), 260))
+		}
+		if record.CalculatedHash != "" {
+			fmt.Fprintf(&b, "%s: %s\n", t("verifactu.hash_label"), record.CalculatedHash)
+		}
 		for _, p := range record.Issues {
 			nivel := t("verifactu.level.error")
 			if p.Level != "error" {
 				nivel = t("verifactu.level.warning")
 			}
 			fmt.Fprintf(&b, "%s · %s: %s\n", nivel, vfEtiquetaCampo(p.Field, t), t(p.Key))
-			if detalle, ok := vfDetalleTecnico[p.Key]; ok {
+			if detalle, ok := vfDetalleTecnico[p.Key]; ok && !(record.noEsXML && p.Key == "verifactu.root") {
 				fmt.Fprintf(&b, "    %s\n", t(detalle))
 			}
 		}
