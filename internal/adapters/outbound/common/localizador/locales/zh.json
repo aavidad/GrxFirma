@@ -6369,11 +6369,11 @@
   ,"winui.parity.verify.export_html": "保存报告（HTML）"
   ,"winui.parity.verify.export_json": "导出技术数据（JSON）"
   ,"winui.parity.verify.html_filter": "验证报告（HTML）"
-  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "此偏好设置由 Linux 版本使用。在 Windows 上，请在每次签署时于“高级选项”中启用印章。"
   ,"Nivel de protección": "保护级别"
   ,"Protección con clave": "使用密钥保护"
   ,"Este formato no usa destinatarios. Al pulsar «Proteger documento», escriba dos veces una clave AES de 256 bits en Base64 (44 caracteres). GrxFirma no la guarda ni la envía.": "此格式不使用收件人。按“加密文档”时，请输入两次 Base64 格式的 256 位 AES 密钥（44 个字符）。GrxFirma 不会保存或发送该密钥。"
   ,"Elija quién podrá abrir el documento protegido. Con el formato de clave no hacen falta destinatarios.": "选择谁可以打开受保护的文档。密钥格式不需要收件人。"
   ,"No hay destinatarios para este nivel de protección. Pruebe con «Alta seguridad» o añada el certificado público de la persona que abrirá el documento.": "此保护级别没有收件人。请尝试“高安全性”，或添加将打开文档的人的公钥证书。"
   ,"GrxFirma usará su certificado de este equipo o, si el documento se protegió con una clave, se la pedirá.": "GrxFirma 将使用您在此计算机上的证书；如果文档是用密钥保护的，则会要求您输入密钥。"
+  ,"La casilla «Añadir sello visible en PDF» empieza marcada al firmar un PDF.": "签署 PDF 时，“为 PDF 添加可见印章”复选框默认处于选中状态。"
 }

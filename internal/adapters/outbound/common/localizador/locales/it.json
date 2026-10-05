@@ -6369,11 +6369,11 @@
   ,"winui.parity.verify.export_html": "Salva il rapporto (HTML)"
   ,"winui.parity.verify.export_json": "Esporta i dati tecnici (JSON)"
   ,"winui.parity.verify.html_filter": "Rapporto di verifica (HTML)"
-  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "Questa preferenza è usata dalla versione per Linux. In Windows, attivi il timbro in ogni firma, in «Opzioni avanzate»."
   ,"Nivel de protección": "Livello di protezione"
   ,"Protección con clave": "Protezione con chiave"
   ,"Este formato no usa destinatarios. Al pulsar «Proteger documento», escriba dos veces una clave AES de 256 bits en Base64 (44 caracteres). GrxFirma no la guarda ni la envía.": "Questo formato non usa destinatari. Premendo «Proteggi documento», scriva due volte una chiave AES a 256 bit in Base64 (44 caratteri). GrxFirma non la salva né la invia."
   ,"Elija quién podrá abrir el documento protegido. Con el formato de clave no hacen falta destinatarios.": "Scelga chi potrà aprire il documento protetto. Con il formato a chiave non servono destinatari."
   ,"No hay destinatarios para este nivel de protección. Pruebe con «Alta seguridad» o añada el certificado público de la persona que abrirá el documento.": "Non ci sono destinatari per questo livello di protezione. Provi con «Alta sicurezza» o aggiunga il certificato pubblico della persona che aprirà il documento."
   ,"GrxFirma usará su certificado de este equipo o, si el documento se protegió con una clave, se la pedirá.": "GrxFirma userà il suo certificato di questo computer oppure, se il documento è stato protetto con una chiave, gliela chiederà."
+  ,"La casilla «Añadir sello visible en PDF» empieza marcada al firmar un PDF.": "La casella «Aggiungi un sigillo visibile al PDF» è già selezionata quando firma un PDF."
 }

@@ -6369,11 +6369,11 @@
   ,"winui.parity.verify.export_html": "Enregistrer le rapport (HTML)"
   ,"winui.parity.verify.export_json": "Exporter les données techniques (JSON)"
   ,"winui.parity.verify.html_filter": "Rapport de vérification (HTML)"
-  ,"Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas».": "Cette préférence est utilisée par la version Linux. Sous Windows, activez le cachet pour chaque signature, dans « Options avancées »."
   ,"Nivel de protección": "Niveau de protection"
   ,"Protección con clave": "Protection par clé"
   ,"Este formato no usa destinatarios. Al pulsar «Proteger documento», escriba dos veces una clave AES de 256 bits en Base64 (44 caracteres). GrxFirma no la guarda ni la envía.": "Ce format n'utilise pas de destinataires. En appuyant sur « Protéger le document », saisissez deux fois une clé AES de 256 bits en Base64 (44 caractères). GrxFirma ne l'enregistre ni ne l'envoie."
   ,"Elija quién podrá abrir el documento protegido. Con el formato de clave no hacen falta destinatarios.": "Choisissez qui pourra ouvrir le document protégé. Le format par clé n'a pas besoin de destinataires."
   ,"No hay destinatarios para este nivel de protección. Pruebe con «Alta seguridad» o añada el certificado público de la persona que abrirá el documento.": "Aucun destinataire pour ce niveau de protection. Essayez « Haute sécurité » ou ajoutez le certificat public de la personne qui ouvrira le document."
   ,"GrxFirma usará su certificado de este equipo o, si el documento se protegió con una clave, se la pedirá.": "GrxFirma utilisera votre certificat de cet ordinateur ou, si le document a été protégé par une clé, vous la demandera."
+  ,"La casilla «Añadir sello visible en PDF» empieza marcada al firmar un PDF.": "La case « Ajouter un cachet visible au PDF » est cochée par défaut lorsque vous signez un PDF."
 }

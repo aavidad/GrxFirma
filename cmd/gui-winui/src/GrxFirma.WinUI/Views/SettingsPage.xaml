@@ -219,7 +219,7 @@
                             Visibility="Collapsed"
                             TextWrapping="Wrap" />
                         <CheckBox
-                            AutomationProperties.HelpText="Esta preferencia la usa la versión para Linux. En Windows, active el sello en cada firma, dentro de «Opciones avanzadas»."
+                            AutomationProperties.HelpText="La casilla «Añadir sello visible en PDF» empieza marcada al firmar un PDF."
                             AutomationProperties.Name="Sello visible en PDF como valor predeterminado"
                             Content="Sello visible en PDF como valor predeterminado"
                             IsChecked="{x:Bind ViewModel.VisiblePdfSeal, Mode=TwoWay}"
