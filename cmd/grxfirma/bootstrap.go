@@ -306,7 +306,19 @@ func construirFuentesCertificados(
 // construirAdaptador monta la pila completa a partir de P12 o PEM.
 // ---------------------------------------------------------------------------
 
+// fuenteRemota sustituye todas las fuentes locales de certificados por una
+// única credencial remota (firma CSC): así la CLI no puede firmar por error
+// con otro certificado del equipo.
+type fuenteRemota struct {
+	ref   domain.CertificateRef
+	clave ports.SigningKey
+}
+
 func construirServicios(rutaP12, password, rutaCert, rutaClave string) (*serviciosGrxFirma, error) {
+	return construirServiciosCon(rutaP12, password, rutaCert, rutaClave, nil)
+}
+
+func construirServiciosCon(rutaP12, password, rutaCert, rutaClave string, remota *fuenteRemota) (*serviciosGrxFirma, error) {
 	ctx := context.Background()
 	metricas := metrics.NewDefault()
 	home, _ := os.UserHomeDir()
@@ -327,14 +339,21 @@ func construirServicios(rutaP12, password, rutaCert, rutaClave string) (*servici
 		p12Password = compatible
 	}
 
-	catalogo, claves, err := construirFuentesCertificados(ctx, rutaP12, password, rutaCert, rutaClave, p12Dir, p12Password, metricas)
-	if err != nil {
-		return nil, err
-	}
-	if tokenruntime.EnabledInBuild() {
-		tokens := tokenruntime.New(configDir, tokenpin.New("es").Request)
-		catalogo = certcatalogagg.New(catalogo, tokens)
-		claves = &proveedorClavesAgregado{fuentes: []ports.SigningKeyProvider{claves, tokens}}
+	var catalogo ports.CertificateCatalog
+	var claves ports.SigningKeyProvider
+	if remota != nil {
+		catalogo = &catalogoMemoria{certs: []domain.CertificateRef{remota.ref}}
+		claves = &proveedorClavesMemoria{claves: map[string]ports.SigningKey{remota.ref.ID: remota.clave}}
+	} else {
+		catalogo, claves, err = construirFuentesCertificados(ctx, rutaP12, password, rutaCert, rutaClave, p12Dir, p12Password, metricas)
+		if err != nil {
+			return nil, err
+		}
+		if tokenruntime.EnabledInBuild() {
+			tokens := tokenruntime.New(configDir, tokenpin.New("es").Request)
+			catalogo = certcatalogagg.New(catalogo, tokens)
+			claves = &proveedorClavesAgregado{fuentes: []ports.SigningKeyProvider{claves, tokens}}
+		}
 	}
 
 	httpClient := proxyhttp.New(configDir)
@@ -397,7 +416,11 @@ func construirServicios(rutaP12, password, rutaCert, rutaClave string) (*servici
 }
 
 func construirAdaptador(rutaP12, password, rutaCert, rutaClave string) (*cli.Adaptador, error) {
-	servicios, err := construirServicios(rutaP12, password, rutaCert, rutaClave)
+	return construirAdaptadorCon(rutaP12, password, rutaCert, rutaClave, nil)
+}
+
+func construirAdaptadorCon(rutaP12, password, rutaCert, rutaClave string, remota *fuenteRemota) (*cli.Adaptador, error) {
+	servicios, err := construirServiciosCon(rutaP12, password, rutaCert, rutaClave, remota)
 	if err != nil {
 		return nil, err
 	}
