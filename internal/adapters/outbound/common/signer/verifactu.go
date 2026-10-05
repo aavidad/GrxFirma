@@ -6,6 +6,7 @@
 package signer
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
@@ -13,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -159,6 +161,9 @@ type VeriFactuValidationResult struct {
 	Warnings int                     `json:"warnings"`
 	Records  []VeriFactuRecordResult `json:"records"`
 	Report   string                  `json:"report"`
+	// Summary resume el resultado en una frase para la pantalla: no dice
+	// «sin errores» a secas cuando hay avisos.
+	Summary string `json:"summary"`
 }
 
 func (r *VeriFactuRecordResult) add(field, key, level string) {
@@ -331,7 +336,11 @@ func ValidarRegistrosVeriFactu(ctx context.Context, files map[string][]byte) Ver
 		}
 		n, e := vfParse(data)
 		if e != nil || !vfRoot(n) {
-			if p, ok := e.(vfProblem); ok {
+			if !vfPareceXML(data) {
+				// Un PDF o una imagen elegidos por error no son «XML no
+				// válido»: no son un registro Veri*Factu.
+				r.add("XML", "root", "error")
+			} else if p, ok := e.(vfProblem); ok {
 				p.Field, p.Level = "XML", "error"
 				r.Issues = append(r.Issues, p)
 			} else {
@@ -530,17 +539,60 @@ var vfDetalleTecnico = map[string]string{
 	"verifactu.signature": "verifactu.signature_detail",
 }
 
+// vfPareceXML distingue un XML (aunque sea incorrecto) de otro tipo de fichero.
+func vfPareceXML(data []byte) bool {
+	data = bytes.TrimPrefix(data, []byte("\xef\xbb\xbf"))
+	data = bytes.TrimLeft(data, " \t\r\n")
+	return len(data) > 0 && data[0] == '<'
+}
+
+// vfEtiquetaCampo traduce el elemento XML del problema a un nombre que la
+// persona entienda. Los elementos del esquema sin nombre propio se citan
+// dentro de una frase traducida.
+func vfEtiquetaCampo(field string, t func(string) string) string {
+	switch {
+	case field == "XML":
+		return t("verifactu.field.file")
+	case field == "Signature":
+		return t("verifactu.field.signature")
+	case field == "Huella" || field == "HuellaEvento":
+		return t("verifactu.field.hash")
+	case field == "TipoHuella":
+		return t("verifactu.field.hash_type")
+	case field == "FechaHoraHusoGenRegistro" || field == "FechaHoraHusoGenEvento":
+		return t("verifactu.field.date")
+	case field == "Encadenamiento" || field == "EventoAnterior" ||
+		strings.HasPrefix(field, "Encadenamiento/") || strings.HasPrefix(field, "RegistroAnterior/"):
+		return t("verifactu.field.chain")
+	}
+	return strings.ReplaceAll(t("verifactu.field.element"), "%1", vfTextoVisible(field, 128))
+}
+
+// vfCuenta compone «1 aviso» / «3 avisos» con claves de singular y plural.
+func vfCuenta(n int, uno, varios string, t func(string) string) string {
+	if n == 1 {
+		return t(uno)
+	}
+	return strings.ReplaceAll(t(varios), "%1", strconv.Itoa(n))
+}
+
 func (r *VeriFactuValidationResult) Localize(t func(string) string) {
 	var b strings.Builder
-	fmt.Fprintln(&b, t("verifactu.scope"))
 	if len(r.Records) == 0 {
 		fmt.Fprintln(&b, t("verifactu.empty"))
 	}
-	for _, record := range r.Records {
-		fmt.Fprintf(&b, "\n%s [%s]\n", vfTextoVisible(filepath.Base(record.File), 260), vfTextoVisible(record.Type, 64))
+	for i, record := range r.Records {
+		if i > 0 {
+			fmt.Fprintln(&b)
+		}
+		fmt.Fprintf(&b, "%s [%s]\n", vfTextoVisible(filepath.Base(record.File), 260), vfTextoVisible(record.Type, 64))
 		fmt.Fprintf(&b, "%s: %s\n", t("verifactu.hash_label"), record.CalculatedHash)
 		for _, p := range record.Issues {
-			fmt.Fprintf(&b, "%s: %s\n", p.Field, t(p.Key))
+			nivel := t("verifactu.level.error")
+			if p.Level != "error" {
+				nivel = t("verifactu.level.warning")
+			}
+			fmt.Fprintf(&b, "%s · %s: %s\n", nivel, vfEtiquetaCampo(p.Field, t), t(p.Key))
 			if detalle, ok := vfDetalleTecnico[p.Key]; ok {
 				fmt.Fprintf(&b, "    %s\n", t(detalle))
 			}
@@ -550,6 +602,22 @@ func (r *VeriFactuValidationResult) Localize(t func(string) string) {
 		}
 	}
 	r.Report = b.String()
+	avisos := vfCuenta(r.Warnings, "verifactu.count_warning_one", "verifactu.count_warnings", t)
+	switch {
+	case len(r.Records) == 0:
+		r.Summary = t("verifactu.empty")
+	case r.Errors == 0 && r.Warnings == 0:
+		r.Summary = t("verifactu.valid")
+	case r.Errors == 0:
+		r.Summary = strings.ReplaceAll(t("verifactu.summary_warnings"), "%1", avisos)
+	case r.Warnings == 0:
+		r.Summary = strings.ReplaceAll(t("verifactu.summary_errors"), "%1",
+			vfCuenta(r.Errors, "verifactu.count_error_one", "verifactu.count_errors", t))
+	default:
+		r.Summary = strings.NewReplacer("%1",
+			vfCuenta(r.Errors, "verifactu.count_error_one", "verifactu.count_errors", t),
+			"%2", avisos).Replace(t("verifactu.summary_errors_warnings"))
+	}
 }
 
 // ValidarRutaVeriFactu acota la carpeta, los ficheros y el volumen agregado.

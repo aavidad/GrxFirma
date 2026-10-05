@@ -34,6 +34,8 @@ import (
 //go:embed recursos/emblema-firma-dipgra.png
 var emblemaFirmaPNG []byte
 
+// motivoPorDefectoPAdES es la clave de catálogo del motivo por defecto; el
+// texto que se escribe va en el idioma del sello.
 const motivoPorDefectoPAdES = "Firma electrónica avanzada"
 
 var (
@@ -114,17 +116,14 @@ func lineasSelloModerno(info pdfsign.SignDataSignatureInfo, keepText bool, signe
 	if !info.Date.IsZero() {
 		out = append(out, lineaSello{texto: textos.T("seal.date", textos.FechaHora(info.Date, estilo.zona, false)), relativo: 0.74, color: detalle, maxLin: 1})
 	}
-	if r := normalizarLineaSello(info.Reason); r != "" && r != motivoPorDefectoPAdES {
+	if r := normalizarLineaSello(info.Reason); r != "" && r != motivoPorDefectoPAdES && r != textos.T(motivoPorDefectoPAdES) {
 		out = append(out, lineaSello{texto: textos.T("seal.reason", r), relativo: 0.74, color: detalle, maxLin: 2})
 	}
 	if l := normalizarLineaSello(info.Location); l != "" {
-		// «Certificado: <emisor>» y «Certificado digital» son marcas internas
-		// del valor /Location que pone el firmador, no texto del sello.
-		if emisor, ok := strings.CutPrefix(l, "Certificado: "); ok {
-			out = append(out, lineaSello{texto: textos.T("seal.issued_by", emisor), relativo: 0.66, color: etiqueta, maxLin: 1})
-		} else if l != "Certificado digital" {
-			out = append(out, lineaSello{texto: textos.T("seal.location", l), relativo: 0.74, color: detalle, maxLin: 1})
-		}
+		out = append(out, lineaSello{texto: textos.T("seal.location", l), relativo: 0.74, color: detalle, maxLin: 1})
+	}
+	if emisor := normalizarLineaSello(estilo.emisor); emisor != "" {
+		out = append(out, lineaSello{texto: textos.T("seal.issued_by", emisor), relativo: 0.66, color: etiqueta, maxLin: 1})
 	}
 	if s := normalizarLineaSello(signerSummary); s != "" {
 		out = append(out, lineaSello{texto: s, relativo: 0.66, color: etiqueta, maxLin: 2})

@@ -177,6 +177,9 @@ type SignDataSignatureInfo struct {
 	Reason      string
 	ContactInfo string
 	Date        time.Time
+	// Description es el texto alternativo (/TU) del sello ya compuesto en el
+	// idioma del documento. Si está vacío se compone uno genérico.
+	Description string
 }
 
 type SignContext struct {

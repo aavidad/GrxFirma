@@ -6343,7 +6343,9 @@
   ,"verifactu.count_warnings": "%1 avisos"
   ,"verifactu.count_error_one": "1 erro"
   ,"verifactu.count_errors": "%1 erros"
-  ,"verifactu.summary_warnings": "Sen erros, con %1. Revíseos no informe."
-  ,"verifactu.summary_errors": "O rexistro presenta %1. Revíseos no informe."
-  ,"verifactu.summary_errors_warnings": "O rexistro presenta %1 e %2. Revíseos no informe."
+  ,"verifactu.summary_warnings": "Sen erros, con %1. Consulte o detalle no informe."
+  ,"verifactu.summary_errors": "O rexistro presenta %1. Consulte o detalle no informe."
+  ,"verifactu.summary_errors_warnings": "O rexistro presenta %1 e %2. Consulte o detalle no informe."
+  ,"seal.accessible.title": "Sinatura dixital"
+  ,"seal.accessible.signer": "Asinante: %s"
 }

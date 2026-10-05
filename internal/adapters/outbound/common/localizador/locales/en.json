@@ -6343,7 +6343,9 @@
   ,"verifactu.count_warnings": "%1 warnings"
   ,"verifactu.count_error_one": "1 error"
   ,"verifactu.count_errors": "%1 errors"
-  ,"verifactu.summary_warnings": "No errors, with %1. Review them in the report."
-  ,"verifactu.summary_errors": "The record has %1. Review them in the report."
-  ,"verifactu.summary_errors_warnings": "The record has %1 and %2. Review them in the report."
+  ,"verifactu.summary_warnings": "No errors, with %1. See the details in the report."
+  ,"verifactu.summary_errors": "The record has %1. See the details in the report."
+  ,"verifactu.summary_errors_warnings": "The record has %1 and %2. See the details in the report."
+  ,"seal.accessible.title": "Digital signature"
+  ,"seal.accessible.signer": "Signer: %s"
 }

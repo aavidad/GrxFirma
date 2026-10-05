@@ -6343,7 +6343,9 @@
   ,"verifactu.count_warnings": "%1 abisu"
   ,"verifactu.count_error_one": "errore 1"
   ,"verifactu.count_errors": "%1 errore"
-  ,"verifactu.summary_warnings": "Errorerik ez, baina %1. Berrikusi txostenean."
-  ,"verifactu.summary_errors": "Erregistroak %1 ditu. Berrikusi txostenean."
-  ,"verifactu.summary_errors_warnings": "Erregistroak %1 eta %2 ditu. Berrikusi txostenean."
+  ,"verifactu.summary_warnings": "Errorerik ez, baina %1. Ikusi xehetasunak txostenean."
+  ,"verifactu.summary_errors": "Erregistroak %1 ditu. Ikusi xehetasunak txostenean."
+  ,"verifactu.summary_errors_warnings": "Erregistroak %1 eta %2 ditu. Ikusi xehetasunak txostenean."
+  ,"seal.accessible.title": "Sinadura digitala"
+  ,"seal.accessible.signer": "Sinatzailea: %s"
 }

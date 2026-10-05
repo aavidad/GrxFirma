@@ -6343,7 +6343,9 @@
   ,"verifactu.count_warnings": "%1 条提示"
   ,"verifactu.count_error_one": "1 个错误"
   ,"verifactu.count_errors": "%1 个错误"
-  ,"verifactu.summary_warnings": "没有错误，但有 %1。请在报告中查看。"
-  ,"verifactu.summary_errors": "记录存在 %1。请在报告中查看。"
-  ,"verifactu.summary_errors_warnings": "记录存在 %1 和 %2。请在报告中查看。"
+  ,"verifactu.summary_warnings": "没有错误，但有 %1。详情请查看报告。"
+  ,"verifactu.summary_errors": "记录存在 %1。详情请查看报告。"
+  ,"verifactu.summary_errors_warnings": "记录存在 %1 和 %2。详情请查看报告。"
+  ,"seal.accessible.title": "数字签名"
+  ,"seal.accessible.signer": "签名人：%s"
 }

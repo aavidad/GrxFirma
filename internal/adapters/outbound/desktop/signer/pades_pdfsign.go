@@ -34,6 +34,7 @@ import (
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/security/avisos"
@@ -129,12 +130,13 @@ func firmarPAdESConPdfsign(doc domain.Document, clave *ClaveLocal, options map[s
 		options["visibleSealPageY"] = strconv.FormatFloat(y0, 'f', -1, 64)
 	}
 
+	// /Reason, /Location y el texto alternativo del sello van en el idioma
+	// del sello. /Location solo lleva un lugar que haya indicado la persona
+	// o la web; el emisor del certificado viaja aparte para el rótulo.
+	options = fijarEmisorSello(options, EmisorSelloCertificado(clave.cert))
 	info := pdfsign.SignDataSignatureInfo{
-		Name:        nombreFirmantePAdES(clave),
-		Location:    descripcionCertificadoPAdES(clave),
-		Reason:      "Firma electrónica avanzada",
-		ContactInfo: "",
-		Date:        time.Now().Local(),
+		Name: nombreFirmantePAdES(clave),
+		Date: time.Now().Local(),
 	}
 	aplicarMetadatosFirmaPdfsign(&info, options)
 	signData := pdfsign.SignData{
@@ -231,6 +233,11 @@ func aplicarMetadatosFirmaPdfsign(info *pdfsign.SignDataSignatureInfo, options m
 	if info == nil {
 		return
 	}
+	textos := idiomaSelloDesdeOpciones(options)
+	if strings.TrimSpace(info.Reason) == "" {
+		info.Reason = textos.T(motivoPorDefectoPAdES)
+	}
+	defer func() { info.Description = descripcionAccesibleSello(*info, textos, zonaSelloDesdeOpciones(options)) }()
 	if reason := primeraOpcionNoVacia(options, "reason", "signReason", "signatureReason"); reason != "" {
 		info.Reason = reason
 	}
@@ -838,14 +845,43 @@ func EmisorSelloCertificado(cert *x509.Certificate) string {
 	return strings.TrimSpace(cert.Issuer.CommonName)
 }
 
-func descripcionCertificadoPAdES(clave *ClaveLocal) string {
-	if clave == nil {
-		return "Certificado digital"
+// opcionEmisorSelloInterna lleva el emisor del certificado hasta el rótulo
+// «Emitido por» del sello. La fija siempre el firmador desde el certificado
+// (fijarEmisorSello), nunca la web que pide la firma.
+const opcionEmisorSelloInterna = "grxfirma.internal.sealIssuer"
+
+func fijarEmisorSello(options map[string]string, emisor string) map[string]string {
+	if options == nil {
+		options = map[string]string{}
 	}
-	if emisor := EmisorSelloCertificado(clave.cert); emisor != "" {
-		return "Certificado: " + emisor
+	for k := range options {
+		if strings.EqualFold(strings.TrimSpace(k), opcionEmisorSelloInterna) {
+			delete(options, k)
+		}
 	}
-	return "Certificado digital"
+	if emisor = strings.TrimSpace(emisor); emisor != "" {
+		options[opcionEmisorSelloInterna] = emisor
+	}
+	return options
+}
+
+// descripcionAccesibleSello compone el texto alternativo (/TU) del sello en
+// su idioma, con la fecha y su zona horaria.
+func descripcionAccesibleSello(info pdfsign.SignDataSignatureInfo, textos *localizador.Localizador, zona *time.Location) string {
+	partes := []string{textos.T("seal.accessible.title")}
+	if n := normalizarLineaSello(info.Name); n != "" {
+		partes = append(partes, textos.T("seal.accessible.signer", n))
+	}
+	if r := normalizarLineaSello(info.Reason); r != "" {
+		partes = append(partes, textos.T("seal.reason", r))
+	}
+	if l := normalizarLineaSello(info.Location); l != "" {
+		partes = append(partes, textos.T("seal.location", l))
+	}
+	if !info.Date.IsZero() {
+		partes = append(partes, textos.T("seal.date", textos.FechaHora(info.Date, zona, false)))
+	}
+	return strings.Join(partes, " | ")
 }
 
 func solicitaSelloVisiblePAdES(options map[string]string) bool {
@@ -1154,10 +1190,8 @@ func PrevisualizarSello(options map[string]string, firmante, emisor string, fech
 	if !numeroFinitoSello(w) || !numeroFinitoSello(h) || w <= 0 || h <= 0 || w > 14400 || h > 14400 {
 		return nil, errors.New("el tamaño del sello no es válido")
 	}
-	info := pdfsign.SignDataSignatureInfo{Name: firmante, Reason: motivoPorDefectoPAdES, Date: fecha}
-	if emisor = strings.TrimSpace(emisor); emisor != "" {
-		info.Location = "Certificado: " + emisor
-	}
+	options = fijarEmisorSello(options, emisor)
+	info := pdfsign.SignDataSignatureInfo{Name: firmante, Date: fecha}
 	aplicarMetadatosFirmaPdfsign(&info, options)
 	// La imagen propia llega ya en visibleSealImageBase64 (el IPC la lee
 	// de disco con sus comprobaciones de ruta).

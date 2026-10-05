@@ -6343,7 +6343,9 @@
   ,"verifactu.count_warnings": "%1 avisos"
   ,"verifactu.count_error_one": "1 error"
   ,"verifactu.count_errors": "%1 errores"
-  ,"verifactu.summary_warnings": "Sin errores, con %1. Revíselos en el informe."
-  ,"verifactu.summary_errors": "El registro presenta %1. Revíselos en el informe."
-  ,"verifactu.summary_errors_warnings": "El registro presenta %1 y %2. Revíselos en el informe."
+  ,"verifactu.summary_warnings": "Sin errores, con %1. Consulte el detalle en el informe."
+  ,"verifactu.summary_errors": "El registro presenta %1. Consulte el detalle en el informe."
+  ,"verifactu.summary_errors_warnings": "El registro presenta %1 y %2. Consulte el detalle en el informe."
+  ,"seal.accessible.title": "Firma digital"
+  ,"seal.accessible.signer": "Firmante: %s"
 }

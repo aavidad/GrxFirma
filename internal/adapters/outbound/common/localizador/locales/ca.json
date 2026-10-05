@@ -6343,7 +6343,9 @@
   ,"verifactu.count_warnings": "%1 avisos"
   ,"verifactu.count_error_one": "1 error"
   ,"verifactu.count_errors": "%1 errors"
-  ,"verifactu.summary_warnings": "Sense errors, amb %1. Reviseu-los a l'informe."
-  ,"verifactu.summary_errors": "El registre presenta %1. Reviseu-los a l'informe."
-  ,"verifactu.summary_errors_warnings": "El registre presenta %1 i %2. Reviseu-los a l'informe."
+  ,"verifactu.summary_warnings": "Sense errors, amb %1. Consulteu-ne el detall a l'informe."
+  ,"verifactu.summary_errors": "El registre presenta %1. Consulteu-ne el detall a l'informe."
+  ,"verifactu.summary_errors_warnings": "El registre presenta %1 i %2. Consulteu-ne el detall a l'informe."
+  ,"seal.accessible.title": "Signatura digital"
+  ,"seal.accessible.signer": "Signant: %s"
 }

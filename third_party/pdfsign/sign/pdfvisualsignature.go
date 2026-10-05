@@ -179,6 +179,9 @@ func (context *SignContext) createVisualSignatureWidget(pageNumber uint32, rect 
 }
 
 func (context *SignContext) visualSignatureDescription() string {
+	if description := strings.TrimSpace(context.SignData.Signature.Info.Description); description != "" {
+		return description
+	}
 	parts := []string{"Firma digital"}
 	if name := strings.TrimSpace(context.SignData.Signature.Info.Name); name != "" {
 		parts = append(parts, "Firmante: "+name)
@@ -187,10 +190,10 @@ func (context *SignContext) visualSignatureDescription() string {
 		parts = append(parts, "Motivo: "+reason)
 	}
 	if location := strings.TrimSpace(context.SignData.Signature.Info.Location); location != "" {
-		parts = append(parts, "Ubicacion: "+location)
+		parts = append(parts, "Ubicación: "+location)
 	}
 	if !context.SignData.Signature.Info.Date.IsZero() {
-		parts = append(parts, "Fecha: "+context.SignData.Signature.Info.Date.Format("2006-01-02 15:04"))
+		parts = append(parts, "Fecha: "+context.SignData.Signature.Info.Date.Format("2006-01-02 15:04 -07:00"))
 	}
 	return strings.Join(parts, " | ")
 }

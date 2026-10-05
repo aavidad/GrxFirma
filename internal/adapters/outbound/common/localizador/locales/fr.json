@@ -6343,7 +6343,9 @@
   ,"verifactu.count_warnings": "%1 avertissements"
   ,"verifactu.count_error_one": "1 erreur"
   ,"verifactu.count_errors": "%1 erreurs"
-  ,"verifactu.summary_warnings": "Aucune erreur, avec %1. Consultez-les dans le rapport."
-  ,"verifactu.summary_errors": "L'enregistrement présente %1. Consultez-les dans le rapport."
-  ,"verifactu.summary_errors_warnings": "L'enregistrement présente %1 et %2. Consultez-les dans le rapport."
+  ,"verifactu.summary_warnings": "Aucune erreur, avec %1. Consultez le détail dans le rapport."
+  ,"verifactu.summary_errors": "L'enregistrement présente %1. Consultez le détail dans le rapport."
+  ,"verifactu.summary_errors_warnings": "L'enregistrement présente %1 et %2. Consultez le détail dans le rapport."
+  ,"seal.accessible.title": "Signature numérique"
+  ,"seal.accessible.signer": "Signataire : %s"
 }

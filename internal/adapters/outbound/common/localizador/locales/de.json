@@ -6343,7 +6343,9 @@
   ,"verifactu.count_warnings": "%1 Hinweise"
   ,"verifactu.count_error_one": "1 Fehler"
   ,"verifactu.count_errors": "%1 Fehler"
-  ,"verifactu.summary_warnings": "Keine Fehler, aber %1. Prüfen Sie sie im Bericht."
-  ,"verifactu.summary_errors": "Der Datensatz weist %1 auf. Prüfen Sie sie im Bericht."
-  ,"verifactu.summary_errors_warnings": "Der Datensatz weist %1 und %2 auf. Prüfen Sie sie im Bericht."
+  ,"verifactu.summary_warnings": "Keine Fehler, aber %1. Einzelheiten finden Sie im Bericht."
+  ,"verifactu.summary_errors": "Der Datensatz weist %1 auf. Einzelheiten finden Sie im Bericht."
+  ,"verifactu.summary_errors_warnings": "Der Datensatz weist %1 und %2 auf. Einzelheiten finden Sie im Bericht."
+  ,"seal.accessible.title": "Digitale Signatur"
+  ,"seal.accessible.signer": "Unterzeichner: %s"
 }

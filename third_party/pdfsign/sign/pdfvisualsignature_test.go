@@ -53,7 +53,8 @@ func TestVisualSignature(t *testing.T) {
 		SignData:  sign_data,
 	}
 
-	expected_visual_signature := "<<\n  /Type /Annot\n  /Subtype /Widget\n  /Rect [0 0 0 0]\n  /P 4 0 R\n  /F 132\n  /NM (SignatureWidget 1)\n  /M (D:20170923143900+03'00')\n  /FT /Sig\n  /T (Signature 1)\n  /TU (Firma digital | Firmante: John Doe | Motivo: Test | Ubicacion: Somewhere | Fecha: 2017-09-23 14:39)\n  /Contents (Firma digital | Firmante: John Doe | Motivo: Test | Ubicacion: Somewhere | Fecha: 2017-09-23 14:39)\n  /V 13 0 R\n>>\n"
+	description := pdfString("Firma digital | Firmante: John Doe | Motivo: Test | Ubicación: Somewhere | Fecha: 2017-09-23 14:39 +03:00")
+	expected_visual_signature := "<<\n  /Type /Annot\n  /Subtype /Widget\n  /Rect [0 0 0 0]\n  /P 4 0 R\n  /F 132\n  /NM (SignatureWidget 1)\n  /M (D:20170923143900+03'00')\n  /FT /Sig\n  /T (Signature 1)\n  /TU " + description + "\n  /Contents " + description + "\n  /V 13 0 R\n>>\n"
 
 	visual_signature, _, err := context.createVisualSignature(false, 1, [4]float64{0, 0, 0, 0}, 1)
 	if err != nil {
@@ -63,5 +64,11 @@ func TestVisualSignature(t *testing.T) {
 
 	if string(visual_signature) != expected_visual_signature {
 		t.Errorf("Visual signature mismatch, expected\n%q\nbut got\n%q", expected_visual_signature, visual_signature)
+	}
+
+	// El texto alternativo ya localizado por quien firma sustituye al genérico.
+	context.SignData.Signature.Info.Description = "Digital signature | Signer: John Doe"
+	if got := context.visualSignatureDescription(); got != "Digital signature | Signer: John Doe" {
+		t.Errorf("Description no se usa como /TU: %q", got)
 	}
 }
