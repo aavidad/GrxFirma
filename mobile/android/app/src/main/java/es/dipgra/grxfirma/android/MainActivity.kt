@@ -494,13 +494,8 @@ class MainActivity : AppCompatActivity() {
             val editable = certificatePassword.text
             val password = CharArray(editable?.length ?: 0) { editable!![it] }
             certificatePassword.text?.clear()
-            certificatePasswordLayout.error = null
-            if (password.isEmpty()) {
-                password.fill('\u0000')
-                certificatePasswordLayout.error = getString(R.string.error_password_required)
-            } else {
-                viewModel.importCertificate(password)
-            }
+            // Contraseña vacía o incorrecta: el modelo la marca en el propio campo.
+            viewModel.importCertificate(password)
         }
         forgetCertificateButton.setOnClickListener {
             dnieSession?.close()
@@ -573,9 +568,9 @@ class MainActivity : AppCompatActivity() {
     private fun renderCertificatePanel(state: MainUiState) = with(binding.certificatePanel) {
         val available = state.certificatePanelAvailable && state.certificate != null
         certificateFilterGroup.visibility = if (available && state.showsCertificateFilter) View.VISIBLE else View.GONE
-        // Con la lista de certificados abiertos, el detalle es el del elegido para firmar.
+        // Con la lista de certificados abiertos, el detalle del elegido va junto a su fila.
         val shown = when {
-            state.showsIdentityList -> state.certificateDetails.filter { it.id == state.certificate?.id }
+            state.showsIdentityList -> emptyList()
             state.showsCertificateFilter -> state.filteredCertificates
             else -> state.certificateDetails
         }
@@ -585,9 +580,13 @@ class MainActivity : AppCompatActivity() {
                 resources.getQuantityString(R.plurals.cert_filter_count, matching, matching)
         }
         certificateDetail.visibility = if (available && shown.isNotEmpty()) View.VISIBLE else View.GONE
-        certificateDetail.text = shown.joinToString("\n\n") { CertificateText.lines(it).resolve(this@MainActivity) }
-        certificateDetail.setTextColor(ContextCompat.getColor(this@MainActivity,
-            if (shown.any(CertificateText::warns)) R.color.status_warning else R.color.on_surface))
+        // Solo la línea de caducidad va en color de aviso; el resto del detalle, en el normal.
+        certificateDetail.text = SpannableStringBuilder().apply {
+            shown.forEachIndexed { index, detail ->
+                if (index > 0) append("\n\n")
+                append(CertificateText.styled(this@MainActivity, detail))
+            }
+        }
         IdentityPanel.render(this@MainActivity, state, identityGroup, identityListTitle, identityList,
             onSelect = viewModel::selectIdentity, onClose = ::closeIdentity)
         identityAddHint.visibility = if (state.canKeepSeveralIdentities && state.identities.size == 1 &&
@@ -999,14 +998,18 @@ class MainActivity : AppCompatActivity() {
             ?: getString(R.string.no_original_document)
         certificateFileSummary.text = state.certificateFile?.summaryText()
             ?: getString(R.string.no_certificate_file)
+        // Con certificados ya abiertos, «No ha elegido ningún fichero» solo confunde.
+        certificateFileSummary.visibility =
+            if (state.certificateFile == null && state.identities.isNotEmpty()) View.GONE else View.VISIBLE
         certificateSummary.text = state.certificate?.let { certificate ->
             getString(
                 R.string.certificate_summary,
                 certificate.subject,
                 certificate.issuer.ifBlank { getString(R.string.unknown_value) },
-                certificate.fingerprint.ifBlank { getString(R.string.unknown_value) },
             )
         } ?: getString(R.string.no_certificate)
+        // Con varios abiertos, la lista ya dice cuál está elegido.
+        certificateSummary.visibility = if (state.showsIdentityList) View.GONE else View.VISIBLE
 
         selectDocumentButton.isEnabled = state.canReplaceSelection
         selectOriginalDocumentButton.isEnabled = state.canReplaceSelection
@@ -1018,6 +1021,11 @@ class MainActivity : AppCompatActivity() {
         importCertificateButton.isEnabled = state.canImportCertificate
         val certificateImportVisibility = if (state.certificateFile != null) View.VISIBLE else View.GONE
         certificatePasswordLayout.visibility = certificateImportVisibility
+        val passwordError = state.certificatePasswordError?.resolve(this@MainActivity)
+        if (certificatePasswordLayout.error?.toString() != passwordError) {
+            certificatePasswordLayout.error = passwordError
+            if (passwordError != null) certificatePassword.requestFocus()
+        }
         importCertificateButton.visibility = certificateImportVisibility
         forgetCertificateButton.isEnabled = state.canForgetCertificate
         forgetCertificateButton.visibility =

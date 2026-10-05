@@ -58,7 +58,7 @@
     <string name="import_certificate">Import certificate</string>
     <string name="forget_certificate">Close certificate</string>
     <string name="no_certificate">No certificate prepared</string>
-    <string name="certificate_summary">%1$s\nIssuer: %2$s\nFingerprint: %3$s</string>
+    <string name="certificate_summary">%1$s\nIssuer: %2$s</string>
     <string name="signature_format">Signature format</string>
     <string name="format_auto">Automatic</string>
     <string name="format_pades">Signed PDF (PAdES)</string>
@@ -630,4 +630,5 @@
     <string name="verification_revocation_unknown">It could not be checked whether the certificate was revoked at signing time.</string>
     <string name="verification_technical_toggle">Technical details</string>
     <string name="verification_reason">Reason: %1$s</string>
+    <string name="cert_fingerprint">Fingerprint: %1$s</string>
 </resources>

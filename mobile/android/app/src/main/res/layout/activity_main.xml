@@ -287,6 +287,12 @@
                     android:textColor="@color/on_surface"
                     android:textIsSelectable="true" />
 
+                <include
+                    android:id="@+id/certificatePanel"
+                    layout="@layout/section_certificate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/forgetCertificateButton"
                     style="@style/Widget.Material3.Button.TextButton"
@@ -296,12 +302,6 @@
                     android:minHeight="48dp"
                     android:text="@string/forget_certificate"
                     android:visibility="gone" />
-
-                <include
-                    android:id="@+id/certificatePanel"
-                    layout="@layout/section_certificate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
 
                 <TextView
                     android:id="@+id/operationSectionTitle"

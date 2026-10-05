@@ -58,7 +58,7 @@
     <string name="import_certificate">Importar certificat</string>
     <string name="forget_certificate">Tancar el certificat</string>
     <string name="no_certificate">Cap certificat preparat</string>
-    <string name="certificate_summary">%1$s\nEmissor: %2$s\nEmpremta: %3$s</string>
+    <string name="certificate_summary">%1$s\nEmissor: %2$s</string>
     <string name="signature_format">Format de signatura</string>
     <string name="format_auto">Automàtic</string>
     <string name="format_pades">PDF firmat (PAdES)</string>
@@ -647,4 +647,5 @@
     <string name="verification_revocation_unknown">No s\'ha pogut saber si el certificat estava revocat en firmar.</string>
     <string name="verification_technical_toggle">Detalls tècnics</string>
     <string name="verification_reason">Motiu: %1$s</string>
+    <string name="cert_fingerprint">Empremta: %1$s</string>
 </resources>

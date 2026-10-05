@@ -58,7 +58,7 @@
     <string name="import_certificate">Inportatu ziurtagiria</string>
     <string name="forget_certificate">Itxi ziurtagiria</string>
     <string name="no_certificate">Ez dago ziurtagiririk prest</string>
-    <string name="certificate_summary">%1$s\nJaulkitzailea: %2$s\nHatz-marka: %3$s</string>
+    <string name="certificate_summary">%1$s\nJaulkitzailea: %2$s</string>
     <string name="signature_format">Sinadura-formatua</string>
     <string name="format_auto">Automatikoa</string>
     <string name="format_pades">PDF sinatua (PAdES)</string>
@@ -630,4 +630,5 @@
     <string name="verification_revocation_unknown">Ezin izan da jakin ziurtagiria baliogabetuta zegoen sinatzean.</string>
     <string name="verification_technical_toggle">Xehetasun teknikoak</string>
     <string name="verification_reason">Arrazoia: %1$s</string>
+    <string name="cert_fingerprint">Hatz-marka: %1$s</string>
 </resources>

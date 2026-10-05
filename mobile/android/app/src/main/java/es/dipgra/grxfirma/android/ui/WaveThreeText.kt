@@ -5,6 +5,7 @@
 package es.dipgra.grxfirma.android.ui
 
 import androidx.annotation.StringRes
+import android.content.Context
 import es.dipgra.grxfirma.android.R
 import es.dipgra.grxfirma.android.model.CertificateDetail
 import es.dipgra.grxfirma.android.model.EngineDiagnostics
@@ -48,7 +49,28 @@ object CertificateText {
         if (detail.organization.isNotBlank()) add(UiText.Resource(R.string.cert_organization, listOf(detail.organization)))
         if (detail.keyType.isNotBlank()) add(UiText.Resource(R.string.cert_key, listOf(detail.keyType, detail.keyBits.toString())))
         add(UiText.Resource(if (detail.external) R.string.cert_origin_dnie else R.string.cert_origin_file))
+        if (detail.fingerprint.isNotBlank()) add(UiText.Resource(R.string.cert_fingerprint, listOf(detail.fingerprint)))
     })
+
+    /**
+     * Detalle listo para pintar: solo la línea de caducidad va en color de
+     * aviso (y en negrita) cuando avisa; el resto, en el color normal.
+     */
+    fun styled(context: Context, detail: CertificateDetail, heading: String? = null): CharSequence {
+        val text = android.text.SpannableStringBuilder()
+        if (heading != null) text.append(heading).append("\n")
+        val all = lines(detail).lines
+        val start = text.length
+        text.append(all.first().resolve(context))
+        if (warns(detail)) {
+            text.setSpan(android.text.style.ForegroundColorSpan(androidx.core.content.ContextCompat.getColor(context, R.color.status_warning)),
+                start, text.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            text.setSpan(android.text.style.StyleSpan(android.graphics.Typeface.BOLD), start, text.length,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        all.drop(1).forEach { text.append("\n").append(it.resolve(context)) }
+        return text
+    }
 }
 
 /** Resultado de la consulta OCSP/CRL en lenguaje llano. */

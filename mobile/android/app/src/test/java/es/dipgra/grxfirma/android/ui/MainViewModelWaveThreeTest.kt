@@ -177,10 +177,14 @@ class MainViewModelWaveThreeTest {
         assertEquals(listOf("b"), CertificateFilter.apply(list, "", "sello").map { it.id })
         assertTrue(CertificateFilter.apply(list, "granada", "sello").isEmpty())
         assertEquals(2, CertificateFilter.apply(list, "", "").size)
-        val state = MainUiState(CoreReadiness(true, "ready", ""), certificateDetails = list, certificateFilter = "ayunt")
+        val five = list + (1..3).map { detail("x$it", "fisica", "", "Otra") }
+        val state = MainUiState(CoreReadiness(true, "ready", ""), certificateDetails = five, certificateFilter = "ayunt")
         assertTrue(state.showsCertificateFilter)
         assertEquals(listOf("b"), state.filteredCertificates.map { it.id })
-        assertFalse(state.copy(certificateDetails = list.take(1)).showsCertificateFilter)
+        // Con menos de cinco no hay buscador ni filtro aplicado.
+        val few = state.copy(certificateDetails = list)
+        assertFalse(few.showsCertificateFilter)
+        assertEquals(listOf("a", "b"), few.filteredCertificates.map { it.id })
     }
 
     companion object {

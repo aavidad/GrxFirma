@@ -58,7 +58,7 @@
     <string name="import_certificate">导入证书</string>
     <string name="forget_certificate">关闭证书</string>
     <string name="no_certificate">没有就绪的证书</string>
-    <string name="certificate_summary">%1$s\n颁发者：%2$s\n指纹：%3$s</string>
+    <string name="certificate_summary">%1$s\n颁发者：%2$s</string>
     <string name="signature_format">签名格式</string>
     <string name="format_auto">自动</string>
     <string name="format_pades">已签名 PDF（PAdES）</string>
@@ -613,4 +613,5 @@
     <string name="verification_revocation_unknown">无法确定签名时证书是否已被吊销。</string>
     <string name="verification_technical_toggle">技术详情</string>
     <string name="verification_reason">原因：%1$s</string>
+    <string name="cert_fingerprint">指纹：%1$s</string>
 </resources>

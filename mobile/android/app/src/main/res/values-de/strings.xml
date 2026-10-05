@@ -58,7 +58,7 @@
     <string name="import_certificate">Zertifikat importieren</string>
     <string name="forget_certificate">Zertifikat schließen</string>
     <string name="no_certificate">Kein Zertifikat bereit</string>
-    <string name="certificate_summary">%1$s\nAussteller: %2$s\nFingerabdruck: %3$s</string>
+    <string name="certificate_summary">%1$s\nAussteller: %2$s</string>
     <string name="signature_format">Signaturformat</string>
     <string name="format_auto">Automatisch</string>
     <string name="format_pades">Signiertes PDF (PAdES)</string>
@@ -630,4 +630,5 @@
     <string name="verification_revocation_unknown">Es ließ sich nicht prüfen, ob das Zertifikat beim Signieren widerrufen war.</string>
     <string name="verification_technical_toggle">Technische Details</string>
     <string name="verification_reason">Grund: %1$s</string>
+    <string name="cert_fingerprint">Fingerabdruck: %1$s</string>
 </resources>

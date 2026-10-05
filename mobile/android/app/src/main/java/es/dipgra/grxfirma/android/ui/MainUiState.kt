@@ -165,14 +165,16 @@ data class MainUiState(
     val updateCheckAvailable: Boolean get() = platform(PlatformServices.UPDATE_CHECK)
     val canCheckUpdate: Boolean get() = updateCheckAvailable && idle
     val canExportVeriFactu: Boolean get() = veriFactuReport != null && idle
-    /** Certificados que cumplen el filtro; el filtro solo se muestra con más de uno. */
+    /** Certificados que cumplen el filtro; buscar solo compensa a partir de [CERTIFICATE_FILTER_MIN]. */
     val filteredCertificates: List<CertificateDetail>
-        get() = CertificateFilter.apply(certificateDetails, certificateFilter, certificateKindFilter)
-    val showsCertificateFilter: Boolean get() = certificateDetails.size > 1
+        get() = if (!showsCertificateFilter) certificateDetails
+            else CertificateFilter.apply(certificateDetails, certificateFilter, certificateKindFilter)
+    val showsCertificateFilter: Boolean get() = certificateDetails.size >= CERTIFICATE_FILTER_MIN
     /** Con más de un certificado abierto se elige en una lista con cuál firmar. */
     val showsIdentityList: Boolean get() = identities.size > 1
     val filteredIdentities: List<SessionIdentity>
-        get() = SessionIdentities.filter(identities, certificateDetails, certificateFilter, certificateKindFilter)
+        get() = if (!showsCertificateFilter) identities
+            else SessionIdentities.filter(identities, certificateDetails, certificateFilter, certificateKindFilter)
     /** Se puede abrir otro certificado sin cerrar los que ya están abiertos. */
     val canKeepSeveralIdentities: Boolean get() = maxIdentities > 1
     val canChangeIdentity: Boolean get() = backend.available && idle
@@ -217,6 +219,9 @@ fun MainUiState.clearedResult(result: OperationResult = OperationResult.Idle): M
     verifiedDocumentName = "",
     postSignVerificationFailed = false,
 )
+
+/** Con menos certificados abiertos la lista se lee de un vistazo: no hay buscador. */
+const val CERTIFICATE_FILTER_MIN = 5
 
 /** Qué espera guardarse: una firma, un fichero de una herramienta o el lote. */
 enum class PendingKind { SIGNATURE, TOOL, BATCH }

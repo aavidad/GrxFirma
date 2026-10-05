@@ -193,7 +193,8 @@ class MainViewModel(
         }
         if (password.isEmpty()) {
             password.fill('\u0000')
-            setError(UiText.Resource(R.string.error_password_required))
+            mutableState.value = mutableState.value.copy(
+                certificatePasswordError = UiText.Resource(R.string.error_password_required))
             return
         }
         mutableState.value = mutableState.value.copy(certificatePasswordError = null)

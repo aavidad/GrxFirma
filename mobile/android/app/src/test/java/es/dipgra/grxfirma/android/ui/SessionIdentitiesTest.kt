@@ -60,7 +60,11 @@ class SessionIdentitiesTest {
             certificateKindFilter = "fisica", maxIdentities = 8)
         assertTrue(state.showsIdentityList)
         assertTrue(state.canKeepSeveralIdentities)
-        assertEquals(listOf("a"), state.filteredIdentities.map { it.id })
+        // Con dos certificados no hay buscador: se ven todos.
+        assertEquals(listOf("a", "b"), state.filteredIdentities.map { it.id })
+        val more = (1..3).map { MainViewModelWaveThreeTest.detail("x$it", "sello", "", "Otra") }
+        val many = state.copy(identities = identities + more.map { identity(it.id) }, certificateDetails = details + more)
+        assertEquals(listOf("a"), many.filteredIdentities.map { it.id })
         assertFalse(state.copy(identities = identities.take(1)).showsIdentityList)
     }
 

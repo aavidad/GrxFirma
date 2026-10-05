@@ -58,7 +58,7 @@
     <string name="import_certificate">Certificat d\'importation</string>
     <string name="forget_certificate">Fermer le certificat</string>
     <string name="no_certificate">Aucun certificat prêt</string>
-    <string name="certificate_summary">%1$s\nÉmetteur : %2$s\nEmpreinte : %3$s</string>
+    <string name="certificate_summary">%1$s\nÉmetteur : %2$s</string>
     <string name="signature_format">Format de signature</string>
     <string name="format_auto">Automatique</string>
     <string name="format_pades">PDF signé (PAdES)</string>
@@ -647,4 +647,5 @@
     <string name="verification_revocation_unknown">Impossible de savoir si le certificat était révoqué au moment de la signature.</string>
     <string name="verification_technical_toggle">Détails techniques</string>
     <string name="verification_reason">Motif : %1$s</string>
+    <string name="cert_fingerprint">Empreinte : %1$s</string>
 </resources>
