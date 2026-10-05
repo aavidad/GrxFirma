@@ -34,4 +34,12 @@ TestCase {
             verify(Contrast.ratio(cases[i][0], Contrast.accentOn(cases[i][0], cases[i][1], 3.0)) >= 3.0, cases[i].join(" "))
         }
     }
+
+    function test_balanced_surface_reads_black_and_theme_text() {
+        const surface = Contrast.balancedSurface("#ffffff")
+        verify(Contrast.ratio(surface, "#000000") >= 4.5)
+        verify(Contrast.ratio(surface, "#ffffff") >= 4.5)
+        const offWhite = Contrast.balancedSurface("#ecf0f1")
+        verify(Math.abs(Contrast.ratio(offWhite, "#000000") - Contrast.ratio(offWhite, "#ecf0f1")) < 0.1)
+    }
 }

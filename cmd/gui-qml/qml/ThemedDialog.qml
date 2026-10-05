@@ -11,6 +11,33 @@ Dialog {
     required property var theme
     property string accessibleName: title
     property string accessibleDescription: ""
+    // Traductor de la aplicación (clave -> texto). Los botones estándar de Qt
+    // salen en el idioma del sistema; con él salen en el de la aplicación.
+    property var translate: null
+    readonly property var standardButtonKeys: [
+        [Dialog.Ok, "Aceptar"],
+        [Dialog.Cancel, "Cancelar"],
+        [Dialog.Close, "Cerrar"],
+        [Dialog.Save, "Guardar"],
+        [Dialog.Yes, "Sí"],
+        [Dialog.No, "No"]
+    ]
+
+    function relabelStandardButtons() {
+        const translator = dialog.translate
+        if (typeof translator !== "function")
+            return
+        for (let i = 0; i < dialog.standardButtonKeys.length; i++) {
+            const button = dialog.standardButton(dialog.standardButtonKeys[i][0])
+            if (button)
+                button.text = translator(dialog.standardButtonKeys[i][1])
+        }
+    }
+
+    onTranslateChanged: relabelStandardButtons()
+    onStandardButtonsChanged: Qt.callLater(relabelStandardButtons)
+    onAboutToShow: relabelStandardButtons()
+    Component.onCompleted: relabelStandardButtons()
 
     palette.window: theme.cardColor
     palette.windowText: theme.textColor

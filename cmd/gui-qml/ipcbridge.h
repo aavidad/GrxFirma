@@ -81,6 +81,10 @@ public:
   Q_INVOKABLE void verifyFile(const QString &inputPath);
   Q_INVOKABLE void verifyFileWithOriginal(const QString &inputPath,
                                           const QString &originalPath);
+  // Igual, pero pide además al motor el informe imprimible (HTML) en el
+  // idioma de la aplicación; llega en el campo reportHtml del resultado.
+  Q_INVOKABLE void verifyFileWithReport(const QString &inputPath,
+                                        const QString &originalPath);
   Q_INVOKABLE void loadProtectionRecipients();
   Q_INVOKABLE void importProtectionRecipient(const QString &path);
   Q_INVOKABLE void removeProtectionRecipient(const QString &id);

@@ -86,13 +86,13 @@ Item {
                 "exp.clasificacion": classification.text.trim(), "exp.estado": fileState.currentValue,
                 "exp.identificador": fileId.text.trim(), "exp.interesado": interested.text.trim()}
     }
-    FileDialog { id: signaturePicker; title: tr("paridad.lote3.eni.signature"); fileMode: FileDialog.OpenFile
+    FileDialog { acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir"); rejectLabel: panel.tr("Cancelar"); id: signaturePicker; title: tr("paridad.lote3.eni.signature"); fileMode: FileDialog.OpenFile
         onAccepted: { panel.signaturePath = panel.localPath(selectedFile); if (panel.signaturePath !== "") panel.documentMessageKey = "" } }
-    FileDialog { id: originalPicker; title: tr("paridad.lote3.eni.original"); fileMode: FileDialog.OpenFile
+    FileDialog { acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir"); rejectLabel: panel.tr("Cancelar"); id: originalPicker; title: tr("paridad.lote3.eni.original"); fileMode: FileDialog.OpenFile
         onAccepted: panel.originalPath = panel.localPath(selectedFile) }
-    FolderDialog { id: folderPicker; title: tr("paridad.lote3.eni.folder")
+    FolderDialog { acceptLabel: panel.tr("Seleccionar carpeta"); rejectLabel: panel.tr("Cancelar"); id: folderPicker; title: tr("paridad.lote3.eni.folder")
         onAccepted: { panel.directoryPath = panel.localPath(selectedFolder); if (panel.directoryPath !== "") panel.fileMessageKey = "" } }
-    FileDialog { id: documentSave; title: tr("paridad.lote3.eni.save_document"); fileMode: FileDialog.SaveFile
+    FileDialog { acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir"); rejectLabel: panel.tr("Cancelar"); id: documentSave; title: tr("paridad.lote3.eni.save_document"); fileMode: FileDialog.SaveFile
         nameFilters: [tr("paridad.lote3.eni.xml_filter")]
         onAccepted: {
             const output = panel.localPath(selectedFile)
@@ -104,7 +104,7 @@ Item {
                                               outputPath: output, options: panel.documentOptions()})
         }
     }
-    FileDialog { id: fileSave; title: tr("paridad.lote3.eni.save_file"); fileMode: FileDialog.SaveFile
+    FileDialog { acceptLabel: fileMode === FileDialog.SaveFile ? panel.tr("Guardar") : panel.tr("Abrir"); rejectLabel: panel.tr("Cancelar"); id: fileSave; title: tr("paridad.lote3.eni.save_file"); fileMode: FileDialog.SaveFile
         nameFilters: [tr("paridad.lote3.eni.xml_filter")]
         onAccepted: {
             const output = panel.localPath(selectedFile)

@@ -11,6 +11,7 @@ import QtQuick.Dialogs
 import QtQml 2.15
 import Qt.labs.settings 1.1
 import "ThemeContrast.js" as Contrast
+import "VerificationSigners.js" as Signers
 
 Window {
     id: window
@@ -31,7 +32,11 @@ Window {
     palette.buttonText: currentTheme.textColor
     palette.highlight: currentTheme.focusColor
     palette.highlightedText: Contrast.readableOn(currentTheme.focusColor, currentTheme.cardColor)
-    palette.light: Qt.tint(currentTheme.cardColor, Qt.rgba(0.5, 0.5, 0.5, 0.18))
+    // Fondo del panel lateral del selector de ficheros de Qt: en temas oscuros,
+    // un gris en el que se leen su texto negro y el texto claro del tema.
+    palette.light: Contrast.luminance(currentTheme.cardColor) > 0.5
+                   ? Qt.tint(currentTheme.cardColor, Qt.rgba(0.5, 0.5, 0.5, 0.18))
+                   : Contrast.balancedSurface(currentTheme.textColor)
     palette.midlight: Qt.tint(currentTheme.cardColor, Qt.rgba(0.5, 0.5, 0.5, 0.3))
     palette.mid: currentTheme.secondaryTextColor
     palette.dark: currentTheme.primaryColor
@@ -775,7 +780,7 @@ Window {
         settingsSaveInFlight || backendSettingsDirty || residentCredentialPurgePending ||
         fileDialog.visible || multiFileDialog.visible || batchDirectoryDialog.visible || batchOutputDirectoryDialog.visible ||
         saveFileDialog.visible || verifyFileDialog.visible || verifyOriginalFileDialog.visible || protectFileDialog.visible ||
-        unprotectFileDialog.visible || verifyReportSaveDialog.visible || verifySummarySaveDialog.visible || hashInputFileDialog.visible ||
+        unprotectFileDialog.visible || verifyReportSaveDialog.visible || verifySummarySaveDialog.visible || verifyHtmlReportSaveDialog.visible || hashInputFileDialog.visible ||
         hashInputDirectoryDialog.visible || hashReferenceDialog.visible || localTLSStartupNoticeDialog.visible || aboutDialog.visible || releaseNotesDialog.visible ||
         signValidationErrorDialog.visible || signConfirmDialog.visible || multiCosignDialog.visible ||
         signedDocumentWarningDialog.visible || certificateValidationDialog.visible || certificateValidationSaveDialog.visible || supportIncidentSaveDialog.visible ||
@@ -867,8 +872,59 @@ Window {
     function localPathFromUrl(urlValue) {
         let path = String(urlValue === undefined || urlValue === null ? "" : urlValue)
         if (!path.startsWith("file://")) return path
-        if (Qt.platform.os === "windows") return path.substring(8)
-        return path.substring(7)
+        path = Qt.platform.os === "windows" ? path.substring(8) : path.substring(7)
+        // Qt deja codificados «%», «#» o «?» en la URL: se deshace la codificación.
+        try {
+            return decodeURIComponent(path)
+        } catch (e) {
+            return path
+        }
+    }
+
+    // URL file:// bien formada para una ruta local: cada tramo va codificado,
+    // así que espacios, «#» o acentos no rompen la propuesta del diálogo.
+    function fileUrlFromLocalPath(path) {
+        const normalized = String(path || "").replace(/\\/g, "/")
+        if (normalized === "") return ""
+        const drive = /^[A-Za-z]:(\/|$)/.test(normalized)
+        const encoded = normalized.split("/").map(function(part, index) {
+            return drive && index === 0 ? part : encodeURIComponent(part)
+        }).join("/")
+        if (drive) return "file:///" + encoded
+        return "file://" + (encoded.charAt(0) === "/" ? "" : "/") + encoded
+    }
+
+    // Carpeta en la que se propone guardar: la del documento si se conoce;
+    // si no, Documentos del usuario.
+    function suggestedSaveFolder(documentPath) {
+        const folder = String(documentPath || "") !== "" ? dirname(documentPath) : ""
+        if (folder !== "" && (folder.charAt(0) === "/" || /^[A-Za-z]:/.test(folder)))
+            return folder
+        return (typeof documentsFolderPath !== "undefined" && documentsFolderPath) ? String(documentsFolderPath) : ""
+    }
+
+    function suggestedSaveUrl(documentPath, fileName) {
+        const folder = suggestedSaveFolder(documentPath)
+        const name = basename(fileName)
+        if (name === "") return folder !== "" ? fileUrlFromLocalPath(folder) : ""
+        return fileUrlFromLocalPath(folder !== "" ? folder.replace(/\/$/, "") + "/" + name : name)
+    }
+
+    // Abre un diálogo de guardar con carpeta y nombre propuestos.
+    function openSaveDialog(dialog, documentPath, fileName) {
+        const folder = suggestedSaveFolder(documentPath)
+        if (folder !== "")
+            dialog.currentFolder = fileUrlFromLocalPath(folder)
+        const url = suggestedSaveUrl(documentPath, fileName)
+        if (url !== "" && basename(fileName) !== "")
+            dialog.selectedFile = url
+        dialog.open()
+    }
+
+    function fileStem(path) {
+        const name = basename(path || "")
+        const dot = name.lastIndexOf(".")
+        return dot > 0 ? name.substring(0, dot) : name
     }
 
     function localPathsFromUrls(urls) {
@@ -900,15 +956,21 @@ Window {
         return folder !== "" ? folder : (String(path).startsWith("/") ? "/" : "")
     }
 
+    function suggestVerificationReportName(path) {
+        const stem = fileStem(path)
+        return stem !== "" ? stem + ".verify.json" : ""
+    }
+
     function suggestVerificationReportPath(path) {
         if (!path || path === "") return ""
-        const dir = dirname(path)
-        const name = basename(path)
-        if (name === "") return ""
-        const dot = name.lastIndexOf(".")
-        const stem = dot > 0 ? name.substring(0, dot) : name
-        const candidate = (dir !== "" ? dir + "/" : "") + stem + ".verify.json"
-        return Qt.platform.os === "windows" ? "file:///" + candidate : "file://" + candidate
+        return suggestedSaveUrl(path, suggestVerificationReportName(path))
+    }
+
+    // Informe imprimible del motor: «documento-informe-verificacion.html».
+    function suggestVerificationHtmlReportName(path) {
+        const stem = fileStem(path)
+        const suffix = tr("winui.parity.verify.filename")
+        return (stem !== "" ? stem + "-" : "") + suffix + ".html"
     }
 
     function normalizeSealImagePath(path) {
@@ -2466,7 +2528,7 @@ Window {
         let names = []
         if (details && details.signers && details.signers.length > 0) {
             for (let i = 0; i < details.signers.length; i++) {
-                const value = String(details.signers[i] || "").trim()
+                const value = Signers.readableName(String(details.signers[i] || "").trim())
                 if (value !== "" && names.indexOf(value) === -1)
                     names.push(value)
             }
@@ -2474,7 +2536,7 @@ Window {
         if (details && details.signerSummaries && details.signerSummaries.length > 0) {
             for (let j = 0; j < details.signerSummaries.length; j++) {
                 const item = details.signerSummaries[j]
-                const value = String((item && item.subject) || "").trim()
+                const value = Signers.readableName(String((item && item.subject) || "").trim())
                 if (value !== "" && names.indexOf(value) === -1)
                     names.push(value)
             }
@@ -2565,10 +2627,15 @@ Window {
         sanitizeMultiCosignCertificates()
     }
 
-    function requestVerification(path, original) {
+    // Salvo en la comprobación automática tras firmar, se pide también el
+    // informe imprimible (HTML) del motor en el idioma de la aplicación.
+    function requestVerification(path, original, withReport) {
         verificationPendingCount += 1
-        if (original !== undefined && original !== "")
-            backend.verifyFileWithOriginal(path, original)
+        const originalPath = (original !== undefined && original !== null) ? String(original) : ""
+        if (withReport !== false && backend && typeof backend.verifyFileWithReport === "function")
+            backend.verifyFileWithReport(path, originalPath)
+        else if (originalPath !== "")
+            backend.verifyFileWithOriginal(path, originalPath)
         else
             backend.verifyFile(path)
     }
@@ -2890,8 +2957,7 @@ Window {
         const cert = window.selectedCertData
         const rawName = cert ? basename(window.certificateId(cert)) : ""
         if (rawName === "") return ""
-        const candidate = rawName + "_validacion_certificado.json"
-        return Qt.platform.os === "windows" ? "file:///" + candidate : "file://" + candidate
+        return suggestedSaveUrl("", rawName + "_validacion_certificado.json")
     }
 
     function buildVerificationUserSummary(details, filePath, originalPath) {
@@ -2919,7 +2985,7 @@ Window {
             lines.push(tr("Formato: ") + info.format)
         }
         if (info.coverage && info.coverage !== "") {
-            lines.push(tr("Cobertura: ") + info.coverage)
+            lines.push(tr("Cobertura: ") + verificationCoverageText(info.coverage))
         }
 
         const aspects = [
@@ -2938,9 +3004,10 @@ Window {
             lines.push(line)
         }
 
-        const signerText = verificationSignerSummariesText(info)
-        if (signerText !== "") {
-            lines.push(tr("Firmantes: ") + signerText)
+        if (verificationSignerEntries(info).length > 0) {
+            lines.push("")
+            lines.push(tr("Firmantes: ").trim())
+            lines.push(verificationSignerSummariesText(info))
         }
 
         if (info.warnings && info.warnings.length > 0) {
@@ -2957,6 +3024,13 @@ Window {
             for (let i = 0; i < info.errors.length; ++i) {
                 lines.push("- " + localizeVisibleDiagnosticText(info.errors[i]))
             }
+        }
+
+        const technical = verificationSignerTechnicalText(info)
+        if (technical !== "") {
+            lines.push("")
+            lines.push(tr("report.section.details"))
+            lines.push(technical)
         }
 
         return lines.join("\n")
@@ -3055,13 +3129,16 @@ Window {
         }
     }
 
+    // «documento_resumen_validacion.txt» (el sufijo, en el idioma de la
+    // aplicación), en la carpeta del documento verificado o en Documentos.
+    function suggestVerificationSummaryName(path) {
+        const stem = fileStem(path)
+        const suffix = tr("verificacion.resumen.nombre_fichero")
+        return (stem !== "" ? stem + "_" : "") + suffix + ".txt"
+    }
+
     function suggestVerificationSummaryPath(path) {
-        const rawName = basename(path || "")
-        if (rawName === "") return ""
-        const dot = rawName.lastIndexOf(".")
-        const stem = dot > 0 ? rawName.substring(0, dot) : rawName
-        const candidate = stem + "_resumen_validacion.txt"
-        return Qt.platform.os === "windows" ? "file:///" + candidate : "file://" + candidate
+        return suggestedSaveUrl(path, suggestVerificationSummaryName(path))
     }
 
     function suggestSupportIncidentPath() {
@@ -3072,8 +3149,7 @@ Window {
             const dot = base.lastIndexOf(".")
             stem = dot > 0 ? base.substring(0, dot) : base
         }
-        const candidate = stem + ".incident.txt"
-        return Qt.platform.os === "windows" ? "file:///" + candidate : "file://" + candidate
+        return suggestedSaveUrl("", stem + ".incident.txt")
     }
 
     Settings {
@@ -4734,7 +4810,7 @@ Window {
         pendingAutoVerificationQueue = queue
         autoVerificationContext = next
         autoVerificationInProgress = true
-        window.requestVerification(next.path)
+        window.requestVerification(next.path, "", false)
     }
 
     function verificationPayload(success, message, details) {
@@ -4909,20 +4985,106 @@ Window {
         return values.map((item) => localizeVisibleDiagnosticText(item)).join("\n")
     }
 
-    function verificationSignerSummariesText(details) {
-        if (!details || !details.signerSummaries || details.signerSummaries.length === 0)
-            return tr("No disponible")
-        let rows = []
-        for (let i = 0; i < details.signerSummaries.length; i++) {
-            const item = details.signerSummaries[i]
-            let parts = []
-            if (item.subject) parts.push(item.subject)
-            if (item.issuer) parts.push(item.issuer)
-            if (item.fingerprint) parts.push(item.fingerprint)
-            if (parts.length === 0 && item.id) parts.push(item.id)
-            rows.push(parts.join(" | "))
+    // Firmantes como los lee una persona (igual que el informe del motor y
+    // WinUI): nombre, NIF, organización, emisor y fecha con su origen. Los DN
+    // completos quedan en verificationSignerTechnicalText.
+    function verificationSignerEntries(details) {
+        let entries = []
+        let seen = []
+        const summaries = (details && details.signerSummaries) ? details.signerSummaries : []
+        for (let i = 0; i < summaries.length; i++) {
+            const item = summaries[i] || {}
+            const subject = String(item.subject || "").trim()
+            const issuer = String(item.issuer || "").trim()
+            const parsed = Signers.parseDistinguishedName(subject)
+            const date = Signers.signingTimeText(item.signingTime, item.signingTimeSource, tr("format.datetime_seconds"))
+            let dateText = ""
+            if (date !== "")
+                dateText = catalogFormat(item.signingTimeSource === "timestamp"
+                                         ? "report.signer.time_from_timestamp"
+                                         : "report.signer.time_declared", [date])
+            entries.push({
+                name: subject !== "" ? Signers.readableName(subject) : String(item.id || "").trim(),
+                identifier: parsed.identifier,
+                organization: parsed.organization,
+                issuer: issuer !== "" ? Signers.readableIssuer(issuer) : "",
+                date: date,
+                dateText: dateText,
+                subjectDn: subject,
+                issuerDn: issuer,
+                fingerprint: String(item.fingerprint || "").trim()
+            })
+            if (subject !== "") seen.push(subject)
         }
-        return rows.join("\n")
+        const signers = (details && details.signers) ? details.signers : []
+        for (let j = 0; j < signers.length; j++) {
+            const dn = String(signers[j] || "").trim()
+            if (dn === "" || seen.indexOf(dn) !== -1) continue
+            seen.push(dn)
+            const parsed = Signers.parseDistinguishedName(dn)
+            entries.push({ name: Signers.readableName(dn), identifier: parsed.identifier,
+                           organization: parsed.organization, issuer: "", date: "", dateText: "",
+                           subjectDn: dn, issuerDn: "", fingerprint: "" })
+        }
+        return entries
+    }
+
+    function verificationSignerLabelLine(labelKey, value) {
+        return catalogFormat("verificacion.detalle.formato", [tr(labelKey), value])
+    }
+
+    function verificationSignerSummariesText(details) {
+        const entries = verificationSignerEntries(details)
+        if (entries.length === 0)
+            return tr("No disponible")
+        let blocks = []
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i]
+            let lines = ["• " + entry.name]
+            if (entry.identifier !== "") lines.push("   " + verificationSignerLabelLine("report.signer.identifier", entry.identifier))
+            if (entry.organization !== "" && entry.organization !== entry.name)
+                lines.push("   " + verificationSignerLabelLine("report.signer.organization", entry.organization))
+            if (entry.issuer !== "") lines.push("   " + verificationSignerLabelLine("report.signer.issuer", entry.issuer))
+            if (entry.dateText !== "") lines.push("   " + verificationSignerLabelLine("report.signer.signing_time", entry.dateText))
+            blocks.push(lines.join("\n"))
+        }
+        return blocks.join("\n")
+    }
+
+    // Una línea por firmante para los resúmenes breves: nombre y fecha.
+    function verificationSignerShortText(details) {
+        const entries = verificationSignerEntries(details)
+        if (entries.length === 0)
+            return tr("No disponible")
+        return entries.map(function(entry) {
+            return entry.date !== "" ? tr("verificacion.firmante_con_fecha").arg(entry.name).arg(entry.date) : entry.name
+        }).join("; ")
+    }
+
+    // Los DN completos y la huella, para los detalles técnicos.
+    function verificationSignerTechnicalText(details) {
+        const entries = verificationSignerEntries(details)
+        let lines = []
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i]
+            if (entry.subjectDn !== "") lines.push(catalogFormat("report.technical.subject_dn", [entry.subjectDn]))
+            if (entry.issuerDn !== "") lines.push(catalogFormat("report.technical.issuer_dn", [entry.issuerDn]))
+            if (entry.fingerprint !== "") lines.push(verificationSignerLabelLine("report.signer.fingerprint", entry.fingerprint))
+        }
+        return lines.join("\n")
+    }
+
+    // Cobertura que devuelve el motor (full, partial, chain, unknown).
+    function verificationHasHtmlReport(details) {
+        return !!(details && typeof details.reportHtml === "string" && details.reportHtml !== "")
+    }
+
+    function verificationCoverageText(value) {
+        const key = String(value || "").trim().toLowerCase()
+        if (key === "full") return tr("winui.verificar.completa")
+        if (key === "partial") return tr("winui.verificar.parcial")
+        if (key === "chain") return tr("verificacion.cobertura.cadena")
+        return tr("winui.verificar.no_determinada")
     }
 
     function verificationEvidenceText(details) {
@@ -4971,7 +5133,14 @@ Window {
             return tr("Firma verificada")
         const reason = currentOutputVerificationDetails && currentOutputVerificationDetails.reason
                        ? localizeVisibleDiagnosticText(currentOutputVerificationDetails.reason) : ""
-        return currentOutputVerificationMessage + (reason !== "" ? ": " + reason : "")
+        if (reason === "")
+            return currentOutputVerificationMessage
+        // Plantilla con el motivo: el mensaje ya acaba en punto y no se le
+        // pegan «: » detrás.
+        const template = verificationOutcomeKind(currentOutputVerificationDetails) === "untrusted"
+                         ? "verificacion.auto.sin_confianza_motivo"
+                         : "verificacion.auto.incidencias_motivo"
+        return tr(template).arg(reason)
     }
 
     function applyBatchAutoVerificationResult(index, success, message, details) {
@@ -5054,6 +5223,8 @@ Window {
 
     // --- DIALOGOS ---
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: fileDialog
         title: tr("Seleccionar documento")
         nameFilters: [tr("Todos los archivos (*)")]
@@ -5063,6 +5234,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: multiFileDialog
         title: tr("Seleccionar varios documentos")
         fileMode: FileDialog.OpenFiles
@@ -5073,6 +5246,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: batchDirectoryDialog
         title: tr("Seleccionar cualquier fichero de la carpeta de entrada")
         nameFilters: [tr("Todos los archivos (*)")]
@@ -5084,6 +5259,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: batchOutputDirectoryDialog
         title: tr("Seleccionar cualquier fichero de la carpeta de salida del lote")
         nameFilters: [tr("Todos los archivos (*)")]
@@ -5095,9 +5272,11 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: saveFileDialog
         title: tr("Seleccionar destino del PDF firmado")
-        currentFile: "file://" + window.currentOutputPath
+        currentFile: window.fileUrlFromLocalPath(window.currentOutputPath)
         fileMode: FileDialog.SaveFile
         nameFilters: [tr("Archivos PDF (*.pdf)")]
         onAccepted: {
@@ -5106,6 +5285,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: verifyFileDialog
         title: tr("Seleccionar documento firmado")
         nameFilters: [tr("Documentos firmados (*.pdf *.p7s *.xsig *.xml)"), tr("Todos los archivos (*)")]
@@ -5118,6 +5299,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: verifyOriginalFileDialog
         title: tr("Seleccionar documento original de referencia")
         nameFilters: [tr("Todos los archivos (*)")]
@@ -5128,6 +5311,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: protectFileDialog
         title: tr("Seleccionar fichero a proteger")
         nameFilters: [tr("Todos los archivos (*)")]
@@ -5142,6 +5327,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: unprotectFileDialog
         title: tr("Seleccionar fichero protegido")
         nameFilters: [
@@ -5157,6 +5344,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: verifyReportSaveDialog
         title: tr("Guardar informe de verificación")
         fileMode: FileDialog.SaveFile
@@ -5172,6 +5361,21 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
+        id: verifyHtmlReportSaveDialog
+        title: tr("winui.parity.verify.export_html")
+        fileMode: FileDialog.SaveFile
+        nameFilters: [tr("verificacion.informe_html.filtro"), tr("Todos los archivos (*)")]
+        onAccepted: {
+            backend.saveTextReport(localPathFromUrl(selectedFile),
+                                   String((verifyTab.verifyDetails && verifyTab.verifyDetails.reportHtml) || ""))
+        }
+    }
+
+    FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: verifySummarySaveDialog
         title: tr("Guardar resumen de validación")
         fileMode: FileDialog.SaveFile
@@ -5188,6 +5392,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: hashInputFileDialog
         title: tr("Seleccionar fichero para huella")
         nameFilters: [tr("Todos los archivos (*)")]
@@ -5200,6 +5406,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: hashInputDirectoryDialog
         title: tr("Seleccionar cualquier fichero de la carpeta a comprobar")
         nameFilters: [tr("Todos los archivos (*)")]
@@ -5216,6 +5424,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: hashReferenceDialog
         title: tr("Seleccionar huella o manifiesto")
         nameFilters: [tr("Huellas y manifiestos (*.hexhash *.hashb64 *.hash *.hashfiles *.txthashfiles *.csv)"), tr("Todos los archivos (*)")]
@@ -5226,6 +5436,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: localTLSStartupNoticeDialog
         title: tr("Conexión segura con navegadores")
@@ -5248,6 +5459,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: aboutDialog
         title: tr("Acerca de")
@@ -5438,6 +5650,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: signValidationErrorDialog
         title: tr("Atención")
@@ -5465,6 +5678,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: signConfirmDialog
         title: tr("Confirmar firma")
@@ -5486,7 +5700,7 @@ Window {
             }
             Text {
                 text: signConfirmDialog.selectedCertIndex >= 0 && signConfirmDialog.selectedCertIndex < certificates.length
-                      ? tr("Certificado: %1").arg(certificateLabel(certificates[signConfirmDialog.selectedCertIndex]))
+                      ? tr("Certificado: %1").arg(window.certificateDisplayName(certificates[signConfirmDialog.selectedCertIndex]))
                       : tr("Certificado: no disponible")
                 color: currentTheme.secondaryTextColor
                 wrapMode: Text.WordWrap
@@ -5496,6 +5710,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: multiCosignDialog
         title: tr("Cofirma múltiple guiada")
@@ -5822,6 +6037,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: certificateValidationSaveDialog
         title: tr("Guardar informe de validación del certificado")
         fileMode: FileDialog.SaveFile
@@ -5837,6 +6054,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: supportIncidentSaveDialog
         title: tr("Guardar incidencia preparada")
         fileMode: FileDialog.SaveFile
@@ -6890,6 +7109,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: p12FileDialog
         title: tr("Importar certificado al perfil local (.p12, .pfx)")
         nameFilters: [tr("Certificados (*.p12 *.pfx)"), tr("Todos los archivos (*)")]
@@ -6899,6 +7120,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: temporaryCertificateFileDialog
         title: tr("Usar certificado solo durante esta sesión")
         nameFilters: [
@@ -6909,6 +7132,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: guidedImportCertificateFileDialog
         title: tr("Importar certificado en el almacén seleccionado")
         nameFilters: [tr("Certificados (*.p12 *.pfx)"), tr("Todos los archivos (*)")]
@@ -6916,6 +7141,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: sealImageFileDialog
         title: tr("Seleccionar imagen de firma")
         nameFilters: [tr("Imágenes (*.png *.jpg *.jpeg)"), tr("Todos los archivos (*)")]
@@ -6926,6 +7153,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: recipientPublicFileDialog
         title: tr("Importar certificado público del destinatario")
         nameFilters: [tr("Certificados públicos (*.cer *.crt *.pem *.der)"), tr("Todos los archivos (*)")]
@@ -6933,6 +7162,8 @@ Window {
     }
 
     FileDialog {
+        acceptLabel: fileMode === FileDialog.SaveFile ? tr("Guardar") : tr("Abrir")
+        rejectLabel: tr("Cancelar")
         id: publicCertificateSaveDialog
         title: tr("Exportar certificado público")
         fileMode: FileDialog.SaveFile
@@ -6947,6 +7178,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: publicCertificateSelectDialog
         title: tr("Elegir mi certificado")
@@ -6970,6 +7202,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: publicCertificateResultDialog
         standardButtons: Dialog.Ok
@@ -6994,6 +7227,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: cscRemoteDialog
         title: tr("csc.gui.titulo")
@@ -7264,6 +7498,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: importPasswordDialog
         title: tr("Contraseña del Certificado")
@@ -7294,6 +7529,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: temporaryCertificatePasswordDialog
         title: tr("Usar certificado sin instalar")
@@ -7328,6 +7564,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: guidedImportPasswordDialog
         title: tr("Importar en navegador o sistema")
@@ -7363,6 +7600,7 @@ Window {
     }
 
     ThemedDialog {
+        translate: function(key) { return window.tr(key) }
         theme: currentTheme
         id: certificateAccessDialog
         title: tr("Certificados del navegador o del sistema")
@@ -10170,14 +10408,14 @@ Window {
                                                 wrapMode: Text.Wrap
                                             }
                                             Text {
-                                                text: tr("Cobertura: ") + (window.currentOutputVerificationDetails && window.currentOutputVerificationDetails.coverage ? window.currentOutputVerificationDetails.coverage : tr("No disponible"))
+                                                text: tr("Cobertura: ") + (window.currentOutputVerificationDetails && window.currentOutputVerificationDetails.coverage ? verificationCoverageText(window.currentOutputVerificationDetails.coverage) : tr("No disponible"))
                                                 color: "white"
                                                 font.pixelSize: 12
                                                 width: parent.width
                                                 wrapMode: Text.Wrap
                                             }
                                             Text {
-                                                text: tr("Firmantes resumidos: ") + verificationSignerSummariesText(window.currentOutputVerificationDetails)
+                                                text: tr("Firmantes: ") + verificationSignerShortText(window.currentOutputVerificationDetails)
                                                 color: "white"
                                                 opacity: 0.9
                                                 font.pixelSize: 12
@@ -10567,7 +10805,7 @@ Window {
                                                         wrapMode: Text.Wrap
                                                     }
                                                     Text {
-                                                        text: tr("Cobertura: ") + (modelData.verifyDetails && modelData.verifyDetails.coverage ? modelData.verifyDetails.coverage : tr("No disponible"))
+                                                        text: tr("Cobertura: ") + (modelData.verifyDetails && modelData.verifyDetails.coverage ? verificationCoverageText(modelData.verifyDetails.coverage) : tr("No disponible"))
                                                         color: "white"
                                                         opacity: 0.95
                                                         font.pixelSize: 12
@@ -10713,7 +10951,7 @@ Window {
                                                     spacing: 6
 
                                                     Text {
-                                                        text: tr("Firmantes resumidos")
+                                                        text: tr("Firmantes")
                                                         color: currentTheme.primaryColor
                                                         font.bold: true
                                                         font.pixelSize: 12
@@ -11473,9 +11711,7 @@ Window {
                                 onDropped: (drop) => {
                                     containsDrag = false
                                     if (drop.hasUrls) {
-                                        let path = drop.urls[0].toString()
-                                        if (path.startsWith("file://")) path = path.substring(7)
-                                        verifyTab.verifyFilePath = path
+                                        verifyTab.verifyFilePath = window.localPathFromUrl(drop.urls[0].toString())
                                     }
                                 }
                             }
@@ -11563,6 +11799,13 @@ Window {
                                     visible: verifyTab.verifyDetails !== null
 
                                     ThemedButton {
+                                        text: tr("winui.parity.verify.export_html")
+                                        visible: window.verificationHasHtmlReport(verifyTab.verifyDetails)
+                                        font.bold: true
+                                        onClicked: window.openSaveDialog(verifyHtmlReportSaveDialog, verifyTab.verifyFilePath,
+                                                                         window.suggestVerificationHtmlReportName(verifyTab.verifyFilePath))
+                                    }
+                                    ThemedButton {
                                         text: tr("Copiar resumen")
                                         onClicked: {
                                             window.copyTextToClipboard(window.buildVerificationUserSummary(
@@ -11574,11 +11817,13 @@ Window {
                                     }
                                     ThemedButton {
                                         text: tr("Guardar resumen")
-                                        onClicked: verifySummarySaveDialog.open()
+                                        onClicked: window.openSaveDialog(verifySummarySaveDialog, verifyTab.verifyFilePath,
+                                                                         window.suggestVerificationSummaryName(verifyTab.verifyFilePath))
                                     }
                                     ThemedButton {
                                         text: tr("Guardar informe JSON")
-                                        onClicked: verifyReportSaveDialog.open()
+                                        onClicked: window.openSaveDialog(verifyReportSaveDialog, verifyTab.verifyFilePath,
+                                                                         window.suggestVerificationReportName(verifyTab.verifyFilePath))
                                     }
                                 }
                             }
@@ -12052,7 +12297,7 @@ Window {
                                                         visible: verificationSummaryColumn.parent.expanded
                                                     }
                                                     Text {
-                                                        text: tr("Cobertura: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.coverage ? verifyTab.verifyDetails.coverage : tr("No disponible"))
+                                                        text: tr("Cobertura: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.coverage ? verificationCoverageText(verifyTab.verifyDetails.coverage) : tr("No disponible"))
                                                         color: verifyTab.subPanelText
                                                         opacity: 0.95
                                                         width: parent.width
@@ -12139,14 +12384,15 @@ Window {
                                         }
 
                                         Rectangle {
-                                            property bool expanded: false
+                                            // Quién firmó y cuándo es lo primero que se busca: abierto.
+                                            property bool expanded: true
                                             width: parent.width
                                             implicitHeight: Math.max(signersColumn.implicitHeight + 20, 52)
                                             color: verifyTab.subPanelColor
                                             border.color: verifyTab.subPanelBorder
                                             border.width: 1
                                             radius: 8
-                                            visible: verifyTab.verifyDetails && verifyTab.verifyDetails.signers && verifyTab.verifyDetails.signers.length > 0
+                                            visible: verifyTab.verifyDetails !== null && window.verificationSignerEntries(verifyTab.verifyDetails).length > 0
 
                                             Column {
                                                 id: signersColumn
@@ -12161,7 +12407,7 @@ Window {
                                                     Text {
                                                         Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
-                                                        text: tr("Firmantes") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.signers) ? verifyTab.verifyDetails.signers.length : 0) + ")"
+                                                        text: tr("Firmantes") + " (" + window.verificationSignerEntries(verifyTab.verifyDetails).length + ")"
                                                         color: verifyTab.subPanelTitle
                                                         font.bold: true
                                                         font.pixelSize: 12
@@ -12176,16 +12422,13 @@ Window {
                                                     }
                                                 }
 
-                                                Repeater {
-                                                    model: (verifyTab.verifyDetails && verifyTab.verifyDetails.signers) ? verifyTab.verifyDetails.signers : []
-                                                    delegate: Text {
-                                                        text: tr("• ") + modelData
-                                                        color: verifyTab.subPanelText
-                                                        font.pixelSize: 12
-                                                        wrapMode: Text.Wrap
-                                                        width: signersColumn.width
-                                                        visible: signersColumn.parent.expanded
-                                                    }
+                                                Text {
+                                                    text: window.verificationSignerSummariesText(verifyTab.verifyDetails)
+                                                    color: verifyTab.subPanelText
+                                                    font.pixelSize: 12
+                                                    wrapMode: Text.Wrap
+                                                    width: signersColumn.width
+                                                    visible: signersColumn.parent.expanded
                                                 }
                                             }
                                         }
@@ -12198,7 +12441,7 @@ Window {
                                             border.color: verifyTab.subPanelBorder
                                             border.width: 1
                                             radius: 8
-                                            visible: verifyTab.verifyDetails && verifyTab.verifyDetails.signerSummaries && verifyTab.verifyDetails.signerSummaries.length > 0
+                                            visible: verifyTab.verifyDetails !== null && window.verificationSignerTechnicalText(verifyTab.verifyDetails) !== ""
 
                                             Column {
                                                 id: signerSummaryColumn
@@ -12213,7 +12456,7 @@ Window {
                                                     Text {
                                                         Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
-                                                        text: tr("Firmantes resumidos") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.signerSummaries) ? verifyTab.verifyDetails.signerSummaries.length : 0) + ")"
+                                                        text: tr("verificacion.firmantes_datos_tecnicos")
                                                         color: verifyTab.subPanelTitle
                                                         font.bold: true
                                                         font.pixelSize: 12
@@ -12229,7 +12472,7 @@ Window {
                                                 }
 
                                                 Text {
-                                                    text: verificationSignerSummariesText(verifyTab.verifyDetails)
+                                                    text: window.verificationSignerTechnicalText(verifyTab.verifyDetails)
                                                     color: verifyTab.subPanelText
                                                     opacity: 0.9
                                                     wrapMode: Text.Wrap

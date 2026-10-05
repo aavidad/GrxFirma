@@ -40,6 +40,7 @@ SOURCES += \
         webcompatibilitylease.cpp
 
 HEADERS += \
+        qttranslations.h \
         activediagnostics.h \
         backendbridge.h \
         executablelocator.h \

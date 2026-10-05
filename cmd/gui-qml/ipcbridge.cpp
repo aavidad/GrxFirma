@@ -1480,6 +1480,23 @@ void IpcBridge::verifyFileWithOriginal(const QString &inputPath,
   sendRequest("verify", params);
 }
 
+void IpcBridge::verifyFileWithReport(const QString &inputPath,
+                                     const QString &originalPath) {
+  emit backendLogReceived(
+      it(QStringLiteral("🔍 Solicitando verificación IPC para: ")) +
+      inputPath);
+  QVariantMap params;
+  params["inputPath"] = inputPath;
+  if (!originalPath.trimmed().isEmpty()) {
+    params["originalPath"] = originalPath;
+  }
+  const TranslatorBridge *tr = TranslatorBridge::shared();
+  const QString language = tr ? tr->locale().trimmed() : QString();
+  params["reportLanguage"] =
+      language.isEmpty() ? QStringLiteral("es") : language;
+  sendRequest("verify", params);
+}
+
 void IpcBridge::loadProtectionRecipients() {
   emit backendLogReceived(
       it(QStringLiteral("🛡️ Solicitando destinatarios de protección IPC")));
@@ -1762,7 +1779,11 @@ void IpcBridge::exportVerificationReport(const QString &outputPath,
     report.insert("inputPath", inputPath);
   if (!originalPath.trimmed().isEmpty())
     report.insert("originalPath", originalPath);
-  report.insert("result", QJsonObject::fromVariantMap(details));
+  // El informe imprimible se guarda aparte («Guardar informe»): no se
+  // duplica dentro de los datos técnicos.
+  QVariantMap result = details;
+  result.remove(QStringLiteral("reportHtml"));
+  report.insert("result", QJsonObject::fromVariantMap(result));
 
   QFileInfo info(targetPath);
   QDir().mkpath(info.absolutePath());

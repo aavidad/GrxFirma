@@ -12,6 +12,7 @@
 #include "portalsealbridge.h"
 #include "residentagent.h"
 #include "releasenotes.h"
+#include "qttranslations.h"
 #include "translatorbridge.h"
 #include <QApplication>
 #include <QCoreApplication>
@@ -417,6 +418,16 @@ int main(int argc, char *argv[]) {
 
   QQmlApplicationEngine engine;
   TranslatorBridge translator;
+  // Botones estándar y selector de ficheros de Qt en el idioma de la
+  // aplicación; se cambian con él.
+  QtTranslations qtTranslations(
+      binDir, [&translator](const QString &key) { return translator.t(key); });
+  qtTranslations.apply(translator.locale());
+  QObject::connect(&translator, &TranslatorBridge::localeChanged, &translator,
+                   [&qtTranslations, &translator, &engine]() {
+                     qtTranslations.apply(translator.locale());
+                     engine.retranslate();
+                   });
   OfficialUpdateChecker officialUpdateChecker;
   ReleaseNotesBridge releaseNotes(resolveReleaseNotes(binDir));
   const QString guiAssetsDir = resolveGuiAssetsDir(binDir);
@@ -436,6 +447,13 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("appVersion",
                                            QCoreApplication::applicationVersion());
   engine.rootContext()->setContextProperty("guiAssetsDir", guiAssetsDir);
+  // Carpeta que se propone al guardar cuando no hay un documento de referencia.
+  QString documentsFolder =
+      QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+  if (documentsFolder.isEmpty() || !QDir(documentsFolder).exists())
+    documentsFolder = QDir::homePath();
+  engine.rootContext()->setContextProperty("documentsFolderPath",
+                                           QDir::fromNativeSeparators(documentsFolder));
   const QString releaseNotesSource = releaseNotes.since(app.applicationVersion(), QString());
   engine.rootContext()->setContextProperty(
       "releaseNotesText", releaseNotesSource);

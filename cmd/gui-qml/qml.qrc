@@ -27,6 +27,7 @@
     <file>qml/EniValidatedField.qml</file>
     <file>qml/EniDateField.qml</file>
     <file>qml/VeriFactuResponse.js</file>
+    <file>qml/VerificationSigners.js</file>
     <file>assets/Logo-Horizontal-Color.png</file>
     <file>assets/Logo-Horizontal-Color.svg</file>
     <file>assets/logo-dipgra.png</file>
