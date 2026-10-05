@@ -127,9 +127,9 @@ func TestMotorFirmaGo_PAdESSelloTodasLasPaginasConRotateDistinto(t *testing.T) {
 		return
 	}
 	for i, p := range paginas {
-		ancho, alto := 595.0, 842.0
+		alto := 842.0
 		if p.Rotate == "90" || p.Rotate == "270" {
-			ancho, alto = alto, ancho
+			alto = 595.0
 		}
 		pagina := renderizarPaginaVista(t, firmado, i+1, 144)
 		guardarRevisionRotate(t, fmt.Sprintf("todas-pagina%d-rotate%s", i+1, p.Rotate), firmado, pagina)

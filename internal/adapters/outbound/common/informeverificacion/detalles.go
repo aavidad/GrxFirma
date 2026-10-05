@@ -27,12 +27,12 @@ var (
 // («Detected format: PAdES»). Las frases ya catalogadas se traducen por su
 // literal; lo que el catálogo no conoce se deja tal cual.
 func TraducirDetalle(loc *localizador.Localizador, linea string) string {
-	clave, valor, ok := strings.Cut(linea, "=")
+	clave, _, ok := strings.Cut(linea, "=")
 	if !ok || clave == "" || strings.ContainsAny(clave, " \t") {
 		return loc.T(linea)
 	}
 	linea = detalleConDNLegible(linea)
-	_, valor, _ = strings.Cut(linea, "=")
+	_, valor, _ := strings.Cut(linea, "=")
 	var rotulo string
 	if m := coberturaFirmaPDF.FindStringSubmatch(clave); m != nil {
 		n, _ := strconv.Atoi(m[1])
