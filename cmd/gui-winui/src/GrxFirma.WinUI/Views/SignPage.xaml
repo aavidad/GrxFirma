@@ -837,6 +837,20 @@
                                             Text="{x:Bind ViewModel.VisibleSealStampMessage, Mode=OneWay}"
                                             TextWrapping="Wrap" />
 
+                                        <StackPanel x:Name="VisibleSealDrawControls" Spacing="8">
+                                            <ToggleButton x:Name="VisibleSealDrawToggle"
+                                                Content="{x:Bind ViewModel.VisibleSealDrawAreaLabel, Mode=OneWay}"
+                                                AutomationProperties.Name="{x:Bind ViewModel.VisibleSealDrawAreaLabel, Mode=OneWay}"
+                                                AutomationProperties.HelpText="{x:Bind ViewModel.VisibleSealDrawAreaHelp, Mode=OneWay}"
+                                                MinHeight="40" HorizontalAlignment="Left" TabIndex="49"
+                                                Checked="OnVisibleSealDrawModeChanged" Unchecked="OnVisibleSealDrawModeChanged"
+                                                KeyDown="OnVisibleSealDrawKeyDown" />
+                                            <TextBlock x:Name="VisibleSealDrawHelp" Visibility="Collapsed"
+                                                Text="{x:Bind ViewModel.VisibleSealDrawAreaHelp, Mode=OneWay}"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock x:Name="VisibleSealDrawNotice"
+                                                AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" />
+                                        </StackPanel>
                                         <Viewbox
                                             x:Name="VisibleSealPreviewViewbox"
                                             MaxHeight="520"
@@ -961,6 +975,22 @@
                                                                 </Border>
                                                             </Grid>
                                                         </Border>
+                                                        <ContentControl x:Name="VisibleSealDrawInput" Visibility="Collapsed" IsTabStop="True" UseSystemFocusVisuals="True" TabIndex="49"
+                                                            Width="{x:Bind ViewModel.PreviewCanvasWidth, Mode=OneWay}"
+                                                            Height="{x:Bind ViewModel.PreviewCanvasHeight, Mode=OneWay}"
+                                                            Background="Transparent" BorderThickness="0" Padding="0"
+                                                            AutomationProperties.Name="{x:Bind ViewModel.VisibleSealDrawAreaLabel, Mode=OneWay}"
+                                                            AutomationProperties.HelpText="{x:Bind ViewModel.VisibleSealDrawAreaHelp, Mode=OneWay}"
+                                                            KeyDown="OnVisibleSealDrawKeyDown">
+                                                            <ContentControl.Template>
+                                                                <ControlTemplate TargetType="ContentControl">
+                                                                    <Grid Background="Transparent" />
+                                                                </ControlTemplate>
+                                                            </ContentControl.Template>
+                                                        </ContentControl>
+                                                        <Border x:Name="VisibleSealDrawRubberBand" Visibility="Collapsed"
+                                                            IsHitTestVisible="False" Background="{ThemeResource AppSealTextBackgroundBrush}"
+                                                            Opacity="0.6" BorderBrush="{ThemeResource AppSealBorderBrush}" BorderThickness="2" />
                                                     </Canvas>
                                                 </Grid>
                                             </Border>
