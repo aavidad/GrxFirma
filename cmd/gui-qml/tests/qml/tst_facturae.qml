@@ -51,6 +51,9 @@ TestCase {
         compare(findChild(panel, "verifactuSummary").text, "verifactu.invalid")
         compare(findChild(panel, "verifactuReport").text, "XML: error")
         compare(panel.invoiceResult, null)
+        // Con avisos, la frase del motor sustituye a «sin errores».
+        fake.verifactuValidated(true, {format: "VeriFactu", valid: true, errors: 0, warnings: 2, records: [], report: "Aviso", summary: "Sin errores, con 2 avisos."}, "")
+        compare(panel.verifactuStatus, "Sin errores, con 2 avisos.")
         fake.verifactuQRFinished("read_verifactu_qr", true, {url: "https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?nif=12345678Z&numserie=A&fecha=01-01-2025&importe=1", nif: "12345678Z", numserie: "A", fecha: "01-01-2025", importe: "1"}, "")
         compare(fake.qrQueries, 0)
         compare(panel.busy, false)

@@ -134,7 +134,11 @@ Item {
         function onVerifactuValidated(ok, result, message) {
             panel.busy = false
             panel.verifactuResult = ok ? result : null
-            panel.verifactuStatus = ok ? tr(result.valid ? "verifactu.valid" : "verifactu.invalid") : message
+            // El motor resume con avisos y errores: «sin errores» a secas solo
+            // cuando no hay ninguno de los dos.
+            panel.verifactuStatus = ok
+                    ? (result.summary ? result.summary : tr(result.valid ? "verifactu.valid" : "verifactu.invalid"))
+                    : message
         }
         function onVerifactuQRFinished(action, ok, result, message) {
             panel.busy = false

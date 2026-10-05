@@ -68,6 +68,13 @@ class VeriFactuContract(unittest.TestCase):
         self.assertEqual(len(names), len(set(names)) + 1)  # El Expander y su texto comparten nombre.
         self.assertNotIn("InvoiceValidationSummary.Text = T(result.Data.Valid ? \"verifactu.valid\"", code)
         self.assertIn("VeriFactuQrResponse.Classify(raw)", code)
+        # Recorrido Windows 0.0.117 (M4, M5, B8).
+        self.assertIn("result.Data.Summary.Length > 0", code)
+        self.assertIn('T("verifactu.qr_empty")', code)
+        self.assertIn('catch (ArgumentException) { VeriFactuQrReport.Text = T("verifactu.qr_url"); }', code)
+        self.assertIn("VeriFactuQrInput.Text = qr.Url;", code)
+        self.assertIn("string.Equals(VeriFactuQrInput.Text, _verifactuQrUrl, StringComparison.Ordinal)) return;", code)
+        self.assertIn("VeriFactuQrDisplay.Amount(qr.Amount, culture)", code)
         self.assertNotIn("Response.ToString() : result.SafeUserMessage", code)
         self.assertNotIn('AutomationProperties.LiveSetting="Assertive"\n                    IsClosable="False"\n                    IsOpen="True"', xaml)
 

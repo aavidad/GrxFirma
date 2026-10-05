@@ -15,6 +15,8 @@ public sealed class InvoiceValidationResult
     [JsonPropertyName("warnings")] public int Warnings { get; init; }
     [JsonPropertyName("issues")] public IReadOnlyList<InvoiceValidationIssue> Issues { get; init; } = [];
     [JsonPropertyName("report")] public string Report { get; init; } = "";
+    // Solo Veri*Factu: frase del motor que distingue avisos de errores.
+    [JsonPropertyName("summary")] public string Summary { get; init; } = "";
 }
 
 public sealed class InvoiceValidationIssue
