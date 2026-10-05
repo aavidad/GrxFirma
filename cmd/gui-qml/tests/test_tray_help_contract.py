@@ -8,10 +8,18 @@
 
 import json
 from pathlib import Path
+import importlib.util
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[3]
+# Las fuentes WinUI nombran claves del catálogo; se leen con su texto español.
+# Se carga por ruta para no mezclar los módulos de prueba de ambas interfaces.
+_SPEC = importlib.util.spec_from_file_location(
+    "winui_catalog", ROOT / "cmd/gui-winui/tests/winui_catalog.py")
+_WINUI_CATALOG = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(_WINUI_CATALOG)
+read_with_catalog = _WINUI_CATALOG.read_with_catalog
 QT = ROOT / "cmd/gui-qml"
 WIN = ROOT / "cmd/gui-winui/src/GrxFirma.WinUI"
 LOCALES = ROOT / "internal/adapters/outbound/common/localizador/locales"
@@ -48,7 +56,7 @@ class TrayHelpContractTest(unittest.TestCase):
         self.assertIn("residentAgent.showMainWindow()\n            aboutDialog.open()", qml)
 
     def test_winui_menu_routes_to_existing_help_and_about(self) -> None:
-        tray = (WIN / "Services/WindowsTrayIcon.cs").read_text(encoding="utf-8")
+        tray = read_with_catalog(WIN / "Services/WindowsTrayIcon.cs")
         menu = tray.split("private void ShowMenu()", 1)[1].split(
             "public void Dispose()", 1
         )[0]
@@ -69,8 +77,8 @@ class TrayHelpContractTest(unittest.TestCase):
         self.assertIn("MenuPopup", menu)
         self.assertIn("case 5: _help();", menu)
         self.assertIn("case 6: _about();", menu)
-        app = (WIN / "App.xaml.cs").read_text(encoding="utf-8")
-        main = (WIN / "MainWindow.xaml.cs").read_text(encoding="utf-8")
+        app = read_with_catalog(WIN / "App.xaml.cs")
+        main = read_with_catalog(WIN / "MainWindow.xaml.cs")
         self.assertIn("_window.OpenHelpManualAsync()", app)
         self.assertIn("_window?.ShowAboutPage()", app)
         self.assertIn("page.ViewModel.OpenInstalledManualAsync()", main)
