@@ -3223,6 +3223,7 @@ Window {
     property bool settingsLoaded: false
     property bool applyingLoadedSettings: false
     property bool backendSettingsDirty: false
+    property string savedSettingsSignature: ""
     property bool settingsSaveInFlight: false
     property bool bypassUnsavedClosePrompt: false
     property bool pendingDiscardAndClose: false
@@ -3323,12 +3324,15 @@ Window {
         residentAgent.setEnabled(window.closeBehavior === "resident")
     }
 
+    // Hay cambios sin guardar solo si las preferencias difieren de las
+    // guardadas; reasignar el mismo valor o volver al anterior no cuenta.
     function markBackendSettingsDirty() {
         if (!settingsLoaded || applyingLoadedSettings) return
-        if (!backendSettingsDirty) {
+        const dirty = savedSettingsSignature === "" || backendSettingsSignature() !== savedSettingsSignature
+        if (dirty && !backendSettingsDirty) {
             console.log("QML: Preferencias marcadas como pendientes de guardar")
         }
-        backendSettingsDirty = true
+        backendSettingsDirty = dirty
     }
 
     function scheduleSettingsSave() {
@@ -3677,7 +3681,17 @@ Window {
             return
         }
         console.log("QML: Guardando preferencias en backend")
-        const s = {
+        const s = backendSettingsPayload()
+        settingsSaveInFlight = true
+        settingsRoundtripTimeoutTimer.restart()
+        backend.saveSettings(s)
+        window.statusMessage = tr("Guardando preferencias...")
+    }
+
+    // Las preferencias tal como se guardan. Sirve también para saber si hay
+    // cambios sin guardar: solo cuenta lo que cambia este contenido.
+    function backendSettingsPayload() {
+        return {
             expertMode: backend.expertMode,
             themeIndex: window.currentThemeIndex,
             autoClose: window.autoClose,
@@ -3764,10 +3778,21 @@ Window {
             signatureProductionPostalCode: window.facturaeSignaturePostalCode,
             signatureProductionCountry: window.facturaeSignatureCountry
         }
-        settingsSaveInFlight = true
-        settingsRoundtripTimeoutTimer.restart()
-        backend.saveSettings(s)
-        window.statusMessage = tr("Guardando preferencias...")
+    }
+
+    // Huella de las preferencias guardadas. Elegir un certificado o un
+    // documento cambia el estado de la pantalla, no las preferencias: el
+    // firmante principal de la cofirma solo es una preferencia con la
+    // cofirma activada; si no, sigue al certificado elegido.
+    function backendSettingsSignature() {
+        const s = backendSettingsPayload()
+        if (!s.multiCosignEnabled) s.multiCosignPrimaryCertificateId = ""
+        return JSON.stringify(s)
+    }
+
+    function rememberSavedSettings() {
+        savedSettingsSignature = backendSettingsSignature()
+        backendSettingsDirty = false
     }
 
     function saveBackendSettingsAndClose() {
@@ -8164,7 +8189,7 @@ Window {
             window.applyingLoadedSettings = false
             window.settingsSaveInFlight = false
             settingsRoundtripTimeoutTimer.stop()
-            window.backendSettingsDirty = false
+            window.rememberSavedSettings()
             if (window.signVisibleSeal && window.supportsVisibleSeal()) {
                 window.requestPdfPreview()
             }
@@ -8229,7 +8254,7 @@ Window {
             window.settingsSaveInFlight = false
             settingsRoundtripTimeoutTimer.stop()
             if (ok) {
-                window.backendSettingsDirty = false
+                window.rememberSavedSettings()
             }
             window.statusMessage = message
             if (window.pendingCloseAfterSettingsSave) {
