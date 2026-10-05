@@ -191,7 +191,8 @@
                                 ItemsSource="{x:Bind ViewModel.VisibleRecipients, Mode=OneWay}"
                                 SelectionChanged="OnRecipientsSelectionChanged"
                                 SelectionMode="Multiple"
-                                TabIndex="4">
+                                TabIndex="4"
+                                Visibility="{x:Bind ViewModel.ShowsRecipientsList, Mode=OneWay}">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Padding="2,6" Spacing="3">

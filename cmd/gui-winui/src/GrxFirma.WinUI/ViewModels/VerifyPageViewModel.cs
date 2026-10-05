@@ -179,6 +179,20 @@ public sealed class VerifyPageViewModel
         private set => SetProperty(ref _signedBySummary, value);
     }
 
+    // Confirmación tras guardar el informe: antes no se veía nada.
+    private string _reportSavedMessage = string.Empty;
+    public string ReportSavedMessage
+    {
+        get => _reportSavedMessage;
+        private set
+        {
+            if (SetProperty(ref _reportSavedMessage, value))
+                RaisePropertyChanged(nameof(HasReportSavedMessage));
+        }
+    }
+
+    public bool HasReportSavedMessage => ReportSavedMessage.Length > 0;
+
     public async Task ExportReportAsync()
     {
         if (!CanExportReport || _reportResult is null || _pageLifetime is null) return;
@@ -189,9 +203,11 @@ public sealed class VerifyPageViewModel
         }
         try
         {
-            await _filePicker.PickAndSaveTextFileAsync(
+            ReportSavedMessage = string.Empty;
+            if (await _filePicker.PickAndSaveTextFileAsync(
                 SaveFilePickerProfile.VerificationReportHtml, _reportResult.ReportHtml,
-                null, _pageLifetime.Token);
+                null, _pageLifetime.Token))
+                ReportSavedMessage = Localizer.Text("winui.verificar.informe_guardado");
         }
         catch (OperationCanceledException) when (_pageLifetime?.IsCancellationRequested == true) { }
         catch (Exception exception)
@@ -207,9 +223,11 @@ public sealed class VerifyPageViewModel
         {
             var json = VerificationReport.Serialize(
                 _reportResult, _signedFilePath, _originalFilePath, DateTimeOffset.UtcNow);
-            await _filePicker.PickAndSaveTextFileAsync(
+            ReportSavedMessage = string.Empty;
+            if (await _filePicker.PickAndSaveTextFileAsync(
                 SaveFilePickerProfile.VerificationReport, json,
-                null, _pageLifetime.Token);
+                null, _pageLifetime.Token))
+                ReportSavedMessage = Localizer.Text("winui.verificar.datos_tecnicos_guardados");
         }
         catch (OperationCanceledException) when (_pageLifetime?.IsCancellationRequested == true) { }
         catch (Exception exception)
@@ -498,12 +516,32 @@ public sealed class VerifyPageViewModel
             .Distinct(StringComparer.Ordinal)
             .Take(MaximumVisibleItems)
             .ToArray();
-        // Lo primero que busca quien verifica: quién firmó (el motor no da la hora).
+        // Lo primero que busca quien verifica: quién firmó y cuándo. La fecha
+        // solo aparece si el motor la obtuvo de forma fiable, con su origen.
         var names = Signers.Select(DistinguishedNameText.CommonName)
             .Distinct(StringComparer.Ordinal).ToArray();
-        SignedBySummary = names.Length == 0
+        var culture = GrxFirma.WinUI.Core.Localization.AppCulture.For(Localizer.Language);
+        var signedBy = names.Select(name =>
+        {
+            foreach (var summary in data.VisibleSignerSummaries)
+            {
+                if (!string.Equals(DistinguishedNameText.CommonName(summary.Subject), name, StringComparison.Ordinal) ||
+                    !SigningTimeText.TryFormat(summary.SigningTime, summary.SigningTimeSource,
+                        culture, TimeZoneInfo.Local, out var date))
+                {
+                    continue;
+                }
+                return Localizer.Fill("winui.verificar.firmante_con_fecha",
+                    ("subject", name), ("date", date),
+                    ("origin", Localizer.Text(summary.SigningTimeSource == SigningTimeText.FromTimestamp
+                        ? "winui.verificar.fecha_segun_sello"
+                        : "winui.verificar.fecha_del_firmante")));
+            }
+            return name;
+        }).ToArray();
+        SignedBySummary = signedBy.Length == 0
             ? string.Empty
-            : Localizer.Fill("winui.verificar.firmado_por", ("subject", string.Join(", ", names)));
+            : Localizer.Fill("winui.verificar.firmado_por", ("subject", string.Join("; ", signedBy)));
 
         var warnings = data.VisibleWarnings
             .Concat(data.VisibleErrors)
@@ -537,6 +575,7 @@ public sealed class VerifyPageViewModel
     private void ResetResult()
     {
         _reportResult = null;
+        ReportSavedMessage = string.Empty;
         CanExportReport = false;
         HasHtmlReport = false;
         SignedBySummary = string.Empty;

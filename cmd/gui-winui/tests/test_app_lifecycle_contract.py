@@ -118,8 +118,17 @@ class AppLifecycleContractTests(unittest.TestCase):
         # Recorrido Windows 0.0.117 (B6): selector de fecha y textos propios
         # de WinUI en el idioma de la aplicación, no en el de Windows.
         main_window = MAIN_WINDOW.read_text(encoding="utf-8")
-        self.assertIn("AppRoot.Language = tag;", main_window)
-        self.assertIn("ApplicationLanguages.PrimaryLanguageOverride = tag;", main_window)
+        startup = (APP.parent / "Services" / "StartupLanguage.cs").read_text(encoding="utf-8")
+        app = APP.read_text(encoding="utf-8")
+        self.assertIn("AppRoot.Language = GrxFirma.WinUI.Core.Localization.AppCulture.Tag(Localizer.Language);", main_window)
+        self.assertIn("StartupLanguage.ApplyOverride(Localizer.Language);", main_window)
+        self.assertIn("ApplicationLanguages.PrimaryLanguageOverride =", startup)
+        self.assertIn('TryGetProperty("idioma"', startup)
+        # Recorrido Windows 0.0.118 (R4): el idioma se fija antes de crear la
+        # interfaz; después, NavigationView y DatePicker ya han cargado sus textos.
+        constructor = app[app.index("public App()"):]
+        self.assertLess(constructor.index("StartupLanguage.Apply();"),
+                        constructor.index("InitializeComponent();"))
         self.assertIn("Localizer.Apply(page);", main_window)
         apply = main_window.index("internal void ApplyLanguagePreference")
         self.assertLess(main_window.index("ApplyControlLanguage();", apply),

@@ -21,7 +21,7 @@
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
             ItemInvoked="OnNavigationItemInvoked"
-            OpenPaneLength="250"
+            OpenPaneLength="280"
             PaneDisplayMode="Auto">
 
             <NavigationView.PaneHeader>

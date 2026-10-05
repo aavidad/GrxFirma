@@ -206,6 +206,12 @@
                                 AutomationProperties.Name="Verificación en curso"
                                 IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
                         </controls:ResponsiveActionPanel>
+                        <TextBlock
+                            x:Name="ReportSavedText"
+                            AutomationProperties.LiveSetting="Polite"
+                            Text="{x:Bind ViewModel.ReportSavedMessage, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            Visibility="{x:Bind ViewModel.HasReportSavedMessage, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
@@ -217,6 +223,7 @@
                             Text="Resultado de verificación" />
                         <InfoBar
                             x:Name="ResultInfoBar"
+                            AutomationProperties.Name="{x:Bind ViewModel.ResultTitle, Mode=OneWay}"
                             AutomationProperties.LiveSetting="Assertive"
                             IsClosable="False"
                             IsTabStop="True"

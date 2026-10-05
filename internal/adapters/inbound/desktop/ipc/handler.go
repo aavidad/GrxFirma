@@ -1673,10 +1673,12 @@ func verificacionFirmantesIPC(items []domain.VerificationSignerSummary) []result
 	out := make([]resultadoVerificacionFirmante, 0, len(items))
 	for _, item := range items {
 		out = append(out, resultadoVerificacionFirmante{
-			ID:          item.ID,
-			Subject:     item.Subject,
-			Issuer:      item.Issuer,
-			Fingerprint: item.Fingerprint,
+			ID:                item.ID,
+			Subject:           item.Subject,
+			Issuer:            item.Issuer,
+			Fingerprint:       item.Fingerprint,
+			SigningTime:       item.SigningTime,
+			SigningTimeSource: item.SigningTimeSource,
 		})
 	}
 	return out

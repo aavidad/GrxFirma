@@ -246,7 +246,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
             throw new InvalidOperationException(
                 Localizer.Text("winui.comun.la_ventana_propietaria_todavia_no_esta"));
         }
-        var policy = SavePolicy(profile);
+        var policy = SavePolicy(profile, suggestedFileName);
         var picker = new Microsoft.Windows.Storage.Pickers.FileSavePicker(
             Microsoft.UI.Win32Interop.GetWindowIdFromWindow(windowHandle))
         {
@@ -265,7 +265,7 @@ public sealed class WindowsFilePickerService : IFilePickerService
         SaveFilePickerProfile profile,
         string? suggestedFileName)
     {
-        var policy = SavePolicy(profile);
+        var policy = SavePolicy(profile, suggestedFileName);
         var picker = new FileSavePicker
         {
             SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
@@ -419,9 +419,13 @@ public sealed class WindowsFilePickerService : IFilePickerService
         };
 
     private static SavePickerPolicy SavePolicy(
-        SaveFilePickerProfile profile) =>
+        SaveFilePickerProfile profile,
+        string? suggestedFileName = null) =>
         profile switch
         {
+            SaveFilePickerProfile.UnprotectedDocument =>
+                new("winui.selector.documento_recuperado", "winui.selector.nombre_documento_recuperado",
+                    [OriginalExtension(suggestedFileName)]),
             SaveFilePickerProfile.PublicCertificate =>
                 new("winui.selector.certificado_publico_x_509", "winui.selector.nombre_certificado_publico", [".cer", ".pem"]),
             SaveFilePickerProfile.SignedPdf =>
@@ -507,6 +511,16 @@ public sealed class WindowsFilePickerService : IFilePickerService
                 profile,
                 "winui.selector.perfil_de_guardado_no_soportado"),
         };
+
+    // Extensión del documento original («.txt», «.pdf»); si no es una
+    // extensión sencilla, «.bin» para no proponer nada extraño.
+    private static string OriginalExtension(string? fileName)
+    {
+        var extension = Path.GetExtension(Path.GetFileName(fileName?.Trim() ?? string.Empty));
+        return System.Text.RegularExpressions.Regex.IsMatch(extension, @"^\.[A-Za-z0-9]{1,10}$")
+            ? extension.ToLowerInvariant()
+            : ".bin";
+    }
 
     private static string SafeSuggestedFileName(
         string? suggestedFileName,

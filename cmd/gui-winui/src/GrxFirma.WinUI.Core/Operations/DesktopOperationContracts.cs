@@ -1407,6 +1407,8 @@ public sealed record VerifySignerSummary
     private string _subject = string.Empty;
     private string _issuer = string.Empty;
     private string _fingerprint = string.Empty;
+    private string _signingTime = string.Empty;
+    private string _signingTimeSource = string.Empty;
 
     [JsonPropertyName("id")]
     public string Id
@@ -1434,6 +1436,22 @@ public sealed record VerifySignerSummary
     {
         get => _fingerprint;
         init => _fingerprint = OperationResultText.Clean(value, 256);
+    }
+
+    // Fecha de la firma (RFC 3339) y su origen ("timestamp" o
+    // "signed_attribute"); vacíos si el motor no la obtuvo de forma fiable.
+    [JsonPropertyName("signingTime")]
+    public string SigningTime
+    {
+        get => _signingTime;
+        init => _signingTime = OperationResultText.Clean(value, 64);
+    }
+
+    [JsonPropertyName("signingTimeSource")]
+    public string SigningTimeSource
+    {
+        get => _signingTimeSource;
+        init => _signingTimeSource = OperationResultText.Clean(value, 32);
     }
 }
 

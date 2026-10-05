@@ -42,13 +42,20 @@ type aspecto struct {
 	Detalle []string
 }
 
+// firmante es lo que se lee de cada firmante: nombre, identificador,
+// organización, emisor y fecha de la firma con su origen. El DN completo va
+// a los detalles técnicos.
+type firmante struct {
+	Nombre, Identificador, Organizacion, Emisor, Huella, Fecha string
+}
+
 type vista struct {
 	Idioma                                    string
 	Titulo, Veredicto, ClaseVeredicto, Motivo string
 	Documento, Huella, Tamano, Fecha, Version string
 	Formato, Cobertura                        string
 	Aspectos                                  []aspecto
-	Firmantes                                 []domain.VerificationSignerSummary
+	Firmantes                                 []firmante
 	Advertencias, Errores, Detalles           []string
 	Evidencias                                []domain.VerificationEvidence
 	Rotulos                                   map[string]string
@@ -61,6 +68,7 @@ var rotulosInforme = []string{
 	"report.field.size", "report.field.format", "report.field.coverage",
 	"report.field.date", "report.section.checks", "report.section.signers",
 	"report.signer.issuer", "report.signer.fingerprint", "report.section.errors",
+	"report.signer.identifier", "report.signer.organization", "report.signer.signing_time",
 	"report.section.warnings", "report.section.evidence", "report.section.details",
 }
 
@@ -100,19 +108,33 @@ func HTML(d Datos) ([]byte, error) {
 		Version:      limpiar(d.VersionApp),
 		Formato:      limpiar(r.Format),
 		Cobertura:    limpiar(textoCobertura(loc, r.Coverage)),
-		Firmantes:    limpiarFirmantes(r.SignerSummaries),
+		Firmantes:    firmantesLegibles(loc, d.Zona, r.SignerSummaries),
 		Advertencias: limpiarLista(traducirLista(tr, r.Warnings)),
 		Errores:      limpiarLista(traducirLista(tr, r.Errors)),
-		Detalles:     limpiarLista(TraducirDetalles(loc, r.Details)),
-		Evidencias:   limpiarEvidencias(r.Evidence),
 		Rotulos:      rotulos,
 		Pie:          loc.T("report.footer", pie),
-		Aspectos: []aspecto{
-			nuevoAspecto(loc, tr, "report.aspect.integrity", sinDetallesRepetidos(r.Integrity, r.Details)),
-			nuevoAspecto(loc, tr, "report.aspect.certificate", sinDetallesRepetidos(r.Certificate, r.Details)),
-			nuevoAspecto(loc, tr, "report.aspect.trust", sinDetallesRepetidos(r.Trust, r.Details)),
-		},
 	}
+	// Las comprobaciones solo muestran frases legibles; las evidencias en
+	// bruto (clave=valor sin traducción, DN completos) pasan a «Detalles
+	// técnicos», donde no se repiten.
+	tecnicos := limpiarLista(TraducirDetalles(loc, r.Details))
+	for _, a := range []struct {
+		clave   string
+		aspecto domain.VerificationAspect
+	}{
+		{"report.aspect.integrity", r.Integrity},
+		{"report.aspect.certificate", r.Certificate},
+		{"report.aspect.trust", r.Trust},
+	} {
+		legibles, enBruto := separarDetalles(loc, sinDetallesRepetidos(a.aspecto, r.Details).Details)
+		a.aspecto.Details = legibles
+		v.Aspectos = append(v.Aspectos, nuevoAspecto(loc, tr, a.clave, a.aspecto))
+		tecnicos = anadirTecnicos(tecnicos, nombresDN(r), limpiarLista(enBruto)...)
+	}
+	evidencias, dnEvidencias := evidenciasLegibles(loc, r.Evidence)
+	v.Evidencias = evidencias
+	tecnicos = anadirTecnicos(tecnicos, nombresDN(r), dnEvidencias...)
+	v.Detalles = anadirTecnicos(tecnicos, nombresDN(r), dnFirmantes(loc, r.SignerSummaries)...)
 	switch {
 	case r.Valid && len(r.Warnings) == 0:
 		v.Veredicto, v.ClaseVeredicto = loc.T("report.verdict.valid"), "ok"
@@ -155,7 +177,7 @@ func sinDetallesRepetidos(a domain.VerificationAspect, generales []string) domai
 }
 
 func nuevoAspecto(loc *localizador.Localizador, tr func(string) string, clave string, a domain.VerificationAspect) aspecto {
-	out := aspecto{Nombre: loc.T(clave), Motivo: limpiar(tr(a.Reason)), Detalle: limpiarLista(TraducirDetalles(loc, a.Details))}
+	out := aspecto{Nombre: loc.T(clave), Motivo: limpiar(tr(a.Reason)), Detalle: limpiarLista(a.Details)}
 	switch a.Status {
 	case domain.VerificationStatusValid:
 		out.Estado, out.Clase = loc.T("report.status.valid"), "ok"
@@ -205,28 +227,159 @@ func limpiarLista(valores []string) []string {
 	return out
 }
 
-func limpiarFirmantes(firmantes []domain.VerificationSignerSummary) []domain.VerificationSignerSummary {
+// firmantesLegibles escribe cada firmante como lo lee una persona: el CN
+// (o nombre y apellidos), su NIF o identificador, la organización, el
+// emisor por su nombre y la fecha de la firma con su origen.
+func firmantesLegibles(loc *localizador.Localizador, zona *time.Location, firmantes []domain.VerificationSignerSummary) []firmante {
 	if len(firmantes) == 0 {
 		return nil
 	}
-	out := make([]domain.VerificationSignerSummary, 0, len(firmantes))
+	out := make([]firmante, 0, len(firmantes))
 	for _, f := range firmantes {
-		out = append(out, domain.VerificationSignerSummary{
-			ID: limpiar(f.ID), Subject: limpiar(f.Subject), Issuer: limpiar(f.Issuer), Fingerprint: limpiar(f.Fingerprint),
+		sujeto := limpiar(f.Subject)
+		titular := leerNombreDistinguido(sujeto)
+		emisorDN := limpiar(f.Issuer)
+		emisor := leerNombreDistinguido(emisorDN)
+		nombreEmisor := emisor.legible(emisorDN)
+		if emisor.organizacion != "" && emisor.organizacion != nombreEmisor {
+			nombreEmisor += " (" + emisor.organizacion + ")"
+		}
+		out = append(out, firmante{
+			Nombre:        limpiar(titular.legible(sujeto)),
+			Identificador: limpiar(titular.identificador),
+			Organizacion:  limpiar(titular.organizacion),
+			Emisor:        limpiar(nombreEmisor),
+			Huella:        limpiar(f.Fingerprint),
+			Fecha:         fechaFirma(loc, zona, f),
 		})
 	}
 	return out
 }
 
-func limpiarEvidencias(evidencias []domain.VerificationEvidence) []domain.VerificationEvidence {
-	if len(evidencias) == 0 {
-		return nil
+// fechaFirma escribe la fecha de la firma y de dónde sale: el sello de
+// tiempo o la hora que declaró quien firmó. Sin fecha fiable, nada.
+func fechaFirma(loc *localizador.Localizador, zona *time.Location, f domain.VerificationSignerSummary) string {
+	if f.SigningTime == "" {
+		return ""
 	}
-	out := make([]domain.VerificationEvidence, 0, len(evidencias))
-	for _, e := range evidencias {
-		out = append(out, domain.VerificationEvidence{Type: limpiar(e.Type), Summary: limpiar(e.Summary)})
+	instante, err := time.Parse(time.RFC3339, f.SigningTime)
+	if err != nil {
+		return ""
+	}
+	fecha := loc.FechaHora(instante, zona, true)
+	switch f.SigningTimeSource {
+	case domain.SigningTimeSourceTimestamp:
+		return loc.T("report.signer.time_from_timestamp", fecha)
+	case domain.SigningTimeSourceSignedAttribute:
+		return loc.T("report.signer.time_declared", fecha)
+	default:
+		return ""
+	}
+}
+
+// dnFirmantes lleva el DN completo de titular y emisor a los detalles
+// técnicos, salvo que ya figuren allí.
+func dnFirmantes(loc *localizador.Localizador, firmantes []domain.VerificationSignerSummary) []string {
+	var out []string
+	for _, f := range firmantes {
+		if dn := limpiar(f.Subject); dn != "" {
+			out = append(out, loc.T("report.technical.subject_dn", dn))
+		}
+		if dn := limpiar(f.Issuer); dn != "" {
+			out = append(out, loc.T("report.technical.issuer_dn", dn))
+		}
 	}
 	return out
+}
+
+// nombresDN son los DN de titulares y emisores de la verificación.
+func nombresDN(r domain.VerificationResult) []string {
+	var out []string
+	for _, f := range r.SignerSummaries {
+		out = append(out, limpiar(f.Subject), limpiar(f.Issuer))
+	}
+	for _, e := range r.Evidence {
+		if e.Type == "certificate.subject" || e.Type == "certificate.issuer" {
+			out = append(out, limpiar(e.Summary))
+		}
+	}
+	return out
+}
+
+// anadirTecnicos añade líneas a los detalles técnicos sin repetir una línea
+// ni un DN que ya figure en otra.
+func anadirTecnicos(lista, dns []string, nuevos ...string) []string {
+	for _, nuevo := range nuevos {
+		repetido := false
+		for _, existente := range lista {
+			if existente == nuevo {
+				repetido = true
+				break
+			}
+			for _, dn := range dns {
+				if dn != "" && strings.Contains(nuevo, dn) && strings.Contains(existente, dn) {
+					repetido = true
+					break
+				}
+			}
+			if repetido {
+				break
+			}
+		}
+		if !repetido {
+			lista = append(lista, nuevo)
+		}
+	}
+	return lista
+}
+
+// evidenciasLegibles traduce el tipo de cada evidencia. Las que solo
+// repiten el DN del certificado (ya resumido en «Firmantes») pasan a los
+// detalles técnicos.
+func evidenciasLegibles(loc *localizador.Localizador, evidencias []domain.VerificationEvidence) ([]domain.VerificationEvidence, []string) {
+	if len(evidencias) == 0 {
+		return nil, nil
+	}
+	out := make([]domain.VerificationEvidence, 0, len(evidencias))
+	var tecnicos []string
+	for _, e := range evidencias {
+		tipo, resumen := limpiar(e.Type), limpiar(e.Summary)
+		switch tipo {
+		case "certificate.subject":
+			if resumen != "" {
+				tecnicos = append(tecnicos, loc.T("report.technical.subject_dn", resumen))
+			}
+			continue
+		case "certificate.issuer":
+			if resumen != "" {
+				tecnicos = append(tecnicos, loc.T("report.technical.issuer_dn", resumen))
+			}
+			continue
+		}
+		if clave := "report.evidence." + tipo; loc.T(clave) != clave {
+			tipo = loc.T(clave)
+		}
+		out = append(out, domain.VerificationEvidence{Type: tipo, Summary: resumen})
+	}
+	if len(out) == 0 {
+		out = nil
+	}
+	return out, tecnicos
+}
+
+// separarDetalles traduce los detalles de una comprobación y aparta los que
+// siguen siendo claves técnicas (clave=valor sin entrada en el catálogo).
+func separarDetalles(loc *localizador.Localizador, lineas []string) (legibles, enBruto []string) {
+	for _, linea := range lineas {
+		traducida := TraducirDetalle(loc, linea)
+		if clave, _, ok := strings.Cut(linea, "="); ok && traducida == linea &&
+			clave != "" && !strings.ContainsAny(clave, " \t") {
+			enBruto = append(enBruto, linea)
+			continue
+		}
+		legibles = append(legibles, traducida)
+	}
+	return legibles, enBruto
 }
 
 func textoCobertura(loc *localizador.Localizador, c string) string {
@@ -280,7 +433,7 @@ ul{margin:.3rem 0 .3rem 1.2rem;padding:0}li{overflow-wrap:anywhere}footer{margin
 {{end}}</table>
 {{if .Firmantes}}<h2>{{index .Rotulos "report.section.signers"}}</h2>
 <table>
-{{range .Firmantes}}<tr><th>{{.Subject}}</th><td>{{index $.Rotulos "report.signer.issuer"}}: {{.Issuer}}{{if .Fingerprint}}<br>{{index $.Rotulos "report.signer.fingerprint"}}: <code>{{.Fingerprint}}</code>{{end}}</td></tr>
+{{range .Firmantes}}<tr><th>{{.Nombre}}</th><td>{{if .Fecha}}{{index $.Rotulos "report.signer.signing_time"}}: {{.Fecha}}<br>{{end}}{{if .Identificador}}{{index $.Rotulos "report.signer.identifier"}}: {{.Identificador}}<br>{{end}}{{if .Organizacion}}{{index $.Rotulos "report.signer.organization"}}: {{.Organizacion}}<br>{{end}}{{index $.Rotulos "report.signer.issuer"}}: {{.Emisor}}{{if .Huella}}<br>{{index $.Rotulos "report.signer.fingerprint"}}: <code>{{.Huella}}</code>{{end}}</td></tr>
 {{end}}</table>{{end}}
 {{if .Errores}}<h2>{{index .Rotulos "report.section.errors"}}</h2><ul>{{range .Errores}}<li>{{.}}</li>{{end}}</ul>{{end}}
 {{if .Advertencias}}<h2>{{index .Rotulos "report.section.warnings"}}</h2><ul>{{range .Advertencias}}<li>{{.}}</li>{{end}}</ul>{{end}}

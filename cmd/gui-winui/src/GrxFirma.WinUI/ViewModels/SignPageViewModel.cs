@@ -3190,6 +3190,53 @@ public sealed class SignPageViewModel
     // La página del PDF se carga sola al activar el sello o cambiar de
     // documento o páginas: sin ella no se puede arrastrar ni redimensionar el
     // sello sobre el folio.
+    // La vista previa del PDF actual es la que se usó para situar el sello:
+    // mismo fichero sin cambios, misma página y ya representada en pantalla.
+    private bool IsVisibleSealPreviewCurrent(int previewPage) =>
+        !VisibleSealPreviewImage.IsEmpty &&
+        _isPreviewImageRendered &&
+        _previewFileDigest is not null &&
+        IsPositiveFinite(_previewPageWidth) &&
+        IsPositiveFinite(_previewPageHeight) &&
+        _previewCurrentPage == (_perPageSealEnabled ? _requestedPreviewPage : previewPage) &&
+        !string.IsNullOrWhiteSpace(_previewInputPath) &&
+        !string.IsNullOrWhiteSpace(_inputPath) &&
+        PathsEqual(_previewInputPath, _inputPath) &&
+        TryReadFileStamp(
+            _inputPath,
+            out var currentFileLength,
+            out var currentFileWrite) &&
+        currentFileLength == _previewFileLength &&
+        currentFileWrite == _previewFileLastWriteUtcTicks;
+
+    // Con el sello activado (por la preferencia o a mano) firmar exige la
+    // vista previa del PDF actual. La página la carga sola antes de firmar si
+    // falta, aunque «Opciones avanzadas» siga cerrado.
+    public bool NeedsVisibleSealPreviewBeforeSigning()
+    {
+        if (!VisibleSealEnabled || BatchModeEnabled ||
+            !IsVisibleSealSupportedByCurrentSelection() ||
+            !TryParsePageSelection(
+                VisibleSealPages,
+                _previewTotalPages,
+                out _,
+                out var previewPage,
+                out _))
+        {
+            return false;
+        }
+        return !IsVisibleSealPreviewCurrent(previewPage);
+    }
+
+    public bool IsVisibleSealPreviewLoading =>
+        Volatile.Read(ref _operationInProgress) != 0;
+
+    // No se pudo preparar la vista previa antes de firmar: no se firma y se
+    // dice qué hacer, en lugar de un diagnóstico de fallo.
+    public void ReportVisibleSealPreviewUnavailableBeforeSigning() =>
+        ValidationMessage =
+            Localizer.Text("winui.firmar.sello_sin_vista_previa_antes_de_firmar");
+
     public bool NeedsAutomaticVisibleSealPreview =>
         VisibleSealEnabled &&
         CanRefreshVisibleSealPreview &&
@@ -3760,21 +3807,7 @@ public sealed class SignPageViewModel
             errorCode = "VISIBLE_SEAL_PAGE_SELECTION_INVALID";
             return false;
         }
-        if (VisibleSealPreviewImage.IsEmpty ||
-            !_isPreviewImageRendered ||
-            _previewFileDigest is null ||
-            !IsPositiveFinite(_previewPageWidth) ||
-            !IsPositiveFinite(_previewPageHeight) ||
-            _previewCurrentPage != (_perPageSealEnabled ? _requestedPreviewPage : previewPage) ||
-            string.IsNullOrWhiteSpace(_previewInputPath) ||
-            string.IsNullOrWhiteSpace(_inputPath) ||
-            !PathsEqual(_previewInputPath, _inputPath) ||
-            !TryReadFileStamp(
-                _inputPath,
-                out var currentFileLength,
-                out var currentFileWrite) ||
-            currentFileLength != _previewFileLength ||
-            currentFileWrite != _previewFileLastWriteUtcTicks)
+        if (!IsVisibleSealPreviewCurrent(previewPage))
         {
             errorCode = "VISIBLE_SEAL_PREVIEW_REQUIRED";
             error =

@@ -508,7 +508,7 @@
                                     TabIndex="21" />
                                 <CheckBox
                                     AutomationProperties.HelpText="Usa la geometría real obtenida del PDF y solo se habilita para PAdES o Automático."
-                                    AutomationProperties.Name="Añadir sello visible en documentos PDF"
+                                    AutomationProperties.Name="Añadir sello visible en PDF"
                                     Content="Añadir sello visible en PDF"
                                     IsChecked="{x:Bind ViewModel.VisibleSealEnabled, Mode=TwoWay}"
                                     IsEnabled="{x:Bind ViewModel.CanConfigureVisibleSeal, Mode=OneWay}"

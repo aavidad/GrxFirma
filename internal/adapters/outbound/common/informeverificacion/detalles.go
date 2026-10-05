@@ -18,6 +18,7 @@ const prefijoDetalle = "verificacion.detalle."
 var (
 	coberturaFirmaPDF = regexp.MustCompile(`^cobertura_firma_pdf_(\d{1,4})$`)
 	revisionHasta     = regexp.MustCompile(`^revision_hasta_(\d{1,12})_de_(\d{1,12})$`)
+	cadenaFirmante    = regexp.MustCompile(`^signer\[(\d{1,4})\]\.chain_length$`)
 )
 
 // TraducirDetalle convierte una evidencia técnica del verificador
@@ -33,6 +34,10 @@ func TraducirDetalle(loc *localizador.Localizador, linea string) string {
 	if m := coberturaFirmaPDF.FindStringSubmatch(clave); m != nil {
 		n, _ := strconv.Atoi(m[1])
 		rotulo = loc.T(prefijoDetalle+"cobertura_firma_pdf", n)
+	} else if m := cadenaFirmante.FindStringSubmatch(clave); m != nil {
+		// «signer[0].chain_length=3»: firmantes numerados desde 1.
+		n, _ := strconv.Atoi(m[1])
+		rotulo = loc.T(prefijoDetalle+"cadena_firmante", n+1)
 	} else if id := prefijoDetalle + clave; loc.T(id) != id {
 		rotulo = loc.T(id)
 	} else {

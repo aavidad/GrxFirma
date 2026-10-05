@@ -2084,7 +2084,7 @@ try {
 
         $visibleSealToggle = Wait-DescendantByName `
             -Root $window `
-            -Name "Añadir sello visible en documentos PDF" `
+            -Name "Añadir sello visible en PDF" `
             -Deadline $deadline `
             -RequireEnabled
         Enable-UiaToggle -Element $visibleSealToggle

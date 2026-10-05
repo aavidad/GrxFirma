@@ -247,7 +247,9 @@ func (s *Sesion) configuradaPorUsuario() bool {
 		if cfg, _, err := s.opc.CargarConfig(); err == nil && cfg.FirmaRemotaCSC {
 			return true
 		}
-	} else if cfg, err := config.Load(s.opc.ConfigDir); err == nil && cfg.FirmaRemotaCSC {
+	} else if config.FirmaRemotaCSCEnFicheroUsuario(s.opc.ConfigDir) {
+		// El fichero de la persona, sin la política: config.Load ya la
+		// aplica y, prohibida, devolvía siempre «no la tenía activada».
 		return true
 	}
 	if s.opc.ConfigDir == "" {

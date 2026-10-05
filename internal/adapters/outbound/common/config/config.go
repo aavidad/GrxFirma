@@ -133,6 +133,24 @@ func LoadWithPolicyDir(userConfigDir, policyDir string) (Config, error) {
 	return cfg, nil
 }
 
+// FirmaRemotaCSCEnFicheroUsuario indica si la persona activó la firma remota
+// en su config.json, antes de aplicar la política de la organización. Sirve
+// solo para explicarle que la política la prohíbe; nunca para autorizarla.
+func FirmaRemotaCSCEnFicheroUsuario(userConfigDir string) bool {
+	if userConfigDir == "" {
+		return false
+	}
+	data, err := securefile.ReadFileLimit(filepath.Join(userConfigDir, ficheroConfig), maxConfigFileBytes)
+	if err != nil {
+		return false
+	}
+	cfg := Default()
+	if err := json.Unmarshal(sinBOM(data), &cfg); err != nil {
+		return false
+	}
+	return cfg.FirmaRemotaCSC
+}
+
 // LoadPolicy carga el contenido bruto de policy.json sin mezclarlo con config
 // del usuario ni variables de entorno. Si el fichero no existe, devuelve una
 // política vacía y nil.

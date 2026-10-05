@@ -956,6 +956,10 @@ public sealed partial class SignPage : Page
                 IsTextSelectionEnabled = true,
             };
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(text, label.Text + ": " + value);
+            // El valor ya se anuncia con su etiqueta: la etiqueta suelta no se
+            // lee otra vez («Documento», «Documento: prueba.pdf»).
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetAccessibilityView(
+                label, Microsoft.UI.Xaml.Automation.Peers.AccessibilityView.Raw);
             Grid.SetRow(label, row);
             Grid.SetRow(text, row);
             Grid.SetColumn(text, 1);
@@ -972,11 +976,12 @@ public sealed partial class SignPage : Page
         }
         var content = new StackPanel { Spacing = 16 };
         content.Children.Add(rows);
+        // Color de texto normal del diálogo: el gris atenuado no llegaba a
+        // 4,5:1 sobre el fondo del diálogo en tema oscuro (WCAG 1.4.3).
         content.Children.Add(new TextBlock
         {
             Text = Localizer.Text("winui.firmar.confirmar.ayuda"),
             TextWrapping = TextWrapping.Wrap,
-            Foreground = (Brush)Application.Current.Resources["AppMutedTextBrush"],
         });
 
         var dialog = new ContentDialog
@@ -1129,6 +1134,12 @@ public sealed partial class SignPage : Page
             return;
         }
 
+        if (_portalSealSession is null &&
+            !await EnsureVisibleSealPreviewBeforeSigningAsync(cancellation.Token))
+        {
+            return;
+        }
+
         SignResultPanel.Visibility = Visibility.Collapsed;
         var revealRevision = ++_resultRevealRevision;
         var previousCompletion = ViewModel.CompletedSignPresentationId;
@@ -1198,6 +1209,69 @@ public sealed partial class SignPage : Page
             ShowSignResult(null, false);
             ReviewSignButton.Focus(FocusState.Programmatic);
         }
+    }
+
+    private static readonly TimeSpan SealPreviewBeforeSignTimeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan SealPreviewBeforeSignRetryDelay = TimeSpan.FromMilliseconds(300);
+    private const int SealPreviewBeforeSignAttempts = 2;
+
+    // Con el sello activado y sin vista previa del PDF actual (por ejemplo,
+    // con «Opciones avanzadas» cerrado), se carga aquí antes de firmar. Se
+    // espera con plazo y sin cancelar peticiones ya enviadas; si no llega, no
+    // se firma y se indica dónde cargarla a mano.
+    private async Task<bool> EnsureVisibleSealPreviewBeforeSigningAsync(
+        CancellationToken token)
+    {
+        if (!ViewModel.NeedsVisibleSealPreviewBeforeSigning())
+        {
+            return true;
+        }
+        bool ready;
+        try
+        {
+            ready = await PortalSealPreviewWait.WaitAsync(
+                () => !ViewModel.NeedsVisibleSealPreviewBeforeSigning(),
+                () => !ViewModel.IsVisibleSealPreviewLoading,
+                async () =>
+                {
+                    await ViewModel.RefreshVisibleSealPreviewAsync(token);
+                    await UpdateVisibleSealPreviewImageAsync();
+                },
+                SealPreviewBeforeSignTimeout,
+                SealPreviewBeforeSignRetryDelay,
+                SealPreviewBeforeSignAttempts,
+                TimeProvider.System,
+                token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            return false;
+        }
+        catch (Exception)
+        {
+            ready = false;
+        }
+        if (ready)
+        {
+            return true;
+        }
+        if (!_isSubscribed || XamlRoot is null)
+        {
+            return false;
+        }
+        ViewModel.ReportVisibleSealPreviewUnavailableBeforeSigning();
+        AdvancedSignExpander.IsExpanded = true;
+        VisibleSealPreviewButton.UpdateLayout();
+        VisibleSealPreviewButton.StartBringIntoView(new BringIntoViewOptions
+        {
+            AnimationDesired = false,
+            VerticalAlignmentRatio = 0.3,
+        });
+        if (!VisibleSealPreviewButton.Focus(FocusState.Programmatic))
+        {
+            AdvancedSignExpander.Focus(FocusState.Programmatic);
+        }
+        return false;
     }
 
     private void ShowSignResult(
@@ -1658,6 +1732,7 @@ public sealed partial class SignPage : Page
         if (args.PropertyName is nameof(SignPageViewModel.VisibleSealEnabled)
             or nameof(SignPageViewModel.InputDisplayName)
             or nameof(SignPageViewModel.VisibleSealPages)
+            or nameof(SignPageViewModel.SelectedFormat)
             or nameof(SignPageViewModel.CanRefreshVisibleSealPreview))
         {
             ScheduleAutomaticVisibleSealPreview();
@@ -1813,6 +1888,12 @@ public sealed partial class SignPage : Page
     {
         CancelVisibleSealDrawing();
         var visibility = VisibleSealDrawToggle.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        // Al salir del modo dibujo se conserva el alto que ocupaba la ayuda:
+        // si no, la página saltaba unos 50 px justo al soltar el ratón.
+        VisibleSealDrawControls.MinHeight =
+            visibility == Visibility.Collapsed && VisibleSealDrawHelp.Visibility == Visibility.Visible
+                ? VisibleSealDrawControls.ActualHeight
+                : 0;
         VisibleSealDrawInput.Visibility = visibility;
         VisibleSealDrawHelp.Visibility = visibility;
         if (visibility == Visibility.Visible) VisibleSealDrawInput.Focus(FocusState.Keyboard);

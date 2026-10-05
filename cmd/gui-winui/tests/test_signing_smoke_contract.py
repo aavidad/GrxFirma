@@ -127,7 +127,7 @@ class SigningSmokeContractTests(unittest.TestCase):
             "[switch]$VisibleSealPades",
             "[ValidateSet(0, 90, 180, 270)]",
             "16CF7D1F8296E28DD3EC6070237CFA2354AB54B835C7DC7B77B42B3112FEFA71",
-            '"Añadir sello visible en documentos PDF"',
+            '"Añadir sello visible en PDF"',
             '"Cargar previsualización PDF para el sello"',
             '-Text "PDF real:"',
             '"Zona del sello visible"',

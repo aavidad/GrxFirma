@@ -307,3 +307,24 @@ func TestSesionDescartaCredencialesConHuellaLocal(t *testing.T) {
 		t.Fatalf("KeyFor de la repetida: %v", err)
 	}
 }
+
+// Recorrido Windows 0.0.118 (B9): con la política del sistema que la
+// prohíbe y config.json que la activa, se explica la prohibición. Antes se
+// leía la configuración ya mezclada con la política y nunca se anunciaba.
+func TestSesionProhibidaConConfigJSONActivaSeExplica(t *testing.T) {
+	dirConfig, dirPolitica := t.TempDir(), t.TempDir()
+	if err := os.WriteFile(filepath.Join(dirConfig, "config.json"), []byte(`{"firma_remota_csc": true}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dirPolitica, "policy.json"), []byte(`{"firma_remota_csc": false}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	sesion := cscremota.Nueva(cscremota.Opciones{ConfigDir: dirConfig, PoliticaDir: dirPolitica})
+	t.Cleanup(func() { _ = sesion.Close() })
+	if e := sesion.Estado(); e.Permitida || !e.Prohibida || !e.ConfiguradaPorUsuario {
+		t.Fatalf("prohibida por la política a quien la activó en config.json: %+v", e)
+	}
+	if !config.FirmaRemotaCSCEnFicheroUsuario(dirConfig) || config.FirmaRemotaCSCEnFicheroUsuario(t.TempDir()) {
+		t.Fatal("FirmaRemotaCSCEnFicheroUsuario no refleja el fichero de la persona")
+	}
+}

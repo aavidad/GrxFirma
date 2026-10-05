@@ -39,6 +39,8 @@ public enum SaveFilePickerProfile
     EniXml,
     SupportIncidentText,
     CmsEncrypted,
+    // Documento recuperado al desproteger: la extensión es la del original.
+    UnprotectedDocument,
 }
 
 // La interfaz mantiene las páginas y ViewModels independientes de WinRT y
