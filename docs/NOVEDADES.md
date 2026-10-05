@@ -7,6 +7,11 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.120 — 2026-10-06
+
+- Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.
+- Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.
+
 ## 0.0.119 — 2026-10-05
 
 - Nuevo logotipo de GrxFirma, y la aplicación figura a nombre de su autor.
