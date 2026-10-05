@@ -122,41 +122,166 @@ $hasDesktopQt = (-not $CoreOnly) -and
 $hasDesktopWinUi = (-not $CoreOnly) -and
     (Test-Path -LiteralPath $desktopWinUiPackage -PathType Container)
 
-Stop-GrxFirmaInstalledProcesses -Path $cliDir -Component "CLI"
-Stop-GrxFirmaInstalledProcesses -Path $launcherDir -Component "DesktopLauncher"
+# Codigos de salida que interpreta el instalador NSIS:
+#   20  la comprobacion previa fallo y no se ha cambiado nada;
+#   21  una fase fallo y se ha restaurado la version anterior;
+#   otro  fallo inesperado o restauracion incompleta.
+$exitPreflightRejected = 20
+$exitRolledBack = 21
 
-$cliDir = Initialize-GrxFirmaInstallDirectory `
-    -Path $cliDir `
-    -Component "CLI" `
-    -LegacyPayload "grxfirma.exe"
-Copy-Item -LiteralPath $cliSource -Destination (Join-Path $cliDir "grxfirma.exe") -Force
-$launcherDir = Clear-GrxFirmaInstallDirectory `
-    -Path $launcherDir `
-    -Component "DesktopLauncher" `
-    -LegacyPayload "grxfirma-gui.exe"
-Copy-Item `
-    -LiteralPath $launcherSource `
-    -Destination (Join-Path $launcherDir "grxfirma-gui.exe") `
-    -Force
-Set-GrxFirmaSuiteOwnershipMarker -Path $launcherDir -Component "DesktopLauncher"
-$installedLauncher = Join-Path $launcherDir "grxfirma-gui.exe"
-if ($hasDesktopQt) {
-    & $desktopQtInstaller `
-        -InstallDir $desktopQtDir `
-        -PackageDir $desktopQtPackage `
-        -LauncherPath $installedLauncher `
-        -ValidateOnly
-}
-if ($hasDesktopWinUi) {
-    & $desktopWinUiInstaller `
-        -InstallDir $desktopWinUiDir `
-        -PackageDir $desktopWinUiPackage `
-        -LauncherPath $installedLauncher `
-        -ValidateOnly
+# Comprobacion previa: el protocolo afirma:// debe pertenecer a esta
+# instalacion (o a ninguna) antes de detener procesos o copiar nada. Asi un
+# conflicto no deja la version anterior a medias ni sin bandeja.
+try {
+    & $afirmaInstaller -InstallDir $afirmaDir -ValidateOnly
+} catch {
+    Remove-ItemProperty -Path $restartKey -Name $restartName -ErrorAction SilentlyContinue
+    Write-Host "No se ha cambiado nada: $($_.Exception.Message)"
+    exit $exitPreflightRejected
 }
 
-& $nativeInstaller -InstallDir $nativeDir
-& $afirmaInstaller -InstallDir $afirmaDir -SilentInstall:$SilentInstall
+function New-GrxFirmaSuiteBackupRoot {
+    $tempRoot = [System.IO.Path]::GetFullPath(
+        [System.IO.Path]::GetTempPath()
+    ).TrimEnd('\', '/')
+    $leaf = "grxfirma-suite-backup-$([guid]::NewGuid().ToString('N'))"
+    $root = Join-Path $tempRoot $leaf
+    if (-not [string]::Equals(
+            [System.IO.Path]::GetFullPath((Split-Path -Parent $root)).TrimEnd('\', '/'),
+            $tempRoot,
+            [System.StringComparison]::OrdinalIgnoreCase
+        ) -or
+        (Split-Path -Leaf $root) -notmatch '^grxfirma-suite-backup-[0-9a-f]{32}$') {
+        throw "Ruta de copia de seguridad de la suite inesperada: $root"
+    }
+    New-Item -ItemType Directory -Path $root -ErrorAction Stop | Out-Null
+    return $root
+}
+
+function Backup-GrxFirmaSuiteComponent {
+    param(
+        [Parameter(Mandatory = $true)] [string]$Path,
+        [Parameter(Mandatory = $true)] [string]$Component,
+        [Parameter(Mandatory = $true)] [string]$BackupRoot
+    )
+
+    $actual = Resolve-GrxFirmaInstallPath -Path $Path -Component $Component
+    if (-not (Test-Path -LiteralPath $actual -PathType Container)) {
+        return $false
+    }
+    $target = Join-Path $BackupRoot $Component
+    Copy-Item -LiteralPath $actual -Destination $target -Recurse -Force -ErrorAction Stop
+    Assert-NoGrxFirmaReparsePoint -Path $target
+    return $true
+}
+
+function Restore-GrxFirmaSuiteComponent {
+    param(
+        [Parameter(Mandatory = $true)] [string]$Path,
+        [Parameter(Mandatory = $true)] [string]$Component,
+        [Parameter(Mandatory = $true)] [string]$LegacyPayload,
+        [Parameter(Mandatory = $true)] [string]$BackupRoot,
+        [Parameter(Mandatory = $true)] [bool]$Existed
+    )
+
+    $actual = Resolve-GrxFirmaInstallPath -Path $Path -Component $Component
+    Stop-GrxFirmaInstalledProcesses -Path $actual -Component $Component
+    if (Test-Path -LiteralPath $actual) {
+        Remove-GrxFirmaInstallDirectory `
+            -Path $actual `
+            -Component $Component `
+            -LegacyPayload $LegacyPayload
+    }
+    if ($Existed) {
+        $source = Join-Path $BackupRoot $Component
+        if (-not (Test-Path -LiteralPath $source -PathType Container)) {
+            throw "Falta la copia de seguridad de ${Component}: $source"
+        }
+        Move-Item -LiteralPath $source -Destination $actual -ErrorAction Stop
+    }
+}
+
+# Copia de los componentes que esta fase reemplaza directamente. AfirmaURI y
+# NativeHost hacen su propia vuelta atras; NativeHost va el ultimo porque
+# retira registros de nombres anteriores que no se pueden recuperar.
+$backupRoot = New-GrxFirmaSuiteBackupRoot
+$preserveBackup = $false
+try {
+    $cliExisted = Backup-GrxFirmaSuiteComponent -Path $cliDir -Component "CLI" -BackupRoot $backupRoot
+    $launcherExisted = Backup-GrxFirmaSuiteComponent -Path $launcherDir -Component "DesktopLauncher" -BackupRoot $backupRoot
+} catch {
+    Remove-Item -LiteralPath $backupRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $restartKey -Name $restartName -ErrorAction SilentlyContinue
+    Write-Host "No se ha cambiado nada: no se pudo copiar la version anterior: $($_.Exception.Message)"
+    exit $exitPreflightRejected
+}
+
+try {
+    Stop-GrxFirmaInstalledProcesses -Path $cliDir -Component "CLI"
+    Stop-GrxFirmaInstalledProcesses -Path $launcherDir -Component "DesktopLauncher"
+
+    $cliDir = Initialize-GrxFirmaInstallDirectory `
+        -Path $cliDir `
+        -Component "CLI" `
+        -LegacyPayload "grxfirma.exe"
+    Copy-Item -LiteralPath $cliSource -Destination (Join-Path $cliDir "grxfirma.exe") -Force
+    $launcherDir = Clear-GrxFirmaInstallDirectory `
+        -Path $launcherDir `
+        -Component "DesktopLauncher" `
+        -LegacyPayload "grxfirma-gui.exe"
+    Copy-Item `
+        -LiteralPath $launcherSource `
+        -Destination (Join-Path $launcherDir "grxfirma-gui.exe") `
+        -Force
+    Set-GrxFirmaSuiteOwnershipMarker -Path $launcherDir -Component "DesktopLauncher"
+    $installedLauncher = Join-Path $launcherDir "grxfirma-gui.exe"
+    if ($hasDesktopQt) {
+        & $desktopQtInstaller `
+            -InstallDir $desktopQtDir `
+            -PackageDir $desktopQtPackage `
+            -LauncherPath $installedLauncher `
+            -ValidateOnly
+    }
+    if ($hasDesktopWinUi) {
+        & $desktopWinUiInstaller `
+            -InstallDir $desktopWinUiDir `
+            -PackageDir $desktopWinUiPackage `
+            -LauncherPath $installedLauncher `
+            -ValidateOnly
+    }
+
+    & $afirmaInstaller -InstallDir $afirmaDir -SilentInstall:$SilentInstall
+    & $nativeInstaller -InstallDir $nativeDir
+} catch {
+    $installError = $_.Exception
+    $rollbackErrors = @()
+    foreach ($component in @(
+        @{ Path = $launcherDir; Name = "DesktopLauncher"; Payload = "grxfirma-gui.exe"; Existed = $launcherExisted },
+        @{ Path = $cliDir; Name = "CLI"; Payload = "grxfirma.exe"; Existed = $cliExisted }
+    )) {
+        try {
+            Restore-GrxFirmaSuiteComponent `
+                -Path $component.Path `
+                -Component $component.Name `
+                -LegacyPayload $component.Payload `
+                -BackupRoot $backupRoot `
+                -Existed $component.Existed
+        } catch {
+            $rollbackErrors += "$($component.Name): $($_.Exception.Message)"
+        }
+    }
+    if ($rollbackErrors.Count -gt 0) {
+        $preserveBackup = $true
+        throw "Fallo instalando la suite: $($installError.Message). Restauracion incompleta: $($rollbackErrors -join '; '). Copia conservada en $backupRoot"
+    }
+    Write-Host "Se ha restaurado la version anterior: $($installError.Message)"
+    exit $exitRolledBack
+} finally {
+    if (-not $preserveBackup -and (Test-Path -LiteralPath $backupRoot)) {
+        Remove-Item -LiteralPath $backupRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 if (-not $CoreOnly -and $hasDesktopQt) {
     & $desktopQtInstaller `
         -InstallDir $desktopQtDir `

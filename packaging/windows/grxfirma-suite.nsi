@@ -94,7 +94,6 @@ Section "Motor, navegador y línea de comandos (obligatorio)" SEC_CORE
 
   WriteRegStr HKCU "Software\GrxFirma" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayName" "GrxFirma"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayVersion" "${VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "Publisher" "Alberto Avidad Fernández"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayIcon" "$INSTDIR\grxfirma.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "InstallLocation" "$INSTDIR"
@@ -113,8 +112,21 @@ Section "Motor, navegador y línea de comandos (obligatorio)" SEC_CORE
     "Windows pedirá confirmar el certificado local de GrxFirma. Si se está renovando, también pedirá retirar el anterior. Pulse 'Sí' en los avisos de Windows para permitir la conexión segura con los portales."
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -CoreOnly $SilentInstallArg'
   Pop $0
-  !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "La instalación PowerShell de la suite ha fallado con código $0."
+  StrCpy $2 "La instalación PowerShell de la suite ha fallado con código $0."
+  ${If} $0 == 20
+    ; La comprobación previa falló y no se tocó nada: la bandeja sigue.
+    StrCpy $2 "No se ha actualizado GrxFirma: no se pudo confirmar que el protocolo afirma:// (el que usan los portales para abrir GrxFirma) pertenece a esta instalación. La versión instalada no se ha modificado y sigue funcionando."
+  ${ElseIf} $0 != 0
+    ; Cualquier otro fallo detuvo los procesos: se vuelve a arrancar en la
+    ; bandeja la versión restaurada antes de salir.
+    nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -RestoreTray'
+    Pop $1
+    ${If} $0 == 21
+      StrCpy $2 "No se ha podido actualizar GrxFirma (código $0). Se ha restaurado la versión anterior, que sigue funcionando."
+    ${EndIf}
+    !insertmacro GrxFirmaExitOnExecFailure $0 "$2"
+  ${EndIf}
+  !insertmacro GrxFirmaExitOnExecFailure $0 "$2"
   ; El backend instalado vive una sola vez en DesktopLauncher.
   Delete "$INSTDIR\grxfirma-gui.exe"
 SectionEnd
@@ -216,6 +228,8 @@ Section -post
   RMDir "$SMPROGRAMS\Diputación de Granada"
   CreateShortcut "$SMPROGRAMS\GrxFirma\GrxFirma - Documentación.lnk" "$INSTDIR\README_WINDOWS_SUITE.md"
   CreateShortcut "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma.lnk" "$INSTDIR\uninstall.exe"
+  ; La versión se anuncia solo cuando todas las fases han terminado bien.
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayVersion" "${VERSION}"
 SectionEnd
 
 Section "Uninstall"
