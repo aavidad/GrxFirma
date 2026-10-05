@@ -117,12 +117,12 @@ GroupBox {
         Label { Layout.fillWidth: true; visible: panel.loaded && panel.snapshot.available && !panel.snapshot.editable; text: panel.t("readonly"); wrapMode: Text.Wrap }
         Flow {
             Layout.fillWidth: true; spacing: 8
-            Button {
+            ThemedButton {
                 implicitHeight: 44
                 text: panel.t("load"); enabled: panel.supported && !panel.busy
                 onClicked: { if (panel.dirty) discardDialog.open(); else panel.load() }
             }
-            Button { implicitHeight: 44; text: panel.t("diagnose"); enabled: panel.supported && !panel.busy; onClicked: panel.diagnose() }
+            ThemedButton { implicitHeight: 44; text: panel.t("diagnose"); enabled: panel.supported && !panel.busy; onClicked: panel.diagnose() }
             BusyIndicator { running: panel.busy; visible: running; width: 40; height: 40; Accessible.name: panel.t("busy") }
         }
         Label { Layout.fillWidth: true; text: panel.t("diagnose_help"); wrapMode: Text.Wrap; textFormat: Text.PlainText }
@@ -146,7 +146,7 @@ GroupBox {
                 required property int index
                 Layout.fillWidth: true
                 Label { Layout.fillWidth: true; Layout.minimumWidth: 0; text: modelData.path; wrapMode: Text.WrapAnywhere; textFormat: Text.PlainText }
-                Button {
+                ThemedButton {
                     implicitHeight: 44
                     text: panel.t("remove"); Accessible.name: text + " " + modelData.path; enabled: panel.canEdit
                     onClicked: { let next = panel.modules.slice(); next.splice(index, 1); panel.modules = next; panel.dirty = true }
@@ -155,8 +155,8 @@ GroupBox {
         }
         Flow {
             Layout.fillWidth: true; spacing: 8
-            Button { implicitHeight: 44; text: panel.t("add"); enabled: panel.canEdit && panel.modules.length < 8; onClicked: modulePicker.open() }
-            Button {
+            ThemedButton { implicitHeight: 44; text: panel.t("add"); enabled: panel.canEdit && panel.modules.length < 8; onClicked: modulePicker.open() }
+            ThemedButton {
                 implicitHeight: 44
                 text: panel.t("save"); enabled: panel.canEdit && panel.dirty
                 onClicked: { confirmation.checked = false; replaceConfirmation.checked = false; saveDialog.open() }

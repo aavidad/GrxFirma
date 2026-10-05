@@ -31,7 +31,7 @@ Rectangle {
     RowLayout {
         anchors.fill: parent
         anchors.margins: 10
-        Text { text: iconTxt; color: "white"; font.bold: true; Layout.preferredWidth: 20 }
-        Text { text: navButtonRoot.text; color: "white"; font.bold: active; Layout.fillWidth: true }
+        Text { text: iconTxt; color: active ? "white" : currentTheme.textColor; font.bold: true; Layout.preferredWidth: 20 }
+        Text { text: navButtonRoot.text; color: active ? "white" : currentTheme.textColor; font.bold: active; Layout.fillWidth: true }
     }
 }

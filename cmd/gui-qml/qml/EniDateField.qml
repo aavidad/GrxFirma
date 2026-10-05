@@ -119,7 +119,7 @@ ColumnLayout {
             Accessible.name: root.translate(root.labelKey)
             Accessible.description: root.invalid ? root.translate(root.errorKey) : root.translate("paridad.lote3.eni.date_hint")
         }
-        Button {
+        ThemedButton {
             objectName: "calendarButton"
             text: root.translate("eni.validacion.calendar")
             Accessible.name: text
@@ -196,7 +196,7 @@ ColumnLayout {
             width: calendarPopup.availableWidth
             RowLayout {
                 Layout.fillWidth: true
-                Button {
+                ThemedButton {
                     text: "‹"
                     Accessible.name: root.translate("eni.validacion.previous")
                     enabled: calendar.year > 1 || calendar.month > 0
@@ -208,7 +208,7 @@ ColumnLayout {
                     color: root.textColor
                     text: calendar.locale.toString(new Date(calendar.year, calendar.month, 1), "MMMM yyyy")
                 }
-                Button {
+                ThemedButton {
                     text: "›"
                     Accessible.name: root.translate("eni.validacion.next")
                     enabled: calendar.year < 9999 || calendar.month < 11

@@ -215,7 +215,7 @@ Item {
                 InvoiceField { id: issueDate; label: tr("facturae.issue_date"); value: Qt.formatDate(new Date(), "yyyy-MM-dd"); hint: tr("facturae.date_hint") }
             }
             Label { text: tr("facturae.seller"); color: panel.theme.textColor; font.bold: true }
-            Switch {
+            ThemedSwitch {
                 id: sellerIndividual
                 text: tr("facturae.individual")
                 Accessible.name: text
@@ -268,7 +268,7 @@ Item {
                 InvoiceField { id: fileReference; label: tr("facturae.file_reference") }
                 InvoiceField { id: contractReference; label: tr("facturae.contract_reference") }
             }
-            Switch { id: includePayment; text: tr("facturae.payment"); Accessible.name: text }
+            ThemedSwitch { id: includePayment; text: tr("facturae.payment"); Accessible.name: text }
             GridLayout {
                 visible: includePayment.checked
                 columns: panel.width > 820 ? 2 : 1
@@ -287,14 +287,14 @@ Item {
             }
             RowLayout {
                 Layout.fillWidth: true
-                Button { text: tr("facturae.create"); enabled: !panel.busy; Accessible.name: text; onClicked: saveDialog.open() }
-                Button { text: tr("facturae.sign"); Accessible.name: text; onClicked: panel.signRequested() }
+                ThemedButton { text: tr("facturae.create"); enabled: !panel.busy; Accessible.name: text; onClicked: saveDialog.open() }
+                ThemedButton { text: tr("facturae.sign"); Accessible.name: text; onClicked: panel.signRequested() }
             }
             Label { text: tr("paridad.lote3.invoice.title"); font.bold: true; color: panel.theme.textColor; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true
-                Button { text: tr("paridad.lote3.invoice.choose"); enabled: !panel.busy; Accessible.name: text; onClicked: invoiceOpenDialog.open() }
-                Button { text: tr("paridad.lote3.invoice.export"); enabled: !!panel.invoiceResult; Accessible.name: text; onClicked: invoiceReportDialog.open() }
+                ThemedButton { text: tr("paridad.lote3.invoice.choose"); enabled: !panel.busy; Accessible.name: text; onClicked: invoiceOpenDialog.open() }
+                ThemedButton { text: tr("paridad.lote3.invoice.export"); enabled: !!panel.invoiceResult; Accessible.name: text; onClicked: invoiceReportDialog.open() }
             }
             Label {
                 text: panel.invoiceResult ? tr("paridad.lote3.invoice.summary").replace("%1", panel.invoiceResult.format).replace("%2", panel.invoiceResult.errors).replace("%3", panel.invoiceResult.warnings) : tr("paridad.lote3.invoice.empty")
@@ -313,16 +313,16 @@ Item {
             Label { text: tr("facturae.face_note"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true
-                Button { text: tr("facturae.validate_face"); Accessible.name: text; onClicked: Qt.openUrlExternally("https://proveedores.face.gob.es/proveedores/validar-factura") }
-                Button { text: tr("facturae.submit_face"); Accessible.name: text; onClicked: Qt.openUrlExternally("https://proveedores.face.gob.es/proveedores/remitir-factura") }
+                ThemedButton { text: tr("facturae.validate_face"); Accessible.name: text; onClicked: Qt.openUrlExternally("https://proveedores.face.gob.es/proveedores/validar-factura") }
+                ThemedButton { text: tr("facturae.submit_face"); Accessible.name: text; onClicked: Qt.openUrlExternally("https://proveedores.face.gob.es/proveedores/remitir-factura") }
             }
             Rectangle { Layout.fillWidth: true; Layout.topMargin: 12; height: 1; color: panel.theme.secondaryTextColor; opacity: 0.4 }
             Label { text: tr("verifactu.title"); font.bold: true; font.pixelSize: 20; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             Label { text: tr("verifactu.scope"); textFormat: Text.PlainText; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true
-                Button { text: tr("verifactu.choose"); enabled: !panel.busy; Accessible.name: text; onClicked: verifactuFileDialog.open() }
-                Button { text: tr("verifactu.folder"); enabled: !panel.busy; Accessible.name: text; onClicked: verifactuFolderDialog.open() }
+                ThemedButton { text: tr("verifactu.choose"); enabled: !panel.busy; Accessible.name: text; onClicked: verifactuFileDialog.open() }
+                ThemedButton { text: tr("verifactu.folder"); enabled: !panel.busy; Accessible.name: text; onClicked: verifactuFolderDialog.open() }
             }
             // Resultado junto a sus botones, como región viva.
             Label {
@@ -340,7 +340,7 @@ Item {
                 color: panel.theme.textColor; Layout.fillWidth: true
                 background: Rectangle { color: panel.theme.cardColor ? panel.theme.cardColor : "transparent"; border.color: panel.theme.secondaryTextColor; radius: 4 }
             }
-            Button { text: tr("verifactu.export"); visible: !!panel.verifactuResult; Accessible.name: text; onClicked: verifactuReportDialog.open() }
+            ThemedButton { text: tr("verifactu.export"); visible: !!panel.verifactuResult; Accessible.name: text; onClicked: verifactuReportDialog.open() }
             Label { text: tr("verifactu.qr_title"); color: panel.theme.textColor; font.bold: true; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             Label { text: tr("verifactu.qr_url_field"); color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
@@ -350,12 +350,12 @@ Item {
                     placeholderText: tr("verifactu.qr_url_label"); selectByMouse: true
                     onTextChanged: { qrArea.readResult = null; qrArea.text = "" }
                 }
-                Button { objectName: "qrFromFileButton"; text: tr("verifactu.qr_from_file"); enabled: !panel.busy; Accessible.name: text; onClicked: qrFileDialog.open() }
+                ThemedButton { objectName: "qrFromFileButton"; text: tr("verifactu.qr_from_file"); enabled: !panel.busy; Accessible.name: text; onClicked: qrFileDialog.open() }
             }
             Label { text: tr("verifactu.qr_notice"); textFormat: Text.PlainText; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
-                Button { text: tr("verifactu.qr_read"); enabled: !panel.busy && qrInput.text.length > 0; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.readVeriFactuQR(qrInput.text) } }
-                Button { objectName: "qrQueryButton"; text: tr("verifactu.qr_query"); enabled: !panel.busy && qrArea.readResult !== null; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.queryVeriFactuQR(qrArea.readResult.url) } }
+                ThemedButton { text: tr("verifactu.qr_read"); enabled: !panel.busy && qrInput.text.length > 0; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.readVeriFactuQR(qrInput.text) } }
+                ThemedButton { objectName: "qrQueryButton"; text: tr("verifactu.qr_query"); enabled: !panel.busy && qrArea.readResult !== null; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.queryVeriFactuQR(qrArea.readResult.url) } }
             }
             Label { text: tr("verifactu.qr_query_help"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             // Fondo del tema: con el blanco por defecto el texto claro no se veía.
@@ -365,7 +365,7 @@ Item {
                 onTextChanged: if (text === "") panel.qrTechnical = ""
                 background: Rectangle { color: panel.theme.cardColor ? panel.theme.cardColor : "transparent"; border.color: panel.theme.secondaryTextColor; radius: 4 }
             }
-            Button {
+            ThemedButton {
                 id: qrTechnicalButton; objectName: "qrTechnicalButton"; checkable: true; visible: panel.qrTechnical !== ""
                 text: checked ? tr("verifactu.qr_technical_hide") : tr("verifactu.qr_technical"); Accessible.name: text
             }
