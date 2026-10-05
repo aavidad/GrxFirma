@@ -6,7 +6,6 @@
 package mobilebind
 
 import (
-	"crypto/rsa"
 	"errors"
 	"mime"
 	"path"
@@ -156,20 +155,13 @@ func (f *Facade) checkFormatPrerequisites(format, certificateID string, content 
 	return nil
 }
 
-// sessionIdentityIsRSA solo responde por la identidad de la sesión. Sin
-// identidad devuelve true para que el caso de uso dé su error habitual.
+// sessionIdentityIsRSA responde por la identidad indicada de la sesión. Sin
+// esa identidad devuelve true para que el caso de uso dé su error habitual.
 func (f *Facade) sessionIdentityIsRSA(certificateID string) bool {
 	if f == nil || f.session == nil {
 		return true
 	}
-	f.session.mu.RLock()
-	defer f.session.mu.RUnlock()
-	identity := f.session.identity
-	if identity == nil || identity.certificate == nil || identity.reference.ID != certificateID {
-		return true
-	}
-	_, ok := identity.certificate.PublicKey.(*rsa.PublicKey)
-	return ok
+	return f.session.isRSA(certificateID)
 }
 
 const verifactuKeyPrefix = "verifactu."

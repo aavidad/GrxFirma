@@ -314,6 +314,7 @@ type mobileLimitsContract struct {
 	BatchItems        int `json:"batch_items"`
 	BatchInputBytes   int `json:"batch_input_bytes"`
 	ENIFileDocuments  int `json:"eni_file_documents"`
+	QRImageBytes      int `json:"qr_image_bytes"`
 }
 
 func buildMobileContract(platform string, androidIntent bool) (string, error) {
@@ -348,9 +349,13 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			"tsa_probe":                true,
 			"verifactu_qr_read":        true,
 			"verifactu_qr_query":       true,
-			"update_check":             true,
-			"verify_report_html":       true,
-			"remote_exchange":          false,
+			"verifactu_qr_image":       true,
+			// Varias identidades abiertas a la vez; se cierran una a una
+			// (removeSessionIdentityJSON) o todas (clearSession).
+			"session_identities": true,
+			"update_check":       true,
+			"verify_report_html": true,
+			"remote_exchange":    false,
 			// Cuarta oleada Android: expediente ENI, lote con sello y cofirma,
 			// y DNIe (firmador externo) en lote y en proteger y firmar.
 			"eni_file":                     true,
@@ -362,7 +367,7 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 		IdentityStore: mobileIdentityContract{
 			Mode:          "memory_session",
 			Persistent:    false,
-			MaxIdentities: 1,
+			MaxIdentities: maxSessionIdentities,
 		},
 		Approval: "native_ui_explicit_action",
 		Signing: mobileSigningContract{
@@ -386,6 +391,7 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			BatchItems:        maxBatchItems,
 			BatchInputBytes:   maxBatchInputBytes,
 			ENIFileDocuments:  maxENIFileDocuments,
+			QRImageBytes:      commonsigner.VeriFactuQRMaxImageBytes,
 		},
 		Protection: mobileProtectContract{
 			Containers:    []string{"cms", "authenvelopeddata", "cms-encrypted", "signedandenvelopeddata"},
@@ -502,125 +508,6 @@ func (s *externalRSASigner) Sign(_ io.Reader, digest []byte, opts crypto.SignerO
 		return nil, errors.New("la firma del DNIe no corresponde al certificado")
 	}
 	return signature, nil
-}
-
-// installExternalIdentity sustituye atómicamente la identidad en memoria.
-func (s *sessionIdentityStore) installExternalIdentity(leafDER []byte, chainDER [][]byte, delegate ExternalDigestSigner) (domain.CertificateRef, error) {
-	if delegate == nil || len(leafDER) == 0 || len(leafDER) > maxCertificateBytes || len(chainDER) > maxCertificateChainLength {
-		return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
-	}
-	cert, err := x509.ParseCertificate(append([]byte(nil), leafDER...))
-	if err != nil {
-		return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
-	}
-	publicKey, ok := cert.PublicKey.(*rsa.PublicKey)
-	if !ok || publicKey.N == nil || publicKey.N.BitLen() < 2048 {
-		return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
-	}
-	chain := make([]*x509.Certificate, 0, len(chainDER))
-	for _, der := range chainDER {
-		if len(der) == 0 || len(der) > maxCertificateBytes {
-			return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
-		}
-		issuer, err := x509.ParseCertificate(append([]byte(nil), der...))
-		if err != nil || !issuer.IsCA {
-			return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
-		}
-		chain = append(chain, issuer)
-	}
-	previousCertificate := cert
-	for _, issuer := range chain {
-		if err := previousCertificate.CheckSignatureFrom(issuer); err != nil {
-			return domain.CertificateRef{}, errMobileSigningIdentityUnsupported
-		}
-		previousCertificate = issuer
-	}
-	identity := &sessionIdentity{reference: certificateReference(cert), signer: &externalRSASigner{publicKey, delegate}, certificate: cert, chain: chain}
-	if err := validateImportedIdentity(identity); err != nil {
-		return domain.CertificateRef{}, err
-	}
-	s.mu.Lock()
-	oldIdentity := s.identity
-	s.identity = identity
-	s.mu.Unlock()
-	destroySessionIdentity(oldIdentity)
-	return identity.reference, nil
-}
-
-type sessionIdentityStore struct {
-	mu       sync.RWMutex
-	identity *sessionIdentity
-}
-
-func newSessionIdentityStore() *sessionIdentityStore {
-	return &sessionIdentityStore{}
-}
-
-func (s *sessionIdentityStore) Import(ctx context.Context, data []byte, password string) (domain.CertificateRef, error) {
-	if err := ctx.Err(); err != nil {
-		return domain.CertificateRef{}, err
-	}
-	if len(data) == 0 || len(data) > maxCertificateBytes {
-		return domain.CertificateRef{}, errors.New("tamano de certificado no permitido")
-	}
-	identity, err := decodePKCS12Identity(data, password)
-	if err != nil {
-		return domain.CertificateRef{}, err
-	}
-	s.mu.Lock()
-	previous := s.identity
-	s.identity = identity
-	s.mu.Unlock()
-	destroySessionIdentity(previous)
-	return identity.reference, nil
-}
-
-func (s *sessionIdentityStore) List(ctx context.Context) ([]domain.CertificateRef, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	if s.identity == nil {
-		return []domain.CertificateRef{}, nil
-	}
-	return []domain.CertificateRef{s.identity.reference}, nil
-}
-
-func (s *sessionIdentityStore) KeyFor(ctx context.Context, certificate domain.CertificateRef) (ports.SigningKey, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	if s.identity == nil {
-		return nil, errors.New("no hay identidad importada en la sesion")
-	}
-	if certificate.ID == "" || certificate.ID != s.identity.reference.ID {
-		return nil, errors.New("el certificado solicitado no pertenece a la sesion")
-	}
-	return desktopsigner.NuevaClaveLocalConCadena(
-		s.identity.signer,
-		s.identity.certificate,
-		s.identity.chain,
-	), nil
-}
-
-func (s *sessionIdentityStore) Anchors(ctx context.Context) (domain.CertificateChain, error) {
-	if err := ctx.Err(); err != nil {
-		return domain.CertificateChain{}, err
-	}
-	// Importar una identidad no la convierte en ancla de confianza. Los motores
-	// verifican integridad y evidencias embebidas, y reportan confianza unknown.
-	return domain.CertificateChain{}, nil
-}
-
-func (s *sessionIdentityStore) clear() {
-	s.mu.Lock()
-	identity := s.identity
-	s.identity = nil
-	s.mu.Unlock()
-	destroySessionIdentity(identity)
 }
 
 func decodePKCS12Identity(data []byte, password string) (*sessionIdentity, error) {

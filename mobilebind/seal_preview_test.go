@@ -17,7 +17,7 @@ import (
 func TestSealPreviewJSONUsesSessionAndRealComposer(t *testing.T) {
 	f := newFacade(nil, nil, nil)
 	f.session = newSessionIdentityStore()
-	f.session.identity = &sessionIdentity{reference: domain.CertificateRef{ID: "qa", Subject: "Firmante QA", Issuer: "Emisor QA"}}
+	f.session.identities = []*sessionIdentity{{reference: domain.CertificateRef{ID: "qa", Subject: "Firmante QA", Issuer: "Emisor QA"}}}
 	payload, _ := json.Marshal(sealPreviewRequest{CertificateID: "qa", Options: map[string]string{
 		"visibleSeal": "true", "visibleSealRectW": "220", "visibleSealRectH": "70",
 		"visibleSealLogoOpacityPercent": "50", "rotation": "30",

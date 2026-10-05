@@ -56,6 +56,9 @@ probeTimestampAuthorityJSON(String) -> String
 readVeriFactuQRJSON(String) -> String
 queryVeriFactuQRJSON(String) -> String
 checkUpdateJSON(String) -> String
+createENIFileJSON(String) -> String
+readVeriFactuQRImageJSON(byte[]) -> String
+removeSessionIdentityJSON(String) -> String
 ```
 
 Android usa `importCertificateSecretBytesJSON`: PKCS#12 y contraseña UTF-8
@@ -104,7 +107,7 @@ El contrato operativo actual tambien declara, sin sobrestimar capacidades:
   "identity_store": {
     "mode": "memory_session",
     "persistent": false,
-    "max_identities": 1
+    "max_identities": 8
   },
   "approval": "native_ui_explicit_action",
   "signing": {
@@ -134,7 +137,8 @@ El contrato operativo actual tambien declara, sin sobrestimar capacidades:
 }
 ```
 
-La identidad PKCS#12 y su clave permanecen solo en memoria hasta reemplazarla,
+Las identidades (PKCS#12 importados y, como mucho, un DNIe) y sus claves
+permanecen solo en memoria hasta cerrarlas con `removeSessionIdentityJSON`,
 llamar a `clearSession()` o terminar el proceso. No se afirma persistencia en
 Android Keystore ni protección mediante hardware TEE. La verificacion valida la
 integridad criptografica, pero sin anclas del sistema la confianza se devuelve
@@ -332,7 +336,7 @@ solo se llaman tras una acción explícita.
 `empleado_publico` o `desconocido`), `key_type`, `key_bits`, `not_before`,
 `not_after` (RFC 3339 UTC), `days_left`, `status` (`valid`, `expiring_soon`,
 `expired`, `not_yet_valid`), `external`, `can_encrypt`, `has_ocsp` y
-`has_crl`. Hoy la sesión guarda como máximo una identidad.
+`has_crl`, uno por identidad abierta y en orden de apertura.
 
 `checkCertificateRevocationJSON` recibe `certificate_id` de la sesión y usa el
 comprobador OCSP/CRL de escritorio (30 s como máximo). Devuelve `status`
@@ -419,3 +423,25 @@ escapados), de 4 MiB como máximo. Como el móvil no evalúa la confianza con la
 anclas del sistema, el informe nunca declara «firma válida»: si el documento no
 ha cambiado dice «firma íntegra · validez del certificado no acreditada». La
 plantilla está en castellano, igual que en escritorio.
+
+## QR tributario desde imagen y varias identidades por sesión
+
+`readVeriFactuQRImageJSON(byte[])` recibe una imagen PNG o JPEG (una foto de
+la cámara o una imagen elegida por SAF; 20 MiB y 36 megapíxeles como máximo,
+`limits.qr_image_bytes`) y busca el QR con `LeerQRVeriFactuImagen` de
+escritorio, sin red y con 60 s como máximo. El buffer se borra al volver.
+Devuelve lo mismo que `readVeriFactuQRJSON`. Los errores son las claves
+`verifactu.qr_image`, `qr_not_found`, `qr_timeout`, `qr_url` y `qr_params`.
+Servicio: `verifactu_qr_image`.
+
+Con el servicio `session_identities`, la sesión admite hasta
+`identity_store.max_identities` (8) identidades a la vez. Importar un PKCS#12
+lo añade (si ya estaba abierto, lo sustituye); instalar un DNIe sustituye solo
+al DNIe anterior. Cada operación firma con el `certificate_id` que recibe.
+`protectJSON` usa `certificate_id` para firmar y para «cifrar también para
+mí»; sin él solo vale si hay una única identidad. Desproteger prueba con todas
+las claves RSA de los PKCS#12 abiertos. `removeSessionIdentityJSON` recibe
+`certificate_id`, destruye esa identidad y devuelve `removed` y `remaining`;
+`clearSession()` las cierra todas. Superar el máximo devuelve el error
+`session.full`. Un AAR anterior declara `max_identities: 1` y la app conserva
+entonces una sola identidad.

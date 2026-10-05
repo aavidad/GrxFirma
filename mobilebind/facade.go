@@ -84,11 +84,12 @@ type Facade struct {
 	revocationMode       string
 	timeout              time.Duration
 	// Dependencias de red sustituibles en pruebas; nil usa el motor real.
-	clock           func() time.Time
-	revocationCheck func(context.Context, [][]byte) (commonsigner.CertificateOnlineRevocationResult, error)
-	timestampProbe  func(context.Context, string, []byte) ([]byte, error)
-	veriFactuQuery  func(context.Context, string) (json.RawMessage, error)
-	updateCheck     func(context.Context, string) (updatecheck.Resultado, error)
+	clock              func() time.Time
+	revocationCheck    func(context.Context, [][]byte) (commonsigner.CertificateOnlineRevocationResult, error)
+	timestampProbe     func(context.Context, string, []byte) ([]byte, error)
+	veriFactuQuery     func(context.Context, string) (json.RawMessage, error)
+	veriFactuImageRead func(context.Context, []byte) (commonsigner.VeriFactuQR, error)
+	updateCheck        func(context.Context, string) (updatecheck.Resultado, error)
 }
 
 func newFacade(signService signService, verifyService verifyService, selectService selectCertificateService) *Facade {
@@ -191,15 +192,15 @@ func (f *Facade) SealPreviewJSON(payload string) (string, error) {
 	if req.Options["visibleSeal"] != "true" {
 		return "", newFacadeError("la vista previa exige un sello visible")
 	}
-	refs, err := f.session.List(context.Background())
-	if err != nil || len(refs) != 1 || refs[0].ID != req.CertificateID {
+	ref, ok := f.session.reference(req.CertificateID)
+	if !ok {
 		return "", newFacadeError("certificado de sesión no disponible")
 	}
 	options := make(map[string]string, len(req.Options))
 	for key, value := range req.Options {
 		options[key] = value
 	}
-	image, err := desktopsigner.PrevisualizarSello(options, refs[0].Subject, refs[0].Issuer, time.Now())
+	image, err := desktopsigner.PrevisualizarSello(options, ref.Subject, ref.Issuer, time.Now())
 	if err != nil {
 		return "", safeOperationError("vista previa del sello")
 	}
@@ -865,6 +866,8 @@ func mobileCertificateImportErrorMessage(err error) string {
 		return mobileCertificateNotCurrentMessage
 	case errors.Is(err, errMobileSigningIdentityUnsupported):
 		return mobileSigningIdentityUnsupportedMessage
+	case errors.Is(err, errMobileSessionFull):
+		return mobileSessionFullKey
 	default:
 		return mobileCertificateImportFallbackMessage
 	}

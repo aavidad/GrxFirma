@@ -76,33 +76,17 @@ type certificateDetailsResponse struct {
 	Certificates     []certificateDetail `json:"certificates"`
 }
 
-// sessionSnapshot copia lo público de la identidad: certificado, cadena y si
-// la clave es externa. Nunca devuelve la clave privada.
-func (s *sessionIdentityStore) sessionSnapshot() (*x509.Certificate, []*x509.Certificate, bool, string, bool) {
-	if s == nil {
-		return nil, nil, false, "", false
-	}
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	if s.identity == nil || s.identity.certificate == nil {
-		return nil, nil, false, "", false
-	}
-	_, external := s.identity.signer.(*externalRSASigner)
-	chain := append([]*x509.Certificate(nil), s.identity.chain...)
-	return s.identity.certificate, chain, external, s.identity.reference.ID, true
-}
-
 // CertificateDetailsJSON describe los certificados de la sesión con su
-// caducidad, tipo, NIF y organización. Hoy hay como máximo uno; la lista
-// permite filtrar en la interfaz si el almacén admite más en el futuro.
+// caducidad, tipo, NIF y organización, en el orden en que se abrieron. La
+// interfaz los filtra por NIF, organización o tipo cuando hay más de uno.
 func (f *Facade) CertificateDetailsJSON() (string, error) {
 	if f == nil || f.session == nil {
 		return "", errNoConfigurado("detalle del certificado")
 	}
 	response := certificateDetailsResponse{ExpiringSoonDays: certificateExpiringSoonDays, Certificates: []certificateDetail{}}
-	certificate, _, external, id, ok := f.session.sessionSnapshot()
-	if ok {
-		response.Certificates = append(response.Certificates, describeCertificate(certificate, id, external, f.now()))
+	now := f.now()
+	for _, identity := range f.session.snapshots() {
+		response.Certificates = append(response.Certificates, describeCertificate(identity.certificate, identity.id, identity.external, now))
 	}
 	return marshal(response)
 }
@@ -175,10 +159,11 @@ func (f *Facade) CheckCertificateRevocationJSON(payload string) (string, error) 
 	if err := validateBoundedText("certificate_id", req.CertificateID, 128, false); err != nil {
 		return "", err
 	}
-	certificate, chain, _, id, ok := f.session.sessionSnapshot()
-	if !ok || id != req.CertificateID {
+	identity, ok := f.session.snapshot(req.CertificateID)
+	if !ok {
 		return "", newFacadeError("certificado de sesión no disponible")
 	}
+	certificate, chain := identity.certificate, identity.chain
 	chainDER := make([][]byte, 0, len(chain)+1)
 	chainDER = append(chainDER, certificate.Raw)
 	for _, issuer := range chain {
@@ -249,8 +234,7 @@ func (f *Facade) DiagnosticsJSON() string {
 		}
 	}
 	if f != nil && f.session != nil {
-		_, _, _, _, ok := f.session.sessionSnapshot()
-		response.SessionIdentity = ok
+		response.SessionIdentity = f.session.count() > 0
 	}
 	raw, err := marshal(response)
 	if err != nil {
@@ -358,6 +342,39 @@ func (f *Facade) ReadVeriFactuQRJSON(payload string) (string, error) {
 		return "", veriFactuQRError(err)
 	}
 	return marshal(qr)
+}
+
+// ReadVeriFactuQRImageJSON busca el QR tributario en una imagen PNG o JPEG
+// (una foto de la cámara o una imagen elegida) con el lector de escritorio.
+// No usa la red. data cruza JNI como buffer mutable y se borra al terminar.
+// El lector comprueba tamaño y dimensiones antes de decodificar y acota el
+// tiempo de búsqueda.
+func (f *Facade) ReadVeriFactuQRImageJSON(data []byte) (string, error) {
+	defer zeroBytes(data)
+	if len(data) == 0 || len(data) > commonsigner.VeriFactuQRMaxImageBytes {
+		return "", newFacadeError(verifactuKeyPrefix + "qr_image")
+	}
+	read := commonsigner.LeerQRVeriFactuImagen
+	if f != nil && f.veriFactuImageRead != nil {
+		read = f.veriFactuImageRead
+	}
+	qr, err := read(context.Background(), data)
+	if err != nil {
+		return "", veriFactuQRImageError(err)
+	}
+	return marshal(qr)
+}
+
+func veriFactuQRImageError(err error) error {
+	var keyed interface{ LocalizationKey() string }
+	if errors.As(err, &keyed) {
+		switch key := keyed.LocalizationKey(); key {
+		case verifactuKeyPrefix + "qr_image", verifactuKeyPrefix + "qr_not_found", verifactuKeyPrefix + "qr_timeout",
+			verifactuKeyPrefix + "qr_url", verifactuKeyPrefix + "qr_params":
+			return newFacadeError(key)
+		}
+	}
+	return newFacadeError(verifactuKeyPrefix + "qr_image")
 }
 
 // QueryVeriFactuQRJSON consulta el servicio público de cotejo de la AEAT.

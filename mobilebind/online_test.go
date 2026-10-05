@@ -106,8 +106,8 @@ func TestCertificateRevocationUsesSessionChainAndMapsStatus(t *testing.T) {
 	if response.Status != "revoked" || response.Method != "OCSP" || response.RevokedAt != revokedAt.Format(time.RFC3339) {
 		t.Fatalf("respuesta: %+v", response)
 	}
-	certificate, _, _, _, _ := facade.session.sessionSnapshot()
-	if len(received) != 1 || !bytes.Equal(received[0], certificate.Raw) {
+	identity, _ := facade.session.snapshot(id)
+	if len(received) != 1 || !bytes.Equal(received[0], identity.certificate.Raw) {
 		t.Fatal("la cadena debe empezar por el certificado de la sesión")
 	}
 
