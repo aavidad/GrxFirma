@@ -506,7 +506,7 @@
     <string name="qr_title">Ler QR fiscal</string>
     <string name="qr_url_label">Cole o URL do QR ou introduza-o com um leitor</string>
     <string name="qr_read">Ler dados do QR</string>
-    <string name="qr_notice">Ler o URL não envia dados. «Confrontar com a AEAT» envia apenas o NIF, o número, a data e o montante do QR à Agência Tributária espanhola. Esta versão aceita o URL, não imagens.</string>
+    <string name="qr_notice">Ler o QR (a partir do URL, de uma foto ou de uma imagem) não envia dados. «Confrontar com a AEAT» envia apenas o NIF, o número, a data e o montante do QR à Agência Tributária espanhola.</string>
     <string name="qr_query">Confrontar com a AEAT</string>
     <string name="qr_verifactu">Fatura emitida com um sistema Veri*Factu.</string>
     <string name="qr_not_verifactu">Fatura emitida com um sistema que não é Veri*Factu.</string>
@@ -628,4 +628,22 @@
     <string name="export_verification_report_html">Guardar relatório imprimível (HTML)</string>
     <string name="verification_report_html_filename">relatorio-verificacao.html</string>
     <string name="eni_error_signature_mismatch">A assinatura não corresponde ao documento original ou o documento foi alterado depois de assinado. Verifique se escolheu o original correto.</string>
+    <string name="qr_take_photo">Tirar uma foto do QR</string>
+    <string name="qr_choose_image">Escolher uma imagem do QR</string>
+    <string name="qr_camera_unavailable">Não há nenhuma aplicação de câmara disponível. Escolha uma imagem do QR ou cole o URL.</string>
+    <string name="qr_error_image">Não foi possível abrir a imagem. Experimente outra foto ou uma captura de ecrã da fatura.</string>
+    <string name="qr_error_not_found">Não foi encontrado o QR na imagem. Tire a foto mais perto, com boa luz e com o QR inteiro, ou recorte a imagem.</string>
+    <string name="qr_error_timeout">A procura do QR demorou demasiado. Experimente uma imagem mais pequena ou recortada.</string>
+    <string name="error_session_full">Já tem abertos todos os certificados que a aplicação permite. Feche algum para abrir outro.</string>
+    <string name="result_identity_closed">Certificado fechado: %1$s. Os outros continuam abertos.</string>
+    <string name="result_certificates_forgotten">Todos os certificados foram fechados.</string>
+    <string name="forget_all_certificates">Fechar todos os certificados</string>
+    <string name="identity_close">Fechar</string>
+    <string name="identity_close_description">Fechar o certificado %1$s</string>
+    <string name="identity_add_hint">Pode abrir outro certificado ou o seu DNIe sem fechar este. Depois escolha com qual assinar.</string>
+    <plurals name="identities_open">
+        <item quantity="one">Há %1$d certificado aberto. Escolha com qual assinar.</item>
+        <item quantity="many">Há %1$d certificados abertos. Escolha com qual assinar.</item>
+        <item quantity="other">Há %1$d certificados abertos. Escolha com qual assinar.</item>
+    </plurals>
 </resources>

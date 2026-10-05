@@ -482,7 +482,7 @@
     <string name="qr_title">读取税务二维码</string>
     <string name="qr_url_label">粘贴二维码 URL 或使用扫描器输入</string>
     <string name="qr_read">读取二维码数据</string>
-    <string name="qr_notice">读取网址不会发送任何数据。“向 AEAT 核对”仅向西班牙税务局发送二维码中的税号、编号、日期和金额。此版本只接受网址，不接受图片。</string>
+    <string name="qr_notice">读取二维码（通过网址、照片或图片）不会发送任何数据。“向 AEAT 核对”仅向西班牙税务局发送二维码中的税号、编号、日期和金额。</string>
     <string name="qr_query">向 AEAT 核对</string>
     <string name="qr_verifactu">使用 Veri*Factu 系统开具的发票。</string>
     <string name="qr_not_verifactu">使用非 Veri*Factu 系统开具的发票。</string>
@@ -592,4 +592,20 @@
     <string name="export_verification_report_html">保存可打印报告（HTML）</string>
     <string name="verification_report_html_filename">验证报告.html</string>
     <string name="eni_error_signature_mismatch">签名与原始文档不符，或文档在签名后已被修改。请确认您选择了正确的原始文档。</string>
+    <string name="qr_take_photo">拍摄二维码</string>
+    <string name="qr_choose_image">选择二维码图片</string>
+    <string name="qr_camera_unavailable">没有可用的相机应用。请选择二维码图片或粘贴网址。</string>
+    <string name="qr_error_image">无法打开该图片。请换一张照片，或使用发票的屏幕截图。</string>
+    <string name="qr_error_not_found">图片中未找到二维码。请靠近一些、在光线充足处拍摄完整的二维码，或裁剪图片。</string>
+    <string name="qr_error_timeout">查找二维码用时过长。请使用更小或裁剪过的图片。</string>
+    <string name="error_session_full">已打开的证书数量已达到本应用的上限。请先关闭一个再打开新的。</string>
+    <string name="result_identity_closed">证书已关闭：%1$s。其他证书仍保持打开。</string>
+    <string name="result_certificates_forgotten">所有证书均已关闭。</string>
+    <string name="forget_all_certificates">关闭所有证书</string>
+    <string name="identity_close">关闭</string>
+    <string name="identity_close_description">关闭证书 %1$s</string>
+    <string name="identity_add_hint">您可以在不关闭此证书的情况下打开另一个证书或 DNIe，然后选择用哪个签名。</string>
+    <plurals name="identities_open">
+        <item quantity="other">已打开 %1$d 个证书。请选择用哪个签名。</item>
+    </plurals>
 </resources>

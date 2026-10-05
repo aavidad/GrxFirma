@@ -494,7 +494,7 @@
     <string name="qr_title">Read tax QR code</string>
     <string name="qr_url_label">Paste the QR URL or enter it with a scanner</string>
     <string name="qr_read">Read QR data</string>
-    <string name="qr_notice">Reading the URL sends no data. “Check with the AEAT” sends only the tax ID, number, date and amount of the QR code to the Spanish Tax Agency. This version accepts the URL, not images.</string>
+    <string name="qr_notice">Reading the QR code (from the URL, a photo or an image) sends no data. “Check with the AEAT” sends only the tax ID, number, date and amount of the QR code to the Spanish Tax Agency.</string>
     <string name="qr_query">Check with the AEAT</string>
     <string name="qr_verifactu">Invoice issued with a Veri*Factu system.</string>
     <string name="qr_not_verifactu">Invoice issued with a system that is not Veri*Factu.</string>
@@ -610,4 +610,21 @@
     <string name="export_verification_report_html">Save printable report (HTML)</string>
     <string name="verification_report_html_filename">verification-report.html</string>
     <string name="eni_error_signature_mismatch">The signature does not match the original document, or the document was changed after it was signed. Check that you chose the correct original.</string>
+    <string name="qr_take_photo">Take a photo of the QR code</string>
+    <string name="qr_choose_image">Choose an image of the QR code</string>
+    <string name="qr_camera_unavailable">No camera app is available. Choose an image of the QR code or paste the URL.</string>
+    <string name="qr_error_image">The image could not be opened. Try another photo or a screenshot of the invoice.</string>
+    <string name="qr_error_not_found">No QR code was found in the image. Take the photo closer, in good light and with the whole QR code, or crop the image.</string>
+    <string name="qr_error_timeout">Looking for the QR code took too long. Try a smaller or cropped image.</string>
+    <string name="error_session_full">You already have as many certificates open as the app allows. Close one to open another.</string>
+    <string name="result_identity_closed">Certificate closed: %1$s. The others are still open.</string>
+    <string name="result_certificates_forgotten">All certificates have been closed.</string>
+    <string name="forget_all_certificates">Close all certificates</string>
+    <string name="identity_close">Close</string>
+    <string name="identity_close_description">Close the certificate %1$s</string>
+    <string name="identity_add_hint">You can open another certificate or your DNIe without closing this one. Then choose which one to sign with.</string>
+    <plurals name="identities_open">
+        <item quantity="one">%1$d certificate is open. Choose which one to sign with.</item>
+        <item quantity="other">%1$d certificates are open. Choose which one to sign with.</item>
+    </plurals>
 </resources>

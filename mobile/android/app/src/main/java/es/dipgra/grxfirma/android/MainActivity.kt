@@ -97,6 +97,11 @@ import java.io.File
 import java.util.Base64
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
+import android.content.ActivityNotFoundException
+import android.content.pm.PackageManager
+import es.dipgra.grxfirma.android.qr.QrCapture
+import es.dipgra.grxfirma.android.qr.QrImagePreparer
+import es.dipgra.grxfirma.android.ui.IdentityPanel
 
 private const val STATE_EXPANDED_TOOLS = "expanded_tools"
 private const val ENI_DATE_PICKER = "eni_capture_date"
@@ -158,6 +163,24 @@ class MainActivity : AppCompatActivity() {
         uri?.let {
             viewModel.selectCertificateFile(it)
         }
+    }
+
+    // Foto del QR: la cámara del sistema escribe en un fichero temporal privado
+    // (sin permiso CAMERA) que se borra al terminar la lectura o al cancelar.
+    private val takeQrPhoto = registerForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        val photo = QrCapture.file(this)
+        if (saved && photo.isFile && photo.length() > 0) {
+            viewModel.readVeriFactuQrImage(
+                androidx.core.content.FileProvider.getUriForFile(this, QrCapture.authority(this), photo),
+                QrImagePreparer::prepare,
+            ) { QrCapture.clear(applicationContext) }
+        } else {
+            QrCapture.clear(this)
+        }
+    }
+
+    private val openQrImage = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) viewModel.readVeriFactuQrImage(uri, QrImagePreparer::prepare)
     }
 
     private val openSealImage = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -249,7 +272,11 @@ class MainActivity : AppCompatActivity() {
         releaseLegacyPersistedPermissions()
         // Copias temporales del lote que un cierre inesperado pudo dejar. Al girar
         // la pantalla con un lote en curso no se tocan: el lote aún las usa.
-        if (!viewModel.state.value.busy) BatchSeal.clearWorkDirectory(File(noBackupFilesDir, BatchSeal.WORK_DIRECTORY))
+        if (!viewModel.state.value.busy) {
+            BatchSeal.clearWorkDirectory(File(noBackupFilesDir, BatchSeal.WORK_DIRECTORY))
+            // Una foto del QR que un cierre inesperado pudo dejar.
+            QrCapture.clear(this)
+        }
         configureActions()
         // El formato por defecto solo se aplica al abrir; al girar se conserva el elegido.
         if (savedInstanceState == null) selectDefaultFormat()
@@ -370,7 +397,8 @@ class MainActivity : AppCompatActivity() {
         tsaUrl.doAfterTextChanged { updateSigningSettings() }
         selectCertificateFileButton.setOnClickListener {
             stopDnieReading()
-            if (dnieSession != null) {
+            // Con varias identidades el DNIe sigue abierto junto al nuevo PKCS#12.
+            if (dnieSession != null && !viewModel.state.value.canKeepSeveralIdentities) {
                 dnieSession?.close()
                 dnieSession = null
                 viewModel.clearDnieIdentity()
@@ -415,7 +443,7 @@ class MainActivity : AppCompatActivity() {
         }
         editVisibleSealButton.setOnClickListener { showSealEditor() }
         signButton.setOnClickListener {
-            if (dnieSession != null) {
+            if (usesDnie()) {
                 val document = viewModel.state.value.document
                 if (sealSettings.enabled && document != null && isPdf(document) && sealPageInfo == null) {
                     showSealEditor()
@@ -438,6 +466,21 @@ class MainActivity : AppCompatActivity() {
         if (index >= 0) binding.signatureFormat.select(index)
     }
 
+    /** Se firma con el DNIe solo si es el certificado elegido y su lectura NFC sigue abierta. */
+    private fun usesDnie(): Boolean = dnieSession != null && viewModel.state.value.certificateExternal
+
+    private fun closeIdentity(identityId: String) {
+        val state = viewModel.state.value
+        if (!state.canChangeIdentity) return
+        val identity = state.identities.firstOrNull { it.id == identityId } ?: return
+        if (identity.external) {
+            stopDnieReading()
+            dnieSession?.close()
+            dnieSession = null
+        }
+        viewModel.closeIdentity(identityId)
+    }
+
     private fun configureCertificatePanel() = with(binding.certificatePanel) {
         certificateKindFilter.setItems(
             listOf(getString(R.string.cert_filter_all)) + CertificateFilter.KINDS.map { getString(CertificateText.kindLabel(it)) })
@@ -457,15 +500,25 @@ class MainActivity : AppCompatActivity() {
     private fun renderCertificatePanel(state: MainUiState) = with(binding.certificatePanel) {
         val available = state.certificatePanelAvailable && state.certificate != null
         certificateFilterGroup.visibility = if (available && state.showsCertificateFilter) View.VISIBLE else View.GONE
-        val shown = if (state.showsCertificateFilter) state.filteredCertificates else state.certificateDetails
+        // Con la lista de certificados abiertos, el detalle es el del elegido para firmar.
+        val shown = when {
+            state.showsIdentityList -> state.certificateDetails.filter { it.id == state.certificate?.id }
+            state.showsCertificateFilter -> state.filteredCertificates
+            else -> state.certificateDetails
+        }
         if (state.showsCertificateFilter) {
-            certificateFilterCount.text = if (shown.isEmpty()) getString(R.string.cert_filter_none) else
-                resources.getQuantityString(R.plurals.cert_filter_count, shown.size, shown.size)
+            val matching = state.filteredCertificates.size
+            certificateFilterCount.text = if (matching == 0) getString(R.string.cert_filter_none) else
+                resources.getQuantityString(R.plurals.cert_filter_count, matching, matching)
         }
         certificateDetail.visibility = if (available && shown.isNotEmpty()) View.VISIBLE else View.GONE
         certificateDetail.text = shown.joinToString("\n\n") { CertificateText.lines(it).resolve(this@MainActivity) }
         certificateDetail.setTextColor(ContextCompat.getColor(this@MainActivity,
             if (shown.any(CertificateText::warns)) R.color.status_warning else R.color.on_surface))
+        IdentityPanel.render(this@MainActivity, state, identityGroup, identityListTitle, identityList,
+            onSelect = viewModel::selectIdentity, onClose = ::closeIdentity)
+        identityAddHint.visibility = if (state.canKeepSeveralIdentities && state.identities.size == 1 &&
+            state.canReplaceSelection) View.VISIBLE else View.GONE
         checkCertificateOnlineButton.visibility = if (state.certificate != null &&
             PlatformServicesVisibility.online(state)) View.VISIBLE else View.GONE
         checkCertificateOnlineButton.isEnabled = state.canCheckCertificateOnline
@@ -533,6 +586,22 @@ class MainActivity : AppCompatActivity() {
         checkVerifactuButton.setOnClickListener { viewModel.checkVeriFactu() }
         exportVerifactuButton.setOnClickListener { viewModel.exportVeriFactuReport() }
         readQrButton.setOnClickListener { viewModel.readVeriFactuQr(qrUrl.text?.toString().orEmpty()) }
+        takeQrPhotoButton.setOnClickListener {
+            try {
+                takeQrPhoto.launch(QrCapture.prepare(this@MainActivity))
+            } catch (_: ActivityNotFoundException) {
+                QrCapture.clear(this@MainActivity)
+                showMessage(R.string.qr_camera_unavailable)
+            } catch (_: RuntimeException) {
+                QrCapture.clear(this@MainActivity)
+                showMessage(R.string.qr_camera_unavailable)
+            }
+        }
+        chooseQrImageButton.setOnClickListener {
+            try {
+                openQrImage.launch(arrayOf("image/*"))
+            } catch (_: RuntimeException) { viewModel.reportPickerError() }
+        }
         queryAeatButton.setOnClickListener { viewModel.queryAeat() }
         qrUrl.doAfterTextChanged {
             val qr = viewModel.state.value.veriFactuQr
@@ -624,6 +693,13 @@ class MainActivity : AppCompatActivity() {
         qrGroup.visibility = if (state.qrReadAvailable) View.VISIBLE else View.GONE
         qrUrlLayout.isEnabled = idle
         readQrButton.isEnabled = state.canReadQr
+        val hasCamera = packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+        takeQrPhotoButton.visibility = if (state.qrImageAvailable && hasCamera) View.VISIBLE else View.GONE
+        takeQrPhotoButton.isEnabled = state.canReadQrImage
+        chooseQrImageButton.visibility = if (state.qrImageAvailable) View.VISIBLE else View.GONE
+        chooseQrImageButton.isEnabled = state.canReadQrImage
+        // El QR leído de una imagen muestra su URL en el campo, como si se hubiera pegado.
+        state.veriFactuQr?.let { qr -> if (qrUrl.text?.toString()?.trim() != qr.url) qrUrl.setText(qr.url) }
         queryAeatButton.visibility = if (PlatformServicesVisibility.aeat(state)) View.VISIBLE else View.GONE
         queryAeatButton.isEnabled = state.canQueryAeat
         val qrText = buildList {
@@ -870,6 +946,7 @@ class MainActivity : AppCompatActivity() {
         forgetCertificateButton.isEnabled = state.canForgetCertificate
         forgetCertificateButton.visibility =
             if (state.certificate == null) View.GONE else View.VISIBLE
+        forgetCertificateButton.setText(if (state.identities.size > 1) R.string.forget_all_certificates else R.string.forget_certificate)
         signButton.isEnabled = state.canSign
         val pdfSelected = state.document?.let(::isPdf) == true
         visibleSealCheck.visibility = if (pdfSelected) View.VISIBLE else View.GONE
@@ -1552,7 +1629,7 @@ class MainActivity : AppCompatActivity() {
     /** Acceso de las pantallas de la cuarta oleada al DNIe de la sesión. */
     private val dnieAccess = object : Wave4Screen.DnieAccess {
         override fun withPin(hold: Boolean, action: () -> Unit) {
-            if (dnieSession != null) showDniePinDialog(hold, action) else action()
+            if (usesDnie()) showDniePinDialog(hold, action) else action()
         }
 
         override fun endOperation() {

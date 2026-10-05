@@ -31,6 +31,7 @@ import es.dipgra.grxfirma.android.core.SignatureFormats
 import es.dipgra.grxfirma.android.core.AppLinks
 import es.dipgra.grxfirma.android.core.PlatformServices
 import es.dipgra.grxfirma.android.model.CertificateDetail
+import es.dipgra.grxfirma.android.qr.QrImagePreparer
 import es.dipgra.grxfirma.android.settings.AppSettings
 import es.dipgra.grxfirma.android.settings.AppSettingsStore
 import es.dipgra.grxfirma.android.settings.InMemorySettingsStore
@@ -64,6 +65,7 @@ class MainViewModel(
             tsaEnabled = initialSettings.tsaEnabled,
             tsaUrl = initialSettings.tsaUrl,
             capabilities = if (core.readiness.available) core.capabilities else emptySet(),
+            maxIdentities = if (core.readiness.available) core.maxIdentities.coerceAtLeast(1) else 1,
         ),
     )
     val state: StateFlow<MainUiState> = mutableState.asStateFlow()
@@ -203,12 +205,10 @@ class MainViewModel(
                 try {
                     val certificate = core.importCertificate(loaded.bytes, password)
                     val details = loadCertificateDetails()
-                    mutableState.value = mutableState.value.copy(
-                        certificate = certificate,
+                    mutableState.value = mutableState.value.withIdentity(SessionIdentity(certificate, external = false)).copy(
                         certificateDetails = details.first,
                         expiringSoonDays = details.second,
                         certificateFile = null,
-                        certificateExternal = false,
                         result = OperationResult.Success(
                             UiText.Resource(R.string.result_success),
                             UiText.Resource(R.string.result_certificate_imported, listOf(certificate.subject)),
@@ -237,15 +237,16 @@ class MainViewModel(
                 val details = loadCertificateDetails()
                 withContext(Dispatchers.Main) {
                     if (identityEpoch.get() != epoch) {
-                        core.clearSession()
+                        // La lectura terminó cuando ya no hacía falta: se cierra solo ese DNIe.
+                        if (mutableState.value.canKeepSeveralIdentities) {
+                            try { core.removeIdentity(certificate.id) } catch (_: Exception) { closeAllIdentities() }
+                        } else core.clearSession()
                         session.close()
                     } else {
-                        mutableState.value = mutableState.value.copy(
-                            certificate = certificate,
+                        mutableState.value = mutableState.value.withIdentity(SessionIdentity(certificate, external = true)).copy(
                             certificateDetails = details.first,
                             expiringSoonDays = details.second,
                             certificateFile = null,
-                            certificateExternal = true,
                             result = OperationResult.Success(
                                 UiText.Resource(R.string.result_success),
                                 UiText.Resource(R.string.dnie_ready),
@@ -261,16 +262,90 @@ class MainViewModel(
         }
     }
 
+    /**
+     * La lectura del DNIe ha terminado (salir de la app, tarjeta retirada).
+     * Con varias identidades se cierra solo el DNIe y siguen abiertos los
+     * PKCS#12; con un núcleo de una sola identidad se cierra la sesión.
+     */
     fun clearDnieIdentity() {
         identityEpoch.incrementAndGet()
-        try { core.clearSession() } catch (_: Exception) { }
         val current = mutableState.value
-        mutableState.value = current.copy(
+        val dnie = current.identities.firstOrNull { it.external }
+        val keepOthers = current.canKeepSeveralIdentities && dnie != null && current.identities.any { !it.external }
+        val closedOnlyDnie = keepOthers && try {
+            core.removeIdentity(dnie!!.id)
+            true
+        } catch (_: Exception) { false }
+        if (closedOnlyDnie) {
+            val remaining = SessionIdentities.remove(current.identities, dnie!!.id)
+            val selected = SessionIdentities.selectionAfter(remaining, current.certificate?.id)
+            mutableState.value = current.copy(
+                identities = remaining,
+                certificate = selected?.certificate,
+                certificateExternal = selected?.external == true,
+                certificateDetails = loadCertificateDetails().first,
+            )
+        } else {
+            closeAllIdentities()
+        }
+        val after = mutableState.value
+        mutableState.value = after.copy(
+            result = if (current.awaitingSave) current.result else
+                OperationResult.Error(UiText.Resource(R.string.dnie_session_ended)),
+        )
+    }
+
+    /** Elige con qué certificado abierto se firma. */
+    fun selectIdentity(certificateId: String) {
+        val snapshot = mutableState.value
+        if (!snapshot.canChangeIdentity) return
+        val identity = snapshot.identities.firstOrNull { it.id == certificateId } ?: return
+        if (identity.id == snapshot.certificate?.id) return
+        mutableState.value = snapshot.copy(certificate = identity.certificate, certificateExternal = identity.external)
+    }
+
+    /** Cierra uno de los certificados abiertos; los demás siguen disponibles. */
+    fun closeIdentity(certificateId: String) {
+        val snapshot = mutableState.value
+        if (!snapshot.canChangeIdentity) return
+        val identity = snapshot.identities.firstOrNull { it.id == certificateId } ?: return
+        if (!snapshot.canKeepSeveralIdentities || snapshot.identities.size == 1) {
+            forgetCertificate()
+            return
+        }
+        if (identity.external) identityEpoch.incrementAndGet()
+        try {
+            core.removeIdentity(certificateId)
+            val remaining = SessionIdentities.remove(snapshot.identities, certificateId)
+            val selected = SessionIdentities.selectionAfter(remaining, snapshot.certificate?.id)
+            mutableState.value = mutableState.value.copy(
+                identities = remaining,
+                certificate = selected?.certificate,
+                certificateExternal = selected?.external == true,
+                certificateDetails = loadCertificateDetails().first,
+                result = OperationResult.Success(
+                    UiText.Resource(R.string.result_identity_closed, listOf(identity.certificate.subject)),
+                ),
+            )
+        } catch (error: Exception) {
+            setError(error.toUserText())
+        }
+    }
+
+    private fun MainUiState.withIdentity(identity: SessionIdentity): MainUiState = copy(
+        identities = SessionIdentities.add(identities, identity, maxIdentities),
+        certificate = identity.certificate,
+        certificateExternal = identity.external,
+    )
+
+    /** Cierra todos los certificados en el núcleo y en la pantalla. */
+    private fun closeAllIdentities() {
+        try { core.clearSession() } catch (_: Exception) { }
+        mutableState.value = mutableState.value.copy(
+            identities = emptyList(),
             certificate = null,
             certificateDetails = emptyList(),
             certificateExternal = false,
-            result = if (current.awaitingSave) current.result else
-                OperationResult.Error(UiText.Resource(R.string.dnie_session_ended)),
         )
     }
 
@@ -508,6 +583,7 @@ class MainViewModel(
         }
         mutableState.value = mutableState.value.copy(
             awaitingSave = false,
+            identities = emptyList(),
             certificate = null,
             certificateDetails = emptyList(),
             certificateExternal = false,
@@ -531,32 +607,38 @@ class MainViewModel(
     }
 
     /**
-     * Cierra el PKCS#12 si la app ha pasado en segundo plano el tiempo elegido.
-     * El DNIe ya se cierra al salir de la pantalla. Devuelve true si lo cerró.
+     * Cierra todos los certificados abiertos si la app ha pasado en segundo
+     * plano el tiempo elegido. El DNIe ya se cierra antes, al salir de la
+     * pantalla. Devuelve true si cerró alguno.
      */
     fun closeCertificateAfterBackground(elapsedMillis: Long): Boolean {
         val snapshot = mutableState.value
         val minutes = snapshot.settings.sessionTimeoutMinutes
-        if (snapshot.certificate == null || snapshot.certificateExternal || minutes <= 0 || snapshot.busy) return false
+        if ((snapshot.certificate == null && snapshot.identities.isEmpty()) || minutes <= 0 || snapshot.busy) return false
         if (elapsedMillis < minutes * 60_000L) return false
         identityEpoch.incrementAndGet()
-        try { core.clearSession() } catch (_: Exception) { }
-        mutableState.value = mutableState.value.copy(certificate = null, certificateDetails = emptyList(),
-            certificateFile = null, result = if (snapshot.awaitingSave) snapshot.result
+        closeAllIdentities()
+        mutableState.value = mutableState.value.copy(certificateFile = null,
+            result = if (snapshot.awaitingSave) snapshot.result
             else OperationResult.Notice(UiText.Resource(R.string.certificate_closed_timeout)))
         return true
     }
 
+    /** Cierra todos los certificados abiertos (con uno solo, ese). */
     fun forgetCertificate() {
         if (!mutableState.value.canForgetCertificate) return
+        val several = mutableState.value.identities.size > 1
+        identityEpoch.incrementAndGet()
         try {
             core.clearSession()
             mutableState.value = mutableState.value.copy(
+                identities = emptyList(),
                 certificate = null,
                 certificateDetails = emptyList(),
                 certificateFile = null,
                 certificateExternal = false,
-                result = OperationResult.Success(UiText.Resource(R.string.result_certificate_forgotten)),
+                result = OperationResult.Success(UiText.Resource(
+                    if (several) R.string.result_certificates_forgotten else R.string.result_certificate_forgotten)),
             )
         } catch (error: Exception) {
             setError(error.toUserText())
@@ -693,7 +775,9 @@ class MainViewModel(
                     recipients = loadedRecipients,
                     includeSessionCertificate = !snapshot.usesTransientKey && snapshot.canProtectForMe,
                     sign = sign,
-                    certificateId = if (sign) snapshot.certificate?.id.orEmpty() else "",
+                    // El núcleo usa este certificado para firmar y para «cifrar también para mí».
+                    certificateId = if (sign || (!snapshot.usesTransientKey && snapshot.canProtectForMe))
+                        snapshot.certificate?.id.orEmpty() else "",
                 )
                 val output = core.protect(loaded, request, key)
                 val detail = UiText.Resource(R.string.result_protected_detail, listOf(output.displayName))
@@ -1122,6 +1206,40 @@ class MainViewModel(
                 mutableState.value = mutableState.value.copy(veriFactuQr = qr)
             } catch (error: Exception) {
                 mutableState.value = mutableState.value.copy(qrError = error.toUserText())
+            }
+        }
+    }
+
+    /**
+     * Lee el QR tributario de una imagen: una foto de la cámara o una imagen
+     * elegida con SAF. [prepare] la reduce o convierte si hace falta; los bytes
+     * se borran siempre y [onFinished] borra la foto temporal.
+     */
+    fun readVeriFactuQrImage(
+        uri: Uri,
+        prepare: (ByteArray) -> ByteArray = { it },
+        onFinished: () -> Unit = {},
+    ) {
+        if (!mutableState.value.canReadQrImage) {
+            onFinished()
+            return
+        }
+        mutableState.value = mutableState.value.copy(veriFactuQr = null, aeatResponse = "", qrError = null)
+        launchOperation(onFinished = onFinished) {
+            var source: ByteArray? = null
+            var prepared: ByteArray? = null
+            try {
+                val selected = repository.inspect(uri, "qr.jpg", "image/jpeg")
+                DocumentPolicy.requireAllowedSize(selected.sizeBytes, QrImagePreparer.MAX_SOURCE_BYTES)
+                source = repository.loadBounded(selected, QrImagePreparer.MAX_SOURCE_BYTES).bytes
+                prepared = prepare(source)
+                val qr = core.readVeriFactuQrImage(prepared)
+                mutableState.value = mutableState.value.copy(veriFactuQr = qr)
+            } catch (error: Exception) {
+                mutableState.value = mutableState.value.copy(qrError = error.toUserText())
+            } finally {
+                source?.fill(0)
+                prepared?.fill(0)
             }
         }
     }

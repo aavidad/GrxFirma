@@ -506,7 +506,7 @@
     <string name="qr_title">Leggere il QR fiscale</string>
     <string name="qr_url_label">Incollare l’URL del QR o inserirlo con uno scanner</string>
     <string name="qr_read">Leggere i dati del QR</string>
-    <string name="qr_notice">Leggere l\'URL non invia dati. «Verifica con l\'AEAT» invia all\'Agenzia delle entrate spagnola solo NIF, numero, data e importo del QR. Questa versione accetta l\'URL, non le immagini.</string>
+    <string name="qr_notice">Leggere il QR (dall\'URL, da una foto o da un\'immagine) non invia dati. «Verifica con l\'AEAT» invia all\'Agenzia delle entrate spagnola solo NIF, numero, data e importo del QR.</string>
     <string name="qr_query">Verifica con l\'AEAT</string>
     <string name="qr_verifactu">Fattura emessa con un sistema Veri*Factu.</string>
     <string name="qr_not_verifactu">Fattura emessa con un sistema non Veri*Factu.</string>
@@ -628,4 +628,22 @@
     <string name="export_verification_report_html">Salva rapporto stampabile (HTML)</string>
     <string name="verification_report_html_filename">rapporto-verifica.html</string>
     <string name="eni_error_signature_mismatch">La firma non corrisponde al documento originale oppure il documento è stato modificato dopo la firma. Verifichi di aver scelto l\'originale corretto.</string>
+    <string name="qr_take_photo">Scatta una foto del QR</string>
+    <string name="qr_choose_image">Scegli un\'immagine del QR</string>
+    <string name="qr_camera_unavailable">Nessuna app fotocamera disponibile. Scegli un\'immagine del QR o incolla l\'URL.</string>
+    <string name="qr_error_image">Impossibile aprire l\'immagine. Prova con un\'altra foto o con uno screenshot della fattura.</string>
+    <string name="qr_error_not_found">Nessun QR trovato nell\'immagine. Scatta la foto più da vicino, con buona luce e con il QR intero, oppure ritaglia l\'immagine.</string>
+    <string name="qr_error_timeout">La ricerca del QR ha richiesto troppo tempo. Prova con un\'immagine più piccola o ritagliata.</string>
+    <string name="error_session_full">Hai già aperto tutti i certificati consentiti dall\'app. Chiudine uno per aprirne un altro.</string>
+    <string name="result_identity_closed">Certificato chiuso: %1$s. Gli altri restano aperti.</string>
+    <string name="result_certificates_forgotten">Tutti i certificati sono stati chiusi.</string>
+    <string name="forget_all_certificates">Chiudi tutti i certificati</string>
+    <string name="identity_close">Chiudi</string>
+    <string name="identity_close_description">Chiudi il certificato %1$s</string>
+    <string name="identity_add_hint">Puoi aprire un altro certificato o il tuo DNIe senza chiudere questo. Poi scegli con quale firmare.</string>
+    <plurals name="identities_open">
+        <item quantity="one">C\'è %1$d certificato aperto. Scegli con quale firmare.</item>
+        <item quantity="many">Ci sono %1$d certificati aperti. Scegli con quale firmare.</item>
+        <item quantity="other">Ci sono %1$d certificati aperti. Scegli con quale firmare.</item>
+    </plurals>
 </resources>

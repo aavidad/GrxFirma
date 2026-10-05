@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<!-- Solo el directorio temporal de la foto del QR tributario. -->
+<paths>
+    <cache-path name="qr_capture" path="qr-capture/" />
+</paths>

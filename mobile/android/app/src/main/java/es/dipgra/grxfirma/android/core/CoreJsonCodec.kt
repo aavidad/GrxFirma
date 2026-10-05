@@ -257,7 +257,9 @@ object CoreJsonCodec {
                 }))
             }
             if (request.includeSessionCertificate) put("include_session_certificate", true)
-            if (request.sign) put("sign", true).put("certificate_id", request.certificateId)
+            if (request.sign) put("sign", true)
+            // Con varios certificados abiertos el núcleo necesita saber cuál es «el mío».
+            if (request.certificateId.isNotEmpty()) put("certificate_id", request.certificateId)
         }
         .toString()
 
@@ -438,6 +440,17 @@ object CoreJsonCodec {
     fun platformServices(raw: String): Set<String> {
         val services = parseObject(raw, "contrato").optJSONObject("services") ?: return emptySet()
         return PlatformServices.ALL.filter { services.optBoolean(it, false) }.toSet()
+    }
+
+    /** Máximo de identidades simultáneas que declara el contrato (1 si no lo declara). */
+    fun maxIdentities(raw: String): Int =
+        parseObject(raw, "contrato").optJSONObject("identity_store")?.optInt("max_identities", 1)?.coerceIn(1, 16) ?: 1
+
+    /** Respuesta de removeSessionIdentityJSON: cuántos certificados quedan abiertos. */
+    fun parseRemainingIdentities(raw: String): Int {
+        val json = parseObject(raw, "cierre de certificado")
+        requireField(json.optBoolean("removed", false)) { "IDENTITY_NOT_REMOVED" }
+        return json.optInt("remaining", 0).coerceIn(0, 16)
     }
 
     fun certificateRequest(certificateId: String): String = JSONObject().put("certificate_id", certificateId).toString()

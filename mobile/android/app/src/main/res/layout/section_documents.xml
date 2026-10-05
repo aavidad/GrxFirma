@@ -137,6 +137,28 @@
                 android:text="@string/qr_notice"
                 android:textColor="@color/on_surface" />
 
+            <!-- La foto y la imagen se leen en el núcleo, sin red; la foto
+                 temporal se borra en cuanto se lee. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/takeQrPhotoButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/control_spacing"
+                android:minHeight="48dp"
+                android:text="@string/qr_take_photo"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/chooseQrImageButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:minHeight="48dp"
+                android:text="@string/qr_choose_image"
+                android:visibility="gone" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/qrUrlLayout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"

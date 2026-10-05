@@ -206,7 +206,11 @@ data class MainUiState(
     val eniCaptureDate: Long? = null,
     val platformServices: Set<String> = emptySet(),
     val settings: AppSettings = AppSettings(),
-    /** Certificados de la sesión con caducidad; hoy como máximo uno. */
+    /** Certificados abiertos en la sesión; [certificate] es el elegido para firmar. */
+    val identities: List<SessionIdentity> = emptyList(),
+    /** Certificados que el núcleo admite abiertos a la vez (1 con un AAR anterior). */
+    val maxIdentities: Int = 1,
+    /** Detalle de los certificados de la sesión con caducidad, en orden de apertura. */
     val certificateDetails: List<CertificateDetail> = emptyList(),
     val expiringSoonDays: Int = 30,
     val certificateFilter: String = "",
@@ -238,6 +242,9 @@ data class MainUiState(
     val canProbeTsa: Boolean get() = platform(PlatformServices.TSA_PROBE) && idle && tsaUrl.isNotBlank()
     val qrReadAvailable: Boolean get() = platform(PlatformServices.VERIFACTU_QR_READ)
     val canReadQr: Boolean get() = qrReadAvailable && idle
+    /** Leer el QR con la cámara o desde una imagen elegida. */
+    val qrImageAvailable: Boolean get() = platform(PlatformServices.VERIFACTU_QR_IMAGE)
+    val canReadQrImage: Boolean get() = qrImageAvailable && idle
     /** El cotejo exige una lectura previa válida: nunca se consulta una URL sin validar. */
     val canQueryAeat: Boolean get() = platform(PlatformServices.VERIFACTU_QR_QUERY) && idle && veriFactuQr != null
     val updateCheckAvailable: Boolean get() = platform(PlatformServices.UPDATE_CHECK)
@@ -247,6 +254,13 @@ data class MainUiState(
     val filteredCertificates: List<CertificateDetail>
         get() = CertificateFilter.apply(certificateDetails, certificateFilter, certificateKindFilter)
     val showsCertificateFilter: Boolean get() = certificateDetails.size > 1
+    /** Con más de un certificado abierto se elige en una lista con cuál firmar. */
+    val showsIdentityList: Boolean get() = identities.size > 1
+    val filteredIdentities: List<SessionIdentity>
+        get() = SessionIdentities.filter(identities, certificateDetails, certificateFilter, certificateKindFilter)
+    /** Se puede abrir otro certificado sin cerrar los que ya están abiertos. */
+    val canKeepSeveralIdentities: Boolean get() = maxIdentities > 1
+    val canChangeIdentity: Boolean get() = backend.available && idle
     val canCreateEni: Boolean get() = eniDocumentAvailable && idle && document != null
     val canValidateEni: Boolean get() = eniValidateAvailable && idle
     val canUseTools: Boolean get() = backend.available && toolsAvailable && idle
