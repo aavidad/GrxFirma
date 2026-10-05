@@ -16,6 +16,7 @@ require (
 	github.com/digitorus/pkcs7 v0.0.0-20230818184609-3a137a874352
 	github.com/digitorus/timestamp v0.0.0-20231217203849-220c5c2851b7
 	github.com/gowebpki/jcs v1.0.1
+	github.com/makiuchi-d/gozxing v0.1.2-0.20250720151325-95e256b768ac
 	github.com/miekg/pkcs11 v1.1.2
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/zalando/go-keyring v0.2.8
@@ -60,6 +61,7 @@ require (
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/yuin/goldmark v1.7.17 // indirect
 	golang.org/x/text v0.41.0 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

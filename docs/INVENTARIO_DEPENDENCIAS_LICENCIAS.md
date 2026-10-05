@@ -36,6 +36,7 @@ Dependencias directas declaradas en [go.mod](../go.mod):
 | `fyne.io/fyne/v2` | UI desktop y diálogos Fyne | Directa |
 | `github.com/miekg/pkcs11` | Base experimental PKCS#11 no conectada a producción | Directa |
 | `github.com/gowebpki/jcs` | Canonicalización RFC 8785 de identidad reforzada | Directa |
+| `github.com/makiuchi-d/gozxing` | Lectura del QR tributario Veri*Factu desde imagen o PDF | Directa |
 | `software.sslmate.com/src/go-pkcs12` | Importación/lectura de PKCS#12 | Directa |
 
 La mayor parte del resto de dependencias vienen arrastradas por:
@@ -53,6 +54,7 @@ Comprobadas en caché local de módulos:
 - `fyne.io/fyne/v2`: licencia `BSD 3-Clause`
 - `github.com/miekg/pkcs11`: licencia tipo `BSD 3-Clause`
 - `github.com/gowebpki/jcs`: licencia `Apache-2.0`
+- `github.com/makiuchi-d/gozxing`: licencia `MIT`, con el aviso `Apache-2.0` de ZXing, del que es una adaptación a Go. Ambas son permisivas y compatibles con la EUPL-1.2; basta con conservar sus avisos. Arrastra `golang.org/x/xerrors` (`BSD 3-Clause`).
 - `software.sslmate.com/src/go-pkcs12`: licencia tipo `BSD`
 
 Nota:
@@ -69,6 +71,7 @@ Nota:
 | `fyne.io/fyne/v2` | `v2.7.3` | Interfaz gráfica desktop | Dependencia grande y crítica para UX/accesibilidad; requiere revisión específica de accesibilidad y estabilidad | `PARCIAL` |
 | `github.com/miekg/pkcs11` | `v1.1.2` | Base experimental de acceso a hardware criptográfico | No es alcanzable desde los binarios de producción; antes de habilitarla requiere PIN/login, asociación certificado-clave, mecanismos, aislamiento y pruebas con hardware | `PARCIAL` |
 | `github.com/gowebpki/jcs` | `v1.0.1` | Canonicalización RFC 8785 del contrato `identidad-reforzada/v1` | Apache-2.0, versión fijada | `HECHO` |
+| `github.com/makiuchi-d/gozxing` | `v0.1.2-0.20250720151325-95e256b768ac` | Decodificador QR en Go puro (sin cgo ni red) para leer el QR tributario Veri*Factu de una imagen o de un PDF rasterizado | Se fija el último commit de la rama principal (julio de 2025): la última etiqueta, `v0.1.1`, es de 2021. El motor limita bytes, dimensiones, píxeles y tiempo antes de llamarla y recupera cualquier pánico | `HECHO` |
 | `software.sslmate.com/src/go-pkcs12` | `v0.7.2` | Importación de certificados P12 | Dependencia razonable y acotada | `HECHO` |
 
 ---
