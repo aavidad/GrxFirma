@@ -12,13 +12,13 @@
             <VisualStateGroup x:Name="LayoutStates">
                 <VisualState x:Name="Narrow"><VisualState.StateTriggers><AdaptiveTrigger MinWindowWidth="0" /></VisualState.StateTriggers></VisualState>
                 <VisualState x:Name="Wide"><VisualState.StateTriggers><AdaptiveTrigger MinWindowWidth="760" /></VisualState.StateTriggers>
-                    <VisualState.Setters><Setter Target="LayoutRoot.Padding" Value="32" /><Setter Target="EniActions.MaxWidth" Value="920" /></VisualState.Setters>
+                    <VisualState.Setters><Setter Target="LayoutRoot.Padding" Value="32" /></VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
-        <StackPanel x:Name="LayoutRoot" MaxWidth="960" Padding="16" Spacing="18" HorizontalAlignment="Stretch">
-            <TextBlock x:Name="PageTitle" AutomationProperties.HeadingLevel="Level1" Style="{StaticResource PageTitleTextStyle}" />
-            <StackPanel x:Name="EniActions" Orientation="Vertical" />
+        <StackPanel x:Name="LayoutRoot" MaxWidth="1000" Padding="16" Spacing="18" HorizontalAlignment="Stretch">
+            <TextBlock x:Name="PageTitle" AutomationProperties.HeadingLevel="Level1" Style="{StaticResource PageTitleTextStyle}" TextWrapping="Wrap" />
+            <StackPanel x:Name="EniActions" Orientation="Vertical" Spacing="18" HorizontalAlignment="Stretch" />
         </StackPanel>
     </ScrollViewer>
 </Page>

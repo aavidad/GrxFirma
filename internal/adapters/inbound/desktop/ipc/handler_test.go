@@ -2471,6 +2471,20 @@ func TestDespachar_Verify_ResultRico(t *testing.T) {
 	if len(data.SignerSummaries) != 1 || len(data.Warnings) != 1 || len(data.Evidence) != 1 {
 		t.Fatalf("resultado rico sin detalles esperados: %#v", data)
 	}
+	if data.ReportHTML != "" {
+		t.Fatalf("sin reportLanguage no se genera el informe HTML")
+	}
+
+	// Con reportLanguage llega el mismo informe imprimible que la CLI, en ese idioma.
+	resp = m.despachar(context.Background(), peticionJSON(t, "verify", paramsVerify{InputPath: inputPath, ReportLanguage: "en"}))
+	data, ok = resp.Data.(resultadoVerificacion)
+	if !ok || !resp.OK {
+		t.Fatalf("verify con informe: %#v", resp)
+	}
+	if !strings.Contains(data.ReportHTML, "<html") || !strings.Contains(data.ReportHTML, `lang="en"`) ||
+		!strings.Contains(data.ReportHTML, "CN=Ana") {
+		t.Fatalf("informe HTML inesperado: %.300q", data.ReportHTML)
+	}
 }
 
 func TestDespachar_Verify_ConOriginal(t *testing.T) {

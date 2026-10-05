@@ -828,5 +828,7 @@ public sealed class HashPageViewModel
         string Value)
     {
         public string Label => Localizer.Text(SourceLabel);
+        // El lector de pantalla anuncia ToString(): nunca el volcado del record.
+        public override string ToString() => Label;
     }
 }

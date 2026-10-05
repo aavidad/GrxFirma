@@ -675,6 +675,10 @@ public sealed record VerifyParameters
 
     [JsonPropertyName("originalPath")]
     public string? OriginalPath { get; init; }
+
+    // Idioma del informe imprimible (HTML) que devuelve el motor.
+    [JsonPropertyName("reportLanguage")]
+    public string? ReportLanguage { get; init; }
 }
 
 public sealed record PdfPreviewParameters
@@ -1331,6 +1335,10 @@ public sealed record VerifyResult
 
     [JsonPropertyName("evidence")]
     public IReadOnlyList<VerifyEvidence> Evidence { get; init; } = [];
+
+    // Informe imprimible del motor (el mismo que la CLI con -informe).
+    [JsonPropertyName("reportHtml")]
+    public string ReportHtml { get; init; } = "";
 
     [JsonIgnore]
     public IReadOnlyList<string> VisibleDetails =>

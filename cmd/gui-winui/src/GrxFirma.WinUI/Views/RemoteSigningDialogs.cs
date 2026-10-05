@@ -23,7 +23,8 @@ internal static class RemoteSigningDialogs
 {
     /// <summary>
     /// El botón se muestra si la firma remota está permitida o si la
-    /// política la prohíbe (para explicarlo); no, si solo está desactivada.
+    /// política la prohíbe a quien ya la tenía configurada (para explicarlo).
+    /// Una organización que la prohíbe no hace que todo el mundo vea el botón.
     /// </summary>
     public static async Task<bool> ShouldShowButtonAsync(
         DesktopOperationSession session,
@@ -37,7 +38,8 @@ internal static class RemoteSigningDialogs
         {
             var status = await operations.GetRemoteSigningStatusAsync(cancellationToken);
             return status.IsSuccess &&
-                (status.Data?.Allowed == true || status.Data?.ProhibitedByPolicy == true);
+                (status.Data?.Allowed == true ||
+                 (status.Data?.ProhibitedByPolicy == true && status.Data.UserConfigured));
         }
         catch (IpcClientException)
         {

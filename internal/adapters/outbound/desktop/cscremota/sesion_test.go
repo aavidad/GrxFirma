@@ -78,8 +78,24 @@ func TestSesionProhibidaPorLaPoliticaLoDiceAsi(t *testing.T) {
 	t.Cleanup(func() { _ = sesion.Close() })
 	_, err := sesion.Configurar(context.Background(), s.URL, csctest.ClientID)
 	codigo(t, err, cscremota.CodigoProhibida)
-	if e := sesion.Estado(); e.Permitida || !e.Prohibida {
-		t.Fatalf("prohibida por la política: %+v", e)
+	if e := sesion.Estado(); e.Permitida || !e.Prohibida || !e.ConfiguradaPorUsuario {
+		t.Fatalf("prohibida por la política a quien la tenía activa: %+v", e)
+	}
+}
+
+// Una organización que la prohíbe no debe conseguir que todo el mundo vea el
+// botón: solo quien ya la tenía configurada recibe la explicación.
+func TestSesionProhibidaSinConfiguracionPreviaNoSeAnuncia(t *testing.T) {
+	falso := false
+	sesion := cscremota.Nueva(cscremota.Opciones{
+		ConfigDir: t.TempDir(),
+		CargarConfig: func() (config.Config, config.Policy, error) {
+			return config.Default(), config.Policy{FirmaRemotaCSC: &falso}, nil
+		},
+	})
+	t.Cleanup(func() { _ = sesion.Close() })
+	if e := sesion.Estado(); e.Permitida || !e.Prohibida || e.ConfiguradaPorUsuario {
+		t.Fatalf("prohibida y sin configuración previa: %+v", e)
 	}
 }
 

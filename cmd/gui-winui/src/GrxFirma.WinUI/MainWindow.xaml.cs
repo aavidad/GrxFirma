@@ -33,6 +33,7 @@ public sealed partial class MainWindow : Window
         _app = (App)Application.Current;
         ViewModel = new MainWindowViewModel();
         InitializeComponent();
+        ApplyControlLanguage();
         RefreshProgrammaticLanguage();
         Localizer.Attach(AppRoot);
         ConfigureInitialWindow();
@@ -217,7 +218,9 @@ public sealed partial class MainWindow : Window
 
     internal void ApplyLanguagePreference(string? language)
     {
-        if (!Localizer.SetLanguage(language)) return;
+        var changed = Localizer.SetLanguage(language);
+        ApplyControlLanguage();
+        if (!changed) return;
         RefreshProgrammaticLanguage();
         // NavigationView almacena sus entradas aparte del árbol visual.
         foreach (var item in RootNavigation.MenuItems.OfType<DependencyObject>())
@@ -230,6 +233,25 @@ public sealed partial class MainWindow : Window
             ViewModel.ActivePageTitle = selected.Content?.ToString() ?? string.Empty;
         var pageType = ContentFrame.CurrentSourcePageType;
         if (pageType is not null) ContentFrame.Navigate(pageType);
+    }
+
+    // Los textos propios de WinUI (selector de fecha y hora, «Cerrar
+    // navegación», iconos) siguen el idioma de la aplicación y no el de
+    // Windows: Language en la raíz para formatos y nombres de los controles,
+    // y PrimaryLanguageOverride para los recursos que se cargan después.
+    private void ApplyControlLanguage()
+    {
+        var tag = GrxFirma.WinUI.Core.Localization.AppCulture.Tag(Localizer.Language);
+        AppRoot.Language = tag;
+        try
+        {
+            Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = tag;
+        }
+        catch (Exception exception) when (exception is ArgumentException or
+            System.Runtime.InteropServices.COMException or InvalidOperationException)
+        {
+            // Sin soporte en este equipo: quedan solo los formatos de Language.
+        }
     }
 
     private void RefreshProgrammaticLanguage()
@@ -457,6 +479,36 @@ public sealed partial class MainWindow : Window
         Closed -= OnClosed;
     }
 
+    private bool _unexpectedErrorShown;
+
+    // Un único aviso a la vez: si el propio aviso fallara, no se encadenan
+    // diálogos sin fin.
+    internal void ShowUnexpectedError(Exception exception)
+    {
+        if (_unexpectedErrorShown || RootNavigation.XamlRoot is null) return;
+        _unexpectedErrorShown = true;
+        DispatcherQueue.TryEnqueue(async () =>
+        {
+            try
+            {
+                var dialog = new OperationDiagnosticDialog(
+                    GrxFirma.WinUI.Core.Diagnostics.OperationDiagnosticMapper.FromException(exception))
+                {
+                    XamlRoot = RootNavigation.XamlRoot,
+                };
+                await Localizer.ShowAsync(dialog);
+            }
+            catch (Exception)
+            {
+                // El fallo ya consta en el registro local.
+            }
+            finally
+            {
+                _unexpectedErrorShown = false;
+            }
+        });
+    }
+
     private async void OnOpenCurrentDiagnostic(
         object sender,
         RoutedEventArgs args)
@@ -482,6 +534,11 @@ public sealed partial class MainWindow : Window
         {
             return;
         }
+
+        // Traducir antes de que la página se cargue: los controles de WinUI
+        // (selector de fecha, por ejemplo) componen su nombre accesible al
+        // cargarse y conservaban el texto en castellano.
+        Localizer.Apply(page);
 
         if (page.IsLoaded)
         {

@@ -106,14 +106,18 @@ type Estado struct {
 	Permitida bool
 	// Prohibida indica que no está permitida porque la política de la
 	// organización lo decide así (config.json no puede cambiarlo).
-	Prohibida    bool
-	URL          string
-	ClientID     string
-	Descubierto  bool
-	Conectada    bool
-	HostServicio string
-	HostOAuth    string
-	Nombre       string
+	Prohibida bool
+	// ConfiguradaPorUsuario indica, cuando la política la prohíbe, que la
+	// persona la había activado en config.json o guardado un prestador: solo
+	// entonces la interfaz enseña el botón para explicar la prohibición.
+	ConfiguradaPorUsuario bool
+	URL                   string
+	ClientID              string
+	Descubierto           bool
+	Conectada             bool
+	HostServicio          string
+	HostOAuth             string
+	Nombre                string
 }
 
 // Descubrimiento es lo que la persona debe ver antes de abrir el navegador.
@@ -219,7 +223,8 @@ func (s *Sesion) Estado() Estado {
 	defer s.mu.Unlock()
 	if errPermiso != nil {
 		s.cerrarLocked()
-		return Estado{Prohibida: CodigoVisible(errPermiso) == CodigoProhibida}
+		prohibida := CodigoVisible(errPermiso) == CodigoProhibida
+		return Estado{Prohibida: prohibida, ConfiguradaPorUsuario: prohibida && s.configuradaPorUsuario()}
 	}
 	s.cargarLocked()
 	return Estado{
@@ -232,6 +237,24 @@ func (s *Sesion) Estado() Estado {
 		HostOAuth:    s.hostOAuth,
 		Nombre:       s.nombre,
 	}
+}
+
+// configuradaPorUsuario: config.json activa la firma remota o hay un
+// prestador guardado. No autoriza nada; solo decide si hay que explicar una
+// prohibición a quien ya la usaba.
+func (s *Sesion) configuradaPorUsuario() bool {
+	if s.opc.CargarConfig != nil {
+		if cfg, _, err := s.opc.CargarConfig(); err == nil && cfg.FirmaRemotaCSC {
+			return true
+		}
+	} else if cfg, err := config.Load(s.opc.ConfigDir); err == nil && cfg.FirmaRemotaCSC {
+		return true
+	}
+	if s.opc.ConfigDir == "" {
+		return false
+	}
+	_, err := os.Stat(filepath.Join(s.opc.ConfigDir, FicheroConfiguracion))
+	return err == nil
 }
 
 // Configurar valida la dirección y el client_id como la CLI, descubre el

@@ -42,7 +42,12 @@ class SealDrawContract(unittest.TestCase):
         self.assertEqual(2, keys.count("ExitVisibleSealDrawMode()"))
         self.assertIn("ScheduleSealDrawPositionAnnouncement()", keys)
         self.assertIn('"sign.seal.draw_position"', source)
-        self.assertIn("VisibleSealDrawToggle.Focus(FocusState.Keyboard)", source)
+        self.assertIn("VisibleSealDrawToggle.Focus(focus);", source)
+        self.assertIn("ExitVisibleSealDrawMode(FocusState focus = FocusState.Keyboard)", source)
+        # Recorrido 0.0.117 (M7): soltar el ratón tras dibujar también sale del modo.
+        released = source[source.index("private void OnVisibleSealPreviewPointerReleased"):source.index("private void OnVisibleSealPreviewPointerCanceled")]
+        self.assertIn("drawApplied = ConfirmVisibleSealDrawing();", released)
+        self.assertIn("if (drawApplied) ExitVisibleSealDrawMode(FocusState.Pointer);", released)
         self.assertIn("VisibleSealDrawToggle.IsEnabled = ViewModel.CanDrawVisibleSealArea", source)
 
     def test_portal_moves_controls_only_after_loaded(self):

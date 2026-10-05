@@ -31,6 +31,7 @@ import (
 	"unicode/utf8"
 
 	resttls "grxfirma/internal/adapters/inbound/common/rest"
+	"grxfirma/internal/adapters/outbound/common/informeverificacion"
 	"grxfirma/internal/adapters/outbound/common/protector"
 	"grxfirma/internal/adapters/outbound/common/secmem"
 	"grxfirma/internal/adapters/outbound/common/securefile"
@@ -1251,13 +1252,27 @@ func (m *Manejador) handleVerificacion(ctx context.Context, raw json.RawMessage)
 		signers = append(signers, f.Subject)
 	}
 
+	reportHTML := ""
+	if idioma := strings.TrimSpace(params.ReportLanguage); idioma != "" && len(idioma) <= 16 {
+		informe, err := informeverificacion.HTML(informeverificacion.Datos{
+			NombreDocumento: filepath.Base(params.InputPath), Contenido: contenido,
+			Resultado: result.Verification, Fecha: time.Now(), VersionApp: m.CurrentVersion,
+			Idioma: idioma,
+		})
+		// El informe es un añadido: si falla, la verificación sigue valiendo.
+		if err == nil && len(informe) <= maxInformeVerificacionIPC {
+			reportHTML = string(informe)
+		}
+	}
+
 	return respuesta{OK: true, Action: "verify", Data: resultadoVerificacion{
-		Valid:    result.Verification.Valid,
-		Reason:   result.Verification.Reason,
-		Details:  result.Verification.Details,
-		Signers:  signers,
-		Format:   result.Verification.Format,
-		Coverage: result.Verification.Coverage,
+		ReportHTML: reportHTML,
+		Valid:      result.Verification.Valid,
+		Reason:     result.Verification.Reason,
+		Details:    result.Verification.Details,
+		Signers:    signers,
+		Format:     result.Verification.Format,
+		Coverage:   result.Verification.Coverage,
 		Integrity: resultadoVerificacionAspecto{
 			Status:  string(result.Verification.Integrity.Status),
 			Reason:  result.Verification.Integrity.Reason,
@@ -1645,6 +1660,9 @@ func (m *Manejador) handleUnprotect(ctx context.Context, raw json.RawMessage) re
 	}
 	return respuesta{OK: true, Action: "unprotect", Data: resp}
 }
+
+// maxInformeVerificacionIPC acota el informe HTML que viaja por el IPC.
+const maxInformeVerificacionIPC = 1 << 20
 
 func verificacionFirmantesIPC(items []domain.VerificationSignerSummary) []resultadoVerificacionFirmante {
 	if len(items) == 0 {

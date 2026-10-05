@@ -41,7 +41,9 @@ class VisualPolishContractTests(unittest.TestCase):
         root = ET.parse(ROOT / "Views/SignPage.xaml").getroot()
         button = next(element for element in root.iter() if element.get("Click") == "OnUseTemporaryCredentialClick")
         self.assertTrue(any(element.get("Text") == "Cargar P12/PFX…" for element in button.iter()))
-        self.assertIn("sesión", button.get("AutomationProperties.Name"))
+        # WCAG 2.5.3: el nombre empieza por el texto visible; la explicación va en HelpText.
+        self.assertEqual("Cargar P12/PFX…", button.get("AutomationProperties.Name"))
+        self.assertIn("sesión", button.get("AutomationProperties.HelpText"))
 
     def test_healthy_connection_does_not_consume_permanent_banner_space(self):
         for page in ["Sign", "Verify", "Certificates", "Hash", "Protect", "Settings"]:

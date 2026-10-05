@@ -222,7 +222,8 @@
                             TabIndex="7">
                             <StackPanel Padding="0,12,0,0" Spacing="10">
                                 <ToggleSwitch
-                                    AutomationProperties.Name="El emisor es una persona física"
+                                    AutomationProperties.Name="Tipo de emisor"
+                                    AutomationProperties.HelpText="El emisor es una persona física"
                                     Header="Tipo de emisor"
                                     IsOn="{x:Bind ViewModel.SellerIsIndividual, Mode=TwoWay}"
                                     OffContent="Persona jurídica"
@@ -310,7 +311,8 @@
                                         Text="{x:Bind ViewModel.SellerProvince, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                                 <TextBox
-                                    AutomationProperties.Name="Correo del emisor"
+                                    AutomationProperties.Name="Correo electrónico (opcional)"
+                                    AutomationProperties.HelpText="Correo del emisor"
                                     Header="Correo electrónico (opcional)"
                                     InputScope="EmailSmtpAddress"
                                     MaxLength="60"
@@ -320,7 +322,8 @@
                         </Expander>
 
                         <Expander
-                            AutomationProperties.Name="Datos del receptor y códigos DIR3"
+                            AutomationProperties.Name="Administración receptora y DIR3"
+                            AutomationProperties.HelpText="Datos del receptor y códigos DIR3"
                             Header="Administración receptora y DIR3"
                             TabIndex="18">
                             <StackPanel Padding="0,12,0,0" Spacing="10">
@@ -332,7 +335,8 @@
                                     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition x:Name="BuyerNameRow" Height="Auto" /></Grid.RowDefinitions>
                                     <TextBox
                                         Grid.Column="0"
-                                        AutomationProperties.Name="NIF del receptor"
+                                        AutomationProperties.Name="NIF de la Administración *"
+                                        AutomationProperties.HelpText="NIF del receptor"
                                         Header="NIF de la Administración *"
                                         MaxLength="30"
                                         TabIndex="19"
@@ -419,7 +423,7 @@
                                 </Grid>
                                 <Button MinHeight="40"
                                     AutomationProperties.HelpText="Abre únicamente el buscador oficial fijo del Portal FACe Proveedores."
-                                    AutomationProperties.Name="Buscar códigos DIR3 en FACe"
+                                    AutomationProperties.Name="Buscar organismo y relaciones DIR3"
                                     Click="OnOpenOrganisationDirectoryClick"
                                     Content="Buscar organismo y relaciones DIR3"
                                     IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
@@ -428,7 +432,8 @@
                         </Expander>
 
                         <Expander
-                            AutomationProperties.Name="Concepto importes e impuestos"
+                            AutomationProperties.Name="Concepto, importes e IVA"
+                            AutomationProperties.HelpText="Concepto importes e impuestos"
                             Header="Concepto, importes e IVA"
                             TabIndex="29">
                             <StackPanel Padding="0,12,0,0" Spacing="10">
@@ -458,7 +463,8 @@
                                     <NumberBox
                                         x:Name="UnitPrice"
                                         Grid.Row="1"
-                                        AutomationProperties.Name="Precio unitario sin impuestos"
+                                        AutomationProperties.Name="Precio unitario sin IVA *"
+                                        AutomationProperties.HelpText="Precio unitario sin impuestos"
                                         Header="Precio unitario sin IVA *"
                                         Minimum="0"
                                         SmallChange="1"
@@ -521,7 +527,8 @@
                             TabIndex="34">
                             <StackPanel Padding="0,12,0,0" Spacing="10">
                                 <CheckBox
-                                    AutomationProperties.Name="Incluir pago por transferencia"
+                                    AutomationProperties.Name="Incluir vencimiento y cuenta de abono por transferencia."
+                                    AutomationProperties.HelpText="Incluir pago por transferencia"
                                     Content="Incluir vencimiento y cuenta de abono por transferencia."
                                     IsChecked="{x:Bind ViewModel.IncludePayment, Mode=TwoWay}"
                                     TabIndex="35" />
@@ -580,16 +587,18 @@
                             Text="Pida a la Administración destinataria los tres códigos DIR3 exactos: oficina contable, órgano gestor y unidad tramitadora. Reúna también los datos fiscales del emisor y del receptor, número y fecha, líneas, impuestos, totales y forma de pago."
                             TextWrapping="Wrap" />
                         <CheckBox
-                            AutomationProperties.Name="Confirmo que tengo los tres códigos DIR3"
+                            AutomationProperties.Name="Tengo la oficina contable, el órgano gestor y la unidad tramitadora."
+                            AutomationProperties.HelpText="Confirmo que tengo los tres códigos DIR3"
                             Content="Tengo la oficina contable, el órgano gestor y la unidad tramitadora."
                             TabIndex="39" />
                         <CheckBox
-                            AutomationProperties.Name="Confirmo los datos fiscales y económicos"
+                            AutomationProperties.Name="He revisado los datos fiscales, las líneas, los impuestos y los totales."
+                            AutomationProperties.HelpText="Confirmo los datos fiscales y económicos"
                             Content="He revisado los datos fiscales, las líneas, los impuestos y los totales."
                             TabIndex="40" />
                         <Button MinHeight="40"
                             AutomationProperties.HelpText="Abre únicamente el buscador oficial fijo del Portal FACe Proveedores."
-                            AutomationProperties.Name="Abrir buscador oficial de organismos y DIR3"
+                            AutomationProperties.Name="Buscar organismo y relaciones DIR3"
                             Click="OnOpenOrganisationDirectoryClick"
                             Content="Buscar organismo y relaciones DIR3"
                             IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
@@ -607,7 +616,8 @@
                             Text="Guarde la factura en XML Facturae y fírmela electrónicamente. FACe admite Facturae 3.2, 3.2.1 y 3.2.2 firmados. Un PDF puede acompañar a la factura si se lo solicitan, pero no sustituye al XML firmado."
                             TextWrapping="Wrap" />
                         <CheckBox
-                            AutomationProperties.Name="Confirmo que el XML Facturae está firmado"
+                            AutomationProperties.Name="Tengo localizado el XML Facturae firmado que voy a remitir."
+                            AutomationProperties.HelpText="Confirmo que el XML Facturae está firmado"
                             Content="Tengo localizado el XML Facturae firmado que voy a remitir."
                             TabIndex="42" />
                     </StackPanel>
@@ -628,7 +638,7 @@
                             Spacing="8">
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Abre únicamente el validador oficial fijo del Portal FACe Proveedores."
-                                AutomationProperties.Name="Abrir validador oficial de FACe"
+                                AutomationProperties.Name="Validar factura en FACe"
                                 Click="OnOpenValidatorClick"
                                 Content="Validar factura en FACe"
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
@@ -643,7 +653,8 @@
                         <TextBlock x:Name="InvoiceValidationSummary" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" />
                         <TextBox x:Name="InvoiceValidationReport" AutomationProperties.Name="Informe de validación" TabIndex="46" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
                         <CheckBox
-                            AutomationProperties.Name="Confirmo que FACe no muestra errores de validación"
+                            AutomationProperties.Name="El validador oficial no muestra errores que impidan la remisión."
+                            AutomationProperties.HelpText="Confirmo que FACe no muestra errores de validación"
                             Content="El validador oficial no muestra errores que impidan la remisión."
                             TabIndex="47" />
                     </StackPanel>
@@ -664,7 +675,7 @@
                             Spacing="8">
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Abre únicamente el trámite oficial fijo del Portal FACe Proveedores. La aplicación no adjunta ni transmite el fichero."
-                                AutomationProperties.Name="Abrir remisión oficial de facturas en FACe"
+                                AutomationProperties.Name="Remitir factura en FACe"
                                 Click="OnOpenSubmissionClick"
                                 Content="Remitir factura en FACe"
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
@@ -688,7 +699,8 @@
                             Text="Guarde el justificante junto al XML firmado. Compruebe que contiene el número de registro y el código seguro de verificación (CSV). Puede verificar después que el justificante no ha sido alterado."
                             TextWrapping="Wrap" />
                         <CheckBox
-                            AutomationProperties.Name="Confirmo que he guardado el justificante de FACe"
+                            AutomationProperties.Name="He guardado el justificante con su número de registro y CSV."
+                            AutomationProperties.HelpText="Confirmo que he guardado el justificante de FACe"
                             Content="He guardado el justificante con su número de registro y CSV."
                             TabIndex="49" />
                         <StackPanel
@@ -702,7 +714,8 @@
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
                                 TabIndex="50" />
                             <Button MinHeight="40"
-                                AutomationProperties.Name="Consultar estado de factura en FACe"
+                                AutomationProperties.Name="Consultar estado de la factura"
+                                AutomationProperties.HelpText="Consultar estado de factura en FACe"
                                 Click="OnOpenInvoiceStatusClick"
                                 Content="Consultar estado de la factura"
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"

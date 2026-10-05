@@ -55,6 +55,13 @@ public sealed record RemoteSigningStatus
     [JsonPropertyName("prohibitedByPolicy")]
     public bool ProhibitedByPolicy { get; init; }
 
+    /// <summary>
+    /// Con la firma remota prohibida, la persona la tenía configurada: solo
+    /// entonces se muestra el botón, para explicarle la prohibición.
+    /// </summary>
+    [JsonPropertyName("userConfigured")]
+    public bool UserConfigured { get; init; }
+
     [JsonPropertyName("serviceUrl")]
     public string ServiceUrl
     {

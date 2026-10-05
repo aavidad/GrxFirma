@@ -111,7 +111,8 @@
                                 x:Name="SignedBrowseButton"
                                 Grid.Row="1"
                                 VerticalAlignment="Bottom"
-                                AutomationProperties.Name="Seleccionar fichero firmado"
+                                AutomationProperties.Name="Examinar…"
+                                AutomationProperties.HelpText="Seleccionar fichero firmado"
                                 Click="OnSelectSignedFileClick"
                                 Content="Examinar…"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -128,7 +129,8 @@
                                 <RowDefinition x:Name="OriginalActionsRow" Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBox
-                                AutomationProperties.Name="Fichero original para firma separada"
+                                AutomationProperties.Name="Original, solo para firmas separadas"
+                                AutomationProperties.HelpText="Fichero original para firma separada"
                                 Header="Original, solo para firmas separadas"
                                 MinHeight="40"
                                 IsReadOnly="True"
@@ -143,7 +145,8 @@
                                 VerticalAlignment="Bottom">
                                 <Button MinHeight="40"
                                     VerticalAlignment="Bottom"
-                                    AutomationProperties.Name="Seleccionar fichero original"
+                                    AutomationProperties.Name="Seleccionar original…"
+                                    AutomationProperties.HelpText="Seleccionar fichero original"
                                     Click="OnSelectOriginalFileClick"
                                     Content="Seleccionar original…"
                                     IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -184,11 +187,19 @@
                                 TabIndex="6"
                             AutomationProperties.Name="{Binding Content, ElementName=ExportReportButton}" />
                             <Button MinHeight="40"
-                                AutomationProperties.Name="Cancelar verificación"
+                                x:Name="ExportJsonReportButton"
+                                Click="OnExportJsonReportClick"
+                                IsEnabled="{x:Bind ViewModel.CanExportReport, Mode=OneWay}"
+                                Visibility="{x:Bind ViewModel.HasHtmlReport, Mode=OneWay}"
+                                TabIndex="7"
+                            AutomationProperties.Name="{Binding Content, ElementName=ExportJsonReportButton}" />
+                            <Button MinHeight="40"
+                                AutomationProperties.Name="Cancelar operación"
+                                AutomationProperties.HelpText="Cancelar verificación"
                                 Click="OnCancelClick"
                                 Content="Cancelar operación"
                                 IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
-                                TabIndex="7" />
+                                TabIndex="8" />
                             <ProgressRing
                                 Width="28"
                                 Height="28"
@@ -205,12 +216,19 @@
                             Style="{StaticResource SectionTitleTextStyle}"
                             Text="Resultado de verificación" />
                         <InfoBar
+                            x:Name="ResultInfoBar"
                             AutomationProperties.LiveSetting="Assertive"
                             IsClosable="False"
+                            IsTabStop="True"
                             IsOpen="{x:Bind ViewModel.HasResult, Mode=OneWay}"
                             Message="{x:Bind ViewModel.ResultMessage, Mode=OneWay}"
                             Severity="{x:Bind ViewModel.ResultSeverity, Mode=OneWay}"
                             Title="{x:Bind ViewModel.ResultTitle, Mode=OneWay}" />
+                        <TextBlock
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="{x:Bind ViewModel.SignedBySummary, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            IsTextSelectionEnabled="True" />
                         <Grid ColumnSpacing="12" RowSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />

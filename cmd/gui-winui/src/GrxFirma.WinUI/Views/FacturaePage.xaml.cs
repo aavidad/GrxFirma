@@ -163,7 +163,11 @@ public sealed partial class FacturaePage : Page
                 VeriFactuReport.Text = _verifactuReport;
                 VeriFactuReport.Visibility = Visibility.Visible;
                 ExportVeriFactuReportButton.Visibility = Visibility.Visible;
-                VeriFactuSummary.Text = T(result.Data.Valid ? "verifactu.valid" : "verifactu.invalid");
+                // El motor resume con avisos y errores: «sin errores» a secas
+                // solo cuando no hay ninguno de los dos.
+                VeriFactuSummary.Text = result.Data.Summary.Length > 0
+                    ? result.Data.Summary
+                    : T(result.Data.Valid ? "verifactu.valid" : "verifactu.invalid");
             }
             else VeriFactuSummary.Text = result.SafeUserMessage;
         }
@@ -173,6 +177,11 @@ public sealed partial class FacturaePage : Page
 
     private void OnVeriFactuQrTextChanged(object sender, TextChangedEventArgs args)
     {
+        // TextChanged llega después de que la página escriba la URL leída de
+        // una imagen: esa URL ya validada no borra el resultado.
+        if (_verifactuQrUrl.Length > 0 &&
+            string.Equals(VeriFactuQrInput.Text, _verifactuQrUrl, StringComparison.Ordinal)) return;
+        if (_verifactuBusy) return;
         _verifactuQrUrl = string.Empty;
         if (QueryVeriFactuQrButton is not null) QueryVeriFactuQrButton.IsEnabled = false;
         if (VeriFactuQrReport is not null) VeriFactuQrReport.Text = string.Empty;
@@ -184,13 +193,22 @@ public sealed partial class FacturaePage : Page
         if (_verifactuBusy) return;
         var app = (App)Application.Current;
         if (!app.OperationSession.TryGetOperations(DesktopOperationActions.ReadVeriFactuQr, out var operations)) return;
+        var text = VeriFactuQrInput.Text.Trim();
+        if (text.Length == 0)
+        {
+            VeriFactuQrReport.Text = T("verifactu.qr_empty");
+            VeriFactuQrInput.Focus(FocusState.Programmatic);
+            return;
+        }
         SetVeriFactuBusy(true);
         _verifactuQrUrl = string.Empty;
         try
         {
-            var result = await operations.ReadVeriFactuQrAsync(VeriFactuQrInput.Text);
+            var result = await operations.ReadVeriFactuQrAsync(text);
             ShowVeriFactuQrResult(result);
         }
+        // El cliente rechaza antes de enviar lo que no es una URL de cotejo de la AEAT.
+        catch (ArgumentException) { VeriFactuQrReport.Text = T("verifactu.qr_url"); }
         catch (Exception) { VeriFactuQrReport.Text = T("verifactu.qr_params"); }
         finally { SetVeriFactuBusy(false); }
     }
@@ -212,10 +230,14 @@ public sealed partial class FacturaePage : Page
         {
             var qr = result.Data;
             _verifactuQrUrl = qr.Url;
+            // La URL leída de una imagen o un PDF queda a la vista y se puede copiar.
+            if (!string.Equals(VeriFactuQrInput.Text, qr.Url, StringComparison.Ordinal))
+                VeriFactuQrInput.Text = qr.Url;
+            var culture = GrxFirma.WinUI.Core.Localization.AppCulture.For(Localizer.Language);
             VeriFactuQrReport.Text = T("verifactu.qr_nif") + ": " + qr.Nif + "\n" +
                 T("verifactu.qr_number") + ": " + qr.Number + "\n" +
-                T("verifactu.qr_date") + ": " + qr.Date + "\n" +
-                T("verifactu.qr_amount") + ": " + qr.Amount;
+                T("verifactu.qr_date") + ": " + VeriFactuQrDisplay.Date(qr.Date, culture) + "\n" +
+                T("verifactu.qr_amount") + ": " + VeriFactuQrDisplay.Amount(qr.Amount, culture);
         }
         else VeriFactuQrReport.Text = result.SafeUserMessage;
     }

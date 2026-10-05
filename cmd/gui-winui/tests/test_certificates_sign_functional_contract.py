@@ -191,9 +191,9 @@ class CertificatesAndSignFunctionalContractTests(unittest.TestCase):
 
     def test_sign_selector_offers_system_temporary_and_windows_import(self) -> None:
         for fragment in (
-            'AutomationProperties.Name="Buscar certificados en Windows"',
-            'AutomationProperties.Name="Usar archivo de certificado solo durante esta sesión"',
-            'AutomationProperties.Name="Importar archivo de certificado en Windows"',
+            'AutomationProperties.Name="Buscar en Windows"',
+            'AutomationProperties.Name="Cargar P12/PFX…"',
+            'AutomationProperties.Name="Importar archivo en Windows"',
             'Click="OnRefreshCertificatesClick"',
             'Click="OnUseTemporaryCredentialClick"',
             'Click="OnImportCredentialToWindowsClick"',
@@ -298,7 +298,7 @@ class CertificatesAndSignFunctionalContractTests(unittest.TestCase):
 
     def test_default_certificate_uses_typed_conservative_persistence(self) -> None:
         default_fragment = self.certificates_xaml.split(
-            'AutomationProperties.Name="Usar certificado como predeterminado"',
+            'AutomationProperties.Name="Usar como predeterminado"',
             maxsplit=1,
         )[1].split("</Button>", maxsplit=1)[0]
         self.assertIn('Click="OnSetDefaultCertificateClick"', default_fragment)

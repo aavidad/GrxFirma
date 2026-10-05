@@ -102,10 +102,33 @@ internal static class Localizer
         Scan(root, new HashSet<DependencyObject>(ReferenceEqualityComparer.Instance));
     }
 
+    // WinUI solo admite un ContentDialog abierto a la vez: abrir otro lanza
+    // COMException 0x80000019 y, desde un manejador async void, cerraba la
+    // aplicación. Los diálogos se encolan: el siguiente se abre cuando el
+    // anterior se cierra. Ningún diálogo abre otro mientras sigue abierto.
+    private static readonly SemaphoreSlim DialogGate = new(1, 1);
+    private const int OnlyOneContentDialogHResult = unchecked((int)0x80000019);
+
     public static async Task<ContentDialogResult> ShowAsync(ContentDialog dialog)
     {
-        Apply(dialog);
-        return await dialog.ShowAsync();
+        ArgumentNullException.ThrowIfNull(dialog);
+        await DialogGate.WaitAsync();
+        try
+        {
+            Apply(dialog);
+            return await dialog.ShowAsync();
+        }
+        catch (System.Runtime.InteropServices.COMException exception)
+            when (exception.HResult == OnlyOneContentDialogHResult)
+        {
+            // Un diálogo abierto fuera de esta cola (p. ej. del propio WinUI):
+            // se trata como cerrado sin respuesta en vez de tumbar la app.
+            return ContentDialogResult.None;
+        }
+        finally
+        {
+            DialogGate.Release();
+        }
     }
 
     // Cada pasada visita cada elemento una sola vez: el contenido de paneles y

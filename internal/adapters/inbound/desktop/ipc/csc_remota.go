@@ -49,14 +49,17 @@ type resultadoCSCEstado struct {
 	Allowed bool `json:"allowed"`
 	// ProhibitedByPolicy distingue la prohibición de la organización de la
 	// firma remota simplemente desactivada en config.json.
-	ProhibitedByPolicy bool   `json:"prohibitedByPolicy"`
-	ServiceURL         string `json:"serviceUrl"`
-	ClientID           string `json:"clientId"`
-	Discovered         bool   `json:"discovered"`
-	Connected          bool   `json:"connected"`
-	ServiceHost        string `json:"serviceHost"`
-	OAuthHost          string `json:"oauthHost"`
-	ServiceName        string `json:"serviceName"`
+	ProhibitedByPolicy bool `json:"prohibitedByPolicy"`
+	// UserConfigured: con la firma remota prohibida, la persona la tenía
+	// configurada; la interfaz muestra el botón solo para explicarlo.
+	UserConfigured bool   `json:"userConfigured"`
+	ServiceURL     string `json:"serviceUrl"`
+	ClientID       string `json:"clientId"`
+	Discovered     bool   `json:"discovered"`
+	Connected      bool   `json:"connected"`
+	ServiceHost    string `json:"serviceHost"`
+	OAuthHost      string `json:"oauthHost"`
+	ServiceName    string `json:"serviceName"`
 }
 
 type resultadoCSCDescubrimiento struct {
@@ -198,6 +201,7 @@ func (m *Manejador) handleCSC(ctx context.Context, action string, raw json.RawMe
 		return respuesta{OK: true, Action: action, Data: resultadoCSCEstado{
 			Allowed:            e.Permitida,
 			ProhibitedByPolicy: e.Prohibida,
+			UserConfigured:     e.ConfiguradaPorUsuario,
 			ServiceURL:         e.URL,
 			ClientID:           e.ClientID,
 			Discovered:         e.Descubierto,

@@ -180,7 +180,8 @@
             </StackPanel>
 
             <Expander
-                AutomationProperties.Name="Detalles técnicos del diagnóstico"
+                AutomationProperties.Name="Detalles técnicos — información avanzada"
+                AutomationProperties.HelpText="Detalles técnicos del diagnóstico"
                 Header="Detalles técnicos — información avanzada"
                 IsExpanded="False">
                 <StackPanel Margin="0,10,0,0" Spacing="8">

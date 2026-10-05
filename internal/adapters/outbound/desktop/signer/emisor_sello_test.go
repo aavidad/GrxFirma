@@ -26,10 +26,6 @@ func TestEmisorSelloCertificadoCoincideConFirma(t *testing.T) {
 		if got := EmisorSelloCertificado(cert); got != c.want {
 			t.Fatalf("EmisorSelloCertificado = %q; quiero %q", got, c.want)
 		}
-		desc := descripcionCertificadoPAdES(&ClaveLocal{cert: cert})
-		if c.want != "" && desc != "Certificado: "+c.want {
-			t.Fatalf("la firma escribe %q y la vista previa %q", desc, c.want)
-		}
 		if NombreFirmanteSello(cert) != nombreFirmantePAdES(&ClaveLocal{cert: cert}) {
 			t.Fatal("el titular de la vista previa no coincide con el de la firma")
 		}

@@ -50,7 +50,19 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
-        UnhandledException += (_, e) => RegistrarErrorNoControlado(e.Exception);
+        UnhandledException += OnUnhandledException;
+    }
+
+    // Red de seguridad para los manejadores async void de las páginas: un
+    // fallo inesperado de la interfaz se registra y se explica con el
+    // diagnóstico de la operación en vez de cerrar la aplicación y perder el
+    // trabajo de la persona. El motor sigue validando cada operación.
+    private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        RegistrarErrorNoControlado(e.Exception);
+        if (_window is null || e.Exception is null) return;
+        e.Handled = true;
+        _window.ShowUnexpectedError(e.Exception);
     }
 
     // Deja constancia local de un fallo no controlado para poder diagnosticarlo;

@@ -145,6 +145,8 @@ type firmaLoteDocumentOverride struct {
 type paramsVerify struct {
 	InputPath    string `json:"inputPath"`
 	OriginalPath string `json:"originalPath,omitempty"`
+	// ReportLanguage pide además el informe imprimible (HTML) en ese idioma.
+	ReportLanguage string `json:"reportLanguage,omitempty"`
 }
 
 type paramsCertificateOnlineCheck struct {
@@ -322,6 +324,9 @@ type resultadoVerificacion struct {
 	Warnings        []string                         `json:"warnings,omitempty"`
 	Errors          []string                         `json:"errors,omitempty"`
 	Evidence        []resultadoVerificacionEvidencia `json:"evidence,omitempty"`
+	// ReportHTML es el mismo informe imprimible que genera la CLI (-informe),
+	// solo si la petición lo pide con reportLanguage.
+	ReportHTML string `json:"reportHtml,omitempty"`
 }
 
 type resultadoVerificacionAspecto struct {

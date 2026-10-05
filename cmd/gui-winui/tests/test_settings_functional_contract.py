@@ -250,6 +250,16 @@ class SettingsFunctionalContractTests(unittest.TestCase):
         self.assertIn("CanEdit &&", delete_state)
         self.assertNotIn("CanEditManualProxy &&", delete_state)
 
+    def test_save_confirms_and_explains_why_it_cannot_save(self):
+        # Recorrido Windows 0.0.117 (M11).
+        can_save = self.vm.split("CanSave =", maxsplit=1)[1].split(";", maxsplit=1)[0]
+        self.assertNotIn("Localizer.Text", can_save)
+        self.assertIn("_validationError = ValidationError();", self.vm)
+        self.assertIn('? Localizer.Text("winui.ajustes.preferencias_guardadas")', self.vm)
+        self.assertIn("_justSaved = true;", self.vm)
+        self.assertIn("if (CanSave && _validationError is not null)", self.vm)
+        self.assertNotIn("editor seguro de sello PDF", self.xaml)
+
     def test_settings_sources_do_not_log_or_write_sensitive_values(self):
         combined = "\n".join(
             (

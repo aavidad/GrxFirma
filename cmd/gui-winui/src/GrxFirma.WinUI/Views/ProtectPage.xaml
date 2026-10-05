@@ -116,7 +116,8 @@
                                 x:Name="ProtectBrowseButton"
                                 Grid.Row="1"
                                 VerticalAlignment="Bottom"
-                                AutomationProperties.Name="Seleccionar documento para proteger"
+                                AutomationProperties.Name="Examinar…"
+                                AutomationProperties.HelpText="Seleccionar documento para proteger"
                                 Click="OnSelectProtectInputClick"
                                 Content="Examinar…"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -133,9 +134,9 @@
                                 <RowDefinition x:Name="ContainerRow" Height="Auto" />
                             </Grid.RowDefinitions>
                             <ComboBox
-                                AutomationProperties.Name="Perfil de protección"
+                                AutomationProperties.Name="Nivel de protección"
                                 DisplayMemberPath="Label"
-                                Header="Perfil criptográfico"
+                                Header="Nivel de protección"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
                                 ItemsSource="{x:Bind ViewModel.Profiles}"
                                 SelectedItem="{x:Bind ViewModel.SelectedProfile, Mode=TwoWay}"
@@ -143,7 +144,8 @@
                             <ComboBox
                                 x:Name="ContainerCombo"
                                 Grid.Row="1"
-                                AutomationProperties.Name="Formato del contenedor protegido"
+                                AutomationProperties.Name="Formato de salida"
+                                AutomationProperties.HelpText="Formato del contenedor protegido"
                                 DisplayMemberPath="Label"
                                 Header="Formato de salida"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -153,12 +155,12 @@
                         </Grid>
 
                         <InfoBar
-                            AutomationProperties.Name="Aviso sobre CMS EncryptedData"
+                            AutomationProperties.Name="Protección con clave"
                             IsClosable="False"
-                            IsOpen="True"
-                            Message="CMS EncryptedData usa una clave AES-256 transitoria en Base64. Al proteger se abrirán dos diálogos nativos seguros para introducirla y confirmarla. No emplea certificados destinatarios y la clave nunca se guarda ni se envía a registros."
+                            IsOpen="{x:Bind ViewModel.IsEncryptedDataSelected, Mode=OneWay}"
+                            Message="Este formato no usa destinatarios. Al pulsar «Proteger documento», escriba dos veces una clave AES de 256 bits en Base64 (44 caracteres). GrxFirma no la guarda ni la envía."
                             Severity="Informational"
-                            Title="Protección con clave efímera" />
+                            Title="Protección con clave" />
 
                         <StackPanel
                             x:Name="ProtectEncryptedDataSecretFields"
@@ -178,7 +180,7 @@
                                 TextWrapping="Wrap" />
                             <TextBlock
                                 Style="{StaticResource PageSubtitleTextStyle}"
-                                Text="Seleccione quién podrá recuperar el documento. CMS EncryptedData usa exclusivamente la clave efímera y no necesita destinatarios."
+                                Text="Elija quién podrá abrir el documento protegido. Con el formato de clave no hacen falta destinatarios."
                                 TextWrapping="Wrap" />
                             <ListView
                                 x:Name="RecipientsList"
@@ -205,6 +207,12 @@
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
+                            <TextBlock
+                                AutomationProperties.LiveSetting="Polite"
+                                Foreground="{ThemeResource AppMutedTextBrush}"
+                                Text="No hay destinatarios para este nivel de protección. Pruebe con «Alta seguridad» o añada el certificado público de la persona que abrirá el documento."
+                                TextWrapping="Wrap"
+                                Visibility="{x:Bind ViewModel.ShowsNoRecipientsHint, Mode=OneWay}" />
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Button
                                     AutomationProperties.Name="Compartir mi certificado público"
@@ -246,7 +254,8 @@
                             IsEnabled="{x:Bind ViewModel.CanUseProtectAndSign, Mode=OneWay}"
                             TabIndex="8" />
                         <ComboBox
-                            AutomationProperties.Name="Certificado para firmar el contenedor"
+                            AutomationProperties.Name="Certificado de firma"
+                            AutomationProperties.HelpText="Certificado para firmar el contenedor"
                             DisplayMemberPath="Label"
                             Header="Certificado de firma"
                             IsEnabled="{x:Bind ViewModel.CanSelectSigningCertificate, Mode=OneWay}"
@@ -275,7 +284,8 @@
                                 Style="{StaticResource AccentButtonStyle}"
                                 TabIndex="10" />
                             <Button MinHeight="40"
-                                AutomationProperties.Name="Cancelar protección"
+                                AutomationProperties.Name="Cancelar operación"
+                                AutomationProperties.HelpText="Cancelar protección"
                                 Click="OnCancelClick"
                                 Content="Cancelar operación"
                                 IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
@@ -306,7 +316,8 @@
                                 <Button MinHeight="40"
                                     x:Name="ProtectResultButton"
                                     HorizontalAlignment="Stretch"
-                                    AutomationProperties.Name="Abrir documento protegido"
+                                    AutomationProperties.Name="Abrir resultado"
+                                    AutomationProperties.HelpText="Abrir documento protegido"
                                     Click="OnOpenProtectedResultClick"
                                     Content="Abrir resultado"
                                     IsEnabled="{x:Bind ViewModel.CanOpenProtectedOutput, Mode=OneWay}"
@@ -324,7 +335,7 @@
                             Text="Desproteger documento" />
                         <TextBlock
                             Style="{StaticResource PageSubtitleTextStyle}"
-                            Text="La aplicación usará un certificado del almacén local o solicitará la clave efímera cuando el contenedor sea CMS EncryptedData."
+                            Text="GrxFirma usará su certificado de este equipo o, si el documento se protegió con una clave, se la pedirá."
                             TextWrapping="Wrap" />
 
                         <Grid ColumnSpacing="8" RowSpacing="8">
@@ -337,7 +348,8 @@
                                 <RowDefinition x:Name="UnprotectBrowseRow" Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBox
-                                AutomationProperties.Name="Contenedor que se va a desproteger"
+                                AutomationProperties.Name="Contenedor protegido"
+                                AutomationProperties.HelpText="Contenedor que se va a desproteger"
                                 Header="Contenedor protegido"
                                 MinHeight="40"
                                 IsReadOnly="True"
@@ -348,7 +360,8 @@
                                 x:Name="UnprotectBrowseButton"
                                 Grid.Row="1"
                                 VerticalAlignment="Bottom"
-                                AutomationProperties.Name="Seleccionar contenedor protegido"
+                                AutomationProperties.Name="Examinar…"
+                                AutomationProperties.HelpText="Seleccionar contenedor protegido"
                                 Click="OnSelectUnprotectInputClick"
                                 Content="Examinar…"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
@@ -393,7 +406,8 @@
                                 Style="{StaticResource AccentButtonStyle}"
                                 TabIndex="15" />
                             <Button MinHeight="40"
-                                AutomationProperties.Name="Cancelar desprotección"
+                                AutomationProperties.Name="Cancelar operación"
+                                AutomationProperties.HelpText="Cancelar desprotección"
                                 Click="OnCancelClick"
                                 Content="Cancelar operación"
                                 IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
@@ -424,7 +438,8 @@
                                 <Button MinHeight="40"
                                     x:Name="UnprotectResultButton"
                                     HorizontalAlignment="Stretch"
-                                    AutomationProperties.Name="Abrir documento recuperado"
+                                    AutomationProperties.Name="Abrir resultado"
+                                    AutomationProperties.HelpText="Abrir documento recuperado"
                                     Click="OnOpenUnprotectedResultClick"
                                     Content="Abrir resultado"
                                     IsEnabled="{x:Bind ViewModel.CanOpenUnprotectedOutput, Mode=OneWay}"

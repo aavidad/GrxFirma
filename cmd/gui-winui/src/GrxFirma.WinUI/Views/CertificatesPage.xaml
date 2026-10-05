@@ -105,7 +105,8 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBox
-                            AutomationProperties.Name="Filtrar certificados"
+                            AutomationProperties.Name="Buscar"
+                            AutomationProperties.HelpText="Filtrar certificados"
                             Header="Buscar"
                             MinHeight="40"
                             IsEnabled="{x:Bind ViewModel.IsOperationConnected, Mode=OneWay}"
@@ -126,7 +127,7 @@
                             Grid.Row="2"
                             VerticalAlignment="Bottom"
                             AutomationProperties.HelpText="Selecciona una credencial sin copiar su contenido ni su contraseña a controles de texto."
-                            AutomationProperties.Name="Seleccionar credencial para importar"
+                            AutomationProperties.Name="Elegir credencial…"
                             Click="OnSelectImportCredentialClick"
                             Content="Elegir credencial…"
                             IsEnabled="{x:Bind ViewModel.CanSelectCredential, Mode=OneWay}"
@@ -190,69 +191,9 @@
                         </StackPanel>
                     </Grid>
 
-                    <Border
-                        Grid.Row="1"
-                        Padding="12"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8">
-                        <Grid ColumnSpacing="12" RowSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <TextBlock
-                                Grid.ColumnSpan="2"
-                                AutomationProperties.LiveSetting="Polite"
-                                FontWeight="SemiBold"
-                                Text="{x:Bind ViewModel.SelectedCredentialDisplayName, Mode=OneWay}"
-                                TextWrapping="Wrap" />
-                            <ComboBox
-                                Grid.Row="1"
-                                Grid.ColumnSpan="2"
-                                AutomationProperties.Name="Destino de la credencial"
-                                Header="Uso y destino"
-                                IsEnabled="{x:Bind ViewModel.CanSelectCredential, Mode=OneWay}"
-                                ItemsSource="{x:Bind ViewModel.ImportOptions, Mode=OneWay}"
-                                SelectedItem="{x:Bind ViewModel.SelectedImportOption, Mode=TwoWay}"
-                                TabIndex="11">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel MaxWidth="680" Spacing="2">
-                                            <TextBlock
-                                                FontWeight="SemiBold"
-                                                Text="{Binding Label}"
-                                                TextWrapping="Wrap" />
-                                            <TextBlock
-                                                Foreground="{ThemeResource AppMutedTextBrush}"
-                                                Text="{Binding Detail}"
-                                                TextWrapping="Wrap" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                            <TextBlock
-                                Grid.Row="2"
-                                Foreground="{ThemeResource AppMutedTextBrush}"
-                                Text="La contraseña se solicita en una ventana nativa protegida y se borra al finalizar."
-                                TextWrapping="Wrap" />
-                            <Button MinHeight="40"
-                                Grid.Row="2"
-                                Grid.Column="1"
-                                AutomationProperties.Name="Cargar o importar credencial"
-                                Click="OnImportCredentialClick"
-                                Content="Cargar / importar"
-                                IsEnabled="{x:Bind ViewModel.CanImportCredential, Mode=OneWay}"
-                                TabIndex="12" />
-                        </Grid>
-                    </Border>
-
-                    <Grid Grid.Row="2" MinHeight="180" RowSpacing="10">
+                    <!-- La lista de certificados va antes que la importación: es lo
+                         que se busca al abrir la página (recorrido Windows 0.0.117, B3). -->
+                    <Grid Grid.Row="1" MinHeight="180" RowSpacing="10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -282,10 +223,11 @@
                             <InfoBar.ActionButton>
                                 <Button
                                     MinHeight="40"
-                                    AutomationProperties.Name="Renovar certificado próximo a caducar en la FNMT"
+                                    AutomationProperties.Name="Renovar en la FNMT"
+                                    AutomationProperties.HelpText="Renovar certificado próximo a caducar en la FNMT"
                                     Click="OnRenewFnmtClick"
                                     Content="Renovar en la FNMT"
-                                    TabIndex="13"
+                                    TabIndex="11"
                                     Visibility="{x:Bind ViewModel.CanRenewExpiryNoticeCertificate, Mode=OneWay}" />
                             </InfoBar.ActionButton>
                         </InfoBar>
@@ -299,7 +241,7 @@
                             SelectedItem="{x:Bind ViewModel.SelectedCertificate, Mode=TwoWay}"
                             SelectionChanged="OnCertificateSelectionChanged"
                             SelectionMode="Single"
-                            TabIndex="14">
+                            TabIndex="12">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="Padding" Value="12,8" />
@@ -442,15 +384,79 @@
                                     <Button
                                         MinHeight="40"
                                         AutomationProperties.HelpText="Abre en el navegador la página oficial de renovación del certificado de ciudadano de la FNMT."
-                                        AutomationProperties.Name="Renovar el certificado en la FNMT"
+                                        AutomationProperties.Name="Renovar en la FNMT"
                                         Click="OnRenewFnmtClick"
                                         Content="Renovar en la FNMT"
                                         Style="{StaticResource AccentButtonStyle}"
-                                        TabIndex="15" />
+                                        TabIndex="13" />
                                 </StackPanel>
                             </StackPanel>
                         </Border>
                     </Grid>
+                    <Border
+                        Grid.Row="2"
+                        Padding="12"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                        <Grid ColumnSpacing="12" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock
+                                Grid.ColumnSpan="2"
+                                AutomationProperties.LiveSetting="Polite"
+                                FontWeight="SemiBold"
+                                Text="{x:Bind ViewModel.SelectedCredentialDisplayName, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                            <ComboBox
+                                Grid.Row="1"
+                                Grid.ColumnSpan="2"
+                                AutomationProperties.Name="Uso y destino"
+                                AutomationProperties.HelpText="Destino de la credencial"
+                                Header="Uso y destino"
+                                IsEnabled="{x:Bind ViewModel.CanSelectCredential, Mode=OneWay}"
+                                ItemsSource="{x:Bind ViewModel.ImportOptions, Mode=OneWay}"
+                                SelectedItem="{x:Bind ViewModel.SelectedImportOption, Mode=TwoWay}"
+                                TabIndex="14">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel MaxWidth="680" Spacing="2">
+                                            <TextBlock
+                                                FontWeight="SemiBold"
+                                                Text="{Binding Label}"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Foreground="{ThemeResource AppMutedTextBrush}"
+                                                Text="{Binding Detail}"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock
+                                Grid.Row="2"
+                                Foreground="{ThemeResource AppMutedTextBrush}"
+                                Text="La contraseña se solicita en una ventana nativa protegida y se borra al finalizar."
+                                TextWrapping="Wrap" />
+                            <Button MinHeight="40"
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                AutomationProperties.Name="Cargar / importar"
+                                AutomationProperties.HelpText="Cargar o importar credencial"
+                                Click="OnImportCredentialClick"
+                                Content="Cargar / importar"
+                                IsEnabled="{x:Bind ViewModel.CanImportCredential, Mode=OneWay}"
+                                TabIndex="15" />
+                        </Grid>
+                    </Border>
+
 
                     <StackPanel
                         Grid.Row="3"
@@ -469,7 +475,7 @@
                             <Button MinHeight="40"
                                 x:Name="SetDefaultCertificateButton"
                                 AutomationProperties.HelpText="Guarda la identidad estable del certificado mediante las preferencias tipadas del motor local."
-                                AutomationProperties.Name="Usar certificado como predeterminado"
+                                AutomationProperties.Name="Usar como predeterminado"
                                 Click="OnSetDefaultCertificateClick"
                                 IsEnabled="{x:Bind ViewModel.CanSetSelectedAsDefault, Mode=OneWay}"
                                 TabIndex="17">
@@ -481,7 +487,7 @@
                             <Button MinHeight="40"
                                 x:Name="ClearDefaultCertificateButton"
                                 AutomationProperties.HelpText="Quita la preferencia guardada sin modificar el resto de la configuración."
-                                AutomationProperties.Name="Quitar certificado predeterminado"
+                                AutomationProperties.Name="Quitar predeterminado"
                                 Click="OnClearDefaultCertificateClick"
                                 IsEnabled="{x:Bind ViewModel.CanClearDefaultCertificate, Mode=OneWay}"
                                 TabIndex="18">
@@ -517,7 +523,7 @@
                             <Button MinHeight="40"
                                 x:Name="OpenCertificateManagerButton"
                                 AutomationProperties.HelpText="Abre el gestor que el motor local ha descubierto y autorizado."
-                                AutomationProperties.Name="Abrir gestor de certificados de Windows"
+                                AutomationProperties.Name="Abrir gestor de Windows"
                                 Click="OnOpenCertificateManagerClick"
                                 IsEnabled="{x:Bind ViewModel.CanOpenCertificateManager, Mode=OneWay}"
                                 TabIndex="22">
@@ -528,7 +534,7 @@
                             </Button>
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Retira de memoria la credencial temporal seleccionada sin modificar almacenes persistentes."
-                                AutomationProperties.Name="Retirar credencial temporal seleccionada"
+                                AutomationProperties.Name="Retirar temporal seleccionada"
                                 Click="OnRemoveTemporaryCertificateClick"
                                 IsEnabled="{x:Bind ViewModel.CanRemoveSelectedTemporary, Mode=OneWay}"
                                 TabIndex="23">
@@ -539,7 +545,7 @@
                             </Button>
                             <Button MinHeight="40"
                                 AutomationProperties.HelpText="Retira de memoria todas las credenciales cargadas solo para esta sesión."
-                                AutomationProperties.Name="Retirar todas las credenciales temporales"
+                                AutomationProperties.Name="Retirar todas las temporales"
                                 Click="OnClearTemporaryCertificatesClick"
                                 IsEnabled="{x:Bind ViewModel.CanClearTemporaryCertificates, Mode=OneWay}"
                                 TabIndex="24">

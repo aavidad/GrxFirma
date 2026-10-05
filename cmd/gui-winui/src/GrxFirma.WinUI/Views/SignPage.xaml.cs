@@ -92,6 +92,7 @@ public sealed partial class SignPage : Page
             _session,
             app.FilePickerService);
         ViewModel.RemoteSecretsPrompt = PromptRemoteSecretsAsync;
+        ViewModel.SignConfirmationPrompt = ConfirmSignAsync;
         InitializeComponent();
         // La superficie recibe el inicio del dibujo desde el control transparente.
         VisibleSealPreviewSurface.AddHandler(UIElement.PointerPressedEvent,
@@ -493,7 +494,8 @@ public sealed partial class SignPage : Page
     }
 
     // Firma remota CSC: el botón aparece si el motor la permite o si la
-    // política la prohíbe (el cuadro lo explica); no, si solo está desactivada.
+    // política la prohíbe a quien ya la tenía configurada (el cuadro lo
+    // explica); no, si solo está desactivada o nadie la había configurado.
     private async Task UpdateRemoteSigningButtonAsync()
     {
         var cancellation = _pageCancellation;
@@ -920,6 +922,77 @@ public sealed partial class SignPage : Page
                 CryptographicOperations.ZeroMemory(password);
             }
         }
+    }
+
+    // «Confirmar antes de firmar»: resumen de lo que se va a firmar y con qué
+    // certificado. El botón por defecto es «Cancelar» para que Intro no firme
+    // sin querer.
+    private async Task<bool> ConfirmSignAsync(
+        SignConfirmationSummary summary,
+        CancellationToken cancellationToken)
+    {
+        if (!_isSubscribed || XamlRoot is null || cancellationToken.IsCancellationRequested)
+        {
+            return false;
+        }
+
+        var rows = new Grid { ColumnSpacing = 12, RowSpacing = 8 };
+        rows.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        rows.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        void AddRow(string labelKey, string value)
+        {
+            var row = rows.RowDefinitions.Count;
+            rows.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            var label = new TextBlock
+            {
+                Text = Localizer.Text(labelKey),
+                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
+                TextWrapping = TextWrapping.Wrap,
+            };
+            var text = new TextBlock
+            {
+                Text = value,
+                TextWrapping = TextWrapping.Wrap,
+                IsTextSelectionEnabled = true,
+            };
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(text, label.Text + ": " + value);
+            Grid.SetRow(label, row);
+            Grid.SetRow(text, row);
+            Grid.SetColumn(text, 1);
+            rows.Children.Add(label);
+            rows.Children.Add(text);
+        }
+        AddRow(summary.Batch ? "winui.firmar.confirmar.documentos" : "winui.firmar.confirmar.documento", summary.Documents);
+        AddRow("winui.firmar.confirmar.certificado", summary.Certificate);
+        AddRow("winui.firmar.confirmar.operacion", summary.Operation);
+        AddRow("winui.firmar.confirmar.formato", summary.Format);
+        if (summary.VisibleSeal)
+        {
+            AddRow("winui.firmar.confirmar.sello", Localizer.Text("winui.firmar.confirmar.sello_si"));
+        }
+        var content = new StackPanel { Spacing = 16 };
+        content.Children.Add(rows);
+        content.Children.Add(new TextBlock
+        {
+            Text = Localizer.Text("winui.firmar.confirmar.ayuda"),
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = (Brush)Application.Current.Resources["AppMutedTextBrush"],
+        });
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            RequestedTheme = ActualTheme,
+            Title = Localizer.Text(summary.Batch
+                ? "winui.firmar.confirmar.titulo_lote"
+                : "winui.firmar.confirmar.titulo"),
+            Content = new ScrollViewer { MaxHeight = 420, Content = content },
+            PrimaryButtonText = Localizer.Text("winui.firmar.confirmar.firmar"),
+            CloseButtonText = Localizer.Text("winui.comun.cancelar"),
+            DefaultButton = ContentDialogButton.Close,
+        };
+        return await Localizer.ShowAsync(dialog) == ContentDialogResult.Primary &&
+            !cancellationToken.IsCancellationRequested;
     }
 
     private async Task<bool> ConfirmWindowsCredentialImportAsync()
@@ -1812,12 +1885,13 @@ public sealed partial class SignPage : Page
         return applied;
     }
 
-    // Intro y Esc terminan el modo dibujo y devuelven el foco al botón.
-    private void ExitVisibleSealDrawMode()
+    // Intro, Esc y soltar el ratón tras dibujar terminan el modo dibujo y
+    // devuelven el foco al botón.
+    private void ExitVisibleSealDrawMode(FocusState focus = FocusState.Keyboard)
     {
         _sealDrawPositionTimer?.Stop();
         VisibleSealDrawToggle.IsChecked = false;
-        VisibleSealDrawToggle.Focus(FocusState.Keyboard);
+        VisibleSealDrawToggle.Focus(focus);
     }
 
     // Anuncia la posición con un retardo corto para no saturar el lector de pantalla.
@@ -2059,12 +2133,15 @@ public sealed partial class SignPage : Page
         {
             return;
         }
+        var drawApplied = false;
         if (_visibleSealPointerMode == VisibleSealPointerMode.Draw)
         {
             _sealDrawSecond = NormalizeSealDrawPoint(args.GetCurrentPoint(VisibleSealPreviewSurface).Position);
-            ConfirmVisibleSealDrawing();
+            drawApplied = ConfirmVisibleSealDrawing();
         }
         EndVisibleSealPointerInteraction(args);
+        // Con el ratón, igual que con Intro: el área aplicada cierra el modo.
+        if (drawApplied) ExitVisibleSealDrawMode(FocusState.Pointer);
         args.Handled = true;
     }
 

@@ -238,6 +238,7 @@ type estiloTextoSello struct {
 	escala    float64 // píxeles por punto, lo fija el generador
 	textos    *localizador.Localizador
 	zona      *time.Location
+	emisor    string // emisor del certificado para «Emitido por»
 }
 
 // Opciones del sello que fijan su idioma y su zona horaria. La interfaz que
@@ -269,6 +270,7 @@ func estiloTextoDesdeOpciones(options map[string]string) estiloTextoSello {
 		texto:  valorOpcion(options, "visibleSealText"),
 		textos: idiomaSelloDesdeOpciones(options),
 		zona:   zonaSelloDesdeOpciones(options),
+		emisor: valorOpcion(options, opcionEmisorSelloInterna),
 	}
 	if raw := strings.TrimSpace(valorOpcion(options, "layer2FontSize")); raw != "" {
 		if v, err := strconv.ParseFloat(raw, 64); err == nil && v > 0 {
