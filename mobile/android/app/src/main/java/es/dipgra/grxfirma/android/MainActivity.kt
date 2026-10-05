@@ -358,6 +358,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        // Al arrancar, tras cambiar de idioma (la actividad se recrea) y al volver
+        // con otra zona horaria: el sello y el informe usan el idioma y la hora del móvil.
+        viewModel.updateRegion(resources.configuration.locales[0].toLanguageTag(), TimeZone.getDefault().id)
         closeHandler.removeCallbacks(closeCertificateTask)
         closeCertificateIfInactive()
         backgroundSince = 0L
@@ -1639,6 +1642,10 @@ class MainActivity : AppCompatActivity() {
             prefTsaEnabled.setOnCheckedChangeListener { _, checked -> prefTsaUrlLayout.isEnabled = checked }
             prefOutputName.select(OutputNames.POLICIES.indexOf(current.outputName).coerceAtLeast(0))
             prefTheme.select(AppSettings.THEMES.indexOf(current.theme).coerceAtLeast(0))
+            // «Como la aplicación» y, después, cada idioma con su propio nombre.
+            prefSealLanguage.setItems(listOf(getString(R.string.pref_seal_language_app)) +
+                resources.getStringArray(R.array.language_names).drop(1))
+            prefSealLanguage.select(AppSettings.SEAL_LANGUAGES.indexOf(current.sealLanguage).coerceAtLeast(0))
         }
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.preferences_title)
@@ -1670,6 +1677,7 @@ class MainActivity : AppCompatActivity() {
                         sessionTimeoutMinutes = AppSettings.TIMEOUTS.getOrElse(prefSessionTimeout.selectedItemPosition) {
                             AppSettings.DEFAULT_TIMEOUT
                         },
+                        sealLanguage = AppSettings.SEAL_LANGUAGES.getOrElse(prefSealLanguage.selectedItemPosition) { "" },
                     )
                 }
                 if (viewModel.savePreferences(settings)) {

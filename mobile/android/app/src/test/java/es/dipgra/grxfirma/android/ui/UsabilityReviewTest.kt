@@ -45,16 +45,45 @@ class UsabilityReviewTest {
         override fun selectCertificate(): CertificateSummary = error("no")
         override fun importCertificate(data: ByteArray, password: CharArray) = CertificateSummary("id", "Ana", "CA", "ff")
         override fun sign(document: LoadedFile, format: String, certificateId: String, options: Map<String, String>, action: String): SignedOutput = error("no")
-        override fun sealPreview(certificateId: String, options: Map<String, String>): ByteArray = error("no")
+        val previewOptions = mutableListOf<Map<String, String>>()
+        override fun sealPreview(certificateId: String, options: Map<String, String>): ByteArray {
+            previewOptions += options
+            return byteArrayOf(1)
+        }
         override fun verify(document: LoadedFile, original: LoadedFile?): VerificationSummary = error("no")
         override fun clearSession() { cleared++ }
+        val regions = mutableListOf<Pair<String, String>>()
+        override fun setRegion(language: String, timeZone: String) {
+            regions += language to timeZone
+            if (timeZone == "Marte/Olimpo") throw es.dipgra.grxfirma.android.core.CoreContractException("zona horaria no reconocida")
+        }
+    }
+
+    @Test fun `region reaches the core once per change and keeps the language with an unknown zone`() {
+        val core = FakeCore()
+        val vm = MainViewModel(repository, core, dispatcher, InMemorySettingsStore())
+        vm.updateRegion("ca-ES-valencia", "Europe/Madrid")
+        vm.updateRegion("ca-ES-valencia", "Europe/Madrid")
+        assertEquals(listOf("ca-ES-valencia" to "Europe/Madrid"), core.regions)
+        vm.updateRegion("en", "Marte/Olimpo")
+        assertEquals(listOf("ca-ES-valencia" to "Europe/Madrid", "en" to "Marte/Olimpo", "en" to ""), core.regions)
+    }
+
+    @Test fun `fixed seal language travels with the seal options`() = kotlinx.coroutines.test.runTest(dispatcher) {
+        val core = FakeCore()
+        val vm = withCertificate(core, 5, AppSettings(sealLanguage = "es"))
+        vm.previewSeal(mapOf("visibleSeal" to "true"))
+        assertEquals("es", core.previewOptions.last()["sealLanguage"])
+        val following = withCertificate(core, 5, AppSettings())
+        following.previewSeal(mapOf("visibleSeal" to "true"))
+        assertNull(core.previewOptions.last()["sealLanguage"])
     }
 
     @Before fun setUp() = Dispatchers.setMain(dispatcher)
     @After fun tearDown() = Dispatchers.resetMain()
 
-    private fun withCertificate(core: FakeCore, minutes: Int): MainViewModel {
-        val vm = MainViewModel(repository, core, dispatcher, InMemorySettingsStore(AppSettings(sessionTimeoutMinutes = minutes)))
+    private fun withCertificate(core: FakeCore, minutes: Int, settings: AppSettings = AppSettings()): MainViewModel {
+        val vm = MainViewModel(repository, core, dispatcher, InMemorySettingsStore(settings.copy(sessionTimeoutMinutes = minutes)))
         val field = MainViewModel::class.java.getDeclaredField("mutableState").apply { isAccessible = true }
         @Suppress("UNCHECKED_CAST")
         val state = field.get(vm) as kotlinx.coroutines.flow.MutableStateFlow<MainUiState>

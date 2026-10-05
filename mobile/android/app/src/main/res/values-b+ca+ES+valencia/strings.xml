@@ -647,4 +647,7 @@
     <string name="cosign_notice">Este document ja té firmes.</string>
     <string name="help_other_topics">Altres temes</string>
     <string name="diag_probe_tsa_hint">Per a provar-la, configureu abans un servei de segellat de temps (TSA) en Preferències o en les opcions de firma.</string>
+    <string name="pref_seal_language">Idioma del segell</string>
+    <string name="pref_seal_language_helper">Idioma dels textos del segell visible en el PDF firmat.</string>
+    <string name="pref_seal_language_app">El mateix que l\'aplicació</string>
 </resources>

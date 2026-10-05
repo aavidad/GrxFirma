@@ -647,4 +647,7 @@
     <string name="cosign_notice">Este documento já tem assinaturas.</string>
     <string name="help_other_topics">Outros temas</string>
     <string name="diag_probe_tsa_hint">Para a testar, configure primeiro um serviço de carimbo temporal (TSA) em Preferências ou nas opções de assinatura.</string>
+    <string name="pref_seal_language">Idioma do selo</string>
+    <string name="pref_seal_language_helper">Idioma dos textos do selo visível no PDF assinado.</string>
+    <string name="pref_seal_language_app">Igual à aplicação</string>
 </resources>

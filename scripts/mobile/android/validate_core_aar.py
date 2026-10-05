@@ -61,6 +61,7 @@ FACADE_METHODS = (
     "createENIFileJSON(java.lang.String)",
     "readVeriFactuQRImageJSON(byte[])",
     "removeSessionIdentityJSON(java.lang.String)",
+    "setRegion(java.lang.String, java.lang.String)",
 )
 
 

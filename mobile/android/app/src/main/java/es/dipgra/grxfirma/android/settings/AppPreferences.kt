@@ -24,7 +24,14 @@ data class AppSettings(
     val theme: String = THEME_SYSTEM,
     /** Minutos en segundo plano tras los que se cierra el PKCS#12; 0 = no se cierra solo. */
     val sessionTimeoutMinutes: Int = DEFAULT_TIMEOUT,
+    /** Idioma del sello visible: vacío sigue a la app; si no, uno de [SEAL_LANGUAGES]. */
+    val sealLanguage: String = "",
 ) {
+    /** Añade el idioma fijo del sello a unas opciones de firma con sello visible. */
+    fun withSealLanguage(options: Map<String, String>): Map<String, String> =
+        if (sealLanguage.isEmpty() || options["visibleSeal"] != "true") options
+        else options + (SEAL_LANGUAGE_OPTION to sealLanguage)
+
     /** Corrige valores fuera de rango (preferencias manipuladas o antiguas). */
     fun sanitized(): AppSettings = copy(
         defaultFormat = defaultFormat.takeIf { it in FORMATS } ?: "auto",
@@ -33,6 +40,7 @@ data class AppSettings(
         outputName = outputName.takeIf { it in OutputNames.POLICIES } ?: OutputNames.SUFFIX,
         theme = theme.takeIf { it in THEMES } ?: THEME_SYSTEM,
         sessionTimeoutMinutes = sessionTimeoutMinutes.takeIf { it in TIMEOUTS } ?: DEFAULT_TIMEOUT,
+        sealLanguage = sealLanguage.takeIf { it in SEAL_LANGUAGES } ?: "",
     )
 
     companion object {
@@ -42,6 +50,10 @@ data class AppSettings(
         const val MAX_TSA_URL = 2048
         const val DEFAULT_TIMEOUT = 5
         val TIMEOUTS = listOf(1, 5, 15, 0)
+        /** Opción del motor que fija el idioma del sello en una firma. */
+        const val SEAL_LANGUAGE_OPTION = "sealLanguage"
+        /** «» = como la app; después, los idiomas del catálogo del motor («va» = valenciano). */
+        val SEAL_LANGUAGES = listOf("", "es", "en", "ca", "va", "gl", "eu", "fr", "de", "it", "pt", "zh")
         val THEMES = listOf(THEME_SYSTEM, THEME_LIGHT, THEME_DARK)
         val PROFILES = listOf("baseline", "t", "lt", "lta")
         val FORMATS = listOf("auto", "pades", "cades", "xades", "xmldsig", "odf", "ooxml", "facturae", "asic-xades", "verifactu")
@@ -71,6 +83,7 @@ class AppPreferences(context: Context) : AppSettingsStore {
         outputName = preferences.getString("output_name", OutputNames.SUFFIX).orEmpty(),
         theme = preferences.getString("theme", AppSettings.THEME_SYSTEM).orEmpty(),
         sessionTimeoutMinutes = preferences.getInt("session_timeout_minutes", AppSettings.DEFAULT_TIMEOUT),
+        sealLanguage = preferences.getString("seal_language", "").orEmpty(),
     ).sanitized()
 
     override fun save(settings: AppSettings) {
@@ -83,6 +96,7 @@ class AppPreferences(context: Context) : AppSettingsStore {
             putString("output_name", clean.outputName)
             putString("theme", clean.theme)
             putInt("session_timeout_minutes", clean.sessionTimeoutMinutes)
+            putString("seal_language", clean.sealLanguage)
         }
     }
 

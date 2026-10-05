@@ -177,7 +177,7 @@ class MainViewModel(
     suspend fun previewSeal(options: Map<String, String>): ByteArray {
         val certificate = mutableState.value.certificate
             ?: throw IllegalStateException("No hay certificado para el sello.")
-        return withContext(ioDispatcher) { core.sealPreview(certificate.id, options) }
+        return withContext(ioDispatcher) { core.sealPreview(certificate.id, mutableState.value.settings.withSealLanguage(options)) }
     }
 
     fun importCertificate(password: CharArray) {
@@ -409,7 +409,8 @@ class MainViewModel(
                     setError(UiText.Resource(R.string.error_tsa_configuration))
                     return@launchOperation
                 }
-                val output = core.sign(loaded, effectiveFormat, certificate.id, options + configured, snapshot.signatureAction)
+                val output = core.sign(loaded, effectiveFormat, certificate.id,
+                    snapshot.settings.withSealLanguage(options) + configured, snapshot.signatureAction)
                 replacePending(output, PendingKind.SIGNATURE)
                 // The output remains saveable even if verification cannot run.
                 // Detached signatures need the input for sign, and the separately
@@ -949,7 +950,7 @@ class MainViewModel(
                     for (file in loaded) {
                         val effective = ToolsPolicy.effectiveFormat(format, file.displayName, file.mimeType, file.bytes)
                         val options = if (seal && effective == "pades") {
-                            sealPlanner?.options(file) ?: run {
+                            sealPlanner?.options(file)?.let(snapshot.settings::withSealLanguage) ?: run {
                                 setError(UiText.Resource(R.string.batch_seal_error, listOf(file.displayName)))
                                 return@launchOperation
                             }
@@ -1205,6 +1206,24 @@ class MainViewModel(
         mutableState.value = mutableState.value.copy(settings = defaults, signatureProfile = defaults.defaultProfile,
             tsaEnabled = defaults.tsaEnabled, tsaUrl = defaults.tsaUrl,
         ).clearedResult(OperationResult.Success(UiText.Resource(R.string.preferences_restored)))
+    }
+
+    private var region: Pair<String, String>? = null
+
+    /**
+     * Pasa al núcleo el idioma de la app y la zona del móvil para el sello y el
+     * informe. Solo si cambian; con una zona que el núcleo no reconoce se
+     * conserva al menos el idioma (la hora sale entonces en UTC).
+     */
+    fun updateRegion(language: String, timeZone: String) {
+        val wanted = language to timeZone
+        if (wanted == region) return
+        region = wanted
+        try {
+            core.setRegion(language, timeZone)
+        } catch (_: Exception) {
+            try { core.setRegion(language, "") } catch (_: Exception) { }
+        }
     }
 
     fun loadDiagnostics() {

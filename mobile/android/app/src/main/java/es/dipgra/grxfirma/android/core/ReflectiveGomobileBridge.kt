@@ -262,6 +262,11 @@ class ReflectiveGomobileBridge private constructor(
         return invokeJson(name, *payload)
     }
 
+    override fun setRegion(language: String, timeZone: String) {
+        val method = methods["setRegion"] ?: return
+        invoke(method, facade, language, timeZone)
+    }
+
     override fun clearSession() {
         val method = methods["clearSession"]
             ?: throw CoreContractException("Método de limpieza de sesión no enlazado.")
@@ -379,6 +384,10 @@ class ReflectiveGomobileBridge private constructor(
             }.toMap()
             documentMethods.values.forEach { (name, method) -> required[name] = method }
             try { required["eniCatalogsJSON"] = facadeClass.getMethod("eniCatalogsJSON") } catch (_: NoSuchMethodException) { }
+            // Idioma y zona del sello: opcional para tolerar AAR anteriores.
+            try {
+                required["setRegion"] = facadeClass.getMethod("setRegion", String::class.java, String::class.java)
+            } catch (_: NoSuchMethodException) { }
             val documentServices = CoreJsonCodec.documentServices(contract).filter { it in documentMethods }.toSet()
             // Tercera oleada, también opcional: un AAR anterior simplemente no la ofrece.
             val platformMethods = listOf(

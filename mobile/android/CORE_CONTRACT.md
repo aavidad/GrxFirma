@@ -59,7 +59,21 @@ checkUpdateJSON(String) -> String
 createENIFileJSON(String) -> String
 readVeriFactuQRImageJSON(byte[]) -> String
 removeSessionIdentityJSON(String) -> String
+setRegion(String, String)
 ```
+
+`setRegion(idioma, zona)` fija el idioma de la interfaz (etiqueta BCP 47; el
+valenciano es `ca-ES-valencia`) y la zona horaria IANA del móvil
+(`TimeZone.getDefault().id`). El sello visible y el informe de verificación
+usan ese idioma y esa zona; sin la llamada, la hora sale en UTC, porque Go no
+conoce la zona de Android. La app la llama al arrancar, al cambiar de idioma y
+al volver a primer plano si cambió la zona. Lanza una excepción si la zona no
+es un identificador IANA reconocido. Kotlin la trata como opcional: con un AAR
+anterior que no la tiene, sigue funcionando con la hora en UTC.
+
+La opción `sealLanguage` de `signJSON`, `sealPreviewJSON` y del lote fija el
+idioma del sello para esa firma (preferencia «Idioma del sello»); si falta, el
+sello sigue el idioma de `setRegion`.
 
 Android usa `importCertificateSecretBytesJSON`: PKCS#12 y contraseña UTF-8
 cruzan JNI como buffers mutables. Kotlin conserva la contraseña en `CharArray`

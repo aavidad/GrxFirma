@@ -630,4 +630,7 @@
     <string name="cosign_notice">Este documento xa ten sinaturas.</string>
     <string name="help_other_topics">Outros temas</string>
     <string name="diag_probe_tsa_hint">Para probala, configure antes un servizo de selado de tempo (TSA) en Preferencias ou nas opcións de sinatura.</string>
+    <string name="pref_seal_language">Idioma do selo</string>
+    <string name="pref_seal_language_helper">Idioma dos textos do selo visible no PDF asinado.</string>
+    <string name="pref_seal_language_app">O mesmo que a aplicación</string>
 </resources>

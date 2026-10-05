@@ -22,6 +22,15 @@ class AppPreferencesTest {
         assertFalse(clean.tsaUrl.contains('\n'))
     }
 
+    @Test fun `seal language is one of the catalogue and only goes with a visible seal`() {
+        assertEquals("", AppSettings(sealLanguage = "klingon").sanitized().sealLanguage)
+        assertEquals("va", AppSettings(sealLanguage = "va").sanitized().sealLanguage)
+        val seal = mapOf("visibleSeal" to "true")
+        assertEquals("es", AppSettings(sealLanguage = "es").withSealLanguage(seal)[AppSettings.SEAL_LANGUAGE_OPTION])
+        assertEquals(seal, AppSettings().withSealLanguage(seal))
+        assertEquals(emptyMap<String, String>(), AppSettings(sealLanguage = "es").withSealLanguage(emptyMap()))
+    }
+
     @Test fun `output name follows the chosen policy`() {
         val suffix = "%1\$s-firmado.%2\$s"
         val desktop = "%1\$s_firmado.%2\$s"

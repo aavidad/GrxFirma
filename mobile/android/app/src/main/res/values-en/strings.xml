@@ -630,4 +630,7 @@
     <string name="cosign_notice">This document is already signed.</string>
     <string name="help_other_topics">Other topics</string>
     <string name="diag_probe_tsa_hint">To test it, first set up a timestamp service (TSA) in Preferences or in the signing options.</string>
+    <string name="pref_seal_language">Seal language</string>
+    <string name="pref_seal_language_helper">Language of the visible seal text in the signed PDF.</string>
+    <string name="pref_seal_language_app">Same as the app</string>
 </resources>

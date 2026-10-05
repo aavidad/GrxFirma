@@ -99,6 +99,7 @@ class ValidateCoreAarTest(unittest.TestCase):
               public String createENIFileJSON(String value) { return value; }
               public String readVeriFactuQRImageJSON(byte[] value) { return "{}"; }
               public String removeSessionIdentityJSON(String value) { return value; }
+              public void setRegion(String language, String timeZone) throws Exception {}
               public String verifyJSON(String value) { return value; }
             }
             """,

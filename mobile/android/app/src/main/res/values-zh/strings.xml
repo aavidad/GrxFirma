@@ -613,4 +613,7 @@
     <string name="cosign_notice">此文档已有签名。</string>
     <string name="help_other_topics">其他主题</string>
     <string name="diag_probe_tsa_hint">如需测试，请先在偏好设置或签名选项中配置时间戳服务（TSA）。</string>
+    <string name="pref_seal_language">印章语言</string>
+    <string name="pref_seal_language_helper">已签名 PDF 中可见印章文字的语言。</string>
+    <string name="pref_seal_language_app">与应用相同</string>
 </resources>

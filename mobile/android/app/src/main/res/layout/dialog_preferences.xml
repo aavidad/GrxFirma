@@ -97,6 +97,23 @@
                 android:minHeight="48dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Idioma del sello visible: como la app o uno fijo (p. ej. castellano para la Administración). -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/prefSealLanguageLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/pref_seal_language"
+            app:helperText="@string/pref_seal_language_helper">
+
+            <es.dipgra.grxfirma.android.ui.DropdownField
+                android:id="@+id/prefSealLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/prefThemeLayout"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"

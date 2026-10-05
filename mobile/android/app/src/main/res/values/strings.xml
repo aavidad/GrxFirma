@@ -630,4 +630,7 @@
     <string name="cosign_notice">Este documento ya tiene firmas.</string>
     <string name="help_other_topics">Otros temas</string>
     <string name="diag_probe_tsa_hint">Para probarla, configure antes un servicio de sellado de tiempo (TSA) en Preferencias o en las opciones de firma.</string>
+    <string name="pref_seal_language">Idioma del sello</string>
+    <string name="pref_seal_language_helper">Idioma de los textos del sello visible en el PDF firmado.</string>
+    <string name="pref_seal_language_app">Igual que la aplicación</string>
 </resources>

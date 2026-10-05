@@ -630,4 +630,7 @@
     <string name="cosign_notice">Dokumentu honek badu sinadurarik.</string>
     <string name="help_other_topics">Beste gai batzuk</string>
     <string name="diag_probe_tsa_hint">Probatzeko, konfiguratu lehenago denbora-zigilatzeko zerbitzu bat (TSA) Hobespenetan edo sinadura-aukeretan.</string>
+    <string name="pref_seal_language">Zigiluaren hizkuntza</string>
+    <string name="pref_seal_language_helper">PDF sinatuko zigilu ikusgaiaren testuen hizkuntza.</string>
+    <string name="pref_seal_language_app">Aplikazioaren berdina</string>
 </resources>

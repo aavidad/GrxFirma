@@ -63,6 +63,12 @@ interface CoreBridge {
 
     fun clearSession()
 
+    /**
+     * Idioma de la app (BCP 47) y zona IANA del móvil para el sello y el
+     * informe. Opcional: un AAR anterior no la tiene y la hora sale en UTC.
+     */
+    fun setRegion(language: String, timeZone: String) = Unit
+
     /** Huellas, protección y lote solo se ofrecen si el AAR los declara. */
     val toolsAvailable: Boolean get() = false
 

@@ -630,4 +630,7 @@
     <string name="cosign_notice">Dieses Dokument ist bereits signiert.</string>
     <string name="help_other_topics">Weitere Themen</string>
     <string name="diag_probe_tsa_hint">Richten Sie zum Testen zuerst einen Zeitstempeldienst (TSA) in den Einstellungen oder in den Signaturoptionen ein.</string>
+    <string name="pref_seal_language">Sprache des Siegels</string>
+    <string name="pref_seal_language_helper">Sprache der Texte des sichtbaren Siegels im signierten PDF.</string>
+    <string name="pref_seal_language_app">Wie die App</string>
 </resources>

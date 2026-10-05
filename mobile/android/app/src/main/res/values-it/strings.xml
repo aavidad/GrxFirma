@@ -647,4 +647,7 @@
     <string name="cosign_notice">Questo documento contiene già delle firme.</string>
     <string name="help_other_topics">Altri argomenti</string>
     <string name="diag_probe_tsa_hint">Per provarla, configuri prima un servizio di marcatura temporale (TSA) in Preferenze o nelle opzioni di firma.</string>
+    <string name="pref_seal_language">Lingua del sigillo</string>
+    <string name="pref_seal_language_helper">Lingua dei testi del sigillo visibile nel PDF firmato.</string>
+    <string name="pref_seal_language_app">Come l\'applicazione</string>
 </resources>
