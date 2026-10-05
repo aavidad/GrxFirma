@@ -7,6 +7,17 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.116 — 2026-10-05
+
+- Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.
+- Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.
+- Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.
+- Windows y Linux: firma remota con prestadores compatibles con CSC desde la propia aplicación, si la organización la permite; si la prohíbe, se indica claramente.
+- Veri*Factu: el QR tributario también se lee desde una imagen o un PDF, y la comprobación rechaza registros con contenido añadido dentro de la firma.
+- ENI: antes de crear el documento se comprueba que la firma corresponde al original elegido.
+- Se leen bien las configuraciones guardadas con el Bloc de notas antiguo o con PowerShell 5 (con marca BOM).
+- Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.
+
 ## 0.0.115 — 2026-10-05
 
 - Android: firma por lotes, crear y comprobar huellas, y cifrar y descifrar ficheros, como en escritorio.

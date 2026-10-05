@@ -5006,4 +5006,12 @@
   ,"verifactu.qr_timeout": "查找二维码超过了最长时间。请尝试更小或裁剪过的图像。"
   ,"verifactu.cli_qr_input": "leer-qr-verifactu 和 cotejar-qr-verifactu 的 -entrada 参数接受二维码 URL 或 PNG、JPEG、PDF 文件。"
   ,"eni.error.signature_mismatch": "签名与原始文档不符，或文档在签名后已被修改。请确认您选择了正确的原始文档。"
+  ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android：分步界面、完成后显示结果、放弃签名前先确认、证书在后台数分钟后自动关闭，文字也更清晰。"
+  ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android：证书信息与有效期及吊销检查、偏好设置、诊断、检查新版本、浅色或深色主题，以及可打印的验证报告。"
+  ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android：ENI 卷宗、带可见印章或联合签名的批量签名，以及批量签名和“保护并签名”中的 DNIe，PIN 只需输入一次。通过 NFC 使用的 DNIe 现在支持卡上的签名证书。"
+  ,"Windows y Linux: firma remota con prestadores compatibles con CSC desde la propia aplicación, si la organización la permite; si la prohíbe, se indica claramente.": "Windows 和 Linux：如果组织允许，可直接在应用中使用兼容 CSC 的服务商进行远程签名；如果组织禁止，会明确提示。"
+  ,"Veri*Factu: el QR tributario también se lee desde una imagen o un PDF, y la comprobación rechaza registros con contenido añadido dentro de la firma.": "Veri*Factu：税务二维码也可从图片或 PDF 中读取；检查会拒绝在签名内部添加了内容的记录。"
+  ,"ENI: antes de crear el documento se comprueba que la firma corresponde al original elegido.": "ENI：创建文档前会检查签名是否与所选原始文档相符。"
+  ,"Se leen bien las configuraciones guardadas con el Bloc de notas antiguo o con PowerShell 5 (con marca BOM).": "现在可以正确读取用旧版记事本或 PowerShell 5（带 BOM 标记）保存的配置。"
+  ,"Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.": "Windows 和 Linux：发票、Veri*Factu 和 ENI 界面更清晰、更易用：Veri*Factu 有独立区域，日期选择不再需要技术格式，所有主题对比度更好，也可以用键盘绘制印章。"
 }
