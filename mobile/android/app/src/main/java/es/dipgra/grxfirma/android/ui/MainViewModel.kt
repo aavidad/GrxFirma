@@ -26,6 +26,12 @@ import es.dipgra.grxfirma.android.model.CsvLegend
 import es.dipgra.grxfirma.android.model.EniCatalogs
 import es.dipgra.grxfirma.android.model.EniRequest
 import es.dipgra.grxfirma.android.core.SignatureFormats
+import es.dipgra.grxfirma.android.core.AppLinks
+import es.dipgra.grxfirma.android.core.PlatformServices
+import es.dipgra.grxfirma.android.model.CertificateDetail
+import es.dipgra.grxfirma.android.settings.AppSettings
+import es.dipgra.grxfirma.android.settings.AppSettingsStore
+import es.dipgra.grxfirma.android.settings.InMemorySettingsStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -41,13 +47,20 @@ class MainViewModel(
     private val repository: DocumentRepository,
     private val core: CoreBridge,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val settingsStore: AppSettingsStore = InMemorySettingsStore(),
 ) : ViewModel() {
+    private val initialSettings = settingsStore.load()
     private val mutableState = MutableStateFlow(
         MainUiState(
             backend = core.readiness,
             toolsAvailable = core.readiness.available && core.toolsAvailable,
             signingFormats = core.signingFormats,
             documentServices = if (core.readiness.available) core.documentServices else emptySet(),
+            platformServices = if (core.readiness.available) core.platformServices else emptySet(),
+            settings = initialSettings,
+            signatureProfile = initialSettings.defaultProfile,
+            tsaEnabled = initialSettings.tsaEnabled,
+            tsaUrl = initialSettings.tsaUrl,
         ),
     )
     val state: StateFlow<MainUiState> = mutableState.asStateFlow()
@@ -192,8 +205,11 @@ class MainViewModel(
                 val loaded = repository.loadCertificate(selected)
                 try {
                     val certificate = core.importCertificate(loaded.bytes, password)
+                    val details = loadCertificateDetails()
                     mutableState.value = mutableState.value.copy(
                         certificate = certificate,
+                        certificateDetails = details.first,
+                        expiringSoonDays = details.second,
                         certificateFile = null,
                         certificateExternal = false,
                         result = OperationResult.Success(
@@ -221,6 +237,7 @@ class MainViewModel(
                     session.chain.map { it.encoded },
                     session::signDigest,
                 )
+                val details = loadCertificateDetails()
                 withContext(Dispatchers.Main) {
                     if (identityEpoch.get() != epoch) {
                         core.clearSession()
@@ -228,6 +245,8 @@ class MainViewModel(
                     } else {
                         mutableState.value = mutableState.value.copy(
                             certificate = certificate,
+                            certificateDetails = details.first,
+                            expiringSoonDays = details.second,
                             certificateFile = null,
                             certificateExternal = true,
                             result = OperationResult.Success(
@@ -251,6 +270,7 @@ class MainViewModel(
         val current = mutableState.value
         mutableState.value = current.copy(
             certificate = null,
+            certificateDetails = emptyList(),
             certificateExternal = false,
             result = if (current.awaitingSave) current.result else
                 OperationResult.Error(UiText.Resource(R.string.dnie_session_ended)),
@@ -401,7 +421,7 @@ class MainViewModel(
 
     fun exportVerificationReport() {
         if (!mutableState.value.canExportReport) return
-        mutableState.value = mutableState.value.copy(awaitingReportSave = true)
+        mutableState.value = mutableState.value.copy(awaitingReportSave = true, reportKind = ReportKind.VERIFICATION)
         viewModelScope.launch { effectChannel.send(UiEffect.SaveVerificationReport) }
     }
 
@@ -412,7 +432,7 @@ class MainViewModel(
     }
 
     fun saveVerificationReport(uri: Uri) {
-        if (!mutableState.value.awaitingReportSave) return
+        if (!mutableState.value.awaitingReportSave || mutableState.value.reportKind != ReportKind.VERIFICATION) return
         val report = mutableState.value.verification?.reportJson ?: return cancelReportExport()
         mutableState.value = mutableState.value.copy(awaitingReportSave = false)
         launchOperation {
@@ -480,6 +500,7 @@ class MainViewModel(
         mutableState.value = mutableState.value.copy(
             awaitingSave = false,
             certificate = null,
+            certificateDetails = emptyList(),
             certificateExternal = false,
             result = result,
         )
@@ -506,6 +527,7 @@ class MainViewModel(
             core.clearSession()
             mutableState.value = mutableState.value.copy(
                 certificate = null,
+                certificateDetails = emptyList(),
                 certificateFile = null,
                 certificateExternal = false,
                 result = OperationResult.Success(UiText.Resource(R.string.result_certificate_forgotten)),
@@ -845,13 +867,13 @@ class MainViewModel(
                 setError(UiText.Resource(it))
                 return@runInspect
             }
-            mutableState.value = mutableState.value.copy(verifactuRecords = selected, result = OperationResult.Idle)
+            mutableState.value = mutableState.value.copy(verifactuRecords = selected, veriFactuReport = null, result = OperationResult.Idle)
         }
     }
 
     fun clearVeriFactuRecords() {
         if (!mutableState.value.canReplaceSelection) return
-        mutableState.value = mutableState.value.copy(verifactuRecords = emptyList())
+        mutableState.value = mutableState.value.copy(verifactuRecords = emptyList(), veriFactuReport = null)
     }
 
     /** Comprueba los registros sin consultar a la AEAT y muestra el informe por registro. */
@@ -873,7 +895,7 @@ class MainViewModel(
                 }
                 val report = core.validateVeriFactu(loaded)
                 val lines = VeriFactuText.lines(report)
-                mutableState.value = mutableState.value.copy(result = if (report.valid)
+                mutableState.value = mutableState.value.copy(veriFactuReport = report, result = if (report.valid)
                     OperationResult.Success(UiText.Resource(R.string.verifactu_result_valid), lines)
                 else OperationResult.Error(UiText.Lines(listOf(UiText.Resource(R.string.verifactu_result_invalid), lines))))
             } finally {
@@ -938,6 +960,167 @@ class MainViewModel(
         }
     }
 
+    // --- Tercera oleada: certificado, preferencias, diagnóstico, QR y versiones ---
+
+    /** Detalle de los certificados de la sesión; vacío si el AAR no lo ofrece. */
+    private fun loadCertificateDetails(): Pair<List<CertificateDetail>, Int> {
+        if (PlatformServices.CERTIFICATE_DETAILS !in mutableState.value.platformServices) return emptyList<CertificateDetail>() to 30
+        return try {
+            core.certificateDetails().let { it.certificates to it.expiringSoonDays }
+        } catch (_: Exception) {
+            emptyList<CertificateDetail>() to 30
+        }
+    }
+
+    fun updateCertificateFilter(query: String, kind: String) {
+        require(kind.isEmpty() || kind in CertificateFilter.KINDS)
+        mutableState.value = mutableState.value.copy(certificateFilter = query.take(128), certificateKindFilter = kind)
+    }
+
+    /** Consulta OCSP/CRL del certificado de la sesión, solo al pulsar el botón. */
+    fun checkCertificateOnline() {
+        val snapshot = mutableState.value
+        val certificate = snapshot.certificate ?: return setError(UiText.Resource(R.string.error_certificate_required))
+        if (!snapshot.canCheckCertificateOnline) return
+        launchOperation {
+            val check = core.checkCertificateRevocation(certificate.id)
+            val lines = RevocationText.lines(check)
+            mutableState.value = mutableState.value.copy(result = if (check.status == "valid")
+                OperationResult.Success(UiText.Resource(R.string.revocation_title), lines)
+            else OperationResult.Error(lines))
+        }
+    }
+
+    /**
+     * Guarda las preferencias y aplica las de firma a la sesión actual. Un
+     * perfil con sello de tiempo exige una TSA válida.
+     */
+    fun savePreferences(settings: AppSettings): Boolean {
+        if (!mutableState.value.canReplaceSelection) return false
+        val clean = settings.sanitized()
+        val valid = try {
+            SigningOptions.create(clean.defaultProfile, clean.tsaEnabled, clean.tsaUrl)
+            true
+        } catch (_: Exception) { false }
+        if (!valid) {
+            setError(UiText.Resource(R.string.error_tsa_configuration))
+            return false
+        }
+        settingsStore.save(clean)
+        mutableState.value = mutableState.value.copy(settings = clean, signatureProfile = clean.defaultProfile,
+            tsaEnabled = clean.tsaEnabled, tsaUrl = clean.tsaUrl,
+            result = OperationResult.Success(UiText.Resource(R.string.preferences_saved)))
+        return true
+    }
+
+    /** Vuelve a los valores de fábrica; el sello lo limpia la actividad. */
+    fun restoreDefaultPreferences() {
+        if (!mutableState.value.canReplaceSelection) return
+        settingsStore.reset()
+        val defaults = settingsStore.load()
+        mutableState.value = mutableState.value.copy(settings = defaults, signatureProfile = defaults.defaultProfile,
+            tsaEnabled = defaults.tsaEnabled, tsaUrl = defaults.tsaUrl,
+            result = OperationResult.Success(UiText.Resource(R.string.preferences_restored)))
+    }
+
+    fun loadDiagnostics() {
+        if (!mutableState.value.diagnosticsAvailable) return
+        val diagnostics = try { core.diagnostics() } catch (_: Exception) { null }
+        mutableState.value = mutableState.value.copy(diagnostics = diagnostics)
+    }
+
+    /** Pide un sello de tiempo de prueba a la TSA configurada en la sesión. */
+    fun probeTsa() {
+        val snapshot = mutableState.value
+        if (!snapshot.canProbeTsa) return
+        mutableState.value = snapshot.copy(tsaProbe = null)
+        launchOperation {
+            val probe = core.probeTimestampAuthority(snapshot.tsaUrl)
+            mutableState.value = mutableState.value.copy(tsaProbe = probe)
+        }
+    }
+
+    fun readVeriFactuQr(url: String) {
+        if (!mutableState.value.canReadQr) return
+        val trimmed = url.trim()
+        mutableState.value = mutableState.value.copy(veriFactuQr = null, aeatResponse = "", qrError = null)
+        if (trimmed.isEmpty()) {
+            mutableState.value = mutableState.value.copy(qrError = UiText.Engine("verifactu.qr_url"))
+            return
+        }
+        launchOperation {
+            try {
+                val qr = core.readVeriFactuQr(trimmed)
+                mutableState.value = mutableState.value.copy(veriFactuQr = qr)
+            } catch (error: Exception) {
+                mutableState.value = mutableState.value.copy(qrError = error.toUserText())
+            }
+        }
+    }
+
+    /** Envía a la AEAT los cuatro datos del QR ya leído; nunca otra URL. */
+    fun queryAeat() {
+        val snapshot = mutableState.value
+        val qr = snapshot.veriFactuQr ?: return
+        if (!snapshot.canQueryAeat) return
+        mutableState.value = snapshot.copy(aeatResponse = "", qrError = null)
+        launchOperation {
+            try {
+                val response = core.queryVeriFactuQr(qr.url)
+                mutableState.value = mutableState.value.copy(aeatResponse = response)
+            } catch (error: Exception) {
+                mutableState.value = mutableState.value.copy(qrError = error.toUserText())
+            }
+        }
+    }
+
+    fun clearVeriFactuQr() {
+        mutableState.value = mutableState.value.copy(veriFactuQr = null, aeatResponse = "", qrError = null)
+    }
+
+    fun exportVeriFactuReport() {
+        if (!mutableState.value.canExportVeriFactu) return
+        mutableState.value = mutableState.value.copy(awaitingReportSave = true, reportKind = ReportKind.VERIFACTU)
+        viewModelScope.launch { effectChannel.send(UiEffect.SaveVeriFactuReport) }
+    }
+
+    /** [localized] es el informe en el idioma de la app; se guarda junto al resultado del motor. */
+    fun saveVeriFactuReport(uri: Uri, localized: String) {
+        val snapshot = mutableState.value
+        if (!snapshot.awaitingReportSave || snapshot.reportKind != ReportKind.VERIFACTU) return
+        val report = snapshot.veriFactuReport ?: return cancelReportExport()
+        mutableState.value = snapshot.copy(awaitingReportSave = false)
+        launchOperation {
+            val bytes = VeriFactuText.exportJson(report, localized).encodeToByteArray()
+            try {
+                repository.write(uri, bytes)
+                mutableState.value = mutableState.value.copy(
+                    result = OperationResult.Success(UiText.Resource(R.string.result_report_saved)))
+            } catch (_: Exception) {
+                setError(UiText.Resource(R.string.error_report_export))
+            } finally { bytes.fill(0) }
+        }
+    }
+
+    /** Consulta la API pública de GitHub solo al pulsar «Buscar actualizaciones». */
+    fun checkUpdate(currentVersion: String) {
+        if (!mutableState.value.canCheckUpdate) return
+        mutableState.value = mutableState.value.copy(updateCheck = null)
+        launchOperation {
+            val check = core.checkUpdate(currentVersion)
+            mutableState.value = mutableState.value.copy(updateCheck = check)
+        }
+    }
+
+    fun dismissUpdateCheck() {
+        mutableState.value = mutableState.value.copy(updateCheck = null)
+    }
+
+    fun openRelease() {
+        val url = mutableState.value.updateCheck?.url?.takeIf(AppLinks::isOfficialRelease) ?: AppLinks.RELEASES
+        viewModelScope.launch { effectChannel.send(UiEffect.OpenRelease(url)) }
+    }
+
     private fun runInspect(block: () -> Unit) {
         try {
             block()
@@ -984,11 +1167,12 @@ class MainViewModel(
     class Factory(
         private val repository: DocumentRepository,
         private val core: CoreBridge,
+        private val settings: AppSettingsStore,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             require(modelClass.isAssignableFrom(MainViewModel::class.java))
-            return MainViewModel(repository, core) as T
+            return MainViewModel(repository, core, Dispatchers.IO, settings) as T
         }
     }
 }

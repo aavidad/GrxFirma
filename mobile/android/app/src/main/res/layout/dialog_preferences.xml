@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<!-- Preferencias: formato, perfil, TSA, nombre al guardar y tema. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="8dp">
+
+        <TextView
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/preferences_helper"
+            android:textColor="@color/on_surface" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.LabelLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:labelFor="@+id/prefFormat"
+            android:text="@string/pref_default_format"
+            android:textColor="@color/on_surface" />
+
+        <Spinner
+            android:id="@+id/prefFormat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.LabelLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:labelFor="@+id/prefProfile"
+            android:text="@string/pref_default_profile"
+            android:textColor="@color/on_surface" />
+
+        <Spinner
+            android:id="@+id/prefProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/signature_profiles"
+            android:minHeight="48dp" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/prefTsaEnabled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/pref_tsa_enabled" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/prefTsaUrlLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/tsa_url"
+            app:helperText="@string/tsa_helper">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/prefTsaUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="no"
+                android:inputType="textUri"
+                android:maxLength="2048"
+                android:minHeight="48dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            style="@style/TextAppearance.Material3.LabelLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/control_spacing"
+            android:labelFor="@+id/prefOutputName"
+            android:text="@string/pref_output_name"
+            android:textColor="@color/on_surface" />
+
+        <Spinner
+            android:id="@+id/prefOutputName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/output_name_policies"
+            android:minHeight="48dp" />
+
+        <TextView
+            style="@style/TextAppearance.Material3.LabelLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:labelFor="@+id/prefTheme"
+            android:text="@string/pref_theme"
+            android:textColor="@color/on_surface" />
+
+        <Spinner
+            android:id="@+id/prefTheme"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/themes"
+            android:minHeight="48dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/prefRestore"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/preferences_restore" />
+    </LinearLayout>
+</ScrollView>

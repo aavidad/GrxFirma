@@ -104,6 +104,8 @@ data class VeriFactuReport(
     val errors: Int,
     val warnings: Int,
     val records: List<VeriFactuRecord>,
+    /** Respuesta del motor tal cual, para exportarla junto al informe traducido. */
+    val reportJson: String = "",
 )
 
 /** Códigos oficiales de la NTI que ofrece el motor. */
@@ -130,3 +132,76 @@ data class EniDocument(val bytes: ByteArray, val signatureType: String)
 data class EniValidation(val valid: Boolean, val issues: List<EngineIssue>)
 
 data class CsvLegend(val url: String, val text: String)
+
+/** Certificado de la sesión con su caducidad; NIF y organización son datos del titular. */
+data class CertificateDetail(
+    val id: String,
+    val subject: String,
+    val issuer: String,
+    val fingerprint: String,
+    val nif: String,
+    val organization: String,
+    val kind: String,
+    val keyType: String,
+    val keyBits: Int,
+    val notBefore: String,
+    val notAfter: String,
+    val daysLeft: Int,
+    val status: String,
+    val external: Boolean,
+    val canEncrypt: Boolean,
+    val hasOcsp: Boolean,
+    val hasCrl: Boolean,
+)
+
+data class CertificateDetails(val expiringSoonDays: Int, val certificates: List<CertificateDetail>)
+
+/** Resultado de OCSP/CRL: valid, revoked, inconclusive o unavailable. */
+data class RevocationCheck(
+    val status: String,
+    val method: String,
+    val checkedAt: String,
+    val revokedAt: String,
+    val hasOcsp: Boolean,
+    val hasCrl: Boolean,
+)
+
+/** Datos del motor sin información personal. */
+data class EngineDiagnostics(
+    val engineVersion: String,
+    val contractVersion: Int,
+    val platform: String,
+    val goVersion: String,
+    val architecture: String,
+    val engineTimeUtc: String,
+    val sessionIdentity: Boolean,
+)
+
+/** Prueba de la TSA: status ok, invalid_url, unreachable, timeout, rejected o bad_response. */
+data class TsaProbe(
+    val status: String,
+    val https: Boolean,
+    val tsaTime: String,
+    val localTime: String,
+    val skewSeconds: Long,
+    val elapsedMillis: Long,
+)
+
+data class VeriFactuQr(
+    val url: String,
+    val nif: String,
+    val number: String,
+    val date: String,
+    val amount: String,
+    val verifiable: Boolean,
+    val test: Boolean,
+)
+
+/** Comprobación de versión: newer, current, not_comparable, no_releases o error. */
+data class UpdateCheck(
+    val status: String,
+    val errorCode: String,
+    val current: String,
+    val latest: String,
+    val url: String,
+)

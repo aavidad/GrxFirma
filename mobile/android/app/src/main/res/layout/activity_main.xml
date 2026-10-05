@@ -111,6 +111,20 @@
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
                     android:text="@string/about_title" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/preferencesButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/preferences_button" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/diagnosticsButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/diagnostics_button" />
                 <TextView
                     android:id="@+id/documentSectionTitle"
                     style="@style/TextAppearance.Material3.TitleLarge"
@@ -303,6 +317,12 @@
                     android:minHeight="48dp"
                     android:text="@string/forget_certificate"
                     android:visibility="gone" />
+
+                <include
+                    android:id="@+id/certificatePanel"
+                    layout="@layout/section_certificate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
                 <TextView
                     android:id="@+id/operationSectionTitle"

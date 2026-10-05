@@ -19,6 +19,14 @@ import es.dipgra.grxfirma.android.model.CertificateSummary
 import es.dipgra.grxfirma.android.model.SelectedFile
 import es.dipgra.grxfirma.android.model.VerificationSummary
 import es.dipgra.grxfirma.android.model.SignerSummary
+import es.dipgra.grxfirma.android.core.PlatformServices
+import es.dipgra.grxfirma.android.model.CertificateDetail
+import es.dipgra.grxfirma.android.model.EngineDiagnostics
+import es.dipgra.grxfirma.android.model.TsaProbe
+import es.dipgra.grxfirma.android.model.UpdateCheck
+import es.dipgra.grxfirma.android.model.VeriFactuQr
+import es.dipgra.grxfirma.android.model.VeriFactuReport
+import es.dipgra.grxfirma.android.settings.AppSettings
 
 sealed interface UiText {
     data class Resource(@param:StringRes val id: Int, val arguments: List<Any> = emptyList()) : UiText
@@ -26,6 +34,8 @@ sealed interface UiText {
     data class Lines(val lines: List<UiText>) : UiText
     /** Clave cerrada del catálogo del motor (verifactu.*, eni.*, csv.error.*). */
     data class Engine(val key: String) : UiText
+    /** Fecha RFC 3339 que se muestra en el idioma y zona horaria del dispositivo. */
+    data class DateTime(val iso: String, val withTime: Boolean = false) : UiText
     data class Verification(
         val valid: Boolean,
         val reason: String = "",
@@ -55,6 +65,12 @@ fun UiText.resolve(context: Context): String = when (this) {
     is UiText.Resource -> context.getString(id, *arguments.map { if (it is UiText) it.resolve(context) else it }.toTypedArray())
     is UiText.Plural -> context.resources.getQuantityString(id, count, count)
     is UiText.Lines -> lines.joinToString("\n") { it.resolve(context) }
+    is UiText.DateTime -> try {
+        val instant = java.time.OffsetDateTime.parse(iso).toInstant()
+        val format = if (withTime) java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT)
+        else java.text.DateFormat.getDateInstance(java.text.DateFormat.LONG)
+        format.format(java.util.Date.from(instant))
+    } catch (_: Exception) { iso }
     is UiText.Engine -> if (EngineKeys.isClosed(key)) EngineText.resolve(context, key) else context.getString(R.string.error_core_operation)
     is UiText.Verification -> buildList {
         add(
@@ -186,6 +202,21 @@ data class MainUiState(
     val verifactuRecords: List<SelectedFile> = emptyList(),
     /** Fecha de captura ENI elegida en el calendario (medianoche UTC) o null para «ahora». */
     val eniCaptureDate: Long? = null,
+    val platformServices: Set<String> = emptySet(),
+    val settings: AppSettings = AppSettings(),
+    /** Certificados de la sesión con caducidad; hoy como máximo uno. */
+    val certificateDetails: List<CertificateDetail> = emptyList(),
+    val expiringSoonDays: Int = 30,
+    val certificateFilter: String = "",
+    val certificateKindFilter: String = "",
+    val veriFactuReport: VeriFactuReport? = null,
+    val reportKind: ReportKind = ReportKind.VERIFICATION,
+    val veriFactuQr: VeriFactuQr? = null,
+    val aeatResponse: String = "",
+    val qrError: UiText? = null,
+    val diagnostics: EngineDiagnostics? = null,
+    val tsaProbe: TsaProbe? = null,
+    val updateCheck: UpdateCheck? = null,
 ) {
     private val idle: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
     private fun offers(service: String): Boolean = backend.available && service in documentServices
@@ -194,6 +225,23 @@ data class MainUiState(
     val eniValidateAvailable: Boolean get() = offers(DocumentServices.ENI_VALIDATE)
     val csvLegendAvailable: Boolean get() = offers(DocumentServices.CSV_LEGEND)
     val canCheckVeriFactu: Boolean get() = verifactuAvailable && idle && verifactuRecords.isNotEmpty()
+    private fun platform(service: String): Boolean = backend.available && service in platformServices
+    val certificatePanelAvailable: Boolean get() = platform(PlatformServices.CERTIFICATE_DETAILS)
+    val canCheckCertificateOnline: Boolean
+        get() = platform(PlatformServices.CERTIFICATE_ONLINE) && idle && certificate != null
+    val diagnosticsAvailable: Boolean get() = platform(PlatformServices.DIAGNOSTICS)
+    val canProbeTsa: Boolean get() = platform(PlatformServices.TSA_PROBE) && idle && tsaUrl.isNotBlank()
+    val qrReadAvailable: Boolean get() = platform(PlatformServices.VERIFACTU_QR_READ)
+    val canReadQr: Boolean get() = qrReadAvailable && idle
+    /** El cotejo exige una lectura previa válida: nunca se consulta una URL sin validar. */
+    val canQueryAeat: Boolean get() = platform(PlatformServices.VERIFACTU_QR_QUERY) && idle && veriFactuQr != null
+    val updateCheckAvailable: Boolean get() = platform(PlatformServices.UPDATE_CHECK)
+    val canCheckUpdate: Boolean get() = updateCheckAvailable && idle
+    val canExportVeriFactu: Boolean get() = veriFactuReport != null && idle
+    /** Certificados que cumplen el filtro; el filtro solo se muestra con más de uno. */
+    val filteredCertificates: List<CertificateDetail>
+        get() = CertificateFilter.apply(certificateDetails, certificateFilter, certificateKindFilter)
+    val showsCertificateFilter: Boolean get() = certificateDetails.size > 1
     val canCreateEni: Boolean get() = eniDocumentAvailable && idle && document != null
     val canValidateEni: Boolean get() = eniValidateAvailable && idle
     val canUseTools: Boolean get() = backend.available && toolsAvailable && idle
@@ -225,10 +273,16 @@ data class MainUiState(
 /** Qué espera guardarse: una firma, un fichero de una herramienta o el lote. */
 enum class PendingKind { SIGNATURE, TOOL, BATCH }
 
+/** Qué informe se está exportando por SAF. */
+enum class ReportKind { VERIFICATION, VERIFACTU }
+
 sealed interface UiEffect {
     data class SaveSignedDocument(val displayName: String, val mimeType: String) : UiEffect
     data object SaveVerificationReport : UiEffect
     data object ChooseBatchFolder : UiEffect
+    data object SaveVeriFactuReport : UiEffect
+    /** Abre la publicación oficial en el navegador; la URL ya está comprobada. */
+    data class OpenRelease(val url: String) : UiEffect
 }
 
 fun Throwable.toUserText(): UiText {
@@ -283,3 +337,13 @@ fun VerificationSummary.toUiText() = UiText.Verification(
     valid, reason, format, signers.size, integrityStatus, certificateStatus, trustStatus,
     revocationMode, warnings.size, errors.size, coverage, signers, signerSummaries, details, warnings, errors,
 )
+
+/** Visibilidad de botones de la tercera oleada (el AAR los declara o no). */
+object PlatformServicesVisibility {
+    fun online(state: MainUiState): Boolean =
+        state.backend.available && es.dipgra.grxfirma.android.core.PlatformServices.CERTIFICATE_ONLINE in state.platformServices
+    fun aeat(state: MainUiState): Boolean =
+        state.backend.available && es.dipgra.grxfirma.android.core.PlatformServices.VERIFACTU_QR_QUERY in state.platformServices
+    fun tsa(state: MainUiState): Boolean =
+        state.backend.available && es.dipgra.grxfirma.android.core.PlatformServices.TSA_PROBE in state.platformServices
+}
