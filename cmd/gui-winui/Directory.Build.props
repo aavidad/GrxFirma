@@ -16,6 +16,10 @@
     <FileVersion>$(_GrxFirmaNumericVersion).0</FileVersion>
     <InformationalVersion>$(_GrxFirmaVersion)</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Product>GrxFirma</Product>
+    <Company>Alberto Avidad Fernández</Company>
+    <Authors>Alberto Avidad Fernández</Authors>
+    <Copyright>Alberto Avidad Fernández. EUPL-1.2.</Copyright>
   </PropertyGroup>
   <Target Name="ValidateGrxFirmaProductVersion" BeforeTargets="PrepareForBuild"
           Condition="'$(MSBuildProjectName)' == 'GrxFirma.WinUI' Or '$(MSBuildProjectName)' == 'GrxFirma.WinUI.Core'">

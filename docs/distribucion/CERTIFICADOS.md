@@ -1,5 +1,5 @@
-<!-- Derechos de autor (C) 2026 Diputación de Granada. -->
-<!-- Autoría: Oficina de Software Libre de la Diputación de Granada. -->
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
 <!-- Licencia: EUPL-1.2 -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
@@ -33,7 +33,7 @@ vía según los secretos que encuentre. Android tiene su propia clave
 SignPath Foundation firma sin coste el software libre que acepta en su
 programa. El certificado es de la fundación y está en su HSM, así que nadie del
 proyecto tiene la clave privada. Windows mostrará «SignPath Foundation» como
-editor, no «Diputación de Granada».
+editor, no «Alberto Avidad Fernández».
 
 ### A.1. Solicitud y condiciones
 
@@ -166,7 +166,7 @@ Requisitos del certificado:
 
 Atención: desde junio de 2023 las CA públicas entregan las claves de firma de
 código en hardware (token USB o HSM en la nube) y no permiten exportarlas a un
-PFX. Si la CA de la Diputación entrega el certificado así, esta vía no sirve tal
+PFX. Si la CA entrega el certificado así, esta vía no sirve tal
 cual. El workflow no tiene todavía una vía para tokens ni para servicios en la
 nube como Azure Artifact Signing (antes Trusted Signing). Esos servicios rotan
 el certificado a diario, y el verificador actual fija una huella concreta.
@@ -223,7 +223,7 @@ keytool -genkeypair -v \
   -alias grxfirma-release \
   -keyalg RSA -keysize 4096 -sigalg SHA256withRSA \
   -validity 10000 \
-  -dname "CN=GrxFirma, OU=Oficina de Software Libre, O=Diputación de Granada, L=Granada, ST=Granada, C=ES"
+  -dname "CN=GrxFirma, O=Alberto Avidad Fernández, L=Granada, ST=Granada, C=ES"
 ```
 
 - `keytool` pide la contraseña del almacén. Usa una larga y generada al azar.

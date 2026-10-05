@@ -6,7 +6,7 @@
 # Límites conocidos y exclusiones — GrxFirma
 
 Fecha: 2026-03-20.  
-Autor: Oficina de Software Libre de la Diputacion de Granada.
+Autoría: Alberto Avidad Fernández
 Estado: documento operativo de referencia.
 
 ---

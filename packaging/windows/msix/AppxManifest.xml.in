@@ -44,7 +44,7 @@
     <Application Id="GrxFirma" Executable="grxfirma-gui-qml.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="GrxFirma"
-        Description="Firma electrónica avanzada (CAdES, XAdES, PAdES, FacturaE) de la Diputación de Granada."
+        Description="Firma electrónica avanzada (CAdES, XAdES, PAdES, FacturaE)."
         BackgroundColor="transparent"
         Square150x150Logo="MsixAssets\Square150x150Logo.png"
         Square44x44Logo="MsixAssets\Square44x44Logo.png">

@@ -7,7 +7,7 @@
 
 Fecha inicial: 2026-03-20.
 Última revisión: 2026-08-01.
-Autor: Oficina de Software Libre de la Diputacion de Granada.
+Autoría: Alberto Avidad Fernández
 Estado: inventario operativo enlazado a SBOM formal.
 
 ---

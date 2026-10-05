@@ -67,7 +67,7 @@ Section "Desktop Qt/QML" SEC01
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayName" "GrxFirma Desktop Qt"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayVersion" "${VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayIcon" "$INSTDIR\assets\grxfirma-diputacion.ico"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "Publisher" "Alberto Avidad Fernandez - OSL Diputacion de Granada"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "Publisher" "Alberto Avidad Fernández"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "QuietUninstallString" '"$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR"'
@@ -85,11 +85,14 @@ SectionEnd
 
 Section -post
   SetShellVarContext current
-  CreateDirectory "$SMPROGRAMS\Diputación de Granada"
+  CreateDirectory "$SMPROGRAMS\GrxFirma"
+  Delete "$SMPROGRAMS\GrxFirma\GrxFirma Qt - Documentación.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma Qt - Documentación.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma Qt.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma Qt.lnk"
-  CreateShortcut "$SMPROGRAMS\Diputación de Granada\GrxFirma Qt - Documentación.lnk" "$INSTDIR\README_DESKTOP_QML_WINDOWS.md"
-  CreateShortcut "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma Qt.lnk" "$INSTDIR\uninstall.exe"
+  RMDir "$SMPROGRAMS\Diputación de Granada"
+  CreateShortcut "$SMPROGRAMS\GrxFirma\GrxFirma Qt - Documentación.lnk" "$INSTDIR\README_DESKTOP_QML_WINDOWS.md"
+  CreateShortcut "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma Qt.lnk" "$INSTDIR\uninstall.exe"
 SectionEnd
 
 Section "Uninstall"
@@ -117,11 +120,12 @@ Section "Uninstall"
   RMDir /r "$INSTDIR\qt-qml"
   RMDir "$INSTDIR"
   RMDir "$LOCALAPPDATA\Programs\GrxFirma"
-  Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma Qt - Documentación.lnk"
-  Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma Qt.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\GrxFirma Qt - Documentación.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma Qt.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma Qt - Documentación.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma Qt.lnk"
   RMDir "$SMPROGRAMS\Diputación de Granada"
+  RMDir "$SMPROGRAMS\GrxFirma"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt"
   DeleteRegKey HKCU "Software\GrxFirmaDesktopQt"
   SetErrorLevel 0

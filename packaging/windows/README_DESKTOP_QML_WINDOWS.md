@@ -185,9 +185,7 @@ publicación explica cómo reintentar y no bloquea la firma local.
 
 Software libre bajo licencia EUPL 1.2 o posterior.
 
-Autor: Oficina de Software Libre de la Diputacion de Granada.
-- Alberto Avidad Fernandez
-- Oficina de Software Libre - Diputación de Granada
+Autoría: Alberto Avidad Fernández
 
 Sin garantía:
 - esta herramienta se entrega SIN GARANTÍA de ningún tipo.

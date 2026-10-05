@@ -769,7 +769,7 @@ Version: ${PKG_VERSION}
 Section: utils
 Priority: optional
 Architecture: ${PKG_ARCH}
-Maintainer: Diputacion de Granada <avidad@dipgra.es>
+Maintainer: Alberto Avidad Fernández <avidad@dipgra.es>
 Depends: ${RUNTIME_DEPENDS}
 Recommends: zenity | kdialog | qarma, qt6-translations-l10n
 Suggests: bubblewrap (>= 0.11.1), pinentry-qt | pinentry-gnome3 | pinentry-gtk2

@@ -118,10 +118,23 @@ class ProductIconContractTests(unittest.TestCase):
         # La instalación no debe borrar los accesos que acaba de crear (el
         # renombrado convirtió una limpieza de nombres antiguos en eso).
         self.assertNotIn('Delete "$DESKTOP', post_install)
-        self.assertNotIn('Delete "$SMPROGRAMS', post_install)
-        self.assertIn("$SMPROGRAMS\\Diputación de Granada", suite)
-        self.assertIn('"Diputación de Granada"', winui_installer)
-        self.assertIn('"Diputación de Granada"', qt_installer)
+        self.assertNotIn('Delete "$SMPROGRAMS\\GrxFirma\\', post_install)
+        self.assertIn('CreateShortcut "$SMPROGRAMS\\GrxFirma\\', post_install)
+        self.assertIn('$startMenuDir = Join-Path $programsDir "GrxFirma"', winui_installer)
+        self.assertIn('$startMenuDir = Join-Path $programsDir "GrxFirma"', qt_installer)
+        # Una actualización retira solo los accesos propios de la carpeta que
+        # usaban las versiones anteriores y la elimina únicamente si queda vacía.
+        legacy = "$SMPROGRAMS\\Diputación de Granada"
+        self.assertIn(f'Delete "{legacy}\\GrxFirma - Documentación.lnk"', post_install)
+        self.assertIn(f'Delete "{legacy}\\Desinstalar GrxFirma.lnk"', post_install)
+        self.assertIn(f'RMDir "{legacy}"', post_install)
+        self.assertNotIn(f'RMDir /r "{legacy}', suite)
+        for installer in (winui_installer, qt_installer):
+            self.assertIn(
+                '$legacyStartMenuDir = Join-Path $programsDir "Diputación de Granada"',
+                installer,
+            )
+            self.assertIn("$legacyRemaining.Count -eq 0", installer)
 
 
 if __name__ == "__main__":

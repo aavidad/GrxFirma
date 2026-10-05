@@ -111,7 +111,7 @@ func TestCALocalRotaLaAnteriorSinRestricciones(t *testing.T) {
 	}
 	tpl := &x509.Certificate{
 		SerialNumber:          big.NewInt(1001),
-		Subject:               pkix.Name{CommonName: "GrxFirma Local Root CA", Organization: []string{"Diputacion de Granada"}},
+		Subject:               pkix.Name{CommonName: "GrxFirma Local Root CA", Organization: []string{localtlstrust.ManagedLocalCAOrganization}},
 		NotBefore:             time.Now().Add(-time.Hour),
 		NotAfter:              time.Now().AddDate(1, 0, 0),
 		IsCA:                  true,

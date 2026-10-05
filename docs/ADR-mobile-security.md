@@ -11,7 +11,7 @@ Fecha: 2026-03-18
 
 Estado: aceptado como principio arquitectónico
 
-Autor: Oficina de Software Libre de la Diputacion de Granada.
+Autoría: Alberto Avidad Fernández
 
 ## Contexto
 

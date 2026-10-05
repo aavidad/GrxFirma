@@ -20,6 +20,7 @@
   VIProductVersion "${AF2_VERSION_CORE}.0"
   VIFileVersion "${AF2_VERSION_CORE}.0"
   VIAddVersionKey /LANG=0 "ProductName" "GrxFirma"
+  VIAddVersionKey /LANG=0 "CompanyName" "Alberto Avidad Fernández"
   VIAddVersionKey /LANG=0 "FileDescription" "${Description}"
   VIAddVersionKey /LANG=0 "ProductVersion" "${VERSION}"
   VIAddVersionKey /LANG=0 "FileVersion" "${AF2_VERSION_CORE}.0"

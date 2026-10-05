@@ -93,7 +93,7 @@ Section "Motor, navegador y línea de comandos (obligatorio)" SEC_CORE
   WriteRegStr HKCU "Software\GrxFirma" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayName" "GrxFirma"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayVersion" "${VERSION}"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "Publisher" "Alberto Avidad Fernandez - OSL Diputacion de Granada"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "Publisher" "Alberto Avidad Fernández"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayIcon" "$INSTDIR\grxfirma-diputacion.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -206,9 +206,14 @@ Section -post
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "No se pudo restaurar GrxFirma en la bandeja (código $0)."
-  CreateDirectory "$SMPROGRAMS\Diputación de Granada"
-  CreateShortcut "$SMPROGRAMS\Diputación de Granada\GrxFirma - Documentación.lnk" "$INSTDIR\README_WINDOWS_SUITE.md"
-  CreateShortcut "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma.lnk" "$INSTDIR\uninstall.exe"
+  CreateDirectory "$SMPROGRAMS\GrxFirma"
+  ; Versiones anteriores usaban otra carpeta del menú Inicio: se retiran
+  ; solo sus accesos y la carpeta, únicamente si queda vacía.
+  Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma - Documentación.lnk"
+  Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma.lnk"
+  RMDir "$SMPROGRAMS\Diputación de Granada"
+  CreateShortcut "$SMPROGRAMS\GrxFirma\GrxFirma - Documentación.lnk" "$INSTDIR\README_WINDOWS_SUITE.md"
+  CreateShortcut "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma.lnk" "$INSTDIR\uninstall.exe"
 SectionEnd
 
 Section "Uninstall"
@@ -256,8 +261,8 @@ Section "Uninstall"
   Delete "$DESKTOP\GrxFirma.lnk"
   Delete "$DESKTOP\GrxFirma Diputación.lnk"
   Delete "$DESKTOP\GrxFirma.lnk"
-  Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma - Documentación.lnk"
-  Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\GrxFirma - Documentación.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma - Documentación.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma.lnk"
   RMDir "$SMPROGRAMS\Diputación de Granada"

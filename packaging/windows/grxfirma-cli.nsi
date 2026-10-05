@@ -63,7 +63,7 @@ Section "CLI principal" SEC01
   WriteRegStr HKCU "Software\GrxFirmaCLI" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "DisplayName" "GrxFirma CLI"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "DisplayVersion" "${VERSION}"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "Publisher" "Alberto Avidad Fernandez - OSL Diputacion de Granada"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "Publisher" "Alberto Avidad Fernández"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "DisplayIcon" "$INSTDIR\grxfirma-diputacion.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaCLI" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -75,11 +75,14 @@ SectionEnd
 
 Section -post
   SetShellVarContext current
-  CreateDirectory "$SMPROGRAMS\Diputación de Granada"
+  CreateDirectory "$SMPROGRAMS\GrxFirma"
+  Delete "$SMPROGRAMS\GrxFirma\GrxFirma CLI - Documentación.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma CLI - Documentación.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma CLI.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma CLI.lnk"
-  CreateShortcut "$SMPROGRAMS\Diputación de Granada\GrxFirma CLI - Documentación.lnk" "$INSTDIR\README_CLI_WINDOWS.md"
-  CreateShortcut "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma CLI.lnk" "$INSTDIR\uninstall.exe"
+  RMDir "$SMPROGRAMS\Diputación de Granada"
+  CreateShortcut "$SMPROGRAMS\GrxFirma\GrxFirma CLI - Documentación.lnk" "$INSTDIR\README_CLI_WINDOWS.md"
+  CreateShortcut "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma CLI.lnk" "$INSTDIR\uninstall.exe"
 SectionEnd
 
 Section "Uninstall"
@@ -89,11 +92,12 @@ Section "Uninstall"
   Delete "$INSTDIR\VERSION.txt"
   Delete "$INSTDIR\grxfirma-diputacion.ico"
   Delete "$INSTDIR\uninstall.exe"
-  Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma CLI - Documentación.lnk"
-  Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma CLI.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\GrxFirma CLI - Documentación.lnk"
+  Delete "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma CLI.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\GrxFirma CLI - Documentación.lnk"
   Delete "$SMPROGRAMS\Diputación de Granada\Desinstalar GrxFirma CLI.lnk"
   RMDir "$SMPROGRAMS\Diputación de Granada"
+  RMDir "$SMPROGRAMS\GrxFirma"
   RMDir "$INSTDIR"
   RMDir "$LOCALAPPDATA\Programs\GrxFirma"
 

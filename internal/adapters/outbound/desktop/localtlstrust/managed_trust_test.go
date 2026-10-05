@@ -426,10 +426,41 @@ func TestManagedLocalCAMarker_DistingueCAsAnteriores(t *testing.T) {
 	}
 }
 
+// Las CAs ya instaladas por versiones anteriores llevan otra organización:
+// deben seguir reconociéndose para renovarlas o retirarlas al desinstalar.
+func TestManagedLocalCA_ReconoceOrganizacionActualYAnterior(t *testing.T) {
+	t.Parallel()
+
+	casos := []struct {
+		org  string
+		want bool
+	}{
+		{ManagedLocalCAOrganization, true},
+		{legacyManagedLocalCAOrganization, true},
+		{"Otra Organizacion", false},
+	}
+	for i, caso := range casos {
+		cert := newManagedLocalCATestCertificateOrg(t, int64(20+i), true, caso.org)
+		if got := IsManagedLocalCA(cert); got != caso.want {
+			t.Fatalf("IsManagedLocalCA(O=%q) = %v; se esperaba %v", caso.org, got, caso.want)
+		}
+	}
+}
+
 func newManagedLocalCATestCertificate(
 	t *testing.T,
 	serial int64,
 	marked bool,
+) *x509.Certificate {
+	t.Helper()
+	return newManagedLocalCATestCertificateOrg(t, serial, marked, ManagedLocalCAOrganization)
+}
+
+func newManagedLocalCATestCertificateOrg(
+	t *testing.T,
+	serial int64,
+	marked bool,
+	organization string,
 ) *x509.Certificate {
 	t.Helper()
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -440,7 +471,7 @@ func newManagedLocalCATestCertificate(
 		SerialNumber: big.NewInt(serial),
 		Subject: pkix.Name{
 			CommonName:   nicknameLocalhostRoot,
-			Organization: []string{"Diputacion de Granada"},
+			Organization: []string{organization},
 			Country:      []string{"ES"},
 		},
 		NotBefore:             time.Now().Add(-time.Hour),

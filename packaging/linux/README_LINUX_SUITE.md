@@ -287,4 +287,4 @@ ni la distribución de Chromium mediante tienda o política empresarial.
 
 Software libre bajo licencia EUPL 1.2 o posterior.
 
-Autor: Oficina de Software Libre de la Diputacion de Granada.
+Autoría: Alberto Avidad Fernández
