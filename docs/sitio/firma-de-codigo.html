@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- Derechos de autor (C) 2026 Diputación de Granada. Licencia: EUPL-1.2. SPDX-License-Identifier: EUPL-1.2 -->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Qué programas de GrxFirma se firman, quién aprueba cada firma y qué datos salen del equipo.">
+  <title>Firma de código · GrxFirma</title>
+  <style>
+    body { max-width: 48rem; margin: 0 auto; padding: 2rem 1.25rem; color: #182331; background: #fff; font: 1.05rem/1.6 system-ui, sans-serif; }
+    a { color: #064c9b; } a:focus-visible { outline: 3px solid #b34b00; outline-offset: 3px; }
+    h1, h2 { line-height: 1.2; }
+    .aviso { border-left: 4px solid #064c9b; padding: 0.25rem 1rem; background: #f2f6fb; }
+  </style>
+</head>
+<body>
+  <header><p><a href="index.html">GrxFirma</a></p><h1>Política de firma de código</h1></header>
+  <main>
+    <p class="aviso" lang="en">Free code signing provided by <a href="https://signpath.io">SignPath.io</a>, certificate by <a href="https://signpath.org">SignPath Foundation</a>.</p>
+    <p>SignPath.io ofrece la firma de código sin coste y el certificado es de SignPath Foundation. Por eso Windows muestra «SignPath Foundation» como editor de los programas de GrxFirma.</p>
+
+    <h2>Qué se firma</h2>
+    <p>Se firman con Authenticode los programas de GrxFirma para Windows que se publican en las <a href="https://github.com/aavidad/GrxFirma/releases">versiones oficiales</a>:</p>
+    <ul>
+      <li>los instaladores (<code>*-setup.exe</code>) y los desinstaladores que llevan dentro;</li>
+      <li>los ejecutables y bibliotecas de los paquetes ZIP;</li>
+      <li>las bibliotecas de terceros que se distribuyen sin firma de su fabricante.</li>
+    </ul>
+    <p>Las bibliotecas que ya vienen firmadas por su fabricante, como las de Microsoft, conservan esa firma y no se vuelven a firmar.</p>
+    <p>Solo se firma lo que compila el flujo público <a href="https://github.com/aavidad/GrxFirma/blob/main/.github/workflows/release.yml"><code>release.yml</code></a> de GitHub Actions a partir de una etiqueta de versión que ya está en la rama principal. Cada firma lleva un sello de tiempo. Antes de publicar, otro equipo sin acceso a la firma comprueba de nuevo todas las firmas y las sumas SHA-256. Las sumas de cada versión se publican firmadas con OpenPGP.</p>
+    <p>La aplicación Android se firma aparte, con una clave propia del proyecto que no gestiona SignPath.</p>
+
+    <h2>Personas responsables</h2>
+    <p>Autoría y revisión del código: Alberto Avidad (<a href="mailto:avidad@dipgra.es">avidad@dipgra.es</a>).</p>
+    <p>Aprobación de cada firma: Alberto Avidad (<a href="mailto:avidad@dipgra.es">avidad@dipgra.es</a>). Ninguna versión se firma sin su aprobación expresa en SignPath.</p>
+
+    <h2>Privacidad</h2>
+    <p>Los programas firmados no envían información a otros sistemas salvo que lo pida la persona que los usa o quien los instala o administra. Las excepciones son estas:</p>
+    <ul>
+      <li>La aplicación de escritorio consulta en GitHub si hay una versión nueva. Esta comprobación viene activada y se puede desactivar en la configuración.</li>
+      <li>Al firmar o verificar, la aplicación puede consultar servicios de sellado de tiempo o de estado de certificados, según la operación y la configuración.</li>
+    </ul>
+    <p>Los documentos y las claves privadas no se envían a servidores de GrxFirma. Los detalles están en la <a href="privacidad.html">política de privacidad</a>.</p>
+
+    <h2>Contacto</h2>
+    <p>Para avisar de un binario sospechoso o de un problema de firma, escribe a <a href="mailto:avidad@dipgra.es">avidad@dipgra.es</a> o sigue la <a href="https://github.com/aavidad/GrxFirma/blob/main/SECURITY.md">política de seguridad</a>.</p>
+  </main>
+</body>
+</html>

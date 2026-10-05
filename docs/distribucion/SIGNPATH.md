@@ -11,10 +11,26 @@ SignPath Foundation ofrece firma de código sin coste a proyectos de software li
 
 - Proyecto de código abierto, repositorio público y licencia aprobada por la OSI. GrxFirma publica su código bajo EUPL-1.2.
 - Compilación verificable y repetible en CI desde el commit publicado. El flujo de GitHub Actions construye la suite Windows con Go, Qt, WinUI y NSIS, y comprueba los artefactos en otro runner. Hay que facilitar a SignPath el workflow y las instrucciones de reproducción.
-- Crear la organización y el proyecto en SignPath Foundation, aceptar las condiciones y configurar la integración con GitHub. Solicitar que el perfil `windows-installers` firme el instalador NSIS y los ejecutables incluidos en el ZIP. Un ZIP no recibe una firma Authenticode como archivo: se firman los ejecutables que contiene y se publica su hash.
-- Configurar `SIGNPATH_API_TOKEN` y `SIGNPATH_ORGANIZATION_ID` como secretos del entorno protegido `official-release`. El proyecto debe tener slug `grxfirma`, política `release-signing` y configuración de artefacto `windows-installers`, o habrá que adaptar esos tres valores en el workflow a los otorgados por SignPath.
+- Publicar la [política de firma de código](../sitio/firma-de-codigo.html) del sitio estático. SignPath exige esa página pública con su mención, los roles y la nota de privacidad.
+- Crear la organización y el proyecto en SignPath Foundation, aceptar las condiciones y configurar la integración con GitHub. El proyecto necesita el slug `grxfirma`, la política `release-signing` y dos configuraciones de artefacto: `windows-payload` y `windows-installers`. Si SignPath asigna otros nombres, hay que cambiarlos en el workflow. Un ZIP no recibe una firma Authenticode como archivo: se firman los ejecutables que contiene y se publica su hash.
+- Configurar `SIGNPATH_API_TOKEN` y `SIGNPATH_ORGANIZATION_ID` como secretos del entorno protegido `official-release` y fijar en la variable `WINDOWS_SIGNING_CERT_THUMBPRINT` la huella del certificado de SignPath Foundation.
 
-El paso opcional de [release.yml](../../.github/workflows/release.yml) envía a la acción oficial `signpath/github-action-submit-signing-request` el identificador del artefacto Windows generado por GitHub Actions. Espera el resultado y falla si la solicitud falla. Sin ambos secretos, se omite. Los tags con sufijo de prueba (`-...`) no solicitan SignPath. La release oficial sigue exigiendo el certificado Authenticode actual y su verificación independiente: **esta integración no reemplaza todavía ese control ni publica automáticamente el resultado de SignPath**. Antes de cambiar el paquete público habrá que integrar el artefacto devuelto, regenerar hashes y evidencias y verificar la nueva huella en un runner independiente.
+Los pasos detallados, las configuraciones de artefacto listas para pegar y los secretos están en [CERTIFICADOS.md](CERTIFICADOS.md#a-windows-con-signpath-foundation).
+
+## Cómo firma el workflow
+
+[release.yml](../../.github/workflows/release.yml) usa SignPath en las etiquetas sin sufijo de prueba cuando encuentra los dos secretos. Si no están, usa el PFX propio descrito en [RELEASE_SIGNING.md](../RELEASE_SIGNING.md). Las etiquetas `vX.Y.Z-algo` no usan SignPath. El job `release-policy` elige la vía y la anota en su resumen.
+
+Con SignPath, el job `build-windows` hace dos rondas con la acción oficial `signpath/github-action-submit-signing-request`, fijada por SHA. Cada ronda sube un artefacto, espera a que se apruebe la firma y descarga el resultado con `output-artifact-directory`:
+
+1. Ronda 1, configuración `windows-payload`: los ejecutables y bibliotecas de las etapas Qt y Suite que hay que firmar (los mismos que con PFX) y los dos desinstaladores NSIS. El desinstalador no contiene la carga útil, así que se puede generar y firmar antes que el instalador.
+2. Con lo devuelto, el workflow coloca las firmas en las etapas, replica el backend en los payloads, regenera los ZIP y genera los instaladores. NSIS vuelve a crear el desinstalador y el workflow solo lo sustituye por el firmado si es idéntico byte a byte al que se envió.
+3. Ronda 2, configuración `windows-installers`: los dos instaladores.
+4. Se publican los ZIP y los instaladores firmados en `release/windows-official`, y se regeneran `WINDOWS-SIGNATURES.json` y `SHA256SUMS-windows.txt`.
+
+Cada fichero devuelto se compara con el enviado. Solo se admite que SignPath haya añadido la tabla de certificados al final; cualquier otro cambio, un fichero de más o uno de menos paran la release. Después se verifica con `signtool` y `Get-AuthenticodeSignature` que la firma es válida, del certificado fijado, con SHA-256 y sello de tiempo RFC3161. El job `verify-windows` repite toda la verificación en otro runner sin credenciales antes de publicar.
+
+Cada release necesita dos aprobaciones en SignPath; cada ronda espera hasta una hora.
 
 ## Texto listo para pegar en la solicitud
 
