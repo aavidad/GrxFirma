@@ -5115,4 +5115,7 @@
   ,"cli.help.seal_language": "Idioma de los rótulos del sello visible. Por defecto, el idioma de la CLI."
   ,"seal.preview.signer_sample": "Nombre del firmante"
   ,"report.size_byte_one": "%d byte"
+  ,"settings.seal_language.label": "Idioma del sello"
+  ,"settings.seal_language.interface": "El mismo que la aplicación"
+  ,"settings.seal_language.help": "Idioma de los rótulos del sello visible. Elija, por ejemplo, el español para que los documentos que presente ante la Administración lleven el sello en castellano aunque la aplicación esté en otro idioma."
 }

@@ -664,6 +664,10 @@ Window {
     property bool signSealKeepText: true
     property string signSealImagePath: ""
     property int signSealLogoOpacityPercent: 100
+    // Idioma de los rótulos del sello: "" sigue a la interfaz; un código fijo
+    // (p. ej. "es") se envía en sealLanguage y el motor lo impone.
+    property string signSealLanguage: ""
+    readonly property var sealLanguageCodes: ["es", "ca", "va", "eu", "gl", "en", "de", "fr", "pt", "it", "zh"]
     property var batchGlobalSealConfig: null
     property var batchSealOverrides: ({})
     property bool batchSealOverrideEnabled: false
@@ -3618,6 +3622,7 @@ Window {
             signSealKeepText: window.signSealKeepText,
             signSealImagePath: window.signSealImagePath,
             signSealLogoOpacityPercent: window.signSealLogoOpacityPercent,
+            signSealLanguage: window.signSealLanguage === "" ? "interface" : window.signSealLanguage,
             signSealStyle: window.sealStyle,
             signQRContent: window.signQRContent,
             signQREnabled: window.signQREnabled,
@@ -4351,8 +4356,25 @@ Window {
         return payload
     }
 
+    function normalizedSealLanguage(value) {
+        const code = String(value === undefined || value === null ? "" : value).trim().toLowerCase()
+        return sealLanguageCodes.indexOf(code) >= 0 ? code : ""
+    }
+
+    function sealLanguageOptions() {
+        const options = [{ code: "", name: tr("settings.seal_language.interface") }]
+        const languages = (typeof i18n !== "undefined" && i18n) ? i18n.languages : []
+        for (let i = 0; i < languages.length; ++i) {
+            if (sealLanguageCodes.indexOf(languages[i].code) >= 0) options.push(languages[i])
+        }
+        return options
+    }
+
     function sealAppearanceOptions() {
         const options = {}
+        // Sin idioma fijo, ipcbridge añade el de la interfaz.
+        const fixedSealLanguage = normalizedSealLanguage(window.signSealLanguage)
+        if (fixedSealLanguage !== "") options.sealLanguage = fixedSealLanguage
         if (sealStyle === "institutional") options.visibleSealLogo = "institucional"
         if (window.multiCosignEnabled) {
             const summary = multiCosignVisibleSealSummary()
@@ -7687,6 +7709,7 @@ Window {
             if (s.signSealKeepText !== undefined) window.signSealKeepText = s.signSealKeepText
             if (s.signSealImagePath !== undefined) window.signSealImagePath = normalizeSealImagePath(s.signSealImagePath)
             if (s.signSealLogoOpacityPercent !== undefined) window.signSealLogoOpacityPercent = Number(s.signSealLogoOpacityPercent)
+            window.signSealLanguage = normalizedSealLanguage(s.signSealLanguage)
             if (s.signSealStyle !== undefined) window.sealStyle = normalizedEnumSetting(s.signSealStyle, "institutional", ["institutional", "text", "image"])
             else if (window.signSealImagePath !== "") window.sealStyle = "image"
             if (s.signQRContent !== undefined) window.signQRContent = s.signQRContent
@@ -14351,6 +14374,39 @@ Window {
                                         }
                                     }
                                     Text { text: window.signSealLogoOpacityPercent + " %"; color: currentTheme.textColor }
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    Text { text: tr("settings.seal_language.label"); color: currentTheme.textColor; Layout.fillWidth: true }
+                                    ComboBox {
+                                        id: settingsSealLanguageCombo
+                                        Layout.preferredWidth: 260
+                                        model: window.sealLanguageOptions()
+                                        textRole: "name"
+                                        Accessible.name: tr("settings.seal_language.label")
+                                        Accessible.description: tr("settings.seal_language.help")
+                                        function indexForCode(code) {
+                                            for (let i = 0; i < model.length; ++i) {
+                                                if (model[i].code === code) return i
+                                            }
+                                            return 0
+                                        }
+                                        onActivated: function(index) {
+                                            if (window.applyingLoadedSettings) return
+                                            window.signSealLanguage = model[index].code
+                                            markBackendSettingsDirty()
+                                        }
+                                    }
+                                    Binding { target: settingsSealLanguageCombo; property: "currentIndex"; value: settingsSealLanguageCombo.indexForCode(window.signSealLanguage) }
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: tr("settings.seal_language.help")
+                                    color: currentTheme.secondaryTextColor
+                                    font.pixelSize: 12
+                                    wrapMode: Text.WordWrap
                                 }
 
                                 RowLayout {

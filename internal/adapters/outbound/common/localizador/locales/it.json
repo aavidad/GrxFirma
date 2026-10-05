@@ -5115,4 +5115,7 @@
   ,"cli.help.seal_language": "Lingua delle etichette del sigillo visibile. Per impostazione predefinita, la lingua della CLI."
   ,"seal.preview.signer_sample": "Nome del firmatario"
   ,"report.size_byte_one": "%d byte"
+  ,"settings.seal_language.label": "Lingua del sigillo"
+  ,"settings.seal_language.interface": "Uguale all'applicazione"
+  ,"settings.seal_language.help": "Lingua delle etichette del sigillo visibile. Scegli ad esempio lo spagnolo perché i documenti presentati alla pubblica amministrazione spagnola riportino il sigillo in questa lingua anche se l'applicazione è in un'altra lingua."
 }

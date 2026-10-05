@@ -5115,4 +5115,7 @@
   ,"cli.help.seal_language": "Idioma dels rètols del segell visible. Per defecte, l'idioma de la CLI."
   ,"seal.preview.signer_sample": "Nom del signant"
   ,"report.size_byte_one": "%d byte"
+  ,"settings.seal_language.label": "Idioma del segell"
+  ,"settings.seal_language.interface": "El mateix que l'aplicació"
+  ,"settings.seal_language.help": "Idioma dels rètols del segell visible. Trieu, per exemple, el castellà perquè els documents que presenteu a l'Administració porten el segell en esta llengua encara que l'aplicació estiga en un altre idioma."
 }

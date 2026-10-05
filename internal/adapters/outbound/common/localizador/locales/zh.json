@@ -5115,4 +5115,7 @@
   ,"cli.help.seal_language": "可见印章标签的语言。默认使用 CLI 的语言。"
   ,"seal.preview.signer_sample": "签名人姓名"
   ,"report.size_byte_one": "%d 字节"
+  ,"settings.seal_language.label": "印章语言"
+  ,"settings.seal_language.interface": "与应用程序相同"
+  ,"settings.seal_language.help": "可见印章标签的语言。例如选择西班牙语，即使应用程序使用其他语言，提交给西班牙公共行政部门的文件也会带有西班牙语印章。"
 }

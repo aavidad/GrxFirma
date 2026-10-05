@@ -5115,4 +5115,7 @@
   ,"cli.help.seal_language": "Zigilu ikusgaiaren etiketen hizkuntza. Lehenespenez, CLIaren hizkuntza."
   ,"seal.preview.signer_sample": "Sinatzailearen izena"
   ,"report.size_byte_one": "%d byte"
+  ,"settings.seal_language.label": "Zigiluaren hizkuntza"
+  ,"settings.seal_language.interface": "Aplikazioarena bera"
+  ,"settings.seal_language.help": "Zigilu ikusgaiaren etiketen hizkuntza. Aukeratu, adibidez, gaztelania, Administrazioari aurkezten dizkiozun dokumentuek zigilua hizkuntza horretan izan dezaten, aplikazioa beste hizkuntza batean egon arren."
 }
