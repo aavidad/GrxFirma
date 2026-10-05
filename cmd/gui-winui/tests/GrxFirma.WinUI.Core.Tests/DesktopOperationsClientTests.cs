@@ -819,7 +819,8 @@ public sealed class DesktopOperationsClientTests
             "remote",
             "remotePin",
             "remoteOtp",
-            "remoteOtpOnline");
+            "remoteOtpOnline",
+            "remoteMultiSign");
         AssertJsonPropertyNames<ValidateCertificateOnlineParameters>(
             "certificateId");
         AssertJsonPropertyNames<CertificateOnlineValidationResult>(
