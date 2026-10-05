@@ -34,6 +34,19 @@ var (
 	strFNMTRepresentacion = oidAPuntos(oidFNMTRepresentacion)
 	strFNMTEmpleado       = oidAPuntos(oidFNMTEmpleado)
 	strFNMTSello          = oidAPuntos(oidFNMTSello)
+
+	// Sello electrónico según ETSI: declaración QcType «eseal» dentro de la
+	// extensión QCStatements (ETSI EN 319 412-5) y políticas de certificado
+	// cualificado de persona jurídica QCP-l y QCP-l-qscd (ETSI EN 319 411-2).
+	oidQCStatements = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 3}
+	oidQcType       = asn1.ObjectIdentifier{0, 4, 0, 1862, 1, 6}
+	oidQcTypeESeal  = asn1.ObjectIdentifier{0, 4, 0, 1862, 1, 6, 2}
+	strQCPl         = "0.4.0.194112.1.1"
+	strQCPlQSCD     = "0.4.0.194112.1.3"
+
+	// Atributos del Subject propios de una persona (X.520).
+	oidSurname   = asn1.ObjectIdentifier{2, 5, 4, 4}
+	oidGivenName = asn1.ObjectIdentifier{2, 5, 4, 42}
 )
 
 // oidAPuntos convierte un asn1.ObjectIdentifier a su representacion en puntos.
@@ -59,7 +72,7 @@ func ClasificarCertificado(cert *x509.Certificate) (tipo domain.TipoCertificado,
 		org = cert.Subject.Organization[0]
 	}
 
-	// 1. OIDs de politica (mas fiable; FNMT los incluye siempre).
+	// 1. OIDs de politica y QCStatements (mas fiable; FNMT los incluye siempre).
 	if t, ok := clasificarPorOID(cert); ok {
 		return t, org, nif
 	}
@@ -69,9 +82,11 @@ func ClasificarCertificado(cert *x509.Certificate) (tipo domain.TipoCertificado,
 		return t, org, nif
 	}
 
-	// 3. Heuristica: Organization sin numero de persona → sello electronico.
-	if org != "" && nif == "" {
-		return domain.TipoCertSello, org, nif
+	// 3. Nombre o apellidos en el Subject: persona física. Una organización
+	// sin estas marcas no basta para decir que es un sello: puede ser un
+	// certificado de pruebas, de servidor o de cualquier otro uso.
+	if tieneAtributoPersona(cert) {
+		return domain.TipoCertFisica, org, nif
 	}
 
 	return domain.TipoCertDesconocido, org, nif
@@ -107,12 +122,62 @@ func clasificarPorOID(cert *x509.Certificate) (domain.TipoCertificado, bool) {
 			return domain.TipoCertRepresentacion, true
 		case strFNMTEmpleado:
 			return domain.TipoCertEmpleadoPublico, true
-		case strFNMTSello:
+		case strFNMTSello, strQCPl, strQCPlQSCD:
 			return domain.TipoCertSello, true
 		}
 	}
 
+	if declaraSelloQC(cert) {
+		return domain.TipoCertSello, true
+	}
+
 	return "", false
+}
+
+// qcStatement es una declaración de la extensión QCStatements (RFC 3739).
+type qcStatement struct {
+	ID   asn1.ObjectIdentifier
+	Info asn1.RawValue `asn1:"optional"`
+}
+
+// declaraSelloQC informa si la extensión QCStatements incluye QcType eseal.
+func declaraSelloQC(cert *x509.Certificate) bool {
+	for _, ext := range cert.Extensions {
+		if !ext.Id.Equal(oidQCStatements) {
+			continue
+		}
+		var declaraciones []qcStatement
+		if resto, err := asn1.Unmarshal(ext.Value, &declaraciones); err != nil || len(resto) != 0 {
+			return false
+		}
+		for _, d := range declaraciones {
+			if !d.ID.Equal(oidQcType) || len(d.Info.FullBytes) == 0 {
+				continue
+			}
+			var tipos []asn1.ObjectIdentifier
+			if resto, err := asn1.Unmarshal(d.Info.FullBytes, &tipos); err != nil || len(resto) != 0 {
+				continue
+			}
+			for _, tipo := range tipos {
+				if tipo.Equal(oidQcTypeESeal) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// tieneAtributoPersona informa si el Subject trae nombre o apellidos.
+func tieneAtributoPersona(cert *x509.Certificate) bool {
+	for _, atributo := range cert.Subject.Names {
+		if atributo.Type.Equal(oidGivenName) || atributo.Type.Equal(oidSurname) {
+			if valor, ok := atributo.Value.(string); ok && strings.TrimSpace(valor) != "" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // clasificarPorSerialNumber clasifica segun el prefijo ETSI EN 319 412-1.
