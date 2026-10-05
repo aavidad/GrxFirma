@@ -51,6 +51,9 @@ type Opciones struct {
 	EsperaAutorizacion time.Duration
 	// Idioma se envía como "lang" al descubrir el servicio (opcional).
 	Idioma string
+	// ParesOAuth autoriza servidores OAuth en un host distinto del servicio.
+	// Debe venir de la configuración o de la política, nunca del servicio.
+	ParesOAuth []ParOAuth
 }
 
 // InfoServicio es la parte de la respuesta de /info que usa el cliente.
@@ -89,7 +92,11 @@ func Nuevo(opc Opciones) (*Cliente, error) {
 	if opc.AbrirNavegador == nil {
 		return nil, nuevoError(CodigoParametroInvalido, "browser", nil)
 	}
-	return &Cliente{opc: opc, http: nuevoClienteHTTP(opc.HTTP), base: base}, nil
+	cliente, err := nuevoClienteHTTP(opc.HTTP)
+	if err != nil {
+		return nil, err
+	}
+	return &Cliente{opc: opc, http: cliente, base: base}, nil
 }
 
 func clientIDValido(id string) bool {
@@ -136,6 +143,9 @@ func (c *Cliente) infoLocked(ctx context.Context) (*InfoServicio, error) {
 	oauth, err := validarURLSegura(info.OAuth2)
 	if err != nil {
 		return nil, err
+	}
+	if !oauthPermitido(c.base, oauth, c.opc.ParesOAuth) {
+		return nil, nuevoError(CodigoOAuthOtroHost, "", nil)
 	}
 	c.oauth = oauth
 	c.info = &info

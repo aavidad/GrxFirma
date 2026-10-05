@@ -84,6 +84,8 @@ type Servidor struct {
 	FirmaFalsa bool
 	// ECDSACruda devuelve las firmas ECDSA como r||s en lugar de DER.
 	ECDSACruda bool
+	// OAuthURL, si no está vacío, es el servidor OAuth que anuncia /info.
+	OAuthURL string
 	// InfoOverride, si no es nil, sustituye la respuesta de /info.
 	InfoOverride func(w http.ResponseWriter, r *http.Request)
 
@@ -238,6 +240,10 @@ func aleatorio() string {
 func (s *Servidor) info(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	override := s.InfoOverride
+	oauth := s.URL
+	if s.OAuthURL != "" {
+		oauth = s.OAuthURL
+	}
 	s.mu.Unlock()
 	if override != nil {
 		override(w, r)
@@ -252,7 +258,7 @@ func (s *Servidor) info(w http.ResponseWriter, r *http.Request) {
 		"name":     "CSC simulado",
 		"region":   "ES",
 		"authType": []string{"oauth2code"},
-		"oauth2":   s.URL,
+		"oauth2":   oauth,
 		"methods":  []string{"credentials/list", "credentials/info", "credentials/authorize", "signatures/signHash"},
 	})
 }

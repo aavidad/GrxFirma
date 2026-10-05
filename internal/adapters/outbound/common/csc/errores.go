@@ -23,6 +23,7 @@ const (
 	CodigoServicio               Codigo = "servicio"
 	CodigoRed                    Codigo = "red"
 	CodigoSinOAuth               Codigo = "sin_oauth"
+	CodigoOAuthOtroHost          Codigo = "oauth_otro_host"
 	CodigoStateInvalido          Codigo = "state_invalido"
 	CodigoAutorizacionDenegada   Codigo = "autorizacion_denegada"
 	CodigoAutorizacionCaducada   Codigo = "autorizacion_caducada"

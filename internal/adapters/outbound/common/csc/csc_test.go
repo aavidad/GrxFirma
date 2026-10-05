@@ -340,3 +340,26 @@ func TestClientIDYCredencialSeValidan(t *testing.T) {
 		t.Fatalf("credencial con control: %v", err)
 	}
 }
+
+func TestOAuthEnOtroHostSeRechaza(t *testing.T) {
+	for _, otro := range []string{"https://oauth.otro-host.invalid", "https://127.0.0.1:1"} {
+		s := csctest.Nuevo(t)
+		s.Configurar(func(s *csctest.Servidor) { s.OAuthURL = otro })
+		cliente := nuevoCliente(t, s)
+		_, err := cliente.Info(context.Background())
+		esperarCodigo(t, err, csc.CodigoOAuthOtroHost)
+		err = cliente.Autorizar(context.Background())
+		esperarCodigo(t, err, csc.CodigoOAuthOtroHost)
+	}
+}
+
+func TestTransporteNoEndureciblesSeRechaza(t *testing.T) {
+	type otro struct{ http.RoundTripper }
+	_, err := csc.Nuevo(csc.Opciones{
+		URLServicio:    "https://csc.example.org",
+		ClientID:       "c",
+		HTTP:           &http.Client{Transport: otro{http.DefaultTransport}},
+		AbrirNavegador: csc.AbrirNavegadorSistema,
+	})
+	esperarCodigo(t, err, csc.CodigoParametroInvalido)
+}

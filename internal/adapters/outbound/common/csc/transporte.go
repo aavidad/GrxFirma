@@ -38,33 +38,35 @@ var errRedireccion = errors.New("csc: redirection refused")
 // nuevoClienteHTTP deriva un cliente endurecido del recibido (para heredar el
 // proxy de la organización o, en pruebas, las raíces del servidor simulado):
 // TLS 1.2 como mínimo con verificación obligatoria, tiempos máximos y
-// ninguna redirección.
-func nuevoClienteHTTP(base *http.Client) *http.Client {
+// ninguna redirección. Un RoundTripper que no sea *http.Transport no se
+// puede endurecer y se rechaza.
+func nuevoClienteHTTP(base *http.Client) (*http.Client, error) {
 	var transporte http.RoundTripper = http.DefaultTransport
 	if base != nil && base.Transport != nil {
 		transporte = base.Transport
 	}
-	if t, ok := transporte.(*http.Transport); ok {
-		c := t.Clone()
-		if c.TLSClientConfig == nil {
-			c.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12}
-		}
-		if c.TLSClientConfig.MinVersion < tls.VersionTLS12 {
-			c.TLSClientConfig.MinVersion = tls.VersionTLS12
-		}
-		// La verificación del certificado del servidor no es negociable.
-		c.TLSClientConfig.InsecureSkipVerify = false
-		c.TLSHandshakeTimeout = tiempoNegociacionTLS
-		c.ResponseHeaderTimeout = tiempoPeticion
-		transporte = c
+	t, ok := transporte.(*http.Transport)
+	if !ok {
+		return nil, nuevoError(CodigoParametroInvalido, "transport", nil)
 	}
+	c := t.Clone()
+	if c.TLSClientConfig == nil {
+		c.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+	}
+	if c.TLSClientConfig.MinVersion < tls.VersionTLS12 {
+		c.TLSClientConfig.MinVersion = tls.VersionTLS12
+	}
+	// La verificación del certificado del servidor no es negociable.
+	c.TLSClientConfig.InsecureSkipVerify = false
+	c.TLSHandshakeTimeout = tiempoNegociacionTLS
+	c.ResponseHeaderTimeout = tiempoPeticion
 	return &http.Client{
-		Transport: transporte,
+		Transport: c,
 		Timeout:   tiempoPeticion,
 		CheckRedirect: func(*http.Request, []*http.Request) error {
 			return errRedireccion
 		},
-	}
+	}, nil
 }
 
 // validarURLSegura exige https, un host y ningún componente que pueda
