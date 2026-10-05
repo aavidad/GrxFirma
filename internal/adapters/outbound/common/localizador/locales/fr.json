@@ -4841,5 +4841,10 @@
   ,"ENI: las fechas de captura y de apertura se eligen en un calendario.": "ENI : les dates de capture et d'ouverture se choisissent dans un calendrier."
   ,"ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».": "ENI : GrxFirma vérifie que le document ou le dossier généré respecte la structure de la norme technique (NTI) et signale chaque problème. Il valide aussi un fichier existant avec « grxfirma -operacion validar-eni -entrada <fichero> »."
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "Les adresses de vérification du QR code et de la légende CSV acceptent les domaines avec accents ou ñ, par exemple « https://sede.almuñécar.es/verificar »."
-  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux : les boîtes de dialogue se lisent bien avec n'importe quel thème ; le texte n'apparaît plus clair sur fond clair."
+  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux : les boîtes de dialogue se lisent bien avec n'importe quel thème ; le texte n'apparaît plus clair sur fond clair.",
+  "sign.seal.draw_area": "Dessiner la zone",
+  "sign.seal.draw_help": "Faites glisser sur la page pour dessiner la zone du cachet. Dans ce mode, les flèches déplacent un coin et Maj + flèches le coin opposé. Entrée confirme ; Échap annule.",
+  "sign.seal.draw_too_small": "La zone est trop petite. Dessinez un rectangle plus grand ; le cachet précédent est conservé.",
+  "sign.seal.draw_applied": "Zone du cachet mise à jour sur cette page.",
+  "sign.seal.draw_cancelled": "Dessin annulé. Le cachet précédent est conservé."
 }

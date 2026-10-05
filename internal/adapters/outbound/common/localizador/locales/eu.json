@@ -4841,5 +4841,10 @@
   ,"ENI: las fechas de captura y de apertura se eligen en un calendario.": "ENI: atzemate- eta irekiera-datak egutegi batean aukeratzen dira."
   ,"ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».": "ENI: GrxFirmak egiaztatzen du sortutako dokumentuak edo espedienteak arau teknikoaren (NTI) egitura betetzen duela, eta arazo bakoitzaren berri ematen du. Lehendik dagoen bat ere baliozkotzen du «grxfirma -operacion validar-eni -entrada <fichero>» erabiliz."
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "QR kodearen eta CSV legendaren egiaztapen-helbideek azentuak edo eñea dituzten domeinuak onartzen dituzte, adibidez «https://sede.almuñécar.es/verificar»."
-  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: elkarrizketa-koadroak ondo irakurtzen dira edozein gairekin; testua ez da jada argi agertzen hondo argiaren gainean."
+  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: elkarrizketa-koadroak ondo irakurtzen dira edozein gairekin; testua ez da jada argi agertzen hondo argiaren gainean.",
+  "sign.seal.draw_area": "Marraztu eremua",
+  "sign.seal.draw_help": "Arrastatu orrian zigiluaren eremua marrazteko. Modua aktibatuta dagoenean, geziek izkina bat mugitzen dute, eta Maius + geziek aurkakoa. Sartu teklak berresten du; Esc teklak bertan behera uzten du.",
+  "sign.seal.draw_too_small": "Eremua txikiegia da. Marraztu laukizuzen handiagoa; aurreko zigilua mantenduko da.",
+  "sign.seal.draw_applied": "Zigiluaren eremua eguneratu da orri honetan.",
+  "sign.seal.draw_cancelled": "Marrazketa bertan behera utzi da. Aurreko zigilua mantendu da."
 }

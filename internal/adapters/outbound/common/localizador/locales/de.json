@@ -4841,5 +4841,10 @@
   ,"ENI: las fechas de captura y de apertura se eligen en un calendario.": "ENI: Erfassungs- und Eröffnungsdatum werden in einem Kalender gewählt."
   ,"ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».": "ENI: GrxFirma prüft, ob das erzeugte Dokument bzw. die Akte der Struktur der technischen Norm (NTI) entspricht, und meldet jedes Problem. Mit „grxfirma -operacion validar-eni -entrada <fichero>“ lässt sich auch eine vorhandene Datei prüfen."
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "Die Prüfadressen des QR-Codes und der CSV-Legende akzeptieren Domains mit Akzenten oder ñ, zum Beispiel „https://sede.almuñécar.es/verificar“."
-  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: Dialoge sind mit jedem Design gut lesbar; Text erscheint nicht mehr hell auf hellem Hintergrund."
+  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: Dialoge sind mit jedem Design gut lesbar; Text erscheint nicht mehr hell auf hellem Hintergrund.",
+  "sign.seal.draw_area": "Bereich zeichnen",
+  "sign.seal.draw_help": "Ziehen Sie auf der Seite, um den Siegelbereich zu zeichnen. In diesem Modus bewegen die Pfeiltasten eine Ecke und Umschalt + Pfeiltasten die gegenüberliegende Ecke. Eingabe bestätigt; Esc bricht ab.",
+  "sign.seal.draw_too_small": "Der Bereich ist zu klein. Zeichnen Sie ein größeres Rechteck; das bisherige Siegel bleibt erhalten.",
+  "sign.seal.draw_applied": "Siegelbereich auf dieser Seite aktualisiert.",
+  "sign.seal.draw_cancelled": "Zeichnen abgebrochen. Das bisherige Siegel bleibt erhalten."
 }

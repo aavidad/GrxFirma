@@ -4841,5 +4841,10 @@
   ,"ENI: las fechas de captura y de apertura se eligen en un calendario.": "ENI: the capture and opening dates are chosen on a calendar."
   ,"ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».": "ENI: GrxFirma checks that the generated document or dossier follows the structure of the technical standard (NTI) and reports each problem. It also validates an existing one with «grxfirma -operacion validar-eni -entrada <fichero>»."
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "The verification addresses of the QR code and the CSV legend accept domains with accents or ñ, for example «https://sede.almuñécar.es/verificar»."
-  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: dialogs are easy to read with any theme; text no longer appears light on a light background."
+  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: dialogs are easy to read with any theme; text no longer appears light on a light background.",
+  "sign.seal.draw_area": "Draw area",
+  "sign.seal.draw_help": "Drag on the page to draw the seal area. With this mode active, arrow keys move one corner and Shift + arrow keys move the opposite corner. Enter confirms; Esc cancels.",
+  "sign.seal.draw_too_small": "The area is too small. Draw a larger rectangle; the previous seal is kept.",
+  "sign.seal.draw_applied": "Seal area updated on this page.",
+  "sign.seal.draw_cancelled": "Drawing cancelled. The previous seal is kept."
 }

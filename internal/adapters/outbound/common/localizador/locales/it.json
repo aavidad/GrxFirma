@@ -4841,5 +4841,10 @@
   ,"ENI: las fechas de captura y de apertura se eligen en un calendario.": "ENI: le date di acquisizione e di apertura si scelgono da un calendario."
   ,"ENI: GrxFirma comprueba que el documento o expediente generado cumple la estructura de la norma técnica (NTI) y avisa de cada problema. También valida uno existente con «grxfirma -operacion validar-eni -entrada <fichero>».": "ENI: GrxFirma verifica che il documento o il fascicolo generato rispetti la struttura della norma tecnica (NTI) e segnala ogni problema. Convalida anche uno esistente con «grxfirma -operacion validar-eni -entrada <fichero>»."
   ,"Las direcciones de verificación del QR y de la leyenda CSV admiten dominios con acentos o eñe, por ejemplo «https://sede.almuñécar.es/verificar».": "Gli indirizzi di verifica del QR e della legenda CSV accettano domini con accenti o ñ, per esempio «https://sede.almuñécar.es/verificar»."
-  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: le finestre di dialogo si leggono bene con qualsiasi tema; il testo non appare più chiaro su sfondo chiaro."
+  ,"Linux: los diálogos se leen bien con cualquier tema; el texto ya no sale claro sobre fondo claro.": "Linux: le finestre di dialogo si leggono bene con qualsiasi tema; il testo non appare più chiaro su sfondo chiaro.",
+  "sign.seal.draw_area": "Disegna area",
+  "sign.seal.draw_help": "Trascina sulla pagina per disegnare l’area del sigillo. In questa modalità, le frecce spostano un angolo e Maiusc + frecce l’angolo opposto. Invio conferma; Esc annulla.",
+  "sign.seal.draw_too_small": "L’area è troppo piccola. Disegna un rettangolo più grande; il sigillo precedente viene mantenuto.",
+  "sign.seal.draw_applied": "Area del sigillo aggiornata su questa pagina.",
+  "sign.seal.draw_cancelled": "Disegno annullato. Il sigillo precedente viene mantenuto."
 }
