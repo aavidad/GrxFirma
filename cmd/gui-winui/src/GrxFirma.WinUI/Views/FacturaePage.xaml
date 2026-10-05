@@ -751,7 +751,7 @@
                         <TextBlock x:Name="VeriFactuQrNotice" TextWrapping="Wrap" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button x:Name="ReadVeriFactuQrButton" AutomationProperties.Name="Leer datos del QR" MinHeight="40" TabIndex="58" Click="OnReadVeriFactuQrClick" />
-                            <Button x:Name="QueryVeriFactuQrButton" AutomationProperties.Name="Consultar AEAT" MinHeight="40" TabIndex="59" Click="OnQueryVeriFactuQrClick" IsEnabled="False" />
+                            <Button x:Name="QueryVeriFactuQrButton" AutomationProperties.Name="Consultar en la AEAT" MinHeight="40" TabIndex="59" Click="OnQueryVeriFactuQrClick" IsEnabled="False" />
                         </StackPanel>
                         <TextBlock x:Name="VeriFactuQrQueryHelp" Foreground="{ThemeResource AppMutedTextBrush}" TextWrapping="Wrap" />
                         <TextBox x:Name="VeriFactuQrReport" AutomationProperties.Name="Resultado del QR" TabIndex="60" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
