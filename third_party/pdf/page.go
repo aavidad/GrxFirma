@@ -18,37 +18,12 @@ type Page struct {
 // Page returns the page for the given page number.
 // Page numbers are indexed starting at 1, not 0.
 // If the page is not found, Page returns a Page with p.V.IsNull().
+//
+// AutoFirmaV2: delega en BuscarPagina, que corta los árboles cíclicos o
+// demasiado profundos; en ese caso también devuelve una página nula.
 func (r *Reader) Page(num int) Page {
-	num-- // now 0-indexed
-	page := r.Trailer().Key("Root").Key("Pages")
-Search:
-	for page.Key("Type").Name() == "Pages" {
-		count := int(page.Key("Count").Int64())
-		if count < num {
-			return Page{}
-		}
-		kids := page.Key("Kids")
-		for i := 0; i < kids.Len(); i++ {
-			kid := kids.Index(i)
-			if kid.Key("Type").Name() == "Pages" {
-				c := int(kid.Key("Count").Int64())
-				if num < c {
-					page = kid
-					continue Search
-				}
-				num -= c
-				continue
-			}
-			if kid.Key("Type").Name() == "Page" {
-				if num == 0 {
-					return Page{kid}
-				}
-				num--
-			}
-		}
-		break
-	}
-	return Page{}
+	p, _ := r.BuscarPagina(num)
+	return p
 }
 
 // NumPage returns the number of pages in the PDF file.
@@ -56,11 +31,25 @@ func (r *Reader) NumPage() int {
 	return int(r.Trailer().Key("Root").Key("Pages").Key("Count").Int64())
 }
 
+// AutoFirmaV2: la cadena /Parent no es de confianza; se corta si repite un
+// objeto o supera MaxProfundidadArbolPaginas niveles.
 func (p Page) findInherited(key string) Value {
-	for v := p.V; !v.IsNull(); v = v.Key("Parent") {
+	var vistos map[objptr]bool
+	v := p.V
+	for nivel := 0; !v.IsNull() && nivel <= MaxProfundidadArbolPaginas; nivel++ {
 		if r := v.Key(key); !r.IsNull() {
 			return r
 		}
+		if ref, ok := refIndirecta(crudoClave(v, "Parent")); ok {
+			if vistos == nil {
+				vistos = make(map[objptr]bool)
+			}
+			if vistos[ref] {
+				return Value{}
+			}
+			vistos[ref] = true
+		}
+		v = v.Key("Parent")
 	}
 	return Value{}
 }
@@ -653,15 +642,34 @@ type Outline struct {
 // Outline returns the document outline.
 // The Outline returned is the root of the outline tree and typically has no Title itself.
 // That is, the children of the returned root are the top-level entries in the outline.
+//
+// AutoFirmaV2: el índice no es de confianza. Cada entrada se visita una sola
+// vez (un /Next o /First circular termina ahí) y se limitan la profundidad y
+// el número total de entradas.
 func (r *Reader) Outline() Outline {
-	return buildOutline(r.Trailer().Key("Root").Key("Outlines"))
+	presupuesto := maxEntradasIndice
+	return buildOutline(r.Trailer().Key("Root").Key("Outlines"), map[objptr]bool{}, 0, &presupuesto)
 }
 
-func buildOutline(entry Value) Outline {
+const maxEntradasIndice = 100000
+
+func buildOutline(entry Value, vistos map[objptr]bool, nivel int, presupuesto *int) Outline {
 	var x Outline
 	x.Title = entry.Key("Title").Text()
-	for child := entry.Key("First"); child.Kind() == Dict; child = child.Key("Next") {
-		x.Child = append(x.Child, buildOutline(child))
+	if nivel >= MaxProfundidadArbolPaginas {
+		return x
+	}
+	crudo := crudoClave(entry, "First")
+	for child := entry.Key("First"); child.Kind() == Dict && *presupuesto > 0; child = child.Key("Next") {
+		if ref, ok := refIndirecta(crudo); ok {
+			if vistos[ref] {
+				break
+			}
+			vistos[ref] = true
+		}
+		*presupuesto--
+		crudo = crudoClave(child, "Next")
+		x.Child = append(x.Child, buildOutline(child, vistos, nivel+1, presupuesto))
 	}
 	return x
 }
