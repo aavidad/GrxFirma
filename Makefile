@@ -68,7 +68,7 @@ NM_FIREFOX  := $(HOME)/.mozilla/native-messaging-hosts
 
 # ID de la extension Chrome/Chromium y Firefox
 CHROME_EXT_ID  ?= pkefjandjcgdmhoonmhnllikibobijgg
-FIREFOX_EXT_ID ?= extension@dipgra.es
+FIREFOX_EXT_ID ?= grxfirma@aavidad.github.io
 
 .PHONY: all build build-gui build-uri build-bridge build-qt-bootstrap build-pkcs11-worker build-qt-qml windows-cli windows-cli-zip windows-cli-nsis \
         windows-nativehost windows-nativehost-zip windows-suite windows-desktop-qml windows-desktop-qml-nsis \
@@ -313,10 +313,11 @@ bridge-user: install-user
 	    if [ -d "$$dir" ]; then \
 	        printf '{\n  "name": "com.grxfirma.native",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://$(CHROME_EXT_ID)/"]\n}\n' \
 	            "$(USERLIBDIR)" > "$$dir/com.grxfirma.native.json"; \
-	        printf '{\n  "name": "com.dipgra.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://$(CHROME_EXT_ID)/"]\n}\n' \
-	            "$(USERLIBDIR)" > "$$dir/com.dipgra.grxfirma.json"; \
-	        printf '{\n  "name": "com.dipgra.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/","chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"]\n}\n' \
-	            "$(USERLIBDIR)" > "$$dir/com.dipgra.portafirmas.json"; \
+	        printf '{\n  "name": "io.github.aavidad.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://$(CHROME_EXT_ID)/"]\n}\n' \
+	            "$(USERLIBDIR)" > "$$dir/io.github.aavidad.grxfirma.json"; \
+	        printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_origins": ["chrome-extension://ipkpimgjhkjibkbhfdhggjldlaetbcoa/","chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/"]\n}\n' \
+	            "$(USERLIBDIR)" > "$$dir/io.github.aavidad.portafirmas.json"; \
+	        rm -f "$$dir/com.dipgra.grxfirma.json" "$$dir/com.dipgra.portafirmas.json"; \
 	        echo "  Manifest instalado en $$dir"; \
 	    fi \
 	done
@@ -324,10 +325,11 @@ bridge-user: install-user
 	@mkdir -p "$(NM_FIREFOX)"
 	@printf '{\n  "name": "com.grxfirma.native",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["$(FIREFOX_EXT_ID)"]\n}\n' \
 	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/com.grxfirma.native.json"
-	@printf '{\n  "name": "com.dipgra.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["$(FIREFOX_EXT_ID)"]\n}\n' \
-	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/com.dipgra.grxfirma.json"
-	@printf '{\n  "name": "com.dipgra.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["portafirmas@dipgra.es"]\n}\n' \
-	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/com.dipgra.portafirmas.json"
+	@printf '{\n  "name": "io.github.aavidad.grxfirma",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["$(FIREFOX_EXT_ID)"]\n}\n' \
+	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/io.github.aavidad.grxfirma.json"
+	@printf '{\n  "name": "io.github.aavidad.portafirmas",\n  "description": "GrxFirma Native Messaging Host",\n  "path": "%s/browser-bridge.sh",\n  "type": "stdio",\n  "allowed_extensions": ["portafirmas@dipgra.es"]\n}\n' \
+	    "$(USERLIBDIR)" > "$(NM_FIREFOX)/io.github.aavidad.portafirmas.json"
+	@rm -f "$(NM_FIREFOX)/com.dipgra.grxfirma.json" "$(NM_FIREFOX)/com.dipgra.portafirmas.json"
 	@echo "  Manifest instalado en $(NM_FIREFOX)"
 	@echo "Bridge de navegadores instalado."
 	@echo "  Certificados: coloca tus .p12 en $(USERCFGDIR)"

@@ -48,6 +48,6 @@ EOF
   [ "$status" -eq 0 ]
   [ "$output" = $'<--browser>\n<chrome>\n<--extension-id>\n<id con espacio>' ]
 
-  [ "$(stat -c %a "${TEST_HOME}/.config/google-chrome/NativeMessagingHosts/com.dipgra.grxfirma.json")" = 644 ]
-  [ "$(stat -c %a "${TEST_HOME}/.mozilla/native-messaging-hosts/com.dipgra.grxfirma.json")" = 644 ]
+  [ "$(stat -c %a "${TEST_HOME}/.config/google-chrome/NativeMessagingHosts/io.github.aavidad.grxfirma.json")" = 644 ]
+  [ "$(stat -c %a "${TEST_HOME}/.mozilla/native-messaging-hosts/io.github.aavidad.grxfirma.json")" = 644 ]
 }

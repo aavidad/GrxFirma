@@ -283,6 +283,26 @@ EOF
   [ "$(cat "${native_manifests}/keep.json")" = "unrelated" ]
 }
 
+@test "el desinstalador retira los hosts y la extension de versiones anteriores" {
+  local base="${TEST_HOME}/Library/Application Support/GrxFirma"
+  local native_manifests="${TEST_HOME}/Library/Application Support/Google/Chrome/NativeMessagingHosts"
+  local profile="${TEST_HOME}/Library/Application Support/Firefox/Profiles/test.default"
+
+  run env HOME="${TEST_HOME}" bash "${SUITE}/install-suite.sh"
+  [ "$status" -eq 0 ]
+  printf '{"name":"com.dipgra.grxfirma","path":"%s"}\n' "${base}/NativeHost/grxfirma-nativehost" \
+    > "${native_manifests}/com.dipgra.grxfirma.json"
+  mkdir -p "${base}/Extensions/firefox" "${profile}/extensions"
+  printf 'xpi-anterior' > "${base}/Extensions/firefox/dipgra-extension-firefox.xpi"
+  cp "${base}/Extensions/firefox/dipgra-extension-firefox.xpi" "${profile}/extensions/extension@dipgra.es.xpi"
+
+  run env HOME="${TEST_HOME}" bash "${base}/uninstall-suite.sh"
+
+  [ "$status" -eq 0 ]
+  [ ! -e "${native_manifests}/com.dipgra.grxfirma.json" ]
+  [ ! -e "${profile}/extensions/extension@dipgra.es.xpi" ]
+}
+
 @test "el desinstalador limpia el bundle Desktop Qt y su bootstrap IPC" {
   local base="${TEST_HOME}/Library/Application Support/GrxFirma"
   local desktop_app="${TEST_HOME}/Applications/GrxFirma Desktop Qt.app"

@@ -141,9 +141,9 @@ with zipfile.ZipFile(sys.argv[1]) as zf:
 '@
     $version = (& python -c $versionScript $ZipSource).Trim()
 
-    Copy-Item $crxPath (Join-Path $OutputDir "dipgra-extension-chromium.crx") -Force
-    Set-Content -Path (Join-Path $OutputDir "dipgra-extension-chromium.id") -Value $extensionId -Encoding ASCII
-    Set-Content -Path (Join-Path $OutputDir "dipgra-extension-chromium.version") -Value $version -Encoding ASCII
+    Copy-Item $crxPath (Join-Path $OutputDir "grxfirma-extension-chromium.crx") -Force
+    Set-Content -Path (Join-Path $OutputDir "grxfirma-extension-chromium.id") -Value $extensionId -Encoding ASCII
+    Set-Content -Path (Join-Path $OutputDir "grxfirma-extension-chromium.version") -Value $version -Encoding ASCII
     Remove-Item $tmpRoot -Recurse -Force
 }
 
@@ -170,9 +170,9 @@ Copy-Item (Join-Path $Raiz "packaging/windows/install-path-safety.ps1") (Join-Pa
 New-Item -ItemType Directory -Force -Path (Join-Path $Escenario "extensions") | Out-Null
 & (Join-Path $Raiz "packaging/browser-extensions/build.ps1")
 foreach ($extensionAsset in @(
-    "dipgra-extension-chromium.zip",
-    "dipgra-extension-firefox.xpi",
-    "dipgra-extension-firefox.metadata.json"
+    "grxfirma-extension-chromium.zip",
+    "grxfirma-extension-firefox.xpi",
+    "grxfirma-extension-firefox.metadata.json"
 )) {
     $extensionSource = Join-Path $Raiz "packaging/browser-extensions/$extensionAsset"
     if (-not (Test-Path -LiteralPath $extensionSource -PathType Leaf)) {
@@ -180,7 +180,7 @@ foreach ($extensionAsset in @(
     }
     Copy-Item -LiteralPath $extensionSource -Destination (Join-Path $Escenario "extensions") -Force
 }
-Build-ChromiumExtensionAsset -ZipSource (Join-Path $Raiz "packaging/browser-extensions/dipgra-extension-chromium.zip") -OutputDir (Join-Path $Escenario "extensions")
+Build-ChromiumExtensionAsset -ZipSource (Join-Path $Raiz "packaging/browser-extensions/grxfirma-extension-chromium.zip") -OutputDir (Join-Path $Escenario "extensions")
 Set-Content -Path (Join-Path $Escenario "VERSION.txt") -Value $Version -Encoding UTF8
 
 if (Test-Path $Zip) {
@@ -203,9 +203,9 @@ required = {
     f"{stage_name}/uninstall-nativehost.ps1",
     f"{stage_name}/install-path-safety.ps1",
     f"{stage_name}/VERSION.txt",
-    f"{stage_name}/extensions/dipgra-extension-chromium.zip",
-    f"{stage_name}/extensions/dipgra-extension-firefox.xpi",
-    f"{stage_name}/extensions/dipgra-extension-firefox.metadata.json",
+    f"{stage_name}/extensions/grxfirma-extension-chromium.zip",
+    f"{stage_name}/extensions/grxfirma-extension-firefox.xpi",
+    f"{stage_name}/extensions/grxfirma-extension-firefox.metadata.json",
 }
 with zipfile.ZipFile(zip_path) as archive:
     names = set(archive.namelist())

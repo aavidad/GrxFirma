@@ -2779,7 +2779,7 @@ void IpcBridge::reinstallBrowserConnectors() {
   const QString localBridge = home + "/.local/lib/grxfirma/bin/browser-bridge.sh";
   if (QFileInfo::exists(localBridge))
     env.insert(QStringLiteral("GRXFIRMA_BROWSER_BRIDGE"), localBridge);
-  const QString localXpi = home + "/.local/lib/grxfirma/extensions/firefox/dipgra-extension-firefox.xpi";
+  const QString localXpi = home + "/.local/lib/grxfirma/extensions/firefox/grxfirma-extension-firefox.xpi";
   if (QFileInfo::exists(localXpi))
     env.insert(QStringLiteral("GRXFIRMA_FIREFOX_XPI"), localXpi);
   process->setProcessEnvironment(env);

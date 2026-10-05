@@ -44,7 +44,7 @@ configure_browsers() {
   run configure_browsers
 
   [ "$status" -eq 0 ]
-  [ ! -e "${TEST_PROFILE}/extensions/extension@dipgra.es.xpi" ]
+  [ ! -e "${TEST_PROFILE}/extensions/grxfirma@aavidad.github.io.xpi" ]
 }
 
 @test "installs a signed Firefox artifact with matching hash" {
@@ -53,7 +53,7 @@ configure_browsers() {
   run configure_browsers
 
   [ "$status" -eq 0 ]
-  [ -f "${TEST_PROFILE}/extensions/extension@dipgra.es.xpi" ]
+  [ -f "${TEST_PROFILE}/extensions/grxfirma@aavidad.github.io.xpi" ]
 }
 
 @test "rejects a signed Firefox artifact with mismatched hash" {
@@ -63,7 +63,7 @@ configure_browsers() {
   run configure_browsers
 
   [ "$status" -eq 0 ]
-  [ ! -e "${TEST_PROFILE}/extensions/extension@dipgra.es.xpi" ]
+  [ ! -e "${TEST_PROFILE}/extensions/grxfirma@aavidad.github.io.xpi" ]
 }
 
 @test "los manifiestos nativos tienen modo 0644 con umask restrictiva" {
@@ -73,13 +73,13 @@ configure_browsers() {
   run configure_browsers
 
   [ "$status" -eq 0 ]
-  [ "$(stat -c %a "${TEST_HOME}/.config/google-chrome/NativeMessagingHosts/com.dipgra.grxfirma.json")" = 644 ]
-  [ "$(stat -c %a "${TEST_HOME}/.mozilla/native-messaging-hosts/com.dipgra.grxfirma.json")" = 644 ]
+  [ "$(stat -c %a "${TEST_HOME}/.config/google-chrome/NativeMessagingHosts/io.github.aavidad.grxfirma.json")" = 644 ]
+  [ "$(stat -c %a "${TEST_HOME}/.mozilla/native-messaging-hosts/io.github.aavidad.grxfirma.json")" = 644 ]
 }
 
 @test "reemplaza un enlace de manifiesto sin modificar su destino" {
   write_metadata false
-  local target="${TEST_HOME}/.config/google-chrome/NativeMessagingHosts/com.dipgra.grxfirma.json"
+  local target="${TEST_HOME}/.config/google-chrome/NativeMessagingHosts/io.github.aavidad.grxfirma.json"
   local sentinel="${BATS_TEST_TMPDIR}/ajeno"
   mkdir -p "$(dirname "${target}")"
   printf 'intacto\n' > "${sentinel}"
@@ -90,4 +90,28 @@ configure_browsers() {
   [ "$status" -eq 0 ]
   [ ! -L "${target}" ]
   [ "$(cat "${sentinel}")" = intacto ]
+}
+
+@test "retira los hosts y la extension de versiones anteriores y conserva los ajenos" {
+  write_metadata false
+  local chrome_dir="${TEST_HOME}/.config/google-chrome/NativeMessagingHosts"
+  local edge_dir="${TEST_HOME}/.config/microsoft-edge/NativeMessagingHosts"
+  local firefox_dir="${TEST_HOME}/.mozilla/native-messaging-hosts"
+  mkdir -p "${chrome_dir}" "${edge_dir}" "${firefox_dir}" "${TEST_PROFILE}/extensions"
+  printf '{"name":"com.dipgra.grxfirma","path":"/usr/lib/grxfirma/bin/browser-bridge.sh"}\n' \
+    > "${chrome_dir}/com.dipgra.grxfirma.json"
+  printf '{"name":"com.dipgra.portafirmas","path":"%s/.local/lib/grxfirma/bin/browser-bridge.sh"}\n' "${TEST_HOME}" \
+    > "${firefox_dir}/com.dipgra.portafirmas.json"
+  printf '{"name":"com.dipgra.portafirmas","path":"/opt/otro-producto/host"}\n' \
+    > "${edge_dir}/com.dipgra.portafirmas.json"
+  printf 'xpi-anterior' > "${TEST_PROFILE}/extensions/extension@dipgra.es.xpi"
+
+  run configure_browsers
+
+  [ "$status" -eq 0 ]
+  [ ! -e "${chrome_dir}/com.dipgra.grxfirma.json" ]
+  [ ! -e "${firefox_dir}/com.dipgra.portafirmas.json" ]
+  [ -f "${edge_dir}/com.dipgra.portafirmas.json" ]
+  [ ! -e "${TEST_PROFILE}/extensions/extension@dipgra.es.xpi" ]
+  [ -f "${firefox_dir}/io.github.aavidad.grxfirma.json" ]
 }

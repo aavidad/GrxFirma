@@ -332,9 +332,9 @@ build_chromium_extension_assets() {
   version="$(extract_extension_version "${zip_path}")"
   ext_id="$(compute_extension_id "${pem}")"
 
-  cp "${crx}" "${out_dir}/dipgra-extension-chromium.crx"
-  printf '%s\n' "${ext_id}" > "${out_dir}/dipgra-extension-chromium.id"
-  printf '%s\n' "${version}" > "${out_dir}/dipgra-extension-chromium.version"
+  cp "${crx}" "${out_dir}/grxfirma-extension-chromium.crx"
+  printf '%s\n' "${ext_id}" > "${out_dir}/grxfirma-extension-chromium.id"
+  printf '%s\n' "${version}" > "${out_dir}/grxfirma-extension-chromium.version"
 }
 
 codesign_if_enabled() {
@@ -387,9 +387,9 @@ required = {
     f"{stage_name}/install-desktop-qml.sh",
     f"{stage_name}/uninstall-suite.sh",
     f"{stage_name}/VERSION.txt",
-    f"{stage_name}/extensions/dipgra-extension-chromium.zip",
-    f"{stage_name}/extensions/dipgra-extension-firefox.xpi",
-    f"{stage_name}/extensions/dipgra-extension-firefox.metadata.json",
+    f"{stage_name}/extensions/grxfirma-extension-chromium.zip",
+    f"{stage_name}/extensions/grxfirma-extension-firefox.xpi",
+    f"{stage_name}/extensions/grxfirma-extension-firefox.metadata.json",
 }
 with tarfile.open(tar_path, "r:gz") as archive:
     names = set(archive.getnames())
@@ -604,9 +604,9 @@ cp "${ROOT_DIR}/packaging/macos/README_DESKTOP_QML_MACOS.md" "${STAGE_DIR}/READM
 mkdir -p "${STAGE_DIR}/extensions"
 bash "${ROOT_DIR}/packaging/browser-extensions/build.sh"
 for extension_asset in \
-  dipgra-extension-chromium.zip \
-  dipgra-extension-firefox.xpi \
-  dipgra-extension-firefox.metadata.json; do
+  grxfirma-extension-chromium.zip \
+  grxfirma-extension-firefox.xpi \
+  grxfirma-extension-firefox.metadata.json; do
   extension_source="${ROOT_DIR}/packaging/browser-extensions/${extension_asset}"
   if [[ ! -f "${extension_source}" ]]; then
     echo "error: falta el artefacto de navegador aprobado: ${extension_source}" >&2
@@ -614,7 +614,7 @@ for extension_asset in \
   fi
   cp "${extension_source}" "${STAGE_DIR}/extensions/"
 done
-build_chromium_extension_assets "${ROOT_DIR}/packaging/browser-extensions/dipgra-extension-chromium.zip" "${STAGE_DIR}/extensions"
+build_chromium_extension_assets "${ROOT_DIR}/packaging/browser-extensions/grxfirma-extension-chromium.zip" "${STAGE_DIR}/extensions"
 if [[ "${GRXFIRMA_BUILD_SAFARI:-0}" == "1" ]]; then
   SAFARI_PROJECT_DIR="${STAGE_DIR}/safari" \
     bash "${ROOT_DIR}/packaging/browser-extensions/build-safari.sh"

@@ -191,9 +191,9 @@ jobs:
       - name: Extract Firefox smoke artifact
         run: |
           mkdir -p "${RUNNER_TEMP}/firefox-extension"
-          firefox_xpi="packaging/browser-extensions/dipgra-extension-firefox-unsigned.xpi"
+          firefox_xpi="packaging/browser-extensions/grxfirma-extension-firefox-unsigned.xpi"
           if [[ ! -f "${firefox_xpi}" ]]; then
-            firefox_xpi="packaging/browser-extensions/dipgra-extension-firefox.xpi"
+            firefox_xpi="packaging/browser-extensions/grxfirma-extension-firefox.xpi"
           fi
           python3 -m zipfile -e "${firefox_xpi}" "${RUNNER_TEMP}/firefox-extension"
 
@@ -208,8 +208,8 @@ jobs:
         with:
           name: browser-extensions-unsigned-smoke
           path: |
-            packaging/browser-extensions/dipgra-extension-chromium.zip
-            packaging/browser-extensions/dipgra-extension-firefox*.xpi
+            packaging/browser-extensions/grxfirma-extension-chromium.zip
+            packaging/browser-extensions/grxfirma-extension-firefox*.xpi
             ${{ runner.temp }}/browser-validation.json
             ${{ runner.temp }}/firefox-web-ext-lint.txt
           if-no-files-found: error

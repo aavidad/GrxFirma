@@ -56,9 +56,9 @@ func TestNativeCallerFromArgs_FirefoxValidaManifiestoYBinario(t *testing.T) {
 	dir := t.TempDir()
 	executable := filepath.Join(dir, "grxfirma-nativehost")
 	writeTestFile(t, executable, []byte("host"), 0o700)
-	manifest := filepath.Join(dir, "com.dipgra.grxfirma.json")
+	manifest := filepath.Join(dir, "io.github.aavidad.grxfirma.json")
 	writeTestManifest(t, manifest, nativeHostManifest{
-		Name:              "com.dipgra.grxfirma",
+		Name:              "io.github.aavidad.grxfirma",
 		Path:              executable,
 		Type:              "stdio",
 		AllowedExtensions: []string{officialFirefoxExtensionID},
@@ -80,9 +80,9 @@ func TestNativeCallerFromArgs_RechazaAusenteMalformadoYOtroFirefox(t *testing.T)
 	dir := t.TempDir()
 	executable := filepath.Join(dir, "grxfirma-nativehost")
 	writeTestFile(t, executable, []byte("host"), 0o700)
-	manifest := filepath.Join(dir, "com.dipgra.grxfirma.json")
+	manifest := filepath.Join(dir, "io.github.aavidad.grxfirma.json")
 	writeTestManifest(t, manifest, nativeHostManifest{
-		Name:              "com.dipgra.grxfirma",
+		Name:              "io.github.aavidad.grxfirma",
 		Path:              executable,
 		Type:              "stdio",
 		AllowedExtensions: []string{officialFirefoxExtensionID},
@@ -111,16 +111,16 @@ func TestNewNativeCallerPolicy_CargaSoloIDYManifiestoLigadosAlBinario(t *testing
 	writeTestFile(t, executable, []byte("host"), 0o700)
 
 	const packageID = "abcdefghijklmnopabcdefghijklmnop"
-	idPath := filepath.Join(dir, "extensions", "chromium", "dipgra-extension-chromium.id")
+	idPath := filepath.Join(dir, "extensions", "chromium", "grxfirma-extension-chromium.id")
 	writeTestFile(t, idPath, []byte(packageID+"\n"), 0o600)
 
 	const managedID = "ponmlkjihgfedcbaponmlkjihgfedcba"
 	manifestPath := filepath.Join(
 		home, ".config", "google-chrome", "NativeMessagingHosts",
-		"com.dipgra.grxfirma.json",
+		"io.github.aavidad.grxfirma.json",
 	)
 	writeTestManifest(t, manifestPath, nativeHostManifest{
-		Name:           "com.dipgra.grxfirma",
+		Name:           "io.github.aavidad.grxfirma",
 		Path:           executable,
 		Type:           "stdio",
 		AllowedOrigins: []string{"chrome-extension://" + managedID + "/"},
@@ -135,10 +135,10 @@ func TestNewNativeCallerPolicy_CargaSoloIDYManifiestoLigadosAlBinario(t *testing
 
 	otherManifest := filepath.Join(
 		home, ".config", "chromium", "NativeMessagingHosts",
-		"com.dipgra.grxfirma.json",
+		"io.github.aavidad.grxfirma.json",
 	)
 	writeTestManifest(t, otherManifest, nativeHostManifest{
-		Name:           "com.dipgra.grxfirma",
+		Name:           "io.github.aavidad.grxfirma",
 		Path:           filepath.Join(dir, "otro-host"),
 		Type:           "stdio",
 		AllowedOrigins: []string{"chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/"},
@@ -149,11 +149,34 @@ func TestNewNativeCallerPolicy_CargaSoloIDYManifiestoLigadosAlBinario(t *testing
 	}
 }
 
+func TestNativeCallerFromArgs_RechazaIdentidadesDelEspacioDeNombresAnterior(t *testing.T) {
+	dir := t.TempDir()
+	executable := filepath.Join(dir, "grxfirma-nativehost")
+	writeTestFile(t, executable, []byte("host"), 0o700)
+	const legacyFirefoxID = "extension@dipgra.es"
+	legacyManifest := filepath.Join(dir, "com.dipgra.grxfirma.json")
+	writeTestManifest(t, legacyManifest, nativeHostManifest{
+		Name:              "com.dipgra.grxfirma",
+		Path:              executable,
+		Type:              "stdio",
+		AllowedExtensions: []string{legacyFirefoxID},
+	})
+	if _, ok := readNativeHostManifest(legacyManifest); ok {
+		t.Fatal("el manifiesto con el nombre de host anterior no debe aceptarse")
+	}
+	if got, err := nativeCallerFromArgs(
+		[]string{legacyManifest, legacyFirefoxID},
+		newNativeCallerPolicy(executable, filepath.Join(dir, "home"), false),
+	); err == nil {
+		t.Fatalf("la extension Firefox anterior se acepto como %q", got)
+	}
+}
+
 func TestReadNativeHostManifest_RechazaEnlaceYTamanoExcesivo(t *testing.T) {
 	dir := t.TempDir()
 	manifestPath := filepath.Join(dir, "manifest.json")
 	writeTestManifest(t, manifestPath, nativeHostManifest{
-		Name: "com.dipgra.grxfirma", Path: filepath.Join(dir, "host"), Type: "stdio",
+		Name: "io.github.aavidad.grxfirma", Path: filepath.Join(dir, "host"), Type: "stdio",
 	})
 	if _, ok := readNativeHostManifest(manifestPath); !ok {
 		t.Fatal("un manifiesto regular y acotado debe ser aceptado")

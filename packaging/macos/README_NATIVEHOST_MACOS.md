@@ -90,8 +90,14 @@ error: el build macOS requiere macOS real o una toolchain Darwin cruzada configu
   `GRXFIRMA_EDGE_EXTENSION_UPDATE_URL`; las URL deben ser HTTPS.
 - Los nombres de host registrados son:
   - `com.grxfirma.native`
-  - `com.dipgra.grxfirma`
-  - `com.dipgra.portafirmas`
+  - `io.github.aavidad.grxfirma`
+  - `io.github.aavidad.portafirmas`
+- Las versiones anteriores registraban `com.dipgra.grxfirma`,
+  `com.dipgra.portafirmas` y la extensión de Firefox `extension@dipgra.es`. Al
+  instalar o actualizar se borran los registros y manifiestos con esos nombres
+  que apuntan a esta instalación, y las copias de la extensión anterior que
+  GrxFirma dejó en los perfiles de Firefox. El desinstalador limpia los nombres
+  nuevos y los anteriores.
 
 ## Licencia
 

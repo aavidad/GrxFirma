@@ -141,9 +141,9 @@ function New-QtArtifactFixture {
             "policies/es-ES/GrxFirma.adml",
             "policies/en-US/GrxFirma.adml",
             "help/NOVEDADES.md",
-            "extensions/dipgra-extension-chromium.zip",
-            "extensions/dipgra-extension-firefox.xpi",
-            "extensions/dipgra-extension-firefox.metadata.json"
+            "extensions/grxfirma-extension-chromium.zip",
+            "extensions/grxfirma-extension-firefox.xpi",
+            "extensions/grxfirma-extension-firefox.metadata.json"
         )) {
             Add-TestFile -Root $stage -RelativePath $file
         }

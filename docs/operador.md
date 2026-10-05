@@ -805,7 +805,7 @@ Comprobar:
 - que `make bridge-user` dejó los manifests en el navegador correcto
 - que la ruta del script `browser-bridge.sh` apunta al binario real
 - que el ID del paquete Chromium coincide con
-  `extensions/chromium/dipgra-extension-chromium.id` cuando exista
+  `extensions/chromium/grxfirma-extension-chromium.id` cuando exista
 - que `allowed_origins` o `allowed_extensions` contienen únicamente las
   extensiones publicadas o gestionadas esperadas
 - que los errores salen por `stderr`, nunca por `stdout`
@@ -828,7 +828,7 @@ Rutas esperadas tras `make bridge-user`:
 - `~/.local/lib/grxfirma/browser-bridge.sh`
 - `~/.local/lib/grxfirma/bin/grxfirma-nativehost`
 - `~/.mozilla/native-messaging-hosts/com.grxfirma.native.json`
-- `~/.mozilla/native-messaging-hosts/com.dipgra.grxfirma.json`
+- `~/.mozilla/native-messaging-hosts/io.github.aavidad.grxfirma.json`
 
 En Chrome, Chromium y Edge los manifests se instalan solo si existe el directorio
 de Native Messaging del navegador en el perfil del usuario.
@@ -1197,7 +1197,7 @@ make uninstall-user
 3. Si se quiere limpiar del todo el bridge de V2, eliminar manualmente:
    - `~/.local/lib/grxfirma/`
    - `~/.mozilla/native-messaging-hosts/com.grxfirma.native.json`
-   - `~/.mozilla/native-messaging-hosts/com.dipgra.grxfirma.json`
+   - `~/.mozilla/native-messaging-hosts/io.github.aavidad.grxfirma.json`
    - los manifests equivalentes de Chrome, Chromium y Edge si existen
 4. Conservar `audit.jsonl` y `/tmp/grxfirma-metrics.json` para análisis.
 5. Documentar el caso y no eliminar V2 definitivamente hasta aislar la causa.

@@ -149,8 +149,8 @@ jobs:
         with:
           name: firefox-extension-signed
           path: |
-            packaging/browser-extensions/dipgra-extension-firefox.xpi
-            packaging/browser-extensions/dipgra-extension-firefox.metadata.json
+            packaging/browser-extensions/grxfirma-extension-firefox.xpi
+            packaging/browser-extensions/grxfirma-extension-firefox.metadata.json
           if-no-files-found: error
           retention-days: 30
 
@@ -208,7 +208,7 @@ jobs:
 
       - name: Generar instaladores Linux
         env:
-          GRXFIRMA_FIREFOX_SIGNED_XPI: ${{ github.workspace }}/release/browser-official/dipgra-extension-firefox.xpi
+          GRXFIRMA_FIREFOX_SIGNED_XPI: ${{ github.workspace }}/release/browser-official/grxfirma-extension-firefox.xpi
           GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI: "1"
         run: bash packaging/linux/build-suite.sh --deb
 
@@ -562,7 +562,7 @@ jobs:
       - name: Generar suite dual Windows
         shell: pwsh
         env:
-          GRXFIRMA_FIREFOX_SIGNED_XPI: ${{ github.workspace }}/release/browser-official/dipgra-extension-firefox.xpi
+          GRXFIRMA_FIREFOX_SIGNED_XPI: ${{ github.workspace }}/release/browser-official/grxfirma-extension-firefox.xpi
           GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI: "1"
         run: >-
           ./packaging/windows/build-suite.ps1
@@ -752,7 +752,7 @@ jobs:
 
       - name: Generar y firmar PKG macOS
         env:
-          GRXFIRMA_FIREFOX_SIGNED_XPI: ${{ github.workspace }}/release/browser-official/dipgra-extension-firefox.xpi
+          GRXFIRMA_FIREFOX_SIGNED_XPI: ${{ github.workspace }}/release/browser-official/grxfirma-extension-firefox.xpi
           GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI: "1"
           MACOS_NOTARY_PROFILE: ""
         run: bash packaging/macos/build-suite.sh --pkg

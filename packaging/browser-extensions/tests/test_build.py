@@ -24,7 +24,7 @@ SPEC.loader.exec_module(build)
 class FirefoxArtifactTests(unittest.TestCase):
     manifest = {
         "version": "1.2.3",
-        "browser_specific_settings": {"gecko": {"id": "extension@dipgra.es"}},
+        "browser_specific_settings": {"gecko": {"id": "grxfirma@aavidad.github.io"}},
     }
 
     def write_xpi(
@@ -77,7 +77,7 @@ class FirefoxArtifactTests(unittest.TestCase):
             (source / "manifest.json").write_text(
                 json.dumps(self.manifest), encoding="utf-8"
             )
-            (source / "background.js").write_text("const host = 'com.dipgra.grxfirma';\n", encoding="utf-8")
+            (source / "background.js").write_text("const host = 'io.github.aavidad.grxfirma';\n", encoding="utf-8")
             artifact = root / "signed.xpi"
             with zipfile.ZipFile(artifact, "w") as archive:
                 archive.writestr("manifest.json", (source / "manifest.json").read_bytes())
@@ -121,7 +121,7 @@ class FirefoxArtifactTests(unittest.TestCase):
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
             self.assertTrue(metadata["signed"])
             self.assertEqual(metadata["version"], "1.2.3")
-            self.assertEqual(metadata["extension_id"], "extension@dipgra.es")
+            self.assertEqual(metadata["extension_id"], "grxfirma@aavidad.github.io")
             self.assertEqual(metadata["xpi_sha256"], build.sha256_file(artifact))
 
 

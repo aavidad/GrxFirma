@@ -15,10 +15,10 @@ from pathlib import Path
 import zipfile
 
 
-ARCHIVES = ("dipgra-extension-chromium.zip", "dipgra-extension-firefox.xpi")
-HOST = "com.dipgra.grxfirma"
+ARCHIVES = ("grxfirma-extension-chromium.zip", "grxfirma-extension-firefox.xpi")
+HOST = "io.github.aavidad.grxfirma"
 PREFIX = "grxfirma-"
-FORBIDDEN = (b"com.dipgra.autofirma", b"autofirmav2-")
+FORBIDDEN = (b"com.dipgra.", b"extension@dipgra.es", b"autofirmav2-")
 FORBIDDEN_FILES = {
     "crypto_utils.js",
     "content_scripts/autologin.js",
@@ -54,7 +54,7 @@ def verify_directory(directory: Path) -> None:
     versions = {verify_archive(directory / name) for name in ARCHIVES}
     if len(versions) != 1:
         raise ValueError("Las extensiones tienen versiones distintas")
-    metadata_path = directory / "dipgra-extension-firefox.metadata.json"
+    metadata_path = directory / "grxfirma-extension-firefox.metadata.json"
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     xpi = directory / ARCHIVES[1]
     if metadata.get("version") != versions.pop() or metadata.get("xpi_sha256") != hashlib.sha256(xpi.read_bytes()).hexdigest():

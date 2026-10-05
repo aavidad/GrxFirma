@@ -41,7 +41,7 @@ required=(
   "Library/Application Support/GrxFirma/install-nativehost.sh"
   "Library/Application Support/GrxFirma/uninstall-suite.sh"
   "Library/Application Support/GrxFirma/register-user.sh"
-  "Library/Application Support/GrxFirma/extensions/dipgra-extension-firefox.metadata.json"
+  "Library/Application Support/GrxFirma/extensions/grxfirma-extension-firefox.metadata.json"
   "Library/LaunchAgents/es.dipgra.grxfirma.register-user.plist"
   "usr/local/bin/grxfirma"
 )
