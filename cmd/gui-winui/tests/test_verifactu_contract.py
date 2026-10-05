@@ -25,9 +25,9 @@ class VeriFactuContract(unittest.TestCase):
         code = (APP / "Views/FacturaePage.xaml.cs").read_text(encoding="utf-8")
         client = (CORE / "Operations/DesktopOperationsClient.cs").read_text(encoding="utf-8")
         picker = (APP / "Services/WindowsFilePickerService.cs").read_text(encoding="utf-8")
-        xaml = ET.parse(APP / "Views/FacturaePage.xaml").getroot()
-        names = {e.get("{http://schemas.microsoft.com/winfx/2006/xaml}Name"): e for e in xaml.iter()}
-        self.assertEqual(names["ReadVeriFactuQrFileButton"].get("Click"), "OnReadVeriFactuQrFileClick")
+        xaml = (APP / "Views/FacturaePage.xaml").read_text(encoding="utf-8")
+        button = xaml.split('x:Name="ReadVeriFactuQrFileButton"', 1)[1].split("/>", 1)[0]
+        self.assertIn('Click="OnReadVeriFactuQrFileClick"', button)
         self.assertIn('ReadVeriFactuQrFileButton.Content = T("verifactu.qr_from_file")', code)
         self.assertIn("OpenFilePickerProfile.VeriFactuQrSource", code)
         self.assertIn("OpenFilePickerProfile.VeriFactuQrSource =>", picker)

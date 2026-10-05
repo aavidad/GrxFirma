@@ -299,10 +299,11 @@ func vfQRGris(img image.Image) *image.Gray {
 	for y := 0; y < b.Dy(); y++ {
 		for x := 0; x < b.Dx(); x++ {
 			r, gg, bb, a := img.At(b.Min.X+x, b.Min.Y+y).RGBA()
-			// Las zonas transparentes se tratan como papel blanco.
-			l := (299*r + 587*gg + 114*bb) / 1000
-			l = (l*a + 0xffff*(0xffff-a)) / 0xffff
-			g.Pix[y*g.Stride+x] = uint8(l >> 8)
+			// RGBA() devuelve valores premultiplicados por alfa: componer
+			// sobre blanco es sumar lo que falta de opacidad, así que las
+			// zonas transparentes se leen como papel blanco.
+			l := (299*r+587*gg+114*bb)/1000 + (0xffff - a)
+			g.Pix[y*g.Stride+x] = uint8(min(l, 0xffff) >> 8) // #nosec G115 -- l <= 0xffff, luego l>>8 <= 0xff.
 		}
 	}
 	return g
@@ -317,7 +318,7 @@ func vfQRReducir(src *image.Gray, lado int) *image.Gray {
 	}
 	w, h := b.Dx()/factor, b.Dy()/factor
 	dst := image.NewGray(image.Rect(0, 0, w, h))
-	n := uint32(factor * factor)
+	n := uint32(factor * factor) // #nosec G115 -- 2 <= factor <= vfQRMaxSide/vfQRScanSide+1.
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			var suma uint32
@@ -327,7 +328,7 @@ func vfQRReducir(src *image.Gray, lado int) *image.Gray {
 					suma += uint32(fila[dx])
 				}
 			}
-			dst.Pix[y*dst.Stride+x] = uint8(suma / n)
+			dst.Pix[y*dst.Stride+x] = uint8(suma / n) // #nosec G115 -- media de n bytes, <= 0xff.
 		}
 	}
 	return dst
