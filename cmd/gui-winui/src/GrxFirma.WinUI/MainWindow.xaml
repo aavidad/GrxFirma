@@ -31,13 +31,14 @@
                     Orientation="Horizontal"
                     Spacing="12">
                     <Image
-                        Width="36"
-                        Height="36"
-                        AutomationProperties.Name="Icono de GrxFirma"
-                        Source="ms-appx:///Assets/logo-dipgra.png"
+                        Width="44"
+                        Height="44"
+                        AutomationProperties.Name="GrxFirma"
+                        Source="ms-appx:///Assets/grxfirma-logo-carbon-96.png"
                         Stretch="Uniform" />
                     <TextBlock
                         VerticalAlignment="Center"
+                        AutomationProperties.AccessibilityView="Raw"
                         FontSize="18"
                         FontWeight="SemiBold"
                         Text="GrxFirma"

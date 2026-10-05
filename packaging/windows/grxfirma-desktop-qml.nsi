@@ -28,10 +28,10 @@ Unicode True
 !endif
 
 !ifndef MUI_ICON
-  !define MUI_ICON "${STAGE_DIR}\assets\grxfirma-diputacion.ico"
+  !define MUI_ICON "${STAGE_DIR}\assets\grxfirma.ico"
 !endif
 !ifndef MUI_UNICON
-  !define MUI_UNICON "${STAGE_DIR}\assets\grxfirma-diputacion.ico"
+  !define MUI_UNICON "${STAGE_DIR}\assets\grxfirma.ico"
 !endif
 
 !if /FileExists "${STAGE_DIR}\grxfirma-gui.exe"
@@ -66,7 +66,7 @@ Section "Desktop Qt/QML" SEC01
   WriteRegStr HKCU "Software\GrxFirmaDesktopQt" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayName" "GrxFirma Desktop Qt"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayVersion" "${VERSION}"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayIcon" "$INSTDIR\assets\grxfirma-diputacion.ico"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayIcon" "$INSTDIR\assets\grxfirma.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "Publisher" "Alberto Avidad Fernández"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "UninstallString" '"$INSTDIR\uninstall.exe"'

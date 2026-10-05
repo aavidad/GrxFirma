@@ -204,7 +204,7 @@ try {
         $runningOnWindows = $PSVersionTable.PSEdition -eq 'Desktop' -or $IsWindows -eq $true
         $definePrefix = if ($runningOnWindows) { '/D' } else { '-D' }
         $powerShell = (Get-Process -Id $PID).Path
-        $productIcon = Join-Path $repositoryRoot 'packaging/windows/grxfirma-diputacion.ico'
+        $productIcon = Join-Path $repositoryRoot 'packaging/windows/grxfirma.ico'
         $windowsPackaging = Join-Path $repositoryRoot 'packaging/windows'
 
         function New-HookWrapper {
@@ -251,7 +251,7 @@ exit /b %ERRORLEVEL%
             [System.IO.File]::WriteAllText((Join-Path $stage 'grxfirma.exe'), $variant)
             [System.IO.File]::WriteAllText((Join-Path $stage 'README_CLI_WINDOWS.md'), 'fixture')
             [System.IO.File]::WriteAllText((Join-Path $stage 'VERSION.txt'), '0.0.0-test')
-            Copy-Item -LiteralPath $productIcon -Destination (Join-Path $stage 'grxfirma-diputacion.ico')
+            Copy-Item -LiteralPath $productIcon -Destination (Join-Path $stage 'grxfirma.ico')
             $capture = Join-Path $captureDirectory "nsis-$variant.exe"
             $configuration = Join-Path $temporaryRoot "nsis-$variant.json"
             [ordered]@{ schema_version = 1; mode = 'capture'; capture_path = $capture } |

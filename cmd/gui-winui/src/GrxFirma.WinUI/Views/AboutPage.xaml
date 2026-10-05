@@ -59,11 +59,11 @@
             <Border Grid.Row="1" Style="{StaticResource AppCardStyle}">
                 <StackPanel Spacing="14">
                     <Image
-                        MaxWidth="220"
-                        Height="112"
+                        Width="144"
+                        Height="144"
                         HorizontalAlignment="Left"
-                        AutomationProperties.Name="Logotipo de GrxFirma"
-                        Source="ms-appx:///Assets/logo-dipgra.png"
+                        AutomationProperties.Name="GrxFirma"
+                        Source="ms-appx:///Assets/grxfirma-logo-carbon-256.png"
                         Stretch="Uniform" />
                     <TextBlock
                         AutomationProperties.HeadingLevel="Level2"

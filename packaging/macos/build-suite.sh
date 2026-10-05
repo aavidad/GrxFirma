@@ -376,7 +376,7 @@ required = {
     f"{stage_name}/GrxFirma Desktop Qt.app/Contents/MacOS/grxfirma-gui",
     f"{stage_name}/GrxFirma Desktop Qt.app/Contents/MacOS/grxfirma",
     f"{stage_name}/GrxFirma Desktop Qt.app/Contents/Resources/qml/main.qml",
-    f"{stage_name}/GrxFirma Desktop Qt.app/Contents/Resources/assets/grxfirma-diputacion.ico",
+    f"{stage_name}/GrxFirma Desktop Qt.app/Contents/Resources/assets/grxfirma.ico",
     f"{stage_name}/GrxFirma Desktop Qt.app/Contents/Resources/VERSION.txt",
     f"{stage_name}/README_MACOS_SUITE.md",
     f"{stage_name}/README_DESKTOP_QML_MACOS.md",
@@ -536,8 +536,8 @@ cp -R \
   "${ROOT_DIR}/cmd/gui-qml/assets" \
   "${DESKTOP_APP_DIR}/Contents/Resources/assets"
 cp \
-  "${ROOT_DIR}/assets/branding/grxfirma-diputacion.ico" \
-  "${DESKTOP_APP_DIR}/Contents/Resources/assets/grxfirma-diputacion.ico"
+  "${ROOT_DIR}/assets/branding/grxfirma.ico" \
+  "${DESKTOP_APP_DIR}/Contents/Resources/assets/grxfirma.ico"
 printf '%s\n' \
   "${VERSION}" \
   > "${DESKTOP_APP_DIR}/Contents/Resources/VERSION.txt"

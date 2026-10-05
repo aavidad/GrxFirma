@@ -5,7 +5,7 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
 <resources>
-    <color name="grxfirma_icon_background">#173A4E</color>
+    <color name="grxfirma_icon_background">#103A6E</color>
     <color name="primary">#005A46</color>
     <color name="on_primary">#FFFFFF</color>
     <color name="primary_container">#B7F1DA</color>

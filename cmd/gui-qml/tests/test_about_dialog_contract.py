@@ -42,11 +42,26 @@ class AboutDialogContractTest(unittest.TestCase):
         ):
             self.assertIn(visible_text, about)
         self.assertIn(
-            'source: "../assets/Logo-Horizontal-Color.png"',
+            'source: "../assets/grxfirma-logo-carbon-256.png"',
             about,
         )
+        self.assertIn("Layout.preferredWidth: 144", about)
         self.assertIn(
-            "<file>assets/Logo-Horizontal-Color.png</file>",
+            "<file>assets/grxfirma-logo-carbon-256.png</file>",
+            QRC,
+        )
+
+    def test_sidebar_shows_small_logo_next_to_text_name(self) -> None:
+        sidebar = QML.split('text: tr("NAVEGACIÓN")', 1)[1].split(
+            "// Navegación", 1
+        )[0]
+        self.assertIn('source: "../assets/grxfirma-logo-carbon-96.png"', sidebar)
+        self.assertIn("Layout.preferredWidth: 44", sidebar)
+        self.assertIn('text: tr("GrxFirma")', sidebar)
+        self.assertIn('Accessible.name: tr("GrxFirma")', sidebar)
+        self.assertNotIn("grxfirma-logo-horizontal", QML)
+        self.assertIn(
+            "<file>assets/grxfirma-logo-carbon-96.png</file>",
             QRC,
         )
 
@@ -84,7 +99,7 @@ class AboutDialogContractTest(unittest.TestCase):
         )
         self.assertIn("Accessible.role: Accessible.Graphic", about)
         self.assertIn(
-            'Accessible.name: tr("Logotipo de GrxFirma")',
+            'Accessible.name: tr("GrxFirma")',
             about,
         )
         self.assertGreaterEqual(
@@ -109,7 +124,6 @@ class AboutDialogContractTest(unittest.TestCase):
             "Acerca de",
             "Acerca de GrxFirma",
             "Información de versión, autoría y licencia de la aplicación",
-            "Logotipo de GrxFirma",
             "GrxFirma",
             "Versión %1",
             "Autoría: Alberto Avidad Fernández",

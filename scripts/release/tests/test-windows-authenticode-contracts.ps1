@@ -259,7 +259,7 @@ if ($null -eq $makensis) {
     try {
         $productIcon = Join-Path `
             $repositoryRoot `
-            "packaging/windows/grxfirma-diputacion.ico"
+            "packaging/windows/grxfirma.ico"
         foreach ($name in @(
             "grxfirma.exe",
             "README_CLI_WINDOWS.md",
@@ -272,7 +272,7 @@ if ($null -eq $makensis) {
         }
         Copy-Item `
             -LiteralPath $productIcon `
-            -Destination (Join-Path $stage "grxfirma-diputacion.ico")
+            -Destination (Join-Path $stage "grxfirma.ico")
 
         $runningOnWindows =
             $PSVersionTable.PSEdition -eq "Desktop" -or

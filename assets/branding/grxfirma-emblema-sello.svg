@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="GrxFirma · Emblema del sello">
+  <title>GrxFirma · Emblema del sello</title>
+  <defs><clipPath id="grxfirma-circulo"><circle cx="128" cy="128" r="118"/></clipPath></defs>
+  <circle cx="128" cy="128" r="118" fill="#f4f7fb"/>
+  <g clip-path="url(#grxfirma-circulo)">
+    <path fill="#a9bad0" d="M14 262 C16 214 38 191 76 181 C86 178 90 174 87 166 C70 148 64 119 72 94 C80 62 100 28 128 24 C156 28 176 62 184 94 C192 119 186 148 169 166 C166 174 170 178 180 181 C218 191 240 214 242 262 Z"/>
+    <path fill="none" stroke="#c3d0e0" stroke-width="3" stroke-linecap="round" d="M104 157 C110 177 118 189 128 199 C138 189 146 177 152 157"/>
+    <path fill="#c3d0e0" d="M93 104 C108 91 148 91 163 104 C166 131 152 157 128 166 C104 157 90 131 93 104 Z"/>
+    <path fill="#7389a6" d="M99 107 C112 97 144 97 157 107 C159 130 148 152 128 160 C108 152 97 130 99 107 Z"/>
+    <path fill="#8a9db7" d="M110 139 C116 149 140 149 146 139 C143 150 137 156 128 158 C119 156 113 150 110 139 Z"/>
+  </g>
+  <circle cx="128" cy="128" r="118" fill="none" stroke="#c3d0e0" stroke-width="8"/>
+</svg>

@@ -5533,24 +5533,19 @@ Window {
             width: Math.max(320, aboutScroll.availableWidth)
             spacing: 14
 
-            Rectangle {
+            Image {
                 Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: Math.min(400, aboutScroll.availableWidth)
-                Layout.preferredHeight: 150
-                color: "#ffffff"
-                radius: 12
-                border.color: Qt.rgba(0, 0, 0, 0.12)
-                border.width: 1
-
-                Image {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    source: "../assets/Logo-Horizontal-Color.png"
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
-                    Accessible.role: Accessible.Graphic
-                    Accessible.name: tr("Logotipo de GrxFirma")
-                }
+                Layout.topMargin: 8
+                Layout.preferredWidth: 144
+                Layout.preferredHeight: 144
+                source: "../assets/grxfirma-logo-carbon-256.png"
+                sourceSize.width: 256
+                sourceSize.height: 256
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
+                Accessible.role: Accessible.Graphic
+                Accessible.name: tr("GrxFirma")
             }
 
             Text {
@@ -8560,35 +8555,41 @@ Window {
                     }
                 }
 
-                // Logo Container - Maximized
-                Item {
+                // Marca: boceto circular pequeño y el nombre como texto.
+                RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: window.sidebarCollapsed ? 64 : 220
+                    Layout.topMargin: 4
+                    Layout.bottomMargin: 8
+                    spacing: 12
+
+                    Item { visible: window.sidebarCollapsed; Layout.fillWidth: true }
+
                     Image {
-                        source: "../assets/Logo-Horizontal-Color.png"
-                        visible: !window.sidebarCollapsed
-                        anchors.fill: parent
+                        Layout.preferredWidth: 44
+                        Layout.preferredHeight: 44
+                        source: "../assets/grxfirma-logo-carbon-96.png"
+                        sourceSize.width: 88
+                        sourceSize.height: 88
                         fillMode: Image.PreserveAspectFit
-                        anchors.margins: 8
+                        smooth: true
+                        mipmap: true
+                        Accessible.role: Accessible.Graphic
+                        Accessible.name: tr("GrxFirma")
                     }
-                    Rectangle {
-                        visible: window.sidebarCollapsed
-                        anchors.centerIn: parent
-                        width: 48
-                        height: 48
-                        radius: 12
-                        color: Qt.rgba(1, 1, 1, 0.92)
-                        border.color: Qt.rgba(0, 0, 0, currentTheme.borderOpacity + 0.12)
-                        border.width: 1
-                        Image {
-                            anchors.centerIn: parent
-                            width: parent.width - 10
-                            height: parent.height - 10
-                            source: "../assets/logo-dipgra.png"
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-                        }
+
+                    Text {
+                        visible: !window.sidebarCollapsed
+                        text: tr("GrxFirma")
+                        color: currentTheme.textColor
+                        font.pixelSize: 20
+                        font.bold: true
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                        // El logotipo ya anuncia el nombre a los lectores de pantalla.
+                        Accessible.ignored: true
                     }
+
+                    Item { visible: window.sidebarCollapsed; Layout.fillWidth: true }
                 }
 
                 // Navegación

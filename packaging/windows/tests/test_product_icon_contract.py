@@ -11,13 +11,13 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[3]
-ICON = ROOT / "packaging" / "windows" / "grxfirma-diputacion.ico"
+ICON = ROOT / "packaging" / "windows" / "grxfirma.ico"
 
 
 class ProductIconContractTests(unittest.TestCase):
     def test_canonical_icon_has_all_trazo_sizes_and_png_alpha(self) -> None:
         data = ICON.read_bytes()
-        self.assertEqual(data, (ROOT / "assets/branding/grxfirma-diputacion.ico").read_bytes())
+        self.assertEqual(data, (ROOT / "assets/branding/grxfirma.ico").read_bytes())
         reserved, image_type, image_count = struct.unpack_from("<HHH", data)
         self.assertEqual((reserved, image_type, image_count), (0, 1, 9))
 
@@ -57,8 +57,10 @@ class ProductIconContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("<ApplicationIcon>", project)
-        self.assertIn("grxfirma-diputacion.ico", project)
-        self.assertIn("logo-dipgra.png", project)
+        self.assertIn("grxfirma.ico", project)
+        self.assertIn("grxfirma-logo-carbon-96.png", project)
+        self.assertIn("grxfirma-logo-carbon-96.png", window)
+        self.assertIn('AutomationProperties.Name="GrxFirma"', window)
         self.assertIn('Text="GrxFirma"', window)
         self.assertIn("$shortcut.IconLocation", installer)
 
@@ -80,7 +82,7 @@ class ProductIconContractTests(unittest.TestCase):
             )
             self.assertIn("MUI_ICON", script, name)
             self.assertIn("MUI_UNICON", script, name)
-            self.assertIn("grxfirma-diputacion.ico", script, name)
+            self.assertIn("grxfirma.ico", script, name)
 
         for name in (
             "build-suite.ps1",
@@ -95,7 +97,7 @@ class ProductIconContractTests(unittest.TestCase):
             builder = (ROOT / "packaging/windows" / name).read_text(
                 encoding="utf-8"
             )
-            self.assertIn("grxfirma-diputacion.ico", builder, name)
+            self.assertIn("grxfirma.ico", builder, name)
 
     def test_suite_offers_desktop_shortcut_and_groups_start_apps(self) -> None:
         suite = (

@@ -286,8 +286,8 @@ try {
             Add-FixtureFile -Root $nsisStage -RelativePath $relativePath
         }
         Copy-Item `
-            -LiteralPath (Join-Path $repositoryRoot "packaging/windows/grxfirma-diputacion.ico") `
-            -Destination (Join-Path $nsisStage "grxfirma-diputacion.ico")
+            -LiteralPath (Join-Path $repositoryRoot "packaging/windows/grxfirma.ico") `
+            -Destination (Join-Path $nsisStage "grxfirma.ico")
         $nsisOutput = Join-Path $temporaryRoot "dual-gui-setup.exe"
         & $makensis.Source `
             "-DVERSION=0.0.90" `
@@ -325,8 +325,8 @@ try {
     $fixtureAssets = Join-Path $package "app/Assets"
     New-Item -ItemType Directory -Force -Path $fixtureAssets | Out-Null
     Copy-Item `
-        -LiteralPath (Join-Path $repositoryRoot "packaging/windows/grxfirma-diputacion.ico") `
-        -Destination (Join-Path $fixtureAssets "grxfirma-diputacion.ico")
+        -LiteralPath (Join-Path $repositoryRoot "packaging/windows/grxfirma.ico") `
+        -Destination (Join-Path $fixtureAssets "grxfirma.ico")
     $launcher = Join-Path $launcherDir "grxfirma-gui.exe"
     Copy-Item `
         -LiteralPath (Join-Path $package "app/grxfirma-gui.exe") `
@@ -474,7 +474,7 @@ try {
         }
         $expectedIcon = (Join-Path `
             $winUiInstallDir `
-            "Assets\grxfirma-diputacion.ico") + ",0"
+            "Assets\grxfirma.ico") + ",0"
         if (-not [string]::Equals(
             $shortcut.IconLocation,
             $expectedIcon,

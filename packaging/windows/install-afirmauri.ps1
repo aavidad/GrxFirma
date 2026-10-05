@@ -45,7 +45,7 @@ function Restore-AfirmaUriInstallSnapshot {
 }
 
 $exeSource = Join-Path $baseDir "grxfirma-afirmauri.exe"
-$iconSource = Join-Path $baseDir "grxfirma-diputacion.ico"
+$iconSource = Join-Path $baseDir "grxfirma.ico"
 if (-not (Test-Path -LiteralPath $exeSource -PathType Leaf)) {
     throw "No se encuentra grxfirma-afirmauri.exe junto al instalador."
 }
@@ -105,7 +105,7 @@ try {
         -Component "AfirmaURI" `
         -LegacyPayload "grxfirma-afirmauri.exe"
     $exeTarget = Join-Path $InstallDir "grxfirma-afirmauri.exe"
-    $iconTarget = Join-Path $InstallDir "grxfirma-diputacion.ico"
+    $iconTarget = Join-Path $InstallDir "grxfirma.ico"
     Copy-Item -LiteralPath $exeSource -Destination $exeTarget -Force
     Copy-Item -LiteralPath $iconSource -Destination $iconTarget -Force
 

@@ -717,7 +717,7 @@ try {
         -Expected @(
             "Restore-AfirmaProtocolRegistration",
             "afirma-protocol-snapshot.json",
-            '$iconTarget = Join-Path $InstallDir "grxfirma-diputacion.ico"',
+            '$iconTarget = Join-Path $InstallDir "grxfirma.ico"',
             "-IconPath `$iconTarget",
             "--remove-local-tls-trust",
             "Start-Process",
