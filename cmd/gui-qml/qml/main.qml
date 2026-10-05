@@ -736,6 +736,9 @@ Window {
     property string facturaeSignaturePostalCode: ""
     property string facturaeSignatureCountry: ""
     property string currentOutputPath: ""
+    // Ruta cuyo reemplazo confirmó la persona en el diálogo de guardar; deja
+    // de valer si la ruta cambia o tras una firma correcta.
+    property string confirmedOverwritePath: ""
     property string currentOutputVerificationMessage: ""
     property var currentOutputVerificationDetails: null
     property string signResultKind: ""
@@ -4697,6 +4700,7 @@ Window {
             format: effectiveSignFormat(),
             strictCompat: signStrictCompat,
             overwrite: signOverwrite,
+            overwriteConfirmed: confirmedOverwritePath !== "" && confirmedOverwritePath === currentOutputPath,
             saveToDisk: true,
             returnSignatureB64: false
         }
@@ -5281,6 +5285,7 @@ Window {
         nameFilters: [tr("Archivos PDF (*.pdf)")]
         onAccepted: {
             window.currentOutputPath = localPathFromUrl(selectedFile)
+            window.confirmedOverwritePath = window.currentOutputPath
         }
     }
 
@@ -7809,8 +7814,10 @@ Window {
             window.signResultPath = success ? String(outPath || "") : ""
             window.signResultCause = success ? "" : window.localizeVisibleDiagnosticText(message)
             window.signResultVerificationPending = success && !!outPath
-            if (success)
+            if (success) {
                 window.clearOperationFailure()
+                window.confirmedOverwritePath = ""
+            }
             if (success && outPath && outPath !== "") {
                 window.rememberSessionDocumentPath(outPath)
                 window.currentOutputPath = outPath

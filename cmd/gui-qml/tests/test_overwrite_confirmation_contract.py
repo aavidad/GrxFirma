@@ -6,9 +6,10 @@
 """Qt solo pide reemplazar cuando la ruta viene de un diálogo de guardar.
 
 Los paneles de Facturae y ENI eligen siempre la ruta en un FileDialog de
-guardar, que pregunta antes de reemplazar (no usan DontConfirmOverwrite). La
-pantalla de firma no: su ruta puede escribirse a mano o calcularse, así que
-allí manda la preferencia «Sobrescritura» que aplica el motor.
+guardar, que pregunta antes de reemplazar (no usan DontConfirmOverwrite). En la
+pantalla de firma la ruta también puede escribirse a mano o calcularse: solo
+se confirma el reemplazo si la ruta sigue siendo la elegida en su diálogo de
+guardar; en otro caso manda la preferencia «Sobrescritura» que aplica el motor.
 """
 
 from pathlib import Path
@@ -34,6 +35,15 @@ class QtOverwriteConfirmationContractTests(unittest.TestCase):
         for relative in ("qml/EniPanel.qml", "qml/FacturaePanel.qml", "qml/main.qml"):
             with self.subTest(relative=relative):
                 self.assertNotIn("DontConfirmOverwrite", read(relative))
+
+    def test_sign_confirms_only_the_path_chosen_in_its_save_dialog(self) -> None:
+        main = read("qml/main.qml")
+        self.assertIn("window.confirmedOverwritePath = window.currentOutputPath", main)
+        self.assertIn(
+            'overwriteConfirmed: confirmedOverwritePath !== "" && confirmedOverwritePath === currentOutputPath',
+            main,
+        )
+        self.assertIn('window.confirmedOverwritePath = ""', main)
 
     def test_bridge_forwards_confirmation_only_when_asked(self) -> None:
         header = read("ipcbridge.h")
