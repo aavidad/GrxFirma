@@ -5147,4 +5147,9 @@
   ,"verificacion.detalle.valor.embedded": "assinatura incluída no documento"
   ,"verificacion.detalle.valor.ok": "verificadas"
   ,"sign.need_certificate": "Escolha um certificado para poder assinar."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "Não é possível confirmar quem assinou: o certificado não provém de uma entidade de confiança (por exemplo, é um certificado de teste). Peça ao signatário que use um certificado reconhecido, como o da FNMT ou o cartão de cidadão espanhol (DNIe)."
+  ,"verificacion.ver_detalles_tecnicos": "Ver detalhes técnicos"
+  ,"verificacion.detalle.revocacion.bueno": "não revogado"
+  ,"verificacion.detalle.revocacion.revocado": "revogado"
+  ,"verificacion.detalle.revocacion.desconocido": "sem informação de revogação"
 }

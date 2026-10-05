@@ -5147,4 +5147,9 @@
   ,"verificacion.detalle.valor.embedded": "signature embedded in the document"
   ,"verificacion.detalle.valor.ok": "verified"
   ,"sign.need_certificate": "Choose a certificate to sign."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "The signer cannot be confirmed: the certificate does not come from a trusted authority (for example, it is a test certificate). Ask the signer to use a recognised certificate, such as an FNMT certificate or a Spanish ID card."
+  ,"verificacion.ver_detalles_tecnicos": "View technical details"
+  ,"verificacion.detalle.revocacion.bueno": "not revoked"
+  ,"verificacion.detalle.revocacion.revocado": "revoked"
+  ,"verificacion.detalle.revocacion.desconocido": "no revocation information"
 }

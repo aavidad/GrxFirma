@@ -5147,4 +5147,9 @@
   ,"verificacion.detalle.valor.embedded": "签名嵌入文档中"
   ,"verificacion.detalle.valor.ok": "已验证"
   ,"sign.need_certificate": "请选择一个证书以便签名。"
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "无法确认签名人：该证书并非来自受信任的机构（例如，它是测试证书）。请让签名人使用受认可的证书，例如 FNMT 证书或西班牙电子身份证（DNIe）。"
+  ,"verificacion.ver_detalles_tecnicos": "查看技术详情"
+  ,"verificacion.detalle.revocacion.bueno": "未吊销"
+  ,"verificacion.detalle.revocacion.revocado": "已吊销"
+  ,"verificacion.detalle.revocacion.desconocido": "无吊销信息"
 }

@@ -37,6 +37,10 @@ const (
 	RevocationRevoked
 )
 
+// MotivoCadenaNoConfiable es el motivo de confianza cuando la cadena del
+// firmante no llega a un ancla reconocida. Es también clave de catálogo.
+const MotivoCadenaNoConfiable = "cadena de confianza inválida: el certificado no procede de una entidad de confianza"
+
 func (s RevocationStatus) String() string {
 	switch s {
 	case RevocationGood:
@@ -1200,9 +1204,13 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 		})
 		if err != nil {
 			return domain.VerificationAspect{
-				Status:  domain.VerificationStatusInvalid,
-				Reason:  fmt.Sprintf("cadena de confianza inválida para %s", signerCert.Subject.CommonName),
-				Details: append(details, fmt.Sprintf("signer[%d]: %v", i, err)),
+				Status: domain.VerificationStatusInvalid,
+				// Motivo fijo para que las interfaces lo traduzcan con el catálogo;
+				// el nombre del firmante va aparte, en los detalles técnicos.
+				Reason: MotivoCadenaNoConfiable,
+				Details: append(details,
+					fmt.Sprintf("firmante=%s", signerCert.Subject.CommonName),
+					fmt.Sprintf("signer[%d]: %v", i, err)),
 			}
 		}
 		details = append(details, fmt.Sprintf("signer[%d].chain_length=%d", i, len(chains[0])))

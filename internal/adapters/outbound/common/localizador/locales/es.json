@@ -5147,4 +5147,9 @@
   ,"verificacion.detalle.valor.embedded": "firma incluida en el documento"
   ,"verificacion.detalle.valor.ok": "comprobadas"
   ,"sign.need_certificate": "Elija un certificado para poder firmar."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "No se puede confirmar quién firmó: el certificado no procede de una entidad de confianza (por ejemplo, es un certificado de pruebas). Pida al firmante que use un certificado reconocido, como el de la FNMT o el DNIe."
+  ,"verificacion.ver_detalles_tecnicos": "Ver detalles técnicos"
+  ,"verificacion.detalle.revocacion.bueno": "no revocado"
+  ,"verificacion.detalle.revocacion.revocado": "revocado"
+  ,"verificacion.detalle.revocacion.desconocido": "sin información de revocación"
 }

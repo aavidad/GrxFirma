@@ -5147,4 +5147,9 @@
   ,"verificacion.detalle.valor.embedded": "sinadura dokumentuan sartuta"
   ,"verificacion.detalle.valor.ok": "egiaztatuta"
   ,"sign.need_certificate": "Aukeratu ziurtagiri bat sinatu ahal izateko."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "Ezin da baieztatu nork sinatu duen: ziurtagiria ez dator konfiantzazko erakunde batetik (adibidez, proba-ziurtagiri bat da). Eskatu sinatzaileari ziurtagiri onartu bat erabiltzeko, hala nola FNMTrena edo NAN elektronikoa."
+  ,"verificacion.ver_detalles_tecnicos": "Ikusi xehetasun teknikoak"
+  ,"verificacion.detalle.revocacion.bueno": "ez dago baliogabetuta"
+  ,"verificacion.detalle.revocacion.revocado": "baliogabetuta"
+  ,"verificacion.detalle.revocacion.desconocido": "baliogabetzeari buruzko informaziorik ez"
 }

@@ -5147,4 +5147,9 @@
   ,"verificacion.detalle.valor.embedded": "firma inclosa en el document"
   ,"verificacion.detalle.valor.ok": "comprovades"
   ,"sign.need_certificate": "Trieu un certificat per a poder signar."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "No es pot confirmar qui ha signat: el certificat no prové d'una entitat de confiança (per exemple, és un certificat de proves). Demaneu a la persona signant que utilitze un certificat reconegut, com el de la FNMT o el DNIe."
+  ,"verificacion.ver_detalles_tecnicos": "Mostra els detalls tècnics"
+  ,"verificacion.detalle.revocacion.bueno": "no revocat"
+  ,"verificacion.detalle.revocacion.revocado": "revocat"
+  ,"verificacion.detalle.revocacion.desconocido": "sense informació de revocació"
 }

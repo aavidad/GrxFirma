@@ -4771,7 +4771,50 @@ Window {
     function verificationAspectDetailsText(aspect) {
         if (!aspect || !aspect.details || aspect.details.length === 0)
             return tr("No disponible")
-        return aspect.details.map((item) => localizeVisibleDiagnosticText(item)).join("\n")
+        return aspect.details.map((item) => verificationDetailText(item)).join("\n")
+    }
+
+    // Sustituye %s y %d de los textos del catálogo compartido con el motor, en orden.
+    function catalogFormat(key, args) {
+        let index = 0
+        return tr(key).replace(/%[sd]/g, function(match) {
+            return index < args.length ? String(args[index++]) : match
+        })
+    }
+
+    // Igual que informeverificacion.TraducirDetalle: «formato_detectado=PAdES»
+    // pasa a «Formato detectado: PAdES» en el idioma de la aplicación.
+    function verificationDetailText(line) {
+        const text = String(line || "").trim()
+        const prefix = "verificacion.detalle."
+        const revocation = text.match(/^cert\[\d+\] (.+): (bueno|revocado|desconocido)(?: vía (\w+))?(?: \((.*)\))?$/)
+        if (revocation) {
+            let state = tr(prefix + "revocacion." + revocation[2])
+            if (revocation[3]) state += " (" + revocation[3].toUpperCase() + ")"
+            return catalogFormat(prefix + "formato", [revocation[1], state])
+        }
+        const cut = text.indexOf("=")
+        if (cut <= 0 || /[ \t]/.test(text.substring(0, cut)))
+            return localizeVisibleDiagnosticText(text)
+        const key = text.substring(0, cut)
+        const value = text.substring(cut + 1)
+        let label = ""
+        const coverage = key.match(/^cobertura_firma_pdf_(\d{1,4})$/)
+        if (coverage) {
+            label = catalogFormat(prefix + "cobertura_firma_pdf", [coverage[1]])
+        } else if (tr(prefix + key) !== prefix + key) {
+            label = tr(prefix + key)
+        } else {
+            return text
+        }
+        let shown = value
+        const revision = value.match(/^revision_hasta_(\d{1,12})_de_(\d{1,12})$/)
+        if (revision) {
+            shown = catalogFormat(prefix + "valor.revision_hasta", [revision[1], revision[2]])
+        } else if (value !== "" && tr(prefix + "valor." + value) !== prefix + "valor." + value) {
+            shown = tr(prefix + "valor." + value)
+        }
+        return catalogFormat(prefix + "formato", [label, shown])
     }
 
     function verificationArrayText(values) {
@@ -10934,7 +10977,7 @@ Window {
                                     Text {
                                         text: tr("Detalles del certificado")
                                         font.bold: true
-                                        color: "white"
+                                        color: currentTheme.textColor
                                     }
                                     Text {
                                         Layout.fillWidth: true
@@ -11002,7 +11045,7 @@ Window {
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Titular: ") + (window.selectedCertData ? (window.selectedCertData.subjectName || window.selectedCertData.subject || "---") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 11
                                                 wrapMode: Text.Wrap
                                                 width: parent.width
@@ -11010,7 +11053,7 @@ Window {
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Emisor: ") + (window.selectedCertData ? (window.selectedCertData.issuerName || window.selectedCertData.issuer || "---") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 11
                                                 wrapMode: Text.Wrap
@@ -11019,7 +11062,7 @@ Window {
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Nº Serie: ") + (window.selectedCertData ? (window.selectedCertData.serialNumber || window.selectedCertData.nif || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
@@ -11028,7 +11071,7 @@ Window {
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Válido hasta: ") + (window.selectedCertData ? (window.selectedCertData.validTo || window.selectedCertData.notAfter || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
@@ -11037,14 +11080,14 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Tipo: ") + (window.selectedCertData ? (window.selectedCertData.tipo || tr("Desconocido")) : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 width: parent.width
                                             }
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Organización: ") + (window.selectedCertData ? (window.selectedCertData.organizacion || tr("No indicada")) : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
                                                 width: parent.width
@@ -11052,14 +11095,14 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Estado: ") + window.certificateStatusText(window.selectedCertData)
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 width: parent.width
                                             }
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Huella: ") + (window.selectedCertData ? formatFingerprintForDisplay(window.selectedCertData.fingerprint || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.6
                                                 font.pixelSize: 9
                                                 wrapMode: Text.WrapAnywhere
@@ -11447,7 +11490,7 @@ Window {
                                     text: verifyTab.hashInputPath !== ""
                                           ? tr("Entrada preparada: %1").arg(verifyTab.hashInputIsDirectory ? tr("Directorio") : tr("Fichero"))
                                           : tr("Sin entrada seleccionada")
-                                    color: "white"
+                                    color: currentTheme.textColor
                                     opacity: 0.9
                                     font.pixelSize: 12
                                     wrapMode: Text.WordWrap
@@ -11744,7 +11787,7 @@ Window {
                                         }
                                         Text { 
                                             text: tr("Documento: ") + (verifyTab.verifyFilePath !== "" ? verifyTab.verifyFilePath.split('/').pop() : "")
-                                            color: "white"
+                                            color: currentTheme.textColor
                                             opacity: 0.85
                                             font.pixelSize: 12
                                             width: parent.width
@@ -12058,7 +12101,7 @@ Window {
 
                                                     Text {
                                                         Layout.fillWidth: true
-                                                        text: tr("Datos de la firma") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details.length : 0) + ")"
+                                                        text: tr("verificacion.ver_detalles_tecnicos") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details.length : 0) + ")"
                                                         color: currentTheme.primaryColor
                                                         font.bold: true
                                                         font.pixelSize: 12
@@ -12076,7 +12119,7 @@ Window {
                                                 Repeater {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details : []
                                                     delegate: Text {
-                                                        text: tr("• ") + modelData
+                                                        text: "• " + window.verificationDetailText(modelData)
                                                         color: "white"
                                                         opacity: 0.9
                                                         wrapMode: Text.Wrap
@@ -12126,7 +12169,7 @@ Window {
                                                 Repeater {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.warnings) ? verifyTab.verifyDetails.warnings : []
                                                     delegate: Text {
-                                                        text: tr("• ") + modelData
+                                                        text: "• " + window.localizeVisibleDiagnosticText(modelData)
                                                         color: "white"
                                                         opacity: 0.9
                                                         wrapMode: Text.Wrap
@@ -12176,7 +12219,7 @@ Window {
                                                 Repeater {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.errors) ? verifyTab.verifyDetails.errors : []
                                                     delegate: Text {
-                                                        text: tr("• ") + modelData
+                                                        text: "• " + window.localizeVisibleDiagnosticText(modelData)
                                                         color: "white"
                                                         opacity: 0.9
                                                         wrapMode: Text.Wrap
@@ -13224,7 +13267,7 @@ Window {
                                     Text {
                                         text: tr("Detalles del certificado")
                                         font.bold: true
-                                        color: "white"
+                                        color: currentTheme.textColor
                                     }
                                     Text {
                                         Layout.fillWidth: true
@@ -13292,7 +13335,7 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Titular: ") + (window.selectedCertData ? (window.selectedCertData.subjectName || window.selectedCertData.subject || "---") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 11
                                                 wrapMode: Text.Wrap
                                                 width: parent.width
@@ -13300,7 +13343,7 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Emisor: ") + (window.selectedCertData ? (window.selectedCertData.issuerName || window.selectedCertData.issuer || "---") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 11
                                                 wrapMode: Text.Wrap
@@ -13309,7 +13352,7 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Nº Serie: ") + (window.selectedCertData ? (window.selectedCertData.serialNumber || window.selectedCertData.nif || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
@@ -13318,7 +13361,7 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Válido hasta: ") + (window.selectedCertData ? (window.selectedCertData.validTo || window.selectedCertData.notAfter || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
@@ -13327,14 +13370,14 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Tipo: ") + (window.selectedCertData ? (window.selectedCertData.tipo || tr("Desconocido")) : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 width: parent.width
                                             }
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Organización: ") + (window.selectedCertData ? (window.selectedCertData.organizacion || tr("No indicada")) : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
                                                 width: parent.width
@@ -13342,14 +13385,14 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Estado: ") + window.certificateStatusText(window.selectedCertData)
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 width: parent.width
                                             }
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Huella: ") + (window.selectedCertData ? formatFingerprintForDisplay(window.selectedCertData.fingerprint || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.6
                                                 font.pixelSize: 9
                                                 wrapMode: Text.WrapAnywhere
