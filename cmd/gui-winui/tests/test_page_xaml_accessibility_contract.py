@@ -50,7 +50,7 @@ REQUIRED_ADAPTIVE_TARGET = {
     "CertificatesPage.xaml": "CertificateActions.Orientation",
     "DiagnosticsPage.xaml": "DiagnosticActions.Orientation",
     "FacturaePage.xaml": "ValidationActions.Orientation",
-    "EniPage.xaml": "EniActions.MaxWidth",
+    "EniPage.xaml": "LayoutRoot.Padding",
     "HashPage.xaml": "OriginBrowseButton.(Grid.Row)",
     "HelpPage.xaml": "LayoutRoot.Padding",
     "ProtectPage.xaml": "ContainerCombo.(Grid.Row)",

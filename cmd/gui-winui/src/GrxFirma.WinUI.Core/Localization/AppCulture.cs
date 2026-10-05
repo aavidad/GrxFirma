@@ -12,24 +12,25 @@ namespace GrxFirma.WinUI.Core.Localization;
 // de fecha y hora) se muestran en el mismo idioma que el resto de la pantalla.
 public static class AppCulture
 {
+    // Etiquetas BCP 47 en minúsculas: no distinguen mayúsculas.
     private static readonly IReadOnlyDictionary<string, string> Tags =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["es"] = "es-ES",
-            ["en"] = "en-GB",
-            ["ca"] = "ca-ES",
-            ["va"] = "ca-ES-valencia",
-            ["gl"] = "gl-ES",
-            ["eu"] = "eu-ES",
-            ["fr"] = "fr-FR",
-            ["de"] = "de-DE",
-            ["it"] = "it-IT",
-            ["pt"] = "pt-PT",
-            ["zh"] = "zh-CN",
+            ["es"] = "es-es",
+            ["en"] = "en-gb",
+            ["ca"] = "ca-es",
+            ["va"] = "ca-es-valencia",
+            ["gl"] = "gl-es",
+            ["eu"] = "eu-es",
+            ["fr"] = "fr-fr",
+            ["de"] = "de-de",
+            ["it"] = "it-it",
+            ["pt"] = "pt-pt",
+            ["zh"] = "zh-cn",
         };
 
     public static string Tag(string? language) =>
-        language is not null && Tags.TryGetValue(language, out var tag) ? tag : "es-ES";
+        language is not null && Tags.TryGetValue(language, out var tag) ? tag : "es-es";
 
     public static CultureInfo For(string? language)
     {

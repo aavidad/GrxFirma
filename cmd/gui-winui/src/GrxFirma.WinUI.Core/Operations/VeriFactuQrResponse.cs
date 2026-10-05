@@ -30,12 +30,13 @@ public static class VeriFactuQrResponse
             using var document = JsonDocument.Parse(json);
             var root = document.RootElement;
             if (root.ValueKind != JsonValueKind.Object) return UnknownKey;
-            var status = Text(root, "status");
+            var status = root.TryGetProperty("status", out var statusValue) ? Text(statusValue) : null;
             if (string.Equals(status, "KO", StringComparison.OrdinalIgnoreCase)) return RejectedKey;
             if (!string.Equals(status, "OK", StringComparison.OrdinalIgnoreCase)) return UnknownKey;
             if (!root.TryGetProperty("respuesta", out var answer) ||
                 answer.ValueKind != JsonValueKind.Object) return UnknownKey;
-            return Text(answer, "resultado") switch
+            var result = answer.TryGetProperty("resultado", out var resultValue) ? Text(resultValue) : null;
+            return result switch
             {
                 "00" => FoundKey,
                 "01" => NotFoundKey,
@@ -49,8 +50,6 @@ public static class VeriFactuQrResponse
         }
     }
 
-    private static string? Text(JsonElement element, string name) =>
-        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
-            ? value.GetString()?.Trim()
-            : null;
+    private static string? Text(JsonElement value) =>
+        value.ValueKind == JsonValueKind.String ? value.GetString()?.Trim() : null;
 }
