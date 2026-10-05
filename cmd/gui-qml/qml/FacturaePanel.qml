@@ -105,24 +105,14 @@ Item {
         Layout.fillWidth: true
         spacing: 4
         Label { text: invoiceField.required ? invoiceField.label + " *" : invoiceField.label; color: panel.theme.textColor; wrapMode: Text.WordWrap }
-        TextField {
+        ThemedTextField {
             id: input
             Layout.fillWidth: true
             Accessible.name: invoiceField.required ? invoiceField.label + ", " + panel.tr("facturae.required") : invoiceField.label
             Accessible.description: invoiceField.hint
             placeholderText: hint
             selectByMouse: true
-            background: FieldBackground { field: input }
         }
-    }
-    // Borde visible (3:1) en temas claros y oscuros y anillo de foco de 2 px.
-    component FieldBackground: Rectangle {
-        property Item field
-        implicitHeight: 36
-        radius: 4
-        color: panel.theme.cardColor
-        border.color: field && field.activeFocus ? (panel.theme.focusColor || panel.theme.textColor) : panel.theme.secondaryTextColor
-        border.width: field && field.activeFocus ? 2 : 1
     }
     FileDialog {
         id: saveDialog
@@ -386,23 +376,21 @@ Item {
                 wrapMode: Text.WordWrap; Layout.fillWidth: true
                 Accessible.role: Accessible.AlertMessage; Accessible.name: text
             }
-            TextArea {
+            ThemedTextArea {
                 objectName: "verifactuReport"
                 text: panel.verifactuResult ? panel.verifactuResult.report : ""
                 visible: text.length > 0; readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText
                 Accessible.name: tr("verifactu.report")
                 color: panel.theme.textColor; Layout.fillWidth: true
-                background: Rectangle { color: panel.theme.cardColor ? panel.theme.cardColor : "transparent"; border.color: panel.theme.secondaryTextColor; radius: 4 }
             }
             ThemedButton { text: tr("verifactu.export"); visible: !!panel.verifactuResult; Accessible.name: text; onClicked: verifactuReportDialog.open() }
             Label { text: tr("verifactu.qr_title"); color: panel.theme.textColor; font.bold: true; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             Label { text: tr("verifactu.qr_url_field"); color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true
-                TextField {
+                ThemedTextField {
                     id: qrInput; enabled: !panel.busy; Layout.fillWidth: true; Accessible.name: tr("verifactu.qr_url_field"); Accessible.description: tr("verifactu.qr_url_label")
                     placeholderText: tr("verifactu.qr_url_label"); selectByMouse: true
-                    background: FieldBackground { field: qrInput }
                     onTextChanged: { qrArea.readResult = null; panel.qrState = null }
                 }
                 ThemedButton { objectName: "qrFromFileButton"; text: tr("verifactu.qr_from_file"); enabled: !panel.busy; Accessible.name: text; onClicked: qrFileDialog.open() }
@@ -414,21 +402,19 @@ Item {
             }
             Label { text: tr("verifactu.qr_query_help"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             // Fondo del tema: con el blanco por defecto el texto claro no se veía.
-            TextArea {
+            ThemedTextArea {
                 id: qrArea; objectName: "qrResultArea"; property var readResult: null; text: panel.qrText(panel.qrState); readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText; Layout.fillWidth: true
                 color: panel.theme.textColor; Accessible.name: tr("verifactu.qr_result")
                 onTextChanged: if (text === "") panel.qrTechnical = ""
-                background: Rectangle { color: panel.theme.cardColor ? panel.theme.cardColor : "transparent"; border.color: panel.theme.secondaryTextColor; radius: 4 }
             }
             ThemedButton {
                 id: qrTechnicalButton; objectName: "qrTechnicalButton"; checkable: true; visible: panel.qrTechnical !== ""
                 text: checked ? tr("verifactu.qr_technical_hide") : tr("verifactu.qr_technical"); Accessible.name: text
             }
-            TextArea {
+            ThemedTextArea {
                 objectName: "qrTechnicalArea"; visible: qrTechnicalButton.checked && panel.qrTechnical !== ""; text: panel.qrTechnical
                 readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText; Layout.fillWidth: true
                 color: panel.theme.textColor; Accessible.name: tr("verifactu.qr_technical")
-                background: Rectangle { color: panel.theme.cardColor ? panel.theme.cardColor : "transparent"; border.color: panel.theme.secondaryTextColor; radius: 4 }
             }
             Item { Layout.preferredHeight: 24 }
         }

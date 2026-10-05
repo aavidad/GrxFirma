@@ -5901,7 +5901,7 @@ Window {
                 Layout.fillWidth: true
             }
 
-            TextField {
+            ThemedTextField {
                 id: supportIncidentEndpointField
                 Layout.fillWidth: true
                 placeholderText: tr("https://soporte.ejemplo/incidents")
@@ -6950,7 +6950,7 @@ Window {
                 color: currentTheme.textColor
                 font.bold: true
             }
-            TextField {
+            ThemedTextField {
                 id: cscServiceUrlField
                 visible: window.cscAllowed
                 Layout.fillWidth: true
@@ -6973,7 +6973,7 @@ Window {
                 color: currentTheme.textColor
                 font.bold: true
             }
-            TextField {
+            ThemedTextField {
                 id: cscClientIdField
                 visible: window.cscAllowed
                 Layout.fillWidth: true
@@ -7116,7 +7116,7 @@ Window {
                 color: currentTheme.textColor
                 font.bold: true
             }
-            TextField {
+            ThemedTextField {
                 id: cscPinField
                 visible: !!window.cscSecretCertificate && window.cscSecretCertificate.remotePin === true
                 Layout.fillWidth: true
@@ -7134,7 +7134,7 @@ Window {
             RowLayout {
                 Layout.fillWidth: true
                 visible: !!window.cscSecretCertificate && window.cscSecretCertificate.remoteOtp === true
-                TextField {
+                ThemedTextField {
                     id: cscOtpField
                     Layout.fillWidth: true
                     echoMode: TextInput.Password
@@ -7197,7 +7197,7 @@ Window {
             spacing: 15; width: 350
             Text { text: tr("🔑 Contraseña Requerida"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 18 }
             Text { text: tr("Introduzca la contraseña para importar el archivo P12/PFX."); color: currentTheme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-            TextField {
+            ThemedTextField {
                 id: importPasswordField
                 echoMode: TextInput.Password
                 placeholderText: tr("Contraseña...")
@@ -7232,7 +7232,7 @@ Window {
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
-            TextField {
+            ThemedTextField {
                 id: temporaryCertificatePasswordField
                 echoMode: TextInput.Password
                 placeholderText: tr("Contraseña (vacía para PEM sin cifrar)")
@@ -7266,7 +7266,7 @@ Window {
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
-            TextField {
+            ThemedTextField {
                 id: guidedImportPasswordField
                 echoMode: TextInput.Password
                 placeholderText: tr("Contraseña del P12/PFX")
@@ -8733,7 +8733,7 @@ Window {
                                 RowLayout {
                                     visible: !window.isBatchMode()
                                     Layout.fillWidth: true
-                                    TextField {
+                                    ThemedTextField {
                                         text: window.currentFilePath
                                         Layout.fillWidth: true
                                         placeholderText: tr("Seleccione un archivo...")
@@ -8750,7 +8750,7 @@ Window {
                                 RowLayout {
                                     visible: !window.isBatchMode()
                                     Layout.fillWidth: true
-                                    TextField {
+                                    ThemedTextField {
                                         text: window.currentOutputPath
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 44
@@ -8809,7 +8809,7 @@ Window {
                                     color: currentTheme.secondaryTextColor
                                     font.pixelSize: 10; font.bold: true
                                 }
-                                TextArea {
+                                ThemedTextArea {
                                     visible: window.isBatchMode()
                                     Layout.fillWidth: true
                                     readOnly: true
@@ -8831,7 +8831,7 @@ Window {
                                 RowLayout {
                                     visible: window.isBatchMode()
                                     Layout.fillWidth: true
-                                    TextField {
+                                    ThemedTextField {
                                         text: window.currentBatchOutputDir
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 44
@@ -9092,7 +9092,7 @@ Window {
                                             onToggled: window.signQREnabled = checked
                                         }
                                         Binding { target: signQREnabledCheckBox; property: "checked"; value: window.signQREnabled }
-                                        TextField {
+                                        ThemedTextField {
                                             id: signQRContentField
                                             Layout.fillWidth: true
                                             visible: window.signQREnabled
@@ -9101,7 +9101,8 @@ Window {
                                             placeholderText: tr("https://verifica.ejemplo/")
                                             Accessible.name: tr("QR del sello")
                                             Accessible.description: window.signFieldError("qr") ? tr(window.signFieldError("qr")) : ""
-                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("qr") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.signFieldError("qr") ? 2 : 1 }
+                                            hasError: window.signFieldError("qr") !== ""
+                                            errorColor: currentTheme.errorColor
                                             onTextChanged: {
                                                 signQRContent = text
                                                 if (window.signFieldError("qr")) window.validateSignField("qr")
@@ -9113,15 +9114,15 @@ Window {
                                         ThemedCheckBox { id: csvEnabledCheck; text: tr("paridad.lote3.csv.enable"); checked: window.signCSVEnabled; Accessible.name: text; onToggled: window.signCSVEnabled = checked }
                                         Binding { target: csvEnabledCheck; property: "checked"; value: window.signCSVEnabled }
                                         Label { text: tr("paridad.lote3.csv.notice"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-                                        TextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.code"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvCode") ? tr(window.signFieldError("csvCode")) : ""; maximumLength: 128; text: window.signCSVCode; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvCode") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvCode") ? 2 : 1 }
+                                        ThemedTextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.code"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvCode") ? tr(window.signFieldError("csvCode")) : ""; maximumLength: 128; text: window.signCSVCode; hasError: window.signFieldError("csvCode") !== ""; errorColor: currentTheme.errorColor
                                             onTextChanged: { window.signCSVCode = text; if (window.signFieldError("csvCode")) window.validateSignField("csvCode") }
                                             onEditingFinished: window.validateSignField("csvCode") }
                                         Text { Layout.fillWidth: true; visible: window.signFieldError("csvCode") !== ""; text: "⚠ " + tr(window.signFieldError("csvCode")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
-                                        TextField { id: csvUrlField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.url"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvUrl") ? tr(window.signFieldError("csvUrl")) : ""; maximumLength: 2048; text: window.signCSVUrl; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvUrl") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvUrl") ? 2 : 1 }
+                                        ThemedTextField { id: csvUrlField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.url"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvUrl") ? tr(window.signFieldError("csvUrl")) : ""; maximumLength: 2048; text: window.signCSVUrl; hasError: window.signFieldError("csvUrl") !== ""; errorColor: currentTheme.errorColor
                                             onTextChanged: { window.signCSVUrl = text; if (window.signFieldError("csvUrl")) window.validateSignField("csvUrl") }
                                             onEditingFinished: window.validateSignField("csvUrl") }
                                         Text { Layout.fillWidth: true; visible: window.signFieldError("csvUrl") !== ""; text: "⚠ " + tr(window.signFieldError("csvUrl")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
-                                        TextField { id: csvTextField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.text_optional"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvText") ? tr(window.signFieldError("csvText")) : ""; maximumLength: 512; text: window.signCSVText; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvText") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvText") ? 2 : 1 }
+                                        ThemedTextField { id: csvTextField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.text_optional"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvText") ? tr(window.signFieldError("csvText")) : ""; maximumLength: 512; text: window.signCSVText; hasError: window.signFieldError("csvText") !== ""; errorColor: currentTheme.errorColor
                                             onTextChanged: { window.signCSVText = text; if (window.signFieldError("csvText")) window.validateSignField("csvText") }
                                             onEditingFinished: window.validateSignField("csvText") }
                                         Text { Layout.fillWidth: true; visible: window.signFieldError("csvText") !== ""; text: "⚠ " + tr(window.signFieldError("csvText")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
@@ -9147,14 +9148,15 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("Página(s)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        TextField {
+                                        ThemedTextField {
                                             id: signSealPagesField
                                             Accessible.name: tr("Página(s)")
                                             Accessible.description: window.signFieldError("pages") ? tr(window.signFieldError("pages")) : ""
                                             enabled: !signSealAllPages
                                             text: signSealPages
                                             placeholderText: tr("1 o 1,3-5")
-                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("pages") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.signFieldError("pages") ? 2 : 1 }
+                                            hasError: window.signFieldError("pages") !== ""
+                                            errorColor: currentTheme.errorColor
                                             onTextChanged: {
                                                 if (window.signFieldError("pages")) {
                                                     signSealPages = text
@@ -9263,7 +9265,7 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("X (0..1)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        TextField {
+                                        ThemedTextField {
                                             id: signSealXField
                                             Accessible.name: tr("X (0..1)")
                                             text: Number(signSealX).toFixed(4)
@@ -9278,7 +9280,7 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("Y (0..1)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        TextField {
+                                        ThemedTextField {
                                             id: signSealYField
                                             Accessible.name: tr("Y (0..1)")
                                             text: Number(signSealY).toFixed(4)
@@ -9293,7 +9295,7 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("Ancho (0..1)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        TextField {
+                                        ThemedTextField {
                                             id: signSealWField
                                             Accessible.name: tr("Ancho (0..1)")
                                             text: Number(signSealW).toFixed(4)
@@ -9308,7 +9310,7 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("Alto (0..1)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        TextField {
+                                        ThemedTextField {
                                             id: signSealHField
                                             Accessible.name: tr("Alto (0..1)")
                                             text: Number(signSealH).toFixed(4)
@@ -9404,7 +9406,7 @@ Window {
                                             ColumnLayout {
                                                 Layout.fillWidth: true
                                                 Text { text: tr("Motivo"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                                TextField {
+                                                ThemedTextField {
                                                     id: signReasonField
                                                     Layout.fillWidth: true
                                                     text: signReason
@@ -9416,7 +9418,7 @@ Window {
                                             ColumnLayout {
                                                 Layout.fillWidth: true
                                                 Text { text: tr("Ubicación"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                                TextField {
+                                                ThemedTextField {
                                                     id: signLocationField
                                                     Layout.fillWidth: true
                                                     text: signLocation
@@ -9430,7 +9432,7 @@ Window {
                                         ColumnLayout {
                                             Layout.fillWidth: true
                                             Text { text: tr("Contacto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                            TextField {
+                                            ThemedTextField {
                                                 id: signContactField
                                                 Layout.fillWidth: true
                                                 text: signContactInfo
@@ -10822,7 +10824,7 @@ Window {
                                 Layout.fillWidth: true
                                 spacing: 6
 
-                                TextField {
+                                ThemedTextField {
                                     id: certificateFilterField
                                     Layout.fillWidth: true
                                     text: certificateFilterText
@@ -12476,7 +12478,7 @@ Window {
                                             Layout.fillWidth: true
                                             spacing: 6
                                             Text { text: tr("Ruta de salida opcional"); color: currentTheme.secondaryTextColor }
-                                            TextField {
+                                            ThemedTextField {
                                                 Layout.fillWidth: true
                                                 text: window.protectOutputPath
                                                 placeholderText: tr("/ruta/de/salida.opcional")
@@ -12561,7 +12563,7 @@ Window {
                                                 text: tr("Introduzca una clave AES-256 en Base64 canónico (44 caracteres) y repítala. La clave solo se mantiene durante esta operación y no se guarda; sin ella no podrá recuperar el documento.")
                                                 color: currentTheme.secondaryTextColor
                                             }
-                                            TextField {
+                                            ThemedTextField {
                                                 id: protectEncryptedSecretField
                                                 Layout.fillWidth: true
                                                 maximumLength: 44
@@ -12570,7 +12572,7 @@ Window {
                                                 placeholderText: tr("Clave AES-256 en Base64 (44 caracteres)")
                                                 Accessible.name: tr("Clave transitoria de EncryptedData")
                                             }
-                                            TextField {
+                                            ThemedTextField {
                                                 id: protectEncryptedSecretConfirmField
                                                 Layout.fillWidth: true
                                                 maximumLength: 44
@@ -12863,7 +12865,7 @@ Window {
                                             text: tr("Introduzca la misma clave AES-256 en Base64 usada al proteger. Se enviará una sola vez al motor local y no se guardará.")
                                             color: currentTheme.secondaryTextColor
                                         }
-                                        TextField {
+                                        ThemedTextField {
                                             id: unprotectEncryptedSecretField
                                             Layout.fillWidth: true
                                             maximumLength: 44
@@ -12883,7 +12885,7 @@ Window {
                                     Layout.fillWidth: true
                                     spacing: 6
                                     Text { text: tr("Ruta de salida opcional"); color: currentTheme.secondaryTextColor }
-                                    TextField {
+                                    ThemedTextField {
                                         Layout.fillWidth: true
                                         text: window.unprotectOutputPath
                                         placeholderText: tr("/ruta/de/salida.opcional")
@@ -13128,7 +13130,7 @@ Window {
                                 Layout.fillWidth: true
                                 spacing: 6
 
-                                TextField {
+                                ThemedTextField {
                                     Layout.fillWidth: true
                                     text: certificateFilterText
                                     placeholderText: tr("Buscar certificado")
@@ -14579,7 +14581,7 @@ Window {
                                         Layout.fillWidth: true
                                         spacing: 4
                                         Text { text: tr("Motivo de firma por defecto"); color: currentTheme.textColor }
-                                        TextField {
+                                        ThemedTextField {
                                             id: settingsSignReasonField
                                             Layout.fillWidth: true
                                             text: window.signReason
@@ -14667,7 +14669,7 @@ Window {
                                         font.pixelSize: 11
                                         wrapMode: Text.WordWrap
                                     }
-                                    TextField {
+                                    ThemedTextField {
                                         id: settingsFacturaePolicyIdField
                                         Layout.fillWidth: true
                                         text: window.facturaePolicyIdentifier
@@ -14678,7 +14680,7 @@ Window {
                                         }
                                     }
                                     Binding { target: settingsFacturaePolicyIdField; property: "text"; value: window.facturaePolicyIdentifier; when: !settingsFacturaePolicyIdField.activeFocus }
-                                    TextField {
+                                    ThemedTextField {
                                         id: settingsFacturaePolicyHashField
                                         Layout.fillWidth: true
                                         text: window.facturaePolicyIdentifierHash
@@ -14689,7 +14691,7 @@ Window {
                                         }
                                     }
                                     Binding { target: settingsFacturaePolicyHashField; property: "text"; value: window.facturaePolicyIdentifierHash; when: !settingsFacturaePolicyHashField.activeFocus }
-                                    TextField {
+                                    ThemedTextField {
                                         id: settingsFacturaePolicyQualifierField
                                         Layout.fillWidth: true
                                         text: window.facturaePolicyQualifier
@@ -14722,7 +14724,7 @@ Window {
                                     RowLayout {
                                         Layout.fillWidth: true
                                         spacing: 10
-                                        TextField {
+                                        ThemedTextField {
                                             id: settingsFacturaeCityField
                                             Layout.fillWidth: true
                                             text: window.facturaeSignatureCity
@@ -14733,7 +14735,7 @@ Window {
                                             }
                                         }
                                         Binding { target: settingsFacturaeCityField; property: "text"; value: window.facturaeSignatureCity; when: !settingsFacturaeCityField.activeFocus }
-                                        TextField {
+                                        ThemedTextField {
                                             id: settingsFacturaeProvinceField
                                             Layout.fillWidth: true
                                             text: window.facturaeSignatureProvince
@@ -14748,7 +14750,7 @@ Window {
                                     RowLayout {
                                         Layout.fillWidth: true
                                         spacing: 10
-                                        TextField {
+                                        ThemedTextField {
                                             id: settingsFacturaePostalCodeField
                                             Layout.fillWidth: true
                                             text: window.facturaeSignaturePostalCode
@@ -14759,7 +14761,7 @@ Window {
                                             }
                                         }
                                         Binding { target: settingsFacturaePostalCodeField; property: "text"; value: window.facturaeSignaturePostalCode; when: !settingsFacturaePostalCodeField.activeFocus }
-                                        TextField {
+                                        ThemedTextField {
                                             id: settingsFacturaeCountryField
                                             Layout.fillWidth: true
                                             text: window.facturaeSignatureCountry
@@ -14989,11 +14991,12 @@ Window {
                                         Layout.fillWidth: true
                                         spacing: 4
                                         Text { text: tr("Servidor TSA:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: tsaCombo
                                             Layout.fillWidth: true
                                             editable: true
-                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("tsa") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("tsa") ? 2 : 1 }
+                                            hasError: window.settingsFieldError("tsa") !== ""
+                                            errorColor: currentTheme.errorColor
                                             model: [
                                                 "http://tsa.fnmt.es/",
                                                 "http://tsa.accv.es/",
@@ -15093,11 +15096,12 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("Host / IP:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        TextField {
+                                        ThemedTextField {
                                             id: proxyHostField
                                             Layout.fillWidth: true
                                             text: window.proxyHost
-                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("proxyHost") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("proxyHost") ? 2 : 1 }
+                                            hasError: window.settingsFieldError("proxyHost") !== ""
+                                            errorColor: currentTheme.errorColor
                                             Accessible.description: window.settingsFieldError("proxyHost") ? tr(window.settingsFieldError("proxyHost")) : ""
                                             onTextChanged: {
                                                 if (window.settingsFieldError("proxyHost")) {
@@ -15116,12 +15120,13 @@ Window {
                                     ColumnLayout {
                                         width: 100
                                         Text { text: tr("Puerto:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        TextField {
+                                        ThemedTextField {
                                             id: proxyPortField
                                             Layout.fillWidth: true
                                             text: window.proxyPort.toString()
                                             validator: IntValidator { bottom: 1; top: 65535 }
-                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("proxyPort") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("proxyPort") ? 2 : 1 }
+                                            hasError: window.settingsFieldError("proxyPort") !== ""
+                                            errorColor: currentTheme.errorColor
                                             Accessible.description: window.settingsFieldError("proxyPort") ? tr(window.settingsFieldError("proxyPort")) : ""
                                             onTextChanged: {
                                                 if (window.settingsFieldError("proxyPort")) {
@@ -15146,7 +15151,7 @@ Window {
                                     spacing: 4
 
                                     Text { text: tr("URLs excluidas del proxy:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                    TextArea {
+                                    ThemedTextArea {
                                         id: proxyExcludedUrlsArea
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 88
@@ -15218,21 +15223,21 @@ Window {
                                             Text { text: tr("Usuario"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                             Text { text: tr("Contraseña"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
 
-                                            TextField {
+                                            ThemedTextField {
                                                 id: proxyRealmField
                                                 Layout.fillWidth: true
                                                 maximumLength: 256
                                                 text: window.proxyCredentialRealm
                                                 onTextEdited: window.proxyCredentialRealm = text
                                             }
-                                            TextField {
+                                            ThemedTextField {
                                                 id: proxyUsernameField
                                                 Layout.fillWidth: true
                                                 maximumLength: 256
                                                 text: window.proxyCredentialUsername
                                                 onTextEdited: window.proxyCredentialUsername = text
                                             }
-                                            TextField {
+                                            ThemedTextField {
                                                 id: proxyPasswordField
                                                 Layout.fillWidth: true
                                                 maximumLength: 4096
@@ -15375,7 +15380,7 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("Puerto:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        TextField {
+                                        ThemedTextField {
                                             id: restPortField
                                             Layout.fillWidth: true
                                             text: tr("63118")
@@ -15386,7 +15391,7 @@ Window {
                                         Layout.fillWidth: true
                                         Layout.preferredWidth: 300
                                         Text { text: tr("Token de Seguridad:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        TextField {
+                                        ThemedTextField {
                                             id: restTokenField
                                             Layout.fillWidth: true
                                             placeholderText: tr("Opcional: token de acceso bearer")
@@ -15398,7 +15403,7 @@ Window {
                                     Layout.fillWidth: true
                                     spacing: 4
                                     Text { text: tr("Huellas de Certificados Cliente (SHA-256 CSV):"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                    TextField {
+                                    ThemedTextField {
                                         id: restFingerprintsField
                                         Layout.fillWidth: true
                                         placeholderText: tr("Opcional: 6F:..., 8A:...")
@@ -15422,7 +15427,7 @@ Window {
                                         color: currentTheme.secondaryTextColor
                                         font.pixelSize: 12
                                     }
-                                    TextField {
+                                    ThemedTextField {
                                         id: webCompatibilityDurationField
                                         Layout.preferredWidth: 90
                                         text: String(window.webCompatibilityDurationMinutes)
