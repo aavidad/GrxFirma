@@ -376,6 +376,12 @@ static bool backendBuildSignOptions(const QVariantMap &options,
     page = QStringLiteral("1");
   signOptions->insert(QStringLiteral("visibleSeal"), QStringLiteral("true"));
   signOptions->insert(QStringLiteral("page"), page);
+  // Las fracciones se miden sobre la página tal como se ve (CropBox y
+  // /Rotate), así que los puntos son relativos a su esquina, como en la ruta
+  // IPC; sin esta marca el motor los tomaría como absolutos y el sello se
+  // desviaría en páginas cuya CropBox no empieza en 0.
+  signOptions->insert(QStringLiteral("visibleSealRectRelativeToCrop"),
+                      QStringLiteral("true"));
   signOptions->insert(
       QStringLiteral("visibleSealRectX"),
       QString::number(x * pageWidth, 'f', 2));

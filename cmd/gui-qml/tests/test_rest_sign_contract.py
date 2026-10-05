@@ -67,6 +67,23 @@ class RestSignContractTest(unittest.TestCase):
         self.assertNotIn('item.insert(QStringLiteral("inputPath")', body)
         self.assertNotIn('item.insert(QStringLiteral("outputPath")', body)
 
+    def test_visible_seal_points_are_relative_to_visible_page(self) -> None:
+        # La vista previa mide la página tal como se ve (CropBox y /Rotate):
+        # los puntos son relativos a su esquina, igual que en la ruta IPC. Sin
+        # la marca, el motor los tomaría como absolutos y el sello se
+        # desviaría en páginas cuya CropBox no empieza en 0.
+        text = source(SOURCE)
+        match = re.search(r"static bool backendBuildSignOptions\([^)]*\)\s*\{", text)
+        self.assertIsNotNone(match, "función C++ ausente: backendBuildSignOptions")
+        body = text[match.end() : text.index("\nstatic ", match.end())]
+        seal = body[body.index('QStringLiteral("visibleSeal")') :]
+        self.assertRegex(
+            seal,
+            r'insert\(\s*QStringLiteral\("visibleSealRectRelativeToCrop"\),\s*'
+            r'QStringLiteral\("true"\)\)',
+        )
+        self.assertIn('QStringLiteral("visibleSealRectX")', seal)
+
 
 if __name__ == "__main__":
     unittest.main()
