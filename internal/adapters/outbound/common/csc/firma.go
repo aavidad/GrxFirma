@@ -148,6 +148,18 @@ type autorizacionCredencial struct {
 	token *token
 }
 
+// liberarAutorizacion revoca el token de credencial (modo oauth2code) antes
+// de borrarlo; el SAD solo se borra porque CSC no define su revocación.
+func (c *Cliente) liberarAutorizacion(a *autorizacionCredencial) {
+	if a == nil {
+		return
+	}
+	if a.token != nil {
+		c.revocar(a.token)
+	}
+	a.destruir()
+}
+
 func (a *autorizacionCredencial) destruir() {
 	if a == nil {
 		return
@@ -158,19 +170,11 @@ func (a *autorizacionCredencial) destruir() {
 	a.token.destruir()
 }
 
-type datoAuth struct {
-	ID    string `json:"id"`
-	Value string `json:"value"`
-}
-
 type peticionAutorizar struct {
-	CredentialID     string     `json:"credentialID"`
-	NumSignatures    int        `json:"numSignatures"`
-	Hashes           []string   `json:"hashes"`
-	HashAlgorithmOID string     `json:"hashAlgorithmOID"`
-	PIN              string     `json:"PIN,omitempty"`
-	OTP              string     `json:"OTP,omitempty"`
-	AuthData         []datoAuth `json:"authData,omitempty"`
+	CredentialID     string   `json:"credentialID"`
+	NumSignatures    int      `json:"numSignatures"`
+	Hashes           []string `json:"hashes"`
+	HashAlgorithmOID string   `json:"hashAlgorithmOID"`
 }
 
 type respuestaAutorizar struct {
@@ -232,6 +236,8 @@ func (c *Cliente) autorizarCredencial(ctx context.Context, cred *Credencial, res
 		HashAlgorithmOID: oidResumen,
 	}
 	var secretos [][]byte
+	var campos []campoSecreto
+	var authData []datoAuthSecreto
 	defer func() {
 		for _, s := range secretos {
 			secmem.Zeroize(s)
@@ -257,11 +263,9 @@ func (c *Cliente) autorizarCredencial(ctx context.Context, cred *Credencial, res
 				return nuevoError(CodigoSecreto, "", nil)
 			}
 			if cred.authDataV21 {
-				peticion.AuthData = append(peticion.AuthData, datoAuth{ID: id, Value: string(valor)})
-			} else if tipo == SecretoPIN {
-				peticion.PIN = string(valor)
+				authData = append(authData, datoAuthSecreto{id: id, valor: valor})
 			} else {
-				peticion.OTP = string(valor)
+				campos = append(campos, campoSecreto{nombre: id, valor: valor})
 			}
 			return nil
 		}
@@ -276,9 +280,14 @@ func (c *Cliente) autorizarCredencial(ctx context.Context, cred *Credencial, res
 			}
 		}
 	}
+	cuerpo, err := cuerpoConSecretos(peticion, campos, authData)
+	if err != nil {
+		return nil, err
+	}
+	defer secmem.Zeroize(cuerpo)
 	var respuesta respuestaAutorizar
 	defer func() { secmem.Zeroize(respuesta.SADTexto) }()
-	if err := postJSON(ctx, c.http, unirRuta(c.base, "credentials/authorize"), t, peticion, &respuesta); err != nil {
+	if err := enviar(ctx, c.http, unirRuta(c.base, "credentials/authorize"), t, tipoJSON, cuerpo, &respuesta); err != nil {
 		return nil, err
 	}
 	return sadDesdeRespuesta(&respuesta)
@@ -296,7 +305,6 @@ func sadDesdeRespuesta(r *respuestaAutorizar) (*autorizacionCredencial, error) {
 
 type peticionFirmarHash struct {
 	CredentialID     string   `json:"credentialID"`
-	SAD              string   `json:"SAD,omitempty"`
 	Hashes           []string `json:"hashes"`
 	HashAlgorithmOID string   `json:"hashAlgorithmOID"`
 	SignAlgo         string   `json:"signAlgo"`
@@ -331,6 +339,7 @@ func (c *Cliente) firmarResumenes(ctx context.Context, cred *Credencial, auth *a
 		peticion.SignAlgoParams = base64.StdEncoding.EncodeToString(params)
 	}
 	var portador []byte
+	var campos []campoSecreto
 	if auth.token != nil {
 		portador = auth.token.bytes()
 	} else {
@@ -339,10 +348,15 @@ func (c *Cliente) firmarResumenes(ctx context.Context, cred *Credencial, auth *a
 			return nil, err
 		}
 		portador = t
-		peticion.SAD = string(auth.sad.Bytes())
+		campos = []campoSecreto{{nombre: "SAD", valor: auth.sad.Bytes()}}
 	}
+	cuerpo, err := cuerpoConSecretos(peticion, campos, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer secmem.Zeroize(cuerpo)
 	var respuesta respuestaFirmarHash
-	if err := postJSON(ctx, c.http, unirRuta(c.base, "signatures/signHash"), portador, peticion, &respuesta); err != nil {
+	if err := enviar(ctx, c.http, unirRuta(c.base, "signatures/signHash"), portador, tipoJSON, cuerpo, &respuesta); err != nil {
 		return nil, err
 	}
 	if len(respuesta.Signatures) != len(resumenes) {
@@ -408,7 +422,7 @@ func (f *FirmanteRemoto) Sign(_ io.Reader, resumen []byte, opts crypto.SignerOpt
 	if err != nil {
 		return nil, err
 	}
-	defer auth.destruir()
+	defer c.liberarAutorizacion(auth)
 	firmas, err := c.firmarResumenes(f.ctx, f.cred, auth, [][]byte{resumen}, h, pss)
 	if err != nil {
 		return nil, err
@@ -425,7 +439,8 @@ func comprobarFirma(pub crypto.PublicKey, resumen []byte, h crypto.Hash, firma [
 	case *rsa.PublicKey:
 		var err error
 		if pss != nil {
-			err = rsa.VerifyPSS(k, h, resumen, firma, &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthAuto, Hash: h})
+			// Se exige la sal anunciada en signAlgoParams (longitud del resumen).
+			err = rsa.VerifyPSS(k, h, resumen, firma, &rsa.PSSOptions{SaltLength: h.Size(), Hash: h})
 		} else {
 			err = rsa.VerifyPKCS1v15(k, h, resumen, firma)
 		}

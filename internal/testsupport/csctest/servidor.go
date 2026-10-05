@@ -63,6 +63,7 @@ type codigoPendiente struct {
 type autorizacion struct {
 	credencial string
 	hashes     []string
+	usado      bool
 }
 
 // Servidor es el servicio CSC simulado.
@@ -84,6 +85,12 @@ type Servidor struct {
 	FirmaFalsa bool
 	// ECDSACruda devuelve las firmas ECDSA como r||s en lugar de DER.
 	ECDSACruda bool
+	// CadenaAjena anuncia como cadena una CA que no emitió el certificado.
+	CadenaAjena *x509.Certificate
+	// SalPSS, si no es cero, fuerza esa longitud de sal en las firmas PSS.
+	SalPSS int
+	// RevocadosCred cuenta los tokens de credencial revocados.
+	RevocadosCred int
 	// OAuthURL, si no está vacío, es el servidor OAuth que anuncia /info.
 	OAuthURL string
 	// InfoOverride, si no es nil, sustituye la respuesta de /info.
@@ -339,6 +346,10 @@ func (s *Servidor) revoke(w http.ResponseWriter, r *http.Request) {
 		delete(s.tokensServicio, tok)
 		s.Revocados++
 	}
+	if _, ok := s.tokensCred[tok]; ok {
+		delete(s.tokensCred, tok)
+		s.RevocadosCred++
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -389,7 +400,7 @@ func (s *Servidor) credInfo(w http.ResponseWriter, r *http.Request) {
 			"status": "valid",
 			"certificates": []string{
 				base64.StdEncoding.EncodeToString(c.Certificado.Raw),
-				base64.StdEncoding.EncodeToString(s.CA.Raw),
+				base64.StdEncoding.EncodeToString(s.cadena().Raw),
 			},
 		},
 		"SCAL":      s.SCAL,
@@ -410,6 +421,14 @@ func (s *Servidor) credInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	escribirJSON(w, http.StatusOK, respuesta)
+}
+
+// cadena devuelve la CA que se anuncia; el llamador tiene s.mu.
+func (s *Servidor) cadena() *x509.Certificate {
+	if s.CadenaAjena != nil {
+		return s.CadenaAjena
+	}
+	return s.CA
 }
 
 func (s *Servidor) sendOTP(w http.ResponseWriter, r *http.Request) {
@@ -496,7 +515,13 @@ func (s *Servidor) signHash(w http.ResponseWriter, r *http.Request) {
 		delete(s.sads, p.SAD)
 	} else {
 		aut, ok = s.tokensCred[portador(r)]
-		delete(s.tokensCred, portador(r))
+		if ok && aut.usado {
+			ok = false
+		}
+		if ok {
+			aut.usado = true
+			s.tokensCred[portador(r)] = aut
+		}
 	}
 	if !ok || aut.credencial != p.CredentialID || strings.Join(aut.hashes, ",") != strings.Join(p.Hashes, ",") {
 		fallo(w, http.StatusBadRequest, "invalid_request")
@@ -526,7 +551,11 @@ func (s *Servidor) signHash(w http.ResponseWriter, r *http.Request) {
 		s.ResumenesFirmados = append(s.ResumenesFirmados, resumen)
 		var opciones crypto.SignerOpts = h
 		if p.SignAlgo == "1.2.840.113549.1.1.10" {
-			opciones = &rsa.PSSOptions{SaltLength: h.Size(), Hash: h}
+			sal := h.Size()
+			if s.SalPSS != 0 {
+				sal = s.SalPSS
+			}
+			opciones = &rsa.PSSOptions{SaltLength: sal, Hash: h}
 		}
 		firma, err := c.Clave.Sign(rand.Reader, resumen, opciones)
 		if err != nil {

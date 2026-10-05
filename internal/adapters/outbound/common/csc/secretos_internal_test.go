@@ -8,6 +8,7 @@ package csc
 import (
 	"bytes"
 	"encoding/json"
+	"net/url"
 	"testing"
 )
 
@@ -46,4 +47,46 @@ func TestTokenYSADDecodificadosSeBorranTambienSiFallan(t *testing.T) {
 		t.Fatalf("SAD: %v %q", err, vistaSAD)
 	}
 	aut.destruir()
+}
+
+func TestCuerpoConSecretosEsJSONValidoYEscapa(t *testing.T) {
+	base := struct {
+		CredentialID string `json:"credentialID"`
+	}{"c-1"}
+	pin := []byte("12\"3\\4\x01")
+	otp := []byte("ñ567")
+	cuerpo, err := cuerpoConSecretos(base, []campoSecreto{{"PIN", pin}, {"OTP", otp}}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var v map[string]string
+	if err := json.Unmarshal(cuerpo, &v); err != nil {
+		t.Fatalf("JSON inválido %q: %v", cuerpo, err)
+	}
+	if v["credentialID"] != "c-1" || v["PIN"] != string(pin) || v["OTP"] != string(otp) {
+		t.Fatalf("valores: %v", v)
+	}
+	cuerpo, err = cuerpoConSecretos(base, nil, []datoAuthSecreto{{"PIN", pin}, {"OTP", otp}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var w struct {
+		AuthData []struct{ ID, Value string } `json:"authData"`
+	}
+	if err := json.Unmarshal(cuerpo, &w); err != nil || len(w.AuthData) != 2 || w.AuthData[0].Value != string(pin) || w.AuthData[1].ID != "OTP" {
+		t.Fatalf("authData %q: %v %+v", cuerpo, err, w)
+	}
+	vacio, err := cuerpoConSecretos(struct{}{}, []campoSecreto{{"SAD", []byte("s")}}, nil)
+	if err != nil || string(vacio) != `{"SAD":"s"}` {
+		t.Fatalf("objeto vacío: %q %v", vacio, err)
+	}
+}
+
+func TestAnadirPorcentajeEsFormularioValido(t *testing.T) {
+	valor := []byte("a b+c/=&ñ~")
+	cuerpo := append([]byte("token="), anadirPorcentaje(nil, valor)...)
+	q, err := url.ParseQuery(string(cuerpo))
+	if err != nil || q.Get("token") != string(valor) {
+		t.Fatalf("%q -> %v %v", cuerpo, q, err)
+	}
 }

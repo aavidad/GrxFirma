@@ -201,7 +201,7 @@ func interpretarCredencial(id string, r respuestaInfoCredencial) (*Credencial, e
 	cred := &Credencial{
 		ID:          id,
 		Certificado: certs[0],
-		Cadena:      certs[1:],
+		Cadena:      cadenaEncadenada(certs),
 		SCAL:        strings.TrimSpace(string(r.SCAL)),
 		Algoritmos:  append([]string(nil), r.Key.Algo...),
 	}
@@ -239,4 +239,17 @@ func interpretarCredencial(id string, r respuestaInfoCredencial) (*Credencial, e
 		return nil, nuevoError(CodigoRespuestaInvalida, "authMode", nil)
 	}
 	return cred, nil
+}
+
+// cadenaEncadenada devuelve certs[1:] solo si cada certificado está firmado
+// por el siguiente. Si no, la cadena del servicio se descarta entera: no se
+// incrusta en la firma una cadena que no corresponde al certificado (los
+// verificadores construirán la suya con sus propias anclas).
+func cadenaEncadenada(certs []*x509.Certificate) []*x509.Certificate {
+	for i := 0; i+1 < len(certs); i++ {
+		if certs[i].CheckSignatureFrom(certs[i+1]) != nil {
+			return nil
+		}
+	}
+	return append([]*x509.Certificate(nil), certs[1:]...)
 }

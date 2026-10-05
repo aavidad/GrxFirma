@@ -373,3 +373,43 @@ func TestTransporteNoEndureciblesSeRechaza(t *testing.T) {
 	})
 	esperarCodigo(t, err, csc.CodigoParametroInvalido)
 }
+
+func TestTokenDeCredencialOAuth2CodeSeRevoca(t *testing.T) {
+	s := csctest.Nuevo(t)
+	s.Configurar(func(s *csctest.Servidor) { s.Modo = "oauth2code" })
+	cliente := nuevoCliente(t, s)
+	cred := autorizarYCredencial(t, cliente, csctest.CredencialRSA)
+	firmante, _ := cliente.Firmante(context.Background(), cred)
+	resumen := sha256.Sum256([]byte("revocar"))
+	if _, err := firmante.Sign(rand.Reader, resumen[:], crypto.SHA256); err != nil {
+		t.Fatal(err)
+	}
+	s.Leer(func(s *csctest.Servidor) {
+		if s.RevocadosCred != 1 {
+			t.Fatalf("el token de credencial no se revocó: %d", s.RevocadosCred)
+		}
+	})
+}
+
+func TestRSAPSSConOtraSalSeRechaza(t *testing.T) {
+	s := csctest.Nuevo(t)
+	s.Configurar(func(s *csctest.Servidor) { s.SalPSS = 20 })
+	cliente := nuevoCliente(t, s)
+	cred := autorizarYCredencial(t, cliente, csctest.CredencialRSA)
+	cred.Algoritmos = append(cred.Algoritmos, "1.2.840.113549.1.1.10")
+	firmante, _ := cliente.Firmante(context.Background(), cred)
+	resumen := sha256.Sum256([]byte("pss"))
+	_, err := firmante.Sign(rand.Reader, resumen[:], &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash, Hash: crypto.SHA256})
+	esperarCodigo(t, err, csc.CodigoFirmaInvalida)
+}
+
+func TestCadenaQueNoEncadenaSeDescarta(t *testing.T) {
+	s := csctest.Nuevo(t)
+	otra := csctest.Nuevo(t)
+	s.Configurar(func(s *csctest.Servidor) { s.CadenaAjena = otra.CA })
+	cliente := nuevoCliente(t, s)
+	cred := autorizarYCredencial(t, cliente, csctest.CredencialRSA)
+	if len(cred.Cadena) != 0 || len(cred.Referencia().ChainDER) != 0 {
+		t.Fatalf("una cadena ajena no debe conservarse: %d", len(cred.Cadena))
+	}
+}

@@ -305,11 +305,15 @@ func (c *Cliente) revocar(t *token) {
 	}
 	destino := *c.oauth
 	destino.Path = strings.TrimRight(destino.Path, "/") + "/oauth2/revoke"
-	campos := url.Values{}
-	campos.Set("token", string(t.bytes()))
-	campos.Set("token_type_hint", "access_token")
-	campos.Set("client_id", c.opc.ClientID)
+	// El formulario se compone en un []byte para no copiar el token a un
+	// string que no se podría borrar.
+	cuerpo := make([]byte, 0, 3*t.valor.Len()+len(c.opc.ClientID)*3+64)
+	cuerpo = append(cuerpo, "token="...)
+	cuerpo = anadirPorcentaje(cuerpo, t.bytes())
+	cuerpo = append(cuerpo, "&token_type_hint=access_token&client_id="...)
+	cuerpo = anadirPorcentaje(cuerpo, []byte(c.opc.ClientID))
+	defer secmem.Zeroize(cuerpo)
 	ctx, cancelar := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelar()
-	_ = postFormulario(ctx, c.http, destino.String(), campos, nil)
+	_ = enviar(ctx, c.http, destino.String(), nil, tipoFormulario, cuerpo, nil)
 }

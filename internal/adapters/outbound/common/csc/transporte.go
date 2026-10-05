@@ -31,6 +31,8 @@ const (
 	// tiempoNegociacionTLS acota el establecimiento de la conexión segura.
 	tiempoNegociacionTLS = 10 * time.Second
 	rutaAPI              = "/csc/v2"
+	tipoJSON             = "application/json"
+	tipoFormulario       = "application/x-www-form-urlencoded"
 )
 
 var errRedireccion = errors.New("csc: redirection refused")
@@ -123,7 +125,7 @@ func postJSON(ctx context.Context, cliente *http.Client, destino string, token [
 		return nuevoError(CodigoParametroInvalido, "", err)
 	}
 	defer secmem.Zeroize(cuerpo)
-	return enviar(ctx, cliente, destino, token, "application/json", cuerpo, respuesta)
+	return enviar(ctx, cliente, destino, token, tipoJSON, cuerpo, respuesta)
 }
 
 // postFormulario envía un formulario application/x-www-form-urlencoded, que
@@ -131,7 +133,7 @@ func postJSON(ctx context.Context, cliente *http.Client, destino string, token [
 func postFormulario(ctx context.Context, cliente *http.Client, destino string, campos url.Values, respuesta any) error {
 	cuerpo := []byte(campos.Encode())
 	defer secmem.Zeroize(cuerpo)
-	return enviar(ctx, cliente, destino, nil, "application/x-www-form-urlencoded", cuerpo, respuesta)
+	return enviar(ctx, cliente, destino, nil, tipoFormulario, cuerpo, respuesta)
 }
 
 func enviar(ctx context.Context, cliente *http.Client, destino string, token []byte, tipo string, cuerpo []byte, respuesta any) error {
