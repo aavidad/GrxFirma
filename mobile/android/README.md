@@ -351,6 +351,41 @@ firmar, perfil alto (ML-KEM) y libreta persistente de destinatarios, huellas de
 carpetas completas y abrir SignedAndEnvelopedData de firmantes cuya cadena no
 alcance las anclas del sistema.
 
+## Segunda oleada (parte B): formatos, Veri*Factu, ENI y leyenda CSV
+
+- **Formatos de escritorio**: el desplegable añade XMLdSig, ODF, OOXML,
+  FacturaE, ASiC-XAdES y «Registro Veri*Factu» cuando el AAR los declara en
+  `signing.formats`. Firman con el motor de escritorio, solo con RSA y solo en
+  perfil B (sin TSA). XMLdSig, ODF y OOXML admiten cofirma. «Automático» sigue
+  las reglas de escritorio por extensión y añade el MIME de SAF y la raíz
+  `Facturae` del XML. Veri*Factu se elige a mano, como en escritorio, y no se
+  firma en lote.
+- **Leyenda CSV y sello por página**: el editor del sello permite poner el
+  sello en varias páginas, cada una con su posición y giro, y estampar la
+  leyenda CSV (código, URL HTTPS de cotejo con `{csv}`, texto opcional y QR).
+  `csvLegendJSON` valida el código y normaliza la URL con el IDN del motor
+  antes de aceptar el editor. El código CSV no se guarda en preferencias y se
+  olvida al cambiar de documento.
+- **Veri*Factu y ENI**: sección plegable nueva. La comprobación de registros
+  admite hasta 64 XML (10 MiB cada uno, 32 MiB en total) y muestra, por
+  registro, la huella calculada y cada incidencia con la clave del motor. No
+  consulta a la AEAT. El documento ENI se crea con la firma elegida como
+  documento (y el original si la firma es separada), órganos DIR3, origen,
+  estado de elaboración y tipo documental en desplegables con los códigos NTI
+  de `eniCatalogsJSON`, y fecha de captura con `MaterialDatePicker` (sin
+  fechas futuras). Se guarda por SAF como resultado de herramienta. La
+  comprobación de un ENI revisa la estructura, no las firmas.
+
+Las claves `verifactu.*`, `eni.validacion.*`, `eni.codigo.*` y `csv.error.*`
+se traducen con los catálogos empaquetados en `assets/locales`, generados por
+clave desde los de escritorio.
+
+Pendiente: expediente ENI (carpeta de documentos con índice firmado),
+exportar el informe Veri*Factu a un fichero, leer el QR tributario y la
+consulta a la AEAT, perfiles T para los formatos nuevos y sello visible en el
+lote. La revisión de usabilidad independiente y la prueba en dispositivo de
+esta parte siguen pendientes.
+
 Comprobaciones locales adicionales:
 
 ```bash
