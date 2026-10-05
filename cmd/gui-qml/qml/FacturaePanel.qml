@@ -287,7 +287,7 @@ Item {
             }
             TextArea {
                 text: panel.invoiceResult && panel.invoiceResult.format === "VeriFactu" ? panel.invoiceResult.report : ""
-                visible: text.length > 0; readOnly: true; wrapMode: TextEdit.Wrap
+                visible: text.length > 0; readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText
                 Accessible.name: tr("paridad.lote3.invoice.report")
                 color: panel.theme.textColor; Layout.fillWidth: true
             }
@@ -302,7 +302,7 @@ Item {
                 Button { text: tr("verifactu.qr_read"); enabled: !panel.busy && qrInput.text.length > 0; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.readVeriFactuQR(qrInput.text) } }
                 Button { text: tr("verifactu.qr_query"); enabled: !panel.busy && qrArea.readResult !== null; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.queryVeriFactuQR(qrArea.readResult.url) } }
             }
-            TextArea { id: qrArea; property var readResult: null; readOnly: true; wrapMode: TextEdit.Wrap; Layout.fillWidth: true; color: panel.theme.textColor; Accessible.name: tr("verifactu.qr_title") }
+            TextArea { id: qrArea; property var readResult: null; readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText; Layout.fillWidth: true; color: panel.theme.textColor; Accessible.name: tr("verifactu.qr_title") }
             Label { text: tr("facturae.face_note"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true

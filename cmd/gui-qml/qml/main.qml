@@ -6731,6 +6731,7 @@ Window {
         height: 1
         opacity: 0
         wrapMode: TextEdit.NoWrap
+        textFormat: TextEdit.PlainText
     }
 
     ThemedDialog {
@@ -8600,6 +8601,7 @@ Window {
                                     Layout.fillWidth: true
                                     readOnly: true
                                     wrapMode: TextEdit.WrapAnywhere
+                                    textFormat: TextEdit.PlainText
                                     implicitHeight: 90
                                     text: window.currentBatchDirectory !== ""
                                           ? window.currentBatchDirectory
@@ -14869,6 +14871,7 @@ Window {
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 88
                                         wrapMode: TextEdit.WrapAnywhere
+                                        textFormat: TextEdit.PlainText
                                         placeholderText: tr("Una URL o patrón por línea, por ejemplo:\nlocalhost\n127.0.0.1\n*.dipgra.es")
                                         text: window.proxyExcludedUrlsText()
                                         onTextChanged: {
@@ -15458,6 +15461,7 @@ Window {
                                 font.family: "Monospace"
                                 font.pixelSize: 12
                                 wrapMode: TextEdit.Wrap
+                                textFormat: TextEdit.PlainText
                                 text: tr("--- INICIO DE LOGS ---\n")
                                 
                                 Connections {
