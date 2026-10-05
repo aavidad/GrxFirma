@@ -67,6 +67,39 @@ class AppLifecycleContractTests(unittest.TestCase):
             source,
         )
 
+    # Regresión 0.0.118: tras usar la vista previa PDF, salir desde la
+    # bandeja o cerrando la ventana caía con c000000d (evento .NET 1026) al
+    # descargar Windows.Data.Pdf en equipos sin GPU (WARP). El cierre
+    # ordenado va primero y el proceso termina después sin descargar DLL.
+    def test_normal_exit_closes_in_order_then_terminates(self) -> None:
+        source = APP.read_text(encoding="utf-8")
+        closed = source[
+            source.index("private void OnMainWindowClosed"):
+            source.index("private static async Task DisposeClientQuietlyAsync")
+        ]
+        self.assertNotIn("async void OnMainWindowClosed", source)
+        self.assertNotIn("await ", closed)
+        order = [
+            "Interlocked.Exchange(ref _windowClosed, 1)",
+            "_lifetimeCancellation.Cancel();",
+            "RestServer.Dispose();",
+            "_tray?.Dispose();",
+            "_singleInstance?.Dispose();",
+            "OperationSession.Detach(client);",
+            "BoundedShutdownStep.Run(",
+            "ImmediateProcessExit.Terminate(0);",
+        ]
+        positions = [closed.index(step) for step in order]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn("() => DisposeClientQuietlyAsync(client)", closed)
+        self.assertIn("IpcCloseTimeout = TimeSpan.FromSeconds(3)", source)
+        step = (
+            ROOT / "cmd" / "gui-winui" / "src" / "GrxFirma.WinUI.Core"
+            / "Operations" / "BoundedShutdownStep.cs"
+        ).read_text(encoding="utf-8")
+        self.assertIn("Task.Run(step)", step)
+        self.assertIn("task.Wait(timeout)", step)
+
     def test_file_picker_is_ready_before_initial_page_is_created(self) -> None:
         source = APP.read_text(encoding="utf-8")
         main_window = MAIN_WINDOW.read_text(encoding="utf-8")
