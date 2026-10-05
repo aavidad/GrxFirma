@@ -281,6 +281,9 @@ type certJSON struct {
 	RemotePIN       bool   `json:"remotePin,omitempty"`
 	RemoteOTP       bool   `json:"remoteOtp,omitempty"`
 	RemoteOTPOnline bool   `json:"remoteOtpOnline,omitempty"`
+	// RemoteMultiSign es cuántas firmas autoriza el prestador de una vez;
+	// con 2 o más, un lote con OTP pide un solo código si cabe.
+	RemoteMultiSign int `json:"remoteMultiSign,omitempty"`
 }
 
 // resultadoFirma es el objeto data de la respuesta "sign".

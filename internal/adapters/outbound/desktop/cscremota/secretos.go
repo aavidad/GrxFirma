@@ -20,8 +20,9 @@ type claveSecretos struct{}
 // Peticion acompaña a una única petición de firma con un certificado remoto.
 // Lleva el PIN y el OTP que ha escrito la persona y recoge el último error
 // del servicio para que la interfaz lo explique. El PIN se puede leer más de
-// una vez (una firma por documento); el OTP, solo una, porque el prestador
-// no lo acepta dos veces.
+// una vez (una autorización por documento o por grupo de un lote); el OTP,
+// solo una, porque el prestador no lo acepta dos veces: un lote con OTP solo
+// se firma si cabe en una autorización conjunta (multisign).
 type Peticion struct {
 	mu       sync.Mutex
 	pin      []byte

@@ -20,10 +20,8 @@ package cscremota
 
 import (
 	"context"
-	"crypto"
 	"encoding/json"
 	"errors"
-	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -39,7 +37,6 @@ import (
 	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/common/csc"
 	"grxfirma/internal/adapters/outbound/common/securefile"
-	deskSigner "grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 )
@@ -54,7 +51,7 @@ const (
 	maxNombreServicio   = 120
 	esperaAutorizacion  = 4 * time.Minute
 	maxSecretoPeticion  = 256
-	maxCredencialesVist = 100
+	maxCredencialesVist = 200
 )
 
 // Códigos propios de la sesión. Se traducen como los del cliente CSC, con la
@@ -123,6 +120,9 @@ type CredencialRemota struct {
 	PIN        bool
 	OTP        bool
 	OTPEnLinea bool
+	// Multisign es cuántas firmas admite el prestador con una sola
+	// autorización (1: una por firma).
+	Multisign int
 }
 
 type remota struct {
@@ -261,7 +261,7 @@ func (s *Sesion) Configurar(ctx context.Context, urlServicio, clientID string) (
 		_ = cliente.Close()
 		return Descubrimiento{}, err
 	}
-	hostOAuth, err := hostVisible(info.OAuth2)
+	hostOAuth, err := hostVisible(cliente.ServidorOAuth())
 	if err != nil {
 		_ = cliente.Close()
 		return Descubrimiento{}, err
@@ -418,12 +418,7 @@ func (s *Sesion) KeyFor(ctx context.Context, ref domain.CertificateRef) (ports.S
 		s.Desconectar()
 		return nil, err
 	}
-	firmante, err := cliente.Firmante(ctx, r.cred)
-	if err != nil {
-		return nil, err
-	}
-	envuelto := &firmanteAnotado{firmante: firmante, peticion: peticionDe(ctx)}
-	return deskSigner.NuevaClaveLocalConCadena(envuelto, r.cred.Certificado, r.cred.Cadena), nil
+	return NuevaClave(ctx, cliente, r.cred, peticionDe(ctx).anotar)
 }
 
 // Close cierra la sesión (al salir el motor).
@@ -450,6 +445,7 @@ func describir(r *remota) CredencialRemota {
 		PIN:        r.cred.Modo == csc.ModoExplicito && r.cred.PIN,
 		OTP:        r.cred.Modo == csc.ModoExplicito && r.cred.OTP,
 		OTPEnLinea: r.cred.Modo == csc.ModoExplicito && r.cred.OTP && r.cred.OTPEnLinea,
+		Multisign:  max(r.cred.Multisign, 1),
 	}
 }
 
@@ -567,19 +563,4 @@ func textoVisible(s string, maximo int) string {
 		n++
 	}
 	return strings.TrimSpace(b.String())
-}
-
-// firmanteAnotado delega en el firmante remoto y apunta su error en la
-// petición, porque el motor de firma lo envuelve en mensajes genéricos.
-type firmanteAnotado struct {
-	firmante *csc.FirmanteRemoto
-	peticion *Peticion
-}
-
-func (f *firmanteAnotado) Public() crypto.PublicKey { return f.firmante.Public() }
-
-func (f *firmanteAnotado) Sign(r io.Reader, resumen []byte, opts crypto.SignerOpts) ([]byte, error) {
-	firma, err := f.firmante.Sign(r, resumen, opts)
-	f.peticion.anotar(err)
-	return firma, err
 }
