@@ -4965,4 +4965,5 @@
   ,"csc.gui.navegador_firma": "Ihr Anbieter bittet Sie im Browser, diese Signatur freizugeben."
   ,"csc.gui.falta_dato": "Geben Sie die verlangte PIN und den Code ein."
   ,"csc.error.prohibida": "Die Richtlinie Ihrer Organisation erlaubt keine Fernsignatur."
+  ,"eni.error.signature_mismatch": "Die Signatur passt nicht zum Originaldokument, oder das Dokument wurde nach der Signatur geändert. Prüfen Sie, ob Sie das richtige Original gewählt haben."
 }

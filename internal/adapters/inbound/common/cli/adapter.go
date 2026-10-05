@@ -4379,6 +4379,9 @@ func (a *Adaptador) documentoENIDesdeFirma(firma, original []byte, opciones map[
 		if !bytes.Contains(firma, []byte("/ByteRange")) {
 			return doc, errors.New(a.t("El PDF no está firmado.", "El PDF no está firmado."))
 		}
+		if commonsigner.ComprobarIntegridadPAdES(context.Background(), firma) != nil {
+			return doc, a.errorFirmaNoCorresponde()
+		}
 		doc.Contenido, doc.NombreFormato = firma, "PDF"
 		doc.Firmas = []eni.Firma{{Tipo: eni.FirmaPAdES}}
 	case len(recortado) > 0 && recortado[0] == 0x30:
@@ -4393,11 +4396,17 @@ func (a *Adaptador) documentoENIDesdeFirma(firma, original []byte, opciones map[
 			if len(original) == 0 {
 				return doc, errors.New(a.t("La firma CAdES es explícita: indica el documento firmado con -original.", "La firma CAdES es explícita: indica el documento firmado con -original."))
 			}
+			if commonsigner.CotejarCAdESExplicita(firma, original) != nil {
+				return doc, a.errorFirmaNoCorresponde()
+			}
 			doc.Contenido = original
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaCAdESExplicit, Datos: firma}}
 		}
 	case bytes.HasPrefix(recortado, []byte("<")) && bytes.Contains(firma, []byte("http://www.w3.org/2000/09/xmldsig#")):
 		if len(original) > 0 {
+			if commonsigner.CotejarXAdESSeparada(firma, original) != nil {
+				return doc, a.errorFirmaNoCorresponde()
+			}
 			doc.Contenido = original
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaXAdESDetached, Datos: firma}}
 		} else {
@@ -4446,6 +4455,12 @@ func (a *Adaptador) documentoENIDesdeFirma(firma, original []byte, opciones map[
 		m.FechaCaptura = fecha
 	}
 	return doc, nil
+}
+
+// errorFirmaNoCorresponde se devuelve cuando el cotejo local de la firma con
+// el original (o la integridad del PDF firmado) falla antes de crear el ENI.
+func (a *Adaptador) errorFirmaNoCorresponde() error {
+	return errors.New(a.t("eni.error.signature_mismatch", "La firma no corresponde al documento original o el documento se ha modificado después de firmarlo. Compruebe que ha elegido el original correcto."))
 }
 
 // DocumentoENIDesdeFirma comparte con el IPC el reconocimiento de firmas y

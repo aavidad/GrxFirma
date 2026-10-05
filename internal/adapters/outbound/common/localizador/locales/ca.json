@@ -4965,4 +4965,5 @@
   ,"csc.gui.navegador_firma": "El vostre prestador us demanarà al navegador que autoritzeu aquesta signatura."
   ,"csc.gui.falta_dato": "Escriviu el PIN i el codi que es demanen."
   ,"csc.error.prohibida": "La política de la vostra organització no permet la signatura remota."
+  ,"eni.error.signature_mismatch": "La signatura no correspon al document original o el document s'ha modificat després de signar-lo. Comproveu que heu triat l'original correcte."
 }

@@ -40,6 +40,7 @@ const (
 	eniErrorUnrecognized   = "eni.error.unrecognized"
 	eniErrorContentFormat  = "eni.error.content_format"
 	eniErrorOrigin         = "eni.error.origin"
+	eniErrorMismatch       = "eni.error.signature_mismatch"
 	csvErrorCodeMissing    = "csv.error.code_missing"
 	csvErrorCodeInvalid    = "csv.error.code_invalid"
 	csvErrorURLMissing     = "csv.error.url_missing"
@@ -261,6 +262,9 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 		if !bytes.Contains(signature, []byte("/ByteRange")) {
 			return doc, newFacadeError(eniErrorUnsignedPDF)
 		}
+		if commonsigner.ComprobarIntegridadPAdES(context.Background(), signature) != nil {
+			return doc, newFacadeError(eniErrorMismatch)
+		}
 		doc.Contenido, doc.NombreFormato = signature, "PDF"
 		doc.Firmas = []eni.Firma{{Tipo: eni.FirmaPAdES}}
 	case len(trimmed) > 0 && trimmed[0] == 0x30:
@@ -275,11 +279,17 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 			if len(original) == 0 {
 				return doc, newFacadeError(eniErrorExplicitCAdES)
 			}
+			if commonsigner.CotejarCAdESExplicita(signature, original) != nil {
+				return doc, newFacadeError(eniErrorMismatch)
+			}
 			doc.Contenido = original
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaCAdESExplicit, Datos: signature}}
 		}
 	case bytes.HasPrefix(trimmed, []byte("<")) && bytes.Contains(signature, []byte("http://www.w3.org/2000/09/xmldsig#")):
 		if len(original) > 0 {
+			if commonsigner.CotejarXAdESSeparada(signature, original) != nil {
+				return doc, newFacadeError(eniErrorMismatch)
+			}
 			doc.Contenido = original
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaXAdESDetached, Datos: signature}}
 		} else {

@@ -4965,4 +4965,5 @@
   ,"csc.gui.navegador_firma": "您的服务商将在浏览器中请求您授权此次签名。"
   ,"csc.gui.falta_dato": "请输入所需的 PIN 和验证码。"
   ,"csc.error.prohibida": "您所在组织的策略不允许远程签名。"
+  ,"eni.error.signature_mismatch": "签名与原始文档不符，或文档在签名后已被修改。请确认您选择了正确的原始文档。"
 }

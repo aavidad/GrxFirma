@@ -273,7 +273,11 @@ traduce. No consulta a la AEAT ni usa la red.
 `signature_type` (TF02-TF06). Los errores son claves cerradas:
 `eni.validacion.*` del motor y `eni.error.unsigned_pdf`,
 `eni.error.explicit_cades`, `eni.error.unrecognized`,
-`eni.error.content_format` y `eni.error.origin`. `validateENIJSON` devuelve
+`eni.error.content_format`, `eni.error.origin` y
+`eni.error.signature_mismatch`. Antes de envolver, la fachada coteja sin red
+que la firma corresponde al original (el `messageDigest` de la CAdES
+explícita, las referencias de la XAdES separada) y que el PDF firmado no se
+ha alterado; si falla, responde `eni.error.signature_mismatch`. `validateENIJSON` devuelve
 `valid` e `issues[]` con claves `eni.validacion.*`; no verifica las firmas.
 `eniCatalogsJSON` devuelve `document_states`, `document_types` y
 `file_states`. La firma y el original suman como máximo 48 MiB (una firma

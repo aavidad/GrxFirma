@@ -92,6 +92,10 @@ func TestCreateAndValidateENIDocument(t *testing.T) {
 	if _, err := facade.CreateENIDocumentJSON(mustJSON(t, request)); err == nil || err.Error() != eniErrorExplicitCAdES {
 		t.Fatalf("la CAdES explícita necesita el original: %v", err)
 	}
+	request.OriginalBase64 = base64.StdEncoding.EncodeToString([]byte("acta de otra sesión"))
+	if _, err := facade.CreateENIDocumentJSON(mustJSON(t, request)); err == nil || err.Error() != eniErrorMismatch {
+		t.Fatalf("un original ajeno debe rechazarse: %v", err)
+	}
 	request.OriginalBase64 = base64.StdEncoding.EncodeToString(original)
 	raw, err = facade.CreateENIDocumentJSON(mustJSON(t, request))
 	if err != nil {

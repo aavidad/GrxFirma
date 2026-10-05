@@ -4965,4 +4965,5 @@
   ,"csc.gui.navegador_firma": "Your provider will ask you to authorise this signature in the browser."
   ,"csc.gui.falta_dato": "Enter the PIN and code requested."
   ,"csc.error.prohibida": "Your organisation's policy does not allow remote signing."
+  ,"eni.error.signature_mismatch": "The signature does not match the original document, or the document was changed after it was signed. Check that you chose the correct original."
 }
