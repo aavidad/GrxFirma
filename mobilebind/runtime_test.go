@@ -281,7 +281,7 @@ func TestFacadeRejectsUndeclaredSigningModes(t *testing.T) {
 	}
 
 	undeclaredAction := baseRequest
-	undeclaredAction.Action = "cosign"
+	undeclaredAction.Action = "unsupported"
 	if _, err := facade.SignJSON(mustJSON(t, undeclaredAction)); err == nil {
 		t.Fatal("SignJSON() debe rechazar acciones no declaradas en el contrato")
 	}

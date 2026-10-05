@@ -6,6 +6,7 @@
 package signer
 
 import (
+	"bytes"
 	"context"
 	"crypto"
 	"encoding/asn1"
@@ -119,5 +120,51 @@ func verificaTimestampEnSignerInfo(t *testing.T, cmsData []byte) {
 	}
 	if !found {
 		t.Fatalf("no se encontró el OID signatureTimeStamp (%v) en los atributos no firmados", oidSignatureTimeStamp)
+	}
+}
+
+func TestCAdESTPreservesCoSignersAndCounterSignatures(t *testing.T) {
+	original := []byte("documento de prueba")
+	first, _ := firmarCAdESParaPrueba(t, original, domain.ActionSign, "A", nil)
+	co, _ := firmarCAdESParaPrueba(t, first, domain.ActionCoSign, "B", nil)
+	counter, _ := firmarCAdESParaPrueba(t, co, domain.ActionCounterSign, "C", nil)
+	tsa := &tsaMock{token: buildMinimalTST(t)}
+	engine := NewSignerCAdEST(NewCAdESBESDetached(), tsa)
+	for _, data := range [][]byte{co, counter} {
+		before, err := parseSignedDataParts(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+		stamped, err := engine.addTimestamp(context.Background(), data)
+		if err != nil {
+			t.Fatal(err)
+		}
+		after, err := parseSignedDataParts(stamped)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(after.signerInfos) != len(before.signerInfos) {
+			t.Fatal("se perdieron firmantes")
+		}
+		for _, signerDER := range before.signerInfos {
+			elems, err := splitSequence(signerDER)
+			if err != nil {
+				t.Fatal(err)
+			}
+			signature, _, err := signerInfoSignatureAndUnsigned(elems)
+			if err != nil || !bytes.Contains(stamped, signature) {
+				t.Fatal("se altero una firma existente")
+			}
+		}
+		if bytes.Count(stamped, mustMarshalOID(t, oidCounterSignature)) != bytes.Count(data, mustMarshalOID(t, oidCounterSignature)) {
+			t.Fatal("se perdieron contrafirmas")
+		}
+		if bytes.Count(stamped, mustMarshalOID(t, oidSignatureTimeStamp)) != 2 {
+			t.Fatal("faltan sellos en las hojas")
+		}
+		report, signers, err := NewCAdESVerifier().VerifyDetachedCMS(context.Background(), stamped, original)
+		if err != nil || report.Integrity.Status != domain.VerificationStatusValid || len(signers) != 2 {
+			t.Fatalf("firma sellada no verifica: %v %+v", err, report)
+		}
 	}
 }

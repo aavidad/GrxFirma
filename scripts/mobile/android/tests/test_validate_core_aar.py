@@ -75,8 +75,10 @@ class ValidateCoreAarTest(unittest.TestCase):
               public String selectCertificateJSON(String value) { return value; }
               public String importCertificateJSON(String value) { return value; }
               public String importCertificateBytesJSON(byte[] value, String password) { return password; }
+              public String importCertificateSecretBytesJSON(byte[] value, byte[] password) { return "{}"; }
               public String signJSON(String value) { return value; }
               public String sealPreviewJSON(String value) { return value; }
+              public String inspectSignatureJSON(String value) { return value; }
               public String verifyJSON(String value) { return value; }
             }
             """,

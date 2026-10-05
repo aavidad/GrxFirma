@@ -36,13 +36,14 @@ if ! command -v javac >/dev/null 2>&1; then
 fi
 
 if [[ "${ALLOW_DIRTY_CORE:-0}" != "1" ]] && \
-    [[ -n "$(git -C "$ROOT_DIR" status --porcelain -- go.mod go.sum mobilebind internal third_party)" ]]; then
+    [[ -n "$(git -C "$ROOT_DIR" status --porcelain -- VERSION.txt go.mod go.sum mobilebind internal third_party)" ]]; then
     printf '%s\n' "ERROR: el núcleo tiene cambios sin commit; el AAR oficial se construye desde HEAD" >&2
     exit 1
 fi
 
 SOURCE_FINGERPRINT=$(
     git -C "$ROOT_DIR" ls-tree -r HEAD -- \
+        VERSION.txt \
         go.mod \
         go.sum \
         mobilebind \
@@ -88,6 +89,7 @@ git -C "$ROOT_DIR" archive --format=tar HEAD | tar -xf - -C "$WORK_DIR/source"
     "$GO_BIN" test ./mobilebind
 
     if ! PATH="$WORK_DIR/bin:$PATH" "$WORK_DIR/bin/gomobile" bind \
+        -ldflags="-X grxfirma/mobilebind.engineVersion=$(cat VERSION.txt)" \
         -target=android \
         -androidapi="$ANDROID_MIN_API" \
         -o "$WORK_DIR/grxfirma.aar" \

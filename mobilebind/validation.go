@@ -10,6 +10,8 @@ import (
 	"encoding/json"
 	"io"
 	"mime"
+	"net/url"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -158,7 +160,7 @@ func resolveSignatureFormat(requested, name, mimeType string) (string, error) {
 
 func validateSignatureAction(action string) error {
 	switch strings.ToLower(strings.TrimSpace(action)) {
-	case "", "sign":
+	case "", "sign", "cosign", "countersign":
 		return nil
 	default:
 		return newFacadeError("action no esta habilitada en mobile")
@@ -201,4 +203,46 @@ func zeroBytes(data []byte) {
 	for i := range data {
 		data[i] = 0
 	}
+}
+
+// validateSigningOptions evita degradar perfiles y valida la TSA antes de usar
+// la identidad. El motor compartido conserva la validación RFC 3161 y de red.
+func validateSigningOptions(format, action string, options map[string]string) error {
+	profile := strings.ToLower(strings.TrimSpace(options["profile"]))
+	switch profile {
+	case "", "baseline", "t", "lt", "lta":
+	default:
+		return newFacadeError("perfil de firma no permitido")
+	}
+	for key := range options {
+		normalized := strings.ToLower(strings.TrimSpace(key))
+		if normalized == "nivel" || normalized == "level" || normalized == "baseline" || normalized == "ltv" ||
+			(normalized == "profile" && key != "profile") || (strings.HasPrefix(normalized, "tsa") && key != "tsaURL") {
+			return newFacadeError("opcion de perfil o TSA no permitida")
+		}
+	}
+	tsa := options["tsaURL"]
+	if tsa != "" {
+		endpoint, err := url.Parse(tsa)
+		if err != nil || endpoint.Hostname() == "" || endpoint.User != nil || endpoint.Fragment != "" || strings.Contains(tsa, "#") ||
+			(endpoint.Scheme != "http" && endpoint.Scheme != "https") || endpoint.Opaque != "" || strings.TrimSpace(tsa) != tsa {
+			return newFacadeError("URL HTTP(S) de TSA invalida")
+		}
+		if port := endpoint.Port(); port != "" {
+			number, err := strconv.Atoi(port)
+			if err != nil || number < 1 || number > 65535 {
+				return newFacadeError("puerto de TSA invalido")
+			}
+		}
+	}
+	if (profile == "t" || profile == "lt" || profile == "lta") && tsa == "" {
+		return newFacadeError("el perfil requiere una TSA configurada")
+	}
+	if format == "xades" && (profile == "lt" || profile == "lta") || format == "pades" && profile == "lta" {
+		return newFacadeError("perfil no soportado para este formato")
+	}
+	if format == "pades" && strings.EqualFold(strings.TrimSpace(action), "countersign") {
+		return newFacadeError("PAdES no admite contrafirma; use CAdES o XAdES")
+	}
+	return nil
 }

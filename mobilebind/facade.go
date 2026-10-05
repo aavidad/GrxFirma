@@ -15,6 +15,7 @@ import (
 	"time"
 
 	mobileinbound "grxfirma/internal/adapters/inbound/mobile"
+	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	desktopsigner "grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
@@ -450,6 +451,15 @@ func (f *Facade) SignJSON(payload string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if req.Options == nil {
+		req.Options = make(map[string]string)
+	}
+	if strings.TrimSpace(req.Options["profile"]) == "" {
+		req.Options["profile"] = "baseline"
+	}
+	if err := validateSigningOptions(format, req.Action, req.Options); err != nil {
+		return "", err
+	}
 	cmd, err := application.NewSignCommand(
 		req.Name,
 		content,
@@ -479,6 +489,35 @@ func (f *Facade) SignJSON(payload string) (string, error) {
 		SignedContentBase64: base64.StdEncoding.EncodeToString(result.Result.Data),
 		CertificateID:       sanitizeOutputText(result.CertificateUsed.ID, 128),
 	})
+}
+
+// InspectSignatureJSON detecta firmas existentes sin confundirlas con firmas
+// verificadas. No necesita identidad, original ni acceso a la red.
+func (f *Facade) InspectSignatureJSON(payload string) (string, error) {
+	if f == nil {
+		return "", errNoConfigurado("inspeccion")
+	}
+	var req verifyRequest
+	if err := decodeJSONStrict(payload, maxSignJSONBytes, "inspeccion", &req); err != nil {
+		return "", err
+	}
+	if err := validateDocumentMetadata(req.Name, req.MIMEType); err != nil {
+		return "", err
+	}
+	content, err := decodeBase64Limited(req.ContentBase64, "content_base64", maxDocumentBytes)
+	if err != nil {
+		return "", err
+	}
+	defer zeroBytes(content)
+	doc, err := domain.NewDocument(req.Name, content, req.MIMEType)
+	if err != nil {
+		return "", newFacadeError("documento no valido")
+	}
+	present, format := commonsigner.InspectSignature(doc)
+	return marshal(struct {
+		HasSignature bool   `json:"has_signature"`
+		Format       string `json:"format"`
+	}{present, format})
 }
 
 // VerifyJSON verifica una firma a partir de un payload JSON bind-friendly.
@@ -765,6 +804,17 @@ func (f *Facade) ImportCertificateBytesJSON(data []byte, password string) (strin
 	}
 	defer zeroBytes(data)
 	return f.importCertificateLocked(data, password)
+}
+
+// ImportCertificateSecretBytesJSON mantiene ambos buffers mutables en el borde
+// gomobile. La conversión String queda limitada a la biblioteca PKCS#12 Go.
+func (f *Facade) ImportCertificateSecretBytesJSON(data, password []byte) (string, error) {
+	defer zeroBytes(data)
+	defer zeroBytes(password)
+	if len(password) == 0 || len(password) > maxPasswordBytes {
+		return "", newFacadeError("tamano de password no permitido")
+	}
+	return f.ImportCertificateBytesJSON(data, string(password))
 }
 
 func (f *Facade) importCertificateLocked(data []byte, password string) (string, error) {

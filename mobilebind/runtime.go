@@ -28,6 +28,7 @@ import (
 
 	"grxfirma/internal/adapters/inbound/mobile/androidintent"
 	"grxfirma/internal/adapters/outbound/common/certutil"
+	"grxfirma/internal/adapters/outbound/common/revocationclient"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	desktopsigner "grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/application"
@@ -37,7 +38,7 @@ import (
 )
 
 const (
-	mobileContractVersion     = 1
+	mobileContractVersion     = 2
 	maxCertificateChainLength = 16
 )
 
@@ -91,7 +92,7 @@ func newPlatformFacade(platform string, includeAndroidIntent bool, temporaryDire
 	store := newSessionIdentityStore()
 	approval := nativeExplicitApproval{}
 	signEngine := &mobileSignerEngine{
-		delegate:           desktopsigner.NuevoMotorFirmaGo(nil),
+		delegate:           desktopsigner.NuevoMotorFirmaGo(nil).WithRevocationProvider(revocationclient.New()),
 		temporaryDirectory: temporaryDirectory,
 	}
 	verifyEngine := newOfflineMultiVerifier()
@@ -259,6 +260,7 @@ func restoreEnvironment(name, previous string, wasSet bool) error {
 }
 
 type mobileContract struct {
+	EngineVersion   string                 `json:"engine_version"`
 	ContractVersion int                    `json:"contract_version"`
 	Platform        string                 `json:"platform"`
 	Services        map[string]bool        `json:"services"`
@@ -282,6 +284,9 @@ type mobileVerifyContract struct {
 }
 
 type mobileSigningContract struct {
+	ProfilesByFormat map[string][]string `json:"profiles_by_format"`
+	ActionsByFormat  map[string][]string `json:"actions_by_format"`
+	TSAURLSchemes    []string            `json:"tsa_url_schemes"`
 	Actions          []string            `json:"actions"`
 	KeyTypesByFormat map[string][]string `json:"key_types_by_format"`
 }
@@ -295,10 +300,12 @@ type mobileLimitsContract struct {
 
 func buildMobileContract(platform string, androidIntent bool) (string, error) {
 	contract := mobileContract{
+		EngineVersion:   engineVersion,
 		ContractVersion: mobileContractVersion,
 		Platform:        platform,
 		Services: map[string]bool{
 			"sign":               true,
+			"inspect_signature":  true,
 			"seal_preview":       true,
 			"verify":             true,
 			"select_certificate": true,
@@ -317,7 +324,10 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 		},
 		Approval: "native_ui_explicit_action",
 		Signing: mobileSigningContract{
-			Actions: []string{"sign"},
+			Actions:          []string{"sign", "cosign", "countersign"},
+			ProfilesByFormat: map[string][]string{"CAdES": {"baseline", "t", "lt", "lta"}, "PAdES": {"baseline", "t", "lt"}, "XAdES": {"baseline", "t"}},
+			ActionsByFormat:  map[string][]string{"CAdES": {"sign", "cosign", "countersign"}, "PAdES": {"sign", "cosign"}, "XAdES": {"sign", "cosign", "countersign"}},
+			TSAURLSchemes:    []string{"http", "https"},
 			KeyTypesByFormat: map[string][]string{
 				"CAdES": {"RSA", "ECDSA"},
 				"PAdES": {"RSA", "ECDSA"},

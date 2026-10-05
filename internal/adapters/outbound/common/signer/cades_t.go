@@ -6,6 +6,7 @@
 package signer
 
 import (
+	"bytes"
 	"context"
 	"crypto"
 	"crypto/sha256"
@@ -63,101 +64,96 @@ func (s *SignerCAdEST) Sign(ctx context.Context, job domain.SignatureJob, key po
 	}, nil
 }
 
-// addTimestamp añade el atributo no-firmado signatureTimeStamp al primer SignerInfo del CMS.
+// addTimestamp conserva todos los firmantes y sus atributos existentes. El
+// sello se añade a las hojas, incluidas las contrafirmas, sin recodificar los
+// campos firmados. Se limita el trabajo sobre CMS suministrados por terceros.
 func (s *SignerCAdEST) addTimestamp(ctx context.Context, cmsData []byte) ([]byte, error) {
-	// Parsear ContentInfo
-	var ci contentInfo
-	if _, err := asn1.Unmarshal(cmsData, &ci); err != nil {
-		return nil, fmt.Errorf("error parseando ContentInfo: %w", err)
-	}
-
-	// Parsear SignedData
-	var sd signedData
-	if _, err := asn1.Unmarshal(ci.Content.Bytes, &sd); err != nil {
-		return nil, fmt.Errorf("error parseando SignedData: %w", err)
-	}
-
-	if len(sd.SignerInfos) == 0 {
-		return nil, errors.New("SignedData no contiene SignerInfos")
-	}
-
-	// Calcular SHA-256 del valor de firma del primer SignerInfo
-	sigBytes := sd.SignerInfos[0].Signature
-	sigHash := sha256.Sum256(sigBytes)
-
-	// Solicitar timestamp a la TSA
-	tst, err := s.tsa.RequestTimestamp(ctx, sigHash[:], crypto.SHA256)
+	sd, err := parseSignedDataParts(cmsData)
 	if err != nil {
-		return nil, fmt.Errorf("error solicitando timestamp a TSA: %w", err)
+		return nil, err
 	}
-
-	// Construir atributo no-firmado signatureTimeStamp
-	tstAttr := attribute{
-		Type: oidSignatureTimeStamp,
-		Values: []asn1.RawValue{
-			{FullBytes: tst},
-		},
+	remaining := 64
+	for i, si := range sd.signerInfos {
+		updated, err := s.timestampLeaves(ctx, si, 0, &remaining)
+		if err != nil {
+			return nil, err
+		}
+		sd.signerInfos[i] = updated
 	}
+	return sd.marshal()
+}
 
-	// Serializar la lista de atributos no firmados como SET para obtener los bytes internos
-	unsignedAttrsSetDER, err := asn1.MarshalWithParams([]attribute{tstAttr}, "set")
+func (s *SignerCAdEST) timestampLeaves(ctx context.Context, signerDER []byte, depth int, remaining *int) ([]byte, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if depth > maxProfundidadContrafirma || *remaining <= 0 {
+		return nil, errors.New("demasiados firmantes para sello CAdES-T")
+	}
+	*remaining--
+	elems, err := splitSequence(signerDER)
 	if err != nil {
-		return nil, fmt.Errorf("error serializando atributos no firmados: %w", err)
+		return nil, err
 	}
-
-	// Parsear el SET para obtener sus bytes internos (sin el tag/length externo)
-	var unsignedAttrsSetRaw asn1.RawValue
-	if _, err := asn1.Unmarshal(unsignedAttrsSetDER, &unsignedAttrsSetRaw); err != nil {
-		return nil, fmt.Errorf("error parseando SET de atributos no firmados: %w", err)
-	}
-
-	// Construir signerInfo con atributos no firmados: [1] IMPLICIT SET OF Attribute
-	siConTimestamp := signerInfoConUnsigned{
-		Version:            sd.SignerInfos[0].Version,
-		SID:                sd.SignerInfos[0].SID,
-		DigestAlgorithm:    sd.SignerInfos[0].DigestAlgorithm,
-		SignedAttributes:   sd.SignerInfos[0].SignedAttributes,
-		SignatureAlgorithm: sd.SignerInfos[0].SignatureAlgorithm,
-		Signature:          sd.SignerInfos[0].Signature,
-		UnsignedAttributes: asn1.RawValue{
-			Class:      2,
-			Tag:        1,
-			IsCompound: true,
-			Bytes:      unsignedAttrsSetRaw.Bytes,
-		},
-	}
-
-	// Reconstruir SignedData con el nuevo SignerInfo
-	sdConTimestamp := signedDataConUnsigned{
-		Version:          sd.Version,
-		DigestAlgorithms: sd.DigestAlgorithms,
-		EncapContentInfo: sd.EncapContentInfo,
-		Certificates:     sd.Certificates,
-		SignerInfos:      []signerInfoConUnsigned{siConTimestamp},
-	}
-
-	newSdDER, err := asn1.Marshal(sdConTimestamp)
+	signature, unsignedIndex, err := signerInfoSignatureAndUnsigned(elems)
 	if err != nil {
-		return nil, fmt.Errorf("error serializando SignedData con timestamp: %w", err)
+		return nil, err
 	}
-
-	// Reconstruir ContentInfo
-	newCI := contentInfo{
-		ContentType: ci.ContentType,
-		Content: asn1.RawValue{
-			Class:      2,
-			Tag:        0,
-			IsCompound: true,
-			Bytes:      newSdDER,
-		},
+	var attrs [][]byte
+	if unsignedIndex >= 0 {
+		attrs, err = splitContents(elems[unsignedIndex])
+		if err != nil {
+			return nil, err
+		}
 	}
-
-	out, err := asn1.Marshal(newCI)
+	hasCounters := false
+	for i, der := range attrs {
+		var attr attribute
+		rest, err := asn1.Unmarshal(der, &attr)
+		if err != nil || len(rest) != 0 {
+			return nil, errors.New("atributo no firmado invalido")
+		}
+		if !attr.Type.Equal(oidCounterSignature) {
+			continue
+		}
+		if len(attr.Values) == 0 {
+			return nil, errors.New("contrafirma sin firmantes")
+		}
+		hasCounters = true
+		for j, value := range attr.Values {
+			updated, err := s.timestampLeaves(ctx, value.FullBytes, depth+1, remaining)
+			if err != nil {
+				return nil, err
+			}
+			attr.Values[j] = asn1.RawValue{FullBytes: updated}
+		}
+		attrs[i], err = asn1.Marshal(attr)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if !hasCounters {
+		digest := sha256.Sum256(signature)
+		token, err := s.tsa.RequestTimestamp(ctx, digest[:], crypto.SHA256)
+		if err != nil {
+			return nil, fmt.Errorf("error solicitando timestamp a TSA: %w", err)
+		}
+		der, err := asn1.Marshal(attribute{Type: oidSignatureTimeStamp, Values: []asn1.RawValue{{FullBytes: token}}})
+		if err != nil {
+			return nil, err
+		}
+		attrs = append(attrs, der)
+	}
+	unsigned, err := encodeTagged(asn1.ClassContextSpecific, 1, sortedSetContents(attrs))
 	if err != nil {
-		return nil, fmt.Errorf("error serializando ContentInfo con timestamp: %w", err)
+		return nil, err
 	}
-
-	return out, nil
+	if unsignedIndex >= 0 {
+		elems[unsignedIndex] = unsigned
+	} else {
+		elems = append(elems, unsigned)
+	}
+	return encodeTagged(asn1.ClassUniversal, asn1.TagSequence, bytes.Join(elems, nil))
 }
 
 // signerInfoConUnsigned es como signerInfo pero incluye atributos no firmados.

@@ -36,9 +36,11 @@ FACADE_METHODS = (
     "selectCertificateJSON(java.lang.String)",
     "importCertificateJSON(java.lang.String)",
     "importCertificateBytesJSON(byte[], java.lang.String)",
+    "importCertificateSecretBytesJSON(byte[], byte[])",
     "signJSON(java.lang.String)",
     "sealPreviewJSON(java.lang.String)",
     "verifyJSON(java.lang.String)",
+    "inspectSignatureJSON(java.lang.String)",
 )
 
 
@@ -139,7 +141,7 @@ def validate_javap_output(output: str) -> None:
     missing = [method for method in FACADE_METHODS if method not in compact]
     if missing:
         raise ValidationError(
-            f"Faltan métodos del contrato mobile v1: {', '.join(missing)}"
+            f"Faltan métodos del contrato mobile v2: {', '.join(missing)}"
         )
 
 
