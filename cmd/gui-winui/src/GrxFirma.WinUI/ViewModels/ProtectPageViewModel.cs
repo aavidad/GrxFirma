@@ -14,6 +14,8 @@ namespace GrxFirma.WinUI.ViewModels;
 public sealed record ProtectionProfileOption(string SourceLabel, string Value)
 {
     public string Label => Localizer.Text(SourceLabel);
+    // El lector de pantalla anuncia ToString(): nunca el volcado del record.
+    public override string ToString() => Label;
 }
 
 public sealed record ProtectionContainerOption(
@@ -23,6 +25,8 @@ public sealed record ProtectionContainerOption(
     bool RequiresTransientSecret = false)
 {
     public string Label => Localizer.Text(SourceLabel);
+    // El lector de pantalla anuncia ToString(): nunca el volcado del record.
+    public override string ToString() => Label;
 }
 
 public sealed record ProtectionRecipientItem
@@ -33,6 +37,9 @@ public sealed record ProtectionRecipientItem
     public required string Profile { get; init; }
     public required string Origin { get; init; }
     public required bool AuthEnvelopedDataCompatible { get; init; }
+
+    // Nombre que anuncia el lector de pantalla en la lista de destinatarios.
+    public override string ToString() => Label + ". " + Detail;
 }
 
 public sealed record ProtectionSignerItem
@@ -42,6 +49,8 @@ public sealed record ProtectionSignerItem
 
     // Datos del certificado para saber si es remoto y pide PIN u OTP.
     public CertificateInfo? Certificate { get; init; }
+
+    public override string ToString() => Label;
 }
 
 public sealed class ProtectPageViewModel

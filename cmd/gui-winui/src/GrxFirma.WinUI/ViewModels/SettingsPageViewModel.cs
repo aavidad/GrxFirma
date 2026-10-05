@@ -15,7 +15,10 @@ namespace GrxFirma.WinUI.ViewModels;
 
 public sealed record SettingsOption(
     string Label,
-    string Value);
+    string Value)
+{
+    public override string ToString() => Label;
+}
 
 public sealed class SettingsPageViewModel
     : WorkspacePageViewModel

@@ -15,6 +15,8 @@ namespace GrxFirma.WinUI.ViewModels;
 public sealed record SignActionOption(string SourceLabel, string Value)
 {
     public string Label => Localizer.Text(SourceLabel);
+    // El lector de pantalla anuncia ToString(): nunca el volcado del record.
+    public override string ToString() => Label;
 }
 
 public sealed record SignatureFormatOption(
@@ -23,6 +25,8 @@ public sealed record SignatureFormatOption(
     SaveFilePickerProfile SaveProfile)
 {
     public string Label => Localizer.Text(SourceLabel);
+    // El lector de pantalla anuncia ToString(): nunca el volcado del record.
+    public override string ToString() => Label;
 }
 
 // Datos que se enseñan antes de firmar cuando «Confirmar antes de firmar»
@@ -38,11 +42,15 @@ public sealed record SignConfirmationSummary(
 public sealed record SignatureProfileOption(string SourceLabel, string Value)
 {
     public string Label => Localizer.Text(SourceLabel);
+    // El lector de pantalla anuncia ToString(): nunca el volcado del record.
+    public override string ToString() => Label;
 }
 
 public sealed record VisibleSealRotationOption(string SourceLabel, int Value)
 {
     public string Label => Localizer.Text(SourceLabel);
+    // El lector de pantalla anuncia ToString(): nunca el volcado del record.
+    public override string ToString() => Label;
 }
 
 public sealed record VisibleSealStyleOption(
@@ -51,12 +59,16 @@ public sealed record VisibleSealStyleOption(
     string SourceDescription)
 {
     public string Label => Localizer.Text(SourceLabel);
+    // El lector de pantalla anuncia ToString(): nunca el volcado del record.
+    public override string ToString() => Label;
     public string Description => Localizer.Text(SourceDescription);
 }
 
 public sealed record VisibleSealPageModeOption(string SourceLabel, string Value)
 {
     public string Label => Localizer.Text(SourceLabel);
+    // El lector de pantalla anuncia ToString(): nunca el volcado del record.
+    public override string ToString() => Label;
 }
 
 public sealed record BatchSignDisplayItem(
@@ -64,7 +76,10 @@ public sealed record BatchSignDisplayItem(
     string Status,
     string Detail,
     bool IsSuccessful,
-    string? OutputPath);
+    string? OutputPath)
+{
+    public override string ToString() => DocumentName + ". " + Status;
+}
 
 public sealed class SignPageViewModel
     : WorkspacePageViewModel

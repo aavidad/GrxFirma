@@ -301,13 +301,19 @@ public sealed record CertificateListItem
                 : fallback;
 }
 
-public sealed record CertificateDetailRow(string Label, string Value);
+public sealed record CertificateDetailRow(string Label, string Value)
+{
+    public override string ToString() => Label + ": " + Value;
+}
 
 public sealed record CertificateImportOption(
     string Label,
     string Detail,
     bool IsTemporary,
-    string TargetId);
+    string TargetId)
+{
+    public override string ToString() => Label + ". " + Detail;
+}
 
 public sealed class CertificatesPageViewModel
     : WorkspacePageViewModel
