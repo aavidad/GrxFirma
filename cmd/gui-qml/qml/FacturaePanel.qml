@@ -112,7 +112,17 @@ Item {
             Accessible.description: invoiceField.hint
             placeholderText: hint
             selectByMouse: true
+            background: FieldBackground { field: input }
         }
+    }
+    // Borde visible (3:1) en temas claros y oscuros y anillo de foco de 2 px.
+    component FieldBackground: Rectangle {
+        property Item field
+        implicitHeight: 36
+        radius: 4
+        color: panel.theme.cardColor
+        border.color: field && field.activeFocus ? (panel.theme.focusColor || panel.theme.textColor) : panel.theme.secondaryTextColor
+        border.width: field && field.activeFocus ? 2 : 1
     }
     FileDialog {
         id: saveDialog
@@ -392,6 +402,7 @@ Item {
                 TextField {
                     id: qrInput; enabled: !panel.busy; Layout.fillWidth: true; Accessible.name: tr("verifactu.qr_url_field"); Accessible.description: tr("verifactu.qr_url_label")
                     placeholderText: tr("verifactu.qr_url_label"); selectByMouse: true
+                    background: FieldBackground { field: qrInput }
                     onTextChanged: { qrArea.readResult = null; panel.qrState = null }
                 }
                 ThemedButton { objectName: "qrFromFileButton"; text: tr("verifactu.qr_from_file"); enabled: !panel.busy; Accessible.name: text; onClicked: qrFileDialog.open() }
