@@ -349,6 +349,15 @@ jobs:
           QT_QPA_PLATFORM=offscreen \
             "${RUNNER_TEMP}/process-arguments-test/processarguments_test"
 
+      - name: Test proposed name in Qt save dialogs
+        run: |
+          mkdir -p "${RUNNER_TEMP}/save-dialog-names-test"
+          qmake6 -o "${RUNNER_TEMP}/save-dialog-names-test/Makefile" \
+            cmd/gui-qml/savedialognames_test.pro
+          make -C "${RUNNER_TEMP}/save-dialog-names-test" -j2
+          QT_QPA_PLATFORM=offscreen \
+            "${RUNNER_TEMP}/save-dialog-names-test/savedialognames_test"
+
       - name: Audit Qt accessibility tree with AT-SPI
         run: ./scripts/accessibility/run-atspi-audit.sh
 

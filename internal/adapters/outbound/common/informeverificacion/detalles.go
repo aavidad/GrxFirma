@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"grxfirma/internal/adapters/outbound/common/certutil"
 	"grxfirma/internal/adapters/outbound/common/localizador"
 )
 
@@ -30,6 +31,8 @@ func TraducirDetalle(loc *localizador.Localizador, linea string) string {
 	if !ok || clave == "" || strings.ContainsAny(clave, " \t") {
 		return loc.T(linea)
 	}
+	linea = detalleConDNLegible(linea)
+	_, valor, _ = strings.Cut(linea, "=")
 	var rotulo string
 	if m := coberturaFirmaPDF.FindStringSubmatch(clave); m != nil {
 		n, _ := strconv.Atoi(m[1])
@@ -44,6 +47,19 @@ func TraducirDetalle(loc *localizador.Localizador, linea string) string {
 		return linea
 	}
 	return loc.T(prefijoDetalle+"formato", rotulo, traducirValorDetalle(loc, valor))
+}
+
+// detallesConDN son las evidencias cuyo valor es un nombre distinguido.
+var detallesConDN = map[string]bool{"firmante": true, "subject": true, "issuer": true, "anchor": true}
+
+// detalleConDNLegible escribe legible el DN de una evidencia «subject=…»;
+// el resto de líneas no cambia.
+func detalleConDNLegible(linea string) string {
+	clave, valor, ok := strings.Cut(linea, "=")
+	if !ok || !detallesConDN[clave] {
+		return linea
+	}
+	return clave + "=" + certutil.DNLegible(valor)
 }
 
 func traducirValorDetalle(loc *localizador.Localizador, valor string) string {

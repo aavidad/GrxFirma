@@ -18,6 +18,9 @@ import (
 const dnFNMT = "SERIALNUMBER=IDCES-99999999R,CN=EIDAS CERTIFICADO PRUEBAS - 99999999R,C=ES," +
 	"2.5.4.4=#1311454944415320434552544946494341444f,2.5.4.42=#130750525545424153"
 
+const dnFNMTLegible = "SERIALNUMBER=IDCES-99999999R,CN=EIDAS CERTIFICADO PRUEBAS - 99999999R,C=ES," +
+	"SN=EIDAS CERTIFICADO,GN=PRUEBAS"
+
 func informeFNMT(t *testing.T, idioma string) (string, string) {
 	t.Helper()
 	res := domain.NewVerificationSuccess("PAdES", "firma PAdES válida", []string{"firmante=" + dnFNMT})
@@ -67,10 +70,15 @@ func TestHTML_FirmanteLegibleYFechaDeFirma(t *testing.T) {
 			t.Errorf("la parte legible no debe mostrar %q", prohibido)
 		}
 	}
-	if !strings.Contains(tecnico, dnFNMT) || !strings.Contains(tecnico, "Emisor (DN): CN=AC FNMT Usuarios") {
+	// El DN completo sigue en los detalles técnicos, con nombre y apellidos
+	// legibles en lugar del OID y el hexadecimal.
+	if !strings.Contains(tecnico, dnFNMTLegible) || !strings.Contains(tecnico, "Emisor (DN): CN=AC FNMT Usuarios") {
 		t.Errorf("el DN completo debe seguir en los detalles técnicos:\n%s", tecnico)
 	}
-	if strings.Count(tecnico, dnFNMT) != 1 {
+	if strings.Contains(tecnico, "2.5.4.4=") || strings.Contains(tecnico, "#1311") {
+		t.Errorf("los detalles técnicos no deben mostrar atributos en hexadecimal:\n%s", tecnico)
+	}
+	if strings.Count(tecnico, dnFNMTLegible) != 1 {
 		t.Errorf("el DN del titular no debe repetirse en los detalles técnicos:\n%s", tecnico)
 	}
 }

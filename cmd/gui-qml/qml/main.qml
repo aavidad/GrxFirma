@@ -913,6 +913,14 @@ Window {
         return fileUrlFromLocalPath(folder !== "" ? folder.replace(/\/$/, "") + "/" + name : name)
     }
 
+    // El diálogo propio de Qt (sin diálogo nativo del sistema) elige el
+    // nombre propuesto pero deja vacío el campo «Nombre del fichero» si ese
+    // fichero aún no existe; la ayuda de C++ lo escribe al abrirse.
+    function showProposedSaveName() {
+        if (typeof saveDialogNames !== "undefined" && saveDialogNames)
+            Qt.callLater(saveDialogNames.showProposedNames)
+    }
+
     // Abre un diálogo de guardar con carpeta y nombre propuestos.
     function openSaveDialog(dialog, documentPath, fileName) {
         const folder = suggestedSaveFolder(documentPath)
@@ -969,11 +977,12 @@ Window {
         return suggestedSaveUrl(path, suggestVerificationReportName(path))
     }
 
-    // Informe imprimible del motor: «documento-informe-verificacion.html».
+    // Informe imprimible del motor: «documento_informe_verificacion.html»,
+    // con la misma forma que el resumen («documento_resumen_validacion.txt»).
     function suggestVerificationHtmlReportName(path) {
         const stem = fileStem(path)
         const suffix = tr("winui.parity.verify.filename")
-        return (stem !== "" ? stem + "-" : "") + suffix + ".html"
+        return (stem !== "" ? stem + "_" : "") + suffix + ".html"
     }
 
     function normalizeSealImagePath(path) {
@@ -3214,6 +3223,7 @@ Window {
     property bool settingsLoaded: false
     property bool applyingLoadedSettings: false
     property bool backendSettingsDirty: false
+    property string savedSettingsSignature: ""
     property bool settingsSaveInFlight: false
     property bool bypassUnsavedClosePrompt: false
     property bool pendingDiscardAndClose: false
@@ -3314,12 +3324,15 @@ Window {
         residentAgent.setEnabled(window.closeBehavior === "resident")
     }
 
+    // Hay cambios sin guardar solo si las preferencias difieren de las
+    // guardadas; reasignar el mismo valor o volver al anterior no cuenta.
     function markBackendSettingsDirty() {
         if (!settingsLoaded || applyingLoadedSettings) return
-        if (!backendSettingsDirty) {
+        const dirty = savedSettingsSignature === "" || backendSettingsSignature() !== savedSettingsSignature
+        if (dirty && !backendSettingsDirty) {
             console.log("QML: Preferencias marcadas como pendientes de guardar")
         }
-        backendSettingsDirty = true
+        backendSettingsDirty = dirty
     }
 
     function scheduleSettingsSave() {
@@ -3668,7 +3681,17 @@ Window {
             return
         }
         console.log("QML: Guardando preferencias en backend")
-        const s = {
+        const s = backendSettingsPayload()
+        settingsSaveInFlight = true
+        settingsRoundtripTimeoutTimer.restart()
+        backend.saveSettings(s)
+        window.statusMessage = tr("Guardando preferencias...")
+    }
+
+    // Las preferencias tal como se guardan. Sirve también para saber si hay
+    // cambios sin guardar: solo cuenta lo que cambia este contenido.
+    function backendSettingsPayload() {
+        return {
             expertMode: backend.expertMode,
             themeIndex: window.currentThemeIndex,
             autoClose: window.autoClose,
@@ -3755,10 +3778,21 @@ Window {
             signatureProductionPostalCode: window.facturaeSignaturePostalCode,
             signatureProductionCountry: window.facturaeSignatureCountry
         }
-        settingsSaveInFlight = true
-        settingsRoundtripTimeoutTimer.restart()
-        backend.saveSettings(s)
-        window.statusMessage = tr("Guardando preferencias...")
+    }
+
+    // Huella de las preferencias guardadas. Elegir un certificado o un
+    // documento cambia el estado de la pantalla, no las preferencias: el
+    // firmante principal de la cofirma solo es una preferencia con la
+    // cofirma activada; si no, sigue al certificado elegido.
+    function backendSettingsSignature() {
+        const s = backendSettingsPayload()
+        if (!s.multiCosignEnabled) s.multiCosignPrimaryCertificateId = ""
+        return JSON.stringify(s)
+    }
+
+    function rememberSavedSettings() {
+        savedSettingsSignature = backendSettingsSignature()
+        backendSettingsDirty = false
     }
 
     function saveBackendSettingsAndClose() {
@@ -5091,13 +5125,21 @@ Window {
         return tr("winui.verificar.no_determinada")
     }
 
+    // «certificate.subject» → «Titular del certificado», con el mismo
+    // catálogo que el informe del motor; un tipo desconocido se deja igual.
+    function verificationEvidenceTypeText(type) {
+        const key = "report.evidence." + String(type || "").trim()
+        const text = tr(key)
+        return text !== key ? text : String(type)
+    }
+
     function verificationEvidenceText(details) {
         if (!details || !details.evidence || details.evidence.length === 0)
             return tr("No disponible")
         let rows = []
         for (let i = 0; i < details.evidence.length; i++) {
             const item = details.evidence[i]
-            const type = item && item.type ? item.type : tr("No disponible")
+            const type = item && item.type ? verificationEvidenceTypeText(item.type) : tr("No disponible")
             const summary = item && item.summary ? item.summary : ""
             rows.push(tr("Tipo: ") + type + (summary !== "" ? " · " + summary : ""))
         }
@@ -5282,6 +5324,7 @@ Window {
         title: tr("Seleccionar destino del PDF firmado")
         currentFile: window.fileUrlFromLocalPath(window.currentOutputPath)
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         nameFilters: [tr("Archivos PDF (*.pdf)")]
         onAccepted: {
             window.currentOutputPath = localPathFromUrl(selectedFile)
@@ -5354,6 +5397,7 @@ Window {
         id: verifyReportSaveDialog
         title: tr("Guardar informe de verificación")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         currentFile: suggestVerificationReportPath(verifyTab.verifyFilePath)
         nameFilters: [tr("Informe JSON (*.json)"), tr("Todos los archivos (*)")]
         onAccepted: {
@@ -5371,6 +5415,7 @@ Window {
         id: verifyHtmlReportSaveDialog
         title: tr("winui.parity.verify.export_html")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         nameFilters: [tr("verificacion.informe_html.filtro"), tr("Todos los archivos (*)")]
         onAccepted: {
             backend.saveTextReport(localPathFromUrl(selectedFile),
@@ -5384,6 +5429,7 @@ Window {
         id: verifySummarySaveDialog
         title: tr("Guardar resumen de validación")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         currentFile: suggestVerificationSummaryPath(verifyTab.verifyFilePath)
         nameFilters: [tr("Resumen de validación (*.txt)"), tr("Todos los archivos (*)")]
         onAccepted: {
@@ -6047,6 +6093,7 @@ Window {
         id: certificateValidationSaveDialog
         title: tr("Guardar informe de validación del certificado")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         currentFile: suggestCertificateValidationReportPath()
         nameFilters: [tr("Informe JSON (*.json)"), tr("Todos los archivos (*)")]
         onAccepted: {
@@ -6064,6 +6111,7 @@ Window {
         id: supportIncidentSaveDialog
         title: tr("Guardar incidencia preparada")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         currentFile: suggestSupportIncidentPath()
         nameFilters: [tr("Informe de incidencia (*.txt)"), tr("Todos los archivos (*)")]
         onAccepted: {
@@ -7172,6 +7220,7 @@ Window {
         id: publicCertificateSaveDialog
         title: tr("Exportar certificado público")
         fileMode: FileDialog.SaveFile
+        onVisibleChanged: if (visible) window.showProposedSaveName()
         nameFilters: [tr("Certificado público DER (*.cer)"), tr("Certificado público PEM (*.pem)")]
         onAccepted: {
             let path = localPathFromUrl(selectedFile)
@@ -8140,7 +8189,7 @@ Window {
             window.applyingLoadedSettings = false
             window.settingsSaveInFlight = false
             settingsRoundtripTimeoutTimer.stop()
-            window.backendSettingsDirty = false
+            window.rememberSavedSettings()
             if (window.signVisibleSeal && window.supportsVisibleSeal()) {
                 window.requestPdfPreview()
             }
@@ -8205,7 +8254,7 @@ Window {
             window.settingsSaveInFlight = false
             settingsRoundtripTimeoutTimer.stop()
             if (ok) {
-                window.backendSettingsDirty = false
+                window.rememberSavedSettings()
             }
             window.statusMessage = message
             if (window.pendingCloseAfterSettingsSave) {
@@ -9011,20 +9060,23 @@ Window {
                                 }
                             }
 
+                            // Ancho fijado por la tarjeta, no por los botones: en idiomas con
+                            // rótulos largos los botones pasan a otra línea y el texto
+                            // seguía su ancho, partido en una palabra por línea.
                             ColumnLayout {
                                 anchors.centerIn: parent
+                                width: Math.max(0, parent.width - 40)
                                 spacing: 15
                                 Text {
                                     text: selectedInputsSummary()
                                     color: currentTheme.textColor
                                     font.pixelSize: 18
-                                    Layout.alignment: Qt.AlignCenter
+                                    Layout.fillWidth: true
                                     horizontalAlignment: Text.AlignHCenter
                                     wrapMode: Text.WordWrap
-                                    Layout.maximumWidth: parent.width - 40
                                 }
                                 AdaptiveRow {
-                                    Layout.alignment: Qt.AlignCenter
+                                    centered: true
                                     spacing: 10
                                     ThemedButton {
                                         text: tr("Seleccionar archivo")
@@ -10454,6 +10506,7 @@ Window {
                                             }
                                             Text {
                                                 text: verificationArrayText(window.currentOutputVerificationDetails ? window.currentOutputVerificationDetails.warnings : [])
+                                                textFormat: Text.PlainText
                                                 color: "white"
                                                 opacity: 0.9
                                                 font.pixelSize: 12
@@ -10536,6 +10589,7 @@ Window {
                                                 }
                                                 Text {
                                                     text: tr("Detalles: ") + verificationAspectDetailsText(modelData.value)
+                                                    textFormat: Text.PlainText
                                                     color: "white"
                                                     opacity: 0.8
                                                     font.pixelSize: 12
@@ -10571,6 +10625,7 @@ Window {
                                         }
                                         Text {
                                             text: verificationEvidenceText(window.currentOutputVerificationDetails)
+                                            textFormat: Text.PlainText
                                             color: "white"
                                             opacity: 0.9
                                             font.pixelSize: 12
@@ -10899,6 +10954,7 @@ Window {
                                                         }
                                                         Text {
                                                             text: verificationArrayText(modelData.verifyDetails ? modelData.verifyDetails.warnings : [])
+                                                            textFormat: Text.PlainText
                                                             color: "white"
                                                             opacity: 0.9
                                                             font.pixelSize: 12
@@ -10932,6 +10988,7 @@ Window {
                                                         }
                                                         Text {
                                                             text: verificationArrayText(modelData.verifyDetails ? modelData.verifyDetails.errors : [])
+                                                            textFormat: Text.PlainText
                                                             color: "white"
                                                             opacity: 0.9
                                                             font.pixelSize: 12
@@ -10967,6 +11024,7 @@ Window {
                                                     }
                                                     Text {
                                                         text: verificationSignerSummariesText(modelData.verifyDetails)
+                                                        textFormat: Text.PlainText
                                                         color: "white"
                                                         opacity: 0.9
                                                         font.pixelSize: 12
@@ -11001,6 +11059,7 @@ Window {
                                                     }
                                                     Text {
                                                         text: verificationEvidenceText(modelData.verifyDetails)
+                                                        textFormat: Text.PlainText
                                                         color: "white"
                                                         opacity: 0.9
                                                         font.pixelSize: 12
@@ -12377,6 +12436,7 @@ Window {
                                                         }
                                                         Text {
                                                             text: tr("Detalles: ") + verificationAspectDetailsText(modelData.value)
+                                                            textFormat: Text.PlainText
                                                             color: verifyTab.subPanelText
                                                             opacity: 0.82
                                                             font.pixelSize: 12
@@ -12431,6 +12491,7 @@ Window {
 
                                                 Text {
                                                     text: window.verificationSignerSummariesText(verifyTab.verifyDetails)
+                                                    textFormat: Text.PlainText
                                                     color: verifyTab.subPanelText
                                                     font.pixelSize: 12
                                                     wrapMode: Text.Wrap
@@ -12480,6 +12541,7 @@ Window {
 
                                                 Text {
                                                     text: window.verificationSignerTechnicalText(verifyTab.verifyDetails)
+                                                    textFormat: Text.PlainText
                                                     color: verifyTab.subPanelText
                                                     opacity: 0.9
                                                     wrapMode: Text.Wrap
@@ -12689,6 +12751,7 @@ Window {
 
                                                 Text {
                                                     text: verificationEvidenceText(verifyTab.verifyDetails)
+                                                    textFormat: Text.PlainText
                                                     color: verifyTab.subPanelText
                                                     opacity: 0.9
                                                     wrapMode: Text.Wrap
