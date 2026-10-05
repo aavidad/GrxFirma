@@ -432,7 +432,7 @@ func TestAyudaGeneralEnumeraTodosLosFormatos(t *testing.T) {
 	var stdout bytes.Buffer
 	escribirUsoGeneral(&stdout)
 
-	const formatos = "auto|pades|cades|xades|xmldsig|odf|ooxml|facturae|asic-xades"
+	const formatos = "auto|pades|cades|xades|xmldsig|odf|ooxml|facturae|verifactu|asic-xades"
 	if !strings.Contains(stdout.String(), "-formato         <fmt>  "+formatos) {
 		t.Fatalf("la ayuda general no enumera todos los formatos públicos: %s", stdout.String())
 	}
