@@ -2740,7 +2740,7 @@
   ,"revocación no concluyente": "No se pudo comprobar la revocación del certificado. La firma no se considera válida."
   ,"rest.verify_v2.error.limit": "Límite de verificación v2 fuera del intervalo permitido"
   ,"portal.seal.title": "Colocar el sello en el PDF"
-  ,"portal.seal.instructions": "La web desde la que firma le pide que elija dónde va la firma. Arrastre el sello para moverlo, use el círculo de la esquina para cambiar su tamaño y la flecha para girarlo. También puede escribir la posición en «Ajuste preciso»."
+  ,"portal.seal.instructions": "La web desde la que firma le pide que elija dónde va la firma. Arrastre el sello para moverlo, use la esquina inferior derecha para cambiar su tamaño y el círculo con la flecha (↻) para girarlo. También puede escribir la posición en «Ajuste preciso»."
   ,"portal.seal.fine_tune": "Ajuste preciso"
   ,"portal.seal.page": "Página %1 de %2"
   ,"portal.seal.previous_page": "Página anterior"

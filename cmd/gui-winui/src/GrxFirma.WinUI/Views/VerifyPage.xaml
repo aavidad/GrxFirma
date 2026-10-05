@@ -280,8 +280,11 @@
                         <TextBlock
                             AutomationProperties.HeadingLevel="Level2"
                             Style="{StaticResource SectionTitleTextStyle}"
-                            Text="Avisos y errores" />
-                        <ItemsControl ItemsSource="{x:Bind ViewModel.Warnings, Mode=OneWay}">
+                            Text="Avisos y errores"
+                            Visibility="{x:Bind ViewModel.HasWarnings, Mode=OneWay}" />
+                        <ItemsControl
+                            ItemsSource="{x:Bind ViewModel.Warnings, Mode=OneWay}"
+                            Visibility="{x:Bind ViewModel.HasWarnings, Mode=OneWay}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding}" TextWrapping="Wrap" />

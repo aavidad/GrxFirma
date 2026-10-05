@@ -2740,7 +2740,7 @@
   ,"revocación no concluyente": "Certificate revocation could not be checked. The signature is not considered valid."
   ,"rest.verify_v2.error.limit": "Verification v2 limit is outside the permitted range"
   ,"portal.seal.title": "Place the seal on the PDF"
-  ,"portal.seal.instructions": "The website you are signing from asks you to choose where the signature goes. Drag the seal to move it, use the corner circle to resize it and the arrow to rotate it. You can also type the position in “Fine adjustment”."
+  ,"portal.seal.instructions": "The website you are signing from asks you to choose where the signature goes. Drag the seal to move it, use the bottom-right corner to resize it and the circle with the arrow (↻) to rotate it. You can also type the position in “Fine adjustment”."
   ,"portal.seal.fine_tune": "Fine adjustment"
   ,"portal.seal.page": "Page %1 of %2"
   ,"portal.seal.previous_page": "Previous page"

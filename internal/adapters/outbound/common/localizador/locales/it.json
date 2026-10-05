@@ -2740,7 +2740,7 @@
   ,"revocación no concluyente": "Non è stato possibile verificare la revoca del certificato. La firma non è considerata valida."
   ,"rest.verify_v2.error.limit": "Il limite di verifica v2 è fuori dall’intervallo consentito"
   ,"portal.seal.title": "Posiziona il timbro sul PDF"
-  ,"portal.seal.instructions": "Il sito da cui sta firmando le chiede di scegliere dove va la firma. Trascini il timbro per spostarlo, usi il cerchio nell’angolo per ridimensionarlo e la freccia per ruotarlo. Può anche scrivere la posizione in «Regolazione precisa»."
+  ,"portal.seal.instructions": "Il sito da cui sta firmando le chiede di scegliere dove va la firma. Trascini il timbro per spostarlo, usi l’angolo in basso a destra per ridimensionarlo e il cerchio con la freccia (↻) per ruotarlo. Può anche scrivere la posizione in «Regolazione precisa»."
   ,"portal.seal.fine_tune": "Regolazione precisa"
   ,"portal.seal.page": "Pagina %1 di %2"
   ,"portal.seal.previous_page": "Pagina precedente"

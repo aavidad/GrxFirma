@@ -121,8 +121,17 @@ public sealed class VerifyPageViewModel
     public IReadOnlyList<string> Warnings
     {
         get => _warnings;
-        private set => SetProperty(ref _warnings, value);
+        private set
+        {
+            if (SetProperty(ref _warnings, value))
+            {
+                RaisePropertyChanged(nameof(HasWarnings));
+            }
+        }
     }
+
+    // El título «Avisos y errores» solo se muestra cuando hay alguno.
+    public bool HasWarnings => _warnings.Count > 0;
 
     public IReadOnlyList<string> Details
     {
