@@ -14,7 +14,7 @@ class VeriFactuContract(unittest.TestCase):
         self.assertEqual(panel.count("panel.bridge.queryVeriFactuQR("), 1)
         self.assertIn("panel.bridge.queryVeriFactuQR(qrArea.readResult.url)", panel)
         self.assertIn('text: tr("verifactu.qr_query")', panel)
-        self.assertIn('onTextChanged: { qrArea.readResult = null; qrArea.text = "" }', panel)
+        self.assertIn('onTextChanged: { qrArea.readResult = null; panel.qrState = null }', panel)
         self.assertIn("enabled: !panel.busy", panel)
         self.assertIn("import QtQuick.Dialogs\n", panel)
 

@@ -15,6 +15,8 @@ ColumnLayout {
     property var translate: function(key) { return key }
     property string labelKey: ""
     property string timeLabelKey: ""
+    // Código de idioma de la aplicación («es», «en»…); vacío usa el del sistema.
+    property string localeName: ""
     property string text: Validation.rfc3339(new Date())
     property bool touched: false
     property bool syncing: false
@@ -119,7 +121,7 @@ ColumnLayout {
             Accessible.name: root.translate(root.labelKey)
             Accessible.description: root.invalid ? root.translate(root.errorKey) : root.translate("paridad.lote3.eni.date_hint")
         }
-        Button {
+        ThemedButton {
             objectName: "calendarButton"
             text: root.translate("eni.validacion.calendar")
             Accessible.name: text
@@ -196,7 +198,7 @@ ColumnLayout {
             width: calendarPopup.availableWidth
             RowLayout {
                 Layout.fillWidth: true
-                Button {
+                ThemedButton {
                     text: "‹"
                     Accessible.name: root.translate("eni.validacion.previous")
                     enabled: calendar.year > 1 || calendar.month > 0
@@ -208,7 +210,7 @@ ColumnLayout {
                     color: root.textColor
                     text: calendar.locale.toString(new Date(calendar.year, calendar.month, 1), "MMMM yyyy")
                 }
-                Button {
+                ThemedButton {
                     text: "›"
                     Accessible.name: root.translate("eni.validacion.next")
                     enabled: calendar.year < 9999 || calendar.month < 11
@@ -230,7 +232,7 @@ ColumnLayout {
                 objectName: "calendarGrid"
                 property date focusDate: new Date()
                 Layout.fillWidth: true
-                locale: Qt.locale()
+                locale: root.localeName !== "" ? Qt.locale(root.localeName) : Qt.locale()
                 focus: true
                 activeFocusOnTab: true
                 Accessible.role: Accessible.Table

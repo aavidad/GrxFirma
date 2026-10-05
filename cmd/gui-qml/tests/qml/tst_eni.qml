@@ -84,12 +84,27 @@ TestCase {
     function test_missing_input_is_explained_next_to_the_button() {
         panel.signaturePath = ""
         findChild(panel, "createDocumentButton").clicked()
-        compare(panel.documentMessage, "paridad.lote3.eni.required_signature")
+        compare(panel.documentMessageKey, "paridad.lote3.eni.required_signature")
         verify(findChild(panel, "signatureButton").activeFocus)
         panel.directoryPath = ""
         findChild(panel, "createFileButton").clicked()
-        compare(panel.fileMessage, "paridad.lote3.eni.required_folder")
+        compare(panel.fileMessageKey, "paridad.lote3.eni.required_folder")
         verify(findChild(panel, "folderButton").activeFocus)
+    }
+    function test_empty_certificate_list_is_explained_and_messages_follow_language() {
+        panel.certificates = []
+        compare(field("certificateCombo").displayText, "paridad.lote3.eni.required_certificate")
+        panel.signaturePath = ""
+        findChild(panel, "createDocumentButton").clicked()
+        // El mensaje se pinta desde la clave: cambia si cambia la traducción.
+        panel.translate = function(key) { return "EN:" + key }
+        compare(findChild(panel, "documentMessage").text, "EN:paridad.lote3.eni.required_signature")
+        panel.translate = function(key) { return key }
+    }
+    function test_calendar_follows_application_language() {
+        panel.localeName = "en"
+        compare(findChild(field("capture"), "calendarGrid").locale.name, Qt.locale("en").name)
+        panel.localeName = ""
     }
     function test_calendar_opens_and_preserves_time() {
         const capture = field("capture")

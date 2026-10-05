@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "GrxFirma could not install its local CA in every browser. Close Firefox completely and reopen GrxFirma; if the problem persists, check that certutil is installed.",
   "Detalle técnico: %s": "Technical details: %s",
   "token_settings.title": "Cards and tokens",
-  "token_settings.intro": "Local PKCS#11 driver settings for compatible cards, electronic IDs and USB tokens. Compatibility with every device is not guaranteed.",
-  "token_settings.unavailable": "This feature is inactive in production and cannot be enabled here. Editing requires an enabled preview build and the local IPC channel.",
+  "token_settings.intro": "Settings for card, Spanish ID card (DNIe) and USB token drivers. Not every device is supported.",
+  "token_settings.unavailable": "Cards and USB tokens can only be configured in the test version.",
   "token_settings.state": "Saved configuration",
   "token_settings.readonly": "The configuration is not editable. Check file permissions and safety; they will not be changed automatically.",
   "token_settings.load": "Load configuration",
@@ -2870,7 +2870,7 @@
   ,"facturae.item_description": "Item description"
   ,"facturae.legal_name": "Legal name"
   ,"facturae.managing": "Managing body (DIR3)"
-  ,"facturae.nav": "FACTURAE AND FACE"
+  ,"facturae.nav": "INVOICING"
   ,"facturae.payment": "Include payment details"
   ,"facturae.person_name": "Name"
   ,"facturae.post_code": "Postal code"
@@ -2912,7 +2912,7 @@
   "paridad.lote3.eni.certificate": "Certificate for signing the index",
   "paridad.lote3.eni.certificates_failed": "Could not load certificates.",
   "paridad.lote3.eni.citizen": "Citizen",
-  "paridad.lote3.eni.classification": "Procedure classification (SIA)",
+  "paridad.lote3.eni.classification": "SIA procedure code (required)",
   "paridad.lote3.eni.create_document": "Create ENI document",
   "paridad.lote3.eni.create_file": "Create ENI case file",
   "paridad.lote3.eni.created": "ENI file created: %1",
@@ -4809,7 +4809,7 @@
   "eni.validacion.dir3": "Enter one or more DIR3 codes (one uppercase letter and eight digits), separated by commas. Example: L01180877.",
   "eni.validacion.identifier": "Use ES_<DIR3>_<YYYY>_<id>, with an id of 1 to 30 characters (letters, digits or underscores).",
   "eni.validacion.date": "Choose a valid date and time.",
-  "eni.validacion.classification": "Enter a numeric SIA code or <DIR3>_PRO_<id> (up to 30 characters).",
+  "eni.validacion.classification": "Enter the SIA code: digits only (up to 30) or the format your unit gives you.",
   "eni.validacion.source": "An authentic copy requires a valid source ENI identifier.",
   "eni.validacion.format": "Use a format name of up to 32 characters: letters, digits, dot, plus sign or hyphen.",
   "eni.validacion.text": "The text exceeds the limit or contains control characters.",
@@ -4870,8 +4870,8 @@
   ,"verifactu.limit": "The size or complexity limit has been exceeded."
   ,"verifactu.xml": "The XML is invalid. DTDs and external entities are not allowed."
   ,"verifactu.root": "The file is not a Veri*Factu record. Choose the XML produced by your invoicing software."
-  ,"verifactu.structure": "A required field is missing, or elements are out of order, duplicated or disallowed by the schema."
-  ,"verifactu.value": "The value does not meet the format, length or allowed values in the schema."
+  ,"verifactu.structure": "The record has a missing, extra or badly written field. Ask your invoicing software to generate it again. The report has the details."
+  ,"verifactu.value": "The record has a missing, extra or badly written field. Ask your invoicing software to generate it again. The report has the details."
   ,"verifactu.profile": "The signature is not the type the AEAT requires. Sign again with the “Veri*Factu record” format."
   ,"verifactu.signed": "The record is already signed."
   ,"verifactu.key": "An RSA key with a valid certificate suitable for signing is required."
@@ -4882,7 +4882,7 @@
   ,"verifactu.previous_missing": "The previous record is outside the selection. This chain link cannot be checked."
   ,"verifactu.signature": "The record’s signature has been altered or does not cover the whole record. Sign it again with the “Veri*Factu record” format."
   ,"verifactu.certificate": "The certificate was not valid on the record date."
-  ,"verifactu.trust": "Signature integrity checked. Qualification, historical revocation and authority to represent the issuer need an additional check."
+  ,"verifactu.trust": "The signature is intact. GrxFirma does not check whether the certificate was qualified or whether the signer represented the issuer."
   ,"verifactu.unsigned": "The record has no signature."
   ,"verifactu.empty": "The selection contains no XML records."
   ,"verifactu.valid": "Record checked with no errors."
@@ -4892,11 +4892,11 @@
   ,"verifactu.folder": "Choose a record folder"
   ,"verifactu.qr_title": "Read tax QR code"
   ,"verifactu.qr_url_label": "Paste the QR URL or enter it with a scanner"
-  ,"verifactu.qr_notice": "Reading the URL, image or PDF sends no data. Query AEAT sends only the issuer ID, number, date and amount from the QR."
+  ,"verifactu.qr_notice": "Reading the address, image or PDF sends no data. “Check with the AEAT” sends only the tax ID, number, date and amount from the QR code."
   ,"verifactu.qr_read": "Read QR data"
-  ,"verifactu.qr_query": "Query AEAT"
-  ,"verifactu.qr_url": "The URL must use HTTPS and an official AEAT verification host and path, with no port, user information or fragment."
-  ,"verifactu.qr_params": "The QR must contain only nif, numserie, fecha and importe, each once and correctly formatted."
+  ,"verifactu.qr_query": "Check with the AEAT"
+  ,"verifactu.qr_url": "This address is not an AEAT QR code. Copy the full address from the invoice QR (it starts with https://www2.agenciatributaria.gob.es/) or use “Read from image or PDF”."
+  ,"verifactu.qr_params": "The QR code has missing or extra data. It must contain the issuer’s tax ID, the invoice number, date and amount."
   ,"verifactu.qr_service": "The AEAT query timed out or returned an invalid response."
   ,"verifactu.qr_nif": "Issuer tax ID"
   ,"verifactu.qr_number": "Number and series"
@@ -6328,4 +6328,17 @@
   ,"winui.selector.nombre_informe_huella": "hash-report"
   ,"winui.selector.nombre_documento_protegido_firmado": "signed-protected-document"
   ,"winui.selector.nombre_diagnostico": "diagnostics"
+  ,"sign.need_certificate": "Choose a certificate to sign."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "The signer cannot be confirmed: the certificate does not come from a trusted authority (for example, it is a test certificate). Ask the signer to use a recognised certificate, such as an FNMT certificate or a Spanish ID card."
+  ,"verificacion.ver_detalles_tecnicos": "View technical details"
+  ,"verificacion.detalle.revocacion.bueno": "not revoked"
+  ,"verificacion.detalle.revocacion.revocado": "revoked"
+  ,"verificacion.detalle.revocacion.desconocido": "no revocation information"
+  ,"paridad.lote3.eni.classification_hint": "The procedure number in the Administrative Information System (SIA). Example: 2345678. If you do not know it, ask your processing unit."
+  ,"paridad.lote3.eni.interested_hint": "Tax ID or name of each interested party, separated by commas."
+  ,"facturae.required": "required"
+  ,"facturae.required_legend": "Fields marked with * are required."
+  ,"csc.gui.client_id_ayuda": "Your provider gives it to you together with the service address."
+  ,"verificacion.detalle.system_roots": "System root certificates"
+  ,"verificacion.detalle.valor.loaded": "loaded"
 }

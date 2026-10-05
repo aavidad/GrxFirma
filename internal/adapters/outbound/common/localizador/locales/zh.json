@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "无法在所有浏览器中安装 GrxFirma 的本地 CA。请完全关闭 Firefox 并重新打开 GrxFirma；如果问题仍然存在，请检查是否已安装 certutil。",
   "Detalle técnico: %s": "技术详情：%s",
   "token_settings.title": "智能卡和令牌",
-  "token_settings.intro": "为兼容的智能卡、电子身份证和 USB 令牌配置本地 PKCS#11 驱动程序。不保证兼容所有设备。",
-  "token_settings.unavailable": "此功能在生产版本中未启用，无法在此激活。编辑需要已启用的预览构建及本地 IPC 通道。",
+  "token_settings.intro": "智能卡、西班牙电子身份证（DNIe）和 USB 令牌驱动程序的设置。并非所有设备都受支持。",
+  "token_settings.unavailable": "智能卡和 USB 令牌只能在测试版中配置。",
   "token_settings.state": "已保存的配置",
   "token_settings.readonly": "配置不可编辑。请检查文件权限和安全性；系统不会自动修改它们。",
   "token_settings.load": "加载配置",
@@ -2870,7 +2870,7 @@
   ,"facturae.item_description": "项目说明"
   ,"facturae.legal_name": "法人名称"
   ,"facturae.managing": "管理机构 (DIR3)"
-  ,"facturae.nav": "FACTURAE 和 FACE"
+  ,"facturae.nav": "开票"
   ,"facturae.payment": "包含付款信息"
   ,"facturae.person_name": "姓名"
   ,"facturae.post_code": "邮政编码"
@@ -2912,7 +2912,7 @@
   "paridad.lote3.eni.certificate": "用于签署目录的证书",
   "paridad.lote3.eni.certificates_failed": "无法加载证书。",
   "paridad.lote3.eni.citizen": "公民",
-  "paridad.lote3.eni.classification": "程序分类（SIA）",
+  "paridad.lote3.eni.classification": "程序的 SIA 代码（必填）",
   "paridad.lote3.eni.create_document": "创建 ENI 文档",
   "paridad.lote3.eni.create_file": "创建 ENI 案卷",
   "paridad.lote3.eni.created": "已创建 ENI 文件：%1",
@@ -4809,7 +4809,7 @@
   "eni.validacion.dir3": "请输入一个或多个 DIR3 代码（一个大写字母和八位数字），以逗号分隔。示例：L01180877。",
   "eni.validacion.identifier": "请使用 ES_<DIR3>_<年份>_<id>，其中 id 为 1 至 30 个字母、数字或下划线。",
   "eni.validacion.date": "请选择有效的日期和时间。",
-  "eni.validacion.classification": "请输入数字 SIA 代码或 <DIR3>_PRO_<id>（最多 30 个字符）。",
+  "eni.validacion.classification": "请输入 SIA 代码：仅限数字（最多 30 位），或使用您的单位提供的格式。",
   "eni.validacion.source": "真实副本需要有效的来源 ENI 标识符。",
   "eni.validacion.format": "格式名称最多 32 个字符，可使用字母、数字、点、加号或连字符。",
   "eni.validacion.text": "文本超出长度限制或含有控制字符。",
@@ -4870,8 +4870,8 @@
   ,"verifactu.limit": "已超出大小或复杂度限制。"
   ,"verifactu.xml": "XML 无效。不允许 DTD 或外部实体。"
   ,"verifactu.root": "该文件不是 Veri*Factu 记录。请选择由您的开票软件生成的 XML。"
-  ,"verifactu.structure": "缺少必填字段，或元素顺序错误、重复或不符合模式要求。"
-  ,"verifactu.value": "值不符合模式规定的格式、长度或允许值。"
+  ,"verifactu.structure": "记录中有字段缺失、多余或写法错误。请让您的开票软件重新生成该记录。详情见报告。"
+  ,"verifactu.value": "记录中有字段缺失、多余或写法错误。请让您的开票软件重新生成该记录。详情见报告。"
   ,"verifactu.profile": "签名不是 AEAT 要求的类型。请使用“Veri*Factu 记录”格式重新签名。"
   ,"verifactu.signed": "该记录已签署。"
   ,"verifactu.key": "需要 RSA 密钥及有效且适合签名的证书。"
@@ -4882,7 +4882,7 @@
   ,"verifactu.previous_missing": "上一条记录不在所选范围内，无法检查此链式链接。"
   ,"verifactu.signature": "记录的签名已被篡改或未覆盖整条记录。请使用“Veri*Factu 记录”格式重新签名。"
   ,"verifactu.certificate": "证书在记录日期无效。"
-  ,"verifactu.trust": "已验证签名完整性。证书资格、历史吊销状态及开票方代表权限需要另行核查。"
+  ,"verifactu.trust": "签名完好。GrxFirma 不检查该证书是否为合格证书，也不检查签名人是否代表开票方。"
   ,"verifactu.unsigned": "记录没有签名。"
   ,"verifactu.empty": "所选范围不包含 XML 记录。"
   ,"verifactu.valid": "记录检查完成，未发现错误。"
@@ -4892,11 +4892,11 @@
   ,"verifactu.folder": "选择记录文件夹"
   ,"verifactu.qr_title": "读取税务二维码"
   ,"verifactu.qr_url_label": "粘贴二维码 URL 或使用扫描器输入"
-  ,"verifactu.qr_notice": "读取 URL、图像或 PDF 不会发送数据。查询 AEAT 仅发送二维码中的税号、编号、日期及金额。"
+  ,"verifactu.qr_notice": "读取地址、图像或 PDF 不会发送任何数据。“向 AEAT 查询”仅发送二维码中的税号、编号、日期和金额。"
   ,"verifactu.qr_read": "读取二维码数据"
-  ,"verifactu.qr_query": "查询 AEAT 服务"
-  ,"verifactu.qr_url": "URL 必须使用 HTTPS 及 AEAT 官方核验域名和路径，不得含端口、用户信息或片段。"
-  ,"verifactu.qr_params": "二维码只能包含 nif、numserie、fecha 和 importe，每项仅出现一次且格式正确。"
+  ,"verifactu.qr_query": "向 AEAT 查询"
+  ,"verifactu.qr_url": "此地址不是 AEAT 的二维码。请复制发票二维码中的完整地址（以 https://www2.agenciatributaria.gob.es/ 开头），或使用“从图像或 PDF 读取”。"
+  ,"verifactu.qr_params": "二维码缺少数据或包含多余数据。它必须包含开票方税号以及发票编号、日期和金额。"
   ,"verifactu.qr_service": "AEAT 查询超时或返回的响应无效。"
   ,"verifactu.qr_nif": "开票方税号"
   ,"verifactu.qr_number": "编号和系列"
@@ -6328,4 +6328,17 @@
   ,"winui.selector.nombre_informe_huella": "哈希报告"
   ,"winui.selector.nombre_documento_protegido_firmado": "已加密已签名文档"
   ,"winui.selector.nombre_diagnostico": "诊断"
+  ,"sign.need_certificate": "请选择一个证书以便签名。"
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "无法确认签名人：该证书并非来自受信任的机构（例如，它是测试证书）。请让签名人使用受认可的证书，例如 FNMT 证书或西班牙电子身份证（DNIe）。"
+  ,"verificacion.ver_detalles_tecnicos": "查看技术详情"
+  ,"verificacion.detalle.revocacion.bueno": "未吊销"
+  ,"verificacion.detalle.revocacion.revocado": "已吊销"
+  ,"verificacion.detalle.revocacion.desconocido": "无吊销信息"
+  ,"paridad.lote3.eni.classification_hint": "这是该程序在行政信息系统（SIA）中的编号。示例：2345678。如果不知道，请向您的办理单位索取。"
+  ,"paridad.lote3.eni.interested_hint": "每位利害关系人的税号或姓名，用逗号分隔。"
+  ,"facturae.required": "必填"
+  ,"facturae.required_legend": "标有 * 的字段为必填项。"
+  ,"csc.gui.client_id_ayuda": "由您的服务提供商连同服务地址一起提供给您。"
+  ,"verificacion.detalle.system_roots": "系统根证书"
+  ,"verificacion.detalle.valor.loaded": "已加载"
 }

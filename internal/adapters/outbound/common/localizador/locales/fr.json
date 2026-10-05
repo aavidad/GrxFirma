@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "Impossible d'installer le CA local de GrxFirma dans tous les navigateurs. Fermez complètement Firefox et rouvrez GrxFirma ; si le problème persiste, vérifiez que certutil est installé.",
   "Detalle técnico: %s": "Détail technique : %s",
   "token_settings.title": "Cartes et jetons",
-  "token_settings.intro": "Configuration locale des pilotes PKCS#11 pour cartes, identités électroniques et jetons USB compatibles. La compatibilité avec tous les appareils n'est pas garantie.",
-  "token_settings.unavailable": "Cette fonction est inactive en production et ne peut pas être activée ici. La modification exige une version de test activée et le canal IPC local.",
+  "token_settings.intro": "Réglages des pilotes de cartes, de la carte d’identité espagnole (DNIe) et des jetons USB. Tous les appareils ne sont pas compatibles.",
+  "token_settings.unavailable": "Les cartes et les jetons USB ne peuvent être configurés que dans la version de test.",
   "token_settings.state": "Configuration enregistrée",
   "token_settings.readonly": "La configuration n'est pas modifiable. Vérifiez les permissions et la sécurité du fichier ; elles ne seront pas modifiées automatiquement.",
   "token_settings.load": "Charger la configuration",
@@ -2870,7 +2870,7 @@
   ,"facturae.item_description": "Description de la ligne"
   ,"facturae.legal_name": "Raison sociale"
   ,"facturae.managing": "Organisme gestionnaire (DIR3)"
-  ,"facturae.nav": "FACTURAE ET FACE"
+  ,"facturae.nav": "FACTURATION"
   ,"facturae.payment": "Inclure les données de paiement"
   ,"facturae.person_name": "Nom"
   ,"facturae.post_code": "Code postal"
@@ -2912,7 +2912,7 @@
   "paridad.lote3.eni.certificate": "Certificat pour signer l’index",
   "paridad.lote3.eni.certificates_failed": "Impossible de charger les certificats.",
   "paridad.lote3.eni.citizen": "Citoyen",
-  "paridad.lote3.eni.classification": "Classement de la procédure (SIA)",
+  "paridad.lote3.eni.classification": "Code SIA de la procédure (obligatoire)",
   "paridad.lote3.eni.create_document": "Créer le document ENI",
   "paridad.lote3.eni.create_file": "Créer le dossier ENI",
   "paridad.lote3.eni.created": "Fichier ENI créé : %1",
@@ -4809,7 +4809,7 @@
   "eni.validacion.dir3": "Saisissez un ou plusieurs codes DIR3 (une lettre majuscule et huit chiffres), séparés par des virgules. Exemple : L01180877.",
   "eni.validacion.identifier": "Utilisez ES_<DIR3>_<AAAA>_<id>, avec un id de 1 à 30 caractères (lettres, chiffres ou tirets bas).",
   "eni.validacion.date": "Choisissez une date et une heure valides.",
-  "eni.validacion.classification": "Saisissez un code SIA numérique ou <DIR3>_PRO_<id> (30 caractères maximum).",
+  "eni.validacion.classification": "Saisissez le code SIA : uniquement des chiffres (30 au maximum) ou le format indiqué par votre service.",
   "eni.validacion.source": "Une copie authentique exige un identifiant ENI source valide.",
   "eni.validacion.format": "Utilisez un nom de format de 32 caractères maximum : lettres, chiffres, point, signe plus ou trait d’union.",
   "eni.validacion.text": "Le texte dépasse la limite ou contient des caractères de contrôle.",
@@ -4870,8 +4870,8 @@
   ,"verifactu.limit": "La limite de taille ou de complexité a été dépassée."
   ,"verifactu.xml": "Le XML est invalide. Les DTD et les entités externes sont interdites."
   ,"verifactu.root": "Le fichier n’est pas un enregistrement Veri*Factu. Choisissez le XML produit par votre logiciel de facturation."
-  ,"verifactu.structure": "Un champ obligatoire manque, ou des éléments sont mal ordonnés, répétés ou interdits par le schéma."
-  ,"verifactu.value": "La valeur ne respecte pas le format, la longueur ou les valeurs autorisées par le schéma."
+  ,"verifactu.structure": "Un champ de l’enregistrement manque, est en trop ou est mal écrit. Demandez à votre logiciel de facturation de le générer à nouveau. Le rapport donne le détail."
+  ,"verifactu.value": "Un champ de l’enregistrement manque, est en trop ou est mal écrit. Demandez à votre logiciel de facturation de le générer à nouveau. Le rapport donne le détail."
   ,"verifactu.profile": "La signature n’est pas du type exigé par l’AEAT. Signez à nouveau avec le format « Enregistrement Veri*Factu »."
   ,"verifactu.signed": "L’enregistrement est déjà signé."
   ,"verifactu.key": "Une clé RSA avec un certificat valide et apte à signer est requise."
@@ -4882,7 +4882,7 @@
   ,"verifactu.previous_missing": "L’enregistrement précédent est absent de la sélection. Ce lien de la chaîne ne peut pas être vérifié."
   ,"verifactu.signature": "La signature de l’enregistrement a été modifiée ou ne couvre pas tout l’enregistrement. Signez-le à nouveau avec le format « Enregistrement Veri*Factu »."
   ,"verifactu.certificate": "Le certificat n’était pas valide à la date de l’enregistrement."
-  ,"verifactu.trust": "Intégrité de la signature vérifiée. La qualification, la révocation historique et la représentation de l’émetteur nécessitent une vérification supplémentaire."
+  ,"verifactu.trust": "La signature est intacte. GrxFirma ne vérifie pas si le certificat était qualifié ni si le signataire représentait l’émetteur."
   ,"verifactu.unsigned": "L’enregistrement ne contient aucune signature."
   ,"verifactu.empty": "La sélection ne contient aucun enregistrement XML."
   ,"verifactu.valid": "Enregistrement vérifié sans erreur."
@@ -4892,11 +4892,11 @@
   ,"verifactu.folder": "Choisir un dossier d’enregistrements"
   ,"verifactu.qr_title": "Lire le QR fiscal"
   ,"verifactu.qr_url_label": "Collez l’URL du QR ou saisissez-la avec un scanner"
-  ,"verifactu.qr_notice": "La lecture de l’URL, de l’image ou du PDF n’envoie aucune donnée. Consulter AEAT envoie seulement l’identifiant fiscal, le numéro, la date et le montant du QR."
+  ,"verifactu.qr_notice": "La lecture de l’adresse, de l’image ou du PDF n’envoie aucune donnée. « Vérifier auprès de l’AEAT » envoie seulement l’identifiant fiscal, le numéro, la date et le montant du QR code."
   ,"verifactu.qr_read": "Lire les données du QR"
-  ,"verifactu.qr_query": "Consulter l’AEAT"
-  ,"verifactu.qr_url": "L’URL doit utiliser HTTPS, un domaine et un chemin de vérification officiels de l’AEAT, sans port, utilisateur ni fragment."
-  ,"verifactu.qr_params": "Le QR doit contenir uniquement nif, numserie, fecha et importe, une fois chacun et au bon format."
+  ,"verifactu.qr_query": "Vérifier auprès de l’AEAT"
+  ,"verifactu.qr_url": "Cette adresse n’est pas un QR code de l’AEAT. Copiez l’adresse complète du QR code de la facture (elle commence par https://www2.agenciatributaria.gob.es/) ou utilisez « Lire depuis une image ou un PDF »."
+  ,"verifactu.qr_params": "Il manque des données au QR code ou il en contient trop. Il doit indiquer l’identifiant fiscal de l’émetteur ainsi que le numéro, la date et le montant de la facture."
   ,"verifactu.qr_service": "La consultation de l’AEAT a dépassé le délai ou la réponse est invalide."
   ,"verifactu.qr_nif": "Identifiant fiscal de l’émetteur"
   ,"verifactu.qr_number": "Numéro et série"
@@ -6328,4 +6328,17 @@
   ,"winui.selector.nombre_informe_huella": "rapport-empreinte"
   ,"winui.selector.nombre_documento_protegido_firmado": "document-protege-signe"
   ,"winui.selector.nombre_diagnostico": "diagnostic"
+  ,"sign.need_certificate": "Choisissez un certificat pour pouvoir signer."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "Impossible de confirmer qui a signé : le certificat ne provient pas d'une autorité de confiance (par exemple, c'est un certificat de test). Demandez au signataire d'utiliser un certificat reconnu, comme celui de la FNMT ou la carte d'identité espagnole (DNIe)."
+  ,"verificacion.ver_detalles_tecnicos": "Voir les détails techniques"
+  ,"verificacion.detalle.revocacion.bueno": "non révoqué"
+  ,"verificacion.detalle.revocacion.revocado": "révoqué"
+  ,"verificacion.detalle.revocacion.desconocido": "aucune information de révocation"
+  ,"paridad.lote3.eni.classification_hint": "C’est le numéro de la procédure dans le système d’information administrative (SIA). Exemple : 2345678. Si vous ne le connaissez pas, demandez-le à votre service instructeur."
+  ,"paridad.lote3.eni.interested_hint": "Identifiant fiscal ou nom de chaque personne intéressée, séparés par des virgules."
+  ,"facturae.required": "obligatoire"
+  ,"facturae.required_legend": "Les champs marqués d’un * sont obligatoires."
+  ,"csc.gui.client_id_ayuda": "Votre prestataire vous le fournit avec l’adresse du service."
+  ,"verificacion.detalle.system_roots": "Certificats racine du système"
+  ,"verificacion.detalle.valor.loaded": "chargés"
 }

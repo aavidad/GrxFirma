@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "Ezin izan da GrxFirma-ren CA lokala nabigatzaile guztietan instalatu. Itxi Firefox erabat eta ireki GrxFirma berriro; jarraitzen badu, egiaztatu certutil instalatuta dagoela.",
   "Detalle técnico: %s": "Xehetasun teknikoa: %s",
   "token_settings.title": "Txartelak eta tokenak",
-  "token_settings.intro": "PKCS#11 kontrolatzaileen tokiko konfigurazioa, txartel, nortasun elektroniko eta USB token bateragarrietarako. Ez du gailu guztiekiko bateragarritasuna bermatzen.",
-  "token_settings.unavailable": "Funtzio hau produkzioan desgaituta dago eta ezin da hemen gaitu. Editatzeko, gaitutako proba-konpilazioa eta tokiko IPC kanala behar dira.",
+  "token_settings.intro": "Txartel, NAN elektroniko eta USB token kontrolatzaileen konfigurazioa. Gailu guztiak ez dira bateragarriak.",
+  "token_settings.unavailable": "Txartelak eta USB tokenak proba-bertsioan soilik konfigura daitezke.",
   "token_settings.state": "Gordetako konfigurazioa",
   "token_settings.readonly": "Konfigurazioa ezin da aldatu. Egiaztatu fitxategiaren baimenak eta segurtasuna; ez dira automatikoki aldatuko.",
   "token_settings.load": "Kargatu konfigurazioa",
@@ -2870,7 +2870,7 @@
   ,"facturae.item_description": "Kontzeptuaren deskribapena"
   ,"facturae.legal_name": "Sozietate izena"
   ,"facturae.managing": "Kudeaketa organoa (DIR3)"
-  ,"facturae.nav": "FACTURAE ETA FACE"
+  ,"facturae.nav": "FAKTURAZIOA"
   ,"facturae.payment": "Sartu ordainketaren datuak"
   ,"facturae.person_name": "Izena"
   ,"facturae.post_code": "Posta kodea"
@@ -2912,7 +2912,7 @@
   "paridad.lote3.eni.certificate": "Indizea sinatzeko ziurtagiria",
   "paridad.lote3.eni.certificates_failed": "Ezin izan dira ziurtagiriak kargatu.",
   "paridad.lote3.eni.citizen": "Herritarra",
-  "paridad.lote3.eni.classification": "Prozeduraren sailkapena (SIA)",
+  "paridad.lote3.eni.classification": "Prozeduraren SIA kodea (derrigorrezkoa)",
   "paridad.lote3.eni.create_document": "Sortu ENI dokumentua",
   "paridad.lote3.eni.create_file": "Sortu ENI espedientea",
   "paridad.lote3.eni.created": "ENI fitxategia sortu da: %1",
@@ -4809,7 +4809,7 @@
   "eni.validacion.dir3": "Adierazi DIR3 kode bat edo gehiago (letra larri bat eta zortzi zifra), komaz bereizita. Adibidea: L01180877.",
   "eni.validacion.identifier": "Erabili ES_<DIR3>_<UUUU>_<id>, 1 eta 30 karaktere arteko id batekin (letrak, zifrak edo azpimarrak).",
   "eni.validacion.date": "Aukeratu baliozko data eta ordua.",
-  "eni.validacion.classification": "Adierazi zenbakizko SIA kode bat edo <DIR3>_PRO_<id> (gehienez 30 karaktere).",
+  "eni.validacion.classification": "Idatzi SIA kodea: zifrak soilik (30 arte) edo zure unitateak adierazten dizun formatua.",
   "eni.validacion.source": "Benetako kopiak jatorrizko ENI identifikatzaile balioduna behar du.",
   "eni.validacion.format": "Erabili gehienez 32 karaktereko formatu-izena: letrak, zifrak, puntua, plus zeinua edo marratxoa.",
   "eni.validacion.text": "Testuak muga gainditzen du edo kontrol-karaktereak ditu.",
@@ -4870,8 +4870,8 @@
   ,"verifactu.limit": "Tamaina edo konplexutasun muga gainditu da."
   ,"verifactu.xml": "XMLa ez da baliozkoa. DTDak eta kanpoko entitateak ez dira onartzen."
   ,"verifactu.root": "Fitxategia ez da Veri*Factu erregistro bat. Aukeratu zure fakturazio-programak sortutako XMLa."
-  ,"verifactu.structure": "Nahitaezko eremu bat falta da, edo elementuak ordenatik kanpo, errepikatuta edo eskemak onartu gabe daude."
-  ,"verifactu.value": "Balioak ez ditu eskemaren formatua, luzera edo onartutako balioak betetzen."
+  ,"verifactu.structure": "Erregistroan eremu bat falta da, soberan dago edo gaizki idatzita dago. Eskatu zure fakturazio-programari berriro sortzeko. Xehetasuna txostenean dago."
+  ,"verifactu.value": "Erregistroan eremu bat falta da, soberan dago edo gaizki idatzita dago. Eskatu zure fakturazio-programari berriro sortzeko. Xehetasuna txostenean dago."
   ,"verifactu.profile": "Sinadura ez da AEATek eskatzen duen motakoa. Sinatu berriro «Veri*Factu erregistroa» formatuarekin."
   ,"verifactu.signed": "Erregistroa sinatuta dago jada."
   ,"verifactu.key": "RSA gako bat eta sinatzeko egokia den indarreko ziurtagiri bat behar dira."
@@ -4882,7 +4882,7 @@
   ,"verifactu.previous_missing": "Aurreko erregistroa ez dago hautaketan. Ezin da katearen lotura hau egiaztatu."
   ,"verifactu.signature": "Erregistroaren sinadura aldatuta dago edo ez du erregistro osoa hartzen. Sinatu berriro «Veri*Factu erregistroa» formatuarekin."
   ,"verifactu.certificate": "Ziurtagiria ez zen baliozkoa erregistroaren datan."
-  ,"verifactu.trust": "Sinaduraren osotasuna egiaztatu da. Kualifikazioak, ezeztapen historikoak eta igorlearen ordezkaritzak beste egiaztapen bat behar dute."
+  ,"verifactu.trust": "Sinadura zuzena da. GrxFirmak ez du egiaztatzen ziurtagiria kualifikatua zen ala ez, ezta sinatzaileak igorlea ordezkatzen zuen ala ez ere."
   ,"verifactu.unsigned": "Erregistroak ez du sinadurarik."
   ,"verifactu.empty": "Hautaketak ez du XML erregistrorik."
   ,"verifactu.valid": "Erregistroa errorerik gabe egiaztatu da."
@@ -4892,11 +4892,11 @@
   ,"verifactu.folder": "Erregistro-karpeta aukeratu"
   ,"verifactu.qr_title": "Zerga-QRa irakurri"
   ,"verifactu.qr_url_label": "Itsatsi QRaren URLa edo sartu eskaner batekin"
-  ,"verifactu.qr_notice": "URLa, irudia edo PDFa irakurtzeak ez du daturik bidaltzen. AEAT kontsultatzeak QRaren IFZa, zenbakia, data eta zenbatekoa soilik bidaltzen ditu."
+  ,"verifactu.qr_notice": "Helbidea, irudia edo PDFa irakurtzeak ez du daturik bidaltzen. «Kontsultatu AEATen» aukerak QRaren IFZa, zenbakia, data eta zenbatekoa soilik bidaltzen ditu."
   ,"verifactu.qr_read": "QRaren datuak irakurri"
-  ,"verifactu.qr_query": "AEAT kontsultatu"
-  ,"verifactu.qr_url": "URLak HTTPS eta AEATen domeinu eta egiaztapen-bide ofizialak erabili behar ditu, atakarik, erabiltzailerik edo zatirik gabe."
-  ,"verifactu.qr_params": "QRak nif, numserie, fecha eta importe bakarrik izan behar ditu, bakoitza behin eta formatu baliozkoarekin."
+  ,"verifactu.qr_query": "Kontsultatu AEATen"
+  ,"verifactu.qr_url": "Helbide hau ez da AEATen QR bat. Kopiatu fakturaren QRaren helbide osoa (https://www2.agenciatributaria.gob.es/ helbidearekin hasten da) edo erabili «Irakurri irudi edo PDF batetik»."
+  ,"verifactu.qr_params": "QRari datuak falta zaizkio edo soberan ditu. Igorlearen IFZa eta fakturaren zenbakia, data eta zenbatekoa eraman behar ditu."
   ,"verifactu.qr_service": "Ezin izan da AEAT kontsultatu ezarritako denboran edo erantzuna ez da baliozkoa."
   ,"verifactu.qr_nif": "Igorlearen IFZa"
   ,"verifactu.qr_number": "Zenbakia eta seriea"
@@ -6328,4 +6328,17 @@
   ,"winui.selector.nombre_informe_huella": "hash-txostena"
   ,"winui.selector.nombre_documento_protegido_firmado": "babestutako-dokumentu-sinatua"
   ,"winui.selector.nombre_diagnostico": "diagnostikoa"
+  ,"sign.need_certificate": "Aukeratu ziurtagiri bat sinatu ahal izateko."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "Ezin da baieztatu nork sinatu duen: ziurtagiria ez dator konfiantzazko erakunde batetik (adibidez, proba-ziurtagiri bat da). Eskatu sinatzaileari ziurtagiri onartu bat erabiltzeko, hala nola FNMTrena edo NAN elektronikoa."
+  ,"verificacion.ver_detalles_tecnicos": "Ikusi xehetasun teknikoak"
+  ,"verificacion.detalle.revocacion.bueno": "ez dago baliogabetuta"
+  ,"verificacion.detalle.revocacion.revocado": "baliogabetuta"
+  ,"verificacion.detalle.revocacion.desconocido": "baliogabetzeari buruzko informaziorik ez"
+  ,"paridad.lote3.eni.classification_hint": "Prozeduraren zenbakia da Administrazio Informazioko Sisteman (SIA). Adibidea: 2345678. Ez badakizu, eskatu zure izapidetze-unitateari."
+  ,"paridad.lote3.eni.interested_hint": "Interesdun bakoitzaren IFZa edo izena, komaz bereizita."
+  ,"facturae.required": "derrigorrezkoa"
+  ,"facturae.required_legend": "* ikurra duten eremuak derrigorrezkoak dira."
+  ,"csc.gui.client_id_ayuda": "Zure hornitzaileak ematen dizu, zerbitzuaren helbidearekin batera."
+  ,"verificacion.detalle.system_roots": "Sistemaren erro-ziurtagiriak"
+  ,"verificacion.detalle.valor.loaded": "kargatuta"
 }

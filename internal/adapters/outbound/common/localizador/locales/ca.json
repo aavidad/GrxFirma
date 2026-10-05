@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "No s'ha pogut instal·lar la CA local de GrxFirma a tots els navegadors. Tanqueu Firefox completament i torneu a obrir GrxFirma; si persisteix, comproveu que certutil estigui instal·lat.",
   "Detalle técnico: %s": "Detall tècnic: %s",
   "token_settings.title": "Targetes i tokens",
-  "token_settings.intro": "Configuració local de controladors PKCS#11 per a targetes, identitats electròniques i tokens USB compatibles. No garanteix compatibilitat amb tots els dispositius.",
-  "token_settings.unavailable": "Aquesta funció està inactiva en producció i no es pot activar aquí. L'edició requereix una compilació de prova habilitada i el canal IPC local.",
+  "token_settings.intro": "Configuració dels controladors de targetes, DNIe i tokens USB. No tots els dispositius són compatibles.",
+  "token_settings.unavailable": "Les targetes i els tokens USB només es poden configurar a la versió de proves.",
   "token_settings.state": "Configuració desada",
   "token_settings.readonly": "La configuració no es pot modificar. Reviseu els permisos i la seguretat del fitxer; no es canviaran automàticament.",
   "token_settings.load": "Carrega la configuració",
@@ -2870,7 +2870,7 @@
   ,"facturae.item_description": "Descripció del concepte"
   ,"facturae.legal_name": "Raó social"
   ,"facturae.managing": "Òrgan gestor (DIR3)"
-  ,"facturae.nav": "FACTURAE I FACE"
+  ,"facturae.nav": "FACTURACIÓ"
   ,"facturae.payment": "Incloure dades de pagament"
   ,"facturae.person_name": "Nom"
   ,"facturae.post_code": "Codi postal"
@@ -2912,7 +2912,7 @@
   "paridad.lote3.eni.certificate": "Certificat per signar l’índex",
   "paridad.lote3.eni.certificates_failed": "No s’han pogut carregar els certificats.",
   "paridad.lote3.eni.citizen": "Ciutadà",
-  "paridad.lote3.eni.classification": "Classificació del procediment (SIA)",
+  "paridad.lote3.eni.classification": "Codi SIA del procediment (obligatori)",
   "paridad.lote3.eni.create_document": "Crea el document ENI",
   "paridad.lote3.eni.create_file": "Crea l’expedient ENI",
   "paridad.lote3.eni.created": "Fitxer ENI creat: %1",
@@ -4809,7 +4809,7 @@
   "eni.validacion.dir3": "Indiqueu un o diversos codis DIR3 (una lletra majúscula i vuit xifres), separats per comes. Exemple: L01180877.",
   "eni.validacion.identifier": "Feu servir ES_<DIR3>_<AAAA>_<id>, amb un id d’1 a 30 caràcters (lletres, xifres o guió baix).",
   "eni.validacion.date": "Trieu una data i una hora vàlides.",
-  "eni.validacion.classification": "Indiqueu un codi SIA numèric o <DIR3>_PRO_<id> (fins a 30 caràcters).",
+  "eni.validacion.classification": "Escriviu el codi SIA: només xifres (fins a 30) o el format que us indiqui la vostra unitat.",
   "eni.validacion.source": "La còpia autèntica necessita un identificador ENI d’origen vàlid.",
   "eni.validacion.format": "Feu servir un nom de format de fins a 32 caràcters: lletres, xifres, punt, signe més o guió.",
   "eni.validacion.text": "El text supera el límit o conté caràcters de control.",
@@ -4870,8 +4870,8 @@
   ,"verifactu.limit": "S’ha superat el límit de mida o complexitat."
   ,"verifactu.xml": "L’XML no és vàlid. No es permeten DTD ni entitats externes."
   ,"verifactu.root": "El fitxer no és un registre Veri*Factu. Trieu l’XML que va generar el vostre programa de facturació."
-  ,"verifactu.structure": "Falta un camp obligatori o hi ha elements fora d’ordre, repetits o no admesos per l’esquema."
-  ,"verifactu.value": "El valor no compleix el format, la longitud o els valors permesos per l’esquema."
+  ,"verifactu.structure": "Al registre hi falta, hi sobra o hi ha mal escrit un camp. Demaneu al vostre programa de facturació que el torni a generar. El detall és a l’informe."
+  ,"verifactu.value": "Al registre hi falta, hi sobra o hi ha mal escrit un camp. Demaneu al vostre programa de facturació que el torni a generar. El detall és a l’informe."
   ,"verifactu.profile": "La signatura no és del tipus que exigeix l’AEAT. Torneu a signar amb el format «Registre Veri*Factu»."
   ,"verifactu.signed": "El registre ja està signat."
   ,"verifactu.key": "Cal una clau RSA amb un certificat vigent i apte per signar."
@@ -4882,7 +4882,7 @@
   ,"verifactu.previous_missing": "El registre anterior no és a la selecció. No es pot comprovar aquest enllaç de la cadena."
   ,"verifactu.signature": "La signatura del registre està alterada o no cobreix tot el registre. Torneu a signar-lo amb el format «Registre Veri*Factu»."
   ,"verifactu.certificate": "El certificat no era vàlid en la data del registre."
-  ,"verifactu.trust": "Integritat de la signatura comprovada. La qualificació, revocació històrica i representació de l’emissor requereixen una comprovació addicional."
+  ,"verifactu.trust": "La signatura és correcta. GrxFirma no comprova si el certificat era qualificat ni si qui va signar representava l’emissor."
   ,"verifactu.unsigned": "El registre no conté signatura."
   ,"verifactu.empty": "La selecció no conté registres XML."
   ,"verifactu.valid": "Registre comprovat sense errors."
@@ -4892,11 +4892,11 @@
   ,"verifactu.folder": "Triar carpeta de registres"
   ,"verifactu.qr_title": "Llegir QR tributari"
   ,"verifactu.qr_url_label": "Enganxeu l’URL del QR o introduïu-la amb un escàner"
-  ,"verifactu.qr_notice": "Llegir l’URL, la imatge o el PDF no envia dades. Consultar AEAT envia només el NIF, número, data i import del QR."
+  ,"verifactu.qr_notice": "Llegir l’adreça, la imatge o el PDF no envia dades. «Consulta-ho a l’AEAT» envia només el NIF, el número, la data i l’import del QR."
   ,"verifactu.qr_read": "Llegir dades del QR"
-  ,"verifactu.qr_query": "Consultar l’AEAT"
-  ,"verifactu.qr_url": "L’URL ha d’utilitzar HTTPS, un domini i una ruta de comprovació oficials de l’AEAT, sense port, usuari ni fragment."
-  ,"verifactu.qr_params": "El QR ha d’incloure només nif, numserie, fecha i importe, una vegada cadascun i amb format vàlid."
+  ,"verifactu.qr_query": "Consulta-ho a l’AEAT"
+  ,"verifactu.qr_url": "Aquesta adreça no és un QR de l’AEAT. Copieu l’adreça completa del QR de la factura (comença per https://www2.agenciatributaria.gob.es/) o feu servir «Llegir des d’una imatge o PDF»."
+  ,"verifactu.qr_params": "Al QR li falten dades o en té de més. Ha de portar el NIF de l’emissor, el número, la data i l’import de la factura."
   ,"verifactu.qr_service": "No s’ha pogut consultar l’AEAT en el temps disponible o la resposta no és vàlida."
   ,"verifactu.qr_nif": "NIF de l’emissor"
   ,"verifactu.qr_number": "Número i sèrie"
@@ -6328,4 +6328,17 @@
   ,"winui.selector.nombre_informe_huella": "informe-empremta"
   ,"winui.selector.nombre_documento_protegido_firmado": "document-protegit-signat"
   ,"winui.selector.nombre_diagnostico": "diagnostic"
+  ,"sign.need_certificate": "Trieu un certificat per poder signar."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "No es pot confirmar qui ha signat: el certificat no prové d'una entitat de confiança (per exemple, és un certificat de proves). Demaneu a la persona signant que utilitzi un certificat reconegut, com el de la FNMT o el DNIe."
+  ,"verificacion.ver_detalles_tecnicos": "Mostra els detalls tècnics"
+  ,"verificacion.detalle.revocacion.bueno": "no revocat"
+  ,"verificacion.detalle.revocacion.revocado": "revocat"
+  ,"verificacion.detalle.revocacion.desconocido": "sense informació de revocació"
+  ,"paridad.lote3.eni.classification_hint": "És el número del procediment al Sistema d’Informació Administrativa (SIA). Exemple: 2345678. Si no el coneixeu, demaneu-lo a la vostra unitat de tramitació."
+  ,"paridad.lote3.eni.interested_hint": "NIF o nom de cada persona interessada, separats per comes."
+  ,"facturae.required": "obligatori"
+  ,"facturae.required_legend": "Els camps marcats amb * són obligatoris."
+  ,"csc.gui.client_id_ayuda": "Us el facilita el vostre prestador juntament amb l’adreça del servei."
+  ,"verificacion.detalle.system_roots": "Certificats arrel del sistema"
+  ,"verificacion.detalle.valor.loaded": "carregats"
 }

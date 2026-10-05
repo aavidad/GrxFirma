@@ -3,13 +3,14 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
-import QtQuick 2.15
-import QtQuick.Window 2.15
+import QtQuick
+import QtQuick.Window
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Dialogs
 import QtQml 2.15
 import Qt.labs.settings 1.1
+import "ThemeContrast.js" as Contrast
 
 Window {
     id: window
@@ -18,6 +19,25 @@ Window {
     height: 850
     title: tr("GrxFirma")
     color: currentTheme.backgroundColor
+    // Paleta común: casillas, interruptores, campos, menús y botones heredan los
+    // colores del tema y no los del sistema (texto oscuro sobre fondo oscuro).
+    palette.window: currentTheme.cardColor
+    palette.windowText: currentTheme.textColor
+    palette.base: currentTheme.cardColor
+    palette.alternateBase: currentTheme.backgroundColor
+    palette.text: currentTheme.textColor
+    palette.placeholderText: currentTheme.secondaryTextColor
+    palette.button: currentTheme.cardColor
+    palette.buttonText: currentTheme.textColor
+    palette.highlight: currentTheme.focusColor
+    palette.highlightedText: Contrast.readableOn(currentTheme.focusColor, currentTheme.cardColor)
+    palette.light: Qt.tint(currentTheme.cardColor, Qt.rgba(0.5, 0.5, 0.5, 0.18))
+    palette.midlight: Qt.tint(currentTheme.cardColor, Qt.rgba(0.5, 0.5, 0.5, 0.3))
+    palette.mid: currentTheme.secondaryTextColor
+    palette.dark: currentTheme.primaryColor
+    palette.disabled.text: currentTheme.secondaryTextColor
+    palette.disabled.windowText: currentTheme.secondaryTextColor
+    palette.disabled.buttonText: currentTheme.secondaryTextColor
     property bool portalSealMode: typeof portalSeal !== "undefined" && portalSeal && portalSeal.active
     property bool portalSealDecision: false
     function portalSealSubmit(action) {
@@ -401,6 +421,7 @@ Window {
             return tr("Configuración manual del proxy")
         case "direct":
         case "none":
+        case "disabled":
             return tr("Sin proxy")
         default:
             return value
@@ -1130,7 +1151,7 @@ Window {
             return {
                 icon: "\u2715",
                 text: tr("Falló"),
-                color: "#b42318",
+                color: currentTheme.errorColor,
                 badge: Qt.rgba(180 / 255, 35 / 255, 24 / 255, 0.18)
             }
         case "skipped":
@@ -4741,6 +4762,16 @@ Window {
         return "#f39c12"
     }
 
+    // Igual, pero legible sobre un fondo del tema: en temas claros usa tonos
+    // oscuros para mantener contraste AA.
+    function verificationOutcomeColorOn(details, background) {
+        const outcome = verificationOutcomeKind(details)
+        const light = Contrast.luminance(background) > 0.5
+        if (outcome === "trusted") return light ? "#18794e" : "#2ecc71"
+        if (outcome === "invalid") return light ? currentTheme.errorColor : "#ff8a80"
+        return light ? "#8a5300" : "#f39c12"
+    }
+
     function verificationAutoMessage(details) {
         const outcome = verificationOutcomeKind(details)
         if (outcome === "trusted") return tr("Firma completada y verificada correctamente.")
@@ -4751,7 +4782,50 @@ Window {
     function verificationAspectDetailsText(aspect) {
         if (!aspect || !aspect.details || aspect.details.length === 0)
             return tr("No disponible")
-        return aspect.details.map((item) => localizeVisibleDiagnosticText(item)).join("\n")
+        return aspect.details.map((item) => verificationDetailText(item)).join("\n")
+    }
+
+    // Sustituye %s y %d de los textos del catálogo compartido con el motor, en orden.
+    function catalogFormat(key, args) {
+        let index = 0
+        return tr(key).replace(/%[sd]/g, function(match) {
+            return index < args.length ? String(args[index++]) : match
+        })
+    }
+
+    // Igual que informeverificacion.TraducirDetalle: «formato_detectado=PAdES»
+    // pasa a «Formato detectado: PAdES» en el idioma de la aplicación.
+    function verificationDetailText(line) {
+        const text = String(line || "").trim()
+        const prefix = "verificacion.detalle."
+        const revocation = text.match(/^cert\[\d+\] (.+): (bueno|revocado|desconocido)(?: vía (\w+))?(?: \((.*)\))?$/)
+        if (revocation) {
+            let state = tr(prefix + "revocacion." + revocation[2])
+            if (revocation[3]) state += " (" + revocation[3].toUpperCase() + ")"
+            return catalogFormat(prefix + "formato", [revocation[1], state])
+        }
+        const cut = text.indexOf("=")
+        if (cut <= 0 || /[ \t]/.test(text.substring(0, cut)))
+            return localizeVisibleDiagnosticText(text)
+        const key = text.substring(0, cut)
+        const value = text.substring(cut + 1)
+        let label = ""
+        const coverage = key.match(/^cobertura_firma_pdf_(\d{1,4})$/)
+        if (coverage) {
+            label = catalogFormat(prefix + "cobertura_firma_pdf", [coverage[1]])
+        } else if (tr(prefix + key) !== prefix + key) {
+            label = tr(prefix + key)
+        } else {
+            return text
+        }
+        let shown = value
+        const revision = value.match(/^revision_hasta_(\d{1,12})_de_(\d{1,12})$/)
+        if (revision) {
+            shown = catalogFormat(prefix + "valor.revision_hasta", [revision[1], revision[2]])
+        } else if (value !== "" && tr(prefix + "valor." + value) !== prefix + "valor." + value) {
+            shown = tr(prefix + "valor." + value)
+        }
+        return catalogFormat(prefix + "formato", [label, shown])
     }
 
     function verificationArrayText(values) {
@@ -5163,7 +5237,7 @@ Window {
                 Accessible.name: text
             }
 
-            Button {
+            ThemedButton {
                 Layout.alignment: Qt.AlignHCenter
                 text: tr("Novedades")
                 onClicked: {
@@ -5232,7 +5306,7 @@ Window {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 10
 
-                Button {
+                ThemedButton {
                     text: window.updateCheckInProgress
                           ? tr("Comprobando…")
                           : tr("Comprobar actualizaciones")
@@ -5242,7 +5316,7 @@ Window {
                     Accessible.description: tr("Consulta GitHub sin descargar ni instalar archivos.")
                 }
 
-                Button {
+                ThemedButton {
                     visible: window.updateAvailable && window.updateReleaseUrl !== ""
                     text: tr("Ver versión en GitHub")
                     onClicked: window.openOfficialUpdateRelease()
@@ -5278,7 +5352,7 @@ Window {
                 Accessible.name: tr("Novedades instaladas")
             }
         }
-        footer: Button {
+        footer: ThemedButton {
             text: tr("Entendido")
             onClicked: {
                 if (window.releaseNotesAcknowledge)
@@ -5451,7 +5525,7 @@ Window {
 
                         Repeater {
                             model: window.availableAdditionalCertificates()
-                            delegate: CheckBox {
+                            delegate: ThemedCheckBox {
                                 Layout.fillWidth: true
                                 text: window.certificateDisplayName(modelData)
                                       + " · "
@@ -5497,7 +5571,7 @@ Window {
                 Layout.alignment: Qt.AlignRight
                 spacing: 8
 
-                Button {
+                ThemedButton {
                     text: tr("Cambiar a Cofirmar")
                     onClicked: {
                         pendingSignedDocumentWarningContext = null
@@ -5506,7 +5580,7 @@ Window {
                         signedDocumentWarningDialog.close()
                     }
                 }
-                Button {
+                ThemedButton {
                     text: tr("Firmar igualmente")
                     onClicked: {
                         const ctx = pendingSignedDocumentWarningContext
@@ -5634,7 +5708,7 @@ Window {
                 Layout.alignment: Qt.AlignRight
                 spacing: 8
 
-                Button {
+                ThemedButton {
                     text: certificateValidationDialog.onlineCheckInProgress
                           ? tr("Comprobando...")
                           : tr("Comprobar revocación online")
@@ -5648,7 +5722,7 @@ Window {
                         backend.checkCertificateOnline(certificateValidationDialog.requestedCertificateId)
                     }
                 }
-                Button {
+                ThemedButton {
                     text: tr("Copiar informe")
                     enabled: certificateValidationDialog.validationReport !== ""
                     onClicked: {
@@ -5656,12 +5730,12 @@ Window {
                         window.statusMessage = tr("Informe de validación del certificado copiado al portapapeles.")
                     }
                 }
-                Button {
+                ThemedButton {
                     text: tr("Guardar informe JSON")
                     enabled: certificateValidationDialog.validationReport !== ""
                     onClicked: certificateValidationSaveDialog.open()
                 }
-                Button {
+                ThemedButton {
                     text: tr("Cerrar")
                     onClicked: certificateValidationDialog.close()
                 }
@@ -5758,7 +5832,7 @@ Window {
                 }
             }
 
-            CheckBox {
+            ThemedCheckBox {
                 id: activeDiagnosticsConsentCheck
                 Layout.fillWidth: true
                 text: tr("Acepto ejecutar ahora estas comprobaciones adicionales.")
@@ -5770,12 +5844,12 @@ Window {
 
                 Item { Layout.fillWidth: true }
 
-                Button {
+                ThemedButton {
                     text: tr("Cancelar")
                     onClicked: activeDiagnosticsConsentDialog.close()
                 }
 
-                Button {
+                ThemedButton {
                     text: tr("Diagnosticar ahora")
                     highlighted: true
                     enabled: activeDiagnosticsConsentCheck.checked
@@ -5841,7 +5915,7 @@ Window {
                 Layout.fillWidth: true
             }
 
-            CheckBox {
+            ThemedCheckBox {
                 id: supportIncidentConsentCheck
                 text: tr("Confirmo que quiero enviar esta incidencia al destino indicado.")
                 checked: supportIncidentSendDialog.consentAccepted
@@ -5855,12 +5929,12 @@ Window {
 
                 Item { Layout.fillWidth: true }
 
-                Button {
+                ThemedButton {
                     text: tr("Cancelar")
                     onClicked: supportIncidentSendDialog.close()
                 }
 
-                Button {
+                ThemedButton {
                     text: tr("Enviar incidencia")
                     highlighted: true
                     enabled: supportIncidentSendDialog.consentAccepted
@@ -5918,7 +5992,7 @@ Window {
                     color: currentTheme.textColor
                 }
 
-                Button {
+                ThemedButton {
                     text: tr("Usuario")
                     highlighted: supportAssistantMode === "usuario"
                     onClicked: {
@@ -5927,7 +6001,7 @@ Window {
                     }
                 }
 
-                Button {
+                ThemedButton {
                     text: tr("Experto")
                     highlighted: supportAssistantMode === "experto"
                     onClicked: {
@@ -6132,7 +6206,7 @@ Window {
                                 emptyMessage: tr("Aún no hay evidencia suficiente para determinar el origen exacto.")
                             }
 
-                            Button {
+                            ThemedButton {
                                 Layout.fillWidth: true
                                 text: window.diagnosticTechnicalExpanded
                                       ? tr("Ocultar detalles")
@@ -6174,7 +6248,7 @@ Window {
                                 Layout.fillWidth: true
                             }
 
-                            Button {
+                            ThemedButton {
                                 Layout.fillWidth: true
                                 text: window.activeDiagnosticInProgress
                                       ? tr("Diagnosticando...")
@@ -6189,13 +6263,13 @@ Window {
                                 Layout.fillWidth: true
                                 spacing: 10
 
-                                Button {
+                                ThemedButton {
                                     text: window.supportAssistantPrimaryActionLabel()
                                     highlighted: true
                                     onClicked: window.runSupportAssistantPrimaryAction()
                                 }
 
-                                Button {
+                                ThemedButton {
                                     visible: window.firstSignFieldError !== "" &&
                                              (window.supportAssistantGoal === "sign-failure" || window.activeTab === "firmar")
                                     text: tr("validacion.corregir")
@@ -6205,14 +6279,14 @@ Window {
                                     }
                                 }
 
-                                Button {
+                                ThemedButton {
                                     text: tr("Abrir ayuda")
                                     // No repetir el botón cuando la acción principal ya es abrir la ayuda.
                                     visible: window.supportAssistantPrimaryActionLabel() !== tr("Abrir ayuda")
                                     onClicked: backend.openHelpManual()
                                 }
 
-                                Button {
+                                ThemedButton {
                                     text: tr("Abrir incidencias")
                                     visible: window.lastIncidentReportPath !== ""
                                     onClicked: backend.openIncidentFolder()
@@ -6637,7 +6711,7 @@ Window {
                 Layout.fillWidth: true
                 spacing: 8
 
-                Button {
+                ThemedButton {
                     text: supportAssistantGoal === "support" ? tr("Preparar incidencia") : tr("Generar diagnóstico")
                     ToolTip.visible: hovered
                     ToolTip.text: tr("Genera un diagnóstico para soporte. Según el backend activo, se dejará en el log y puede copiarse también al portapapeles.")
@@ -6648,12 +6722,12 @@ Window {
                     }
                 }
 
-                Button {
+                ThemedButton {
                     text: tr("Guardar resumen")
                     onClicked: supportIncidentSaveDialog.open()
                 }
 
-                Button {
+                ThemedButton {
                     text: tr("Enviar incidencia")
                     visible: window.activeFailureContext !== null
                              && String(window.activeFailureContext.incidentPath || "") !== ""
@@ -6667,7 +6741,7 @@ Window {
                     }
                 }
 
-                Button {
+                ThemedButton {
                     text: tr("Ir a experto")
                     visible: supportAssistantMode === "experto"
                     onClicked: {
@@ -6678,7 +6752,7 @@ Window {
 
                 Item { Layout.fillWidth: true }
 
-                Button {
+                ThemedButton {
                     text: tr("Cerrar")
                     onClicked: supportAssistantDialog.close()
                 }
@@ -6714,18 +6788,18 @@ Window {
                 Layout.alignment: Qt.AlignRight
                 spacing: 8
 
-                Button {
+                ThemedButton {
                     text: tr("Cancelar")
                     onClicked: unsavedSettingsDialog.close()
                 }
-                Button {
+                ThemedButton {
                     text: tr("Descartar cambios")
                     onClicked: {
                         unsavedSettingsDialog.close()
                         window.discardBackendSettingsChanges(true)
                     }
                 }
-                Button {
+                ThemedButton {
                     text: tr("Guardar y cerrar")
                     enabled: !window.settingsSaveInFlight
                     onClicked: {
@@ -6906,9 +6980,17 @@ Window {
                 enabled: !window.cscBusy && window.cscState.connected !== true
                 inputMethodHints: Qt.ImhNoAutoUppercase | Qt.ImhNoPredictiveText
                 Accessible.name: tr("csc.gui.client_id")
+                Accessible.description: tr("csc.gui.client_id_ayuda")
                 onTextEdited: window.cscDiscovery = null
             }
-            Button {
+            Label {
+                visible: window.cscAllowed
+                text: tr("csc.gui.client_id_ayuda")
+                color: currentTheme.secondaryTextColor
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+            ThemedButton {
                 text: window.cscBusy && window.cscDiscovery === null ? tr("csc.gui.comprobando") : tr("csc.gui.comprobar")
                 visible: window.cscAllowed && window.cscState.connected !== true
                 enabled: !window.cscBusy && cscServiceUrlField.text.trim() !== "" && cscClientIdField.text.trim() !== ""
@@ -6952,7 +7034,7 @@ Window {
             }
             RowLayout {
                 Layout.fillWidth: true
-                Button {
+                ThemedButton {
                     text: tr("csc.gui.conectar")
                     visible: window.cscDiscovery !== null && window.cscState.connected !== true
                     enabled: !window.cscBusy
@@ -6962,7 +7044,7 @@ Window {
                         backend.cscConnect()
                     }
                 }
-                Button {
+                ThemedButton {
                     text: tr("csc.gui.desconectar")
                     visible: window.cscState.connected === true
                     enabled: !window.cscBusy
@@ -7060,7 +7142,7 @@ Window {
                     Accessible.name: tr("csc.gui.otp")
                     onAccepted: cscRemoteSecretDialog.submitSecrets()
                 }
-                Button {
+                ThemedButton {
                     visible: !!window.cscSecretCertificate && window.cscSecretCertificate.remoteOtpOnline === true
                     text: tr("csc.gui.enviar_codigo")
                     onClicked: {
@@ -7082,11 +7164,11 @@ Window {
             RowLayout {
                 Layout.fillWidth: true
                 Item { Layout.fillWidth: true }
-                Button {
+                ThemedButton {
                     text: tr("csc.gui.cancelar")
                     onClicked: cscRemoteSecretDialog.close()
                 }
-                Button {
+                ThemedButton {
                     text: tr("csc.gui.firmar")
                     highlighted: true
                     onClicked: cscRemoteSecretDialog.submitSecrets()
@@ -7241,7 +7323,7 @@ Window {
                 textRole: "label"
                 valueRole: "id"
             }
-            Button {
+            ThemedButton {
                 text: tr("Abrir gestor de certificados")
                 enabled: certificateManagerCombo.currentValue !== undefined
                          && String(certificateManagerCombo.currentValue) !== ""
@@ -7266,7 +7348,7 @@ Window {
                 textRole: "label"
                 valueRole: "id"
             }
-            Button {
+            ThemedButton {
                 text: tr("Importar P12/PFX en este almacén")
                 enabled: certificateImportTargetCombo.currentValue !== undefined
                          && String(certificateImportTargetCombo.currentValue) !== ""
@@ -7312,23 +7394,23 @@ Window {
                     color: currentTheme.secondaryTextColor
                     wrapMode: Text.WordWrap
                 }
-                Button {
+                ThemedButton {
                     Layout.fillWidth: true
                     text: tr("Usar certificado sin instalar")
                     enabled: window.guidedCertificateAccessAvailable()
                     onClicked: temporaryCertificateFileDialog.open()
                 }
-                Button {
+                ThemedButton {
                     Layout.fillWidth: true
                     text: tr("Importar o abrir gestor")
                     onClicked: window.openGuidedCertificateAccess()
                 }
-                Button {
+                ThemedButton {
                     Layout.fillWidth: true
                     text: tr("Actualizar certificados")
                     onClicked: backend.refreshCertificates()
                 }
-                Button {
+                ThemedButton {
                     Layout.fillWidth: true
                     text: tr("Cancelar")
                     flat: true
@@ -7954,9 +8036,9 @@ Window {
             Text { text: tr("portal.seal.instructions"); wrapMode: Text.WordWrap; Layout.fillWidth: true; Layout.maximumWidth: 900; color: currentTheme.textColor }
             RowLayout {
                 Layout.fillWidth: true
-                Button { text: tr("portal.seal.previous_page"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(previewCurrentPage - 1) }
+                ThemedButton { text: tr("portal.seal.previous_page"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(previewCurrentPage - 1) }
                 Text { text: tr("portal.seal.page").replace("%1", previewCurrentPage).replace("%2", previewTotalPages); color: currentTheme.textColor }
-                Button { text: tr("portal.seal.next_page"); enabled: previewCurrentPage < previewTotalPages; onClicked: goToPreviewPage(previewCurrentPage + 1) }
+                ThemedButton { text: tr("portal.seal.next_page"); enabled: previewCurrentPage < previewTotalPages; onClicked: goToPreviewPage(previewCurrentPage + 1) }
                 Item { Layout.fillWidth: true }
                 ComboBox {
                     model: [tr("portal.seal.logo"), tr("portal.seal.text")]
@@ -8003,10 +8085,10 @@ Window {
             }
             RowLayout {
                 Layout.fillWidth: true
-                Button { text: tr("portal.seal.sign_here"); enabled: previewGeometryPath === portalSeal.documentPath && previewGeometryPage === previewCurrentPage; onClicked: portalSealSubmit("place") }
-                Button { text: tr("portal.seal.sign_without"); onClicked: portalSealSubmit("without") }
+                ThemedButton { text: tr("portal.seal.sign_here"); enabled: previewGeometryPath === portalSeal.documentPath && previewGeometryPage === previewCurrentPage; onClicked: portalSealSubmit("place") }
+                ThemedButton { text: tr("portal.seal.sign_without"); onClicked: portalSealSubmit("without") }
                 Item { Layout.fillWidth: true }
-                Button { text: tr("portal.seal.cancel"); onClicked: portalSealSubmit("cancel") }
+                ThemedButton { text: tr("portal.seal.cancel"); onClicked: portalSealSubmit("cancel") }
             }
         }
     }
@@ -8041,14 +8123,14 @@ Window {
             Flow {
                 Layout.fillWidth: true
                 spacing: 8
-                Button {
+                ThemedButton {
                     text: tr("Descargar e instalar")
                     highlighted: true
                     onClicked: window.openOfficialUpdateRelease()
                     Accessible.description: tr("Abre la página oficial de la versión; la aplicación no descarga ni ejecuta archivos.")
                 }
-                Button { text: tr("Ver novedades"); onClicked: window.openOfficialUpdateRelease() }
-                Button {
+                ThemedButton { text: tr("Ver novedades"); onClicked: window.openOfficialUpdateRelease() }
+                ThemedButton {
                     text: tr("Ahora no")
                     onClicked: window.updateDismissedVersion = window.updateLatestVersion
                 }
@@ -8060,6 +8142,8 @@ Window {
         visible: !portalSealMode
         anchors.fill: parent
         anchors.topMargin: updateBanner.visible ? updateBanner.height : 0
+        // El contenido termina encima de la barra de estado, sin quedar debajo de ella.
+        anchors.bottomMargin: statusBar.height
         spacing: 0
 
         // SIDEBAR
@@ -8262,12 +8346,12 @@ Window {
                                     font.pixelSize: 12
                                 }
 
-                                Button {
+                                ThemedButton {
                                     text: tr("Guardar preferencias")
                                     enabled: window.backendSettingsDirty
                                     onClicked: saveBackendSettings()
                                 }
-                                Button {
+                                ThemedButton {
                                     text: tr("Descartar cambios")
                                     visible: window.backendSettingsDirty
                                     onClicked: discardBackendSettingsChanges(false)
@@ -8390,7 +8474,7 @@ Window {
                                     RowLayout {
                                         Layout.fillWidth: true
                                         spacing: 10
-                                        Button {
+                                        ThemedButton {
                                             id: openSignedResultButton
                                             visible: window.signResultKind === "success" && window.signResultPath !== ""
                                             text: tr("Ver documento firmado")
@@ -8399,14 +8483,14 @@ Window {
                                             onClicked: backend.openSignedDocument(window.signResultPath)
                                             Accessible.name: text
                                         }
-                                        Button {
+                                        ThemedButton {
                                             visible: window.signResultKind === "success" && window.signResultPath !== ""
                                             text: tr("Abrir carpeta")
                                             Layout.preferredHeight: 44
                                             onClicked: backend.openExternal(window.signedResultFolder(window.signResultPath))
                                             Accessible.name: text
                                         }
-                                        Button {
+                                        ThemedButton {
                                             id: retrySignedResultButton
                                             visible: window.signResultKind === "error"
                                             text: tr("Reintentar firma")
@@ -8529,7 +8613,7 @@ Window {
                                                 }
                                             }
                                         }
-                                        Button {
+                                        ThemedButton {
                                             id: changeCertificateButton
                                             text: "⤢"
                                             Layout.preferredHeight: 48
@@ -8605,19 +8689,19 @@ Window {
                                 RowLayout {
                                     Layout.alignment: Qt.AlignCenter
                                     spacing: 10
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Seleccionar archivo")
                                         onClicked: fileDialog.open()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Seleccionar varios")
                                         onClicked: multiFileDialog.open()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Seleccionar carpeta")
                                         onClicked: batchDirectoryDialog.open()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Ver Original")
                                         visible: window.currentFilePath !== "" && !window.isBatchMode()
                                         onClicked: backend.openExternal(window.currentFilePath)
@@ -8673,7 +8757,7 @@ Window {
                                         placeholderText: tr("Destino automático...")
                                         onTextChanged: window.currentOutputPath = text
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Ver")
                                         icon.source: "../assets/eye_icon.png"
                                         icon.width: 22
@@ -8688,7 +8772,7 @@ Window {
                                         ToolTip.text: tr("Ver archivo (Abrir externamente)")
                                         ToolTip.delay: 500
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Validar")
                                         icon.source: "../assets/search_icon.png"
                                         icon.width: 20
@@ -8703,7 +8787,7 @@ Window {
                                         ToolTip.text: tr("Validar firma del documento")
                                         ToolTip.delay: 500
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Cambiar")
                                         icon.source: "../assets/folder_icon.png"
                                         icon.width: 22
@@ -8754,7 +8838,7 @@ Window {
                                         placeholderText: tr("Opcional. Si se deja vacío, cada fichero se guarda junto al original.")
                                         onTextChanged: window.currentBatchOutputDir = text
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Cambiar")
                                         Layout.preferredHeight: 44
                                         onClicked: batchOutputDirectoryDialog.open()
@@ -8769,13 +8853,19 @@ Window {
                             radius: 10
                             color: currentTheme.cardColor
                             border.color: Qt.rgba(1, 1, 1, currentTheme.borderOpacity)
-                            ScrollView {
+                            // Solo desplaza en horizontal con su barra. Sin interacción propia (y sin
+                            // ScrollView, que filtra la rueda) la rueda llega a la página y se
+                            // alcanza «Firmar ahora».
+                            Flickable {
                                 id: scrollOpts
                                 anchors.fill: parent
                                 anchors.margins: 12
+                                clip: true
                                 contentWidth: optionsCol.implicitWidth
                                 contentHeight: optionsCol.implicitHeight
-                                clip: true
+                                interactive: false
+                                boundsBehavior: Flickable.StopAtBounds
+                                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
                                 ColumnLayout {
                                     id: optionsCol
@@ -8860,7 +8950,7 @@ Window {
 
                                         RowLayout {
                                             Layout.fillWidth: true
-                                            CheckBox {
+                                            ThemedCheckBox {
                                                 id: multiCosignCheckBox
                                                 text: tr("Cofirma múltiple guiada")
                                                 enabled: window.supportsGuidedMultiCosignFormat()
@@ -8872,7 +8962,7 @@ Window {
                                             }
                                             Binding { target: multiCosignCheckBox; property: "checked"; value: window.multiCosignEnabled }
                                             Item { Layout.fillWidth: true }
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("Seleccionar certificados…")
                                                 enabled: window.multiCosignEnabled && selectedCertIndex !== -1
                                                 onClicked: multiCosignDialog.open()
@@ -8898,7 +8988,7 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    CheckBox {
+                                    ThemedCheckBox {
                                         id: signVisibleSealCheckBox
                                         text: tr("Firma visible (PAdES)")
                                         onToggled: {
@@ -8914,11 +9004,11 @@ Window {
                                     Binding { target: signVisibleSealCheckBox; property: "checked"; value: window.signVisibleSeal }
                                     Text {
                                         visible: window.firstSignFieldError !== "" && window.signVisibleSeal
-                                        text: tr("validacion.problemas").arg(Object.keys(window.signFieldErrors).length)
-                                        color: "#b42318"
+                                        text: "⚠ " + tr("validacion.problemas").arg(Object.keys(window.signFieldErrors).length)
+                                        color: currentTheme.errorColor
                                         Accessible.role: Accessible.StaticText
                                     }
-                                    CheckBox {
+                                    ThemedCheckBox {
                                         id: signStrictCompatCheckBox
                                         text: tr("Compatibilidad estricta")
                                         checked: signStrictCompat
@@ -8963,13 +9053,13 @@ Window {
                                             width: parent.width
                                             spacing: 8
 
-                                            Button { text: tr("Compacto"); onClicked: applySealPreset("compact") }
-                                            Button { text: tr("Institucional"); onClicked: applySealPreset("institutional") }
-                                            Button { text: tr("Solo texto"); onClicked: { sealStyle = "text"; signSealImagePath = ""; signSealKeepText = true } }
-                                            Button { text: tr("Imagen propia"); onClicked: { sealStyle = "image"; sealImageFileDialog.open() } }
-                                            Button { text: tr("Solo logo"); onClicked: applySealPreset("logo") }
-                                            Button { text: tr("Logo + datos + QR"); onClicked: applySealPreset("logoqr") }
-                                            Button { text: tr("Restaurar sello"); onClicked: restoreDefaultSealSettings() }
+                                            ThemedButton { text: tr("Compacto"); onClicked: applySealPreset("compact") }
+                                            ThemedButton { text: tr("Institucional"); onClicked: applySealPreset("institutional") }
+                                            ThemedButton { text: tr("Solo texto"); onClicked: { sealStyle = "text"; signSealImagePath = ""; signSealKeepText = true } }
+                                            ThemedButton { text: tr("Imagen propia"); onClicked: { sealStyle = "image"; sealImageFileDialog.open() } }
+                                            ThemedButton { text: tr("Solo logo"); onClicked: applySealPreset("logo") }
+                                            ThemedButton { text: tr("Logo + datos + QR"); onClicked: applySealPreset("logoqr") }
+                                            ThemedButton { text: tr("Restaurar sello"); onClicked: restoreDefaultSealSettings() }
                                         }
                                         RowLayout {
                                             Layout.fillWidth: true
@@ -8994,7 +9084,7 @@ Window {
                                             }
                                             Text { text: window.signSealLogoOpacityPercent + " %"; color: currentTheme.textColor; font.pixelSize: 12 }
                                         }
-                                        CheckBox {
+                                        ThemedCheckBox {
                                             id: signQREnabledCheckBox
                                             text: tr("sign.seal.include_verification_qr")
                                             Accessible.name: text
@@ -9011,7 +9101,7 @@ Window {
                                             placeholderText: tr("https://verifica.ejemplo/")
                                             Accessible.name: tr("QR del sello")
                                             Accessible.description: window.signFieldError("qr") ? tr(window.signFieldError("qr")) : ""
-                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("qr") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("qr") ? 2 : 1 }
+                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("qr") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.signFieldError("qr") ? 2 : 1 }
                                             onTextChanged: {
                                                 signQRContent = text
                                                 if (window.signFieldError("qr")) window.validateSignField("qr")
@@ -9019,31 +9109,31 @@ Window {
                                             onEditingFinished: window.validateSignField("qr")
                                         }
                                         Binding { target: signQRContentField; property: "text"; value: window.signQRContent; when: !signQRContentField.activeFocus }
-                                        Text { Layout.fillWidth: true; visible: window.signFieldError("qr") !== ""; text: tr(window.signFieldError("qr")); color: "#b42318"; wrapMode: Text.WordWrap; Accessible.role: Accessible.StaticText }
-                                        CheckBox { id: csvEnabledCheck; text: tr("paridad.lote3.csv.enable"); checked: window.signCSVEnabled; Accessible.name: text; onToggled: window.signCSVEnabled = checked }
+                                        Text { Layout.fillWidth: true; visible: window.signFieldError("qr") !== ""; text: "⚠ " + tr(window.signFieldError("qr")); color: currentTheme.errorColor; wrapMode: Text.WordWrap; Accessible.role: Accessible.StaticText }
+                                        ThemedCheckBox { id: csvEnabledCheck; text: tr("paridad.lote3.csv.enable"); checked: window.signCSVEnabled; Accessible.name: text; onToggled: window.signCSVEnabled = checked }
                                         Binding { target: csvEnabledCheck; property: "checked"; value: window.signCSVEnabled }
                                         Label { text: tr("paridad.lote3.csv.notice"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-                                        TextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.code"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvCode") ? tr(window.signFieldError("csvCode")) : ""; maximumLength: 128; text: window.signCSVCode; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvCode") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvCode") ? 2 : 1 }
+                                        TextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.code"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvCode") ? tr(window.signFieldError("csvCode")) : ""; maximumLength: 128; text: window.signCSVCode; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvCode") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvCode") ? 2 : 1 }
                                             onTextChanged: { window.signCSVCode = text; if (window.signFieldError("csvCode")) window.validateSignField("csvCode") }
                                             onEditingFinished: window.validateSignField("csvCode") }
-                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvCode") !== ""; text: tr(window.signFieldError("csvCode")); color: "#b42318"; wrapMode: Text.WordWrap }
-                                        TextField { id: csvUrlField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.url"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvUrl") ? tr(window.signFieldError("csvUrl")) : ""; maximumLength: 2048; text: window.signCSVUrl; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvUrl") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvUrl") ? 2 : 1 }
+                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvCode") !== ""; text: "⚠ " + tr(window.signFieldError("csvCode")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                        TextField { id: csvUrlField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.url"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvUrl") ? tr(window.signFieldError("csvUrl")) : ""; maximumLength: 2048; text: window.signCSVUrl; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvUrl") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvUrl") ? 2 : 1 }
                                             onTextChanged: { window.signCSVUrl = text; if (window.signFieldError("csvUrl")) window.validateSignField("csvUrl") }
                                             onEditingFinished: window.validateSignField("csvUrl") }
-                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvUrl") !== ""; text: tr(window.signFieldError("csvUrl")); color: "#b42318"; wrapMode: Text.WordWrap }
-                                        TextField { id: csvTextField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.text_optional"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvText") ? tr(window.signFieldError("csvText")) : ""; maximumLength: 512; text: window.signCSVText; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvText") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvText") ? 2 : 1 }
+                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvUrl") !== ""; text: "⚠ " + tr(window.signFieldError("csvUrl")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                        TextField { id: csvTextField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.text_optional"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvText") ? tr(window.signFieldError("csvText")) : ""; maximumLength: 512; text: window.signCSVText; background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("csvText") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.signFieldError("csvText") ? 2 : 1 }
                                             onTextChanged: { window.signCSVText = text; if (window.signFieldError("csvText")) window.validateSignField("csvText") }
                                             onEditingFinished: window.validateSignField("csvText") }
-                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvText") !== ""; text: tr(window.signFieldError("csvText")); color: "#b42318"; wrapMode: Text.WordWrap }
-                                        CheckBox { id: csvQrCheck; visible: window.signCSVEnabled; text: tr("paridad.lote3.csv.qr"); checked: window.signCSVQR; Accessible.name: text; onToggled: window.signCSVQR = checked }
+                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvText") !== ""; text: "⚠ " + tr(window.signFieldError("csvText")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                        ThemedCheckBox { id: csvQrCheck; visible: window.signCSVEnabled; text: tr("paridad.lote3.csv.qr"); checked: window.signCSVQR; Accessible.name: text; onToggled: window.signCSVQR = checked }
                                         Text {
                                             Layout.fillWidth: true
                                             visible: window.signQREnabled
                                             text: signQRContent.trim() !== "" && window.normalizedQrUrl(signQRContent) !== ""
                                                 ? tr("El QR se incorporará dentro del sello visible.")
-                                                : tr("sign.seal.qr_https_error")
+                                                : "⚠ " + tr("sign.seal.qr_https_error")
                                             color: signQRContent.trim() !== "" && window.normalizedQrUrl(signQRContent) !== ""
-                                                ? currentTheme.secondaryTextColor : "#b42318"
+                                                ? currentTheme.secondaryTextColor : currentTheme.errorColor
                                             font.pixelSize: 11
                                             wrapMode: Text.WordWrap
                                         }
@@ -9064,7 +9154,7 @@ Window {
                                             enabled: !signSealAllPages
                                             text: signSealPages
                                             placeholderText: tr("1 o 1,3-5")
-                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("pages") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("pages") ? 2 : 1 }
+                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("pages") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.signFieldError("pages") ? 2 : 1 }
                                             onTextChanged: {
                                                 if (window.signFieldError("pages")) {
                                                     signSealPages = text
@@ -9079,11 +9169,11 @@ Window {
                                                 requestPdfPreview()
                                             }
                                         }
-                                        Text { Layout.fillWidth: true; visible: window.signFieldError("pages") !== ""; text: tr(window.signFieldError("pages")); color: "#b42318"; wrapMode: Text.WordWrap }
+                                        Text { Layout.fillWidth: true; visible: window.signFieldError("pages") !== ""; text: "⚠ " + tr(window.signFieldError("pages")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                         RowLayout {
-                                            Button { text: tr("Primera"); onClicked: { signSealAllPages = false; signSealPages = "1"; applyPageSelectionValidity(); requestPdfPreview() } }
-                                            Button { text: tr("Última"); enabled: previewTotalPages > 0; onClicked: { signSealAllPages = false; signSealPages = String(previewTotalPages); applyPageSelectionValidity(); requestPdfPreview() } }
-                                            Button { text: tr("Todas"); onClicked: { signSealAllPages = true; applyPageSelectionValidity(); requestPdfPreview() } }
+                                            ThemedButton { text: tr("Primera"); onClicked: { signSealAllPages = false; signSealPages = "1"; applyPageSelectionValidity(); requestPdfPreview() } }
+                                            ThemedButton { text: tr("Última"); enabled: previewTotalPages > 0; onClicked: { signSealAllPages = false; signSealPages = String(previewTotalPages); applyPageSelectionValidity(); requestPdfPreview() } }
+                                            ThemedButton { text: tr("Todas"); onClicked: { signSealAllPages = true; applyPageSelectionValidity(); requestPdfPreview() } }
                                         }
                                         Binding { target: signSealPagesField; property: "text"; value: signSealPages; when: !signSealPagesField.activeFocus }
                                         Text {
@@ -9093,7 +9183,7 @@ Window {
                                             font.pixelSize: 11
                                             wrapMode: Text.WordWrap
                                         }
-                                        CheckBox {
+                                        ThemedCheckBox {
                                             id: signSealAllPagesCheckBox
                                             text: tr("Todas las páginas")
                                             checked: signSealAllPages
@@ -9107,7 +9197,7 @@ Window {
                                     }
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        CheckBox {
+                                        ThemedCheckBox {
                                             id: sealPerPageCheckBox
                                             text: tr("sign.seal.one_by_one")
                                             Accessible.name: text
@@ -9121,13 +9211,13 @@ Window {
                                         Binding { target: sealPerPageCheckBox; property: "checked"; value: window.signSealPerPage }
                                         RowLayout {
                                             visible: window.signSealPerPage
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("sign.seal.apply_all_pages")
                                                 Accessible.name: text
                                                 focusPolicy: Qt.StrongFocus
                                                 onClicked: window.applySealToAllPages()
                                             }
-                                            Button {
+                                            ThemedButton {
                                                 text: window.signSealPlacements[String(window.previewCurrentPage)]
                                                     ? tr("sign.seal.remove_this_page") : tr("sign.seal.add_this_page")
                                                 Accessible.name: text
@@ -9267,23 +9357,23 @@ Window {
                                             Text { text: tr("Imagen de firma (opcional)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                             RowLayout {
                                                 Layout.fillWidth: true
-                                                Button {
+                                                ThemedButton {
                                                     text: tr("Usar logo GrxFirma")
                                                     onClicked: { sealStyle = "image"; signSealImagePath = bundledSealLogoPath }
                                                 }
-                                                Button {
+                                                ThemedButton {
                                                     id: signSealImageButton
                                                     text: tr("Elegir imagen…")
                                                     Accessible.description: window.signFieldError("image") ? tr(window.signFieldError("image")) : ""
-                                                    background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.signFieldError("image") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.signFieldError("image") ? 2 : 1 }
+                                                    alertColor: window.signFieldError("image") ? currentTheme.errorColor : "transparent"
                                                     onClicked: sealImageFileDialog.open()
                                                 }
-                                                Button {
+                                                ThemedButton {
                                                     text: tr("Quitar imagen")
                                                     enabled: signSealImagePath !== ""
                                                     onClicked: { sealStyle = "text"; signSealImagePath = "" }
                                                 }
-                                                CheckBox {
+                                                ThemedCheckBox {
                                                     id: signSealKeepTextCheckBox
                                                     text: tr("Mantener texto sobre la imagen")
                                                     checked: signSealKeepText
@@ -9291,7 +9381,7 @@ Window {
                                                 }
                                                 Binding { target: signSealKeepTextCheckBox; property: "checked"; value: window.signSealKeepText }
                                             }
-                                            Text { Layout.fillWidth: true; visible: window.signFieldError("image") !== ""; text: tr(window.signFieldError("image")); color: "#b42318"; wrapMode: Text.WordWrap }
+                                            Text { Layout.fillWidth: true; visible: window.signFieldError("image") !== ""; text: "⚠ " + tr(window.signFieldError("image")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                             Text {
                                                 Layout.fillWidth: true
                                                 visible: signSealImagePath !== ""
@@ -9356,14 +9446,14 @@ Window {
                                     visible: signVisibleSeal && supportsVisibleSeal()
                                     Layout.alignment: Qt.AlignRight
                                     spacing: 10
-                                    Button {
+                                    ThemedButton {
                                         text: tr("↻ Rotar Documento")
                                         font.pixelSize: 12
                                         onClicked: {
                                             pagePreview.pageRatio = 1.0 / pagePreview.pageRatio
                                         }
                                     }
-                                     Button {
+                                     ThemedButton {
                                          text: tr("↶ Rotar Firma")
                                          font.pixelSize: 12
                                          onClicked: {
@@ -9380,8 +9470,8 @@ Window {
                                     RowLayout {
                                         visible: currentBatchPaths.length > 1
                                         spacing: 6
-                                        Button { text: "|<"; Accessible.name: tr("Primer documento"); enabled: previewDocumentIndex > 0; onClicked: goToPreviewDocument(0) }
-                                        Button { text: "<"; Accessible.name: tr("Documento anterior"); enabled: previewDocumentIndex > 0; onClicked: goToPreviewDocument(previewDocumentIndex - 1) }
+                                        ThemedButton { text: "|<"; Accessible.name: tr("Primer documento"); enabled: previewDocumentIndex > 0; onClicked: goToPreviewDocument(0) }
+                                        ThemedButton { text: "<"; Accessible.name: tr("Documento anterior"); enabled: previewDocumentIndex > 0; onClicked: goToPreviewDocument(previewDocumentIndex - 1) }
                                         Text {
                                             text: tr("PDF %1/%2: %3").arg(previewDocumentIndex + 1).arg(currentBatchPaths.length).arg(previewDocumentLabel())
                                             color: currentTheme.textColor
@@ -9389,23 +9479,23 @@ Window {
                                             elide: Text.ElideRight
                                             Layout.preferredWidth: 320
                                         }
-                                        Button { text: ">"; Accessible.name: tr("Documento siguiente"); enabled: previewDocumentIndex < currentBatchPaths.length - 1; onClicked: goToPreviewDocument(previewDocumentIndex + 1) }
-                                        Button { text: ">|"; Accessible.name: tr("Último documento"); enabled: previewDocumentIndex < currentBatchPaths.length - 1; onClicked: goToPreviewDocument(currentBatchPaths.length - 1) }
+                                        ThemedButton { text: ">"; Accessible.name: tr("Documento siguiente"); enabled: previewDocumentIndex < currentBatchPaths.length - 1; onClicked: goToPreviewDocument(previewDocumentIndex + 1) }
+                                        ThemedButton { text: ">|"; Accessible.name: tr("Último documento"); enabled: previewDocumentIndex < currentBatchPaths.length - 1; onClicked: goToPreviewDocument(currentBatchPaths.length - 1) }
                                     }
 
                                     Item { Layout.fillWidth: true }
 
                                     RowLayout {
                                         spacing: 6
-                                        Button { text: "|<"; Accessible.name: tr("Primera página"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(1) }
-                                        Button { text: "<"; Accessible.name: tr("Página anterior"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(previewCurrentPage - 1) }
+                                        ThemedButton { text: "|<"; Accessible.name: tr("Primera página"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(1) }
+                                        ThemedButton { text: "<"; Accessible.name: tr("Página anterior"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(previewCurrentPage - 1) }
                                         Text {
                                             text: tr("Página %1/%2").arg(previewCurrentPage).arg(Math.max(1, previewTotalPages))
                                             color: currentTheme.textColor
                                             font.pixelSize: 12
                                         }
-                                        Button { text: ">"; Accessible.name: tr("Página siguiente"); enabled: previewCurrentPage < Math.max(1, previewTotalPages); onClicked: goToPreviewPage(previewCurrentPage + 1) }
-                                        Button { text: ">|"; Accessible.name: tr("Última página"); enabled: previewCurrentPage < Math.max(1, previewTotalPages); onClicked: goToPreviewPage(previewTotalPages) }
+                                        ThemedButton { text: ">"; Accessible.name: tr("Página siguiente"); enabled: previewCurrentPage < Math.max(1, previewTotalPages); onClicked: goToPreviewPage(previewCurrentPage + 1) }
+                                        ThemedButton { text: ">|"; Accessible.name: tr("Última página"); enabled: previewCurrentPage < Math.max(1, previewTotalPages); onClicked: goToPreviewPage(previewTotalPages) }
                                     }
                                 }
 
@@ -9421,7 +9511,7 @@ Window {
                                 ColumnLayout {
                                     visible: currentBatchPaths.length > 1 && signVisibleSeal && supportsVisibleSeal()
                                     Layout.fillWidth: true
-                                    CheckBox {
+                                    ThemedCheckBox {
                                         text: tr("Personalizar el sello para este PDF")
                                         checked: window.batchSealOverrideEnabled
                                         Accessible.name: text
@@ -9454,7 +9544,7 @@ Window {
                                         anchors.left: parent.left
                                         anchors.right: parent.right
                                         anchors.margins: 10
-                                        Button {
+                                        ThemedButton {
                                             id: sealDrawButton
                                             text: tr("sign.seal.draw_area")
                                             checkable: true
@@ -9840,7 +9930,7 @@ Window {
 
                         RowLayout {
                             spacing: 10
-                                Button {
+                                ThemedButton {
                                     text: window.signingInProgress ? tr("⌛ Firmando...") : (window.autoVerificationInProgress ? tr("⌛ Verificando...") : tr("Firmar ahora"))
                                     font.bold: true
                                     palette.button: (window.signingInProgress || window.autoVerificationInProgress) ? currentTheme.secondaryTextColor : currentTheme.primaryColor
@@ -9870,17 +9960,17 @@ Window {
                                         }
                                     }
                                 }
-                                Button {
+                                ThemedButton {
                                     text: tr("Ver firmado")
                                     visible: !window.isBatchMode() && window.currentOutputPath !== "" && !window.signingInProgress
                                     onClicked: backend.openExternal(window.currentOutputPath)
                                 }
-                                Button {
+                                ThemedButton {
                                     text: tr("Validar")
                                     visible: !window.isBatchMode() && window.currentOutputPath !== "" && !window.signingInProgress
                                     onClicked: jumpToVerify(window.currentOutputPath)
                                 }
-                            Button {
+                            ThemedButton {
                                 text: tr("Limpiar")
                                 onClicked: {
                                     window.clearSignResult()
@@ -9892,6 +9982,17 @@ Window {
                                     signVisibleSeal = false
                                 }
                             }
+                        }
+
+                        // Motivo visible cuando «Firmar ahora» está desactivado por el certificado.
+                        Text {
+                            Layout.fillWidth: true
+                            visible: !window.signingInProgress && !window.autoVerificationInProgress && !window.selectedCertificateUsable
+                            text: window.selectedCertData ? window.certificateStatusReason(window.selectedCertData) : tr("sign.need_certificate")
+                            color: currentTheme.textColor
+                            wrapMode: Text.WordWrap
+                            Accessible.role: Accessible.StaticText
+                            Accessible.name: text
                         }
 
                         Text {
@@ -10206,16 +10307,16 @@ Window {
                                                 visible: !!modelData.error || !!modelData.outputPath || (modelData.ok && modelData.verifyDone && !!modelData.verifyDetails)
                                                 Layout.fillWidth: true
                                                 spacing: 8
-                                                Button {
+                                                ThemedButton {
                                                     text: expanded ? tr("▼ Ocultar detalles") : tr("▶ Ver detalles")
                                                     onClicked: expanded = !expanded
                                                 }
-                                                Button {
+                                                ThemedButton {
                                                     visible: modelData.ok && !!modelData.outputPath
                                                     text: tr("Abrir")
                                                     onClicked: backend.openExternal(modelData.outputPath)
                                                 }
-                                                Button {
+                                                ThemedButton {
                                                     visible: modelData.ok && !!modelData.outputPath
                                                     text: tr("Validar")
                                                     onClicked: jumpToVerify(modelData.outputPath)
@@ -10570,7 +10671,7 @@ Window {
                             
                             RowLayout {
                                 Layout.fillWidth: true
-                                Button {
+                                ThemedButton {
                                     visible: !window.rightSidebarCollapsed
                                     text: tr("+ CERTIFICADOS")
                                     Layout.fillWidth: true
@@ -10616,7 +10717,7 @@ Window {
                                 }
                             }
 
-                            Button {
+                            ThemedButton {
                                 visible: (window.cscAllowed || window.cscProhibited) && !window.rightSidebarCollapsed
                                 Layout.fillWidth: true
                                 text: tr("csc.gui.titulo")
@@ -10735,7 +10836,7 @@ Window {
                                     font.pixelSize: 11
                                     wrapMode: Text.WordWrap
                                 }
-                                Button {
+                                ThemedButton {
                                     Layout.fillWidth: true
                                     text: tr("Usar DNIe o tarjeta")
                                     enabled: isIpcMode
@@ -10903,7 +11004,7 @@ Window {
                                     Text {
                                         text: tr("Detalles del certificado")
                                         font.bold: true
-                                        color: "white"
+                                        color: currentTheme.textColor
                                     }
                                     Text {
                                         Layout.fillWidth: true
@@ -10917,7 +11018,7 @@ Window {
                                         wrapMode: Text.WordWrap
                                         font.pixelSize: 11
                                     }
-                                    Button {
+                                    ThemedButton {
                                         visible: window.canRenewFnmt(window.selectedCertData)
                                         text: tr("Renovar en la FNMT")
                                         onClicked: backend.openExternal("https://www.sede.fnmt.gob.es/certificados/persona-fisica/renovar")
@@ -10936,7 +11037,7 @@ Window {
                                             font.pixelSize: 11
                                         }
                                         Item { Layout.fillWidth: true }
-                                        Button {
+                                        ThemedButton {
                                             visible: window.isTemporaryCertificate(window.selectedCertData)
                                             text: tr("Retirar temporal")
                                             onClicked: {
@@ -10945,7 +11046,7 @@ Window {
                                                 backend.removeTemporaryCertificate(id)
                                             }
                                         }
-                                        Button {
+                                        ThemedButton {
                                             text: window.isDefaultCertificate(window.selectedCertData)
                                                   ? tr("Quitar predeterminado")
                                                   : tr("Usar como predeterminado")
@@ -10971,7 +11072,7 @@ Window {
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Titular: ") + (window.selectedCertData ? (window.selectedCertData.subjectName || window.selectedCertData.subject || "---") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 11
                                                 wrapMode: Text.Wrap
                                                 width: parent.width
@@ -10979,7 +11080,7 @@ Window {
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Emisor: ") + (window.selectedCertData ? (window.selectedCertData.issuerName || window.selectedCertData.issuer || "---") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 11
                                                 wrapMode: Text.Wrap
@@ -10988,7 +11089,7 @@ Window {
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Nº Serie: ") + (window.selectedCertData ? (window.selectedCertData.serialNumber || window.selectedCertData.nif || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
@@ -10997,7 +11098,7 @@ Window {
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Válido hasta: ") + (window.selectedCertData ? (window.selectedCertData.validTo || window.selectedCertData.notAfter || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
@@ -11006,14 +11107,14 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Tipo: ") + (window.selectedCertData ? (window.selectedCertData.tipo || tr("Desconocido")) : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 width: parent.width
                                             }
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Organización: ") + (window.selectedCertData ? (window.selectedCertData.organizacion || tr("No indicada")) : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
                                                 width: parent.width
@@ -11021,14 +11122,14 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Estado: ") + window.certificateStatusText(window.selectedCertData)
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 width: parent.width
                                             }
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Huella: ") + (window.selectedCertData ? formatFingerprintForDisplay(window.selectedCertData.fingerprint || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.6
                                                 font.pixelSize: 9
                                                 wrapMode: Text.WrapAnywhere
@@ -11037,29 +11138,26 @@ Window {
                                         }
                                     }
 
-                                    Button {
+                                    ThemedButton {
                                         Layout.fillWidth: true
                                         text: tr("Verificar certificado")
-                                        background: Rectangle {
-                                            color: "#16a085"
-                                            radius: 6
-                                        }
+                                        palette.button: "#16a085"
                                         palette.buttonText: "white"
                                         onClicked: window.openCertificateValidation(window.selectedCertData, false)
                                     }
-                                    Button {
+                                    ThemedButton {
                                         Layout.fillWidth: true
                                         text: tr("Exportar certificado público…")
                                         enabled: isIpcMode && !!window.selectedCertData
                                         onClicked: window.startPublicCertificateExport(false)
                                     }
-                                    Button {
+                                    ThemedButton {
                                         Layout.fillWidth: true
                                         text: tr("Refrescar validez online")
                                         enabled: !!window.selectedCertData
                                         onClicked: window.openCertificateValidation(window.selectedCertData, true)
                                     }
-                                    Button {
+                                    ThemedButton {
                                         Layout.fillWidth: true
                                         text: tr("Abrir VALIDE")
                                         flat: true
@@ -11285,11 +11383,11 @@ Window {
                                     Layout.alignment: Qt.AlignHCenter
                                     spacing: 8
 
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Seleccionar fichero...")
                                         onClicked: verifyFileDialog.open()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("✅ Validar Documento")
                                         visible: verifyTab.verifyFilePath !== ""
                                         font.bold: true
@@ -11306,11 +11404,11 @@ Window {
                                     Layout.alignment: Qt.AlignHCenter
                                     spacing: 8
 
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Seleccionar original...")
                                         onClicked: verifyOriginalFileDialog.open()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Quitar original")
                                         visible: verifyTab.verifyOriginalPath !== ""
                                         onClicked: {
@@ -11323,7 +11421,7 @@ Window {
                                     Layout.alignment: Qt.AlignHCenter
                                     spacing: 8
 
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Asistente")
                                         visible: verifyTab.verifyFilePath !== "" || verifyTab.verifyDetails !== null
                                         onClicked: {
@@ -11333,7 +11431,7 @@ Window {
                                             window.openSupportAssistant(goal)
                                         }
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Verificar certificado")
                                         visible: window.selectedCertData !== null
                                         onClicked: window.openCurrentCertificateValidation()
@@ -11344,7 +11442,7 @@ Window {
                                     spacing: 8
                                     visible: verifyTab.verifyDetails !== null
 
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Copiar resumen")
                                         onClicked: {
                                             window.copyTextToClipboard(window.buildVerificationUserSummary(
@@ -11354,11 +11452,11 @@ Window {
                                             window.statusMessage = tr("Resumen de validación copiado al portapapeles.")
                                         }
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Guardar resumen")
                                         onClicked: verifySummarySaveDialog.open()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Guardar informe JSON")
                                         onClicked: verifyReportSaveDialog.open()
                                     }
@@ -11419,7 +11517,7 @@ Window {
                                     text: verifyTab.hashInputPath !== ""
                                           ? tr("Entrada preparada: %1").arg(verifyTab.hashInputIsDirectory ? tr("Directorio") : tr("Fichero"))
                                           : tr("Sin entrada seleccionada")
-                                    color: "white"
+                                    color: currentTheme.textColor
                                     opacity: 0.9
                                     font.pixelSize: 12
                                     wrapMode: Text.WordWrap
@@ -11431,15 +11529,15 @@ Window {
                                     Layout.fillWidth: true
                                     spacing: 10
 
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Seleccionar fichero")
                                         onClicked: hashInputFileDialog.open()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Seleccionar carpeta")
                                         onClicked: hashInputDirectoryDialog.open()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Seleccionar huella")
                                         onClicked: hashReferenceDialog.open()
                                     }
@@ -11535,13 +11633,13 @@ Window {
                                     Layout.fillWidth: true
                                     spacing: 12
 
-                                    CheckBox {
+                                    ThemedCheckBox {
                                         text: tr("Recursivo")
                                         checked: verifyTab.hashRecursive
                                         onToggled: verifyTab.hashRecursive = checked
                                     }
 
-                                    CheckBox {
+                                    ThemedCheckBox {
                                         text: tr("Guardar informe de directorio")
                                         checked: verifyTab.hashSaveReport
                                         visible: verifyTab.hashInputIsDirectory
@@ -11554,7 +11652,7 @@ Window {
                                     Layout.fillWidth: true
                                     spacing: 10
 
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Crear huella")
                                         enabled: verifyTab.hashInputPath !== ""
                                         onClicked: {
@@ -11567,7 +11665,7 @@ Window {
                                             verifyTab.hashInputIsDirectory ? verifyTab.hashRecursive : false)
                                         }
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Comprobar huella")
                                         enabled: verifyTab.hashInputPath !== "" && verifyTab.hashReferencePath !== ""
                                         onClicked: {
@@ -11708,7 +11806,7 @@ Window {
 
                                         Text { 
                                             text: tr("Estado: ") + verificationOutcomeDisplay(verifyTab.verifyDetails)
-                                            color: verificationOutcomeColor(verifyTab.verifyDetails)
+                                            color: verificationOutcomeColorOn(verifyTab.verifyDetails, currentTheme.sidebarColor)
                                             font.pixelSize: 14
                                             font.bold: true
                                             width: parent.width
@@ -11716,7 +11814,7 @@ Window {
                                         }
                                         Text { 
                                             text: tr("Documento: ") + (verifyTab.verifyFilePath !== "" ? verifyTab.verifyFilePath.split('/').pop() : "")
-                                            color: "white"
+                                            color: currentTheme.textColor
                                             opacity: 0.85
                                             font.pixelSize: 12
                                             width: parent.width
@@ -11724,7 +11822,7 @@ Window {
                                         }
                                         Text { 
                                             text: tr("Razón: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.reason ? localizeVisibleDiagnosticText(verifyTab.verifyDetails.reason) : "")
-                                            color: verificationOutcomeColor(verifyTab.verifyDetails)
+                                            color: verificationOutcomeColorOn(verifyTab.verifyDetails, currentTheme.sidebarColor)
                                             font.pixelSize: 12
                                             width: parent.width
                                             wrapMode: Text.Wrap
@@ -11735,7 +11833,7 @@ Window {
                                             width: parent.width
                                             spacing: 8
 
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("Asistente")
                                                 onClicked: {
                                                     const goal = verificationOutcomeKind(verifyTab.verifyDetails) === "invalid"
@@ -11744,17 +11842,17 @@ Window {
                                                     window.openSupportAssistant(goal)
                                                 }
                                             }
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("Preparar incidencia")
                                                 visible: verificationOutcomeKind(verifyTab.verifyDetails) === "invalid"
                                                 onClicked: window.openSupportAssistant("support")
                                             }
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("Verificar certificado")
                                                 enabled: window.selectedCertData !== null
                                                 onClicked: window.openCurrentCertificateValidation()
                                             }
-                                            Button {
+                                            ThemedButton {
                                                 text: verifyTab.verifyDetailsAllExpanded ? tr("Contraer todo") : tr("Expandir todo")
                                                 visible: verifyTab.verifyDetails !== null
                                                 onClicked: verifyTab.toggleVerifyDetailsPanels()
@@ -12030,7 +12128,7 @@ Window {
 
                                                     Text {
                                                         Layout.fillWidth: true
-                                                        text: tr("Datos de la firma") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details.length : 0) + ")"
+                                                        text: tr("verificacion.ver_detalles_tecnicos") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details.length : 0) + ")"
                                                         color: currentTheme.primaryColor
                                                         font.bold: true
                                                         font.pixelSize: 12
@@ -12048,7 +12146,7 @@ Window {
                                                 Repeater {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details : []
                                                     delegate: Text {
-                                                        text: tr("• ") + modelData
+                                                        text: "• " + window.verificationDetailText(modelData)
                                                         color: "white"
                                                         opacity: 0.9
                                                         wrapMode: Text.Wrap
@@ -12098,7 +12196,7 @@ Window {
                                                 Repeater {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.warnings) ? verifyTab.verifyDetails.warnings : []
                                                     delegate: Text {
-                                                        text: tr("• ") + modelData
+                                                        text: "• " + window.localizeVisibleDiagnosticText(modelData)
                                                         color: "white"
                                                         opacity: 0.9
                                                         wrapMode: Text.Wrap
@@ -12148,7 +12246,7 @@ Window {
                                                 Repeater {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.errors) ? verifyTab.verifyDetails.errors : []
                                                     delegate: Text {
-                                                        text: tr("• ") + modelData
+                                                        text: "• " + window.localizeVisibleDiagnosticText(modelData)
                                                         color: "white"
                                                         opacity: 0.9
                                                         wrapMode: Text.Wrap
@@ -12242,13 +12340,10 @@ Window {
                                                         Layout.fillWidth: true
                                                     }
                                                 }
-                                                Button {
+                                                ThemedButton {
                                                     text: tr("Confiar en la API local")
                                                     onClicked: backend.installPublicRoots()
-                                                    background: Rectangle {
-                                                        color: "#2ecc71"
-                                                        radius: 4
-                                                    }
+                                                    palette.button: "#2ecc71"
                                                     palette.buttonText: "white"
                                                 }
                                             }
@@ -12335,11 +12430,11 @@ Window {
                                         Layout.fillWidth: true
                                         spacing: 12
 
-                                        Button {
+                                        ThemedButton {
                                             text: tr("Seleccionar fichero...")
                                             onClicked: protectFileDialog.open()
                                         }
-                                        Button {
+                                        ThemedButton {
                                             text: tr("Cargar destinatarios")
                                             onClicked: backend.loadProtectionRecipients()
                                         }
@@ -12478,7 +12573,7 @@ Window {
                                                 text: tr("Las claves transitorias no coinciden.")
                                                 color: "#ff8a80"
                                             }
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("Borrar clave")
                                                 onClicked: {
                                                     protectEncryptedSecretField.clear()
@@ -12506,13 +12601,13 @@ Window {
                                                 color: currentTheme.textColor
                                                 font.bold: true
                                             }
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("Añadir destinatario público…")
                                                 enabled: isIpcMode
                                                 onClicked: recipientPublicFileDialog.open()
                                                 Accessible.description: tr("Importa solo un certificado X.509 público; no se importa ninguna clave privada.")
                                             }
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("Compartir mi certificado…")
                                                 enabled: isIpcMode
                                                 onClicked: window.startPublicCertificateExport(true)
@@ -12537,7 +12632,7 @@ Window {
                                                 model: visibleProtectionRecipients()
                                                 delegate: ColumnLayout {
                                                     Layout.fillWidth: true
-                                                    CheckBox {
+                                                    ThemedCheckBox {
                                                         text: window.protectionRecipientLabel(modelData)
                                                         checked: window.protectSelectedRecipientIds.indexOf(String(modelData.id || modelData.ID || "")) !== -1
                                                         onToggled: {
@@ -12560,7 +12655,7 @@ Window {
                                                             color: currentTheme.secondaryTextColor
                                                             font.pixelSize: 11
                                                         }
-                                                        Button {
+                                                        ThemedButton {
                                                             visible: String(modelData.origin || "") === "importado"
                                                             text: tr("Quitar")
                                                             onClicked: backend.removeProtectionRecipient(String(modelData.id || modelData.ID || ""))
@@ -12575,7 +12670,7 @@ Window {
                                         Layout.fillWidth: true
                                         spacing: 12
 
-                                        Button {
+                                        ThemedButton {
                                             text: tr("Proteger")
                                             enabled: !window.protectionInProgress
                                                      && window.protectInputPath !== ""
@@ -12612,7 +12707,7 @@ Window {
                                             }
                                         }
 
-                                        Button {
+                                        ThemedButton {
                                             text: tr("Proteger y firmar")
                                             enabled: !window.protectionInProgress && window.protectInputPath !== "" && window.protectSelectedRecipientIds.length > 0 && window.selectedCertIndex !== -1 && window.protectProfile === "compat" && window.protectContainer !== "authenvelopeddata" && window.protectContainer !== "cms-encrypted"
                                             onClicked: window.executeProtectSignRequest()
@@ -12659,7 +12754,7 @@ Window {
                                                 color: "white"
                                                 wrapMode: Text.WordWrap
                                             }
-                                            Button {
+                                            ThemedButton {
                                                 visible: window.protectResult && !window.protectResult.error && !!window.protectResult.outputPath
                                                 text: tr("Abrir protegido")
                                                 onClicked: backend.openExternal(window.protectResult.outputPath)
@@ -12696,7 +12791,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     spacing: 12
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Seleccionar protegido...")
                                         onClicked: unprotectFileDialog.open()
                                     }
@@ -12718,7 +12813,7 @@ Window {
                                     Layout.fillWidth: true
                                 }
 
-                                CheckBox {
+                                ThemedCheckBox {
                                     id: unprotectEncryptedDataToggle
                                     Layout.fillWidth: true
                                     visible: window.isGenericCMSPath(window.unprotectInputPath)
@@ -12763,7 +12858,7 @@ Window {
                                             placeholderText: tr("Clave AES-256 en Base64 (44 caracteres)")
                                             Accessible.name: tr("Clave transitoria de EncryptedData")
                                         }
-                                        Button {
+                                        ThemedButton {
                                             text: tr("Borrar clave")
                                             onClicked: unprotectEncryptedSecretField.clear()
                                         }
@@ -12785,7 +12880,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     spacing: 12
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Desproteger")
                                         enabled: !window.unprotectionInProgress
                                                  && window.unprotectInputPath !== ""
@@ -12853,7 +12948,7 @@ Window {
                                             color: "white"
                                             wrapMode: Text.WordWrap
                                         }
-                                        Button {
+                                        ThemedButton {
                                             visible: window.unprotectResult && !window.unprotectResult.error && !!window.unprotectResult.outputPath
                                             text: tr("Abrir desprotegido")
                                             onClicked: backend.openExternal(window.unprotectResult.outputPath)
@@ -12885,7 +12980,7 @@ Window {
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                Button {
+                                ThemedButton {
                                     visible: !window.rightSidebarCollapsed
                                     text: tr("+ CERTIFICADOS")
                                     Layout.fillWidth: true
@@ -13032,7 +13127,7 @@ Window {
                                     font.pixelSize: 11
                                     wrapMode: Text.WordWrap
                                 }
-                                Button {
+                                ThemedButton {
                                     Layout.fillWidth: true
                                     text: tr("Usar DNIe o tarjeta")
                                     enabled: isIpcMode
@@ -13199,7 +13294,7 @@ Window {
                                     Text {
                                         text: tr("Detalles del certificado")
                                         font.bold: true
-                                        color: "white"
+                                        color: currentTheme.textColor
                                     }
                                     Text {
                                         Layout.fillWidth: true
@@ -13213,7 +13308,7 @@ Window {
                                         wrapMode: Text.WordWrap
                                         font.pixelSize: 11
                                     }
-                                    Button {
+                                    ThemedButton {
                                         visible: window.canRenewFnmt(window.selectedCertData)
                                         text: tr("Renovar en la FNMT")
                                         onClicked: backend.openExternal("https://www.sede.fnmt.gob.es/certificados/persona-fisica/renovar")
@@ -13232,7 +13327,7 @@ Window {
                                             font.pixelSize: 11
                                         }
                                         Item { Layout.fillWidth: true }
-                                        Button {
+                                        ThemedButton {
                                             visible: window.isTemporaryCertificate(window.selectedCertData)
                                             text: tr("Retirar temporal")
                                             onClicked: {
@@ -13241,7 +13336,7 @@ Window {
                                                 backend.removeTemporaryCertificate(id)
                                             }
                                         }
-                                        Button {
+                                        ThemedButton {
                                             text: window.isDefaultCertificate(window.selectedCertData)
                                                   ? tr("Quitar predeterminado")
                                                   : tr("Usar como predeterminado")
@@ -13267,7 +13362,7 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Titular: ") + (window.selectedCertData ? (window.selectedCertData.subjectName || window.selectedCertData.subject || "---") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 11
                                                 wrapMode: Text.Wrap
                                                 width: parent.width
@@ -13275,7 +13370,7 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Emisor: ") + (window.selectedCertData ? (window.selectedCertData.issuerName || window.selectedCertData.issuer || "---") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 11
                                                 wrapMode: Text.Wrap
@@ -13284,7 +13379,7 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Nº Serie: ") + (window.selectedCertData ? (window.selectedCertData.serialNumber || window.selectedCertData.nif || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
@@ -13293,7 +13388,7 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Válido hasta: ") + (window.selectedCertData ? (window.selectedCertData.validTo || window.selectedCertData.notAfter || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.8
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
@@ -13302,14 +13397,14 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Tipo: ") + (window.selectedCertData ? (window.selectedCertData.tipo || tr("Desconocido")) : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 width: parent.width
                                             }
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Organización: ") + (window.selectedCertData ? (window.selectedCertData.organizacion || tr("No indicada")) : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 wrapMode: Text.Wrap
                                                 width: parent.width
@@ -13317,14 +13412,14 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Estado: ") + window.certificateStatusText(window.selectedCertData)
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 font.pixelSize: 10
                                                 width: parent.width
                                             }
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Huella: ") + (window.selectedCertData ? formatFingerprintForDisplay(window.selectedCertData.fingerprint || "") : "")
-                                                color: "white"
+                                                color: currentTheme.textColor
                                                 opacity: 0.6
                                                 font.pixelSize: 9
                                                 wrapMode: Text.WrapAnywhere
@@ -13333,29 +13428,26 @@ Window {
                                         }
                                     }
 
-                                    Button {
+                                    ThemedButton {
                                         Layout.fillWidth: true
                                         text: tr("Verificar certificado")
-                                        background: Rectangle {
-                                            color: "#16a085"
-                                            radius: 6
-                                        }
+                                        palette.button: "#16a085"
                                         palette.buttonText: "white"
                                         onClicked: window.openCertificateValidation(window.selectedCertData, false)
                                     }
-                                    Button {
+                                    ThemedButton {
                                         Layout.fillWidth: true
                                         text: tr("Exportar certificado público…")
                                         enabled: isIpcMode && !!window.selectedCertData
                                         onClicked: window.startPublicCertificateExport(false)
                                     }
-                                    Button {
+                                    ThemedButton {
                                         Layout.fillWidth: true
                                         text: tr("Refrescar validez online")
                                         enabled: !!window.selectedCertData
                                         onClicked: window.openCertificateValidation(window.selectedCertData, true)
                                     }
-                                    Button {
+                                    ThemedButton {
                                         Layout.fillWidth: true
                                         text: tr("Abrir VALIDE")
                                         flat: true
@@ -13505,12 +13597,12 @@ Window {
                                 font.pixelSize: 12
                             }
 
-                            Button {
+                            ThemedButton {
                                 text: tr("Guardar preferencias")
                                 enabled: window.backendSettingsDirty
                                 onClicked: saveBackendSettings()
                             }
-                            Button {
+                            ThemedButton {
                                 text: tr("Descartar cambios")
                                 visible: window.backendSettingsDirty
                                 onClicked: discardBackendSettingsChanges(false)
@@ -13545,7 +13637,7 @@ Window {
                                 SettingsRowHighlight {
                                     visible: isIpcMode
                                     Text { text: tr("facturae.enable_label"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: facturaeToolsSwitch
                                         checked: window.facturaeToolsEnabled
                                         Accessible.name: tr("facturae.enable_label")
@@ -13561,7 +13653,7 @@ Window {
                                 SettingsRowHighlight {
                                     visible: Qt.platform.os === "linux" && isIpcMode
                                     Text { text: tr("facturae.startup_label"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: startupSwitch
                                         checked: window.startupWithSession
                                         Accessible.name: tr("facturae.startup_label")
@@ -13610,6 +13702,8 @@ Window {
                                         Layout.preferredWidth: 260
                                         model: themes.map(function(_, index) { return themeLabel(index) })
                                         currentIndex: window.currentThemeIndex
+                                        // Al traducirse los nombres cambia el modelo y el combo volvía al primero.
+                                        onModelChanged: currentIndex = Qt.binding(function() { return window.currentThemeIndex })
                                         onActivated: function(index) {
                                             window.currentThemeIndex = index
                                         }
@@ -13618,7 +13712,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Modo Experto"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: expertModeSwitch
                                         checked: backend.expertMode
                                         onToggled: {
@@ -13634,7 +13728,7 @@ Window {
                                 
                                 SettingsRowHighlight {
                                     Text { text: tr("Cerrar ventana tras firmar"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: autoCloseSwitch
                                         checked: window.autoClose
                                         onToggled: {
@@ -13650,7 +13744,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Avisar de nuevas versiones"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: checkForUpdatesSwitch
                                         checked: window.checkForUpdates
                                         onToggled: {
@@ -13687,7 +13781,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Copiar huella al portapapeles por defecto"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: defaultHashCopyToClipboardSwitch
                                         checked: window.defaultHashCopyToClipboard
                                         onToggled: {
@@ -13743,7 +13837,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Recursivo por defecto en directorios"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: defaultHashRecursiveSwitch
                                         checked: window.defaultHashRecursive
                                         onToggled: {
@@ -13760,7 +13854,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Guardar informe por defecto en directorios"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: defaultHashSaveReportSwitch
                                         checked: window.defaultHashSaveReport
                                         onToggled: {
@@ -13777,7 +13871,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Confirmar antes de firmar"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: confirmToSignSwitch
                                         checked: window.confirmToSign
                                         onToggled: {
@@ -13793,7 +13887,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Omitir confirmación al cerrar con cambios sin guardar"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: omitAskOnCloseSwitch
                                         checked: window.omitAskOnClose
                                         onToggled: {
@@ -13809,7 +13903,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Dejar residente al cerrar"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: closeBehaviorSwitch
                                         checked: window.closeBehavior === "resident"
                                         onToggled: {
@@ -13825,7 +13919,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Recordar último certificado"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: stickySignerSwitch
                                         checked: window.stickySigner
                                         onToggled: {
@@ -13842,7 +13936,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Autoseleccionar si solo hay un certificado"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: autoSelectSingleCertificateSwitch
                                         checked: window.autoSelectSingleCertificate
                                         onToggled: {
@@ -13859,7 +13953,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Preferir certificado predeterminado al iniciar"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: preferDefaultCertificateSwitch
                                         checked: window.preferDefaultCertificate
                                         onToggled: {
@@ -13876,7 +13970,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Mostrar primero el certificado predeterminado"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: showDefaultCertificateFirstSwitch
                                         checked: window.showDefaultCertificateFirst
                                         onToggled: {
@@ -13892,7 +13986,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Mostrar primero certificados aptos para firma"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: showUsableCertificatesFirstSwitch
                                         checked: window.showUsableCertificatesFirst
                                         onToggled: {
@@ -13908,7 +14002,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Mostrar primero certificados vigentes"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: showValidCertificatesFirstSwitch
                                         checked: window.showValidCertificatesFirst
                                         onToggled: {
@@ -13924,7 +14018,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Recordar búsqueda de certificados"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: rememberCertificateFilterSwitch
                                         checked: window.rememberCertificateFilter
                                         onToggled: {
@@ -13943,7 +14037,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Mostrar certificados caducados"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: certsExpiredShowSwitch
                                         checked: window.certsExpiredShow
                                         onToggled: {
@@ -13960,7 +14054,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Mostrar certificados no utilizables"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: certsInvalidShowSwitch
                                         checked: window.certsInvalidShow
                                         onToggled: {
@@ -13977,7 +14071,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Usar solo certificados de firma"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: useOnlySignatureCertificatesSwitch
                                         checked: window.useOnlySignatureCertificates
                                         onToggled: {
@@ -13994,7 +14088,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Requerir NIF en el certificado"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: certificateRequireNifSwitch
                                         checked: window.certificateRequireNIF
                                         onToggled: {
@@ -14011,7 +14105,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Requerir organización en el certificado"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: certificateRequireOrganizationSwitch
                                         checked: window.certificateRequireOrganization
                                         onToggled: {
@@ -14040,7 +14134,7 @@ Window {
                                         Layout.fillWidth: true
                                         spacing: 10
 
-                                        CheckBox {
+                                        ThemedCheckBox {
                                             id: certTypeFisica
                                             text: tr("Persona física")
                                             checked: window.certificateTypeFilterContains("fisica")
@@ -14052,7 +14146,7 @@ Window {
                                         }
                                         Binding { target: certTypeFisica; property: "checked"; value: window.certificateTypeFilterContains("fisica") }
 
-                                        CheckBox {
+                                        ThemedCheckBox {
                                             id: certTypeRepresentacion
                                             text: tr("Representación")
                                             checked: window.certificateTypeFilterContains("representacion")
@@ -14064,7 +14158,7 @@ Window {
                                         }
                                         Binding { target: certTypeRepresentacion; property: "checked"; value: window.certificateTypeFilterContains("representacion") }
 
-                                        CheckBox {
+                                        ThemedCheckBox {
                                             id: certTypeSello
                                             text: tr("Sello")
                                             checked: window.certificateTypeFilterContains("sello")
@@ -14076,7 +14170,7 @@ Window {
                                         }
                                         Binding { target: certTypeSello; property: "checked"; value: window.certificateTypeFilterContains("sello") }
 
-                                        CheckBox {
+                                        ThemedCheckBox {
                                             id: certTypeEmpleadoPublico
                                             text: tr("Empleado público")
                                             checked: window.certificateTypeFilterContains("empleado_publico")
@@ -14088,7 +14182,7 @@ Window {
                                         }
                                         Binding { target: certTypeEmpleadoPublico; property: "checked"; value: window.certificateTypeFilterContains("empleado_publico") }
 
-                                        CheckBox {
+                                        ThemedCheckBox {
                                             id: certTypeDesconocido
                                             text: tr("Desconocido")
                                             checked: window.certificateTypeFilterContains("desconocido")
@@ -14135,7 +14229,7 @@ Window {
                                     Layout.fillWidth: true
                                     spacing: 10
 
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Reinstalar conectores de navegadores")
                                         ToolTip.visible: hovered
                                         ToolTip.delay: 500
@@ -14143,7 +14237,7 @@ Window {
                                         onClicked: backend.reinstallBrowserConnectors()
                                     }
 
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Reinstalar certificados locales")
                                         ToolTip.visible: hovered
                                         ToolTip.delay: 500
@@ -14151,7 +14245,7 @@ Window {
                                         onClicked: backend.installPublicRoots()
                                     }
 
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Diagnóstico TLS")
                                         flat: true
                                         onClicked: backend.runTLSDiagnostics()
@@ -14304,7 +14398,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("Firma visible (PAdES) por defecto"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: settingsSignVisibleSealSwitch
                                         onToggled: {
                                             if (window.applyingLoadedSettings) return
@@ -14321,7 +14415,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("Todas las páginas por defecto en firma visible"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: settingsSignSealAllPagesSwitch
                                         checked: window.signSealAllPages
                                         onToggled: {
@@ -14338,7 +14432,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("Mantener texto sobre imagen por defecto"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: settingsSignSealKeepTextSwitch
                                         checked: window.signSealKeepText
                                         onToggled: {
@@ -14827,7 +14921,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("Compatibilidad estricta"); color: currentTheme.textColor; Layout.fillWidth: true }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: settingsSignStrictCompatSwitch
                                         checked: window.signStrictCompat
                                         onToggled: {
@@ -14860,7 +14954,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("⏳  Sellado de Tiempo (TSA)"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor de sellado de tiempo para añadir una marca de tiempo a las firmas.") }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: tsaEnabledSwitch
                                         checked: window.tsaEnabled
                                         onToggled: {
@@ -14885,7 +14979,7 @@ Window {
                                             id: tsaCombo
                                             Layout.fillWidth: true
                                             editable: true
-                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("tsa") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("tsa") ? 2 : 1 }
+                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("tsa") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("tsa") ? 2 : 1 }
                                             model: [
                                                 "http://tsa.fnmt.es/",
                                                 "http://tsa.accv.es/",
@@ -14916,10 +15010,10 @@ Window {
                                                 }
                                             }
                                         }
-                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("tsa") !== ""; text: tr(window.settingsFieldError("tsa")); color: "#b42318"; wrapMode: Text.WordWrap }
+                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("tsa") !== ""; text: "⚠ " + tr(window.settingsFieldError("tsa")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                     }
 
-                                    Button {
+                                    ThemedButton {
                                         Layout.fillWidth: true
                                         text: tr("🛡️ Instalar confianza TLS local")
                                         palette.button: currentTheme.primaryColor; palette.buttonText: "white"
@@ -14947,7 +15041,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("🌐  Configuración de Proxy"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor proxy para las conexiones de red.") }
-                                    Switch {
+                                    ThemedSwitch {
                                         id: proxyEnabledSwitch
                                         checked: window.proxyEnabled
                                         onToggled: {
@@ -14989,7 +15083,7 @@ Window {
                                             id: proxyHostField
                                             Layout.fillWidth: true
                                             text: window.proxyHost
-                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("proxyHost") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("proxyHost") ? 2 : 1 }
+                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("proxyHost") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("proxyHost") ? 2 : 1 }
                                             Accessible.description: window.settingsFieldError("proxyHost") ? tr(window.settingsFieldError("proxyHost")) : ""
                                             onTextChanged: {
                                                 if (window.settingsFieldError("proxyHost")) {
@@ -15003,7 +15097,7 @@ Window {
                                                 markBackendSettingsDirty()
                                             }
                                         }
-                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("proxyHost") !== ""; text: tr(window.settingsFieldError("proxyHost")); color: "#b42318"; wrapMode: Text.WordWrap }
+                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("proxyHost") !== ""; text: "⚠ " + tr(window.settingsFieldError("proxyHost")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                     }
                                     ColumnLayout {
                                         width: 100
@@ -15013,7 +15107,7 @@ Window {
                                             Layout.fillWidth: true
                                             text: window.proxyPort.toString()
                                             validator: IntValidator { bottom: 1; top: 65535 }
-                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("proxyPort") ? "#b42318" : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("proxyPort") ? 2 : 1 }
+                                            background: Rectangle { color: currentTheme.cardColor; radius: 4; border.color: window.settingsFieldError("proxyPort") ? currentTheme.errorColor : currentTheme.secondaryTextColor; border.width: window.settingsFieldError("proxyPort") ? 2 : 1 }
                                             Accessible.description: window.settingsFieldError("proxyPort") ? tr(window.settingsFieldError("proxyPort")) : ""
                                             onTextChanged: {
                                                 if (window.settingsFieldError("proxyPort")) {
@@ -15027,7 +15121,7 @@ Window {
                                                 markBackendSettingsDirty()
                                             }
                                         }
-                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("proxyPort") !== ""; text: tr(window.settingsFieldError("proxyPort")); color: "#b42318"; wrapMode: Text.WordWrap }
+                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("proxyPort") !== ""; text: "⚠ " + tr(window.settingsFieldError("proxyPort")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                     }
                                 }
 
@@ -15136,7 +15230,7 @@ Window {
                                         RowLayout {
                                             Layout.fillWidth: true
                                             spacing: 8
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("Guardar cambios")
                                                 enabled: window.proxySecretStoreAvailable
                                                          && !window.proxyCredentialBusy
@@ -15152,7 +15246,7 @@ Window {
                                                     proxyPasswordField.clear()
                                                 }
                                             }
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("Quitar")
                                                 enabled: window.proxySecretStoreAvailable
                                                          && window.proxyCredentialsConfigured
@@ -15220,7 +15314,7 @@ Window {
                                         RowLayout {
                                             Layout.fillWidth: true
                                             spacing: 8
-                                            Button {
+                                            ThemedButton {
                                                 text: tr("Actualizar estado")
                                                 onClicked: backend.getProxySecretStoreStatus()
                                             }
@@ -15299,7 +15393,7 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    CheckBox {
+                                    ThemedCheckBox {
                                         id: restHttpsCheck
                                         text: tr("Habilitar HTTPS local")
                                         checked: true
@@ -15341,7 +15435,7 @@ Window {
                                 
                                 RowLayout {
                                     Layout.fillWidth: true; spacing: 10
-                                     Button {
+                                     ThemedButton {
                                         text: tr("Iniciar servidor")
                                         palette.button: currentTheme.primaryColor; palette.buttonText: "white"
                                         onClicked: {
@@ -15360,7 +15454,7 @@ Window {
                                             restStatusRetryTimer.restart()
                                         }
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Detener")
                                         onClicked: {
                                             if (!configTab.webCompatibilityActive ||
@@ -15377,7 +15471,7 @@ Window {
                                         }
                                     }
                                     Item { Layout.fillWidth: true } // Spacer
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Abrir web")
                                         icon.name: "applications-internet"
                                         enabled: configTab.restServerRunning
@@ -15456,35 +15550,35 @@ Window {
                                 Flow {
                                     Layout.fillWidth: true; spacing: 10
 
-                                     Button {
+                                     ThemedButton {
                                         text: tr("Instalar servicio")
                                         visible: !configTab.svcInstalled
                                         enabled: configTab.svcConnected
                                         palette.button: currentTheme.primaryColor; palette.buttonText: "white"
                                         onClicked: backend.installService()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Desinstalar servicio")
                                         visible: configTab.svcInstalled
                                         enabled: configTab.svcConnected
                                         palette.button: "#c0392b"; palette.buttonText: "white"
                                         onClicked: backend.uninstallService()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Arrancar")
                                         visible: configTab.svcInstalled && !configTab.svcRunning
                                         enabled: configTab.svcConnected
                                         palette.button: "#27ae60"; palette.buttonText: "white"
                                         onClicked: backend.startService()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("Detener")
                                         visible: configTab.svcInstalled && configTab.svcRunning
                                         enabled: configTab.svcConnected
                                         palette.button: "#e67e22"; palette.buttonText: "white"
                                         onClicked: backend.stopService()
                                     }
-                                    Button {
+                                    ThemedButton {
                                         text: tr("↻ Actualizar estado")
                                         flat: true
                                         onClicked: configTab.refreshServiceStatus()
@@ -15527,7 +15621,7 @@ Window {
                                 anchors.fill: parent; anchors.margins: 20; spacing: 15
                                 Text { text: tr("↺  Valores por defecto"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true }
                                 Text { text: tr("Restaura el tema y opciones a fábrica"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                Button {
+                                ThemedButton {
                                     text: tr("Restaurar")
                                     palette.button: "#e74c3c"; palette.buttonText: "white"
                                     onClicked: {
@@ -15564,7 +15658,7 @@ Window {
                             currentIndex: 0
                             font.pixelSize: 13
                         }
-                        Button {
+                        ThemedButton {
                             text: tr("Reiniciar Backend")
                             font.bold: true
                             palette.button: "#e67e22"; palette.buttonText: "white"
@@ -15583,12 +15677,12 @@ Window {
                         Text { text: tr("SOPORTE Y DOCUMENTACIÓN"); color: currentTheme.primaryColor; font.bold: true; font.pixelSize: 12 }
                         Flow {
                             Layout.fillWidth: true; spacing: 10
-                            Button { text: tr("Gestor Certificados"); onClicked: backend.openCertManager() }
-                            Button { text: tr("Explorar Logs"); onClicked: backend.openLogFolder() }
-                            Button { text: tr("Abrir Ayuda"); onClicked: backend.openHelpManual() }
-                            Button { text: tr("Asistente guiado"); onClicked: window.openSupportAssistant("") }
-                            Button { text: tr("Copiar Diag."); onClicked: backend.exportDiagnosticReport() }
-                            Button { 
+                            ThemedButton { text: tr("Gestor Certificados"); onClicked: backend.openCertManager() }
+                            ThemedButton { text: tr("Explorar Logs"); onClicked: backend.openLogFolder() }
+                            ThemedButton { text: tr("Abrir Ayuda"); onClicked: backend.openHelpManual() }
+                            ThemedButton { text: tr("Asistente guiado"); onClicked: window.openSupportAssistant("") }
+                            ThemedButton { text: tr("Copiar Diag."); onClicked: backend.exportDiagnosticReport() }
+                            ThemedButton { 
                                 text: tr("Limpiar Log");
                                 palette.button: "#2c3e50"; 
                                 onClicked: logArea.text = tr("--- LOGS REINICIADOS [") + new Date().toLocaleTimeString() + "] ---\n"
@@ -15598,11 +15692,11 @@ Window {
                         Text { text: tr("RED Y SEGURIDAD"); color: currentTheme.primaryColor; font.bold: true; font.pixelSize: 12 }
                         Flow {
                             Layout.fillWidth: true; spacing: 10
-                            Button { text: tr("Diag. TLS"); onClicked: backend.runTLSDiagnostics() }
-                            Button { text: tr("Vaciar Almacén TLS"); onClicked: backend.clearTLSTrustStore() }
-                            Button { text: tr("Reinstalar conectores"); onClicked: backend.reinstallBrowserConnectors() }
-                            Button { text: tr("Reinstalar certificados"); onClicked: backend.installPublicRoots() }
-                            Button {
+                            ThemedButton { text: tr("Diag. TLS"); onClicked: backend.runTLSDiagnostics() }
+                            ThemedButton { text: tr("Vaciar Almacén TLS"); onClicked: backend.clearTLSTrustStore() }
+                            ThemedButton { text: tr("Reinstalar conectores"); onClicked: backend.reinstallBrowserConnectors() }
+                            ThemedButton { text: tr("Reinstalar certificados"); onClicked: backend.installPublicRoots() }
+                            ThemedButton {
                                 text: tr("Seguridad y Dominios")
                                 onClicked: activeTab = "seguridad"
                             }
@@ -15611,7 +15705,7 @@ Window {
                         Text { text: tr("SISTEMA"); color: currentTheme.primaryColor; font.bold: true; font.pixelSize: 12 }
                         Flow {
                             Layout.fillWidth: true; spacing: 10
-                            Button { text: tr("Comprobar Certs"); onClicked: backend.checkCertificates() }
+                            ThemedButton { text: tr("Comprobar Certs"); onClicked: backend.checkCertificates() }
                         }
                     }
 
@@ -15662,7 +15756,7 @@ Window {
                             color: currentTheme.textColor
                             Layout.fillWidth: true
                         }
-                        Button { text: tr("Volver"); flat: true; onClicked: activeTab = "experto" }
+                        ThemedButton { text: tr("Volver"); flat: true; onClicked: activeTab = "experto" }
                     }
 
                     Rectangle {
@@ -15685,7 +15779,7 @@ Window {
                                 Layout.fillWidth: true
                                 wrapMode: Text.WordWrap
                             }
-                            Button {
+                            ThemedButton {
                                 text: tr("Diagnóstico TLS")
                                 Layout.alignment: Qt.AlignHCenter
                                 onClicked: backend.runTLSDiagnostics()
@@ -15697,6 +15791,7 @@ Window {
 
             FacturaePanel {
                 id: facturaePanel
+                localeName: window.appLanguage === "va" ? "ca" : window.appLanguage
                 bridge: backend
                 reportSaver: function(path, content) { backend.saveTextReport(path, content) }
                 theme: currentTheme
@@ -15705,7 +15800,7 @@ Window {
                 enabled: window.facturaeToolsEnabled && isIpcMode
                 onSignRequested: window.activeTab = "firmar"
             }
-            EniPanel { bridge: backend; theme: currentTheme; localPath: function(url) { return window.localPathFromUrl(url) }; translate: function(key) { return window.tr(key) }; certificates: window.certificates; certificateId: function(cert) { return window.certificateId(cert) }; enabled: isIpcMode }
+            EniPanel { localeName: window.appLanguage === "va" ? "ca" : window.appLanguage; bridge: backend; theme: currentTheme; localPath: function(url) { return window.localPathFromUrl(url) }; translate: function(key) { return window.tr(key) }; certificates: window.certificates; certificateId: function(cert) { return window.certificateId(cert) }; enabled: isIpcMode }
         }
     }
 
@@ -15716,6 +15811,12 @@ Window {
         property string iconTxt: ""
         property bool active: false
         signal clicked()
+        // Al cambiar de sección se limpia la barra de estado: un mensaje de Verificar
+        // no debe seguir a la vista en Configuración o en ENI.
+        function activate() {
+            window.statusMessage = ""
+            navButtonRoot.clicked()
+        }
 
         Layout.fillWidth: true
         height: 54
@@ -15724,14 +15825,16 @@ Window {
         Accessible.role: Accessible.Button
         Accessible.name: navButtonRoot.text
         Accessible.description: active ? tr("Sección activa") : tr("Abrir sección")
-        Accessible.onPressAction: navButtonRoot.clicked()
-        color: active ? currentTheme.primaryColor : "transparent"
-        border.color: active || activeFocus ? "white" : "transparent"
-        border.width: activeFocus ? 2 : (active ? 1 : 0)
+        Accessible.onPressAction: navButtonRoot.activate()
+        color: active ? Contrast.legibleFill(currentTheme.primaryColor) : "transparent"
+        // Texto legible tanto en temas claros como oscuros; la activa, sobre el color principal.
+        readonly property color labelColor: active ? Contrast.readableOn(Contrast.legibleFill(currentTheme.primaryColor), "#ffffff") : currentTheme.textColor
+        border.color: activeFocus ? (active ? labelColor : currentTheme.focusColor) : "transparent"
+        border.width: activeFocus ? 2 : 0
 
         Keys.onPressed: function(event) {
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                navButtonRoot.clicked()
+                navButtonRoot.activate()
                 event.accepted = true
             }
         }
@@ -15739,7 +15842,7 @@ Window {
         MouseArea {
             id: navButtonMouseArea
             anchors.fill: parent
-            onClicked: navButtonRoot.clicked()
+            onClicked: navButtonRoot.activate()
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onEntered: if(!navButtonRoot.active) navButtonRoot.opacity = 0.7
@@ -15755,7 +15858,7 @@ Window {
             anchors.margins: 10
             Text {
                 text: iconTxt
-                color: "white"
+                color: navButtonRoot.labelColor
                 font.bold: true
                 // Iconos un 80 % mayores que el texto por defecto para localizarlos de un vistazo.
                 font.pixelSize: 24
@@ -15767,7 +15870,7 @@ Window {
             Text {
                 visible: !window.sidebarCollapsed
                 text: navButtonRoot.text
-                color: "white"
+                color: navButtonRoot.labelColor
                 font.bold: active
                 Layout.fillWidth: true
             }
@@ -15779,8 +15882,11 @@ Window {
         anchors.bottom: parent.bottom
         width: parent.width
         height: 30
-        color: localizedStatusMessage().startsWith(tr("Error")) ? "#c0392b" : currentTheme.sidebarColor
-        opacity: 0.95
+        id: statusBar
+        readonly property bool showsError: localizedStatusMessage().startsWith(tr("Error"))
+        // Fondo opaco: el contenido no debe transparentarse por debajo de la barra.
+        color: showsError ? "#c0392b" : currentTheme.sidebarColor
+        readonly property color labelColor: showsError ? "#ffffff" : currentTheme.textColor
         
         RowLayout {
             anchors.fill: parent
@@ -15789,25 +15895,26 @@ Window {
             spacing: 10
             Text {
                 text: localizedStatusMessage().startsWith(tr("Error")) ? "⚠" : "ℹ"
-                color: "white"
+                color: statusBar.labelColor
                 font.bold: true
                 visible: statusMessage !== ""
                 Layout.alignment: Qt.AlignVCenter
             }
             Text {
                 text: localizedStatusMessage()
-                color: "white"
+                color: statusBar.labelColor
                 font.pixelSize: 12
                 font.bold: localizedStatusMessage().startsWith(tr("Error"))
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
             }
-            Button {
+            ThemedButton {
                 text: window.activeDiagnosticInProgress
                       ? tr("Diagnosticando...")
                       : tr("Diagnosticar ahora")
                 flat: true
+                palette.window: statusBar.color
                 visible: window.activeFailureContext !== null
                 enabled: !window.activeDiagnosticInProgress
                 onClicked: activeDiagnosticsConsentDialog.open()
@@ -15828,12 +15935,12 @@ Window {
                         implicitHeight: 18
                         radius: 9
                         color: "transparent"
-                        border.color: "white"
+                        border.color: statusBar.labelColor
                         border.width: 1.5
                         Text {
                             anchors.centerIn: parent
                             text: "?"
-                            color: "white"
+                            color: statusBar.labelColor
                             font.bold: true
                             font.pixelSize: 12
                         }
@@ -15841,7 +15948,7 @@ Window {
                     Text {
                         Layout.alignment: Qt.AlignVCenter
                         text: statusAssistantButton.text
-                        color: "white"
+                        color: statusBar.labelColor
                         font.pixelSize: 12
                     }
                 }

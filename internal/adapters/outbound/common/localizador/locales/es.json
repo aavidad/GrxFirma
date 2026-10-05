@@ -1,11 +1,11 @@
 {
   "Conexión segura con navegadores": "Conexión segura con navegadores",
-  "GrxFirma ha instalado su CA local para conectar de forma segura con los portales desde el navegador. Cierra Firefox por completo y vuelve a abrirlo antes de firmar.": "GrxFirma ha instalado su CA local para conectar de forma segura con los portales desde el navegador. Cierra Firefox por completo y vuelve a abrirlo antes de firmar.",
-  "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.",
+  "GrxFirma ha instalado su CA local para conectar de forma segura con los portales desde el navegador. Cierra Firefox por completo y vuelve a abrirlo antes de firmar.": "GrxFirma ha instalado su CA local para conectar de forma segura con los portales desde el navegador. Cierre Firefox por completo y vuelva a abrirlo antes de firmar.",
+  "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierre Firefox por completo y vuelva a abrir GrxFirma; si el problema continúa, compruebe que certutil está instalado.",
   "Detalle técnico: %s": "Detalle técnico: %s",
   "token_settings.title": "Tarjetas y tokens",
-  "token_settings.intro": "Configuración local de controladores PKCS#11 para tarjetas, DNIe y tokens USB compatibles. No garantiza compatibilidad con todos los dispositivos.",
-  "token_settings.unavailable": "Esta función está inactiva en producción y no se puede activar aquí. La edición requiere una compilación de prueba habilitada y el canal IPC local.",
+  "token_settings.intro": "Configuración de los controladores de tarjetas, DNIe y tokens USB. No todos los dispositivos son compatibles.",
+  "token_settings.unavailable": "Las tarjetas y tokens USB solo se pueden configurar en la versión de pruebas.",
   "token_settings.state": "Configuración guardada",
   "token_settings.readonly": "La configuración no es modificable. Revise los permisos y la seguridad del archivo; no se cambiarán automáticamente.",
   "token_settings.load": "Cargar configuración",
@@ -283,8 +283,8 @@
   "Arrancar": "Arrancar",
   "Arrastra aquí un fichero o pulsa para seleccionarlo": "Arrastra aquí un fichero o pulsa para seleccionarlo",
   "Arrastra aquí uno o varios ficheros o pulsa para seleccionarlos": "Arrastra aquí uno o varios ficheros o pulsa para seleccionarlos",
-  "Arrastra o selecciona documentos": "Arrastra o selecciona documentos",
-  "Arrastra o selecciona un PDF": "Arrastra o selecciona un PDF",
+  "Arrastra o selecciona documentos": "Arrastre aquí sus documentos o elíjalos",
+  "Arrastra o selecciona un PDF": "Arrastre aquí un PDF o elíjalo",
   "Arrastra un archivo firmado para verificar": "Arrastra un archivo firmado para verificar",
   "Artefacto a verificar": "Artefacto a verificar",
   "Artefacto de huella esperado: ": "Artefacto de huella esperado: ",
@@ -799,7 +799,7 @@
   "Estado del servicio consultado.": "Estado del servicio consultado.",
   "Estado: ": "Estado: ",
   "Estas preferencias se aplican al construir el payload de firma. Sirven para fijar un baseline más compatible o más permisivo según el entorno.": "Estas preferencias se aplican al construir el payload de firma. Sirven para fijar un baseline más compatible o más permisivo según el entorno.",
-  "Estas preferencias se aplican al preparar una firma nueva si no cambias manualmente la operación, el formato o la política de salida.": "Estas preferencias se aplican al preparar una firma nueva si no cambias manualmente la operación, el formato o la política de salida.",
+  "Estas preferencias se aplican al preparar una firma nueva si no cambias manualmente la operación, el formato o la política de salida.": "Estas preferencias se aplican al preparar una firma nueva si no cambia a mano la operación, el formato o la política de salida.",
   "Estas preferencias solo se usan cuando el formato por defecto está en Auto. Permiten acercar el comportamiento de V2 a la lógica por tipo documental de AutoFirma 1.9.": "Estas preferencias solo se usan cuando el formato por defecto está en Auto. Permiten acercar el comportamiento de V2 a la lógica por tipo documental de AutoFirma 1.9.",
   "Este asistente puede resumir el contexto actual y orientarte antes de exportar una incidencia.": "Este asistente puede resumir el contexto actual y orientarte antes de exportar una incidencia.",
   "Este asistente resume el contexto actual, sugiere los siguientes pasos y deja a mano el soporte técnico sin abrir un chat libre.": "Este asistente resume el contexto actual, sugiere los siguientes pasos y deja a mano el soporte técnico sin abrir un chat libre.",
@@ -1376,7 +1376,7 @@
   "Puedes arrastrar y redimensionar el sello. El backend recibirá coordenadas seguras y normalizadas.": "Puedes arrastrar y redimensionar el sello. El backend recibirá coordenadas seguras y normalizadas.",
   "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.",
   "Puedes pedir al backend que seleccione automáticamente el certificado más adecuado según los filtros visibles.": "Puedes pedir al backend que seleccione automáticamente el certificado más adecuado según los filtros visibles.",
-  "Puedes usar un PNG/JPG como fondo del sello. Si mantienes el texto, se dibujará encima como marca de agua.": "Puedes usar un PNG/JPG como fondo del sello. Si mantienes el texto, se dibujará encima como marca de agua.",
+  "Puedes usar un PNG/JPG como fondo del sello. Si mantienes el texto, se dibujará encima como marca de agua.": "Puede usar una imagen PNG o JPG como fondo del sello. Si mantiene el texto, se dibujará encima como marca de agua.",
   "Puerto:": "Puerto:",
   "Página": "Página",
   "Página %1/%2": "Página %1/%2",
@@ -1750,9 +1750,9 @@
   "URL TSA": "URL TSA",
   "URLs excluidas del proxy:": "URLs excluidas del proxy:",
   "Ubicación": "Ubicación",
-  "Una URL o patrón por línea, por ejemplo:\nlocalhost\n127.0.0.1\n*.dipgra.es": "Una URL o patrón por línea, por ejemplo:\\nlocalhost\\n127.0.0.1\\n*.dipgra.es",
+  "Una URL o patrón por línea, por ejemplo:\nlocalhost\n127.0.0.1\n*.dipgra.es": "Una URL o patrón por línea, por ejemplo:\nlocalhost\n127.0.0.1\n*.dipgra.es",
   "Una URL o patrón por línea, por ejemplo:\\nlocalhost\\n127.0.0.1\\n*.dipgra.es": "Una URL o patrón por línea, por ejemplo:\\nlocalhost\\n127.0.0.1\\n*.dipgra.es",
-  "Usa valores como 1, 2,4-6 o all para indicar páginas válidas.": "Usa valores como 1, 2,4-6 o all para indicar páginas válidas.",
+  "Usa valores como 1, 2,4-6 o all para indicar páginas válidas.": "Use valores como 1, 2,4-6 o all para indicar páginas válidas.",
   "Usar como predeterminado": "Usar como predeterminado",
   "Usar logo GrxFirma": "Usar logo GrxFirma",
   "Usar solo certificados de firma": "Usar solo certificados de firma",
@@ -2497,7 +2497,7 @@
   "No hay certificados utilizables con los filtros actuales": "No hay certificados utilizables con los filtros actuales",
   "No se encontró un almacén compatible. Puedes abrir el gestor e importar el P12/PFX manualmente.": "No se encontró un almacén compatible. Puedes abrir el gestor e importar el P12/PFX manualmente.",
   "No se pudo detectar un navegador preferido.": "No se pudo detectar un navegador preferido.",
-  "Puedes usar un P12/PFX o un bundle PEM solo durante esta sesión, importarlo de forma explícita o abrir el gestor del navegador o del sistema.": "Puedes usar un P12/PFX o un bundle PEM solo durante esta sesión, importarlo de forma explícita o abrir el gestor del navegador o del sistema.",
+  "Puedes usar un P12/PFX o un bundle PEM solo durante esta sesión, importarlo de forma explícita o abrir el gestor del navegador o del sistema.": "Puede usar un P12/PFX o un bundle PEM solo durante esta sesión, importarlo de forma explícita o abrir el gestor del navegador o del sistema.",
   "Retirar temporal": "Retirar temporal",
   "Solo esta sesión": "Solo esta sesión",
   "Usar certificado sin instalar": "Usar certificado sin instalar",
@@ -2637,7 +2637,7 @@
   ,"help.updates.body": "En Configuración puede activar o desactivar el aviso automático. Al iniciar, GrxFirma consulta una vez la última GitHub Release mediante HTTPS; no envía documentos, certificados ni datos de firma y nunca descarga o ejecuta instaladores. También puede usar Acerca de > Comprobar actualizaciones. Si la consulta falla, revise Internet o el proxy y vuelva a intentarlo; la firma local sigue disponible."
   ,"Abre la página oficial de renovación de certificado de persona física de la FNMT.": "Abre la página oficial de renovación de certificado de persona física de la FNMT."
   ,"Abre la vista del PDF y elige una página para preparar el sello.": "Abre la vista del PDF y elige una página para preparar el sello."
-  ,"Arrastra el recuadro sobre el PDF para colocar el sello. Usa la esquina para cambiar su tamaño; la vista se actualiza automáticamente.": "Arrastra el recuadro sobre el PDF para colocar el sello. Usa la esquina para cambiar su tamaño; la vista se actualiza automáticamente."
+  ,"Arrastra el recuadro sobre el PDF para colocar el sello. Usa la esquina para cambiar su tamaño; la vista se actualiza automáticamente.": "Arrastre el recuadro sobre el PDF para colocar el sello. Use la esquina para cambiar su tamaño; la vista se actualiza sola."
   ,"Añadir destinatario público…": "Añadir destinatario público…"
   ,"Caduca pronto": "Caduca pronto"
   ,"Certificados públicos (*.cer *.crt *.pem *.der)": "Certificados públicos (*.cer *.crt *.pem *.der)"
@@ -2870,7 +2870,7 @@
   ,"facturae.item_description": "Descripción del concepto"
   ,"facturae.legal_name": "Razón social"
   ,"facturae.managing": "Órgano gestor (DIR3)"
-  ,"facturae.nav": "FACTURAE Y FACE"
+  ,"facturae.nav": "FACTURACIÓN"
   ,"facturae.payment": "Incluir datos de pago"
   ,"facturae.person_name": "Nombre"
   ,"facturae.post_code": "Código postal"
@@ -2912,7 +2912,7 @@
   "paridad.lote3.eni.certificate": "Certificado para firmar el índice",
   "paridad.lote3.eni.certificates_failed": "No se pudieron cargar los certificados.",
   "paridad.lote3.eni.citizen": "Ciudadano",
-  "paridad.lote3.eni.classification": "Clasificación del procedimiento (SIA)",
+  "paridad.lote3.eni.classification": "Código SIA del procedimiento (obligatorio)",
   "paridad.lote3.eni.create_document": "Crear documento ENI",
   "paridad.lote3.eni.create_file": "Crear expediente ENI",
   "paridad.lote3.eni.created": "Archivo ENI creado: %1",
@@ -4809,7 +4809,7 @@
   "eni.validacion.dir3": "Indique uno o varios códigos DIR3 (una letra mayúscula y ocho cifras), separados por comas. Ejemplo: L01180877.",
   "eni.validacion.identifier": "Use ES_<DIR3>_<AAAA>_<id>, con un id de 1 a 30 caracteres (letras, cifras o guion bajo).",
   "eni.validacion.date": "Elija una fecha y una hora válidas.",
-  "eni.validacion.classification": "Indique un código SIA numérico o <DIR3>_PRO_<id> (hasta 30 caracteres).",
+  "eni.validacion.classification": "Escriba el código SIA: solo cifras (hasta 30) o el formato que le indique su unidad.",
   "eni.validacion.source": "La copia auténtica necesita un identificador ENI de origen válido.",
   "eni.validacion.format": "Use un nombre de formato de hasta 32 caracteres: letras, cifras, punto, signo más o guion.",
   "eni.validacion.text": "El texto supera el límite o contiene caracteres de control.",
@@ -4870,8 +4870,8 @@
   ,"verifactu.limit": "Se ha superado el límite de tamaño o complejidad."
   ,"verifactu.xml": "El XML no es válido. No se permiten DTD ni entidades externas."
   ,"verifactu.root": "El fichero no es un registro Veri*Factu. Elija el XML que generó su programa de facturación."
-  ,"verifactu.structure": "Falta un campo obligatorio o hay elementos fuera de orden, repetidos o no admitidos por el esquema."
-  ,"verifactu.value": "El valor no cumple el formato, la longitud o los valores permitidos por el esquema."
+  ,"verifactu.structure": "El registro tiene un campo que falta, sobra o está mal escrito. Pida a su programa de facturación que lo vuelva a generar. El detalle está en el informe."
+  ,"verifactu.value": "El registro tiene un campo que falta, sobra o está mal escrito. Pida a su programa de facturación que lo vuelva a generar. El detalle está en el informe."
   ,"verifactu.profile": "La firma no es del tipo que exige la AEAT. Vuelva a firmar con el formato «Registro Veri*Factu»."
   ,"verifactu.signed": "El registro ya está firmado."
   ,"verifactu.key": "Se requiere una clave RSA con un certificado vigente y apto para firmar."
@@ -4882,7 +4882,7 @@
   ,"verifactu.previous_missing": "El registro anterior no está en la selección. No se puede comprobar este enlace de la cadena."
   ,"verifactu.signature": "La firma del registro está alterada o no cubre todo el registro. Vuelva a firmarlo con el formato «Registro Veri*Factu»."
   ,"verifactu.certificate": "El certificado no era válido en la fecha del registro."
-  ,"verifactu.trust": "Integridad de firma comprobada. La cualificación, revocación histórica y representación del emisor requieren una comprobación adicional."
+  ,"verifactu.trust": "La firma es correcta. GrxFirma no comprueba si el certificado era cualificado ni si quien firmó representaba al emisor."
   ,"verifactu.unsigned": "El registro no contiene firma."
   ,"verifactu.empty": "La selección no contiene registros XML."
   ,"verifactu.valid": "Registro comprobado sin errores."
@@ -4892,11 +4892,11 @@
   ,"verifactu.folder": "Elegir carpeta de registros"
   ,"verifactu.qr_title": "Leer QR tributario"
   ,"verifactu.qr_url_label": "Pegue la URL del QR o introdúzcala con un escáner"
-  ,"verifactu.qr_notice": "Leer la URL, la imagen o el PDF no envía datos. Consultar AEAT envía únicamente el NIF, número, fecha e importe del QR."
+  ,"verifactu.qr_notice": "Leer la dirección, la imagen o el PDF no envía datos. «Consultar en la AEAT» envía solo el NIF, el número, la fecha y el importe del QR."
   ,"verifactu.qr_read": "Leer datos del QR"
-  ,"verifactu.qr_query": "Consultar AEAT"
-  ,"verifactu.qr_url": "La URL debe usar HTTPS, un dominio y una ruta de cotejo oficiales de la AEAT, sin puerto, usuario ni fragmento."
-  ,"verifactu.qr_params": "El QR debe incluir solo nif, numserie, fecha e importe, una vez cada uno y con formato válido."
+  ,"verifactu.qr_query": "Consultar en la AEAT"
+  ,"verifactu.qr_url": "Esta dirección no es un QR de la AEAT. Copie la dirección completa del QR de la factura (empieza por https://www2.agenciatributaria.gob.es/) o use «Leer desde imagen o PDF»."
+  ,"verifactu.qr_params": "Al QR le faltan datos o tiene datos de más. Debe llevar el NIF del emisor, el número, la fecha y el importe de la factura."
   ,"verifactu.qr_service": "No se ha podido consultar la AEAT en el tiempo disponible o la respuesta no es válida."
   ,"verifactu.qr_nif": "NIF del emisor"
   ,"verifactu.qr_number": "Número y serie"
@@ -6328,4 +6328,17 @@
   ,"winui.selector.nombre_informe_huella": "informe-huella"
   ,"winui.selector.nombre_documento_protegido_firmado": "documento-protegido-firmado"
   ,"winui.selector.nombre_diagnostico": "diagnostico"
+  ,"sign.need_certificate": "Elija un certificado para poder firmar."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "No se puede confirmar quién firmó: el certificado no procede de una entidad de confianza (por ejemplo, es un certificado de pruebas). Pida al firmante que use un certificado reconocido, como el de la FNMT o el DNIe."
+  ,"verificacion.ver_detalles_tecnicos": "Ver detalles técnicos"
+  ,"verificacion.detalle.revocacion.bueno": "no revocado"
+  ,"verificacion.detalle.revocacion.revocado": "revocado"
+  ,"verificacion.detalle.revocacion.desconocido": "sin información de revocación"
+  ,"paridad.lote3.eni.classification_hint": "Es el número del procedimiento en el Sistema de Información Administrativa. Ejemplo: 2345678. Si no lo conoce, pídalo a su unidad de tramitación."
+  ,"paridad.lote3.eni.interested_hint": "NIF o nombre de cada interesado, separados por comas."
+  ,"facturae.required": "obligatorio"
+  ,"facturae.required_legend": "Los campos marcados con * son obligatorios."
+  ,"csc.gui.client_id_ayuda": "Se lo facilita su prestador junto con la dirección del servicio."
+  ,"verificacion.detalle.system_roots": "Certificados raíz del sistema"
+  ,"verificacion.detalle.valor.loaded": "cargados"
 }

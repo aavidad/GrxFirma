@@ -4,8 +4,8 @@
   "No se pudo instalar la CA local de GrxFirma en todos los navegadores. Cierra Firefox por completo y vuelve a abrir GrxFirma; si persiste, comprueba que certutil está instalado.": "Não foi possível instalar a CA local da GrxFirma em todos os navegadores. Feche o Firefox por completo e volte a abrir a GrxFirma; se persistir, verifique se o certutil está instalado.",
   "Detalle técnico: %s": "Detalhe técnico: %s",
   "token_settings.title": "Cartões e tokens",
-  "token_settings.intro": "Configuração local de controladores PKCS#11 para cartões, identidades eletrónicas e tokens USB compatíveis. Não garante compatibilidade com todos os dispositivos.",
-  "token_settings.unavailable": "Esta função está inativa em produção e não pode ser ativada aqui. A edição exige uma compilação de teste habilitada e o canal IPC local.",
+  "token_settings.intro": "Configuração dos controladores de cartões, DNIe e tokens USB. Nem todos os dispositivos são compatíveis.",
+  "token_settings.unavailable": "Os cartões e os tokens USB só podem ser configurados na versão de testes.",
   "token_settings.state": "Configuração guardada",
   "token_settings.readonly": "A configuração não é editável. Verifique as permissões e a segurança do ficheiro; não serão alteradas automaticamente.",
   "token_settings.load": "Carregar configuração",
@@ -2870,7 +2870,7 @@
   ,"facturae.item_description": "Descrição do item"
   ,"facturae.legal_name": "Denominação social"
   ,"facturae.managing": "Órgão gestor (DIR3)"
-  ,"facturae.nav": "FACTURAE E FACE"
+  ,"facturae.nav": "FATURAÇÃO"
   ,"facturae.payment": "Incluir dados de pagamento"
   ,"facturae.person_name": "Nome"
   ,"facturae.post_code": "Código postal"
@@ -2912,7 +2912,7 @@
   "paridad.lote3.eni.certificate": "Certificado para assinar o índice",
   "paridad.lote3.eni.certificates_failed": "Não foi possível carregar os certificados.",
   "paridad.lote3.eni.citizen": "Cidadão",
-  "paridad.lote3.eni.classification": "Classificação do procedimento (SIA)",
+  "paridad.lote3.eni.classification": "Código SIA do procedimento (obrigatório)",
   "paridad.lote3.eni.create_document": "Criar documento ENI",
   "paridad.lote3.eni.create_file": "Criar processo ENI",
   "paridad.lote3.eni.created": "Ficheiro ENI criado: %1",
@@ -4809,7 +4809,7 @@
   "eni.validacion.dir3": "Introduza um ou mais códigos DIR3 (uma letra maiúscula e oito algarismos), separados por vírgulas. Exemplo: L01180877.",
   "eni.validacion.identifier": "Utilize ES_<DIR3>_<AAAA>_<id>, com um id de 1 a 30 caracteres (letras, algarismos ou sublinhados).",
   "eni.validacion.date": "Escolha uma data e uma hora válidas.",
-  "eni.validacion.classification": "Introduza um código SIA numérico ou <DIR3>_PRO_<id> (até 30 caracteres).",
+  "eni.validacion.classification": "Escreva o código SIA: só algarismos (até 30) ou o formato que a sua unidade lhe indicar.",
   "eni.validacion.source": "Uma cópia autêntica precisa de um identificador ENI de origem válido.",
   "eni.validacion.format": "Utilize um nome de formato de até 32 caracteres: letras, algarismos, ponto, sinal de mais ou hífen.",
   "eni.validacion.text": "O texto excede o limite ou contém caracteres de controlo.",
@@ -4870,8 +4870,8 @@
   ,"verifactu.limit": "Foi excedido o limite de tamanho ou complexidade."
   ,"verifactu.xml": "O XML é inválido. Não são permitidos DTD nem entidades externas."
   ,"verifactu.root": "O ficheiro não é um registo Veri*Factu. Escolha o XML gerado pelo seu programa de faturação."
-  ,"verifactu.structure": "Falta um campo obrigatório ou existem elementos fora de ordem, repetidos ou não permitidos pelo esquema."
-  ,"verifactu.value": "O valor não cumpre o formato, o comprimento ou os valores permitidos pelo esquema."
+  ,"verifactu.structure": "O registo tem um campo em falta, a mais ou mal escrito. Peça ao seu programa de faturação que o volte a gerar. O detalhe está no relatório."
+  ,"verifactu.value": "O registo tem um campo em falta, a mais ou mal escrito. Peça ao seu programa de faturação que o volte a gerar. O detalhe está no relatório."
   ,"verifactu.profile": "A assinatura não é do tipo exigido pela AEAT. Assine de novo com o formato «Registo Veri*Factu»."
   ,"verifactu.signed": "O registo já está assinado."
   ,"verifactu.key": "É necessária uma chave RSA com um certificado válido e adequado para assinar."
@@ -4882,7 +4882,7 @@
   ,"verifactu.previous_missing": "O registo anterior não está na seleção. Não é possível verificar esta ligação da cadeia."
   ,"verifactu.signature": "A assinatura do registo foi alterada ou não abrange todo o registo. Assine-o de novo com o formato «Registo Veri*Factu»."
   ,"verifactu.certificate": "O certificado não era válido na data do registo."
-  ,"verifactu.trust": "Integridade da assinatura verificada. A qualificação, revogação histórica e representação do emissor exigem uma verificação adicional."
+  ,"verifactu.trust": "A assinatura está íntegra. O GrxFirma não verifica se o certificado era qualificado nem se quem assinou representava o emitente."
   ,"verifactu.unsigned": "O registo não contém assinatura."
   ,"verifactu.empty": "A seleção não contém registos XML."
   ,"verifactu.valid": "Registo verificado sem erros."
@@ -4892,11 +4892,11 @@
   ,"verifactu.folder": "Escolher pasta de registos"
   ,"verifactu.qr_title": "Ler QR fiscal"
   ,"verifactu.qr_url_label": "Cole o URL do QR ou introduza-o com um leitor"
-  ,"verifactu.qr_notice": "Ler o URL, a imagem ou o PDF não envia dados. Consultar AEAT envia apenas o NIF, número, data e montante do QR."
+  ,"verifactu.qr_notice": "Ler o endereço, a imagem ou o PDF não envia dados. «Consultar na AEAT» envia apenas o NIF, o número, a data e o montante do QR."
   ,"verifactu.qr_read": "Ler dados do QR"
-  ,"verifactu.qr_query": "Consultar a AEAT"
-  ,"verifactu.qr_url": "O URL deve usar HTTPS, um domínio e um caminho de verificação oficiais da AEAT, sem porta, utilizador nem fragmento."
-  ,"verifactu.qr_params": "O QR deve incluir apenas nif, numserie, fecha e importe, uma vez cada e com formato válido."
+  ,"verifactu.qr_query": "Consultar na AEAT"
+  ,"verifactu.qr_url": "Este endereço não é um QR da AEAT. Copie o endereço completo do QR da fatura (começa por https://www2.agenciatributaria.gob.es/) ou use «Ler a partir de imagem ou PDF»."
+  ,"verifactu.qr_params": "Faltam dados ao QR ou tem dados a mais. Deve conter o NIF do emitente e o número, a data e o montante da fatura."
   ,"verifactu.qr_service": "A consulta à AEAT excedeu o tempo disponível ou a resposta é inválida."
   ,"verifactu.qr_nif": "NIF do emissor"
   ,"verifactu.qr_number": "Número e série"
@@ -6328,4 +6328,17 @@
   ,"winui.selector.nombre_informe_huella": "relatorio-hash"
   ,"winui.selector.nombre_documento_protegido_firmado": "documento-protegido-assinado"
   ,"winui.selector.nombre_diagnostico": "diagnostico"
+  ,"sign.need_certificate": "Escolha um certificado para poder assinar."
+  ,"cadena de confianza inválida: el certificado no procede de una entidad de confianza": "Não é possível confirmar quem assinou: o certificado não provém de uma entidade de confiança (por exemplo, é um certificado de teste). Peça ao signatário que use um certificado reconhecido, como o da FNMT ou o cartão de cidadão espanhol (DNIe)."
+  ,"verificacion.ver_detalles_tecnicos": "Ver detalhes técnicos"
+  ,"verificacion.detalle.revocacion.bueno": "não revogado"
+  ,"verificacion.detalle.revocacion.revocado": "revogado"
+  ,"verificacion.detalle.revocacion.desconocido": "sem informação de revogação"
+  ,"paridad.lote3.eni.classification_hint": "É o número do procedimento no Sistema de Informação Administrativa (SIA). Exemplo: 2345678. Se não o souber, peça-o à sua unidade de tramitação."
+  ,"paridad.lote3.eni.interested_hint": "NIF ou nome de cada interessado, separados por vírgulas."
+  ,"facturae.required": "obrigatório"
+  ,"facturae.required_legend": "Os campos marcados com * são obrigatórios."
+  ,"csc.gui.client_id_ayuda": "É-lhe fornecido pelo seu prestador juntamente com o endereço do serviço."
+  ,"verificacion.detalle.system_roots": "Certificados raiz do sistema"
+  ,"verificacion.detalle.valor.loaded": "carregados"
 }
