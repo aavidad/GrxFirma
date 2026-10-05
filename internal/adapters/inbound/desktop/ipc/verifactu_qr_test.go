@@ -80,6 +80,18 @@ func TestVeriFactuIPCReadsQRFromFilesAndImage(t *testing.T) {
 			t.Fatalf("%s: %+v", nombre, r)
 		}
 	}
+	// El código estable deja a WinUI distinguir «no encontrado» (probar la
+	// página siguiente) de cualquier otro fallo (parar) sin leer el texto.
+	if r := leerQRPorIPC(t, m, map[string]any{"imageB64": []byte("no es una imagen")}); r.ErrorCode != "verifactu_qr_image" {
+		t.Fatalf("código imagen: %+v", r)
+	}
+	blanca, e := qrcode.Encode("x", qrcode.Low, 64)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if r := leerQRPorIPC(t, m, map[string]any{"imageB64": blanca}); r.OK || r.ErrorCode == "operation_failed" || r.ErrorCode == "" {
+		t.Fatalf("código QR ajeno: %+v", r)
+	}
 	// Sin visor de PDF configurado, el PDF se rechaza con su propio mensaje.
 	sinVisor := &Manejador{Loc: localizador.Para("es")}
 	if r := leerQRPorIPC(t, sinVisor, map[string]any{"inputPath": pdf}); r.OK || r.Error != m.t("verifactu.qr_pdf") {

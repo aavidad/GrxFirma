@@ -34,7 +34,11 @@ func (m *Manejador) handleVeriFactu(ctx context.Context, action string, raw json
 	if action == "read_verifactu_qr" {
 		qr, e := m.leerQRVeriFactu(ctx, p.URL, p.InputPath, p.ImageB64)
 		if e != nil {
-			return respuesta{Action: action, Error: signer.TraducirErrorVeriFactu(e, func(k string) string { return m.t(k) })}
+			return respuesta{
+				Action:    action,
+				ErrorCode: signer.CodigoErrorVeriFactu(e),
+				Error:     signer.TraducirErrorVeriFactu(e, func(k string) string { return m.t(k) }),
+			}
 		}
 		return respuesta{OK: true, Action: action, Data: qr}
 	}

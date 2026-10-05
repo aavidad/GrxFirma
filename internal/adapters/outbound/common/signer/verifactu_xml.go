@@ -52,6 +52,17 @@ func TraducirErrorVeriFactu(err error, t func(string) string) string {
 	return t("verifactu.input")
 }
 
+// CodigoErrorVeriFactu devuelve la clave del error como código estable de
+// IPC (sin puntos, que los clientes no admiten), para que la interfaz decida
+// sin interpretar el texto traducido: por ejemplo, si prueba la página
+// siguiente de un PDF solo cuando el QR no se ha encontrado.
+func CodigoErrorVeriFactu(err error) string {
+	if p, ok := err.(interface{ LocalizationKey() string }); ok && p.LocalizationKey() != "" {
+		return strings.ReplaceAll(p.LocalizationKey(), ".", "_")
+	}
+	return "verifactu_input"
+}
+
 // Los nombres expandidos y límites se aplican antes de canonicalizar o verificar.
 func vfParse(data []byte) (*vfNode, error) {
 	if len(data) == 0 || len(data) > VeriFactuMaxXMLBytes {
