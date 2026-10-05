@@ -25,6 +25,11 @@ class LegacyDesktopShortcutsContract(unittest.TestCase):
         self.assertIn("StartsWith($_, [System.StringComparison]::OrdinalIgnoreCase)", self.text)
         self.assertIn("Remove-GrxFirmaLegacyDesktopShortcuts -BaseInstallDir $BaseInstallDir", self.text)
 
+    def test_runs_even_with_core_only(self) -> None:
+        call = "Remove-GrxFirmaLegacyDesktopShortcuts -BaseInstallDir $BaseInstallDir"
+        line = next(l for l in self.text.splitlines() if l.strip() == call)
+        self.assertFalse(line.startswith((" ", "\t")), "la limpieza no debe depender de -CoreOnly")
+
     def test_never_touches_the_current_shortcut(self) -> None:
         names_line = next(line for line in self.text.splitlines() if line.strip().startswith("$names = @("))
         self.assertNotIn('"GrxFirma.lnk"', names_line)

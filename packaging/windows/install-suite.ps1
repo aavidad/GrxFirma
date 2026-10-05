@@ -329,8 +329,7 @@ function Remove-GrxFirmaLegacyDesktopShortcuts {
     }
 }
 
-if (-not $CoreOnly) {
-    Remove-GrxFirmaLegacyDesktopShortcuts -BaseInstallDir $BaseInstallDir
-}
+# El instalador NSIS ejecuta este script con -CoreOnly: la limpieza va siempre.
+Remove-GrxFirmaLegacyDesktopShortcuts -BaseInstallDir $BaseInstallDir
 
 Write-Host "Suite instalada en: $BaseInstallDir"
