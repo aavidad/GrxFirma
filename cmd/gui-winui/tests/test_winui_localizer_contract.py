@@ -84,6 +84,8 @@ MACHINE_WORDS = {
     "origin", "timestamp", "yyyy-MM-dd'T'HH:mm:ssK", "FlyoutButton",
     "support", "system", "targets", "tls", "total", "unavailable", "unknown",
     "usable", "va", "valid", "verify", "version", "xades", "xmldsig", "zh",
+    # Marcadores {label} y {value} de winui.selector.etiqueta_valor.
+    "label", "value",
 }
 # Nombres de clases nativas Win32 y funciones importadas; nunca son texto UI.
 WIN32_NAMES = {

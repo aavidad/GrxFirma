@@ -3232,10 +3232,14 @@ public sealed class SignPageViewModel
         Volatile.Read(ref _operationInProgress) != 0;
 
     // No se pudo preparar la vista previa antes de firmar: no se firma y se
-    // dice qué hacer, en lugar de un diagnóstico de fallo.
-    public void ReportVisibleSealPreviewUnavailableBeforeSigning() =>
-        ValidationMessage =
-            Localizer.Text("winui.firmar.sello_sin_vista_previa_antes_de_firmar");
+    // dice qué hacer, en lugar de un diagnóstico de fallo. La página lo
+    // muestra como aviso junto al botón de firmar; aquí se retira el mensaje
+    // anterior para no repetirlo en gris debajo.
+    public string ReportVisibleSealPreviewUnavailableBeforeSigning()
+    {
+        ValidationMessage = string.Empty;
+        return Localizer.Text("winui.firmar.sello_sin_vista_previa_antes_de_firmar");
+    }
 
     public bool NeedsAutomaticVisibleSealPreview =>
         VisibleSealEnabled &&

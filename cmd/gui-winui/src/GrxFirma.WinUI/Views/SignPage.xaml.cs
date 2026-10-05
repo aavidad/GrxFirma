@@ -1134,10 +1134,27 @@ public sealed partial class SignPage : Page
             return;
         }
 
-        if (_portalSealSession is null &&
-            !await EnsureVisibleSealPreviewBeforeSigningAsync(cancellation.Token))
+        // Un segundo clic durante la espera de la vista previa no lanza otra.
+        if (_waitingSealPreviewBeforeSign)
         {
             return;
+        }
+        if (_portalSealSession is null)
+        {
+            bool previewReady;
+            _waitingSealPreviewBeforeSign = true;
+            try
+            {
+                previewReady = await EnsureVisibleSealPreviewBeforeSigningAsync(cancellation.Token);
+            }
+            finally
+            {
+                _waitingSealPreviewBeforeSign = false;
+            }
+            if (!previewReady)
+            {
+                return;
+            }
         }
 
         SignResultPanel.Visibility = Visibility.Collapsed;
@@ -1211,6 +1228,7 @@ public sealed partial class SignPage : Page
         }
     }
 
+    private bool _waitingSealPreviewBeforeSign;
     private static readonly TimeSpan SealPreviewBeforeSignTimeout = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan SealPreviewBeforeSignRetryDelay = TimeSpan.FromMilliseconds(300);
     private const int SealPreviewBeforeSignAttempts = 2;
@@ -1222,10 +1240,15 @@ public sealed partial class SignPage : Page
     private async Task<bool> EnsureVisibleSealPreviewBeforeSigningAsync(
         CancellationToken token)
     {
+        HideSealPreviewBeforeSignNotice();
         if (!ViewModel.NeedsVisibleSealPreviewBeforeSigning())
         {
             return true;
         }
+        // La espera puede durar hasta el plazo: se muestra y se anuncia.
+        ShowSealPreviewBeforeSignNotice(
+            InfoBarSeverity.Informational,
+            SealUiCatalog.Text(Localizer.Language, "sign.seal.preview_loading_before_sign"));
         bool ready;
         try
         {
@@ -1245,6 +1268,7 @@ public sealed partial class SignPage : Page
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
+            HideSealPreviewBeforeSignNotice();
             return false;
         }
         catch (Exception)
@@ -1253,13 +1277,20 @@ public sealed partial class SignPage : Page
         }
         if (ready)
         {
+            HideSealPreviewBeforeSignNotice();
             return true;
         }
         if (!_isSubscribed || XamlRoot is null)
         {
+            HideSealPreviewBeforeSignNotice();
             return false;
         }
-        ViewModel.ReportVisibleSealPreviewUnavailableBeforeSigning();
+        // El aviso queda junto al botón de firmar, en color de advertencia, y
+        // el botón al que va el foco lo lleva como descripción mientras siga
+        // vigente.
+        var unavailable = ViewModel.ReportVisibleSealPreviewUnavailableBeforeSigning();
+        ShowSealPreviewBeforeSignNotice(InfoBarSeverity.Warning, unavailable);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetFullDescription(VisibleSealPreviewButton, unavailable);
         AdvancedSignExpander.IsExpanded = true;
         VisibleSealPreviewButton.UpdateLayout();
         VisibleSealPreviewButton.StartBringIntoView(new BringIntoViewOptions
@@ -1272,6 +1303,25 @@ public sealed partial class SignPage : Page
             AdvancedSignExpander.Focus(FocusState.Programmatic);
         }
         return false;
+    }
+
+    private void ShowSealPreviewBeforeSignNotice(InfoBarSeverity severity, string message)
+    {
+        SealPreviewBeforeSignNotice.Severity = severity;
+        SealPreviewBeforeSignNotice.Message = message;
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(SealPreviewBeforeSignNotice, message);
+        SealPreviewBeforeSignNotice.IsOpen = true;
+        var peer = FrameworkElementAutomationPeer.FromElement(SealPreviewBeforeSignNotice) ??
+            FrameworkElementAutomationPeer.CreatePeerForElement(SealPreviewBeforeSignNotice);
+        peer?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+    }
+
+    private void HideSealPreviewBeforeSignNotice()
+    {
+        SealPreviewBeforeSignNotice.IsOpen = false;
+        SealPreviewBeforeSignNotice.Message = string.Empty;
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(SealPreviewBeforeSignNotice, string.Empty);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetFullDescription(VisibleSealPreviewButton, string.Empty);
     }
 
     private void ShowSignResult(
@@ -1694,6 +1744,12 @@ public sealed partial class SignPage : Page
         VisibleSealDrawToggle.IsEnabled = ViewModel.CanDrawVisibleSealArea || VisibleSealDrawToggle.IsChecked == true;
         // En el editor del portal el botón de firmar sigue a la vista del PDF.
         _portalUpdateNavigation?.Invoke();
+        // El aviso de vista previa no disponible se retira en cuanto deja de
+        // ser cierto (vista cargada o sello desactivado).
+        if (SealPreviewBeforeSignNotice.IsOpen &&
+            SealPreviewBeforeSignNotice.Severity == InfoBarSeverity.Warning &&
+            !ViewModel.NeedsVisibleSealPreviewBeforeSigning())
+            HideSealPreviewBeforeSignNotice();
         if (args.PropertyName is nameof(SignPageViewModel.VisibleSealPreviewImage)
             or nameof(SignPageViewModel.InputDisplayName)
             or nameof(SignPageViewModel.VisibleSealEnabled))
