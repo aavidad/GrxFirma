@@ -134,10 +134,9 @@
                                 <RowDefinition x:Name="ContainerRow" Height="Auto" />
                             </Grid.RowDefinitions>
                             <ComboBox
-                                AutomationProperties.Name="Perfil criptográfico"
-                                AutomationProperties.HelpText="Perfil de protección"
+                                AutomationProperties.Name="Nivel de protección"
                                 DisplayMemberPath="Label"
-                                Header="Perfil criptográfico"
+                                Header="Nivel de protección"
                                 IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
                                 ItemsSource="{x:Bind ViewModel.Profiles}"
                                 SelectedItem="{x:Bind ViewModel.SelectedProfile, Mode=TwoWay}"
@@ -156,12 +155,12 @@
                         </Grid>
 
                         <InfoBar
-                            AutomationProperties.Name="Aviso sobre CMS EncryptedData"
+                            AutomationProperties.Name="Protección con clave"
                             IsClosable="False"
-                            IsOpen="True"
-                            Message="CMS EncryptedData usa una clave AES-256 transitoria en Base64. Al proteger se abrirán dos diálogos nativos seguros para introducirla y confirmarla. No emplea certificados destinatarios y la clave nunca se guarda ni se envía a registros."
+                            IsOpen="{x:Bind ViewModel.IsEncryptedDataSelected, Mode=OneWay}"
+                            Message="Este formato no usa destinatarios. Al pulsar «Proteger documento», escriba dos veces una clave AES de 256 bits en Base64 (44 caracteres). GrxFirma no la guarda ni la envía."
                             Severity="Informational"
-                            Title="Protección con clave efímera" />
+                            Title="Protección con clave" />
 
                         <StackPanel
                             x:Name="ProtectEncryptedDataSecretFields"
@@ -181,7 +180,7 @@
                                 TextWrapping="Wrap" />
                             <TextBlock
                                 Style="{StaticResource PageSubtitleTextStyle}"
-                                Text="Seleccione quién podrá recuperar el documento. CMS EncryptedData usa exclusivamente la clave efímera y no necesita destinatarios."
+                                Text="Elija quién podrá abrir el documento protegido. Con el formato de clave no hacen falta destinatarios."
                                 TextWrapping="Wrap" />
                             <ListView
                                 x:Name="RecipientsList"
@@ -208,6 +207,12 @@
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
+                            <TextBlock
+                                AutomationProperties.LiveSetting="Polite"
+                                Foreground="{ThemeResource AppMutedTextBrush}"
+                                Text="No hay destinatarios para este nivel de protección. Pruebe con «Alta seguridad» o añada el certificado público de la persona que abrirá el documento."
+                                TextWrapping="Wrap"
+                                Visibility="{x:Bind ViewModel.ShowsNoRecipientsHint, Mode=OneWay}" />
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Button
                                     AutomationProperties.Name="Compartir mi certificado público"
@@ -330,7 +335,7 @@
                             Text="Desproteger documento" />
                         <TextBlock
                             Style="{StaticResource PageSubtitleTextStyle}"
-                            Text="La aplicación usará un certificado del almacén local o solicitará la clave efímera cuando el contenedor sea CMS EncryptedData."
+                            Text="GrxFirma usará su certificado de este equipo o, si el documento se protegió con una clave, se la pedirá."
                             TextWrapping="Wrap" />
 
                         <Grid ColumnSpacing="8" RowSpacing="8">

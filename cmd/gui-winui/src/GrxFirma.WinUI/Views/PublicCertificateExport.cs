@@ -70,6 +70,21 @@ internal static class PublicCertificateExport
             }
         }
         if (string.IsNullOrWhiteSpace(certificateId)) return;
+        // Antes de preguntar dónde guardar se comprueba que el certificado
+        // sirve para recibir documentos protegidos (sin ruta no se escribe nada).
+        var check = await operations.ExportPublicCertificateAsync(new()
+        {
+            CertificateId = certificateId,
+            OutputPath = string.Empty,
+            Format = "der",
+        }, cancellationToken);
+        if (!check.IsSuccess || check.Data is null || !check.Data.EncryptionSuitable)
+        {
+            await NoticeAsync(xamlRoot, check.IsSuccess
+                ? Localizer.Text("winui.certificados.el_motor_no_confirmo_el_archivo_del")
+                : check.SafeUserMessage);
+            return;
+        }
         var path = await picker.PickSaveFileAsync(
             SaveFilePickerProfile.PublicCertificate, "certificado-publico.cer", cancellationToken);
         if (string.IsNullOrWhiteSpace(path)) return;

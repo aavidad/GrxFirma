@@ -1101,7 +1101,18 @@ public sealed class ProtectPageViewModel
         SetSelectedRecipients([]);
         IsEncryptedDataSelected =
             SelectedContainer?.RequiresTransientSecret == true;
+        ShowsNoRecipientsHint =
+            !IsEncryptedDataSelected && VisibleRecipients.Count == 0;
     }
+
+    // Estado vacío de la lista: sin él, la lista salía en blanco sin explicar
+    // qué hacer (recorrido Windows 0.0.117, M6).
+    public bool ShowsNoRecipientsHint
+    {
+        get => _showsNoRecipientsHint;
+        private set => SetProperty(ref _showsNoRecipientsHint, value);
+    }
+    private bool _showsNoRecipientsHint;
 
     private string? ValidateBeforeProtect(
         byte[]? transientSecret,

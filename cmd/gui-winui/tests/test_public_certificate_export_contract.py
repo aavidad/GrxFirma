@@ -28,6 +28,9 @@ class PublicCertificateExportContract(unittest.TestCase):
         shared = read_with_catalog(root / "Views/PublicCertificateExport.cs")
         self.assertIn("SaveFilePickerProfile.PublicCertificate", shared)
         self.assertIn("ExportPublicCertificateAsync", shared)
+        # Recorrido 0.0.117 (M6): se comprueba antes de abrir «Guardar como».
+        check = shared.index("OutputPath = string.Empty,")
+        self.assertLess(check, shared.index("picker.PickSaveFileAsync("))
         self.assertIn("Es su certificado público: puede enviarlo sin riesgo.", shared)
 
     def test_json_contract(self):
