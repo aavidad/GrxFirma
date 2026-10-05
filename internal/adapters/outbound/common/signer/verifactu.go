@@ -177,7 +177,7 @@ func vfCheckSignature(data []byte, n *vfNode, at time.Time) []vfProblem {
 		signatureRoot = n.child(n.name.Space, "Evento")
 	}
 	sig := signatureRoot.child(nsXMLDSig, "Signature")
-	if sig == nil {
+	if sig == nil || !vfSignatureEnvelopeClean(sig) {
 		return fail("profile")
 	}
 	info := sig.child(nsXMLDSig, "SignedInfo")
@@ -260,6 +260,45 @@ func vfCheckSignature(data []byte, n *vfNode, at time.Time) []vfProblem {
 	// La integridad no acredita representación, cualificación TSL ni revocación histórica.
 	return []vfProblem{{"Signature", "verifactu.trust", "warning"}}
 }
+
+// vfAEATNamespacePrefix agrupa los espacios de nombres de la AEAT para
+// Veri*Factu (SuministroInformacion, EventosSIF y los demás de tike/cont/ws).
+const vfAEATNamespacePrefix = "https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/"
+
+// vfSignatureEnvelopeClean comprueba que la firma no transporta registros.
+// La transformación enveloped excluye todo el subárbol de ds:Signature del
+// resumen del registro, así que un RegistroAlta inyectado en ds:Object no
+// invalidaría la firma y otro lector podría tomarlo por el registro firmado.
+// Se exige un único ds:Object con solo xades:QualifyingProperties y ningún
+// elemento de los espacios de nombres de la AEAT en todo el subárbol.
+func vfSignatureEnvelopeClean(sig *vfNode) bool {
+	objects := 0
+	for _, c := range sig.children {
+		if c.name.Space != nsXMLDSig || c.name.Local != "Object" {
+			continue
+		}
+		objects++
+		if len(c.children) != 1 || c.children[0].name.Space != nsXAdES ||
+			c.children[0].name.Local != "QualifyingProperties" || strings.TrimSpace(c.text.String()) != "" {
+			return false
+		}
+	}
+	if objects != 1 {
+		return false
+	}
+	pending := []*vfNode{sig}
+	for len(pending) > 0 {
+		n := pending[len(pending)-1]
+		pending = pending[:len(pending)-1]
+		if n.name.Space == VeriFactuNamespace || n.name.Space == VeriFactuEventNamespace ||
+			strings.HasPrefix(n.name.Space, vfAEATNamespacePrefix) {
+			return false
+		}
+		pending = append(pending, n.children...)
+	}
+	return true
+}
+
 func vfAttribute(n *vfNode, name string) string {
 	if n != nil {
 		for _, a := range n.attrs {

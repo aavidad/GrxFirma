@@ -131,6 +131,32 @@ func TestVeriFactuSignProfileAndTampering(t *testing.T) {
 	if vfCheckSignature(tampered, n, time.Now())[0].Level != "error" {
 		t.Fatal("accepted altered signature")
 	}
+	// Un registro inyectado dentro de la firma queda fuera del resumen
+	// (transformación enveloped); la verificación debe rechazarlo igualmente.
+	otro := vfTestXML("RegistroAlta", "99999999/X", "", time.Now().UTC().Format(time.RFC3339))
+	firmado, _ := vfParse(signed.Data)
+	sigNode := firmado.child(nsXMLDSig, "Signature")
+	objectNode := sigNode.child(nsXMLDSig, "Object")
+	cierreObjeto := bytes.LastIndex(signed.Data[:objectNode.end], []byte("</"))
+	for nombre, inyectado := range map[string][]byte{
+		"en ds:Object":            concatenarBytes(signed.Data[:cierreObjeto], otro, signed.Data[cierreObjeto:]),
+		"en ds:Object nuevo":      concatenarBytes(signed.Data[:objectNode.end], []byte(`<ds:Object xmlns:ds="`+nsXMLDSig+`">`), otro, []byte(`</ds:Object>`), signed.Data[objectNode.end:]),
+		"en QualifyingProperties": bytes.Replace(signed.Data, []byte("</xades:QualifyingProperties>"), append(append([]byte{}, otro...), []byte("</xades:QualifyingProperties>")...), 1),
+	} {
+		if bytes.Equal(inyectado, signed.Data) {
+			t.Fatalf("%s: no se pudo preparar la inyección", nombre)
+		}
+		ni, err := vfParse(inyectado)
+		if err != nil {
+			t.Fatalf("%s: %v", nombre, err)
+		}
+		if p := vfCheckSignature(inyectado, ni, time.Now()); len(p) != 1 || p[0].Level != "error" {
+			t.Fatalf("%s: registro inyectado aceptado: %+v", nombre, p)
+		}
+		if ValidarRegistrosVeriFactu(context.Background(), map[string][]byte{"record.xml": inyectado}).Valid {
+			t.Fatalf("%s: validación aceptó el registro inyectado", nombre)
+		}
+	}
 	// El perfil no firma envolturas superiores aunque contengan un registro válido.
 	job.Document.Content = append(append([]byte("<RegistroFactura>"), data...), []byte("</RegistroFactura>")...)
 	if _, e = NewVeriFactuSigner().Sign(context.Background(), job, &LocalSigningKey{Signer: priv, Certificate: cert}); e == nil {
@@ -342,4 +368,12 @@ func TestVeriFactuQRStrictAndQuery(t *testing.T) {
 	if _, e := vfQuery(context.Background(), client, qr); e == nil {
 		t.Fatal("accepted redirect")
 	}
+}
+
+func concatenarBytes(partes ...[]byte) []byte {
+	var out []byte
+	for _, p := range partes {
+		out = append(out, p...)
+	}
+	return out
 }
