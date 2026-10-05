@@ -19,10 +19,17 @@ concreta.
   alternativa; instalador NSIS por usuario.
 - Linux: interfaz Qt, paquete `.deb` y archivo `tar.gz`.
 - Android 8.0 (API 26) o posterior: aplicación nativa en Kotlin.
-- macOS e iOS: no hay versiones. No dispongo de un Mac ni de un iPhone para
-  compilarlas y probarlas. Si quieres que existan, préstame o regálame uno y
-  me pongo con ello 😄 (avidad@dipgra.es). En el repositorio queda código de
-  partida sin validar.
+- macOS e iOS: no hay versiones publicadas. No dispongo de un Mac ni de un
+  iPhone para compilarlas y probarlas. Si quieres que existan, préstame o
+  regálame uno y me pongo con ello 😄 (avidad@dipgra.es). Hay trabajo hecho,
+  pero sin probar ni terminar (estimación aproximada):
+  - macOS: falta un 25 %. El motor, el acceso al llavero y el paquete `.pkg`
+    ya compilan en la integración continua; falta probarlo en un Mac real,
+    corregir lo que salga y firmarlo y notarizarlo con Apple.
+  - iOS: falta un 65 %. Hay una aplicación básica de firma y verificación con
+    extensión para compartir; falta ponerla al nivel de la de Android
+    (lotes, DNIe por NFC, sello visible, preferencias…), probarla en un
+    iPhone y publicarla en la App Store.
 
 ## Funciones principales
 
