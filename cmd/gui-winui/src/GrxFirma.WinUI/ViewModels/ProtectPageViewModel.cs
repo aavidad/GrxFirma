@@ -802,10 +802,17 @@ public sealed class ProtectPageViewModel
             ProtectResultMessage = encryptedData
                 ? Localizer.Format("winui.proteger.proteccion_cms_encrypteddata_completada",
                     SafeFileName(outputPath))
-                : Localizer.Format(signToo
-                        ? "winui.proteger.proteccion_firmada_completada_para"
-                        : "winui.proteger.proteccion_completada_para_destinatario",
-                    result.Data.RecipientCount, SafeFileName(outputPath));
+                : result.Data.RecipientCount == 1
+                    // Primero para quién y después el fichero: que el nombre
+                    // del fichero no se lea como un destinatario.
+                    ? Localizer.Format(signToo
+                            ? "winui.proteger.proteccion_firmada_un_destinatario"
+                            : "winui.proteger.proteccion_completada_un_destinatario",
+                        SafeFileName(outputPath))
+                    : Localizer.Format(signToo
+                            ? "winui.proteger.proteccion_firmada_completada_para"
+                            : "winui.proteger.proteccion_completada_para_destinatario",
+                        result.Data.RecipientCount, SafeFileName(outputPath));
             ProtectValidationMessage =
                 encryptedData
                     ? Localizer.Text("winui.proteger.el_documento_protegido_esta_listo")
@@ -930,9 +937,17 @@ public sealed class ProtectPageViewModel
                     "UNPROTECTED_OUTPUT_NOT_FOUND");
             }
 
-            _unprotectOutputPath = result.Data.OutputPath;
+            // Como en Proteger, se pregunta dónde guardar. El motor ya lo ha
+            // escrito junto al contenedor sin sobrescribir nada; si se elige
+            // otro destino se mueve allí, y si no, queda donde está.
+            _unprotectOutputPath = await ChooseUnprotectedDestinationAsync(
+                result.Data.OutputPath,
+                string.IsNullOrWhiteSpace(result.Data.DocumentName)
+                    ? SafeFileName(result.Data.OutputPath)
+                    : result.Data.DocumentName,
+                operationCancellation.Token);
             UnprotectResultMessage =
-                Localizer.Format("winui.proteger.documento_recuperado_como", SafeFileName(result.Data.OutputPath));
+                Localizer.Format("winui.proteger.documento_recuperado_en", _unprotectOutputPath);
             UnprotectValidationMessage =
                 Localizer.Text("winui.proteger.la_desproteccion_termino_correctamente");
             UpdateCommandStates();
@@ -970,6 +985,39 @@ public sealed class ProtectPageViewModel
             {
                 EndOperation(operationCancellation);
             }
+        }
+    }
+
+    private async Task<string> ChooseUnprotectedDestinationAsync(
+        string writtenPath,
+        string suggestedName,
+        CancellationToken cancellationToken)
+    {
+        string? chosen;
+        try
+        {
+            chosen = await _filePicker.PickSaveFileAsync(
+                SaveFilePickerProfile.UnprotectedDocument,
+                suggestedName,
+                cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return writtenPath;
+        }
+        if (string.IsNullOrWhiteSpace(chosen) || PathsEqual(chosen, writtenPath))
+        {
+            return writtenPath;
+        }
+        try
+        {
+            // El diálogo ya ha pedido confirmación si el destino existía.
+            File.Move(writtenPath, chosen, overwrite: true);
+            return chosen;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return writtenPath;
         }
     }
 
@@ -1110,9 +1158,17 @@ public sealed class ProtectPageViewModel
     public bool ShowsNoRecipientsHint
     {
         get => _showsNoRecipientsHint;
-        private set => SetProperty(ref _showsNoRecipientsHint, value);
+        private set
+        {
+            if (SetProperty(ref _showsNoRecipientsHint, value))
+                RaisePropertyChanged(nameof(ShowsRecipientsList));
+        }
     }
     private bool _showsNoRecipientsHint;
+
+    // Con el estado vacío la lista se oculta: antes quedaba una caja vacía
+    // de unos 130 px encima del aviso (recorrido Windows 0.0.118, B7).
+    public bool ShowsRecipientsList => !_showsNoRecipientsHint;
 
     private string? ValidateBeforeProtect(
         byte[]? transientSecret,

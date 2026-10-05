@@ -1736,7 +1736,9 @@
   "report.signer.identifier",
   "report.signer.organization",
   "report.technical.issuer_dn",
-  "report.technical.subject_dn"
+  "report.technical.subject_dn",
+  "winui.selector.documento_recuperado",
+  "winui.selector.nombre_documento_recuperado"
  ],
  "it": [
   " + base64",
@@ -2327,7 +2329,9 @@
   "✅ Conectores de navegador reinstalados.",
   "🗂️  Formato automático por tipo de documento",
   "report.signer.identifier",
-  "report.technical.subject_dn"
+  "report.technical.subject_dn",
+  "winui.selector.documento_recuperado",
+  "winui.selector.nombre_documento_recuperado"
  ],
  "va": [
   " + base64",
