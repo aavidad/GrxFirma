@@ -47,6 +47,8 @@ Item {
             fuzzyCompare(rect.w, 0.5, 1e-9)
             fuzzyCompare(rect.h, 0.5, 1e-9)
             compare(feedback.signalArguments[0][0], "sign.seal.draw_applied")
+            // Soltar el ratón termina el modo de dibujo, como Intro.
+            compare(finished.count, 1)
         }
         function test_drag_outside_page_is_clamped() {
             mousePress(area, 100, 100)
@@ -63,6 +65,7 @@ Item {
             mousePress(area, 100, 100)
             mouseRelease(area, 105, 105)
             compare(committed.count, 0)
+            compare(finished.count, 0)
             compare(feedback.signalArguments[0][0], "sign.seal.draw_too_small")
         }
         function test_escape_discards_drag_until_next_press() {

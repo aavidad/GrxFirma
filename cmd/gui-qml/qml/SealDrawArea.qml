@@ -126,7 +126,8 @@ Item {
             if (!drawArea.drawing) return
             drawArea.secondX = Math.max(0, Math.min(1, mouse.x / width))
             drawArea.secondY = Math.max(0, Math.min(1, mouse.y / height))
-            drawArea.confirm()
+            // Al soltar termina el modo, igual que con Intro: sale la ayuda y el botón deja de estar pulsado.
+            if (drawArea.confirm()) drawArea.finished()
         }
         onCanceled: drawArea.cancel()
     }
