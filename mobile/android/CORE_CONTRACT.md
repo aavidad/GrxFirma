@@ -173,6 +173,13 @@ Android oficial externa al repositorio.
 El perfil predeterminado es `baseline`. Para T/LT/LTA exige `options.tsaURL`;
 B con TSA produce T. La fachada rechaza credenciales, fragmentos, esquemas
 ajenos a HTTP(S), puertos inválidos y perfiles que el formato no genera.
+La TSA solo la configura la persona usuaria. Se admite `http` por
+compatibilidad con TSA públicas como la de la FNMT y con TSA internas de la
+organización; de la respuesta RFC 3161 se comprueban la firma, la huella y
+el nonce. La red del núcleo Go (TSA, OCSP, CRL) no pasa por la pila de
+Java, así que
+`usesCleartextTraffic=false` del manifiesto Android no la limita: las reglas
+de esquema, credenciales y redirecciones son las de la fachada.
 PAdES no admite contrafirma ni LTA; XAdES no admite LT/LTA en este motor.
 CAdES usa los firmadores comunes de cofirma, contrafirma, TSA y revocación.
 El sellado CAdES-T conserva los firmantes y los atributos de contrafirma.

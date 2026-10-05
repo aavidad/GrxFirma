@@ -272,7 +272,8 @@ sesiones.
 ## Controles de seguridad
 
 - solo permisos NFC e `INTERNET`; este último permite la TSA y obtener evidencias LT/LTA, sin permisos de almacenamiento amplios;
-- TSA HTTP(S) elegida por la persona y validada sin credenciales ni fragmento; los controles Android generales conservan la prohibición de tráfico en claro, mientras el cliente Go admite HTTP como el motor de escritorio;
+- la TSA solo la configura la persona usuaria. Se valida sin credenciales ni fragmento y admite HTTP además de HTTPS por compatibilidad con TSA públicas que se usan por HTTP, como la de la FNMT, y con TSA internas de la organización. Antes de incorporar la respuesta RFC 3161 se comprueban su firma, la huella y el nonce;
+- `usesCleartextTraffic=false` (configuración de seguridad de red de Android) solo afecta a las bibliotecas de red de Java y Kotlin. El núcleo Go abre sus propias conexiones y no lo tiene en cuenta: la TSA en HTTP y las consultas de revocación (OCSP y CRL, normalmente en HTTP) salen por él. Las reglas de esquema, credenciales y redirecciones (la TSA no puede redirigir a otro origen) las aplica el núcleo, no esa opción de Android;
 - copias de seguridad y transferencia de datos deshabilitadas;
 - documentos abiertos exclusivamente mediante URI `content://`;
 - permisos SAF de alcance transitorio, sin retención entre sesiones;
