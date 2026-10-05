@@ -29,3 +29,21 @@ public sealed class EniGenerationResult
     [JsonPropertyName("outputPath")] public string OutputPath { get; init; } = "";
     [JsonPropertyName("documents")] public int Documents { get; init; }
 }
+
+public sealed class VeriFactuDetectionResult
+{
+    [JsonPropertyName("inputPath")] public string InputPath { get; init; } = "";
+    [JsonPropertyName("isVerifactu")] public bool IsVerifactu { get; init; }
+}
+public sealed class VeriFactuQrResult
+{
+    [JsonPropertyName("url")] public string Url { get; init; } = "";
+    [JsonPropertyName("nif")] public string Nif { get; init; } = "";
+    [JsonPropertyName("numserie")] public string Number { get; init; } = "";
+    [JsonPropertyName("fecha")] public string Date { get; init; } = "";
+    [JsonPropertyName("importe")] public string Amount { get; init; } = "";
+}
+public sealed class VeriFactuQrQueryResult
+{
+    [JsonPropertyName("response")] public System.Text.Json.JsonElement Response { get; init; }
+}
