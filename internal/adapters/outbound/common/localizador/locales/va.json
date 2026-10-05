@@ -5154,4 +5154,6 @@
   ,"verificacion.detalle.revocacion.desconocido": "sense informació de revocació"
   ,"paridad.lote3.eni.classification_hint": "És el número del procediment en el Sistema d’Informació Administrativa (SIA). Exemple: 2345678. Si no el coneixeu, demaneu-lo a la vostra unitat de tramitació."
   ,"paridad.lote3.eni.interested_hint": "NIF o nom de cada persona interessada, separats per comes."
+  ,"facturae.required": "obligatori"
+  ,"facturae.required_legend": "Els camps marcats amb * són obligatoris."
 }

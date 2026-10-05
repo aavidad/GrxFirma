@@ -5154,4 +5154,6 @@
   ,"verificacion.detalle.revocacion.desconocido": "无吊销信息"
   ,"paridad.lote3.eni.classification_hint": "这是该程序在行政信息系统（SIA）中的编号。示例：2345678。如果不知道，请向您的办理单位索取。"
   ,"paridad.lote3.eni.interested_hint": "每位利害关系人的税号或姓名，用逗号分隔。"
+  ,"facturae.required": "必填"
+  ,"facturae.required_legend": "标有 * 的字段为必填项。"
 }

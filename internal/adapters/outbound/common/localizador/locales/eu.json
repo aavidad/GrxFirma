@@ -5154,4 +5154,6 @@
   ,"verificacion.detalle.revocacion.desconocido": "baliogabetzeari buruzko informaziorik ez"
   ,"paridad.lote3.eni.classification_hint": "Prozeduraren zenbakia da Administrazio Informazioko Sisteman (SIA). Adibidea: 2345678. Ez badakizu, eskatu zure izapidetze-unitateari."
   ,"paridad.lote3.eni.interested_hint": "Interesdun bakoitzaren IFZa edo izena, komaz bereizita."
+  ,"facturae.required": "derrigorrezkoa"
+  ,"facturae.required_legend": "* ikurra duten eremuak derrigorrezkoak dira."
 }

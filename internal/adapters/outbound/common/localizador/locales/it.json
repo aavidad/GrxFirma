@@ -5154,4 +5154,6 @@
   ,"verificacion.detalle.revocacion.desconocido": "nessuna informazione di revoca"
   ,"paridad.lote3.eni.classification_hint": "È il numero del procedimento nel Sistema di Informazione Amministrativa (SIA). Esempio: 2345678. Se non lo conosce, lo chieda alla sua unità di gestione."
   ,"paridad.lote3.eni.interested_hint": "Codice fiscale o nome di ciascun interessato, separati da virgole."
+  ,"facturae.required": "obbligatorio"
+  ,"facturae.required_legend": "I campi contrassegnati con * sono obbligatori."
 }

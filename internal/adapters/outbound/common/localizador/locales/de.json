@@ -5154,4 +5154,6 @@
   ,"verificacion.detalle.revocacion.desconocido": "keine Widerrufsinformationen"
   ,"paridad.lote3.eni.classification_hint": "Die Nummer des Verfahrens im Verwaltungsinformationssystem (SIA). Beispiel: 2345678. Wenn Sie sie nicht kennen, fragen Sie Ihre zuständige Bearbeitungsstelle."
   ,"paridad.lote3.eni.interested_hint": "Steuer-ID oder Name jeder beteiligten Person, durch Kommas getrennt."
+  ,"facturae.required": "Pflichtfeld"
+  ,"facturae.required_legend": "Mit * gekennzeichnete Felder sind Pflichtfelder."
 }

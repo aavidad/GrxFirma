@@ -63,6 +63,9 @@ TestCase {
         fake.verifactuQRFinished("read_verifactu_qr", true, {url: "https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=89890001K&numserie=12345678-G33&fecha=01-09-2024&importe=241.4", nif: "89890001K", numserie: "12345678-G33", fecha: "01-09-2024", importe: "241.4"}, "")
         const area = findChild(panel, "qrResultArea")
         verify(area.text.indexOf("12345678-G33") >= 0)
+        // Importe con el formato del idioma de la aplicación.
+        // (el cuadro de texto convierte el espacio duro en espacio normal).
+        verify(area.text.replace(/\u00a0|\u202f/g, " ").indexOf(panel.amountText("241.4", true).replace(/\u00a0|\u202f/g, " ")) >= 0)
         compare(fake.qrQueries, 0)
         const query = findChild(panel, "qrQueryButton")
         verify(query.enabled)
@@ -85,6 +88,17 @@ TestCase {
         compare(area.text, "verifactu.qr_aeat_found")
         fake.verifactuQRFinished("query_verifactu_qr", true, {response: {otro: 1}}, "")
         compare(area.text, "verifactu.qr_aeat_unknown")
+    }
+    function test_messages_are_painted_from_keys() {
+        fake.facturaeCreated(false, {}, "facturae.error.dir3")
+        panel.translate = function(key) { return "EN:" + key }
+        compare(panel.statusText, "EN:facturae.error.dir3")
+        panel.translate = function(key) { return key }
+        // Los mensajes que llegan ya traducidos del motor se retiran al cambiar de idioma.
+        fake.verifactuQRFinished("read_verifactu_qr", false, {}, "texto del motor")
+        compare(findChild(panel, "qrResultArea").text, "texto del motor")
+        panel.localeName = "en"
+        compare(findChild(panel, "qrResultArea").text, "")
     }
     function test_empty_state_before_checking_records() {
         compare(findChild(panel, "verifactuSummary").text, "verifactu.empty_state")

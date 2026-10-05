@@ -5154,4 +5154,6 @@
   ,"verificacion.detalle.revocacion.desconocido": "sin información de revocación"
   ,"paridad.lote3.eni.classification_hint": "Es el número del procedimiento en el Sistema de Información Administrativa. Ejemplo: 2345678. Si no lo conoce, pídalo a su unidad de tramitación."
   ,"paridad.lote3.eni.interested_hint": "NIF o nombre de cada interesado, separados por comas."
+  ,"facturae.required": "obligatorio"
+  ,"facturae.required_legend": "Los campos marcados con * son obligatorios."
 }

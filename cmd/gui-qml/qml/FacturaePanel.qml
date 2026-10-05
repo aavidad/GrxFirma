@@ -17,14 +17,53 @@ Item {
     property var reportSaver
     property var translate: function(key) { return key }
     property bool busy: false
-    property string statusText: ""
+    // Idioma de la aplicación: formato del importe y limpieza de mensajes al cambiarlo.
+    property string localeName: ""
+    // Los mensajes propios se guardan como clave y se traducen al pintarse; los que
+    // llegan ya traducidos del motor se retiran si cambia el idioma.
+    property string statusKey: ""
+    property string statusArg: ""
+    property bool statusArgFromBackend: false
+    readonly property string statusText: statusKey !== "" ? tr(statusKey).replace("%1", statusArg) : ""
     property var invoiceResult: null
     property var verifactuResult: null
-    property string verifactuStatus: ""
+    property string verifactuStatusKey: ""
+    property string verifactuError: ""
+    readonly property string verifactuStatus: verifactuStatusKey !== "" ? tr(verifactuStatusKey) : verifactuError
+    // Estado del cuadro del QR: {kind: "reading" | "read" | "answer" | "error", ...}.
+    property var qrState: null
     property string qrTechnical: ""
     property string invoicePath: ""
     signal signRequested()
     function tr(key) { return translate(key) }
+    function setStatus(key, arg, fromBackend) {
+        statusKey = key
+        statusArg = arg || ""
+        statusArgFromBackend = !!fromBackend
+    }
+    onLocaleNameChanged: {
+        if (statusArgFromBackend) setStatus("", "", false)
+        verifactuError = ""
+        if (qrState && qrState.kind === "error") qrState = null
+    }
+    // Importe con el formato del idioma: «241,40 €» en español.
+    function amountText(value, withSymbol) {
+        const number = Number(value)
+        if (String(value).trim() === "" || !isFinite(number)) return String(value)
+        const locale = localeName !== "" ? Qt.locale(localeName) : Qt.locale()
+        return withSymbol ? number.toLocaleCurrencyString(locale, "€") : number.toLocaleString(locale, "f", 2)
+    }
+    function qrText(state) {
+        if (!state) return ""
+        if (state.kind === "reading") return tr("verifactu.qr_reading")
+        if (state.kind === "answer") return tr(state.key)
+        if (state.kind === "read")
+            return tr("verifactu.qr_nif") + ": " + state.result.nif + "\n" +
+                   tr("verifactu.qr_number") + ": " + state.result.numserie + "\n" +
+                   tr("verifactu.qr_date") + ": " + state.result.fecha + "\n" +
+                   tr("verifactu.qr_amount") + ": " + amountText(state.result.importe, true)
+        return state.message || ""
+    }
     function party(kind, tax, name, surname, second, address, post, town, province, email) {
         return {
             personTypeCode: kind, taxIdentificationNumber: tax,
@@ -57,17 +96,20 @@ Item {
         }
     }
     component InvoiceField: ColumnLayout {
+        id: invoiceField
         property string label: ""
         property alias value: input.text
         property string hint: ""
+        // Los obligatorios llevan «*» (leyenda al principio) y lo dicen al lector de pantalla.
+        property bool required: false
         Layout.fillWidth: true
         spacing: 4
-        Label { text: label; color: panel.theme.textColor; wrapMode: Text.WordWrap }
+        Label { text: invoiceField.required ? invoiceField.label + " *" : invoiceField.label; color: panel.theme.textColor; wrapMode: Text.WordWrap }
         TextField {
             id: input
             Layout.fillWidth: true
-            Accessible.name: label
-            Accessible.description: hint
+            Accessible.name: invoiceField.required ? invoiceField.label + ", " + panel.tr("facturae.required") : invoiceField.label
+            Accessible.description: invoiceField.hint
             placeholderText: hint
             selectByMouse: true
         }
@@ -81,7 +123,7 @@ Item {
             const path = panel.localPath(selectedFile)
             if (path === "") return
             panel.busy = true
-            panel.statusText = tr("facturae.creating")
+            panel.setStatus("facturae.creating")
             panel.bridge.createFacturae(panel.draft(), path)
         }
     }
@@ -94,7 +136,7 @@ Item {
             panel.invoicePath = panel.localPath(selectedFile)
             if (panel.invoicePath === "") return
             panel.invoiceResult = null
-            panel.statusText = tr("paridad.lote3.invoice.validating")
+            panel.setStatus("paridad.lote3.invoice.validating")
             panel.busy = true
             panel.bridge.validateInvoice(panel.invoicePath)
         }
@@ -126,37 +168,36 @@ Item {
         ignoreUnknownSignals: true
         function onFacturaeCreated(ok, result, message) {
             panel.busy = false
-            panel.statusText = ok
-                    ? tr("facturae.created").replace("%1", result.total)
-                    : (message && message.indexOf("facturae.error.") === 0
-                         ? tr(message) : tr("facturae.error.input"))
+            if (ok)
+                panel.setStatus("facturae.created", panel.amountText(result.total, false))
+            else
+                panel.setStatus(!(message && message.indexOf("facturae.error.") === 0) ? "facturae.error.input" : message)
         }
         function onVerifactuValidated(ok, result, message) {
             panel.busy = false
             panel.verifactuResult = ok ? result : null
-            panel.verifactuStatus = ok ? tr(result.valid ? "verifactu.valid" : "verifactu.invalid") : message
+            panel.verifactuStatusKey = ok ? (result.valid ? "verifactu.valid" : "verifactu.invalid") : ""
+            panel.verifactuError = ok ? "" : message
         }
         function onVerifactuQRFinished(action, ok, result, message) {
             panel.busy = false
             if (action === "read_verifactu_qr") {
                 panel.qrTechnical = ""
-            qrArea.readResult = ok ? result : null
-                qrArea.text = ok ? tr("verifactu.qr_nif") + ": " + result.nif + "\n" +
-                    tr("verifactu.qr_number") + ": " + result.numserie + "\n" +
-                    tr("verifactu.qr_date") + ": " + result.fecha + "\n" +
-                    tr("verifactu.qr_amount") + ": " + result.importe : message
+                qrArea.readResult = ok ? result : null
+                panel.qrState = ok ? {kind: "read", result: result} : {kind: "error", message: message}
             } else {
                 // Una frase para la persona; el JSON queda tras «Ver respuesta técnica».
-                qrArea.text = ok ? tr(VeriFactuResponse.classify(result.response)) : message
+                panel.qrState = ok ? {kind: "answer", key: VeriFactuResponse.classify(result.response)} : {kind: "error", message: message}
                 panel.qrTechnical = ok ? JSON.stringify(result.response, null, 2) : ""
             }
         }
         function onInvoiceValidated(ok, result, message) {
             panel.busy = false
             panel.invoiceResult = ok ? result : null
-            panel.statusText = ok
-                    ? (result.valid ? tr("paridad.lote3.invoice.valid") : tr("paridad.lote3.invoice.invalid"))
-                    : tr("paridad.lote3.invoice.failed").replace("%1", message)
+            if (ok)
+                panel.setStatus(result.valid ? "paridad.lote3.invoice.valid" : "paridad.lote3.invoice.invalid")
+            else
+                panel.setStatus("paridad.lote3.invoice.failed", message, true)
         }
     }
     FileDialog {
@@ -164,7 +205,7 @@ Item {
         title: tr("verifactu.choose")
         fileMode: FileDialog.OpenFile
         nameFilters: [tr("paridad.lote3.invoice.filter")]
-        onAccepted: { panel.verifactuResult = null; panel.verifactuStatus = tr("paridad.lote3.invoice.validating"); panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFile)) }
+        onAccepted: { panel.verifactuResult = null; panel.verifactuError = ""; panel.verifactuStatusKey = "paridad.lote3.invoice.validating"; panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFile)) }
     }
     FileDialog {
         id: qrFileDialog
@@ -175,7 +216,7 @@ Item {
             qrInput.text = ""
             qrArea.readResult = null
             panel.qrTechnical = ""
-            qrArea.text = tr("verifactu.qr_reading")
+            panel.qrState = {kind: "reading"}
             panel.busy = true
             panel.bridge.readVeriFactuQRFile(panel.localPath(selectedFile))
         }
@@ -183,7 +224,7 @@ Item {
     FolderDialog {
         id: verifactuFolderDialog
         title: tr("verifactu.folder")
-        onAccepted: { panel.verifactuResult = null; panel.verifactuStatus = tr("paridad.lote3.invoice.validating"); panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFolder)) }
+        onAccepted: { panel.verifactuResult = null; panel.verifactuError = ""; panel.verifactuStatusKey = "paridad.lote3.invoice.validating"; panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFolder)) }
     }
     ScrollView {
         anchors.fill: parent
@@ -199,6 +240,8 @@ Item {
                 font.pixelSize: 28
                 font.bold: true
                 Layout.fillWidth: true
+                Accessible.role: Accessible.Heading
+                Accessible.name: text
             }
             Label {
                 text: tr("facturae.intro")
@@ -206,15 +249,16 @@ Item {
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
-            Label { text: tr("facturae.invoice"); color: panel.theme.textColor; font.bold: true }
+            Label { text: tr("facturae.required_legend"); color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            Label { text: tr("facturae.invoice"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             GridLayout {
                 columns: panel.width > 820 ? 3 : 1
                 Layout.fillWidth: true
-                InvoiceField { id: invoiceNumber; label: tr("facturae.invoice_number") }
+                InvoiceField { id: invoiceNumber; required: true; label: tr("facturae.invoice_number") }
                 InvoiceField { id: invoiceSeries; label: tr("facturae.series") }
-                InvoiceField { id: issueDate; label: tr("facturae.issue_date"); value: Qt.formatDate(new Date(), "yyyy-MM-dd"); hint: tr("facturae.date_hint") }
+                InvoiceField { id: issueDate; required: true; label: tr("facturae.issue_date"); value: Qt.formatDate(new Date(), "yyyy-MM-dd"); hint: tr("facturae.date_hint") }
             }
-            Label { text: tr("facturae.seller"); color: panel.theme.textColor; font.bold: true }
+            Label { text: tr("facturae.seller"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             ThemedSwitch {
                 id: sellerIndividual
                 text: tr("facturae.individual")
@@ -223,43 +267,43 @@ Item {
             GridLayout {
                 columns: panel.width > 820 ? 3 : 1
                 Layout.fillWidth: true
-                InvoiceField { id: sellerTax; label: tr("facturae.tax_id") }
-                InvoiceField { id: sellerName; label: sellerIndividual.checked ? tr("facturae.person_name") : tr("facturae.legal_name") }
-                InvoiceField { id: sellerSurname; label: tr("facturae.first_surname"); visible: sellerIndividual.checked }
+                InvoiceField { id: sellerTax; required: true; label: tr("facturae.tax_id") }
+                InvoiceField { id: sellerName; required: true; label: sellerIndividual.checked ? tr("facturae.person_name") : tr("facturae.legal_name") }
+                InvoiceField { id: sellerSurname; required: true; label: tr("facturae.first_surname"); visible: sellerIndividual.checked }
                 InvoiceField { id: sellerSecond; label: tr("facturae.second_surname"); visible: sellerIndividual.checked }
-                InvoiceField { id: sellerAddress; label: tr("facturae.address") }
-                InvoiceField { id: sellerPost; label: tr("facturae.post_code") }
-                InvoiceField { id: sellerTown; label: tr("facturae.town") }
-                InvoiceField { id: sellerProvince; label: tr("facturae.province") }
+                InvoiceField { id: sellerAddress; required: true; label: tr("facturae.address") }
+                InvoiceField { id: sellerPost; required: true; label: tr("facturae.post_code") }
+                InvoiceField { id: sellerTown; required: true; label: tr("facturae.town") }
+                InvoiceField { id: sellerProvince; required: true; label: tr("facturae.province") }
                 InvoiceField { id: sellerEmail; label: tr("facturae.email") }
             }
-            Label { text: tr("facturae.buyer"); color: panel.theme.textColor; font.bold: true }
+            Label { text: tr("facturae.buyer"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             GridLayout {
                 columns: panel.width > 820 ? 3 : 1
                 Layout.fillWidth: true
-                InvoiceField { id: buyerTax; label: tr("facturae.tax_id") }
-                InvoiceField { id: buyerName; label: tr("facturae.legal_name") }
-                InvoiceField { id: buyerAddress; label: tr("facturae.address") }
-                InvoiceField { id: buyerPost; label: tr("facturae.post_code") }
-                InvoiceField { id: buyerTown; label: tr("facturae.town") }
-                InvoiceField { id: buyerProvince; label: tr("facturae.province") }
+                InvoiceField { id: buyerTax; required: true; label: tr("facturae.tax_id") }
+                InvoiceField { id: buyerName; required: true; label: tr("facturae.legal_name") }
+                InvoiceField { id: buyerAddress; required: true; label: tr("facturae.address") }
+                InvoiceField { id: buyerPost; required: true; label: tr("facturae.post_code") }
+                InvoiceField { id: buyerTown; required: true; label: tr("facturae.town") }
+                InvoiceField { id: buyerProvince; required: true; label: tr("facturae.province") }
             }
-            Label { text: tr("facturae.dir3"); color: panel.theme.textColor; font.bold: true }
+            Label { text: tr("facturae.dir3"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             GridLayout {
                 columns: panel.width > 820 ? 3 : 1
                 Layout.fillWidth: true
-                InvoiceField { id: accounting; label: tr("facturae.accounting") }
-                InvoiceField { id: managing; label: tr("facturae.managing") }
-                InvoiceField { id: processing; label: tr("facturae.processing") }
+                InvoiceField { id: accounting; required: true; label: tr("facturae.accounting") }
+                InvoiceField { id: managing; required: true; label: tr("facturae.managing") }
+                InvoiceField { id: processing; required: true; label: tr("facturae.processing") }
             }
-            Label { text: tr("facturae.item"); color: panel.theme.textColor; font.bold: true }
+            Label { text: tr("facturae.item"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             GridLayout {
                 columns: panel.width > 820 ? 4 : 1
                 Layout.fillWidth: true
-                InvoiceField { id: lineDescription; label: tr("facturae.item_description") }
-                InvoiceField { id: quantity; label: tr("facturae.quantity"); value: "1" }
-                InvoiceField { id: price; label: tr("facturae.price"); value: "0" }
-                InvoiceField { id: vat; label: tr("facturae.vat"); value: "21" }
+                InvoiceField { id: lineDescription; required: true; label: tr("facturae.item_description") }
+                InvoiceField { id: quantity; required: true; label: tr("facturae.quantity"); value: "1" }
+                InvoiceField { id: price; required: true; label: tr("facturae.price"); value: "0" }
+                InvoiceField { id: vat; required: true; label: tr("facturae.vat"); value: "21" }
             }
             GridLayout {
                 columns: panel.width > 820 ? 3 : 1
@@ -273,8 +317,8 @@ Item {
                 visible: includePayment.checked
                 columns: panel.width > 820 ? 2 : 1
                 Layout.fillWidth: true
-                InvoiceField { id: dueDate; label: tr("facturae.due_date"); hint: tr("facturae.date_hint") }
-                InvoiceField { id: iban; label: tr("facturae.iban") }
+                InvoiceField { id: dueDate; required: true; label: tr("facturae.due_date"); hint: tr("facturae.date_hint") }
+                InvoiceField { id: iban; required: true; label: tr("facturae.iban") }
             }
             Label {
                 text: panel.statusText
@@ -348,7 +392,7 @@ Item {
                 TextField {
                     id: qrInput; enabled: !panel.busy; Layout.fillWidth: true; Accessible.name: tr("verifactu.qr_url_field"); Accessible.description: tr("verifactu.qr_url_label")
                     placeholderText: tr("verifactu.qr_url_label"); selectByMouse: true
-                    onTextChanged: { qrArea.readResult = null; qrArea.text = "" }
+                    onTextChanged: { qrArea.readResult = null; panel.qrState = null }
                 }
                 ThemedButton { objectName: "qrFromFileButton"; text: tr("verifactu.qr_from_file"); enabled: !panel.busy; Accessible.name: text; onClicked: qrFileDialog.open() }
             }
@@ -360,7 +404,7 @@ Item {
             Label { text: tr("verifactu.qr_query_help"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             // Fondo del tema: con el blanco por defecto el texto claro no se veía.
             TextArea {
-                id: qrArea; objectName: "qrResultArea"; property var readResult: null; readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText; Layout.fillWidth: true
+                id: qrArea; objectName: "qrResultArea"; property var readResult: null; text: panel.qrText(panel.qrState); readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText; Layout.fillWidth: true
                 color: panel.theme.textColor; Accessible.name: tr("verifactu.qr_result")
                 onTextChanged: if (text === "") panel.qrTechnical = ""
                 background: Rectangle { color: panel.theme.cardColor ? panel.theme.cardColor : "transparent"; border.color: panel.theme.secondaryTextColor; radius: 4 }

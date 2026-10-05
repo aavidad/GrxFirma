@@ -5154,4 +5154,6 @@
   ,"verificacion.detalle.revocacion.desconocido": "no revocation information"
   ,"paridad.lote3.eni.classification_hint": "The procedure number in the Administrative Information System (SIA). Example: 2345678. If you do not know it, ask your processing unit."
   ,"paridad.lote3.eni.interested_hint": "Tax ID or name of each interested party, separated by commas."
+  ,"facturae.required": "required"
+  ,"facturae.required_legend": "Fields marked with * are required."
 }

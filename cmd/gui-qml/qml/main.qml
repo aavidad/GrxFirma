@@ -15762,6 +15762,7 @@ Window {
 
             FacturaePanel {
                 id: facturaePanel
+                localeName: window.appLanguage === "va" ? "ca" : window.appLanguage
                 bridge: backend
                 reportSaver: function(path, content) { backend.saveTextReport(path, content) }
                 theme: currentTheme
