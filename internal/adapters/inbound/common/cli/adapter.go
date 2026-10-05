@@ -36,6 +36,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/adapters/outbound/common/updatecheck"
+	"grxfirma/internal/adapters/outbound/desktop/filesystem"
 	"grxfirma/internal/adapters/outbound/desktop/localtlstrust"
 	"grxfirma/internal/adapters/outbound/desktop/truststore"
 	"grxfirma/internal/application"
@@ -129,33 +130,38 @@ type ProtectionRecipients interface {
 
 // Adaptador implementa la entrada CLI hacia los casos de uso de la aplicación.
 type Adaptador struct {
-	Firmar               SignDocumentUseCase
-	ProcesarLote         ProcessBatchUseCase
-	Verificar            VerifySignatureUseCase
-	CrearHash            CreateHashUseCase
-	ComprobarHash        CheckHashUseCase
-	CrearHashDir         CreateDirectoryHashUseCase
-	ComprobarHashDir     CheckDirectoryHashUseCase
-	InformeHashDir       ports.DirectoryHashReportCodec
-	Proteger             ProtectDocumentUseCase
-	ProtegerFirmando     ProtectAndSignDocumentUseCase
-	Desproteger          UnprotectDocumentUseCase
-	ExportarProteccion   ExportProtectionRecipientUseCase
-	ImportarProteccion   ImportProtectionRecipientUseCase
-	Destinatarios        ProtectionRecipients
-	GestionDominios      ManageTrustedDomainUseCase
-	Catalogo             ports.CertificateCatalog
-	Claves               ports.SigningKeyProvider
-	Localizador          ports.Localizador
-	VisorPDF             ports.VisualizadorPDF
-	ConfigDir            string
-	Version              string
-	Stdout               io.Writer
-	Stderr               io.Writer
-	Stdin                io.Reader
-	LeerFichero          func(string) ([]byte, error)
-	Escribir             func(string, []byte, os.FileMode) error
-	Limits               limits.Limits
+	Firmar             SignDocumentUseCase
+	ProcesarLote       ProcessBatchUseCase
+	Verificar          VerifySignatureUseCase
+	CrearHash          CreateHashUseCase
+	ComprobarHash      CheckHashUseCase
+	CrearHashDir       CreateDirectoryHashUseCase
+	ComprobarHashDir   CheckDirectoryHashUseCase
+	InformeHashDir     ports.DirectoryHashReportCodec
+	Proteger           ProtectDocumentUseCase
+	ProtegerFirmando   ProtectAndSignDocumentUseCase
+	Desproteger        UnprotectDocumentUseCase
+	ExportarProteccion ExportProtectionRecipientUseCase
+	ImportarProteccion ImportProtectionRecipientUseCase
+	Destinatarios      ProtectionRecipients
+	GestionDominios    ManageTrustedDomainUseCase
+	Catalogo           ports.CertificateCatalog
+	Claves             ports.SigningKeyProvider
+	Localizador        ports.Localizador
+	VisorPDF           ports.VisualizadorPDF
+	ConfigDir          string
+	Version            string
+	Stdout             io.Writer
+	Stderr             io.Writer
+	Stdin              io.Reader
+	LeerFichero        func(string) ([]byte, error)
+	Escribir           func(string, []byte, os.FileMode) error
+	Limits             limits.Limits
+	// escrituraConPolitica indica que Escribir es la escritura real por
+	// defecto; entonces los resultados se guardan con guardarSalidaCLI. Un
+	// Escribir inyectado (pruebas con sistema de ficheros simulado) se usa tal
+	// cual.
+	escrituraConPolitica bool
 	instalarConfianzaTLS func(context.Context, string) error
 	passwordP12Compat    string
 	protectionCompat     string
@@ -303,6 +309,7 @@ func New(firmar SignDocumentUseCase, procesarLote ProcessBatchUseCase) *Adaptado
 		Stdin:                os.Stdin,
 		LeerFichero:          os.ReadFile,
 		Escribir:             os.WriteFile,
+		escrituraConPolitica: true,
 		Limits:               limits.FromEnv(limits.Default()),
 		instalarConfianzaTLS: localtlstrust.EnsureManagedTrusted,
 	}
@@ -413,6 +420,7 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 	}
 	if a.Escribir == nil {
 		a.Escribir = os.WriteFile
+		a.escrituraConPolitica = true
 	}
 	if a.Limits.MaxPayloadBytes == 0 {
 		a.Limits = limits.FromEnv(limits.Default())
@@ -991,12 +999,8 @@ func (a *Adaptador) ejecutarFirma(ctx context.Context, cfg configCLI) int {
 		if objetivo == "" {
 			objetivo = construirRutaSalidaPorDefecto(cfg.entrada, resultado.Result.Format)
 		}
-		resuelta, fueRename, fueOverwrite, err := resolverRutaSalida(objetivo, cfg.sobrescribir)
+		resuelta, fueRename, fueOverwrite, err := a.guardarSalida(objetivo, cfg.sobrescribir, resultado.Result.Data)
 		if err != nil {
-			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
-			return 1
-		}
-		if err := a.Escribir(resuelta, resultado.Result.Data, 0o600); err != nil {
 			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
 			return 1
 		}
@@ -1145,10 +1149,7 @@ func (a *Adaptador) ejecutarLote(ctx context.Context, cfg configCLI) int {
 			if destino := strings.TrimSpace(cfg.salida); destino != "" {
 				objetivo = filepath.Join(destino, filepath.Base(objetivo))
 			}
-			resuelta, _, _, err := resolverRutaSalida(objetivo, cfg.sobrescribir)
-			if err == nil {
-				err = a.Escribir(resuelta, firmado.Data, 0o600)
-			}
+			resuelta, _, _, err := a.guardarSalida(objetivo, cfg.sobrescribir, firmado.Data)
 			if err != nil {
 				a.escribirErrorCLI(a.t("Salida", "Salida"), err)
 				return 1
@@ -1262,10 +1263,7 @@ func (a *Adaptador) ejecutarVerificacion(ctx context.Context, cfg configCLI) int
 			Idioma: a.idiomaInterfaz(),
 		})
 		if err == nil {
-			destino, _, _, err = resolverRutaSalida(destino, cfg.sobrescribir)
-		}
-		if err == nil {
-			err = a.Escribir(destino, informe, 0o600)
+			destino, _, _, err = a.guardarSalida(destino, cfg.sobrescribir, informe)
 		}
 		if err != nil {
 			a.escribirErrorCLI(a.t("Informe de validación", "Informe de validación"), err)
@@ -1448,12 +1446,8 @@ func (a *Adaptador) ejecutarCrearHash(ctx context.Context, cfg configCLI) int {
 		if objetivo == "" {
 			objetivo = construirRutaHashPorDefecto(cfg.entrada, resultado.Format)
 		}
-		resuelta, fueRename, fueOverwrite, err := resolverRutaSalida(objetivo, cfg.sobrescribir)
+		resuelta, fueRename, fueOverwrite, err := a.guardarSalida(objetivo, cfg.sobrescribir, hashBytes)
 		if err != nil {
-			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
-			return 1
-		}
-		if err := a.Escribir(resuelta, hashBytes, 0o600); err != nil {
 			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
 			return 1
 		}
@@ -1632,12 +1626,8 @@ func (a *Adaptador) ejecutarCrearHashDirectorio(ctx context.Context, cfg configC
 		if objetivo == "" {
 			objetivo = construirRutaHashDirectorioPorDefecto(cfg.entrada, resultado.Format)
 		}
-		resuelta, fueRename, fueOverwrite, err := resolverRutaSalida(objetivo, cfg.sobrescribir)
+		resuelta, fueRename, fueOverwrite, err := a.guardarSalida(objetivo, cfg.sobrescribir, resultado.Data)
 		if err != nil {
-			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
-			return 1
-		}
-		if err := a.Escribir(resuelta, resultado.Data, 0o600); err != nil {
 			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
 			return 1
 		}
@@ -1842,12 +1832,8 @@ func (a *Adaptador) ejecutarProteccion(ctx context.Context, cfg configCLI) int {
 		if objetivo == "" {
 			objetivo = construirRutaProtegidaPorDefecto(cfg.entrada, resultado.Protected.Document.Name)
 		}
-		resuelta, fueRename, fueOverwrite, err := resolverRutaSalida(objetivo, cfg.sobrescribir)
+		resuelta, fueRename, fueOverwrite, err := a.guardarSalida(objetivo, cfg.sobrescribir, resultado.Protected.Document.Content)
 		if err != nil {
-			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
-			return 1
-		}
-		if err := a.Escribir(resuelta, resultado.Protected.Document.Content, 0o600); err != nil {
 			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
 			return 1
 		}
@@ -1964,12 +1950,8 @@ func (a *Adaptador) ejecutarProteccionFirmada(ctx context.Context, cfg configCLI
 		if objetivo == "" {
 			objetivo = construirRutaProtegidaPorDefecto(cfg.entrada, resultado.Protected.Document.Name)
 		}
-		resuelta, fueRename, fueOverwrite, err := resolverRutaSalida(objetivo, cfg.sobrescribir)
+		resuelta, fueRename, fueOverwrite, err := a.guardarSalida(objetivo, cfg.sobrescribir, resultado.Protected.Document.Content)
 		if err != nil {
-			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
-			return 1
-		}
-		if err := a.Escribir(resuelta, resultado.Protected.Document.Content, 0o600); err != nil {
 			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
 			return 1
 		}
@@ -2106,12 +2088,8 @@ func (a *Adaptador) ejecutarDesproteccion(ctx context.Context, cfg configCLI) in
 		if objetivo == "" {
 			objetivo = construirRutaDesprotegidaPorDefecto(cfg.entrada, resultado.Unprotected.Document.Name)
 		}
-		resuelta, fueRename, fueOverwrite, err := resolverRutaSalida(objetivo, cfg.sobrescribir)
+		resuelta, fueRename, fueOverwrite, err := a.guardarSalida(objetivo, cfg.sobrescribir, resultado.Unprotected.Document.Content)
 		if err != nil {
-			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
-			return 1
-		}
-		if err := a.Escribir(resuelta, resultado.Unprotected.Document.Content, 0o600); err != nil {
 			a.escribirErrorCLI(a.t("Salida", "Salida"), err)
 			return 1
 		}
@@ -4181,34 +4159,36 @@ func construirRutaSalidaPorDefecto(entrada string, formato domain.SignatureForma
 	}
 }
 
-func resolverRutaSalida(destino, politica string) (ruta string, renamed bool, overwrote bool, err error) {
+// guardarSalida guarda un resultado con la política de --overwrite, salvo que
+// Escribir se haya sustituido por un doble de pruebas.
+func (a *Adaptador) guardarSalida(destino, politica string, datos []byte) (string, bool, bool, error) {
+	if !a.escrituraConPolitica {
+		return destino, false, false, a.Escribir(destino, datos, 0o600)
+	}
+	return guardarSalidaCLI(destino, politica, datos)
+}
+
+// guardarSalidaCLI escribe datos aplicando la política de --overwrite en el
+// mismo paso en que crea el fichero: con «rename» y «fail» la publicación es
+// exclusiva, así que un fichero que aparezca mientras se firma tampoco se
+// reemplaza. Devuelve la ruta real y si se renombró o se reemplazó.
+func guardarSalidaCLI(destino, politica string, datos []byte) (ruta string, renamed bool, overwrote bool, err error) {
+	var modo filesystem.PoliticaSobreescritura
 	switch strings.ToLower(strings.TrimSpace(politica)) {
 	case "force", "overwrite", "forzar":
-		return destino, false, true, nil
+		modo = filesystem.PoliticaForzar
 	case "fail", "error":
-		if _, statErr := os.Stat(destino); statErr == nil {
-			return "", false, false, fmt.Errorf("el fichero de salida ya existe: %s", destino)
-		}
-		return destino, false, false, nil
-	case "rename", "renombrar":
-		fallthrough
+		modo = filesystem.PoliticaFallar
 	default:
-		if _, statErr := os.Stat(destino); statErr != nil {
-			if errors.Is(statErr, os.ErrNotExist) {
-				return destino, false, false, nil
-			}
-			return "", false, false, statErr
-		}
-		ext := filepath.Ext(destino)
-		base := strings.TrimSuffix(destino, ext)
-		for i := 1; i < 10_000; i++ {
-			candidata := fmt.Sprintf("%s-%d%s", base, i, ext)
-			if _, statErr := os.Stat(candidata); errors.Is(statErr, os.ErrNotExist) {
-				return candidata, true, false, nil
-			}
-		}
-		return "", false, false, fmt.Errorf("no se pudo resolver nombre alternativo para %s", destino)
+		modo = filesystem.PoliticaRenombrar
 	}
+	_, statErr := os.Lstat(destino)
+	existia := statErr == nil
+	ruta, err = filesystem.NuevoEscritorResultado(modo).EscribirEnDirectorioExistente(destino, datos)
+	if err != nil {
+		return "", false, false, err
+	}
+	return ruta, ruta != destino, modo == filesystem.PoliticaForzar && existia, nil
 }
 
 func inferirTipoMIME(path string) string {
@@ -4397,10 +4377,7 @@ func (a *Adaptador) ejecutarGenerarENI(cfg configCLI) int {
 	if destino == "" {
 		destino = strings.TrimSuffix(cfg.entrada, filepath.Ext(cfg.entrada)) + "_eni.xml"
 	}
-	destino, _, _, err = resolverRutaSalida(destino, cfg.sobrescribir)
-	if err == nil {
-		err = a.Escribir(destino, xmlENI, 0o600)
-	}
+	destino, _, _, err = a.guardarSalida(destino, cfg.sobrescribir, xmlENI)
 	if err != nil {
 		a.escribirErrorCLI(a.t("Salida", "Salida"), err)
 		return 1
@@ -4607,10 +4584,7 @@ func (a *Adaptador) ejecutarGenerarExpediente(ctx context.Context, cfg configCLI
 	if destino == "" {
 		destino = filepath.Join(dir, "expediente_eni.xml")
 	}
-	destino, _, _, err = resolverRutaSalida(destino, cfg.sobrescribir)
-	if err == nil {
-		err = a.Escribir(destino, xmlExp, 0o600)
-	}
+	destino, _, _, err = a.guardarSalida(destino, cfg.sobrescribir, xmlExp)
 	if err != nil {
 		a.escribirErrorCLI(a.t("Salida", "Salida"), err)
 		return 1
