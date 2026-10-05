@@ -286,3 +286,43 @@ son `csv.error.code_missing`, `code_invalid`, `url_missing`, `url_invalid` y
 El contrato declara `signing.formats` y los servicios `verifactu_validate`,
 `eni_document`, `eni_validate` y `csv_legend`. Android enlaza estos métodos
 como opcionales: con un AAR anterior oculta lo que no esté declarado.
+
+## Cuarta oleada: expediente ENI, lote con sello y cofirma, DNIe
+
+`createENIFileJSON` crea un expediente ENI con la operación
+`generar-expediente` del escritorio. Recibe `documents[]` (`name`,
+`content_base64`; documentos ENI en XML, hasta 64 y 32 MiB en total),
+`certificate_id`, `organs[]` (DIR3), `classification` (código SIA o
+`<DIR3>_PRO_<id>`), `state` (`E01`, `E02` o `E03`, de
+`eni.EstadosExpediente`), `identifier` opcional, `opening_date` opcional en
+RFC 3339 (no más de un día en el futuro) e `interested[]` opcional (hasta 16).
+Los documentos se ordenan por nombre, como en escritorio. Antes de firmar se
+revisa cada documento con `eni.ValidarXML`: si alguno falla, la respuesta trae
+`ok: false` e `issues[]` con el nombre del fichero en `field` y su clave
+`eni.validacion.*`, sin pedir la firma. Si todo es correcto, el índice se firma
+con `FirmarNodoXAdES` y la identidad de la sesión (PKCS#12 o DNIe; solo RSA,
+como el XAdES del motor) y la respuesta trae `ok: true`, `content_base64` y
+`documents`. Los demás errores son claves `eni.validacion.*` o el mensaje
+cerrado de clave RSA.
+
+`processBatchJSON` ya aceptaba `action` y `options` por documento. Android los
+usa ahora para la cofirma en lote y para el sello visible PAdES: cada PDF lleva
+sus propias opciones `visibleSeal*`, calculadas con su número de páginas. La
+leyenda CSV no se usa en lote porque su código es propio de cada documento. Los
+límites del lote no cambian (16 documentos, 32 MiB).
+
+El DNIe, que solo firma resúmenes con `ExternalDigestSigner`, sirve ahora para
+el lote y para `protectJSON` con `sign: true`. SignedAndEnvelopedData usa
+go-cryptobin, que exige una `*rsa.PrivateKey`; el binario móvil registra un
+firmador propio (`external_cms.go`) que solo acepta el firmador externo, calcula
+el SHA-256 del contenido y delega la firma PKCS#1 v1.5.
+
+Perfiles con sello de tiempo: el motor de escritorio solo añade sello de tiempo
+a CAdES (T/LT/LTA), PAdES (T/LT) y XAdES (T). XMLdSig, ODF, OOXML, FacturaE y
+ASiC-XAdES se firman siempre en perfil B, también en escritorio; Android sigue
+rechazando para ellos los perfiles T, LT y LTA y no les envía la TSA.
+
+El contrato declara los servicios `eni_file`, `batch_visible_seal`,
+`batch_cosign`, `external_signer_batch` y `external_signer_protect_sign`, y
+`limits.eni_file_documents`. Android los trata como opcionales: con un AAR
+anterior mantiene el comportamiento previo.

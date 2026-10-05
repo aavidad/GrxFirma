@@ -89,6 +89,7 @@ class ValidateCoreAarTest(unittest.TestCase):
               public String validateENIJSON(String value) { return value; }
               public String eniCatalogsJSON() { return "{}"; }
               public String csvLegendJSON(String value) { return value; }
+              public String createENIFileJSON(String value) { return value; }
               public String verifyJSON(String value) { return value; }
             }
             """,

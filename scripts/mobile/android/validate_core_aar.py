@@ -51,6 +51,7 @@ FACADE_METHODS = (
     "validateENIJSON(java.lang.String)",
     "eniCatalogsJSON()",
     "csvLegendJSON(java.lang.String)",
+    "createENIFileJSON(java.lang.String)",
 )
 
 

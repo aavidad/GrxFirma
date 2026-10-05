@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Cuarta oleada Android: expediente ENI, lote con sello y cofirma, DNIe. -->
+<resources>
+    <string name="expediente_title">Processo ENI</string>
+    <string name="expediente_helper">Reúne num processo os documentos ENI de uma pasta e assina o respetivo índice.</string>
+    <string name="expediente_select_folder">Escolher a pasta de documentos ENI</string>
+    <string name="expediente_none">Não escolheu nenhuma pasta. Deve conter documentos ENI em XML.</string>
+    <string name="expediente_clear">Retirar a pasta</string>
+    <string name="expediente_organs">Órgãos DIR3 (obrigatório)</string>
+    <string name="expediente_organs_helper">Um ou vários códigos separados por vírgulas, por exemplo L01180877.</string>
+    <string name="expediente_classification">Classificação do procedimento (obrigatório)</string>
+    <string name="expediente_classification_helper">Código SIA, ou código DIR3 seguido de _PRO_ e de um identificador.</string>
+    <string name="expediente_state">Estado do processo</string>
+    <string name="expediente_identifier">Identificador do processo (opcional)</string>
+    <string name="expediente_identifier_helper">Se o deixar vazio, é gerado um.</string>
+    <string name="expediente_interested">Interessados (opcional)</string>
+    <string name="expediente_interested_helper">Separe cada pessoa com ponto e vírgula.</string>
+    <string name="expediente_opening_now">Data de abertura: hoje</string>
+    <string name="expediente_opening_value">Data de abertura: %1$s</string>
+    <string name="expediente_opening_choose">Escolher a data de abertura</string>
+    <string name="expediente_opening_clear">Usar a data de hoje</string>
+    <string name="expediente_opening_title">Data de abertura do processo</string>
+    <string name="expediente_sign_hint">O índice é assinado com o certificado da sessão, que deve ter chave RSA. Com o DNIe, o PIN é pedido uma vez.</string>
+    <string name="expediente_create">Criar e assinar o processo</string>
+    <string name="expediente_error_no_xml">A pasta não tem documentos XML. Escolha a pasta que contém os documentos ENI.</string>
+    <string name="expediente_error_too_many">A pasta tem mais de 64 documentos. Retire documentos ou divida o processo.</string>
+    <string name="expediente_error_too_large">Os documentos ocupam mais de 32 MiB. Retire documentos da pasta.</string>
+    <string name="expediente_invalid_documents">O processo não foi criado. Estes ficheiros não são documentos ENI válidos:</string>
+    <string name="expediente_created">Processo criado e assinado. Escolha onde o guardar.</string>
+    <string name="expediente_output_name">Ficheiro: %1$s</string>
+    <string name="batch_action_label">Operação do lote</string>
+    <string name="batch_action_sign">Assinar</string>
+    <string name="batch_action_cosign">Coassinar (acrescentar a minha assinatura a ficheiros já assinados)</string>
+    <string name="batch_seal_check">Acrescentar o selo visível aos PDF</string>
+    <string name="batch_seal_helper">É usado o selo guardado em «Assinatura visível». Se um PDF tiver menos páginas do que a escolhida, o selo vai na última. A legenda CSV não é acrescentada no lote.</string>
+    <string name="batch_seal_error">Não foi possível preparar o selo visível de %1$s. Retire esse PDF do lote ou assine sem selo.</string>
+    <string name="batch_dnie_hint">Com o DNIe, o PIN é pedido apenas uma vez para todo o lote. Mantenha o DNIe encostado ao telemóvel até terminar.</string>
+    <string name="batch_helper_wave4">Escolha até 16 ficheiros (32 MiB no total). São assinados com o certificado da sessão (PKCS#12 ou DNIe) e com o formato, o perfil e a TSA escolhidos acima. No fim, escolha uma pasta para guardar as assinaturas.</string>
+    <string name="result_batch_cosigned">Lote coassinado</string>
+    <string name="error_protect_sign_identity_any">Para proteger e assinar é preciso um certificado na sessão (PKCS#12 ou DNIe) e um formato para destinatários.</string>
+    <string name="help_documents_content_wave4">6. Em «Formato de assinatura» também pode escolher XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES ou «Registo Veri*Factu». Estes formatos precisam de um certificado RSA e geram assinatura B. Nos PDF, o editor do selo permite acrescentar a legenda CSV e colocar o selo em várias páginas.\n\n7. Em «Veri*Factu e ENI» pode verificar registos de faturação sem enviar nada à AEAT, criar um documento ENI a partir da assinatura escolhida e verificar a estrutura de um ENI.\n\n8. Em «Processo ENI» escolha a pasta com os documentos ENI, preencha os órgãos, a classificação e o estado, e toque em «Criar e assinar o processo». Os documentos são ordenados por nome e o índice é assinado com o seu certificado.</string>
+    <string name="release_notes_wave4">Quarta vaga: processo ENI com índice assinado; lote com selo visível nos PDF e com coassinatura; DNIe no lote (PIN pedido uma vez) e em proteger e assinar. XMLdSig, ODF, OOXML, FacturaE e ASiC-XAdES continuam a assinar só no perfil B, como o motor de computador.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">%1$d documento ENI</item>
+        <item quantity="many">%1$d documentos ENI</item>
+        <item quantity="other">%1$d documentos ENI</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">%1$d ficheiro que não é XML ficou de fora</item>
+        <item quantity="many">%1$d ficheiros que não são XML ficaram de fora</item>
+        <item quantity="other">%1$d ficheiros que não são XML ficaram de fora</item>
+    </plurals>
+</resources>

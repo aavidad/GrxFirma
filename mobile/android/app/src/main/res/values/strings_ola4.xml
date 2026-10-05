@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Cuarta oleada Android: expediente ENI, lote con sello y cofirma, DNIe. -->
+<resources>
+    <string name="expediente_title">Expediente ENI</string>
+    <string name="expediente_helper">Reúne en un expediente los documentos ENI de una carpeta y firma su índice.</string>
+    <string name="expediente_select_folder">Elegir la carpeta de documentos ENI</string>
+    <string name="expediente_none">No ha elegido ninguna carpeta. Debe contener documentos ENI en XML.</string>
+    <string name="expediente_clear">Quitar la carpeta</string>
+    <string name="expediente_organs">Órganos DIR3 (obligatorio)</string>
+    <string name="expediente_organs_helper">Uno o varios códigos separados por comas, por ejemplo L01180877.</string>
+    <string name="expediente_classification">Clasificación del procedimiento (obligatorio)</string>
+    <string name="expediente_classification_helper">Código SIA, o código DIR3 seguido de _PRO_ y un identificador.</string>
+    <string name="expediente_state">Estado del expediente</string>
+    <string name="expediente_identifier">Identificador del expediente (opcional)</string>
+    <string name="expediente_identifier_helper">Si lo deja vacío, se genera uno.</string>
+    <string name="expediente_interested">Personas interesadas (opcional)</string>
+    <string name="expediente_interested_helper">Separe cada persona con punto y coma.</string>
+    <string name="expediente_opening_now">Fecha de apertura: hoy</string>
+    <string name="expediente_opening_value">Fecha de apertura: %1$s</string>
+    <string name="expediente_opening_choose">Elegir la fecha de apertura</string>
+    <string name="expediente_opening_clear">Usar la fecha de hoy</string>
+    <string name="expediente_opening_title">Fecha de apertura del expediente</string>
+    <string name="expediente_sign_hint">El índice se firma con el certificado de la sesión, que debe tener clave RSA. Con DNIe, el PIN se pide una vez.</string>
+    <string name="expediente_create">Crear y firmar el expediente</string>
+    <string name="expediente_error_no_xml">La carpeta no tiene documentos XML. Elija la carpeta que contiene los documentos ENI.</string>
+    <string name="expediente_error_too_many">La carpeta tiene más de 64 documentos. Quite documentos o divida el expediente.</string>
+    <string name="expediente_error_too_large">Los documentos ocupan más de 32 MiB. Quite documentos de la carpeta.</string>
+    <string name="expediente_invalid_documents">No se ha creado el expediente. Estos ficheros no son documentos ENI válidos:</string>
+    <string name="expediente_created">Expediente creado y firmado. Elija dónde guardarlo.</string>
+    <string name="expediente_output_name">Fichero: %1$s</string>
+    <string name="batch_action_label">Operación del lote</string>
+    <string name="batch_action_sign">Firmar</string>
+    <string name="batch_action_cosign">Cofirmar (añadir mi firma a ficheros ya firmados)</string>
+    <string name="batch_seal_check">Añadir el sello visible a los PDF</string>
+    <string name="batch_seal_helper">Se usa el sello guardado en «Firma visible». Si un PDF tiene menos páginas que la elegida, el sello va en la última. La leyenda CSV no se añade en el lote.</string>
+    <string name="batch_seal_error">No se ha podido preparar el sello visible de %1$s. Quite ese PDF del lote o firme sin sello.</string>
+    <string name="batch_dnie_hint">Con DNIe, el PIN se pide una sola vez para todo el lote. Mantenga el DNIe pegado al móvil hasta que termine.</string>
+    <string name="batch_helper_wave4">Elija hasta 16 ficheros (32 MiB en total). Se firman con el certificado de la sesión (PKCS#12 o DNIe) y con el formato, el perfil y la TSA elegidos arriba. Al terminar, elija una carpeta para guardar las firmas.</string>
+    <string name="result_batch_cosigned">Lote cofirmado</string>
+    <string name="error_protect_sign_identity_any">Para proteger y firmar hace falta un certificado en la sesión (PKCS#12 o DNIe) y un formato para destinatarios.</string>
+    <string name="help_documents_content_wave4">6. En «Formato de firma» también puede elegir XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES o «Registro Veri*Factu». Estos formatos necesitan un certificado RSA y generan firma B. En los PDF, el editor del sello permite añadir la leyenda CSV y colocar el sello en varias páginas.\n\n7. En «Veri*Factu y ENI» puede comprobar registros de facturación sin enviar nada a la AEAT, crear un documento ENI a partir de la firma elegida y comprobar la estructura de un ENI.\n\n8. En «Expediente ENI» elija la carpeta con los documentos ENI, rellene los órganos, la clasificación y el estado, y pulse «Crear y firmar el expediente». Los documentos se ordenan por nombre y el índice se firma con su certificado.</string>
+    <string name="release_notes_wave4">Cuarta oleada: expediente ENI con índice firmado; lote con sello visible en los PDF y con cofirma; DNIe en el lote (PIN una sola vez) y en proteger y firmar. Los formatos XMLdSig, ODF, OOXML, FacturaE y ASiC-XAdES siguen firmando solo en perfil B, como el motor de escritorio.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">%1$d documento ENI</item>
+        <item quantity="other">%1$d documentos ENI</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">%1$d fichero que no es XML se ha dejado fuera</item>
+        <item quantity="other">%1$d ficheros que no son XML se han dejado fuera</item>
+    </plurals>
+</resources>

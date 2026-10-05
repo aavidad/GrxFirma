@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Cuarta oleada Android: expediente ENI, lote con sello y cofirma, DNIe. -->
+<resources>
+    <string name="expediente_title">ENI espedientea</string>
+    <string name="expediente_helper">Karpeta bateko ENI dokumentuak espediente batean biltzen ditu eta haren aurkibidea sinatzen du.</string>
+    <string name="expediente_select_folder">Aukeratu ENI dokumentuen karpeta</string>
+    <string name="expediente_none">Ez duzu karpetarik aukeratu. XML formatuko ENI dokumentuak izan behar ditu.</string>
+    <string name="expediente_clear">Kendu karpeta</string>
+    <string name="expediente_organs">DIR3 organoak (derrigorrezkoa)</string>
+    <string name="expediente_organs_helper">Kode bat edo gehiago, komaz bereizita; adibidez, L01180877.</string>
+    <string name="expediente_classification">Prozeduraren sailkapena (derrigorrezkoa)</string>
+    <string name="expediente_classification_helper">SIA kodea, edo DIR3 kodea, _PRO_ eta identifikatzaile bat atzetik dituela.</string>
+    <string name="expediente_state">Espedientearen egoera</string>
+    <string name="expediente_identifier">Espedientearen identifikatzailea (aukerakoa)</string>
+    <string name="expediente_identifier_helper">Hutsik uzten baduzu, bat sortzen da.</string>
+    <string name="expediente_interested">Interesdunak (aukerakoa)</string>
+    <string name="expediente_interested_helper">Bereizi pertsona bakoitza puntu eta komaz.</string>
+    <string name="expediente_opening_now">Irekiera-data: gaur</string>
+    <string name="expediente_opening_value">Irekiera-data: %1$s</string>
+    <string name="expediente_opening_choose">Aukeratu irekiera-data</string>
+    <string name="expediente_opening_clear">Erabili gaurko data</string>
+    <string name="expediente_opening_title">Espedientearen irekiera-data</string>
+    <string name="expediente_sign_hint">Aurkibidea saioko ziurtagiriarekin sinatzen da, eta RSA gakoa izan behar du. DNIarekin, PINa behin eskatzen da.</string>
+    <string name="expediente_create">Sortu eta sinatu espedientea</string>
+    <string name="expediente_error_no_xml">Karpetak ez du XML dokumenturik. Aukeratu ENI dokumentuak dituen karpeta.</string>
+    <string name="expediente_error_too_many">Karpetak 64 dokumentu baino gehiago ditu. Kendu dokumentuak edo zatitu espedientea.</string>
+    <string name="expediente_error_too_large">Dokumentuek 32 MiB baino gehiago hartzen dute. Kendu dokumentuak karpetatik.</string>
+    <string name="expediente_invalid_documents">Ez da espedientea sortu. Fitxategi hauek ez dira baliozko ENI dokumentuak:</string>
+    <string name="expediente_created">Espedientea sortu eta sinatu da. Aukeratu non gorde.</string>
+    <string name="expediente_output_name">Fitxategia: %1$s</string>
+    <string name="batch_action_label">Sortaren eragiketa</string>
+    <string name="batch_action_sign">Sinatu</string>
+    <string name="batch_action_cosign">Kosinatu (gehitu nire sinadura sinatuta dauden fitxategiei)</string>
+    <string name="batch_seal_check">Gehitu zigilu ikusgarria PDFei</string>
+    <string name="batch_seal_helper">«Sinadura ikusgarria» atalean gordetako zigilua erabiltzen da. PDF batek aukeratutakoa baino orri gutxiago baditu, zigilua azkenean jartzen da. CSV legenda ez da sortan gehitzen.</string>
+    <string name="batch_seal_error">Ezin izan da %1$s fitxategiaren zigilu ikusgarria prestatu. Kendu PDF hori sortatik edo sinatu zigilurik gabe.</string>
+    <string name="batch_dnie_hint">DNIarekin, PINa behin bakarrik eskatzen da sorta osorako. Eutsi DNIa mugikorrari itsatsita amaitu arte.</string>
+    <string name="batch_helper_wave4">Aukeratu gehienez 16 fitxategi (guztira 32 MiB). Saioko ziurtagiriarekin (PKCS#12 edo DNIa) eta goian aukeratutako formatu, profil eta TSArekin sinatzen dira. Amaitzean, aukeratu sinadurak gordetzeko karpeta.</string>
+    <string name="result_batch_cosigned">Sorta kosinatu da</string>
+    <string name="error_protect_sign_identity_any">Babestu eta sinatzeko, ziurtagiri bat behar da saioan (PKCS#12 edo DNIa) eta hartzaileentzako formatu bat.</string>
+    <string name="help_documents_content_wave4">6. «Sinadura-formatua» atalean XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES edo «Veri*Factu erregistroa» ere aukera ditzakezu. Formatu horiek RSA ziurtagiria behar dute eta B sinadura sortzen dute. PDFetan, zigiluaren editoreak CSV legenda gehitzeko eta zigilua hainbat orritan jartzeko aukera ematen du.\n\n7. «Veri*Factu eta ENI» atalean fakturazio-erregistroak egiaztatu ditzakezu AEATera ezer bidali gabe, ENI dokumentu bat sortu aukeratutako sinaduratik eta ENI baten egitura egiaztatu.\n\n8. «ENI espedientea» atalean, aukeratu ENI dokumentuak dituen karpeta, bete organoak, sailkapena eta egoera, eta sakatu «Sortu eta sinatu espedientea». Dokumentuak izenaren arabera ordenatzen dira eta aurkibidea zure ziurtagiriarekin sinatzen da.</string>
+    <string name="release_notes_wave4">Laugarren olatua: ENI espedientea aurkibide sinatuarekin; sorta, PDFetan zigilu ikusgarriarekin eta kosinadurarekin; DNIa sortan (PINa behin) eta babestu eta sinatu aukeran. XMLdSig, ODF, OOXML, FacturaE eta ASiC-XAdES formatuek B profilean bakarrik sinatzen jarraitzen dute, mahaigaineko motorrak bezala.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">ENI dokumentu %1$d</item>
+        <item quantity="other">%1$d ENI dokumentu</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">XML ez den fitxategi %1$d kanpoan utzi da</item>
+        <item quantity="other">XML ez diren %1$d fitxategi kanpoan utzi dira</item>
+    </plurals>
+</resources>

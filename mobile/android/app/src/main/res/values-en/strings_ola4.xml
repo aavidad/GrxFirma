@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Cuarta oleada Android: expediente ENI, lote con sello y cofirma, DNIe. -->
+<resources>
+    <string name="expediente_title">ENI file</string>
+    <string name="expediente_helper">Gathers the ENI documents in a folder into one file and signs its index.</string>
+    <string name="expediente_select_folder">Choose the ENI documents folder</string>
+    <string name="expediente_none">No folder chosen. It must contain ENI documents in XML.</string>
+    <string name="expediente_clear">Remove the folder</string>
+    <string name="expediente_organs">DIR3 bodies (required)</string>
+    <string name="expediente_organs_helper">One or more codes separated by commas, for example L01180877.</string>
+    <string name="expediente_classification">Procedure classification (required)</string>
+    <string name="expediente_classification_helper">SIA code, or a DIR3 code followed by _PRO_ and an identifier.</string>
+    <string name="expediente_state">File status</string>
+    <string name="expediente_identifier">File identifier (optional)</string>
+    <string name="expediente_identifier_helper">If you leave it empty, one is generated.</string>
+    <string name="expediente_interested">Interested parties (optional)</string>
+    <string name="expediente_interested_helper">Separate each person with a semicolon.</string>
+    <string name="expediente_opening_now">Opening date: today</string>
+    <string name="expediente_opening_value">Opening date: %1$s</string>
+    <string name="expediente_opening_choose">Choose the opening date</string>
+    <string name="expediente_opening_clear">Use today’s date</string>
+    <string name="expediente_opening_title">File opening date</string>
+    <string name="expediente_sign_hint">The index is signed with the session certificate, which must have an RSA key. With a DNIe, the PIN is asked once.</string>
+    <string name="expediente_create">Create and sign the file</string>
+    <string name="expediente_error_no_xml">The folder has no XML documents. Choose the folder that contains the ENI documents.</string>
+    <string name="expediente_error_too_many">The folder has more than 64 documents. Remove documents or split the file.</string>
+    <string name="expediente_error_too_large">The documents take up more than 32 MiB. Remove documents from the folder.</string>
+    <string name="expediente_invalid_documents">The file was not created. These files are not valid ENI documents:</string>
+    <string name="expediente_created">File created and signed. Choose where to save it.</string>
+    <string name="expediente_output_name">File: %1$s</string>
+    <string name="batch_action_label">Batch operation</string>
+    <string name="batch_action_sign">Sign</string>
+    <string name="batch_action_cosign">Co-sign (add my signature to files already signed)</string>
+    <string name="batch_seal_check">Add the visible seal to the PDFs</string>
+    <string name="batch_seal_helper">The seal saved in “Visible signature” is used. If a PDF has fewer pages than the one chosen, the seal goes on the last page. The CSV legend is not added in a batch.</string>
+    <string name="batch_seal_error">The visible seal for %1$s could not be prepared. Remove that PDF from the batch or sign without the seal.</string>
+    <string name="batch_dnie_hint">With a DNIe, the PIN is asked only once for the whole batch. Keep the DNIe against the phone until it finishes.</string>
+    <string name="batch_helper_wave4">Choose up to 16 files (32 MiB in total). They are signed with the session certificate (PKCS#12 or DNIe) and with the format, profile and TSA chosen above. When finished, choose a folder to save the signatures.</string>
+    <string name="result_batch_cosigned">Batch co-signed</string>
+    <string name="error_protect_sign_identity_any">To protect and sign you need a certificate in the session (PKCS#12 or DNIe) and a recipient format.</string>
+    <string name="help_documents_content_wave4">6. In “Signature format” you can also choose XMLdSig, ODF, OOXML, FacturaE, ASiC-XAdES or “Veri*Factu record”. These formats need an RSA certificate and produce B-level signatures. For PDFs, the seal editor lets you add the CSV legend and place the seal on several pages.\n\n7. In “Veri*Factu and ENI” you can check invoicing records without sending anything to the AEAT, create an ENI document from the chosen signature and check the structure of an ENI.\n\n8. In “ENI file”, choose the folder with the ENI documents, fill in the bodies, classification and status, and tap “Create and sign the file”. The documents are sorted by name and the index is signed with your certificate.</string>
+    <string name="release_notes_wave4">Fourth wave: ENI file with a signed index; batch with a visible seal on PDFs and with co-signing; DNIe in batches (PIN asked once) and in protect and sign. XMLdSig, ODF, OOXML, FacturaE and ASiC-XAdES still sign only at level B, like the desktop engine.</string>
+    <plurals name="expediente_documents_count">
+        <item quantity="one">%1$d ENI document</item>
+        <item quantity="other">%1$d ENI documents</item>
+    </plurals>
+    <plurals name="expediente_skipped_count">
+        <item quantity="one">%1$d non-XML file was left out</item>
+        <item quantity="other">%1$d non-XML files were left out</item>
+    </plurals>
+</resources>
