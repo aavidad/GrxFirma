@@ -19,8 +19,10 @@ concreta.
   alternativa; instalador NSIS por usuario.
 - Linux: interfaz Qt, paquete `.deb` y archivo `tar.gz`.
 - Android 8.0 (API 26) o posterior: aplicación nativa en Kotlin.
-- macOS e iOS: hay código y scripts en el repositorio, pero no se han validado
-  como plataformas cerradas.
+- macOS e iOS: no hay versiones. No dispongo de un Mac ni de un iPhone para
+  compilarlas y probarlas. Si quieres que existan, préstame o regálame uno y
+  me pongo con ello (avidad@dipgra.es). En el repositorio queda código de
+  partida sin validar.
 
 ## Funciones principales
 
