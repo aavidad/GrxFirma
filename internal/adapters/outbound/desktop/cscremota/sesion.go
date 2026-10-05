@@ -418,9 +418,9 @@ func (s *Sesion) EnviarOTP(ctx context.Context, certID string) error {
 	}
 	s.mu.Lock()
 	r, ok := s.creds[certID]
-	cliente := s.cliente
+	cliente, conectada := s.cliente, s.conectada
 	s.mu.Unlock()
-	if !ok || cliente == nil {
+	if !ok || !conectada || cliente == nil {
 		return nuevoError(CodigoNoConectada)
 	}
 	return cliente.EnviarOTP(ctx, r.cred)

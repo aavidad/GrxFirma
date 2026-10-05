@@ -228,6 +228,8 @@ func TestSesionCompletaConPINyOTP(t *testing.T) {
 	if _, err := sesion.KeyFor(ctx, rsaRef); !errors.Is(err, cscremota.ErrNoAplicable) {
 		t.Fatalf("tras cerrar, KeyFor = %v", err)
 	}
+	// Sin sesión conectada tampoco se pide al prestador que envíe el OTP.
+	codigo(t, sesion.EnviarOTP(ctx, rsaRef.ID), cscremota.CodigoNoConectada)
 	s.Leer(func(s *csctest.Servidor) {
 		if s.Revocados != 1 {
 			t.Fatalf("el token no se revocó al cerrar: %d", s.Revocados)
