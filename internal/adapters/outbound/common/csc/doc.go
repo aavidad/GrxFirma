@@ -9,15 +9,19 @@
 //
 // Alcance del prototipo:
 //
-//   - descubrimiento del servicio (POST /csc/v2/info);
+//   - descubrimiento del servicio (POST /csc/v2/info) y, si anuncia
+//     oauth2Issuer, de su servidor OAuth por los metadatos RFC 8414;
 //   - autorización OAuth 2.0 «Authorization Code» con PKCE (S256) para un
 //     cliente público, abriendo el navegador del sistema y recibiendo el
-//     código en http://127.0.0.1:<puerto efímero>/callback (RFC 8252);
-//   - listado e información de credenciales (credentials/list e info);
+//     código en http://127.0.0.1:<puerto efímero>/callback (RFC 8252), con
+//     renovación del token de servicio por refresh_token si el servidor lo da;
+//   - listado paginado e información de credenciales (credentials/list e info);
 //   - autorización de la credencial (credentials/authorize, SCAL1 y SCAL2,
 //     modos implicit, explicit y oauth2code);
 //   - firma de resúmenes (signatures/signHash) mediante [FirmanteRemoto], un
-//     crypto.Signer que encaja donde el motor usa una clave local.
+//     crypto.Signer que encaja donde el motor usa una clave local, o mediante
+//     [LoteFirmas], que autoriza de una vez los resúmenes de un lote
+//     (numSignatures) cuando el servicio lo admite (multisign).
 //
 // Solo el resumen sale del equipo: el documento y los atributos firmados se
 // calculan en local. El firmante comprueba cada firma recibida con la clave

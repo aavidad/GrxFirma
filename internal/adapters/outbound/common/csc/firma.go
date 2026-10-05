@@ -225,7 +225,7 @@ func (c *Cliente) autorizarCredencial(ctx context.Context, cred *Credencial, res
 		return &autorizacionCredencial{token: t}, nil
 	}
 
-	t, err := c.tokenSesion()
+	t, err := c.tokenSesion(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ func (c *Cliente) autorizarCredencial(ctx context.Context, cred *Credencial, res
 	if cred.Modo == ModoExplicito {
 		if cred.OTP && cred.OTPEnLinea && !c.opc.EnvioOTPManual {
 			if err := postJSON(ctx, c.http, unirRuta(c.base, "credentials/sendOTP"), t, map[string]string{"credentialID": cred.ID}, nil); err != nil {
-				return nil, err
+				return nil, c.sesionRechazada(err)
 			}
 		}
 		pedir := func(tipo TipoSecreto, id string) error {
@@ -288,7 +288,8 @@ func (c *Cliente) autorizarCredencial(ctx context.Context, cred *Credencial, res
 	var respuesta respuestaAutorizar
 	defer func() { secmem.Zeroize(respuesta.SADTexto) }()
 	if err := enviar(ctx, c.http, unirRuta(c.base, "credentials/authorize"), t, tipoJSON, cuerpo, &respuesta); err != nil {
-		return nil, err
+		// No se repite: llevaría otra vez el PIN o un OTP ya gastado.
+		return nil, c.sesionRechazada(err)
 	}
 	return sadDesdeRespuesta(&respuesta)
 }
@@ -343,7 +344,7 @@ func (c *Cliente) firmarResumenes(ctx context.Context, cred *Credencial, auth *a
 	if auth.token != nil {
 		portador = auth.token.bytes()
 	} else {
-		t, err := c.tokenSesion()
+		t, err := c.tokenSesion(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -357,6 +358,9 @@ func (c *Cliente) firmarResumenes(ctx context.Context, cred *Credencial, auth *a
 	defer secmem.Zeroize(cuerpo)
 	var respuesta respuestaFirmarHash
 	if err := enviar(ctx, c.http, unirRuta(c.base, "signatures/signHash"), portador, tipoJSON, cuerpo, &respuesta); err != nil {
+		if auth.token == nil {
+			return nil, c.sesionRechazada(err)
+		}
 		return nil, err
 	}
 	if len(respuesta.Signatures) != len(resumenes) {
@@ -389,11 +393,9 @@ func (c *Cliente) EnviarOTP(ctx context.Context, cred *Credencial) error {
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	t, err := c.tokenSesion()
-	if err != nil {
-		return err
-	}
-	return postJSON(ctx, c.http, unirRuta(c.base, "credentials/sendOTP"), t, map[string]string{"credentialID": cred.ID}, nil)
+	// Un 401 significa que el servicio no atendió la petición: repetirla
+	// tras renovar el token no envía dos códigos.
+	return c.postServicio(ctx, "credentials/sendOTP", map[string]string{"credentialID": cred.ID}, nil)
 }
 
 // FirmanteRemoto es un crypto.Signer cuya clave privada vive en el servicio

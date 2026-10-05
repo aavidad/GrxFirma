@@ -44,6 +44,17 @@ class RemoteSigningContractTests(unittest.TestCase):
         self.assertEqual(3, CLIENT.count("return SendWithRemoteSecretsAsync<"))
         self.assertIn("CryptographicOperations.ZeroMemory(remotePin)", CLIENT)
 
+    def test_batch_with_otp_needs_multisign_and_must_fit(self) -> None:
+        contracts = (SRC / "GrxFirma.WinUI.Core" / "Operations" / "DesktopOperationContracts.cs").read_text(encoding="utf-8")
+        self.assertIn('[JsonPropertyName("remoteMultiSign")]', contracts)
+        prepare = VIEW_MODEL[VIEW_MODEL.index("PrepareRemoteSigningAsync("):]
+        prepare = prepare[:prepare.index("var prompt = RemoteSecretsPrompt;")]
+        self.assertIn("multiCosign || source.RemoteMultiSign < 2", prepare)
+        self.assertIn("documentCount > source.RemoteMultiSign", prepare)
+        self.assertIn('Localizer.Text("csc.error.otp_lote_excede")', prepare)
+        self.assertIn("documentCount: currentPaths.Count", VIEW_MODEL)
+        self.assertIn("multiCosign: useGuidedMultiCosign", VIEW_MODEL)
+
     def test_policy_prohibition_is_explained_without_offering_config(self) -> None:
         self.assertIn("status.Data?.ProhibitedByPolicy == true", DIALOGS)
         self.assertIn('Localizer.Text("csc.error.prohibida")', DIALOGS)

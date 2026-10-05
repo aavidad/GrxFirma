@@ -34,6 +34,21 @@ const (
 	CodigoSesionCerrada          Codigo = "sesion_cerrada"
 	CodigoParametroInvalido      Codigo = "parametro_invalido"
 	CodigoDemasiadasCredenciales Codigo = "demasiadas_credenciales" // #nosec G101 -- código de error, no una credencial.
+	// CodigoSesionCaducada: el token de servicio ha caducado y no se puede
+	// renovar; hay que volver a conectar.
+	CodigoSesionCaducada Codigo = "sesion_caducada"
+	// CodigoOAuthMetadatos: el servidor anunciado en oauth2Issuer no publica
+	// unos metadatos RFC 8414 válidos.
+	CodigoOAuthMetadatos Codigo = "oauth_metadatos"
+	// CodigoLoteRepetido: el motor pidió una segunda firma para el mismo
+	// documento de un lote ya autorizado.
+	CodigoLoteRepetido Codigo = "lote_repetido"
+	// CodigoLoteMixto: los documentos del lote usan resúmenes o esquemas de
+	// firma distintos y no caben en una sola autorización.
+	CodigoLoteMixto Codigo = "lote_mixto"
+	// CodigoOTPLoteExcede: el lote supera las firmas que el prestador admite
+	// con un solo código de un solo uso.
+	CodigoOTPLoteExcede Codigo = "otp_lote_excede"
 )
 
 // Error es el error tipado del paquete. Detalle solo contiene datos técnicos

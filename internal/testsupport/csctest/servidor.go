@@ -7,10 +7,12 @@
 // las pruebas del cliente. Solo debe importarse desde ficheros _test.go.
 //
 // Implementa info, oauth2/authorize (con redirección inmediata, como si la
-// persona hubiera aceptado), oauth2/token con PKCE S256, oauth2/revoke,
-// credentials/list, credentials/info, credentials/sendOTP,
-// credentials/authorize y signatures/signHash con claves RSA y ECDSA
-// generadas al vuelo y una CA de pruebas.
+// persona hubiera aceptado), oauth2/token con PKCE S256 y refresh_token,
+// oauth2/revoke, los metadatos RFC 8414 de oauth2Issuer, credentials/list
+// con paginación, credentials/info, credentials/sendOTP,
+// credentials/authorize (con numSignatures y multisign) y
+// signatures/signHash con claves RSA y ECDSA generadas al vuelo y una CA de
+// pruebas.
 package csctest
 
 import (
@@ -27,10 +29,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -95,9 +99,44 @@ type Servidor struct {
 	OAuthURL string
 	// InfoOverride, si no es nil, sustituye la respuesta de /info.
 	InfoOverride func(w http.ResponseWriter, r *http.Request)
+	// Multisign es el máximo de firmas por autorización que se anuncia y se
+	// exige en credentials/authorize (1 por defecto).
+	Multisign int
+	// MultisignJSON, si no está vacío, se anuncia tal cual como multisign.
+	MultisignJSON string
+	// CredencialesExtra añade identificadores al listado (usan la clave RSA).
+	CredencialesExtra int
+	// TamPagina, si no es cero, pagina credentials/list con ese tamaño.
+	TamPagina int
+	// PaginaCiclica devuelve siempre el mismo nextPageToken.
+	PaginaCiclica bool
+	// DarRefresh incluye refresh_token al emitir el token de servicio.
+	DarRefresh bool
+	// RefreshSinRotar no emite un refresh_token nuevo al renovar.
+	RefreshSinRotar bool
+	// RefreshRechazado hace que la renovación falle con invalid_grant.
+	RefreshRechazado bool
+	// VidaToken son los segundos de expires_in del token de servicio (3600
+	// por defecto). El servidor rechaza con 401 los tokens caducados.
+	VidaToken int
+	// Emisor, si no está vacío, se anuncia como oauth2Issuer (ruta bajo el
+	// propio servidor) en lugar de oauth2, y publica sus metadatos RFC 8414
+	// con extremos en /as/.
+	Emisor string
+	// MetadatosOverride permite alterar los metadatos antes de enviarlos.
+	MetadatosOverride func(m map[string]any)
+	// Renovaciones cuenta los refresh_token canjeados.
+	Renovaciones int
+	// RevocadosRefresh cuenta los refresh_token revocados.
+	RevocadosRefresh int
+	// UltimoNumSignatures es el numSignatures de la última autorización.
+	UltimoNumSignatures int
+	// PeticionesListado cuenta las páginas pedidas.
+	PeticionesListado int
 
 	codigos        map[string]codigoPendiente
-	tokensServicio map[string]bool
+	tokensServicio map[string]time.Time
+	refrescos      map[string]bool
 	tokensCred     map[string]autorizacion
 	sads           map[string]autorizacion
 	// ResumenesFirmados recoge todo lo que llegó a signHash.
@@ -114,9 +153,11 @@ func Nuevo(t testing.TB) *Servidor {
 	s := &Servidor{
 		Modo:           "implicit",
 		SCAL:           "1",
+		Multisign:      1,
 		Credenciales:   map[string]*Credencial{},
 		codigos:        map[string]codigoPendiente{},
-		tokensServicio: map[string]bool{},
+		tokensServicio: map[string]time.Time{},
+		refrescos:      map[string]bool{},
 		tokensCred:     map[string]autorizacion{},
 		sads:           map[string]autorizacion{},
 	}
@@ -172,6 +213,10 @@ func Nuevo(t testing.TB) *Servidor {
 	mux.HandleFunc("/oauth2/authorize", s.authorize)
 	mux.HandleFunc("/oauth2/token", s.token)
 	mux.HandleFunc("/oauth2/revoke", s.revoke)
+	mux.HandleFunc("/as/authorize", s.authorize)
+	mux.HandleFunc("/as/token", s.token)
+	mux.HandleFunc("/as/revoke", s.revoke)
+	mux.HandleFunc("/.well-known/oauth-authorization-server/", s.metadatos)
 	mux.HandleFunc("/csc/v2/credentials/list", s.list)
 	mux.HandleFunc("/csc/v2/credentials/info", s.credInfo)
 	mux.HandleFunc("/csc/v2/credentials/sendOTP", s.sendOTP)
@@ -260,14 +305,45 @@ func (s *Servidor) info(w http.ResponseWriter, r *http.Request) {
 		fallo(w, http.StatusMethodNotAllowed, "invalid_request")
 		return
 	}
-	escribirJSON(w, http.StatusOK, map[string]any{
+	respuesta := map[string]any{
 		"specs":    "2.0.0.2",
 		"name":     "CSC simulado",
 		"region":   "ES",
 		"authType": []string{"oauth2code"},
 		"oauth2":   oauth,
 		"methods":  []string{"credentials/list", "credentials/info", "credentials/authorize", "signatures/signHash"},
-	})
+	}
+	s.mu.Lock()
+	if s.Emisor != "" {
+		delete(respuesta, "oauth2")
+		respuesta["oauth2Issuer"] = s.URL + s.Emisor
+	}
+	s.mu.Unlock()
+	escribirJSON(w, http.StatusOK, respuesta)
+}
+
+// metadatos publica los metadatos RFC 8414 del emisor anunciado.
+func (s *Servidor) metadatos(w http.ResponseWriter, r *http.Request) {
+	s.mu.Lock()
+	emisor, alterar := s.Emisor, s.MetadatosOverride
+	s.mu.Unlock()
+	if r.Method != http.MethodGet || emisor == "" ||
+		r.URL.Path != "/.well-known/oauth-authorization-server"+emisor {
+		fallo(w, http.StatusNotFound, "not_found")
+		return
+	}
+	m := map[string]any{
+		"issuer":                           s.URL + emisor,
+		"authorization_endpoint":           s.URL + "/as/authorize",
+		"token_endpoint":                   s.URL + "/as/token",
+		"revocation_endpoint":              s.URL + "/as/revoke",
+		"code_challenge_methods_supported": []string{"S256"},
+		"response_types_supported":         []string{"code"},
+	}
+	if alterar != nil {
+		alterar(m)
+	}
+	escribirJSON(w, http.StatusOK, m)
 }
 
 func (s *Servidor) authorize(w http.ResponseWriter, r *http.Request) {
@@ -317,6 +393,10 @@ func (s *Servidor) token(w http.ResponseWriter, r *http.Request) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if r.PostForm.Get("grant_type") == "refresh_token" {
+		s.renovar(w, r)
+		return
+	}
 	codigo := r.PostForm.Get("code")
 	pendiente, ok := s.codigos[codigo]
 	delete(s.codigos, codigo) // un solo uso
@@ -331,10 +411,55 @@ func (s *Servidor) token(w http.ResponseWriter, r *http.Request) {
 	tok := aleatorio()
 	if pendiente.scope == "credential" {
 		s.tokensCred[tok] = autorizacion{credencial: pendiente.credencial, hashes: pendiente.hashes}
-	} else {
-		s.tokensServicio[tok] = true
+		escribirJSON(w, http.StatusOK, map[string]any{"access_token": tok, "token_type": "Bearer", "expires_in": 3600})
+		return
 	}
-	escribirJSON(w, http.StatusOK, map[string]any{"access_token": tok, "token_type": "Bearer", "expires_in": 3600})
+	escribirJSON(w, http.StatusOK, s.emitirServicioLocked(true))
+}
+
+// emitirServicioLocked crea un token de servicio y, si procede, su
+// refresh_token. El llamador tiene s.mu.
+func (s *Servidor) emitirServicioLocked(conRefresco bool) map[string]any {
+	vida := s.VidaToken
+	if vida <= 0 {
+		vida = 3600
+	}
+	tok := aleatorio()
+	s.tokensServicio[tok] = time.Now().Add(time.Duration(vida) * time.Second)
+	respuesta := map[string]any{"access_token": tok, "token_type": "Bearer", "expires_in": vida}
+	if s.DarRefresh && conRefresco {
+		ref := aleatorio()
+		s.refrescos[ref] = true
+		respuesta["refresh_token"] = ref
+	}
+	return respuesta
+}
+
+// renovar canjea un refresh_token (cliente público, sin secreto). El
+// llamador tiene s.mu.
+func (s *Servidor) renovar(w http.ResponseWriter, r *http.Request) {
+	ref := r.PostForm.Get("refresh_token")
+	if s.RefreshRechazado || !s.refrescos[ref] || r.PostForm.Get("client_id") != ClientID ||
+		r.PostForm.Get("client_secret") != "" {
+		fallo(w, http.StatusBadRequest, "invalid_grant")
+		return
+	}
+	rotar := !s.RefreshSinRotar
+	if rotar {
+		delete(s.refrescos, ref)
+	}
+	s.Renovaciones++
+	escribirJSON(w, http.StatusOK, s.emitirServicioLocked(rotar))
+}
+
+// CaducarTokensServicio invalida en el servidor los tokens de servicio
+// emitidos, como si hubieran caducado antes de lo anunciado.
+func (s *Servidor) CaducarTokensServicio() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for tok := range s.tokensServicio {
+		s.tokensServicio[tok] = time.Now().Add(-time.Second)
+	}
 }
 
 func (s *Servidor) revoke(w http.ResponseWriter, r *http.Request) {
@@ -342,9 +467,13 @@ func (s *Servidor) revoke(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	tok := r.PostForm.Get("token")
-	if s.tokensServicio[tok] {
+	if _, ok := s.tokensServicio[tok]; ok {
 		delete(s.tokensServicio, tok)
 		s.Revocados++
+	}
+	if s.refrescos[tok] {
+		delete(s.refrescos, tok)
+		s.RevocadosRefresh++
 	}
 	if _, ok := s.tokensCred[tok]; ok {
 		delete(s.tokensCred, tok)
@@ -359,11 +488,17 @@ func portador(r *http.Request) string {
 
 // servicioAutorizado comprueba el token de servicio; el llamador tiene s.mu.
 func (s *Servidor) servicioAutorizado(w http.ResponseWriter, r *http.Request) bool {
-	if r.Method != http.MethodPost || !s.tokensServicio[portador(r)] {
+	if r.Method != http.MethodPost || !s.tokenServicioVigente(portador(r)) {
 		fallo(w, http.StatusUnauthorized, "invalid_token")
 		return false
 	}
 	return true
+}
+
+// tokenServicioVigente: el llamador tiene s.mu.
+func (s *Servidor) tokenServicioVigente(tok string) bool {
+	caduca, ok := s.tokensServicio[tok]
+	return ok && time.Now().Before(caduca)
 }
 
 func (s *Servidor) list(w http.ResponseWriter, r *http.Request) {
@@ -372,7 +507,42 @@ func (s *Servidor) list(w http.ResponseWriter, r *http.Request) {
 	if !s.servicioAutorizado(w, r) {
 		return
 	}
-	escribirJSON(w, http.StatusOK, map[string]any{"credentialIDs": []string{CredencialRSA, CredencialEC}})
+	s.PeticionesListado++
+	var p struct {
+		MaxResults int    `json:"maxResults"`
+		PageToken  string `json:"pageToken"`
+	}
+	_ = json.NewDecoder(r.Body).Decode(&p)
+	ids := []string{CredencialRSA, CredencialEC}
+	for i := 0; i < s.CredencialesExtra; i++ {
+		ids = append(ids, fmt.Sprintf("cred-extra-%d", i))
+	}
+	tam := s.TamPagina
+	if tam <= 0 {
+		escribirJSON(w, http.StatusOK, map[string]any{"credentialIDs": ids})
+		return
+	}
+	if p.MaxResults > 0 && p.MaxResults < tam {
+		tam = p.MaxResults
+	}
+	inicio := 0
+	if p.PageToken != "" {
+		n, err := strconv.Atoi(strings.TrimPrefix(p.PageToken, "p"))
+		if err != nil || n < 0 || n > len(ids) {
+			fallo(w, http.StatusBadRequest, "invalid_request")
+			return
+		}
+		inicio = n
+	}
+	fin := min(inicio+tam, len(ids))
+	respuesta := map[string]any{"credentialIDs": ids[inicio:fin]}
+	switch {
+	case s.PaginaCiclica:
+		respuesta["nextPageToken"] = "p0"
+	case fin < len(ids):
+		respuesta["nextPageToken"] = "p" + strconv.Itoa(fin)
+	}
+	escribirJSON(w, http.StatusOK, respuesta)
 }
 
 func (s *Servidor) credInfo(w http.ResponseWriter, r *http.Request) {
@@ -385,7 +555,7 @@ func (s *Servidor) credInfo(w http.ResponseWriter, r *http.Request) {
 		CredentialID string `json:"credentialID"`
 	}
 	_ = json.NewDecoder(r.Body).Decode(&p)
-	c, ok := s.Credenciales[p.CredentialID]
+	c, ok := s.credencialLocked(p.CredentialID)
 	if !ok {
 		fallo(w, http.StatusBadRequest, "invalid_request")
 		return
@@ -404,7 +574,10 @@ func (s *Servidor) credInfo(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 		"SCAL":      s.SCAL,
-		"multisign": 1,
+		"multisign": s.Multisign,
+	}
+	if s.MultisignJSON != "" {
+		respuesta["multisign"] = json.RawMessage(s.MultisignJSON)
 	}
 	explicito := s.Modo == "explicit"
 	if s.AuthV21 {
@@ -421,6 +594,19 @@ func (s *Servidor) credInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	escribirJSON(w, http.StatusOK, respuesta)
+}
+
+// credencialLocked resuelve también los identificadores extra del listado,
+// que usan la credencial RSA. El llamador tiene s.mu.
+func (s *Servidor) credencialLocked(id string) (*Credencial, bool) {
+	if c, ok := s.Credenciales[id]; ok {
+		return c, true
+	}
+	if strings.HasPrefix(id, "cred-extra-") {
+		c, ok := s.Credenciales[CredencialRSA]
+		return c, ok
+	}
+	return nil, false
 }
 
 // cadena devuelve la CA que se anuncia; el llamador tiene s.mu.
@@ -465,6 +651,11 @@ func (s *Servidor) credAuthorize(w http.ResponseWriter, r *http.Request) {
 		fallo(w, http.StatusBadRequest, "invalid_request")
 		return
 	}
+	if p.NumSignatures > max(s.Multisign, 1) {
+		fallo(w, http.StatusBadRequest, "invalid_request")
+		return
+	}
+	s.UltimoNumSignatures = p.NumSignatures
 	if s.Modo == "oauth2code" {
 		fallo(w, http.StatusBadRequest, "invalid_request")
 		return
@@ -507,7 +698,7 @@ func (s *Servidor) signHash(w http.ResponseWriter, r *http.Request) {
 	var aut autorizacion
 	var ok bool
 	if p.SAD != "" {
-		if !s.tokensServicio[portador(r)] {
+		if !s.tokenServicioVigente(portador(r)) {
 			fallo(w, http.StatusUnauthorized, "invalid_token")
 			return
 		}

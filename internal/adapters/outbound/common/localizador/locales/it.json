@@ -4967,7 +4967,7 @@
   ,"csc.error.no_configurada": "Verifichi prima il servizio di firma remota."
   ,"csc.error.no_conectada": "La sessione con il servizio di firma remota si è chiusa. Si colleghi di nuovo."
   ,"csc.error.pares_oauth_invalidos": "L'elenco firma_remota_csc_oauth_permitidos contiene una voce scritta male. Avvisi chi amministra il computer."
-  ,"csc.error.otp_lote": "Questo certificato remoto chiede un codice monouso per ogni firma. Firmi i documenti uno alla volta."
+  ,"csc.error.otp_lote": "Il suo prestatore non consente di autorizzare più firme con lo stesso codice monouso. Firmi i documenti uno alla volta."
   ,"csc.error.secreto_no_pedido": "Manca il PIN o il codice monouso, oppure è stato inviato per un certificato che non è remoto. Firmi di nuovo e li inserisca quando richiesti."
   ,"csc.gui.titulo": "Firma remota"
   ,"csc.gui.descripcion": "Firmi con un certificato custodito da un prestatore di fiducia. Dal computer esce solo l'impronta del documento, mai il documento."
@@ -5014,4 +5014,9 @@
   ,"ENI: antes de crear el documento se comprueba que la firma corresponde al original elegido.": "ENI: prima di creare il documento si verifica che la firma corrisponda all'originale scelto."
   ,"Se leen bien las configuraciones guardadas con el Bloc de notas antiguo o con PowerShell 5 (con marca BOM).": "Le configurazioni salvate con il vecchio Blocco note o con PowerShell 5 (con marcatore BOM) vengono lette correttamente."
   ,"Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.": "Windows e Linux: schermate di fatture, Veri*Factu ed ENI più chiare e accessibili: Veri*Factu ha una sezione propria, la data si sceglie senza formati tecnici, contrasto migliore in tutti i temi e il sigillo si disegna anche da tastiera."
+  ,"csc.error.sesion_caducada": "La sessione con il prestatore è scaduta. Si colleghi di nuovo al servizio di firma remota per continuare a firmare."
+  ,"csc.error.oauth_metadatos": "Il server di autorizzazione del prestatore non pubblica una configurazione valida. Avvisi il suo prestatore."
+  ,"csc.error.lote_repetido": "Un documento del lotto ha richiesto una seconda firma quando l'autorizzazione del lotto era già stata usata. Firmi di nuovo quel documento."
+  ,"csc.error.lote_mixto": "I documenti del lotto richiedono algoritmi di firma diversi e non si possono autorizzare insieme. Li firmi in lotti separati."
+  ,"csc.error.otp_lote_excede": "Il lotto contiene più documenti di quanti il suo prestatore consenta di autorizzare con un solo codice. Lo divida in lotti più piccoli."
 }

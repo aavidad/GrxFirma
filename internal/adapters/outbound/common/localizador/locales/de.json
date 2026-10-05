@@ -4967,7 +4967,7 @@
   ,"csc.error.no_configurada": "Prüfen Sie zuerst den Fernsignaturdienst."
   ,"csc.error.no_conectada": "Die Sitzung mit dem Fernsignaturdienst wurde beendet. Verbinden Sie sich erneut."
   ,"csc.error.pares_oauth_invalidos": "Die Liste firma_remota_csc_oauth_permitidos enthält einen fehlerhaften Eintrag. Wenden Sie sich an die Verwaltung dieses Computers."
-  ,"csc.error.otp_lote": "Dieses Fernzertifikat verlangt für jede Signatur einen Einmalcode. Signieren Sie die Dokumente einzeln."
+  ,"csc.error.otp_lote": "Ihr Anbieter erlaubt nicht, mehrere Signaturen mit demselben Einmalcode zu autorisieren. Signieren Sie die Dokumente einzeln."
   ,"csc.error.secreto_no_pedido": "PIN oder Einmalcode fehlen oder wurden für ein Zertifikat gesendet, das kein Fernzertifikat ist. Signieren Sie erneut und geben Sie sie bei Aufforderung ein."
   ,"csc.gui.titulo": "Fernsignatur"
   ,"csc.gui.descripcion": "Signieren Sie mit einem Zertifikat, das ein Vertrauensdiensteanbieter verwahrt. Nur der Hashwert verlässt den Computer, nie das Dokument."
@@ -5014,4 +5014,9 @@
   ,"ENI: antes de crear el documento se comprueba que la firma corresponde al original elegido.": "ENI: Vor dem Erstellen des Dokuments wird geprüft, ob die Signatur zum gewählten Original passt."
   ,"Se leen bien las configuraciones guardadas con el Bloc de notas antiguo o con PowerShell 5 (con marca BOM).": "Mit dem alten Editor oder mit PowerShell 5 (mit BOM-Markierung) gespeicherte Konfigurationen werden korrekt gelesen."
   ,"Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.": "Windows und Linux: klarere und barrierefreiere Bildschirme für Rechnungen, Veri*Factu und ENI: Veri*Factu hat einen eigenen Bereich, das Datum wird ohne technische Formate gewählt, besserer Kontrast in allen Designs und das Siegel lässt sich auch per Tastatur zeichnen."
+  ,"csc.error.sesion_caducada": "Die Sitzung mit dem Anbieter ist abgelaufen. Verbinden Sie sich erneut mit dem Fernsignaturdienst, um weiter zu signieren."
+  ,"csc.error.oauth_metadatos": "Der Autorisierungsserver des Anbieters veröffentlicht keine gültige Konfiguration. Informieren Sie Ihren Anbieter."
+  ,"csc.error.lote_repetido": "Ein Dokument des Stapels brauchte eine zweite Signatur, die Autorisierung des Stapels war aber schon verbraucht. Signieren Sie dieses Dokument erneut."
+  ,"csc.error.lote_mixto": "Die Dokumente des Stapels brauchen unterschiedliche Signaturalgorithmen und lassen sich nicht gemeinsam autorisieren. Signieren Sie sie in getrennten Stapeln."
+  ,"csc.error.otp_lote_excede": "Der Stapel enthält mehr Dokumente, als Ihr Anbieter mit einem einzigen Code autorisieren lässt. Teilen Sie ihn in kleinere Stapel auf."
 }

@@ -4967,7 +4967,7 @@
   ,"csc.error.no_configurada": "Vérifiez d'abord le service de signature à distance."
   ,"csc.error.no_conectada": "La session avec le service de signature à distance est terminée. Reconnectez-vous."
   ,"csc.error.pares_oauth_invalidos": "La liste firma_remota_csc_oauth_permitidos contient une entrée mal écrite. Prévenez la personne qui gère cet ordinateur."
-  ,"csc.error.otp_lote": "Ce certificat distant demande un code à usage unique pour chaque signature. Signez les documents un par un."
+  ,"csc.error.otp_lote": "Votre prestataire ne permet pas d'autoriser plusieurs signatures avec un même code à usage unique. Signez les documents un par un."
   ,"csc.error.secreto_no_pedido": "Le PIN ou le code à usage unique manque, ou il a été envoyé pour un certificat qui n'est pas distant. Signez de nouveau et saisissez-les lorsqu'ils sont demandés."
   ,"csc.gui.titulo": "Signature à distance"
   ,"csc.gui.descripcion": "Signez avec un certificat conservé par un prestataire de confiance. Seule l'empreinte du document quitte l'ordinateur, jamais le document."
@@ -5014,4 +5014,9 @@
   ,"ENI: antes de crear el documento se comprueba que la firma corresponde al original elegido.": "ENI : avant de créer le document, on vérifie que la signature correspond à l'original choisi."
   ,"Se leen bien las configuraciones guardadas con el Bloc de notas antiguo o con PowerShell 5 (con marca BOM).": "Les configurations enregistrées avec l'ancien Bloc-notes ou avec PowerShell 5 (avec marque BOM) sont lues correctement."
   ,"Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.": "Windows et Linux : écrans de factures, Veri*Factu et ENI plus clairs et accessibles : Veri*Factu a sa propre section, la date se choisit sans format technique, meilleur contraste dans tous les thèmes et le cachet se dessine aussi au clavier."
+  ,"csc.error.sesion_caducada": "La session avec le prestataire a expiré. Reconnectez-vous au service de signature à distance pour continuer à signer."
+  ,"csc.error.oauth_metadatos": "Le serveur d'autorisation du prestataire ne publie pas de configuration valide. Prévenez votre prestataire."
+  ,"csc.error.lote_repetido": "Un document du lot a demandé une deuxième signature alors que l'autorisation du lot était déjà utilisée. Signez à nouveau ce document."
+  ,"csc.error.lote_mixto": "Les documents du lot demandent des algorithmes de signature différents et ne peuvent pas être autorisés ensemble. Signez-les dans des lots séparés."
+  ,"csc.error.otp_lote_excede": "Le lot contient plus de documents que votre prestataire ne permet d'autoriser avec un seul code. Divisez-le en lots plus petits."
 }

@@ -303,17 +303,29 @@ public sealed class SignPageViewModel
     private async Task<(bool Proceed, RemoteSigningSecrets? Secrets)> PrepareRemoteSigningAsync(
         CertificateListItem certificate,
         bool batch,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int documentCount = 1,
+        bool multiCosign = false)
     {
         var source = certificate.SourceCertificate;
         if (!source.Remote)
         {
             return (true, null);
         }
+        // Un lote con OTP solo se firma si el prestador autoriza varias firmas
+        // con un código (multisign) y el lote cabe en una autorización.
         if (batch && source.RemoteOtp)
         {
-            ValidationMessage = Localizer.Text("csc.error.otp_lote");
-            return (false, null);
+            if (multiCosign || source.RemoteMultiSign < 2)
+            {
+                ValidationMessage = Localizer.Text("csc.error.otp_lote");
+                return (false, null);
+            }
+            if (documentCount > source.RemoteMultiSign)
+            {
+                ValidationMessage = Localizer.Text("csc.error.otp_lote_excede");
+                return (false, null);
+            }
         }
         if (!source.RemotePin && !source.RemoteOtp)
         {
@@ -2149,7 +2161,9 @@ public sealed class SignPageViewModel
             var remote = await PrepareRemoteSigningAsync(
                 certificate,
                 batch: true,
-                operationCancellation.Token);
+                operationCancellation.Token,
+                documentCount: currentPaths.Count,
+                multiCosign: useGuidedMultiCosign);
             if (!remote.Proceed)
             {
                 return null;

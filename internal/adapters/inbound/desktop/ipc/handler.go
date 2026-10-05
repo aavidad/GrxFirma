@@ -3287,6 +3287,7 @@ func (m *Manejador) certsAJSON(certs []domain.CertificateRef) []certJSON {
 				item.RemotePIN = remota.PIN
 				item.RemoteOTP = remota.OTP
 				item.RemoteOTPOnline = remota.OTPEnLinea
+				item.RemoteMultiSign = max(remota.Multisign, 1)
 			}
 		}
 		items = append(items, item)

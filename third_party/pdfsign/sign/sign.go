@@ -120,29 +120,17 @@ func (context *SignContext) SignPDF() error {
 			return fmt.Errorf("certificate is required")
 		}
 
-		switch context.SignData.Certificate.SignatureAlgorithm.String() {
-		case "SHA1-RSA":
-		case "ECDSA-SHA1":
-		case "DSA-SHA1":
-			if err := context.addSignatureContentLength(128); err != nil {
-				return fmt.Errorf("failed to reserve SHA-1 signature space: %w", err)
-			}
-		case "SHA256-RSA":
-		case "ECDSA-SHA256":
-		case "DSA-SHA256":
-			if err := context.addSignatureContentLength(256); err != nil {
-				return fmt.Errorf("failed to reserve SHA-256 signature space: %w", err)
-			}
-		case "SHA384-RSA":
-		case "ECDSA-SHA384":
-			if err := context.addSignatureContentLength(384); err != nil {
-				return fmt.Errorf("failed to reserve SHA-384 signature space: %w", err)
-			}
-		case "SHA512-RSA":
-		case "ECDSA-SHA512":
-			if err := context.addSignatureContentLength(512); err != nil {
-				return fmt.Errorf("failed to reserve SHA-512 signature space: %w", err)
-			}
+		// Reserve the signature value from the signer's key, not from the
+		// algorithm the CA used for the certificate, plus room for the signed
+		// attributes. A signature that does not fit forces SignPDF to sign
+		// again; with a remote (CSC) key every attempt is a new authorization
+		// and a batch authorization cannot be reused, so the first estimate
+		// must be enough.
+		if err := context.addSignatureContentLength(estimatedSignatureValueLength(context.SignData.Signer, context.SignData.Certificate)); err != nil {
+			return fmt.Errorf("failed to reserve signature value space: %w", err)
+		}
+		if err := context.addSignatureContentLength(signedAttributesAllowance); err != nil {
+			return fmt.Errorf("failed to reserve signed attributes space: %w", err)
 		}
 
 		// Add size of digest algorithm twice (for file digist and signing certificate attribute)

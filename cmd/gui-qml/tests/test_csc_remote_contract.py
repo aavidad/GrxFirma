@@ -73,6 +73,15 @@ class CscRemoteContractTests(unittest.TestCase):
         self.assertIn("id: cscServiceUrlField\n                visible: window.cscAllowed", dialog)
         self.assertIn("id: cscClientIdField\n                visible: window.cscAllowed", dialog)
 
+    def test_batch_with_otp_needs_multisign_and_must_fit(self) -> None:
+        check = block(QML, "function remoteBatchOtpBlockKey(")
+        self.assertIn("Number(certificate.remoteMultiSign || 1)", check)
+        self.assertIn("window.multiCosignEnabled || !(capacity > 1)", check)
+        self.assertIn("currentBatchPaths.length > capacity", check)
+        self.assertIn('return "csc.error.otp_lote_excede"', check)
+        self.assertIn("window.remoteBatchOtpBlockKey(remoteCertificate)", QML)
+        self.assertIn('tr("csc.error.otp_lote_excede")', QML)
+
     def test_every_csc_text_key_is_in_the_catalog(self) -> None:
         catalog = json.loads((LOCALES / "es.json").read_text(encoding="utf-8"))
         keys = set(re.findall(r'tr\("(csc\.[a-z_.]+)"\)', QML))

@@ -4967,7 +4967,7 @@
   ,"csc.error.no_configurada": "Verifique primeiro o serviço de assinatura remota."
   ,"csc.error.no_conectada": "A sessão com o serviço de assinatura remota terminou. Volte a ligar."
   ,"csc.error.pares_oauth_invalidos": "A lista firma_remota_csc_oauth_permitidos tem uma entrada mal escrita. Avise quem administra o computador."
-  ,"csc.error.otp_lote": "Este certificado remoto pede um código de utilização única para cada assinatura. Assine os documentos um de cada vez."
+  ,"csc.error.otp_lote": "O seu prestador não permite autorizar várias assinaturas com o mesmo código de utilização única. Assine os documentos um de cada vez."
   ,"csc.error.secreto_no_pedido": "Falta o PIN ou o código de utilização única, ou foi enviado para um certificado que não é remoto. Assine novamente e escreva-os quando forem pedidos."
   ,"csc.gui.titulo": "Assinatura remota"
   ,"csc.gui.descripcion": "Assine com um certificado guardado por um prestador de confiança. Do computador só sai o resumo do documento, nunca o documento."
@@ -5014,4 +5014,9 @@
   ,"ENI: antes de crear el documento se comprueba que la firma corresponde al original elegido.": "ENI: antes de criar o documento verifica-se que a assinatura corresponde ao original escolhido."
   ,"Se leen bien las configuraciones guardadas con el Bloc de notas antiguo o con PowerShell 5 (con marca BOM).": "As configurações guardadas com o Bloco de notas antigo ou com o PowerShell 5 (com marca BOM) são lidas corretamente."
   ,"Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.": "Windows e Linux: ecrãs de faturas, Veri*Factu e ENI mais claros e acessíveis: o Veri*Factu tem secção própria, a data escolhe-se sem formatos técnicos, melhor contraste em todos os temas e o selo desenha-se também com o teclado."
+  ,"csc.error.sesion_caducada": "A sessão com o prestador expirou. Volte a ligar-se ao serviço de assinatura remota para continuar a assinar."
+  ,"csc.error.oauth_metadatos": "O servidor de autorização do prestador não publica uma configuração válida. Avise o seu prestador."
+  ,"csc.error.lote_repetido": "Um documento do lote precisou de uma segunda assinatura e a autorização do lote já tinha sido usada. Volte a assinar esse documento."
+  ,"csc.error.lote_mixto": "Os documentos do lote precisam de algoritmos de assinatura diferentes e não podem ser autorizados em conjunto. Assine-os em lotes separados."
+  ,"csc.error.otp_lote_excede": "O lote tem mais documentos do que o seu prestador permite autorizar com um só código. Divida-o em lotes mais pequenos."
 }

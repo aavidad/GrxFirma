@@ -53,8 +53,10 @@ func nuevoEntornoCSCIPC(t *testing.T, modo string) entornoCSCIPC {
 		},
 	})
 	t.Cleanup(func() { _ = sesion.Close() })
-	firmar := application.NuevoSignDocumentUseCase(sesion, sesion, desktopsigner.NuevoMotorFirmaGo(nil), aprobacionFirmaContrato{}, nil, nil)
-	m := &Manejador{Catalogo: sesion, Firmar: firmar, CSC: sesion}
+	motor := desktopsigner.NuevoMotorFirmaGo(nil)
+	firmar := application.NuevoSignDocumentUseCase(sesion, sesion, motor, aprobacionFirmaContrato{}, nil, nil)
+	lote := application.NuevoProcessBatchUseCase(sesion, sesion, motor, aprobacionFirmaContrato{}, nil, nil)
+	m := &Manejador{Catalogo: sesion, Firmar: firmar, ProcesarLote: lote, CSC: sesion}
 	return entornoCSCIPC{m: m, servidor: s, sesion: sesion, permitida: permitida, prohibir: prohibir}
 }
 
@@ -195,7 +197,7 @@ func TestCSCIPCFlujoCompletoConPINyOTP(t *testing.T) {
 		t.Fatalf("no se escribió la firma: %v", err)
 	}
 
-	// Un lote con OTP no se admite: el código solo vale una vez.
+	// Sin multisign, un lote con OTP no se admite: el código solo vale una vez.
 	resp = pedirIPC(t, e.m, "sign_batch", map[string]any{"inputPaths": []string{entrada}, "certificateId": certRSA, "format": "cades", "remotePin": b64(csctest.PIN)})
 	if resp.OK || resp.ErrorCode != "csc_otp_lote" {
 		t.Fatalf("lote con OTP: %+v", resp)

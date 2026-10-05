@@ -4967,7 +4967,7 @@
   ,"csc.error.no_configurada": "Egiaztatu lehenik urruneko sinadura-zerbitzua."
   ,"csc.error.no_conectada": "Urruneko sinadura-zerbitzuarekiko saioa itxi da. Konektatu berriro."
   ,"csc.error.pares_oauth_invalidos": "firma_remota_csc_oauth_permitidos zerrendak gaizki idatzitako sarrera bat du. Jakinarazi ordenagailua kudeatzen duenari."
-  ,"csc.error.otp_lote": "Urruneko ziurtagiri honek erabilera bakarreko kode bat eskatzen du sinadura bakoitzeko. Sinatu dokumentuak banan-banan."
+  ,"csc.error.otp_lote": "Zure hornitzaileak ez du uzten erabilera bakarreko kode berarekin hainbat sinadura baimentzen. Sinatu dokumentuak banan-banan."
   ,"csc.error.secreto_no_pedido": "PINa edo erabilera bakarreko kodea falta da, edo urrunekoa ez den ziurtagiri baterako bidali da. Sinatu berriro eta idatzi eskatzen direnean."
   ,"csc.gui.titulo": "Urruneko sinadura"
   ,"csc.gui.descripcion": "Sinatu konfiantzazko zerbitzu-emaile batek gordetzen duen ziurtagiriarekin. Ordenagailutik dokumentuaren laburpena bakarrik ateratzen da, inoiz ez dokumentua."
@@ -5014,4 +5014,9 @@
   ,"ENI: antes de crear el documento se comprueba que la firma corresponde al original elegido.": "ENI: dokumentua sortu aurretik, sinadura aukeratutako jatorrizkoari dagokiola egiaztatzen da."
   ,"Se leen bien las configuraciones guardadas con el Bloc de notas antiguo o con PowerShell 5 (con marca BOM).": "Ohar-bloke zaharrarekin edo PowerShell 5ekin (BOM markarekin) gordetako konfigurazioak ondo irakurtzen dira."
   ,"Windows y Linux: pantallas de facturas, Veri*Factu y ENI más claras y accesibles: Veri*Factu tiene su propia sección, la fecha se elige sin formatos técnicos, mejor contraste en todos los temas y el sello se dibuja también con teclado.": "Windows eta Linux: faktura, Veri*Factu eta ENI pantaila argiagoak eta irisgarriagoak: Veri*Factuk bere atala du, data formatu teknikorik gabe aukeratzen da, kontraste hobea gai guztietan eta zigilua teklatuarekin ere marraz daiteke."
+  ,"csc.error.sesion_caducada": "Hornitzailearekiko saioa iraungi da. Konektatu berriro urruneko sinadura-zerbitzuarekin sinatzen jarraitzeko."
+  ,"csc.error.oauth_metadatos": "Hornitzailearen baimen-zerbitzariak ez du konfigurazio baliodunik argitaratzen. Jakinarazi zure hornitzaileari."
+  ,"csc.error.lote_repetido": "Sortako dokumentu batek bigarren sinadura bat behar izan du, eta sortaren baimena erabilita zegoen. Sinatu berriro dokumentu hori."
+  ,"csc.error.lote_mixto": "Sortako dokumentuek sinadura-algoritmo desberdinak behar dituzte eta ezin dira batera baimendu. Sinatu itzazu sorta bereizietan."
+  ,"csc.error.otp_lote_excede": "Sortak zure hornitzaileak kode bakar batekin baimentzen uzten duena baino dokumentu gehiago ditu. Zatitu sorta txikiagoetan."
 }

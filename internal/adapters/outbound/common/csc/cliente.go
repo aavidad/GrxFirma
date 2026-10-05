@@ -15,9 +15,16 @@ import (
 )
 
 const (
-	// maxCredenciales limita cuántos identificadores se aceptan del listado.
-	maxCredenciales = 100
-	maxClientID     = 256
+	// maxCredencialesPagina es lo que se pide en cada página del listado y
+	// lo máximo que se acepta en una.
+	maxCredencialesPagina = 100
+	// maxCredenciales limita cuántos identificadores se aceptan en total
+	// sumando todas las páginas.
+	maxCredenciales = 1000
+	// maxPaginasListado corta un servidor que no deja de paginar.
+	maxPaginasListado = 20
+	maxPageToken      = 1024
+	maxClientID       = 256
 )
 
 // TipoSecreto distingue el dato que se pide a la persona.
@@ -68,7 +75,11 @@ type InfoServicio struct {
 	Region   string   `json:"region"`
 	AuthType []string `json:"authType"`
 	OAuth2   string   `json:"oauth2"`
-	Methods  []string `json:"methods"`
+	// OAuth2Issuer (CSC 2.1) es el emisor cuyos metadatos RFC 8414 dicen
+	// dónde están los extremos de autorización. Si viene, tiene prioridad
+	// sobre OAuth2.
+	OAuth2Issuer string   `json:"oauth2Issuer"`
+	Methods      []string `json:"methods"`
 }
 
 // Cliente habla con un servicio CSC. No es seguro copiarlo; sí usarlo desde
@@ -77,7 +88,7 @@ type Cliente struct {
 	opc   Opciones
 	http  *http.Client
 	base  *url.URL
-	oauth *url.URL
+	oauth *puntosOAuth
 
 	mu      sync.Mutex
 	info    *InfoServicio
@@ -142,17 +153,28 @@ func (c *Cliente) infoLocked(ctx context.Context) (*InfoServicio, error) {
 	if !strings.HasPrefix(strings.TrimSpace(info.Specs), "2.") {
 		return nil, nuevoError(CodigoRespuestaInvalida, "specs", nil)
 	}
-	if !contiene(info.AuthType, "oauth2code") || strings.TrimSpace(info.OAuth2) == "" {
+	emisor := strings.TrimSpace(info.OAuth2Issuer)
+	if !contiene(info.AuthType, "oauth2code") || (strings.TrimSpace(info.OAuth2) == "" && emisor == "") {
 		return nil, nuevoError(CodigoSinOAuth, "", nil)
 	}
-	oauth, err := validarURLSegura(info.OAuth2)
-	if err != nil {
-		return nil, err
+	var puntos *puntosOAuth
+	if emisor != "" {
+		p, err := c.descubrirOAuth(ctx, emisor)
+		if err != nil {
+			return nil, err
+		}
+		puntos = p
+	} else {
+		oauth, err := validarURLSegura(info.OAuth2)
+		if err != nil {
+			return nil, err
+		}
+		if !oauthPermitido(c.base, oauth, c.opc.ParesOAuth) {
+			return nil, nuevoError(CodigoOAuthOtroHost, "", nil)
+		}
+		puntos = puntosDesdeBase(oauth)
 	}
-	if !oauthPermitido(c.base, oauth, c.opc.ParesOAuth) {
-		return nil, nuevoError(CodigoOAuthOtroHost, "", nil)
-	}
-	c.oauth = oauth
+	c.oauth = puntos
 	c.info = &info
 	copia := info
 	return &copia, nil
@@ -166,7 +188,10 @@ func (c *Cliente) Autorizar(ctx context.Context) error {
 	if _, err := c.infoLocked(ctx); err != nil {
 		return err
 	}
-	if c.sesion.vigente(time.Now()) {
+	if c.sesion.vigente(time.Now().Add(margenRenovacion)) {
+		return nil
+	}
+	if c.sesion.puedeRenovar() && c.renovarSesion(ctx) == nil {
 		return nil
 	}
 	t, err := c.autorizarOAuth(ctx, "service", nil)
@@ -179,48 +204,141 @@ func (c *Cliente) Autorizar(ctx context.Context) error {
 }
 
 // tokenSesion devuelve el token de servicio vigente; el llamador tiene c.mu.
-func (c *Cliente) tokenSesion() ([]byte, error) {
+// Si está a punto de caducar y el servidor dio un refresh_token, lo renueva.
+// Si ha caducado y no se puede renovar, pide volver a conectar.
+func (c *Cliente) tokenSesion(ctx context.Context) ([]byte, error) {
 	if c.cerrado {
 		return nil, nuevoError(CodigoSesionCerrada, "", nil)
 	}
-	if !c.sesion.vigente(time.Now()) {
+	ahora := time.Now()
+	if c.sesion.vigente(ahora.Add(margenRenovacion)) {
+		return c.sesion.bytes(), nil
+	}
+	if c.sesion.puedeRenovar() && c.renovarSesion(ctx) == nil {
+		return c.sesion.bytes(), nil
+	}
+	if c.sesion.vigente(ahora) {
+		return c.sesion.bytes(), nil
+	}
+	if c.sesion == nil {
 		return nil, nuevoError(CodigoAutorizacionCaducada, "", nil)
 	}
-	return c.sesion.bytes(), nil
+	return nil, nuevoError(CodigoSesionCaducada, "", nil)
+}
+
+// sesionRechazada trata un 401 del servicio con el token de servicio: el
+// token ya no vale aunque su caducidad local no haya llegado. Se marca como
+// caducado para que la siguiente operación lo renueve o pida conectar. El
+// llamador tiene c.mu.
+func (c *Cliente) sesionRechazada(err error) error {
+	if !es401(err) || c.sesion == nil {
+		return err
+	}
+	c.sesion.caduca = time.Now().Add(-time.Second)
+	return nuevoError(CodigoSesionCaducada, "", err)
+}
+
+// postServicio envía una petición idempotente con el token de servicio. Si
+// el servicio responde 401 y hay refresh_token, renueva y repite una vez.
+// El llamador tiene c.mu.
+func (c *Cliente) postServicio(ctx context.Context, ruta string, peticion, respuesta any) error {
+	for intento := 0; ; intento++ {
+		t, err := c.tokenSesion(ctx)
+		if err != nil {
+			return err
+		}
+		err = postJSON(ctx, c.http, unirRuta(c.base, ruta), t, peticion, respuesta)
+		if err == nil || !es401(err) {
+			return err
+		}
+		err = c.sesionRechazada(err)
+		if intento > 0 || !c.sesion.puedeRenovar() {
+			return err
+		}
+	}
 }
 
 type peticionListado struct {
-	MaxResults int `json:"maxResults"`
+	MaxResults int    `json:"maxResults"`
+	PageToken  string `json:"pageToken,omitempty"`
 }
 
 type respuestaListado struct {
 	CredentialIDs []string `json:"credentialIDs"`
+	NextPageToken string   `json:"nextPageToken"`
 }
 
 // ListarCredenciales devuelve los identificadores de credencial de la
-// persona autorizada (credentials/list).
+// persona autorizada (credentials/list), recorriendo todas las páginas
+// (pageToken/nextPageToken) hasta [maxCredenciales] identificadores y
+// [maxPaginasListado] páginas. Un token de página repetido o mal formado
+// invalida el listado, para que un servidor defectuoso no lo haga infinito.
 func (c *Cliente) ListarCredenciales(ctx context.Context) ([]string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	t, err := c.tokenSesion()
-	if err != nil {
-		return nil, err
-	}
-	var respuesta respuestaListado
-	if err := postJSON(ctx, c.http, unirRuta(c.base, "credentials/list"), t, peticionListado{MaxResults: maxCredenciales}, &respuesta); err != nil {
-		return nil, err
-	}
-	if len(respuesta.CredentialIDs) > maxCredenciales {
-		return nil, nuevoError(CodigoDemasiadasCredenciales, "", nil)
-	}
-	ids := make([]string, 0, len(respuesta.CredentialIDs))
-	for _, id := range respuesta.CredentialIDs {
-		if !credencialIDValido(id) {
-			return nil, nuevoError(CodigoRespuestaInvalida, "credentialID", nil)
+	ids := make([]string, 0, maxCredencialesPagina)
+	vistos := make(map[string]bool, maxCredencialesPagina)
+	tokensVistos := map[string]bool{}
+	pagina := ""
+	for n := 0; ; n++ {
+		if n >= maxPaginasListado {
+			return nil, nuevoError(CodigoDemasiadasCredenciales, "", nil)
 		}
-		ids = append(ids, id)
+		var respuesta respuestaListado
+		peticion := peticionListado{MaxResults: maxCredencialesPagina, PageToken: pagina}
+		if err := c.postServicio(ctx, "credentials/list", peticion, &respuesta); err != nil {
+			return nil, err
+		}
+		if len(respuesta.CredentialIDs) > maxCredencialesPagina {
+			return nil, nuevoError(CodigoDemasiadasCredenciales, "", nil)
+		}
+		for _, id := range respuesta.CredentialIDs {
+			if !credencialIDValido(id) {
+				return nil, nuevoError(CodigoRespuestaInvalida, "credentialID", nil)
+			}
+			if vistos[id] {
+				continue
+			}
+			if len(ids) >= maxCredenciales {
+				return nil, nuevoError(CodigoDemasiadasCredenciales, "", nil)
+			}
+			vistos[id] = true
+			ids = append(ids, id)
+		}
+		siguiente := respuesta.NextPageToken
+		if siguiente == "" {
+			return ids, nil
+		}
+		if !pageTokenValido(siguiente) || tokensVistos[siguiente] {
+			return nil, nuevoError(CodigoRespuestaInvalida, "nextPageToken", nil)
+		}
+		tokensVistos[siguiente] = true
+		pagina = siguiente
 	}
-	return ids, nil
+}
+
+func pageTokenValido(t string) bool {
+	if len(t) > maxPageToken {
+		return false
+	}
+	for i := 0; i < len(t); i++ {
+		if t[i] < 0x21 || t[i] > 0x7e {
+			return false
+		}
+	}
+	return true
+}
+
+// ServidorOAuth devuelve el extremo de autorización que se abrirá en el
+// navegador, sin consulta, para mostrar su host antes de conectar. Está
+// vacío hasta que se ha descubierto el servicio.
+func (c *Cliente) ServidorOAuth() string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.oauth == nil {
+		return ""
+	}
+	return c.oauth.autorizar.String()
 }
 
 // Close revoca el token de servicio, lo borra de la memoria e impide nuevas

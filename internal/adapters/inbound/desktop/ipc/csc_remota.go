@@ -75,6 +75,9 @@ type resultadoCSCCredencial struct {
 	PIN           bool   `json:"pin"`
 	OTP           bool   `json:"otp"`
 	OTPOnline     bool   `json:"otpOnline"`
+	// MultiSign es cuántas firmas admite el prestador con una sola
+	// autorización. Con 2 o más, un lote con OTP se puede firmar si cabe.
+	MultiSign int `json:"multiSign"`
 }
 
 type resultadoCSCConexion struct {
@@ -99,6 +102,9 @@ type paramsFirmaRemota struct {
 	CertificateIndex int    `json:"certificateIndex"`
 	RemotePIN        []byte `json:"remotePin"`
 	RemoteOTP        []byte `json:"remoteOtp"`
+	// AdditionalCertificateIDs indica un lote de multifirma, que no usa la
+	// autorización conjunta.
+	AdditionalCertificateIDs []string `json:"additionalCertificateIds"`
 }
 
 func isRemoteSigningAction(action string) bool {
@@ -243,6 +249,7 @@ func describirCredencialCSC(c cscremota.CredencialRemota) resultadoCSCCredencial
 		PIN:           c.PIN,
 		OTP:           c.OTP,
 		OTPOnline:     c.OTPEnLinea,
+		MultiSign:     max(c.Multisign, 1),
 	}
 }
 
@@ -306,7 +313,11 @@ func (m *Manejador) prepararFirmaRemota(ctx context.Context, action string, raw 
 		}
 		return ctx, nil, liberar, nil
 	}
-	if action == "sign_batch" && cred.OTP {
+	// Un lote con OTP solo se puede firmar si el prestador autoriza varias
+	// firmas con un código (multisign); si el lote no cabe en una
+	// autorización, lo rechaza la clave remota antes de firmar nada. La
+	// multifirma por lotes no usa la autorización conjunta.
+	if action == "sign_batch" && cred.OTP && (cred.Multisign < 2 || len(p.AdditionalCertificateIDs) > 0) {
 		liberar()
 		resp := m.cscError(action, &csc.Error{Codigo: cscremota.CodigoOTPLote})
 		return ctx, nil, func() {}, &resp
