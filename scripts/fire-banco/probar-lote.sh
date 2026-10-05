@@ -3,6 +3,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 #
 # Prueba de punta a punta del banco FIRe. Uso: probar-lote.sh [mixto|parcial|detener|todos]
 #

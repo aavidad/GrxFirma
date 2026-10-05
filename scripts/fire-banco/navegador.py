@@ -3,6 +3,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """Hace de usuario del banco FIRe con Chrome del sistema (Playwright).
 
 Abre la URL de redirección que FIRe devolvió al portal, pulsa «Firmar» en la

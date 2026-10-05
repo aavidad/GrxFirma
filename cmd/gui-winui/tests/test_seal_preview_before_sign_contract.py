@@ -2,6 +2,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """Con el sello visible activado se puede firmar sin abrir «Opciones
 avanzadas» (recorrido de Windows 0.0.118, R1)."""
 

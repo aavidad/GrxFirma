@@ -3,6 +3,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 #
 # Prepara desde cero el banco de pruebas FIRe local:
 #   - descarga Maven y Tomcat (sumas SHA-512 fijadas) en el directorio del banco;

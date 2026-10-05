@@ -2,6 +2,7 @@
 // Autoría: Alberto Avidad Fernández
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
+
 .pragma library
 
 // Nombre accesible de un interruptor o una casilla: su propio texto, una

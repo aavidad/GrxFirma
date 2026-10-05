@@ -2,6 +2,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """Firmar con sello visible sin vista del PDF cargada no acaba en «páginas
 inválidas»: la vista se carga y la firma continúa (recorrido Windows 0.0.118, R1)."""
 

@@ -1,3 +1,8 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// Autoría: Alberto Avidad Fernández
+// Licencia: EUPL 1.2 o posterior
+// SPDX-License-Identifier: EUPL-1.2
+
 package io.github.aavidad.grxfirma.android.nfc
 
 internal enum class DnieError { NFC_MISSING, NFC_OFF, CAN, PIN, BLOCKED, REMOVED, EXPIRED, CERTIFICATE, LIBRARY, OTHER }

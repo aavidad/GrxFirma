@@ -2,6 +2,7 @@
 ; Autoría: Alberto Avidad Fernández
 ; Licencia: EUPL 1.2 o posterior
 ; SPDX-License-Identifier: EUPL-1.2
+
 ;
 ; El instalador NSIS es de 32 bits: $SYSDIR apunta a SysWOW64 y lanzaría el
 ; PowerShell de 32 bits, que no puede leer la ruta de los procesos de 64 bits

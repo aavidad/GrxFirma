@@ -3,6 +3,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 #
 # Arranca el Tomcat del banco FIRe (solo 127.0.0.1) y espera a que responda.
 set -euo pipefail

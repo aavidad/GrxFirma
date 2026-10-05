@@ -2,6 +2,7 @@
 // Autoría: Alberto Avidad Fernández
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
+
 .pragma library
 
 // Traduce la respuesta JSON del cotejo de la AEAT a una frase. Según la

@@ -2,6 +2,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+
 """WCAG 2.5.3: el nombre accesible contiene el texto visible.
 
 Quien usa control por voz dice lo que ve («Examinar»); si el nombre era

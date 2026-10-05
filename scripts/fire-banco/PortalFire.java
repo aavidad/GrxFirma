@@ -2,6 +2,7 @@
 // Autoría: Alberto Avidad Fernández
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
+
 //
 // Portal mínimo del banco FIRe. Hace lo mismo que una aplicación web de una
 // Administración integrada con FIRe mediante el cliente Java oficial

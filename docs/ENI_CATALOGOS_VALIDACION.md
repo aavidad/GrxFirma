@@ -1,3 +1,8 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
 Las pantallas ENI de Qt y WinUI usan los códigos del motor Go, muestran sus
 descripciones traducidas y permiten elegir las fechas mediante calendario.
 La generación comprueba el XML antes de entregarlo. La operación

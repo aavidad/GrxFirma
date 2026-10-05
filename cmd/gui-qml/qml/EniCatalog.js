@@ -2,6 +2,7 @@
 // Autoría: Alberto Avidad Fernández
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
+
 // Generado por scripts/generar_catalogos_eni.py; editar catalogos.go.
 .pragma library
 

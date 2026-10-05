@@ -3,6 +3,7 @@
 <!-- Autoría: Alberto Avidad Fernández -->
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
+
 <resources>
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">Bereit zum Signieren</string>
