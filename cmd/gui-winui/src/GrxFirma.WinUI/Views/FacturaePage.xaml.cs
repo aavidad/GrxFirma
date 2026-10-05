@@ -17,6 +17,7 @@ public sealed partial class FacturaePage : Page
 {
     private bool _isLoaded;
     private string _invoiceReport = string.Empty;
+    private string _verifactuReport = string.Empty;
     private string _verifactuQrUrl = string.Empty;
     private bool _verifactuBusy;
     // Igual que el motor: el QR tributario va en la factura, normalmente en la primera página.
@@ -41,12 +42,18 @@ public sealed partial class FacturaePage : Page
         ValidateVeriFactuButton.Content = T("verifactu.choose");
         ValidateVeriFactuFolderButton.Content = T("verifactu.folder");
         VeriFactuQrTitle.Text = T("verifactu.qr_title");
-        VeriFactuQrInput.Header = T("verifactu.qr_url_label");
+        VeriFactuSummary.Text = T("verifactu.empty_state");
+        VeriFactuReport.Header = T("verifactu.report");
+        ExportVeriFactuReportButton.Content = T("verifactu.export");
+        VeriFactuQrInput.Header = T("verifactu.qr_url_field");
+        VeriFactuQrInput.PlaceholderText = T("verifactu.qr_url_label");
+        VeriFactuQrQueryHelp.Text = T("verifactu.qr_query_help");
+        VeriFactuQrTechnical.Header = T("verifactu.qr_technical");
         VeriFactuQrNotice.Text = T("verifactu.qr_notice");
         ReadVeriFactuQrButton.Content = T("verifactu.qr_read");
         ReadVeriFactuQrFileButton.Content = T("verifactu.qr_from_file");
         QueryVeriFactuQrButton.Content = T("verifactu.qr_query");
-        VeriFactuQrReport.Header = T("verifactu.qr_title");
+        VeriFactuQrReport.Header = T("verifactu.qr_result");
     }
 
     public FacturaePageViewModel ViewModel { get; }
@@ -122,6 +129,7 @@ public sealed partial class FacturaePage : Page
         ValidateInvoiceButton.IsEnabled = !busy;
         ValidateVeriFactuButton.IsEnabled = !busy;
         ValidateVeriFactuFolderButton.IsEnabled = !busy;
+        ExportVeriFactuReportButton.IsEnabled = !busy && _verifactuReport.Length > 0;
         VeriFactuQrInput.IsEnabled = !busy;
         ReadVeriFactuQrButton.IsEnabled = !busy;
         ReadVeriFactuQrFileButton.IsEnabled = !busy;
@@ -133,27 +141,31 @@ public sealed partial class FacturaePage : Page
         if (_verifactuBusy) return;
         var app = (App)Application.Current;
         if (!app.OperationSession.TryGetOperations(DesktopOperationActions.ValidateVeriFactu, out var operations))
-        { InvoiceValidationSummary.Text = T("paridad.lote3.invoice.unavailable"); return; }
+        { VeriFactuSummary.Text = T("paridad.lote3.invoice.unavailable"); return; }
         SetVeriFactuBusy(true);
         try
         {
             var path = folder ? await app.FilePickerService.PickFolderAsync()
                 : await app.FilePickerService.PickOpenFileAsync(OpenFilePickerProfile.SignedOrOriginalDocument);
             if (string.IsNullOrWhiteSpace(path)) return;
-            ExportInvoiceReportButton.IsEnabled = false;
-            _invoiceReport = string.Empty;
-            InvoiceValidationSummary.Text = T("paridad.lote3.invoice.validating");
+            // El resultado se muestra junto a los botones de Veri*Factu.
+            _verifactuReport = string.Empty;
+            VeriFactuReport.Text = string.Empty;
+            VeriFactuReport.Visibility = Visibility.Collapsed;
+            ExportVeriFactuReportButton.Visibility = Visibility.Collapsed;
+            VeriFactuSummary.Text = T("paridad.lote3.invoice.validating");
             var result = await operations.ValidateVeriFactuAsync(path);
             if (result.IsSuccess && result.Data is not null)
             {
-                _invoiceReport = result.Data.Report;
-                InvoiceValidationReport.Text = _invoiceReport;
-                InvoiceValidationSummary.Text = T(result.Data.Valid ? "verifactu.valid" : "verifactu.invalid");
-                ExportInvoiceReportButton.IsEnabled = true;
+                _verifactuReport = result.Data.Report;
+                VeriFactuReport.Text = _verifactuReport;
+                VeriFactuReport.Visibility = Visibility.Visible;
+                ExportVeriFactuReportButton.Visibility = Visibility.Visible;
+                VeriFactuSummary.Text = T(result.Data.Valid ? "verifactu.valid" : "verifactu.invalid");
             }
-            else InvoiceValidationSummary.Text = result.SafeUserMessage;
+            else VeriFactuSummary.Text = result.SafeUserMessage;
         }
-        catch (Exception) { InvoiceValidationSummary.Text = T("verifactu.input"); }
+        catch (Exception) { VeriFactuSummary.Text = T("verifactu.input"); }
         finally { SetVeriFactuBusy(false); }
     }
 
@@ -162,6 +174,7 @@ public sealed partial class FacturaePage : Page
         _verifactuQrUrl = string.Empty;
         if (QueryVeriFactuQrButton is not null) QueryVeriFactuQrButton.IsEnabled = false;
         if (VeriFactuQrReport is not null) VeriFactuQrReport.Text = string.Empty;
+        HideVeriFactuQrTechnical();
     }
 
     private async void OnReadVeriFactuQrClick(object sender, RoutedEventArgs args)
@@ -182,8 +195,17 @@ public sealed partial class FacturaePage : Page
 
     // Muestra los cuatro datos del QR y habilita el cotejo explícito solo con
     // la URL que devuelve el motor tras validarla.
+    private void HideVeriFactuQrTechnical()
+    {
+        if (VeriFactuQrTechnical is null || VeriFactuQrTechnicalText is null) return;
+        VeriFactuQrTechnical.IsExpanded = false;
+        VeriFactuQrTechnical.Visibility = Visibility.Collapsed;
+        VeriFactuQrTechnicalText.Text = string.Empty;
+    }
+
     private void ShowVeriFactuQrResult(IpcCallResult<VeriFactuQrResult> result)
     {
+        HideVeriFactuQrTechnical();
         if (result.IsSuccess && result.Data is not null)
         {
             var qr = result.Data;
@@ -247,8 +269,16 @@ public sealed partial class FacturaePage : Page
         try
         {
             var result = await operations.QueryVeriFactuQrAsync(_verifactuQrUrl);
-            VeriFactuQrReport.Text = result.IsSuccess && result.Data is not null
-                ? result.Data.Response.ToString() : result.SafeUserMessage;
+            HideVeriFactuQrTechnical();
+            if (result.IsSuccess && result.Data is not null)
+            {
+                // Una frase para la persona; el JSON queda tras «Ver respuesta técnica».
+                var raw = result.Data.Response.ToString();
+                VeriFactuQrReport.Text = T(VeriFactuQrResponse.Classify(raw));
+                VeriFactuQrTechnicalText.Text = raw;
+                VeriFactuQrTechnical.Visibility = Visibility.Visible;
+            }
+            else VeriFactuQrReport.Text = result.SafeUserMessage;
         }
         catch (Exception) { VeriFactuQrReport.Text = T("verifactu.qr_service"); }
         finally { SetVeriFactuBusy(false); }
@@ -260,6 +290,14 @@ public sealed partial class FacturaePage : Page
         var app = (App)Application.Current;
         var saved = await app.FilePickerService.PickAndSaveTextFileAsync(SaveFilePickerProfile.InvoiceReport, _invoiceReport);
         InvoiceValidationSummary.Text = saved ? T("paridad.lote3.invoice.exported") : T("paridad.lote3.invoice.export_cancelled");
+    }
+
+    private async void OnExportVeriFactuReportClick(object sender, RoutedEventArgs args)
+    {
+        if (_verifactuReport.Length == 0) return;
+        var app = (App)Application.Current;
+        var saved = await app.FilePickerService.PickAndSaveTextFileAsync(SaveFilePickerProfile.InvoiceReport, _verifactuReport);
+        VeriFactuSummary.Text = saved ? T("paridad.lote3.invoice.exported") : T("paridad.lote3.invoice.export_cancelled");
     }
 
     private async void OnOpenValidatorClick(

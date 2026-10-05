@@ -67,6 +67,7 @@ public sealed partial class SignPage : Page
     private bool _drawingSealArea;
     private Point _sealDrawFirst;
     private Point _sealDrawSecond;
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? _sealDrawPositionTimer;
     private bool _portalLayoutConfigured;
     private PortalSealSession? _portalSealSession;
     private Button? _portalSignButton;
@@ -1495,6 +1496,8 @@ public sealed partial class SignPage : Page
         object? sender,
         PropertyChangedEventArgs args)
     {
+        // Sin vista previa lista no se puede dibujar: el botón queda desactivado.
+        VisibleSealDrawToggle.IsEnabled = ViewModel.CanDrawVisibleSealArea || VisibleSealDrawToggle.IsChecked == true;
         if (args.PropertyName is nameof(SignPageViewModel.VisibleSealPreviewImage)
             or nameof(SignPageViewModel.InputDisplayName)
             or nameof(SignPageViewModel.VisibleSealEnabled))
@@ -1726,9 +1729,12 @@ public sealed partial class SignPage : Page
         VisibleSealDrawRubberBand.Visibility = Visibility.Visible;
     }
 
-    private void AnnounceSealDrawing(string key)
+    private void AnnounceSealDrawing(string key) =>
+        AnnounceSealDrawingText(SealUiCatalog.Text(Localizer.Language, key));
+
+    private void AnnounceSealDrawingText(string text)
     {
-        VisibleSealDrawNotice.Text = SealUiCatalog.Text(Localizer.Language, key);
+        VisibleSealDrawNotice.Text = text;
         var peer = FrameworkElementAutomationPeer.FromElement(VisibleSealDrawNotice) ??
             FrameworkElementAutomationPeer.CreatePeerForElement(VisibleSealDrawNotice);
         peer?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
@@ -1747,13 +1753,47 @@ public sealed partial class SignPage : Page
         if (wasDrawing) AnnounceSealDrawing("sign.seal.draw_cancelled");
     }
 
-    private void ConfirmVisibleSealDrawing()
+    private bool ConfirmVisibleSealDrawing()
     {
-        if (!_drawingSealArea || !CanDrawVisibleSealArea) return;
+        if (!_drawingSealArea || !CanDrawVisibleSealArea) return false;
         var rect = SealDrawGeometry.Normalize(_sealDrawFirst.X, _sealDrawFirst.Y, _sealDrawSecond.X, _sealDrawSecond.Y);
         _drawingSealArea = false;
         VisibleSealDrawRubberBand.Visibility = Visibility.Collapsed;
-        AnnounceSealDrawing(ViewModel.ApplyDrawnSealArea(rect) ? "sign.seal.draw_applied" : "sign.seal.draw_too_small");
+        var applied = ViewModel.ApplyDrawnSealArea(rect);
+        AnnounceSealDrawing(applied ? "sign.seal.draw_applied" : "sign.seal.draw_too_small");
+        return applied;
+    }
+
+    // Intro y Esc terminan el modo dibujo y devuelven el foco al botón.
+    private void ExitVisibleSealDrawMode()
+    {
+        _sealDrawPositionTimer?.Stop();
+        VisibleSealDrawToggle.IsChecked = false;
+        VisibleSealDrawToggle.Focus(FocusState.Keyboard);
+    }
+
+    // Anuncia la posición con un retardo corto para no saturar el lector de pantalla.
+    private void ScheduleSealDrawPositionAnnouncement()
+    {
+        if (_sealDrawPositionTimer is null)
+        {
+            _sealDrawPositionTimer = DispatcherQueue.CreateTimer();
+            _sealDrawPositionTimer.Interval = TimeSpan.FromMilliseconds(350);
+            _sealDrawPositionTimer.IsRepeating = false;
+            _sealDrawPositionTimer.Tick += (_, _) =>
+            {
+                if (!_drawingSealArea) return;
+                var area = SealDrawGeometry.Normalize(_sealDrawFirst.X, _sealDrawFirst.Y, _sealDrawSecond.X, _sealDrawSecond.Y);
+                static string Percent(double value) => Math.Round(value * 100).ToString(CultureInfo.CurrentCulture);
+                AnnounceSealDrawingText(SealUiCatalog.Text(Localizer.Language, "sign.seal.draw_position")
+                    .Replace("%1", Percent(area.X))
+                    .Replace("%2", Percent(1 - area.Y - area.Height))
+                    .Replace("%3", Percent(area.Width))
+                    .Replace("%4", Percent(area.Height)));
+            };
+        }
+        _sealDrawPositionTimer.Stop();
+        _sealDrawPositionTimer.Start();
     }
 
     private void OnVisibleSealDrawKeyDown(object sender, KeyRoutedEventArgs args)
@@ -1762,6 +1802,7 @@ public sealed partial class SignPage : Page
         if (args.Key == VirtualKey.Escape)
         {
             CancelVisibleSealDrawing();
+            ExitVisibleSealDrawMode();
             args.Handled = true;
             return;
         }
@@ -1778,15 +1819,17 @@ public sealed partial class SignPage : Page
         }
         if (args.Key == VirtualKey.Enter)
         {
-            ConfirmVisibleSealDrawing();
+            var applied = ConfirmVisibleSealDrawing();
             ResetVisibleSealPointerInteraction();
             VisibleSealPreviewSurface.ReleasePointerCaptures();
+            if (applied) ExitVisibleSealDrawMode();
         }
         else
         {
             if (IsShiftPressed()) _sealDrawSecond = new(Math.Clamp(_sealDrawSecond.X + dx, 0, 1), Math.Clamp(_sealDrawSecond.Y + dy, 0, 1));
             else _sealDrawFirst = new(Math.Clamp(_sealDrawFirst.X + dx, 0, 1), Math.Clamp(_sealDrawFirst.Y + dy, 0, 1));
             UpdateSealDrawRubberBand();
+            ScheduleSealDrawPositionAnnouncement();
         }
         args.Handled = true;
     }

@@ -26,7 +26,11 @@ public sealed partial class EniPage : Page
     private readonly HashSet<Control> _touched = new();
     private readonly ComboBox _origin = new(), _certificates = new();
     private readonly TextBlock _signaturePath = new(), _originalPath = new(), _folderPath = new(), _status = new();
+    private readonly TextBlock _documentMessage = new(), _fileMessage = new();
     private readonly Button _createDocument = new(), _createFile = new();
+    private Button? _pickSignature, _pickFolder;
+    // Rutas elegidas; los TextBlock muestran la ruta o el estado vacío.
+    private string _signatureFile = string.Empty, _originalFile = string.Empty, _folder = string.Empty;
     private bool _busy;
 
     private static string T(string key) => SealUiCatalog.Text(Localizer.Language, key);
@@ -46,20 +50,24 @@ public sealed partial class EniPage : Page
         _app = (App)Application.Current;
         InitializeComponent();
         var now = DateTimeOffset.Now;
-        _docOrgan = Field("paridad.lote3.eni.organ");
+        _docOrgan = Field("paridad.lote3.eni.organ_document");
+        _docOrgan.Description = T("paridad.lote3.eni.organ_hint");
         _capture = new CalendarDatePicker { Header = T("paridad.lote3.eni.capture_date"), Date = now };
         _captureTime.Time = now.TimeOfDay;
+        _captureTime.Header = T("paridad.lote3.eni.capture_time");
         _docState = Codes("paridad.lote3.eni.state", EniCatalog.EstadosElaboracion, "EE01");
         _docType = Codes("paridad.lote3.eni.doc_type", EniCatalog.TiposDocumentales, "TD99");
         _docId = Field("paridad.lote3.eni.identifier_optional", maxLength: 48);
         _sourceId = Field("paridad.lote3.eni.source_optional", maxLength: 48);
         _format = Field("paridad.lote3.eni.format_optional", maxLength: 32);
-        _fileOrgan = Field("paridad.lote3.eni.organ");
+        _fileOrgan = Field("paridad.lote3.eni.organ_file");
+        _fileOrgan.Description = T("paridad.lote3.eni.organ_hint");
         _opened = new CalendarDatePicker { Header = T("paridad.lote3.eni.open_date"), Date = now };
         _openedTime.Time = now.TimeOfDay;
+        _openedTime.Header = T("paridad.lote3.eni.open_time");
         _classification = Field("paridad.lote3.eni.classification", maxLength: 44);
         _fileState = Codes("paridad.lote3.eni.file_state", EniCatalog.EstadosExpediente, "E01");
-        _fileId = Field("paridad.lote3.eni.identifier_optional", maxLength: 48);
+        _fileId = Field("paridad.lote3.eni.identifier_file", maxLength: 48);
         _interested = Field("paridad.lote3.eni.interested_optional", maxLength: 256);
 
         PageTitle.Text = T("paridad.lote3.eni.title");
@@ -67,11 +75,14 @@ public sealed partial class EniPage : Page
         var documentTitle = new TextBlock { Text = T("paridad.lote3.eni.document"), FontSize = 20 };
         AutomationProperties.SetHeadingLevel(documentTitle, AutomationHeadingLevel.Level2);
         document.Children.Add(documentTitle);
-        document.Children.Add(Action("paridad.lote3.eni.signature", PickSignature));
+        _pickSignature = Action("paridad.lote3.eni.signature", PickSignature);
+        document.Children.Add(_pickSignature);
         document.Children.Add(_signaturePath);
         document.Children.Add(Action("paridad.lote3.eni.original", PickOriginal));
-        document.Children.Add(Action("paridad.lote3.eni.clear_original", (_, _) => _originalPath.Text = string.Empty));
+        document.Children.Add(Action("paridad.lote3.eni.clear_original", (_, _) => ShowPath(_originalPath, _originalFile = string.Empty, "paridad.lote3.eni.no_file")));
         document.Children.Add(_originalPath);
+        ShowPath(_signaturePath, _signatureFile, "paridad.lote3.eni.no_file");
+        ShowPath(_originalPath, _originalFile, "paridad.lote3.eni.no_file");
         AddValidated(document, _docOrgan, () => EniValidation.OrganError(_docOrgan.Text));
         _origin.Header = T("paridad.lote3.eni.origin");
         _origin.Items.Add(T("paridad.lote3.eni.administration"));
@@ -92,14 +103,17 @@ public sealed partial class EniPage : Page
         _createDocument.MinHeight = 40;
         _createDocument.Click += CreateDocument;
         document.Children.Add(_createDocument);
+        document.Children.Add(Message(_documentMessage));
         EniActions.Children.Add(new Border { Child = document, Padding = new Thickness(16), Style = (Style)Application.Current.Resources["AppCardStyle"] });
 
         var file = new StackPanel { Spacing = 8 };
         var fileTitle = new TextBlock { Text = T("paridad.lote3.eni.file"), FontSize = 20 };
         AutomationProperties.SetHeadingLevel(fileTitle, AutomationHeadingLevel.Level2);
         file.Children.Add(fileTitle);
-        file.Children.Add(Action("paridad.lote3.eni.folder", PickFolder));
+        _pickFolder = Action("paridad.lote3.eni.folder", PickFolder);
+        file.Children.Add(_pickFolder);
         file.Children.Add(_folderPath);
+        ShowPath(_folderPath, _folder, "paridad.lote3.eni.no_folder");
         AddValidated(file, _fileOrgan, () => EniValidation.OrganError(_fileOrgan.Text));
         AddValidated(file, _opened, () => EniValidation.DateError(_opened.Date, _openedTime.Time));
         file.Children.Add(_openedTime);
@@ -115,6 +129,7 @@ public sealed partial class EniPage : Page
         _createFile.MinHeight = 40;
         _createFile.Click += CreateFile;
         file.Children.Add(_createFile);
+        file.Children.Add(Message(_fileMessage));
         EniActions.Children.Add(new Border { Child = file, Padding = new Thickness(16), Style = (Style)Application.Current.Resources["AppCardStyle"] });
         _status.TextWrapping = TextWrapping.Wrap;
         AutomationProperties.SetLiveSetting(_status, AutomationLiveSetting.Polite);
@@ -131,8 +146,7 @@ public sealed partial class EniPage : Page
                     TextBox box => box.Header?.ToString(),
                     ComboBox combo => combo.Header?.ToString(),
                     CalendarDatePicker calendar => calendar.Header?.ToString(),
-                    TimePicker timePicker => ReferenceEquals(timePicker, _captureTime)
-                        ? T("paridad.lote3.eni.capture_date") : T("paridad.lote3.eni.open_date"),
+                    TimePicker timePicker => timePicker.Header?.ToString(),
                     Button button => button.Content?.ToString(),
                     _ => null,
                 };
@@ -146,9 +160,32 @@ public sealed partial class EniPage : Page
     {
         var combo = new ComboBox { Header = T(key), HorizontalAlignment = HorizontalAlignment.Stretch };
         foreach (var code in codes)
-            combo.Items.Add(new ComboBoxItem { Content = code + " — " + T("eni.codigo." + code), Tag = code });
+            // Primero el nombre y después el código NTI: «Otros (TD99)».
+            combo.Items.Add(new ComboBoxItem { Content = T("eni.codigo." + code) + " (" + code + ")", Tag = code });
         combo.SelectedIndex = codes.ToList().IndexOf(selected);
         return combo;
+    }
+
+    private static TextBlock Message(TextBlock message)
+    {
+        message.TextWrapping = TextWrapping.Wrap;
+        message.Visibility = Visibility.Collapsed;
+        AutomationProperties.SetLiveSetting(message, AutomationLiveSetting.Polite);
+        return message;
+    }
+
+    private static void ShowMessage(TextBlock message, string text)
+    {
+        message.Text = text;
+        message.Visibility = text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private static void ShowPath(TextBlock label, string path, string emptyKey)
+    {
+        label.TextWrapping = TextWrapping.Wrap;
+        label.Text = path.Length > 0 ? path : T(emptyKey);
+        if (path.Length > 0) label.ClearValue(TextBlock.ForegroundProperty);
+        else label.Foreground = (Brush)Application.Current.Resources["AppMutedTextBrush"];
     }
 
     private static string Code(ComboBox combo) => (combo.SelectedItem as ComboBoxItem)?.Tag as string ?? string.Empty;
@@ -211,15 +248,20 @@ public sealed partial class EniPage : Page
 
     private async void PickSignature(object sender, RoutedEventArgs args)
     {
-        _signaturePath.Text = await _app.FilePickerService.PickOpenFileAsync(OpenFilePickerProfile.SignedOrOriginalDocument) ?? _signaturePath.Text;
+        _signatureFile = await _app.FilePickerService.PickOpenFileAsync(OpenFilePickerProfile.SignedOrOriginalDocument) ?? _signatureFile;
+        ShowPath(_signaturePath, _signatureFile, "paridad.lote3.eni.no_file");
+        if (_signatureFile.Length > 0) ShowMessage(_documentMessage, string.Empty);
     }
     private async void PickOriginal(object sender, RoutedEventArgs args)
     {
-        _originalPath.Text = await _app.FilePickerService.PickOpenFileAsync(OpenFilePickerProfile.SignedOrOriginalDocument) ?? _originalPath.Text;
+        _originalFile = await _app.FilePickerService.PickOpenFileAsync(OpenFilePickerProfile.SignedOrOriginalDocument) ?? _originalFile;
+        ShowPath(_originalPath, _originalFile, "paridad.lote3.eni.no_file");
     }
     private async void PickFolder(object sender, RoutedEventArgs args)
     {
-        _folderPath.Text = await _app.FilePickerService.PickFolderAsync() ?? _folderPath.Text;
+        _folder = await _app.FilePickerService.PickFolderAsync() ?? _folder;
+        ShowPath(_folderPath, _folder, "paridad.lote3.eni.no_folder");
+        if (_folder.Length > 0) ShowMessage(_fileMessage, string.Empty);
     }
 
     private void SetBusy(bool busy)
@@ -232,9 +274,15 @@ public sealed partial class EniPage : Page
     private async void CreateDocument(object sender, RoutedEventArgs args)
     {
         if (_busy) return;
+        // Lo que falta se explica junto al botón y el foco va a la acción que lo resuelve.
+        if (string.IsNullOrWhiteSpace(_signatureFile))
+        {
+            ShowMessage(_documentMessage, T("paridad.lote3.eni.required_signature"));
+            _pickSignature?.Focus(FocusState.Programmatic);
+            return;
+        }
+        ShowMessage(_documentMessage, string.Empty);
         if (!ValidateFields(_docOrgan, _capture, _docId, _sourceId, _format)) return;
-        if (string.IsNullOrWhiteSpace(_signaturePath.Text))
-        { _status.Text = T("paridad.lote3.eni.required"); return; }
         var output = await _app.FilePickerService.PickSaveFileAsync(SaveFilePickerProfile.EniXml);
         if (output is null || !ValidateFields(_docOrgan, _capture, _docId, _sourceId, _format)) return;
         if (!_app.OperationSession.TryGetOperations(DesktopOperationActions.GenerateEniDocument, out var operations))
@@ -250,7 +298,7 @@ public sealed partial class EniPage : Page
         _status.Text = T("paridad.lote3.eni.creating");
         try
         {
-            var result = await operations.GenerateEniDocumentAsync(_signaturePath.Text, _originalPath.Text, output, options);
+            var result = await operations.GenerateEniDocumentAsync(_signatureFile, _originalFile, output, options);
             _status.Text = result.IsSuccess && result.Data is not null
                 ? T("paridad.lote3.eni.created").Replace("%1", result.Data.OutputPath)
                 : T("paridad.lote3.eni.failed").Replace("%1", result.SafeUserMessage);
@@ -262,9 +310,20 @@ public sealed partial class EniPage : Page
     private async void CreateFile(object sender, RoutedEventArgs args)
     {
         if (_busy) return;
+        if (string.IsNullOrWhiteSpace(_folder))
+        {
+            ShowMessage(_fileMessage, T("paridad.lote3.eni.required_folder"));
+            _pickFolder?.Focus(FocusState.Programmatic);
+            return;
+        }
+        if (_certificates.SelectedItem is not CertificateInfo certificate)
+        {
+            ShowMessage(_fileMessage, T("paridad.lote3.eni.required_certificate"));
+            _certificates.Focus(FocusState.Programmatic);
+            return;
+        }
+        ShowMessage(_fileMessage, string.Empty);
         if (!ValidateFields(_fileOrgan, _opened, _classification, _fileId, _interested)) return;
-        if (string.IsNullOrWhiteSpace(_folderPath.Text) || _certificates.SelectedItem is not CertificateInfo certificate)
-        { _status.Text = T("paridad.lote3.eni.required"); return; }
         var output = await _app.FilePickerService.PickSaveFileAsync(SaveFilePickerProfile.EniXml);
         if (output is null || !ValidateFields(_fileOrgan, _opened, _classification, _fileId, _interested)) return;
         if (!_app.OperationSession.TryGetOperations(DesktopOperationActions.GenerateEniFile, out var operations))
@@ -279,7 +338,7 @@ public sealed partial class EniPage : Page
         _status.Text = T("paridad.lote3.eni.creating");
         try
         {
-            var result = await operations.GenerateEniFileAsync(_folderPath.Text, output, certificate.Id, options);
+            var result = await operations.GenerateEniFileAsync(_folder, output, certificate.Id, options);
             _status.Text = result.IsSuccess && result.Data is not null
                 ? T("paridad.lote3.eni.created").Replace("%1", result.Data.OutputPath)
                 : T("paridad.lote3.eni.failed").Replace("%1", result.SafeUserMessage);
