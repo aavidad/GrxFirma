@@ -417,7 +417,7 @@ object CoreJsonCodec {
         return CsvLegend(url, requiredText(json, "text"))
     }
 
-    private fun parseIssues(items: JSONArray?): List<EngineIssue> = buildList {
+    internal fun parseIssues(items: JSONArray?): List<EngineIssue> = buildList {
         if (items != null) for (index in 0 until minOf(items.length(), MAX_REPORT_ITEMS)) {
             val item = items.optJSONObject(index) ?: continue
             add(EngineIssue(cleanText(item.optString("field")), cleanText(item.optString("key")),
@@ -435,7 +435,7 @@ object CoreJsonCodec {
         else -> "not_available"
     }
 
-    private fun decodeBounded(encoded: String, maximumBytes: Int): ByteArray {
+    internal fun decodeBounded(encoded: String, maximumBytes: Int): ByteArray {
         val maximumEncodedLength = ((maximumBytes.toLong() + 2L) / 3L) * 4L
         if (encoded.length > maximumEncodedLength) {
             throw CoreContractException("El resultado del núcleo supera el límite permitido.")

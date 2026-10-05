@@ -22,6 +22,9 @@ import es.dipgra.grxfirma.android.model.EniDocument
 import es.dipgra.grxfirma.android.model.EniRequest
 import es.dipgra.grxfirma.android.model.EniValidation
 import es.dipgra.grxfirma.android.model.VeriFactuReport
+import es.dipgra.grxfirma.android.model.BatchItemInput
+import es.dipgra.grxfirma.android.model.EniFileRequest
+import es.dipgra.grxfirma.android.model.EniFileResult
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -35,6 +38,7 @@ class ReflectiveGomobileBridge private constructor(
     override val toolsAvailable: Boolean = false,
     override val signingFormats: List<String> = SignatureFormats.BASIC,
     override val documentServices: Set<String> = emptySet(),
+    override val capabilities: Set<String> = emptySet(),
 ) : CoreBridge, ExternalIdentityBridge {
     override val readiness = CoreReadiness(
         available = true,
@@ -178,6 +182,20 @@ class ReflectiveGomobileBridge private constructor(
         invokeDocumentService(DocumentServices.CSV_LEGEND, "csvLegendJSON", CoreJsonCodec.csvLegendRequest(code, url, text)),
     )
 
+    override fun createEniFile(documents: List<LoadedFile>, certificateId: String, request: EniFileRequest): EniFileResult =
+        Wave4Codec.parseEniFile(invokeDocumentService(DocumentServices.ENI_FILE, "createENIFileJSON",
+            Wave4Codec.eniFileRequest(documents, certificateId, request)))
+
+    override fun signBatchItems(
+        items: List<BatchItemInput>,
+        certificateId: String,
+        options: Map<String, String>,
+    ): List<BatchItemResult> = CoreJsonCodec.parseBatch(
+        invokeTool("processBatchJSON", Wave4Codec.batchItemsRequest(items, certificateId, options)),
+        items.map { it.file },
+        outputName,
+    )
+
     private fun invokeDocumentService(service: String, name: String, payload: String): String {
         if (service !in documentServices) throw CoreUnavailableException("TOOLS_UNAVAILABLE")
         return invokeJson(name, payload)
@@ -299,6 +317,7 @@ class ReflectiveGomobileBridge private constructor(
                 DocumentServices.ENI_DOCUMENT to "createENIDocumentJSON",
                 DocumentServices.ENI_VALIDATE to "validateENIJSON",
                 DocumentServices.CSV_LEGEND to "csvLegendJSON",
+                DocumentServices.ENI_FILE to "createENIFileJSON",
             ).mapNotNull { (service, name) ->
                 try { service to (name to facadeClass.getMethod(name, String::class.java)) } catch (_: NoSuchMethodException) { null }
             }.toMap()
@@ -315,6 +334,7 @@ class ReflectiveGomobileBridge private constructor(
                 toolsAvailable,
                 CoreJsonCodec.signingFormats(contract),
                 documentServices,
+                if (toolsAvailable) Wave4Codec.capabilities(contract) else emptySet(),
             )
         }
 
