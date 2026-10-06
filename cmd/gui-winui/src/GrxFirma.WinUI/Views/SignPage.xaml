@@ -15,23 +15,6 @@
     <Page.Resources>
         <controls:CertificateStatusBrushConverter x:Key="CertificateStatusBrushConverter" />
         <SolidColorBrush x:Key="CertificateSelectedBorderBrush" Color="{ThemeResource SystemAccentColor}" />
-        <!-- Ayuda del perfil de firma. Vive en los recursos para que su texto
-             no se confunda con la etiqueta visible del botón «?». El contenido
-             se traduce al abrirse porque el menú emergente queda fuera del árbol. -->
-        <Flyout x:Key="SignProfileHelpFlyout" Opening="OnSignProfileHelpOpening">
-            <StackPanel MaxWidth="360" Spacing="8">
-                <TextBlock
-                    AutomationProperties.HeadingLevel="Level3"
-                    FontWeight="SemiBold"
-                    Text="perfil_firma.ayuda.titulo"
-                    TextWrapping="Wrap" />
-                <TextBlock Text="perfil_firma.ayuda.b" TextWrapping="Wrap" />
-                <TextBlock Text="perfil_firma.ayuda.t" TextWrapping="Wrap" />
-                <TextBlock Text="perfil_firma.ayuda.lt" TextWrapping="Wrap" />
-                <TextBlock Text="perfil_firma.ayuda.lta" TextWrapping="Wrap" />
-                <TextBlock FontWeight="SemiBold" Text="perfil_firma.ayuda.internet" TextWrapping="Wrap" />
-            </StackPanel>
-        </Flyout>
     </Page.Resources>
 
     <ScrollViewer
@@ -66,8 +49,8 @@
                         <Setter Target="CertificatePickerActionButton.(Grid.Row)" Value="0" />
                         <Setter Target="FormatColumn.Width" Value="*" />
                         <Setter Target="FormatRow.Height" Value="0" />
-                        <Setter Target="FormatCombo.(Grid.Column)" Value="1" />
-                        <Setter Target="FormatCombo.(Grid.Row)" Value="0" />
+                        <Setter Target="FormatField.(Grid.Column)" Value="1" />
+                        <Setter Target="FormatField.(Grid.Row)" Value="0" />
                         <Setter Target="SignButton.HorizontalAlignment" Value="Left" />
                         <Setter Target="BatchSignButton.HorizontalAlignment" Value="Left" />
                         <Setter Target="ResultButton.HorizontalAlignment" Value="Left" />
@@ -234,13 +217,20 @@
                             CornerRadius="8"
                             Padding="16">
                             <StackPanel Spacing="12">
-                                <CheckBox
-                                    AutomationProperties.HelpText="Permite seleccionar hasta 128 documentos mediante selección múltiple y una carpeta adicional. El motor conserva los resultados parciales por documento."
-                                    AutomationProperties.Name="Activar firma por lotes"
-                                    Content="Firma por lotes"
-                                    IsChecked="{x:Bind ViewModel.BatchModeEnabled, Mode=TwoWay}"
-                                    IsEnabled="{x:Bind ViewModel.CanConfigureBatch, Mode=OneWay}"
-                                    TabIndex="5" />
+                                <controls:HelpRow>
+                                    <CheckBox
+                                        AutomationProperties.HelpText="Permite seleccionar hasta 128 documentos mediante selección múltiple y una carpeta adicional. El motor conserva los resultados parciales por documento."
+                                        AutomationProperties.Name="Activar firma por lotes"
+                                        Content="Firma por lotes"
+                                        IsChecked="{x:Bind ViewModel.BatchModeEnabled, Mode=TwoWay}"
+                                        IsEnabled="{x:Bind ViewModel.CanConfigureBatch, Mode=OneWay}"
+                                        TabIndex="5" />
+                                    <controls:HelpButton
+                                        Topic="Firma por lotes"
+                                        HelpKey="ayuda.lote"
+                                        VerticalAlignment="Center"
+                                        TabIndex="6" />
+                                </controls:HelpRow>
                                 <StackPanel
                                     Visibility="{x:Bind ViewModel.BatchModeEnabled, Mode=OneWay}"
                                     Spacing="12">
@@ -257,21 +247,21 @@
                                         Click="OnSelectBatchFilesClick"
                                         Content="Añadir archivos…"
                                         IsEnabled="{x:Bind ViewModel.CanSelectBatchSources, Mode=OneWay}"
-                                        TabIndex="6" />
+                                        TabIndex="7" />
                                     <Button MinHeight="40"
                                         AutomationProperties.Name="Elegir carpeta…"
                                         AutomationProperties.HelpText="Añadir carpeta al lote"
                                         Click="OnSelectBatchFolderClick"
                                         Content="Elegir carpeta…"
                                         IsEnabled="{x:Bind ViewModel.CanSelectBatchSources, Mode=OneWay}"
-                                        TabIndex="7" />
+                                        TabIndex="8" />
                                     <Button MinHeight="40"
                                         AutomationProperties.Name="Vaciar lote"
                                         AutomationProperties.HelpText="Vaciar selección del lote"
                                         Click="OnClearBatchSelectionClick"
                                         Content="Vaciar lote"
                                         IsEnabled="{x:Bind ViewModel.CanSelectBatchSources, Mode=OneWay}"
-                                        TabIndex="8" />
+                                        TabIndex="9" />
                                 </controls:ResponsiveActionPanel>
                                 <TextBlock
                                     AutomationProperties.LiveSetting="Polite"
@@ -285,7 +275,7 @@
                                         Click="OnSelectBatchOutputClick"
                                         Content="Carpeta de salida…"
                                         IsEnabled="{x:Bind ViewModel.CanSelectBatchOutput, Mode=OneWay}"
-                                        TabIndex="9" />
+                                        TabIndex="10" />
                                 </controls:ResponsiveActionPanel>
                                 <TextBlock
                                     Foreground="{ThemeResource AppMutedTextBrush}"
@@ -304,22 +294,34 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition x:Name="FormatRow" Height="Auto" />
                             </Grid.RowDefinitions>
-                            <ComboBox
-                                AutomationProperties.Name="Operación de firma"
-                                DisplayMemberPath="Label"
-                                Header="Operación"
-                                ItemsSource="{x:Bind ViewModel.Actions}"
-                                SelectedItem="{x:Bind ViewModel.SelectedAction, Mode=TwoWay}"
-                                TabIndex="10" />
-                            <ComboBox
-                                x:Name="FormatCombo"
-                                Grid.Row="1"
-                                AutomationProperties.Name="Formato de firma"
-                                DisplayMemberPath="Label"
-                                Header="Formato"
-                                ItemsSource="{x:Bind ViewModel.Formats, Mode=OneWay}"
-                                SelectedItem="{x:Bind ViewModel.SelectedFormat, Mode=TwoWay}"
-                                TabIndex="11" />
+                            <controls:HelpRow>
+                                <ComboBox
+                                    AutomationProperties.Name="Operación de firma"
+                                    DisplayMemberPath="Label"
+                                    Header="Operación"
+                                    ItemsSource="{x:Bind ViewModel.Actions}"
+                                    SelectedItem="{x:Bind ViewModel.SelectedAction, Mode=TwoWay}"
+                                    TabIndex="11" />
+                                <controls:HelpButton
+                                    Topic="Operación"
+                                    TabIndex="12"
+                                    HelpKey="{x:Bind ViewModel.SelectedActionHelpKey, Mode=OneWay}" />
+                            </controls:HelpRow>
+                            <controls:HelpRow Grid.Row="1" x:Name="FormatField">
+                                <ComboBox
+                                    x:Name="FormatCombo"
+                                    AutomationProperties.Name="Formato de firma"
+                                    DisplayMemberPath="Label"
+                                    Header="Formato"
+                                    ItemsSource="{x:Bind ViewModel.Formats, Mode=OneWay}"
+                                    SelectedItem="{x:Bind ViewModel.SelectedFormat, Mode=TwoWay}"
+                                    TabIndex="13" />
+                                <controls:HelpButton
+                                    Topic="Formato"
+                                    HelpKey="ayuda.formato"
+                                    TabIndex="14"
+                                    DetailKey="{x:Bind ViewModel.SelectedFormatHelpKey, Mode=OneWay}" />
+                            </controls:HelpRow>
                         </Grid>
 
                         <Border
@@ -347,7 +349,7 @@
                                     ItemsSource="{x:Bind ViewModel.Certificates, Mode=OneWay}"
                                     PlaceholderText="Seleccione un certificado válido"
                                     SelectedItem="{x:Bind ViewModel.SelectedCertificate, Mode=TwoWay}"
-                                    TabIndex="12">
+                                    TabIndex="15">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel MaxWidth="760" Spacing="2">
@@ -388,7 +390,7 @@
                                         AutomationProperties.Name="Ver todos los certificados"
                                         Click="OnChangeCertificateClick"
                                         Content="⤢ Ver todos los certificados"
-                                        TabIndex="13" />
+                                        TabIndex="16" />
                                 </Grid>
 
                                 <TextBlock
@@ -405,49 +407,61 @@
                                         AutomationProperties.Name="Buscar en Windows"
                                         Click="OnRefreshCertificatesClick"
                                         IsEnabled="{x:Bind ViewModel.CanRefreshCertificates, Mode=OneWay}"
-                                        TabIndex="14">
+                                        TabIndex="17">
                                         <TextBlock
                                             Text="Buscar en Windows"
                                             TextAlignment="Center"
                                             TextWrapping="Wrap" />
                                     </Button>
-                                    <Button MinHeight="40"
-                                        HorizontalAlignment="Stretch"
-                                        AutomationProperties.HelpText="Carga un P12, PFX, PEM, CER o CRT únicamente en memoria hasta cerrar la sesión."
-                                        AutomationProperties.Name="Cargar P12/PFX…"
-                                        Click="OnUseTemporaryCredentialClick"
-                                        IsEnabled="{x:Bind ViewModel.CanUseTemporaryCredential, Mode=OneWay}"
-                                        TabIndex="15">
-                                        <TextBlock
-                                            Text="Cargar P12/PFX…"
-                                            TextAlignment="Center"
-                                            TextWrapping="Wrap" />
-                                    </Button>
+                                    <controls:HelpRow>
+                                        <Button MinHeight="40"
+                                            HorizontalAlignment="Stretch"
+                                            AutomationProperties.HelpText="Carga un P12, PFX, PEM, CER o CRT únicamente en memoria hasta cerrar la sesión."
+                                            AutomationProperties.Name="Cargar P12/PFX…"
+                                            Click="OnUseTemporaryCredentialClick"
+                                            IsEnabled="{x:Bind ViewModel.CanUseTemporaryCredential, Mode=OneWay}"
+                                            TabIndex="18">
+                                            <TextBlock
+                                                Text="Cargar P12/PFX…"
+                                                TextAlignment="Center"
+                                                TextWrapping="Wrap" />
+                                        </Button>
+                                        <controls:HelpButton
+                                            Topic="Cargar P12/PFX…"
+                                            HelpKey="ayuda.certificado.importar_p12"
+                                            TabIndex="19" />
+                                    </controls:HelpRow>
                                     <Button MinHeight="40"
                                         HorizontalAlignment="Stretch"
                                         AutomationProperties.HelpText="Importa persistentemente un P12 o PFX en Cert:\CurrentUser\My después de una confirmación explícita."
                                         AutomationProperties.Name="Importar archivo en Windows"
                                         Click="OnImportCredentialToWindowsClick"
                                         IsEnabled="{x:Bind ViewModel.CanImportCredentialToWindows, Mode=OneWay}"
-                                        TabIndex="16">
+                                        TabIndex="20">
                                         <TextBlock
                                             Text="Importar archivo en Windows"
                                             TextAlignment="Center"
                                             TextWrapping="Wrap" />
                                     </Button>
-                                    <Button MinHeight="40"
-                                        x:Name="RemoteSigningButton"
-                                        HorizontalAlignment="Stretch"
-                                        AutomationProperties.HelpText="csc.gui.descripcion"
-                                        AutomationProperties.Name="csc.gui.titulo"
-                                        Click="OnRemoteSigningClick"
-                                        TabIndex="17"
-                                        Visibility="Collapsed">
-                                        <TextBlock
-                                            Text="csc.gui.titulo"
-                                            TextAlignment="Center"
-                                            TextWrapping="Wrap" />
-                                    </Button>
+                                    <controls:HelpRow x:Name="RemoteSigningField" Visibility="Collapsed">
+                                        <Button MinHeight="40"
+                                            x:Name="RemoteSigningButton"
+                                            HorizontalAlignment="Stretch"
+                                            AutomationProperties.HelpText="csc.gui.descripcion"
+                                            AutomationProperties.Name="csc.gui.titulo"
+                                            Click="OnRemoteSigningClick"
+                                            TabIndex="21"
+                                            Visibility="Collapsed">
+                                            <TextBlock
+                                                Text="csc.gui.titulo"
+                                                TextAlignment="Center"
+                                                TextWrapping="Wrap" />
+                                        </Button>
+                                        <controls:HelpButton
+                                            Topic="csc.gui.titulo"
+                                            HelpKey="ayuda.firma_remota"
+                                            TabIndex="22" />
+                                    </controls:HelpRow>
                                 </controls:ResponsiveActionPanel>
                                 <controls:SigningMethodsHelp />
                             </StackPanel>
@@ -460,13 +474,20 @@
                             CornerRadius="8"
                             Padding="16">
                             <StackPanel Spacing="10">
-                                <CheckBox
-                                    AutomationProperties.HelpText="Aplica primero el certificado principal y después los certificados adicionales como cofirmas secuenciales, generando una única salida."
-                                    AutomationProperties.Name="Activar cofirma múltiple guiada"
-                                    Content="Cofirma múltiple guiada"
-                                    IsChecked="{x:Bind ViewModel.GuidedMultiCosignEnabled, Mode=TwoWay}"
-                                    IsEnabled="{x:Bind ViewModel.CanConfigureGuidedMultiCosign, Mode=OneWay}"
-                                    TabIndex="18" />
+                                <controls:HelpRow>
+                                    <CheckBox
+                                        AutomationProperties.HelpText="Aplica primero el certificado principal y después los certificados adicionales como cofirmas secuenciales, generando una única salida."
+                                        AutomationProperties.Name="Activar cofirma múltiple guiada"
+                                        Content="Cofirma múltiple guiada"
+                                        IsChecked="{x:Bind ViewModel.GuidedMultiCosignEnabled, Mode=TwoWay}"
+                                        IsEnabled="{x:Bind ViewModel.CanConfigureGuidedMultiCosign, Mode=OneWay}"
+                                        TabIndex="23" />
+                                    <controls:HelpButton
+                                        Topic="Cofirma múltiple guiada"
+                                        HelpKey="ayuda.cofirma_multiple"
+                                        VerticalAlignment="Center"
+                                        TabIndex="24" />
+                                </controls:HelpRow>
                                 <StackPanel
                                     Visibility="{x:Bind ViewModel.GuidedMultiCosignEnabled, Mode=OneWay}"
                                     Spacing="10">
@@ -485,7 +506,7 @@
                                     ItemsSource="{x:Bind ViewModel.AdditionalSignerCandidates, Mode=OneWay}"
                                     SelectionChanged="OnAdditionalSignersSelectionChanged"
                                     SelectionMode="Multiple"
-                                    TabIndex="19">
+                                    TabIndex="25">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel Padding="2,6" Spacing="3">
@@ -508,7 +529,7 @@
                         <Expander
                             x:Name="AdvancedSignExpander"
                             AutomationProperties.Name="Opciones avanzadas de firma"
-                            TabIndex="20">
+                            TabIndex="26">
                             <Expander.Header>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Text="Opciones avanzadas" TextWrapping="Wrap" />
@@ -516,11 +537,7 @@
                                 </StackPanel>
                             </Expander.Header>
                             <StackPanel Padding="0,12,0,0" Spacing="12">
-                                <Grid ColumnSpacing="8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+                                <controls:HelpRow>
                                     <ComboBox
                                         AutomationProperties.Name="Perfil de firma"
                                         DisplayMemberPath="Label"
@@ -529,28 +546,31 @@
                                         ItemsSource="{x:Bind ViewModel.Profiles}"
                                         MinHeight="40"
                                         SelectedItem="{x:Bind ViewModel.SelectedProfile, Mode=TwoWay}"
-                                        TabIndex="21" />
-                                    <Button
+                                        TabIndex="27" />
+                                    <controls:HelpButton
                                         x:Name="SignProfileHelpButton"
-                                        Grid.Column="1"
-                                        VerticalAlignment="Bottom"
                                         AutomationProperties.HelpText="perfil_firma.ayuda.resumen"
                                         AutomationProperties.Name="perfil_firma.ayuda.nombre"
-                                        Flyout="{StaticResource SignProfileHelpFlyout}"
-                                        MinHeight="40"
-                                        MinWidth="40"
-                                        TabIndex="22"
-                                        ToolTipService.ToolTip="perfil_firma.ayuda.nombre">
-                                        <FontIcon FontSize="16" Glyph="&#xE9CE;" />
-                                    </Button>
-                                </Grid>
-                                <CheckBox
-                                    AutomationProperties.HelpText="Usa la geometría real obtenida del PDF y solo se habilita para PAdES o Automático."
-                                    AutomationProperties.Name="Añadir sello visible en PDF"
-                                    Content="Añadir sello visible en PDF"
-                                    IsChecked="{x:Bind ViewModel.VisibleSealEnabled, Mode=TwoWay}"
-                                    IsEnabled="{x:Bind ViewModel.CanConfigureVisibleSeal, Mode=OneWay}"
-                                    TabIndex="23" />
+                                        ToolTipService.ToolTip="perfil_firma.ayuda.nombre"
+                                        Topic="Perfil de firma"
+                                        HeadingKey="perfil_firma.ayuda.titulo"
+                                        HelpKey="perfil_firma.ayuda.b perfil_firma.ayuda.t perfil_firma.ayuda.lt perfil_firma.ayuda.lta perfil_firma.ayuda.internet"
+                                        TabIndex="28" />
+                                </controls:HelpRow>
+                                <controls:HelpRow>
+                                    <CheckBox
+                                        AutomationProperties.HelpText="Usa la geometría real obtenida del PDF y solo se habilita para PAdES o Automático."
+                                        AutomationProperties.Name="Añadir sello visible en PDF"
+                                        Content="Añadir sello visible en PDF"
+                                        IsChecked="{x:Bind ViewModel.VisibleSealEnabled, Mode=TwoWay}"
+                                        IsEnabled="{x:Bind ViewModel.CanConfigureVisibleSeal, Mode=OneWay}"
+                                        TabIndex="29" />
+                                    <controls:HelpButton
+                                        Topic="Añadir sello visible en PDF"
+                                        HelpKey="ayuda.sello.visible"
+                                        VerticalAlignment="Center"
+                                        TabIndex="30" />
+                                </controls:HelpRow>
 
                                 <Border
                                     Visibility="{x:Bind ViewModel.VisibleSealEnabled, Mode=OneWay}"
@@ -572,15 +592,21 @@
                                             Text="Elija el aspecto del sello y en qué páginas estamparlo. Después cargue la previsualización: arrastre el sello para colocarlo y su esquina para ampliarlo o reducirlo. También puede ajustarlo con el teclado: X se mide desde la izquierda e Y desde abajo."
                                             TextWrapping="Wrap" />
 
-                                        <ComboBox
-                                            AutomationProperties.HelpText="Institucional muestra el emblema de firma de la Diputación; también puede usar solo texto o una imagen propia."
-                                            AutomationProperties.Name="Estilo del sello visible"
-                                            DisplayMemberPath="Label"
-                                            Header="Estilo del sello"
-                                            HorizontalAlignment="Stretch"
-                                            ItemsSource="{x:Bind ViewModel.VisibleSealStyles}"
-                                            SelectedItem="{x:Bind ViewModel.SelectedVisibleSealStyle, Mode=TwoWay}"
-                                            TabIndex="24" />
+                                        <controls:HelpRow>
+                                            <ComboBox
+                                                AutomationProperties.HelpText="Institucional muestra el emblema de firma de la Diputación; también puede usar solo texto o una imagen propia."
+                                                AutomationProperties.Name="Estilo del sello visible"
+                                                DisplayMemberPath="Label"
+                                                Header="Estilo del sello"
+                                                HorizontalAlignment="Stretch"
+                                                ItemsSource="{x:Bind ViewModel.VisibleSealStyles}"
+                                                SelectedItem="{x:Bind ViewModel.SelectedVisibleSealStyle, Mode=TwoWay}"
+                                                TabIndex="31" />
+                                            <controls:HelpButton
+                                                Topic="Estilo del sello"
+                                                HelpKey="ayuda.sello.estilo"
+                                                TabIndex="32" />
+                                        </controls:HelpRow>
                                         <TextBlock
                                             Foreground="{ThemeResource AppMutedTextBrush}"
                                             Text="{x:Bind ViewModel.VisibleSealStyleDescription, Mode=OneWay}"
@@ -596,7 +622,12 @@
                                                     Click="OnPickVisibleSealImageClick"
                                                     Content="Elegir imagen…"
                                                     MinHeight="40"
-                                                    TabIndex="25" />
+                                                    TabIndex="33" />
+                                                <controls:HelpButton
+                                                    Topic="Elegir imagen…"
+                                                    HelpKey="ayuda.sello.imagen"
+                                                    VerticalAlignment="Center"
+                                                    TabIndex="34" />
                                                 <TextBlock
                                                     VerticalAlignment="Center"
                                                     Text="{x:Bind ViewModel.VisibleSealImageSummary, Mode=OneWay}"
@@ -612,18 +643,24 @@
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <Slider
-                                                AutomationProperties.Name="{x:Bind ViewModel.VisibleSealLogoOpacityLabel, Mode=OneWay}"
-                                                AutomationProperties.HelpText="{x:Bind ViewModel.VisibleSealOpacityHelp, Mode=OneWay}"
-                                                Header="{x:Bind ViewModel.VisibleSealLogoOpacityLabel, Mode=OneWay}"
-                                                ToolTipService.ToolTip="{x:Bind ViewModel.VisibleSealOpacityHelp, Mode=OneWay}"
-                                                LargeChange="10"
-                                                Maximum="100"
-                                                Minimum="0"
-                                                SmallChange="1"
-                                                StepFrequency="1"
-                                                TabIndex="26"
-                                                Value="{x:Bind ViewModel.VisibleSealLogoOpacityPercent, Mode=TwoWay}" />
+                                            <controls:HelpRow>
+                                                <Slider
+                                                    AutomationProperties.Name="{x:Bind ViewModel.VisibleSealLogoOpacityLabel, Mode=OneWay}"
+                                                    AutomationProperties.HelpText="{x:Bind ViewModel.VisibleSealOpacityHelp, Mode=OneWay}"
+                                                    Header="{x:Bind ViewModel.VisibleSealLogoOpacityLabel, Mode=OneWay}"
+                                                    ToolTipService.ToolTip="{x:Bind ViewModel.VisibleSealOpacityHelp, Mode=OneWay}"
+                                                    LargeChange="10"
+                                                    Maximum="100"
+                                                    Minimum="0"
+                                                    SmallChange="1"
+                                                    StepFrequency="1"
+                                                    TabIndex="35"
+                                                    Value="{x:Bind ViewModel.VisibleSealLogoOpacityPercent, Mode=TwoWay}" />
+                                                <controls:HelpButton
+                                                    Topic="Opacidad del sello"
+                                                    HelpKey="ayuda.sello.opacidad"
+                                                    TabIndex="36" />
+                                            </controls:HelpRow>
                                             <TextBlock
                                                 Grid.Column="1"
                                                 VerticalAlignment="Bottom"
@@ -632,19 +669,33 @@
                                                 TextWrapping="Wrap" />
                                         </Grid>
 
-                                        <CheckBox
-                                            AutomationProperties.HelpText="Incluye en el sello el nombre del firmante, la fecha y el emisor del certificado; sin esta opción conserva únicamente el rótulo de firma digital."
-                                            AutomationProperties.Name="Mostrar identidad ubicación y fecha en el sello"
-                                            Content="Mostrar identidad, ubicación y fecha"
-                                            IsChecked="{x:Bind ViewModel.VisibleSealKeepText, Mode=TwoWay}"
-                                            TabIndex="27" />
+                                        <controls:HelpRow>
+                                            <CheckBox
+                                                AutomationProperties.HelpText="Incluye en el sello el nombre del firmante, la fecha y el emisor del certificado; sin esta opción conserva únicamente el rótulo de firma digital."
+                                                AutomationProperties.Name="Mostrar identidad ubicación y fecha en el sello"
+                                                Content="Mostrar identidad, ubicación y fecha"
+                                                IsChecked="{x:Bind ViewModel.VisibleSealKeepText, Mode=TwoWay}"
+                                                TabIndex="37" />
+                                            <controls:HelpButton
+                                                Topic="Mostrar identidad, ubicación y fecha"
+                                                HelpKey="ayuda.sello.texto"
+                                                VerticalAlignment="Center"
+                                                TabIndex="38" />
+                                        </controls:HelpRow>
 
-                                        <CheckBox
-                                            AutomationProperties.HelpText="Añade al sello un código QR que abre la dirección indicada para que cualquiera pueda comprobar el documento."
-                                            AutomationProperties.Name="Añadir código QR de verificación al sello"
-                                            Content="Añadir código QR de verificación"
-                                            IsChecked="{x:Bind ViewModel.VisibleSealQrEnabled, Mode=TwoWay}"
-                                            TabIndex="28" />
+                                        <controls:HelpRow>
+                                            <CheckBox
+                                                AutomationProperties.HelpText="Añade al sello un código QR que abre la dirección indicada para que cualquiera pueda comprobar el documento."
+                                                AutomationProperties.Name="Añadir código QR de verificación al sello"
+                                                Content="Añadir código QR de verificación"
+                                                IsChecked="{x:Bind ViewModel.VisibleSealQrEnabled, Mode=TwoWay}"
+                                                TabIndex="39" />
+                                            <controls:HelpButton
+                                                Topic="Añadir código QR de verificación"
+                                                HelpKey="ayuda.sello.qr"
+                                                VerticalAlignment="Center"
+                                                TabIndex="40" />
+                                        </controls:HelpRow>
                                         <TextBox
                                             x:Name="VisibleSealQrUrlTextBox"
                                             AutomationProperties.HelpText="Dirección HTTPS completa que abrirá el QR, por ejemplo la página de verificación de su sede electrónica."
@@ -655,44 +706,57 @@
                                             Visibility="{x:Bind ViewModel.VisibleSealQrEnabled, Mode=OneWay}"
                                             MaxLength="1024"
                                             PlaceholderText="https://sede.ejemplo.es/verificar"
-                                            TabIndex="29"
+                                            TabIndex="41"
                                             Text="{x:Bind ViewModel.VisibleSealQrUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock x:Name="VisibleSealQrError" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
 
-                                        <CheckBox TabIndex="30" Content="{x:Bind ViewModel.VisibleSealCsvLabel, Mode=OneWay}"
-                                                  AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvLabel, Mode=OneWay}"
-                                                  IsChecked="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=TwoWay}" />
+                                        <controls:HelpRow>
+                                            <CheckBox TabIndex="42" Content="{x:Bind ViewModel.VisibleSealCsvLabel, Mode=OneWay}"
+                                                      AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvLabel, Mode=OneWay}"
+                                                      IsChecked="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=TwoWay}" />
+                                            <controls:HelpButton
+                                                Topic="CSV"
+                                                HelpKey="ayuda.sello.csv"
+                                                VerticalAlignment="Center"
+                                                TabIndex="43" />
+                                        </controls:HelpRow>
                                         <TextBlock Text="{x:Bind ViewModel.VisibleSealCsvNotice, Mode=OneWay}"
                                                    TextWrapping="Wrap" Visibility="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=OneWay}" />
-                                        <TextBox x:Name="VisibleSealCsvCodeTextBox" TabIndex="31" Header="{x:Bind ViewModel.VisibleSealCsvCodeLabel, Mode=OneWay}"
+                                        <TextBox x:Name="VisibleSealCsvCodeTextBox" TabIndex="44" Header="{x:Bind ViewModel.VisibleSealCsvCodeLabel, Mode=OneWay}"
                                                  AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvCodeLabel, Mode=OneWay}"
                                                  MaxLength="128" Visibility="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=OneWay}"
                                                  Text="{x:Bind ViewModel.VisibleSealCsvCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock x:Name="VisibleSealCsvCodeError" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
-                                        <TextBox x:Name="VisibleSealCsvUrlTextBox" TabIndex="32" Header="{x:Bind ViewModel.VisibleSealCsvUrlLabel, Mode=OneWay}"
+                                        <TextBox x:Name="VisibleSealCsvUrlTextBox" TabIndex="45" Header="{x:Bind ViewModel.VisibleSealCsvUrlLabel, Mode=OneWay}"
                                                  AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvUrlLabel, Mode=OneWay}"
                                                  MaxLength="2048" Visibility="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=OneWay}"
                                                  Text="{x:Bind ViewModel.VisibleSealCsvUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock x:Name="VisibleSealCsvUrlError" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
-                                        <TextBox x:Name="VisibleSealCsvTextTextBox" TabIndex="33" Header="{x:Bind ViewModel.VisibleSealCsvTextLabel, Mode=OneWay}"
+                                        <TextBox x:Name="VisibleSealCsvTextTextBox" TabIndex="46" Header="{x:Bind ViewModel.VisibleSealCsvTextLabel, Mode=OneWay}"
                                                  AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvTextLabel, Mode=OneWay}"
                                                  MaxLength="512" Visibility="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=OneWay}"
                                                  Text="{x:Bind ViewModel.VisibleSealCsvText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock x:Name="VisibleSealCsvTextError" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
-                                        <CheckBox TabIndex="34" Content="{x:Bind ViewModel.VisibleSealCsvQrLabel, Mode=OneWay}"
+                                        <CheckBox TabIndex="47" Content="{x:Bind ViewModel.VisibleSealCsvQrLabel, Mode=OneWay}"
                                                   AutomationProperties.Name="{x:Bind ViewModel.VisibleSealCsvQrLabel, Mode=OneWay}"
                                                   Visibility="{x:Bind ViewModel.VisibleSealCsvEnabled, Mode=OneWay}"
                                                   IsChecked="{x:Bind ViewModel.VisibleSealCsvQr, Mode=TwoWay}" />
 
-                                        <ComboBox
-                                            AutomationProperties.HelpText="Primera, última, todas las páginas o una lista concreta."
-                                            AutomationProperties.Name="Páginas donde estampar el sello"
-                                            DisplayMemberPath="Label"
-                                            Header="Estampar en"
-                                            HorizontalAlignment="Stretch"
-                                            ItemsSource="{x:Bind ViewModel.VisibleSealPageModes}"
-                                            SelectedItem="{x:Bind ViewModel.SelectedVisibleSealPageMode, Mode=TwoWay}"
-                                            TabIndex="35" />
+                                        <controls:HelpRow>
+                                            <ComboBox
+                                                AutomationProperties.HelpText="Primera, última, todas las páginas o una lista concreta."
+                                                AutomationProperties.Name="Páginas donde estampar el sello"
+                                                DisplayMemberPath="Label"
+                                                Header="Estampar en"
+                                                HorizontalAlignment="Stretch"
+                                                ItemsSource="{x:Bind ViewModel.VisibleSealPageModes}"
+                                                SelectedItem="{x:Bind ViewModel.SelectedVisibleSealPageMode, Mode=TwoWay}"
+                                                TabIndex="48" />
+                                            <controls:HelpButton
+                                                Topic="Estampar en"
+                                                HelpKey="ayuda.sello.paginas"
+                                                TabIndex="49" />
+                                        </controls:HelpRow>
 
                                         <Grid ColumnSpacing="8" RowSpacing="8">
                                             <Grid.ColumnDefinitions>
@@ -713,7 +777,7 @@
                                                 IsEnabled="{x:Bind ViewModel.IsVisibleSealCustomPages, Mode=OneWay}"
                                                 MaxLength="128"
                                                 PlaceholderText="1, 1,3-5 o all"
-                                                TabIndex="36"
+                                                TabIndex="50"
                                                 Text="{x:Bind ViewModel.VisibleSealPages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBlock x:Name="VisibleSealPagesError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
                                             <Button MinHeight="40"
@@ -724,7 +788,7 @@
                                                 Click="OnRefreshVisibleSealPreviewClick"
                                                 Content="Cargar previsualización"
                                                 IsEnabled="{x:Bind ViewModel.CanRefreshVisibleSealPreview, Mode=OneWay}"
-                                                TabIndex="37" />
+                                                TabIndex="51" />
                                         </Grid>
 
                                         <Grid ColumnSpacing="10" RowSpacing="10">
@@ -738,17 +802,23 @@
                                                 <RowDefinition x:Name="VisibleSealWidthRow" Height="Auto" />
                                                 <RowDefinition x:Name="VisibleSealHeightRow" Height="Auto" />
                                             </Grid.RowDefinitions>
-                                            <NumberBox
-                                                AutomationProperties.HelpText="Porcentaje desde el borde izquierdo."
-                                                AutomationProperties.Name="Posición horizontal del sello en porcentaje"
-                                                Header="X (%)"
-                                                LargeChange="5"
-                                                Maximum="100"
-                                                Minimum="0"
-                                                SmallChange="1"
-                                                SpinButtonPlacementMode="Compact"
-                                                TabIndex="38"
-                                                Value="{x:Bind ViewModel.VisibleSealXPercent, Mode=TwoWay}" />
+                                            <controls:HelpRow>
+                                                <NumberBox
+                                                    AutomationProperties.HelpText="Porcentaje desde el borde izquierdo."
+                                                    AutomationProperties.Name="Posición horizontal del sello en porcentaje"
+                                                    Header="X (%)"
+                                                    LargeChange="5"
+                                                    Maximum="100"
+                                                    Minimum="0"
+                                                    SmallChange="1"
+                                                    SpinButtonPlacementMode="Compact"
+                                                    TabIndex="52"
+                                                    Value="{x:Bind ViewModel.VisibleSealXPercent, Mode=TwoWay}" />
+                                                <controls:HelpButton
+                                                    Topic="Posición"
+                                                    HelpKey="ayuda.sello.posicion"
+                                                    TabIndex="53" />
+                                            </controls:HelpRow>
                                             <NumberBox
                                                 x:Name="VisibleSealY"
                                                 Grid.Row="1"
@@ -760,7 +830,7 @@
                                                 Minimum="0"
                                                 SmallChange="1"
                                                 SpinButtonPlacementMode="Compact"
-                                                TabIndex="39"
+                                                TabIndex="54"
                                                 Value="{x:Bind ViewModel.VisibleSealYPercent, Mode=TwoWay}" />
                                             <NumberBox
                                                 x:Name="VisibleSealWidth"
@@ -772,7 +842,7 @@
                                                 Minimum="0"
                                                 SmallChange="1"
                                                 SpinButtonPlacementMode="Compact"
-                                                TabIndex="40"
+                                                TabIndex="55"
                                                 Value="{x:Bind ViewModel.VisibleSealWidthPercent, Mode=TwoWay}" />
                                             <NumberBox
                                                 x:Name="VisibleSealHeight"
@@ -784,7 +854,7 @@
                                                 Minimum="0"
                                                 SmallChange="1"
                                                 SpinButtonPlacementMode="Compact"
-                                                TabIndex="41"
+                                                TabIndex="56"
                                                 Value="{x:Bind ViewModel.VisibleSealHeightPercent, Mode=TwoWay}" />
                                         </Grid>
 
@@ -803,7 +873,7 @@
                                                 MinWidth="150"
                                                 PlaceholderText="Giro libre"
                                                 SelectedItem="{x:Bind ViewModel.SelectedVisibleSealRotation, Mode=TwoWay}"
-                                                TabIndex="42" />
+                                                TabIndex="57" />
                                             <NumberBox
                                                 Grid.Column="1"
                                                 AutomationProperties.HelpText="Cualquier ángulo entre 0 y 359 grados, en sentido horario."
@@ -814,7 +884,7 @@
                                                 Minimum="0"
                                                 SmallChange="1"
                                                 SpinButtonPlacementMode="Compact"
-                                                TabIndex="43"
+                                                TabIndex="58"
                                                 Value="{x:Bind ViewModel.VisibleSealRotationDegrees, Mode=TwoWay}" />
                                             <Slider
                                                 Grid.Column="2"
@@ -829,25 +899,43 @@
                                                 Value="{x:Bind ViewModel.VisibleSealRotationDegrees, Mode=TwoWay}" />
                                         </Grid>
 
-                                        <TextBox
-                                            AutomationProperties.Name="Motivo de la firma PDF"
-                                            Header="Motivo (opcional)"
-                                            MaxLength="256"
-                                            TabIndex="44"
-                                            Text="{x:Bind ViewModel.SignatureReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        <TextBox
-                                            AutomationProperties.HelpText="Si se muestra el texto, esta ubicación forma parte del sello generado."
-                                            AutomationProperties.Name="Ubicación de la firma PDF"
-                                            Header="Ubicación (opcional)"
-                                            MaxLength="256"
-                                            TabIndex="45"
-                                            Text="{x:Bind ViewModel.SignatureLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        <TextBox
-                                            AutomationProperties.Name="Contacto de la firma PDF"
-                                            Header="Contacto (opcional)"
-                                            MaxLength="256"
-                                            TabIndex="46"
-                                            Text="{x:Bind ViewModel.SignatureContact, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <controls:HelpRow>
+                                            <TextBox
+                                                AutomationProperties.Name="Motivo de la firma PDF"
+                                                Header="Motivo (opcional)"
+                                                MaxLength="256"
+                                                TabIndex="59"
+                                                Text="{x:Bind ViewModel.SignatureReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <controls:HelpButton
+                                                Topic="Motivo"
+                                                HelpKey="ayuda.pdf.motivo"
+                                                TabIndex="60" />
+                                        </controls:HelpRow>
+                                        <controls:HelpRow>
+                                            <TextBox
+                                                AutomationProperties.HelpText="Si se muestra el texto, esta ubicación forma parte del sello generado."
+                                                AutomationProperties.Name="Ubicación de la firma PDF"
+                                                Header="Ubicación (opcional)"
+                                                MaxLength="256"
+                                                TabIndex="61"
+                                                Text="{x:Bind ViewModel.SignatureLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <controls:HelpButton
+                                                Topic="Ubicación"
+                                                HelpKey="ayuda.pdf.lugar"
+                                                TabIndex="62" />
+                                        </controls:HelpRow>
+                                        <controls:HelpRow>
+                                            <TextBox
+                                                AutomationProperties.Name="Contacto de la firma PDF"
+                                                Header="Contacto (opcional)"
+                                                MaxLength="256"
+                                                TabIndex="63"
+                                                Text="{x:Bind ViewModel.SignatureContact, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <controls:HelpButton
+                                                Topic="Contacto"
+                                                HelpKey="ayuda.pdf.contacto"
+                                                TabIndex="64" />
+                                        </controls:HelpRow>
 
                                         <TextBlock
                                             AutomationProperties.LiveSetting="Polite"
@@ -856,27 +944,27 @@
                                             TextWrapping="Wrap" />
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <Button Content="{x:Bind ViewModel.SealPreviousPageLabel, Mode=OneWay}" AutomationProperties.Name="{x:Bind ViewModel.SealPreviousPageLabel, Mode=OneWay}"
-                                                MinHeight="40" TabIndex="47"
+                                                MinHeight="40" TabIndex="65"
                                                 IsEnabled="{x:Bind ViewModel.CanGoToPreviousSealPage, Mode=OneWay}"
                                                 Click="OnPreviousSealPageClick" />
                                             <TextBlock VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite"
                                                 Text="{x:Bind ViewModel.VisibleSealPageSummary, Mode=OneWay}" TextWrapping="Wrap" />
                                             <Button Content="{x:Bind ViewModel.SealNextPageLabel, Mode=OneWay}" AutomationProperties.Name="{x:Bind ViewModel.SealNextPageLabel, Mode=OneWay}"
-                                                MinHeight="40" TabIndex="48"
+                                                MinHeight="40" TabIndex="66"
                                                 IsEnabled="{x:Bind ViewModel.CanGoToNextSealPage, Mode=OneWay}"
                                                 Click="OnNextSealPageClick" />
                                         </StackPanel>
                                         <CheckBox Content="{x:Bind ViewModel.SealOneByOneLabel, Mode=OneWay}" AutomationProperties.Name="{x:Bind ViewModel.SealOneByOneLabel, Mode=OneWay}"
-                                            TabIndex="49"
+                                            TabIndex="67"
                                             IsChecked="{x:Bind ViewModel.PerPageSealEnabled, Mode=TwoWay}" />
                                         <StackPanel Orientation="Horizontal" Spacing="8"
                                             Visibility="{x:Bind ViewModel.PerPageSealEnabled, Mode=OneWay}">
                                             <Button Content="{x:Bind ViewModel.SealApplyAllLabel, Mode=OneWay}" AutomationProperties.Name="{x:Bind ViewModel.SealApplyAllLabel, Mode=OneWay}"
-                                                MinHeight="40" TabIndex="50"
+                                                MinHeight="40" TabIndex="68"
                                                 Click="OnApplySealToAllPagesClick" />
                                             <Button Content="{x:Bind ViewModel.SealPageToggleLabel, Mode=OneWay}"
                                                 AutomationProperties.Name="{x:Bind ViewModel.SealPageToggleLabel, Mode=OneWay}"
-                                                MinHeight="40" TabIndex="51"
+                                                MinHeight="40" TabIndex="69"
                                                 Click="OnToggleSealOnPageClick" />
                                         </StackPanel>
                                         <TextBlock
@@ -898,7 +986,7 @@
                                                 Content="{x:Bind ViewModel.VisibleSealDrawAreaLabel, Mode=OneWay}"
                                                 AutomationProperties.Name="{x:Bind ViewModel.VisibleSealDrawAreaLabel, Mode=OneWay}"
                                                 AutomationProperties.HelpText="{x:Bind ViewModel.VisibleSealDrawAreaHelp, Mode=OneWay}"
-                                                MinHeight="40" HorizontalAlignment="Left" TabIndex="51" IsEnabled="False"
+                                                MinHeight="40" HorizontalAlignment="Left" TabIndex="69" IsEnabled="False"
                                                 Checked="OnVisibleSealDrawModeChanged" Unchecked="OnVisibleSealDrawModeChanged"
                                                 KeyDown="OnVisibleSealDrawKeyDown" />
                                             <TextBlock x:Name="VisibleSealDrawHelp" Visibility="Collapsed"
@@ -1031,7 +1119,7 @@
                                                                 </Border>
                                                             </Grid>
                                                         </Border>
-                                                        <ContentControl x:Name="VisibleSealDrawInput" Visibility="Collapsed" IsTabStop="True" UseSystemFocusVisuals="True" TabIndex="51"
+                                                        <ContentControl x:Name="VisibleSealDrawInput" Visibility="Collapsed" IsTabStop="True" UseSystemFocusVisuals="True" TabIndex="69"
                                                             Width="{x:Bind ViewModel.PreviewCanvasWidth, Mode=OneWay}"
                                                             Height="{x:Bind ViewModel.PreviewCanvasHeight, Mode=OneWay}"
                                                             Background="Transparent" BorderThickness="0" Padding="0"
@@ -1054,13 +1142,20 @@
                                         </StackPanel>
                                     </ContentControl>
                                 </Border>
-                                <CheckBox
-                                    AutomationProperties.HelpText="Comprueba la firma generada mediante la operación verify antes de mostrar el resultado como validado."
-                                    AutomationProperties.Name="Validar el resultado al terminar"
-                                    Content="Validar el resultado al terminar"
-                                    IsChecked="{x:Bind ViewModel.ValidateAfterSigning, Mode=TwoWay}"
-                                    IsEnabled="{x:Bind ViewModel.CanValidateAfterSigning, Mode=OneWay}"
-                                    TabIndex="52" />
+                                <controls:HelpRow>
+                                    <CheckBox
+                                        AutomationProperties.HelpText="Comprueba la firma generada mediante la operación verify antes de mostrar el resultado como validado."
+                                        AutomationProperties.Name="Validar el resultado al terminar"
+                                        Content="Validar el resultado al terminar"
+                                        IsChecked="{x:Bind ViewModel.ValidateAfterSigning, Mode=TwoWay}"
+                                        IsEnabled="{x:Bind ViewModel.CanValidateAfterSigning, Mode=OneWay}"
+                                        TabIndex="70" />
+                                    <controls:HelpButton
+                                        Topic="Validar el resultado al terminar"
+                                        HelpKey="ayuda.validar_al_terminar"
+                                        VerticalAlignment="Center"
+                                        TabIndex="71" />
+                                </controls:HelpRow>
                             </StackPanel>
                         </Expander>
 
@@ -1090,7 +1185,7 @@
                                 Content="Firmar documento"
                                 IsEnabled="{x:Bind ViewModel.CanSign, Mode=OneWay}"
                                 Style="{StaticResource AccentButtonStyle}"
-                                TabIndex="53" />
+                                TabIndex="72" />
                             <Button MinHeight="40"
                                 x:Name="BatchSignButton"
                                 Visibility="{x:Bind ViewModel.BatchModeEnabled, Mode=OneWay}"
@@ -1101,13 +1196,13 @@
                                 Content="Firmar lote"
                                 IsEnabled="{x:Bind ViewModel.CanRunBatch, Mode=OneWay}"
                                 Style="{StaticResource AccentButtonStyle}"
-                                TabIndex="54" />
+                                TabIndex="73" />
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Cancelar operación de firma"
                                 Click="OnCancelClick"
                                 Content="Cancelar operación"
                                 IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
-                                TabIndex="55" />
+                                TabIndex="74" />
                             <ProgressRing
                                 Width="28"
                                 Height="28"
@@ -1175,7 +1270,7 @@
                             Click="OnOpenBatchResultsClick"
                             Content="Abrir carpeta de resultados"
                             IsEnabled="{x:Bind ViewModel.CanOpenBatchOutput, Mode=OneWay}"
-                            TabIndex="56" />
+                            TabIndex="75" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -1190,19 +1285,19 @@
                         AutomationProperties.Name="Ocultar panel de certificados"
                         Click="OnHideCertificatePanelClick"
                         Content="Ocultar"
-                        TabIndex="57" />
+                        TabIndex="76" />
                     <Button MinHeight="40"
                         AutomationProperties.Name="Importar certificados"
                         Click="OnImportCredentialToWindowsClick"
                         Content="+ Certificados"
                         IsEnabled="{x:Bind ViewModel.CanImportCredentialToWindows, Mode=OneWay}"
-                        TabIndex="58" />
+                        TabIndex="77" />
                     <Button MinHeight="40"
                         AutomationProperties.Name="Usar DNIe o tarjeta"
                         Click="OnUseSmartcardClick"
                         Content="Usar DNIe o tarjeta"
                         IsEnabled="{x:Bind CertificatePanel.IsOperationConnected, Mode=OneWay}"
-                        TabIndex="59" />
+                        TabIndex="78" />
                     <InfoBar
                         x:Name="SmartcardInfoBar"
                         AutomationProperties.LiveSetting="Polite"
@@ -1217,7 +1312,7 @@
                                 AutomationProperties.Name="Abrir web oficial del DNIe"
                                 Click="OnOpenOfficialDNIeClick"
                                 Content="Web oficial del DNIe"
-                                TabIndex="60"
+                                TabIndex="79"
                                 Visibility="Collapsed" />
                         </InfoBar.ActionButton>
                     </InfoBar>
@@ -1225,7 +1320,7 @@
                         AutomationProperties.Name="Buscar certificado"
                         IsEnabled="{x:Bind CertificatePanel.IsOperationConnected, Mode=OneWay}"
                         PlaceholderText="Buscar certificado"
-                        TabIndex="61"
+                        TabIndex="80"
                         Text="{x:Bind CertificatePanel.FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
                         AutomationProperties.LiveSetting="Polite"
@@ -1246,7 +1341,7 @@
                                 AutomationProperties.HelpText="Renovar certificado próximo a caducar en la FNMT"
                                 Click="OnRenewPanelFnmtClick"
                                 Content="Renovar en la FNMT"
-                                TabIndex="62"
+                                TabIndex="81"
                                 Visibility="{x:Bind CertificatePanel.CanRenewExpiryNoticeCertificate, Mode=OneWay}" />
                         </InfoBar.ActionButton>
                     </InfoBar>
@@ -1261,7 +1356,7 @@
                         SelectionChanged="OnPanelCertificateSelectionChanged"
                         ContainerContentChanging="OnPanelCertificateContainerContentChanging"
                         SelectionMode="Single"
-                        TabIndex="63">
+                        TabIndex="82">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
                                 <Setter Property="Padding" Value="10,8" />
@@ -1382,7 +1477,7 @@
                                     Click="OnRenewPanelFnmtClick"
                                     Content="Renovar en la FNMT"
                                     Style="{StaticResource AccentButtonStyle}"
-                                    TabIndex="64" />
+                                    TabIndex="83" />
                             </StackPanel>
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Usar como predeterminado"
@@ -1390,31 +1485,31 @@
                                 Click="OnSetPanelDefaultCertificateClick"
                                 Content="Usar como predeterminado"
                                 IsEnabled="{x:Bind CertificatePanel.CanSetSelectedAsDefault, Mode=OneWay}"
-                                TabIndex="65" />
+                                TabIndex="84" />
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Quitar predeterminado"
                                 AutomationProperties.HelpText="Quitar certificado predeterminado"
                                 Click="OnClearPanelDefaultCertificateClick"
                                 Content="Quitar predeterminado"
                                 IsEnabled="{x:Bind CertificatePanel.CanClearDefaultCertificate, Mode=OneWay}"
-                                TabIndex="66" />
+                                TabIndex="85" />
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Verificar certificado seleccionado"
                                 Click="OnShowPanelCertificateValidationClick"
                                 Content="Verificar certificado"
                                 Style="{StaticResource AccentButtonStyle}"
-                                TabIndex="67" />
+                                TabIndex="86" />
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Refrescar validez online del certificado"
                                 Click="OnValidatePanelCertificateOnlineClick"
                                 Content="Refrescar validez online"
                                 IsEnabled="{x:Bind CertificatePanel.CanValidateSelectedCertificate, Mode=OneWay}"
-                                TabIndex="68" />
+                                TabIndex="87" />
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Abrir VALIDe"
                                 Click="OnOpenPanelValideClick"
                                 Content="Abrir VALIDe"
-                                TabIndex="69" />
+                                TabIndex="88" />
                         </StackPanel>
                     </Border>
                     <InfoBar

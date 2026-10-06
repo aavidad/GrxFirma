@@ -7,6 +7,7 @@
     x:Class="GrxFirma.WinUI.Views.FacturaePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:GrxFirma.WinUI.Controls"
     Loaded="OnLoaded"
     Unloaded="OnUnloaded"
     Background="{ThemeResource AppPageBackgroundBrush}">
@@ -134,10 +135,18 @@
             <StackPanel Grid.Row="2" Spacing="20">
                 <Border Style="{StaticResource AppCardStyle}">
                     <StackPanel Spacing="12">
-                        <TextBlock
-                            AutomationProperties.HeadingLevel="Level2"
-                            Style="{StaticResource SectionTitleTextStyle}"
-                            Text="Crear XML Facturae 3.2.2" />
+                        <controls:HelpRow>
+                            <TextBlock
+                                AutomationProperties.HeadingLevel="Level2"
+                                Style="{StaticResource SectionTitleTextStyle}"
+                                HorizontalAlignment="Left"
+                                Text="Crear XML Facturae 3.2.2" />
+                            <controls:HelpButton
+                                Topic="Crear XML Facturae 3.2.2"
+                                HelpKey="ayuda.facturae"
+                                VerticalAlignment="Center"
+                                TabIndex="0" />
+                        </controls:HelpRow>
                         <TextBlock
                             Text="Generador local para una factura ordinaria en euros con una línea y los tres destinos DIR3. Los totales se calculan automáticamente. Revise siempre el resultado y valídelo en FACe antes de remitirlo."
                             TextWrapping="Wrap" />
@@ -152,7 +161,7 @@
                             AutomationProperties.Name="Datos de la factura"
                             Header="Factura"
                             IsExpanded="True"
-                            TabIndex="0">
+                            TabIndex="1">
                             <StackPanel Padding="0,12,0,0" Spacing="10">
                                 <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
@@ -165,7 +174,7 @@
                                         AutomationProperties.Name="Número de factura"
                                         Header="Número de factura *"
                                         MaxLength="20"
-                                        TabIndex="1"
+                                        TabIndex="2"
                                         Text="{x:Bind ViewModel.InvoiceNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="InvoiceSeries"
@@ -173,7 +182,7 @@
                                         AutomationProperties.Name="Serie de factura"
                                         Header="Serie (opcional)"
                                         MaxLength="20"
-                                        TabIndex="2"
+                                        TabIndex="3"
                                         Text="{x:Bind ViewModel.InvoiceSeriesCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                                 <DatePicker
@@ -183,13 +192,13 @@
                                     DayVisible="True"
                                     Header="Fecha de expedición *"
                                     MonthVisible="True"
-                                    TabIndex="3"
+                                    TabIndex="4"
                                     YearVisible="True" />
                                 <TextBox
                                     AutomationProperties.Name="Descripción general de la factura"
                                     Header="Descripción general (opcional)"
                                     MaxLength="2500"
-                                    TabIndex="4"
+                                    TabIndex="5"
                                     Text="{x:Bind ViewModel.InvoiceDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     TextWrapping="Wrap" />
                                 <Grid ColumnSpacing="12">
@@ -203,7 +212,7 @@
                                         AutomationProperties.Name="Referencia del expediente"
                                         Header="Expediente (opcional)"
                                         MaxLength="20"
-                                        TabIndex="5"
+                                        TabIndex="6"
                                         Text="{x:Bind ViewModel.FileReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="ReferenceContract"
@@ -211,7 +220,7 @@
                                         AutomationProperties.Name="Referencia del contrato"
                                         Header="Contrato (opcional)"
                                         MaxLength="20"
-                                        TabIndex="6"
+                                        TabIndex="7"
                                         Text="{x:Bind ViewModel.ReceiverContractReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                             </StackPanel>
@@ -220,7 +229,7 @@
                         <Expander
                             AutomationProperties.Name="Datos del emisor"
                             Header="Emisor"
-                            TabIndex="7">
+                            TabIndex="8">
                             <StackPanel Padding="0,12,0,0" Spacing="10">
                                 <ToggleSwitch
                                     AutomationProperties.Name="Tipo de emisor"
@@ -229,7 +238,7 @@
                                     IsOn="{x:Bind ViewModel.SellerIsIndividual, Mode=TwoWay}"
                                     OffContent="Persona jurídica"
                                     OnContent="Persona física"
-                                    TabIndex="8" />
+                                    TabIndex="9" />
                                 <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -241,7 +250,7 @@
                                         AutomationProperties.Name="NIF del emisor"
                                         Header="NIF *"
                                         MaxLength="30"
-                                        TabIndex="9"
+                                        TabIndex="10"
                                         Text="{x:Bind ViewModel.SellerTaxId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="SellerName"
@@ -249,7 +258,7 @@
                                         AutomationProperties.Name="Razón social o nombre del emisor"
                                         Header="Razón social o nombre *"
                                         MaxLength="80"
-                                        TabIndex="10"
+                                        TabIndex="11"
                                         Text="{x:Bind ViewModel.SellerName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                                 <Grid ColumnSpacing="12">
@@ -263,7 +272,7 @@
                                         AutomationProperties.Name="Primer apellido del emisor"
                                         Header="Primer apellido (persona física)"
                                         MaxLength="40"
-                                        TabIndex="11"
+                                        TabIndex="12"
                                         Text="{x:Bind ViewModel.SellerFirstSurname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="SellerSecondSurname"
@@ -271,14 +280,14 @@
                                         AutomationProperties.Name="Segundo apellido del emisor"
                                         Header="Segundo apellido (opcional)"
                                         MaxLength="40"
-                                        TabIndex="12"
+                                        TabIndex="13"
                                         Text="{x:Bind ViewModel.SellerSecondSurname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                                 <TextBox
                                     AutomationProperties.Name="Dirección del emisor"
                                     Header="Dirección *"
                                     MaxLength="80"
-                                    TabIndex="13"
+                                    TabIndex="14"
                                     Text="{x:Bind ViewModel.SellerAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
@@ -292,7 +301,7 @@
                                         AutomationProperties.Name="Código postal del emisor"
                                         Header="Código postal *"
                                         MaxLength="5"
-                                        TabIndex="14"
+                                        TabIndex="15"
                                         Text="{x:Bind ViewModel.SellerPostCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="SellerTown"
@@ -300,7 +309,7 @@
                                         AutomationProperties.Name="Población del emisor"
                                         Header="Población *"
                                         MaxLength="50"
-                                        TabIndex="15"
+                                        TabIndex="16"
                                         Text="{x:Bind ViewModel.SellerTown, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="SellerProvince"
@@ -308,7 +317,7 @@
                                         AutomationProperties.Name="Provincia del emisor"
                                         Header="Provincia *"
                                         MaxLength="20"
-                                        TabIndex="16"
+                                        TabIndex="17"
                                         Text="{x:Bind ViewModel.SellerProvince, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                                 <TextBox
@@ -317,7 +326,7 @@
                                     Header="Correo electrónico (opcional)"
                                     InputScope="EmailSmtpAddress"
                                     MaxLength="60"
-                                    TabIndex="17"
+                                    TabIndex="18"
                                     Text="{x:Bind ViewModel.SellerEmail, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </Expander>
@@ -326,7 +335,7 @@
                             AutomationProperties.Name="Administración receptora y DIR3"
                             AutomationProperties.HelpText="Datos del receptor y códigos DIR3"
                             Header="Administración receptora y DIR3"
-                            TabIndex="18">
+                            TabIndex="19">
                             <StackPanel Padding="0,12,0,0" Spacing="10">
                                 <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
@@ -340,7 +349,7 @@
                                         AutomationProperties.HelpText="NIF del receptor"
                                         Header="NIF de la Administración *"
                                         MaxLength="30"
-                                        TabIndex="19"
+                                        TabIndex="20"
                                         Text="{x:Bind ViewModel.BuyerTaxId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="BuyerName"
@@ -348,14 +357,14 @@
                                         AutomationProperties.Name="Razón social del receptor"
                                         Header="Razón social *"
                                         MaxLength="80"
-                                        TabIndex="20"
+                                        TabIndex="21"
                                         Text="{x:Bind ViewModel.BuyerName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                                 <TextBox
                                     AutomationProperties.Name="Dirección del receptor"
                                     Header="Dirección *"
                                     MaxLength="80"
-                                    TabIndex="21"
+                                    TabIndex="22"
                                     Text="{x:Bind ViewModel.BuyerAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
@@ -369,7 +378,7 @@
                                         AutomationProperties.Name="Código postal del receptor"
                                         Header="Código postal *"
                                         MaxLength="5"
-                                        TabIndex="22"
+                                        TabIndex="23"
                                         Text="{x:Bind ViewModel.BuyerPostCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="BuyerTown"
@@ -377,7 +386,7 @@
                                         AutomationProperties.Name="Población del receptor"
                                         Header="Población *"
                                         MaxLength="50"
-                                        TabIndex="23"
+                                        TabIndex="24"
                                         Text="{x:Bind ViewModel.BuyerTown, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="BuyerProvince"
@@ -385,7 +394,7 @@
                                         AutomationProperties.Name="Provincia del receptor"
                                         Header="Provincia *"
                                         MaxLength="20"
-                                        TabIndex="24"
+                                        TabIndex="25"
                                         Text="{x:Bind ViewModel.BuyerProvince, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                                 <Grid ColumnSpacing="12">
@@ -395,14 +404,19 @@
                                         <ColumnDefinition x:Name="ProcessingUnitColumn" Width="0" />
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition x:Name="ManagingBodyRow" Height="Auto" /><RowDefinition x:Name="ProcessingUnitRow" Height="Auto" /></Grid.RowDefinitions>
-                                    <TextBox
-                                        Grid.Column="0"
-                                        AutomationProperties.Name="Código DIR3 de la oficina contable"
-                                        CharacterCasing="Upper"
-                                        Header="Oficina contable *"
-                                        MaxLength="9"
-                                        TabIndex="25"
-                                        Text="{x:Bind ViewModel.AccountingOfficeDir3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <controls:HelpRow Grid.Column="0">
+                                        <TextBox
+                                            AutomationProperties.Name="Código DIR3 de la oficina contable"
+                                            CharacterCasing="Upper"
+                                            Header="Oficina contable *"
+                                            MaxLength="9"
+                                            TabIndex="26"
+                                            Text="{x:Bind ViewModel.AccountingOfficeDir3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <controls:HelpButton
+                                            Topic="facturae.dir3"
+                                            HelpKey="ayuda.facturae.dir3"
+                                            TabIndex="27" />
+                                    </controls:HelpRow>
                                     <TextBox
                                         x:Name="ManagingBody"
                                         Grid.Row="1"
@@ -410,7 +424,7 @@
                                         CharacterCasing="Upper"
                                         Header="Órgano gestor *"
                                         MaxLength="9"
-                                        TabIndex="26"
+                                        TabIndex="28"
                                         Text="{x:Bind ViewModel.ManagingBodyDir3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="ProcessingUnit"
@@ -419,7 +433,7 @@
                                         CharacterCasing="Upper"
                                         Header="Unidad tramitadora *"
                                         MaxLength="9"
-                                        TabIndex="27"
+                                        TabIndex="29"
                                         Text="{x:Bind ViewModel.ProcessingUnitDir3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                                 <Button MinHeight="40"
@@ -428,7 +442,7 @@
                                     Click="OnOpenOrganisationDirectoryClick"
                                     Content="Buscar organismo y relaciones DIR3"
                                     IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
-                                    TabIndex="28" />
+                                    TabIndex="30" />
                             </StackPanel>
                         </Expander>
 
@@ -436,13 +450,13 @@
                             AutomationProperties.Name="Concepto, importes e IVA"
                             AutomationProperties.HelpText="Concepto importes e impuestos"
                             Header="Concepto, importes e IVA"
-                            TabIndex="29">
+                            TabIndex="31">
                             <StackPanel Padding="0,12,0,0" Spacing="10">
                                 <TextBox
                                     AutomationProperties.Name="Descripción del bien o servicio"
                                     Header="Descripción del bien o servicio *"
                                     MaxLength="2500"
-                                    TabIndex="30"
+                                    TabIndex="32"
                                     Text="{x:Bind ViewModel.LineDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     TextWrapping="Wrap" />
                                 <Grid ColumnSpacing="12">
@@ -459,7 +473,7 @@
                                         Minimum="0"
                                         SmallChange="1"
                                         SpinButtonPlacementMode="Compact"
-                                        TabIndex="31"
+                                        TabIndex="33"
                                         Value="{x:Bind ViewModel.LineQuantity, Mode=TwoWay}" />
                                     <NumberBox
                                         x:Name="UnitPrice"
@@ -470,7 +484,7 @@
                                         Minimum="0"
                                         SmallChange="1"
                                         SpinButtonPlacementMode="Compact"
-                                        TabIndex="32"
+                                        TabIndex="34"
                                         Value="{x:Bind ViewModel.LineUnitPrice, Mode=TwoWay}" />
                                     <NumberBox
                                         x:Name="VatRate"
@@ -481,7 +495,7 @@
                                         Minimum="0"
                                         SmallChange="1"
                                         SpinButtonPlacementMode="Compact"
-                                        TabIndex="33"
+                                        TabIndex="35"
                                         Value="{x:Bind ViewModel.LineVatRate, Mode=TwoWay}" />
                                 </Grid>
                                 <Grid ColumnSpacing="12">
@@ -525,14 +539,14 @@
                         <Expander
                             AutomationProperties.Name="Datos de pago opcionales"
                             Header="Pago (opcional)"
-                            TabIndex="34">
+                            TabIndex="36">
                             <StackPanel Padding="0,12,0,0" Spacing="10">
                                 <CheckBox
                                     AutomationProperties.Name="Incluir vencimiento y cuenta de abono por transferencia."
                                     AutomationProperties.HelpText="Incluir pago por transferencia"
                                     Content="Incluir vencimiento y cuenta de abono por transferencia."
                                     IsChecked="{x:Bind ViewModel.IncludePayment, Mode=TwoWay}"
-                                    TabIndex="35" />
+                                    TabIndex="37" />
                                 <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -546,7 +560,7 @@
                                         Date="{x:Bind ViewModel.InstallmentDueDate, Mode=TwoWay}"
                                         Header="Vencimiento"
                                         IsEnabled="{x:Bind ViewModel.IncludePayment, Mode=OneWay}"
-                                        TabIndex="36" />
+                                        TabIndex="38" />
                                     <TextBox
                                         x:Name="Iban"
                                         Grid.Row="1"
@@ -555,7 +569,7 @@
                                         Header="IBAN de abono"
                                         IsEnabled="{x:Bind ViewModel.IncludePayment, Mode=OneWay}"
                                         MaxLength="40"
-                                        TabIndex="37"
+                                        TabIndex="39"
                                         Text="{x:Bind ViewModel.Iban, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                             </StackPanel>
@@ -568,7 +582,7 @@
                             Content="Crear XML Facturae 3.2.2"
                             IsEnabled="{x:Bind ViewModel.CanCreate, Mode=OneWay}"
                             Style="{StaticResource AccentButtonStyle}"
-                            TabIndex="38" />
+                            TabIndex="40" />
                     </StackPanel>
                 </Border>
 
@@ -592,19 +606,19 @@
                             AutomationProperties.Name="Tengo la oficina contable, el órgano gestor y la unidad tramitadora."
                             AutomationProperties.HelpText="Confirmo que tengo los tres códigos DIR3"
                             Content="Tengo la oficina contable, el órgano gestor y la unidad tramitadora."
-                            TabIndex="39" />
+                            TabIndex="41" />
                         <CheckBox
                             AutomationProperties.Name="He revisado los datos fiscales, las líneas, los impuestos y los totales."
                             AutomationProperties.HelpText="Confirmo los datos fiscales y económicos"
                             Content="He revisado los datos fiscales, las líneas, los impuestos y los totales."
-                            TabIndex="40" />
+                            TabIndex="42" />
                         <Button MinHeight="40"
                             AutomationProperties.HelpText="Abre únicamente el buscador oficial fijo del Portal FACe Proveedores."
                             AutomationProperties.Name="Buscar organismo y relaciones DIR3"
                             Click="OnOpenOrganisationDirectoryClick"
                             Content="Buscar organismo y relaciones DIR3"
                             IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
-                            TabIndex="41" />
+                            TabIndex="43" />
                     </StackPanel>
                 </Border>
 
@@ -621,7 +635,7 @@
                             AutomationProperties.Name="Tengo localizado el XML Facturae firmado que voy a remitir."
                             AutomationProperties.HelpText="Confirmo que el XML Facturae está firmado"
                             Content="Tengo localizado el XML Facturae firmado que voy a remitir."
-                            TabIndex="42" />
+                            TabIndex="44" />
                     </StackPanel>
                 </Border>
 
@@ -645,20 +659,20 @@
                                 Content="Validar factura en FACe"
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
                                 Style="{StaticResource AccentButtonStyle}"
-                                TabIndex="43" />
+                                TabIndex="45" />
                         </StackPanel>
                         <TextBlock x:Name="LocalValidationTitle" AutomationProperties.HeadingLevel="Level2" Style="{StaticResource SectionTitleTextStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button x:Name="ValidateInvoiceButton" AutomationProperties.Name="Elegir factura" MinHeight="40" TabIndex="44" Click="OnValidateInvoiceClick" />
-                            <Button x:Name="ExportInvoiceReportButton" AutomationProperties.Name="Exportar informe" MinHeight="40" TabIndex="45" Click="OnExportInvoiceReportClick" IsEnabled="False" />
+                            <Button x:Name="ValidateInvoiceButton" AutomationProperties.Name="Elegir factura" MinHeight="40" TabIndex="46" Click="OnValidateInvoiceClick" />
+                            <Button x:Name="ExportInvoiceReportButton" AutomationProperties.Name="Exportar informe" MinHeight="40" TabIndex="47" Click="OnExportInvoiceReportClick" IsEnabled="False" />
                         </StackPanel>
                         <TextBlock x:Name="InvoiceValidationSummary" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" />
-                        <TextBox x:Name="InvoiceValidationReport" AutomationProperties.Name="Informe de validación" TabIndex="46" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
+                        <TextBox x:Name="InvoiceValidationReport" AutomationProperties.Name="Informe de validación" TabIndex="48" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
                         <CheckBox
                             AutomationProperties.Name="El validador oficial no muestra errores que impidan la remisión."
                             AutomationProperties.HelpText="Confirmo que FACe no muestra errores de validación"
                             Content="El validador oficial no muestra errores que impidan la remisión."
-                            TabIndex="47" />
+                            TabIndex="49" />
                     </StackPanel>
                 </Border>
 
@@ -682,7 +696,7 @@
                                 Content="Remitir factura en FACe"
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
                                 Style="{StaticResource AccentButtonStyle}"
-                                TabIndex="48" />
+                                TabIndex="50" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -704,7 +718,7 @@
                             AutomationProperties.Name="He guardado el justificante con su número de registro y CSV."
                             AutomationProperties.HelpText="Confirmo que he guardado el justificante de FACe"
                             Content="He guardado el justificante con su número de registro y CSV."
-                            TabIndex="49" />
+                            TabIndex="51" />
                         <StackPanel
                             x:Name="ReceiptActions"
                             Orientation="Vertical"
@@ -714,14 +728,14 @@
                                 Click="OnOpenReceiptVerificationClick"
                                 Content="Verificar CSV del justificante"
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
-                                TabIndex="50" />
+                                TabIndex="52" />
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Consultar estado de la factura"
                                 AutomationProperties.HelpText="Consultar estado de factura en FACe"
                                 Click="OnOpenInvoiceStatusClick"
                                 Content="Consultar estado de la factura"
                                 IsEnabled="{x:Bind ViewModel.CanLaunch, Mode=OneWay}"
-                                TabIndex="51" />
+                                TabIndex="53" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -745,33 +759,40 @@
                 <!-- Veri*Factu es una sección propia, fuera de los pasos de FACe. -->
                 <Border x:Name="VeriFactuCard" Style="{StaticResource AppCardStyle}">
                     <StackPanel Spacing="12">
-                        <TextBlock x:Name="VeriFactuTitle" AutomationProperties.HeadingLevel="Level2" Style="{StaticResource SectionTitleTextStyle}" />
+                        <controls:HelpRow>
+                            <TextBlock x:Name="VeriFactuTitle" HorizontalAlignment="Left" AutomationProperties.HeadingLevel="Level2" Style="{StaticResource SectionTitleTextStyle}" />
+                            <controls:HelpButton
+                                Topic="verifactu.title"
+                                HelpKey="ayuda.verifactu"
+                                VerticalAlignment="Center"
+                                TabIndex="54" />
+                        </controls:HelpRow>
                         <TextBlock x:Name="VeriFactuScope" TextWrapping="Wrap" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button x:Name="ValidateVeriFactuButton" AutomationProperties.Name="Elegir registro XML" MinHeight="40" TabIndex="52" Click="OnValidateVeriFactuClick" />
-                            <Button x:Name="ValidateVeriFactuFolderButton" AutomationProperties.Name="Elegir carpeta de registros" MinHeight="40" TabIndex="53" Click="OnValidateVeriFactuFolderClick" />
+                            <Button x:Name="ValidateVeriFactuButton" AutomationProperties.Name="Elegir registro XML" MinHeight="40" TabIndex="55" Click="OnValidateVeriFactuClick" />
+                            <Button x:Name="ValidateVeriFactuFolderButton" AutomationProperties.Name="Elegir carpeta de registros" MinHeight="40" TabIndex="56" Click="OnValidateVeriFactuFolderClick" />
                         </StackPanel>
                         <TextBlock x:Name="VeriFactuSummary" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" />
-                        <TextBox x:Name="VeriFactuReport" AutomationProperties.Name="Informe de la comprobación Veri*Factu" TabIndex="54" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" Visibility="Collapsed" />
-                        <Button x:Name="ExportVeriFactuReportButton" AutomationProperties.Name="Exportar informe Veri*Factu" MinHeight="40" TabIndex="55" Click="OnExportVeriFactuReportClick" Visibility="Collapsed" />
+                        <TextBox x:Name="VeriFactuReport" AutomationProperties.Name="Informe de la comprobación Veri*Factu" TabIndex="57" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" Visibility="Collapsed" />
+                        <Button x:Name="ExportVeriFactuReportButton" AutomationProperties.Name="Exportar informe Veri*Factu" MinHeight="40" TabIndex="58" Click="OnExportVeriFactuReportClick" Visibility="Collapsed" />
                         <TextBlock x:Name="VeriFactuQrTitle" AutomationProperties.HeadingLevel="Level2" Style="{StaticResource SectionTitleTextStyle}" />
                         <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="VeriFactuQrInput" AutomationProperties.Name="URL del código QR" Grid.Column="0" MinHeight="40" TabIndex="56" TextChanged="OnVeriFactuQrTextChanged" />
-                            <Button x:Name="ReadVeriFactuQrFileButton" AutomationProperties.Name="Leer desde imagen o PDF" Grid.Column="1" MinHeight="40" VerticalAlignment="Bottom" TabIndex="57" Click="OnReadVeriFactuQrFileClick" />
+                            <TextBox x:Name="VeriFactuQrInput" AutomationProperties.Name="URL del código QR" Grid.Column="0" MinHeight="40" TabIndex="59" TextChanged="OnVeriFactuQrTextChanged" />
+                            <Button x:Name="ReadVeriFactuQrFileButton" AutomationProperties.Name="Leer desde imagen o PDF" Grid.Column="1" MinHeight="40" VerticalAlignment="Bottom" TabIndex="60" Click="OnReadVeriFactuQrFileClick" />
                         </Grid>
                         <TextBlock x:Name="VeriFactuQrNotice" TextWrapping="Wrap" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button x:Name="ReadVeriFactuQrButton" AutomationProperties.Name="Leer datos del QR" MinHeight="40" TabIndex="58" Click="OnReadVeriFactuQrClick" />
-                            <Button x:Name="QueryVeriFactuQrButton" AutomationProperties.Name="Consultar en la AEAT" MinHeight="40" TabIndex="59" Click="OnQueryVeriFactuQrClick" IsEnabled="False" />
+                            <Button x:Name="ReadVeriFactuQrButton" AutomationProperties.Name="Leer datos del QR" MinHeight="40" TabIndex="61" Click="OnReadVeriFactuQrClick" />
+                            <Button x:Name="QueryVeriFactuQrButton" AutomationProperties.Name="Consultar en la AEAT" MinHeight="40" TabIndex="62" Click="OnQueryVeriFactuQrClick" IsEnabled="False" />
                         </StackPanel>
                         <TextBlock x:Name="VeriFactuQrQueryHelp" Foreground="{ThemeResource AppMutedTextBrush}" TextWrapping="Wrap" />
-                        <TextBox x:Name="VeriFactuQrReport" AutomationProperties.Name="Resultado del QR" TabIndex="60" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
-                        <Expander x:Name="VeriFactuQrTechnical" AutomationProperties.Name="Ver respuesta técnica" TabIndex="61" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Visibility="Collapsed">
-                            <TextBox x:Name="VeriFactuQrTechnicalText" AutomationProperties.Name="Ver respuesta técnica" TabIndex="62" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="80" />
+                        <TextBox x:Name="VeriFactuQrReport" AutomationProperties.Name="Resultado del QR" TabIndex="63" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
+                        <Expander x:Name="VeriFactuQrTechnical" AutomationProperties.Name="Ver respuesta técnica" TabIndex="64" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Visibility="Collapsed">
+                            <TextBox x:Name="VeriFactuQrTechnicalText" AutomationProperties.Name="Ver respuesta técnica" TabIndex="65" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="80" />
                         </Expander>
                     </StackPanel>
                 </Border>

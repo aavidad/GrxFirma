@@ -42,8 +42,8 @@
                         <Setter Target="ManifestBrowseButton.(Grid.Row)" Value="0" />
                         <Setter Target="HashFormatColumn.Width" Value="*" />
                         <Setter Target="HashFormatRow.Height" Value="0" />
-                        <Setter Target="HashFormatCombo.(Grid.Column)" Value="1" />
-                        <Setter Target="HashFormatCombo.(Grid.Row)" Value="0" />
+                        <Setter Target="HashFormatField.(Grid.Column)" Value="1" />
+                        <Setter Target="HashFormatField.(Grid.Row)" Value="0" />
                         <Setter Target="HashActions.Orientation" Value="Horizontal" />
                     </VisualState.Setters>
                 </VisualState>
@@ -83,10 +83,18 @@
             <StackPanel Grid.Row="2" Spacing="20">
                 <Border Style="{StaticResource AppCardStyle}">
                     <StackPanel Spacing="16">
-                        <TextBlock
-                            AutomationProperties.HeadingLevel="Level2"
-                            Style="{StaticResource SectionTitleTextStyle}"
-                            Text="Crear o comprobar" />
+                        <controls:HelpRow>
+                            <TextBlock
+                                AutomationProperties.HeadingLevel="Level2"
+                                Style="{StaticResource SectionTitleTextStyle}"
+                                HorizontalAlignment="Left"
+                                Text="Crear o comprobar" />
+                            <controls:HelpButton
+                                Topic="Crear o comprobar"
+                                HelpKey="ayuda.huella"
+                                VerticalAlignment="Center"
+                                TabIndex="0" />
+                        </controls:HelpRow>
                         <StackPanel
                             x:Name="HashOperationOptions"
                             Orientation="Vertical"
@@ -98,14 +106,14 @@
                                 GroupName="HashOperation"
                                 IsChecked="True"
                                 IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
-                                TabIndex="0" />
+                                TabIndex="1" />
                             <RadioButton
                                 AutomationProperties.Name="Comprobar huella"
                                 Checked="OnCheckChecked"
                                 Content="Comprobar huella"
                                 GroupName="HashOperation"
                                 IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
-                                TabIndex="1" />
+                                TabIndex="2" />
                         </StackPanel>
                         <StackPanel
                             x:Name="HashInputOptions"
@@ -118,14 +126,21 @@
                                 GroupName="HashInput"
                                 IsChecked="True"
                                 IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
-                                TabIndex="2" />
-                            <RadioButton
-                                AutomationProperties.Name="Usar un directorio"
-                                Checked="OnDirectoryChecked"
-                                Content="Directorio"
-                                GroupName="HashInput"
-                                IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
                                 TabIndex="3" />
+                            <controls:HelpRow>
+                                <RadioButton
+                                    AutomationProperties.Name="Usar un directorio"
+                                    Checked="OnDirectoryChecked"
+                                    Content="Directorio"
+                                    GroupName="HashInput"
+                                    IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
+                                    TabIndex="4" />
+                                <controls:HelpButton
+                                    Topic="Directorio"
+                                    HelpKey="ayuda.huella.carpeta"
+                                    VerticalAlignment="Center"
+                                    TabIndex="5" />
+                            </controls:HelpRow>
                         </StackPanel>
 
                         <Grid ColumnSpacing="8" RowSpacing="8">
@@ -143,7 +158,7 @@
                                 MinHeight="40"
                                 IsReadOnly="True"
                                 PlaceholderText="Ningún origen seleccionado"
-                                TabIndex="4"
+                                TabIndex="6"
                                 Text="{x:Bind ViewModel.InputName, Mode=OneWay}" />
                             <Button MinHeight="40"
                                 x:Name="OriginBrowseButton"
@@ -154,7 +169,7 @@
                                 Click="OnSelectInputClick"
                                 Content="Examinar…"
                                 IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
-                                TabIndex="5" />
+                                TabIndex="7" />
                         </Grid>
 
                         <Grid
@@ -176,7 +191,7 @@
                                 MinHeight="40"
                                 IsReadOnly="True"
                                 PlaceholderText="Seleccione una huella o manifiesto"
-                                TabIndex="6"
+                                TabIndex="8"
                                 Text="{x:Bind ViewModel.ManifestName, Mode=OneWay}" />
                             <Button MinHeight="40"
                                 x:Name="ManifestBrowseButton"
@@ -187,7 +202,7 @@
                                 Click="OnSelectManifestClick"
                                 Content="Seleccionar manifiesto…"
                                 IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
-                                TabIndex="7" />
+                                TabIndex="9" />
                         </Grid>
 
                         <Grid ColumnSpacing="12" RowSpacing="12">
@@ -199,27 +214,38 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition x:Name="HashFormatRow" Height="Auto" />
                             </Grid.RowDefinitions>
-                            <ComboBox
-                                x:Name="HashAlgorithmCombo"
-                                AutomationProperties.Name="Algoritmo seguro"
-                                AutomationProperties.HelpText="Algoritmo de huella"
-                                Header="Algoritmo seguro"
-                                IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
-                                ItemsSource="{x:Bind ViewModel.Algorithms}"
-                                SelectedIndex="0"
-                                SelectionChanged="OnAlgorithmSelectionChanged"
-                                TabIndex="8" />
-                            <ComboBox
-                                x:Name="HashFormatCombo"
-                                Grid.Row="1"
-                                AutomationProperties.Name="Formato de la huella"
-                                DisplayMemberPath="Label"
-                                Header="Formato"
-                                IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
-                                ItemsSource="{x:Bind ViewModel.AvailableFormats, Mode=OneWay}"
-                                SelectedItem="{x:Bind ViewModel.SelectedFormat, Mode=OneWay}"
-                                SelectionChanged="OnFormatSelectionChanged"
-                                TabIndex="9" />
+                            <controls:HelpRow>
+                                <ComboBox
+                                    x:Name="HashAlgorithmCombo"
+                                    AutomationProperties.Name="Algoritmo seguro"
+                                    AutomationProperties.HelpText="Algoritmo de huella"
+                                    Header="Algoritmo seguro"
+                                    IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
+                                    ItemsSource="{x:Bind ViewModel.Algorithms}"
+                                    SelectedIndex="0"
+                                    SelectionChanged="OnAlgorithmSelectionChanged"
+                                    TabIndex="10" />
+                                <controls:HelpButton
+                                    Topic="Algoritmo seguro"
+                                    HelpKey="ayuda.huella.algoritmo"
+                                    TabIndex="11" />
+                            </controls:HelpRow>
+                            <controls:HelpRow Grid.Row="1" x:Name="HashFormatField">
+                                <ComboBox
+                                    x:Name="HashFormatCombo"
+                                    AutomationProperties.Name="Formato de la huella"
+                                    DisplayMemberPath="Label"
+                                    Header="Formato"
+                                    IsEnabled="{x:Bind ViewModel.CanSelect, Mode=OneWay}"
+                                    ItemsSource="{x:Bind ViewModel.AvailableFormats, Mode=OneWay}"
+                                    SelectedItem="{x:Bind ViewModel.SelectedFormat, Mode=OneWay}"
+                                    SelectionChanged="OnFormatSelectionChanged"
+                                    TabIndex="12" />
+                                <controls:HelpButton
+                                    Topic="Formato de la huella"
+                                    HelpKey="ayuda.huella.formato"
+                                    TabIndex="13" />
+                            </controls:HelpRow>
                         </Grid>
 
                         <CheckBox
@@ -228,7 +254,7 @@
                             Checked="OnRecursiveChecked"
                             Content="Incluir subdirectorios"
                             IsEnabled="{x:Bind ViewModel.CanSetRecursive, Mode=OneWay}"
-                            TabIndex="10"
+                            TabIndex="14"
                             Unchecked="OnRecursiveUnchecked" />
 
                         <controls:ResponsiveActionPanel
@@ -243,13 +269,13 @@
                                 Content="{x:Bind ViewModel.ActionLabel, Mode=OneWay}"
                                 IsEnabled="{x:Bind ViewModel.CanExecute, Mode=OneWay}"
                                 Style="{StaticResource AccentButtonStyle}"
-                                TabIndex="11" />
+                                TabIndex="15" />
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Cancelar operación de huella"
                                 Click="OnCancelClick"
                                 Content="Cancelar operación"
                                 IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
-                                TabIndex="12" />
+                                TabIndex="16" />
                             <ProgressRing
                                 Width="28"
                                 Height="28"

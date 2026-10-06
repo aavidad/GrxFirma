@@ -184,33 +184,59 @@
                             AutomationProperties.HeadingLevel="Level2"
                             Style="{StaticResource SectionTitleTextStyle}"
                             Text="Firma predeterminada" />
-                        <ComboBox
-                            AutomationProperties.Name="Formato de firma predeterminado"
-                            DisplayMemberPath="Label"
-                            Header="Formato"
-                            IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
-                            ItemsSource="{x:Bind ViewModel.DefaultFormats}"
-                            SelectedItem="{x:Bind ViewModel.SelectedDefaultFormat, Mode=TwoWay}"
-                            TabIndex="7" />
-                        <CheckBox
-                            AutomationProperties.Name="Compatibilidad estricta"
-                            Content="Compatibilidad estricta"
-                            IsChecked="{x:Bind ViewModel.StrictSignatureCompatibility, Mode=TwoWay}"
-                            IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
-                            TabIndex="8" />
-                        <CheckBox
-                            x:Name="TsaEnabledCheckBox"
-                            IsChecked="{x:Bind ViewModel.TsaEnabled, Mode=TwoWay}"
-                            IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
-                            TabIndex="9"
-                            AutomationProperties.Name="{Binding Content, ElementName=TsaEnabledCheckBox}" />
-                        <TextBox
-                            x:Name="TsaUrlTextBox"
-                            MaxLength="2048"
-                            Text="{x:Bind ViewModel.TsaUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
-                            TabIndex="10"
-                            AutomationProperties.Name="{Binding Header, ElementName=TsaUrlTextBox}" />
+                        <controls:HelpRow>
+                            <ComboBox
+                                AutomationProperties.Name="Formato de firma predeterminado"
+                                DisplayMemberPath="Label"
+                                Header="Formato"
+                                IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
+                                ItemsSource="{x:Bind ViewModel.DefaultFormats}"
+                                SelectedItem="{x:Bind ViewModel.SelectedDefaultFormat, Mode=TwoWay}"
+                                TabIndex="7" />
+                            <controls:HelpButton
+                                Topic="Formato"
+                                HelpKey="ayuda.formato"
+                                TabIndex="8" />
+                        </controls:HelpRow>
+                        <controls:HelpRow>
+                            <CheckBox
+                                AutomationProperties.Name="Compatibilidad estricta"
+                                Content="Compatibilidad estricta"
+                                IsChecked="{x:Bind ViewModel.StrictSignatureCompatibility, Mode=TwoWay}"
+                                IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
+                                TabIndex="9" />
+                            <controls:HelpButton
+                                Topic="Compatibilidad estricta"
+                                HelpKey="ayuda.compatibilidad_estricta"
+                                VerticalAlignment="Center"
+                                TabIndex="10" />
+                        </controls:HelpRow>
+                        <controls:HelpRow>
+                            <CheckBox
+                                x:Name="TsaEnabledCheckBox"
+                                IsChecked="{x:Bind ViewModel.TsaEnabled, Mode=TwoWay}"
+                                IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
+                                TabIndex="11"
+                                AutomationProperties.Name="{Binding Content, ElementName=TsaEnabledCheckBox}" />
+                            <controls:HelpButton
+                                Topic="winui.parity.tsa.enabled"
+                                HelpKey="ayuda.sellado_tiempo"
+                                VerticalAlignment="Center"
+                                TabIndex="12" />
+                        </controls:HelpRow>
+                        <controls:HelpRow>
+                            <TextBox
+                                x:Name="TsaUrlTextBox"
+                                MaxLength="2048"
+                                Text="{x:Bind ViewModel.TsaUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
+                                TabIndex="13"
+                                AutomationProperties.Name="{Binding Header, ElementName=TsaUrlTextBox}" />
+                            <controls:HelpButton
+                                Topic="winui.parity.tsa.url"
+                                HelpKey="ayuda.tsa.servidor"
+                                TabIndex="14" />
+                        </controls:HelpRow>
                         <TextBlock
                             x:Name="TsaFieldError"
                             AutomationProperties.LiveSetting="Assertive"
@@ -218,27 +244,40 @@
                             Text="{x:Bind ViewModel.TsaValidationMessage, Mode=OneWay}"
                             Visibility="Collapsed"
                             TextWrapping="Wrap" />
-                        <CheckBox
-                            AutomationProperties.HelpText="La casilla «Añadir sello visible en PDF» empieza marcada al firmar un PDF."
-                            AutomationProperties.Name="Sello visible en PDF como valor predeterminado"
-                            Content="Sello visible en PDF como valor predeterminado"
-                            IsChecked="{x:Bind ViewModel.VisiblePdfSeal, Mode=TwoWay}"
-                            IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
-                            TabIndex="11" />
+                        <controls:HelpRow>
+                            <CheckBox
+                                AutomationProperties.HelpText="La casilla «Añadir sello visible en PDF» empieza marcada al firmar un PDF."
+                                AutomationProperties.Name="Sello visible en PDF como valor predeterminado"
+                                Content="Sello visible en PDF como valor predeterminado"
+                                IsChecked="{x:Bind ViewModel.VisiblePdfSeal, Mode=TwoWay}"
+                                IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
+                                TabIndex="15" />
+                            <controls:HelpButton
+                                Topic="Sello visible en PDF como valor predeterminado"
+                                HelpKey="ayuda.sello.visible"
+                                VerticalAlignment="Center"
+                                TabIndex="16" />
+                        </controls:HelpRow>
                         <TextBlock
                             Foreground="{ThemeResource AppMutedTextBrush}"
                             Text="El sello visible solo es compatible con selección automática de formato o PAdES."
                             TextWrapping="Wrap" />
-                        <ComboBox
-                            x:Name="SealLanguageCombo"
-                            AutomationProperties.HelpText="Idioma de los rótulos del sello visible. Elija, por ejemplo, el español para que los documentos que presente ante la Administración lleven el sello en castellano aunque la aplicación esté en otro idioma."
-                            AutomationProperties.Name="Idioma del sello"
-                            DisplayMemberPath="Label"
-                            Header="Idioma del sello"
-                            IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
-                            ItemsSource="{x:Bind ViewModel.SealLanguages}"
-                            SelectedItem="{x:Bind ViewModel.SelectedSealLanguage, Mode=TwoWay}"
-                            TabIndex="12" />
+                        <controls:HelpRow>
+                            <ComboBox
+                                x:Name="SealLanguageCombo"
+                                AutomationProperties.HelpText="Idioma de los rótulos del sello visible. Elija, por ejemplo, el español para que los documentos que presente ante la Administración lleven el sello en castellano aunque la aplicación esté en otro idioma."
+                                AutomationProperties.Name="Idioma del sello"
+                                DisplayMemberPath="Label"
+                                Header="Idioma del sello"
+                                IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
+                                ItemsSource="{x:Bind ViewModel.SealLanguages}"
+                                SelectedItem="{x:Bind ViewModel.SelectedSealLanguage, Mode=TwoWay}"
+                                TabIndex="17" />
+                            <controls:HelpButton
+                                Topic="Idioma del sello"
+                                HelpKey="ayuda.sello.idioma"
+                                TabIndex="18" />
+                        </controls:HelpRow>
                         <TextBlock
                             Foreground="{ThemeResource AppMutedTextBrush}"
                             Text="Idioma de los rótulos del sello visible. Elija, por ejemplo, el español para que los documentos que presente ante la Administración lleven el sello en castellano aunque la aplicación esté en otro idioma."
@@ -252,12 +291,19 @@
                             AutomationProperties.HeadingLevel="Level2"
                             Style="{StaticResource SectionTitleTextStyle}"
                             Text="Red y proxy" />
-                        <CheckBox
-                            AutomationProperties.Name="Usar proxy"
-                            Content="Usar proxy"
-                            IsChecked="{x:Bind ViewModel.ProxyEnabled, Mode=TwoWay}"
-                            IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
-                            TabIndex="13" />
+                        <controls:HelpRow>
+                            <CheckBox
+                                AutomationProperties.Name="Usar proxy"
+                                Content="Usar proxy"
+                                IsChecked="{x:Bind ViewModel.ProxyEnabled, Mode=TwoWay}"
+                                IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
+                                TabIndex="19" />
+                            <controls:HelpButton
+                                Topic="Usar proxy"
+                                HelpKey="ayuda.proxy"
+                                VerticalAlignment="Center"
+                                TabIndex="20" />
+                        </controls:HelpRow>
                         <Grid ColumnSpacing="12" RowSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -275,7 +321,7 @@
                                 IsEnabled="{x:Bind ViewModel.CanChooseProxyType, Mode=OneWay}"
                                 ItemsSource="{x:Bind ViewModel.ProxyTypes}"
                                 SelectedItem="{x:Bind ViewModel.SelectedProxyType, Mode=TwoWay}"
-                                TabIndex="14" />
+                                TabIndex="21" />
                             <TextBox
                                 x:Name="ProxyHostTextBox"
                                 Grid.Row="1"
@@ -285,7 +331,7 @@
                                 IsEnabled="{x:Bind ViewModel.CanEditManualProxy, Mode=OneWay}"
                                 MaxLength="512"
                                 PlaceholderText="proxy.organizacion.es"
-                                TabIndex="15"
+                                TabIndex="22"
                                 Text="{x:Bind ViewModel.ProxyHost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock x:Name="ProxyHostFieldError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
                         </Grid>
@@ -307,7 +353,7 @@
                                 IsEnabled="{x:Bind ViewModel.CanEditManualProxy, Mode=OneWay}"
                                 MaxLength="5"
                                 PlaceholderText="8080"
-                                TabIndex="16"
+                                TabIndex="23"
                                 Text="{x:Bind ViewModel.ProxyPortText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock x:Name="ProxyPortFieldError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
                             <TextBlock
@@ -325,7 +371,7 @@
                             MaxLength="32768"
                             MinHeight="88"
                             PlaceholderText="localhost&#x0a;127.0.0.1&#x0a;*.organizacion.es"
-                            TabIndex="17"
+                            TabIndex="24"
                             Text="{x:Bind ViewModel.ProxyExcludedUrlsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             TextWrapping="Wrap" />
                         <Border
@@ -352,7 +398,7 @@
                                     Click="OnRefreshProxySecretStatusClick"
                                     Content="Actualizar estado"
                                     IsEnabled="{x:Bind ViewModel.CanRefreshProxySecretStatus, Mode=OneWay}"
-                                    TabIndex="18" />
+                                    TabIndex="25" />
                             </StackPanel>
                         </Border>
                         <StackPanel Spacing="10">
@@ -380,7 +426,7 @@
                                     IsEnabled="{x:Bind ViewModel.CanEditManualProxy, Mode=OneWay}"
                                     MaxLength="256"
                                     PlaceholderText="proxy-corporativo"
-                                    TabIndex="19"
+                                    TabIndex="26"
                                     Text="{x:Bind ViewModel.ProxyRealm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBox
                                     x:Name="ProxyUsername"
@@ -390,7 +436,7 @@
                                     IsEnabled="{x:Bind ViewModel.CanEditManualProxy, Mode=OneWay}"
                                     MaxLength="256"
                                     PlaceholderText="usuario"
-                                    TabIndex="20"
+                                    TabIndex="27"
                                     Text="{x:Bind ViewModel.ProxyUsername, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </Grid>
                             <controls:ResponsiveActionPanel
@@ -403,14 +449,14 @@
                                     Content="Guardar o cambiar credenciales"
                                     IsEnabled="{x:Bind ViewModel.CanStoreProxyCredentials, Mode=OneWay}"
                                     Style="{StaticResource AccentButtonStyle}"
-                                    TabIndex="21" />
+                                    TabIndex="28" />
                                 <Button MinHeight="40"
                                     AutomationProperties.HelpText="Solicita confirmación antes de retirar la credencial del almacén protegido."
                                     AutomationProperties.Name="Quitar credenciales del proxy"
                                     Click="OnDeleteProxyCredentialsClick"
                                     Content="Quitar credenciales"
                                     IsEnabled="{x:Bind ViewModel.CanDeleteProxyCredentials, Mode=OneWay}"
-                                    TabIndex="22" />
+                                    TabIndex="29" />
                             </controls:ResponsiveActionPanel>
                         </StackPanel>
                     </StackPanel>
@@ -418,9 +464,17 @@
 
                 <Border Style="{StaticResource AppCardStyle}">
                     <StackPanel Spacing="12">
-                        <TextBlock x:Name="RestSectionTitle"
-                            AutomationProperties.HeadingLevel="Level2"
-                            Style="{StaticResource SectionTitleTextStyle}" />
+                        <controls:HelpRow>
+                            <TextBlock x:Name="RestSectionTitle"
+                                HorizontalAlignment="Left"
+                                AutomationProperties.HeadingLevel="Level2"
+                                Style="{StaticResource SectionTitleTextStyle}" />
+                            <controls:HelpButton
+                                Topic="winui.parity.rest.title"
+                                HelpKey="ayuda.rest_local"
+                                VerticalAlignment="Center"
+                                TabIndex="30" />
+                        </controls:HelpRow>
                         <TextBlock x:Name="RestStatusText"
                             AutomationProperties.LiveSetting="Polite"
                             TextWrapping="Wrap" />
@@ -428,24 +482,24 @@
                             IsReadOnly="True"
                             Visibility="Collapsed"
                             AutomationProperties.Name="{Binding Header, ElementName=RestTokenText}"
-                            TabIndex="23" />
+                            TabIndex="31" />
                         <controls:ResponsiveActionPanel Orientation="Horizontal" Spacing="8">
                             <Button x:Name="RestRefreshButton" MinHeight="40"
                                 Click="OnRefreshRestClick"
                             AutomationProperties.Name="{Binding Content, ElementName=RestRefreshButton}"
-                            TabIndex="24" />
+                            TabIndex="32" />
                             <Button x:Name="RestStartButton" MinHeight="40"
                                 Click="OnStartRestClick"
                             AutomationProperties.Name="{Binding Content, ElementName=RestStartButton}"
-                            TabIndex="25" />
+                            TabIndex="33" />
                             <Button x:Name="RestStopButton" MinHeight="40"
                                 Click="OnStopRestClick"
                             AutomationProperties.Name="{Binding Content, ElementName=RestStopButton}"
-                            TabIndex="26" />
+                            TabIndex="34" />
                             <Button x:Name="RestOpenButton" MinHeight="40"
                                 Click="OnOpenRestClick"
                             AutomationProperties.Name="{Binding Content, ElementName=RestOpenButton}"
-                            TabIndex="27" />
+                            TabIndex="35" />
                         </controls:ResponsiveActionPanel>
                     </StackPanel>
                 </Border>
@@ -466,7 +520,7 @@
                         Click="OnReloadClick"
                         Content="Recargar"
                         IsEnabled="{x:Bind ViewModel.CanReload, Mode=OneWay}"
-                        TabIndex="28" />
+                        TabIndex="36" />
                     <Button MinHeight="40"
                         x:Name="SaveButton"
                         HorizontalAlignment="Stretch"
@@ -476,13 +530,13 @@
                         Content="Guardar preferencias"
                         IsEnabled="{x:Bind ViewModel.CanSave, Mode=OneWay}"
                         Style="{StaticResource AccentButtonStyle}"
-                        TabIndex="29" />
+                        TabIndex="37" />
                     <Button MinHeight="40"
                         AutomationProperties.Name="Cancelar operación de configuración"
                         Click="OnCancelClick"
                         Content="Cancelar operación"
                         IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
-                        TabIndex="30" />
+                        TabIndex="38" />
                     <ProgressRing
                         Width="28"
                         Height="28"

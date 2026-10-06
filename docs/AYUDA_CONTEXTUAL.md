@@ -44,6 +44,13 @@ los botones «?» y para mantener los textos cuando cambie una pantalla.
   de la opción elegida.
 - Perfil de firma Baseline B/T/LT/LTA: lo prepara otra rama
   (`feat/ayuda-perfil-baseline`). Aquí no tiene clave.
+- WinUI: el botón es `Controls/HelpButton.cs` y `Controls/HelpRow.cs` lo
+  coloca justo después de su control. En XAML se escribe una
+  `<controls:HelpRow>` con el control y un
+  `<controls:HelpButton Topic="…" HelpKey="ayuda.…" />`; en ENI se usa
+  `WithHelp(…)`. `Topic` es la etiqueta visible del control. El contrato
+  `cmd/gui-winui/tests/test_contextual_help_contract.py` comprueba que cada
+  clave asignada a WinUI se usa y cuántos «?» tiene cada pantalla.
 
 ## Abreviaturas de rutas
 

@@ -128,15 +128,21 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition x:Name="OriginalActionsRow" Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBox
-                                AutomationProperties.Name="Original, solo para firmas separadas"
-                                AutomationProperties.HelpText="Fichero original para firma separada"
-                                Header="Original, solo para firmas separadas"
-                                MinHeight="40"
-                                IsReadOnly="True"
-                                PlaceholderText="Opcional"
-                                TabIndex="2"
-                                Text="{x:Bind ViewModel.OriginalFileName, Mode=OneWay}" />
+                            <controls:HelpRow>
+                                <TextBox
+                                    AutomationProperties.Name="Original, solo para firmas separadas"
+                                    AutomationProperties.HelpText="Fichero original para firma separada"
+                                    Header="Original, solo para firmas separadas"
+                                    MinHeight="40"
+                                    IsReadOnly="True"
+                                    PlaceholderText="Opcional"
+                                    TabIndex="2"
+                                    Text="{x:Bind ViewModel.OriginalFileName, Mode=OneWay}" />
+                                <controls:HelpButton
+                                    Topic="Original, solo para firmas separadas"
+                                    HelpKey="ayuda.verificar.original"
+                                    TabIndex="3" />
+                            </controls:HelpRow>
                             <controls:ResponsiveActionPanel
                                 x:Name="OriginalActions"
                                 Grid.Row="1"
@@ -150,14 +156,14 @@
                                     Click="OnSelectOriginalFileClick"
                                     Content="Seleccionar original…"
                                     IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
-                                    TabIndex="3" />
+                                    TabIndex="4" />
                                 <Button MinHeight="40"
                                     VerticalAlignment="Bottom"
                                     AutomationProperties.Name="Quitar fichero original"
                                     Click="OnClearOriginalFileClick"
                                     Content="Quitar"
                                     IsEnabled="{x:Bind ViewModel.CanSelectFiles, Mode=OneWay}"
-                                    TabIndex="4" />
+                                    TabIndex="5" />
                             </controls:ResponsiveActionPanel>
                         </Grid>
 
@@ -179,19 +185,25 @@
                                 Content="Verificar firma"
                                 IsEnabled="{x:Bind ViewModel.CanVerify, Mode=OneWay}"
                                 Style="{StaticResource AccentButtonStyle}"
-                                TabIndex="5" />
-                            <Button MinHeight="40"
-                                x:Name="ExportReportButton"
-                                Click="OnExportReportClick"
-                                IsEnabled="{x:Bind ViewModel.CanExportReport, Mode=OneWay}"
-                                TabIndex="6"
-                            AutomationProperties.Name="{Binding Content, ElementName=ExportReportButton}" />
+                                TabIndex="6" />
+                            <controls:HelpRow>
+                                <Button MinHeight="40"
+                                    x:Name="ExportReportButton"
+                                    Click="OnExportReportClick"
+                                    IsEnabled="{x:Bind ViewModel.CanExportReport, Mode=OneWay}"
+                                    TabIndex="7"
+                                AutomationProperties.Name="{Binding Content, ElementName=ExportReportButton}" />
+                                <controls:HelpButton
+                                    Topic="Informe"
+                                    HelpKey="ayuda.verificar.informe"
+                                    TabIndex="8" />
+                            </controls:HelpRow>
                             <Button MinHeight="40"
                                 x:Name="ExportJsonReportButton"
                                 Click="OnExportJsonReportClick"
                                 IsEnabled="{x:Bind ViewModel.CanExportReport, Mode=OneWay}"
                                 Visibility="{x:Bind ViewModel.HasHtmlReport, Mode=OneWay}"
-                                TabIndex="7"
+                                TabIndex="9"
                             AutomationProperties.Name="{Binding Content, ElementName=ExportJsonReportButton}" />
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Cancelar operación"
@@ -199,7 +211,7 @@
                                 Click="OnCancelClick"
                                 Content="Cancelar operación"
                                 IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
-                                TabIndex="8" />
+                                TabIndex="10" />
                             <ProgressRing
                                 Width="28"
                                 Height="28"
@@ -247,23 +259,45 @@
                                 <RowDefinition x:Name="CertificateResultRow" Height="Auto" />
                                 <RowDefinition x:Name="TrustResultRow" Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBlock
-                                Text="{x:Bind ViewModel.IntegritySummary, Mode=OneWay}"
-                                TextWrapping="Wrap" />
+                            <controls:HelpRow Visibility="{x:Bind ViewModel.HasResult, Mode=OneWay}">
+                                <TextBlock
+                                    HorizontalAlignment="Left"
+                                    Text="{x:Bind ViewModel.IntegritySummary, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                                <controls:HelpButton
+                                    Topic="Integridad"
+                                    HelpKey="ayuda.verificar.integridad"
+                                    VerticalAlignment="Top"
+                                    TabIndex="11" />
+                            </controls:HelpRow>
                             <TextBlock
                                 x:Name="CertificateResult"
                                 Grid.Row="1"
                                 Text="{x:Bind ViewModel.CertificateSummary, Mode=OneWay}"
                                 TextWrapping="Wrap" />
-                            <TextBlock
-                                x:Name="TrustResult"
-                                Grid.Row="2"
-                                Text="{x:Bind ViewModel.TrustSummary, Mode=OneWay}"
-                                TextWrapping="Wrap" />
+                            <controls:HelpRow Grid.Row="2" x:Name="TrustResult" Visibility="{x:Bind ViewModel.HasResult, Mode=OneWay}">
+                                <TextBlock
+                                    HorizontalAlignment="Left"
+                                    Text="{x:Bind ViewModel.TrustSummary, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                                <controls:HelpButton
+                                    Topic="Confianza"
+                                    HelpKey="ayuda.verificar.confianza"
+                                    VerticalAlignment="Top"
+                                    TabIndex="12" />
+                            </controls:HelpRow>
                         </Grid>
-                        <TextBlock
-                            Text="{x:Bind ViewModel.FormatSummary, Mode=OneWay}"
-                            TextWrapping="Wrap" />
+                        <controls:HelpRow Visibility="{x:Bind ViewModel.HasResult, Mode=OneWay}">
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Text="{x:Bind ViewModel.FormatSummary, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                            <controls:HelpButton
+                                Topic="Cobertura"
+                                HelpKey="ayuda.verificar.cobertura"
+                                VerticalAlignment="Top"
+                                TabIndex="13" />
+                        </controls:HelpRow>
 
                         <TextBlock
                             AutomationProperties.HeadingLevel="Level2"
@@ -292,10 +326,18 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <TextBlock
-                            AutomationProperties.HeadingLevel="Level2"
-                            Style="{StaticResource SectionTitleTextStyle}"
-                            Text="Detalles" />
+                        <controls:HelpRow>
+                            <TextBlock
+                                AutomationProperties.HeadingLevel="Level2"
+                                Style="{StaticResource SectionTitleTextStyle}"
+                                HorizontalAlignment="Left"
+                                Text="Detalles" />
+                            <controls:HelpButton
+                                Topic="Detalles"
+                                HelpKey="ayuda.verificar.revocacion"
+                                VerticalAlignment="Center"
+                                TabIndex="14" />
+                        </controls:HelpRow>
                         <ItemsControl ItemsSource="{x:Bind ViewModel.Details, Mode=OneWay}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
