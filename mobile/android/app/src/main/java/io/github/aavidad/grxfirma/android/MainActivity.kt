@@ -662,7 +662,7 @@ class MainActivity : AppCompatActivity() {
         HelpButton.bind(tsaEnabledHelp, R.string.tsa_enabled, R.string.ayuda_sellado_tiempo)
         HelpButton.bind(tsaUrlHelp, R.string.tsa_url, R.string.ayuda_tsa_servidor)
         HelpButton.bindSections(signatureFormatHelp, R.string.signature_format) {
-            ContextHelp.format(formatMenu.getOrElse(signatureFormat.selectedItemPosition) { "auto" })
+            ContextHelp.formats(formatMenu)
         }
         HelpButton.bind(exportReportHelp, R.string.export_verification_report_html, R.string.ayuda_verificar_informe)
         HelpButton.bind(verificationIntegrityHelp, R.string.ayuda_tema_integridad, R.string.ayuda_verificar_integridad)
@@ -1780,7 +1780,7 @@ class MainActivity : AppCompatActivity() {
             prefProfile.select(AppSettings.PROFILES.indexOf(current.defaultProfile).coerceAtLeast(0))
             prefProfileHelp.setOnClickListener { showProfileHelp() }
             HelpButton.bindSections(prefFormatHelp, R.string.pref_default_format) {
-                ContextHelp.format(formats.getOrElse(prefFormat.selectedItemPosition) { "auto" })
+                ContextHelp.formats(formats)
             }
             HelpButton.bind(prefTsaEnabledHelp, R.string.pref_tsa_enabled, R.string.ayuda_sellado_tiempo)
             HelpButton.bind(prefTsaUrlHelp, R.string.pref_tsa_url, R.string.ayuda_tsa_servidor)

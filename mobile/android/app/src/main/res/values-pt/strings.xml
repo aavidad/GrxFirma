@@ -675,19 +675,17 @@
     <string name="ayuda_tema_integridad">Integridade</string>
     <string name="ayuda_tema_confianza">Confiança</string>
     <string name="ayuda_tema_cobertura">Cobertura</string>
-    <string name="ayuda_operacion_firma">Cria a primeira assinatura de um documento que ainda não está assinado. É a opção habitual.</string>
-    <string name="ayuda_operacion_cofirma">Acrescenta a sua assinatura a um documento já assinado por outra pessoa, ao mesmo nível das assinaturas existentes. Utilize-a quando várias pessoas assinam o mesmo documento, por exemplo as duas partes de um protocolo.</string>
-    <string name="ayuda_operacion_contrafirma">Assina sobre uma assinatura anterior para lhe dar o visto, em vez de assinar o documento separadamente. Utilize-a quando a sua assinatura deva validar a de outra pessoa, por exemplo a de um superior sobre a de um técnico.</string>
+    <string name="ayuda_operacion_firma">assina um documento que ainda não tem assinaturas. É a opção habitual.</string>
+    <string name="ayuda_operacion_cofirma">acrescenta a sua assinatura junto às que o documento já tem, ao mesmo nível.</string>
+    <string name="ayuda_operacion_contrafirma">assina sobre uma assinatura existente para a referendar.</string>
     <string name="ayuda_formato">O formato decide como a assinatura é guardada: dentro do próprio ficheiro ou num ficheiro à parte. Se não souber qual escolher, deixe «Automático» e a aplicação escolherá o adequado consoante o tipo de ficheiro.</string>
-    <string name="ayuda_formato_pades">Formato de assinatura para PDF. A assinatura fica dentro do próprio PDF e qualquer leitor de PDF a mostra e verifica. É o recomendado para documentos PDF.</string>
-    <string name="ayuda_formato_cades" tools:ignore="Typos">Formato de assinatura válido para qualquer tipo de ficheiro. Cria um novo ficheiro de assinatura, separado do original ou que o inclui; para o verificar é necessário um programa de assinatura eletrónica.</string>
-    <string name="ayuda_formato_xades">Formato de assinatura baseado em XML. É o habitual para assinar ficheiros XML e o exigido por alguns procedimentos da Administração.</string>
-    <string name="ayuda_formato_xmldsig">Assinatura XML básica, sem os dados adicionais que o XAdES acrescenta. Utilize-a apenas se quem recebe o ficheiro a pedir expressamente; caso contrário, escolha XAdES.</string>
-    <string name="ayuda_formato_odf">Assina documentos do LibreOffice ou OpenOffice (.odt, .ods, .odp). A assinatura fica dentro do documento e esses programas reconhecem-na.</string>
-    <string name="ayuda_formato_ooxml">Assina documentos do Microsoft Office (.docx, .xlsx, .pptx). A assinatura fica dentro do documento e o Office reconhece-a.</string>
-    <string name="ayuda_formato_facturae" tools:ignore="Typos">Formato obrigatório para assinar faturas eletrónicas Facturae, as que se apresentam à Administração espanhola através do FACe. Utilize-o apenas com ficheiros de fatura eletrónica.</string>
-    <string name="ayuda_formato_asic">Guarda o documento e a respetiva assinatura juntos num único ficheiro comprimido (contentor ASiC). É útil para enviar ambos ao mesmo tempo sem que se separem.</string>
-    <string name="ayuda_formato_verifactu">Assina um registo de faturação Veri*Factu, o ficheiro XML enviado à Agência Tributária espanhola. Só aparece quando o ficheiro escolhido é um desses registos.</string>
+    <string name="ayuda_formato_pades">assina um PDF e guarda a assinatura dentro do próprio PDF.</string>
+    <string name="ayuda_formato_xades">assina em XML; é o habitual para ficheiros XML.</string>
+    <string name="ayuda_formato_xmldsig">assinatura XML básica; use-a apenas se lha pedirem expressamente.</string>
+    <string name="ayuda_formato_odf">assina documentos do LibreOffice ou OpenOffice (.odt, .ods, .odp) dentro do próprio documento.</string>
+    <string name="ayuda_formato_ooxml">assina documentos do Microsoft Office (.docx, .xlsx, .pptx) dentro do próprio documento.</string>
+    <string name="ayuda_formato_asic">guarda o documento e a sua assinatura juntos num único ficheiro.</string>
+    <string name="ayuda_formato_verifactu">assina um registo de faturação Veri*Factu. Só aparece se o ficheiro for um desses registos.</string>
     <string name="ayuda_sello_visible">Desenha no PDF uma caixa com o seu nome e a data, semelhante a uma assinatura manuscrita. A assinatura é igualmente válida sem ela, mas ajuda a ver de relance que o documento está assinado. Só está disponível para PDF.</string>
     <string name="ayuda_certificado_importar_p12">Acrescenta um certificado guardado num ficheiro .p12 ou .pfx, por exemplo a cópia de segurança do seu certificado da FNMT. Será pedida a palavra-passe definida ao exportá-lo.</string>
     <string name="ayuda_dnie_nfc" tools:ignore="Typos">Assina com o seu DNI eletrónico aproximando-o da parte de trás do telemóvel. Requer um telemóvel com NFC, o número CAN de 6 algarismos impresso no DNI e o respetivo PIN.</string>
@@ -725,4 +723,20 @@
     <string name="ayuda_verifactu">O Veri*Factu é o sistema da Agência Tributária espanhola para que as faturas incluam um código QR verificável. Aqui pode ler esse QR ou um registo de faturação e ver os respetivos dados; a Agência Tributária só é consultada se o pedir.</string>
     <string name="ayuda_certificado_tipo">Classe de certificado consoante quem representa: uma pessoa singular, o representante de uma empresa ou entidade, um funcionário público ou o selo de um organismo. Serve para filtrar a lista e escolher o certificado exigido pelo procedimento.</string>
     <string name="ayuda_verificar_revocacion">Verifica se o certificado do signatário estava anulado (revogado) no momento da assinatura, por exemplo por perda ou roubo. A consulta é feita pela internet à entidade que emitiu o certificado.</string>
+    <string name="ayuda_operacion">Indica como a sua assinatura é acrescentada ao documento.</string>
+    <string name="ayuda_operacion_cofirma_mas">Todas as assinaturas se aplicam ao mesmo documento e nenhuma depende de outra. Use-a quando várias pessoas têm de assinar o mesmo, por exemplo as duas partes de um acordo. O documento tem de ter já pelo menos uma assinatura.</string>
+    <string name="ayuda_operacion_contrafirma_mas">A sua assinatura aplica-se à assinatura de outra pessoa e deixa registado que a aprova. Use-a, por exemplo, quando um superior referenda o que um técnico assinou. O documento tem de ter já a assinatura que quer referendar.</string>
+    <string name="ayuda_formato_automatico">escolhe o formato conforme o tipo de documento.</string>
+    <string name="ayuda_formato_pades_mas">Qualquer leitor de PDF mostra e verifica a assinatura, por isso quem recebe o documento não precisa de outro programa. É o recomendado para PDF e o único que admite um selo visível.</string>
+    <string name="ayuda_formato_cades" tools:ignore="Typos">assina qualquer tipo de ficheiro e cria um novo ficheiro de assinatura.</string>
+    <string name="ayuda_formato_cades_mas" tools:ignore="Typos">O ficheiro de assinatura pode levar o documento dentro ou ficar separado dele; se ficar separado, guarde os dois juntos. Para o verificar é preciso um programa de assinatura eletrónica. Use-o quando o documento não for PDF, XML nem Office, por exemplo uma imagem.</string>
+    <string name="ayuda_formato_xades_mas">A assinatura é escrita em XML, dentro do próprio ficheiro ou num ficheiro à parte. Alguns procedimentos da Administração exigem-no. Se assinar um XML e ninguém lhe tiver pedido outro formato, escolha este.</string>
+    <string name="ayuda_formato_facturae" tools:ignore="Typos">assina faturas eletrónicas Facturae para as apresentar através do FACe.</string>
+    <string name="ayuda_formato_facturae_mas" tools:ignore="Typos">É o formato obrigatório para as faturas eletrónicas apresentadas à Administração e segue a política de assinatura que esta exige. Use-o apenas com ficheiros de fatura Facturae; para outros XML, escolha XAdES.</string>
+    <string name="ayuda_formato_asic_mas" tools:ignore="Typos">O resultado é um contentor ASiC: um ficheiro comprimido com o documento original e a sua assinatura XAdES. Serve para enviar os dois de uma vez sem que se separem. Quem o receber pode verificá-lo com um programa de assinatura eletrónica.</string>
+    <string name="ayuda_sellado_tiempo_mas">Sem carimbo temporal, a data da assinatura é a do relógio do seu computador e não serve como prova. Com ele pode provar quando assinou, o que é importante em procedimentos com prazo. Os perfis T, LT e LTA precisam dele.</string>
+    <string name="ayuda_mas_nombre">Mais informações sobre %1$s</string>
+    <string name="ayuda_opcion">%1$s: %2$s</string>
+    <string name="ayuda_mas_desplegado">Expandido</string>
+    <string name="ayuda_mas_plegado">Recolhido</string>
 </resources>

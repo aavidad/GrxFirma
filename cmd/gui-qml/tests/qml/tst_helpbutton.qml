@@ -59,9 +59,129 @@ Item {
         }
     }
 
+    // Selector: texto general y todas las opciones; una con ampliación.
+    Component {
+        id: optionsComponent
+        Column {
+            property alias help: optionsHelp
+            property alias other: optionsOther
+            Button { id: optionsOther; text: "x" }
+            HelpButton {
+                id: optionsHelp
+                nameTemplate: "Ayuda sobre {0}"
+                controlLabel: "Operación"
+                helpText: "Indica cómo se añade su firma."
+                optionTemplate: "{0}: {1}"
+                moreNameTemplate: "Más información sobre {0}"
+                options: [
+                    { name: "Firmar", text: "firma por primera vez.", more: "" },
+                    { name: "Cofirmar", text: "añade su firma al mismo nivel.", more: "Explicación ampliada de la cofirma." },
+                    { name: "Contrafirmar", text: "refrenda una firma.", more: "" }
+                ]
+            }
+        }
+    }
+
+    // Texto suelto con ampliación.
+    Component {
+        id: singleMoreComponent
+        Column {
+            property alias help: singleHelp
+            HelpButton {
+                id: singleHelp
+                nameTemplate: "Ayuda sobre {0}"
+                controlLabel: "Sello de tiempo"
+                helpText: "Añade la hora garantizada."
+                moreText: "Explicación ampliada del sello de tiempo. ".repeat(40)
+                moreNameTemplate: "Más información sobre {0}"
+            }
+        }
+    }
+
+    function collect(item, objectName, found) {
+        const list = found || []
+        if (!item) return list
+        if (item.objectName === objectName) list.push(item)
+        const kids = item.children || []
+        for (let i = 0; i < kids.length; i++) collect(kids[i], objectName, list)
+        if (item.contentItem && item.contentItem !== item && kids.indexOf(item.contentItem) < 0)
+            collect(item.contentItem, objectName, list)
+        return list
+    }
+
     TestCase {
         name: "HelpButton"
         when: windowShown
+
+        function test_selector_help_lists_every_option_without_a_selection() {
+            const column = createTemporaryObject(optionsComponent, root)
+            waitForRendering(column)
+            const help = column.help
+            compare(help.Accessible.description,
+                    "Indica cómo se añade su firma. Firmar: firma por primera vez. "
+                    + "Cofirmar: añade su firma al mismo nivel. Contrafirmar: refrenda una firma.")
+            mouseClick(help)
+            tryCompare(help, "popupOpen", true)
+            const popup = findChild(help, "helpPopup")
+            const entries = root.collect(popup.contentItem, "helpEntry")
+            compare(entries.length, 4)
+            verify(entries[2].text.indexOf("<b>Cofirmar</b>") === 0, "nombre en negrita")
+            compare(entries[2].Accessible.name, "Cofirmar: añade su firma al mismo nivel.")
+            // Solo la opción con ampliación lleva «+».
+            const more = root.collect(popup.contentItem, "helpMoreButton").filter(function(b) { return b.visible })
+            compare(more.length, 1)
+            compare(more[0].Accessible.name, "Más información sobre Cofirmar")
+            compare(more[0].Accessible.role, Accessible.Button)
+            compare(more[0].Accessible.checked, false)
+            compare(more[0].text, "+")
+            const details = root.collect(popup.contentItem, "helpMoreText")
+            const detail = details.filter(function(d) { return d.text === "Explicación ampliada de la cofirma." })[0]
+            verify(!detail.visible)
+            mouseClick(more[0])
+            tryCompare(detail, "visible", true)
+            compare(more[0].text, "\u2212")
+            compare(more[0].Accessible.checked, true)
+            verify(help.popupOpen, "pulsar «+» no cierra la ayuda")
+            mouseClick(more[0])
+            tryCompare(detail, "visible", false)
+        }
+
+        function test_more_button_works_with_the_keyboard() {
+            const column = createTemporaryObject(optionsComponent, root)
+            waitForRendering(column)
+            const help = column.help
+            help.forceActiveFocus()
+            keyClick(Qt.Key_Space)
+            tryCompare(help, "popupOpen", true)
+            keyClick(Qt.Key_Tab)
+            const popup = findChild(help, "helpPopup")
+            const more = root.collect(popup.contentItem, "helpMoreButton").filter(function(b) { return b.visible })[0]
+            tryCompare(more, "activeFocus", true)
+            verify(help.popupOpen)
+            keyClick(Qt.Key_Space)
+            tryCompare(more.Accessible, "checked", true)
+            keyClick(Qt.Key_Return)
+            tryCompare(more.Accessible, "checked", false)
+            keyClick(Qt.Key_Escape)
+            tryCompare(help, "popupOpen", false)
+            verify(help.activeFocus, "el foco vuelve al «?»")
+        }
+
+        function test_long_extended_text_scrolls_inside_a_short_window() {
+            const column = createTemporaryObject(singleMoreComponent, root)
+            waitForRendering(column)
+            const help = column.help
+            mouseClick(help)
+            tryCompare(help, "popupOpen", true)
+            const popup = findChild(help, "helpPopup")
+            const more = root.collect(popup.contentItem, "helpMoreButton").filter(function(b) { return b.visible })
+            compare(more.length, 1)
+            compare(more[0].Accessible.name, "Más información sobre Sello de tiempo")
+            mouseClick(more[0])
+            tryCompare(more[0].Accessible, "checked", true)
+            tryVerify(function() { return popup.contentItem.contentHeight > popup.contentItem.height })
+            verify(popup.height <= root.height, "no más alta que la ventana")
+        }
 
         function test_accessible_name_and_description_carry_the_help() {
             const column = createTemporaryObject(helpComponent, root)
@@ -110,11 +230,10 @@ Item {
             keyClick(Qt.Key_Space)
             tryCompare(help, "popupOpen", true)
             const popup = findChild(help, "helpPopup")
-            verify(popup.contentItem.children.length > 0)
             let found = false
-            for (let i = 0; i < popup.contentItem.children.length; i++) {
-                const child = popup.contentItem.children[i]
-                if (child.text === "Dirección del servicio de sellado de tiempo." && child.visible) found = true
+            const entries = root.collect(popup.contentItem, "helpEntry")
+            for (let i = 0; i < entries.length; i++) {
+                if (entries[i].text === "Dirección del servicio de sellado de tiempo." && entries[i].visible) found = true
             }
             verify(found, "el texto de ayuda se ve en la ventana flotante")
             keyClick(Qt.Key_Escape)

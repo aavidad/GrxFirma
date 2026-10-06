@@ -467,7 +467,6 @@ public sealed class SignPageViewModel
         {
             if (SetProperty(ref _selectedAction, value))
             {
-                RaisePropertyChanged(nameof(SelectedActionHelpKey));
                 ClearOutput();
                 InvalidateBatchResults();
                 RefreshGuidedMultiCosignState();
@@ -494,29 +493,6 @@ public sealed class SignPageViewModel
         catch (Exception) { /* La firma conserva el formato automático si falla la detección. */ }
     }
 
-    // Ayuda «?» de la operación elegida.
-    public string SelectedActionHelpKey => SelectedAction?.Value switch
-    {
-        "cosign" => "ayuda.operacion.cofirma",
-        "countersign" => "ayuda.operacion.contrafirma",
-        _ => "ayuda.operacion.firma",
-    };
-
-    // Ayuda «?» del formato elegido; «Automático» solo muestra el texto general.
-    public string SelectedFormatHelpKey => SelectedFormat?.Value switch
-    {
-        "pades" => "ayuda.formato.pades",
-        "cades" => "ayuda.formato.cades",
-        "xades" => "ayuda.formato.xades",
-        "xmldsig" => "ayuda.formato.xmldsig",
-        "odf" => "ayuda.formato.odf",
-        "ooxml" => "ayuda.formato.ooxml",
-        "facturae" => "ayuda.formato.facturae",
-        "asic-xades" => "ayuda.formato.asic",
-        "verifactu" => "ayuda.formato.verifactu",
-        _ => string.Empty,
-    };
-
     public SignatureFormatOption? SelectedFormat
     {
         get => _selectedFormat;
@@ -524,7 +500,6 @@ public sealed class SignPageViewModel
         {
             if (SetProperty(ref _selectedFormat, value))
             {
-                RaisePropertyChanged(nameof(SelectedFormatHelpKey));
                 ClearOutput();
                 InvalidateBatchResults();
                 ClearVisibleSealPreview();

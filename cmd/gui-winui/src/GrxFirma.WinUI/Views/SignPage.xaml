@@ -305,7 +305,8 @@
                                 <controls:HelpButton
                                     Topic="Operación"
                                     TabIndex="12"
-                                    HelpKey="{x:Bind ViewModel.SelectedActionHelpKey, Mode=OneWay}" />
+                                    HelpKey="ayuda.operacion"
+                                    Options="winui.firmar.firma=ayuda.operacion.firma winui.firmar.cofirma=ayuda.operacion.cofirma winui.firmar.contrafirma=ayuda.operacion.contrafirma" />
                             </controls:HelpRow>
                             <controls:HelpRow Grid.Row="1" x:Name="FormatField">
                                 <ComboBox
@@ -320,7 +321,7 @@
                                     Topic="Formato"
                                     HelpKey="ayuda.formato"
                                     TabIndex="14"
-                                    DetailKey="{x:Bind ViewModel.SelectedFormatHelpKey, Mode=OneWay}" />
+                                    Options="winui.comun.automatico=ayuda.formato.automatico PAdES=ayuda.formato.pades CAdES=ayuda.formato.cades XAdES=ayuda.formato.xades winui.firmar.xmldsig=ayuda.formato.xmldsig winui.comun.odf=ayuda.formato.odf winui.comun.ooxml=ayuda.formato.ooxml winui.comun.facturae=ayuda.formato.facturae winui.comun.asic_xades=ayuda.formato.asic verifactu.profile_label=ayuda.formato.verifactu" />
                             </controls:HelpRow>
                         </Grid>
 
