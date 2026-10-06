@@ -14861,7 +14861,9 @@ Window {
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("Baseline B"), valor: "baseline" },
-                                                { texto: tr("Baseline T"), valor: "t" }
+                                                { texto: tr("Baseline T"), valor: "t" },
+                                                { texto: tr("Baseline LT"), valor: "lt" },
+                                                { texto: tr("Baseline LTA"), valor: "lta" }
                                             ]
                                             textRole: "texto"
                                             currentIndex: optionIndexByValue(model, window.signProfile)
@@ -14871,7 +14873,7 @@ Window {
                                             }
                                             ToolTip.visible: hovered
                                             ToolTip.delay: 500
-                                            ToolTip.text: tr("Define el perfil preseleccionado para CAdES, XAdES y PAdES. El perfil T requiere TSA operativa.")
+                                            ToolTip.text: tr("perfil_firma.tooltip")
                                         }
                                         HelpButton {
                                             id: settingsSignProfileHelp

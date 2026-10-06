@@ -6573,4 +6573,7 @@
   ,"perfil_firma.ayuda.lt": "LT: in più salva nel documento la catena di certificati e la prova che in quel momento non erano revocati. Così la firma potrà essere verificata anche dopo anni, anche se il certificato scade o l'autorità che l'ha emesso non risponde più."
   ,"perfil_firma.ayuda.lta": "LTA: in più aggiunge una marca temporale di archiviazione, pensata per conservare il documento per moltissimi anni."
   ,"perfil_firma.ayuda.internet": "T, LT e LTA richiedono una connessione a Internet al momento della firma."
+  ,"Baseline LT": "Baseline LT"
+  ,"Baseline LTA": "Baseline LTA"
+  ,"perfil_firma.tooltip": "Profilo preselezionato per CAdES, XAdES e PAdES. T, LT e LTA richiedono una connessione al server di marcatura temporale."
 }

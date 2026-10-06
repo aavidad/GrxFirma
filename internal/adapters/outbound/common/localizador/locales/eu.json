@@ -6573,4 +6573,7 @@
   ,"perfil_firma.ayuda.lt": "LT: gainera, ziurtagiri-katea eta une hartan baliogabetuta ez zeudela frogatzen duena gordetzen ditu dokumentuan. Horrela, sinadura urte batzuk barru ere egiaztatu ahal izango da, ziurtagiria iraungi edo hura eman zuen agintaritzak erantzuten ez badu ere."
   ,"perfil_firma.ayuda.lta": "LTA: gainera, artxiboko denbora-zigilua gehitzen du, dokumentua urte askoan gordetzeko."
   ,"perfil_firma.ayuda.internet": "T, LT eta LTA profilek Interneteko konexioa behar dute sinatzean."
+  ,"Baseline LT": "Baseline LT"
+  ,"Baseline LTA": "Baseline LTA"
+  ,"perfil_firma.tooltip": "CAdES, XAdES eta PAdESerako aurrez hautatutako profila. T, LT eta LTA profilek denbora-zigiluaren zerbitzariarekin konexioa behar dute."
 }

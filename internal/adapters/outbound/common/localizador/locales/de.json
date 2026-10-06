@@ -6573,4 +6573,7 @@
   ,"perfil_firma.ayuda.lt": "LT: speichert zusätzlich die Zertifikatskette im Dokument und den Nachweis, dass die Zertifikate zu diesem Zeitpunkt nicht widerrufen waren. So lässt sich die Signatur noch nach Jahren prüfen, auch wenn das Zertifikat abläuft oder die ausstellende Stelle nicht mehr antwortet."
   ,"perfil_firma.ayuda.lta": "LTA: fügt zusätzlich einen Archivzeitstempel hinzu, gedacht für eine sehr lange Aufbewahrung."
   ,"perfil_firma.ayuda.internet": "T, LT und LTA benötigen beim Signieren eine Internetverbindung."
+  ,"Baseline LT": "Baseline LT"
+  ,"Baseline LTA": "Baseline LTA"
+  ,"perfil_firma.tooltip": "Für CAdES, XAdES und PAdES vorausgewähltes Profil. T, LT und LTA benötigen eine Verbindung zum Zeitstempelserver."
 }

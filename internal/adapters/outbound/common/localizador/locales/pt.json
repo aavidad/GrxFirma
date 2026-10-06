@@ -6573,4 +6573,7 @@
   ,"perfil_firma.ayuda.lt": "LT: guarda ainda no documento a cadeia de certificados e a prova de que não estavam revogados nesse momento. Assim, a assinatura poderá ser verificada daqui a anos, mesmo que o certificado expire ou a autoridade que o emitiu deixe de responder."
   ,"perfil_firma.ayuda.lta": "LTA: acrescenta ainda um carimbo temporal de arquivo, pensado para conservar o documento durante muitos anos."
   ,"perfil_firma.ayuda.internet": "T, LT e LTA precisam de ligação à Internet no momento da assinatura."
+  ,"Baseline LT": "Baseline LT"
+  ,"Baseline LTA": "Baseline LTA"
+  ,"perfil_firma.tooltip": "Perfil pré-selecionado para CAdES, XAdES e PAdES. T, LT e LTA precisam de ligação ao servidor de carimbo temporal."
 }
