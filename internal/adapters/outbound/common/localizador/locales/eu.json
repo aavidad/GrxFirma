@@ -6491,4 +6491,12 @@
   ,"Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.": "GRX ikonoa sinadura-trazuarekin itzuli da Windows, Linux, Android eta luzapenean, eta PDFen zigiluak bere ikurra eta koloreak berreskuratzen ditu."
   ,"Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.": "Android: zigiluaren editoreak botoi guztiak erakusten ditu, ziurtagiri mota zuzentzen da, DNIe botoia benetan desgaitzen da NFCrik gabe eta «Honi buruz» trinkoagoa da."
   ,"Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.": "Windows: eguneratzean, GrxFirmaren aurreko bertsioen lasterbideak kentzen dira mahaigainetik."
+  ,"perfil_firma.ayuda.nombre": "Sinadura-profilari buruzko laguntza"
+  ,"perfil_firma.ayuda.resumen": "B, T, LT eta LTA profilen arteko aldea azaltzen du. Sakatu irakurtzeko."
+  ,"perfil_firma.ayuda.titulo": "Zein profil aukeratu?"
+  ,"perfil_firma.ayuda.b": "B: sinadura eta ziurtagiria. Data zure ordenagailuaren erlojuak jartzen du."
+  ,"perfil_firma.ayuda.t": "T: konfiantzazko zerbitzari baten denbora-zigilua gehitzen du, noiz sinatu zen frogatzen duena. Izapideetan ohikoena da, eta gomendatutako profila."
+  ,"perfil_firma.ayuda.lt": "LT: gainera, ziurtagiri-katea eta une hartan baliogabetuta ez zeudela frogatzen duena gordetzen ditu dokumentuan. Horrela, sinadura urte batzuk barru ere egiaztatu ahal izango da, ziurtagiria iraungi edo hura eman zuen agintaritzak erantzuten ez badu ere."
+  ,"perfil_firma.ayuda.lta": "LTA: gainera, artxiboko denbora-zigilua gehitzen du, dokumentua urte askoan gordetzeko."
+  ,"perfil_firma.ayuda.internet": "T, LT eta LTA profilek Interneteko konexioa behar dute sinatzean."
 }

@@ -6491,4 +6491,12 @@
   ,"Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.": "Torna l'icona GRX con il tratto di firma su Windows, Linux, Android e nell'estensione, e il timbro dei PDF recupera il suo emblema e i suoi colori."
   ,"Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.": "Android: l'editor del timbro mostra tutti i pulsanti, il tipo di certificato è corretto, il pulsante del DNIe è davvero disattivato senza NFC e «Informazioni» è più compatto."
   ,"Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.": "Windows: l'aggiornamento rimuove dal desktop i collegamenti delle versioni precedenti di GrxFirma."
+  ,"perfil_firma.ayuda.nombre": "Aiuto sul profilo di firma"
+  ,"perfil_firma.ayuda.resumen": "Spiega la differenza tra i profili B, T, LT e LTA. Premere per leggerla."
+  ,"perfil_firma.ayuda.titulo": "Quale profilo scelgo?"
+  ,"perfil_firma.ayuda.b": "B: la firma e il certificato. La data la fornisce l'orologio del computer."
+  ,"perfil_firma.ayuda.t": "T: aggiunge una marca temporale di un server affidabile che dimostra quando è stato firmato. È la scelta abituale per le pratiche e il profilo consigliato."
+  ,"perfil_firma.ayuda.lt": "LT: in più salva nel documento la catena di certificati e la prova che in quel momento non erano revocati. Così la firma potrà essere verificata anche dopo anni, anche se il certificato scade o l'autorità che l'ha emesso non risponde più."
+  ,"perfil_firma.ayuda.lta": "LTA: in più aggiunge una marca temporale di archiviazione, pensata per conservare il documento per moltissimi anni."
+  ,"perfil_firma.ayuda.internet": "T, LT e LTA richiedono una connessione a Internet al momento della firma."
 }

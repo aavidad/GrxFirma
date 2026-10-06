@@ -39,21 +39,40 @@
                 android:minHeight="48dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/prefProfileLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="@string/pref_default_profile">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <io.github.aavidad.grxfirma.android.ui.DropdownField
-                android:id="@+id/prefProfile"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/prefProfileLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:entries="@array/signature_profiles"
-                android:minHeight="48dp" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/pref_default_profile">
+
+                <io.github.aavidad.grxfirma.android.ui.DropdownField
+                    android:id="@+id/prefProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/signature_profiles"
+                    android:minHeight="48dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/prefProfileHelp"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:contentDescription="@string/profile_help_name"
+                android:tooltipText="@string/profile_help_name"
+                app:icon="@drawable/ic_help"
+                app:iconTint="?attr/colorPrimary" />
+        </LinearLayout>
 
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/prefTsaEnabled"

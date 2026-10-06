@@ -646,4 +646,11 @@
     <string name="eni_saved_detail">ENI document saved: %1$s</string>
     <string name="expediente_saved_detail">ENI file saved: %1$s</string>
     <string name="protected_file_type">Protected file</string>
+    <string name="profile_help_name">Help on the signing profile</string>
+    <string name="profile_help_title">Which profile should I choose?</string>
+    <string name="profile_help_b">B: the signature and the certificate. The date comes from your computer\'s clock.</string>
+    <string name="profile_help_t">T: adds a timestamp from a trusted server that proves when the document was signed. It is the usual choice for official procedures and the recommended profile.</string>
+    <string name="profile_help_lt">LT: also stores in the document the certificate chain and proof that the certificates had not been revoked at that moment. This way the signature can still be checked years later, even if the certificate expires or the authority that issued it no longer responds.</string>
+    <string name="profile_help_lta">LTA: also adds an archive timestamp, intended to keep the document for many years.</string>
+    <string name="profile_help_internet">T, LT and LTA need an Internet connection when signing.</string>
 </resources>

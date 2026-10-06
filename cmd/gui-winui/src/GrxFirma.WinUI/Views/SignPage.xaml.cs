@@ -590,6 +590,14 @@ public sealed partial class SignPage : Page
             cancellationToken);
     }
 
+    // El menú emergente se abre fuera del árbol visual de la página: su texto
+    // se traduce al abrirse, con el idioma elegido en ese momento.
+    private void OnSignProfileHelpOpening(object sender, object args)
+    {
+        if (sender is Flyout { Content: DependencyObject content })
+            Localizer.Apply(content);
+    }
+
     private void OnUnloaded(object sender, RoutedEventArgs args)
     {
         ++_resultRevealRevision;

@@ -6491,4 +6491,12 @@
   ,"Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.": "Das GRX-Symbol mit dem Signaturstrich kehrt unter Windows, Linux, Android und in der Erweiterung zurück, und der PDF-Stempel erhält sein Emblem und seine Farben zurück."
   ,"Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.": "Android: Der Stempeleditor zeigt alle Schaltflächen, der Zertifikatstyp wird korrigiert, die DNIe-Schaltfläche ist ohne NFC wirklich deaktiviert und „Info“ ist kompakter."
   ,"Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.": "Windows: Beim Aktualisieren werden Desktop-Verknüpfungen früherer GrxFirma-Versionen entfernt."
+  ,"perfil_firma.ayuda.nombre": "Hilfe zum Signaturprofil"
+  ,"perfil_firma.ayuda.resumen": "Erklärt den Unterschied zwischen den Profilen B, T, LT und LTA. Zum Lesen drücken."
+  ,"perfil_firma.ayuda.titulo": "Welches Profil soll ich wählen?"
+  ,"perfil_firma.ayuda.b": "B: die Signatur und das Zertifikat. Das Datum stammt von der Uhr Ihres Computers."
+  ,"perfil_firma.ayuda.t": "T: fügt einen Zeitstempel eines vertrauenswürdigen Servers hinzu, der belegt, wann signiert wurde. Das ist bei Behördenverfahren üblich und das empfohlene Profil."
+  ,"perfil_firma.ayuda.lt": "LT: speichert zusätzlich die Zertifikatskette im Dokument und den Nachweis, dass die Zertifikate zu diesem Zeitpunkt nicht widerrufen waren. So lässt sich die Signatur noch nach Jahren prüfen, auch wenn das Zertifikat abläuft oder die ausstellende Stelle nicht mehr antwortet."
+  ,"perfil_firma.ayuda.lta": "LTA: fügt zusätzlich einen Archivzeitstempel hinzu, gedacht für eine sehr lange Aufbewahrung."
+  ,"perfil_firma.ayuda.internet": "T, LT und LTA benötigen beim Signieren eine Internetverbindung."
 }

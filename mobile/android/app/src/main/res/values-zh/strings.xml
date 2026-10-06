@@ -628,4 +628,11 @@
     <string name="eni_saved_detail">ENI 文档已保存：%1$s</string>
     <string name="expediente_saved_detail">案卷已保存：%1$s</string>
     <string name="protected_file_type">受保护的文件</string>
+    <string name="profile_help_name">签名配置文件帮助</string>
+    <string name="profile_help_title">应选择哪个配置文件？</string>
+    <string name="profile_help_b">B：签名和证书。日期取自您电脑的时钟。</string>
+    <string name="profile_help_t">T：添加来自可信服务器的时间戳，证明签名的时间。办理手续时通常使用此项，也是推荐的配置文件。</string>
+    <string name="profile_help_lt">LT：此外还在文档中保存证书链，以及证书当时未被吊销的证明。这样，即使证书过期或签发机构不再响应，多年后仍可验证签名。</string>
+    <string name="profile_help_lta">LTA：此外还添加存档时间戳，适合长期保存文档。</string>
+    <string name="profile_help_internet">T、LT 和 LTA 在签名时需要连接互联网。</string>
 </resources>

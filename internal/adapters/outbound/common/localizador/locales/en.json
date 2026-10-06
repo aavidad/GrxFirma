@@ -6491,4 +6491,12 @@
   ,"Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.": "The GRX icon with the signature stroke is back on Windows, Linux, Android and the extension, and the PDF seal gets its emblem and colours back."
   ,"Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.": "Android: the seal editor shows all its buttons, the certificate type is corrected, the DNIe button is truly disabled without NFC, and “About” is more compact."
   ,"Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.": "Windows: updating now removes desktop shortcuts left by earlier GrxFirma versions."
+  ,"perfil_firma.ayuda.nombre": "Help on the signing profile"
+  ,"perfil_firma.ayuda.resumen": "Explains how the B, T, LT and LTA profiles differ. Press to read it."
+  ,"perfil_firma.ayuda.titulo": "Which profile should I choose?"
+  ,"perfil_firma.ayuda.b": "B: the signature and the certificate. The date comes from your computer's clock."
+  ,"perfil_firma.ayuda.t": "T: adds a timestamp from a trusted server that proves when the document was signed. It is the usual choice for official procedures and the recommended profile."
+  ,"perfil_firma.ayuda.lt": "LT: also stores in the document the certificate chain and proof that the certificates had not been revoked at that moment. This way the signature can still be checked years later, even if the certificate expires or the authority that issued it no longer responds."
+  ,"perfil_firma.ayuda.lta": "LTA: also adds an archive timestamp, intended to keep the document for many years."
+  ,"perfil_firma.ayuda.internet": "T, LT and LTA need an Internet connection when signing."
 }

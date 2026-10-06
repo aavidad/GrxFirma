@@ -6491,4 +6491,12 @@
   ,"Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.": "L'icône GRX avec le trait de signature revient sous Windows, Linux, Android et dans l'extension, et le cachet des PDF retrouve son emblème et ses couleurs."
   ,"Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.": "Android : l'éditeur du cachet affiche tous ses boutons, le type de certificat est corrigé, le bouton DNIe est vraiment désactivé sans NFC et « À propos » est plus compact."
   ,"Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.": "Windows : la mise à jour retire du bureau les raccourcis des versions précédentes de GrxFirma."
+  ,"perfil_firma.ayuda.nombre": "Aide sur le profil de signature"
+  ,"perfil_firma.ayuda.resumen": "Explique la différence entre les profils B, T, LT et LTA. Appuyez pour la lire."
+  ,"perfil_firma.ayuda.titulo": "Quel profil choisir ?"
+  ,"perfil_firma.ayuda.b": "B : la signature et le certificat. La date est donnée par l'horloge de votre ordinateur."
+  ,"perfil_firma.ayuda.t": "T : ajoute un horodatage d'un serveur de confiance qui prouve quand le document a été signé. C'est le choix habituel pour les démarches et le profil recommandé."
+  ,"perfil_firma.ayuda.lt": "LT : enregistre en plus dans le document la chaîne de certificats et la preuve qu'ils n'étaient pas révoqués à ce moment-là. La signature pourra ainsi être vérifiée des années plus tard, même si le certificat expire ou si l'autorité qui l'a émis ne répond plus."
+  ,"perfil_firma.ayuda.lta": "LTA : ajoute en plus un horodatage d'archivage, prévu pour conserver le document pendant de nombreuses années."
+  ,"perfil_firma.ayuda.internet": "T, LT et LTA nécessitent une connexion Internet au moment de signer."
 }

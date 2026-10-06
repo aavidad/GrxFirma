@@ -6491,4 +6491,12 @@
   ,"Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.": "Torna la icona GRX amb el traç de signatura en Windows, Linux, Android i l'extensió, i el segell dels PDF recupera el seu emblema i els seus colors."
   ,"Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.": "Android: l'editor del segell mostra tots els botons, es corregix el tipus de certificat, el botó del DNIe es desactiva de veres sense NFC i «Quant a» és més compacte."
   ,"Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.": "Windows: en actualitzar es retiren de l'escriptori els accessos directes de versions anteriors de GrxFirma."
+  ,"perfil_firma.ayuda.nombre": "Ajuda sobre el perfil de firma"
+  ,"perfil_firma.ayuda.resumen": "Explica en què es diferencien els perfils B, T, LT i LTA. Polseu per a llegir-la."
+  ,"perfil_firma.ayuda.titulo": "Quin perfil trie?"
+  ,"perfil_firma.ayuda.b": "B: la firma i el certificat. La data la posa el rellotge del vostre equip."
+  ,"perfil_firma.ayuda.t": "T: afig un segell de temps d'un servidor de confiança que demostra quan es va signar. És l'habitual en els tràmits i el perfil recomanat."
+  ,"perfil_firma.ayuda.lt": "LT: a més, guarda en el document la cadena de certificats i la prova que no estaven anul·lats en aquell moment. Així la firma es podrà comprovar d'ací a anys, encara que el certificat caduque o l'autoritat que el va emetre ja no responga."
+  ,"perfil_firma.ayuda.lta": "LTA: a més, afig un segell de temps d'arxiu, pensat per a conservar el document durant molts anys."
+  ,"perfil_firma.ayuda.internet": "T, LT i LTA necessiten connexió a Internet en signar."
 }

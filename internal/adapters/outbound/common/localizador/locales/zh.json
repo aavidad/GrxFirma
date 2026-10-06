@@ -6491,4 +6491,12 @@
   ,"Vuelve el icono GRX con el trazo de firma en Windows, Linux, Android y la extensión, y el sello de los PDF recupera su emblema y sus colores.": "带签名笔画的 GRX 图标在 Windows、Linux、Android 和扩展中回归，PDF 印章也恢复了原有的徽标和颜色。"
   ,"Android: el editor del sello muestra todos sus botones, se corrige el tipo de certificado, el botón del DNIe se desactiva de verdad sin NFC y «Acerca de» es más compacto.": "Android：印章编辑器显示全部按钮，证书类型已更正，没有 NFC 时 DNIe 按钮会真正停用，“关于”页面更紧凑。"
   ,"Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.": "Windows：更新时会从桌面移除旧版 GrxFirma 留下的快捷方式。"
+  ,"perfil_firma.ayuda.nombre": "签名配置文件帮助"
+  ,"perfil_firma.ayuda.resumen": "说明 B、T、LT 和 LTA 配置文件的区别。按下即可阅读。"
+  ,"perfil_firma.ayuda.titulo": "应选择哪个配置文件？"
+  ,"perfil_firma.ayuda.b": "B：签名和证书。日期取自您电脑的时钟。"
+  ,"perfil_firma.ayuda.t": "T：添加来自可信服务器的时间戳，证明签名的时间。办理手续时通常使用此项，也是推荐的配置文件。"
+  ,"perfil_firma.ayuda.lt": "LT：此外还在文档中保存证书链，以及证书当时未被吊销的证明。这样，即使证书过期或签发机构不再响应，多年后仍可验证签名。"
+  ,"perfil_firma.ayuda.lta": "LTA：此外还添加存档时间戳，适合长期保存文档。"
+  ,"perfil_firma.ayuda.internet": "T、LT 和 LTA 在签名时需要连接互联网。"
 }
