@@ -6578,4 +6578,6 @@
   ,"perfil_firma.tooltip": "CAdES, XAdES eta PAdESerako aurrez hautatutako profila. T, LT eta LTA profilek denbora-zigiluaren zerbitzariarekin konexioa behar dute."
   ,"Ayuda en cada opción: un botón «?» junto a cada ajuste técnico (cofirma, contrafirma, formatos, perfil B, T, LT o LTA, sellado de tiempo, sello visible, protección…) explica qué es y cuándo usarlo.": "Laguntza aukera bakoitzean: «?» botoi batek ezarpen tekniko bakoitzaren ondoan (kosinadura, kontrasinadura, formatuak, B, T, LT edo LTA profila, denbora-zigilua, zigilu ikusgaia, babesa…) azaltzen du zer den eta noiz erabili."
   ,"Linux: el perfil de firma por defecto también puede ser Baseline LT o LTA.": "Linux: sinadura-profil lehenetsia Baseline LT edo LTA ere izan daiteke."
+  ,"El icono GRX aparece en el escritorio, el menú Inicio y la extensión del navegador sin restos de la silueta anterior; el instalador refresca los iconos de Windows al terminar.": "GRX ikonoa mahaigainean, Hasi menuan eta nabigatzailearen luzapenean agertzen da aurreko siluetaren arrastorik gabe; instalatzaileak Windowsen ikonoak freskatzen ditu amaitzean."
+  ,"Windows: los botones de ayuda son solo un círculo con la interrogación, sin el recuadro de botón.": "Windows: laguntza-botoiak galdera-ikurra duen zirkulu bat dira, botoiaren koadrorik gabe."
 }

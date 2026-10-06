@@ -6578,4 +6578,6 @@
   ,"perfil_firma.tooltip": "Profile preselected for CAdES, XAdES and PAdES. T, LT and LTA need a connection to the timestamp server."
   ,"Ayuda en cada opción: un botón «?» junto a cada ajuste técnico (cofirma, contrafirma, formatos, perfil B, T, LT o LTA, sellado de tiempo, sello visible, protección…) explica qué es y cuándo usarlo.": "Help for every option: a “?” button next to each technical setting (co-signature, counter-signature, formats, B, T, LT or LTA profile, timestamp, visible seal, protection…) explains what it is and when to use it."
   ,"Linux: el perfil de firma por defecto también puede ser Baseline LT o LTA.": "Linux: the default signature profile can now also be Baseline LT or LTA."
+  ,"El icono GRX aparece en el escritorio, el menú Inicio y la extensión del navegador sin restos de la silueta anterior; el instalador refresca los iconos de Windows al terminar.": "The GRX icon now shows on the desktop, the Start menu and the browser extension with no trace of the previous silhouette; the installer refreshes Windows icons when it finishes."
+  ,"Windows: los botones de ayuda son solo un círculo con la interrogación, sin el recuadro de botón.": "Windows: help buttons are now just a circle with a question mark, without the button box."
 }

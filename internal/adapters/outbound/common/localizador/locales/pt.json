@@ -6578,4 +6578,6 @@
   ,"perfil_firma.tooltip": "Perfil pré-selecionado para CAdES, XAdES e PAdES. T, LT e LTA precisam de ligação ao servidor de carimbo temporal."
   ,"Ayuda en cada opción: un botón «?» junto a cada ajuste técnico (cofirma, contrafirma, formatos, perfil B, T, LT o LTA, sellado de tiempo, sello visible, protección…) explica qué es y cuándo usarlo.": "Ajuda em cada opção: um botão «?» junto a cada definição técnica (coassinatura, contra-assinatura, formatos, perfil B, T, LT ou LTA, carimbo temporal, selo visível, proteção…) explica o que é e quando usar."
   ,"Linux: el perfil de firma por defecto también puede ser Baseline LT o LTA.": "Linux: o perfil de assinatura predefinido também pode ser Baseline LT ou LTA."
+  ,"El icono GRX aparece en el escritorio, el menú Inicio y la extensión del navegador sin restos de la silueta anterior; el instalador refresca los iconos de Windows al terminar.": "O ícone GRX aparece no ambiente de trabalho, no menu Iniciar e na extensão do navegador sem restos da silhueta anterior; o instalador atualiza os ícones do Windows ao terminar."
+  ,"Windows: los botones de ayuda son solo un círculo con la interrogación, sin el recuadro de botón.": "Windows: os botões de ajuda são apenas um círculo com o ponto de interrogação, sem a moldura do botão."
 }

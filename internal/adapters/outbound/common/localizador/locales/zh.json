@@ -6578,4 +6578,6 @@
   ,"perfil_firma.tooltip": "CAdES、XAdES 和 PAdES 的预选配置文件。T、LT 和 LTA 需要连接时间戳服务器。"
   ,"Ayuda en cada opción: un botón «?» junto a cada ajuste técnico (cofirma, contrafirma, formatos, perfil B, T, LT o LTA, sellado de tiempo, sello visible, protección…) explica qué es y cuándo usarlo.": "每个选项都有帮助：每项技术设置（联署、副署、格式、B/T/LT/LTA 配置、时间戳、可见印章、保护……）旁边都有一个“?”按钮，说明它是什么以及何时使用。"
   ,"Linux: el perfil de firma por defecto también puede ser Baseline LT o LTA.": "Linux：默认签名配置现在也可以是 Baseline LT 或 LTA。"
+  ,"El icono GRX aparece en el escritorio, el menú Inicio y la extensión del navegador sin restos de la silueta anterior; el instalador refresca los iconos de Windows al terminar.": "GRX 图标现在显示在桌面、开始菜单和浏览器扩展中，不再残留以前的剪影；安装程序完成时会刷新 Windows 图标。"
+  ,"Windows: los botones de ayuda son solo un círculo con la interrogación, sin el recuadro de botón.": "Windows：帮助按钮现在只是带问号的圆圈，不再有按钮方框。"
 }

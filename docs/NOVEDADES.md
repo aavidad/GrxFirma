@@ -7,6 +7,11 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.122 — 2026-10-06
+
+- El icono GRX aparece en el escritorio, el menú Inicio y la extensión del navegador sin restos de la silueta anterior; el instalador refresca los iconos de Windows al terminar.
+- Windows: los botones de ayuda son solo un círculo con la interrogación, sin el recuadro de botón.
+
 ## 0.0.121 — 2026-10-06
 
 - Ayuda en cada opción: un botón «?» junto a cada ajuste técnico (cofirma, contrafirma, formatos, perfil B, T, LT o LTA, sellado de tiempo, sello visible, protección…) explica qué es y cuándo usarlo.
