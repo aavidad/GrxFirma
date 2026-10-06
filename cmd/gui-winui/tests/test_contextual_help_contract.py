@@ -154,9 +154,13 @@ class ContextualHelpContractTests(unittest.TestCase):
         # Se abre al pulsar (ratón, táctil o teclado), no al pasar el ratón.
         self.assertIn("Flyout = flyout", code)
         self.assertNotIn("PointerEntered", code)
-        # Sin estilo propio: hereda foco visible y contraste del tema claro y oscuro.
-        self.assertNotIn("Background =", code)
+        # Solo el círculo: fondo transparente y sin borde. El color del glifo,
+        # el foco visible y el resaltado al pasar el ratón siguen siendo del tema.
+        self.assertIn("Microsoft.UI.Colors.Transparent", code)
+        self.assertIn("BorderThickness = new Thickness(0)", code)
+        self.assertIn("CornerRadius = new CornerRadius(20)", code)
         self.assertNotIn("Foreground =", code)
+        self.assertNotIn("UseSystemFocusVisuals = false", code)
         code_only = re.sub(r"//[^\n]*", "", code)
         literals = re.findall(r'"((?:[^"\\]|\\.)*)"', code_only)
         self.assertEqual(literals, ["\\uE9CE", "ayuda.boton_nombre", " "])

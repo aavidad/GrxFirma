@@ -53,7 +53,13 @@ public sealed class HelpButton : Button
         Padding = new Thickness(0);
         VerticalAlignment = VerticalAlignment.Bottom;
         HorizontalAlignment = HorizontalAlignment.Left;
-        Content = new FontIcon { FontSize = 16, Glyph = HelpGlyph };
+        // Solo el círculo con la interrogación: sin fondo ni borde de botón.
+        // El área táctil sigue siendo de 40 × 40 y al pasar el ratón o con el
+        // foco se ve un círculo suave del tema.
+        Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        BorderThickness = new Thickness(0);
+        CornerRadius = new CornerRadius(20);
+        Content = new FontIcon { FontSize = 20, Glyph = HelpGlyph };
         var flyout = new Flyout
         {
             Content = _body,
