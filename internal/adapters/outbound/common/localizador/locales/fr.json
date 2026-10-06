@@ -6592,4 +6592,5 @@
   ,"ayuda.sellado_tiempo.mas": "Sans horodatage, la date de signature est celle de l’horloge de votre ordinateur et ne vaut pas preuve. Avec lui, vous pouvez prouver quand vous avez signé, ce qui compte dans les démarches soumises à un délai. Les profils T, LT et LTA en ont besoin."
   ,"ayuda.mas_nombre": "Plus d’informations sur {0}"
   ,"ayuda.opcion": "{0} : {1}"
+  ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Aide des options : le « ? » d'Opération, de Format et d'autres sélecteurs affiche toutes les options à la fois avec une phrase chacune, et un « + » déploie une explication plus détaillée."
 }

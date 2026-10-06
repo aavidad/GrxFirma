@@ -6592,4 +6592,5 @@
   ,"ayuda.sellado_tiempo.mas": "Sem carimbo temporal, a data da assinatura é a do relógio do seu computador e não serve como prova. Com ele pode provar quando assinou, o que é importante em procedimentos com prazo. Os perfis T, LT e LTA precisam dele."
   ,"ayuda.mas_nombre": "Mais informações sobre {0}"
   ,"ayuda.opcion": "{0}: {1}"
+  ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Ajuda das opções: o «?» de Operação, Formato e outros seletores mostra todas as opções ao mesmo tempo com uma frase cada, e um «+» abre uma explicação mais ampla."
 }

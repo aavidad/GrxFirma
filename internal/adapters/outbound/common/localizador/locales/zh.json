@@ -6592,4 +6592,5 @@
   ,"ayuda.sellado_tiempo.mas": "没有时间戳时，签名日期来自您电脑的时钟，不能作为证据。有了时间戳，您可以证明签名时间，这对有期限的手续很重要。T、LT 和 LTA 配置文件都需要它。"
   ,"ayuda.mas_nombre": "关于{0}的更多信息"
   ,"ayuda.opcion": "{0}：{1}"
+  ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "选项帮助：“操作”“格式”等选择项的“?”会同时列出所有选项，每项一句说明，点“+”可展开更详细的解释。"
 }

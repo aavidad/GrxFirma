@@ -6592,4 +6592,5 @@
   ,"ayuda.sellado_tiempo.mas": "Without a timestamp, the signing date comes from your computer's clock and does not count as proof. With one, you can prove when you signed, which matters in procedures with deadlines. The T, LT and LTA profiles need it."
   ,"ayuda.mas_nombre": "More information about {0}"
   ,"ayuda.opcion": "{0}: {1}"
+  ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Option help: the “?” for Operation, Format and other selectors now shows every option at once with one sentence each, and a “+” expands a longer explanation."
 }

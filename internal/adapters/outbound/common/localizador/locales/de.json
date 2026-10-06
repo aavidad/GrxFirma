@@ -6592,4 +6592,5 @@
   ,"ayuda.sellado_tiempo.mas": "Ohne Zeitstempel stammt das Signaturdatum von der Uhr Ihres Computers und gilt nicht als Nachweis. Mit Zeitstempel können Sie belegen, wann Sie signiert haben, was bei Verfahren mit Fristen wichtig ist. Die Profile T, LT und LTA benötigen ihn."
   ,"ayuda.mas_nombre": "Weitere Informationen zu {0}"
   ,"ayuda.opcion": "{0}: {1}"
+  ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Hilfe zu den Optionen: Das „?“ bei Vorgang, Format und anderen Auswahlfeldern zeigt alle Optionen gleichzeitig mit je einem Satz, und ein „+“ klappt eine ausführlichere Erklärung auf."
 }

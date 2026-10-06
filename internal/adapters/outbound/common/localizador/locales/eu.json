@@ -6592,4 +6592,5 @@
   ,"ayuda.sellado_tiempo.mas": "Denbora-zigilurik gabe, sinaduraren data zure ekipoaren erlojuarena da eta ez du froga gisa balio. Zigiluarekin noiz sinatu zenuen froga dezakezu, epea duten izapideetan garrantzitsua dena. T, LT eta LTA profilek behar dute."
   ,"ayuda.mas_nombre": "{0}(r)i buruzko informazio gehiago"
   ,"ayuda.opcion": "{0}: {1}"
+  ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Aukeren laguntza: Eragiketa, Formatua eta beste hautatzaile batzuen «?» botoiak aukera guztiak batera erakusten ditu, bakoitza esaldi batekin, eta «+» batek azalpen zabalagoa zabaltzen du."
 }

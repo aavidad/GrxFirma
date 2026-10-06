@@ -6592,4 +6592,5 @@
   ,"ayuda.sellado_tiempo.mas": "Sense segell de temps, la data de la signatura és la del rellotge del vostre equip i no serveix com a prova. Amb el segell podeu demostrar quan vau signar, cosa important en tràmits amb termini. Els perfils T, LT i LTA el necessiten."
   ,"ayuda.mas_nombre": "Més informació sobre {0}"
   ,"ayuda.opcion": "{0}: {1}"
+  ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Ajuda de les opcions: el «?» d'Operació, Format i altres selectors mostra totes les opcions alhora amb una frase cadascuna, i un «+» desplega una explicació més àmplia."
 }
