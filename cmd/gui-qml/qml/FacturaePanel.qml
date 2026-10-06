@@ -254,14 +254,20 @@ Item {
             width: Math.max(0, parent.width - 48)
             x: 24
             spacing: 18
-            Label {
-                text: tr("facturae.title")
-                color: panel.theme.textColor
-                font.pixelSize: 28
-                font.bold: true
+            RowLayout {
                 Layout.fillWidth: true
-                Accessible.role: Accessible.Heading
-                Accessible.name: text
+                spacing: 4
+                Label {
+                    text: tr("facturae.title")
+                    color: panel.theme.textColor
+                    font.pixelSize: 28
+                    font.bold: true
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    Accessible.role: Accessible.Heading
+                    Accessible.name: text
+                }
+                HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("facturae.title"); helpText: panel.tr("ayuda.facturae") }
             }
             Label {
                 text: tr("facturae.intro")
@@ -308,7 +314,12 @@ Item {
                 InvoiceField { id: buyerTown; required: true; label: tr("facturae.town") }
                 InvoiceField { id: buyerProvince; required: true; label: tr("facturae.province") }
             }
-            Label { text: tr("facturae.dir3"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 4
+                Label { text: tr("facturae.dir3"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+                HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("facturae.dir3"); helpText: panel.tr("ayuda.facturae.dir3") }
+            }
             GridLayout {
                 columns: panel.width > 820 ? 3 : 1
                 Layout.fillWidth: true
@@ -381,7 +392,12 @@ Item {
                 ThemedButton { text: tr("facturae.submit_face"); Accessible.name: text; onClicked: Qt.openUrlExternally("https://proveedores.face.gob.es/proveedores/remitir-factura") }
             }
             Rectangle { Layout.fillWidth: true; Layout.topMargin: 12; height: 1; color: panel.theme.secondaryTextColor; opacity: 0.4 }
-            Label { text: tr("verifactu.title"); font.bold: true; font.pixelSize: 20; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 4
+                Label { text: tr("verifactu.title"); font.bold: true; font.pixelSize: 20; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+                HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("verifactu.title"); helpText: panel.tr("ayuda.verifactu") }
+            }
             Label { text: tr("verifactu.scope"); textFormat: Text.PlainText; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true

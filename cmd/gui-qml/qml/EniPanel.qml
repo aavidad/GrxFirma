@@ -192,7 +192,12 @@ Item {
     ScrollView { id: scroller; anchors.fill: parent; clip: true; contentWidth: availableWidth
         ColumnLayout { width: Math.max(0, scroller.availableWidth - 48); x: 24; spacing: 12
             Label { text: tr("paridad.lote3.eni.title"); color: panel.theme.textColor; font.pixelSize: 28; font.bold: true; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
-            SectionTitle { text: tr("paridad.lote3.eni.document") }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 4
+                SectionTitle { text: tr("paridad.lote3.eni.document") }
+                HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("paridad.lote3.eni.document"); helpText: panel.tr("ayuda.eni.documento") }
+            }
             EniButton { id: signatureButton; objectName: "signatureButton"; text: tr("paridad.lote3.eni.signature"); onClicked: signaturePicker.open() }
             PathLabel { path: panel.signaturePath }
             Flow {
@@ -202,13 +207,28 @@ Item {
                 EniButton { text: tr("paridad.lote3.eni.clear_original"); enabled: panel.originalPath !== ""; onClicked: panel.originalPath = "" }
             }
             PathLabel { path: panel.originalPath }
-            FieldLabel { text: tr("paridad.lote3.eni.organ_document") }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 4
+                FieldLabel { text: tr("paridad.lote3.eni.organ_document") }
+                HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("paridad.lote3.eni.organ_document"); helpText: panel.tr("ayuda.eni.metadatos") }
+            }
             EniValidatedField { id: docOrgan; objectName: "docOrgan"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.organ_document"; hintKey: "paridad.lote3.eni.organ_hint"; maximumLength: 128; validation: Validation.organError }
-            FieldLabel { text: tr("paridad.lote3.eni.origin") }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 4
+                FieldLabel { text: tr("paridad.lote3.eni.origin") }
+                HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("paridad.lote3.eni.origin"); helpText: panel.tr("ayuda.eni.origen") }
+            }
             EniCombo { id: origin; model: [tr("paridad.lote3.eni.administration"), tr("paridad.lote3.eni.citizen")]; Accessible.name: tr("paridad.lote3.eni.origin") }
             FieldLabel { text: tr("paridad.lote3.eni.capture_date") }
             EniDateField { id: capture; objectName: "capture"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; localeName: panel.localeName; labelKey: "paridad.lote3.eni.capture_date"; timeLabelKey: "paridad.lote3.eni.capture_time" }
-            FieldLabel { text: tr("paridad.lote3.eni.state") }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 4
+                FieldLabel { text: tr("paridad.lote3.eni.state") }
+                HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("paridad.lote3.eni.state"); helpText: panel.tr("ayuda.eni.estado_elaboracion") }
+            }
             EniCombo { id: state; objectName: "state"; model: panel.codeItems(Catalog.EstadosElaboracion); textRole: "label"; valueRole: "code"; currentIndex: 0; Accessible.name: tr("paridad.lote3.eni.state"); onCurrentValueChanged: if (sourceId) sourceId.touched = true }
             FieldLabel { text: tr("paridad.lote3.eni.doc_type") }
             EniCombo { id: docType; objectName: "docType"; model: panel.codeItems(Catalog.TiposDocumentales); textRole: "label"; valueRole: "code"; currentIndex: 20; Accessible.name: tr("paridad.lote3.eni.doc_type") }
@@ -220,7 +240,12 @@ Item {
             EniValidatedField { id: format; objectName: "format"; Layout.fillWidth: true; theme: panel.theme; translate: panel.translate; labelKey: "paridad.lote3.eni.format_optional"; maximumLength: 32; validation: Validation.formatError }
             EniButton { objectName: "createDocumentButton"; text: tr("paridad.lote3.eni.create_document"); enabled: !panel.busy; onClicked: if (!panel.missingDocumentInput() && panel.validateFields([docOrgan, capture, docId, sourceId, format])) documentSave.open() }
             MessageLabel { objectName: "documentMessage"; text: panel.documentMessageKey !== "" ? tr(panel.documentMessageKey) : "" }
-            SectionTitle { text: tr("paridad.lote3.eni.file") }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 4
+                SectionTitle { text: tr("paridad.lote3.eni.file") }
+                HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("paridad.lote3.eni.file"); helpText: panel.tr("ayuda.eni.expediente") }
+            }
             EniButton { id: folderButton; objectName: "folderButton"; text: tr("paridad.lote3.eni.folder"); onClicked: folderPicker.open() }
             PathLabel { path: panel.directoryPath; emptyKey: "paridad.lote3.eni.no_folder" }
             FieldLabel { text: tr("paridad.lote3.eni.organ_file") }

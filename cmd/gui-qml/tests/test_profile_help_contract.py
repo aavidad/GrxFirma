@@ -52,9 +52,11 @@ class ProfileHelpContractTest(unittest.TestCase):
     def test_component_is_packaged_and_accessible(self) -> None:
         self.assertIn("<file>qml/HelpButton.qml</file>", (QT / "qml.qrc").read_text(encoding="utf-8"))
         component = (QT / "qml/HelpButton.qml").read_text(encoding="utf-8")
-        self.assertIn("Accessible.name: accessibleName", component)
+        # El nombre explícito tiene prioridad sobre la plantilla «Ayuda sobre {0}».
+        self.assertIn("accessibleName !== \"\"", component)
+        self.assertIn("Accessible.name: effectiveName", component)
         self.assertIn("Accessible.description", component)
-        self.assertIn("Qt.TabFocusReason", component)
+        self.assertIn("Keys.onReturnPressed", component)
         self.assertIn("Keys.onEscapePressed", component)
 
 

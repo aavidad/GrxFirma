@@ -3474,6 +3474,35 @@ Window {
         window.statusMessage = tr("Sello restaurado a valores por defecto.")
     }
 
+    // Clave de ayuda contextual de la operación y del formato elegidos.
+    function signActionHelpKey(action) {
+        switch (action) {
+        case "cosign": return "ayuda.operacion.cofirma"
+        case "countersign": return "ayuda.operacion.contrafirma"
+        default: return "ayuda.operacion.firma"
+        }
+    }
+
+    function signFormatHelpKey(format) {
+        switch (format) {
+        case "pades": return "ayuda.formato.pades"
+        case "cades": return "ayuda.formato.cades"
+        case "xades": return "ayuda.formato.xades"
+        case "xmldsig": return "ayuda.formato.xmldsig"
+        case "odf": return "ayuda.formato.odf"
+        case "ooxml": return "ayuda.formato.ooxml"
+        case "facturae": return "ayuda.formato.facturae"
+        case "asic-xades": return "ayuda.formato.asic"
+        case "verifactu": return "ayuda.formato.verifactu"
+        default: return ""
+        }
+    }
+
+    function signFormatHelpParagraphs(format) {
+        const key = signFormatHelpKey(format)
+        return key === "" ? [tr("ayuda.formato")] : [tr("ayuda.formato"), tr(key)]
+    }
+
     function signActionIndex() {
         switch (signAction) {
         case "cosign": return 1
@@ -6025,6 +6054,7 @@ Window {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                 }
+                HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Revocación online: "); helpText: tr("ayuda.verificar.revocacion") }
             }
             Text {
                 visible: !!(certificateValidationDialog.onlineCheckResult && Object.keys(certificateValidationDialog.onlineCheckResult).length > 0)
@@ -7289,11 +7319,16 @@ Window {
         ColumnLayout {
             width: parent ? parent.width : 520
             spacing: 10
-            Text {
+            RowLayout {
                 Layout.fillWidth: true
-                text: tr("csc.gui.descripcion")
-                color: currentTheme.secondaryTextColor
-                wrapMode: Text.WordWrap
+                spacing: 4
+                Text {
+                    Layout.fillWidth: true
+                    text: tr("csc.gui.descripcion")
+                    color: currentTheme.secondaryTextColor
+                    wrapMode: Text.WordWrap
+                }
+                HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("csc.gui.titulo"); helpText: tr("ayuda.firma_remota"); Layout.alignment: Qt.AlignTop }
             }
             Text {
                 Layout.fillWidth: true
@@ -9083,9 +9118,13 @@ Window {
                                         text: tr("Seleccionar archivo")
                                         onClicked: fileDialog.open()
                                     }
-                                    ThemedButton {
-                                        text: tr("Seleccionar varios")
-                                        onClicked: multiFileDialog.open()
+                                    Row {
+                                        spacing: 4
+                                        ThemedButton {
+                                            text: tr("Seleccionar varios")
+                                            onClicked: multiFileDialog.open()
+                                        }
+                                        HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Seleccionar varios"); helpText: tr("ayuda.lote"); anchors.verticalCenter: parent.verticalCenter }
                                     }
                                     ThemedButton {
                                         text: tr("Seleccionar carpeta")
@@ -9273,7 +9312,11 @@ Window {
                                     Layout.fillWidth: true
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        Text { text: tr("Operación"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Operación"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Operación"); title: signActionCombo.currentText; helpText: tr(window.signActionHelpKey(signAction)) }
+                                        }
                                         ComboBox {
                                             id: signActionCombo
                                             Layout.fillWidth: true
@@ -9290,7 +9333,11 @@ Window {
                                     }
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        Text { text: tr("Formato"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Formato"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Formato"); paragraphs: window.signFormatHelpParagraphs(signFormat) }
+                                        }
                                         ComboBox {
                                             id: signFormatCombo
                                             Layout.fillWidth: true
@@ -9313,7 +9360,11 @@ Window {
                                     }
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        Text { text: tr("Sobrescritura"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Sobrescritura"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Sobrescritura"); helpText: tr("ayuda.sobrescribir") }
+                                        }
                                         ComboBox {
                                             id: signOverwriteCombo
                                             Layout.fillWidth: true
@@ -9356,6 +9407,7 @@ Window {
                                                 ToolTip.delay: 500
                                                 ToolTip.text: tr("Firma o cofirma el mismo documento con varios certificados en secuencia, generando una única salida final.")
                                             }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Cofirma múltiple guiada"); helpText: tr("ayuda.cofirma_multiple") }
                                             Binding { target: multiCosignCheckBox; property: "checked"; value: window.multiCosignEnabled }
                                             ThemedButton {
                                                 text: tr("Seleccionar certificados…")
@@ -9396,6 +9448,7 @@ Window {
                                         ToolTip.delay: 500
                                         ToolTip.text: tr("Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.")
                                     }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Firma visible (PAdES)"); helpText: tr("ayuda.sello.visible") }
                                     Binding { target: signVisibleSealCheckBox; property: "checked"; value: window.signVisibleSeal }
                                     Text {
                                         visible: window.firstSignFieldError !== "" && window.signVisibleSeal
@@ -9412,6 +9465,7 @@ Window {
                                         ToolTip.delay: 500
                                         ToolTip.text: tr("Aplica perfiles de firma más restrictivos para maximizar la compatibilidad con administraciones públicas.")
                                     }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Compatibilidad estricta"); helpText: tr("ayuda.compatibilidad_estricta") }
                                     Binding { target: signStrictCompatCheckBox; property: "checked"; value: window.signStrictCompat }
                                 }
 
@@ -9430,11 +9484,15 @@ Window {
                                         anchors.margins: 10
                                         spacing: 8
 
-                                        Text {
-                                            text: tr("Presets del sello")
-                                            color: currentTheme.textColor
-                                            font.pixelSize: 13
-                                            font.bold: true
+                                        RowLayout {
+                                            spacing: 4
+                                            Text {
+                                                text: tr("Presets del sello")
+                                                color: currentTheme.textColor
+                                                font.pixelSize: 13
+                                                font.bold: true
+                                            }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Presets del sello"); helpText: tr("ayuda.sello.estilo") }
                                         }
                                         Text {
                                             Layout.fillWidth: true
@@ -9460,6 +9518,7 @@ Window {
                                             Layout.fillWidth: true
                                             spacing: 10
                                             Text { text: tr("sign.seal.opacity"); color: currentTheme.textColor; font.pixelSize: 12 }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("sign.seal.opacity"); helpText: tr("ayuda.sello.opacidad") }
                                             Slider {
                                                 id: signSealLogoOpacitySlider
                                                 Layout.fillWidth: true
@@ -9479,13 +9538,18 @@ Window {
                                             }
                                             Text { text: window.signSealLogoOpacityPercent + " %"; color: currentTheme.textColor; font.pixelSize: 12 }
                                         }
-                                        ThemedCheckBox {
+                                        RowLayout {
                                             Layout.fillWidth: true
-                                            id: signQREnabledCheckBox
-                                            text: tr("sign.seal.include_verification_qr")
-                                            Accessible.name: text
-                                            checked: window.signQREnabled
-                                            onToggled: window.signQREnabled = checked
+                                            spacing: 4
+                                            ThemedCheckBox {
+                                                Layout.fillWidth: true
+                                                id: signQREnabledCheckBox
+                                                text: tr("sign.seal.include_verification_qr")
+                                                Accessible.name: text
+                                                checked: window.signQREnabled
+                                                onToggled: window.signQREnabled = checked
+                                            }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("sign.seal.include_verification_qr"); helpText: tr("ayuda.sello.qr") }
                                         }
                                         Binding { target: signQREnabledCheckBox; property: "checked"; value: window.signQREnabled }
                                         ThemedTextField {
@@ -9507,7 +9571,12 @@ Window {
                                         }
                                         Binding { target: signQRContentField; property: "text"; value: window.signQRContent; when: !signQRContentField.activeFocus }
                                         Text { Layout.fillWidth: true; visible: window.signFieldError("qr") !== ""; text: "⚠ " + tr(window.signFieldError("qr")); color: currentTheme.errorColor; wrapMode: Text.WordWrap; Accessible.role: Accessible.StaticText }
-                                        ThemedCheckBox { Layout.fillWidth: true; id: csvEnabledCheck; text: tr("paridad.lote3.csv.enable"); checked: window.signCSVEnabled; Accessible.name: text; onToggled: window.signCSVEnabled = checked }
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 4
+                                            ThemedCheckBox { Layout.fillWidth: true; id: csvEnabledCheck; text: tr("paridad.lote3.csv.enable"); checked: window.signCSVEnabled; Accessible.name: text; onToggled: window.signCSVEnabled = checked }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("paridad.lote3.csv.enable"); helpText: tr("ayuda.sello.csv") }
+                                        }
                                         Binding { target: csvEnabledCheck; property: "checked"; value: window.signCSVEnabled }
                                         Label { text: tr("paridad.lote3.csv.notice"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                                         ThemedTextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.code"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvCode") ? tr(window.signFieldError("csvCode")) : ""; maximumLength: 128; text: window.signCSVCode; hasError: window.signFieldError("csvCode") !== ""; errorColor: currentTheme.errorColor
@@ -9546,7 +9615,11 @@ Window {
                                     enabled: signVisibleSeal
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        Text { text: tr("Página(s)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Página(s)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Página(s)"); helpText: tr("ayuda.sello.paginas") }
+                                        }
                                         ThemedTextField {
                                             id: signSealPagesField
                                             Accessible.name: tr("Página(s)")
@@ -9665,7 +9738,11 @@ Window {
                                     }
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        Text { text: tr("X (0..1)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("X (0..1)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("X (0..1)"); helpText: tr("ayuda.sello.posicion") }
+                                        }
                                         ThemedTextField {
                                             id: signSealXField
                                             Accessible.name: tr("X (0..1)")
@@ -9757,7 +9834,11 @@ Window {
                                             Layout.fillWidth: true
                                             // La imagen solo se dibuja en el sello: sin firma visible no tiene sentido.
                                             visible: window.signVisibleSeal
-                                            Text { text: tr("Imagen de firma (opcional)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            RowLayout {
+                                                spacing: 4
+                                                Text { text: tr("Imagen de firma (opcional)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                                HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Imagen de firma (opcional)"); helpText: tr("ayuda.sello.imagen") }
+                                            }
                                             AdaptiveRow {
                                                 Layout.fillWidth: true
                                                 ThemedButton {
@@ -9776,11 +9857,15 @@ Window {
                                                     enabled: signSealImagePath !== ""
                                                     onClicked: { sealStyle = "text"; signSealImagePath = "" }
                                                 }
-                                                ThemedCheckBox {
-                                                    id: signSealKeepTextCheckBox
-                                                    text: tr("Mantener texto sobre la imagen")
-                                                    checked: signSealKeepText
-                                                    onToggled: signSealKeepText = checked
+                                                Row {
+                                                    spacing: 4
+                                                    ThemedCheckBox {
+                                                        id: signSealKeepTextCheckBox
+                                                        text: tr("Mantener texto sobre la imagen")
+                                                        checked: signSealKeepText
+                                                        onToggled: signSealKeepText = checked
+                                                    }
+                                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Mantener texto sobre la imagen"); helpText: tr("ayuda.sello.texto"); anchors.verticalCenter: parent.verticalCenter }
                                                 }
                                                 Binding { target: signSealKeepTextCheckBox; property: "checked"; value: window.signSealKeepText }
                                             }
@@ -9809,7 +9894,11 @@ Window {
                                             Layout.fillWidth: true
                                             ColumnLayout {
                                                 Layout.fillWidth: true
-                                                Text { text: tr("Motivo"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                                RowLayout {
+                                                    spacing: 4
+                                                    Text { text: tr("Motivo"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Motivo"); helpText: tr("ayuda.pdf.motivo") }
+                                                }
                                                 ThemedTextField {
                                                     id: signReasonField
                                                     Layout.fillWidth: true
@@ -9821,7 +9910,11 @@ Window {
                                             }
                                             ColumnLayout {
                                                 Layout.fillWidth: true
-                                                Text { text: tr("Ubicación"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                                RowLayout {
+                                                    spacing: 4
+                                                    Text { text: tr("Ubicación"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Ubicación"); helpText: tr("ayuda.pdf.lugar") }
+                                                }
                                                 ThemedTextField {
                                                     id: signLocationField
                                                     Layout.fillWidth: true
@@ -9835,7 +9928,11 @@ Window {
 
                                         ColumnLayout {
                                             Layout.fillWidth: true
-                                            Text { text: tr("Contacto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            RowLayout {
+                                                spacing: 4
+                                                Text { text: tr("Contacto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                                HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Contacto"); helpText: tr("ayuda.pdf.contacto") }
+                                            }
                                             ThemedTextField {
                                                 id: signContactField
                                                 Layout.fillWidth: true
@@ -11108,6 +11205,7 @@ Window {
                                     ToolTip.delay: 350
                                     ToolTip.text: tr("Importar certificado")
                                 }
+                                HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Importar certificado"); helpText: tr("ayuda.certificado.importar_p12"); visible: !window.rightSidebarCollapsed }
                                 ToolButton {
                                     visible: !window.rightSidebarCollapsed
                                     text: "↻"
@@ -11263,12 +11361,17 @@ Window {
                                     font.pixelSize: 11
                                     wrapMode: Text.WordWrap
                                 }
-                                ThemedButton {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    text: tr("Usar DNIe o tarjeta")
-                                    enabled: isIpcMode
-                                    onClicked: backend.requestSmartcardStatus()
-                                    Accessible.description: tr("Consulta el lector y actualiza los certificados disponibles.")
+                                    spacing: 4
+                                    ThemedButton {
+                                        Layout.fillWidth: true
+                                        text: tr("Usar DNIe o tarjeta")
+                                        enabled: isIpcMode
+                                        onClicked: backend.requestSmartcardStatus()
+                                        Accessible.description: tr("Consulta el lector y actualiza los certificados disponibles.")
+                                    }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Usar DNIe o tarjeta"); helpText: tr("ayuda.certificado.tarjeta") }
                                 }
                                 Text {
                                     Layout.fillWidth: true
@@ -11829,9 +11932,13 @@ Window {
                                 AdaptiveRow {
                                     centered: true
 
-                                    ThemedButton {
-                                        text: tr("Seleccionar original...")
-                                        onClicked: verifyOriginalFileDialog.open()
+                                    Row {
+                                        spacing: 4
+                                        ThemedButton {
+                                            text: tr("Seleccionar original...")
+                                            onClicked: verifyOriginalFileDialog.open()
+                                        }
+                                        HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Seleccionar original..."); helpText: tr("ayuda.verificar.original"); anchors.verticalCenter: parent.verticalCenter }
                                     }
                                     ThemedButton {
                                         text: tr("Quitar original")
@@ -11865,12 +11972,16 @@ Window {
                                     centered: true
                                     visible: verifyTab.verifyDetails !== null
 
-                                    ThemedButton {
-                                        text: tr("winui.parity.verify.export_html")
+                                    Row {
+                                        spacing: 4
                                         visible: window.verificationHasHtmlReport(verifyTab.verifyDetails)
-                                        font.bold: true
-                                        onClicked: window.openSaveDialog(verifyHtmlReportSaveDialog, verifyTab.verifyFilePath,
-                                                                         window.suggestVerificationHtmlReportName(verifyTab.verifyFilePath))
+                                        ThemedButton {
+                                            text: tr("winui.parity.verify.export_html")
+                                            font.bold: true
+                                            onClicked: window.openSaveDialog(verifyHtmlReportSaveDialog, verifyTab.verifyFilePath,
+                                                                             window.suggestVerificationHtmlReportName(verifyTab.verifyFilePath))
+                                        }
+                                        HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("winui.parity.verify.export_html"); helpText: tr("ayuda.verificar.informe"); anchors.verticalCenter: parent.verticalCenter }
                                     }
                                     ThemedButton {
                                         text: tr("Copiar resumen")
@@ -12023,10 +12134,14 @@ Window {
                                         Layout.fillWidth: true
                                         spacing: 6
 
-                                        Text {
-                                            text: tr("Algoritmo")
-                                            color: currentTheme.secondaryTextColor
-                                            font.pixelSize: 12
+                                        RowLayout {
+                                            spacing: 4
+                                            Text {
+                                                text: tr("Algoritmo")
+                                                color: currentTheme.secondaryTextColor
+                                                font.pixelSize: 12
+                                            }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Algoritmo"); helpText: tr("ayuda.huella.algoritmo") }
                                         }
                                         ComboBox {
                                             Layout.fillWidth: true
@@ -12041,10 +12156,14 @@ Window {
                                         Layout.fillWidth: true
                                         spacing: 6
 
-                                        Text {
-                                            text: tr("Formato")
-                                            color: currentTheme.secondaryTextColor
-                                            font.pixelSize: 12
+                                        RowLayout {
+                                            spacing: 4
+                                            Text {
+                                                text: tr("Formato")
+                                                color: currentTheme.secondaryTextColor
+                                                font.pixelSize: 12
+                                            }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Formato"); helpText: tr("ayuda.huella.formato") }
                                         }
                                         ComboBox {
                                             Layout.fillWidth: true
@@ -12071,6 +12190,7 @@ Window {
                                         checked: verifyTab.hashRecursive
                                         onToggled: verifyTab.hashRecursive = checked
                                     }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Recursivo"); helpText: tr("ayuda.huella.carpeta") }
 
                                     ThemedCheckBox {
                                         text: tr("Guardar informe de directorio")
@@ -12097,6 +12217,7 @@ Window {
                                             verifyTab.hashInputIsDirectory ? verifyTab.hashRecursive : false)
                                         }
                                     }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Crear huella"); helpText: tr("ayuda.huella") }
                                     ThemedButton {
                                         text: tr("Comprobar huella")
                                         enabled: verifyTab.hashInputPath !== "" && verifyTab.hashReferencePath !== ""
@@ -12363,23 +12484,30 @@ Window {
                                                         font.pixelSize: 12
                                                         visible: verificationSummaryColumn.parent.expanded
                                                     }
-                                                    Text {
-                                                        text: tr("Cobertura: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.coverage ? verificationCoverageText(verifyTab.verifyDetails.coverage) : tr("No disponible"))
-                                                        color: verifyTab.subPanelText
-                                                        opacity: 0.95
+                                                    Row {
                                                         width: parent.width
-                                                        wrapMode: Text.Wrap
-                                                        font.pixelSize: 12
+                                                        spacing: 4
                                                         visible: verificationSummaryColumn.parent.expanded
+                                                        Text {
+                                                            id: verifyCoverageText
+                                                            text: tr("Cobertura: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.coverage ? verificationCoverageText(verifyTab.verifyDetails.coverage) : tr("No disponible"))
+                                                            color: verifyTab.subPanelText
+                                                            opacity: 0.95
+                                                            width: parent.width - verifyCoverageHelp.width - parent.spacing
+                                                            wrapMode: Text.Wrap
+                                                            font.pixelSize: 12
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                        }
+                                                        HelpButton { id: verifyCoverageHelp; nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Cobertura: "); helpText: tr("ayuda.verificar.cobertura") }
                                                     }
                                                 }
                                             }
 
                                             Repeater {
                                                 model: [
-                                                    { label: tr("Integridad"), value: verifyTab.verifyDetails ? verifyTab.verifyDetails.integrity : null },
-                                                    { label: tr("Certificado"), value: verifyTab.verifyDetails ? verifyTab.verifyDetails.certificate : null },
-                                                    { label: tr("Confianza"), value: verifyTab.verifyDetails ? verifyTab.verifyDetails.trust : null }
+                                                    { label: tr("Integridad"), value: verifyTab.verifyDetails ? verifyTab.verifyDetails.integrity : null, help: "ayuda.verificar.integridad" },
+                                                    { label: tr("Certificado"), value: verifyTab.verifyDetails ? verifyTab.verifyDetails.certificate : null, help: "" },
+                                                    { label: tr("Confianza"), value: verifyTab.verifyDetails ? verifyTab.verifyDetails.trust : null, help: "ayuda.verificar.confianza" }
                                                 ]
 
                                                 delegate: Rectangle {
@@ -12411,6 +12539,14 @@ Window {
                                                                 font.pixelSize: 12
                                                                 Layout.fillWidth: true
                                                                 wrapMode: Text.Wrap
+                                                            }
+                                                            // Por encima de la MouseArea de la cabecera, que pliega el detalle.
+                                                            HelpButton {
+                                                                z: 2
+                                                                visible: modelData.help !== ""
+                                                                nameTemplate: tr("ayuda.boton_nombre")
+                                                                controlLabel: modelData.label
+                                                                helpText: modelData.help !== "" ? tr(modelData.help) : ""
                                                             }
                                                             ToolButton {
                                                                 text: parent.parent.parent.expanded ? "▼" : "▶"
@@ -12928,7 +13064,11 @@ Window {
 
                                         ColumnLayout {
                                             spacing: 6
-                                            Text { text: tr("Perfil"); color: currentTheme.secondaryTextColor }
+                                            RowLayout {
+                                                spacing: 4
+                                                Text { text: tr("Perfil"); color: currentTheme.secondaryTextColor }
+                                                HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Perfil"); helpText: tr("ayuda.proteger.nivel") }
+                                            }
                                             ComboBox {
                                                 model: [
                                                     { texto: tr("Compat"), valor: "compat" },
@@ -12946,7 +13086,11 @@ Window {
 
                                         ColumnLayout {
                                             spacing: 6
-                                            Text { text: tr("Contenedor"); color: currentTheme.secondaryTextColor }
+                                            RowLayout {
+                                                spacing: 4
+                                                Text { text: tr("Contenedor"); color: currentTheme.secondaryTextColor }
+                                                HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Contenedor"); helpText: tr("ayuda.proteger.contenedor") }
+                                            }
                                             ComboBox {
                                                 enabled: window.protectProfile !== "alto"
                                                 model: [
@@ -12991,12 +13135,17 @@ Window {
                                             anchors.margins: 10
                                             spacing: 8
 
-                                            Text {
-                                                wrapMode: Text.WordWrap
+                                            RowLayout {
                                                 Layout.fillWidth: true
-                                                text: tr("Clave transitoria de EncryptedData")
-                                                color: currentTheme.textColor
-                                                font.bold: true
+                                                spacing: 4
+                                                Text {
+                                                    wrapMode: Text.WordWrap
+                                                    Layout.fillWidth: true
+                                                    text: tr("Clave transitoria de EncryptedData")
+                                                    color: currentTheme.textColor
+                                                    font.bold: true
+                                                }
+                                                HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Clave transitoria de EncryptedData"); helpText: tr("ayuda.proteger.clave") }
                                             }
                                             Text {
                                                 Layout.fillWidth: true
@@ -13053,10 +13202,14 @@ Window {
                                             anchors.margins: 10
                                             spacing: 8
 
-                                            Text {
-                                                text: tr("Destinatarios de protección")
-                                                color: currentTheme.textColor
-                                                font.bold: true
+                                            RowLayout {
+                                                spacing: 4
+                                                Text {
+                                                    text: tr("Destinatarios de protección")
+                                                    color: currentTheme.textColor
+                                                    font.bold: true
+                                                }
+                                                HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Destinatarios de protección"); helpText: tr("ayuda.proteger.destinatarios") }
                                             }
                                             ThemedButton {
                                                 text: tr("Añadir destinatario público…")
@@ -13166,11 +13319,13 @@ Window {
                                             }
                                         }
 
+                                        HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Proteger"); helpText: tr("ayuda.proteger") }
                                         ThemedButton {
                                             text: tr("Proteger y firmar")
                                             enabled: !window.protectionInProgress && window.protectInputPath !== "" && window.protectSelectedRecipientIds.length > 0 && window.selectedCertIndex !== -1 && window.protectProfile === "compat" && window.protectContainer !== "authenvelopeddata" && window.protectContainer !== "cms-encrypted"
                                             onClicked: window.executeProtectSignRequest()
                                         }
+                                        HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Proteger y firmar"); helpText: tr("ayuda.proteger.firmar") }
                                         BusyIndicator {
                                             running: window.protectionInProgress
                                             visible: running
@@ -13238,11 +13393,15 @@ Window {
                                         anchors.margins: 16
                                         spacing: 14
 
-                                Text {
-                                    text: tr("Descifrar / Desproteger")
-                                    color: currentTheme.textColor
-                                    font.pixelSize: 22
-                                    font.bold: true
+                                RowLayout {
+                                    spacing: 4
+                                    Text {
+                                        text: tr("Descifrar / Desproteger")
+                                        color: currentTheme.textColor
+                                        font.pixelSize: 22
+                                        font.bold: true
+                                    }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Descifrar / Desproteger"); helpText: tr("ayuda.desproteger") }
                                 }
 
                                 RowLayout {
@@ -13447,6 +13606,7 @@ Window {
                                     ToolTip.delay: 350
                                     ToolTip.text: tr("Importar certificado")
                                 }
+                                HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Importar certificado"); helpText: tr("ayuda.certificado.importar_p12"); visible: !window.rightSidebarCollapsed }
                                 ToolButton {
                                     visible: !window.rightSidebarCollapsed
                                     text: "↻"
@@ -13587,12 +13747,17 @@ Window {
                                     font.pixelSize: 11
                                     wrapMode: Text.WordWrap
                                 }
-                                ThemedButton {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    text: tr("Usar DNIe o tarjeta")
-                                    enabled: isIpcMode
-                                    onClicked: backend.requestSmartcardStatus()
-                                    Accessible.description: tr("Consulta el lector y actualiza los certificados disponibles.")
+                                    spacing: 4
+                                    ThemedButton {
+                                        Layout.fillWidth: true
+                                        text: tr("Usar DNIe o tarjeta")
+                                        enabled: isIpcMode
+                                        onClicked: backend.requestSmartcardStatus()
+                                        Accessible.description: tr("Consulta el lector y actualiza los certificados disponibles.")
+                                    }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Usar DNIe o tarjeta"); helpText: tr("ayuda.certificado.tarjeta") }
                                 }
                                 Text {
                                     Layout.fillWidth: true
@@ -14238,6 +14403,7 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Algoritmo de huella por defecto"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Algoritmo de huella por defecto"); helpText: tr("ayuda.huella.algoritmo") }
                                     ComboBox {
                                         id: defaultHashAlgorithmCombo
                                         Layout.preferredWidth: Math.min(180, Math.max(120, parent.width * 0.45))
@@ -14601,10 +14767,14 @@ Window {
                                     Layout.fillWidth: true
                                     spacing: 8
 
-                                    Text {
-                                        text: tr("Filtrar por tipo jurídico")
-                                        color: currentTheme.textColor
-                                        font.pixelSize: 13
+                                    RowLayout {
+                                        spacing: 4
+                                        Text {
+                                            text: tr("Filtrar por tipo jurídico")
+                                            color: currentTheme.textColor
+                                            font.pixelSize: 13
+                                        }
+                                        HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Filtrar por tipo jurídico"); helpText: tr("ayuda.certificado.tipo") }
                                     }
 
                                     Flow {
@@ -14706,20 +14876,28 @@ Window {
                                     Layout.fillWidth: true
                                     spacing: 10
 
-                                    ThemedButton {
-                                        text: tr("Reinstalar conectores de navegadores")
-                                        ToolTip.visible: hovered
-                                        ToolTip.delay: 500
-                                        ToolTip.text: tr("Vuelve a registrar afirma://, Native Messaging y perfiles Firefox detectados. Después reinicia el navegador.")
-                                        onClicked: backend.reinstallBrowserConnectors()
+                                    Row {
+                                        spacing: 4
+                                        ThemedButton {
+                                            text: tr("Reinstalar conectores de navegadores")
+                                            ToolTip.visible: hovered
+                                            ToolTip.delay: 500
+                                            ToolTip.text: tr("Vuelve a registrar afirma://, Native Messaging y perfiles Firefox detectados. Después reinicia el navegador.")
+                                            onClicked: backend.reinstallBrowserConnectors()
+                                        }
+                                        HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Reinstalar conectores de navegadores"); helpText: tr("ayuda.conectores_navegador"); anchors.verticalCenter: parent.verticalCenter }
                                     }
 
-                                    ThemedButton {
-                                        text: tr("Reinstalar certificados locales")
-                                        ToolTip.visible: hovered
-                                        ToolTip.delay: 500
-                                        ToolTip.text: tr("Reinstala la confianza TLS local usada por la app para comunicarse con navegadores y servicios locales.")
-                                        onClicked: backend.installPublicRoots()
+                                    Row {
+                                        spacing: 4
+                                        ThemedButton {
+                                            text: tr("Reinstalar certificados locales")
+                                            ToolTip.visible: hovered
+                                            ToolTip.delay: 500
+                                            ToolTip.text: tr("Reinstala la confianza TLS local usada por la app para comunicarse con navegadores y servicios locales.")
+                                            onClicked: backend.installPublicRoots()
+                                        }
+                                        HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Reinstalar certificados locales"); helpText: tr("ayuda.confianza_local"); anchors.verticalCenter: parent.verticalCenter }
                                     }
 
                                     ThemedButton {
@@ -14766,7 +14944,11 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 4
-                                        Text { text: tr("Operación por defecto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Operación por defecto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Operación por defecto"); title: settingsSignActionCombo.currentText; helpText: tr(window.signActionHelpKey(signAction)) }
+                                        }
                                         ComboBox {
                                             id: settingsSignActionCombo
                                             Layout.fillWidth: true
@@ -14791,7 +14973,11 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 4
-                                        Text { text: tr("Formato por defecto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Formato por defecto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Formato por defecto"); paragraphs: window.signFormatHelpParagraphs(signFormat) }
+                                        }
                                         ComboBox {
                                             id: settingsSignFormatCombo
                                             Layout.fillWidth: true
@@ -14822,7 +15008,11 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 4
-                                        Text { text: tr("Salida si el fichero ya existe"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Salida si el fichero ya existe"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Salida si el fichero ya existe"); helpText: tr("ayuda.sobrescribir") }
+                                        }
                                         ComboBox {
                                             id: settingsSignOverwriteCombo
                                             Layout.fillWidth: true
@@ -14897,6 +15087,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("Firma visible (PAdES) por defecto"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Firma visible (PAdES) por defecto"); helpText: tr("ayuda.sello.visible") }
                                     ThemedSwitch {
                                         id: settingsSignVisibleSealSwitch
                                         onToggled: {
@@ -14949,6 +15140,7 @@ Window {
                                     Layout.fillWidth: true
                                     spacing: 10
                                     Text { text: tr("sign.seal.opacity"); color: currentTheme.textColor }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("sign.seal.opacity"); helpText: tr("ayuda.sello.opacidad") }
                                     Slider {
                                         id: settingsSignSealLogoOpacitySlider
                                         Layout.fillWidth: true
@@ -14972,6 +15164,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("settings.seal_language.label"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("settings.seal_language.label"); helpText: tr("ayuda.sello.idioma") }
                                     ComboBox {
                                         id: settingsSealLanguageCombo
                                         Layout.preferredWidth: Math.min(260, Math.max(120, parent.width * 0.45))
@@ -15034,7 +15227,11 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 4
-                                        Text { text: tr("Subfiltro PAdES por defecto"); color: currentTheme.textColor }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Subfiltro PAdES por defecto"); color: currentTheme.textColor }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Subfiltro PAdES por defecto"); helpText: tr("ayuda.pades.subfiltro") }
+                                        }
                                         ComboBox {
                                             id: settingsPadesSubFilterCombo
                                             Layout.fillWidth: true
@@ -15063,7 +15260,11 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 4
-                                        Text { text: tr("Motivo de firma por defecto"); color: currentTheme.textColor }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Motivo de firma por defecto"); color: currentTheme.textColor }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Motivo de firma por defecto"); helpText: tr("ayuda.pdf.motivo") }
+                                        }
                                         ThemedTextField {
                                             id: settingsSignReasonField
                                             Layout.fillWidth: true
@@ -15090,7 +15291,11 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 4
-                                        Text { text: tr("Política FacturaE por defecto"); color: currentTheme.textColor }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Política FacturaE por defecto"); color: currentTheme.textColor }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Política FacturaE por defecto"); helpText: tr("ayuda.facturae.politica") }
+                                        }
                                         ComboBox {
                                             id: settingsFacturaePolicyVersionCombo
                                             Layout.fillWidth: true
@@ -15114,7 +15319,11 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 4
-                                        Text { text: tr("Rol FacturaE por defecto"); color: currentTheme.textColor }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Rol FacturaE por defecto"); color: currentTheme.textColor }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Rol FacturaE por defecto"); helpText: tr("ayuda.facturae.rol") }
+                                        }
                                         ComboBox {
                                             id: settingsFacturaeSignerRoleCombo
                                             Layout.fillWidth: true
@@ -15274,11 +15483,15 @@ Window {
                                 anchors { top: parent.top; left: parent.left; right: parent.right; margins: 20 }
                                 spacing: 12
 
-                                Text {
-                                    text: tr("🗂️  Formato automático por tipo de documento")
-                                    color: currentTheme.textColor
-                                    font.bold: true
-                                    font.pixelSize: 15
+                                RowLayout {
+                                    spacing: 4
+                                    Text {
+                                        text: tr("🗂️  Formato automático por tipo de documento")
+                                        color: currentTheme.textColor
+                                        font.bold: true
+                                        font.pixelSize: 15
+                                    }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("🗂️  Formato automático por tipo de documento"); helpText: tr("ayuda.formato.automatico_por_tipo") }
                                 }
 
                                 Text {
@@ -15422,6 +15635,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("Compatibilidad estricta"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Compatibilidad estricta"); helpText: tr("ayuda.compatibilidad_estricta") }
                                     ThemedSwitch {
                                         id: settingsSignStrictCompatSwitch
                                         checked: window.signStrictCompat
@@ -15455,6 +15669,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("⏳  Sellado de Tiempo (TSA)"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor de sellado de tiempo para añadir una marca de tiempo a las firmas.") ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("⏳  Sellado de Tiempo (TSA)"); helpText: tr("ayuda.sellado_tiempo") }
                                     ThemedSwitch {
                                         id: tsaEnabledSwitch
                                         checked: window.tsaEnabled
@@ -15475,7 +15690,11 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 4
-                                        Text { text: tr("Servidor TSA:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                        RowLayout {
+                                            spacing: 4
+                                            Text { text: tr("Servidor TSA:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Servidor TSA:"); helpText: tr("ayuda.tsa.servidor") }
+                                        }
                                         ThemedComboBox {
                                             id: tsaCombo
                                             Layout.fillWidth: true
@@ -15543,6 +15762,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("🌐  Configuración de Proxy"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor proxy para las conexiones de red.") ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("🌐  Configuración de Proxy"); helpText: tr("ayuda.proxy") }
                                     ThemedSwitch {
                                         id: proxyEnabledSwitch
                                         checked: window.proxyEnabled
@@ -15846,7 +16066,12 @@ Window {
                                 anchors { top: parent.top; left: parent.left; right: parent.right; margins: 20 }
                                 spacing: 12
 
-                                Text { text: tr("🌐  Servidor API REST Local"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Expone la API REST solo en este equipo, para integraciones locales y consola web.") ; wrapMode: Text.WordWrap }
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 4
+                                    Text { text: tr("🌐  Servidor API REST Local"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Expone la API REST solo en este equipo, para integraciones locales y consola web.") ; wrapMode: Text.WordWrap }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("🌐  Servidor API REST Local"); helpText: tr("ayuda.rest_local") }
+                                }
                                 
                                 // Estado actual del API REST
                                 Rectangle {

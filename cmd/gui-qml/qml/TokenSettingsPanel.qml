@@ -131,13 +131,23 @@ GroupBox {
             model: panel.snapshot.checks || []
             Label { required property var modelData; Layout.fillWidth: true; text: panel.checkLabel(modelData); wrapMode: Text.Wrap; textFormat: Text.PlainText }
         }
-        CheckBox {
-            id: enableCheck
+        RowLayout {
             Layout.fillWidth: true
-            Layout.minimumHeight: 44
-            text: panel.t("enable"); checked: panel.draftEnabled; enabled: panel.canEdit
-            contentItem: Label { text: enableCheck.text; leftPadding: enableCheck.indicator.width + enableCheck.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter }
-            onClicked: { panel.draftEnabled = checked; panel.dirty = true }
+            spacing: 4
+            CheckBox {
+                id: enableCheck
+                Layout.fillWidth: true
+                Layout.minimumHeight: 44
+                text: panel.t("enable"); checked: panel.draftEnabled; enabled: panel.canEdit
+                contentItem: Label { text: enableCheck.text; leftPadding: enableCheck.indicator.width + enableCheck.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter }
+                onClicked: { panel.draftEnabled = checked; panel.dirty = true }
+            }
+            HelpButton {
+                objectName: "pkcs11Help"
+                nameTemplate: panel.appText("ayuda.boton_nombre")
+                controlLabel: enableCheck.text
+                helpText: panel.appText("ayuda.pkcs11.modulos")
+            }
         }
         Label { Layout.fillWidth: true; text: panel.t("driver_warning"); wrapMode: Text.Wrap; textFormat: Text.PlainText }
         Repeater {
