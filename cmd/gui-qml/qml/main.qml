@@ -3474,33 +3474,40 @@ Window {
         window.statusMessage = tr("Sello restaurado a valores por defecto.")
     }
 
-    // Clave de ayuda contextual de la operación y del formato elegidos.
-    function signActionHelpKey(action) {
-        switch (action) {
-        case "cosign": return "ayuda.operacion.cofirma"
-        case "countersign": return "ayuda.operacion.contrafirma"
-        default: return "ayuda.operacion.firma"
-        }
+    // Ampliación «<clave>.mas» de una ayuda; vacía si el catálogo no la tiene.
+    function helpMore(key) {
+        const moreKey = key + ".mas"
+        const value = tr(moreKey)
+        return value === moreKey ? "" : value
     }
 
-    function signFormatHelpKey(format) {
-        switch (format) {
-        case "pades": return "ayuda.formato.pades"
-        case "cades": return "ayuda.formato.cades"
-        case "xades": return "ayuda.formato.xades"
-        case "xmldsig": return "ayuda.formato.xmldsig"
-        case "odf": return "ayuda.formato.odf"
-        case "ooxml": return "ayuda.formato.ooxml"
-        case "facturae": return "ayuda.formato.facturae"
-        case "asic-xades": return "ayuda.formato.asic"
-        case "verifactu": return "ayuda.formato.verifactu"
-        default: return ""
-        }
+    function helpOption(name, key) {
+        return { name: name, text: tr(key), more: helpMore(key) }
     }
 
-    function signFormatHelpParagraphs(format) {
-        const key = signFormatHelpKey(format)
-        return key === "" ? [tr("ayuda.formato")] : [tr("ayuda.formato"), tr(key)]
+    // Ayuda «?» de Operación y de Formato: todas las opciones, sin depender de
+    // la elegida, con el nombre que muestra el desplegable.
+    function signActionHelpOptions() {
+        return [
+            helpOption(tr("Firmar"), "ayuda.operacion.firma"),
+            helpOption(tr("Cofirmar"), "ayuda.operacion.cofirma"),
+            helpOption(tr("Contrafirmar"), "ayuda.operacion.contrafirma")
+        ]
+    }
+
+    function signFormatHelpOptions() {
+        return [
+            helpOption(tr("Auto"), "ayuda.formato.automatico"),
+            helpOption(tr("PAdES"), "ayuda.formato.pades"),
+            helpOption(tr("CAdES"), "ayuda.formato.cades"),
+            helpOption(tr("XAdES"), "ayuda.formato.xades"),
+            helpOption(tr("XMLdSig"), "ayuda.formato.xmldsig"),
+            helpOption(tr("ODF"), "ayuda.formato.odf"),
+            helpOption(tr("OOXML"), "ayuda.formato.ooxml"),
+            helpOption(tr("FacturaE"), "ayuda.formato.facturae"),
+            helpOption(tr("ASiC-XAdES"), "ayuda.formato.asic"),
+            helpOption(tr("verifactu.profile_label"), "ayuda.formato.verifactu")
+        ]
     }
 
     function signActionIndex() {
@@ -9315,7 +9322,7 @@ Window {
                                         RowLayout {
                                             spacing: 4
                                             Text { text: tr("Operación"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Operación"); title: signActionCombo.currentText; helpText: tr(window.signActionHelpKey(signAction)) }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Operación"); helpText: tr("ayuda.operacion"); options: window.signActionHelpOptions(); optionTemplate: tr("ayuda.opcion"); moreNameTemplate: tr("ayuda.mas_nombre") }
                                         }
                                         ComboBox {
                                             id: signActionCombo
@@ -9336,7 +9343,7 @@ Window {
                                         RowLayout {
                                             spacing: 4
                                             Text { text: tr("Formato"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Formato"); paragraphs: window.signFormatHelpParagraphs(signFormat) }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Formato"); helpText: tr("ayuda.formato"); options: window.signFormatHelpOptions(); optionTemplate: tr("ayuda.opcion"); moreNameTemplate: tr("ayuda.mas_nombre") }
                                         }
                                         ComboBox {
                                             id: signFormatCombo
@@ -14947,7 +14954,7 @@ Window {
                                         RowLayout {
                                             spacing: 4
                                             Text { text: tr("Operación por defecto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Operación por defecto"); title: settingsSignActionCombo.currentText; helpText: tr(window.signActionHelpKey(signAction)) }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Operación por defecto"); helpText: tr("ayuda.operacion"); options: window.signActionHelpOptions(); optionTemplate: tr("ayuda.opcion"); moreNameTemplate: tr("ayuda.mas_nombre") }
                                         }
                                         ComboBox {
                                             id: settingsSignActionCombo
@@ -14976,7 +14983,7 @@ Window {
                                         RowLayout {
                                             spacing: 4
                                             Text { text: tr("Formato por defecto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Formato por defecto"); paragraphs: window.signFormatHelpParagraphs(signFormat) }
+                                            HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Formato por defecto"); helpText: tr("ayuda.formato"); options: window.signFormatHelpOptions(); optionTemplate: tr("ayuda.opcion"); moreNameTemplate: tr("ayuda.mas_nombre") }
                                         }
                                         ComboBox {
                                             id: settingsSignFormatCombo
@@ -15669,7 +15676,7 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("⏳  Sellado de Tiempo (TSA)"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor de sellado de tiempo para añadir una marca de tiempo a las firmas.") ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
-                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("⏳  Sellado de Tiempo (TSA)"); helpText: tr("ayuda.sellado_tiempo") }
+                                    HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("⏳  Sellado de Tiempo (TSA)"); helpText: tr("ayuda.sellado_tiempo"); moreText: window.helpMore("ayuda.sellado_tiempo"); moreNameTemplate: tr("ayuda.mas_nombre") }
                                     ThemedSwitch {
                                         id: tsaEnabledSwitch
                                         checked: window.tsaEnabled

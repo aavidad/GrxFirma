@@ -133,16 +133,44 @@ class ContextualHelpContractTest(unittest.TestCase):
             with self.subTest(file=name):
                 self.assertGreaterEqual(count, minimum)
 
-    def test_option_help_keys_cover_every_sign_option(self) -> None:
+    def test_selector_help_lists_every_option_without_a_selection(self) -> None:
+        # Operación y Formato muestran el texto general y todas sus opciones,
+        # cada una con su nombre; nada depende de la opción elegida.
         main = self.sources["main.qml"]
-        for fn, values in {
-            "signActionHelpKey": ["cosign", "countersign"],
-            "signFormatHelpKey": ["pades", "cades", "xades", "xmldsig", "odf", "ooxml", "facturae", "asic-xades", "verifactu"],
+        self.assertNotIn("signActionHelpKey", main)
+        self.assertNotIn("signFormatHelpKey", main)
+        self.assertNotIn("signFormatHelpParagraphs", main)
+        for fn, keys in {
+            "signActionHelpOptions": ["firma", "cofirma", "contrafirma"],
+            "signFormatHelpOptions": ["automatico", "pades", "cades", "xades", "xmldsig", "odf",
+                                      "ooxml", "facturae", "asic", "verifactu"],
         }.items():
             body = main.split(f"function {fn}(", 1)[1].split("\n    }\n", 1)[0]
-            for value in values:
-                with self.subTest(function=fn, value=value):
-                    self.assertIn(f'case "{value}": return "ayuda.', body)
+            prefix = "ayuda.operacion." if fn == "signActionHelpOptions" else "ayuda.formato."
+            found = re.findall(r'helpOption\(tr\("[^"]+"\), "(ayuda\.[a-z_.]+)"\)', body)
+            self.assertEqual(found, [prefix + key for key in keys], fn)
+            buttons = [b for b in help_button_blocks(main, "HelpButton") if f"window.{fn}()" in b]
+            self.assertEqual(len(buttons), 2, fn)
+            for block in buttons:
+                self.assertIn('optionTemplate: tr("ayuda.opcion")', block)
+                self.assertIn('moreNameTemplate: tr("ayuda.mas_nombre")', block)
+                self.assertNotIn("signAction)", block)
+                self.assertNotIn("signFormat)", block)
+
+    def test_more_button_is_accessible_and_scrolls(self) -> None:
+        component = self.sources["HelpButton.qml"]
+        self.assertIn('objectName: "helpMoreButton"', component)
+        self.assertIn("Accessible.role: Accessible.Button", component)
+        self.assertIn("Accessible.name: control.moreName(entryItem.modelData)", component)
+        self.assertIn("Accessible.checkable: true", component)
+        self.assertIn("Accessible.checked: entryItem.expanded", component)
+        self.assertIn('objectName: "helpMoreText"', component)
+        self.assertIn("visible: entryItem.expanded", component)
+        self.assertIn("ScrollBar.vertical", component)
+        self.assertIn('"<b>" + escapeHtml(entry.name) + "</b>"', component)
+        main = self.sources["main.qml"]
+        self.assertIn('const moreKey = key + ".mas"', main)
+        self.assertIn('moreText: window.helpMore("ayuda.sellado_tiempo")', main)
 
 
 if __name__ == "__main__":

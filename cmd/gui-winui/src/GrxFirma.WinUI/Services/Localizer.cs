@@ -41,6 +41,7 @@ internal static class Localizer
     public static string Text(string key) => Catalog.TranslateVisibleText(key);
     public static string Text(string? language, string key) => Catalog.Text(language, key);
     public static string VisibleText(string source) => Catalog.TranslateVisibleText(source);
+    public static bool Has(string key) => Catalog.Has(key);
     public static string Format(string key, params object?[] arguments) =>
         string.Format(System.Globalization.CultureInfo.CurrentCulture,
             Catalog.Text(key), arguments);

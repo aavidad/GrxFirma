@@ -196,6 +196,7 @@
                             <controls:HelpButton
                                 Topic="Formato"
                                 HelpKey="ayuda.formato"
+                                Options="winui.comun.automatico=ayuda.formato.automatico PAdES=ayuda.formato.pades CAdES=ayuda.formato.cades XAdES=ayuda.formato.xades XMLDSig=ayuda.formato.xmldsig winui.comun.odf=ayuda.formato.odf winui.comun.ooxml=ayuda.formato.ooxml winui.comun.facturae=ayuda.formato.facturae winui.comun.asic_xades=ayuda.formato.asic"
                                 TabIndex="8" />
                         </controls:HelpRow>
                         <controls:HelpRow>

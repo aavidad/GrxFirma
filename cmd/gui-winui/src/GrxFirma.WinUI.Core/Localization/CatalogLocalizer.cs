@@ -71,6 +71,13 @@ public sealed class CatalogLocalizer
         }
     }
 
+    /// <summary>Indica si el catálogo tiene la clave (p. ej. una ampliación opcional de la ayuda).</summary>
+    public bool Has(string key)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        lock (_sync) return Read("es").ContainsKey(key);
+    }
+
     // El XAML heredado usa la frase española como valor. Su búsqueda se hace
     // por clave o por valor español para aprovechar también las claves Qt.
     public string TranslateVisibleText(string source)

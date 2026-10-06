@@ -21,6 +21,20 @@ import "ThemeContrast.js" as Contrast
 //       controlLabel: tr("Formato")              // etiqueta visible del control
 //       helpText: tr("ayuda.formato")
 //   }
+//
+// Un selector enumera todas sus opciones, sin depender de la elegida: cada
+// una con su nombre en negrita y su frase breve («Firma: firma…»). Si una
+// opción o el texto suelto tiene ampliación («<clave>.mas»), al final de su
+// frase aparece un «+» que la despliega y pasa a «−» para plegarla:
+//   HelpButton {
+//       nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Operación")
+//       helpText: tr("ayuda.operacion")
+//       optionTemplate: tr("ayuda.opcion")          // «{0}: {1}»
+//       moreNameTemplate: tr("ayuda.mas_nombre")    // «Más información sobre {0}»
+//       options: [{ name: tr("Cofirmar"), text: tr("ayuda.operacion.cofirma"),
+//                   more: tr("ayuda.operacion.cofirma.mas") }]
+//       moreText: ...                               // ampliación de helpText
+//   }
 Button {
     id: control
 
@@ -35,7 +49,72 @@ Button {
     // Párrafos de la explicación; el último se resalta (avisos o requisitos).
     property var paragraphs: helpText !== "" ? [helpText] : []
     property bool emphasizeLast: false
+    // Ampliación del texto suelto (helpText); vacía, sin «+».
+    property string moreText: ""
+    // Todas las opciones de un selector: [{ name, text, more }].
+    property var options: []
+    property string optionTemplate: "{0}: {1}"
+    property string moreNameTemplate: ""
     readonly property alias popupOpen: helpPopup.opened
+
+    // Párrafos sueltos y opciones, en el orden en que se muestran.
+    readonly property var entries: {
+        const list = []
+        const texts = paragraphs || []
+        for (let i = 0; i < texts.length; i++)
+            list.push({ name: "", text: String(texts[i]), more: i === 0 ? moreText : "", bold: emphasizeLast && i === texts.length - 1 })
+        const opts = options || []
+        for (let j = 0; j < opts.length; j++)
+            list.push({ name: String(opts[j].name || ""), text: String(opts[j].text || ""), more: String(opts[j].more || ""), bold: false })
+        return list
+    }
+
+    function plainEntry(entry) {
+        return entry.name === "" ? entry.text
+            : optionTemplate.replace("{0}", entry.name).replace("{1}", entry.text)
+    }
+
+    function escapeHtml(value) {
+        return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    }
+
+    // Nombre de la opción en negrita; el resto, texto normal.
+    function styledEntry(entry) {
+        if (entry.name === "") return escapeHtml(entry.text)
+        return escapeHtml(optionTemplate).replace("{0}", "<b>" + escapeHtml(entry.name) + "</b>")
+            .replace("{1}", escapeHtml(entry.text))
+    }
+
+    function moreName(entry) {
+        const subject = entry.name !== "" ? entry.name : cleanLabel
+        return moreNameTemplate !== "" ? moreNameTemplate.replace("{0}", subject) : subject
+    }
+
+    // Botones «+» visibles, para recorrerlos con el tabulador.
+    function moreButtons() {
+        const list = []
+        for (let i = 0; i < entryRepeater.count; i++) {
+            const item = entryRepeater.itemAt(i)
+            if (item && item.moreButton.visible) list.push(item.moreButton)
+        }
+        return list
+    }
+
+    function focusInsidePopup() {
+        let item = control.Window.activeFocusItem
+        while (item) {
+            if (item === helpPopup.contentItem) return true
+            item = item.parent
+        }
+        return false
+    }
+
+    function moveFocusFrom(button, forward) {
+        const list = moreButtons()
+        const index = list.indexOf(button) + (forward ? 1 : -1)
+        if (index >= 0 && index < list.length) list[index].forceActiveFocus(forward ? Qt.TabFocusReason : Qt.BacktabFocusReason)
+        else control.forceActiveFocus(Qt.TabFocusReason)
+    }
 
     text: "?"
     hoverEnabled: true
@@ -54,7 +133,7 @@ Button {
         : (nameTemplate !== "" ? nameTemplate.replace("{0}", cleanLabel) : cleanLabel)
     Accessible.role: Accessible.Button
     Accessible.name: effectiveName
-    Accessible.description: (title !== "" ? title + " " : "") + (paragraphs || []).join(" ")
+    Accessible.description: (title !== "" ? title + " " : "") + entries.map(plainEntry).join(" ")
     ToolTip.visible: (hovered || visualFocus) && !helpPopup.opened && effectiveName !== ""
     ToolTip.delay: 500
     ToolTip.text: effectiveName
@@ -88,7 +167,18 @@ Button {
 
     function toggle() { helpPopup.opened ? helpPopup.close() : helpPopup.open() }
     onClicked: toggle()
-    onActiveFocusChanged: if (!activeFocus) helpPopup.close()
+    // Se cierra al salir del «?», salvo que el foco pase a un «+» de la ayuda.
+    onActiveFocusChanged: if (!activeFocus) Qt.callLater(function() { if (!control.activeFocus && !control.focusInsidePopup()) helpPopup.close() })
+    // Con la ayuda abierta, el tabulador entra en sus «+».
+    Keys.onTabPressed: function(event) {
+        const list = moreButtons()
+        if (helpPopup.opened && list.length > 0) {
+            list[0].forceActiveFocus(Qt.TabFocusReason)
+            event.accepted = true
+        } else {
+            event.accepted = false
+        }
+    }
     // Button solo se activa con Espacio; Intro también abre la ayuda.
     Keys.onReturnPressed: function(event) { toggle(); event.accepted = true }
     Keys.onEnterPressed: function(event) { toggle(); event.accepted = true }
@@ -119,30 +209,112 @@ Button {
             border.width: 1
             radius: 6
         }
-        contentItem: ColumnLayout {
-            spacing: 8
-            Text {
-                Layout.fillWidth: true
-                visible: control.title !== ""
-                text: control.title
-                color: helpPopup.textColor
-                font.bold: true
-                wrapMode: Text.WordWrap
-                Accessible.role: Accessible.Heading
-                Accessible.name: text
-            }
-            Repeater {
-                model: control.paragraphs
-                delegate: Text {
-                    required property string modelData
-                    required property int index
+        // Con las ampliaciones desplegadas puede no caber: se desplaza.
+        readonly property real maxContentHeight: Math.max(120, Math.min(440, (control.Window.height || 480) - 48))
+        contentItem: Flickable {
+            id: helpScroll
+            implicitWidth: helpColumn.implicitWidth
+            implicitHeight: Math.min(helpColumn.implicitHeight, helpPopup.maxContentHeight)
+            contentWidth: width
+            contentHeight: helpColumn.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            ScrollBar.vertical: ScrollBar { policy: helpScroll.contentHeight > helpScroll.height ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded }
+
+            ColumnLayout {
+                id: helpColumn
+                width: helpScroll.width - (helpScroll.contentHeight > helpScroll.height ? 10 : 0)
+                spacing: 8
+                Text {
+                    objectName: "helpTitle"
                     Layout.fillWidth: true
-                    text: modelData
+                    visible: control.title !== ""
+                    text: control.title
                     color: helpPopup.textColor
-                    font.bold: control.emphasizeLast && index === control.paragraphs.length - 1
+                    font.bold: true
                     wrapMode: Text.WordWrap
-                    Accessible.role: Accessible.StaticText
+                    Accessible.role: Accessible.Heading
                     Accessible.name: text
+                }
+                Repeater {
+                    id: entryRepeater
+                    model: control.entries
+                    delegate: ColumnLayout {
+                        id: entryItem
+                        required property var modelData
+                        property bool expanded: false
+                        property alias moreButton: moreButton
+                        property alias sentence: sentence
+                        property alias detail: detail
+                        Layout.fillWidth: true
+                        spacing: 4
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+                            Text {
+                                id: sentence
+                                objectName: "helpEntry"
+                                Layout.fillWidth: true
+                                text: control.styledEntry(entryItem.modelData)
+                                textFormat: Text.StyledText
+                                color: helpPopup.textColor
+                                font.bold: entryItem.modelData.bold
+                                wrapMode: Text.WordWrap
+                                Accessible.role: Accessible.StaticText
+                                Accessible.name: control.plainEntry(entryItem.modelData)
+                            }
+                            Button {
+                                id: moreButton
+                                objectName: "helpMoreButton"
+                                visible: entryItem.modelData.more !== ""
+                                Layout.alignment: Qt.AlignTop
+                                implicitWidth: 28
+                                implicitHeight: 28
+                                focusPolicy: Qt.StrongFocus
+                                text: entryItem.expanded ? "\u2212" : "+"
+                                Accessible.role: Accessible.Button
+                                Accessible.name: control.moreName(entryItem.modelData)
+                                Accessible.checkable: true
+                                Accessible.checked: entryItem.expanded
+                                onClicked: entryItem.expanded = !entryItem.expanded
+                                Keys.onReturnPressed: function(event) { entryItem.expanded = !entryItem.expanded; event.accepted = true }
+                                Keys.onEnterPressed: function(event) { entryItem.expanded = !entryItem.expanded; event.accepted = true }
+                                Keys.onTabPressed: function(event) { control.moveFocusFrom(moreButton, true); event.accepted = true }
+                                Keys.onBacktabPressed: function(event) { control.moveFocusFrom(moreButton, false); event.accepted = true }
+                                Keys.onEscapePressed: function(event) {
+                                    helpPopup.close()
+                                    control.forceActiveFocus()
+                                    event.accepted = true
+                                }
+                                onActiveFocusChanged: if (!activeFocus) Qt.callLater(function() { if (!control.activeFocus && !control.focusInsidePopup()) helpPopup.close() })
+                                contentItem: Text {
+                                    text: moreButton.text
+                                    color: helpPopup.textColor
+                                    font.bold: true
+                                    font.pixelSize: 16
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                background: Rectangle {
+                                    radius: 14
+                                    color: moreButton.down || moreButton.hovered ? Qt.darker(control.palette.base, 1.08) : "transparent"
+                                    border.color: moreButton.activeFocus ? control.palette.highlight : helpPopup.textColor
+                                    border.width: moreButton.activeFocus ? 2 : 1
+                                }
+                            }
+                        }
+                        Text {
+                            id: detail
+                            objectName: "helpMoreText"
+                            Layout.fillWidth: true
+                            visible: entryItem.expanded
+                            text: entryItem.modelData.more
+                            color: helpPopup.textColor
+                            wrapMode: Text.WordWrap
+                            Accessible.role: Accessible.StaticText
+                            Accessible.name: text
+                        }
+                    }
                 }
             }
         }

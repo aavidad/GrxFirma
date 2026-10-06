@@ -68,6 +68,25 @@ def winui_keys():
     return keys
 
 
+def options(button):
+    """Pares (nombre, clave) del atributo Options de un «?» de selector."""
+    return [tuple(item.split("=", 1)) for item in button.get("Options", "").split()]
+
+
+def option_keys(button):
+    return " ".join(key for _, key in options(button))
+
+
+def button_by_topic(screen, topic):
+    return next(b for b in help_buttons(VIEWS / screen) if b.get("Topic") == topic)
+
+
+OPERATION_KEYS = ["ayuda.operacion.firma", "ayuda.operacion.cofirma", "ayuda.operacion.contrafirma"]
+FORMAT_KEYS = ["ayuda.formato.automatico", "ayuda.formato.pades", "ayuda.formato.cades",
+               "ayuda.formato.xades", "ayuda.formato.xmldsig", "ayuda.formato.odf",
+               "ayuda.formato.ooxml", "ayuda.formato.facturae", "ayuda.formato.asic"]
+
+
 def help_buttons(path):
     root = ET.parse(path).getroot()
     return [element for element in root.iter(CONTROLS + "HelpButton")]
@@ -121,7 +140,7 @@ class ContextualHelpContractTests(unittest.TestCase):
                 pairs = WITH_HELP.findall(path.read_text(encoding="utf-8"))
                 entries = [(topic, key, "", "") for topic, key in pairs]
             else:
-                entries = [(b.get("Topic", ""), b.get("HelpKey", ""), b.get("DetailKey", ""),
+                entries = [(b.get("Topic", ""), b.get("HelpKey", ""), option_keys(b),
                             b.get("HeadingKey", "")) for b in help_buttons(path)]
             for topic, *keys in entries:
                 with self.subTest(screen=name, topic=topic):
@@ -133,14 +152,67 @@ class ContextualHelpContractTests(unittest.TestCase):
                             for language, catalog in self.catalogs.items():
                                 self.assertTrue(catalog.get(key, "").strip(), (language, key))
 
-    def test_dynamic_help_keys_exist(self):
+    def test_selector_help_lists_every_option_without_a_selection(self):
+        # La ayuda de Operación y de Formato no depende de la opción elegida:
+        # muestra el texto general y todas las opciones, cada una con su nombre.
+        operation = button_by_topic("SignPage.xaml", "Operación")
+        self.assertEqual(operation.get("HelpKey"), "ayuda.operacion")
+        self.assertEqual([key for _, key in options(operation)], OPERATION_KEYS)
+        self.assertEqual([name for name, _ in options(operation)],
+                         ["winui.firmar.firma", "winui.firmar.cofirma", "winui.firmar.contrafirma"])
+        sign_format = button_by_topic("SignPage.xaml", "Formato")
+        self.assertEqual(sign_format.get("HelpKey"), "ayuda.formato")
+        self.assertEqual([key for _, key in options(sign_format)], FORMAT_KEYS + ["ayuda.formato.verifactu"])
+        settings_format = button_by_topic("SettingsPage.xaml", "Formato")
+        self.assertEqual([key for _, key in options(settings_format)], FORMAT_KEYS)
+        for screen in EXPECTED:
+            if screen.endswith(".cs"):
+                continue
+            for button in help_buttons(VIEWS / screen):
+                for attribute in ("HelpKey", "Options"):
+                    self.assertFalse((button.get(attribute) or "").startswith("{"), (screen, attribute))
+                self.assertIsNone(button.get("DetailKey"))
+                for name, _ in options(button):
+                    self.assertTrue(name in self.catalogs["es"] or name.isascii(), name)
         model = (UI / "ViewModels/SignPageViewModel.cs").read_text(encoding="utf-8")
-        for member in ("SelectedActionHelpKey", "SelectedFormatHelpKey"):
-            body = model.split(f"public string {member}", 1)[1].split("};", 1)[0]
-            for key in re.findall(r'"(ayuda\.[^"]+)"', body):
-                for catalog in self.catalogs.values():
-                    self.assertTrue(catalog.get(key, "").strip(), key)
-            self.assertIn(f"RaisePropertyChanged(nameof({member}))", model)
+        self.assertNotIn("SelectedActionHelpKey", model)
+        self.assertNotIn("SelectedFormatHelpKey", model)
+
+    def test_extended_help_exists_in_every_language_next_to_its_short_text(self):
+        extended = [key for key in self.catalogs["es"] if key.startswith("ayuda.") and key.endswith(".mas")]
+        self.assertGreaterEqual(len(extended), 8)
+        for key in extended:
+            for language, catalog in self.catalogs.items():
+                with self.subTest(key=key, language=language):
+                    self.assertTrue(catalog.get(key, "").strip())
+                    self.assertTrue(catalog.get(key[:-len(".mas")], "").strip())
+        for key in ("ayuda.mas_nombre", "ayuda.opcion"):
+            for language, catalog in self.catalogs.items():
+                self.assertIn("{0}", catalog[key], (language, key))
+        for language, catalog in self.catalogs.items():
+            self.assertIn("{1}", catalog["ayuda.opcion"], language)
+
+    def test_more_button_is_a_real_expandable_button(self):
+        code = (UI / "Controls/HelpButton.cs").read_text(encoding="utf-8")
+        # «+» al final de la frase cuando el catálogo tiene «<clave>.mas».
+        self.assertIn('MoreSuffix = ".mas"', code)
+        self.assertIn("Localizer.Has(moreKey)", code)
+        self.assertIn("new MoreInfoButton()", code)
+        self.assertIn("AutomationProperties.SetName(more, Localizer.Format(MoreNameKey", code)
+        self.assertIn("Visibility = Visibility.Collapsed", code)
+        # Nombre de la opción en negrita.
+        self.assertIn("FontWeight = Microsoft.UI.Text.FontWeights.Bold", code)
+        # El texto ampliado puede no caber: el desplegable se desplaza.
+        self.assertIn("VerticalScrollBarVisibility = ScrollBarVisibility.Auto", code)
+        more = (UI / "Controls/MoreInfoButton.cs").read_text(encoding="utf-8")
+        self.assertIn("class MoreInfoButton : Button", more)
+        self.assertIn("IExpandCollapseProvider", more)
+        self.assertIn("PatternInterface.ExpandCollapse", more)
+        self.assertIn("ExpandCollapsePatternIdentifiers.ExpandCollapseStateProperty", more)
+        self.assertIn("MinWidth = 32", more)
+        self.assertNotIn("Foreground =", more)
+        literals = re.findall(r'"((?:[^"\\]|\\.)*)"', re.sub(r"//[^\n]*", "", more))
+        self.assertEqual(literals, ["+", "\\u2212"])
 
     def test_help_button_is_accessible_and_has_no_fixed_text(self):
         code = (UI / "Controls/HelpButton.cs").read_text(encoding="utf-8")
@@ -163,7 +235,8 @@ class ContextualHelpContractTests(unittest.TestCase):
         self.assertNotIn("UseSystemFocusVisuals = false", code)
         code_only = re.sub(r"//[^\n]*", "", code)
         literals = re.findall(r'"((?:[^"\\]|\\.)*)"', code_only)
-        self.assertEqual(literals, ["\\uE9CE", "ayuda.boton_nombre", " "])
+        self.assertEqual(literals, ["\\uE9CE", "ayuda.boton_nombre", "ayuda.mas_nombre", "ayuda.opcion",
+                                    ".mas", " ", "{0}", "{1}", "(\\{[01]\\})"])
 
     def test_every_xaml_help_button_has_a_focus_position(self):
         for name in EXPECTED:

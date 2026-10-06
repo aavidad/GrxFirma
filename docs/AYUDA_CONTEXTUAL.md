@@ -40,8 +40,20 @@ los botones «?» y para mantener los textos cuando cambie una pantalla.
   `helperText`, el «?» no lo sustituye. Cuando digan lo mismo, se puede retirar
   el texto antiguo para no repetirlo.
 - En los selectores de opciones (operación, formato) un único «?» muestra el
-  texto general. Si la plataforma lo permite, también puede mostrar el texto
-  de la opción elegida.
+  texto general y todas las opciones, sin depender de la elegida: cada una con
+  su nombre en negrita y una frase breve (plantilla `ayuda.opcion`, «{0}: {1}»).
+  El modelo es la ayuda del perfil Baseline (`perfil_firma.ayuda.*`).
+- Explicación ampliada: si una clave tiene en el catálogo su variante
+  `<clave>.mas` (en Android, `<clave>_mas`), al final de su frase aparece un
+  botón «+» que la despliega y pasa a «−» para plegarla. Vale para opciones de
+  un selector y para «?» de un solo texto. Su nombre accesible es
+  `ayuda.mas_nombre` («Más información sobre {0}») y anuncia su estado:
+  patrón ExpandCollapse en WinUI (`Controls/MoreInfoButton.cs`),
+  `Accessible.checked` en Qt y `stateDescription` (`ayuda_mas_desplegado`,
+  `ayuda_mas_plegado`) en Android. La ventana de ayuda se desplaza si el texto
+  no cabe. Solo llevan `.mas` los conceptos que lo necesitan: cofirma,
+  contrafirma, PAdES, CAdES, XAdES, Facturae, ASiC y el sello de tiempo. En
+  Android, la lista de ampliaciones está en `ContextHelp.MORE`.
 - Perfil de firma Baseline B/T/LT/LTA: lo prepara otra rama
   (`feat/ayuda-perfil-baseline`). Aquí no tiene clave.
 - WinUI: el botón es `Controls/HelpButton.cs` y `Controls/HelpRow.cs` lo
@@ -66,12 +78,14 @@ cambio. Busque el `id` indicado.
 
 | Concepto | Clave | WinUI | Qt | Android | Ayuda actual |
 |---|---|---|---|---|---|
+| Operación (selector) | `ayuda.operacion` | `W/SignPage.xaml` «?» de «Operación» (`Options` con las tres) | `Q/main.qml` `signActionHelpOptions()`; preferencias igual | `AJ/ui/HelpButton.kt` `ContextHelp.OPERATIONS` | Ninguna |
 | Operación: firma | `ayuda.operacion.firma` | `W/SignPage.xaml:290` desplegable «Operación» | `Q/main.qml:9278` `signActionCombo`; preferencias `:14771` `settingsSignActionCombo` | `A/activity_main.xml:390` `signatureAction` | Ninguna; en Qt, ToolTip solo en preferencias |
 | Operación: cofirma | `ayuda.operacion.cofirma` | igual que la anterior | igual que la anterior | igual, y aviso `cosignNotice` `A/activity_main.xml:337` | Android explica la opción en su etiqueta |
 | Operación: contrafirma | `ayuda.operacion.contrafirma` | igual que la anterior | igual que la anterior | igual que la anterior | Android explica la opción en su etiqueta |
 | Cofirma múltiple guiada | `ayuda.cofirma_multiple` | `W/SignPage.xaml:446` | `Q/main.qml:9350` `multiCosignCheckBox` | no aparece | HelpText (WinUI), ToolTip (Qt) |
 | Firma por lotes | `ayuda.lote` | `W/SignPage.xaml:220` casilla | `Q/main.qml:9087` «Seleccionar varios» | `A/section_tools.xml:24` `toggleBatchButton`; `A/section_batch_wave4.xml:14` `batchAction` | HelpText (WinUI); `batch_helper` (Android) |
 | Formato (selector) | `ayuda.formato` | `W/SignPage.xaml:297` `FormatCombo`; `W/SettingsPage.xaml:187` | `Q/main.qml:9295` `signFormatCombo`; preferencias `:14796` | `A/activity_main.xml:450` `signatureFormat`; `A/dialog_preferences.xml:36` `prefFormat` | Ninguna |
+| Formato automático | `ayuda.formato.automatico` | opción de `FormatCombo` | opción de `signFormatCombo` | opción de `signatureFormat` | Ninguna |
 | Formato PAdES | `ayuda.formato.pades` | opción de `FormatCombo` | opción de `signFormatCombo` | opción de `signatureFormat` | Ninguna |
 | Formato CAdES | `ayuda.formato.cades` | igual | igual | igual | Ninguna |
 | Formato XAdES | `ayuda.formato.xades` | igual | igual | igual | Ninguna |
