@@ -75,7 +75,7 @@ Assert-GrxFirmaWindowsFyneArtifact `
     -Architecture $Arquitectura
 
 Copy-Item (Join-Path $Raiz "packaging/windows/README_AFIRMAURI_WINDOWS.md") (Join-Path $Escenario "README_AFIRMAURI_WINDOWS.md") -Force
-Copy-Item (Join-Path $Raiz "packaging/windows/grxfirma.ico") (Join-Path $Escenario "grxfirma.ico") -Force
+Copy-Item (Join-Path $Raiz "packaging/windows/grxfirma-grx.ico") (Join-Path $Escenario "grxfirma-grx.ico") -Force
 Copy-Item (Join-Path $Raiz "packaging/windows/install-afirmauri.ps1") (Join-Path $Escenario "install-afirmauri.ps1") -Force
 Copy-Item (Join-Path $Raiz "packaging/windows/uninstall-afirmauri.ps1") (Join-Path $Escenario "uninstall-afirmauri.ps1") -Force
 Copy-Item (Join-Path $Raiz "packaging/windows/afirmauri-registration.ps1") (Join-Path $Escenario "afirmauri-registration.ps1") -Force

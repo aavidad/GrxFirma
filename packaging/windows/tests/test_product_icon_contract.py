@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[3]
-ICON = ROOT / "packaging" / "windows" / "grxfirma.ico"
+ICON = ROOT / "packaging" / "windows" / "grxfirma-grx.ico"
 # Icono del programa: «GRX» en blanco y verde sobre azul oscuro con un trazo
 # de firma. Es el mismo que llevaba la versión 0.0.118; cambiarlo es una
 # decisión del responsable, no un efecto de renombrar ficheros.
@@ -24,7 +24,7 @@ GRX_GREEN = "#accb49"
 class ProductIconContractTests(unittest.TestCase):
     def test_canonical_icon_has_all_trazo_sizes_and_png_alpha(self) -> None:
         data = ICON.read_bytes()
-        self.assertEqual(data, (ROOT / "assets/branding/grxfirma.ico").read_bytes())
+        self.assertEqual(data, (ROOT / "assets/branding/grxfirma-grx.ico").read_bytes())
         reserved, image_type, image_count = struct.unpack_from("<HHH", data)
         self.assertEqual((reserved, image_type, image_count), (0, 1, 9))
 
@@ -101,7 +101,7 @@ class ProductIconContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("<ApplicationIcon>", project)
-        self.assertIn("grxfirma.ico", project)
+        self.assertIn("grxfirma-grx.ico", project)
         self.assertIn("grxfirma-logo-carbon-96.png", project)
         self.assertIn("grxfirma-logo-carbon-96.png", window)
         self.assertIn('AutomationProperties.Name="GrxFirma"', window)
@@ -126,7 +126,7 @@ class ProductIconContractTests(unittest.TestCase):
             )
             self.assertIn("MUI_ICON", script, name)
             self.assertIn("MUI_UNICON", script, name)
-            self.assertIn("grxfirma.ico", script, name)
+            self.assertIn("grxfirma-grx.ico", script, name)
 
         for name in (
             "build-suite.ps1",
@@ -141,7 +141,7 @@ class ProductIconContractTests(unittest.TestCase):
             builder = (ROOT / "packaging/windows" / name).read_text(
                 encoding="utf-8"
             )
-            self.assertIn("grxfirma.ico", builder, name)
+            self.assertIn("grxfirma-grx.ico", builder, name)
 
     def test_suite_offers_desktop_shortcut_and_groups_start_apps(self) -> None:
         suite = (
@@ -182,6 +182,66 @@ class ProductIconContractTests(unittest.TestCase):
             )
             self.assertIn("$legacyRemaining.Count -eq 0", installer)
 
+
+    def test_icon_name_changes_with_the_image_and_shell_cache_is_refreshed(self) -> None:
+        # De la 0.0.119 a la 0.0.121 el ICO se llamaba grxfirma.ico con otra
+        # imagen; Windows cachea por ruta y seguiría mostrándola.
+        windows = ROOT / "packaging/windows"
+        self.assertFalse((windows / "grxfirma.ico").exists())
+        self.assertFalse((ROOT / "assets/branding/grxfirma.ico").exists())
+        refresh = (windows / "shell-icon-refresh.nsh").read_bytes()
+        self.assertTrue(refresh.startswith(b"\xef\xbb\xbf"))
+        refresh_text = refresh.decode("utf-8-sig")
+        self.assertIn("ie4uinit.exe\" -show", refresh_text)
+        self.assertIn("$WINDIR\\Sysnative\\ie4uinit.exe", refresh_text)
+        self.assertIn("SHChangeNotify(i 0x08000000", refresh_text)
+        for name in (
+            "grxfirma-suite.nsi",
+            "grxfirma-cli.nsi",
+            "grxfirma-afirmauri.nsi",
+            "grxfirma-desktop-qml.nsi",
+        ):
+            script = (windows / name).read_text(encoding="utf-8-sig")
+            self.assertIn('!include "shell-icon-refresh.nsh"', script, name)
+            post = script.split("Section -post", 1)[1].split("SectionEnd", 1)[0]
+            self.assertIn("!insertmacro GrxFirmaRefreshShellIcons", post, name)
+            self.assertNotIn('"DisplayIcon" "$INSTDIR\\grxfirma.ico"', script, name)
+        for name in ("grxfirma-suite.nsi", "grxfirma-cli.nsi", "grxfirma-afirmauri.nsi"):
+            script = (windows / name).read_text(encoding="utf-8-sig")
+            install, uninstall = script.split('Section "Uninstall"', 1)
+            self.assertIn('Delete "$INSTDIR\\grxfirma.ico"', install, name)
+            self.assertIn('Delete "$INSTDIR\\grxfirma.ico"', uninstall, name)
+        registration = (windows / "afirmauri-registration.ps1").read_text(
+            encoding="utf-8-sig"
+        )
+        legacy = registration.split("$script:AfirmaLegacyIconFileNames = @(", 1)[1]
+        legacy = legacy.split(")", 1)[0]
+        self.assertIn('"grxfirma-diputacion.ico"', legacy)
+        self.assertIn('"grxfirma.ico"', legacy)
+        installer = (windows / "install-afirmauri.ps1").read_text(encoding="utf-8-sig")
+        self.assertIn("$script:AfirmaLegacyIconFileNames", installer)
+
+    def test_hooded_silhouette_is_not_shipped(self) -> None:
+        for path in (
+            "assets/branding/grxfirma-simbolo.svg",
+            "assets/branding/grxfirma-logo-horizontal.svg",
+            "assets/branding/grxfirma-logo-horizontal-negativo.svg",
+            "assets/branding/grxfirma-emblema-sello.svg",
+            "cmd/gui-qml/assets/grxfirma-simbolo.png",
+            "cmd/gui-qml/assets/grxfirma-logo-horizontal.png",
+            "cmd/gui-qml/assets/grxfirma-logo-horizontal.svg",
+            "cmd/gui-qml/assets/grxfirma-logo-horizontal-negativo.png",
+            "docs/sitio/grxfirma-logo-horizontal.svg",
+            "packaging/browser-extensions/src/chromium/icons/grxfirma-simbolo.png",
+            "packaging/browser-extensions/src/firefox/icons/grxfirma-simbolo.png",
+        ):
+            self.assertFalse((ROOT / path).exists(), path)
+        for platform in ("chromium", "firefox"):
+            base = ROOT / "packaging/browser-extensions/src" / platform
+            for page in ("popup.html", "signer/signer.html", "signer/popup_old.html"):
+                html = (base / page).read_text(encoding="utf-8")
+                self.assertNotIn("grxfirma-simbolo", html, f"{platform}/{page}")
+                self.assertIn("icons/icon128.png", html, f"{platform}/{page}")
 
 if __name__ == "__main__":
     unittest.main()

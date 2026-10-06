@@ -39,7 +39,7 @@
     <file>assets/folder_icon.png</file>
     <file>assets/search.svg</file>
     <file>assets/search_icon.png</file>
-    <file alias="assets/grxfirma.ico">../../assets/branding/grxfirma.ico</file>
+    <file alias="assets/grxfirma-grx.ico">../../assets/branding/grxfirma-grx.ico</file>
     <file alias="assets/grxfirma-icono-256.png">../../assets/branding/grxfirma-icono-256.png</file>
   </qresource>
   <qresource prefix="/i18n">

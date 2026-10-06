@@ -225,18 +225,18 @@ func applyDocumentPickerAppIcon(a fyne.App) {
 	exePath, _ := os.Executable()
 	binDir := filepath.Dir(exePath)
 	for _, candidate := range []string{
-		filepath.Join(binDir, "../lib/grxfirma/gui-qml/assets/logo_firma_grxfirma_final.png"),
-		filepath.Join(binDir, "../lib64/grxfirma/gui-qml/assets/logo_firma_grxfirma_final.png"),
-		filepath.Join(binDir, "assets/logo_firma_grxfirma_final.png"),
-		filepath.Join(filepath.Dir(binDir), "cmd/gui-qml/assets/logo_firma_grxfirma_final.png"),
-		filepath.Join(filepath.Dir(filepath.Dir(binDir)), "cmd/gui-qml/assets/logo_firma_grxfirma_final.png"),
-		filepath.Join(".", "cmd/gui-qml/assets/logo_firma_grxfirma_final.png"),
+		filepath.Join(binDir, "../lib/grxfirma/gui-qml/assets/grxfirma-icono-256.png"),
+		filepath.Join(binDir, "../lib64/grxfirma/gui-qml/assets/grxfirma-icono-256.png"),
+		filepath.Join(binDir, "assets/grxfirma-icono-256.png"),
+		filepath.Join(filepath.Dir(binDir), "cmd/gui-qml/assets/grxfirma-icono-256.png"),
+		filepath.Join(filepath.Dir(filepath.Dir(binDir)), "cmd/gui-qml/assets/grxfirma-icono-256.png"),
+		filepath.Join(".", "cmd/gui-qml/assets/grxfirma-icono-256.png"),
 	} {
 		data, err := securefile.ReadFileLimit(candidate, 5*1024*1024)
 		if err != nil || len(data) == 0 {
 			continue
 		}
-		a.SetIcon(fyne.NewStaticResource("logo_firma_grxfirma_final.png", data))
+		a.SetIcon(fyne.NewStaticResource("grxfirma-icono-256.png", data))
 		return
 	}
 }

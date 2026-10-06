@@ -458,10 +458,13 @@ function Write-AfirmaProtocolSnapshot {
 
 # Nombres de icono que versiones publicadas anteriores copiaron junto al
 # ejecutable y registraron en DefaultIcon. Hasta la 0.0.118 era
-# grxfirma-diputacion.ico; las versiones sin icono propio usaban el propio
-# ejecutable, que se acepta siempre.
+# grxfirma-diputacion.ico y de la 0.0.119 a la 0.0.121, grxfirma.ico (el
+# nombre cambió para que la caché de iconos de Windows no sirva la imagen
+# anterior); las versiones sin icono propio usaban el propio ejecutable, que
+# se acepta siempre.
 $script:AfirmaLegacyIconFileNames = @(
-    "grxfirma-diputacion.ico"
+    "grxfirma-diputacion.ico",
+    "grxfirma.ico"
 )
 
 function New-AfirmaProtocolOwnerSet {

@@ -10,4 +10,4 @@
 #include <windows.h>
 
 1 RT_MANIFEST "nativehost_windows_amd64.manifest"
-1 ICON "../../assets/branding/grxfirma.ico"
+1 ICON "../../assets/branding/grxfirma-grx.ico"

@@ -48,7 +48,7 @@ function Restore-AfirmaUriInstallSnapshot {
 }
 
 $exeSource = Join-Path $baseDir "grxfirma-afirmauri.exe"
-$iconSource = Join-Path $baseDir "grxfirma.ico"
+$iconSource = Join-Path $baseDir "grxfirma-grx.ico"
 if (-not (Test-Path -LiteralPath $exeSource -PathType Leaf)) {
     throw "No se encuentra grxfirma-afirmauri.exe junto al instalador."
 }
@@ -70,7 +70,7 @@ if ($ValidateOnly) {
     Install-AfirmaProtocolRegistration `
         -ProtocolKey $protocolKey `
         -ExecutablePath (Join-Path $InstallDir "grxfirma-afirmauri.exe") `
-        -IconPath (Join-Path $InstallDir "grxfirma.ico") `
+        -IconPath (Join-Path $InstallDir "grxfirma-grx.ico") `
         -SnapshotPath $protocolSnapshot `
         -ValidateOnly
     Write-Host "Protocolo afirma:// comprobado sin cambios."
@@ -121,7 +121,7 @@ try {
         -Component "AfirmaURI" `
         -LegacyPayload "grxfirma-afirmauri.exe"
     $exeTarget = Join-Path $InstallDir "grxfirma-afirmauri.exe"
-    $iconTarget = Join-Path $InstallDir "grxfirma.ico"
+    $iconTarget = Join-Path $InstallDir "grxfirma-grx.ico"
     Copy-Item -LiteralPath $exeSource -Destination $exeTarget -Force
     Copy-Item -LiteralPath $iconSource -Destination $iconTarget -Force
 
@@ -141,6 +141,14 @@ try {
         -ExecutablePath $exeTarget `
         -IconPath $iconTarget `
         -SnapshotPath $protocolSnapshot
+
+    # DefaultIcon ya apunta al icono nuevo: se retiran los nombres anteriores.
+    foreach ($legacyIconName in $script:AfirmaLegacyIconFileNames) {
+        $legacyIcon = Join-Path $InstallDir $legacyIconName
+        if (Test-Path -LiteralPath $legacyIcon -PathType Leaf) {
+            Remove-Item -LiteralPath $legacyIcon -Force
+        }
+    }
 
     Write-Host "Handler afirma:// instalado en: $InstallDir"
     Write-Host "Protocolo afirma:// registrado para el usuario actual"

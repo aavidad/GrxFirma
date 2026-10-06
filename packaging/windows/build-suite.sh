@@ -672,7 +672,7 @@ for idioma_admx in es-ES en-US; do
   cp "${ROOT_DIR}/packaging/windows/admx/${idioma_admx}/GrxFirma.adml" "${STAGE_DIR}/policies/${idioma_admx}/GrxFirma.adml"
 done
 cp "${ROOT_DIR}/packaging/windows/admx/GrxFirma.admx" "${STAGE_DIR}/policies/GrxFirma.admx"
-cp "${ROOT_DIR}/packaging/windows/grxfirma.ico" "${STAGE_DIR}/grxfirma.ico"
+cp "${ROOT_DIR}/packaging/windows/grxfirma-grx.ico" "${STAGE_DIR}/grxfirma-grx.ico"
 cp "${ROOT_DIR}/packaging/windows/install-suite.ps1" "${STAGE_DIR}/install-suite.ps1"
 cp "${ROOT_DIR}/packaging/windows/install-nativehost.ps1" "${STAGE_DIR}/install-nativehost.ps1"
 cp "${ROOT_DIR}/packaging/windows/install-afirmauri.ps1" "${STAGE_DIR}/install-afirmauri.ps1"

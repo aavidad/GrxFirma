@@ -478,7 +478,7 @@ cp "${QML_EXE}" "${STAGE_DIR}/grxfirma-gui-qml.exe"
 
 cp -R "${ROOT_DIR}/cmd/gui-qml/qml" "${STAGE_DIR}/qml"
 cp -R "${ROOT_DIR}/cmd/gui-qml/assets" "${STAGE_DIR}/assets"
-cp "${ROOT_DIR}/packaging/windows/grxfirma.ico" "${STAGE_DIR}/assets/grxfirma.ico"
+cp "${ROOT_DIR}/packaging/windows/grxfirma-grx.ico" "${STAGE_DIR}/assets/grxfirma-grx.ico"
 if [[ -d "${HELP_SOURCE_DIR}" ]]; then
   cp -R "${HELP_SOURCE_DIR}" "${STAGE_DIR}/help"
 fi
