@@ -50,6 +50,19 @@ public sealed partial class EniPage : Page
         button.Click += handler;
         return button;
     }
+    // Botón «?» junto a un control: el control conserva el ancho disponible.
+    // topicKey es la etiqueta visible del control y forma el nombre accesible.
+    private static HelpRow WithHelp(FrameworkElement main, string topicKey, string helpKey,
+        VerticalAlignment alignment = VerticalAlignment.Bottom, double top = 0)
+    {
+        var row = new HelpRow();
+        row.Children.Add(main);
+        row.Children.Add(new HelpButton
+        {
+            Topic = topicKey, HelpKey = helpKey, VerticalAlignment = alignment, Margin = new Thickness(0, top, 0, 0),
+        });
+        return row;
+    }
     private static string? ButtonText(Button button) =>
         (button.Content as TextBlock)?.Text ?? button.Content?.ToString();
 
@@ -84,9 +97,9 @@ public sealed partial class EniPage : Page
 
         PageTitle.Text = T("paridad.lote3.eni.title");
         var document = new FitWidthStackPanel { Spacing = 8 };
-        var documentTitle = new TextBlock { Text = T("paridad.lote3.eni.document"), FontSize = 20, TextWrapping = TextWrapping.Wrap };
+        var documentTitle = new TextBlock { Text = T("paridad.lote3.eni.document"), FontSize = 20, TextWrapping = TextWrapping.Wrap, HorizontalAlignment = HorizontalAlignment.Left };
         AutomationProperties.SetHeadingLevel(documentTitle, AutomationHeadingLevel.Level2);
-        document.Children.Add(documentTitle);
+        document.Children.Add(WithHelp(documentTitle, "paridad.lote3.eni.document", "ayuda.eni.documento", VerticalAlignment.Center));
         _pickSignature = Action("paridad.lote3.eni.signature", PickSignature);
         document.Children.Add(_pickSignature);
         document.Children.Add(_signaturePath);
@@ -95,17 +108,19 @@ public sealed partial class EniPage : Page
         document.Children.Add(_originalPath);
         ShowPath(_signaturePath, _signatureFile, "paridad.lote3.eni.no_file");
         ShowPath(_originalPath, _originalFile, "paridad.lote3.eni.no_file");
-        AddValidated(document, _docOrgan, () => EniValidation.OrganError(_docOrgan.Text));
+        // Con descripción debajo, el «?» se alinea con la caja y no con el pie.
+        AddValidated(document, _docOrgan, () => EniValidation.OrganError(_docOrgan.Text),
+            WithHelp(_docOrgan, "paridad.lote3.eni.organ_document", "ayuda.eni.metadatos", VerticalAlignment.Top, top: 24));
         _origin.Header = T("paridad.lote3.eni.origin");
         _origin.HorizontalAlignment = HorizontalAlignment.Stretch;
         _origin.MinWidth = 0;
         _origin.Items.Add(T("paridad.lote3.eni.administration"));
         _origin.Items.Add(T("paridad.lote3.eni.citizen"));
         _origin.SelectedIndex = 0;
-        document.Children.Add(_origin);
+        document.Children.Add(WithHelp(_origin, "paridad.lote3.eni.origin", "ayuda.eni.origen"));
         AddValidated(document, _capture, () => EniValidation.DateError(_capture.SelectedDate, _captureTime.Time));
         document.Children.Add(_captureTime);
-        document.Children.Add(_docState);
+        document.Children.Add(WithHelp(_docState, "paridad.lote3.eni.state", "ayuda.eni.estado_elaboracion"));
         document.Children.Add(_docType);
         AddValidated(document, _docId, () => EniValidation.IdentifierError(_docId.Text));
         AddValidated(document, _sourceId, () => EniValidation.IdentifierError(_sourceId.Text,
@@ -121,9 +136,9 @@ public sealed partial class EniPage : Page
         EniActions.Children.Add(new Border { Child = document, Padding = new Thickness(16), Style = (Style)Application.Current.Resources["AppCardStyle"] });
 
         var file = new FitWidthStackPanel { Spacing = 8 };
-        var fileTitle = new TextBlock { Text = T("paridad.lote3.eni.file"), FontSize = 20, TextWrapping = TextWrapping.Wrap };
+        var fileTitle = new TextBlock { Text = T("paridad.lote3.eni.file"), FontSize = 20, TextWrapping = TextWrapping.Wrap, HorizontalAlignment = HorizontalAlignment.Left };
         AutomationProperties.SetHeadingLevel(fileTitle, AutomationHeadingLevel.Level2);
-        file.Children.Add(fileTitle);
+        file.Children.Add(WithHelp(fileTitle, "paridad.lote3.eni.file", "ayuda.eni.expediente", VerticalAlignment.Center));
         _pickFolder = Action("paridad.lote3.eni.folder", PickFolder);
         file.Children.Add(_pickFolder);
         file.Children.Add(_folderPath);
@@ -153,12 +168,19 @@ public sealed partial class EniPage : Page
         var tabIndex = 0;
         foreach (var section in new[] { document, file })
         {
-            foreach (var child in section.Children)
+            // Los controles con «?» van dentro de una HelpRow: primero el
+            // control y después su botón de ayuda.
+            var controls = section.Children.SelectMany(child => child is HelpRow row
+                ? row.Children.AsEnumerable()
+                : new[] { child });
+            foreach (var child in controls)
             {
                 if (child is not Control control) continue;
                 control.TabIndex = tabIndex++;
                 var name = control switch
                 {
+                    // HelpButton forma su propio nombre accesible.
+                    HelpButton => null,
                     TextBox box => box.Header?.ToString(),
                     ComboBox combo => combo.Header?.ToString(),
                     DatePicker datePicker => datePicker.Header?.ToString(),
@@ -229,14 +251,15 @@ public sealed partial class EniPage : Page
 
     private static string Code(ComboBox combo) => (combo.SelectedItem as ComboBoxItem)?.Tag as string ?? string.Empty;
 
-    private void AddValidated(Panel parent, Control field, Func<string?> validate)
+    private void AddValidated(Panel parent, Control field, Func<string?> validate,
+        UIElement? container = null)
     {
         _validators[field] = validate;
         var message = new TextBlock { TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed,
             Foreground = (Brush)Application.Current.Resources["AppDiagnosticFailureBrush"] };
         AutomationProperties.SetLiveSetting(message, AutomationLiveSetting.Polite);
         _messages[field] = message;
-        parent.Children.Add(field);
+        parent.Children.Add(container ?? field);
         parent.Children.Add(message);
         field.LostFocus += (_, _) => { _touched.Add(field); Refresh(field); };
         if (field is TextBox box) box.TextChanged += (_, _) => { if (_touched.Contains(field)) Refresh(field); };

@@ -61,6 +61,7 @@ import io.github.aavidad.grxfirma.android.ui.ToolsPolicy
 import io.github.aavidad.grxfirma.android.ui.FormatPolicy
 import io.github.aavidad.grxfirma.android.ui.EniForm
 import io.github.aavidad.grxfirma.android.ui.EngineText
+import io.github.aavidad.grxfirma.android.ui.ProfileHelp
 import io.github.aavidad.grxfirma.android.model.EniRequest
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointBackward
@@ -474,6 +475,7 @@ class MainActivity : AppCompatActivity() {
         useCosignButton.setOnClickListener { viewModel.acceptCoSignSuggestion() }
         signatureAction.onItemSelected = { updateSigningSettings() }
         signatureProfile.onItemSelected = { updateSigningSettings() }
+        signatureProfileHelp.setOnClickListener { showProfileHelp() }
         signatureFormat.onItemSelected = { renderSigningSummary(viewModel.state.value) }
         tsaEnabled.setOnCheckedChangeListener { _, _ -> updateSigningSettings() }
         tsaUrl.doAfterTextChanged { updateSigningSettings() }
@@ -640,6 +642,15 @@ class MainActivity : AppCompatActivity() {
         binding.signingOptionsSummary.text = getString(R.string.signing_options_summary, getString(action),
             getString(FormatPolicy.label(selectedSignatureFormat())),
             getString(if (state.tsaEnabled) R.string.summary_tsa else R.string.summary_no_tsa))
+    }
+
+    /** Explica en lenguaje llano qué añade cada perfil de firma. */
+    private fun showProfileHelp() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.profile_help_title)
+            .setMessage(ProfileHelp.message(::getString))
+            .setPositiveButton(R.string.help_close, null)
+            .show()
     }
 
     /** Descartar es irreversible: se confirma antes, con el botón seguro por defecto. */
@@ -1725,6 +1736,7 @@ class MainActivity : AppCompatActivity() {
             prefFormat.setItems(formats.map { getString(FormatPolicy.label(it)) })
             prefFormat.select(formats.indexOf(current.defaultFormat).coerceAtLeast(0))
             prefProfile.select(AppSettings.PROFILES.indexOf(current.defaultProfile).coerceAtLeast(0))
+            prefProfileHelp.setOnClickListener { showProfileHelp() }
             prefSessionTimeout.setItems(AppSettings.TIMEOUTS.map {
                 if (it == 0) getString(R.string.timeout_never) else resources.getQuantityString(R.plurals.minutes, it, it)
             })

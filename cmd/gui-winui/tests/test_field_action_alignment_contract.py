@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1] / "src/GrxFirma.WinUI"
 XAML_NAME = "{http://schemas.microsoft.com/winfx/2006/xaml}Name"
 FIELDS = {"TextBox", "NumberBox", "ComboBox"}
-ACTIONS = {"Button", "ResponsiveActionPanel", "StackPanel"}
+ACTIONS = {"Button", "ResponsiveActionPanel", "StackPanel", "HelpRow"}
 
 
 def local_name(element):
@@ -55,13 +55,24 @@ class FieldActionAlignmentContractTests(unittest.TestCase):
                     if local_name(grid) != "Grid":
                         continue
                     children = list(grid)
-                    fields = [e for e in children if local_name(e) in FIELDS and e.get("Header")]
-                    actions = [e for e in children if local_name(e) in ACTIONS]
-                    for field in fields:
+                    # Un campo con su botón «?» va dentro de HelpRow: la fila
+                    # ocupa la celda y el campo conserva Header y MinHeight.
+                    fields = []
+                    for e in children:
+                        inner = e
+                        if local_name(e) == "HelpRow" and len(e):
+                            inner = list(e)[0]
+                        if local_name(inner) in FIELDS and inner.get("Header"):
+                            fields.append((e, inner))
+                    # Una HelpRow es acción solo si envuelve un botón (no un campo).
+                    actions = [e for e in children if local_name(e) in ACTIONS
+                               and (local_name(e) != "HelpRow"
+                                    or (len(e) and local_name(list(e)[0]) == "Button"))]
+                    for cell, field in fields:
                         for action in actions:
-                            if position(action, "Grid.Row", wide) != position(field, "Grid.Row", wide):
+                            if position(action, "Grid.Row", wide) != position(cell, "Grid.Row", wide):
                                 continue
-                            if position(action, "Grid.Column", wide) <= position(field, "Grid.Column", wide):
+                            if position(action, "Grid.Column", wide) <= position(cell, "Grid.Column", wide):
                                 continue
                             label = f"{path.name}: {field.get('Header')} / {action.get(XAML_NAME, local_name(action))}"
                             found.append((path.name, label))
@@ -78,7 +89,7 @@ class FieldActionAlignmentContractTests(unittest.TestCase):
                                     self.assertEqual(button.get("VerticalAlignment"), "Bottom")
                                     self.assertEqual(float(button.get("MinHeight", "0")), float(field.get("MinHeight")))
                                 narrow_row = int(action.get("Grid.Row", "0"))
-                                field_row = int(field.get("Grid.Row", "0"))
+                                field_row = int(cell.get("Grid.Row", "0"))
                                 if narrow_row > field_row:
                                     self.assertGreaterEqual(float(grid.get("RowSpacing", "0")), 8)
                                     row_defs = next(e for e in children if local_name(e) == "Grid.RowDefinitions")
@@ -88,7 +99,7 @@ class FieldActionAlignmentContractTests(unittest.TestCase):
                                     self.assertEqual(narrow_row, field_row)
                                     self.assertGreater(
                                         int(action.get("Grid.Column", "0")),
-                                        int(field.get("Grid.Column", "0")),
+                                        int(cell.get("Grid.Column", "0")),
                                         f"{label}: la acción se superpone al campo en el estado estrecho",
                                     )
 

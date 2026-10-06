@@ -646,4 +646,11 @@
     <string name="eni_saved_detail">Documento ENI guardado: %1$s</string>
     <string name="expediente_saved_detail">Expediente guardado: %1$s</string>
     <string name="protected_file_type">Fichero protegido</string>
+    <string name="profile_help_name">Ayuda sobre el perfil de firma</string>
+    <string name="profile_help_title">¿Qué perfil elijo?</string>
+    <string name="profile_help_b">B: la firma y el certificado. La fecha la pone el reloj de su equipo.</string>
+    <string name="profile_help_t">T: añade un sello de tiempo de un servidor de confianza que demuestra cuándo se firmó. Es lo habitual en los trámites y el perfil recomendado.</string>
+    <string name="profile_help_lt">LT: además guarda en el documento la cadena de certificados y la prueba de que no estaban anulados cuando se firmó. Así la firma se podrá comprobar dentro de años, aunque el certificado caduque o la autoridad que lo emitió ya no responda.</string>
+    <string name="profile_help_lta">LTA: además añade un sello de tiempo de archivo, pensado para conservar el documento durante muchos años.</string>
+    <string name="profile_help_internet">T, LT y LTA necesitan conexión a Internet al firmar.</string>
 </resources>

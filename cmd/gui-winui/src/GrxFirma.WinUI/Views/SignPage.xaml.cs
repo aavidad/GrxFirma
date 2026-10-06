@@ -508,7 +508,8 @@ public sealed partial class SignPage : Page
             var allowed = await RemoteSigningDialogs.ShouldShowButtonAsync(
                 _session,
                 cancellation.Token);
-            RemoteSigningButton.Visibility = allowed
+            // El botón y su «?» se muestran u ocultan juntos.
+            RemoteSigningButton.Visibility = RemoteSigningField.Visibility = allowed
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         }
@@ -590,6 +591,8 @@ public sealed partial class SignPage : Page
             cancellationToken);
     }
 
+    // El menú emergente se abre fuera del árbol visual de la página: su texto
+    // se traduce al abrirse, con el idioma elegido en ese momento.
     private void OnUnloaded(object sender, RoutedEventArgs args)
     {
         ++_resultRevealRevision;

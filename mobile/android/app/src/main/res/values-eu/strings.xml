@@ -646,4 +646,11 @@
     <string name="eni_saved_detail">ENI dokumentua gorde da: %1$s</string>
     <string name="expediente_saved_detail">Espedientea gorde da: %1$s</string>
     <string name="protected_file_type">Fitxategi babestua</string>
+    <string name="profile_help_name">Sinadura-profilari buruzko laguntza</string>
+    <string name="profile_help_title">Zein profil aukeratu?</string>
+    <string name="profile_help_b">B: sinadura eta ziurtagiria. Data zure ordenagailuaren erlojuak jartzen du.</string>
+    <string name="profile_help_t">T: konfiantzazko zerbitzari baten denbora-zigilua gehitzen du, noiz sinatu zen frogatzen duena. Izapideetan ohikoena da, eta gomendatutako profila.</string>
+    <string name="profile_help_lt">LT: gainera, ziurtagiri-katea eta une hartan baliogabetuta ez zeudela frogatzen duena gordetzen ditu dokumentuan. Horrela, sinadura urte batzuk barru ere egiaztatu ahal izango da, ziurtagiria iraungi edo hura eman zuen agintaritzak erantzuten ez badu ere.</string>
+    <string name="profile_help_lta">LTA: gainera, artxiboko denbora-zigilua gehitzen du, dokumentua urte askoan gordetzeko.</string>
+    <string name="profile_help_internet">T, LT eta LTA profilek Interneteko konexioa behar dute sinatzean.</string>
 </resources>

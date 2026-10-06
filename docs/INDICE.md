@@ -25,6 +25,7 @@
 - [Estado del dictamen v2](DICTAMEN_V2_ESTADO.md)
 - [Extensibilidad](EXTENSIBILIDAD_Y_UTILIDADES_INTEGRADAS.md)
 - [Geometría del sello visible](GEOMETRIA_SELLO_GIRADO.md)
+- [Ayuda contextual de las opciones técnicas](AYUDA_CONTEXTUAL.md)
 - [Dependencias y licencias](INVENTARIO_DEPENDENCIAS_LICENCIAS.md)
 - [Construcción y publicación](RELEASE.md)
 - [Firma de distribuciones](RELEASE_SIGNING.md)

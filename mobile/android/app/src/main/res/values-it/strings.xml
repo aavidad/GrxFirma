@@ -664,4 +664,11 @@
     <string name="eni_saved_detail">Documento ENI salvato: %1$s</string>
     <string name="expediente_saved_detail">Fascicolo salvato: %1$s</string>
     <string name="protected_file_type">File protetto</string>
+    <string name="profile_help_name">Aiuto sul profilo di firma</string>
+    <string name="profile_help_title">Quale profilo scelgo?</string>
+    <string name="profile_help_b">B: la firma e il certificato. La data la fornisce l\'orologio del computer.</string>
+    <string name="profile_help_t">T: aggiunge una marca temporale di un server affidabile che dimostra quando è stato firmato. È la scelta abituale per le pratiche e il profilo consigliato.</string>
+    <string name="profile_help_lt">LT: in più salva nel documento la catena di certificati e la prova che in quel momento non erano revocati. Così la firma potrà essere verificata anche dopo anni, anche se il certificato scade o l\'autorità che l\'ha emesso non risponde più.</string>
+    <string name="profile_help_lta">LTA: in più aggiunge una marca temporale di archiviazione, pensata per conservare il documento per moltissimi anni.</string>
+    <string name="profile_help_internet">T, LT e LTA richiedono una connessione a Internet al momento della firma.</string>
 </resources>

@@ -664,4 +664,11 @@
     <string name="eni_saved_detail">Document ENI enregistré : %1$s</string>
     <string name="expediente_saved_detail">Dossier enregistré : %1$s</string>
     <string name="protected_file_type">Fichier protégé</string>
+    <string name="profile_help_name">Aide sur le profil de signature</string>
+    <string name="profile_help_title">Quel profil choisir ?</string>
+    <string name="profile_help_b">B : la signature et le certificat. La date est donnée par l\'horloge de votre ordinateur.</string>
+    <string name="profile_help_t">T : ajoute un horodatage d\'un serveur de confiance qui prouve quand le document a été signé. C\'est le choix habituel pour les démarches et le profil recommandé.</string>
+    <string name="profile_help_lt">LT : enregistre en plus dans le document la chaîne de certificats et la preuve qu\'ils n\'étaient pas révoqués à ce moment-là. La signature pourra ainsi être vérifiée des années plus tard, même si le certificat expire ou si l\'autorité qui l\'a émis ne répond plus.</string>
+    <string name="profile_help_lta">LTA : ajoute en plus un horodatage d\'archivage, prévu pour conserver le document pendant de nombreuses années.</string>
+    <string name="profile_help_internet">T, LT et LTA nécessitent une connexion Internet au moment de signer.</string>
 </resources>

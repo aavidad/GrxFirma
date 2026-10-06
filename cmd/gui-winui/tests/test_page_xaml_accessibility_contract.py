@@ -36,6 +36,9 @@ FOCUSABLE_CONTROLS = {
     "ComboBox",
     "DatePicker",
     "Expander",
+    # Botón «?» de ayuda contextual: su nombre accesible lo forma el propio
+    # control con ayuda.boton_nombre y Topic (véase test_contextual_help_contract).
+    "HelpButton",
     "ListView",
     "NumberBox",
     "PasswordBox",
@@ -53,7 +56,7 @@ REQUIRED_ADAPTIVE_TARGET = {
     "EniPage.xaml": "LayoutRoot.Padding",
     "HashPage.xaml": "OriginBrowseButton.(Grid.Row)",
     "HelpPage.xaml": "LayoutRoot.Padding",
-    "ProtectPage.xaml": "ContainerCombo.(Grid.Row)",
+    "ProtectPage.xaml": "ContainerField.(Grid.Row)",
     "SettingsPage.xaml": "ThemeCombo.(Grid.Row)",
     "SignPage.xaml": "DocumentBrowseButton.(Grid.Row)",
     "VerifyPage.xaml": "SignedBrowseButton.(Grid.Row)",
@@ -241,6 +244,11 @@ class PageXamlAccessibilityContractTest(unittest.TestCase):
                         self.assertIn("AutomationProperties.SetName(", code)
                         self.assertIn("AutomationProperties.SetHelpText(", code)
                         self.assertIn('"Novedades"', code)
+                    elif local_name(control) == "HelpButton":
+                        self.assertTrue(control.get("Topic", "").strip(),
+                                        f"{page_name}: HelpButton sin Topic")
+                        self.assertTrue(control.get("HelpKey", "").strip(),
+                                        f"{page_name}: HelpButton sin HelpKey")
                     else:
                         self.assertTrue(
                             control.get("AutomationProperties.Name", "").strip(),
