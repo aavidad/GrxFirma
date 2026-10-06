@@ -646,4 +646,11 @@
     <string name="eni_saved_detail">ENI-Dokument gespeichert: %1$s</string>
     <string name="expediente_saved_detail">Akte gespeichert: %1$s</string>
     <string name="protected_file_type">Geschützte Datei</string>
+    <string name="profile_help_name">Hilfe zum Signaturprofil</string>
+    <string name="profile_help_title">Welches Profil soll ich wählen?</string>
+    <string name="profile_help_b">B: die Signatur und das Zertifikat. Das Datum stammt von der Uhr Ihres Computers.</string>
+    <string name="profile_help_t">T: fügt einen Zeitstempel eines vertrauenswürdigen Servers hinzu, der belegt, wann signiert wurde. Das ist bei Behördenverfahren üblich und das empfohlene Profil.</string>
+    <string name="profile_help_lt">LT: speichert zusätzlich die Zertifikatskette im Dokument und den Nachweis, dass die Zertifikate zu diesem Zeitpunkt nicht widerrufen waren. So lässt sich die Signatur noch nach Jahren prüfen, auch wenn das Zertifikat abläuft oder die ausstellende Stelle nicht mehr antwortet.</string>
+    <string name="profile_help_lta">LTA: fügt zusätzlich einen Archivzeitstempel hinzu, gedacht für eine sehr lange Aufbewahrung.</string>
+    <string name="profile_help_internet">T, LT und LTA benötigen beim Signieren eine Internetverbindung.</string>
 </resources>

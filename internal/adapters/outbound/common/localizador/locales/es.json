@@ -6565,4 +6565,12 @@
   ,"ayuda.rest_local": "Servicio interno que permite a otros programas de su equipo pedir firmas a GrxFirma. Solo lo necesitan integraciones concretas; si nadie se lo ha pedido, déjelo desactivado."
   ,"ayuda.confianza_local": "Instala en el equipo un certificado propio de GrxFirma para que el navegador se comunique de forma segura con la aplicación al firmar en una sede electrónica. Se instala solo; reinstálelo si la sede no consigue conectar con GrxFirma."
   ,"ayuda.conectores_navegador": "Vuelve a registrar GrxFirma en los navegadores para que las sedes electrónicas puedan abrirla. Úselo si al pulsar «Firmar» en una sede no se abre la aplicación."
+  ,"perfil_firma.ayuda.nombre": "Ayuda sobre el perfil de firma"
+  ,"perfil_firma.ayuda.resumen": "Explica en qué se diferencian los perfiles B, T, LT y LTA. Pulse para leerla."
+  ,"perfil_firma.ayuda.titulo": "¿Qué perfil elijo?"
+  ,"perfil_firma.ayuda.b": "B: la firma y el certificado. La fecha la pone el reloj de su equipo."
+  ,"perfil_firma.ayuda.t": "T: añade un sello de tiempo de un servidor de confianza que demuestra cuándo se firmó. Es lo habitual en los trámites y el perfil recomendado."
+  ,"perfil_firma.ayuda.lt": "LT: además guarda en el documento la cadena de certificados y la prueba de que no estaban anulados cuando se firmó. Así la firma se podrá comprobar dentro de años, aunque el certificado caduque o la autoridad que lo emitió ya no responda."
+  ,"perfil_firma.ayuda.lta": "LTA: además añade un sello de tiempo de archivo, pensado para conservar el documento durante muchos años."
+  ,"perfil_firma.ayuda.internet": "T, LT y LTA necesitan conexión a Internet al firmar."
 }

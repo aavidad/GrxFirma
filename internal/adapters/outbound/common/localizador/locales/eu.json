@@ -6565,4 +6565,12 @@
   ,"ayuda.rest_local": "Zure ekipoko beste programei GrxFirmari sinadurak eskatzeko aukera ematen dien barne-zerbitzua. Integrazio jakin batzuek bakarrik behar dute; inork eskatu ez badizu, utzi desaktibatuta."
   ,"ayuda.confianza_local": "GrxFirmaren ziurtagiri propio bat instalatzen du ekipoan, nabigatzailea aplikazioarekin modu seguruan komunika dadin egoitza elektroniko batean sinatzean. Berez instalatzen da; berriro instalatu egoitzak GrxFirmarekin konektatzea lortzen ez badu."
   ,"ayuda.conectores_navegador": "GrxFirma berriro erregistratzen du nabigatzaileetan, egoitza elektronikoek ireki ahal izan dezaten. Erabili egoitza batean «Sinatu» sakatzean aplikazioa irekitzen ez bada."
+  ,"perfil_firma.ayuda.nombre": "Sinadura-profilari buruzko laguntza"
+  ,"perfil_firma.ayuda.resumen": "B, T, LT eta LTA profilen arteko aldea azaltzen du. Sakatu irakurtzeko."
+  ,"perfil_firma.ayuda.titulo": "Zein profil aukeratu?"
+  ,"perfil_firma.ayuda.b": "B: sinadura eta ziurtagiria. Data zure ordenagailuaren erlojuak jartzen du."
+  ,"perfil_firma.ayuda.t": "T: konfiantzazko zerbitzari baten denbora-zigilua gehitzen du, noiz sinatu zen frogatzen duena. Izapideetan ohikoena da, eta gomendatutako profila."
+  ,"perfil_firma.ayuda.lt": "LT: gainera, ziurtagiri-katea eta une hartan baliogabetuta ez zeudela frogatzen duena gordetzen ditu dokumentuan. Horrela, sinadura urte batzuk barru ere egiaztatu ahal izango da, ziurtagiria iraungi edo hura eman zuen agintaritzak erantzuten ez badu ere."
+  ,"perfil_firma.ayuda.lta": "LTA: gainera, artxiboko denbora-zigilua gehitzen du, dokumentua urte askoan gordetzeko."
+  ,"perfil_firma.ayuda.internet": "T, LT eta LTA profilek Interneteko konexioa behar dute sinatzean."
 }
