@@ -6573,4 +6573,7 @@
   ,"perfil_firma.ayuda.lt": "LT: a més, desa al document la cadena de certificats i la prova que no estaven anul·lats en aquell moment. Així la signatura es podrà comprovar d'aquí a anys, encara que el certificat caduqui o l'autoritat que el va emetre ja no respongui."
   ,"perfil_firma.ayuda.lta": "LTA: a més, afegeix un segell de temps d'arxiu, pensat per conservar el document durant molts anys."
   ,"perfil_firma.ayuda.internet": "T, LT i LTA necessiten connexió a Internet en signar."
+  ,"Baseline LT": "Baseline LT"
+  ,"Baseline LTA": "Baseline LTA"
+  ,"perfil_firma.tooltip": "Perfil que es preselecciona per a CAdES, XAdES i PAdES. T, LT i LTA necessiten connexió amb el servidor de segellat de temps."
 }

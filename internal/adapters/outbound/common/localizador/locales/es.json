@@ -6573,4 +6573,7 @@
   ,"perfil_firma.ayuda.lt": "LT: además guarda en el documento la cadena de certificados y la prueba de que no estaban anulados cuando se firmó. Así la firma se podrá comprobar dentro de años, aunque el certificado caduque o la autoridad que lo emitió ya no responda."
   ,"perfil_firma.ayuda.lta": "LTA: además añade un sello de tiempo de archivo, pensado para conservar el documento durante muchos años."
   ,"perfil_firma.ayuda.internet": "T, LT y LTA necesitan conexión a Internet al firmar."
+  ,"Baseline LT": "Baseline LT"
+  ,"Baseline LTA": "Baseline LTA"
+  ,"perfil_firma.tooltip": "Perfil que se preselecciona para CAdES, XAdES y PAdES. T, LT y LTA necesitan conexión con el servidor de sellado de tiempo."
 }

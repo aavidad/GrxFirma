@@ -6573,4 +6573,7 @@
   ,"perfil_firma.ayuda.lt": "LT: also stores in the document the certificate chain and proof that the certificates had not been revoked at that moment. This way the signature can still be checked years later, even if the certificate expires or the authority that issued it no longer responds."
   ,"perfil_firma.ayuda.lta": "LTA: also adds an archive timestamp, intended to keep the document for many years."
   ,"perfil_firma.ayuda.internet": "T, LT and LTA need an Internet connection when signing."
+  ,"Baseline LT": "Baseline LT"
+  ,"Baseline LTA": "Baseline LTA"
+  ,"perfil_firma.tooltip": "Profile preselected for CAdES, XAdES and PAdES. T, LT and LTA need a connection to the timestamp server."
 }

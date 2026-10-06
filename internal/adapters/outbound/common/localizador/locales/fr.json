@@ -6573,4 +6573,7 @@
   ,"perfil_firma.ayuda.lt": "LT : enregistre en plus dans le document la chaîne de certificats et la preuve qu'ils n'étaient pas révoqués à ce moment-là. La signature pourra ainsi être vérifiée des années plus tard, même si le certificat expire ou si l'autorité qui l'a émis ne répond plus."
   ,"perfil_firma.ayuda.lta": "LTA : ajoute en plus un horodatage d'archivage, prévu pour conserver le document pendant de nombreuses années."
   ,"perfil_firma.ayuda.internet": "T, LT et LTA nécessitent une connexion Internet au moment de signer."
+  ,"Baseline LT": "Baseline LT"
+  ,"Baseline LTA": "Baseline LTA"
+  ,"perfil_firma.tooltip": "Profil présélectionné pour CAdES, XAdES et PAdES. T, LT et LTA nécessitent une connexion au serveur d’horodatage."
 }
