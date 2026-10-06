@@ -4,7 +4,7 @@
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">Sinatzeko prest</string>
     <string name="backend_unavailable_title">Instalazio honek ezin du sinatu</string>
@@ -653,4 +653,58 @@
     <string name="profile_help_lt">LT: gainera, ziurtagiri-katea eta une hartan baliogabetuta ez zeudela frogatzen duena gordetzen ditu dokumentuan. Horrela, sinadura urte batzuk barru ere egiaztatu ahal izango da, ziurtagiria iraungi edo hura eman zuen agintaritzak erantzuten ez badu ere.</string>
     <string name="profile_help_lta">LTA: gainera, artxiboko denbora-zigilua gehitzen du, dokumentua urte askoan gordetzeko.</string>
     <string name="profile_help_internet">T, LT eta LTA profilek Interneteko konexioa behar dute sinatzean.</string>
+    <string name="ayuda_boton_nombre">%1$s(r)i buruzko laguntza</string>
+    <string name="ayuda_tema_integridad">Osotasuna</string>
+    <string name="ayuda_tema_confianza">Konfiantza</string>
+    <string name="ayuda_tema_cobertura">Estaldura</string>
+    <string name="ayuda_operacion_firma">Oraindik sinatu gabe dagoen dokumentu baten lehen sinadura sortzen du. Ohiko aukera da.</string>
+    <string name="ayuda_operacion_cofirma">Zure sinadura gehitzen dio beste pertsona batek sinatutako dokumentu bati, dagoeneko dituen sinaduren maila berean. Erabili hainbat pertsonak dokumentu bera sinatzen dutenean, adibidez hitzarmen bateko bi aldeek.</string>
+    <string name="ayuda_operacion_contrafirma">Aurreko sinadura baten gainean sinatzen du hari oniritzia emateko, dokumentua bereizita sinatu beharrean. Erabili zure sinadurak beste pertsona baten sinadura berretsi behar duenean, adibidez nagusi batena teknikari baten sinaduraren gainean.</string>
+    <string name="ayuda_formato">Formatuak erabakitzen du nola gordetzen den sinadura: fitxategiaren barruan edo aparteko fitxategi batean. Zein aukeratu ez badakizu, utzi «Automatikoa» eta aplikazioak egokiena aukeratuko du fitxategi motaren arabera.</string>
+    <string name="ayuda_formato_pades">PDFrako sinadura-formatua. Sinadura PDFaren barruan geratzen da, eta edozein PDF irakurgailuk erakusten eta egiaztatzen du. PDF dokumentuetarako gomendatua da.</string>
+    <string name="ayuda_formato_cades">Edozein fitxategi motatarako balio duen sinadura-formatua. Sinadura-fitxategi berri bat sortzen du, jatorrizkotik bereizia edo hura barnean duena; egiaztatzeko sinadura elektronikoko programa bat behar da.</string>
+    <string name="ayuda_formato_xades">XMLn oinarritutako sinadura-formatua. XML fitxategiak sinatzeko ohikoa da, eta Administrazioaren zenbait izapidek eskatzen dute.</string>
+    <string name="ayuda_formato_xmldsig">Oinarrizko XML sinadura, XAdESek gehitzen dituen datu osagarririk gabe. Erabili fitxategia jasotzen duenak berariaz eskatzen badu soilik; bestela, aukeratu XAdES.</string>
+    <string name="ayuda_formato_odf">LibreOffice edo OpenOffice dokumentuak sinatzen ditu (.odt, .ods, .odp). Sinadura dokumentuaren barruan geratzen da, eta programa horiek ezagutzen dute.</string>
+    <string name="ayuda_formato_ooxml">Microsoft Office dokumentuak sinatzen ditu (.docx, .xlsx, .pptx). Sinadura dokumentuaren barruan geratzen da, eta Officek ezagutzen du.</string>
+    <string name="ayuda_formato_facturae">Facturae faktura elektronikoak sinatzeko derrigorrezko formatua, FACe bidez Administrazioari aurkezten zaizkionak. Erabili faktura elektronikoko fitxategiekin soilik.</string>
+    <string name="ayuda_formato_asic">Dokumentua eta haren sinadura fitxategi konprimitu bakar batean gordetzen ditu (ASiC edukiontzia). Biak batera bidaltzeko erabilgarria da, bereiz ez daitezen.</string>
+    <string name="ayuda_formato_verifactu">Veri*Factu fakturazio-erregistro bat sinatzen du, hau da, Zerga Agentziari bidaltzen zaion XML fitxategia. Aukeratutako fitxategia erregistro horietako bat denean bakarrik agertzen da.</string>
+    <string name="ayuda_sello_visible">PDFan koadro bat marrazten du zure izenarekin eta datarekin, eskuzko sinadura baten antzekoa. Sinadura berdin balio du hura gabe, baina begi-bistan dokumentua sinatuta dagoela ikusten laguntzen du. PDFrako bakarrik dago erabilgarri.</string>
+    <string name="ayuda_certificado_importar_p12">.p12 edo .pfx fitxategi batean gordetako ziurtagiri bat gehitzen du, adibidez zure FNMT ziurtagiriaren babeskopia. Esportatzean jarritako pasahitza eskatuko dizu.</string>
+    <string name="ayuda_dnie_nfc">Zure NAN elektronikoarekin sinatzen du, mugikorraren atzealdera hurbilduta. NFC duen mugikor bat, NANean inprimatutako 6 zifrako CAN zenbakia eta zure PINa behar dira.</string>
+    <string name="ayuda_verificar_original">Sinadura dokumentutik aparteko fitxategi batean badago (sinadura bereizia), aukeratu hemen jatorrizko dokumentua hura egiaztatu ahal izateko. Sinatutako fitxategiak dokumentua barnean badu, sinatutako PDF batek bezala, utzi hutsik.</string>
+    <string name="ayuda_sellado_tiempo">Kanpoko konfiantzazko zerbitzu batek bermatutako data eta ordua gehitzen dizkio sinadurari (denbora-zigilua). Horrela, noiz sinatu zen frogatu daiteke, nahiz eta ziurtagiria gero iraungi. Interneteko konexioa behar da.</string>
+    <string name="ayuda_tsa_servidor">Sinadurari data eta ordu bermatuak jartzen dizkion zerbitzuaren helbidea (denbora-zigiluen agintaritza edo TSA). Utzi dagoen bezala, zure erakundeak beste bat adierazten ez badizu.</string>
+    <string name="ayuda_verificar_informe">Egiaztapenaren emaitza gordetzen du. HTML txostena irakurri eta inprimatu daiteke; JSON fitxategiak laguntza-zerbitzurako edo beste programetarako datu teknikoak ditu.</string>
+    <string name="ayuda_verificar_integridad">Dokumentua sinatu zenean bezala dagoen zehazki adierazten du. Huts egiten badu, edukia sinatu ondoren aldatu da.</string>
+    <string name="ayuda_verificar_confianza">Sinatzailearen ziurtagiria erakunde aitortu batek eman zuen adierazten du, adibidez FNMTk edo, DNIe-ren kasuan, Espainiako Polizia Nazionalak. Konfiantzarik gabe, sinadura teknikoki zuzena izan daiteke, baina ezin da ziurtatu nork egin zuen.</string>
+    <string name="ayuda_verificar_cobertura">Sinadurak dokumentuaren zer zati babesten duen adierazten du. Sinatu ondoren aldaketak gehitu badira, adibidez beste sinadura batzuk edo oharrak PDF batean, sinadurak aldaketa horien aurreko bertsioa bakarrik estaltzen du.</string>
+    <string name="ayuda_sello_estilo">Zigiluaren itxura: erakundearen ikurrarekin, testuarekin bakarrik edo irudi propio batekin. Itxura bakarrik aldatzen du; sinaduraren baliozkotasuna berdina da.</string>
+    <string name="ayuda_sello_opacidad">Zigiluak azpian dagoena ikusten uzten duen adierazten du. Gehienekoan orriaren edukia estaltzen du; balio txikiagoekin haren bidez ikusten da.</string>
+    <string name="ayuda_sello_imagen">Zigiluan agertzen den irudia, adibidez zure erakundearen logotipoa. PNG edo JPEG irudi propio bat erabil dezakezu, edo bat ere ez jarri.</string>
+    <string name="ayuda_sello_texto">Sinatzailearen izena, data eta sinaduraren beste datu batzuk erakusten ditu zigiluan. Desaktibatzen baduzu, zigiluak aukeratutako irudia bakarrik erakutsiko du.</string>
+    <string name="ayuda_sello_qr">Zuk adierazitako web-helbidea irekitzen duen QR kode bat gehitzen dio zigiluari, adibidez zure egoitzaren egiaztapen-orria. Aukerakoa da, eta helbideak segurua izan behar du (https).</string>
+    <string name="ayuda_sello_csv">Egiaztapen-kode segurua (CSV): zigiluan inprimatzen diren kode bat eta web-helbide bat, edonork dokumentua zure erakundearen egoitzan egiaztatu ahal izan dezan. Erabili zure erakundeak kode hori eta helbide hori ematen badizkizu soilik.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Zigilua agertzen den PDFko orriak: lehena, azkena, guztiak edo zuk adierazitakoak, adibidez «1,3-5». Ziur ez bazaude, jarri azken orrian.</string>
+    <string name="ayuda_sello_idioma">Zigiluko testuen hizkuntza, adibidez «Honek sinatua» eta data. Ez du aplikazioaren hizkuntza aldatzen.</string>
+    <string name="ayuda_sesion_certificado">Aplikazioa bigarren planoan geratzen bada, ziurtagiria ixteko igaro behar den denbora. Horrela, inork ezin du harekin sinatu mugikorra desblokeatuta uzten baduzu; zenbat eta laburragoa, orduan eta seguruagoa.</string>
+    <string name="ayuda_lote">Hainbat dokumentu batera sinatzen ditu ziurtagiri eta aukera berberekin. Amaitzean, aplikazioak adierazten du zein sinatu diren eta zein ez.</string>
+    <string name="ayuda_huella">Hash-a fitxategi baten edukitik kalkulatzen den kode labur bat da, eta erabat aldatzen da karaktere bakar bat aldatzen bada. Sortu fitxategi bat gordetzean, eta egiaztatu geroago oraindik osorik dagoen jakiteko.</string>
+    <string name="ayuda_huella_algoritmo">Hash-a kalkulatzeko metodoa. SHA-256 gomendatzen da. SHA-1 zaharra da, eta harekin lehendik kalkulatutako hash-ekin alderatzeko bakarrik erabili behar da.</string>
+    <string name="ayuda_huella_formato">Nola idazten den hash-a gordetzen den fitxategian: hamaseitarrean (letrak eta zenbakiak), Base64n edo bitarrean. Utzi hautatuta datorrena, beste programa batek zehatz bat eskatzen ez badizu.</string>
+    <string name="ayuda_proteger">Fitxategi bat zifratzen du, zuk aukeratutako pertsonek bakarrik ireki dezaten beren ziurtagiri elektronikoarekin. Babestea ez da sinatzea: edukia irakurtzea eragozten du, baina ez du adierazten nork bidali duen.</string>
+    <string name="ayuda_desproteger">Norbaitek zuretzat babestutako fitxategi bat irekitzen du. Babestean aukeratutako hartzaileetako baten ziurtagiria behar da edo, gako batekin babestu bazen, gako hori.</string>
+    <string name="ayuda_proteger_destinatarios">Babestutako fitxategia ireki ahal izango duten pertsonak. Bakoitzaren ziurtagiri publikoa behar da; eska diezaiokezu edo fitxategi batetik kargatu. Gehitu zeure burua ere, geroago ireki nahi baduzu.</string>
+    <string name="ayuda_proteger_contenedor">Sortzen den fitxategi babestuaren mota. CMS formatuak estandarrak dira, eta beste programek ireki ditzakete; formatu propioa (.afp) GrxFirmarekin bakarrik irekitzen da. Zein aukeratu ez badakizu, utzi hautatuta datorrena.</string>
+    <string name="ayuda_proteger_clave">Ziurtagiriak erabili beharrean, fitxategia ausazko gako batekin babesten du; gako hori zuk gorde eta kanal seguru batetik eman behar duzu. Aplikazioak ez du gordetzen: gako hori gabe inork ezin izango du dokumentua ireki.</string>
+    <string name="ayuda_proteger_firmar">Fitxategia babesteaz gain, zure ziurtagiriarekin sinatzen du. Horrela, irekitzen duenak badaki nork bidali duen eta ez dela aldatu.</string>
+    <string name="ayuda_eni_documento">Dokumentu elektroniko bat prestatzen du Elkarreragingarritasunerako Eskema Nazionalaren (ENI) arabera, administrazioek dokumentuak trukatzeko erabiltzen duten formatua. Fitxategia, haren sinadura eta derrigorrezko datu deskribatzaile batzuk elkartzen ditu.</string>
+    <string name="ayuda_eni_expediente">Hainbat ENI dokumentu espediente batean biltzen ditu, aurkibide sinatuarekin, Administrazioak espediente osoak bidaltzeko eskatzen duen bezala, adibidez epaitegi batera.</string>
+    <string name="ayuda_eni_metadatos">Dokumentua deskribatzen duten datuak: sortzen duen organoa, data, jatorria, egoera eta dokumentu mota. ENIn derrigorrezkoak dira; balioren batean zalantzarik baduzu, galdetu zure erregistro- edo artxibo-unitateari.</string>
+    <string name="ayuda_eni_origen">Dokumentua nork sortu zuen adierazten du: Administrazioak berak edo hura aurkeztu zuen herritar edo enpresa batek.</string>
+    <string name="ayuda_eni_estado_elaboracion">Dokumentua jatorrizkoa edo kopia den adierazten du, eta zer motatakoa. Zure unitateak sortu badu, normalean jatorrizkoa da.</string>
+    <string name="ayuda_verifactu">Veri*Factu Zerga Agentziaren sistema da, fakturek QR kode egiaztagarri bat izan dezaten. Hemen QR hori edo fakturazio-erregistro bat irakur dezakezu eta haren datuak ikusi; Zerga Agentziari zuk eskatzen baduzu bakarrik kontsultatzen zaio.</string>
+    <string name="ayuda_certificado_tipo">Ziurtagiri mota, nor ordezkatzen duen kontuan hartuta: pertsona fisiko bat, enpresa edo erakunde baten ordezkaria, enplegatu publiko bat edo erakunde baten zigilua. Zerrenda iragazteko eta izapideak eskatzen duen ziurtagiria aukeratzeko balio du.</string>
+    <string name="ayuda_verificar_revocacion">Sinatzailearen ziurtagiria sinatu zuenean baliogabetuta (errebokatuta) zegoen egiaztatzen du, adibidez galtzeagatik edo lapurtzeagatik. Kontsulta Internet bidez egiten zaio ziurtagiria eman zuen erakundeari.</string>
 </resources>

@@ -129,7 +129,7 @@ internal class Wave4Screen(
 
     private fun renderExpediente(view: SectionExpedienteBinding, state: MainUiState) = with(view) {
         val available = state.eniFileAvailable
-        toggleExpedienteButton.visibility = if (available) View.VISIBLE else View.GONE
+        expedienteRow.visibility = if (available) View.VISIBLE else View.GONE
         if (!available) expedienteGroup.visibility = View.GONE else renderToggle(this)
         val idle = state.canReplaceSelection
         val documents = state.wave4.eniFileDocuments

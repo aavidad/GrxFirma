@@ -38,6 +38,7 @@ import io.github.aavidad.grxfirma.android.ui.MainViewModel
 import java.io.File
 import java.util.Base64
 import io.github.aavidad.grxfirma.android.ui.DropdownField
+import io.github.aavidad.grxfirma.android.ui.HelpButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -183,7 +184,7 @@ class SealEditorDialog(
         sizeAndRotation.addView(iconButton(R.drawable.ic_seal_rotate_right, R.string.seal_rotate_right_desc) { adjust(angle = 15) }, weighted())
         column.addView(sizeAndRotation)
 
-        column.addView(label(R.string.seal_opacity))
+        column.addView(HelpButton.row(activity, label(R.string.seal_opacity), R.string.seal_opacity, R.string.ayuda_sello_opacidad))
         column.addView(SeekBar(activity).apply {
             max = 100
             progress = settings.opacity
@@ -207,7 +208,7 @@ class SealEditorDialog(
                 refreshPreview()
             }
         }
-        column.addView(qrCheck)
+        column.addView(HelpButton.row(activity, qrCheck, R.string.seal_qr, R.string.ayuda_sello_qr))
         // Campo con contorno y ejemplo, como los demás; su error se ve en el propio campo.
         qrAddressLayout = TextInputLayout(activity, null, com.google.android.material.R.attr.textInputOutlinedStyle).apply {
             hint = activity.getString(R.string.seal_qr_address)
@@ -240,12 +241,13 @@ class SealEditorDialog(
             refreshPreview()
         }
         logoDropdown = logoField.second
-        column.addView(logoField.first)
+        column.addView(HelpButton.row(activity, logoField.first, R.string.seal_style, R.string.ayuda_sello_estilo))
         // Acción secundaria: solo tiene sentido con «Imagen propia».
-        chooseImageButton = button(R.string.seal_choose_image, outlined = true) { chooseImage() }
+        chooseImageButton = HelpButton.row(activity, button(R.string.seal_choose_image, outlined = true) { chooseImage() },
+            R.string.seal_choose_image, R.string.ayuda_sello_imagen)
         chooseImageButton.visibility = if (settings.logo == "custom") View.VISIBLE else View.GONE
         column.addView(chooseImageButton)
-        column.addView(CheckBox(activity).apply {
+        column.addView(HelpButton.row(activity, CheckBox(activity).apply {
             setText(R.string.seal_show_text)
             minHeight = dp(48)
             isChecked = settings.keepText
@@ -253,7 +255,7 @@ class SealEditorDialog(
                 settings = settings.copy(keepText = checked)
                 refreshPreview()
             }
-        })
+        }, R.string.seal_show_text, R.string.ayuda_sello_texto))
         column.addView(dropdown(R.string.seal_text_color, listOf(R.string.seal_color_auto, R.string.seal_color_black,
             R.string.seal_color_blue, R.string.seal_color_gray), SealSettings.TEXT_COLORS.indexOf(settings.textColor).coerceAtLeast(0)) { position ->
             settings = settings.copy(textColor = SealSettings.TEXT_COLORS[position])
@@ -276,7 +278,7 @@ class SealEditorDialog(
             refreshPreview()
         }
         pagesMode = pagesField.second
-        column.addView(pagesField.first)
+        column.addView(HelpButton.row(activity, pagesField.first, R.string.seal_pages_mode, R.string.ayuda_sello_paginas))
         pageToggle = button(R.string.seal_page_add) { togglePage() }
         column.addView(pageToggle)
         pagesSummary = label(R.string.seal_pages_none).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
@@ -493,7 +495,7 @@ class SealEditorDialog(
             minHeight = dp(48)
             isChecked = settings.csvEnabled
         }
-        column.addView(enable)
+        column.addView(HelpButton.row(activity, enable, R.string.csv_enable, R.string.ayuda_sello_csv))
         group.addView(label(R.string.csv_notice))
         group.addView(label(R.string.csv_placement_note))
         csvCodeLayout = textField(group, R.string.csv_code, settings.csvCode, SealSettings.MAX_CSV_CODE,

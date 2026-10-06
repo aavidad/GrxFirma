@@ -86,7 +86,7 @@ class WaveThreeUiTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 assertEquals(View.GONE, activity.findViewById<View>(R.id.qrGroup).visibility)
-                assertEquals(View.GONE, activity.findViewById<View>(R.id.checkCertificateOnlineButton).visibility)
+                assertEquals(View.GONE, activity.findViewById<View>(R.id.checkCertificateOnlineRow).visibility)
             }
         }
     }

@@ -4,7 +4,7 @@
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">Prêt à signer</string>
     <string name="backend_unavailable_title">Cette installation ne peut pas signer</string>
@@ -671,4 +671,58 @@
     <string name="profile_help_lt">LT : enregistre en plus dans le document la chaîne de certificats et la preuve qu\'ils n\'étaient pas révoqués à ce moment-là. La signature pourra ainsi être vérifiée des années plus tard, même si le certificat expire ou si l\'autorité qui l\'a émis ne répond plus.</string>
     <string name="profile_help_lta">LTA : ajoute en plus un horodatage d\'archivage, prévu pour conserver le document pendant de nombreuses années.</string>
     <string name="profile_help_internet">T, LT et LTA nécessitent une connexion Internet au moment de signer.</string>
+    <string name="ayuda_boton_nombre">Aide sur %1$s</string>
+    <string name="ayuda_tema_integridad">Intégrité</string>
+    <string name="ayuda_tema_confianza">Confiance</string>
+    <string name="ayuda_tema_cobertura">Couverture</string>
+    <string name="ayuda_operacion_firma">Crée la première signature d’un document qui n’est pas encore signé. C’est l’option habituelle.</string>
+    <string name="ayuda_operacion_cofirma">Ajoute votre signature à un document déjà signé par une autre personne, au même niveau que les signatures existantes. Utilisez-la lorsque plusieurs personnes signent le même document, par exemple les deux parties d’une convention.</string>
+    <string name="ayuda_operacion_contrafirma">Signe par-dessus une signature antérieure pour l’approuver, au lieu de signer le document séparément. Utilisez-la lorsque votre signature doit valider celle d’une autre personne, par exemple celle d’un supérieur sur celle d’un technicien.</string>
+    <string name="ayuda_formato">Le format détermine la manière dont la signature est enregistrée : dans le fichier lui-même ou dans un fichier séparé. Si vous ne savez pas lequel choisir, laissez « Automatique » et l’application choisira celui qui convient au type de fichier.</string>
+    <string name="ayuda_formato_pades">Format de signature pour les PDF. La signature reste dans le PDF lui-même et n’importe quel lecteur PDF peut l’afficher et la vérifier. C’est le format recommandé pour les documents PDF.</string>
+    <string name="ayuda_formato_cades">Format de signature valable pour tout type de fichier. Il crée un nouveau fichier de signature, séparé de l’original ou qui le contient ; sa vérification nécessite un logiciel de signature électronique.</string>
+    <string name="ayuda_formato_xades">Format de signature basé sur XML. C’est le format habituel pour signer des fichiers XML et celui qu’exigent certaines démarches administratives.</string>
+    <string name="ayuda_formato_xmldsig">Signature XML de base, sans les données supplémentaires qu’ajoute XAdES. Ne l’utilisez que si le destinataire du fichier la demande expressément ; sinon, choisissez XAdES.</string>
+    <string name="ayuda_formato_odf">Signe les documents LibreOffice ou OpenOffice (.odt, .ods, .odp). La signature reste dans le document et ces logiciels la reconnaissent.</string>
+    <string name="ayuda_formato_ooxml">Signe les documents Microsoft Office (.docx, .xlsx, .pptx). La signature reste dans le document et Office la reconnaît.</string>
+    <string name="ayuda_formato_facturae">Format obligatoire pour signer les factures électroniques Facturae, celles que l’on présente à l’administration espagnole via FACe. Ne l’utilisez qu’avec des fichiers de facture électronique.</string>
+    <string name="ayuda_formato_asic">Enregistre le document et sa signature ensemble dans un seul fichier compressé (conteneur ASiC). C’est utile pour envoyer les deux en même temps sans qu’ils soient séparés.</string>
+    <string name="ayuda_formato_verifactu">Signe un enregistrement de facturation Veri*Factu, le fichier XML envoyé à l’administration fiscale espagnole (Agencia Tributaria, AEAT). Il n’apparaît que lorsque le fichier choisi est l’un de ces enregistrements.</string>
+    <string name="ayuda_sello_visible">Dessine sur le PDF un cadre avec votre nom et la date, semblable à une signature manuscrite. La signature est tout aussi valable sans lui, mais il permet de voir d’un coup d’œil que le document est signé. Disponible uniquement pour les PDF.</string>
+    <string name="ayuda_certificado_importar_p12">Ajoute un certificat enregistré dans un fichier .p12 ou .pfx, par exemple la copie de sauvegarde de votre certificat FNMT. Le mot de passe défini lors de son exportation vous sera demandé.</string>
+    <string name="ayuda_dnie_nfc">Signe avec votre carte d’identité électronique espagnole en l’approchant de l’arrière du téléphone. Vous avez besoin d’un téléphone NFC, du numéro CAN à 6 chiffres imprimé sur la carte et de votre PIN.</string>
+    <string name="ayuda_verificar_original">Si la signature se trouve dans un fichier séparé du document (signature détachée), choisissez ici le document original pour pouvoir la vérifier. Si le fichier signé contient déjà le document, comme un PDF signé, laissez ce champ vide.</string>
+    <string name="ayuda_sellado_tiempo">Ajoute à la signature la date et l’heure garanties par un service externe de confiance (horodatage). Il est ainsi possible de prouver quand le document a été signé, même si le certificat expire ensuite. Une connexion à internet est nécessaire.</string>
+    <string name="ayuda_tsa_servidor">Adresse du service qui appose la date et l’heure garanties sur la signature (autorité d’horodatage ou TSA). Laissez-la telle quelle, sauf si votre organisme vous en indique une autre.</string>
+    <string name="ayuda_verificar_informe">Enregistre le résultat de la vérification. Le rapport HTML peut être lu et imprimé ; le fichier JSON contient les données techniques destinées au support ou à d’autres logiciels.</string>
+    <string name="ayuda_verificar_integridad">Indique si le document est toujours exactement identique à ce qu’il était au moment de la signature. En cas d’échec, le contenu a été modifié après la signature.</string>
+    <string name="ayuda_verificar_confianza">Indique si le certificat du signataire a été délivré par une autorité reconnue, comme la FNMT ou la Police nationale espagnole (Policía Nacional) pour le DNIe. Sans confiance, la signature peut être techniquement correcte, mais on ne peut pas garantir qui l’a faite.</string>
+    <string name="ayuda_verificar_cobertura">Indique quelle partie du document la signature protège. Si des modifications ont été ajoutées après la signature, comme d’autres signatures ou des annotations dans un PDF, la signature ne couvre que la version antérieure à ces modifications.</string>
+    <string name="ayuda_sello_estilo">Apparence du cachet : avec l’emblème institutionnel, texte seul ou avec votre propre image. Seule l’apparence change ; la validité de la signature reste la même.</string>
+    <string name="ayuda_sello_opacidad">Indique si le cachet laisse voir ce qui se trouve dessous. Au maximum, il masque le contenu de la page ; avec des valeurs plus faibles, on voit à travers.</string>
+    <string name="ayuda_sello_imagen">Image affichée sur le cachet, par exemple le logo de votre organisme. Vous pouvez utiliser votre propre image PNG ou JPEG, ou n’en mettre aucune.</string>
+    <string name="ayuda_sello_texto">Affiche sur le cachet le nom du signataire, la date et d’autres informations de la signature. Si vous le désactivez, le cachet n’affiche que l’image choisie.</string>
+    <string name="ayuda_sello_qr">Ajoute au cachet un code QR qui ouvre l’adresse web que vous indiquez, par exemple la page de vérification de votre organisme. C’est facultatif et l’adresse doit être sécurisée (https).</string>
+    <string name="ayuda_sello_csv">Code sécurisé de vérification (CSV) : un code et une adresse web imprimés sur le cachet pour que chacun puisse vérifier le document sur le site de votre organisme. Ne l’utilisez que si votre organisme vous fournit ce code et cette adresse.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Pages du PDF sur lesquelles le cachet apparaît : la première, la dernière, toutes ou celles que vous indiquez, par exemple « 1,3-5 ». En cas de doute, placez-le sur la dernière page.</string>
+    <string name="ayuda_sello_idioma">Langue des textes du cachet, comme « Signé par » et la date. Cela ne change pas la langue de l’application.</string>
+    <string name="ayuda_sesion_certificado">Délai au terme duquel l’application ferme le certificat si elle reste en arrière-plan. Ainsi, personne ne peut signer avec si vous laissez le téléphone déverrouillé ; plus il est court, plus c’est sûr.</string>
+    <string name="ayuda_lote">Signe plusieurs documents en une seule fois avec le même certificat et les mêmes options. À la fin, l’application indique ceux qui ont été signés et ceux qui ne l’ont pas été.</string>
+    <string name="ayuda_huella">Le hachage est un code court calculé à partir du contenu d’un fichier, qui change entièrement si un seul caractère est modifié. Créez-le lorsque vous enregistrez un fichier et vérifiez-le plus tard pour savoir s’il est resté intact.</string>
+    <string name="ayuda_huella_algoritmo">Méthode utilisée pour calculer le hachage. SHA-256 est recommandé. SHA-1 est ancien et ne doit servir qu’à comparer avec des hachages déjà calculés avec lui.</string>
+    <string name="ayuda_huella_formato">Manière dont le hachage est écrit dans le fichier enregistré : en hexadécimal (lettres et chiffres), en Base64 ou en binaire. Conservez celui qui est sélectionné, sauf si un autre logiciel en exige un en particulier.</string>
+    <string name="ayuda_proteger">Chiffre un fichier pour que seules les personnes que vous choisissez puissent l’ouvrir avec leur certificat électronique. Protéger n’est pas signer : cela empêche de lire le contenu, mais n’indique pas qui l’a envoyé.</string>
+    <string name="ayuda_desproteger">Ouvre un fichier que quelqu’un a protégé pour vous. Vous avez besoin du certificat de l’un des destinataires choisis lors de la protection ou, s’il a été protégé par une clé, de cette clé.</string>
+    <string name="ayuda_proteger_destinatarios">Personnes qui pourront ouvrir le fichier protégé. Pour chacune, il faut son certificat public, que vous pouvez lui demander ou charger depuis un fichier. Ajoutez-vous aussi si vous souhaitez pouvoir l’ouvrir plus tard.</string>
+    <string name="ayuda_proteger_contenedor">Type de fichier protégé généré. Les formats CMS sont standard et d’autres logiciels peuvent les ouvrir ; le format propre (.afp) ne s’ouvre qu’avec GrxFirma. Si vous ne savez pas lequel choisir, conservez celui qui est sélectionné.</string>
+    <string name="ayuda_proteger_clave">Au lieu d’utiliser des certificats, protège le fichier avec une clé aléatoire que vous devez conserver et transmettre par un canal sûr. L’application ne l’enregistre pas : sans cette clé, personne ne pourra ouvrir le document.</string>
+    <string name="ayuda_proteger_firmar">En plus de protéger le fichier, le signe avec votre certificat. Ainsi, la personne qui l’ouvre sait qui l’a envoyé et qu’il n’a pas été modifié.</string>
+    <string name="ayuda_eni_documento">Prépare un document électronique conforme au Schéma national d’interopérabilité espagnol (ENI), le format qu’utilisent les administrations pour échanger des documents. Il réunit le fichier, sa signature et des données descriptives obligatoires.</string>
+    <string name="ayuda_eni_expediente">Regroupe plusieurs documents ENI dans un dossier avec son index signé, comme l’exige l’administration pour transmettre des dossiers complets, par exemple à un tribunal.</string>
+    <string name="ayuda_eni_metadatos">Données qui décrivent le document : l’organe qui le crée, la date, l’origine, l’état d’élaboration et le type documentaire. Elles sont obligatoires dans l’ENI ; en cas de doute sur une valeur, renseignez-vous auprès de votre service d’enregistrement ou d’archives.</string>
+    <string name="ayuda_eni_origen">Indique qui a créé le document : l’administration elle-même ou un citoyen ou une entreprise qui l’a fourni.</string>
+    <string name="ayuda_eni_estado_elaboracion">Indique si le document est un original ou une copie, et de quel type. S’il a été créé par votre propre service, c’est normalement un original.</string>
+    <string name="ayuda_verifactu">Veri*Factu est le système de l’administration fiscale espagnole (Agencia Tributaria, AEAT) qui dote les factures d’un code QR vérifiable. Ici, vous pouvez lire ce code QR ou un enregistrement de facturation et en voir les données ; l’administration fiscale n’est consultée que si vous le demandez.</string>
+    <string name="ayuda_certificado_tipo">Catégorie de certificat selon la personne qu’il représente : une personne physique, le représentant d’une entreprise ou d’une entité, un agent public ou le cachet d’un organisme. Elle permet de filtrer la liste et de choisir le certificat demandé par la démarche.</string>
+    <string name="ayuda_verificar_revocacion">Vérifie si le certificat du signataire était annulé (révoqué) au moment de la signature, par exemple pour perte ou vol. La vérification se fait par internet auprès de l’autorité qui a délivré le certificat.</string>
 </resources>

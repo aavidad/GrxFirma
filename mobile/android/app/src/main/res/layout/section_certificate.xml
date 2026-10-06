@@ -35,20 +35,36 @@
                 android:minHeight="48dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/certificateKindFilterLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        <LinearLayout
+            android:id="@+id/certificateKindRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="@string/cert_filter_kind">
+            android:gravity="top"
+            android:orientation="horizontal">
 
-            <io.github.aavidad.grxfirma.android.ui.DropdownField
-                android:id="@+id/certificateKindFilter"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/certificateKindFilterLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/cert_filter_kind">
+
+                <io.github.aavidad.grxfirma.android.ui.DropdownField
+                    android:id="@+id/certificateKindFilter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/certificateKindHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/certificateFilterCount"
@@ -104,13 +120,28 @@
         android:textIsSelectable="true"
         android:visibility="gone" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/checkCertificateOnlineButton"
-        style="@style/Widget.Material3.Button.OutlinedButton"
+    <LinearLayout
+        android:id="@+id/checkCertificateOnlineRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:minHeight="48dp"
-        android:text="@string/cert_check_online"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/checkCertificateOnlineButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/cert_check_online" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/checkCertificateOnlineHelp"
+            style="@style/Widget.GrxFirma.HelpButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp" />
+    </LinearLayout>
 </LinearLayout>

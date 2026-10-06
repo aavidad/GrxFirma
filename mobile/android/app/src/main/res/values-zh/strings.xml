@@ -4,7 +4,7 @@
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">可以签名</string>
     <string name="backend_unavailable_title">此安装无法签名</string>
@@ -635,4 +635,58 @@
     <string name="profile_help_lt">LT：此外还在文档中保存证书链，以及证书当时未被吊销的证明。这样，即使证书过期或签发机构不再响应，多年后仍可验证签名。</string>
     <string name="profile_help_lta">LTA：此外还添加存档时间戳，适合长期保存文档。</string>
     <string name="profile_help_internet">T、LT 和 LTA 在签名时需要连接互联网。</string>
+    <string name="ayuda_boton_nombre">关于%1$s的帮助</string>
+    <string name="ayuda_tema_integridad">完整性</string>
+    <string name="ayuda_tema_confianza">信任</string>
+    <string name="ayuda_tema_cobertura">覆盖范围</string>
+    <string name="ayuda_operacion_firma">为尚未签名的文档创建第一个签名。这是常用选项。</string>
+    <string name="ayuda_operacion_cofirma">在他人已签名的文档上添加您的签名，与已有签名处于同一层级。当多人签署同一文档时使用，例如协议的双方。</string>
+    <string name="ayuda_operacion_contrafirma">在先前的签名之上签名以表示认可，而不是单独签署文档。当您的签名需要为他人的签名作背书时使用，例如上级在技术人员的签名之上签名。</string>
+    <string name="ayuda_formato">格式决定签名的保存方式：保存在文件本身中，或保存在单独的文件中。如果不确定选哪个，请保留“自动”，应用会根据文件类型选择合适的格式。</string>
+    <string name="ayuda_formato_pades">适用于 PDF 的签名格式。签名保存在 PDF 内部，任何 PDF 阅读器都能显示并验证它。推荐用于 PDF 文档。</string>
+    <string name="ayuda_formato_cades">适用于任何文件类型的签名格式。它会创建一个新的签名文件，与原文件分离或将其包含在内；验证时需要电子签名程序。</string>
+    <string name="ayuda_formato_xades">基于 XML 的签名格式。常用于签署 XML 文件，也是部分政务手续所要求的格式。</string>
+    <string name="ayuda_formato_xmldsig">基础 XML 签名，不含 XAdES 添加的附加数据。仅在文件接收方明确要求时使用；否则请选择 XAdES。</string>
+    <string name="ayuda_formato_odf">签署 LibreOffice 或 OpenOffice 文档（.odt、.ods、.odp）。签名保存在文档内部，这些程序可以识别。</string>
+    <string name="ayuda_formato_ooxml">签署 Microsoft Office 文档（.docx、.xlsx、.pptx）。签名保存在文档内部，Office 可以识别。</string>
+    <string name="ayuda_formato_facturae">签署 Facturae 电子发票（通过 FACe 向西班牙政府机关提交的发票）的强制格式。仅用于电子发票文件。</string>
+    <string name="ayuda_formato_asic">将文档及其签名一起保存在一个压缩文件中（ASiC 容器）。便于同时发送两者而不会分开。</string>
+    <string name="ayuda_formato_verifactu">签署 Veri*Factu 开票记录，即发送给西班牙税务局 Agencia Tributaria (AEAT) 的 XML 文件。仅当所选文件是此类记录时才会出现。</string>
+    <string name="ayuda_sello_visible">在 PDF 中绘制一个包含您姓名和日期的方框，类似手写签名。没有它签名同样有效，但能让人一眼看出文档已签名。仅适用于 PDF。</string>
+    <string name="ayuda_certificado_importar_p12">添加保存在 .p12 或 .pfx 文件中的证书，例如您的 FNMT 证书备份。系统会要求输入导出时设置的密码。</string>
+    <string name="ayuda_dnie_nfc">将您的西班牙电子身份证（DNIe）贴近手机背面即可签名。需要支持 NFC 的手机、印在 DNI 上的 6 位 CAN 号码以及您的 PIN。</string>
+    <string name="ayuda_verificar_original">如果签名保存在与文档分离的文件中（分离式签名），请在此选择原始文档以便验证。如果已签名文件本身包含文档，例如已签名的 PDF，请留空。</string>
+    <string name="ayuda_sellado_tiempo">为签名添加由外部可信服务担保的日期和时间（时间戳）。这样即使证书之后过期，也能证明签名的时间。需要连接互联网。</string>
+    <string name="ayuda_tsa_servidor">为签名加上受担保日期和时间的服务地址（时间戳机构，TSA）。除非您的机构另有指定，否则请保持不变。</string>
+    <string name="ayuda_verificar_informe">保存验证结果。HTML 报告可阅读和打印；JSON 文件包含供技术支持或其他程序使用的技术数据。</string>
+    <string name="ayuda_verificar_integridad">表示文档是否与签名时完全一致。如果未通过，说明内容在签名后被修改过。</string>
+    <string name="ayuda_verificar_confianza">表示签名人的证书是否由受认可的机构签发，例如 FNMT，或 DNIe 所对应的西班牙国家警察（Policía Nacional）。若不受信任，签名在技术上可能正确，但无法确定签名人身份。</string>
+    <string name="ayuda_verificar_cobertura">表示签名保护文档的哪一部分。如果签名后添加了更改，例如 PDF 中的其他签名或批注，签名只覆盖这些更改之前的版本。</string>
+    <string name="ayuda_sello_estilo">印章外观：带机构徽标、仅文字或使用自定义图片。只改变外观，签名的有效性不变。</string>
+    <string name="ayuda_sello_opacidad">表示印章是否透出下方的内容。设为最大值时会遮住页面内容；数值越低，越能透过它看到内容。</string>
+    <string name="ayuda_sello_imagen">印章中显示的图片，例如您所在机构的标志。可以使用自己的 PNG 或 JPEG 图片，也可以不放图片。</string>
+    <string name="ayuda_sello_texto">在印章中显示签名人姓名、日期及其他签名信息。如果关闭此项，印章只显示所选图片。</string>
+    <string name="ayuda_sello_qr">在印章上添加一个二维码，可打开您指定的网址，例如您所在网站的验证页面。此项可选，且网址必须是安全的（https）。</string>
+    <string name="ayuda_sello_csv">安全验证码（CSV）：印在印章上的一个代码和一个网址，使任何人都能在您机构的网站上核验该文档。仅在您的机构为您提供该代码和网址时使用。</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">印章出现在 PDF 的哪些页：第一页、最后一页、全部页面或您指定的页面，例如“1,3-5”。如不确定，请放在最后一页。</string>
+    <string name="ayuda_sello_idioma">印章文字的语言，例如“签名人”和日期。不会改变应用的语言。</string>
+    <string name="ayuda_sesion_certificado">应用转入后台后关闭证书前的时长。这样即使您未锁定手机，也无人能用它签名；时间越短越安全。</string>
+    <string name="ayuda_lote">使用同一证书和相同选项一次签署多个文档。完成后，应用会显示哪些已签名、哪些未签名。</string>
+    <string name="ayuda_huella">哈希是根据文件内容计算出的一段简短代码，哪怕只修改一个字符也会完全改变。请在保存文件时创建哈希，之后再校验，以确认文件是否完好无损。</string>
+    <string name="ayuda_huella_algoritmo">计算哈希所用的方法。推荐使用 SHA-256。SHA-1 已过时，仅应用于与先前用它计算的哈希进行比较。</string>
+    <string name="ayuda_huella_formato">哈希在保存文件中的书写方式：十六进制（字母和数字）、Base64 或二进制。除非其他程序要求特定格式，否则请保留默认选择。</string>
+    <string name="ayuda_proteger">加密文件，使只有您选定的人能用其电子证书打开。保护不等于签名：它能阻止他人阅读内容，但不能表明发送者是谁。</string>
+    <string name="ayuda_desproteger">打开他人为您保护的文件。需要保护时所选接收方之一的证书；如果是用密钥保护的，则需要该密钥。</string>
+    <string name="ayuda_proteger_destinatarios">能够打开受保护文件的人。需要每个人的公开证书，可以向其索取或从文件加载。如果您之后也想打开，请把自己也加进来。</string>
+    <string name="ayuda_proteger_contenedor">生成的受保护文件类型。CMS 格式是标准格式，其他程序可以打开；专有格式（.afp）只能用 GrxFirma 打开。如果不确定选哪个，请保留默认选择。</string>
+    <string name="ayuda_proteger_clave">不使用证书，而是用随机密钥保护文件；您必须妥善保存该密钥，并通过安全渠道交付。应用不会保存它：没有该密钥，任何人都无法打开文档。</string>
+    <string name="ayuda_proteger_firmar">在保护文件的同时，用您的证书对其签名。这样打开者就能知道是谁发送的，以及文件未被修改。</string>
+    <string name="ayuda_eni_documento">按照西班牙国家互操作性框架（ENI）准备电子文档，这是各级政府机关交换文档所用的格式。它将文件、其签名和若干必填描述信息合为一体。</string>
+    <string name="ayuda_eni_expediente">将多个 ENI 文档汇集成一个带已签名索引的案卷，以满足政府机关移交完整案卷的要求，例如移交法院。</string>
+    <string name="ayuda_eni_metadatos">描述文档的信息：创建机关、日期、来源、编制状态和文档类型。这些在 ENI 中是必填的；如对某个值有疑问，请咨询您的登记或档案部门。</string>
+    <string name="ayuda_eni_origen">表示文档由谁创建：政府机关自身，或提交该文档的公民或企业。</string>
+    <string name="ayuda_eni_estado_elaboracion">表示文档是原件还是副本，以及属于哪种类型。如果是您所在部门创建的，通常是原件。</string>
+    <string name="ayuda_verifactu">Veri*Factu 是西班牙税务局 Agencia Tributaria (AEAT) 推行的系统，使发票带有可核验的二维码。您可以在此读取该二维码或开票记录并查看其数据；只有在您要求时才会查询税务局。</string>
+    <string name="ayuda_certificado_tipo">按证书所代表的对象划分的类别：自然人、企业或单位的代表、公职人员或机构印章。用于筛选列表并选择手续所要求的证书。</string>
+    <string name="ayuda_verificar_revocacion">检查签名人的证书在签名时是否已被作废（吊销），例如因遗失或被盗。该查询会通过互联网向签发证书的机构进行。</string>
 </resources>

@@ -5,10 +5,15 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
 <!-- Recorrido en pasos: 1. Documento, 2. Certificado, 3. Firmar o verificar
-     y resultado justo debajo. Lo avanzado y las demás herramientas, plegado. -->
+     y resultado justo debajo. Lo avanzado y las demás herramientas, plegado.
+     Pasa de 80 vistas por los botones «?» de ayuda (cada uno con su fila): son
+     vistas simples en un formulario con desplazamiento; separarlo en «include»
+     obligaría a reescribir todas las referencias de la pantalla. -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
+    tools:ignore="TooManyViews"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -137,15 +142,30 @@
                     android:text="@string/original_document_helper"
                     android:textColor="@color/on_surface" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/selectOriginalDocumentButton"
-                    style="@style/Widget.Material3.Button.TextButton"
+                <LinearLayout
+                    android:id="@+id/selectOriginalDocumentRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:gravity="start|center_vertical"
-                    android:minHeight="48dp"
-                    android:text="@string/select_original_document" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/selectOriginalDocumentButton"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:gravity="start|center_vertical"
+                        android:minHeight="48dp"
+                        android:text="@string/select_original_document" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/selectOriginalDocumentHelp"
+                        style="@style/Widget.GrxFirma.HelpButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/originalDocumentSummary"
@@ -185,23 +205,53 @@
                     android:text="@string/certificate_helper"
                     android:textColor="@color/on_surface" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/selectCertificateFileButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                <LinearLayout
+                    android:id="@+id/selectCertificateFileRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/control_spacing"
-                    android:minHeight="48dp"
-                    android:text="@string/select_pkcs12" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/selectDnieNfcButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/selectCertificateFileButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:text="@string/select_pkcs12" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/selectCertificateFileHelp"
+                        style="@style/Widget.GrxFirma.HelpButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/selectDnieNfcRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:minHeight="48dp"
-                    android:text="@string/dnie_nfc_choice" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/selectDnieNfcButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:text="@string/dnie_nfc_choice" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/selectDnieNfcHelp"
+                        style="@style/Widget.GrxFirma.HelpButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/dnieHint"
@@ -314,14 +364,29 @@
                     android:textColor="@color/on_surface"
                     android:textStyle="bold" />
 
-                <CheckBox
-                    android:id="@+id/visibleSealCheck"
+                <LinearLayout
+                    android:id="@+id/visibleSealRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:minHeight="48dp"
-                    android:text="@string/seal_visible"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <CheckBox
+                        android:id="@+id/visibleSealCheck"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:text="@string/seal_visible" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/visibleSealHelp"
+                        style="@style/Widget.GrxFirma.HelpButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp" />
+                </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/editVisibleSealButton"
@@ -378,21 +443,37 @@
                     android:orientation="vertical"
                     android:visibility="gone">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/signatureActionLayout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                <LinearLayout
+                    android:id="@+id/signatureActionRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/control_spacing"
-                    android:hint="@string/signature_action">
+                    android:gravity="top"
+                    android:orientation="horizontal">
 
-                    <io.github.aavidad.grxfirma.android.ui.DropdownField
-                        android:id="@+id/signatureAction"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/signatureActionLayout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:entries="@array/signature_actions"
-                        android:minHeight="48dp" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:hint="@string/signature_action">
+
+                        <io.github.aavidad.grxfirma.android.ui.DropdownField
+                            android:id="@+id/signatureAction"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/signature_actions"
+                            android:minHeight="48dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/signatureActionHelp"
+                        style="@style/Widget.GrxFirma.HelpButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -419,59 +500,103 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/signatureProfileHelp"
-                        style="@style/Widget.Material3.Button.IconButton"
+                        style="@style/Widget.GrxFirma.HelpButton"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:layout_marginStart="4dp"
                         android:contentDescription="@string/profile_help_name"
-                        android:tooltipText="@string/profile_help_name"
-                        app:icon="@drawable/ic_help"
-                        app:iconTint="?attr/colorPrimary" />
+                        android:tooltipText="@string/profile_help_name" />
                 </LinearLayout>
 
-                <CheckBox
-                    android:id="@+id/tsaEnabled"
+                <LinearLayout
+                    android:id="@+id/tsaEnabledRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="48dp"
-                    android:text="@string/tsa_enabled" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tsaUrlLayout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/tsa_url"
-                    android:visibility="gone"
-                    app:helperText="@string/tsa_helper"
-                    app:placeholderText="@string/tsa_url_example">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/tsaUrl"
-                        android:layout_width="match_parent"
+                    <CheckBox
+                        android:id="@+id/tsaEnabled"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:importantForAutofill="no"
-                        android:inputType="textUri"
-                        android:maxLength="2048"
                         android:minHeight="48dp"
-                        android:singleLine="true" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:text="@string/tsa_enabled" />
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/signatureFormatLayout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tsaEnabledHelp"
+                        style="@style/Widget.GrxFirma.HelpButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tsaUrlRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:gravity="top"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tsaUrlLayout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/tsa_url"
+                        app:helperText="@string/tsa_helper"
+                        app:placeholderText="@string/tsa_url_example">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/tsaUrl"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:importantForAutofill="no"
+                            android:inputType="textUri"
+                            android:maxLength="2048"
+                            android:minHeight="48dp"
+                            android:singleLine="true" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tsaUrlHelp"
+                        style="@style/Widget.GrxFirma.HelpButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/signatureFormatRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/control_spacing"
-                    android:hint="@string/signature_format">
+                    android:gravity="top"
+                    android:orientation="horizontal">
 
-                    <io.github.aavidad.grxfirma.android.ui.DropdownField
-                        android:id="@+id/signatureFormat"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/signatureFormatLayout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:entries="@array/signature_formats"
-                        android:minHeight="48dp" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:hint="@string/signature_format">
+
+                        <io.github.aavidad.grxfirma.android.ui.DropdownField
+                            android:id="@+id/signatureFormat"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/signature_formats"
+                            android:minHeight="48dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/signatureFormatHelp"
+                        style="@style/Widget.GrxFirma.HelpButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
                 </LinearLayout>
 
                 <TextView
@@ -589,6 +714,77 @@
                             android:textIsSelectable="true"
                             android:visibility="gone" />
 
+                        <!-- Qué significa cada comprobación: un «?» por concepto; con poco ancho pasan a otra línea. -->
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/verificationHelpGroup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:visibility="gone"
+                            app:chipSpacingHorizontal="16dp"
+                            app:chipSpacingVertical="0dp">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/ayuda_tema_integridad"
+                                    android:textColor="@color/on_surface" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/verificationIntegrityHelp"
+                                    style="@style/Widget.GrxFirma.HelpButton"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/ayuda_tema_confianza"
+                                    android:textColor="@color/on_surface" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/verificationTrustHelp"
+                                    style="@style/Widget.GrxFirma.HelpButton"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/ayuda_tema_cobertura"
+                                    android:textColor="@color/on_surface" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/verificationCoverageHelp"
+                                    style="@style/Widget.GrxFirma.HelpButton"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp" />
+                            </LinearLayout>
+                        </com.google.android.material.chip.ChipGroup>
+
                         <!-- Evidencias del motor: plegadas de inicio, para quien las necesite. -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/toggleVerificationTechnicalButton"
@@ -611,13 +807,28 @@
                             android:textIsSelectable="true"
                             android:visibility="gone" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/exportReportHtmlButton"
+                        <LinearLayout
+                            android:id="@+id/exportReportRow"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:minHeight="48dp"
-                            android:text="@string/export_verification_report_html"
-                            android:visibility="gone" />
+                            android:visibility="gone"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/exportReportHtmlButton"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:minHeight="48dp"
+                                android:text="@string/export_verification_report_html" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/exportReportHelp"
+                                style="@style/Widget.GrxFirma.HelpButton"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp" />
+                        </LinearLayout>
 
                         <com.google.android.material.button.MaterialButton
                     android:id="@+id/exportReportButton"

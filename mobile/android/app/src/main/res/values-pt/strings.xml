@@ -4,7 +4,7 @@
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">Pronto para assinar</string>
     <string name="backend_unavailable_title">Esta instalação não pode assinar</string>
@@ -671,4 +671,58 @@
     <string name="profile_help_lt">LT: guarda ainda no documento a cadeia de certificados e a prova de que não estavam revogados nesse momento. Assim, a assinatura poderá ser verificada daqui a anos, mesmo que o certificado expire ou a autoridade que o emitiu deixe de responder.</string>
     <string name="profile_help_lta">LTA: acrescenta ainda um carimbo temporal de arquivo, pensado para conservar o documento durante muitos anos.</string>
     <string name="profile_help_internet">T, LT e LTA precisam de ligação à Internet no momento da assinatura.</string>
+    <string name="ayuda_boton_nombre">Ajuda sobre %1$s</string>
+    <string name="ayuda_tema_integridad">Integridade</string>
+    <string name="ayuda_tema_confianza">Confiança</string>
+    <string name="ayuda_tema_cobertura">Cobertura</string>
+    <string name="ayuda_operacion_firma">Cria a primeira assinatura de um documento que ainda não está assinado. É a opção habitual.</string>
+    <string name="ayuda_operacion_cofirma">Acrescenta a sua assinatura a um documento já assinado por outra pessoa, ao mesmo nível das assinaturas existentes. Utilize-a quando várias pessoas assinam o mesmo documento, por exemplo as duas partes de um protocolo.</string>
+    <string name="ayuda_operacion_contrafirma">Assina sobre uma assinatura anterior para lhe dar o visto, em vez de assinar o documento separadamente. Utilize-a quando a sua assinatura deva validar a de outra pessoa, por exemplo a de um superior sobre a de um técnico.</string>
+    <string name="ayuda_formato">O formato decide como a assinatura é guardada: dentro do próprio ficheiro ou num ficheiro à parte. Se não souber qual escolher, deixe «Automático» e a aplicação escolherá o adequado consoante o tipo de ficheiro.</string>
+    <string name="ayuda_formato_pades">Formato de assinatura para PDF. A assinatura fica dentro do próprio PDF e qualquer leitor de PDF a mostra e verifica. É o recomendado para documentos PDF.</string>
+    <string name="ayuda_formato_cades" tools:ignore="Typos">Formato de assinatura válido para qualquer tipo de ficheiro. Cria um novo ficheiro de assinatura, separado do original ou que o inclui; para o verificar é necessário um programa de assinatura eletrónica.</string>
+    <string name="ayuda_formato_xades">Formato de assinatura baseado em XML. É o habitual para assinar ficheiros XML e o exigido por alguns procedimentos da Administração.</string>
+    <string name="ayuda_formato_xmldsig">Assinatura XML básica, sem os dados adicionais que o XAdES acrescenta. Utilize-a apenas se quem recebe o ficheiro a pedir expressamente; caso contrário, escolha XAdES.</string>
+    <string name="ayuda_formato_odf">Assina documentos do LibreOffice ou OpenOffice (.odt, .ods, .odp). A assinatura fica dentro do documento e esses programas reconhecem-na.</string>
+    <string name="ayuda_formato_ooxml">Assina documentos do Microsoft Office (.docx, .xlsx, .pptx). A assinatura fica dentro do documento e o Office reconhece-a.</string>
+    <string name="ayuda_formato_facturae" tools:ignore="Typos">Formato obrigatório para assinar faturas eletrónicas Facturae, as que se apresentam à Administração espanhola através do FACe. Utilize-o apenas com ficheiros de fatura eletrónica.</string>
+    <string name="ayuda_formato_asic">Guarda o documento e a respetiva assinatura juntos num único ficheiro comprimido (contentor ASiC). É útil para enviar ambos ao mesmo tempo sem que se separem.</string>
+    <string name="ayuda_formato_verifactu">Assina um registo de faturação Veri*Factu, o ficheiro XML enviado à Agência Tributária espanhola. Só aparece quando o ficheiro escolhido é um desses registos.</string>
+    <string name="ayuda_sello_visible">Desenha no PDF uma caixa com o seu nome e a data, semelhante a uma assinatura manuscrita. A assinatura é igualmente válida sem ela, mas ajuda a ver de relance que o documento está assinado. Só está disponível para PDF.</string>
+    <string name="ayuda_certificado_importar_p12">Acrescenta um certificado guardado num ficheiro .p12 ou .pfx, por exemplo a cópia de segurança do seu certificado da FNMT. Será pedida a palavra-passe definida ao exportá-lo.</string>
+    <string name="ayuda_dnie_nfc" tools:ignore="Typos">Assina com o seu DNI eletrónico aproximando-o da parte de trás do telemóvel. Requer um telemóvel com NFC, o número CAN de 6 algarismos impresso no DNI e o respetivo PIN.</string>
+    <string name="ayuda_verificar_original">Se a assinatura estiver num ficheiro separado do documento (assinatura destacada), escolha aqui o documento original para a poder verificar. Se o ficheiro assinado já contiver o documento, como um PDF assinado, deixe vazio.</string>
+    <string name="ayuda_sellado_tiempo">Acrescenta à assinatura a data e a hora garantidas por um serviço externo de confiança (carimbo temporal). Assim é possível provar quando foi assinado, mesmo que o certificado expire depois. Requer ligação à internet.</string>
+    <string name="ayuda_tsa_servidor">Endereço do serviço que atribui à assinatura a data e a hora garantidas (autoridade de carimbo temporal ou TSA). Mantenha-o como está, a menos que o seu organismo indique outro.</string>
+    <string name="ayuda_verificar_informe">Guarda o resultado da verificação. O relatório HTML pode ser lido e impresso; o ficheiro JSON contém os dados técnicos para o suporte ou para outros programas.</string>
+    <string name="ayuda_verificar_integridad">Indica se o documento continua exatamente igual a quando foi assinado. Se falhar, o conteúdo foi modificado depois da assinatura.</string>
+    <string name="ayuda_verificar_confianza">Indica se o certificado do signatário foi emitido por uma entidade reconhecida, como a FNMT ou a Policía Nacional espanhola no caso do DNIe. Sem confiança, a assinatura pode estar tecnicamente correta, mas não é possível garantir quem a fez.</string>
+    <string name="ayuda_verificar_cobertura">Indica que parte do documento a assinatura protege. Se foram acrescentadas alterações depois da assinatura, como outras assinaturas ou anotações num PDF, a assinatura só abrange a versão anterior a essas alterações.</string>
+    <string name="ayuda_sello_estilo">Aspeto do selo: com o emblema institucional, só com texto ou com uma imagem própria. Muda apenas a aparência; a validade da assinatura é a mesma.</string>
+    <string name="ayuda_sello_opacidad">Indica se o selo deixa ver o que está por baixo. No máximo, tapa o conteúdo da página; com valores mais baixos vê-se através dele.</string>
+    <string name="ayuda_sello_imagen">Imagem que aparece no selo, por exemplo o logótipo do seu organismo. Pode utilizar uma imagem PNG ou JPEG própria ou não colocar nenhuma.</string>
+    <string name="ayuda_sello_texto">Mostra no selo o nome de quem assina, a data e outros dados da assinatura. Se desativar esta opção, o selo mostra apenas a imagem escolhida.</string>
+    <string name="ayuda_sello_qr">Acrescenta ao selo um código QR que abre o endereço web indicado, por exemplo a página de verificação do seu portal. É opcional e o endereço tem de ser seguro (https).</string>
+    <string name="ayuda_sello_csv">Código seguro de verificação (CSV): um código e um endereço web impressos no selo para que qualquer pessoa possa verificar o documento no portal do seu organismo. Utilize-o apenas se o seu organismo lhe fornecer esse código e esse endereço.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Páginas do PDF em que o selo aparece: a primeira, a última, todas ou as indicadas, por exemplo «1,3-5». Em caso de dúvida, coloque-o na última página.</string>
+    <string name="ayuda_sello_idioma">Idioma dos textos do selo, como «Assinado por» e a data. Não altera o idioma da aplicação.</string>
+    <string name="ayuda_sesion_certificado">Tempo após o qual a aplicação fecha o certificado se ficar em segundo plano. Assim ninguém pode assinar com ele se o telemóvel ficar desbloqueado; quanto mais curto, mais seguro.</string>
+    <string name="ayuda_lote">Assina vários documentos de uma só vez com o mesmo certificado e as mesmas opções. No fim, a aplicação indica quais foram assinados e quais não.</string>
+    <string name="ayuda_huella">O hash é um código curto calculado a partir do conteúdo de um ficheiro, que muda por completo se um único carácter for alterado. Crie-o ao guardar um ficheiro e verifique-o mais tarde para saber se continua intacto.</string>
+    <string name="ayuda_huella_algoritmo">Método usado para calcular o hash. Recomenda-se SHA-256. O SHA-1 é antigo e só deve ser usado para comparar com hashes já calculados com ele.</string>
+    <string name="ayuda_huella_formato">Como o hash é escrito no ficheiro guardado: em hexadecimal (letras e números), em Base64 ou em binário. Mantenha o que está selecionado, a menos que outro programa exija um concreto.</string>
+    <string name="ayuda_proteger" tools:ignore="Typos">Cifra um ficheiro para que só as pessoas escolhidas o possam abrir com o respetivo certificado eletrónico. Proteger não é assinar: impede a leitura do conteúdo, mas não indica quem o enviou.</string>
+    <string name="ayuda_desproteger">Abre um ficheiro que alguém protegeu para si. Requer o certificado de um dos destinatários escolhidos ao protegê-lo ou, se foi protegido com uma chave, essa chave.</string>
+    <string name="ayuda_proteger_destinatarios">Pessoas que poderão abrir o ficheiro protegido. De cada uma é necessário o certificado público, que pode pedir-lhe ou carregar a partir de um ficheiro. Adicione-se também a si próprio se quiser poder abri-lo depois.</string>
+    <string name="ayuda_proteger_contenedor">Tipo de ficheiro protegido gerado. Os formatos CMS são normalizados e outros programas podem abri-los; o formato próprio (.afp) só abre com o GrxFirma. Se não souber qual escolher, mantenha o que está selecionado.</string>
+    <string name="ayuda_proteger_clave">Em vez de usar certificados, protege o ficheiro com uma chave aleatória que deve guardar e entregar por um canal seguro. A aplicação não a guarda: sem essa chave ninguém poderá abrir o documento.</string>
+    <string name="ayuda_proteger_firmar">Além de proteger o ficheiro, assina-o com o seu certificado. Assim, quem o abrir sabe quem o enviou e que não foi modificado.</string>
+    <string name="ayuda_eni_documento" tools:ignore="Typos">Prepara um documento eletrónico segundo o Esquema Nacional de Interoperabilidade (ENI) espanhol, o formato usado pelas administrações para trocar documentos. Junta o ficheiro, a respetiva assinatura e alguns dados descritivos obrigatórios.</string>
+    <string name="ayuda_eni_expediente">Agrupa vários documentos ENI num processo com o respetivo índice assinado, como exige a Administração para remeter processos completos, por exemplo a um tribunal.</string>
+    <string name="ayuda_eni_metadatos">Dados que descrevem o documento: o órgão que o cria, a data, a origem, o estado de elaboração e o tipo documental. São obrigatórios no ENI; em caso de dúvida sobre algum valor, consulte a sua unidade de registo ou de arquivo.</string>
+    <string name="ayuda_eni_origen">Indica quem criou o documento: a própria Administração ou um cidadão ou empresa que o apresentou.</string>
+    <string name="ayuda_eni_estado_elaboracion">Indica se o documento é um original ou uma cópia, e de que tipo. Se foi criado pela sua própria unidade, normalmente é um original.</string>
+    <string name="ayuda_verifactu">O Veri*Factu é o sistema da Agência Tributária espanhola para que as faturas incluam um código QR verificável. Aqui pode ler esse QR ou um registo de faturação e ver os respetivos dados; a Agência Tributária só é consultada se o pedir.</string>
+    <string name="ayuda_certificado_tipo">Classe de certificado consoante quem representa: uma pessoa singular, o representante de uma empresa ou entidade, um funcionário público ou o selo de um organismo. Serve para filtrar a lista e escolher o certificado exigido pelo procedimento.</string>
+    <string name="ayuda_verificar_revocacion">Verifica se o certificado do signatário estava anulado (revogado) no momento da assinatura, por exemplo por perda ou roubo. A consulta é feita pela internet à entidade que emitiu o certificado.</string>
 </resources>

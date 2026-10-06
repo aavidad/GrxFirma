@@ -20,17 +20,32 @@
         android:text="@string/tools_helper"
         android:textColor="@color/on_surface" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/toggleBatchButton"
-        style="@style/Widget.Material3.Button.TextButton"
+    <LinearLayout
+        android:id="@+id/batchRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:gravity="start|center_vertical"
-        android:minHeight="48dp"
-        android:text="@string/batch_title"
-        app:icon="@drawable/ic_expand_more"
-        app:iconGravity="end" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/toggleBatchButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
+            android:text="@string/batch_title"
+            app:icon="@drawable/ic_expand_more"
+            app:iconGravity="end" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/batchHelp"
+            style="@style/Widget.GrxFirma.HelpButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/batchGroup"
@@ -123,45 +138,92 @@
             android:text="@string/hash_helper"
             android:textColor="@color/on_surface" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/hashAlgorithmLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        <LinearLayout
+            android:id="@+id/hashAlgorithmRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:hint="@string/hash_algorithm">
+            android:gravity="top"
+            android:orientation="horizontal">
 
-            <io.github.aavidad.grxfirma.android.ui.DropdownField
-                android:id="@+id/hashAlgorithm"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/hashAlgorithmLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:entries="@array/hash_algorithms"
-                android:minHeight="48dp" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/hash_algorithm">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/hashFormatLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                <io.github.aavidad.grxfirma.android.ui.DropdownField
+                    android:id="@+id/hashAlgorithm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/hash_algorithms"
+                    android:minHeight="48dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/hashAlgorithmHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/hashFormatRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:hint="@string/hash_format">
+            android:gravity="top"
+            android:orientation="horizontal">
 
-            <io.github.aavidad.grxfirma.android.ui.DropdownField
-                android:id="@+id/hashFormat"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/hashFormatLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:entries="@array/hash_formats"
-                android:minHeight="48dp" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/hash_format">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/createHashButton"
+                <io.github.aavidad.grxfirma.android.ui.DropdownField
+                    android:id="@+id/hashFormat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/hash_formats"
+                    android:minHeight="48dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/hashFormatHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/createHashRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:minHeight="48dp"
-            android:text="@string/hash_create" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/createHashButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/hash_create" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/createHashHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp" />
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/checkHashButton"
@@ -203,21 +265,37 @@
             android:text="@string/protect_helper"
             android:textColor="@color/on_surface" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/protectionContainerLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        <LinearLayout
+            android:id="@+id/protectionContainerRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:hint="@string/protect_container">
+            android:gravity="top"
+            android:orientation="horizontal">
 
-            <io.github.aavidad.grxfirma.android.ui.DropdownField
-                android:id="@+id/protectionContainer"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/protectionContainerLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:entries="@array/protect_containers"
-                android:minHeight="48dp" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/protect_container">
+
+                <io.github.aavidad.grxfirma.android.ui.DropdownField
+                    android:id="@+id/protectionContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/protect_containers"
+                    android:minHeight="48dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/protectionContainerHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
 
         <CheckBox
             android:id="@+id/protectForMe"
@@ -227,14 +305,29 @@
             android:minHeight="48dp"
             android:text="@string/protect_for_me" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/addRecipientButton"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+        <LinearLayout
+            android:id="@+id/addRecipientRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:minHeight="48dp"
-            android:text="@string/protect_add_recipient" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/addRecipientButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/protect_add_recipient" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/addRecipientHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/recipientsSummary"
@@ -255,27 +348,43 @@
             android:text="@string/protect_clear_recipients"
             android:visibility="gone" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/protectKeyLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        <LinearLayout
+            android:id="@+id/protectKeyRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:hint="@string/protect_key"
-            app:endIconMode="password_toggle"
-            app:helperText="@string/protect_key_helper">
+            android:gravity="top"
+            android:orientation="horizontal">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/protectKey"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/protectKeyLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:importantForAutofill="noExcludeDescendants"
-                android:inputType="textPassword|textNoSuggestions"
-                android:maxLength="44"
-                android:minHeight="48dp"
-                android:saveEnabled="false"
-                android:singleLine="true" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/protect_key"
+                app:endIconMode="password_toggle"
+                app:helperText="@string/protect_key_helper">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/protectKey"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:importantForAutofill="noExcludeDescendants"
+                    android:inputType="textPassword|textNoSuggestions"
+                    android:maxLength="44"
+                    android:minHeight="48dp"
+                    android:saveEnabled="false"
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/protectKeyHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/protectKeyConfirmLayout"
@@ -307,22 +416,52 @@
             android:minHeight="48dp"
             android:text="@string/protect_generate_key" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/protectButton"
+        <LinearLayout
+            android:id="@+id/protectRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:minHeight="48dp"
-            android:text="@string/protect_button" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/protectSignButton"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/protectButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/protect_button" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/protectHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/protectSignRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:minHeight="48dp"
-            android:text="@string/protect_sign_button" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/protectSignButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/protect_sign_button" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/protectSignHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp" />
+        </LinearLayout>
 
         <TextView
             style="@style/TextAppearance.Material3.BodyMedium"
@@ -332,14 +471,29 @@
             android:text="@string/unprotect_helper"
             android:textColor="@color/on_surface" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/unprotectButton"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+        <LinearLayout
+            android:id="@+id/unprotectRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:minHeight="48dp"
-            android:text="@string/unprotect_button" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/unprotectButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/unprotect_button" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/unprotectHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/unprotectHint"

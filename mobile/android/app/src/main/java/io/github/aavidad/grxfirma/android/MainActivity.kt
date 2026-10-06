@@ -62,6 +62,8 @@ import io.github.aavidad.grxfirma.android.ui.FormatPolicy
 import io.github.aavidad.grxfirma.android.ui.EniForm
 import io.github.aavidad.grxfirma.android.ui.EngineText
 import io.github.aavidad.grxfirma.android.ui.ProfileHelp
+import io.github.aavidad.grxfirma.android.ui.HelpButton
+import io.github.aavidad.grxfirma.android.ui.ContextHelp
 import io.github.aavidad.grxfirma.android.model.EniRequest
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointBackward
@@ -321,6 +323,7 @@ class MainActivity : AppCompatActivity() {
             ViewCompat.setAccessibilityHeading(resultSectionTitle, true)
             ViewCompat.setAccessibilityHeading(documents.documentsSectionTitle, true)
         }
+        configureHelp()
         savedInstanceState?.getIntArray(STATE_EXPANDED_TOOLS)?.let { expandedTools.addAll(it.toList()) }
         wave4 = Wave4Screen(this, viewModel, dnieAccess)
         wave4.bind(binding.documents.expediente, binding.tools.batchWave4,
@@ -609,7 +612,7 @@ class MainActivity : AppCompatActivity() {
             onSelect = viewModel::selectIdentity, onClose = ::closeIdentity)
         identityAddHint.visibility = if (state.canKeepSeveralIdentities && state.identities.size == 1 &&
             state.canReplaceSelection) View.VISIBLE else View.GONE
-        checkCertificateOnlineButton.visibility = if (state.certificate != null &&
+        checkCertificateOnlineRow.visibility = if (state.certificate != null &&
             PlatformServicesVisibility.online(state)) View.VISIBLE else View.GONE
         checkCertificateOnlineButton.isEnabled = state.canCheckCertificateOnline
         updatingCertificateFilter = true
@@ -646,11 +649,49 @@ class MainActivity : AppCompatActivity() {
 
     /** Explica en lenguaje llano qué añade cada perfil de firma. */
     private fun showProfileHelp() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.profile_help_title)
-            .setMessage(ProfileHelp.message(::getString))
-            .setPositiveButton(R.string.help_close, null)
-            .show()
+        HelpButton.show(this, getString(R.string.profile_help_title), ProfileHelp.message(::getString))
+    }
+
+    /** Los «?» de la pantalla principal: cada uno junto a su control, con la etiqueta de este en su nombre. */
+    private fun configureHelp() = with(binding) {
+        HelpButton.bind(selectOriginalDocumentHelp, R.string.select_original_document, R.string.ayuda_verificar_original)
+        HelpButton.bind(selectCertificateFileHelp, R.string.select_pkcs12, R.string.ayuda_certificado_importar_p12)
+        HelpButton.bind(selectDnieNfcHelp, R.string.dnie_nfc_choice, R.string.ayuda_dnie_nfc)
+        HelpButton.bind(visibleSealHelp, R.string.seal_visible, R.string.ayuda_sello_visible)
+        HelpButton.bindSections(signatureActionHelp, R.string.signature_action) { ContextHelp.OPERATIONS }
+        HelpButton.bind(tsaEnabledHelp, R.string.tsa_enabled, R.string.ayuda_sellado_tiempo)
+        HelpButton.bind(tsaUrlHelp, R.string.tsa_url, R.string.ayuda_tsa_servidor)
+        HelpButton.bindSections(signatureFormatHelp, R.string.signature_format) {
+            ContextHelp.format(formatMenu.getOrElse(signatureFormat.selectedItemPosition) { "auto" })
+        }
+        HelpButton.bind(exportReportHelp, R.string.export_verification_report_html, R.string.ayuda_verificar_informe)
+        HelpButton.bind(verificationIntegrityHelp, R.string.ayuda_tema_integridad, R.string.ayuda_verificar_integridad)
+        HelpButton.bind(verificationTrustHelp, R.string.ayuda_tema_confianza, R.string.ayuda_verificar_confianza)
+        HelpButton.bind(verificationCoverageHelp, R.string.ayuda_tema_cobertura, R.string.ayuda_verificar_cobertura)
+        with(certificatePanel) {
+            HelpButton.bind(certificateKindHelp, R.string.cert_filter_kind, R.string.ayuda_certificado_tipo)
+            HelpButton.bind(checkCertificateOnlineHelp, R.string.cert_check_online, R.string.ayuda_verificar_revocacion)
+        }
+        with(tools) {
+            HelpButton.bind(batchHelp, R.string.batch_title, R.string.ayuda_lote)
+            HelpButton.bind(hashAlgorithmHelp, R.string.hash_algorithm, R.string.ayuda_huella_algoritmo)
+            HelpButton.bind(hashFormatHelp, R.string.hash_format, R.string.ayuda_huella_formato)
+            HelpButton.bind(createHashHelp, R.string.hash_create, R.string.ayuda_huella)
+            HelpButton.bind(protectionContainerHelp, R.string.protect_container, R.string.ayuda_proteger_contenedor)
+            HelpButton.bind(addRecipientHelp, R.string.protect_add_recipient, R.string.ayuda_proteger_destinatarios)
+            HelpButton.bind(protectKeyHelp, R.string.protect_key, R.string.ayuda_proteger_clave)
+            HelpButton.bind(protectHelp, R.string.protect_button, R.string.ayuda_proteger)
+            HelpButton.bind(protectSignHelp, R.string.protect_sign_button, R.string.ayuda_proteger_firmar)
+            HelpButton.bind(unprotectHelp, R.string.unprotect_button, R.string.ayuda_desproteger)
+        }
+        with(documents) {
+            HelpButton.bind(verifactuHelp, R.string.verifactu_title, R.string.ayuda_verifactu)
+            HelpButton.bind(eniHelp, R.string.eni_title, R.string.ayuda_eni_documento)
+            HelpButton.bind(eniMetadataHelp, R.string.eni_organ, R.string.ayuda_eni_metadatos)
+            HelpButton.bind(eniOriginHelp, R.string.eni_origin, R.string.ayuda_eni_origen)
+            HelpButton.bind(eniStateHelp, R.string.eni_state, R.string.ayuda_eni_estado_elaboracion)
+            HelpButton.bind(expediente.expedienteHelp, R.string.expediente_title, R.string.ayuda_eni_expediente)
+        }
     }
 
     /** Descartar es irreversible: se confirma antes, con el botón seguro por defecto. */
@@ -787,9 +828,9 @@ class MainActivity : AppCompatActivity() {
         val any = state.verifactuAvailable || state.eniDocumentAvailable || state.eniValidateAvailable
         documentsHelper.setText(if (any) R.string.documents_helper else R.string.documents_unavailable)
         val idle = state.canReplaceSelection
-        toggleVerifactuButton.visibility = if (state.verifactuAvailable) View.VISIBLE else View.GONE
+        verifactuRow.visibility = if (state.verifactuAvailable) View.VISIBLE else View.GONE
         if (!state.verifactuAvailable) verifactuGroup.visibility = View.GONE
-        toggleEniButton.visibility = if (state.eniDocumentAvailable || state.eniValidateAvailable) View.VISIBLE else View.GONE
+        eniRow.visibility = if (state.eniDocumentAvailable || state.eniValidateAvailable) View.VISIBLE else View.GONE
         if (!state.eniDocumentAvailable && !state.eniValidateAvailable) eniGroup.visibility = View.GONE
         selectVerifactuButton.isEnabled = state.verifactuAvailable && idle
         verifactuSummary.text = if (state.verifactuRecords.isEmpty()) getString(R.string.verifactu_none) else
@@ -961,7 +1002,7 @@ class MainActivity : AppCompatActivity() {
         val transient = state.usesTransientKey
         protectForMe.visibility = if (transient) View.GONE else View.VISIBLE
         protectForMe.isEnabled = idle && state.certificate != null && !state.certificateExternal
-        addRecipientButton.visibility = protectForMe.visibility
+        addRecipientRow.visibility = protectForMe.visibility
         addRecipientButton.isEnabled = state.canUseTools && state.recipients.size < ToolsPolicy.MAX_RECIPIENTS
         recipientsSummary.visibility = protectForMe.visibility
         recipientsSummary.text = if (state.recipients.isEmpty()) getString(R.string.protect_recipients_none) else
@@ -970,14 +1011,14 @@ class MainActivity : AppCompatActivity() {
         clearRecipientsButton.visibility = if (!transient && state.recipients.isNotEmpty()) View.VISIBLE else View.GONE
         clearRecipientsButton.isEnabled = idle
         val encryptedInput = state.document?.displayName?.endsWith(".encrypted.p7m", ignoreCase = true) == true
-        protectKeyLayout.visibility = if (transient || encryptedInput) View.VISIBLE else View.GONE
+        protectKeyRow.visibility = if (transient || encryptedInput) View.VISIBLE else View.GONE
         protectKeyConfirmLayout.visibility = if (transient) View.VISIBLE else View.GONE
         generateKeyButton.visibility = protectKeyConfirmLayout.visibility
         protectKeyLayout.isEnabled = !state.busy
         protectKeyConfirmLayout.isEnabled = !state.busy
         generateKeyButton.isEnabled = idle
         protectButton.isEnabled = state.canProtect
-        protectSignButton.visibility = if (transient) View.GONE else View.VISIBLE
+        protectSignRow.visibility = if (transient) View.GONE else View.VISIBLE
         protectSignButton.isEnabled = state.canProtectAndSign
         unprotectButton.isEnabled = state.canUnprotect
         unprotectHint.visibility = if (state.document != null && !state.unprotectSupported) View.VISIBLE else View.GONE
@@ -1088,7 +1129,7 @@ class MainActivity : AppCompatActivity() {
         forgetCertificateButton.setText(if (state.identities.size > 1) R.string.forget_all_certificates else R.string.forget_certificate)
         signButton.isEnabled = state.canSign
         val pdfSelected = state.document?.let(::isPdf) == true
-        visibleSealCheck.visibility = if (pdfSelected) View.VISIBLE else View.GONE
+        visibleSealRow.visibility = if (pdfSelected) View.VISIBLE else View.GONE
         visibleSealCheck.isEnabled = state.canReplaceSelection
         if (visibleSealCheck.isChecked != sealSettings.enabled) {
             updatingSealCheck = true
@@ -1105,7 +1146,7 @@ class MainActivity : AppCompatActivity() {
         signatureProfile.isEnabled = state.canReplaceSelection
         tsaEnabled.isEnabled = state.canReplaceSelection
         tsaUrl.isEnabled = state.canReplaceSelection && state.tsaEnabled
-        tsaUrlLayout.visibility = if (state.tsaEnabled) View.VISIBLE else View.GONE
+        tsaUrlRow.visibility = if (state.tsaEnabled) View.VISIBLE else View.GONE
         if (menuEnabled != state.canReplaceSelection) {
             menuEnabled = state.canReplaceSelection
             invalidateOptionsMenu()
@@ -1122,7 +1163,7 @@ class MainActivity : AppCompatActivity() {
         renderVerification(state)
         exportReportButton.visibility = if (state.verification?.reportJson?.isNotEmpty() == true) View.VISIBLE else View.GONE
         exportReportButton.isEnabled = state.canExportReport
-        exportReportHtmlButton.visibility = if (state.verification?.reportHtml?.isNotEmpty() == true) View.VISIBLE else View.GONE
+        exportReportRow.visibility = if (state.verification?.reportHtml?.isNotEmpty() == true) View.VISIBLE else View.GONE
         exportReportHtmlButton.isEnabled = state.canExportReport
         progressContainer.visibility = if (state.busy) View.VISIBLE else View.GONE
         pendingSaveActions.visibility = if (state.canRetryPendingOutput) View.VISIBLE else View.GONE
@@ -1269,6 +1310,7 @@ class MainActivity : AppCompatActivity() {
         }
         verificationDetail.text = text
         toggleVerificationTechnicalButton.visibility = if (verification != null) View.VISIBLE else View.GONE
+        verificationHelpGroup.visibility = toggleVerificationTechnicalButton.visibility
         val expanded = verification != null && verificationTechnicalExpanded
         toggleVerificationTechnicalButton.setIconResource(if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
         ViewCompat.setStateDescription(toggleVerificationTechnicalButton,
@@ -1737,6 +1779,13 @@ class MainActivity : AppCompatActivity() {
             prefFormat.select(formats.indexOf(current.defaultFormat).coerceAtLeast(0))
             prefProfile.select(AppSettings.PROFILES.indexOf(current.defaultProfile).coerceAtLeast(0))
             prefProfileHelp.setOnClickListener { showProfileHelp() }
+            HelpButton.bindSections(prefFormatHelp, R.string.pref_default_format) {
+                ContextHelp.format(formats.getOrElse(prefFormat.selectedItemPosition) { "auto" })
+            }
+            HelpButton.bind(prefTsaEnabledHelp, R.string.pref_tsa_enabled, R.string.ayuda_sellado_tiempo)
+            HelpButton.bind(prefTsaUrlHelp, R.string.pref_tsa_url, R.string.ayuda_tsa_servidor)
+            HelpButton.bind(prefSealLanguageHelp, R.string.pref_seal_language, R.string.ayuda_sello_idioma)
+            HelpButton.bind(prefSessionTimeoutHelp, R.string.pref_certificate_timeout, R.string.ayuda_sesion_certificado)
             prefSessionTimeout.setItems(AppSettings.TIMEOUTS.map {
                 if (it == 0) getString(R.string.timeout_never) else resources.getQuantityString(R.plurals.minutes, it, it)
             })

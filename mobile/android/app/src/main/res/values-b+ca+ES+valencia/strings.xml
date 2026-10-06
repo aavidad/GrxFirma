@@ -4,7 +4,7 @@
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">A punt per a firmar</string>
     <string name="backend_unavailable_title">Esta instal·lació no pot firmar</string>
@@ -671,4 +671,58 @@
     <string name="profile_help_lt">LT: a més, guarda en el document la cadena de certificats i la prova que no estaven anul·lats en aquell moment. Així la firma es podrà comprovar d\'ací a anys, encara que el certificat caduque o l\'autoritat que el va emetre ja no responga.</string>
     <string name="profile_help_lta">LTA: a més, afig un segell de temps d\'arxiu, pensat per a conservar el document durant molts anys.</string>
     <string name="profile_help_internet">T, LT i LTA necessiten connexió a Internet en signar.</string>
+    <string name="ayuda_boton_nombre">Ajuda sobre %1$s</string>
+    <string name="ayuda_tema_integridad">Integritat</string>
+    <string name="ayuda_tema_confianza">Confiança</string>
+    <string name="ayuda_tema_cobertura">Cobertura</string>
+    <string name="ayuda_operacion_firma">Crea la primera signatura d\'un document que encara no està signat. És l\'opció habitual.</string>
+    <string name="ayuda_operacion_cofirma">Afig la seua signatura a un document que ja ha signat una altra persona, al mateix nivell que les signatures que ja té. Utilitze-la quan diverses persones signen el mateix document, per exemple les dos parts d\'un conveni.</string>
+    <string name="ayuda_operacion_contrafirma">Signa sobre una signatura anterior per a donar-hi el vistiplau, en lloc de signar el document per separat. Utilitze-la quan la seua signatura haja de refrendar la d\'una altra persona, per exemple la d\'un superior sobre la d\'un tècnic.</string>
+    <string name="ayuda_formato">El format decideix com es guarda la signatura: dins del mateix fitxer o en un fitxer a part. Si no sap quin triar, deixe «Automàtic» i l\'aplicació escollirà l\'adequat segons el tipus de fitxer.</string>
+    <string name="ayuda_formato_pades">Format de signatura per a PDF. La signatura queda dins del mateix PDF i qualsevol lector de PDF la mostra i la comprova. És el recomanat per a documents PDF.</string>
+    <string name="ayuda_formato_cades">Format de signatura vàlid per a qualsevol tipus de fitxer. Crea un fitxer de signatura nou, separat de l\'original o que l\'inclou a dins; per a comprovar-lo cal un programa de signatura electrònica.</string>
+    <string name="ayuda_formato_xades">Format de signatura basat en XML. És l\'habitual per a signar fitxers XML i el que demanen alguns tràmits de l\'Administració.</string>
+    <string name="ayuda_formato_xmldsig">Signatura XML bàsica, sense les dades addicionals que afig XAdES. Utilitze-la només si qui rep el fitxer la demana expressament; altrament, trie XAdES.</string>
+    <string name="ayuda_formato_odf">Signa documents de LibreOffice o OpenOffice (.odt, .ods, .odp). La signatura queda dins del document i estos programes la reconeixen.</string>
+    <string name="ayuda_formato_ooxml">Signa documents de Microsoft Office (.docx, .xlsx, .pptx). La signatura queda dins del document i Office la reconeix.</string>
+    <string name="ayuda_formato_facturae">Format obligatori per a signar factures electròniques Facturae, les que es presenten a l\'Administració per FACe. Utilitze\'l només amb fitxers de factura electrònica.</string>
+    <string name="ayuda_formato_asic">Guarda el document i la seua signatura junts en un únic fitxer comprimit (contenidor ASiC). És útil per a enviar-los tots dos alhora sense que se separen.</string>
+    <string name="ayuda_formato_verifactu">Signa un registre de facturació de Veri*Factu, el fitxer XML que s\'envia a l\'Agència Tributària. Només apareix quan el fitxer triat és un d\'estos registres.</string>
+    <string name="ayuda_sello_visible">Dibuixa al PDF un requadre amb el seu nom i la data, semblant a una signatura manuscrita. La signatura és igual de vàlida sense ell, però ajuda a veure a primer cop d\'ull que el document està signat. Només està disponible per a PDF.</string>
+    <string name="ayuda_certificado_importar_p12">Afig un certificat guardat en un fitxer .p12 o .pfx, per exemple la còpia de seguretat del seu certificat de la FNMT. Li demanarà la contrasenya que es va posar en exportar-lo.</string>
+    <string name="ayuda_dnie_nfc">Signa amb el seu DNI electrònic apropant-lo a la part posterior del mòbil. Necessita un mòbil amb NFC, el número CAN de 6 xifres imprès al DNI i el seu PIN.</string>
+    <string name="ayuda_verificar_original">Si la signatura és en un fitxer a part del document (signatura separada), trie ací el document original per a poder comprovar-la. Si el fitxer signat ja conté el document, com ara un PDF signat, deixe-ho buit.</string>
+    <string name="ayuda_sellado_tiempo">Afig a la signatura la data i l\'hora garantides per un servei extern de confiança (segell de temps). Així es pot demostrar quan es va signar encara que el certificat caduque després. Necessita connexió a internet.</string>
+    <string name="ayuda_tsa_servidor">Adreça del servei que posa la data i l\'hora garantides a la signatura (autoritat de segellat de temps o TSA). Deixe-la com està llevat que el seu organisme n\'hi indique una altra.</string>
+    <string name="ayuda_verificar_informe">Guarda el resultat de la verificació. L\'informe HTML es pot llegir i imprimir; el fitxer JSON conté les dades tècniques per al suport o per a altres programes.</string>
+    <string name="ayuda_verificar_integridad">Indica si el document continua exactament igual que quan es va signar. Si falla, el contingut s\'ha modificat després de la signatura.</string>
+    <string name="ayuda_verificar_confianza">Indica si el certificat del signant l\'ha emès una entitat reconeguda, com la FNMT o la Policia Nacional en el cas del DNIe. Sense confiança, la signatura pot ser tècnicament correcta, però no es pot assegurar qui l\'ha feta.</string>
+    <string name="ayuda_verificar_cobertura">Indica quina part del document protegix la signatura. Si s\'hi van afegir canvis després de signar, com ara altres signatures o anotacions en un PDF, la signatura només cobreix la versió anterior a estos canvis.</string>
+    <string name="ayuda_sello_estilo">Aspecte del segell: amb l\'emblema institucional, només amb text o amb una imatge pròpia. Només canvia l\'aparença; la validesa de la signatura és la mateixa.</string>
+    <string name="ayuda_sello_opacidad">Indica si el segell deixa veure el que hi ha a sota. Al màxim tapa el contingut de la pàgina; amb valors més baixos es veu a través seu.</string>
+    <string name="ayuda_sello_imagen">Imatge que apareix al segell, per exemple el logotip del seu organisme. Pot utilitzar una imatge PNG o JPEG pròpia o no posar-ne cap.</string>
+    <string name="ayuda_sello_texto">Mostra al segell el nom de qui signa, la data i altres dades de la signatura. Si ho desactiva, el segell només mostra la imatge triada.</string>
+    <string name="ayuda_sello_qr">Afig al segell un codi QR que obre l\'adreça web que vostè indique, per exemple la pàgina de verificació de la seua seu. És opcional i l\'adreça ha de ser segura (https).</string>
+    <string name="ayuda_sello_csv">Codi segur de verificació (CSV): un codi i una adreça web que s\'imprimixen al segell perquè qualsevol persona puga comprovar el document a la seu del seu organisme. Utilitze\'l només si el seu organisme li facilita este codi i esta adreça.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Pàgines del PDF on apareix el segell: la primera, l\'última, totes o les que vostè indique, per exemple «1,3-5». Si no n\'està segur, pose\'l a l\'última pàgina.</string>
+    <string name="ayuda_sello_idioma">Idioma dels textos del segell, com ara «Signat per» i la data. No canvia l\'idioma de l\'aplicació.</string>
+    <string name="ayuda_sesion_certificado">Temps després del qual l\'aplicació tanca el certificat si queda en segon pla. Així ningú no pot signar-hi si deixa el mòbil desbloquejat; com més curt, més segur.</string>
+    <string name="ayuda_lote">Signa diversos documents alhora amb el mateix certificat i les mateixes opcions. En acabar, l\'aplicació indica quins s\'han signat i quins no.</string>
+    <string name="ayuda_huella">El resum és un codi curt que es calcula a partir del contingut d\'un fitxer i que canvia del tot si se\'n modifica un sol caràcter. Cree\'l en guardar un fitxer i comprove\'l més endavant per a saber si continua intacte.</string>
+    <string name="ayuda_huella_algoritmo">Mètode amb què es calcula el resum. Es recomana SHA-256. SHA-1 és antic i només s\'ha d\'utilitzar per a comparar amb resums que ja es van calcular amb ell.</string>
+    <string name="ayuda_huella_formato">Com s\'escriu el resum al fitxer que es guarda: en hexadecimal (lletres i números), en Base64 o en binari. Deixe el que ve seleccionat llevat que un altre programa li\'n demane un de concret.</string>
+    <string name="ayuda_proteger">Xifra un fitxer perquè només el puguen obrir les persones que vostè trie amb el seu certificat electrònic. Protegir no és signar: impedix llegir el contingut, però no indica qui l\'ha enviat.</string>
+    <string name="ayuda_desproteger">Obre un fitxer que algú ha protegit per a vostè. Necessita el certificat d\'un dels destinataris triats en protegir-lo o, si es va protegir amb una clau, esta clau.</string>
+    <string name="ayuda_proteger_destinatarios">Persones que podran obrir el fitxer protegit. De cadascuna cal el certificat públic, que pot demanar-li o carregar des d\'un fitxer. Afija-s\'hi també vostè si vol poder obrir-lo després.</string>
+    <string name="ayuda_proteger_contenedor">Tipus de fitxer protegit que es genera. Els formats CMS són estàndard i altres programes els poden obrir; el format propi (.afp) només s\'obre amb GrxFirma. Si no sap quin triar, deixe el que ve seleccionat.</string>
+    <string name="ayuda_proteger_clave">En lloc d\'utilitzar certificats, protegix el fitxer amb una clau aleatòria que vostè ha de guardar i entregar per un canal segur. L\'aplicació no la guarda: sense esta clau ningú no podrà obrir el document.</string>
+    <string name="ayuda_proteger_firmar">A més de protegir el fitxer, el signa amb el seu certificat. Així qui l\'òbriga sap qui l\'ha enviat i que no s\'ha modificat.</string>
+    <string name="ayuda_eni_documento">Prepara un document electrònic segons l\'Esquema Nacional d\'Interoperabilitat (ENI), el format que utilitzen les administracions per a intercanviar documents. Unix el fitxer, la seua signatura i unes dades descriptives obligatòries.</string>
+    <string name="ayuda_eni_expediente">Agrupa diversos documents ENI en un expedient amb el seu índex signat, com exigix l\'Administració per a trametre expedients complets, per exemple a un jutjat.</string>
+    <string name="ayuda_eni_metadatos">Dades que descriuen el document: l\'òrgan que el crea, la data, l\'origen, l\'estat d\'elaboració i el tipus documental. Són obligatòries a l\'ENI; si dubta d\'algun valor, consulte la seua unitat de registre o d\'arxiu.</string>
+    <string name="ayuda_eni_origen">Indica qui ha creat el document: la mateixa Administració o un ciutadà o empresa que l\'ha aportat.</string>
+    <string name="ayuda_eni_estado_elaboracion">Indica si el document és un original o una còpia, i de quin tipus. Si l\'ha creat la seua pròpia unitat, normalment és un original.</string>
+    <string name="ayuda_verifactu">Veri*Factu és el sistema de l\'Agència Tributària perquè les factures porten un codi QR comprovable. Ací pot llegir este QR o un registre de facturació i veure\'n les dades; només es consulta l\'Agència Tributària si vostè ho demana.</string>
+    <string name="ayuda_certificado_tipo">Classe de certificat segons a qui representa: una persona física, el representant d\'una empresa o entitat, un empleat públic o el segell d\'un organisme. Servix per a filtrar la llista i triar el certificat que demana el tràmit.</string>
+    <string name="ayuda_verificar_revocacion">Comprova si el certificat del signant estava anul·lat (revocat) quan va signar, per exemple per pèrdua o robatori. La consulta es fa per internet a l\'entitat que va emetre el certificat.</string>
 </resources>

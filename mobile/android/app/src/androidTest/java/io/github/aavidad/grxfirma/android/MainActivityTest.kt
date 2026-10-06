@@ -154,7 +154,7 @@ class MainActivityTest {
     fun sealControlsAreLeftOutOfTheTreeWithoutAPdf() {
         ActivityScenario.launch(MainActivity::class.java).use {
             it.onActivity { activity ->
-                for (id in listOf(R.id.visibleSealCheck, R.id.editVisibleSealButton)) {
+                for (id in listOf(R.id.visibleSealRow, R.id.editVisibleSealButton)) {
                     val view = activity.findViewById<View>(id)
                     assertEquals(View.GONE, view.visibility)
                     // GONE, no solo encogido: así no queda en el árbol que recorre TalkBack.

@@ -27,5 +27,17 @@
         <item name="android:fontFamily">sans</item>
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+        <item name="grxHelpButtonStyle">@style/Widget.GrxFirma.HelpButton</item>
+    </style>
+
+    <!-- Botón «?» de ayuda: icono de 24 dp en un área táctil de 48 dp, con el color
+         primario (contraste AA sobre la superficie en tema claro y oscuro). -->
+    <style name="Widget.GrxFirma.HelpButton" parent="Widget.Material3.Button.IconButton">
+        <item name="icon">@drawable/ic_help</item>
+        <item name="iconTint">?attr/colorPrimary</item>
+        <item name="iconSize">24dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:layout_marginStart">4dp</item>
     </style>
 </resources>

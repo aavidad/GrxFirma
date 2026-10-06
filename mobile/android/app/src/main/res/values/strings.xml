@@ -4,7 +4,7 @@
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">Listo para firmar</string>
     <string name="backend_unavailable_title">Esta instalación no puede firmar</string>
@@ -653,4 +653,58 @@
     <string name="profile_help_lt">LT: además guarda en el documento la cadena de certificados y la prueba de que no estaban anulados cuando se firmó. Así la firma se podrá comprobar dentro de años, aunque el certificado caduque o la autoridad que lo emitió ya no responda.</string>
     <string name="profile_help_lta">LTA: además añade un sello de tiempo de archivo, pensado para conservar el documento durante muchos años.</string>
     <string name="profile_help_internet">T, LT y LTA necesitan conexión a Internet al firmar.</string>
+    <string name="ayuda_boton_nombre">Ayuda sobre %1$s</string>
+    <string name="ayuda_tema_integridad">Integridad</string>
+    <string name="ayuda_tema_confianza">Confianza</string>
+    <string name="ayuda_tema_cobertura">Cobertura</string>
+    <string name="ayuda_operacion_firma">Crea la primera firma de un documento que aún no está firmado. Es la opción habitual.</string>
+    <string name="ayuda_operacion_cofirma">Añade su firma a un documento que ya firmó otra persona, al mismo nivel que las firmas que ya tiene. Úsela cuando varias personas firman el mismo documento, por ejemplo las dos partes de un convenio.</string>
+    <string name="ayuda_operacion_contrafirma">Firma sobre una firma anterior para darle el visto bueno, en lugar de firmar el documento por separado. Úsela cuando su firma deba refrendar la de otra persona, por ejemplo la de un superior sobre la de un técnico.</string>
+    <string name="ayuda_formato">El formato decide cómo se guarda la firma: dentro del propio fichero o en un fichero aparte. Si no sabe cuál elegir, deje «Automático» y la aplicación escogerá el adecuado según el tipo de fichero.</string>
+    <string name="ayuda_formato_pades">Formato de firma para PDF. La firma queda dentro del propio PDF y cualquier lector de PDF la muestra y la comprueba. Es el recomendado para documentos PDF.</string>
+    <string name="ayuda_formato_cades">Formato de firma válido para cualquier tipo de fichero. Crea un fichero de firma nuevo, separado del original o que lo incluye dentro; para comprobarlo se necesita un programa de firma electrónica.</string>
+    <string name="ayuda_formato_xades">Formato de firma basado en XML. Es el habitual para firmar ficheros XML y el que piden algunos trámites de la Administración.</string>
+    <string name="ayuda_formato_xmldsig">Firma XML básica, sin los datos adicionales que añade XAdES. Úsela solo si quien recibe el fichero la pide expresamente; en otro caso, elija XAdES.</string>
+    <string name="ayuda_formato_odf">Firma documentos de LibreOffice u OpenOffice (.odt, .ods, .odp). La firma queda dentro del documento y esos programas la reconocen.</string>
+    <string name="ayuda_formato_ooxml">Firma documentos de Microsoft Office (.docx, .xlsx, .pptx). La firma queda dentro del documento y Office la reconoce.</string>
+    <string name="ayuda_formato_facturae">Formato obligatorio para firmar facturas electrónicas Facturae, las que se presentan a la Administración por FACe. Úselo solo con ficheros de factura electrónica.</string>
+    <string name="ayuda_formato_asic">Guarda el documento y su firma juntos en un único fichero comprimido (contenedor ASiC). Es útil para enviar los dos a la vez sin que se separen.</string>
+    <string name="ayuda_formato_verifactu">Firma un registro de facturación de Veri*Factu, el fichero XML que se envía a la Agencia Tributaria. Solo aparece cuando el fichero elegido es uno de esos registros.</string>
+    <string name="ayuda_sello_visible">Dibuja en el PDF un recuadro con su nombre y la fecha, parecido a una firma manuscrita. La firma es igual de válida sin él, pero ayuda a ver a simple vista que el documento está firmado. Solo está disponible para PDF.</string>
+    <string name="ayuda_certificado_importar_p12">Añade un certificado guardado en un fichero .p12 o .pfx, por ejemplo la copia de seguridad de su certificado de la FNMT. Le pedirá la contraseña que se puso al exportarlo.</string>
+    <string name="ayuda_dnie_nfc">Firma con su DNI electrónico acercándolo a la parte trasera del móvil. Necesita un móvil con NFC, el número CAN de 6 cifras impreso en el DNI y su PIN.</string>
+    <string name="ayuda_verificar_original">Si la firma está en un fichero aparte del documento (firma separada), elija aquí el documento original para poder comprobarla. Si el fichero firmado ya contiene el documento, como un PDF firmado, déjelo vacío.</string>
+    <string name="ayuda_sellado_tiempo">Añade a la firma la fecha y la hora garantizadas por un servicio externo de confianza (sello de tiempo). Así se puede demostrar cuándo se firmó aunque el certificado caduque después. Necesita conexión a internet.</string>
+    <string name="ayuda_tsa_servidor">Dirección del servicio que pone la fecha y la hora garantizadas a la firma (autoridad de sellado de tiempo o TSA). Déjela como está salvo que su organismo le indique otra.</string>
+    <string name="ayuda_verificar_informe">Guarda el resultado de la verificación. El informe HTML se puede leer e imprimir; el fichero JSON contiene los datos técnicos para el soporte o para otros programas.</string>
+    <string name="ayuda_verificar_integridad">Indica si el documento sigue exactamente igual que cuando se firmó. Si falla, el contenido se ha modificado después de la firma.</string>
+    <string name="ayuda_verificar_confianza">Indica si el certificado del firmante lo emitió una entidad reconocida, como la FNMT o la Policía Nacional en el caso del DNIe. Sin confianza, la firma puede ser técnicamente correcta, pero no se puede asegurar quién la hizo.</string>
+    <string name="ayuda_verificar_cobertura">Indica qué parte del documento protege la firma. Si se añadieron cambios después de firmar, como otras firmas o anotaciones en un PDF, la firma solo cubre la versión anterior a esos cambios.</string>
+    <string name="ayuda_sello_estilo">Aspecto del sello: con el emblema institucional, solo con texto o con una imagen propia. Solo cambia la apariencia; la validez de la firma es la misma.</string>
+    <string name="ayuda_sello_opacidad">Indica si el sello deja ver lo que hay debajo. Al máximo tapa el contenido de la página; con valores más bajos se ve a través de él.</string>
+    <string name="ayuda_sello_imagen">Imagen que aparece en el sello, por ejemplo el logotipo de su organismo. Puede usar una imagen PNG o JPEG propia o no poner ninguna.</string>
+    <string name="ayuda_sello_texto">Muestra en el sello el nombre de quien firma, la fecha y otros datos de la firma. Si lo desactiva, el sello solo muestra la imagen elegida.</string>
+    <string name="ayuda_sello_qr">Añade al sello un código QR que abre la dirección web que usted indique, por ejemplo la página de verificación de su sede. Es opcional y la dirección debe ser segura (https).</string>
+    <string name="ayuda_sello_csv">Código seguro de verificación (CSV): un código y una dirección web que se imprimen en el sello para que cualquiera pueda comprobar el documento en la sede de su organismo. Úselo solo si su organismo le facilita ese código y esa dirección.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Páginas del PDF en las que aparece el sello: la primera, la última, todas o las que usted indique, por ejemplo «1,3-5». Si no está seguro, póngalo en la última página.</string>
+    <string name="ayuda_sello_idioma">Idioma de los textos del sello, como «Firmado por» y la fecha. No cambia el idioma de la aplicación.</string>
+    <string name="ayuda_sesion_certificado">Tiempo tras el cual la aplicación cierra el certificado si queda en segundo plano. Así nadie puede firmar con él si deja el móvil desbloqueado; cuanto más corto, más seguro.</string>
+    <string name="ayuda_lote">Firma varios documentos de una vez con el mismo certificado y las mismas opciones. Al terminar, la aplicación indica cuáles se firmaron y cuáles no.</string>
+    <string name="ayuda_huella">La huella es un código corto que se calcula a partir del contenido de un fichero y que cambia por completo si se modifica un solo carácter. Créela al guardar un fichero y compruébela más tarde para saber si sigue intacto.</string>
+    <string name="ayuda_huella_algoritmo">Método con el que se calcula la huella. Se recomienda SHA-256. SHA-1 es antiguo y solo debe usarse para comparar con huellas que ya se calcularon con él.</string>
+    <string name="ayuda_huella_formato">Cómo se escribe la huella en el fichero que se guarda: en hexadecimal (letras y números), en Base64 o en binario. Deje el que viene seleccionado salvo que otro programa le pida uno concreto.</string>
+    <string name="ayuda_proteger">Cifra un fichero para que solo puedan abrirlo las personas que usted elija con su certificado electrónico. Proteger no es firmar: impide leer el contenido, pero no indica quién lo envió.</string>
+    <string name="ayuda_desproteger">Abre un fichero que alguien protegió para usted. Necesita el certificado de uno de los destinatarios elegidos al protegerlo o, si se protegió con una clave, esa clave.</string>
+    <string name="ayuda_proteger_destinatarios">Personas que podrán abrir el fichero protegido. De cada una se necesita su certificado público, que puede pedirle o cargar desde un fichero. Añádase también a usted si quiere poder abrirlo después.</string>
+    <string name="ayuda_proteger_contenedor">Tipo de fichero protegido que se genera. Los formatos CMS son estándar y otros programas pueden abrirlos; el formato propio (.afp) solo se abre con GrxFirma. Si no sabe cuál elegir, deje el que viene seleccionado.</string>
+    <string name="ayuda_proteger_clave">En lugar de usar certificados, protege el fichero con una clave aleatoria que usted debe guardar y entregar por un canal seguro. La aplicación no la guarda: sin esa clave nadie podrá abrir el documento.</string>
+    <string name="ayuda_proteger_firmar">Además de proteger el fichero, lo firma con su certificado. Así quien lo abra sabe quién lo envió y que no se ha modificado.</string>
+    <string name="ayuda_eni_documento">Prepara un documento electrónico según el Esquema Nacional de Interoperabilidad (ENI), el formato que usan las administraciones para intercambiar documentos. Une el fichero, su firma y unos datos descriptivos obligatorios.</string>
+    <string name="ayuda_eni_expediente">Agrupa varios documentos ENI en un expediente con su índice firmado, como exige la Administración para remitir expedientes completos, por ejemplo a un juzgado.</string>
+    <string name="ayuda_eni_metadatos">Datos que describen el documento: el órgano que lo crea, la fecha, el origen, el estado de elaboración y el tipo documental. Son obligatorios en ENI; si duda de algún valor, consulte con su unidad de registro o de archivo.</string>
+    <string name="ayuda_eni_origen">Indica quién creó el documento: la propia Administración o un ciudadano o empresa que lo aportó.</string>
+    <string name="ayuda_eni_estado_elaboracion">Indica si el documento es un original o una copia, y de qué tipo. Si lo ha creado su propia unidad, normalmente es un original.</string>
+    <string name="ayuda_verifactu">Veri*Factu es el sistema de la Agencia Tributaria para que las facturas lleven un código QR comprobable. Aquí puede leer ese QR o un registro de facturación y ver sus datos; solo se consulta a la Agencia Tributaria si usted lo pide.</string>
+    <string name="ayuda_certificado_tipo">Clase de certificado según a quién representa: una persona física, el representante de una empresa o entidad, un empleado público o el sello de un organismo. Sirve para filtrar la lista y elegir el certificado que pide el trámite.</string>
+    <string name="ayuda_verificar_revocacion">Comprueba si el certificado del firmante estaba anulado (revocado) cuando firmó, por ejemplo por pérdida o robo. La consulta se hace por internet a la entidad que emitió el certificado.</string>
 </resources>

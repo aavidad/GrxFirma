@@ -11,18 +11,33 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/toggleExpedienteButton"
-        style="@style/Widget.Material3.Button.TextButton"
+    <LinearLayout
+        android:id="@+id/expedienteRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:gravity="start|center_vertical"
-        android:minHeight="48dp"
-        android:text="@string/expediente_title"
         android:visibility="gone"
-        app:icon="@drawable/ic_expand_more"
-        app:iconGravity="end" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/toggleExpedienteButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
+            android:text="@string/expediente_title"
+            app:icon="@drawable/ic_expand_more"
+            app:iconGravity="end" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/expedienteHelp"
+            style="@style/Widget.GrxFirma.HelpButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/expedienteGroup"
