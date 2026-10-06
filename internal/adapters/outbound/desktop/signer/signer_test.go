@@ -975,7 +975,9 @@ func TestMotorFirmaGo_PAdEST_EmbebeTimestampEnCMS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("la firma PDF no es hex valido: %v", err)
 	}
-	firmaDER := bytes.TrimRight(firmaHex, "\x00")
+	// No se recortan los ceros del relleno: la firma DER puede terminar en un
+	// byte cero y quedaría truncada. asn1.Unmarshal ya ignora lo que sobra.
+	firmaDER := firmaHex
 
 	var ciTimestamp contentInfoRaw
 	if _, err := asn1.Unmarshal(firmaDER, &ciTimestamp); err != nil {
