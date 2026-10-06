@@ -4,7 +4,7 @@
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">Pronto per firmare</string>
     <string name="backend_unavailable_title">Questa installazione non può firmare</string>
@@ -671,4 +671,58 @@
     <string name="profile_help_lt">LT: in più salva nel documento la catena di certificati e la prova che in quel momento non erano revocati. Così la firma potrà essere verificata anche dopo anni, anche se il certificato scade o l\'autorità che l\'ha emesso non risponde più.</string>
     <string name="profile_help_lta">LTA: in più aggiunge una marca temporale di archiviazione, pensata per conservare il documento per moltissimi anni.</string>
     <string name="profile_help_internet">T, LT e LTA richiedono una connessione a Internet al momento della firma.</string>
+    <string name="ayuda_boton_nombre">Guida su %1$s</string>
+    <string name="ayuda_tema_integridad">Integrità</string>
+    <string name="ayuda_tema_confianza">Attendibilità</string>
+    <string name="ayuda_tema_cobertura">Copertura</string>
+    <string name="ayuda_operacion_firma">Crea la prima firma di un documento non ancora firmato. È l’opzione abituale.</string>
+    <string name="ayuda_operacion_cofirma">Aggiunge la Sua firma a un documento già firmato da un’altra persona, allo stesso livello delle firme già presenti. La usi quando più persone firmano lo stesso documento, ad esempio le due parti di una convenzione.</string>
+    <string name="ayuda_operacion_contrafirma">Firma sopra una firma precedente per approvarla, invece di firmare il documento separatamente. La usi quando la Sua firma deve avallare quella di un’altra persona, ad esempio quella di un superiore su quella di un tecnico.</string>
+    <string name="ayuda_formato">Il formato stabilisce come viene salvata la firma: all’interno del file stesso o in un file separato. Se non sa quale scegliere, lasci «Automatico» e l’applicazione sceglierà quello adatto al tipo di file.</string>
+    <string name="ayuda_formato_pades">Formato di firma per PDF. La firma resta all’interno del PDF e qualsiasi lettore PDF la mostra e la verifica. È il formato consigliato per i documenti PDF.</string>
+    <string name="ayuda_formato_cades">Formato di firma valido per qualsiasi tipo di file. Crea un nuovo file di firma, separato dall’originale o che lo contiene; per verificarlo serve un programma di firma elettronica.</string>
+    <string name="ayuda_formato_xades">Formato di firma basato su XML. È quello abituale per firmare file XML e quello richiesto da alcune pratiche della pubblica amministrazione.</string>
+    <string name="ayuda_formato_xmldsig">Firma XML di base, senza i dati aggiuntivi che aggiunge XAdES. La usi solo se chi riceve il file la richiede espressamente; altrimenti, scelga XAdES.</string>
+    <string name="ayuda_formato_odf">Firma documenti di LibreOffice o OpenOffice (.odt, .ods, .odp). La firma resta all’interno del documento e questi programmi la riconoscono.</string>
+    <string name="ayuda_formato_ooxml">Firma documenti di Microsoft Office (.docx, .xlsx, .pptx). La firma resta all’interno del documento e Office la riconosce.</string>
+    <string name="ayuda_formato_facturae">Formato obbligatorio per firmare le fatture elettroniche Facturae, quelle che si presentano alla pubblica amministrazione spagnola tramite FACe. Lo usi solo con file di fattura elettronica.</string>
+    <string name="ayuda_formato_asic">Salva il documento e la sua firma insieme in un unico file compresso (contenitore ASiC). È utile per inviarli contemporaneamente senza che si separino.</string>
+    <string name="ayuda_formato_verifactu">Firma un registro di fatturazione Veri*Factu, il file XML che si invia all’Agenzia delle entrate spagnola (Agencia Tributaria, AEAT). Compare solo quando il file scelto è uno di questi registri.</string>
+    <string name="ayuda_sello_visible">Disegna nel PDF un riquadro con il Suo nome e la data, simile a una firma autografa. La firma è ugualmente valida senza di esso, ma aiuta a vedere a colpo d’occhio che il documento è firmato. È disponibile solo per i PDF.</string>
+    <string name="ayuda_certificado_importar_p12">Aggiunge un certificato salvato in un file .p12 o .pfx, ad esempio la copia di sicurezza del Suo certificato FNMT. Le verrà chiesta la password impostata al momento dell’esportazione.</string>
+    <string name="ayuda_dnie_nfc">Firma con la Sua carta d’identità elettronica spagnola avvicinandola al retro del telefono. Servono un telefono con NFC, il numero CAN di 6 cifre stampato sulla carta e il Suo PIN.</string>
+    <string name="ayuda_verificar_original">Se la firma si trova in un file separato dal documento (firma separata), scelga qui il documento originale per poterla verificare. Se il file firmato contiene già il documento, come un PDF firmato, lasci vuoto questo campo.</string>
+    <string name="ayuda_sellado_tiempo">Aggiunge alla firma la data e l’ora garantite da un servizio esterno di fiducia (marca temporale). In questo modo si può dimostrare quando è stato firmato anche se il certificato scade in seguito. Richiede una connessione a internet.</string>
+    <string name="ayuda_tsa_servidor">Indirizzo del servizio che appone alla firma la data e l’ora garantite (autorità di marcatura temporale o TSA). Lo lasci invariato a meno che il Suo ente non Le indichi un altro indirizzo.</string>
+    <string name="ayuda_verificar_informe">Salva il risultato della verifica. Il rapporto HTML si può leggere e stampare; il file JSON contiene i dati tecnici per l’assistenza o per altri programmi.</string>
+    <string name="ayuda_verificar_integridad">Indica se il documento è ancora esattamente uguale a quando è stato firmato. Se la verifica non riesce, il contenuto è stato modificato dopo la firma.</string>
+    <string name="ayuda_verificar_confianza">Indica se il certificato del firmatario è stato emesso da un ente riconosciuto, come la FNMT o la Polizia nazionale spagnola (Policía Nacional) nel caso del DNIe. Senza fiducia, la firma può essere tecnicamente corretta, ma non si può garantire chi l’ha apposta.</string>
+    <string name="ayuda_verificar_cobertura">Indica quale parte del documento è protetta dalla firma. Se sono state aggiunte modifiche dopo la firma, come altre firme o annotazioni in un PDF, la firma copre solo la versione precedente a tali modifiche.</string>
+    <string name="ayuda_sello_estilo">Aspetto del timbro: con l’emblema istituzionale, solo testo o con un’immagine propria. Cambia solo l’aspetto; la validità della firma resta la stessa.</string>
+    <string name="ayuda_sello_opacidad">Indica se il timbro lascia vedere ciò che c’è sotto. Al massimo copre il contenuto della pagina; con valori più bassi si vede attraverso.</string>
+    <string name="ayuda_sello_imagen">Immagine che compare nel timbro, ad esempio il logo del Suo ente. Può usare un’immagine PNG o JPEG propria oppure non inserirne nessuna.</string>
+    <string name="ayuda_sello_texto">Mostra nel timbro il nome di chi firma, la data e altri dati della firma. Se lo disattiva, il timbro mostra solo l’immagine scelta.</string>
+    <string name="ayuda_sello_qr">Aggiunge al timbro un codice QR che apre l’indirizzo web da Lei indicato, ad esempio la pagina di verifica del Suo ente. È facoltativo e l’indirizzo deve essere sicuro (https).</string>
+    <string name="ayuda_sello_csv">Codice sicuro di verifica (CSV): un codice e un indirizzo web stampati sul timbro affinché chiunque possa verificare il documento sul sito del Suo ente. Lo usi solo se il Suo ente Le fornisce tale codice e tale indirizzo.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Pagine del PDF in cui compare il timbro: la prima, l’ultima, tutte o quelle da Lei indicate, ad esempio «1,3-5». Se non è sicuro, lo metta nell’ultima pagina.</string>
+    <string name="ayuda_sello_idioma">Lingua dei testi del timbro, come «Firmato da» e la data. Non cambia la lingua dell’applicazione.</string>
+    <string name="ayuda_sesion_certificado">Tempo dopo il quale l’applicazione chiude il certificato se resta in background. Così nessuno può firmare con esso se lascia il telefono sbloccato; più è breve, più è sicuro.</string>
+    <string name="ayuda_lote">Firma più documenti in una volta sola con lo stesso certificato e le stesse opzioni. Al termine, l’applicazione indica quali sono stati firmati e quali no.</string>
+    <string name="ayuda_huella">L’hash è un codice breve calcolato a partire dal contenuto di un file, che cambia completamente se si modifica anche un solo carattere. Lo crei quando salva un file e lo verifichi in seguito per sapere se è ancora intatto.</string>
+    <string name="ayuda_huella_algoritmo">Metodo con cui si calcola l’hash. Si consiglia SHA-256. SHA-1 è datato e va usato solo per confrontare hash già calcolati con esso.</string>
+    <string name="ayuda_huella_formato">Come viene scritto l’hash nel file salvato: in esadecimale (lettere e numeri), in Base64 o in binario. Lasci quello selezionato a meno che un altro programma non ne richieda uno specifico.</string>
+    <string name="ayuda_proteger">Cifra un file affinché possano aprirlo solo le persone da Lei scelte, con il loro certificato elettronico. Proteggere non significa firmare: impedisce di leggere il contenuto, ma non indica chi lo ha inviato.</string>
+    <string name="ayuda_desproteger">Apre un file che qualcuno ha protetto per Lei. Serve il certificato di uno dei destinatari scelti al momento della protezione oppure, se è stato protetto con una chiave, quella chiave.</string>
+    <string name="ayuda_proteger_destinatarios">Persone che potranno aprire il file protetto. Per ognuna serve il certificato pubblico, che può chiedere alla persona o caricare da un file. Aggiunga anche sé stesso se vuole poterlo aprire in seguito.</string>
+    <string name="ayuda_proteger_contenedor">Tipo di file protetto che viene generato. I formati CMS sono standard e altri programmi possono aprirli; il formato proprio (.afp) si apre solo con GrxFirma. Se non sa quale scegliere, lasci quello selezionato.</string>
+    <string name="ayuda_proteger_clave">Invece di usare certificati, protegge il file con una chiave casuale che Lei deve conservare e consegnare tramite un canale sicuro. L’applicazione non la salva: senza quella chiave nessuno potrà aprire il documento.</string>
+    <string name="ayuda_proteger_firmar">Oltre a proteggere il file, lo firma con il Suo certificato. Così chi lo apre sa chi lo ha inviato e che non è stato modificato.</string>
+    <string name="ayuda_eni_documento">Prepara un documento elettronico secondo lo Schema nazionale di interoperabilità spagnolo (ENI), il formato che le amministrazioni usano per scambiarsi documenti. Unisce il file, la sua firma e alcuni dati descrittivi obbligatori.</string>
+    <string name="ayuda_eni_expediente">Raggruppa più documenti ENI in un fascicolo con il relativo indice firmato, come richiede l’amministrazione per trasmettere fascicoli completi, ad esempio a un tribunale.</string>
+    <string name="ayuda_eni_metadatos">Dati che descrivono il documento: l’organo che lo crea, la data, l’origine, lo stato di elaborazione e il tipo documentale. Sono obbligatori nell’ENI; se ha dubbi su un valore, si rivolga al Suo ufficio protocollo o archivio.</string>
+    <string name="ayuda_eni_origen">Indica chi ha creato il documento: l’amministrazione stessa oppure un cittadino o un’impresa che lo ha presentato.</string>
+    <string name="ayuda_eni_estado_elaboracion">Indica se il documento è un originale o una copia, e di che tipo. Se lo ha creato il Suo stesso ufficio, normalmente è un originale.</string>
+    <string name="ayuda_verifactu">Veri*Factu è il sistema dell’Agenzia delle entrate spagnola (Agencia Tributaria, AEAT) che dota le fatture di un codice QR verificabile. Qui può leggere quel codice QR o un registro di fatturazione e vederne i dati; l’Agenzia viene consultata solo se Lei lo richiede.</string>
+    <string name="ayuda_certificado_tipo">Categoria del certificato in base a chi rappresenta: una persona fisica, il rappresentante di un’impresa o di un ente, un dipendente pubblico o il sigillo di un ente. Serve a filtrare l’elenco e a scegliere il certificato richiesto dalla pratica.</string>
+    <string name="ayuda_verificar_revocacion">Verifica se il certificato del firmatario era annullato (revocato) al momento della firma, ad esempio per smarrimento o furto. Il controllo avviene via internet presso l’ente che ha emesso il certificato.</string>
 </resources>

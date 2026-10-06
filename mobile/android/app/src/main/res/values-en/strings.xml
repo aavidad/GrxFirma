@@ -4,7 +4,7 @@
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">GrxFirma</string>
     <string name="backend_ready_title">Ready to sign</string>
     <string name="backend_unavailable_title">This installation cannot sign</string>
@@ -653,4 +653,58 @@
     <string name="profile_help_lt">LT: also stores in the document the certificate chain and proof that the certificates had not been revoked at that moment. This way the signature can still be checked years later, even if the certificate expires or the authority that issued it no longer responds.</string>
     <string name="profile_help_lta">LTA: also adds an archive timestamp, intended to keep the document for many years.</string>
     <string name="profile_help_internet">T, LT and LTA need an Internet connection when signing.</string>
+    <string name="ayuda_boton_nombre">Help on %1$s</string>
+    <string name="ayuda_tema_integridad">Integrity</string>
+    <string name="ayuda_tema_confianza">Trust</string>
+    <string name="ayuda_tema_cobertura">Coverage</string>
+    <string name="ayuda_operacion_firma">Creates the first signature on a document that is not yet signed. This is the usual option.</string>
+    <string name="ayuda_operacion_cofirma">Adds your signature to a document already signed by someone else, at the same level as its existing signatures. Use it when several people sign the same document, for example both parties to an agreement.</string>
+    <string name="ayuda_operacion_contrafirma">Signs over an earlier signature to approve it, instead of signing the document separately. Use it when your signature must endorse someone else\'s, for example a manager\'s over a specialist\'s.</string>
+    <string name="ayuda_formato">The format decides how the signature is saved: inside the file itself or in a separate file. If you are not sure which to choose, leave “Automatic” and the application will pick the right one for the file type.</string>
+    <string name="ayuda_formato_pades">Signature format for PDF. The signature stays inside the PDF itself, and any PDF reader can display and check it. It is the recommended format for PDF documents.</string>
+    <string name="ayuda_formato_cades">Signature format valid for any type of file. It creates a new signature file, either separate from the original or containing it; checking it requires an electronic signature program.</string>
+    <string name="ayuda_formato_xades">XML-based signature format. It is the usual choice for signing XML files and the one some government procedures require.</string>
+    <string name="ayuda_formato_xmldsig">Basic XML signature, without the additional data that XAdES adds. Use it only if the recipient of the file specifically asks for it; otherwise, choose XAdES.</string>
+    <string name="ayuda_formato_odf">Signs LibreOffice or OpenOffice documents (.odt, .ods, .odp). The signature stays inside the document and those programs recognise it.</string>
+    <string name="ayuda_formato_ooxml">Signs Microsoft Office documents (.docx, .xlsx, .pptx). The signature stays inside the document and Office recognises it.</string>
+    <string name="ayuda_formato_facturae">Mandatory format for signing Facturae electronic invoices, the ones submitted to the Spanish public administration through FACe. Use it only with electronic invoice files.</string>
+    <string name="ayuda_formato_asic">Keeps the document and its signature together in a single compressed file (ASiC container). It is useful for sending both at once without them getting separated.</string>
+    <string name="ayuda_formato_verifactu">Signs a Veri*Factu invoicing record, the XML file sent to the Spanish Tax Agency (Agencia Tributaria, AEAT). It only appears when the selected file is one of those records.</string>
+    <string name="ayuda_sello_visible">Draws a box on the PDF with your name and the date, similar to a handwritten signature. The signature is just as valid without it, but it helps show at a glance that the document is signed. It is only available for PDF.</string>
+    <string name="ayuda_certificado_importar_p12">Adds a certificate stored in a .p12 or .pfx file, for example the backup copy of your FNMT certificate. You will be asked for the password set when it was exported.</string>
+    <string name="ayuda_dnie_nfc">Signs with your Spanish electronic ID card by holding it against the back of the phone. It requires a phone with NFC, the 6-digit CAN number printed on the card and your PIN.</string>
+    <string name="ayuda_verificar_original">If the signature is in a file separate from the document (detached signature), choose the original document here so it can be checked. If the signed file already contains the document, such as a signed PDF, leave this empty.</string>
+    <string name="ayuda_sellado_tiempo">Adds to the signature the date and time guaranteed by a trusted external service (timestamp). This makes it possible to prove when it was signed even if the certificate expires later. It requires an internet connection.</string>
+    <string name="ayuda_tsa_servidor">Address of the service that adds the guaranteed date and time to the signature (timestamp authority or TSA). Leave it as it is unless your organisation tells you to use another.</string>
+    <string name="ayuda_verificar_informe">Saves the verification result. The HTML report can be read and printed; the JSON file contains the technical data for support or for other programs.</string>
+    <string name="ayuda_verificar_integridad">Indicates whether the document is still exactly the same as when it was signed. If it fails, the content has been modified after signing.</string>
+    <string name="ayuda_verificar_confianza">Indicates whether the signer\'s certificate was issued by a recognised authority, such as the FNMT or the Spanish National Police (Policía Nacional) for the DNIe. Without trust, the signature may be technically correct, but it cannot be confirmed who made it.</string>
+    <string name="ayuda_verificar_cobertura">Indicates which part of the document the signature protects. If changes were added after signing, such as other signatures or annotations in a PDF, the signature only covers the version before those changes.</string>
+    <string name="ayuda_sello_estilo">Appearance of the seal: with the institutional emblem, text only or with your own image. It only changes the appearance; the signature is just as valid.</string>
+    <string name="ayuda_sello_opacidad">Indicates whether the seal lets you see what is underneath. At maximum it covers the page content; with lower values you can see through it.</string>
+    <string name="ayuda_sello_imagen">Image shown on the seal, for example your organisation\'s logo. You can use your own PNG or JPEG image or none at all.</string>
+    <string name="ayuda_sello_texto">Shows on the seal the signer\'s name, the date and other signature details. If you turn it off, the seal only shows the chosen image.</string>
+    <string name="ayuda_sello_qr">Adds to the seal a QR code that opens the web address you specify, for example your organisation\'s verification page. It is optional and the address must be secure (https).</string>
+    <string name="ayuda_sello_csv">Secure verification code (CSV): a code and a web address printed on the seal so that anyone can check the document on your organisation\'s website. Use it only if your organisation provides that code and that address.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">PDF pages on which the seal appears: the first, the last, all of them or the ones you specify, for example “1,3-5”. If you are not sure, put it on the last page.</string>
+    <string name="ayuda_sello_idioma">Language of the seal texts, such as “Signed by” and the date. It does not change the language of the application.</string>
+    <string name="ayuda_sesion_certificado">Time after which the application closes the certificate if it is left in the background. This way nobody can sign with it if you leave the phone unlocked; the shorter it is, the safer.</string>
+    <string name="ayuda_lote">Signs several documents at once with the same certificate and the same options. When it finishes, the application shows which ones were signed and which were not.</string>
+    <string name="ayuda_huella">The hash is a short code calculated from the content of a file that changes completely if a single character is modified. Create it when you save a file and check it later to find out whether it is still intact.</string>
+    <string name="ayuda_huella_algoritmo">Method used to calculate the hash. SHA-256 is recommended. SHA-1 is old and should only be used to compare with hashes that were already calculated with it.</string>
+    <string name="ayuda_huella_formato">How the hash is written in the saved file: in hexadecimal (letters and numbers), in Base64 or in binary. Keep the one already selected unless another program asks for a specific one.</string>
+    <string name="ayuda_proteger">Encrypts a file so that only the people you choose can open it with their electronic certificate. Protecting is not signing: it prevents the content from being read, but it does not show who sent it.</string>
+    <string name="ayuda_desproteger">Opens a file that someone protected for you. It requires the certificate of one of the recipients chosen when it was protected or, if it was protected with a key, that key.</string>
+    <string name="ayuda_proteger_destinatarios">People who will be able to open the protected file. For each one you need their public certificate, which you can ask them for or load from a file. Add yourself too if you want to be able to open it later.</string>
+    <string name="ayuda_proteger_contenedor">Type of protected file that is created. CMS formats are standard and other programs can open them; the native format (.afp) can only be opened with GrxFirma. If you are not sure which to choose, keep the one already selected.</string>
+    <string name="ayuda_proteger_clave">Instead of using certificates, it protects the file with a random key that you must keep and hand over through a secure channel. The application does not store it: without that key nobody will be able to open the document.</string>
+    <string name="ayuda_proteger_firmar">As well as protecting the file, it signs it with your certificate. That way whoever opens it knows who sent it and that it has not been modified.</string>
+    <string name="ayuda_eni_documento">Prepares an electronic document according to the Spanish National Interoperability Framework (ENI), the format public administrations use to exchange documents. It combines the file, its signature and some mandatory descriptive data.</string>
+    <string name="ayuda_eni_expediente">Groups several ENI documents into a case file with its signed index, as the administration requires for sending complete case files, for example to a court.</string>
+    <string name="ayuda_eni_metadatos">Data describing the document: the body that creates it, the date, the origin, the drafting status and the document type. They are mandatory in ENI; if you are unsure about any value, ask your registry or archive unit.</string>
+    <string name="ayuda_eni_origen">Indicates who created the document: the administration itself or a citizen or company that submitted it.</string>
+    <string name="ayuda_eni_estado_elaboracion">Indicates whether the document is an original or a copy, and of what kind. If your own unit created it, it is normally an original.</string>
+    <string name="ayuda_verifactu">Veri*Factu is the Spanish Tax Agency (Agencia Tributaria, AEAT) system that gives invoices a verifiable QR code. Here you can read that QR code or an invoicing record and view its data; the Tax Agency is only contacted if you ask for it.</string>
+    <string name="ayuda_certificado_tipo">Type of certificate according to whom it represents: an individual, the representative of a company or organisation, a public employee or the seal of a public body. It helps filter the list and choose the certificate the procedure asks for.</string>
+    <string name="ayuda_verificar_revocacion">Checks whether the signer\'s certificate had been cancelled (revoked) at the time of signing, for example because of loss or theft. The check is made over the internet with the authority that issued the certificate.</string>
 </resources>

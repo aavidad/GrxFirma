@@ -30,17 +30,32 @@
         android:text="@string/documents_helper"
         android:textColor="@color/on_surface" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/toggleVerifactuButton"
-        style="@style/Widget.Material3.Button.TextButton"
+    <LinearLayout
+        android:id="@+id/verifactuRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:gravity="start|center_vertical"
-        android:minHeight="48dp"
-        android:text="@string/verifactu_title"
-        app:icon="@drawable/ic_expand_more"
-        app:iconGravity="end" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/toggleVerifactuButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
+            android:text="@string/verifactu_title"
+            app:icon="@drawable/ic_expand_more"
+            app:iconGravity="end" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/verifactuHelp"
+            style="@style/Widget.GrxFirma.HelpButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/verifactuGroup"
@@ -208,17 +223,32 @@
 
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/toggleEniButton"
-        style="@style/Widget.Material3.Button.TextButton"
+    <LinearLayout
+        android:id="@+id/eniRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:gravity="start|center_vertical"
-        android:minHeight="48dp"
-        android:text="@string/eni_title"
-        app:icon="@drawable/ic_expand_more"
-        app:iconGravity="end" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/toggleEniButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
+            android:text="@string/eni_title"
+            app:icon="@drawable/ic_expand_more"
+            app:iconGravity="end" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/eniHelp"
+            style="@style/Widget.GrxFirma.HelpButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/eniGroup"
@@ -237,55 +267,103 @@
             android:text="@string/eni_helper"
             android:textColor="@color/on_surface" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/eniOrgansLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        <LinearLayout
+            android:id="@+id/eniMetadataRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:hint="@string/eni_organ"
-            app:helperText="@string/eni_organ_helper">
+            android:gravity="top"
+            android:orientation="horizontal">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/eniOrgans"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/eniOrgansLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:importantForAutofill="no"
-                android:inputType="textCapCharacters|textNoSuggestions"
-                android:maxLength="160"
-                android:minHeight="48dp"
-                android:singleLine="true" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/eni_organ"
+                app:helperText="@string/eni_organ_helper">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/eniOriginLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/eniOrgans"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:importantForAutofill="no"
+                    android:inputType="textCapCharacters|textNoSuggestions"
+                    android:maxLength="160"
+                    android:minHeight="48dp"
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/eniMetadataHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/eniOriginRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:hint="@string/eni_origin">
+            android:gravity="top"
+            android:orientation="horizontal">
 
-            <io.github.aavidad.grxfirma.android.ui.DropdownField
-                android:id="@+id/eniOrigin"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/eniOriginLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/eni_origin">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/eniStateLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                <io.github.aavidad.grxfirma.android.ui.DropdownField
+                    android:id="@+id/eniOrigin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/eniOriginHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/eniStateRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
-            android:hint="@string/eni_state">
+            android:gravity="top"
+            android:orientation="horizontal">
 
-            <io.github.aavidad.grxfirma.android.ui.DropdownField
-                android:id="@+id/eniState"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/eniStateLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/eni_state">
+
+                <io.github.aavidad.grxfirma.android.ui.DropdownField
+                    android:id="@+id/eniState"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/eniStateHelp"
+                style="@style/Widget.GrxFirma.HelpButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/eniDocumentTypeLayout"

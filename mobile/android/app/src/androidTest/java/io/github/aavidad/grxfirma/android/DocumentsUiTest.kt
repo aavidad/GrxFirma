@@ -17,8 +17,8 @@ class DocumentsUiTest {
     @Test fun documentToolsAreHiddenWithoutADeclaringCore() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity {
-                assertEquals(View.GONE, it.findViewById<View>(R.id.toggleVerifactuButton).visibility)
-                assertEquals(View.GONE, it.findViewById<View>(R.id.toggleEniButton).visibility)
+                assertEquals(View.GONE, it.findViewById<View>(R.id.verifactuRow).visibility)
+                assertEquals(View.GONE, it.findViewById<View>(R.id.eniRow).visibility)
                 assertEquals(View.GONE, it.findViewById<View>(R.id.verifactuGroup).visibility)
                 assertEquals(View.VISIBLE, it.findViewById<View>(R.id.documentsSectionTitle).visibility)
             }
