@@ -6565,4 +6565,12 @@
   ,"ayuda.rest_local": "Servizo interno que permite a outros programas do seu equipo pedir sinaturas a GrxFirma. Só o necesitan integracións concretas; se ninguén llo pediu, déixeo desactivado."
   ,"ayuda.confianza_local": "Instala no equipo un certificado propio de GrxFirma para que o navegador se comunique de forma segura coa aplicación ao asinar nunha sede electrónica. Instálase só; reinstáleo se a sede non consegue conectar con GrxFirma."
   ,"ayuda.conectores_navegador": "Volve rexistrar GrxFirma nos navegadores para que as sedes electrónicas poidan abrila. Úseo se ao premer «Asinar» nunha sede non se abre a aplicación."
+  ,"perfil_firma.ayuda.nombre": "Axuda sobre o perfil de sinatura"
+  ,"perfil_firma.ayuda.resumen": "Explica en que se diferencian os perfís B, T, LT e LTA. Prema para lela."
+  ,"perfil_firma.ayuda.titulo": "Que perfil escollo?"
+  ,"perfil_firma.ayuda.b": "B: a sinatura e o certificado. A data pona o reloxo do seu equipo."
+  ,"perfil_firma.ayuda.t": "T: engade un selo de tempo dun servidor de confianza que demostra cando se asinou. É o habitual nos trámites e o perfil recomendado."
+  ,"perfil_firma.ayuda.lt": "LT: ademais garda no documento a cadea de certificados e a proba de que non estaban anulados nese momento. Así a sinatura poderá comprobarse dentro de anos, aínda que o certificado caduque ou a autoridade que o emitiu xa non responda."
+  ,"perfil_firma.ayuda.lta": "LTA: ademais engade un selo de tempo de arquivo, pensado para conservar o documento durante moitos anos."
+  ,"perfil_firma.ayuda.internet": "T, LT e LTA necesitan conexión a Internet ao asinar."
 }

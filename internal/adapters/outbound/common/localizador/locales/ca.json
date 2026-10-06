@@ -6565,4 +6565,12 @@
   ,"ayuda.rest_local": "Servei intern que permet a altres programes del seu equip demanar signatures a GrxFirma. Només el necessiten integracions concretes; si ningú no l'hi ha demanat, deixi'l desactivat."
   ,"ayuda.confianza_local": "Instal·la a l'equip un certificat propi de GrxFirma perquè el navegador es comuniqui de manera segura amb l'aplicació en signar en una seu electrònica. S'instal·la sol; reinstal·li'l si la seu no aconsegueix connectar amb GrxFirma."
   ,"ayuda.conectores_navegador": "Torna a registrar GrxFirma als navegadors perquè les seus electròniques la puguin obrir. Utilitzi-ho si en prémer «Signar» en una seu no s'obre l'aplicació."
+  ,"perfil_firma.ayuda.nombre": "Ajuda sobre el perfil de signatura"
+  ,"perfil_firma.ayuda.resumen": "Explica en què es diferencien els perfils B, T, LT i LTA. Premeu per llegir-la."
+  ,"perfil_firma.ayuda.titulo": "Quin perfil trio?"
+  ,"perfil_firma.ayuda.b": "B: la signatura i el certificat. La data la posa el rellotge del vostre equip."
+  ,"perfil_firma.ayuda.t": "T: afegeix un segell de temps d'un servidor de confiança que demostra quan es va signar. És l'habitual en els tràmits i el perfil recomanat."
+  ,"perfil_firma.ayuda.lt": "LT: a més, desa al document la cadena de certificats i la prova que no estaven anul·lats en aquell moment. Així la signatura es podrà comprovar d'aquí a anys, encara que el certificat caduqui o l'autoritat que el va emetre ja no respongui."
+  ,"perfil_firma.ayuda.lta": "LTA: a més, afegeix un segell de temps d'arxiu, pensat per conservar el document durant molts anys."
+  ,"perfil_firma.ayuda.internet": "T, LT i LTA necessiten connexió a Internet en signar."
 }

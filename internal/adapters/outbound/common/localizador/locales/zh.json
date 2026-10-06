@@ -6565,4 +6565,12 @@
   ,"ayuda.rest_local": "一项内部服务，允许您计算机上的其他程序请求 GrxFirma 进行签名。仅特定集成需要；如果没有人要求您开启，请保持关闭。"
   ,"ayuda.confianza_local": "在计算机上安装 GrxFirma 专用证书，使浏览器在电子政务网站上签名时能与应用安全通信。它会自动安装；如果网站无法连接 GrxFirma，请重新安装。"
   ,"ayuda.conectores_navegador": "在浏览器中重新注册 GrxFirma，以便电子政务网站能够打开它。如果在网站上点击“签名”后应用没有打开，请使用此功能。"
+  ,"perfil_firma.ayuda.nombre": "签名配置文件帮助"
+  ,"perfil_firma.ayuda.resumen": "说明 B、T、LT 和 LTA 配置文件的区别。按下即可阅读。"
+  ,"perfil_firma.ayuda.titulo": "应选择哪个配置文件？"
+  ,"perfil_firma.ayuda.b": "B：签名和证书。日期取自您电脑的时钟。"
+  ,"perfil_firma.ayuda.t": "T：添加来自可信服务器的时间戳，证明签名的时间。办理手续时通常使用此项，也是推荐的配置文件。"
+  ,"perfil_firma.ayuda.lt": "LT：此外还在文档中保存证书链，以及证书当时未被吊销的证明。这样，即使证书过期或签发机构不再响应，多年后仍可验证签名。"
+  ,"perfil_firma.ayuda.lta": "LTA：此外还添加存档时间戳，适合长期保存文档。"
+  ,"perfil_firma.ayuda.internet": "T、LT 和 LTA 在签名时需要连接互联网。"
 }

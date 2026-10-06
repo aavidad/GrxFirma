@@ -6565,4 +6565,12 @@
   ,"ayuda.rest_local": "Internal service that lets other programs on your computer request signatures from GrxFirma. Only specific integrations need it; if nobody has asked you to, leave it off."
   ,"ayuda.confianza_local": "Installs a GrxFirma certificate on the computer so that the browser can communicate securely with the application when signing on a government website. It is installed automatically; reinstall it if the website cannot connect to GrxFirma."
   ,"ayuda.conectores_navegador": "Registers GrxFirma again in the browsers so that government websites can open it. Use it if the application does not open when you click “Sign” on a website."
+  ,"perfil_firma.ayuda.nombre": "Help on the signing profile"
+  ,"perfil_firma.ayuda.resumen": "Explains how the B, T, LT and LTA profiles differ. Press to read it."
+  ,"perfil_firma.ayuda.titulo": "Which profile should I choose?"
+  ,"perfil_firma.ayuda.b": "B: the signature and the certificate. The date comes from your computer's clock."
+  ,"perfil_firma.ayuda.t": "T: adds a timestamp from a trusted server that proves when the document was signed. It is the usual choice for official procedures and the recommended profile."
+  ,"perfil_firma.ayuda.lt": "LT: also stores in the document the certificate chain and proof that the certificates had not been revoked at that moment. This way the signature can still be checked years later, even if the certificate expires or the authority that issued it no longer responds."
+  ,"perfil_firma.ayuda.lta": "LTA: also adds an archive timestamp, intended to keep the document for many years."
+  ,"perfil_firma.ayuda.internet": "T, LT and LTA need an Internet connection when signing."
 }
