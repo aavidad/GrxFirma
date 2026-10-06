@@ -150,7 +150,7 @@ $shortcut.Arguments = '--frontend=winui --ui-binary="' +
     (Join-Path $InstallDir "grxfirma-winui.exe") + '"'
 $shortcut.WorkingDirectory = $InstallDir
 $shortcut.Description = "GrxFirma con interfaz nativa de Windows"
-$shortcut.IconLocation = (Join-Path $InstallDir "Assets\grxfirma.ico") + ",0"
+$shortcut.IconLocation = (Join-Path $InstallDir "Assets\grxfirma-grx.ico") + ",0"
 $shortcut.Save()
 
 Write-Host "Desktop WinUI instalado en: $InstallDir"

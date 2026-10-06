@@ -6,6 +6,7 @@
 Unicode True
 !include "powershell-path.nsh"
 !include "MUI2.nsh"
+!include "shell-icon-refresh.nsh"
 !include "authenticode-signing.nsh"
 !include "legacy-machine-install.nsh"
 
@@ -28,10 +29,10 @@ Unicode True
 !endif
 
 !ifndef MUI_ICON
-  !define MUI_ICON "${STAGE_DIR}\assets\grxfirma.ico"
+  !define MUI_ICON "${STAGE_DIR}\assets\grxfirma-grx.ico"
 !endif
 !ifndef MUI_UNICON
-  !define MUI_UNICON "${STAGE_DIR}\assets\grxfirma.ico"
+  !define MUI_UNICON "${STAGE_DIR}\assets\grxfirma-grx.ico"
 !endif
 
 !if /FileExists "${STAGE_DIR}\grxfirma-gui.exe"
@@ -62,11 +63,13 @@ Section "Desktop Qt/QML" SEC01
   SetShellVarContext current
   SetOutPath "$INSTDIR"
   File /r "${STAGE_DIR}\*.*"
+  ; Nombre anterior del icono (0.0.119 a 0.0.121).
+  Delete "$INSTDIR\assets\grxfirma.ico"
 
   WriteRegStr HKCU "Software\GrxFirmaDesktopQt" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayName" "GrxFirma Desktop Qt"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayVersion" "${VERSION}"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayIcon" "$INSTDIR\assets\grxfirma.ico"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "DisplayIcon" "$INSTDIR\assets\grxfirma-grx.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "Publisher" "Alberto Avidad Fernández"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaDesktopQt" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -93,6 +96,7 @@ Section -post
   RMDir "$SMPROGRAMS\Diputación de Granada"
   CreateShortcut "$SMPROGRAMS\GrxFirma\GrxFirma Qt - Documentación.lnk" "$INSTDIR\README_DESKTOP_QML_WINDOWS.md"
   CreateShortcut "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma Qt.lnk" "$INSTDIR\uninstall.exe"
+  !insertmacro GrxFirmaRefreshShellIcons
 SectionEnd
 
 Section "Uninstall"

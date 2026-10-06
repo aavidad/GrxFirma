@@ -73,7 +73,7 @@ internal sealed class WindowsTrayIcon : IDisposable
         _exit = exit;
         _subclass = WindowProc;
         var iconPath = Path.Combine(AppContext.BaseDirectory,
-            "Assets", "grxfirma.ico");
+            "Assets", "grxfirma-grx.ico");
         _icon = LoadImage(0, iconPath, 1, 0, 0,
             LoadFromFile | DefaultSize);
         if (_icon == 0)

@@ -66,7 +66,7 @@ zip_path = sys.argv[1]
 stage_name = sys.argv[2]
 required = {
     f"{stage_name}/grxfirma.exe",
-    f"{stage_name}/grxfirma.ico",
+    f"{stage_name}/grxfirma-grx.ico",
     f"{stage_name}/README_CLI_WINDOWS.md",
     f"{stage_name}/VERSION.txt",
 }
@@ -169,7 +169,7 @@ GOOS=windows GOARCH="$ARCH" grxfirma_go_build "${VERSION}" "" \
   ./cmd/grxfirma
 
 cp "${ROOT_DIR}/packaging/windows/README_CLI_WINDOWS.md" "${STAGE_DIR}/README_CLI_WINDOWS.md"
-cp "${ROOT_DIR}/packaging/windows/grxfirma.ico" "${STAGE_DIR}/grxfirma.ico"
+cp "${ROOT_DIR}/packaging/windows/grxfirma-grx.ico" "${STAGE_DIR}/grxfirma-grx.ico"
 printf '%s\n' "${VERSION}" > "${STAGE_DIR}/VERSION.txt"
 
 mkdir -p "$OUT_DIR"

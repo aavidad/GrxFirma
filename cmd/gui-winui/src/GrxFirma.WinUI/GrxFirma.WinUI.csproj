@@ -18,7 +18,7 @@
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>..\..\..\..\packaging\windows\grxfirma.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\..\..\packaging\windows\grxfirma-grx.ico</ApplicationIcon>
     <RootNamespace>GrxFirma.WinUI</RootNamespace>
     <AssemblyName>grxfirma-winui</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -37,11 +37,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\..\..\..\packaging\windows\grxfirma.ico">
-      <Link>Assets\grxfirma.ico</Link>
+    <Content Include="..\..\..\..\packaging\windows\grxfirma-grx.ico">
+      <Link>Assets\grxfirma-grx.ico</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-      <TargetPath>Assets\grxfirma.ico</TargetPath>
+      <TargetPath>Assets\grxfirma-grx.ico</TargetPath>
     </Content>
     <Content Include="..\..\..\gui-qml\assets\grxfirma-logo-carbon-96.png">
       <Link>Assets\grxfirma-logo-carbon-96.png</Link>

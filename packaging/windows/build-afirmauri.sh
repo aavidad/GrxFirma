@@ -68,7 +68,7 @@ zip_path = sys.argv[1]
 stage_name = sys.argv[2]
 required = {
     f"{stage_name}/grxfirma-afirmauri.exe",
-    f"{stage_name}/grxfirma.ico",
+    f"{stage_name}/grxfirma-grx.ico",
     f"{stage_name}/README_AFIRMAURI_WINDOWS.md",
     f"{stage_name}/install-afirmauri.ps1",
     f"{stage_name}/uninstall-afirmauri.ps1",
@@ -185,7 +185,7 @@ grxfirma_assert_windows_fyne_artifact \
   "${ARCH}"
 
 cp "${ROOT_DIR}/packaging/windows/README_AFIRMAURI_WINDOWS.md" "${STAGE_DIR}/README_AFIRMAURI_WINDOWS.md"
-cp "${ROOT_DIR}/packaging/windows/grxfirma.ico" "${STAGE_DIR}/grxfirma.ico"
+cp "${ROOT_DIR}/packaging/windows/grxfirma-grx.ico" "${STAGE_DIR}/grxfirma-grx.ico"
 cp "${ROOT_DIR}/packaging/windows/install-afirmauri.ps1" "${STAGE_DIR}/install-afirmauri.ps1"
 cp "${ROOT_DIR}/packaging/windows/uninstall-afirmauri.ps1" "${STAGE_DIR}/uninstall-afirmauri.ps1"
 cp "${ROOT_DIR}/packaging/windows/afirmauri-registration.ps1" "${STAGE_DIR}/afirmauri-registration.ps1"

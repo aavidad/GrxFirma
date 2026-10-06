@@ -4,13 +4,19 @@
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
 
-"""Genera iconos, logotipos y el emblema del sello a partir de los SVG de marca.
+"""Genera los iconos del programa a partir de los SVG de marca.
 
 Fuentes en assets/branding: grxfirma-icono.svg y grxfirma-icono-pequeno.svg
 (icono del programa: «GRX» en blanco y verde sobre azul oscuro con trazo de
-firma; la versión reducida se usa hasta 32 px), grxfirma-simbolo.svg,
-grxfirma-logo-horizontal.svg y su variante negativo (logotipos) y
-grxfirma-emblema-sello.svg (sello PAdES).
+firma; la versión reducida se usa hasta 32 px).
+
+El emblema verde del sello (logo_firma_grxfirma_final.png en el escritorio Qt
+y recursos/grxfirma-emblema-sello.png en el firmante) y el boceto a carbón de
+la barra lateral y «Acerca de» son imágenes fijas: este guion no las toca.
+
+El ICO se llama grxfirma-grx.ico. Si la imagen del icono cambia, cambie
+también el nombre del fichero en todas sus referencias: Windows guarda los
+iconos en caché por ruta y seguiría mostrando el anterior tras actualizar.
 """
 
 from __future__ import annotations
@@ -28,10 +34,6 @@ ROOT = Path(__file__).resolve().parents[2]
 BRANDING = ROOT / "assets/branding"
 LARGE = BRANDING / "grxfirma-icono.svg"
 SMALL = BRANDING / "grxfirma-icono-pequeno.svg"
-SYMBOL = BRANDING / "grxfirma-simbolo.svg"
-SEAL = BRANDING / "grxfirma-emblema-sello.svg"
-HORIZONTAL = BRANDING / "grxfirma-logo-horizontal.svg"
-HORIZONTAL_DARK = BRANDING / "grxfirma-logo-horizontal-negativo.svg"
 # Fondo del icono del programa (también el del lanzador adaptativo Android).
 BACKGROUND = "#173a4e"
 
@@ -92,28 +94,16 @@ def write_ico(path: Path, sizes: tuple[int, ...]) -> None:
 
 
 def main() -> None:
-    ico = BRANDING / "grxfirma.ico"
+    ico = BRANDING / "grxfirma-grx.ico"
     write_ico(ico, (16, 20, 24, 32, 40, 48, 64, 128, 256))
-    shutil.copyfile(ico, ROOT / "packaging/windows/grxfirma.ico")
+    shutil.copyfile(ico, ROOT / "packaging/windows/grxfirma-grx.ico")
 
     for size in (48, 128, 256):
         save_png(BRANDING / f"grxfirma-icono-{size}.png", render(size))
     shutil.copyfile(BRANDING / "grxfirma-icono-256.png",
                     ROOT / "cmd/gui-qml/assets/grxfirma-icono-256.png")
 
-    qml_assets = ROOT / "cmd/gui-qml/assets"
-    save_png(qml_assets / "grxfirma-logo-horizontal.png", render_svg(HORIZONTAL, 1400))
-    save_png(qml_assets / "grxfirma-logo-horizontal-negativo.png",
-             render_svg(HORIZONTAL_DARK, 1400))
-    shutil.copyfile(HORIZONTAL, qml_assets / "grxfirma-logo-horizontal.svg")
-    save_png(qml_assets / "grxfirma-simbolo.png", render_svg(SYMBOL, 256, 256))
-    # Imagen del sello que el escritorio Qt ofrece por defecto.
-    save_png(qml_assets / "logo_firma_grxfirma_final.png", render_svg(SEAL, 1024, 1024))
-    save_png(ROOT / "internal/adapters/outbound/desktop/signer/recursos/"
-             "grxfirma-emblema-sello.png", render_svg(SEAL, 384, 384))
-
     site = ROOT / "docs/sitio"
-    shutil.copyfile(HORIZONTAL, site / "grxfirma-logo-horizontal.svg")
     shutil.copyfile(SMALL, site / "grxfirma-icono.svg")
 
     for platform in ("chromium", "firefox"):
@@ -122,7 +112,6 @@ def main() -> None:
             save_png(base / f"icon{size}.png", render(size))
         for size in (16, 48, 128, 256, 512):
             save_png(base / "icons" / f"icon{size}.png", render(size))
-        save_png(base / "icons/grxfirma-simbolo.png", render_svg(SYMBOL, 128, 128))
 
     msix = ROOT / "packaging/windows/msix/Assets"
     for name, size in (("Square44x44Logo", 44), ("StoreLogo", 50),

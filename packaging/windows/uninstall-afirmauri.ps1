@@ -25,7 +25,7 @@ if (-not (Test-Path -LiteralPath $registrationHelpers -PathType Leaf)) {
 $InstallDir = Resolve-GrxFirmaInstallPath -Path $InstallDir -Component "AfirmaURI"
 $protocolKey = "Software\Classes\afirma"
 $exeTarget = Join-Path $InstallDir "grxfirma-afirmauri.exe"
-$iconTarget = Join-Path $InstallDir "grxfirma.ico"
+$iconTarget = Join-Path $InstallDir "grxfirma-grx.ico"
 $protocolSnapshot = Join-Path $InstallDir "afirma-protocol-snapshot.json"
 
 $plan = @(Get-AfirmaProtocolRegistrationPlan `
@@ -34,7 +34,7 @@ $plan = @(Get-AfirmaProtocolRegistrationPlan `
     -IconPath $iconTarget)
 $currentSet = New-AfirmaProtocolOwnerSet -Plan $plan
 # Valores que escribieron versiones anteriores de esta misma instalación
-# (por ejemplo, el icono grxfirma-diputacion.ico). La orden debe seguir
+# (por ejemplo, los iconos grxfirma-diputacion.ico y grxfirma.ico). La orden debe seguir
 # apuntando a este ejecutable.
 $legacySets = @(Get-AfirmaProtocolLegacyOwnerSets `
     -ProtocolKey $protocolKey `

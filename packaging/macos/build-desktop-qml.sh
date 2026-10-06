@@ -143,7 +143,7 @@ required = {
     f"{stage_name}/GrxFirma Desktop Qt.app/Contents/MacOS/grxfirma-gui",
     f"{stage_name}/GrxFirma Desktop Qt.app/Contents/MacOS/grxfirma",
     f"{stage_name}/GrxFirma Desktop Qt.app/Contents/Resources/qml/main.qml",
-    f"{stage_name}/GrxFirma Desktop Qt.app/Contents/Resources/assets/grxfirma.ico",
+    f"{stage_name}/GrxFirma Desktop Qt.app/Contents/Resources/assets/grxfirma-grx.ico",
     f"{stage_name}/GrxFirma Desktop Qt.app/Contents/Resources/VERSION.txt",
     f"{stage_name}/install-desktop-qml.sh",
     f"{stage_name}/README_DESKTOP_QML_MACOS.md",
@@ -226,8 +226,8 @@ install -m 755 "${BUILD_DIR}/grxfirma" "${APP_BIN_DIR}/grxfirma"
 cp -R "${ROOT_DIR}/cmd/gui-qml/qml" "${APP_RES_DIR}/qml"
 cp -R "${ROOT_DIR}/cmd/gui-qml/assets" "${APP_RES_DIR}/assets"
 cp \
-  "${ROOT_DIR}/assets/branding/grxfirma.ico" \
-  "${APP_RES_DIR}/assets/grxfirma.ico"
+  "${ROOT_DIR}/assets/branding/grxfirma-grx.ico" \
+  "${APP_RES_DIR}/assets/grxfirma-grx.ico"
 printf '%s\n' "${VERSION}" > "${APP_RES_DIR}/VERSION.txt"
 
 desktop_plist="${APP_DIR}/Contents/Info.plist"

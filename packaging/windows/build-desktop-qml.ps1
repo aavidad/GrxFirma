@@ -375,8 +375,8 @@ Copy-Item $qmlExe (Join-Path $Escenario "grxfirma-gui-qml.exe") -Force
 Copy-Item (Join-Path $Raiz "cmd/gui-qml/qml") (Join-Path $Escenario "qml") -Recurse -Force
 Copy-Item (Join-Path $Raiz "cmd/gui-qml/assets") (Join-Path $Escenario "assets") -Recurse -Force
 Copy-Item `
-    (Join-Path $Raiz "packaging/windows/grxfirma.ico") `
-    (Join-Path $Escenario "assets/grxfirma.ico") `
+    (Join-Path $Raiz "packaging/windows/grxfirma-grx.ico") `
+    (Join-Path $Escenario "assets/grxfirma-grx.ico") `
     -Force
 if ($HelpAvailable) {
     Copy-Item (Join-Path $Raiz "cmd/gui-qml/help") (Join-Path $Escenario "help") -Recurse -Force

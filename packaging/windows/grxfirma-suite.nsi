@@ -5,6 +5,7 @@
 
 Unicode True
 !include "MUI2.nsh"
+!include "shell-icon-refresh.nsh"
 !include "LogicLib.nsh"
 !include "powershell-path.nsh"
 !include "Sections.nsh"
@@ -30,10 +31,10 @@ Unicode True
 !endif
 
 !ifndef MUI_ICON
-  !define MUI_ICON "${STAGE_DIR}\grxfirma.ico"
+  !define MUI_ICON "${STAGE_DIR}\grxfirma-grx.ico"
 !endif
 !ifndef MUI_UNICON
-  !define MUI_UNICON "${STAGE_DIR}\grxfirma.ico"
+  !define MUI_UNICON "${STAGE_DIR}\grxfirma-grx.ico"
 !endif
 
 Name "GrxFirma"
@@ -88,14 +89,16 @@ Section "Motor, navegador y línea de comandos (obligatorio)" SEC_CORE
   SetOutPath "$INSTDIR\help"
   File "${STAGE_DIR}\help\NOVEDADES.md"
   SetOutPath "$INSTDIR"
-  File "${STAGE_DIR}\grxfirma.ico"
-  ; Nombre anterior del icono del producto.
+  File "${STAGE_DIR}\grxfirma-grx.ico"
+  ; Nombres anteriores del icono del producto (la caché de iconos de
+  ; Windows se indexa por ruta, así que cada imagen nueva lleva otro nombre).
   Delete "$INSTDIR\grxfirma-diputacion.ico"
+  Delete "$INSTDIR\grxfirma.ico"
 
   WriteRegStr HKCU "Software\GrxFirma" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayName" "GrxFirma"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "Publisher" "Alberto Avidad Fernández"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayIcon" "$INSTDIR\grxfirma.ico"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayIcon" "$INSTDIR\grxfirma-grx.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "QuietUninstallString" '"$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR"'
@@ -168,7 +171,7 @@ Section "Crear acceso directo en el escritorio" SEC_DESKTOP_SHORTCUT
       "$DESKTOP\GrxFirma.lnk" \
       "$LOCALAPPDATA\Programs\GrxFirma\DesktopLauncher\grxfirma-gui.exe" \
       '--frontend=winui --ui-binary="$LOCALAPPDATA\Programs\GrxFirma\DesktopWinUI\grxfirma-winui.exe"' \
-      "$LOCALAPPDATA\Programs\GrxFirma\DesktopWinUI\Assets\grxfirma.ico" \
+      "$LOCALAPPDATA\Programs\GrxFirma\DesktopWinUI\Assets\grxfirma-grx.ico" \
       0
     StrCpy $0 "1"
   ${EndIf}
@@ -182,7 +185,7 @@ Section "Crear acceso directo en el escritorio" SEC_DESKTOP_SHORTCUT
         "$DESKTOP\GrxFirma.lnk" \
         "$LOCALAPPDATA\Programs\GrxFirma\DesktopLauncher\grxfirma-gui.exe" \
         '--frontend=qt --ui-binary="$LOCALAPPDATA\Programs\GrxFirma\DesktopQML\grxfirma-gui-qml.exe"' \
-        "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML\assets\grxfirma.ico" \
+        "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML\assets\grxfirma-grx.ico" \
         0
       StrCpy $0 "1"
     ${EndIf}
@@ -230,6 +233,7 @@ Section -post
   CreateShortcut "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma.lnk" "$INSTDIR\uninstall.exe"
   ; La versión se anuncia solo cuando todas las fases han terminado bien.
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirma" "DisplayVersion" "${VERSION}"
+  !insertmacro GrxFirmaRefreshShellIcons
 SectionEnd
 
 Section "Uninstall"
@@ -265,8 +269,9 @@ Section "Uninstall"
   Delete "$INSTDIR\remove-unselected-desktop.ps1"
   Delete "$INSTDIR\install-path-safety.ps1"
   Delete "$INSTDIR\invoke-uninstall-silent.ps1"
-  Delete "$INSTDIR\grxfirma.ico"
+  Delete "$INSTDIR\grxfirma-grx.ico"
   Delete "$INSTDIR\grxfirma-diputacion.ico"
+  Delete "$INSTDIR\grxfirma.ico"
   Delete "$INSTDIR\README_WINDOWS_SUITE.md"
   Delete "$INSTDIR\VERSION.txt"
   RMDir /r "$INSTDIR\help"

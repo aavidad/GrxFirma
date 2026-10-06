@@ -6,6 +6,7 @@
 Unicode True
 !include "powershell-path.nsh"
 !include "MUI2.nsh"
+!include "shell-icon-refresh.nsh"
 !include "authenticode-signing.nsh"
 !include "legacy-machine-install.nsh"
 
@@ -28,10 +29,10 @@ Unicode True
 !endif
 
 !ifndef MUI_ICON
-  !define MUI_ICON "${STAGE_DIR}\grxfirma.ico"
+  !define MUI_ICON "${STAGE_DIR}\grxfirma-grx.ico"
 !endif
 !ifndef MUI_UNICON
-  !define MUI_UNICON "${STAGE_DIR}\grxfirma.ico"
+  !define MUI_UNICON "${STAGE_DIR}\grxfirma-grx.ico"
 !endif
 
 Name "GrxFirma AfirmaURI"
@@ -65,15 +66,17 @@ Section "Handler afirma://" SEC01
   File "${STAGE_DIR}\invoke-uninstall-silent.ps1"
   File "${STAGE_DIR}\README_AFIRMAURI_WINDOWS.md"
   File "${STAGE_DIR}\VERSION.txt"
-  File "${STAGE_DIR}\grxfirma.ico"
-  ; Nombre anterior del icono del producto.
+  File "${STAGE_DIR}\grxfirma-grx.ico"
+  ; Nombres anteriores del icono del producto (la caché de iconos de
+  ; Windows se indexa por ruta, así que cada imagen nueva lleva otro nombre).
   Delete "$INSTDIR\grxfirma-diputacion.ico"
+  Delete "$INSTDIR\grxfirma.ico"
 
   WriteRegStr HKCU "Software\GrxFirmaAfirmaURI" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayName" "GrxFirma AfirmaURI"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayVersion" "${VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "Publisher" "Alberto Avidad Fernández"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayIcon" "$INSTDIR\grxfirma.ico"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "DisplayIcon" "$INSTDIR\grxfirma-grx.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GrxFirmaAfirmaURI" "QuietUninstallString" '"$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR"'
@@ -104,6 +107,7 @@ Section -post
   RMDir "$SMPROGRAMS\Diputación de Granada"
   CreateShortcut "$SMPROGRAMS\GrxFirma\GrxFirma AfirmaURI - Documentación.lnk" "$INSTDIR\README_AFIRMAURI_WINDOWS.md"
   CreateShortcut "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma AfirmaURI.lnk" "$INSTDIR\uninstall.exe"
+  !insertmacro GrxFirmaRefreshShellIcons
 SectionEnd
 
 Section "Uninstall"
@@ -128,8 +132,9 @@ Section "Uninstall"
   Delete "$INSTDIR\invoke-uninstall-silent.ps1"
   Delete "$INSTDIR\README_AFIRMAURI_WINDOWS.md"
   Delete "$INSTDIR\VERSION.txt"
-  Delete "$INSTDIR\grxfirma.ico"
+  Delete "$INSTDIR\grxfirma-grx.ico"
   Delete "$INSTDIR\grxfirma-diputacion.ico"
+  Delete "$INSTDIR\grxfirma.ico"
   Delete "$INSTDIR\uninstall.exe"
   Delete "$SMPROGRAMS\GrxFirma\GrxFirma AfirmaURI - Documentación.lnk"
   Delete "$SMPROGRAMS\GrxFirma\Desinstalar GrxFirma AfirmaURI.lnk"

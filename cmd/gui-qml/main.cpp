@@ -310,7 +310,7 @@ int main(int argc, char *argv[]) {
   QGuiApplication::setDesktopFileName(QStringLiteral("grxfirma-manual"));
 #ifdef Q_OS_WIN
   const QString applicationIconPath =
-      QStringLiteral(":/assets/grxfirma.ico");
+      QStringLiteral(":/assets/grxfirma-grx.ico");
 #else
   const QString applicationIconPath =
       QStringLiteral(":/assets/grxfirma-icono-256.png");

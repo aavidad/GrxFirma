@@ -215,7 +215,7 @@ EOF
     [ "$status" -eq 0 ]
     run grep -F -- 'Contents/Resources/assets' "${script}"
     [ "$status" -eq 0 ]
-    run grep -F -- 'assets/branding/grxfirma.ico' "${script}"
+    run grep -F -- 'assets/branding/grxfirma-grx.ico' "${script}"
     [ "$status" -eq 0 ]
     run grep -F -- 'Contents/MacOS/qml' "${script}"
     [ "$status" -eq 1 ]

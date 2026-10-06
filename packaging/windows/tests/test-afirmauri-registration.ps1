@@ -77,7 +77,7 @@ Assert-True (
 Assert-True (
     [string]$plan[2].Value -eq "$executablePath,0"
 ) "DefaultIcon no apunta al ejecutable instalado"
-$iconPath = "C:\Users\Test\AppData\Local\Programs\GrxFirma\AfirmaURI\grxfirma.ico"
+$iconPath = "C:\Users\Test\AppData\Local\Programs\GrxFirma\AfirmaURI\grxfirma-grx.ico"
 $brandedPlan = @(Get-AfirmaProtocolRegistrationPlan `
     -ProtocolKey $protocolKey `
     -ExecutablePath $executablePath `
@@ -467,8 +467,8 @@ try {
         -ProtocolKey $protocolKey `
         -ExecutablePath $executablePath `
         -IconPath $iconPath)
-    Assert-True ($legacySets.Count -eq 2) `
-        "Faltan variantes de propietario anteriores (icono del ejecutable y grxfirma-diputacion.ico)"
+    Assert-True ($legacySets.Count -eq 3) `
+        "Faltan variantes de propietario anteriores (icono del ejecutable, grxfirma-diputacion.ico y grxfirma.ico)"
     foreach ($legacySet in $legacySets) {
         Assert-True (
             [string]$legacySet.OwnerValues[3].Value -eq "`"$executablePath`" `"%1`""
@@ -507,7 +507,7 @@ try {
     ) "La comprobacion previa modifico la instantanea"
 
     # Actualizacion 0.0.118 -> actual: acepta el icono antiguo y deja
-    # registro e instantanea con grxfirma.ico.
+    # registro e instantanea con grxfirma-grx.ico.
     Install-AfirmaProtocolRegistration `
         -ProtocolKey $protocolKey `
         -ExecutablePath $executablePath `
@@ -519,12 +519,12 @@ try {
         -Plan $brandedPlan
     Assert-True (
         [string]$upgraded118.OwnerValues[2].Value -eq "$iconPath,0"
-    ) "La instantanea actualizada no usa grxfirma.ico"
+    ) "La instantanea actualizada no usa grxfirma-grx.ico"
     Assert-True (
         Test-AfirmaProtocolValuesMatch -Expected @(
             $brandedPlan | ForEach-Object { New-AfirmaOwnedValueSnapshot -Plan $_ }
         )
-    ) "El registro actualizado no apunta a grxfirma.ico y al ejecutable"
+    ) "El registro actualizado no apunta a grxfirma-grx.ico y al ejecutable"
     for ($index = 0; $index -lt $absent118.Count; $index++) {
         Assert-True (
             Test-AfirmaRegistrySnapshotsEqual `
@@ -644,6 +644,116 @@ try {
         ) "Sin instantanea, los valores de la 0.0.118 se guardaron como ajenos"
     }
     Remove-Item -LiteralPath $snapshot118Path -Force
+
+    # Instantanea escrita por la 0.0.119 a la 0.0.121: DefaultIcon apuntaba a
+    # grxfirma.ico en la misma carpeta. El icono cambio de imagen sin cambiar
+    # de nombre y la cache de Windows seguia sirviendo la anterior; ahora se
+    # llama grxfirma-grx.ico y la actualizacion debe aceptar el valor previo.
+    $icon121Path = "$installDir\grxfirma.ico"
+    $plan121 = @(Get-AfirmaProtocolRegistrationPlan `
+        -ProtocolKey $protocolKey `
+        -ExecutablePath $executablePath `
+        -IconPath $icon121Path)
+    $owners121 = @($plan121 | ForEach-Object {
+        New-AfirmaOwnedValueSnapshot -Plan $_
+    })
+    $absent121 = @($plan121 | ForEach-Object {
+        New-AfirmaAbsentValueSnapshot -Plan $_
+    })
+    $snapshot121Path = Join-Path $tmp "afirma-protocol-snapshot-0.0.121.json"
+    function Reset-Test121State {
+        $script:mockRegistry = @{}
+        foreach ($ownerValue in $owners121) {
+            $script:mockRegistry[
+                (Get-TestSnapshotKey `
+                    -Path ([string]$ownerValue.Path) `
+                    -Name ([string]$ownerValue.Name))
+            ] = Copy-TestSnapshot -Snapshot $ownerValue
+        }
+        Write-AfirmaProtocolSnapshot `
+            -Path $snapshot121Path `
+            -ProtocolKey $protocolKey `
+            -OwnerValues $owners121 `
+            -Snapshots $absent121
+        $script:mockSetAttempts = 0
+        $script:mockFailSetAt = 0
+        $script:mockRestoreAttempts = 0
+    }
+    Assert-True (
+        @($legacySets | Where-Object {
+            [string]$_.OwnerValues[2].Value -eq "$icon121Path,0"
+        }).Count -eq 1
+    ) "grxfirma.ico no figura entre los iconos anteriores propios"
+
+    # Comprobacion previa: acepta la 0.0.121 sin escribir nada.
+    Reset-Test121State
+    Install-AfirmaProtocolRegistration `
+        -ProtocolKey $protocolKey `
+        -ExecutablePath $executablePath `
+        -IconPath $iconPath `
+        -SnapshotPath $snapshot121Path `
+        -ValidateOnly
+    Assert-True ($script:mockSetAttempts -eq 0) `
+        "La comprobacion previa de la 0.0.121 escribio en el registro"
+
+    # Actualizacion 0.0.121 -> actual.
+    Install-AfirmaProtocolRegistration `
+        -ProtocolKey $protocolKey `
+        -ExecutablePath $executablePath `
+        -IconPath $iconPath `
+        -SnapshotPath $snapshot121Path
+    $upgraded121 = Read-AfirmaProtocolSnapshot `
+        -Path $snapshot121Path `
+        -ProtocolKey $protocolKey `
+        -Plan $brandedPlan
+    Assert-True (
+        [string]$upgraded121.OwnerValues[2].Value -eq "$iconPath,0"
+    ) "La instantanea actualizada desde la 0.0.121 no usa grxfirma-grx.ico"
+    Assert-True (
+        Test-AfirmaProtocolValuesMatch -Expected @(
+            $brandedPlan | ForEach-Object { New-AfirmaOwnedValueSnapshot -Plan $_ }
+        )
+    ) "El registro actualizado desde la 0.0.121 no apunta a grxfirma-grx.ico"
+    for ($index = 0; $index -lt $absent121.Count; $index++) {
+        Assert-True (
+            Test-AfirmaRegistrySnapshotsEqual `
+                -Left $upgraded121.Snapshots[$index] `
+                -Right $absent121[$index]
+        ) "La actualizacion desde la 0.0.121 perdio el estado anterior a GrxFirma"
+    }
+
+    # Desinstalacion con la instantanea de la 0.0.121.
+    Reset-Test121State
+    $state121 = Read-AfirmaProtocolSnapshot `
+        -Path $snapshot121Path `
+        -ProtocolKey $protocolKey `
+        -Plan $brandedPlan `
+        -AcceptedLegacyOwnerSets $legacySets
+    $restored = Restore-AfirmaProtocolRegistration `
+        -OwnerValues @($state121.OwnerValues) `
+        -Snapshots @($state121.Snapshots)
+    Assert-True $restored "La desinstalacion no retiro el protocolo de la 0.0.121"
+    Assert-True (
+        Test-AfirmaProtocolValuesMatch -Expected $absent121
+    ) "La desinstalacion de la 0.0.121 dejo valores del protocolo"
+
+    # Un grxfirma.ico de otra carpeta sigue siendo ajeno.
+    Reset-Test121State
+    $foreign121 = Copy-TestSnapshot -Snapshot $owners121[2]
+    $foreign121.Value = "C:\Users\Test\AppData\Local\Programs\Otro\grxfirma.ico,0"
+    $script:mockRegistry[
+        (Get-TestSnapshotKey -Path ([string]$foreign121.Path) -Name "")
+    ] = $foreign121
+    Assert-Throws {
+        Install-AfirmaProtocolRegistration `
+            -ProtocolKey $protocolKey `
+            -ExecutablePath $executablePath `
+            -IconPath $iconPath `
+            -SnapshotPath $snapshot121Path
+    } "Se acepto un grxfirma.ico de otra carpeta como propio"
+    Assert-True ($script:mockSetAttempts -eq 0) `
+        "La actualizacion escribio registro con un grxfirma.ico ajeno"
+    Remove-Item -LiteralPath $snapshot121Path -Force
 
     . $helperPath
     $runningOnWindows =

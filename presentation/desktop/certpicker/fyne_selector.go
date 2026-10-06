@@ -593,7 +593,7 @@ func applySelectorAppIcon(a fyne.App) {
 		if err != nil || len(data) == 0 {
 			continue
 		}
-		a.SetIcon(fyne.NewStaticResource("logo_firma_grxfirma_final.png", data))
+		a.SetIcon(fyne.NewStaticResource("grxfirma-icono-256.png", data))
 		return
 	}
 }
@@ -602,11 +602,11 @@ func selectorIconCandidates() []string {
 	exePath, _ := os.Executable()
 	binDir := filepath.Dir(exePath)
 	return []string{
-		filepath.Join(binDir, "../lib/grxfirma/gui-qml/assets/logo_firma_grxfirma_final.png"),
-		filepath.Join(binDir, "../lib64/grxfirma/gui-qml/assets/logo_firma_grxfirma_final.png"),
-		filepath.Join(binDir, "assets/logo_firma_grxfirma_final.png"),
-		filepath.Join(filepath.Dir(binDir), "cmd/gui-qml/assets/logo_firma_grxfirma_final.png"),
-		filepath.Join(filepath.Dir(filepath.Dir(binDir)), "cmd/gui-qml/assets/logo_firma_grxfirma_final.png"),
-		filepath.Join(".", "cmd/gui-qml/assets/logo_firma_grxfirma_final.png"),
+		filepath.Join(binDir, "../lib/grxfirma/gui-qml/assets/grxfirma-icono-256.png"),
+		filepath.Join(binDir, "../lib64/grxfirma/gui-qml/assets/grxfirma-icono-256.png"),
+		filepath.Join(binDir, "assets/grxfirma-icono-256.png"),
+		filepath.Join(filepath.Dir(binDir), "cmd/gui-qml/assets/grxfirma-icono-256.png"),
+		filepath.Join(filepath.Dir(filepath.Dir(binDir)), "cmd/gui-qml/assets/grxfirma-icono-256.png"),
+		filepath.Join(".", "cmd/gui-qml/assets/grxfirma-icono-256.png"),
 	}
 }
