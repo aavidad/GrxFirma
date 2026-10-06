@@ -6576,4 +6576,6 @@
   ,"Baseline LT": "Baseline LT"
   ,"Baseline LTA": "Baseline LTA"
   ,"perfil_firma.tooltip": "Perfil que se preselecciona para CAdES, XAdES y PAdES. T, LT y LTA necesitan conexión con el servidor de sellado de tiempo."
+  ,"Ayuda en cada opción: un botón «?» junto a cada ajuste técnico (cofirma, contrafirma, formatos, perfil B, T, LT o LTA, sellado de tiempo, sello visible, protección…) explica qué es y cuándo usarlo.": "Ayuda en cada opción: un botón «?» junto a cada ajuste técnico (cofirma, contrafirma, formatos, perfil B, T, LT o LTA, sellado de tiempo, sello visible, protección…) explica qué es y cuándo usarlo."
+  ,"Linux: el perfil de firma por defecto también puede ser Baseline LT o LTA.": "Linux: el perfil de firma por defecto también puede ser Baseline LT o LTA."
 }

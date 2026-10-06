@@ -9,7 +9,9 @@ Estas notas describen los cambios visibles para quienes usan la aplicación.
 
 ## 0.0.121 — 2026-10-06
 
+- Ayuda en cada opción: un botón «?» junto a cada ajuste técnico (cofirma, contrafirma, formatos, perfil B, T, LT o LTA, sellado de tiempo, sello visible, protección…) explica qué es y cuándo usarlo.
 - Windows: al actualizar se retiran del escritorio los accesos directos de versiones anteriores de GrxFirma.
+- Linux: el perfil de firma por defecto también puede ser Baseline LT o LTA.
 
 ## 0.0.120 — 2026-10-06
 

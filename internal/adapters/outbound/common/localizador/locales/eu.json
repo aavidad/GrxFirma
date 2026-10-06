@@ -6576,4 +6576,6 @@
   ,"Baseline LT": "Baseline LT"
   ,"Baseline LTA": "Baseline LTA"
   ,"perfil_firma.tooltip": "CAdES, XAdES eta PAdESerako aurrez hautatutako profila. T, LT eta LTA profilek denbora-zigiluaren zerbitzariarekin konexioa behar dute."
+  ,"Ayuda en cada opción: un botón «?» junto a cada ajuste técnico (cofirma, contrafirma, formatos, perfil B, T, LT o LTA, sellado de tiempo, sello visible, protección…) explica qué es y cuándo usarlo.": "Laguntza aukera bakoitzean: «?» botoi batek ezarpen tekniko bakoitzaren ondoan (kosinadura, kontrasinadura, formatuak, B, T, LT edo LTA profila, denbora-zigilua, zigilu ikusgaia, babesa…) azaltzen du zer den eta noiz erabili."
+  ,"Linux: el perfil de firma por defecto también puede ser Baseline LT o LTA.": "Linux: sinadura-profil lehenetsia Baseline LT edo LTA ere izan daiteke."
 }
