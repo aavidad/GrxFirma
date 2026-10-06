@@ -664,4 +664,11 @@
     <string name="eni_saved_detail">Documento ENI guardado: %1$s</string>
     <string name="expediente_saved_detail">Processo guardado: %1$s</string>
     <string name="protected_file_type">Ficheiro protegido</string>
+    <string name="profile_help_name">Ajuda sobre o perfil de assinatura</string>
+    <string name="profile_help_title">Que perfil devo escolher?</string>
+    <string name="profile_help_b">B: a assinatura e o certificado. A data é dada pelo relógio do seu computador.</string>
+    <string name="profile_help_t">T: acrescenta um carimbo temporal de um servidor de confiança que prova quando foi assinado. É o habitual nos procedimentos administrativos e o perfil recomendado.</string>
+    <string name="profile_help_lt">LT: guarda ainda no documento a cadeia de certificados e a prova de que não estavam revogados nesse momento. Assim, a assinatura poderá ser verificada daqui a anos, mesmo que o certificado expire ou a autoridade que o emitiu deixe de responder.</string>
+    <string name="profile_help_lta">LTA: acrescenta ainda um carimbo temporal de arquivo, pensado para conservar o documento durante muitos anos.</string>
+    <string name="profile_help_internet">T, LT e LTA precisam de ligação à Internet no momento da assinatura.</string>
 </resources>

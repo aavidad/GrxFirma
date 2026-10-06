@@ -6565,4 +6565,12 @@
   ,"ayuda.rest_local": "Serviço interno que permite a outros programas do seu computador pedir assinaturas ao GrxFirma. Só é necessário para integrações específicas; se ninguém o pediu, mantenha-o desativado."
   ,"ayuda.confianza_local": "Instala no computador um certificado próprio do GrxFirma para que o navegador comunique de forma segura com a aplicação ao assinar num portal eletrónico. É instalado automaticamente; reinstale-o se o portal não conseguir ligar-se ao GrxFirma."
   ,"ayuda.conectores_navegador": "Volta a registar o GrxFirma nos navegadores para que os portais eletrónicos o possam abrir. Utilize esta opção se, ao premir «Assinar» num portal, a aplicação não abrir."
+  ,"perfil_firma.ayuda.nombre": "Ajuda sobre o perfil de assinatura"
+  ,"perfil_firma.ayuda.resumen": "Explica a diferença entre os perfis B, T, LT e LTA. Prima para a ler."
+  ,"perfil_firma.ayuda.titulo": "Que perfil devo escolher?"
+  ,"perfil_firma.ayuda.b": "B: a assinatura e o certificado. A data é dada pelo relógio do seu computador."
+  ,"perfil_firma.ayuda.t": "T: acrescenta um carimbo temporal de um servidor de confiança que prova quando foi assinado. É o habitual nos procedimentos administrativos e o perfil recomendado."
+  ,"perfil_firma.ayuda.lt": "LT: guarda ainda no documento a cadeia de certificados e a prova de que não estavam revogados nesse momento. Assim, a assinatura poderá ser verificada daqui a anos, mesmo que o certificado expire ou a autoridade que o emitiu deixe de responder."
+  ,"perfil_firma.ayuda.lta": "LTA: acrescenta ainda um carimbo temporal de arquivo, pensado para conservar o documento durante muitos anos."
+  ,"perfil_firma.ayuda.internet": "T, LT e LTA precisam de ligação à Internet no momento da assinatura."
 }

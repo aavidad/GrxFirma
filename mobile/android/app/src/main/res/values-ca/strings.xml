@@ -664,4 +664,11 @@
     <string name="eni_saved_detail">Document ENI desat: %1$s</string>
     <string name="expediente_saved_detail">Expedient desat: %1$s</string>
     <string name="protected_file_type">Fitxer protegit</string>
+    <string name="profile_help_name">Ajuda sobre el perfil de signatura</string>
+    <string name="profile_help_title">Quin perfil trio?</string>
+    <string name="profile_help_b">B: la signatura i el certificat. La data la posa el rellotge del vostre equip.</string>
+    <string name="profile_help_t">T: afegeix un segell de temps d\'un servidor de confiança que demostra quan es va signar. És l\'habitual en els tràmits i el perfil recomanat.</string>
+    <string name="profile_help_lt">LT: a més, desa al document la cadena de certificats i la prova que no estaven anul·lats en aquell moment. Així la signatura es podrà comprovar d\'aquí a anys, encara que el certificat caduqui o l\'autoritat que el va emetre ja no respongui.</string>
+    <string name="profile_help_lta">LTA: a més, afegeix un segell de temps d\'arxiu, pensat per conservar el document durant molts anys.</string>
+    <string name="profile_help_internet">T, LT i LTA necessiten connexió a Internet en signar.</string>
 </resources>

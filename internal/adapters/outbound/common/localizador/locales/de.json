@@ -6565,4 +6565,12 @@
   ,"ayuda.rest_local": "Interner Dienst, über den andere Programme auf Ihrem Computer Signaturen bei GrxFirma anfordern können. Er wird nur für bestimmte Integrationen benötigt; wenn niemand Sie darum gebeten hat, lassen Sie ihn deaktiviert."
   ,"ayuda.confianza_local": "Installiert ein eigenes GrxFirma-Zertifikat auf dem Computer, damit der Browser beim Signieren in einem elektronischen Behördenportal sicher mit der Anwendung kommuniziert. Es wird automatisch installiert; installieren Sie es erneut, wenn das Portal keine Verbindung zu GrxFirma herstellen kann."
   ,"ayuda.conectores_navegador": "Registriert GrxFirma erneut in den Browsern, damit elektronische Behördenportale die Anwendung öffnen können. Verwenden Sie dies, wenn sich beim Klicken auf „Signieren“ in einem Portal die Anwendung nicht öffnet."
+  ,"perfil_firma.ayuda.nombre": "Hilfe zum Signaturprofil"
+  ,"perfil_firma.ayuda.resumen": "Erklärt den Unterschied zwischen den Profilen B, T, LT und LTA. Zum Lesen drücken."
+  ,"perfil_firma.ayuda.titulo": "Welches Profil soll ich wählen?"
+  ,"perfil_firma.ayuda.b": "B: die Signatur und das Zertifikat. Das Datum stammt von der Uhr Ihres Computers."
+  ,"perfil_firma.ayuda.t": "T: fügt einen Zeitstempel eines vertrauenswürdigen Servers hinzu, der belegt, wann signiert wurde. Das ist bei Behördenverfahren üblich und das empfohlene Profil."
+  ,"perfil_firma.ayuda.lt": "LT: speichert zusätzlich die Zertifikatskette im Dokument und den Nachweis, dass die Zertifikate zu diesem Zeitpunkt nicht widerrufen waren. So lässt sich die Signatur noch nach Jahren prüfen, auch wenn das Zertifikat abläuft oder die ausstellende Stelle nicht mehr antwortet."
+  ,"perfil_firma.ayuda.lta": "LTA: fügt zusätzlich einen Archivzeitstempel hinzu, gedacht für eine sehr lange Aufbewahrung."
+  ,"perfil_firma.ayuda.internet": "T, LT und LTA benötigen beim Signieren eine Internetverbindung."
 }

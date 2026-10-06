@@ -14853,6 +14853,9 @@ Window {
                                         Layout.fillWidth: true
                                         spacing: 4
                                         Text { text: tr("Perfil de firma por defecto"); color: currentTheme.textColor }
+                                        RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 8
                                         ComboBox {
                                             id: settingsSignProfileCombo
                                             Layout.fillWidth: true
@@ -14869,6 +14872,21 @@ Window {
                                             ToolTip.visible: hovered
                                             ToolTip.delay: 500
                                             ToolTip.text: tr("Define el perfil preseleccionado para CAdES, XAdES y PAdES. El perfil T requiere TSA operativa.")
+                                        }
+                                        HelpButton {
+                                            id: settingsSignProfileHelp
+                                            Layout.alignment: Qt.AlignVCenter
+                                            accessibleName: tr("perfil_firma.ayuda.nombre")
+                                            title: tr("perfil_firma.ayuda.titulo")
+                                            paragraphs: [
+                                                tr("perfil_firma.ayuda.b"),
+                                                tr("perfil_firma.ayuda.t"),
+                                                tr("perfil_firma.ayuda.lt"),
+                                                tr("perfil_firma.ayuda.lta"),
+                                                tr("perfil_firma.ayuda.internet")
+                                            ]
+                                            emphasizeLast: true
+                                        }
                                         }
                                         Binding { target: settingsSignProfileCombo; property: "currentIndex"; value: optionIndexByValue(settingsSignProfileCombo.model, window.signProfile) }
                                     }
