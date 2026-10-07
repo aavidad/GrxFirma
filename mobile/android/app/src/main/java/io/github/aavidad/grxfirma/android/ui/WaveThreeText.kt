@@ -168,6 +168,7 @@ object UpdateText {
                 "update_rate_limited" -> R.string.update_error_rate_limited
                 "update_service_unavailable" -> R.string.update_error_service
                 "update_network_unavailable", "update_proxy_unavailable" -> R.string.update_error_network
+                "update_proxy_auth_required" -> R.string.update_error_proxy_auth
                 else -> R.string.update_error_generic
             })
         })

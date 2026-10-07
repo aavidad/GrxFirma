@@ -478,6 +478,7 @@
     <string name="update_error_rate_limited">GitHub ha limitato temporaneamente le verifiche delle versioni. Riprovare più tardi.</string>
     <string name="update_error_service">Il servizio delle versioni di GitHub non è disponibile ora. Riprovare più tardi.</string>
     <string name="update_error_network">Impossibile connettersi per verificare le versioni. Controllare la connessione Internet e riprovare.</string>
+    <string name="update_error_proxy_auth">La rete usa un proxy che richiede l’identificazione, quindi non è stato possibile verificare se ci sono nuove versioni. Provare da un’altra rete o rivolgersi a chi la gestisce.</string>
     <string name="update_error_generic">Impossibile verificare la versione. Riprovare più tardi.</string>
     <string name="update_privacy">La verifica contatta GitHub tramite HTTPS e non invia documenti, certificati o dati di firma. Non scarica né esegue mai automaticamente un aggiornamento.</string>
     <string name="update_install_hint">Installala nello stesso modo in cui hai ottenuto GrxFirma: tramite la tua organizzazione, lo store o la pagina ufficiale.</string>

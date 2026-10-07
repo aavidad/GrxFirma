@@ -81,6 +81,7 @@ class WaveThreeTextTest {
         assertEquals(R.string.update_error_timeout, first(base))
         assertEquals(R.string.update_error_rate_limited, first(base.copy(errorCode = "update_rate_limited")))
         assertEquals(R.string.update_error_network, first(base.copy(errorCode = "update_proxy_unavailable")))
+        assertEquals(R.string.update_error_proxy_auth, first(base.copy(errorCode = "update_proxy_auth_required")))
         assertEquals(R.string.update_error_generic, first(base.copy(errorCode = "otro")))
         assertEquals(R.string.update_newer, first(base.copy(status = "newer")))
         assertEquals(R.string.update_current, first(base.copy(status = "current")))

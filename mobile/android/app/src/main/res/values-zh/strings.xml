@@ -456,6 +456,7 @@
     <string name="update_error_rate_limited">GitHub 暂时限制了版本查询。请稍后重试。</string>
     <string name="update_error_service">GitHub 版本服务目前不可用。请稍后重试。</string>
     <string name="update_error_network">无法连接以检查版本。请检查互联网连接后重试。</string>
+    <string name="update_error_proxy_auth">网络使用的代理要求身份验证，因此无法检查是否有新版本。请换用其他网络，或联系该网络的管理员。</string>
     <string name="update_error_generic">无法检查版本。请稍后重试。</string>
     <string name="update_privacy">检查通过 HTTPS 联系 GitHub，不发送文档、证书或签名数据。绝不会自动下载或运行更新。</string>
     <string name="update_install_hint">请通过获取 GrxFirma 的同一渠道安装：您的单位、应用商店或官方页面。</string>
