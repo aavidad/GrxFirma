@@ -6632,4 +6632,9 @@
   ,"Windows: un selector en Configuración permite elegir si las firmas que piden los portales las atiende GrxFirma o AutoFirma, sin desinstalar ninguno; las actualizaciones respetan la elección.": "Windows: un selector a Configuració permet triar si les signatures que demanen els portals les atén GrxFirma o AutoFirma, sense desinstal·lar-ne cap; les actualitzacions respecten l'elecció."
   ,"Windows: con tarjetas criptográficas o DNIe en el almacén, GrxFirma ya no pide la tarjeta en bucle al listar certificados; solo la usa al firmar, y los certificados de tarjeta aparecen en la lista.": "Windows: amb targetes criptogràfiques o DNIe al magatzem, GrxFirma ja no demana la targeta en bucle en llistar certificats; només la fa servir en signar, i els certificats de targeta apareixen a la llista."
   ,"Windows: la bandeja y los avisos se llaman «GrxFirma»; al actualizar con la app abierta se avisa de que se está reiniciando el servicio en vez de mostrar un error; y la comprobación de versiones funciona con el proxy de la red.": "Windows: la safata i els avisos es diuen «GrxFirma»; en actualitzar amb l'app oberta s'avisa que s'està reiniciant el servei en lloc de mostrar un error; i la comprovació de versions funciona amb el servidor intermediari de la xarxa."
+  ,"winui.facturae.campos_obligatorios": "Els camps marcats amb * són obligatoris."
+  ,"winui.firmar.sello_giro_actual": "Gir del segell: {0} graus"
+  ,"Modo de servidor": "Mode de servidor"
+  ,"Registro de actividad": "Registre d'activitat"
+  ,"No se puede conectar con el servicio de firma de GrxFirma. Cierre y vuelva a abrir la aplicación; si sigue igual, pulse «Asistente».": "No es pot connectar amb el servei de signatura de GrxFirma. Tanqueu i torneu a obrir l'aplicació; si continua igual, premeu «Assistent»."
 }

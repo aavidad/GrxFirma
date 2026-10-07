@@ -6632,4 +6632,9 @@
   ,"Windows: un selector en Configuración permite elegir si las firmas que piden los portales las atiende GrxFirma o AutoFirma, sin desinstalar ninguno; las actualizaciones respetan la elección.": "Windows：“设置”中新增选择项，可选择由 GrxFirma 还是 AutoFirma 处理门户请求的签名，无需卸载任何一个；更新会保留您的选择。"
   ,"Windows: con tarjetas criptográficas o DNIe en el almacén, GrxFirma ya no pide la tarjeta en bucle al listar certificados; solo la usa al firmar, y los certificados de tarjeta aparecen en la lista.": "Windows：证书存储中有智能卡或 DNIe 时，GrxFirma 列出证书时不再反复要求插卡；只有签名时才会使用，智能卡证书也会显示在列表中。"
   ,"Windows: la bandeja y los avisos se llaman «GrxFirma»; al actualizar con la app abierta se avisa de que se está reiniciando el servicio en vez de mostrar un error; y la comprobación de versiones funciona con el proxy de la red.": "Windows：托盘和通知名称改为“GrxFirma”；在应用打开时更新，会提示服务正在重启，而不是显示错误；版本检查现在可以通过网络代理进行。"
+  ,"winui.facturae.campos_obligatorios": "标有 * 的字段为必填项。"
+  ,"winui.firmar.sello_giro_actual": "印章旋转：{0} 度"
+  ,"Modo de servidor": "服务器模式"
+  ,"Registro de actividad": "活动日志"
+  ,"No se puede conectar con el servicio de firma de GrxFirma. Cierre y vuelva a abrir la aplicación; si sigue igual, pulse «Asistente».": "无法连接 GrxFirma 签名服务。请关闭并重新打开应用程序；如果仍然如此，请点击“助手”。"
 }

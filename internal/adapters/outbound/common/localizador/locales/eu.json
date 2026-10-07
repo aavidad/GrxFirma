@@ -6632,4 +6632,9 @@
   ,"Windows: un selector en Configuración permite elegir si las firmas que piden los portales las atiende GrxFirma o AutoFirma, sin desinstalar ninguno; las actualizaciones respetan la elección.": "Windows: Ezarpenetako hautatzaile batek aukeratzen uzten du atariek eskatzen dituzten sinadurak GrxFirmak ala AutoFirmak egiten dituen, bat ere desinstalatu gabe; eguneraketek aukera errespetatzen dute."
   ,"Windows: con tarjetas criptográficas o DNIe en el almacén, GrxFirma ya no pide la tarjeta en bucle al listar certificados; solo la usa al firmar, y los certificados de tarjeta aparecen en la lista.": "Windows: txartel kriptografikoekin edo NANe-arekin biltegian, GrxFirmak ez du txartela begiztan eskatzen ziurtagiriak zerrendatzean; sinatzean bakarrik erabiltzen du, eta txartelaren ziurtagiriak zerrendan agertzen dira."
   ,"Windows: la bandeja y los avisos se llaman «GrxFirma»; al actualizar con la app abierta se avisa de que se está reiniciando el servicio en vez de mostrar un error; y la comprobación de versiones funciona con el proxy de la red.": "Windows: erretilua eta oharrak «GrxFirma» dira; aplikazioa irekita dagoela eguneratzean, zerbitzua berrabiarazten ari dela jakinarazten da errorea erakutsi beharrean; eta bertsioen egiaztapenak sareko proxyarekin funtzionatzen du."
+  ,"winui.facturae.campos_obligatorios": "* ikurra duten eremuak derrigorrezkoak dira."
+  ,"winui.firmar.sello_giro_actual": "Zigiluaren biraketa: {0} gradu"
+  ,"Modo de servidor": "Zerbitzari modua"
+  ,"Registro de actividad": "Jarduera-erregistroa"
+  ,"No se puede conectar con el servicio de firma de GrxFirma. Cierre y vuelva a abrir la aplicación; si sigue igual, pulse «Asistente».": "Ezin da GrxFirmaren sinadura-zerbitzuarekin konektatu. Itxi eta ireki berriro aplikazioa; berdin jarraitzen badu, sakatu «Laguntzailea»."
 }

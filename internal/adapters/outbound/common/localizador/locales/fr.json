@@ -6632,4 +6632,9 @@
   ,"Windows: un selector en Configuración permite elegir si las firmas que piden los portales las atiende GrxFirma o AutoFirma, sin desinstalar ninguno; las actualizaciones respetan la elección.": "Windows : un sélecteur dans Paramètres permet de choisir si GrxFirma ou AutoFirma traite les signatures demandées par les portails, sans désinstaller l'un ou l'autre ; les mises à jour respectent ce choix."
   ,"Windows: con tarjetas criptográficas o DNIe en el almacén, GrxFirma ya no pide la tarjeta en bucle al listar certificados; solo la usa al firmar, y los certificados de tarjeta aparecen en la lista.": "Windows : avec des cartes à puce ou le DNIe dans le magasin, GrxFirma ne demande plus la carte en boucle en listant les certificats ; il ne l'utilise que pour signer, et les certificats de carte apparaissent dans la liste."
   ,"Windows: la bandeja y los avisos se llaman «GrxFirma»; al actualizar con la app abierta se avisa de que se está reiniciando el servicio en vez de mostrar un error; y la comprobación de versiones funciona con el proxy de la red.": "Windows : la zone de notification et les avis s'appellent « GrxFirma » ; lors d'une mise à jour avec l'application ouverte, un message indique le redémarrage du service au lieu d'une erreur ; et la vérification des versions fonctionne avec le proxy du réseau."
+  ,"winui.facturae.campos_obligatorios": "Les champs marqués d'un * sont obligatoires."
+  ,"winui.firmar.sello_giro_actual": "Rotation du cachet : {0} degrés"
+  ,"Modo de servidor": "Mode serveur"
+  ,"Registro de actividad": "Journal d'activité"
+  ,"No se puede conectar con el servicio de firma de GrxFirma. Cierre y vuelva a abrir la aplicación; si sigue igual, pulse «Asistente».": "Impossible de se connecter au service de signature de GrxFirma. Fermez puis rouvrez l'application ; si le problème persiste, cliquez sur « Assistant »."
 }
