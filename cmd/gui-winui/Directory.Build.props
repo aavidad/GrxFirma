@@ -17,6 +17,10 @@
     <InformationalVersion>$(_GrxFirmaVersion)</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Product>GrxFirma</Product>
+    <!-- Windows muestra FileDescription (AssemblyTitle) como nombre de la
+         aplicación en la bandeja, las notificaciones y el Administrador de
+         tareas; sin él usaría el nombre del ejecutable, que no cambia. -->
+    <AssemblyTitle>GrxFirma</AssemblyTitle>
     <Company>Alberto Avidad Fernández</Company>
     <Authors>Alberto Avidad Fernández</Authors>
     <Copyright>Alberto Avidad Fernández. EUPL-1.2.</Copyright>

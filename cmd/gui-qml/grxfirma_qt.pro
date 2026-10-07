@@ -9,6 +9,19 @@ greaterThan(QT_MAJOR_VERSION, 5): QT += quickcontrols2
 
 CONFIG += c++17
 
+# Windows muestra FileDescription como nombre de la aplicación en la bandeja y
+# en las notificaciones; sin recurso de versión usaría el nombre del
+# ejecutable, que no cambia. qmake genera el .rc al definir VERSION.
+win32 {
+    GRXFIRMA_VERSION_LINES = $$cat($$PWD/../../VERSION.txt, lines)
+    GRXFIRMA_VERSION = $$first(GRXFIRMA_VERSION_LINES)
+    GRXFIRMA_VERSION = $$section(GRXFIRMA_VERSION, -, 0, 0)
+    GRXFIRMA_VERSION = $$section(GRXFIRMA_VERSION, +, 0, 0)
+    VERSION = $$GRXFIRMA_VERSION
+    QMAKE_TARGET_DESCRIPTION = GrxFirma
+    QMAKE_TARGET_PRODUCT = GrxFirma
+}
+
 # Qt 6.7 conserva referencias al framework AGL que Xcode 26 ya no distribuye.
 # OpenGL.framework es la unica biblioteca de esa lista usada por Qt Quick.
 macx {

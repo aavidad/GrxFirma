@@ -36,6 +36,14 @@ class ProductVersionContractTests(unittest.TestCase):
         self.assertIsNone(self.group.find("TargetFramework"))
         self.assertIsNone(self.group.find("PackageVersion"))
 
+    def test_windows_shows_product_name_not_executable_name(self):
+        # Bandeja y notificaciones toman FileDescription (AssemblyTitle).
+        self.assertEqual(self.group.findtext("Product"), "GrxFirma")
+        self.assertEqual(self.group.findtext("AssemblyTitle"), "GrxFirma")
+        qt_project = (PROPS.parents[1] / "gui-qml/grxfirma_qt.pro").read_text(encoding="utf-8")
+        self.assertIn("QMAKE_TARGET_DESCRIPTION = GrxFirma", qt_project)
+        self.assertIn("VERSION = $$GRXFIRMA_VERSION", qt_project)
+
     def test_semver_release_prerelease_and_build_metadata(self):
         condition = self.root.find("Target/Error").get("Condition")
         pattern = condition.split(", '", 1)[1].rsplit("'", 1)[0]
