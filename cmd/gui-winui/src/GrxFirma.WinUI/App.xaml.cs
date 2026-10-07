@@ -248,6 +248,7 @@ public partial class App : Application
                 _ = _window?.RefreshFacturaeToolsAvailabilityAsync();
 
             });
+            _ = WatchEngineAsync(client, launchOptions.BackendProcessId!.Value);
         }
         catch (OperationCanceledException)
             when (_lifetimeCancellation.IsCancellationRequested)
@@ -277,6 +278,66 @@ public partial class App : Application
         }
     }
 
+
+    // Vigila el proceso del motor ya verificado al conectar. Si termina (por
+    // ejemplo, porque el instalador lo detiene al actualizar), se avisa de que
+    // GrxFirma se está reiniciando y se intenta recuperar el canal durante el
+    // plazo de gracia; solo al vencer se muestra el error de conexión. El
+    // token de vida solo limita las esperas, nunca una petición enviada.
+    private async Task WatchEngineAsync(ReconnectingIpcClient client, uint backendProcessId)
+    {
+        try
+        {
+            System.Diagnostics.Process? engine = null;
+            try
+            {
+                engine = System.Diagnostics.Process.GetProcessById(checked((int)backendProcessId));
+            }
+            catch (Exception error) when (error is ArgumentException or InvalidOperationException or OverflowException)
+            {
+                // Ya no existe: se trata como un motor detenido.
+            }
+            using (engine)
+            {
+                if (engine is not null)
+                    await engine.WaitForExitAsync(_lifetimeCancellation.Token);
+            }
+            if (_lifetimeCancellation.IsCancellationRequested || Volatile.Read(ref _windowClosed) != 0)
+                return;
+
+            await client.MarkLostAsync();
+            EnqueueOnUi(() =>
+            {
+                OperationSession.Detach(client);
+                _window?.ViewModel.SetReconnecting();
+            });
+            var recovered = await EngineReconnectGrace.WaitForRecoveryAsync(
+                client.TryReconnectAsync, TimeProvider.System, _lifetimeCancellation.Token);
+            EnqueueOnUi(() =>
+            {
+                if (recovered && client.ServerHello is not null)
+                {
+                    OperationSession.Attach(client);
+                    _window?.ViewModel.SetConnected(client.ServerHello);
+                    return;
+                }
+                _window?.ViewModel.SetConnectionFailure(
+                    Localizer.Text("winui.ventana.el_motor_local_se_ha_detenido"),
+                    "engine_stopped",
+                    "admission",
+                    "unknown");
+            });
+        }
+        catch (OperationCanceledException) when (_lifetimeCancellation.IsCancellationRequested)
+        {
+            // La aplicación se está cerrando.
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            // Sin permiso para vigilar el proceso: se mantiene el comportamiento
+            // anterior (la siguiente petición detecta la pérdida del canal).
+        }
+    }
 
     internal void NotifyUpdateInTray(string message)
     {

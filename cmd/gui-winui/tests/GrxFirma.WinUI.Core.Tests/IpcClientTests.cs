@@ -188,6 +188,92 @@ public sealed class IpcClientTests
     }
 
     [TestMethod]
+    public async Task Reconnecting_MarkLostAndTryReconnectRecoverWithoutSendingRequests()
+    {
+        var first = new ScriptedDuplexStream();
+        var second = new ScriptedDuplexStream();
+        var endpoint = new IpcEndpoint(@"\\.\pipe\UNIT_TEST_ONLY", 123);
+        var initial = await NdjsonIpcClient.ConnectAsync(new FakeConnector(first), endpoint);
+        var connectorFails = true;
+        await using var client = new ReconnectingIpcClient(
+            initial,
+            cancellationToken => connectorFails
+                ? throw IpcClientException.Closed()
+                : NdjsonIpcClient.ConnectAsync(
+                    new FakeConnector(second), endpoint, cancellationToken: cancellationToken));
+
+        // Con el canal sano no se reconecta.
+        Assert.IsTrue(await client.TryReconnectAsync());
+        Assert.AreEqual(0, client.Reconnections);
+
+        await client.MarkLostAsync();
+        Assert.IsFalse(initial.IsTransportUsable);
+        Assert.IsFalse(await client.TryReconnectAsync(), "Un motor que no responde no es una recuperación.");
+
+        connectorFails = false;
+        Assert.IsTrue(await client.TryReconnectAsync());
+        Assert.AreEqual(1, client.Reconnections);
+        Assert.IsNotNull(client.ServerHello);
+        // El canal nuevo solo recibe el saludo: no se repite ninguna petición.
+        CollectionAssert.AreEqual(new[] { "hello" }, second.Actions.ToArray());
+    }
+
+    [TestMethod]
+    public async Task ReconnectGrace_RecoversWithinWindowAndRetriesFailedAttempts()
+    {
+        var attempts = 0;
+        var recovered = await EngineReconnectGrace.WaitForRecoveryAsync(
+            () => Task.FromResult(++attempts >= 3),
+            TimeProvider.System,
+            CancellationToken.None,
+            window: TimeSpan.FromSeconds(5),
+            retryInterval: TimeSpan.FromMilliseconds(10));
+        Assert.IsTrue(recovered);
+        Assert.AreEqual(3, attempts);
+
+        var throwing = 0;
+        Assert.IsTrue(await EngineReconnectGrace.WaitForRecoveryAsync(
+            () => ++throwing == 1 ? throw new IOException("canal") : Task.FromResult(true),
+            TimeProvider.System,
+            CancellationToken.None,
+            window: TimeSpan.FromSeconds(5),
+            retryInterval: TimeSpan.FromMilliseconds(10)));
+        Assert.AreEqual(2, throwing);
+    }
+
+    [TestMethod]
+    public async Task ReconnectGrace_GivesUpAfterWindowWithoutCancellingTheAttempt()
+    {
+        Assert.AreEqual(TimeSpan.FromSeconds(30), EngineReconnectGrace.Window);
+        Assert.IsFalse(await EngineReconnectGrace.WaitForRecoveryAsync(
+            () => Task.FromResult(false),
+            TimeProvider.System,
+            CancellationToken.None,
+            window: TimeSpan.FromMilliseconds(150),
+            retryInterval: TimeSpan.FromMilliseconds(20)));
+
+        // Un intento que no termina: el plazo limita la espera, no el intento.
+        var hanging = new TaskCompletionSource<bool>();
+        var started = System.Diagnostics.Stopwatch.StartNew();
+        Assert.IsFalse(await EngineReconnectGrace.WaitForRecoveryAsync(
+            () => hanging.Task,
+            TimeProvider.System,
+            CancellationToken.None,
+            window: TimeSpan.FromMilliseconds(150)));
+        Assert.IsTrue(started.Elapsed < TimeSpan.FromSeconds(5));
+        Assert.IsFalse(hanging.Task.IsCompleted);
+        hanging.SetResult(false);
+
+        using var closing = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => EngineReconnectGrace.WaitForRecoveryAsync(
+            () => Task.FromResult(false),
+            TimeProvider.System,
+            closing.Token,
+            window: TimeSpan.FromSeconds(30),
+            retryInterval: TimeSpan.FromSeconds(10)));
+    }
+
+    [TestMethod]
     public async Task HelloWithDifferentVersion_IsRejected()
     {
         var stream = new ScriptedDuplexStream(helloVersion: "2.0");

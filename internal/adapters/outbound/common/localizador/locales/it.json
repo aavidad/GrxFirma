@@ -6602,4 +6602,7 @@
   ,"La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial.": "La rete usa un proxy che non ha consentito la verifica. Puoi consultare le versioni pubblicate sul sito ufficiale."
   ,"winui.actualizaciones.sin_version_estable_titulo": "Nessuna versione stabile pubblicata"
   ,"winui.actualizaciones.sin_version_estable": "Non c'è nessuna versione stabile pubblicata sul canale ufficiale."
+  ,"winui.ventana.grxfirma_se_esta_reiniciando": "GrxFirma si sta aggiornando o sta riavviando il servizio. Si riconnetterà da sola tra pochi secondi."
+  ,"winui.ventana.el_motor_local_se_ha_detenido": "Il motore locale di GrxFirma si è fermato e non ha più risposto. Chiudi GrxFirma e riaprila."
+  ,"GrxFirma se está actualizando o reiniciando el servicio. Se reconectará sola en unos segundos.": "GrxFirma si sta aggiornando o sta riavviando il servizio. Si riconnetterà da sola tra pochi secondi."
 }

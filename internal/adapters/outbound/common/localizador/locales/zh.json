@@ -6602,4 +6602,7 @@
   ,"La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial.": "网络使用的代理不允许此次查询。可在官方网站查看已发布的版本。"
   ,"winui.actualizaciones.sin_version_estable_titulo": "尚无已发布的稳定版本"
   ,"winui.actualizaciones.sin_version_estable": "官方渠道尚未发布任何稳定版本。"
+  ,"winui.ventana.grxfirma_se_esta_reiniciando": "GrxFirma 正在更新或重启服务，几秒钟后会自动重新连接。"
+  ,"winui.ventana.el_motor_local_se_ha_detenido": "GrxFirma 本地引擎已停止且未再响应。请关闭 GrxFirma 后重新打开。"
+  ,"GrxFirma se está actualizando o reiniciando el servicio. Se reconectará sola en unos segundos.": "GrxFirma 正在更新或重启服务，几秒钟后会自动重新连接。"
 }

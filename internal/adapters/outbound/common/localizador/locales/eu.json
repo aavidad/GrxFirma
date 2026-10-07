@@ -6602,4 +6602,7 @@
   ,"La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial.": "Sareak kontsulta onartu ez duen proxy bat erabiltzen du. Argitaratutako bertsioak webgune ofizialean kontsulta ditzakezu."
   ,"winui.actualizaciones.sin_version_estable_titulo": "Ez dago bertsio egonkorrik argitaratuta"
   ,"winui.actualizaciones.sin_version_estable": "Ez dago bertsio egonkorrik argitaratuta kanal ofizialean."
+  ,"winui.ventana.grxfirma_se_esta_reiniciando": "GrxFirma eguneratzen ari da edo zerbitzua berrabiarazten. Berez konektatuko da segundo batzuetan."
+  ,"winui.ventana.el_motor_local_se_ha_detenido": "GrxFirmaren tokiko motorra gelditu egin da eta ez du berriro erantzun. Itxi GrxFirma eta ireki berriro."
+  ,"GrxFirma se está actualizando o reiniciando el servicio. Se reconectará sola en unos segundos.": "GrxFirma eguneratzen ari da edo zerbitzua berrabiarazten. Berez konektatuko da segundo batzuetan."
 }
