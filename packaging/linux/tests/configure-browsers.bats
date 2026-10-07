@@ -35,6 +35,7 @@ configure_browsers() {
     GRXFIRMA_BROWSER_BRIDGE=/bin/true \
     GRXFIRMA_FIREFOX_XPI="${TEST_XPI}" \
     GRXFIRMA_FIREFOX_METADATA="${TEST_METADATA}" \
+    GRXFIRMA_SYSTEM_APP_DIRS="${BATS_TEST_TMPDIR}/usr/share/applications" \
     "${BATS_TEST_DIRNAME}/../configure-browsers.sh"
 }
 
@@ -138,4 +139,35 @@ configure_browsers() {
   [ -f "${chrome_dir}/io.github.aavidad.grxfirma.json" ]
   run grep -Rq 'portafirmas@dipgra.es\|ipkpimgjhkjibkbhfdhggjldlaetbcoa' "${chrome_dir}" "${firefox_dir}"
   [ "$status" -eq 1 ]
+}
+
+@test "registra afirma:// para GrxFirma por defecto" {
+  write_metadata false
+
+  run configure_browsers
+
+  [ "$status" -eq 0 ]
+  grep -qx 'x-scheme-handler/afirma=grxfirma.desktop' "${TEST_HOME}/.config/mimeapps.list"
+  grep -qx 'x-scheme-handler/afirmav2=grxfirma.desktop' "${TEST_HOME}/.config/mimeapps.list"
+}
+
+@test "respeta la elección de AutoFirma al actualizar si sigue instalado" {
+  write_metadata false
+  mkdir -p "${TEST_HOME}/.config/grxfirma" "${TEST_HOME}/.local/share/applications"
+  printf 'autofirma\n' > "${TEST_HOME}/.config/grxfirma/afirma-protocol-handler"
+  printf '[Desktop Entry]\nExec=/usr/bin/autofirma %%u\nMimeType=x-scheme-handler/afirma;\n' \
+    > "${TEST_HOME}/.local/share/applications/afirma.desktop"
+  printf '[Default Applications]\nx-scheme-handler/afirma=afirma.desktop\n' > "${TEST_HOME}/.config/mimeapps.list"
+
+  run configure_browsers
+
+  [ "$status" -eq 0 ]
+  grep -qx 'x-scheme-handler/afirma=afirma.desktop' "${TEST_HOME}/.config/mimeapps.list"
+  grep -qx 'x-scheme-handler/afirmav2=grxfirma.desktop' "${TEST_HOME}/.config/mimeapps.list"
+
+  rm "${TEST_HOME}/.local/share/applications/afirma.desktop"
+  run configure_browsers
+
+  [ "$status" -eq 0 ]
+  grep -qx 'x-scheme-handler/afirma=grxfirma.desktop' "${TEST_HOME}/.config/mimeapps.list"
 }

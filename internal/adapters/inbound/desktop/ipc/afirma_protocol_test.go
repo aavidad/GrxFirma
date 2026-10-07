@@ -90,11 +90,11 @@ func TestProtocoloAfirmaErroresConCodigoEstable(t *testing.T) {
 	}
 }
 
-func TestProtocoloAfirmaSoloSeAnunciaEnWindows(t *testing.T) {
+func TestProtocoloAfirmaSoloSeAnunciaEnWindowsYLinux(t *testing.T) {
 	hello := desktopIPCHello()
 	tiene := slices.Contains(hello.Actions, "afirma_handler_status") &&
 		slices.Contains(hello.Actions, "afirma_handler_select")
-	if tiene != (runtime.GOOS == "windows") {
+	if tiene != (runtime.GOOS == "windows" || runtime.GOOS == "linux") {
 		t.Fatalf("anuncio del selector en %s: %v", runtime.GOOS, tiene)
 	}
 }

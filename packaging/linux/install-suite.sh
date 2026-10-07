@@ -320,9 +320,7 @@ FIREFOX_EXT_ID="${FIREFOX_EXT_ID}" \
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database "${USERAPP}" || true
 fi
-if command -v xdg-mime >/dev/null 2>&1; then
-  xdg-mime default grxfirma.desktop x-scheme-handler/afirma || true
-fi
+# configure-browsers.sh ya registra afirma:// respetando si se eligió AutoFirma.
 
 echo "Suite instalada en:"
 echo "  CLI:          ${USERBIN}/grxfirma"

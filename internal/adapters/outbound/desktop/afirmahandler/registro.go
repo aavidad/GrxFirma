@@ -5,7 +5,8 @@
 
 // Package afirmahandler elige qué programa atiende el protocolo afirma:// en
 // Windows: GrxFirma (registro por usuario, HKCU) o AutoFirma, la aplicación
-// Java del Gobierno (registro para todo el equipo, HKLM).
+// Java del Gobierno (registro para todo el equipo, HKLM). En Linux lo hace
+// XDGSelector sobre mimeapps.list (xdg.go).
 //
 // Es un porte en Go de la lógica de propiedad de
 // packaging/windows/afirmauri-registration.ps1 (instantánea, conjuntos de
