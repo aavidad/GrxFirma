@@ -11,8 +11,17 @@ Fuentes en assets/branding: grxfirma-icono.svg y grxfirma-icono-pequeno.svg
 firma; la versión reducida se usa hasta 32 px).
 
 El emblema verde del sello (logo_firma_grxfirma_final.png en el escritorio Qt
-y recursos/grxfirma-emblema-sello.png en el firmante) y el boceto a carbón de
-la barra lateral y «Acerca de» son imágenes fijas: este guion no las toca.
+y recursos/grxfirma-emblema-sello.png en el firmante) es una imagen fija: este
+guion no la toca.
+
+El logotipo de la barra lateral, «Acerca de» y la web (grxfirma-logo-pluma.svg
+y grxfirma-logo-pluma-pequeno.svg, en assets/branding) tampoco lo genera este
+guion. Sus PNG se exportan con Inkscape:
+  grande a 256 px -> cmd/gui-qml/assets/grxfirma-logo-pluma-256.png
+  grande a 128 px -> docs/sitio/grxfirma-logo-pluma-128.png
+  grande a 576 px -> mobile/android/app/src/main/res/drawable-nodpi/grxfirma_logo_pluma.png
+  pequeño a 96 px -> cmd/gui-qml/assets/grxfirma-logo-pluma-pequeno-96.png
+por ejemplo: inkscape grxfirma-logo-pluma.svg -w 256 -h 256 -o <destino>.
 
 El ICO se llama grxfirma-grx.ico. Si la imagen del icono cambia, cambie
 también el nombre del fichero en todas sus referencias: Windows guarda los

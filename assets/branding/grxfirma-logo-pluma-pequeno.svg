@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Logotipo de GrxFirma (versión pequeña, hasta 48 px): la pluma escribe una rúbrica sobre la hoja, sin letras. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="GrxFirma">
+  <title>GrxFirma</title>
+  <path d="M36 12 H150 L198 60 V230 A14 14 0 0 1 184 244 H36 A14 14 0 0 1 22 230 V26 A14 14 0 0 1 36 12 Z" fill="#173a4e" stroke="#ffffff" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M150 12 V46 A14 14 0 0 0 164 60 H198" fill="#3d7391" stroke="#ffffff" stroke-width="10" stroke-linejoin="round"/>
+  <!-- Renglones del documento -->
+  <path d="M50 64 H122 M50 100 H104" stroke="#4f86a3" stroke-width="14" stroke-linecap="round"/>
+  <!-- Rúbrica que termina en la punta de la pluma -->
+  <path d="M42 196 C52 160 70 146 82 166 C94 186 76 210 96 206 C112 202 118 178 132 176" fill="none" stroke="#accb49" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(134 174) scale(1.6) rotate(-135)">
+      <path d="M0 0 C4 10 16 22 17 34 C17 42 14 46 13 50 H-13 C-14 46 -17 42 -17 34 C-16 22 -4 10 0 0 Z" fill="#ffffff" stroke="#173a4e" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M0 4 V25" stroke="#173a4e" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="0" cy="29" r="5" fill="#173a4e"/>
+      <rect x="-15" y="50" width="30" height="14" rx="3" fill="#173a4e" stroke="#ffffff" stroke-width="3"/>
+      <path d="M-15 64 H15 V76 A15 15 0 0 1 -15 76 Z" fill="#accb49" stroke="#173a4e" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+</svg>

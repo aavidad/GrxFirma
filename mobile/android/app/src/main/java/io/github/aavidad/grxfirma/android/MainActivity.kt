@@ -1390,7 +1390,7 @@ class MainActivity : AppCompatActivity() {
             gravity = android.view.Gravity.CENTER_HORIZONTAL
             setPadding(padding, padding, padding, 0)
             addView(android.widget.ImageView(this@MainActivity).apply {
-                setImageResource(R.drawable.grxfirma_logo_carbon)
+                setImageResource(R.drawable.grxfirma_logo_pluma)
                 contentDescription = getString(R.string.app_name)
                 scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
                 layoutParams = android.widget.LinearLayout.LayoutParams(logoSize, logoSize)
