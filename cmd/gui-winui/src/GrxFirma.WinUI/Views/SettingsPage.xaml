@@ -331,6 +331,12 @@
                             TextWrapping="Wrap"
                             Visibility="Collapsed" />
                         <TextBlock
+                            x:Name="AfirmaHandlerErrorText"
+                            AutomationProperties.LiveSetting="Assertive"
+                            Foreground="{ThemeResource AppDiagnosticFailureBrush}"
+                            TextWrapping="Wrap"
+                            Visibility="Collapsed" />
+                        <TextBlock
                             x:Name="AfirmaHandlerStatusText"
                             AutomationProperties.LiveSetting="Polite"
                             TextWrapping="Wrap" />

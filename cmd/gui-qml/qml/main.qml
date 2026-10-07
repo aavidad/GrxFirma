@@ -14116,11 +14116,13 @@ Window {
                 property var afirmaStatus: ({})
                 property bool afirmaBusy: false
                 property string afirmaMessage: ""
+                property string afirmaError: ""
                 property int afirmaRevision: 0
 
                 function refreshAfirmaHandler() {
                     if (!afirmaSupported || afirmaBusy) return
                     afirmaBusy = true
+                    afirmaError = ""
                     afirmaMessage = tr("protocolo.estado.comprobando")
                     backend.getAfirmaHandlerStatus()
                 }
@@ -14128,6 +14130,7 @@ Window {
                 function selectAfirmaHandler(handler) {
                     if (!afirmaSupported || afirmaBusy || afirmaStatus.current === handler) return
                     afirmaBusy = true
+                    afirmaError = ""
                     afirmaMessage = tr("protocolo.estado.cambiando")
                     backend.selectAfirmaHandler(handler)
                 }
@@ -14211,10 +14214,10 @@ Window {
                                 + (action === "afirma_handler_select" ? " " + tr("protocolo.recargar_portal") : "")
                             configTab.afirmaRevision++
                         } else if (action === "afirma_handler_select") {
-                            // Vuelve al estado real y explica por qué no cambió.
+                            // Vuelve al estado real y, aparte, dice por qué no cambió.
                             configTab.afirmaRevision++
-                            configTab.afirmaMessage = configTab.afirmaErrorText(errorCode)
-                                + " " + configTab.afirmaStatusText(configTab.afirmaStatus)
+                            configTab.afirmaMessage = configTab.afirmaStatusText(configTab.afirmaStatus)
+                            configTab.afirmaError = configTab.afirmaErrorText(errorCode)
                         } else {
                             configTab.afirmaMessage = tr("protocolo.estado.error")
                         }
@@ -14960,7 +14963,9 @@ Window {
                                             Layout.fillWidth: true
                                             text: tr("protocolo.opcion.grxfirma")
                                             ButtonGroup.group: afirmaHandlerGroup
-                                            enabled: !configTab.afirmaBusy && configTab.afirmaStatus.grxfirmaInstalled === true
+                                            // No se desactiva mientras se trabaja para no quitarle el foco.
+                                            enabled: configTab.afirmaStatus.grxfirmaInstalled === true
+                                            Accessible.description: tr("protocolo.selector")
                                             property int revision: configTab.afirmaRevision
                                             onRevisionChanged: checked = configTab.afirmaStatus.current === "grxfirma"
                                             onToggled: if (checked) configTab.selectAfirmaHandler("grxfirma")
@@ -14972,7 +14977,9 @@ Window {
                                             Layout.fillWidth: true
                                             text: tr("protocolo.opcion.autofirma")
                                             ButtonGroup.group: afirmaHandlerGroup
-                                            enabled: !configTab.afirmaBusy && configTab.afirmaStatus.autofirmaInstalled === true
+                                            enabled: configTab.afirmaStatus.autofirmaInstalled === true
+                                            Accessible.description: enabled ? tr("protocolo.selector")
+                                                : tr("protocolo.selector") + ". " + tr("protocolo.autofirma_no_instalada")
                                             property int revision: configTab.afirmaRevision
                                             onRevisionChanged: checked = configTab.afirmaStatus.current === "autofirma"
                                             onToggled: if (checked) configTab.selectAfirmaHandler("autofirma")
@@ -15000,6 +15007,19 @@ Window {
                                     color: currentTheme.secondaryTextColor
                                     wrapMode: Text.WordWrap
                                     Layout.fillWidth: true
+                                }
+
+                                Text {
+                                    objectName: "afirmaHandlerErrorText"
+                                    visible: configTab.afirmaError !== ""
+                                    textFormat: Text.PlainText
+                                    text: configTab.afirmaError
+                                    color: currentTheme.errorColor
+                                    font.bold: true
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                    Accessible.role: Accessible.AlertMessage
+                                    Accessible.name: text
                                 }
 
                                 Text {

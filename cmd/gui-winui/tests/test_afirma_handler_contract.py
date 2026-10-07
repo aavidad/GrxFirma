@@ -85,8 +85,12 @@ class AfirmaHandlerContractTests(unittest.TestCase):
         self.assertIn("handler is GrxFirma or AutoFirma", self.contracts)
 
     def test_status_comes_from_the_engine_and_failures_show_the_real_state(self):
-        # Tras un fallo se vuelve a leer el estado real.
-        self.assertRegex(self.page, r"(?s)failureKey = AfirmaHandlerPresentation\.ErrorKey.*await RefreshAfirmaHandlerAsync\(\)")
+        # Tras un fallo se vuelve a leer el estado real y el motivo va aparte.
+        self.assertRegex(self.page, r"(?s)failureKey = AfirmaHandlerPresentation\.ErrorKey.*await RefreshAfirmaHandlerAsync\(\);\s*ShowAfirmaError\(failureKey\)")
+        # Las opciones no se desactivan mientras se trabaja (no pierden el foco).
+        self.assertIn("AfirmaGrxFirmaRadio.IsEnabled = AfirmaGrxFirmaRadio.Tag is true;", self.page)
+        self.assertIn("AfirmaAutoFirmaRadio.IsEnabled = AfirmaAutoFirmaRadio.Tag is true;", self.page)
+        self.assertNotIn("enabled: !configTab.afirmaBusy && configTab.afirmaStatus", self.qml)
         # La opción AutoFirma queda desactivada si no está instalada.
         self.assertIn("CanChooseAutoFirma: status.AutoFirmaInstalled", self.contracts)
         self.assertIn("ShowAutoFirmaMissing: !status.AutoFirmaInstalled", self.contracts)

@@ -32,8 +32,17 @@ public sealed partial class SettingsPage
         AfirmaAutoFirmaRadio.Content = Localizer.Text("protocolo.opcion.autofirma");
         AfirmaHandlerRefreshButton.Content = Localizer.Text("protocolo.comprobar");
         AfirmaAutoFirmaMissingText.Text = Localizer.Text(AfirmaHandlerPresentation.AutoFirmaMissing);
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
-            AfirmaHandlerOptions, Localizer.Text("protocolo.selector"));
+        // Un StackPanel no llega a UI Automation: cada opción dice para qué es.
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
+            AfirmaGrxFirmaRadio, Localizer.Text("protocolo.selector"));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
+            AfirmaAutoFirmaRadio, Localizer.Text("protocolo.selector"));
+    }
+
+    private void ShowAfirmaError(string? key)
+    {
+        AfirmaHandlerErrorText.Text = key is null ? string.Empty : Localizer.Text(key);
+        AfirmaHandlerErrorText.Visibility = key is null ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void OnAfirmaSessionAvailabilityChanged(object? sender, EventArgs args) =>
@@ -52,6 +61,7 @@ public sealed partial class SettingsPage
             return;
         }
 
+        ShowAfirmaError(null);
         SetAfirmaBusy(true, AfirmaHandlerPresentation.StatusChecking);
         try
         {
@@ -102,6 +112,12 @@ public sealed partial class SettingsPage
             : view.AutoFirmaSelected ? AfirmaHandlerChoices.AutoFirma : AfirmaHandlerChoices.None;
         AfirmaAutoFirmaMissingText.Visibility =
             view.ShowAutoFirmaMissing ? Visibility.Visible : Visibility.Collapsed;
+        // Una opción desactivada no recibe el foco: su ayuda dice por qué.
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
+            AfirmaAutoFirmaRadio,
+            view.ShowAutoFirmaMissing
+                ? Localizer.Text("protocolo.selector") + ". " + Localizer.Text(AfirmaHandlerPresentation.AutoFirmaMissing)
+                : Localizer.Text("protocolo.selector"));
         var status = view.StatusArgument is null
             ? Localizer.Text(view.StatusKey)
             : Localizer.Format(view.StatusKey, view.StatusArgument);
@@ -123,8 +139,10 @@ public sealed partial class SettingsPage
 
     private void UpdateAfirmaControls()
     {
-        AfirmaGrxFirmaRadio.IsEnabled = !_afirmaBusy && AfirmaGrxFirmaRadio.Tag is true;
-        AfirmaAutoFirmaRadio.IsEnabled = !_afirmaBusy && AfirmaAutoFirmaRadio.Tag is true;
+        // Las opciones no se desactivan mientras se trabaja para no quitarles
+        // el foco; _afirmaBusy ya ignora una segunda elección.
+        AfirmaGrxFirmaRadio.IsEnabled = AfirmaGrxFirmaRadio.Tag is true;
+        AfirmaAutoFirmaRadio.IsEnabled = AfirmaAutoFirmaRadio.Tag is true;
         AfirmaHandlerRefreshButton.IsEnabled = !_afirmaBusy;
     }
 
@@ -137,13 +155,20 @@ public sealed partial class SettingsPage
             ? AfirmaHandlerChoices.AutoFirma
             : AfirmaHandlerChoices.GrxFirma;
         var cancellation = _pageCancellation;
-        if (_afirmaApplyingView || _afirmaBusy || cancellation is null ||
+        if (_afirmaBusy && !_afirmaApplyingView)
+        {
+            // Elección durante otra operación: al terminar se vuelve a
+            // mostrar el estado real.
+            return;
+        }
+        if (_afirmaApplyingView || cancellation is null ||
             handler == _afirmaCurrent ||
             !Session.TryGetOperations(DesktopOperationActions.AfirmaHandlerSelect, out var operations))
         {
             return;
         }
 
+        ShowAfirmaError(null);
         SetAfirmaBusy(true, AfirmaHandlerPresentation.StatusChanging);
         string? failureKey = null;
         try
@@ -175,11 +200,8 @@ public sealed partial class SettingsPage
             }
         }
 
-        // Vuelve a mostrar el estado real y explica por qué no cambió.
+        // Vuelve a mostrar el estado real y, aparte, por qué no cambió.
         await RefreshAfirmaHandlerAsync();
-        if (failureKey is not null)
-        {
-            AfirmaHandlerStatusText.Text = Localizer.Text(failureKey) + " " + AfirmaHandlerStatusText.Text;
-        }
+        ShowAfirmaError(failureKey);
     }
 }
