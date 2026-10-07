@@ -30,20 +30,37 @@ cleanup() {
 trap cleanup EXIT HUP INT TERM
 
 mkdir -p "$WORK_DIR/build" "$WORK_DIR/home" "$WORK_DIR/config" "$WORK_DIR/cache"
-BUILD_LOG="$WORK_DIR/build.log"
-if ! "$QMAKE" "$ROOT_DIR/cmd/gui-qml/grxfirma_qt.pro" \
-    -o "$WORK_DIR/build/Makefile" >"$BUILD_LOG" 2>&1; then
-    cat "$BUILD_LOG" >&2
-    exit 1
-fi
-if ! make --no-print-directory -C "$WORK_DIR/build" \
-    -j"${JOBS:-$(getconf _NPROCESSORS_ONLN)}" >>"$BUILD_LOG" 2>&1; then
-    cat "$BUILD_LOG" >&2
-    exit 1
+# GRXFIRMA_QT_APP permite auditar un binario ya compilado sin recompilar.
+APP_BINARY=${GRXFIRMA_QT_APP:-}
+if [ -z "$APP_BINARY" ]; then
+    BUILD_LOG="$WORK_DIR/build.log"
+    if ! "$QMAKE" "$ROOT_DIR/cmd/gui-qml/grxfirma_qt.pro" \
+        -o "$WORK_DIR/build/Makefile" >"$BUILD_LOG" 2>&1; then
+        cat "$BUILD_LOG" >&2
+        exit 1
+    fi
+    if ! make --no-print-directory -C "$WORK_DIR/build" \
+        -j"${JOBS:-$(getconf _NPROCESSORS_ONLN)}" >>"$BUILD_LOG" 2>&1; then
+        cat "$BUILD_LOG" >&2
+        exit 1
+    fi
+    APP_BINARY="$WORK_DIR/build/grxfirma-gui-qml"
 fi
 
+# metacity (si está instalado) activa la ventana para probar el teclado y
+# xdotool pulsa Tab; sin ellos la auditoría comprueba solo el foco inicial.
+for optional in metacity xdotool; do
+    if ! command -v "$optional" >/dev/null 2>&1; then
+        printf 'AVISO: sin %s; la prueba de teclado será parcial.\n' "$optional" >&2
+    fi
+done
+
+# Fuera del árbol de fuentes: la aplicación carga cmd/gui-qml/qml/main.qml del
+# directorio actual si existe, y aquí se audita el QML compilado en el binario.
+cd "$WORK_DIR"
 dbus-run-session -- "$XVFB_RUN" -a -s '-screen 0 1440x900x24 -nolisten tcp' \
-    env \
+    env -u WAYLAND_DISPLAY \
+    QT_QPA_PLATFORM=xcb \
     HOME="$WORK_DIR/home" \
     XDG_CONFIG_HOME="$WORK_DIR/config" \
     XDG_CACHE_HOME="$WORK_DIR/cache" \
@@ -53,4 +70,4 @@ dbus-run-session -- "$XVFB_RUN" -a -s '-screen 0 1440x900x24 -nolisten tcp' \
     GTK_USE_PORTAL=0 \
     NO_AT_BRIDGE=0 \
     "$PYTHON" "$ROOT_DIR/scripts/accessibility/audit_atspi.py" \
-    --app "$WORK_DIR/build/grxfirma-gui-qml"
+    --app "$APP_BINARY"

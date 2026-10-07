@@ -64,7 +64,7 @@ class CertificatePanelStateContract(unittest.TestCase):
                 with self.subTest(surface=surface, state=dark):
                     self.assertGreaterEqual(max(contrast(surface, dark),
                                                 contrast(surface, light)), 4.5)
-        self.assertEqual(QML.count("? window.certificateSelectionColor() : currentTheme.cardColor\n                                    border.color: certificateId("), 2)
+        self.assertEqual(QML.count("? window.certificateSelectionColor() : currentTheme.cardColor\n                                    border.color: selected\n"), 2)
         self.assertEqual(QML.count("color: window.certificateDividerColor()"), 3)
         for foreground, background in (("#17344d", "#dcecf6"),
                                        ("#ffffff", "#243c54")):

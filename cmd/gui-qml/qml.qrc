@@ -9,7 +9,6 @@
     <file>qml/SealDrawArea.qml</file>
     <file>qml/SealDrawGeometry.js</file>
     <file>qml/ThemedDialog.qml</file>
-    <file>qml/NavButton.qml</file>
     <file>qml/ThemeContrast.js</file>
     <file>qml/ThemedButton.qml</file>
     <file>qml/ThemedCheckBox.qml</file>
@@ -21,6 +20,8 @@
     <file>qml/ThemedTextField.qml</file>
     <file>qml/ThemedTextArea.qml</file>
     <file>qml/ThemedComboBox.qml</file>
+    <file>qml/ThemedSpinBox.qml</file>
+    <file>qml/ThemedSlider.qml</file>
     <file>qml/DiagnosticTimeline.qml</file>
     <file>qml/TokenSettingsPanel.qml</file>
     <file>qml/FacturaePanel.qml</file>
