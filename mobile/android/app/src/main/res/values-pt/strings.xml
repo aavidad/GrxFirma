@@ -68,7 +68,7 @@
     <string name="seal_visible">Adicionar selo visível ao PDF</string>
     <string name="seal_edit">Colocar o selo</string>
     <string name="seal_edit_hint">Arraste o selo, altere o tamanho no canto ou rode-o pela pega. Também pode usar os botões.</string>
-    <string name="seal_canvas_description">Vista da página com o selo rodado %1$d°. Use os botões para o ajustar com TalkBack.</string>
+    <string name="seal_canvas_description" tools:ignore="TypographyDashes">Vista da página com o selo. Com o teclado, use as setas para o mover, + e - para alterar o tamanho, e a vírgula ou o ponto para o rodar. Com o TalkBack, use as ações ou os botões abaixo.</string>
     <string name="seal_page_placeholder">Página</string>
     <string name="seal_page_number">Página %1$d de %2$d</string>
     <string name="seal_previous">Anterior</string>
@@ -703,7 +703,7 @@
     <string name="ayuda_sello_texto">Mostra no selo o nome de quem assina, a data e outros dados da assinatura. Se desativar esta opção, o selo mostra apenas a imagem escolhida.</string>
     <string name="ayuda_sello_qr">Acrescenta ao selo um código QR que abre o endereço web indicado, por exemplo a página de verificação do seu portal. É opcional e o endereço tem de ser seguro (https).</string>
     <string name="ayuda_sello_csv">Código seguro de verificação (CSV): um código e um endereço web impressos no selo para que qualquer pessoa possa verificar o documento no portal do seu organismo. Utilize-o apenas se o seu organismo lhe fornecer esse código e esse endereço.</string>
-    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Páginas do PDF em que o selo aparece: a primeira, a última, todas ou as indicadas, por exemplo «1,3-5». Em caso de dúvida, coloque-o na última página.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Páginas do PDF em que o selo aparece. «Só esta página» coloca-o na página que se vê acima. «Aplicar a todas as páginas» repete-o na mesma posição em todas (até 128 páginas). «Várias páginas, cada uma com a sua posição» permite escolher cada página com «Colocar o selo nesta página» e posicioná-lo em cada uma. Em caso de dúvida, coloque-o na última página.</string>
     <string name="ayuda_sello_idioma">Idioma dos textos do selo, como «Assinado por» e a data. Não altera o idioma da aplicação.</string>
     <string name="ayuda_sesion_certificado">Tempo após o qual a aplicação fecha o certificado se ficar em segundo plano. Assim ninguém pode assinar com ele se o telemóvel ficar desbloqueado; quanto mais curto, mais seguro.</string>
     <string name="ayuda_lote">Assina vários documentos de uma só vez com o mesmo certificado e as mesmas opções. No fim, a aplicação indica quais foram assinados e quais não.</string>
@@ -740,4 +740,7 @@
     <string name="ayuda_opcion">%1$s: %2$s</string>
     <string name="ayuda_mas_desplegado">Expandido</string>
     <string name="ayuda_mas_plegado">Recolhido</string>
+    <string name="seal_canvas_state">Página %1$d de %2$d. O selo está a %3$d %% da margem esquerda e a %4$d %% da margem inferior. Ocupa %5$d %% da largura e %6$d %% da altura. Rotação: %7$d°.</string>
+    <string name="seal_all_pages_limit">Este documento tem demasiadas páginas para colocar o selo em todas (máximo: %1$d). Escolha «Só esta página» ou «Várias páginas, cada uma com a sua posição».</string>
+    <string name="verification_aspect_value">%1$s: %2$s</string>
 </resources>

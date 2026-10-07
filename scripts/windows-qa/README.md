@@ -460,6 +460,17 @@ Por ello, no se debe volver a pulsar «Verificar firma» en la ventana que queda
 abierta después de finalizar: sus campos todavía muestran la ruta temporal ya
 retirada. Para repetir la operación se inicia una ejecución nueva.
 
+## Inventario de accesibilidad con UI Automation
+
+`Invoke-GrxFirmaUiaAccessibilityAudit.ps1` abre GrxFirma, pasa por cada
+sección del menú y escribe en `-OutputFile` los controles sin nombre, los
+objetivos de menos de 24×24 px, los que no reciben el foco del teclado, los
+encabezados y los campos obligatorios, con una captura por sección en
+`-ScreenshotDirectory`. Con `-UiBinary` se prueba una compilación WinUI sin
+instalarla. Se lanza como tarea programada interactiva, igual que la captura.
+Si la sesión está bloqueada no recorre el foco con Tab. El método y los
+resultados están en `docs/ACCESIBILIDAD.md`.
+
 ## Navegadores
 
 Este capturador no toma imágenes de Chrome ni Firefox: su lista de procesos

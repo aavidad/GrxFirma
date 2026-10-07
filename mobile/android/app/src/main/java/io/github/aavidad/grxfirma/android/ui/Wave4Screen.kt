@@ -88,8 +88,13 @@ internal class Wave4Screen(
             EngineText.resolve(activity, "eni.validacion.identifier")
         expedienteInterestedLayout.error = if (ExpedientePolicy.interestedValid(interested)) null else
             EngineText.resolve(activity, "eni.validacion.text")
-        if (listOf(expedienteOrgansLayout, expedienteClassificationLayout, expedienteIdentifierLayout,
-                expedienteInterestedLayout).any { it.error != null }) return@with
+        // El foco va al primer campo con error, en el orden de la pantalla (WCAG 3.3.1).
+        val fields = listOf(expedienteOrgansLayout, expedienteClassificationLayout, expedienteIdentifierLayout,
+            expedienteInterestedLayout)
+        if (fields.any { it.error != null }) {
+            FieldErrors.focusFirst(fields)
+            return@with
+        }
         val request = EniFileRequest(
             organs = organs,
             classification = classification,

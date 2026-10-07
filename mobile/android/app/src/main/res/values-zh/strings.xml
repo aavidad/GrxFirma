@@ -68,7 +68,7 @@
     <string name="seal_visible">在 PDF 中添加可见印章</string>
     <string name="seal_edit">放置印章</string>
     <string name="seal_edit_hint">拖动印章，在角落调整大小，或通过手柄旋转。也可以使用按钮。</string>
-    <string name="seal_canvas_description">页面预览，印章已旋转 %1$d°。使用按钮可通过 TalkBack 调整。</string>
+    <string name="seal_canvas_description" tools:ignore="TypographyDashes">带印章的页面预览。使用键盘时，用方向键移动，用 + 和 - 调整大小，用逗号或句号旋转。使用 TalkBack 时，请使用操作菜单或下方按钮。</string>
     <string name="seal_page_placeholder">页</string>
     <string name="seal_page_number">第 %1$d 页，共 %2$d 页</string>
     <string name="seal_previous">上一页</string>
@@ -669,7 +669,7 @@
     <string name="ayuda_sello_texto">在印章中显示签名人姓名、日期及其他签名信息。如果关闭此项，印章只显示所选图片。</string>
     <string name="ayuda_sello_qr">在印章上添加一个二维码，可打开您指定的网址，例如您所在网站的验证页面。此项可选，且网址必须是安全的（https）。</string>
     <string name="ayuda_sello_csv">安全验证码（CSV）：印在印章上的一个代码和一个网址，使任何人都能在您机构的网站上核验该文档。仅在您的机构为您提供该代码和网址时使用。</string>
-    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">印章出现在 PDF 的哪些页：第一页、最后一页、全部页面或您指定的页面，例如“1,3-5”。如不确定，请放在最后一页。</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">印章出现在 PDF 的哪些页。“仅此页”将其放在上方显示的页面。“应用于所有页面”在所有页面的相同位置重复放置（最多 128 页）。“多个页面，每页位置单独设置”可用“在此页放置印章”逐页选择并分别放置。如不确定，请放在最后一页。</string>
     <string name="ayuda_sello_idioma">印章文字的语言，例如“签名人”和日期。不会改变应用的语言。</string>
     <string name="ayuda_sesion_certificado">应用转入后台后关闭证书前的时长。这样即使您未锁定手机，也无人能用它签名；时间越短越安全。</string>
     <string name="ayuda_lote">使用同一证书和相同选项一次签署多个文档。完成后，应用会显示哪些已签名、哪些未签名。</string>
@@ -704,4 +704,7 @@
     <string name="ayuda_opcion">%1$s：%2$s</string>
     <string name="ayuda_mas_desplegado">已展开</string>
     <string name="ayuda_mas_plegado">已折叠</string>
+    <string name="seal_canvas_state">第 %1$d 页，共 %2$d 页。印章距左边缘 %3$d%%，距下边缘 %4$d%%。宽度占 %5$d%%，高度占 %6$d%%。旋转：%7$d°。</string>
+    <string name="seal_all_pages_limit">本文档页数过多，无法在所有页面放置印章（上限：%1$d）。请选择“仅此页”或“多个页面，每页位置单独设置”。</string>
+    <string name="verification_aspect_value">%1$s：%2$s</string>
 </resources>

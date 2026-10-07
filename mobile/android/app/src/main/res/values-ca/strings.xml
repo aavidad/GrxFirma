@@ -68,7 +68,7 @@
     <string name="seal_visible">Afegir segell visible al PDF</string>
     <string name="seal_edit">Col·locar el segell</string>
     <string name="seal_edit_hint">Arrossegueu el segell, canvieu-ne la mida a la cantonada o gireu-lo amb el tirador. També podeu utilitzar els botons.</string>
-    <string name="seal_canvas_description">Vista de la pàgina amb el segell girat %1$d°. Utilitzeu els botons per ajustar-lo amb TalkBack.</string>
+    <string name="seal_canvas_description" tools:ignore="TypographyDashes">Vista de la pàgina amb el segell. Amb el teclat, utilitzeu les fletxes per moure\'l, + i - per canviar-ne la mida, i la coma o el punt per girar-lo. Amb TalkBack, utilitzeu les accions o els botons de sota.</string>
     <string name="seal_page_placeholder">Pàgina</string>
     <string name="seal_page_number">Pàgina %1$d de %2$d</string>
     <string name="seal_previous">Anterior</string>
@@ -705,7 +705,7 @@
     <string name="ayuda_sello_texto">Mostra al segell el nom de qui signa, la data i altres dades de la signatura. Si ho desactiva, el segell només mostra la imatge triada.</string>
     <string name="ayuda_sello_qr">Afegeix al segell un codi QR que obre l\'adreça web que vostè indiqui, per exemple la pàgina de verificació de la seva seu. És opcional i l\'adreça ha de ser segura (https).</string>
     <string name="ayuda_sello_csv">Codi segur de verificació (CSV): un codi i una adreça web que s\'imprimeixen al segell perquè qualsevol persona pugui comprovar el document a la seu del seu organisme. Utilitzi\'l només si el seu organisme li facilita aquest codi i aquesta adreça.</string>
-    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Pàgines del PDF on apareix el segell: la primera, l\'última, totes o les que vostè indiqui, per exemple «1,3-5». Si no n\'està segur, posi\'l a l\'última pàgina.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Pàgines del PDF on apareix el segell. «Només aquesta pàgina» el posa a la pàgina que es veu a dalt. «Aplicar a totes les pàgines» el repeteix a la mateixa posició a totes (fins a 128 pàgines). «Diverses pàgines, cadascuna amb la seva posició» li permet triar cada pàgina amb «Posa el segell en aquesta pàgina» i col·locar-lo a cadascuna. Si no n\'està segur, posi\'l a l\'última pàgina.</string>
     <string name="ayuda_sello_idioma">Idioma dels textos del segell, com ara «Signat per» i la data. No canvia l\'idioma de l\'aplicació.</string>
     <string name="ayuda_sesion_certificado">Temps després del qual l\'aplicació tanca el certificat si queda en segon pla. Així ningú no pot signar-hi si deixa el mòbil desbloquejat; com més curt, més segur.</string>
     <string name="ayuda_lote">Signa diversos documents alhora amb el mateix certificat i les mateixes opcions. En acabar, l\'aplicació indica quins s\'han signat i quins no.</string>
@@ -740,4 +740,7 @@
     <string name="ayuda_opcion">%1$s: %2$s</string>
     <string name="ayuda_mas_desplegado">Desplegat</string>
     <string name="ayuda_mas_plegado">Plegat</string>
+    <string name="seal_canvas_state">Pàgina %1$d de %2$d. El segell és al %3$d %% de la vora esquerra i al %4$d %% de la vora inferior. Ocupa el %5$d %% de l\'amplada i el %6$d %% de l\'alçada. Gir: %7$d°.</string>
+    <string name="seal_all_pages_limit">Aquest document té massa pàgines per posar el segell a totes (màxim: %1$d). Trieu «Només aquesta pàgina» o «Diverses pàgines, cadascuna amb la seva posició».</string>
+    <string name="verification_aspect_value">%1$s: %2$s</string>
 </resources>

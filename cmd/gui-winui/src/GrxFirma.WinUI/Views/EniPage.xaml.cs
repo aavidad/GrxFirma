@@ -164,6 +164,7 @@ public sealed partial class EniPage : Page
         EniActions.Children.Add(new Border { Child = file, Padding = new Thickness(16), Style = (Style)Application.Current.Resources["AppCardStyle"] });
         _status.TextWrapping = TextWrapping.Wrap;
         AutomationProperties.SetLiveSetting(_status, AutomationLiveSetting.Polite);
+        LiveAnnouncer.Watch(_status);
         EniActions.Children.Add(_status);
         var tabIndex = 0;
         foreach (var section in new[] { document, file })
@@ -214,6 +215,7 @@ public sealed partial class EniPage : Page
         message.TextWrapping = TextWrapping.Wrap;
         message.Visibility = Visibility.Collapsed;
         AutomationProperties.SetLiveSetting(message, AutomationLiveSetting.Polite);
+        LiveAnnouncer.Watch(message);
         return message;
     }
 
@@ -236,8 +238,7 @@ public sealed partial class EniPage : Page
             if (XamlRoot is null || message.Visibility != Visibility.Visible) return;
             message.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
             if (!message.Focus(FocusState.Programmatic)) button.Focus(FocusState.Programmatic);
-            FrameworkElementAutomationPeer.FromElement(message)?
-                .RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+            LiveAnnouncer.Announce(message);
         });
     }
 
@@ -246,7 +247,7 @@ public sealed partial class EniPage : Page
         label.TextWrapping = TextWrapping.Wrap;
         label.Text = path.Length > 0 ? path : T(emptyKey);
         if (path.Length > 0) label.ClearValue(TextBlock.ForegroundProperty);
-        else label.Foreground = (Brush)Application.Current.Resources["AppMutedTextBrush"];
+        else label.Foreground = ThemeBrushes.Get("AppMutedTextBrush", label);
     }
 
     private static string Code(ComboBox combo) => (combo.SelectedItem as ComboBoxItem)?.Tag as string ?? string.Empty;
@@ -256,8 +257,9 @@ public sealed partial class EniPage : Page
     {
         _validators[field] = validate;
         var message = new TextBlock { TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed,
-            Foreground = (Brush)Application.Current.Resources["AppDiagnosticFailureBrush"] };
+            Foreground = ThemeBrushes.Get(ThemeBrushes.Failure, this) };
         AutomationProperties.SetLiveSetting(message, AutomationLiveSetting.Polite);
+        LiveAnnouncer.Watch(message);
         _messages[field] = message;
         parent.Children.Add(container ?? field);
         parent.Children.Add(message);
@@ -273,9 +275,7 @@ public sealed partial class EniPage : Page
         var message = _messages[field];
         message.Text = detail;
         message.Visibility = key is null ? Visibility.Collapsed : Visibility.Visible;
-        AutomationProperties.SetHelpText(field, detail);
-        if (key is null) field.ClearValue(Control.BorderBrushProperty);
-        else field.BorderBrush = (Brush)Application.Current.Resources["AppDiagnosticFailureBrush"];
+        FieldValidationFeedback.Apply(field, detail);
         return key;
     }
 

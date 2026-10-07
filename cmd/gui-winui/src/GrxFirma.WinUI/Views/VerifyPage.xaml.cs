@@ -38,13 +38,7 @@ public sealed partial class VerifyPage : Page
     private void AnnounceReportSaved()
     {
         if (string.IsNullOrEmpty(ViewModel.ReportSavedMessage)) return;
-        _ = DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-        {
-            if (string.IsNullOrEmpty(ReportSavedText.Text)) return;
-            var peer = Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer.FromElement(ReportSavedText) ??
-                Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer.CreatePeerForElement(ReportSavedText);
-            peer?.RaiseAutomationEvent(Microsoft.UI.Xaml.Automation.Peers.AutomationEvents.LiveRegionChanged);
-        });
+        LiveAnnouncer.Announce(ReportSavedText);
     }
 
     public VerifyPageViewModel ViewModel { get; }

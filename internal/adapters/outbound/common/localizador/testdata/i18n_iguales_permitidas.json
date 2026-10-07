@@ -1777,7 +1777,8 @@
   "verificacion.informe_html.filtro",
   "qt.filedialog.filter",
   "qt.folderbreadcrumbbar.up",
-  "qt.qstandardpaths.downloads"
+  "qt.qstandardpaths.downloads",
+  "Modo de servidor"
  ],
  "it": [
   " + base64",
@@ -2387,7 +2388,8 @@
   "winui.selector.documento_recuperado",
   "winui.selector.nombre_documento_recuperado",
   "qt.filedialog.filter",
-  "qt.folderbreadcrumbbar.up"
+  "qt.folderbreadcrumbbar.up",
+  "Modo de servidor"
  ],
  "va": [
   " + base64",

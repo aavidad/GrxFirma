@@ -58,6 +58,49 @@ public sealed partial class FacturaePage : Page
         ReadVeriFactuQrFileButton.Content = T("verifactu.qr_from_file");
         QueryVeriFactuQrButton.Content = T("verifactu.qr_query");
         VeriFactuQrReport.Header = T("verifactu.qr_result");
+        RequiredFieldsLegend.Text = Localizer.Text("winui.facturae.campos_obligatorios");
+        ViewModel.InvalidDataReported += (_, _) => FocusFirstEmptyRequiredField();
+    }
+
+    // Tras «Revise los datos», el foco va al primer campo obligatorio vacío
+    // (en orden de tabulación) para que la persona sepa por dónde seguir.
+    private void FocusFirstEmptyRequiredField()
+    {
+        var target = Descendants(this)
+            .OfType<Control>()
+            .Where(control => control.IsEnabled &&
+                Microsoft.UI.Xaml.Automation.AutomationProperties.GetIsRequiredForForm(control) &&
+                control switch
+                {
+                    TextBox box => string.IsNullOrWhiteSpace(box.Text),
+                    NumberBox number => double.IsNaN(number.Value),
+                    _ => false,
+                })
+            .OrderBy(control => control.TabIndex)
+            .FirstOrDefault();
+        if (target is null) return;
+        for (var parent = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(target);
+             parent is not null;
+             parent = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(parent))
+        {
+            if (parent is Expander expander) expander.IsExpanded = true;
+        }
+        _ = DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            target.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
+            target.Focus(FocusState.Programmatic);
+        });
+    }
+
+    private static IEnumerable<DependencyObject> Descendants(DependencyObject root)
+    {
+        var count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (var index = 0; index < count; index++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(root, index);
+            yield return child;
+            foreach (var descendant in Descendants(child)) yield return descendant;
+        }
     }
 
     public FacturaePageViewModel ViewModel { get; }

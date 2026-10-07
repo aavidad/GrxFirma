@@ -162,9 +162,7 @@ public sealed partial class SignPage : Page
             var detail = invalid ? Localizer.Text(key!) : string.Empty;
             message.Text = detail;
             message.Visibility = invalid ? Visibility.Visible : Visibility.Collapsed;
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(field, detail);
-            if (invalid) field.BorderBrush = (Brush)Application.Current.Resources["AppDiagnosticFailureBrush"];
-            else field.ClearValue(Control.BorderBrushProperty);
+            FieldValidationFeedback.Apply(field, detail);
         }
         Show("image", VisibleSealImageButton, VisibleSealImageError);
         Show("qr", VisibleSealQrUrlTextBox, VisibleSealQrError);
@@ -239,7 +237,8 @@ public sealed partial class SignPage : Page
         VisibleSealEditorPanel.Children.Remove(VisibleSealDrawControls);
         DetachFromParent(VisibleSealDrawControls);
 
-        var pageControls = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        // Los grupos de botones se pliegan en varias filas si no caben (WCAG 1.4.10).
+        var pageControls = new ResponsiveActionPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         var previous = new Button { Content = Label("portal.seal.previous_page"), MinHeight = 40 };
         previous.Click += async (_, _) => await NavigatePortalPageAsync(-1);
         pageControls.Children.Add(previous);
@@ -249,7 +248,7 @@ public sealed partial class SignPage : Page
         next.Click += async (_, _) => await NavigatePortalPageAsync(1);
         pageControls.Children.Add(next);
 
-        var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        var actions = new ResponsiveActionPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         _portalSignButton = new Button
         {
             Content = Label("portal.seal.sign_here"), MinHeight = 40,
@@ -286,13 +285,18 @@ public sealed partial class SignPage : Page
         };
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetLiveSetting(_portalStatusText,
             AutomationLiveSetting.Assertive);
+        LiveAnnouncer.Watch(_portalStatusText);
 
         var content = new StackPanel { Spacing = 16, Padding = new Thickness(20) };
-        content.Children.Add(new TextBlock
+        var portalTitle = new TextBlock
         {
             Text = Label("portal.seal.title"), FontSize = 22,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-        });
+            TextWrapping = TextWrapping.Wrap,
+        };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHeadingLevel(portalTitle,
+            Microsoft.UI.Xaml.Automation.Peers.AutomationHeadingLevel.Level1);
+        content.Children.Add(portalTitle);
         content.Children.Add(new TextBlock
         {
             Text = Label("portal.seal.instructions"), TextWrapping = TextWrapping.Wrap,
@@ -301,19 +305,16 @@ public sealed partial class SignPage : Page
         content.Children.Add(actions);
         content.Children.Add(_portalStatusText);
         content.Children.Add(pageControls);
-        var geometry = new Grid { ColumnSpacing = 8 };
-        for (var index = 0; index < 5; index++)
-            geometry.ColumnDefinitions.Add(new ColumnDefinition
-            {
-                Width = new GridLength(1, GridUnitType.Star),
-            });
-        void AddGeometryField(int column, string key, string property,
+        // Los campos numéricos fluyen en filas: sin desplazamiento horizontal.
+        var geometry = new ResponsiveActionPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        var geometryTabIndex = 8;
+        void AddGeometryField(string key, string property,
             double minimum, double maximum)
         {
             var box = new NumberBox
             {
                 Header = Label(key), Minimum = minimum, Maximum = maximum,
-                SmallChange = 1, MinWidth = 100,
+                SmallChange = 1, Width = 160, TabIndex = geometryTabIndex++,
             };
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(box, Label(key));
             box.SetBinding(NumberBox.ValueProperty,
@@ -323,22 +324,22 @@ public sealed partial class SignPage : Page
                     Path = new PropertyPath(property),
                     Mode = Microsoft.UI.Xaml.Data.BindingMode.TwoWay,
                 });
-            Grid.SetColumn(box, column);
             geometry.Children.Add(box);
         }
-        AddGeometryField(0, "portal.seal.x", nameof(SignPageViewModel.VisibleSealXPercent), 0, 99);
-        AddGeometryField(1, "portal.seal.y", nameof(SignPageViewModel.VisibleSealYPercent), 0, 99);
-        AddGeometryField(2, "portal.seal.width", nameof(SignPageViewModel.VisibleSealWidthPercent), 1, 100);
-        AddGeometryField(3, "portal.seal.height", nameof(SignPageViewModel.VisibleSealHeightPercent), 1, 100);
-        AddGeometryField(4, "portal.seal.rotation", nameof(SignPageViewModel.VisibleSealRotationDegrees), 0, 359);
-        var geometryPanel = new ScrollViewer
+        AddGeometryField("portal.seal.x", nameof(SignPageViewModel.VisibleSealXPercent), 0, 99);
+        AddGeometryField("portal.seal.y", nameof(SignPageViewModel.VisibleSealYPercent), 0, 99);
+        AddGeometryField("portal.seal.width", nameof(SignPageViewModel.VisibleSealWidthPercent), 1, 100);
+        AddGeometryField("portal.seal.height", nameof(SignPageViewModel.VisibleSealHeightPercent), 1, 100);
+        AddGeometryField("portal.seal.rotation", nameof(SignPageViewModel.VisibleSealRotationDegrees), 0, 359);
+        // Orden de tabulación de la vista del portal: primero las acciones,
+        // luego la página, el dibujo del área, el tirador de giro y el ajuste fino.
+        var portalTabOrder = new Control[]
         {
-            Content = geometry,
-            HorizontalScrollMode = ScrollMode.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-            VerticalScrollMode = ScrollMode.Disabled,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            _portalSignButton!, without, cancel, previous, next,
+            VisibleSealDrawToggle, VisibleSealDrawInput, VisibleSealRotateHandle,
         };
+        for (var index = 0; index < portalTabOrder.Length; index++)
+            portalTabOrder[index].TabIndex = index;
         // La página entera debe verse sin desplazarse: se ajusta a la altura
         // disponible bajo el título, la instrucción y los botones.
         void FitPreview()
@@ -352,12 +353,16 @@ public sealed partial class SignPage : Page
         FitPreview();
         content.Children.Add(VisibleSealDrawControls);
         content.Children.Add(VisibleSealPreviewViewbox);
-        content.Children.Add(new TextBlock
+        var fineTuneTitle = new TextBlock
         {
             Text = Label("portal.seal.fine_tune"),
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-        });
-        content.Children.Add(geometryPanel);
+            TextWrapping = TextWrapping.Wrap,
+        };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHeadingLevel(fineTuneTitle,
+            Microsoft.UI.Xaml.Automation.Peers.AutomationHeadingLevel.Level2);
+        content.Children.Add(fineTuneTitle);
+        content.Children.Add(geometry);
         SignContentScrollViewer.Content = content;
         void UpdateNavigation()
         {
@@ -377,11 +382,6 @@ public sealed partial class SignPage : Page
             {
                 _portalStatusKey = statusKey;
                 _portalStatusText.Text = Label(statusKey);
-                if (_portalPreviewFailed &&
-                    FrameworkElementAutomationPeer
-                        .FromElement(_portalStatusText) is { } peer)
-                    peer.RaiseAutomationEvent(
-                        AutomationEvents.LiveRegionChanged);
             }
         }
         _portalUpdateNavigation = UpdateNavigation;
@@ -1370,11 +1370,12 @@ public sealed partial class SignPage : Page
             : string.IsNullOrWhiteSpace(diagnostic?.SuggestedAction)
                 ? Localizer.Text("winui.firmar.revise_los_datos_y_vuelva_a_intentarlo")
                 : diagnostic.SuggestedAction;
-        SignResultVerification.Foreground = (Brush)Application.Current.Resources[
-            unsafeOutput ? "AppDiagnosticFailureBrush"
-                : warning ? "AppDiagnosticUnknownBrush"
-                : hasOutput ? "AppDiagnosticSuccessBrush"
-                : "AppDiagnosticFailureBrush"];
+        SignResultVerification.Foreground = ThemeBrushes.Get(
+            unsafeOutput ? ThemeBrushes.Failure
+                : warning ? ThemeBrushes.Unknown
+                : hasOutput ? ThemeBrushes.Success
+                : ThemeBrushes.Failure,
+            SignResultVerification);
         ResultButton.Visibility = hasOutput ? Visibility.Visible : Visibility.Collapsed;
         OpenResultFolderButton.Visibility = hasOutput ? Visibility.Visible : Visibility.Collapsed;
         ReviewSignButton.Visibility = hasOutput ? Visibility.Collapsed : Visibility.Visible;
@@ -1999,9 +2000,8 @@ public sealed partial class SignPage : Page
     private void AnnounceSealDrawingText(string text)
     {
         VisibleSealDrawNotice.Text = text;
-        var peer = FrameworkElementAutomationPeer.FromElement(VisibleSealDrawNotice) ??
-            FrameworkElementAutomationPeer.CreatePeerForElement(VisibleSealDrawNotice);
-        peer?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+        // Se anuncia también si el texto repite el anterior.
+        LiveAnnouncer.Announce(VisibleSealDrawNotice);
     }
 
     private void CancelVisibleSealDrawing()
@@ -2333,6 +2333,25 @@ public sealed partial class SignPage : Page
         if (direction == 0) return;
         ViewModel.VisibleSealRotationDegrees += direction * (IsShiftPressed() ? 15 : 1);
         args.Handled = true;
+        AnnounceSealRotation();
+    }
+
+    // El tirador no tiene valor propio: se publica el giro como estado del
+    // elemento y se anuncia para que el lector diga los grados actuales.
+    private void AnnounceSealRotation()
+    {
+        var degrees = Math.Round(ViewModel.VisibleSealRotationDegrees) % 360;
+        var announcement = Localizer.Format("winui.firmar.sello_giro_actual",
+            degrees.ToString("0", CultureInfo.CurrentCulture));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetItemStatus(
+            VisibleSealRotateHandle, announcement);
+        var peer = FrameworkElementAutomationPeer.FromElement(VisibleSealRotateHandle) ??
+            FrameworkElementAutomationPeer.CreatePeerForElement(VisibleSealRotateHandle);
+        peer?.RaiseNotificationEvent(
+            AutomationNotificationKind.ActionCompleted,
+            AutomationNotificationProcessing.MostRecent,
+            announcement,
+            nameof(AnnounceSealRotation));
     }
 
     // Mensajes de validación que indican que el usuario canceló o no eligió
@@ -2406,6 +2425,7 @@ public sealed partial class SignPage : Page
         if (_visibleSealPointerMode is VisibleSealPointerMode.Rotate)
         {
             ViewModel.EndVisibleSealRotation();
+            AnnounceSealRotation();
         }
         _visibleSealPointerMode = VisibleSealPointerMode.None;
         _visibleSealPointerId = 0;

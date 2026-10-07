@@ -220,7 +220,7 @@
                         </controls:ResponsiveActionPanel>
                         <TextBlock
                             x:Name="ReportSavedText"
-                            AutomationProperties.LiveSetting="Polite"
+                            AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                             Text="{x:Bind ViewModel.ReportSavedMessage, Mode=OneWay}"
                             TextWrapping="Wrap"
                             Visibility="{x:Bind ViewModel.HasReportSavedMessage, Mode=OneWay}" />

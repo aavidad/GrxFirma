@@ -35,6 +35,8 @@ public sealed partial class MainWindow : Window
         _app = (App)Application.Current;
         ViewModel = new MainWindowViewModel();
         InitializeComponent();
+        // Los pinceles de estado leídos desde código siguen el tema de la ventana.
+        ThemeBrushes.SetThemeRoot(AppRoot);
         ApplyControlLanguage();
         RefreshProgrammaticLanguage();
         _localization = Localizer.Attach(AppRoot);

@@ -1065,8 +1065,11 @@ void IpcBridge::tryConnect() {
       }
     });
   } else {
+    // La barra de estado dice qué hacer; el detalle técnico va al registro.
+    emit backendLogReceived(
+        it(QStringLiteral("No se pudo conectar al backend tras 10 segundos")));
     if (!m_connectionGrace)
-      setStatus(it(QStringLiteral("No se pudo conectar al backend tras 10 segundos")));
+      setStatus(it(QStringLiteral("No se puede conectar con el servicio de firma de GrxFirma. Cierre y vuelva a abrir la aplicación; si sigue igual, pulse «Asistente».")));
     if (!m_deferredAction.isEmpty()) {
       const QString action = m_deferredAction;
       m_deferredAction.clear();
@@ -1902,7 +1905,7 @@ void IpcBridge::onError(QLocalSocket::LocalSocketError error) {
   // Durante el plazo de gracia se conserva el aviso informativo; el detalle
   // queda en el registro.
   if (!m_connectionGrace)
-    setStatus(it(QStringLiteral("Error IPC: ")) + errStr);
+    setStatus(it(QStringLiteral("No se puede conectar con el servicio de firma de GrxFirma. Cierre y vuelva a abrir la aplicación; si sigue igual, pulse «Asistente».")));
   const auto pendingSeals = m_sealPreviewRequests.keys();
   m_sealPreviewRequests.clear();
   for (const QString &id : pendingSeals)

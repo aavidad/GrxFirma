@@ -68,7 +68,7 @@
     <string name="seal_visible">Sichtbares Siegel zum PDF hinzufügen</string>
     <string name="seal_edit">Siegel platzieren</string>
     <string name="seal_edit_hint">Ziehen Sie das Siegel, ändern Sie die Größe an der Ecke oder drehen Sie es am Griff. Sie können auch die Tasten nutzen.</string>
-    <string name="seal_canvas_description">Seitenansicht mit um %1$d° gedrehtem Siegel. Mit TalkBack über die Tasten anpassen.</string>
+    <string name="seal_canvas_description" tools:ignore="TypographyDashes">Seitenansicht mit Siegel. Mit der Tastatur: Pfeiltasten zum Verschieben, + und - für die Größe, Komma oder Punkt zum Drehen. Mit TalkBack die Aktionen oder die Tasten darunter verwenden.</string>
     <string name="seal_page_placeholder">Seite</string>
     <string name="seal_page_number">Seite %1$d von %2$d</string>
     <string name="seal_previous">Zurück</string>
@@ -687,7 +687,7 @@
     <string name="ayuda_sello_texto">Zeigt im Stempel den Namen des Unterzeichners, das Datum und weitere Angaben zur Signatur. Wenn Sie dies deaktivieren, zeigt der Stempel nur das gewählte Bild.</string>
     <string name="ayuda_sello_qr">Fügt dem Stempel einen QR-Code hinzu, der die von Ihnen angegebene Webadresse öffnet, zum Beispiel die Prüfseite Ihres Portals. Dies ist optional, und die Adresse muss sicher sein (https).</string>
     <string name="ayuda_sello_csv">Sicherer Prüfcode (CSV): ein Code und eine Webadresse, die in den Stempel gedruckt werden, damit jeder das Dokument im Portal Ihrer Behörde prüfen kann. Verwenden Sie ihn nur, wenn Ihre Behörde Ihnen diesen Code und diese Adresse bereitstellt.</string>
-    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Seiten des PDF, auf denen der Stempel erscheint: die erste, die letzte, alle oder die von Ihnen angegebenen, zum Beispiel „1,3-5“. Wenn Sie unsicher sind, setzen Sie ihn auf die letzte Seite.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Seiten des PDF, auf denen das Siegel erscheint. „Nur diese Seite“ setzt es auf die oben angezeigte Seite. „Auf alle Seiten anwenden“ wiederholt es an derselben Stelle auf allen Seiten (bis zu 128 Seiten). Mit „Mehrere Seiten, jeweils mit eigener Position“ wählen Sie jede Seite mit „Siegel auf diese Seite setzen“ und platzieren es dort. Wenn Sie unsicher sind, setzen Sie es auf die letzte Seite.</string>
     <string name="ayuda_sello_idioma">Sprache der Stempeltexte, etwa „Signiert von“ und das Datum. Die Sprache der Anwendung ändert sich dadurch nicht.</string>
     <string name="ayuda_sesion_certificado">Zeit, nach der die Anwendung das Zertifikat schließt, wenn sie im Hintergrund bleibt. So kann niemand damit signieren, wenn Sie das Mobiltelefon entsperrt liegen lassen; je kürzer, desto sicherer.</string>
     <string name="ayuda_lote">Signiert mehrere Dokumente auf einmal mit demselben Zertifikat und denselben Optionen. Am Ende zeigt die Anwendung an, welche signiert wurden und welche nicht.</string>
@@ -722,4 +722,7 @@
     <string name="ayuda_opcion">%1$s: %2$s</string>
     <string name="ayuda_mas_desplegado">Erweitert</string>
     <string name="ayuda_mas_plegado">Reduziert</string>
+    <string name="seal_canvas_state">Seite %1$d von %2$d. Das Siegel liegt %3$d %% vom linken und %4$d %% vom unteren Rand entfernt. Es nimmt %5$d %% der Breite und %6$d %% der Höhe ein. Drehung: %7$d°.</string>
+    <string name="seal_all_pages_limit">Dieses Dokument hat zu viele Seiten, um das Siegel auf alle zu setzen (höchstens: %1$d). Wählen Sie „Nur diese Seite“ oder „Mehrere Seiten, jeweils mit eigener Position“.</string>
+    <string name="verification_aspect_value">%1$s: %2$s</string>
 </resources>

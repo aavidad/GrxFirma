@@ -34,10 +34,27 @@ Dialog {
         }
     }
 
+    // El rol, el nombre y la descripción van en la ventana emergente del propio
+    // diálogo (el elemento que contiene el fondo). Ponerlos en la cabecera creaba
+    // un segundo diálogo anidado para los lectores de pantalla.
+    function syncPopupAccessibility() {
+        const popupItem = dialog.background ? dialog.background.parent : null
+        if (!popupItem)
+            return
+        popupItem.Accessible.role = Accessible.Dialog
+        popupItem.Accessible.name = dialog.accessibleName
+        popupItem.Accessible.description = dialog.accessibleDescription
+    }
+
     onTranslateChanged: relabelStandardButtons()
     onStandardButtonsChanged: Qt.callLater(relabelStandardButtons)
+    onAccessibleNameChanged: syncPopupAccessibility()
+    onAccessibleDescriptionChanged: syncPopupAccessibility()
     onAboutToShow: relabelStandardButtons()
-    Component.onCompleted: relabelStandardButtons()
+    Component.onCompleted: {
+        relabelStandardButtons()
+        syncPopupAccessibility()
+    }
 
     palette.window: theme.cardColor
     palette.windowText: theme.textColor
@@ -64,11 +81,10 @@ Dialog {
         implicitHeight: titleLabel.implicitHeight
         visible: dialog.title !== ""
         property alias color: titleLabel.color
-        Accessible.role: Accessible.Dialog
-        Accessible.name: dialog.accessibleName
-        Accessible.description: dialog.accessibleDescription
         Label {
             id: titleLabel
+            Accessible.role: Accessible.Heading
+            Accessible.name: dialog.title
             width: parent.width
             text: dialog.title
             color: dialog.theme.textColor

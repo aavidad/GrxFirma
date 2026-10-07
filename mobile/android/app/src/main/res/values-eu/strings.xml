@@ -68,7 +68,7 @@
     <string name="seal_visible">Gehitu zigilu ikusgaia PDFan</string>
     <string name="seal_edit">Kokatu zigilua</string>
     <string name="seal_edit_hint">Arrastatu zigilua, aldatu tamaina izkinan edo biratu heldulekutik. Botoiak ere erabil ditzakezu.</string>
-    <string name="seal_canvas_description">Orrialdearen ikuspegia, zigilua %1$d° biratuta. Erabili botoiak TalkBack bidez doitzeko.</string>
+    <string name="seal_canvas_description" tools:ignore="TypographyDashes">Orrialdearen ikuspegia, zigiluarekin. Teklatuarekin, erabili geziak mugitzeko, + eta - tamaina aldatzeko, eta koma edo puntua biratzeko. TalkBack-ekin, erabili ekintzak edo beheko botoiak.</string>
     <string name="seal_page_placeholder">Orria</string>
     <string name="seal_page_number">%1$d. orrialdea / %2$d</string>
     <string name="seal_previous">Aurrekoa</string>
@@ -687,7 +687,7 @@
     <string name="ayuda_sello_texto">Sinatzailearen izena, data eta sinaduraren beste datu batzuk erakusten ditu zigiluan. Desaktibatzen baduzu, zigiluak aukeratutako irudia bakarrik erakutsiko du.</string>
     <string name="ayuda_sello_qr">Zuk adierazitako web-helbidea irekitzen duen QR kode bat gehitzen dio zigiluari, adibidez zure egoitzaren egiaztapen-orria. Aukerakoa da, eta helbideak segurua izan behar du (https).</string>
     <string name="ayuda_sello_csv">Egiaztapen-kode segurua (CSV): zigiluan inprimatzen diren kode bat eta web-helbide bat, edonork dokumentua zure erakundearen egoitzan egiaztatu ahal izan dezan. Erabili zure erakundeak kode hori eta helbide hori ematen badizkizu soilik.</string>
-    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Zigilua agertzen den PDFko orriak: lehena, azkena, guztiak edo zuk adierazitakoak, adibidez «1,3-5». Ziur ez bazaude, jarri azken orrian.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Zigilua agertzen den PDFko orriak. «Orrialde hau bakarrik» aukerak goian ikusten den orrian jartzen du. «Aplikatu orrialde guztietan» aukerak kokapen berean errepikatzen du orri guztietan (gehienez 128 orrialde). «Hainbat orri, bakoitza bere kokapenarekin» aukerarekin orri bakoitza hauta dezakezu «Jarri zigilua orri honetan» botoiarekin, eta bakoitzean kokatu. Ziur ez bazaude, jarri azken orrian.</string>
     <string name="ayuda_sello_idioma">Zigiluko testuen hizkuntza, adibidez «Honek sinatua» eta data. Ez du aplikazioaren hizkuntza aldatzen.</string>
     <string name="ayuda_sesion_certificado">Aplikazioa bigarren planoan geratzen bada, ziurtagiria ixteko igaro behar den denbora. Horrela, inork ezin du harekin sinatu mugikorra desblokeatuta uzten baduzu; zenbat eta laburragoa, orduan eta seguruagoa.</string>
     <string name="ayuda_lote">Hainbat dokumentu batera sinatzen ditu ziurtagiri eta aukera berberekin. Amaitzean, aplikazioak adierazten du zein sinatu diren eta zein ez.</string>
@@ -722,4 +722,7 @@
     <string name="ayuda_opcion">%1$s: %2$s</string>
     <string name="ayuda_mas_desplegado">Zabalduta</string>
     <string name="ayuda_mas_plegado">Tolestuta</string>
+    <string name="seal_canvas_state">%1$d/%2$d orrialdea. Zigilua ezkerreko ertzetik %% %3$d-ra eta beheko ertzetik %% %4$d-ra dago. Zabaleraren %% %5$d eta altueraren %% %6$d hartzen ditu. Biraketa: %7$d°.</string>
+    <string name="seal_all_pages_limit">Dokumentu honek orrialde gehiegi ditu zigilua guztietan jartzeko (gehienez: %1$d). Aukeratu «Orrialde hau bakarrik» edo «Hainbat orri, bakoitza bere kokapenarekin».</string>
+    <string name="verification_aspect_value">%1$s: %2$s</string>
 </resources>

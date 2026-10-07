@@ -33,6 +33,14 @@ public static class CertificateCardSelection
     {
         if (!args.InRecycleQueue)
         {
+            // La ayuda del elemento va en el ListViewItem: un panel sin
+            // control propio no la hace llegar a UI Automation.
+            if (args.ItemContainer is ListViewItem item)
+            {
+                Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(item,
+                    (args.Item as GrxFirma.WinUI.ViewModels.CertificateListItem)?.SuitabilitySummary
+                        ?? string.Empty);
+            }
             SetSelection(
                 args.ItemContainer as ListViewItem,
                 Equals(args.Item, list.SelectedItem),

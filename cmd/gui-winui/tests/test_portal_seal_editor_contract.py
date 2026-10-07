@@ -20,8 +20,8 @@ class PortalSealEditorContract(unittest.TestCase):
             'session.Submit("without")',
             'session.Submit("cancel")',
             "ViewModel.PortalSealPlacement()",
-            'AddGeometryField(2, "portal.seal.width"',
-            'AddGeometryField(4, "portal.seal.rotation"',
+            'AddGeometryField("portal.seal.width"',
+            'AddGeometryField("portal.seal.rotation"',
         ):
             self.assertIn(expected, source)
 

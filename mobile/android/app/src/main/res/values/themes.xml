@@ -22,12 +22,63 @@
         <item name="colorOnSurface">@color/on_surface</item>
         <item name="colorSurfaceVariant">@color/surface_variant</item>
         <item name="colorOutline">@color/outline</item>
+        <!-- Roles que Material 3 calcularía con su paleta base: se fijan con la
+             verde corporativa y contraste AA (texto 4,5:1, bordes 3:1). -->
+        <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
+        <item name="colorOutlineVariant">@color/outline_variant</item>
+        <item name="colorOnBackground">@color/on_surface</item>
+        <item name="colorSurfaceInverse">@color/inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/inverse_primary</item>
         <item name="colorError">@color/error</item>
         <item name="colorOnError">@color/on_error</item>
         <item name="android:fontFamily">sans</item>
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
         <item name="grxHelpButtonStyle">@style/Widget.GrxFirma.HelpButton</item>
+        <!-- Foco de teclado visible en botones, casillas y diálogos (WCAG 2.4.7). -->
+        <item name="materialButtonStyle">@style/Widget.GrxFirma.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.GrxFirma.Button.OutlinedButton</item>
+        <item name="borderlessButtonStyle">@style/Widget.GrxFirma.Button.TextButton</item>
+        <item name="checkboxStyle">@style/Widget.GrxFirma.CheckBox</item>
+        <item name="radioButtonStyle">@style/Widget.GrxFirma.RadioButton</item>
+        <item name="materialSwitchStyle">@style/Widget.GrxFirma.Switch</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.GrxFirma.MaterialAlertDialog</item>
+    </style>
+
+    <!-- Barra superior sobre el color primario: el icono «⋮» y los iconos de la
+         barra usan on_primary, que contrasta en tema claro y oscuro (WCAG 1.4.11). -->
+    <style name="ThemeOverlay.GrxFirma.Toolbar" parent="ThemeOverlay.Material3.Dark.ActionBar">
+        <item name="colorControlNormal">@color/on_primary</item>
+    </style>
+
+    <!-- Anillo de foco de 2 dp por fuera del control: transparente sin foco, así
+         el aspecto habitual no cambia. -->
+    <style name="Widget.GrxFirma.Button" parent="Widget.Material3.Button">
+        <item name="android:foreground">@drawable/focus_ring_pill</item>
+    </style>
+    <style name="Widget.GrxFirma.Button.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:foreground">@drawable/focus_ring_pill</item>
+    </style>
+    <style name="Widget.GrxFirma.Button.TextButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:foreground">@drawable/focus_ring_pill</item>
+    </style>
+    <style name="Widget.GrxFirma.Button.TextButton.Dialog" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:foreground">@drawable/focus_ring_pill</item>
+    </style>
+    <style name="Widget.GrxFirma.CheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
+        <item name="android:foreground">@drawable/focus_ring_box</item>
+    </style>
+    <style name="Widget.GrxFirma.RadioButton" parent="Widget.Material3.CompoundButton.RadioButton">
+        <item name="android:foreground">@drawable/focus_ring_box</item>
+    </style>
+    <style name="Widget.GrxFirma.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="android:foreground">@drawable/focus_ring_box</item>
+    </style>
+    <style name="ThemeOverlay.GrxFirma.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.GrxFirma.Button.TextButton.Dialog</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.GrxFirma.Button.TextButton.Dialog</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.GrxFirma.Button.TextButton.Dialog</item>
     </style>
 
     <!-- Botón «?» de ayuda: icono de 24 dp en un área táctil de 48 dp, con el color
@@ -39,5 +90,6 @@
         <item name="android:minWidth">48dp</item>
         <item name="android:minHeight">48dp</item>
         <item name="android:layout_marginStart">4dp</item>
+        <item name="android:foreground">@drawable/focus_ring_pill</item>
     </style>
 </resources>

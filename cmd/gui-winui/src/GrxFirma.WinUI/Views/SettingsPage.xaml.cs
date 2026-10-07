@@ -75,17 +75,9 @@ public sealed partial class SettingsPage : Page
         var detail = invalid ? Localizer.Text(key!) : string.Empty;
         message.Text = detail;
         message.Visibility = invalid ? Visibility.Visible : Visibility.Collapsed;
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(field, detail);
-        if (invalid)
-        {
-            _networkErrorsShown.Add(name);
-            field.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AppDiagnosticFailureBrush"];
-        }
-        else
-        {
-            _networkErrorsShown.Remove(name);
-            field.ClearValue(Control.BorderBrushProperty);
-        }
+        FieldValidationFeedback.Apply(field, detail);
+        if (invalid) _networkErrorsShown.Add(name);
+        else _networkErrorsShown.Remove(name);
     }
 
     private bool ValidateNetworkFieldsAndFocus()

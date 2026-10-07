@@ -10,12 +10,14 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.nfc.NfcAdapter
 import android.nfc.Tag
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputType
 import android.view.WindowManager
 import android.view.View
 import android.view.KeyEvent
+import android.view.accessibility.AccessibilityManager
 import android.view.inputmethod.EditorInfo
 import android.webkit.MimeTypeMap
 import androidx.activity.result.ActivityResultLauncher
@@ -58,6 +60,7 @@ import io.github.aavidad.grxfirma.android.ui.OperationResult
 import io.github.aavidad.grxfirma.android.ui.VerificationOrigin
 import io.github.aavidad.grxfirma.android.ui.PendingKind
 import io.github.aavidad.grxfirma.android.ui.ToolsPolicy
+import io.github.aavidad.grxfirma.android.ui.FieldErrors
 import io.github.aavidad.grxfirma.android.ui.FormatPolicy
 import io.github.aavidad.grxfirma.android.ui.EniForm
 import io.github.aavidad.grxfirma.android.ui.EngineText
@@ -157,6 +160,7 @@ class MainActivity : AppCompatActivity() {
     private var menuEnabled = true
     private var lastQrText: String? = null
     private var lastResult: OperationResult? = null
+    private var lastBusy = false
     private var lastVerification: VerificationSummary? = null
     private var verificationTechnicalExpanded = false
     /** Momento (reloj `elapsedRealtime`) desde el que cuenta el cierre automático; 0 en primer plano. */
@@ -322,6 +326,8 @@ class MainActivity : AppCompatActivity() {
             ViewCompat.setAccessibilityHeading(operationSectionTitle, true)
             ViewCompat.setAccessibilityHeading(resultSectionTitle, true)
             ViewCompat.setAccessibilityHeading(documents.documentsSectionTitle, true)
+            ViewCompat.setAccessibilityHeading(documents.qrTitle, true)
+            ViewCompat.setAccessibilityHeading(backendStatusTitle, true)
         }
         configureHelp()
         savedInstanceState?.getIntArray(STATE_EXPANDED_TOOLS)?.let { expandedTools.addAll(it.toList()) }
@@ -426,10 +432,18 @@ class MainActivity : AppCompatActivity() {
         if (action != null && onAction != null) {
             Snackbar.make(binding.rootLayout, message, Snackbar.LENGTH_INDEFINITE)
                 .setAction(action) { onAction() }.show()
+        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && touchExplorationEnabled()) {
+            // Antes de Android 10 el sistema no alarga el aviso para TalkBack: sin
+            // acción desaparecería a los pocos segundos. Se queda hasta cerrarlo.
+            Snackbar.make(binding.rootLayout, message, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.help_close) { }.show()
         } else {
             Snackbar.make(binding.rootLayout, message, Snackbar.LENGTH_LONG).show()
         }
     }
+
+    private fun touchExplorationEnabled(): Boolean =
+        getSystemService(AccessibilityManager::class.java)?.isTouchExplorationEnabled == true
 
     override fun onStop() {
         // Con un selector del sistema abierto la persona sigue trabajando: el plazo
@@ -481,7 +495,10 @@ class MainActivity : AppCompatActivity() {
         signatureProfileHelp.setOnClickListener { showProfileHelp() }
         signatureFormat.onItemSelected = { renderSigningSummary(viewModel.state.value) }
         tsaEnabled.setOnCheckedChangeListener { _, _ -> updateSigningSettings() }
-        tsaUrl.doAfterTextChanged { updateSigningSettings() }
+        tsaUrl.doAfterTextChanged {
+            tsaUrlLayout.error = null
+            updateSigningSettings()
+        }
         selectCertificateFileButton.setOnClickListener {
             stopDnieReading()
             // Con varias identidades el DNIe sigue abierto junto al nuevo PKCS#12.
@@ -799,6 +816,7 @@ class MainActivity : AppCompatActivity() {
         val organs = EniForm.organs(eniOrgans.text?.toString().orEmpty())
         if (!EniForm.organsValid(organs)) {
             eniOrgansLayout.error = EngineText.resolve(this@MainActivity, "eni.validacion.dir3")
+            FieldErrors.focusFirst(listOf(eniOrgansLayout))
             return@with
         }
         eniOrgansLayout.error = null
@@ -937,6 +955,7 @@ class MainActivity : AppCompatActivity() {
             }
             protectKeyLayout.helperText = getString(R.string.protect_key_generated)
         }
+        protectKey.doAfterTextChanged { if (!it.isNullOrEmpty()) protectKeyLayout.error = null }
         protectButton.setOnClickListener { protectWithKey(sign = false) }
         protectSignButton.setOnClickListener { dnieAccess.withPin(hold = false) { protectWithKey(sign = true) } }
         unprotectButton.setOnClickListener {
@@ -946,11 +965,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun protectWithKey(sign: Boolean) {
-        val key = readAndClear(binding.tools.protectKey)
-        val confirmation = readAndClear(binding.tools.protectKeyConfirm)
-        binding.tools.protectKeyLayout.helperText = getString(R.string.protect_key_helper)
+    private fun protectWithKey(sign: Boolean) = with(binding.tools) {
+        val key = readAndClear(protectKey)
+        val confirmation = readAndClear(protectKeyConfirm)
+        protectKeyLayout.helperText = getString(R.string.protect_key_helper)
+        // Se valida antes de llamar al modelo, que borra la clave: el error queda
+        // en el propio campo y el foco vuelve a él (WCAG 3.3.1 y 3.3.3).
+        val rejected = ToolsPolicy.keyFieldRejected(viewModel.state.value, key, confirmation, sign)
+        protectKeyLayout.error = if (rejected) getString(R.string.error_protect_key) else null
         viewModel.protect(key, confirmation, sign)
+        if (rejected) FieldErrors.focusFirst(listOf(protectKeyLayout))
     }
 
     private fun readAndClear(field: TextInputEditText): CharArray {
@@ -1166,6 +1190,9 @@ class MainActivity : AppCompatActivity() {
         exportReportRow.visibility = if (state.verification?.reportHtml?.isNotEmpty() == true) View.VISIBLE else View.GONE
         exportReportHtmlButton.isEnabled = state.canExportReport
         progressContainer.visibility = if (state.busy) View.VISIBLE else View.GONE
+        // Al empezar una operación se repone el texto: la región viva lo anuncia (WCAG 4.1.3).
+        if (state.busy && !lastBusy) progressText.setText(R.string.operation_in_progress)
+        lastBusy = state.busy
         pendingSaveActions.visibility = if (state.canRetryPendingOutput) View.VISIBLE else View.GONE
         retrySaveButton.isEnabled = state.canRetryPendingOutput
         discardPendingOutputButton.isEnabled = state.canDiscardPendingOutput
@@ -1225,10 +1252,24 @@ class MainActivity : AppCompatActivity() {
         val previous = lastResult
         lastResult = result
         if (previous == null || result === previous || result == OperationResult.Idle) return
+        if (result is OperationResult.Error && result.detail == UiText.Resource(R.string.error_tsa_configuration)) {
+            showTsaError()
+            return
+        }
         binding.contentScroll.post {
             val top = binding.contentColumn.top + binding.resultCard.top
             binding.contentScroll.smoothScrollTo(0, (top - resources.getDimensionPixelSize(R.dimen.control_spacing)).coerceAtLeast(0))
         }
+    }
+
+    /**
+     * La dirección de sellado de tiempo no vale: se despliegan las opciones
+     * avanzadas, se marca el campo y se le da el foco (WCAG 3.3.1).
+     */
+    private fun showTsaError() = with(binding) {
+        if (expandedTools.add(signingOptionsGroup.id)) renderMainToggles()
+        tsaUrlLayout.error = getString(R.string.error_tsa_configuration)
+        FieldErrors.focusFirst(listOf(tsaUrlLayout))
     }
 
     /** Explica qué falta cuando Firmar, Verificar o el DNIe están desactivados. */
@@ -1311,6 +1352,12 @@ class MainActivity : AppCompatActivity() {
         verificationDetail.text = text
         toggleVerificationTechnicalButton.visibility = if (verification != null) View.VISIBLE else View.GONE
         verificationHelpGroup.visibility = toggleVerificationTechnicalButton.visibility
+        if (verification != null) {
+            val labels = listOf(verificationIntegrityLabel, verificationTrustLabel, verificationCoverageLabel)
+            VerificationCard.aspects(verification).zip(labels).forEach { (aspect, label) ->
+                label.text = getString(R.string.verification_aspect_value, getString(aspect.label), getString(aspect.value))
+            }
+        }
         val expanded = verification != null && verificationTechnicalExpanded
         toggleVerificationTechnicalButton.setIconResource(if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
         ViewCompat.setStateDescription(toggleVerificationTechnicalButton,
@@ -1391,7 +1438,8 @@ class MainActivity : AppCompatActivity() {
             setPadding(padding, padding, padding, 0)
             addView(android.widget.ImageView(this@MainActivity).apply {
                 setImageResource(R.drawable.grxfirma_logo_pluma)
-                contentDescription = getString(R.string.app_name)
+                // Decorativo: el título de debajo ya dice qué es (WCAG 1.1.1).
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
                 layoutParams = android.widget.LinearLayout.LayoutParams(logoSize, logoSize)
             })

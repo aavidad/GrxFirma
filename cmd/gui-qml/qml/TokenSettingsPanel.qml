@@ -134,7 +134,7 @@ GroupBox {
         RowLayout {
             Layout.fillWidth: true
             spacing: 4
-            CheckBox {
+            ThemedCheckBox {
                 id: enableCheck
                 Layout.fillWidth: true
                 Layout.minimumHeight: 44
@@ -232,8 +232,8 @@ GroupBox {
                 Label { Layout.fillWidth: true; text: panel.t("driver_warning") + "\n" + panel.t("restart"); wrapMode: Text.Wrap }
                 Label { Layout.fillWidth: true; text: panel.t("enable") + ": " + panel.t(panel.draftEnabled ? "state_configured" : "state_disabled"); wrapMode: Text.Wrap }
                 Repeater { model: panel.modules; Label { required property var modelData; Layout.fillWidth: true; text: modelData.path; wrapMode: Text.WrapAnywhere; textFormat: Text.PlainText } }
-                CheckBox { id: confirmation; objectName: "tokenSettingsConfirmation"; Layout.fillWidth: true; text: panel.t("confirm"); contentItem: Label { text: confirmation.text; leftPadding: confirmation.indicator.width + confirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
-                CheckBox { id: replaceConfirmation; objectName: "tokenSettingsReplaceConfirmation"; visible: panel.snapshot.state === "invalid"; Layout.fillWidth: true; text: panel.t("replace_invalid"); contentItem: Label { text: replaceConfirmation.text; leftPadding: replaceConfirmation.indicator.width + replaceConfirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
+                ThemedCheckBox { id: confirmation; objectName: "tokenSettingsConfirmation"; Layout.fillWidth: true; text: panel.t("confirm"); contentItem: Label { text: confirmation.text; leftPadding: confirmation.indicator.width + confirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
+                ThemedCheckBox { id: replaceConfirmation; objectName: "tokenSettingsReplaceConfirmation"; visible: panel.snapshot.state === "invalid"; Layout.fillWidth: true; text: panel.t("replace_invalid"); contentItem: Label { text: replaceConfirmation.text; leftPadding: replaceConfirmation.indicator.width + replaceConfirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
             }
         }
     }

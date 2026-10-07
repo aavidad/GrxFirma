@@ -58,7 +58,8 @@ ColumnLayout {
         text: root.invalid ? "\u26A0 " + root.translate(root.errorKey) : ""
         color: root.errorColor
         wrapMode: Text.WordWrap
-        Accessible.role: Accessible.StaticText
+        // Rol de alerta: el lector de pantalla anuncia el error al aparecer.
+        Accessible.role: Accessible.AlertMessage
         Accessible.name: root.invalid ? root.translate(root.errorKey) : ""
     }
 }

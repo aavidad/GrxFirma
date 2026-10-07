@@ -18,6 +18,8 @@ Window {
     visible: true
     width: 1200
     height: 850
+    minimumWidth: 640
+    minimumHeight: 480
     title: tr("GrxFirma")
     color: currentTheme.backgroundColor
     // Paleta común: casillas, interruptores, campos, menús y botones heredan los
@@ -450,11 +452,18 @@ Window {
     function copyTextToClipboard(value) {
         const text = String(value || "")
         if (text === "") return
+        // El campo auxiliar solo sirve para copiar: el foco vuelve enseguida al
+        // control que lo tenía, para no dejar al teclado en un sitio invisible.
+        const previousFocus = window.activeFocusItem
         clipboardProxy.text = text
         clipboardProxy.forceActiveFocus()
         clipboardProxy.selectAll()
         clipboardProxy.copy()
         clipboardProxy.text = ""
+        if (previousFocus && previousFocus !== clipboardProxy)
+            previousFocus.forceActiveFocus()
+        else
+            clipboardProxy.focus = false
     }
 
     function scheduleLocaleMutation(language) {
@@ -4055,7 +4064,44 @@ Window {
         }
     }
 
+    // Foco inicial: sin él, el tabulador no hace nada hasta que se pulsa con el
+    // ratón dentro de la ventana. Se lleva al botón de la sección activa, salvo
+    // que otro control o un diálogo abierto ya tengan el foco.
+    function focusInitialControl() {
+        if (portalSealMode) return
+        const current = window.activeFocusItem
+        if (current && current !== window.contentItem) return
+        const overlay = navigationColumn.Overlay.overlay
+        if (overlay) {
+            for (let i = 0; i < overlay.children.length; ++i) {
+                if (overlay.children[i].visible) return
+            }
+        }
+        const buttons = navigationColumn.children
+        let first = null
+        for (let i = 0; i < buttons.length; ++i) {
+            const button = buttons[i]
+            if (!button.visible || button.activeFocusOnTab !== true) continue
+            if (first === null) first = button
+            if (button.active === true) {
+                button.forceActiveFocus(Qt.TabFocusReason)
+                return
+            }
+        }
+        if (first !== null) first.forceActiveFocus(Qt.TabFocusReason)
+    }
+
+    onActiveChanged: if (active) Qt.callLater(window.focusInitialControl)
+
+    Timer {
+        id: initialFocusTimer
+        interval: 0
+        repeat: false
+        onTriggered: window.focusInitialControl()
+    }
+
     Component.onCompleted: {
+        initialFocusTimer.start()
         window.currentThemeIndex = appSettings.themeIndex
         backend.expertMode = appSettings.expertMode
         window.sidebarCollapsed = appSettings.leftSidebarCollapsed
@@ -5662,7 +5708,7 @@ Window {
             Text {
                 text: window.updateStatusMessage
                 color: window.updateAvailable
-                       ? currentTheme.primaryColor
+                       ? Contrast.accentOn(currentTheme.cardColor, currentTheme.primaryColor)
                        : currentTheme.secondaryTextColor
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
@@ -5799,7 +5845,7 @@ Window {
         modal: true
         anchors.centerIn: parent
         standardButtons: Dialog.Ok | Dialog.Cancel
-        width: 560
+        width: Math.min(560, window.width - 32)
         property var draftIds: []
         property string draftPrimaryId: ""
 
@@ -5857,8 +5903,9 @@ Window {
                     Layout.preferredWidth: 160
                 }
 
-                ComboBox {
+                ThemedComboBox {
                     id: multiCosignPrimaryCombo
+                    Accessible.name: tr("Firmante principal")
                     Layout.fillWidth: true
                     model: window.signingCertificates().filter(window.certificateCanSign).map(function(cert) {
                         return { texto: window.certificateDisplayName(cert), valor: window.certificateId(cert) }
@@ -6157,7 +6204,7 @@ Window {
         title: tr("Diagnóstico activo")
         modal: true
         anchors.centerIn: parent
-        width: 620
+        width: Math.min(620, window.width - 32)
         closePolicy: Popup.CloseOnEscape
 
         onOpened: {
@@ -6252,7 +6299,7 @@ Window {
         title: tr("Enviar incidencia")
         modal: true
         anchors.centerIn: parent
-        width: 620
+        width: Math.min(620, window.width - 32)
 
         property bool consentAccepted: false
         property string sourceIncidentPath: ""
@@ -6285,6 +6332,7 @@ Window {
 
             ThemedTextField {
                 id: supportIncidentEndpointField
+                Accessible.name: tr("Destino HTTPS")
                 Layout.fillWidth: true
                 placeholderText: tr("https://soporte.ejemplo/incidents")
                 text: appSettings.supportIncidentEndpoint
@@ -6342,7 +6390,7 @@ Window {
         title: tr("Asistente guiado")
         modal: true
         anchors.centerIn: parent
-        width: 700
+        width: Math.min(700, window.width - 32)
         height: 700
 
         ColumnLayout {
@@ -6351,6 +6399,7 @@ Window {
             spacing: 12
 
             Text {
+                Accessible.role: Accessible.Heading
                 text: tr("Ayuda paso a paso para la operación actual")
                 color: currentTheme.textColor
                 font.bold: true
@@ -6405,7 +6454,8 @@ Window {
                     Layout.preferredWidth: 170
                 }
 
-                ComboBox {
+                ThemedComboBox {
+                    Accessible.name: tr("Necesito ayuda con")
                     Layout.fillWidth: true
                     model: window.supportAssistantGoalOptions()
                     textRole: "texto"
@@ -7303,6 +7353,9 @@ Window {
 
     TextArea {
         id: clipboardProxy
+        // Auxiliar invisible: fuera del orden de tabulación y del árbol accesible.
+        activeFocusOnTab: false
+        Accessible.ignored: true
         x: -10000
         y: -10000
         width: 1
@@ -7599,10 +7652,11 @@ Window {
         
         ColumnLayout {
             spacing: 15; width: 350
-            Text { text: tr("🔑 Contraseña Requerida"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 18 }
+            Text { Accessible.role: Accessible.Heading; text: tr("🔑 Contraseña Requerida"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 18 }
             Text { text: tr("Introduzca la contraseña para importar el archivo P12/PFX."); color: currentTheme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             ThemedTextField {
                 id: importPasswordField
+                Accessible.name: tr("Contraseña")
                 echoMode: TextInput.Password
                 placeholderText: tr("Contraseña...")
                 Layout.fillWidth: true
@@ -7639,6 +7693,7 @@ Window {
             }
             ThemedTextField {
                 id: temporaryCertificatePasswordField
+                Accessible.name: tr("Contraseña")
                 echoMode: TextInput.Password
                 placeholderText: tr("Contraseña (vacía para PEM sin cifrar)")
                 Layout.fillWidth: true
@@ -7674,6 +7729,7 @@ Window {
             }
             ThemedTextField {
                 id: guidedImportPasswordField
+                Accessible.name: tr("Contraseña")
                 echoMode: TextInput.Password
                 placeholderText: tr("Contraseña del P12/PFX")
                 Layout.fillWidth: true
@@ -7723,8 +7779,9 @@ Window {
                 color: currentTheme.textColor
                 font.bold: true
             }
-            ComboBox {
+            ThemedComboBox {
                 id: certificateManagerCombo
+                Accessible.name: tr("Gestor que se va a abrir")
                 Layout.fillWidth: true
                 model: certificateAccessOptions.managers || []
                 textRole: "label"
@@ -7748,8 +7805,9 @@ Window {
                 color: currentTheme.textColor
                 font.bold: true
             }
-            ComboBox {
+            ThemedComboBox {
                 id: certificateImportTargetCombo
+                Accessible.name: tr("Almacén persistente de destino")
                 Layout.fillWidth: true
                 model: certificateAccessOptions.importTargets || []
                 textRole: "label"
@@ -8636,6 +8694,7 @@ Window {
 
                 // Navegación
                 ColumnLayout {
+                    id: navigationColumn
                     Layout.fillWidth: true
                     spacing: 12
                     
@@ -8749,6 +8808,7 @@ Window {
                                 rowSpacing: 8
 
                                 Text {
+                                    Accessible.role: Accessible.Heading
                                     text: tr("Firma Digital")
                                     font.pixelSize: 32
                                     font.bold: true
@@ -9173,6 +9233,7 @@ Window {
                                         text: window.currentFilePath
                                         Layout.fillWidth: true
                                         placeholderText: tr("Seleccione un archivo...")
+                                        Accessible.name: tr("RUTA DE ENTRADA")
                                         onTextChanged: window.currentFilePath = text
                                     }
                                 }
@@ -9196,6 +9257,7 @@ Window {
                                         Layout.columnSpan: signMainOuterScroll.availableWidth < 560 ? 3 : 1
                                         Layout.preferredHeight: 44
                                         placeholderText: tr("Destino automático...")
+                                        Accessible.name: tr("RUTA DE SALIDA (PDF FIRMADO)")
                                         onTextChanged: window.currentOutputPath = text
                                     }
                                     ThemedButton {
@@ -9261,6 +9323,7 @@ Window {
                                           ? window.currentBatchDirectory
                                           : window.currentBatchPaths.join("\n")
                                     placeholderText: tr("Seleccione varios ficheros o una carpeta...")
+                                    Accessible.name: tr("SELECCIÓN DE LOTE")
                                 }
 
                                 Text {
@@ -9277,6 +9340,7 @@ Window {
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 44
                                         placeholderText: tr("Opcional. Si se deja vacío, cada fichero se guarda junto al original.")
+                                        Accessible.name: tr("CARPETA DE SALIDA DEL LOTE")
                                         onTextChanged: window.currentBatchOutputDir = text
                                     }
                                     ThemedButton {
@@ -9324,8 +9388,9 @@ Window {
                                             Text { text: tr("Operación"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Operación"); helpText: tr("ayuda.operacion"); options: window.signActionHelpOptions(); optionTemplate: tr("ayuda.opcion"); moreNameTemplate: tr("ayuda.mas_nombre") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: signActionCombo
+                                            Accessible.name: tr("Operación")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("Firmar"), valor: "sign" },
@@ -9345,8 +9410,9 @@ Window {
                                             Text { text: tr("Formato"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Formato"); helpText: tr("ayuda.formato"); options: window.signFormatHelpOptions(); optionTemplate: tr("ayuda.opcion"); moreNameTemplate: tr("ayuda.mas_nombre") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: signFormatCombo
+                                            Accessible.name: tr("Formato")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("Auto"), valor: "" },
@@ -9372,8 +9438,9 @@ Window {
                                             Text { text: tr("Sobrescritura"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Sobrescritura"); helpText: tr("ayuda.sobrescribir") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: signOverwriteCombo
+                                            Accessible.name: tr("Sobrescritura")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("Renombrar"), valor: "rename" },
@@ -9526,7 +9593,7 @@ Window {
                                             spacing: 10
                                             Text { text: tr("sign.seal.opacity"); color: currentTheme.textColor; font.pixelSize: 12 }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("sign.seal.opacity"); helpText: tr("ayuda.sello.opacidad") }
-                                            Slider {
+                                            ThemedSlider {
                                                 id: signSealLogoOpacitySlider
                                                 Layout.fillWidth: true
                                                 from: 0
@@ -9586,15 +9653,18 @@ Window {
                                         }
                                         Binding { target: csvEnabledCheck; property: "checked"; value: window.signCSVEnabled }
                                         Label { text: tr("paridad.lote3.csv.notice"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-                                        ThemedTextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.code"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvCode") ? tr(window.signFieldError("csvCode")) : ""; maximumLength: 128; text: window.signCSVCode; hasError: window.signFieldError("csvCode") !== ""; errorColor: currentTheme.errorColor
+                                        Text { text: tr("paridad.lote3.csv.code"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                                        ThemedTextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; Accessible.name: tr("paridad.lote3.csv.code"); Accessible.description: window.signFieldError("csvCode") ? tr(window.signFieldError("csvCode")) : ""; maximumLength: 128; text: window.signCSVCode; hasError: window.signFieldError("csvCode") !== ""; errorColor: currentTheme.errorColor
                                             onTextChanged: { window.signCSVCode = text; if (window.signFieldError("csvCode")) window.validateSignField("csvCode") }
                                             onEditingFinished: window.validateSignField("csvCode") }
                                         Text { Layout.fillWidth: true; visible: window.signFieldError("csvCode") !== ""; text: "⚠ " + tr(window.signFieldError("csvCode")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
-                                        ThemedTextField { id: csvUrlField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.url"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvUrl") ? tr(window.signFieldError("csvUrl")) : ""; maximumLength: 2048; text: window.signCSVUrl; hasError: window.signFieldError("csvUrl") !== ""; errorColor: currentTheme.errorColor
+                                        Text { text: tr("paridad.lote3.csv.url"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                                        ThemedTextField { id: csvUrlField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; Accessible.name: tr("paridad.lote3.csv.url"); Accessible.description: window.signFieldError("csvUrl") ? tr(window.signFieldError("csvUrl")) : ""; maximumLength: 2048; text: window.signCSVUrl; hasError: window.signFieldError("csvUrl") !== ""; errorColor: currentTheme.errorColor
                                             onTextChanged: { window.signCSVUrl = text; if (window.signFieldError("csvUrl")) window.validateSignField("csvUrl") }
                                             onEditingFinished: window.validateSignField("csvUrl") }
                                         Text { Layout.fillWidth: true; visible: window.signFieldError("csvUrl") !== ""; text: "⚠ " + tr(window.signFieldError("csvUrl")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
-                                        ThemedTextField { id: csvTextField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; placeholderText: tr("paridad.lote3.csv.text_optional"); Accessible.name: placeholderText; Accessible.description: window.signFieldError("csvText") ? tr(window.signFieldError("csvText")) : ""; maximumLength: 512; text: window.signCSVText; hasError: window.signFieldError("csvText") !== ""; errorColor: currentTheme.errorColor
+                                        Text { text: tr("paridad.lote3.csv.text_optional"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                                        ThemedTextField { id: csvTextField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; Accessible.name: tr("paridad.lote3.csv.text_optional"); Accessible.description: window.signFieldError("csvText") ? tr(window.signFieldError("csvText")) : ""; maximumLength: 512; text: window.signCSVText; hasError: window.signFieldError("csvText") !== ""; errorColor: currentTheme.errorColor
                                             onTextChanged: { window.signCSVText = text; if (window.signFieldError("csvText")) window.validateSignField("csvText") }
                                             onEditingFinished: window.validateSignField("csvText") }
                                         Text { Layout.fillWidth: true; visible: window.signFieldError("csvText") !== ""; text: "⚠ " + tr(window.signFieldError("csvText")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
@@ -9715,7 +9785,7 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("Giros rápidos"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: signSealRotationCombo
                                             Accessible.name: tr("Giros rápidos")
                                             Layout.fillWidth: true
@@ -9732,7 +9802,7 @@ Window {
                                             }
                                         }
                                         Binding { target: signSealRotationCombo; property: "currentIndex"; value: rotationIndexForSeal() }
-                                        SpinBox {
+                                        ThemedSpinBox {
                                             Layout.fillWidth: true
                                             from: 0
                                             to: 359
@@ -9908,6 +9978,7 @@ Window {
                                                 }
                                                 ThemedTextField {
                                                     id: signReasonField
+                                                    Accessible.name: tr("Motivo")
                                                     Layout.fillWidth: true
                                                     text: signReason
                                                     placeholderText: tr("Firma electrónica avanzada")
@@ -9924,6 +9995,7 @@ Window {
                                                 }
                                                 ThemedTextField {
                                                     id: signLocationField
+                                                    Accessible.name: tr("Ubicación")
                                                     Layout.fillWidth: true
                                                     text: signLocation
                                                     placeholderText: tr("Granada")
@@ -9942,6 +10014,7 @@ Window {
                                             }
                                             ThemedTextField {
                                                 id: signContactField
+                                                Accessible.name: tr("Contacto")
                                                 Layout.fillWidth: true
                                                 text: signContactInfo
                                                 placeholderText: tr("correo@ejemplo.es")
@@ -10106,6 +10179,8 @@ Window {
 
                                          Image {
                                              id: pdfPageImage
+                                             Accessible.role: Accessible.Graphic
+                                             Accessible.name: tr("portal.seal.page").replace("%1", window.previewCurrentPage).replace("%2", window.previewTotalPages)
                                              anchors.fill: parent
                                              anchors.margins: 3
                                              fillMode: Image.PreserveAspectFit
@@ -10330,7 +10405,7 @@ Window {
                                                 width: 44
                                                 height: 44
                                                 color: "transparent"
-                                                border.color: rotateArea.activeFocus ? "#f4b400" : "transparent"
+                                                border.color: rotateArea.activeFocus ? sealDrawArea.focusColor : "transparent"
                                                 border.width: 2
                                                 radius: 4
                                                 anchors.right: parent.right
@@ -10521,7 +10596,10 @@ Window {
                         Text {
                             visible: !window.isBatchMode() && window.currentOutputVerificationMessage !== ""
                             text: window.currentOutputVerificationMessage
-                            color: verificationOutcomeColor(window.currentOutputVerificationDetails)
+                            color: verificationOutcomeColorOn(window.currentOutputVerificationDetails, currentTheme.cardColor)
+                            // Resultado de la comprobación automática: se anuncia al aparecer.
+                            Accessible.role: Accessible.AlertMessage
+                            Accessible.name: text
                             font.pixelSize: 12
                             wrapMode: Text.WordWrap
                             Layout.fillWidth: true
@@ -10542,8 +10620,9 @@ Window {
                                 spacing: 8
 
                                 Text {
+                                    Accessible.role: Accessible.Heading
                                     text: tr("Resumen de verificación")
-                                    color: currentTheme.primaryColor
+                                    color: Contrast.accentOn(currentTheme.cardColor, currentTheme.primaryColor)
                                     font.pixelSize: 14
                                     font.bold: true
                                 }
@@ -10603,7 +10682,7 @@ Window {
 
                                             Text {
                                                 text: tr("Advertencias")
-                                                color: "#f39c12"
+                                                color: Contrast.accentOn("#223244", "#f39c12")
                                                 font.bold: true
                                                 font.pixelSize: 12
                                                 width: parent.width
@@ -10620,7 +10699,7 @@ Window {
                                             }
                                             Text {
                                                 text: tr("Errores: ") + verificationArrayText(window.currentOutputVerificationDetails ? window.currentOutputVerificationDetails.errors : [])
-                                                color: "#ffb3b3"
+                                                color: Contrast.accentOn("#223244", "#ffb3b3")
                                                 opacity: 0.95
                                                 font.pixelSize: 12
                                                 width: parent.width
@@ -10663,7 +10742,7 @@ Window {
                                                     Text {
                                                         Layout.preferredWidth: 1
                                                         text: modelData.label + ": " + verificationStatusText(modelData.value && modelData.value.status ? modelData.value.status : "")
-                                                        color: verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : "")
+                                                        color: Contrast.accentOn("#223244", verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : ""))
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         Layout.fillWidth: true
@@ -10671,6 +10750,10 @@ Window {
                                                     }
                                                     ToolButton {
                                                         text: parent.parent.parent.expanded ? "▼" : "▶"
+                                                        Accessible.name: (parent.parent.parent.expanded) ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                                        Accessible.checkable: true
+                                                        Accessible.checked: parent.parent.parent.expanded
+                                                        onClicked: parent.parent.parent.expanded = !parent.parent.parent.expanded
                                                         ToolTip.visible: hovered
                                                         ToolTip.delay: 250
                                                         ToolTip.text: parent.parent.parent.expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
@@ -10722,7 +10805,7 @@ Window {
 
                                         Text {
                                             text: tr("Evidencias")
-                                            color: currentTheme.primaryColor
+                                            color: Contrast.accentOn("#223244", currentTheme.primaryColor)
                                             font.bold: true
                                             font.pixelSize: 12
                                             width: parent.width
@@ -10757,6 +10840,7 @@ Window {
                                 spacing: 10
 
                                 Text {
+                                    Accessible.role: Accessible.Heading
                                     text: tr("Resultados del lote")
                                     color: currentTheme.textColor
                                     font.pixelSize: 16
@@ -10795,12 +10879,14 @@ Window {
                                                     wrapMode: Text.WordWrap
                                                 }
                                                 Rectangle {
+                                                    id: batchStateBadge
                                                     radius: 10
-                                                    color: !modelData.ok
+                                                    // Fondo y texto con contraste AA en cualquier tema.
+                                                    color: Contrast.legibleFill(!modelData.ok
                                                            ? "#e74c3c"
                                                            : (modelData.verifyDone
                                                               ? verificationOutcomeColor(modelData.verifyDetails)
-                                                              : "#f39c12")
+                                                              : "#f39c12"))
                                                     implicitWidth: stateLabel.implicitWidth + 14
                                                     implicitHeight: stateLabel.implicitHeight + 6
 
@@ -10812,8 +10898,8 @@ Window {
                                                               : (modelData.verifyDone
                                                                  ? verificationOutcomeLabel(modelData.verifyDetails)
                                                                  : tr("Verificación incompleta"))
-                                                        color: "white"
-                                                        font.pixelSize: 11
+                                                        color: Contrast.readableOn(batchStateBadge.color, "#ffffff")
+                                                        font.pixelSize: 12
                                                         font.bold: true
                                                     }
                                                 }
@@ -10826,7 +10912,7 @@ Window {
                                                       : (!!modelData.outputPath
                                                          ? tr("Documento procesado correctamente.")
                                                          : "")
-                                                color: modelData.ok ? currentTheme.secondaryTextColor : "#ffb3b3"
+                                                color: modelData.ok ? currentTheme.secondaryTextColor : Contrast.accentOn(currentTheme.cardColor, currentTheme.errorColor)
                                                 font.pixelSize: 12
                                                 wrapMode: Text.WordWrap
                                             }
@@ -10837,6 +10923,10 @@ Window {
                                                 spacing: 8
                                                 ThemedButton {
                                                     text: expanded ? tr("▼ Ocultar detalles") : tr("▶ Ver detalles")
+                                                    // Sin la flecha: el lector de pantalla no debe leer «triángulo».
+                                                    Accessible.name: expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                                    Accessible.checkable: true
+                                                    Accessible.checked: expanded
                                                     onClicked: expanded = !expanded
                                                 }
                                                 ThemedButton {
@@ -10867,7 +10957,7 @@ Window {
                                                          : (verificationOutcomeKind(modelData.verifyDetails) === "incomplete"
                                                             ? tr("Verificación incompleta")
                                                             : (modelData.verifyReason || tr("La verificación ha devuelto incidencias."))))
-                                                color: verificationOutcomeColor(modelData.verifyDetails)
+                                                color: verificationOutcomeColorOn(modelData.verifyDetails, currentTheme.cardColor)
                                                 font.pixelSize: 12
                                                 wrapMode: Text.WordWrap
                                             }
@@ -10889,7 +10979,7 @@ Window {
 
                                                     Text {
                                                         text: tr("Ruta de salida")
-                                                        color: currentTheme.primaryColor
+                                                        color: Contrast.accentOn("#223244", currentTheme.primaryColor)
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         Layout.fillWidth: true
@@ -10923,7 +11013,7 @@ Window {
 
                                                     Text {
                                                         text: tr("Detalle del error")
-                                                        color: "#e74c3c"
+                                                        color: Contrast.accentOn("#223244", "#e74c3c")
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         Layout.fillWidth: true
@@ -10957,7 +11047,7 @@ Window {
 
                                                     Text {
                                                         text: tr("Resumen de verificación")
-                                                        color: currentTheme.primaryColor
+                                                        color: Contrast.accentOn("#223244", currentTheme.primaryColor)
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         Layout.fillWidth: true
@@ -11011,7 +11101,7 @@ Window {
 
                                                             Text {
                                                                 text: modelData.label + ": " + verificationStatusText(modelData.value && modelData.value.status ? modelData.value.status : "")
-                                                                color: verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : "")
+                                                                color: Contrast.accentOn("#223244", verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : ""))
                                                                 font.bold: true
                                                                 font.pixelSize: 12
                                                                 width: parent.width
@@ -11051,7 +11141,7 @@ Window {
 
                                                         Text {
                                                             text: tr("Advertencias")
-                                                            color: "#f39c12"
+                                                            color: Contrast.accentOn("#223244", "#f39c12")
                                                             font.bold: true
                                                             font.pixelSize: 12
                                                             width: parent.width
@@ -11085,7 +11175,7 @@ Window {
 
                                                         Text {
                                                             text: tr("Errores")
-                                                            color: "#e74c3c"
+                                                            color: Contrast.accentOn("#223244", "#e74c3c")
                                                             font.bold: true
                                                             font.pixelSize: 12
                                                             width: parent.width
@@ -11121,7 +11211,7 @@ Window {
 
                                                     Text {
                                                         text: tr("Firmantes")
-                                                        color: currentTheme.primaryColor
+                                                        color: Contrast.accentOn("#223244", currentTheme.primaryColor)
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         Layout.fillWidth: true
@@ -11156,7 +11246,7 @@ Window {
 
                                                     Text {
                                                         text: tr("Evidencias")
-                                                        color: currentTheme.primaryColor
+                                                        color: Contrast.accentOn("#223244", currentTheme.primaryColor)
                                                         font.bold: true
                                                         font.pixelSize: 12
                                                         Layout.fillWidth: true
@@ -11359,6 +11449,7 @@ Window {
                                     Layout.fillWidth: true
                                     text: certificateFilterText
                                     placeholderText: tr("Buscar certificado")
+                                    Accessible.name: tr("Buscar certificado")
                                     onTextChanged: certificateFilterText = text
                                 }
                                 Text {
@@ -11413,9 +11504,14 @@ Window {
                                     height: Math.max(92, cardContents.implicitHeight + 24)
                                     radius: 12
                                     activeFocusOnTab: true
-                                    property bool emphasized: activeFocus
-                                        || window.certificateId(window.selectedCertData) === window.certificateId(modelData)
+                                    // La selección (fondo y borde) y el foco del teclado (anillo exterior)
+                                    // se pintan por separado: así se distingue qué tarjeta está elegida y
+                                    // cuál tiene el foco, y el lector de pantalla anuncia la marcada.
+                                    readonly property bool selected: window.certificateId(window.selectedCertData) === window.certificateId(modelData)
+                                    property bool emphasized: selected
                                     Accessible.role: Accessible.Button
+                                    Accessible.checkable: true
+                                    Accessible.checked: selected
                                     Accessible.name: (modelData.subjectName || modelData.subject || tr("Certificado")) + ", " +
                                                      window.certificateStatusText(modelData) + ". " + window.certificateStatusReason(modelData)
                                     Accessible.description: tr("Emisor: %1. Vence: %2").arg(modelData.issuerName || modelData.issuer || tr("Desconocido")).arg(window.certificateExpiry(modelData))
@@ -11425,9 +11521,20 @@ Window {
                                     }
                                     color: emphasized
                                         ? window.certificateSelectionColor() : currentTheme.cardColor
-                                    border.color: certificateId(window.selectedCertData) === certificateId(modelData)
-                                        ? currentTheme.primaryColor : window.certificateStatusColor(modelData)
-                                    border.width: activeFocus || certificateId(window.selectedCertData) === certificateId(modelData) ? 2 : 1
+                                    border.color: selected
+                                        ? Contrast.accentOn(color, currentTheme.primaryColor, 3.0) : window.certificateStatusColor(modelData)
+                                    border.width: selected ? 2 : 1
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        // Dentro de la tarjeta: la lista recorta lo que sobresale.
+                                        anchors.margins: 4
+                                        radius: parent.radius - 4
+                                        color: "transparent"
+                                        border.color: Contrast.accentOn(parent.color, currentTheme.focusColor, 3.0)
+                                        border.width: 2
+                                        visible: parent.activeFocus
+                                    }
 
                                     Rectangle {
                                         anchors.left: parent.left
@@ -11467,7 +11574,7 @@ Window {
                                                 visible: window.isDefaultCertificate(modelData)
                                                 text: tr("Predeterminado")
                                                 color: cardContents.parent.emphasized
-                                                    ? window.certificateSelectionTextColor() : "#f1c40f"
+                                                    ? window.certificateSelectionTextColor() : Contrast.accentOn(currentTheme.cardColor, "#f1c40f")
                                                 font.pixelSize: 10
                                                 font.bold: true
                                             }
@@ -11475,7 +11582,7 @@ Window {
                                                 visible: window.isTemporaryCertificate(modelData)
                                                 text: tr("Solo esta sesión")
                                                 color: cardContents.parent.emphasized
-                                                    ? window.certificateSelectionTextColor() : "#f39c12"
+                                                    ? window.certificateSelectionTextColor() : Contrast.accentOn(currentTheme.cardColor, "#f39c12")
                                                 font.pixelSize: 10
                                                 font.bold: true
                                             }
@@ -11573,7 +11680,7 @@ Window {
                                         Text {
                                             visible: window.isDefaultCertificate(window.selectedCertData)
                                             text: tr("Predeterminado")
-                                            color: "#f1c40f"
+                                            color: Contrast.accentOn(currentTheme.cardColor, "#f1c40f")
                                             font.bold: true
                                             font.pixelSize: 11
                                         }
@@ -11670,9 +11777,8 @@ Window {
                                             Text { 
                                                 textFormat: Text.PlainText
                                                 text: tr("Huella: ") + (window.selectedCertData ? formatFingerprintForDisplay(window.selectedCertData.fingerprint || "") : "")
-                                                color: currentTheme.textColor
-                                                opacity: 0.6
-                                                font.pixelSize: 9
+                                                color: currentTheme.secondaryTextColor
+                                                font.pixelSize: 11
                                                 wrapMode: Text.WrapAnywhere
                                                 width: parent.width
                                             }
@@ -11862,6 +11968,7 @@ Window {
                                 spacing: 20
 
                                 Text {
+                                    Accessible.role: Accessible.Heading
                                     text: tr("Verificación de Firma")
                                     font.pixelSize: 32
                                     font.bold: true
@@ -12035,6 +12142,7 @@ Window {
                                     spacing: 8
 
                                     Text {
+                                        Accessible.role: Accessible.Heading
                                         Layout.preferredWidth: 1
                                         Layout.fillWidth: true
                                         text: tr("Huellas e integridad")
@@ -12045,6 +12153,9 @@ Window {
                                     }
                                     ToolButton {
                                         text: verifyHashPanel.expanded ? "▼" : "▶"
+                                        Accessible.name: (verifyHashPanel.expanded) ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                        Accessible.checkable: true
+                                        Accessible.checked: verifyHashPanel.expanded
                                         ToolTip.visible: hovered
                                         ToolTip.delay: 250
                                         ToolTip.text: verifyHashPanel.expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
@@ -12150,7 +12261,8 @@ Window {
                                             }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Algoritmo"); helpText: tr("ayuda.huella.algoritmo") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
+                                            Accessible.name: tr("Algoritmo")
                                             Layout.fillWidth: true
                                             model: hashAlgorithmOptions()
                                             textRole: "texto"
@@ -12172,7 +12284,8 @@ Window {
                                             }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Formato"); helpText: tr("ayuda.huella.formato") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
+                                            Accessible.name: tr("Formato")
                                             Layout.fillWidth: true
                                             model: verifyTab.hashInputIsDirectory ? ["xml", "txt", "csv"] : ["hex", "base64", "bin"]
                                             currentIndex: {
@@ -12467,6 +12580,9 @@ Window {
                                                         }
                                                         ToolButton {
                                                             text: parent.parent.parent.expanded ? "▼" : "▶"
+                                                            Accessible.name: (parent.parent.parent.expanded) ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                                            Accessible.checkable: true
+                                                            Accessible.checked: parent.parent.parent.expanded
                                                             ToolTip.visible: hovered
                                                             ToolTip.delay: 250
                                                             ToolTip.text: parent.parent.parent.expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
@@ -12557,6 +12673,10 @@ Window {
                                                             }
                                                             ToolButton {
                                                                 text: parent.parent.parent.expanded ? "▼" : "▶"
+                                                                Accessible.name: (parent.parent.parent.expanded) ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                                                Accessible.checkable: true
+                                                                Accessible.checked: parent.parent.parent.expanded
+                                                                onClicked: verifyTab.toggleVerifyDetailsPanel(parent.parent.parent)
                                                                 ToolTip.visible: hovered
                                                                 ToolTip.delay: 250
                                                                 ToolTip.text: parent.parent.parent.expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
@@ -12626,6 +12746,9 @@ Window {
                                                     }
                                                     ToolButton {
                                                         text: parent.parent.parent.expanded ? "▼" : "▶"
+                                                        Accessible.name: (parent.parent.parent.expanded) ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                                        Accessible.checkable: true
+                                                        Accessible.checked: parent.parent.parent.expanded
                                                         ToolTip.visible: hovered
                                                         ToolTip.delay: 250
                                                         ToolTip.text: parent.parent.parent.expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
@@ -12676,6 +12799,9 @@ Window {
                                                     }
                                                     ToolButton {
                                                         text: parent.parent.parent.expanded ? "▼" : "▶"
+                                                        Accessible.name: (parent.parent.parent.expanded) ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                                        Accessible.checkable: true
+                                                        Accessible.checked: parent.parent.parent.expanded
                                                         ToolTip.visible: hovered
                                                         ToolTip.delay: 250
                                                         ToolTip.text: parent.parent.parent.expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
@@ -12727,6 +12853,9 @@ Window {
                                                     }
                                                     ToolButton {
                                                         text: parent.parent.parent.expanded ? "▼" : "▶"
+                                                        Accessible.name: (parent.parent.parent.expanded) ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                                        Accessible.checkable: true
+                                                        Accessible.checked: parent.parent.parent.expanded
                                                         ToolTip.visible: hovered
                                                         ToolTip.delay: 250
                                                         ToolTip.text: parent.parent.parent.expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
@@ -12780,6 +12909,9 @@ Window {
                                                     }
                                                     ToolButton {
                                                         text: parent.parent.parent.expanded ? "▼" : "▶"
+                                                        Accessible.name: (parent.parent.parent.expanded) ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                                        Accessible.checkable: true
+                                                        Accessible.checked: parent.parent.parent.expanded
                                                         ToolTip.visible: hovered
                                                         ToolTip.delay: 250
                                                         ToolTip.text: parent.parent.parent.expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
@@ -12833,6 +12965,9 @@ Window {
                                                     }
                                                     ToolButton {
                                                         text: parent.parent.parent.expanded ? "▼" : "▶"
+                                                        Accessible.name: (parent.parent.parent.expanded) ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                                        Accessible.checkable: true
+                                                        Accessible.checked: parent.parent.parent.expanded
                                                         ToolTip.visible: hovered
                                                         ToolTip.delay: 250
                                                         ToolTip.text: parent.parent.parent.expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
@@ -12886,6 +13021,9 @@ Window {
                                                     }
                                                     ToolButton {
                                                         text: parent.parent.parent.expanded ? "▼" : "▶"
+                                                        Accessible.name: (parent.parent.parent.expanded) ? tr("Ocultar detalles") : tr("Mostrar detalles")
+                                                        Accessible.checkable: true
+                                                        Accessible.checked: parent.parent.parent.expanded
                                                         ToolTip.visible: hovered
                                                         ToolTip.delay: 250
                                                         ToolTip.text: parent.parent.parent.expanded ? tr("Ocultar detalles") : tr("Mostrar detalles")
@@ -13012,6 +13150,7 @@ Window {
                                         spacing: 14
 
                                     Text {
+                                        Accessible.role: Accessible.Heading
                                         text: tr("Cifrar / Proteger")
                                         color: currentTheme.textColor
                                         font.pixelSize: 22
@@ -13065,6 +13204,7 @@ Window {
                                                 Layout.fillWidth: true
                                                 text: window.protectOutputPath
                                                 placeholderText: tr("/ruta/de/salida.opcional")
+                                                Accessible.name: tr("Ruta de salida opcional")
                                                 onTextChanged: window.protectOutputPath = text
                                             }
                                         }
@@ -13076,7 +13216,8 @@ Window {
                                                 Text { text: tr("Perfil"); color: currentTheme.secondaryTextColor }
                                                 HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Perfil"); helpText: tr("ayuda.proteger.nivel") }
                                             }
-                                            ComboBox {
+                                            ThemedComboBox {
+                                                Accessible.name: tr("Perfil")
                                                 model: [
                                                     { texto: tr("Compat"), valor: "compat" },
                                                     { texto: tr("Alto"), valor: "alto" }
@@ -13098,7 +13239,8 @@ Window {
                                                 Text { text: tr("Contenedor"); color: currentTheme.secondaryTextColor }
                                                 HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Contenedor"); helpText: tr("ayuda.proteger.contenedor") }
                                             }
-                                            ComboBox {
+                                            ThemedComboBox {
+                                                Accessible.name: tr("Contenedor")
                                                 enabled: window.protectProfile !== "alto"
                                                 model: [
                                                     { texto: tr("JSON (.afp)"), valor: "json" },
@@ -13403,6 +13545,7 @@ Window {
                                 RowLayout {
                                     spacing: 4
                                     Text {
+                                        Accessible.role: Accessible.Heading
                                         text: tr("Descifrar / Desproteger")
                                         color: currentTheme.textColor
                                         font.pixelSize: 22
@@ -13497,6 +13640,7 @@ Window {
                                         Layout.fillWidth: true
                                         text: window.unprotectOutputPath
                                         placeholderText: tr("/ruta/de/salida.opcional")
+                                        Accessible.name: tr("Ruta de salida opcional")
                                         onTextChanged: window.unprotectOutputPath = text
                                     }
                                 }
@@ -13745,6 +13889,7 @@ Window {
                                     Layout.fillWidth: true
                                     text: certificateFilterText
                                     placeholderText: tr("Buscar certificado")
+                                    Accessible.name: tr("Buscar certificado")
                                     onTextChanged: certificateFilterText = text
                                 }
                                 Text {
@@ -13799,9 +13944,14 @@ Window {
                                     height: Math.max(92, cardContents.implicitHeight + 24)
                                     radius: 12
                                     activeFocusOnTab: true
-                                    property bool emphasized: activeFocus
-                                        || window.certificateId(window.selectedCertData) === window.certificateId(modelData)
+                                    // La selección (fondo y borde) y el foco del teclado (anillo exterior)
+                                    // se pintan por separado: así se distingue qué tarjeta está elegida y
+                                    // cuál tiene el foco, y el lector de pantalla anuncia la marcada.
+                                    readonly property bool selected: window.certificateId(window.selectedCertData) === window.certificateId(modelData)
+                                    property bool emphasized: selected
                                     Accessible.role: Accessible.Button
+                                    Accessible.checkable: true
+                                    Accessible.checked: selected
                                     Accessible.name: (modelData.subjectName || modelData.subject || tr("Certificado")) + ", " +
                                                      window.certificateStatusText(modelData) + ". " + window.certificateStatusReason(modelData)
                                     Accessible.description: tr("Emisor: %1. Vence: %2").arg(modelData.issuerName || modelData.issuer || tr("Desconocido")).arg(window.certificateExpiry(modelData))
@@ -13811,9 +13961,20 @@ Window {
                                     }
                                     color: emphasized
                                         ? window.certificateSelectionColor() : currentTheme.cardColor
-                                    border.color: certificateId(window.selectedCertData) === certificateId(modelData)
-                                        ? currentTheme.primaryColor : window.certificateStatusColor(modelData)
-                                    border.width: activeFocus || certificateId(window.selectedCertData) === certificateId(modelData) ? 2 : 1
+                                    border.color: selected
+                                        ? Contrast.accentOn(color, currentTheme.primaryColor, 3.0) : window.certificateStatusColor(modelData)
+                                    border.width: selected ? 2 : 1
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        // Dentro de la tarjeta: la lista recorta lo que sobresale.
+                                        anchors.margins: 4
+                                        radius: parent.radius - 4
+                                        color: "transparent"
+                                        border.color: Contrast.accentOn(parent.color, currentTheme.focusColor, 3.0)
+                                        border.width: 2
+                                        visible: parent.activeFocus
+                                    }
 
                                     Rectangle {
                                         anchors.left: parent.left
@@ -13853,7 +14014,7 @@ Window {
                                                 visible: window.isDefaultCertificate(modelData)
                                                 text: tr("Predeterminado")
                                                 color: cardContents.parent.emphasized
-                                                    ? window.certificateSelectionTextColor() : "#f1c40f"
+                                                    ? window.certificateSelectionTextColor() : Contrast.accentOn(currentTheme.cardColor, "#f1c40f")
                                                 font.pixelSize: 10
                                                 font.bold: true
                                             }
@@ -13861,7 +14022,7 @@ Window {
                                                 visible: window.isTemporaryCertificate(modelData)
                                                 text: tr("Solo esta sesión")
                                                 color: cardContents.parent.emphasized
-                                                    ? window.certificateSelectionTextColor() : "#f39c12"
+                                                    ? window.certificateSelectionTextColor() : Contrast.accentOn(currentTheme.cardColor, "#f39c12")
                                                 font.pixelSize: 10
                                                 font.bold: true
                                             }
@@ -13958,7 +14119,7 @@ Window {
                                         Text {
                                             visible: window.isDefaultCertificate(window.selectedCertData)
                                             text: tr("Predeterminado")
-                                            color: "#f1c40f"
+                                            color: Contrast.accentOn(currentTheme.cardColor, "#f1c40f")
                                             font.bold: true
                                             font.pixelSize: 11
                                         }
@@ -14055,9 +14216,8 @@ Window {
                                             Text {
                                                 textFormat: Text.PlainText
                                                 text: tr("Huella: ") + (window.selectedCertData ? formatFingerprintForDisplay(window.selectedCertData.fingerprint || "") : "")
-                                                color: currentTheme.textColor
-                                                opacity: 0.6
-                                                font.pixelSize: 9
+                                                color: currentTheme.secondaryTextColor
+                                                font.pixelSize: 11
                                                 wrapMode: Text.WrapAnywhere
                                                 width: parent.width
                                             }
@@ -14296,6 +14456,7 @@ Window {
                             rowSpacing: 8
 
                             Text {
+                                Accessible.role: Accessible.Heading
                                 text: tr("Configuración")
                                 font.pixelSize: 32
                                 font.bold: true
@@ -14356,7 +14517,7 @@ Window {
                                 anchors { top: parent.top; left: parent.left; right: parent.right; margins: 20 }
                                 spacing: 15
 
-                                Text { text: tr("⚙️  Preferencias Generales"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15 }
+                                Text { Accessible.role: Accessible.Heading; text: tr("⚙️  Preferencias Generales"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15 }
 
                                 SettingsRowHighlight {
                                     visible: isIpcMode
@@ -14396,8 +14557,9 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Idioma"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: languageCombo
+                                        Accessible.name: tr("Idioma")
                                         Layout.preferredWidth: Math.min(260, Math.max(120, parent.width * 0.45))
                                         model: (typeof i18n !== "undefined" && i18n) ? i18n.languages : []
                                         textRole: "name"
@@ -14421,8 +14583,9 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Tema visual"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: settingsThemeCombo
+                                        Accessible.name: tr("Tema visual")
                                         Layout.preferredWidth: Math.min(260, Math.max(120, parent.width * 0.45))
                                         model: themes.map(function(_, index) { return themeLabel(index) })
                                         currentIndex: window.currentThemeIndex
@@ -14486,8 +14649,9 @@ Window {
                                 SettingsRowHighlight {
                                     Text { text: tr("Algoritmo de huella por defecto"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Algoritmo de huella por defecto"); helpText: tr("ayuda.huella.algoritmo") }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: defaultHashAlgorithmCombo
+                                        Accessible.name: tr("Algoritmo de huella por defecto")
                                         Layout.preferredWidth: Math.min(180, Math.max(120, parent.width * 0.45))
                                         model: hashAlgorithmOptions()
                                         textRole: "texto"
@@ -14522,8 +14686,9 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Formato de huella por defecto para ficheros"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: defaultHashFormatFileCombo
+                                        Accessible.name: tr("Formato de huella por defecto para ficheros")
                                         Layout.preferredWidth: Math.min(180, Math.max(120, parent.width * 0.45))
                                         model: hashFileFormatOptions()
                                         textRole: "texto"
@@ -14542,8 +14707,9 @@ Window {
 
                                 SettingsRowHighlight {
                                     Text { text: tr("Formato de manifiesto por defecto para directorios"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: defaultHashFormatDirectoryCombo
+                                        Accessible.name: tr("Formato de manifiesto por defecto para directorios")
                                         Layout.preferredWidth: Math.min(180, Math.max(120, parent.width * 0.45))
                                         model: hashDirectoryFormatOptions()
                                         textRole: "texto"
@@ -15080,6 +15246,7 @@ Window {
                                 spacing: 12
 
                                 Text {
+                                    Accessible.role: Accessible.Heading
                                     text: tr("🌐  Navegadores y certificados locales")
                                     color: currentTheme.textColor
                                     font.bold: true
@@ -15143,6 +15310,7 @@ Window {
                                 spacing: 12
 
                                 Text {
+                                    Accessible.role: Accessible.Heading
                                     text: tr("✍️  Firma por defecto")
                                     color: currentTheme.textColor
                                     font.bold: true
@@ -15170,8 +15338,9 @@ Window {
                                             Text { text: tr("Operación por defecto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Operación por defecto"); helpText: tr("ayuda.operacion"); options: window.signActionHelpOptions(); optionTemplate: tr("ayuda.opcion"); moreNameTemplate: tr("ayuda.mas_nombre") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: settingsSignActionCombo
+                                            Accessible.name: tr("Operación por defecto")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("Firmar"), valor: "sign" },
@@ -15199,8 +15368,9 @@ Window {
                                             Text { text: tr("Formato por defecto"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Formato por defecto"); helpText: tr("ayuda.formato"); options: window.signFormatHelpOptions(); optionTemplate: tr("ayuda.opcion"); moreNameTemplate: tr("ayuda.mas_nombre") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: settingsSignFormatCombo
+                                            Accessible.name: tr("Formato por defecto")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("Auto"), valor: "" },
@@ -15234,8 +15404,9 @@ Window {
                                             Text { text: tr("Salida si el fichero ya existe"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Salida si el fichero ya existe"); helpText: tr("ayuda.sobrescribir") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: settingsSignOverwriteCombo
+                                            Accessible.name: tr("Salida si el fichero ya existe")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("Renombrar"), valor: "rename" },
@@ -15267,8 +15438,9 @@ Window {
                                         RowLayout {
                                         Layout.fillWidth: true
                                         spacing: 8
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: settingsSignProfileCombo
+                                            Accessible.name: tr("Perfil de firma por defecto")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("Baseline B"), valor: "baseline" },
@@ -15362,7 +15534,7 @@ Window {
                                     spacing: 10
                                     Text { text: tr("sign.seal.opacity"); color: currentTheme.textColor }
                                     HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("sign.seal.opacity"); helpText: tr("ayuda.sello.opacidad") }
-                                    Slider {
+                                    ThemedSlider {
                                         id: settingsSignSealLogoOpacitySlider
                                         Layout.fillWidth: true
                                         from: 0
@@ -15386,7 +15558,7 @@ Window {
                                     Layout.fillWidth: true
                                     Text { text: tr("settings.seal_language.label"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("settings.seal_language.label"); helpText: tr("ayuda.sello.idioma") }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: settingsSealLanguageCombo
                                         Layout.preferredWidth: Math.min(260, Math.max(120, parent.width * 0.45))
                                         model: window.sealLanguageOptions()
@@ -15419,8 +15591,9 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Text { text: tr("Rotación del sello visible por defecto"); color: currentTheme.textColor; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: settingsSignSealRotationCombo
+                                        Accessible.name: tr("Rotación del sello visible por defecto")
                                         Layout.preferredWidth: Math.min(180, Math.max(120, parent.width * 0.45))
                                         model: [
                                             { texto: tr("0°"), valor: 0 },
@@ -15453,8 +15626,9 @@ Window {
                                             Text { text: tr("Subfiltro PAdES por defecto"); color: currentTheme.textColor }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Subfiltro PAdES por defecto"); helpText: tr("ayuda.pades.subfiltro") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: settingsPadesSubFilterCombo
+                                            Accessible.name: tr("Subfiltro PAdES por defecto")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("ETSI CAdES detached"), valor: "etsi" },
@@ -15488,6 +15662,7 @@ Window {
                                         }
                                         ThemedTextField {
                                             id: settingsSignReasonField
+                                            Accessible.name: tr("Motivo de firma por defecto")
                                             Layout.fillWidth: true
                                             text: window.signReason
                                             placeholderText: tr("Ej.: Aprobación del documento")
@@ -15517,8 +15692,9 @@ Window {
                                             Text { text: tr("Política FacturaE por defecto"); color: currentTheme.textColor }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Política FacturaE por defecto"); helpText: tr("ayuda.facturae.politica") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: settingsFacturaePolicyVersionCombo
+                                            Accessible.name: tr("Política FacturaE por defecto")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("FacturaE 3.1"), valor: "3.1" },
@@ -15545,8 +15721,9 @@ Window {
                                             Text { text: tr("Rol FacturaE por defecto"); color: currentTheme.textColor }
                                             HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Rol FacturaE por defecto"); helpText: tr("ayuda.facturae.rol") }
                                         }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: settingsFacturaeSignerRoleCombo
+                                            Accessible.name: tr("Rol FacturaE por defecto")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("Emisor"), valor: "emisor" },
@@ -15584,33 +15761,36 @@ Window {
                                         font.pixelSize: 11
                                         wrapMode: Text.WordWrap
                                     }
+                                    Text { text: tr("Identificador de política FacturaE"); color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                                     ThemedTextField {
                                         id: settingsFacturaePolicyIdField
+                                        Accessible.name: tr("Identificador de política FacturaE")
                                         Layout.fillWidth: true
                                         text: window.facturaePolicyIdentifier
-                                        placeholderText: tr("Identificador de política FacturaE")
                                         onTextChanged: {
                                             window.facturaePolicyIdentifier = text
                                             markBackendSettingsDirty()
                                         }
                                     }
                                     Binding { target: settingsFacturaePolicyIdField; property: "text"; value: window.facturaePolicyIdentifier; when: !settingsFacturaePolicyIdField.activeFocus }
+                                    Text { text: tr("Hash Base64 de la política FacturaE"); color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                                     ThemedTextField {
                                         id: settingsFacturaePolicyHashField
+                                        Accessible.name: tr("Hash Base64 de la política FacturaE")
                                         Layout.fillWidth: true
                                         text: window.facturaePolicyIdentifierHash
-                                        placeholderText: tr("Hash Base64 de la política FacturaE")
                                         onTextChanged: {
                                             window.facturaePolicyIdentifierHash = text
                                             markBackendSettingsDirty()
                                         }
                                     }
                                     Binding { target: settingsFacturaePolicyHashField; property: "text"; value: window.facturaePolicyIdentifierHash; when: !settingsFacturaePolicyHashField.activeFocus }
+                                    Text { text: tr("Qualifier de política FacturaE (SPURI)"); color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                                     ThemedTextField {
                                         id: settingsFacturaePolicyQualifierField
+                                        Accessible.name: tr("Qualifier de política FacturaE (SPURI)")
                                         Layout.fillWidth: true
                                         text: window.facturaePolicyQualifier
-                                        placeholderText: tr("Qualifier de política FacturaE (SPURI)")
                                         onTextChanged: {
                                             window.facturaePolicyQualifier = text
                                             markBackendSettingsDirty()
@@ -15639,25 +15819,35 @@ Window {
                                     RowLayout {
                                         Layout.fillWidth: true
                                         spacing: 10
-                                        ThemedTextField {
-                                            id: settingsFacturaeCityField
+                                        ColumnLayout {
                                             Layout.fillWidth: true
-                                            text: window.facturaeSignatureCity
-                                            placeholderText: tr("Ciudad")
-                                            onTextChanged: {
-                                                window.facturaeSignatureCity = text
-                                                markBackendSettingsDirty()
+                                            spacing: 4
+                                            Text { text: tr("Ciudad"); color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                                            ThemedTextField {
+                                                id: settingsFacturaeCityField
+                                                Accessible.name: tr("Ciudad")
+                                                Layout.fillWidth: true
+                                                text: window.facturaeSignatureCity
+                                                onTextChanged: {
+                                                    window.facturaeSignatureCity = text
+                                                    markBackendSettingsDirty()
+                                                }
                                             }
                                         }
                                         Binding { target: settingsFacturaeCityField; property: "text"; value: window.facturaeSignatureCity; when: !settingsFacturaeCityField.activeFocus }
-                                        ThemedTextField {
-                                            id: settingsFacturaeProvinceField
+                                        ColumnLayout {
                                             Layout.fillWidth: true
-                                            text: window.facturaeSignatureProvince
-                                            placeholderText: tr("Provincia")
-                                            onTextChanged: {
-                                                window.facturaeSignatureProvince = text
-                                                markBackendSettingsDirty()
+                                            spacing: 4
+                                            Text { text: tr("Provincia"); color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                                            ThemedTextField {
+                                                id: settingsFacturaeProvinceField
+                                                Accessible.name: tr("Provincia")
+                                                Layout.fillWidth: true
+                                                text: window.facturaeSignatureProvince
+                                                onTextChanged: {
+                                                    window.facturaeSignatureProvince = text
+                                                    markBackendSettingsDirty()
+                                                }
                                             }
                                         }
                                         Binding { target: settingsFacturaeProvinceField; property: "text"; value: window.facturaeSignatureProvince; when: !settingsFacturaeProvinceField.activeFocus }
@@ -15665,25 +15855,35 @@ Window {
                                     RowLayout {
                                         Layout.fillWidth: true
                                         spacing: 10
-                                        ThemedTextField {
-                                            id: settingsFacturaePostalCodeField
+                                        ColumnLayout {
                                             Layout.fillWidth: true
-                                            text: window.facturaeSignaturePostalCode
-                                            placeholderText: tr("Código postal")
-                                            onTextChanged: {
-                                                window.facturaeSignaturePostalCode = text
-                                                markBackendSettingsDirty()
+                                            spacing: 4
+                                            Text { text: tr("Código postal"); color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                                            ThemedTextField {
+                                                id: settingsFacturaePostalCodeField
+                                                Accessible.name: tr("Código postal")
+                                                Layout.fillWidth: true
+                                                text: window.facturaeSignaturePostalCode
+                                                onTextChanged: {
+                                                    window.facturaeSignaturePostalCode = text
+                                                    markBackendSettingsDirty()
+                                                }
                                             }
                                         }
                                         Binding { target: settingsFacturaePostalCodeField; property: "text"; value: window.facturaeSignaturePostalCode; when: !settingsFacturaePostalCodeField.activeFocus }
-                                        ThemedTextField {
-                                            id: settingsFacturaeCountryField
+                                        ColumnLayout {
                                             Layout.fillWidth: true
-                                            text: window.facturaeSignatureCountry
-                                            placeholderText: tr("País")
-                                            onTextChanged: {
-                                                window.facturaeSignatureCountry = text
-                                                markBackendSettingsDirty()
+                                            spacing: 4
+                                            Text { text: tr("País"); color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                                            ThemedTextField {
+                                                id: settingsFacturaeCountryField
+                                                Accessible.name: tr("País")
+                                                Layout.fillWidth: true
+                                                text: window.facturaeSignatureCountry
+                                                onTextChanged: {
+                                                    window.facturaeSignatureCountry = text
+                                                    markBackendSettingsDirty()
+                                                }
                                             }
                                         }
                                         Binding { target: settingsFacturaeCountryField; property: "text"; value: window.facturaeSignatureCountry; when: !settingsFacturaeCountryField.activeFocus }
@@ -15707,6 +15907,7 @@ Window {
                                 RowLayout {
                                     spacing: 4
                                     Text {
+                                        Accessible.role: Accessible.Heading
                                         text: tr("🗂️  Formato automático por tipo de documento")
                                         color: currentTheme.textColor
                                         font.bold: true
@@ -15729,8 +15930,9 @@ Window {
                                     columnSpacing: 14
 
                                     Text { text: tr("PDF"); color: currentTheme.textColor }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: autoFormatPdfCombo
+                                        Accessible.name: tr("PDF")
                                         Layout.fillWidth: true
                                         model: [
                                             { texto: tr("PAdES"), valor: "pades" },
@@ -15745,8 +15947,9 @@ Window {
                                     }
 
                                     Text { text: tr("OOXML"); color: currentTheme.textColor }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: autoFormatOoxmlCombo
+                                        Accessible.name: tr("OOXML")
                                         Layout.fillWidth: true
                                         model: [
                                             { texto: tr("OOXML"), valor: "ooxml" },
@@ -15761,8 +15964,9 @@ Window {
                                     }
 
                                     Text { text: tr("FacturaE"); color: currentTheme.textColor }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: autoFormatFacturaeCombo
+                                        Accessible.name: tr("FacturaE")
                                         Layout.fillWidth: true
                                         model: [
                                             { texto: tr("FacturaE"), valor: "facturae" },
@@ -15777,8 +15981,9 @@ Window {
                                     }
 
                                     Text { text: tr("ODF"); color: currentTheme.textColor }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: autoFormatOdfCombo
+                                        Accessible.name: tr("ODF")
                                         Layout.fillWidth: true
                                         model: [
                                             { texto: tr("ODF"), valor: "odf" },
@@ -15793,8 +15998,9 @@ Window {
                                     }
 
                                     Text { text: tr("XML"); color: currentTheme.textColor }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: autoFormatXmlCombo
+                                        Accessible.name: tr("XML")
                                         Layout.fillWidth: true
                                         model: [
                                             { texto: tr("XAdES"), valor: "xades" },
@@ -15809,8 +16015,9 @@ Window {
                                     }
 
                                     Text { text: tr("Binario / otros"); color: currentTheme.textColor }
-                                    ComboBox {
+                                    ThemedComboBox {
                                         id: autoFormatBinaryCombo
+                                        Accessible.name: tr("Binario / otros")
                                         Layout.fillWidth: true
                                         model: [
                                             { texto: tr("CAdES"), valor: "cades" },
@@ -15840,6 +16047,7 @@ Window {
                                 spacing: 12
 
                                 Text {
+                                    Accessible.role: Accessible.Heading
                                     text: tr("🛡️  Política de firma por defecto")
                                     color: currentTheme.textColor
                                     font.bold: true
@@ -15889,7 +16097,7 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: tr("⏳  Sellado de Tiempo (TSA)"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor de sellado de tiempo para añadir una marca de tiempo a las firmas.") ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
+                                    Text { Accessible.role: Accessible.Heading; text: tr("⏳  Sellado de Tiempo (TSA)"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor de sellado de tiempo para añadir una marca de tiempo a las firmas.") ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("⏳  Sellado de Tiempo (TSA)"); helpText: tr("ayuda.sellado_tiempo"); moreText: window.helpMore("ayuda.sellado_tiempo"); moreNameTemplate: tr("ayuda.mas_nombre") }
                                     ThemedSwitch {
                                         id: tsaEnabledSwitch
@@ -15918,6 +16126,7 @@ Window {
                                         }
                                         ThemedComboBox {
                                             id: tsaCombo
+                                            Accessible.name: tr("Servidor TSA:")
                                             Layout.fillWidth: true
                                             editable: true
                                             hasError: window.settingsFieldError("tsa") !== ""
@@ -15982,7 +16191,7 @@ Window {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: tr("🌐  Configuración de Proxy"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor proxy para las conexiones de red.") ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
+                                    Text { Accessible.role: Accessible.Heading; text: tr("🌐  Configuración de Proxy"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Habilita el uso de un servidor proxy para las conexiones de red.") ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                     HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("🌐  Configuración de Proxy"); helpText: tr("ayuda.proxy") }
                                     ThemedSwitch {
                                         id: proxyEnabledSwitch
@@ -16005,8 +16214,9 @@ Window {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         Text { text: tr("Tipo:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
-                                        ComboBox {
+                                        ThemedComboBox {
                                             id: proxyTypeCombo
+                                            Accessible.name: tr("Tipo de proxy")
                                             Layout.fillWidth: true
                                             model: [
                                                 { texto: tr("Ninguno"), valor: "none" },
@@ -16026,6 +16236,7 @@ Window {
                                         Text { text: tr("Host / IP:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                         ThemedTextField {
                                             id: proxyHostField
+                                            Accessible.name: tr("Host / IP:")
                                             Layout.fillWidth: true
                                             text: window.proxyHost
                                             hasError: window.settingsFieldError("proxyHost") !== ""
@@ -16050,6 +16261,7 @@ Window {
                                         Text { text: tr("Puerto:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                         ThemedTextField {
                                             id: proxyPortField
+                                            Accessible.name: tr("Puerto:")
                                             Layout.fillWidth: true
                                             text: window.proxyPort.toString()
                                             validator: IntValidator { bottom: 1; top: 65535 }
@@ -16081,6 +16293,7 @@ Window {
                                     Text { text: tr("URLs excluidas del proxy:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                     ThemedTextArea {
                                         id: proxyExcludedUrlsArea
+                                        Accessible.name: tr("URLs excluidas del proxy:")
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 88
                                         wrapMode: TextEdit.WrapAnywhere
@@ -16128,7 +16341,7 @@ Window {
                                             Text {
                                                 visible: window.proxyCredentialsConfigured
                                                 text: tr("Proxy manual con credenciales protegidas")
-                                                color: "#2ecc71"
+                                                color: Contrast.accentOn(currentTheme.cardColor, "#2ecc71")
                                                 font.pixelSize: 11
                                             }
                                         }
@@ -16155,6 +16368,7 @@ Window {
 
                                             ThemedTextField {
                                                 id: proxyRealmField
+                                                Accessible.name: tr("Dominio")
                                                 Layout.fillWidth: true
                                                 maximumLength: 256
                                                 text: window.proxyCredentialRealm
@@ -16162,6 +16376,7 @@ Window {
                                             }
                                             ThemedTextField {
                                                 id: proxyUsernameField
+                                                Accessible.name: tr("Usuario")
                                                 Layout.fillWidth: true
                                                 maximumLength: 256
                                                 text: window.proxyCredentialUsername
@@ -16169,6 +16384,7 @@ Window {
                                             }
                                             ThemedTextField {
                                                 id: proxyPasswordField
+                                                Accessible.name: tr("Contraseña")
                                                 Layout.fillWidth: true
                                                 maximumLength: 4096
                                                 echoMode: TextInput.Password
@@ -16290,12 +16506,13 @@ Window {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     spacing: 4
-                                    Text { text: tr("🌐  Servidor API REST Local"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Expone la API REST solo en este equipo, para integraciones locales y consola web.") ; wrapMode: Text.WordWrap }
+                                    Text { Accessible.role: Accessible.Heading; text: tr("🌐  Servidor API REST Local"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true; ToolTip.text: tr("Expone la API REST solo en este equipo, para integraciones locales y consola web.") ; wrapMode: Text.WordWrap }
                                     HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("🌐  Servidor API REST Local"); helpText: tr("ayuda.rest_local") }
                                 }
                                 
                                 // Estado actual del API REST
                                 Rectangle {
+                                    id: restServerStateCard
                                     Layout.fillWidth: true; height: 44; radius: 8
                                     color: configTab.restServerChecking ? "#1f2937" : (configTab.restServerRunning ? "#1a4a1a" : "#2a0a0a")
                                     border.color: configTab.restServerChecking ? "#9ca3af" : (configTab.restServerRunning ? "#2ecc71" : "#e74c3c")
@@ -16307,7 +16524,7 @@ Window {
                                             wrapMode: Text.WordWrap
                                             Layout.preferredWidth: 1
                                             text: configTab.restServerChecking ? tr("● Comprobando estado del servidor...") : (configTab.restServerRunning ? tr("● Servidor API REST en ejecución") : tr("● Servidor detenido"))
-                                            color: configTab.restServerChecking ? "#d1d5db" : (configTab.restServerRunning ? "#2ecc71" : "#e74c3c")
+                                            color: Contrast.accentOn(restServerStateCard.color, configTab.restServerChecking ? "#d1d5db" : (configTab.restServerRunning ? "#2ecc71" : "#e74c3c"))
                                             font.bold: true; font.pixelSize: 13; Layout.fillWidth: true
                                         }
                                     }
@@ -16322,6 +16539,7 @@ Window {
                                         Text { text: tr("Puerto:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                         ThemedTextField {
                                             id: restPortField
+                                            Accessible.name: tr("Puerto:")
                                             Layout.fillWidth: true
                                             text: tr("63118")
                                             validator: IntValidator { bottom: 1024; top: 65535 }
@@ -16333,6 +16551,7 @@ Window {
                                         Text { text: tr("Token de Seguridad:"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                         ThemedTextField {
                                             id: restTokenField
+                                            Accessible.name: tr("Token de Seguridad:")
                                             Layout.fillWidth: true
                                             placeholderText: tr("Opcional: token de acceso bearer")
                                         }
@@ -16345,6 +16564,7 @@ Window {
                                     Text { text: tr("Huellas de Certificados Cliente (SHA-256 CSV):"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                     ThemedTextField {
                                         id: restFingerprintsField
+                                        Accessible.name: tr("Huellas de Certificados Cliente (SHA-256 CSV):")
                                         Layout.fillWidth: true
                                         placeholderText: tr("Opcional: 6F:..., 8A:...")
                                     }
@@ -16369,6 +16589,7 @@ Window {
                                     }
                                     ThemedTextField {
                                         id: webCompatibilityDurationField
+                                        Accessible.name: tr("Duración temporal (minutos):")
                                         Layout.preferredWidth: 90
                                         text: String(window.webCompatibilityDurationMinutes)
                                         enabled: !configTab.webCompatibilityActive
@@ -16472,6 +16693,7 @@ Window {
                                 spacing: 16
 
                                 Text {
+                                    Accessible.role: Accessible.Heading
                                     text: tr("🔧  Servicio de Usuario al Inicio de Sesión")
                                     color: currentTheme.textColor; font.bold: true; font.pixelSize: 15
                                 }
@@ -16484,6 +16706,7 @@ Window {
 
                                  // Estado actual
                                 Rectangle {
+                                    id: serviceStateCard
                                     Layout.fillWidth: true; height: 44; radius: 8
                                     color: !configTab.svcConnected ? "#333333" : (configTab.svcRunning ? "#1a4a1a" : (configTab.svcInstalled ? "#4a3a0a" : "#2a0a0a"))
                                     border.color: !configTab.svcConnected ? "#aaaaaa" : (configTab.svcRunning ? "#2ecc71" : (configTab.svcInstalled ? "#f39c12" : "#e74c3c"))
@@ -16497,7 +16720,7 @@ Window {
                                             text: !configTab.svcConnected ? tr("● Estado desconocido (Sin conexión)") :
                                                   configTab.svcRunning ? tr("● Servicio activo y corriendo") :
                                                   configTab.svcInstalled ? tr("● Servicio instalado pero parado") : tr("● Servicio no instalado")
-                                            color: !configTab.svcConnected ? "#aaaaaa" : (configTab.svcRunning ? "#2ecc71" : (configTab.svcInstalled ? "#f39c12" : "#e74c3c"))
+                                            color: Contrast.accentOn(serviceStateCard.color, !configTab.svcConnected ? "#aaaaaa" : (configTab.svcRunning ? "#2ecc71" : (configTab.svcInstalled ? "#f39c12" : "#e74c3c")))
                                             font.bold: true; font.pixelSize: 13; Layout.fillWidth: true
                                         }
                                         Text {
@@ -16549,7 +16772,7 @@ Window {
                                 // Mensaje de resultado
                                 Text {
                                     text: configTab.svcMessage
-                                    color: configTab.svcMessage.startsWith(tr("Error")) ? "#e74c3c" : "#2ecc71"
+                                    color: Contrast.accentOn(currentTheme.cardColor, configTab.svcMessage.startsWith(tr("Error")) ? "#e74c3c" : "#2ecc71")
                                     font.pixelSize: 12; wrapMode: Text.Wrap
                                     Layout.fillWidth: true
                                     visible: configTab.svcMessage !== ""
@@ -16565,7 +16788,7 @@ Window {
                                         id: noteText
                                         anchors { fill: parent; margins: 10 }
                                         text: tr("⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.")
-                                        color: "#f39c12"; font.pixelSize: 11; wrapMode: Text.Wrap
+                                        color: Contrast.accentOn(currentTheme.cardColor, "#f39c12"); font.pixelSize: 11; wrapMode: Text.Wrap
                                     }
                                 }
                             }
@@ -16580,7 +16803,7 @@ Window {
 
                             RowLayout {
                                 anchors.fill: parent; anchors.margins: 20; spacing: 15
-                                Text { text: tr("↺  Valores por defecto"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
+                                Text { Accessible.role: Accessible.Heading; text: tr("↺  Valores por defecto"); color: currentTheme.textColor; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true ; wrapMode: Text.WordWrap ; Layout.preferredWidth: 1 }
                                 Text { text: tr("Restaura el tema y opciones a fábrica"); color: currentTheme.secondaryTextColor; font.pixelSize: 12 }
                                 ThemedButton {
                                     text: tr("Restaurar")
@@ -16609,11 +16832,12 @@ Window {
                         Layout.fillWidth: true
                         ColumnLayout {
                             Layout.fillWidth: true
-                            Text { text: tr("Panel de Diagnóstico Experto"); font.pixelSize: 28; font.bold: true; color: currentTheme.textColor }
+                            Text { Accessible.role: Accessible.Heading; text: tr("Panel de Diagnóstico Experto"); font.pixelSize: 28; font.bold: true; color: currentTheme.textColor }
                             Text { text: tr("Gestión avanzada y resolución de problemas"); color: currentTheme.secondaryTextColor }
                         }
-                        ComboBox {
+                        ThemedComboBox {
                             id: serverModeCombo
+                            Accessible.name: tr("Modo de servidor")
                             model: [{ texto: tr("REST local"), valor: "rest" }]
                             textRole: "texto"
                             currentIndex: 0
@@ -16635,7 +16859,7 @@ Window {
                         Layout.fillWidth: true
                         spacing: 15
                         
-                        Text { text: tr("SOPORTE Y DOCUMENTACIÓN"); color: currentTheme.primaryColor; font.bold: true; font.pixelSize: 12 }
+                        Text { text: tr("SOPORTE Y DOCUMENTACIÓN"); color: Contrast.accentOn(currentTheme.backgroundColor, currentTheme.primaryColor); Accessible.role: Accessible.Heading; font.bold: true; font.pixelSize: 12 }
                         Flow {
                             Layout.fillWidth: true; spacing: 10
                             ThemedButton { text: tr("Gestor Certificados"); onClicked: backend.openCertManager() }
@@ -16650,7 +16874,7 @@ Window {
                             }
                         }
                         
-                        Text { text: tr("RED Y SEGURIDAD"); color: currentTheme.primaryColor; font.bold: true; font.pixelSize: 12 }
+                        Text { text: tr("RED Y SEGURIDAD"); color: Contrast.accentOn(currentTheme.backgroundColor, currentTheme.primaryColor); Accessible.role: Accessible.Heading; font.bold: true; font.pixelSize: 12 }
                         Flow {
                             Layout.fillWidth: true; spacing: 10
                             ThemedButton { text: tr("Diag. TLS"); onClicked: backend.runTLSDiagnostics() }
@@ -16663,7 +16887,7 @@ Window {
                             }
                         }
 
-                        Text { text: tr("SISTEMA"); color: currentTheme.primaryColor; font.bold: true; font.pixelSize: 12 }
+                        Text { text: tr("SISTEMA"); color: Contrast.accentOn(currentTheme.backgroundColor, currentTheme.primaryColor); Accessible.role: Accessible.Heading; font.bold: true; font.pixelSize: 12 }
                         Flow {
                             Layout.fillWidth: true; spacing: 10
                             ThemedButton { text: tr("Comprobar Certs"); onClicked: backend.checkCertificates() }
@@ -16683,6 +16907,7 @@ Window {
                             clip: true
                             TextArea {
                                 id: logArea
+                                Accessible.name: tr("Registro de actividad")
                                 readOnly: true
                                 color: "#00ff41"
                                 font.family: "Monospace"
@@ -16711,6 +16936,7 @@ Window {
                     RowLayout {
                         Layout.fillWidth: true
                         Text {
+                            Accessible.role: Accessible.Heading
                             text: tr("Seguridad y Dominios")
                             font.pixelSize: 32
                             font.bold: true
@@ -16727,6 +16953,7 @@ Window {
                             spacing: 18
                             width: parent.width * 0.8
                             Text {
+                                Accessible.role: Accessible.Heading
                                 text: tr("Resumen de seguridad")
                                 color: currentTheme.textColor
                                 font.pixelSize: 22
@@ -16785,6 +17012,8 @@ Window {
         activeFocusOnTab: true
         Accessible.role: Accessible.Button
         Accessible.name: navButtonRoot.text
+        Accessible.checkable: true
+        Accessible.checked: navButtonRoot.active
         Accessible.description: active ? tr("Sección activa") : tr("Abrir sección")
         Accessible.onPressAction: navButtonRoot.activate()
         color: active ? Contrast.legibleFill(currentTheme.primaryColor) : "transparent"
@@ -16819,6 +17048,8 @@ Window {
             anchors.margins: 10
             Text {
                 text: iconTxt
+                // Icono decorativo: el nombre del botón ya dice la sección.
+                Accessible.ignored: true
                 color: navButtonRoot.labelColor
                 font.bold: true
                 // Iconos un 80 % mayores que el texto por defecto para localizarlos de un vistazo.
@@ -16856,12 +17087,15 @@ Window {
             spacing: 10
             Text {
                 text: localizedStatusMessage().startsWith(tr("Error")) ? "⚠" : "ℹ"
+                // Icono decorativo: el mensaje ya dice si es un error.
+                Accessible.ignored: true
                 color: statusBar.labelColor
                 font.bold: true
                 visible: statusMessage !== ""
                 Layout.alignment: Qt.AlignVCenter
             }
             Text {
+                id: statusMessageText
                 text: localizedStatusMessage()
                 color: statusBar.labelColor
                 font.pixelSize: 12
@@ -16869,6 +17103,14 @@ Window {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
+                // Los lectores de pantalla anuncian cada mensaje nuevo de la barra.
+                Accessible.role: Accessible.AlertMessage
+                Accessible.name: text
+                // Si el mensaje no cabe, el texto completo aparece al pasar el ratón.
+                HoverHandler { id: statusMessageHover }
+                ToolTip.visible: statusMessageText.truncated && statusMessageHover.hovered
+                ToolTip.delay: 400
+                ToolTip.text: statusMessageText.text
             }
             ThemedButton {
                 text: window.activeDiagnosticInProgress

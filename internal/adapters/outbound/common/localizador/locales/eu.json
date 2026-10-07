@@ -6634,4 +6634,9 @@
   ,"Windows: la bandeja y los avisos se llaman «GrxFirma»; al actualizar con la app abierta se avisa de que se está reiniciando el servicio en vez de mostrar un error; y la comprobación de versiones funciona con el proxy de la red.": "Windows: erretilua eta oharrak «GrxFirma» dira; aplikazioa irekita dagoela eguneratzean, zerbitzua berrabiarazten ari dela jakinarazten da errorea erakutsi beharrean; eta bertsioen egiaztapenak sareko proxyarekin funtzionatzen du."
   ,"protocolo.descargar_autofirma": "Deskargatu AutoFirma webgune ofizialetik"
   ,"protocolo.descargar_autofirma.descripcion": "Espainiako Gobernuaren Portal de Firma Electrónica atariko deskargen orria irekitzen du nabigatzailean."
+  ,"winui.facturae.campos_obligatorios": "* ikurra duten eremuak derrigorrezkoak dira."
+  ,"winui.firmar.sello_giro_actual": "Zigiluaren biraketa: {0} gradu"
+  ,"Modo de servidor": "Zerbitzari modua"
+  ,"Registro de actividad": "Jarduera-erregistroa"
+  ,"No se puede conectar con el servicio de firma de GrxFirma. Cierre y vuelva a abrir la aplicación; si sigue igual, pulse «Asistente».": "Ezin da GrxFirmaren sinadura-zerbitzuarekin konektatu. Itxi eta ireki berriro aplikazioa; berdin jarraitzen badu, sakatu «Laguntzailea»."
 }

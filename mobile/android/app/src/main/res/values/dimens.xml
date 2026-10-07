@@ -10,4 +10,7 @@
     <dimen name="section_spacing">24dp</dimen>
     <dimen name="control_spacing">12dp</dimen>
     <dimen name="touch_target">48dp</dimen>
+    <dimen name="focus_ring_width">2dp</dimen>
+    <dimen name="focus_ring_pill_radius">24dp</dimen>
+    <dimen name="focus_ring_box_radius">4dp</dimen>
 </resources>

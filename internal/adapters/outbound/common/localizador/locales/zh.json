@@ -6634,4 +6634,9 @@
   ,"Windows: la bandeja y los avisos se llaman «GrxFirma»; al actualizar con la app abierta se avisa de que se está reiniciando el servicio en vez de mostrar un error; y la comprobación de versiones funciona con el proxy de la red.": "Windows：托盘和通知名称改为“GrxFirma”；在应用打开时更新，会提示服务正在重启，而不是显示错误；版本检查现在可以通过网络代理进行。"
   ,"protocolo.descargar_autofirma": "从官方网站下载 AutoFirma"
   ,"protocolo.descargar_autofirma.descripcion": "在浏览器中打开西班牙政府 Portal de Firma Electrónica 的下载页面。"
+  ,"winui.facturae.campos_obligatorios": "标有 * 的字段为必填项。"
+  ,"winui.firmar.sello_giro_actual": "印章旋转：{0} 度"
+  ,"Modo de servidor": "服务器模式"
+  ,"Registro de actividad": "活动日志"
+  ,"No se puede conectar con el servicio de firma de GrxFirma. Cierre y vuelva a abrir la aplicación; si sigue igual, pulse «Asistente».": "无法连接 GrxFirma 签名服务。请关闭并重新打开应用程序；如果仍然如此，请点击“助手”。"
 }

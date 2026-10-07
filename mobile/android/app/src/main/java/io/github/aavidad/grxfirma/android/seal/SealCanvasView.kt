@@ -11,7 +11,10 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.withRotation
+import androidx.core.view.ViewCompat
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import io.github.aavidad.grxfirma.android.R
@@ -26,8 +29,18 @@ class SealCanvasView(context: Context) : View(context) {
     var sealBitmap: Bitmap? = null
         set(value) { field = value; invalidate() }
     var settings: SealSettings = SealSettings(enabled = true)
-        set(value) { field = value; contentDescription = context.getString(R.string.seal_canvas_description, value.rotation); invalidate() }
+        set(value) { field = value; describeState(); invalidate() }
     var onEdited: ((SealSettings) -> Unit)? = null
+    /**
+     * Ajuste pedido con el teclado o con una acción de TalkBack. Lo aplica el
+     * editor, igual que con los botones de debajo de la página.
+     */
+    var onAdjust: ((SealAdjustment) -> Unit)? = null
+    /** Página que se ve y total de páginas, para que TalkBack las diga. */
+    var pageNumber: Int = 1
+        set(value) { field = value; describeState() }
+    var pageCount: Int = 1
+        set(value) { field = value; describeState() }
     /** En «varias páginas», false indica que esta página aún no lleva sello. */
     var sealOnPage: Boolean = true
         set(value) { field = value; invalidate() }
@@ -60,7 +73,35 @@ class SealCanvasView(context: Context) : View(context) {
     init {
         isFocusable = true
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
-        contentDescription = context.getString(R.string.seal_canvas_description, 0)
+        contentDescription = context.getString(R.string.seal_canvas_description)
+        // Con el teclado se ve qué control tiene el foco (WCAG 2.4.7).
+        foreground = ContextCompat.getDrawable(context, R.drawable.focus_ring_box)
+        // Las mismas acciones que los botones, en el menú de acciones de TalkBack.
+        SealAdjustment.entries.forEach { step ->
+            ViewCompat.addAccessibilityAction(this, context.getString(step.label)) { _, _ ->
+                val adjust = onAdjust ?: return@addAccessibilityAction false
+                adjust(step)
+                true
+            }
+        }
+        describeState()
+    }
+
+    /** Texto con la página, la posición, el tamaño y el giro del sello (WCAG 4.1.2). */
+    fun stateText(): String = SealAdjustment.state(settings, pageNumber, pageCount).let {
+        context.getString(R.string.seal_canvas_state, it.page, it.pages, it.left, it.bottom, it.width, it.height, it.rotation)
+    }
+
+    private fun describeState() {
+        ViewCompat.setStateDescription(this, stateText())
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        val step = SealAdjustment.forKey(keyCode)
+        val adjust = onAdjust
+        if (step == null || adjust == null) return super.onKeyDown(keyCode, event)
+        adjust(step)
+        return true
     }
 
     /**

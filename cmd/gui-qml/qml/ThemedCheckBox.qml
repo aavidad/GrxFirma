@@ -6,6 +6,7 @@
 import QtQuick
 import QtQuick.Controls
 import "AccessibleLabel.js" as AccessibleLabel
+import "ThemeContrast.js" as Contrast
 
 // Casilla con el texto del tema (paleta de la ventana), ajuste de línea y foco visible.
 CheckBox {
@@ -23,7 +24,8 @@ CheckBox {
         y: control.topPadding + (control.availableHeight - height) / 2
         radius: 3
         color: control.checkState !== Qt.Unchecked ? control.palette.highlight : control.palette.base
-        border.color: control.checkState !== Qt.Unchecked ? control.palette.highlight : control.palette.mid
+        // Borde a 3:1 con el fondo del campo (WCAG 1.4.11) en todos los temas.
+        border.color: control.checkState !== Qt.Unchecked ? control.palette.highlight : Contrast.accentOn(control.palette.base, control.palette.mid, 3.0)
         border.width: 2
         opacity: control.enabled ? 1 : 0.5
         Text {

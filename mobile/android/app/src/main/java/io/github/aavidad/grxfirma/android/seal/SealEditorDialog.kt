@@ -24,6 +24,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.isGone
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -66,6 +67,7 @@ class SealEditorDialog(
     private lateinit var canvas: SealCanvasView
     private lateinit var pageLabel: TextView
     private lateinit var previewStatus: TextView
+    private lateinit var positionStatus: TextView
     private var previewValid = false
     private lateinit var qrAddress: EditText
     private lateinit var qrAddressLayout: TextInputLayout
@@ -150,14 +152,19 @@ class SealEditorDialog(
                 this@SealEditorDialog.settings = if (edited.perPage) edited.withPagePlacement(edited.page) else edited
                 updatePageControls()
                 refreshPreview()
+                updatePositionStatus()
             }
+            onAdjust = { step -> adjust(step) }
+            pageCount = pages.size
+            pageNumber = this@SealEditorDialog.settings.page
         }
         // La página no ocupa toda la ventana: debajo deben asomar los botones de ajuste.
         // Primero un 40 % de la pantalla; al mostrarse se ajusta al alto real del diálogo.
         canvas.maxPageHeight = (activity.resources.displayMetrics.heightPixels * 0.40f).toInt()
         column.addView(canvas, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             .apply { gravity = android.view.Gravity.CENTER_HORIZONTAL })
-        previewStatus = label(R.string.seal_preview_loading).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
+        // «Actualizando…» no se anuncia; sí el resultado y los problemas.
+        previewStatus = label(R.string.seal_preview_loading)
         column.addView(previewStatus)
         pageLabel = label(R.string.seal_page_placeholder).apply { textAlignment = View.TEXT_ALIGNMENT_CENTER }
         column.addView(pageLabel)
@@ -172,17 +179,25 @@ class SealEditorDialog(
         val controlsLabel = label(R.string.seal_accessible_controls)
         column.addView(controlsLabel)
         val move = row()
-        move.addView(iconButton(R.drawable.ic_seal_left, R.string.seal_move_left) { adjust(dx = -0.02f) }, weighted())
-        move.addView(iconButton(R.drawable.ic_seal_right, R.string.seal_move_right) { adjust(dx = 0.02f) }, weighted())
-        move.addView(iconButton(R.drawable.ic_seal_up, R.string.seal_move_up) { adjust(dy = 0.02f) }, weighted())
-        move.addView(iconButton(R.drawable.ic_seal_down, R.string.seal_move_down) { adjust(dy = -0.02f) }, weighted())
+        move.addView(iconButton(R.drawable.ic_seal_left, SealAdjustment.LEFT), weighted())
+        move.addView(iconButton(R.drawable.ic_seal_right, SealAdjustment.RIGHT), weighted())
+        move.addView(iconButton(R.drawable.ic_seal_up, SealAdjustment.UP), weighted())
+        move.addView(iconButton(R.drawable.ic_seal_down, SealAdjustment.DOWN), weighted())
         column.addView(move)
         val sizeAndRotation = row()
-        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_smaller, R.string.seal_smaller_desc) { adjust(dw = -0.02f, dh = -0.01f) }, weighted())
-        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_larger, R.string.seal_larger_desc) { adjust(dw = 0.02f, dh = 0.01f) }, weighted())
-        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_rotate_left, R.string.seal_rotate_left_desc) { adjust(angle = -15) }, weighted())
-        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_rotate_right, R.string.seal_rotate_right_desc) { adjust(angle = 15) }, weighted())
+        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_smaller, SealAdjustment.SMALLER), weighted())
+        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_larger, SealAdjustment.LARGER), weighted())
+        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_rotate_left, SealAdjustment.ROTATE_LEFT), weighted())
+        sizeAndRotation.addView(iconButton(R.drawable.ic_seal_rotate_right, SealAdjustment.ROTATE_RIGHT), weighted())
         column.addView(sizeAndRotation)
+        // Tras cada ajuste se dice dónde ha quedado el sello (WCAG 4.1.3).
+        positionStatus = TextView(activity).apply {
+            textSize = 16f
+            setPadding(0, dp(8), 0, dp(8))
+            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+            text = canvas.stateText()
+        }
+        column.addView(positionStatus)
 
         column.addView(HelpButton.row(activity, label(R.string.seal_opacity), R.string.seal_opacity, R.string.ayuda_sello_opacidad))
         column.addView(SeekBar(activity).apply {
@@ -198,7 +213,7 @@ class SealEditorDialog(
             })
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)))
 
-        qrCheck = CheckBox(activity).apply {
+        qrCheck = MaterialCheckBox(activity).apply {
             setText(R.string.seal_qr)
             minHeight = dp(48)
             isChecked = settings.qrEnabled
@@ -247,7 +262,7 @@ class SealEditorDialog(
             R.string.seal_choose_image, R.string.ayuda_sello_imagen)
         chooseImageButton.visibility = if (settings.logo == "custom") View.VISIBLE else View.GONE
         column.addView(chooseImageButton)
-        column.addView(HelpButton.row(activity, CheckBox(activity).apply {
+        column.addView(HelpButton.row(activity, MaterialCheckBox(activity).apply {
             setText(R.string.seal_show_text)
             minHeight = dp(48)
             isChecked = settings.keepText
@@ -262,9 +277,14 @@ class SealEditorDialog(
             refreshPreview()
         }.first)
         lateinit var pagesMode: DropdownField
+        lateinit var pagesLayout: TextInputLayout
         val pagesField = dropdown(R.string.seal_pages_mode, listOf(R.string.seal_one_page, R.string.seal_all_pages,
             R.string.seal_pages_custom), when { settings.perPage -> 2; settings.allPages -> 1; else -> 0 }) { position ->
-            if (position == 1 && pages.size > SealSettings.MAX_PLACEMENTS) {
+            // Con demasiadas páginas no se puede repetir en todas: se dice en el
+            // propio campo, en vez de volver en silencio a «Solo esta página» (WCAG 3.3.1).
+            pagesLayout.error = if (position == 1 && pages.size > SealSettings.MAX_PLACEMENTS)
+                activity.getString(R.string.seal_all_pages_limit, SealSettings.MAX_PLACEMENTS) else null
+            if (pagesLayout.error != null) {
                 pagesMode.select(0)
                 return@dropdown
             }
@@ -278,6 +298,7 @@ class SealEditorDialog(
             refreshPreview()
         }
         pagesMode = pagesField.second
+        pagesLayout = pagesField.first
         column.addView(HelpButton.row(activity, pagesField.first, R.string.seal_pages_mode, R.string.ayuda_sello_paginas))
         pageToggle = button(R.string.seal_page_add) { togglePage() }
         column.addView(pageToggle)
@@ -359,6 +380,8 @@ class SealEditorDialog(
 
     private fun showPage() {
         pageLabel.text = activity.getString(R.string.seal_page_number, settings.page, pages.size)
+        canvas.pageNumber = settings.page
+        updatePositionStatus()
         val file = tempPdf ?: return
         val pageNumber = settings.page
         activity.lifecycleScope.launch {
@@ -419,6 +442,7 @@ class SealEditorDialog(
             showProblem(problem, announce = false)
             return
         }
+        previewStatus.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_NONE
         previewStatus.setText(R.string.seal_preview_loading)
         previewStatus.setTextColor(androidx.core.content.ContextCompat.getColor(activity, R.color.on_surface))
         previewJob?.cancel()
@@ -437,7 +461,10 @@ class SealEditorDialog(
                     canvas.sealBitmap?.recycle()
                     canvas.sealBitmap = bitmap
                     previewValid = bitmap != null
-                    if (previewValid) previewStatus.setText(R.string.seal_preview_ready)
+                    if (previewValid) {
+                        previewStatus.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+                        previewStatus.setText(R.string.seal_preview_ready)
+                    }
                     else showProblem(R.string.seal_preview_error, announce = false)
                 }
             } catch (error: kotlinx.coroutines.CancellationException) {
@@ -450,12 +477,12 @@ class SealEditorDialog(
         }
     }
 
-    private fun adjust(dx: Float = 0f, dy: Float = 0f, dw: Float = 0f, dh: Float = 0f, angle: Int = 0) {
+    private fun adjust(step: SealAdjustment) {
         val rect = settings.rect
         val next = settings.copy(
-            rect = rect.copy(x = rect.x + dx, y = rect.y + dy,
-                w = (rect.w + dw).coerceAtLeast(0.08f), h = (rect.h + dh).coerceAtLeast(0.04f)),
-            rotation = SealGeometry.snap(settings.rotation + angle),
+            rect = rect.copy(x = rect.x + step.dx, y = rect.y + step.dy,
+                w = (rect.w + step.dw).coerceAtLeast(0.08f), h = (rect.h + step.dh).coerceAtLeast(0.04f)),
+            rotation = SealGeometry.snap(settings.rotation + step.angle),
         )
         try {
             val (w, h) = pages[settings.page - 1]
@@ -464,8 +491,15 @@ class SealEditorDialog(
                 settings = if (fitted.perPage) fitted.withPagePlacement(fitted.page) else fitted
                 updatePageControls()
                 refreshPreview()
+                updatePositionStatus()
             }
         } catch (_: IllegalArgumentException) { /* Sin cambio. */ }
+    }
+
+    private fun updatePositionStatus() {
+        if (!::positionStatus.isInitialized) return
+        canvas.settings = settings
+        positionStatus.text = canvas.stateText()
     }
 
     private fun togglePage() {
@@ -490,7 +524,7 @@ class SealEditorDialog(
     /** Leyenda CSV: el motor valida y normaliza la URL antes de aceptar el editor. */
     private fun buildCsvSection(column: LinearLayout) {
         val group = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-        val enable = CheckBox(activity).apply {
+        val enable = MaterialCheckBox(activity).apply {
             setText(R.string.csv_enable)
             minHeight = dp(48)
             isChecked = settings.csvEnabled
@@ -510,7 +544,7 @@ class SealEditorDialog(
             android.text.InputType.TYPE_CLASS_TEXT) {
             settings = settings.copy(csvText = it); validateCsv()
         }
-        group.addView(CheckBox(activity).apply {
+        group.addView(MaterialCheckBox(activity).apply {
             setText(R.string.csv_qr)
             minHeight = dp(48)
             isChecked = settings.csvQr
@@ -606,12 +640,17 @@ class SealEditorDialog(
         return layout to field
     }
 
-    /** Problema dentro del editor: se muestra y se anuncia en la línea de estado. */
+    /**
+     * Problema dentro del editor: se muestra en la línea de estado, que lo anuncia
+     * por su región viva. Con [announce] (al pulsar «Aplicar sello») se repite
+     * aunque ya estuviera escrito: se vacía antes para que la región cambie.
+     */
     private fun showProblem(message: Int, announce: Boolean = true) {
         if (!::previewStatus.isInitialized) return onError(message)
+        previewStatus.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+        if (announce && previewStatus.text.toString() == activity.getString(message)) previewStatus.text = ""
         previewStatus.setText(message)
         previewStatus.setTextColor(androidx.core.content.ContextCompat.getColor(activity, R.color.error))
-        if (announce) previewStatus.announceForAccessibility(previewStatus.text)
     }
     private fun label(id: Int) = TextView(activity).apply {
         setText(id)
@@ -628,17 +667,17 @@ class SealEditorDialog(
             setOnClickListener { action() }
         }
 
-    /** Botón de solo icono: TalkBack lee [description] y una pulsación larga la muestra. */
-    private fun iconButton(icon: Int, description: Int, action: () -> Unit) =
+    /** Botón de solo icono: TalkBack lee la descripción del paso y una pulsación larga la muestra. */
+    private fun iconButton(icon: Int, step: SealAdjustment) =
         MaterialButton(activity, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
             setIconResource(icon)
             iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
             iconPadding = 0
             minHeight = dp(48)
             minWidth = dp(48)
-            contentDescription = activity.getString(description)
+            contentDescription = activity.getString(step.label)
             androidx.appcompat.widget.TooltipCompat.setTooltipText(this, contentDescription)
-            setOnClickListener { action() }
+            setOnClickListener { adjust(step) }
         }
     private fun dp(value: Int) = (value * activity.resources.displayMetrics.density).toInt()
 

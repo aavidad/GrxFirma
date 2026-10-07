@@ -71,8 +71,8 @@ class VerifyReportSavedTests(unittest.TestCase):
     def test_saved_message_is_announced(self) -> None:
         self.assertIn("nameof(VerifyPageViewModel.ReportSavedMessage)", self.page)
         announce = _between(self.page, "private void AnnounceReportSaved()", "public VerifyPageViewModel ViewModel")
-        self.assertIn("ReportSavedText", announce)
-        self.assertIn("AutomationEvents.LiveRegionChanged", announce)
+        # El ayudante común lanza LiveRegionChanged (véase test_live_region_contract).
+        self.assertIn("LiveAnnouncer.Announce(ReportSavedText)", announce)
 
     def test_saved_message_includes_the_path(self) -> None:
         self.assertEqual(self.vm.count("PickAndSaveTextFileToPathAsync("), 2)

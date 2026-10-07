@@ -179,6 +179,35 @@ Button {
             event.accepted = false
         }
     }
+    // Con la ayuda abierta, las flechas y Re Pág/Av Pág desplazan su texto
+    // aunque el foco siga en el «?» (la ayuda larga no cabe sin desplazarse).
+    function scrollHelp(delta) {
+        if (!helpPopup.opened)
+            return false
+        const maximum = Math.max(0, helpScroll.contentHeight - helpScroll.height)
+        helpScroll.contentY = Math.max(0, Math.min(maximum, helpScroll.contentY + delta))
+        return true
+    }
+    // Lleva a la vista el «+» que recibe el foco.
+    function ensureHelpVisible(item) {
+        if (!item || !helpPopup.opened)
+            return
+        const top = item.mapToItem(helpColumn, 0, 0).y
+        const bottom = top + item.height
+        if (top < helpScroll.contentY)
+            helpScroll.contentY = Math.max(0, top - 4)
+        else if (bottom > helpScroll.contentY + helpScroll.height)
+            helpScroll.contentY = Math.min(Math.max(0, helpScroll.contentHeight - helpScroll.height),
+                                           bottom - helpScroll.height + 4)
+    }
+    Keys.onUpPressed: function(event) { event.accepted = control.scrollHelp(-40) }
+    Keys.onDownPressed: function(event) { event.accepted = control.scrollHelp(40) }
+    Keys.onPressed: function(event) {
+        if (event.key === Qt.Key_PageUp)
+            event.accepted = control.scrollHelp(-helpScroll.height * 0.9)
+        else if (event.key === Qt.Key_PageDown)
+            event.accepted = control.scrollHelp(helpScroll.height * 0.9)
+    }
     // Button solo se activa con Espacio; Intro también abre la ayuda.
     Keys.onReturnPressed: function(event) { toggle(); event.accepted = true }
     Keys.onEnterPressed: function(event) { toggle(); event.accepted = true }
@@ -286,7 +315,14 @@ Button {
                                     control.forceActiveFocus()
                                     event.accepted = true
                                 }
-                                onActiveFocusChanged: if (!activeFocus) Qt.callLater(function() { if (!control.activeFocus && !control.focusInsidePopup()) helpPopup.close() })
+                                Keys.onUpPressed: function(event) { event.accepted = control.scrollHelp(-40) }
+                                Keys.onDownPressed: function(event) { event.accepted = control.scrollHelp(40) }
+                                onActiveFocusChanged: {
+                                    if (activeFocus)
+                                        control.ensureHelpVisible(moreButton)
+                                    else
+                                        Qt.callLater(function() { if (!control.activeFocus && !control.focusInsidePopup()) helpPopup.close() })
+                                }
                                 contentItem: Text {
                                     text: moreButton.text
                                     color: helpPopup.textColor

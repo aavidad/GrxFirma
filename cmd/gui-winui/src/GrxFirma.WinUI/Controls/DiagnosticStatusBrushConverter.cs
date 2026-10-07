@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using GrxFirma.WinUI.Core.Diagnostics;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 
 namespace GrxFirma.WinUI.Controls;
@@ -20,14 +19,15 @@ public sealed class DiagnosticStatusBrushConverter : IValueConverter
         var resourceKey = value is DiagnosticStepStatus status
             ? status switch
             {
-                DiagnosticStepStatus.Success => "AppDiagnosticSuccessBrush",
-                DiagnosticStepStatus.Failure => "AppDiagnosticFailureBrush",
-                DiagnosticStepStatus.Skipped => "AppDiagnosticSkippedBrush",
-                _ => "AppDiagnosticUnknownBrush",
+                DiagnosticStepStatus.Success => ThemeBrushes.Success,
+                DiagnosticStepStatus.Failure => ThemeBrushes.Failure,
+                DiagnosticStepStatus.Skipped => ThemeBrushes.Skipped,
+                _ => ThemeBrushes.Unknown,
             }
-            : "AppDiagnosticUnknownBrush";
+            : ThemeBrushes.Unknown;
 
-        return Application.Current.Resources[resourceKey];
+        // Tema elegido en la aplicación, no el de Windows.
+        return ThemeBrushes.Get(resourceKey);
     }
 
     public object ConvertBack(

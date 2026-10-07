@@ -56,8 +56,7 @@ public static class CertificateValidationDialog
             {
                 Text = row.Label,
                 TextWrapping = TextWrapping.Wrap,
-                Foreground = (Brush)Application.Current.Resources[
-                    "AppMutedTextBrush"],
+                Foreground = ThemeBrushes.Get("AppMutedTextBrush"),
             });
             pair.Children.Add(new TextBlock
             {

@@ -22,7 +22,8 @@ class EniCatalogsContract(unittest.TestCase):
         self.assertNotIn("CalendarDatePicker", page)
         self.assertIn("TimePicker", page)
         self.assertIn("first.Focus(FocusState.Programmatic)", page)
-        self.assertIn("field.ClearValue(Control.BorderBrushProperty)", page)
+        # El borde de error y la ayuda los gestiona FieldValidationFeedback (W-06).
+        self.assertIn("FieldValidationFeedback.Apply(field, detail)", page)
         self.assertNotIn("_docState.Text", page)
         self.assertNotIn("_fileState.Text", page)
 
