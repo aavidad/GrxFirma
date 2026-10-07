@@ -42,12 +42,12 @@ class AboutDialogContractTest(unittest.TestCase):
         ):
             self.assertIn(visible_text, about)
         self.assertIn(
-            'source: "../assets/grxfirma-logo-carbon-256.png"',
+            'source: "../assets/grxfirma-logo-pluma-256.png"',
             about,
         )
         self.assertIn("Layout.preferredWidth: 144", about)
         self.assertIn(
-            "<file>assets/grxfirma-logo-carbon-256.png</file>",
+            "<file>assets/grxfirma-logo-pluma-256.png</file>",
             QRC,
         )
 
@@ -55,13 +55,13 @@ class AboutDialogContractTest(unittest.TestCase):
         sidebar = QML.split('text: tr("NAVEGACIÓN")', 1)[1].split(
             "// Navegación", 1
         )[0]
-        self.assertIn('source: "../assets/grxfirma-logo-carbon-96.png"', sidebar)
+        self.assertIn('source: "../assets/grxfirma-logo-pluma-pequeno-96.png"', sidebar)
         self.assertIn("Layout.preferredWidth: 44", sidebar)
         self.assertIn('text: tr("GrxFirma")', sidebar)
         self.assertIn('Accessible.name: tr("GrxFirma")', sidebar)
         self.assertNotIn("grxfirma-logo-horizontal", QML)
         self.assertIn(
-            "<file>assets/grxfirma-logo-carbon-96.png</file>",
+            "<file>assets/grxfirma-logo-pluma-pequeno-96.png</file>",
             QRC,
         )
 

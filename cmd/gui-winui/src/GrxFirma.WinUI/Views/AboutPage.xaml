@@ -63,7 +63,7 @@
                         Height="144"
                         HorizontalAlignment="Left"
                         AutomationProperties.Name="GrxFirma"
-                        Source="ms-appx:///Assets/grxfirma-logo-carbon-256.png"
+                        Source="ms-appx:///Assets/grxfirma-logo-pluma-256.png"
                         Stretch="Uniform" />
                     <TextBlock
                         AutomationProperties.HeadingLevel="Level2"

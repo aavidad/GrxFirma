@@ -34,7 +34,7 @@
                         Width="44"
                         Height="44"
                         AutomationProperties.Name="GrxFirma"
-                        Source="ms-appx:///Assets/grxfirma-logo-carbon-96.png"
+                        Source="ms-appx:///Assets/grxfirma-logo-pluma-pequeno-96.png"
                         Stretch="Uniform" />
                     <TextBlock
                         VerticalAlignment="Center"

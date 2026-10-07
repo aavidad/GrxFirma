@@ -30,8 +30,8 @@
     <file>qml/EniDateField.qml</file>
     <file>qml/VeriFactuResponse.js</file>
     <file>qml/VerificationSigners.js</file>
-    <file>assets/grxfirma-logo-carbon-96.png</file>
-    <file>assets/grxfirma-logo-carbon-256.png</file>
+    <file>assets/grxfirma-logo-pluma-pequeno-96.png</file>
+    <file>assets/grxfirma-logo-pluma-256.png</file>
     <file>assets/logo_firma_grxfirma_final.png</file>
     <file>assets/eye.svg</file>
     <file>assets/eye_icon.png</file>

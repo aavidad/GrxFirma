@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Logotipo de GrxFirma (versión grande, desde 64 px): monograma GRX sobre una hoja; la X es una rúbrica que escribe una pluma estilográfica. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="GrxFirma">
+  <title>GrxFirma</title>
+  <!-- Hoja azul con borde blanco -->
+  <path d="M38 14 H152 L196 58 V228 A14 14 0 0 1 182 242 H38 A14 14 0 0 1 24 228 V28 A14 14 0 0 1 38 14 Z" fill="#173a4e" stroke="#ffffff" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M152 14 V44 A14 14 0 0 0 166 58 H196" fill="#3d7391" stroke="#ffffff" stroke-width="8" stroke-linejoin="round"/>
+  <!-- G y R -->
+  <g fill="none" stroke="#ffffff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M85 74 A25 25 0 1 0 85 112 V96 H72"/>
+    <path d="M102 114 V70 H120 C137 70 137 93 120 93 H102 M118 93 L136 114"/>
+  </g>
+  <!-- X: trazo recto y rúbrica que termina en la punta de la pluma -->
+  <g fill="none" stroke="#accb49" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M176 72 L148 114" stroke-width="16"/>
+    <path d="M148 72 C160 88 172 104 176 116 C182 134 170 148 146 150 C116 152 82 142 62 160 C48 174 56 192 78 190 C104 188 128 172 150 184 C158 188 162 192 165 197" stroke-width="12"/>
+  </g>
+  <!-- Pluma estilográfica: plumín con ranura y orificio, sección y cuerpo -->
+  <g transform="translate(166 198) rotate(-135)">
+      <path d="M0 0 C4 10 16 22 17 34 C17 42 14 46 13 50 H-13 C-14 46 -17 42 -17 34 C-16 22 -4 10 0 0 Z" fill="#ffffff" stroke="#173a4e" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M0 4 V25" stroke="#173a4e" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="0" cy="29" r="5" fill="#173a4e"/>
+      <rect x="-15" y="50" width="30" height="14" rx="3" fill="#173a4e" stroke="#ffffff" stroke-width="3"/>
+      <path d="M-15 64 H15 V104 A15 15 0 0 1 -15 104 Z" fill="#accb49" stroke="#173a4e" stroke-width="5" stroke-linejoin="round"/>
+  </g>
+</svg>

@@ -5574,7 +5574,7 @@ Window {
                 Layout.topMargin: 8
                 Layout.preferredWidth: 144
                 Layout.preferredHeight: 144
-                source: "../assets/grxfirma-logo-carbon-256.png"
+                source: "../assets/grxfirma-logo-pluma-256.png"
                 sourceSize.width: 256
                 sourceSize.height: 256
                 fillMode: Image.PreserveAspectFit
@@ -8597,7 +8597,7 @@ Window {
                     }
                 }
 
-                // Marca: boceto circular pequeño y el nombre como texto.
+                // Marca: versión pequeña del logotipo (pluma y rúbrica) y el nombre como texto.
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.topMargin: 4
@@ -8609,7 +8609,7 @@ Window {
                     Image {
                         Layout.preferredWidth: 44
                         Layout.preferredHeight: 44
-                        source: "../assets/grxfirma-logo-carbon-96.png"
+                        source: "../assets/grxfirma-logo-pluma-pequeno-96.png"
                         sourceSize.width: 88
                         sourceSize.height: 88
                         fillMode: Image.PreserveAspectFit
