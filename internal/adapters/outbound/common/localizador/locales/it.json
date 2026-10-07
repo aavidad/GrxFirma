@@ -6593,4 +6593,13 @@
   ,"ayuda.mas_nombre": "Ulteriori informazioni su {0}"
   ,"ayuda.opcion": "{0}: {1}"
   ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Aiuto delle opzioni: il «?» di Operazione, Formato e altri selettori mostra tutte le opzioni insieme con una frase ciascuna, e un «+» apre una spiegazione più ampia."
+  ,"winui.actualizaciones.error_proxy": "La rete usa un proxy che non ha consentito la verifica. Puoi vedere se c'è una nuova versione sul sito con «Visualizza le versioni ufficiali»."
+  ,"winui.actualizaciones.error_servicio": "GitHub non ha risposto correttamente. Riprova più tardi o guarda se c'è una nuova versione sul sito con «Visualizza le versioni ufficiali»."
+  ,"winui.actualizaciones.error_tiempo": "La verifica ha richiesto troppo tempo. Riprova più tardi o guarda se c'è una nuova versione sul sito con «Visualizza le versioni ufficiali»."
+  ,"winui.actualizaciones.error_red": "Impossibile connettersi a GitHub. Controlla la connessione a Internet o guarda se c'è una nuova versione sul sito con «Visualizza le versioni ufficiali»."
+  ,"winui.actualizaciones.error_tls": "Impossibile aprire una connessione sicura con GitHub; forse la rete ispeziona il traffico cifrato. Guarda se c'è una nuova versione sul sito con «Visualizza le versioni ufficiali»."
+  ,"winui.actualizaciones.error_otro": "Impossibile verificare la versione. Guarda se c'è una nuova versione sul sito con «Visualizza le versioni ufficiali»."
+  ,"La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial.": "La rete usa un proxy che non ha consentito la verifica. Puoi consultare le versioni pubblicate sul sito ufficiale."
+  ,"winui.actualizaciones.sin_version_estable_titulo": "Nessuna versione stabile pubblicata"
+  ,"winui.actualizaciones.sin_version_estable": "Non c'è nessuna versione stabile pubblicata sul canale ufficiale."
 }

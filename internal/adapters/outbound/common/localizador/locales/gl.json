@@ -6593,4 +6593,13 @@
   ,"ayuda.mas_nombre": "Máis información sobre {0}"
   ,"ayuda.opcion": "{0}: {1}"
   ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Axuda das opcións: o «?» de Operación, Formato e outros selectores mostra todas as opcións á vez cunha frase cada unha, e un «+» desprega unha explicación máis ampla."
+  ,"winui.actualizaciones.error_proxy": "A rede usa un proxy que non permitiu a consulta. Pode ver se hai unha versión nova na web con «Ver as versións oficiais»."
+  ,"winui.actualizaciones.error_servicio": "GitHub non respondeu ben á consulta. Ténteo de novo máis tarde ou vexa se hai unha versión nova na web con «Ver as versións oficiais»."
+  ,"winui.actualizaciones.error_tiempo": "A consulta tardou demasiado. Ténteo de novo máis tarde ou vexa se hai unha versión nova na web con «Ver as versións oficiais»."
+  ,"winui.actualizaciones.error_red": "Non se puido conectar con GitHub. Revise a conexión a internet ou vexa se hai unha versión nova na web con «Ver as versións oficiais»."
+  ,"winui.actualizaciones.error_tls": "Non se puido abrir unha conexión segura con GitHub; pode que a rede revise o tráfico cifrado. Vexa se hai unha versión nova na web con «Ver as versións oficiais»."
+  ,"winui.actualizaciones.error_otro": "Non se puido comprobar a versión. Vexa se hai unha versión nova na web con «Ver as versións oficiais»."
+  ,"La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial.": "A rede usa un proxy que non permitiu a consulta. Pode consultar as versións publicadas na web oficial."
+  ,"winui.actualizaciones.sin_version_estable_titulo": "Sen versión estable publicada"
+  ,"winui.actualizaciones.sin_version_estable": "Non hai ningunha versión estable publicada na canle oficial."
 }

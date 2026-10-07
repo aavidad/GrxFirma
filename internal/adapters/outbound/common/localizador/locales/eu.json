@@ -6593,4 +6593,13 @@
   ,"ayuda.mas_nombre": "{0}(r)i buruzko informazio gehiago"
   ,"ayuda.opcion": "{0}: {1}"
   ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Aukeren laguntza: Eragiketa, Formatua eta beste hautatzaile batzuen «?» botoiak aukera guztiak batera erakusten ditu, bakoitza esaldi batekin, eta «+» batek azalpen zabalagoa zabaltzen du."
+  ,"winui.actualizaciones.error_proxy": "Sareak kontsulta onartu ez duen proxy bat erabiltzen du. Bertsio berririk dagoen webean ikus dezakezu, «Ikusi bertsio ofizialak» erabiliz."
+  ,"winui.actualizaciones.error_servicio": "GitHub-ek ez dio kontsultari ondo erantzun. Saiatu berriro geroago, edo ikusi webean bertsio berririk dagoen «Ikusi bertsio ofizialak» erabiliz."
+  ,"winui.actualizaciones.error_tiempo": "Kontsultak gehiegi iraun du. Saiatu berriro geroago, edo ikusi webean bertsio berririk dagoen «Ikusi bertsio ofizialak» erabiliz."
+  ,"winui.actualizaciones.error_red": "Ezin izan da GitHub-ekin konektatu. Berrikusi Interneteko konexioa, edo ikusi webean bertsio berririk dagoen «Ikusi bertsio ofizialak» erabiliz."
+  ,"winui.actualizaciones.error_tls": "Ezin izan da konexio segurua ireki GitHub-ekin; baliteke sareak trafiko zifratua aztertzea. Ikusi webean bertsio berririk dagoen «Ikusi bertsio ofizialak» erabiliz."
+  ,"winui.actualizaciones.error_otro": "Ezin izan da bertsioa egiaztatu. Ikusi webean bertsio berririk dagoen «Ikusi bertsio ofizialak» erabiliz."
+  ,"La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial.": "Sareak kontsulta onartu ez duen proxy bat erabiltzen du. Argitaratutako bertsioak webgune ofizialean kontsulta ditzakezu."
+  ,"winui.actualizaciones.sin_version_estable_titulo": "Ez dago bertsio egonkorrik argitaratuta"
+  ,"winui.actualizaciones.sin_version_estable": "Ez dago bertsio egonkorrik argitaratuta kanal ofizialean."
 }

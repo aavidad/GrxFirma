@@ -6593,4 +6593,13 @@
   ,"ayuda.mas_nombre": "Weitere Informationen zu {0}"
   ,"ayuda.opcion": "{0}: {1}"
   ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Hilfe zu den Optionen: Das „?“ bei Vorgang, Format und anderen Auswahlfeldern zeigt alle Optionen gleichzeitig mit je einem Satz, und ein „+“ klappt eine ausführlichere Erklärung auf."
+  ,"winui.actualizaciones.error_proxy": "Das Netzwerk verwendet einen Proxy, der die Abfrage nicht zugelassen hat. Ob es eine neue Version gibt, sehen Sie auf der Website über „Offizielle Versionen anzeigen“."
+  ,"winui.actualizaciones.error_servicio": "GitHub hat nicht richtig geantwortet. Versuchen Sie es später erneut oder sehen Sie über „Offizielle Versionen anzeigen“ auf der Website nach einer neuen Version."
+  ,"winui.actualizaciones.error_tiempo": "Die Abfrage hat zu lange gedauert. Versuchen Sie es später erneut oder sehen Sie über „Offizielle Versionen anzeigen“ auf der Website nach einer neuen Version."
+  ,"winui.actualizaciones.error_red": "Keine Verbindung zu GitHub. Prüfen Sie die Internetverbindung oder sehen Sie über „Offizielle Versionen anzeigen“ auf der Website nach einer neuen Version."
+  ,"winui.actualizaciones.error_tls": "Es konnte keine sichere Verbindung zu GitHub hergestellt werden; möglicherweise prüft das Netzwerk verschlüsselten Datenverkehr. Sehen Sie über „Offizielle Versionen anzeigen“ auf der Website nach einer neuen Version."
+  ,"winui.actualizaciones.error_otro": "Die Version konnte nicht geprüft werden. Sehen Sie über „Offizielle Versionen anzeigen“ auf der Website nach einer neuen Version."
+  ,"La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial.": "Das Netzwerk verwendet einen Proxy, der die Abfrage nicht zugelassen hat. Die veröffentlichten Versionen finden Sie auf der offiziellen Website."
+  ,"winui.actualizaciones.sin_version_estable_titulo": "Keine stabile Version veröffentlicht"
+  ,"winui.actualizaciones.sin_version_estable": "Im offiziellen Kanal ist keine stabile Version veröffentlicht."
 }

@@ -17,6 +17,8 @@ public sealed class AboutPageViewModel : ObservableObject
     private const int MaxCurrentSectionCharacters = 8192;
     private readonly IHelpLauncherService _launcher;
     private readonly DesktopOperationSession _session;
+    private readonly OfficialUpdateChecker _officialUpdates;
+    private readonly string _installedVersion;
     private CancellationTokenSource? _pageLifetime;
     private string _statusTitle = Localizer.Text("winui.acerca.informacion_del_proyecto");
     private string _statusMessage =
@@ -32,13 +34,16 @@ public sealed class AboutPageViewModel : ObservableObject
 
     public AboutPageViewModel(
         IHelpLauncherService launcher,
-        DesktopOperationSession session)
+        DesktopOperationSession session,
+        OfficialUpdateChecker? officialUpdates = null)
     {
         ArgumentNullException.ThrowIfNull(launcher);
         ArgumentNullException.ThrowIfNull(session);
         _launcher = launcher;
         _session = session;
+        _officialUpdates = officialUpdates ?? new OfficialUpdateChecker();
         var installedVersion = ResolveInstalledVersion();
+        _installedVersion = installedVersion;
         VersionText = installedVersion == VersionUnavailable
             ? Localizer.Text(installedVersion)
             : Localizer.Fill("winui.acerca.version", ("version", installedVersion));
@@ -184,9 +189,10 @@ public sealed class AboutPageViewModel : ObservableObject
                 result.Outcome != "success" ||
                 result.Data is null)
             {
-                StatusTitle = Localizer.Text("winui.acerca.no_se_pudo_comprobar");
-                StatusMessage = result.SafeUserMessage;
-                StatusSeverity = InfoBarSeverity.Warning;
+                // El motor no lee el proxy del sistema de Windows; la consulta
+                // directa sí lo usa, con las credenciales de Windows solo para
+                // el proxy.
+                await CheckDirectlyAsync(lifetime);
                 return;
             }
 
@@ -250,6 +256,59 @@ public sealed class AboutPageViewModel : ObservableObject
             {
                 IsBusy = false;
                 RefreshAvailability();
+            }
+        }
+    }
+
+    private async Task CheckDirectlyAsync(CancellationTokenSource lifetime)
+    {
+        try
+        {
+            var release = await _officialUpdates.CheckAsync(lifetime.Token);
+            if (!IsCurrentLifetime(lifetime))
+            {
+                return;
+            }
+            var current = CleanVersion(_installedVersion);
+            if (release is null)
+            {
+                StatusTitle = Localizer.Text("winui.actualizaciones.sin_version_estable_titulo");
+                StatusMessage = Localizer.Text("winui.actualizaciones.sin_version_estable");
+                StatusSeverity = InfoBarSeverity.Informational;
+            }
+            else if (OfficialUpdateChecker.IsNewer(_installedVersion, release.Version))
+            {
+                StatusTitle = Localizer.Text("winui.comun.nueva_version_disponible");
+                StatusMessage = Localizer.Fill(
+                    "winui.acerca.esta_disponible_esta_instalacion_usa",
+                    ("latest", CleanVersion(release.Version)), ("current", current));
+                StatusSeverity = InfoBarSeverity.Warning;
+            }
+            else if (!OfficialUpdateChecker.IsComparable(_installedVersion))
+            {
+                StatusTitle = Localizer.Text("winui.acerca.build_no_comparable");
+                StatusMessage = Localizer.Fill(
+                    "winui.acerca.la_ultima_version_publicada_es_pero_este",
+                    ("latest", CleanVersion(release.Version)));
+                StatusSeverity = InfoBarSeverity.Informational;
+            }
+            else
+            {
+                StatusTitle = Localizer.Text("winui.acerca.grxfirma_esta_actualizado");
+                StatusMessage = Localizer.Fill(
+                    "winui.acerca.la_version_instalada_es_la_ultima",
+                    ("current", current));
+                StatusSeverity = InfoBarSeverity.Success;
+            }
+        }
+        catch (OfficialUpdateCheckException error)
+        {
+            (Microsoft.UI.Xaml.Application.Current as App)?.LogAutomaticUpdateFailure(error);
+            if (IsCurrentLifetime(lifetime))
+            {
+                StatusTitle = Localizer.Text("winui.acerca.no_se_pudo_comprobar");
+                StatusMessage = Localizer.Text(error.Failure.MessageKey);
+                StatusSeverity = InfoBarSeverity.Warning;
             }
         }
     }

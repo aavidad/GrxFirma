@@ -284,7 +284,21 @@ public partial class App : Application
             _tray?.ShowUpdateNotification(message);
     }
 
-    internal void LogAutomaticUpdateFailure(Exception error)
+    // Solo el tipo de fallo y su código HTTP (p. ej. «proxy_auth_required
+    // 407»): nunca la URL del proxy, credenciales ni el texto de la excepción.
+    internal void LogAutomaticUpdateFailure(Exception error) =>
+        AppendUpdateLog($"{error.GetType().Name} {UpdateCheckFailure.Classify(error).LogCode}");
+
+    // Código estable devuelto por el motor (p. ej. «update_proxy_unavailable»).
+    internal void LogEngineUpdateFailure(string? errorCode)
+    {
+        var code = errorCode ?? string.Empty;
+        if (code.Length is 0 or > 64 || !code.All(c => c is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_'))
+            code = "engine_unavailable";
+        AppendUpdateLog("engine " + code);
+    }
+
+    private static void AppendUpdateLog(string entry)
     {
         try
         {
@@ -295,7 +309,7 @@ public partial class App : Application
             if (File.Exists(path) && new FileInfo(path).Length > 256 * 1024)
                 File.Delete(path);
             File.AppendAllText(path,
-                $"{DateTimeOffset.Now:O} {error.GetType().Name}{Environment.NewLine}");
+                $"{DateTimeOffset.Now:O} {entry}{Environment.NewLine}");
         }
         catch (Exception ignored) when (ignored is IOException or UnauthorizedAccessException) { }
     }

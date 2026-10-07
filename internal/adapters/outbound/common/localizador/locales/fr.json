@@ -6593,4 +6593,13 @@
   ,"ayuda.mas_nombre": "Plus d’informations sur {0}"
   ,"ayuda.opcion": "{0} : {1}"
   ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Aide des options : le « ? » d'Opération, de Format et d'autres sélecteurs affiche toutes les options à la fois avec une phrase chacune, et un « + » déploie une explication plus détaillée."
+  ,"winui.actualizaciones.error_proxy": "Le réseau utilise un proxy qui n'a pas autorisé la vérification. Vous pouvez voir s'il existe une nouvelle version sur le site avec « Voir les versions officielles »."
+  ,"winui.actualizaciones.error_servicio": "GitHub n'a pas répondu correctement. Réessayez plus tard ou voyez s'il existe une nouvelle version sur le site avec « Voir les versions officielles »."
+  ,"winui.actualizaciones.error_tiempo": "La vérification a pris trop de temps. Réessayez plus tard ou voyez s'il existe une nouvelle version sur le site avec « Voir les versions officielles »."
+  ,"winui.actualizaciones.error_red": "Impossible de se connecter à GitHub. Vérifiez la connexion Internet ou voyez s'il existe une nouvelle version sur le site avec « Voir les versions officielles »."
+  ,"winui.actualizaciones.error_tls": "Impossible d'ouvrir une connexion sécurisée avec GitHub ; le réseau inspecte peut-être le trafic chiffré. Voyez s'il existe une nouvelle version sur le site avec « Voir les versions officielles »."
+  ,"winui.actualizaciones.error_otro": "Impossible de vérifier la version. Voyez s'il existe une nouvelle version sur le site avec « Voir les versions officielles »."
+  ,"La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial.": "Le réseau utilise un proxy qui n'a pas autorisé la vérification. Vous pouvez consulter les versions publiées sur le site officiel."
+  ,"winui.actualizaciones.sin_version_estable_titulo": "Aucune version stable publiée"
+  ,"winui.actualizaciones.sin_version_estable": "Aucune version stable n'est publiée sur le canal officiel."
 }

@@ -6593,4 +6593,13 @@
   ,"ayuda.mas_nombre": "More information about {0}"
   ,"ayuda.opcion": "{0}: {1}"
   ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Option help: the “?” for Operation, Format and other selectors now shows every option at once with one sentence each, and a “+” expands a longer explanation."
+  ,"winui.actualizaciones.error_proxy": "The network uses a proxy that did not allow the check. You can see whether there is a new version on the website with «View official releases»."
+  ,"winui.actualizaciones.error_servicio": "GitHub did not answer the check properly. Try again later, or see whether there is a new version on the website with «View official releases»."
+  ,"winui.actualizaciones.error_tiempo": "The check took too long. Try again later, or see whether there is a new version on the website with «View official releases»."
+  ,"winui.actualizaciones.error_red": "Could not connect to GitHub. Check your internet connection, or see whether there is a new version on the website with «View official releases»."
+  ,"winui.actualizaciones.error_tls": "Could not open a secure connection to GitHub; the network may be inspecting encrypted traffic. See whether there is a new version on the website with «View official releases»."
+  ,"winui.actualizaciones.error_otro": "Could not check the version. See whether there is a new version on the website with «View official releases»."
+  ,"La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial.": "The network uses a proxy that did not allow the check. You can see the published versions on the official website."
+  ,"winui.actualizaciones.sin_version_estable_titulo": "No stable version published"
+  ,"winui.actualizaciones.sin_version_estable": "There is no stable version published on the official channel."
 }

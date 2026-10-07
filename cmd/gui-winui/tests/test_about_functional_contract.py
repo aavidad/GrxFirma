@@ -163,8 +163,31 @@ class AboutFunctionalContractTests(unittest.TestCase):
         self.assertIn('StatusTitle = result.Data.Title;', self.view_model)
         self.assertLess(self.view_model.index('result.Data.State == "sin_publicaciones"'), self.view_model.index('result.Data.HasNewVersion'))
 
-    def test_update_failure_displays_safe_ipc_message(self) -> None:
-        self.assertIn('StatusMessage = result.SafeUserMessage;', self.view_model)
+    def test_update_failure_retries_directly_and_explains_the_cause(self) -> None:
+        # El motor no usa el proxy del sistema de Windows: si falla, se
+        # consulta directamente y el mensaje depende del motivo clasificado.
+        failure = self.view_model.index('result.Data is null)')
+        self.assertLess(failure, self.view_model.index('await CheckDirectlyAsync(lifetime);'))
+        self.assertIn('_officialUpdates.CheckAsync(lifetime.Token)', self.view_model)
+        self.assertIn('catch (OfficialUpdateCheckException error)', self.view_model)
+        self.assertIn('StatusMessage = Localizer.Text(error.Failure.MessageKey);', self.view_model)
+        self.assertIn('LogAutomaticUpdateFailure(error)', self.view_model)
+        self.assertNotIn('StatusMessage = result.SafeUserMessage;', self.view_model)
+
+    def test_update_failure_messages_exist_in_every_catalog(self) -> None:
+        import json
+        import re
+        source = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI.Core/Operations/UpdateCheckFailure.cs").read_text(encoding="utf-8")
+        keys = set(re.findall(r'"(winui\.actualizaciones\.[a-z_]+)"', source))
+        keys |= set(re.findall(r'"(winui\.actualizaciones\.[a-z_]+)"', VIEW_MODEL.read_text(encoding="utf-8")))
+        self.assertGreaterEqual(len(keys), 7)
+        catalogs = sorted((ROOT / "internal/adapters/outbound/common/localizador/locales").glob("*.json"))
+        self.assertEqual(len(catalogs), 11)
+        for catalog in catalogs:
+            values = json.loads(catalog.read_text(encoding="utf-8"))
+            for key in keys:
+                with self.subTest(catalog=catalog.stem, key=key):
+                    self.assertTrue(values.get(key, "").strip())
 
 
 if __name__ == "__main__":

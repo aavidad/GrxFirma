@@ -6593,4 +6593,13 @@
   ,"ayuda.mas_nombre": "Més informació sobre {0}"
   ,"ayuda.opcion": "{0}: {1}"
   ,"Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.": "Ajuda de les opcions: el «?» d'Operació, Format i altres selectors mostra totes les opcions alhora amb una frase cadascuna, i un «+» desplega una explicació més àmplia."
+  ,"winui.actualizaciones.error_proxy": "La xarxa utilitza un servidor intermediari que no ha permés la consulta. Podeu vore si hi ha una versió nova en la web amb «Vore les versions oficials»."
+  ,"winui.actualizaciones.error_servicio": "GitHub no ha respost bé a la consulta. Torneu-ho a intentar més tard o mireu si hi ha una versió nova en la web amb «Vore les versions oficials»."
+  ,"winui.actualizaciones.error_tiempo": "La consulta ha tardat massa. Torneu-ho a intentar més tard o mireu si hi ha una versió nova en la web amb «Vore les versions oficials»."
+  ,"winui.actualizaciones.error_red": "No s'ha pogut connectar amb GitHub. Reviseu la connexió a internet o mireu si hi ha una versió nova en la web amb «Vore les versions oficials»."
+  ,"winui.actualizaciones.error_tls": "No s'ha pogut obrir una connexió segura amb GitHub; potser la xarxa revisa el trànsit xifrat. Mireu si hi ha una versió nova en la web amb «Vore les versions oficials»."
+  ,"winui.actualizaciones.error_otro": "No s'ha pogut comprovar la versió. Mireu si hi ha una versió nova en la web amb «Vore les versions oficials»."
+  ,"La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial.": "La xarxa utilitza un servidor intermediari que no ha permés la consulta. Podeu consultar les versions publicades en la web oficial."
+  ,"winui.actualizaciones.sin_version_estable_titulo": "Sense versió estable publicada"
+  ,"winui.actualizaciones.sin_version_estable": "No hi ha cap versió estable publicada en el canal oficial."
 }
