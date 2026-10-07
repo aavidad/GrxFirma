@@ -81,6 +81,8 @@ public static class DesktopOperationActions
     public const string CscConnect = "csc_connect";
     public const string CscDisconnect = "csc_disconnect";
     public const string CscSendOtp = "csc_send_otp";
+    public const string AfirmaHandlerStatus = "afirma_handler_status";
+    public const string AfirmaHandlerSelect = "afirma_handler_select";
 }
 
 /// <summary>
@@ -762,6 +764,35 @@ public sealed class DesktopOperationsClient
                 DesktopOperationActions.ClearTlsTrust,
                 new ClearTlsTrustParameters(),
                 cancellationToken);
+
+    public Task<IpcCallResult<AfirmaHandlerStatus>> GetAfirmaHandlerStatusAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<
+            AfirmaHandlerStatusParameters,
+            AfirmaHandlerStatus>(
+                DesktopOperationActions.AfirmaHandlerStatus,
+                new AfirmaHandlerStatusParameters(),
+                cancellationToken);
+
+    /// <summary>
+    /// Pide al motor que el programa indicado atienda afirma://. Solo admite
+    /// GrxFirma o AutoFirma; el motor comprueba la propiedad del registro.
+    /// </summary>
+    public Task<IpcCallResult<AfirmaHandlerStatus>> SelectAfirmaHandlerAsync(
+        string handler,
+        CancellationToken cancellationToken = default)
+    {
+        if (!AfirmaHandlerChoices.IsSelectable(handler))
+        {
+            throw new ArgumentOutOfRangeException(nameof(handler));
+        }
+        return _ipcClient.SendAsync<
+            AfirmaHandlerSelectParameters,
+            AfirmaHandlerStatus>(
+                DesktopOperationActions.AfirmaHandlerSelect,
+                new AfirmaHandlerSelectParameters(handler),
+                cancellationToken);
+    }
 
     private static void ValidateCredentialBuffers(
         byte[]? credential,

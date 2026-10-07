@@ -127,6 +127,9 @@ public:
   Q_INVOKABLE void exportDiagnosticReport();
   Q_INVOKABLE void clearTLSTrustStore();
   Q_INVOKABLE void reinstallBrowserConnectors();
+  // Programa que abre las firmas de los portales (afirma://), solo Windows.
+  Q_INVOKABLE void getAfirmaHandlerStatus();
+  Q_INVOKABLE void selectAfirmaHandler(const QString &handler);
   // Service management
   Q_INVOKABLE void getServiceStatus();
   Q_INVOKABLE void installService();
@@ -176,6 +179,8 @@ signals:
   void hashCreateFinished(bool success, QString message, QVariantMap result);
   void hashCheckFinished(bool success, QString message, QVariantMap result);
   void backendLogReceived(QString log);
+  void afirmaHandlerFinished(QString action, bool ok, QVariantMap status,
+                             QString errorCode);
   void serviceStatusReceived(bool installed, bool running, QString platform,
                              QString method);
   void serviceActionFinished(bool ok, QString message);

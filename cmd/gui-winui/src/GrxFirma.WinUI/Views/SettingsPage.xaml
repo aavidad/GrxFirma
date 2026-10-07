@@ -286,6 +286,69 @@
                     </StackPanel>
                 </Border>
 
+                <Border
+                    x:Name="AfirmaHandlerCard"
+                    Style="{StaticResource AppCardStyle}"
+                    Visibility="Collapsed">
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            x:Name="AfirmaHandlerTitle"
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock
+                            x:Name="AfirmaHandlerDescription"
+                            Foreground="{ThemeResource AppMutedTextBrush}"
+                            TextWrapping="Wrap" />
+                        <controls:HelpRow>
+                            <StackPanel
+                                x:Name="AfirmaHandlerOptions"
+                                HorizontalAlignment="Left"
+                                Spacing="4">
+                                <RadioButton
+                                    x:Name="AfirmaGrxFirmaRadio"
+                                    AutomationProperties.Name="{Binding Content, ElementName=AfirmaGrxFirmaRadio}"
+                                    Checked="OnAfirmaHandlerChecked"
+                                    GroupName="AfirmaHandler"
+                                    TabIndex="19" />
+                                <RadioButton
+                                    x:Name="AfirmaAutoFirmaRadio"
+                                    AutomationProperties.Name="{Binding Content, ElementName=AfirmaAutoFirmaRadio}"
+                                    Checked="OnAfirmaHandlerChecked"
+                                    GroupName="AfirmaHandler"
+                                    TabIndex="20" />
+                            </StackPanel>
+                            <controls:HelpButton
+                                x:Name="AfirmaHandlerHelp"
+                                Topic="protocolo.selector"
+                                HelpKey="ayuda.protocolo"
+                                Options="protocolo.opcion.grxfirma=ayuda.protocolo.grxfirma protocolo.opcion.autofirma=ayuda.protocolo.autofirma"
+                                VerticalAlignment="Top"
+                                TabIndex="21" />
+                        </controls:HelpRow>
+                        <TextBlock
+                            x:Name="AfirmaAutoFirmaMissingText"
+                            Foreground="{ThemeResource AppMutedTextBrush}"
+                            TextWrapping="Wrap"
+                            Visibility="Collapsed" />
+                        <TextBlock
+                            x:Name="AfirmaHandlerErrorText"
+                            AutomationProperties.LiveSetting="Assertive"
+                            Foreground="{ThemeResource AppDiagnosticFailureBrush}"
+                            TextWrapping="Wrap"
+                            Visibility="Collapsed" />
+                        <TextBlock
+                            x:Name="AfirmaHandlerStatusText"
+                            AutomationProperties.LiveSetting="Polite"
+                            TextWrapping="Wrap" />
+                        <Button
+                            x:Name="AfirmaHandlerRefreshButton"
+                            MinHeight="40"
+                            AutomationProperties.Name="{Binding Content, ElementName=AfirmaHandlerRefreshButton}"
+                            Click="OnRefreshAfirmaHandlerClick"
+                            TabIndex="22" />
+                    </StackPanel>
+                </Border>
+
                 <Border Style="{StaticResource AppCardStyle}">
                     <StackPanel Spacing="14">
                         <TextBlock
@@ -298,12 +361,12 @@
                                 Content="Usar proxy"
                                 IsChecked="{x:Bind ViewModel.ProxyEnabled, Mode=TwoWay}"
                                 IsEnabled="{x:Bind ViewModel.CanEdit, Mode=OneWay}"
-                                TabIndex="19" />
+                                TabIndex="23" />
                             <controls:HelpButton
                                 Topic="Usar proxy"
                                 HelpKey="ayuda.proxy"
                                 VerticalAlignment="Center"
-                                TabIndex="20" />
+                                TabIndex="24" />
                         </controls:HelpRow>
                         <Grid ColumnSpacing="12" RowSpacing="12">
                             <Grid.ColumnDefinitions>
@@ -322,7 +385,7 @@
                                 IsEnabled="{x:Bind ViewModel.CanChooseProxyType, Mode=OneWay}"
                                 ItemsSource="{x:Bind ViewModel.ProxyTypes}"
                                 SelectedItem="{x:Bind ViewModel.SelectedProxyType, Mode=TwoWay}"
-                                TabIndex="21" />
+                                TabIndex="25" />
                             <TextBox
                                 x:Name="ProxyHostTextBox"
                                 Grid.Row="1"
@@ -332,7 +395,7 @@
                                 IsEnabled="{x:Bind ViewModel.CanEditManualProxy, Mode=OneWay}"
                                 MaxLength="512"
                                 PlaceholderText="proxy.organizacion.es"
-                                TabIndex="22"
+                                TabIndex="26"
                                 Text="{x:Bind ViewModel.ProxyHost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock x:Name="ProxyHostFieldError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
                         </Grid>
@@ -354,7 +417,7 @@
                                 IsEnabled="{x:Bind ViewModel.CanEditManualProxy, Mode=OneWay}"
                                 MaxLength="5"
                                 PlaceholderText="8080"
-                                TabIndex="23"
+                                TabIndex="27"
                                 Text="{x:Bind ViewModel.ProxyPortText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock x:Name="ProxyPortFieldError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
                             <TextBlock
@@ -372,7 +435,7 @@
                             MaxLength="32768"
                             MinHeight="88"
                             PlaceholderText="localhost&#x0a;127.0.0.1&#x0a;*.organizacion.es"
-                            TabIndex="24"
+                            TabIndex="28"
                             Text="{x:Bind ViewModel.ProxyExcludedUrlsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             TextWrapping="Wrap" />
                         <Border
@@ -399,7 +462,7 @@
                                     Click="OnRefreshProxySecretStatusClick"
                                     Content="Actualizar estado"
                                     IsEnabled="{x:Bind ViewModel.CanRefreshProxySecretStatus, Mode=OneWay}"
-                                    TabIndex="25" />
+                                    TabIndex="29" />
                             </StackPanel>
                         </Border>
                         <StackPanel Spacing="10">
@@ -427,7 +490,7 @@
                                     IsEnabled="{x:Bind ViewModel.CanEditManualProxy, Mode=OneWay}"
                                     MaxLength="256"
                                     PlaceholderText="proxy-corporativo"
-                                    TabIndex="26"
+                                    TabIndex="30"
                                     Text="{x:Bind ViewModel.ProxyRealm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBox
                                     x:Name="ProxyUsername"
@@ -437,7 +500,7 @@
                                     IsEnabled="{x:Bind ViewModel.CanEditManualProxy, Mode=OneWay}"
                                     MaxLength="256"
                                     PlaceholderText="usuario"
-                                    TabIndex="27"
+                                    TabIndex="31"
                                     Text="{x:Bind ViewModel.ProxyUsername, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </Grid>
                             <controls:ResponsiveActionPanel
@@ -450,14 +513,14 @@
                                     Content="Guardar o cambiar credenciales"
                                     IsEnabled="{x:Bind ViewModel.CanStoreProxyCredentials, Mode=OneWay}"
                                     Style="{StaticResource AccentButtonStyle}"
-                                    TabIndex="28" />
+                                    TabIndex="32" />
                                 <Button MinHeight="40"
                                     AutomationProperties.HelpText="Solicita confirmación antes de retirar la credencial del almacén protegido."
                                     AutomationProperties.Name="Quitar credenciales del proxy"
                                     Click="OnDeleteProxyCredentialsClick"
                                     Content="Quitar credenciales"
                                     IsEnabled="{x:Bind ViewModel.CanDeleteProxyCredentials, Mode=OneWay}"
-                                    TabIndex="29" />
+                                    TabIndex="33" />
                             </controls:ResponsiveActionPanel>
                         </StackPanel>
                     </StackPanel>
@@ -474,7 +537,7 @@
                                 Topic="winui.parity.rest.title"
                                 HelpKey="ayuda.rest_local"
                                 VerticalAlignment="Center"
-                                TabIndex="30" />
+                                TabIndex="34" />
                         </controls:HelpRow>
                         <TextBlock x:Name="RestStatusText"
                             AutomationProperties.LiveSetting="Polite"
@@ -483,24 +546,24 @@
                             IsReadOnly="True"
                             Visibility="Collapsed"
                             AutomationProperties.Name="{Binding Header, ElementName=RestTokenText}"
-                            TabIndex="31" />
+                            TabIndex="35" />
                         <controls:ResponsiveActionPanel Orientation="Horizontal" Spacing="8">
                             <Button x:Name="RestRefreshButton" MinHeight="40"
                                 Click="OnRefreshRestClick"
                             AutomationProperties.Name="{Binding Content, ElementName=RestRefreshButton}"
-                            TabIndex="32" />
+                            TabIndex="36" />
                             <Button x:Name="RestStartButton" MinHeight="40"
                                 Click="OnStartRestClick"
                             AutomationProperties.Name="{Binding Content, ElementName=RestStartButton}"
-                            TabIndex="33" />
+                            TabIndex="37" />
                             <Button x:Name="RestStopButton" MinHeight="40"
                                 Click="OnStopRestClick"
                             AutomationProperties.Name="{Binding Content, ElementName=RestStopButton}"
-                            TabIndex="34" />
+                            TabIndex="38" />
                             <Button x:Name="RestOpenButton" MinHeight="40"
                                 Click="OnOpenRestClick"
                             AutomationProperties.Name="{Binding Content, ElementName=RestOpenButton}"
-                            TabIndex="35" />
+                            TabIndex="39" />
                         </controls:ResponsiveActionPanel>
                     </StackPanel>
                 </Border>
@@ -521,7 +584,7 @@
                         Click="OnReloadClick"
                         Content="Recargar"
                         IsEnabled="{x:Bind ViewModel.CanReload, Mode=OneWay}"
-                        TabIndex="36" />
+                        TabIndex="40" />
                     <Button MinHeight="40"
                         x:Name="SaveButton"
                         HorizontalAlignment="Stretch"
@@ -531,13 +594,13 @@
                         Content="Guardar preferencias"
                         IsEnabled="{x:Bind ViewModel.CanSave, Mode=OneWay}"
                         Style="{StaticResource AccentButtonStyle}"
-                        TabIndex="37" />
+                        TabIndex="41" />
                     <Button MinHeight="40"
                         AutomationProperties.Name="Cancelar operación de configuración"
                         Click="OnCancelClick"
                         Content="Cancelar operación"
                         IsEnabled="{x:Bind ViewModel.CanCancel, Mode=OneWay}"
-                        TabIndex="38" />
+                        TabIndex="42" />
                     <ProgressRing
                         Width="28"
                         Height="28"

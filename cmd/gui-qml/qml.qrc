@@ -13,6 +13,7 @@
     <file>qml/ThemeContrast.js</file>
     <file>qml/ThemedButton.qml</file>
     <file>qml/ThemedCheckBox.qml</file>
+    <file>qml/ThemedRadioButton.qml</file>
     <file>qml/HelpButton.qml</file>
     <file>qml/ThemedSwitch.qml</file>
     <file>qml/AccessibleLabel.js</file>

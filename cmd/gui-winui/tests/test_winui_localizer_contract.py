@@ -91,6 +91,8 @@ MACHINE_WORDS = {
     "usable", "va", "valid", "verify", "version", "xades", "xmldsig", "zh",
     # Marcadores {label} y {value} de winui.selector.etiqueta_valor.
     "label", "value",
+    # Programas que atienden afirma:// en el contrato IPC del selector.
+    "grxfirma", "autofirma", "other",
 }
 # Nombres de clases nativas Win32 y funciones importadas; nunca son texto UI.
 WIN32_NAMES = {

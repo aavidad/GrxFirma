@@ -30,7 +30,7 @@ XNAME = "{http://schemas.microsoft.com/winfx/2006/xaml}Name"
 EXPECTED = {
     "SignPage.xaml": 19,
     "VerifyPage.xaml": 6,
-    "SettingsPage.xaml": 8,
+    "SettingsPage.xaml": 9,
     "CertificatesPage.xaml": 3,
     "ProtectPage.xaml": 7,
     "HashPage.xaml": 4,

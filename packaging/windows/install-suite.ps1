@@ -87,7 +87,11 @@ if (-not $restartFrontend) {
     if (Test-GrxFirmaStartupEnabled) { $restartFrontend = "winui" }
 }
 if ($restartFrontend) {
-    New-Item -Path $restartKey -Force | Out-Null
+    # New-Item -Force sobre una clave existente la vacía: borraría InstallDir
+    # y la elección del programa que atiende afirma://.
+    if (-not (Test-Path -LiteralPath $restartKey)) {
+        New-Item -Path $restartKey | Out-Null
+    }
     New-ItemProperty -Path $restartKey -Name $restartName -PropertyType String -Value $restartFrontend -Force | Out-Null
 }
 

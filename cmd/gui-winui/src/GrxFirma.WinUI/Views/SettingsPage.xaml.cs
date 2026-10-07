@@ -130,6 +130,7 @@ public sealed partial class SettingsPage : Page
         SetRestButtonLabel(RestStopButton, Label("winui.parity.rest.stop"));
         SetRestButtonLabel(RestOpenButton, Label("winui.parity.rest.open"));
         RestStatusText.Text = Label("winui.parity.rest.unknown");
+        ApplyAfirmaHandlerLabels();
     }
 
     private static void SetRestButtonLabel(Button button, string label)
@@ -244,6 +245,8 @@ public sealed partial class SettingsPage : Page
             await ViewModel.RefreshProxySecretStatusAsync();
         }
         await RefreshRestAsync();
+        Session.AvailabilityChanged += OnAfirmaSessionAvailabilityChanged;
+        await RefreshAfirmaHandlerAsync();
     }
 
     private void OnUnloaded(
@@ -257,6 +260,7 @@ public sealed partial class SettingsPage : Page
 
         _isLoaded = false;
         _startupLoaded = false;
+        Session.AvailabilityChanged -= OnAfirmaSessionAvailabilityChanged;
         var cancellation = Interlocked.Exchange(
             ref _pageCancellation,
             null);

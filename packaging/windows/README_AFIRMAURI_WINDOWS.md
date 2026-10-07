@@ -70,6 +70,39 @@ Suite, se detiene y pide retirarla primero desde **Configuración > Aplicaciones
 aceptando el aviso UAC, o ejecutando el `uninstall.exe` antiguo como
 administrador. Después puede instalarse normalmente la edición por usuario.
 
+## Convivencia con AutoFirma
+
+GrxFirma y AutoFirma (la aplicación Java del Gobierno) pueden estar instalados
+a la vez. AutoFirma registra `afirma://` para todo el equipo en
+`HKLM\Software\Classes\afirma`; GrxFirma lo registra para el usuario en
+`HKCU\Software\Classes\afirma`, que tiene prioridad.
+
+En **Configuración > Firmas desde los portales** (WinUI y Qt) se elige cuál
+abre las firmas de los portales:
+
+- **AutoFirma**: el motor retira el registro HKCU de GrxFirma y restaura lo que
+  hubiera antes de GrxFirma (normalmente nada, y Windows usa el de AutoFirma).
+  Solo se ofrece si AutoFirma tiene registrado `afirma://` y existe su
+  `Autofirma.exe`.
+- **GrxFirma**: vuelve a registrar HKCU con la misma instantánea
+  (`afirma-protocol-snapshot.json`).
+
+El motor lo hace con la API del registro, sin PowerShell, y con las mismas
+comprobaciones de propiedad que el instalador: si otro programa ha cambiado el
+registro, no toca nada. La elección se guarda en
+`HKCU\Software\GrxFirma\AfirmaProtocolHandler`; una actualización la
+respeta mientras AutoFirma siga instalado y el registro siga retirado.
+
+Puertos: el portal elige al azar uno o varios puertos (de 49152 a 65535) y los
+manda en el enlace `afirma://`; solo el programa que Windows lanza los abre, así
+que con AutoFirma elegido GrxFirma no escucha en ellos. Los servicios opcionales
+de GrxFirma (servidor REST local en 63118 y servicio WebSocket residente en
+8080-8089) están desactivados por defecto y no atienden enlaces `afirma://`
+cuando no es GrxFirma quien los recibe; si el portal eligiera justo un puerto
+ocupado, AutoFirma prueba los siguientes de la lista.
+La extensión de GrxFirma para el navegador usa Native Messaging, no
+`afirma://`, y sigue funcionando con cualquiera de las dos opciones.
+
 ## Diagnóstico
 
 El paquete se compila con la etiqueta `production`: no instala un lanzador de
