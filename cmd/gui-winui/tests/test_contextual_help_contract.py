@@ -192,6 +192,15 @@ class ContextualHelpContractTests(unittest.TestCase):
         for language, catalog in self.catalogs.items():
             self.assertIn("{1}", catalog["ayuda.opcion"], language)
 
+    def test_italian_help_uses_informal_register_like_the_rest(self):
+        # El catálogo italiano tutea; las ayudas no deben tratar de «Lei».
+        formal = re.compile(r"\b(?:Lei|Le|Suo|Sua|Suoi|Sue|Gliel\w*|Glieli|contattarLa|Premere)\b")
+        italian = self.catalogs["it"]
+        for key, value in italian.items():
+            if key.startswith(("ayuda.", "perfil_firma.ayuda.")):
+                with self.subTest(key=key):
+                    self.assertIsNone(formal.search(value), value)
+
     def test_more_button_is_a_real_expandable_button(self):
         code = (UI / "Controls/HelpButton.cs").read_text(encoding="utf-8")
         # «+» al final de la frase cuando el catálogo tiene «<clave>.mas».
