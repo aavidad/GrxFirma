@@ -1,0 +1,4 @@
+• Nuevo logotipo de GrxFirma y vuelve el icono GRX.
+• Botón «?» junto a cada opción técnica; también explica los perfiles B, T, LT y LTA.
+• El editor del sello muestra todos sus botones y pone el mismo sello que la versión de escritorio.
+• En móviles sin NFC, el botón del DNIe queda desactivado.

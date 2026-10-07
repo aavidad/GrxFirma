@@ -1,0 +1,4 @@
+• Novo logótipo do GrxFirma, e o ícone GRX está de volta.
+• Botão «?» junto de cada opção técnica; também explica os perfis B, T, LT e LTA.
+• O editor do selo mostra todos os botões e coloca o mesmo selo que a versão de computador.
+• Nos telemóveis sem NFC, o botão do DNIe fica desativado.

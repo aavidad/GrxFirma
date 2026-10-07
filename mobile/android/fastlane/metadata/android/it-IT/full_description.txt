@@ -1,0 +1,23 @@
+GrxFirma firma documenti e verifica firme elettroniche direttamente sul telefono. È software libero con licenza EUPL 1.2, non chiede alcun account e non invia i tuoi documenti a nessun server.
+
+Firmare
+• PDF firmato (PAdES) con un timbro visibile, che puoi posizionare, spostare e ridimensionare sulla pagina prima di firmare.
+• Firma in un file separato (CAdES) e XML firmato (XAdES). Nelle opzioni avanzate ci sono anche XMLdSig, ODF, OOXML, FacturaE e ASiC-XAdES, la cofirma e data e ora certificate.
+• Con il file del tuo certificato (.p12 o .pfx) o con la carta d'identità elettronica spagnola (DNIe), avvicinandola al telefono tramite NFC. Con il DNIe la chiave non esce mai dalla carta.
+• Fino a 16 file alla volta con lo stesso certificato.
+
+Verificare
+• Verifica firme PAdES, CAdES e XAdES e spiega il risultato in linguaggio chiaro: se il documento è cambiato, se il certificato era valido, se ci si fida di chi lo ha emesso e se è stato possibile controllare la revoca.
+• Salva un rapporto stampabile (HTML) per conservare il risultato.
+
+Altri strumenti
+• Creare e verificare documenti elettronici ENI, e creare un fascicolo ENI con i documenti di una cartella.
+• Creare e verificare le impronte di un file, e proteggere un file per persone precise o con una password.
+• Leggere il QR fiscale di una fattura spagnola e verificare registri Veri*Factu.
+
+Privacy
+L'app si connette a Internet solo quando lo chiedi: per aggiungere data e ora certificate, verificare se un certificato è revocato, verificare un QR con l'Agenzia delle Entrate spagnola (AEAT) o cercare aggiornamenti. Non salva password, PIN né certificati, non mostra pubblicità e non raccoglie statistiche d'uso.
+
+Disponibile in spagnolo, catalano, valenciano, galiziano, basco, inglese, francese, tedesco, italiano, portoghese e cinese.
+
+Codice sorgente: https://github.com/aavidad/GrxFirma

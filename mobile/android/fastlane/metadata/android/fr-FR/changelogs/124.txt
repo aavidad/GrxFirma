@@ -1,0 +1,4 @@
+• Nouveau logo de GrxFirma, et l'icône GRX est de retour.
+• Un bouton « ? » à côté de chaque option technique ; il explique aussi les profils B, T, LT et LTA.
+• L'éditeur du cachet affiche tous ses boutons et pose le même cachet que la version de bureau.
+• Sur les téléphones sans NFC, le bouton du DNIe est désactivé.

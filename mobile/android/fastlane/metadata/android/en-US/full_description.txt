@@ -1,0 +1,23 @@
+GrxFirma signs documents and checks electronic signatures on the phone itself. It is free software under the EUPL 1.2, needs no account and does not send your documents to any server.
+
+Sign
+• Signed PDF (PAdES) with a visible seal that you can place, move and resize on the page before signing.
+• Signature in a separate file (CAdES) and signed XML (XAdES). The advanced options also offer XMLdSig, ODF, OOXML, FacturaE and ASiC-XAdES, co-signing and a certified date and time.
+• With your certificate file (.p12 or .pfx) or with the Spanish electronic ID card (DNIe), held to the phone over NFC. With the DNIe, the key never leaves the card.
+• Up to 16 files at once with the same certificate.
+
+Verify
+• Checks PAdES, CAdES and XAdES signatures and explains the result in plain language: whether the document has changed, whether the certificate was valid, whether its issuer is trusted and whether revocation could be checked.
+• Saves a printable report (HTML) so you can keep the result.
+
+Other tools
+• Create and check ENI electronic documents, and build an ENI file from the documents in a folder.
+• Create and check file fingerprints, and protect a file for specific people or with a password.
+• Read the tax QR code on a Spanish invoice and check Veri*Factu records.
+
+Privacy
+The app only connects to the Internet when you ask it to: to add a certified date and time, check whether a certificate is revoked, check a QR code with the Spanish Tax Agency (AEAT) or look for updates. It does not store passwords, PINs or certificates, shows no ads and collects no usage statistics.
+
+Available in Spanish, Catalan, Valencian, Galician, Basque, English, French, German, Italian, Portuguese and Chinese.
+
+Source code: https://github.com/aavidad/GrxFirma

@@ -1,0 +1,23 @@
+GrxFirma-k dokumentuak sinatzen ditu eta sinadura elektronikoak egiaztatzen ditu mugikorrean bertan. Software librea da, EUPL 1.2 lizentziarekin; ez du konturik eskatzen eta ez ditu zure dokumentuak inongo zerbitzarira bidaltzen.
+
+Sinatu
+• PDF sinatua (PAdES) zigilu ikusgaiarekin; sinatu aurretik orrian kokatu, mugitu eta doitu dezakezu.
+• Sinadura fitxategi bereizian (CAdES) eta XML sinatua (XAdES). Aukera aurreratuetan XMLdSig, ODF, OOXML, FacturaE eta ASiC-XAdES ere badaude, baita kosinadura eta data eta ordu ziurtatuak ere.
+• Zure ziurtagiriaren fitxategiarekin (.p12 edo .pfx) edo NAN elektronikoarekin, NFC bidez mugikorrera hurbilduta. NAN elektronikoarekin, gakoa ez da inoiz txarteletik ateratzen.
+• 16 fitxategi arte aldi berean, ziurtagiri berarekin.
+
+Egiaztatu
+• PAdES, CAdES eta XAdES sinadurak egiaztatzen ditu eta emaitza hizkera argian azaltzen du: dokumentua aldatu den, ziurtagiria indarrean zegoen, jaulkitzaileaz fidatzen den eta baliogabetzea egiaztatu ahal izan den.
+• Txosten inprimagarria (HTML) gordetzen du emaitza kontserbatzeko.
+
+Beste tresna batzuk
+• ENI dokumentu elektronikoak sortu eta egiaztatu, eta karpeta bateko dokumentuekin ENI espediente bat sortu.
+• Fitxategi baten hatz-markak sortu eta egiaztatu, eta fitxategi bat babestu pertsona jakin batzuentzat edo gako batekin.
+• Faktura baten zerga-QRa irakurri eta Veri*Factu erregistroak egiaztatu.
+
+Pribatutasuna
+Aplikazioa zuk eskatzen duzunean bakarrik konektatzen da Internetera: data eta ordu ziurtatuak gehitzeko, ziurtagiri bat baliogabetuta dagoen egiaztatzeko, QR bat AEATekin egiaztatzeko edo eguneratzeak bilatzeko. Ez du pasahitzik, PINik edo ziurtagiririk gordetzen, ez du publizitaterik erakusten eta ez du erabilera-estatistikarik biltzen.
+
+Hizkuntzak: gaztelania, katalana, valentziera, galiziera, euskara, ingelesa, frantsesa, alemana, italiera, portugesa eta txinera.
+
+Iturburu-kodea: https://github.com/aavidad/GrxFirma

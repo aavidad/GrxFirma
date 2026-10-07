@@ -1,0 +1,23 @@
+GrxFirma signe des documents et vérifie des signatures électroniques sur le téléphone lui-même. C'est un logiciel libre sous licence EUPL 1.2 ; il ne demande aucun compte et n'envoie vos documents à aucun serveur.
+
+Signer
+• PDF signé (PAdES) avec un cachet visible, que vous pouvez placer, déplacer et redimensionner sur la page avant de signer.
+• Signature dans un fichier séparé (CAdES) et XML signé (XAdES). Les options avancées proposent aussi XMLdSig, ODF, OOXML, FacturaE et ASiC-XAdES, la cosignature et une date et une heure certifiées.
+• Avec le fichier de votre certificat (.p12 ou .pfx) ou avec la carte d'identité électronique espagnole (DNIe), en l'approchant du téléphone par NFC. Avec le DNIe, la clé ne quitte jamais la carte.
+• Jusqu'à 16 fichiers à la fois avec le même certificat.
+
+Vérifier
+• Vérifie les signatures PAdES, CAdES et XAdES et explique le résultat en langage clair : si le document a été modifié, si le certificat était valide, si son émetteur est de confiance et si la révocation a pu être vérifiée.
+• Enregistre un rapport imprimable (HTML) pour conserver le résultat.
+
+Autres outils
+• Créer et vérifier des documents électroniques ENI, et créer un dossier ENI avec les documents d'un répertoire.
+• Créer et vérifier les empreintes d'un fichier, et protéger un fichier pour des personnes précises ou avec un mot de passe.
+• Lire le QR fiscal d'une facture espagnole et vérifier des enregistrements Veri*Factu.
+
+Confidentialité
+L'application ne se connecte à Internet que lorsque vous le demandez : pour ajouter une date et une heure certifiées, vérifier si un certificat est révoqué, vérifier un QR auprès de l'administration fiscale espagnole (AEAT) ou rechercher des mises à jour. Elle n'enregistre ni mots de passe, ni PIN, ni certificats, n'affiche pas de publicité et ne collecte aucune statistique d'utilisation.
+
+Disponible en espagnol, catalan, valencien, galicien, basque, anglais, français, allemand, italien, portugais et chinois.
+
+Code source : https://github.com/aavidad/GrxFirma

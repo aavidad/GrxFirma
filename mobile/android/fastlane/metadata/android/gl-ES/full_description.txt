@@ -1,0 +1,23 @@
+GrxFirma asina documentos e comproba sinaturas electrónicas no propio móbil. É software libre con licenza EUPL 1.2, non pide conta e non envía os seus documentos a ningún servidor.
+
+Asinar
+• PDF asinado (PAdES) con selo visible, que pode colocar, mover e axustar sobre a páxina antes de asinar.
+• Sinatura nun ficheiro á parte (CAdES) e XML asinado (XAdES). Nas opcións avanzadas tamén hai XMLdSig, ODF, OOXML, FacturaE e ASiC-XAdES, cosinatura e data e hora certificadas.
+• Co ficheiro do seu certificado (.p12 ou .pfx) ou co DNIe, achegándoo ao móbil por NFC. Co DNIe, a clave nunca sae da tarxeta.
+• Ata 16 ficheiros á vez co mesmo certificado.
+
+Verificar
+• Comproba sinaturas PAdES, CAdES e XAdES e explica o resultado en linguaxe clara: se o documento cambiou, se o certificado estaba vixente, se se confía en quen o emitiu e se se puido comprobar a revogación.
+• Garda un informe imprimible (HTML) para conservar o resultado.
+
+Outras ferramentas
+• Crear e comprobar documentos electrónicos ENI, e crear un expediente ENI cos documentos dun cartafol.
+• Crear e comprobar pegadas dun ficheiro, e protexer un ficheiro para persoas concretas ou cunha clave.
+• Ler o QR tributario dunha factura e comprobar rexistros Veri*Factu.
+
+Privacidade
+A aplicación só se conecta a Internet cando vostede o pide: para engadir data e hora certificadas, comprobar se un certificado está revogado, cotexar un QR coa AEAT ou buscar actualizacións. Non garda contrasinais, PIN nin certificados, non mostra publicidade e non recolle estatísticas de uso.
+
+Dispoñible en castelán, catalán, valenciano, galego, éuscaro, inglés, francés, alemán, italiano, portugués e chinés.
+
+Código fonte: https://github.com/aavidad/GrxFirma

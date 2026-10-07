@@ -1,0 +1,4 @@
+• Neues GrxFirma-Logo, und das GRX-Symbol ist zurück.
+• Eine „?“-Schaltfläche neben jeder technischen Option; sie erklärt auch die Profile B, T, LT und LTA.
+• Der Siegel-Editor zeigt alle Schaltflächen und setzt dasselbe Siegel wie die Desktop-Version.
+• Auf Telefonen ohne NFC ist die DNIe-Schaltfläche deaktiviert.
