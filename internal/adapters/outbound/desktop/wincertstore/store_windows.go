@@ -31,12 +31,13 @@ const (
 	maximoCertificadosCadena                     = 64
 	certChainCacheOnlyURLRetrieval               = 0x00000004
 	certChainDisableAIA                          = 0x00002000
+	certKeyProvInfoPropID                        = 2
 	cryptENotFound                 syscall.Errno = 0x80092004
 )
 
 var (
-	modCrypt32                   = windows.NewLazySystemDLL("crypt32.dll")
-	procCryptFindCertKeyProvInfo = modCrypt32.NewProc("CryptFindCertificateKeyProvInfo")
+	modCrypt32                            = windows.NewLazySystemDLL("crypt32.dll")
+	procCertGetCertificateContextProperty = modCrypt32.NewProc("CertGetCertificateContextProperty")
 )
 
 // Almacen implementa el catálogo y la resolución de claves privadas del
@@ -53,15 +54,22 @@ func New() *Almacen {
 // tienen una clave privada asociada. Los certificados CA, los que restringen
 // su clave a usos distintos de firma y los certificados malformados se omiten
 // sin invalidar el resto del catálogo.
+//
+// Listar no abre claves privadas ni contacta con su proveedor: la interfaz y
+// el host de Native Messaging consultan el catálogo sin acción del usuario, y
+// con una clave en tarjeta Windows pediría insertarla o buscaría el lector.
 func (a *Almacen) List(ctx context.Context) ([]domain.CertificateRef, error) {
 	store, err := abrirAlmacenPersonal()
 	if err != nil {
 		return nil, err
 	}
 	defer windows.CertCloseStore(store, 0) //nolint:errcheck -- no invalida un catálogo ya leído
+	return listarAlmacen(ctx, store)
+}
 
+func listarAlmacen(ctx context.Context, store windows.Handle) ([]domain.CertificateRef, error) {
 	refs := make([]domain.CertificateRef, 0)
-	err = recorrerCertificados(ctx, store, func(certCtx *windows.CertContext) (bool, error) {
+	err := recorrerCertificados(ctx, store, func(certCtx *windows.CertContext) (bool, error) {
 		if !tieneClavePrivada(certCtx) {
 			return true, nil
 		}
@@ -185,12 +193,27 @@ func recorrerCertificados(ctx context.Context, store windows.Handle, visitar fun
 	}
 }
 
+// tieneClavePrivada indica si el certificado declara una clave privada
+// asociada leyendo solo su propiedad CERT_KEY_PROV_INFO_PROP_ID, guardada en
+// el propio almacén. No abre la clave ni el proveedor (CSP, KSP, tarjeta o
+// TPM), así que nunca muestra diálogos ni busca lectores.
+//
+// No se usa CryptFindCertificateKeyProvInfo: recorre todos los proveedores y
+// sus contenedores, incluido el de tarjeta inteligente, para buscar la clave,
+// y sin CRYPT_FIND_SILENT_KEYSET_FLAG puede pedir que se inserte la tarjeta
+// por cada certificado y en cada listado.
 func tieneClavePrivada(certCtx *windows.CertContext) bool {
 	if certCtx == nil {
 		return false
 	}
-	ret, _, _ := procCryptFindCertKeyProvInfo.Call(uintptr(unsafe.Pointer(certCtx)), 0, 0)
-	return ret != 0
+	var tamano uint32
+	ret, _, _ := procCertGetCertificateContextProperty.Call(
+		uintptr(unsafe.Pointer(certCtx)),
+		certKeyProvInfoPropID,
+		0,
+		uintptr(unsafe.Pointer(&tamano)),
+	)
+	return ret != 0 && tamano > 0
 }
 
 func copiarDER(certCtx *windows.CertContext) ([]byte, error) {

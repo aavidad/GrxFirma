@@ -155,3 +155,11 @@ Ambos modelos comparten el mismo principio. La diferencia es de mecanismo:
   `/etc/grxfirma/allowed-domains.json`; en despliegues gestionados esta
   ruta debe considerarse el baseline de confianza, dejando TOFU solo como
   fallback para escritorios no gestionados.
+- Almacén de certificados de Windows: listar el catálogo nunca abre claves
+  privadas. Solo se lee la propiedad `CERT_KEY_PROV_INFO_PROP_ID` del
+  certificado; no se usa `CryptFindCertificateKeyProvInfo`, porque recorre
+  todos los proveedores, incluido el de tarjeta, y muestra «Seguridad de
+  Windows» por cada certificado con la clave en una tarjeta ausente. La clave
+  se abre únicamente al firmar, en `adquirirClaveWindows`, y si la tarjeta no
+  está o el usuario cancela, el resto de la misma operación no vuelve a
+  pedirla. Un contrato en `wincertstore` comprueba ambas reglas.
