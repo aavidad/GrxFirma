@@ -104,6 +104,12 @@ if ($null -ne $state) {
             }
         }
     }
+    if (-not $restored -and
+        (Test-AfirmaProtocolValuesMatch -Expected @($state.Snapshots))) {
+        # GrxFirma ya había retirado su registro (se eligió AutoFirma en
+        # Configuración): no queda nada propio que restaurar.
+        $restored = $true
+    }
 } else {
     $currentValues = @($plan | ForEach-Object {
         Get-AfirmaRegistryValueSnapshot `

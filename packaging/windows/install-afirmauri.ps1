@@ -66,13 +66,22 @@ if ($previousInstallExisted -and
 
 $protocolKey = "Software\Classes\afirma"
 $protocolSnapshot = Join-Path $InstallDir "afirma-protocol-snapshot.json"
+# Si la persona eligió en Configuración que AutoFirma atienda afirma://, la
+# actualización no le devuelve el protocolo a GrxFirma.
+$keepAutoFirma = Test-AfirmaProtocolKeptForAutoFirma `
+    -ProtocolKey $protocolKey `
+    -ExecutablePath (Join-Path $InstallDir "grxfirma-afirmauri.exe") `
+    -IconPath (Join-Path $InstallDir "grxfirma-grx.ico") `
+    -SnapshotPath $protocolSnapshot
 if ($ValidateOnly) {
-    Install-AfirmaProtocolRegistration `
-        -ProtocolKey $protocolKey `
-        -ExecutablePath (Join-Path $InstallDir "grxfirma-afirmauri.exe") `
-        -IconPath (Join-Path $InstallDir "grxfirma-grx.ico") `
-        -SnapshotPath $protocolSnapshot `
-        -ValidateOnly
+    if (-not $keepAutoFirma) {
+        Install-AfirmaProtocolRegistration `
+            -ProtocolKey $protocolKey `
+            -ExecutablePath (Join-Path $InstallDir "grxfirma-afirmauri.exe") `
+            -IconPath (Join-Path $InstallDir "grxfirma-grx.ico") `
+            -SnapshotPath $protocolSnapshot `
+            -ValidateOnly
+    }
     Write-Host "Protocolo afirma:// comprobado sin cambios."
     return
 }
@@ -136,11 +145,20 @@ try {
         Remove-Item -LiteralPath $legacyDebugHandler -Force
     }
 
-    Install-AfirmaProtocolRegistration `
-        -ProtocolKey $protocolKey `
-        -ExecutablePath $exeTarget `
-        -IconPath $iconTarget `
-        -SnapshotPath $protocolSnapshot
+    if ($keepAutoFirma) {
+        Write-Host "Se respeta la elección de Configuración: AutoFirma sigue atendiendo afirma://."
+    } else {
+        Install-AfirmaProtocolRegistration `
+            -ProtocolKey $protocolKey `
+            -ExecutablePath $exeTarget `
+            -IconPath $iconTarget `
+            -SnapshotPath $protocolSnapshot
+        if ((Get-AfirmaProtocolHandlerPreference) -eq "autofirma") {
+            # AutoFirma ya no está o el registro cambió: GrxFirma vuelve a
+            # atender las firmas y la preferencia lo refleja.
+            Set-AfirmaProtocolHandlerPreference -Handler "grxfirma"
+        }
+    }
 
     # DefaultIcon ya apunta al icono nuevo: se retiran los nombres anteriores.
     foreach ($legacyIconName in $script:AfirmaLegacyIconFileNames) {

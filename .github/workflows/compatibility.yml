@@ -415,6 +415,7 @@ jobs:
         run: |
           ./packaging/windows/tests/test-install-nativehost.ps1
           ./packaging/windows/tests/test-afirmauri-registration.ps1
+          ./packaging/windows/tests/test-afirmauri-autofirma-choice.ps1
           ./packaging/windows/tests/test-installer-contracts.ps1
           ./packaging/windows/tests/test-dual-gui-suite-contracts.ps1
           ./packaging/windows/tests/test-winui-build-contracts.ps1

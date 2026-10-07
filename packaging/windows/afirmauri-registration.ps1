@@ -876,3 +876,155 @@ function Restore-AfirmaProtocolRegistration {
     }
     return $true
 }
+
+# Elección del programa que atiende afirma:// (Configuración de GrxFirma).
+# La aplicación la guarda en HKCU\Software\GrxFirma; el instalador solo la
+# lee para no volver a quitarle el protocolo a AutoFirma al actualizar. La
+# misma lógica, sin PowerShell, está en el motor
+# (internal/adapters/outbound/desktop/afirmahandler).
+$script:AfirmaPreferenceKey = "Software\GrxFirma"
+$script:AfirmaPreferenceValue = "AfirmaProtocolHandler"
+
+function Get-AfirmaProtocolHandlerPreference {
+    $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey(
+        $script:AfirmaPreferenceKey,
+        $false
+    )
+    if ($null -eq $key) {
+        return ""
+    }
+    try {
+        if (-not (@($key.GetValueNames()) -contains $script:AfirmaPreferenceValue) -or
+            $key.GetValueKind($script:AfirmaPreferenceValue) -ne
+                [Microsoft.Win32.RegistryValueKind]::String) {
+            return ""
+        }
+        $value = ([string]$key.GetValue($script:AfirmaPreferenceValue)).Trim().ToLowerInvariant()
+    } finally {
+        $key.Dispose()
+    }
+    if ($value -eq "grxfirma" -or $value -eq "autofirma") {
+        return $value
+    }
+    return ""
+}
+
+function Set-AfirmaProtocolHandlerPreference {
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("grxfirma", "autofirma")]
+        [string]$Handler
+    )
+
+    Set-AfirmaRegistryString `
+        -Path $script:AfirmaPreferenceKey `
+        -Name $script:AfirmaPreferenceValue `
+        -Value $Handler
+}
+
+function Get-AfirmaCommandExecutable {
+    param(
+        [AllowEmptyString()]
+        [string]$Command
+    )
+
+    $text = ([string]$Command).Trim()
+    if ($text.Length -eq 0) {
+        return ""
+    }
+    if ($text.StartsWith('"')) {
+        $end = $text.IndexOf('"', 1)
+        if ($end -lt 0) {
+            return ""
+        }
+        return $text.Substring(1, $end - 1)
+    }
+    $from = 0
+    while ($true) {
+        $index = $text.IndexOf(".exe", $from, [System.StringComparison]::OrdinalIgnoreCase)
+        if ($index -lt 0) {
+            break
+        }
+        $end = $index + 4
+        if ($end -eq $text.Length -or $text[$end] -eq ' ' -or $text[$end] -eq "`t") {
+            return $text.Substring(0, $end)
+        }
+        $from = $end
+    }
+    return ($text -split '\s+')[0]
+}
+
+# Devuelve el ejecutable de AutoFirma registrado para el equipo o "".
+function Get-AfirmaAutoFirmaExecutable {
+    param(
+        [string]$ProtocolKey = "Software\Classes\afirma"
+    )
+
+    $key = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey(
+        "$ProtocolKey\shell\open\command",
+        $false
+    )
+    if ($null -eq $key) {
+        return ""
+    }
+    try {
+        $command = [string]$key.GetValue("", "")
+    } finally {
+        $key.Dispose()
+    }
+    $executable = Get-AfirmaCommandExecutable -Command $command
+    if ($executable -notmatch '^[A-Za-z]:[\\/]' -or
+        -not [string]::Equals(
+            [System.IO.Path]::GetFileName($executable),
+            "Autofirma.exe",
+            [System.StringComparison]::OrdinalIgnoreCase
+        ) -or
+        -not (Test-Path -LiteralPath $executable -PathType Leaf)) {
+        return ""
+    }
+    return $executable
+}
+
+# Verdadero si la persona eligió AutoFirma, AutoFirma sigue instalado y el
+# registro HKCU de afirma:// es exactamente el de antes de GrxFirma (es decir,
+# GrxFirma lo retiró y nadie lo ha cambiado después). Ante cualquier duda
+# devuelve falso y el instalador sigue su camino normal, con sus comprobaciones
+# de propiedad.
+function Test-AfirmaProtocolKeptForAutoFirma {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProtocolKey,
+        [Parameter(Mandatory = $true)]
+        [string]$ExecutablePath,
+        [string]$IconPath = "",
+        [Parameter(Mandatory = $true)]
+        [string]$SnapshotPath
+    )
+
+    if ((Get-AfirmaProtocolHandlerPreference) -ne "autofirma") {
+        return $false
+    }
+    if ([string]::IsNullOrEmpty((Get-AfirmaAutoFirmaExecutable -ProtocolKey $ProtocolKey))) {
+        return $false
+    }
+    if (-not (Test-Path -LiteralPath $SnapshotPath -PathType Leaf)) {
+        return $false
+    }
+    $plan = @(Get-AfirmaProtocolRegistrationPlan `
+        -ProtocolKey $ProtocolKey `
+        -ExecutablePath $ExecutablePath `
+        -IconPath $IconPath)
+    try {
+        $state = Read-AfirmaProtocolSnapshot `
+            -Path $SnapshotPath `
+            -ProtocolKey $ProtocolKey `
+            -Plan $plan `
+            -AcceptedLegacyOwnerSets @(Get-AfirmaProtocolLegacyOwnerSets `
+                -ProtocolKey $ProtocolKey `
+                -ExecutablePath $ExecutablePath `
+                -IconPath $IconPath)
+    } catch {
+        return $false
+    }
+    return (Test-AfirmaProtocolValuesMatch -Expected @($state.Snapshots))
+}
