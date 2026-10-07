@@ -1,0 +1,4 @@
+• Nou logotip de GrxFirma i torna la icona GRX.
+• Botó «?» al costat de cada opció tècnica; també explica els perfils B, T, LT i LTA.
+• L'editor del segell mostra tots els botons i posa el mateix segell que la versió d'escriptori.
+• En mòbils sense NFC, el botó del DNIe queda desactivat.

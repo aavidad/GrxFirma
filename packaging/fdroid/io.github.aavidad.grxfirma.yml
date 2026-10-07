@@ -2,39 +2,75 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+#
+# Receta para fdroiddata (metadata/io.github.aavidad.grxfirma.yml).
+# El nombre, el resumen, la descripción, las imágenes y las notas de versión
+# se leen de mobile/android/fastlane/metadata/android/<idioma>/ en el propio
+# código, por eso no se repiten aquí.
 
+AntiFeatures:
+  NonFreeNet:
+    en-US: Optional, user-initiated check of a Spanish tax QR code against the
+      Spanish Tax Agency (AEAT) service. Signing and verification work offline.
+    es-ES: Cotejo opcional, a petición del usuario, de un QR tributario con el
+      servicio de la Agencia Tributaria (AEAT). Firmar y verificar funciona sin
+      conexión.
 Categories:
   - Office
+  - Security
 License: EUPL-1.2
 AuthorName: Alberto Avidad Fernández
 AuthorEmail: avidad@dipgra.es
+WebSite: https://aavidad.github.io/GrxFirma/
 SourceCode: https://github.com/aavidad/GrxFirma
 IssueTracker: https://github.com/aavidad/GrxFirma/issues
+Changelog: https://github.com/aavidad/GrxFirma/blob/HEAD/docs/NOVEDADES.md
+
 AutoName: GrxFirma
-Summary: Firma y verifica documentos en el dispositivo
-Description: |
-  GrxFirma permite seleccionar documentos con el selector de Android,
-  firmarlos y verificar firmas con un núcleo libre compilado desde Go.
-  No solicita permiso de Internet.
 
 RepoType: git
 Repo: https://github.com/aavidad/GrxFirma.git
 
 Builds:
-  - versionName: 0.0.105
-    versionCode: 105
-    commit: v0.0.105
+  - versionName: 0.0.124
+    versionCode: 124
+    commit: v0.0.124
     subdir: mobile/android
+    sudo:
+      - apt-get update
+      - apt-get install -y curl python3
+      - curl -fsSL -o /tmp/go.tar.gz https://go.dev/dl/go1.26.8.linux-amd64.tar.gz
+      - echo 'd0f743b33e8d8945e6b1f432edd15785c70507121d6e2a723b21285eddf8b57b  /tmp/go.tar.gz'
+        | sha256sum -c -
+      - tar -C /opt -xzf /tmp/go.tar.gz
+      - rm /tmp/go.tar.gz
     output: app/build/outputs/apk/production/release/app-production-release-unsigned.apk
-    build: |
-      cd ../..
-      scripts/mobile/android/build-core-aar.sh mobile/android/app/core/grxfirma.aar
-      export GRXFIRMA_ANDROID_CORE_AAR="$PWD/mobile/android/app/core/grxfirma.aar"
-      export GRXFIRMA_ANDROID_CORE_SHA256="$(sha256sum "$GRXFIRMA_ANDROID_CORE_AAR" | cut -d ' ' -f1)"
-      export GRXFIRMA_ANDROID_SOURCE_COMMIT="$(git rev-parse HEAD)"
-      export GRXFIRMA_FDROID_BUILD=1
-      cd mobile/android
-      ./gradlew --no-daemon --no-configuration-cache clean assembleProductionRelease
+    prebuild: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+    scandelete:
+      - cmd/grxfirmauri/grxfirmauri_windows_amd64.syso
+      - cmd/nativehost/nativehost_windows_amd64.syso
+      - tests/certificates
+    build:
+      - export PATH="/opt/go/bin:$PATH" GOTOOLCHAIN=local
+      - export ANDROID_HOME="$$SDK$$" ANDROID_SDK_ROOT="$$SDK$$" ANDROID_NDK_HOME="$$NDK$$"
+      - cd ../..
+      - scripts/mobile/android/build-core-aar.sh mobile/android/app/core/grxfirma.aar
+      - export GRXFIRMA_ANDROID_CORE_AAR="$PWD/mobile/android/app/core/grxfirma.aar"
+      - export GRXFIRMA_ANDROID_CORE_SHA256="$(sha256sum "$GRXFIRMA_ANDROID_CORE_AAR"
+        | cut -d ' ' -f1)"
+      - export GRXFIRMA_ANDROID_SOURCE_COMMIT="$(git rev-parse HEAD)"
+      - export GRXFIRMA_FDROID_BUILD=1
+      - export SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)" TZ=UTC
+      - cd mobile/android
+      - ./gradlew --no-daemon --no-configuration-cache clean assembleProductionRelease
+    ndk: r28c
 
-AutoUpdateMode: None
-UpdateCheckMode: None
+AutoUpdateMode: Version
+# El versionCode no es literal en Gradle: es mayor*1000000 + menor*1000 + parche
+# de VERSION.txt. La expresión solo casa con 0.0.x, donde versionCode = parche.
+# Al pasar a 0.1.0 o 1.0.0 deja de casar y checkupdates no propone nada: hay que
+# actualizarla a la vez (véase docs/distribucion/ANDROID.md).
+UpdateCheckMode: Tags ^v\d+\.\d+\.\d+$
+UpdateCheckData: VERSION.txt|^0\.0\.(\d+)\s*$|VERSION.txt|^(\d+\.\d+\.\d+)\s*$
+CurrentVersion: 0.0.124
+CurrentVersionCode: 124

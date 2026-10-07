@@ -1,0 +1,23 @@
+GrxFirma signa documents i comprova signatures electròniques al mateix mòbil. És programari lliure amb llicència EUPL 1.2, no demana cap compte i no envia els vostres documents a cap servidor.
+
+Signar
+• PDF signat (PAdES) amb segell visible, que podeu col·locar, moure i ajustar sobre la pàgina abans de signar.
+• Signatura en un fitxer a part (CAdES) i XML signat (XAdES). A les opcions avançades també hi ha XMLdSig, ODF, OOXML, FacturaE i ASiC-XAdES, cosignatura i data i hora certificades.
+• Amb el fitxer del vostre certificat (.p12 o .pfx) o amb el DNIe, acostant-lo al mòbil per NFC. Amb el DNIe, la clau no surt mai de la targeta.
+• Fins a 16 fitxers alhora amb el mateix certificat.
+
+Verificar
+• Comprova signatures PAdES, CAdES i XAdES i explica el resultat en llenguatge planer: si el document ha canviat, si el certificat era vigent, si es confia en qui el va emetre i si s'ha pogut comprovar la revocació.
+• Desa un informe imprimible (HTML) per conservar el resultat.
+
+Altres eines
+• Crear i comprovar documents electrònics ENI, i crear un expedient ENI amb els documents d'una carpeta.
+• Crear i comprovar empremtes d'un fitxer, i protegir un fitxer per a persones concretes o amb una clau.
+• Llegir el QR tributari d'una factura i comprovar registres Veri*Factu.
+
+Privadesa
+L'aplicació només es connecta a Internet quan ho demaneu: per afegir data i hora certificades, comprovar si un certificat està revocat, acarar un QR amb l'AEAT o cercar actualitzacions. No desa contrasenyes, PIN ni certificats, no mostra publicitat i no recull estadístiques d'ús.
+
+Disponible en castellà, català, valencià, gallec, basc, anglès, francès, alemany, italià, portuguès i xinès.
+
+Codi font: https://github.com/aavidad/GrxFirma

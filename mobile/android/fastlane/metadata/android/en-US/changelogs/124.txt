@@ -1,0 +1,4 @@
+• New GrxFirma logo, and the GRX icon is back.
+• A "?" button next to each technical option; it also explains the B, T, LT and LTA profiles.
+• The seal editor shows all its buttons and places the same seal as the desktop version.
+• On phones without NFC, the DNIe button is disabled.

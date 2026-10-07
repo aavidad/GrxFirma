@@ -1,0 +1,23 @@
+GrxFirma signiert Dokumente und prüft elektronische Signaturen direkt auf dem Telefon. Die App ist freie Software unter der EUPL 1.2, braucht kein Konto und sendet Ihre Dokumente an keinen Server.
+
+Signieren
+• Signiertes PDF (PAdES) mit sichtbarem Siegel, das Sie vor dem Signieren auf der Seite platzieren, verschieben und in der Größe anpassen können.
+• Signatur in eigener Datei (CAdES) und signiertes XML (XAdES). In den erweiterten Optionen gibt es außerdem XMLdSig, ODF, OOXML, FacturaE und ASiC-XAdES, Mitsignatur und einen zertifizierten Zeitstempel.
+• Mit Ihrer Zertifikatsdatei (.p12 oder .pfx) oder mit dem spanischen elektronischen Personalausweis (DNIe), den Sie per NFC an das Telefon halten. Beim DNIe verlässt der Schlüssel die Karte nie.
+• Bis zu 16 Dateien auf einmal mit demselben Zertifikat.
+
+Prüfen
+• Prüft PAdES-, CAdES- und XAdES-Signaturen und erklärt das Ergebnis in klarer Sprache: ob das Dokument verändert wurde, ob das Zertifikat gültig war, ob dem Aussteller vertraut wird und ob der Widerruf geprüft werden konnte.
+• Speichert einen druckbaren Bericht (HTML), damit Sie das Ergebnis aufbewahren können.
+
+Weitere Werkzeuge
+• ENI-Dokumente erstellen und prüfen sowie aus den Dokumenten eines Ordners eine ENI-Akte erstellen.
+• Prüfsummen einer Datei erstellen und prüfen sowie eine Datei für bestimmte Personen oder mit einem Passwort schützen.
+• Den Steuer-QR-Code einer spanischen Rechnung lesen und Veri*Factu-Datensätze prüfen.
+
+Datenschutz
+Die App verbindet sich nur mit dem Internet, wenn Sie es verlangen: um einen zertifizierten Zeitstempel hinzuzufügen, den Widerruf eines Zertifikats zu prüfen, einen QR-Code bei der spanischen Steuerbehörde (AEAT) abzugleichen oder nach Updates zu suchen. Sie speichert keine Passwörter, PINs oder Zertifikate, zeigt keine Werbung und sammelt keine Nutzungsstatistiken.
+
+Verfügbar auf Spanisch, Katalanisch, Valencianisch, Galicisch, Baskisch, Englisch, Französisch, Deutsch, Italienisch, Portugiesisch und Chinesisch.
+
+Quellcode: https://github.com/aavidad/GrxFirma

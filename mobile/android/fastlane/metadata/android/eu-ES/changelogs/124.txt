@@ -1,0 +1,4 @@
+• GrxFirma-ren logotipo berria, eta GRX ikonoa itzuli da.
+• «?» botoia aukera tekniko bakoitzaren ondoan; B, T, LT eta LTA profilak ere azaltzen ditu.
+• Zigiluaren editoreak botoi guztiak erakusten ditu eta mahaigaineko bertsioaren zigilu bera jartzen du.
+• NFCrik gabeko mugikorretan, NAN elektronikoaren botoia desgaituta geratzen da.

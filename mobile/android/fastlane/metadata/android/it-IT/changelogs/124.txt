@@ -1,0 +1,4 @@
+• Nuovo logo di GrxFirma, e torna l'icona GRX.
+• Un pulsante «?» accanto a ogni opzione tecnica; spiega anche i profili B, T, LT e LTA.
+• L'editor del timbro mostra tutti i pulsanti e appone lo stesso timbro della versione desktop.
+• Sui telefoni senza NFC, il pulsante del DNIe è disattivato.

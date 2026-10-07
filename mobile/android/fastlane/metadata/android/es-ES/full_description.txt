@@ -1,0 +1,23 @@
+GrxFirma firma documentos y comprueba firmas electrónicas en el propio móvil. Es software libre con licencia EUPL 1.2, no pide cuenta y no envía sus documentos a ningún servidor.
+
+Firmar
+• PDF firmado (PAdES) con sello visible, que puede colocar, mover y ajustar sobre la página antes de firmar.
+• Firma en fichero aparte (CAdES) y XML firmado (XAdES). En las opciones avanzadas también hay XMLdSig, ODF, OOXML, FacturaE y ASiC-XAdES, cofirma y fecha y hora certificadas.
+• Con el fichero de su certificado (.p12 o .pfx) o con el DNIe, acercándolo al móvil por NFC. Con el DNIe, la clave nunca sale de la tarjeta.
+• Hasta 16 ficheros a la vez con el mismo certificado.
+
+Verificar
+• Comprueba firmas PAdES, CAdES y XAdES y explica el resultado en lenguaje claro: si el documento ha cambiado, si el certificado estaba vigente, si se confía en quien lo emitió y si se ha podido comprobar la revocación.
+• Guarda un informe imprimible (HTML) para conservar el resultado.
+
+Otras herramientas
+• Crear y comprobar documentos electrónicos ENI, y crear un expediente ENI con los documentos de una carpeta.
+• Crear y comprobar huellas de un fichero, y proteger un fichero para personas concretas o con una clave.
+• Leer el QR tributario de una factura y comprobar registros Veri*Factu.
+
+Privacidad
+La aplicación solo se conecta a Internet cuando usted lo pide: para añadir fecha y hora certificadas, comprobar si un certificado está revocado, cotejar un QR con la AEAT o buscar actualizaciones. No guarda contraseñas, PIN ni certificados, no muestra publicidad y no recoge estadísticas de uso.
+
+Disponible en castellano, catalán, valenciano, gallego, euskera, inglés, francés, alemán, italiano, portugués y chino.
+
+Código fuente: https://github.com/aavidad/GrxFirma

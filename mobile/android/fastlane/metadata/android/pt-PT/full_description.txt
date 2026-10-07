@@ -1,0 +1,23 @@
+O GrxFirma assina documentos e verifica assinaturas eletrónicas no próprio telemóvel. É software livre com licença EUPL 1.2, não pede conta e não envia os seus documentos para nenhum servidor.
+
+Assinar
+• PDF assinado (PAdES) com selo visível, que pode colocar, mover e ajustar na página antes de assinar.
+• Assinatura num ficheiro à parte (CAdES) e XML assinado (XAdES). Nas opções avançadas há também XMLdSig, ODF, OOXML, FacturaE e ASiC-XAdES, coassinatura e data e hora certificadas.
+• Com o ficheiro do seu certificado (.p12 ou .pfx) ou com o cartão de cidadão espanhol (DNIe), aproximando-o do telemóvel por NFC. Com o DNIe, a chave nunca sai do cartão.
+• Até 16 ficheiros de uma vez com o mesmo certificado.
+
+Verificar
+• Verifica assinaturas PAdES, CAdES e XAdES e explica o resultado em linguagem clara: se o documento foi alterado, se o certificado estava válido, se se confia em quem o emitiu e se foi possível verificar a revogação.
+• Guarda um relatório imprimível (HTML) para conservar o resultado.
+
+Outras ferramentas
+• Criar e verificar documentos eletrónicos ENI, e criar um processo ENI com os documentos de uma pasta.
+• Criar e verificar impressões digitais de um ficheiro, e proteger um ficheiro para pessoas concretas ou com uma palavra-passe.
+• Ler o QR fiscal de uma fatura espanhola e verificar registos Veri*Factu.
+
+Privacidade
+A aplicação só se liga à Internet quando o pede: para adicionar data e hora certificadas, verificar se um certificado está revogado, confrontar um QR com a Autoridade Tributária espanhola (AEAT) ou procurar atualizações. Não guarda palavras-passe, PIN nem certificados, não mostra publicidade e não recolhe estatísticas de utilização.
+
+Disponível em espanhol, catalão, valenciano, galego, basco, inglês, francês, alemão, italiano, português e chinês.
+
+Código-fonte: https://github.com/aavidad/GrxFirma
