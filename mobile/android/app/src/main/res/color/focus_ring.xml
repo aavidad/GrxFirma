@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
+<!-- Anillo de foco del teclado (WCAG 2.4.7): on_surface solo con foco; sin foco,
+     transparente, para no cambiar el aspecto de los controles. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/on_surface" android:state_focused="true" />
+    <item android:color="@android:color/transparent" />
+</selector>

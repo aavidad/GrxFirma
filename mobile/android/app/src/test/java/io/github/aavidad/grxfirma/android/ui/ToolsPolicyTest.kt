@@ -36,6 +36,17 @@ class ToolsPolicyTest {
         assertFalse(ToolsPolicy.canonicalAesKey(Base64.getEncoder().encodeToString(ByteArray(33)).toCharArray()))
     }
 
+    @Test fun `a transient key is rejected when invalid or when its copy differs`() {
+        val key = Base64.getEncoder().encodeToString(ByteArray(32) { 3 }).toCharArray()
+        assertFalse(ToolsPolicy.transientKeyRejected(key, key.copyOf()))
+        assertTrue(ToolsPolicy.transientKeyRejected(key, key.copyOf().also { it[0] = 'B' }))
+        assertTrue(ToolsPolicy.transientKeyRejected(CharArray(44) { '*' }, CharArray(44) { '*' }))
+        // Sin documento el modelo avisa de eso primero: el campo de la clave no se marca.
+        assertFalse(ToolsPolicy.keyFieldRejected(MainUiState(io.github.aavidad.grxfirma.android.core.CoreReadiness(true, "ready", ""),
+            toolsAvailable = true, protectionContainer = "cms-encrypted"),
+            CharArray(0), CharArray(0), sign = false))
+    }
+
     @Test fun `generated keys are canonical and random`() {
         val random = SecureRandom()
         val first = ToolsPolicy.generateAesKey(random)

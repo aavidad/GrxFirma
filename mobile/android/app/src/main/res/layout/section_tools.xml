@@ -30,7 +30,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/toggleBatchButton"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.GrxFirma.Button.TextButton"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
@@ -67,7 +67,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/selectBatchButton"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.GrxFirma.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/control_spacing"
@@ -85,7 +85,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/clearBatchButton"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.GrxFirma.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -111,7 +111,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/toggleHashButton"
-        style="@style/Widget.Material3.Button.TextButton"
+        style="@style/Widget.GrxFirma.Button.TextButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -227,7 +227,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/checkHashButton"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.GrxFirma.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -238,7 +238,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/toggleProtectButton"
-        style="@style/Widget.Material3.Button.TextButton"
+        style="@style/Widget.GrxFirma.Button.TextButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -315,7 +315,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/addRecipientButton"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Widget.GrxFirma.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
@@ -340,7 +340,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/clearRecipientsButton"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.GrxFirma.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -409,7 +409,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/generateKeyButton"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.GrxFirma.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -449,7 +449,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/protectSignButton"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Widget.GrxFirma.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
@@ -481,7 +481,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/unprotectButton"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Widget.GrxFirma.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"

@@ -29,7 +29,7 @@
             android:minHeight="?attr/actionBarSize"
             android:background="@color/primary"
             android:elevation="0dp"
-            android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
+            android:theme="@style/ThemeOverlay.GrxFirma.Toolbar"
             app:title="@string/app_name"
             app:titleTextColor="@color/on_primary" />
     </com.google.android.material.appbar.AppBarLayout>
@@ -117,7 +117,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/selectDocumentButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="@style/Widget.GrxFirma.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/control_spacing"
@@ -152,7 +152,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/selectOriginalDocumentButton"
-                        style="@style/Widget.Material3.Button.TextButton"
+                        style="@style/Widget.GrxFirma.Button.TextButton"
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
@@ -179,7 +179,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/clearOriginalDocumentButton"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Widget.GrxFirma.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
@@ -215,7 +215,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/selectCertificateFileButton"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.GrxFirma.Button.OutlinedButton"
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
@@ -239,7 +239,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/selectDnieNfcButton"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.GrxFirma.Button.OutlinedButton"
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
@@ -279,7 +279,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/cancelDnieScanButton"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Widget.GrxFirma.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
@@ -346,7 +346,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/forgetCertificateButton"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Widget.GrxFirma.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
@@ -390,7 +390,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/editVisibleSealButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="@style/Widget.GrxFirma.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
@@ -410,7 +410,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/useCosignButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="@style/Widget.GrxFirma.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
@@ -418,7 +418,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/toggleSigningOptionsButton"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Widget.GrxFirma.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -619,7 +619,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/verifyButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="@style/Widget.GrxFirma.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -652,11 +652,13 @@
                         android:indeterminate="true" />
 
                     <TextView
+                        android:id="@+id/progressText"
                         style="@style/TextAppearance.Material3.BodyMedium"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
+                        android:accessibilityLiveRegion="polite"
                         android:text="@string/operation_in_progress"
                         android:textColor="@color/on_surface" />
                 </LinearLayout>
@@ -666,8 +668,7 @@
                     style="@style/Widget.Material3.CardView.Outlined"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/control_spacing"
-                    android:focusable="true">
+                    android:layout_marginTop="@dimen/control_spacing">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -714,7 +715,7 @@
                             android:textIsSelectable="true"
                             android:visibility="gone" />
 
-                        <!-- Qué significa cada comprobación: un «?» por concepto; con poco ancho pasan a otra línea. -->
+                        <!-- Cada comprobación con su resultado en palabras («Integridad: válida») y un «?»; con poco ancho pasan a otra línea. -->
                         <com.google.android.material.chip.ChipGroup
                             android:id="@+id/verificationHelpGroup"
                             android:layout_width="match_parent"
@@ -731,6 +732,7 @@
                                 android:orientation="horizontal">
 
                                 <TextView
+                                    android:id="@+id/verificationIntegrityLabel"
                                     style="@style/TextAppearance.Material3.BodyMedium"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -751,6 +753,7 @@
                                 android:orientation="horizontal">
 
                                 <TextView
+                                    android:id="@+id/verificationTrustLabel"
                                     style="@style/TextAppearance.Material3.BodyMedium"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -771,6 +774,7 @@
                                 android:orientation="horizontal">
 
                                 <TextView
+                                    android:id="@+id/verificationCoverageLabel"
                                     style="@style/TextAppearance.Material3.BodyMedium"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -788,7 +792,7 @@
                         <!-- Evidencias del motor: plegadas de inicio, para quien las necesite. -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/toggleVerificationTechnicalButton"
-                            style="@style/Widget.Material3.Button.TextButton"
+                            style="@style/Widget.GrxFirma.Button.TextButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="start|center_vertical"
@@ -832,7 +836,7 @@
 
                         <com.google.android.material.button.MaterialButton
                     android:id="@+id/exportReportButton"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Widget.GrxFirma.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
@@ -855,7 +859,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/discardPendingOutputButton"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.GrxFirma.Button.OutlinedButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
@@ -867,7 +871,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/toggleOtherToolsButton"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Widget.GrxFirma.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"

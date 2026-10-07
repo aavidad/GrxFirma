@@ -80,7 +80,8 @@ class BrandLogoContractTest(unittest.TestCase):
             / "mobile/android/app/src/main/java/io/github/aavidad/grxfirma/android/MainActivity.kt"
         ).read_text(encoding="utf-8")
         self.assertIn("R.drawable.grxfirma_logo_pluma", activity)
-        self.assertIn("contentDescription = getString(R.string.app_name)", activity)
+        # En «Acerca de» el encabezado ya dice el nombre: el logotipo es decorativo.
+        self.assertIn("IMPORTANT_FOR_ACCESSIBILITY_NO", activity)
         web = (ROOT / "docs/sitio/index.html").read_text(encoding="utf-8")
         self.assertIn('src="grxfirma-logo-pluma-128.png" alt="GrxFirma"', web)
 

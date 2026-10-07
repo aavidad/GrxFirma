@@ -79,12 +79,7 @@ object VerificationCard {
             else -> R.string.revocation_not_available
         })))
         if (v.format.isNotBlank()) add(context.getString(R.string.verification_format, v.format))
-        add(context.getString(R.string.verification_coverage, context.getString(when (v.coverage) {
-            "full", "total", "whole_document" -> R.string.coverage_full
-            "partial", "partial_document" -> R.string.coverage_partial
-            "detached" -> R.string.coverage_detached
-            else -> R.string.verification_status_unknown
-        })))
+        add(context.getString(R.string.verification_coverage, context.getString(coverageValue(v))))
         val verdict = verdict(v)
         if (showsReason(verdict, v.reason)) add(context.getString(R.string.verification_reason, EngineText.resolve(context, v.reason)))
         if (v.signerSummaries.isNotEmpty()) {
@@ -110,10 +105,34 @@ object VerificationCard {
         return cn?.takeIf { it.isNotEmpty() } ?: distinguishedName
     }
 
-    private fun statusLabel(context: Context, status: String): String = context.getString(when (status) {
+    /**
+     * Resultado en palabras de cada comprobación que la tarjeta muestra junto a su «?»
+     * («Integridad: válida»): sin él solo se veía la etiqueta y el lector de pantalla
+     * no decía el valor.
+     */
+    data class Aspect(@StringRes val label: Int, @StringRes val value: Int)
+
+    fun aspects(v: UiText.Verification): List<Aspect> = listOf(
+        Aspect(R.string.ayuda_tema_integridad, statusValue(v.integrityStatus)),
+        Aspect(R.string.ayuda_tema_confianza, statusValue(v.trustStatus)),
+        Aspect(R.string.ayuda_tema_cobertura, coverageValue(v)),
+    )
+
+    @StringRes
+    fun statusValue(status: String): Int = when (status) {
         "valid" -> R.string.verification_status_valid
         "invalid" -> R.string.verification_status_invalid
         "warning" -> R.string.verification_status_warning
         else -> R.string.verification_status_unknown
-    })
+    }
+
+    @StringRes
+    fun coverageValue(v: UiText.Verification): Int = when (v.coverage) {
+        "full", "total", "whole_document" -> R.string.coverage_full
+        "partial", "partial_document" -> R.string.coverage_partial
+        "detached" -> R.string.coverage_detached
+        else -> R.string.verification_status_unknown
+    }
+
+    private fun statusLabel(context: Context, status: String): String = context.getString(statusValue(status))
 }

@@ -20,4 +20,9 @@
     <color name="on_error">#FFFFFF</color>
     <color name="status_warning">#7A5600</color>
     <color name="status_warning_container">#FFE08A</color>
+    <color name="on_surface_variant">#404944</color>
+    <color name="outline_variant">#7A847E</color>
+    <color name="inverse_surface">#2E312F</color>
+    <color name="inverse_on_surface">#EFF1EE</color>
+    <color name="inverse_primary">#9BD5BE</color>
 </resources>

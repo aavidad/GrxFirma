@@ -242,7 +242,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/prefRestore"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.GrxFirma.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"

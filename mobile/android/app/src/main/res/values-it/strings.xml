@@ -68,7 +68,7 @@
     <string name="seal_visible">Aggiungi sigillo visibile al PDF</string>
     <string name="seal_edit">Posiziona il sigillo</string>
     <string name="seal_edit_hint">Trascinare il sigillo, ridimensionarlo dall’angolo o ruotarlo con la maniglia. Si possono usare anche i pulsanti.</string>
-    <string name="seal_canvas_description">Vista della pagina con sigillo ruotato di %1$d°. Usare i pulsanti per regolarlo con TalkBack.</string>
+    <string name="seal_canvas_description" tools:ignore="TypographyDashes">Vista della pagina con il sigillo. Con la tastiera, usare le frecce per spostarlo, + e - per cambiarne la dimensione, e la virgola o il punto per ruotarlo. Con TalkBack, usare le azioni o i pulsanti sotto.</string>
     <string name="seal_page_placeholder">Pagina</string>
     <string name="seal_page_number">Pagina %1$d di %2$d</string>
     <string name="seal_previous">Precedente</string>
@@ -704,7 +704,7 @@
     <string name="ayuda_sello_texto">Mostra nel timbro il nome di chi firma, la data e altri dati della firma. Se lo disattiva, il timbro mostra solo l’immagine scelta.</string>
     <string name="ayuda_sello_qr">Aggiunge al timbro un codice QR che apre l’indirizzo web da Lei indicato, ad esempio la pagina di verifica del Suo ente. È facoltativo e l’indirizzo deve essere sicuro (https).</string>
     <string name="ayuda_sello_csv">Codice sicuro di verifica (CSV): un codice e un indirizzo web stampati sul timbro affinché chiunque possa verificare il documento sul sito del Suo ente. Lo usi solo se il Suo ente Le fornisce tale codice e tale indirizzo.</string>
-    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Pagine del PDF in cui compare il timbro: la prima, l’ultima, tutte o quelle da Lei indicate, ad esempio «1,3-5». Se non è sicuro, lo metta nell’ultima pagina.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Pagine del PDF in cui compare il sigillo. «Solo questa pagina» lo mette nella pagina mostrata sopra. «Applicare a tutte le pagine» lo ripete nella stessa posizione su tutte (fino a 128 pagine). «Più pagine, ciascuna con la propria posizione» Le permette di scegliere ogni pagina con «Metti il sigillo in questa pagina» e di posizionarlo su ciascuna. Se non è sicuro, lo metta nell’ultima pagina.</string>
     <string name="ayuda_sello_idioma">Lingua dei testi del timbro, come «Firmato da» e la data. Non cambia la lingua dell’applicazione.</string>
     <string name="ayuda_sesion_certificado">Tempo dopo il quale l’applicazione chiude il certificato se resta in background. Così nessuno può firmare con esso se lascia il telefono sbloccato; più è breve, più è sicuro.</string>
     <string name="ayuda_lote">Firma più documenti in una volta sola con lo stesso certificato e le stesse opzioni. Al termine, l’applicazione indica quali sono stati firmati e quali no.</string>
@@ -739,4 +739,7 @@
     <string name="ayuda_opcion">%1$s: %2$s</string>
     <string name="ayuda_mas_desplegado">Espanso</string>
     <string name="ayuda_mas_plegado">Compresso</string>
+    <string name="seal_canvas_state">Pagina %1$d di %2$d. Il sigillo è al %3$d%% dal bordo sinistro e al %4$d%% dal bordo inferiore. Occupa il %5$d%% della larghezza e il %6$d%% dell\'altezza. Rotazione: %7$d°.</string>
+    <string name="seal_all_pages_limit">Questo documento ha troppe pagine per mettere il sigillo su tutte (massimo: %1$d). Scelga «Solo questa pagina» o «Più pagine, ciascuna con la propria posizione».</string>
+    <string name="verification_aspect_value">%1$s: %2$s</string>
 </resources>

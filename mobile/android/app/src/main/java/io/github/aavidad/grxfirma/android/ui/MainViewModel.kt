@@ -768,7 +768,7 @@ class MainViewModel(
             document == null -> R.string.error_document_required
             !snapshot.canProtect -> -1
             snapshot.usesTransientKey && sign -> R.string.error_protect_sign_identity
-            snapshot.usesTransientKey && (!ToolsPolicy.canonicalAesKey(secret) || !secret.contentEquals(confirmation)) ->
+            snapshot.usesTransientKey && ToolsPolicy.transientKeyRejected(secret, confirmation) ->
                 R.string.error_protect_key
             // Sin identidad válida para firmar (o con DNIe) se avisa antes que de
             // los destinatarios: es lo que impide la operación.

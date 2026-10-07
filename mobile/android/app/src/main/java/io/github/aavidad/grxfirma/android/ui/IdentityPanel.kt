@@ -11,6 +11,11 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.CollectionInfoCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.CollectionItemInfoCompat
 import androidx.core.view.isNotEmpty
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.button.MaterialButton
@@ -50,11 +55,26 @@ object IdentityPanel {
         if (list.tag == key) return
         list.tag = key
         list.removeAllViews()
+        // Los botones de opción no pueden ir en un RadioGroup (cada fila lleva su
+        // «Cerrar»): la lista se declara como grupo de elección única, y TalkBack
+        // dice cuántos hay y en cuál está (WCAG 1.3.1 y 4.1.2).
+        markAsSingleChoice(list, rows.size)
         rows.forEachIndexed { index, row ->
             // Un divisor entre filas: cada certificado se distingue del siguiente.
             if (index > 0) list.addView(divider(context))
-            list.addView(rowView(context, row, labels.getValue(row.id), state.canChangeIdentity, onSelect, onClose))
+            list.addView(rowView(context, row, index, labels.getValue(row.id), state.canChangeIdentity, onSelect, onClose))
         }
+    }
+
+    private fun markAsSingleChoice(list: LinearLayout, count: Int) {
+        list.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+        ViewCompat.setAccessibilityDelegate(list, object : AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.setCollectionInfo(CollectionInfoCompat.obtain(count, 1, false,
+                    CollectionInfoCompat.SELECTION_MODE_SINGLE))
+            }
+        })
     }
 
     private data class Row(val id: String, val label: String, val selected: Boolean, val subject: String)
@@ -94,6 +114,7 @@ object IdentityPanel {
     private fun rowView(
         context: Context,
         row: Row,
+        index: Int,
         label: CharSequence,
         enabled: Boolean,
         onSelect: (String) -> Unit,
@@ -110,6 +131,12 @@ object IdentityPanel {
             isEnabled = enabled
             minHeight = context.resources.getDimensionPixelSize(R.dimen.touch_target)
             setOnClickListener { if (!row.selected) onSelect(row.id) else isChecked = true }
+            ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
+                override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                    super.onInitializeAccessibilityNodeInfo(host, info)
+                    info.setCollectionItemInfo(CollectionItemInfoCompat.obtain(index, 1, 0, 1, false, row.selected))
+                }
+            })
         }
         addView(radio, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         // Botón de texto del tema Material 3: «Cerrar» sin mayúsculas forzadas, como el resto.

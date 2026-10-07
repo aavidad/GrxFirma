@@ -79,6 +79,24 @@ class VerificationCardTest {
     }
 
     @Test
+    fun `each check shown with its help button carries its result in words`() {
+        // Antes la tarjeta mostraba «Integridad ?», «Confianza ?» y «Cobertura ?» sin valor.
+        assertEquals(
+            listOf(
+                VerificationCard.Aspect(R.string.ayuda_tema_integridad, R.string.verification_status_valid),
+                VerificationCard.Aspect(R.string.ayuda_tema_confianza, R.string.verification_status_valid),
+                VerificationCard.Aspect(R.string.ayuda_tema_cobertura, R.string.coverage_full),
+            ),
+            VerificationCard.aspects(accredited),
+        )
+        val partial = accredited.copy(integrityStatus = "invalid", trustStatus = "unknown", coverage = "partial")
+        assertEquals(
+            listOf(R.string.verification_status_invalid, R.string.verification_status_unknown, R.string.coverage_partial),
+            VerificationCard.aspects(partial).map { it.value },
+        )
+    }
+
+    @Test
     fun `common name keeps the readable part of the subject`() {
         assertEquals("Ana Pérez", VerificationCard.commonName("CN=Ana Pérez,O=Diputación,C=ES"))
         assertEquals("Pérez, Ana", VerificationCard.commonName("C=ES,CN=Pérez\\, Ana"))

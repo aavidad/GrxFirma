@@ -19,4 +19,9 @@
     <color name="on_error">#690005</color>
     <color name="status_warning">#FFDE8B</color>
     <color name="status_warning_container">#5C4200</color>
+    <color name="on_surface_variant">#BFC9C2</color>
+    <color name="outline_variant">#6F7973</color>
+    <color name="inverse_surface">#E1E3E0</color>
+    <color name="inverse_on_surface">#2E312F</color>
+    <color name="inverse_primary">#005A46</color>
 </resources>

@@ -68,7 +68,7 @@
     <string name="seal_visible">Ajouter un cachet visible au PDF</string>
     <string name="seal_edit">Placer le cachet</string>
     <string name="seal_edit_hint">Déplacez le sceau, redimensionnez-le par le coin ou tournez-le avec la poignée. Vous pouvez aussi utiliser les boutons.</string>
-    <string name="seal_canvas_description">Vue de la page avec le sceau tourné de %1$d°. Utilisez les boutons pour l’ajuster avec TalkBack.</string>
+    <string name="seal_canvas_description" tools:ignore="TypographyDashes">Vue de la page avec le sceau. Au clavier, utilisez les flèches pour le déplacer, + et - pour changer sa taille, et la virgule ou le point pour le faire pivoter. Avec TalkBack, utilisez les actions ou les boutons ci-dessous.</string>
     <string name="seal_page_placeholder">Page</string>
     <string name="seal_page_number">Page %1$d sur %2$d</string>
     <string name="seal_previous">Précédente</string>
@@ -704,7 +704,7 @@
     <string name="ayuda_sello_texto">Affiche sur le cachet le nom du signataire, la date et d’autres informations de la signature. Si vous le désactivez, le cachet n’affiche que l’image choisie.</string>
     <string name="ayuda_sello_qr">Ajoute au cachet un code QR qui ouvre l’adresse web que vous indiquez, par exemple la page de vérification de votre organisme. C’est facultatif et l’adresse doit être sécurisée (https).</string>
     <string name="ayuda_sello_csv">Code sécurisé de vérification (CSV) : un code et une adresse web imprimés sur le cachet pour que chacun puisse vérifier le document sur le site de votre organisme. Ne l’utilisez que si votre organisme vous fournit ce code et cette adresse.</string>
-    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Pages du PDF sur lesquelles le cachet apparaît : la première, la dernière, toutes ou celles que vous indiquez, par exemple « 1,3-5 ». En cas de doute, placez-le sur la dernière page.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">Pages du PDF sur lesquelles le sceau apparaît. « Cette page uniquement » le place sur la page affichée ci-dessus. « Appliquer à toutes les pages » le répète au même endroit sur toutes les pages (jusqu’à 128 pages). « Plusieurs pages, chacune avec sa position » vous permet de choisir chaque page avec « Mettre le sceau sur cette page » et de l’y placer. En cas de doute, placez-le sur la dernière page.</string>
     <string name="ayuda_sello_idioma">Langue des textes du cachet, comme « Signé par » et la date. Cela ne change pas la langue de l’application.</string>
     <string name="ayuda_sesion_certificado">Délai au terme duquel l’application ferme le certificat si elle reste en arrière-plan. Ainsi, personne ne peut signer avec si vous laissez le téléphone déverrouillé ; plus il est court, plus c’est sûr.</string>
     <string name="ayuda_lote">Signe plusieurs documents en une seule fois avec le même certificat et les mêmes options. À la fin, l’application indique ceux qui ont été signés et ceux qui ne l’ont pas été.</string>
@@ -739,4 +739,7 @@
     <string name="ayuda_opcion">%1$s : %2$s</string>
     <string name="ayuda_mas_desplegado">Déplié</string>
     <string name="ayuda_mas_plegado">Replié</string>
+    <string name="seal_canvas_state">Page %1$d sur %2$d. Le sceau est à %3$d %% du bord gauche et à %4$d %% du bord inférieur. Il occupe %5$d %% de la largeur et %6$d %% de la hauteur. Rotation : %7$d°.</string>
+    <string name="seal_all_pages_limit">Ce document comporte trop de pages pour placer le sceau sur toutes (maximum : %1$d). Choisissez « Cette page uniquement » ou « Plusieurs pages, chacune avec sa position ».</string>
+    <string name="verification_aspect_value">%1$s : %2$s</string>
 </resources>

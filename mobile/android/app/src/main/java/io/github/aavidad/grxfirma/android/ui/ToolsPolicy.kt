@@ -35,6 +35,18 @@ object ToolsPolicy {
     }
 
     /** Clave AES-256 en Base64 canónico: 44 caracteres que decodifican 32 bytes. */
+    /** La clave temporal no vale: no es AES-256 en base64 canónico o su copia no coincide. */
+    fun transientKeyRejected(secret: CharArray, confirmation: CharArray): Boolean =
+        !canonicalAesKey(secret) || !secret.contentEquals(confirmation)
+
+    /**
+     * El error de la operación será el de la clave (WCAG 3.3.1): se marca en el
+     * propio campo. Sigue el mismo orden de comprobaciones que el modelo.
+     */
+    fun keyFieldRejected(state: MainUiState, secret: CharArray, confirmation: CharArray, sign: Boolean): Boolean =
+        state.document != null && state.canProtect && state.usesTransientKey && !sign &&
+            transientKeyRejected(secret, confirmation)
+
     fun canonicalAesKey(secret: CharArray): Boolean {
         if (secret.size != AES_KEY_CHARS || secret.any { it.code > 0x7e }) return false
         val ascii = ByteArray(secret.size) { secret[it].code.toByte() }

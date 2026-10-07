@@ -68,7 +68,7 @@
     <string name="seal_visible">Add a visible seal to the PDF</string>
     <string name="seal_edit">Place the seal</string>
     <string name="seal_edit_hint">Drag the seal, resize it from the corner, or rotate it with the handle. You can also use the buttons.</string>
-    <string name="seal_canvas_description">Page preview with the seal rotated %1$d°. Use the buttons to adjust the seal with TalkBack.</string>
+    <string name="seal_canvas_description" tools:ignore="TypographyDashes">Page preview with the seal. With a keyboard, use the arrow keys to move it, + and - to resize it, and comma or full stop to rotate it. With TalkBack, use the actions or the buttons below.</string>
     <string name="seal_page_placeholder">Page</string>
     <string name="seal_page_number">Page %1$d of %2$d</string>
     <string name="seal_previous">Previous</string>
@@ -686,7 +686,7 @@
     <string name="ayuda_sello_texto">Shows on the seal the signer\'s name, the date and other signature details. If you turn it off, the seal only shows the chosen image.</string>
     <string name="ayuda_sello_qr">Adds to the seal a QR code that opens the web address you specify, for example your organisation\'s verification page. It is optional and the address must be secure (https).</string>
     <string name="ayuda_sello_csv">Secure verification code (CSV): a code and a web address printed on the seal so that anyone can check the document on your organisation\'s website. Use it only if your organisation provides that code and that address.</string>
-    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">PDF pages on which the seal appears: the first, the last, all of them or the ones you specify, for example “1,3-5”. If you are not sure, put it on the last page.</string>
+    <string name="ayuda_sello_paginas" tools:ignore="TypographyDashes">PDF pages on which the seal appears. “This page only” puts it on the page shown above. “Apply to all pages” repeats it in the same position on every page (up to 128 pages). “Several pages, each with its own position” lets you choose each page with “Put the seal on this page” and place it on each one. If you are not sure, put it on the last page.</string>
     <string name="ayuda_sello_idioma">Language of the seal texts, such as “Signed by” and the date. It does not change the language of the application.</string>
     <string name="ayuda_sesion_certificado">Time after which the application closes the certificate if it is left in the background. This way nobody can sign with it if you leave the phone unlocked; the shorter it is, the safer.</string>
     <string name="ayuda_lote">Signs several documents at once with the same certificate and the same options. When it finishes, the application shows which ones were signed and which were not.</string>
@@ -721,4 +721,7 @@
     <string name="ayuda_opcion">%1$s: %2$s</string>
     <string name="ayuda_mas_desplegado">Expanded</string>
     <string name="ayuda_mas_plegado">Collapsed</string>
+    <string name="seal_canvas_state">Page %1$d of %2$d. The seal is %3$d%% from the left edge and %4$d%% from the bottom edge. It takes up %5$d%% of the width and %6$d%% of the height. Rotation: %7$d°.</string>
+    <string name="seal_all_pages_limit">This document has too many pages to put the seal on all of them (maximum: %1$d). Choose “This page only” or “Several pages, each with its own position”.</string>
+    <string name="verification_aspect_value">%1$s: %2$s</string>
 </resources>
