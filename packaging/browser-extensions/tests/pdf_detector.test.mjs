@@ -74,4 +74,10 @@ for (const variant of ['chromium', 'firefox']) {
     assert.equal(h.sent[0].pendingDocument, null);
     assert.equal(h.notice.textContent, 'pdfPreloadUnavailable');
   });
+
+  test(`${variant}: el botón no carga recursos de la extensión en la página`, async () => {
+    const h = await detector(variant, async () => { throw new Error('sin red'); });
+    assert.ok(h.button.children.length > 0);
+    assert.ok(h.button.children.every((node) => node.tagName !== 'img'));
+  });
 }

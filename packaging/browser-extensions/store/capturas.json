@@ -1,0 +1,34 @@
+{
+  "test_origin": "https://pruebas.dipgra.es",
+  "user_site": "portal.example.org",
+  "languages": {
+    "es": {
+      "browser_locale": "es-ES",
+      "pdf_name": "documento-de-prueba.pdf",
+      "pdf_lines": [
+        "DOCUMENTO DE PRUEBA",
+        "",
+        "PDF generado para las capturas.",
+        "No contiene datos reales.",
+        "",
+        "Firmante: persona de prueba"
+      ],
+      "promo_title": "GrxFirma",
+      "promo_subtitle": "Firme PDF desde el navegador con su certificado"
+    },
+    "en": {
+      "browser_locale": "en-US",
+      "pdf_name": "test-document.pdf",
+      "pdf_lines": [
+        "TEST DOCUMENT",
+        "",
+        "PDF made for the screenshots.",
+        "It contains no real data.",
+        "",
+        "Signer: test person"
+      ],
+      "promo_title": "GrxFirma",
+      "promo_subtitle": "Sign PDFs from your browser with your certificate"
+    }
+  }
+}

@@ -117,15 +117,12 @@
         button.type = 'button';
         button.setAttribute('aria-label', t('pdfSignButtonAriaLabel'));
 
-        const icon = document.createElement('img');
-        icon.src = grxfirmaExt.runtime.getURL('icons/icon48.png');
-        icon.alt = '';
-        Object.assign(icon.style, { width: '24px', height: '24px' });
-
+        // Sin icono: una imagen de la extensión exigiría web_accessible_resources
+        // y permitiría a cualquier página detectar la extensión.
         const label = document.createElement('span');
         label.textContent = t('pdfSignButtonLabel');
         label.style.fontWeight = 'bold';
-        button.append(icon, label);
+        button.append(label);
 
         // Modern floating style
         Object.assign(button.style, {
