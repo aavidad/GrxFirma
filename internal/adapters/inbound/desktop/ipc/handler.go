@@ -193,6 +193,7 @@ type Manejador struct {
 	InformeHashDir        ports.DirectoryHashReportCodec
 	Preview               PdfPreviewUseCase
 	Servicio              ports.GestorServicio
+	ProtocoloAfirma       ports.ProtocoloAfirma
 	Settings              ports.ConfiguracionUsuario
 	TokenSettings         ports.LocalTokenSettings
 	ProxySecrets          ports.ProxySecretStore
@@ -327,6 +328,10 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp = m.handlePdfPreview(ctx, p.Params)
 	case "seal_preview":
 		resp = m.handleVistaPreviaSello(ctx, p.Params)
+	case accionProtocoloAfirmaEstado:
+		resp = m.handleProtocoloAfirmaEstado(ctx)
+	case accionProtocoloAfirmaElegir:
+		resp = m.handleProtocoloAfirmaElegir(ctx, p.Params)
 	case "service_status":
 		resp = m.handleServiceStatus(ctx)
 	case "service_install":

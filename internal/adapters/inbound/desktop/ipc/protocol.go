@@ -143,6 +143,12 @@ func desktopIPCHelloWithManagedTrust(managedTrustSupported bool) resultadoIPCHel
 	if smartcardAvailable {
 		actions = append(actions, "smartcard_status")
 	}
+	if runtime.GOOS == "windows" {
+		actions = append(actions,
+			accionProtocoloAfirmaElegir,
+			accionProtocoloAfirmaEstado,
+		)
+	}
 	if runtime.GOOS == "linux" {
 		actions = append(actions,
 			"service_install",

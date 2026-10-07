@@ -46,6 +46,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/systemtrust"
 	"grxfirma/internal/adapters/outbound/common/tsaclient"
 	"grxfirma/internal/adapters/outbound/common/updatecheck"
+	"grxfirma/internal/adapters/outbound/desktop/afirmahandler"
 	"grxfirma/internal/adapters/outbound/desktop/certaccess"
 	"grxfirma/internal/adapters/outbound/desktop/certcatalogagg"
 	"grxfirma/internal/adapters/outbound/desktop/cscremota"
@@ -506,6 +507,7 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 		application.NuevoTemporaryCertificateUseCase(temporaryStore),
 	)
 	srv.WithProxySecrets(proxysecretstore.New())
+	srv.WithProtocoloAfirma(afirmahandler.New())
 	srv.WithUpdates(updatecheck.NewWithHTTPClient(httpClient), version)
 	srv.WithProtection(ucProteger, ucProtegerFirmando, ucDesproteger, keyringProteccion)
 	srv.WithFirmaRemotaCSC(sesionCSC)
