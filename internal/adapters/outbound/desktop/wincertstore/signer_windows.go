@@ -55,11 +55,17 @@ type bcryptPSSPaddingInfo struct {
 
 // firmanteWindows implementa crypto.Signer sin retener manejadores nativos. El
 // mutex serializa los diálogos y proveedores hardware de una misma identidad.
+//
+// Cada operación de firma obtiene su propio firmante. Si la tarjeta no está o
+// el usuario cancela el diálogo de Windows, el resto de firmas de esa misma
+// operación (un lote, por ejemplo) devuelven ese error sin volver a pedirla.
 type firmanteWindows struct {
 	mu sync.Mutex
 
 	certificado *x509.Certificate
 	huella      string
+	// accesoDenegado guarda el primer fallo definitivo al abrir la clave.
+	accesoDenegado error
 }
 
 type claveWindowsAdquirida struct {
@@ -107,6 +113,9 @@ func (f *firmanteWindows) Sign(_ io.Reader, digest []byte, opciones crypto.Signe
 
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	if f.accesoDenegado != nil {
+		return nil, f.accesoDenegado
+	}
 	return f.firmarConClaveAdquirida(digest, hash, parametros, opciones)
 }
 
@@ -135,7 +144,11 @@ func (f *firmanteWindows) firmarConClaveAdquirida(digest []byte, hash crypto.Has
 
 		clave, err := adquirirClaveWindows(certCtx)
 		if err != nil {
-			return false, fmt.Errorf("wincertstore: adquiriendo la clave privada de %s: %w", f.huella, err)
+			err = fmt.Errorf("wincertstore: adquiriendo la clave privada de %s: %w", f.huella, err)
+			if accesoClaveNoReintentable(err) {
+				f.accesoDenegado = err
+			}
+			return false, err
 		}
 		if clave.especificacion == windows.CERT_NCRYPT_KEY_SPEC {
 			firma, err = f.firmarCNG(clave, digest, hash, parametros, opciones)

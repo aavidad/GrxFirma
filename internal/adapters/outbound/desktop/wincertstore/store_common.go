@@ -19,6 +19,7 @@ import (
 	"math"
 	"math/big"
 	"strings"
+	"syscall"
 
 	"grxfirma/internal/adapters/outbound/common/certutil"
 	"grxfirma/internal/domain"
@@ -27,6 +28,37 @@ import (
 // ErrNoDisponibleEnEstaPlataforma permite a agregadores ignorar este proveedor
 // de forma explícita fuera de Windows.
 var ErrNoDisponibleEnEstaPlataforma = errors.New("wincertstore: solo disponible en windows")
+
+// Códigos de Windows (HRESULT o Win32) que indican que la tarjeta o el
+// lector no están o que el usuario canceló el diálogo de la clave. Repetir la
+// apertura solo volvería a mostrar el mismo diálogo.
+const (
+	scardECancelled          = 0x80100002
+	scardENoSmartcard        = 0x8010000C
+	scardENoReadersAvailable = 0x8010002E
+	scardEReaderUnavailable  = 0x80100017
+	scardWRemovedCard        = 0x80100069
+	scardWCancelledByUser    = 0x8010006E
+	hresultErrorCancelled    = 0x800704C7
+	win32ErrorCancelled      = 1223
+)
+
+// accesoClaveNoReintentable indica si el fallo al abrir una clave privada se
+// debe a la ausencia de tarjeta o lector, o a una cancelación del usuario.
+func accesoClaveNoReintentable(err error) bool {
+	var codigo syscall.Errno
+	if !errors.As(err, &codigo) {
+		return false
+	}
+	switch uint32(codigo) {
+	case scardECancelled, scardENoSmartcard, scardENoReadersAvailable,
+		scardEReaderUnavailable, scardWRemovedCard, scardWCancelledByUser,
+		hresultErrorCancelled, win32ErrorCancelled:
+		return true
+	default:
+		return false
+	}
+}
 
 type parametrosHash struct {
 	nombreCNG string

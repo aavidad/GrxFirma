@@ -269,15 +269,9 @@ func construirAdaptador(configDir, p12Dir, p12Password string, metricas ports.Op
 		catalogo = &catalogoFirmable{base: certcatalogagg.New(catalogo, tokens)}
 		proveedor = &proveedorClavesAgregado{fuentes: []ports.SigningKeyProvider{proveedor, tokens}}
 	}
-	refs, err := catalogo.List(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("no se pudo obtener el catálogo de certificados: %w", err)
-	}
-	// Si el catálogo está vacío no bloqueamos el arranque; el error real se dará
-	// cuando el navegador intente operar con el host.
-	if len(refs) == 0 {
-		// Arranque permisivo a propósito.
-	}
+	// El catálogo no se consulta al arrancar: el navegador lanza el host sin
+	// acción del usuario y el resultado no se usaba. Se lista al atender una
+	// petición que lo necesita.
 
 	aprobador := &aprobacionSistema{
 		autoApprove: machinepolicy.OptIn(machinepolicy.AprobacionAutomaticaHost),
