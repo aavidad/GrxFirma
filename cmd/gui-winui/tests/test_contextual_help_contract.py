@@ -210,9 +210,17 @@ class ContextualHelpContractTests(unittest.TestCase):
         self.assertIn("PatternInterface.ExpandCollapse", more)
         self.assertIn("ExpandCollapsePatternIdentifiers.ExpandCollapseStateProperty", more)
         self.assertIn("MinWidth = 32", more)
+        self.assertIn("MinHeight = 32", more)
         self.assertNotIn("Foreground =", more)
+        # Igual que el «?»: solo el glifo en círculo, sin fondo ni borde.
+        self.assertIn("Microsoft.UI.Colors.Transparent", more)
+        self.assertIn("BorderThickness = new Thickness(0)", more)
+        self.assertIn("CornerRadius = new CornerRadius(16)", more)
+        self.assertIn("Content = _icon", more)
+        self.assertIn("_icon.Glyph = value ? ExpandedGlyph : CollapsedGlyph", more)
+        self.assertNotIn("UseSystemFocusVisuals = false", more)
         literals = re.findall(r'"((?:[^"\\]|\\.)*)"', re.sub(r"//[^\n]*", "", more))
-        self.assertEqual(literals, ["+", "\\u2212"])
+        self.assertEqual(literals, ["\\uECC8", "\\uECC9"])
 
     def test_help_button_is_accessible_and_has_no_fixed_text(self):
         code = (UI / "Controls/HelpButton.cs").read_text(encoding="utf-8")
