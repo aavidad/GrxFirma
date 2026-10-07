@@ -7,6 +7,13 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.124 — 2026-10-07
+
+- Nuevo logotipo de GrxFirma: una pluma que escribe la rúbrica, en la barra lateral y en «Acerca de».
+- Windows: un selector en Configuración permite elegir si las firmas que piden los portales las atiende GrxFirma o AutoFirma, sin desinstalar ninguno; las actualizaciones respetan la elección.
+- Windows: con tarjetas criptográficas o DNIe en el almacén, GrxFirma ya no pide la tarjeta en bucle al listar certificados; solo la usa al firmar, y los certificados de tarjeta aparecen en la lista.
+- Windows: la bandeja y los avisos se llaman «GrxFirma»; al actualizar con la app abierta se avisa de que se está reiniciando el servicio en vez de mostrar un error; y la comprobación de versiones funciona con el proxy de la red.
+
 ## 0.0.123 — 2026-10-06
 
 - Ayuda de las opciones: el «?» de Operación, Formato y otros selectores muestra todas las opciones a la vez con una frase cada una, y un «+» despliega una explicación más amplia.

@@ -6628,4 +6628,8 @@
   ,"ayuda.protocolo.grxfirma": "签名在 GrxFirma 中打开。"
   ,"ayuda.protocolo.autofirma": "签名在西班牙政府的应用程序 AutoFirma 中打开。仅在已安装时可选。"
   ,"ayuda.protocolo.mas": "更改立即生效，只影响您的 Windows 用户，且不会卸载任何程序。您可以随时改回 GrxFirma，更新 GrxFirma 时会保留您的选择。GrxFirma 浏览器扩展在您已配置的网站上继续正常工作。"
+  ,"Nuevo logotipo de GrxFirma: una pluma que escribe la rúbrica, en la barra lateral y en «Acerca de».": "GrxFirma 新标志：一支正在书写签名的钢笔，显示在侧边栏和“关于”中。"
+  ,"Windows: un selector en Configuración permite elegir si las firmas que piden los portales las atiende GrxFirma o AutoFirma, sin desinstalar ninguno; las actualizaciones respetan la elección.": "Windows：“设置”中新增选择项，可选择由 GrxFirma 还是 AutoFirma 处理门户请求的签名，无需卸载任何一个；更新会保留您的选择。"
+  ,"Windows: con tarjetas criptográficas o DNIe en el almacén, GrxFirma ya no pide la tarjeta en bucle al listar certificados; solo la usa al firmar, y los certificados de tarjeta aparecen en la lista.": "Windows：证书存储中有智能卡或 DNIe 时，GrxFirma 列出证书时不再反复要求插卡；只有签名时才会使用，智能卡证书也会显示在列表中。"
+  ,"Windows: la bandeja y los avisos se llaman «GrxFirma»; al actualizar con la app abierta se avisa de que se está reiniciando el servicio en vez de mostrar un error; y la comprobación de versiones funciona con el proxy de la red.": "Windows：托盘和通知名称改为“GrxFirma”；在应用打开时更新，会提示服务正在重启，而不是显示错误；版本检查现在可以通过网络代理进行。"
 }
