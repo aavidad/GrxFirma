@@ -34,7 +34,9 @@ KEYS = [
     "protocolo.error.grxfirma_no_instalada", "protocolo.error.no_disponible",
     "protocolo.error.generico", "ayuda.protocolo", "ayuda.protocolo.grxfirma",
     "ayuda.protocolo.autofirma", "ayuda.protocolo.mas",
+    "protocolo.descargar_autofirma", "protocolo.descargar_autofirma.descripcion",
 ]
+AUTOFIRMA_DOWNLOAD = "https://firmaelectronica.gob.es/Home/Descargas.html"
 
 
 class AfirmaHandlerContractTests(unittest.TestCase):
@@ -53,6 +55,8 @@ class AfirmaHandlerContractTests(unittest.TestCase):
                 with self.subTest(language=path.stem, key=key):
                     self.assertTrue(catalog.get(key, "").strip())
             self.assertIn("{0}", catalog["protocolo.estado.otro"], path.stem)
+            # La ayuda no enseña el protocolo técnico a quien firma.
+            self.assertNotIn("afirma://", catalog["ayuda.protocolo"], path.stem)
 
     def test_card_has_both_options_and_help_with_every_option(self):
         by_name = {e.get(XNAME): e for e in self.xaml.iter() if e.get(XNAME)}
@@ -62,6 +66,10 @@ class AfirmaHandlerContractTests(unittest.TestCase):
             self.assertEqual(radio.tag, "{%s}RadioButton" % PRESENTATION)
             self.assertEqual(radio.get("GroupName"), "AfirmaHandler")
             self.assertEqual(radio.get("Checked"), "OnAfirmaHandlerChecked")
+        link = by_name["AfirmaAutoFirmaDownloadLink"]
+        self.assertEqual(link.tag, "{%s}HyperlinkButton" % PRESENTATION)
+        self.assertEqual(link.get("NavigateUri"), AUTOFIRMA_DOWNLOAD)
+        self.assertIn("AfirmaAutoFirmaDownloadLink.Visibility = AfirmaAutoFirmaMissingText.Visibility;", self.page)
         help_button = by_name["AfirmaHandlerHelp"]
         self.assertEqual(help_button.tag, CONTROLS + "HelpButton")
         self.assertEqual(help_button.get("HelpKey"), "ayuda.protocolo")
@@ -101,7 +109,13 @@ class AfirmaHandlerContractTests(unittest.TestCase):
                 self.assertIn('tr("%s")' % key, self.qml)
         self.assertIn("backend.getAfirmaHandlerStatus()", self.qml)
         self.assertIn("backend.selectAfirmaHandler(handler)", self.qml)
-        self.assertIn('Qt.platform.os === "windows" && isIpcMode', self.qml)
+        self.assertIn('(Qt.platform.os === "windows" || Qt.platform.os === "linux") && isIpcMode', self.qml)
+        # Sin AutoFirma se ofrece su página oficial de descarga.
+        self.assertIn('autoFirmaDownloadUrl: "%s"' % AUTOFIRMA_DOWNLOAD, self.qml)
+        self.assertIn("backend.openExternal(configTab.autoFirmaDownloadUrl)", self.qml)
+        # El resultado se anuncia al lector de pantalla.
+        self.assertIn("afirmaHandlerStatusLabel.Accessible.announce(message)", self.qml)
+        self.assertEqual(self.qml.count("configTab.announceAfirma("), 3)
         status = self.qml[self.qml.index('objectName: "afirmaHandlerStatusText"'):][:400]
         self.assertIn("textFormat: Text.PlainText", status)
         ipc = (ROOT / "cmd/gui-qml/ipcbridge.cpp").read_text(encoding="utf-8")

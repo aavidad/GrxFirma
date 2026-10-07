@@ -14110,9 +14110,13 @@ Window {
                 property bool webCompatibilityActive:
                     backend && backend.webCompatibilityActive === true
                 // Programa que abre las firmas de los portales (afirma://).
-                // Solo en Windows y con el motor de escritorio: el motor lee
-                // y cambia el registro; aquí solo se muestra y se elige.
-                readonly property bool afirmaSupported: Qt.platform.os === "windows" && isIpcMode
+                // En Windows y Linux, con el motor de escritorio: el motor lee
+                // y cambia el registro o mimeapps.list; aquí solo se muestra
+                // y se elige.
+                readonly property bool afirmaSupported:
+                    (Qt.platform.os === "windows" || Qt.platform.os === "linux") && isIpcMode
+                // Página oficial de descarga de AutoFirma (Gobierno de España).
+                readonly property string autoFirmaDownloadUrl: "https://firmaelectronica.gob.es/Home/Descargas.html"
                 property var afirmaStatus: ({})
                 property bool afirmaBusy: false
                 property string afirmaMessage: ""
@@ -14142,6 +14146,13 @@ Window {
                     case "other": return tr("protocolo.estado.otro").replace("{0}", String(status.currentPath || ""))
                     default: return tr("protocolo.estado.ninguno")
                     }
+                }
+
+                // Lee en voz alta el resultado: el texto cambia sin que el
+                // foco se mueva y el lector de pantalla no lo diría.
+                function announceAfirma(message) {
+                    if (message && typeof afirmaHandlerStatusLabel !== "undefined")
+                        afirmaHandlerStatusLabel.Accessible.announce(message)
                 }
 
                 function afirmaErrorText(code) {
@@ -14213,13 +14224,16 @@ Window {
                             configTab.afirmaMessage = configTab.afirmaStatusText(status)
                                 + (action === "afirma_handler_select" ? " " + tr("protocolo.recargar_portal") : "")
                             configTab.afirmaRevision++
+                            configTab.announceAfirma(configTab.afirmaMessage)
                         } else if (action === "afirma_handler_select") {
                             // Vuelve al estado real y, aparte, dice por qué no cambió.
                             configTab.afirmaRevision++
                             configTab.afirmaMessage = configTab.afirmaStatusText(configTab.afirmaStatus)
                             configTab.afirmaError = configTab.afirmaErrorText(errorCode)
+                            configTab.announceAfirma(configTab.afirmaError)
                         } else {
                             configTab.afirmaMessage = tr("protocolo.estado.error")
+                            configTab.announceAfirma(configTab.afirmaMessage)
                         }
                     }
                     function onRestHealthChecked(running, message) {
@@ -15009,6 +15023,15 @@ Window {
                                     Layout.fillWidth: true
                                 }
 
+                                ThemedButton {
+                                    objectName: "afirmaAutoFirmaDownloadButton"
+                                    visible: configTab.afirmaStatus.autofirmaInstalled !== true
+                                    text: tr("protocolo.descargar_autofirma")
+                                    Accessible.name: text
+                                    Accessible.description: tr("protocolo.descargar_autofirma.descripcion")
+                                    onClicked: backend.openExternal(configTab.autoFirmaDownloadUrl)
+                                }
+
                                 Text {
                                     objectName: "afirmaHandlerErrorText"
                                     visible: configTab.afirmaError !== ""
@@ -15023,6 +15046,7 @@ Window {
                                 }
 
                                 Text {
+                                    id: afirmaHandlerStatusLabel
                                     objectName: "afirmaHandlerStatusText"
                                     // Puede incluir la ruta de otro programa: nunca como texto enriquecido.
                                     textFormat: Text.PlainText

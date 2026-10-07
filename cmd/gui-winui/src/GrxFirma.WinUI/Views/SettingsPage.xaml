@@ -330,6 +330,14 @@
                             Foreground="{ThemeResource AppMutedTextBrush}"
                             TextWrapping="Wrap"
                             Visibility="Collapsed" />
+                        <HyperlinkButton
+                            x:Name="AfirmaAutoFirmaDownloadLink"
+                            Padding="0"
+                            MinHeight="40"
+                            NavigateUri="https://firmaelectronica.gob.es/Home/Descargas.html"
+                            AutomationProperties.Name="{Binding Content, ElementName=AfirmaAutoFirmaDownloadLink}"
+                            TabIndex="22"
+                            Visibility="Collapsed" />
                         <TextBlock
                             x:Name="AfirmaHandlerErrorText"
                             AutomationProperties.LiveSetting="Assertive"
