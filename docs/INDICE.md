@@ -12,7 +12,8 @@
 - [Novedades](NOVEDADES.md)
 - [Límites conocidos](LIMITES_Y_EXCLUSIONES.md)
 - [Diagnóstico](DIAGNOSTICO_OPERACIONES_Y_TRAZAS.md)
-- [Accesibilidad](CHECKLIST_ACCESIBILIDAD.md)
+- [Accesibilidad: revisión WCAG 2.1 AA](ACCESIBILIDAD.md)
+- [Accesibilidad: lista de comprobación](CHECKLIST_ACCESIBILIDAD.md)
 
 ## Desarrollo e integración
 
