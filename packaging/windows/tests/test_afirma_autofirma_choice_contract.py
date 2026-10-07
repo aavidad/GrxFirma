@@ -54,6 +54,13 @@ class AfirmaAutoFirmaChoiceContract(unittest.TestCase):
                       "Test-AfirmaProtocolValuesMatch -Expected @($state.Snapshots)"):
             self.assertIn(check, body)
 
+    def test_restart_marker_does_not_wipe_the_preference(self):
+        # New-Item -Force recrea la clave HKCU\Software\GrxFirma vacía y
+        # perdía la elección (y InstallDir) al actualizar con la app abierta.
+        suite = source("install-suite.ps1")
+        self.assertNotRegex(suite, r"New-Item\s+-Path\s+\$restartKey\s+-Force")
+        self.assertIn("if (-not (Test-Path -LiteralPath $restartKey)) {", suite)
+
     def test_uninstall_clears_the_preference(self):
         nsis = source("grxfirma-suite.nsi")
         self.assertIn('DeleteRegKey HKCU "Software\\GrxFirma"', nsis)
