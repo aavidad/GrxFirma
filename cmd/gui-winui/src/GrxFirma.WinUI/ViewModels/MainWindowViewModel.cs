@@ -95,6 +95,17 @@ public sealed class MainWindowViewModel : ObservableObject
         ConnectionStatus = Localizer.Text("winui.ventana.comprobando_la_identidad_del_motor_local");
     }
 
+    // Aviso informativo mientras el motor se reinicia (p. ej. al actualizar):
+    // no es un error mientras dure el plazo de gracia.
+    public void SetReconnecting()
+    {
+        IsBackendReady = false;
+        HasConnectionError = false;
+        IsConnectionNoticeOpen = true;
+        CurrentDiagnostic = null;
+        ConnectionStatus = Localizer.Text("winui.ventana.grxfirma_se_esta_reiniciando");
+    }
+
     public void SetConnected(IpcHello? hello)
     {
         IsBackendReady = hello is not null;

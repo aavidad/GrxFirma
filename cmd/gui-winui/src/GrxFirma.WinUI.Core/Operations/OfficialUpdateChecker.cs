@@ -27,12 +27,23 @@ public sealed class OfficialUpdateChecker
 
     public OfficialUpdateChecker(HttpClient? http = null)
     {
-        _http = http ?? new HttpClient(new HttpClientHandler
-        {
-            AllowAutoRedirect = false,
-            UseDefaultCredentials = false,
-        });
+        _http = http ?? new HttpClient(CreateHandler());
     }
+
+    /// <summary>
+    /// GitHub nunca recibe credenciales de Windows (<c>UseDefaultCredentials</c>
+    /// sigue desactivado), pero el proxy del sistema sí, para que un proxy
+    /// corporativo con NTLM o Kerberos deje pasar la consulta. Con
+    /// <c>Proxy</c> sin asignar, .NET usa <c>HttpClient.DefaultProxy</c>: la
+    /// configuración de Windows, con su PAC y sus exclusiones.
+    /// </summary>
+    public static HttpClientHandler CreateHandler() => new()
+    {
+        AllowAutoRedirect = false,
+        UseDefaultCredentials = false,
+        UseProxy = true,
+        DefaultProxyCredentials = CredentialCache.DefaultCredentials,
+    };
 
     public static bool IsNewer(string current, string latest)
     {
@@ -42,6 +53,10 @@ public sealed class OfficialUpdateChecker
             if (a[i] != b[i]) return b[i] > a[i];
         return aPre && !bPre;
     }
+
+    /// <summary>Indica si la versión instalada se puede comparar con una publicada.</summary>
+    public static bool IsComparable(string current) =>
+        TryVersion(current, out _, out _, allowShort: true);
 
     private static bool TryVersion(string value, out long[] parts, out bool prerelease, bool allowShort = false)
     {
@@ -104,7 +119,28 @@ public sealed class OfficialUpdateChecker
         return new OfficialRelease(tag, url);
     }
 
+    /// <summary>
+    /// Consulta la última versión. Cualquier fallo que no sea una cancelación
+    /// pedida por quien llama sale como <see cref="OfficialUpdateCheckException"/>
+    /// con su motivo ya clasificado.
+    /// </summary>
     public async Task<OfficialRelease?> CheckAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await QueryAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception error) when (error is not OfficialUpdateCheckException)
+        {
+            throw new OfficialUpdateCheckException(UpdateCheckFailure.Classify(error), error);
+        }
+    }
+
+    private async Task<OfficialRelease?> QueryAsync(CancellationToken cancellationToken)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(MaximumDuration);
@@ -116,7 +152,11 @@ public sealed class OfficialUpdateChecker
             HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
         if (response.StatusCode == HttpStatusCode.NotFound) return null;
         if (response.StatusCode != HttpStatusCode.OK)
-            throw new HttpRequestException("Release service unavailable");
+            throw new OfficialUpdateCheckException(new(
+                response.StatusCode == HttpStatusCode.ProxyAuthenticationRequired
+                    ? UpdateCheckFailureKind.ProxyAuthenticationRequired
+                    : UpdateCheckFailureKind.HttpStatus,
+                (int)response.StatusCode));
         if (response.Content.Headers.ContentLength > MaximumResponseBytes)
             throw new InvalidDataException("Release response too large");
         await using var stream = await response.Content.ReadAsStreamAsync(timeout.Token).ConfigureAwait(false);

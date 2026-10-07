@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using GrxFirma.WinUI.Core.Operations;
 
@@ -89,8 +90,10 @@ public sealed class OfficialUpdateCheckerTests
             new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = new ByteArrayContent(new byte[OfficialUpdateChecker.MaximumResponseBytes + 1])
             })));
-        await Assert.ThrowsExactlyAsync<InvalidDataException>(() =>
+        var tooLarge = await Assert.ThrowsExactlyAsync<OfficialUpdateCheckException>(() =>
             new OfficialUpdateChecker(large).CheckAsync());
+        Assert.AreEqual(UpdateCheckFailureKind.InvalidResponse, tooLarge.Failure.Kind);
+        Assert.IsInstanceOfType<InvalidDataException>(tooLarge.InnerException);
         Assert.AreEqual(TimeSpan.FromSeconds(10), OfficialUpdateChecker.MaximumDuration);
     }
     [TestMethod]
@@ -108,5 +111,102 @@ public sealed class OfficialUpdateCheckerTests
         await Assert.ThrowsExactlyAsync<TaskCanceledException>(() =>
             new OfficialUpdateChecker(client).CheckAsync(cancellation.Token));
         Assert.IsTrue(called);
+    }
+
+    [TestMethod]
+    public void HandlerSendsWindowsCredentialsOnlyToTheSystemProxy()
+    {
+        using var handler = OfficialUpdateChecker.CreateHandler();
+        Assert.IsFalse(handler.UseDefaultCredentials);
+        Assert.IsFalse(handler.AllowAutoRedirect);
+        Assert.IsTrue(handler.UseProxy);
+        Assert.IsNull(handler.Proxy);
+        Assert.AreSame(CredentialCache.DefaultCredentials, handler.DefaultProxyCredentials);
+    }
+
+    [TestMethod]
+    public async Task HttpStatusFailuresAreClassifiedWithTheirCode()
+    {
+        foreach (var (status, kind) in new[] {
+            (HttpStatusCode.ProxyAuthenticationRequired, UpdateCheckFailureKind.ProxyAuthenticationRequired),
+            (HttpStatusCode.Forbidden, UpdateCheckFailureKind.HttpStatus),
+            (HttpStatusCode.ServiceUnavailable, UpdateCheckFailureKind.HttpStatus) })
+        {
+            using var client = new HttpClient(new Handler((_, _) =>
+                Task.FromResult(new HttpResponseMessage(status))));
+            var error = await Assert.ThrowsExactlyAsync<OfficialUpdateCheckException>(() =>
+                new OfficialUpdateChecker(client).CheckAsync());
+            Assert.AreEqual(kind, error.Failure.Kind);
+            Assert.AreEqual((int)status, error.Failure.StatusCode);
+        }
+        using var notFound = new HttpClient(new Handler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound))));
+        Assert.IsNull(await new OfficialUpdateChecker(notFound).CheckAsync());
+    }
+
+    [TestMethod]
+    public async Task OwnTimeoutIsReportedAsTimeoutNotAsCancellation()
+    {
+        using var client = new HttpClient(new Handler((_, _) =>
+            throw new TaskCanceledException("timeout", new TimeoutException())));
+        var error = await Assert.ThrowsExactlyAsync<OfficialUpdateCheckException>(() =>
+            new OfficialUpdateChecker(client).CheckAsync());
+        Assert.AreEqual(UpdateCheckFailureKind.Timeout, error.Failure.Kind);
+        Assert.AreEqual("request_timeout", error.Failure.LogCode);
+    }
+
+    [TestMethod]
+    public void ClassifiesTransportFailuresWithoutKeepingRemoteText()
+    {
+        const string proxy = "http://usuario:secreto@proxy.example:4070/";
+        var cases = new (Exception Error, UpdateCheckFailureKind Kind, string Log)[]
+        {
+            (new HttpRequestException(HttpRequestError.ProxyTunnelError,
+                $"The proxy tunnel request to proxy '{proxy}' failed with status code '407'."),
+                UpdateCheckFailureKind.ProxyAuthenticationRequired, "proxy_auth_required 407"),
+            (new HttpRequestException(HttpRequestError.ProxyTunnelError,
+                $"The proxy tunnel request to proxy '{proxy}' failed with status code '502'."),
+                UpdateCheckFailureKind.Proxy, "proxy_error 502"),
+            (new HttpRequestException(HttpRequestError.ProxyTunnelError, proxy),
+                UpdateCheckFailureKind.Proxy, "proxy_error"),
+            (new HttpRequestException(HttpRequestError.Unknown, proxy, null, HttpStatusCode.ProxyAuthenticationRequired),
+                UpdateCheckFailureKind.ProxyAuthenticationRequired, "proxy_auth_required 407"),
+            (new HttpRequestException(HttpRequestError.NameResolutionError, proxy,
+                new SocketException((int)SocketError.HostNotFound)),
+                UpdateCheckFailureKind.NameResolution, "dns_error"),
+            (new HttpRequestException(HttpRequestError.ConnectionError, proxy,
+                new SocketException((int)SocketError.HostNotFound)),
+                UpdateCheckFailureKind.NameResolution, "dns_error"),
+            (new HttpRequestException(HttpRequestError.ConnectionError, proxy,
+                new SocketException((int)SocketError.ConnectionRefused)),
+                UpdateCheckFailureKind.Network, "network_error"),
+            (new HttpRequestException(HttpRequestError.ConnectionError, proxy,
+                new SocketException((int)SocketError.TimedOut)),
+                UpdateCheckFailureKind.Timeout, "request_timeout"),
+            (new HttpRequestException(HttpRequestError.ConnectionError, proxy),
+                UpdateCheckFailureKind.Network, "network_error"),
+            (new HttpRequestException(HttpRequestError.SecureConnectionError, proxy,
+                new System.Security.Authentication.AuthenticationException(proxy)),
+                UpdateCheckFailureKind.Tls, "tls_error"),
+            (new HttpRequestException(proxy, new System.Security.Authentication.AuthenticationException(proxy)),
+                UpdateCheckFailureKind.Tls, "tls_error"),
+            (new HttpRequestException(proxy), UpdateCheckFailureKind.Network, "network_error"),
+            (new System.Text.Json.JsonException(proxy), UpdateCheckFailureKind.InvalidResponse, "invalid_response"),
+            (new InvalidOperationException(proxy), UpdateCheckFailureKind.Unknown, "unknown_error"),
+        };
+        foreach (var (error, kind, log) in cases)
+        {
+            var failure = UpdateCheckFailure.Classify(error);
+            Assert.AreEqual(kind, failure.Kind, error.Message);
+            Assert.AreEqual(log, failure.LogCode);
+            Assert.IsFalse(failure.LogCode.Contains("proxy.example", StringComparison.Ordinal));
+            Assert.IsFalse(failure.LogCode.Contains("secreto", StringComparison.Ordinal));
+            Assert.IsTrue(failure.MessageKey.StartsWith("winui.actualizaciones.error_", StringComparison.Ordinal));
+        }
+        Assert.AreEqual("winui.actualizaciones.error_proxy",
+            new UpdateCheckFailure(UpdateCheckFailureKind.ProxyAuthenticationRequired, 407).MessageKey);
+        var wrapped = new OfficialUpdateCheckException(new(UpdateCheckFailureKind.HttpStatus, 503));
+        Assert.AreEqual("http_status 503", wrapped.Message);
+        Assert.AreSame(wrapped.Failure, UpdateCheckFailure.Classify(new AggregateException(wrapped)));
     }
 }

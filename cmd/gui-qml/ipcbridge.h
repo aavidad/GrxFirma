@@ -309,6 +309,11 @@ private:
   QString m_fingerprints;
   bool m_useTLS = false;
   int m_retryCount = 0;
+  // Plazo de gracia tras perder el canal (p. ej. al actualizar): mientras dura
+  // se muestra un aviso informativo en vez del error de conexión.
+  static constexpr int kConnectionGraceMs = 30000;
+  bool m_connectionGrace = false;
+  quint64 m_connectionGraceGeneration = 0;
   QString m_pendingAction; // ultima accion enviada, para distinguir respuestas
   QString m_pendingRequestId;
   QString m_pendingTraceId;

@@ -19,19 +19,25 @@ namespace GrxFirma.WinUI.Controls;
 /// </summary>
 public sealed class MoreInfoButton : Button
 {
-    private const string CollapsedGlyph = "+";
-    private const string ExpandedGlyph = "\u2212";
+    private const string CollapsedGlyph = "\uECC8"; // AddTo (círculo con «+») de Segoe Fluent Icons
+    private const string ExpandedGlyph = "\uECC9"; // RemoveFrom (círculo con «−»)
+    private readonly FontIcon _icon = new() { FontSize = 16, Glyph = CollapsedGlyph };
     private bool _isExpanded;
 
     public MoreInfoButton()
     {
         // 32 × 32: por encima del mínimo táctil de 24 px (WCAG 2.5.8) sin
-        // descuadrar la línea de texto. Colores y foco, los del tema.
+        // descuadrar la línea de texto. Como el «?» de HelpButton, solo se
+        // ve el glifo: sin fondo ni borde de botón; al pasar el ratón o con
+        // el foco aparece el círculo suave del tema. Colores y foco, del tema.
         MinWidth = 32;
         MinHeight = 32;
         Padding = new Thickness(0);
         VerticalAlignment = VerticalAlignment.Top;
-        Content = CollapsedGlyph;
+        Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        BorderThickness = new Thickness(0);
+        CornerRadius = new CornerRadius(16);
+        Content = _icon;
         Click += (_, _) => IsExpanded = !IsExpanded;
     }
 
@@ -45,7 +51,7 @@ public sealed class MoreInfoButton : Button
         {
             if (_isExpanded == value) return;
             _isExpanded = value;
-            Content = value ? ExpandedGlyph : CollapsedGlyph;
+            _icon.Glyph = value ? ExpandedGlyph : CollapsedGlyph;
             ExpandedChanged?.Invoke(this, EventArgs.Empty);
             if (FrameworkElementAutomationPeer.FromElement(this) is MoreInfoButtonAutomationPeer peer)
                 peer.RaiseExpandCollapseChanged(!value, value);

@@ -407,7 +407,14 @@ public sealed partial class MainWindow : Window
                     OfficialUpdateChecker.IsReleaseForVersion(result.Data.ReleaseUrl, result.Data.LatestVersion) &&
                     OfficialUpdateChecker.IsNewer(current, result.Data.LatestVersion))
                     release = new(result.Data.LatestVersion, result.Data.ReleaseUrl);
-                if (result is null || !result.IsSuccess) engineAvailable = false;
+                if (result is null || !result.IsSuccess)
+                {
+                    // El motor no lee el proxy del sistema de Windows: se
+                    // reintenta desde aquí, que sí lo usa con las credenciales
+                    // de Windows.
+                    if (result is not null) _app.LogEngineUpdateFailure(result.ErrorCode);
+                    engineAvailable = false;
+                }
             }
             else if (engineAvailable) engineAvailable = false;
             if (!engineAvailable && !cancellationToken.IsCancellationRequested)

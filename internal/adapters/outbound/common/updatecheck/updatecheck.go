@@ -82,6 +82,9 @@ func FailureCode(err error) string {
 	}
 	var statusErr *HTTPStatusError
 	if errors.As(err, &statusErr) {
+		if statusErr.StatusCode == http.StatusProxyAuthRequired {
+			return "PROXY_AUTH_REQUIRED"
+		}
 		return fmt.Sprintf("HTTP %d", statusErr.StatusCode)
 	}
 	var netErr net.Error
@@ -100,7 +103,13 @@ func FailureCode(err error) string {
 			}
 		}
 	}
-	if strings.Contains(strings.ToLower(message), "proxy") {
+	// net/http devuelve el estado del túnel CONNECT como texto («Proxy
+	// Authentication Required»); solo se mira el tipo, nunca se devuelve.
+	lower := strings.ToLower(message)
+	if strings.Contains(lower, "proxy authentication required") {
+		return "PROXY_AUTH_REQUIRED"
+	}
+	if strings.Contains(lower, "proxy") {
 		return "PROXY_UNAVAILABLE"
 	}
 	return "NETWORK_OR_PUBLICATION_UNAVAILABLE"
@@ -117,6 +126,8 @@ func MessageKey(err error) string {
 		return "La consulta de versiones ha tardado demasiado. Vuelva a intentarlo más tarde."
 	case "HTTP 403":
 		return "GitHub ha limitado temporalmente la consulta de versiones. Vuelva a intentarlo más tarde."
+	case "PROXY_AUTH_REQUIRED":
+		return "La red usa un proxy que no ha permitido la consulta. Puede consultar las versiones publicadas en la web oficial."
 	case "PROXY_UNAVAILABLE":
 		return "No se pudo conectar mediante el proxy. Revise su configuración y vuelva a intentarlo."
 	case "NETWORK_OR_PUBLICATION_UNAVAILABLE":
@@ -137,6 +148,8 @@ func ErrorCode(err error) string {
 		return "update_timeout"
 	case "HTTP 403":
 		return "update_rate_limited"
+	case "PROXY_AUTH_REQUIRED":
+		return "update_proxy_auth_required"
 	case "PROXY_UNAVAILABLE":
 		return "update_proxy_unavailable"
 	case "NETWORK_OR_PUBLICATION_UNAVAILABLE":

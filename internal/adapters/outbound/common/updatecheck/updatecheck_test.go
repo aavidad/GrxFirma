@@ -187,12 +187,21 @@ func TestFailureCodeNoFiltraElDetalleDeRed(t *testing.T) {
 		{errors.New("consultando releases: HTTP 404"), "HTTP 404"},
 		{errors.New("respuesta HTTP 503 desde upstream"), "HTTP 503"},
 		{errors.New(`proxy https://usuario:secreto@proxy.example rechazado`), "PROXY_UNAVAILABLE"},
+		{&HTTPStatusError{StatusCode: http.StatusProxyAuthRequired}, "PROXY_AUTH_REQUIRED"},
+		{errors.New(`Get "https://api.github.com/x": Proxy Authentication Required`), "PROXY_AUTH_REQUIRED"},
 		{errors.New("HTTP abc; token=secreto"), "NETWORK_OR_PUBLICATION_UNAVAILABLE"},
 	}
 	for _, test := range cases {
 		if got := FailureCode(test.err); got != test.want {
 			t.Errorf("FailureCode(%v) = %q; want %q", test.err, got, test.want)
 		}
+	}
+	proxyAuth := &HTTPStatusError{StatusCode: http.StatusProxyAuthRequired}
+	if got := ErrorCode(proxyAuth); got != "update_proxy_auth_required" {
+		t.Errorf("ErrorCode(407) = %q", got)
+	}
+	if got := MessageKey(proxyAuth); !strings.Contains(got, "proxy") {
+		t.Errorf("MessageKey(407) = %q", got)
 	}
 }
 

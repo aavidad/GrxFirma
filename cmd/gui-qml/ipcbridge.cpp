@@ -490,7 +490,24 @@ IpcBridge::IpcBridge(QObject *parent) : QObject(parent) {
         ipcSocketStateName(m_socket->state()) +
         it(QStringLiteral(", pending=")) + m_pendingAction +
         it(QStringLiteral(", deferred=")) + m_deferredAction);
-    setStatus(it(QStringLiteral("Conexión IPC cerrada")));
+    if (m_shuttingDown) {
+      setStatus(it(QStringLiteral("Conexión IPC cerrada")));
+    } else {
+      // Al actualizar con la aplicación abierta, el instalador reinicia el
+      // motor: primero un aviso informativo y solo si el canal no vuelve en
+      // el plazo de gracia, el estado de conexión cerrada.
+      m_connectionGrace = true;
+      const quint64 generation = ++m_connectionGraceGeneration;
+      setStatus(it(QStringLiteral(
+          "GrxFirma se está actualizando o reiniciando el servicio. Se reconectará sola en unos segundos.")));
+      QTimer::singleShot(kConnectionGraceMs, this, [this, generation]() {
+        if (!m_connectionGrace || generation != m_connectionGraceGeneration ||
+            m_socket->state() == QLocalSocket::ConnectedState)
+          return;
+        m_connectionGrace = false;
+        setStatus(it(QStringLiteral("Conexión IPC cerrada")));
+      });
+    }
     const auto pendingSeals = m_sealPreviewRequests.keys();
     m_sealPreviewRequests.clear();
     for (const QString &id : pendingSeals)
@@ -510,7 +527,7 @@ IpcBridge::IpcBridge(QObject *parent) : QObject(parent) {
             m_socket->state() == QLocalSocket::ConnectedState) {
           return;
         }
-        setStatus(it(QStringLiteral("Reconectando con el motor de firma...")));
+        emit backendLogReceived(it(QStringLiteral("Reconectando con el motor de firma...")));
         tryConnect();
       });
     }
@@ -1048,7 +1065,8 @@ void IpcBridge::tryConnect() {
       }
     });
   } else {
-    setStatus(it(QStringLiteral("No se pudo conectar al backend tras 10 segundos")));
+    if (!m_connectionGrace)
+      setStatus(it(QStringLiteral("No se pudo conectar al backend tras 10 segundos")));
     if (!m_deferredAction.isEmpty()) {
       const QString action = m_deferredAction;
       m_deferredAction.clear();
@@ -1170,7 +1188,8 @@ bool IpcBridge::queueDeferredRequest(const QString &action,
       IncidentFormatIpcLogEvent(
           req.toVariantMap(), QStringLiteral("ipc-request"),
           QStringLiteral("deferred"), m_deferredRequest.size()));
-  setStatus(it(QStringLiteral("Reconectando con el motor de firma...")));
+  if (!m_connectionGrace)
+    setStatus(it(QStringLiteral("Reconectando con el motor de firma...")));
   tryConnect();
   return true;
 }
@@ -1851,6 +1870,8 @@ void IpcBridge::onConnected() {
       it(QStringLiteral(", pending=")) + m_pendingAction +
       it(QStringLiteral(", deferred=")) + m_deferredAction);
   m_retryCount = 0;
+  m_connectionGrace = false;
+  ++m_connectionGraceGeneration;
   setStatus(it(QStringLiteral("Conectado vía IPC")));
   flushDeferredRequest();
   if (hadDeferredRequest) {
@@ -1873,7 +1894,10 @@ void IpcBridge::onError(QLocalSocket::LocalSocketError error) {
                           it(QStringLiteral(", pending=")) + m_pendingAction +
                           it(QStringLiteral(", deferred=")) + m_deferredAction +
                           "]");
-  setStatus(it(QStringLiteral("Error IPC: ")) + errStr);
+  // Durante el plazo de gracia se conserva el aviso informativo; el detalle
+  // queda en el registro.
+  if (!m_connectionGrace)
+    setStatus(it(QStringLiteral("Error IPC: ")) + errStr);
   const auto pendingSeals = m_sealPreviewRequests.keys();
   m_sealPreviewRequests.clear();
   for (const QString &id : pendingSeals)

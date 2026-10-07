@@ -46,6 +46,36 @@ public sealed class ReconnectingIpcClient : IIpcClient
             .ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Da por perdido el canal actual, por ejemplo porque el proceso del motor
+    /// ha terminado. La siguiente petición o <see cref="TryReconnectAsync"/>
+    /// abre otro.
+    /// </summary>
+    public ValueTask MarkLostAsync() => Volatile.Read(ref _current).DisposeAsync();
+
+    /// <summary>
+    /// Intenta dejar un canal utilizable sin enviar ninguna petición. Devuelve
+    /// false si el motor no responde; no se le pasa token: la conexión tiene
+    /// su propio tiempo máximo y quien espera limita solo su espera.
+    /// </summary>
+    public async Task<bool> TryReconnectAsync()
+    {
+        try
+        {
+            var client = await EnsureUsableAsync(CancellationToken.None).ConfigureAwait(false);
+            return client.IsTransportUsable;
+        }
+        catch (ObjectDisposedException) when (Volatile.Read(ref _disposed) != 0)
+        {
+            return false;
+        }
+        catch (Exception error) when (error is IpcClientException or IOException or
+            TimeoutException or UnauthorizedAccessException or OperationCanceledException)
+        {
+            return false;
+        }
+    }
+
     private async Task<NdjsonIpcClient> EnsureUsableAsync(CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
