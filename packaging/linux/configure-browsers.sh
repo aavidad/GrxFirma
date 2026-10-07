@@ -14,6 +14,7 @@ FIREFOX_METADATA="${GRXFIRMA_FIREFOX_METADATA:-/usr/lib/grxfirma/extensions/grxf
 FIREFOX_EXT_ID="${FIREFOX_EXT_ID:-grxfirma@aavidad.github.io}"
 CHROME_EXT_ID="${CHROME_EXT_ID:-pkefjandjcgdmhoonmhnllikibobijgg}"
 EXTRA_CHROME_EXT_ID="${EXTRA_CHROME_EXT_ID:-}"
+SYSTEM_APP_DIRS="${GRXFIRMA_SYSTEM_APP_DIRS:-/usr/local/share/applications:/usr/share/applications}"
 
 log() {
   printf 'grxfirma browsers: %s\n' "$*"
@@ -23,17 +24,43 @@ have_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+# Si la persona eligió AutoFirma en «Firmas desde los portales» y AutoFirma
+# sigue instalado, afirma:// no se reasigna a GrxFirma al actualizar.
+afirma_prefers_autofirma() {
+  local pref="${TARGET_HOME}/.config/grxfirma/afirma-protocol-handler"
+  local dir value
+  local -a dirs
+  [[ -f "${pref}" && ! -L "${pref}" ]] || return 1
+  value="$(head -c 32 "${pref}" | tr -d '[:space:]')"
+  [[ "${value}" == "autofirma" ]] || return 1
+  IFS=: read -r -a dirs <<< "${SYSTEM_APP_DIRS}"
+  for dir in "${TARGET_HOME}/.local/share/applications" "${dirs[@]}"; do
+    if [[ -f "${dir}/afirma.desktop" || -f "${dir}/autofirma.desktop" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+afirma_schemes() {
+  if ! afirma_prefers_autofirma; then
+    printf '%s\n' x-scheme-handler/afirma
+  fi
+  printf '%s\n' x-scheme-handler/afirmav2
+}
+
 ensure_mimeapps_default() {
   local file="$1"
-  local tmp="${file}.tmp.$$"
+  local -a schemes
+  mapfile -t schemes < <(afirma_schemes)
   mkdir -p "$(dirname "${file}")"
   if have_cmd python3; then
-    python3 - "$file" "${DESKTOP_ID}" <<'PY'
+    python3 - "$file" "${DESKTOP_ID}" "${schemes[@]}" <<'PY'
 import configparser
 import os
 import sys
 
-path, desktop_id = sys.argv[1], sys.argv[2]
+path, desktop_id, schemes = sys.argv[1], sys.argv[2], sys.argv[3:]
 parser = configparser.RawConfigParser(strict=False, delimiters=("=",))
 parser.optionxform = str
 if os.path.exists(path):
@@ -41,7 +68,7 @@ if os.path.exists(path):
 
 if not parser.has_section("Default Applications"):
     parser.add_section("Default Applications")
-for scheme in ("x-scheme-handler/afirma", "x-scheme-handler/afirmav2"):
+for scheme in schemes:
     parser.set("Default Applications", scheme, desktop_id)
 
 with open(path, "w", encoding="utf-8") as fh:
@@ -52,8 +79,10 @@ PY
 
   {
     printf '\n[Default Applications]\n'
-    printf 'x-scheme-handler/afirma=%s\n' "${DESKTOP_ID}"
-    printf 'x-scheme-handler/afirmav2=%s\n' "${DESKTOP_ID}"
+    local scheme
+    for scheme in "${schemes[@]}"; do
+      printf '%s=%s\n' "${scheme}" "${DESKTOP_ID}"
+    done
   } >> "${file}"
 }
 
@@ -332,7 +361,7 @@ register_afirma_scheme() {
   if have_cmd update-desktop-database; then
     update-desktop-database "${TARGET_HOME}/.local/share/applications" >/dev/null 2>&1 || true
   fi
-  if have_cmd xdg-mime; then
+  if have_cmd xdg-mime && ! afirma_prefers_autofirma; then
     xdg-mime default "${DESKTOP_ID}" x-scheme-handler/afirma || true
   fi
 }

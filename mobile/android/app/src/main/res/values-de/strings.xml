@@ -467,6 +467,7 @@
     <string name="update_error_rate_limited">GitHub hat Versionsabfragen vorübergehend begrenzt. Versuchen Sie es später erneut.</string>
     <string name="update_error_service">Der Versionsdienst von GitHub ist derzeit nicht verfügbar. Versuchen Sie es später erneut.</string>
     <string name="update_error_network">Die Verbindung zur Versionsprüfung ist fehlgeschlagen. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</string>
+    <string name="update_error_proxy_auth">Das Netzwerk verwendet einen Proxy, der eine Anmeldung verlangt. Deshalb konnte nicht geprüft werden, ob es neue Versionen gibt. Versuchen Sie es in einem anderen Netzwerk oder wenden Sie sich an die Netzwerkverwaltung.</string>
     <string name="update_error_generic">Die Version konnte nicht geprüft werden. Versuchen Sie es später erneut.</string>
     <string name="update_privacy">Die Prüfung verbindet sich per HTTPS mit GitHub und sendet keine Dokumente, Zertifikate oder Signaturdaten. Updates werden niemals automatisch heruntergeladen oder ausgeführt.</string>
     <string name="update_install_hint">Installieren Sie sie auf demselben Weg, über den Sie GrxFirma erhalten haben: Ihre Organisation, den App-Store oder die offizielle Seite.</string>

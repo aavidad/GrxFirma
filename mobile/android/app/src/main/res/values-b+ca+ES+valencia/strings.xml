@@ -478,6 +478,7 @@
     <string name="update_error_rate_limited">GitHub ha limitat temporalment la consulta de versions. Torneu-ho a intentar més tard.</string>
     <string name="update_error_service">El servici de versions de GitHub no està disponible ara. Torneu-ho a intentar més tard.</string>
     <string name="update_error_network">No s’ha pogut connectar per a comprovar les versions. Reviseu la connexió a Internet i torneu-ho a intentar.</string>
+    <string name="update_error_proxy_auth">La xarxa utilitza un servidor intermediari que demana identificar-se, i per això no s’ha pogut comprovar si hi ha versions noves. Proveu-ho des d’una altra xarxa o consulteu qui la gestiona.</string>
     <string name="update_error_generic">No s’ha pogut comprovar la versió. Torneu-ho a intentar més tard.</string>
     <string name="update_privacy">La comprovació contacta amb GitHub per HTTPS i no envia documents, certificats ni dades de signatura. Mai descarrega ni executa una actualització automàticament.</string>
     <string name="update_install_hint">Instal·leu-la per la mateixa via per on vau obtindre GrxFirma: la vostra organització, la botiga d\'aplicacions o la pàgina oficial.</string>

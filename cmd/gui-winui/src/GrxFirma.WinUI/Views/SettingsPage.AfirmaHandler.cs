@@ -32,6 +32,9 @@ public sealed partial class SettingsPage
         AfirmaAutoFirmaRadio.Content = Localizer.Text("protocolo.opcion.autofirma");
         AfirmaHandlerRefreshButton.Content = Localizer.Text("protocolo.comprobar");
         AfirmaAutoFirmaMissingText.Text = Localizer.Text(AfirmaHandlerPresentation.AutoFirmaMissing);
+        AfirmaAutoFirmaDownloadLink.Content = Localizer.Text("protocolo.descargar_autofirma");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
+            AfirmaAutoFirmaDownloadLink, Localizer.Text("protocolo.descargar_autofirma.descripcion"));
         // Un StackPanel no llega a UI Automation: cada opción dice para qué es.
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
             AfirmaGrxFirmaRadio, Localizer.Text("protocolo.selector"));
@@ -112,6 +115,7 @@ public sealed partial class SettingsPage
             : view.AutoFirmaSelected ? AfirmaHandlerChoices.AutoFirma : AfirmaHandlerChoices.None;
         AfirmaAutoFirmaMissingText.Visibility =
             view.ShowAutoFirmaMissing ? Visibility.Visible : Visibility.Collapsed;
+        AfirmaAutoFirmaDownloadLink.Visibility = AfirmaAutoFirmaMissingText.Visibility;
         // Una opción desactivada no recibe el foco: su ayuda dice por qué.
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
             AfirmaAutoFirmaRadio,

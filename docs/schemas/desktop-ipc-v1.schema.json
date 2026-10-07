@@ -96,6 +96,10 @@
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "maxProperties": 0}}}
         },
         {
+          "if": {"properties": {"action": {"const": "afirma_handler_select"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["handler"], "properties": {"handler": {"enum": ["grxfirma", "autofirma"]}}, "additionalProperties": false}}}
+        },
+        {
           "if": {"properties": {"action": {"enum": ["csc_status", "csc_connect", "csc_disconnect"]}}, "required": ["action"]},
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "maxProperties": 0}}}
         },
@@ -396,6 +400,8 @@
     },
     "action": {
       "enum": [
+        "afirma_handler_select",
+        "afirma_handler_status",
         "certificate_access_options",
         "certificate_export_public",
         "certificates",

@@ -467,6 +467,7 @@
     <string name="update_error_rate_limited">GitHubek aldi baterako mugatu du bertsioen kontsulta. Saiatu berriro geroago.</string>
     <string name="update_error_service">GitHuben bertsio zerbitzua ez dago erabilgarri une honetan. Saiatu berriro geroago.</string>
     <string name="update_error_network">Ezin izan da konektatu bertsioak egiaztatzeko. Berrikusi Interneteko konexioa eta saiatu berriro.</string>
+    <string name="update_error_proxy_auth">Sareak identifikatzeko eskatzen duen proxy bat erabiltzen du, eta horregatik ezin izan da egiaztatu bertsio berririk dagoen. Saiatu beste sare batetik edo galdetu sarea kudeatzen duenari.</string>
     <string name="update_error_generic">Ezin izan da bertsioa egiaztatu. Saiatu berriro geroago.</string>
     <string name="update_privacy">Egiaztapenak HTTPS bidez GitHubekin konektatzen du, eta ez du dokumenturik, ziurtagiririk edo sinadura-daturik bidaltzen. Ez du inoiz eguneratzerik automatikoki deskargatzen edo exekutatzen.</string>
     <string name="update_install_hint">Instalatu GrxFirma lortu zenuen bide beretik: zure erakundea, aplikazio-denda edo orri ofiziala.</string>

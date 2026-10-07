@@ -467,6 +467,7 @@
     <string name="update_error_rate_limited">GitHub has temporarily limited version checks. Please try again later.</string>
     <string name="update_error_service">GitHub’s version service is unavailable right now. Please try again later.</string>
     <string name="update_error_network">Could not connect to check for versions. Check your Internet connection and try again.</string>
+    <string name="update_error_proxy_auth">The network uses a proxy that asks you to sign in, so the version check could not be done. Try another network or ask whoever manages this one.</string>
     <string name="update_error_generic">Could not check the version. Please try again later.</string>
     <string name="update_privacy">The check contacts GitHub over HTTPS and sends no documents, certificates, or signature data. It never downloads or runs an update automatically.</string>
     <string name="update_install_hint">Install it the same way you got GrxFirma: through your organization, the app store or the official page.</string>
