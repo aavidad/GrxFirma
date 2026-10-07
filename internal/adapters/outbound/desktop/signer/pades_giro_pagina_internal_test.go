@@ -122,12 +122,23 @@ func TestColocarSelloSinGiroIgualQueAntes(t *testing.T) {
 				u, v, w, h := f[0]*m.ancho, f[1]*m.alto, f[2]*m.ancho, f[3]*m.alto
 				got, giro, err := m.colocarSello(u, v, w, h, g)
 				want, wantErr := cajaSelloGirado(caja[0]+f[0]*m.ancho, caja[1]+f[1]*m.alto, w, h, g, caja[0], caja[1], m.ancho, m.alto)
-				if (err == nil) != (wantErr == nil) || got != want || giro != g {
+				if (err == nil) != (wantErr == nil) || !cajasCasiIguales(got, want) || giro != g {
 					t.Fatalf("caja %v giro %g fracción %v: %v %g %v, antes %v %v", caja, g, f, got, giro, err, want, wantErr)
 				}
 			}
 		}
 	}
+}
+
+// En arm64 el compilador funde multiplicaciones y sumas (FMA) y el último bit
+// puede variar; la colocación es la misma aunque el redondeo no lo sea.
+func cajasCasiIguales(a, b [4]float64) bool {
+	for i := range a {
+		if math.Abs(a[i]-b[i]) > 1e-9 {
+			return false
+		}
+	}
+	return true
 }
 
 func TestColocarSelloCompensaRotateDeLaPagina(t *testing.T) {

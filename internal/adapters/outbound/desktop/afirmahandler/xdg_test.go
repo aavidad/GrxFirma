@@ -3,6 +3,11 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
+// mimeapps.list y las rutas XDG solo existen en sistemas tipo Unix; en Windows
+// filepath convierte las rutas de prueba y las comparaciones no tienen sentido.
+
+//go:build !windows
+
 package afirmahandler
 
 import (
