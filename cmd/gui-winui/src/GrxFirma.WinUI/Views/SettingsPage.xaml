@@ -240,7 +240,7 @@
                         </controls:HelpRow>
                         <TextBlock
                             x:Name="TsaFieldError"
-                            AutomationProperties.LiveSetting="Assertive"
+                            AutomationProperties.LiveSetting="Assertive" controls:LiveAnnouncer.Watch="True"
                             Foreground="{ThemeResource AppDiagnosticFailureBrush}"
                             Text="{x:Bind ViewModel.TsaValidationMessage, Mode=OneWay}"
                             Visibility="Collapsed"
@@ -332,13 +332,13 @@
                             Visibility="Collapsed" />
                         <TextBlock
                             x:Name="AfirmaHandlerErrorText"
-                            AutomationProperties.LiveSetting="Assertive"
+                            AutomationProperties.LiveSetting="Assertive" controls:LiveAnnouncer.Watch="True"
                             Foreground="{ThemeResource AppDiagnosticFailureBrush}"
                             TextWrapping="Wrap"
                             Visibility="Collapsed" />
                         <TextBlock
                             x:Name="AfirmaHandlerStatusText"
-                            AutomationProperties.LiveSetting="Polite"
+                            AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                             TextWrapping="Wrap" />
                         <Button
                             x:Name="AfirmaHandlerRefreshButton"
@@ -397,7 +397,7 @@
                                 PlaceholderText="proxy.organizacion.es"
                                 TabIndex="26"
                                 Text="{x:Bind ViewModel.ProxyHost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock x:Name="ProxyHostFieldError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
+                            <TextBlock x:Name="ProxyHostFieldError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True" TextWrapping="Wrap" Visibility="Collapsed" />
                         </Grid>
                         <Grid ColumnSpacing="12" RowSpacing="12">
                             <Grid.ColumnDefinitions>
@@ -419,7 +419,7 @@
                                 PlaceholderText="8080"
                                 TabIndex="27"
                                 Text="{x:Bind ViewModel.ProxyPortText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock x:Name="ProxyPortFieldError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" Visibility="Collapsed" />
+                            <TextBlock x:Name="ProxyPortFieldError" Grid.Row="2" Foreground="{ThemeResource AppDiagnosticFailureBrush}" AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True" TextWrapping="Wrap" Visibility="Collapsed" />
                             <TextBlock
                                 Grid.Row="1"
                                 Foreground="{ThemeResource AppMutedTextBrush}"
@@ -540,7 +540,7 @@
                                 TabIndex="34" />
                         </controls:HelpRow>
                         <TextBlock x:Name="RestStatusText"
-                            AutomationProperties.LiveSetting="Polite"
+                            AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                             TextWrapping="Wrap" />
                         <TextBox x:Name="RestTokenText"
                             IsReadOnly="True"
@@ -569,7 +569,7 @@
                 </Border>
 
                 <TextBlock
-                    AutomationProperties.LiveSetting="Polite"
+                    AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                     Foreground="{ThemeResource AppMutedTextBrush}"
                     Text="{x:Bind ViewModel.ValidationMessage, Mode=OneWay}"
                     TextWrapping="Wrap" />

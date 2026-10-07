@@ -150,6 +150,7 @@
                         <TextBlock
                             Text="Generador local para una factura ordinaria en euros con una línea y los tres destinos DIR3. Los totales se calculan automáticamente. Revise siempre el resultado y valídelo en FACe antes de remitirlo."
                             TextWrapping="Wrap" />
+                        <TextBlock x:Name="RequiredFieldsLegend" TextWrapping="Wrap" />
                         <InfoBar
                             IsClosable="False"
                             IsOpen="True"
@@ -172,6 +173,7 @@
                                     <TextBox
                                         Grid.Column="0"
                                         AutomationProperties.Name="Número de factura"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Número de factura *"
                                         MaxLength="20"
                                         TabIndex="2"
@@ -190,6 +192,7 @@
                                     AutomationProperties.Name="Fecha de expedición"
                                     Date="{x:Bind ViewModel.IssueDate, Mode=TwoWay}"
                                     DayVisible="True"
+                                    AutomationProperties.IsRequiredForForm="True"
                                     Header="Fecha de expedición *"
                                     MonthVisible="True"
                                     TabIndex="4"
@@ -248,6 +251,7 @@
                                     <TextBox
                                         Grid.Column="0"
                                         AutomationProperties.Name="NIF del emisor"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="NIF *"
                                         MaxLength="30"
                                         TabIndex="10"
@@ -256,6 +260,7 @@
                                         x:Name="SellerName"
                                         Grid.Row="1"
                                         AutomationProperties.Name="Razón social o nombre del emisor"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Razón social o nombre *"
                                         MaxLength="80"
                                         TabIndex="11"
@@ -285,6 +290,7 @@
                                 </Grid>
                                 <TextBox
                                     AutomationProperties.Name="Dirección del emisor"
+                                    AutomationProperties.IsRequiredForForm="True"
                                     Header="Dirección *"
                                     MaxLength="80"
                                     TabIndex="14"
@@ -299,6 +305,7 @@
                                     <TextBox
                                         Grid.Column="0"
                                         AutomationProperties.Name="Código postal del emisor"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Código postal *"
                                         MaxLength="5"
                                         TabIndex="15"
@@ -307,6 +314,7 @@
                                         x:Name="SellerTown"
                                         Grid.Row="1"
                                         AutomationProperties.Name="Población del emisor"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Población *"
                                         MaxLength="50"
                                         TabIndex="16"
@@ -315,6 +323,7 @@
                                         x:Name="SellerProvince"
                                         Grid.Row="2"
                                         AutomationProperties.Name="Provincia del emisor"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Provincia *"
                                         MaxLength="20"
                                         TabIndex="17"
@@ -347,6 +356,7 @@
                                         Grid.Column="0"
                                         AutomationProperties.Name="NIF de la Administración *"
                                         AutomationProperties.HelpText="NIF del receptor"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="NIF de la Administración *"
                                         MaxLength="30"
                                         TabIndex="20"
@@ -355,6 +365,7 @@
                                         x:Name="BuyerName"
                                         Grid.Row="1"
                                         AutomationProperties.Name="Razón social del receptor"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Razón social *"
                                         MaxLength="80"
                                         TabIndex="21"
@@ -362,6 +373,7 @@
                                 </Grid>
                                 <TextBox
                                     AutomationProperties.Name="Dirección del receptor"
+                                    AutomationProperties.IsRequiredForForm="True"
                                     Header="Dirección *"
                                     MaxLength="80"
                                     TabIndex="22"
@@ -376,6 +388,7 @@
                                     <TextBox
                                         Grid.Column="0"
                                         AutomationProperties.Name="Código postal del receptor"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Código postal *"
                                         MaxLength="5"
                                         TabIndex="23"
@@ -384,6 +397,7 @@
                                         x:Name="BuyerTown"
                                         Grid.Row="1"
                                         AutomationProperties.Name="Población del receptor"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Población *"
                                         MaxLength="50"
                                         TabIndex="24"
@@ -392,6 +406,7 @@
                                         x:Name="BuyerProvince"
                                         Grid.Row="2"
                                         AutomationProperties.Name="Provincia del receptor"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Provincia *"
                                         MaxLength="20"
                                         TabIndex="25"
@@ -408,6 +423,7 @@
                                         <TextBox
                                             AutomationProperties.Name="Código DIR3 de la oficina contable"
                                             CharacterCasing="Upper"
+                                            AutomationProperties.IsRequiredForForm="True"
                                             Header="Oficina contable *"
                                             MaxLength="9"
                                             TabIndex="26"
@@ -422,6 +438,7 @@
                                         Grid.Row="1"
                                         AutomationProperties.Name="Código DIR3 del órgano gestor"
                                         CharacterCasing="Upper"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Órgano gestor *"
                                         MaxLength="9"
                                         TabIndex="28"
@@ -431,6 +448,7 @@
                                         Grid.Row="2"
                                         AutomationProperties.Name="Código DIR3 de la unidad tramitadora"
                                         CharacterCasing="Upper"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Unidad tramitadora *"
                                         MaxLength="9"
                                         TabIndex="29"
@@ -454,6 +472,7 @@
                             <StackPanel Padding="0,12,0,0" Spacing="10">
                                 <TextBox
                                     AutomationProperties.Name="Descripción del bien o servicio"
+                                    AutomationProperties.IsRequiredForForm="True"
                                     Header="Descripción del bien o servicio *"
                                     MaxLength="2500"
                                     TabIndex="32"
@@ -469,6 +488,7 @@
                                     <NumberBox
                                         Grid.Column="0"
                                         AutomationProperties.Name="Cantidad"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Cantidad *"
                                         Minimum="0"
                                         SmallChange="1"
@@ -480,6 +500,7 @@
                                         Grid.Row="1"
                                         AutomationProperties.Name="Precio unitario sin IVA *"
                                         AutomationProperties.HelpText="Precio unitario sin impuestos"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="Precio unitario sin IVA *"
                                         Minimum="0"
                                         SmallChange="1"
@@ -490,6 +511,7 @@
                                         x:Name="VatRate"
                                         Grid.Row="2"
                                         AutomationProperties.Name="Porcentaje de IVA"
+                                        AutomationProperties.IsRequiredForForm="True"
                                         Header="IVA (%) *"
                                         Maximum="100"
                                         Minimum="0"
@@ -583,6 +605,14 @@
                             IsEnabled="{x:Bind ViewModel.CanCreate, Mode=OneWay}"
                             Style="{StaticResource AccentButtonStyle}"
                             TabIndex="40" />
+                        <InfoBar
+                            x:Name="CreateStatusInfoBar"
+                            AutomationProperties.LiveSetting="Assertive"
+                            IsClosable="False"
+                            IsOpen="{x:Bind ViewModel.HasCreateStatus, Mode=OneWay}"
+                            Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                            Severity="{x:Bind ViewModel.StatusSeverity, Mode=OneWay}"
+                            Title="{x:Bind ViewModel.StatusTitle, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
@@ -666,7 +696,7 @@
                             <Button x:Name="ValidateInvoiceButton" AutomationProperties.Name="Elegir factura" MinHeight="40" TabIndex="46" Click="OnValidateInvoiceClick" />
                             <Button x:Name="ExportInvoiceReportButton" AutomationProperties.Name="Exportar informe" MinHeight="40" TabIndex="47" Click="OnExportInvoiceReportClick" IsEnabled="False" />
                         </StackPanel>
-                        <TextBlock x:Name="InvoiceValidationSummary" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" />
+                        <TextBlock x:Name="InvoiceValidationSummary" AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True" TextWrapping="Wrap" />
                         <TextBox x:Name="InvoiceValidationReport" AutomationProperties.Name="Informe de validación" TabIndex="48" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" />
                         <CheckBox
                             AutomationProperties.Name="El validador oficial no muestra errores que impidan la remisión."
@@ -772,7 +802,7 @@
                             <Button x:Name="ValidateVeriFactuButton" AutomationProperties.Name="Elegir registro XML" MinHeight="40" TabIndex="55" Click="OnValidateVeriFactuClick" />
                             <Button x:Name="ValidateVeriFactuFolderButton" AutomationProperties.Name="Elegir carpeta de registros" MinHeight="40" TabIndex="56" Click="OnValidateVeriFactuFolderClick" />
                         </StackPanel>
-                        <TextBlock x:Name="VeriFactuSummary" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" />
+                        <TextBlock x:Name="VeriFactuSummary" AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True" TextWrapping="Wrap" />
                         <TextBox x:Name="VeriFactuReport" AutomationProperties.Name="Informe de la comprobación Veri*Factu" TabIndex="57" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="100" Visibility="Collapsed" />
                         <Button x:Name="ExportVeriFactuReportButton" AutomationProperties.Name="Exportar informe Veri*Factu" MinHeight="40" TabIndex="58" Click="OnExportVeriFactuReportClick" Visibility="Collapsed" />
                         <TextBlock x:Name="VeriFactuQrTitle" AutomationProperties.HeadingLevel="Level2" Style="{StaticResource SectionTitleTextStyle}" />

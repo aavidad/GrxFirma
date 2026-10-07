@@ -64,7 +64,9 @@ class AboutFunctionalContractTests(unittest.TestCase):
         ):
             self.assertIn(visible_text, self.xaml)
         self.assertIn('Source="ms-appx:///Assets/grxfirma-logo-pluma-256.png"', self.xaml)
-        self.assertIn('AutomationProperties.Name="GrxFirma"', self.xaml)
+        # El logo repite el encabezado «GrxFirma»: es decorativo (W-14).
+        self.assertIn('AutomationProperties.AccessibilityView="Raw"', self.xaml)
+        self.assertNotIn('AutomationProperties.Name="GrxFirma"', self.xaml)
         self.assertIn('Width="144"', self.xaml)
         self.assertIn("ViewModel.VersionText", self.xaml)
 

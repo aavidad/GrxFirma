@@ -62,7 +62,7 @@
                         Width="144"
                         Height="144"
                         HorizontalAlignment="Left"
-                        AutomationProperties.Name="GrxFirma"
+                        AutomationProperties.AccessibilityView="Raw"
                         Source="ms-appx:///Assets/grxfirma-logo-pluma-256.png"
                         Stretch="Uniform" />
                     <TextBlock

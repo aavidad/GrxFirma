@@ -69,7 +69,7 @@
                     Style="{StaticResource PageSubtitleTextStyle}"
                     Text="{x:Bind ViewModel.Description}"
                     TextWrapping="Wrap" />
-                <controls:SigningMethodsHelp />
+                <controls:SigningMethodsHelp TabIndex="0" />
             </StackPanel>
 
             <InfoBar
@@ -111,7 +111,7 @@
                             MinHeight="40"
                             IsEnabled="{x:Bind ViewModel.IsOperationConnected, Mode=OneWay}"
                             PlaceholderText="Buscar certificado"
-                            TabIndex="0"
+                            TabIndex="1"
                             Text="{x:Bind ViewModel.FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <Button MinHeight="40"
                             x:Name="UpdateButton"
@@ -121,7 +121,7 @@
                             Click="OnRefreshClick"
                             Content="Actualizar"
                             IsEnabled="{x:Bind ViewModel.CanRefresh, Mode=OneWay}"
-                            TabIndex="1" />
+                            TabIndex="2" />
                         <controls:HelpRow Grid.Row="2" x:Name="ImportField" VerticalAlignment="Bottom">
                             <Button MinHeight="40"
                                 x:Name="ImportButton"
@@ -131,12 +131,12 @@
                                 Click="OnSelectImportCredentialClick"
                                 Content="Elegir credencial…"
                                 IsEnabled="{x:Bind ViewModel.CanSelectCredential, Mode=OneWay}"
-                                TabIndex="2"
+                                TabIndex="3"
                                 ToolTipService.ToolTip="Admite P12, PFX, PEM, CER y CRT hasta 2 MiB." />
                             <controls:HelpButton
                                 Topic="Elegir credencial…"
                                 HelpKey="ayuda.certificado.importar_p12"
-                                TabIndex="3" />
+                                TabIndex="4" />
                         </controls:HelpRow>
                         <controls:HelpRow Grid.Row="3" Grid.ColumnSpan="3">
                             <Button MinHeight="40"
@@ -144,11 +144,11 @@
                                 Click="OnUseSmartcardClick"
                                 Content="Usar DNIe o tarjeta"
                                 IsEnabled="{x:Bind ViewModel.IsOperationConnected, Mode=OneWay}"
-                                TabIndex="4" />
+                                TabIndex="5" />
                             <controls:HelpButton
                                 Topic="Usar DNIe o tarjeta"
                                 HelpKey="ayuda.certificado.tarjeta"
-                                TabIndex="5" />
+                                TabIndex="6" />
                         </controls:HelpRow>
                         <InfoBar
                             x:Name="SmartcardInfoBar"
@@ -166,7 +166,7 @@
                                     AutomationProperties.Name="Abrir web oficial del DNIe"
                                     Click="OnOpenOfficialDNIeClick"
                                     Content="Web oficial del DNIe"
-                                    TabIndex="6"
+                                    TabIndex="7"
                                     Visibility="Collapsed" />
                             </InfoBar.ActionButton>
                         </InfoBar>
@@ -179,31 +179,31 @@
                                     Topic="winui.parity.certs.type"
                                     HelpKey="ayuda.certificado.tipo"
                                     VerticalAlignment="Center"
-                                    TabIndex="7" />
+                                    TabIndex="8" />
                             </controls:HelpRow>
                             <CheckBox x:Name="FilterPersonalCheck"
                                 IsChecked="{x:Bind ViewModel.FilterPersonal, Mode=TwoWay}"
                                 AutomationProperties.Name="{Binding Content, ElementName=FilterPersonalCheck}"
-                                TabIndex="8" />
+                                TabIndex="9" />
                             <CheckBox x:Name="FilterRepresentativeCheck"
                                 IsChecked="{x:Bind ViewModel.FilterRepresentative, Mode=TwoWay}"
                                 AutomationProperties.Name="{Binding Content, ElementName=FilterRepresentativeCheck}"
-                                TabIndex="9" />
+                                TabIndex="10" />
                             <CheckBox x:Name="FilterSealCheck"
                                 IsChecked="{x:Bind ViewModel.FilterSeal, Mode=TwoWay}"
                                 AutomationProperties.Name="{Binding Content, ElementName=FilterSealCheck}"
-                                TabIndex="10" />
+                                TabIndex="11" />
                             <CheckBox x:Name="FilterPublicEmployeeCheck"
                                 IsChecked="{x:Bind ViewModel.FilterPublicEmployee, Mode=TwoWay}"
                                 AutomationProperties.Name="{Binding Content, ElementName=FilterPublicEmployeeCheck}"
-                                TabIndex="11" />
+                                TabIndex="12" />
                             <CheckBox x:Name="RequireNifFilter"
                                 IsChecked="{x:Bind ViewModel.RequireNif, Mode=TwoWay}"
-                                TabIndex="12"
+                                TabIndex="13"
                             AutomationProperties.Name="{Binding Content, ElementName=RequireNifFilter}" />
                             <CheckBox x:Name="RequireOrganizationFilter"
                                 IsChecked="{x:Bind ViewModel.RequireOrganization, Mode=TwoWay}"
-                                TabIndex="13"
+                                TabIndex="14"
                             AutomationProperties.Name="{Binding Content, ElementName=RequireOrganizationFilter}" />
                         </StackPanel>
                     </Grid>
@@ -219,13 +219,13 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock
-                            AutomationProperties.LiveSetting="Polite"
+                            AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                             Style="{StaticResource PageSubtitleTextStyle}"
                             Text="{x:Bind ViewModel.CatalogMessage, Mode=OneWay}"
                             TextWrapping="Wrap" />
                         <TextBlock
                             Grid.Row="1"
-                            AutomationProperties.LiveSetting="Polite"
+                            AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                             Foreground="{ThemeResource AppMutedTextBrush}"
                             Text="{x:Bind ViewModel.VisibleCountText, Mode=OneWay}"
                             TextWrapping="Wrap" />
@@ -244,7 +244,7 @@
                                     AutomationProperties.HelpText="Renovar certificado próximo a caducar en la FNMT"
                                     Click="OnRenewFnmtClick"
                                     Content="Renovar en la FNMT"
-                                    TabIndex="14"
+                                    TabIndex="15"
                                     Visibility="{x:Bind ViewModel.CanRenewExpiryNoticeCertificate, Mode=OneWay}" />
                             </InfoBar.ActionButton>
                         </InfoBar>
@@ -258,7 +258,7 @@
                             SelectedItem="{x:Bind ViewModel.SelectedCertificate, Mode=TwoWay}"
                             SelectionChanged="OnCertificateSelectionChanged"
                             SelectionMode="Single"
-                            TabIndex="15">
+                            TabIndex="16">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="Padding" Value="12,8" />
@@ -275,10 +275,8 @@
                                     <Border
                                         Background="Transparent"
                                         Padding="2">
-                                        <StackPanel
-                                            AutomationProperties.HelpText="{Binding SuitabilitySummary}"
-                                            AutomationProperties.Name="{Binding DisplayName}"
-                                            Spacing="3">
+                                        <!-- Nombre y ayuda del elemento: ToString() y CertificateCardSelection. -->
+                                        <StackPanel Spacing="3">
                                             <Grid ColumnSpacing="8">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
@@ -288,15 +286,13 @@
                                                     FontSize="15"
                                                     FontWeight="SemiBold"
                                                     Text="{Binding DisplayName}"
-                                                    TextTrimming="CharacterEllipsis"
-                                                    TextWrapping="NoWrap" />
+                                                    TextWrapping="Wrap" />
                                                 <TextBlock
                                                     Grid.Column="1"
                                                     FontWeight="SemiBold"
                                                     Foreground="{Binding CardStatus, Converter={StaticResource CertificateStatusBrushConverter}}"
                                                     Text="{Binding CardStatusText}"
-                                                    TextTrimming="CharacterEllipsis"
-                                                    TextWrapping="NoWrap" />
+                                                    TextWrapping="Wrap" />
                                             </Grid>
                                             <TextBlock
                                                 FontSize="12"
@@ -321,14 +317,16 @@
                                                     Foreground="{ThemeResource AppMutedTextBrush}"
                                                     Text="{Binding ExpirationDisplay}"
                                                     TextTrimming="CharacterEllipsis"
-                                                    TextWrapping="NoWrap" />
+                                                    TextWrapping="NoWrap"
+                                                    ToolTipService.ToolTip="{Binding ExpirationDisplay}" />
                                                 <TextBlock
                                                     Grid.Column="1"
                                                     HorizontalAlignment="Right"
                                                     Foreground="{ThemeResource AppMutedTextBrush}"
                                                     Text="{Binding ShortIssuerDisplay}"
                                                     TextTrimming="CharacterEllipsis"
-                                                    TextWrapping="NoWrap" />
+                                                    TextWrapping="NoWrap"
+                                                    ToolTipService.ToolTip="{Binding ShortIssuerDisplay}" />
                                             </Grid>
                                         </StackPanel>
                                     </Border>
@@ -405,7 +403,7 @@
                                         Click="OnRenewFnmtClick"
                                         Content="Renovar en la FNMT"
                                         Style="{StaticResource AccentButtonStyle}"
-                                        TabIndex="16" />
+                                        TabIndex="17" />
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -428,7 +426,7 @@
                             </Grid.RowDefinitions>
                             <TextBlock
                                 Grid.ColumnSpan="2"
-                                AutomationProperties.LiveSetting="Polite"
+                                AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                                 FontWeight="SemiBold"
                                 Text="{x:Bind ViewModel.SelectedCredentialDisplayName, Mode=OneWay}"
                                 TextWrapping="Wrap" />
@@ -441,7 +439,7 @@
                                 IsEnabled="{x:Bind ViewModel.CanSelectCredential, Mode=OneWay}"
                                 ItemsSource="{x:Bind ViewModel.ImportOptions, Mode=OneWay}"
                                 SelectedItem="{x:Bind ViewModel.SelectedImportOption, Mode=TwoWay}"
-                                TabIndex="17">
+                                TabIndex="18">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel MaxWidth="680" Spacing="2">
@@ -470,7 +468,7 @@
                                 Click="OnImportCredentialClick"
                                 Content="Cargar / importar"
                                 IsEnabled="{x:Bind ViewModel.CanImportCredential, Mode=OneWay}"
-                                TabIndex="18" />
+                                TabIndex="19" />
                         </Grid>
                     </Border>
 
@@ -488,14 +486,14 @@
                                 Click="OnExportPublicCertificateClick"
                                 Content="Exportar certificado público…"
                                 IsEnabled="{x:Bind ViewModel.HasSelectedCertificate, Mode=OneWay}"
-                                TabIndex="19" />
+                                TabIndex="20" />
                             <Button MinHeight="40"
                                 x:Name="SetDefaultCertificateButton"
                                 AutomationProperties.HelpText="Guarda la identidad estable del certificado mediante las preferencias tipadas del motor local."
                                 AutomationProperties.Name="Usar como predeterminado"
                                 Click="OnSetDefaultCertificateClick"
                                 IsEnabled="{x:Bind ViewModel.CanSetSelectedAsDefault, Mode=OneWay}"
-                                TabIndex="20">
+                                TabIndex="21">
                                 <TextBlock
                                     Text="Usar como predeterminado"
                                     TextAlignment="Center"
@@ -507,7 +505,7 @@
                                 AutomationProperties.Name="Quitar predeterminado"
                                 Click="OnClearDefaultCertificateClick"
                                 IsEnabled="{x:Bind ViewModel.CanClearDefaultCertificate, Mode=OneWay}"
-                                TabIndex="21">
+                                TabIndex="22">
                                 <TextBlock
                                     Text="Quitar predeterminado"
                                     TextAlignment="Center"
@@ -520,7 +518,7 @@
                                 Click="OnShowCertificateValidationClick"
                                 IsEnabled="{x:Bind ViewModel.HasSelectedCertificate, Mode=OneWay}"
                                 Style="{StaticResource AccentButtonStyle}"
-                                TabIndex="22">
+                                TabIndex="23">
                                 <TextBlock
                                     Text="Verificar certificado"
                                     TextAlignment="Center"
@@ -531,19 +529,19 @@
                                 Click="OnValidateCertificateClick"
                                 Content="Refrescar validez online"
                                 IsEnabled="{x:Bind ViewModel.CanValidateSelectedCertificate, Mode=OneWay}"
-                                TabIndex="23" />
+                                TabIndex="24" />
                             <Button MinHeight="40"
                                 AutomationProperties.Name="Abrir VALIDe"
                                 Click="OnOpenValideClick"
                                 Content="Abrir VALIDe"
-                                TabIndex="24" />
+                                TabIndex="25" />
                             <Button MinHeight="40"
                                 x:Name="OpenCertificateManagerButton"
                                 AutomationProperties.HelpText="Abre el gestor que el motor local ha descubierto y autorizado."
                                 AutomationProperties.Name="Abrir gestor de Windows"
                                 Click="OnOpenCertificateManagerClick"
                                 IsEnabled="{x:Bind ViewModel.CanOpenCertificateManager, Mode=OneWay}"
-                                TabIndex="25">
+                                TabIndex="26">
                                 <TextBlock
                                     Text="Abrir gestor de Windows"
                                     TextAlignment="Center"
@@ -554,7 +552,7 @@
                                 AutomationProperties.Name="Retirar temporal seleccionada"
                                 Click="OnRemoveTemporaryCertificateClick"
                                 IsEnabled="{x:Bind ViewModel.CanRemoveSelectedTemporary, Mode=OneWay}"
-                                TabIndex="26">
+                                TabIndex="27">
                                 <TextBlock
                                     Text="Retirar temporal seleccionada"
                                     TextAlignment="Center"
@@ -565,7 +563,7 @@
                                 AutomationProperties.Name="Retirar todas las temporales"
                                 Click="OnClearTemporaryCertificatesClick"
                                 IsEnabled="{x:Bind ViewModel.CanClearTemporaryCertificates, Mode=OneWay}"
-                                TabIndex="27">
+                                TabIndex="28">
                                 <TextBlock
                                     Text="Retirar todas las temporales"
                                     TextAlignment="Center"

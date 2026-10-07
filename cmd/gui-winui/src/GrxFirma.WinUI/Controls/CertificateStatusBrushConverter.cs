@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using GrxFirma.WinUI.ViewModels;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 
 namespace GrxFirma.WinUI.Controls;
@@ -20,13 +19,14 @@ public sealed class CertificateStatusBrushConverter : IValueConverter
         var resourceKey = value is CertificateCardStatus status
             ? status switch
             {
-                CertificateCardStatus.Valid => "AppDiagnosticSuccessBrush",
-                CertificateCardStatus.Invalid => "AppDiagnosticFailureBrush",
-                CertificateCardStatus.Unusable => "AppDiagnosticFailureBrush",
-                _ => "AppDiagnosticUnknownBrush",
+                CertificateCardStatus.Valid => ThemeBrushes.Success,
+                CertificateCardStatus.Invalid => ThemeBrushes.Failure,
+                CertificateCardStatus.Unusable => ThemeBrushes.Failure,
+                _ => ThemeBrushes.Unknown,
             }
-            : "AppDiagnosticUnknownBrush";
-        return Application.Current.Resources[resourceKey];
+            : ThemeBrushes.Unknown;
+        // Tema elegido en la aplicación, no el de Windows.
+        return ThemeBrushes.Get(resourceKey);
     }
 
     public object ConvertBack(

@@ -26,7 +26,11 @@ public sealed record CertificateListItem
 
     public required string Id { get; init; }
     public required string DisplayName { get; init; }
-    public override string ToString() => DisplayName;
+    // Nombre accesible del elemento de la lista: nombre, estado y caducidad,
+    // lo mismo que se ve en la tarjeta.
+    public override string ToString() => string.Join(". ",
+        new[] { DisplayName, CardStatusText, ExpirationDisplay }
+            .Where(part => !string.IsNullOrWhiteSpace(part)));
     public required string IssuerDisplay { get; init; }
     public required string StatusDisplay { get; init; }
     public required string DefaultDisplay { get; init; }

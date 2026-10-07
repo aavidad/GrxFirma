@@ -38,6 +38,16 @@ class ListItemNameContractTests(unittest.TestCase):
                     self.assertIn("override string ToString()", body)
         self.assertGreaterEqual(checked, 15)
 
+    def test_certificate_item_announces_name_status_and_expiry(self) -> None:
+        # W-11: el elemento de la lista se anuncia con lo mismo que muestra la
+        # tarjeta, no solo con el nombre.
+        source = (VIEW_MODELS / "CertificatesPageViewModel.cs").read_text(encoding="utf-8")
+        body = dict(records(source))["CertificateListItem"]
+        to_string = body[body.index("override string ToString()"):]
+        to_string = to_string[:to_string.index(";")]
+        for part in ("DisplayName", "CardStatusText", "ExpirationDisplay"):
+            self.assertIn(part, to_string)
+
     def test_recipient_announces_label_and_detail(self) -> None:
         source = (VIEW_MODELS / "ProtectPageViewModel.cs").read_text(encoding="utf-8")
         self.assertIn('public override string ToString() => Label + ". " + Detail;', source)

@@ -43,6 +43,11 @@ FOCUSABLE_CONTROLS = {
     "NumberBox",
     "PasswordBox",
     "RadioButton",
+    # Tirador de giro del sello visible (W-07): botón real con nombre propio.
+    "SealRotateButton",
+    # Ayuda «Otras formas de firmar»: el UserControl pasa su TabIndex al
+    # Expander interno, que tiene nombre propio (W-07).
+    "SigningMethodsHelp",
     "Slider",
     "TextBox",
     "ToggleSwitch",
@@ -244,6 +249,12 @@ class PageXamlAccessibilityContractTest(unittest.TestCase):
                         self.assertIn("AutomationProperties.SetName(", code)
                         self.assertIn("AutomationProperties.SetHelpText(", code)
                         self.assertIn('"Novedades"', code)
+                    elif local_name(control) == "SigningMethodsHelp":
+                        help_xaml = (VIEWS_DIRECTORY.parent / "Controls/SigningMethodsHelp.xaml").read_text(encoding="utf-8")
+                        help_code = (VIEWS_DIRECTORY.parent / "Controls/SigningMethodsHelp.xaml.cs").read_text(encoding="utf-8")
+                        self.assertIn('AutomationProperties.Name="Otras formas de firmar"', help_xaml)
+                        self.assertIn("MethodsExpander.TabIndex = TabIndex", help_code)
+                        self.assertIn("RegisterPropertyChangedCallback(TabIndexProperty", help_code)
                     elif local_name(control) == "HelpButton":
                         self.assertTrue(control.get("Topic", "").strip(),
                                         f"{page_name}: HelpButton sin Topic")

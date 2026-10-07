@@ -18,6 +18,8 @@ public sealed class FacturaePageViewModel
     private readonly IFilePickerService _filePicker;
     private readonly DesktopOperationSession _session;
     private CancellationTokenSource? _pageLifetime;
+    private bool _hasCreateStatus;
+    private bool _statusNearCreate;
     private string _statusTitle = Localizer.Text("winui.facturae.asistente_preparado");
     private string _statusMessage =
         Localizer.Text("winui.facturae.puede_crear_un_xml_facturae_3_2_2_o");
@@ -118,6 +120,18 @@ public sealed class FacturaePageViewModel
         get => _hasStatus;
         private set => SetProperty(ref _hasStatus, value);
     }
+
+    // El resultado de «Crear XML» se muestra bajo ese botón; el de los
+    // portales FACe, al final de la página, junto a sus botones.
+    public bool HasCreateStatus
+    {
+        get => _hasCreateStatus;
+        private set => SetProperty(ref _hasCreateStatus, value);
+    }
+
+    // La página enfoca el primer campo obligatorio vacío cuando el motor o
+    // el generador rechazan los datos.
+    public event EventHandler? InvalidDataReported;
 
     public InfoBarSeverity StatusSeverity
     {
@@ -387,33 +401,36 @@ public sealed class FacturaePageViewModel
 
     public async Task CreateInvoiceAsync()
     {
-        var lifetime = TryBeginOperation();
+        var lifetime = TryBeginOperation(statusNearCreate: true);
         if (lifetime is null)
         {
             return;
         }
 
-        StatusTitle = Localizer.Text("winui.facturae.comprobando_la_factura");
-        StatusMessage =
-            Localizer.Text("winui.facturae.se_validan_los_campos_y_se_calculan_los");
-        StatusSeverity = InfoBarSeverity.Informational;
+        ShowStatus(
+            Localizer.Text("winui.facturae.comprobando_la_factura"),
+            Localizer.Text("winui.facturae.se_validan_los_campos_y_se_calculan_los"),
+            InfoBarSeverity.Informational);
         try
         {
             var draft = BuildDraft();
             if (!_session.TryGetOperations(DesktopOperationActions.FacturaeCreate, out var operations))
             {
-                StatusTitle = Localizer.Text("winui.facturae.no_se_pudo_crear_la_factura");
-                StatusMessage = PendingMessage;
-                StatusSeverity = InfoBarSeverity.Warning;
+                ShowStatus(
+                    Localizer.Text("winui.facturae.no_se_pudo_crear_la_factura"),
+                    PendingMessage,
+                    InfoBarSeverity.Warning);
                 return;
             }
             var result = await operations.CreateFacturaeAsync(draft, lifetime.Token);
             if (!IsCurrentLifetime(lifetime)) return;
             if (!result.IsSuccess || result.Data is null || string.IsNullOrEmpty(result.Data.Xml))
             {
-                StatusTitle = Localizer.Text("winui.facturae.revise_los_datos");
-                StatusMessage = result.SafeUserMessage;
-                StatusSeverity = InfoBarSeverity.Warning;
+                ShowStatus(
+                    Localizer.Text("winui.facturae.revise_los_datos"),
+                    result.SafeUserMessage,
+                    InfoBarSeverity.Warning);
+                InvalidDataReported?.Invoke(this, EventArgs.Empty);
                 return;
             }
             var saved = await _filePicker.PickAndSaveTextFileAsync(
@@ -428,48 +445,47 @@ public sealed class FacturaePageViewModel
 
             if (!saved)
             {
-                StatusTitle = Localizer.Text("winui.comun.guardado_cancelado");
-                StatusMessage =
-                    Localizer.Text("winui.facturae.no_se_creo_ningun_fichero_los_datos");
-                StatusSeverity = InfoBarSeverity.Informational;
+                ShowStatus(
+                    Localizer.Text("winui.comun.guardado_cancelado"),
+                    Localizer.Text("winui.facturae.no_se_creo_ningun_fichero_los_datos"),
+                    InfoBarSeverity.Informational);
                 return;
             }
 
-            StatusTitle = Localizer.Text("winui.facturae.xml_facturae_3_2_2_creado");
-            StatusMessage = Localizer.Fill(
-                "winui.facturae.total_abra_firmar_seleccione_el_xml_y_el",
-                ("total", result.Data.Total.ToString(CultureInfo.CurrentCulture)));
-            StatusSeverity = InfoBarSeverity.Success;
+            ShowStatus(
+                Localizer.Text("winui.facturae.xml_facturae_3_2_2_creado"),
+                Localizer.Fill("winui.facturae.total_abra_firmar_seleccione_el_xml_y_el", ("total", result.Data.Total.ToString(CultureInfo.CurrentCulture))),
+                InfoBarSeverity.Success);
         }
         catch (FacturaeValidationException exception)
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = Localizer.Text("winui.facturae.revise_los_datos");
-                StatusMessage = string.Join(
-                    " ",
-                    exception.Errors.Take(5));
-                StatusSeverity = InfoBarSeverity.Warning;
+                ShowStatus(
+                    Localizer.Text("winui.facturae.revise_los_datos"),
+                    string.Join(" ", exception.Errors.Take(5)),
+                    InfoBarSeverity.Warning);
+                InvalidDataReported?.Invoke(this, EventArgs.Empty);
             }
         }
         catch (OperationCanceledException)
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = Localizer.Text("winui.facturae.creacion_cancelada");
-                StatusMessage =
-                    Localizer.Text("winui.facturae.no_se_creo_ni_modifico_ningun_fichero");
-                StatusSeverity = InfoBarSeverity.Informational;
+                ShowStatus(
+                    Localizer.Text("winui.facturae.creacion_cancelada"),
+                    Localizer.Text("winui.facturae.no_se_creo_ni_modifico_ningun_fichero"),
+                    InfoBarSeverity.Informational);
             }
         }
         catch
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = Localizer.Text("winui.facturae.no_se_pudo_crear_la_factura");
-                StatusMessage =
-                    Localizer.Text("winui.facturae.windows_no_pudo_guardar_el_xml_facturae");
-                StatusSeverity = InfoBarSeverity.Error;
+                ShowStatus(
+                    Localizer.Text("winui.facturae.no_se_pudo_crear_la_factura"),
+                    Localizer.Text("winui.facturae.windows_no_pudo_guardar_el_xml_facturae"),
+                    InfoBarSeverity.Error);
             }
         }
         finally
@@ -513,9 +529,10 @@ public sealed class FacturaePageViewModel
             return;
         }
 
-        StatusTitle = progressTitle;
-        StatusMessage = Localizer.Text("winui.comun.espere_un_momento");
-        StatusSeverity = InfoBarSeverity.Informational;
+        ShowStatus(
+            progressTitle,
+            Localizer.Text("winui.comun.espere_un_momento"),
+            InfoBarSeverity.Informational);
         try
         {
             var result = await operation(lifetime.Token);
@@ -524,32 +541,29 @@ public sealed class FacturaePageViewModel
                 return;
             }
 
-            StatusTitle = result.Succeeded
-                ? Localizer.Text("winui.facturae.portal_oficial_abierto")
-                : Localizer.Text("winui.facturae.no_se_pudo_abrir_face");
-            StatusMessage = result.Message;
-            StatusSeverity = result.Succeeded
-                ? InfoBarSeverity.Success
-                : InfoBarSeverity.Warning;
+            ShowStatus(
+                result.Succeeded ? Localizer.Text("winui.facturae.portal_oficial_abierto") : Localizer.Text("winui.facturae.no_se_pudo_abrir_face"),
+                result.Message,
+                result.Succeeded ? InfoBarSeverity.Success : InfoBarSeverity.Warning);
         }
         catch (OperationCanceledException)
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = Localizer.Text("winui.facturae.apertura_cancelada");
-                StatusMessage =
-                    Localizer.Text("winui.facturae.no_se_ha_enviado_ni_modificado_ninguna");
-                StatusSeverity = InfoBarSeverity.Informational;
+                ShowStatus(
+                    Localizer.Text("winui.facturae.apertura_cancelada"),
+                    Localizer.Text("winui.facturae.no_se_ha_enviado_ni_modificado_ninguna"),
+                    InfoBarSeverity.Informational);
             }
         }
         catch
         {
             if (IsCurrentLifetime(lifetime))
             {
-                StatusTitle = Localizer.Text("winui.facturae.no_se_pudo_abrir_face");
-                StatusMessage =
-                    Localizer.Text("winui.comun.windows_no_pudo_abrir_el_recurso_oficial");
-                StatusSeverity = InfoBarSeverity.Error;
+                ShowStatus(
+                    Localizer.Text("winui.facturae.no_se_pudo_abrir_face"),
+                    Localizer.Text("winui.comun.windows_no_pudo_abrir_el_recurso_oficial"),
+                    InfoBarSeverity.Error);
             }
         }
         finally
@@ -558,7 +572,20 @@ public sealed class FacturaePageViewModel
         }
     }
 
-    private CancellationTokenSource? TryBeginOperation()
+    // Cada mensaje cierra y vuelve a abrir su aviso: una InfoBar que ya está
+    // abierta no se vuelve a anunciar al cambiar el texto.
+    private void ShowStatus(string title, string message, InfoBarSeverity severity)
+    {
+        HasStatus = false;
+        HasCreateStatus = false;
+        StatusTitle = title;
+        StatusMessage = message;
+        StatusSeverity = severity;
+        if (_statusNearCreate) HasCreateStatus = true;
+        else HasStatus = true;
+    }
+
+    private CancellationTokenSource? TryBeginOperation(bool statusNearCreate = false)
     {
         var lifetime = _pageLifetime;
         if (!_isActive ||
@@ -572,7 +599,10 @@ public sealed class FacturaePageViewModel
         }
 
         IsBusy = true;
-        HasStatus = true;
+        // Se cierra el aviso anterior al empezar: el siguiente se anuncia.
+        HasStatus = false;
+        HasCreateStatus = false;
+        _statusNearCreate = statusNearCreate;
         SetActionsEnabled(false);
         return lifetime;
     }

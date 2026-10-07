@@ -26,6 +26,12 @@
                     <SolidColorBrush x:Key="AppSealTextBrush" Color="#FF103A6E" />
                     <SolidColorBrush x:Key="AppSealHandleBrush" Color="#FF103A6E" />
                     <SolidColorBrush x:Key="AppSealHandleTextBrush" Color="#FFFFFFFF" />
+                    <!-- Colores de estado (texto): 4,5:1 o más sobre la tarjeta y el fondo. -->
+                    <SolidColorBrush x:Key="AppDiagnosticSuccessBrush" Color="#FF0F7B0F" />
+                    <SolidColorBrush x:Key="AppDiagnosticFailureBrush" Color="#FFC42B1C" />
+                    <SolidColorBrush x:Key="AppDiagnosticUnknownBrush" Color="#FF9D5D00" />
+                    <SolidColorBrush x:Key="AppDiagnosticSkippedBrush" Color="#FF5E5E5E" />
+                    <SolidColorBrush x:Key="AppSealPaperBrush" Color="#FFFFFFFF" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#FF17191D" />
@@ -39,6 +45,11 @@
                     <SolidColorBrush x:Key="AppSealTextBrush" Color="#FF103A6E" />
                     <SolidColorBrush x:Key="AppSealHandleBrush" Color="#FF103A6E" />
                     <SolidColorBrush x:Key="AppSealHandleTextBrush" Color="#FFFFFFFF" />
+                    <SolidColorBrush x:Key="AppDiagnosticSuccessBrush" Color="#FF6CCB5F" />
+                    <SolidColorBrush x:Key="AppDiagnosticFailureBrush" Color="#FFFF99A4" />
+                    <SolidColorBrush x:Key="AppDiagnosticUnknownBrush" Color="#FFFCE100" />
+                    <SolidColorBrush x:Key="AppDiagnosticSkippedBrush" Color="#FFB8C0CC" />
+                    <SolidColorBrush x:Key="AppSealPaperBrush" Color="#FFFFFFFF" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="HighContrast">
                     <SolidColorBrush x:Key="AppSealOverlayBrush" Color="Transparent" />
@@ -59,21 +70,15 @@
                     <SolidColorBrush
                         x:Key="AppMutedTextBrush"
                         Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <!-- En alto contraste el estado se distingue por la palabra, con el color de texto del sistema. -->
+                    <SolidColorBrush x:Key="AppDiagnosticSuccessBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="AppDiagnosticFailureBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="AppDiagnosticUnknownBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <SolidColorBrush x:Key="AppDiagnosticSkippedBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                    <!-- La hoja usa el fondo del sistema para que el resaltado mantenga contraste. -->
+                    <SolidColorBrush x:Key="AppSealPaperBrush" Color="{ThemeResource SystemColorWindowColor}" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
-
-            <SolidColorBrush
-                x:Key="AppDiagnosticSuccessBrush"
-                Color="{ThemeResource SystemFillColorSuccess}" />
-            <SolidColorBrush
-                x:Key="AppDiagnosticFailureBrush"
-                Color="{ThemeResource SystemFillColorCritical}" />
-            <SolidColorBrush
-                x:Key="AppDiagnosticSkippedBrush"
-                Color="{ThemeResource SystemFillColorNeutral}" />
-            <SolidColorBrush
-                x:Key="AppDiagnosticUnknownBrush"
-                Color="{ThemeResource SystemFillColorCaution}" />
 
             <Style x:Key="PageTitleTextStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="30" />

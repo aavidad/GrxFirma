@@ -83,7 +83,7 @@
                             TabIndex="0"
                             AutomationProperties.Name="{Binding Header, ElementName=SupportGoalCombo}" />
                         <TextBlock x:Name="SupportStepText"
-                            AutomationProperties.LiveSetting="Polite"
+                            AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                             TextWrapping="Wrap" />
                         <controls:ResponsiveActionPanel Orientation="Horizontal" Spacing="8">
                             <Button x:Name="SupportNextButton" MinHeight="40"
@@ -100,7 +100,7 @@
                             TabIndex="3" />
                         </controls:ResponsiveActionPanel>
                         <TextBlock x:Name="SupportStatusText"
-                            AutomationProperties.LiveSetting="Polite"
+                            AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                             TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
@@ -134,7 +134,7 @@
                                 TextWrapping="Wrap" />
                             <TextBlock
                                 Grid.Column="1"
-                                AutomationProperties.LiveSetting="Polite"
+                                AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                                 Text="{x:Bind ViewModel.OwnerLabel, Mode=OneWay}"
                                 TextWrapping="Wrap" />
                             <TextBlock
@@ -180,7 +180,7 @@
                                         Margin="0,0,0,10"
                                         ColumnSpacing="14">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="44" />
+                                            <ColumnDefinition Width="Auto" MinWidth="44" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <Border
@@ -188,9 +188,10 @@
                                             Margin="0,36,0,-12"
                                             HorizontalAlignment="Center"
                                             Background="{ThemeResource AppCardBorderBrush}" />
+                                        <!-- Mínimo, no fijo: el icono crece con el tamaño de texto de Windows. -->
                                         <Border
-                                            Width="40"
-                                            Height="40"
+                                            MinWidth="40"
+                                            MinHeight="40"
                                             Padding="7"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Top"
