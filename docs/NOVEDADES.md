@@ -7,6 +7,12 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.125 — 2026-10-07
+
+- Accesibilidad revisada según WCAG 2.1 AA en las tres plataformas: mejor contraste, foco visible y orden de tabulación, avisos para lectores de pantalla y errores señalados en su campo.
+- Linux: un selector en Configuración permite elegir si las firmas de los portales las atiende GrxFirma o AutoFirma, como en Windows; si AutoFirma no está instalado, se ofrece su web de descarga.
+- Valenciano revisado según la normativa de la AVL, y la extensión de navegador muestra un solo botón «Firmar PDF» cuando el PDF va dentro de otra página.
+
 ## 0.0.124 — 2026-10-07
 
 - Nuevo logotipo de GrxFirma: una pluma que escribe la rúbrica, en la barra lateral y en «Acerca de».

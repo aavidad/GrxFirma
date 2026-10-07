@@ -6639,4 +6639,7 @@
   ,"Modo de servidor": "Modo de servidor"
   ,"Registro de actividad": "Registo de atividade"
   ,"No se puede conectar con el servicio de firma de GrxFirma. Cierre y vuelva a abrir la aplicación; si sigue igual, pulse «Asistente».": "Não é possível ligar ao serviço de assinatura do GrxFirma. Feche e volte a abrir a aplicação; se continuar igual, prima «Assistente»."
+  ,"Accesibilidad revisada según WCAG 2.1 AA en las tres plataformas: mejor contraste, foco visible y orden de tabulación, avisos para lectores de pantalla y errores señalados en su campo.": "Acessibilidade revista segundo as WCAG 2.1 AA nas três plataformas: melhor contraste, foco visível e ordem de tabulação, avisos para leitores de ecrã e erros assinalados no respetivo campo."
+  ,"Linux: un selector en Configuración permite elegir si las firmas de los portales las atiende GrxFirma o AutoFirma, como en Windows; si AutoFirma no está instalado, se ofrece su web de descarga.": "Linux: um seletor nas Definições permite escolher se as assinaturas dos portais são tratadas pelo GrxFirma ou pelo AutoFirma, como no Windows; se o AutoFirma não estiver instalado, é oferecida a sua página de transferência."
+  ,"Valenciano revisado según la normativa de la AVL, y la extensión de navegador muestra un solo botón «Firmar PDF» cuando el PDF va dentro de otra página.": "Valenciano revisto segundo a normativa da AVL, e a extensão do navegador mostra um só botão «Assinar PDF» quando o PDF está dentro de outra página."
 }
