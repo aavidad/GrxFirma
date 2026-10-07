@@ -11,12 +11,12 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'src');
-async function detector(variant, fetch) {
+async function detector(variant, fetch, frame = {}) {
   const elements = new Map();
   const sent = [];
   const document = {
-    contentType: 'application/pdf', title: 'documento',
-    querySelector() { return null; },
+    contentType: frame.contentType || 'application/pdf', title: 'documento',
+    querySelector(selector) { return frame.querySelector ? frame.querySelector(selector) : null; },
     getElementById(id) { return elements.get(id) || null; },
     createElement(tag) {
       return {
@@ -27,7 +27,13 @@ async function detector(variant, fetch) {
     body: { appendChild(element) { elements.set(element.id, element); } }
   };
   const context = vm.createContext({
-    document, window: { location: { href: 'https://sede.dipgra.es/archivo.pdf', pathname: '/archivo.pdf' } },
+    document, window: {
+      location: frame.location || { href: 'https://sede.dipgra.es/archivo.pdf', pathname: '/archivo.pdf' },
+      get frameElement() {
+        if (frame.frameElement instanceof Error) throw frame.frameElement;
+        return frame.frameElement || null;
+      }
+    },
     URL, Blob, AbortController, setTimeout, clearTimeout,
     console: { log() {}, warn() {}, error() {} }, fetch,
     grxfirmaExt: {
@@ -79,5 +85,39 @@ for (const variant of ['chromium', 'firefox']) {
     const h = await detector(variant, async () => { throw new Error('sin red'); });
     assert.ok(h.button.children.length > 0);
     assert.ok(h.button.children.every((node) => node.tagName !== 'img'));
+  });
+}
+
+// Regresión: con all_frames, un PDF incrustado mostraba un botón por marco.
+const paginaConPDF = {
+  contentType: 'text/html',
+  location: { href: 'https://sede.dipgra.es/expediente', pathname: '/expediente' }
+};
+for (const variant of ['chromium', 'firefox']) {
+  const sinRed = async () => { throw new Error('sin red'); };
+
+  for (const tagName of ['embed', 'object']) {
+    test(`${variant}: un PDF en <${tagName}> muestra un solo botón entre los dos marcos`, async () => {
+      const element = { tagName: tagName.toUpperCase(), getAttribute() { return '/archivo.pdf'; } };
+      const superior = await detector(variant, sinRed, {
+        ...paginaConPDF,
+        querySelector(selector) { return selector.includes(tagName) ? element : null; }
+      });
+      const interior = await detector(variant, sinRed, { frameElement: element });
+      assert.ok(superior.button);
+      assert.equal(interior.button, undefined);
+    });
+  }
+
+  test(`${variant}: un PDF en <iframe> muestra el botón solo en su marco`, async () => {
+    const superior = await detector(variant, sinRed, paginaConPDF);
+    const interior = await detector(variant, sinRed, { frameElement: { tagName: 'IFRAME' } });
+    assert.equal(superior.button, undefined);
+    assert.ok(interior.button);
+  });
+
+  test(`${variant}: un marco de otro origen conserva su botón`, async () => {
+    const h = await detector(variant, sinRed, { frameElement: new Error('SecurityError') });
+    assert.ok(h.button);
   });
 }

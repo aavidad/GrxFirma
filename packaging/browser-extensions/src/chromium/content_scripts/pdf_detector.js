@@ -103,7 +103,19 @@
         }
     }
 
-    if (isPDF()) {
+    // Con all_frames, un PDF incrustado con <embed>/<object> se detecta dos
+    // veces: en la página que lo contiene y en el documento PDF interno. Solo
+    // pone el botón el marco que contiene el elemento; un PDF en <iframe> lo
+    // pone el propio marco, porque la página superior no lo detecta.
+    function parentFrameHandlesPDF() {
+        let host = null;
+        try { host = window.frameElement; } catch (err) { return false; }
+        if (!host || typeof host.tagName !== 'string') return false;
+        const tag = host.tagName.toUpperCase();
+        return tag === 'EMBED' || tag === 'OBJECT';
+    }
+
+    if (isPDF() && !parentFrameHandlesPDF()) {
         console.log('GrxFirma: PDF detected!');
         createSignButton();
     }
