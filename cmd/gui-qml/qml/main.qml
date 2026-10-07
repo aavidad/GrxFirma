@@ -14109,6 +14109,47 @@ Window {
                 property bool restServerChecking: false
                 property bool webCompatibilityActive:
                     backend && backend.webCompatibilityActive === true
+                // Programa que abre las firmas de los portales (afirma://).
+                // Solo en Windows y con el motor de escritorio: el motor lee
+                // y cambia el registro; aquí solo se muestra y se elige.
+                readonly property bool afirmaSupported: Qt.platform.os === "windows" && isIpcMode
+                property var afirmaStatus: ({})
+                property bool afirmaBusy: false
+                property string afirmaMessage: ""
+                property int afirmaRevision: 0
+
+                function refreshAfirmaHandler() {
+                    if (!afirmaSupported || afirmaBusy) return
+                    afirmaBusy = true
+                    afirmaMessage = tr("protocolo.estado.comprobando")
+                    backend.getAfirmaHandlerStatus()
+                }
+
+                function selectAfirmaHandler(handler) {
+                    if (!afirmaSupported || afirmaBusy || afirmaStatus.current === handler) return
+                    afirmaBusy = true
+                    afirmaMessage = tr("protocolo.estado.cambiando")
+                    backend.selectAfirmaHandler(handler)
+                }
+
+                function afirmaStatusText(status) {
+                    switch (String(status.current || "")) {
+                    case "grxfirma": return tr("protocolo.estado.grxfirma")
+                    case "autofirma": return tr("protocolo.estado.autofirma")
+                    case "other": return tr("protocolo.estado.otro").replace("{0}", String(status.currentPath || ""))
+                    default: return tr("protocolo.estado.ninguno")
+                    }
+                }
+
+                function afirmaErrorText(code) {
+                    switch (String(code || "")) {
+                    case "afirma_handler_foreign": return tr("protocolo.error.ajeno")
+                    case "autofirma_not_installed": return tr("protocolo.autofirma_no_instalada")
+                    case "grxfirma_afirma_missing": return tr("protocolo.error.grxfirma_no_instalada")
+                    case "afirma_handler_unsupported": return tr("protocolo.error.no_disponible")
+                    default: return tr("protocolo.error.generico")
+                    }
+                }
 
                 Timer {
                     id: statusRetryTimer
@@ -14131,6 +14172,7 @@ Window {
                 function refreshServiceStatus() {
                     backend.getServiceStatus()
                     refreshRestServerStatus()
+                    refreshAfirmaHandler()
                 }
 
                 function refreshRestServerStatus() {
@@ -14160,6 +14202,22 @@ Window {
                         }
                         statusRetryTimer.start()
                         configTab.refreshRestServerStatus()
+                    }
+                    function onAfirmaHandlerFinished(action, ok, status, errorCode) {
+                        configTab.afirmaBusy = false
+                        if (ok) {
+                            configTab.afirmaStatus = status
+                            configTab.afirmaMessage = configTab.afirmaStatusText(status)
+                                + (action === "afirma_handler_select" ? " " + tr("protocolo.recargar_portal") : "")
+                            configTab.afirmaRevision++
+                        } else if (action === "afirma_handler_select") {
+                            // Vuelve al estado real y explica por qué no cambió.
+                            configTab.afirmaRevision++
+                            configTab.afirmaMessage = configTab.afirmaErrorText(errorCode)
+                                + " " + configTab.afirmaStatusText(configTab.afirmaStatus)
+                        } else {
+                            configTab.afirmaMessage = tr("protocolo.estado.error")
+                        }
                     }
                     function onRestHealthChecked(running, message) {
                         configTab.restServerChecking = false
@@ -14848,6 +14906,118 @@ Window {
                                         }
                                         Binding { target: certTypeDesconocido; property: "checked"; value: window.certificateTypeFilterContains("desconocido") }
                                     }
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            id: afirmaHandlerCard
+                            objectName: "afirmaHandlerCard"
+                            visible: configTab.afirmaSupported && configTab.afirmaStatus.supported === true
+                            Layout.fillWidth: true
+                            implicitHeight: afirmaHandlerCol.implicitHeight + 40
+                            radius: 12
+                            color: currentTheme.cardColor
+                            border.color: currentTheme.primaryColor
+                            border.width: 1
+
+                            ColumnLayout {
+                                id: afirmaHandlerCol
+                                anchors { top: parent.top; left: parent.left; right: parent.right; margins: 20 }
+                                spacing: 10
+
+                                Text {
+                                    text: tr("protocolo.titulo")
+                                    color: currentTheme.textColor
+                                    font.bold: true
+                                    font.pixelSize: 15
+                                    Accessible.role: Accessible.Heading
+                                    Accessible.name: text
+                                }
+
+                                Text {
+                                    text: tr("protocolo.descripcion")
+                                    color: currentTheme.secondaryTextColor
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 4
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 2
+                                        Accessible.role: Accessible.Grouping
+                                        Accessible.name: tr("protocolo.selector")
+
+                                        ButtonGroup { id: afirmaHandlerGroup }
+
+                                        ThemedRadioButton {
+                                            id: afirmaGrxFirmaRadio
+                                            objectName: "afirmaGrxFirmaRadio"
+                                            Layout.fillWidth: true
+                                            text: tr("protocolo.opcion.grxfirma")
+                                            ButtonGroup.group: afirmaHandlerGroup
+                                            enabled: !configTab.afirmaBusy && configTab.afirmaStatus.grxfirmaInstalled === true
+                                            property int revision: configTab.afirmaRevision
+                                            onRevisionChanged: checked = configTab.afirmaStatus.current === "grxfirma"
+                                            onToggled: if (checked) configTab.selectAfirmaHandler("grxfirma")
+                                        }
+
+                                        ThemedRadioButton {
+                                            id: afirmaAutoFirmaRadio
+                                            objectName: "afirmaAutoFirmaRadio"
+                                            Layout.fillWidth: true
+                                            text: tr("protocolo.opcion.autofirma")
+                                            ButtonGroup.group: afirmaHandlerGroup
+                                            enabled: !configTab.afirmaBusy && configTab.afirmaStatus.autofirmaInstalled === true
+                                            property int revision: configTab.afirmaRevision
+                                            onRevisionChanged: checked = configTab.afirmaStatus.current === "autofirma"
+                                            onToggled: if (checked) configTab.selectAfirmaHandler("autofirma")
+                                        }
+                                    }
+
+                                    HelpButton {
+                                        Layout.alignment: Qt.AlignTop
+                                        nameTemplate: tr("ayuda.boton_nombre")
+                                        controlLabel: tr("protocolo.selector")
+                                        helpText: tr("ayuda.protocolo")
+                                        moreText: tr("ayuda.protocolo.mas")
+                                        options: [
+                                            { name: tr("protocolo.opcion.grxfirma"), text: tr("ayuda.protocolo.grxfirma") },
+                                            { name: tr("protocolo.opcion.autofirma"), text: tr("ayuda.protocolo.autofirma") }
+                                        ]
+                                        optionTemplate: tr("ayuda.opcion")
+                                        moreNameTemplate: tr("ayuda.mas_nombre")
+                                    }
+                                }
+
+                                Text {
+                                    visible: configTab.afirmaStatus.autofirmaInstalled !== true
+                                    text: tr("protocolo.autofirma_no_instalada")
+                                    color: currentTheme.secondaryTextColor
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                }
+
+                                Text {
+                                    objectName: "afirmaHandlerStatusText"
+                                    // Puede incluir la ruta de otro programa: nunca como texto enriquecido.
+                                    textFormat: Text.PlainText
+                                    text: configTab.afirmaMessage
+                                    color: currentTheme.textColor
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                    Accessible.role: Accessible.StaticText
+                                    Accessible.name: text
+                                }
+
+                                ThemedButton {
+                                    text: tr("protocolo.comprobar")
+                                    enabled: !configTab.afirmaBusy
+                                    onClicked: configTab.refreshAfirmaHandler()
                                 }
                             }
                         }

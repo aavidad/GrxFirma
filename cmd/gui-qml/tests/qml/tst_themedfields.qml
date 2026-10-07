@@ -53,6 +53,16 @@ Item {
         }
     }
     Component {
+        id: radioGroupComponent
+        Column {
+            property alias first: firstRadio
+            property alias second: secondRadio
+            ButtonGroup { id: radioGroup }
+            ThemedRadioButton { id: firstRadio; text: "GrxFirma"; ButtonGroup.group: radioGroup; checked: true }
+            ThemedRadioButton { id: secondRadio; text: "AutoFirma"; ButtonGroup.group: radioGroup }
+        }
+    }
+    Component {
         id: labelledSwitchComponent
         ThemedSwitch { text: "Sello visible"; accessibleLabel: "No se usa" }
     }
@@ -112,6 +122,21 @@ Item {
             compare(row.toggle.Accessible.name, "Rótulo explícito")
             const own = createTemporaryObject(labelledSwitchComponent, root)
             compare(own.Accessible.name, "Sello visible")
+        }
+
+        function test_radio_buttons_are_exclusive_named_and_contrasted() {
+            const group = createTemporaryObject(radioGroupComponent, root)
+            compare(group.first.Accessible.name, "GrxFirma")
+            compare(group.second.Accessible.name, "AutoFirma")
+            group.second.checked = true
+            verify(!group.first.checked)
+            for (let i = 0; i < root.themes.length; i++) {
+                const t = root.themes[i]
+                applyTheme(group.second, t)
+                verify(Contrast.ratio(t.card, group.second.indicator.border.color) >= 3.0, "radio " + t.card)
+            }
+            group.second.enabled = false
+            verify(group.second.indicator.opacity < 1)
         }
 
         function test_adaptive_row_wraps_when_narrow() {

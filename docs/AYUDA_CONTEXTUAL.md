@@ -170,6 +170,7 @@ cambio. Busque el `id` indicado.
 | Formato automático por tipo | `ayuda.formato.automatico_por_tipo` | no aparece | `Q/main.qml:15279` `autoFormatPdfCombo` y siguientes | no aparece | Texto de sección con jerga (`:15265`) |
 | Subfiltro PAdES | `ayuda.pades.subfiltro` | no aparece | `Q/main.qml:15019` `settingsPadesSubFilterCombo` | no aparece | ToolTip |
 | Proxy | `ayuda.proxy` | `W/SettingsPage.xaml:255` | `Q/main.qml:15527` `proxyEnabledSwitch` | no aparece | HelpText parcial |
+| Programa que abre las firmas de los portales (solo Windows) | `ayuda.protocolo` | `W/SettingsPage.xaml` `AfirmaHandlerHelp` | `Q/main.qml` `afirmaHandlerCard` | no aparece | Nueva; opciones `ayuda.protocolo.grxfirma` y `ayuda.protocolo.autofirma` |
 | Servicio local para otros programas | `ayuda.rest_local` | `W/SettingsPage.xaml:427` `RestTokenText` | `Q/main.qml:15858` `restPortField` | no aparece | ToolTip en el título (Qt) |
 | Confianza local con el navegador | `ayuda.confianza_local` | no aparece | `Q/main.qml:14718` «Reinstalar certificados locales» | no aparece | ToolTip |
 | Conectores del navegador | `ayuda.conectores_navegador` | no aparece | `Q/main.qml:14710` «Reinstalar conectores de navegadores» | no aparece | ToolTip |
@@ -213,7 +214,7 @@ vez los selectores con varias opciones):
 |---|---|---|
 | WinUI | Firmar (`SignPage.xaml`) | 19 |
 | WinUI | Verificar (`VerifyPage.xaml`) | 6 |
-| WinUI | Configuración (`SettingsPage.xaml`) | 8 |
+| WinUI | Configuración (`SettingsPage.xaml`) | 9 |
 | WinUI | Certificados (`CertificatesPage.xaml`) | 3 |
 | WinUI | Proteger (`ProtectPage.xaml`) | 7 |
 | WinUI | Huellas (`HashPage.xaml`) | 4 |
@@ -221,7 +222,7 @@ vez los selectores con varias opciones):
 | WinUI | Facturae y Veri*Factu (`FacturaePage.xaml`) | 3 |
 | Qt | Firmar (`main.qml`) | 19 |
 | Qt | Verificar y huellas (`main.qml`) | 10 |
-| Qt | Preferencias (`main.qml` y `TokenSettingsPanel.qml`) | 21 |
+| Qt | Preferencias (`main.qml` y `TokenSettingsPanel.qml`) | 22 |
 | Qt | Certificados (`main.qml`) | 2 |
 | Qt | Proteger (`main.qml`) | 7 |
 | Qt | ENI (`EniPanel.qml`) | 5 |

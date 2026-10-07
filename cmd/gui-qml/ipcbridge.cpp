@@ -1238,6 +1238,11 @@ void IpcBridge::failPendingActionDueToConnection(const QString &message) {
 void IpcBridge::failActionDueToConnection(const QString &action,
                                           const QString &message) {
   const QString safeMessage = IncidentSanitizeText(message);
+  if (action == QStringLiteral("afirma_handler_status") ||
+      action == QStringLiteral("afirma_handler_select")) {
+    emit afirmaHandlerFinished(action, false, QVariantMap(),
+                               QStringLiteral("afirma_handler_failed"));
+  }
   if (action == m_tokenSettingsAction && !action.isEmpty()) {
     m_tokenSettingsAction.clear();
     m_tokenSettingsRequestId.clear();
@@ -1961,6 +1966,25 @@ void IpcBridge::onReadyRead() {
                                     ? receivedCode : QStringLiteral("token_settings_failed");
       emit tokenSettingsFinished(action, ok && data.isObject(),
                                  data.toObject().toVariantMap(), errorCode);
+      continue;
+    }
+
+    if (action == QStringLiteral("afirma_handler_status") ||
+        action == QStringLiteral("afirma_handler_select")) {
+      // Solo códigos estables conocidos: la QML los traduce con el catálogo.
+      const QString receivedCode = obj.value("errorCode").toString();
+      static const QStringList allowedCodes = {
+          QStringLiteral("afirma_handler_foreign"),
+          QStringLiteral("autofirma_not_installed"),
+          QStringLiteral("grxfirma_afirma_missing"),
+          QStringLiteral("afirma_handler_unsupported")};
+      const bool success = ok && data.isObject();
+      emit afirmaHandlerFinished(
+          action, success, success ? data.toObject().toVariantMap() : QVariantMap(),
+          success ? QString()
+                  : (allowedCodes.contains(receivedCode)
+                         ? receivedCode
+                         : QStringLiteral("afirma_handler_failed")));
       continue;
     }
 
@@ -3331,4 +3355,23 @@ void IpcBridge::installPublicRoots() {
       "⚙ Iniciando instalación de confianza TLS local...")));
   m_pendingAction = "install_public_roots";
   sendRequest("install_public_roots", QVariantMap());
+}
+
+void IpcBridge::getAfirmaHandlerStatus() {
+  sendRequest(QStringLiteral("afirma_handler_status"));
+}
+
+void IpcBridge::selectAfirmaHandler(const QString &handler) {
+  // Solo las dos opciones del selector; el motor comprueba la propiedad del
+  // registro antes de tocar nada.
+  if (handler != QStringLiteral("grxfirma") &&
+      handler != QStringLiteral("autofirma")) {
+    emit afirmaHandlerFinished(QStringLiteral("afirma_handler_select"), false,
+                               QVariantMap(),
+                               QStringLiteral("afirma_handler_failed"));
+    return;
+  }
+  QVariantMap params;
+  params.insert(QStringLiteral("handler"), handler);
+  sendRequest(QStringLiteral("afirma_handler_select"), params);
 }

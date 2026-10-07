@@ -3019,3 +3019,17 @@ void BackendBridge::installPublicRoots() {
     reply->deleteLater();
   });
 }
+
+// El modo REST no administra el registro de Windows: el selector de afirma://
+// solo existe con el motor de escritorio (IPC).
+void BackendBridge::getAfirmaHandlerStatus() {
+  emit afirmaHandlerFinished(QStringLiteral("afirma_handler_status"), false,
+                             QVariantMap(),
+                             QStringLiteral("afirma_handler_unsupported"));
+}
+
+void BackendBridge::selectAfirmaHandler(const QString &) {
+  emit afirmaHandlerFinished(QStringLiteral("afirma_handler_select"), false,
+                             QVariantMap(),
+                             QStringLiteral("afirma_handler_unsupported"));
+}
