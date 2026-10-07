@@ -15,7 +15,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -249,9 +248,6 @@ func TestXDGUpdatesOtherUserFilesOnlyWhenTheyNameAfirma(t *testing.T) {
 }
 
 func TestXDGKeepsSymlinkedMimeapps(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("enlaces simbólicos")
-	}
 	f := newXDGFixture(t, nil)
 	f.installGrxFirma()
 	f.installAutoFirma()
