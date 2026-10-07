@@ -17,7 +17,7 @@ La prueba de identidad funciona únicamente en los dominios de fábrica y en los
 
 El paquete no incluye bóveda de contraseñas, autologin, sincronización de sesiones ni el firmador antiguo de `src/*/signer/`. `config.js` se distribuye con `LOCAL_REST_BEARER` vacío; `build.py` rechaza un bearer incrustado. Los archivos de referencia heredados permanecen en la fuente, fuera del ZIP/XPI.
 
-La [política de privacidad](src/chromium/PRIVACY_POLICY.md) explica los datos tratados y su conservación. Las [notas para revisores](store/NOTAS_REVISORES.md) describen permisos y pasos de prueba en español e inglés.
+La [política de privacidad](src/chromium/PRIVACY_POLICY.md) explica los datos tratados y su conservación. Las [notas para revisores](store/NOTAS_REVISORES.md) describen permisos y pasos de prueba en español e inglés. Los textos de las fichas, las capturas y los gráficos de tienda están en `store/`; la guía de publicación es [TIENDAS-EXTENSION.md](../../docs/distribucion/TIENDAS-EXTENSION.md).
 
 ## Fuente y paquetes
 

@@ -5,7 +5,7 @@
 
 # Política de privacidad de la extensión GrxFirma
 
-**Actualizada el 30 de septiembre de 2026.**
+**Actualizada el 7 de octubre de 2026.**
 
 GrxFirma es una aplicación de firma de escritorio. Su extensión de navegador conecta los sitios permitidos con esa aplicación. No tiene cuentas propias ni envía documentos o datos de uso a servidores de GrxFirma.
 
@@ -23,6 +23,10 @@ La extensión conserva en `storage.local` la lista de sitios que el usuario ha a
 
 La descarga de un PDF contacta al portal donde se encuentra el archivo, con las cookies de esa sesión. La extensión se comunica con GrxFirma en el equipo; no envía el PDF, el certificado ni la firma a servidores de GrxFirma. La aplicación de escritorio puede consultar servicios de sellado de tiempo o revocación de certificados según su configuración. Los registros de diagnóstico de la extensión quedan en la consola local del navegador y no incluyen el contenido del PDF.
 
+## Uso limitado
+
+La extensión no vende ni cede estos datos, no los usa para publicidad ni para evaluar solvencia, y no los dedica a nada distinto de la firma y la prueba de identidad que pide el usuario. El uso de la información cumple la política de datos de usuario de Chrome Web Store, incluidos sus requisitos de uso limitado.
+
 ## Contacto
 
-Alberto Avidad Fernández, autor y mantenedor de GrxFirma.
+Alberto Avidad Fernández, autor y mantenedor de GrxFirma: avidad@dipgra.es. Versión pública de esta política: https://aavidad.github.io/GrxFirma/privacidad.html
