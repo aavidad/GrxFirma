@@ -323,53 +323,6 @@ func TestRoutes_Sign_PreferenciasCorruptasNoBloqueanFirmaNiOverride(t *testing.T
 	}
 }
 
-func TestRoutes_SignByPathCompatQt(t *testing.T) {
-	dir := t.TempDir()
-	inputPath := filepath.Join(dir, "doc.pdf")
-	outputPath := filepath.Join(dir, "firmado.pdf")
-	if err := os.WriteFile(inputPath, []byte("abc"), 0o600); err != nil {
-		t.Fatalf("os.WriteFile(inputPath) error = %v", err)
-	}
-
-	adaptador := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).WithFileSystemPaths().WithCertificateSources(
-		catalogMockREST{certs: []domain.CertificateRef{{
-			ID:            "cert-qt",
-			Subject:       "CN=Ana Perez",
-			Issuer:        "CN=FNMT",
-			NotAfter:      time.Now().Add(time.Hour),
-			Fingerprint:   "fp1",
-			HasSigningKey: true,
-		}}},
-		nil,
-	)
-
-	body := map[string]any{
-		"inputPath":        inputPath,
-		"outputPath":       outputPath,
-		"certificateIndex": 0,
-		"format":           "PAdES",
-		"action":           "sign",
-	}
-	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/sign", body)
-	if rr.Code != http.StatusOK {
-		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
-	}
-	if _, err := os.Stat(outputPath); err != nil {
-		t.Fatalf("se esperaba firma en disco: %v", err)
-	}
-	var resp map[string]any
-	_ = json.Unmarshal(rr.Body.Bytes(), &resp)
-	if resp["ok"] != true {
-		t.Fatalf("ok inesperado: %#v", resp["ok"])
-	}
-	if resp["outputPath"] != outputPath {
-		t.Fatalf("outputPath inesperado: %#v", resp["outputPath"])
-	}
-	if resp["certificate_id"] != "cert-qt" {
-		t.Fatalf("certificate_id inesperado: %#v", resp["certificate_id"])
-	}
-}
-
 func TestRoutes_SignBatch(t *testing.T) {
 	mock := &batchSignUseCaseMock{}
 	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
@@ -814,55 +767,12 @@ func TestRoutes_HashPathsRechazanDirectoriosSensibles(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
-				WithHashes(hashCreateUseCaseMock{}, hashCheckUseCaseMock{}).
-				WithFileSystemPaths()
+				WithHashes(hashCreateUseCaseMock{}, hashCheckUseCaseMock{})
 			rr := doJSON(t, adaptador.Routes(), http.MethodPost, test.endpoint, test.body)
-			if rr.Code != http.StatusBadRequest {
-				t.Fatalf("status = %d, want %d; body=%s", rr.Code, http.StatusBadRequest, rr.Body.String())
-			}
-			if !strings.Contains(rr.Body.String(), "no valida") {
-				t.Fatalf("respuesta sin diagnóstico de ruta: %s", rr.Body.String())
+			if rr.Code != http.StatusForbidden {
+				t.Fatalf("status = %d, want %d; body=%s", rr.Code, http.StatusForbidden, rr.Body.String())
 			}
 		})
-	}
-}
-
-func TestRoutes_DirectoryHashCheck_WithReport(t *testing.T) {
-	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "uno.txt"), []byte("abc"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	reportPath := filepath.Join(dir, "resultado.hashreport")
-	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
-		WithFileSystemPaths().
-		WithDirectoryHashes(nil, dirHashCheckUseCaseMock{}).
-		WithDirectoryHashReports(dirHashReportCodecMock{})
-	body := map[string]any{
-		"inputPath":        dir,
-		"hashPath":         filepath.Join(dir, "directorio.hashfiles"),
-		"saveReportToDisk": true,
-		"reportOutputPath": reportPath,
-	}
-	if err := os.WriteFile(filepath.Join(dir, "directorio.hashfiles"), []byte("<entries/>"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/hash/check", body)
-	if rr.Code != http.StatusOK {
-		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
-	}
-	var resp map[string]any
-	_ = json.Unmarshal(rr.Body.Bytes(), &resp)
-	if resp["valid"] != false {
-		t.Fatalf("valid inesperado: %#v", resp["valid"])
-	}
-	if stringValue(resp["report_base64"]) == "" {
-		t.Fatalf("report_base64 vacio: %s", rr.Body.String())
-	}
-	if resp["report_output_path"] != reportPath {
-		t.Fatalf("report_output_path inesperado: %#v", resp["report_output_path"])
-	}
-	if _, err := os.Stat(reportPath); err != nil {
-		t.Fatalf("se esperaba informe en disco: %v", err)
 	}
 }
 
@@ -1223,95 +1133,6 @@ func TestRoutes_ProtectSign_RechazaEnvelopedDataConErrorClaro(t *testing.T) {
 		t.Fatalf("no se esperaba ejecutar el caso de uso: %#v", mock.lastCmd)
 	}
 	if !strings.Contains(rr.Body.String(), "EnvelopedData") {
-		t.Fatalf("cuerpo inesperado: %s", rr.Body.String())
-	}
-}
-
-func TestRoutes_ProtectSignByPath_AceptaAliasLegacyDeSignedAndEnvelopedData(t *testing.T) {
-	tmp := t.TempDir()
-	inputPath := filepath.Join(tmp, "secreto.txt")
-	if err := os.WriteFile(inputPath, []byte("secreto"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	mock := &protectAndSignUseCaseMock{}
-	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
-		WithFileSystemPaths().
-		WithSignedProtection(mock).
-		WithProtection(nil, nil, protectionRecipientsMock{recipients: []domain.ProtectionRecipient{{
-			ID:                     "dest-1",
-			Label:                  "Compat RSA",
-			RSAOAEP256PublicKeyDER: []byte("rsa-pub"),
-			CertificateDER:         []byte("cert-der"),
-		}}}).
-		WithCertificateSources(catalogMockREST{certs: []domain.CertificateRef{{
-			ID:          "cert-firma-1",
-			Subject:     "CN=Ana Perez",
-			Issuer:      "CN=FNMT",
-			NotAfter:    time.Now().Add(time.Hour),
-			Fingerprint: "fp1",
-		}}}, nil)
-	body := map[string]any{
-		"inputPath":          inputPath,
-		"profile":            "compat",
-		"recipient_ids":      []string{"dest-1"},
-		"certificate_id":     "cert-firma-1",
-		"saveToDisk":         false,
-		"returnProtectedB64": true,
-		"options": map[string]any{
-			"container": "signed-and-enveloped-data",
-		},
-	}
-	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/protect-sign", body)
-	if rr.Code != http.StatusOK {
-		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
-	}
-	if mock.lastCmd.Options["container"] != "signedandenvelopeddata" {
-		t.Fatalf("container inesperado: %#v", mock.lastCmd.Options["container"])
-	}
-}
-
-func TestRoutes_ProtectSignByPath_RechazaAuthEnvelopedDataConErrorClaro(t *testing.T) {
-	tmp := t.TempDir()
-	inputPath := filepath.Join(tmp, "secreto.txt")
-	if err := os.WriteFile(inputPath, []byte("secreto"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	mock := &protectAndSignUseCaseMock{}
-	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
-		WithFileSystemPaths().
-		WithSignedProtection(mock).
-		WithProtection(nil, nil, protectionRecipientsMock{recipients: []domain.ProtectionRecipient{{
-			ID:                     "dest-1",
-			Label:                  "Compat RSA",
-			RSAOAEP256PublicKeyDER: []byte("rsa-pub"),
-			CertificateDER:         []byte("cert-der"),
-		}}}).
-		WithCertificateSources(catalogMockREST{certs: []domain.CertificateRef{{
-			ID:          "cert-firma-1",
-			Subject:     "CN=Ana Perez",
-			Issuer:      "CN=FNMT",
-			NotAfter:    time.Now().Add(time.Hour),
-			Fingerprint: "fp1",
-		}}}, nil)
-	body := map[string]any{
-		"inputPath":      inputPath,
-		"profile":        "compat",
-		"recipient_ids":  []string{"dest-1"},
-		"certificate_id": "cert-firma-1",
-		"options": map[string]any{
-			"container": "authenvelopeddata",
-		},
-	}
-	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/protect-sign", body)
-	if rr.Code != http.StatusBadRequest {
-		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
-	}
-	if mock.lastCmd.Document.Name != "" {
-		t.Fatalf("no se esperaba ejecutar el caso de uso: %#v", mock.lastCmd)
-	}
-	if !strings.Contains(rr.Body.String(), "AuthEnvelopedData") {
 		t.Fatalf("cuerpo inesperado: %s", rr.Body.String())
 	}
 }
@@ -2025,35 +1846,6 @@ func TestRoutes_SignerLocaleQueryRendersSelectedLanguage(t *testing.T) {
 	}
 }
 
-func TestRoutes_VerifyByPathCompatQt(t *testing.T) {
-	dir := t.TempDir()
-	inputPath := filepath.Join(dir, "firma.csig")
-	if err := os.WriteFile(inputPath, []byte("firma"), 0o600); err != nil {
-		t.Fatalf("os.WriteFile(inputPath) error = %v", err)
-	}
-
-	adaptador := nuevoAdaptadorPruebas(nil, verifyUseCaseMock{}, nil).WithFileSystemPaths()
-	body := map[string]any{
-		"inputPath": inputPath,
-	}
-	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/verify", body)
-	if rr.Code != http.StatusOK {
-		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
-	}
-	var resp map[string]any
-	_ = json.Unmarshal(rr.Body.Bytes(), &resp)
-	if resp["ok"] != true {
-		t.Fatalf("ok inesperado: %#v", resp["ok"])
-	}
-	result, ok := resp["result"].(map[string]any)
-	if !ok {
-		t.Fatalf("result inesperado: %#v", resp["result"])
-	}
-	if result["valid"] != true {
-		t.Fatalf("result.valid inesperado: %#v", result["valid"])
-	}
-}
-
 func TestRoutes_VerifyDetached(t *testing.T) {
 	adaptador := nuevoAdaptadorPruebas(nil, verifyUseCaseMock{}, nil)
 	body := map[string]any{
@@ -2714,7 +2506,7 @@ func TestRoutes_PDFPreviewPaginaFueraDeRango(t *testing.T) {
 		TotalPaginas: 3,
 	}}
 	rr := doJSON(t,
-		nuevoAdaptadorPruebas(nil, nil, nil).WithFileSystemPaths().WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreviewPaths().WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": inputPath, "page": 99},
@@ -2765,7 +2557,7 @@ func TestRoutes_PDFPreviewRechazaEscape(t *testing.T) {
 	}
 	preview := &pdfPreviewUseCaseMockREST{}
 	rr := doJSON(t,
-		nuevoAdaptadorPruebas(nil, nil, nil).WithFileSystemPaths().WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreviewPaths().WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": escapePath, "page": 1},
@@ -2790,7 +2582,7 @@ func TestRoutes_PDFPreviewRechazaSymlink(t *testing.T) {
 	}
 	preview := &pdfPreviewUseCaseMockREST{}
 	rr := doJSON(t,
-		nuevoAdaptadorPruebas(nil, nil, nil).WithFileSystemPaths().WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreviewPaths().WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": link, "page": 1},
@@ -2810,7 +2602,7 @@ func TestRoutes_PDFPreviewRechazaNoRegular(t *testing.T) {
 	}
 	preview := &pdfPreviewUseCaseMockREST{}
 	rr := doJSON(t,
-		nuevoAdaptadorPruebas(nil, nil, nil).WithFileSystemPaths().WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreviewPaths().WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": inputPath, "page": 1},
@@ -2832,7 +2624,7 @@ func TestRoutes_PDFPreviewRechazaFicheroExcesivo(t *testing.T) {
 	preview := &pdfPreviewUseCaseMockREST{}
 	rr := doJSON(t,
 		nuevoAdaptadorPruebas(nil, nil, nil).
-			WithFileSystemPaths().
+			WithPDFPreviewPaths().
 			WithPDFPreview(preview).
 			WithMaxBodyBytes(512).
 			Routes(),
@@ -2882,7 +2674,7 @@ func TestRoutes_PDFPreviewUsaCopiaPrivadaAnteIntercambio(t *testing.T) {
 		}
 	}
 	rr := doJSON(t,
-		nuevoAdaptadorPruebas(nil, nil, nil).WithFileSystemPaths().WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreviewPaths().WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": inputPath, "page": 1},
@@ -3538,26 +3330,6 @@ func (hashCheckUseCaseMock) Execute(_ context.Context, cmd application.CheckHash
 	}, nil
 }
 
-type dirHashCheckUseCaseMock struct{}
-
-func (dirHashCheckUseCaseMock) Execute(_ context.Context, _ application.CheckDirectoryHashManifestCommand) (application.CheckDirectoryHashManifestResult, error) {
-	return application.CheckDirectoryHashManifestResult{
-		Valid: false,
-		Report: domain.DirectoryHashCheckReport{
-			Algorithm:       "SHA-256",
-			Recursive:       true,
-			MatchingHash:    []string{"uno.txt"},
-			NotMatchingHash: []string{"dos.txt"},
-		},
-	}, nil
-}
-
-type dirHashReportCodecMock struct{}
-
-func (dirHashReportCodecMock) EncodeReport(context.Context, domain.DirectoryHashCheckReport) ([]byte, error) {
-	return []byte(`<?xml version="1.0" encoding="UTF-8"?><entries hashAlgorithm="SHA-256" recursive="true"><not_matching_hash><entry name="dos.txt"></entry></not_matching_hash></entries>`), nil
-}
-
 func (verifyUseCaseMock) Execute(_ context.Context, cmd application.VerifyCommand) (application.VerifyResult, error) {
 	if cmd.SignedDocument.Name != "firma.csig" {
 		return application.VerifyResult{}, errors.New("nombre de documento no preservado")
@@ -4045,32 +3817,6 @@ func TestRoutes_Sign_RechazaRutaDeSelloSinOperacionesDeFichero(t *testing.T) {
 	rr := doJSON(t, nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).Routes(), http.MethodPost, "/sign", body)
 	if rr.Code != http.StatusForbidden {
 		t.Fatalf("status = %d, want 403; body=%s", rr.Code, rr.Body.String())
-	}
-}
-
-func TestRoutes_Sign_RutaDeSelloPermitidaRechazaSymlink(t *testing.T) {
-	dir := t.TempDir()
-	target := filepath.Join(dir, "target.png")
-	link := filepath.Join(dir, "seal.png")
-	if err := os.WriteFile(target, []byte("png"), 0o600); err != nil {
-		t.Fatalf("WriteFile: %v", err)
-	}
-	if err := os.Symlink(target, link); err != nil {
-		t.Skipf("symlinks unavailable: %v", err)
-	}
-	body := map[string]any{
-		"name":           "doc.pdf",
-		"content_base64": base64.StdEncoding.EncodeToString([]byte("%PDF-1.7")),
-		"format":         "PAdES",
-		"options": map[string]string{
-			"visibleSeal":          "true",
-			"visibleSealImagePath": link,
-		},
-	}
-	handler := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).WithFileSystemPaths().Routes()
-	rr := doJSON(t, handler, http.MethodPost, "/sign", body)
-	if rr.Code != http.StatusBadRequest {
-		t.Fatalf("status = %d, want 400; body=%s", rr.Code, rr.Body.String())
 	}
 }
 

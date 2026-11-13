@@ -648,8 +648,6 @@ func runRESTServer(ctx context.Context, logger *slog.Logger, rutaP12, password, 
 	adaptador := restin.New(servicios.firmar, servicios.verificar, selector).WithBearerToken(cfg.token)
 	adaptador.WithBatchSigner(servicios.procesarLote)
 	adaptador.WithHashes(servicios.crearHash, servicios.comprobarHash)
-	adaptador.WithDirectoryHashes(servicios.crearHashDir, servicios.comprobarHashDir)
-	adaptador.WithDirectoryHashReports(servicios.informeHashDir)
 	adaptador.WithPDFPreview(application.NuevoPdfPreviewUseCase(pdfpreview.New()))
 	if esDireccionLoopback(cfg.addr) {
 		// La GUI REST local necesita leer el PDF seleccionado para renderizarlo,
