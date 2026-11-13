@@ -50,6 +50,7 @@ HEADERS += \
         portalsealbridge.h \
         ipcsocketpath.h \
         officialupdatechecker.h \
+        openablefile.h \
         linuxstartupregistration.h \
         processarguments.h \
         processenvironment.h \

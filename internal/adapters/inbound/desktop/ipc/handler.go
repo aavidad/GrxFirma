@@ -2398,18 +2398,53 @@ func construirSalidaProtegidaRutaIPC(inputPath, documentName string) string {
 	return filepath.Join(filepath.Dir(inputPath), base+container)
 }
 
+// extensionesDocumentalesDesprotegidas son los únicos tipos cuya extensión se
+// conserva al desproteger. El nombre del documento viaja dentro del sobre y lo
+// elige el remitente: cualquier otra extensión (.exe, .lnk, .hta, .js,
+// .desktop, flujos NTFS como ".txt:x"...) se sustituye por .bin para que
+// "Abrir" no ejecute nada.
+var extensionesDocumentalesDesprotegidas = map[string]struct{}{
+	".pdf": {}, ".xml": {}, ".txt": {}, ".csv": {}, ".json": {},
+	".docx": {}, ".xlsx": {}, ".pptx": {}, ".odt": {}, ".ods": {}, ".odp": {},
+	".png": {}, ".jpg": {}, ".jpeg": {}, ".gif": {}, ".tif": {}, ".tiff": {},
+	".xsig": {}, ".csig": {}, ".p7s": {}, ".p7m": {}, ".asice": {}, ".asics": {},
+}
+
+const extensionDesprotegidaNeutra = ".bin"
+
+func extensionDesprotegidaSegura(nombre string) string {
+	ext := filepath.Ext(nombre)
+	if len(ext) < 2 || len(ext) > 8 {
+		return extensionDesprotegidaNeutra
+	}
+	for _, r := range ext[1:] {
+		if (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') {
+			return extensionDesprotegidaNeutra
+		}
+	}
+	if _, ok := extensionesDocumentalesDesprotegidas[strings.ToLower(ext)]; !ok {
+		return extensionDesprotegidaNeutra
+	}
+	return ext
+}
+
 func construirSalidaDesprotegidaRutaIPC(inputPath, documentName string) string {
 	base := strings.TrimSuffix(filepath.Base(inputPath), filepath.Ext(inputPath))
 	if strings.TrimSpace(base) == "" {
-		base = strings.TrimSuffix(documentName, filepath.Ext(documentName))
+		// El nombre del sobre solo aporta el nombre final, nunca carpetas.
+		nombre := filepath.Base(strings.ReplaceAll(documentName, "\\", "/"))
+		base = strings.TrimSuffix(nombre, filepath.Ext(nombre))
+		if base == "." || base == ".." || strings.ContainsAny(base, `/\:`) ||
+			strings.IndexFunc(base, unicode.IsControl) >= 0 {
+			base = ""
+		}
 	}
 	if strings.TrimSpace(base) == "" {
 		base = "documento"
 	}
-	ext := filepath.Ext(documentName)
-	if strings.TrimSpace(ext) == "" {
-		ext = filepath.Ext(base)
-	}
+	// La extensión sale solo del nombre que trae el sobre y solo si es
+	// documental; la del fichero de entrada (p. ej. "nomina.exe.afp") no cuenta.
+	ext := extensionDesprotegidaSegura(documentName)
 	return filepath.Join(filepath.Dir(inputPath), base+"_desprotegido"+ext)
 }
 
