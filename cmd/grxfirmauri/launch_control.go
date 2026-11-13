@@ -158,9 +158,6 @@ func dispatchResidentLaunch(
 		return startResidentWebSocketLaunch(ctx, logger, configDir, cfg, adapter, req)
 	}
 	if req, err := parseServiceLaunchURI(rawURI); err == nil {
-		if !cfg.PermiteWebSocket() || !cfg.WebsocketHabilitado {
-			return errors.New("WebSocket deshabilitado por configuración o política")
-		}
 		return startResidentServiceLaunch(ctx, logger, configDir, adapter, req)
 	}
 	return fmt.Errorf("la URI no es un lanzamiento legacy soportado")
@@ -177,13 +174,14 @@ func startResidentWebSocketLaunch(
 	if req == nil {
 		return errors.New("solicitud websocket vacia")
 	}
-	if !cfg.PermiteWebSocket() || !cfg.WebsocketHabilitado {
+	if !cfg.PermiteWebSocket() {
 		return errors.New("WebSocket deshabilitado por configuración o política")
 	}
 	// Modelo conservador: cada URI delegada abre una sesión puntual nueva sobre
 	// el residente. Reutilizamos proceso y recursos, pero no compartimos estado
 	// terminal, consentimiento ni una UI previa entre solicitudes distintas.
 	sessionCtx, cancel := context.WithCancel(ctx)
+	cfg.WebsocketHabilitado = true
 	srv, err := legacyws.StartTLSServerOnPortsWithHooks(
 		sessionCtx,
 		cfg,
