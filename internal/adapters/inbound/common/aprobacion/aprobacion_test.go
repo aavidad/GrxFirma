@@ -98,6 +98,14 @@ func TestTextoZenityDuplicaBarras(t *testing.T) {
 	}
 }
 
+func TestTextoZenityMarcadoEscapaPangoYBarras(t *testing.T) {
+	got := TextoZenityMarcado("<span size=\"1\">x</span> & 'y' \\n\nz")
+	want := `&lt;span size=&#34;1&#34;&gt;x&lt;/span&gt; &amp; &#39;y&#39; \\n` + "\nz"
+	if got != want {
+		t.Fatalf("TextoZenityMarcado = %q; want %q", got, want)
+	}
+}
+
 func TestTextoKDialogEscapaMarcado(t *testing.T) {
 	got := TextoKDialog("S&L <b>x</b>\nsegunda")
 	if got != "<qt>S&amp;L &lt;b&gt;x&lt;/b&gt;<br>segunda</qt>" {
