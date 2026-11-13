@@ -44,6 +44,9 @@ public static class DesktopOperationActions
     public const string ProtectionRecipients = "protection_recipients";
     public const string ProtectionRecipientImport = "protection_recipient_import";
     public const string ProtectionRecipientRemove = "protection_recipient_remove";
+    public const string ForcedTrustList = "forced_trust_list";
+    public const string ForcedTrustAccept = "forced_trust_accept";
+    public const string ForcedTrustRemove = "forced_trust_remove";
     public const string Protect = "protect";
     public const string ProtectAndSign = "protect_sign";
     public const string Unprotect = "unprotect";
@@ -381,6 +384,33 @@ public sealed class DesktopOperationsClient
         ArgumentNullException.ThrowIfNull(parameters);
         return _ipcClient.SendAsync<ProtectionRecipientRemoveParameters, ProtectionRecipientChangeResult>(
             DesktopOperationActions.ProtectionRecipientRemove, parameters, cancellationToken);
+    }
+
+    // Lote 14: firmas aceptadas por el usuario en este equipo. El motor solo
+    // acepta lo que él mismo ofreció en una verificación de esta sesión.
+    public Task<IpcCallResult<ForcedTrustListResult>> GetForcedTrustAsync(
+        CancellationToken cancellationToken = default) =>
+        _ipcClient.SendAsync<ForcedTrustListParameters, ForcedTrustListResult>(
+            DesktopOperationActions.ForcedTrustList,
+            new ForcedTrustListParameters(),
+            cancellationToken);
+
+    public Task<IpcCallResult<ForcedTrustListResult>> AcceptForcedTrustAsync(
+        ForcedTrustAcceptParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<ForcedTrustAcceptParameters, ForcedTrustListResult>(
+            DesktopOperationActions.ForcedTrustAccept, parameters, cancellationToken);
+    }
+
+    public Task<IpcCallResult<ForcedTrustListResult>> RemoveForcedTrustAsync(
+        ForcedTrustRemoveParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<ForcedTrustRemoveParameters, ForcedTrustListResult>(
+            DesktopOperationActions.ForcedTrustRemove, parameters, cancellationToken);
     }
 
     public Task<IpcCallResult<ProtectionResult>> ProtectAsync(

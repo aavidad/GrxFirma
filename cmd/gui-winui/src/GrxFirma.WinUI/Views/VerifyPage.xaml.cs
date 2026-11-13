@@ -5,6 +5,7 @@
 
 using GrxFirma.WinUI.Controls;
 using GrxFirma.WinUI.Core.Diagnostics;
+using GrxFirma.WinUI.Core.Operations;
 using GrxFirma.WinUI.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -24,6 +25,10 @@ public sealed partial class VerifyPage : Page
             app.FilePickerService);
         InitializeComponent();
         RefreshExportLabels();
+        ForcedTrustAcceptButton.Content =
+            VerifyPageViewModel.CatalogText("verify.forced_trust.ui.accept_button");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            ForcedTrustAcceptButton, (string)ForcedTrustAcceptButton.Content);
         ViewModel.PropertyChanged += (_, change) =>
         {
             if (change.PropertyName is nameof(VerifyPageViewModel.HasHtmlReport)
@@ -40,6 +45,13 @@ public sealed partial class VerifyPage : Page
         if (string.IsNullOrEmpty(ViewModel.ReportSavedMessage)) return;
         LiveAnnouncer.Announce(ReportSavedText);
     }
+
+    public Visibility ForcedTrustHintVisibility(string? hint) =>
+        string.IsNullOrWhiteSpace(hint) ? Visibility.Collapsed : Visibility.Visible;
+
+    public Visibility ForcedTrustButtonVisibility(
+        IReadOnlyList<ForcedTrustObstacle>? items) =>
+        items is { Count: > 0 } ? Visibility.Visible : Visibility.Collapsed;
 
     public VerifyPageViewModel ViewModel { get; }
 
@@ -119,6 +131,73 @@ public sealed partial class VerifyPage : Page
 
     private async void OnExportJsonReportClick(object sender, RoutedEventArgs args) =>
         await ViewModel.ExportJsonReportAsync();
+
+    // Lote 14: abrir el diálogo no guarda nada. Solo «Aceptar en este equipo»
+    // llama al motor; Cerrar (Cancelar) es el botón por defecto.
+    private async void OnForcedTrustAcceptClick(
+        object sender,
+        RoutedEventArgs args)
+    {
+        var items = ViewModel.ForcedTrustAcceptable;
+        if (!_isLoaded || XamlRoot is null || items.Count == 0)
+        {
+            return;
+        }
+
+        var content = new StackPanel { Spacing = 12 };
+        content.Children.Add(new TextBlock
+        {
+            Text = VerifyPageViewModel.CatalogText("verify.forced_trust.ui.dialog_intro"),
+            TextWrapping = TextWrapping.Wrap,
+        });
+        foreach (var item in items)
+        {
+            var block = new StackPanel { Spacing = 4 };
+            block.Children.Add(new TextBlock
+            {
+                Text = VerifyPageViewModel.CatalogText(item.Label),
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            block.Children.Add(new TextBlock
+            {
+                Text = VerifyPageViewModel.CatalogText(item.Notice),
+                TextWrapping = TextWrapping.Wrap,
+            });
+            block.Children.Add(new TextBlock
+            {
+                Text = string.IsNullOrWhiteSpace(item.Fingerprint)
+                    ? VerifyPageViewModel.CatalogText("verify.forced_trust.ui.all_signatures")
+                    : item.Subject,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            if (!string.IsNullOrWhiteSpace(item.Fingerprint))
+            {
+                block.Children.Add(new TextBlock
+                {
+                    Text = item.Fingerprint,
+                    IsTextSelectionEnabled = true,
+                    TextWrapping = TextWrapping.Wrap,
+                });
+            }
+            content.Children.Add(block);
+        }
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            RequestedTheme = ActualTheme,
+            Title = VerifyPageViewModel.CatalogText("verify.forced_trust.ui.dialog_title"),
+            Content = new ScrollViewer { Content = content },
+            PrimaryButtonText = VerifyPageViewModel.CatalogText("verify.forced_trust.ui.confirm"),
+            CloseButtonText = Localizer.Text("winui.comun.cancelar"),
+            DefaultButton = ContentDialogButton.Close,
+        };
+        if (await Localizer.ShowAsync(dialog) == ContentDialogResult.Primary)
+        {
+            await ViewModel.AcceptForcedTrustAsync();
+        }
+    }
 
     private async void OnDiagnosticRequested(
         OperationDiagnostic diagnostic)

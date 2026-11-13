@@ -623,6 +623,52 @@
                     Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                     Severity="{x:Bind ViewModel.StatusSeverity, Mode=OneWay}"
                     Title="{x:Bind ViewModel.StatusTitle, Mode=OneWay}" />
+                <!-- Lote 14: firmas aceptadas en este equipo. Quitar se aplica al momento,
+                     sin pasar por «Guardar preferencias»; por eso va aparte, al final. -->
+                <Border x:Name="ForcedTrustCard" Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock
+                            x:Name="ForcedTrustTitle"
+                            AutomationProperties.HeadingLevel="Level2"
+                            Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock
+                            AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
+                            Foreground="{ThemeResource AppMutedTextBrush}"
+                            Text="{x:Bind ViewModel.ForcedTrustStatus, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.ForcedTrustEntries, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="0,6" ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Spacing="3">
+                                            <TextBlock
+                                                FontWeight="SemiBold"
+                                                Text="{Binding Label}"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Foreground="{ThemeResource AppMutedTextBrush}"
+                                                IsTextSelectionEnabled="True"
+                                                Text="{Binding Detail}"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Button
+                                            Grid.Column="1"
+                                            MinHeight="40"
+                                            VerticalAlignment="Center"
+                                            AutomationProperties.Name="{Binding RemoveAccessibleName}"
+                                            Click="OnRemoveForcedTrustClick"
+                                            TabIndex="43"
+                                            Content="{Binding RemoveText}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </Grid>
     </ScrollViewer>

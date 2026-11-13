@@ -1370,6 +1370,11 @@ public sealed record VerifyResult
     [JsonPropertyName("reportHtml")]
     public string ReportHtml { get; init; } = "";
 
+    // Lote 14: confianza que el usuario puede aceptar o ya aceptó en este
+    // equipo. Ausente si el motor no ofrece la gestión.
+    [JsonPropertyName("forcedTrust")]
+    public VerifyForcedTrust? ForcedTrust { get; init; }
+
     [JsonIgnore]
     public IReadOnlyList<string> VisibleDetails =>
         OperationResultText.CleanList(Details);
@@ -1483,6 +1488,113 @@ public sealed record VerifySignerSummary
         get => _signingTimeSource;
         init => _signingTimeSource = OperationResultText.Clean(value, 32);
     }
+}
+
+/// <summary>
+/// Lote 14: un obstáculo que el usuario puede aceptar en este equipo (CA
+/// desconocida, RSA corta, certificado de servidor, revocación sin comprobar
+/// o SHA-1). Label y Notice son claves de los catálogos de idioma.
+/// </summary>
+public sealed record ForcedTrustObstacle
+{
+    private string _type = string.Empty;
+    private string _fingerprint = string.Empty;
+    private string _subject = string.Empty;
+    private string _label = string.Empty;
+    private string _notice = string.Empty;
+    private string _acceptedAt = string.Empty;
+
+    [JsonPropertyName("type")]
+    public string Type
+    {
+        get => _type;
+        init => _type = OperationResultText.Clean(value, 64);
+    }
+
+    [JsonPropertyName("fingerprint")]
+    public string Fingerprint
+    {
+        get => _fingerprint;
+        init => _fingerprint = OperationResultText.Clean(value, 64);
+    }
+
+    [JsonPropertyName("subject")]
+    public string Subject
+    {
+        get => _subject;
+        init => _subject = OperationResultText.Clean(value, 512);
+    }
+
+    [JsonPropertyName("label")]
+    public string Label
+    {
+        get => _label;
+        init => _label = OperationResultText.Clean(value, 128);
+    }
+
+    [JsonPropertyName("notice")]
+    public string Notice
+    {
+        get => _notice;
+        init => _notice = OperationResultText.Clean(value, 128);
+    }
+
+    [JsonPropertyName("acceptedAt")]
+    public string AcceptedAt
+    {
+        get => _acceptedAt;
+        init => _acceptedAt = OperationResultText.Clean(value, 64);
+    }
+}
+
+public sealed record VerifyForcedTrust
+{
+    [JsonPropertyName("available")]
+    public bool Available { get; init; }
+
+    [JsonPropertyName("forbidden")]
+    public bool Forbidden { get; init; }
+
+    [JsonPropertyName("applied")]
+    public IReadOnlyList<ForcedTrustObstacle> Applied { get; init; } = [];
+
+    [JsonPropertyName("acceptable")]
+    public IReadOnlyList<ForcedTrustObstacle> Acceptable { get; init; } = [];
+}
+
+public sealed record ForcedTrustListParameters;
+
+public sealed record ForcedTrustItem
+{
+    [JsonPropertyName("type")]
+    public required string Type { get; init; }
+
+    [JsonPropertyName("fingerprint")]
+    public string Fingerprint { get; init; } = string.Empty;
+}
+
+public sealed record ForcedTrustAcceptParameters
+{
+    [JsonPropertyName("items")]
+    public required IReadOnlyList<ForcedTrustItem> Items { get; init; }
+}
+
+public sealed record ForcedTrustRemoveParameters
+{
+    [JsonPropertyName("type")]
+    public required string Type { get; init; }
+
+    [JsonPropertyName("fingerprint")]
+    public string Fingerprint { get; init; } = string.Empty;
+}
+
+public sealed record ForcedTrustListResult
+{
+    [JsonPropertyName("forbidden")]
+    public bool Forbidden { get; init; }
+
+    [JsonPropertyName("entries")]
+    public IReadOnlyList<ForcedTrustObstacle> Entries { get; init; } = [];
 }
 
 public sealed record VerifyEvidence

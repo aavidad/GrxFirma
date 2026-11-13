@@ -248,6 +248,25 @@
                             Text="{x:Bind ViewModel.SignedBySummary, Mode=OneWay}"
                             TextWrapping="Wrap"
                             IsTextSelectionEnabled="True" />
+                        <!-- Lote 14: la firma solo falla por algo que el usuario puede
+                             aceptar en este equipo. Botón secundario; el diálogo
+                             muestra el aviso y Cancelar es la opción por defecto. -->
+                        <StackPanel
+                            x:Name="ForcedTrustPanel"
+                            Spacing="8"
+                            Visibility="{x:Bind ForcedTrustHintVisibility(ViewModel.ForcedTrustHint), Mode=OneWay}">
+                            <TextBlock
+                                x:Name="ForcedTrustHintText"
+                                Text="{x:Bind ViewModel.ForcedTrustHint, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                            <Button MinHeight="40"
+                                x:Name="ForcedTrustAcceptButton"
+                                Click="OnForcedTrustAcceptClick"
+                                TabIndex="11"
+                                IsEnabled="{x:Bind ViewModel.CanAcceptForcedTrust, Mode=OneWay}"
+                                Visibility="{x:Bind ForcedTrustButtonVisibility(ViewModel.ForcedTrustAcceptable), Mode=OneWay}"
+                                AutomationProperties.Name="{Binding Content, ElementName=ForcedTrustAcceptButton}" />
+                        </StackPanel>
                         <Grid ColumnSpacing="12" RowSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -268,7 +287,7 @@
                                     Topic="Integridad"
                                     HelpKey="ayuda.verificar.integridad"
                                     VerticalAlignment="Top"
-                                    TabIndex="11" />
+                                    TabIndex="12" />
                             </controls:HelpRow>
                             <TextBlock
                                 x:Name="CertificateResult"
@@ -284,7 +303,7 @@
                                     Topic="Confianza"
                                     HelpKey="ayuda.verificar.confianza"
                                     VerticalAlignment="Top"
-                                    TabIndex="12" />
+                                    TabIndex="13" />
                             </controls:HelpRow>
                         </Grid>
                         <controls:HelpRow Visibility="{x:Bind ViewModel.HasResult, Mode=OneWay}">
@@ -296,7 +315,7 @@
                                 Topic="Cobertura"
                                 HelpKey="ayuda.verificar.cobertura"
                                 VerticalAlignment="Top"
-                                TabIndex="13" />
+                                TabIndex="14" />
                         </controls:HelpRow>
 
                         <TextBlock
@@ -336,7 +355,7 @@
                                 Topic="Detalles"
                                 HelpKey="ayuda.verificar.revocacion"
                                 VerticalAlignment="Center"
-                                TabIndex="14" />
+                                TabIndex="15" />
                         </controls:HelpRow>
                         <ItemsControl ItemsSource="{x:Bind ViewModel.Details, Mode=OneWay}">
                             <ItemsControl.ItemTemplate>
