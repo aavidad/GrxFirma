@@ -93,7 +93,10 @@ func readXRefSnapshot(data []byte) (snapshot XRefSnapshot, err error) {
 	}
 	for key := range reader.trailer {
 		switch key {
-		case "Size", "Prev", "Root", "Encrypt", "ID", "Info", "XRefStm", "Type", "W", "Index", "Length", "Filter", "DecodeParms":
+		// DocChecksum (LibreOffice y Acrobat antiguos) es una huella MD5 que
+		// ningún visor usa para pintar; sin ella, todo PDF exportado por
+		// LibreOffice quedaría sin analizar.
+		case "Size", "Prev", "Root", "Encrypt", "ID", "Info", "XRefStm", "Type", "W", "Index", "Length", "Filter", "DecodeParms", "DocChecksum":
 		default:
 			return XRefSnapshot{}, fmt.Errorf("xref de revision con clave de trailer no clasificada: /%s", key)
 		}

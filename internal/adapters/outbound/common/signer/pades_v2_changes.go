@@ -11,6 +11,7 @@ import (
 	"math"
 	"regexp"
 	"strconv"
+	"strings"
 
 	pdf "github.com/digitorus/pdf"
 )
@@ -50,17 +51,17 @@ func clasificarActualizacionesPAdESV2(data []byte, out *InspeccionPDFV2) error {
 			applySignaturePolicy(data, out.Revisiones[revision], sig, &certLevel, &fieldLock)
 		}
 		change := clasificarUnaActualizacion(data, out.Revisiones[revision-1], out.Revisiones[revision], sig)
-		if priorLevel != nil && *priorLevel == 1 && (change.Estado == "permitidos" || sig != nil && sig.TipoFirma == "sello_tiempo_documento" && cambioContieneDetalle(change, "sello_tiempo_documento_pendiente_confianza")) {
+		if priorLevel != nil && *priorLevel == 1 && (change.Estado == "permitidos" || cambioSoloPendienteDeEvaluar(change)) {
 			detail := "docmdp_nivel_1_impide_cambio_posterior"
 			if sig != nil {
 				detail = "docmdp_nivel_1_impide_firma_posterior"
 			}
 			change = CambiosPDFV2{Estado: "no_permitidos", Detalle: []string{detail}}
 		}
-		if sig != nil && priorFieldLock == "All" && (change.Estado == "permitidos" || sig.TipoFirma == "sello_tiempo_documento" && cambioContieneDetalle(change, "sello_tiempo_documento_pendiente_confianza")) {
+		if sig != nil && priorFieldLock == "All" && (change.Estado == "permitidos" || cambioSoloPendienteDeEvaluar(change)) {
 			change = CambiosPDFV2{Estado: "no_permitidos", Detalle: []string{"fieldmdp_bloquea_campo"}}
 		}
-		if sig != nil && priorFieldLock != "" && priorFieldLock != "All" && (change.Estado == "permitidos" || sig.TipoFirma == "sello_tiempo_documento" && cambioContieneDetalle(change, "sello_tiempo_documento_pendiente_confianza")) {
+		if sig != nil && priorFieldLock != "" && priorFieldLock != "All" && (change.Estado == "permitidos" || cambioSoloPendienteDeEvaluar(change)) {
 			change = CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"fieldmdp_no_evaluado"}}
 		}
 		if sig != nil {
@@ -92,13 +93,22 @@ func clasificarActualizacionesPAdESV2(data []byte, out *InspeccionPDFV2) error {
 	return nil
 }
 
-func cambioContieneDetalle(change CambiosPDFV2, want string) bool {
+// cambioSoloPendienteDeEvaluar indica una actualización cuya estructura se
+// ha comprobado entera y que solo deja pendiente la confianza de un sello de
+// documento o la apariencia de la firma nueva. Las políticas DocMDP y
+// FieldMDP se le aplican igual que a un cambio permitido.
+func cambioSoloPendienteDeEvaluar(change CambiosPDFV2) bool {
+	if change.Estado != "no_comprobados" || len(change.Detalle) == 0 {
+		return false
+	}
 	for _, detail := range change.Detalle {
-		if detail == want {
-			return true
+		switch detail {
+		case "sello_tiempo_documento_pendiente_confianza", "apariencia_widget_no_evaluada", "dss_anadido":
+		default:
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 func applySignaturePolicy(data []byte, snapshot pdf.XRefSnapshot, sig *FirmaPDFV2, certLevel **int, fieldLock *string) {
@@ -181,12 +191,20 @@ func clasificarUnaActualizacion(data []byte, before, after pdf.XRefSnapshot, sig
 		return clasificarCambioNoFirmado(data, before, after, changed)
 	}
 	var sigObject, widgetObject uint32
+	// Una firma visible redefine su página para añadir el widget a /Annots
+	// y escribe objetos nuevos para la apariencia. Se anotan aquí y se
+	// comprueban cuando ya se conoce el widget.
+	var paginas, nuevos []uint32
 	for _, number := range changed {
 		entry := after.Entries[number]
 		if !entry.Active || entry.InStream {
 			return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"xref_liberado_o_comprimido"}}
 		}
 		if old, exists := before.Entries[number]; exists && old.Active {
+			if number != after.RootObject && esPaginaPDF(cuerpoActivoPDF(data, before, number)) {
+				paginas = append(paginas, number)
+				continue
+			}
 			return clasificarCambioNoFirmado(data, before, after, changed)
 		}
 		body := cuerpoActivoPDF(data, after, number)
@@ -211,10 +229,11 @@ func clasificarUnaActualizacion(data []byte, before, after pdf.XRefSnapshot, sig
 				return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"varios_widgets_nuevos"}}
 			}
 			widgetObject = number
-		case pdfName(dict["/Type"]) == "/XRef":
-			// A stream xref is structural, not a document change.
+		case pdfName(dict["/Type"]) == "/XRef" && entry.Offset == after.StartXRef:
+			// The xref stream of this very update is structural. Any other
+			// object that merely claims /Type /XRef is classified below.
 		default:
-			return clasificarCambioNoFirmado(data, before, after, changed)
+			nuevos = append(nuevos, number)
 		}
 	}
 	if sigObject == 0 || widgetObject == 0 || after.RootObject == before.RootObject {
@@ -281,6 +300,17 @@ func clasificarUnaActualizacion(data []byte, before, after pdf.XRefSnapshot, sig
 	if ref, ok := pdfSingleRef(widget["/V"]); !ok || !mismoObjetoPDF(ref, sigObject) {
 		return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"widget_no_apunta_a_firma"}}
 	}
+	widgetBody := map[int]string{int(widgetObject): cuerpoActivoPDF(data, after, widgetObject)}
+	for _, number := range paginas {
+		oldPage, okOld := parsePDFObjectDict(cuerpoActivoPDF(data, before, number))
+		newPage, okNew := parsePDFObjectDict(cuerpoActivoPDF(data, after, number))
+		if !okOld || !okNew || checkPageUpdate(oldPage, newPage, lookupOld, lookupNew, widgetBody) != "" {
+			return CambiosPDFV2{Estado: "no_permitidos", Detalle: []string{"contenido_paginas_modificado"}}
+		}
+	}
+	if len(nuevos) > 0 && !objetosSoloDeApariencia(data, after, widget["/AP"], nuevos) {
+		return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"objeto_nuevo_no_clasificado"}}
+	}
 	if widget["/AP"] != "" {
 		return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"apariencia_widget_no_evaluada"}}
 	}
@@ -293,6 +323,45 @@ func clasificarUnaActualizacion(data []byte, before, after pdf.XRefSnapshot, sig
 		return CambiosPDFV2{Estado: "no_comprobados", Detalle: []string{"sello_tiempo_documento_pendiente_confianza"}}
 	}
 	return CambiosPDFV2{Estado: "permitidos", Detalle: []string{"firma_anadida"}}
+}
+
+func esPaginaPDF(body string) bool {
+	dict, ok := parsePDFObjectDict(body)
+	return ok && pdfName(dict["/Type"]) == "/Page"
+}
+
+var pdfIndirectRef = regexp.MustCompile(`(?:^|[^0-9])([0-9]{1,10})[\x00\t\n\f\r ]+[0-9]{1,5}[\x00\t\n\f\r ]+R\b`)
+
+// objetosSoloDeApariencia exige que cada objeto nuevo de una actualización
+// de firma cuelgue de la apariencia del widget nuevo. Solo se recorren
+// objetos nuevos: los firmados no cambian y no pueden apuntar a ellos sin
+// haberse redefinido.
+func objetosSoloDeApariencia(data []byte, after pdf.XRefSnapshot, ap string, nuevos []uint32) bool {
+	pendientes := make(map[uint32]bool, len(nuevos))
+	for _, number := range nuevos {
+		pendientes[number] = true
+	}
+	cola := []string{ap}
+	for visitados := 0; len(cola) > 0 && len(pendientes) > 0; visitados++ {
+		if visitados > 4096 {
+			return false
+		}
+		valor := cola[0]
+		cola = cola[1:]
+		for _, m := range pdfIndirectRef.FindAllStringSubmatch(valor, -1) {
+			n, err := strconv.ParseUint(m[1], 10, 32)
+			if err != nil || !pendientes[uint32(n)] {
+				continue
+			}
+			delete(pendientes, uint32(n))
+			body := cuerpoActivoPDF(data, after, uint32(n))
+			if i := strings.Index(body, "stream"); i >= 0 {
+				body = body[:i]
+			}
+			cola = append(cola, body)
+		}
+	}
+	return len(pendientes) == 0
 }
 
 func clasificarCambioNoFirmado(data []byte, before, after pdf.XRefSnapshot, changed []uint32) CambiosPDFV2 {

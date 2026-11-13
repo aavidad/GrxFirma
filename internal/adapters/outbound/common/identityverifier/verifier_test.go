@@ -63,6 +63,25 @@ func TestVerificadorRechazaManipulacionEKUYPolitica(t *testing.T) {
 	}
 }
 
+// E2-01: una firma CAdES implícita del mismo certificado sobre otro contenido
+// no demuestra la posesión de la clave en el momento del reto.
+func TestVerificadorRechazaCAdESImplicitoSobreOtroContenido(t *testing.T) {
+	fixture := nuevaFixtureVerificador(t, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, []asn1.ObjectIdentifier{oidPoliticaPrueba})
+	antiguo, _ := domain.NewDocument("antiguo.txt", []byte("documento firmado hace meses"), "text/plain")
+	firma, err := signer.NewCAdESBESDetached().Sign(context.Background(), domain.SignatureJob{Document: antiguo, Format: domain.FormatCAdES,
+		Action: domain.ActionSign, Options: map[string]string{"mode": "implicit"}},
+		&signer.LocalSigningKey{ID: "clave:1", Signer: fixture.hojaClave, Certificate: fixture.hoja, Chain: []*x509.Certificate{fixture.raiz}})
+	if err != nil {
+		t.Fatalf("firmar contenido antiguo: %v", err)
+	}
+	prueba := fixture.prueba
+	prueba.Firma = firma.Data
+	resultado, err := fixture.nuevo(t, ports.EstadoRevocacionConforme).Verificar(context.Background(), fixture.reto, prueba)
+	if err != nil || resultado.Resultado != domain.ResultadoIdentidadRechazada {
+		t.Fatalf("una firma implícita de otro contenido no acredita el reto: resultado=%+v error=%v", resultado, err)
+	}
+}
+
 func TestVerificadorDistingueRevocacionEIndeterminacion(t *testing.T) {
 	fixture := nuevaFixtureVerificador(t, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, []asn1.ObjectIdentifier{oidPoliticaPrueba})
 	for _, caso := range []struct {
@@ -86,6 +105,7 @@ func TestVerificadorDistingueRevocacionEIndeterminacion(t *testing.T) {
 type fixtureVerificador struct {
 	ahora      time.Time
 	raiz, hoja *x509.Certificate
+	hojaClave  *rsa.PrivateKey
 	reto       domain.RetoIdentidad
 	prueba     domain.PruebaIdentidad
 }
@@ -136,7 +156,7 @@ func nuevaFixtureVerificador(t *testing.T, eku []x509.ExtKeyUsage, politicas []a
 		Origen: "https://integrador.example", ConsentimientoID: "consentimiento",
 		VersionConsentimiento: "1", PoliticaID: "politica", VersionPolitica: "1",
 		Nonce: make([]byte, 32), EmitidoEn: ahora, ExpiraEn: ahora.Add(time.Minute)}
-	return fixtureVerificador{ahora: ahora, raiz: raiz, hoja: hoja,
+	return fixtureVerificador{ahora: ahora, raiz: raiz, hoja: hoja, hojaClave: hojaClave,
 		reto: domain.RetoIdentidad{Solicitud: solicitud, ContenidoCanonico: canon},
 		prueba: domain.PruebaIdentidad{RetoID: "reto:1", Formato: "cades-detached",
 			AlgoritmoFirma: "sha256-rsa-pkcs1v15", AlgoritmoHuella: "sha-256",
