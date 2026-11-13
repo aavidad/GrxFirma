@@ -2739,6 +2739,8 @@
   ,"Actualizado a %1: ver novedades": "Actualizado a %1: ver novedades"
   ,"revocación no concluyente": "No se pudo comprobar la revocación del certificado. La firma no se considera válida."
   ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "La firma no dice en sus datos firmados qué certificado se usó, así que no se puede comprobar que el certificado que se muestra sea el que firmó."
+  ,"el PDF contiene firmas que no se han podido verificar": "El PDF tiene firmas que GrxFirma no puede verificar, así que no se puede dar por válido."
+  ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "El PDF tiene un sello de tiempo de documento que no se ha comprobado."
   ,"rest.verify_v2.error.limit": "Límite de verificación v2 fuera del intervalo permitido"
   ,"portal.seal.title": "Colocar el sello en el PDF"
   ,"portal.seal.instructions": "La web ha pedido que elijas dónde va la firma. Arrastra el sello para moverlo, usa el círculo de la esquina para cambiar su tamaño y la flecha para girarlo."

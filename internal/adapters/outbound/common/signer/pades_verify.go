@@ -57,7 +57,8 @@ type pdfDictionaryRange struct {
 }
 
 func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Document, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
-	signatures, err := extractPDFEmbeddedSignatures(signedDocument.Content)
+	var omitidas []string
+	signatures, err := extraerFirmasPDF(signedDocument.Content, false, &omitidas)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
@@ -184,9 +185,43 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		aggregate.Integrity.Details = append(aggregate.Integrity.Details, unanalyzable...)
 		aggregate.Warnings = append(aggregate.Warnings, reason)
 	}
-	aggregate.Details = append([]string{fmt.Sprintf("firmas_pdf=%d", len(signatures))}, aggregate.Details...)
-	aggregate.Integrity.Details = append([]string{fmt.Sprintf("firmas_pdf=%d", len(signatures))}, aggregate.Integrity.Details...)
+	aggregate = anotarFirmasOmitidasPDF(aggregate, omitidas)
+	total := len(signatures) + len(omitidas)
+	aggregate.Details = append([]string{fmt.Sprintf("firmas_pdf=%d", total)}, aggregate.Details...)
+	aggregate.Integrity.Details = append([]string{fmt.Sprintf("firmas_pdf=%d", total)}, aggregate.Integrity.Details...)
 	return aggregate.Normalize(), allSigners, nil
+}
+
+// Claves del catálogo de textos para firmas del PDF que no se verifican.
+const (
+	motivoFirmasPDFNoVerificadas   = "el PDF contiene firmas que no se han podido verificar"
+	motivoSelloDocumentoNoEvaluado = "el PDF contiene un sello de tiempo de documento que no se ha evaluado"
+)
+
+// anotarFirmasOmitidasPDF deja constancia de cada firma que no se verifica.
+// Un sello de tiempo de documento solo avisa; cualquier otra firma sin
+// verificar impide dar el PDF por válido.
+func anotarFirmasOmitidasPDF(result domain.VerificationResult, omitidas []string) domain.VerificationResult {
+	for _, subFilter := range omitidas {
+		detalle := "firma_no_verificada subfilter=" + subFilter
+		if subFilter == "ETSI.RFC3161" {
+			detalle = "sello_documento_no_evaluado subfilter=" + subFilter
+			result.Warnings = appendUniqueString(result.Warnings, motivoSelloDocumentoNoEvaluado)
+		} else {
+			result.Warnings = appendUniqueString(result.Warnings, motivoFirmasPDFNoVerificadas)
+			if result.Valid {
+				result.Valid = false
+				result.Reason = motivoFirmasPDFNoVerificadas
+			}
+			if result.Integrity.Status == domain.VerificationStatusValid {
+				result.Integrity.Status = domain.VerificationStatusWarning
+				result.Integrity.Reason = motivoFirmasPDFNoVerificadas
+			}
+		}
+		result.Details = append(result.Details, detalle)
+		result.Integrity.Details = append(result.Integrity.Details, detalle)
+	}
+	return result
 }
 
 // motivoSigningCertificateAusente es clave del catálogo de textos.
@@ -206,6 +241,12 @@ func extractPDFEmbeddedSignatures(pdfBytes []byte) ([]pdfEmbeddedSignature, erro
 }
 
 func extractPDFEmbeddedSignaturesWithTimestamps(pdfBytes []byte, timestamps bool) ([]pdfEmbeddedSignature, error) {
+	return extraerFirmasPDF(pdfBytes, timestamps, nil)
+}
+
+// extraerFirmasPDF devuelve las firmas verificables y, si omitidas no es
+// nil, anota el SubFilter de cada diccionario de firma que no se verifica.
+func extraerFirmasPDF(pdfBytes []byte, timestamps bool, omitidas *[]string) ([]pdfEmbeddedSignature, error) {
 	text := string(pdfBytes)
 	if candidates := strings.Count(text, "/ByteRange"); candidates > maxPDFEmbeddedSignatures {
 		return nil, fmt.Errorf("demasiadas firmas PDF: máximo %d", maxPDFEmbeddedSignatures)
@@ -248,6 +289,9 @@ func extractPDFEmbeddedSignaturesWithTimestamps(pdfBytes []byte, timestamps bool
 			return nil, err
 		}
 		if err := validatePDFSubFilter(subFilter); err != nil && !(timestamps && subFilter == "ETSI.RFC3161") {
+			if omitidas != nil {
+				*omitidas = append(*omitidas, subFilter)
+			}
 			continue
 		}
 		cmsDER, contentsFrom, contentsTo, err := extractPDFSignatureCMSWithRange(block)

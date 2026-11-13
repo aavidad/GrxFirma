@@ -2739,6 +2739,8 @@
   ,"Actualizado a %1: ver novedades": "Updated to %1: see what’s new"
   ,"revocación no concluyente": "Certificate revocation could not be checked. The signature is not considered valid."
   ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "The signed data does not say which certificate was used, so it cannot be checked that the certificate shown is the one that signed."
+  ,"el PDF contiene firmas que no se han podido verificar": "The PDF has signatures that GrxFirma cannot verify, so it cannot be considered valid."
+  ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "The PDF has a document timestamp that has not been checked."
   ,"rest.verify_v2.error.limit": "Verification v2 limit is outside the permitted range"
   ,"portal.seal.title": "Place the seal on the PDF"
   ,"portal.seal.instructions": "The website has asked you to choose where the signature goes. Drag the seal to move it, use the corner circle to resize it and the arrow to rotate it."

@@ -2739,6 +2739,8 @@
   ,"Actualizado a %1: ver novedades": "Aggiornato alla %1: vedi le novità"
   ,"revocación no concluyente": "Non è stato possibile verificare la revoca del certificato. La firma non è considerata valida."
   ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "I dati firmati non indicano quale certificato è stato usato, quindi non si può verificare che il certificato mostrato sia quello che ha firmato."
+  ,"el PDF contiene firmas que no se han podido verificar": "Il PDF contiene firme che GrxFirma non può verificare, quindi non può essere considerato valido."
+  ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "Il PDF contiene una marca temporale di documento che non è stata verificata."
   ,"rest.verify_v2.error.limit": "Il limite di verifica v2 è fuori dall’intervallo consentito"
   ,"portal.seal.title": "Posiziona il sigillo sul PDF"
   ,"portal.seal.instructions": "Il sito chiede di scegliere dove va la firma. Trascina il sigillo per spostarlo, usa il cerchio nell'angolo per ridimensionarlo e la freccia per ruotarlo."
