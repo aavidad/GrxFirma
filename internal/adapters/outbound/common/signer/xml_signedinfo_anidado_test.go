@@ -61,3 +61,34 @@ func TestXMLAssessment_SignedInfoAnidadoLegitimoNoAutenticaElDirecto(t *testing.
 		t.Fatalf("se esperaba error de verificación, no %q (valid=%v integridad=%s)", vr.Reason, vr.Valid, vr.Integrity.Status)
 	}
 }
+
+// E1-07: una instrucción de proceso añadida antes de la raíz de un XML firmado
+// con URI="" (p. ej. una hoja XSLT que cambia lo que muestra el visor) no está
+// firmada: la firma ya no puede salir válida. Un DOCTYPE, con o sin
+// subconjunto interno, se rechaza al verificar un XML firmado.
+func TestXAdESVerifier_PIInyectadaInvalida(t *testing.T) {
+	firmado := string(operarXAdES(t, []byte(`<pedido><importe>10</importe></pedido>`), "application/xml", domain.ActionSign, map[string]string{"format": "XAdES Enveloped"}, "Victima"))
+	verificar := func(contenido string) (domain.VerificationResult, error) {
+		vr, _, err := NewXAdESVerifier().Verify(context.Background(), domain.Document{Name: "p.xsig", Content: []byte(contenido)}, domain.CertificateChain{})
+		return vr, err
+	}
+	if vr, err := verificar(firmado); err != nil || !vr.Valid {
+		t.Fatalf("la firma original debe ser válida: %v %s", err, vr.Reason)
+	}
+	raiz := strings.Index(firmado, "<pedido")
+	for nombre, inyectado := range map[string]string{
+		"pi":       `<?xml-stylesheet type="text/xsl" href="https://atacante.example/x.xsl"?>`,
+		"doctype":  `<!DOCTYPE pedido [<!ATTLIST importe moneda CDATA "USD">]>`,
+		"externo":  `<!DOCTYPE pedido SYSTEM "https://atacante.example/p.dtd">`,
+		"pi_final": "",
+	} {
+		atacante := firmado[:raiz] + inyectado + firmado[raiz:]
+		if nombre == "pi_final" {
+			atacante = firmado + `<?xml-stylesheet type="text/xsl" href="x.xsl"?>`
+		}
+		vr, err := verificar(atacante)
+		if err == nil && vr.Valid {
+			t.Fatalf("%s: la firma no puede seguir siendo válida", nombre)
+		}
+	}
+}

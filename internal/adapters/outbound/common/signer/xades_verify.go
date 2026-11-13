@@ -218,6 +218,11 @@ const (
 )
 
 func verifyXMLSignatureDocument(xmlData []byte, requireSigningCertificate bool, externalResolver func(string) ([]byte, error), anchors domain.CertificateChain, format string, reason string, details []string, documentoFirmado bool) (xmlSignatureVerification, error) {
+	if documentoFirmado {
+		if err := rechazarDOCTYPE(xmlData); err != nil {
+			return xmlSignatureVerification{}, err
+		}
+	}
 	parts, err := extractContextualXMLSignatures(xmlData)
 	if err != nil || len(parts) == 0 {
 		return xmlSignatureVerification{}, errors.New("el documento no contiene firmas XML utilizables")
@@ -1251,4 +1256,29 @@ func decodeBase64TransformInput(nodeXML []byte) ([]byte, error) {
 		return nil, fmt.Errorf("transformación Base64: contenido no válido: %w", err)
 	}
 	return out, nil
+}
+
+// rechazarDOCTYPE: un DOCTYPE (con DTD interna o externa) puede dar a los
+// elementos atributos por defecto que el visor aplica y la verificación no
+// (E1-07). Un XML firmado con DOCTYPE no se da por verificable.
+func rechazarDOCTYPE(xmlData []byte) error {
+	decoder := xml.NewDecoder(bytes.NewReader(xmlData))
+	for {
+		token, err := decoder.RawToken()
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		switch nodo := token.(type) {
+		case xml.Directive:
+			if bytes.HasPrefix(bytes.TrimSpace(nodo), []byte("DOCTYPE")) {
+				return errors.New("documento XML firmado con DOCTYPE no admitido")
+			}
+		case xml.StartElement:
+			// El DOCTYPE solo puede ir antes del elemento raíz.
+			return nil
+		}
+	}
 }

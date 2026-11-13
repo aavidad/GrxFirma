@@ -49,15 +49,18 @@ type c14nAttribute struct {
 // fragmento XML bien formado. Usa RawToken para conservar los prefijos
 // literales, que encoding/xml.Token traduce a URI y no permite reconstruir de
 // forma fiable cuando varios prefijos apuntan al mismo espacio de nombres.
+//
+// Canonicaliza el documento entero: incluye las instrucciones de proceso de
+// fuera del elemento raíz (C14N 1.0 §2.1 y §2.3), que un visor sí aplica.
 func canonicalizeXML(xmlData []byte, algorithm string) ([]byte, error) {
 	rootFound := false
-	return canonicalizeXMLSelection(xmlData, algorithm, func(c14nElement) bool {
+	return canonicalizarSeleccion(xmlData, algorithm, func(c14nElement) bool {
 		if rootFound {
 			return false
 		}
 		rootFound = true
 		return true
-	})
+	}, true)
 }
 
 // canonicalizeElementInDocument conserva el contexto xmlns y xml:* heredado
@@ -80,6 +83,13 @@ func canonicalizeElementByIDInDocument(xmlData []byte, id, algorithm string) ([]
 }
 
 func canonicalizeXMLSelection(xmlData []byte, algorithm string, matches func(c14nElement) bool) ([]byte, error) {
+	return canonicalizarSeleccion(xmlData, algorithm, matches, false)
+}
+
+// canonicalizarSeleccion canonicaliza el primer elemento que cumple matches.
+// Con documentoEntero, la selección es el nodo documento y se emiten también
+// las instrucciones de proceso anteriores y posteriores al elemento raíz.
+func canonicalizarSeleccion(xmlData []byte, algorithm string, matches func(c14nElement) bool, documentoEntero bool) ([]byte, error) {
 	mode, err := resolveC14NMode(algorithm)
 	if err != nil {
 		return nil, err
@@ -194,7 +204,31 @@ func canonicalizeXMLSelection(xmlData []byte, algorithm string, matches func(c14
 				output.WriteString(escapeXMLText(string(current)))
 			}
 
+		case xml.Directive:
+			// encoding/xml no aplica los valores por defecto ni las entidades
+			// de un subconjunto interno de DTD; un visor sí. No se puede
+			// canonicalizar ese documento como lo vería quien lo muestra.
+			if bytes.HasPrefix(bytes.TrimSpace(current), []byte("DOCTYPE")) && bytes.ContainsRune(current, '[') {
+				return nil, errors.New("documento XML con DTD interna no admitido")
+			}
+
 		case xml.ProcInst:
+			if len(frames) == 0 && documentoEntero && current.Target != "xml" {
+				if found {
+					output.WriteByte('\n')
+				}
+				output.WriteString("<?")
+				output.WriteString(current.Target)
+				if len(current.Inst) > 0 {
+					output.WriteByte(' ')
+					output.Write(current.Inst)
+				}
+				output.WriteString("?>")
+				if !found {
+					output.WriteByte('\n')
+				}
+				continue
+			}
 			if len(frames) > 0 && frames[len(frames)-1].captured && current.Target != "xml" {
 				output.WriteString("<?")
 				output.WriteString(current.Target)

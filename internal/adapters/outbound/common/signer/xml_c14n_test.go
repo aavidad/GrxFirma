@@ -84,6 +84,28 @@ func TestCanonicalizeElementInDocument_InheritsNamespaces(t *testing.T) {
 	}
 }
 
+// E1-07: al canonicalizar el documento entero, las instrucciones de proceso
+// de fuera del elemento raíz forman parte de la salida (vector 3.1 de la
+// recomendación C14N 1.0, sin comentarios). El DOCTYPE externo no se emite.
+func TestCanonicalizeXML_IncluyePIFueraDeRaiz(t *testing.T) {
+	entrada := "<?xml version=\"1.0\"?>\n\n<?xml-stylesheet   href=\"doc.xsl\"\n   type=\"text/xsl\"   ?>\n\n<!DOCTYPE doc SYSTEM \"doc.dtd\">\n\n<doc>Hello, world!<!-- Comment 1 --></doc>\n\n<?pi-without-data     ?>\n\n<!-- Comment 2 -->\n\n<!-- Comment 3 -->"
+	esperado := "<?xml-stylesheet href=\"doc.xsl\"\n   type=\"text/xsl\"   ?>\n<doc>Hello, world!</doc>\n<?pi-without-data?>"
+	for _, algoritmo := range []string{algC14N, algExcC14N} {
+		got, err := canonicalizeXML([]byte(entrada), algoritmo)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(got) != esperado {
+			t.Fatalf("%s:\n got %q\nwant %q", algoritmo, got, esperado)
+		}
+	}
+	// Un subconjunto interno de DTD puede añadir atributos por defecto que
+	// encoding/xml no aplica: no se puede canonicalizar como lo vería un visor.
+	if _, err := canonicalizeXML([]byte(`<!DOCTYPE a [<!ATTLIST a b CDATA "1">]><a/>`), algC14N); err == nil {
+		t.Fatal("un DOCTYPE con subconjunto interno debe rechazarse")
+	}
+}
+
 // E1-08: C14N 1.0 §2.3 escribe las referencias de carácter en hexadecimal
 // (&#x9;, &#xA;, &#xD;) y la norma XML convierte en espacio los tabuladores
 // y saltos de línea literales de los valores de atributo; los que llegan como
