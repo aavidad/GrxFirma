@@ -41,7 +41,7 @@ type protectionKeyProviderMock struct {
 	err  error
 }
 
-func (m *protectionKeyProviderMock) DecryptionKeys(_ context.Context) ([]domain.ProtectionKeyMaterial, error) {
+func (m *protectionKeyProviderMock) DecryptionKeys(_ context.Context, _ domain.Document) ([]domain.ProtectionKeyMaterial, error) {
 	return m.keys, m.err
 }
 

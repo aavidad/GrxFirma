@@ -50,7 +50,7 @@ func (uc *UnprotectDocumentUseCase) Ejecutar(ctx context.Context, cmd UnprotectC
 	if uc.engine == nil {
 		return UnprotectResult{}, errors.New("motor de proteccion no configurado")
 	}
-	keys, err := uc.keys.DecryptionKeys(ctx)
+	keys, err := uc.keys.DecryptionKeys(ctx, cmd.ProtectedDocument)
 	if err != nil {
 		uc.auditar(ctx, cmd, false, err)
 		return UnprotectResult{}, fmt.Errorf("no se pudieron obtener claves de descifrado: %w", err)

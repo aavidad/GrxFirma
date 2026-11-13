@@ -176,19 +176,18 @@ func (a *Almacen) exportarClaveLocal(ctx context.Context, ruta, nickname string,
 	if err != nil {
 		return nil, fmt.Errorf("resolver pk12util: %w", err)
 	}
-	tmpFile, err := os.CreateTemp("", "grxfirma-nss-*.p12")
+	// El P12 exportado y el clon de key4.db van a un directorio privado de la
+	// caché del usuario y se sobrescriben al terminar (F-03).
+	trabajo, err := directorioTrabajoNSS()
 	if err != nil {
-		return nil, fmt.Errorf("crear temporal NSS: %w", err)
+		return nil, err
 	}
-	tmpPath := tmpFile.Name()
-	_ = tmpFile.Close()
-	defer os.Remove(tmpPath)
-
-	tmpNSSDir, err := clonarBaseNSSTemporal(ruta)
-	if err != nil {
+	defer func() { _ = securefile.RemoveSensitiveTree(trabajo) }()
+	tmpPath := filepath.Join(trabajo, "exportado.p12")
+	tmpNSSDir := filepath.Join(trabajo, "nssdb")
+	if err := clonarBaseNSSEn(tmpNSSDir, ruta); err != nil {
 		return nil, fmt.Errorf("clonando base NSS temporal: %w", err)
 	}
-	defer os.RemoveAll(tmpNSSDir)
 
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
@@ -202,18 +201,19 @@ func (a *Almacen) exportarClaveLocal(ctx context.Context, ruta, nickname string,
 		return nil, err
 	}
 	// CWE-214: nunca pasar contraseñas por argv (visibles en la tabla de
-	// procesos). pk12util admite las variantes de fichero -k (slot) y -w (P12)
-	// en lugar de -K/-W.
-	slotPwPath, err := escribirPasswordTemporal(slotPassword)
+	// procesos) ni por un fichero que quede en disco si el proceso muere.
+	// pk12util lee -k (slot) y -w (P12) de un fichero; se le da una tubería
+	// heredada como descriptor 3 y 4.
+	slotPw, err := tuberiaSecreta(slotPassword)
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(slotPwPath)
-	exportPwPath, err := escribirPasswordTemporal(exportPassword)
+	defer slotPw.Close()
+	exportPw, err := tuberiaSecreta(exportPassword)
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(exportPwPath)
+	defer exportPw.Close()
 	// #nosec G204 -- tool paths are defaults or explicit constructor
 	// dependencies; NSS paths/nickname are separate pk12util arguments.
 	cmd := exec.CommandContext(
@@ -222,17 +222,18 @@ func (a *Almacen) exportarClaveLocal(ctx context.Context, ruta, nickname string,
 		"-o", tmpPath,
 		"-n", nickname,
 		"-d", rutaCertutil(tmpNSSDir),
-		"-k", slotPwPath,
-		"-w", exportPwPath,
+		"-k", "/dev/fd/3",
+		"-w", "/dev/fd/4",
 	)
+	cmd.ExtraFiles = []*os.File{slotPw, exportPw}
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return nil, fmt.Errorf("pk12util -o para %q: %w (%s)", nickname, err, strings.TrimSpace(string(out)))
 	}
 
 	pemBundle, pemErr := a.convertirP12APEM(ctx, tmpPath, exportPassword)
 	if pemErr == nil {
-		// pemBundle contiene la clave privada en claro (T057): zeroizar al salir.
-		defer secmem.Zeroize(pemBundle)
+		// pemBundle contiene la clave privada en claro (T057); claveLocalDesdePEM
+		// lo pone a cero. La salida de openssl se borra en convertirP12APEM.
 		clave, err := claveLocalDesdePEM(pemBundle, esperado)
 		if err == nil {
 			return clave, nil
@@ -274,15 +275,16 @@ func (a *Almacen) convertirP12APEM(ctx context.Context, p12Path, password string
 	if err != nil {
 		return nil, fmt.Errorf("resolver openssl: %w", err)
 	}
-	pwPath, err := escribirPasswordTemporal(password)
+	pw, err := tuberiaSecreta(password)
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(pwPath)
+	defer pw.Close()
 
 	// #nosec G204 -- openssl is a fixed/default or explicitly injected tool;
-	// the P12 and private password-file paths are distinct arguments.
-	cmd := exec.CommandContext(ctx, opensslPath, "pkcs12", "-in", p12Path, "-nodes", "-passin", "file:"+pwPath)
+	// the P12 path is a distinct argument and the password arrives on fd 3.
+	cmd := exec.CommandContext(ctx, opensslPath, "pkcs12", "-in", p12Path, "-nodes", "-passin", "fd:3")
+	cmd.ExtraFiles = []*os.File{pw}
 	out, err := cmd.CombinedOutput()
 	defer secmem.Zeroize(out)
 	if err != nil {
@@ -295,55 +297,46 @@ func (a *Almacen) convertirP12APEM(ctx context.Context, p12Path, password string
 	return pem, nil
 }
 
-func escribirPasswordTemporal(password string) (string, error) {
-	pwFile, err := os.CreateTemp("", "grxfirma-openssl-pw-*")
-	if err != nil {
-		return "", fmt.Errorf("crear fichero temporal de contraseña openssl: %w", err)
-	}
-	pwPath := pwFile.Name()
-	ok := false
-	defer func() {
-		_ = pwFile.Close()
-		if !ok {
-			_ = os.Remove(pwPath)
-		}
-	}()
-
-	if err := os.Chmod(pwPath, 0o600); err != nil {
-		return "", fmt.Errorf("proteger fichero temporal de contraseña openssl: %w", err)
-	}
-	if _, err := pwFile.WriteString(password); err != nil {
-		return "", fmt.Errorf("escribir contraseña temporal openssl: %w", err)
-	}
-	if err := pwFile.Close(); err != nil {
-		return "", fmt.Errorf("cerrar contraseña temporal openssl: %w", err)
-	}
-	ok = true
-	return pwPath, nil
-}
-
+// extraerBloquesPEM copia de la salida de openssl solo las líneas de los
+// bloques PEM, limpias de espacios, a un único búfer reservado de antemano:
+// no hay copias intermedias en cadenas ni realojamientos que dejen restos de
+// la clave en memoria. Quien lo recibe lo pone a cero.
 func extraerBloquesPEM(data []byte) []byte {
-	var b strings.Builder
+	marcaFin := []byte("-----END ")
+	out := make([]byte, 0, len(data)+bytes.Count(data, marcaFin)+1)
 	inside := false
-	for _, line := range strings.Split(string(data), "\n") {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "-----BEGIN ") {
+	for len(data) > 0 {
+		line := data
+		if idx := bytes.IndexByte(data, '\n'); idx >= 0 {
+			line, data = data[:idx], data[idx+1:]
+		} else {
+			data = nil
+		}
+		trimmed := bytes.TrimSpace(line)
+		if bytes.HasPrefix(trimmed, []byte("-----BEGIN ")) {
 			inside = true
 		}
 		if inside {
-			b.WriteString(trimmed)
-			b.WriteByte('\n')
+			out = append(out, trimmed...)
+			out = append(out, '\n')
 		}
-		if strings.HasPrefix(trimmed, "-----END ") {
+		if bytes.HasPrefix(trimmed, marcaFin) {
 			inside = false
-			b.WriteByte('\n')
+			out = append(out, '\n')
 		}
 	}
-	return []byte(b.String())
+	return out
 }
 
+// claveLocalDesdePEM elige, entre las claves privadas del PEM, la del
+// certificado con la huella esperada. `pk12util -n` exporta todos los pares
+// con ese nickname, que se repite tras renovar un certificado (F-10). Pone
+// data a cero al terminar, igual que las copias decodificadas de cada clave.
+// Las claves ya analizadas (rsa/ecdsa.PrivateKey, con big.Int) no se pueden
+// borrar desde Go y viven hasta que las recoja el recolector.
 func claveLocalDesdePEM(data []byte, esperado domain.CertificateRef) (ports.SigningKey, error) {
-	firmante, err := parsearClavePrivadaPEM(data)
+	defer secmem.Zeroize(data)
+	firmantes, err := parsearClavesPrivadasPEM(data)
 	if err != nil {
 		return nil, err
 	}
@@ -351,14 +344,51 @@ func claveLocalDesdePEM(data []byte, esperado domain.CertificateRef) (ports.Sign
 	if err != nil {
 		return nil, err
 	}
-	hoja, cadena, err := seleccionarCertificadoFirmante(certs, firmante, esperado)
-	if err != nil {
-		return nil, err
+	var ultimoErr error
+	for _, firmante := range firmantes {
+		hoja, cadena, err := seleccionarCertificadoFirmante(certs, firmante, esperado)
+		if err != nil {
+			ultimoErr = err
+			continue
+		}
+		return desktopsigner.NuevaClaveLocalConCadena(firmante, hoja, sinCertificadosDeOtrasClaves(cadena, firmantes)), nil
 	}
-	return desktopsigner.NuevaClaveLocalConCadena(firmante, hoja, cadena), nil
+	return nil, ultimoErr
 }
 
-func parsearClavePrivadaPEM(data []byte) (crypto.Signer, error) {
+// sinCertificadosDeOtrasClaves quita de la cadena los certificados de las
+// demás claves exportadas: son otros certificados del titular, no emisores.
+func sinCertificadosDeOtrasClaves(cadena []*x509.Certificate, firmantes []crypto.Signer) []*x509.Certificate {
+	if len(firmantes) < 2 {
+		return cadena
+	}
+	publicas := make([][]byte, 0, len(firmantes))
+	for _, firmante := range firmantes {
+		if der, err := x509.MarshalPKIXPublicKey(firmante.Public()); err == nil {
+			publicas = append(publicas, der)
+		}
+	}
+	out := make([]*x509.Certificate, 0, len(cadena))
+	for _, cert := range cadena {
+		der, err := x509.MarshalPKIXPublicKey(cert.PublicKey)
+		propio := false
+		for _, publica := range publicas {
+			if err == nil && bytes.Equal(der, publica) {
+				propio = true
+				break
+			}
+		}
+		if !propio {
+			out = append(out, cert)
+		}
+	}
+	return out
+}
+
+// parsearClavesPrivadasPEM devuelve todas las claves privadas del PEM, en su
+// orden, y pone a cero el DER decodificado de cada una.
+func parsearClavesPrivadasPEM(data []byte) ([]crypto.Signer, error) {
+	var claves []crypto.Signer
 	rest := data
 	for len(rest) > 0 {
 		block, next := pem.Decode(rest)
@@ -366,35 +396,50 @@ func parsearClavePrivadaPEM(data []byte) (crypto.Signer, error) {
 			break
 		}
 		rest = next
-		switch block.Type {
-		case "RSA PRIVATE KEY":
-			priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-			if err != nil {
-				return nil, fmt.Errorf("clave RSA PKCS#1 invalida: %w", err)
-			}
-			return priv, nil
-		case "EC PRIVATE KEY":
-			priv, err := x509.ParseECPrivateKey(block.Bytes)
-			if err != nil {
-				return nil, fmt.Errorf("clave EC invalida: %w", err)
-			}
-			return priv, nil
-		case "PRIVATE KEY":
-			key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-			if err != nil {
-				return nil, fmt.Errorf("clave PKCS#8 invalida: %w", err)
-			}
-			switch k := key.(type) {
-			case *rsa.PrivateKey:
-				return k, nil
-			case *ecdsa.PrivateKey:
-				return k, nil
-			default:
-				return nil, fmt.Errorf("tipo de clave PKCS#8 no soportado: %T", key)
-			}
+		clave, err := parsearBloqueClavePrivada(block)
+		secmem.Zeroize(block.Bytes)
+		if err != nil {
+			return nil, err
+		}
+		if clave != nil {
+			claves = append(claves, clave)
 		}
 	}
-	return nil, fmt.Errorf("no se encontro una clave privada en el PEM exportado")
+	if len(claves) == 0 {
+		return nil, fmt.Errorf("no se encontro una clave privada en el PEM exportado")
+	}
+	return claves, nil
+}
+
+func parsearBloqueClavePrivada(block *pem.Block) (crypto.Signer, error) {
+	switch block.Type {
+	case "RSA PRIVATE KEY":
+		priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("clave RSA PKCS#1 invalida: %w", err)
+		}
+		return priv, nil
+	case "EC PRIVATE KEY":
+		priv, err := x509.ParseECPrivateKey(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("clave EC invalida: %w", err)
+		}
+		return priv, nil
+	case "PRIVATE KEY":
+		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("clave PKCS#8 invalida: %w", err)
+		}
+		switch k := key.(type) {
+		case *rsa.PrivateKey:
+			return k, nil
+		case *ecdsa.PrivateKey:
+			return k, nil
+		default:
+			return nil, fmt.Errorf("tipo de clave PKCS#8 no soportado: %T", key)
+		}
+	}
+	return nil, nil
 }
 
 func parsearCertificadosPEM(data []byte) ([]*x509.Certificate, error) {
@@ -479,10 +524,11 @@ func fingerprintSHA256(cert *x509.Certificate) string {
 	return hex.EncodeToString(sum[:])
 }
 
-func clonarBaseNSSTemporal(origen string) (string, error) {
-	tmpDir, err := os.MkdirTemp("", "grxfirma-nssdb-*")
-	if err != nil {
-		return "", err
+// clonarBaseNSSEn crea destino (0700) y copia en él la base NSS de origen.
+// Si falla, borra lo copiado sobrescribiéndolo.
+func clonarBaseNSSEn(destino, origen string) error {
+	if err := os.Mkdir(destino, 0o700); err != nil {
+		return err
 	}
 
 	// Un perfil Firefox activo contiene lock (a menudo un enlace simbólico
@@ -494,13 +540,13 @@ func clonarBaseNSSTemporal(origen string) (string, error) {
 		"pkcs11.txt",
 	} {
 		src := filepath.Join(origen, name)
-		dst := filepath.Join(tmpDir, name)
+		dst := filepath.Join(destino, name)
 		if err := copiarArchivo(src, dst); err != nil {
-			_ = os.RemoveAll(tmpDir)
-			return "", err
+			_ = securefile.RemoveSensitiveTree(destino)
+			return err
 		}
 	}
-	return tmpDir, nil
+	return nil
 }
 
 func copiarArchivo(origen, destino string) error {
@@ -521,7 +567,7 @@ func copiarArchivo(origen, destino string) error {
 		return nil
 	}
 
-	// El destino pertenece al clon privado de MkdirTemp y su nombre procede
+	// El destino pertenece al clon privado y su nombre procede
 	// de la lista fija de archivos NSS, por lo que no puede salir de él.
 	dst, err := os.OpenFile(destino, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, info.Mode().Perm()) // #nosec G304 -- destino usa un nombre NSS fijo dentro del clon privado.
 	if err != nil {
@@ -664,17 +710,22 @@ func construirRef(cert *x509.Certificate) domain.CertificateRef {
 	}
 	tipo, org, nif := certutil.ClasificarCertificado(cert)
 	fingerprint := hex.EncodeToString(huella[:])
+	// NSS guarda la clave en key4.db y KeyFor la exporta a una clave local.
+	// Declararlo al enumerar permite anunciar la identidad como destinataria
+	// de Proteger sin exportar ninguna clave (F-01).
+	_, claveRSA := cert.PublicKey.(*rsa.PublicKey)
 	return domain.CertificateRef{
-		ID:            fingerprint,
-		Subject:       subject,
-		Issuer:        issuer,
-		NotAfter:      cert.NotAfter,
-		Fingerprint:   fingerprint,
-		DER:           cert.Raw,
-		HasSigningKey: true,
-		Tipo:          tipo,
-		Organizacion:  org,
-		NIF:           nif,
+		ID:                    fingerprint,
+		Subject:               subject,
+		Issuer:                issuer,
+		NotAfter:              cert.NotAfter,
+		Fingerprint:           fingerprint,
+		DER:                   cert.Raw,
+		HasSigningKey:         true,
+		HasLocalDecryptionKey: claveRSA,
+		Tipo:                  tipo,
+		Organizacion:          org,
+		NIF:                   nif,
 	}
 }
 

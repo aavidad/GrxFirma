@@ -12,6 +12,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -173,6 +174,11 @@ func (store *windowsRootStore) Add(ctx context.Context, cert *x509.Certificate) 
 		return false, fmt.Errorf("CertCreateCertificateContext: %w", err)
 	}
 	defer windows.CertFreeCertificateContext(certContext)
+	// La raíz solo se confía para autenticación de servidor TLS (B-01). La
+	// propiedad se copia al almacén junto con el certificado.
+	if err := setServerAuthOnlyUsage(certContext); err != nil {
+		return false, err
+	}
 
 	err = windows.CertAddCertificateContextToStore(
 		store.handle,
@@ -190,6 +196,31 @@ func (store *windowsRootStore) Add(ctx context.Context, cert *x509.Certificate) 
 		return false, nil
 	}
 	return false, fmt.Errorf("CertAddCertificateContextToStore: %w", err)
+}
+
+var procCertSetCertificateContextProperty = windows.NewLazySystemDLL("crypt32.dll").
+	NewProc("CertSetCertificateContextProperty")
+
+// certEnhKeyUsagePropID es CERT_ENHKEY_USAGE_PROP_ID (wincrypt.h).
+const certEnhKeyUsagePropID = 9
+
+func setServerAuthOnlyUsage(certContext *windows.CertContext) error {
+	der, err := serverAuthOnlyEnhancedKeyUsageDER()
+	if err != nil || len(der) == 0 {
+		return fmt.Errorf("codificar uso de servidor TLS: %w", err)
+	}
+	blob := windows.CryptDataBlob{Size: uint32(len(der)), Data: &der[0]} // #nosec G115 -- unos pocos bytes.
+	ok, _, callErr := procCertSetCertificateContextProperty.Call(
+		uintptr(unsafe.Pointer(certContext)),
+		certEnhKeyUsagePropID,
+		0,
+		uintptr(unsafe.Pointer(&blob)),
+	)
+	runtime.KeepAlive(der)
+	if ok == 0 {
+		return fmt.Errorf("CertSetCertificateContextProperty: %w", callErr)
+	}
+	return nil
 }
 
 func (store *windowsRootStore) Remove(ctx context.Context, fingerprint string) (bool, error) {
@@ -234,7 +265,7 @@ func (store *windowsRootStore) find(
 		cert, err := x509.ParseCertificate(raw)
 		if err == nil &&
 			fingerprintSHA256(cert) == fingerprint &&
-			(!requireManagedMarker || IsManagedLocalCA(cert)) {
+			(!requireManagedMarker || IsManagedLocalCAOwned(cert)) {
 			return current, nil
 		}
 		previous = current

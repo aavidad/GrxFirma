@@ -18,22 +18,29 @@ import (
 	"crypto/sha512"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"grxfirma/internal/domain"
 )
 
 const (
-	envelopeVersion        = 1
+	// envelopeVersion es la versión que se escribe. La 2 codifica la AAD con
+	// longitudes (F-08); la 1 se sigue leyendo.
+	envelopeVersion        = 2
+	envelopeVersionLegacy  = 1
 	strongRecipientAlg     = "mlkem768+x25519+hkdf-sha384+a256gcm-wrap"
 	compatRecipientAlg     = "rsa-oaep-sha256"
 	contentAEADAlg         = "aes-256-gcm"
 	envelopeInfoStrongKEK  = "GrxFirma envelope strong KEK v1"
 	envelopeInfoContentAAD = "GrxFirma envelope content v1"
-	envelopeLabelCompat    = "GrxFirma envelope compat v1"
+	// envelopeInfoContentAADv2 abre la AAD de los sobres v2.
+	envelopeInfoContentAADv2 = "GrxFirma envelope content v2"
+	envelopeLabelCompat      = "GrxFirma envelope compat v1"
 )
 
 type EnvelopeProtector struct{}
@@ -130,6 +137,9 @@ func (p *EnvelopeProtector) Unprotect(_ context.Context, protected domain.Docume
 	if err := json.Unmarshal(protected.Content, &env); err != nil {
 		return domain.UnprotectedPayload{}, fmt.Errorf("contenedor protegido no valido: %w", err)
 	}
+	if env.Version != envelopeVersion && env.Version != envelopeVersionLegacy {
+		return domain.UnprotectedPayload{}, fmt.Errorf("version de contenedor protegido no admitida: %d", env.Version)
+	}
 	profile := domain.ProtectionProfile(strings.TrimSpace(env.Profile))
 	if err := profile.Validate(); err != nil {
 		return domain.UnprotectedPayload{}, err
@@ -177,7 +187,8 @@ func (p *EnvelopeProtector) Unprotect(_ context.Context, protected domain.Docume
 	if err != nil {
 		return domain.UnprotectedPayload{}, fmt.Errorf("descifrando contenido: %w", err)
 	}
-	doc, err := domain.NewDocument(env.Name, plaintext, env.MIMEType)
+	// El nombre y el MIME los fija el emisor, que el sobre no autentica.
+	doc, err := domain.NewDocument(nombreDesprotegidoSeguro(env.Name), plaintext, mimeDesprotegidoSeguro(env.MIMEType))
 	if err != nil {
 		return domain.UnprotectedPayload{}, err
 	}
@@ -347,14 +358,33 @@ func deriveStrongKEK(kemShared, ecdhShared []byte) ([]byte, error) {
 	return hkdf.Key(sha512.New384, material, nil, envelopeInfoStrongKEK, 32)
 }
 
+// buildContentAAD liga el cifrado del contenido a la versión, el perfil, el
+// nombre y el MIME del sobre. En v2 cada campo va precedido de su longitud
+// (uint32 big-endian), así que no se puede desplazar texto de un campo a otro.
+// La forma v1 unía los campos con saltos de línea y era ambigua; solo se usa
+// para leer sobres antiguos.
 func buildContentAAD(env protectedEnvelope) []byte {
-	return []byte(strings.Join([]string{
-		envelopeInfoContentAAD,
-		fmt.Sprintf("v=%d", env.Version),
-		"profile=" + env.Profile,
-		"name=" + env.Name,
-		"mime=" + env.MIMEType,
-	}, "\n"))
+	if env.Version == envelopeVersionLegacy {
+		return []byte(strings.Join([]string{
+			envelopeInfoContentAAD,
+			fmt.Sprintf("v=%d", env.Version),
+			"profile=" + env.Profile,
+			"name=" + env.Name,
+			"mime=" + env.MIMEType,
+		}, "\n"))
+	}
+	campos := []string{strconv.Itoa(env.Version), env.Profile, env.Name, env.MIMEType}
+	size := len(envelopeInfoContentAADv2)
+	for _, campo := range campos {
+		size += 4 + len(campo)
+	}
+	aad := make([]byte, 0, size)
+	aad = append(aad, envelopeInfoContentAADv2...)
+	for _, campo := range campos {
+		aad = binary.BigEndian.AppendUint32(aad, uint32(len(campo))) // #nosec G115 -- campos de un sobre JSON acotado por el límite de carga.
+		aad = append(aad, campo...)
+	}
+	return aad
 }
 
 func protectedFileName(name string) string {

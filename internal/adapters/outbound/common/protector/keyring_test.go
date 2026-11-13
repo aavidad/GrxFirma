@@ -16,6 +16,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"io"
 	"math/big"
@@ -129,6 +130,8 @@ func TestLocalCompatKeyring_ExcluyeFirmanteRSAOpacoAunquePuedeFirmar(t *testing.
 	}).ToLocalSigningKey()
 	opaque := &nonExportableRSASigner{private: source.Signer.(*rsa.PrivateKey)}
 	key := desktopsigner.NuevaClaveLocal(opaque, source.Certificate)
+	// CertStore, Keychain y PKCS#11 no declaran clave local de descifrado.
+	ref.HasLocalDecryptionKey = false
 	keyring := protector.NuevoLocalCompatKeyring(
 		certCatalogMock{refs: []domain.CertificateRef{ref}},
 		signingKeyProviderMock{keys: map[string]ports.SigningKey{ref.ID: key}},
@@ -149,7 +152,7 @@ func TestLocalCompatKeyring_ExcluyeFirmanteRSAOpacoAunquePuedeFirmar(t *testing.
 	if err != nil || len(resolved) != 0 {
 		t.Fatalf("Resolve() = %#v, %v; want vacío sin causa interna", resolved, err)
 	}
-	keys, err := keyring.DecryptionKeys(context.Background())
+	keys, err := keyring.DecryptionKeys(context.Background(), documentoDirigidoA(t, ref.ID))
 	if err != nil || len(keys) != 0 {
 		t.Fatalf("DecryptionKeys() = %#v, %v; want vacío", keys, err)
 	}
@@ -206,10 +209,6 @@ func TestLocalCompatKeyring_P12RSAExportableSigueDisponibleYDesprotege(t *testin
 	if err != nil || len(recipients) != 1 {
 		t.Fatalf("List() = %#v, %v; want P12 RSA disponible", recipients, err)
 	}
-	keys, err := keyring.DecryptionKeys(ctx)
-	if err != nil || len(keys) != 1 {
-		t.Fatalf("DecryptionKeys() = %#v, %v; want clave P12 RSA", keys, err)
-	}
 	doc, err := domain.NewDocument("prueba-p12.txt", []byte("roundtrip P12 RSA compatible"), "text/plain")
 	if err != nil {
 		t.Fatal(err)
@@ -221,6 +220,10 @@ func TestLocalCompatKeyring_P12RSAExportableSigueDisponibleYDesprotege(t *testin
 	}, recipients)
 	if err != nil {
 		t.Fatalf("Protect() error = %v", err)
+	}
+	keys, err := keyring.DecryptionKeys(ctx, protected.Document)
+	if err != nil || len(keys) != 1 {
+		t.Fatalf("DecryptionKeys() = %#v, %v; want clave P12 RSA", keys, err)
 	}
 	unprotected, err := engine.Unprotect(ctx, protected.Document, keys)
 	if err != nil {
@@ -240,15 +243,25 @@ func TestLocalCompatKeyring_NoExponeCausaSensibleAlOmitirIdentidad(t *testing.T)
 		sensitiveFailureKeyProvider{},
 	)
 
+	// Listar ya no pide la clave (F-01): el destinatario se anuncia con el
+	// certificado público y el fallo sensible solo podría aparecer al
+	// desproteger.
 	recipients, err := keyring.List(context.Background())
-	if len(recipients) != 0 {
-		t.Fatalf("List() = %#v; want vacío", recipients)
+	if len(recipients) != 1 {
+		t.Fatalf("List() = %#v; want el destinatario declarado", recipients)
 	}
 	if err != nil && strings.Contains(err.Error(), "CAUSA-SENSIBLE") {
 		t.Fatalf("List() expuso causa sensible: %v", err)
 	}
 	if err != nil {
 		t.Fatalf("List() devolvió un detalle interno no accionable: %v", err)
+	}
+	keys, err := keyring.DecryptionKeys(context.Background(), documentoDirigidoA(t, ref.ID))
+	if len(keys) != 0 {
+		t.Fatalf("DecryptionKeys() = %#v; want vacío", keys)
+	}
+	if err != nil && strings.Contains(err.Error(), "CAUSA-SENSIBLE") {
+		t.Fatalf("DecryptionKeys() expuso causa sensible: %v", err)
 	}
 }
 
@@ -264,7 +277,7 @@ func TestLocalCompatKeyring_DecryptionKeys(t *testing.T) {
 		}},
 	)
 
-	keys, err := keyring.DecryptionKeys(context.Background())
+	keys, err := keyring.DecryptionKeys(context.Background(), documentoDirigidoA(t, rsaRef.ID, signOnlyRef.ID))
 	if err != nil {
 		t.Fatalf("DecryptionKeys() error = %v", err)
 	}
@@ -302,16 +315,18 @@ func TestLocalCompatKeyring_CierraCadaClaveTrasExtraerElMaterial(t *testing.T) {
 	if err != nil || len(recipients) != 1 {
 		t.Fatalf("List() = %#v, %v", recipients, err)
 	}
-	if key.closed != 1 {
-		t.Fatalf("cierres tras List = %d, want 1", key.closed)
+	// Listar destinatarios no abre ninguna clave (F-01), así que no hay nada
+	// que cerrar.
+	if key.closed != 0 {
+		t.Fatalf("cierres tras List = %d, want 0", key.closed)
 	}
 
-	keys, err := keyring.DecryptionKeys(context.Background())
+	keys, err := keyring.DecryptionKeys(context.Background(), documentoDirigidoA(t, rsaRef.ID))
 	if err != nil || len(keys) != 1 {
 		t.Fatalf("DecryptionKeys() = %#v, %v", keys, err)
 	}
-	if key.closed != 2 {
-		t.Fatalf("cierres totales = %d, want 2", key.closed)
+	if key.closed != 1 {
+		t.Fatalf("cierres totales = %d, want 1", key.closed)
 	}
 }
 
@@ -357,14 +372,37 @@ func generarCertificado(t *testing.T, cn string, usage x509.KeyUsage, pub any, p
 	return cert
 }
 
+// documentoDirigidoA construye un sobre .afp mínimo que solo nombra a los
+// destinatarios indicados. Basta para que el keyring sepa qué claves pedir.
+func documentoDirigidoA(t *testing.T, ids ...string) domain.Document {
+	t.Helper()
+	recipients := make([]map[string]string, 0, len(ids))
+	for _, id := range ids {
+		recipients = append(recipients, map[string]string{"id": id})
+	}
+	raw, err := json.Marshal(map[string]any{"version": 1, "recipients": recipients})
+	if err != nil {
+		t.Fatal(err)
+	}
+	doc, err := domain.NewDocument("prueba.afp", raw, "application/json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return doc
+}
+
 func construirRef(cert *x509.Certificate) domain.CertificateRef {
 	sum := sha256.Sum256(cert.Raw)
 	fp := hex.EncodeToString(sum[:])
+	_, rsaKey := cert.PublicKey.(*rsa.PublicKey)
 	return domain.CertificateRef{
-		ID:          fp[:16],
-		Subject:     cert.Subject.String(),
-		Issuer:      cert.Issuer.String(),
-		NotAfter:    cert.NotAfter,
-		Fingerprint: fp,
+		ID:                    fp[:16],
+		Subject:               cert.Subject.String(),
+		Issuer:                cert.Issuer.String(),
+		NotAfter:              cert.NotAfter,
+		Fingerprint:           fp,
+		DER:                   append([]byte(nil), cert.Raw...),
+		HasSigningKey:         true,
+		HasLocalDecryptionKey: rsaKey,
 	}
 }

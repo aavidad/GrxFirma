@@ -48,11 +48,11 @@ import (
 const SignatureFormatsHelp = "auto|pades|cades|xades|xmldsig|odf|ooxml|facturae|asic-xades"
 
 const (
-	envPKCS12PasswordCLI = "GRXFIRMA_PKCS12_PASSWORD"
-	envProtectionSecret  = "GRXFIRMA_PROTECTION_SECRET_B64"
+	envPKCS12PasswordCLI = secretinput.EnvPKCS12Password
+	envProtectionSecret  = secretinput.EnvProtectionSecret
 	// envPDFPassword es la contraseña de un PDF cifrado; se consume y se
 	// borra del entorno al arrancar, como las demás claves.
-	envPDFPassword = "GRXFIRMA_PDF_PASSWORD"
+	envPDFPassword = secretinput.EnvPDFPassword
 )
 
 // SignDocumentUseCase define el contrato mínimo esperado por el adaptador CLI.
@@ -381,6 +381,13 @@ func (a *Adaptador) WithCompatibilitySecrets(passwordP12, protection string) *Ad
 	return a
 }
 
+// WithCompatiblePDFPassword transfiere la contraseña de PDF que el proceso
+// principal ya retiró de GRXFIRMA_PDF_PASSWORD (H-04).
+func (a *Adaptador) WithCompatiblePDFPassword(password string) *Adaptador {
+	a.pdfPasswordCompat = password
+	return a
+}
+
 // WithVersion fija la versión en ejecución, usada por la comprobación
 // opt-in de actualizaciones del diagnóstico.
 func (a *Adaptador) WithVersion(version string) *Adaptador {
@@ -409,7 +416,7 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 		a.Limits = limits.FromEnv(limits.Default())
 	}
 	environment, err := secretinput.ConsumeEnvironment(
-		[]string{envPKCS12PasswordCLI, envProtectionSecret, envPDFPassword, "GRXFIRMA_REST_TOKEN"},
+		secretinput.NombresEntornoSecretos(),
 		os.LookupEnv,
 		os.Unsetenv,
 	)
@@ -426,7 +433,8 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 	if value, present := environment.Take(envPDFPassword); present {
 		a.pdfPasswordCompat = value
 	}
-	_, _ = environment.Take("GRXFIRMA_REST_TOKEN")
+	_, _ = environment.Take(secretinput.EnvRESTToken)
+	_, _ = environment.Take(secretinput.EnvRESTTokenHeredado)
 
 	cfg, err := parsearArgs(args)
 	if err != nil {

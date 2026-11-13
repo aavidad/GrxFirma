@@ -241,7 +241,8 @@ Compatibilidad heredada, solo cuando el portal la exija y **solo mediante la
 política de máquina** (las variables de entorno antiguas ya no tienen efecto;
 véase [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md)):
 
-- `permitir_des_legacy`: habilita el formato de sesión DES de V1.9.
+- `permitir_des_legacy`: habilita el formato de sesión DES de V1.9 y la
+  lectura de sobres CMS `EnvelopedData`/`EncryptedData` cifrados con DES o 3DES.
 - `permitir_sha1_legacy`: habilita generación de firmas SHA-1.
 - `permitir_rutas_directas_protocolo`: permite rutas absolutas entregadas
   por el portal en `load`, `save` y `signandsave`.
@@ -407,6 +408,17 @@ GrxFirma. `Vaciar almacén TLS local` valida el directorio, retira primero esa
 confianza del almacén del sistema y borra después solo sus artefactos conocidos.
 No elimina certificados `.pem`/`.crt` ajenos; si no puede retirar la confianza,
 conserva el material local para permitir un reintento seguro.
+
+La CA local solo sirve para certificados de servidor TLS en `localhost` y
+`127.0.0.1`. En Windows se instala con ese único uso y en macOS con confianza
+solo para SSL (`-p ssl`); en Linux, NSS la confía solo para sitios web
+(`C,,`). Si queda instalada una CA de una versión anterior sin esa
+restricción, GrxFirma crea una nueva y retira la antigua del inventario. En
+macOS la confianza también queda inventariada y se retira al vaciar el almacén
+o al rotar la CA. En Linux, si GrxFirma rebajó a `C,,` la raíz anterior con
+alias fijo de `~/.pki/nssdb`, la anota y la retira igual. La clave de la CA se
+guarda cifrada: en Windows con DPAPI y en Linux y macOS con una clave del
+almacén de secretos del sistema. Sin ese almacén no se genera la CA.
 
 Acciones sensibles expuestas en esa consola:
 
@@ -578,7 +590,14 @@ Estado actual:
   - contenedor CMS DER estándar `cms` de tipo `EnvelopedData` (`.enveloped`)
   - contenedor CMS DER estándar `cms-encrypted` de tipo `EncryptedData` (`.encrypted.p7m`) con `secret_b64` transitorio de 32 bytes para AES-256-GCM
   - contenedor CMS DER estándar `signedandenvelopeddata` de tipo `SignedAndEnvelopedData` (`.signedenveloped.p7m`) mediante la operación separada `proteger-firmando`
-- el perfil `alto` genera automáticamente una identidad local fuerte del usuario si todavía no existe
+- el perfil `alto` genera automáticamente una identidad local fuerte del usuario si todavía no existe.
+  La clave privada se guarda en el almacén de secretos del sistema (Secret Service en
+  Linux, Llavero en macOS y Administrador de credenciales en Windows) y nunca en un
+  fichero. La parte pública va al directorio de datos locales (`~/.local/share/grxfirma`
+  o `%LOCALAPPDATA%\GrxFirma`), que no viaja con el perfil itinerante. Si el almacén no
+  está disponible, el perfil `alto` no se ofrece. Una identidad antigua guardada en
+  claro bajo `protection/strong` del directorio de configuración se pasa al almacén la
+  primera vez que se usa y el fichero antiguo se sobrescribe y se borra
 - los destinatarios se resuelven desde el catálogo local ya disponible
 - en `compat` solo se ofrecen certificados RSA que autorizan
   `KeyEncipherment` y cuya clave privada es realmente recuperable por el motor
@@ -637,6 +656,15 @@ Operaciones útiles:
   - `grxfirma -modo-cli -operacion desproteger -entrada /ruta/secreto.pdf.encrypted.p7m -clave-proteccion-stdin`
   - `grxfirma -modo-cli -operacion desproteger -entrada /ruta/secreto.pdf.signedenveloped.p7m`
   - `grxfirma -modo-cli -operacion desproteger -entrada /ruta/secreto.pdf.authenveloped.p7m`
+- un `.afp` no prueba quién lo envió: lo puede crear cualquiera que tenga el
+  certificado o el destinatario público. Para saber quién lo envía, usar
+  `proteger-firmando`. Al desproteger, GrxFirma limpia el nombre que trae el
+  sobre: quita carpetas y caracteres de control y, si la extensión no es de
+  documento (`pdf`, `xml`, `docx`, `odt`, `txt`, imágenes, firmas…), la cambia
+  por `.bin`. Un tipo MIME que no es válido pasa a `application/octet-stream`
+- los `.afp` se escriben en la versión 2 del sobre, que liga el nombre y el
+  tipo MIME al cifrado sin ambigüedad. GrxFirma sigue abriendo los de versión
+  1, pero las versiones anteriores de GrxFirma no abren los de versión 2
 
 Estado del frente CMS heredado de 1.9:
 - operativo hoy: `EnvelopedData`, `EncryptedData`, `SignedAndEnvelopedData` y
@@ -645,6 +673,10 @@ Estado del frente CMS heredado de 1.9:
   `AuthEnvelopedData` usa RSA-OAEP-SHA256/MGF1-SHA256 + AES-256-GCM
 - OpenSSL parsea el DER V2, V2 descifra AES-256-CBC de OpenSSL y el
   intercambio `AuthEnvelopedData` con OpenSSL 3.5 está probado en ambos sentidos
+- al desproteger `EnvelopedData` y `EncryptedData` solo se aceptan AES-GCM y
+  AES-CBC (128, 192 o 256 bits) con transporte de clave RSA. DES y 3DES exigen
+  la política de máquina `permitir_des_legacy`. Cualquier otro cifrado (ECB,
+  OFB, CFB, RC2, RC5, SM4…) se rechaza antes de intentar descifrar
 - el fixture V1.9 usa AES-ECB/PKCS5 y ASN.1 legacy; V2 no lo escribe. Para
   migrar sobres conocidos, su lector de solo lectura se activa con
   `GRXFIRMA_ENABLE_LEGACY_CMS_AES_ECB=1`, valida límites/padding, firma,

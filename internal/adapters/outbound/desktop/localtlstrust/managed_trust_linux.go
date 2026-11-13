@@ -36,9 +36,13 @@ type managedNSSTrustEntry struct {
 }
 
 type managedNSSTrustInventory struct {
-	Version  int                    `json:"version"`
-	Owner    string                 `json:"owner"`
-	Entries  []managedNSSTrustEntry `json:"entries"`
+	Version int                    `json:"version"`
+	Owner   string                 `json:"owner"`
+	Entries []managedNSSTrustEntry `json:"entries"`
+	// Legacy registra las raíces con el alias fijo anterior cuya confianza
+	// cambió GrxFirma (de CT,C,C a C,,). Son la propia CA vigente de GrxFirma
+	// (misma huella), así que se retiran con el resto (B-07).
+	Legacy   []managedNSSTrustEntry `json:"legacy,omitempty"`
 	Revision uint64                 `json:"revision,omitempty"`
 }
 
@@ -120,6 +124,10 @@ func (i *instaladorNSS) ensureManagedTrusted(ctx context.Context, certFile, vali
 						operationErrors = append(operationErrors, err)
 						continue
 					}
+					legacyEntry := managedNSSTrustEntry{DB: db, Nickname: nicknameLocalhostRoot, Fingerprint: current}
+					if !containsManagedNSSEntry(inventory.Legacy, legacyEntry) {
+						inventory.Legacy = append(inventory.Legacy, legacyEntry)
+					}
 					inventory.Revision++
 					ready[db] = true
 					continue
@@ -195,9 +203,22 @@ func (i *instaladorNSS) ensureManagedTrusted(ctx context.Context, certFile, vali
 			operationErrors = append(operationErrors, err)
 		}
 	}
-	// El alias fijo anterior carecía de inventario. Se conserva incluso si
-	// muestra el marcador de GrxFirma: pudo importarlo otra aplicación o el
-	// usuario, y el marcador no prueba quién realizó la instalación NSS.
+	// El alias fijo anterior sin inventario se conserva aunque muestre el
+	// marcador de GrxFirma: pudo importarlo otra aplicación o el usuario, y el
+	// marcador no prueba quién realizó la instalación NSS. Solo se retiran los
+	// alias fijos cuya confianza cambió GrxFirma y que quedaron en Legacy.
+	remainingLegacy := make([]managedNSSTrustEntry, 0, len(inventory.Legacy))
+	for _, entry := range inventory.Legacy {
+		if !ready[entry.DB] || !allowed[entry.DB] || entry.Fingerprint == current {
+			remainingLegacy = append(remainingLegacy, entry)
+			continue
+		}
+		if err := i.retireLegacyNSSEntry(ctx, entry); err != nil {
+			remainingLegacy = append(remainingLegacy, entry)
+			operationErrors = append(operationErrors, err)
+		}
+	}
+	inventory.Legacy = remainingLegacy
 	inventory.Entries = remaining
 	if err := writeManagedNSSTrustInventory(path, inventory); err != nil {
 		return err
@@ -208,6 +229,19 @@ func (i *instaladorNSS) ensureManagedTrusted(ctx context.Context, certFile, vali
 	return nil
 }
 
+// retireLegacyNSSEntry borra el alias fijo anterior si sigue teniendo la CA
+// de GrxFirma con la huella inventariada. Si ya no está, no hay nada que hacer.
+func (i *instaladorNSS) retireLegacyNSSEntry(ctx context.Context, entry managedNSSTrustEntry) error {
+	cert, err := i.certificadoPorNickname(ctx, entry.DB, entry.Nickname)
+	if err != nil {
+		return err
+	}
+	if cert == nil || !IsManagedLocalCAOwned(cert) || fingerprintSHA256(cert) != entry.Fingerprint {
+		return nil
+	}
+	return i.ejecutarManaged(ctx, "-D", "-d", entry.DB, "-n", entry.Nickname)
+}
+
 func (i *instaladorNSS) managedNSSEntryMatches(ctx context.Context, entry managedNSSTrustEntry) (bool, error) {
 	if entry.Nickname != managedNSSNickname(entry.Fingerprint) {
 		return false, nil
@@ -216,7 +250,7 @@ func (i *instaladorNSS) managedNSSEntryMatches(ctx context.Context, entry manage
 	if err != nil || cert == nil {
 		return false, err
 	}
-	return IsManagedLocalCA(cert) && fingerprintSHA256(cert) == entry.Fingerprint, nil
+	return IsManagedLocalCAOwned(cert) && fingerprintSHA256(cert) == entry.Fingerprint, nil
 }
 
 func (i *instaladorNSS) ejecutarManaged(ctx context.Context, args ...string) error {
@@ -342,6 +376,18 @@ func (inventory managedNSSTrustInventory) validate() error {
 		}
 		seen[entry.DB+"\x00"+entry.Nickname] = true
 	}
+	if len(inventory.Legacy) > maxManagedNSSTrustEntries {
+		return errors.New("localtlstrust: demasiadas entradas heredadas en el inventario NSS")
+	}
+	seenLegacy := make(map[string]bool, len(inventory.Legacy))
+	for _, entry := range inventory.Legacy {
+		if !filepath.IsAbs(entry.DB) || strings.ContainsRune(entry.DB, '\x00') ||
+			!validSHA256Fingerprint(entry.Fingerprint) ||
+			entry.Nickname != nicknameLocalhostRoot || seenLegacy[entry.DB] {
+			return errors.New("localtlstrust: entrada heredada de inventario NSS inválida")
+		}
+		seenLegacy[entry.DB] = true
+	}
 	return nil
 }
 
@@ -396,7 +442,31 @@ func removeManagedTrustedPlatform(ctx context.Context, certFile string) error {
 			failures = append(failures, err)
 		}
 	}
+	remainingLegacy := make([]managedNSSTrustEntry, 0, len(inventory.Legacy))
+	for _, entry := range inventory.Legacy {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if !allowedLinuxStorePath(home, entry.DB) {
+			remainingLegacy = append(remainingLegacy, entry)
+			failures = append(failures, fmt.Errorf("localtlstrust: almacén NSS fuera de la carpeta del usuario: %s", entry.DB))
+			continue
+		}
+		if _, err := os.Lstat(entry.DB); errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err := validateNSSStore(entry.DB); err != nil {
+			remainingLegacy = append(remainingLegacy, entry)
+			failures = append(failures, fmt.Errorf("%s: %w", entry.DB, err))
+			continue
+		}
+		if err := installer.retireLegacyNSSEntry(ctx, entry); err != nil {
+			remainingLegacy = append(remainingLegacy, entry)
+			failures = append(failures, err)
+		}
+	}
 	inventory.Entries = remaining
+	inventory.Legacy = remainingLegacy
 	if err := writeManagedNSSTrustInventory(path, inventory); err != nil {
 		failures = append(failures, err)
 	}

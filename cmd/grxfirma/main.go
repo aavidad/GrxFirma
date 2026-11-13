@@ -59,11 +59,11 @@ import (
 var version = "dev"
 
 const (
-	envRESTToken = "GRXFIRMA_REST_TOKEN"
+	envRESTToken = secretinput.EnvRESTToken
 	// envRESTTokenHeredado mantiene los lanzadores de AutoFirmaV2 existentes.
-	envRESTTokenHeredado = "AUTOFIRMAV2_REST_TOKEN"
-	envPKCS12Password    = "GRXFIRMA_PKCS12_PASSWORD"
-	envProtectionToken   = "GRXFIRMA_PROTECTION_SECRET_B64"
+	envRESTTokenHeredado = secretinput.EnvRESTTokenHeredado
+	envPKCS12Password    = secretinput.EnvPKCS12Password
+	envProtectionToken   = secretinput.EnvProtectionSecret
 	minRESTLifetime      = time.Second
 	maxRESTLifetime      = 240 * time.Minute
 )
@@ -80,7 +80,7 @@ func main() {
 		os.Exit(2)
 	}
 	environment, err := secretinput.ConsumeEnvironment(
-		[]string{envPKCS12Password, envRESTToken, envRESTTokenHeredado, envProtectionToken},
+		secretinput.NombresEntornoSecretos(),
 		os.LookupEnv,
 		os.Unsetenv,
 	)
@@ -173,6 +173,9 @@ func main() {
 	}
 	protectionCompat, _ := environment.Take(envProtectionToken)
 	adaptador.WithCompatibilitySecrets(passwordP12Compat, protectionCompat)
+	if pdfPasswordCompat, present := environment.Take(secretinput.EnvPDFPassword); present {
+		adaptador.WithCompatiblePDFPassword(pdfPasswordCompat)
+	}
 
 	os.Exit(adaptador.Run(ctx, argsResto))
 }

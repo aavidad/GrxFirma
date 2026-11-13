@@ -94,7 +94,12 @@ func importarP12AMac(ctx context.Context, rutaP12, password string) error {
 	if cPassword == nil {
 		return fmt.Errorf("preparar contraseña para Keychain")
 	}
-	defer C.free(unsafe.Pointer(cPassword))
+	// La copia en C de la contraseña se pone a cero antes de liberarla. La
+	// cadena Go original no se puede borrar (F-09).
+	defer func() {
+		C.memset(unsafe.Pointer(cPassword), 0, C.size_t(len(password)))
+		C.free(unsafe.Pointer(cPassword))
+	}()
 
 	status := C.afv2_import_pkcs12_to_default_keychain(
 		(*C.UInt8)(unsafe.Pointer(&data[0])),

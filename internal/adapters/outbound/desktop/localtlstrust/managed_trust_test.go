@@ -98,7 +98,7 @@ func TestManagedTrustLifecycleSupported_WindowsYLinux(t *testing.T) {
 	t.Parallel()
 
 	got := ManagedTrustLifecycleSupported()
-	want := runtime.GOOS == "windows" || runtime.GOOS == "linux"
+	want := runtime.GOOS == "windows" || runtime.GOOS == "linux" || runtime.GOOS == "darwin"
 	if got != want {
 		t.Fatalf(
 			"ManagedTrustLifecycleSupported() = %t, want %t en %s",
@@ -149,7 +149,7 @@ func (store *fakeManagedCertificateStore) Remove(
 	if !exists {
 		return false, nil
 	}
-	if !IsManagedLocalCA(cert) {
+	if !IsManagedLocalCAOwned(cert) {
 		return false, errors.New("fake store rechazó borrar un certificado no gestionado")
 	}
 	delete(store.certificates, fingerprint)
@@ -451,6 +451,9 @@ func newManagedLocalCATestCertificate(
 		MaxPathLenZero:        true,
 	}
 	if marked {
+		// Como la CA real: restricciones de nombre de loopback y marcador.
+		template.PermittedDNSDomains = []string{"localhost"}
+		template.PermittedIPRanges = managedLocalCAPermittedIPRanges()
 		MarkManagedLocalCA(template)
 	}
 	der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)

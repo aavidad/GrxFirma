@@ -476,7 +476,7 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 	ucComprobarHashDir := application.NuevoCheckDirectoryHashManifestUseCase(treeReader, manifestCodec)
 
 	ucVerificar := application.NuevoVerifySignatureUseCase(systemtrust.New(), commonsigner.NewMultiVerifierWithHTTPClient(httpClient), auditor)
-	keyringProteccion := protector.NuevoLocalCombinedKeyring(configDir, catalogo, claves)
+	keyringProteccion := protector.NuevoLocalCombinedKeyring(configDir, appdirs.Data(home), catalogo, claves)
 	motorProteccion := protector.NuevoAdaptiveProtector()
 	motorProteccionFirmada := protector.NuevoCMSSignedEnvelopedProtector()
 	ucProteger := application.NuevoProtectDocumentUseCase(keyringProteccion, motorProteccion, aprobador, auditor, nil)

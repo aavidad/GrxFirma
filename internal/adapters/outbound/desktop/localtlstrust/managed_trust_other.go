@@ -3,7 +3,7 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
-//go:build !windows && !linux
+//go:build !windows && !linux && !darwin
 
 package localtlstrust
 
@@ -12,15 +12,10 @@ import (
 	"crypto/x509"
 )
 
-func ensureManagedTrustedPlatform(
-	ctx context.Context,
-	certFile string,
-	validatedCertFile string,
-	cert *x509.Certificate,
-) error {
-	// El inventario de propiedad introducido aquí es específico del almacén
-	// CurrentUser/ROOT. Linux y macOS conservan por ahora su ciclo existente.
-	return ensureTrustedPlatform(ctx, certFile, validatedCertFile, cert)
+// En las plataformas sin inventario de propiedad no se instala confianza
+// gestionada: no se podría retirar después (B-07).
+func ensureManagedTrustedPlatform(context.Context, string, string, *x509.Certificate) error {
+	return ErrSoporteNoDisponible
 }
 
 func removeManagedTrustedPlatform(context.Context, string) error {

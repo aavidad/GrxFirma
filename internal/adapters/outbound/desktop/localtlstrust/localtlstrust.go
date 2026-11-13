@@ -13,6 +13,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
@@ -74,8 +75,13 @@ func ensureTrusted(ctx context.Context, certFile string, managed bool) error {
 	if err != nil {
 		return err
 	}
-	if managed && !IsManagedLocalCA(cert) {
+	if managed && !IsManagedLocalCAOwned(cert) {
 		return errors.New("localtlstrust: la CA local no contiene el marcador de propiedad de GrxFirma")
+	}
+	if managed && !IsManagedLocalCA(cert) {
+		// Una CA anterior sin restricciones de uso y de nombre no se vuelve a
+		// confiar: quien la genera debe rotarla (B-01).
+		return errors.New("localtlstrust: la CA local no está restringida a servidor TLS en localhost")
 	}
 	validatedFile, err := os.CreateTemp("", "grxfirma-trusted-cert-*.pem")
 	if err != nil {
@@ -101,7 +107,11 @@ func ensureTrusted(ctx context.Context, certFile string, managed bool) error {
 }
 
 // MarkManagedLocalCA añade a una plantilla de CA el marcador que permite
-// distinguir CAs nuevas del producto de certificados ajenos con un CN similar.
+// distinguir CAs nuevas del producto de certificados ajenos con un CN similar,
+// y limita su uso extendido a autenticación de servidor TLS (B-01): con la
+// clave de la CA no se puede emitir nada que valga para firmar código, correo o
+// autenticar clientes. Las restricciones de nombre (localhost, 127.0.0.0/8 y
+// ::1) las pone quien crea la plantilla e IsManagedLocalCA las exige.
 func MarkManagedLocalCA(template *x509.Certificate) {
 	if template == nil {
 		return
@@ -112,12 +122,55 @@ func MarkManagedLocalCA(template *x509.Certificate) {
 			managedLocalCAOwnershipMarker,
 		)
 	}
+	template.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
+	template.UnknownExtKeyUsage = nil
 }
 
-// IsManagedLocalCA valida la identidad estructural exigida antes de atribuir o
-// retirar confianza. La huella exacta se valida adicionalmente contra el
-// inventario.
+const managedLocalCAPermittedDNS = "localhost"
+
+func managedLocalCAPermittedIPRanges() []*net.IPNet {
+	return []*net.IPNet{
+		{IP: net.IPv4(127, 0, 0, 0).To4(), Mask: net.CIDRMask(8, 32)},
+		{IP: net.IPv6loopback, Mask: net.CIDRMask(128, 128)},
+	}
+}
+
+// IsManagedLocalCA indica que la CA es de GrxFirma (IsManagedLocalCAOwned) y
+// además está restringida: uso extendido solo de autenticación de servidor TLS
+// y nombres limitados a localhost, 127.0.0.0/8 y ::1. Solo una CA así se
+// instala o se reutiliza; una anterior deja de reconocerse como vigente y
+// quien la genera la rota (B-01).
 func IsManagedLocalCA(cert *x509.Certificate) bool {
+	if !IsManagedLocalCAOwned(cert) {
+		return false
+	}
+	if len(cert.ExtKeyUsage) != 1 || cert.ExtKeyUsage[0] != x509.ExtKeyUsageServerAuth ||
+		len(cert.UnknownExtKeyUsage) != 0 {
+		return false
+	}
+	if len(cert.PermittedDNSDomains) != 1 || cert.PermittedDNSDomains[0] != managedLocalCAPermittedDNS ||
+		len(cert.ExcludedDNSDomains) != 0 || len(cert.ExcludedIPRanges) != 0 ||
+		len(cert.PermittedEmailAddresses) != 0 || len(cert.ExcludedEmailAddresses) != 0 ||
+		len(cert.PermittedURIDomains) != 0 || len(cert.ExcludedURIDomains) != 0 {
+		return false
+	}
+	want := managedLocalCAPermittedIPRanges()
+	if len(cert.PermittedIPRanges) != len(want) {
+		return false
+	}
+	for i, permitted := range cert.PermittedIPRanges {
+		if permitted == nil || permitted.String() != want[i].String() {
+			return false
+		}
+	}
+	return true
+}
+
+// IsManagedLocalCAOwned valida la identidad estructural que atribuye una CA a
+// GrxFirma antes de retirar su confianza. No exige las restricciones de B-01,
+// para poder retirar también las CAs anteriores. La huella exacta se valida
+// además contra el inventario.
+func IsManagedLocalCAOwned(cert *x509.Certificate) bool {
 	if cert == nil ||
 		!cert.IsCA ||
 		!cert.BasicConstraintsValid ||
