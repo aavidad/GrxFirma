@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"grxfirma/internal/adapters/inbound/common/cli"
+	"grxfirma/internal/adapters/outbound/common/auditlog"
 	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/common/hashmanifest"
 	"grxfirma/internal/adapters/outbound/common/localizador"
@@ -105,14 +106,6 @@ type aprobacionAutomatica struct{}
 
 func (a *aprobacionAutomatica) Request(_ context.Context, _ string) (bool, error) {
 	return true, nil
-}
-
-// loggerSilencioso registra evidencias sin volcarlas en consola.
-// En versiones futuras puede persistir en un fichero de auditoria.
-type loggerSilencioso struct{}
-
-func (l *loggerSilencioso) Log(_ context.Context, _ ports.Evidence) error {
-	return nil
 }
 
 // relojReal delega en time.Now.
@@ -339,7 +332,11 @@ func construirServicios(rutaP12, password, rutaCert, rutaClave string) (*servici
 
 	httpClient := proxyhttp.New(configDir)
 	motor := construirMotorFirmaConHTTP(httpClient)
-	auditor := application.NuevoAuditUseCase(relojReal{}, &loggerSilencioso{})
+	registradorAuditoria, err := auditlog.NewDefault()
+	if err != nil {
+		return nil, fmt.Errorf("preparando el registro de auditoria: %w", err)
+	}
+	auditor := application.NuevoAuditUseCase(relojReal{}, registradorAuditoria)
 	aprobador := &aprobacionAutomatica{}
 	verificador := application.NuevoVerifySignatureUseCase(
 		systemtrust.New(),

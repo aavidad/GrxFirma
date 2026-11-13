@@ -63,7 +63,7 @@ Cada adaptador de entrada debe transformar los datos crudos del protocolo extern
 1. **Responsabilidad Única de Puertos**: No combinar capacidades no relacionadas (ej. Biometría vs Tarjeta Inteligente) en un mismo contrato.
 2. **Degradación Controlada**: Si una plataforma no soporta una capacidad (ej. Servidor Local en Mobile), el núcleo debe operar en modo reducido sin lanzar excepciones estructurales.
 3. **Independencia de Mobile**: Mobile se integra mediante `gomobile bind` (ADR-001), tratando a Android e iOS como adaptadores nativos que implementan puertos Go.
-4. **Seguridad Centralizada**: La política de confianza y auditoría reside en `application`, no en los frontends.
+4. **Seguridad Centralizada**: La política de confianza y auditoría reside en `application`, no en los frontends. Los cinco binarios (`grxfirma`, `grxfirma-gui`, `nativehost`, `grxfirmauri` y el REST de `grxfirma`) componen `AuditUseCase` con el registrador real `auditlog.NewDefault()`; si guardar una evidencia falla, `AuditUseCase.Registrar` deja un aviso en el registro de diagnóstico y la operación sigue.
 
 ### Retención y builds de producción
 

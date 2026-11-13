@@ -38,6 +38,7 @@ import (
 	"time"
 
 	nativehost "grxfirma/internal/adapters/inbound/desktop/nativehost"
+	"grxfirma/internal/adapters/outbound/common/auditlog"
 	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/common/identityjcs"
 	"grxfirma/internal/adapters/outbound/common/limits"
@@ -156,10 +157,6 @@ func (a *aprobacionSistema) Request(ctx context.Context, mensaje string) (bool, 
 	}
 	return ok, nil
 }
-
-type loggerSilencioso struct{}
-
-func (l *loggerSilencioso) Log(_ context.Context, _ ports.Evidence) error { return nil }
 
 type relojReal struct{}
 
@@ -285,7 +282,11 @@ func construirAdaptador(configDir, p12Dir, p12Password string, metricas ports.Op
 	}
 	httpClient := proxyhttp.New(configDir)
 	motor := construirMotorFirmaConHTTP(httpClient)
-	auditor := application.NuevoAuditUseCase(relojReal{}, &loggerSilencioso{})
+	registradorAuditoria, err := auditlog.NewDefault()
+	if err != nil {
+		return nil, fmt.Errorf("no se pudo preparar el registro de auditoría: %w", err)
+	}
+	auditor := application.NuevoAuditUseCase(relojReal{}, registradorAuditoria)
 
 	ucFirmar := application.NuevoSignDocumentUseCase(catalogo, proveedor, motor, aprobador, auditor, nil).WithMetrics(metricas)
 	firmadorIdentidad := application.NuevoSignDocumentUseCase(
