@@ -74,6 +74,20 @@ Esto instala en:
   perfiles Snap o Flatpak cuando existan; la extensión solo se copia si el XPI
   está firmado por Mozilla y coincide con su metadato SHA-256
 
+Los enlaces `afirma://` pasan a abrirse con GrxFirma en lugar de AutoFirma. Al
+instalar se avisa de qué aplicación los abría y se guarda en
+`~/.local/lib/grxfirma/config/afirma-handler-anterior.json`. Al retirar el
+`.deb` con `sudo`, el `prerm` los devuelve a esa aplicación para `SUDO_USER` y
+quita de `user.js` las líneas que añadió GrxFirma. Si el usuario cambió el
+manejador después de instalar, se respeta su cambio. Los demás usuarios, o
+quien instaló con el `.tar.gz`, pueden hacerlo a mano:
+
+```bash
+/usr/lib/grxfirma/bin/configure-browsers.sh --restore-afirma-handler
+# instalación de usuario:
+~/.local/lib/grxfirma/bin/configure-browsers.sh --restore-afirma-handler
+```
+
 Además:
 
 - si la suite trae Qt, instala `~/.local/bin/grxfirma-gui-qml` y sus recursos

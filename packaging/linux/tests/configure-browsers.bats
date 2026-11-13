@@ -91,3 +91,62 @@ configure_browsers() {
   [ ! -L "${target}" ]
   [ "$(cat "${sentinel}")" = intacto ]
 }
+
+# G-11: avisar de que se sustituye a AutoFirma y devolver el manejador al desinstalar.
+restore_browsers() {
+  HOME="${TEST_HOME}" \
+    GRXFIRMA_TARGET_HOME="${TEST_HOME}" \
+    "${BATS_TEST_DIRNAME}/../configure-browsers.sh" --restore-afirma-handler
+}
+
+mime_value() {
+  sed -n "s|^$2=||p" "$1"
+}
+
+@test "avisa al sustituir AutoFirma y lo devuelve al desinstalar (G-11)" {
+  write_metadata false
+  local mimeapps="${TEST_HOME}/.config/mimeapps.list"
+  mkdir -p "$(dirname "${mimeapps}")"
+  printf '[Default Applications]\nx-scheme-handler/afirma=autofirma.desktop\ntext/plain=gedit.desktop\n' > "${mimeapps}"
+
+  run configure_browsers
+  [ "$status" -eq 0 ]
+  [[ "${output}" == *"autofirma.desktop"* ]]
+  [[ "${output}" == *"afirma://"* ]]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = grxfirma.desktop ]
+  grep -q 'GrxFirma:' "${TEST_PROFILE}/user.js"
+
+  # Reinstalar no debe perder el manejador original.
+  run configure_browsers
+  [ "$status" -eq 0 ]
+
+  run restore_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = autofirma.desktop ]
+  [ -z "$(mime_value "${mimeapps}" x-scheme-handler/afirmav2)" ]
+  [ "$(mime_value "${mimeapps}" text/plain)" = gedit.desktop ]
+  run grep -c -e 'GrxFirma:' -e 'protocol-handler.*afirma' "${TEST_PROFILE}/user.js"
+  [ "${output}" = 0 ]
+  [ ! -e "${TEST_HOME}/.local/lib/grxfirma/config/afirma-handler-anterior.json" ]
+}
+
+@test "no pisa un manejador que el usuario cambió después de instalar (G-11)" {
+  write_metadata false
+  local mimeapps="${TEST_HOME}/.config/mimeapps.list"
+  mkdir -p "$(dirname "${mimeapps}")"
+  printf '[Default Applications]\nx-scheme-handler/afirma=autofirma.desktop\n' > "${mimeapps}"
+
+  run configure_browsers
+  [ "$status" -eq 0 ]
+  sed -i 's|^x-scheme-handler/afirma=.*|x-scheme-handler/afirma=otra.desktop|' "${mimeapps}"
+
+  run restore_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = otra.desktop ]
+}
+
+@test "el prerm del .deb devuelve el manejador afirma:// antes de borrar ficheros (G-11)" {
+  local prerm
+  prerm="$(sed -n '/DEBIAN\/prerm" <<.EOF./,/^EOF$/p' "${BATS_TEST_DIRNAME}/../build-suite.sh")"
+  [[ "${prerm}" == *"configure-browsers.sh --restore-afirma-handler"* ]]
+}
