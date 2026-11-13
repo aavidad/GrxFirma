@@ -317,8 +317,8 @@ func TestOrchestrator_OrigenRechazado(t *testing.T) {
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		TrustValidator: validator,
-		ParserLegacy:   afirmauri.New(nil),
+		TrustValidator:     validator,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{certRef("cert-1")}, nil
@@ -357,7 +357,7 @@ func TestOrchestrator_ProtocoloRemotoSimpleConservaOpcionesLegacy(t *testing.T) 
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		ParserLegacy: afirmauri.New(nil),
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1")}, nil
 		}},
@@ -406,7 +406,7 @@ func TestOrchestrator_BatchRemotoLegacyUsaEjecutorEspecifico(t *testing.T) {
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		ParserLegacy: afirmauri.New(nil),
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1"), certRef("cert-2")}, nil
 		}},
@@ -471,7 +471,7 @@ func TestOrchestrator_BatchRecuperadoDesdeRetrieveSeResuelveComoRemoto(t *testin
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		ParserLegacy: afirmauri.New(nil),
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1")}, nil
 		}},
@@ -529,7 +529,7 @@ func TestOrchestrator_SelectCertUsaSubidaDedicadaDeCertificado(t *testing.T) {
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		ParserLegacy: afirmauri.New(nil),
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1")}, nil
 		}},
@@ -589,7 +589,7 @@ func TestOrchestrator_FirmaRecuperadaXMLUsaFirmaLocalYSubidaLegacy(t *testing.T)
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		ParserLegacy: afirmauri.New(nil),
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1")}, nil
 		}},
@@ -668,7 +668,7 @@ func TestOrchestrator_NoAbreProgresoAntesDeSeleccionarCertificadoEnBatch(t *test
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		ParserLegacy: afirmauri.New(nil),
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1"), certRef("cert-2")}, nil
 		}},
@@ -833,7 +833,7 @@ func TestOrchestrator_FiltraCertificadosNoCaducadosPorDefecto(t *testing.T) {
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		ParserLegacy: afirmauri.New(nil),
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{
 				certRefExpirado("cert-expirado"),
@@ -892,7 +892,7 @@ func TestOrchestrator_FiltroLegacySinCandidatosNoFirmaCaducados(t *testing.T) {
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		ParserLegacy: afirmauri.New(nil),
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{
 				certRefExpirado("cert-expirado-1"),
@@ -948,7 +948,7 @@ func TestOrchestrator_SinCertificados(t *testing.T) {
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		TrustValidator: nil, // sin validación de origen
+		TrustValidator:     nil, // sin validación de origen
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{}, nil
@@ -1007,7 +1007,7 @@ func TestOrchestrator_FlujoCompleto(t *testing.T) {
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		TrustValidator: nil,
+		TrustValidator:     nil,
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{certRef("cert-1")}, nil
@@ -1070,7 +1070,7 @@ func TestOrchestrator_ContextoCancelado(t *testing.T) {
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		TrustValidator: nil,
+		TrustValidator:     nil,
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				// Cancelar el contexto justo después de listar los certificados,
@@ -1441,7 +1441,7 @@ func TestOrchestrator_FormatoTriConServerURLUsaServidorTrifasico(t *testing.T) {
 	orch := session.New(session.Config{
 		Aprobador:          aprobadorPrueba{},
 		ComponerAprobacion: componerAprobacionPrueba,
-		ParserLegacy: afirmauri.New(nil),
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-fnmt")}, nil
 		}},

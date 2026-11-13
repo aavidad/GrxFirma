@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 
+	"grxfirma/internal/adapters/inbound/legacy/afirmauri/originvalidator"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
@@ -210,7 +211,7 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 						return Solicitud{}, err
 					}
 					solicitud.Origenes = fusionarOrigenes(solicitud.Origenes, origenesExtra)
-					if err := a.validarOrigenes(ctx, origenesExtra); err != nil {
+					if err := a.validarDestinos(ctx, origenesExtra); err != nil {
 						return Solicitud{}, err
 					}
 					solicitud.RemoteBatch = remote
@@ -233,7 +234,7 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 	solicitud.Sesion = sesion
 	solicitud.Origenes = fusionarOrigenes(origenes, solicitud.Origenes)
 
-	if err := a.validarOrigenes(ctx, origenes); err != nil {
+	if err := a.validarDestinos(ctx, origenes); err != nil {
 		return Solicitud{}, err
 	}
 
@@ -267,7 +268,7 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 					return Solicitud{}, err
 				}
 				solicitud.Origenes = fusionarOrigenes(solicitud.Origenes, origenesExtra)
-				if err := a.validarOrigenes(ctx, origenesExtra); err != nil {
+				if err := a.validarDestinos(ctx, origenesExtra); err != nil {
 					return Solicitud{}, err
 				}
 				solicitud.RemoteBatch = remote
@@ -616,7 +617,30 @@ func (a *Adaptador) validarServidoresTrifasicos(ctx context.Context, solicitud *
 		return err
 	}
 	solicitud.Origenes = fusionarOrigenes(solicitud.Origenes, origenes)
+	return a.validarDestinos(ctx, origenes)
+}
+
+// validarDestinos aplica a los endpoints que trae la URI el mismo formato que
+// originvalidator (https, o http solo en loopback) y después la política. Se
+// usa en todos los caminos, directo y socket (A-03).
+func (a *Adaptador) validarDestinos(ctx context.Context, origenes []string) error {
+	for _, origen := range origenes {
+		if err := originvalidator.ValidarFormato(origen); err != nil {
+			return fmt.Errorf("el destino %s no es válido: %w", origen, err)
+		}
+	}
 	return a.validarOrigenes(ctx, origenes)
+}
+
+// OrigenesDestinoSolicitud devuelve los orígenes de todos los destinos de una
+// solicitud ya resuelta (subida, recuperación y serverUrl), para revalidarlos
+// cuando un contenido recuperado los cambia.
+func OrigenesDestinoSolicitud(solicitud Solicitud) ([]string, error) {
+	endpoints := []string{solicitud.Sesion.UploadEndpoint, solicitud.Sesion.RetrieveEndpoint}
+	for _, servidor := range ServidoresTrifasicos(solicitud.Options) {
+		endpoints = append(endpoints, normalizarEndpoint(servidor))
+	}
+	return origenesDesdeEndpoints(endpoints...)
 }
 
 func origenesDesdeEndpoints(endpoints ...string) ([]string, error) {

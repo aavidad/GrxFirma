@@ -550,6 +550,15 @@ func (o *Orchestrator) ejecutarSimple(ctx context.Context, solicitud afirmauri.S
 		if cmd, resuelta, ok, err := afirmauri.ResolveRetrievedSign(raw, solicitud); err != nil {
 			return fmt.Errorf("payload remoto de firma inválido: %w", err)
 		} else if ok {
+			// A-03: el manifiesto recuperado puede cambiar el servlet de
+			// subida o traer serverUrl; se revalidan antes de firmar y subir.
+			origenes, err := afirmauri.OrigenesDestinoSolicitud(resuelta)
+			if err != nil {
+				return fmt.Errorf("payload remoto de firma inválido: %w", err)
+			}
+			if err := o.validarOrigenes(ctx, afirmauri.Solicitud{Origenes: origenes}); err != nil {
+				return fmt.Errorf("validación de origen del manifiesto recuperado fallida: %w", err)
+			}
 			if o.signer == nil {
 				return errors.New("el motor de firma no está configurado")
 			}

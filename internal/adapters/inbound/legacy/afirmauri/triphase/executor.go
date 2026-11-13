@@ -55,6 +55,15 @@ type Executor struct {
 // datos o decidir qué firma la clave. Lo habitual es originvalidator.Validate.
 type ValidadorDestino func(ctx context.Context, origen string) error
 
+// ValidarDestino aplica el validador configurado a un origen. Sin validador
+// falla cerrado.
+func (e *Executor) ValidarDestino(ctx context.Context, origen string) error {
+	if e == nil || e.validarDestino == nil {
+		return errors.New("no se puede comprobar si el destino está autorizado")
+	}
+	return e.validarDestino(ctx, origen)
+}
+
 // ConValidadorDestino fija el validador que se aplica en el punto de uso a los
 // destinos que no llegan ya validados por el parser (servidor trifásico).
 func (e *Executor) ConValidadorDestino(validar ValidadorDestino) *Executor {

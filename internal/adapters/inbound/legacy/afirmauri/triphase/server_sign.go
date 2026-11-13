@@ -80,10 +80,7 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 	// decide qué datos firma la clave. Se valida aquí aunque el parser ya lo
 	// hiciera, porque un manifiesto recuperado puede traer otro serverUrl. Sin
 	// validador configurado no se firma.
-	if e.validarDestino == nil {
-		return nil, errors.New("no se puede comprobar si el servidor de firma trifásica está autorizado")
-	}
-	if err := e.validarDestino(ctx, servidor.Scheme+"://"+servidor.Host); err != nil {
+	if err := e.ValidarDestino(ctx, servidor.Scheme+"://"+servidor.Host); err != nil {
 		return nil, fmt.Errorf("servidor de firma trifásica no autorizado: %w", err)
 	}
 	formato, err := formatoServidorTrifasico(req.FormatoLegacy)

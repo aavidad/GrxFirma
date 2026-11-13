@@ -556,9 +556,16 @@ func (h *legacyWebSocketHandler) handleBatch(ctx context.Context, solicitud afir
 	if err != nil {
 		return "", err
 	}
-	remote, cmd, _, err := afirmauri.ResolveRetrievedBatch(raw, solicitud.Sesion)
+	remote, cmd, origenes, err := afirmauri.ResolveRetrievedBatch(raw, solicitud.Sesion)
 	if err != nil {
 		return "", err
+	}
+	// A-03: el lote recuperado puede fijar pre, post y servlets; pasan por el
+	// mismo formato y la misma política que en el camino directo.
+	for _, origen := range origenes {
+		if err := h.retrieve.ValidarDestino(ctx, origen); err != nil {
+			return "", fmt.Errorf("validación de origen del lote recuperado fallida: %w", err)
+		}
 	}
 	if remote != nil {
 		return h.handleRemoteBatchDeSolicitud(ctx, *remote, solicitud)
