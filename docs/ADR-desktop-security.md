@@ -155,3 +155,50 @@ Ambos modelos comparten el mismo principio. La diferencia es de mecanismo:
   `/etc/grxfirma/allowed-domains.json`; en despliegues gestionados esta
   ruta debe considerarse el baseline de confianza, dejando TOFU solo como
   fallback para escritorios no gestionados.
+
+---
+
+## Llamantes autorizados del host nativo
+
+Este es el único inventario de las extensiones que pueden abrir el host de
+Native Messaging (`cmd/nativehost/caller.go` y los manifiestos que escriben los
+instaladores de Linux, Windows y macOS). Revisión del 13/11/2026 (hallazgos
+C-07 y G-04).
+
+| Navegador | ID | Host nativo | Titular | Estado |
+|---|---|---|---|---|
+| Chromium | `pkefjandjcgdmhoonmhnllikibobijgg` | `com.dipgra.grxfirma`, `com.grxfirma.native` | Extensión oficial de GrxFirma | En uso |
+| Firefox | `extension@dipgra.es` | `com.dipgra.grxfirma`, `com.grxfirma.native` | Extensión oficial de GrxFirma | Falta confirmar que el ID está reservado en AMO a nombre de la Diputación |
+| Chromium | `ipkpimgjhkjibkbhfdhggjldlaetbcoa` | `com.dipgra.portafirmas` | PENDIENTE: falta confirmar quién la publica | No es un ID de Chromium válido (lleva una «t»; solo valen las letras a-p), así que el host ya lo descarta |
+| Chromium | `knldjmfmopnpolahpmmgbagdohdnhkik` | `com.dipgra.portafirmas` | PENDIENTE: falta confirmar quién la publica | Autorizada |
+| Firefox | `portafirmas@dipgra.es` | `com.dipgra.portafirmas` | PENDIENTE: falta confirmar quién la publica y si el ID está reservado en AMO | Autorizada |
+
+Además, el host acepta el ID que el instalador deja en
+`extensions/chromium/dipgra-extension-chromium.id` y los que figuren en un
+manifiesto de host instalado que apunte a este mismo ejecutable.
+
+Hasta que se confirme el titular de las extensiones portafirmas, la lista no se
+cambia. Mientras tanto se aplica lo siguiente, que no depende de ese dato:
+
+- Solo la extensión oficial cuenta como «oficial». Son los ID oficiales de la
+  tabla, el del fichero `.id` y los que figuran en los manifiestos
+  `com.dipgra.grxfirma` y `com.grxfirma.native`. Un ID que solo aparece en
+  `com.dipgra.portafirmas` no lo es.
+- La política de máquina `aprobacion_automatica_nativehost` solo se aplica a la
+  extensión oficial. Con cualquier otro llamante el host pide siempre
+  confirmación, porque el origen solicitante que declara no se puede comprobar:
+  la extensión oficial lo calcula a partir de la URL que da el navegador, pero el
+  código de las portafirmas no está en este repositorio.
+
+Queda por decidir cuando se sepa el titular: qué acciones se permiten a las
+portafirmas (por ejemplo, `getCertificates`) y si sus ID se quitan del binario
+para aceptarlos solo con un manifiesto `com.dipgra.portafirmas` instalado.
+
+### Portales que pueden pedir pruebas de identidad
+
+La extensión acepta `proveIdentity` desde cualquier subdominio de `dipgra.es` y
+de `savia.net`. Es una decisión expresa de Alberto del 13/11/2026 (hallazgo
+C-08): se mantienen todos los subdominios. La lista está en
+`FACTORY_PORTAL_PATTERNS` (`background.js`), `FACTORY_SITES`
+(`trusted_sites.js`) y en `content_scripts` y `host_permissions` de los
+`manifest.json` de Chromium y Firefox.
