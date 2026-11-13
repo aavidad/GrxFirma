@@ -40,7 +40,9 @@ func retireLegacyRESTCertificate(ctx context.Context, dir string) error {
 
 	rootFile := filepath.Join(dir, legacyRESTPrefix+"-root.crt.pem")
 	root, ok := cargarCertificadoLocal(rootFile)
-	if !ok || !localtlstrust.IsManagedLocalCA(root) || !localCANameConstraintsValid(root) {
+	// Basta la propiedad: una CA REST anterior a las restricciones de B-01
+	// también es de GrxFirma y se tiene que retirar.
+	if !ok || !localtlstrust.IsManagedLocalCAOwned(root) {
 		return nil
 	}
 	// La retirada gestionada valida las huellas y los almacenes inventariados.
@@ -149,7 +151,8 @@ func ClearManagedLocalhostTLS(ctx context.Context, dir string) (int, error) {
 	}
 	rootFile := filepath.Join(dir, ManagedLocalhostPrefix+"-root.crt.pem")
 	if root, ok := cargarCertificadoLocal(rootFile); ok {
-		if !localtlstrust.IsManagedLocalCA(root) || !localCANameConstraintsValid(root) {
+		// Propiedad, no vigencia: una CA propia anterior a B-01 se puede retirar.
+		if !localtlstrust.IsManagedLocalCAOwned(root) {
 			return 0, errors.New("rest: CA TLS ajena")
 		}
 	} else if _, err := os.Lstat(rootFile); err == nil {
