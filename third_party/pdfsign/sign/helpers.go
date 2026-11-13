@@ -16,13 +16,46 @@ import (
 )
 
 func findFirstPage(parent pdf.Value) (pdf.Value, error) {
+	return findFirstPageRec(parent, nodosVisitados{})
+}
+
+// nodosVisitados guarda los nodos del árbol de páginas ya recorridos.
+// AutoFirmaV2: un /Kids que se contiene a sí mismo recursaba hasta agotar la
+// pila, fatal en Go (E2-03). Con el conjunto cada nodo se visita una vez, lo
+// que también evita el recorrido exponencial de hijos repetidos.
+type nodosVisitados map[uint32]bool
+
+// entrar marca el nodo y devuelve false si ya estaba. Un nodo /Pages escrito
+// en línea (no conforme: /Kids debe llevar referencias) comparte número con
+// su padre y también se rechaza.
+func (v nodosVisitados) entrar(nodo pdf.Value) bool {
+	numero, _ := nodo.ObjectReference()
+	if numero == 0 {
+		return true
+	}
+	if v[numero] {
+		return false
+	}
+	v[numero] = true
+	return true
+}
+
+var errArbolPaginasEnCiclo = errors.New("page tree loop")
+
+func findFirstPageRec(parent pdf.Value, visitados nodosVisitados) (pdf.Value, error) {
 	value_type := parent.Key("Type").String()
 	if value_type == "/Pages" {
+		if !visitados.entrar(parent) {
+			return parent, errArbolPaginasEnCiclo
+		}
 		for i := 0; i < parent.Key("Kids").Len(); i++ {
 			kid := parent.Key("Kids").Index(i)
-			recurse_parent, recurse_err := findFirstPage(kid)
+			recurse_parent, recurse_err := findFirstPageRec(kid, visitados)
 			if recurse_err == nil {
 				return recurse_parent, recurse_err
+			}
+			if errors.Is(recurse_err, errArbolPaginasEnCiclo) {
+				return parent, recurse_err
 			}
 		}
 

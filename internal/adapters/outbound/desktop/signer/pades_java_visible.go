@@ -312,6 +312,10 @@ func imagenesJava(options map[string]string, pdfData []byte) ([]pdfsign.StampIma
 	var paginas []int
 	switch {
 	case pagina == 0:
+		// /Count lo fija el documento (E2-03).
+		if err := comprobarPaginasSellos(total); err != nil {
+			return nil, err
+		}
 		for p := 1; p <= total; p++ {
 			paginas = append(paginas, p)
 		}

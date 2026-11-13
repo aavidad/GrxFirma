@@ -47,7 +47,13 @@ type buffer struct {
 	key         []byte
 	useAES      bool
 	objptr      objptr
+	// AutoFirmaV2: arrays y diccionarios abiertos ahora mismo (E2-03).
+	profundidad int
 }
+
+// maxProfundidadObjeto acota el anidamiento de arrays y diccionarios. Un
+// "[[[[..." de millones de niveles agotaba la pila (fatal en Go). AutoFirmaV2.
+const maxProfundidadObjeto = 256
 
 // newBuffer returns a new buffer reading from r at the given offset.
 func newBuffer(r io.Reader, offset int64) *buffer {
@@ -196,11 +202,19 @@ func (b *buffer) readHexString() token {
 			break
 		}
 		if isSpace(c) {
+			// AutoFirmaV2: sin el '>' de cierre, readByte devuelve '\n' sin
+			// fin al final de un flujo de objetos (E2-03).
+			if b.eof {
+				b.errorf("malformed PDF: unterminated hex string")
+			}
 			goto Loop
 		}
 	Loop2:
 		c2 := b.readByte()
 		if isSpace(c2) {
+			if b.eof {
+				b.errorf("malformed PDF: unterminated hex string")
+			}
 			goto Loop2
 		}
 		x := unhex(c)<<4 | unhex(c2)
@@ -232,6 +246,10 @@ func (b *buffer) readLiteralString() token {
 Loop:
 	for {
 		c := b.readByte()
+		// AutoFirmaV2: cadena sin cerrar al final de un flujo de objetos (E2-03).
+		if b.eof {
+			b.errorf("malformed PDF: unterminated string")
+		}
 		switch c {
 		default:
 			tmp = append(tmp, c)
@@ -478,11 +496,17 @@ func (b *buffer) readObject() object {
 }
 
 func (b *buffer) readArray() object {
+	b.entrarObjeto()
+	defer b.salirObjeto()
 	var x array
 	for {
 		tok := b.readToken()
 		if tok == nil || tok == keyword("]") {
 			break
+		}
+		// AutoFirmaV2: array sin cerrar al final de un flujo de objetos (E2-03).
+		if tok == io.EOF {
+			b.errorf("malformed PDF: unterminated array")
 		}
 		b.unreadToken(tok)
 		x = append(x, b.readObject())
@@ -490,7 +514,21 @@ func (b *buffer) readArray() object {
 	return x
 }
 
+// entrarObjeto y salirObjeto llevan la profundidad de anidamiento. AutoFirmaV2.
+func (b *buffer) entrarObjeto() {
+	b.profundidad++
+	if b.profundidad > maxProfundidadObjeto {
+		b.errorf("malformed PDF: objects nested too deep")
+	}
+}
+
+func (b *buffer) salirObjeto() {
+	b.profundidad--
+}
+
 func (b *buffer) readDict() object {
+	b.entrarObjeto()
+	defer b.salirObjeto()
 	x := make(dict)
 	for {
 		tok := b.readToken()

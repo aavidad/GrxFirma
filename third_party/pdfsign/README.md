@@ -335,3 +335,12 @@ err = sign.Sign(inputFile, outputFile, rdr, size, sign.SignData{
 This library is under active development. The API may change and some PDF files might not work correctly. Bug reports, contributions, and suggestions are welcome.
 
 For production use, consider our [PDFSigner](https://github.com/digitorus/pdfsigner/) server solution.
+
+## Modificaciones locales de seguridad (GrxFirma)
+
+Cambios hechos sobre esta copia tras la revisión de seguridad de 13/11/2026,
+marcados en el código con `AutoFirmaV2`:
+
+- `findFirstPage` y `findPageByNumber` recorren cada nodo `/Pages` una sola
+  vez y devuelven error ante un árbol de páginas en ciclo, que antes agotaba
+  la pila (hallazgo E2-03).
