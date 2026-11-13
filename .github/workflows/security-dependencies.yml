@@ -81,6 +81,19 @@ jobs:
             --all-packages \
             --output-file "$RUNNER_TEMP/osv-go-runtime.json"
 
+      # Las copias de third_party/ se resuelven con replace a un directorio y
+      # OSV no las compara con los avisos de upstream. Se escanea aparte la
+      # versión base que declara cada README (G-08); un aviso exige revisar a
+      # mano si el código afectado sigue en la copia.
+      - name: Gate upstream bases of third_party copies
+        run: |
+          python3 scripts/ci/third_party_bases.py --write-gomod "$RUNNER_TEMP/third-party-bases/go.mod"
+          "$(go env GOPATH)/bin/osv-scanner" scan source \
+            --lockfile "$RUNNER_TEMP/third-party-bases/go.mod" \
+            --format json \
+            --all-packages \
+            --output-file "$RUNNER_TEMP/osv-third-party-bases.json"
+
       # Core y el helper QA no declaran paquetes NuGet y OSV no incluye sus
       # lockfiles vacíos en el inventario recursivo, pero se pasan igualmente
       # al gate para cubrir cualquier dependencia futura.
