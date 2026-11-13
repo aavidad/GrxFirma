@@ -25,6 +25,7 @@ import (
 	"grxfirma/internal/appdirs"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -401,10 +402,10 @@ func (a *Adaptador) Routes() http.Handler {
 	mux.Handle("/certificates", a.authorize(http.HandlerFunc(a.handleCertificates)))
 	mux.HandleFunc("/openapi.json", a.handleOpenAPI)
 	if enabled, _ := a.certificateAuthSnapshot(); enabled {
-		mux.HandleFunc("/auth/challenge", a.handleAuthChallenge)
-		mux.HandleFunc("/auth/verify", a.handleAuthVerify)
-		mux.HandleFunc("/autenticacion/reto", a.handleAuthChallenge)
-		mux.HandleFunc("/autenticacion/verificar", a.handleAuthVerify)
+		mux.Handle("/auth/challenge", guardCertificateLogin(http.HandlerFunc(a.handleAuthChallenge)))
+		mux.Handle("/auth/verify", guardCertificateLogin(http.HandlerFunc(a.handleAuthVerify)))
+		mux.Handle("/autenticacion/reto", guardCertificateLogin(http.HandlerFunc(a.handleAuthChallenge)))
+		mux.Handle("/autenticacion/verificar", guardCertificateLogin(http.HandlerFunc(a.handleAuthVerify)))
 	}
 	if a.PrepararIdentidad != nil && a.ConfirmarIdentidad != nil {
 		mux.Handle("/identity/challenges", a.authorizeIdentity(http.HandlerFunc(a.handleIdentityChallenge)))
@@ -451,6 +452,44 @@ func (a *Adaptador) Routes() http.Handler {
 	// H-07: el límite sigue siendo la capa exterior. La correlación se genera
 	// después de acotar el body y antes de autorización y dispatch.
 	return limitBodyMiddleware(restCorrelationMiddleware(mux), limit)
+}
+
+// maxCertificateLoginBodyBytes acota el cuerpo de las rutas de login por
+// certificado, que se atienden sin autenticar (B-08).
+const maxCertificateLoginBodyBytes = 64 * 1024
+
+// guardCertificateLogin protege las rutas de login por certificado, que no
+// llevan autenticación: rechaza las peticiones que un navegador envía desde
+// otro origen (una web ajena podría llenar la tabla de retos con POST simples
+// sin preflight) y limita el cuerpo. Los clientes que no son navegador no
+// envían Origin; la consola local envía su propio origen.
+func guardCertificateLogin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if origin := r.Header.Get("Origin"); origin != "" && !sameOriginRequest(r, origin) {
+			writeError(w, http.StatusForbidden, "origen no permitido")
+			return
+		}
+		body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxCertificateLoginBodyBytes))
+		if err != nil {
+			var tooLarge *http.MaxBytesError
+			if errors.As(err, &tooLarge) {
+				writeError(w, http.StatusRequestEntityTooLarge, "cuerpo demasiado grande")
+				return
+			}
+			writeError(w, http.StatusBadRequest, "cuerpo ilegible")
+			return
+		}
+		r.Body = io.NopCloser(bytes.NewReader(body))
+		next.ServeHTTP(w, r)
+	})
+}
+
+func sameOriginRequest(r *http.Request, origin string) bool {
+	u, err := url.Parse(origin)
+	if err != nil || u.Scheme != "https" || u.Host == "" || u.Path != "" {
+		return false
+	}
+	return strings.EqualFold(u.Host, r.Host)
 }
 
 // limitBodyMiddleware limita el tamaño del body de toda petición entrante (CWE-770, H-07).

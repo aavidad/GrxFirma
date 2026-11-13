@@ -18,7 +18,8 @@ las extensiones Chromium/Firefox tienen pruebas automáticas, pero esta capacida
 no cuenta con paquete reconstruido ni campaña física de navegador. No la anuncie ni
 la active en producción hasta completar esa validación. Los
 endpoints legacy `/auth/challenge` y `/auth/verify` solo protegen el REST local y no
-acreditan una sesión, rol o permiso de la aplicación integradora.
+acreditan una sesión, rol o permiso de la aplicación integradora. Rechazan las
+peticiones que un navegador manda desde otro origen y los cuerpos de más de 64 KB.
 
 ## Requisitos por plataforma
 
