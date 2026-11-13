@@ -36,7 +36,14 @@ const (
 	// no dice nada de que el certificado sea cualificado.
 	motivoConfianzaRaizSistema = "cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado"
 	motivoFirmanteNoApto       = "el certificado firmante no está destinado a firmar documentos"
+	// motivoClaveRSADebil avisa de una clave RSA del firmante por debajo de
+	// 2048 bits: hoy no basta para dar una firma por válida.
+	motivoClaveRSADebil = "clave RSA del firmante de menos de 2048 bits"
 )
+
+// cargarRaicesSistema lee el almacén raíz del sistema; las pruebas lo
+// sustituyen para simular un almacén ilegible.
+var cargarRaicesSistema = x509.SystemCertPool
 
 // Usos extendidos de clave que declaran expresamente la firma de documentos.
 var ekuFirmaDocumentos = []asn1.ObjectIdentifier{
@@ -1178,6 +1185,23 @@ func applySignerVerificationMetadata(result domain.VerificationResult, signerCer
 		if result.Trust.Reason != "" {
 			result.Warnings = appendUniqueString(result.Warnings, result.Trust.Reason)
 		}
+		// Si el llamante pidió evaluar la confianza (hay anclas o almacén del
+		// sistema) y no se pudo concluir, la firma no puede salir válida.
+		// Sin anclas, el llamante solo pidió el formato y evalúa aparte.
+		if !anchors.IsEmpty() && result.Valid {
+			result.Valid = false
+			result.Reason = result.Trust.Reason
+		}
+	}
+	for _, cert := range signerCerts {
+		if clave, ok := cert.PublicKey.(*rsa.PublicKey); ok && clave.N != nil && clave.N.BitLen() < 2048 {
+			if result.Valid {
+				result.Valid = false
+				result.Reason = motivoClaveRSADebil
+			}
+			result.Warnings = appendUniqueString(result.Warnings, motivoClaveRSADebil)
+			result.Certificate.Details = append(result.Certificate.Details, fmt.Sprintf("rsa_bits=%d", clave.N.BitLen()))
+		}
 	}
 	return result.Normalize()
 }
@@ -1234,7 +1258,7 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 	systemRootsUnavailable := false
 
 	if anchors.UseSystemRoots {
-		systemRoots, err := x509.SystemCertPool()
+		systemRoots, err := cargarRaicesSistema()
 		if err != nil {
 			systemRootsUnavailable = true
 			details = append(details, "system_roots_error="+err.Error())

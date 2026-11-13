@@ -2739,6 +2739,8 @@
   ,"Entendido": "Entendido"
   ,"Actualizado a %1: ver novedades": "Atualizado para %1: ver novidades"
   ,"revocación no concluyente": "Não foi possível verificar a revogação do certificado. A assinatura não é considerada válida."
+  ,"no se pudo consultar un almacén raíz del sistema utilizable": "Não foi possível ler o arquivo de certificados raiz do sistema, por isso não se sabe se o certificado é de confiança. A assinatura não é considerada válida."
+  ,"clave RSA del firmante de menos de 2048 bits": "A chave do signatário é RSA com menos de 2048 bits, um tamanho que hoje não é considerado seguro. A assinatura não é considerada válida."
   ,"el certificado firmante no está destinado a firmar documentos": "O certificado usado para assinar não se destina a assinar documentos (pode ser, por exemplo, o de um servidor web). A assinatura não é considerada válida."
   ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "O certificado depende de uma raiz de confiança do sistema. Isso não garante que seja um certificado qualificado."
   ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "Os dados assinados não indicam que certificado foi usado, por isso não é possível confirmar que o certificado mostrado é o que assinou."
