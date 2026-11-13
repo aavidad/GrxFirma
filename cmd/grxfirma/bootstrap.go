@@ -360,7 +360,7 @@ func construirServicios(rutaP12, password, rutaCert, rutaClave string) (*servici
 	manifestCodec := hashmanifest.NuevoCodec()
 	ucCrearHashDir := application.NuevoCreateDirectoryHashManifestUseCase(treeReader, manifestCodec)
 	ucComprobarHashDir := application.NuevoCheckDirectoryHashManifestUseCase(treeReader, manifestCodec)
-	keyringProteccion := protector.NuevoLocalCombinedKeyring(configDir, catalogo, claves)
+	keyringProteccion := protector.NuevoLocalCombinedKeyring(configDir, appdirs.Data(home), catalogo, claves)
 	motorProteccion := protector.NuevoAdaptiveProtector()
 	motorProteccionFirmada := protector.NuevoCMSSignedEnvelopedProtector()
 	ucProteger := application.NuevoProtectDocumentUseCase(keyringProteccion, motorProteccion, aprobador, auditor, nil)

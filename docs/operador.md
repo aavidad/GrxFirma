@@ -577,7 +577,14 @@ Estado actual:
   - contenedor CMS DER estándar `cms` de tipo `EnvelopedData` (`.enveloped`)
   - contenedor CMS DER estándar `cms-encrypted` de tipo `EncryptedData` (`.encrypted.p7m`) con `secret_b64` transitorio de 32 bytes para AES-256-GCM
   - contenedor CMS DER estándar `signedandenvelopeddata` de tipo `SignedAndEnvelopedData` (`.signedenveloped.p7m`) mediante la operación separada `proteger-firmando`
-- el perfil `alto` genera automáticamente una identidad local fuerte del usuario si todavía no existe
+- el perfil `alto` genera automáticamente una identidad local fuerte del usuario si todavía no existe.
+  La clave privada se guarda en el almacén de secretos del sistema (Secret Service en
+  Linux, Llavero en macOS y Administrador de credenciales en Windows) y nunca en un
+  fichero. La parte pública va al directorio de datos locales (`~/.local/share/grxfirma`
+  o `%LOCALAPPDATA%\GrxFirma`), que no viaja con el perfil itinerante. Si el almacén no
+  está disponible, el perfil `alto` no se ofrece. Una identidad antigua guardada en
+  claro bajo `protection/strong` del directorio de configuración se pasa al almacén la
+  primera vez que se usa y el fichero antiguo se sobrescribe y se borra
 - los destinatarios se resuelven desde el catálogo local ya disponible
 - en `compat` solo se ofrecen certificados RSA que autorizan
   `KeyEncipherment` y cuya clave privada es realmente recuperable por el motor
