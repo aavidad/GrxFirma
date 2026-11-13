@@ -232,8 +232,8 @@ func (a *Almacen) exportarClaveLocal(ctx context.Context, ruta, nickname string,
 
 	pemBundle, pemErr := a.convertirP12APEM(ctx, tmpPath, exportPassword)
 	if pemErr == nil {
-		// pemBundle contiene la clave privada en claro (T057): zeroizar al salir.
-		defer secmem.Zeroize(pemBundle)
+		// pemBundle contiene la clave privada en claro (T057); claveLocalDesdePEM
+		// lo pone a cero. La salida de openssl se borra en convertirP12APEM.
 		clave, err := claveLocalDesdePEM(pemBundle, esperado)
 		if err == nil {
 			return clave, nil
@@ -297,28 +297,45 @@ func (a *Almacen) convertirP12APEM(ctx context.Context, p12Path, password string
 	return pem, nil
 }
 
+// extraerBloquesPEM copia de la salida de openssl solo las líneas de los
+// bloques PEM, limpias de espacios, a un único búfer reservado de antemano:
+// no hay copias intermedias en cadenas ni realojamientos que dejen restos de
+// la clave en memoria. Quien lo recibe lo pone a cero.
 func extraerBloquesPEM(data []byte) []byte {
-	var b strings.Builder
+	marcaFin := []byte("-----END ")
+	out := make([]byte, 0, len(data)+bytes.Count(data, marcaFin)+1)
 	inside := false
-	for _, line := range strings.Split(string(data), "\n") {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "-----BEGIN ") {
+	for len(data) > 0 {
+		line := data
+		if idx := bytes.IndexByte(data, '\n'); idx >= 0 {
+			line, data = data[:idx], data[idx+1:]
+		} else {
+			data = nil
+		}
+		trimmed := bytes.TrimSpace(line)
+		if bytes.HasPrefix(trimmed, []byte("-----BEGIN ")) {
 			inside = true
 		}
 		if inside {
-			b.WriteString(trimmed)
-			b.WriteByte('\n')
+			out = append(out, trimmed...)
+			out = append(out, '\n')
 		}
-		if strings.HasPrefix(trimmed, "-----END ") {
+		if bytes.HasPrefix(trimmed, marcaFin) {
 			inside = false
-			b.WriteByte('\n')
+			out = append(out, '\n')
 		}
 	}
-	return []byte(b.String())
+	return out
 }
 
+// claveLocalDesdePEM usa la primera clave privada del PEM y el certificado
+// con la huella esperada. Pone data a cero al terminar, igual que las copias
+// decodificadas de cada clave. Las claves ya analizadas (rsa/ecdsa.PrivateKey,
+// con big.Int) no se pueden borrar desde Go y viven hasta que las recoja el
+// recolector.
 func claveLocalDesdePEM(data []byte, esperado domain.CertificateRef) (ports.SigningKey, error) {
-	firmante, err := parsearClavePrivadaPEM(data)
+	defer secmem.Zeroize(data)
+	firmantes, err := parsearClavesPrivadasPEM(data)
 	if err != nil {
 		return nil, err
 	}
@@ -326,14 +343,17 @@ func claveLocalDesdePEM(data []byte, esperado domain.CertificateRef) (ports.Sign
 	if err != nil {
 		return nil, err
 	}
-	hoja, cadena, err := seleccionarCertificadoFirmante(certs, firmante, esperado)
+	hoja, cadena, err := seleccionarCertificadoFirmante(certs, firmantes[0], esperado)
 	if err != nil {
 		return nil, err
 	}
-	return desktopsigner.NuevaClaveLocalConCadena(firmante, hoja, cadena), nil
+	return desktopsigner.NuevaClaveLocalConCadena(firmantes[0], hoja, cadena), nil
 }
 
-func parsearClavePrivadaPEM(data []byte) (crypto.Signer, error) {
+// parsearClavesPrivadasPEM devuelve todas las claves privadas del PEM, en su
+// orden, y pone a cero el DER decodificado de cada una.
+func parsearClavesPrivadasPEM(data []byte) ([]crypto.Signer, error) {
+	var claves []crypto.Signer
 	rest := data
 	for len(rest) > 0 {
 		block, next := pem.Decode(rest)
@@ -341,35 +361,50 @@ func parsearClavePrivadaPEM(data []byte) (crypto.Signer, error) {
 			break
 		}
 		rest = next
-		switch block.Type {
-		case "RSA PRIVATE KEY":
-			priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-			if err != nil {
-				return nil, fmt.Errorf("clave RSA PKCS#1 invalida: %w", err)
-			}
-			return priv, nil
-		case "EC PRIVATE KEY":
-			priv, err := x509.ParseECPrivateKey(block.Bytes)
-			if err != nil {
-				return nil, fmt.Errorf("clave EC invalida: %w", err)
-			}
-			return priv, nil
-		case "PRIVATE KEY":
-			key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-			if err != nil {
-				return nil, fmt.Errorf("clave PKCS#8 invalida: %w", err)
-			}
-			switch k := key.(type) {
-			case *rsa.PrivateKey:
-				return k, nil
-			case *ecdsa.PrivateKey:
-				return k, nil
-			default:
-				return nil, fmt.Errorf("tipo de clave PKCS#8 no soportado: %T", key)
-			}
+		clave, err := parsearBloqueClavePrivada(block)
+		secmem.Zeroize(block.Bytes)
+		if err != nil {
+			return nil, err
+		}
+		if clave != nil {
+			claves = append(claves, clave)
 		}
 	}
-	return nil, fmt.Errorf("no se encontro una clave privada en el PEM exportado")
+	if len(claves) == 0 {
+		return nil, fmt.Errorf("no se encontro una clave privada en el PEM exportado")
+	}
+	return claves, nil
+}
+
+func parsearBloqueClavePrivada(block *pem.Block) (crypto.Signer, error) {
+	switch block.Type {
+	case "RSA PRIVATE KEY":
+		priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("clave RSA PKCS#1 invalida: %w", err)
+		}
+		return priv, nil
+	case "EC PRIVATE KEY":
+		priv, err := x509.ParseECPrivateKey(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("clave EC invalida: %w", err)
+		}
+		return priv, nil
+	case "PRIVATE KEY":
+		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("clave PKCS#8 invalida: %w", err)
+		}
+		switch k := key.(type) {
+		case *rsa.PrivateKey:
+			return k, nil
+		case *ecdsa.PrivateKey:
+			return k, nil
+		default:
+			return nil, fmt.Errorf("tipo de clave PKCS#8 no soportado: %T", key)
+		}
+	}
+	return nil, nil
 }
 
 func parsearCertificadosPEM(data []byte) ([]*x509.Certificate, error) {
