@@ -231,12 +231,12 @@ func TestCandidatosFrontend_SeparaQtYWinUI(t *testing.T) {
 	}
 }
 
-func TestArgumentosFrontend_VinculaWinUIAlBackendSinAlterarQt(t *testing.T) {
+func TestArgumentosFrontend_VinculaQtYWinUIAlBackend(t *testing.T) {
 	t.Parallel()
 
 	const socket = `\\.\pipe\grxfirma_ipc_test`
 	qt := argumentosFrontend(frontendQt, socket, 1234)
-	if got := strings.Join(qt, "|"); got != "--ipc-socket|"+socket {
+	if got := strings.Join(qt, "|"); got != "--ipc-socket|"+socket+"|--backend-pid|1234" {
 		t.Fatalf("argumentos Qt = %q", got)
 	}
 	winui := argumentosFrontend(frontendWinUI, socket, 1234)
@@ -363,6 +363,75 @@ func TestCalcularSocketPath_GeneraEndpointsUnicos(t *testing.T) {
 	}
 	if runtime.GOOS == "windows" && !strings.HasPrefix(primero, `\\.\pipe\`) {
 		t.Fatalf("endpoint Windows no es un named pipe local: %q", primero)
+	}
+}
+
+// D-01: un XDG_RUNTIME_DIR que no es privado no se usa; se recurre al
+// directorio propio ~/.local/run con permisos 0700.
+func TestCalcularSocketPath_RechazaRuntimeNoPrivado(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows usa named pipes")
+	}
+	abierto := t.TempDir()
+	if err := os.Chmod(abierto, 0o755); err != nil {
+		t.Fatalf("Chmod: %v", err)
+	}
+	home := t.TempDir()
+	t.Setenv("XDG_RUNTIME_DIR", abierto)
+	t.Setenv("HOME", home)
+	ruta, err := calcularSocketPath()
+	if err != nil {
+		t.Fatalf("calcularSocketPath: %v", err)
+	}
+	if want := filepath.Join(home, ".local", "run"); filepath.Dir(ruta) != want {
+		t.Fatalf("socket en %q; se esperaba %q", filepath.Dir(ruta), want)
+	}
+	info, err := os.Lstat(filepath.Dir(ruta))
+	if err != nil || info.Mode().Perm() != 0o700 {
+		t.Fatalf("el directorio del socket no es 0700: %v %v", info, err)
+	}
+}
+
+// D-01: sin directorio privado no se cae nunca al temporal compartido.
+func TestCalcularSocketPath_NuncaUsaElTemporalCompartido(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows usa named pipes")
+	}
+	t.Setenv("XDG_RUNTIME_DIR", "")
+	t.Setenv("HOME", "")
+	ruta, err := calcularSocketPath()
+	if err == nil {
+		t.Fatalf("se generó %q sin directorio privado", ruta)
+	}
+}
+
+// D-01: un ~/.local/run que es un enlace simbólico no se acepta.
+func TestCalcularSocketPath_RechazaEnlaceComoDirectorio(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows usa named pipes")
+	}
+	home := t.TempDir()
+	destino := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(home, ".local"), 0o700); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	if err := os.Symlink(destino, filepath.Join(home, ".local", "run")); err != nil {
+		t.Fatalf("Symlink: %v", err)
+	}
+	t.Setenv("XDG_RUNTIME_DIR", "")
+	t.Setenv("HOME", home)
+	if ruta, err := calcularSocketPath(); err == nil {
+		t.Fatalf("se aceptó un enlace como directorio del socket: %q", ruta)
+	}
+}
+
+// D-01: el lanzador pasa a Qt el PID del backend para que Qt compruebe con
+// el sistema que el otro extremo del socket es ese proceso.
+func TestArgumentosFrontend_PasaElPIDDelBackendAQt(t *testing.T) {
+	t.Parallel()
+	got := strings.Join(argumentosFrontend(frontendQt, "/run/user/1/s.sock", 4321), "|")
+	if got != "--ipc-socket|/run/user/1/s.sock|--backend-pid|4321" {
+		t.Fatalf("argumentos Qt = %q", got)
 	}
 }
 

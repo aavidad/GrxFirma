@@ -11,6 +11,7 @@ SOURCES += \
     activediagnostics.cpp \
     incidentprivacy.cpp \
     ipcbridge.cpp \
+    ipcpeer.cpp \
     ipcbridge_transientsecret_test.cpp \
     transientsecret.cpp \
     translatorbridge.cpp \
@@ -20,6 +21,7 @@ HEADERS += \
     activediagnostics.h \
     incidentprivacy.h \
     ipcbridge.h \
+    ipcpeer.h \
     transientsecret.h \
     translatorbridge.h \
     webcompatibilitylease.h

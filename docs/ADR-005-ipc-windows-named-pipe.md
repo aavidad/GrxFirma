@@ -73,6 +73,19 @@ unidad de usuario de systemd que escribe el gestor de servicios de Linux no
 lleva PID, así que ya no arranca un backend útil (`RestartPreventExitStatus=2`
 evita que se reinicie en bucle).
 
+Actualización 13/11/2026 (D-01 y D-04): la comprobación es simétrica. Qt,
+como WinUI, solo habla con un backend cuyo PID conoce: el que lanza ella
+misma (`QProcess`) o el que le indica `grxfirma-gui` con `--backend-pid`.
+Antes de enviar nada lee del sistema el PID del otro extremo
+(`SO_PEERCRED`, `getpeereid` + `LOCAL_PEERPID` o
+`GetNamedPipeServerProcessId`) y, si no coincide, corta sin enviar datos.
+En Unix el socket va siempre en un directorio privado del usuario
+(`XDG_RUNTIME_DIR` si es suyo y 0700; si no, `~/.local/run` en 0700), con
+nombre nuevo y aleatorio en cada arranque; nunca en el temporal compartido
+ni con un nombre fijo. El backend que lanza Qt recibe `--ipc-parent-stdin` y
+termina cuando se cierra la entrada estándar que Qt mantiene abierta, así
+que no sobrevive a la GUI.
+
 La máscara dúplex incluye `FILE_CREATE_PIPE_INSTANCE`, exigido por la
 semántica de instancias de named pipe. La DACL de sesión y el nombre aleatorio
 siguen reduciendo la superficie, pero la garantía fuerte del flujo normal es
