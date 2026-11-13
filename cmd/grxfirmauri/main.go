@@ -233,6 +233,7 @@ func runConDependencias(
 	manejarSolicitud manejadorSolicitudProtocolo,
 ) int {
 	_ = os.Setenv("SYSLOG_IDENTIFIER", "grxfirma-afirmauri")
+	configurarRegistroPorDefecto(os.Stderr)
 	setProtocolLocalizer(defaultProtocolConfigDir())
 	setStartupTLSTrustNotice("")
 
