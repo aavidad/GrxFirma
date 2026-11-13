@@ -866,6 +866,7 @@
   "Firma inválida o integridad no garantizada.": "签名无效或完整性无法保证。",
   "La firma es correcta, pero parte del contenido del documento no está firmado.": "签名正确，但文档的部分内容未签名。",
   "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "无法检查签名所涵盖的全部内容，因此不视为有效。",
+  "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "签名有效，但由于其格式的规定，签名不涵盖文档的部分元数据。详细信息中列出了具体内容。",
   "Firma múltiple completada (": "多文件签名已完成（",
   "Firma múltiple completada con incidencias (": "多文件签名已完成，但有异常（",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",

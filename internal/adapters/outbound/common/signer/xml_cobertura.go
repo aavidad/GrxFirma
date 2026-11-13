@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -30,8 +31,9 @@ const (
 	algRelationshipTransform = "http://schemas.openxmlformats.org/package/2006/RelationshipTransform"
 
 	// Textos visibles (claves de los catálogos de idiomas).
-	motivoCoberturaParcial      = "La firma es correcta, pero parte del contenido del documento no está firmado."
-	motivoCoberturaNoComprobada = "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida."
+	motivoCoberturaParcial       = "La firma es correcta, pero parte del contenido del documento no está firmado."
+	motivoCoberturaNoComprobada  = "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida."
+	motivoFueraDeFirmaPorFormato = "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles."
 
 	maxElementosSinCubrirMostrados = 8
 )
@@ -45,12 +47,32 @@ type coberturaFirmaXML struct {
 	// noComprobado recoge referencias de un Manifest que no se han podido
 	// resolver o comparar.
 	noComprobado []string
+	// relacionesNoFirmadas son las relaciones de las partes .rels firmadas
+	// con la transformación de relaciones de OPC que la firma no elige.
+	relacionesNoFirmadas []relacionNoFirmada
+	// partesRelacionesOPC son las partes .rels comprobadas con esa
+	// transformación. Solo tiene sentido en un paquete OOXML: en cualquier
+	// otro contenedor se tratan como no comprobadas.
+	partesRelacionesOPC []string
+}
+
+// noComprobadoFueraDeOPC es noComprobado para los contenedores que no son
+// OOXML, donde la transformación de relaciones no acredita nada.
+func (c coberturaFirmaXML) noComprobadoFueraDeOPC() []string {
+	if len(c.partesRelacionesOPC) == 0 {
+		return c.noComprobado
+	}
+	return append(append([]string(nil), c.noComprobado...), "manifest_relationship_transform")
 }
 
 // resultadoCobertura es la cobertura de todo el documento.
 type resultadoCobertura struct {
 	sinCubrir    []string
 	noComprobado []string
+	// fueraPorFormato es lo que el formato deja fuera de la firma por diseño
+	// (metadatos de Office, metadatos del expediente ENI). No impide que la
+	// firma sea válida, pero se dice qué es.
+	fueraPorFormato []string
 }
 
 func (c resultadoCobertura) estado() string {
@@ -73,13 +95,25 @@ func aplicarCoberturaXML(result domain.VerificationResult, cobertura resultadoCo
 	if len(cobertura.noComprobado) > 0 {
 		detalles = append(detalles, "cobertura_no_comprobada="+strings.Join(limitarLista(cobertura.noComprobado), ","))
 	}
+	if len(cobertura.fueraPorFormato) > 0 {
+		detalles = append(detalles, "fuera_de_firma_por_formato="+strings.Join(limitarLista(cobertura.fueraPorFormato), ","))
+	}
 	switch cobertura.estado() {
 	case domain.CoberturaCompleta:
 		if result.Coverage == domain.CoberturaNoAcreditada {
 			// Compatibilidad histórica: ya no es válida y no se acredita nada.
+			result.Details = append(result.Details, detalles...)
+			result.Integrity.Details = append(result.Integrity.Details, detalles...)
 			return result
 		}
-		return result.ConCobertura(domain.CoberturaCompleta, "", nil)
+		result = result.ConCobertura(domain.CoberturaCompleta, "", nil)
+		if len(cobertura.fueraPorFormato) > 0 {
+			// Válida, pero a la vista: qué metadatos no cubre la firma.
+			result.Warnings = appendUniqueString(result.Warnings, motivoFueraDeFirmaPorFormato)
+			result.Details = append(result.Details, detalles...)
+			result.Integrity.Details = append(result.Integrity.Details, detalles...)
+		}
+		return result
 	case domain.CoberturaParcial:
 		result = result.ConCobertura(domain.CoberturaParcial, motivoCoberturaParcial, detalles)
 	default:
@@ -298,7 +332,7 @@ func coberturaDocumentoXML(documento []byte, firmas []coberturaFirmaXML) (result
 	// cubre). En una cofirma enveloping cada firmante lleva su copia del dato.
 	objetosPropios := map[int]bool{}
 	for _, firma := range firmas {
-		for _, motivo := range firma.noComprobado {
+		for _, motivo := range firma.noComprobadoFueraDeOPC() {
 			anotar(&out.noComprobado, motivo)
 		}
 		nodoFirma := arbol.nodoEn(firma.inicio)
@@ -329,12 +363,21 @@ func coberturaDocumentoXML(documento []byte, firmas []coberturaFirmaXML) (result
 		}
 		enArbol = append(enArbol, actual)
 	}
+	fuera := map[string]bool{}
 	for _, firma := range enArbol {
 		if firma.documentoEntero || esContrafirma(arbol, firma.nodo, firma.cubiertos) {
 			continue
 		}
-		for _, elemento := range arbol.contenidoSinCubrir(firma.cubiertos, objetosPropios) {
+		excl := exclusionesIndiceENI(documento, arbol, firma.nodo, firma.cubiertos)
+		sinCubrir, porPerfil := arbol.contenidoSinCubrir(firma.cubiertos, objetosPropios, excl)
+		for _, elemento := range sinCubrir {
 			anotar(&out.sinCubrir, elemento)
+		}
+		for _, elemento := range porPerfil {
+			if !fuera[elemento] {
+				fuera[elemento] = true
+				out.fueraPorFormato = append(out.fueraPorFormato, elemento)
+			}
 		}
 	}
 	return out, nil
@@ -361,7 +404,9 @@ func esContrafirma(arbol *arbolXML, firma int, cubiertos map[int]bool) bool {
 	return alguno
 }
 
-func (a *arbolXML) contenidoSinCubrir(cubiertos, objetosPropios map[int]bool) []string {
+// contenidoSinCubrir devuelve lo que la firma no cubre y, aparte, lo que un
+// perfil normativo (excl) deja fuera de ella a propósito.
+func (a *arbolXML) contenidoSinCubrir(cubiertos, objetosPropios map[int]bool, excl *exclusionesPerfil) ([]string, []string) {
 	// Un nodo es estructural si contiene algo cubierto o una firma.
 	estructural := make([]bool, len(a.nodos))
 	marcar := func(indice int) {
@@ -377,13 +422,17 @@ func (a *arbolXML) contenidoSinCubrir(cubiertos, objetosPropios map[int]bool) []
 			marcar(indice)
 		}
 	}
-	var sinCubrir []string
+	var sinCubrir, porPerfil []string
 	var visitar func(int)
 	visitar = func(indice int) {
 		if cubiertos[indice] {
 			return
 		}
 		nodo := a.nodos[indice]
+		if excl.nodo(indice) {
+			porPerfil = append(porPerfil, nodo.nombre.Local)
+			return
+		}
 		switch {
 		case a.esFirma(indice):
 			if nodo.texto {
@@ -404,7 +453,11 @@ func (a *arbolXML) contenidoSinCubrir(cubiertos, objetosPropios map[int]bool) []
 				sinCubrir = append(sinCubrir, "texto:"+nodo.nombre.Local)
 			}
 			if atributosConContenido(nodo) {
-				sinCubrir = append(sinCubrir, "atributos:"+nodo.nombre.Local)
+				if excl.atributosDe(indice) {
+					porPerfil = append(porPerfil, "atributos:"+nodo.nombre.Local)
+				} else {
+					sinCubrir = append(sinCubrir, "atributos:"+nodo.nombre.Local)
+				}
 			}
 			for _, hijo := range nodo.hijos {
 				visitar(hijo)
@@ -416,7 +469,7 @@ func (a *arbolXML) contenidoSinCubrir(cubiertos, objetosPropios map[int]bool) []
 	for _, raiz := range a.raices {
 		visitar(raiz)
 	}
-	return sinCubrir
+	return sinCubrir, porPerfil
 }
 
 // ---------------------------------------------------------------------------
@@ -438,6 +491,89 @@ func coberturaContenedor(entradas []string, excluida func(string) bool, cubierta
 		}
 	}
 	sort.Strings(out.sinCubrir)
+	return out
+}
+
+// Metadatos de un paquete OOXML que Office deja fuera de la firma por diseño
+// (ECMA-376 parte 2 deja al firmante elegir las partes; Word y AutoFirma no
+// firman las propiedades del documento). Lista cerrada: nombre exacto (OPC no
+// distingue mayúsculas) y tipo de contenido exacto.
+var metadatosOOXMLFueraDeFirma = map[string]string{
+	"docprops/core.xml":            "application/vnd.openxmlformats-package.core-properties+xml",
+	"docprops/app.xml":             "application/vnd.openxmlformats-officedocument.extended-properties+xml",
+	"docprops/_rels/core.xml.rels": "application/vnd.openxmlformats-package.relationships+xml",
+	"docprops/_rels/app.xml.rels":  "application/vnd.openxmlformats-package.relationships+xml",
+}
+
+// Entradas que Word deja en [trash]/ al guardar: no son partes OPC (los
+// corchetes no se admiten en un nombre de parte) y ningún lector las abre.
+var reEntradaPapeleraWord = regexp.MustCompile(`^\[trash\]/[0-9A-Fa-f]{4}\.dat$`)
+
+// Relaciones que Office no elige al firmar _rels/.rels: el tipo y el destino
+// tienen que ser exactamente estos.
+var relacionesPaqueteFueraDeFirma = map[string]string{
+	"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties":   "docprops/core.xml",
+	"http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties": "docprops/app.xml",
+	"http://schemas.openxmlformats.org/package/2006/relationships/digital-signature/origin":   "_xmlsignatures/origin.sigs",
+}
+
+const tipoRelacionFirmaDigital = "http://schemas.openxmlformats.org/package/2006/relationships/digital-signature/signature"
+
+func (c *contenedorZIP) metadatoFueraDeFirma(nombre string) bool {
+	if reEntradaPapeleraWord.MatchString(nombre) {
+		return true
+	}
+	esperado, ok := metadatosOOXMLFueraDeFirma[strings.ToLower(nombre)]
+	return ok && strings.EqualFold(c.contentTypes.ContentTypeFor(nombre), esperado)
+}
+
+// relacionFueraDeFirmaPermitida: relaciones de _rels/.rels hacia los
+// metadatos y el origen de firmas, y las de las partes de firma digital.
+func relacionFueraDeFirmaPermitida(r relacionNoFirmada) bool {
+	if r.relacion.modo != "" && r.relacion.modo != "Internal" {
+		return false
+	}
+	parte := strings.ToLower(r.parte)
+	if parte == "_xmlsignatures/_rels/origin.sigs.rels" {
+		return r.relacion.tipo == tipoRelacionFirmaDigital
+	}
+	if parte != "_rels/.rels" {
+		return false
+	}
+	destino, ok := relacionesPaqueteFueraDeFirma[r.relacion.tipo]
+	return ok && strings.ToLower(destinoRelacionPaquete(r.relacion.destino)) == destino
+}
+
+// coberturaOOXML es coberturaContenedor para un paquete OOXML: además de las
+// entradas, cada relación que una firma deja fuera de una parte .rels cuenta
+// como contenido sin firmar, salvo las de la lista cerrada de metadatos. Los
+// metadatos que ninguna firma cubre se dicen en fueraPorFormato.
+func coberturaOOXML(c *contenedorZIP, cubiertasPorFirma []map[string]bool, relacionesPorFirma [][]relacionNoFirmada, noComprobado []string) resultadoCobertura {
+	out := coberturaContenedor(c.nombres, func(nombre string) bool {
+		return entradaOOXMLSinFirmar(nombre) || c.metadatoFueraDeFirma(nombre)
+	}, cubiertasPorFirma, noComprobado)
+	vistos := map[string]bool{}
+	for _, cubiertas := range cubiertasPorFirma {
+		for _, nombre := range c.nombres {
+			if cubiertas[nombre] || vistos[nombre] || entradaOOXMLSinFirmar(nombre) || !c.metadatoFueraDeFirma(nombre) {
+				continue
+			}
+			vistos[nombre] = true
+			out.fueraPorFormato = append(out.fueraPorFormato, nombre)
+		}
+	}
+	for _, relaciones := range relacionesPorFirma {
+		for _, relacion := range relaciones {
+			etiqueta := "relacion:" + relacion.String()
+			if relacionFueraDeFirmaPermitida(relacion) || vistos[etiqueta] {
+				continue
+			}
+			vistos[etiqueta] = true
+			out.sinCubrir = append(out.sinCubrir, etiqueta)
+		}
+	}
+	sort.Strings(out.sinCubrir)
+	sort.Strings(out.fueraPorFormato)
 	return out
 }
 
@@ -464,10 +600,15 @@ func dedup(valores []string) []string {
 // compara aquí. Un resumen distinto es un error; lo que no se puede resolver
 // o calcular (URI externas sin el dato, RelationshipTransform de OPC) queda
 // como no comprobado y la firma no puede salir válida.
-func verificarManifiestos(context xmlSignatureContext, signedInfoXML []byte, resolver func(string) ([]byte, error)) ([]string, []string, error) {
+func verificarManifiestos(context xmlSignatureContext, signedInfoXML []byte, resolver func(string) ([]byte, error)) (coberturaFirmaXML, error) {
+	uris, noComprobado, partes, relaciones, err := verificarManifiestosDetalle(context, signedInfoXML, resolver)
+	return coberturaFirmaXML{uris: uris, noComprobado: noComprobado, partesRelacionesOPC: partes, relacionesNoFirmadas: relaciones}, err
+}
+
+func verificarManifiestosDetalle(context xmlSignatureContext, signedInfoXML []byte, resolver func(string) ([]byte, error)) ([]string, []string, []string, []relacionNoFirmada, error) {
 	var info signedInfoForVerify
 	if err := xml.Unmarshal(signedInfoXML, &info); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	var manifiestos []int
 	var arbol *arbolXML
@@ -479,7 +620,7 @@ func verificarManifiestos(context xmlSignatureContext, signedInfoXML []byte, res
 		if arbol == nil {
 			var err error
 			if arbol, err = construirArbolXML(context.document); err != nil {
-				return nil, nil, err
+				return nil, nil, nil, nil, err
 			}
 		}
 		destino := arbol.nodoPorID(strings.TrimPrefix(uri, "#"))
@@ -498,6 +639,8 @@ func verificarManifiestos(context xmlSignatureContext, signedInfoXML []byte, res
 		}
 	}
 	var uris, noComprobado []string
+	var relaciones []relacionNoFirmada
+	var partes []string
 	total := 0
 	for _, manifiesto := range manifiestos {
 		nodo := arbol.nodos[manifiesto]
@@ -505,53 +648,53 @@ func verificarManifiestos(context xmlSignatureContext, signedInfoXML []byte, res
 			References []referenceForVerify `xml:"Reference"`
 		}
 		if err := xml.Unmarshal(context.document[nodo.inicio:nodo.fin], &lista); err != nil {
-			return nil, nil, fmt.Errorf("leyendo ds:Manifest: %w", err)
+			return nil, nil, nil, nil, fmt.Errorf("leyendo ds:Manifest: %w", err)
 		}
 		if len(lista.References) == 0 {
-			return nil, nil, errors.New("ds:Manifest sin referencias")
+			return nil, nil, nil, nil, errors.New("ds:Manifest sin referencias")
 		}
 		if total += len(lista.References); total > maxReferenciasXML {
-			return nil, nil, fmt.Errorf("ds:Manifest con demasiadas referencias (más de %d)", maxReferenciasXML)
+			return nil, nil, nil, nil, fmt.Errorf("ds:Manifest con demasiadas referencias (más de %d)", maxReferenciasXML)
 		}
 		for indice, ref := range lista.References {
-			comprobada, motivo, err := verificarReferenciaManifiesto(context, ref, resolver)
+			comprobada, motivo, fuera, err := verificarReferenciaManifiesto(context, ref, resolver)
 			if err != nil {
-				return nil, nil, fmt.Errorf("referencia %d del Manifest: %w", indice+1, err)
+				return nil, nil, nil, nil, fmt.Errorf("referencia %d del Manifest: %w", indice+1, err)
 			}
 			if !comprobada {
 				noComprobado = append(noComprobado, motivo)
 				continue
 			}
 			uris = append(uris, ref.URI)
+			if usaTransformacionRelaciones(ref) {
+				partes = append(partes, ref.URI)
+				relaciones = append(relaciones, fuera...)
+			}
 		}
 	}
-	return uris, noComprobado, nil
+	return uris, noComprobado, partes, relaciones, nil
 }
 
-func verificarReferenciaManifiesto(context xmlSignatureContext, ref referenceForVerify, resolver func(string) ([]byte, error)) (bool, string, error) {
+func verificarReferenciaManifiesto(context xmlSignatureContext, ref referenceForVerify, resolver func(string) ([]byte, error)) (bool, string, []relacionNoFirmada, error) {
 	if strings.TrimSpace(ref.DigestMethod.Parameters) != "" {
-		return false, "manifest_digest_con_parametros", nil
+		return false, "manifest_digest_con_parametros", nil, nil
 	}
-	for _, transform := range ref.Transforms {
+	for indice, transform := range ref.Transforms {
 		algorithm := strings.TrimSpace(transform.Algorithm)
 		if algorithm == algRelationshipTransform {
-			// La transformación de relaciones de OPC no está implementada:
-			// la parte .rels referenciada queda sin comprobar. Si falta del
-			// contenedor, es una alteración.
-			if resolver != nil {
-				if _, err := resolver(strings.TrimSpace(ref.URI)); err != nil {
-					return false, "", err
-				}
+			if indice != 0 {
+				// Solo se sabe aplicar sobre la parte .rels tal cual.
+				return false, "manifest_relationship_transform", nil, nil
 			}
-			return false, "manifest_relationship_transform", nil
+			return verificarReferenciaRelaciones(ref, resolver)
 		}
 		if strings.TrimSpace(transform.Parameters) != "" && !esXPathExcluirFirmas(transform) {
-			return false, "manifest_transformacion_con_parametros", nil
+			return false, "manifest_transformacion_con_parametros", nil, nil
 		}
 		switch algorithm {
 		case algEnveloped, algExcC14N, algC14N, algBase64Transform, algXPathFilter:
 		default:
-			return false, "manifest_transformacion_no_soportada", nil
+			return false, "manifest_transformacion_no_soportada", nil, nil
 		}
 	}
 	uri := strings.TrimSpace(ref.URI)
@@ -564,29 +707,38 @@ func verificarReferenciaManifiesto(context xmlSignatureContext, ref referenceFor
 	case externa && resolver != nil:
 		// Dentro de un contenedor, una parte que falta es una alteración.
 		if target, err = resolver(uri); err != nil {
-			return false, "", err
+			return false, "", nil, err
 		}
 	case externa:
 		if target, err = resolveDetachedContent(context.document, uri); err != nil {
-			return false, "manifest_referencia_externa", nil
+			return false, "manifest_referencia_externa", nil, nil
 		}
 	default:
 		if target, err = resolveReferenceTarget(context.document, uri, nil); err != nil {
-			return false, "", err
+			return false, "", nil, err
 		}
 	}
 	expected, err := decodificarResumen(ref.DigestValue)
 	if err != nil {
-		return false, "", err
+		return false, "", nil, err
 	}
 	declared, err := declaredReferenceDigest(context, ref, target)
 	if err != nil {
-		return false, "manifest_procedimiento_no_soportado", nil
+		return false, "manifest_procedimiento_no_soportado", nil, nil
 	}
 	if !equalBytes(declared, expected) {
-		return false, "", errors.New("el resumen no coincide")
+		return false, "", nil, errors.New("el resumen no coincide")
 	}
-	return true, "", nil
+	return true, "", nil, nil
+}
+
+func usaTransformacionRelaciones(ref referenceForVerify) bool {
+	for _, transform := range ref.Transforms {
+		if strings.TrimSpace(transform.Algorithm) == algRelationshipTransform {
+			return true
+		}
+	}
+	return false
 }
 
 func decodificarResumen(value string) ([]byte, error) {

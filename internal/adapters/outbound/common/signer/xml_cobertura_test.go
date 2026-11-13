@@ -189,6 +189,13 @@ type parteOOXML struct {
 	nombre, contentType string
 	datos               []byte
 	relationship        bool // transformación de relaciones de OPC, como Office
+	// fuentes son los SourceId de la transformación (rId1 si no se dan) y
+	// paramsRelaciones, si no está vacío, sustituye a los hijos del Transform.
+	fuentes          []string
+	paramsRelaciones string
+	// sinFirmar deja la parte en el paquete pero fuera del Manifest, como
+	// hace Office con docProps.
+	sinFirmar bool
 }
 
 func partesDocx() []parteOOXML {
@@ -209,10 +216,28 @@ func firmaOfficeManifest(t *testing.T, key crypto.Signer, cert *x509.Certificate
 	t.Helper()
 	var manifest strings.Builder
 	for _, parte := range partes {
+		if parte.sinFirmar {
+			continue
+		}
 		suma := sha256.Sum256(parte.datos)
 		transforms := `<Transform Algorithm="` + algC14N + `"/>`
 		if parte.relationship {
-			transforms = `<Transform Algorithm="` + algRelationshipTransform + `"><mdssi:RelationshipReference xmlns:mdssi="http://schemas.openxmlformats.org/package/2006/digital-signature" SourceId="rId1"/></Transform>` + transforms
+			fuentes := parte.fuentes
+			if len(fuentes) == 0 {
+				fuentes = []string{"rId1"}
+			}
+			params := parte.paramsRelaciones
+			sel := seleccionRelaciones{ids: map[string]bool{}, tipos: map[string]bool{}}
+			for _, fuente := range fuentes {
+				sel.ids[fuente] = true
+				if parte.paramsRelaciones == "" {
+					params += `<mdssi:RelationshipReference xmlns:mdssi="http://schemas.openxmlformats.org/package/2006/digital-signature" SourceId="` + fuente + `"/>`
+				}
+			}
+			transforms = `<Transform Algorithm="` + algRelationshipTransform + `">` + params + `</Transform>` + transforms
+			if transformado, _, err := transformarRelaciones(parte.datos, sel, algC14N); err == nil {
+				suma = sha256.Sum256(transformado)
+			}
 		}
 		fmt.Fprintf(&manifest, `<Reference URI="/%s?ContentType=%s"><Transforms>%s</Transforms><DigestMethod Algorithm="%s"/><DigestValue>%s</DigestValue></Reference>`,
 			parte.nombre, parte.contentType, transforms, algSHA256, base64.StdEncoding.EncodeToString(suma[:]))
@@ -293,12 +318,14 @@ func TestOOXMLVerifier_ManifestDeOffice(t *testing.T) {
 	noValido(t, vr, err, "docx sin una parte firmada")
 }
 
-// Office firma las partes .rels con la transformación de relaciones de OPC,
-// que no está implementada: esa firma queda «no comprobada», nunca válida.
-func TestOOXMLVerifier_ManifestConRelationshipTransformNoEsValido(t *testing.T) {
+// Office firma las partes .rels con la transformación de relaciones de OPC.
+// Si la transformación trae hijos que no se saben aplicar, la parte .rels
+// queda «no comprobada» y la firma nunca sale válida.
+func TestOOXMLVerifier_ManifestConRelationshipTransformDesconocidaNoEsValido(t *testing.T) {
 	key, cert := certForTest(t, "Office Relationship")
 	partes := partesDocx()
 	partes[0].relationship = true
+	partes[0].paramsRelaciones = `<mdssi:OtraCosa xmlns:mdssi="http://schemas.openxmlformats.org/package/2006/digital-signature" SourceId="rId1"/>`
 	firma := firmaOfficeManifest(t, key, cert, partes)
 	vr, firmantes, err := NewOOXMLVerifier().Verify(context.Background(), domain.Document{Name: "f.docx", Content: docxConFirma(t, partes, firma, nil)}, domain.CertificateChain{})
 	if err != nil {
