@@ -74,4 +74,15 @@ for (const variant of ['chromium', 'firefox']) {
     assert.equal(h.sent[0].pendingDocument, null);
     assert.equal(h.notice.textContent, 'pdfPreloadUnavailable');
   });
+
+  test(`${variant}: el icono del botón es el único recurso web accesible y solo en los portales de fábrica`, async () => {
+    const manifest = JSON.parse(await readFile(path.join(root, variant, 'manifest.json'), 'utf8'));
+    assert.deepEqual(manifest.web_accessible_resources, [{
+      resources: ['icons/icon48.png'],
+      matches: ['https://*.dipgra.es/*', 'https://*.savia.net/*']
+    }]);
+    const h = await detector(variant, async () => { throw new Error('sin red'); });
+    const icon = h.button.children.find((node) => node.tagName === 'img');
+    assert.equal(icon.src, 'moz-extension://test/icons/icon48.png');
+  });
 }
