@@ -47,15 +47,16 @@ func (uc *AuditUseCase) Registrar(ctx context.Context, cmd AuditCommand) error {
 	}
 
 	registro := AuditRecord{
-		Timestamp:     ahora,
-		OperationType: cmd.OperationType,
-		Origin:        sanitizarOrigen(cmd.Origin),
-		DocumentName:  sanitizarNombre(cmd.DocumentName),
-		DocumentHash:  calcularHashDocumento(cmd.DocumentData, cmd.DocumentHash),
-		Format:        sanitizarFormato(cmd.Format),
-		Success:       cmd.Success,
-		Result:        resultadoAudit(cmd.Success),
-		ErrorSummary:  sanitizarResumenError(cmd.ErrorSummary),
+		Timestamp:      ahora,
+		OperationType:  cmd.OperationType,
+		Origin:         sanitizarOrigen(cmd.Origin),
+		DocumentName:   sanitizarNombre(cmd.DocumentName),
+		DocumentHash:   calcularHashDocumento(cmd.DocumentData, cmd.DocumentHash),
+		Format:         sanitizarFormato(cmd.Format),
+		Success:        cmd.Success,
+		Result:         resultadoAudit(cmd.Success),
+		ErrorSummary:   sanitizarResumenError(cmd.ErrorSummary),
+		Compatibilidad: sanitizarCompatibilidad(cmd.Compatibilidad),
 	}
 
 	if cmd.CertificateFingerprint != "" {
@@ -94,6 +95,22 @@ func sanitizarNombre(nombre string) string {
 // No debe contener rutas de sistema, stacktraces ni datos de payload.
 func sanitizarResumenError(resumen string) string {
 	return truncarYLimpiar(resumen, 500)
+}
+
+// sanitizarCompatibilidad acota los códigos de compatibilidad: son pocos y
+// cortos, y nunca llevan datos del documento.
+func sanitizarCompatibilidad(codigos []string) []string {
+	const maxCodigos, maxLen = 8, 96
+	var out []string
+	for _, codigo := range codigos {
+		if len(out) == maxCodigos {
+			break
+		}
+		if limpio := truncarYLimpiar(codigo, maxLen); limpio != "" {
+			out = append(out, limpio)
+		}
+	}
+	return out
 }
 
 func sanitizarFormato(formato string) string {

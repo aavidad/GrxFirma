@@ -141,4 +141,9 @@ type UnprotectedPayload struct {
 	Document    Document
 	Profile     ProtectionProfile
 	RecipientID string
+	// Avisos son textos para la persona (claves de los catálogos) cuando el
+	// contenedor se abre por compatibilidad con algo que hoy no se escribiría.
+	Avisos []string
+	// Detalles son los códigos de esa compatibilidad para la auditoría.
+	Detalles []string
 }

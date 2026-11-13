@@ -670,9 +670,19 @@ Operaciones útiles:
   sobre: quita carpetas y caracteres de control y, si la extensión no es de
   documento (`pdf`, `xml`, `docx`, `odt`, `txt`, imágenes, firmas…), la cambia
   por `.bin`. Un tipo MIME que no es válido pasa a `application/octet-stream`
-- los `.afp` se escriben en la versión 2 del sobre, que liga el nombre y el
-  tipo MIME al cifrado sin ambigüedad. GrxFirma sigue abriendo los de versión
-  1, pero las versiones anteriores de GrxFirma no abren los de versión 2
+- los `.afp` se escriben en la versión 1 del sobre, la que abren también las
+  versiones anteriores de GrxFirma. Antes de cifrar se quitan los saltos de
+  línea del nombre (y un tipo MIME con saltos de línea pasa a
+  `application/octet-stream`), así que el nombre y el tipo quedan ligados al
+  cifrado sin ambigüedad
+- la versión 2 del sobre (cada campo con su longitud) se pide con
+  `-contenedor-proteccion json-v2`. Las versiones anteriores de GrxFirma no la
+  abren; usarla solo si todos los destinatarios tienen esta versión o una
+  posterior. GrxFirma abre las dos
+- si un `.afp` de versión 1 trae saltos de línea en el nombre o en el tipo
+  (lo hizo una versión anterior o alguien lo ha manipulado), se abre con el
+  nombre saneado, se avisa de que el nombre y el tipo pudieron cambiarse y la
+  auditoría lo anota como `afp_v1_aad_ambigua` en `compatibilidad`
 
 Estado del frente CMS heredado de 1.9:
 - operativo hoy: `EnvelopedData`, `EncryptedData`, `SignedAndEnvelopedData` y

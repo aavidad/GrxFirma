@@ -310,4 +310,9 @@ type AuditCommand struct {
 	// ErrorSummary es un resumen sanitizado del error, si hubo alguno.
 	// Nunca debe contener payloads, valor-pruebas ni material criptografico.
 	ErrorSummary string
+
+	// Compatibilidad lista los códigos de lo que se aceptó solo por
+	// compatibilidad con versiones anteriores (algoritmos o formatos que hoy
+	// no se escribirían).
+	Compatibilidad []string
 }

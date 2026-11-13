@@ -45,6 +45,10 @@ const (
 	maxCMSPrivateKeyPKCS8Bytes   = 1 << 20
 )
 
+// protectionContainerJSONV2 pide un .afp v2 (AAD con longitudes), que las
+// versiones anteriores de GrxFirma no abren.
+const protectionContainerJSONV2 = "jsonv2"
+
 type cmsContentType string
 
 const (
@@ -275,7 +279,7 @@ func requestedCMSContentType(options map[string]string) (cmsContentType, error) 
 	}
 	raw := normalizeProtectionContainerToken(options[protectionContainerOptionKey])
 	switch raw {
-	case "", protectionContainerJSON:
+	case "", protectionContainerJSON, protectionContainerJSONV2:
 		return cmsContentTypeNone, nil
 	case protectionContainerCMS, "cmsenveloped", "cmsenvelopeddata", "enveloped", "envelopeddata":
 		return cmsContentTypeEnvelopedData, nil

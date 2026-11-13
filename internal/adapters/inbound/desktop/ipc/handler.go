@@ -1594,6 +1594,7 @@ func (m *Manejador) handleUnprotect(ctx context.Context, raw json.RawMessage) re
 		RecipientID:  result.Unprotected.RecipientID,
 		DocumentName: result.Unprotected.Document.Name,
 		MIMEType:     result.Unprotected.Document.MIMEType,
+		Warnings:     append([]string(nil), result.Unprotected.Avisos...),
 	}
 	if params.ReturnUnprotectedB64 || !saveToDisk {
 		resp.UnprotectedContentB64 = base64.StdEncoding.EncodeToString(result.Unprotected.Document.Content)
