@@ -322,12 +322,9 @@ func construirServicios(rutaP12, password, rutaCert, rutaClave string) (*servici
 	if override := os.Getenv("GRXFIRMA_PKCS12_DIR"); override != "" {
 		p12Dir = override
 	}
-	p12Password := password
-	if compatible, present := os.LookupEnv("GRXFIRMA_PKCS12_PASSWORD"); present {
-		p12Password = compatible
-	}
-
-	catalogo, claves, err := construirFuentesCertificados(ctx, rutaP12, password, rutaCert, rutaClave, p12Dir, p12Password, metricas)
+	// main ya retiró GRXFIRMA_PKCS12_PASSWORD del entorno y la transfiere al
+	// adaptador CLI; aquí no queda nada que leer (H-04).
+	catalogo, claves, err := construirFuentesCertificados(ctx, rutaP12, password, rutaCert, rutaClave, p12Dir, password, metricas)
 	if err != nil {
 		return nil, err
 	}

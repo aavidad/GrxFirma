@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"grxfirma/internal/adapters/inbound/common/secretinput"
 	"grxfirma/internal/domain"
 )
 
@@ -102,6 +103,19 @@ func TestFiltrarSecretosEntornoHijo(t *testing.T) {
 	})
 	if len(got) != 2 || got[0] != "PATH=/usr/bin" || got[1] != "LANG=es_ES.UTF-8" {
 		t.Fatalf("entorno filtrado inesperado: %#v", got)
+	}
+}
+
+// H-04: ningún secreto de entorno que consume GrxFirma llega a grxfirma-gui,
+// incluida la contraseña de un PDF cifrado, con el nombre en cualquier caja.
+func TestFiltrarSecretosEntornoHijoIncluyePDF(t *testing.T) {
+	entrada := []string{"PATH=/usr/bin", "GRXFIRMA_PDF_PASSWORD=x", "grxfirma_pdf_password=x", "AUTOFIRMAV2_REST_TOKEN=x"}
+	for _, nombre := range secretinput.NombresEntornoSecretos() {
+		entrada = append(entrada, nombre+"=x")
+	}
+	got := filtrarSecretosEntornoHijo(entrada)
+	if len(got) != 1 || got[0] != "PATH=/usr/bin" {
+		t.Fatalf("secretos que llegan al proceso hijo: %#v", got)
 	}
 }
 

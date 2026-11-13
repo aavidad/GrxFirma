@@ -11,6 +11,30 @@ import (
 	"testing"
 )
 
+// H-04: la lista común incluye todos los secretos que se aceptan por entorno.
+func TestNombresEntornoSecretos(t *testing.T) {
+	nombres := NombresEntornoSecretos()
+	for _, want := range []string{
+		"GRXFIRMA_PKCS12_PASSWORD",
+		"GRXFIRMA_REST_TOKEN",
+		"AUTOFIRMAV2_REST_TOKEN",
+		"GRXFIRMA_PROTECTION_SECRET_B64",
+		"GRXFIRMA_PDF_PASSWORD",
+	} {
+		found := false
+		for _, nombre := range nombres {
+			found = found || nombre == want
+		}
+		if !found {
+			t.Errorf("falta %s en NombresEntornoSecretos()", want)
+		}
+	}
+	nombres[0] = "otro"
+	if NombresEntornoSecretos()[0] == "otro" {
+		t.Fatal("NombresEntornoSecretos() devuelve la lista compartida, no una copia")
+	}
+}
+
 func TestRejectArgv_BloqueaValoresSecretos(t *testing.T) {
 	for _, args := range [][]string{
 		{"-password", "secreto"},
