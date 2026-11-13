@@ -428,6 +428,7 @@ func (h *legacyWebSocketHandler) handleSign(ctx context.Context, solicitud afirm
 
 	setProtocolPhase("sign_execute", tl("Procesando firma..."), tl("La firma se está generando con el certificado seleccionado"))
 	slog.Info("legacy_handle_sign_execute", "format", cmd.Format, "action", cmd.Action)
+	cmd.RequesterOrigin = solicitudResuelta.OrigenSolicitante
 	resultado, err := h.signUC.Execute(ctx, cmd)
 	if err != nil {
 		probe.Stop("sign_execute_error", "certificate_id", cert.ID, "error", err)
@@ -470,7 +471,10 @@ func (h *legacyWebSocketHandler) firmarTrifasicoServidor(ctx context.Context, cm
 	if h.approval == nil {
 		return "", errors.New("aprobador de firma no configurado")
 	}
-	aprobado, err := h.approval.Request(ctx, application.MensajeAprobacionFirma(cmd, cert))
+	detalle := application.DetalleAprobacionFirma(cmd, cert.Subject)
+	detalle.Origen = solicitud.OrigenSolicitante
+	detalle.Destinos = append([]string{servidor}, destinosSolicitud(solicitud)...)
+	aprobado, err := h.approval.Request(ctx, componerAprobacionProtocolo(detalle))
 	if err != nil {
 		if isLegacyCancellation(err) {
 			return "CANCEL", nil
@@ -531,7 +535,7 @@ func (h *legacyWebSocketHandler) handleSelectCert(ctx context.Context, solicitud
 
 func (h *legacyWebSocketHandler) handleBatch(ctx context.Context, solicitud afirmauri.Solicitud) (string, error) {
 	if solicitud.RemoteBatch != nil {
-		return h.handleRemoteBatch(ctx, *solicitud.RemoteBatch)
+		return h.handleRemoteBatchDeSolicitud(ctx, *solicitud.RemoteBatch, solicitud)
 	}
 	if solicitud.BatchCommand != nil {
 		meta, err := h.resolveBatchMetadataFromLegacyParams(solicitud)
@@ -552,12 +556,19 @@ func (h *legacyWebSocketHandler) handleBatch(ctx context.Context, solicitud afir
 	if err != nil {
 		return "", err
 	}
-	remote, cmd, _, err := afirmauri.ResolveRetrievedBatch(raw, solicitud.Sesion)
+	remote, cmd, origenes, err := afirmauri.ResolveRetrievedBatch(raw, solicitud.Sesion)
 	if err != nil {
 		return "", err
 	}
+	// A-03: el lote recuperado puede fijar pre, post y servlets; pasan por el
+	// mismo formato y la misma política que en el camino directo.
+	for _, origen := range origenes {
+		if err := h.retrieve.ValidarDestino(ctx, origen); err != nil {
+			return "", fmt.Errorf("validación de origen del lote recuperado fallida: %w", err)
+		}
+	}
 	if remote != nil {
-		return h.handleRemoteBatch(ctx, *remote)
+		return h.handleRemoteBatchDeSolicitud(ctx, *remote, solicitud)
 	}
 	if cmd == nil {
 		return "", fmt.Errorf("lote recuperado sin comando procesable")
@@ -1005,13 +1016,13 @@ func (h *legacyWebSocketHandler) handleSave(ctx context.Context, solicitud afirm
 		return "CANCEL"
 	}
 	targetPath, ok := resolveUserChosenWritablePath(selectedPath)
-	if ok && destinoEjecutable(targetPath) {
-		return "SAF_05: Tipo de fichero no permitido por seguridad"
-	}
 	if !ok {
 		return "SAF_05: Ruta fuera del ámbito permitido"
 	}
-	savedPath, err := writeLegacySavedFile(targetPath, data)
+	if resp := h.autorizarDestinoGuardado(ctx, targetPath); resp != "" {
+		return resp
+	}
+	savedPath, err := writeLegacySavedFile(targetPath, data, solicitud.OrigenSolicitante)
 	if err != nil {
 		return "SAF_05: No se pudo guardar el fichero"
 	}
@@ -1025,13 +1036,25 @@ func (h *legacyWebSocketHandler) handleSave(ctx context.Context, solicitud afirm
 }
 
 func (h *legacyWebSocketHandler) handleRemoteBatch(ctx context.Context, req afirmauri.RemoteBatchCommand) (string, error) {
+	return h.handleRemoteBatchDeSolicitud(ctx, req, afirmauri.Solicitud{LegacyParams: req.LegacyParams})
+}
+
+// handleRemoteBatchDeSolicitud firma un lote remoto. El selector recibe los
+// orígenes y los filtros de la solicitud, y la aprobación dice cuántas firmas
+// salen, quién lo pide y qué servidores de pre y postfirma intervienen.
+func (h *legacyWebSocketHandler) handleRemoteBatchDeSolicitud(ctx context.Context, req afirmauri.RemoteBatchCommand, solicitud afirmauri.Solicitud) (string, error) {
 	if h.batchRemote == nil {
 		return "", fmt.Errorf("ejecutor batch remoto no configurado")
 	}
 	if h.keys == nil {
 		return "", fmt.Errorf("proveedor de claves no configurado")
 	}
-	ref, _, err := h.selectCertificate(ctx, afirmauri.Solicitud{LegacyParams: req.LegacyParams})
+	seleccion := solicitud
+	seleccion.Operacion = afirmauri.OperacionLote
+	if seleccion.LegacyParams == nil {
+		seleccion.LegacyParams = req.LegacyParams
+	}
+	ref, _, err := h.selectCertificate(ctx, seleccion)
 	if err != nil {
 		if isLegacyCancellation(err) {
 			return "CANCEL", nil
@@ -1041,8 +1064,17 @@ func (h *legacyWebSocketHandler) handleRemoteBatch(ctx context.Context, req afir
 	if h.approval == nil {
 		return "", errors.New("aprobador del lote remoto no configurado")
 	}
-	approved, err := h.approval.Request(ctx,
-		fmt.Sprintf("¿Desea procesar el lote remoto con el certificado '%s'?", ref.Subject))
+	detalle := application.DetalleAprobacion{
+		Operacion:   application.AprobacionLote,
+		Certificado: ref.Subject,
+		Origen:      solicitud.OrigenSolicitante,
+		Destinos:    append([]string{req.PreSignEndpoint, req.PostSignEndpoint}, req.Session.UploadEndpoint, req.Session.RetrieveEndpoint),
+	}
+	if meta, metaErr := afirmauri.ParseBatchMetadata(req.Payload); metaErr == nil {
+		detalle.Firmas = len(meta.IDs)
+		detalle.Documentos = meta.IDs
+	}
+	approved, err := h.approval.Request(ctx, componerAprobacionProtocolo(detalle))
 	if err != nil {
 		if isLegacyCancellation(err) {
 			return "CANCEL", nil
@@ -1078,6 +1110,18 @@ func (h *legacyWebSocketHandler) handleLocalBatch(ctx context.Context, cmd appli
 	// lotes recuperados de servidor que fueron materializados antes de obtener
 	// sus metadatos.
 	cmd.StopOnError = meta.StopOnError
+	cmd.RequesterOrigin = solicitud.OrigenSolicitante
+	// A-08: el lote local pasa por el selector como las demás firmas (filtros
+	// de la web y origen a la vista), aunque solo haya un certificado. El
+	// caso de uso firma con el elegido y no escoge por su cuenta.
+	ref, certDER, err := h.selectCertificate(ctx, solicitud)
+	if err != nil {
+		if isLegacyCancellation(err) {
+			return "CANCEL", nil
+		}
+		return "", err
+	}
+	cmd.CertificateID = ref.ID
 	resultado, err := h.batchUC.Execute(ctx, cmd)
 	if err != nil {
 		if isLegacyCancellation(err) {
@@ -1091,30 +1135,8 @@ func (h *legacyWebSocketHandler) handleLocalBatch(ctx context.Context, cmd appli
 		return "", err
 	}
 	needCert := parseLegacyBool(legacyQueryParam(solicitud.LegacyParams, "needcert", "needCert"))
-	var certDER []byte
-	if needCert {
-		if len(resultado.Results) > 0 {
-			key, err := h.keys.KeyFor(ctx, resultado.Results[0].CertificateUsed)
-			if err != nil {
-				ports.CloseSigningKey(key)
-				return "", err
-			}
-			defer ports.CloseSigningKey(key)
-			chain := key.CertificateChainDER()
-			if len(chain) > 0 {
-				certDER = append([]byte(nil), chain[0]...)
-			}
-		}
-		if len(certDER) == 0 {
-			_, der, err := h.selectCertificate(ctx, solicitud)
-			if err != nil {
-				if isLegacyCancellation(err) {
-					return "CANCEL", nil
-				}
-				return "", err
-			}
-			certDER = der
-		}
+	if !needCert {
+		certDER = nil
 	}
 	return encodeLegacyBatchResult(raw, certDER, needCert, solicitud.Sesion.SessionKey, solicitud.Sesion.RetrieveEndpoint, solicitud.Sesion.UploadEndpoint)
 }
@@ -1248,6 +1270,7 @@ func (h *legacyWebSocketHandler) handleSignAndSave(ctx context.Context, solicitu
 		return "", err
 	}
 	cmd.CertificateID = cert.ID
+	cmd.RequesterOrigin = solicitud.OrigenSolicitante
 
 	resultado, err := h.signUC.Execute(ctx, cmd)
 	if err != nil {
@@ -1277,13 +1300,13 @@ func (h *legacyWebSocketHandler) handleSignAndSave(ctx context.Context, solicitu
 		return "CANCEL", nil
 	}
 	targetPath, ok := resolveUserChosenWritablePath(selectedPath)
-	if ok && destinoEjecutable(targetPath) {
-		return "SAF_05: Tipo de fichero no permitido por seguridad", nil
-	}
 	if !ok {
 		return "SAF_05: Ruta fuera del ámbito permitido", nil
 	}
-	savedPath, err := writeLegacySavedFile(targetPath, resultado.Result.Data)
+	if resp := h.autorizarDestinoGuardado(ctx, targetPath); resp != "" {
+		return resp, nil
+	}
+	savedPath, err := writeLegacySavedFile(targetPath, resultado.Result.Data, solicitud.OrigenSolicitante)
 	if err != nil {
 		return "SAF_05: No se pudo guardar el fichero firmado", nil
 	}
@@ -1649,9 +1672,17 @@ func resolveLegacyWritablePath(rawPath string) (string, bool) {
 	return cleanPath, true
 }
 
-func writeLegacySavedFile(targetPath string, data []byte) (string, error) {
+// writeLegacySavedFile escribe datos que vienen de la web y, en Windows, les
+// pone la marca de descarga de Internet (A-09) para que SmartScreen y Office
+// los traten como tales.
+func writeLegacySavedFile(targetPath string, data []byte, origen string) (string, error) {
 	writer := desktopfilesystem.NuevoEscritorResultado(desktopfilesystem.PoliticaForzar)
-	return writer.Escribir(targetPath, data)
+	saved, err := writer.Escribir(targetPath, data)
+	if err != nil {
+		return saved, err
+	}
+	marcarDescargaWeb(saved, origen)
+	return saved, nil
 }
 
 // Las rutas que el usuario elige en el diálogo nativo son decisión suya, como
@@ -1686,32 +1717,6 @@ func resolveUserChosenWritablePath(rawPath string) (string, bool) {
 	// No se resuelven enlaces simbólicos del directorio: el escritor rechaza
 	// seguirlos, igual que antes.
 	return cleanPath, true
-}
-
-// extensionesEjecutables son tipos que Windows (o el escritorio en Linux)
-// ejecuta o interpreta al abrirlos. Una web no debe poder dejar uno en disco
-// a través de GrxFirma aunque el usuario pulse "Guardar" sin fijarse.
-var extensionesEjecutables = map[string]bool{
-	".exe": true, ".com": true, ".bat": true, ".cmd": true, ".scr": true, ".pif": true,
-	".msi": true, ".msp": true, ".msc": true, ".lnk": true, ".url": true, ".ps1": true,
-	".psm1": true, ".vbs": true, ".vbe": true, ".js": true, ".jse": true, ".wsf": true,
-	".wsh": true, ".hta": true, ".cpl": true, ".dll": true, ".jar": true, ".reg": true,
-	".scf": true, ".inf": true, ".appref-ms": true, ".application": true,
-	".settingcontent-ms": true, ".gadget": true, ".sh": true, ".desktop": true,
-}
-
-// destinoEjecutable rechaza guardar datos de la web con una extensión
-// ejecutable y lo explica al usuario.
-func destinoEjecutable(path string) bool {
-	ext := strings.ToLower(filepath.Ext(strings.TrimRight(path, ". ")))
-	if !extensionesEjecutables[ext] {
-		return false
-	}
-	avisos.Registrar(
-		"Guardado bloqueado por seguridad",
-		"la web intentó guardar un fichero de tipo "+ext+", que el sistema podría ejecutar; GrxFirma nunca guarda ficheros ejecutables. Guarda la firma con su extensión habitual (.csig, .xsig, .pdf...)",
-	)
-	return true
 }
 
 func cleanUserChosenPath(rawPath string) (string, bool) {

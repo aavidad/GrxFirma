@@ -117,6 +117,11 @@ type ProcessBatchCommand struct {
 
 	// Session es la sesion de intercambio remoto para subir y recuperar resultados.
 	Session domain.ExchangeSession
+
+	// RequesterOrigin y RequesterApplication identifican a quien pide el lote,
+	// igual que en SignCommand; solo se usan en el texto de aprobación.
+	RequesterOrigin      string
+	RequesterApplication string
 }
 
 // UploadResultCommand representa la solicitud de subida de un resultado al servidor remoto.

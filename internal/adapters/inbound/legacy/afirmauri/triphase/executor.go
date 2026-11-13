@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -48,6 +49,29 @@ type Executor struct {
 	httpClient         *http.Client
 	fallbackHTTPClient *http.Client
 	limits             limits.Limits
+	validarDestino     ValidadorDestino
+}
+
+// ValidadorDestino decide si un origen (esquema://host[:puerto]) puede recibir
+// datos o decidir qué firma la clave. Lo habitual es originvalidator.Validate.
+type ValidadorDestino func(ctx context.Context, origen string) error
+
+// ValidarDestino aplica el validador configurado a un origen. Sin validador
+// falla cerrado.
+func (e *Executor) ValidarDestino(ctx context.Context, origen string) error {
+	if e == nil || e.validarDestino == nil {
+		return errors.New("no se puede comprobar si el destino está autorizado")
+	}
+	return e.validarDestino(ctx, origen)
+}
+
+// ConValidadorDestino fija el validador que se aplica en el punto de uso a los
+// destinos que no llegan ya validados por el parser (servidor trifásico).
+func (e *Executor) ConValidadorDestino(validar ValidadorDestino) *Executor {
+	if e != nil {
+		e.validarDestino = validar
+	}
+	return e
 }
 
 // ContextWithSigningKey fija en el contexto la clave de firma que debe usar el
@@ -73,6 +97,12 @@ func New(httpClient *http.Client) *Executor {
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: time.Duration(limits.Default().HTTPTimeoutSec) * time.Second}
 	}
+	// A-04: el origen validado es el del endpoint; una redirección a otro
+	// origen o a http fuera de loopback no se sigue. freshHTTPClient y los
+	// clones heredan la política porque copian el http.Client.
+	conPolitica := *httpClient
+	conPolitica.CheckRedirect = politicaRedireccionTrifasica(httpClient.CheckRedirect)
+	httpClient = &conPolitica
 	legacyClient := legacyCompatHTTPClient(httpClient)
 	fallbackClient := http2CapableHTTPClient(httpClient)
 	return &Executor{
@@ -80,6 +110,56 @@ func New(httpClient *http.Client) *Executor {
 		fallbackHTTPClient: fallbackClient,
 		limits:             limits.Default(),
 	}
+}
+
+// maxRedireccionesTrifasicas limita los saltos dentro del mismo origen.
+const maxRedireccionesTrifasicas = 5
+
+// politicaRedireccionTrifasica solo sigue redirecciones al mismo origen
+// (esquema, host y puerto), en https o en http de loopback, y como mucho
+// maxRedireccionesTrifasicas.
+func politicaRedireccionTrifasica(previa func(*http.Request, []*http.Request) error) func(*http.Request, []*http.Request) error {
+	return func(req *http.Request, via []*http.Request) error {
+		if len(via) >= maxRedireccionesTrifasicas {
+			return errors.New("redirección rechazada: demasiados saltos")
+		}
+		if len(via) > 0 && !mismoOrigenHTTP(via[0].URL, req.URL) {
+			return fmt.Errorf("redirección a otro origen rechazada: %s", req.URL.Scheme+"://"+req.URL.Host)
+		}
+		esquema := strings.ToLower(req.URL.Scheme)
+		if esquema != "https" && !(esquema == "http" && hostLoopback(req.URL.Hostname())) {
+			return errors.New("redirección rechazada: solo se admite HTTPS (o HTTP en loopback)")
+		}
+		if previa != nil {
+			return previa(req, via)
+		}
+		return nil
+	}
+}
+
+func mismoOrigenHTTP(a, b *url.URL) bool {
+	if a == nil || b == nil {
+		return false
+	}
+	return strings.EqualFold(a.Scheme, b.Scheme) && strings.EqualFold(a.Hostname(), b.Hostname()) && puertoEfectivo(a) == puertoEfectivo(b)
+}
+
+func puertoEfectivo(u *url.URL) string {
+	if p := u.Port(); p != "" {
+		return p
+	}
+	if strings.EqualFold(u.Scheme, "http") {
+		return "80"
+	}
+	return "443"
+}
+
+func hostLoopback(host string) bool {
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }
 
 func legacyCompatHTTPClient(client *http.Client) *http.Client {

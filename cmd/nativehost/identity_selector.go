@@ -111,7 +111,9 @@ func sanitizarTextoSelector(valor string, maximo int) string {
 		if len(runas) >= maximo {
 			break
 		}
-		if unicode.IsControl(caracter) {
+		// C-02: también los caracteres de formato (Cf), como las marcas bidi,
+		// que permitirían girar o desplazar la línea del origen.
+		if unicode.IsControl(caracter) || unicode.Is(unicode.Cf, caracter) || unicode.In(caracter, unicode.Zl, unicode.Zp) {
 			runas = append(runas, ' ')
 			continue
 		}

@@ -105,12 +105,13 @@ Ejemplo:
 }
 ```
 
-`websocket_habilitado: false` deja apagado el servicio residente, pero permite
-que una sede abra un canal temporal con `afirma://`. Para desactivar también
-ese canal, use `websocket_permitido: false`. El valor por defecto es `true`
-para mantener la compatibilidad; una política de organización puede imponer
-`false` aunque el usuario habilite WebSocket. Las sedes que requieran
-AutoScript 1.9 por WebSocket dejarán de funcionar con el corte total.
+`websocket_habilitado: false` deja apagados el servicio residente y los
+canales temporales que una sede pide con `afirma://websocket` o
+`afirma://service`: no se abre ningún puerto. Las sedes que usan AutoScript por
+WebSocket necesitan `websocket_habilitado: true`. `websocket_permitido: false`
+es el corte de la organización: prevalece aunque el usuario habilite
+WebSocket. Con el canal activo, el lanzamiento y cada mensaje tienen que
+llevar el `idsession` de la sesión; si falta o no coincide, se cierra.
 
 ### Política de organización
 

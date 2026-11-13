@@ -83,7 +83,7 @@ Al activarlo, la app:
 |-----------|-----------|----------------------|
 | App en reposo | Puerto 8080-8089 abierto | Sin puertos |
 | App activa, usuario no firmando | Puerto 8080-8089 abierto | Sin puertos |
-| Firma via `afirma://` | Puerto + proceso efímero | Proceso efímero, sin puerto |
+| Firma via `afirma://` | Puerto + proceso efímero | Proceso efímero, sin puerto (`afirma://websocket` o `service` solo abren un puerto efímero ligado a `idsession` si `websocket_habilitado` está activo) |
 | Firma via extensión navegador | Puerto + Native Messaging | Solo Native Messaging |
 | Compatibilidad web antigua | Puerto siempre activo | Puerto opt-in, solo si el usuario lo activa |
 | Proceso malicioso en el equipo | Puede enviar solicitudes de firma | No puede, no hay puerto; el IPC de escritorio solo atiende al PID del frontend que lanzó el backend (ADR-005) |
@@ -96,7 +96,12 @@ Al activarlo, la app:
 
 La tarea T063 implementa el servidor WebSocket, pero con estas restricciones:
 
-- Arranca **solo** si `websocket_habilitado: true` en la configuración.
+- Arranca **solo** si `websocket_habilitado: true` en la configuración. Esto
+  vale también para los canales temporales que pide una web con
+  `afirma://websocket` o `afirma://service`: con `websocket_habilitado: false`
+  (o `websocket_permitido: false` por política) no se abre ningún puerto.
+- El canal temporal exige `idsession` en el lanzamiento y en cada mensaje; un
+  mensaje sin él o con otro valor cierra la conexión.
 - Si arranca, registra el evento en auditoría.
 - Muestra aviso en la GUI cuando está activo (icono o indicador visible).
 - Se detiene cuando la ventana principal se cierra (no como demonio de fondo).

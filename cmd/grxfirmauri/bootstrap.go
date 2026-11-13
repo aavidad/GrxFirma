@@ -202,7 +202,7 @@ func construirRuntimeAfirmaURIConDependencias(
 	clienteHTTP := construirClienteHTTPRuntimeSeguro(configDir)
 	motor := construirMotorFirma(configDir, clienteHTTP)
 	slog.Info("grxfirma_afirmauri_runtime_http_signer_ready", "elapsed_ms", time.Since(httpStart).Milliseconds())
-	ejecutor := triphase.New(clienteHTTP)
+	ejecutor := triphase.New(clienteHTTP).ConValidadorDestino(originvalidator.New(politica).Validate)
 	lote := triphase.NewBatch(ejecutor)
 	crearOrquestador := func(preferencias preferenceStore) *session.Orchestrator {
 		return session.New(session.Config{
@@ -220,6 +220,7 @@ func construirRuntimeAfirmaURIConDependencias(
 			Eventos:                             nil,
 			RequireExplicitCertificateSelection: nativeProtocolUIEnabled() || tokenruntime.EnabledInBuild(),
 			Timeout:                             5 * time.Minute,
+			ComponerAprobacion:                  componerAprobacionProtocolo,
 		})
 	}
 	preferencias := certselectionstore.New(configDir)
@@ -241,6 +242,16 @@ func construirRuntimeAfirmaURIConDependencias(
 	}
 	slog.Info("grxfirma_afirmauri_runtime_ready", "elapsed_ms", time.Since(start).Milliseconds())
 	return runtime, nil
+}
+
+// validadorDestinoRuntime aplica a los destinos del canal socket el mismo
+// formato y la misma política que el camino directo. Sin política devuelve
+// nil y el ejecutor falla cerrado.
+func validadorDestinoRuntime(r *runtimeAfirmaURI) triphase.ValidadorDestino {
+	if r == nil || r.trustPolicy == nil {
+		return nil
+	}
+	return originvalidator.New(r.trustPolicy).Validate
 }
 
 func (r *runtimeAfirmaURI) orquestadorPara(solicitud afirmauri.Solicitud) *session.Orchestrator {

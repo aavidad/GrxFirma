@@ -233,6 +233,7 @@ func runConDependencias(
 	manejarSolicitud manejadorSolicitudProtocolo,
 ) int {
 	_ = os.Setenv("SYSLOG_IDENTIFIER", "grxfirma-afirmauri")
+	configurarRegistroPorDefecto(os.Stderr)
 	setProtocolLocalizer(defaultProtocolConfigDir())
 	setStartupTLSTrustNotice("")
 
@@ -448,7 +449,9 @@ func handleProtocolRequestWithGraceConDependencias(
 	p12Password := os.Getenv("GRXFIRMA_PKCS12_PASSWORD")
 
 	if req, err := parseWebSocketLaunchURI(rawURI); err == nil {
-		if !cfg.PermiteWebSocket() {
+		// A-07: manda la configuración; sin websocket_habilitado no se abre
+		// el puerto aunque la web lo pida.
+		if !cfg.PermiteWebSocket() || !cfg.WebsocketHabilitado {
 			writeErrorToLog(logger, ctx, "websocket_policy", errors.New("WebSocket deshabilitado por configuración o política"))
 			return 1
 		}
@@ -457,6 +460,12 @@ func handleProtocolRequestWithGraceConDependencias(
 		return handleWebSocketLaunchRequest(ctx, logger, timer, probe, configDir, cfg, p12Dir, p12Password, exePath, req)
 	}
 	if req, err := parseServiceLaunchURI(rawURI); err == nil {
+		// A-07: el modo service también abre un puerto local; manda la misma
+		// configuración que en websocket.
+		if !cfg.PermiteWebSocket() || !cfg.WebsocketHabilitado {
+			writeErrorToLog(logger, ctx, "websocket_policy", errors.New("WebSocket deshabilitado por configuración o política"))
+			return 1
+		}
 		setProtocolPhase("channel_prepare", tl("Preparando servicio local..."), tl("Configurando el canal de compatibilidad"))
 		timer.Mark("launch_uri_parsed", "mode", "service", "session_id", maskSessionForLog(req.SessionID))
 		return handleServiceLaunchRequest(ctx, logger, timer, probe, configDir, cfg, p12Dir, p12Password, exePath, req)
@@ -481,10 +490,6 @@ func handleProtocolRequestWithGraceConDependencias(
 	}
 	if err := validateNativeProtocolOperation(solicitud.Operacion); err != nil {
 		writeErrorToLog(logger, ctx, "native_ui_operation_policy", err)
-		return 1
-	}
-	if err := solicitarAprobacionFirmaWeb(ctx, solicitud, approval); err != nil {
-		writeErrorToLog(logger, ctx, "aprobacion_firma_web", err)
 		return 1
 	}
 	timer.Mark("direct_uri_parsed", "operation", string(solicitud.Operacion))
@@ -515,7 +520,9 @@ func handleProtocolRequestWithGraceConDependencias(
 	)
 	logRuntimeProxyDiagnostic(ctx, logger, diagnosticarClienteHTTPRuntimeSeguro(configDir))
 
-	if err := runtime.orquestadorPara(solicitud).HandleRequest(ctx, solicitud); err != nil {
+	// La aprobación se pide dentro del orquestador, después de elegir
+	// certificado y con el detalle de qué se firma y adónde va (A-02).
+	if err := runtime.orquestadorPara(solicitud).HandleRequestConAprobacion(ctx, solicitud, approval); err != nil {
 		writeErrorToLog(logger, ctx, "handle_request", err)
 		return 1
 	}
@@ -541,30 +548,6 @@ func handleProtocolRequestWithGraceConDependencias(
 		time.Sleep(grace)
 	}
 	return 0
-}
-
-func solicitarAprobacionFirmaWeb(
-	ctx context.Context,
-	solicitud afirmauri.Solicitud,
-	approval ports.UserApproval,
-) error {
-	switch solicitud.Operacion {
-	case afirmauri.OperacionFirma, afirmauri.OperacionLote, afirmauri.OperacionSignSave:
-	default:
-		return nil
-	}
-	if approval == nil {
-		return errors.New("aprobador de firma web no configurado")
-	}
-	approved, err := approval.Request(ctx,
-		fmt.Sprintf("¿Desea continuar con la operación web de firma '%s'?", solicitud.Operacion))
-	if err != nil {
-		return fmt.Errorf("error al solicitar aprobación de la firma web: %w", err)
-	}
-	if !approved {
-		return errors.New("el usuario ha cancelado la operación web de firma")
-	}
-	return nil
 }
 
 func logRuntimeProxyDiagnostic(ctx context.Context, logger *slog.Logger, diag runtimeProxyDiagnostic) {
@@ -707,7 +690,6 @@ func handleWebSocketLaunchRequest(
 	defer cleanupControl()
 	timer.Mark("websocket_launch_control_ready")
 
-	cfg.WebsocketHabilitado = true
 	srv, err := legacyws.StartTLSServerOnPortsWithHooks(
 		serviceCtx,
 		cfg,
@@ -930,9 +912,14 @@ func parseWebSocketLaunchURI(uriString string) (*websocketLaunchRequest, error) 
 		}
 	}
 
+	// A-07: sin idsession no hay ligadura entre el lanzamiento y la conexión.
+	sessionID := firstQueryParam(params, "idsession", "idSession", "sessionid", "sessionId")
+	if sessionID == "" {
+		return nil, fmt.Errorf("falta id de sesion websocket")
+	}
 	return &websocketLaunchRequest{
 		Ports:     ports,
-		SessionID: firstQueryParam(params, "idsession", "idSession", "sessionid", "sessionId"),
+		SessionID: sessionID,
 		Version:   version,
 	}, nil
 }

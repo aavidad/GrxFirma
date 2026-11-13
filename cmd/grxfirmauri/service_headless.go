@@ -112,7 +112,7 @@ func construirServicioWebSocket(configDir, p12Dir, p12Password string) (*legacyw
 		approval,
 		auditor,
 		nil,
-	)
+	).WithComponedorAprobacion(componerAprobacionProtocolo)
 	if firmarDirecto == nil {
 		return nil, nil, errors.New("no se pudo construir el caso de uso de firma para WebSocket")
 	}
@@ -123,8 +123,8 @@ func construirServicioWebSocket(configDir, p12Dir, p12Password string) (*legacyw
 		approval,
 		auditor,
 		nil,
-	)
-	triphaseExec := triphase.New(runtime.clienteHTTP)
+	).WithComponedorAprobacion(componerAprobacionProtocolo)
+	triphaseExec := triphase.New(runtime.clienteHTTP).ConValidadorDestino(validadorDestinoRuntime(runtime))
 	legacyHandler := newLegacyWebSocketHandler(
 		firmarDirecto,
 		batchUC,

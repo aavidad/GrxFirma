@@ -65,6 +65,38 @@ Cada adaptador de entrada debe transformar los datos crudos del protocolo extern
 3. **Independencia de Mobile**: Mobile se integra mediante `gomobile bind` (ADR-001), tratando a Android e iOS como adaptadores nativos que implementan puertos Go.
 4. **Seguridad Centralizada**: La política de confianza y auditoría reside en `application`, no en los frontends. Los cinco binarios (`grxfirma`, `grxfirma-gui`, `nativehost`, `grxfirmauri` y el REST de `grxfirma`) componen `AuditUseCase` con el registrador real `auditlog.NewDefault()`; si guardar una evidencia falla, `AuditUseCase.Registrar` deja un aviso en el registro de diagnóstico y la operación sigue.
 
+### Consentimiento y destinos: lo que hoy hace cada adaptador
+
+El principio 4 todavía no se cumple del todo. `SignDocumentUseCase` y
+`ProcessBatchUseCase` piden aprobación al `ports.UserApproval` que inyecta cada
+binario, y la política de dominios de confianza la aplican los adaptadores
+(`afirmauri`, el WebSocket legacy y `nativehost`), no los casos de uso.
+
+- El texto de la aprobación lo compone un único componente,
+  `internal/adapters/inbound/common/aprobacion`, a partir de
+  `application.DetalleAprobacion`: operación, certificado, documento y tamaño,
+  formato, número de firmas, quién lo pide y servidores que recibirán el
+  documento o la firma. Neutraliza el texto externo (controles, marcas bidi,
+  saltos de línea) y sus frases están en los catálogos de idioma. Lo usan
+  `afirma://` directo (después del selector de certificado), el canal
+  WebSocket/service, los lotes y Native Messaging.
+- `grxfirma -rest`, la CLI y el escritorio Fyne de `grxfirma` inyectan una
+  aprobación automática: firman sin diálogo. Quien tenga el token Bearer del
+  REST (o un certificado cliente autorizado con `-rest-publico`) puede firmar
+  cualquier documento con cualquier certificado del usuario, incluidos los de
+  NSS, Windows, macOS y los tokens PKCS#11. El token equivale a poder usar
+  todas esas claves.
+- `save` y `signandsave` de `afirma://` guardan sin preguntar más solo firmas
+  y datos habituales (`.pdf .xml .csig .xsig .p7s .sig .txt .bin .json .zip
+  .asice .asics`). Los tipos que el sistema ejecuta, monta o abre con macros
+  (`.exe`, `.chm`, `.iso`, `.xll`, `.docm`...) se bloquean; cualquier otro pide
+  una confirmación explícita y, sin interfaz para pedirla, no se guarda. En
+  Windows el fichero lleva el flujo `Zone.Identifier` con `ZoneId=3` y el
+  origen de la web, para que SmartScreen y Office lo traten como descargado.
+- Pendiente: llevar al núcleo la invariante de `ExchangeSession` (HTTPS, sin
+  credenciales y mismo host en descarga y subida) y exigir un
+  `ports.TrustPolicy` en los casos de uso que reciben un origen remoto.
+
 ### Retención y builds de producción
 
 Los adaptadores de salida no pueden conservar diagnósticos de forma

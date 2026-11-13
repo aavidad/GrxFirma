@@ -76,6 +76,12 @@ func (v *Validator) Validate(ctx context.Context, origen string) error {
 	return nil
 }
 
+// ValidarFormato comprueba solo la forma del origen (https, o http en
+// loopback; sin credenciales, ruta ni consulta), sin consultar la política.
+func ValidarFormato(origen string) error {
+	return validarFormato(origen)
+}
+
 // validarFormato aplica todas las reglas de validación estricta de formato sobre el origen.
 func validarFormato(origen string) error {
 	if strings.TrimSpace(origen) == "" {

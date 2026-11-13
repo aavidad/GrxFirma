@@ -806,8 +806,10 @@ func serveLegacyWebSocket(ctx context.Context, adapter *Adaptador, hooks *Sessio
 		case 0x1:
 			message := string(frame.payload)
 			if hooks != nil && hooks.ExpectedSessionID != "" {
-				if got := extractLegacySessionID(message); got != "" &&
-					(len(got) != len(hooks.ExpectedSessionID) || subtle.ConstantTimeCompare([]byte(got), []byte(hooks.ExpectedSessionID)) != 1) {
+				// A-07: con sesión de lanzamiento, todo mensaje lleva el
+				// idsession correcto; si falta o no cuadra se cierra el canal.
+				if got := extractLegacySessionID(message); got == "" ||
+					len(got) != len(hooks.ExpectedSessionID) || subtle.ConstantTimeCompare([]byte(got), []byte(hooks.ExpectedSessionID)) != 1 {
 					trace.WarnContext(ctx, "websocket_session_mismatch")
 					return errors.New("websocket: sesión no coincide con el lanzamiento")
 				}

@@ -990,7 +990,10 @@ func TestLegacyWebSocketHandler_HandleLocalBatchCancelacionDevuelveCancel(t *tes
 	t.Parallel()
 
 	handler := &legacyWebSocketHandler{
-		batchUC: batchExecutorStub{err: errors.New("el usuario ha cancelado el procesado del lote")},
+		batchUC:  batchExecutorStub{err: errors.New("el usuario ha cancelado el procesado del lote")},
+		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{certLoteLocal("uno")}},
+		selector: &certSelectorContador{},
+		keys:     keyProviderStub{key: signingKeyStub{id: "uno", chain: [][]byte{[]byte("cert-der")}}},
 	}
 
 	cmd := application.ProcessBatchCommand{}
@@ -1014,7 +1017,10 @@ func TestLegacyWebSocketHandler_HandleLocalBatchErrorDevuelveSAF20(t *testing.T)
 	t.Parallel()
 
 	handler := &legacyWebSocketHandler{
-		batchUC: batchExecutorStub{err: errors.New("fallo interno del lote")},
+		batchUC:  batchExecutorStub{err: errors.New("fallo interno del lote")},
+		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{certLoteLocal("uno")}},
+		selector: &certSelectorContador{},
+		keys:     keyProviderStub{key: signingKeyStub{id: "uno", chain: [][]byte{[]byte("cert-der")}}},
 	}
 
 	resp, err := handler.handleLocalBatch(context.Background(), application.ProcessBatchCommand{}, afirmauri.Solicitud{
@@ -1042,6 +1048,9 @@ func TestLegacyWebSocketHandler_HandleLocalBatchPropagaStopYFirmaObservableV19(t
 				Errores: map[int]error{},
 			},
 		},
+		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{certLoteLocal("uno")}},
+		selector: &certSelectorContador{},
+		keys:     keyProviderStub{key: signingKeyStub{id: "uno", chain: [][]byte{[]byte("cert-der")}}},
 	}
 
 	resp, err := handler.handleLocalBatch(
@@ -1947,7 +1956,7 @@ func TestLegacyWebSocketHandler_FormatoTriUsaServidorTrifasico(t *testing.T) {
 		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{cert}},
 		selector: certSelectorStub{result: certpicker.ResultadoSeleccion{Certificado: cert}},
 		keys:     keyProviderStub{key: digestKeyStub{signingKeyStub{id: "c1", chain: [][]byte{[]byte("cert-der")}}}},
-		retrieve: triphase.New(srv.Client()),
+		retrieve: triphase.New(srv.Client()).ConValidadorDestino(func(context.Context, string) error { return nil }),
 		approval: aprobacion,
 	}
 	props := base64.StdEncoding.EncodeToString([]byte("serverUrl=" + srv.URL + "/SignatureService\n"))
