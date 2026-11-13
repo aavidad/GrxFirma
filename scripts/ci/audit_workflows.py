@@ -40,6 +40,42 @@ def step_lines(lines: list[str], uses_index: int) -> list[str]:
     return block
 
 
+# Flujos que firman o publican desde un tag. Ninguno puede restaurar caché de
+# Actions: la caché la comparten main y los tags, y una entrada envenenada
+# acabaría firmada con la identidad oficial (G-01).
+SIGNING_WORKFLOWS = frozenset({"release.yml", "msix.yml"})
+CACHE_FALSE_ACTIONS = {
+    "actions/setup-go@": re.compile(r"(?m)^\s+cache:\s*false\s*$"),
+    "jurplel/install-qt-action@": re.compile(r"(?m)^\s+cache:\s*false\s*$"),
+    "actions/setup-node@": re.compile(r"(?m)^\s+package-manager-cache:\s*false\s*$"),
+}
+
+
+def signing_cache_violations(relative: Path, lines: list[str]) -> list[str]:
+    """Return cache violations for workflows that sign or publish releases."""
+    if relative.name not in SIGNING_WORKFLOWS:
+        return []
+    violations: list[str] = []
+    for line_number, line in enumerate(lines, start=1):
+        if re.match(r"^\s*cache:\s*true\s*$", line):
+            violations.append(f"{relative}:{line_number}: cache: true is not allowed")
+        match = USES_RE.match(line)
+        if not match:
+            continue
+        reference = match.group(1)
+        if reference.startswith("actions/cache"):
+            violations.append(f"{relative}:{line_number}: actions/cache is not allowed")
+            continue
+        for prefix, required in CACHE_FALSE_ACTIONS.items():
+            if reference.startswith(prefix):
+                step = "\n".join(step_lines(lines, line_number - 1))
+                if not required.search(step):
+                    violations.append(
+                        f"{relative}:{line_number}: {prefix.rstrip('@')} must disable its cache"
+                    )
+    return violations
+
+
 def workflow_jobs(lines: list[str]) -> list[tuple[str, list[str]]]:
     try:
         jobs_line = next(index for index, line in enumerate(lines) if line == "jobs:")
@@ -119,6 +155,7 @@ def main() -> int:
         if workflow.name == "compatibility.yml" and "secrets." in text:
             violations.append(f"{relative}: compatibility smoke jobs must not require secrets")
 
+        violations.extend(signing_cache_violations(relative, lines))
         checked_python_blocks += validate_embedded_python(relative, lines, violations)
 
         try:

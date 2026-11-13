@@ -414,6 +414,7 @@ jobs:
           ./packaging/windows/tests/test-reproducible-builds.ps1
           ./scripts/release/tests/test-windows-authenticode-contracts.ps1
           ./scripts/release/tests/test-windows-dual-gui-finalizer-contracts.ps1
+          ./scripts/release/tests/test-windows-signing-provenance.ps1
 
       - name: Test WinUI core and application contracts
         shell: pwsh

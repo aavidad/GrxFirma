@@ -17,6 +17,10 @@ Todo tag `v*` activa un release oficial y el workflow falla de forma cerrada.
 No se publica ningún asset si falta una credencial o si falla cualquiera de
 estos controles:
 
+- ningún job de `release.yml` ni de `msix.yml` restaura caché de Actions
+  (`cache: false` en `setup-go` e `install-qt-action`,
+  `package-manager-cache: false` en `setup-node`); lo vigila
+  `scripts/ci/audit_workflows.py`;
 - Authenticode y sello de tiempo de todos los instaladores y ejecutables
   distribuidos en Windows; los binarios propios exigen la huella oficial y las
   firmas válidas de proveedor se conservan;
@@ -141,7 +145,12 @@ oficial:
    `vc_redist.*.exe`;
 3. firma una sola vez el backend canónico y los demás PE propios;
 4. conserva las firmas Authenticode válidas de proveedor y falla si son
-   inválidas o carecen de timestamp;
+   inválidas o carecen de timestamp. Un binario ajeno sin firma solo se firma
+   con la identidad oficial si su SHA-256 está en el inventario de Qt que el
+   job calcula justo después de instalar Qt (`write-qt-provenance.ps1`,
+   variable `GRXFIRMA_QT_PROVENANCE_MANIFEST`) con el mismo nombre de fichero,
+   o en el `PUBLISH-MANIFEST.sha256` de su etapa WinUI con la misma ruta. Si no
+   está en ninguno, la publicación se para;
 5. después de terminar todas las firmas, replica los bytes exactos del backend
    canónico a los payloads WinUI y Qt;
 6. regenera el inventario SHA-256 completo de WinUI y lo verifica antes de

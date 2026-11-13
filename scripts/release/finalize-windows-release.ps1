@@ -29,6 +29,15 @@ if (-not (Test-Path -LiteralPath $suiteLayoutHelpers -PathType Leaf)) {
     throw "Falta windows-suite-layout.ps1."
 }
 . $suiteLayoutHelpers
+$signingProvenanceHelpers = Join-Path $PSScriptRoot 'windows-signing-provenance.ps1'
+if (-not (Test-Path -LiteralPath $signingProvenanceHelpers -PathType Leaf)) {
+    throw "Falta windows-signing-provenance.ps1."
+}
+. $signingProvenanceHelpers
+if ([string]::IsNullOrWhiteSpace($env:GRXFIRMA_QT_PROVENANCE_MANIFEST)) {
+    throw "Falta GRXFIRMA_QT_PROVENANCE_MANIFEST: sin él no se firma ningún binario ajeno."
+}
+$qtProvenance = Get-WindowsQtProvenance -ManifestPath $env:GRXFIRMA_QT_PROVENANCE_MANIFEST
 
 foreach ($name in @(
     'WINDOWS_SIGNING_PFX_BASE64',
@@ -270,6 +279,10 @@ try {
 
             $vendorSignature = Get-AuthenticodeSignature -FilePath $portableExecutable.FullName
             if ($vendorSignature.Status -eq [System.Management.Automation.SignatureStatus]::NotSigned) {
+                Assert-WindowsUnsignedVendorProvenance `
+                    -FilePath $portableExecutable.FullName `
+                    -StageDirectory $build.Stage `
+                    -QtProvenance $qtProvenance
                 Invoke-WindowsAuthenticodeSign `
                     -Path $portableExecutable.FullName `
                     -SignToolPath $signToolPath `
