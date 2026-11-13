@@ -22,6 +22,14 @@
 Si no se configura, cada origen nuevo se confirma con el usuario la primera vez.</string>
       <string id="DominiosDeConfianza">Dominios adicionales de confianza</string>
       <string id="DominiosDeConfianza_Help">Dominios adicionales en los que se confía, con la misma sintaxis que "Orígenes permitidos sin preguntar". Un valor por línea.</string>
+      <string id="TSAPermitidas">Sellos de tiempo (TSA) que puede indicar una petición</string>
+      <string id="TSAPermitidas_Help">Lista de servidores de sellado de tiempo (TSA) que una petición de firma puede indicar en su opción tsaURL. Una URL por línea; se compara el esquema, el servidor y el puerto, no la ruta.
+
+En las peticiones de páginas web (afirma://, WebSocket y extensión del navegador) las TSA públicas valen siempre; la lista sirve para admitir además TSA de la red interna.
+
+En el servicio REST local, si la política está habilitada solo valen las TSA de la lista; con la lista vacía no vale ninguna.
+
+Sin configurar: las páginas web pueden indicar TSA públicas y el servicio REST cualquier TSA, con aviso en el registro si está en la red interna. No afecta a la TSA de la organización ni a la línea de órdenes.</string>
       <string id="TofuHabilitado">Preguntar al usuario por orígenes desconocidos</string>
       <string id="TofuHabilitado_Help">Habilitada o sin configurar: cuando una sede que no está en la lista pide una firma, GrxFirma pregunta al usuario si confía en ella.
 
@@ -66,6 +74,7 @@ Deshabilitada o sin configurar: el servicio REST está desactivado (valor por de
     <presentationTable>
       <presentation id="AllowedDomains"><multiTextBox refId="AllowedDomains_List">Orígenes (uno por línea):</multiTextBox></presentation>
       <presentation id="DominiosDeConfianza"><multiTextBox refId="DominiosDeConfianza_List">Dominios (uno por línea):</multiTextBox></presentation>
+      <presentation id="TSAPermitidas"><multiTextBox refId="TSAPermitidas_List">URL de las TSA (una por línea):</multiTextBox></presentation>
       <presentation id="NivelLog"><dropdownList refId="NivelLog_Valor" defaultItem="2">Nivel:</dropdownList></presentation>
       <presentation id="DirectorioP12"><textBox refId="DirectorioP12_Ruta"><label>Carpeta:</label></textBox></presentation>
       <presentation id="TimeoutOperacion"><decimalTextBox refId="TimeoutOperacion_Segundos" defaultValue="30">Segundos:</decimalTextBox></presentation>

@@ -22,6 +22,14 @@
 If not configured, each new origin is confirmed with the user the first time.</string>
       <string id="DominiosDeConfianza">Additional trusted domains</string>
       <string id="DominiosDeConfianza_Help">Additional trusted domains, with the same syntax as "Origins allowed without asking". One value per line.</string>
+      <string id="TSAPermitidas">Timestamp servers (TSA) a request may specify</string>
+      <string id="TSAPermitidas_Help">List of timestamp servers (TSA) that a signing request may specify in its tsaURL option. One URL per line; the scheme, host and port are compared, not the path.
+
+For requests from web pages (afirma://, WebSocket and the browser extension), public TSAs are always accepted; the list allows internal-network TSAs as well.
+
+For the local REST service, when this policy is enabled only the TSAs on the list are accepted; with an empty list none is.
+
+Not configured: web pages may specify public TSAs and the REST service any TSA, with a log warning if it is on the internal network. It does not affect the organisation's TSA or the command line.</string>
       <string id="TofuHabilitado">Ask the user about unknown origins</string>
       <string id="TofuHabilitado_Help">Enabled or not configured: when a site that is not on the list requests a signature, GrxFirma asks the user whether to trust it.
 
@@ -66,6 +74,7 @@ Disabled or not configured: the REST service is off (default), even if the user 
     <presentationTable>
       <presentation id="AllowedDomains"><multiTextBox refId="AllowedDomains_List">Origins (one per line):</multiTextBox></presentation>
       <presentation id="DominiosDeConfianza"><multiTextBox refId="DominiosDeConfianza_List">Domains (one per line):</multiTextBox></presentation>
+      <presentation id="TSAPermitidas"><multiTextBox refId="TSAPermitidas_List">TSA URLs (one per line):</multiTextBox></presentation>
       <presentation id="NivelLog"><dropdownList refId="NivelLog_Valor" defaultItem="2">Level:</dropdownList></presentation>
       <presentation id="DirectorioP12"><textBox refId="DirectorioP12_Ruta"><label>Folder:</label></textBox></presentation>
       <presentation id="TimeoutOperacion"><decimalTextBox refId="TimeoutOperacion_Segundos" defaultValue="30">Seconds:</decimalTextBox></presentation>
