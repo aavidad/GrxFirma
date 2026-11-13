@@ -860,6 +860,8 @@
   "Firma electrónica avanzada": "Signatura electrònica avançada",
   "Firma guardada exitosamente en: ": "Signature stored successfully at: ",
   "Firma inválida o integridad no garantizada.": "Signatura no vàlida o integritat no garantida.",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "La signatura és correcta, però part del contingut del document no està signat.",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "No s'ha pogut comprovar tot el que cobreix la signatura, així que no es dona per vàlida.",
   "Firma múltiple completada (": "Signatura múltiple completada (",
   "Firma múltiple completada con incidencias (": "Signatura múltiple completada amb incidències (",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",

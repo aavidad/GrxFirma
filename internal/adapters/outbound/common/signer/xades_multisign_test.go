@@ -29,6 +29,21 @@ func operarXAdES(t *testing.T, datos []byte, mime string, accion domain.Signatur
 	return res.Data
 }
 
+// exigirCoberturaParcialXAdES: la firma se identifica y sus resúmenes cuadran,
+// pero no cubre todo el documento, así que no puede salir válida.
+func exigirCoberturaParcialXAdES(t *testing.T, firmado []byte, esperados int, cobertura string) domain.VerificationResult {
+	t.Helper()
+	doc, _ := domain.NewDocument("f.xsig", firmado, "application/xml")
+	vr, firmantes, err := NewXAdESVerifier().Verify(context.Background(), doc, domain.CertificateChain{})
+	if err != nil {
+		t.Fatalf("verificación: %v\n%s", err, firmado)
+	}
+	if vr.Valid || vr.Coverage != cobertura || vr.Integrity.Status == domain.VerificationStatusValid || vr.Integrity.Status == domain.VerificationStatusInvalid || len(firmantes) != esperados {
+		t.Fatalf("se esperaba cobertura %s sin validez: valid=%v coverage=%q integridad=%+v firmantes=%d", cobertura, vr.Valid, vr.Coverage, vr.Integrity, len(firmantes))
+	}
+	return vr
+}
+
 func exigirFirmantesXAdES(t *testing.T, firmado []byte, esperados int) {
 	t.Helper()
 	doc, _ := domain.NewDocument("f.xsig", firmado, "application/xml")

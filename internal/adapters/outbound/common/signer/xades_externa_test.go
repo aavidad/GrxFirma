@@ -32,7 +32,9 @@ func TestXAdES_ExternallyDetachedManifestComoNavarra(t *testing.T) {
 			t.Fatalf("falta %q en la firma:\n%s", esperado, texto)
 		}
 	}
-	exigirFirmantesXAdES(t, firmado, 1)
+	// El dato de urn:id:3086 no está en la firma: el Manifest no se puede
+	// comprobar y la firma no puede salir válida (antes salía «válida»).
+	exigirCoberturaParcialXAdES(t, firmado, 1, domain.CoberturaNoAcreditada)
 
 	uno, dos := sha256.Sum256([]byte("a")), sha256.Sum256([]byte("b"))
 	multiple := operarXAdES(t, []byte("ignorado"), "application/octet-stream", domain.ActionSign, map[string]string{
@@ -43,7 +45,7 @@ func TestXAdES_ExternallyDetachedManifestComoNavarra(t *testing.T) {
 	if strings.Count(string(multiple), `URI="urn:`) != 2 {
 		t.Fatalf("el manifest debe contener las dos referencias:\n%s", multiple)
 	}
-	exigirFirmantesXAdES(t, multiple, 1)
+	exigirCoberturaParcialXAdES(t, multiple, 1, domain.CoberturaNoAcreditada)
 }
 
 func TestXAdES_ExternallyDetachedSinManifest(t *testing.T) {

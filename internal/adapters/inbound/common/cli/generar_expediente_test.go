@@ -80,8 +80,10 @@ func TestRunGenerarExpediente_FirmaElIndice(t *testing.T) {
 	}
 	doc, _ := domain.NewDocument("expediente.xml", exp, "application/xml")
 	res, _, err := commonsigner.NewXAdESVerifier().Verify(context.Background(), doc, domain.CertificateChain{})
-	if err != nil || res.Integrity.Status != domain.VerificationStatusValid {
-		t.Fatalf("la firma del índice debe verificarse: %v %+v", err, res.Integrity)
+	// La firma ENI cubre el índice; los metadatos del expediente quedan fuera
+	// de ella por norma, así que la cobertura es parcial y se dice.
+	if err != nil || res.Integrity.Status != domain.VerificationStatusWarning || res.Coverage != domain.CoberturaParcial {
+		t.Fatalf("la firma del índice debe verificarse con cobertura parcial: %v %+v %s", err, res.Integrity, res.Coverage)
 	}
 	if d := os.Getenv("GRXFIRMA_ENI_SALIDA"); d != "" {
 		_ = os.WriteFile(filepath.Join(d, "cli-expediente.xml"), exp, 0o600)

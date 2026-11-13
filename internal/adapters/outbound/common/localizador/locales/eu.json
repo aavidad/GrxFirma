@@ -860,6 +860,8 @@
   "Firma electrónica avanzada": "Sinadura elektroniko aurreratua",
   "Firma guardada exitosamente en: ": "Signature stored successfully at: ",
   "Firma inválida o integridad no garantizada.": "Sinadura baliogabea edo osotasuna ez dago bermatuta.",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "Sinadura zuzena da, baina dokumentuaren edukiaren zati bat ez dago sinatuta.",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "Ezin izan da egiaztatu sinadurak estaltzen duen guztia; beraz, ez da baliozkotzat jotzen.",
   "Firma múltiple completada (": "Sinadura anizkoitza amaitu da (",
   "Firma múltiple completada con incidencias (": "Sinadura anizkoitza gorabeherekin amaitu da (",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",

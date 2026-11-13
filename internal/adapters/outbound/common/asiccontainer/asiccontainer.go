@@ -31,7 +31,35 @@ var (
 	ErrNoASiCSignature = errors.New("el contenedor ASiC-S no contiene META-INF/signatures.xml")
 	ErrNoASiCData      = errors.New("el contenedor ASiC-S no contiene objeto de datos")
 	ErrEntryTooLarge   = errors.New("la entrada ASiC supera el tamano maximo permitido")
+	ErrAmbiguousEntry  = errors.New("el contenedor ASiC tiene entradas repetidas, ambiguas o con rutas no admitidas")
+	ErrManyDataObjects = errors.New("el contenedor ASiC-S debe tener un único objeto de datos")
 )
+
+// abrirEntradas lee el directorio del ZIP y rechaza lo que haría que el
+// verificador y el programa que abre el contenedor leyeran entradas distintas:
+// nombres repetidos (exactos o que solo difieren en mayúsculas o en "\"),
+// rutas absolutas y rutas con "." o "..".
+func abrirEntradas(data []byte) ([]*zip.File, error) {
+	r, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return nil, ErrNotASiC
+	}
+	vistos := make(map[string]struct{}, len(r.File))
+	for _, f := range r.File {
+		limpio := strings.TrimSuffix(f.Name, "/")
+		if limpio == "" || strings.ContainsAny(f.Name, "\\\x00") || strings.HasPrefix(f.Name, "/") ||
+			(len(f.Name) > 1 && f.Name[1] == ':') || path.Clean(limpio) != limpio ||
+			limpio == ".." || strings.HasPrefix(limpio, "../") {
+			return nil, ErrAmbiguousEntry
+		}
+		clave := strings.ToLower(limpio)
+		if _, repetido := vistos[clave]; repetido {
+			return nil, ErrAmbiguousEntry
+		}
+		vistos[clave] = struct{}{}
+	}
+	return r.File, nil
+}
 
 func Detect(data []byte) bool {
 	r, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
@@ -73,12 +101,12 @@ func SignedDetect(data []byte) bool {
 // ExtractCAdESSignature devuelve la firma CMS de un contenedor CAdES-ASiC-S
 // (META-INF/signature.p7s).
 func ExtractCAdESSignature(data []byte) ([]byte, error) {
-	r, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	files, err := abrirEntradas(data)
 	if err != nil {
-		return nil, ErrNotASiC
+		return nil, err
 	}
-	for _, f := range r.File {
-		if normalizeName(f.Name) == strings.ToLower(EntryBinarySign) {
+	for _, f := range files {
+		if f.Name == EntryBinarySign {
 			return readZipEntryLimited(f, maxEntryRead)
 		}
 	}
@@ -92,35 +120,45 @@ func CreateCAdESContainer(cmsDER, payload []byte, dataFilename string) ([]byte, 
 }
 
 func ExtractXAdESSignature(data []byte) ([]byte, error) {
-	r, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	files, err := abrirEntradas(data)
 	if err != nil {
-		return nil, ErrNotASiC
+		return nil, err
 	}
-	for _, f := range r.File {
-		if normalizeName(f.Name) == strings.ToLower(EntryXMLSignature) {
+	for _, f := range files {
+		if f.Name == EntryXMLSignature {
 			return readZipEntryLimited(f, maxEntryRead)
 		}
 	}
 	return nil, ErrNoASiCSignature
 }
 
+// ExtractData devuelve el único objeto de datos de un ASiC-S: la única
+// entrada fuera de META-INF/ que no es mimetype. Con más de una, el
+// verificador no puede saber cuál muestra quien abre el contenedor y la firma
+// no cubriría las demás, así que se rechaza (ETSI EN 319 162-1, ASiC-S).
 func ExtractData(data []byte) ([]byte, string, error) {
-	r, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	files, err := abrirEntradas(data)
 	if err != nil {
-		return nil, "", ErrNotASiC
+		return nil, "", err
 	}
-	for _, f := range r.File {
-		name := normalizeName(f.Name)
-		if name == strings.ToLower(EntryMIMEType) || name == strings.ToLower(EntryXMLSignature) || name == strings.ToLower(EntryBinarySign) {
+	var dato *zip.File
+	for _, f := range files {
+		if f.Name == EntryMIMEType || strings.HasPrefix(f.Name, "META-INF/") || strings.HasSuffix(f.Name, "/") || f.FileInfo().IsDir() {
 			continue
 		}
-		body, readErr := readZipEntryLimited(f, maxEntryRead)
-		if readErr != nil {
-			return nil, "", readErr
+		if dato != nil {
+			return nil, "", ErrManyDataObjects
 		}
-		return body, path.Base(f.Name), nil
+		dato = f
 	}
-	return nil, "", ErrNoASiCData
+	if dato == nil {
+		return nil, "", ErrNoASiCData
+	}
+	body, readErr := readZipEntryLimited(dato, maxEntryRead)
+	if readErr != nil {
+		return nil, "", readErr
+	}
+	return body, dato.Name, nil
 }
 
 func CreateXAdESContainer(signatureXML, payload []byte, dataFilename string) ([]byte, error) {
