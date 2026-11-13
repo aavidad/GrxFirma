@@ -60,16 +60,6 @@ const (
 	tlsIPCCertificatePrefix    = "websocket-localhost"
 )
 
-// directoriosSistemaProhibidos lista prefijos de ruta que nunca deben leer o escribirse
-// desde el IPC, independientemente de los permisos del proceso.
-var directoriosSistemaProhibidos = []string{
-	"/proc", "/sys", "/dev", "/run/udev", "/boot",
-	"/root",                      // home del superusuario
-	"/etc/shadow", "/etc/passwd", // ficheros criticos individuales
-	"/etc/ssh",         // claves de host SSH
-	"/etc/ssl/private", // claves TLS del sistema
-}
-
 type tlsIPCDependencies struct {
 	ensureBrowserCompatibleCertificate func(
 		dir string,
@@ -2933,7 +2923,13 @@ func (m *Manejador) configDirSeguro() string {
 }
 
 // ---------------------------------------------------------------------------
-// Validacion de rutas (seguridad)
+// Validacion de rutas (robustez)
+//
+// Estas comprobaciones evitan errores de uso (dispositivos, carpetas del
+// sistema, nombres con controles). No son una frontera de seguridad: la
+// frontera es que solo el frontend vinculado por PID alcanza el IPC. Hay una
+// ventana entre la comprobación y la apertura del fichero (TOCTOU) que no se
+// cierra aquí; el proceso solo tiene los permisos de su usuario.
 // ---------------------------------------------------------------------------
 
 // validarRutaLectura comprueba que la ruta es segura para leer:
@@ -3039,11 +3035,25 @@ func validarDirectorioEscritura(ruta string) error {
 	return nil
 }
 
-// rutaEnZonaProhibida devuelve error si la ruta cae en alguno de los directorios
-// de sistema que nunca debe tocar el IPC.
+// rutaEnZonaProhibida devuelve error si la ruta cae en alguna de las zonas del
+// sistema de esta plataforma (ver zonasSistemaProhibidas). Es una comprobación
+// de robustez, no un control de acceso.
 func rutaEnZonaProhibida(ruta string) error {
-	for _, prefijo := range directoriosSistemaProhibidos {
-		if ruta == prefijo || strings.HasPrefix(ruta, prefijo+"/") {
+	return rutaEnZonas(ruta, zonasSistemaProhibidas())
+}
+
+// rutaEnZonas compara por componentes de ruta con filepath.Rel, que en Windows
+// no distingue mayúsculas, en lugar de por prefijo de texto con "/".
+func rutaEnZonas(ruta string, zonas []string) error {
+	for _, zona := range zonas {
+		if zona == "" {
+			continue
+		}
+		rel, err := filepath.Rel(zona, ruta)
+		if err != nil || filepath.IsAbs(rel) {
+			continue
+		}
+		if rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))) {
 			return fmt.Errorf("acceso denegado: la ruta '%s' esta en una zona del sistema protegida", ruta)
 		}
 	}

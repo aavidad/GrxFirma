@@ -11,8 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"os"
-	"path/filepath"
 	"strings"
 	"unicode"
 	"unicode/utf16"
@@ -106,14 +104,3 @@ func descriptorSeguridadNamedPipe() (string, error) {
 // Los named pipes no dejan una entrada de sistema de archivos tras cerrar el
 // ultimo handle.
 func limpiarIPC(_ string) error { return nil }
-
-func socketPathPorDefecto() string {
-	nombreUsuario := "default"
-	if home, err := os.UserHomeDir(); err == nil {
-		if base := filepath.Base(home); base != "" && base != "." {
-			nombreUsuario = base
-		}
-	}
-	nombreUsuario = strings.NewReplacer(`\`, "_", `/`, "_").Replace(nombreUsuario)
-	return prefijoNamedPipeWindows + "grxfirma_ipc_" + nombreUsuario
-}

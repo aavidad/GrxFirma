@@ -38,14 +38,3 @@ func limpiarIPC(socketPath string) error {
 	}
 	return err
 }
-
-func socketPathPorDefecto() string {
-	if dir := os.Getenv("XDG_RUNTIME_DIR"); dir != "" {
-		return dir + "/grxfirma_ipc.sock"
-	}
-	home, _ := os.UserHomeDir()
-	if home != "" {
-		return home + "/.local/run/grxfirma_ipc.sock"
-	}
-	return "/tmp/grxfirma_ipc.sock"
-}
