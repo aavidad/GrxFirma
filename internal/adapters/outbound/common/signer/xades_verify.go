@@ -761,8 +761,30 @@ func canonicalizeSignedInfoCandidates(xmlData, signedInfoXML []byte) ([][]byte, 
 		algorithm = algExcC14N
 	}
 
-	first, err := canonicalizeElementInDocument(xmlData, nsXMLDSig, "SignedInfo", algorithm)
+	// Todos los candidatos salen del SignedInfo directo de esta firma, el
+	// mismo cuyas referencias se evalúan (E1-06). Antes el primero era el
+	// primer SignedInfo del fragmento a cualquier profundidad: un SignedInfo
+	// legítimo copiado en un ds:Object autenticaba otro SignedInfo directo.
+	ordinal, otros, err := ordinalSignedInfoDirecto(xmlData)
 	if err != nil {
+		return nil, err
+	}
+	if otros > 0 {
+		return nil, errors.New("la firma contiene otro SignedInfo además del suyo; no se admite su lectura histórica")
+	}
+	var first []byte
+	if ordinal >= 0 {
+		visto := 0
+		first, err = canonicalizeXMLSelection(xmlData, algorithm, func(element c14nElement) bool {
+			if element.namespaceURI != nsXMLDSig || element.local != "SignedInfo" {
+				return false
+			}
+			elegido := visto == ordinal
+			visto++
+			return elegido
+		})
+	}
+	if ordinal < 0 || err != nil {
 		first, err = canonicalizeSignedInfo(signedInfoXML)
 		if err != nil {
 			return nil, err
@@ -780,6 +802,35 @@ func canonicalizeSignedInfoCandidates(xmlData, signedInfoXML []byte) ([][]byte, 
 		out = append(out, c14n)
 	}
 	return out, nil
+}
+
+// ordinalSignedInfoDirecto localiza, en el fragmento de una firma, su
+// SignedInfo directo (hijo del ds:Signature raíz) por orden de aparición entre
+// todos los ds:SignedInfo, y cuenta los demás SignedInfo que no pertenecen a
+// una firma anidada (contrafirma).
+func ordinalSignedInfoDirecto(fragment []byte) (int, int, error) {
+	arbol, err := construirArbolXML(fragment)
+	if err != nil {
+		return -1, 0, err
+	}
+	if len(arbol.raices) != 1 || !arbol.esFirma(arbol.raices[0]) {
+		return -1, 0, nil
+	}
+	raiz := arbol.raices[0]
+	ordinal, visto, otros := -1, 0, 0
+	for indice := range arbol.nodos {
+		if !arbol.esDSig(indice, "SignedInfo") {
+			continue
+		}
+		switch {
+		case arbol.nodos[indice].padre == raiz && ordinal < 0:
+			ordinal = visto
+		case arbol.firmaAncestro(indice) == raiz:
+			otros++
+		}
+		visto++
+	}
+	return ordinal, otros, nil
 }
 
 func canonicalizeReference(ref referenceForVerify, targetXML []byte) ([]byte, error) {
