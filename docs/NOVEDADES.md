@@ -7,6 +7,10 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## Próxima versión (sin publicar)
+
+- Al firmar desde una web (afirma://), el selector de certificado ya no muestra «Recordar esta selección». La casilla no hacía nada: en la firma desde una web GrxFirma pide el certificado cada vez, igual que antes.
+
 ## 0.0.111 — 2026-10-04
 
 - Windows: actualizar con GrxFirma abierta ya funciona. El instalador cierra la aplicación, instala la versión nueva y la vuelve a abrir; antes fallaba con «La instalación PowerShell de la suite ha fallado con código 1».
