@@ -446,7 +446,11 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 	}
 
 	// Motor de firma.
-	motor := deskSigner.NuevoMotorFirmaGo(relojReal{})
+	// La interfaz de escritorio pasa como tsaURL la TSA de los ajustes del
+	// propio usuario, que puede estar en la red interna del organismo. Las
+	// superficies que atienden a páginas web (grxfirmauri, nativehost, REST)
+	// mantienen la política de destinos por defecto.
+	motor := deskSigner.NuevoMotorFirmaGo(relojReal{}).PermitirTSADeOpcionesEnRedLocal()
 	httpClient := proxyhttp.New(configDir)
 	if tsaURL := os.Getenv("GRXFIRMA_TSA_URL"); tsaURL != "" {
 		tsa := tsaclient.New(tsaURL)

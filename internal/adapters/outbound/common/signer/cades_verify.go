@@ -28,6 +28,30 @@ import (
 
 const motivoCertificadoSinRevocacion = "certificado vigente en fechas; revocación no comprobada"
 
+// Motivos de la evaluación de confianza del firmante. Son claves técnicas:
+// la presentación las traduce con el catálogo de cada idioma.
+const (
+	motivoConfianzaAnclaConfigurada = "cadena X.509 verificada contra las anclas de confianza configuradas"
+	// La raíz del sistema solo acredita una cadena reconocida por el equipo;
+	// no dice nada de que el certificado sea cualificado.
+	motivoConfianzaRaizSistema = "cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado"
+	motivoFirmanteNoApto       = "el certificado firmante no está destinado a firmar documentos"
+	// motivoClaveRSADebil avisa de una clave RSA del firmante por debajo de
+	// 2048 bits: hoy no basta para dar una firma por válida.
+	motivoClaveRSADebil = "clave RSA del firmante de menos de 2048 bits"
+)
+
+// cargarRaicesSistema lee el almacén raíz del sistema; las pruebas lo
+// sustituyen para simular un almacén ilegible.
+var cargarRaicesSistema = x509.SystemCertPool
+
+// Usos extendidos de clave que declaran expresamente la firma de documentos.
+var ekuFirmaDocumentos = []asn1.ObjectIdentifier{
+	{1, 3, 6, 1, 4, 1, 311, 10, 3, 12}, // Microsoft documentSigning
+	{1, 3, 6, 1, 5, 5, 7, 3, 36},       // id-kp-documentSigning (RFC 9336)
+	{1, 2, 840, 113583, 1, 1, 5},       // Adobe authenticDocumentsTrust
+}
+
 // RevocationStatus representa el estado de revocación de un certificado.
 type RevocationStatus int
 
@@ -89,6 +113,9 @@ func revocationDetailText(cert *x509.Certificate, index int, res RevocationResul
 // RevocationChecker comprueba la revocación de certificados usando OCSP y CRL.
 type RevocationChecker struct {
 	client *revocationclient.Client
+	// consulta sustituye a la consulta en línea; solo lo usan las pruebas
+	// para simular respuestas autenticadas sin red.
+	consulta func(ctx context.Context, cert, issuer *x509.Certificate) (RevocationResult, error)
 }
 
 // NewRevocationChecker crea un verificador de revocación con timeout de 15s.
@@ -109,6 +136,9 @@ func NewRevocationCheckerWithClient(c *http.Client) *RevocationChecker {
 func (r *RevocationChecker) Check(ctx context.Context, cert, issuer *x509.Certificate) (RevocationResult, error) {
 	if cert == nil || issuer == nil {
 		return RevocationResult{Status: RevocationUnknown, Reason: "certificado o emisor nulo"}, nil
+	}
+	if r != nil && r.consulta != nil {
+		return r.consulta(ctx, cert, issuer)
 	}
 	if r == nil || r.client == nil {
 		return RevocationResult{Status: RevocationUnknown, Reason: "cliente de revocación no configurado"}, nil
@@ -359,12 +389,16 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 	// guarda la cadena al revés se emparejaban certificados que no eran
 	// emisor/sujeto, OCSP quedaba "desconocido" y una firma con un
 	// certificado revocado se presentaba como válida.
+	// Las anclas explícitas también sirven para completar la cadena: así se
+	// comprueba la revocación de la intermedia aunque la firma no traiga la raíz.
+	candidatos := append(append([]*x509.Certificate(nil), certs...), certificadosDeAnclas(anchors)...)
 	for _, signerCert := range signerCerts {
-		chain := chainForRevocation(ctx, v.revChecker, signerCert, certs)
+		chain := chainForRevocation(ctx, v.revChecker, signerCert, candidatos)
 		if len(chain) < 2 {
 			result = markRevocationNotChecked(result, signerCert)
 			continue
 		}
+		result = marcarCadenaRevocacionIncompleta(result, chain)
 		revocation, err := v.verifyRevocationWithEmbedded(ctx, chain, signerInfos)
 		if err == nil {
 			result = mergeRevocationResult(result, revocation)
@@ -422,7 +456,11 @@ func (v *CAdESVerifier) verifyRevocationWithEmbedded(ctx context.Context, chain 
 		if len(evidence.OCSPResponses) == 0 && len(evidence.CRLs) == 0 {
 			continue
 		}
-		return verifyEmbeddedRevocation(chain, evidence)
+		// La evidencia embebida no sustituye a la consulta en línea: si para
+		// algún certificado no es aplicable o no concluye, se consulta.
+		return verifyEmbeddedRevocationConConsulta(chain, evidence, func(cert, issuer *x509.Certificate) (RevocationResult, error) {
+			return v.revChecker.Check(ctx, cert, issuer)
+		})
 	}
 	return v.VerifyRevocation(ctx, chain)
 }
@@ -524,6 +562,7 @@ func applyXMLRevocation(ctx context.Context, result domain.VerificationResult, s
 			result = markRevocationNotChecked(result, signer)
 			continue
 		}
+		result = marcarCadenaRevocacionIncompleta(result, chain)
 		revocation, err := checker.VerifyRevocation(ctx, chain)
 		if err == nil {
 			result = mergeRevocationResult(result, revocation)
@@ -533,12 +572,13 @@ func applyXMLRevocation(ctx context.Context, result domain.VerificationResult, s
 }
 
 // chainForRevocation obtiene la cadena del firmante para comprobar su
-// revocación. Si la firma no incluye el emisor (p. ej. XAdES con solo el
-// certificado del firmante en KeyInfo), la completa con el almacén del
-// sistema; en Windows, CryptoAPI puede descargar la CA intermedia por AIA.
+// revocación. Si la firma no incluye la cadena completa hasta un certificado
+// autofirmado (p. ej. XAdES con solo el certificado del firmante en KeyInfo,
+// o hoja e intermedia sin la raíz), la completa con el almacén del sistema;
+// en Windows, CryptoAPI puede descargar la CA intermedia por AIA.
 func chainForRevocation(ctx context.Context, checker *RevocationChecker, leaf *x509.Certificate, embedded []*x509.Certificate) []*x509.Certificate {
 	chain := buildIssuerChain(leaf, embedded)
-	if len(chain) >= 2 || leaf == nil {
+	if leaf == nil || esAutofirmado(chain[len(chain)-1]) {
 		return chain
 	}
 	intermediates := x509.NewCertPool()
@@ -551,7 +591,7 @@ func chainForRevocation(ctx context.Context, checker *RevocationChecker, leaf *x
 		Intermediates: intermediates,
 		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 	})
-	if err == nil && len(chains) > 0 && len(chains[0]) >= 2 {
+	if err == nil && len(chains) > 0 && len(chains[0]) > len(chain) {
 		return chains[0]
 	}
 	// Último recurso: descargar el emisor por AIA (CA Issuers) con el
@@ -570,6 +610,32 @@ func chainForRevocation(ctx context.Context, checker *RevocationChecker, leaf *x
 		current = issuer
 	}
 	return chain
+}
+
+func esAutofirmado(cert *x509.Certificate) bool {
+	return cert != nil && bytes.Equal(cert.RawIssuer, cert.RawSubject)
+}
+
+// marcarCadenaRevocacionIncompleta deja la revocación en advertencia cuando la
+// cadena no llega a un certificado autofirmado: el último certificado tiene
+// un emisor que no se ha podido obtener y su revocación queda sin comprobar.
+func marcarCadenaRevocacionIncompleta(result domain.VerificationResult, chain []*x509.Certificate) domain.VerificationResult {
+	if len(chain) == 0 || esAutofirmado(chain[len(chain)-1]) {
+		return result
+	}
+	return markRevocationNotChecked(result, chain[len(chain)-1])
+}
+
+// certificadosDeAnclas devuelve los certificados explícitos de las anclas
+// (no el almacén del sistema) para completar cadenas de revocación.
+func certificadosDeAnclas(anchors domain.CertificateChain) []*x509.Certificate {
+	var out []*x509.Certificate
+	for _, der := range anchors.DERCertificates {
+		if cert, err := x509.ParseCertificate(der); err == nil {
+			out = append(out, cert)
+		}
+	}
+	return out
 }
 
 // markRevocationNotChecked deja constancia de que no se pudo comprobar la
@@ -827,6 +893,17 @@ func extractEmbeddedRevocationEvidence(signerInfo signerInfoRaw) (ports.Revocati
 }
 
 func verifyEmbeddedRevocation(chain []*x509.Certificate, evidence ports.RevocationEvidence) (domain.VerificationResult, error) {
+	return verifyEmbeddedRevocationConConsulta(chain, evidence, nil)
+}
+
+// consultaRevocacion obtiene el estado de un certificado por otra vía cuando
+// la evidencia embebida no basta (normalmente, la consulta en línea).
+type consultaRevocacion func(cert, issuer *x509.Certificate) (RevocationResult, error)
+
+// verifyEmbeddedRevocationConConsulta evalúa la evidencia embebida y, para
+// cada certificado en el que no es aplicable o no concluye, usa la consulta
+// indicada. Sin consulta, ese certificado queda no concluyente.
+func verifyEmbeddedRevocationConConsulta(chain []*x509.Certificate, evidence ports.RevocationEvidence, consulta consultaRevocacion) (domain.VerificationResult, error) {
 	if len(chain) == 0 {
 		return domain.NewVerificationFailure(string(domain.FormatCAdES), "cadena de certificados vacía", nil), nil
 	}
@@ -845,6 +922,12 @@ func verifyEmbeddedRevocation(chain []*x509.Certificate, evidence ports.Revocati
 		cert := chain[i]
 		issuer := chain[i+1]
 		res, err := evaluateEmbeddedRevocation(evidence, cert, issuer)
+		if (err != nil || res.Status == RevocationUnknown) && consulta != nil {
+			if enLinea, errLinea := consulta(cert, issuer); errLinea == nil &&
+				(enLinea.Status == RevocationGood || enLinea.Status == RevocationRevoked) {
+				res, err = enLinea, nil
+			}
+		}
 		if err != nil {
 			allAuthenticatedGood = false
 			detail := fmt.Sprintf("cert[%d] %s: sin evidencias embebidas utilizables", i, cert.Subject.CommonName)
@@ -876,8 +959,8 @@ func verifyEmbeddedRevocation(chain []*x509.Certificate, evidence ports.Revocati
 			result.Reason = "cadena válida con revocación embebida autenticada"
 			result.Certificate.Status = domain.VerificationStatusValid
 			result.Certificate.Reason = result.Reason
-			result.Trust.Status = domain.VerificationStatusValid
-			result.Trust.Reason = "evidencias embebidas autenticadas y vigentes"
+			// La evidencia de revocación no dice nada de la confianza en la
+			// raíz: la confianza se queda como la evaluaron las anclas.
 		} else {
 			result.Reason = "cadena válida con revocación embebida no concluyente"
 			if result.Certificate.Status == domain.VerificationStatusUnknown {
@@ -1102,6 +1185,23 @@ func applySignerVerificationMetadata(result domain.VerificationResult, signerCer
 		if result.Trust.Reason != "" {
 			result.Warnings = appendUniqueString(result.Warnings, result.Trust.Reason)
 		}
+		// Si el llamante pidió evaluar la confianza (hay anclas o almacén del
+		// sistema) y no se pudo concluir, la firma no puede salir válida.
+		// Sin anclas, el llamante solo pidió el formato y evalúa aparte.
+		if !anchors.IsEmpty() && result.Valid {
+			result.Valid = false
+			result.Reason = result.Trust.Reason
+		}
+	}
+	for _, cert := range signerCerts {
+		if clave, ok := cert.PublicKey.(*rsa.PublicKey); ok && clave.N != nil && clave.N.BitLen() < 2048 {
+			if result.Valid {
+				result.Valid = false
+				result.Reason = motivoClaveRSADebil
+			}
+			result.Warnings = appendUniqueString(result.Warnings, motivoClaveRSADebil)
+			result.Certificate.Details = append(result.Certificate.Details, fmt.Sprintf("rsa_bits=%d", clave.N.BitLen()))
+		}
 	}
 	return result.Normalize()
 }
@@ -1158,7 +1258,7 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 	systemRootsUnavailable := false
 
 	if anchors.UseSystemRoots {
-		systemRoots, err := x509.SystemCertPool()
+		systemRoots, err := cargarRaicesSistema()
 		if err != nil {
 			systemRootsUnavailable = true
 			details = append(details, "system_roots_error="+err.Error())
@@ -1240,6 +1340,7 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 		intermediates.AddCert(cert)
 	}
 
+	raizSistema := false
 	for i, signerCert := range signerCerts {
 		if signerCert == nil {
 			return domain.VerificationAspect{
@@ -1262,13 +1363,63 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 			}
 		}
 		details = append(details, fmt.Sprintf("signer[%d].chain_length=%d", i, len(chains[0])))
+		if !certificadoAptoParaFirmar(signerCert) {
+			return domain.VerificationAspect{
+				Status:  domain.VerificationStatusInvalid,
+				Reason:  motivoFirmanteNoApto,
+				Details: append(details, fmt.Sprintf("signer[%d].eku_no_apto_para_firma", i)),
+			}
+		}
+		if _, explicita := rootFingerprints[certificateFingerprint(chains[0][len(chains[0])-1])]; !explicita {
+			raizSistema = true
+			details = append(details, fmt.Sprintf("signer[%d].root=system", i))
+		}
 	}
 
+	reason := motivoConfianzaAnclaConfigurada
+	if raizSistema {
+		reason = motivoConfianzaRaizSistema
+	}
 	return domain.VerificationAspect{
 		Status:  domain.VerificationStatusValid,
-		Reason:  "cadena X.509 verificada contra las anclas de confianza configuradas",
+		Reason:  reason,
 		Details: details,
 	}
+}
+
+// certificadoAptoParaFirmar decide si el uso extendido de clave (EKU) del
+// firmante admite firmar documentos. Sin EKU, decide el KeyUsage (se comprueba
+// en evaluateCertificateAspect). Con EKU, valen la protección de correo, la
+// firma de documentos y «cualquier uso»; también la autenticación de cliente
+// sin autenticación de servidor, que es como vienen muchos certificados de
+// firma españoles. Un certificado de servidor TLS, de firma de código, de
+// sellado de tiempo o de OCSP no es un firmante de documentos.
+func certificadoAptoParaFirmar(cert *x509.Certificate) bool {
+	if cert == nil {
+		return false
+	}
+	if len(cert.ExtKeyUsage) == 0 && len(cert.UnknownExtKeyUsage) == 0 {
+		return true
+	}
+	var cliente, servidor bool
+	for _, uso := range cert.ExtKeyUsage {
+		switch uso {
+		case x509.ExtKeyUsageAny, x509.ExtKeyUsageEmailProtection:
+			return true
+		case x509.ExtKeyUsageClientAuth:
+			cliente = true
+		case x509.ExtKeyUsageServerAuth:
+			servidor = true
+		}
+	}
+	for _, oid := range cert.UnknownExtKeyUsage {
+		for _, firma := range ekuFirmaDocumentos {
+			if oid.Equal(firma) {
+				return true
+			}
+		}
+	}
+	return cliente && !servidor
 }
 
 // EvaluateCertificateTrust comprueba una o varias cadenas de firmante contra
