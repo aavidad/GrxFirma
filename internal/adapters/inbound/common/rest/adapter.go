@@ -1007,12 +1007,14 @@ func (a *Adaptador) handleSign(w http.ResponseWriter, r *http.Request) {
 	if !a.acceptSignRequestID(w, req.RequestID) {
 		return
 	}
+	extendSignWriteDeadline(w)
 	result, err := a.Firmar.Execute(r.Context(), cmd)
 	if err != nil {
+		a.releaseSignRequestID(req.RequestID)
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, signResponse{
+	a.deliverSignResponse(w, req.RequestID, signResponse{
 		OK:                  true,
 		RequestID:           strings.TrimSpace(req.RequestID),
 		Format:              string(result.Result.Format),
@@ -1132,8 +1134,10 @@ func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
 	if !a.acceptSignRequestID(w, req.RequestID) {
 		return
 	}
+	extendSignWriteDeadline(w)
 	result, err := a.ProcesarLote.Execute(r.Context(), cmd)
 	if err != nil {
+		a.releaseSignRequestID(req.RequestID)
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -1172,7 +1176,11 @@ func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
 		results = append(results, itemResp)
 	}
 
-	writeJSON(w, http.StatusOK, signBatchResponse{
+	if successCount == 0 {
+		// Ninguna firma producida: el reintento con el mismo request_id es legítimo.
+		a.releaseSignRequestID(req.RequestID)
+	}
+	a.deliverSignResponse(w, req.RequestID, signBatchResponse{
 		OK:           failureCount == 0,
 		RequestID:    strings.TrimSpace(req.RequestID),
 		Total:        len(results),

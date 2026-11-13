@@ -100,6 +100,45 @@ func (a *Adaptador) reserveSignRequestID(raw string) error {
 	return nil
 }
 
+// signWriteTimeout amplía el plazo de escritura de las rutas de firma: la
+// firma puede esperar al PIN del usuario o a una TSA lenta y el WriteTimeout
+// general del servidor (60 s) cortaría la respuesta ya firmada.
+const signWriteTimeout = 10 * time.Minute
+
+func extendSignWriteDeadline(w http.ResponseWriter) {
+	_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(signWriteTimeout))
+}
+
+// releaseSignRequestID devuelve un request_id reservado cuya firma no llegó a
+// entregarse, para que el cliente pueda reintentar con el mismo identificador.
+func (a *Adaptador) releaseSignRequestID(raw string) {
+	requestID := strings.TrimSpace(raw)
+	if requestID == "" || requestID != raw || !validSignRequestID(requestID) {
+		return
+	}
+	digest := sha256.Sum256([]byte(requestID))
+	key := hex.EncodeToString(digest[:])
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if _, ok := a.signRequests[key]; !ok {
+		return
+	}
+	delete(a.signRequests, key)
+	_ = a.persistSignRequestsLocked()
+}
+
+// deliverSignResponse escribe la respuesta de firma y fuerza su envío. Si la
+// conexión ya no admite escritura, libera el request_id.
+func (a *Adaptador) deliverSignResponse(w http.ResponseWriter, requestID string, payload any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	encErr := json.NewEncoder(w).Encode(payload)
+	flushErr := http.NewResponseController(w).Flush()
+	if encErr != nil || (flushErr != nil && !errors.Is(flushErr, http.ErrNotSupported)) {
+		a.releaseSignRequestID(requestID)
+	}
+}
+
 func validSignRequestID(value string) bool {
 	return correlation.ValidateID(value) == nil
 }

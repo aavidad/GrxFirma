@@ -302,7 +302,7 @@ func signRequestSchema() map[string]any {
 				"type":        "string",
 				"maxLength":   128,
 				"pattern":     `^[A-Za-z0-9._:-]+$`,
-				"description": "Identificador opcional de idempotencia. Un valor ya procesado se rechaza para impedir firmas duplicadas.",
+				"description": "Identificador opcional de idempotencia. Un valor ya procesado se rechaza para impedir firmas duplicadas. Si la firma falla o la respuesta no se entrega, el valor queda libre para reintentar.",
 			},
 			"name":               map[string]any{"type": "string"},
 			"content_base64":     map[string]any{"type": "string"},
@@ -333,7 +333,7 @@ func signBatchRequestSchema() map[string]any {
 				"type":        "string",
 				"maxLength":   128,
 				"pattern":     `^[A-Za-z0-9._:-]+$`,
-				"description": "Identificador opcional de idempotencia del lote. Un valor ya procesado se rechaza para impedir firmas duplicadas.",
+				"description": "Identificador opcional de idempotencia del lote. Un valor ya procesado se rechaza para impedir firmas duplicadas. Si no se firma ningún documento o la respuesta no se entrega, el valor queda libre para reintentar.",
 			},
 			"items": map[string]any{
 				"type": "array",
