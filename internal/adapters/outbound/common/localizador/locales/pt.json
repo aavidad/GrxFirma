@@ -75,6 +75,7 @@
   "approval.origin.unverifiable": "O GrxFirma não consegue verificar que site pediu esta assinatura. Os servidores da lista foram escolhidos por esse site. Continue apenas se os reconhecer.",
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
+  "approval.save.extension": "O site pede para guardar um ficheiro %s em %s. As assinaturas e os documentos costumam ser .pdf, .xml, .csig ou .xsig. Guarde-o só se souber o que é. Quer guardá-lo?",
   "cli.error.no_operation": "não foi indicada nenhuma operação CLI",
   "cli.error.p12_secret_input": "não foi possível ler a palavra-passe PKCS#12",
   "cli.error.prefix": "erro:",

@@ -1016,13 +1016,13 @@ func (h *legacyWebSocketHandler) handleSave(ctx context.Context, solicitud afirm
 		return "CANCEL"
 	}
 	targetPath, ok := resolveUserChosenWritablePath(selectedPath)
-	if ok && destinoEjecutable(targetPath) {
-		return "SAF_05: Tipo de fichero no permitido por seguridad"
-	}
 	if !ok {
 		return "SAF_05: Ruta fuera del ámbito permitido"
 	}
-	savedPath, err := writeLegacySavedFile(targetPath, data)
+	if resp := h.autorizarDestinoGuardado(ctx, targetPath); resp != "" {
+		return resp
+	}
+	savedPath, err := writeLegacySavedFile(targetPath, data, solicitud.OrigenSolicitante)
 	if err != nil {
 		return "SAF_05: No se pudo guardar el fichero"
 	}
@@ -1300,13 +1300,13 @@ func (h *legacyWebSocketHandler) handleSignAndSave(ctx context.Context, solicitu
 		return "CANCEL", nil
 	}
 	targetPath, ok := resolveUserChosenWritablePath(selectedPath)
-	if ok && destinoEjecutable(targetPath) {
-		return "SAF_05: Tipo de fichero no permitido por seguridad", nil
-	}
 	if !ok {
 		return "SAF_05: Ruta fuera del ámbito permitido", nil
 	}
-	savedPath, err := writeLegacySavedFile(targetPath, resultado.Result.Data)
+	if resp := h.autorizarDestinoGuardado(ctx, targetPath); resp != "" {
+		return resp, nil
+	}
+	savedPath, err := writeLegacySavedFile(targetPath, resultado.Result.Data, solicitud.OrigenSolicitante)
 	if err != nil {
 		return "SAF_05: No se pudo guardar el fichero firmado", nil
 	}
@@ -1672,9 +1672,17 @@ func resolveLegacyWritablePath(rawPath string) (string, bool) {
 	return cleanPath, true
 }
 
-func writeLegacySavedFile(targetPath string, data []byte) (string, error) {
+// writeLegacySavedFile escribe datos que vienen de la web y, en Windows, les
+// pone la marca de descarga de Internet (A-09) para que SmartScreen y Office
+// los traten como tales.
+func writeLegacySavedFile(targetPath string, data []byte, origen string) (string, error) {
 	writer := desktopfilesystem.NuevoEscritorResultado(desktopfilesystem.PoliticaForzar)
-	return writer.Escribir(targetPath, data)
+	saved, err := writer.Escribir(targetPath, data)
+	if err != nil {
+		return saved, err
+	}
+	marcarDescargaWeb(saved, origen)
+	return saved, nil
 }
 
 // Las rutas que el usuario elige en el diálogo nativo son decisión suya, como
@@ -1709,32 +1717,6 @@ func resolveUserChosenWritablePath(rawPath string) (string, bool) {
 	// No se resuelven enlaces simbólicos del directorio: el escritor rechaza
 	// seguirlos, igual que antes.
 	return cleanPath, true
-}
-
-// extensionesEjecutables son tipos que Windows (o el escritorio en Linux)
-// ejecuta o interpreta al abrirlos. Una web no debe poder dejar uno en disco
-// a través de GrxFirma aunque el usuario pulse "Guardar" sin fijarse.
-var extensionesEjecutables = map[string]bool{
-	".exe": true, ".com": true, ".bat": true, ".cmd": true, ".scr": true, ".pif": true,
-	".msi": true, ".msp": true, ".msc": true, ".lnk": true, ".url": true, ".ps1": true,
-	".psm1": true, ".vbs": true, ".vbe": true, ".js": true, ".jse": true, ".wsf": true,
-	".wsh": true, ".hta": true, ".cpl": true, ".dll": true, ".jar": true, ".reg": true,
-	".scf": true, ".inf": true, ".appref-ms": true, ".application": true,
-	".settingcontent-ms": true, ".gadget": true, ".sh": true, ".desktop": true,
-}
-
-// destinoEjecutable rechaza guardar datos de la web con una extensión
-// ejecutable y lo explica al usuario.
-func destinoEjecutable(path string) bool {
-	ext := strings.ToLower(filepath.Ext(strings.TrimRight(path, ". ")))
-	if !extensionesEjecutables[ext] {
-		return false
-	}
-	avisos.Registrar(
-		"Guardado bloqueado por seguridad",
-		"la web intentó guardar un fichero de tipo "+ext+", que el sistema podría ejecutar; GrxFirma nunca guarda ficheros ejecutables. Guarda la firma con su extensión habitual (.csig, .xsig, .pdf...)",
-	)
-	return true
 }
 
 func cleanUserChosenPath(rawPath string) (string, bool) {

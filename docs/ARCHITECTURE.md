@@ -86,6 +86,13 @@ binario, y la política de dominios de confianza la aplican los adaptadores
   cualquier documento con cualquier certificado del usuario, incluidos los de
   NSS, Windows, macOS y los tokens PKCS#11. El token equivale a poder usar
   todas esas claves.
+- `save` y `signandsave` de `afirma://` guardan sin preguntar más solo firmas
+  y datos habituales (`.pdf .xml .csig .xsig .p7s .sig .txt .bin .json .zip
+  .asice .asics`). Los tipos que el sistema ejecuta, monta o abre con macros
+  (`.exe`, `.chm`, `.iso`, `.xll`, `.docm`...) se bloquean; cualquier otro pide
+  una confirmación explícita y, sin interfaz para pedirla, no se guarda. En
+  Windows el fichero lleva el flujo `Zone.Identifier` con `ZoneId=3` y el
+  origen de la web, para que SmartScreen y Office lo traten como descargado.
 - Pendiente: llevar al núcleo la invariante de `ExchangeSession` (HTTPS, sin
   credenciales y mismo host en descarga y subida) y exigir un
   `ports.TrustPolicy` en los casos de uso que reciben un origen remoto.

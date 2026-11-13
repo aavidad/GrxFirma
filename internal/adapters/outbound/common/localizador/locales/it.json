@@ -75,6 +75,7 @@
   "approval.origin.unverifiable": "GrxFirma non può verificare quale sito ha richiesto questa firma. I server dell'elenco li ha scelti quel sito. Continua solo se li riconosci.",
   "approval.size.bytes": "%d byte",
   "approval.size.kb": "%d KB",
+  "approval.save.extension": "Il sito web chiede di salvare un file %s in %s. Firme e documenti di solito sono .pdf, .xml, .csig o .xsig. Salvalo solo se sai di cosa si tratta. Vuoi salvarlo?",
   "cli.error.no_operation": "non è stata specificata alcuna operazione CLI",
   "cli.error.p12_secret_input": "non è stato possibile leggere la password PKCS#12",
   "cli.error.prefix": "errore:",

@@ -75,6 +75,7 @@
   "approval.origin.unverifiable": "GrxFirma cannot check which website requested this signature. That website chose the servers in the list. Continue only if you recognise them.",
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
+  "approval.save.extension": "The website wants to save a %s file to %s. Signatures and documents are usually .pdf, .xml, .csig or .xsig. Only save it if you know what it is. Do you want to save it?",
   "cli.error.no_operation": "no CLI operation was specified",
   "cli.error.p12_secret_input": "the PKCS#12 password could not be read",
   "cli.error.prefix": "error:",
