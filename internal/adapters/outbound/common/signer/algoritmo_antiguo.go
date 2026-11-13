@@ -20,16 +20,23 @@ const (
 )
 
 // marcarAlgoritmoAntiguo deja la integridad como estaba (comprobada), quita la
-// validez global y añade el aviso, el detalle y la evidencia.
-func marcarAlgoritmoAntiguo(result domain.VerificationResult, algoritmos []string) domain.VerificationResult {
+// validez global y añade el aviso, el detalle y la evidencia. Si el usuario
+// aceptó SHA-1 en su equipo (lote 14), la validez no se toca y el aviso dice
+// que se da por válida porque lo aceptó.
+func marcarAlgoritmoAntiguo(registro *domain.RegistroConfianzaForzada, result domain.VerificationResult, algoritmos []string) domain.VerificationResult {
 	if len(algoritmos) == 0 {
 		return result
 	}
-	if result.Valid {
-		result.Valid = false
-		result.Reason = motivoAlgoritmoAntiguo
+	obstaculo := domain.ObstaculoConfianza{Tipo: domain.ConfianzaAlgoritmoSHA1}
+	if registro.Decidir(obstaculo) {
+		result = marcarConfianzaForzada(result, obstaculo)
+	} else {
+		if result.Valid {
+			result.Valid = false
+			result.Reason = motivoAlgoritmoAntiguo
+		}
+		result.Warnings = appendUniqueString(result.Warnings, motivoAlgoritmoAntiguo)
 	}
-	result.Warnings = appendUniqueString(result.Warnings, motivoAlgoritmoAntiguo)
 	vistos := map[string]bool{}
 	for _, evidencia := range result.Evidence {
 		if evidencia.Type == domain.EvidenciaAlgoritmoAntiguo {

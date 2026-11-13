@@ -16,6 +16,7 @@ import (
 	"strconv"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/domain"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -40,6 +41,16 @@ type Config struct {
 
 	// Confianza
 	TofuHabilitado bool `json:"tofu_habilitado"`
+
+	// ConfianzaForzada guarda lo que el usuario aceptó en su equipo al
+	// verificar firmas (CA desconocida, clave RSA corta, certificado de
+	// componente, revocación no comprobable, SHA-1). Solo lo escriben la
+	// CLI y el escritorio; ver AlmacenConfianzaForzada.
+	ConfianzaForzada []domain.AceptacionConfianza `json:"confianza_forzada,omitempty"`
+
+	// ProhibirConfianzaForzada solo lo fija la política de máquina: con él,
+	// lo aceptado por el usuario no se aplica.
+	ProhibirConfianzaForzada bool `json:"-"`
 
 	// Certificados
 	DirectorioP12 string `json:"directorio_p12"`
@@ -77,6 +88,7 @@ type Policy struct {
 	WebsocketPermitido       *bool    `json:"websocket_permitido"`
 	RestHabilitado           *bool    `json:"rest_habilitado"`
 	TofuHabilitado           *bool    `json:"tofu_habilitado"`
+	ProhibirConfianzaForzada *bool    `json:"prohibir_confianza_forzada"`
 	DirectorioP12            *string  `json:"directorio_p12"`
 	DominiosDeConfianza      []string `json:"dominios_de_confianza"`
 	NivelLog                 *string  `json:"nivel_log"`
@@ -249,6 +261,7 @@ func loadMachinePolicyDesde(lector lectorPoliticaMaquina) (Policy, error) {
 	leerBool(machinepolicy.WebsocketPermitido, &p.WebsocketPermitido)
 	leerBool(machinepolicy.RestHabilitado, &p.RestHabilitado)
 	leerBool(machinepolicy.TofuHabilitado, &p.TofuHabilitado)
+	leerBool(machinepolicy.ProhibirConfianzaForzada, &p.ProhibirConfianzaForzada)
 	leerTexto(machinepolicy.DirectorioP12, &p.DirectorioP12)
 	leerTexto(machinepolicy.NivelLog, &p.NivelLog)
 	if v, ok, err := lector.textos(machinepolicy.DominiosDeConfianza); err != nil {
@@ -399,6 +412,7 @@ func loadPolicyFile(path string) (Policy, error) {
 	campoPolicy(campos, machinepolicy.WebsocketPermitido, &raw, &errs, func(v *bool) { raw.WebsocketPermitido = v })
 	campoPolicy(campos, machinepolicy.RestHabilitado, &raw, &errs, func(v *bool) { raw.RestHabilitado = v })
 	campoPolicy(campos, machinepolicy.TofuHabilitado, &raw, &errs, func(v *bool) { raw.TofuHabilitado = v })
+	campoPolicy(campos, machinepolicy.ProhibirConfianzaForzada, &raw, &errs, func(v *bool) { raw.ProhibirConfianzaForzada = v })
 	campoPolicy(campos, machinepolicy.DirectorioP12, &raw, &errs, func(v *string) { raw.DirectorioP12 = v })
 	campoPolicy(campos, machinepolicy.DominiosDeConfianza, &raw, &errs, func(v []string) { raw.DominiosDeConfianza = v })
 	campoPolicy(campos, machinepolicy.NivelLog, &raw, &errs, func(v *string) { raw.NivelLog = v })
@@ -446,6 +460,9 @@ func aplicarPolicyCargada(cfg *Config, raw Policy, err error) {
 	if raw.TofuHabilitado != nil {
 		cfg.TofuHabilitado = *raw.TofuHabilitado
 	}
+	if raw.ProhibirConfianzaForzada != nil {
+		cfg.ProhibirConfianzaForzada = *raw.ProhibirConfianzaForzada
+	}
 	if raw.DirectorioP12 != nil {
 		cfg.DirectorioP12 = *raw.DirectorioP12
 	}
@@ -483,6 +500,7 @@ func cerrarPolicyInvalida(cfg *Config, raw Policy) {
 		// La firma remota amplía a quién se envían los datos: sin política
 		// legible no se activa desde el fichero del usuario.
 		cfg.FirmaRemotaCSC = false
+		cfg.ProhibirConfianzaForzada = true
 		return
 	}
 	for _, nombre := range raw.invalidos {
@@ -496,6 +514,10 @@ func cerrarPolicyInvalida(cfg *Config, raw Policy) {
 		case machinepolicy.TofuHabilitado, machinepolicy.DominiosDeConfianza:
 			// Sin lista de dominios fiable no se amplía la confianza a mano.
 			cfg.TofuHabilitado = false
+		case machinepolicy.ProhibirConfianzaForzada:
+			// Igual que TOFU: sin saber qué quiere el administrador, el
+			// usuario no amplía la confianza al verificar.
+			cfg.ProhibirConfianzaForzada = true
 		case machinepolicy.TSAPermitidas:
 			// Una lista de TSA ilegible cuenta como definida y vacía: REST no
 			// admite TSA de opciones y los caminos web no exceptúan ninguna.

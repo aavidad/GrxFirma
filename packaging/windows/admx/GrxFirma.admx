@@ -57,6 +57,12 @@
       <enabledValue><decimal value="1" /></enabledValue>
       <disabledValue><decimal value="0" /></disabledValue>
     </policy>
+    <policy name="ProhibirConfianzaForzada" class="Machine" displayName="$(string.ProhibirConfianzaForzada)" explainText="$(string.ProhibirConfianzaForzada_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="prohibir_confianza_forzada">
+      <parentCategory ref="Origenes" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
 
     <!-- Operación -->
     <policy name="WebsocketHabilitado" class="Machine" displayName="$(string.WebsocketHabilitado)" explainText="$(string.WebsocketHabilitado_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="websocket_habilitado">
