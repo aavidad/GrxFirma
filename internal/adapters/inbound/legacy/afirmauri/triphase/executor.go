@@ -48,6 +48,20 @@ type Executor struct {
 	httpClient         *http.Client
 	fallbackHTTPClient *http.Client
 	limits             limits.Limits
+	validarDestino     ValidadorDestino
+}
+
+// ValidadorDestino decide si un origen (esquema://host[:puerto]) puede recibir
+// datos o decidir qué firma la clave. Lo habitual es originvalidator.Validate.
+type ValidadorDestino func(ctx context.Context, origen string) error
+
+// ConValidadorDestino fija el validador que se aplica en el punto de uso a los
+// destinos que no llegan ya validados por el parser (servidor trifásico).
+func (e *Executor) ConValidadorDestino(validar ValidadorDestino) *Executor {
+	if e != nil {
+		e.validarDestino = validar
+	}
+	return e
 }
 
 // ContextWithSigningKey fija en el contexto la clave de firma que debe usar el

@@ -1947,7 +1947,7 @@ func TestLegacyWebSocketHandler_FormatoTriUsaServidorTrifasico(t *testing.T) {
 		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{cert}},
 		selector: certSelectorStub{result: certpicker.ResultadoSeleccion{Certificado: cert}},
 		keys:     keyProviderStub{key: digestKeyStub{signingKeyStub{id: "c1", chain: [][]byte{[]byte("cert-der")}}}},
-		retrieve: triphase.New(srv.Client()),
+		retrieve: triphase.New(srv.Client()).ConValidadorDestino(func(context.Context, string) error { return nil }),
 		approval: aprobacion,
 	}
 	props := base64.StdEncoding.EncodeToString([]byte("serverUrl=" + srv.URL + "/SignatureService\n"))

@@ -8,6 +8,7 @@ package triphase
 import (
 	"context"
 	"encoding/base64"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -72,8 +73,18 @@ func formatoServidorTrifasico(formato string) (string, error) {
 // FirmarConServidor ejecuta la firma trifásica y devuelve la firma final.
 func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServidor) ([]byte, error) {
 	servidor, err := url.Parse(strings.TrimSpace(req.ServerURL))
-	if err != nil || !strings.EqualFold(servidor.Scheme, "https") || servidor.Host == "" {
+	if err != nil || !strings.EqualFold(servidor.Scheme, "https") || servidor.Host == "" || servidor.User != nil {
 		return nil, errors.New("el servidor de firma trifásica debe ser una URL HTTPS válida")
+	}
+	// A-01: el servidor recibe el documento y la cadena del certificado y
+	// decide qué datos firma la clave. Se valida aquí aunque el parser ya lo
+	// hiciera, porque un manifiesto recuperado puede traer otro serverUrl. Sin
+	// validador configurado no se firma.
+	if e.validarDestino == nil {
+		return nil, errors.New("no se puede comprobar si el servidor de firma trifásica está autorizado")
+	}
+	if err := e.validarDestino(ctx, servidor.Scheme+"://"+servidor.Host); err != nil {
+		return nil, fmt.Errorf("servidor de firma trifásica no autorizado: %w", err)
 	}
 	formato, err := formatoServidorTrifasico(req.FormatoLegacy)
 	if err != nil {
@@ -138,6 +149,15 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 		return nil, fmt.Errorf("respuesta de prefirma no válida: %w", err)
 	}
 	trazaServidorTrifasico("pre", "ok")
+	// A-01: una aprobación del usuario es una firma. Si el servidor pide
+	// firmar más de un PRE, se rechaza sin firmar ninguno.
+	if n, err := contarFirmasTrifasicas(datosTrifasicos); err != nil {
+		trazaServidorTrifasico("pre", "respuesta_no_valida")
+		return nil, fmt.Errorf("respuesta de prefirma no válida: %w", err)
+	} else if n != 1 {
+		trazaServidorTrifasico("pre", "numero_de_firmas")
+		return nil, fmt.Errorf("el servidor de firma trifásica pidió %d firmas para una sola aprobación; solo se admite una", n)
+	}
 	firmados, err := signLegacyBatchTriphaseXML(datosTrifasicos, key, algoritmo, req.ExtraParams, nil)
 	if err != nil {
 		trazaServidorTrifasico("firma_local", "error")
@@ -180,6 +200,14 @@ func trazaServidorTrifasico(fase, resultado string) {
 }
 
 func sinEscapar(v string) string { return v }
+
+func contarFirmasTrifasicas(rawTD []byte) (int, error) {
+	var td legacyXMLTriphaseData
+	if err := xml.Unmarshal(rawTD, &td); err != nil {
+		return 0, err
+	}
+	return len(td.Firmas.Firmas), nil
+}
 
 // postFormularioTrifasico envía los parámetros en el cuerpo del POST como
 // formulario, igual que AutoFirma Java: el servicio trifásico de @firma y de

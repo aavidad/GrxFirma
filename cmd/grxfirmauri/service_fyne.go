@@ -405,7 +405,7 @@ func construirServicioWebSocket(configDir, p12Dir, p12Password string) (*legacyw
 		auditor,
 		nil,
 	)
-	triphaseExec := triphase.New(runtime.clienteHTTP)
+	triphaseExec := triphase.New(runtime.clienteHTTP).ConValidadorDestino(validadorDestinoRuntime(runtime))
 	legacyHandler := newLegacyWebSocketHandler(
 		firmarDirecto,
 		batchUC,
