@@ -31,6 +31,9 @@ const (
 	NivelLog                 = "nivel_log"
 	TimeoutOperacionSegundos = "timeout_operacion_segundos"
 	MaxTamanoDocumentoBytes  = "max_tamano_documento_bytes"
+	// TSAPermitidas es la lista opcional de TSA que puede pedir una petición
+	// (tsaURL de las opciones). PENDIENTE: no está en la plantilla ADMX.
+	TSAPermitidas            = "tsa_permitidas"
 	PermitirOrigenVacio      = "permitir_origen_vacio"
 	PermitirDESLegacy        = "permitir_des_legacy"
 	PermitirRutasDirectas    = "permitir_rutas_directas_protocolo"

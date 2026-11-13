@@ -193,7 +193,9 @@ func (uc *ProcessBatchUseCase) solicitarAprobacion(ctx context.Context, cert dom
 	}
 	mensaje := ""
 	if uc.componer != nil {
-		mensaje = uc.componer(DetalleAprobacionLote(cmd, cert.Subject))
+		detalle := DetalleAprobacionLote(cmd, cert.Subject)
+		detalle.SesionNoIdentificada = SesionNoIdentificada(ctx)
+		mensaje = uc.componer(detalle)
 	} else {
 		mensaje = fmt.Sprintf("¿Desea procesar %d trabajos con el certificado '%s'?", len(cmd.Jobs), NeutralizarTextoAprobacion(cert.Subject, MaxRunasAprobacionCampo))
 	}

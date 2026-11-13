@@ -97,7 +97,7 @@ func (uc *SignDocumentUseCase) Ejecutar(ctx context.Context, cmd SignCommand) (S
 		uc.auditarFallo(ctx, cmd, cert, err)
 		return SignResult{}, err
 	}
-	aprobado, err := uc.aprobador.Request(ctx, uc.mensajeAprobacion(cmd, cert))
+	aprobado, err := uc.aprobador.Request(ctx, uc.mensajeAprobacion(ctx, cmd, cert))
 	if err != nil {
 		uc.auditarFallo(ctx, cmd, cert, err)
 		return SignResult{}, fmt.Errorf("error al solicitar aprobacion al usuario: %w", err)
@@ -156,9 +156,11 @@ func copiarCadenaDER(origen [][]byte) [][]byte {
 	return destino
 }
 
-func (uc *SignDocumentUseCase) mensajeAprobacion(cmd SignCommand, cert domain.CertificateRef) string {
+func (uc *SignDocumentUseCase) mensajeAprobacion(ctx context.Context, cmd SignCommand, cert domain.CertificateRef) string {
 	if uc != nil && uc.componer != nil {
-		return uc.componer(DetalleAprobacionFirma(cmd, cert.Subject))
+		detalle := DetalleAprobacionFirma(cmd, cert.Subject)
+		detalle.SesionNoIdentificada = SesionNoIdentificada(ctx)
+		return uc.componer(detalle)
 	}
 	return mensajeAprobacionFirma(cmd, cert)
 }

@@ -43,6 +43,14 @@ func ProtegerClienteHTTP(base *http.Client) *http.Client {
 	return hardenHTTPClient(base, defaultEndpointPolicy())
 }
 
+// EsDireccionPublica dice si la IP es un destino que la política de
+// ProtegerClienteHTTP admitiría (ni loopback, ni red privada, ni enlace local
+// ni rangos especiales). Sirve para avisar de un destino interno sin
+// bloquearlo.
+func EsDireccionPublica(ip net.IP) bool {
+	return defaultEndpointPolicy().validateIP(ip) == nil
+}
+
 func hardenHTTPClient(base *http.Client, policy endpointPolicy) *http.Client {
 	if base == nil {
 		base = &http.Client{}

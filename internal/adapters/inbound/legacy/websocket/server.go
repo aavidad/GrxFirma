@@ -144,8 +144,10 @@ type TLSServer struct {
 // SessionHooks permite observar el ciclo de vida de una sesión legacy puntual.
 // Se usa en lanzamientos afirma://websocket por sesión, no en el servicio base.
 type SessionHooks struct {
-	// ExpectedSessionID liga los mensajes que incluyan idsession al
-	// lanzamiento afirma://. Solo se admite una conexión activa por sesión.
+	// ExpectedSessionID liga los mensajes al lanzamiento afirma://: si no está
+	// vacío, todo mensaje debe traer ese idsession y solo se admite una
+	// conexión activa por sesión. Vacío (sede antigua sin idsession) se
+	// atiende como antes, con aviso en el registro y en cada aprobación.
 	ExpectedSessionID string
 	active            atomic.Bool
 	OnSocketConnected func(origin string)
@@ -775,6 +777,14 @@ func serveLegacyWebSocket(ctx context.Context, adapter *Adaptador, hooks *Sessio
 	if hooks != nil && hooks.OnSocketConnected != nil {
 		hooks.OnSocketConnected(strings.TrimSpace(r.Header.Get("Origin")))
 	}
+	// Lote 13a (retrocompatibilidad): una sede antigua lanza el canal sin
+	// idsession. Se atiende como antes, se avisa en el registro y cada
+	// aprobación de esta conexión lo dice. Con idsession no se relaja nada.
+	ctxOperacion := ctx
+	if hooks != nil && hooks.ExpectedSessionID == "" {
+		slog.WarnContext(ctx, "websocket_sesion_no_identificada", "motivo", "lanzamiento afirma://websocket sin idsession")
+		ctxOperacion = application.ConSesionNoIdentificada(ctx)
+	}
 
 	for {
 		if err := conn.SetReadDeadline(time.Now().Add(websocketReadLimit)); err != nil {
@@ -825,7 +835,7 @@ func serveLegacyWebSocket(ctx context.Context, adapter *Adaptador, hooks *Sessio
 			if hooks != nil && hooks.OnMessageReceived != nil && !esEco {
 				hooks.OnMessageReceived(op)
 			}
-			result, err := adapter.HandleText(ctx, strings.TrimSpace(r.Header.Get("Origin")), message)
+			result, err := adapter.HandleText(ctxOperacion, strings.TrimSpace(r.Header.Get("Origin")), message)
 			if err != nil {
 				reply := legacyWebSocketErrorText(err)
 				trace.WarnContext(ctx, "websocket_handle_error", "operation", op, "error", err, "reply", reply, "origin", r.Header.Get("Origin"), "prefix", truncateForTrace(message, 160))

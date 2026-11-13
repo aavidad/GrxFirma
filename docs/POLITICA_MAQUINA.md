@@ -46,6 +46,27 @@ todos los usuarios del equipo (por ejemplo, en servidores de escritorio remoto).
 | `rest_habilitado` | `REG_DWORD` | `1` activa el servicio REST local; `0` lo impide aunque el usuario lo active. |
 | `nivel_log`, `directorio_p12` | `REG_SZ` | Igual que en `policy.json`. |
 | `timeout_operacion_segundos`, `max_tamano_documento_bytes` | `REG_DWORD` / `REG_QWORD` | Límites operativos. |
+| `tsa_permitidas` | `REG_MULTI_SZ` | Lista opcional de TSA que una petición puede indicar en su opción `tsaURL`. Ver «TSA indicada en la petición». |
+
+## TSA indicada en la petición (`tsa_permitidas`)
+
+Una petición de firma puede traer su propia TSA en la opción `tsaURL`. Qué se
+admite depende de quién elige esa opción:
+
+| Camino | Sin `tsa_permitidas` | Con `tsa_permitidas` definida |
+|---|---|---|
+| `afirma://`, WebSocket y host nativo (la elige una página web) | TSA pública sí; en loopback, red privada o enlace local, no | Además se admiten las de la lista, aunque estén en la red interna. Las públicas siguen valiendo |
+| REST local | Cualquier TSA. Si está en la red interna, el registro anota `tsa_opciones_red_local` con el host (sin ruta ni consulta) | Solo las de la lista; las demás se rechazan y el registro anota `tsa_opciones_no_permitida` |
+| CLI (`grxfirma`) e interfaz de escritorio | Cualquier TSA: la teclea o la configura el propio usuario | No se aplica |
+
+Cada entrada es una URL; se compara el origen (esquema, host y puerto), no la
+ruta. Una lista vacía cuenta como definida: por REST no se admite ninguna TSA
+indicada en la petición. Si el valor no se entiende, se trata como una lista
+vacía. Solo la fija la política de máquina; `config.json` del usuario no la
+lee. La TSA de la organización (`GRXFIRMA_TSA_URL`) no depende de esta lista.
+
+PENDIENTE: `tsa_permitidas` aún no está en la plantilla ADMX; mientras tanto se
+fija en el registro con un `.reg` o una preferencia de GPO.
 
 Excepciones de compatibilidad (todas desactivadas por defecto; `1` las activa):
 
@@ -100,6 +121,7 @@ admite un `REG_SZ` con valores separados por `;`.
   "tofu_habilitado": false,
   "websocket_permitido": false,
   "dominios_de_confianza": ["sede.ejemplo.es"],
+  "tsa_permitidas": ["https://tsa.ejemplo.es/tsa"],
   "permitir_des_legacy": false
 }
 ```

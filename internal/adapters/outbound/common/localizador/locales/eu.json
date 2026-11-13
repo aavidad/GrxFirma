@@ -73,6 +73,7 @@
   "approval.format": "Sinadura-formatua: %s",
   "approval.destinations": "Dokumentua edo sinadura jasoko duten zerbitzariak: %s",
   "approval.origin.unverifiable": "GrxFirmak ezin du egiaztatu zein webgunek eskatu duen sinadura hau. Zerrendako zerbitzariak webgune horrek aukeratu ditu. Jarraitu ezagutzen badituzu bakarrik.",
+  "approval.session.unidentified": "Webgune honek sistema zahar bat erabiltzen du, eta ez du saioa GrxFirmarekin identifikatzen. Jarraitu sinadura hau zeuk webgunean hasi berri baduzu bakarrik.",
   "approval.size.bytes": "%d byte",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "Webguneak %s fitxategi bat gorde nahi du hemen: %s. Sinadurak eta dokumentuak .pdf, .xml, .csig edo .xsig izan ohi dira. Gorde ezazu zer den badakizu bakarrik. Gorde nahi duzu?",

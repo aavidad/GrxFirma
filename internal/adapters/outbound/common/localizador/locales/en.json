@@ -73,6 +73,7 @@
   "approval.format": "Signature format: %s",
   "approval.destinations": "Servers that will receive the document or the signature: %s",
   "approval.origin.unverifiable": "GrxFirma cannot check which website requested this signature. That website chose the servers in the list. Continue only if you recognise them.",
+  "approval.session.unidentified": "This website uses an older method that does not identify the session with GrxFirma. Continue only if you have just started this signature on the website yourself.",
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "The website wants to save a %s file to %s. Signatures and documents are usually .pdf, .xml, .csig or .xsig. Only save it if you know what it is. Do you want to save it?",

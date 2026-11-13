@@ -73,6 +73,7 @@
   "approval.format": "签名格式：%s",
   "approval.destinations": "将接收文档或签名的服务器：%s",
   "approval.origin.unverifiable": "GrxFirma 无法确认是哪个网站请求了此签名。列表中的服务器由该网站选择。只有在您认识这些服务器时才继续。",
+  "approval.session.unidentified": "该网站使用旧方式，无法向 GrxFirma 标识此会话。只有在您刚刚亲自在该网站上发起此签名时才继续。",
   "approval.size.bytes": "%d 字节",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "网站要求将 %s 文件保存到 %s。签名和文档通常是 .pdf、.xml、.csig 或 .xsig 格式。只有在您清楚它是什么时才保存。要保存吗？",

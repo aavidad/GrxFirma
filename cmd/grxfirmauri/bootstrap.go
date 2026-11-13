@@ -21,6 +21,7 @@ import (
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/originvalidator"
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/triphase"
+	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/common/metrics"
 	"grxfirma/internal/adapters/outbound/common/pkcs12importer"
 	"grxfirma/internal/adapters/outbound/common/revocationclient"
@@ -91,7 +92,10 @@ type relojReal struct{}
 func (r relojReal) Now() time.Time { return time.Now() }
 
 func construirMotorFirma(configDir string, client *http.Client) *deskSigner.MotorFirmaGo {
-	motor := deskSigner.NuevoMotorFirmaGo(relojReal{})
+	// La tsaURL llega de una página web (afirma://, WebSocket): TSA interna
+	// rechazada salvo que esté en la lista tsa_permitidas de la política de
+	// máquina (lote 13a).
+	motor := deskSigner.NuevoMotorFirmaGo(relojReal{}).ConTSAPermitidas(config.TSAPermitidasDeMaquina())
 	clienteHTTP := resolverClienteHTTPRuntime(configDir, client)
 	if tsaURL := strings.TrimSpace(os.Getenv("GRXFIRMA_TSA_URL")); tsaURL != "" {
 		motor.WithTimestampAuthority(construirTSAClienteRuntime(tsaURL, clienteHTTP))

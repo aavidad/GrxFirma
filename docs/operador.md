@@ -112,6 +112,19 @@ para mantener la compatibilidad; una política de organización puede imponer
 `false` aunque el usuario habilite WebSocket. Las sedes que requieran
 AutoScript 1.9 por WebSocket dejarán de funcionar con el corte total.
 
+Si el enlace `afirma://websocket` trae `idsession`, GrxFirma exige ese mismo
+valor en cada mensaje y cierra el canal si falta o no coincide. Algunas sedes
+antiguas no lo mandan; siguen funcionando, pero el registro anota
+`websocket_sesion_no_identificada` y el diálogo de aprobación de cada firma
+avisa de que la web no identifica la sesión.
+
+En la firma trifásica con servidor (`serverUrl`), el servidor tiene que estar
+en los dominios de confianza y aparece en el diálogo de aprobación. Una
+contrafirma de varios nodos le pide a GrxFirma varias firmas con esa única
+aprobación: se admiten hasta 100 y el registro anota
+`triphase_server_varias_firmas` con el número de firmas hechas. Una prefirma
+sin ninguna firma o con más de 100 se rechaza sin firmar.
+
 ### Política de organización
 
 Ruta en Linux y macOS:
@@ -124,6 +137,19 @@ En Windows la política se lee **exclusivamente** de
 `HKLM\SOFTWARE\Policies\GrxFirma` (desplegable por GPO); no se usa
 `C:\etc`. Se aplica con mayor precedencia que el fichero de usuario. Valores y
 ejemplos: [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md).
+
+### TSA interna indicada en la petición
+
+Si el organismo usa una TSA en su red interna y la pasa como opción `tsaURL`:
+
+- por la CLI y la interfaz de escritorio funciona sin más;
+- por REST funciona y el registro anota `tsa_opciones_red_local` con el host;
+- por `afirma://`, WebSocket o el host nativo, donde la opción la pone una
+  página web, solo funciona si la TSA está en `tsa_permitidas` de la política
+  de máquina.
+
+Si `tsa_permitidas` está definida, REST solo admite las TSA de esa lista.
+Detalle en [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md#tsa-indicada-en-la-petición-tsa_permitidas).
 
 ### Allowlist del sistema y TOFU
 

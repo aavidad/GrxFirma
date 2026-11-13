@@ -474,6 +474,7 @@ func (h *legacyWebSocketHandler) firmarTrifasicoServidor(ctx context.Context, cm
 	detalle := application.DetalleAprobacionFirma(cmd, cert.Subject)
 	detalle.Origen = solicitud.OrigenSolicitante
 	detalle.Destinos = append([]string{servidor}, destinosSolicitud(solicitud)...)
+	detalle.SesionNoIdentificada = application.SesionNoIdentificada(ctx)
 	aprobado, err := h.approval.Request(ctx, componerAprobacionProtocolo(detalle))
 	if err != nil {
 		if isLegacyCancellation(err) {
@@ -1069,6 +1070,8 @@ func (h *legacyWebSocketHandler) handleRemoteBatchDeSolicitud(ctx context.Contex
 		Certificado: ref.Subject,
 		Origen:      solicitud.OrigenSolicitante,
 		Destinos:    append([]string{req.PreSignEndpoint, req.PostSignEndpoint}, req.Session.UploadEndpoint, req.Session.RetrieveEndpoint),
+		// Lote 13a: canal lanzado sin idsession (sede antigua).
+		SesionNoIdentificada: application.SesionNoIdentificada(ctx),
 	}
 	if meta, metaErr := afirmauri.ParseBatchMetadata(req.Payload); metaErr == nil {
 		detalle.Firmas = len(meta.IDs)

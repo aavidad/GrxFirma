@@ -631,6 +631,7 @@ func runRESTServer(ctx context.Context, logger *slog.Logger, rutaP12, password, 
 		fmt.Fprintln(os.Stderr, "error arrancando el servidor REST:", err)
 		return 1
 	}
+	configurarTSAOpcionesREST(servicios)
 	credentialFile := ""
 	if tokenGenerado {
 		var cleanup func()
