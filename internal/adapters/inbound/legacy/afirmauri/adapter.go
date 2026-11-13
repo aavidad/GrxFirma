@@ -609,8 +609,14 @@ func (a *Adaptador) validarServidoresTrifasicos(ctx context.Context, solicitud *
 	}
 	for _, servidor := range servidores {
 		u, err := url.Parse(normalizarEndpoint(servidor))
-		if err != nil || !strings.EqualFold(u.Scheme, "https") || u.Host == "" || u.User != nil {
+		if err != nil || !strings.EqualFold(u.Scheme, "https") || u.Host == "" {
 			return errors.New("el servidor de firma trifásica (serverUrl) debe ser una URL HTTPS válida")
+		}
+		if u.User != nil {
+			// Lote 13c: credenciales en la URL, como antes del lote 4. Se
+			// valida el origen (esquema y host, sin credenciales) y no se
+			// registran.
+			slog.Warn("afirma_server_url_con_credenciales")
 		}
 	}
 	normalizados := make([]string, 0, len(servidores))

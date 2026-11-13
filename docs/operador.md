@@ -125,6 +125,11 @@ aprobación: se admiten hasta 100 y el registro anota
 `triphase_server_varias_firmas` con el número de firmas hechas. Una prefirma
 sin ninguna firma o con más de 100 se rechaza sin firmar.
 
+Si `serverUrl` lleva usuario y contraseña (`https://usuario:clave@servidor/...`),
+se admite como antes. La comprobación de confianza se hace con el esquema y el
+servidor, el diálogo solo enseña esos dos datos y las credenciales no se
+escriben en el registro; este anota `afirma_server_url_con_credenciales`.
+
 Por WebSocket o `service`, una aplicación de intranet puede seguir usando
 servidores `http://` (por ejemplo `http://intranet:8080`) si su origen está en
 la lista de confianza o el usuario lo aprueba al preguntarle, como antes. El

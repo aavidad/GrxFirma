@@ -78,3 +78,38 @@ func TestParse_ServerURLMalFormadoSeRechaza(t *testing.T) {
 		}
 	}
 }
+
+// Lote 13c (A-01 paso 2): serverUrl con credenciales vuelve a admitirse si su
+// origen está autorizado; el origen que se valida y se guarda no lleva las
+// credenciales. Si el origen no está autorizado, sigue rechazado.
+func TestParse_ServerURLConCredencialesAutorizadoSeAdmite(t *testing.T) {
+	adaptador := New(politicaSoloValide{})
+	raw := uriTrifasicaConServidor("serverUrl", "https://usuario:secreto@fire.example/triphaseSignService")
+	for nombre, parse := range map[string]func(context.Context, string) (Solicitud, error){
+		"Parse": adaptador.Parse, "ParseSocket": adaptador.ParseSocket,
+	} {
+		solicitud, err := parse(context.Background(), raw)
+		if err != nil {
+			t.Fatalf("%s: serverUrl con credenciales y origen autorizado debía admitirse: %v", nombre, err)
+		}
+		encontrado := false
+		for _, origen := range solicitud.Origenes {
+			if strings.Contains(origen, "usuario") || strings.Contains(origen, "secreto") {
+				t.Fatalf("%s: el origen lleva las credenciales: %q", nombre, origen)
+			}
+			if origen == "https://fire.example" {
+				encontrado = true
+			}
+		}
+		if !encontrado {
+			t.Fatalf("%s: origenes = %v", nombre, solicitud.Origenes)
+		}
+	}
+	malo := uriTrifasicaConServidor("serverUrl", "https://usuario:secreto@evil.example/ts")
+	if _, err := adaptador.Parse(context.Background(), malo); err == nil || !strings.Contains(err.Error(), "no esta autorizado") {
+		t.Fatalf("Parse: serverUrl no autorizado con credenciales debía rechazarse: %v", err)
+	}
+	if _, err := adaptador.ParseSocket(context.Background(), malo); err == nil || !strings.Contains(err.Error(), "no esta autorizado") {
+		t.Fatalf("ParseSocket: serverUrl no autorizado con credenciales debía rechazarse: %v", err)
+	}
+}

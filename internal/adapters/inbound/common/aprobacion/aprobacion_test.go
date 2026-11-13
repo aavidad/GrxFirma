@@ -157,6 +157,18 @@ func TestComponerAvisaDestinoSinCifrar(t *testing.T) {
 	}
 }
 
+// Lote 13c (A-01 paso 2): un serverUrl con credenciales se enseña solo con
+// esquema y host.
+func TestComponerNoMuestraCredencialesDelServidor(t *testing.T) {
+	texto := Componer(localizador.Para("es"), application.DetalleAprobacion{
+		Certificado: "CN=Ana",
+		Destinos:    []string{"https://usuario:secreto@fire.example/triphaseSignService"},
+	})
+	if strings.Contains(texto, "usuario") || strings.Contains(texto, "secreto") || !strings.Contains(texto, "https://fire.example") {
+		t.Fatalf("texto:\n%s", texto)
+	}
+}
+
 // Lote 13c: la aprobación de una firma trifásica con servidor dice que el
 // servidor puede pedir más de una firma (lote 13a admite hasta 100).
 func TestComponerAvisaVariasFirmasTrifasicas(t *testing.T) {
