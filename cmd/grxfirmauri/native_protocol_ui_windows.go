@@ -332,6 +332,12 @@ func newNativeWindowsApproval(title string) ports.UserApproval {
 	return nativeWindowsApproval{title: title}
 }
 
+// ConTitulo devuelve el mismo aprobador con otro título (A-09).
+func (a nativeWindowsApproval) ConTitulo(title string) ports.UserApproval {
+	a.title = title
+	return a
+}
+
 func (a nativeWindowsApproval) Request(
 	ctx context.Context,
 	message string,

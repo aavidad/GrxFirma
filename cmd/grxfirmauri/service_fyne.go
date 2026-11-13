@@ -37,6 +37,12 @@ type aprobacionInteractiva struct {
 	titulo string
 }
 
+// ConTitulo devuelve el mismo aprobador con otro título (A-09).
+func (a aprobacionInteractiva) ConTitulo(titulo string) ports.UserApproval {
+	a.titulo = titulo
+	return a
+}
+
 func (a aprobacionInteractiva) Request(ctx context.Context, message string) (bool, error) {
 	portalActionUI()
 	if _, parent := currentProtocolUIContext(); parent != nil {

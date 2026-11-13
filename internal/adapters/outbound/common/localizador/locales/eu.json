@@ -76,6 +76,7 @@
   "approval.size.bytes": "%d byte",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "Webguneak %s fitxategi bat gorde nahi du hemen: %s. Sinadurak eta dokumentuak .pdf, .xml, .csig edo .xsig izan ohi dira. Gorde ezazu zer den badakizu bakarrik. Gorde nahi duzu?",
+  "approval.save.title": "Gordetzea berretsi",
   "cli.error.no_operation": "ez da CLI eragiketarik adierazi",
   "cli.error.p12_secret_input": "ezin izan da PKCS#12 pasahitza irakurri",
   "cli.error.prefix": "errorea:",

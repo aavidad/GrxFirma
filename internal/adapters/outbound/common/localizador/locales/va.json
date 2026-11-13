@@ -76,6 +76,7 @@
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "La web demana guardar un fitxer %s en %s. Les firmes i els documents solen ser .pdf, .xml, .csig o .xsig. Guarda'l només si saps què és. Vols guardar-lo?",
+  "approval.save.title": "Confirmar el guardat",
   "cli.error.no_operation": "no s’ha indicat cap operació CLI",
   "cli.error.p12_secret_input": "no s’ha pogut llegir la contrasenya PKCS#12",
   "cli.error.prefix": "error:",

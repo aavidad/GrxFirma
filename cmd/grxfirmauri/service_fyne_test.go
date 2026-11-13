@@ -12,6 +12,19 @@ import (
 	"testing"
 )
 
+// A-09: el aprobador de escritorio admite otro título para el guardado.
+func TestAprobacionInteractivaConTitulo(t *testing.T) {
+	var aprobador any = aprobacionInteractiva{titulo: "firma"}
+	conTitulo, ok := aprobador.(aprobacionConTitulo)
+	if !ok {
+		t.Fatal("aprobacionInteractiva no admite otro título")
+	}
+	otro, ok := conTitulo.ConTitulo("guardado").(aprobacionInteractiva)
+	if !ok || otro.titulo != "guardado" || aprobador.(aprobacionInteractiva).titulo != "firma" {
+		t.Fatalf("ConTitulo = %#v", otro)
+	}
+}
+
 func TestRenderEstadoWebSocketActivo_MuestraEstadoYDireccion(t *testing.T) {
 	texto := renderEstadoWebSocketActivo("127.0.0.1:8083")
 

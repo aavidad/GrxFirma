@@ -76,6 +76,7 @@
   "approval.size.bytes": "%d byte",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "Il sito web chiede di salvare un file %s in %s. Firme e documenti di solito sono .pdf, .xml, .csig o .xsig. Salvalo solo se sai di cosa si tratta. Vuoi salvarlo?",
+  "approval.save.title": "Conferma salvataggio",
   "cli.error.no_operation": "non è stata specificata alcuna operazione CLI",
   "cli.error.p12_secret_input": "non è stato possibile leggere la password PKCS#12",
   "cli.error.prefix": "errore:",

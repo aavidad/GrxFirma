@@ -76,6 +76,7 @@
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "La web demana desar un fitxer %s a %s. Les signatures i els documents solen ser .pdf, .xml, .csig o .xsig. Desa'l només si saps què és. Vols desar-lo?",
+  "approval.save.title": "Confirmar el desament",
   "cli.error.no_operation": "no s’ha indicat cap operació CLI",
   "cli.error.p12_secret_input": "no s’ha pogut llegir la contrasenya PKCS#12",
   "cli.error.prefix": "error:",

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"grxfirma/internal/application"
+	"grxfirma/internal/ports"
 	"grxfirma/internal/security/avisos"
 )
 
@@ -19,6 +20,10 @@ import (
 // fichero poco habitual. Es variable porque tl trata su primer argumento como
 // formato y la clave no lleva marcadores.
 var claveConfirmarGuardado = "approval.save.extension"
+
+// claveTituloGuardado es el título del diálogo que confirma ese guardado (A-09):
+// no es una firma y no debe salir como «Confirmación de firma».
+const claveTituloGuardado = "approval.save.title"
 
 // destinoGuardado clasifica la extensión de un fichero que la web pide guardar.
 type destinoGuardado int
@@ -111,11 +116,23 @@ func (h *legacyWebSocketHandler) autorizarDestinoGuardado(ctx context.Context, p
 	mensaje := tl(claveConfirmarGuardado,
 		application.NeutralizarTextoAprobacion(ext, application.MaxRunasAprobacionCampo),
 		application.NeutralizarTextoAprobacion(path, application.MaxRunasAprobacionCampo))
-	aprobado, err := h.approval.Request(ctx, mensaje)
+	aprobador := h.approval
+	if conTitulo, ok := aprobador.(aprobacionConTitulo); ok {
+		if otro := conTitulo.ConTitulo(tl(claveTituloGuardado)); otro != nil {
+			aprobador = otro
+		}
+	}
+	aprobado, err := aprobador.Request(ctx, mensaje)
 	if err != nil || !aprobado {
 		return "CANCEL"
 	}
 	return ""
+}
+
+// aprobacionConTitulo la cumplen los aprobadores con ventana propia: devuelven
+// una copia que muestra otro título, para confirmaciones que no son de firma.
+type aprobacionConTitulo interface {
+	ConTitulo(titulo string) ports.UserApproval
 }
 
 // contenidoZoneIdentifier compone el flujo Zone.Identifier de Windows con la

@@ -76,6 +76,7 @@
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "O site pede para guardar um ficheiro %s em %s. As assinaturas e os documentos costumam ser .pdf, .xml, .csig ou .xsig. Guarde-o só se souber o que é. Quer guardá-lo?",
+  "approval.save.title": "Confirmar a gravação",
   "cli.error.no_operation": "não foi indicada nenhuma operação CLI",
   "cli.error.p12_secret_input": "não foi possível ler a palavra-passe PKCS#12",
   "cli.error.prefix": "erro:",

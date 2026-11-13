@@ -76,6 +76,7 @@
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "A web pide gardar un ficheiro %s en %s. As sinaturas e os documentos adoitan ser .pdf, .xml, .csig ou .xsig. Gárdao só se sabes que é. Queres gardalo?",
+  "approval.save.title": "Confirmar o gardado",
   "cli.error.no_operation": "non se indicou ningunha operación CLI",
   "cli.error.p12_secret_input": "non se puido ler o contrasinal PKCS#12",
   "cli.error.prefix": "erro:",
