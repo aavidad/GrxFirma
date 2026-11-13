@@ -292,6 +292,13 @@
       </div>
     </section>
 
+    <section class="card auth">
+      <h2>{{index .Messages "authTitle"}}</h2>
+      <label for="bearerToken">{{index .Messages "bearerToken"}}</label>
+      <input id="bearerToken" type="password" autocomplete="off" spellcheck="false" placeholder="{{index .Messages "bearerHelp"}}">
+      <p class="muted">{{index .Messages "bearerHelp"}}</p>
+    </section>
+
     <div class="grid">
       <div class="stack">
         <section class="card">
@@ -985,8 +992,20 @@
         ui.supportExportSummary.innerHTML = '<span class="muted">' + escapeHtml(t("supportExportPending")) + '</span>';
       }
 
+      function authHeaders() {
+        const input = document.getElementById("bearerToken");
+        const token = input ? input.value.trim() : "";
+        return token ? { Authorization: "Bearer " + token } : {};
+      }
+
       async function apiFetch(path, options) {
-        const response = await fetch(path, options || {});
+        const opts = Object.assign({}, options || {});
+        const headers = new Headers(opts.headers || {});
+        for (const [k, v] of Object.entries(authHeaders())) {
+          headers.set(k, v);
+        }
+        opts.headers = headers;
+        const response = await fetch(path, opts);
         let data = null;
         try {
           data = await response.json();
@@ -3316,6 +3335,7 @@
           persistPreferences();
         });
         ui.refreshCertificatesBtn.addEventListener("click", loadCertificates);
+        document.getElementById("bearerToken").addEventListener("change", loadCertificates);
         ui.certificateExportSummary.addEventListener("click", async (event) => {
           const copyJSON = event.target && event.target.closest ? event.target.closest("[data-copy-certificate-json]") : null;
           const copyFingerprint = event.target && event.target.closest ? event.target.closest("[data-copy-certificate-fingerprint]") : null;

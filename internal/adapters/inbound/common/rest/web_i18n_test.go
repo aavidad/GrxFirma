@@ -216,8 +216,8 @@ func TestWebLocalI18nCubreControlesHistoricamenteHardcodeados(t *testing.T) {
 func TestWebLocalI18nRenderizaControlesYPlaceholdersEnIngles(t *testing.T) {
 	t.Parallel()
 
-	adapter := New(nil, nil, nil)
-	request := httptest.NewRequest(http.MethodGet, "/?lang=en", nil)
+	adapter := nuevoAdaptadorPruebas(nil, nil, nil)
+	request := nuevaPeticionPruebas(http.MethodGet, "/?lang=en", nil)
 	response := httptest.NewRecorder()
 	adapter.Routes().ServeHTTP(response, request)
 	if response.Code != http.StatusOK {
@@ -308,8 +308,8 @@ func TestWebConsoleFlujoHashNoDejaLiteralesVisiblesSinLocalizar(t *testing.T) {
 func TestWebConsoleRenderizaFlujoHashEnIngles(t *testing.T) {
 	t.Parallel()
 
-	adapter := New(nil, nil, nil)
-	request := httptest.NewRequest(http.MethodGet, "/?lang=en", nil)
+	adapter := nuevoAdaptadorPruebas(nil, nil, nil)
+	request := nuevaPeticionPruebas(http.MethodGet, "/?lang=en", nil)
 	response := httptest.NewRecorder()
 	adapter.Routes().ServeHTTP(response, request)
 	if response.Code != http.StatusOK {
@@ -358,8 +358,8 @@ func TestWebConsoleBooleanosLocalizadosNoCorrompenJavaScript(t *testing.T) {
 		t.Run(testCase.lang, func(t *testing.T) {
 			t.Parallel()
 
-			adapter := New(nil, nil, nil)
-			request := httptest.NewRequest(http.MethodGet, "/?lang="+testCase.lang, nil)
+			adapter := nuevoAdaptadorPruebas(nil, nil, nil)
+			request := nuevaPeticionPruebas(http.MethodGet, "/?lang="+testCase.lang, nil)
 			response := httptest.NewRecorder()
 			adapter.Routes().ServeHTTP(response, request)
 			if response.Code != http.StatusOK {

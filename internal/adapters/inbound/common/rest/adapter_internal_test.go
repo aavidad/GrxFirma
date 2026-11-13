@@ -46,10 +46,10 @@ func TestCanonicalSecurityRoot_ResuelveAliasConDescendienteInexistente(t *testin
 }
 
 func TestAuthChallengeLimitaYLimpiaPendientes(t *testing.T) {
-	adaptador := New(nil, nil, nil).WithCertificateAuth(strings.Repeat("a", sha256.Size*2), time.Minute)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithCertificateAuth(strings.Repeat("a", sha256.Size*2), time.Minute)
 	handler := adaptador.Routes()
 
-	req := httptest.NewRequest(http.MethodGet, "/auth/challenge", nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/auth/challenge", nil)
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusMethodNotAllowed {
@@ -57,14 +57,14 @@ func TestAuthChallengeLimitaYLimpiaPendientes(t *testing.T) {
 	}
 
 	for i := 0; i < maxPendingRESTChallenges; i++ {
-		req = httptest.NewRequest(http.MethodPost, "/auth/challenge", nil)
+		req = nuevaPeticionPruebas(http.MethodPost, "/auth/challenge", nil)
 		rr = httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)
 		if rr.Code != http.StatusOK {
 			t.Fatalf("reto %d = %d, want %d; cuerpo=%s", i, rr.Code, http.StatusOK, rr.Body.String())
 		}
 	}
-	req = httptest.NewRequest(http.MethodPost, "/auth/challenge", nil)
+	req = nuevaPeticionPruebas(http.MethodPost, "/auth/challenge", nil)
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusTooManyRequests {
@@ -77,7 +77,7 @@ func TestAuthChallengeLimitaYLimpiaPendientes(t *testing.T) {
 		adaptador.challenges[id] = challenge
 	}
 	adaptador.mu.Unlock()
-	req = httptest.NewRequest(http.MethodPost, "/auth/challenge", nil)
+	req = nuevaPeticionPruebas(http.MethodPost, "/auth/challenge", nil)
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -92,8 +92,8 @@ func TestAuthChallengeLimitaYLimpiaPendientes(t *testing.T) {
 }
 
 func TestOpenAPIIncluyeAuthCertSoloPOSTCuandoEstaActiva(t *testing.T) {
-	adaptador := New(nil, nil, nil).WithCertificateAuth(strings.Repeat("a", sha256.Size*2), time.Minute)
-	req := httptest.NewRequest(http.MethodGet, "/openapi.json", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithCertificateAuth(strings.Repeat("a", sha256.Size*2), time.Minute)
+	req := nuevaPeticionPruebas(http.MethodGet, "/openapi.json", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -122,9 +122,9 @@ func TestOpenAPIIncluyeAuthCertSoloPOSTCuandoEstaActiva(t *testing.T) {
 
 func TestAuthOKRevalidaGeneracionYAllowlist(t *testing.T) {
 	fingerprint := strings.Repeat("a", sha256.Size*2)
-	adaptador := New(nil, nil, nil).WithCertificateAuth(fingerprint, time.Minute)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithCertificateAuth(fingerprint, time.Minute)
 	_, generation := adaptador.certificateAuthSnapshot()
-	request := httptest.NewRequest(http.MethodGet, "/settings", nil)
+	request := nuevaPeticionPruebas(http.MethodGet, "/settings", nil)
 	request.Header.Set("Authorization", "Bearer session-prueba")
 
 	for _, tc := range []struct {
@@ -169,7 +169,7 @@ func TestAuthOKRevalidaGeneracionYAllowlist(t *testing.T) {
 func TestAuthReconfiguracionConcurrenteNoTieneCarreras(t *testing.T) {
 	fingerprintA := strings.Repeat("a", sha256.Size*2)
 	fingerprintB := strings.Repeat("b", sha256.Size*2)
-	adaptador := New(nil, nil, nil).
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithBearerToken("bearer-prueba").
 		WithCertificateAuth(fingerprintA, time.Minute)
 
@@ -188,11 +188,11 @@ func TestAuthReconfiguracionConcurrenteNoTieneCarreras(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		for i := 0; i < 200; i++ {
-			req := httptest.NewRequest(http.MethodGet, "/openapi.json", nil)
+			req := nuevaPeticionPruebas(http.MethodGet, "/openapi.json", nil)
 			rr := httptest.NewRecorder()
 			adaptador.Routes().ServeHTTP(rr, req)
 
-			authRequest := httptest.NewRequest(http.MethodGet, "/settings", nil)
+			authRequest := nuevaPeticionPruebas(http.MethodGet, "/settings", nil)
 			authRequest.Header.Set("Authorization", "Bearer bearer-prueba")
 			_ = adaptador.authOK(authRequest)
 		}
@@ -208,7 +208,7 @@ func TestRoutes_InstallPublicRoots_TLSLocalTrust(t *testing.T) {
 		"websocket-localhost-root.crt.pem",
 	)
 
-	adaptador := New(nil, nil, nil).WithConfigDir(dir).WithLocalizador(localizador.Para("es"))
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir).WithLocalizador(localizador.Para("es"))
 	adaptador.tlsDeps = tlsRESTDependencies{
 		managedTrustLifecycleSupported: func() bool {
 			return true
@@ -230,7 +230,7 @@ func TestRoutes_InstallPublicRoots_TLSLocalTrust(t *testing.T) {
 			return nil
 		},
 	}
-	req := httptest.NewRequest(http.MethodPost, "/trust/install-public-roots", strings.NewReader(`{}`))
+	req := nuevaPeticionPruebas(http.MethodPost, "/trust/install-public-roots", strings.NewReader(`{}`))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
@@ -272,7 +272,7 @@ func TestRoutes_TLSClearStore_RetiraConfianzaAntesDeArtefactosPropios(t *testing
 	}
 
 	removeCalled := false
-	adaptador := New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 	adaptador.tlsDeps = tlsRESTDependencies{
 		managedTrustLifecycleSupported: func() bool {
 			return true
@@ -299,7 +299,7 @@ func TestRoutes_TLSClearStore_RetiraConfianzaAntesDeArtefactosPropios(t *testing
 		},
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/tls/clear-store", nil)
+	req := nuevaPeticionPruebas(http.MethodPost, "/tls/clear-store", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 
@@ -339,7 +339,7 @@ func TestRoutes_TLSClearStore_FalloRetiradaConservaEvidencia(t *testing.T) {
 		}
 	}
 
-	adaptador := New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 	adaptador.tlsDeps = tlsRESTDependencies{
 		managedTrustLifecycleSupported: func() bool {
 			return true
@@ -348,7 +348,7 @@ func TestRoutes_TLSClearStore_FalloRetiradaConservaEvidencia(t *testing.T) {
 			return errors.New("almacén ocupado")
 		},
 	}
-	req := httptest.NewRequest(http.MethodPost, "/tls/clear-store", nil)
+	req := nuevaPeticionPruebas(http.MethodPost, "/tls/clear-store", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 
@@ -387,7 +387,7 @@ func TestRoutes_TLSClearStore_RechazaDirectorioAliasSinTocarDestino(t *testing.T
 	}
 
 	removeCalled := false
-	adaptador := New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 	adaptador.tlsDeps = tlsRESTDependencies{
 		managedTrustLifecycleSupported: func() bool {
 			return true
@@ -397,7 +397,7 @@ func TestRoutes_TLSClearStore_RechazaDirectorioAliasSinTocarDestino(t *testing.T
 			return nil
 		},
 	}
-	req := httptest.NewRequest(http.MethodPost, "/tls/clear-store", nil)
+	req := nuevaPeticionPruebas(http.MethodPost, "/tls/clear-store", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 
@@ -432,7 +432,7 @@ func TestRoutes_TLSClearStore_RechazaArtefactoAliasSinRetirarConfianza(t *testin
 	}
 
 	removeCalled := false
-	adaptador := New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 	adaptador.tlsDeps = tlsRESTDependencies{
 		managedTrustLifecycleSupported: func() bool {
 			return true
@@ -442,7 +442,7 @@ func TestRoutes_TLSClearStore_RechazaArtefactoAliasSinRetirarConfianza(t *testin
 			return nil
 		},
 	}
-	req := httptest.NewRequest(http.MethodPost, "/tls/clear-store", nil)
+	req := nuevaPeticionPruebas(http.MethodPost, "/tls/clear-store", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 
@@ -467,7 +467,7 @@ func TestRoutes_InstallPublicRoots_RechazaRutaNoGestionada(t *testing.T) {
 
 	dir := t.TempDir()
 	trustCalled := false
-	adaptador := New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 	adaptador.tlsDeps = tlsRESTDependencies{
 		managedTrustLifecycleSupported: func() bool {
 			return true
@@ -487,7 +487,7 @@ func TestRoutes_InstallPublicRoots_RechazaRutaNoGestionada(t *testing.T) {
 			return nil
 		},
 	}
-	req := httptest.NewRequest(
+	req := nuevaPeticionPruebas(
 		http.MethodPost,
 		"/trust/install-public-roots",
 		nil,
@@ -508,8 +508,8 @@ func TestRoutes_InstallPublicRoots_RechazaRutaNoGestionada(t *testing.T) {
 }
 
 func TestRoutes_ServiceStatus_SinServicioDevuelveNoConfigurado(t *testing.T) {
-	adaptador := New(nil, nil, nil)
-	req := httptest.NewRequest(http.MethodGet, "/service/status", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/service/status", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {

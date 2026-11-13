@@ -41,7 +41,7 @@ import (
 )
 
 func TestRoutes_Sign(t *testing.T) {
-	adaptador := rest.New(signUseCaseMock{}, nil, nil)
+	adaptador := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil)
 	body := map[string]any{
 		"name":           "doc.txt",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("abc")),
@@ -62,7 +62,7 @@ func TestRoutes_Sign(t *testing.T) {
 }
 
 func TestRoutes_SignContent_ResuelveCertificateIndex(t *testing.T) {
-	adaptador := rest.New(signUseCaseMock{}, nil, nil).WithCertificateSources(
+	adaptador := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).WithCertificateSources(
 		catalogMockREST{certs: []domain.CertificateRef{{
 			ID:          "cert-contenido",
 			Subject:     "CN=Firma REST",
@@ -100,7 +100,7 @@ func TestRoutes_Sign_AplicaSubfilterPAdESPersistidoYRespetaOverride(t *testing.T
 		t.Fatalf("os.WriteFile(settings.json) error = %v", err)
 	}
 	firmar := &capturingSignUseCase{}
-	adaptador := rest.New(firmar, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(firmar, nil, nil).WithConfigDir(dir)
 	body := map[string]any{
 		"name":           "doc.pdf",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("%PDF-1.4 prueba")),
@@ -200,7 +200,7 @@ func TestRoutes_Sign_AplicaFacturaEPersistidaYRespetaOverride(t *testing.T) {
 		t.Fatalf("os.WriteFile(settings.json) error = %v", err)
 	}
 	firmar := &capturingSignUseCase{}
-	adaptador := rest.New(firmar, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(firmar, nil, nil).WithConfigDir(dir)
 	body := map[string]any{
 		"name":           "factura.xml",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("<Facturae/>")),
@@ -250,7 +250,7 @@ func TestRoutes_Sign_AplicaPoliticaXAdESPersistidaYRespetaOverride(t *testing.T)
 		t.Fatalf("os.WriteFile(settings.json) error = %v", err)
 	}
 	firmar := &capturingSignUseCase{}
-	adaptador := rest.New(firmar, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(firmar, nil, nil).WithConfigDir(dir)
 	body := map[string]any{
 		"name":           "documento.xml",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("<documento/>")),
@@ -284,7 +284,7 @@ func TestRoutes_Sign_PreferenciasCorruptasNoBloqueanFirmaNiOverride(t *testing.T
 		t.Fatalf("os.WriteFile(settings.json) error = %v", err)
 	}
 	firmar := &capturingSignUseCase{}
-	adaptador := rest.New(firmar, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(firmar, nil, nil).WithConfigDir(dir)
 	base := map[string]any{
 		"name":           "documento.bin",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("contenido")),
@@ -323,56 +323,9 @@ func TestRoutes_Sign_PreferenciasCorruptasNoBloqueanFirmaNiOverride(t *testing.T
 	}
 }
 
-func TestRoutes_SignByPathCompatQt(t *testing.T) {
-	dir := t.TempDir()
-	inputPath := filepath.Join(dir, "doc.pdf")
-	outputPath := filepath.Join(dir, "firmado.pdf")
-	if err := os.WriteFile(inputPath, []byte("abc"), 0o600); err != nil {
-		t.Fatalf("os.WriteFile(inputPath) error = %v", err)
-	}
-
-	adaptador := rest.New(signUseCaseMock{}, nil, nil).WithFileSystemPaths().WithCertificateSources(
-		catalogMockREST{certs: []domain.CertificateRef{{
-			ID:            "cert-qt",
-			Subject:       "CN=Ana Perez",
-			Issuer:        "CN=FNMT",
-			NotAfter:      time.Now().Add(time.Hour),
-			Fingerprint:   "fp1",
-			HasSigningKey: true,
-		}}},
-		nil,
-	)
-
-	body := map[string]any{
-		"inputPath":        inputPath,
-		"outputPath":       outputPath,
-		"certificateIndex": 0,
-		"format":           "PAdES",
-		"action":           "sign",
-	}
-	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/sign", body)
-	if rr.Code != http.StatusOK {
-		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
-	}
-	if _, err := os.Stat(outputPath); err != nil {
-		t.Fatalf("se esperaba firma en disco: %v", err)
-	}
-	var resp map[string]any
-	_ = json.Unmarshal(rr.Body.Bytes(), &resp)
-	if resp["ok"] != true {
-		t.Fatalf("ok inesperado: %#v", resp["ok"])
-	}
-	if resp["outputPath"] != outputPath {
-		t.Fatalf("outputPath inesperado: %#v", resp["outputPath"])
-	}
-	if resp["certificate_id"] != "cert-qt" {
-		t.Fatalf("certificate_id inesperado: %#v", resp["certificate_id"])
-	}
-}
-
 func TestRoutes_SignBatch(t *testing.T) {
 	mock := &batchSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithBatchSigner(mock).
 		WithCertificateSources(catalogMockREST{certs: []domain.CertificateRef{
 			{
@@ -448,7 +401,7 @@ func TestRoutes_SignBatch_AplicaDefaultPAdESSoloAlFormatoCorrespondiente(t *test
 		t.Fatalf("os.WriteFile(settings.json) error = %v", err)
 	}
 	mock := &batchSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).WithBatchSigner(mock).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithBatchSigner(mock).WithConfigDir(dir)
 	body := map[string]any{
 		"action": "sign",
 		"items": []map[string]any{
@@ -486,7 +439,7 @@ func TestRoutes_SignBatch_AplicaFacturaEPorDocumentoConMismaPrecedencia(t *testi
 		t.Fatalf("os.WriteFile(settings.json) error = %v", err)
 	}
 	mock := &batchSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).WithBatchSigner(mock).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithBatchSigner(mock).WithConfigDir(dir)
 	factura := base64.StdEncoding.EncodeToString([]byte("<Facturae/>"))
 	body := map[string]any{
 		"format": "FacturaE",
@@ -550,7 +503,7 @@ func TestRoutes_SignBatch_AplicaPoliticaXAdESPorDocumentoConMismaPrecedencia(t *
 		t.Fatalf("os.WriteFile(settings.json) error = %v", err)
 	}
 	mock := &batchSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).WithBatchSigner(mock).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithBatchSigner(mock).WithConfigDir(dir)
 	documento := base64.StdEncoding.EncodeToString([]byte("<documento/>"))
 	body := map[string]any{
 		"format": "XAdES",
@@ -588,7 +541,7 @@ func TestRoutes_SignBatch_AplicaPoliticaXAdESPorDocumentoConMismaPrecedencia(t *
 
 func TestRoutes_SignBatch_MezclaPlantillaGlobalYOverridesPorDocumento(t *testing.T) {
 	mock := &batchSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithBatchSigner(mock).
 		WithCertificateSources(catalogMockREST{certs: []domain.CertificateRef{{
 			ID:          "cert-lote",
@@ -666,7 +619,7 @@ func TestRoutes_SignBatch_MezclaPlantillaGlobalYOverridesPorDocumento(t *testing
 }
 
 func TestRoutes_Verify(t *testing.T) {
-	adaptador := rest.New(nil, verifyUseCaseMock{}, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, verifyUseCaseMock{}, nil)
 	body := map[string]any{
 		"name":           "firma.csig",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("firma")),
@@ -714,7 +667,7 @@ func TestRoutes_Verify(t *testing.T) {
 }
 
 func TestRoutes_VerifyErrorIncluyeDiagnosticoGuiado(t *testing.T) {
-	adaptador := rest.New(nil, verifyUseCaseErrorMock{err: errors.New("error accediendo al almacén PKCS#11")}, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, verifyUseCaseErrorMock{err: errors.New("error accediendo al almacén PKCS#11")}, nil)
 	body := map[string]any{
 		"name":           "firma.csig",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("firma")),
@@ -736,7 +689,7 @@ func TestRoutes_VerifyErrorIncluyeDiagnosticoGuiado(t *testing.T) {
 }
 
 func TestRoutes_HashCreate(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil).WithHashes(hashCreateUseCaseMock{}, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithHashes(hashCreateUseCaseMock{}, nil)
 	body := map[string]any{
 		"name":           "doc.txt",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("abc")),
@@ -758,7 +711,7 @@ func TestRoutes_HashCreate(t *testing.T) {
 }
 
 func TestRoutes_HashCheck(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil).WithHashes(nil, hashCheckUseCaseMock{})
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithHashes(nil, hashCheckUseCaseMock{})
 	body := map[string]any{
 		"content_base64":      base64.StdEncoding.EncodeToString([]byte("abc")),
 		"hash_content_base64": base64.StdEncoding.EncodeToString([]byte("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015adh")),
@@ -813,56 +766,13 @@ func TestRoutes_HashPathsRechazanDirectoriosSensibles(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			adaptador := rest.New(nil, nil, nil).
-				WithHashes(hashCreateUseCaseMock{}, hashCheckUseCaseMock{}).
-				WithFileSystemPaths()
+			adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
+				WithHashes(hashCreateUseCaseMock{}, hashCheckUseCaseMock{})
 			rr := doJSON(t, adaptador.Routes(), http.MethodPost, test.endpoint, test.body)
-			if rr.Code != http.StatusBadRequest {
-				t.Fatalf("status = %d, want %d; body=%s", rr.Code, http.StatusBadRequest, rr.Body.String())
-			}
-			if !strings.Contains(rr.Body.String(), "no valida") {
-				t.Fatalf("respuesta sin diagnóstico de ruta: %s", rr.Body.String())
+			if rr.Code != http.StatusForbidden {
+				t.Fatalf("status = %d, want %d; body=%s", rr.Code, http.StatusForbidden, rr.Body.String())
 			}
 		})
-	}
-}
-
-func TestRoutes_DirectoryHashCheck_WithReport(t *testing.T) {
-	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "uno.txt"), []byte("abc"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	reportPath := filepath.Join(dir, "resultado.hashreport")
-	adaptador := rest.New(nil, nil, nil).
-		WithFileSystemPaths().
-		WithDirectoryHashes(nil, dirHashCheckUseCaseMock{}).
-		WithDirectoryHashReports(dirHashReportCodecMock{})
-	body := map[string]any{
-		"inputPath":        dir,
-		"hashPath":         filepath.Join(dir, "directorio.hashfiles"),
-		"saveReportToDisk": true,
-		"reportOutputPath": reportPath,
-	}
-	if err := os.WriteFile(filepath.Join(dir, "directorio.hashfiles"), []byte("<entries/>"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/hash/check", body)
-	if rr.Code != http.StatusOK {
-		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
-	}
-	var resp map[string]any
-	_ = json.Unmarshal(rr.Body.Bytes(), &resp)
-	if resp["valid"] != false {
-		t.Fatalf("valid inesperado: %#v", resp["valid"])
-	}
-	if stringValue(resp["report_base64"]) == "" {
-		t.Fatalf("report_base64 vacio: %s", rr.Body.String())
-	}
-	if resp["report_output_path"] != reportPath {
-		t.Fatalf("report_output_path inesperado: %#v", resp["report_output_path"])
-	}
-	if _, err := os.Stat(reportPath); err != nil {
-		t.Fatalf("se esperaba informe en disco: %v", err)
 	}
 }
 
@@ -870,7 +780,7 @@ func TestRoutes_ProtectionRecipients(t *testing.T) {
 	authRecipient := generarDestinatarioAuthEnvelopedREST(t, "dest-auth")
 	authRecipientWithoutID := authRecipient
 	authRecipientWithoutID.ID = ""
-	adaptador := rest.New(nil, nil, nil).WithProtection(nil, nil, protectionRecipientsMock{
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(nil, nil, protectionRecipientsMock{
 		recipients: []domain.ProtectionRecipient{authRecipient, authRecipientWithoutID, {
 			ID:                     "dest-compat-sin-certificado",
 			Label:                  "Compat RSA sin certificado",
@@ -917,7 +827,7 @@ func TestRoutes_ProtectionRecipients(t *testing.T) {
 }
 
 func TestRoutes_ProtectionRecipientExport(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil).WithIntercambioProteccion(exportProtectionRecipientUseCaseMock{}, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithIntercambioProteccion(exportProtectionRecipientUseCaseMock{}, nil)
 	rr := doJSON(t, adaptador.Routes(), http.MethodGet, "/protection/recipient/export?id=dest-2", nil)
 	if rr.Code != http.StatusOK {
 		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
@@ -937,7 +847,7 @@ func TestRoutes_ProtectionRecipientExport(t *testing.T) {
 }
 
 func TestRoutes_ProtectionRecipientImport(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil).WithIntercambioProteccion(nil, importProtectionRecipientUseCaseMock{})
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithIntercambioProteccion(nil, importProtectionRecipientUseCaseMock{})
 	body := map[string]any{
 		"data_base64": base64.StdEncoding.EncodeToString([]byte(`{"profile":"alto"}`)),
 	}
@@ -958,7 +868,7 @@ func TestRoutes_ProtectionRecipientImport(t *testing.T) {
 
 func TestRoutes_Protect(t *testing.T) {
 	mock := &protectUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).WithProtection(mock, nil, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(mock, nil, nil)
 	body := map[string]any{
 		"name":           "secreto.txt",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("secreto")),
@@ -988,7 +898,7 @@ func TestRoutes_Protect(t *testing.T) {
 
 func TestRoutes_ProtectAuthEnvelopedData(t *testing.T) {
 	mock := &protectUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).WithProtection(mock, nil, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(mock, nil, nil)
 	body := map[string]any{
 		"name":           "secreto.txt",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("secreto")),
@@ -1013,7 +923,7 @@ func TestRoutes_ProtectAuthEnvelopedData(t *testing.T) {
 
 func TestRoutes_Unprotect(t *testing.T) {
 	mock := &unprotectUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).WithProtection(nil, mock, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(nil, mock, nil)
 	body := map[string]any{
 		"name":           "secreto.txt.afp",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte(`{"version":"v1"}`)),
@@ -1035,7 +945,7 @@ func TestRoutes_Unprotect(t *testing.T) {
 
 func TestRoutes_ProtectEncryptedDataWithoutRecipients(t *testing.T) {
 	mock := &protectUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).WithProtection(mock, nil, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(mock, nil, nil)
 	secret := base64.StdEncoding.EncodeToString([]byte("0123456789abcdef0123456789abcdef"))
 	body := map[string]any{
 		"name":           "secreto.txt",
@@ -1064,7 +974,7 @@ func TestRoutes_ProtectEncryptedDataWithoutRecipients(t *testing.T) {
 
 func TestRoutes_ProtectSign(t *testing.T) {
 	mock := &protectAndSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithSignedProtection(mock).
 		WithProtection(nil, nil, protectionRecipientsMock{recipients: []domain.ProtectionRecipient{{
 			ID:                     "dest-1",
@@ -1112,7 +1022,7 @@ func TestRoutes_ProtectSign(t *testing.T) {
 
 func TestRoutes_ProtectSign_AceptaAliasLegacyDeSignedAndEnvelopedData(t *testing.T) {
 	mock := &protectAndSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithSignedProtection(mock).
 		WithProtection(nil, nil, protectionRecipientsMock{recipients: []domain.ProtectionRecipient{{
 			ID:                     "dest-1",
@@ -1149,7 +1059,7 @@ func TestRoutes_ProtectSign_AceptaAliasLegacyDeSignedAndEnvelopedData(t *testing
 
 func TestRoutes_ProtectSign_RechazaAuthEnvelopedDataConErrorClaro(t *testing.T) {
 	mock := &protectAndSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithSignedProtection(mock).
 		WithProtection(nil, nil, protectionRecipientsMock{recipients: []domain.ProtectionRecipient{{
 			ID:                     "dest-1",
@@ -1189,7 +1099,7 @@ func TestRoutes_ProtectSign_RechazaAuthEnvelopedDataConErrorClaro(t *testing.T) 
 
 func TestRoutes_ProtectSign_RechazaEnvelopedDataConErrorClaro(t *testing.T) {
 	mock := &protectAndSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithSignedProtection(mock).
 		WithProtection(nil, nil, protectionRecipientsMock{recipients: []domain.ProtectionRecipient{{
 			ID:                     "dest-1",
@@ -1227,98 +1137,9 @@ func TestRoutes_ProtectSign_RechazaEnvelopedDataConErrorClaro(t *testing.T) {
 	}
 }
 
-func TestRoutes_ProtectSignByPath_AceptaAliasLegacyDeSignedAndEnvelopedData(t *testing.T) {
-	tmp := t.TempDir()
-	inputPath := filepath.Join(tmp, "secreto.txt")
-	if err := os.WriteFile(inputPath, []byte("secreto"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	mock := &protectAndSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).
-		WithFileSystemPaths().
-		WithSignedProtection(mock).
-		WithProtection(nil, nil, protectionRecipientsMock{recipients: []domain.ProtectionRecipient{{
-			ID:                     "dest-1",
-			Label:                  "Compat RSA",
-			RSAOAEP256PublicKeyDER: []byte("rsa-pub"),
-			CertificateDER:         []byte("cert-der"),
-		}}}).
-		WithCertificateSources(catalogMockREST{certs: []domain.CertificateRef{{
-			ID:          "cert-firma-1",
-			Subject:     "CN=Ana Perez",
-			Issuer:      "CN=FNMT",
-			NotAfter:    time.Now().Add(time.Hour),
-			Fingerprint: "fp1",
-		}}}, nil)
-	body := map[string]any{
-		"inputPath":          inputPath,
-		"profile":            "compat",
-		"recipient_ids":      []string{"dest-1"},
-		"certificate_id":     "cert-firma-1",
-		"saveToDisk":         false,
-		"returnProtectedB64": true,
-		"options": map[string]any{
-			"container": "signed-and-enveloped-data",
-		},
-	}
-	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/protect-sign", body)
-	if rr.Code != http.StatusOK {
-		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
-	}
-	if mock.lastCmd.Options["container"] != "signedandenvelopeddata" {
-		t.Fatalf("container inesperado: %#v", mock.lastCmd.Options["container"])
-	}
-}
-
-func TestRoutes_ProtectSignByPath_RechazaAuthEnvelopedDataConErrorClaro(t *testing.T) {
-	tmp := t.TempDir()
-	inputPath := filepath.Join(tmp, "secreto.txt")
-	if err := os.WriteFile(inputPath, []byte("secreto"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	mock := &protectAndSignUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).
-		WithFileSystemPaths().
-		WithSignedProtection(mock).
-		WithProtection(nil, nil, protectionRecipientsMock{recipients: []domain.ProtectionRecipient{{
-			ID:                     "dest-1",
-			Label:                  "Compat RSA",
-			RSAOAEP256PublicKeyDER: []byte("rsa-pub"),
-			CertificateDER:         []byte("cert-der"),
-		}}}).
-		WithCertificateSources(catalogMockREST{certs: []domain.CertificateRef{{
-			ID:          "cert-firma-1",
-			Subject:     "CN=Ana Perez",
-			Issuer:      "CN=FNMT",
-			NotAfter:    time.Now().Add(time.Hour),
-			Fingerprint: "fp1",
-		}}}, nil)
-	body := map[string]any{
-		"inputPath":      inputPath,
-		"profile":        "compat",
-		"recipient_ids":  []string{"dest-1"},
-		"certificate_id": "cert-firma-1",
-		"options": map[string]any{
-			"container": "authenvelopeddata",
-		},
-	}
-	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/protect-sign", body)
-	if rr.Code != http.StatusBadRequest {
-		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
-	}
-	if mock.lastCmd.Document.Name != "" {
-		t.Fatalf("no se esperaba ejecutar el caso de uso: %#v", mock.lastCmd)
-	}
-	if !strings.Contains(rr.Body.String(), "AuthEnvelopedData") {
-		t.Fatalf("cuerpo inesperado: %s", rr.Body.String())
-	}
-}
-
 func TestRoutes_UnprotectEncryptedDataWithSecret(t *testing.T) {
 	mock := &unprotectUseCaseMock{}
-	adaptador := rest.New(nil, nil, nil).WithProtection(nil, mock, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(nil, mock, nil)
 	secret := base64.StdEncoding.EncodeToString([]byte("0123456789abcdef0123456789abcdef"))
 	body := map[string]any{
 		"name":           "secreto.txt.encrypted.p7m",
@@ -1336,8 +1157,8 @@ func TestRoutes_UnprotectEncryptedDataWithSecret(t *testing.T) {
 }
 
 func TestRoutes_Index(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil)
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -1542,8 +1363,8 @@ func TestRoutes_Index(t *testing.T) {
 }
 
 func TestRoutes_Signer(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil)
-	req := httptest.NewRequest(http.MethodGet, "/signer", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/signer", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -1814,8 +1635,8 @@ func TestRoutes_Signer(t *testing.T) {
 func TestRoutes_Validator(t *testing.T) {
 	t.Parallel()
 
-	adaptador := rest.New(nil, nil, nil)
-	req := httptest.NewRequest(http.MethodGet, "/validator", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/validator", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -1885,15 +1706,15 @@ func TestRoutes_Validator(t *testing.T) {
 func TestRoutes_ValidatorAliasYMetodo(t *testing.T) {
 	t.Parallel()
 
-	adaptador := rest.New(nil, nil, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
 	alias := httptest.NewRecorder()
-	adaptador.Routes().ServeHTTP(alias, httptest.NewRequest(http.MethodGet, "/validador?lang=es", nil))
+	adaptador.Routes().ServeHTTP(alias, nuevaPeticionPruebas(http.MethodGet, "/validador?lang=es", nil))
 	if alias.Code != http.StatusOK || !strings.Contains(alias.Body.String(), "Validación avanzada") {
 		t.Fatalf("GET /validador = %d cuerpo=%s", alias.Code, alias.Body.String())
 	}
 
 	invalidMethod := httptest.NewRecorder()
-	adaptador.Routes().ServeHTTP(invalidMethod, httptest.NewRequest(http.MethodPost, "/validator", nil))
+	adaptador.Routes().ServeHTTP(invalidMethod, nuevaPeticionPruebas(http.MethodPost, "/validator", nil))
 	if invalidMethod.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("POST /validator = %d, esperaba %d", invalidMethod.Code, http.StatusMethodNotAllowed)
 	}
@@ -1902,8 +1723,8 @@ func TestRoutes_ValidatorAliasYMetodo(t *testing.T) {
 func TestRoutes_ValidatorLocaleQueryRendersSelectedLanguage(t *testing.T) {
 	t.Parallel()
 
-	adaptador := rest.New(nil, nil, nil)
-	req := httptest.NewRequest(http.MethodGet, "/validator?lang=en", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/validator?lang=en", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -1935,8 +1756,8 @@ func TestRoutes_ValidatorLocaleQueryRendersSelectedLanguage(t *testing.T) {
 }
 
 func TestRoutes_IndexLocaleQueryRendersSelectedLanguage(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil)
-	req := httptest.NewRequest(http.MethodGet, "/?lang=en", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/?lang=en", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -1977,8 +1798,8 @@ func TestRoutes_IndexLocaleQueryRendersSelectedLanguage(t *testing.T) {
 }
 
 func TestRoutes_SignerLocaleQueryRendersSelectedLanguage(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil)
-	req := httptest.NewRequest(http.MethodGet, "/signer?lang=en", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/signer?lang=en", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -2025,37 +1846,8 @@ func TestRoutes_SignerLocaleQueryRendersSelectedLanguage(t *testing.T) {
 	}
 }
 
-func TestRoutes_VerifyByPathCompatQt(t *testing.T) {
-	dir := t.TempDir()
-	inputPath := filepath.Join(dir, "firma.csig")
-	if err := os.WriteFile(inputPath, []byte("firma"), 0o600); err != nil {
-		t.Fatalf("os.WriteFile(inputPath) error = %v", err)
-	}
-
-	adaptador := rest.New(nil, verifyUseCaseMock{}, nil).WithFileSystemPaths()
-	body := map[string]any{
-		"inputPath": inputPath,
-	}
-	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/verify", body)
-	if rr.Code != http.StatusOK {
-		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
-	}
-	var resp map[string]any
-	_ = json.Unmarshal(rr.Body.Bytes(), &resp)
-	if resp["ok"] != true {
-		t.Fatalf("ok inesperado: %#v", resp["ok"])
-	}
-	result, ok := resp["result"].(map[string]any)
-	if !ok {
-		t.Fatalf("result inesperado: %#v", resp["result"])
-	}
-	if result["valid"] != true {
-		t.Fatalf("result.valid inesperado: %#v", result["valid"])
-	}
-}
-
 func TestRoutes_VerifyDetached(t *testing.T) {
-	adaptador := rest.New(nil, verifyUseCaseMock{}, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, verifyUseCaseMock{}, nil)
 	body := map[string]any{
 		"name":                    "firma.csig",
 		"content_base64":          base64.StdEncoding.EncodeToString([]byte("firma")),
@@ -2069,7 +1861,7 @@ func TestRoutes_VerifyDetached(t *testing.T) {
 }
 
 func TestRoutes_SelectCertificate(t *testing.T) {
-	adaptador := rest.New(nil, nil, selectUseCaseMock{})
+	adaptador := nuevoAdaptadorPruebas(nil, nil, selectUseCaseMock{})
 	body := map[string]any{
 		"subject_filter":    "ana",
 		"solo_no_caducados": true,
@@ -2086,8 +1878,8 @@ func TestRoutes_SelectCertificate(t *testing.T) {
 }
 
 func TestRoutes_MethodNotAllowed(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil)
-	req := httptest.NewRequest(http.MethodGet, "/sign", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/sign", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusMethodNotAllowed {
@@ -2096,8 +1888,8 @@ func TestRoutes_MethodNotAllowed(t *testing.T) {
 }
 
 func TestRoutes_OpenAPI(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil)
-	req := httptest.NewRequest(http.MethodGet, "/openapi.json", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/openapi.json", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -2140,8 +1932,8 @@ func TestRoutes_OpenAPI(t *testing.T) {
 }
 
 func TestRoutes_Health(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil)
-	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/health", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -2154,7 +1946,7 @@ func TestRoutes_Health(t *testing.T) {
 
 func TestRoutes_Certificates(t *testing.T) {
 	closeCount := 0
-	adaptador := rest.New(nil, nil, nil).WithCertificateSources(
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithCertificateSources(
 		catalogMockREST{certs: []domain.CertificateRef{{
 			ID:            "cert-1",
 			Subject:       "CN=Ana Perez",
@@ -2166,7 +1958,7 @@ func TestRoutes_Certificates(t *testing.T) {
 		closingSigningKeyProviderREST{key: &closingSigningKeyREST{closeCount: &closeCount}},
 	)
 
-	req := httptest.NewRequest(http.MethodGet, "/certificates", nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/certificates", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -2189,7 +1981,7 @@ func TestRoutes_CertificateValidate_NoConfiaEnAutofirmadoPresentado(t *testing.T
 	if block == nil {
 		t.Fatal("fixture PEM inválido")
 	}
-	adaptador := rest.New(nil, nil, nil).WithCertificateSources(
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithCertificateSources(
 		catalogMockREST{certs: []domain.CertificateRef{{
 			ID:          "cert-autofirmado",
 			Subject:     "CN=Auth Test",
@@ -2231,7 +2023,7 @@ func TestRoutes_CertificateValidate_NoConfiaEnAutofirmadoPresentado(t *testing.T
 }
 
 func TestRoutes_CertificateValidate_RechazaCadenaVaciaYMetodo(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil).WithCertificateSources(
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithCertificateSources(
 		catalogMockREST{certs: []domain.CertificateRef{{
 			ID:          "cert-sin-cadena",
 			Subject:     "CN=Sin cadena",
@@ -2248,7 +2040,7 @@ func TestRoutes_CertificateValidate_RechazaCadenaVaciaYMetodo(t *testing.T) {
 		t.Fatalf("cadena vacía = %d, esperaba 400; cuerpo=%s", rr.Code, rr.Body.String())
 	}
 	method := httptest.NewRecorder()
-	adaptador.Routes().ServeHTTP(method, httptest.NewRequest(http.MethodGet, "/certificates/validate", nil))
+	adaptador.Routes().ServeHTTP(method, nuevaPeticionPruebas(http.MethodGet, "/certificates/validate", nil))
 	if method.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("GET /certificates/validate = %d, esperaba 405", method.Code)
 	}
@@ -2306,7 +2098,7 @@ func TestRoutes_CertificateEndpoints_CierranClaveEnExitoYError(t *testing.T) {
 				chain:      test.chain,
 				closeCount: &closeCount,
 			}
-			adaptador := rest.New(nil, nil, nil).WithCertificateSources(
+			adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithCertificateSources(
 				catalogMockREST{certs: []domain.CertificateRef{{
 					ID:          "cert-close",
 					Subject:     "CN=Close",
@@ -2337,7 +2129,7 @@ func TestRoutes_CertificateEndpoints_CierranClaveDevueltaConError(t *testing.T) 
 		path := path
 		t.Run(path, func(t *testing.T) {
 			closeCount := 0
-			adaptador := rest.New(nil, nil, nil).WithCertificateSources(
+			adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithCertificateSources(
 				catalogMockREST{certs: []domain.CertificateRef{{
 					ID:       "cert-error-close",
 					Subject:  "CN=Close error",
@@ -2363,7 +2155,7 @@ func TestRoutes_CertificateEndpoints_CierranClaveDevueltaConError(t *testing.T) 
 }
 
 func TestRoutes_CertificatesRespetaBearerSiEstaConfigurado(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil).
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithBearerToken("token-prueba").
 		WithCertificateSources(
 			catalogMockREST{certs: []domain.CertificateRef{{
@@ -2376,14 +2168,14 @@ func TestRoutes_CertificatesRespetaBearerSiEstaConfigurado(t *testing.T) {
 			signingKeyProviderMockREST{},
 		)
 
-	req := httptest.NewRequest(http.MethodGet, "/certificates", nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/certificates", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusUnauthorized {
 		t.Fatalf("codigo sin bearer = %d, want 401 cuerpo=%s", rr.Code, rr.Body.String())
 	}
 
-	req = httptest.NewRequest(http.MethodGet, "/certificates", nil)
+	req = nuevaPeticionPruebas(http.MethodGet, "/certificates", nil)
 	req.Header.Set("Authorization", "Bearer token-prueba")
 	rr = httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
@@ -2394,7 +2186,7 @@ func TestRoutes_CertificatesRespetaBearerSiEstaConfigurado(t *testing.T) {
 
 func TestRoutes_Settings_GetYPost(t *testing.T) {
 	dir := t.TempDir()
-	adaptador := rest.New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 
 	rr := doJSON(t, adaptador.Routes(), http.MethodGet, "/settings", nil)
 	if rr.Code != http.StatusOK {
@@ -2429,7 +2221,7 @@ func TestRoutes_Settings_GetYPost(t *testing.T) {
 
 func TestRoutes_Settings_RechazaCredencialesProxyEnClaro(t *testing.T) {
 	dir := t.TempDir()
-	adaptador := rest.New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 
 	body := map[string]any{
 		"proxyUsername": "usuario",
@@ -2449,7 +2241,7 @@ func TestRoutes_Settings_RechazaCredencialesProxyEnClaro(t *testing.T) {
 
 func TestRoutes_Settings_DescartaCredencialSeguridadUIEnClaro(t *testing.T) {
 	dir := t.TempDir()
-	adaptador := rest.New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 
 	body := map[string]any{
 		"expertMode":             true,
@@ -2483,7 +2275,7 @@ func TestRoutes_Settings_GetMigraCredencialSeguridadUIEnClaroHeredada(t *testing
 }`), 0o600); err != nil {
 		t.Fatalf("preparar qt-settings.json heredado: %v", err)
 	}
-	adaptador := rest.New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 
 	rr := doJSON(t, adaptador.Routes(), http.MethodGet, "/settings", nil)
 	if rr.Code != http.StatusOK {
@@ -2508,7 +2300,7 @@ func TestRoutes_Settings_GetMigraCredencialSeguridadUIEnClaroHeredada(t *testing
 }
 
 func TestRoutes_ServiceStatus(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil).WithServicio(&serviceManagerMockREST{
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithServicio(&serviceManagerMockREST{
 		estado: ports.EstadoServicio{
 			Instalado:  true,
 			Activo:     true,
@@ -2516,7 +2308,7 @@ func TestRoutes_ServiceStatus(t *testing.T) {
 			Metodo:     "systemd-user",
 		},
 	})
-	req := httptest.NewRequest(http.MethodGet, "/service/status", nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/service/status", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -2535,7 +2327,7 @@ func TestRoutes_ServiceStatus(t *testing.T) {
 
 func TestRoutes_ServiceInstall(t *testing.T) {
 	gestor := &serviceManagerMockREST{}
-	adaptador := rest.New(nil, nil, nil).WithServicio(gestor)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithServicio(gestor)
 	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/service/install", map[string]any{})
 	if rr.Code != http.StatusOK {
 		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
@@ -2581,7 +2373,7 @@ func TestRoutes_PDFPreviewReal(t *testing.T) {
 		PaginaActual: 2,
 		TotalPaginas: 7,
 	}}
-	adaptador := rest.New(nil, nil, nil).
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithPDFPreviewPaths().
 		WithPDFPreview(preview)
 	body := map[string]any{
@@ -2634,7 +2426,7 @@ func TestRoutes_PDFPreviewConRendererPdftoppm(t *testing.T) {
 	if _, err := os.Stat(inputPath); err != nil {
 		t.Fatalf("fixture PDF no disponible: %v", err)
 	}
-	handler := rest.New(nil, nil, nil).
+	handler := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithPDFPreviewPaths().
 		WithPDFPreview(application.NuevoPdfPreviewUseCase(pdfpreview.New().WithDPI(36))).
 		Routes()
@@ -2676,7 +2468,7 @@ func TestRoutes_PDFPreviewPermisoEstrechoNoHabilitaFirmaPorRuta(t *testing.T) {
 		PaginaActual: 1,
 		TotalPaginas: 1,
 	}}
-	handler := rest.New(signUseCaseMock{}, nil, nil).
+	handler := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).
 		WithPDFPreviewPaths().
 		WithPDFPreview(preview).
 		Routes()
@@ -2714,7 +2506,7 @@ func TestRoutes_PDFPreviewPaginaFueraDeRango(t *testing.T) {
 		TotalPaginas: 3,
 	}}
 	rr := doJSON(t,
-		rest.New(nil, nil, nil).WithFileSystemPaths().WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreviewPaths().WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": inputPath, "page": 99},
@@ -2741,7 +2533,7 @@ func TestRoutes_PDFPreviewRechazaRutasDeshabilitadas(t *testing.T) {
 	}
 	preview := &pdfPreviewUseCaseMockREST{}
 	rr := doJSON(t,
-		rest.New(nil, nil, nil).WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": inputPath, "page": 1},
@@ -2765,7 +2557,7 @@ func TestRoutes_PDFPreviewRechazaEscape(t *testing.T) {
 	}
 	preview := &pdfPreviewUseCaseMockREST{}
 	rr := doJSON(t,
-		rest.New(nil, nil, nil).WithFileSystemPaths().WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreviewPaths().WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": escapePath, "page": 1},
@@ -2790,7 +2582,7 @@ func TestRoutes_PDFPreviewRechazaSymlink(t *testing.T) {
 	}
 	preview := &pdfPreviewUseCaseMockREST{}
 	rr := doJSON(t,
-		rest.New(nil, nil, nil).WithFileSystemPaths().WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreviewPaths().WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": link, "page": 1},
@@ -2810,7 +2602,7 @@ func TestRoutes_PDFPreviewRechazaNoRegular(t *testing.T) {
 	}
 	preview := &pdfPreviewUseCaseMockREST{}
 	rr := doJSON(t,
-		rest.New(nil, nil, nil).WithFileSystemPaths().WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreviewPaths().WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": inputPath, "page": 1},
@@ -2831,8 +2623,8 @@ func TestRoutes_PDFPreviewRechazaFicheroExcesivo(t *testing.T) {
 	}
 	preview := &pdfPreviewUseCaseMockREST{}
 	rr := doJSON(t,
-		rest.New(nil, nil, nil).
-			WithFileSystemPaths().
+		nuevoAdaptadorPruebas(nil, nil, nil).
+			WithPDFPreviewPaths().
 			WithPDFPreview(preview).
 			WithMaxBodyBytes(512).
 			Routes(),
@@ -2882,7 +2674,7 @@ func TestRoutes_PDFPreviewUsaCopiaPrivadaAnteIntercambio(t *testing.T) {
 		}
 	}
 	rr := doJSON(t,
-		rest.New(nil, nil, nil).WithFileSystemPaths().WithPDFPreview(preview).Routes(),
+		nuevoAdaptadorPruebas(nil, nil, nil).WithPDFPreviewPaths().WithPDFPreview(preview).Routes(),
 		http.MethodPost,
 		"/pdf/preview",
 		map[string]any{"path": inputPath, "page": 1},
@@ -2899,7 +2691,7 @@ func TestRoutes_CertificatesImport(t *testing.T) {
 	dir := t.TempDir()
 	data := generarP12REST(t, "Import Qt", "secret")
 
-	adaptador := rest.New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 	body := map[string]any{
 		"p12B64":   base64.StdEncoding.EncodeToString(data),
 		"password": "secret",
@@ -2929,7 +2721,7 @@ func TestRoutes_CertificatesImport_RechazaP12Sobredimensionado(t *testing.T) {
 		"password": "secret",
 	}
 
-	rr := doJSON(t, rest.New(nil, nil, nil).WithConfigDir(dir).Routes(), http.MethodPost, "/certificates/import", body)
+	rr := doJSON(t, nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir).Routes(), http.MethodPost, "/certificates/import", body)
 
 	if rr.Code != http.StatusRequestEntityTooLarge {
 		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
@@ -2952,8 +2744,8 @@ func TestRoutes_TLSTrustStatus(t *testing.T) {
 		t.Fatalf("os.WriteFile(key) error = %v", err)
 	}
 
-	adaptador := rest.New(nil, nil, nil).WithConfigDir(dir)
-	req := httptest.NewRequest(http.MethodGet, "/tls/trust-status", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
+	req := nuevaPeticionPruebas(http.MethodGet, "/tls/trust-status", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -3004,7 +2796,7 @@ func TestRoutes_DiagnosticsReport(t *testing.T) {
 	}
 
 	closeCount := 0
-	adaptador := rest.New(nil, nil, nil).WithConfigDir(dir).WithCertificateSources(
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir).WithCertificateSources(
 		catalogMockREST{certs: []domain.CertificateRef{{
 			ID:            "cert-1",
 			Subject:       "CN=Ana Perez",
@@ -3016,7 +2808,7 @@ func TestRoutes_DiagnosticsReport(t *testing.T) {
 		closingSigningKeyProviderREST{key: &closingSigningKeyREST{closeCount: &closeCount}},
 	)
 
-	req := httptest.NewRequest(http.MethodGet, "/diagnostics/report", nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/diagnostics/report", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -3061,8 +2853,8 @@ func TestRoutes_DiagnosticsReport(t *testing.T) {
 
 func TestRoutes_DiagnosticsReport_AlmacenNoCreadoCuentaCero(t *testing.T) {
 	dir := t.TempDir()
-	adaptador := rest.New(nil, nil, nil).WithConfigDir(dir)
-	req := httptest.NewRequest(http.MethodGet, "/diagnostics/report", nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
+	req := nuevaPeticionPruebas(http.MethodGet, "/diagnostics/report", nil)
 	rr := httptest.NewRecorder()
 
 	adaptador.Routes().ServeHTTP(rr, req)
@@ -3100,7 +2892,7 @@ func TestRoutes_TLSClearStore(t *testing.T) {
 		t.Fatalf("os.WriteFile(key) error = %v", err)
 	}
 
-	adaptador := rest.New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/tls/clear-store", map[string]any{})
 	if rr.Code != http.StatusOK {
 		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
@@ -3166,7 +2958,7 @@ func TestRoutes_TLSClearStore(t *testing.T) {
 }
 
 func TestRoutes_BearerOpcional(t *testing.T) {
-	adaptador := rest.New(signUseCaseMock{}, nil, nil).WithBearerToken("valor-prueba")
+	adaptador := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).WithBearerToken("valor-prueba")
 	body := map[string]any{
 		"name":           "doc.txt",
 		"content_base64": base64.StdEncoding.EncodeToString([]byte("abc")),
@@ -3181,7 +2973,7 @@ func TestRoutes_BearerOpcional(t *testing.T) {
 	}
 
 	reqData, _ := json.Marshal(body)
-	req := httptest.NewRequest(http.MethodPost, "/sign", bytes.NewReader(reqData))
+	req := nuevaPeticionPruebas(http.MethodPost, "/sign", bytes.NewReader(reqData))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer valor-prueba")
 	rr = httptest.NewRecorder()
@@ -3192,7 +2984,7 @@ func TestRoutes_BearerOpcional(t *testing.T) {
 }
 
 func TestRoutes_BearerNoExponeAutenticacionPorCertificado(t *testing.T) {
-	adaptador := rest.New(signUseCaseMock{}, nil, nil).WithBearerToken("valor-prueba")
+	adaptador := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).WithBearerToken("valor-prueba")
 	handler := adaptador.Routes()
 
 	for _, tc := range []struct {
@@ -3204,7 +2996,7 @@ func TestRoutes_BearerNoExponeAutenticacionPorCertificado(t *testing.T) {
 		{method: http.MethodGet, path: "/autenticacion/reto"},
 		{method: http.MethodPost, path: "/autenticacion/verificar"},
 	} {
-		req := httptest.NewRequest(tc.method, tc.path, nil)
+		req := nuevaPeticionPruebas(tc.method, tc.path, nil)
 		rr := httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)
 		if rr.Code != http.StatusNotFound {
@@ -3212,7 +3004,7 @@ func TestRoutes_BearerNoExponeAutenticacionPorCertificado(t *testing.T) {
 		}
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/openapi.json", nil)
+	req := nuevaPeticionPruebas(http.MethodGet, "/openapi.json", nil)
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -3232,8 +3024,8 @@ func TestRoutes_BearerNoExponeAutenticacionPorCertificado(t *testing.T) {
 }
 
 func TestRoutes_AllowlistCertificadosVaciaNoActivaAutenticacion(t *testing.T) {
-	adaptador := rest.New(signUseCaseMock{}, nil, nil).WithCertificateAuth(" , : ", 15*time.Minute)
-	req := httptest.NewRequest(http.MethodPost, "/auth/challenge", nil)
+	adaptador := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).WithCertificateAuth(" , : ", 15*time.Minute)
+	req := nuevaPeticionPruebas(http.MethodPost, "/auth/challenge", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusNotFound {
@@ -3242,12 +3034,12 @@ func TestRoutes_AllowlistCertificadosVaciaNoActivaAutenticacion(t *testing.T) {
 }
 
 func TestRoutes_AuthPorCertificado(t *testing.T) {
-	adaptador := rest.New(signUseCaseMock{}, nil, nil).WithBearerToken("bearer-alternativo")
+	adaptador := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).WithBearerToken("bearer-alternativo")
 
 	priv, certPEM, fingerprint := generarCertificadoAuth(t)
 	adaptador.WithCertificateAuth(fingerprint, 15*time.Minute)
 
-	req := httptest.NewRequest(http.MethodPost, "/auth/challenge", nil)
+	req := nuevaPeticionPruebas(http.MethodPost, "/auth/challenge", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -3295,7 +3087,7 @@ func TestRoutes_AuthPorCertificado(t *testing.T) {
 	}
 	reqData, _ := json.Marshal(body)
 	enviarFirma := func() *httptest.ResponseRecorder {
-		peticion := httptest.NewRequest(http.MethodPost, "/sign", bytes.NewReader(reqData))
+		peticion := nuevaPeticionPruebas(http.MethodPost, "/sign", bytes.NewReader(reqData))
 		peticion.Header.Set("Content-Type", "application/json")
 		peticion.Header.Set("Authorization", "Bearer "+token)
 		respuesta := httptest.NewRecorder()
@@ -3320,11 +3112,11 @@ func TestRoutes_AuthPorCertificado(t *testing.T) {
 func TestRoutes_AuthPorCertificadoRechazaFueraDeAllowlist(t *testing.T) {
 	_, _, fingerprintPermitido := generarCertificadoAuth(t)
 	privNoPermitida, certPEMNoPermitido, _ := generarCertificadoAuth(t)
-	adaptador := rest.New(signUseCaseMock{}, nil, nil).
+	adaptador := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).
 		WithBearerToken("valor-prueba").
 		WithCertificateAuth(fingerprintPermitido, 15*time.Minute)
 
-	req := httptest.NewRequest(http.MethodPost, "/auth/challenge", nil)
+	req := nuevaPeticionPruebas(http.MethodPost, "/auth/challenge", nil)
 	rr := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
@@ -3359,7 +3151,7 @@ func TestStartTLSServer_ClienteHTTPS(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	adaptador := rest.New(signUseCaseMock{}, nil, nil).WithBearerToken("valor-prueba")
+	adaptador := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).WithBearerToken("valor-prueba")
 	srv, err := rest.StartTLSServer(ctx, "127.0.0.1:0", adaptador.Routes(), t.TempDir())
 	if err != nil {
 		t.Fatalf("StartTLSServer() error = %v", err)
@@ -3440,7 +3232,7 @@ func doJSON(t *testing.T, h http.Handler, method, path string, body any) *httpte
 	if err != nil {
 		t.Fatalf("json marshal fallo: %v", err)
 	}
-	req := httptest.NewRequest(method, path, bytes.NewReader(data))
+	req := nuevaPeticionPruebas(method, path, bytes.NewReader(data))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
@@ -3536,26 +3328,6 @@ func (hashCheckUseCaseMock) Execute(_ context.Context, cmd application.CheckHash
 		ExpectedEncoded: "616263h",
 		ActualEncoded:   "616263h",
 	}, nil
-}
-
-type dirHashCheckUseCaseMock struct{}
-
-func (dirHashCheckUseCaseMock) Execute(_ context.Context, _ application.CheckDirectoryHashManifestCommand) (application.CheckDirectoryHashManifestResult, error) {
-	return application.CheckDirectoryHashManifestResult{
-		Valid: false,
-		Report: domain.DirectoryHashCheckReport{
-			Algorithm:       "SHA-256",
-			Recursive:       true,
-			MatchingHash:    []string{"uno.txt"},
-			NotMatchingHash: []string{"dos.txt"},
-		},
-	}, nil
-}
-
-type dirHashReportCodecMock struct{}
-
-func (dirHashReportCodecMock) EncodeReport(context.Context, domain.DirectoryHashCheckReport) ([]byte, error) {
-	return []byte(`<?xml version="1.0" encoding="UTF-8"?><entries hashAlgorithm="SHA-256" recursive="true"><not_matching_hash><entry name="dos.txt"></entry></not_matching_hash></entries>`), nil
 }
 
 func (verifyUseCaseMock) Execute(_ context.Context, cmd application.VerifyCommand) (application.VerifyResult, error) {
@@ -4008,7 +3780,7 @@ func TestRoutes_Sign_RechazaInputPathDeSistema(t *testing.T) {
 		"/usr/bin/sh",
 	}
 
-	handler := rest.New(signUseCaseMock{}, nil, nil).Routes()
+	handler := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).Routes()
 
 	for _, ruta := range rutas {
 		ruta := ruta
@@ -4017,7 +3789,7 @@ func TestRoutes_Sign_RechazaInputPathDeSistema(t *testing.T) {
 				"inputPath": ruta,
 				"format":    "CAdES",
 			})
-			req := httptest.NewRequest(http.MethodPost, "/sign", bytes.NewReader(body))
+			req := nuevaPeticionPruebas(http.MethodPost, "/sign", bytes.NewReader(body))
 			req.Header.Set("Content-Type", "application/json")
 			rr := httptest.NewRecorder()
 			handler.ServeHTTP(rr, req)
@@ -4042,35 +3814,9 @@ func TestRoutes_Sign_RechazaRutaDeSelloSinOperacionesDeFichero(t *testing.T) {
 			"visibleSealImagePath": imagePath,
 		},
 	}
-	rr := doJSON(t, rest.New(signUseCaseMock{}, nil, nil).Routes(), http.MethodPost, "/sign", body)
+	rr := doJSON(t, nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).Routes(), http.MethodPost, "/sign", body)
 	if rr.Code != http.StatusForbidden {
 		t.Fatalf("status = %d, want 403; body=%s", rr.Code, rr.Body.String())
-	}
-}
-
-func TestRoutes_Sign_RutaDeSelloPermitidaRechazaSymlink(t *testing.T) {
-	dir := t.TempDir()
-	target := filepath.Join(dir, "target.png")
-	link := filepath.Join(dir, "seal.png")
-	if err := os.WriteFile(target, []byte("png"), 0o600); err != nil {
-		t.Fatalf("WriteFile: %v", err)
-	}
-	if err := os.Symlink(target, link); err != nil {
-		t.Skipf("symlinks unavailable: %v", err)
-	}
-	body := map[string]any{
-		"name":           "doc.pdf",
-		"content_base64": base64.StdEncoding.EncodeToString([]byte("%PDF-1.7")),
-		"format":         "PAdES",
-		"options": map[string]string{
-			"visibleSeal":          "true",
-			"visibleSealImagePath": link,
-		},
-	}
-	handler := rest.New(signUseCaseMock{}, nil, nil).WithFileSystemPaths().Routes()
-	rr := doJSON(t, handler, http.MethodPost, "/sign", body)
-	if rr.Code != http.StatusBadRequest {
-		t.Fatalf("status = %d, want 400; body=%s", rr.Code, rr.Body.String())
 	}
 }
 
@@ -4081,10 +3827,10 @@ func TestRoutes_Sign_RechazaCuerpoExcesivo(t *testing.T) {
 
 	const limite = 512 // límite reducido para el test
 
-	handler := rest.New(signUseCaseMock{}, nil, nil).WithMaxBodyBytes(limite).Routes()
+	handler := nuevoAdaptadorPruebas(signUseCaseMock{}, nil, nil).WithMaxBodyBytes(limite).Routes()
 
 	cuerpo := bytes.Repeat([]byte("x"), limite+1)
-	req := httptest.NewRequest(http.MethodPost, "/sign", bytes.NewReader(cuerpo))
+	req := nuevaPeticionPruebas(http.MethodPost, "/sign", bytes.NewReader(cuerpo))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)

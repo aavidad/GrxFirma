@@ -47,7 +47,7 @@ func TestSignRequestID_RechazaReplayYPersisteSoloElHash(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	mock := &idempotentSignUseCase{}
-	adaptador := New(mock, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(mock, nil, nil).WithConfigDir(dir)
 	body := validIdempotentSignBody("safari-req-001")
 
 	first := executeSignRequest(t, adaptador, body)
@@ -66,7 +66,7 @@ func TestSignRequestID_RechazaReplayYPersisteSoloElHash(t *testing.T) {
 		t.Fatalf("replay mismo proceso: status=%d body=%s", second.Code, second.Body.String())
 	}
 
-	restarted := New(&idempotentSignUseCase{}, nil, nil).WithConfigDir(dir)
+	restarted := nuevoAdaptadorPruebas(&idempotentSignUseCase{}, nil, nil).WithConfigDir(dir)
 	afterRestart := executeSignRequest(t, restarted, body)
 	if afterRestart.Code != http.StatusConflict {
 		t.Fatalf("replay tras reinicio: status=%d body=%s", afterRestart.Code, afterRestart.Body.String())
@@ -97,7 +97,7 @@ func TestSignRequestID_RechazaReplayYPersisteSoloElHash(t *testing.T) {
 func TestSignRequestID_RechazaIdentificadoresNoValidos(t *testing.T) {
 	t.Parallel()
 	mock := &idempotentSignUseCase{}
-	adaptador := New(mock, nil, nil)
+	adaptador := nuevoAdaptadorPruebas(mock, nil, nil)
 	for _, requestID := range []string{"../../escape", "espacio no", "   ", string(bytes.Repeat([]byte{'a'}, 129))} {
 		body := validIdempotentSignBody(requestID)
 		response := executeSignRequest(t, adaptador, body)
@@ -112,7 +112,7 @@ func TestSignRequestID_RechazaIdentificadoresNoValidos(t *testing.T) {
 
 func TestSignRequestID_ReservaEsAtomica(t *testing.T) {
 	t.Parallel()
-	adaptador := New(&idempotentSignUseCase{}, nil, nil)
+	adaptador := nuevoAdaptadorPruebas(&idempotentSignUseCase{}, nil, nil)
 	const workers = 24
 	var accepted atomic.Int32
 	var replays atomic.Int32
@@ -154,7 +154,7 @@ func TestSignRequestID_DescartaEntradasExpiradas(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, signRequestRegistryFilename), data, 0o600); err != nil {
 		t.Fatalf("os.WriteFile: %v", err)
 	}
-	adaptador := New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 	if err := adaptador.reserveSignRequestID("expired-request"); err != nil {
 		t.Fatalf("una entrada expirada debe poder reutilizarse: %v", err)
 	}
@@ -167,7 +167,7 @@ func TestSignRequestID_RegistroCorruptoFallaCerrado(t *testing.T) {
 	if err := os.WriteFile(registryPath, []byte(`{"version":1,"entries":`), 0o600); err != nil {
 		t.Fatalf("os.WriteFile: %v", err)
 	}
-	adaptador := New(nil, nil, nil).WithConfigDir(dir)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithConfigDir(dir)
 	if err := adaptador.reserveSignRequestID("new-request"); err == nil {
 		t.Fatal("un registro corrupto debe impedir la firma")
 	}
@@ -194,7 +194,7 @@ func executeSignRequest(t *testing.T, adaptador *Adaptador, body map[string]any)
 	if err != nil {
 		t.Fatalf("json.Marshal: %v", err)
 	}
-	request := httptest.NewRequest(http.MethodPost, "/sign", bytes.NewReader(data))
+	request := nuevaPeticionPruebas(http.MethodPost, "/sign", bytes.NewReader(data))
 	request.Header.Set("Content-Type", "application/json")
 	response := httptest.NewRecorder()
 	adaptador.Routes().ServeHTTP(response, request)

@@ -19,8 +19,8 @@ import (
 )
 
 func TestIdentityRoutesSoloSePublicanCompletasYAutenticadas(t *testing.T) {
-	base := New(nil, nil, nil)
-	peticion := httptest.NewRequest(http.MethodPost, "/identity/challenges", nil)
+	base := nuevoAdaptadorPruebas(nil, nil, nil)
+	peticion := nuevaPeticionPruebas(http.MethodPost, "/identity/challenges", nil)
 	respuesta := httptest.NewRecorder()
 	base.Routes().ServeHTTP(respuesta, peticion)
 	if respuesta.Code != http.StatusNotFound {
@@ -89,13 +89,13 @@ func (c *confirmadorIdentidadRESTFalso) Confirmar(_ context.Context, prueba doma
 }
 
 func adaptadorIdentidadREST(preparar PrepareIdentityUseCase, confirmar ConfirmIdentityUseCase) *Adaptador {
-	adaptador := New(nil, nil, nil).WithIdentidadReforzada(preparar, confirmar)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithIdentidadReforzada(preparar, confirmar)
 	adaptador.BearerToken = "token-prueba"
 	return adaptador
 }
 
 func ejecutarIdentidad(adaptador *Adaptador, ruta, cuerpo, origen string) *httptest.ResponseRecorder {
-	peticion := httptest.NewRequest(http.MethodPost, ruta, bytes.NewBufferString(cuerpo))
+	peticion := nuevaPeticionPruebas(http.MethodPost, ruta, bytes.NewBufferString(cuerpo))
 	peticion.Header.Set("Authorization", "Bearer token-prueba")
 	if origen != "" {
 		peticion.Header.Set("Origin", origen)
