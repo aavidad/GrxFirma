@@ -132,6 +132,13 @@ registro anota `afirma_destino_sin_cifrar` y el diálogo de aprobación avisa de
 que la conexión no está cifrada. El enlace `afirma://` directo sigue exigiendo
 `https://` (o `http://` solo hacia el propio equipo).
 
+Si un servidor de firma de `afirma://` redirige a otro servidor (un
+balanceador o un inicio de sesión único), GrxFirma sigue la redirección solo
+si el nuevo servidor también está en la lista de confianza o el usuario lo
+aprueba al preguntarle; el registro anota `triphase_redireccion_otro_origen`.
+Nunca sigue una redirección de `https://` a `http://` y admite hasta 10
+saltos.
+
 ### Política de organización
 
 Ruta en Linux y macOS:
