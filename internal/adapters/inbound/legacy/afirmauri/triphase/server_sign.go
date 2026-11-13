@@ -146,14 +146,21 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 		return nil, fmt.Errorf("respuesta de prefirma no válida: %w", err)
 	}
 	trazaServidorTrifasico("pre", "ok")
-	// A-01: una aprobación del usuario es una firma. Si el servidor pide
-	// firmar más de un PRE, se rechaza sin firmar ninguno.
-	if n, err := contarFirmasTrifasicas(datosTrifasicos); err != nil {
+	// A-01 y lote 13a (retrocompatibilidad): la contrafirma trifásica de
+	// varios nodos pide varias <firma> en una prefirma, así que se admiten
+	// hasta maxFirmasTrifasicasPorAprobacion con aviso en el registro. Cero
+	// firmas o más del tope se rechazan sin firmar ninguna.
+	n, err := contarFirmasTrifasicas(datosTrifasicos)
+	if err != nil {
 		trazaServidorTrifasico("pre", "respuesta_no_valida")
 		return nil, fmt.Errorf("respuesta de prefirma no válida: %w", err)
-	} else if n != 1 {
+	}
+	if n < 1 || n > maxFirmasTrifasicasPorAprobacion {
 		trazaServidorTrifasico("pre", "numero_de_firmas")
-		return nil, fmt.Errorf("el servidor de firma trifásica pidió %d firmas para una sola aprobación; solo se admite una", n)
+		return nil, fmt.Errorf("el servidor de firma trifásica pidió %d firmas para una sola aprobación; se admiten entre 1 y %d", n, maxFirmasTrifasicasPorAprobacion)
+	}
+	if n > 1 {
+		slog.Warn("triphase_server_varias_firmas", "firmas", n, "operacion", cop)
 	}
 	firmados, err := signLegacyBatchTriphaseXML(datosTrifasicos, key, algoritmo, req.ExtraParams, nil)
 	if err != nil {
@@ -197,6 +204,13 @@ func trazaServidorTrifasico(fase, resultado string) {
 }
 
 func sinEscapar(v string) string { return v }
+
+// maxFirmasTrifasicasPorAprobacion es el tope de <firma> que el servidor
+// trifásico puede pedir con una sola aprobación del usuario (lote 13a). Una
+// firma simple pide una; la contrafirma de varios nodos pide una por nodo.
+// No hay otro tope de lote en el código; cien nodos firmantes en un mismo
+// documento ya es un caso que no se da en la práctica.
+const maxFirmasTrifasicasPorAprobacion = 100
 
 func contarFirmasTrifasicas(rawTD []byte) (int, error) {
 	var td legacyXMLTriphaseData

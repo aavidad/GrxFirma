@@ -118,6 +118,13 @@ antiguas no lo mandan; siguen funcionando, pero el registro anota
 `websocket_sesion_no_identificada` y el diálogo de aprobación de cada firma
 avisa de que la web no identifica la sesión.
 
+En la firma trifásica con servidor (`serverUrl`), el servidor tiene que estar
+en los dominios de confianza y aparece en el diálogo de aprobación. Una
+contrafirma de varios nodos le pide a GrxFirma varias firmas con esa única
+aprobación: se admiten hasta 100 y el registro anota
+`triphase_server_varias_firmas` con el número de firmas hechas. Una prefirma
+sin ninguna firma o con más de 100 se rechaza sin firmar.
+
 ### Política de organización
 
 Ruta en Linux y macOS:

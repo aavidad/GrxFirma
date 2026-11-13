@@ -6,11 +6,14 @@
 package triphase
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/xml"
 	"errors"
+	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -139,11 +142,11 @@ func TestFirmarConServidor_ValidadorRechazaSinPeticiones(t *testing.T) {
 	}
 }
 
-// A-01: una aprobación es una firma; una prefirma con dos <firma> se rechaza
-// sin firmar nada ni llamar a la postfirma.
-func TestFirmarConServidor_RechazaVariasFirmasEnLaPrefirma(t *testing.T) {
-	var post atomic.Int32
-	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// servidorTrifasicoConFirmas responde a la prefirma con n <firma> y cuenta
+// las llamadas a la postfirma.
+func servidorTrifasicoConFirmas(t *testing.T, n int, post *atomic.Int32) *httptest.Server {
+	t.Helper()
+	return httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		if r.PostForm.Get("op") == "post" {
 			post.Add(1)
@@ -151,21 +154,62 @@ func TestFirmarConServidor_RechazaVariasFirmasEnLaPrefirma(t *testing.T) {
 			return
 		}
 		pre := base64.StdEncoding.EncodeToString([]byte("pre"))
-		td := `<xml><firmas format="CAdES"><firma Id="1"><param n="PRE">` + pre + `</param></firma><firma Id="2"><param n="PRE">` + pre + `</param></firma></firmas></xml>`
+		var firmas strings.Builder
+		for i := 0; i < n; i++ {
+			fmt.Fprintf(&firmas, `<firma Id="%d"><param n="PRE">%s</param></firma>`, i+1, pre)
+		}
+		td := `<xml><firmas format="CAdES">` + firmas.String() + `</firmas></xml>`
 		_, _ = w.Write([]byte(base64.URLEncoding.EncodeToString([]byte(td))))
 	}))
+}
+
+// Lote 13a (retrocompatibilidad, revisa A-01 paso 3): la contrafirma
+// trifásica de varios nodos pide varias <firma> en una prefirma. Se admite,
+// con aviso en el registro que dice cuántas firmas salieron de la aprobación.
+func TestFirmarConServidor_AdmiteVariasFirmasConAviso(t *testing.T) {
+	var post atomic.Int32
+	srv := servidorTrifasicoConFirmas(t, 2, &post)
 	defer srv.Close()
+	var registro bytes.Buffer
+	anterior := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&registro, nil)))
+	defer slog.SetDefault(anterior)
+
 	clave := &mockLegacyBatchPreKey{mockLegacyBatchKey: mockLegacyBatchKey{chain: [][]byte{[]byte("c")}}}
 	ctx := ContextWithSigningKey(context.Background(), clave)
 	e := New(srv.Client()).ConValidadorDestino(validadorQueAdmiteTodo)
-	_, err := e.FirmarConServidor(ctx, SolicitudFirmaServidor{ServerURL: srv.URL, FormatoLegacy: "CAdEStri", Datos: []byte("d")})
-	if err == nil {
-		t.Fatal("una prefirma con dos <firma> debía rechazarse")
+	firma, err := e.FirmarConServidor(ctx, SolicitudFirmaServidor{ServerURL: srv.URL, FormatoLegacy: "CAdEStri", Accion: domain.ActionCounterSign, Datos: []byte("d")})
+	if err != nil {
+		t.Fatalf("una prefirma con dos <firma> debía admitirse: %v", err)
 	}
-	if len(clave.opts) != 0 {
-		t.Fatalf("la clave firmó %d veces; no debía firmar", len(clave.opts))
+	if string(firma) != "F" || len(clave.opts) != 2 || post.Load() != 1 {
+		t.Fatalf("firma=%q, firmas de la clave=%d, postfirmas=%d", firma, len(clave.opts), post.Load())
 	}
-	if post.Load() != 0 {
-		t.Fatal("no debía llamarse a la postfirma")
+	texto := registro.String()
+	if !strings.Contains(texto, "triphase_server_varias_firmas") || !strings.Contains(texto, "firmas=2") {
+		t.Fatalf("falta el aviso con el número de firmas:\n%s", texto)
+	}
+	if strings.Contains(texto, strings.TrimPrefix(srv.URL, "https://")) {
+		t.Fatalf("el aviso no debe llevar el servidor:\n%s", texto)
+	}
+}
+
+// Cero firmas y más del tope siguen siendo error, sin firmar nada ni llamar
+// a la postfirma.
+func TestFirmarConServidor_RechazaCeroFirmasOMasDelTope(t *testing.T) {
+	for _, n := range []int{0, maxFirmasTrifasicasPorAprobacion + 1} {
+		var post atomic.Int32
+		srv := servidorTrifasicoConFirmas(t, n, &post)
+		clave := &mockLegacyBatchPreKey{mockLegacyBatchKey: mockLegacyBatchKey{chain: [][]byte{[]byte("c")}}}
+		ctx := ContextWithSigningKey(context.Background(), clave)
+		e := New(srv.Client()).ConValidadorDestino(validadorQueAdmiteTodo)
+		_, err := e.FirmarConServidor(ctx, SolicitudFirmaServidor{ServerURL: srv.URL, FormatoLegacy: "CAdEStri", Datos: []byte("d")})
+		srv.Close()
+		if err == nil {
+			t.Fatalf("una prefirma con %d <firma> debía rechazarse", n)
+		}
+		if len(clave.opts) != 0 || post.Load() != 0 {
+			t.Fatalf("%d firmas: la clave firmó %d veces y hubo %d postfirmas; no debía haber ninguna", n, len(clave.opts), post.Load())
+		}
 	}
 }
