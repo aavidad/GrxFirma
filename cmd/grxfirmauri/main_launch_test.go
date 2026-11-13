@@ -65,6 +65,13 @@ func TestParseWebSocketLaunchURIUnsupportedVersion(t *testing.T) {
 	}
 }
 
+// A-07: el lanzamiento websocket exige idsession para ligar la conexión.
+func TestParseWebSocketLaunchURI_SinIdsessionFalla(t *testing.T) {
+	if _, err := parseWebSocketLaunchURI("afirma://websocket?v=4"); err == nil {
+		t.Fatal("un lanzamiento websocket sin idsession debía rechazarse")
+	}
+}
+
 func TestParseWebSocketLaunchURIMissingPortsUsesDefault(t *testing.T) {
 	req, err := parseWebSocketLaunchURI("afirma://websocket?idsession=abc&v=4")
 	if err != nil {
