@@ -418,7 +418,15 @@ macOS la confianza también queda inventariada y se retira al vaciar el almacén
 o al rotar la CA. En Linux, si GrxFirma rebajó a `C,,` la raíz anterior con
 alias fijo de `~/.pki/nssdb`, la anota y la retira igual. La clave de la CA se
 guarda cifrada: en Windows con DPAPI y en Linux y macOS con una clave del
-almacén de secretos del sistema. Sin ese almacén no se genera la CA.
+almacén de secretos del sistema. En macOS, sin ese almacén no se genera la CA.
+En Linux, si no hay almacén (escritorios sin gnome-keyring ni kwallet), la
+clave se guarda sin cifrar en un fichero 0600 dentro del directorio TLS 0700 y
+el registro avisa una vez con el evento `localtlstrust_ca_key_unprotected_file`.
+Así el canal TLS local sigue funcionando; como la CA solo vale para servidor TLS
+en `localhost`, quien lea esa clave no puede emitir certificados para otros
+nombres ni para firmar. Cuando aparece el almacén, GrxFirma pasa la clave a él
+y borra el fichero en claro sobrescribiéndolo. La identidad del perfil `alto`
+no tiene esta excepción: sin almacén no se crea.
 
 Acciones sensibles expuestas en esa consola:
 

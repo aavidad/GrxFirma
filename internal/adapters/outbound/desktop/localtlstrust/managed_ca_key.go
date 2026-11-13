@@ -74,7 +74,18 @@ func LoadManagedCAKey(path string) ([]byte, error) {
 		clearManagedCABytes(key)
 		return nil, errors.New("localtlstrust: tamaño de clave CA inválido")
 	}
+	migrateManagedCAKeyToStorage(path, protected, key)
 	return key, nil
+}
+
+// RemoveManagedCAKey retira la clave de una CA local: olvida su clave de
+// cifrado en el almacén del sistema y sobrescribe el fichero antes de
+// borrarlo. No hace nada si el fichero no existe ni sigue enlaces.
+func RemoveManagedCAKey(path string) error {
+	if strings.TrimSpace(path) == "" || filepath.Dir(path) == "." {
+		return errors.New("localtlstrust: ruta de clave CA sin directorio propio")
+	}
+	return retireManagedCAKeyFile(path)
 }
 
 // retireManagedCAKeyFile retira una clave de CA anterior: olvida su clave de

@@ -75,7 +75,7 @@ func retireLegacyRESTCertificate(ctx context.Context, dir string) error {
 			if parseErr == nil {
 				if public, yes := root.PublicKey.(*rsa.PublicKey); yes &&
 					key.PublicKey.E == public.E && key.PublicKey.N.Cmp(public.N) == 0 {
-					if err := os.Remove(rootKeyFile); err != nil {
+					if err := localtlstrust.RemoveManagedCAKey(rootKeyFile); err != nil {
 						return err
 					}
 				}
@@ -163,5 +163,18 @@ func ClearManagedLocalhostTLS(ctx context.Context, dir string) (int, error) {
 	if err := localtlstrust.RemoveManagedTrusted(ctx, rootFile); err != nil {
 		return 0, err
 	}
-	return removeTLSRESTManagedArtifacts(paths)
+	// La clave de la CA se retira aparte: olvida su clave de cifrado en el
+	// almacén del sistema y, si quedó en claro, la sobrescribe antes de borrarla.
+	removedKey := 0
+	rootKeyFile := filepath.Join(dir, ManagedLocalhostPrefix+"-root.key.pem")
+	if _, err := os.Lstat(rootKeyFile); err == nil {
+		if err := localtlstrust.RemoveManagedCAKey(rootKeyFile); err != nil {
+			return 0, err
+		}
+		removedKey = 1
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return 0, err
+	}
+	removed, err := removeTLSRESTManagedArtifacts(paths)
+	return removed + removedKey, err
 }
