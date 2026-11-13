@@ -336,6 +336,9 @@ type resultadoVerificacion struct {
 	// ReportHTML es el mismo informe imprimible que genera la CLI (-informe),
 	// solo si la petición lo pide con reportLanguage.
 	ReportHTML string `json:"reportHtml,omitempty"`
+	// ForcedTrust: lo aceptado por el usuario que se aplicó y lo que puede
+	// aceptar (lote 14). Nil si el backend no lo admite.
+	ForcedTrust *resultadoConfianzaForzadaVerificacion `json:"forcedTrust,omitempty"`
 }
 
 type resultadoVerificacionAspecto struct {

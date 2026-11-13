@@ -1153,6 +1153,11 @@ bool IpcBridge::queueDeferredRequest(const QString &action,
     // repiten solos tras una reconexión.
     return false;
   }
+  // Aceptar o quitar confianza es una decisión explícita del usuario tras un
+  // aviso: no se repite sola al reconectar.
+  if (action == QStringLiteral("forced_trust_accept") ||
+      action == QStringLiteral("forced_trust_remove"))
+    return false;
   if (ipcHasTransientProtectionSecret(params)) {
     // EncryptedData usa una clave de una sola operación: no debe sobrevivir en
     // la cola de reconexión ni reintentarse sin una nueva acción del usuario.
@@ -1319,6 +1324,10 @@ void IpcBridge::failActionDueToConnection(const QString &action,
   } else if (action == "protection_recipient_import" ||
              action == "protection_recipient_remove") {
     emit protectionRecipientChanged(false, safeMessage);
+  } else if (action == "forced_trust_list" ||
+             action == "forced_trust_accept" ||
+             action == "forced_trust_remove") {
+    emit forcedTrustFinished(action, false, QVariantMap(), safeMessage);
   } else if (action == "clear_temporary_certificates") {
     emit temporaryCertificatesCleared(false, safeMessage);
   } else if (action == "import_certificate" ||
@@ -1523,6 +1532,33 @@ void IpcBridge::verifyFileWithReport(const QString &inputPath,
   params["reportLanguage"] =
       language.isEmpty() ? QStringLiteral("es") : language;
   sendRequest("verify", params);
+}
+
+void IpcBridge::loadForcedTrust() {
+  sendRequest(QStringLiteral("forced_trust_list"), QVariantMap());
+}
+
+// items: [{type, fingerprint}] tal como llegaron en forcedTrust.acceptable
+// de la verificación. El motor solo acepta lo que él mismo ofreció.
+void IpcBridge::acceptForcedTrust(const QVariantList &items) {
+  QVariantList limpios;
+  for (const QVariant &item : items) {
+    const QVariantMap m = item.toMap();
+    QVariantMap limpio;
+    limpio.insert(QStringLiteral("type"), m.value(QStringLiteral("type")).toString());
+    limpio.insert(QStringLiteral("fingerprint"),
+                  m.value(QStringLiteral("fingerprint")).toString());
+    limpios << limpio;
+  }
+  sendRequest(QStringLiteral("forced_trust_accept"),
+              {{QStringLiteral("items"), limpios}});
+}
+
+void IpcBridge::removeForcedTrust(const QString &type,
+                                  const QString &fingerprint) {
+  sendRequest(QStringLiteral("forced_trust_remove"),
+              {{QStringLiteral("type"), type},
+               {QStringLiteral("fingerprint"), fingerprint}});
 }
 
 void IpcBridge::loadProtectionRecipients() {
@@ -2160,6 +2196,15 @@ void IpcBridge::onReadyRead() {
       emit protectionRecipientChanged(ok, ok ? QString() : errMsg);
       if (ok)
         loadProtectionRecipients();
+      continue;
+    }
+
+    if (action == QStringLiteral("forced_trust_list") ||
+        action == QStringLiteral("forced_trust_accept") ||
+        action == QStringLiteral("forced_trust_remove")) {
+      emit forcedTrustFinished(action, ok,
+                               ok ? data.toObject().toVariantMap() : QVariantMap(),
+                               ok ? QString() : errMsg);
       continue;
     }
 

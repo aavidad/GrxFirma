@@ -495,7 +495,11 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 	ucCrearHashDir := application.NuevoCreateDirectoryHashManifestUseCase(treeReader, manifestCodec)
 	ucComprobarHashDir := application.NuevoCheckDirectoryHashManifestUseCase(treeReader, manifestCodec)
 
-	ucVerificar := application.NuevoVerifySignatureUseCase(systemtrust.New(), commonsigner.NewMultiVerifierWithHTTPClient(httpClient), auditor)
+	// Lote 14: el escritorio aplica y gestiona lo que el usuario aceptó al
+	// verificar; el IPC solo atiende al frontend que lanzó este backend.
+	confianzaForzada := config.NuevoAlmacenConfianzaForzada(configDir)
+	ucVerificar := application.NuevoVerifySignatureUseCase(systemtrust.New(), commonsigner.NewMultiVerifierWithHTTPClient(httpClient), auditor).
+		ConConfianzaForzada(confianzaForzada)
 	keyringProteccion := protector.NuevoLocalCombinedKeyring(configDir, appdirs.Data(home), catalogo, claves)
 	motorProteccion := protector.NuevoAdaptiveProtector()
 	motorProteccionFirmada := protector.NuevoCMSSignedEnvelopedProtector()
@@ -549,6 +553,7 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 	srv.WithUpdates(updatecheck.NewWithHTTPClient(httpClient), version)
 	srv.WithProtection(ucProteger, ucProtegerFirmando, ucDesproteger, keyringProteccion)
 	srv.WithFirmaRemotaCSC(sesionCSC)
+	srv.WithConfianzaForzada(application.NuevoGestionConfianzaForzadaUseCase(confianzaForzada, auditor))
 	go func() {
 		<-ctx.Done()
 		temporaryStore.Clear()
