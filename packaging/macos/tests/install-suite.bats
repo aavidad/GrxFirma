@@ -317,6 +317,7 @@ EOF
 
 @test "el desinstalador avisa y sigue si no puede retirar la CA local (G-06)" {
   local base="${TEST_HOME}/Library/Application Support/GrxFirma"
+  # shellcheck disable=SC2016 # el $1 es del script falso, no de la prueba
   printf '#!/usr/bin/env bash\n[[ "$1" == --remove-local-tls-trust ]] && exit 3\nexit 0\n' \
     > "${SUITE}/GrxFirma AfirmaURI.app/Contents/MacOS/grxfirma-afirmauri"
 
