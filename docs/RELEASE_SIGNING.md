@@ -96,6 +96,22 @@ con revisores obligatorios, restringir el despliegue a tags protegidos y, de
 forma preferente, guardar ahí los secretos anteriores. Sin esas reglas, el
 nombre del entorno por sí solo no aporta separación de funciones.
 
+Esas reglas viven en GitHub y no en el repositorio, así que hay que comprobarlas
+a mano y apuntar quién y cuándo:
+
+- [ ] `official-release` exige al menos un revisor distinto de quien crea el tag
+  (comprobado por: ____, fecha: ____);
+- [ ] `official-release` solo admite despliegues desde tags protegidos `v*`
+  (comprobado por: ____, fecha: ____);
+- [ ] hay una regla de protección de tags `v*` que impide crearlos o moverlos a
+  quien no publica (comprobado por: ____, fecha: ____).
+
+Formato de las etiquetas: `release.yml` solo se dispara con tags `v*` y
+`validate-official-tag.py` exige la `v`. Las etiquetas del repositorio hasta
+`0.0.125` no la llevan, así que ninguna de esas versiones ha pasado por esta
+cadena de firma. Falta decidir si las próximas se etiquetan como `vX.Y.Z`. La
+receta de F-Droid apunta al hash del commit, no a la etiqueta.
+
 ## Variables de GitHub
 
 Configurar también estas variables no secretas a nivel de repositorio u
