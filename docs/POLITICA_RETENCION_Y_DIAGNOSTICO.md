@@ -21,6 +21,12 @@ responsable de cada despliegue.
 | Log Qt/QML | directorio privado `logs` del estado de la app | 30 días | activo + una rotación de 2 MiB cada una | al iniciar la GUI y al rotar |
 | Auditoría JSONL | `~/.local/share/grxfirma/audit.jsonl` o equivalente | 90 días | activo + una rotación de 10 MiB cada una | antes de registrar una evidencia nueva |
 
+En la auditoría JSONL la retención se aplica por registro: antes de escribir
+una evidencia nueva se retiran, del principio del historial, los registros con
+más de 90 días según su campo de fecha (si un registro no lo tiene, cuenta la
+fecha del fichero). La cadena de huellas sigue siendo verificable: el primer
+registro conservado queda como inicio retirado.
+
 Una incidencia cuenta como un grupo: JSON principal, resumen, manifiesto,
 previsualización y cola de log comparten la misma fecha y se eliminan juntos.
 Si se supera el máximo, se conservan los grupos más recientes.
