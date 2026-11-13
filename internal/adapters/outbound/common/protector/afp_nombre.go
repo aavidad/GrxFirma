@@ -55,6 +55,10 @@ func nombreDesprotegidoSeguro(nombre string) string {
 		nombre = nombreDocumentoPorDefecto
 	}
 	ext := path.Ext(nombre)
+	// En Windows «CON.pdf» o «nul.txt» abren un dispositivo, no un fichero.
+	if dispositivoWindows(strings.TrimSuffix(nombre, ext)) {
+		nombre = "_" + nombre
+	}
 	if !extensionesDocumento[strings.ToLower(ext)] {
 		nombre = strings.TrimSuffix(nombre, ext) + ".bin"
 		ext = ".bin"
@@ -68,6 +72,20 @@ func nombreDesprotegidoSeguro(nombre string) string {
 		nombre = base[:limite] + ext
 	}
 	return nombre
+}
+
+// dispositivoWindows indica si base (sin extensión) es un nombre reservado de
+// dispositivo en Windows, sin distinguir mayúsculas.
+func dispositivoWindows(base string) bool {
+	base = strings.ToUpper(strings.TrimRight(base, ". "))
+	switch base {
+	case "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$":
+		return true
+	}
+	if len(base) == 4 && (strings.HasPrefix(base, "COM") || strings.HasPrefix(base, "LPT")) {
+		return base[3] >= '0' && base[3] <= '9'
+	}
+	return false
 }
 
 // mimeDesprotegidoSeguro valida el tipo MIME que trae un .afp y lo devuelve

@@ -94,6 +94,9 @@ func TestUnprotect_SaneaNombreYMIMEDelEmisor(t *testing.T) {
 		{"..", "application/pdf", "documento.bin", "application/pdf"},
 		{"Factura 2026.PDF", "application/pdf; charset=binary", "Factura 2026.PDF", "application/pdf; charset=binary"},
 		{"C:datos.xml", "application/xml", "C_datos.xml", "application/xml"},
+		{"con.pdf", "application/pdf", "_con.pdf", "application/pdf"},
+		{"LPT1.txt", "text/plain", "_LPT1.txt", "text/plain"},
+		{"consola.pdf", "application/pdf", "consola.pdf", "application/pdf"},
 	}
 	engine := NuevoEnvelopeProtector()
 	for _, caso := range casos {
