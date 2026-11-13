@@ -1049,7 +1049,7 @@ bash scripts/validar_pades_manual.sh <pdf-firmado> [<pdf-firmado>...]
 Para generar muestras locales desde V2:
 
 ```bash
-GOCACHE=/tmp/grxfirma-gocache go run ./scripts/generar_muestras_pades.go -out /tmp/grxfirma-pades-samples
+go run ./scripts/generar_muestras_pades.go -out /tmp/grxfirma-pades-samples
 bash scripts/validar_pades_manual.sh /tmp/grxfirma-pades-samples/pades-etsi.pdf /tmp/grxfirma-pades-samples/pades-adobe.pdf /tmp/grxfirma-pades-samples/pades-adobe-t.pdf
 ```
 

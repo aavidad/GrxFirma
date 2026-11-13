@@ -21,7 +21,7 @@ Repo: https://github.com/aavidad/GrxFirma.git
 Builds:
   - versionName: 0.0.105
     versionCode: 105
-    commit: v0.0.105
+    commit: 2e77b371228c3c4fdb76b800e606c736945806c9
     subdir: mobile/android
     output: app/build/outputs/apk/production/release/app-production-release-unsigned.apk
     build: |

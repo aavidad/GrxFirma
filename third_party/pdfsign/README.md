@@ -10,6 +10,41 @@ A PDF signing and verification library written in [Go](https://go.dev). This lib
 
 **See also our [PDFSigner](https://github.com/digitorus/pdfsigner/), a more advanced digital signature server that is using this project.**
 
+## Copia incorporada en GrxFirma
+
+Base: github.com/digitorus/pdfsign@v0.0.0-20260102145623-a2800162ff5c
+
+Ese es el commit de partida que declara el `go.mod` raíz (`a2800162ff5c`, del
+2 de enero de 2026). No se puede comprobar que la copia partiera exactamente de
+ahí: entró en el repositorio en el commit inicial (2e77b37) ya modificada y sin
+el original al lado, y el original no está en la caché local de módulos. Para
+saber todo lo que cambia hay que comparar este directorio con ese commit de
+upstream (con red).
+
+Lo que sí se sabe:
+
+- Ficheros con comentarios en castellano, casi seguro propios: `sign/cifrado.go`
+  (cifrado de los objetos nuevos con la clave del documento),
+  `sign/stamp_image.go` (imagen del sello), `sign/existing_field.go` (firmar en
+  un campo ya existente), además de cambios en `sign/types.go`, `sign/sign.go`,
+  `sign/pdfdss.go`, `sign/pdfcatalog.go`, `sign/pdfbyterange.go` y
+  `sign/pdfvisualsignature.go`.
+- `internal/pkcs7` es una copia propia de PKCS#7 dentro del módulo.
+- `go.mod` usa `../pdf` (la copia de `third_party/pdf`) en lugar de
+  `github.com/digitorus/pdf`.
+- Cambios después de la incorporación: c5059ab (no duplicar `/Version` al volver
+  a firmar y dependencias actualizadas), ea31dc9 (campo y widget fusionados) y
+  4fe9229 (dictamen v2). Ver `git log -- third_party/pdfsign`.
+
+### Vigilancia de vulnerabilidades
+
+Como `go.mod` sustituye el módulo por este directorio (`replace`), los
+escáneres no comparan la copia con los avisos publicados para
+`github.com/digitorus/pdfsign`. El flujo `security-dependencies.yml` lee la
+línea `Base:` de este fichero, monta un `go.mod` sintético con esa versión y lo
+pasa por OSV-Scanner. Si aparece un aviso, hay que revisar a mano si el código
+afectado sigue en la copia y anotar aquí la decisión.
+
 ## Quick Start
 
 ```bash

@@ -42,7 +42,26 @@ grxfirma_go_build() {
   fi
   ldflags+=" -X main.version=${version} -s -w"
 
+  # G-07: en Linux, ejecutable PIE (ASLR de la imagen principal) y RELRO
+  # completo. El enlazador interno de Go no marca BIND_NOW, así que se enlaza
+  # con el externo (requiere CGo y un compilador C, que ya exigen fyne y el
+  # auxiliar PKCS#11).
+  local target_os="${GOOS:-}"
+  local hardening=()
+  if [[ -z "${target_os}" ]]; then
+    target_os="$(go env GOOS)" || return 1
+  fi
+  if [[ "${target_os}" == "linux" ]]; then
+    if [[ "${CGO_ENABLED:-1}" == "0" ]]; then
+      echo "error: los binarios Linux se enlazan con PIE y RELRO completo; no se admite CGO_ENABLED=0" >&2
+      return 1
+    fi
+    hardening=(-buildmode=pie)
+    ldflags+=" -linkmode=external -extldflags=-Wl,-z,relro,-z,now"
+  fi
+
   env GOFLAGS= go build \
+    "${hardening[@]}" \
     -mod=readonly \
     -pgo=off \
     -trimpath \

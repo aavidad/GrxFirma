@@ -911,6 +911,22 @@ grxfirma_stop_processes() {
 [[ "${1:-}" == "remove" ]] || exit 0
 grxfirma_stop_processes
 
+# G-11: devuelve los enlaces afirma:// a la aplicación que los abría antes
+# (normalmente AutoFirma) mientras configure-browsers.sh sigue instalado.
+restore_user="${SUDO_USER:-}"
+if [[ -n "${restore_user}" && "${restore_user}" != "root" ]] &&
+   command -v getent >/dev/null 2>&1 && command -v runuser >/dev/null 2>&1; then
+  restore_home="$(getent passwd "${restore_user}" | cut -d: -f6)"
+  if [[ -n "${restore_home}" && -d "${restore_home}" ]]; then
+    runuser -u "${restore_user}" -- env -i \
+      HOME="${restore_home}" GRXFIRMA_TARGET_HOME="${restore_home}" \
+      GRXFIRMA_DESKTOP_ID="grxfirma.desktop" PATH=/usr/bin:/bin \
+      /usr/lib/grxfirma/bin/configure-browsers.sh --restore-afirma-handler || true
+  fi
+else
+  echo 'GrxFirma: cada usuario puede devolver los enlaces afirma:// a AutoFirma con /usr/lib/grxfirma/bin/configure-browsers.sh --restore-afirma-handler antes de retirar el paquete.' >&2
+fi
+
 # La CA y su inventario pertenecen al usuario. Durante la retirada del .deb
 # el binario sigue disponible, pero dpkg no conoce a todos sus usuarios.
 target_user="${SUDO_USER:-}"

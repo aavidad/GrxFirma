@@ -11,7 +11,7 @@ OUT_DIR="$ROOT_DIR/docs/generated"
 WORKTREE_DIR="${GRXFIRMA_EVIDENCE_WORKTREE:-/tmp/grxfirma-evidence}"
 HEAD_REV="$(git -C "$ROOT_DIR" rev-parse HEAD)"
 
-export GOCACHE="${GOCACHE:-/tmp/grxfirma-gocache}"
+export GOCACHE="${GOCACHE:-$(go env GOCACHE 2>/dev/null || printf '%s/.cache/go-build' "$HOME")}"
 export GOMODCACHE="${GOMODCACHE:-$(go env GOMODCACHE 2>/dev/null || printf '%s/go/pkg/mod' "$HOME")}"
 
 mkdir -p "$OUT_DIR"

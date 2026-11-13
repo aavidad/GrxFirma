@@ -23,49 +23,156 @@ have_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
-ensure_mimeapps_default() {
-  local file="$1"
-  local tmp="${file}.tmp.$$"
-  mkdir -p "$(dirname "${file}")"
-  if have_cmd python3; then
-    python3 - "$file" "${DESKTOP_ID}" <<'PY'
+# G-11: copia del manejador afirma:// que había antes de GrxFirma (normalmente
+# AutoFirma), para devolverlo al desinstalar. Solo se guarda la primera vez.
+HANDLER_BACKUP="${TARGET_HOME}/.local/lib/grxfirma/config/afirma-handler-anterior.json"
+
+mimeapps_files() {
+  printf '%s\n' "${TARGET_HOME}/.config/mimeapps.list"
+  printf '%s\n' "${TARGET_HOME}/.local/share/applications/mimeapps.list"
+  if [[ -d "${TARGET_HOME}/snap/firefox/common" ]]; then
+    printf '%s\n' "${TARGET_HOME}/snap/firefox/common/.config/mimeapps.list"
+  fi
+  if [[ -d "${TARGET_HOME}/.var/app/org.mozilla.firefox" ]]; then
+    printf '%s\n' "${TARGET_HOME}/.var/app/org.mozilla.firefox/config/mimeapps.list"
+  fi
+}
+
+# Uso: afirma_handlers_py set|restore <copia> <desktop_id> <mimeapps>...
+afirma_handlers_py() {
+  python3 - "$@" <<'PY'
 import configparser
+import json
 import os
 import sys
 
-path, desktop_id = sys.argv[1], sys.argv[2]
-parser = configparser.RawConfigParser(strict=False, delimiters=("=",))
-parser.optionxform = str
-if os.path.exists(path):
-    parser.read(path, encoding="utf-8")
+mode, backup_path, desktop_id, *paths = sys.argv[1:]
+schemes = ("x-scheme-handler/afirma", "x-scheme-handler/afirmav2")
+section = "Default Applications"
 
-if not parser.has_section("Default Applications"):
-    parser.add_section("Default Applications")
-for scheme in ("x-scheme-handler/afirma", "x-scheme-handler/afirmav2"):
-    parser.set("Default Applications", scheme, desktop_id)
 
-with open(path, "w", encoding="utf-8") as fh:
-    parser.write(fh, space_around_delimiters=False)
+def load(path):
+    parser = configparser.RawConfigParser(strict=False, delimiters=("=",), interpolation=None)
+    parser.optionxform = str
+    if os.path.isfile(path) and not os.path.islink(path):
+        parser.read(path, encoding="utf-8")
+    return parser
+
+
+def save(parser, path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = f"{path}.tmp.{os.getpid()}"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        parser.write(fh, space_around_delimiters=False)
+    os.replace(tmp, path)
+
+
+try:
+    with open(backup_path, encoding="utf-8") as fh:
+        backup = json.load(fh)
+    if not isinstance(backup, dict):
+        backup = {}
+except (OSError, ValueError):
+    backup = {}
+
+if mode == "set":
+    previous_handlers = set()
+    for path in paths:
+        parser = load(path)
+        if path not in backup:
+            entry = {}
+            for scheme in schemes:
+                value = parser.get(section, scheme, fallback=None)
+                entry[scheme] = None if value in (None, "", desktop_id) else value
+                if entry[scheme]:
+                    previous_handlers.add(entry[scheme])
+            backup[path] = entry
+        if not parser.has_section(section):
+            parser.add_section(section)
+        for scheme in schemes:
+            parser.set(section, scheme, desktop_id)
+        save(parser, path)
+    os.makedirs(os.path.dirname(backup_path), mode=0o700, exist_ok=True)
+    tmp = f"{backup_path}.tmp.{os.getpid()}"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(backup, fh, ensure_ascii=False, indent=2)
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, backup_path)
+    for handler in sorted(previous_handlers):
+        print(handler)
+elif mode == "restore":
+    allowed = set(paths)
+    for path, entry in backup.items():
+        # Solo se tocan las rutas conocidas, nunca lo que diga el fichero.
+        if path not in allowed or not isinstance(entry, dict) or not os.path.isfile(path):
+            continue
+        parser = load(path)
+        if not parser.has_section(section):
+            continue
+        changed = False
+        for scheme in schemes:
+            if parser.get(section, scheme, fallback=None) != desktop_id:
+                continue  # el usuario lo cambió después: se respeta
+            previous = entry.get(scheme)
+            if isinstance(previous, str) and previous:
+                parser.set(section, scheme, previous)
+            else:
+                parser.remove_option(section, scheme)
+            changed = True
+        if changed:
+            save(parser, path)
+    try:
+        os.remove(backup_path)
+    except FileNotFoundError:
+        pass
 PY
-    return 0
-  fi
-
-  {
-    printf '\n[Default Applications]\n'
-    printf 'x-scheme-handler/afirma=%s\n' "${DESKTOP_ID}"
-    printf 'x-scheme-handler/afirmav2=%s\n' "${DESKTOP_ID}"
-  } >> "${file}"
 }
 
 sanitize_afirma_scheme_handlers() {
-  ensure_mimeapps_default "${TARGET_HOME}/.config/mimeapps.list"
-  ensure_mimeapps_default "${TARGET_HOME}/.local/share/applications/mimeapps.list"
-  if [[ -d "${TARGET_HOME}/snap/firefox/common" ]]; then
-    ensure_mimeapps_default "${TARGET_HOME}/snap/firefox/common/.config/mimeapps.list"
+  local files=() previous
+  mapfile -t files < <(mimeapps_files)
+  if ! have_cmd python3; then
+    local file
+    for file in "${files[@]}"; do
+      mkdir -p "$(dirname "${file}")"
+      {
+        printf '\n[Default Applications]\n'
+        printf 'x-scheme-handler/afirma=%s\n' "${DESKTOP_ID}"
+        printf 'x-scheme-handler/afirmav2=%s\n' "${DESKTOP_ID}"
+      } >> "${file}"
+    done
+    log "Aviso: GrxFirma abrirá ahora los enlaces afirma://. Sin python3 no se ha podido guardar qué aplicación los abría antes (por ejemplo AutoFirma)."
+    return 0
   fi
-  if [[ -d "${TARGET_HOME}/.var/app/org.mozilla.firefox" ]]; then
-    ensure_mimeapps_default "${TARGET_HOME}/.var/app/org.mozilla.firefox/config/mimeapps.list"
+  previous="$(afirma_handlers_py set "${HANDLER_BACKUP}" "${DESKTOP_ID}" "${files[@]}")"
+  if [[ -n "${previous}" ]]; then
+    log "Aviso: los enlaces afirma:// los abría ${previous//$'\n'/, }. Desde ahora los abre GrxFirma. Al desinstalar GrxFirma se devolverán a esa aplicación."
   fi
+}
+
+restore_afirma_scheme_handlers() {
+  local files=()
+  mapfile -t files < <(mimeapps_files)
+  if have_cmd python3; then
+    afirma_handlers_py restore "${HANDLER_BACKUP}" "${DESKTOP_ID}" "${files[@]}"
+  fi
+  local root user_js tmp
+  for root in \
+    "${TARGET_HOME}/.mozilla/firefox" \
+    "${TARGET_HOME}/snap/firefox/common/.mozilla/firefox" \
+    "${TARGET_HOME}/.var/app/org.mozilla.firefox/.mozilla/firefox"; do
+    [[ -d "${root}" && ! -L "${root}" ]] || continue
+    while IFS= read -r -d '' user_js; do
+      tmp="${user_js}.tmp.$$"
+      grep -vE 'network\.protocol-handler\.(external|expose|warn-external)\.afirma|GrxFirma: permitir.*afirma://' "${user_js}" > "${tmp}" || true
+      install -m 644 "${tmp}" "${user_js}"
+      rm -f "${tmp}"
+    done < <(find "${root}" -mindepth 2 -maxdepth 2 -name user.js -type f -print0)
+  done
+  if have_cmd update-desktop-database; then
+    update-desktop-database "${TARGET_HOME}/.local/share/applications" >/dev/null 2>&1 || true
+  fi
+  log "Manejador afirma:// devuelto a la aplicación anterior"
 }
 
 is_snap_installed() {
@@ -303,6 +410,17 @@ register_afirma_scheme() {
   fi
 }
 
-install_chromium_family_manifests
-install_firefox_integration
-register_afirma_scheme
+case "${1:-}" in
+  "")
+    install_chromium_family_manifests
+    install_firefox_integration
+    register_afirma_scheme
+    ;;
+  --restore-afirma-handler)
+    restore_afirma_scheme_handlers
+    ;;
+  *)
+    echo "uso: configure-browsers.sh [--restore-afirma-handler]" >&2
+    exit 2
+    ;;
+esac

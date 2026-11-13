@@ -534,7 +534,7 @@ go vet ./...
 Para trabajo focalizado:
 
 ```bash
-GOCACHE=/tmp/grxfirma-gocache go test ./internal/application ./cmd/grxfirma ./cmd/nativehost
+go test ./internal/application ./cmd/grxfirma ./cmd/nativehost
 ```
 
 Para la suite DSS:

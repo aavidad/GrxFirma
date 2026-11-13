@@ -73,7 +73,7 @@ bash scripts/validar_pades_manual.sh muestras/pades-etsi.pdf muestras/pades-adob
   y anotarlo en el acta.
 EOF
 
-GOCACHE=/tmp/grxfirma-gocache go run ./scripts/generar_muestras_pades.go -out "${MUESTRAS_DIR}" > "${EVIDENCIAS_DIR}/generacion-muestras.txt"
+go run ./scripts/generar_muestras_pades.go -out "${MUESTRAS_DIR}" > "${EVIDENCIAS_DIR}/generacion-muestras.txt"
 
 cat > "${ACTAS_DIR}/comprobaciones.md" <<'EOF'
 # Comprobación manual de PAdES
