@@ -347,3 +347,8 @@ marcados en el código con `AutoFirmaV2`:
 - `createImageXObject` lee la cabecera de la imagen del sello antes de
   decodificarla y rechaza las de más de 8192 píxeles por lado o más de
   16 Mpx, el mismo límite que aplica la aplicación (hallazgo E2-04).
+- `pdfString` escribe las cadenas con caracteres no ASCII en hexadecimal
+  (UTF-16BE con marca de orden); antes iban entre paréntesis sin escapar y
+  un `)` o una barra dentro de la codificación cortaba la cadena. Si la
+  codificación falla, se escribe la parte ASCII en lugar de abortar con
+  pánico (hallazgo E2-06).
