@@ -175,6 +175,13 @@ mismas versiones de Go, SDK/Xcode, compilador, Python/zlib, Qt/macdeployqt y
 grapado incorporan evidencia temporal externa y deben producir bytes distintos.
 Apple tampoco garantiza un PKG idéntico entre versiones de `pkgbuild`.
 
+El PKG marca los dos `.app` como no reubicables: `build-suite.sh` genera la
+lista de bundles con `pkgbuild --analyze`, pone `BundleIsRelocatable` a `false`
+y la pasa con `--component-plist`. Así Installer siempre escribe en
+`/Applications` y no actualiza otra copia con el mismo identificador, como la
+de `~/Applications`. `validate-pkg.sh` rechaza el PKG si su `PackageInfo`
+contiene `<relocate>`.
+
 ## Observaciones
 
 - La CLI y el `nativehost` dependen del Keychain real de macOS.

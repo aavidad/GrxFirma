@@ -22,6 +22,15 @@ case "${1:-}" in
   --check-signature)
     printf 'checked' > "${PKGUTIL_SIGNATURE_MARKER:?}"
     ;;
+  --expand)
+    [[ ! -e "${3:?}" ]]
+    mkdir -p "${3}"
+    if [[ -n "${PKGUTIL_PACKAGEINFO_FILE:-}" ]]; then
+      cp "${PKGUTIL_PACKAGEINFO_FILE}" "${3}/PackageInfo"
+    else
+      printf '<pkg-info identifier="es.dipgra.grxfirma.suite"><bundle id="x"/></pkg-info>\n' > "${3}/PackageInfo"
+    fi
+    ;;
   *)
     echo "pkgutil simulado: argumento no soportado: ${1:-}" >&2
     exit 2
@@ -107,4 +116,28 @@ EOF
 
   [ "$status" -eq 0 ]
   [ -f "${PKGUTIL_SIGNATURE_MARKER}" ]
+}
+
+@test "rechaza un PKG con bundles reubicables (G-05)" {
+  write_complete_listing
+  export PKGUTIL_PACKAGEINFO_FILE="${BATS_TEST_TMPDIR}/PackageInfo"
+  cat > "${PKGUTIL_PACKAGEINFO_FILE}" <<'XML'
+<pkg-info identifier="es.dipgra.grxfirma.suite">
+  <relocate>
+    <bundle id="es.dipgra.grxfirma.afirmauri"/>
+  </relocate>
+</pkg-info>
+XML
+
+  run bash "${VALIDATOR}" "${TEST_PKG}"
+
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"reubicable"* ]]
+}
+
+@test "build-suite fija los bundles del PKG como no reubicables (G-05)" {
+  local script="${BATS_TEST_DIRNAME}/../build-suite.sh"
+  grep -q -- '--analyze' "${script}"
+  grep -q -- '--component-plist' "${script}"
+  grep -q 'BundleIsRelocatable false' "${script}"
 }

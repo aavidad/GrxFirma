@@ -53,6 +53,21 @@ for entry in "${required[@]}"; do
   fi
 done
 
+# G-05: un bundle reubicable puede acabar instalado (como root) sobre otra copia
+# con el mismo identificador en lugar de en /Applications.
+expand_dir="$(mktemp -d "${TMPDIR:-/tmp}/grxfirma-validate-pkg.XXXXXX")"
+trap 'rm -rf "${expand_dir}"' EXIT
+pkgutil --expand "${pkg_path}" "${expand_dir}/pkg"
+package_info="${expand_dir}/pkg/PackageInfo"
+if [[ ! -f "${package_info}" ]]; then
+  echo "error: el PKG no contiene PackageInfo: ${pkg_path}" >&2
+  exit 1
+fi
+if grep -q '<relocate' "${package_info}"; then
+  echo "error: el PKG declara bundles reubicables (<relocate>); deben instalarse siempre en /Applications" >&2
+  exit 1
+fi
+
 if [[ -n "${MACOS_INSTALLER_IDENTITY:-}" ]]; then
   pkgutil --check-signature "${pkg_path}" >/dev/null
 fi

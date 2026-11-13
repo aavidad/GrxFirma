@@ -715,8 +715,26 @@ EOF
   bash -n "${local_root}/Library/Application Support/GrxFirma/register-user.sh" "${pkg_scripts_dir}/postinstall"
   grxfirma_normalize_tree_mtime "${local_root}" "${pkg_scripts_dir}"
 
+  # G-05: sin --component-plist, pkgbuild marca los .app como reubicables e
+  # Installer podría actualizar como root otra copia con el mismo identificador
+  # (por ejemplo la de ~/Applications) en vez de /Applications.
+  component_plist="${OUT_DIR}/pkg-components.plist"
+  rm -f "${component_plist}"
+  pkgbuild --analyze --root "${local_root}" "${component_plist}"
+  plist_buddy=/usr/libexec/PlistBuddy
+  bundle_index=0
+  while "${plist_buddy}" -c "Print :${bundle_index}" "${component_plist}" >/dev/null 2>&1; do
+    "${plist_buddy}" -c "Set :${bundle_index}:BundleIsRelocatable false" "${component_plist}"
+    bundle_index=$((bundle_index + 1))
+  done
+  if [[ "${bundle_index}" -lt 2 ]]; then
+    echo "error: pkgbuild --analyze no encontró los dos bundles de la suite" >&2
+    exit 1
+  fi
+
   pkg_args=(
     --root "${local_root}"
+    --component-plist "${component_plist}"
     --scripts "${pkg_scripts_dir}"
     --ownership recommended
     --identifier "es.dipgra.grxfirma.suite"
@@ -731,7 +749,7 @@ EOF
   notarize_if_enabled "${PKG_PATH}"
   validate_pkg_artifact "${PKG_PATH}"
   grxfirma_normalize_output_mtime "${PKG_PATH}"
-  rm -rf "${local_root}" "${pkg_scripts_dir}"
+  rm -rf "${local_root}" "${pkg_scripts_dir}" "${component_plist}"
   echo "Instalador PKG generado en: $PKG_PATH"
 fi
 
