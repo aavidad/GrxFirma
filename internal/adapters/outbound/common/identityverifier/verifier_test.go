@@ -16,6 +16,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/digitorus/pkcs7"
+
 	"grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
@@ -79,6 +81,36 @@ func TestVerificadorRechazaCAdESImplicitoSobreOtroContenido(t *testing.T) {
 	resultado, err := fixture.nuevo(t, ports.EstadoRevocacionConforme).Verificar(context.Background(), fixture.reto, prueba)
 	if err != nil || resultado.Resultado != domain.ResultadoIdentidadRechazada {
 		t.Fatalf("una firma implícita de otro contenido no acredita el reto: resultado=%+v error=%v", resultado, err)
+	}
+}
+
+// Lote 13b: el verificador CAdES admite SHA-1 para leer firmas antiguas, pero
+// una prueba de identidad con SHA-1 se sigue rechazando.
+func TestVerificadorRechazaPruebaConSHA1(t *testing.T) {
+	fixture := nuevaFixtureVerificador(t, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, []asn1.ObjectIdentifier{oidPoliticaPrueba})
+	datos, err := pkcs7.NewSignedData(fixture.reto.ContenidoCanonico)
+	if err != nil {
+		t.Fatal(err)
+	}
+	datos.SetDigestAlgorithm(pkcs7.OIDDigestAlgorithmSHA1)
+	if err := datos.AddSigner(fixture.hoja, fixture.hojaClave, pkcs7.SignerInfoConfig{}); err != nil {
+		t.Fatal(err)
+	}
+	datos.Detach()
+	firma, err := datos.Finish()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// La firma SHA-1 es criptográficamente correcta sobre el reto.
+	verificacion, _, err := signer.NewCAdESVerifier().VerifyDetachedCMS(context.Background(), firma, fixture.reto.ContenidoCanonico)
+	if err != nil || verificacion.Integrity.Status != domain.VerificationStatusValid || verificacion.Valid {
+		t.Fatalf("la firma SHA-1 de la prueba debía cuadrar sin salir válida: %+v err=%v", verificacion, err)
+	}
+	prueba := fixture.prueba
+	prueba.Firma = firma
+	resultado, err := fixture.nuevo(t, ports.EstadoRevocacionConforme).Verificar(context.Background(), fixture.reto, prueba)
+	if err != nil || resultado.Resultado != domain.ResultadoIdentidadRechazada {
+		t.Fatalf("una prueba de identidad con SHA-1 no debe aceptarse: resultado=%+v error=%v", resultado, err)
 	}
 }
 

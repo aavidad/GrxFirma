@@ -161,4 +161,26 @@ func TestFacturaEVerifier_AcceptsOfficialV19Sample(t *testing.T) {
 	if result.Integrity.Status != domain.VerificationStatusValid || len(signers) == 0 {
 		t.Fatalf("resultado inesperado: %+v signers=%d", result, len(signers))
 	}
+	// Lote 13b: la integridad sale por el camino estándar (sin marca de
+	// canonicalización histórica), cubre todo el documento y lleva el aviso
+	// de SHA-1. El certificado caducado es un aspecto aparte.
+	if result.Coverage != domain.CoberturaCompleta || result.Certificate.Status != domain.VerificationStatusInvalid {
+		t.Fatalf("cobertura=%s certificado=%+v", result.Coverage, result.Certificate)
+	}
+	exigirAlgoritmoAntiguo(t, result)
+
+	// Las demás facturas oficiales del mismo árbol (3.0, 3.1 y 3.2 con
+	// prefijo en la raíz) también las reconoce y verifica el verificador
+	// FacturaE.
+	for _, nombre := range []string{"sample-factura-firmada-30.xml", "sample-factura-firmada-31.xml", "sample-factura-firmada-32v1.xsig.xml"} {
+		datos, err := os.ReadFile(filepath.Join(raiz, "afirma-simple", "src", "test", "resources", nombre))
+		if err != nil {
+			t.Skipf("muestra %s no disponible: %v", nombre, err)
+		}
+		res, firmantes, err := NewFacturaEVerifier().Verify(context.Background(), domain.Document{Name: nombre, MIMEType: "application/xml", Content: datos}, domain.CertificateChain{})
+		if err != nil || len(firmantes) == 0 || res.Coverage != domain.CoberturaCompleta {
+			t.Fatalf("%s: err=%v firmantes=%d cobertura=%s", nombre, err, len(firmantes), res.Coverage)
+		}
+		exigirAlgoritmoAntiguo(t, res)
+	}
 }

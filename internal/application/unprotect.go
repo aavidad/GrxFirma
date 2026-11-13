@@ -80,7 +80,7 @@ func (uc *UnprotectDocumentUseCase) Ejecutar(ctx context.Context, cmd UnprotectC
 		return UnprotectResult{}, fmt.Errorf("no se pudo desproteger el documento: %w", err)
 	}
 	_ = uc.publicarEvento(ctx, "desproteccion_completada", unprotected.Document.Name)
-	uc.auditar(ctx, cmd, true, nil)
+	uc.auditar(ctx, cmd, true, nil, unprotected.Detalles...)
 	return UnprotectResult{Unprotected: unprotected}, nil
 }
 
@@ -88,7 +88,7 @@ func (uc *UnprotectDocumentUseCase) Execute(ctx context.Context, cmd UnprotectCo
 	return uc.Ejecutar(ctx, cmd)
 }
 
-func (uc *UnprotectDocumentUseCase) auditar(ctx context.Context, cmd UnprotectCommand, success bool, err error) {
+func (uc *UnprotectDocumentUseCase) auditar(ctx context.Context, cmd UnprotectCommand, success bool, err error, compatibilidad ...string) {
 	if uc == nil || uc.auditor == nil {
 		return
 	}
@@ -97,11 +97,12 @@ func (uc *UnprotectDocumentUseCase) auditar(ctx context.Context, cmd UnprotectCo
 		resumen = sanitizarError(err)
 	}
 	_ = uc.auditor.Registrar(ctx, AuditCommand{
-		OperationType: "desproteccion",
-		DocumentName:  cmd.ProtectedDocument.Name,
-		DocumentData:  cmd.ProtectedDocument.Content,
-		Success:       success,
-		ErrorSummary:  resumen,
+		OperationType:  "desproteccion",
+		DocumentName:   cmd.ProtectedDocument.Name,
+		DocumentData:   cmd.ProtectedDocument.Content,
+		Success:        success,
+		ErrorSummary:   resumen,
+		Compatibilidad: compatibilidad,
 	})
 }
 

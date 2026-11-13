@@ -86,7 +86,7 @@ func exclusionesIndiceENI(documento []byte, arbol *arbolXML, firma int, cubierto
 	}
 	contenido, firmas := nivel2[0], nivel2[1]
 	idContenido := valorAtributo(arbol.nodos[contenido], "Id")
-	if idContenido == "" || arbol.nodoPorID(idContenido) != contenido || !envoltorio(firmas) || len(arbol.nodos[firmas].hijos) == 0 {
+	if idContenido == "" || arbol.nodoPorID(idContenido) != contenido {
 		return nil
 	}
 	// La firma cubre IndiceContenido y, aparte, solo lo suyo (SignedProperties).
@@ -99,32 +99,111 @@ func exclusionesIndiceENI(documento []byte, arbol *arbolXML, firma int, cubierto
 		}
 	}
 	excl := &exclusionesPerfil{nodos: map[int]bool{metadatos: true}, atributos: map[int]bool{}}
+	if !exclusionesFirmasENI(documento, arbol, firmas, firma, idContenido, excl) {
+		return nil
+	}
+	return excl
+}
+
+// exclusionesFirmasENI comprueba el bloque enids:firmas de la NTI (cada
+// enids:firma con solo Id y ref al contenido firmado, TipoFirma XAdES y un
+// ds:Signature en ContenidoFirma/FirmaConCertificado), que la firma evaluada
+// es una de ellas y anota en excl lo que la norma deja fuera: el atributo ref
+// y TipoFirma.
+func exclusionesFirmasENI(documento []byte, arbol *arbolXML, firmas, firma int, idContenido string, excl *exclusionesPerfil) bool {
+	es := func(indice int, ns, local string) bool {
+		return arbol.nodos[indice].nombre == xml.Name{Space: ns, Local: local}
+	}
+	hijosExactos := func(indice int, nombres ...xml.Name) []int {
+		hijos := arbol.nodos[indice].hijos
+		if len(hijos) != len(nombres) {
+			return nil
+		}
+		for i, hijo := range hijos {
+			if arbol.nodos[hijo].nombre != nombres[i] {
+				return nil
+			}
+		}
+		return hijos
+	}
+	envoltorio := func(indice int) bool {
+		return !arbol.nodos[indice].texto && !atributosConContenido(arbol.nodos[indice])
+	}
+	if !envoltorio(firmas) || len(arbol.nodos[firmas].hijos) == 0 {
+		return false
+	}
 	firmaEnSuSitio := false
 	for _, nodoFirma := range arbol.nodos[firmas].hijos {
 		if !es(nodoFirma, nsENIFirma, "firma") || arbol.nodos[nodoFirma].texto || !atributosFirmaENI(arbol.nodos[nodoFirma], idContenido) {
-			return nil
+			return false
 		}
 		partes := hijosExactos(nodoFirma, xml.Name{Space: nsENIFirma, Local: "TipoFirma"}, xml.Name{Space: nsENIFirma, Local: "ContenidoFirma"})
 		if partes == nil {
-			return nil
+			return false
 		}
 		tipo, contenidoFirma := partes[0], partes[1]
 		if !tipoFirmaXAdESENI(documento, arbol.nodos[tipo]) || !envoltorio(contenidoFirma) {
-			return nil
+			return false
 		}
 		conCertificado := hijosExactos(contenidoFirma, xml.Name{Space: nsENIFirma, Local: "FirmaConCertificado"})
 		if conCertificado == nil || !envoltorio(conCertificado[0]) {
-			return nil
+			return false
 		}
 		firmaXML := hijosExactos(conCertificado[0], xml.Name{Space: nsXMLDSig, Local: "Signature"})
 		if firmaXML == nil {
-			return nil
+			return false
 		}
 		firmaEnSuSitio = firmaEnSuSitio || firmaXML[0] == firma
 		excl.atributos[nodoFirma] = true
 		excl.nodos[tipo] = true
 	}
-	if !firmaEnSuSitio {
+	return firmaEnSuSitio
+}
+
+// Perfil del documento electrónico ENI (NTI de Documento Electrónico,
+// BOE-A-2011-13169, anexo II): la firma XAdES cubre enifile:contenido; los
+// metadatos del documento y la información de la firma (atributo ref y
+// TipoFirma) quedan fuera por norma. Mismo criterio estrecho que el índice
+// del expediente: estructura exacta, la firma donde la pone la norma y que
+// cubre exactamente el contenido y lo suyo.
+const (
+	nsENIDocumento         = "http://administracionelectronica.gob.es/ENI/XSD/v1.0/documento-e"
+	nsENIContenido         = "http://administracionelectronica.gob.es/ENI/XSD/v1.0/documento-e/contenido"
+	nsENIMetadatosDocument = "http://administracionelectronica.gob.es/ENI/XSD/v1.0/documento-e/metadatos"
+)
+
+func exclusionesDocumentoENI(documento []byte, arbol *arbolXML, firma int, cubiertos map[int]bool) *exclusionesPerfil {
+	if len(arbol.raices) != 1 {
+		return nil
+	}
+	raiz := arbol.raices[0]
+	nodoRaiz := arbol.nodos[raiz]
+	if nodoRaiz.nombre != (xml.Name{Space: nsENIDocumento, Local: "documento"}) || nodoRaiz.texto || atributosConContenido(nodoRaiz) {
+		return nil
+	}
+	hijos := nodoRaiz.hijos
+	if len(hijos) != 3 ||
+		arbol.nodos[hijos[0]].nombre != (xml.Name{Space: nsENIContenido, Local: "contenido"}) ||
+		arbol.nodos[hijos[1]].nombre != (xml.Name{Space: nsENIMetadatosDocument, Local: "metadatos"}) ||
+		arbol.nodos[hijos[2]].nombre != (xml.Name{Space: nsENIFirma, Local: "firmas"}) {
+		return nil
+	}
+	contenido, metadatos, firmas := hijos[0], hijos[1], hijos[2]
+	idContenido := valorAtributo(arbol.nodos[contenido], "Id")
+	if idContenido == "" || arbol.nodoPorID(idContenido) != contenido || !soloEspacioDeNombres(arbol, metadatos, nsENIMetadatosDocument) {
+		return nil
+	}
+	// La firma cubre enifile:contenido y, aparte, solo lo suyo.
+	if !cubiertos[contenido] {
+		return nil
+	}
+	for cubierto := range cubiertos {
+		if cubierto != contenido && !arbol.desciende(cubierto, firma) {
+			return nil
+		}
+	}
+	excl := &exclusionesPerfil{nodos: map[int]bool{metadatos: true}, atributos: map[int]bool{}}
+	if !exclusionesFirmasENI(documento, arbol, firmas, firma, idContenido, excl) {
 		return nil
 	}
 	return excl

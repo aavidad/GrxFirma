@@ -335,15 +335,19 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 	signerCerts := make([]*x509.Certificate, 0, len(signerInfos))
 	signerDetails := make([][]string, 0, len(signerInfos))
 	signerCertsPorSignerInfo := make([]*x509.Certificate, 0, len(signerInfos))
+	var antiguos []string
 
 	for _, signerInfo := range signerInfos {
 		signerCert, err := findSignerCertificate(certs, signerInfo.SID)
 		if err != nil {
 			return domain.VerificationResult{}, certRefs, err
 		}
-		spec, err := validarAlgoritmosSignerInfo(signerCert, signerInfo)
+		spec, antiguo, err := validarAlgoritmosSignerInfo(signerCert, signerInfo)
 		if err != nil {
 			return domain.VerificationResult{}, certRefs, err
+		}
+		if antiguo {
+			antiguos = append(antiguos, detalleAlgoritmoSHA1)
 		}
 		if err := verifyMessageDigest(signerInfo.SignedAttributes, content, spec.hash); err != nil {
 			return domain.VerificationResult{}, certRefs, err
@@ -405,6 +409,7 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 		}
 	}
 	result = exigirRevocacionConcluyente(result)
+	result = marcarAlgoritmoAntiguo(result, antiguos)
 
 	return result.Normalize(), signers, nil
 }
@@ -422,29 +427,31 @@ func exigirRevocacionConcluyente(result domain.VerificationResult) domain.Verifi
 
 // validarAlgoritmosSignerInfo admite SHA-256, SHA-384 y SHA-512 (AutoFirma
 // Java firma con SHA-512 en sedes como JCyL) y exige que el algoritmo de
-// firma declarado sea coherente con el resumen y con la clave.
-func validarAlgoritmosSignerInfo(cert *x509.Certificate, signerInfo signerInfoRaw) (cmsHashSpec, error) {
+// firma declarado sea coherente con el resumen y con la clave. SHA-1 se
+// admite solo para leer firmas antiguas: antiguo=true y la firma no saldrá
+// válida (ver algoritmo_antiguo.go).
+func validarAlgoritmosSignerInfo(cert *x509.Certificate, signerInfo signerInfoRaw) (spec cmsHashSpec, antiguo bool, err error) {
 	if cert == nil {
-		return cmsHashSpec{}, errors.New("certificado firmante nulo")
+		return cmsHashSpec{}, false, errors.New("certificado firmante nulo")
 	}
-	spec, ok := cmsHashForDigestOID(signerInfo.DigestAlgorithm.Algorithm)
+	spec, antiguo, ok := cmsHashParaVerificar(signerInfo.DigestAlgorithm.Algorithm)
 	if !ok {
-		return cmsHashSpec{}, errors.New("SignerInfo no declara SHA-256, SHA-384 ni SHA-512")
+		return cmsHashSpec{}, false, errors.New("SignerInfo no declara SHA-1, SHA-256, SHA-384 ni SHA-512")
 	}
 	switch cert.PublicKey.(type) {
 	case *rsa.PublicKey:
 		if !signerInfo.SignatureAlgorithm.Algorithm.Equal(spec.rsaOID) &&
 			!signerInfo.SignatureAlgorithm.Algorithm.Equal(oidSignatureRSAEncryption) {
-			return cmsHashSpec{}, fmt.Errorf("SignerInfo RSA no declara un algoritmo PKCS#1 compatible con %s", spec.hash)
+			return cmsHashSpec{}, false, fmt.Errorf("SignerInfo RSA no declara un algoritmo PKCS#1 compatible con %s", spec.hash)
 		}
 	case *ecdsa.PublicKey:
 		if !signerInfo.SignatureAlgorithm.Algorithm.Equal(spec.ecdsaOID) {
-			return cmsHashSpec{}, fmt.Errorf("SignerInfo ECDSA no declara ecdsa-with-%s", spec.hash)
+			return cmsHashSpec{}, false, fmt.Errorf("SignerInfo ECDSA no declara ecdsa-with-%s", spec.hash)
 		}
 	default:
-		return cmsHashSpec{}, fmt.Errorf("tipo de clave pública no soportado: %T", cert.PublicKey)
+		return cmsHashSpec{}, false, fmt.Errorf("tipo de clave pública no soportado: %T", cert.PublicKey)
 	}
-	return spec, nil
+	return spec, antiguo, nil
 }
 
 func (v *CAdESVerifier) verifyRevocationWithEmbedded(ctx context.Context, chain []*x509.Certificate, signerInfos []signerInfoRaw) (domain.VerificationResult, error) {

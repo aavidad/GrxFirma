@@ -696,9 +696,19 @@ Operaciones útiles:
   sobre: quita carpetas y caracteres de control y, si la extensión no es de
   documento (`pdf`, `xml`, `docx`, `odt`, `txt`, imágenes, firmas…), la cambia
   por `.bin`. Un tipo MIME que no es válido pasa a `application/octet-stream`
-- los `.afp` se escriben en la versión 2 del sobre, que liga el nombre y el
-  tipo MIME al cifrado sin ambigüedad. GrxFirma sigue abriendo los de versión
-  1, pero las versiones anteriores de GrxFirma no abren los de versión 2
+- los `.afp` se escriben en la versión 1 del sobre, la que abren también las
+  versiones anteriores de GrxFirma. Antes de cifrar se quitan los saltos de
+  línea del nombre (y un tipo MIME con saltos de línea pasa a
+  `application/octet-stream`), así que el nombre y el tipo quedan ligados al
+  cifrado sin ambigüedad
+- la versión 2 del sobre (cada campo con su longitud) se pide con
+  `-contenedor-proteccion json-v2`. Las versiones anteriores de GrxFirma no la
+  abren; usarla solo si todos los destinatarios tienen esta versión o una
+  posterior. GrxFirma abre las dos
+- si un `.afp` de versión 1 trae saltos de línea en el nombre o en el tipo
+  (lo hizo una versión anterior o alguien lo ha manipulado), se abre con el
+  nombre saneado, se avisa de que el nombre y el tipo pudieron cambiarse y la
+  auditoría lo anota como `afp_v1_aad_ambigua` en `compatibilidad`
 
 Estado del frente CMS heredado de 1.9:
 - operativo hoy: `EnvelopedData`, `EncryptedData`, `SignedAndEnvelopedData` y
@@ -707,10 +717,16 @@ Estado del frente CMS heredado de 1.9:
   `AuthEnvelopedData` usa RSA-OAEP-SHA256/MGF1-SHA256 + AES-256-GCM
 - OpenSSL parsea el DER V2, V2 descifra AES-256-CBC de OpenSSL y el
   intercambio `AuthEnvelopedData` con OpenSSL 3.5 está probado en ambos sentidos
-- al desproteger `EnvelopedData` y `EncryptedData` solo se aceptan AES-GCM y
-  AES-CBC (128, 192 o 256 bits) con transporte de clave RSA. DES y 3DES exigen
-  la política de máquina `permitir_des_legacy`. Cualquier otro cifrado (ECB,
-  OFB, CFB, RC2, RC5, SM4…) se rechaza antes de intentar descifrar
+- al desproteger `EnvelopedData` y `EncryptedData` el transporte de clave tiene
+  que ser RSA. AES-GCM y AES-CBC (128, 192 o 256 bits) se aceptan sin más. Los
+  cifrados antiguos que GrxFirma ya abría antes (DES, 3DES, AES-ECB, OFB, CFB o
+  CCM, RC2, RC5, SM4…) se siguen descifrando para no perder el acceso, con un
+  aviso para la persona y el código `cifrado_cms_heredado=<OID>` en
+  `compatibilidad` de la auditoría. Ya no hace falta `permitir_des_legacy`
+  para esto. Un administrador puede impedirlo con la política de máquina
+  `prohibir_cifrado_cms_heredado` (`true` en `/etc/grxfirma/policy.json` o
+  DWORD `1` en `HKLM\SOFTWARE\Policies\GrxFirma`). Un cifrado que la
+  biblioteca no conoce se rechaza siempre antes de intentar descifrar
 - el fixture V1.9 usa AES-ECB/PKCS5 y ASN.1 legacy; V2 no lo escribe. Para
   migrar sobres conocidos, su lector de solo lectura se activa con
   `GRXFIRMA_ENABLE_LEGACY_CMS_AES_ECB=1`, valida límites/padding, firma,

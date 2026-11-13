@@ -74,7 +74,7 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 	allSigners := make([]domain.CertificateRef, 0, len(signatures))
 	allSignerCertificates := make([]*x509.Certificate, 0, len(signatures))
 	allEmbeddedCertificates := make([]*x509.Certificate, 0, len(signatures))
-	var compatibility []string
+	var compatibility, antiguos []string
 	var cubiertasPorFirma []map[string]bool
 	var noComprobado []string
 	for idx, signature := range signatures {
@@ -94,6 +94,7 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 		allSignerCertificates = append(allSignerCertificates, verification.signerCertificates...)
 		allEmbeddedCertificates = append(allEmbeddedCertificates, verification.embeddedCertificates...)
 		compatibility = append(compatibility, xmlCompatibilityDetails(verification.result)...)
+		antiguos = append(antiguos, algoritmosAntiguos(verification.result)...)
 	}
 	result := domain.NewVerificationSuccess("ODF", "firma ODF valida", []string{
 		fmt.Sprintf("firmas_xml=%d", len(signatures)),
@@ -105,6 +106,7 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 		result = marcarSelloXMLNoEvaluable(result, signature.fragment)
 	}
 	result = markXMLCompatibility(result, compatibility)
+	result = marcarAlgoritmoAntiguo(result, antiguos)
 	result = aplicarCoberturaXML(result, coberturaContenedor(contenedor.nombres, entradaODFSinFirmar, cubiertasPorFirma, noComprobado))
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
 }
@@ -153,7 +155,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	allSigners := make([]domain.CertificateRef, 0, len(signatures))
 	allSignerCertificates := make([]*x509.Certificate, 0, len(signatures))
 	allEmbeddedCertificates := make([]*x509.Certificate, 0, len(signatures))
-	var compatibility []string
+	var compatibility, antiguos []string
 	verifiedSignatures := 0
 	var cubiertasPorFirma []map[string]bool
 	var relacionesPorFirma [][]relacionNoFirmada
@@ -186,6 +188,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 			allSignerCertificates = append(allSignerCertificates, verification.signerCertificates...)
 			allEmbeddedCertificates = append(allEmbeddedCertificates, verification.embeddedCertificates...)
 			compatibility = append(compatibility, xmlCompatibilityDetails(verification.result)...)
+			antiguos = append(antiguos, algoritmosAntiguos(verification.result)...)
 		}
 	}
 
@@ -199,6 +202,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		result = marcarSelloXMLNoEvaluable(result, signatures[name])
 	}
 	result = markXMLCompatibility(result, compatibility)
+	result = marcarAlgoritmoAntiguo(result, antiguos)
 	result = aplicarCoberturaXML(result, coberturaOOXML(contenedor, cubiertasPorFirma, relacionesPorFirma, noComprobado))
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
 }
@@ -222,17 +226,20 @@ const (
 )
 
 func verifyXMLSignatureDocument(ctx context.Context, xmlData []byte, requireSigningCertificate bool, externalResolver func(string) ([]byte, error), anchors domain.CertificateChain, format string, reason string, details []string, documentoFirmado bool) (xmlSignatureVerification, error) {
+	doctypeExterno := false
 	if documentoFirmado {
-		if err := rechazarDOCTYPE(xmlData); err != nil {
+		externa, err := rechazarDOCTYPE(xmlData)
+		if err != nil {
 			return xmlSignatureVerification{}, err
 		}
+		doctypeExterno = externa
 	}
 	parts, err := extractContextualXMLSignatures(xmlData)
 	if err != nil || len(parts) == 0 {
 		return xmlSignatureVerification{}, errors.New("el documento no contiene firmas XML utilizables")
 	}
 	var aggregate xmlSignatureVerification
-	var compatibility []string
+	var compatibility, antiguos []string
 	for _, part := range parts {
 		if err := ctx.Err(); err != nil {
 			return xmlSignatureVerification{}, err
@@ -246,12 +253,25 @@ func verifyXMLSignatureDocument(ctx context.Context, xmlData []byte, requireSign
 		aggregate.embeddedCertificates = append(aggregate.embeddedCertificates, verification.embeddedCertificates...)
 		aggregate.coberturas = append(aggregate.coberturas, verification.coberturas...)
 		compatibility = append(compatibility, xmlCompatibilityDetails(verification.result)...)
+		antiguos = append(antiguos, algoritmosAntiguos(verification.result)...)
 	}
 	aggregate.result = applySignerVerificationMetadata(domain.NewVerificationSuccess(format, reason, details), aggregate.signerCertificates, aggregate.embeddedCertificates, anchors)
 	for _, part := range parts {
 		aggregate.result = marcarSelloXMLNoEvaluable(aggregate.result, part.fragment)
 	}
+	if doctypeExterno {
+		compatibility = append(compatibility, detalleDOCTYPEExterno)
+	}
 	aggregate.result = markXMLCompatibility(aggregate.result, compatibility)
+	if doctypeExterno {
+		aggregate.result.Warnings = appendUniqueString(aggregate.result.Warnings, motivoDOCTYPEExterno)
+	}
+	if documentoFirmado && contieneString(aggregate.result.Warnings, motivoC14NAntiguaGrxFirma) && tieneInstruccionesFueraDeRaiz(xmlData) {
+		// La C14N antigua no cubría estas instrucciones: pudieron añadirse
+		// después de firmar (E1-07).
+		aggregate.result.Warnings = appendUniqueString(aggregate.result.Warnings, motivoPIFueraDeRaizSinFirmar)
+	}
+	aggregate.result = marcarAlgoritmoAntiguo(aggregate.result, antiguos)
 	if documentoFirmado {
 		cobertura, err := coberturaDocumentoXML(xmlData, aggregate.coberturas)
 		if err != nil {
@@ -294,10 +314,12 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 	cobertura.noComprobado = manifiestos.noComprobado
 	cobertura.relacionesNoFirmadas = manifiestos.relacionesNoFirmadas
 	cobertura.partesRelacionesOPC = manifiestos.partesRelacionesOPC
+	// SHA-1 solo se acepta para leer firmas históricas: la integridad queda
+	// comprobada, pero nunca como una validación plena (criterio común con
+	// CAdES y PAdES, ver algoritmo_antiguo.go).
+	var antiguos []string
 	if usesSHA1(signedInfoXML) {
-		// SHA-1 solo se acepta para leer firmas históricas: nunca como una
-		// validación plena (CAdES/PAdES ya lo rechazan).
-		compatibility = append(compatibility, "La firma usa SHA-1, un algoritmo obsoleto: solo tiene valor como evidencia histórica.")
+		antiguos = append(antiguos, detalleAlgoritmoSHA1)
 	}
 
 	signers := make([]domain.CertificateRef, 0, len(signerCertificates))
@@ -308,6 +330,7 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 	result = applySignerVerificationMetadata(result, signerCertificates, certificates, anchors)
 	result = marcarSelloXMLNoEvaluable(result, xmlData)
 	result = markXMLCompatibility(result, compatibility)
+	result = marcarAlgoritmoAntiguo(result, antiguos)
 	return xmlSignatureVerification{
 		result:               result,
 		signers:              signers,
@@ -864,9 +887,13 @@ func ordinalSignedInfoDirecto(fragment []byte) (int, int, error) {
 }
 
 func canonicalizeReference(ref referenceForVerify, targetXML []byte) ([]byte, error) {
+	return canonicalizeReferenceVariante(ref, targetXML, c14nEstandar)
+}
+
+func canonicalizeReferenceVariante(ref referenceForVerify, targetXML []byte, variante varianteC14N) ([]byte, error) {
 	working := append([]byte(nil), targetXML...)
 	if len(ref.Transforms) == 0 {
-		canonical, err := canonicalizeXML(working, algC14N)
+		canonical, err := canonicalizeXMLVariante(working, algC14N, variante)
 		if err != nil {
 			return working, nil
 		}
@@ -878,7 +905,7 @@ func canonicalizeReference(ref referenceForVerify, targetXML []byte) ([]byte, er
 		case algEnveloped:
 			working = stripEnvelopedSignature(working)
 		case algExcC14N, algC14N:
-			return canonicalizeXML(working, algorithm)
+			return canonicalizeXMLVariante(working, algorithm, variante)
 		case algBase64Transform:
 			// XMLDSig 6.6.2: el resumen cubre los octetos decodificados del
 			// texto del nodo (firmas Java de datos binarios).
@@ -891,7 +918,7 @@ func canonicalizeReference(ref referenceForVerify, targetXML []byte) ([]byte, er
 			if err != nil {
 				return nil, err
 			}
-			return canonicalizeXML(sinFirmas, algC14N)
+			return canonicalizeXMLVariante(sinFirmas, algC14N, variante)
 		default:
 			return nil, fmt.Errorf("transform no soportado: %s", transform.Algorithm)
 		}
@@ -907,7 +934,7 @@ func canonicalizeReference(ref referenceForVerify, targetXML []byte) ([]byte, er
 // el árbol original. C14N inclusiva incorpora declaraciones xmlns y atributos
 // xml:* de los ancestros, información que se pierde al serializar solo el
 // elemento referenciado.
-func computeContextualReferenceDigest(xmlData []byte, ref referenceForVerify) ([]byte, error) {
+func computeContextualReferenceDigestVariante(xmlData []byte, ref referenceForVerify, variante varianteC14N) ([]byte, error) {
 	uri := strings.TrimSpace(ref.URI)
 	algorithm := algC14N
 	hasEnvelopedTransform := false
@@ -945,12 +972,12 @@ func computeContextualReferenceDigest(xmlData []byte, ref referenceForVerify) ([
 		if hasEnvelopedTransform {
 			working = stripEnvelopedSignature(working)
 		}
-		canonical, err = canonicalizeXML(working, algorithm)
+		canonical, err = canonicalizeXMLVariante(working, algorithm, variante)
 	case strings.HasPrefix(uri, "#"):
 		if hasEnvelopedTransform {
 			return nil, errors.New("transformación enveloped sobre referencia interna no soportada en el candidato contextual")
 		}
-		canonical, err = canonicalizeElementByIDInDocument(xmlData, strings.TrimPrefix(uri, "#"), algorithm)
+		canonical, err = canonicalizeElementByIDVariante(xmlData, strings.TrimPrefix(uri, "#"), algorithm, variante)
 	default:
 		return nil, errors.New("la referencia externa no pertenece al árbol XML")
 	}
@@ -1283,27 +1310,64 @@ func decodeBase64TransformInput(nodeXML []byte) ([]byte, error) {
 	return out, nil
 }
 
-// rechazarDOCTYPE: un DOCTYPE (con DTD interna o externa) puede dar a los
-// elementos atributos por defecto que el visor aplica y la verificación no
-// (E1-07). Un XML firmado con DOCTYPE no se da por verificable.
-func rechazarDOCTYPE(xmlData []byte) error {
+// rechazarDOCTYPE: un DOCTYPE puede dar a los elementos atributos por defecto
+// que el visor aplica y la verificación no (E1-07). Con subconjunto interno
+// ([...]) se rechaza. Con solo una DTD externa (que GrxFirma nunca lee) se
+// sigue verificando por compatibilidad con lo que verificaban las versiones
+// anteriores, pero devuelve externa=true y la firma no sale válida.
+func rechazarDOCTYPE(xmlData []byte) (externa bool, err error) {
 	decoder := xml.NewDecoder(bytes.NewReader(xmlData))
 	for {
 		token, err := decoder.RawToken()
 		if errors.Is(err, io.EOF) {
-			return nil
+			return externa, nil
 		}
 		if err != nil {
-			return err
+			return false, err
 		}
 		switch nodo := token.(type) {
 		case xml.Directive:
 			if bytes.HasPrefix(bytes.TrimSpace(nodo), []byte("DOCTYPE")) {
-				return errors.New("documento XML firmado con DOCTYPE no admitido")
+				if bytes.ContainsAny(nodo, "[]") {
+					return false, errors.New("documento XML firmado con DOCTYPE no admitido")
+				}
+				externa = true
 			}
 		case xml.StartElement:
 			// El DOCTYPE solo puede ir antes del elemento raíz.
-			return nil
+			return externa, nil
 		}
 	}
+}
+
+// tieneInstruccionesFueraDeRaiz dice si hay instrucciones de proceso (salvo la
+// declaración XML) antes o después del elemento raíz.
+func tieneInstruccionesFueraDeRaiz(xmlData []byte) bool {
+	decoder := xml.NewDecoder(bytes.NewReader(xmlData))
+	profundidad := 0
+	for {
+		token, err := decoder.RawToken()
+		if err != nil {
+			return false
+		}
+		switch nodo := token.(type) {
+		case xml.StartElement:
+			profundidad++
+		case xml.EndElement:
+			profundidad--
+		case xml.ProcInst:
+			if profundidad == 0 && nodo.Target != "xml" {
+				return true
+			}
+		}
+	}
+}
+
+func contieneString(lista []string, buscado string) bool {
+	for _, elemento := range lista {
+		if elemento == buscado {
+			return true
+		}
+	}
+	return false
 }

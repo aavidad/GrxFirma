@@ -2116,6 +2116,9 @@ func (a *Adaptador) ejecutarDesproteccion(ctx context.Context, cfg configCLI) in
 		if cfg.noGuardar || cfg.imprimirFirma {
 			payload["contenido_desprotegido_base64"] = plainB64
 		}
+		if avisos := resultado.Unprotected.Avisos; len(avisos) > 0 {
+			payload["advertencias"] = append([]string(nil), avisos...)
+		}
 		if err := escribirJSON(a.Stdout, payload); err != nil {
 			a.escribirErrorCLI("JSON", err)
 			return 1
@@ -2132,6 +2135,12 @@ func (a *Adaptador) ejecutarDesproteccion(ctx context.Context, cfg configCLI) in
 		a.t("Destinatario", "Destinatario"),
 		resultado.Unprotected.RecipientID,
 	)
+	if len(resultado.Unprotected.Avisos) > 0 {
+		fmt.Fprintf(a.Stdout, "%s:\n", a.t("Advertencias", "Advertencias"))
+		for _, aviso := range resultado.Unprotected.Avisos {
+			fmt.Fprintf(a.Stdout, "- %s\n", a.textoCatalogo(aviso))
+		}
+	}
 	if salidaFinal != "" {
 		fmt.Fprintf(a.Stdout, "%s: %s\n", a.t("Salida", "Salida"), salidaFinal)
 	}
@@ -3423,6 +3432,17 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("  grxfirma -modo-cli -operacion generar-certificados-tls -salida-json\n")
 	b.WriteString("  grxfirma -modo-cli -operacion instalar-confianza-tls -salida-json\n")
 	_, _ = io.WriteString(a.Stdout, b.String())
+}
+
+// textoCatalogo traduce un texto que llega como dato (por ejemplo, un aviso
+// del motor) y cuya clave es el propio texto en castellano.
+func (a *Adaptador) textoCatalogo(clave string) string {
+	if a.Localizador != nil {
+		if traducido := a.Localizador.T(clave); traducido != "" {
+			return traducido
+		}
+	}
+	return clave
 }
 
 func (a *Adaptador) t(id, fallback string, args ...any) string {

@@ -129,7 +129,9 @@ func comprobarESSCertID(der []byte, cert *x509.Certificate, v2 bool) error {
 			if !essCertID.ReadASN1(&algoritmo, cbasn1.SEQUENCE) || !algoritmo.ReadASN1ObjectIdentifier(&oid) {
 				return malFormado
 			}
-			spec, ok := cmsHashForDigestOID(oid)
+			// SHA-1 aquí solo identifica el certificado, como en
+			// signingCertificate (v1), que lo usa siempre.
+			spec, _, ok := cmsHashParaVerificar(oid)
 			if !ok {
 				return fmt.Errorf("algoritmo de signingCertificateV2 no admitido: %v", oid)
 			}

@@ -52,6 +52,27 @@ func cmsHashFromOptions(options map[string]string) cmsHashSpec {
 	}
 }
 
+// SHA-1 solo para VERIFICAR firmas CMS antiguas (AutoFirma firmaba con
+// SHA1withRSA hasta 2014). No está en cmsHashSpecs: nunca se firma con él.
+// Ver algoritmo_antiguo.go.
+var (
+	oidDigestSHA1           = asn1.ObjectIdentifier{1, 3, 14, 3, 2, 26}
+	oidSignatureRSAWithSHA1 = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 5}
+	oidSignatureECDSAWith1  = asn1.ObjectIdentifier{1, 2, 840, 10045, 4, 1}
+	cmsHashSHA1Antiguo      = cmsHashSpec{crypto.SHA1, oidDigestSHA1, oidSignatureRSAWithSHA1, oidSignatureECDSAWith1, "SHA1withRSA", "SHA1withECDSA"}
+)
+
+// cmsHashParaVerificar admite además SHA-1 y dice si es un algoritmo antiguo.
+func cmsHashParaVerificar(oid asn1.ObjectIdentifier) (cmsHashSpec, bool, bool) {
+	if spec, ok := cmsHashForDigestOID(oid); ok {
+		return spec, false, true
+	}
+	if oid.Equal(oidDigestSHA1) {
+		return cmsHashSHA1Antiguo, true, true
+	}
+	return cmsHashSpec{}, false, false
+}
+
 func cmsHashForDigestOID(oid asn1.ObjectIdentifier) (cmsHashSpec, bool) {
 	for _, spec := range cmsHashSpecs {
 		if spec.digestOID.Equal(oid) {

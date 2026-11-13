@@ -369,6 +369,9 @@ func coberturaDocumentoXML(documento []byte, firmas []coberturaFirmaXML) (result
 			continue
 		}
 		excl := exclusionesIndiceENI(documento, arbol, firma.nodo, firma.cubiertos)
+		if excl == nil {
+			excl = exclusionesDocumentoENI(documento, arbol, firma.nodo, firma.cubiertos)
+		}
 		sinCubrir, porPerfil := arbol.contenidoSinCubrir(firma.cubiertos, objetosPropios, excl)
 		for _, elemento := range sinCubrir {
 			anotar(&out.sinCubrir, elemento)

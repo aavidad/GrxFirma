@@ -189,4 +189,8 @@ type AuditRecord struct {
 
 	// ErrorSummary es un resumen del error, ya sanitizado.
 	ErrorSummary string `json:"error,omitempty"`
+
+	// Compatibilidad son los códigos, ya sanitizados, de lo aceptado solo por
+	// compatibilidad con versiones anteriores.
+	Compatibilidad []string `json:"compatibilidad,omitempty"`
 }

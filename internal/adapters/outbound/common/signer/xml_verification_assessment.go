@@ -22,6 +22,18 @@ import (
 
 const xmlCompatibilityEvidence = "xml.canonicalization.compatibility"
 
+// Firmas de versiones anteriores de GrxFirma (ver varianteC14N). El detalle
+// queda en la evidencia; el aviso, clave de los catálogos, en Warnings.
+const (
+	sufijoC14NAntigua            = "coincide con la canonicalización que usaba GrxFirma antes de noviembre de 2026."
+	detalleC14NAntiguaReferencia = "Referencia %d " + sufijoC14NAntigua
+	detalleC14NAntiguaSignedInfo = "SignedInfo " + sufijoC14NAntigua
+	detalleDOCTYPEExterno        = "El documento declara una DTD externa que no se ha leído."
+	motivoDOCTYPEExterno         = "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida."
+	motivoPIFueraDeRaizSinFirmar = "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar."
+	motivoC14NAntiguaGrxFirma    = "La firma coincide con la forma de preparar el XML que usaban las versiones anteriores de GrxFirma, no con la estándar. Lo normal es que la hiciera una de esas versiones. No se da por válida."
+)
+
 // El contexto es el documento original, no un fragmento reserializado. El
 // ordinal identifica el SignedInfo de esta firma incluso con varias firmas
 // que heredan namespaces/xml:* diferentes o no tienen atributo Id.
@@ -195,7 +207,7 @@ func extractContextualSignatureCore(fragment []byte, context xmlSignatureContext
 	return fields["SignedInfo"], value.Text, certificates, nil
 }
 
-func canonicalizeDeclaredSignedInfo(context xmlSignatureContext, signedInfoXML []byte) ([]byte, error) {
+func canonicalizeDeclaredSignedInfo(context xmlSignatureContext, signedInfoXML []byte, variante varianteC14N) ([]byte, error) {
 	var info signedInfoForVerify
 	if err := xml.Unmarshal(signedInfoXML, &info); err != nil {
 		return nil, err
@@ -205,17 +217,17 @@ func canonicalizeDeclaredSignedInfo(context xmlSignatureContext, signedInfoXML [
 		return nil, errors.New("canonicalización de SignedInfo no declarada o no soportada")
 	}
 	ordinal := 0
-	return canonicalizeXMLSelection(context.document, algorithm, func(element c14nElement) bool {
+	return canonicalizarSeleccionVariante(context.document, algorithm, func(element c14nElement) bool {
 		if element.namespaceURI != nsXMLDSig || element.local != "SignedInfo" {
 			return false
 		}
 		selected := ordinal == context.signedInfoOrdinal
 		ordinal++
 		return selected
-	})
+	}, false, variante)
 }
 
-func verifiesDeclaredSignedInfo(context xmlSignatureContext, signedInfoXML []byte, value string, certificate *x509.Certificate) bool {
+func verifiesDeclaredSignedInfo(context xmlSignatureContext, signedInfoXML []byte, value string, certificate *x509.Certificate, variante varianteC14N) bool {
 	var info signedInfoForVerify
 	if xml.Unmarshal(signedInfoXML, &info) != nil {
 		return false
@@ -230,7 +242,7 @@ func verifiesDeclaredSignedInfo(context xmlSignatureContext, signedInfoXML []byt
 	if !ok {
 		return false
 	}
-	canonical, err := canonicalizeDeclaredSignedInfo(context, signedInfoXML)
+	canonical, err := canonicalizeDeclaredSignedInfo(context, signedInfoXML, variante)
 	if err != nil {
 		return false
 	}
@@ -254,10 +266,15 @@ func identifyXMLSignersWithContext(fragment []byte, context xmlSignatureContext,
 	}
 	var signers []*x509.Certificate
 	declaredMatch := false
+	antiguaMatch := false
 	var lastError error
 	for _, certificate := range certificates {
-		declared := verifiesDeclaredSignedInfo(context, signedInfo, value, certificate)
+		declared := verifiesDeclaredSignedInfo(context, signedInfo, value, certificate, c14nEstandar)
+		antigua := false
 		if !declared {
+			antigua = verifiesDeclaredSignedInfo(context, signedInfo, value, certificate, c14nAntiguaGrxFirma)
+		}
+		if !declared && !antigua {
 			if err := verifyXAdESSignatureValue(fragment, signedInfo, value, certificate); err != nil {
 				lastError = err
 				continue
@@ -270,6 +287,7 @@ func identifyXMLSignersWithContext(fragment []byte, context xmlSignatureContext,
 			}
 		}
 		declaredMatch = declaredMatch || declared
+		antiguaMatch = antiguaMatch || antigua
 		if !containsCertificate(signers, certificate) {
 			signers = append(signers, certificate)
 		}
@@ -280,6 +298,9 @@ func identifyXMLSignersWithContext(fragment []byte, context xmlSignatureContext,
 		}
 		return nil, nil, fmt.Errorf("ningún certificado embebido verifica la firma XML: %w", lastError)
 	}
+	if !declaredMatch && antiguaMatch {
+		return signers, []string{detalleC14NAntiguaSignedInfo}, nil
+	}
 	if !declaredMatch {
 		return signers, []string{"SignedInfo sólo coincide con una canonicalización histórica no declarada/contextual."}, nil
 	}
@@ -287,6 +308,12 @@ func identifyXMLSignersWithContext(fragment []byte, context xmlSignatureContext,
 }
 
 func declaredReferenceDigest(context xmlSignatureContext, ref referenceForVerify, target []byte) ([]byte, error) {
+	return declaredReferenceDigestVariante(context, ref, target, c14nEstandar)
+}
+
+// declaredReferenceDigestVariante calcula el resumen de la referencia con el
+// procedimiento declarado y la C14N indicada (ver varianteC14N).
+func declaredReferenceDigestVariante(context xmlSignatureContext, ref referenceForVerify, target []byte, variante varianteC14N) ([]byte, error) {
 	document := context.document
 	// Las referencias externas son octetos. No canonicalizar automáticamente
 	// un payload XML si la referencia no anuncia esa transformación.
@@ -297,6 +324,11 @@ func declaredReferenceDigest(context xmlSignatureContext, ref referenceForVerify
 	// La exclusión XPath de firmas de Java va tras la canonicalización; se
 	// aplica aparte y no cuenta para el orden de la cadena.
 	excluirFirmas := false
+	// Cadena exacta [C14N, enveloped, XPath de exclusión de firmas].
+	primeraEsC14N := len(ref.Transforms) == 3 &&
+		(strings.TrimSpace(ref.Transforms[0].Algorithm) == algC14N || strings.TrimSpace(ref.Transforms[0].Algorithm) == algExcC14N) &&
+		strings.TrimSpace(ref.Transforms[1].Algorithm) == algEnveloped &&
+		esXPathExcluirFirmas(ref.Transforms[2])
 	sinXPath := make([]algorithmAttr, 0, len(ref.Transforms))
 	for _, transform := range ref.Transforms {
 		if strings.TrimSpace(transform.Algorithm) == algXPathFilter {
@@ -324,7 +356,7 @@ func declaredReferenceDigest(context xmlSignatureContext, ref referenceForVerify
 				return nil, errors.New("transformación enveloped fuera del documento de la firma")
 			}
 		}
-		canonical, err := canonicalizeReference(ref, target)
+		canonical, err := canonicalizeReferenceVariante(ref, target, variante)
 		if err != nil {
 			return nil, err
 		}
@@ -367,6 +399,21 @@ func declaredReferenceDigest(context xmlSignatureContext, ref referenceForVerify
 			filtered.Transforms = append(filtered.Transforms, transform)
 		}
 	}
+	if hasEnveloped && excluirFirmas && primeraEsC14N && strings.HasPrefix(strings.TrimSpace(ref.URI), "#") {
+		// AutoFirma firma su propio KeyInfo con [C14N, enveloped, XPath]. La
+		// C14N inicial produce octetos; según XMLDSig (4.4.3.2) la siguiente
+		// transformación los vuelve a analizar como un documento nuevo cuya
+		// raíz es el elemento referenciado, donde ya no queda la firma que
+		// contenía la transformación. Solo se aplica si el elemento está
+		// dentro de esta firma: fuera de ella el camino de abajo da lo mismo.
+		dentro, err := elementoConIDDentroDe(document, strings.TrimPrefix(strings.TrimSpace(ref.URI), "#"), context.signatureStart, context.signatureEnd)
+		if err != nil {
+			return nil, err
+		}
+		if dentro {
+			return digestTrasReanalizarC14N(document, strings.TrimPrefix(strings.TrimSpace(ref.URI), "#"), ref, variante)
+		}
+	}
 	if hasEnveloped {
 		start, end := context.signatureStart, context.signatureEnd
 		if start < 0 || end <= start || end > int64(len(document)) {
@@ -382,15 +429,79 @@ func declaredReferenceDigest(context xmlSignatureContext, ref referenceForVerify
 		if err != nil {
 			return nil, err
 		}
-		return digestExcluyendoFirmas(sinFirmas, filtered)
+		return digestExcluyendoFirmas(sinFirmas, filtered, variante)
 	}
-	return computeContextualReferenceDigest(document, filtered)
+	return computeContextualReferenceDigestVariante(document, filtered, variante)
+}
+
+// elementoConIDDentroDe dice si el único elemento con ese Id está dentro del
+// rango [inicio, fin) del documento (la firma que se verifica).
+func elementoConIDDentroDe(document []byte, id string, inicio, fin int64) (bool, error) {
+	decoder := xml.NewDecoder(bytes.NewReader(document))
+	encontrado := false
+	dentro := false
+	for {
+		offset := decoder.InputOffset()
+		token, err := decoder.Token()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return false, err
+		}
+		element, ok := token.(xml.StartElement)
+		if !ok {
+			continue
+		}
+		for _, attribute := range element.Attr {
+			if strings.EqualFold(attribute.Name.Local, "Id") && attribute.Value == id {
+				if encontrado {
+					return false, errors.New("referencia interna sin identidad única en el documento original")
+				}
+				encontrado = true
+				dentro = offset > inicio && offset < fin
+			}
+		}
+	}
+	if !encontrado {
+		return false, errors.New("referencia interna no encontrada")
+	}
+	return dentro, nil
+}
+
+// digestTrasReanalizarC14N: C14N del elemento en su contexto (octetos), nuevo
+// documento con esos octetos, exclusión de las firmas que contenga (XPath de
+// AutoFirma) y C14N inclusiva final.
+func digestTrasReanalizarC14N(document []byte, id string, ref referenceForVerify, variante varianteC14N) ([]byte, error) {
+	primera := algC14N
+	for _, transform := range ref.Transforms {
+		if a := strings.TrimSpace(transform.Algorithm); a == algC14N || a == algExcC14N {
+			primera = a
+			break
+		}
+	}
+	octetos, err := canonicalizeElementByIDVariante(document, id, primera, variante)
+	if err != nil {
+		return nil, err
+	}
+	sinFirmas, err := quitarTodasLasFirmas(octetos)
+	if err != nil {
+		return nil, err
+	}
+	if len(bytes.TrimSpace(sinFirmas)) == 0 {
+		return nil, errors.New("la referencia interna es una firma completa")
+	}
+	canonical, err := canonicalizeXMLVariante(sinFirmas, algC14N, variante)
+	if err != nil {
+		return nil, err
+	}
+	return digestXML(ref.DigestMethod.Algorithm, canonical)
 }
 
 // digestExcluyendoFirmas aplica la semántica XMLDSig de la cadena de Java
 // [enveloped, C14N, XPath]: el conjunto de nodos resultante se convierte a
 // octetos con C14N inclusiva.
-func digestExcluyendoFirmas(document []byte, ref referenceForVerify) ([]byte, error) {
+func digestExcluyendoFirmas(document []byte, ref referenceForVerify, variante varianteC14N) ([]byte, error) {
 	algorithm := algC14N
 	for _, transform := range ref.Transforms {
 		if a := strings.TrimSpace(transform.Algorithm); a == algExcC14N || a == algC14N {
@@ -404,9 +515,9 @@ func digestExcluyendoFirmas(document []byte, ref referenceForVerify) ([]byte, er
 	)
 	switch {
 	case uri == "":
-		canonical, err = canonicalizeXML(document, algorithm)
+		canonical, err = canonicalizeXMLVariante(document, algorithm, variante)
 	case strings.HasPrefix(uri, "#"):
-		canonical, err = canonicalizeElementByIDInDocument(document, strings.TrimPrefix(uri, "#"), algorithm)
+		canonical, err = canonicalizeElementByIDVariante(document, strings.TrimPrefix(uri, "#"), algorithm, variante)
 	default:
 		return nil, errors.New("exclusión de firmas sobre una referencia externa")
 	}
@@ -414,7 +525,7 @@ func digestExcluyendoFirmas(document []byte, ref referenceForVerify) ([]byte, er
 		return nil, err
 	}
 	if algorithm != algC14N {
-		if canonical, err = canonicalizeXML(canonical, algC14N); err != nil {
+		if canonical, err = canonicalizeXMLVariante(canonical, algC14N, variante); err != nil {
 			return nil, err
 		}
 	}
@@ -469,6 +580,12 @@ func assessXMLReferences(fragment []byte, context xmlSignatureContext, signedInf
 		if declaredErr == nil && equalBytes(declared, expected) {
 			continue
 		}
+		// Firma hecha por una versión anterior de GrxFirma con su C14N de
+		// entonces: mismo procedimiento declarado, otra serialización.
+		if antigua, err := declaredReferenceDigestVariante(context, ref, target, c14nAntiguaGrxFirma); err == nil && equalBytes(antigua, expected) {
+			compatibility = append(compatibility, fmt.Sprintf(detalleC14NAntiguaReferencia, index+1))
+			continue
+		}
 		legacy, err := computeReferenceDigests(ref, target)
 		if err != nil {
 			return nil, fmt.Errorf("digest referencia %d: %w", index+1, err)
@@ -504,6 +621,11 @@ func markXMLCompatibility(result domain.VerificationResult, compatibility []stri
 	result.Details = withoutSuccessClaims(result.Details)
 	result.Integrity.Details = append(withoutSuccessClaims(result.Integrity.Details), compatibility...)
 	result.Warnings = appendUniqueString(result.Warnings, reason)
+	for _, detail := range compatibility {
+		if strings.HasSuffix(detail, sufijoC14NAntigua) {
+			result.Warnings = appendUniqueString(result.Warnings, motivoC14NAntiguaGrxFirma)
+		}
+	}
 	for _, detail := range compatibility {
 		result.Evidence = append(result.Evidence, domain.VerificationEvidence{Type: xmlCompatibilityEvidence, Summary: detail})
 	}

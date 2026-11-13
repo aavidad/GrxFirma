@@ -30,6 +30,7 @@ import (
 const (
 	formatFacturaE = domain.SignatureFormat("FacturaE")
 
+	facturaeNamespace30       = "http://www.facturae.es/Facturae/2007/v3.0/Facturae"
 	facturaeNamespace31       = "http://www.facturae.es/Facturae/2007/v3.1/Facturae"
 	facturaeNamespace32       = "http://www.facturae.es/Facturae/2009/v3.2/Facturae"
 	facturaeNamespace321      = "http://www.facturae.es/Facturae/2014/v3.2.1/Facturae"
@@ -176,26 +177,53 @@ func validateFacturaEXML(data []byte) error {
 	return nil
 }
 
+var facturaeNamespaces = []string{
+	facturaeNamespace30,
+	facturaeNamespace31,
+	facturaeNamespace32,
+	facturaeNamespace321,
+	facturaeNamespace322,
+	facturaeNamespace32Legacy,
+}
+
 func isFacturaEXML(data []byte) bool {
 	s := strings.TrimSpace(string(data))
 	if s == "" {
 		return false
 	}
-	if !strings.Contains(s, "<Facturae") {
-		return false
-	}
-	for _, namespace := range []string{
-		facturaeNamespace31,
-		facturaeNamespace32,
-		facturaeNamespace321,
-		facturaeNamespace322,
-		facturaeNamespace32Legacy,
-	} {
-		if strings.Contains(s, namespace) {
-			return true
+	if strings.Contains(s, "<Facturae") {
+		for _, namespace := range facturaeNamespaces {
+			if strings.Contains(s, namespace) {
+				return true
+			}
 		}
 	}
-	return false
+	// Las facturas oficiales 3.0, 3.1 y 3.2 de @firma usan un prefijo en la
+	// raíz (<fe:Facturae>, <namespace:Facturae>): se reconoce la raíz por su
+	// nombre resuelto. Las comprobaciones de estructura y de firma enveloped
+	// de la verificación se aplican igual.
+	return raizFacturaE(data)
+}
+
+func raizFacturaE(data []byte) bool {
+	decoder := xml.NewDecoder(bytes.NewReader(data))
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			return false
+		}
+		if element, ok := token.(xml.StartElement); ok {
+			if element.Name.Local != "Facturae" {
+				return false
+			}
+			for _, namespace := range facturaeNamespaces {
+				if element.Name.Space == namespace {
+					return true
+				}
+			}
+			return false
+		}
+	}
 }
 
 func sanitizeXMLDocument(data []byte) []byte {
