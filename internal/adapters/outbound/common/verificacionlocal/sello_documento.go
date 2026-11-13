@@ -15,6 +15,7 @@ import (
 
 	"github.com/digitorus/pkcs7"
 	"github.com/digitorus/timestamp"
+	"grxfirma/internal/adapters/outbound/common/anidamientoasn1"
 	"grxfirma/internal/domain"
 )
 
@@ -40,6 +41,10 @@ func (e *Evaluador) EvaluarSelloDocumento(ctx context.Context, token, contenido 
 		return base, noValida
 	}
 	if len(bytes.Trim(rest, "\x00")) != 0 {
+		return base, noValida
+	}
+	// Anidamiento acotado antes de los analizadores BER recursivos (E2-05).
+	if anidamientoasn1.Comprobar(value.FullBytes, anidamientoasn1.MaxProfundidad) != nil {
 		return base, noValida
 	}
 	sello, err := timestamp.Parse(value.FullBytes)

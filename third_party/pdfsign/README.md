@@ -370,3 +370,20 @@ err = sign.Sign(inputFile, outputFile, rdr, size, sign.SignData{
 This library is under active development. The API may change and some PDF files might not work correctly. Bug reports, contributions, and suggestions are welcome.
 
 For production use, consider our [PDFSigner](https://github.com/digitorus/pdfsigner/) server solution.
+
+## Modificaciones locales de seguridad (GrxFirma)
+
+Cambios hechos sobre esta copia tras la revisión de seguridad de 13/11/2026,
+marcados en el código con `AutoFirmaV2`:
+
+- `findFirstPage` y `findPageByNumber` recorren cada nodo `/Pages` una sola
+  vez y devuelven error ante un árbol de páginas en ciclo, que antes agotaba
+  la pila (hallazgo E2-03).
+- `createImageXObject` lee la cabecera de la imagen del sello antes de
+  decodificarla y rechaza las de más de 8192 píxeles por lado o más de
+  16 Mpx, el mismo límite que aplica la aplicación (hallazgo E2-04).
+- `pdfString` escribe las cadenas con caracteres no ASCII en hexadecimal
+  (UTF-16BE con marca de orden); antes iban entre paréntesis sin escapar y
+  un `)` o una barra dentro de la codificación cortaba la cadena. Si la
+  codificación falla, se escribe la parte ASCII en lugar de abortar con
+  pánico (hallazgo E2-06).

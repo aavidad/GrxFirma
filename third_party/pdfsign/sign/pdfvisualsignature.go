@@ -2,6 +2,7 @@ package sign
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -329,7 +330,7 @@ func (context *SignContext) createIncPageUpdate(pageNumber, annot uint32) ([]byt
 
 // Helper function to find a page by its number
 func findPageByNumber(pages pdf.Value, pageNumber uint32) (pdf.Value, error) {
-	page, remaining, err := findPageByNumberRec(pages, pageNumber)
+	page, remaining, err := findPageByNumberRec(pages, pageNumber, nodosVisitados{})
 	if err != nil {
 		return pdf.Value{}, err
 	}
@@ -340,13 +341,21 @@ func findPageByNumber(pages pdf.Value, pageNumber uint32) (pdf.Value, error) {
 }
 
 // Internal recursive helper that returns the found page and the remaining page number to find.
-func findPageByNumberRec(pages pdf.Value, pageNumber uint32) (pdf.Value, uint32, error) {
+// AutoFirmaV2: cada nodo /Pages se recorre una vez; un árbol en ciclo agotaba
+// la pila (E2-03).
+func findPageByNumberRec(pages pdf.Value, pageNumber uint32, visitados nodosVisitados) (pdf.Value, uint32, error) {
 	if pages.Key("Type").Name() == "Pages" {
+		if !visitados.entrar(pages) {
+			return pdf.Value{}, pageNumber, errArbolPaginasEnCiclo
+		}
 		kids := pages.Key("Kids")
 		for i := 0; i < kids.Len(); i++ {
-			page, remaining, err := findPageByNumberRec(kids.Index(i), pageNumber)
+			page, remaining, err := findPageByNumberRec(kids.Index(i), pageNumber, visitados)
 			if err == nil && remaining == 0 {
 				return page, 0, nil
+			}
+			if errors.Is(err, errArbolPaginasEnCiclo) {
+				return pdf.Value{}, pageNumber, err
 			}
 			pageNumber = remaining
 		}

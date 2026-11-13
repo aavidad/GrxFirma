@@ -68,6 +68,22 @@ func leerOpcionesLeyendaCSV(options map[string]string) (opcionesLeyendaCSV, bool
 	return opcionesLeyendaCSV{codigo: codigo, direccion: direccion, texto: texto, qr: !strings.EqualFold(valorOpcion(options, "csvQR"), "false")}, true, nil
 }
 
+// maxSellosImagenPDF es el número de imágenes que estampa el motor como
+// máximo (maxStamps en pdfsign).
+const maxSellosImagenPDF = 32
+
+// comprobarPaginasSellos valida el número de páginas que declara el PDF antes
+// de reservar un sello por página.
+func comprobarPaginasSellos(total int) error {
+	if total < 1 {
+		return fmt.Errorf("el PDF no declara un número de páginas válido")
+	}
+	if total > maxSellosImagenPDF {
+		return fmt.Errorf("demasiadas imágenes que estampar (%d)", total)
+	}
+	return nil
+}
+
 // leyendaCSV devuelve un sello por página con la leyenda CSV.
 func leyendaCSV(options map[string]string, pdfData []byte) ([]pdfsign.StampImage, error) {
 	opciones, activa, err := leerOpcionesLeyendaCSV(options)
@@ -79,6 +95,11 @@ func leyendaCSV(options map[string]string, pdfData []byte) ([]pdfsign.StampImage
 		return nil, fmt.Errorf("no se pudo leer el PDF: %w", err)
 	}
 	total := r.NumPage()
+	// /Count lo fija el documento: se comprueba antes de reservar un sello
+	// por página (E2-03). Más páginas que sellos las rechazaría el motor.
+	if err := comprobarPaginasSellos(total); err != nil {
+		return nil, err
+	}
 	imagenes := map[int][]byte{} // por ancho en puntos, para no repetir el renderizado
 	out := make([]pdfsign.StampImage, 0, total)
 	for p := 1; p <= total; p++ {
@@ -102,7 +123,9 @@ func leyendaCSV(options map[string]string, pdfData []byte) ([]pdfsign.StampImage
 // cajaPagina devuelve la MediaBox de la página (heredable) o A4 por defecto.
 func cajaPagina(p pdf.Page) (x0, y0, x1, y1 float64) {
 	caja := p.V.Key("MediaBox")
-	for n := p.V.Key("Parent"); caja.Len() != 4 && !n.IsNull(); n = n.Key("Parent") {
+	// Profundidad acotada como en cajaVisiblePagina: un /Parent en ciclo
+	// dejaba el bucle girando para siempre (E2-03).
+	for n, depth := p.V.Key("Parent"), 0; caja.Len() != 4 && !n.IsNull() && depth < 64; n, depth = n.Key("Parent"), depth+1 {
 		caja = n.Key("MediaBox")
 	}
 	if caja.Len() != 4 {

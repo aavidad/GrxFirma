@@ -20,7 +20,16 @@ type Page struct {
 // If the page is not found, Page returns a Page with p.V.IsNull().
 func (r *Reader) Page(num int) Page {
 	num-- // now 0-indexed
-	page := r.Trailer().Key("Root").Key("Pages")
+	root := r.Trailer().Key("Root")
+	page := root.Key("Pages")
+	// AutoFirmaV2: nodos /Pages ya visitados. Un /Kids que se contiene a sí
+	// mismo dejaba el bucle girando para siempre (E2-03). Los hijos directos
+	// (no conformes, pero posibles) no tienen número propio; su anidamiento
+	// lo acota el analizador.
+	visitados := map[objptr]bool{}
+	if ptr, ok := referenciaClave(root, "Pages"); ok {
+		visitados[ptr] = true
+	}
 Search:
 	for page.Key("Type").Name() == "Pages" {
 		count := int(page.Key("Count").Int64())
@@ -33,6 +42,12 @@ Search:
 			if kid.Key("Type").Name() == "Pages" {
 				c := int(kid.Key("Count").Int64())
 				if num < c {
+					if ptr, ok := referenciaIndirecta(kids, i); ok {
+						if visitados[ptr] {
+							return Page{}
+						}
+						visitados[ptr] = true
+					}
 					page = kid
 					continue Search
 				}
@@ -51,18 +66,60 @@ Search:
 	return Page{}
 }
 
+// referenciaIndirecta devuelve la referencia cruda del elemento i del array,
+// si es un objeto indirecto. AutoFirmaV2.
+func referenciaIndirecta(v Value, i int) (objptr, bool) {
+	x, ok := v.data.(array)
+	if !ok || i < 0 || i >= len(x) {
+		return objptr{}, false
+	}
+	ptr, ok := x[i].(objptr)
+	return ptr, ok
+}
+
 // NumPage returns the number of pages in the PDF file.
+// AutoFirmaV2: /Count lo fija el fichero. Cada página es un objeto indirecto,
+// así que un /Count negativo o mayor que el número de objetos del documento
+// no es válido y se devuelve 0; antes los llamadores reservaban memoria con
+// ese número (E2-03).
 func (r *Reader) NumPage() int {
-	return int(r.Trailer().Key("Root").Key("Pages").Key("Count").Int64())
+	count := r.Trailer().Key("Root").Key("Pages").Key("Count").Int64()
+	if count < 0 || count > int64(len(r.xref)) {
+		return 0
+	}
+	return int(count)
 }
 
 func (p Page) findInherited(key string) Value {
+	// AutoFirmaV2: /Parent en ciclo dejaba el bucle girando para siempre (E2-03).
+	visitados := map[objptr]bool{}
 	for v := p.V; !v.IsNull(); v = v.Key("Parent") {
 		if r := v.Key(key); !r.IsNull() {
 			return r
 		}
+		if ptr, ok := referenciaClave(v, "Parent"); ok {
+			if visitados[ptr] {
+				return Value{}
+			}
+			visitados[ptr] = true
+		}
 	}
 	return Value{}
+}
+
+// referenciaClave devuelve la referencia cruda de la clave del diccionario,
+// si es un objeto indirecto. AutoFirmaV2.
+func referenciaClave(v Value, key string) (objptr, bool) {
+	x, ok := v.data.(dict)
+	if !ok {
+		strm, isStream := v.data.(stream)
+		if !isStream {
+			return objptr{}, false
+		}
+		x = strm.hdr
+	}
+	ptr, ok := x[name(key)].(objptr)
+	return ptr, ok
 }
 
 /*

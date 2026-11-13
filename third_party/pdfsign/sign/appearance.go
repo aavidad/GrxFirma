@@ -59,7 +59,26 @@ func writeAppearanceStreamBuffer(buffer *bytes.Buffer, stream []byte) {
 	buffer.WriteString("\nendstream\n")
 }
 
+// AutoFirmaV2: límites de la imagen del sello (E2-04), los mismos que aplica
+// la aplicación (maxSealImageEdge y maxSealImagePixels). Un PNG muy
+// comprimido que declara decenas de miles de píxeles por lado obligaba a
+// reservar gigabytes al decodificarlo.
+const (
+	maxLadoImagenSello    = 8192
+	maxPixelesImagenSello = 16 * 1024 * 1024
+)
+
 func (context *SignContext) createImageXObject(imageData []byte) ([]byte, []byte, error) {
+
+	// AutoFirmaV2: se mira la cabecera antes de reservar el mapa de píxeles.
+	config, _, err := image.DecodeConfig(bytes.NewReader(imageData))
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to decode image: %w", err)
+	}
+	if config.Width <= 0 || config.Height <= 0 || config.Width > maxLadoImagenSello || config.Height > maxLadoImagenSello ||
+		config.Width > maxPixelesImagenSello/config.Height {
+		return nil, nil, fmt.Errorf("image too large: %d x %d pixels", config.Width, config.Height)
+	}
 
 	// Read image to get format and decode image data
 	img, format, err := image.Decode(bytes.NewReader(imageData))
