@@ -70,7 +70,7 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	hasFullDocumentCoverage := false
 	var modifications []string
 	var unanalyzable []string
-	var incremental *pdfIncrementalAnalyzer
+	var revisiones *revisionesPAdES
 
 	for idx, signature := range signatures {
 		signedBytes, err := extractPDFSignedBytes(signedDocument.Content, signature.ByteRange)
@@ -112,15 +112,18 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 			detail := fmt.Sprintf("cobertura_firma_pdf_%d=revision_hasta_%d_de_%d", idx+1, signature.RevisionEnd, len(signedDocument.Content))
 			aggregate.Details = append(aggregate.Details, detail)
 			aggregate.Integrity.Details = append(aggregate.Integrity.Details, detail)
-			if incremental == nil {
-				incremental = newPDFIncrementalAnalyzer(signedDocument.Content)
+			if revisiones == nil {
+				revisiones = inspeccionarRevisionesPAdES(signedDocument.Content)
 			}
-			verdict := incremental.analyze(signature.RevisionEnd)
-			for _, violation := range verdict.Violations {
-				modifications = append(modifications, fmt.Sprintf("firma %d: %s", idx+1, violation))
-			}
-			if verdict.Unanalyzable != "" {
-				unanalyzable = append(unanalyzable, fmt.Sprintf("firma %d: %s", idx+1, verdict.Unanalyzable))
+			estado, detalles := revisiones.cambiosTrasFirma(signature.ByteRange)
+			for _, detalle := range detalles {
+				item := fmt.Sprintf("firma %d: %s", idx+1, detalle)
+				switch estado {
+				case cambiosPDFNoPermitidos:
+					modifications = append(modifications, item)
+				case cambiosPDFNoComprobados:
+					unanalyzable = append(unanalyzable, item)
+				}
 			}
 		}
 		allSigners = append(allSigners, signers...)
