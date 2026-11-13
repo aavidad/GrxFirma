@@ -197,3 +197,16 @@ func TestValidateCRLResponse_AplicabilidadIDP(t *testing.T) {
 		})
 	}
 }
+
+// Una CRL del mismo emisor que lista el número de serie revoca aunque no sea
+// la partición del certificado: lo que no puede dar una CRL ajena es «no
+// revocado».
+func TestValidateCRLResponse_ParticionAjenaQueListaLaSerieRevoca(t *testing.T) {
+	f := newValidationFixture(t)
+	hoja := hojaConCRLDP(t, f, 305, false, "http://x/mia.crl")
+	crl := crlConExtensiones(t, f, hoja.SerialNumber, extensionIDPPrueba(t, []string{"http://x/otra.crl"}))
+	resultado, err := ValidateCRLResponse(crl, hoja, f.ca, f.now)
+	if err != nil || resultado.Status != CertificateStatusRevoked {
+		t.Fatalf("estado=%d error=%v, se esperaba «revocado»", resultado.Status, err)
+	}
+}

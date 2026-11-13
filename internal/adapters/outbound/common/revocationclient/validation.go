@@ -168,10 +168,16 @@ func ValidateCRLResponse(
 	// «No revocado» solo puede salir de una CRL completa y aplicable al
 	// certificado: una delta, una partición ajena o una CRL limitada a otro
 	// tipo de certificado no lo acreditan aunque estén firmadas por el emisor.
-	if aplicable, motivo := CRLAplicable(crl, cert); !aplicable {
-		return ValidationResult{Status: CertificateStatusUnknown}, fmt.Errorf("%w: %s", ErrCRLNoAplicable, motivo)
-	}
+	// «Revocado» sí puede salir de una CRL no aplicable: el emisor y la firma
+	// ya están comprobados y el número de serie es único por emisor. Se
+	// exceptúan las CRL indirectas (sus entradas pueden ser de otro emisor) y
+	// las entradas removeFromCRL de una delta, que levantan una suspensión.
+	aplicable, motivo := CRLAplicable(crl, cert)
+	indirecta := crlIndirecta(crl)
 	for _, entry := range crl.RevokedCertificateEntries {
+		if indirecta || entry.ReasonCode == motivoRemoveFromCRL {
+			continue
+		}
 		if entry.SerialNumber != nil && entry.SerialNumber.Cmp(cert.SerialNumber) == 0 {
 			if entry.RevocationTime.IsZero() {
 				return ValidationResult{}, errors.New("entrada CRL revocada sin RevocationTime")
@@ -185,7 +191,27 @@ func ValidateCRLResponse(
 			}, nil
 		}
 	}
+	if !aplicable {
+		return ValidationResult{Status: CertificateStatusUnknown}, fmt.Errorf("%w: %s", ErrCRLNoAplicable, motivo)
+	}
 	return ValidationResult{Status: CertificateStatusGood}, nil
+}
+
+// motivoRemoveFromCRL es el reasonCode 8 de RFC 5280.
+const motivoRemoveFromCRL = 8
+
+// crlIndirecta indica si la CRL declara indirectCRL o no se puede saber.
+func crlIndirecta(lista *x509.RevocationList) bool {
+	for _, ext := range lista.Extensions {
+		if !ext.Id.Equal(oidIssuingDistributionPoint) {
+			continue
+		}
+		idp, err := parsearIDP(ext.Value)
+		if err != nil || idp.indirecta {
+			return true
+		}
+	}
+	return false
 }
 
 type ocspEnvelope struct {
