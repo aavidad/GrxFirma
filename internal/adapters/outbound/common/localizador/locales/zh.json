@@ -130,6 +130,7 @@
   "security.secret.prompt.protection": "Base64 保护密钥：",
   "desktop.ipc.server.client_pid_required": "--server 模式需要用 --ipc-client-pid 指定将要连接的程序的 PID；否则不会打开 IPC 通道",
   "desktop.ipc.peer_binding_unsupported": "此系统无法检查哪个程序连接到签名引擎，因此 GrxFirma 不会启动",
+  "desktop.ipc.flag.parent_stdin": "当启动它的图形程序保持打开的标准输入被关闭时，停止服务器",
   "rest.error.private_credential": "无法准备 REST 凭据的私密交付",
   "rest.help.private_delivery": "机密管理器可以注入 GRXFIRMA_REST_TOKEN。自动生成令牌时，只会显示供 curl --config 使用的私密临时文件路径。",
   "rest.output.bearer_file": "临时 Bearer 凭据：私密文件 %s",

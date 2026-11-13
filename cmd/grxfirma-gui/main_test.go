@@ -396,7 +396,7 @@ func TestRunServerMode_SinPIDClienteNoAbreElEndpoint(t *testing.T) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	code := runServerMode(ctx, "ipc", "", "", ruta, 0, localizador.Para("es"),
+	code := runServerMode(ctx, "ipc", "", "", ruta, 0, false, localizador.Para("es"),
 		ipc.LocalTLSStartupStatus{}, filepath.Join(home, ".config", "grxfirma"))
 	if code != 2 {
 		t.Fatalf("runServerMode sin PID = %d; se esperaba 2", code)
@@ -408,5 +408,77 @@ func TestRunServerMode_SinPIDClienteNoAbreElEndpoint(t *testing.T) {
 		if _, err := os.Lstat(ruta); err == nil {
 			t.Fatal("se creó el socket sin vínculo de PID")
 		}
+	}
+}
+
+// D-04: un backend lanzado por la GUI con --ipc-parent-stdin termina y borra
+// su socket cuando se cierra la entrada heredada, que es lo que pasa cuando la
+// GUI muere aunque sea de forma abrupta (SIGKILL, cuelgue, OOM).
+func TestRunServerMode_TerminaAlCerrarseLaEntradaDelFrontend(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("la prueba usa un socket Unix; en Windows el mecanismo es el mismo pipe de entrada")
+	}
+	home := t.TempDir()
+	dir, err := os.MkdirTemp("", "gx")
+	if err != nil {
+		t.Fatalf("MkdirTemp: %v", err)
+	}
+	defer os.RemoveAll(dir)
+	ruta := filepath.Join(dir, "b.sock")
+
+	hijo := exec.Command(os.Args[0], "-test.run=^TestRunServerMode_HelperBackendVinculado$")
+	hijo.Env = append(os.Environ(),
+		"GRXFIRMA_TEST_BACKEND_SOCKET="+ruta,
+		"HOME="+home,
+		"XDG_CONFIG_HOME="+filepath.Join(home, ".config"),
+	)
+	entrada, err := hijo.StdinPipe()
+	if err != nil {
+		t.Fatalf("StdinPipe: %v", err)
+	}
+	var salida strings.Builder
+	hijo.Stdout = &salida
+	hijo.Stderr = &salida
+	if err := hijo.Start(); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	terminado := make(chan error, 1)
+	go func() { terminado <- hijo.Wait() }()
+	defer func() { _ = hijo.Process.Kill() }()
+
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		if _, err := os.Lstat(ruta); err == nil {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("el backend no abrió el socket a tiempo")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	// Simula la muerte del frontend: se cierra su extremo de la entrada.
+	_ = entrada.Close()
+	select {
+	case <-terminado:
+	case <-time.After(2 * time.Second):
+		t.Fatal("el backend sigue vivo 2 s después de cerrarse la entrada del frontend")
+	}
+	if _, err := os.Lstat(ruta); err == nil {
+		t.Fatal("el backend terminó sin borrar su socket")
+	}
+}
+
+func TestRunServerMode_HelperBackendVinculado(t *testing.T) {
+	ruta := os.Getenv("GRXFIRMA_TEST_BACKEND_SOCKET")
+	if ruta == "" {
+		t.Skip("helper exclusivo del subproceso de prueba")
+	}
+	home := os.Getenv("HOME")
+	code := runServerMode(context.Background(), "ipc", "", "", ruta,
+		uint64(os.Getppid()), true, localizador.Para("es"),
+		ipc.LocalTLSStartupStatus{}, filepath.Join(home, ".config", "grxfirma"))
+	if code != 0 {
+		t.Fatalf("runServerMode = %d", code)
 	}
 }

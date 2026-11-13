@@ -130,6 +130,7 @@
   "security.secret.prompt.protection": "Chave de proteção Base64: ",
   "desktop.ipc.server.client_pid_required": "o modo --server precisa de --ipc-client-pid com o PID do programa que se vai ligar; sem ele o canal IPC não é aberto",
   "desktop.ipc.peer_binding_unsupported": "este sistema não permite verificar que programa se liga ao motor de assinatura, por isso o GrxFirma não arranca",
+  "desktop.ipc.flag.parent_stdin": "para o servidor quando se fecha a entrada padrão que o programa gráfico que o lançou mantém aberta",
   "rest.error.private_credential": "não foi possível preparar a entrega privada da credencial REST",
   "rest.help.private_delivery": "Um gestor de segredos pode injetar GRXFIRMA_REST_TOKEN. Se o token for gerado automaticamente, apenas é mostrado o caminho de um ficheiro privado e efémero para curl --config.",
   "rest.output.bearer_file": "Credencial Bearer efémera: ficheiro privado %s",

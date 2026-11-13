@@ -102,6 +102,7 @@ func main() {
 		serverOnly       = flag.Bool("server", false, "arranca solo el servidor interno sin lanzar Qt")
 		serverMode       = flag.String("server-modo", "ipc", "modo de servidor (ipc)")
 		ipcClientPID     = flag.Uint64("ipc-client-pid", 0, "PID exacto del frontend autorizado para IPC")
+		ipcParentStdin   = flag.Bool("ipc-parent-stdin", false, bootLoc.T("desktop.ipc.flag.parent_stdin"))
 		startHidden      = flag.Bool("start-hidden", false, "inicia la interfaz oculta en la bandeja")
 	)
 	flag.Parse()
@@ -135,6 +136,7 @@ func main() {
 			p12Password,
 			*socketPath,
 			*ipcClientPID,
+			*ipcParentStdin,
 			loc,
 			localTLSStartupStatus,
 			configDir,
@@ -325,6 +327,7 @@ func runServerMode(
 	ctx context.Context,
 	mode, rutaP12, passwordP12, socketPath string,
 	ipcClientPID uint64,
+	vigilarEntrada bool,
 	loc ports.Localizador,
 	localTLSStartupStatus ipc.LocalTLSStartupStatus,
 	configDir string,
@@ -341,6 +344,9 @@ func runServerMode(
 		if pidFrontend == 0 || !ipc.SoportaVinculacionPIDFrontend() {
 			fmt.Fprintln(os.Stderr, "grxfirma-gui: "+loc.T("desktop.ipc.server.client_pid_required"))
 			return 2
+		}
+		if vigilarEntrada {
+			ctx = vigilarEntradaHeredada(ctx, os.Stdin)
 		}
 		srv, socketRuta, err := construirServidor(ctx, rutaP12, passwordP12, socketPath, loc)
 		if err != nil {
@@ -369,6 +375,21 @@ func runServerMode(
 		fmt.Fprintf(os.Stderr, "grxfirma-gui: modo de servidor no soportado: %s\n", mode)
 		return 2
 	}
+}
+
+// vigilarEntradaHeredada devuelve un contexto que se cancela cuando se cierra
+// la entrada estándar heredada del frontend. El frontend no escribe nada en
+// ella: su extremo de escritura solo se cierra cuando el proceso gráfico
+// termina, también si muere de forma abrupta (SIGKILL, cuelgue, OOM). Así un
+// backend vinculado a un PID no sobrevive a ese proceso ni conserva sus
+// credenciales temporales. Funciona igual con pipes de Linux, macOS y Windows.
+func vigilarEntradaHeredada(ctx context.Context, entrada io.Reader) context.Context {
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		defer cancel()
+		_, _ = io.Copy(io.Discard, entrada)
+	}()
+	return ctx
 }
 
 func normalizarPIDFrontend(value uint64) (uint32, error) {

@@ -913,6 +913,11 @@ void IpcBridge::launchBackendProcess() {
     // backend en modo --server no arranca.
     args << "--ipc-client-pid"
          << QString::number(QCoreApplication::applicationPid());
+    // El backend termina cuando se cierra su entrada estándar. QProcess deja
+    // abierto el extremo de escritura mientras esta GUI vive y el sistema lo
+    // cierra si muere de forma abrupta, así no queda un backend huérfano.
+    // Nunca se llama a closeWriteChannel() sobre este proceso.
+    args << "--ipc-parent-stdin";
   } else if (m_serverMode == "rest") {
     if (backendBin.isEmpty()) {
       emit backendLogReceived(it(QStringLiteral(
