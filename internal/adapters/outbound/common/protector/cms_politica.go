@@ -13,6 +13,7 @@ import (
 
 	"github.com/deatil/go-cryptobin/ber"
 
+	"grxfirma/internal/adapters/outbound/common/anidamientoasn1"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -52,6 +53,19 @@ type cmsKeyTransAlgoritmos struct {
 	EncryptedKey           []byte
 }
 
+// comprobarAnidamientoCMS corta un CMS recibido con un anidamiento ASN.1
+// mayor que anidamientoasn1.MaxProfundidad antes de darlo a un analizador
+// recursivo (Ber2der de go-cryptobin, Parse/Decrypt de go-cryptobin y
+// ber2der de digitorus/pkcs7). Un "30 80" repetido millones de veces agota la
+// pila y eso es fatal en Go: ningún recover lo para (E2-05). Solo decide la
+// profundidad; los demás defectos de forma los sigue decidiendo el analizador.
+func comprobarAnidamientoCMS(data []byte) error {
+	if err := anidamientoasn1.Comprobar(data, anidamientoasn1.MaxProfundidad); errors.Is(err, anidamientoasn1.ErrDemasiadoProfundo) {
+		return fmt.Errorf("contenedor CMS no valido: %w", err)
+	}
+	return nil
+}
+
 // validarAlgoritmosCMS comprueba, antes de pasar el contenedor a las
 // bibliotecas (que aceptan DES, RC2, ECB, OFB, CFB o SM4 sin más), que el
 // cifrado del contenido y el transporte de clave estén permitidos (F-06):
@@ -59,6 +73,9 @@ type cmsKeyTransAlgoritmos struct {
 // permitir_des_legacy; cualquier otro, nunca. El transporte de clave debe
 // ser RSA (PKCS#1 v1.5 o OAEP) y cada destinatario de tipo ktri.
 func validarAlgoritmosCMS(data []byte) error {
+	if err := comprobarAnidamientoCMS(data); err != nil {
+		return err
+	}
 	der, err := ber.Ber2der(data)
 	if err != nil {
 		return fmt.Errorf("contenedor CMS no valido: %w", err)
