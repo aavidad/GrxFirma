@@ -2739,6 +2739,8 @@
   ,"Entendido": "Ulertuta"
   ,"Actualizado a %1: ver novedades": "%1 bertsiora eguneratuta: ikusi berritasunak"
   ,"revocación no concluyente": "Ezin izan da ziurtagiriaren ezeztapena egiaztatu. Sinadura ez da baliozkotzat hartzen."
+  ,"el certificado firmante no está destinado a firmar documentos": "Sinatzeko erabilitako ziurtagiria ez da dokumentuak sinatzeko (adibidez, web zerbitzari batena izan daiteke). Sinadura ez da baliozkotzat jotzen."
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "Ziurtagiria sistemaren konfiantzazko erro baten mende dago. Horrek ez du bermatzen ziurtagiri kualifikatua denik."
   ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "Sinatutako datuek ez dute esaten zein ziurtagiri erabili zen; beraz, ezin da egiaztatu erakutsitako ziurtagiria sinatu zuena denik."
   ,"el PDF contiene firmas que no se han podido verificar": "PDFak GrxFirmak egiaztatu ezin dituen sinadurak ditu; beraz, ezin da baliozkotzat hartu."
   ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "PDFak egiaztatu gabeko dokumentu-denbora-zigilu bat du."

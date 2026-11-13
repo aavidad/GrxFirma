@@ -28,6 +28,23 @@ import (
 
 const motivoCertificadoSinRevocacion = "certificado vigente en fechas; revocación no comprobada"
 
+// Motivos de la evaluación de confianza del firmante. Son claves técnicas:
+// la presentación las traduce con el catálogo de cada idioma.
+const (
+	motivoConfianzaAnclaConfigurada = "cadena X.509 verificada contra las anclas de confianza configuradas"
+	// La raíz del sistema solo acredita una cadena reconocida por el equipo;
+	// no dice nada de que el certificado sea cualificado.
+	motivoConfianzaRaizSistema = "cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado"
+	motivoFirmanteNoApto       = "el certificado firmante no está destinado a firmar documentos"
+)
+
+// Usos extendidos de clave que declaran expresamente la firma de documentos.
+var ekuFirmaDocumentos = []asn1.ObjectIdentifier{
+	{1, 3, 6, 1, 4, 1, 311, 10, 3, 12}, // Microsoft documentSigning
+	{1, 3, 6, 1, 5, 5, 7, 3, 36},       // id-kp-documentSigning (RFC 9336)
+	{1, 2, 840, 113583, 1, 1, 5},       // Adobe authenticDocumentsTrust
+}
+
 // RevocationStatus representa el estado de revocación de un certificado.
 type RevocationStatus int
 
@@ -1299,6 +1316,7 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 		intermediates.AddCert(cert)
 	}
 
+	raizSistema := false
 	for i, signerCert := range signerCerts {
 		if signerCert == nil {
 			return domain.VerificationAspect{
@@ -1321,13 +1339,63 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 			}
 		}
 		details = append(details, fmt.Sprintf("signer[%d].chain_length=%d", i, len(chains[0])))
+		if !certificadoAptoParaFirmar(signerCert) {
+			return domain.VerificationAspect{
+				Status:  domain.VerificationStatusInvalid,
+				Reason:  motivoFirmanteNoApto,
+				Details: append(details, fmt.Sprintf("signer[%d].eku_no_apto_para_firma", i)),
+			}
+		}
+		if _, explicita := rootFingerprints[certificateFingerprint(chains[0][len(chains[0])-1])]; !explicita {
+			raizSistema = true
+			details = append(details, fmt.Sprintf("signer[%d].root=system", i))
+		}
 	}
 
+	reason := motivoConfianzaAnclaConfigurada
+	if raizSistema {
+		reason = motivoConfianzaRaizSistema
+	}
 	return domain.VerificationAspect{
 		Status:  domain.VerificationStatusValid,
-		Reason:  "cadena X.509 verificada contra las anclas de confianza configuradas",
+		Reason:  reason,
 		Details: details,
 	}
+}
+
+// certificadoAptoParaFirmar decide si el uso extendido de clave (EKU) del
+// firmante admite firmar documentos. Sin EKU, decide el KeyUsage (se comprueba
+// en evaluateCertificateAspect). Con EKU, valen la protección de correo, la
+// firma de documentos y «cualquier uso»; también la autenticación de cliente
+// sin autenticación de servidor, que es como vienen muchos certificados de
+// firma españoles. Un certificado de servidor TLS, de firma de código, de
+// sellado de tiempo o de OCSP no es un firmante de documentos.
+func certificadoAptoParaFirmar(cert *x509.Certificate) bool {
+	if cert == nil {
+		return false
+	}
+	if len(cert.ExtKeyUsage) == 0 && len(cert.UnknownExtKeyUsage) == 0 {
+		return true
+	}
+	var cliente, servidor bool
+	for _, uso := range cert.ExtKeyUsage {
+		switch uso {
+		case x509.ExtKeyUsageAny, x509.ExtKeyUsageEmailProtection:
+			return true
+		case x509.ExtKeyUsageClientAuth:
+			cliente = true
+		case x509.ExtKeyUsageServerAuth:
+			servidor = true
+		}
+	}
+	for _, oid := range cert.UnknownExtKeyUsage {
+		for _, firma := range ekuFirmaDocumentos {
+			if oid.Equal(firma) {
+				return true
+			}
+		}
+	}
+	return cliente && !servidor
 }
 
 // EvaluateCertificateTrust comprueba una o varias cadenas de firmante contra

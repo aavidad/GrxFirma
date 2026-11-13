@@ -2739,6 +2739,8 @@
   ,"Entendido": "Verstanden"
   ,"Actualizado a %1: ver novedades": "Auf %1 aktualisiert: Neuerungen anzeigen"
   ,"revocación no concluyente": "Der Widerruf des Zertifikats konnte nicht geprüft werden. Die Signatur gilt nicht als gültig."
+  ,"el certificado firmante no está destinado a firmar documentos": "Das zum Signieren verwendete Zertifikat ist nicht zum Signieren von Dokumenten bestimmt (es kann zum Beispiel das eines Webservers sein). Die Signatur gilt nicht als gültig."
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "Das Zertifikat hängt von einer vertrauenswürdigen Stammzertifizierungsstelle des Systems ab. Das garantiert nicht, dass es ein qualifiziertes Zertifikat ist."
   ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "Die signierten Daten geben nicht an, welches Zertifikat verwendet wurde. Daher lässt sich nicht prüfen, ob das angezeigte Zertifikat das signierende ist."
   ,"el PDF contiene firmas que no se han podido verificar": "Das PDF enthält Signaturen, die GrxFirma nicht prüfen kann. Es kann daher nicht als gültig gelten."
   ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "Das PDF enthält einen Dokumentzeitstempel, der nicht geprüft wurde."

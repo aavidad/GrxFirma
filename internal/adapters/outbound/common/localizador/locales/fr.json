@@ -2739,6 +2739,8 @@
   ,"Entendido": "Compris"
   ,"Actualizado a %1: ver novedades": "Mis à jour vers %1 : voir les nouveautés"
   ,"revocación no concluyente": "La révocation du certificat n’a pas pu être vérifiée. La signature n’est pas considérée comme valide."
+  ,"el certificado firmante no está destinado a firmar documentos": "Le certificat utilisé pour signer n’est pas destiné à signer des documents (il peut s’agir, par exemple, de celui d’un serveur web). La signature n’est pas considérée comme valide."
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "Le certificat dépend d’une racine de confiance du système. Cela ne garantit pas qu’il s’agisse d’un certificat qualifié."
   ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "Les données signées n'indiquent pas quel certificat a été utilisé : impossible de vérifier que le certificat affiché est celui qui a signé."
   ,"el PDF contiene firmas que no se han podido verificar": "Le PDF contient des signatures que GrxFirma ne peut pas vérifier : il ne peut donc pas être considéré comme valide."
   ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "Le PDF contient un horodatage de document qui n'a pas été vérifié."

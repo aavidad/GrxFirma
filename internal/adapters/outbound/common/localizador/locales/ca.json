@@ -2739,6 +2739,8 @@
   ,"Entendido": "Entès"
   ,"Actualizado a %1: ver novedades": "Actualitzat a %1: veure novetats"
   ,"revocación no concluyente": "No s’ha pogut comprovar la revocació del certificat. La signatura no es considera vàlida."
+  ,"el certificado firmante no está destinado a firmar documentos": "El certificat amb què es va signar no serveix per signar documents (pot ser, per exemple, el d’un servidor web). La signatura no es considera vàlida."
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "El certificat depèn d’una arrel de confiança del sistema. Això no garanteix que sigui un certificat qualificat."
   ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "La signatura no indica en les dades signades quin certificat es va fer servir, així que no es pot comprovar que el certificat que es mostra sigui el que va signar."
   ,"el PDF contiene firmas que no se han podido verificar": "El PDF té signatures que GrxFirma no pot verificar, així que no es pot donar per vàlid."
   ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "El PDF té un segell de temps de document que no s'ha comprovat."

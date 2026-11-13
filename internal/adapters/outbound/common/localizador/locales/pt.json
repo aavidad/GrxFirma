@@ -2739,6 +2739,8 @@
   ,"Entendido": "Entendido"
   ,"Actualizado a %1: ver novedades": "Atualizado para %1: ver novidades"
   ,"revocación no concluyente": "Não foi possível verificar a revogação do certificado. A assinatura não é considerada válida."
+  ,"el certificado firmante no está destinado a firmar documentos": "O certificado usado para assinar não se destina a assinar documentos (pode ser, por exemplo, o de um servidor web). A assinatura não é considerada válida."
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "O certificado depende de uma raiz de confiança do sistema. Isso não garante que seja um certificado qualificado."
   ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "Os dados assinados não indicam que certificado foi usado, por isso não é possível confirmar que o certificado mostrado é o que assinou."
   ,"el PDF contiene firmas que no se han podido verificar": "O PDF tem assinaturas que o GrxFirma não consegue verificar, por isso não pode ser considerado válido."
   ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "O PDF tem um carimbo temporal de documento que não foi verificado."

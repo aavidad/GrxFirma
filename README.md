@@ -370,7 +370,11 @@ Si necesitas el frontend Qt/QML:
 - CAdES, PAdES, XAdES, XMLDSig, FacturaE, ASiC-XAdES, ODF y OOXML evalúan la
   cadena X.509. Las superficies desktop usan las raíces del sistema; una raíz
   ajena invalida y la ausencia real de anclas se presenta como confianza no
-  evaluada, nunca como verde.
+  evaluada, nunca como verde. Una cadena que acaba en una raíz del sistema se
+  informa como tal: no acredita que el certificado sea cualificado (no se
+  consulta la lista europea de confianza). Un certificado cuyo uso extendido
+  de clave no admite firmar documentos (solo servidor TLS, firma de código,
+  sellado de tiempo u OCSP) no es un firmante de confianza.
 - La utilidad dedicada limita los ficheros antes de `FileReader`, conserva el
   token solo en memoria y evita que respuestas obsoletas pisen una selección
   más reciente.
