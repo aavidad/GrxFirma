@@ -88,6 +88,7 @@
   "cli.help.audit": "校验审计日志的指纹链：检测被修改、插入或删除的记录。若还要证明末尾未被截断，请在提交时用您的证书对该文件签名。",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "验证时保存可打印的 HTML 验证报告，包含结论、各项检查、签名者以及所验证文件的 SHA-256 指纹。",
+  "cli.help.verify_exit": "验证的退出码：签名有效时为 0；签名无效时为 2；无法检查时为 1（文件不可读、格式未知或其他错误）。",
   "Informe de validación": "验证报告",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "无回显读取加密 PDF 的密码（用户或所有者密码），以在保留加密的情况下签名。也接受 GRXFIRMA_PDF_PASSWORD 变量，读取后即清除；绝不接受作为参数传入。",

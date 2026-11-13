@@ -88,6 +88,7 @@
   "cli.help.audit": "Comprueba la cadena de huellas del registro de auditoría: detecta registros alterados, insertados o borrados. Para acreditar también que no se ha recortado el final, firma el fichero con tu certificado al entregarlo.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Con la verificación, guarda un informe de validación en HTML imprimible con el veredicto, las comprobaciones, los firmantes y la huella SHA-256 del fichero verificado.",
+  "cli.help.verify_exit": "Códigos de salida de la verificación: 0 si la firma es válida; 2 si no es válida; 1 si no se pudo comprobar (fichero ilegible, formato desconocido u otro error).",
   "Informe de validación": "Informe de validación",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Lee sin eco la contraseña de un PDF cifrado (de usuario o de propietario) para firmarlo conservando su cifrado. También se admite la variable GRXFIRMA_PDF_PASSWORD, que se borra al leerla; nunca se acepta como argumento.",

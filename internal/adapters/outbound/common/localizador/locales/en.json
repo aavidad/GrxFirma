@@ -88,6 +88,7 @@
   "cli.help.audit": "Checks the fingerprint chain of the audit log: detects altered, inserted or deleted records. To also prove the end has not been cut, sign the file with your certificate when you hand it over.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "With verification, saves a printable HTML validation report with the verdict, checks, signers and the SHA-256 fingerprint of the verified file.",
+  "cli.help.verify_exit": "Verification exit codes: 0 when the signature is valid; 2 when it is not valid; 1 when it could not be checked (unreadable file, unknown format or another error).",
   "Informe de validación": "Validation report",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Reads without echo the password of an encrypted PDF (user or owner) to sign it keeping its encryption. The GRXFIRMA_PDF_PASSWORD variable is also accepted and cleared when read; it is never accepted as an argument.",

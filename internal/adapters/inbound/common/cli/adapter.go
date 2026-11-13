@@ -1254,7 +1254,7 @@ func (a *Adaptador) ejecutarVerificacion(ctx context.Context, cfg configCLI) int
 			a.escribirErrorCLI("JSON", err)
 			return 1
 		}
-		return 0
+		return codigoSalidaVerificacion(resultado.Verification)
 	}
 	if resultado.Verification.Valid {
 		fmt.Fprintln(a.Stdout, a.t("Firma válida.", "Firma válida."))
@@ -1282,6 +1282,21 @@ func (a *Adaptador) ejecutarVerificacion(ctx context.Context, cfg configCLI) int
 		for _, warning := range resultado.Verification.Warnings {
 			fmt.Fprintf(a.Stdout, "- %s\n", warning)
 		}
+	}
+	return codigoSalidaVerificacion(resultado.Verification)
+}
+
+// codigoSalidaVerificacion traduce el veredicto a código de salida para los
+// scripts que deciden con `grxfirma ... && aceptar`: 0 solo si la firma es
+// válida; 2 si no lo es (o si algún aspecto comprobado resulta inválido). Los
+// errores de entrada o de ejecución, que impiden comprobar la firma, ya
+// devuelven 1 antes de llegar aquí.
+func codigoSalidaVerificacion(v domain.VerificationResult) int {
+	if !v.Valid ||
+		v.Integrity.Status == domain.VerificationStatusInvalid ||
+		v.Certificate.Status == domain.VerificationStatusInvalid ||
+		v.Trust.Status == domain.VerificationStatusInvalid {
+		return 2
 	}
 	return 0
 }
@@ -3285,6 +3300,7 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("    " + a.t("cli.help.audit", "Comprueba la cadena de huellas del registro de auditoría: detecta registros alterados, insertados o borrados. Para acreditar también que no se ha recortado el final, firma el fichero con tu certificado al entregarlo.") + "\n")
 	b.WriteString("  " + a.t("cli.help.report_usage", "-informe <informe.html>") + "\n")
 	b.WriteString("    " + a.t("cli.help.report", "Con la verificación, guarda un informe de validación en HTML imprimible con el veredicto, las comprobaciones, los firmantes y la huella SHA-256 del fichero verificado.") + "\n")
+	b.WriteString("    " + a.t("cli.help.verify_exit", "Códigos de salida de la verificación: 0 si la firma es válida; 2 si no es válida; 1 si no se pudo comprobar (fichero ilegible, formato desconocido u otro error).") + "\n")
 	b.WriteString("  " + a.t("cli.help.pdf_password_usage", "-contrasena-pdf-stdin | -pdf-password-stdin") + "\n")
 	b.WriteString("    " + a.t("cli.help.pdf_password", "Lee sin eco la contraseña de un PDF cifrado (de usuario o de propietario) para firmarlo conservando su cifrado. También se admite la variable GRXFIRMA_PDF_PASSWORD, que se borra al leerla; nunca se acepta como argumento.") + "\n")
 	b.WriteString("  " + a.t("cli.help.batch_usage", "-lote <manifiesto.json|carpeta>") + "\n")

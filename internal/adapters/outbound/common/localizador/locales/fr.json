@@ -88,6 +88,7 @@
   "cli.help.audit": "Vérifie la chaîne d'empreintes du journal d'audit : détecte les enregistrements modifiés, insérés ou supprimés. Pour prouver aussi que la fin n'a pas été coupée, signez le fichier avec votre certificat lors de sa remise.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Avec la vérification, enregistre un rapport de validation HTML imprimable avec le verdict, les contrôles, les signataires et l'empreinte SHA-256 du fichier vérifié.",
+  "cli.help.verify_exit": "Codes de sortie de la vérification : 0 si la signature est valide ; 2 si elle n'est pas valide ; 1 si elle n'a pas pu être vérifiée (fichier illisible, format inconnu ou autre erreur).",
   "Informe de validación": "Rapport de validation",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Lit sans écho le mot de passe d'un PDF chiffré (utilisateur ou propriétaire) pour le signer en conservant son chiffrement. La variable GRXFIRMA_PDF_PASSWORD est aussi acceptée et effacée à la lecture ; il n'est jamais accepté comme argument.",

@@ -88,6 +88,7 @@
   "cli.help.audit": "Comprova la cadena d'empremtes del registre d'auditoria: detecta registres alterats, inserits o esborrats. Per acreditar també que no s'ha retallat el final, signa el fitxer amb el teu certificat en lliurar-lo.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Amb la verificació, desa un informe de validació en HTML imprimible amb el veredicte, les comprovacions, els signants i l'empremta SHA-256 del fitxer verificat.",
+  "cli.help.verify_exit": "Codis de sortida de la verificació: 0 si la signatura és vàlida; 2 si no és vàlida; 1 si no s'ha pogut comprovar (fitxer il·legible, format desconegut o un altre error).",
   "Informe de validación": "Informe de validació",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Llegeix sense eco la contrasenya d'un PDF xifrat (d'usuari o de propietari) per signar-lo conservant-ne el xifratge. També s'admet la variable GRXFIRMA_PDF_PASSWORD, que s'esborra en llegir-la; mai no s'accepta com a argument.",

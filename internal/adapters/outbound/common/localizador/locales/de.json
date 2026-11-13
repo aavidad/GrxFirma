@@ -88,6 +88,7 @@
   "cli.help.audit": "Prüft die Fingerabdruckkette des Prüfprotokolls: erkennt veränderte, eingefügte oder gelöschte Einträge. Um auch nachzuweisen, dass das Ende nicht abgeschnitten wurde, signieren Sie die Datei bei der Übergabe mit Ihrem Zertifikat.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Speichert bei der Prüfung einen druckbaren HTML-Prüfbericht mit Ergebnis, Prüfungen, Unterzeichnern und dem SHA-256-Fingerabdruck der geprüften Datei.",
+  "cli.help.verify_exit": "Exit-Codes der Prüfung: 0, wenn die Signatur gültig ist; 2, wenn sie ungültig ist; 1, wenn sie nicht geprüft werden konnte (unlesbare Datei, unbekanntes Format oder anderer Fehler).",
   "Informe de validación": "Prüfbericht",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Liest ohne Echo das Passwort eines verschlüsselten PDF (Benutzer oder Eigentümer), um es unter Beibehaltung der Verschlüsselung zu signieren. Auch die Variable GRXFIRMA_PDF_PASSWORD wird akzeptiert und beim Lesen gelöscht; als Argument wird es nie akzeptiert.",

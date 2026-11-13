@@ -88,6 +88,7 @@
   "cli.help.audit": "Verifica a cadeia de impressões digitais do registo de auditoria: deteta registos alterados, inseridos ou apagados. Para comprovar também que o final não foi cortado, assine o ficheiro com o seu certificado ao entregá-lo.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Com a verificação, guarda um relatório de validação em HTML imprimível com o veredicto, as verificações, os signatários e a impressão digital SHA-256 do ficheiro verificado.",
+  "cli.help.verify_exit": "Códigos de saída da verificação: 0 se a assinatura é válida; 2 se não é válida; 1 se não foi possível verificá-la (ficheiro ilegível, formato desconhecido ou outro erro).",
   "Informe de validación": "Relatório de validação",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Lê sem eco a palavra-passe de um PDF cifrado (de utilizador ou de proprietário) para o assinar mantendo a cifra. Também é aceite a variável GRXFIRMA_PDF_PASSWORD, que é apagada ao ser lida; nunca é aceite como argumento.",
