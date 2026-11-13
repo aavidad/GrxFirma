@@ -300,7 +300,7 @@ func New(firmar SignDocumentUseCase, procesarLote ProcessBatchUseCase) *Adaptado
 		Stderr:               os.Stderr,
 		Stdin:                os.Stdin,
 		LeerFichero:          os.ReadFile,
-		Escribir:             os.WriteFile,
+		Escribir:             escribirFicheroSalida,
 		Limits:               limits.FromEnv(limits.Default()),
 		instalarConfianzaTLS: localtlstrust.EnsureManagedTrusted,
 	}
@@ -403,7 +403,7 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 		a.LeerFichero = os.ReadFile
 	}
 	if a.Escribir == nil {
-		a.Escribir = os.WriteFile
+		a.Escribir = escribirFicheroSalida
 	}
 	if a.Limits.MaxPayloadBytes == 0 {
 		a.Limits = limits.FromEnv(limits.Default())
