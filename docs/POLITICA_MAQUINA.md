@@ -64,8 +64,10 @@ AutoScript 1.9) cifra el paquete de sesión con DES y una clave de 8 dígitos. S
 esta política, GrxFirma lo admite **solo para ese paquete y solo si todos los
 servidores del intercambio son HTTPS**: la confidencialidad real la da TLS y la
 clave del protocolo no es más débil con DES. El usuario ve un aviso con el
-motivo. DES nunca se usa para firmar. La política solo amplía el permiso a
-servidores sin HTTPS (por ejemplo, un servidor local de pruebas).
+motivo. DES nunca se usa para firmar. La política amplía ese permiso a
+servidores sin HTTPS (por ejemplo, un servidor local de pruebas) y, además,
+deja abrir sobres CMS `EnvelopedData`/`EncryptedData` cifrados con DES o 3DES,
+que sin ella se rechazan.
 
 **Las variables de entorno antiguas ya no tienen efecto.** Cualquier web, guía o
 programa podía pedir al usuario que las definiera para rebajar la seguridad.
