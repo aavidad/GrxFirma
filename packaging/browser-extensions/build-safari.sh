@@ -18,6 +18,9 @@ SAFARI_TEMPLATE_DIR="${ROOT_DIR}/packaging/browser-extensions/safari"
 POSTPROCESSOR="${SAFARI_TEMPLATE_DIR}/postprocess.py"
 SOURCE_VALIDATOR="${SAFARI_TEMPLATE_DIR}/validate_source.py"
 ENVIRONMENT_RECORDER="${SAFARI_TEMPLATE_DIR}/record_environment.py"
+# build.py fija que entra en los paquetes de Chromium y Firefox; Safari usa el
+# mismo filtro para no distribuir el firmador heredado ni modulos excluidos.
+PACKAGE_FILTER_DIR="${ROOT_DIR}/packaging/browser-extensions"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   cat >&2 <<'EOF'
@@ -112,9 +115,13 @@ if [[ -e "${PROJECT_DIR}" && ! -d "${PROJECT_DIR}" ]]; then
 fi
 
 STAGING_DIR="$(mktemp -d "${PROJECT_PARENT}/.grxfirma-safari-build.XXXXXX")"
+FILTERED_SRC="$(mktemp -d "${PROJECT_PARENT}/.grxfirma-safari-source.XXXXXX")"
 BACKUP_DIR=""
 DERIVED_DATA=""
 cleanup() {
+  if [[ -n "${FILTERED_SRC}" ]]; then
+    rm -rf "${FILTERED_SRC}"
+  fi
   if [[ -n "${DERIVED_DATA}" ]]; then
     rm -rf "${DERIVED_DATA}"
   fi
@@ -131,6 +138,18 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Fuente filtrada igual que en build.py: excluye signer/ y los modulos
+# heredados, rechaza rutas prohibidas y exige LOCAL_REST_BEARER vacio.
+PYTHONDONTWRITEBYTECODE=1 python3 -I - "${PACKAGE_FILTER_DIR}" "${EXTENSION_SRC}" "${FILTERED_SRC}" <<'PY'
+import sys
+from pathlib import Path
+
+sys.path.insert(0, sys.argv[1])
+import build  # noqa: E402
+
+build.materialize_filtered_source(Path(sys.argv[2]), Path(sys.argv[3]))
+PY
+
 help_text="$(xcrun safari-web-extension-converter --help 2>&1 || true)"
 for required_flag in '--macos-only' '--copy-resources' '--macos-version-minimum'; do
   if ! grep -q -- "${required_flag}" <<<"${help_text}"; then
@@ -139,7 +158,7 @@ for required_flag in '--macos-only' '--copy-resources' '--macos-version-minimum'
   fi
 done
 args=(
-  "${EXTENSION_SRC}"
+  "${FILTERED_SRC}"
   "--project-location" "${STAGING_DIR}"
   "--app-name" "${APP_NAME}"
   "--bundle-identifier" "${BUNDLE_ID}"
@@ -158,7 +177,7 @@ append_if_supported "--no-open"
 append_if_supported "--no-prompt"
 
 echo "Generando proyecto Safari Web Extension..."
-echo "Fuente: ${EXTENSION_SRC}"
+echo "Fuente: ${EXTENSION_SRC} (filtrada en ${FILTERED_SRC})"
 echo "Salida: ${PROJECT_DIR}"
 xcrun safari-web-extension-converter "${args[@]}"
 
@@ -172,7 +191,7 @@ python3 "${POSTPROCESSOR}" \
 XCODE_VERSION="$(xcrun xcodebuild -version)"
 CONVERTER_PATH="$(xcrun --find safari-web-extension-converter)"
 python3 "${ENVIRONMENT_RECORDER}" \
-  --source "${EXTENSION_SRC}" \
+  --source "${FILTERED_SRC}" \
   --report "${STAGING_DIR}/.grxfirma-safari/integration-report.json" \
   --xcode-version "${XCODE_VERSION}" \
   --converter-path "${CONVERTER_PATH}" \
@@ -213,6 +232,11 @@ while IFS= read -r background_script; do
 done < <(find "${STAGING_DIR}" -type f -name 'background.js' -print)
 if [[ "${#background_scripts[@]}" -ne 1 ]] || ! grep -q 'GRXFIRMA_SAFARI_NATIVE_ONLY_START' "${background_scripts[0]}"; then
   echo "error: el background Safari conserva un fallback REST no controlado." >&2
+  exit 1
+fi
+
+if [[ -n "$(find "${STAGING_DIR}" \( -type d -name signer -o -name crypto_utils.js -o -name autologin.js -o -name session_sync.js \) -print -quit)" ]]; then
+  echo "error: el proyecto Safari contiene modulos heredados excluidos." >&2
   exit 1
 fi
 

@@ -5,6 +5,7 @@
 
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import textwrap
@@ -14,6 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 BUILD_SCRIPT = ROOT / "packaging" / "browser-extensions" / "build-safari.sh"
+REAL_BACKGROUND = ROOT / "packaging" / "browser-extensions" / "src" / "chromium" / "background.js"
 
 
 class SafariBuildScriptTests(unittest.TestCase):
@@ -29,18 +31,8 @@ class SafariBuildScriptTests(unittest.TestCase):
             "background": {"service_worker": "background.js"},
         }
         (source / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
-        (source / "background.js").write_text(
-            textwrap.dedent(
-                """
-                async function getSystemCertificatesFromRest() {}
-                async function signWithSystemCertificateRest() {}
-                async function verifyWithSystemCertificateRest() {}
-                async function pingLocalIntegration() {}
-                async function sendToNativeHost() {}
-                """
-            ),
-            encoding="utf-8",
-        )
+        # El background.js real, el mismo que recibe Safari.
+        shutil.copy2(REAL_BACKGROUND, source / "background.js")
         return source
 
     def make_fake_apple_tools(self, root: Path) -> Path:
@@ -102,6 +94,12 @@ class SafariBuildScriptTests(unittest.TestCase):
                     "final class SafariWebExtensionHandler {}\n"
                 )
                 shutil.copy2(source / "background.js", resources / "background.js")
+                received = sorted(
+                    path.relative_to(source).as_posix()
+                    for path in source.rglob("*")
+                    if path.is_file()
+                )
+                (project / "converter-input.txt").write_text("\n".join(received) + "\n")
 
                 def configuration(identifier, name, token):
                     return f"""
@@ -235,6 +233,45 @@ class SafariBuildScriptTests(unittest.TestCase):
 
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "must survive\n")
+            self.assertFalse(list(output.parent.glob(".grxfirma-safari-*")))
+
+    def test_converter_receives_filtered_source(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = self.make_source(root)
+            (source / "signer").mkdir()
+            (source / "signer" / "x.html").write_text("<p>heredado</p>\n")
+            (source / "crypto_utils.js").write_text("// heredado\n")
+            (source / "content_scripts").mkdir()
+            (source / "content_scripts" / "autologin.js").write_text("// heredado\n")
+            tools = self.make_fake_apple_tools(root)
+            output = root / "release" / "safari"
+
+            result = self.run_build(source, output, tools)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            received = (output / "converter-input.txt").read_text(encoding="utf-8").split()
+            self.assertIn("background.js", received)
+            self.assertIn("manifest.json", received)
+            for excluded in ("signer/x.html", "crypto_utils.js", "content_scripts/autologin.js"):
+                self.assertNotIn(excluded, received)
+            self.assertFalse(list(output.parent.glob(".grxfirma-safari-*")))
+
+    def test_build_rejects_rest_bearer_in_config(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = self.make_source(root)
+            (source / "config.js").write_text(
+                'const CONFIG = { LOCAL_REST_BEARER: "abc" };\n', encoding="utf-8"
+            )
+            tools = self.make_fake_apple_tools(root)
+            output = root / "release" / "safari"
+
+            result = self.run_build(source, output, tools)
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("LOCAL_REST_BEARER", result.stderr)
+            self.assertFalse(output.exists())
             self.assertFalse(list(output.parent.glob(".grxfirma-safari-*")))
 
 
