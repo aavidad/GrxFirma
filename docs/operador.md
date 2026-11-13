@@ -941,7 +941,7 @@ Solo para un checkout de desarrollo, nunca sobre el paquete distribuido:
 ```bash
 make desktop-user-debug
 xdg-mime query default x-scheme-handler/afirma
-tail -f /tmp/grxfirma-debug.log
+tail -f "${XDG_STATE_HOME:-$HOME/.local/state}/grxfirma/grxfirma-debug.log"
 ```
 
 Para volver al modo normal:

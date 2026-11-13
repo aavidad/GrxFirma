@@ -348,7 +348,16 @@ desktop-user: install-user
 	@echo "Esquema afirma:// registrado para el usuario"
 
 desktop-user-debug: install-user
-	install -D -m 644 grxfirma-debug.desktop $(USERAPP)/$(BINARY)-debug.desktop
+	@logdir="$${XDG_STATE_HOME:-$$HOME/.local/state}/grxfirma"; \
+	case "$$logdir" in /*) ;; *) echo "El directorio de estado debe ser una ruta absoluta: $$logdir" >&2; exit 1 ;; esac; \
+	if printf '%s' "$$logdir" | LC_ALL=C grep -q '[^A-Za-z0-9._/+-]'; then \
+	    echo "El directorio de estado tiene caracteres que no caben en un .desktop: $$logdir" >&2; exit 1; \
+	fi; \
+	if [ -L "$$logdir" ]; then echo "El directorio de estado es un enlace simbólico: $$logdir" >&2; exit 1; fi; \
+	(umask 077 && mkdir -p "$$logdir") && chmod 700 "$$logdir" && \
+	mkdir -p $(USERAPP) && \
+	sed 's|@GRXFIRMA_DEBUG_LOG@|'"$$logdir"'/grxfirma-debug.log|' grxfirma-debug.desktop > $(USERAPP)/$(BINARY)-debug.desktop && \
+	chmod 644 $(USERAPP)/$(BINARY)-debug.desktop
 	@if command -v update-desktop-database >/dev/null 2>&1; then \
 	    update-desktop-database $(USERAPP); \
 	fi

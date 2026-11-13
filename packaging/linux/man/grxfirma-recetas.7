@@ -100,7 +100,7 @@ al perfil del usuario.
 .SH ARRANCAR EL HANDLER AFIRMA:// EN DEPURACIÓN
 .PP
 .RS
-\fBGRXFIRMA_DEBUG=1 GRXFIRMA_LOG_FILE=/tmp/grxfirma-debug.log GRXFIRMA_PROTOCOL_UI=1 grxfirma-afirmauri 'afirma://...'\fR
+\fBGRXFIRMA_DEBUG=1 GRXFIRMA_LOG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/grxfirma/grxfirma-debug.log" GRXFIRMA_PROTOCOL_UI=1 grxfirma-afirmauri 'afirma://...'\fR
 .RE
 .SH VER TAMBIÉN
 .BR grxfirma (1),

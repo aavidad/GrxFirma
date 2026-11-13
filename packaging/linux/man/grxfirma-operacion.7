@@ -104,7 +104,7 @@ Directorio de configuración local del perfil.
 Contenedores P12 del perfil.
 .SH LOGS ÚTILES
 .TP
-.I /tmp/grxfirma-debug.log
+.I ~/.local/state/grxfirma/grxfirma-debug.log
 Depuración general del handler o de integraciones lanzadas con debug.
 .TP
 .I /tmp/grxfirma-handler.log
@@ -121,7 +121,7 @@ Si falla una sede con \fBafirma://\fR: mirar primero \fI/tmp/grxfirma-handler.lo
 .IP \(bu 2
 Si el problema parece batch o trifase: mirar \fI/tmp/grxfirma-web-compat.log\fR.
 .IP \(bu 2
-Si el proceso arranca pero no sabes con qué binario o entorno: mirar \fI/tmp/grxfirma-debug.log\fR.
+Si el proceso arranca pero no sabes con qué binario o entorno: mirar \fI~/.local/state/grxfirma/grxfirma-debug.log\fR.
 .SH DEPURACIÓN
 .TP
 .B Handler afirma://
@@ -137,7 +137,7 @@ Variables frecuentes:
 .IP \(bu 2
 \fBGRXFIRMA_DEBUG_ENABLED=1\fR
 .IP \(bu 2
-\fBGRXFIRMA_DEBUG_LOG_FILE=/tmp/grxfirma-debug.log\fR
+\fBGRXFIRMA_DEBUG_LOG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/grxfirma/grxfirma-debug.log"\fR
 .TP
 .B App manual
 Puede lanzarse con su modo debug o con variables específicas del entorno si se desea
