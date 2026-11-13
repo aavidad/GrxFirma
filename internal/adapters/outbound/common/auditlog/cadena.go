@@ -20,10 +20,14 @@ import (
 
 // Cadena de huellas del registro de auditoría: cada registro lleva en
 // "cadena" la huella SHA-256 (hexadecimal) del registro anterior, también a
-// través de la rotación. Alterar, insertar o borrar un registro intermedio
-// rompe la cadena. Para detectar además que se ha recortado el final, el
-// registro puede firmarse con el certificado del usuario (firma CAdES del
-// fichero) en el momento de entregarlo.
+// través de la rotación. Detecta modificaciones accidentales o descuidadas
+// (un registro intermedio alterado, insertado o borrado rompe la cadena), pero
+// no protege frente a quien puede escribir el fichero: la huella es un SHA-256
+// sin clave, así que se puede editar un registro y recalcular todas las
+// siguientes, o borrar los ficheros. Para tener evidencia real, y detectar
+// también que se ha recortado el final, el registro puede firmarse con el
+// certificado del usuario (firma CAdES del fichero) o sellarse con una TSA en
+// el momento de entregarlo, guardando ese sello fuera del fichero.
 
 // InicioCadena es el valor de "cadena" del primer registro.
 var InicioCadena = strings.Repeat("0", 64)

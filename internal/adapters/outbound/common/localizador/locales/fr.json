@@ -85,7 +85,7 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Les enregistrements les plus anciens ont été retirés par la politique de conservation ; la chaîne est vérifiée à partir du premier conservé.",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d enregistrements sont antérieurs à la chaîne d'empreintes et ne peuvent pas être vérifiés.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Vérifie la chaîne d'empreintes du journal d'audit : détecte les enregistrements modifiés, insérés ou supprimés. Pour prouver aussi que la fin n'a pas été coupée, signez le fichier avec votre certificat lors de sa remise.",
+  "cli.help.audit": "Vérifie la chaîne d'empreintes du journal d'audit : détecte les modifications accidentelles ; ne protège pas contre qui peut écrire dans le fichier. Pour prouver aussi que la fin n'a pas été coupée, signez le fichier avec votre certificat lors de sa remise.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Avec la vérification, enregistre un rapport de validation HTML imprimable avec le verdict, les contrôles, les signataires et l'empreinte SHA-256 du fichier vérifié.",
   "cli.help.verify_exit": "Codes de sortie de la vérification : 0 si la signature est valide ; 2 si elle n'est pas valide ; 1 si elle n'a pas pu être vérifiée (fichier illisible, format inconnu ou autre erreur).",

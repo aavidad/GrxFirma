@@ -85,7 +85,7 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "I record più vecchi sono stati rimossi dalla politica di conservazione; la catena viene verificata dal primo conservato.",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d record sono precedenti alla catena di impronte e non possono essere verificati.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Verifica la catena di impronte del registro di audit: rileva record alterati, inseriti o cancellati. Per dimostrare anche che la parte finale non è stata tagliata, firma il file con il tuo certificato al momento della consegna.",
+  "cli.help.audit": "Verifica la catena di impronte del registro di audit: rileva modifiche accidentali; non protegge da chi può scrivere il file. Per dimostrare anche che la parte finale non è stata tagliata, firma il file con il tuo certificato al momento della consegna.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Con la verifica, salva un rapporto di convalida in HTML stampabile con l'esito, i controlli, i firmatari e l'impronta SHA-256 del file verificato.",
   "cli.help.verify_exit": "Codici di uscita della verifica: 0 se la firma è valida; 2 se non è valida; 1 se non è stato possibile verificarla (file illeggibile, formato sconosciuto o altro errore).",

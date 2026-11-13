@@ -85,7 +85,7 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Comprueba la cadena de huellas del registro de auditoría: detecta registros alterados, insertados o borrados. Para acreditar también que no se ha recortado el final, firma el fichero con tu certificado al entregarlo.",
+  "cli.help.audit": "Comprueba la cadena de huellas del registro de auditoría: detecta modificaciones accidentales; no protege frente a quien puede escribir el fichero. Para acreditar también que no se ha recortado el final, firma el fichero con tu certificado al entregarlo.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Con la verificación, guarda un informe de validación en HTML imprimible con el veredicto, las comprobaciones, los firmantes y la huella SHA-256 del fichero verificado.",
   "cli.help.verify_exit": "Códigos de salida de la verificación: 0 si la firma es válida; 2 si no es válida; 1 si no se pudo comprobar (fichero ilegible, formato desconocido u otro error).",

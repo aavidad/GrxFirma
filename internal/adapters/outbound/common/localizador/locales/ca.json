@@ -85,7 +85,7 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Els registres més antics es van retirar per la política de retenció; la cadena es comprova des del primer conservat.",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d registres són anteriors a la cadena d'empremtes i no es poden comprovar.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Comprova la cadena d'empremtes del registre d'auditoria: detecta registres alterats, inserits o esborrats. Per acreditar també que no s'ha retallat el final, signa el fitxer amb el teu certificat en lliurar-lo.",
+  "cli.help.audit": "Comprova la cadena d'empremtes del registre d'auditoria: detecta modificacions accidentals; no protegeix davant de qui pot escriure el fitxer. Per acreditar també que no s'ha retallat el final, signa el fitxer amb el teu certificat en lliurar-lo.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Amb la verificació, desa un informe de validació en HTML imprimible amb el veredicte, les comprovacions, els signants i l'empremta SHA-256 del fitxer verificat.",
   "cli.help.verify_exit": "Codis de sortida de la verificació: 0 si la signatura és vàlida; 2 si no és vàlida; 1 si no s'ha pogut comprovar (fitxer il·legible, format desconegut o un altre error).",
