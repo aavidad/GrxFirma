@@ -88,10 +88,14 @@ binario, y la política de dominios de confianza la aplican los adaptadores
   todas esas claves.
 - `save` y `signandsave` de `afirma://` guardan sin preguntar más solo firmas
   y datos habituales (`.pdf .xml .csig .xsig .p7s .sig .txt .bin .json .zip
-  .asice .asics`). Los tipos que el sistema ejecuta, monta o abre con macros
-  (`.exe`, `.chm`, `.iso`, `.xll`, `.docm`...) se bloquean; cualquier otro pide
-  una confirmación explícita, con su propio título de guardado
-  (`approval.save.title`), y, sin interfaz para pedirla, no se guarda. En
+  .asice .asics`). Los ejecutables que ya se bloqueaban antes (`.exe`, `.js`,
+  `.lnk`, `.ps1`, `.sh`, `.desktop`...) se siguen bloqueando. Los tipos que se
+  montan o pueden llevar macros o código (`.chm`, `.iso`, `.xll`, `.docm`,
+  `.xlsm`, `.py`...) piden una confirmación que avisa de ese riesgo
+  (`approval.save.extension.risky`), y cualquier otro tipo pide la
+  confirmación normal; las dos llevan su propio título de guardado
+  (`approval.save.title`). Sin interfaz para preguntar (headless) se guardan,
+  como antes, y el registro anota `guardado_web_sin_confirmacion`. En
   Windows el fichero lleva el flujo `Zone.Identifier` con `ZoneId=3` y el
   origen de la web, para que SmartScreen y Office lo traten como descargado.
 - Pendiente: llevar al núcleo la invariante de `ExchangeSession` (HTTPS, sin

@@ -14,7 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -97,38 +97,52 @@ func New(httpClient *http.Client) *Executor {
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: time.Duration(limits.Default().HTTPTimeoutSec) * time.Second}
 	}
-	// A-04: el origen validado es el del endpoint; una redirección a otro
-	// origen o a http fuera de loopback no se sigue. freshHTTPClient y los
-	// clones heredan la política porque copian el http.Client.
+	// A-04 (lote 13c): una redirección a otro origen solo se sigue si ese
+	// origen pasa el mismo validador de destino que el servidor inicial; de
+	// https a http nunca. freshHTTPClient y los clones heredan la política
+	// porque copian el http.Client; el validador se lee al redirigir, así que
+	// vale el que fije ConValidadorDestino después.
+	e := &Executor{limits: limits.Default()}
 	conPolitica := *httpClient
-	conPolitica.CheckRedirect = politicaRedireccionTrifasica(httpClient.CheckRedirect)
+	conPolitica.CheckRedirect = politicaRedireccionTrifasica(httpClient.CheckRedirect, e)
 	httpClient = &conPolitica
-	legacyClient := legacyCompatHTTPClient(httpClient)
-	fallbackClient := http2CapableHTTPClient(httpClient)
-	return &Executor{
-		httpClient:         legacyClient,
-		fallbackHTTPClient: fallbackClient,
-		limits:             limits.Default(),
-	}
+	e.httpClient = legacyCompatHTTPClient(httpClient)
+	e.fallbackHTTPClient = http2CapableHTTPClient(httpClient)
+	return e
 }
 
-// maxRedireccionesTrifasicas limita los saltos dentro del mismo origen.
-const maxRedireccionesTrifasicas = 5
+// maxRedireccionesTrifasicas es el máximo de saltos, el mismo que aplicaba
+// net/http por defecto antes del lote 4.
+const maxRedireccionesTrifasicas = 10
 
-// politicaRedireccionTrifasica solo sigue redirecciones al mismo origen
-// (esquema, host y puerto), en https o en http de loopback, y como mucho
-// maxRedireccionesTrifasicas.
-func politicaRedireccionTrifasica(previa func(*http.Request, []*http.Request) error) func(*http.Request, []*http.Request) error {
+// politicaRedireccionTrifasica sigue las redirecciones al mismo origen
+// (esquema, host y puerto) y, a otro origen, solo si e.ValidarDestino lo
+// admite (lista de confianza o TOFU, como el servidor inicial), con aviso en
+// el registro. Rechaza siempre el paso de https a http, los esquemas que no
+// son http(s) y más de maxRedireccionesTrifasicas saltos. Sin validador, una
+// redirección a otro origen se rechaza (falla cerrado).
+func politicaRedireccionTrifasica(previa func(*http.Request, []*http.Request) error, e *Executor) func(*http.Request, []*http.Request) error {
 	return func(req *http.Request, via []*http.Request) error {
 		if len(via) >= maxRedireccionesTrifasicas {
 			return errors.New("redirección rechazada: demasiados saltos")
 		}
-		if len(via) > 0 && !mismoOrigenHTTP(via[0].URL, req.URL) {
-			return fmt.Errorf("redirección a otro origen rechazada: %s", req.URL.Scheme+"://"+req.URL.Host)
-		}
 		esquema := strings.ToLower(req.URL.Scheme)
-		if esquema != "https" && !(esquema == "http" && hostLoopback(req.URL.Hostname())) {
-			return errors.New("redirección rechazada: solo se admite HTTPS (o HTTP en loopback)")
+		if esquema != "https" && esquema != "http" {
+			return errors.New("redirección rechazada: solo se admite HTTPS o HTTP")
+		}
+		if esquema == "http" {
+			for _, previo := range via {
+				if strings.EqualFold(previo.URL.Scheme, "https") {
+					return errors.New("redirección rechazada: de HTTPS a HTTP")
+				}
+			}
+		}
+		if len(via) > 0 && !mismoOrigenHTTP(via[0].URL, req.URL) {
+			origen := esquema + "://" + req.URL.Host
+			if err := e.ValidarDestino(req.Context(), origen); err != nil {
+				return fmt.Errorf("redirección a otro origen rechazada: %s: %w", origen, err)
+			}
+			slog.Warn("triphase_redireccion_otro_origen", "saltos", len(via))
 		}
 		if previa != nil {
 			return previa(req, via)
@@ -152,14 +166,6 @@ func puertoEfectivo(u *url.URL) string {
 		return "80"
 	}
 	return "443"
-}
-
-func hostLoopback(host string) bool {
-	if strings.EqualFold(host, "localhost") {
-		return true
-	}
-	ip := net.ParseIP(host)
-	return ip != nil && ip.IsLoopback()
 }
 
 func legacyCompatHTTPClient(client *http.Client) *http.Client {

@@ -16,6 +16,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -139,6 +140,82 @@ func TestFirmarConServidor_ValidadorRechazaSinPeticiones(t *testing.T) {
 	}
 	if n := peticiones.Load(); n != 0 {
 		t.Fatalf("el servidor recibió %d peticiones; se esperaban 0", n)
+	}
+}
+
+// Lote 13c (A-01 paso 2): un serverUrl con credenciales vuelve a usarse. El
+// validador recibe solo esquema y host, el servidor recibe la autenticación
+// básica y los errores no muestran las credenciales. Un servidor que el
+// validador rechaza sigue sin recibir nada.
+func TestFirmarConServidor_ServerURLConCredenciales(t *testing.T) {
+	var post atomic.Int32
+	var usuarioVisto, claveVista string
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		usuarioVisto, claveVista, _ = r.BasicAuth()
+		_ = r.ParseForm()
+		if r.PostForm.Get("op") == "post" {
+			post.Add(1)
+			_, _ = w.Write([]byte("OK NEWID=" + base64.URLEncoding.EncodeToString([]byte("F"))))
+			return
+		}
+		td := `<xml><firmas format="CAdES"><firma Id="1"><param n="PRE">` + base64.StdEncoding.EncodeToString([]byte("pre")) + `</param></firma></firmas></xml>`
+		_, _ = w.Write([]byte(base64.URLEncoding.EncodeToString([]byte(td))))
+	}))
+	defer srv.Close()
+	conCredenciales := strings.Replace(srv.URL, "https://", "https://usuario:secreto-largo@", 1) + "/ts"
+	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{chain: [][]byte{[]byte("c")}})
+	req := SolicitudFirmaServidor{ServerURL: conCredenciales, FormatoLegacy: "CAdEStri", Datos: []byte("d")}
+
+	var validados []string
+	e := New(srv.Client()).ConValidadorDestino(func(_ context.Context, origen string) error {
+		validados = append(validados, origen)
+		return nil
+	})
+	if _, err := e.FirmarConServidor(ctx, req); err != nil {
+		t.Fatalf("serverUrl con credenciales autorizado debía firmar: %v", err)
+	}
+	if len(validados) == 0 || validados[0] != srv.URL {
+		t.Fatalf("el validador debía recibir solo esquema y host: %v", validados)
+	}
+	if usuarioVisto != "usuario" || claveVista != "secreto-largo" || post.Load() != 1 {
+		t.Fatalf("el servidor debía recibir la autenticación básica: %q %q post=%d", usuarioVisto, claveVista, post.Load())
+	}
+
+	// Rechazado por el validador: ninguna petición.
+	var peticiones atomic.Int32
+	otro := httptest.NewTLSServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { peticiones.Add(1) }))
+	defer otro.Close()
+	rechazo := errors.New("el origen no esta autorizado")
+	eNo := New(otro.Client()).ConValidadorDestino(func(context.Context, string) error { return rechazo })
+	reqNo := SolicitudFirmaServidor{ServerURL: strings.Replace(otro.URL, "https://", "https://u:p@", 1) + "/ts", FormatoLegacy: "CAdEStri", Datos: []byte("d")}
+	if _, err := eNo.FirmarConServidor(ctx, reqNo); !errors.Is(err, rechazo) || peticiones.Load() != 0 {
+		t.Fatalf("no autorizado: err=%v peticiones=%d", err, peticiones.Load())
+	}
+
+	// Error de transporte: el texto no lleva las credenciales.
+	cerrado := httptest.NewTLSServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	direccion := cerrado.URL
+	cerrado.Close()
+	eCaido := New(srv.Client()).ConValidadorDestino(func(context.Context, string) error { return nil })
+	reqCaido := SolicitudFirmaServidor{ServerURL: strings.Replace(direccion, "https://", "https://usuario:secreto-largo@", 1) + "/ts", FormatoLegacy: "CAdEStri", Datos: []byte("d")}
+	_, err := eCaido.FirmarConServidor(ctx, reqCaido)
+	if err == nil {
+		t.Fatal("con el servidor caído debía fallar")
+	}
+	if strings.Contains(err.Error(), "usuario") || strings.Contains(err.Error(), "secreto-largo") {
+		t.Fatalf("el error muestra las credenciales: %v", err)
+	}
+}
+
+func TestErrorSinCredenciales(t *testing.T) {
+	u, _ := url.Parse("https://ana:clave-larga@fire.example/ts")
+	base := errors.New(`Post "https://ana:***@fire.example/ts": fallo; también https://ana:clave-larga@fire.example/ts y clave-larga`)
+	got := errorSinCredenciales(base, u)
+	if strings.Contains(got.Error(), "ana") || strings.Contains(got.Error(), "clave-larga") {
+		t.Fatalf("quedan credenciales: %v", got)
+	}
+	if !errors.Is(got, base) {
+		t.Fatal("debe conservar la causa")
 	}
 }
 

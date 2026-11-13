@@ -129,3 +129,59 @@ func TestComponerAvisaSesionNoIdentificada(t *testing.T) {
 		}
 	}
 }
+
+// Lote 13c (A-03): un destino http fuera de este equipo, admitido por
+// compatibilidad, se avisa en el diálogo; https y loopback no.
+func TestComponerAvisaDestinoSinCifrar(t *testing.T) {
+	for _, idioma := range []string{"es", "en", "fr", "de", "it", "pt", "ca", "va", "gl", "eu", "zh"} {
+		loc := localizador.Para(idioma)
+		aviso := loc.T("approval.destination.unencrypted")
+		if aviso == "" || aviso == "approval.destination.unencrypted" {
+			t.Fatalf("%s: falta la traducción del aviso", idioma)
+		}
+		casos := []struct {
+			detalle application.DetalleAprobacion
+			avisa   bool
+		}{
+			{application.DetalleAprobacion{Certificado: "CN=Ana", DestinoSinCifrar: true}, true},
+			{application.DetalleAprobacion{Certificado: "CN=Ana", Destinos: []string{"https://sede.example/st", "http://intranet.example:8080/pre"}}, true},
+			{application.DetalleAprobacion{Certificado: "CN=Ana", Destinos: []string{"https://sede.example/st", "http://127.0.0.1:8080/x"}}, false},
+			{application.DetalleAprobacion{Certificado: "CN=Ana"}, false},
+		}
+		for i, c := range casos {
+			texto := Componer(loc, c.detalle)
+			if strings.Contains(texto, aviso) != c.avisa {
+				t.Fatalf("%s caso %d: avisa=%v, texto:\n%s", idioma, i, c.avisa, texto)
+			}
+		}
+	}
+}
+
+// Lote 13c (A-01 paso 2): un serverUrl con credenciales se enseña solo con
+// esquema y host.
+func TestComponerNoMuestraCredencialesDelServidor(t *testing.T) {
+	texto := Componer(localizador.Para("es"), application.DetalleAprobacion{
+		Certificado: "CN=Ana",
+		Destinos:    []string{"https://usuario:secreto@fire.example/triphaseSignService"},
+	})
+	if strings.Contains(texto, "usuario") || strings.Contains(texto, "secreto") || !strings.Contains(texto, "https://fire.example") {
+		t.Fatalf("texto:\n%s", texto)
+	}
+}
+
+// Lote 13c: la aprobación de una firma trifásica con servidor dice que el
+// servidor puede pedir más de una firma (lote 13a admite hasta 100).
+func TestComponerAvisaVariasFirmasTrifasicas(t *testing.T) {
+	for _, idioma := range []string{"es", "en", "fr", "de", "it", "pt", "ca", "va", "gl", "eu", "zh"} {
+		loc := localizador.Para(idioma)
+		aviso := loc.T("approval.triphase.server_multiple")
+		if aviso == "" || aviso == "approval.triphase.server_multiple" {
+			t.Fatalf("%s: falta la traducción del aviso", idioma)
+		}
+		con := Componer(loc, application.DetalleAprobacion{Certificado: "CN=Ana", FirmaTrifasicaServidor: true})
+		sin := Componer(loc, application.DetalleAprobacion{Certificado: "CN=Ana"})
+		if !strings.Contains(con, aviso) || strings.Contains(sin, aviso) {
+			t.Fatalf("%s: el aviso debe salir solo en la trifásica con servidor:\n%s", idioma, con)
+		}
+	}
+}

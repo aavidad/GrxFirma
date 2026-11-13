@@ -137,6 +137,11 @@ func (a *Adaptador) HandleText(ctx context.Context, origin, message string) (res
 		trace.WarnContext(ctx, "legacy_adapter_parse_error", "message_prefix", truncateForTrace(message, 220), "error", err)
 		return Resultado{}, err
 	}
+	if solicitud.DestinoSinCifrar {
+		// A-03 compatibilidad: destino http de intranet autorizado por la
+		// política. Las operaciones lo enseñan en la aprobación.
+		ctx = application.ConDestinoSinCifrar(ctx)
+	}
 	if origin = strings.TrimSpace(origin); origin != "" {
 		solicitud.Origenes = append(solicitud.Origenes, origin)
 		solicitud.OrigenSolicitante = origin

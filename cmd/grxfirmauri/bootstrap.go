@@ -248,14 +248,16 @@ func construirRuntimeAfirmaURIConDependencias(
 	return runtime, nil
 }
 
-// validadorDestinoRuntime aplica a los destinos del canal socket el mismo
-// formato y la misma política que el camino directo. Sin política devuelve
+// validadorDestinoRuntime aplica a los destinos del canal socket la misma
+// política que el camino directo. Por compatibilidad con aplicaciones de
+// intranet (lote 13c) admite http fuera de loopback si la política autoriza el
+// origen, con aviso, como el parser del canal socket. Sin política devuelve
 // nil y el ejecutor falla cerrado.
 func validadorDestinoRuntime(r *runtimeAfirmaURI) triphase.ValidadorDestino {
 	if r == nil || r.trustPolicy == nil {
 		return nil
 	}
-	return originvalidator.New(r.trustPolicy).Validate
+	return originvalidator.New(r.trustPolicy).ValidateSocket
 }
 
 func (r *runtimeAfirmaURI) orquestadorPara(solicitud afirmauri.Solicitud) *session.Orchestrator {

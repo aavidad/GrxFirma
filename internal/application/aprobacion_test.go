@@ -140,3 +140,49 @@ func TestAprobacionMarcaSesionNoIdentificada(t *testing.T) {
 		}
 	}
 }
+
+// Lote 13c (A-03): la marca de destino http de intranet llega al detalle de
+// la aprobación de la firma y del lote.
+func TestAprobacionMarcaDestinoSinCifrar(t *testing.T) {
+	for _, ctx := range []context.Context{context.Background(), application.ConDestinoSinCifrar(context.Background())} {
+		quiere := application.DestinoSinCifrar(ctx)
+		var firma, lote application.DetalleAprobacion
+		ucFirma := application.NuevoSignDocumentUseCase(
+			&catalogoMock{certs: []domain.CertificateRef{certPrueba()}},
+			&proveedorClavesMock{clave: claveMock{"clave-001"}},
+			&motorMock{resultado: domain.SignatureResult{Format: domain.FormatCAdES, Data: []byte("firma")}},
+			&aprobadorMock{aprobado: true}, nil, nil,
+		).WithComponedorAprobacion(func(d application.DetalleAprobacion) string { firma = d; return "F" })
+		if _, err := ucFirma.Ejecutar(ctx, application.SignCommand{Document: docPrueba(), Format: domain.FormatCAdES, Action: domain.ActionSign}); err != nil {
+			t.Fatalf("firma: %v", err)
+		}
+		ucLote := application.NuevoProcessBatchUseCase(
+			&catalogoMock{certs: []domain.CertificateRef{certPrueba()}},
+			&proveedorClavesMock{clave: claveMock{"clave-001"}},
+			&motorMock{resultado: domain.SignatureResult{Format: domain.FormatCAdES, Data: []byte("firma")}},
+			&aprobadorMock{aprobado: true}, nil, nil,
+		).WithComponedorAprobacion(func(d application.DetalleAprobacion) string { lote = d; return "L" })
+		if _, err := ucLote.Ejecutar(ctx, application.ProcessBatchCommand{Jobs: []domain.SignatureJob{{Document: docPrueba(), Format: domain.FormatCAdES, Action: domain.ActionSign}}}); err != nil {
+			t.Fatalf("lote: %v", err)
+		}
+		if firma.DestinoSinCifrar != quiere || lote.DestinoSinCifrar != quiere {
+			t.Fatalf("contexto marcado=%v: firma=%v lote=%v", quiere, firma.DestinoSinCifrar, lote.DestinoSinCifrar)
+		}
+	}
+}
+
+func TestEsDestinoSinCifrar(t *testing.T) {
+	for raw, quiere := range map[string]bool{
+		"http://intranet.example:8080/x": true,
+		"http://10.0.0.5":                true,
+		"https://sede.example":           false,
+		"http://127.0.0.1:8080":          false,
+		"http://localhost":               false,
+		"http://[::1]:80":                false,
+		"no es una url":                  false,
+	} {
+		if got := application.EsDestinoSinCifrar(raw); got != quiere {
+			t.Fatalf("EsDestinoSinCifrar(%q) = %v", raw, got)
+		}
+	}
+}

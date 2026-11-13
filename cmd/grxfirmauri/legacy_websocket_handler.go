@@ -475,6 +475,9 @@ func (h *legacyWebSocketHandler) firmarTrifasicoServidor(ctx context.Context, cm
 	detalle.Origen = solicitud.OrigenSolicitante
 	detalle.Destinos = append([]string{servidor}, destinosSolicitud(solicitud)...)
 	detalle.SesionNoIdentificada = application.SesionNoIdentificada(ctx)
+	detalle.DestinoSinCifrar = application.DestinoSinCifrar(ctx)
+	// Lote 13c: el servidor puede pedir varias firmas con esta aprobación.
+	detalle.FirmaTrifasicaServidor = true
 	aprobado, err := h.approval.Request(ctx, componerAprobacionProtocolo(detalle))
 	if err != nil {
 		if isLegacyCancellation(err) {
@@ -566,6 +569,9 @@ func (h *legacyWebSocketHandler) handleBatch(ctx context.Context, solicitud afir
 	for _, origen := range origenes {
 		if err := h.retrieve.ValidarDestino(ctx, origen); err != nil {
 			return "", fmt.Errorf("validación de origen del lote recuperado fallida: %w", err)
+		}
+		if application.EsDestinoSinCifrar(origen) {
+			ctx = application.ConDestinoSinCifrar(ctx)
 		}
 	}
 	if remote != nil {
@@ -1072,6 +1078,7 @@ func (h *legacyWebSocketHandler) handleRemoteBatchDeSolicitud(ctx context.Contex
 		Destinos:    append([]string{req.PreSignEndpoint, req.PostSignEndpoint}, req.Session.UploadEndpoint, req.Session.RetrieveEndpoint),
 		// Lote 13a: canal lanzado sin idsession (sede antigua).
 		SesionNoIdentificada: application.SesionNoIdentificada(ctx),
+		DestinoSinCifrar:     application.DestinoSinCifrar(ctx),
 	}
 	if meta, metaErr := afirmauri.ParseBatchMetadata(req.Payload); metaErr == nil {
 		detalle.Firmas = len(meta.IDs)

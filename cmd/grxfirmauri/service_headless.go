@@ -90,6 +90,11 @@ func (a aprobacionHeadless) Request(context.Context, string) (bool, error) {
 	return false, errors.New("no hay interfaz gráfica disponible para confirmar la operación")
 }
 
+// SinInterfaz indica que este aprobador no puede preguntar al usuario: el
+// guardado desde la web de tipos poco habituales se hace con aviso en el
+// registro en lugar de con confirmación (lote 13c).
+func (a aprobacionHeadless) SinInterfaz() bool { return true }
+
 func newSignApproval() aprobacionHeadless {
 	return aprobacionHeadless{}
 }

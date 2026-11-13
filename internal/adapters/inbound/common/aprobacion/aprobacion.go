@@ -96,8 +96,20 @@ func Componer(loc ports.Localizador, d application.DetalleAprobacion) string {
 	if destinos := application.OrigenesDestino(d.Destinos...); len(destinos) > 0 {
 		lineas = append(lineas, loc.T("approval.destinations", strings.Join(destinos, ", ")))
 	}
-	if d.OrigenNoVerificable || d.SesionNoIdentificada {
+	sinCifrar := d.DestinoSinCifrar
+	for _, destino := range d.Destinos {
+		if application.EsDestinoSinCifrar(destino) {
+			sinCifrar = true
+		}
+	}
+	if d.FirmaTrifasicaServidor || d.OrigenNoVerificable || d.SesionNoIdentificada || sinCifrar {
 		lineas = append(lineas, "")
+	}
+	if d.FirmaTrifasicaServidor {
+		lineas = append(lineas, loc.T("approval.triphase.server_multiple"))
+	}
+	if sinCifrar {
+		lineas = append(lineas, loc.T("approval.destination.unencrypted"))
 	}
 	if d.OrigenNoVerificable {
 		lineas = append(lineas, loc.T("approval.origin.unverifiable"))

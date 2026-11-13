@@ -65,8 +65,8 @@ indicada en la petición. Si el valor no se entiende, se trata como una lista
 vacía. Solo la fija la política de máquina; `config.json` del usuario no la
 lee. La TSA de la organización (`GRXFIRMA_TSA_URL`) no depende de esta lista.
 
-PENDIENTE: `tsa_permitidas` aún no está en la plantilla ADMX; mientras tanto se
-fija en el registro con un `.reg` o una preferencia de GPO.
+En la plantilla ADMX es «Sellos de tiempo (TSA) que puede indicar una
+petición», en la categoría de orígenes.
 
 Excepciones de compatibilidad (todas desactivadas por defecto; `1` las activa):
 

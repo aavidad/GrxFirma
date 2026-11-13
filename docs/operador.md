@@ -122,8 +122,29 @@ En la firma trifásica con servidor (`serverUrl`), el servidor tiene que estar
 en los dominios de confianza y aparece en el diálogo de aprobación. Una
 contrafirma de varios nodos le pide a GrxFirma varias firmas con esa única
 aprobación: se admiten hasta 100 y el registro anota
-`triphase_server_varias_firmas` con el número de firmas hechas. Una prefirma
+`triphase_server_varias_firmas` con el número de firmas hechas. Como ese
+número no se sabe al aprobar, el diálogo de toda firma trifásica con servidor
+avisa de que el servidor puede pedir más de una firma. Una prefirma
 sin ninguna firma o con más de 100 se rechaza sin firmar.
+
+Si `serverUrl` lleva usuario y contraseña (`https://usuario:clave@servidor/...`),
+se admite como antes. La comprobación de confianza se hace con el esquema y el
+servidor, el diálogo solo enseña esos dos datos y las credenciales no se
+escriben en el registro; este anota `afirma_server_url_con_credenciales`.
+
+Por WebSocket o `service`, una aplicación de intranet puede seguir usando
+servidores `http://` (por ejemplo `http://intranet:8080`) si su origen está en
+la lista de confianza o el usuario lo aprueba al preguntarle, como antes. El
+registro anota `afirma_destino_sin_cifrar` y el diálogo de aprobación avisa de
+que la conexión no está cifrada. El enlace `afirma://` directo sigue exigiendo
+`https://` (o `http://` solo hacia el propio equipo).
+
+Si un servidor de firma de `afirma://` redirige a otro servidor (un
+balanceador o un inicio de sesión único), GrxFirma sigue la redirección solo
+si el nuevo servidor también está en la lista de confianza o el usuario lo
+aprueba al preguntarle; el registro anota `triphase_redireccion_otro_origen`.
+Nunca sigue una redirección de `https://` a `http://` y admite hasta 10
+saltos.
 
 ### Política de organización
 

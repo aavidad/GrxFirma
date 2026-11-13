@@ -82,11 +82,13 @@ func TestSesionTemporal_IdsessionCorrectoSinAviso(t *testing.T) {
 type manejadorCaptura struct {
 	llamadas       atomic.Int32
 	sinIdentificar atomic.Bool
+	sinCifrar      atomic.Bool
 }
 
 func (m *manejadorCaptura) HandleLegacy(ctx context.Context, _ string, solicitud afirmauri.Solicitud) (Resultado, bool, error) {
 	m.llamadas.Add(1)
 	m.sinIdentificar.Store(application.SesionNoIdentificada(ctx))
+	m.sinCifrar.Store(application.DestinoSinCifrar(ctx))
 	return Resultado{Tipo: "afirmauri", Texto: "OK", Operacion: solicitud.Operacion}, true, nil
 }
 

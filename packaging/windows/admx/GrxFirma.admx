@@ -42,6 +42,13 @@
         <multiText id="DominiosDeConfianza_List" valueName="dominios_de_confianza" required="true" />
       </elements>
     </policy>
+    <policy name="TSAPermitidas" class="Machine" displayName="$(string.TSAPermitidas)" explainText="$(string.TSAPermitidas_Help)" presentation="$(presentation.TSAPermitidas)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Origenes" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <elements>
+        <multiText id="TSAPermitidas_List" valueName="tsa_permitidas" />
+      </elements>
+    </policy>
     <policy name="TofuHabilitado" class="Machine" displayName="$(string.TofuHabilitado)" explainText="$(string.TofuHabilitado_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="tofu_habilitado">
       <parentCategory ref="Origenes" />
       <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />

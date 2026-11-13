@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"path"
 	"regexp"
@@ -52,11 +53,15 @@ type Solicitud struct {
 	// OrigenSolicitante es la cabecera Origin real del navegador en el canal
 	// socket. En afirma:// directo está vacío: no se sabe qué web lanzó la URI.
 	OrigenSolicitante string
-	Sesion            domain.ExchangeSession
-	SignCommand       *application.SignCommand
-	BatchCommand      *application.ProcessBatchCommand
-	RemoteBatch       *RemoteBatchCommand
-	RetrieveCommand   *application.RetrieveRequestCommand
+	// DestinoSinCifrar indica que, por el canal socket, algún destino usa
+	// http:// fuera de loopback y se ha admitido por compatibilidad porque la
+	// política autoriza su origen. El canal lo convierte en aviso.
+	DestinoSinCifrar bool
+	Sesion           domain.ExchangeSession
+	SignCommand      *application.SignCommand
+	BatchCommand     *application.ProcessBatchCommand
+	RemoteBatch      *RemoteBatchCommand
+	RetrieveCommand  *application.RetrieveRequestCommand
 	// Version es la version del protocolo afirma:// indicada por el parametro v o ver (0-4).
 	// El valor 0 indica que no se especifico version (o se especifico explicitamente la 0).
 	Version int
@@ -211,7 +216,7 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 						return Solicitud{}, err
 					}
 					solicitud.Origenes = fusionarOrigenes(solicitud.Origenes, origenesExtra)
-					if err := a.validarDestinos(ctx, origenesExtra); err != nil {
+					if err := a.validarDestinos(ctx, origenesExtra, true, &solicitud); err != nil {
 						return Solicitud{}, err
 					}
 					solicitud.RemoteBatch = remote
@@ -234,7 +239,7 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 	solicitud.Sesion = sesion
 	solicitud.Origenes = fusionarOrigenes(origenes, solicitud.Origenes)
 
-	if err := a.validarDestinos(ctx, origenes); err != nil {
+	if err := a.validarDestinos(ctx, origenes, opts.bySocket, &solicitud); err != nil {
 		return Solicitud{}, err
 	}
 
@@ -268,7 +273,7 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 					return Solicitud{}, err
 				}
 				solicitud.Origenes = fusionarOrigenes(solicitud.Origenes, origenesExtra)
-				if err := a.validarDestinos(ctx, origenesExtra); err != nil {
+				if err := a.validarDestinos(ctx, origenesExtra, opts.bySocket, &solicitud); err != nil {
 					return Solicitud{}, err
 				}
 				solicitud.RemoteBatch = remote
@@ -604,8 +609,14 @@ func (a *Adaptador) validarServidoresTrifasicos(ctx context.Context, solicitud *
 	}
 	for _, servidor := range servidores {
 		u, err := url.Parse(normalizarEndpoint(servidor))
-		if err != nil || !strings.EqualFold(u.Scheme, "https") || u.Host == "" || u.User != nil {
+		if err != nil || !strings.EqualFold(u.Scheme, "https") || u.Host == "" {
 			return errors.New("el servidor de firma trifásica (serverUrl) debe ser una URL HTTPS válida")
+		}
+		if u.User != nil {
+			// Lote 13c: credenciales en la URL, como antes del lote 4. Se
+			// valida el origen (esquema y host, sin credenciales) y no se
+			// registran.
+			slog.Warn("afirma_server_url_con_credenciales")
 		}
 	}
 	normalizados := make([]string, 0, len(servidores))
@@ -617,19 +628,42 @@ func (a *Adaptador) validarServidoresTrifasicos(ctx context.Context, solicitud *
 		return err
 	}
 	solicitud.Origenes = fusionarOrigenes(solicitud.Origenes, origenes)
-	return a.validarDestinos(ctx, origenes)
+	// serverUrl ya se ha exigido https arriba; el canal no cambia nada aquí.
+	return a.validarDestinos(ctx, origenes, false, solicitud)
 }
 
 // validarDestinos aplica a los endpoints que trae la URI el mismo formato que
 // originvalidator (https, o http solo en loopback) y después la política. Se
-// usa en todos los caminos, directo y socket (A-03).
-func (a *Adaptador) validarDestinos(ctx context.Context, origenes []string) error {
+// usa en todos los caminos, directo y socket (A-03). Por el canal socket
+// (socket=true) se admite además http fuera de loopback, como antes del lote
+// 4, si la política autoriza el origen: queda marcado en la solicitud y se
+// registra un aviso sin el origen. El camino directo sigue sin admitirlo,
+// como ya hacía el orquestador antes del lote 4.
+func (a *Adaptador) validarDestinos(ctx context.Context, origenes []string, socket bool, solicitud *Solicitud) error {
+	sinCifrar := false
 	for _, origen := range origenes {
+		if socket {
+			http, err := originvalidator.ValidarFormatoSocket(origen)
+			if err != nil {
+				return fmt.Errorf("el destino %s no es válido: %w", origen, err)
+			}
+			sinCifrar = sinCifrar || http
+			continue
+		}
 		if err := originvalidator.ValidarFormato(origen); err != nil {
 			return fmt.Errorf("el destino %s no es válido: %w", origen, err)
 		}
 	}
-	return a.validarOrigenes(ctx, origenes)
+	if err := a.validarOrigenes(ctx, origenes); err != nil {
+		return err
+	}
+	if sinCifrar {
+		slog.Warn("afirma_destino_sin_cifrar", "canal", "socket")
+		if solicitud != nil {
+			solicitud.DestinoSinCifrar = true
+		}
+	}
+	return nil
 }
 
 // OrigenesDestinoSolicitud devuelve los orígenes de todos los destinos de una

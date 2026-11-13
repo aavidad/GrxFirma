@@ -133,3 +133,29 @@ func TestOrchestrator_SelectCertNoPideAprobacion(t *testing.T) {
 		t.Fatalf("selectcert no firma y no debe pedir aprobación: %v", aprobador.mensajes)
 	}
 }
+
+// Lote 13c: en afirma:// directo, la firma trifásica con servidor lleva la
+// marca de varias firmas posibles; una firma con servidor sin formato "tri"
+// o una trifásica sin servidor, no.
+func TestDetalleAprobacionSolicitud_TrifasicaConServidor(t *testing.T) {
+	solicitud := func(formato string, opciones map[string]string) afirmauri.Solicitud {
+		s := afirmauri.Solicitud{
+			LegacyParams: map[string][]string{"format": {formato}},
+			SignCommand:  &application.SignCommand{Options: opciones},
+		}
+		return s
+	}
+	casos := []struct {
+		s     afirmauri.Solicitud
+		marca bool
+	}{
+		{solicitud("CAdEStri", map[string]string{"serverUrl": "https://fire.example/ts"}), true},
+		{solicitud("CAdES", map[string]string{"serverUrl": "https://fire.example/ts"}), false},
+		{solicitud("CAdEStri", map[string]string{}), false},
+	}
+	for i, c := range casos {
+		if got := session.DetalleAprobacionSolicitud(c.s, "CN=Ana").FirmaTrifasicaServidor; got != c.marca {
+			t.Fatalf("caso %d: FirmaTrifasicaServidor = %v", i, got)
+		}
+	}
+}
