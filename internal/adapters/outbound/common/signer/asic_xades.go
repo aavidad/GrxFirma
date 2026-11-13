@@ -110,7 +110,7 @@ func (v *ASiCXAdESVerifier) Verify(ctx context.Context, signedDocument domain.Do
 			}
 		}
 		cubiertasPorFirma = append(cubiertasPorFirma, cubiertas)
-		noComprobado = append(noComprobado, cobertura.noComprobado...)
+		noComprobado = append(noComprobado, cobertura.noComprobadoFueraDeOPC()...)
 	}
 	result := aplicarCoberturaXML(verification.result, coberturaContenedor([]string{payloadName}, func(string) bool { return false }, cubiertasPorFirma, noComprobado))
 	return applyXMLRevocation(ctx, result, verification.signerCertificates, verification.embeddedCertificates), verification.signers, nil

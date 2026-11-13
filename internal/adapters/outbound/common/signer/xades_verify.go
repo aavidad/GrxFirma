@@ -88,7 +88,7 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 		}
 		cubiertasPorFirma = append(cubiertasPorFirma, cubiertas)
 		for _, cobertura := range verification.coberturas {
-			noComprobado = append(noComprobado, cobertura.noComprobado...)
+			noComprobado = append(noComprobado, cobertura.noComprobadoFueraDeOPC()...)
 		}
 		allSigners = append(allSigners, verification.signers...)
 		allSignerCertificates = append(allSignerCertificates, verification.signerCertificates...)
@@ -156,6 +156,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	var compatibility []string
 	verifiedSignatures := 0
 	var cubiertasPorFirma []map[string]bool
+	var relacionesPorFirma [][]relacionNoFirmada
 	var noComprobado []string
 	for _, name := range names {
 		sigXML := signatures[name]
@@ -174,9 +175,12 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 				return domain.VerificationResult{}, nil, fmt.Errorf("firma OOXML %s invalida: %w", name, verifyErr)
 			}
 			cubiertasPorFirma = append(cubiertasPorFirma, cubiertas)
+			var relaciones []relacionNoFirmada
 			for _, cobertura := range verification.coberturas {
 				noComprobado = append(noComprobado, cobertura.noComprobado...)
+				relaciones = append(relaciones, cobertura.relacionesNoFirmadas...)
 			}
+			relacionesPorFirma = append(relacionesPorFirma, relaciones)
 			verifiedSignatures++
 			allSigners = append(allSigners, verification.signers...)
 			allSignerCertificates = append(allSignerCertificates, verification.signerCertificates...)
@@ -195,7 +199,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		result = marcarSelloXMLNoEvaluable(result, signatures[name])
 	}
 	result = markXMLCompatibility(result, compatibility)
-	result = aplicarCoberturaXML(result, coberturaContenedor(contenedor.nombres, entradaOOXMLSinFirmar, cubiertasPorFirma, noComprobado))
+	result = aplicarCoberturaXML(result, coberturaOOXML(contenedor, cubiertasPorFirma, relacionesPorFirma, noComprobado))
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
 }
 
@@ -278,7 +282,7 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 		return xmlSignatureVerification{}, err
 	}
 	compatibility = append(compatibility, referenceCompatibility...)
-	urisManifiesto, noComprobado, err := verificarManifiestos(signatureContext, signedInfoXML, externalResolver)
+	manifiestos, err := verificarManifiestos(signatureContext, signedInfoXML, externalResolver)
 	if err != nil {
 		return xmlSignatureVerification{}, err
 	}
@@ -286,8 +290,10 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 	if err != nil {
 		return xmlSignatureVerification{}, err
 	}
-	cobertura.uris = append(cobertura.uris, urisManifiesto...)
-	cobertura.noComprobado = noComprobado
+	cobertura.uris = append(cobertura.uris, manifiestos.uris...)
+	cobertura.noComprobado = manifiestos.noComprobado
+	cobertura.relacionesNoFirmadas = manifiestos.relacionesNoFirmadas
+	cobertura.partesRelacionesOPC = manifiestos.partesRelacionesOPC
 	if usesSHA1(signedInfoXML) {
 		// SHA-1 solo se acepta para leer firmas históricas: nunca como una
 		// validación plena (CAdES/PAdES ya lo rechazan).

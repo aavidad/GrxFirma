@@ -58,10 +58,11 @@ func TestFirmarNodoXAdES_IndiceDeExpedienteENI(t *testing.T) {
 		return res
 	}
 	// La firma ENI cubre el índice; los metadatos del expediente quedan fuera
-	// de la firma por norma, así que la cobertura es parcial y se dice.
-	if res := verificar(exp); res.Integrity.Status != domain.VerificationStatusWarning || res.Coverage != domain.CoberturaParcial ||
-		!bytes.Contains([]byte(strings.Join(res.Details, ";")), []byte("metadatosExp")) {
-		t.Fatalf("la firma del índice debe verificarse con cobertura parcial: %+v %s", res.Integrity, res.Coverage)
+	// de la firma por norma: es válida, con un aviso que dice qué queda fuera.
+	if res := verificar(exp); !res.Valid || res.Integrity.Status != domain.VerificationStatusValid || res.Coverage != domain.CoberturaCompleta ||
+		!strings.Contains(strings.Join(res.Details, ";"), "fuera_de_firma_por_formato=") || !strings.Contains(strings.Join(res.Details, ";"), "metadatosExp") ||
+		!strings.Contains(strings.Join(res.Warnings, ";"), motivoFueraDeFirmaPorFormato) {
+		t.Fatalf("la firma del índice debe verificarse con aviso de metadatos fuera: valid=%v %+v %s %v", res.Valid, res.Integrity, res.Coverage, res.Warnings)
 	}
 	// Cambiar la huella de un documento en el índice invalida la firma.
 	manipulado := bytes.Replace(exp, []byte("<eniconexpind:OrdenDocumentoExpediente>2<"), []byte("<eniconexpind:OrdenDocumentoExpediente>3<"), 1)

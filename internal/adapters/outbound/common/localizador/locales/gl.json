@@ -884,6 +884,7 @@
   "Firma inválida o integridad no garantizada.": "Sinatura non válida ou integridade non garantida.",
   "La firma es correcta, pero parte del contenido del documento no está firmado.": "A sinatura é correcta, pero parte do contido do documento non está asinado.",
   "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "Non se puido comprobar todo o que cobre a sinatura, así que non se dá por válida.",
+  "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "A sinatura é válida, aínda que non cobre algúns metadatos do documento porque o seu formato os deixa fóra. No detalle indícase cales.",
   "Firma múltiple completada (": "Sinatura múltiple completada (",
   "Firma múltiple completada con incidencias (": "Sinatura múltiple completada con incidencias (",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",

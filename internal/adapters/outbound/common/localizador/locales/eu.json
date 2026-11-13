@@ -884,6 +884,7 @@
   "Firma inválida o integridad no garantizada.": "Sinadura baliogabea edo osotasuna ez dago bermatuta.",
   "La firma es correcta, pero parte del contenido del documento no está firmado.": "Sinadura zuzena da, baina dokumentuaren edukiaren zati bat ez dago sinatuta.",
   "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "Ezin izan da egiaztatu sinadurak estaltzen duen guztia; beraz, ez da baliozkotzat jotzen.",
+  "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "Sinadura baliozkoa da, baina ez ditu dokumentuaren metadatu batzuk estaltzen, formatuak kanpoan uzten dituelako. Xehetasunetan adierazten da zein diren.",
   "Firma múltiple completada (": "Sinadura anizkoitza amaitu da (",
   "Firma múltiple completada con incidencias (": "Sinadura anizkoitza gorabeherekin amaitu da (",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",
