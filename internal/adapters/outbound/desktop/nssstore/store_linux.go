@@ -328,11 +328,12 @@ func extraerBloquesPEM(data []byte) []byte {
 	return out
 }
 
-// claveLocalDesdePEM usa la primera clave privada del PEM y el certificado
-// con la huella esperada. Pone data a cero al terminar, igual que las copias
-// decodificadas de cada clave. Las claves ya analizadas (rsa/ecdsa.PrivateKey,
-// con big.Int) no se pueden borrar desde Go y viven hasta que las recoja el
-// recolector.
+// claveLocalDesdePEM elige, entre las claves privadas del PEM, la del
+// certificado con la huella esperada. `pk12util -n` exporta todos los pares
+// con ese nickname, que se repite tras renovar un certificado (F-10). Pone
+// data a cero al terminar, igual que las copias decodificadas de cada clave.
+// Las claves ya analizadas (rsa/ecdsa.PrivateKey, con big.Int) no se pueden
+// borrar desde Go y viven hasta que las recoja el recolector.
 func claveLocalDesdePEM(data []byte, esperado domain.CertificateRef) (ports.SigningKey, error) {
 	defer secmem.Zeroize(data)
 	firmantes, err := parsearClavesPrivadasPEM(data)
@@ -343,11 +344,45 @@ func claveLocalDesdePEM(data []byte, esperado domain.CertificateRef) (ports.Sign
 	if err != nil {
 		return nil, err
 	}
-	hoja, cadena, err := seleccionarCertificadoFirmante(certs, firmantes[0], esperado)
-	if err != nil {
-		return nil, err
+	var ultimoErr error
+	for _, firmante := range firmantes {
+		hoja, cadena, err := seleccionarCertificadoFirmante(certs, firmante, esperado)
+		if err != nil {
+			ultimoErr = err
+			continue
+		}
+		return desktopsigner.NuevaClaveLocalConCadena(firmante, hoja, sinCertificadosDeOtrasClaves(cadena, firmantes)), nil
 	}
-	return desktopsigner.NuevaClaveLocalConCadena(firmantes[0], hoja, cadena), nil
+	return nil, ultimoErr
+}
+
+// sinCertificadosDeOtrasClaves quita de la cadena los certificados de las
+// demás claves exportadas: son otros certificados del titular, no emisores.
+func sinCertificadosDeOtrasClaves(cadena []*x509.Certificate, firmantes []crypto.Signer) []*x509.Certificate {
+	if len(firmantes) < 2 {
+		return cadena
+	}
+	publicas := make([][]byte, 0, len(firmantes))
+	for _, firmante := range firmantes {
+		if der, err := x509.MarshalPKIXPublicKey(firmante.Public()); err == nil {
+			publicas = append(publicas, der)
+		}
+	}
+	out := make([]*x509.Certificate, 0, len(cadena))
+	for _, cert := range cadena {
+		der, err := x509.MarshalPKIXPublicKey(cert.PublicKey)
+		propio := false
+		for _, publica := range publicas {
+			if err == nil && bytes.Equal(der, publica) {
+				propio = true
+				break
+			}
+		}
+		if !propio {
+			out = append(out, cert)
+		}
+	}
+	return out
 }
 
 // parsearClavesPrivadasPEM devuelve todas las claves privadas del PEM, en su

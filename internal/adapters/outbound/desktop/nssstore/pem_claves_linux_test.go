@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
 )
 
@@ -71,6 +72,40 @@ func salidaOpenSSL(t *testing.T, pares ...parPrueba) []byte {
 		out.Write(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: par.cert.Raw}))
 	}
 	return out.Bytes()
+}
+
+// F-10: con dos pares del mismo sujeto en el P12 exportado se elige la clave
+// del certificado pedido, no la primera que aparece.
+func TestClaveLocalDesdePEM_EligeLaClaveDelCertificadoPedido(t *testing.T) {
+	t.Parallel()
+	nuevo := parMismoSujeto(t, 30)
+	viejo := parMismoSujeto(t, 10)
+	// pk12util pone primero el más reciente; se pide el otro.
+	datos := extraerBloquesPEM(salidaOpenSSL(t, nuevo, viejo))
+	esperado := domain.CertificateRef{Fingerprint: fingerprintSHA256(viejo.cert)}
+
+	clave, err := claveLocalDesdePEM(datos, esperado)
+	if err != nil {
+		t.Fatalf("claveLocalDesdePEM() con dos pares del mismo sujeto: %v", err)
+	}
+	local, ok := clave.(interface {
+		ToLocalSigningKey() *commonsigner.LocalSigningKey
+	})
+	if !ok {
+		t.Fatalf("la clave NSS no es una clave local: %T", clave)
+	}
+	firma := local.ToLocalSigningKey()
+	if !bytes.Equal(firma.Certificate.Raw, viejo.cert.Raw) {
+		t.Fatal("se asoció otro certificado a la clave")
+	}
+	if pub, ok := firma.Signer.Public().(*rsa.PublicKey); !ok || !pub.Equal(&viejo.clave.PublicKey) {
+		t.Fatal("se devolvió la clave privada del otro certificado")
+	}
+	for _, c := range firma.Chain {
+		if bytes.Equal(c.Raw, nuevo.cert.Raw) {
+			t.Fatal("la cadena incluye el otro certificado del mismo titular")
+		}
+	}
 }
 
 // F-09: el PEM se extrae sobre []byte en un único búfer y claveLocalDesdePEM
