@@ -297,6 +297,11 @@ func declaredReferenceDigest(context xmlSignatureContext, ref referenceForVerify
 	// La exclusión XPath de firmas de Java va tras la canonicalización; se
 	// aplica aparte y no cuenta para el orden de la cadena.
 	excluirFirmas := false
+	// Cadena exacta [C14N, enveloped, XPath de exclusión de firmas].
+	primeraEsC14N := len(ref.Transforms) == 3 &&
+		(strings.TrimSpace(ref.Transforms[0].Algorithm) == algC14N || strings.TrimSpace(ref.Transforms[0].Algorithm) == algExcC14N) &&
+		strings.TrimSpace(ref.Transforms[1].Algorithm) == algEnveloped &&
+		esXPathExcluirFirmas(ref.Transforms[2])
 	sinXPath := make([]algorithmAttr, 0, len(ref.Transforms))
 	for _, transform := range ref.Transforms {
 		if strings.TrimSpace(transform.Algorithm) == algXPathFilter {
@@ -367,6 +372,21 @@ func declaredReferenceDigest(context xmlSignatureContext, ref referenceForVerify
 			filtered.Transforms = append(filtered.Transforms, transform)
 		}
 	}
+	if hasEnveloped && excluirFirmas && primeraEsC14N && strings.HasPrefix(strings.TrimSpace(ref.URI), "#") {
+		// AutoFirma firma su propio KeyInfo con [C14N, enveloped, XPath]. La
+		// C14N inicial produce octetos; según XMLDSig (4.4.3.2) la siguiente
+		// transformación los vuelve a analizar como un documento nuevo cuya
+		// raíz es el elemento referenciado, donde ya no queda la firma que
+		// contenía la transformación. Solo se aplica si el elemento está
+		// dentro de esta firma: fuera de ella el camino de abajo da lo mismo.
+		dentro, err := elementoConIDDentroDe(document, strings.TrimPrefix(strings.TrimSpace(ref.URI), "#"), context.signatureStart, context.signatureEnd)
+		if err != nil {
+			return nil, err
+		}
+		if dentro {
+			return digestTrasReanalizarC14N(document, strings.TrimPrefix(strings.TrimSpace(ref.URI), "#"), ref)
+		}
+	}
 	if hasEnveloped {
 		start, end := context.signatureStart, context.signatureEnd
 		if start < 0 || end <= start || end > int64(len(document)) {
@@ -385,6 +405,70 @@ func declaredReferenceDigest(context xmlSignatureContext, ref referenceForVerify
 		return digestExcluyendoFirmas(sinFirmas, filtered)
 	}
 	return computeContextualReferenceDigest(document, filtered)
+}
+
+// elementoConIDDentroDe dice si el único elemento con ese Id está dentro del
+// rango [inicio, fin) del documento (la firma que se verifica).
+func elementoConIDDentroDe(document []byte, id string, inicio, fin int64) (bool, error) {
+	decoder := xml.NewDecoder(bytes.NewReader(document))
+	encontrado := false
+	dentro := false
+	for {
+		offset := decoder.InputOffset()
+		token, err := decoder.Token()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return false, err
+		}
+		element, ok := token.(xml.StartElement)
+		if !ok {
+			continue
+		}
+		for _, attribute := range element.Attr {
+			if strings.EqualFold(attribute.Name.Local, "Id") && attribute.Value == id {
+				if encontrado {
+					return false, errors.New("referencia interna sin identidad única en el documento original")
+				}
+				encontrado = true
+				dentro = offset > inicio && offset < fin
+			}
+		}
+	}
+	if !encontrado {
+		return false, errors.New("referencia interna no encontrada")
+	}
+	return dentro, nil
+}
+
+// digestTrasReanalizarC14N: C14N del elemento en su contexto (octetos), nuevo
+// documento con esos octetos, exclusión de las firmas que contenga (XPath de
+// AutoFirma) y C14N inclusiva final.
+func digestTrasReanalizarC14N(document []byte, id string, ref referenceForVerify) ([]byte, error) {
+	primera := algC14N
+	for _, transform := range ref.Transforms {
+		if a := strings.TrimSpace(transform.Algorithm); a == algC14N || a == algExcC14N {
+			primera = a
+			break
+		}
+	}
+	octetos, err := canonicalizeElementByIDInDocument(document, id, primera)
+	if err != nil {
+		return nil, err
+	}
+	sinFirmas, err := quitarTodasLasFirmas(octetos)
+	if err != nil {
+		return nil, err
+	}
+	if len(bytes.TrimSpace(sinFirmas)) == 0 {
+		return nil, errors.New("la referencia interna es una firma completa")
+	}
+	canonical, err := canonicalizeXML(sinFirmas, algC14N)
+	if err != nil {
+		return nil, err
+	}
+	return digestXML(ref.DigestMethod.Algorithm, canonical)
 }
 
 // digestExcluyendoFirmas aplica la semántica XMLDSig de la cadena de Java
