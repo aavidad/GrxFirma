@@ -448,7 +448,9 @@ func handleProtocolRequestWithGraceConDependencias(
 	p12Password := os.Getenv("GRXFIRMA_PKCS12_PASSWORD")
 
 	if req, err := parseWebSocketLaunchURI(rawURI); err == nil {
-		if !cfg.PermiteWebSocket() {
+		// A-07: manda la configuración; sin websocket_habilitado no se abre
+		// el puerto aunque la web lo pida.
+		if !cfg.PermiteWebSocket() || !cfg.WebsocketHabilitado {
 			writeErrorToLog(logger, ctx, "websocket_policy", errors.New("WebSocket deshabilitado por configuración o política"))
 			return 1
 		}
@@ -457,6 +459,12 @@ func handleProtocolRequestWithGraceConDependencias(
 		return handleWebSocketLaunchRequest(ctx, logger, timer, probe, configDir, cfg, p12Dir, p12Password, exePath, req)
 	}
 	if req, err := parseServiceLaunchURI(rawURI); err == nil {
+		// A-07: el modo service también abre un puerto local; manda la misma
+		// configuración que en websocket.
+		if !cfg.PermiteWebSocket() || !cfg.WebsocketHabilitado {
+			writeErrorToLog(logger, ctx, "websocket_policy", errors.New("WebSocket deshabilitado por configuración o política"))
+			return 1
+		}
 		setProtocolPhase("channel_prepare", tl("Preparando servicio local..."), tl("Configurando el canal de compatibilidad"))
 		timer.Mark("launch_uri_parsed", "mode", "service", "session_id", maskSessionForLog(req.SessionID))
 		return handleServiceLaunchRequest(ctx, logger, timer, probe, configDir, cfg, p12Dir, p12Password, exePath, req)
@@ -681,7 +689,6 @@ func handleWebSocketLaunchRequest(
 	defer cleanupControl()
 	timer.Mark("websocket_launch_control_ready")
 
-	cfg.WebsocketHabilitado = true
 	srv, err := legacyws.StartTLSServerOnPortsWithHooks(
 		serviceCtx,
 		cfg,

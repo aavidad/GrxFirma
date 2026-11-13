@@ -29,8 +29,8 @@ todos los usuarios del equipo (por ejemplo, en servidores de escritorio remoto).
 | `allowed_domains` | `REG_MULTI_SZ` | Orígenes permitidos sin preguntar (equivale a `allowed-domains.json`). |
 | `dominios_de_confianza` | `REG_MULTI_SZ` | Dominios adicionales de confianza. |
 | `tofu_habilitado` | `REG_DWORD` | `0` rechaza, sin diálogo, cualquier origen fuera de la lista. |
-| `websocket_habilitado` | `REG_DWORD` | `1` mantiene un servicio WebSocket residente. Sin él, las sedes solo pueden abrir por `afirma://` un canal temporal que se cierra al terminar cada operación. |
-| `websocket_permitido` | `REG_DWORD` | `0` impide todo WebSocket local, incluso el canal temporal de `afirma://`; `1` o ausencia permite los canales temporales y, si se habilita aparte, el servicio residente. Prevalece sobre `websocket_habilitado` y el ajuste del usuario. |
+| `websocket_habilitado` | `REG_DWORD` | `1` permite el WebSocket local: el servicio residente y los canales temporales que una sede abre con `afirma://websocket` o `afirma://service`. Con `0` no se abre ningún puerto. |
+| `websocket_permitido` | `REG_DWORD` | `0` impide todo WebSocket local, incluso el canal temporal de `afirma://`; `1` o ausencia deja la decisión a `websocket_habilitado`. Prevalece sobre `websocket_habilitado` y el ajuste del usuario. |
 | `rest_habilitado` | `REG_DWORD` | `1` activa el servicio REST local; `0` lo impide aunque el usuario lo active. |
 | `nivel_log`, `directorio_p12` | `REG_SZ` | Igual que en `policy.json`. |
 | `timeout_operacion_segundos`, `max_tamano_documento_bytes` | `REG_DWORD` / `REG_QWORD` | Límites operativos. |

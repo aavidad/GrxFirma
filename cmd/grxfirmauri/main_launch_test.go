@@ -6,9 +6,11 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
+	"grxfirma/internal/adapters/outbound/common/config"
 )
 
 func TestParseWebSocketLaunchURI(t *testing.T) {
@@ -69,6 +71,20 @@ func TestParseWebSocketLaunchURIUnsupportedVersion(t *testing.T) {
 func TestParseWebSocketLaunchURI_SinIdsessionFalla(t *testing.T) {
 	if _, err := parseWebSocketLaunchURI("afirma://websocket?v=4"); err == nil {
 		t.Fatal("un lanzamiento websocket sin idsession debía rechazarse")
+	}
+}
+
+// A-07: con websocket_habilitado=false el residente no abre el puerto.
+func TestDispatchResidentLaunch_RespetaWebsocketHabilitado(t *testing.T) {
+	cfg := config.Default()
+	cfg.WebsocketHabilitado = false
+	for _, uri := range []string{
+		"afirma://websocket?ports=63117&idsession=abc&v=4",
+		"afirma://service?ports=63117&idsession=abc&v=3",
+	} {
+		if err := dispatchResidentLaunch(context.Background(), nil, t.TempDir(), cfg, nil, uri); err == nil {
+			t.Fatalf("%s: se esperaba rechazo por configuración", uri)
+		}
 	}
 }
 
