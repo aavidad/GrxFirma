@@ -15,6 +15,7 @@ import (
 	"strings"
 	"unicode"
 
+	"grxfirma/internal/adapters/outbound/common/anidamientoasn1"
 	"grxfirma/internal/domain"
 )
 
@@ -646,6 +647,13 @@ func isPDFNameChar(r rune) bool {
 }
 
 func normalizeBERToDER(data []byte) ([]byte, error) {
+	// E2-05: decodeTLV es recursivo; un anidamiento de millones de niveles
+	// agota la pila y eso no lo para ningún recover. Se corta antes.
+	// Solo se mira la profundidad: el relleno de ceros de /Contents y el resto
+	// de defectos de forma los sigue decidiendo decodeTLV.
+	if err := anidamientoasn1.Comprobar(data, anidamientoasn1.MaxProfundidad); errors.Is(err, anidamientoasn1.ErrDemasiadoProfundo) {
+		return nil, fmt.Errorf("CMS de la firma PDF no admitido: %w", err)
+	}
 	value, offset, err := decodeTLV(data, 0)
 	if err != nil {
 		return nil, err
