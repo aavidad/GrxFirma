@@ -421,6 +421,20 @@
                                     AutomationProperties.LiveSetting="Polite"
                                     Text="{x:Bind ViewModel.UnprotectResultMessage, Mode=OneWay}"
                                     TextWrapping="Wrap" />
+                                <StackPanel
+                                    x:Name="UnprotectWarningPanel"
+                                    x:Load="{x:Bind ViewModel.HasUnprotectWarning, Mode=OneWay}"
+                                    Spacing="4">
+                                    <TextBlock
+                                        AutomationProperties.HeadingLevel="Level4"
+                                        FontWeight="SemiBold"
+                                        Text="Advertencias"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        AutomationProperties.LiveSetting="Assertive"
+                                        Text="{x:Bind ViewModel.UnprotectWarningMessage, Mode=OneWay}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
                                 <Button MinHeight="40"
                                     x:Name="UnprotectResultButton"
                                     HorizontalAlignment="Stretch"

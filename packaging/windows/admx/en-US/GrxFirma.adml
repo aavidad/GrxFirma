@@ -58,8 +58,10 @@ Disabled or not configured: the REST service is off (default), even if the user 
       <string id="TimeoutOperacion_Help">Maximum time, in seconds, a signing operation may take before it is cancelled. Default: 30 seconds.</string>
       <string id="MaxTamanoDocumento">Maximum document size</string>
       <string id="MaxTamanoDocumento_Help">Maximum size, in bytes, of a document that can be signed. Default: 52428800 (50 MiB).</string>
-      <string id="PermitirDESLegacy">Allow legacy DES: intermediate server without HTTPS and DES or 3DES CMS envelopes</string>
-      <string id="PermitirDESLegacy_Help">LOWERS SECURITY. Without this policy, the AutoFirma 1.x DES session package (FIRe and AutoScript intermediate server) is only accepted when every server in the exchange uses HTTPS, and the user is told why. Enabling it also allows servers without HTTPS, such as a local test server. It also lets GrxFirma open CMS envelopes (EnvelopedData or EncryptedData) encrypted with DES or 3DES; without it they are rejected. DES is never used to sign.</string>
+      <string id="ProhibirCifradoCMSHeredado">Prohibit CMS envelopes with old ciphers</string>
+      <string id="ProhibirCifradoCMSHeredado_Help">If enabled, GrxFirma does not open CMS envelopes encrypted with DES, 3DES, AES-ECB, OFB, CFB, RC2 or other old algorithms. If not configured, it opens them and warns the user that the file uses an old cipher.</string>
+      <string id="PermitirDESLegacy">Allow legacy DES: intermediate server without HTTPS</string>
+      <string id="PermitirDESLegacy_Help">LOWERS SECURITY. Without this policy, the AutoFirma 1.x DES session package (FIRe and AutoScript intermediate server) is only accepted when every server in the exchange uses HTTPS, and the user is told why. Enabling it also allows servers without HTTPS, such as a local test server. CMS envelopes (EnvelopedData or EncryptedData) with DES or 3DES do not depend on this policy: they always open with a warning, unless "Prohibit CMS envelopes with old ciphers" is enabled. DES is never used to sign.</string>
       <string id="PermitirSHA1Legacy">Allow SHA-1 signatures</string>
       <string id="PermitirSHA1Legacy_Help">LOWERS SECURITY. Without this policy, signatures requested with SHA-1 are created with SHA-256 and the user is told why. Enabling it allows SHA-1 signatures for legacy portals that accept nothing else.</string>
       <string id="PermitirCMSAESECBLegacy">Allow AutoFirma 1.9 AES-ECB CMS envelopes</string>

@@ -943,6 +943,37 @@ func TestRoutes_Unprotect(t *testing.T) {
 	}
 }
 
+// Los avisos del resultado (compatibilidad con algo antiguo) llegan al cliente
+// REST; sin avisos el campo no aparece.
+func TestRoutes_UnprotectDevuelveLosAvisos(t *testing.T) {
+	aviso := "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual."
+	body := map[string]any{
+		"name":           "secreto.txt.p7m",
+		"content_base64": base64.StdEncoding.EncodeToString([]byte("cms")),
+		"mime_type":      domain.MIMETypeProtectedCMS,
+	}
+	con := &unprotectUseCaseMock{avisos: []string{aviso}}
+	rr := doJSON(t, nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(nil, con, nil).Routes(), http.MethodPost, "/unprotect", body)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
+	}
+	var resp struct {
+		Warnings []string `json:"warnings"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.Warnings) != 1 || resp.Warnings[0] == "" {
+		t.Fatalf("faltan los avisos en la respuesta: %s", rr.Body.String())
+	}
+
+	sin := &unprotectUseCaseMock{}
+	rr = doJSON(t, nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(nil, sin, nil).Routes(), http.MethodPost, "/unprotect", body)
+	if strings.Contains(rr.Body.String(), "warnings") {
+		t.Fatalf("sin avisos no debe haber campo warnings: %s", rr.Body.String())
+	}
+}
+
 func TestRoutes_ProtectEncryptedDataWithoutRecipients(t *testing.T) {
 	mock := &protectUseCaseMock{}
 	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(mock, nil, nil)
@@ -3496,6 +3527,7 @@ func (m *protectAndSignUseCaseMock) Execute(_ context.Context, cmd application.P
 
 type unprotectUseCaseMock struct {
 	lastCmd application.UnprotectCommand
+	avisos  []string
 }
 
 func (m *unprotectUseCaseMock) Execute(_ context.Context, cmd application.UnprotectCommand) (application.UnprotectResult, error) {
@@ -3509,6 +3541,7 @@ func (m *unprotectUseCaseMock) Execute(_ context.Context, cmd application.Unprot
 			Document:    plainDoc,
 			Profile:     domain.ProtectionProfileCompat,
 			RecipientID: "dest-1",
+			Avisos:      m.avisos,
 		},
 	}, nil
 }

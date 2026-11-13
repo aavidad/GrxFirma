@@ -288,8 +288,11 @@ Compatibilidad heredada, solo cuando el portal la exija y **solo mediante la
 política de máquina** (las variables de entorno antiguas ya no tienen efecto;
 véase [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md)):
 
-- `permitir_des_legacy`: habilita el formato de sesión DES de V1.9 y la
-  lectura de sobres CMS `EnvelopedData`/`EncryptedData` cifrados con DES o 3DES.
+- `permitir_des_legacy`: habilita el formato de sesión DES de V1.9. Los sobres
+  CMS `EnvelopedData`/`EncryptedData` con DES, 3DES u otro cifrado antiguo se
+  descifran siempre con aviso.
+- `prohibir_cifrado_cms_heredado`: impide descifrar esos sobres CMS con
+  cifrados antiguos.
 - `permitir_sha1_legacy`: habilita generación de firmas SHA-1.
 - `permitir_rutas_directas_protocolo`: permite rutas absolutas entregadas
   por el portal en `load`, `save` y `signandsave`.

@@ -109,6 +109,14 @@
       </elements>
     </policy>
 
+    <!-- Restricción: no rebaja la seguridad, la sube -->
+    <policy name="ProhibirCifradoCMSHeredado" class="Machine" displayName="$(string.ProhibirCifradoCMSHeredado)" explainText="$(string.ProhibirCifradoCMSHeredado_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="prohibir_cifrado_cms_heredado">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+
     <!-- Excepciones de compatibilidad: rebajan la seguridad -->
     <policy name="PermitirDESLegacy" class="Machine" displayName="$(string.PermitirDESLegacy)" explainText="$(string.PermitirDESLegacy_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_des_legacy">
       <parentCategory ref="Compatibilidad" />

@@ -59,7 +59,7 @@ func TestPlantillaADMXCoherente(t *testing.T) {
 		AllowedDomains, WebsocketHabilitado, WebsocketPermitido, RestHabilitado, TofuHabilitado, DirectorioP12,
 		DominiosDeConfianza, NivelLog, TimeoutOperacionSegundos, MaxTamanoDocumentoBytes,
 		PermitirOrigenVacio, PermitirDESLegacy, PermitirRutasDirectas, AprobacionAutomaticaHost,
-		PermitirSHA1Legacy, PermitirCMSAESECBLegacy, TSAPermitidas,
+		PermitirSHA1Legacy, PermitirCMSAESECBLegacy, ProhibirCifradoCMSHeredado, TSAPermitidas,
 	}
 	for _, v := range esperados {
 		if !cubiertos[v] {

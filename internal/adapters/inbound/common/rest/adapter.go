@@ -667,6 +667,9 @@ type unprotectResponse struct {
 	MIMEType                 string `json:"mime_type,omitempty"`
 	UnprotectedContentBase64 string `json:"unprotected_content_base64,omitempty"`
 	OutputPath               string `json:"outputPath,omitempty"`
+	// Warnings son avisos para la persona cuando el contenedor se ha abierto
+	// por compatibilidad con algo antiguo (ya traducidos al idioma de la petición).
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type protectionRecipientEntryResponse struct {
@@ -1383,7 +1386,17 @@ func (a *Adaptador) handleUnprotect(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	var avisos []string
+	traducir := a.tForLocale(a.requestLocale(r))
+	for _, aviso := range result.Unprotected.Avisos {
+		if texto := traducir(aviso); texto != "" {
+			avisos = append(avisos, texto)
+		} else {
+			avisos = append(avisos, aviso)
+		}
+	}
 	writeJSON(w, http.StatusOK, unprotectResponse{
+		Warnings:                 avisos,
 		OK:                       true,
 		Profile:                  string(result.Unprotected.Profile),
 		RecipientID:              result.Unprotected.RecipientID,

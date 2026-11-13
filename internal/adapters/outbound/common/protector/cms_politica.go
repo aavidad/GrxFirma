@@ -65,10 +65,6 @@ func comprobarAnidamientoCMS(data []byte) error {
 	return nil
 }
 
-// politicaProhibirCifradoCMSHeredado es el valor de la política de máquina
-// con el que un administrador impide descifrar CMS con un cifrado heredado.
-const politicaProhibirCifradoCMSHeredado = "prohibir_cifrado_cms_heredado"
-
 // Aviso visible (clave de los catálogos) y prefijo del detalle de auditoría
 // cuando se descifra un CMS con un cifrado heredado.
 const (
@@ -119,8 +115,8 @@ func validarAlgoritmosCMS(data []byte) (heredado asn1.ObjectIdentifier, err erro
 	if !cifradoCMSConocido(cifrado) {
 		return nil, fmt.Errorf("algoritmo de cifrado CMS no permitido: %s", cifrado.Algorithm)
 	}
-	if machinepolicy.OptIn(politicaProhibirCifradoCMSHeredado) {
-		return nil, fmt.Errorf("cifrado CMS heredado %s: lo prohibe la politica de maquina %s", cifrado.Algorithm, politicaProhibirCifradoCMSHeredado)
+	if machinepolicy.OptIn(machinepolicy.ProhibirCifradoCMSHeredado) {
+		return nil, fmt.Errorf("cifrado CMS heredado %s: lo prohibe la politica de maquina %s", cifrado.Algorithm, machinepolicy.ProhibirCifradoCMSHeredado)
 	}
 	return cifrado.Algorithm, nil
 }
