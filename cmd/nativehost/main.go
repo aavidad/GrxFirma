@@ -164,7 +164,9 @@ type relojReal struct{}
 func (r relojReal) Now() time.Time { return time.Now() }
 
 func construirMotorFirmaConHTTP(httpClient *http.Client) *deskSigner.MotorFirmaGo {
-	motor := deskSigner.NuevoMotorFirmaGo(relojReal{})
+	// La tsaURL llega de una página web: TSA interna rechazada salvo que esté
+	// en la lista tsa_permitidas de la política de máquina (lote 13a).
+	motor := deskSigner.NuevoMotorFirmaGo(relojReal{}).ConTSAPermitidas(config.TSAPermitidasDeMaquina())
 	if tsaURL := strings.TrimSpace(os.Getenv("GRXFIRMA_TSA_URL")); tsaURL != "" {
 		tsa := tsaclient.New(tsaURL)
 		tsa.HTTPClient = httpClient

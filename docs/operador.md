@@ -138,6 +138,19 @@ En Windows la política se lee **exclusivamente** de
 `C:\etc`. Se aplica con mayor precedencia que el fichero de usuario. Valores y
 ejemplos: [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md).
 
+### TSA interna indicada en la petición
+
+Si el organismo usa una TSA en su red interna y la pasa como opción `tsaURL`:
+
+- por la CLI y la interfaz de escritorio funciona sin más;
+- por REST funciona y el registro anota `tsa_opciones_red_local` con el host;
+- por `afirma://`, WebSocket o el host nativo, donde la opción la pone una
+  página web, solo funciona si la TSA está en `tsa_permitidas` de la política
+  de máquina.
+
+Si `tsa_permitidas` está definida, REST solo admite las TSA de esa lista.
+Detalle en [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md#tsa-indicada-en-la-petición-tsa_permitidas).
+
 ### Allowlist del sistema y TOFU
 
 Ruta de allowlist del sistema usada por `TrustPolicy`:

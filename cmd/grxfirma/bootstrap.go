@@ -142,6 +142,10 @@ type serviciosGrxFirma struct {
 	exportarProteccion *application.ExportProtectionRecipientUseCase
 	importarProteccion *application.ImportProtectionRecipientUseCase
 	proteccion         *protector.LocalCombinedKeyring
+	// motor y tsaPermitidas permiten al servidor REST fijar su modo de TSA de
+	// opciones (lote 13a) después de construir los servicios.
+	motor         *deskSigner.MotorFirmaGo
+	tsaPermitidas []string
 }
 
 func construirMotorFirmaConHTTP(httpClient *http.Client) *deskSigner.MotorFirmaGo {
@@ -153,6 +157,16 @@ func construirMotorFirmaConHTTP(httpClient *http.Client) *deskSigner.MotorFirmaG
 	}
 	motor.WithRevocationProvider(revocationclient.NewWithHTTPClient(httpClient))
 	return motor
+}
+
+// configurarTSAOpcionesREST fija el modo de TSA de opciones del servidor REST
+// (lote 13a): una TSA interna se admite con aviso en el registro y, si la
+// política de máquina define tsa_permitidas, solo valen las de la lista.
+func configurarTSAOpcionesREST(servicios *serviciosGrxFirma) {
+	if servicios == nil || servicios.motor == nil {
+		return
+	}
+	servicios.motor.AvisarTSADeOpcionesEnRedLocal().ConTSAPermitidas(servicios.tsaPermitidas)
 }
 
 func cargarDirectorioP12(dir, password string, metricas ports.OperationMetrics) ([]entradaCert, error) {
@@ -328,7 +342,11 @@ func construirServicios(rutaP12, password, rutaCert, rutaClave string) (*servici
 	}
 
 	httpClient := proxyhttp.New(configDir)
-	motor := construirMotorFirmaConHTTP(httpClient)
+	// Lote 13a (retrocompatibilidad, revisa E1-12): en la CLI y en el
+	// escritorio la tsaURL la teclea o la elige el propio usuario, así que
+	// vale una TSA interna sin más. El servidor REST cambia este modo en
+	// runRESTServer (aviso en el registro y lista de la política).
+	motor := construirMotorFirmaConHTTP(httpClient).PermitirTSADeOpcionesEnRedLocal()
 	registradorAuditoria, err := auditlog.NewDefault()
 	if err != nil {
 		return nil, err
@@ -387,6 +405,8 @@ func construirServicios(rutaP12, password, rutaCert, rutaClave string) (*servici
 		exportarProteccion: ucExportarProteccion,
 		importarProteccion: ucImportarProteccion,
 		proteccion:         keyringProteccion,
+		motor:              motor,
+		tsaPermitidas:      cfg.TSAPermitidas,
 	}, nil
 }
 

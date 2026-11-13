@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"grxfirma/internal/adapters/outbound/common/revocationclient"
 	"grxfirma/internal/adapters/outbound/common/tsaclient"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
@@ -27,28 +26,18 @@ type MotorFirmaGo struct {
 	reloj      ports.Clock
 	tsa        ports.TimestampAuthority
 	revocation ports.RevocationProvider
-	// tsaOpcionesRedLocal permite que la tsaURL recibida en las opciones del
-	// trabajo apunte a loopback o a redes privadas. Por defecto no: esas
-	// opciones pueden venir de una página web (afirma://, WebSocket,
-	// Native Messaging o REST).
-	tsaOpcionesRedLocal bool
+	// tsaOpciones decide qué destinos admite la tsaURL recibida en las
+	// opciones del trabajo (véase tsa_opciones.go). Por defecto, los de los
+	// caminos web: sin loopback ni redes privadas salvo las de la lista.
+	tsaOpciones modoTSAOpciones
+	// tsaPermitidas son los orígenes de la lista de la política de máquina;
+	// nil si la lista no está definida.
+	tsaPermitidas map[string]struct{}
 }
 
 // NuevoMotorFirmaGo crea un MotorFirmaGo.
 func NuevoMotorFirmaGo(reloj ports.Clock) *MotorFirmaGo {
 	return &MotorFirmaGo{reloj: reloj}
-}
-
-// PermitirTSADeOpcionesEnRedLocal deja que la tsaURL de las opciones apunte a
-// la red local. Solo para superficies en las que las opciones las fija el
-// propio usuario del equipo (la interfaz de escritorio y sus ajustes), nunca
-// para las que reciben peticiones de páginas web.
-func (m *MotorFirmaGo) PermitirTSADeOpcionesEnRedLocal() *MotorFirmaGo {
-	if m == nil {
-		return nil
-	}
-	m.tsaOpcionesRedLocal = true
-	return m
 }
 
 // WithTimestampAuthority inyecta una TSA para soportar perfiles T cuando el
@@ -220,12 +209,7 @@ func (m *MotorFirmaGo) resolverTSA(options map[string]string) ports.TimestampAut
 				client = &copia
 			}
 		}
-		// La URL viene de la petición, no de la administración del equipo:
-		// mismos destinos permitidos que OCSP, CRL y AIA (sin loopback, redes
-		// privadas ni enlace local, comprobado al resolver y al conectar).
-		if m == nil || !m.tsaOpcionesRedLocal {
-			client.HTTPClient = revocationclient.ProtegerClienteHTTP(client.HTTPClient)
-		}
+		client.HTTPClient = m.clienteHTTPTSAOpciones(tsaURL, client.HTTPClient)
 		return client
 	}
 	if m == nil {

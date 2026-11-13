@@ -53,6 +53,12 @@ type Config struct {
 	// Límites operativos
 	TimeoutOperacionSegundos int   `json:"timeout_operacion_segundos"`
 	MaxTamanoDocumentoBytes  int64 `json:"max_tamano_documento_bytes"`
+
+	// TSAPermitidas es la lista de TSA que una petición puede pedir en sus
+	// opciones (tsaURL). Solo la fija la política de máquina, nunca el
+	// fichero del usuario: nil si no está definida. Véase
+	// docs/POLITICA_MAQUINA.md.
+	TSAPermitidas []string `json:"-"`
 }
 
 // Policy representa únicamente los overrides definidos explícitamente en
@@ -68,6 +74,7 @@ type Policy struct {
 	NivelLog                 *string  `json:"nivel_log"`
 	TimeoutOperacionSegundos *int     `json:"timeout_operacion_segundos"`
 	MaxTamanoDocumentoBytes  *int64   `json:"max_tamano_documento_bytes"`
+	TSAPermitidas            []string `json:"tsa_permitidas"`
 
 	// Control de lectura (no forman parte del JSON). ilegible indica que la
 	// política existe pero no se pudo leer ni interpretar; invalidos, los
@@ -125,6 +132,26 @@ func LoadWithPolicyDir(userConfigDir, policyDir string) (Config, error) {
 	return cfg, nil
 }
 
+// TSAPermitidasDeMaquina devuelve la lista de TSA permitidas de la política
+// de máquina del sistema (nil si no está definida), sin leer ni crear el
+// fichero del usuario. La usan los binarios que atienden a páginas web.
+func TSAPermitidasDeMaquina() []string {
+	var cfg Config
+	raw, err := loadSystemPolicy(DirPolicyDefecto)
+	if err != nil {
+		slog.Warn("la política de máquina tiene errores; se revisa la lista de TSA permitidas", "error", err)
+	}
+	if raw.TSAPermitidas != nil {
+		cfg.TSAPermitidas = append([]string{}, raw.TSAPermitidas...)
+	}
+	for _, nombre := range raw.invalidos {
+		if nombre == machinepolicy.TSAPermitidas {
+			cfg.TSAPermitidas = []string{}
+		}
+	}
+	return cfg.TSAPermitidas
+}
+
 // LoadPolicy carga el contenido bruto de policy.json sin mezclarlo con config
 // del usuario ni variables de entorno. Si el fichero no existe, devuelve una
 // política vacía y nil.
@@ -176,6 +203,11 @@ func loadMachinePolicy() (Policy, error) {
 		fallo(machinepolicy.DominiosDeConfianza, err)
 	} else if ok {
 		p.DominiosDeConfianza = v
+	}
+	if v, ok, err := machinepolicy.Strings(machinepolicy.TSAPermitidas); err != nil {
+		fallo(machinepolicy.TSAPermitidas, err)
+	} else if ok {
+		p.TSAPermitidas = append([]string{}, v...)
 	}
 	if v, ok, err := machinepolicy.Int64(machinepolicy.TimeoutOperacionSegundos); err != nil {
 		fallo(machinepolicy.TimeoutOperacionSegundos, err)
@@ -314,6 +346,12 @@ func loadPolicyFile(path string) (Policy, error) {
 	campoPolicy(campos, machinepolicy.NivelLog, &raw, &errs, func(v *string) { raw.NivelLog = v })
 	campoPolicy(campos, machinepolicy.TimeoutOperacionSegundos, &raw, &errs, func(v *int) { raw.TimeoutOperacionSegundos = v })
 	campoPolicy(campos, machinepolicy.MaxTamanoDocumentoBytes, &raw, &errs, func(v *int64) { raw.MaxTamanoDocumentoBytes = v })
+	campoPolicy(campos, machinepolicy.TSAPermitidas, &raw, &errs, func(v []string) {
+		if v == nil {
+			v = []string{}
+		}
+		raw.TSAPermitidas = v
+	})
 	if len(errs) > 0 {
 		return raw, fmt.Errorf("%s: %w", path, errors.Join(errs...))
 	}
@@ -363,6 +401,9 @@ func aplicarPolicyCargada(cfg *Config, raw Policy, err error) {
 	if raw.MaxTamanoDocumentoBytes != nil {
 		cfg.MaxTamanoDocumentoBytes = *raw.MaxTamanoDocumentoBytes
 	}
+	if raw.TSAPermitidas != nil {
+		cfg.TSAPermitidas = append([]string{}, raw.TSAPermitidas...)
+	}
 	cerrarPolicyInvalida(cfg, raw)
 }
 
@@ -386,6 +427,10 @@ func cerrarPolicyInvalida(cfg *Config, raw Policy) {
 		case machinepolicy.TofuHabilitado, machinepolicy.DominiosDeConfianza:
 			// Sin lista de dominios fiable no se amplía la confianza a mano.
 			cfg.TofuHabilitado = false
+		case machinepolicy.TSAPermitidas:
+			// Una lista de TSA ilegible cuenta como definida y vacía: REST no
+			// admite TSA de opciones y los caminos web no exceptúan ninguna.
+			cfg.TSAPermitidas = []string{}
 		}
 	}
 }
