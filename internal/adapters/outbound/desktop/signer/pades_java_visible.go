@@ -287,6 +287,11 @@ func imagenesJava(options map[string]string, pdfData []byte) ([]pdfsign.StampIma
 	if err != nil {
 		return nil, fmt.Errorf("imagen a estampar no válida: %w", err)
 	}
+	// La imagen la manda el portal: se miran sus dimensiones antes de que el
+	// motor la decodifique, una vez por página (E2-04).
+	if err := validarCabeceraImagenSello(img); err != nil {
+		return nil, err
+	}
 	var rect [4]float64
 	for i, clave := range []string{"imagePositionOnPageLowerLeftX", "imagePositionOnPageLowerLeftY", "imagePositionOnPageUpperRightX", "imagePositionOnPageUpperRightY"} {
 		v, err := strconv.ParseFloat(strings.TrimSpace(valorOpcion(options, clave)), 64)

@@ -344,3 +344,6 @@ marcados en el código con `AutoFirmaV2`:
 - `findFirstPage` y `findPageByNumber` recorren cada nodo `/Pages` una sola
   vez y devuelven error ante un árbol de páginas en ciclo, que antes agotaba
   la pila (hallazgo E2-03).
+- `createImageXObject` lee la cabecera de la imagen del sello antes de
+  decodificarla y rechaza las de más de 8192 píxeles por lado o más de
+  16 Mpx, el mismo límite que aplica la aplicación (hallazgo E2-04).
