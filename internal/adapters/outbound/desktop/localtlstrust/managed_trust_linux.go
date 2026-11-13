@@ -216,7 +216,7 @@ func (i *instaladorNSS) managedNSSEntryMatches(ctx context.Context, entry manage
 	if err != nil || cert == nil {
 		return false, err
 	}
-	return IsManagedLocalCA(cert) && fingerprintSHA256(cert) == entry.Fingerprint, nil
+	return IsManagedLocalCAOwned(cert) && fingerprintSHA256(cert) == entry.Fingerprint, nil
 }
 
 func (i *instaladorNSS) ejecutarManaged(ctx context.Context, args ...string) error {

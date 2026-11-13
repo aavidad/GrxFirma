@@ -36,6 +36,9 @@ func SaveManagedCAKey(path string, keyDER []byte) error {
 		return err
 	}
 	defer clearManagedCABytes(protected)
+	if err := retireManagedCAKeyFile(path); err != nil {
+		return err
+	}
 	if err := securefile.WriteFileAtomic(path, protected, 0o600); err != nil {
 		return fmt.Errorf("localtlstrust: guardar clave CA: %w", err)
 	}
@@ -72,6 +75,25 @@ func LoadManagedCAKey(path string) ([]byte, error) {
 		return nil, errors.New("localtlstrust: tamaño de clave CA inválido")
 	}
 	return key, nil
+}
+
+// retireManagedCAKeyFile retira una clave de CA anterior: olvida su clave de
+// cifrado en el almacén del sistema y sobrescribe el fichero antes de
+// borrarlo, por si era una clave anterior guardada sin cifrar.
+func retireManagedCAKeyFile(path string) error {
+	previous, err := securefile.ReadFileLimit(path, maxManagedCAKeyBytes*2)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("localtlstrust: leer clave CA anterior: %w", err)
+	}
+	forgetManagedCAKeyProtection(previous)
+	clearManagedCABytes(previous)
+	if err := securefile.RemoveSensitiveFile(path); err != nil {
+		return fmt.Errorf("localtlstrust: retirar clave CA anterior: %w", err)
+	}
+	return nil
 }
 
 func clearManagedCABytes(data []byte) {

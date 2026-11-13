@@ -18,6 +18,10 @@ import (
 
 var managedCAKeyHeader = []byte("GRXFIRMA-CA-DPAPI-1\x00")
 
+// forgetManagedCAKeyProtection no hace nada en Windows: DPAPI no deja
+// material fuera del propio fichero.
+func forgetManagedCAKeyProtection([]byte) {}
+
 func protectManagedCAKey(key []byte) ([]byte, error) {
 	ciphertext, err := callManagedCAKeyDPAPI(key, true)
 	if err != nil {

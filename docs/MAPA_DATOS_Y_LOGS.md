@@ -88,6 +88,7 @@ depuración.
 | Certificados y huellas visibles | `PARCIAL` | Necesarios funcionalmente, pero deben limitarse a los casos imprescindibles |
 | Temporales y P12 | `MITIGADO_EN_CODIGO` | El uso temporal vive solo en memoria, se purga al ocultar/apagar y la importación persistente exige una acción separada |
 | Identidad del perfil `alto` | `MITIGADO_EN_CODIGO` | Clave privada ML-KEM-768 + X25519 en el almacén de secretos del sistema; en disco solo la parte pública, en el directorio de datos locales. Las identidades antiguas en claro se migran y se borran sobrescribiéndolas |
+| Clave de la CA TLS local | `MITIGADO_EN_CODIGO` | En Windows, cifrada con DPAPI; en Linux y macOS, cifrada con una clave guardada en el almacén de secretos del sistema. Sin ese almacén no se crea la CA. La CA solo vale para servidor TLS en `localhost` y `127.0.0.1` (uso extendido y restricciones de nombre), y las CAs anteriores sin esa restricción se rotan y se retiran por inventario |
 | Incidencias locales | `MITIGADO_EN_CODIGO` | Directorio 0700, ficheros 0600/atómicos, nombres aleatorios, rechazo de symlink final, colas acotadas, 30 días y máximo 50 grupos |
 | Envío remoto de incidencias | `PARCIAL` | Transporte y consentimiento están endurecidos; faltan endpoint operativo, responsables y retención contractual |
 

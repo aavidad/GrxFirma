@@ -68,8 +68,9 @@ func RetireManagedCAKeyWithoutPrompt(certFile string) error {
 	if err := securefile.ProtectFile(marker, 0o600); err != nil {
 		return err
 	}
+	rootKeyFile := strings.TrimSuffix(certFile, "-root.crt.pem") + "-root.key.pem"
 	for _, path := range []string{
-		strings.TrimSuffix(certFile, "-root.crt.pem") + "-root.key.pem",
+		rootKeyFile,
 		strings.TrimSuffix(certFile, "-root.crt.pem") + ".key.pem",
 		strings.TrimSuffix(certFile, "-root.crt.pem") + ".crt.pem",
 	} {
@@ -83,7 +84,13 @@ func RetireManagedCAKeyWithoutPrompt(certFile string) error {
 		if !info.Mode().IsRegular() {
 			return fmt.Errorf("localtlstrust: fichero TLS propio no regular: %s", path)
 		}
-		if err := os.Remove(path); err != nil {
+		if path == rootKeyFile {
+			if err := retireManagedCAKeyFile(path); err != nil {
+				return err
+			}
+			continue
+		}
+		if err := securefile.RemoveSensitiveFile(path); err != nil {
 			return fmt.Errorf("localtlstrust: borrar fichero TLS propio %s: %w", path, err)
 		}
 	}
