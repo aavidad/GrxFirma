@@ -76,6 +76,17 @@
       "run_at": "document_end"
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/icon48.png"
+      ],
+      "matches": [
+        "https://*.dipgra.es/*",
+        "https://*.savia.net/*"
+      ]
+    }
+  ],
   "optional_host_permissions": [
     "https://*/*"
   ],

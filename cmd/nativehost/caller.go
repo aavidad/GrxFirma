@@ -20,6 +20,9 @@ import (
 	"grxfirma/internal/adapters/outbound/common/logging"
 )
 
+// Llamantes integrados en el binario. El inventario, con su titular y lo que
+// falta confirmar, está en docs/ADR-desktop-security.md, sección «Llamantes
+// autorizados del host nativo». No se cambia esta lista sin pasar por allí.
 const (
 	officialChromiumExtensionID   = "pkefjandjcgdmhoonmhnllikibobijgg"
 	officialFirefoxExtensionID    = "extension@dipgra.es"
@@ -36,18 +39,29 @@ var (
 		"com.dipgra.grxfirma":    {},
 		"com.dipgra.portafirmas": {},
 	}
-	builtinChromiumExtensionIDs = []string{
-		officialChromiumExtensionID,
+	// Extensiones «portafirmas» (com.dipgra.portafirmas). Titular PENDIENTE de
+	// confirmar (hallazgos C-07 y G-04).
+	portafirmasChromiumExtensionIDs = []string{
 		"ipkpimgjhkjibkbhfdhggjldlaetbcoa",
 		"knldjmfmopnpolahpmmgbagdohdnhkik",
 	}
+	builtinChromiumExtensionIDs = append([]string{officialChromiumExtensionID}, portafirmasChromiumExtensionIDs...)
 )
+
+// portafirmasNativeHostName es el host nativo que se registra para las
+// extensiones portafirmas; sus IDs no cuentan como extensión oficial.
+const portafirmasNativeHostName = "com.dipgra.portafirmas"
 
 type nativeCallerPolicy struct {
 	chromiumIDs      map[string]struct{}
 	firefoxIDs       map[string]struct{}
 	allowDevelopment bool
 	executable       string
+	// officialCallers son los llamantes de la extensión oficial de GrxFirma,
+	// con el formato que devuelve nativeCallerFromArgs. Solo ellos calculan el
+	// origen solicitante a partir de sender.url (background.js); el resto de
+	// llamantes declara un origen que el host no puede comprobar.
+	officialCallers map[string]struct{}
 }
 
 type nativeHostManifest struct {
@@ -64,16 +78,20 @@ func newNativeCallerPolicy(executable, home string, allowDevelopment bool) nativ
 		firefoxIDs:       make(map[string]struct{}),
 		allowDevelopment: allowDevelopment,
 		executable:       cleanAbsolutePath(executable),
+		officialCallers:  make(map[string]struct{}),
 	}
 	for _, id := range builtinChromiumExtensionIDs {
 		policy.addChromiumID(id)
 	}
 	policy.addFirefoxID(officialFirefoxExtensionID)
 	policy.addFirefoxID(portafirmasFirefoxExtensionID)
+	policy.markOfficialChromium(officialChromiumExtensionID)
+	policy.markOfficialFirefox(officialFirefoxExtensionID)
 
 	for _, path := range installedChromiumIDCandidates(policy.executable) {
 		if id, ok := readSingleChromiumID(path); ok {
 			policy.addChromiumID(id)
+			policy.markOfficialChromium(id)
 		}
 	}
 	for _, path := range nativeManifestCandidates(policy.executable, home) {
@@ -81,16 +99,47 @@ func newNativeCallerPolicy(executable, home string, allowDevelopment bool) nativ
 		if !ok || !manifestTargetsExecutable(manifest.Path, policy.executable) {
 			continue
 		}
+		official := strings.TrimSpace(manifest.Name) != portafirmasNativeHostName
 		for _, origin := range manifest.AllowedOrigins {
 			if id, ok := chromiumIDFromOrigin(origin); ok {
 				policy.addChromiumID(id)
+				if official {
+					policy.markOfficialChromium(id)
+				}
 			}
 		}
 		for _, id := range manifest.AllowedExtensions {
 			policy.addFirefoxID(id)
+			if official {
+				policy.markOfficialFirefox(id)
+			}
 		}
 	}
 	return policy
+}
+
+func (p *nativeCallerPolicy) markOfficialChromium(id string) {
+	id = strings.TrimSpace(id)
+	if p != nil && p.officialCallers != nil && chromiumExtensionIDPattern.MatchString(id) {
+		p.officialCallers["chrome-extension://"+id+"/"] = struct{}{}
+	}
+}
+
+func (p *nativeCallerPolicy) markOfficialFirefox(id string) {
+	id = strings.TrimSpace(id)
+	if p != nil && p.officialCallers != nil && firefoxExtensionIDPattern.MatchString(id) {
+		p.officialCallers["firefox-extension-id:"+id] = struct{}{}
+	}
+}
+
+// isOfficialCaller indica si el llamante es la extensión oficial de GrxFirma.
+// Un ID que solo figura en el host portafirmas, o uno de desarrollo, no lo es.
+func (p nativeCallerPolicy) isOfficialCaller(caller string) bool {
+	if p.officialCallers == nil {
+		return false
+	}
+	_, ok := p.officialCallers[caller]
+	return ok
 }
 
 func (p *nativeCallerPolicy) addChromiumID(id string) {

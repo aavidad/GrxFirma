@@ -44,7 +44,7 @@ Excepciones de compatibilidad (todas desactivadas por defecto; `1` las activa):
 | `permitir_cms_aes_ecb_legacy` | Leer sobres `SignedAndEnvelopedData` AES-ECB de 1.9 | `GRXFIRMA_ENABLE_LEGACY_CMS_AES_ECB` |
 | `permitir_origen_vacio` | WebSocket sin cabecera `Origin` o con `Origin: null` | `GRXFIRMA_WS_ALLOW_EMPTY_ORIGIN` |
 | `permitir_rutas_directas_protocolo` | Rutas locales absolutas en `load`, `save` y `signandsave` | `GRXFIRMA_ENABLE_LEGACY_DIRECT_PATHS` |
-| `aprobacion_automatica_nativehost` | Firmar desde la extensión sin diálogo de confirmación | `GRXFIRMA_NATIVEHOST_AUTO_APPROVE` |
+| `aprobacion_automatica_nativehost` | Firmar desde la extensión oficial de GrxFirma sin diálogo de confirmación (con otras extensiones se pide siempre; ver «Llamantes autorizados del host nativo» en `ADR-desktop-security.md`) | `GRXFIRMA_NATIVEHOST_AUTO_APPROVE` |
 
 **Nota sobre DES.** El intercambio por servidor intermedio de AutoFirma 1.x
 (StorageService/RetrieveService, que usan FIRe y el modo de respaldo de

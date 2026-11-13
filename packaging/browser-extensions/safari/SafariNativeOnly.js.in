@@ -8,45 +8,22 @@
 (function enforceSafariNativeBridge() {
     "use strict";
 
-    function rejectNativeFailure(nativeError) {
-        throw nativeError || new Error("Safari native bridge unavailable");
+    // Solo se reasignan funciones que background.js declara de verdad. Asignar
+    // un nombre no declarado lanzaria ReferenceError en modo estricto, el resto
+    // del parche no se aplicaria y el service worker podria no registrarse
+    // (hallazgo C-01). Si falta una, no hay camino REST que anular; la prueba
+    // native_only.test.mjs comprueba con el background.js real que ambas existen.
+    function replaceDeclared(name, replacement) {
+        if (typeof globalThis[name] === "function") globalThis[name] = replacement;
     }
 
-    getSystemCertificatesFromRest = async function disableCertificateRestFallback(nativeError) {
-        rejectNativeFailure(nativeError);
-    };
+    replaceDeclared("restJSON", async function disableRestFallback() {
+        throw new Error("Safari native bridge only");
+    });
 
-    signWithSystemCertificateRest = async function disableSignRestFallback(
-        data,
-        certificateId,
-        format,
-        signatureOptions,
-        nativeError
-    ) {
-        void data;
-        void certificateId;
-        void format;
-        void signatureOptions;
-        rejectNativeFailure(nativeError);
-    };
-
-    verifyWithSystemCertificateRest = async function disableVerifyRestFallback(
-        signatureData,
-        originalData,
-        format,
-        mimeType,
-        nativeError
-    ) {
-        void signatureData;
-        void originalData;
-        void format;
-        void mimeType;
-        rejectNativeFailure(nativeError);
-    };
-
-    pingLocalIntegration = async function pingThroughSafariHandler() {
+    replaceDeclared("pingLocalIntegration", async function pingThroughSafariHandler() {
         const response = await sendToNativeHost("ping");
         return { success: true, message: "pong", mode: "safari-native", native: response };
-    };
+    });
 })();
 // GRXFIRMA_SAFARI_NATIVE_ONLY_END

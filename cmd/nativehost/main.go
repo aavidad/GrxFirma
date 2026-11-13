@@ -259,7 +259,10 @@ func construirFuentesCertificados(p12Dir, p12Password string, metricas ports.Ope
 	return &catalogoFirmable{base: agregadoCatalogo}, agregadoClaves, nil
 }
 
-func construirAdaptador(configDir, p12Dir, p12Password string, metricas ports.OperationMetrics, logger *slog.Logger) (*nativehost.Adaptador, error) {
+// autoAprobacionPermitida limita la política de aprobación automática a la
+// extensión oficial (C-07): con cualquier otro llamante se pide siempre
+// confirmación, porque el host no puede comprobar el origen que declara.
+func construirAdaptador(configDir, p12Dir, p12Password string, autoAprobacionPermitida bool, metricas ports.OperationMetrics, logger *slog.Logger) (*nativehost.Adaptador, error) {
 	catalogo, proveedor, err := construirFuentesCertificados(p12Dir, p12Password, metricas)
 	if err != nil {
 		return nil, err
@@ -280,7 +283,7 @@ func construirAdaptador(configDir, p12Dir, p12Password string, metricas ports.Op
 	}
 
 	aprobador := &aprobacionSistema{
-		autoApprove: machinepolicy.OptIn(machinepolicy.AprobacionAutomaticaHost),
+		autoApprove: autoAprobacionPermitida && machinepolicy.OptIn(machinepolicy.AprobacionAutomaticaHost),
 		logger:      logger,
 	}
 	httpClient := proxyhttp.New(configDir)
@@ -379,16 +382,14 @@ func main() {
 	}
 	p12Password := os.Getenv("GRXFIRMA_PKCS12_PASSWORD")
 
-	adaptador, err := construirAdaptador(configDir, p12Dir, p12Password, metricas, logger)
+	adaptador, err := construirAdaptador(configDir, p12Dir, p12Password, callerPolicy.isOfficialCaller(callerID), metricas, logger)
 	if err != nil {
 		writeErrorToLog(logger, ctx, "bootstrap", err)
 		os.Exit(1)
 	}
 	limites := limits.FromEnv(limits.Default())
-	operationTimeout := time.Duration(limites.MaxSessionSec) * time.Second
-	if operationTimeout <= 0 {
-		operationTimeout = time.Duration(limits.Default().MaxSessionSec) * time.Second
-	}
+	// El plazo del host queda por debajo del de la extensión (C-04).
+	operationTimeout := nativehost.PlazoOperacion(time.Duration(limites.MaxSessionSec) * time.Second)
 
 	// El navegador mantiene el proceso vivo y envía mensajes hasta desconectarse.
 	// Leemos en bucle hasta EOF (desconexión de la extensión).
