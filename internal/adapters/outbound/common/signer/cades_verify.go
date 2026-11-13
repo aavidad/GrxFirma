@@ -89,6 +89,9 @@ func revocationDetailText(cert *x509.Certificate, index int, res RevocationResul
 // RevocationChecker comprueba la revocación de certificados usando OCSP y CRL.
 type RevocationChecker struct {
 	client *revocationclient.Client
+	// consulta sustituye a la consulta en línea; solo lo usan las pruebas
+	// para simular respuestas autenticadas sin red.
+	consulta func(ctx context.Context, cert, issuer *x509.Certificate) (RevocationResult, error)
 }
 
 // NewRevocationChecker crea un verificador de revocación con timeout de 15s.
@@ -109,6 +112,9 @@ func NewRevocationCheckerWithClient(c *http.Client) *RevocationChecker {
 func (r *RevocationChecker) Check(ctx context.Context, cert, issuer *x509.Certificate) (RevocationResult, error) {
 	if cert == nil || issuer == nil {
 		return RevocationResult{Status: RevocationUnknown, Reason: "certificado o emisor nulo"}, nil
+	}
+	if r != nil && r.consulta != nil {
+		return r.consulta(ctx, cert, issuer)
 	}
 	if r == nil || r.client == nil {
 		return RevocationResult{Status: RevocationUnknown, Reason: "cliente de revocación no configurado"}, nil
@@ -422,7 +428,11 @@ func (v *CAdESVerifier) verifyRevocationWithEmbedded(ctx context.Context, chain 
 		if len(evidence.OCSPResponses) == 0 && len(evidence.CRLs) == 0 {
 			continue
 		}
-		return verifyEmbeddedRevocation(chain, evidence)
+		// La evidencia embebida no sustituye a la consulta en línea: si para
+		// algún certificado no es aplicable o no concluye, se consulta.
+		return verifyEmbeddedRevocationConConsulta(chain, evidence, func(cert, issuer *x509.Certificate) (RevocationResult, error) {
+			return v.revChecker.Check(ctx, cert, issuer)
+		})
 	}
 	return v.VerifyRevocation(ctx, chain)
 }
@@ -827,6 +837,17 @@ func extractEmbeddedRevocationEvidence(signerInfo signerInfoRaw) (ports.Revocati
 }
 
 func verifyEmbeddedRevocation(chain []*x509.Certificate, evidence ports.RevocationEvidence) (domain.VerificationResult, error) {
+	return verifyEmbeddedRevocationConConsulta(chain, evidence, nil)
+}
+
+// consultaRevocacion obtiene el estado de un certificado por otra vía cuando
+// la evidencia embebida no basta (normalmente, la consulta en línea).
+type consultaRevocacion func(cert, issuer *x509.Certificate) (RevocationResult, error)
+
+// verifyEmbeddedRevocationConConsulta evalúa la evidencia embebida y, para
+// cada certificado en el que no es aplicable o no concluye, usa la consulta
+// indicada. Sin consulta, ese certificado queda no concluyente.
+func verifyEmbeddedRevocationConConsulta(chain []*x509.Certificate, evidence ports.RevocationEvidence, consulta consultaRevocacion) (domain.VerificationResult, error) {
 	if len(chain) == 0 {
 		return domain.NewVerificationFailure(string(domain.FormatCAdES), "cadena de certificados vacía", nil), nil
 	}
@@ -845,6 +866,12 @@ func verifyEmbeddedRevocation(chain []*x509.Certificate, evidence ports.Revocati
 		cert := chain[i]
 		issuer := chain[i+1]
 		res, err := evaluateEmbeddedRevocation(evidence, cert, issuer)
+		if (err != nil || res.Status == RevocationUnknown) && consulta != nil {
+			if enLinea, errLinea := consulta(cert, issuer); errLinea == nil &&
+				(enLinea.Status == RevocationGood || enLinea.Status == RevocationRevoked) {
+				res, err = enLinea, nil
+			}
+		}
 		if err != nil {
 			allAuthenticatedGood = false
 			detail := fmt.Sprintf("cert[%d] %s: sin evidencias embebidas utilizables", i, cert.Subject.CommonName)
@@ -876,8 +903,8 @@ func verifyEmbeddedRevocation(chain []*x509.Certificate, evidence ports.Revocati
 			result.Reason = "cadena válida con revocación embebida autenticada"
 			result.Certificate.Status = domain.VerificationStatusValid
 			result.Certificate.Reason = result.Reason
-			result.Trust.Status = domain.VerificationStatusValid
-			result.Trust.Reason = "evidencias embebidas autenticadas y vigentes"
+			// La evidencia de revocación no dice nada de la confianza en la
+			// raíz: la confianza se queda como la evaluaron las anclas.
 		} else {
 			result.Reason = "cadena válida con revocación embebida no concluyente"
 			if result.Certificate.Status == domain.VerificationStatusUnknown {

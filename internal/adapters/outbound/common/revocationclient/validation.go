@@ -27,6 +27,10 @@ const (
 
 var oidOCSPBasicResponse = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 48, 1, 1}
 
+// ErrCRLNoAplicable indica una CRL auténtica que no cubre de forma completa
+// al certificado consultado (delta, otra partición, solo CA, etc.).
+var ErrCRLNoAplicable = errors.New("CRL no aplicable al certificado")
+
 // ValidationResult describe el estado contenido en una evidencia cuya firma,
 // identidad y ventana temporal ya han sido verificadas.
 type ValidationResult struct {
@@ -160,6 +164,12 @@ func ValidateCRLResponse(
 	}
 	if err := validateFreshness("CRL", crl.ThisUpdate, crl.NextUpdate, at.UTC()); err != nil {
 		return ValidationResult{}, err
+	}
+	// «No revocado» solo puede salir de una CRL completa y aplicable al
+	// certificado: una delta, una partición ajena o una CRL limitada a otro
+	// tipo de certificado no lo acreditan aunque estén firmadas por el emisor.
+	if aplicable, motivo := CRLAplicable(crl, cert); !aplicable {
+		return ValidationResult{Status: CertificateStatusUnknown}, fmt.Errorf("%w: %s", ErrCRLNoAplicable, motivo)
 	}
 	for _, entry := range crl.RevokedCertificateEntries {
 		if entry.SerialNumber != nil && entry.SerialNumber.Cmp(cert.SerialNumber) == 0 {
