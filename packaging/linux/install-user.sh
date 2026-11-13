@@ -12,8 +12,9 @@ source "${ROOT_DIR}/packaging/linux/runtime-dependencies.sh"
 grxfirma_initialize_reproducible_build "${ROOT_DIR}"
 cd "$ROOT_DIR"
 
-export GOCACHE="${GOCACHE:-/tmp/grxfirma-gocache}"
-export GOMODCACHE="${GOMODCACHE:-/tmp/grxfirma-gomodcache}"
+# Se usan las cachés de Go del propio usuario (~/.cache/go-build y ~/go/pkg/mod)
+# o las que él haya fijado. Nunca una ruta con nombre fijo en /tmp: otro usuario
+# podría crearla antes y meter código en lo que se compila (G-02).
 
 build_qt="${GRXFIRMA_BUILD_QT:-0}"
 for arg in "$@"; do
