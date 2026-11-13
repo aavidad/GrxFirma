@@ -28,6 +28,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
+#ifdef Q_OS_WIN
+#include "windowssystempath.h"
+#endif
 #include <QProcessEnvironment>
 #include <QRandomGenerator>
 #include <QSaveFile>
@@ -2418,8 +2421,10 @@ void IpcBridge::openExternal(const QString &path) {
     return;
 
 #ifdef Q_OS_WIN
-  if (QProcess::startDetached("explorer.exe",
-                              {QDir::toNativeSeparators(localPath)}))
+  const QString explorer =
+      QString::fromStdWString(WindowsSystemPath::explorer());
+  if (!explorer.isEmpty() &&
+      QProcess::startDetached(explorer, {QDir::toNativeSeparators(localPath)}))
     return;
 #elif defined(Q_OS_MACOS)
   if (QProcess::startDetached("open", {localPath}))
@@ -2450,8 +2455,11 @@ void IpcBridge::openSignedDocument(const QString &path) {
   if (QDesktopServices::openUrl(QUrl::fromLocalFile(info.absoluteFilePath())))
     return;
 #ifdef Q_OS_WIN
-  if (QProcess::startDetached(QStringLiteral("explorer.exe"),
-                              {QDir::toNativeSeparators(info.absoluteFilePath())}))
+  const QString explorer =
+      QString::fromStdWString(WindowsSystemPath::explorer());
+  if (!explorer.isEmpty() &&
+      QProcess::startDetached(
+          explorer, {QDir::toNativeSeparators(info.absoluteFilePath())}))
     return;
 #elif defined(Q_OS_MACOS)
   if (QProcess::startDetached(QStringLiteral("open"),
@@ -2467,7 +2475,10 @@ void IpcBridge::openSignedDocument(const QString &path) {
 
 void IpcBridge::openCertManager() {
 #ifdef Q_OS_WIN
-  QProcess::startDetached("rundll32.exe", {"cryptext.dll,CryptExtOpenCER"});
+  const QString rundll32 =
+      QString::fromStdWString(WindowsSystemPath::rundll32());
+  if (!rundll32.isEmpty())
+    QProcess::startDetached(rundll32, {"cryptext.dll,CryptExtOpenCER"});
 #elif defined(Q_OS_MACOS)
   QProcess::startDetached(
       "open", {"/System/Applications/Utilities/Keychain Access.app"});
