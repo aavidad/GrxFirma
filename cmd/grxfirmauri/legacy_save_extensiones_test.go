@@ -102,7 +102,7 @@ func TestContenidoZoneIdentifier(t *testing.T) {
 	if !strings.Contains(c, "[ZoneTransfer]\r\nZoneId=3\r\n") || !strings.Contains(c, "ReferrerUrl=https://sede.example\r\n") {
 		t.Fatalf("contenido inesperado: %q", c)
 	}
-	for _, malo := range []string{"https://a.example\r\nZoneId=0", "javascript:alert(1)", "https://a.example/‮", ""} {
+	for _, malo := range []string{"https://a.example\r\nZoneId=0", "javascript:alert(1)", "https://a.example/\u202e", ""} {
 		c := contenidoZoneIdentifier(malo)
 		if strings.Contains(c, "ReferrerUrl") || strings.Count(c, "ZoneId=") != 1 || !strings.Contains(c, "ZoneId=3") {
 			t.Fatalf("origen %q: contenido %q", malo, c)

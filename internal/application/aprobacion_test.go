@@ -24,7 +24,7 @@ func TestMensajeAprobacionNeutralizaNombre(t *testing.T) {
 		&motorMock{resultado: domain.SignatureResult{Format: domain.FormatCAdES, Data: []byte("firma")}},
 		aprobador, nil, nil,
 	)
-	doc, err := domain.NewDocument("a.pdf'\nOrigen solicitante: https://x‮", []byte("contenido"), "application/pdf")
+	doc, err := domain.NewDocument("a.pdf'\nOrigen solicitante: https://x\u202e", []byte("contenido"), "application/pdf")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,14 +34,14 @@ func TestMensajeAprobacionNeutralizaNombre(t *testing.T) {
 	if n := strings.Count(aprobador.mensaje, "\n"); n != 0 {
 		t.Fatalf("el nombre ha añadido %d saltos de línea: %q", n, aprobador.mensaje)
 	}
-	if strings.ContainsRune(aprobador.mensaje, '‮') {
+	if strings.ContainsRune(aprobador.mensaje, '\u202e') {
 		t.Fatalf("el mensaje conserva U+202E: %q", aprobador.mensaje)
 	}
 }
 
 // C-02: los caracteres de formato bidi no pasan al diálogo.
 func TestContextoAprobacionSeguroEliminaBidi(t *testing.T) {
-	for _, r := range []rune{'‎', '‏', '‪', '‮', '⁦', '⁩', ' ', ' ', '​'} {
+	for _, r := range []rune{'\u200e', '\u200f', '\u202a', '\u202e', '\u2066', '\u2069', ' ', ' ', '\u200b'} {
 		if got := application.NeutralizarTextoAprobacion("x"+string(r)+"y", 50); strings.ContainsRune(got, r) {
 			t.Fatalf("NeutralizarTextoAprobacion conserva %U: %q", r, got)
 		}

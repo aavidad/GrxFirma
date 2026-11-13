@@ -37,7 +37,7 @@ func TestDialogosAprobacionLinuxNeutralizanMarcado(t *testing.T) {
 }
 
 func TestSanitizarTextoSelectorEliminaBidi(t *testing.T) {
-	if got := sanitizarTextoSelector("x‮y⁦z", 50); strings.ContainsAny(got, "‮⁦") {
+	if got := sanitizarTextoSelector("x\u202ey\u2066z", 50); strings.ContainsAny(got, "\u202e\u2066") {
 		t.Fatalf("sanitizarTextoSelector conserva caracteres bidi: %q", got)
 	}
 }
