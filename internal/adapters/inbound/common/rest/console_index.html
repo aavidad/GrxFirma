@@ -3010,6 +3010,9 @@
         );
         ui.unprotectResult.innerHTML =
           resultBanner("status-ok", "Desprotección completada correctamente.") +
+          (Array.isArray(response.warnings) && response.warnings.length
+            ? resultBanner("status-warn", response.warnings.join(" "))
+            : "") +
           '<div class="result-block">' +
             '<div class="kv"><strong>Perfil</strong>' + escapeHtml(response.profile || "") + '</div>' +
             '<div class="kv"><strong>Destinatario</strong>' + escapeHtml(response.recipientId || "") + '</div>' +
