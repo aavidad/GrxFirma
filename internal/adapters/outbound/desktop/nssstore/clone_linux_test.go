@@ -38,7 +38,8 @@ func TestClonarBaseNSSTemporal_IgnoraLockFirefoxYFicherosAjenos(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clon, err := clonarBaseNSSTemporal(perfil)
+	clon := filepath.Join(t.TempDir(), "clon")
+	err := clonarBaseNSSEn(clon, perfil)
 	if err != nil {
 		t.Fatalf("clonar perfil con lock Firefox: %v", err)
 	}
@@ -65,7 +66,8 @@ func TestClonarBaseNSSTemporal_AdmiteArchivosAuxiliaresAusentes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clon, err := clonarBaseNSSTemporal(perfil)
+	clon := filepath.Join(t.TempDir(), "clon")
+	err := clonarBaseNSSEn(clon, perfil)
 	if err != nil {
 		t.Fatalf("clonar base NSS sin WAL, SHM ni pkcs11.txt: %v", err)
 	}

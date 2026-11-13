@@ -27,8 +27,8 @@ func TestClonarBaseNSSTemporal_EnlaceUsuarioDevuelveELOOP(t *testing.T) {
 	if err := os.Symlink(file, filepath.Join(dir, "key4.db")); err != nil {
 		t.Fatal(err)
 	}
-	_, err := clonarBaseNSSTemporal(dir)
+	err := clonarBaseNSSEn(filepath.Join(t.TempDir(), "clon"), dir)
 	if !errors.Is(err, syscall.ELOOP) {
-		t.Fatalf("clonarBaseNSSTemporal() = %v; se esperaba ELOOP", err)
+		t.Fatalf("clonarBaseNSSEn() = %v; se esperaba ELOOP", err)
 	}
 }

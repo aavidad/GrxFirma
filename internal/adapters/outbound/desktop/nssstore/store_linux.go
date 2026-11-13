@@ -176,19 +176,18 @@ func (a *Almacen) exportarClaveLocal(ctx context.Context, ruta, nickname string,
 	if err != nil {
 		return nil, fmt.Errorf("resolver pk12util: %w", err)
 	}
-	tmpFile, err := os.CreateTemp("", "grxfirma-nss-*.p12")
+	// El P12 exportado y el clon de key4.db van a un directorio privado de la
+	// caché del usuario y se sobrescriben al terminar (F-03).
+	trabajo, err := directorioTrabajoNSS()
 	if err != nil {
-		return nil, fmt.Errorf("crear temporal NSS: %w", err)
+		return nil, err
 	}
-	tmpPath := tmpFile.Name()
-	_ = tmpFile.Close()
-	defer os.Remove(tmpPath)
-
-	tmpNSSDir, err := clonarBaseNSSTemporal(ruta)
-	if err != nil {
+	defer func() { _ = securefile.RemoveSensitiveTree(trabajo) }()
+	tmpPath := filepath.Join(trabajo, "exportado.p12")
+	tmpNSSDir := filepath.Join(trabajo, "nssdb")
+	if err := clonarBaseNSSEn(tmpNSSDir, ruta); err != nil {
 		return nil, fmt.Errorf("clonando base NSS temporal: %w", err)
 	}
-	defer os.RemoveAll(tmpNSSDir)
 
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
@@ -202,18 +201,19 @@ func (a *Almacen) exportarClaveLocal(ctx context.Context, ruta, nickname string,
 		return nil, err
 	}
 	// CWE-214: nunca pasar contraseñas por argv (visibles en la tabla de
-	// procesos). pk12util admite las variantes de fichero -k (slot) y -w (P12)
-	// en lugar de -K/-W.
-	slotPwPath, err := escribirPasswordTemporal(slotPassword)
+	// procesos) ni por un fichero que quede en disco si el proceso muere.
+	// pk12util lee -k (slot) y -w (P12) de un fichero; se le da una tubería
+	// heredada como descriptor 3 y 4.
+	slotPw, err := tuberiaSecreta(slotPassword)
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(slotPwPath)
-	exportPwPath, err := escribirPasswordTemporal(exportPassword)
+	defer slotPw.Close()
+	exportPw, err := tuberiaSecreta(exportPassword)
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(exportPwPath)
+	defer exportPw.Close()
 	// #nosec G204 -- tool paths are defaults or explicit constructor
 	// dependencies; NSS paths/nickname are separate pk12util arguments.
 	cmd := exec.CommandContext(
@@ -222,9 +222,10 @@ func (a *Almacen) exportarClaveLocal(ctx context.Context, ruta, nickname string,
 		"-o", tmpPath,
 		"-n", nickname,
 		"-d", rutaCertutil(tmpNSSDir),
-		"-k", slotPwPath,
-		"-w", exportPwPath,
+		"-k", "/dev/fd/3",
+		"-w", "/dev/fd/4",
 	)
+	cmd.ExtraFiles = []*os.File{slotPw, exportPw}
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return nil, fmt.Errorf("pk12util -o para %q: %w (%s)", nickname, err, strings.TrimSpace(string(out)))
 	}
@@ -274,15 +275,16 @@ func (a *Almacen) convertirP12APEM(ctx context.Context, p12Path, password string
 	if err != nil {
 		return nil, fmt.Errorf("resolver openssl: %w", err)
 	}
-	pwPath, err := escribirPasswordTemporal(password)
+	pw, err := tuberiaSecreta(password)
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(pwPath)
+	defer pw.Close()
 
 	// #nosec G204 -- openssl is a fixed/default or explicitly injected tool;
-	// the P12 and private password-file paths are distinct arguments.
-	cmd := exec.CommandContext(ctx, opensslPath, "pkcs12", "-in", p12Path, "-nodes", "-passin", "file:"+pwPath)
+	// the P12 path is a distinct argument and the password arrives on fd 3.
+	cmd := exec.CommandContext(ctx, opensslPath, "pkcs12", "-in", p12Path, "-nodes", "-passin", "fd:3")
+	cmd.ExtraFiles = []*os.File{pw}
 	out, err := cmd.CombinedOutput()
 	defer secmem.Zeroize(out)
 	if err != nil {
@@ -293,33 +295,6 @@ func (a *Almacen) convertirP12APEM(ctx context.Context, p12Path, password string
 		return nil, fmt.Errorf("openssl no devolvio bloques PEM utilizables")
 	}
 	return pem, nil
-}
-
-func escribirPasswordTemporal(password string) (string, error) {
-	pwFile, err := os.CreateTemp("", "grxfirma-openssl-pw-*")
-	if err != nil {
-		return "", fmt.Errorf("crear fichero temporal de contraseña openssl: %w", err)
-	}
-	pwPath := pwFile.Name()
-	ok := false
-	defer func() {
-		_ = pwFile.Close()
-		if !ok {
-			_ = os.Remove(pwPath)
-		}
-	}()
-
-	if err := os.Chmod(pwPath, 0o600); err != nil {
-		return "", fmt.Errorf("proteger fichero temporal de contraseña openssl: %w", err)
-	}
-	if _, err := pwFile.WriteString(password); err != nil {
-		return "", fmt.Errorf("escribir contraseña temporal openssl: %w", err)
-	}
-	if err := pwFile.Close(); err != nil {
-		return "", fmt.Errorf("cerrar contraseña temporal openssl: %w", err)
-	}
-	ok = true
-	return pwPath, nil
 }
 
 func extraerBloquesPEM(data []byte) []byte {
@@ -479,10 +454,11 @@ func fingerprintSHA256(cert *x509.Certificate) string {
 	return hex.EncodeToString(sum[:])
 }
 
-func clonarBaseNSSTemporal(origen string) (string, error) {
-	tmpDir, err := os.MkdirTemp("", "grxfirma-nssdb-*")
-	if err != nil {
-		return "", err
+// clonarBaseNSSEn crea destino (0700) y copia en él la base NSS de origen.
+// Si falla, borra lo copiado sobrescribiéndolo.
+func clonarBaseNSSEn(destino, origen string) error {
+	if err := os.Mkdir(destino, 0o700); err != nil {
+		return err
 	}
 
 	// Un perfil Firefox activo contiene lock (a menudo un enlace simbólico
@@ -494,13 +470,13 @@ func clonarBaseNSSTemporal(origen string) (string, error) {
 		"pkcs11.txt",
 	} {
 		src := filepath.Join(origen, name)
-		dst := filepath.Join(tmpDir, name)
+		dst := filepath.Join(destino, name)
 		if err := copiarArchivo(src, dst); err != nil {
-			_ = os.RemoveAll(tmpDir)
-			return "", err
+			_ = securefile.RemoveSensitiveTree(destino)
+			return err
 		}
 	}
-	return tmpDir, nil
+	return nil
 }
 
 func copiarArchivo(origen, destino string) error {
@@ -521,7 +497,7 @@ func copiarArchivo(origen, destino string) error {
 		return nil
 	}
 
-	// El destino pertenece al clon privado de MkdirTemp y su nombre procede
+	// El destino pertenece al clon privado y su nombre procede
 	// de la lista fija de archivos NSS, por lo que no puede salir de él.
 	dst, err := os.OpenFile(destino, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, info.Mode().Perm()) // #nosec G304 -- destino usa un nombre NSS fijo dentro del clon privado.
 	if err != nil {

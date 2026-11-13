@@ -14,6 +14,8 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+
+	"grxfirma/internal/adapters/outbound/common/securefile"
 )
 
 type Gestor struct {
@@ -222,26 +224,27 @@ func importarP12ANSS(ctx context.Context, dbPath, rutaP12, password string) erro
 	if err != nil {
 		return fmt.Errorf("pk12util no disponible: %w", err)
 	}
-	pwFile, err := os.CreateTemp("", "grxfirma-pw-*")
+	dir, err := directorioTemporalPrivado()
 	if err != nil {
-		return fmt.Errorf("crear fichero temporal de contraseña: %w", err)
+		return fmt.Errorf("crear directorio temporal privado: %w", err)
 	}
-	pwPath := pwFile.Name()
-	defer removeSensitiveFile(pwPath)
-	if err := os.Chmod(pwPath, 0o600); err != nil {
-		_ = pwFile.Close()
-		return fmt.Errorf("proteger fichero temporal de contraseña: %w", err)
-	}
-	if _, err := pwFile.WriteString(password); err != nil {
-		_ = pwFile.Close()
-		return fmt.Errorf("escribir contraseña temporal: %w", err)
-	}
-	_ = pwFile.Close()
+	defer func() { _ = securefile.RemoveSensitiveTree(dir) }()
 
 	intentar := func(base string) error {
+		// La tubería se consume en cada intento: se prepara una por intento.
+		pwArg, heredados, err := contrasenaPk12util(dir, password)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			for _, f := range heredados {
+				_ = f.Close()
+			}
+		}()
 		// #nosec G204 -- fixed pk12util executable resolved above; paths and
 		// password-file reference are passed as distinct arguments.
-		cmd := exec.CommandContext(ctx, pk12utilPath, "-i", rutaP12, "-d", base, "-w", pwPath)
+		cmd := exec.CommandContext(ctx, pk12utilPath, "-i", rutaP12, "-d", base, "-w", pwArg)
+		cmd.ExtraFiles = heredados
 		if out, err := cmd.CombinedOutput(); err != nil {
 			return fmt.Errorf("pk12util: %w (%s)", err, strings.TrimSpace(string(out)))
 		}
