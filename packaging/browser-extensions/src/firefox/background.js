@@ -423,10 +423,8 @@ function sendToNativeHost(action, data = {}, requesterOrigin = '') {
 // --- NATIVE HOST CONNECTION END ---
 
 const INTERNAL_RUNTIME_ACTIONS = new Set([
-    'signDocument',
     'openSigner',
     'ping',
-    'verifySignature',
     'refreshTrustedSites'
 ]);
 
@@ -557,22 +555,6 @@ function processRuntimeMessage(request, sender, sendResponse) {
         refreshTrustedSites().then(() => sendResponse({ success: true })).catch(err => sendResponse({ success: false, error: err.message }));
         return true;
     }
-    // Operaciones del firmador heredado y del puente local.
-    else if (request.action === 'signDocument') {
-        signWithSystemCertificate(
-            request.data,
-            request.certificateId,
-            request.pin,
-            request.format,
-            request.signatureOptions,
-            authorization.origin
-        ).then(signature => {
-            sendResponse({ success: true, signature });
-        }).catch(err => {
-            sendResponse({ success: false, error: err.message });
-        });
-        return true;
-    }
     else if (request.action === 'openSigner') {
         (async () => {
             const tabId = sender && sender.tab && sender.tab.id;
@@ -635,19 +617,6 @@ function processRuntimeMessage(request, sender, sendResponse) {
         });
         return true;
     }
-    else if (request.action === 'verifySignature') {
-        verifyWithSystemCertificate(
-            request.signatureData || request.data,
-            request.originalData,
-            request.format,
-            request.mimeType
-        ).then(result => {
-            sendResponse({ success: true, result });
-        }).catch(err => {
-            sendResponse({ success: false, error: err.message || String(err) });
-        });
-        return true;
-    }
 }
 grxfirmaExt.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request && (request.action === 'openSigner' || request.action === 'proveIdentity')) {
@@ -669,29 +638,6 @@ async function pingLocalIntegration() {
         } catch (restError) {
             throw fallbackError(nativeError, restError);
         }
-    }
-}
-
-async function signWithSystemCertificate(data, certificateId, pin, format = 'cades', signatureOptions = null, requesterOrigin = '') {
-    try {
-        const message = { data, certificateId, pin, format };
-        if (signatureOptions) message.signatureOptions = signatureOptions;
-
-        const response = await sendToNativeHost('sign', message, requesterOrigin);
-        return response.signature;
-    } catch (error) {
-        return signWithSystemCertificateRest(data, certificateId, format, signatureOptions, error);
-    }
-}
-
-async function verifyWithSystemCertificate(signatureData, originalData, format = 'cades', mimeType = 'application/octet-stream') {
-    try {
-        const message = { signatureData, format, mimeType };
-        if (originalData) message.originalData = originalData;
-        const response = await sendToNativeHost('verify', message);
-        return response.result;
-    } catch (error) {
-        return verifyWithSystemCertificateRest(signatureData, originalData, format, mimeType, error);
     }
 }
 
@@ -734,58 +680,6 @@ async function restJSON(path, options = {}, timeoutMs = 180000) {
         return payload;
     } finally {
         if (timer) clearTimeout(timer);
-    }
-}
-
-function restSignOptions(signatureOptions) {
-    const options = {};
-    if (!signatureOptions || typeof signatureOptions !== 'object') return options;
-    for (const [key, value] of Object.entries(signatureOptions)) {
-        if (value === undefined || value === null || typeof value === 'object') continue;
-        options[key] = String(value);
-    }
-    return options;
-}
-
-async function signWithSystemCertificateRest(data, certificateId, format, signatureOptions, nativeError) {
-    try {
-        const normalizedFormat = (format || 'cades').toLowerCase();
-        const body = {
-            name: `documento.${normalizedFormat}`,
-            content_base64: data,
-            mime_type: normalizedFormat === 'pades' ? 'application/pdf' : 'application/octet-stream',
-            format: normalizedFormat,
-            action: 'sign',
-            certificate_id: certificateId || '',
-            options: restSignOptions(signatureOptions),
-            returnSignatureB64: true
-        };
-        const response = await restJSON('/sign', {
-            method: 'POST',
-            body: JSON.stringify(body)
-        });
-        return response.signed_content_base64;
-    } catch (restError) {
-        throw fallbackError(nativeError, restError);
-    }
-}
-
-async function verifyWithSystemCertificateRest(signatureData, originalData, format, mimeType, nativeError) {
-    try {
-        const normalizedFormat = (format || 'cades').toLowerCase();
-        const detached = !!signatureData;
-        const body = {
-            name: detached ? `firma.${normalizedFormat === 'xades' ? 'xml' : 'p7s'}` : 'documento-firmado.pdf',
-            content_base64: detached ? signatureData : originalData,
-            mime_type: detached ? 'application/pkcs7-signature' : (mimeType || 'application/pdf'),
-            original_content_base64: detached ? (originalData || '') : ''
-        };
-        return restJSON('/verify', {
-            method: 'POST',
-            body: JSON.stringify(body)
-        });
-    } catch (restError) {
-        throw fallbackError(nativeError, restError);
     }
 }
 
