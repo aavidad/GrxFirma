@@ -66,3 +66,16 @@ func TestPolicyAusenteNoCierraNada(t *testing.T) {
 		t.Fatalf("sin política deben valer los ajustes del usuario: rest=%v ws=%v", cfg.RestHabilitado, cfg.WebsocketHabilitado)
 	}
 }
+
+// F-07: sin política fiable tampoco se amplía la confianza con TOFU.
+func TestPolicyIlegibleODominiosInvalidosDesactivanTOFU(t *testing.T) {
+	for nombre, contenido := range map[string]string{
+		"ilegible":           `{no es json`,
+		"dominios_invalidos": `{"dominios_de_confianza": "valide.redsara.es"}`,
+	} {
+		cfg := cargarConPolicy(t, contenido)
+		if cfg.TofuHabilitado {
+			t.Fatalf("%s: TOFU debe quedar desactivado", nombre)
+		}
+	}
+}

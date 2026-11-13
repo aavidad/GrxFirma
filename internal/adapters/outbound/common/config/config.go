@@ -372,6 +372,7 @@ func cerrarPolicyInvalida(cfg *Config, raw Policy) {
 		cfg.RestHabilitado = false
 		cfg.WebsocketHabilitado = false
 		cfg.WebsocketPermitido = &cerrado
+		cfg.TofuHabilitado = false
 		return
 	}
 	for _, nombre := range raw.invalidos {
@@ -382,7 +383,8 @@ func cerrarPolicyInvalida(cfg *Config, raw Policy) {
 			cfg.WebsocketHabilitado = false
 		case machinepolicy.WebsocketPermitido:
 			cfg.WebsocketPermitido = &cerrado
-		case machinepolicy.TofuHabilitado:
+		case machinepolicy.TofuHabilitado, machinepolicy.DominiosDeConfianza:
+			// Sin lista de dominios fiable no se amplía la confianza a mano.
 			cfg.TofuHabilitado = false
 		}
 	}
