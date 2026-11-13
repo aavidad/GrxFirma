@@ -101,7 +101,7 @@ func TestRESTCorrelationMiddleware_GeneraContextoSinExponerCabeceras(t *testing.
 	response := httptest.NewRecorder()
 	restCorrelationMiddleware(next).ServeHTTP(
 		response,
-		httptest.NewRequest(http.MethodGet, "/validator", nil),
+		nuevaPeticionPruebas(http.MethodGet, "/validator", nil),
 	)
 	if response.Code != http.StatusNoContent {
 		t.Fatalf("status = %d; want %d", response.Code, http.StatusNoContent)
@@ -136,7 +136,7 @@ func TestRoutes_PropaganCorrelacionGeneradaEnOperacionesVisibles(t *testing.T) {
 				"certificate_id": "cert-1",
 			},
 			build: func(c *restCorrelationCapture) *Adaptador {
-				return New(correlationSignUseCase{capture: c}, nil, nil)
+				return nuevoAdaptadorPruebas(correlationSignUseCase{capture: c}, nil, nil)
 			},
 		},
 		{
@@ -153,7 +153,7 @@ func TestRoutes_PropaganCorrelacionGeneradaEnOperacionesVisibles(t *testing.T) {
 				}},
 			},
 			build: func(c *restCorrelationCapture) *Adaptador {
-				return New(nil, nil, nil).WithBatchSigner(correlationBatchUseCase{capture: c})
+				return nuevoAdaptadorPruebas(nil, nil, nil).WithBatchSigner(correlationBatchUseCase{capture: c})
 			},
 		},
 		{
@@ -165,7 +165,7 @@ func TestRoutes_PropaganCorrelacionGeneradaEnOperacionesVisibles(t *testing.T) {
 				"mime_type":      "application/pkcs7-signature",
 			},
 			build: func(c *restCorrelationCapture) *Adaptador {
-				return New(nil, correlationVerifyUseCase{capture: c}, nil)
+				return nuevoAdaptadorPruebas(nil, correlationVerifyUseCase{capture: c}, nil)
 			},
 		},
 		{
@@ -178,7 +178,7 @@ func TestRoutes_PropaganCorrelacionGeneradaEnOperacionesVisibles(t *testing.T) {
 				"format":         "hex",
 			},
 			build: func(c *restCorrelationCapture) *Adaptador {
-				return New(nil, nil, nil).WithHashes(correlationHashUseCase{capture: c}, nil)
+				return nuevoAdaptadorPruebas(nil, nil, nil).WithHashes(correlationHashUseCase{capture: c}, nil)
 			},
 		},
 		{
@@ -192,7 +192,7 @@ func TestRoutes_PropaganCorrelacionGeneradaEnOperacionesVisibles(t *testing.T) {
 				"recipient_ids":  []string{"dest-1"},
 			},
 			build: func(c *restCorrelationCapture) *Adaptador {
-				return New(nil, nil, nil).WithProtection(correlationProtectUseCase{capture: c}, nil, nil)
+				return nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(correlationProtectUseCase{capture: c}, nil, nil)
 			},
 		},
 		{
@@ -204,7 +204,7 @@ func TestRoutes_PropaganCorrelacionGeneradaEnOperacionesVisibles(t *testing.T) {
 				"mime_type":      domain.MIMETypeProtectedEnvelope,
 			},
 			build: func(c *restCorrelationCapture) *Adaptador {
-				return New(nil, nil, nil).WithProtection(nil, correlationUnprotectUseCase{capture: c}, nil)
+				return nuevoAdaptadorPruebas(nil, nil, nil).WithProtection(nil, correlationUnprotectUseCase{capture: c}, nil)
 			},
 		},
 	}
@@ -248,7 +248,7 @@ func TestRoutes_RequestIDValidoReemplazaCorrelacionGeneradaEnFirmaYLote(t *testi
 				"certificate_id": "cert-1",
 			},
 			build: func(c *restCorrelationCapture) *Adaptador {
-				return New(correlationSignUseCase{capture: c}, nil, nil)
+				return nuevoAdaptadorPruebas(correlationSignUseCase{capture: c}, nil, nil)
 			},
 		},
 		{
@@ -266,7 +266,7 @@ func TestRoutes_RequestIDValidoReemplazaCorrelacionGeneradaEnFirmaYLote(t *testi
 				}},
 			},
 			build: func(c *restCorrelationCapture) *Adaptador {
-				return New(nil, nil, nil).WithBatchSigner(correlationBatchUseCase{capture: c})
+				return nuevoAdaptadorPruebas(nil, nil, nil).WithBatchSigner(correlationBatchUseCase{capture: c})
 			},
 		},
 	}
@@ -307,7 +307,7 @@ func TestRoutes_RechazanRequestIDInvalidoAntesDelCasoDeUso(t *testing.T) {
 				var body map[string]any
 				switch endpoint {
 				case "/sign":
-					adapter = New(correlationSignUseCase{capture: &captured}, nil, nil)
+					adapter = nuevoAdaptadorPruebas(correlationSignUseCase{capture: &captured}, nil, nil)
 					body = map[string]any{
 						"request_id":     rawID,
 						"name":           "documento.txt",
@@ -317,7 +317,7 @@ func TestRoutes_RechazanRequestIDInvalidoAntesDelCasoDeUso(t *testing.T) {
 						"certificate_id": "cert-1",
 					}
 				case "/sign-batch":
-					adapter = New(nil, nil, nil).WithBatchSigner(correlationBatchUseCase{capture: &captured})
+					adapter = nuevoAdaptadorPruebas(nil, nil, nil).WithBatchSigner(correlationBatchUseCase{capture: &captured})
 					body = map[string]any{
 						"request_id": rawID,
 						"items": []map[string]any{{
@@ -347,13 +347,13 @@ func TestRoutes_DiagnosticsPropagaCorrelacionGenerada(t *testing.T) {
 	t.Parallel()
 
 	var captured restCorrelationCapture
-	adapter := New(nil, nil, nil)
+	adapter := nuevoAdaptadorPruebas(nil, nil, nil)
 	adapter.Catalogo = correlationCatalog{capture: &captured}
 
 	response := httptest.NewRecorder()
 	adapter.Routes().ServeHTTP(
 		response,
-		httptest.NewRequest(http.MethodGet, "/diagnostics/report", nil),
+		nuevaPeticionPruebas(http.MethodGet, "/diagnostics/report", nil),
 	)
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d; want %d; body=%s", response.Code, http.StatusOK, response.Body.String())
@@ -388,7 +388,7 @@ func doRESTCorrelationJSON(t *testing.T, handler http.Handler, endpoint string, 
 	if err != nil {
 		t.Fatalf("json.Marshal() error = %v", err)
 	}
-	request := httptest.NewRequest(http.MethodPost, endpoint, bytes.NewReader(data))
+	request := nuevaPeticionPruebas(http.MethodPost, endpoint, bytes.NewReader(data))
 	request.Header.Set("Content-Type", "application/json")
 	response := httptest.NewRecorder()
 	handler.ServeHTTP(response, request)

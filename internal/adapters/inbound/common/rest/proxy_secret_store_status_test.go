@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"testing"
 
-	"grxfirma/internal/adapters/inbound/common/rest"
 	"grxfirma/internal/ports"
 )
 
@@ -38,7 +37,7 @@ func (m proxySecretStoreMockREST) Status(context.Context) (ports.ProxySecretStor
 }
 
 func TestRoutes_ProxySecretStoreStatus(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil).WithProxySecretStore(proxySecretStoreMockREST{
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithProxySecretStore(proxySecretStoreMockREST{
 		status: ports.ProxySecretStoreStatus{
 			Available: true,
 			Platform:  "linux",
@@ -60,7 +59,7 @@ func TestRoutes_ProxySecretStoreStatus(t *testing.T) {
 }
 
 func TestRoutes_ProxySecretStoreStatusNoConfigurado(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil)
 
 	rr := doJSON(t, adaptador.Routes(), http.MethodGet, "/settings/proxy/secret-store/status", nil)
 	if rr.Code != http.StatusOK {
@@ -76,7 +75,7 @@ func TestRoutes_ProxySecretStoreStatusNoConfigurado(t *testing.T) {
 }
 
 func TestRoutes_ProxySecretStoreStatusBackendError(t *testing.T) {
-	adaptador := rest.New(nil, nil, nil).WithProxySecretStore(proxySecretStoreMockREST{
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithProxySecretStore(proxySecretStoreMockREST{
 		err: errors.New("dbus no disponible"),
 	})
 

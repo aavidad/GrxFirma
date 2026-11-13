@@ -343,7 +343,8 @@ func (a *Adaptador) WithPDFPreviewPaths() *Adaptador {
 	return a
 }
 
-// WithBearerToken activa autenticación Bearer opcional para los endpoints mutables.
+// WithBearerToken configura el token Bearer de las rutas protegidas. Sin token
+// ni huellas de certificado (WithCertificateAuth) esas rutas responden 503.
 func (a *Adaptador) WithBearerToken(token string) *Adaptador {
 	if a == nil {
 		return nil
@@ -3919,13 +3920,12 @@ func pathIsWithin(candidate, directory string) bool {
 		strings.HasPrefix(cleanCandidate, cleanDirectory+string(filepath.Separator))
 }
 
+// authorize falla cerrado: sin credencial configurada no se sirve ninguna ruta
+// protegida, igual que RoutesSoloVerificacion y las rutas de identidad.
 func (a *Adaptador) authorize(next http.Handler) http.Handler {
-	if a == nil {
-		return next
-	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !a.authenticationConfigured() {
-			next.ServeHTTP(w, r)
+		if a == nil || !a.authenticationConfigured() {
+			writeError(w, http.StatusServiceUnavailable, "autorizacion no configurada")
 			return
 		}
 		if !a.authOK(r) {
