@@ -201,26 +201,74 @@ type signerInfoRaw struct {
 // validez criptográfica de SignerInfo y extracción del certificado firmante.
 // Si la cadena embebida lo permite, añade además el estado de revocación real.
 func (v *CAdESVerifier) Verify(ctx context.Context, signedDocument domain.Document, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
-	return v.verifyCMS(ctx, signedDocument.Content, nil, anchors)
+	return v.verifyCMS(ctx, signedDocument.Content, nil, cmsContenidoEncapsulado, anchors)
 }
 
-// VerifyDetached verifica un CMS detached con contenido externo ya resuelto
-// por el adaptador llamante (por ejemplo, PAdES tras aplicar ByteRange).
+// VerifyDetachedCMS verifica un CMS detached con contenido externo ya resuelto
+// por el adaptador llamante (por ejemplo, PAdES tras aplicar ByteRange). Un
+// CMS con contenido encapsulado se rechaza: lo firmado es el externo.
 func (v *CAdESVerifier) VerifyDetachedCMS(ctx context.Context, cmsDER, content []byte) (domain.VerificationResult, []domain.CertificateRef, error) {
-	return v.verifyCMS(ctx, cmsDER, content, domain.CertificateChain{})
+	return v.verifyCMS(ctx, cmsDER, content, cmsContenidoExterno, domain.CertificateChain{})
 }
 
 // VerifyDetachedCMSWithAnchors verifica un CMS detached y valida su cadena
 // contra las anclas X.509 proporcionadas.
 func (v *CAdESVerifier) VerifyDetachedCMSWithAnchors(ctx context.Context, cmsDER, content []byte, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
-	return v.verifyCMS(ctx, cmsDER, content, anchors)
+	return v.verifyCMS(ctx, cmsDER, content, cmsContenidoExterno, anchors)
 }
 
+// VerifyDetached verifica una firma CAdES contra el original aportado. El
+// resumen se comprueba siempre contra ese original; una firma implícita solo
+// se admite si su contenido encapsulado es idéntico byte a byte.
 func (v *CAdESVerifier) VerifyDetached(ctx context.Context, signedDocument domain.Document, originalDocument domain.Document, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
-	return v.verifyCMS(ctx, signedDocument.Content, originalDocument.Content, anchors)
+	return v.verifyCMS(ctx, signedDocument.Content, originalDocument.Content, cmsContenidoOriginalAportado, anchors)
 }
 
-func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent []byte, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
+// modoContenidoCMS fija de dónde sale el contenido cuyo resumen se compara
+// con el atributo messageDigest.
+type modoContenidoCMS int
+
+const (
+	// cmsContenidoEncapsulado: sin contenido externo; se exige eContent.
+	cmsContenidoEncapsulado modoContenidoCMS = iota
+	// cmsContenidoExterno: firma detached (PAdES, ASiC-CAdES, identidad);
+	// un CMS con eContent se rechaza.
+	cmsContenidoExterno
+	// cmsContenidoOriginalAportado: CAdES con original del usuario; si el CMS
+	// trae eContent tiene que ser idéntico al original.
+	cmsContenidoOriginalAportado
+)
+
+// contenidoFirmadoCMS devuelve el contenido contra el que se comprueba el
+// messageDigest. Si el llamante aporta contenido externo, es siempre ese.
+func contenidoFirmadoCMS(encap asn1.RawValue, externalContent []byte, modo modoContenidoCMS) ([]byte, error) {
+	if modo == cmsContenidoEncapsulado {
+		return parseEncapsulatedContent(encap)
+	}
+	var eci encapContentInfoRaw
+	if _, err := asn1.Unmarshal(encap.FullBytes, &eci); err != nil {
+		return nil, fmt.Errorf("parseando EncapContentInfo: %w", err)
+	}
+	if len(externalContent) == 0 {
+		return nil, errors.New("falta el contenido firmado para verificar la firma detached")
+	}
+	if len(eci.Content.FullBytes) == 0 {
+		return externalContent, nil
+	}
+	if modo == cmsContenidoExterno {
+		return nil, errors.New("la firma contiene contenido adjunto; se esperaba una firma explícita sobre el documento")
+	}
+	encapsulado, err := parseEncapsulatedContent(encap)
+	if err != nil {
+		return nil, err
+	}
+	if !bytes.Equal(encapsulado, externalContent) {
+		return nil, errors.New("el contenido adjunto a la firma no coincide con el original aportado")
+	}
+	return externalContent, nil
+}
+
+func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent []byte, modo modoContenidoCMS, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
 	contentInfo, err := parseContentInfo(cmsDER)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
@@ -234,12 +282,9 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 		return domain.VerificationResult{}, nil, err
 	}
 
-	content, err := parseEncapsulatedContent(signedData.EncapContentInfo)
+	content, err := contenidoFirmadoCMS(signedData.EncapContentInfo, externalContent, modo)
 	if err != nil {
-		if len(externalContent) == 0 {
-			return domain.VerificationResult{}, nil, err
-		}
-		content = externalContent
+		return domain.VerificationResult{}, nil, err
 	}
 
 	certs, certRefs, err := parseCertificateSet(signedData.Certificates)
