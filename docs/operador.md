@@ -240,7 +240,8 @@ Compatibilidad heredada, solo cuando el portal la exija y **solo mediante la
 política de máquina** (las variables de entorno antiguas ya no tienen efecto;
 véase [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md)):
 
-- `permitir_des_legacy`: habilita el formato de sesión DES de V1.9.
+- `permitir_des_legacy`: habilita el formato de sesión DES de V1.9 y la
+  lectura de sobres CMS `EnvelopedData`/`EncryptedData` cifrados con DES o 3DES.
 - `permitir_sha1_legacy`: habilita generación de firmas SHA-1.
 - `permitir_rutas_directas_protocolo`: permite rutas absolutas entregadas
   por el portal en `load`, `save` y `signandsave`.
@@ -671,6 +672,10 @@ Estado del frente CMS heredado de 1.9:
   `AuthEnvelopedData` usa RSA-OAEP-SHA256/MGF1-SHA256 + AES-256-GCM
 - OpenSSL parsea el DER V2, V2 descifra AES-256-CBC de OpenSSL y el
   intercambio `AuthEnvelopedData` con OpenSSL 3.5 está probado en ambos sentidos
+- al desproteger `EnvelopedData` y `EncryptedData` solo se aceptan AES-GCM y
+  AES-CBC (128, 192 o 256 bits) con transporte de clave RSA. DES y 3DES exigen
+  la política de máquina `permitir_des_legacy`. Cualquier otro cifrado (ECB,
+  OFB, CFB, RC2, RC5, SM4…) se rechaza antes de intentar descifrar
 - el fixture V1.9 usa AES-ECB/PKCS5 y ASN.1 legacy; V2 no lo escribe. Para
   migrar sobres conocidos, su lector de solo lectura se activa con
   `GRXFIRMA_ENABLE_LEGACY_CMS_AES_ECB=1`, valida límites/padding, firma,

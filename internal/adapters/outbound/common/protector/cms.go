@@ -191,8 +191,12 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 	}
 	switch contentType {
 	case cmsContentTypeEnvelopedData, cmsContentTypeEncryptedData:
-		// Se sigue intentando con el parser estándar; EncryptedData se trata luego
-		// para dar un error más claro si falta PSK.
+		// Las bibliotecas aceptan cualquier cifrado que conozcan: se filtra
+		// antes con la lista propia (F-06). EncryptedData se trata luego para
+		// dar un error más claro si falta PSK.
+		if err := validarAlgoritmosCMS(protected.Content); err != nil {
+			return domain.UnprotectedPayload{}, err
+		}
 	case cmsContentTypeSignedEnvelopedData:
 		var anchors ports.TrustAnchorProvider
 		if p != nil {

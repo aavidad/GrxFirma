@@ -39,7 +39,7 @@ Excepciones de compatibilidad (todas desactivadas por defecto; `1` las activa):
 
 | Nombre | Qué permite | Variable de entorno que no sustituye esta política |
 |---|---|---|
-| `permitir_des_legacy` | Formato de sesión DES/ECB de AutoFirma 1.9 también fuera de HTTPS (ver nota) | `GRXFIRMA_ENABLE_LEGACY_DES` |
+| `permitir_des_legacy` | Formato de sesión DES/ECB de AutoFirma 1.9 también fuera de HTTPS (ver nota), y leer sobres CMS `EnvelopedData`/`EncryptedData` cifrados con DES o 3DES | `GRXFIRMA_ENABLE_LEGACY_DES` |
 | `permitir_sha1_legacy` | Generar firmas SHA-1 pedidas por portales antiguos | `GRXFIRMA_ENABLE_LEGACY_SHA1` |
 | `permitir_cms_aes_ecb_legacy` | Leer sobres `SignedAndEnvelopedData` AES-ECB de 1.9 | `GRXFIRMA_ENABLE_LEGACY_CMS_AES_ECB` |
 | `permitir_origen_vacio` | WebSocket sin cabecera `Origin` o con `Origin: null` | `GRXFIRMA_WS_ALLOW_EMPTY_ORIGIN` |
