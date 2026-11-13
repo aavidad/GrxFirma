@@ -150,16 +150,20 @@ func main() {
 	srv.SetLocalTLSStartupRefresh(func(ctx context.Context) ipc.LocalTLSStartupStatus {
 		return ensureLocalTLSStartup(ctx, configDir)
 	})
-	vincularFrontend := ipc.SoportaVinculacionPIDFrontend()
-	if vincularFrontend {
-		if err := srv.PrepararVinculacionPIDFrontend(); err != nil {
-			fmt.Fprintf(
-				os.Stderr,
-				"grxfirma-gui: no se pudo preparar la vinculacion segura del frontend: %v\n",
-				err,
-			)
-			os.Exit(1)
-		}
+	// El backend solo atiende al proceso gráfico que lanza. Si el sistema no
+	// permite comprobar el PID del otro extremo, no se arranca (falla cerrado).
+	if !ipc.SoportaVinculacionPIDFrontend() {
+		fmt.Fprintln(os.Stderr, "grxfirma-gui: "+loc.T("desktop.ipc.peer_binding_unsupported"))
+		os.Exit(1)
+	}
+	vincularFrontend := true
+	if err := srv.PrepararVinculacionPIDFrontend(); err != nil {
+		fmt.Fprintf(
+			os.Stderr,
+			"grxfirma-gui: no se pudo preparar la vinculacion segura del frontend: %v\n",
+			err,
+		)
+		os.Exit(1)
 	}
 
 	// Arrancar servidor IPC en goroutine de fondo.
@@ -332,6 +336,12 @@ func runServerMode(
 			fmt.Fprintf(os.Stderr, "grxfirma-gui: PID de cliente IPC no valido: %v\n", err)
 			return 2
 		}
+		// Sin el PID del frontend no hay forma de saber quién se conecta: falla
+		// cerrado en vez de aceptar a cualquier proceso del usuario.
+		if pidFrontend == 0 || !ipc.SoportaVinculacionPIDFrontend() {
+			fmt.Fprintln(os.Stderr, "grxfirma-gui: "+loc.T("desktop.ipc.server.client_pid_required"))
+			return 2
+		}
 		srv, socketRuta, err := construirServidor(ctx, rutaP12, passwordP12, socketPath, loc)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "grxfirma-gui: error arrancando servidor IPC: %v\n", err)
@@ -341,15 +351,13 @@ func runServerMode(
 		srv.SetLocalTLSStartupRefresh(func(ctx context.Context) ipc.LocalTLSStartupStatus {
 			return ensureLocalTLSStartup(ctx, configDir)
 		})
-		if pidFrontend != 0 {
-			if err := srv.VincularPIDFrontend(pidFrontend); err != nil {
-				fmt.Fprintf(
-					os.Stderr,
-					"grxfirma-gui: no se pudo vincular el cliente IPC: %v\n",
-					err,
-				)
-				return 1
-			}
+		if err := srv.VincularPIDFrontend(pidFrontend); err != nil {
+			fmt.Fprintf(
+				os.Stderr,
+				"grxfirma-gui: no se pudo vincular el cliente IPC: %v\n",
+				err,
+			)
+			return 1
 		}
 		fmt.Fprintf(os.Stderr, "grxfirma-gui: servidor IPC escuchando en %s\n", socketRuta)
 		if err := srv.Escuchar(ctx, socketRuta); err != nil && ctx.Err() == nil {

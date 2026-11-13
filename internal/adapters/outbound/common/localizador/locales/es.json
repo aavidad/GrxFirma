@@ -128,6 +128,8 @@
   "security.secret.hint.p12": "use -contrasena-stdin o, solo para compatibilidad automatizada, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "Contraseña PKCS#12: ",
   "security.secret.prompt.protection": "Clave de protección Base64: ",
+  "desktop.ipc.server.client_pid_required": "el modo --server necesita --ipc-client-pid con el PID del programa que se va a conectar; sin él no se abre el canal IPC",
+  "desktop.ipc.peer_binding_unsupported": "este sistema no permite comprobar qué programa se conecta al motor de firma, así que GrxFirma no arranca",
   "rest.error.private_credential": "error preparando la entrega privada de la credencial REST",
   "rest.help.private_delivery": "Un gestor de secretos puede inyectar GRXFIRMA_REST_TOKEN. Si el token se autogenera, solo se muestra la ruta de un fichero privado y efímero para curl --config.",
   "rest.output.bearer_file": "Credencial Bearer efímera: fichero privado %s",

@@ -907,13 +907,12 @@ void IpcBridge::launchBackendProcess() {
     bin = wrapperBin;
     args << "--server" << "--server-modo" << "ipc" << "--ipc-socket"
          << m_socketPath;
-#if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
     // El backend valida este valor contra las credenciales que entrega el SO
-    // para el peer real del named pipe/socket. No es un secreto ni se usa como
-    // dato de confianza por sí solo.
+    // para el peer real del named pipe/socket (Windows, Linux y macOS). No es
+    // un secreto ni se usa como dato de confianza por sí solo. Sin él, el
+    // backend en modo --server no arranca.
     args << "--ipc-client-pid"
          << QString::number(QCoreApplication::applicationPid());
-#endif
   } else if (m_serverMode == "rest") {
     if (backendBin.isEmpty()) {
       emit backendLogReceived(it(QStringLiteral(

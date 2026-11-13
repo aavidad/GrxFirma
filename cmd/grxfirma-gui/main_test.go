@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"grxfirma/internal/adapters/inbound/common/secretinput"
 	"grxfirma/internal/adapters/inbound/desktop/ipc"
@@ -379,6 +380,33 @@ func TestFrontendPorDefectoEsElNativoDeCadaSistema(t *testing.T) {
 	for goos, want := range map[string]string{"windows": "winui", "linux": "qt", "darwin": "qt"} {
 		if got := frontendPorDefecto(goos); got != want {
 			t.Errorf("frontendPorDefecto(%q) = %q, se esperaba %q", goos, got, want)
+		}
+	}
+}
+
+// D-03: el modo --server sin --ipc-client-pid no abre el endpoint; sin
+// vínculo de PID cualquier proceso del usuario podría pedir firmas.
+func TestRunServerMode_SinPIDClienteNoAbreElEndpoint(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
+	ruta := filepath.Join(t.TempDir(), "s.sock")
+	if runtime.GOOS == "windows" {
+		ruta = fmt.Sprintf(`\\.\pipe\grxfirma_test_%d`, os.Getpid())
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	code := runServerMode(ctx, "ipc", "", "", ruta, 0, localizador.Para("es"),
+		ipc.LocalTLSStartupStatus{}, filepath.Join(home, ".config", "grxfirma"))
+	if code != 2 {
+		t.Fatalf("runServerMode sin PID = %d; se esperaba 2", code)
+	}
+	if ctx.Err() != nil {
+		t.Fatal("runServerMode sin PID no debe quedarse escuchando hasta el plazo")
+	}
+	if runtime.GOOS != "windows" {
+		if _, err := os.Lstat(ruta); err == nil {
+			t.Fatal("se creó el socket sin vínculo de PID")
 		}
 	}
 }

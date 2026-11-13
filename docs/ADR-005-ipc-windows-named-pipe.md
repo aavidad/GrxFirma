@@ -58,18 +58,20 @@ El listener:
    y se rechaza cualquier PID distinto. Si el frontend no arranca o el PID no
    puede publicarse, el control queda cerrado.
 
-Unix conserva `net.Listen("unix")`, permisos `0600` y la comprobación de
-credenciales disponible en Linux. En Linux, la GUI Qt que crea el backend en
-modo servidor publica también su PID y el servidor lo contrasta con el PID de
-`SO_PEERCRED`, además del UID.
+Unix conserva `net.Listen("unix")` y permisos `0600`, y comprueba las
+credenciales que da el núcleo: `SO_PEERCRED` en Linux y `LOCAL_PEERCRED` más
+`LOCAL_PEERPID` en macOS. La GUI Qt que crea el backend en modo servidor
+publica su PID y el servidor lo contrasta con el PID del núcleo, además del
+UID, igual que en Windows.
 
-La ejecución manual o gestionada de `grxfirma-gui --server` sin
-`--ipc-client-pid` se mantiene por compatibilidad con el gestor de servicios
-de Linux. En ese modo no existe vinculación a un proceso concreto: se conserva
-la validación del mismo UID y los permisos `0600`, y cualquier proceso ya
-comprometido de ese usuario permanece dentro del límite de confianza. El
-arranque normal de escritorio en Windows y Linux y el backend iniciado por Qt
-no usan esa excepción.
+Actualización 13/11/2026 (revisión de seguridad, D-03): se retira la
+excepción de `grxfirma-gui --server` sin `--ipc-client-pid`. El modo servidor
+exige siempre el PID del frontend y, si falta o la plataforma no permite
+comprobar el PID del otro extremo, no abre el canal (falla cerrado). El
+lanzador normal tampoco arranca en una plataforma sin esa comprobación. La
+unidad de usuario de systemd que escribe el gestor de servicios de Linux no
+lleva PID, así que ya no arranca un backend útil (`RestartPreventExitStatus=2`
+evita que se reinicie en bucle).
 
 La máscara dúplex incluye `FILE_CREATE_PIPE_INSTANCE`, exigido por la
 semántica de instancias de named pipe. La DACL de sesión y el nombre aleatorio
