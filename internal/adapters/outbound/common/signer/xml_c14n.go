@@ -19,7 +19,23 @@ const xmlNamespaceURI = "http://www.w3.org/XML/1998/namespace"
 
 type c14nMode struct {
 	inclusive bool
+	// antigua reproduce la C14N de GrxFirma anterior a E1-07 y E1-08 (ver
+	// varianteC14N). Solo para verificar.
+	antigua bool
 }
+
+// varianteC14N elige entre la C14N estándar y la que usaba GrxFirma antes de
+// los arreglos E1-08 (referencias de carácter decimales &#9; &#10; &#13; y sin
+// normalizar tabuladores y saltos de línea en atributos) y E1-07 (sin las
+// instrucciones de proceso de fuera de la raíz). La antigua solo sirve para
+// reconocer firmas hechas por versiones anteriores de GrxFirma: nunca se usa
+// para firmar ni da una firma por válida.
+type varianteC14N int
+
+const (
+	c14nEstandar varianteC14N = iota
+	c14nAntiguaGrxFirma
+)
 
 type c14nElement struct {
 	prefix       string
@@ -53,14 +69,18 @@ type c14nAttribute struct {
 // Canonicaliza el documento entero: incluye las instrucciones de proceso de
 // fuera del elemento raíz (C14N 1.0 §2.1 y §2.3), que un visor sí aplica.
 func canonicalizeXML(xmlData []byte, algorithm string) ([]byte, error) {
+	return canonicalizeXMLVariante(xmlData, algorithm, c14nEstandar)
+}
+
+func canonicalizeXMLVariante(xmlData []byte, algorithm string, variante varianteC14N) ([]byte, error) {
 	rootFound := false
-	return canonicalizarSeleccion(xmlData, algorithm, func(c14nElement) bool {
+	return canonicalizarSeleccionVariante(xmlData, algorithm, func(c14nElement) bool {
 		if rootFound {
 			return false
 		}
 		rootFound = true
 		return true
-	}, true)
+	}, true, variante)
 }
 
 // canonicalizeElementInDocument conserva el contexto xmlns y xml:* heredado
@@ -72,14 +92,18 @@ func canonicalizeElementInDocument(xmlData []byte, namespace, local, algorithm s
 }
 
 func canonicalizeElementByIDInDocument(xmlData []byte, id, algorithm string) ([]byte, error) {
-	return canonicalizeXMLSelection(xmlData, algorithm, func(element c14nElement) bool {
+	return canonicalizeElementByIDVariante(xmlData, id, algorithm, c14nEstandar)
+}
+
+func canonicalizeElementByIDVariante(xmlData []byte, id, algorithm string, variante varianteC14N) ([]byte, error) {
+	return canonicalizarSeleccionVariante(xmlData, algorithm, func(element c14nElement) bool {
 		for _, attribute := range element.attributes {
 			if strings.EqualFold(attribute.Name.Local, "Id") && attribute.Value == id {
 				return true
 			}
 		}
 		return false
-	})
+	}, false, variante)
 }
 
 func canonicalizeXMLSelection(xmlData []byte, algorithm string, matches func(c14nElement) bool) ([]byte, error) {
@@ -90,12 +114,25 @@ func canonicalizeXMLSelection(xmlData []byte, algorithm string, matches func(c14
 // Con documentoEntero, la selección es el nodo documento y se emiten también
 // las instrucciones de proceso anteriores y posteriores al elemento raíz.
 func canonicalizarSeleccion(xmlData []byte, algorithm string, matches func(c14nElement) bool, documentoEntero bool) ([]byte, error) {
+	return canonicalizarSeleccionVariante(xmlData, algorithm, matches, documentoEntero, c14nEstandar)
+}
+
+func canonicalizarSeleccionVariante(xmlData []byte, algorithm string, matches func(c14nElement) bool, documentoEntero bool, variante varianteC14N) ([]byte, error) {
 	mode, err := resolveC14NMode(algorithm)
 	if err != nil {
 		return nil, err
 	}
+	mode.antigua = variante == c14nAntiguaGrxFirma
+	entrada := xmlData
+	if !mode.antigua {
+		entrada = normalizarEspaciosEnAtributos(xmlData)
+	} else {
+		// La C14N antigua no emitía las instrucciones de proceso de fuera
+		// de la raíz.
+		documentoEntero = false
+	}
 
-	decoder := xml.NewDecoder(bytes.NewReader(normalizarEspaciosEnAtributos(xmlData)))
+	decoder := xml.NewDecoder(bytes.NewReader(entrada))
 	decoder.Strict = true
 	var output bytes.Buffer
 	frames := make([]c14nFrame, 0, 16)
@@ -201,7 +238,7 @@ func canonicalizarSeleccion(xmlData []byte, algorithm string, matches func(c14nE
 
 		case xml.CharData:
 			if len(frames) > 0 && frames[len(frames)-1].captured {
-				output.WriteString(escapeXMLText(string(current)))
+				output.WriteString(escapeC14NTexto(string(current), mode.antigua))
 			}
 
 		case xml.Directive:
@@ -327,7 +364,7 @@ func writeCanonicalStart(
 			output.WriteString(prefix)
 		}
 		output.WriteString(`="`)
-		output.WriteString(escapeXMLAttr(namespacesToRender[prefix]))
+		output.WriteString(escapeC14NAtributo(namespacesToRender[prefix], mode.antigua))
 		output.WriteByte('"')
 	}
 
@@ -391,7 +428,7 @@ func writeCanonicalStart(
 		output.WriteByte(' ')
 		output.WriteString(attribute.qname)
 		output.WriteString(`="`)
-		output.WriteString(escapeXMLAttr(attribute.value))
+		output.WriteString(escapeC14NAtributo(attribute.value, mode.antigua))
 		output.WriteByte('"')
 	}
 	output.WriteByte('>')
@@ -519,4 +556,30 @@ func normalizarEspaciosEnAtributos(data []byte) []byte {
 		}
 	}
 	return out
+}
+
+// escapeC14NAtributo y escapeC14NTexto: en la variante antigua, las
+// referencias de carácter decimales que escribía GrxFirma antes de E1-08.
+func escapeC14NAtributo(s string, antigua bool) string {
+	if !antigua {
+		return escapeXMLAttr(s)
+	}
+	s = strings.ReplaceAll(s, "&", "&amp;")
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	s = strings.ReplaceAll(s, `"`, "&quot;")
+	s = strings.ReplaceAll(s, "\t", "&#9;")
+	s = strings.ReplaceAll(s, "\n", "&#10;")
+	s = strings.ReplaceAll(s, "\r", "&#13;")
+	return s
+}
+
+func escapeC14NTexto(s string, antigua bool) string {
+	if !antigua {
+		return escapeXMLText(s)
+	}
+	s = strings.ReplaceAll(s, "&", "&amp;")
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	s = strings.ReplaceAll(s, ">", "&gt;")
+	s = strings.ReplaceAll(s, "\r", "&#13;")
+	return s
 }
