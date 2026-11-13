@@ -386,7 +386,12 @@ func DetalleAprobacionSolicitud(solicitud afirmauri.Solicitud, certificado strin
 	if solicitud.SignCommand != nil {
 		detalle.Documento = solicitud.SignCommand.Document.Name
 		detalle.Tamano = len(solicitud.SignCommand.Document.Content)
-		detalle.Destinos = append(detalle.Destinos, afirmauri.ServidoresTrifasicos(solicitud.SignCommand.Options)...)
+		servidores := afirmauri.ServidoresTrifasicos(solicitud.SignCommand.Options)
+		detalle.Destinos = append(detalle.Destinos, servidores...)
+		// Lote 13c: en la trifásica con servidor, el servidor puede pedir
+		// varias firmas con esta aprobación (lote 13a); el diálogo lo dice.
+		detalle.FirmaTrifasicaServidor = len(servidores) > 0 &&
+			triphase.EsFormatoTrifasico(solicitud.LegacyParams.Get("format"))
 	}
 	if solicitud.Operacion == afirmauri.OperacionLote {
 		detalle.Operacion = application.AprobacionLote

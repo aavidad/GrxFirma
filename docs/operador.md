@@ -122,7 +122,9 @@ En la firma trifásica con servidor (`serverUrl`), el servidor tiene que estar
 en los dominios de confianza y aparece en el diálogo de aprobación. Una
 contrafirma de varios nodos le pide a GrxFirma varias firmas con esa única
 aprobación: se admiten hasta 100 y el registro anota
-`triphase_server_varias_firmas` con el número de firmas hechas. Una prefirma
+`triphase_server_varias_firmas` con el número de firmas hechas. Como ese
+número no se sabe al aprobar, el diálogo de toda firma trifásica con servidor
+avisa de que el servidor puede pedir más de una firma. Una prefirma
 sin ninguna firma o con más de 100 se rechaza sin firmar.
 
 Si `serverUrl` lleva usuario y contraseña (`https://usuario:clave@servidor/...`),

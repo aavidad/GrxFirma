@@ -476,6 +476,8 @@ func (h *legacyWebSocketHandler) firmarTrifasicoServidor(ctx context.Context, cm
 	detalle.Destinos = append([]string{servidor}, destinosSolicitud(solicitud)...)
 	detalle.SesionNoIdentificada = application.SesionNoIdentificada(ctx)
 	detalle.DestinoSinCifrar = application.DestinoSinCifrar(ctx)
+	// Lote 13c: el servidor puede pedir varias firmas con esta aprobación.
+	detalle.FirmaTrifasicaServidor = true
 	aprobado, err := h.approval.Request(ctx, componerAprobacionProtocolo(detalle))
 	if err != nil {
 		if isLegacyCancellation(err) {
