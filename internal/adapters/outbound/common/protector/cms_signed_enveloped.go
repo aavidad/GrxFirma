@@ -150,6 +150,9 @@ func decryptSignedEnvelopedCMS(ctx context.Context, protected domain.Document, k
 	if len(protected.Content) == 0 || len(protected.Content) > maxCMSSignedEnvelopedBytes {
 		return domain.UnprotectedPayload{}, errors.New("tamano de SignedAndEnvelopedData no permitido")
 	}
+	if err := comprobarAnidamientoCMS(protected.Content); err != nil {
+		return domain.UnprotectedPayload{}, err
+	}
 	if legacy, detected, err := decryptLegacyV1SignedEnvelopedCMS(ctx, protected, keys, trustAnchors); detected {
 		return legacy, err
 	}

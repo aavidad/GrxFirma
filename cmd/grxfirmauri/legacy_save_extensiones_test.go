@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
+	"grxfirma/internal/ports"
 )
 
 func guardarDesdeWeb(t *testing.T, destino string, approval *userApprovalStub) string {
@@ -38,6 +39,43 @@ func noExiste(t *testing.T, ruta string) {
 	t.Helper()
 	if _, err := os.Stat(ruta); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("%s no debía escribirse", ruta)
+	}
+}
+
+// aprobacionConTituloStub registra el título con el que se pide la confirmación.
+type aprobacionConTituloStub struct {
+	userApprovalStub
+	titulos []string
+}
+
+func (a *aprobacionConTituloStub) ConTitulo(titulo string) ports.UserApproval {
+	a.titulos = append(a.titulos, titulo)
+	return &a.userApprovalStub
+}
+
+// A-09: la confirmación de guardado no sale como «Confirmación de firma».
+func TestGuardadoWeb_ConfirmacionConTituloPropio(t *testing.T) {
+	destino := filepath.Join(t.TempDir(), "informe.docx")
+	approval := &aprobacionConTituloStub{}
+	handler := &legacyWebSocketHandler{
+		savePicker: func(context.Context, string, string) (string, error) { return destino, nil },
+	}
+	handler.approval = approval
+	if resp := handler.handleSave(context.Background(), afirmauri.Solicitud{
+		Operacion:         afirmauri.OperacionSave,
+		OrigenSolicitante: "https://sede.example",
+		LegacyParams: mapToValues(map[string]string{
+			"dat": base64.StdEncoding.EncodeToString([]byte("contenido")),
+		}),
+	}); resp != "CANCEL" {
+		t.Fatalf("handleSave() = %q", resp)
+	}
+	if approval.calls != 1 || len(approval.titulos) != 1 {
+		t.Fatalf("la confirmación de guardado no pidió su propio título: llamadas=%d títulos=%q", approval.calls, approval.titulos)
+	}
+	titulo := approval.titulos[0]
+	if titulo == claveTituloGuardado || titulo == "" || titulo == tl("Confirmación de firma") {
+		t.Fatalf("título de la confirmación de guardado = %q", titulo)
 	}
 }
 

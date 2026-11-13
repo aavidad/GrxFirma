@@ -13,6 +13,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 )
@@ -96,9 +97,12 @@ func TestManagedCAKey_CifradaConElAlmacenDelSistema(t *testing.T) {
 		t.Fatalf("claves de cifrado tras rotar = %d; want 1", len(almacen.datos))
 	}
 
-	// Sin almacén seguro no se guarda la clave.
-	almacen.falla = true
-	if err := SaveManagedCAKey(path, clave); err == nil {
-		t.Fatal("SaveManagedCAKey() guardó la clave sin almacén seguro")
+	// Sin almacén seguro: en macOS no se guarda la clave; en Linux va a un
+	// fichero privado (managed_ca_key_fallback_test.go).
+	if runtime.GOOS != "linux" {
+		almacen.falla = true
+		if err := SaveManagedCAKey(path, clave); err == nil {
+			t.Fatal("SaveManagedCAKey() guardó la clave sin almacén seguro")
+		}
 	}
 }

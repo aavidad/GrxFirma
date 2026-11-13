@@ -76,6 +76,7 @@
   "approval.size.bytes": "%d 字节",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "网站要求将 %s 文件保存到 %s。签名和文档通常是 .pdf、.xml、.csig 或 .xsig 格式。只有在您清楚它是什么时才保存。要保存吗？",
+  "approval.save.title": "确认保存",
   "cli.error.no_operation": "未指定 CLI 操作",
   "cli.error.p12_secret_input": "无法读取 PKCS#12 密码",
   "cli.error.prefix": "错误：",

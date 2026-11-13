@@ -510,6 +510,9 @@ func parseCMSRSAKeyMaterial(key domain.ProtectionKeyMaterial) (*x509.Certificate
 }
 
 func decryptCMSEnvelopedData(data []byte, cert *x509.Certificate, priv *rsa.PrivateKey) ([]byte, error) {
+	if err := comprobarAnidamientoCMS(data); err != nil {
+		return nil, err
+	}
 	compatCert, err := cryptobinx509.ParseCertificate(cert.Raw)
 	if err == nil {
 		var (
@@ -536,6 +539,9 @@ func decryptCMSEnvelopedData(data []byte, cert *x509.Certificate, priv *rsa.Priv
 }
 
 func decryptCMSEncryptedData(data, secret []byte) ([]byte, error) {
+	if err := comprobarAnidamientoCMS(data); err != nil {
+		return nil, err
+	}
 	var (
 		plaintext  []byte
 		decryptErr error

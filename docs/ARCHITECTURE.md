@@ -90,7 +90,8 @@ binario, y la política de dominios de confianza la aplican los adaptadores
   y datos habituales (`.pdf .xml .csig .xsig .p7s .sig .txt .bin .json .zip
   .asice .asics`). Los tipos que el sistema ejecuta, monta o abre con macros
   (`.exe`, `.chm`, `.iso`, `.xll`, `.docm`...) se bloquean; cualquier otro pide
-  una confirmación explícita y, sin interfaz para pedirla, no se guarda. En
+  una confirmación explícita, con su propio título de guardado
+  (`approval.save.title`), y, sin interfaz para pedirla, no se guarda. En
   Windows el fichero lleva el flujo `Zone.Identifier` con `ZoneId=3` y el
   origen de la web, para que SmartScreen y Office lo traten como descargado.
 - Pendiente: llevar al núcleo la invariante de `ExchangeSession` (HTTPS, sin

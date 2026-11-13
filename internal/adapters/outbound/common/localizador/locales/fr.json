@@ -76,6 +76,7 @@
   "approval.size.bytes": "%d octets",
   "approval.size.kb": "%d Ko",
   "approval.save.extension": "Le site web demande d'enregistrer un fichier %s dans %s. Les signatures et les documents sont généralement en .pdf, .xml, .csig ou .xsig. Ne l'enregistrez que si vous savez ce que c'est. Voulez-vous l'enregistrer ?",
+  "approval.save.title": "Confirmer l'enregistrement",
   "cli.error.no_operation": "aucune opération CLI n’a été indiquée",
   "cli.error.p12_secret_input": "le mot de passe PKCS#12 n’a pas pu être lu",
   "cli.error.prefix": "erreur :",

@@ -116,6 +116,15 @@ func TextoZenity(texto string) string {
 	return strings.ReplaceAll(texto, `\`, `\\`)
 }
 
+// TextoZenityMarcado prepara un texto para el --text de los diálogos de zenity
+// o qarma que no admiten --no-markup, como --list: ahí el texto se pinta como
+// marcado Pango después de interpretar las secuencias con barra invertida. Se
+// escapan &, <, >, comillas y apóstrofos como entidades y se duplican las
+// barras, de modo que el texto externo se ve tal cual.
+func TextoZenityMarcado(texto string) string {
+	return TextoZenity(html.EscapeString(texto))
+}
+
 // TextoKDialog prepara un texto para kdialog, que decide por su cuenta si es
 // texto enriquecido de Qt. Se fuerza el modo enriquecido con <qt>, se escapa
 // todo (&, <, >, comillas) y los saltos de línea propios se pasan a <br>.

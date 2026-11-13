@@ -312,9 +312,9 @@ func EnsureLocalhostCertificateWithLocalCA(dir, prefix string) (string, string, 
 			BasicConstraintsValid: true,
 			IsCA:                  true,
 			MaxPathLenZero:        true,
-			// La extensión no crítica preserva la compatibilidad con verificadores
-			// de navegador aún no validados; Go aplica igualmente la restricción.
-			PermittedDNSDomainsCritical: false,
+			// Extensión crítica (B-01): un verificador que no entienda las
+			// restricciones de nombre debe rechazar la CA en lugar de ignorarlas.
+			PermittedDNSDomainsCritical: true,
 			PermittedDNSDomains:         []string{"localhost"},
 			PermittedIPRanges: []*net.IPNet{
 				{IP: net.IPv4(127, 0, 0, 0).To4(), Mask: net.CIDRMask(8, 32)},
