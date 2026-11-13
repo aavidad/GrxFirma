@@ -123,12 +123,17 @@ jobs:
           WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
         run: bash scripts/release/check-firefox-signing-env.sh
 
-      - name: Instalar web-ext fijado
-        run: npm install --global web-ext@10.5.0
+      # Sin credenciales en este paso: el árbol completo sale del lockfile con
+      # hashes integrity y no se ejecuta ningún script de instalación (G-03).
+      - name: Instalar web-ext desde lockfile sin scripts
+        run: >-
+          npm ci --ignore-scripts --no-audit --no-fund
+          --prefix packaging/browser-extensions/tools
 
       - name: Generar XPI firmado por AMO
         env:
           GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI: "1"
+          GRXFIRMA_WEB_EXT: ${{ github.workspace }}/packaging/browser-extensions/tools/node_modules/.bin/web-ext
           WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
           WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
         run: python3 packaging/browser-extensions/build.py

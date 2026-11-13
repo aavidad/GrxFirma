@@ -78,7 +78,15 @@ elimina en un paso `always()`. Windows valida primero el PFX en memoria con
 bloque de limpieza aunque falle la finalización.
 
 El workflow oficial activa `GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI=1` y usa
-`web-ext@10.5.0` para obtener una única copia firmada por AMO. Linux, Windows y
+`web-ext` 10.5.0 para obtener una única copia firmada por AMO. La versión de
+primer nivel y todo su árbol de dependencias se fijan con
+`packaging/browser-extensions/tools/package.json` y su `package-lock.json`
+(hashes `integrity`). Se instala con `npm ci --ignore-scripts` en un paso que no
+recibe las credenciales de AMO, y `build.py` pasa esas credenciales a `web-ext`
+por variables de entorno, nunca por la línea de órdenes. Si falta el lockfile,
+`npm ci` falla y no se firma nada. Para regenerarlo, con red y fuera del job de
+firma: `npm install --package-lock-only --ignore-scripts --prefix
+packaging/browser-extensions/tools`, y revisar el diff del lockfile. Linux, Windows y
 macOS descargan ese mismo artefacto verificado antes de construir sus paquetes.
 Si AMO no devuelve un XPI firmado que conserve la versión y el identificador
 Gecko de las fuentes, ninguna plataforma se compila ni publica.

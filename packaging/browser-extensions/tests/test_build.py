@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+import unittest.mock
 import zipfile
 
 
@@ -274,6 +275,67 @@ class PackagedSurfaceTests(unittest.TestCase):
             "data_collection_permissions"
         ]["required"]
         self.assertNotIn("authenticationInfo", collected)
+
+
+class _StopSigning(Exception):
+    pass
+
+
+class WebExtSigningCommandTests(unittest.TestCase):
+    """G-03: las credenciales de AMO no viajan en argv y web-ext sale del lockfile."""
+
+    def test_sign_command_keeps_credentials_out_of_argv(self) -> None:
+        captured: dict = {}
+
+        original_run = build.subprocess.run
+
+        def fake_run(command, **kwargs):
+            if "sign" not in list(command):
+                return original_run(command, **kwargs)
+            captured["command"] = list(command)
+            captured["env"] = kwargs.get("env")
+            raise _StopSigning()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            fake_web_ext = Path(tmp) / "web-ext"
+            fake_web_ext.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+            fake_web_ext.chmod(0o755)
+            environment = {
+                "WEB_EXT_API_KEY": "user:clave-de-prueba",
+                "WEB_EXT_API_SECRET": "secreto-de-prueba",
+                "GRXFIRMA_WEB_EXT": str(fake_web_ext),
+            }
+            original_run = build.subprocess.run
+            build.subprocess.run = fake_run
+            try:
+                with unittest.mock.patch.dict(os.environ, environment):
+                    with self.assertRaises(_StopSigning):
+                        build.sign_or_stage_firefox_xpi(
+                            build.SRC_DIR / "firefox", Path(tmp) / "out"
+                        )
+            finally:
+                build.subprocess.run = original_run
+
+        command = captured["command"]
+        self.assertEqual(command[0], str(fake_web_ext))
+        self.assertNotIn("--api-key", command)
+        self.assertNotIn("--api-secret", command)
+        self.assertNotIn("user:clave-de-prueba", command)
+        self.assertNotIn("secreto-de-prueba", command)
+
+    def test_locked_web_ext_is_preferred_over_path(self) -> None:
+        with unittest.mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("GRXFIRMA_WEB_EXT", None)
+            resolved = build.resolve_web_ext()
+        locked = build.ROOT / "tools/node_modules/.bin/web-ext"
+        if locked.is_file():
+            self.assertEqual(resolved, locked)
+
+    def test_tools_package_pins_web_ext(self) -> None:
+        package = json.loads(
+            (build.ROOT / "tools/package.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(package["dependencies"], {"web-ext": "10.5.0"})
 
 
 if __name__ == "__main__":
