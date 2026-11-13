@@ -891,6 +891,7 @@
   "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar.": "旧方式不会对根元素之外的处理指令（例如样式表）进行签名，而本文档包含此类指令。它们可能是在签名之后添加的。",
   "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida.": "该文档声明了 GrxFirma 不读取的外部 DTD。如果该 DTD 向文档添加了值，其他程序显示的内容可能与签名内容不同，因此该签名不被视为有效。",
   "El nombre o el tipo de este archivo protegido pudieron cambiarse después de protegerlo; suele pasar con los que hizo una versión anterior de GrxFirma. El contenido sí está comprobado. GrxFirma ha ajustado el nombre por seguridad: revíselo antes de abrir el archivo.": "此受保护文件的名称或类型可能在保护之后被更改过；GrxFirma 早期版本生成的文件常有这种情况。内容已经过校验。为安全起见，GrxFirma 已调整文件名：打开文件前请先核对。",
+  "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual.": "此文件使用的是如今已不再被视为安全的旧算法加密。为避免您无法访问，已将其解密，但发送者应使用当前算法重新保护该文件。",
   "Firma múltiple completada (": "多文件签名已完成（",
   "Firma múltiple completada con incidencias (": "多文件签名已完成，但有异常（",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",

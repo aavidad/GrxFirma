@@ -93,7 +93,8 @@ func TestCMSAnidamientoProfundo_ValidarAlgoritmos(t *testing.T) {
 	if ct, err := detectCMSContentType(data); err != nil || ct != cmsContentTypeEnvelopedData {
 		t.Fatalf("el CMS de prueba debe pasar la detección: %v, %v", ct, err)
 	}
-	exigirRechazoPorProfundidad(t, "validarAlgoritmosCMS", validarAlgoritmosCMS(data))
+	_, err := validarAlgoritmosCMS(data)
+	exigirRechazoPorProfundidad(t, "validarAlgoritmosCMS", err)
 }
 
 func TestCMSAnidamientoProfundo_DescifrarEnvelopedData(t *testing.T) {

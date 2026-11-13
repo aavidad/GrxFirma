@@ -12,8 +12,10 @@ import (
 	"fmt"
 
 	"github.com/deatil/go-cryptobin/ber"
+	cryptobinpkcs7 "github.com/deatil/go-cryptobin/pkcs7"
 
 	"grxfirma/internal/adapters/outbound/common/anidamientoasn1"
+	"grxfirma/internal/domain"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -23,15 +25,12 @@ var (
 	oidCMSAES256CBC     = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 1, 42}
 	oidCMSAES128GCM     = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 1, 6}
 	oidCMSAES192GCM     = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 1, 26}
-	oidCMSDESCBC        = asn1.ObjectIdentifier{1, 3, 14, 3, 2, 7}
-	oidCMSDESEDE3CBC    = asn1.ObjectIdentifier{1, 2, 840, 113549, 3, 7}
 	oidCMSRSAPKCS1v15   = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 1}
 	cifradosCMSAbiertos = []asn1.ObjectIdentifier{
 		oidCMSAES128GCM, oidCMSAES192GCM, oidCMSAES256GCM,
 		// AES-CBC es lo que emite `openssl cms -encrypt` por defecto.
 		oidCMSAES128CBC, oidCMSAES192CBC, oidCMSAES256CBC,
 	}
-	cifradosCMSHeredados = []asn1.ObjectIdentifier{oidCMSDESCBC, oidCMSDESEDE3CBC}
 )
 
 type cmsEncryptedContentInfoAlgoritmos struct {
@@ -66,50 +65,83 @@ func comprobarAnidamientoCMS(data []byte) error {
 	return nil
 }
 
+// politicaProhibirCifradoCMSHeredado es el valor de la política de máquina
+// con el que un administrador impide descifrar CMS con un cifrado heredado.
+const politicaProhibirCifradoCMSHeredado = "prohibir_cifrado_cms_heredado"
+
+// Aviso visible (clave de los catálogos) y prefijo del detalle de auditoría
+// cuando se descifra un CMS con un cifrado heredado.
+const (
+	avisoCMSCifradoHeredado   = "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual."
+	detalleCMSCifradoHeredado = "cifrado_cms_heredado="
+)
+
 // validarAlgoritmosCMS comprueba, antes de pasar el contenedor a las
-// bibliotecas (que aceptan DES, RC2, ECB, OFB, CFB o SM4 sin más), que el
-// cifrado del contenido y el transporte de clave estén permitidos (F-06):
-// AES-GCM y AES-CBC siempre; DES y 3DES solo con la política de máquina
-// permitir_des_legacy; cualquier otro, nunca. El transporte de clave debe
-// ser RSA (PKCS#1 v1.5 o OAEP) y cada destinatario de tipo ktri.
-func validarAlgoritmosCMS(data []byte) error {
+// bibliotecas, el cifrado del contenido y el transporte de clave (F-06).
+// AES-GCM y AES-CBC se aceptan sin más. Cualquier otro cifrado que la
+// biblioteca sepa descifrar (DES, 3DES, AES-ECB/OFB/CFB/CCM, RC2, RC5,
+// SM4…) se acepta por compatibilidad con lo que GrxFirma abría antes y se
+// devuelve su OID para avisar y registrarlo (lote 13b), salvo que la
+// política de máquina prohibir_cifrado_cms_heredado lo impida. Un cifrado
+// desconocido se rechaza siempre. El transporte de clave debe ser RSA
+// (PKCS#1 v1.5 u OAEP) y cada destinatario de tipo ktri.
+func validarAlgoritmosCMS(data []byte) (heredado asn1.ObjectIdentifier, err error) {
 	if err := comprobarAnidamientoCMS(data); err != nil {
-		return err
+		return nil, err
 	}
 	der, err := ber.Ber2der(data)
 	if err != nil {
-		return fmt.Errorf("contenedor CMS no valido: %w", err)
+		return nil, fmt.Errorf("contenedor CMS no valido: %w", err)
 	}
 	var info cmsContentInfo
 	if rest, err := asn1.Unmarshal(der, &info); err != nil || len(rest) != 0 {
-		return errors.New("contenedor CMS no valido")
+		return nil, errors.New("contenedor CMS no valido")
 	}
 	var cifrado pkix.AlgorithmIdentifier
 	switch {
 	case info.ContentType.Equal(oidCMSEncryptedData):
 		var datos cmsEncryptedDataAlgoritmos
 		if rest, err := asn1.Unmarshal(info.Content.Bytes, &datos); err != nil || len(rest) != 0 {
-			return errors.New("estructura CMS EncryptedData no valida")
+			return nil, errors.New("estructura CMS EncryptedData no valida")
 		}
 		cifrado = datos.EncryptedContentInfo.ContentEncryptionAlgorithm
 	case info.ContentType.Equal(oidCMSEnvelopedData):
 		cifrado, err = algoritmosEnvelopedData(info.Content.Bytes)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	default:
-		return errors.New("tipo CMS no soportado")
+		return nil, errors.New("tipo CMS no soportado")
 	}
 	if contieneOID(cifradosCMSAbiertos, cifrado.Algorithm) {
-		return nil
+		return nil, nil
 	}
-	if contieneOID(cifradosCMSHeredados, cifrado.Algorithm) {
-		if machinepolicy.OptIn(machinepolicy.PermitirDESLegacy) {
-			return nil
-		}
-		return fmt.Errorf("cifrado CMS heredado %s: debe habilitar la politica de maquina %s", cifrado.Algorithm, machinepolicy.PermitirDESLegacy)
+	if !cifradoCMSConocido(cifrado) {
+		return nil, fmt.Errorf("algoritmo de cifrado CMS no permitido: %s", cifrado.Algorithm)
 	}
-	return fmt.Errorf("algoritmo de cifrado CMS no permitido: %s", cifrado.Algorithm)
+	if machinepolicy.OptIn(politicaProhibirCifradoCMSHeredado) {
+		return nil, fmt.Errorf("cifrado CMS heredado %s: lo prohibe la politica de maquina %s", cifrado.Algorithm, politicaProhibirCifradoCMSHeredado)
+	}
+	return cifrado.Algorithm, nil
+}
+
+// cifradoCMSConocido indica si go-cryptobin, la biblioteca que descifra,
+// sabe descifrar ese algoritmo: es exactamente lo que GrxFirma aceptaba
+// antes de F-06 (digitorus/pkcs7, la de respaldo, admite un subconjunto).
+func cifradoCMSConocido(alg pkix.AlgorithmIdentifier) bool {
+	_, err := cryptobinpkcs7.GetCipher(alg)
+	return err == nil
+}
+
+// conAvisoCifradoHeredado añade al resultado el aviso y el detalle de
+// auditoría si el contenido venía con un cifrado heredado.
+func conAvisoCifradoHeredado(out domain.UnprotectedPayload, heredado asn1.ObjectIdentifier) domain.UnprotectedPayload {
+	if len(heredado) == 0 {
+		return out
+	}
+	out.Avisos = append(out.Avisos, avisoCMSCifradoHeredado)
+	out.Detalles = append(out.Detalles, detalleCMSCifradoHeredado+heredado.String())
+	return out
 }
 
 // algoritmosEnvelopedData recorre EnvelopedData campo a campo: originatorInfo

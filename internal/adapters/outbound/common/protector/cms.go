@@ -193,12 +193,15 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 	if err != nil {
 		return domain.UnprotectedPayload{}, fmt.Errorf("contenedor CMS no valido: %w", err)
 	}
+	var heredado asn1.ObjectIdentifier
 	switch contentType {
 	case cmsContentTypeEnvelopedData, cmsContentTypeEncryptedData:
-		// Las bibliotecas aceptan cualquier cifrado que conozcan: se filtra
-		// antes con la lista propia (F-06). EncryptedData se trata luego para
-		// dar un error más claro si falta PSK.
-		if err := validarAlgoritmosCMS(protected.Content); err != nil {
+		// Las bibliotecas aceptan cualquier cifrado que conozcan: se mira
+		// antes cuál es (F-06). Uno heredado se descifra con aviso, salvo que
+		// la política de máquina lo prohíba. EncryptedData se trata luego
+		// para dar un error más claro si falta PSK.
+		heredado, err = validarAlgoritmosCMS(protected.Content)
+		if err != nil {
 			return domain.UnprotectedPayload{}, err
 		}
 	case cmsContentTypeSignedEnvelopedData:
@@ -234,11 +237,11 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 			if err != nil {
 				return domain.UnprotectedPayload{}, err
 			}
-			return domain.UnprotectedPayload{
+			return conAvisoCifradoHeredado(domain.UnprotectedPayload{
 				Document:    doc,
 				Profile:     domain.ProtectionProfileCompat,
 				RecipientID: key.RecipientID,
-			}, nil
+			}, heredado), nil
 		}
 		if invalidSecretLength && !validSecretLength {
 			return domain.UnprotectedPayload{}, errors.New("el secreto simetrico para CMS EncryptedData debe tener exactamente 32 bytes")
@@ -264,11 +267,11 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 		if err != nil {
 			return domain.UnprotectedPayload{}, err
 		}
-		return domain.UnprotectedPayload{
+		return conAvisoCifradoHeredado(domain.UnprotectedPayload{
 			Document:    doc,
 			Profile:     domain.ProtectionProfileCompat,
 			RecipientID: key.RecipientID,
-		}, nil
+		}, heredado), nil
 	}
 	return domain.UnprotectedPayload{}, errors.New("no se pudo desproteger el sobre CMS con las claves disponibles")
 }
