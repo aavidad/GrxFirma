@@ -2803,24 +2803,16 @@ void IpcBridge::storeProxyCredentials(const QString &realm,
                                       const QString &username,
                                       QString password) {
   QByteArray passwordBytes = password.toUtf8();
-  QVariantMap params;
-  params.insert(QStringLiteral("realm"), realm);
-  params.insert(QStringLiteral("username"), username);
-  // Go decodifica esta cadena Base64 directamente en []byte zeroizable.
-  QByteArray encodedPassword = passwordBytes.toBase64();
-  params.insert(QStringLiteral("password"),
-                QString::fromLatin1(encodedPassword));
-  password.fill(QChar('\0'));
+  // `password` comparte datos con la cadena de QML: fill() separa una copia
+  // propia y no borra la original. Solo se suelta la referencia.
   password.clear();
-  passwordBytes.fill('\0');
-  passwordBytes.clear();
-  encodedPassword.fill('\0');
-  encodedPassword.clear();
-
-  m_pendingAction = QStringLiteral("proxy_secret_store");
-  sendRequest(QStringLiteral("proxy_secret_store"), params);
-  params.insert(QStringLiteral("password"), QString());
-  params.clear();
+  QJsonObject plain;
+  plain.insert(QStringLiteral("realm"), realm);
+  plain.insert(QStringLiteral("username"), username);
+  // Go decodifica esta cadena Base64 directamente en []byte zeroizable.
+  sendSecretRequest(QStringLiteral("proxy_secret_store"), plain,
+                    {{QStringLiteral("password"), &passwordBytes}});
+  TransientSecret::zeroize(passwordBytes);
 }
 
 void IpcBridge::deleteProxyCredentials() {
@@ -2883,29 +2875,94 @@ void IpcBridge::getPdfPreview(const QString &path, int page,
   m_socket->flush();
 }
 
-void IpcBridge::importCertificate(const QString &path,
-                                  const QString &password) {
+// Las credenciales (P12 y contraseña) no pasan por QVariantMap ni QJsonObject:
+// van como QByteArray directamente a la trama y esos búferes se ponen a cero.
+// La QString de la contraseña llega desde QML y comparte datos con la del
+// campo de texto, así que el puente no puede borrarla; la UI vacía el campo.
+void IpcBridge::sendCredentialRequest(const QString &action,
+                                      const QString &path,
+                                      const QString &password,
+                                      const QString &credentialField,
+                                      const QJsonObject &plainParams) {
   QByteArray data;
   QString error;
   if (!readCredentialFileIPC(path, &data, &error)) {
-    emit certificateImportFinished(false, error);
+    if (action == QStringLiteral("use_temporary_certificate"))
+      emit temporaryCertificateFinished(false, error, QVariantMap());
+    else
+      emit certificateImportFinished(false, error);
     return;
   }
+  QByteArray passwordBytes = password.toUtf8();
+  sendSecretRequest(action, plainParams,
+                    {{credentialField, &data},
+                     {QStringLiteral("passwordB64"), &passwordBytes}});
+  TransientSecret::zeroize(data);
+  TransientSecret::zeroize(passwordBytes);
+}
 
-  QVariantMap params;
-  QByteArray encoded = data.toBase64();
-  params.insert("p12B64", QString::fromLatin1(encoded));
-  params.insert("password", password);
-  encoded.fill('\0');
-  data.fill('\0');
-  data.clear();
+void IpcBridge::sendSecretRequest(
+    const QString &action, const QJsonObject &plainParams,
+    const QList<QPair<QString, QByteArray *>> &secrets) {
+  m_pendingAction = action;
+  if (!m_socket->isOpen() ||
+      m_socket->state() != QLocalSocket::ConnectedState) {
+    for (const auto &secret : secrets)
+      if (secret.second)
+        TransientSecret::zeroize(*secret.second);
+    emit backendLogReceived(it(QStringLiteral("⚠️ No hay conexión con el motor. estado=")) +
+                            ipcSocketStateName(m_socket->state()) +
+                            it(QStringLiteral(", action=")) + action);
+    // Nunca se difiere: no se guardan credenciales para la reconexión.
+    failActionDueToConnection(
+        action, it(QStringLiteral("Sin conexión con el motor de firma")));
+    return;
+  }
+  const quint64 seq = ++m_requestSeq;
+  const QString requestId = ipcNewCorrelationId(QStringLiteral("ipc"), seq);
+  const QString traceId = ipcNewCorrelationId(QStringLiteral("trace"), seq);
+  QJsonObject header;
+  header.insert("requestId", requestId);
+  header.insert("traceId", traceId);
+  header.insert("action", action);
+  QByteArray data =
+      TransientSecret::buildSecretRequestFrame(header, plainParams, secrets);
+  // El registro solo ve la cabecera y los parámetros no secretos.
+  QJsonObject logged = header;
+  logged.insert("params", plainParams);
+  emit backendLogReceived(
+      it(QStringLiteral("📤 Petición IPC mínima: ")) +
+      IncidentFormatIpcLogEvent(logged.toVariantMap(),
+                                QStringLiteral("ipc-request"),
+                                QStringLiteral("pending"), data.size()));
+  m_pendingRequestId = requestId;
+  m_pendingTraceId = traceId;
+  setLastRequestId(requestId);
+  setLastTraceId(traceId);
+  if (m_socket->write(data) == -1) {
+    TransientSecret::zeroize(data);
+    const QString err =
+        it(QStringLiteral("No se pudo enviar la petición IPC: ")) +
+        m_socket->errorString();
+    emit backendLogReceived(it(QStringLiteral("❌ ")) + err);
+    failActionDueToConnection(action, err);
+    return;
+  }
+  m_socket->flush();
+  TransientSecret::zeroize(data);
+  emit backendLogReceived(
+      it(QStringLiteral("📬 Petición IPC enviada: ")) +
+      IncidentFormatIpcLogEvent(logged.toVariantMap(),
+                                QStringLiteral("ipc-request"),
+                                QStringLiteral("sent")));
+}
 
+void IpcBridge::importCertificate(const QString &path,
+                                  const QString &password) {
   emit backendLogReceived(
       it(QStringLiteral("⚙ Iniciando importación de certificado IPC...")));
-  m_pendingAction = "import_certificate";
-  sendRequest("import_certificate", params);
-  params.insert("p12B64", QString());
-  params.insert("password", QString());
+  sendCredentialRequest(QStringLiteral("import_certificate"), path, password,
+                        QStringLiteral("p12B64"), QJsonObject());
 }
 
 void IpcBridge::requestCertificateAccessOptions() {
@@ -2923,45 +2980,17 @@ void IpcBridge::openCertificateManager(const QString &managerId) {
 void IpcBridge::importCertificateToStore(const QString &path,
                                          const QString &password,
                                          const QString &targetId) {
-  QByteArray data;
-  QString error;
-  if (!readCredentialFileIPC(path, &data, &error)) {
-    emit certificateImportFinished(false, error);
-    return;
-  }
-  QVariantMap params;
-  QByteArray encoded = data.toBase64();
-  params.insert(QStringLiteral("credentialB64"), QString::fromLatin1(encoded));
-  params.insert(QStringLiteral("password"), password);
-  params.insert(QStringLiteral("targetId"), targetId.trimmed());
-  encoded.fill('\0');
-  data.fill('\0');
-  data.clear();
-  m_pendingAction = QStringLiteral("import_certificate_to_store");
-  sendRequest(QStringLiteral("import_certificate_to_store"), params);
-  params.insert(QStringLiteral("credentialB64"), QString());
-  params.insert(QStringLiteral("password"), QString());
+  QJsonObject plain;
+  plain.insert(QStringLiteral("targetId"), targetId.trimmed());
+  sendCredentialRequest(QStringLiteral("import_certificate_to_store"), path,
+                        password, QStringLiteral("credentialB64"), plain);
 }
 
 void IpcBridge::useTemporaryCertificate(const QString &path,
                                         const QString &password) {
-  QByteArray data;
-  QString error;
-  if (!readCredentialFileIPC(path, &data, &error)) {
-    emit temporaryCertificateFinished(false, error, QVariantMap());
-    return;
-  }
-  QVariantMap params;
-  QByteArray encoded = data.toBase64();
-  params.insert(QStringLiteral("credentialB64"), QString::fromLatin1(encoded));
-  params.insert(QStringLiteral("password"), password);
-  encoded.fill('\0');
-  data.fill('\0');
-  data.clear();
-  m_pendingAction = QStringLiteral("use_temporary_certificate");
-  sendRequest(QStringLiteral("use_temporary_certificate"), params);
-  params.insert(QStringLiteral("credentialB64"), QString());
-  params.insert(QStringLiteral("password"), QString());
+  sendCredentialRequest(QStringLiteral("use_temporary_certificate"), path,
+                        password, QStringLiteral("credentialB64"),
+                        QJsonObject());
 }
 
 void IpcBridge::removeTemporaryCertificate(const QString &certificateId) {

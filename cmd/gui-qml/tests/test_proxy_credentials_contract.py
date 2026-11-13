@@ -48,9 +48,14 @@ class ProxyCredentialsContractTest(unittest.TestCase):
         )
         self.assertNotIn("ipcRedactJsonValue", BRIDGE_CPP)
         self.assertNotIn("ipcJsonForLog", BRIDGE_CPP)
-        self.assertIn("passwordBytes.fill('\\0')", BRIDGE_CPP)
-        self.assertIn("encodedPassword.fill('\\0')", BRIDGE_CPP)
-        self.assertIn("params.clear()", BRIDGE_CPP)
+        # D-06: la contraseña no pasa por QVariantMap ni QJsonObject; va como
+        # QByteArray a la trama y ese búfer se pone a cero.
+        method = BRIDGE_CPP.split("void IpcBridge::storeProxyCredentials", 1)[
+            1
+        ].split("void IpcBridge::deleteProxyCredentials", 1)[0]
+        self.assertIn("sendSecretRequest(", method)
+        self.assertIn("TransientSecret::zeroize(passwordBytes)", method)
+        self.assertNotIn("QVariantMap", method)
 
     def test_bridge_exposes_only_store_delete_and_redacted_result(self) -> None:
         self.assertIn("Q_INVOKABLE void storeProxyCredentials", BRIDGE_H)

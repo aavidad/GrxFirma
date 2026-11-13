@@ -264,6 +264,14 @@ private:
   void failActionDueToConnection(const QString &action, const QString &message);
   void sendRequest(const QString &action,
                    const QVariantMap &params = QVariantMap());
+  // Envía una petición con P12 o contraseña sin pasarlos por QVariantMap ni
+  // QJsonObject; nunca se difiere. Pone a cero los QByteArray de `secrets`.
+  void sendSecretRequest(const QString &action, const QJsonObject &plainParams,
+                         const QList<QPair<QString, QByteArray *>> &secrets);
+  void sendCredentialRequest(const QString &action, const QString &path,
+                             const QString &password,
+                             const QString &credentialField,
+                             const QJsonObject &plainParams);
   void launchBackendProcess();
   bool verifyConnectedServer();
   void rejectConnectedServer();
