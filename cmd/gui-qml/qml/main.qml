@@ -12132,6 +12132,7 @@ Window {
                                                 Repeater {
                                                     model: unprotectWarningsBox.avisos
                                                     delegate: Text {
+                                                        textFormat: Text.PlainText
                                                         text: tr(String(modelData))
                                                         color: "white"
                                                         wrapMode: Text.WordWrap
