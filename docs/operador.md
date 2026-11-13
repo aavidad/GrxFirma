@@ -654,6 +654,15 @@ Operaciones útiles:
   - `grxfirma -modo-cli -operacion desproteger -entrada /ruta/secreto.pdf.encrypted.p7m -clave-proteccion-stdin`
   - `grxfirma -modo-cli -operacion desproteger -entrada /ruta/secreto.pdf.signedenveloped.p7m`
   - `grxfirma -modo-cli -operacion desproteger -entrada /ruta/secreto.pdf.authenveloped.p7m`
+- un `.afp` no prueba quién lo envió: lo puede crear cualquiera que tenga el
+  certificado o el destinatario público. Para saber quién lo envía, usar
+  `proteger-firmando`. Al desproteger, GrxFirma limpia el nombre que trae el
+  sobre: quita carpetas y caracteres de control y, si la extensión no es de
+  documento (`pdf`, `xml`, `docx`, `odt`, `txt`, imágenes, firmas…), la cambia
+  por `.bin`. Un tipo MIME que no es válido pasa a `application/octet-stream`
+- los `.afp` se escriben en la versión 2 del sobre, que liga el nombre y el
+  tipo MIME al cifrado sin ambigüedad. GrxFirma sigue abriendo los de versión
+  1, pero las versiones anteriores de GrxFirma no abren los de versión 2
 
 Estado del frente CMS heredado de 1.9:
 - operativo hoy: `EnvelopedData`, `EncryptedData`, `SignedAndEnvelopedData` y
