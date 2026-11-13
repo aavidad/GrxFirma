@@ -68,7 +68,8 @@ public sealed class ProtectPageViewModel
         "Seleccione un contenedor protegido.";
     private string _protectResultMessage =
         "No se ha ejecutado ninguna protección.";
-    private string _unprotectResultMessage =
+    private string _unprotectWarningMessage = string.Empty;
+private string _unprotectResultMessage =
         "No se ha ejecutado ninguna desprotección.";
     private int _selectedRecipientCount;
     private string _selectedRecipientSummary =
@@ -289,6 +290,22 @@ public sealed class ProtectPageViewModel
         get => _unprotectResultMessage;
         private set => SetProperty(ref _unprotectResultMessage, value);
     }
+
+    // Avisos de compatibilidad al desproteger (vacío si no hay ninguno).
+    public string UnprotectWarningMessage
+    {
+        get => _unprotectWarningMessage;
+        private set
+        {
+            if (SetProperty(ref _unprotectWarningMessage, value))
+            {
+                RaisePropertyChanged(nameof(HasUnprotectWarning));
+            }
+        }
+    }
+
+    public bool HasUnprotectWarning =>
+        !string.IsNullOrWhiteSpace(_unprotectWarningMessage);
 
     public int SelectedRecipientCount
     {
@@ -867,6 +884,9 @@ public sealed class ProtectPageViewModel
             _unprotectOutputPath = result.Data.OutputPath;
             UnprotectResultMessage =
                 $"Documento recuperado como {SafeFileName(result.Data.OutputPath)}.";
+            UnprotectWarningMessage = string.Join(
+                " ",
+                result.Data.VisibleWarnings);
             UnprotectValidationMessage =
                 "La desprotección terminó correctamente. Puede abrir el resultado.";
             UpdateCommandStates();
@@ -1228,6 +1248,7 @@ public sealed class ProtectPageViewModel
     private void ClearUnprotectedOutput()
     {
         _unprotectOutputPath = null;
+        UnprotectWarningMessage = string.Empty;
         UnprotectResultMessage =
             "No se ha ejecutado ninguna desprotección con esta selección.";
         UpdateCommandStates();
