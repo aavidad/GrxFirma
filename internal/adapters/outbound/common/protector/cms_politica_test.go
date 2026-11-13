@@ -120,7 +120,7 @@ func TestCMSUnprotect_ListaDeAlgoritmosPermitidos(t *testing.T) {
 		"EncryptedData AES-ECB": {encryptedConCifrado(t, cryptobinpkcs7.AES256ECB, secreto), claveSimetrica, "2.16.840.1.101.3.4.1.41"},
 		"EncryptedData AES-OFB": {encryptedConCifrado(t, cryptobinpkcs7.AES256OFB, secreto), claveSimetrica, "2.16.840.1.101.3.4.1.43"},
 	}
-	machinepolicy.SetForTest(t, politicaProhibirCifradoCMSHeredado, false)
+	machinepolicy.SetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado, false)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, false)
 	for nombre, caso := range heredados {
 		out, err := abrir(caso.doc, caso.claves)
@@ -150,7 +150,7 @@ func TestCMSUnprotect_ListaDeAlgoritmosPermitidos(t *testing.T) {
 		"EncryptedData AES-256-CBC": {encryptedConCifrado(t, cryptobinpkcs7.AES256CBC, secreto), claveSimetrica},
 	}
 	for _, prohibir := range []bool{false, true} {
-		machinepolicy.SetForTest(t, politicaProhibirCifradoCMSHeredado, prohibir)
+		machinepolicy.SetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado, prohibir)
 		for nombre, caso := range actuales {
 			if out, err := abrir(caso.doc, caso.claves); err != nil || len(out.Avisos) != 0 || len(out.Detalles) != 0 {
 				t.Errorf("%s (prohibir=%v): %v %v", nombre, prohibir, err, out.Avisos)
@@ -160,11 +160,11 @@ func TestCMSUnprotect_ListaDeAlgoritmosPermitidos(t *testing.T) {
 
 	// Con la política, ningún cifrado heredado se descifra, ni siquiera con
 	// permitir_des_legacy, que ya no hace falta para CMS.
-	machinepolicy.SetForTest(t, politicaProhibirCifradoCMSHeredado, true)
+	machinepolicy.SetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado, true)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, true)
 	for nombre, caso := range heredados {
 		_, err := abrir(caso.doc, caso.claves)
-		if err == nil || !strings.Contains(err.Error(), politicaProhibirCifradoCMSHeredado) {
+		if err == nil || !strings.Contains(err.Error(), machinepolicy.ProhibirCifradoCMSHeredado) {
 			t.Errorf("%s: la política prohibir_cifrado_cms_heredado debe impedirlo: %v", nombre, err)
 		}
 	}
@@ -180,7 +180,7 @@ func TestCMSUnprotect_AlgoritmoDesconocidoSigueRechazado(t *testing.T) {
 		t.Fatal(err)
 	}
 	claveRSA := []domain.ProtectionKeyMaterial{{RecipientID: "dest", CertificateDER: certDER, RSAOAEP256PrivateKeyPKCS8: pkcs8}}
-	machinepolicy.SetForTest(t, politicaProhibirCifradoCMSHeredado, false)
+	machinepolicy.SetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado, false)
 	base := envelopedConCifrado(t, cryptobinpkcs7.AES256GCM, certDER)
 	cambiarOID := func(desde, hasta []byte) domain.Document {
 		if bytes.Count(base.Content, desde) != 1 {

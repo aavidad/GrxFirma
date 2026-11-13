@@ -40,6 +40,8 @@ const (
 	AprobacionAutomaticaHost = "aprobacion_automatica_nativehost"
 	PermitirSHA1Legacy       = "permitir_sha1_legacy"
 	PermitirCMSAESECBLegacy  = "permitir_cms_aes_ecb_legacy"
+	// ProhibirCifradoCMSHeredado impide descifrar CMS con cifrados antiguos.
+	ProhibirCifradoCMSHeredado = "prohibir_cifrado_cms_heredado"
 )
 
 // Native indica si la plataforma dispone de un almacén de política de

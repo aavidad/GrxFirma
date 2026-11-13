@@ -480,8 +480,12 @@ habilitable por un administrador mediante la política de máquina
 ([docs/POLITICA_MAQUINA.md](docs/POLITICA_MAQUINA.md)); las antiguas variables
 `GRXFIRMA_ENABLE_LEGACY_*` ya no tienen efecto:
 
-- `permitir_des_legacy`: permite el formato de sesión DES de V1.9 y leer
-  sobres CMS `EnvelopedData`/`EncryptedData` cifrados con DES o 3DES.
+- `permitir_des_legacy`: permite el formato de sesión DES de V1.9. Los sobres
+  CMS `EnvelopedData`/`EncryptedData` con DES, 3DES u otro cifrado antiguo se
+  descifran siempre con aviso; para impedirlo existe
+  `prohibir_cifrado_cms_heredado`.
+- `prohibir_cifrado_cms_heredado`: impide descifrar sobres CMS con cifrados
+  antiguos (DES, 3DES, AES-ECB/OFB/CFB, RC2…). Aquí no amplía nada: restringe.
 - `permitir_sha1_legacy`: permite generar firmas SHA-1 pedidas por
   portales heredados. La verificación SHA-1 sigue disponible (con advertencia).
 - `permitir_rutas_directas_protocolo`: permite que un portal legacy
