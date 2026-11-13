@@ -1111,6 +1111,17 @@ func (h *legacyWebSocketHandler) handleLocalBatch(ctx context.Context, cmd appli
 	// sus metadatos.
 	cmd.StopOnError = meta.StopOnError
 	cmd.RequesterOrigin = solicitud.OrigenSolicitante
+	// A-08: el lote local pasa por el selector como las demás firmas (filtros
+	// de la web y origen a la vista), aunque solo haya un certificado. El
+	// caso de uso firma con el elegido y no escoge por su cuenta.
+	ref, certDER, err := h.selectCertificate(ctx, solicitud)
+	if err != nil {
+		if isLegacyCancellation(err) {
+			return "CANCEL", nil
+		}
+		return "", err
+	}
+	cmd.CertificateID = ref.ID
 	resultado, err := h.batchUC.Execute(ctx, cmd)
 	if err != nil {
 		if isLegacyCancellation(err) {
@@ -1124,30 +1135,8 @@ func (h *legacyWebSocketHandler) handleLocalBatch(ctx context.Context, cmd appli
 		return "", err
 	}
 	needCert := parseLegacyBool(legacyQueryParam(solicitud.LegacyParams, "needcert", "needCert"))
-	var certDER []byte
-	if needCert {
-		if len(resultado.Results) > 0 {
-			key, err := h.keys.KeyFor(ctx, resultado.Results[0].CertificateUsed)
-			if err != nil {
-				ports.CloseSigningKey(key)
-				return "", err
-			}
-			defer ports.CloseSigningKey(key)
-			chain := key.CertificateChainDER()
-			if len(chain) > 0 {
-				certDER = append([]byte(nil), chain[0]...)
-			}
-		}
-		if len(certDER) == 0 {
-			_, der, err := h.selectCertificate(ctx, solicitud)
-			if err != nil {
-				if isLegacyCancellation(err) {
-					return "CANCEL", nil
-				}
-				return "", err
-			}
-			certDER = der
-		}
+	if !needCert {
+		certDER = nil
 	}
 	return encodeLegacyBatchResult(raw, certDER, needCert, solicitud.Sesion.SessionKey, solicitud.Sesion.RetrieveEndpoint, solicitud.Sesion.UploadEndpoint)
 }

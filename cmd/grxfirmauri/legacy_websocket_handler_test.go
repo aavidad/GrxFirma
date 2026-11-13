@@ -990,7 +990,10 @@ func TestLegacyWebSocketHandler_HandleLocalBatchCancelacionDevuelveCancel(t *tes
 	t.Parallel()
 
 	handler := &legacyWebSocketHandler{
-		batchUC: batchExecutorStub{err: errors.New("el usuario ha cancelado el procesado del lote")},
+		batchUC:  batchExecutorStub{err: errors.New("el usuario ha cancelado el procesado del lote")},
+		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{certLoteLocal("uno")}},
+		selector: &certSelectorContador{},
+		keys:     keyProviderStub{key: signingKeyStub{id: "uno", chain: [][]byte{[]byte("cert-der")}}},
 	}
 
 	cmd := application.ProcessBatchCommand{}
@@ -1014,7 +1017,10 @@ func TestLegacyWebSocketHandler_HandleLocalBatchErrorDevuelveSAF20(t *testing.T)
 	t.Parallel()
 
 	handler := &legacyWebSocketHandler{
-		batchUC: batchExecutorStub{err: errors.New("fallo interno del lote")},
+		batchUC:  batchExecutorStub{err: errors.New("fallo interno del lote")},
+		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{certLoteLocal("uno")}},
+		selector: &certSelectorContador{},
+		keys:     keyProviderStub{key: signingKeyStub{id: "uno", chain: [][]byte{[]byte("cert-der")}}},
 	}
 
 	resp, err := handler.handleLocalBatch(context.Background(), application.ProcessBatchCommand{}, afirmauri.Solicitud{
@@ -1042,6 +1048,9 @@ func TestLegacyWebSocketHandler_HandleLocalBatchPropagaStopYFirmaObservableV19(t
 				Errores: map[int]error{},
 			},
 		},
+		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{certLoteLocal("uno")}},
+		selector: &certSelectorContador{},
+		keys:     keyProviderStub{key: signingKeyStub{id: "uno", chain: [][]byte{[]byte("cert-der")}}},
 	}
 
 	resp, err := handler.handleLocalBatch(
