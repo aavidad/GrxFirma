@@ -95,7 +95,7 @@ func (v *ASiCXAdESVerifier) Verify(ctx context.Context, signedDocument domain.Do
 		}
 		return nil, fmt.Errorf("recurso ASiC no encontrado: %s", uri)
 	}
-	verification, err := verifyXMLSignatureDocument(signatureXML, true, resolver, anchors, string(formatASiCXAdES), "firma ASiC-XAdES valida", []string{"contenedor=asics", fmt.Sprintf("payload=%s", payloadName)}, coberturaDelContenedor)
+	verification, err := verifyXMLSignatureDocument(ctx, signatureXML, true, resolver, anchors, string(formatASiCXAdES), "firma ASiC-XAdES valida", []string{"contenedor=asics", fmt.Sprintf("payload=%s", payloadName)}, coberturaDelContenedor)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}

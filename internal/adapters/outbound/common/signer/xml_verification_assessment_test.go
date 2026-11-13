@@ -62,7 +62,7 @@ func assessmentSignature(t *testing.T, key crypto.Signer, cert *x509.Certificate
 
 func assessDocument(t *testing.T, document, payload []byte) (domain.VerificationResult, error) {
 	t.Helper()
-	verification, err := verifyXMLSignatureDocument(document, false, func(uri string) ([]byte, error) {
+	verification, err := verifyXMLSignatureDocument(context.Background(), document, false, func(uri string) ([]byte, error) {
 		if uri != "payload.xml" {
 			return nil, fmt.Errorf("URI inesperada")
 		}

@@ -498,6 +498,7 @@ func verificarManifiestos(context xmlSignatureContext, signedInfoXML []byte, res
 		}
 	}
 	var uris, noComprobado []string
+	total := 0
 	for _, manifiesto := range manifiestos {
 		nodo := arbol.nodos[manifiesto]
 		var lista struct {
@@ -508,6 +509,9 @@ func verificarManifiestos(context xmlSignatureContext, signedInfoXML []byte, res
 		}
 		if len(lista.References) == 0 {
 			return nil, nil, errors.New("ds:Manifest sin referencias")
+		}
+		if total += len(lista.References); total > maxReferenciasXML {
+			return nil, nil, fmt.Errorf("ds:Manifest con demasiadas referencias (más de %d)", maxReferenciasXML)
 		}
 		for indice, ref := range lista.References {
 			comprobada, motivo, err := verificarReferenciaManifiesto(context, ref, resolver)

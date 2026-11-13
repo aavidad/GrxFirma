@@ -39,7 +39,7 @@ func (v *XAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	if err := ctx.Err(); err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
-	verification, err := verifyXMLSignatureDocument(signedDocument.Content, true, nil, anchors, string(domain.FormatXAdES), "firma XAdES valida", []string{"referencias=ok", "signedproperties=ok"}, coberturaDelDocumento)
+	verification, err := verifyXMLSignatureDocument(ctx, signedDocument.Content, true, nil, anchors, string(domain.FormatXAdES), "firma XAdES valida", []string{"referencias=ok", "signedproperties=ok"}, coberturaDelDocumento)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
@@ -82,7 +82,7 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 			return domain.VerificationResult{}, nil, err
 		}
 		cubiertas := map[string]bool{}
-		verification, verifyErr := verifyXMLSignatureDocumentWithContext(signature.fragment, signature.context, false, contenedor.resolver(cubiertas), anchors, "ODF", "firma ODF valida", nil)
+		verification, verifyErr := verifyXMLSignatureDocumentWithContext(ctx, signature.fragment, signature.context, false, contenedor.resolver(cubiertas), anchors, "ODF", "firma ODF valida", nil)
 		if verifyErr != nil {
 			return domain.VerificationResult{}, nil, fmt.Errorf("firma ODF %d invalida: %w", idx+1, verifyErr)
 		}
@@ -169,7 +169,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 			}
 			requireSigningCertificate := looksLikeXAdES(part.fragment)
 			cubiertas := map[string]bool{}
-			verification, verifyErr := verifyXMLSignatureDocumentWithContext(part.fragment, part.context, requireSigningCertificate, contenedor.resolver(cubiertas), anchors, "OOXML", "firma OOXML valida", nil)
+			verification, verifyErr := verifyXMLSignatureDocumentWithContext(ctx, part.fragment, part.context, requireSigningCertificate, contenedor.resolver(cubiertas), anchors, "OOXML", "firma OOXML valida", nil)
 			if verifyErr != nil {
 				return domain.VerificationResult{}, nil, fmt.Errorf("firma OOXML %s invalida: %w", name, verifyErr)
 			}
@@ -217,7 +217,7 @@ const (
 	coberturaDelContenedor = false
 )
 
-func verifyXMLSignatureDocument(xmlData []byte, requireSigningCertificate bool, externalResolver func(string) ([]byte, error), anchors domain.CertificateChain, format string, reason string, details []string, documentoFirmado bool) (xmlSignatureVerification, error) {
+func verifyXMLSignatureDocument(ctx context.Context, xmlData []byte, requireSigningCertificate bool, externalResolver func(string) ([]byte, error), anchors domain.CertificateChain, format string, reason string, details []string, documentoFirmado bool) (xmlSignatureVerification, error) {
 	if documentoFirmado {
 		if err := rechazarDOCTYPE(xmlData); err != nil {
 			return xmlSignatureVerification{}, err
@@ -230,7 +230,10 @@ func verifyXMLSignatureDocument(xmlData []byte, requireSigningCertificate bool, 
 	var aggregate xmlSignatureVerification
 	var compatibility []string
 	for _, part := range parts {
-		verification, err := verifyXMLSignatureDocumentWithContext(part.fragment, part.context, requireSigningCertificate, externalResolver, anchors, format, reason, details)
+		if err := ctx.Err(); err != nil {
+			return xmlSignatureVerification{}, err
+		}
+		verification, err := verifyXMLSignatureDocumentWithContext(ctx, part.fragment, part.context, requireSigningCertificate, externalResolver, anchors, format, reason, details)
 		if err != nil {
 			return xmlSignatureVerification{}, err
 		}
@@ -255,13 +258,19 @@ func verifyXMLSignatureDocument(xmlData []byte, requireSigningCertificate bool, 
 	return aggregate, nil
 }
 
-func verifyXMLSignatureDocumentWithContext(xmlData []byte, signatureContext xmlSignatureContext, requireSigningCertificate bool, externalResolver func(string) ([]byte, error), anchors domain.CertificateChain, format string, reason string, details []string) (xmlSignatureVerification, error) {
+func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, signatureContext xmlSignatureContext, requireSigningCertificate bool, externalResolver func(string) ([]byte, error), anchors domain.CertificateChain, format string, reason string, details []string) (xmlSignatureVerification, error) {
 	signedInfoXML, signatureValue, certificates, err := extractContextualSignatureCore(xmlData, signatureContext)
 	if err != nil {
 		return xmlSignatureVerification{}, err
 	}
+	if err := ctx.Err(); err != nil {
+		return xmlSignatureVerification{}, err
+	}
 	signerCertificates, compatibility, err := identifyXMLSignersWithContext(xmlData, signatureContext, signedInfoXML, signatureValue, certificates, requireSigningCertificate)
 	if err != nil {
+		return xmlSignatureVerification{}, err
+	}
+	if err := ctx.Err(); err != nil {
 		return xmlSignatureVerification{}, err
 	}
 	referenceCompatibility, err := assessXMLReferences(xmlData, signatureContext, signedInfoXML, externalResolver)
@@ -368,6 +377,9 @@ func extractXMLCertificates(xmlData []byte) ([]*x509.Certificate, error) {
 		if err != nil {
 			return nil, fmt.Errorf("certificado base64 invalido en posicion %d: %w", len(certificates)+1, err)
 		}
+		if len(certificates) >= maxCertificadosKeyInfo {
+			return nil, fmt.Errorf("KeyInfo con demasiados certificados (más de %d)", maxCertificadosKeyInfo)
+		}
 		cert, err := parseCertificateForXML(certDER)
 		if err != nil {
 			return nil, fmt.Errorf("certificado x509 invalido en posicion %d: %w", len(certificates)+1, err)
@@ -380,11 +392,18 @@ func extractXMLCertificates(xmlData []byte) ([]*x509.Certificate, error) {
 	return certificates, nil
 }
 
-// Límites al leer entradas ZIP durante la verificación: el tamaño declarado lo
-// pone quien fabrica el contenedor, así que no basta con confiar en él.
+// Límites de la verificación (E1-10). El tamaño declarado de una entrada ZIP
+// lo pone quien fabrica el contenedor, así que se corta al leer; y el trabajo
+// por firma crece con el número de firmas, referencias y certificados.
+var (
+	maxEntradaZIPVerificacion int64 = 100 << 20
+	maxTotalZIPVerificacion   int64 = 512 << 20
+)
+
 const (
-	maxEntradaZIPVerificacion int64 = 256 << 20
-	maxTotalZIPVerificacion   int64 = 1 << 30
+	maxFirmasXML           = 100
+	maxReferenciasXML      = 10000
+	maxCertificadosKeyInfo = 32
 )
 
 // contenedorZIP resuelve las referencias de una firma contra las entradas de

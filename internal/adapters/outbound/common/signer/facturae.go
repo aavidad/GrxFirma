@@ -153,7 +153,7 @@ func (v *FacturaEVerifier) Verify(ctx context.Context, signedDocument domain.Doc
 	if err := exigirFirmasFacturaEEnveloped(xmlData); err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
-	verification, err := verifyXMLSignatureDocument(xmlData, true, nil, anchors, string(formatFacturaE), "firma FacturaE valida", []string{"perfil=facturae", "xades=enveloped"}, coberturaDelDocumento)
+	verification, err := verifyXMLSignatureDocument(ctx, xmlData, true, nil, anchors, string(formatFacturaE), "firma FacturaE valida", []string{"perfil=facturae", "xades=enveloped"}, coberturaDelDocumento)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
