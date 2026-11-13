@@ -42,17 +42,20 @@ const MaxURISize = 10 * 1024 * 1024
 
 // Solicitud es la traduccion neutra de una URI afirma:// al nucleo interno.
 type Solicitud struct {
-	Operacion       TipoOperacion
-	AccionFirma     domain.SignatureAction
-	Formato         domain.SignatureFormat
-	Options         map[string]string
-	LegacyParams    url.Values
-	Origenes        []string
-	Sesion          domain.ExchangeSession
-	SignCommand     *application.SignCommand
-	BatchCommand    *application.ProcessBatchCommand
-	RemoteBatch     *RemoteBatchCommand
-	RetrieveCommand *application.RetrieveRequestCommand
+	Operacion    TipoOperacion
+	AccionFirma  domain.SignatureAction
+	Formato      domain.SignatureFormat
+	Options      map[string]string
+	LegacyParams url.Values
+	Origenes     []string
+	// OrigenSolicitante es la cabecera Origin real del navegador en el canal
+	// socket. En afirma:// directo está vacío: no se sabe qué web lanzó la URI.
+	OrigenSolicitante string
+	Sesion            domain.ExchangeSession
+	SignCommand       *application.SignCommand
+	BatchCommand      *application.ProcessBatchCommand
+	RemoteBatch       *RemoteBatchCommand
+	RetrieveCommand   *application.RetrieveRequestCommand
 	// Version es la version del protocolo afirma:// indicada por el parametro v o ver (0-4).
 	// El valor 0 indica que no se especifico version (o se especifico explicitamente la 0).
 	Version int

@@ -37,6 +37,7 @@ import (
 	"syscall"
 	"time"
 
+	"grxfirma/internal/adapters/inbound/common/aprobacion"
 	nativehost "grxfirma/internal/adapters/inbound/desktop/nativehost"
 	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/common/identityjcs"
@@ -287,7 +288,12 @@ func construirAdaptador(configDir, p12Dir, p12Password string, metricas ports.Op
 	motor := construirMotorFirmaConHTTP(httpClient)
 	auditor := application.NuevoAuditUseCase(relojReal{}, &loggerSilencioso{})
 
-	ucFirmar := application.NuevoSignDocumentUseCase(catalogo, proveedor, motor, aprobador, auditor, nil).WithMetrics(metricas)
+	// Texto de aprobación común: dice qué se firma y quién lo pide, traducido
+	// y con el texto externo neutralizado (H-08, C-02).
+	componerAprobacion := aprobacion.NuevoComponedor(localizador.Detectar())
+	ucFirmar := application.NuevoSignDocumentUseCase(catalogo, proveedor, motor, aprobador, auditor, nil).
+		WithMetrics(metricas).
+		WithComponedorAprobacion(componerAprobacion)
 	firmadorIdentidad := application.NuevoSignDocumentUseCase(
 		catalogo,
 		proveedor,
@@ -295,7 +301,7 @@ func construirAdaptador(configDir, p12Dir, p12Password string, metricas ports.Op
 		&aprobacionSistema{logger: logger},
 		auditor,
 		nil,
-	).WithMetrics(metricas)
+	).WithMetrics(metricas).WithComponedorAprobacion(componerAprobacion)
 	ucVerificar := application.NuevoVerifySignatureUseCase(
 		systemtrust.New(),
 		commonsigner.NewMultiVerifierWithHTTPClient(httpClient),
@@ -439,16 +445,27 @@ func solicitarAprobacionSistema(ctx context.Context, titulo, mensaje string) (bo
 	}
 }
 
-func solicitarAprobacionLinux(ctx context.Context, titulo, mensaje string) (bool, error) {
-	candidatos := []struct {
-		bin  string
-		args []string
-	}{
-		{"zenity", []string{"--question", "--title", titulo, "--text", mensaje, "--width", "520", "--ok-label", "Firmar", "--cancel-label", "Cancelar"}},
-		{"qarma", []string{"--question", "--title", titulo, "--text", mensaje, "--width", "520", "--ok-label", "Firmar", "--cancel-label", "Cancelar"}},
-		{"kdialog", []string{"--warningcontinuecancel", mensaje, "--title", titulo}},
+type dialogoLinux struct {
+	bin  string
+	args []string
+}
+
+// dialogosAprobacionLinux devuelve los diálogos candidatos con el texto ya
+// preparado para cada herramienta: zenity y qarma sin marcado Pango
+// (--no-markup) y con las barras invertidas duplicadas; kdialog con el texto
+// escapado como HTML de Qt (C-02).
+func dialogosAprobacionLinux(titulo, mensaje string) []dialogoLinux {
+	textoZenity := aprobacion.TextoZenity(mensaje)
+	tituloZenity := aprobacion.TextoZenity(titulo)
+	return []dialogoLinux{
+		{"zenity", []string{"--question", "--no-markup", "--title", tituloZenity, "--text", textoZenity, "--width", "520", "--ok-label", "Firmar", "--cancel-label", "Cancelar"}},
+		{"qarma", []string{"--question", "--no-markup", "--title", tituloZenity, "--text", textoZenity, "--width", "520", "--ok-label", "Firmar", "--cancel-label", "Cancelar"}},
+		{"kdialog", []string{"--warningcontinuecancel", aprobacion.TextoKDialog(mensaje), "--title", titulo}},
 	}
-	for _, candidato := range candidatos {
+}
+
+func solicitarAprobacionLinux(ctx context.Context, titulo, mensaje string) (bool, error) {
+	for _, candidato := range dialogosAprobacionLinux(titulo, mensaje) {
 		path, err := exec.LookPath(candidato.bin)
 		if err != nil {
 			continue

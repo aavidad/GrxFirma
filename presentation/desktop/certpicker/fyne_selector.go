@@ -480,7 +480,11 @@ func (f *FyneSelector) Select(ctx context.Context, certs []domain.CertificateRef
 		if origen == "" {
 			origen = tp("origen no identificado")
 		}
-		aviso := widget.NewLabel(tp("Solicitado por") + ": " + origen + "\n" + tp("Operación") + ": " + solicitud.Operacion)
+		lineaOrigen := tp("Solicitado por") + ": " + origen
+		if solicitud.OrigenEsDestino {
+			lineaOrigen = tp("approval.destinations", origen)
+		}
+		aviso := widget.NewLabel(lineaOrigen + "\n" + tp("Operación") + ": " + solicitud.Operacion)
 		aviso.Wrapping = fyne.TextWrapWord
 		aviso.TextStyle = fyne.TextStyle{Bold: true}
 		cabecera.Add(aviso)

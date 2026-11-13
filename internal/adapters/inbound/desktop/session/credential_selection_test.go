@@ -40,6 +40,8 @@ func TestOrchestrator_SelectorConCargaRecuperaVacioYElegirOtroConUnico(t *testin
 			}}}
 			keyID := ""
 			orch := session.New(session.Config{
+				Aprobador:          aprobadorPrueba{},
+				ComponerAprobacion: componerAprobacionPrueba,
 				CertCatalog:  &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) { return refs, nil }},
 				CertSelector: selector,
 				KeyProvider: &mockKeyProvider{keyForFn: func(_ context.Context, ref domain.CertificateRef) (ports.SigningKey, error) {

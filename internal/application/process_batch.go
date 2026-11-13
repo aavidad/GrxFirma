@@ -24,6 +24,7 @@ type ProcessBatchUseCase struct {
 	auditor   *AuditUseCase
 	eventos   ports.EventPublisher
 	metricas  ports.OperationMetrics
+	componer  ComponedorAprobacion
 }
 
 // NuevoProcessBatchUseCase construye el caso de uso ProcessBatch.
@@ -53,6 +54,15 @@ func (uc *ProcessBatchUseCase) WithMetrics(metricas ports.OperationMetrics) *Pro
 	return uc
 }
 
+// WithComponedorAprobacion fija cómo se compone el texto de aprobación del lote.
+func (uc *ProcessBatchUseCase) WithComponedorAprobacion(componer ComponedorAprobacion) *ProcessBatchUseCase {
+	if uc == nil {
+		return nil
+	}
+	uc.componer = componer
+	return uc
+}
+
 // Ejecutar procesa todos los trabajos del lote y devuelve errores parciales por indice.
 func (uc *ProcessBatchUseCase) Ejecutar(ctx context.Context, cmd ProcessBatchCommand) (BatchResult, error) {
 	if err := ctx.Err(); err != nil {
@@ -72,7 +82,7 @@ func (uc *ProcessBatchUseCase) Ejecutar(ctx context.Context, cmd ProcessBatchCom
 		uc.auditarLote(ctx, cmd, domain.CertificateRef{}, false, err)
 		return BatchResult{}, err
 	}
-	if err := uc.solicitarAprobacion(ctx, cert, len(cmd.Jobs)); err != nil {
+	if err := uc.solicitarAprobacion(ctx, cert, cmd); err != nil {
 		uc.auditarLote(ctx, cmd, cert, false, err)
 		return BatchResult{}, err
 	}
@@ -156,12 +166,38 @@ func (uc *ProcessBatchUseCase) resolverCertificado(ctx context.Context, certID s
 	return domain.CertificateRef{}, errors.New("hay varios certificados disponibles; debe seleccionarse uno antes de procesar el lote")
 }
 
-func (uc *ProcessBatchUseCase) solicitarAprobacion(ctx context.Context, cert domain.CertificateRef, total int) error {
+// DetalleAprobacionLote describe un lote para el diálogo de aprobación.
+func DetalleAprobacionLote(cmd ProcessBatchCommand, cert string) DetalleAprobacion {
+	detalle := DetalleAprobacion{
+		Operacion:   AprobacionLote,
+		Certificado: cert,
+		Firmas:      len(cmd.Jobs),
+		Aplicacion:  cmd.RequesterApplication,
+		Origen:      cmd.RequesterOrigin,
+		Destinos:    OrigenesDestino(cmd.Session.UploadEndpoint, cmd.Session.RetrieveEndpoint),
+	}
+	formatos := make(map[string]struct{}, 1)
+	for _, job := range cmd.Jobs {
+		detalle.Documentos = append(detalle.Documentos, job.Document.Name)
+		formatos[string(job.Format)] = struct{}{}
+	}
+	if len(formatos) == 1 && len(cmd.Jobs) > 0 {
+		detalle.Formato = string(cmd.Jobs[0].Format)
+	}
+	return detalle
+}
+
+func (uc *ProcessBatchUseCase) solicitarAprobacion(ctx context.Context, cert domain.CertificateRef, cmd ProcessBatchCommand) error {
 	if uc == nil || uc.aprobador == nil {
 		return errors.New("aprobador del lote no configurado")
 	}
-	ok, err := uc.aprobador.Request(ctx,
-		fmt.Sprintf("¿Desea procesar %d trabajos con el certificado '%s'?", total, cert.Subject))
+	mensaje := ""
+	if uc.componer != nil {
+		mensaje = uc.componer(DetalleAprobacionLote(cmd, cert.Subject))
+	} else {
+		mensaje = fmt.Sprintf("¿Desea procesar %d trabajos con el certificado '%s'?", len(cmd.Jobs), NeutralizarTextoAprobacion(cert.Subject, MaxRunasAprobacionCampo))
+	}
+	ok, err := uc.aprobador.Request(ctx, mensaje)
 	if err != nil {
 		return fmt.Errorf("error al solicitar aprobacion del lote: %w", err)
 	}

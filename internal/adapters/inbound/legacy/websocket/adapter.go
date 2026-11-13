@@ -139,6 +139,7 @@ func (a *Adaptador) HandleText(ctx context.Context, origin, message string) (res
 	}
 	if origin = strings.TrimSpace(origin); origin != "" {
 		solicitud.Origenes = append(solicitud.Origenes, origin)
+		solicitud.OrigenSolicitante = origin
 		if err := a.Legacy.ValidateOrigins(ctx, solicitud.Origenes); err != nil {
 			trace.WarnContext(ctx, "legacy_adapter_origin_rejected", "origin", origin, "error", err)
 			return Resultado{}, err

@@ -220,6 +220,7 @@ func construirRuntimeAfirmaURIConDependencias(
 			Eventos:                             nil,
 			RequireExplicitCertificateSelection: nativeProtocolUIEnabled() || tokenruntime.EnabledInBuild(),
 			Timeout:                             5 * time.Minute,
+			ComponerAprobacion:                  componerAprobacionProtocolo,
 		})
 	}
 	preferencias := certselectionstore.New(configDir)
