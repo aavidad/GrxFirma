@@ -75,7 +75,8 @@ if (Test-Path -LiteralPath $protocolSnapshot -PathType Leaf) {
     $state = Read-AfirmaProtocolSnapshot `
         -Path $protocolSnapshot `
         -ProtocolKey $protocolKey `
-        -Plan $plan
+        -Plan $plan `
+        -AcceptedLegacyIconPaths (Get-AfirmaLegacyIconPaths -ExecutablePath $exeTarget)
     $restored = Restore-AfirmaProtocolRegistration `
         -OwnerValues @($state.OwnerValues) `
         -Snapshots @($state.Snapshots)

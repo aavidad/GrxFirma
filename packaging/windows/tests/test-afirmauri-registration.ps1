@@ -428,6 +428,57 @@ try {
         "La migracion escribio registro tras detectar un DefaultIcon ajeno"
     Remove-Item -LiteralPath $migrationSnapshotPath -Force
 
+    # 0.0.125 registro DefaultIcon con grxfirma-grx.ico en la carpeta del
+    # ejecutable; actualizar desde ella debe migrar al icono actual.
+    $grxIconPath = Join-Path (Split-Path -Parent $executablePath) "grxfirma-grx.ico"
+    $grxSnapshotPath = Join-Path $tmp "grx-icon-snapshot.json"
+    $script:mockRegistry = @{}
+    $script:mockSetAttempts = 0
+    $script:mockFailSetAt = 0
+    Install-AfirmaProtocolRegistration `
+        -ProtocolKey $protocolKey `
+        -ExecutablePath $executablePath `
+        -IconPath $grxIconPath `
+        -SnapshotPath $grxSnapshotPath
+    Install-AfirmaProtocolRegistration `
+        -ProtocolKey $protocolKey `
+        -ExecutablePath $executablePath `
+        -IconPath $iconPath `
+        -SnapshotPath $grxSnapshotPath
+    $grxMigratedState = Read-AfirmaProtocolSnapshot `
+        -Path $grxSnapshotPath `
+        -ProtocolKey $protocolKey `
+        -Plan $brandedPlan
+    Assert-True (
+        Test-AfirmaProtocolValuesMatch -Expected @($grxMigratedState.OwnerValues)
+    ) "La actualizacion desde el icono grxfirma-grx.ico no escribio el plan actual"
+    Assert-True (
+        Test-AfirmaRegistrySnapshotsEqual `
+            -Left $grxMigratedState.OwnerValues[2] `
+            -Right (New-AfirmaOwnedValueSnapshot -Plan $brandedPlan[2])
+    ) "La actualizacion desde grxfirma-grx.ico no migro DefaultIcon"
+
+    # El mismo nombre de icono fuera de la carpeta del ejecutable es ajeno.
+    Remove-Item -LiteralPath $grxSnapshotPath -Force
+    $script:mockRegistry = @{}
+    $script:mockSetAttempts = 0
+    Install-AfirmaProtocolRegistration `
+        -ProtocolKey $protocolKey `
+        -ExecutablePath $executablePath `
+        -IconPath "C:\ForeignSigner\grxfirma-grx.ico" `
+        -SnapshotPath $grxSnapshotPath
+    $script:mockSetAttempts = 0
+    Assert-Throws {
+        Install-AfirmaProtocolRegistration `
+            -ProtocolKey $protocolKey `
+            -ExecutablePath $executablePath `
+            -IconPath $iconPath `
+            -SnapshotPath $grxSnapshotPath
+    } "La migracion acepto grxfirma-grx.ico fuera de la carpeta del ejecutable"
+    Assert-True ($script:mockSetAttempts -eq 0) `
+        "La migracion escribio registro con un icono heredado de otra carpeta"
+    Remove-Item -LiteralPath $grxSnapshotPath -Force
+
     . $helperPath
     $runningOnWindows =
         $PSVersionTable.PSEdition -eq "Desktop" -or

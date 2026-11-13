@@ -456,6 +456,23 @@ function Write-AfirmaProtocolSnapshot {
     }
 }
 
+# Iconos que han usado las versiones publicadas para DefaultIcon (0.0.125 dejó
+# grxfirma-grx.ico). Sin ellos, actualizar desde esas versiones abortaba con
+# «no pertenece a este ejecutable» y dejaba el handler afirma:// antiguo.
+function Get-AfirmaLegacyIconPaths {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ExecutablePath
+    )
+
+    $directory = Split-Path -Parent $ExecutablePath
+    return @(
+        "grxfirma.ico",
+        "grxfirma-grx.ico",
+        "grxfirma-diputacion.ico"
+    ) | ForEach-Object { Join-Path $directory $_ }
+}
+
 function Read-AfirmaProtocolSnapshot {
     param(
         [Parameter(Mandatory = $true)]
@@ -464,9 +481,22 @@ function Read-AfirmaProtocolSnapshot {
         [string]$ProtocolKey,
         [Parameter(Mandatory = $true)]
         [object[]]$Plan,
-        [object[]]$AcceptedLegacyOwnerValues = @()
+        [object[]]$AcceptedLegacyOwnerValues = @(),
+        # Iconos que versiones anteriores dejaron en DefaultIcon. Solo se
+        # aceptan rutas que el llamante construye dentro de la carpeta del
+        # ejecutable; el resto del registro debe coincidir con el plan.
+        [string[]]$AcceptedLegacyIconPaths = @()
     )
 
+    $legacyIconOwners = @($AcceptedLegacyIconPaths | Where-Object {
+        -not [string]::IsNullOrWhiteSpace($_)
+    } | ForEach-Object {
+        New-AfirmaOwnedValueSnapshot -Plan ([pscustomobject]@{
+            Path = [string]$Plan[2].Path
+            Name = [string]$Plan[2].Name
+            Value = "$_,0"
+        })
+    })
     $legacyOwners = @($AcceptedLegacyOwnerValues)
     if ($legacyOwners.Count -ne 0 -and
         $legacyOwners.Count -ne $Plan.Count) {
@@ -499,6 +529,7 @@ function Read-AfirmaProtocolSnapshot {
     }
     $matchesCurrentOwner = $true
     $matchesLegacyOwner = $legacyOwners.Count -eq $Plan.Count
+    $matchesLegacyIcon = $legacyIconOwners.Count -gt 0
     for ($index = 0; $index -lt $Plan.Count; $index++) {
         foreach ($record in @($owners[$index], $snapshots[$index])) {
             if (-not [string]::Equals(
@@ -520,10 +551,29 @@ function Read-AfirmaProtocolSnapshot {
             throw "La instantanea del protocolo afirma:// contiene un marcador de propiedad no valido."
         }
         $expectedOwner = New-AfirmaOwnedValueSnapshot -Plan $Plan[$index]
-        if (-not (Test-AfirmaRegistrySnapshotsEqual `
-                -Left $owners[$index] `
-                -Right $expectedOwner)) {
+        $ownerMatchesPlan = Test-AfirmaRegistrySnapshotsEqual `
+            -Left $owners[$index] `
+            -Right $expectedOwner
+        if (-not $ownerMatchesPlan) {
             $matchesCurrentOwner = $false
+        }
+        if ($matchesLegacyIcon) {
+            if ($index -eq 2) {
+                $knownIcon = $false
+                foreach ($legacyIconOwner in $legacyIconOwners) {
+                    if (Test-AfirmaRegistrySnapshotsEqual `
+                            -Left $owners[$index] `
+                            -Right $legacyIconOwner) {
+                        $knownIcon = $true
+                        break
+                    }
+                }
+                if (-not $knownIcon) {
+                    $matchesLegacyIcon = $false
+                }
+            } elseif (-not $ownerMatchesPlan) {
+                $matchesLegacyIcon = $false
+            }
         }
         if ($matchesLegacyOwner -and
             -not (Test-AfirmaRegistrySnapshotsEqual `
@@ -540,7 +590,8 @@ function Read-AfirmaProtocolSnapshot {
             }
         }
     }
-    if (-not $matchesCurrentOwner -and -not $matchesLegacyOwner) {
+    if (-not $matchesCurrentOwner -and -not $matchesLegacyOwner -and
+        -not $matchesLegacyIcon) {
         throw "La instantanea del protocolo afirma:// no pertenece a este ejecutable."
     }
     return [pscustomobject]@{
@@ -612,7 +663,8 @@ function Install-AfirmaProtocolRegistration {
             -Path $SnapshotPath `
             -ProtocolKey $ProtocolKey `
             -Plan $plan `
-            -AcceptedLegacyOwnerValues $acceptedLegacyOwnerValues
+            -AcceptedLegacyOwnerValues $acceptedLegacyOwnerValues `
+            -AcceptedLegacyIconPaths (Get-AfirmaLegacyIconPaths -ExecutablePath $ExecutablePath)
         for ($index = 0; $index -lt $plan.Count; $index++) {
             $knownOwner = Test-AfirmaRegistrySnapshotsEqual `
                 -Left $currentValues[$index] `
