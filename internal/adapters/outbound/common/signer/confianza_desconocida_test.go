@@ -43,7 +43,8 @@ func TestApplySignerVerificationMetadata_ConfianzaDesconocidaNoValida(t *testing
 // TestApplySignerVerificationMetadata_RSA1024NoValida: una clave RSA de 1024
 // bits ya no protege una firma; se avisa y la firma no se da por válida.
 func TestApplySignerVerificationMetadata_RSA1024NoValida(t *testing.T) {
-	clave, err := rsa.GenerateKey(rand.Reader, 1024)
+	// La clave corta es justo lo que se prueba que se rechaza.
+	clave, err := rsa.GenerateKey(rand.Reader, 1024) // nosemgrep: use-of-weak-rsa-key
 	if err != nil {
 		t.Fatalf("no se pudo generar RSA de 1024 bits: %v", err)
 	}
