@@ -34,6 +34,7 @@ import (
 	resttls "grxfirma/internal/adapters/inbound/common/rest"
 	"grxfirma/internal/adapters/inbound/common/secretinput"
 	"grxfirma/internal/adapters/inbound/desktop/ipc"
+	"grxfirma/internal/adapters/outbound/common/auditlog"
 	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/common/hashmanifest"
 	"grxfirma/internal/adapters/outbound/common/localizador"
@@ -426,7 +427,11 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 	motor.WithRevocationProvider(revocationclient.NewWithHTTPClient(httpClient))
 
 	// Casos de uso.
-	auditor := application.NuevoAuditUseCase(relojReal{}, &loggerSilencioso{})
+	registradorAuditoria, err := auditlog.NewDefault()
+	if err != nil {
+		return nil, "", err
+	}
+	auditor := application.NuevoAuditUseCase(relojReal{}, registradorAuditoria)
 	aprobador := &aprobacionAutomatica{}
 
 	ucFirmar := application.NuevoSignDocumentUseCase(catalogo, claves, motor, aprobador, auditor, nil).
@@ -514,10 +519,6 @@ type aprobacionAutomatica struct{}
 func (a *aprobacionAutomatica) Request(_ context.Context, _ string) (bool, error) {
 	return true, nil
 }
-
-type loggerSilencioso struct{}
-
-func (l *loggerSilencioso) Log(_ context.Context, _ ports.Evidence) error { return nil }
 
 type catalogoMemoria struct{ certs []domain.CertificateRef }
 

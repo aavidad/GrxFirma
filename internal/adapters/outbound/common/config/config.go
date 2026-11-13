@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -67,6 +68,12 @@ type Policy struct {
 	NivelLog                 *string  `json:"nivel_log"`
 	TimeoutOperacionSegundos *int     `json:"timeout_operacion_segundos"`
 	MaxTamanoDocumentoBytes  *int64   `json:"max_tamano_documento_bytes"`
+
+	// Control de lectura (no forman parte del JSON). ilegible indica que la
+	// política existe pero no se pudo leer ni interpretar; invalidos, los
+	// ajustes presentes con un valor que no se entiende.
+	ilegible  bool
+	invalidos []string
 }
 
 // Default devuelve la configuración con valores seguros por defecto.
@@ -139,10 +146,14 @@ func loadSystemPolicy(policyDir string) (Policy, error) {
 func loadMachinePolicy() (Policy, error) {
 	var p Policy
 	var errs []error
+	fallo := func(nombre string, err error) {
+		p.invalidos = append(p.invalidos, nombre)
+		errs = append(errs, fmt.Errorf("%s: %w", nombre, err))
+	}
 	leerBool := func(nombre string, destino **bool) {
 		v, ok, err := machinepolicy.Bool(nombre)
 		if err != nil {
-			errs = append(errs, err)
+			fallo(nombre, err)
 		} else if ok {
 			*destino = &v
 		}
@@ -150,7 +161,7 @@ func loadMachinePolicy() (Policy, error) {
 	leerTexto := func(nombre string, destino **string) {
 		v, ok, err := machinepolicy.String(nombre)
 		if err != nil {
-			errs = append(errs, err)
+			fallo(nombre, err)
 		} else if ok {
 			*destino = &v
 		}
@@ -162,18 +173,18 @@ func loadMachinePolicy() (Policy, error) {
 	leerTexto(machinepolicy.DirectorioP12, &p.DirectorioP12)
 	leerTexto(machinepolicy.NivelLog, &p.NivelLog)
 	if v, ok, err := machinepolicy.Strings(machinepolicy.DominiosDeConfianza); err != nil {
-		errs = append(errs, err)
+		fallo(machinepolicy.DominiosDeConfianza, err)
 	} else if ok {
 		p.DominiosDeConfianza = v
 	}
 	if v, ok, err := machinepolicy.Int64(machinepolicy.TimeoutOperacionSegundos); err != nil {
-		errs = append(errs, err)
+		fallo(machinepolicy.TimeoutOperacionSegundos, err)
 	} else if ok {
 		n := int(v)
 		p.TimeoutOperacionSegundos = &n
 	}
 	if v, ok, err := machinepolicy.Int64(machinepolicy.MaxTamanoDocumentoBytes); err != nil {
-		errs = append(errs, err)
+		fallo(machinepolicy.MaxTamanoDocumentoBytes, err)
 	} else if ok {
 		p.MaxTamanoDocumentoBytes = &v
 	}
@@ -252,17 +263,59 @@ func aplicarEntorno(cfg *Config) {
 	}
 }
 
+// leerFicheroPolicy lee policy.json. El de la ruta del sistema debe ser de root
+// y no escribible por otros (en Linux); una ruta inyectada (pruebas) se lee
+// sin seguir enlaces.
+func leerFicheroPolicy(path string) ([]byte, error) {
+	if filepath.Dir(path) == DirPolicyDefecto {
+		return securefile.ReadTrustedSystemFileLimit(path, maxConfigFileBytes)
+	}
+	return securefile.ReadFileLimit(path, maxConfigFileBytes)
+}
+
+// campoPolicy decodifica un ajuste por separado, de modo que un valor con el
+// tipo equivocado invalide solo ese ajuste y no el resto de la política.
+func campoPolicy[T any](campos map[string]json.RawMessage, nombre string, raw *Policy, errs *[]error, asignar func(T)) {
+	valor, ok := campos[nombre]
+	if !ok {
+		return
+	}
+	var v T
+	if err := json.Unmarshal(valor, &v); err != nil {
+		raw.invalidos = append(raw.invalidos, nombre)
+		*errs = append(*errs, fmt.Errorf("%s: %w", nombre, err))
+		return
+	}
+	asignar(v)
+}
+
 func loadPolicyFile(path string) (Policy, error) {
 	var raw Policy
-	data, err := securefile.ReadFileLimit(path, maxConfigFileBytes)
+	data, err := leerFicheroPolicy(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return raw, nil
 		}
+		raw.ilegible = true
 		return raw, fmt.Errorf("leer %s: %w", path, err)
 	}
-	if err := json.Unmarshal(data, &raw); err != nil {
+	var campos map[string]json.RawMessage
+	if err := json.Unmarshal(data, &campos); err != nil {
+		raw.ilegible = true
 		return raw, fmt.Errorf("parsear %s: %w", path, err)
+	}
+	var errs []error
+	campoPolicy(campos, machinepolicy.WebsocketHabilitado, &raw, &errs, func(v *bool) { raw.WebsocketHabilitado = v })
+	campoPolicy(campos, machinepolicy.WebsocketPermitido, &raw, &errs, func(v *bool) { raw.WebsocketPermitido = v })
+	campoPolicy(campos, machinepolicy.RestHabilitado, &raw, &errs, func(v *bool) { raw.RestHabilitado = v })
+	campoPolicy(campos, machinepolicy.TofuHabilitado, &raw, &errs, func(v *bool) { raw.TofuHabilitado = v })
+	campoPolicy(campos, machinepolicy.DirectorioP12, &raw, &errs, func(v *string) { raw.DirectorioP12 = v })
+	campoPolicy(campos, machinepolicy.DominiosDeConfianza, &raw, &errs, func(v []string) { raw.DominiosDeConfianza = v })
+	campoPolicy(campos, machinepolicy.NivelLog, &raw, &errs, func(v *string) { raw.NivelLog = v })
+	campoPolicy(campos, machinepolicy.TimeoutOperacionSegundos, &raw, &errs, func(v *int) { raw.TimeoutOperacionSegundos = v })
+	campoPolicy(campos, machinepolicy.MaxTamanoDocumentoBytes, &raw, &errs, func(v *int64) { raw.MaxTamanoDocumentoBytes = v })
+	if len(errs) > 0 {
+		return raw, fmt.Errorf("%s: %w", path, errors.Join(errs...))
 	}
 	return raw, nil
 }
@@ -274,9 +327,14 @@ func aplicarPolicyDesde(cfg *Config, policyDir string) {
 	aplicarPolicyCargada(cfg, raw, err)
 }
 
+// aplicarPolicyCargada aplica los ajustes válidos de la política aunque haya
+// errores en otros. Falla cerrado donde importa: si la política existe pero no
+// se pudo leer, o si un ajuste restrictivo (REST, WebSocket, TOFU) tiene un
+// valor que no se entiende, ese ajuste queda desactivado. En ambos casos avisa.
 func aplicarPolicyCargada(cfg *Config, raw Policy, err error) {
 	if err != nil {
-		return // fichero ausente, ilegible o invalido: no aplicar
+		slog.Warn("la política de máquina tiene errores; se aplican los ajustes válidos y se desactivan los afectados",
+			"error", err)
 	}
 	if raw.WebsocketHabilitado != nil {
 		cfg.WebsocketHabilitado = *raw.WebsocketHabilitado
@@ -304,5 +362,28 @@ func aplicarPolicyCargada(cfg *Config, raw Policy, err error) {
 	}
 	if raw.MaxTamanoDocumentoBytes != nil {
 		cfg.MaxTamanoDocumentoBytes = *raw.MaxTamanoDocumentoBytes
+	}
+	cerrarPolicyInvalida(cfg, raw)
+}
+
+func cerrarPolicyInvalida(cfg *Config, raw Policy) {
+	cerrado := false
+	if raw.ilegible {
+		cfg.RestHabilitado = false
+		cfg.WebsocketHabilitado = false
+		cfg.WebsocketPermitido = &cerrado
+		return
+	}
+	for _, nombre := range raw.invalidos {
+		switch nombre {
+		case machinepolicy.RestHabilitado:
+			cfg.RestHabilitado = false
+		case machinepolicy.WebsocketHabilitado:
+			cfg.WebsocketHabilitado = false
+		case machinepolicy.WebsocketPermitido:
+			cfg.WebsocketPermitido = &cerrado
+		case machinepolicy.TofuHabilitado:
+			cfg.TofuHabilitado = false
+		}
 	}
 }

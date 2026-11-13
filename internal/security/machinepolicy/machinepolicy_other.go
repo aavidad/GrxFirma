@@ -18,10 +18,6 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// PolicyFile es la política de máquina en sistemas sin registro. Debe ser
-// propiedad de root y no escribible por usuarios.
-const PolicyFile = "/etc/grxfirma/policy.json"
-
 func native() bool { return false }
 
 func readStrings(string) ([]string, bool, error) { return nil, false, nil }

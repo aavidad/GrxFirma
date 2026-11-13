@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -80,20 +79,17 @@ type Documento struct {
 }
 
 var (
-	reDIR3          = regexp.MustCompile(`^[A-Z0-9]{9}$`)
-	reIdentificador = regexp.MustCompile(`^ES_([A-Z0-9]{9})_(\d{4})_([A-Za-z0-9_]{1,30})$`)
-	reFormato       = regexp.MustCompile(`^[A-Za-z0-9.+-]{1,32}$`)
-	estados         = map[string]bool{"EE01": true, "EE02": true, "EE03": true, "EE04": true, "EE99": true}
-	tiposFirma      = map[TipoFirma]bool{FirmaXAdESDetached: true, FirmaXAdESEnvelope: true, FirmaCAdESExplicit: true, FirmaCAdESImplicit: true, FirmaPAdES: true}
+	reDIR3           = regexp.MustCompile(`^[A-Z0-9]{9}$`)
+	reIdentificador  = regexp.MustCompile(`^ES_([A-Z0-9]{9})_(\d{4})_([A-Za-z0-9_]{1,30})$`)
+	reTipoDocumental = regexp.MustCompile(`^TD(0[1-9]|1[0-9]|20|99)$`)
+	reFormato        = regexp.MustCompile(`^[A-Za-z0-9.+-]{1,32}$`)
+	estados          = map[string]bool{"EE01": true, "EE02": true, "EE03": true, "EE04": true, "EE99": true}
+	tiposFirma       = map[TipoFirma]bool{FirmaXAdESDetached: true, FirmaXAdESEnvelope: true, FirmaCAdESExplicit: true, FirmaCAdESImplicit: true, FirmaPAdES: true}
 )
 
 // TipoDocumentalValido indica si el código es un tipo documental de la NTI.
 func TipoDocumentalValido(td string) bool {
-	if len(td) != 4 || !strings.HasPrefix(td, "TD") {
-		return false
-	}
-	n, err := strconv.Atoi(td[2:])
-	return err == nil && (n == 99 || (n >= 1 && n <= 20))
+	return reTipoDocumental.MatchString(td)
 }
 
 // Validar comprueba los metadatos y firmas antes de generar el documento.
