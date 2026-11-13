@@ -334,7 +334,7 @@ func construirServicios(rutaP12, password, rutaCert, rutaClave string) (*servici
 	motor := construirMotorFirmaConHTTP(httpClient)
 	registradorAuditoria, err := auditlog.NewDefault()
 	if err != nil {
-		return nil, fmt.Errorf("preparando el registro de auditoria: %w", err)
+		return nil, err
 	}
 	auditor := application.NuevoAuditUseCase(relojReal{}, registradorAuditoria)
 	aprobador := &aprobacionAutomatica{}

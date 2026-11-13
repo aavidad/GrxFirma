@@ -284,7 +284,7 @@ func construirAdaptador(configDir, p12Dir, p12Password string, metricas ports.Op
 	motor := construirMotorFirmaConHTTP(httpClient)
 	registradorAuditoria, err := auditlog.NewDefault()
 	if err != nil {
-		return nil, fmt.Errorf("no se pudo preparar el registro de auditoría: %w", err)
+		return nil, err
 	}
 	auditor := application.NuevoAuditUseCase(relojReal{}, registradorAuditoria)
 

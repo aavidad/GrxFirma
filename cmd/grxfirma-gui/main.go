@@ -429,7 +429,7 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 	// Casos de uso.
 	registradorAuditoria, err := auditlog.NewDefault()
 	if err != nil {
-		return nil, "", fmt.Errorf("preparando el registro de auditoria: %w", err)
+		return nil, "", err
 	}
 	auditor := application.NuevoAuditUseCase(relojReal{}, registradorAuditoria)
 	aprobador := &aprobacionAutomatica{}
