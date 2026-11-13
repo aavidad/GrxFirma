@@ -15,6 +15,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"math/big"
@@ -149,7 +150,10 @@ func (v *FacturaEVerifier) Verify(ctx context.Context, signedDocument domain.Doc
 	if !looksLikeSignedXML(xmlData) {
 		return domain.VerificationResult{}, nil, errors.New("la factura no contiene una firma XML")
 	}
-	verification, err := verifyXMLSignatureDocument(xmlData, true, nil, anchors, string(formatFacturaE), "firma FacturaE valida", []string{"perfil=facturae", "xades=enveloped"})
+	if err := exigirFirmasFacturaEEnveloped(xmlData); err != nil {
+		return domain.VerificationResult{}, nil, err
+	}
+	verification, err := verifyXMLSignatureDocument(ctx, xmlData, true, nil, anchors, string(formatFacturaE), "firma FacturaE valida", []string{"perfil=facturae", "xades=enveloped"}, coberturaDelDocumento)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
@@ -466,3 +470,63 @@ func detectFacturaEPolicyDetail(xmlData []byte) string {
 
 var _ ports.SignerEngine = (*FacturaESigner)(nil)
 var _ ports.VerifierEngine = (*FacturaEVerifier)(nil)
+
+// exigirFirmasFacturaEEnveloped: una FacturaE firmada lleva su firma XAdES
+// enveloped como hija directa del elemento raíz Facturae, con una referencia
+// URI="" que excluye la propia firma. Una firma de otro tipo (detached con un
+// CONTENT, enveloping) metida dentro de una factura no firma la factura,
+// aunque sus resúmenes cuadren. Las contrafirmas van dentro de otra firma y
+// no se exigen aquí.
+func exigirFirmasFacturaEEnveloped(xmlData []byte) error {
+	arbol, err := construirArbolXML(xmlData)
+	if err != nil {
+		return err
+	}
+	if len(arbol.raices) != 1 || arbol.nodos[arbol.raices[0]].nombre.Local != "Facturae" {
+		return errors.New("la factura no tiene un único elemento raíz Facturae")
+	}
+	raiz := arbol.raices[0]
+	firmas, err := extractContextualXMLSignatures(xmlData)
+	if err != nil {
+		return err
+	}
+	for _, firma := range firmas {
+		nodo := arbol.nodoEn(firma.context.signatureStart)
+		if nodo < 0 {
+			return errors.New("firma de la factura no localizada")
+		}
+		if arbol.firmaAncestro(nodo) >= 0 {
+			continue
+		}
+		if arbol.nodos[nodo].padre != raiz {
+			return errors.New("la firma de la factura no es hija directa del elemento Facturae")
+		}
+		signedInfo, _, _, err := extractContextualSignatureCore(firma.fragment, firma.context)
+		if err != nil {
+			return err
+		}
+		var info signedInfoForVerify
+		if err := xml.Unmarshal(signedInfo, &info); err != nil {
+			return err
+		}
+		if !referenciaEnvelopedDelDocumento(info) {
+			return errors.New("la firma de la factura no firma el documento completo (falta la referencia enveloped URI=\"\")")
+		}
+	}
+	return nil
+}
+
+func referenciaEnvelopedDelDocumento(info signedInfoForVerify) bool {
+	for _, ref := range info.References {
+		if strings.TrimSpace(ref.URI) != "" {
+			continue
+		}
+		for _, transform := range ref.Transforms {
+			algorithm := strings.TrimSpace(transform.Algorithm)
+			if algorithm == algEnveloped || (algorithm == algXPathFilter && esXPathExcluirFirmas(transform)) {
+				return true
+			}
+		}
+	}
+	return false
+}

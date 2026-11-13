@@ -864,6 +864,8 @@
   "Firma electrónica avanzada": "高级电子签名",
   "Firma guardada exitosamente en: ": "Signature stored successfully at: ",
   "Firma inválida o integridad no garantizada.": "签名无效或完整性无法保证。",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "签名正确，但文档的部分内容未签名。",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "无法检查签名所涵盖的全部内容，因此不视为有效。",
   "Firma múltiple completada (": "多文件签名已完成（",
   "Firma múltiple completada con incidencias (": "多文件签名已完成，但有异常（",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",

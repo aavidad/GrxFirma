@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"path"
 	"sort"
 	"strings"
 
@@ -38,7 +39,7 @@ func (v *XAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	if err := ctx.Err(); err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
-	verification, err := verifyXMLSignatureDocument(signedDocument.Content, true, nil, anchors, string(domain.FormatXAdES), "firma XAdES valida", []string{"referencias=ok", "signedproperties=ok"})
+	verification, err := verifyXMLSignatureDocument(ctx, signedDocument.Content, true, nil, anchors, string(domain.FormatXAdES), "firma XAdES valida", []string{"referencias=ok", "signedproperties=ok"}, coberturaDelDocumento)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
@@ -59,7 +60,7 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
-	resolver, err := zipEntryResolver(signedDocument.Content, false)
+	contenedor, err := abrirContenedorZIP(signedDocument.Content, false)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
@@ -74,10 +75,20 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 	allSignerCertificates := make([]*x509.Certificate, 0, len(signatures))
 	allEmbeddedCertificates := make([]*x509.Certificate, 0, len(signatures))
 	var compatibility []string
+	var cubiertasPorFirma []map[string]bool
+	var noComprobado []string
 	for idx, signature := range signatures {
-		verification, verifyErr := verifyXMLSignatureDocumentWithContext(signature.fragment, signature.context, false, resolver, anchors, "ODF", "firma ODF valida", nil)
+		if err := ctx.Err(); err != nil {
+			return domain.VerificationResult{}, nil, err
+		}
+		cubiertas := map[string]bool{}
+		verification, verifyErr := verifyXMLSignatureDocumentWithContext(ctx, signature.fragment, signature.context, false, contenedor.resolver(cubiertas), anchors, "ODF", "firma ODF valida", nil)
 		if verifyErr != nil {
 			return domain.VerificationResult{}, nil, fmt.Errorf("firma ODF %d invalida: %w", idx+1, verifyErr)
+		}
+		cubiertasPorFirma = append(cubiertasPorFirma, cubiertas)
+		for _, cobertura := range verification.coberturas {
+			noComprobado = append(noComprobado, cobertura.noComprobado...)
 		}
 		allSigners = append(allSigners, verification.signers...)
 		allSignerCertificates = append(allSignerCertificates, verification.signerCertificates...)
@@ -94,7 +105,25 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 		result = marcarSelloXMLNoEvaluable(result, signature.fragment)
 	}
 	result = markXMLCompatibility(result, compatibility)
+	result = aplicarCoberturaXML(result, coberturaContenedor(contenedor.nombres, entradaODFSinFirmar, cubiertasPorFirma, noComprobado))
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
+}
+
+// entradaODFSinFirmar: entradas que una firma ODF no cubre por norma (el
+// propio fichero de firmas y mimetype, que LibreOffice no referencia).
+func entradaODFSinFirmar(nombre string) bool {
+	switch nombre {
+	case "mimetype", "META-INF/documentsignatures.xml", "META-INF/macrosignatures.xml":
+		return true
+	}
+	return false
+}
+
+// entradaOOXMLSinFirmar: [Content_Types].xml y las partes de firma digital
+// quedan fuera de la firma en OPC (ECMA-376 parte 2).
+func entradaOOXMLSinFirmar(nombre string) bool {
+	lower := strings.ToLower(nombre)
+	return lower == "[content_types].xml" || strings.HasPrefix(lower, "_xmlsignatures/")
 }
 
 type OOXMLVerifier struct{}
@@ -111,7 +140,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
-	resolver, err := zipEntryResolver(signedDocument.Content, true)
+	contenedor, err := abrirContenedorZIP(signedDocument.Content, true)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
@@ -126,6 +155,8 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	allEmbeddedCertificates := make([]*x509.Certificate, 0, len(signatures))
 	var compatibility []string
 	verifiedSignatures := 0
+	var cubiertasPorFirma []map[string]bool
+	var noComprobado []string
 	for _, name := range names {
 		sigXML := signatures[name]
 		parts, err := extractContextualXMLSignatures(sigXML)
@@ -133,10 +164,18 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 			return domain.VerificationResult{}, nil, fmt.Errorf("entrada OOXML %s sin firmas XML utilizables", name)
 		}
 		for _, part := range parts {
+			if err := ctx.Err(); err != nil {
+				return domain.VerificationResult{}, nil, err
+			}
 			requireSigningCertificate := looksLikeXAdES(part.fragment)
-			verification, verifyErr := verifyXMLSignatureDocumentWithContext(part.fragment, part.context, requireSigningCertificate, resolver, anchors, "OOXML", "firma OOXML valida", nil)
+			cubiertas := map[string]bool{}
+			verification, verifyErr := verifyXMLSignatureDocumentWithContext(ctx, part.fragment, part.context, requireSigningCertificate, contenedor.resolver(cubiertas), anchors, "OOXML", "firma OOXML valida", nil)
 			if verifyErr != nil {
 				return domain.VerificationResult{}, nil, fmt.Errorf("firma OOXML %s invalida: %w", name, verifyErr)
+			}
+			cubiertasPorFirma = append(cubiertasPorFirma, cubiertas)
+			for _, cobertura := range verification.coberturas {
+				noComprobado = append(noComprobado, cobertura.noComprobado...)
 			}
 			verifiedSignatures++
 			allSigners = append(allSigners, verification.signers...)
@@ -156,6 +195,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		result = marcarSelloXMLNoEvaluable(result, signatures[name])
 	}
 	result = markXMLCompatibility(result, compatibility)
+	result = aplicarCoberturaXML(result, coberturaContenedor(contenedor.nombres, entradaOOXMLSinFirmar, cubiertasPorFirma, noComprobado))
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
 }
 
@@ -164,9 +204,25 @@ type xmlSignatureVerification struct {
 	signers              []domain.CertificateRef
 	signerCertificates   []*x509.Certificate
 	embeddedCertificates []*x509.Certificate
+	// coberturas: lo que referencia cada firma comprobada, para calcular
+	// después qué parte del documento o del contenedor queda firmada.
+	coberturas []coberturaFirmaXML
 }
 
-func verifyXMLSignatureDocument(xmlData []byte, requireSigningCertificate bool, externalResolver func(string) ([]byte, error), anchors domain.CertificateChain, format string, reason string, details []string) (xmlSignatureVerification, error) {
+// Ámbito de la cobertura en verifyXMLSignatureDocument: el propio XML es el
+// documento firmado (XAdES, XMLdSig, FacturaE) o solo contiene las firmas de
+// un contenedor cuya cobertura calcula quien llama (ASiC).
+const (
+	coberturaDelDocumento  = true
+	coberturaDelContenedor = false
+)
+
+func verifyXMLSignatureDocument(ctx context.Context, xmlData []byte, requireSigningCertificate bool, externalResolver func(string) ([]byte, error), anchors domain.CertificateChain, format string, reason string, details []string, documentoFirmado bool) (xmlSignatureVerification, error) {
+	if documentoFirmado {
+		if err := rechazarDOCTYPE(xmlData); err != nil {
+			return xmlSignatureVerification{}, err
+		}
+	}
 	parts, err := extractContextualXMLSignatures(xmlData)
 	if err != nil || len(parts) == 0 {
 		return xmlSignatureVerification{}, errors.New("el documento no contiene firmas XML utilizables")
@@ -174,13 +230,17 @@ func verifyXMLSignatureDocument(xmlData []byte, requireSigningCertificate bool, 
 	var aggregate xmlSignatureVerification
 	var compatibility []string
 	for _, part := range parts {
-		verification, err := verifyXMLSignatureDocumentWithContext(part.fragment, part.context, requireSigningCertificate, externalResolver, anchors, format, reason, details)
+		if err := ctx.Err(); err != nil {
+			return xmlSignatureVerification{}, err
+		}
+		verification, err := verifyXMLSignatureDocumentWithContext(ctx, part.fragment, part.context, requireSigningCertificate, externalResolver, anchors, format, reason, details)
 		if err != nil {
 			return xmlSignatureVerification{}, err
 		}
 		aggregate.signers = append(aggregate.signers, verification.signers...)
 		aggregate.signerCertificates = append(aggregate.signerCertificates, verification.signerCertificates...)
 		aggregate.embeddedCertificates = append(aggregate.embeddedCertificates, verification.embeddedCertificates...)
+		aggregate.coberturas = append(aggregate.coberturas, verification.coberturas...)
 		compatibility = append(compatibility, xmlCompatibilityDetails(verification.result)...)
 	}
 	aggregate.result = applySignerVerificationMetadata(domain.NewVerificationSuccess(format, reason, details), aggregate.signerCertificates, aggregate.embeddedCertificates, anchors)
@@ -188,16 +248,29 @@ func verifyXMLSignatureDocument(xmlData []byte, requireSigningCertificate bool, 
 		aggregate.result = marcarSelloXMLNoEvaluable(aggregate.result, part.fragment)
 	}
 	aggregate.result = markXMLCompatibility(aggregate.result, compatibility)
+	if documentoFirmado {
+		cobertura, err := coberturaDocumentoXML(xmlData, aggregate.coberturas)
+		if err != nil {
+			return xmlSignatureVerification{}, err
+		}
+		aggregate.result = aplicarCoberturaXML(aggregate.result, cobertura)
+	}
 	return aggregate, nil
 }
 
-func verifyXMLSignatureDocumentWithContext(xmlData []byte, signatureContext xmlSignatureContext, requireSigningCertificate bool, externalResolver func(string) ([]byte, error), anchors domain.CertificateChain, format string, reason string, details []string) (xmlSignatureVerification, error) {
+func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, signatureContext xmlSignatureContext, requireSigningCertificate bool, externalResolver func(string) ([]byte, error), anchors domain.CertificateChain, format string, reason string, details []string) (xmlSignatureVerification, error) {
 	signedInfoXML, signatureValue, certificates, err := extractContextualSignatureCore(xmlData, signatureContext)
 	if err != nil {
 		return xmlSignatureVerification{}, err
 	}
+	if err := ctx.Err(); err != nil {
+		return xmlSignatureVerification{}, err
+	}
 	signerCertificates, compatibility, err := identifyXMLSignersWithContext(xmlData, signatureContext, signedInfoXML, signatureValue, certificates, requireSigningCertificate)
 	if err != nil {
+		return xmlSignatureVerification{}, err
+	}
+	if err := ctx.Err(); err != nil {
 		return xmlSignatureVerification{}, err
 	}
 	referenceCompatibility, err := assessXMLReferences(xmlData, signatureContext, signedInfoXML, externalResolver)
@@ -205,6 +278,16 @@ func verifyXMLSignatureDocumentWithContext(xmlData []byte, signatureContext xmlS
 		return xmlSignatureVerification{}, err
 	}
 	compatibility = append(compatibility, referenceCompatibility...)
+	urisManifiesto, noComprobado, err := verificarManifiestos(signatureContext, signedInfoXML, externalResolver)
+	if err != nil {
+		return xmlSignatureVerification{}, err
+	}
+	cobertura, err := coberturaDeSignedInfo(signatureContext, signedInfoXML)
+	if err != nil {
+		return xmlSignatureVerification{}, err
+	}
+	cobertura.uris = append(cobertura.uris, urisManifiesto...)
+	cobertura.noComprobado = noComprobado
 	if usesSHA1(signedInfoXML) {
 		// SHA-1 solo se acepta para leer firmas históricas: nunca como una
 		// validación plena (CAdES/PAdES ya lo rechazan).
@@ -224,6 +307,7 @@ func verifyXMLSignatureDocumentWithContext(xmlData []byte, signatureContext xmlS
 		signers:              signers,
 		signerCertificates:   signerCertificates,
 		embeddedCertificates: certificates,
+		coberturas:           []coberturaFirmaXML{cobertura},
 	}, nil
 }
 
@@ -293,6 +377,9 @@ func extractXMLCertificates(xmlData []byte) ([]*x509.Certificate, error) {
 		if err != nil {
 			return nil, fmt.Errorf("certificado base64 invalido en posicion %d: %w", len(certificates)+1, err)
 		}
+		if len(certificates) >= maxCertificadosKeyInfo {
+			return nil, fmt.Errorf("KeyInfo con demasiados certificados (más de %d)", maxCertificadosKeyInfo)
+		}
 		cert, err := parseCertificateForXML(certDER)
 		if err != nil {
 			return nil, fmt.Errorf("certificado x509 invalido en posicion %d: %w", len(certificates)+1, err)
@@ -305,43 +392,126 @@ func extractXMLCertificates(xmlData []byte) ([]*x509.Certificate, error) {
 	return certificates, nil
 }
 
-func zipEntryResolver(container []byte, stripOOXMLQuery bool) (func(string) ([]byte, error), error) {
+// Límites de la verificación (E1-10). El tamaño declarado de una entrada ZIP
+// lo pone quien fabrica el contenedor, así que se corta al leer; y el trabajo
+// por firma crece con el número de firmas, referencias y certificados.
+var (
+	maxEntradaZIPVerificacion int64 = 100 << 20
+	maxTotalZIPVerificacion   int64 = 512 << 20
+)
+
+const (
+	maxFirmasXML           = 100
+	maxReferenciasXML      = 10000
+	maxCertificadosKeyInfo = 32
+)
+
+// contenedorZIP resuelve las referencias de una firma contra las entradas de
+// un ODF, OOXML o ASiC. Las ofimáticas abren las entradas por su nombre
+// exacto (ODF distingue mayúsculas; OPC no), así que el verificador tiene que
+// leer la misma entrada que abrirá quien muestre el documento: se rechazan
+// los contenedores con nombres repetidos o ambiguos y las rutas absolutas o
+// con "..".
+type contenedorZIP struct {
+	archivos     map[string]*zip.File
+	nombres      []string
+	ooxml        bool
+	contentTypes ooxmlContentTypes
+	leido        int64
+}
+
+func abrirContenedorZIP(container []byte, ooxml bool) (*contenedorZIP, error) {
 	reader, err := zip.NewReader(bytes.NewReader(container), int64(len(container)))
 	if err != nil {
 		return nil, err
 	}
-	entries := make(map[string]*zip.File, len(reader.File))
+	c := &contenedorZIP{archivos: make(map[string]*zip.File, len(reader.File)), ooxml: ooxml}
+	ambiguos := make(map[string]struct{}, len(reader.File))
 	for _, f := range reader.File {
-		entries[normalizeReferenceURI(f.Name, false)] = f
+		nombre, err := nombreEntradaSegura(f.Name)
+		if err != nil {
+			return nil, err
+		}
+		clave := strings.ToLower(strings.TrimSuffix(nombre, "/"))
+		if _, repetido := ambiguos[clave]; repetido {
+			return nil, fmt.Errorf("el contenedor tiene entradas repetidas o que solo se distinguen por mayúsculas: %q", f.Name)
+		}
+		ambiguos[clave] = struct{}{}
+		if strings.HasSuffix(nombre, "/") || f.FileInfo().IsDir() {
+			continue
+		}
+		c.archivos[c.clave(nombre)] = f
+		c.nombres = append(c.nombres, f.Name)
 	}
-	var contentTypes ooxmlContentTypes
-	if stripOOXMLQuery {
-		contentTypesEntry, ok := entries[normalizeReferenceURI("[Content_Types].xml", false)]
+	if ooxml {
+		contentTypesEntry, ok := c.archivos[c.clave("[Content_Types].xml")]
 		if !ok {
 			return nil, errors.New("documento OOXML sin [Content_Types].xml")
 		}
-		contentTypesXML, err := readZipFile(contentTypesEntry)
+		contentTypesXML, err := c.leer(contentTypesEntry)
 		if err != nil {
 			return nil, fmt.Errorf("leyendo [Content_Types].xml: %w", err)
 		}
-		contentTypes, err = parseOOXMLContentTypes(contentTypesXML)
+		c.contentTypes, err = parseOOXMLContentTypes(contentTypesXML)
 		if err != nil {
 			return nil, fmt.Errorf("parseando [Content_Types].xml: %w", err)
 		}
 	}
+	return c, nil
+}
+
+// nombreEntradaSegura admite solo nombres relativos, con "/" y ya
+// normalizados: un nombre con "\", "..", "./", "//" o absoluto podría abrirse
+// como otra entrada distinta según el programa.
+func nombreEntradaSegura(nombre string) (string, error) {
+	limpio := strings.TrimSuffix(nombre, "/")
+	switch {
+	case limpio == "",
+		strings.ContainsAny(nombre, "\\\x00"),
+		strings.HasPrefix(nombre, "/"),
+		len(nombre) > 1 && nombre[1] == ':',
+		path.Clean(limpio) != limpio,
+		limpio == "..", strings.HasPrefix(limpio, "../"):
+		return "", fmt.Errorf("el contenedor tiene una entrada con un nombre no admitido: %q", nombre)
+	}
+	return nombre, nil
+}
+
+func (c *contenedorZIP) clave(nombre string) string {
+	if c.ooxml {
+		// OPC compara los nombres de parte sin distinguir mayúsculas; los
+		// repetidos ya se han rechazado, así que no hay ambigüedad.
+		return strings.ToLower(nombre)
+	}
+	return nombre
+}
+
+// resolver devuelve el resolvedor de referencias de una firma y anota en
+// cubiertas el nombre exacto de cada entrada que esa firma referencia.
+func (c *contenedorZIP) resolver(cubiertas map[string]bool) func(string) ([]byte, error) {
 	return func(uri string) ([]byte, error) {
-		name := normalizeReferenceURI(uri, stripOOXMLQuery)
-		f, ok := entries[name]
+		raw := strings.TrimSpace(uri)
+		if c.ooxml {
+			if q := strings.IndexByte(raw, '?'); q >= 0 {
+				raw = raw[:q]
+			}
+		}
+		nombre, err := url.PathUnescape(raw)
+		if err != nil {
+			return nil, fmt.Errorf("URI de referencia no válida: %s", uri)
+		}
+		nombre = strings.TrimPrefix(nombre, "/")
+		f, ok := c.archivos[c.clave(nombre)]
 		if !ok {
 			return nil, fmt.Errorf("entrada ZIP no encontrada: %s", uri)
 		}
-		if stripOOXMLQuery {
+		if c.ooxml {
 			expectedContentType, hasContentType, err := ooxmlReferenceContentType(uri)
 			if err != nil {
 				return nil, err
 			}
 			if hasContentType {
-				actualContentType := contentTypes.ContentTypeFor(f.Name)
+				actualContentType := c.contentTypes.ContentTypeFor(f.Name)
 				if !strings.EqualFold(actualContentType, expectedContentType) {
 					return nil, fmt.Errorf(
 						"content type no coincide para %s: firmado=%q actual=%q",
@@ -352,17 +522,39 @@ func zipEntryResolver(container []byte, stripOOXMLQuery bool) (func(string) ([]b
 				}
 			}
 		}
-		return readZipFile(f)
-	}, nil
+		data, err := c.leer(f)
+		if err != nil {
+			return nil, err
+		}
+		if cubiertas != nil {
+			cubiertas[f.Name] = true
+		}
+		return data, nil
+	}
 }
 
-func readZipFile(file *zip.File) ([]byte, error) {
+func (c *contenedorZIP) leer(file *zip.File) ([]byte, error) {
+	if file.UncompressedSize64 > uint64(maxEntradaZIPVerificacion) {
+		return nil, fmt.Errorf("la entrada %s supera el tamaño máximo que se verifica", file.Name)
+	}
 	rc, err := file.Open()
 	if err != nil {
 		return nil, err
 	}
 	defer rc.Close()
-	return io.ReadAll(rc)
+	limite := maxEntradaZIPVerificacion
+	if restante := maxTotalZIPVerificacion - c.leido; restante < limite {
+		limite = restante
+	}
+	data, err := io.ReadAll(io.LimitReader(rc, limite+1))
+	c.leido += int64(len(data))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > limite {
+		return nil, fmt.Errorf("el contenedor supera el tamaño máximo que se verifica (%s)", file.Name)
+	}
+	return data, nil
 }
 
 func ooxmlReferenceContentType(uri string) (string, bool, error) {
@@ -385,20 +577,6 @@ func ooxmlReferenceContentType(uri string) (string, bool, error) {
 		return "", false, fmt.Errorf("content type OOXML vacio en referencia: %s", uri)
 	}
 	return contentType, true, nil
-}
-
-func normalizeReferenceURI(uri string, stripQuery bool) string {
-	normalized := strings.TrimSpace(strings.ReplaceAll(uri, "\\", "/"))
-	if stripQuery {
-		if q := strings.IndexByte(normalized, '?'); q >= 0 {
-			normalized = normalized[:q]
-		}
-	}
-	normalized = strings.TrimPrefix(normalized, "/")
-	if unescaped, err := url.PathUnescape(normalized); err == nil {
-		normalized = unescaped
-	}
-	return strings.ToLower(normalized)
 }
 
 func parseCertificateForXML(certDER []byte) (*x509.Certificate, error) {
@@ -607,8 +785,30 @@ func canonicalizeSignedInfoCandidates(xmlData, signedInfoXML []byte) ([][]byte, 
 		algorithm = algExcC14N
 	}
 
-	first, err := canonicalizeElementInDocument(xmlData, nsXMLDSig, "SignedInfo", algorithm)
+	// Todos los candidatos salen del SignedInfo directo de esta firma, el
+	// mismo cuyas referencias se evalúan (E1-06). Antes el primero era el
+	// primer SignedInfo del fragmento a cualquier profundidad: un SignedInfo
+	// legítimo copiado en un ds:Object autenticaba otro SignedInfo directo.
+	ordinal, otros, err := ordinalSignedInfoDirecto(xmlData)
 	if err != nil {
+		return nil, err
+	}
+	if otros > 0 {
+		return nil, errors.New("la firma contiene otro SignedInfo además del suyo; no se admite su lectura histórica")
+	}
+	var first []byte
+	if ordinal >= 0 {
+		visto := 0
+		first, err = canonicalizeXMLSelection(xmlData, algorithm, func(element c14nElement) bool {
+			if element.namespaceURI != nsXMLDSig || element.local != "SignedInfo" {
+				return false
+			}
+			elegido := visto == ordinal
+			visto++
+			return elegido
+		})
+	}
+	if ordinal < 0 || err != nil {
 		first, err = canonicalizeSignedInfo(signedInfoXML)
 		if err != nil {
 			return nil, err
@@ -626,6 +826,35 @@ func canonicalizeSignedInfoCandidates(xmlData, signedInfoXML []byte) ([][]byte, 
 		out = append(out, c14n)
 	}
 	return out, nil
+}
+
+// ordinalSignedInfoDirecto localiza, en el fragmento de una firma, su
+// SignedInfo directo (hijo del ds:Signature raíz) por orden de aparición entre
+// todos los ds:SignedInfo, y cuenta los demás SignedInfo que no pertenecen a
+// una firma anidada (contrafirma).
+func ordinalSignedInfoDirecto(fragment []byte) (int, int, error) {
+	arbol, err := construirArbolXML(fragment)
+	if err != nil {
+		return -1, 0, err
+	}
+	if len(arbol.raices) != 1 || !arbol.esFirma(arbol.raices[0]) {
+		return -1, 0, nil
+	}
+	raiz := arbol.raices[0]
+	ordinal, visto, otros := -1, 0, 0
+	for indice := range arbol.nodos {
+		if !arbol.esDSig(indice, "SignedInfo") {
+			continue
+		}
+		switch {
+		case arbol.nodos[indice].padre == raiz && ordinal < 0:
+			ordinal = visto
+		case arbol.firmaAncestro(indice) == raiz:
+			otros++
+		}
+		visto++
+	}
+	return ordinal, otros, nil
 }
 
 func canonicalizeReference(ref referenceForVerify, targetXML []byte) ([]byte, error) {
@@ -1046,4 +1275,29 @@ func decodeBase64TransformInput(nodeXML []byte) ([]byte, error) {
 		return nil, fmt.Errorf("transformación Base64: contenido no válido: %w", err)
 	}
 	return out, nil
+}
+
+// rechazarDOCTYPE: un DOCTYPE (con DTD interna o externa) puede dar a los
+// elementos atributos por defecto que el visor aplica y la verificación no
+// (E1-07). Un XML firmado con DOCTYPE no se da por verificable.
+func rechazarDOCTYPE(xmlData []byte) error {
+	decoder := xml.NewDecoder(bytes.NewReader(xmlData))
+	for {
+		token, err := decoder.RawToken()
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		switch nodo := token.(type) {
+		case xml.Directive:
+			if bytes.HasPrefix(bytes.TrimSpace(nodo), []byte("DOCTYPE")) {
+				return errors.New("documento XML firmado con DOCTYPE no admitido")
+			}
+		case xml.StartElement:
+			// El DOCTYPE solo puede ir antes del elemento raíz.
+			return nil
+		}
+	}
 }

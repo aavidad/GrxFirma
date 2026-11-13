@@ -864,6 +864,8 @@
   "Firma electrónica avanzada": "Advanced electronic signature",
   "Firma guardada exitosamente en: ": "Signature stored successfully at: ",
   "Firma inválida o integridad no garantizada.": "Invalid signature or integrity not guaranteed.",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "The signature is correct, but part of the document's content is not signed.",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "It was not possible to check everything the signature covers, so it is not treated as valid.",
   "Firma múltiple completada (": "Multiple signing completed (",
   "Firma múltiple completada con incidencias (": "Multiple signing completed with issues (",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",

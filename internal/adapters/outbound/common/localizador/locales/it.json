@@ -864,6 +864,8 @@
   "Firma electrónica avanzada": "Firma elettronica avanzata",
   "Firma guardada exitosamente en: ": "Signature stored successfully at: ",
   "Firma inválida o integridad no garantizada.": "Firma non valida o integrità non garantita.",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "La firma è corretta, ma parte del contenuto del documento non è firmata.",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "Non è stato possibile verificare tutto ciò che la firma copre, quindi non viene considerata valida.",
   "Firma múltiple completada (": "Firma multipla completata (",
   "Firma múltiple completada con incidencias (": "Firma multipla completata con avvisi (",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",

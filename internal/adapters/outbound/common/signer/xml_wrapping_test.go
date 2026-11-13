@@ -82,8 +82,10 @@ func TestXAdESVerifier_IgnoraSignedPropertiesNoReferenciado(t *testing.T) {
 	if err != nil {
 		t.Fatalf("el señuelo no referenciado no debe impedir verificar la firma real: %v", err)
 	}
-	if !vr.Valid {
-		t.Fatalf("se esperaba firma válida con el SignedProperties referenciado: %s", vr.Reason)
+	// La firma real se verifica con su SignedProperties (no hay error ni
+	// integridad no válida), pero el ds:Object añadido no está firmado.
+	if vr.Integrity.Status != domain.VerificationStatusWarning || vr.Coverage != domain.CoberturaParcial || vr.Valid {
+		t.Fatalf("se esperaba la firma real verificada con el señuelo como contenido sin firmar: %+v %s", vr.Integrity, vr.Coverage)
 	}
 }
 

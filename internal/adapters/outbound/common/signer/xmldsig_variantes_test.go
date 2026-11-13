@@ -65,9 +65,14 @@ func TestXAdES_NodeToSign(t *testing.T) {
 			if !strings.Contains(string(firmado), `URI="#n1"`) {
 				t.Fatalf("la referencia debe apuntar al nodo:\n%s", firmado)
 			}
-			exigirFirmantesXAdES(t, firmado, 1)
+			// La firma cubre el nodo n1, no la cabecera: cobertura parcial,
+			// nunca «válida» para el documento entero (E1-02).
+			vr := exigirCoberturaParcialXAdES(t, firmado, 1, domain.CoberturaParcial)
+			if !strings.Contains(strings.Join(vr.Details, ";"), "cabecera") {
+				t.Fatalf("el detalle debe nombrar lo no firmado: %v", vr.Details)
+			}
 			fuera := bytes.Replace(firmado, []byte("libre"), []byte("otro!"), 1)
-			exigirFirmantesXAdES(t, fuera, 1)
+			exigirCoberturaParcialXAdES(t, fuera, 1, domain.CoberturaParcial)
 			dentro := bytes.Replace(firmado, []byte("<importe>10<"), []byte("<importe>99<"), 1)
 			doc, _ := domain.NewDocument("f.xml", dentro, "application/xml")
 			if vr, _, err := NewXAdESVerifier().Verify(context.Background(), doc, domain.CertificateChain{}); err == nil && vr.Valid {

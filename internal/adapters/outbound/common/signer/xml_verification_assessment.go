@@ -92,6 +92,9 @@ func extractContextualXMLSignatures(document []byte) ([]contextualXMLSignature, 
 				if entry.ordinal < 0 {
 					return nil, errors.New("firma XML sin SignedInfo directo")
 				}
+				if len(signatures) >= maxFirmasXML {
+					return nil, fmt.Errorf("documento con demasiadas firmas XML (más de %d)", maxFirmasXML)
+				}
 				end := decoder.InputOffset()
 				signatures = append(signatures, contextualXMLSignature{
 					fragment: append([]byte(nil), document[entry.start:end]...),
@@ -426,6 +429,9 @@ func assessXMLReferences(fragment []byte, context xmlSignatureContext, signedInf
 	}
 	if len(info.References) == 0 {
 		return nil, errors.New("SignedInfo no contiene referencias")
+	}
+	if len(info.References) > maxReferenciasXML {
+		return nil, fmt.Errorf("SignedInfo con demasiadas referencias (más de %d)", maxReferenciasXML)
 	}
 	var compatibility []string
 	for index, ref := range info.References {

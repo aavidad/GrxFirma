@@ -864,6 +864,8 @@
   "Firma electrónica avanzada": "Firma electrónica avanzada",
   "Firma guardada exitosamente en: ": "Firma guardada exitosamente en: ",
   "Firma inválida o integridad no garantizada.": "Firma inválida o integridad no garantizada.",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "La firma es correcta, pero parte del contenido del documento no está firmado.",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.",
   "Firma múltiple completada (": "Firma múltiple completada (",
   "Firma múltiple completada con incidencias (": "Firma múltiple completada con incidencias (",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",

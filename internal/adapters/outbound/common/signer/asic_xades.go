@@ -13,6 +13,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -82,18 +83,37 @@ func (v *ASiCXAdESVerifier) Verify(ctx context.Context, signedDocument domain.Do
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
+	esDato := func(uri string) bool {
+		nombre, err := url.PathUnescape(strings.TrimPrefix(strings.TrimSpace(uri), "/"))
+		return err == nil && nombre == payloadName
+	}
 	resolver := func(uri string) ([]byte, error) {
-		trimmed := strings.TrimSpace(strings.TrimPrefix(uri, "/"))
-		if trimmed == "" || trimmed == "." || strings.EqualFold(trimmed, payloadName) {
+		// El nombre tiene que ser exactamente el de la entrada: con mayúsculas
+		// distintas o alias, otro programa podría abrir otra entrada.
+		if esDato(uri) {
 			return payload, nil
 		}
 		return nil, fmt.Errorf("recurso ASiC no encontrado: %s", uri)
 	}
-	verification, err := verifyXMLSignatureDocument(signatureXML, true, resolver, anchors, string(formatASiCXAdES), "firma ASiC-XAdES valida", []string{"contenedor=asics", fmt.Sprintf("payload=%s", payloadName)})
+	verification, err := verifyXMLSignatureDocument(ctx, signatureXML, true, resolver, anchors, string(formatASiCXAdES), "firma ASiC-XAdES valida", []string{"contenedor=asics", fmt.Sprintf("payload=%s", payloadName)}, coberturaDelContenedor)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
-	return applyXMLRevocation(ctx, verification.result, verification.signerCertificates, verification.embeddedCertificates), verification.signers, nil
+	// Cada firma tiene que cubrir el objeto de datos del contenedor.
+	var cubiertasPorFirma []map[string]bool
+	var noComprobado []string
+	for _, cobertura := range verification.coberturas {
+		cubiertas := map[string]bool{}
+		for _, uri := range cobertura.uris {
+			if esDato(uri) {
+				cubiertas[payloadName] = true
+			}
+		}
+		cubiertasPorFirma = append(cubiertasPorFirma, cubiertas)
+		noComprobado = append(noComprobado, cobertura.noComprobado...)
+	}
+	result := aplicarCoberturaXML(verification.result, coberturaContenedor([]string{payloadName}, func(string) bool { return false }, cubiertasPorFirma, noComprobado))
+	return applyXMLRevocation(ctx, result, verification.signerCertificates, verification.embeddedCertificates), verification.signers, nil
 }
 
 func buildASiCXAdESSignatureXML(key *LocalSigningKey, payloadName string, payload []byte, mimeType string, now time.Time) (string, error) {

@@ -14,6 +14,17 @@ const (
 	VerificationStatusWarning VerificationAspectStatus = "warning"
 )
 
+// Valores de VerificationResult.Coverage: qué parte del documento cubre de
+// verdad la firma comprobada.
+const (
+	// CoberturaCompleta: todo el contenido del documento está bajo la firma.
+	CoberturaCompleta = "full"
+	// CoberturaParcial: hay contenido que ninguna firma cubre.
+	CoberturaParcial = "partial"
+	// CoberturaNoAcreditada: no se ha podido comprobar qué cubre la firma.
+	CoberturaNoAcreditada = "unknown"
+)
+
 type VerificationAspect struct {
 	Status  VerificationAspectStatus `json:"status"`
 	Reason  string                   `json:"reason,omitempty"`
@@ -57,6 +68,11 @@ type VerificationResult struct {
 	Material MaterialVerificacion `json:"-"`
 }
 
+// NewVerificationSuccess crea un resultado íntegro. Coverage queda en
+// CoberturaCompleta solo como valor inicial para formatos cuyo resumen cubre
+// por construcción todo el contenido (CMS); los verificadores que pueden firmar
+// una parte del documento (XML y contenedores ZIP) deben fijar la cobertura
+// calculada con ConCobertura.
 func NewVerificationSuccess(format, reason string, details []string) VerificationResult {
 	out := VerificationResult{
 		Valid:    true,
@@ -92,6 +108,43 @@ func NewVerificationFailure(format, reason string, details []string) Verificatio
 		Errors:      []string{reason},
 	}
 	return out.Normalize()
+}
+
+// ConCobertura fija la cobertura calculada por el verificador. Si no es
+// completa, la firma deja de ser válida: la integridad queda con advertencia
+// (parcial) o sin comprobar (no acreditada), con el motivo a la vista. Nunca
+// convierte en válido un resultado que ya no lo era.
+func (v VerificationResult) ConCobertura(cobertura, motivo string, detalles []string) VerificationResult {
+	switch cobertura {
+	case CoberturaCompleta:
+		v.Coverage = CoberturaCompleta
+		return v.Normalize()
+	case CoberturaParcial:
+		v.Coverage = CoberturaParcial
+		if v.Integrity.Status != VerificationStatusInvalid {
+			v.Integrity.Status = VerificationStatusWarning
+		}
+	default:
+		v.Coverage = CoberturaNoAcreditada
+		if v.Integrity.Status != VerificationStatusInvalid {
+			v.Integrity.Status = VerificationStatusUnknown
+		}
+	}
+	v.Valid = false
+	if motivo != "" {
+		v.Reason = motivo
+		v.Integrity.Reason = motivo
+		repetido := false
+		for _, aviso := range v.Warnings {
+			repetido = repetido || aviso == motivo
+		}
+		if !repetido {
+			v.Warnings = append(v.Warnings, motivo)
+		}
+	}
+	v.Details = append(v.Details, detalles...)
+	v.Integrity.Details = append(v.Integrity.Details, detalles...)
+	return v.Normalize()
 }
 
 func (v VerificationResult) AddDetail(detail string) VerificationResult {
