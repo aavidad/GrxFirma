@@ -145,6 +145,7 @@ type Adaptador struct {
 	ImportarProteccion ImportProtectionRecipientUseCase
 	Destinatarios      ProtectionRecipients
 	GestionDominios    ManageTrustedDomainUseCase
+	ConfianzaForzada   ConfianzaForzadaUseCase
 	Catalogo           ports.CertificateCatalog
 	Claves             ports.SigningKeyProvider
 	Localizador        ports.Localizador
@@ -166,6 +167,9 @@ type Adaptador struct {
 	passwordP12Compat    string
 	protectionCompat     string
 	pdfPasswordCompat    string
+	// esInteractivo dice si hay una persona en la terminal; las pruebas lo
+	// sustituyen.
+	esInteractivo func() bool
 }
 
 type configCLI struct {
@@ -205,6 +209,9 @@ type configCLI struct {
 	margenSelloFooter     float64
 	dominio               string
 	ficheroDominios       string
+	tipoConfianza         string
+	huellaConfianza       string
+	aceptoAvisoConfianza  bool
 	ficheroAutoseleccion  string
 	ficheroP12            string
 	contrasenaP12         string
@@ -384,6 +391,13 @@ func (a *Adaptador) WithGestionDominios(gestion ManageTrustedDomainUseCase) *Ada
 	return a
 }
 
+// WithConfianzaForzada habilita listar, aceptar y quitar la confianza que el
+// usuario fuerza al verificar. Solo la CLI local la recibe.
+func (a *Adaptador) WithConfianzaForzada(gestion ConfianzaForzadaUseCase) *Adaptador {
+	a.ConfianzaForzada = gestion
+	return a
+}
+
 func (a *Adaptador) WithConfigDir(configDir string) *Adaptador {
 	a.ConfigDir = configDir
 	return a
@@ -553,6 +567,12 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 		return a.ejecutarDominiosExportar(ctx, cfg)
 	case "domains-clear":
 		return a.ejecutarDominiosLimpiar(ctx, cfg)
+	case "forced-trust-list":
+		return a.ejecutarConfianzaForzadaListar(ctx, cfg)
+	case "forced-trust-accept":
+		return a.ejecutarConfianzaForzadaAceptar(ctx, cfg)
+	case "forced-trust-remove":
+		return a.ejecutarConfianzaForzadaQuitar(ctx, cfg)
 	case "import-p12":
 		return a.ejecutarImportarP12(ctx, cfg)
 	case "cert-selection-list":
@@ -676,6 +696,7 @@ func parsearArgs(args []string) (configCLI, error) {
 	var opProteger, opProtegerFirmando, opDesproteger, opListarDestinatariosProteccion bool
 	var opExportarDestinatarioProteccion, opImportarDestinatarioProteccion bool
 	var opDiagnostico, opListarDominios, opAnadirDominio, opEliminarDominio, opImportarDominios, opExportarDominios, opLimpiarDominios bool
+	var opListarConfianza, opAceptarConfianza, opQuitarConfianza bool
 	var opListarAutoseleccion bool
 	var opEliminarAutoseleccion bool
 	var opResetearAutoseleccion bool
@@ -731,6 +752,15 @@ func parsearArgs(args []string) (configCLI, error) {
 	fs.BoolVar(&opExportarDominios, "exportar-dominios", false, "")
 	fs.BoolVar(&opLimpiarDominios, "limpiar-dominios", false, "")
 	fs.BoolVar(&opLimpiarDominios, "borrar-dominios", false, "")
+	fs.BoolVar(&opListarConfianza, "listar-confianza-aceptada", false, "")
+	fs.BoolVar(&opAceptarConfianza, "aceptar-confianza", false, "")
+	fs.BoolVar(&opQuitarConfianza, "quitar-confianza-aceptada", false, "")
+	fs.StringVar(&cfg.tipoConfianza, "tipo-confianza", "", "")
+	fs.StringVar(&cfg.tipoConfianza, "trust-type", "", "")
+	fs.StringVar(&cfg.huellaConfianza, "huella", "", "")
+	fs.StringVar(&cfg.huellaConfianza, "fingerprint", "", "")
+	fs.BoolVar(&cfg.aceptoAvisoConfianza, "acepto-el-aviso", false, "")
+	fs.BoolVar(&cfg.aceptoAvisoConfianza, "accept-warning", false, "")
 	fs.BoolVar(&opListarAutoseleccion, "listar-autoseleccion-cert", false, "")
 	fs.BoolVar(&opListarAutoseleccion, "ver-autoseleccion-cert", false, "")
 	fs.BoolVar(&opEliminarAutoseleccion, "eliminar-autoseleccion-cert", false, "")
@@ -896,6 +926,12 @@ func parsearArgs(args []string) (configCLI, error) {
 			cfg.operacion = "exportar-dominios"
 		case opLimpiarDominios:
 			cfg.operacion = "limpiar-dominios"
+		case opListarConfianza:
+			cfg.operacion = "listar-confianza-aceptada"
+		case opAceptarConfianza:
+			cfg.operacion = "aceptar-confianza"
+		case opQuitarConfianza:
+			cfg.operacion = "quitar-confianza-aceptada"
 		case opListarAutoseleccion:
 			cfg.operacion = "listar-autoseleccion-cert"
 		case opEliminarAutoseleccion:
@@ -928,6 +964,7 @@ func parsearArgs(args []string) (configCLI, error) {
 	if cfg.entrada == "" && cfg.lote == "" && !cfg.listarCerts && !cfg.comprobarCerts && !cfg.mostrarAyuda {
 		switch normalizarOperacion(cfg.operacion, cfg.accion, cfg.lote, cfg.entrada) {
 		case "domains-list", "domains-add", "domains-remove", "domains-import", "domains-export", "domains-clear", "diagnostics-report",
+			"forced-trust-list", "forced-trust-accept", "forced-trust-remove",
 			"protect-recipients-list",
 			"import-p12", "cert-selection-list", "cert-selection-remove", "cert-selection-reset", "cert-selection-export", "cert-selection-import", "cert-selection-clear", "tls-store-status", "tls-store-clear", "tls-trust-status", "tls-generate-certs", "tls-install-trust",
 			"audit-verify":
@@ -1299,6 +1336,9 @@ func (a *Adaptador) ejecutarVerificacion(ctx context.Context, cfg configCLI) int
 			"firma":     cfg.entrada,
 			"resultado": construirResultadoRicoVerificacionCLI(resultado.Verification, resultado.Firmantes, signers),
 		}
+		if a.ConfianzaForzada != nil {
+			payload["confianza_forzada"] = confianzaForzadaJSONCLI(resultado.ConfianzaForzada)
+		}
 		if err := escribirJSON(a.Stdout, payload); err != nil {
 			a.escribirErrorCLI("JSON", err)
 			return 1
@@ -1331,6 +1371,7 @@ func (a *Adaptador) ejecutarVerificacion(ctx context.Context, cfg configCLI) int
 			fmt.Fprintf(a.Stdout, "- %s\n", a.textoMotor(warning))
 		}
 	}
+	a.escribirPistaConfianzaForzada(cfg, resultado.ConfianzaForzada)
 	return codigoSalidaVerificacion(resultado.Verification)
 }
 
@@ -3377,6 +3418,8 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("    Contacto PAdES opcional embebido en la firma.\n")
 	b.WriteString("  -tiempo-espera 30s|1m|... | -t 30s\n")
 	b.WriteString("    Tiempo máximo de ejecución del comando.\n")
+	b.WriteString(a.t("cli.help.forced_trust", "cli.help.forced_trust"))
+	b.WriteString("\n")
 	b.WriteString("  -operacion listar-dominios|añadir-dominio|eliminar-dominio|importar-dominios|exportar-dominios|limpiar-dominios\n")
 	b.WriteString("    Gestión del círculo de confianza de dominios. Usa -dominio/-domain y -fichero-dominios/-domain-file.\n")
 	b.WriteString("    Añadir un dominio lo autoriza para operaciones remotas y ayuda a no firmar en dominios no confiables o maliciosos.\n")
@@ -3572,6 +3615,12 @@ func normalizarOperacion(op, accion, lote, entrada string) string {
 		return "domains-export"
 	case "limpiar-dominios":
 		return "domains-clear"
+	case "listar-confianza-aceptada":
+		return "forced-trust-list"
+	case "aceptar-confianza":
+		return "forced-trust-accept"
+	case "quitar-confianza-aceptada":
+		return "forced-trust-remove"
 	case "importar-p12":
 		return "import-p12"
 	case "listar-autoseleccion-cert", "ver-autoseleccion-cert":

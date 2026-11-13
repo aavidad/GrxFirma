@@ -147,6 +147,7 @@ type serviciosGrxFirma struct {
 	// opciones (lote 13a) después de construir los servicios.
 	motor         *deskSigner.MotorFirmaGo
 	tsaPermitidas []string
+	auditor       *application.AuditUseCase
 }
 
 func construirMotorFirmaConHTTP(httpClient *http.Client) *deskSigner.MotorFirmaGo {
@@ -427,6 +428,7 @@ func construirServiciosCon(rutaP12, password, rutaCert, rutaClave string, remota
 		proteccion:         keyringProteccion,
 		motor:              motor,
 		tsaPermitidas:      cfg.TSAPermitidas,
+		auditor:            auditor,
 	}, nil
 }
 
@@ -439,8 +441,13 @@ func construirAdaptadorCon(rutaP12, password, rutaCert, rutaClave string, remota
 	if err != nil {
 		return nil, err
 	}
+	// Lote 14: solo la CLI local aplica y gestiona lo que el usuario aceptó
+	// al verificar. El servidor REST construye sus propios servicios sin esto.
+	confianzaForzada := config.NuevoAlmacenConfianzaForzada(servicios.configDir)
+	servicios.verificar.ConConfianzaForzada(confianzaForzada)
 
 	return cli.New(servicios.firmar, servicios.procesarLote).
+		WithConfianzaForzada(application.NuevoGestionConfianzaForzadaUseCase(confianzaForzada, servicios.auditor)).
 		WithCatalogo(servicios.catalogo).
 		WithClaves(servicios.claves).
 		WithLocalizador(localizador.Detectar()).

@@ -197,6 +197,58 @@ Rutas persistentes del perfil de usuario:
   - sigue respetando la allowlist administrativa (`allowed-domains.json` y `dominios_de_confianza` de `policy.json`);
   - rechaza sin diálogo TOFU cualquier origen fuera de esa allowlist.
 
+### Firmas aceptadas en este equipo
+
+Al verificar, GrxFirma da por no válida una firma cuando el certificado no
+llega a una autoridad que el equipo conozca, cuando su clave RSA tiene menos
+de 2048 bits, cuando es un certificado de servidor (uso extendido solo de
+servidor TLS, o de servidor y cliente TLS), cuando no se ha podido comprobar
+la revocación o cuando el único problema es SHA-1. Algunas sedes y documentos
+antiguos firman así. Para no dejar sin servicio a esos usuarios, cada uno
+puede aceptar el caso en su equipo después de leer un aviso.
+
+- Por defecto no se acepta nada: la firma sale «no válida» y el resultado
+  dice que se puede aceptar.
+- Se acepta desde la línea de órdenes o desde la aplicación de escritorio
+  (botón «Aceptar en este equipo» en el resultado, con un diálogo que muestra
+  el aviso). Ningún canal web (REST, `afirma://`, WebSocket, host nativo)
+  puede crear, cambiar ni leer lo aceptado, y la verificación por esos
+  canales no lo aplica.
+- Autoridad desconocida, clave RSA corta y certificado de servidor se aceptan
+  por certificado (huella SHA-256). Revocación sin comprobar y SHA-1 se
+  aceptan para todas las firmas.
+- Lo aceptado se guarda en `config.json` del usuario (permisos `0600`), en la
+  lista `confianza_forzada`: caso, huella, sujeto, fecha y clave del aviso que
+  se mostró.
+- Una firma que sale válida por lo aceptado lleva siempre el aviso «Se da por
+  válida porque lo aceptaste en la configuración: …», la evidencia
+  `trust.user_forced=<caso>` y un registro de auditoría con
+  `confianza_forzada=<caso>:<inicio de la huella>`. Aceptar y quitar también
+  se auditan (`confianza_forzada_aceptar` y `confianza_forzada_quitar`).
+- Nunca se puede aceptar: integridad rota, firma criptográficamente
+  incorrecta, certificado revocado, MD5 u otros algoritmos desconocidos,
+  cobertura parcial o desconocida, ataques de envoltura XML ni certificado
+  caducado sin sello de tiempo.
+
+Línea de órdenes:
+
+```bash
+grxfirma -modo-cli -listar-confianza-aceptada
+grxfirma -modo-cli -aceptar-confianza -entrada firma.p7s
+grxfirma -modo-cli -aceptar-confianza -tipo-confianza algoritmo_sha1
+grxfirma -modo-cli -quitar-confianza-aceptada -tipo-confianza ca_desconocida -huella <sha256>
+```
+
+`-aceptar-confianza` muestra el aviso y pregunta. Sin terminal (scripts) no
+pregunta y exige `-acepto-el-aviso`. En la aplicación de escritorio la lista
+está en Configuración, con «Quitar» en cada entrada.
+
+Para impedirlo en un equipo gestionado, la política de máquina
+`prohibir_confianza_forzada` hace que se ignore lo aceptado y que no se pueda
+aceptar nada; el resultado lo dice y la aplicación oculta el botón. Una
+política ilegible o con un valor no válido cuenta como prohibición. Ver
+[POLITICA_MAQUINA.md](POLITICA_MAQUINA.md).
+
 ### Variables de entorno
 
 Configuración base:

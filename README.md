@@ -152,6 +152,12 @@ WinUI se prueba en Windows con `dotnet test` sobre
 - Secretos en el almacén del sistema operativo, nunca en la configuración ni
   en los argumentos de la línea de órdenes
   ([ADR-003](docs/ADR-003-proxy-secrets-by-os.md)).
+- Al verificar no se da por buena una firma que no se puede comprobar del
+  todo. Si solo falla por una autoridad desconocida, una clave RSA corta, un
+  certificado de servidor, una revocación sin comprobar o SHA-1, cada usuario
+  puede aceptarla en su equipo tras leer un aviso; se guarda en su
+  `config.json` y una política de máquina lo puede prohibir
+  ([operador.md](docs/operador.md#firmas-aceptadas-en-este-equipo)).
 - Textos de interfaz en catálogos por idioma y compilaciones reproducibles.
 
 La arquitectura completa está en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
