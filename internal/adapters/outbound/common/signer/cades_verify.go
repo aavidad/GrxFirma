@@ -321,13 +321,24 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 		if err := verifyCMSignature(signerCert, signerInfo, spec.hash); err != nil {
 			return domain.VerificationResult{}, certRefs, err
 		}
+		if err := verificarContentTypeFirmado(signerInfo.SignedAttributes, signedData.EncapContentInfo); err != nil {
+			return domain.VerificationResult{}, certRefs, err
+		}
+		conSigningCertificate, err := verificarSigningCertificate(signerInfo.SignedAttributes, signerCert)
+		if err != nil {
+			return domain.VerificationResult{}, certRefs, err
+		}
 		signerCerts = append(signerCerts, signerCert)
 		signerCertsPorSignerInfo = append(signerCertsPorSignerInfo, signerCert)
 		signers = append(signers, certificateToRef(signerCert))
-		signerDetails = append(signerDetails, []string{
+		detalles := []string{
 			fmt.Sprintf("firmante=%s", signerCert.Subject.String()),
 			fmt.Sprintf("algoritmo=%s", signerInfo.SignatureAlgorithm.Algorithm.String()),
-		})
+		}
+		if !conSigningCertificate {
+			detalles = append(detalles, detalleSigningCertificateAusente)
+		}
+		signerDetails = append(signerDetails, detalles)
 	}
 	if len(signers) > 1 {
 		reverseCertificateRefs(signers)

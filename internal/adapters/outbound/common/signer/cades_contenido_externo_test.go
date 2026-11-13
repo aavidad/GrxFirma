@@ -64,6 +64,9 @@ func sustituirContentsPDF(t *testing.T, pdf, cms []byte) []byte {
 	for i := inicio + 1 + len(cifrado); i < fin-1; i++ {
 		out[i] = '0'
 	}
+	if hueco%2 == 1 {
+		out[fin-2] = ' ' // el relleno de ceros tiene que ser de bytes completos
+	}
 	return out
 }
 

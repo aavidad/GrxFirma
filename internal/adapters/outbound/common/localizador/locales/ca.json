@@ -2738,6 +2738,7 @@
   ,"Entendido": "Entès"
   ,"Actualizado a %1: ver novedades": "Actualitzat a %1: veure novetats"
   ,"revocación no concluyente": "No s’ha pogut comprovar la revocació del certificat. La signatura no es considera vàlida."
+  ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "La signatura no indica en les dades signades quin certificat es va fer servir, així que no es pot comprovar que el certificat que es mostra sigui el que va signar."
   ,"rest.verify_v2.error.limit": "El límit de verificació v2 és fora de l’interval permès"
   ,"portal.seal.title": "Col·locar el segell al PDF"
   ,"portal.seal.instructions": "El web ha demanat que triïs on va la signatura. Arrossega el segell per moure'l, fes servir el cercle de la cantonada per canviar-ne la mida i la fletxa per girar-lo."

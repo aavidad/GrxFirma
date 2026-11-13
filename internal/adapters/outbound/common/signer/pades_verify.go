@@ -82,9 +82,21 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 			return domain.VerificationResult{}, nil, fmt.Errorf("normalizando CMS BER/DER: %w", err)
 		}
 
+		// ETSI EN 319 142-1: cada /Contents lleva exactamente un SignerInfo.
+		if n, err := contarSignerInfosCMS(cmsDER); err != nil {
+			return domain.VerificationResult{}, nil, err
+		} else if n != 1 {
+			return domain.VerificationResult{}, nil, fmt.Errorf("la firma PDF %d contiene %d SignerInfo; se esperaba exactamente uno", idx+1, n)
+		}
 		result, signers, err := v.cades.VerifyDetachedCMSWithAnchors(ctx, cmsDER, signedBytes, anchors)
 		if err != nil {
 			return domain.VerificationResult{}, nil, err
+		}
+		if signature.SubFilter == "ETSI.CAdES.detached" && contieneDetalle(result.Integrity.Details, detalleSigningCertificateAusente) {
+			result.Warnings = appendUniqueString(result.Warnings, motivoSigningCertificateAusente)
+			if result.Integrity.Status == domain.VerificationStatusValid {
+				result.Integrity.Status = domain.VerificationStatusWarning
+			}
 		}
 
 		aggregate = mergePAdESVerificationResult(aggregate, result)
@@ -175,6 +187,18 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	aggregate.Details = append([]string{fmt.Sprintf("firmas_pdf=%d", len(signatures))}, aggregate.Details...)
 	aggregate.Integrity.Details = append([]string{fmt.Sprintf("firmas_pdf=%d", len(signatures))}, aggregate.Integrity.Details...)
 	return aggregate.Normalize(), allSigners, nil
+}
+
+// motivoSigningCertificateAusente es clave del catálogo de textos.
+const motivoSigningCertificateAusente = "la firma no indica entre sus datos firmados con qué certificado se hizo"
+
+func contieneDetalle(detalles []string, buscado string) bool {
+	for _, detalle := range detalles {
+		if detalle == buscado {
+			return true
+		}
+	}
+	return false
 }
 
 func extractPDFEmbeddedSignatures(pdfBytes []byte) ([]pdfEmbeddedSignature, error) {

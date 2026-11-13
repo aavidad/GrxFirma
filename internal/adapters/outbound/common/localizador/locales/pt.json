@@ -2738,6 +2738,7 @@
   ,"Entendido": "Entendido"
   ,"Actualizado a %1: ver novedades": "Atualizado para %1: ver novidades"
   ,"revocación no concluyente": "Não foi possível verificar a revogação do certificado. A assinatura não é considerada válida."
+  ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "Os dados assinados não indicam que certificado foi usado, por isso não é possível confirmar que o certificado mostrado é o que assinou."
   ,"rest.verify_v2.error.limit": "O limite de verificação v2 está fora do intervalo permitido"
   ,"portal.seal.title": "Colocar o selo no PDF"
   ,"portal.seal.instructions": "O site pediu que escolha onde fica a assinatura. Arraste o selo para o mover, use o círculo do canto para mudar o tamanho e a seta para o rodar."

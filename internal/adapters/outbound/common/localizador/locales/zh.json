@@ -2738,6 +2738,7 @@
   ,"Entendido": "知道了"
   ,"Actualizado a %1: ver novedades": "已更新至 %1：查看更新内容"
   ,"revocación no concluyente": "无法核实证书吊销状态。此签名不视为有效。"
+  ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "签名数据未说明使用了哪个证书，因此无法确认所显示的证书就是签名所用的证书。"
   ,"rest.verify_v2.error.limit": "v2 验证限制超出允许范围"
   ,"portal.seal.title": "在 PDF 上放置印章"
   ,"portal.seal.instructions": "网站请您选择签名的位置。拖动印章即可移动，使用角上的圆圈调整大小，使用箭头旋转。"
