@@ -365,12 +365,16 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 	// guarda la cadena al revés se emparejaban certificados que no eran
 	// emisor/sujeto, OCSP quedaba "desconocido" y una firma con un
 	// certificado revocado se presentaba como válida.
+	// Las anclas explícitas también sirven para completar la cadena: así se
+	// comprueba la revocación de la intermedia aunque la firma no traiga la raíz.
+	candidatos := append(append([]*x509.Certificate(nil), certs...), certificadosDeAnclas(anchors)...)
 	for _, signerCert := range signerCerts {
-		chain := chainForRevocation(ctx, v.revChecker, signerCert, certs)
+		chain := chainForRevocation(ctx, v.revChecker, signerCert, candidatos)
 		if len(chain) < 2 {
 			result = markRevocationNotChecked(result, signerCert)
 			continue
 		}
+		result = marcarCadenaRevocacionIncompleta(result, chain)
 		revocation, err := v.verifyRevocationWithEmbedded(ctx, chain, signerInfos)
 		if err == nil {
 			result = mergeRevocationResult(result, revocation)
@@ -534,6 +538,7 @@ func applyXMLRevocation(ctx context.Context, result domain.VerificationResult, s
 			result = markRevocationNotChecked(result, signer)
 			continue
 		}
+		result = marcarCadenaRevocacionIncompleta(result, chain)
 		revocation, err := checker.VerifyRevocation(ctx, chain)
 		if err == nil {
 			result = mergeRevocationResult(result, revocation)
@@ -543,12 +548,13 @@ func applyXMLRevocation(ctx context.Context, result domain.VerificationResult, s
 }
 
 // chainForRevocation obtiene la cadena del firmante para comprobar su
-// revocación. Si la firma no incluye el emisor (p. ej. XAdES con solo el
-// certificado del firmante en KeyInfo), la completa con el almacén del
-// sistema; en Windows, CryptoAPI puede descargar la CA intermedia por AIA.
+// revocación. Si la firma no incluye la cadena completa hasta un certificado
+// autofirmado (p. ej. XAdES con solo el certificado del firmante en KeyInfo,
+// o hoja e intermedia sin la raíz), la completa con el almacén del sistema;
+// en Windows, CryptoAPI puede descargar la CA intermedia por AIA.
 func chainForRevocation(ctx context.Context, checker *RevocationChecker, leaf *x509.Certificate, embedded []*x509.Certificate) []*x509.Certificate {
 	chain := buildIssuerChain(leaf, embedded)
-	if len(chain) >= 2 || leaf == nil {
+	if leaf == nil || esAutofirmado(chain[len(chain)-1]) {
 		return chain
 	}
 	intermediates := x509.NewCertPool()
@@ -561,7 +567,7 @@ func chainForRevocation(ctx context.Context, checker *RevocationChecker, leaf *x
 		Intermediates: intermediates,
 		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 	})
-	if err == nil && len(chains) > 0 && len(chains[0]) >= 2 {
+	if err == nil && len(chains) > 0 && len(chains[0]) > len(chain) {
 		return chains[0]
 	}
 	// Último recurso: descargar el emisor por AIA (CA Issuers) con el
@@ -580,6 +586,32 @@ func chainForRevocation(ctx context.Context, checker *RevocationChecker, leaf *x
 		current = issuer
 	}
 	return chain
+}
+
+func esAutofirmado(cert *x509.Certificate) bool {
+	return cert != nil && bytes.Equal(cert.RawIssuer, cert.RawSubject)
+}
+
+// marcarCadenaRevocacionIncompleta deja la revocación en advertencia cuando la
+// cadena no llega a un certificado autofirmado: el último certificado tiene
+// un emisor que no se ha podido obtener y su revocación queda sin comprobar.
+func marcarCadenaRevocacionIncompleta(result domain.VerificationResult, chain []*x509.Certificate) domain.VerificationResult {
+	if len(chain) == 0 || esAutofirmado(chain[len(chain)-1]) {
+		return result
+	}
+	return markRevocationNotChecked(result, chain[len(chain)-1])
+}
+
+// certificadosDeAnclas devuelve los certificados explícitos de las anclas
+// (no el almacén del sistema) para completar cadenas de revocación.
+func certificadosDeAnclas(anchors domain.CertificateChain) []*x509.Certificate {
+	var out []*x509.Certificate
+	for _, der := range anchors.DERCertificates {
+		if cert, err := x509.ParseCertificate(der); err == nil {
+			out = append(out, cert)
+		}
+	}
+	return out
 }
 
 // markRevocationNotChecked deja constancia de que no se pudo comprobar la
