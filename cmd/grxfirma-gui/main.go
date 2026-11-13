@@ -103,6 +103,7 @@ func main() {
 		serverOnly       = flag.Bool("server", false, "arranca solo el servidor interno sin lanzar Qt")
 		serverMode       = flag.String("server-modo", "ipc", "modo de servidor (ipc)")
 		ipcClientPID     = flag.Uint64("ipc-client-pid", 0, "PID exacto del frontend autorizado para IPC")
+		ipcParentStdin   = flag.Bool("ipc-parent-stdin", false, bootLoc.T("desktop.ipc.flag.parent_stdin"))
 		startHidden      = flag.Bool("start-hidden", false, "inicia la interfaz oculta en la bandeja")
 	)
 	flag.Parse()
@@ -136,6 +137,7 @@ func main() {
 			p12Password,
 			*socketPath,
 			*ipcClientPID,
+			*ipcParentStdin,
 			loc,
 			localTLSStartupStatus,
 			configDir,
@@ -151,16 +153,20 @@ func main() {
 	srv.SetLocalTLSStartupRefresh(func(ctx context.Context) ipc.LocalTLSStartupStatus {
 		return ensureLocalTLSStartup(ctx, configDir)
 	})
-	vincularFrontend := ipc.SoportaVinculacionPIDFrontend()
-	if vincularFrontend {
-		if err := srv.PrepararVinculacionPIDFrontend(); err != nil {
-			fmt.Fprintf(
-				os.Stderr,
-				"grxfirma-gui: no se pudo preparar la vinculacion segura del frontend: %v\n",
-				err,
-			)
-			os.Exit(1)
-		}
+	// El backend solo atiende al proceso gráfico que lanza. Si el sistema no
+	// permite comprobar el PID del otro extremo, no se arranca (falla cerrado).
+	if !ipc.SoportaVinculacionPIDFrontend() {
+		fmt.Fprintln(os.Stderr, "grxfirma-gui: "+loc.T("desktop.ipc.peer_binding_unsupported"))
+		os.Exit(1)
+	}
+	vincularFrontend := true
+	if err := srv.PrepararVinculacionPIDFrontend(); err != nil {
+		fmt.Fprintf(
+			os.Stderr,
+			"grxfirma-gui: no se pudo preparar la vinculacion segura del frontend: %v\n",
+			err,
+		)
+		os.Exit(1)
 	}
 
 	// Arrancar servidor IPC en goroutine de fondo.
@@ -322,6 +328,7 @@ func runServerMode(
 	ctx context.Context,
 	mode, rutaP12, passwordP12, socketPath string,
 	ipcClientPID uint64,
+	vigilarEntrada bool,
 	loc ports.Localizador,
 	localTLSStartupStatus ipc.LocalTLSStartupStatus,
 	configDir string,
@@ -333,6 +340,15 @@ func runServerMode(
 			fmt.Fprintf(os.Stderr, "grxfirma-gui: PID de cliente IPC no valido: %v\n", err)
 			return 2
 		}
+		// Sin el PID del frontend no hay forma de saber quién se conecta: falla
+		// cerrado en vez de aceptar a cualquier proceso del usuario.
+		if pidFrontend == 0 || !ipc.SoportaVinculacionPIDFrontend() {
+			fmt.Fprintln(os.Stderr, "grxfirma-gui: "+loc.T("desktop.ipc.server.client_pid_required"))
+			return 2
+		}
+		if vigilarEntrada {
+			ctx = vigilarEntradaHeredada(ctx, os.Stdin)
+		}
 		srv, socketRuta, err := construirServidor(ctx, rutaP12, passwordP12, socketPath, loc)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "grxfirma-gui: error arrancando servidor IPC: %v\n", err)
@@ -342,15 +358,13 @@ func runServerMode(
 		srv.SetLocalTLSStartupRefresh(func(ctx context.Context) ipc.LocalTLSStartupStatus {
 			return ensureLocalTLSStartup(ctx, configDir)
 		})
-		if pidFrontend != 0 {
-			if err := srv.VincularPIDFrontend(pidFrontend); err != nil {
-				fmt.Fprintf(
-					os.Stderr,
-					"grxfirma-gui: no se pudo vincular el cliente IPC: %v\n",
-					err,
-				)
-				return 1
-			}
+		if err := srv.VincularPIDFrontend(pidFrontend); err != nil {
+			fmt.Fprintf(
+				os.Stderr,
+				"grxfirma-gui: no se pudo vincular el cliente IPC: %v\n",
+				err,
+			)
+			return 1
 		}
 		fmt.Fprintf(os.Stderr, "grxfirma-gui: servidor IPC escuchando en %s\n", socketRuta)
 		if err := srv.Escuchar(ctx, socketRuta); err != nil && ctx.Err() == nil {
@@ -362,6 +376,21 @@ func runServerMode(
 		fmt.Fprintf(os.Stderr, "grxfirma-gui: modo de servidor no soportado: %s\n", mode)
 		return 2
 	}
+}
+
+// vigilarEntradaHeredada devuelve un contexto que se cancela cuando se cierra
+// la entrada estándar heredada del frontend. El frontend no escribe nada en
+// ella: su extremo de escritura solo se cierra cuando el proceso gráfico
+// termina, también si muere de forma abrupta (SIGKILL, cuelgue, OOM). Así un
+// backend vinculado a un PID no sobrevive a ese proceso ni conserva sus
+// credenciales temporales. Funciona igual con pipes de Linux, macOS y Windows.
+func vigilarEntradaHeredada(ctx context.Context, entrada io.Reader) context.Context {
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		defer cancel()
+		_, _ = io.Copy(io.Discard, entrada)
+	}()
+	return ctx
 }
 
 func normalizarPIDFrontend(value uint64) (uint32, error) {
@@ -657,15 +686,35 @@ func calcularSocketPath() (string, error) {
 		return `\\.\pipe\grxfirma_ipc_` + sufijo, nil
 	}
 	nombre := "grxfirma_ipc_" + sufijo + ".sock"
-	if dir := os.Getenv("XDG_RUNTIME_DIR"); dir != "" {
-		return filepath.Join(dir, nombre), nil
+	dir, err := directorioPrivadoIPC()
+	if err != nil {
+		return "", err
 	}
-	if home, err := os.UserHomeDir(); err == nil {
-		runDir := filepath.Join(home, ".local", "run")
-		_ = os.MkdirAll(runDir, 0o700)
-		return filepath.Join(runDir, nombre), nil
+	return filepath.Join(dir, nombre), nil
+}
+
+// directorioPrivadoIPC devuelve XDG_RUNTIME_DIR si es un directorio privado del
+// usuario y, si no, ~/.local/run creado con 0700. Nunca recurre al temporal
+// compartido: ahí otro usuario podría preparar la ruta antes.
+func directorioPrivadoIPC() (string, error) {
+	if dir := os.Getenv("XDG_RUNTIME_DIR"); dir != "" && filepath.IsAbs(dir) {
+		dir = filepath.Clean(dir)
+		if err := comprobarDirectorioPrivado(dir, false); err == nil {
+			return dir, nil
+		}
 	}
-	return filepath.Join(os.TempDir(), nombre), nil
+	home, err := os.UserHomeDir()
+	if err != nil || !filepath.IsAbs(home) {
+		return "", errors.New("no hay un directorio privado para el canal IPC")
+	}
+	runDir := filepath.Join(home, ".local", "run")
+	if err := os.MkdirAll(runDir, 0o700); err != nil {
+		return "", err
+	}
+	if err := comprobarDirectorioPrivado(runDir, true); err != nil {
+		return "", err
+	}
+	return runDir, nil
 }
 
 func buscarBinarioQt() string {
@@ -753,9 +802,12 @@ func buscarFrontendInstaladoEnHermano(appDir string, frontend frontendKind) stri
 	return ""
 }
 
-func argumentosFrontend(frontend frontendKind, socketPath string, backendPID int) []string {
+// argumentosFrontend pasa la ruta del canal y el PID de este proceso, que es el
+// que atiende el canal. Qt y WinUI comprueban con el sistema que el otro extremo
+// es ese PID antes de enviar nada (ADR-005).
+func argumentosFrontend(_ frontendKind, socketPath string, backendPID int) []string {
 	args := []string{"--ipc-socket", socketPath}
-	if frontend == frontendWinUI && backendPID > 0 {
+	if backendPID > 0 {
 		args = append(args, "--backend-pid", fmt.Sprintf("%d", backendPID))
 	}
 	return args

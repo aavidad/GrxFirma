@@ -12,24 +12,22 @@ IPC_BRIDGE = ROOT / "cmd" / "gui-qml" / "ipcbridge.cpp"
 
 
 class IpcClientPidContractTests(unittest.TestCase):
-    def test_qt_publishes_its_pid_only_on_supported_platforms(self) -> None:
+    def test_qt_publishes_its_pid_on_every_platform(self) -> None:
+        # D-03: el backend en modo --server exige el PID del frontend y lo
+        # contrasta con el que da el sistema (también en macOS). Ya no puede
+        # quedar dentro de un #if por plataforma.
         source = IPC_BRIDGE.read_text(encoding="utf-8")
 
         binding = source.index('args << "--ipc-client-pid"')
-        platform_guard = source.rfind(
-            "#if defined(Q_OS_WIN) || defined(Q_OS_LINUX)",
-            0,
-            binding,
-        )
-        platform_end = source.index("#endif", binding)
-
-        self.assertNotEqual(platform_guard, -1)
-        self.assertGreater(platform_end, binding)
+        launch = source.rfind("void IpcBridge::launchBackendProcess()", 0, binding)
+        self.assertNotEqual(launch, -1)
+        preceding = source[launch:binding]
+        self.assertNotIn("#if defined(Q_OS_WIN) || defined(Q_OS_LINUX)", preceding)
+        self.assertEqual(preceding.count("#if"), preceding.count("#endif"))
         self.assertIn(
             "QString::number(QCoreApplication::applicationPid())",
-            source[binding:platform_end],
+            source[binding:binding + 200],
         )
-
 
 if __name__ == "__main__":
     unittest.main()

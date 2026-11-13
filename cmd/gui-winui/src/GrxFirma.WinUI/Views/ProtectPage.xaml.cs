@@ -340,11 +340,22 @@ public sealed partial class ProtectPage : Page
             return;
         }
 
+        // ShellExecute ejecuta los tipos ejecutables y el nombre de un
+        // documento desprotegido lo elige el remitente: solo se abren tipos
+        // documentales; para el resto se muestra la carpeta que lo contiene.
+        var target = OutputOpeningPolicy.IsDocumentToOpen(outputPath)
+            ? outputPath
+            : Path.GetDirectoryName(outputPath);
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            return;
+        }
+
         try
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = outputPath,
+                FileName = target,
                 UseShellExecute = true,
                 Verb = "open",
             });

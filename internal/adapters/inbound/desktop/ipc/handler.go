@@ -60,16 +60,6 @@ const (
 	tlsIPCCertificatePrefix    = "websocket-localhost"
 )
 
-// directoriosSistemaProhibidos lista prefijos de ruta que nunca deben leer o escribirse
-// desde el IPC, independientemente de los permisos del proceso.
-var directoriosSistemaProhibidos = []string{
-	"/proc", "/sys", "/dev", "/run/udev", "/boot",
-	"/root",                      // home del superusuario
-	"/etc/shadow", "/etc/passwd", // ficheros criticos individuales
-	"/etc/ssh",         // claves de host SSH
-	"/etc/ssl/private", // claves TLS del sistema
-}
-
 type tlsIPCDependencies struct {
 	ensureBrowserCompatibleCertificate func(
 		dir string,
@@ -2408,18 +2398,53 @@ func construirSalidaProtegidaRutaIPC(inputPath, documentName string) string {
 	return filepath.Join(filepath.Dir(inputPath), base+container)
 }
 
+// extensionesDocumentalesDesprotegidas son los únicos tipos cuya extensión se
+// conserva al desproteger. El nombre del documento viaja dentro del sobre y lo
+// elige el remitente: cualquier otra extensión (.exe, .lnk, .hta, .js,
+// .desktop, flujos NTFS como ".txt:x"...) se sustituye por .bin para que
+// "Abrir" no ejecute nada.
+var extensionesDocumentalesDesprotegidas = map[string]struct{}{
+	".pdf": {}, ".xml": {}, ".txt": {}, ".csv": {}, ".json": {},
+	".docx": {}, ".xlsx": {}, ".pptx": {}, ".odt": {}, ".ods": {}, ".odp": {},
+	".png": {}, ".jpg": {}, ".jpeg": {}, ".gif": {}, ".tif": {}, ".tiff": {},
+	".xsig": {}, ".csig": {}, ".p7s": {}, ".p7m": {}, ".asice": {}, ".asics": {},
+}
+
+const extensionDesprotegidaNeutra = ".bin"
+
+func extensionDesprotegidaSegura(nombre string) string {
+	ext := filepath.Ext(nombre)
+	if len(ext) < 2 || len(ext) > 8 {
+		return extensionDesprotegidaNeutra
+	}
+	for _, r := range ext[1:] {
+		if (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') {
+			return extensionDesprotegidaNeutra
+		}
+	}
+	if _, ok := extensionesDocumentalesDesprotegidas[strings.ToLower(ext)]; !ok {
+		return extensionDesprotegidaNeutra
+	}
+	return ext
+}
+
 func construirSalidaDesprotegidaRutaIPC(inputPath, documentName string) string {
 	base := strings.TrimSuffix(filepath.Base(inputPath), filepath.Ext(inputPath))
 	if strings.TrimSpace(base) == "" {
-		base = strings.TrimSuffix(documentName, filepath.Ext(documentName))
+		// El nombre del sobre solo aporta el nombre final, nunca carpetas.
+		nombre := filepath.Base(strings.ReplaceAll(documentName, "\\", "/"))
+		base = strings.TrimSuffix(nombre, filepath.Ext(nombre))
+		if base == "." || base == ".." || strings.ContainsAny(base, `/\:`) ||
+			strings.IndexFunc(base, unicode.IsControl) >= 0 {
+			base = ""
+		}
 	}
 	if strings.TrimSpace(base) == "" {
 		base = "documento"
 	}
-	ext := filepath.Ext(documentName)
-	if strings.TrimSpace(ext) == "" {
-		ext = filepath.Ext(base)
-	}
+	// La extensión sale solo del nombre que trae el sobre y solo si es
+	// documental; la del fichero de entrada (p. ej. "nomina.exe.afp") no cuenta.
+	ext := extensionDesprotegidaSegura(documentName)
 	return filepath.Join(filepath.Dir(inputPath), base+"_desprotegido"+ext)
 }
 
@@ -2933,7 +2958,13 @@ func (m *Manejador) configDirSeguro() string {
 }
 
 // ---------------------------------------------------------------------------
-// Validacion de rutas (seguridad)
+// Validacion de rutas (robustez)
+//
+// Estas comprobaciones evitan errores de uso (dispositivos, carpetas del
+// sistema, nombres con controles). No son una frontera de seguridad: la
+// frontera es que solo el frontend vinculado por PID alcanza el IPC. Hay una
+// ventana entre la comprobación y la apertura del fichero (TOCTOU) que no se
+// cierra aquí; el proceso solo tiene los permisos de su usuario.
 // ---------------------------------------------------------------------------
 
 // validarRutaLectura comprueba que la ruta es segura para leer:
@@ -3039,11 +3070,25 @@ func validarDirectorioEscritura(ruta string) error {
 	return nil
 }
 
-// rutaEnZonaProhibida devuelve error si la ruta cae en alguno de los directorios
-// de sistema que nunca debe tocar el IPC.
+// rutaEnZonaProhibida devuelve error si la ruta cae en alguna de las zonas del
+// sistema de esta plataforma (ver zonasSistemaProhibidas). Es una comprobación
+// de robustez, no un control de acceso.
 func rutaEnZonaProhibida(ruta string) error {
-	for _, prefijo := range directoriosSistemaProhibidos {
-		if ruta == prefijo || strings.HasPrefix(ruta, prefijo+"/") {
+	return rutaEnZonas(ruta, zonasSistemaProhibidas())
+}
+
+// rutaEnZonas compara por componentes de ruta con filepath.Rel, que en Windows
+// no distingue mayúsculas, en lugar de por prefijo de texto con "/".
+func rutaEnZonas(ruta string, zonas []string) error {
+	for _, zona := range zonas {
+		if zona == "" {
+			continue
+		}
+		rel, err := filepath.Rel(zona, ruta)
+		if err != nil || filepath.IsAbs(rel) {
+			continue
+		}
+		if rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))) {
 			return fmt.Errorf("acceso denegado: la ruta '%s' esta en una zona del sistema protegida", ruta)
 		}
 	}

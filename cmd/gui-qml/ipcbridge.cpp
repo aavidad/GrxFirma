@@ -4,10 +4,12 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 #include "ipcbridge.h"
+#include "openablefile.h"
 #include "linuxstartupregistration.h"
 #include "executablelocator.h"
 #include "activediagnostics.h"
 #include "incidentprivacy.h"
+#include "ipcpeer.h"
 #include "ipcsocketpath.h"
 #include "processenvironment.h"
 #include "transientsecret.h"
@@ -427,6 +429,8 @@ static QString ipcOriginHint(const QString &action, const QString &message) {
 
 IpcBridge::IpcBridge(QObject *parent) : QObject(parent) {
   m_socket = new QLocalSocket(this);
+  // Una respuesta sin salto de línea no puede crecer sin límite en memoria.
+  m_socket->setReadBufferSize(IpcPeer::kMaxResponseLineBytes);
   m_nam = new QNetworkAccessManager(this);
   m_activeDiagnostics = new ActiveDiagnosticsRunner(this);
   m_webCompatibilityLease = new WebCompatibilityLease(
@@ -465,7 +469,7 @@ IpcBridge::IpcBridge(QObject *parent) : QObject(parent) {
       // el backend que posee esta GUI sigue vivo; al detenerlo de forma
       // explícita el guard evita reabrir el canal.
       QTimer::singleShot(0, this, [this]() {
-        if (m_shuttingDown || !m_process ||
+        if (m_shuttingDown || m_serverRejected || !m_process ||
             m_process->state() == QProcess::NotRunning ||
             m_socket->state() == QLocalSocket::ConnectedState) {
           return;
@@ -820,18 +824,20 @@ void IpcBridge::startBackend(const QString &addr, const QString &token,
   if (m_addr.contains('/')) {
     m_socketPath = m_addr;
   } else {
-    QString userName = QDir::home().dirName();
-    if (userName.isEmpty())
-      userName = "default";
-    QString runtimeDir =
-        QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
-    if (runtimeDir.isEmpty())
-      runtimeDir = QDir::tempPath();
-    m_socketPath = QDir(runtimeDir)
-                       .absoluteFilePath("grxfirma_ipc_" + userName + ".sock");
+    // Ruta nueva y aleatoria en un directorio privado del usuario (0700).
+    // Nunca el temporal compartido ni un nombre fijo que otro pueda ocupar.
+    m_socketPath = IpcPeer::newPrivateSocketPath();
+    if (m_socketPath.isEmpty() && mode != QStringLiteral("rest")) {
+      emit backendLogReceived(it(QStringLiteral(
+          "❌ No hay un directorio privado para la conexión con el motor de firma.")));
+      setStatus(it(QStringLiteral("Error: no se pudo preparar la conexión con el motor de firma")));
+      return;
+    }
   }
 #endif
   qDebug() << "[IpcBridge] Ruta IPC privada calculada.";
+  m_serverRejected = false;
+  m_expectedServerPid = 0;
 
   // Si ya hay un proceso, detenerlo para asegurar un reinicio limpio
   if (m_process && m_process->state() != QProcess::NotRunning) {
@@ -839,40 +845,20 @@ void IpcBridge::startBackend(const QString &addr, const QString &token,
     m_process->waitForFinished(2000);
   }
 
-  // Comprobar si el socket esta vivo (solo si no es modo puramente REST)
+  // Solo se habla con un backend cuyo PID se conoce: el que lanzó
+  // grxfirma-gui (--backend-pid) o el que lanza esta GUI. Nunca se reutiliza
+  // un socket o pipe que ya existiera en la ruta: podría ser de otro proceso.
   bool needsLaunch = true;
   if (m_serverMode != "rest") {
-#if defined(Q_OS_WIN)
-    QLocalSocket testSocket;
-    testSocket.connectToServer(m_socketPath);
-    if (testSocket.waitForConnected(500)) {
-      testSocket.disconnectFromServer();
+    if (m_launcherBackendPid > 0) {
       needsLaunch = false;
+      m_expectedServerPid = m_launcherBackendPid;
       emit backendLogReceived(
-          it(QStringLiteral("Named pipe activo encontrado. Conectando...")));
+          it(QStringLiteral("Conectando con el motor de firma del lanzador...")));
     } else {
       emit backendLogReceived(
-          it(QStringLiteral("Named pipe no activo. Arrancando backend Go...")));
+          it(QStringLiteral("Arrancando el motor de firma de esta ventana...")));
     }
-#else
-    if (QFileInfo::exists(m_socketPath)) {
-      QLocalSocket testSocket;
-      testSocket.connectToServer(m_socketPath);
-      if (testSocket.waitForConnected(500)) {
-        testSocket.disconnectFromServer();
-        needsLaunch = false;
-        emit backendLogReceived(
-            it(QStringLiteral("Socket activo encontrado. Conectando...")));
-      } else {
-        emit backendLogReceived(
-            it(QStringLiteral("Socket muerto encontrado. Limpiando y arrancando...")));
-        QFile::remove(m_socketPath);
-      }
-    } else {
-      emit backendLogReceived(
-          it(QStringLiteral("Socket no encontrado. Arrancando backend Go...")));
-    }
-#endif
   } else {
     emit backendLogReceived(
         it(QStringLiteral("Modo REST activo. Arrancando backend Go...")));
@@ -907,13 +893,17 @@ void IpcBridge::launchBackendProcess() {
     bin = wrapperBin;
     args << "--server" << "--server-modo" << "ipc" << "--ipc-socket"
          << m_socketPath;
-#if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
     // El backend valida este valor contra las credenciales que entrega el SO
-    // para el peer real del named pipe/socket. No es un secreto ni se usa como
-    // dato de confianza por sí solo.
+    // para el peer real del named pipe/socket (Windows, Linux y macOS). No es
+    // un secreto ni se usa como dato de confianza por sí solo. Sin él, el
+    // backend en modo --server no arranca.
     args << "--ipc-client-pid"
          << QString::number(QCoreApplication::applicationPid());
-#endif
+    // El backend termina cuando se cierra su entrada estándar. QProcess deja
+    // abierto el extremo de escritura mientras esta GUI vive y el sistema lo
+    // cierra si muere de forma abrupta, así no queda un backend huérfano.
+    // Nunca se llama a closeWriteChannel() sobre este proceso.
+    args << "--ipc-parent-stdin";
   } else if (m_serverMode == "rest") {
     if (backendBin.isEmpty()) {
       emit backendLogReceived(it(QStringLiteral(
@@ -957,6 +947,9 @@ void IpcBridge::launchBackendProcess() {
     emit backendLogReceived(it(QStringLiteral("✅ Backend Go arrancado (PID ")) +
                             QString::number(m_process->processId()) +
                             ") modo [" + m_serverMode + "]");
+    // El servidor IPC corre en este mismo proceso hijo: es el único PID que
+    // se aceptará al otro lado del socket.
+    m_expectedServerPid = m_process->processId();
 
     if (m_serverMode != "rest") {
       tryConnect();
@@ -968,6 +961,8 @@ void IpcBridge::launchBackendProcess() {
 }
 
 void IpcBridge::tryConnect() {
+  if (m_serverRejected)
+    return;
   if (m_socket->state() == QLocalSocket::ConnectedState) {
     emit backendLogReceived(
         it(QStringLiteral("ℹ️ IPC ya conectado. Se omite nuevo connect().")));
@@ -1043,6 +1038,7 @@ void IpcBridge::stopBackend() {
     delete m_process;
     m_process = nullptr;
   }
+  m_expectedServerPid = 0;
   setStatus(it(QStringLiteral("Backend detenido")));
 }
 
@@ -1081,6 +1077,8 @@ void IpcBridge::shutdownForExit() {
 
 bool IpcBridge::queueDeferredRequest(const QString &action,
                                      const QVariantMap &params) {
+  if (m_serverRejected)
+    return false;
   // Administrative configuration is explicit: never replay on reconnection.
   if (action == "get_token_settings" || action == "save_token_settings" ||
       action == "diagnose_token_settings")
@@ -1704,7 +1702,36 @@ void IpcBridge::checkHash(const QString &inputPath, const QString &hashPath,
   sendRequest("hash_check", params);
 }
 
+bool IpcBridge::verifyConnectedServer() {
+  const IpcPeer::ServerIdentity peer =
+      IpcPeer::readServerIdentity(m_socket->socketDescriptor());
+  return IpcPeer::acceptServer(peer, IpcPeer::currentUid(),
+                               m_expectedServerPid);
+}
+
+void IpcBridge::rejectConnectedServer() {
+  // No se envía nada a un extremo que no es el motor esperado: ni la acción
+  // diferida (puede llevar datos del documento) ni las siguientes.
+  m_serverRejected = true;
+  m_retryCount = 1000;
+  const QString deferredAction = m_deferredAction;
+  m_deferredRequest.fill('\0');
+  m_deferredRequest.clear();
+  m_deferredAction.clear();
+  const QString message = it(QStringLiteral(
+      "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo."));
+  emit backendLogReceived(QStringLiteral("❌ ") + message);
+  setStatus(it(QStringLiteral("Error: no se reconoce el motor de firma")));
+  m_socket->abort();
+  if (!deferredAction.isEmpty())
+    failActionDueToConnection(deferredAction, message);
+}
+
 void IpcBridge::onConnected() {
+  if (!verifyConnectedServer()) {
+    rejectConnectedServer();
+    return;
+  }
   const bool hadDeferredRequest = !m_deferredRequest.isEmpty();
   m_requestLocalTLSStartupAfterDeferred = false;
   m_refreshCertificatesAfterLocalTLSStartup = false;
@@ -1747,6 +1774,15 @@ void IpcBridge::onError(QLocalSocket::LocalSocketError error) {
 }
 
 void IpcBridge::onReadyRead() {
+  if (m_serverRejected)
+    return;
+  if (!m_socket->canReadLine() &&
+      m_socket->bytesAvailable() >= IpcPeer::kMaxResponseLineBytes) {
+    emit backendLogReceived(it(QStringLiteral(
+        "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.")));
+    m_socket->abort();
+    return;
+  }
   while (m_socket->canReadLine()) {
     QByteArray line = m_socket->readLine();
     QJsonDocument doc = QJsonDocument::fromJson(line);
@@ -2364,15 +2400,18 @@ void IpcBridge::openExternal(const QString &path) {
     return;
   }
 
-  const QString suffix = info.suffix().trimmed().toLower();
-  const bool preferOpenDir =
-      suffix == QStringLiteral("enveloped") || suffix == QStringLiteral("afp");
-  if (preferOpenDir) {
+  // Solo se abren tipos documentales; para el resto (ejecutables, accesos
+  // directos, scripts, sobres .afp/.enveloped...) se muestra su carpeta y
+  // nunca se entrega el fichero al sistema.
+  if (!info.isDir() && !OpenableFile::isDocumentToOpen(info.fileName())) {
     const QString dirPath = info.absolutePath();
     if (!dirPath.isEmpty() &&
-        QDesktopServices::openUrl(QUrl::fromLocalFile(dirPath))) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(dirPath)))
       return;
-    }
+    emit backendLogReceived(it(QStringLiteral("❌ No se pudo abrir la carpeta: ")) +
+                            dirPath);
+    setStatus(it(QStringLiteral("No se pudo abrir la carpeta del fichero")));
+    return;
   }
 
   if (QDesktopServices::openUrl(QUrl::fromLocalFile(localPath)))
@@ -2386,11 +2425,6 @@ void IpcBridge::openExternal(const QString &path) {
   if (QProcess::startDetached("open", {localPath}))
     return;
 #else
-  if (preferOpenDir) {
-    const QString dirPath = info.absolutePath();
-    if (!dirPath.isEmpty() && QProcess::startDetached("xdg-open", {dirPath}))
-      return;
-  }
   if (QProcess::startDetached("xdg-open", {localPath}))
     return;
 #endif
@@ -2407,6 +2441,10 @@ void IpcBridge::openSignedDocument(const QString &path) {
   const QFileInfo info(localPath);
   if (!info.isFile()) {
     setStatus(it(QStringLiteral("El fichero indicado no existe")));
+    return;
+  }
+  if (!OpenableFile::isDocumentToOpen(info.fileName())) {
+    openExternal(info.absoluteFilePath());
     return;
   }
   if (QDesktopServices::openUrl(QUrl::fromLocalFile(info.absoluteFilePath())))

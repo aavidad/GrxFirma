@@ -26,6 +26,8 @@ private slots:
   void tokenSettingsRejectsRemoteModuleURLs();
   void tokenSettingsTimeoutIgnoresLateReply();
   void tokenSettingsUsesFixedErrorCodeNotMessage();
+  void unexpectedServerReceivesNothing();
+  void expectedServerReceivesDeferredRequest();
 
 private:
   QLocalSocket *connectPeer(IpcBridge &bridge, QLocalServer &server);
@@ -153,6 +155,8 @@ IpcBridgeTransientSecretTest::connectPeer(IpcBridge &bridge,
           .arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
   if (!server.listen(serverName))
     return nullptr;
+  // El servidor de la prueba es este mismo proceso: es el PID esperado.
+  bridge.m_expectedServerPid = QCoreApplication::applicationPid();
   bridge.m_socket->connectToServer(serverName);
   if (!bridge.m_socket->waitForConnected(3000) ||
       !server.waitForNewConnection(3000)) {
@@ -263,6 +267,50 @@ void IpcBridgeTransientSecretTest::droppedVerifyResponseFailsExactlyOnce() {
   QVERIFY(bridge.m_pendingAction.isEmpty());
   QCoreApplication::processEvents();
   QCOMPARE(finished.count(), 1);
+}
+
+// D-01: si el otro extremo no es el proceso esperado, la GUI cierra sin
+// enviar nada, tampoco la acción que tenía diferida.
+void IpcBridgeTransientSecretTest::unexpectedServerReceivesNothing() {
+  IpcBridge bridge;
+  QLocalServer server;
+  const QString serverName =
+      QStringLiteral("grxfirma-peer-test-%1")
+          .arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+  QVERIFY(server.listen(serverName));
+  bridge.m_socketPath = server.fullServerName();
+  bridge.m_expectedServerPid = QCoreApplication::applicationPid() + 1;
+  bridge.getSettings();
+  QVERIFY(server.waitForNewConnection(3000));
+  QLocalSocket *peer = server.nextPendingConnection();
+  QVERIFY(peer);
+  QTest::qWait(300);
+  QByteArray received = peer->readAll();
+  if (peer->waitForReadyRead(200))
+    received += peer->readAll();
+  QVERIFY2(received.isEmpty(), received.constData());
+  QVERIFY(bridge.m_serverRejected);
+  QVERIFY(bridge.m_deferredRequest.isEmpty());
+  QVERIFY(bridge.m_socket->state() != QLocalSocket::ConnectedState);
+}
+
+void IpcBridgeTransientSecretTest::expectedServerReceivesDeferredRequest() {
+  IpcBridge bridge;
+  QLocalServer server;
+  const QString serverName =
+      QStringLiteral("grxfirma-peer-test-%1")
+          .arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+  QVERIFY(server.listen(serverName));
+  bridge.m_socketPath = server.fullServerName();
+  bridge.m_expectedServerPid = QCoreApplication::applicationPid();
+  bridge.getSettings();
+  QVERIFY(server.waitForNewConnection(3000));
+  QLocalSocket *peer = server.nextPendingConnection();
+  QVERIFY(peer);
+  const QByteArray requests =
+      readRequestsUntil(peer, QByteArrayLiteral("\"get_settings\""));
+  QVERIFY(requests.contains("\"get_settings\""));
+  QVERIFY(!bridge.m_serverRejected);
 }
 
 QTEST_MAIN(IpcBridgeTransientSecretTest)

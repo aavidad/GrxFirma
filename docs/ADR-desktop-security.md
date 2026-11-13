@@ -86,7 +86,7 @@ Al activarlo, la app:
 | Firma via `afirma://` | Puerto + proceso efímero | Proceso efímero, sin puerto |
 | Firma via extensión navegador | Puerto + Native Messaging | Solo Native Messaging |
 | Compatibilidad web antigua | Puerto siempre activo | Puerto opt-in, solo si el usuario lo activa |
-| Proceso malicioso en el equipo | Puede enviar solicitudes de firma | No puede, no hay puerto |
+| Proceso malicioso en el equipo | Puede enviar solicitudes de firma | No puede, no hay puerto; el IPC de escritorio solo atiende al PID del frontend que lanzó el backend (ADR-005) |
 
 ---
 

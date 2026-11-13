@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 #include "backendbridge.h"
+#include "openablefile.h"
 #include "executablelocator.h"
 #include "activediagnostics.h"
 #include "incidentprivacy.h"
@@ -1072,15 +1073,18 @@ void BackendBridge::openExternal(const QString &path) {
     return;
   }
 
-  const QString suffix = info.suffix().trimmed().toLower();
-  const bool preferOpenDir =
-      suffix == QStringLiteral("enveloped") || suffix == QStringLiteral("afp");
-  if (preferOpenDir) {
+  // Solo se abren tipos documentales; para el resto (ejecutables, accesos
+  // directos, scripts, sobres .afp/.enveloped...) se muestra su carpeta y
+  // nunca se entrega el fichero al sistema.
+  if (!info.isDir() && !OpenableFile::isDocumentToOpen(info.fileName())) {
     const QString dirPath = info.absolutePath();
     if (!dirPath.isEmpty() &&
-        QDesktopServices::openUrl(QUrl::fromLocalFile(dirPath))) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(dirPath)))
       return;
-    }
+    emit backendLogReceived(bt(QStringLiteral("❌ No se pudo abrir la carpeta: ")) +
+                            dirPath);
+    setStatus(bt(QStringLiteral("No se pudo abrir la carpeta del fichero")));
+    return;
   }
 
   if (QDesktopServices::openUrl(QUrl::fromLocalFile(localPath)))
@@ -1094,11 +1098,6 @@ void BackendBridge::openExternal(const QString &path) {
   if (QProcess::startDetached("open", {localPath}))
     return;
 #else
-  if (preferOpenDir) {
-    const QString dirPath = info.absolutePath();
-    if (!dirPath.isEmpty() && QProcess::startDetached("xdg-open", {dirPath}))
-      return;
-  }
   if (QProcess::startDetached("xdg-open", {localPath}))
     return;
 #endif
@@ -1115,6 +1114,10 @@ void BackendBridge::openSignedDocument(const QString &path) {
   const QFileInfo info(localPath);
   if (!info.isFile()) {
     setStatus(bt(QStringLiteral("El fichero indicado no existe")));
+    return;
+  }
+  if (!OpenableFile::isDocumentToOpen(info.fileName())) {
+    openExternal(info.absoluteFilePath());
     return;
   }
   if (QDesktopServices::openUrl(QUrl::fromLocalFile(info.absoluteFilePath())))

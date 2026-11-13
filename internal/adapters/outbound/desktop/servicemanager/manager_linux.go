@@ -32,6 +32,7 @@ Type=simple
 ExecStart=%s --server --server-modo ipc --ipc-socket %s
 Restart=on-failure
 RestartSec=5
+RestartPreventExitStatus=2
 
 [Install]
 WantedBy=default.target

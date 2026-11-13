@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"grxfirma/internal/adapters/inbound/common/secretinput"
 	"grxfirma/internal/adapters/inbound/desktop/ipc"
@@ -230,12 +231,12 @@ func TestCandidatosFrontend_SeparaQtYWinUI(t *testing.T) {
 	}
 }
 
-func TestArgumentosFrontend_VinculaWinUIAlBackendSinAlterarQt(t *testing.T) {
+func TestArgumentosFrontend_VinculaQtYWinUIAlBackend(t *testing.T) {
 	t.Parallel()
 
 	const socket = `\\.\pipe\grxfirma_ipc_test`
 	qt := argumentosFrontend(frontendQt, socket, 1234)
-	if got := strings.Join(qt, "|"); got != "--ipc-socket|"+socket {
+	if got := strings.Join(qt, "|"); got != "--ipc-socket|"+socket+"|--backend-pid|1234" {
 		t.Fatalf("argumentos Qt = %q", got)
 	}
 	winui := argumentosFrontend(frontendWinUI, socket, 1234)
@@ -365,6 +366,75 @@ func TestCalcularSocketPath_GeneraEndpointsUnicos(t *testing.T) {
 	}
 }
 
+// D-01: un XDG_RUNTIME_DIR que no es privado no se usa; se recurre al
+// directorio propio ~/.local/run con permisos 0700.
+func TestCalcularSocketPath_RechazaRuntimeNoPrivado(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows usa named pipes")
+	}
+	abierto := t.TempDir()
+	if err := os.Chmod(abierto, 0o755); err != nil {
+		t.Fatalf("Chmod: %v", err)
+	}
+	home := t.TempDir()
+	t.Setenv("XDG_RUNTIME_DIR", abierto)
+	t.Setenv("HOME", home)
+	ruta, err := calcularSocketPath()
+	if err != nil {
+		t.Fatalf("calcularSocketPath: %v", err)
+	}
+	if want := filepath.Join(home, ".local", "run"); filepath.Dir(ruta) != want {
+		t.Fatalf("socket en %q; se esperaba %q", filepath.Dir(ruta), want)
+	}
+	info, err := os.Lstat(filepath.Dir(ruta))
+	if err != nil || info.Mode().Perm() != 0o700 {
+		t.Fatalf("el directorio del socket no es 0700: %v %v", info, err)
+	}
+}
+
+// D-01: sin directorio privado no se cae nunca al temporal compartido.
+func TestCalcularSocketPath_NuncaUsaElTemporalCompartido(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows usa named pipes")
+	}
+	t.Setenv("XDG_RUNTIME_DIR", "")
+	t.Setenv("HOME", "")
+	ruta, err := calcularSocketPath()
+	if err == nil {
+		t.Fatalf("se generó %q sin directorio privado", ruta)
+	}
+}
+
+// D-01: un ~/.local/run que es un enlace simbólico no se acepta.
+func TestCalcularSocketPath_RechazaEnlaceComoDirectorio(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows usa named pipes")
+	}
+	home := t.TempDir()
+	destino := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(home, ".local"), 0o700); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	if err := os.Symlink(destino, filepath.Join(home, ".local", "run")); err != nil {
+		t.Fatalf("Symlink: %v", err)
+	}
+	t.Setenv("XDG_RUNTIME_DIR", "")
+	t.Setenv("HOME", home)
+	if ruta, err := calcularSocketPath(); err == nil {
+		t.Fatalf("se aceptó un enlace como directorio del socket: %q", ruta)
+	}
+}
+
+// D-01: el lanzador pasa a Qt el PID del backend para que Qt compruebe con
+// el sistema que el otro extremo del socket es ese proceso.
+func TestArgumentosFrontend_PasaElPIDDelBackendAQt(t *testing.T) {
+	t.Parallel()
+	got := strings.Join(argumentosFrontend(frontendQt, "/run/user/1/s.sock", 4321), "|")
+	if got != "--ipc-socket|/run/user/1/s.sock|--backend-pid|4321" {
+		t.Fatalf("argumentos Qt = %q", got)
+	}
+}
+
 func ultimaVariable(entorno []string, nombre string) string {
 	prefijo := nombre + "="
 	for i := len(entorno) - 1; i >= 0; i-- {
@@ -380,5 +450,104 @@ func TestFrontendPorDefectoEsElNativoDeCadaSistema(t *testing.T) {
 		if got := frontendPorDefecto(goos); got != want {
 			t.Errorf("frontendPorDefecto(%q) = %q, se esperaba %q", goos, got, want)
 		}
+	}
+}
+
+// D-03: el modo --server sin --ipc-client-pid no abre el endpoint; sin
+// vínculo de PID cualquier proceso del usuario podría pedir firmas.
+func TestRunServerMode_SinPIDClienteNoAbreElEndpoint(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
+	ruta := filepath.Join(t.TempDir(), "s.sock")
+	if runtime.GOOS == "windows" {
+		ruta = fmt.Sprintf(`\\.\pipe\grxfirma_test_%d`, os.Getpid())
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	code := runServerMode(ctx, "ipc", "", "", ruta, 0, false, localizador.Para("es"),
+		ipc.LocalTLSStartupStatus{}, filepath.Join(home, ".config", "grxfirma"))
+	if code != 2 {
+		t.Fatalf("runServerMode sin PID = %d; se esperaba 2", code)
+	}
+	if ctx.Err() != nil {
+		t.Fatal("runServerMode sin PID no debe quedarse escuchando hasta el plazo")
+	}
+	if runtime.GOOS != "windows" {
+		if _, err := os.Lstat(ruta); err == nil {
+			t.Fatal("se creó el socket sin vínculo de PID")
+		}
+	}
+}
+
+// D-04: un backend lanzado por la GUI con --ipc-parent-stdin termina y borra
+// su socket cuando se cierra la entrada heredada, que es lo que pasa cuando la
+// GUI muere aunque sea de forma abrupta (SIGKILL, cuelgue, OOM).
+func TestRunServerMode_TerminaAlCerrarseLaEntradaDelFrontend(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("la prueba usa un socket Unix; en Windows el mecanismo es el mismo pipe de entrada")
+	}
+	home := t.TempDir()
+	dir, err := os.MkdirTemp("", "gx")
+	if err != nil {
+		t.Fatalf("MkdirTemp: %v", err)
+	}
+	defer os.RemoveAll(dir)
+	ruta := filepath.Join(dir, "b.sock")
+
+	hijo := exec.Command(os.Args[0], "-test.run=^TestRunServerMode_HelperBackendVinculado$")
+	hijo.Env = append(os.Environ(),
+		"GRXFIRMA_TEST_BACKEND_SOCKET="+ruta,
+		"HOME="+home,
+		"XDG_CONFIG_HOME="+filepath.Join(home, ".config"),
+	)
+	entrada, err := hijo.StdinPipe()
+	if err != nil {
+		t.Fatalf("StdinPipe: %v", err)
+	}
+	var salida strings.Builder
+	hijo.Stdout = &salida
+	hijo.Stderr = &salida
+	if err := hijo.Start(); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	terminado := make(chan error, 1)
+	go func() { terminado <- hijo.Wait() }()
+	defer func() { _ = hijo.Process.Kill() }()
+
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		if _, err := os.Lstat(ruta); err == nil {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("el backend no abrió el socket a tiempo")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	// Simula la muerte del frontend: se cierra su extremo de la entrada.
+	_ = entrada.Close()
+	select {
+	case <-terminado:
+	case <-time.After(2 * time.Second):
+		t.Fatal("el backend sigue vivo 2 s después de cerrarse la entrada del frontend")
+	}
+	if _, err := os.Lstat(ruta); err == nil {
+		t.Fatal("el backend terminó sin borrar su socket")
+	}
+}
+
+func TestRunServerMode_HelperBackendVinculado(t *testing.T) {
+	ruta := os.Getenv("GRXFIRMA_TEST_BACKEND_SOCKET")
+	if ruta == "" {
+		t.Skip("helper exclusivo del subproceso de prueba")
+	}
+	home := os.Getenv("HOME")
+	code := runServerMode(context.Background(), "ipc", "", "", ruta,
+		uint64(os.Getppid()), true, localizador.Para("es"),
+		ipc.LocalTLSStartupStatus{}, filepath.Join(home, ".config", "grxfirma"))
+	if code != 0 {
+		t.Fatalf("runServerMode = %d", code)
 	}
 }
