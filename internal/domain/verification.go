@@ -25,6 +25,15 @@ const (
 	CoberturaNoAcreditada = "unknown"
 )
 
+// Tipos de evidencia de compatibilidad histórica. Marcan resultados que se
+// admiten para no dejar de leer documentos antiguos, pero que nunca son una
+// validación plena.
+const (
+	// EvidenciaAlgoritmoAntiguo: la integridad criptográfica se ha comprobado,
+	// pero con un algoritmo que hoy no se considera seguro (SHA-1).
+	EvidenciaAlgoritmoAntiguo = "signature.algorithm.legacy"
+)
+
 type VerificationAspect struct {
 	Status  VerificationAspectStatus `json:"status"`
 	Reason  string                   `json:"reason,omitempty"`

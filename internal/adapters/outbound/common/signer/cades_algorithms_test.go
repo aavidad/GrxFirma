@@ -8,6 +8,7 @@ package signer
 import (
 	"bytes"
 	"context"
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -43,15 +44,26 @@ func TestValidarAlgoritmosSignerInfoExigeOIDCoherente(t *testing.T) {
 	for _, caso := range casos {
 		t.Run(caso.nombre, func(t *testing.T) {
 			info := signerInfoRaw{DigestAlgorithm: algorithmIdentifier{Algorithm: oidDigestSHA256}, SignatureAlgorithm: algorithmIdentifier{Algorithm: caso.firma}}
-			_, err := validarAlgoritmosSignerInfo(caso.cert, info)
+			_, _, err := validarAlgoritmosSignerInfo(caso.cert, info)
 			if (err == nil) != caso.valido {
 				t.Fatalf("resultado inesperado: %v", err)
 			}
 		})
 	}
 	info := signerInfoRaw{DigestAlgorithm: algorithmIdentifier{Algorithm: asn1.ObjectIdentifier{1, 3, 14, 3, 2, 26}}, SignatureAlgorithm: algorithmIdentifier{Algorithm: oidSignatureRSAWithSHA256}}
-	if _, err := validarAlgoritmosSignerInfo(&x509.Certificate{PublicKey: &rsaKey.PublicKey}, info); err == nil {
-		t.Fatal("se admitió SHA-1 declarado")
+	if _, _, err := validarAlgoritmosSignerInfo(&x509.Certificate{PublicKey: &rsaKey.PublicKey}, info); err == nil {
+		t.Fatal("se admitió SHA-1 con un algoritmo de firma SHA-256")
+	}
+	// SHA-1 coherente: se admite solo para leer firmas antiguas y se marca.
+	info = signerInfoRaw{DigestAlgorithm: algorithmIdentifier{Algorithm: oidDigestSHA1}, SignatureAlgorithm: algorithmIdentifier{Algorithm: oidSignatureRSAWithSHA1}}
+	spec, antiguo, err := validarAlgoritmosSignerInfo(&x509.Certificate{PublicKey: &rsaKey.PublicKey}, info)
+	if err != nil || !antiguo || spec.hash != crypto.SHA1 {
+		t.Fatalf("SHA-1 coherente: spec=%v antiguo=%v err=%v", spec.hash, antiguo, err)
+	}
+	// Desconocido: sigue rechazado.
+	info = signerInfoRaw{DigestAlgorithm: algorithmIdentifier{Algorithm: asn1.ObjectIdentifier{1, 2, 840, 113549, 2, 5}}, SignatureAlgorithm: algorithmIdentifier{Algorithm: oidSignatureRSAEncryption}}
+	if _, _, err := validarAlgoritmosSignerInfo(&x509.Certificate{PublicKey: &rsaKey.PublicKey}, info); err == nil {
+		t.Fatal("se admitió MD5")
 	}
 }
 

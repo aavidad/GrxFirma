@@ -81,7 +81,9 @@ func (v *Verificador) Verificar(ctx context.Context, reto domain.RetoIdentidad, 
 		return v.registrar(ctx, reto, prueba, resultado, domain.ResultadoIdentidadIndeterminada, ErrVerificacionIndeterminada)
 	}
 	verificacion, firmantes, err := v.cades.VerifyDetachedCMSWithAnchors(ctx, prueba.Firma, reto.ContenidoCanonico, anclas)
-	if err != nil || !firmanteCoincide(firmantes, certificado) || verificacion.Integrity.Status != domain.VerificationStatusValid {
+	// Un reto de identidad es una firma de hoy: SHA-1 (que se admite solo para
+	// leer documentos antiguos) no acredita nada aquí.
+	if err != nil || !firmanteCoincide(firmantes, certificado) || verificacion.Integrity.Status != domain.VerificationStatusValid || conAlgoritmoAntiguo(verificacion) {
 		resultado.Integridad = dictamen("no_conforme", v.configuracion.FuenteDictamen, v.reloj.Now())
 		return v.registrar(ctx, reto, prueba, resultado, domain.ResultadoIdentidadRechazada, nil)
 	}
@@ -180,6 +182,15 @@ func parsearCertificados(prueba domain.PruebaIdentidad) (*x509.Certificate, []*x
 		cadena = append(cadena, actual)
 	}
 	return certificado, cadena, nil
+}
+
+func conAlgoritmoAntiguo(verificacion domain.VerificationResult) bool {
+	for _, evidencia := range verificacion.Evidence {
+		if evidencia.Type == domain.EvidenciaAlgoritmoAntiguo {
+			return true
+		}
+	}
+	return false
 }
 
 func algoritmoCompatible(certificado *x509.Certificate, algoritmo string) bool {

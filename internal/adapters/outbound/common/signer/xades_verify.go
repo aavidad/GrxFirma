@@ -74,7 +74,7 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 	allSigners := make([]domain.CertificateRef, 0, len(signatures))
 	allSignerCertificates := make([]*x509.Certificate, 0, len(signatures))
 	allEmbeddedCertificates := make([]*x509.Certificate, 0, len(signatures))
-	var compatibility []string
+	var compatibility, antiguos []string
 	var cubiertasPorFirma []map[string]bool
 	var noComprobado []string
 	for idx, signature := range signatures {
@@ -94,6 +94,7 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 		allSignerCertificates = append(allSignerCertificates, verification.signerCertificates...)
 		allEmbeddedCertificates = append(allEmbeddedCertificates, verification.embeddedCertificates...)
 		compatibility = append(compatibility, xmlCompatibilityDetails(verification.result)...)
+		antiguos = append(antiguos, algoritmosAntiguos(verification.result)...)
 	}
 	result := domain.NewVerificationSuccess("ODF", "firma ODF valida", []string{
 		fmt.Sprintf("firmas_xml=%d", len(signatures)),
@@ -105,6 +106,7 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 		result = marcarSelloXMLNoEvaluable(result, signature.fragment)
 	}
 	result = markXMLCompatibility(result, compatibility)
+	result = marcarAlgoritmoAntiguo(result, antiguos)
 	result = aplicarCoberturaXML(result, coberturaContenedor(contenedor.nombres, entradaODFSinFirmar, cubiertasPorFirma, noComprobado))
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
 }
@@ -153,7 +155,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	allSigners := make([]domain.CertificateRef, 0, len(signatures))
 	allSignerCertificates := make([]*x509.Certificate, 0, len(signatures))
 	allEmbeddedCertificates := make([]*x509.Certificate, 0, len(signatures))
-	var compatibility []string
+	var compatibility, antiguos []string
 	verifiedSignatures := 0
 	var cubiertasPorFirma []map[string]bool
 	var relacionesPorFirma [][]relacionNoFirmada
@@ -186,6 +188,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 			allSignerCertificates = append(allSignerCertificates, verification.signerCertificates...)
 			allEmbeddedCertificates = append(allEmbeddedCertificates, verification.embeddedCertificates...)
 			compatibility = append(compatibility, xmlCompatibilityDetails(verification.result)...)
+			antiguos = append(antiguos, algoritmosAntiguos(verification.result)...)
 		}
 	}
 
@@ -199,6 +202,7 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		result = marcarSelloXMLNoEvaluable(result, signatures[name])
 	}
 	result = markXMLCompatibility(result, compatibility)
+	result = marcarAlgoritmoAntiguo(result, antiguos)
 	result = aplicarCoberturaXML(result, coberturaOOXML(contenedor, cubiertasPorFirma, relacionesPorFirma, noComprobado))
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
 }
@@ -232,7 +236,7 @@ func verifyXMLSignatureDocument(ctx context.Context, xmlData []byte, requireSign
 		return xmlSignatureVerification{}, errors.New("el documento no contiene firmas XML utilizables")
 	}
 	var aggregate xmlSignatureVerification
-	var compatibility []string
+	var compatibility, antiguos []string
 	for _, part := range parts {
 		if err := ctx.Err(); err != nil {
 			return xmlSignatureVerification{}, err
@@ -246,12 +250,14 @@ func verifyXMLSignatureDocument(ctx context.Context, xmlData []byte, requireSign
 		aggregate.embeddedCertificates = append(aggregate.embeddedCertificates, verification.embeddedCertificates...)
 		aggregate.coberturas = append(aggregate.coberturas, verification.coberturas...)
 		compatibility = append(compatibility, xmlCompatibilityDetails(verification.result)...)
+		antiguos = append(antiguos, algoritmosAntiguos(verification.result)...)
 	}
 	aggregate.result = applySignerVerificationMetadata(domain.NewVerificationSuccess(format, reason, details), aggregate.signerCertificates, aggregate.embeddedCertificates, anchors)
 	for _, part := range parts {
 		aggregate.result = marcarSelloXMLNoEvaluable(aggregate.result, part.fragment)
 	}
 	aggregate.result = markXMLCompatibility(aggregate.result, compatibility)
+	aggregate.result = marcarAlgoritmoAntiguo(aggregate.result, antiguos)
 	if documentoFirmado {
 		cobertura, err := coberturaDocumentoXML(xmlData, aggregate.coberturas)
 		if err != nil {
@@ -294,10 +300,12 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 	cobertura.noComprobado = manifiestos.noComprobado
 	cobertura.relacionesNoFirmadas = manifiestos.relacionesNoFirmadas
 	cobertura.partesRelacionesOPC = manifiestos.partesRelacionesOPC
+	// SHA-1 solo se acepta para leer firmas históricas: la integridad queda
+	// comprobada, pero nunca como una validación plena (criterio común con
+	// CAdES y PAdES, ver algoritmo_antiguo.go).
+	var antiguos []string
 	if usesSHA1(signedInfoXML) {
-		// SHA-1 solo se acepta para leer firmas históricas: nunca como una
-		// validación plena (CAdES/PAdES ya lo rechazan).
-		compatibility = append(compatibility, "La firma usa SHA-1, un algoritmo obsoleto: solo tiene valor como evidencia histórica.")
+		antiguos = append(antiguos, detalleAlgoritmoSHA1)
 	}
 
 	signers := make([]domain.CertificateRef, 0, len(signerCertificates))
@@ -308,6 +316,7 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 	result = applySignerVerificationMetadata(result, signerCertificates, certificates, anchors)
 	result = marcarSelloXMLNoEvaluable(result, xmlData)
 	result = markXMLCompatibility(result, compatibility)
+	result = marcarAlgoritmoAntiguo(result, antiguos)
 	return xmlSignatureVerification{
 		result:               result,
 		signers:              signers,

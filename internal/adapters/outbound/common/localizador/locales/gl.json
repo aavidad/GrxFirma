@@ -886,6 +886,7 @@
   "La firma es correcta, pero parte del contenido del documento no está firmado.": "A sinatura é correcta, pero parte do contido do documento non está asinado.",
   "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "Non se puido comprobar todo o que cobre a sinatura, así que non se dá por válida.",
   "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "A sinatura é válida, aínda que non cobre algúns metadatos do documento porque o seu formato os deixa fóra. No detalle indícase cales.",
+  "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba.": "O documento non cambiou desde que se asinou, pero a sinatura usa SHA-1, un algoritmo antigo que hoxe non se considera seguro. Por iso non se dá por válida: serve como proba dunha sinatura feita cando SHA-1 se aceptaba.",
   "Firma múltiple completada (": "Sinatura múltiple completada (",
   "Firma múltiple completada con incidencias (": "Sinatura múltiple completada con incidencias (",
   "Firma múltiple finalizada.": "Firma múltiple finalizada.",
