@@ -96,7 +96,13 @@ Al activarlo, la app:
 
 La tarea T063 implementa el servidor WebSocket, pero con estas restricciones:
 
-- Arranca **solo** si `websocket_habilitado: true` en la configuración.
+- El servicio residente arranca **solo** si `websocket_habilitado: true` en la
+  configuración.
+- El canal temporal que una sede abre con `afirma://websocket` no depende de
+  `websocket_habilitado`: se abre para esa operación, exige `idsession` y se
+  cierra al terminar. Para impedirlo también hay que poner
+  `websocket_permitido: false`, que corta el residente y los canales temporales
+  y prevalece sobre el ajuste del usuario (véase `docs/POLITICA_MAQUINA.md`).
 - Si arranca, registra el evento en auditoría.
 - Muestra aviso en la GUI cuando está activo (icono o indicador visible).
 - Se detiene cuando la ventana principal se cierra (no como demonio de fondo).
@@ -120,8 +126,9 @@ Para materializar este modelo se necesita un sistema de configuración mínimo:
 
 La tarea T058 (límites y timeouts) debe incluir:
 
-- Verificación al arrancar de que no se abre ningún puerto si la configuración
-  indica `websocket_habilitado: false`.
+- Verificación al arrancar de que no se abre ningún puerto residente si la
+  configuración indica `websocket_habilitado: false`, y de que no se abre
+  ninguno, ni siquiera temporal, con `websocket_permitido: false`.
 - Test que arranca el binario con configuración por defecto y verifica que no
   hay ningún socket en estado LISTEN.
 
