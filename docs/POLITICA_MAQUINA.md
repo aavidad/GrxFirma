@@ -18,6 +18,18 @@ pueden modificarla.
 | Windows | `HKLM\SOFTWARE\Policies\GrxFirma` (vista de 64 bits) | Administradores y GPO |
 | Linux / macOS | `/etc/grxfirma/policy.json` y `/etc/grxfirma/allowed-domains.json` | root. Se rechaza si el fichero es modificable por grupo u otros (`chmod 644`, propietario root) |
 
+En macOS `/etc` es un enlace simbólico a `/private/etc`. GrxFirma no sigue
+enlaces al leer la política, así que en macOS lee `/private/etc/grxfirma/policy.json`
+(el mismo fichero que se ve como `/etc/grxfirma/policy.json`).
+
+**Si la política tiene errores.** Un valor con el tipo equivocado invalida solo
+ese ajuste: el resto de la política se aplica. Un ajuste restrictivo
+(`rest_habilitado`, `websocket_habilitado`, `websocket_permitido`,
+`tofu_habilitado`) cuyo valor no se entiende queda **desactivado**, y si
+`policy.json` existe pero no se puede leer (JSON inválido, enlace, propietario
+distinto de root en Linux), REST y WebSocket quedan desactivados. En todos los
+casos GrxFirma deja un aviso en el registro de diagnóstico.
+
 En Windows **no** se leen `C:\etc\...` ni `%ProgramData%`: cualquier usuario
 autenticado puede crear carpetas en ellas y plantar una política que afectaría a
 todos los usuarios del equipo (por ejemplo, en servidores de escritorio remoto).
