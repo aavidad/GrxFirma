@@ -45,6 +45,41 @@ const (
 
 var nativeRequestIDPattern = regexp.MustCompile(`^[A-Za-z0-9._:-]{1,128}$`)
 
+// PlazoExtension es el plazo con que background.js da por perdida una petición
+// al host (setTimeout de sendToNativeHost). Si se cambia allí, se cambia aquí.
+const PlazoExtension = 180 * time.Second
+
+// PlazoMaximoOperacion es el tope del host por operación. Va por debajo de
+// PlazoExtension para que un diálogo que sigue abierto se cancele antes de que
+// la extensión descarte la petición: así no se firma algo cuya respuesta nadie
+// recoge ni quedan diálogos en cola (hallazgo C-04). Es el mismo valor que usa
+// el puente de Safari (BridgeLimits.operationTimeout).
+const PlazoMaximoOperacion = 170 * time.Second
+
+// PlazoOperacion limita el plazo configurado (MaxSessionSec) a PlazoMaximoOperacion.
+func PlazoOperacion(configurado time.Duration) time.Duration {
+	if configurado <= 0 || configurado > PlazoMaximoOperacion {
+		return PlazoMaximoOperacion
+	}
+	return configurado
+}
+
+// requestIDDePayloadInvalido intenta recuperar solo el requestId de un JSON que
+// no encaja con request, para que el error llegue a la petición pendiente.
+func requestIDDePayloadInvalido(payload []byte) string {
+	var parcial struct {
+		RequestID any `json:"requestId"`
+	}
+	if err := json.Unmarshal(payload, &parcial); err != nil {
+		return ""
+	}
+	id := normalizeRequestID(parcial.RequestID)
+	if !nativeRequestIDPattern.MatchString(id) {
+		return ""
+	}
+	return id
+}
+
 // SignDocumentUseCase define el contrato minimo esperado por la accion sign.
 type SignDocumentUseCase interface {
 	Execute(ctx context.Context, cmd application.SignCommand) (application.SignResult, error)
@@ -178,7 +213,7 @@ func (a *Adaptador) Process(ctx context.Context, callerID string, payload []byte
 	var req request
 	if err := json.Unmarshal(payload, &req); err != nil {
 		trace.DebugContext(ctx, "nativehost_payload_invalido", "caller", callerID, "payload_len", len(payload), "error", err)
-		return marshalResponses([]response{errorResponse("", "formato de solicitud invalido")})
+		return marshalResponses([]response{errorResponse(requestIDDePayloadInvalido(payload), "formato de solicitud invalido")})
 	}
 
 	reqID := normalizeRequestID(req.RequestID)

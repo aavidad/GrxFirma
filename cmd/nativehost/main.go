@@ -385,10 +385,8 @@ func main() {
 		os.Exit(1)
 	}
 	limites := limits.FromEnv(limits.Default())
-	operationTimeout := time.Duration(limites.MaxSessionSec) * time.Second
-	if operationTimeout <= 0 {
-		operationTimeout = time.Duration(limits.Default().MaxSessionSec) * time.Second
-	}
+	// El plazo del host queda por debajo del de la extensión (C-04).
+	operationTimeout := nativehost.PlazoOperacion(time.Duration(limites.MaxSessionSec) * time.Second)
 
 	// El navegador mantiene el proceso vivo y envía mensajes hasta desconectarse.
 	// Leemos en bucle hasta EOF (desconexión de la extensión).
