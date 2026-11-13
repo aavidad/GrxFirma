@@ -407,6 +407,17 @@ confianza del almacén del sistema y borra después solo sus artefactos conocido
 No elimina certificados `.pem`/`.crt` ajenos; si no puede retirar la confianza,
 conserva el material local para permitir un reintento seguro.
 
+La CA local solo sirve para certificados de servidor TLS en `localhost` y
+`127.0.0.1`. En Windows se instala con ese único uso y en macOS con confianza
+solo para SSL (`-p ssl`); en Linux, NSS la confía solo para sitios web
+(`C,,`). Si queda instalada una CA de una versión anterior sin esa
+restricción, GrxFirma crea una nueva y retira la antigua del inventario. En
+macOS la confianza también queda inventariada y se retira al vaciar el almacén
+o al rotar la CA. En Linux, si GrxFirma rebajó a `C,,` la raíz anterior con
+alias fijo de `~/.pki/nssdb`, la anota y la retira igual. La clave de la CA se
+guarda cifrada: en Windows con DPAPI y en Linux y macOS con una clave del
+almacén de secretos del sistema. Sin ese almacén no se genera la CA.
+
 Acciones sensibles expuestas en esa consola:
 
 - `Instalar confianza TLS local`

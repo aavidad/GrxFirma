@@ -137,7 +137,10 @@ func TestManagedFirefoxTrust_CACompartidaAmpliaSeConserva(t *testing.T) {
 	}
 }
 
-func TestManagedChromeTrust_LegacyReduceConfianzaSinAtribuirla(t *testing.T) {
+// B-07: GrxFirma rebaja a C,, la raíz heredada con su propia huella y lo
+// inventaría, así que la retirada también la quita. Antes se quedaba confiada
+// tras desinstalar.
+func TestManagedChromeTrust_LegacyReduceConfianzaYSeRetira(t *testing.T) {
 	home := t.TempDir()
 	setupFirefoxCertutil(t, home)
 	chrome := filepath.Join(home, ".pki", "nssdb")
@@ -164,11 +167,16 @@ func TestManagedChromeTrust_LegacyReduceConfianzaSinAtribuirla(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(chrome, managedNSSNickname(fingerprintSHA256(cert))+".pem")); !os.IsNotExist(err) {
 		t.Fatalf("se atribuyó una CA previa: %v", err)
 	}
+	inventory, err := loadManagedNSSTrustInventory(certFile + managedNSSTrustInventorySuffix)
+	if err != nil || len(inventory.Legacy) != 1 || inventory.Legacy[0].DB != chrome ||
+		inventory.Legacy[0].Fingerprint != fingerprintSHA256(cert) {
+		t.Fatalf("el cambio de confianza de la raíz heredada no quedó inventariado: %#v, %v", inventory, err)
+	}
 	if err := RemoveManagedTrusted(context.Background(), certFile); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(legacy); err != nil {
-		t.Fatalf("se borró una CA legacy: %v", err)
+	if _, err := os.Stat(legacy); !os.IsNotExist(err) {
+		t.Fatalf("la raíz heredada inventariada sigue en NSS tras la retirada: %v", err)
 	}
 }
 

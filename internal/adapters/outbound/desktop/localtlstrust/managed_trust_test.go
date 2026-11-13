@@ -98,7 +98,7 @@ func TestManagedTrustLifecycleSupported_WindowsYLinux(t *testing.T) {
 	t.Parallel()
 
 	got := ManagedTrustLifecycleSupported()
-	want := runtime.GOOS == "windows" || runtime.GOOS == "linux"
+	want := runtime.GOOS == "windows" || runtime.GOOS == "linux" || runtime.GOOS == "darwin"
 	if got != want {
 		t.Fatalf(
 			"ManagedTrustLifecycleSupported() = %t, want %t en %s",
