@@ -315,8 +315,9 @@ Si necesitas el frontend Qt/QML:
   - `save`
   - `load`
   - `signandsave`
-- `selectcert` ya autoselecciona el único certificado compatible cuando solo
-  hay uno y persiste preferencia `sticky` cuando la operación lo solicita.
+- La selección de certificado en `afirma://` es siempre explícita: el selector
+  aparece aunque solo haya un certificado compatible, y en las compilaciones
+  con interfaz no ofrece "Recordar esta selección" ni aplica `sticky`.
 - La cancelación del lote local legacy ya devuelve `CANCEL` en vez de un error
   genérico.
 - La cancelación del lote remoto legacy también devuelve `CANCEL` cuando el
