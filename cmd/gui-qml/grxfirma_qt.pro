@@ -58,7 +58,8 @@ HEADERS += \
         releasenotes.h \
         transientsecret.h \
         translatorbridge.h \
-        webcompatibilitylease.h
+        webcompatibilitylease.h \
+        windowssystempath.h
 
 RESOURCES += qml.qrc
 

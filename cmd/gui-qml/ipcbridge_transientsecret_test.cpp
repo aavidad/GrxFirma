@@ -7,6 +7,9 @@
 #include "transientsecret.h"
 
 #include <QElapsedTimer>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QTemporaryFile>
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QUuid>
@@ -28,6 +31,8 @@ private slots:
   void tokenSettingsUsesFixedErrorCodeNotMessage();
   void unexpectedServerReceivesNothing();
   void expectedServerReceivesDeferredRequest();
+  void secretFrameZeroesInputs();
+  void importCertificateSendsPasswordB64();
 
 private:
   QLocalSocket *connectPeer(IpcBridge &bridge, QLocalServer &server);
@@ -311,6 +316,86 @@ void IpcBridgeTransientSecretTest::expectedServerReceivesDeferredRequest() {
       readRequestsUntil(peer, QByteArrayLiteral("\"get_settings\""));
   QVERIFY(requests.contains("\"get_settings\""));
   QVERIFY(!bridge.m_serverRejected);
+}
+
+// D-06: la trama con secretos se construye sobre QByteArray y los búferes de
+// entrada quedan a cero.
+void IpcBridgeTransientSecretTest::secretFrameZeroesInputs() {
+  QByteArray p12("\x30\x82\x01\x02contenido-p12", 17);
+  QByteArray password("contraseña-ñ");
+  const qsizetype p12Size = p12.size();
+  const qsizetype passwordSize = password.size();
+  QJsonObject header;
+  header.insert(QStringLiteral("action"), QStringLiteral("import_certificate"));
+  header.insert(QStringLiteral("requestId"), QStringLiteral("r1"));
+  QJsonObject plain;
+  plain.insert(QStringLiteral("targetId"), QStringLiteral("nss"));
+  const QByteArray expectedP12 = p12.toBase64();
+  const QByteArray expectedPassword = password.toBase64();
+
+  const QByteArray frame = TransientSecret::buildSecretRequestFrame(
+      header, plain,
+      {{QStringLiteral("p12B64"), &p12},
+       {QStringLiteral("passwordB64"), &password}});
+
+  QCOMPARE(p12.size(), p12Size);
+  QCOMPARE(password.size(), passwordSize);
+  QCOMPARE(p12, QByteArray(p12Size, '\0'));
+  QCOMPARE(password, QByteArray(passwordSize, '\0'));
+  QVERIFY(frame.endsWith("\n"));
+  QJsonParseError parseError;
+  const QJsonDocument doc = QJsonDocument::fromJson(frame, &parseError);
+  QCOMPARE(parseError.error, QJsonParseError::NoError);
+  const QJsonObject obj = doc.object();
+  QCOMPARE(obj.value("action").toString(), QStringLiteral("import_certificate"));
+  QCOMPARE(obj.value("requestId").toString(), QStringLiteral("r1"));
+  const QJsonObject params = obj.value("params").toObject();
+  QCOMPARE(params.value("targetId").toString(), QStringLiteral("nss"));
+  QCOMPARE(params.value("p12B64").toString().toLatin1(), expectedP12);
+  QCOMPARE(params.value("passwordB64").toString().toLatin1(), expectedPassword);
+  QVERIFY(!params.contains("password"));
+
+  // Sin parámetros normales ni cabecera la trama sigue siendo JSON válido.
+  QByteArray only("x");
+  const QByteArray minimal = TransientSecret::buildSecretRequestFrame(
+      QJsonObject(), QJsonObject(), {{QStringLiteral("passwordB64"), &only}});
+  QCOMPARE(minimal, QByteArrayLiteral("{\"params\":{\"passwordB64\":\"eA==\"}}\n"));
+}
+
+// D-06: import_certificate envía passwordB64 (nunca "password" en claro) y
+// sin conexión no deja nada diferido.
+void IpcBridgeTransientSecretTest::importCertificateSendsPasswordB64() {
+  QTemporaryFile p12File;
+  QVERIFY(p12File.open());
+  p12File.write("p12-falso");
+  p12File.flush();
+
+  IpcBridge offline;
+  QSignalSpy offlineFinished(&offline, &IpcBridge::certificateImportFinished);
+  offline.importCertificate(p12File.fileName(), QStringLiteral("clave"));
+  QCOMPARE(offlineFinished.count(), 1);
+  QVERIFY(!offlineFinished.at(0).at(0).toBool());
+  QVERIFY(offline.m_deferredRequest.isEmpty());
+
+  IpcBridge bridge;
+  QLocalServer server;
+  QLocalSocket *peer = connectPeer(bridge, server);
+  QVERIFY(peer);
+  bridge.importCertificate(p12File.fileName(), QStringLiteral("clave"));
+  const QByteArray request =
+      readRequestsUntil(peer, QByteArrayLiteral("\"import_certificate\""));
+  QJsonObject params;
+  for (const QByteArray &line : request.split('\n')) {
+    const QJsonObject obj = QJsonDocument::fromJson(line).object();
+    if (obj.value("action").toString() == QStringLiteral("import_certificate"))
+      params = obj.value("params").toObject();
+  }
+  QCOMPARE(params.value("p12B64").toString(),
+           QString::fromLatin1(QByteArray("p12-falso").toBase64()));
+  QCOMPARE(params.value("passwordB64").toString(),
+           QString::fromLatin1(QByteArray("clave").toBase64()));
+  QVERIFY(!params.contains("password"));
+  QCOMPARE(bridge.m_pendingAction, QStringLiteral("import_certificate"));
 }
 
 QTEST_MAIN(IpcBridgeTransientSecretTest)

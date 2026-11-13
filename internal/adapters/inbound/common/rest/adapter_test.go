@@ -1280,8 +1280,11 @@ func TestRoutes_Index(t *testing.T) {
 	if !strings.Contains(body, `id="verifyAlgorithmSummary"`) {
 		t.Fatalf("index sin resumen visible del stack probable de firma: %s", body)
 	}
-	if !strings.Contains(body, "Sin coincidencias registradas.") || !strings.Contains(body, "No hay ficheros con hash distinto.") {
-		t.Fatalf("index sin detalle guiado de diferencias para hash de directorio: %s", body)
+	// B-05: el hash de directorio solo existía por ruta; ya no se ofrece por REST.
+	for _, removed := range []string{`id="hashCreateMode"`, `id="hashCheckMode"`, `id="signInputPath"`, `id="verifyInputPath"`, `id="hashCreatePath"`, `id="hashCheckManifestPath"`, `id="protectInputPath"`, `id="unprotectInputPath"`, "payload.inputPath", "payload.outputPath", "payload.hashPath", "payload.originalPath"} {
+		if strings.Contains(body, removed) {
+			t.Fatalf("index conserva un campo o envío de ruta de fichero (%s)", removed)
+		}
 	}
 	if !strings.Contains(body, `id="hashCreatePlanSummary"`) || !strings.Contains(body, `id="hashCheckPlanSummary"`) {
 		t.Fatalf("index sin planes visibles de utilidades hash: %s", body)
@@ -1393,8 +1396,11 @@ func TestRoutes_Signer(t *testing.T) {
 	if !strings.Contains(body, `id="padesSubFilter"`) {
 		t.Fatalf("firmador web sin subfiltro PAdES visible: %s", body)
 	}
-	if !strings.Contains(body, `id="localPathInput"`) || !strings.Contains(body, `id="localOutputPathInput"`) {
-		t.Fatalf("firmador web sin preferencias visibles de ruta local/salida: %s", body)
+	// B-05: el REST rechaza rutas de fichero (403); el firmador no las ofrece.
+	for _, id := range []string{"localPathInput", "localOutputPathInput", "quickVerifyPathInput", "quickVerifyOriginalPathInput", `id="saveToDisk"`, `id="overwriteOutput"`, "payload.inputPath", "payload.outputPath", "payload.originalPath"} {
+		if strings.Contains(body, id) {
+			t.Fatalf("firmador web conserva un campo o envío de ruta de fichero (%s)", id)
+		}
 	}
 	if !strings.Contains(body, `id="selectionTypeSummary"`) {
 		t.Fatalf("firmador web sin resumen visible del tipo de seleccion: %s", body)
@@ -1456,7 +1462,7 @@ func TestRoutes_Signer(t *testing.T) {
 	if !strings.Contains(body, `id="quickVerifySourceSummary"`) || !strings.Contains(body, `id="quickVerifyPlanSummary"`) {
 		t.Fatalf("firmador web sin resumen visible de validacion rapida: %s", body)
 	}
-	if !strings.Contains(body, `id="quickVerifyOriginalFileInput"`) || !strings.Contains(body, `id="quickVerifyOriginalPathInput"`) {
+	if !strings.Contains(body, `id="quickVerifyOriginalFileInput"`) {
 		t.Fatalf("firmador web sin original de referencia visible en verificacion rapida: %s", body)
 	}
 	if !strings.Contains(body, `id="quickVerifyOriginalSummary"`) || !strings.Contains(body, `id="quickVerifyPairSummary"`) {
@@ -1530,7 +1536,7 @@ func TestRoutes_Signer(t *testing.T) {
 	if !strings.Contains(body, "Modo de proxy en ejecución") {
 		t.Fatalf("firmador web sin etiqueta visible de modo de proxy en ejecución: %s", body)
 	}
-	if !strings.Contains(body, `id="saveToDisk"`) || !strings.Contains(body, `id="returnB64"`) || !strings.Contains(body, `id="overwriteOutput"`) {
+	if !strings.Contains(body, `id="returnB64"`) {
 		t.Fatalf("firmador web sin politicas visibles de salida: %s", body)
 	}
 	if !strings.Contains(body, "/?lang=es#hashToolsCard") {
@@ -1588,7 +1594,7 @@ func TestRoutes_Signer(t *testing.T) {
 	}
 	incidentBlock := body[incidentStart:incidentEnd]
 	for _, required := range []string{
-		`supportIncidentFileName(ui.localPathInput.value)`,
+		`selectedFiles.map(supportIncidentFileName)`,
 		`supportIncidentSafeDiagnostics(diagnostics)`,
 		`supportIncidentSafeGuidedDiagnostic(state.lastGuidedDiagnostic)`,
 		`supportIncidentSafeRequestId(state.lastRequestId)`,
@@ -1785,10 +1791,10 @@ func TestRoutes_IndexLocaleQueryRendersSelectedLanguage(t *testing.T) {
 	if !strings.Contains(body, "The proxy secure store is available for this local backend.") || !strings.Contains(body, "System trust") {
 		t.Fatalf("index sin resumen visible de TLS/proxy localizado en ingles: %s", body)
 	}
-	if !strings.Contains(body, "Hash file path") || !strings.Contains(body, "Report path (.hashreport)") || !strings.Contains(body, "Save report") {
+	if !strings.Contains(body, "Create hash") || !strings.Contains(body, "Check hash") {
 		t.Fatalf("index sin panel hash localizado en ingles: %s", body)
 	}
-	if strings.Contains(body, "Guardar informe") || strings.Contains(body, "Ruta del fichero de huella") || strings.Contains(body, "Confianza del sistema") {
+	if strings.Contains(body, "Crear huella") || strings.Contains(body, "Comprobar huella") || strings.Contains(body, "Confianza del sistema") {
 		t.Fatalf("index mantiene textos visibles funcionales en castellano para lang=en: %s", body)
 	}
 	if !strings.Contains(body, `/signer?lang=en`) || !strings.Contains(body, `/validator?lang=en`) ||

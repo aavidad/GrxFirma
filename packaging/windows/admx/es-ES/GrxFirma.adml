@@ -50,8 +50,8 @@ Deshabilitada o sin configurar: el servicio REST está desactivado (valor por de
       <string id="TimeoutOperacion_Help">Tiempo máximo, en segundos, que puede durar una operación de firma antes de cancelarse. Por defecto, 30 segundos.</string>
       <string id="MaxTamanoDocumento">Tamaño máximo de documento</string>
       <string id="MaxTamanoDocumento_Help">Tamaño máximo, en bytes, de un documento que se puede firmar. Por defecto, 52428800 (50 MiB).</string>
-      <string id="PermitirDESLegacy">Permitir DES del servidor intermedio también sin HTTPS</string>
-      <string id="PermitirDESLegacy_Help">REBAJA LA SEGURIDAD. Sin esta directiva, el paquete de sesión DES de AutoFirma 1.x (servidor intermedio de FIRe y AutoScript) solo se admite si todos los servidores del intercambio son HTTPS, y se avisa al usuario. Habilitarla lo permite también con servidores sin HTTPS, por ejemplo un servidor local de pruebas. DES nunca se usa para firmar.</string>
+      <string id="PermitirDESLegacy">Permitir DES heredado: servidor intermedio sin HTTPS y sobres CMS con DES o 3DES</string>
+      <string id="PermitirDESLegacy_Help">REBAJA LA SEGURIDAD. Sin esta directiva, el paquete de sesión DES de AutoFirma 1.x (servidor intermedio de FIRe y AutoScript) solo se admite si todos los servidores del intercambio son HTTPS, y se avisa al usuario. Habilitarla lo permite también con servidores sin HTTPS, por ejemplo un servidor local de pruebas. Además, con la directiva habilitada GrxFirma puede abrir sobres CMS (EnvelopedData o EncryptedData) cifrados con DES o 3DES; sin ella los rechaza. DES nunca se usa para firmar.</string>
       <string id="PermitirSHA1Legacy">Permitir firmas SHA-1</string>
       <string id="PermitirSHA1Legacy_Help">REBAJA LA SEGURIDAD. Sin esta directiva, las firmas pedidas con SHA-1 se generan con SHA-256 y se avisa al usuario. Habilitarla permite generar firmas SHA-1 para portales antiguos que no admiten otra cosa.</string>
       <string id="PermitirCMSAESECBLegacy">Permitir sobres CMS AES-ECB de AutoFirma 1.9</string>

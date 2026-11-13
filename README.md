@@ -34,8 +34,9 @@ artefactos concretos que se vayan a entregar.
   - `afirma://` / WebSocket / `service` legacy `grxfirma-afirmauri`
   - Native Messaging `grxfirma-nativehost`
   - REST local con TLS, consola web local y firmador web local
-- Utilidades hash de fichero y directorio ya operativas en CLI, REST, GUI QML
-  y consola web local.
+- Utilidades hash de fichero ya operativas en CLI, REST, GUI QML y consola web
+  local. El hash de directorio (manifiestos y `.hashreport`) solo está en la
+  CLI y en la GUI de escritorio (IPC): el REST no acepta rutas de fichero.
 - Protección local ya operativa con contenedor nativo `.afp` y contenedores CMS
   DER estándar `.enveloped` (`EnvelopedData`), `.encrypted.p7m`
   (`EncryptedData`), `.signedenveloped.p7m` (`SignedAndEnvelopedData`) y
@@ -203,10 +204,11 @@ Si necesitas el frontend Qt/QML:
 - CLI:
   - `createdigest` / `-operacion crear-hash`
   - `checkdigest` / `-operacion comprobar-hash`
-- REST:
+- REST (solo contenido en Base64; cualquier `inputPath`, `outputPath` o
+  `hashPath` responde 403, así que no hay hash de directorio por REST):
   - `POST /hash`
   - `POST /hash/check`
-- consola web local:
+- consola web local (solo ficheros cargados en el navegador):
   - validación de firma desde `/`
   - utilidad dedicada de firma, certificado y hash desde `/validator`
     (`/validador`)

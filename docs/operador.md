@@ -743,7 +743,8 @@ Estado del frente CMS heredado de 1.9:
 
 Estado actual:
 
- - utilidad de huellas de fichero y directorio ya operativa en CLI y REST local;
+ - utilidad de huellas de fichero operativa en CLI y REST local; la de directorio,
+   solo en CLI y en la GUI de escritorio (el REST no acepta rutas de fichero);
 - compatible con la semántica de `createdigest` / `checkdigest` de AutoFirma 1.9;
 - algoritmos soportados:
   - `SHA-1`
@@ -771,26 +772,22 @@ Operaciones útiles:
   - `grxfirma -modo-cli -operacion crear-hash -entrada /ruta/directorio -formato-hash xml -recursive`
 - comprobar manifiesto de directorio:
   - `grxfirma -modo-cli -operacion comprobar-hash -entrada /ruta/directorio -fichero-hash /ruta/directorio.hashfiles -salida /ruta/directorio.hashreport`
-- REST local:
+- REST local (solo contenido en Base64; `inputPath`, `outputPath` o `hashPath`
+  responden 403):
   - `POST /hash`
   - `POST /hash/check`
-  - al crear huellas, la consola `/` muestra también el artefacto esperado de salida
-    y avisa si la ruta no termina en la extensión coherente con el formato elegido;
-  - al comprobar huellas, la consola `/` infiere si el artefacto cargado parece
-    de fichero o de directorio y avisa cuando no coincide con el modo actual;
-  - `/hash/check` devuelve `report_base64` para directorios y puede guardar `report_output_path`
-  - la consola web `/` ya muestra también un detalle guiado de diferencias del manifiesto:
-    - entradas que coinciden;
-    - entradas con hash distinto;
-    - hashes sin fichero;
-    - ficheros nuevos fuera del manifiesto.
+  - al crear huellas, la consola `/` muestra también el artefacto esperado de salida;
+  - al comprobar huellas, la consola `/` avisa si el artefacto cargado parece un
+    manifiesto de directorio, que por REST no se puede comprobar;
+  - los manifiestos de directorio y el `.hashreport` se crean y comprueban con la
+    CLI o con la GUI de escritorio.
 - la consola web `/` muestra además un resumen guiado del destinatario de protección:
   - perfil (`alto` o `compat`);
   - algoritmo;
   - id;
   - y contenedor efectivo (`json/.afp` o `cms/.enveloped` cuando aplica).
 - la consola `/` muestra además un resumen del catálogo de destinatarios disponible
-  para el perfil seleccionado y del artefacto protegido esperado según la ruta de salida;
+  para el perfil seleccionado y del artefacto protegido esperado;
 - antes de proteger, la consola `/` muestra también un plan visible de protección:
   - origen;
   - número de destinatarios;
@@ -978,7 +975,7 @@ Solo para un checkout de desarrollo, nunca sobre el paquete distribuido:
 ```bash
 make desktop-user-debug
 xdg-mime query default x-scheme-handler/afirma
-tail -f /tmp/grxfirma-debug.log
+tail -f "${XDG_STATE_HOME:-$HOME/.local/state}/grxfirma/grxfirma-debug.log"
 ```
 
 Para volver al modo normal:

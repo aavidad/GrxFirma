@@ -313,21 +313,8 @@
             <button id="clearFileBtn" class="light" type="button">{{index .Messages "clearFile"}}</button>
           </div>
           <div id="fileMeta" class="meta"></div>
-          <div class="field-row" style="margin-top:12px">
-            <div class="field">
-              <label for="localPathInput">{{index .Messages "localPath"}}</label>
-              <input id="localPathInput" type="text" placeholder="{{index .Messages "localPathPlaceholder"}}">
-              <div class="hint">{{index .Messages "localPathHelp"}}</div>
-            </div>
-            <div class="field">
-              <label for="localOutputPathInput">{{index .Messages "outputPath"}}</label>
-              <input id="localOutputPathInput" type="text" placeholder="{{index .Messages "outputPathPlaceholder"}}">
-            </div>
-          </div>
           <div class="actions">
-            <label class="check"><input id="saveToDisk" type="checkbox" checked> {{index .Messages "saveToDisk"}}</label>
             <label class="check"><input id="returnB64" type="checkbox" checked> {{index .Messages "returnB64"}}</label>
-            <label class="check"><input id="overwriteOutput" type="checkbox"> {{index .Messages "overwrite"}}</label>
           </div>
           <div id="selectionTypeSummary" class="cert-summary" style="margin-top:14px"></div>
         </section>
@@ -640,15 +627,7 @@
             <button id="quickVerifyPickOriginalBtn" class="secondary" type="button">{{index .Messages "quickVerifyPickOriginal"}}</button>
             <button id="quickVerifyClearBtn" class="light" type="button">{{index .Messages "quickVerifyClear"}}</button>
           </div>
-          <div class="field" style="margin-top:12px">
-            <label for="quickVerifyPathInput">{{index .Messages "quickVerifyPath"}}</label>
-            <input id="quickVerifyPathInput" type="text" placeholder="{{index .Messages "quickVerifyPathPlaceholder"}}">
-          </div>
           <div id="quickVerifySourceSummary" class="cert-summary" style="margin-top:10px"></div>
-          <div class="field" style="margin-top:12px">
-            <label for="quickVerifyOriginalPathInput">{{index .Messages "quickVerifyOriginalPath"}}</label>
-            <input id="quickVerifyOriginalPathInput" type="text" placeholder="{{index .Messages "quickVerifyOriginalPathPlaceholder"}}">
-          </div>
           <div id="quickVerifyOriginalSummary" class="cert-summary" style="margin-top:10px"></div>
           <div id="quickVerifyPairSummary" class="cert-summary" style="margin-top:10px"></div>
           <div id="quickVerifyPlanSummary" class="cert-summary" style="margin-top:10px"></div>
@@ -704,11 +683,7 @@
         dropzone: document.getElementById("dropzone"),
         fileMeta: document.getElementById("fileMeta"),
         selectionTypeSummary: document.getElementById("selectionTypeSummary"),
-        localPathInput: document.getElementById("localPathInput"),
-        localOutputPathInput: document.getElementById("localOutputPathInput"),
-        saveToDisk: document.getElementById("saveToDisk"),
         returnB64: document.getElementById("returnB64"),
-        overwriteOutput: document.getElementById("overwriteOutput"),
         refreshCertificatesBtn: document.getElementById("refreshCertificatesBtn"),
         autoSelectCertificateBtn: document.getElementById("autoSelectCertificateBtn"),
         clearSelectedCertificateBtn: document.getElementById("clearSelectedCertificateBtn"),
@@ -757,8 +732,6 @@
         quickVerifyPickBtn: document.getElementById("quickVerifyPickBtn"),
         quickVerifyPickOriginalBtn: document.getElementById("quickVerifyPickOriginalBtn"),
         quickVerifyClearBtn: document.getElementById("quickVerifyClearBtn"),
-        quickVerifyPathInput: document.getElementById("quickVerifyPathInput"),
-        quickVerifyOriginalPathInput: document.getElementById("quickVerifyOriginalPathInput"),
         quickVerifySourceSummary: document.getElementById("quickVerifySourceSummary"),
         quickVerifyOriginalSummary: document.getElementById("quickVerifyOriginalSummary"),
         quickVerifyPairSummary: document.getElementById("quickVerifyPairSummary"),
@@ -1030,11 +1003,7 @@
         const prefs = {
           format: ui.formatSelect.value,
           action: ui.actionSelect.value,
-          localPathInput: ui.localPathInput.value,
-          localOutputPathInput: ui.localOutputPathInput.value,
-          saveToDisk: guidedOutputLocked && storedOutputPrefs ? !!storedOutputPrefs.saveToDisk : ui.saveToDisk.checked,
           returnB64: guidedOutputLocked && storedOutputPrefs ? !!storedOutputPrefs.returnB64 : ui.returnB64.checked,
-          overwriteOutput: guidedOutputLocked && storedOutputPrefs ? !!storedOutputPrefs.overwriteOutput : ui.overwriteOutput.checked,
           certificateSubjectFilter: ui.certificateSubjectFilter.value,
           certificateIssuerFilter: ui.certificateIssuerFilter.value,
           onlyUsableCertificates: ui.onlyUsableCertificates.checked,
@@ -1069,9 +1038,7 @@
           facturaeSignatureProvince: ui.facturaeSignatureProvince.value,
           facturaeSignaturePostalCode: ui.facturaeSignaturePostalCode.value,
           facturaeSignatureCountry: ui.facturaeSignatureCountry.value,
-          supportExpertMode: ui.supportExpertMode.checked,
-          quickVerifyPathInput: ui.quickVerifyPathInput.value,
-          quickVerifyOriginalPathInput: ui.quickVerifyOriginalPathInput.value
+          supportExpertMode: ui.supportExpertMode.checked
         };
         try {
           localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
@@ -1085,11 +1052,7 @@
           const prefs = JSON.parse(raw);
           if (prefs.format) ui.formatSelect.value = prefs.format;
           if (prefs.action) ui.actionSelect.value = prefs.action;
-          if (prefs.localPathInput) ui.localPathInput.value = prefs.localPathInput;
-          if (prefs.localOutputPathInput) ui.localOutputPathInput.value = prefs.localOutputPathInput;
-          ui.saveToDisk.checked = prefs.saveToDisk !== false;
           ui.returnB64.checked = prefs.returnB64 !== false;
-          ui.overwriteOutput.checked = !!prefs.overwriteOutput;
           if (prefs.certificateSubjectFilter) ui.certificateSubjectFilter.value = prefs.certificateSubjectFilter;
           if (prefs.certificateIssuerFilter) ui.certificateIssuerFilter.value = prefs.certificateIssuerFilter;
           ui.onlyUsableCertificates.checked = !!prefs.onlyUsableCertificates;
@@ -1126,8 +1089,6 @@
           if (prefs.facturaeSignaturePostalCode) ui.facturaeSignaturePostalCode.value = prefs.facturaeSignaturePostalCode;
           if (prefs.facturaeSignatureCountry) ui.facturaeSignatureCountry.value = prefs.facturaeSignatureCountry;
           ui.supportExpertMode.checked = !!prefs.supportExpertMode;
-          if (prefs.quickVerifyPathInput) ui.quickVerifyPathInput.value = prefs.quickVerifyPathInput;
-          if (prefs.quickVerifyOriginalPathInput) ui.quickVerifyOriginalPathInput.value = prefs.quickVerifyOriginalPathInput;
           state.restoredMultiCosignIds = Array.isArray(prefs.multiCosignCertificateIds) ? prefs.multiCosignCertificateIds : [];
         } catch (err) {}
       }
@@ -1426,24 +1387,11 @@
       }
 
       function updateFileMeta() {
-        const localPath = ui.localPathInput.value.trim();
         if (state.selectedFiles.length === 0) {
-          if (!localPath) {
-            ui.fileMeta.innerHTML = '<span class="muted">' + escapeHtml(t("needFile")) + '</span>';
-            renderSignPlanSummary();
-            renderVerificationPlanSummary();
-            renderOutputDeliverySummary();
-            renderOperationStrategySummary();
-            renderSelectionTypeSummary();
-            renderMetadataDeliverySummary();
-            return;
-          }
-          ui.fileMeta.innerHTML =
-            '<strong>' + escapeHtml(t("selectedFile")) + ':</strong> <code>' + escapeHtml(localPath) + '</code>';
+          ui.fileMeta.innerHTML = '<span class="muted">' + escapeHtml(t("needFile")) + '</span>';
           renderSignPlanSummary();
           renderVerificationPlanSummary();
           renderOutputDeliverySummary();
-          renderOutputArtifactSummary();
           renderOperationStrategySummary();
           renderSelectionTypeSummary();
           renderMetadataDeliverySummary();
@@ -1478,7 +1426,7 @@
       }
 
       function supportsGuidedMultiCosign() {
-        const singleSource = state.selectedFiles.length <= 1 && !(state.selectedFiles.length === 0 && !ui.localPathInput.value.trim());
+        const singleSource = state.selectedFiles.length === 1;
         const supportedFormat = ["PAdES", "ODF", "OOXML"].includes(currentFormat());
         return singleSource && supportedFormat && (currentAction() === "sign" || currentAction() === "cosign");
       }
@@ -1492,33 +1440,21 @@
         if (active) {
           if (!state.multiCosignOutputPrefs) {
             state.multiCosignOutputPrefs = {
-              saveToDisk: ui.saveToDisk.checked,
-              returnB64: ui.returnB64.checked,
-              overwriteOutput: ui.overwriteOutput.checked
+              returnB64: ui.returnB64.checked
             };
           }
-          ui.saveToDisk.checked = false;
           ui.returnB64.checked = true;
-          ui.overwriteOutput.checked = false;
-          ui.saveToDisk.disabled = true;
           ui.returnB64.disabled = true;
-          ui.overwriteOutput.disabled = true;
-          ui.localOutputPathInput.disabled = true;
           ui.multiCosignOutputNotice.innerHTML =
             '<strong>' + escapeHtml(t("multiCosignOutputPolicyTitle")) + ':</strong> ' + escapeHtml(t("multiCosignOutputPolicyActive")) + '<br>' +
             '<span class="muted">' + escapeHtml(t("multiCosignOutputPolicyRestore")) + '</span>';
           return;
         }
         if (state.multiCosignOutputPrefs) {
-          ui.saveToDisk.checked = !!state.multiCosignOutputPrefs.saveToDisk;
           ui.returnB64.checked = !!state.multiCosignOutputPrefs.returnB64;
-          ui.overwriteOutput.checked = !!state.multiCosignOutputPrefs.overwriteOutput;
           state.multiCosignOutputPrefs = null;
         }
-        ui.saveToDisk.disabled = false;
         ui.returnB64.disabled = false;
-        ui.overwriteOutput.disabled = false;
-        ui.localOutputPathInput.disabled = false;
         ui.multiCosignOutputNotice.innerHTML = '<span class="muted">' + escapeHtml(t("multiCosignOutputPolicyInactive")) + '</span>';
       }
 
@@ -1598,21 +1534,11 @@
 
       function renderSignPlanSummary() {
         const cert = state.certificates.find((item) => item.id === state.selectedCertificateId);
-        const localPath = ui.localPathInput.value.trim();
         let sourceText = t("pendingSelection");
         if (state.selectedFiles.length > 0) {
           sourceText = t("uploadedSelection");
-        } else if (localPath) {
-          sourceText = t("localPathMode");
         }
-        let deliveryText = t("deliveryMemoryOnly");
-        if (ui.saveToDisk.checked && ui.returnB64.checked) {
-          deliveryText = t("deliveryDiskAndBase64");
-        } else if (ui.saveToDisk.checked) {
-          deliveryText = t("deliveryDiskOnly");
-        } else if (ui.returnB64.checked) {
-          deliveryText = t("deliveryMemoryAndBase64");
-        }
+        const deliveryText = ui.returnB64.checked ? t("deliveryMemoryAndBase64") : t("deliveryMemoryOnly");
         const sealActive = ui.enableVisibleSeal.checked && currentFormat() === "PAdES";
         const formatUpper = currentFormat();
         const profileApplies = formatUpper === "PAdES" || formatUpper === "CAdES" || formatUpper === "XAdES";
@@ -1644,7 +1570,7 @@
       function renderGuidedAssistantSummary() {
         let message = t("guidedAssistantNeedSource");
         let detail = t("guidedAssistantNeedSourceHelp");
-        if (state.selectedFiles.length === 0 && !ui.localPathInput.value.trim()) {
+        if (state.selectedFiles.length === 0) {
           message = t("guidedAssistantNeedSource");
           detail = t("guidedAssistantNeedSourceHelp");
         } else if (!state.selectedCertificateId) {
@@ -1700,14 +1626,11 @@
       }
 
       function renderOperationStrategySummary() {
-        const localPath = ui.localPathInput.value.trim();
         let selectionText = t("pendingSelection");
         if (state.selectedFiles.length > 1) {
           selectionText = String(state.selectedFiles.length) + " " + t("filesSelectedCount");
         } else if (state.selectedFiles.length === 1) {
           selectionText = t("uploadedSelection");
-        } else if (localPath) {
-          selectionText = t("localPathMode");
         }
 
         let strategyText = t("operationStrategyPending");
@@ -1757,8 +1680,7 @@
       }
 
       function renderVerificationPlanSummary() {
-        const localPath = ui.localPathInput.value.trim();
-        if (state.selectedFiles.length === 0 && !localPath) {
+        if (state.selectedFiles.length === 0) {
           ui.verificationPlanSummary.innerHTML = '<span class="muted">' + escapeHtml(t("verificationPlanPending")) + '</span>';
           return;
         }
@@ -1776,8 +1698,6 @@
           referenceText = t("verificationPlanBatchRef");
         } else if (state.selectedFiles.length === 1) {
           referenceText = t("verificationPlanUploadRef");
-        } else if (localPath) {
-          referenceText = t("verificationPlanLocalRef");
         }
         const formatAware = currentAction() === "sign" || currentFormat() === "AUTO";
         ui.verificationPlanSummary.innerHTML =
@@ -1787,22 +1707,13 @@
       }
 
       function renderOutputDeliverySummary() {
-        const localPath = ui.localPathInput.value.trim();
-        const outputPath = ui.localOutputPathInput.value.trim();
-        const saveRequested = ui.saveToDisk.checked;
         const wantsBase64 = ui.returnB64.checked;
         let mainText = t("outputDeliveryPending");
 
         if (activeGuidedMultiCosign()) {
           mainText = t("multiCosignMemoryOnlyNotice");
-        } else if (!saveRequested) {
+        } else if (state.selectedFiles.length > 0) {
           mainText = t("outputDeliveryMemory");
-        } else if (state.selectedFiles.length > 1) {
-          mainText = t("outputDeliveryBatchMemory");
-        } else if (state.selectedFiles.length === 1) {
-          mainText = outputPath ? t("outputDeliveryUploadExplicit") : t("outputDeliveryUploadNeedPath");
-        } else if (localPath) {
-          mainText = outputPath ? t("outputDeliveryLocalExplicit") : t("outputDeliveryLocalAuto");
         }
 
         ui.outputDeliverySummary.innerHTML =
@@ -1892,30 +1803,16 @@
         if (normalized === "OOXML") return ".docx";
         if (normalized === "FACTURAE") return ".xml";
         if (normalized === "ASIC-XADES") return ".asics";
-        const localPath = ui.localPathInput.value.trim().toLowerCase();
-        if (localPath.endsWith(".pdf")) return ".pdf";
-        if (localPath.endsWith(".odt")) return ".odt";
-        if (localPath.endsWith(".docx")) return ".docx";
-        if (localPath.endsWith(".xml")) return ".xml";
         return "";
       }
 
       function renderOutputArtifactSummary() {
         const suffix = expectedSignedArtifactSuffix();
-        const outputPath = ui.localOutputPathInput.value.trim();
         if (!suffix) {
           ui.outputArtifactSummary.innerHTML = '<span class="muted">' + escapeHtml(t("outputArtifactUnknown")) + '</span>';
           return;
         }
-        if (!outputPath) {
-          ui.outputArtifactSummary.innerHTML = '<strong>' + escapeHtml(t("outputArtifactTitle")) + ':</strong> ' + escapeHtml(t("outputArtifactExpected") + suffix);
-          return;
-        }
-        if (!outputPath.toLowerCase().endsWith(suffix.toLowerCase())) {
-          ui.outputArtifactSummary.innerHTML = '<strong>' + escapeHtml(t("outputArtifactTitle")) + ':</strong> ' + escapeHtml(t("outputArtifactMismatch") + suffix);
-          return;
-        }
-        ui.outputArtifactSummary.innerHTML = '<strong>' + escapeHtml(t("outputArtifactTitle")) + ':</strong> ' + escapeHtml(t("outputArtifactMatch") + suffix);
+        ui.outputArtifactSummary.innerHTML = '<strong>' + escapeHtml(t("outputArtifactTitle")) + ':</strong> ' + escapeHtml(t("outputArtifactExpected") + suffix);
       }
 
       function renderProxySecretStoreSummary(response) {
@@ -1983,49 +1880,41 @@
       }
 
       function renderQuickVerifySummary() {
-        const path = ui.quickVerifyPathInput.value.trim();
         if (state.quickVerifyFile) {
           ui.quickVerifySourceSummary.innerHTML =
             '<strong>' + escapeHtml(t("quickVerifySource")) + ':</strong> ' +
             escapeHtml(sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name || t("notAvailable"));
-        } else if (path) {
-          ui.quickVerifySourceSummary.innerHTML =
-            '<strong>' + escapeHtml(t("quickVerifySource")) + ':</strong> <code>' + escapeHtml(path) + '</code>';
         } else {
           ui.quickVerifySourceSummary.innerHTML = '<span class="muted">' + escapeHtml(t("quickVerifyNeedArtifact")) + '</span>';
         }
         let expected = t("quickVerifyArtifactOnly");
-        if (state.quickVerifyFile || path) {
-          const kind = detectVerifyArtifactKind(state.quickVerifyFile ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name) : path);
+        if (state.quickVerifyFile) {
+          const kind = detectVerifyArtifactKind(sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name);
           if (kind) {
             expected = t("quickVerifyDetectedKind") + " " + kind;
           }
         }
         ui.quickVerifyPlanSummary.innerHTML =
           '<strong>' + escapeHtml(t("quickVerifyPlanTitle")) + ':</strong> ' +
-          escapeHtml(expected + ((state.quickVerifyOriginalFile || ui.quickVerifyOriginalPathInput.value.trim()) ? " · " + t("quickVerifyPlanWithOriginal") : ""));
+          escapeHtml(expected + (state.quickVerifyOriginalFile ? " · " + t("quickVerifyPlanWithOriginal") : ""));
         renderQuickVerifyOriginalSummary();
         renderQuickVerifyPairSummary();
         renderQuickVerifyResultSummary(null);
       }
 
       function renderQuickVerifyOriginalSummary() {
-        const path = ui.quickVerifyOriginalPathInput.value.trim();
         if (state.quickVerifyOriginalFile) {
           ui.quickVerifyOriginalSummary.innerHTML =
             '<strong>' + escapeHtml(t("quickVerifyOriginal")) + ':</strong> ' +
             escapeHtml(sourceFileName(state.quickVerifyOriginalFile) || state.quickVerifyOriginalFile.name || t("notAvailable"));
-        } else if (path) {
-          ui.quickVerifyOriginalSummary.innerHTML =
-            '<strong>' + escapeHtml(t("quickVerifyOriginal")) + ':</strong> <code>' + escapeHtml(path) + '</code>';
         } else {
           ui.quickVerifyOriginalSummary.innerHTML = '<span class="muted">' + escapeHtml(t("quickVerifyOriginalOptional")) + '</span>';
         }
       }
 
       function renderQuickVerifyPairSummary() {
-        const signedName = state.quickVerifyFile ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name) : ui.quickVerifyPathInput.value.trim();
-        const originalName = state.quickVerifyOriginalFile ? (sourceFileName(state.quickVerifyOriginalFile) || state.quickVerifyOriginalFile.name) : ui.quickVerifyOriginalPathInput.value.trim();
+        const signedName = state.quickVerifyFile ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name) : "";
+        const originalName = state.quickVerifyOriginalFile ? (sourceFileName(state.quickVerifyOriginalFile) || state.quickVerifyOriginalFile.name) : "";
         if (!(signedName && originalName)) {
           ui.quickVerifyPairSummary.innerHTML = '<span class="muted">' + escapeHtml(t("quickVerifyPairArtifactOnly")) + '</span>';
           return;
@@ -2058,7 +1947,6 @@
           '<strong>' + escapeHtml(t("resultArtifactSingle")) + '</strong><br>' +
           '<strong>' + escapeHtml(t("verificationFormat")) + ':</strong> ' + escapeHtml(summary.format || t("notAvailable")) + '<br>' +
           '<strong>' + escapeHtml(t("verificationAlgorithm")) + ':</strong> ' + escapeHtml(summary.algorithm || t("notAvailable")) + '<br>' +
-          '<strong>' + escapeHtml(t("outputPath")) + ':</strong> ' + escapeHtml(summary.outputPath || t("memoryOutput")) + '<br>' +
           '<strong>' + escapeHtml(t("resultArtifactDelivery")) + ':</strong> ' + escapeHtml(summary.delivery || t("notAvailable"));
         renderSupportSummary();
       }
@@ -2096,7 +1984,7 @@
       }
 
       function supportProbableOwner() {
-        const noSource = state.selectedFiles.length === 0 && !ui.localPathInput.value.trim();
+        const noSource = state.selectedFiles.length === 0;
         const invalidSealPages = ui.enableVisibleSeal.checked && !ui.sealAllPages.checked && !parsePageSelection(ui.sealPage.value).ok;
         if (noSource) {
           return {
@@ -2171,8 +2059,6 @@
 
       function buildSupportIncidentText() {
         const selectedFiles = state.selectedFiles.length;
-        const localPath = ui.localPathInput.value.trim();
-        const verifyPath = ui.quickVerifyPathInput.value.trim();
         const cert = state.certificates.find((item) => item.id === state.selectedCertificateId);
         const owner = supportProbableOwner();
         const lines = [];
@@ -2181,11 +2067,6 @@
         lines.push(t("format") + ": " + currentFormat());
         if (selectedFiles > 0) {
           lines.push(t("supportFilesLoaded") + ": " + String(selectedFiles));
-        } else if (localPath) {
-          lines.push(t("localPath") + ": " + localPath);
-        }
-        if (verifyPath) {
-          lines.push(t("quickVerifyPath") + ": " + verifyPath);
         }
         lines.push(t("certificate") + ": " + (cert ? (cert.subjectName || cert.id || t("certificateUnknown")) : t("notAvailable")));
         lines.push(owner.label + ": " + (owner.reason || t("notAvailable")));
@@ -2208,8 +2089,6 @@
         if (expert) {
           const details = [
             'RequestId: ' + escapeHtml(state.lastRequestId || t("notAvailable")),
-            escapeHtml(t("outputPath")) + ': ' + escapeHtml(ui.localOutputPathInput.value.trim() || t("notAvailable")),
-            escapeHtml(t("quickVerifyPath")) + ': ' + escapeHtml(ui.quickVerifyPathInput.value.trim() || t("notAvailable")),
             escapeHtml(t("supportSuggestedStep")) + ': ' + escapeHtml(suggested)
           ];
           if (state.lastGuidedDiagnostic) {
@@ -2327,10 +2206,10 @@
         const selectedFiles = state.selectedFiles.map((file) => sourceFileName(file) || file.name || "").filter(Boolean);
         const quickVerifyArtifact = state.quickVerifyFile
           ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name || "")
-          : supportIncidentFileName(ui.quickVerifyPathInput.value);
+          : "";
         const quickVerifyOriginal = state.quickVerifyOriginalFile
           ? (sourceFileName(state.quickVerifyOriginalFile) || state.quickVerifyOriginalFile.name || "")
-          : supportIncidentFileName(ui.quickVerifyOriginalPathInput.value);
+          : "";
         const owner = supportProbableOwner();
         return {
           generated_at: new Date().toISOString(),
@@ -2342,8 +2221,6 @@
             action: currentAction(),
             action_label: supportIncidentSafeText(supportCurrentActionLabel()),
             format: currentFormat(),
-            local_file: supportIncidentFileName(ui.localPathInput.value),
-            output_file: supportIncidentFileName(ui.localOutputPathInput.value),
             selected_files: selectedFiles.map(supportIncidentFileName).slice(0, 128),
             certificate: cert ? {
               selected: true,
@@ -2469,17 +2346,12 @@
       }
 
       function renderSelectionTypeSummary() {
-        const localPath = ui.localPathInput.value.trim();
         if (state.selectedFiles.length > 1) {
           ui.selectionTypeSummary.innerHTML = '<strong>' + escapeHtml(t("selectionTypeTitle")) + ':</strong> ' + escapeHtml(t("selectionTypeBatch"));
           return;
         }
         if (state.selectedFiles.length === 1) {
           ui.selectionTypeSummary.innerHTML = '<strong>' + escapeHtml(t("selectionTypeTitle")) + ':</strong> ' + escapeHtml(inferSelectionTypeFromName(sourceFileName(state.selectedFiles[0])));
-          return;
-        }
-        if (localPath) {
-          ui.selectionTypeSummary.innerHTML = '<strong>' + escapeHtml(t("selectionTypeTitle")) + ':</strong> ' + escapeHtml(inferSelectionTypeFromName(localPath));
           return;
         }
         ui.selectionTypeSummary.innerHTML = '<span class="muted">' + escapeHtml(t("selectionTypePending")) + '</span>';
@@ -2513,8 +2385,7 @@
       function isPDFSelection() {
         if (currentFormat() !== "PAdES") return false;
         if (state.selectedFiles.length === 0) {
-          const localPath = ui.localPathInput.value.trim();
-          return !!localPath && /\.pdf$/i.test(localPath);
+          return false;
         }
         return state.selectedFiles.every((file) => {
           const mime = inferMimeType(file).toLowerCase();
@@ -2795,8 +2666,7 @@
                 item.signed_content_base64 || "",
                 originalItem && originalItem.content_base64,
                 item.name || (originalItem && originalItem.name) || ("documento_" + (index + 1)),
-                signedMimeTypeForFormat(item && item.format ? item.format : format, item && item.name ? item.name : (originalItem && originalItem.name)),
-                item && item.outputPath ? item.outputPath : ""
+                signedMimeTypeForFormat(item && item.format ? item.format : format, item && item.name ? item.name : (originalItem && originalItem.name))
               )
             : null;
           const badgeClass = item && item.ok ? "ok" : "bad";
@@ -2806,22 +2676,15 @@
         return '<ul style="margin:12px 0 0 18px;padding:0">' + rows.join("") + '</ul>';
       }
 
-      async function verifySignedPayload(signedContentBase64, originalContentBase64, filename, mimeType, inputPath, originalPath) {
-        if (!signedContentBase64 && !inputPath) return null;
+      async function verifySignedPayload(signedContentBase64, originalContentBase64, filename, mimeType) {
+        if (!signedContentBase64) return null;
         try {
           const payload = {
             name: filename || "documento",
             mime_type: mimeType || "application/octet-stream",
-            original_content_base64: originalContentBase64 || undefined
+            original_content_base64: originalContentBase64 || undefined,
+            content_base64: signedContentBase64
           };
-          if (signedContentBase64) {
-            payload.content_base64 = signedContentBase64;
-          } else if (inputPath) {
-            payload.inputPath = inputPath;
-          }
-          if (originalPath) {
-            payload.originalPath = originalPath;
-          }
           return await apiFetch("/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -3047,9 +2910,7 @@
         clearDownloadUrl();
         state.lastGuidedDiagnostic = null;
         renderResultArtifactSummary(null);
-        const localPath = ui.localPathInput.value.trim();
-        const outputPath = ui.localOutputPathInput.value.trim();
-        if (state.selectedFiles.length === 0 && !localPath) {
+        if (state.selectedFiles.length === 0) {
           setResult(t("needFile"), "bad");
           return;
         }
@@ -3059,10 +2920,10 @@
         }
         setResult(t("signing"), "warn");
         try {
-          if (state.selectedFiles.length === 1 || (state.selectedFiles.length === 0 && localPath)) {
+          if (state.selectedFiles.length === 1) {
             const file = state.selectedFiles[0];
-            const inputName = file ? (sourceFileName(file) || file.name) : (localPath.split(/[\\/]/).pop() || "documento");
-            const inputMime = file ? inferMimeType(file) : inferMimeType(null, localPath);
+            const inputName = sourceFileName(file) || file.name;
+            const inputMime = inferMimeType(file);
             const payload = {
               name: inputName,
               mime_type: inputMime,
@@ -3070,21 +2931,10 @@
               action: currentAction(),
               certificate_id: state.selectedCertificateId,
               options: buildSignOptions(),
-              saveToDisk: ui.saveToDisk.checked,
               returnSignatureB64: ui.returnB64.checked,
-              strictCompat: ui.strictCompat.checked
+              strictCompat: ui.strictCompat.checked,
+              content_base64: await fileToBase64(file)
             };
-            if (outputPath) {
-              payload.outputPath = outputPath;
-            }
-            if (ui.overwriteOutput.checked) {
-              payload.overwrite = "true";
-            }
-            if (file) {
-              payload.content_base64 = await fileToBase64(file);
-            } else {
-              payload.inputPath = localPath;
-            }
             const initialOriginalBase64 = payload.content_base64 || "";
             let response;
             let multiInfoHtml = "";
@@ -3098,9 +2948,7 @@
               }
               let workingResponse = await performSignRequest({
                 ...payload,
-                saveToDisk: false,
-                returnSignatureB64: true,
-                outputPath: ""
+                returnSignatureB64: true
               });
               const followingCoSignOptions = stripVisualOptionsForCoSign(payload.options);
               const appliedSigners = [state.selectedCertificateId];
@@ -3113,7 +2961,6 @@
                   action: "cosign",
                   certificate_id: additionalId,
                   options: followingCoSignOptions,
-                  saveToDisk: false,
                   returnSignatureB64: true,
                   strictCompat: ui.strictCompat.checked
                 });
@@ -3128,7 +2975,6 @@
                 '<div class="meta" style="margin-top:12px">' +
                   '<strong>' + escapeHtml(t("multiCosignExecutedTitle")) + ':</strong> ' + escapeHtml(String(signerLabels.length)) + '<br>' +
                   '<strong>' + escapeHtml(t("multiCosignExecutedChain")) + ':</strong> ' + escapeHtml(signerLabels.join(" · ")) +
-                  (ui.saveToDisk.checked ? '<br><span class="muted">' + escapeHtml(t("multiCosignMemoryOnlyNotice")) + '</span>' : '') +
                 '</div>';
             } else {
               response = await performSignRequest(payload);
@@ -3138,10 +2984,9 @@
               response.signed_content_base64 || "",
               currentAction() === "sign" ? initialOriginalBase64 : "",
               payload.name,
-              inputMime,
-              response.outputPath || payload.inputPath || ""
+              inputMime
             );
-            renderVerificationExportSummary(verification, payload.name || response.outputPath || "firmado");
+            renderVerificationExportSummary(verification, payload.name || "firmado");
 
             const mime = signedMimeTypeForFormat(response.format || currentFormat(), payload.name);
             let downloadHtml = "";
@@ -3154,19 +2999,11 @@
               const filename = sourceFileBasename(payload.name || "firmado").replace(/\.[^.]+$/, "") + "_firmado" + extension;
               downloadHtml = '<div style="margin-top:12px"><a class="link-btn" href="' + url + '" download="' + escapeHtml(filename) + '">' + escapeHtml(t("downloadSigned")) + '</a></div>';
             }
-            let delivery = t("resultArtifactMemoryOnly");
-            if (response.outputPath && response.signed_content_base64) {
-              delivery = t("resultArtifactStoredAndDownload");
-            } else if (response.outputPath) {
-              delivery = t("resultArtifactStored");
-            } else if (response.signed_content_base64) {
-              delivery = t("resultArtifactDownloadReady");
-            }
+            const delivery = response.signed_content_base64 ? t("resultArtifactDownloadReady") : t("resultArtifactMemoryOnly");
             renderResultArtifactSummary({
               mode: "single",
               format: response.format || currentFormat(),
               algorithm: response.algorithm || "",
-              outputPath: response.outputPath || "",
               delivery: delivery
             });
             ui.resultBox.innerHTML =
@@ -3174,8 +3011,7 @@
               '<div class="meta">' +
                 '<strong>' + escapeHtml(t("verificationFormat")) + ':</strong> ' + escapeHtml(response.format || "") + '<br>' +
                 '<strong>' + escapeHtml(t("verificationAlgorithm")) + ':</strong> ' + escapeHtml(response.algorithm || "") + '<br>' +
-                '<strong>' + escapeHtml(t("verificationCertificate")) + ':</strong> ' + escapeHtml(response.certificate_id || "") + '<br>' +
-                '<strong>' + escapeHtml(t("outputPath")) + ':</strong> ' + escapeHtml(response.outputPath || t("memoryOutput")) +
+                '<strong>' + escapeHtml(t("verificationCertificate")) + ':</strong> ' + escapeHtml(response.certificate_id || "") +
               '</div>' +
               multiInfoHtml +
               buildVerificationHTML(verification) +
@@ -3198,14 +3034,10 @@
             action: currentAction(),
             certificate_id: state.selectedCertificateId,
             options: buildSignOptions(),
-            saveToDisk: ui.saveToDisk.checked,
             returnSignatureB64: ui.returnB64.checked,
             strictCompat: ui.strictCompat.checked
           };
           state.lastRequestId = payload.request_id;
-          if (ui.overwriteOutput.checked) {
-            payload.overwrite = "true";
-          }
           const response = await apiFetch("/sign-batch", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -3236,24 +3068,20 @@
       }
 
       async function quickVerify() {
-        const path = ui.quickVerifyPathInput.value.trim();
-        const originalPath = ui.quickVerifyOriginalPathInput.value.trim();
-        if (!state.quickVerifyFile && !path) {
+        if (!state.quickVerifyFile) {
           setResult(t("quickVerifyNeedArtifact"), "bad");
           return;
         }
         setResult(t("quickVerifyRunning"), "warn");
         try {
           const verification = await verifySignedPayload(
-            state.quickVerifyFile ? await fileToBase64(state.quickVerifyFile) : "",
+            await fileToBase64(state.quickVerifyFile),
             state.quickVerifyOriginalFile ? await fileToBase64(state.quickVerifyOriginalFile) : "",
-            state.quickVerifyFile ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name || "documento") : (path.split(/[\\/]/).pop() || "documento"),
-            state.quickVerifyFile ? inferMimeType(state.quickVerifyFile) : signedMimeTypeForFormat("AUTO", path),
-            path,
-            originalPath
+            sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name || "documento",
+            inferMimeType(state.quickVerifyFile)
           );
           renderQuickVerifyResultSummary(verification);
-          renderVerificationExportSummary(verification, state.quickVerifyFile ? (sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name || "verificacion") : (path.split(/[\\/]/).pop() || "verificacion"));
+          renderVerificationExportSummary(verification, sourceFileName(state.quickVerifyFile) || state.quickVerifyFile.name || "verificacion");
           ui.resultBox.innerHTML = buildVerificationHTML(verification);
         } catch (err) {
           renderQuickVerifyResultSummary({
@@ -3277,7 +3105,6 @@
         ui.dropzone.addEventListener("click", () => ui.fileInput.click());
         ui.fileInput.addEventListener("change", () => {
           ui.directoryInput.value = "";
-          ui.localPathInput.value = "";
           state.selectedFiles = Array.from(ui.fileInput.files || []);
           updateFileMeta();
           updateSealVisibility();
@@ -3288,7 +3115,6 @@
         });
         ui.directoryInput.addEventListener("change", () => {
           ui.fileInput.value = "";
-          ui.localPathInput.value = "";
           state.selectedFiles = Array.from(ui.directoryInput.files || []);
           updateFileMeta();
           updateSealVisibility();
@@ -3300,7 +3126,6 @@
         ui.clearFileBtn.addEventListener("click", () => {
           ui.fileInput.value = "";
           ui.directoryInput.value = "";
-          ui.localPathInput.value = "";
           state.selectedFiles = [];
           updateFileMeta();
           updateSealVisibility();
@@ -3324,7 +3149,6 @@
         ui.dropzone.addEventListener("drop", (event) => {
           ui.fileInput.value = "";
           ui.directoryInput.value = "";
-          ui.localPathInput.value = "";
           const files = event.dataTransfer && event.dataTransfer.files;
           state.selectedFiles = Array.from(files || []);
           updateFileMeta();
@@ -3434,21 +3258,7 @@
           describeCertificate(null);
           persistPreferences();
         });
-        [ui.localPathInput, ui.localOutputPathInput].forEach((element) => {
-          element.addEventListener("input", () => {
-            if (element === ui.localPathInput && element.value.trim()) {
-              ui.fileInput.value = "";
-              ui.directoryInput.value = "";
-              state.selectedFiles = [];
-            }
-            updateFileMeta();
-            updateSealVisibility();
-            updateMultiCosignVisibility();
-            renderMultiCosignSummary();
-            persistPreferences();
-          });
-        });
-        [ui.saveToDisk, ui.returnB64, ui.overwriteOutput].forEach((element) => {
+        [ui.returnB64].forEach((element) => {
           element.addEventListener("change", () => {
             renderSignPlanSummary();
             renderVerificationPlanSummary();
@@ -3593,43 +3403,19 @@
         ui.quickVerifyPickOriginalBtn.addEventListener("click", () => ui.quickVerifyOriginalFileInput.click());
         ui.quickVerifyFileInput.addEventListener("change", () => {
           state.quickVerifyFile = ui.quickVerifyFileInput.files && ui.quickVerifyFileInput.files[0] ? ui.quickVerifyFileInput.files[0] : null;
-          if (state.quickVerifyFile) {
-            ui.quickVerifyPathInput.value = "";
-          }
           renderQuickVerifySummary();
           persistPreferences();
         });
         ui.quickVerifyOriginalFileInput.addEventListener("change", () => {
           state.quickVerifyOriginalFile = ui.quickVerifyOriginalFileInput.files && ui.quickVerifyOriginalFileInput.files[0] ? ui.quickVerifyOriginalFileInput.files[0] : null;
-          if (state.quickVerifyOriginalFile) {
-            ui.quickVerifyOriginalPathInput.value = "";
-          }
           renderQuickVerifySummary();
           persistPreferences();
         });
         ui.quickVerifyClearBtn.addEventListener("click", () => {
           ui.quickVerifyFileInput.value = "";
           ui.quickVerifyOriginalFileInput.value = "";
-          ui.quickVerifyPathInput.value = "";
-          ui.quickVerifyOriginalPathInput.value = "";
           state.quickVerifyFile = null;
           state.quickVerifyOriginalFile = null;
-          renderQuickVerifySummary();
-          persistPreferences();
-        });
-        ui.quickVerifyPathInput.addEventListener("input", () => {
-          if (ui.quickVerifyPathInput.value.trim()) {
-            ui.quickVerifyFileInput.value = "";
-            state.quickVerifyFile = null;
-          }
-          renderQuickVerifySummary();
-          persistPreferences();
-        });
-        ui.quickVerifyOriginalPathInput.addEventListener("input", () => {
-          if (ui.quickVerifyOriginalPathInput.value.trim()) {
-            ui.quickVerifyOriginalFileInput.value = "";
-            state.quickVerifyOriginalFile = null;
-          }
           renderQuickVerifySummary();
           persistPreferences();
         });

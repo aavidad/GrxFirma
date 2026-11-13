@@ -8,9 +8,13 @@ Name=GrxFirma (debug)
 Name[es]=GrxFirma (debug)
 GenericName=Aplicacion de firma electronica
 GenericName[es]=Aplicacion de firma electronica
-Comment=Modo debug de GrxFirma con logs en /tmp
-Comment[es]=Modo debug de GrxFirma con logs en /tmp
-Exec=env GRXFIRMA_DEBUG=1 GRXFIRMA_LOG_FILE=/tmp/grxfirma-debug.log GRXFIRMA_PROTOCOL_UI=1 grxfirma-afirmauri %u
+Comment=Modo debug de GrxFirma con log privado en el directorio de estado del usuario
+Comment[es]=Modo debug de GrxFirma con log privado en el directorio de estado del usuario
+# make desktop-user-debug sustituye @GRXFIRMA_DEBUG_LOG@ por
+# ${XDG_STATE_HOME:-$HOME/.local/state}/grxfirma/grxfirma-debug.log y crea ese
+# directorio con permisos 0700. No se usa /tmp: es una ruta predecible en un
+# directorio compartido.
+Exec=env GRXFIRMA_DEBUG=1 "GRXFIRMA_LOG_FILE=@GRXFIRMA_DEBUG_LOG@" GRXFIRMA_PROTOCOL_UI=1 grxfirma-afirmauri %u
 Terminal=false
 Type=Application
 Icon=grxfirma
