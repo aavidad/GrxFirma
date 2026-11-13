@@ -65,10 +65,16 @@ func TestParseWebSocketLaunchURIUnsupportedVersion(t *testing.T) {
 	}
 }
 
-// A-07: el lanzamiento websocket exige idsession para ligar la conexión.
-func TestParseWebSocketLaunchURI_SinIdsessionFalla(t *testing.T) {
-	if _, err := parseWebSocketLaunchURI("afirma://websocket?v=4"); err == nil {
-		t.Fatal("un lanzamiento websocket sin idsession debía rechazarse")
+// Lote 13a (retrocompatibilidad, revisa A-07): una sede antigua que lanza
+// afirma://websocket sin idsession sigue abriendo el canal. La sesión queda
+// vacía y el servidor avisa en el registro y en cada aprobación.
+func TestParseWebSocketLaunchURI_SinIdsessionAbreComoAntes(t *testing.T) {
+	req, err := parseWebSocketLaunchURI("afirma://websocket?v=4")
+	if err != nil {
+		t.Fatalf("un lanzamiento websocket sin idsession debía admitirse: %v", err)
+	}
+	if req.SessionID != "" {
+		t.Fatalf("SessionID = %q, se esperaba vacío", req.SessionID)
 	}
 }
 

@@ -73,6 +73,7 @@
   "approval.format": "Format de signatura: %s",
   "approval.destinations": "Servidors que rebran el document o la signatura: %s",
   "approval.origin.unverifiable": "GrxFirma no pot comprovar quina web ha demanat esta signatura. Els servidors de la llista els ha triat eixa web. Continua només si els reconeixes.",
+  "approval.session.unidentified": "Esta web usa un sistema antic que no identifica la sessió amb GrxFirma. Continua només si acabes de començar tu esta signatura en la web.",
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "La web demana guardar un fitxer %s en %s. Les firmes i els documents solen ser .pdf, .xml, .csig o .xsig. Guarda'l només si saps què és. Vols guardar-lo?",

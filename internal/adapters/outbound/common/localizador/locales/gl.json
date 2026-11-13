@@ -73,6 +73,7 @@
   "approval.format": "Formato de sinatura: %s",
   "approval.destinations": "Servidores que recibirán o documento ou a sinatura: %s",
   "approval.origin.unverifiable": "GrxFirma non pode comprobar que web pediu esta sinatura. Os servidores da lista escolleunos esa web. Continúa só se os recoñeces.",
+  "approval.session.unidentified": "Esta web usa un sistema antigo que non identifica a sesión con GrxFirma. Continúa só se acabas de comezar ti esta sinatura na web.",
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
   "approval.save.extension": "A web pide gardar un ficheiro %s en %s. As sinaturas e os documentos adoitan ser .pdf, .xml, .csig ou .xsig. Gárdao só se sabes que é. Queres gardalo?",

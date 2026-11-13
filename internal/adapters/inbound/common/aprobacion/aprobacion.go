@@ -96,8 +96,14 @@ func Componer(loc ports.Localizador, d application.DetalleAprobacion) string {
 	if destinos := application.OrigenesDestino(d.Destinos...); len(destinos) > 0 {
 		lineas = append(lineas, loc.T("approval.destinations", strings.Join(destinos, ", ")))
 	}
+	if d.OrigenNoVerificable || d.SesionNoIdentificada {
+		lineas = append(lineas, "")
+	}
 	if d.OrigenNoVerificable {
-		lineas = append(lineas, "", loc.T("approval.origin.unverifiable"))
+		lineas = append(lineas, loc.T("approval.origin.unverifiable"))
+	}
+	if d.SesionNoIdentificada {
+		lineas = append(lineas, loc.T("approval.session.unidentified"))
 	}
 	return strings.Join(lineas, "\n")
 }

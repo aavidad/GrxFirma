@@ -99,8 +99,12 @@ La tarea T063 implementa el servidor WebSocket, pero con estas restricciones:
 - El servicio residente arranca **solo** si `websocket_habilitado: true` en la
   configuración.
 - El canal temporal que una sede abre con `afirma://websocket` no depende de
-  `websocket_habilitado`: se abre para esa operación, exige `idsession` y se
-  cierra al terminar. Para impedirlo también hay que poner
+  `websocket_habilitado`: se abre para esa operación y se cierra al terminar.
+  Si el enlace trae `idsession`, todo mensaje debe llevar ese mismo valor; uno
+  distinto o ausente cierra el canal. Las sedes antiguas que no mandan
+  `idsession` siguen funcionando por compatibilidad: el canal se abre como
+  antes, queda un aviso en el registro y el diálogo de aprobación de cada firma
+  dice que la web no identifica la sesión. Para impedirlo también hay que poner
   `websocket_permitido: false`, que corta el residente y los canales temporales
   y prevalece sobre el ajuste del usuario (véase `docs/POLITICA_MAQUINA.md`).
 - Si arranca, registra el evento en auditoría.

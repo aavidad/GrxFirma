@@ -905,11 +905,11 @@ func parseWebSocketLaunchURI(uriString string) (*websocketLaunchRequest, error) 
 		}
 	}
 
-	// A-07: sin idsession no hay ligadura entre el lanzamiento y la conexión.
+	// A-07 y lote 13a: sin idsession no hay ligadura entre el lanzamiento y
+	// la conexión, pero las sedes antiguas no lo mandan. Se admite por
+	// compatibilidad; el servidor lo avisa en el registro y en cada
+	// aprobación. Si viene, el servidor lo exige en todos los mensajes.
 	sessionID := firstQueryParam(params, "idsession", "idSession", "sessionid", "sessionId")
-	if sessionID == "" {
-		return nil, fmt.Errorf("falta id de sesion websocket")
-	}
 	return &websocketLaunchRequest{
 		Ports:     ports,
 		SessionID: sessionID,

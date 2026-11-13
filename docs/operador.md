@@ -112,6 +112,12 @@ para mantener la compatibilidad; una política de organización puede imponer
 `false` aunque el usuario habilite WebSocket. Las sedes que requieran
 AutoScript 1.9 por WebSocket dejarán de funcionar con el corte total.
 
+Si el enlace `afirma://websocket` trae `idsession`, GrxFirma exige ese mismo
+valor en cada mensaje y cierra el canal si falta o no coincide. Algunas sedes
+antiguas no lo mandan; siguen funcionando, pero el registro anota
+`websocket_sesion_no_identificada` y el diálogo de aprobación de cada firma
+avisa de que la web no identifica la sesión.
+
 ### Política de organización
 
 Ruta en Linux y macOS:

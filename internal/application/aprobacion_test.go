@@ -110,3 +110,33 @@ func TestProcessBatchMensajeIncluyeDocumentos(t *testing.T) {
 		t.Fatalf("detalle = %+v", visto)
 	}
 }
+
+// Lote 13a: una firma o un lote que llegan por un canal afirma://websocket
+// lanzado sin idsession lo dicen en el detalle de la aprobación.
+func TestAprobacionMarcaSesionNoIdentificada(t *testing.T) {
+	for _, ctx := range []context.Context{context.Background(), application.ConSesionNoIdentificada(context.Background())} {
+		quiere := application.SesionNoIdentificada(ctx)
+		var firma, lote application.DetalleAprobacion
+		ucFirma := application.NuevoSignDocumentUseCase(
+			&catalogoMock{certs: []domain.CertificateRef{certPrueba()}},
+			&proveedorClavesMock{clave: claveMock{"clave-001"}},
+			&motorMock{resultado: domain.SignatureResult{Format: domain.FormatCAdES, Data: []byte("firma")}},
+			&aprobadorMock{aprobado: true}, nil, nil,
+		).WithComponedorAprobacion(func(d application.DetalleAprobacion) string { firma = d; return "F" })
+		if _, err := ucFirma.Ejecutar(ctx, application.SignCommand{Document: docPrueba(), Format: domain.FormatCAdES, Action: domain.ActionSign}); err != nil {
+			t.Fatalf("firma: %v", err)
+		}
+		ucLote := application.NuevoProcessBatchUseCase(
+			&catalogoMock{certs: []domain.CertificateRef{certPrueba()}},
+			&proveedorClavesMock{clave: claveMock{"clave-001"}},
+			&motorMock{resultado: domain.SignatureResult{Format: domain.FormatCAdES, Data: []byte("firma")}},
+			&aprobadorMock{aprobado: true}, nil, nil,
+		).WithComponedorAprobacion(func(d application.DetalleAprobacion) string { lote = d; return "L" })
+		if _, err := ucLote.Ejecutar(ctx, application.ProcessBatchCommand{Jobs: []domain.SignatureJob{{Document: docPrueba(), Format: domain.FormatCAdES, Action: domain.ActionSign}}}); err != nil {
+			t.Fatalf("lote: %v", err)
+		}
+		if firma.SesionNoIdentificada != quiere || lote.SesionNoIdentificada != quiere {
+			t.Fatalf("contexto marcado=%v: firma=%v lote=%v", quiere, firma.SesionNoIdentificada, lote.SesionNoIdentificada)
+		}
+	}
+}

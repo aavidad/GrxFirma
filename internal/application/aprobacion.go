@@ -6,6 +6,7 @@
 package application
 
 import (
+	"context"
 	"net/url"
 	"strings"
 	"unicode"
@@ -54,6 +55,28 @@ type DetalleAprobacion struct {
 	// OrigenNoVerificable indica que no se sabe qué web pidió la operación
 	// (afirma:// directo): solo se conocen los destinos que puso la web.
 	OrigenNoVerificable bool
+	// SesionNoIdentificada indica que la sede abrió el canal afirma://websocket
+	// sin idsession (sedes antiguas): se admite por compatibilidad, pero
+	// nada liga los mensajes a ese lanzamiento y el diálogo lo avisa.
+	SesionNoIdentificada bool
+}
+
+type claveSesionNoIdentificada struct{}
+
+// ConSesionNoIdentificada marca el contexto de las operaciones que llegan por
+// un canal afirma://websocket lanzado sin idsession.
+func ConSesionNoIdentificada(ctx context.Context) context.Context {
+	return context.WithValue(ctx, claveSesionNoIdentificada{}, true)
+}
+
+// SesionNoIdentificada dice si la operación llega por un canal lanzado sin
+// idsession (véase ConSesionNoIdentificada).
+func SesionNoIdentificada(ctx context.Context) bool {
+	if ctx == nil {
+		return false
+	}
+	marca, _ := ctx.Value(claveSesionNoIdentificada{}).(bool)
+	return marca
 }
 
 // ComponedorAprobacion convierte un detalle en el texto del diálogo.

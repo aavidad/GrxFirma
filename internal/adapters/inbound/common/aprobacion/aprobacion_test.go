@@ -104,3 +104,20 @@ func TestTextoKDialogEscapaMarcado(t *testing.T) {
 		t.Fatalf("TextoKDialog = %q", got)
 	}
 }
+
+// Lote 13a: el diálogo avisa cuando la web no identifica la sesión
+// (afirma://websocket sin idsession, sedes antiguas), en los once idiomas.
+func TestComponerAvisaSesionNoIdentificada(t *testing.T) {
+	for _, idioma := range []string{"es", "en", "fr", "de", "it", "pt", "ca", "va", "gl", "eu", "zh"} {
+		loc := localizador.Para(idioma)
+		aviso := loc.T("approval.session.unidentified")
+		if aviso == "" || aviso == "approval.session.unidentified" {
+			t.Fatalf("%s: falta la traducción del aviso", idioma)
+		}
+		con := Componer(loc, application.DetalleAprobacion{Certificado: "CN=Ana", SesionNoIdentificada: true})
+		sin := Componer(loc, application.DetalleAprobacion{Certificado: "CN=Ana"})
+		if !strings.Contains(con, aviso) || strings.Contains(sin, aviso) {
+			t.Fatalf("%s: el aviso debe salir solo con la sesión no identificada:\n%s", idioma, con)
+		}
+	}
+}
