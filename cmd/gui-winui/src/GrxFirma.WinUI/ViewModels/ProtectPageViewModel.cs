@@ -69,7 +69,7 @@ public sealed class ProtectPageViewModel
     private string _protectResultMessage =
         "No se ha ejecutado ninguna protección.";
     private string _unprotectWarningMessage = string.Empty;
-private string _unprotectResultMessage =
+    private string _unprotectResultMessage =
         "No se ha ejecutado ninguna desprotección.";
     private int _selectedRecipientCount;
     private string _selectedRecipientSummary =
