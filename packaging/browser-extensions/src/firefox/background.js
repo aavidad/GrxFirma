@@ -435,6 +435,9 @@ function senderDocumentURL(sender) {
     return '';
 }
 
+// Decisión expresa de Alberto del 13/11/2026 (hallazgo C-08): se mantienen
+// todos los subdominios de dipgra.es y savia.net. No restringir sin otra
+// decisión; ver docs/ADR-desktop-security.md.
 const FACTORY_PORTAL_PATTERNS = ['https://*.dipgra.es/*', 'https://*.savia.net/*'];
 function matchesManagedPortalPattern(parsed, pattern) {
     const match = /^https:\/\/(\*\.)?([^/:*]+)\/\*$/.exec(pattern);
