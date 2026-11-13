@@ -136,8 +136,11 @@ type ProtectionRecipientCatalog interface {
 	Resolve(ctx context.Context, recipientIDs []string) ([]domain.ProtectionRecipient, error)
 }
 
+// ProtectionKeyProvider entrega las claves con las que abrir un documento
+// protegido concreto. Solo debe cargar las claves privadas de las identidades
+// que el documento nombra como destinatarias, nunca todas las del usuario.
 type ProtectionKeyProvider interface {
-	DecryptionKeys(ctx context.Context) ([]domain.ProtectionKeyMaterial, error)
+	DecryptionKeys(ctx context.Context, protected domain.Document) ([]domain.ProtectionKeyMaterial, error)
 }
 
 type ProtectionRecipientExchangeStore interface {

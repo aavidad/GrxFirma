@@ -46,16 +46,22 @@ pueden desproteger. `LocalCombinedKeyring` agrega:
 - `LocalCompatKeyring`, con identidades RSA-OAEP procedentes de los catálogos
   de certificados.
 
-El catálogo compatible falla cerrado. Antes de anunciar una identidad comprueba
-certificado RSA, `KeyUsage` de `KeyEncipherment`, coincidencia entre la clave
-pública del certificado y la del firmante, y que el firmante sea una
-`*rsa.PrivateKey` exportable. Esta consulta no serializa la clave. Solo
-`DecryptionKeys` crea el PKCS#8 necesario para el motor, y el caso de uso lo
-zeroiza después de desproteger junto con las semillas ML-KEM/X25519. De este
-modo un `crypto.Signer` opaco de Windows CertStore, PKCS#11 o hardware sigue
-disponible para firma, pero no se ofrece como destinatario RSA hasta que su
-adaptador proporcione capacidad de descifrado. Un P12/PFX RSA cargado en memoria
-sí puede satisfacer el contrato.
+El catálogo compatible falla cerrado y no toca claves privadas para anunciar
+destinatarios. Una identidad se anuncia solo si el catálogo declaró al
+enumerarla, sin abrir la clave, que tiene una clave RSA local apta para
+Desproteger (`HasLocalDecryptionKey`: P12/PFX cargado en memoria o base NSS) y
+si el certificado es RSA con `KeyUsage` de `KeyEncipherment`. Un
+`crypto.Signer` opaco de Windows CertStore, macOS Keychain, PKCS#11 o hardware
+sigue disponible para firma, pero no se ofrece como destinatario RSA.
+
+`DecryptionKeys` recibe el documento protegido y solo pide al almacén las
+claves de los certificados que ese documento nombra como destinatarios: por
+identificador en el sobre `.afp` y por emisor y número de serie o
+identificador de clave en CMS. En NSS pedir una clave la exporta del perfil del
+navegador, así que ninguna otra clave sale de él. Con la clave en la mano se
+comprueba que es una `*rsa.PrivateKey` que corresponde al certificado, se crea
+el PKCS#8 que necesita el motor y el caso de uso lo pone a cero después de
+desproteger, junto con las semillas ML-KEM/X25519.
 
 #### `EventPublisher`
 Notifica al borde (UI, adaptadores de entrada) sobre el progreso asíncrono.

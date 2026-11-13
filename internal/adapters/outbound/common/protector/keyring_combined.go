@@ -123,17 +123,17 @@ func (k *LocalCombinedKeyring) RemovePublic(ctx context.Context, id string) erro
 	return k.Public.Remove(ctx, id)
 }
 
-func (k *LocalCombinedKeyring) DecryptionKeys(ctx context.Context) ([]domain.ProtectionKeyMaterial, error) {
+func (k *LocalCombinedKeyring) DecryptionKeys(ctx context.Context, protected domain.Document) ([]domain.ProtectionKeyMaterial, error) {
 	var all []domain.ProtectionKeyMaterial
 	if k != nil && k.Strong != nil {
-		keys, err := k.Strong.DecryptionKeys(ctx)
+		keys, err := k.Strong.DecryptionKeys(ctx, protected)
 		if err != nil {
 			return nil, err
 		}
 		all = append(all, keys...)
 	}
 	if k != nil && k.Compat != nil {
-		keys, err := k.Compat.DecryptionKeys(ctx)
+		keys, err := k.Compat.DecryptionKeys(ctx, protected)
 		if err != nil {
 			return nil, err
 		}

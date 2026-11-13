@@ -84,13 +84,19 @@ func (k *LocalStrongKeyring) Resolve(ctx context.Context, recipientIDs []string)
 	return recipients, nil
 }
 
-func (k *LocalStrongKeyring) DecryptionKeys(ctx context.Context) ([]domain.ProtectionKeyMaterial, error) {
+// DecryptionKeys devuelve solo las identidades fuertes que el sobre .afp
+// nombra como destinatarias.
+func (k *LocalStrongKeyring) DecryptionKeys(ctx context.Context, protected domain.Document) ([]domain.ProtectionKeyMaterial, error) {
+	destinatarios := destinatariosDe(protected)
 	identities, err := k.loadIdentities(ctx)
 	if err != nil {
 		return nil, err
 	}
-	out := make([]domain.ProtectionKeyMaterial, 0, len(identities))
+	out := make([]domain.ProtectionKeyMaterial, 0, 1)
 	for _, identity := range identities {
+		if !destinatarios.incluyeID(identity.id) {
+			continue
+		}
 		out = append(out, identity.keyMaterial())
 	}
 	return out, nil

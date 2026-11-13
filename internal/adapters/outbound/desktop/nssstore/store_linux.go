@@ -664,17 +664,22 @@ func construirRef(cert *x509.Certificate) domain.CertificateRef {
 	}
 	tipo, org, nif := certutil.ClasificarCertificado(cert)
 	fingerprint := hex.EncodeToString(huella[:])
+	// NSS guarda la clave en key4.db y KeyFor la exporta a una clave local.
+	// Declararlo al enumerar permite anunciar la identidad como destinataria
+	// de Proteger sin exportar ninguna clave (F-01).
+	_, claveRSA := cert.PublicKey.(*rsa.PublicKey)
 	return domain.CertificateRef{
-		ID:            fingerprint,
-		Subject:       subject,
-		Issuer:        issuer,
-		NotAfter:      cert.NotAfter,
-		Fingerprint:   fingerprint,
-		DER:           cert.Raw,
-		HasSigningKey: true,
-		Tipo:          tipo,
-		Organizacion:  org,
-		NIF:           nif,
+		ID:                    fingerprint,
+		Subject:               subject,
+		Issuer:                issuer,
+		NotAfter:              cert.NotAfter,
+		Fingerprint:           fingerprint,
+		DER:                   cert.Raw,
+		HasSigningKey:         true,
+		HasLocalDecryptionKey: claveRSA,
+		Tipo:                  tipo,
+		Organizacion:          org,
+		NIF:                   nif,
 	}
 }
 

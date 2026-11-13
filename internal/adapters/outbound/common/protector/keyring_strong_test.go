@@ -32,7 +32,7 @@ func TestLocalStrongKeyring_AutogeneraYExponeIdentidad(t *testing.T) {
 		t.Fatalf("destinatario fuerte incompleto: %#v", got)
 	}
 
-	keys, err := keyring.DecryptionKeys(context.Background())
+	keys, err := keyring.DecryptionKeys(context.Background(), documentoDirigidoA(t, recipients[0].ID))
 	if err != nil {
 		t.Fatalf("DecryptionKeys() error = %v", err)
 	}
