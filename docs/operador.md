@@ -125,6 +125,13 @@ aprobación: se admiten hasta 100 y el registro anota
 `triphase_server_varias_firmas` con el número de firmas hechas. Una prefirma
 sin ninguna firma o con más de 100 se rechaza sin firmar.
 
+Por WebSocket o `service`, una aplicación de intranet puede seguir usando
+servidores `http://` (por ejemplo `http://intranet:8080`) si su origen está en
+la lista de confianza o el usuario lo aprueba al preguntarle, como antes. El
+registro anota `afirma_destino_sin_cifrar` y el diálogo de aprobación avisa de
+que la conexión no está cifrada. El enlace `afirma://` directo sigue exigiendo
+`https://` (o `http://` solo hacia el propio equipo).
+
 ### Política de organización
 
 Ruta en Linux y macOS:

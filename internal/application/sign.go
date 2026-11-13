@@ -160,6 +160,7 @@ func (uc *SignDocumentUseCase) mensajeAprobacion(ctx context.Context, cmd SignCo
 	if uc != nil && uc.componer != nil {
 		detalle := DetalleAprobacionFirma(cmd, cert.Subject)
 		detalle.SesionNoIdentificada = SesionNoIdentificada(ctx)
+		detalle.DestinoSinCifrar = DestinoSinCifrar(ctx)
 		return uc.componer(detalle)
 	}
 	return mensajeAprobacionFirma(cmd, cert)

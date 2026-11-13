@@ -7,6 +7,7 @@ package application
 
 import (
 	"context"
+	"net"
 	"net/url"
 	"strings"
 	"unicode"
@@ -59,6 +60,47 @@ type DetalleAprobacion struct {
 	// sin idsession (sedes antiguas): se admite por compatibilidad, pero
 	// nada liga los mensajes a ese lanzamiento y el diálogo lo avisa.
 	SesionNoIdentificada bool
+	// DestinoSinCifrar indica que algún destino usa http:// fuera de este
+	// equipo (aplicaciones de intranet por el canal socket). Se admite por
+	// compatibilidad si la política autoriza el origen, y el diálogo lo avisa.
+	// El componedor también lo deduce de Destinos.
+	DestinoSinCifrar bool
+	// FirmaTrifasicaServidor indica una firma trifásica contra el servidor de
+	// la web: el servidor decide cuántas firmas pide (hasta un tope) y el
+	// número no se conoce al aprobar, así que el diálogo lo dice.
+	FirmaTrifasicaServidor bool
+}
+
+type claveDestinoSinCifrar struct{}
+
+// ConDestinoSinCifrar marca el contexto de una operación con algún destino
+// http:// fuera de este equipo, admitido por compatibilidad.
+func ConDestinoSinCifrar(ctx context.Context) context.Context {
+	return context.WithValue(ctx, claveDestinoSinCifrar{}, true)
+}
+
+// DestinoSinCifrar dice si la operación lleva la marca de ConDestinoSinCifrar.
+func DestinoSinCifrar(ctx context.Context) bool {
+	if ctx == nil {
+		return false
+	}
+	marca, _ := ctx.Value(claveDestinoSinCifrar{}).(bool)
+	return marca
+}
+
+// EsDestinoSinCifrar dice si una URL u origen usa http:// hacia un equipo
+// que no es este (fuera de loopback).
+func EsDestinoSinCifrar(raw string) bool {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || !strings.EqualFold(u.Scheme, "http") || u.Host == "" {
+		return false
+	}
+	host := u.Hostname()
+	if strings.EqualFold(host, "localhost") {
+		return false
+	}
+	ip := net.ParseIP(host)
+	return ip == nil || !ip.IsLoopback()
 }
 
 type claveSesionNoIdentificada struct{}

@@ -12,6 +12,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/url"
 	"strings"
@@ -63,7 +64,10 @@ func (v *Validator) Validate(ctx context.Context, origen string) error {
 	if err := validarFormato(origen); err != nil {
 		return err
 	}
+	return v.evaluar(ctx, origen)
+}
 
+func (v *Validator) evaluar(ctx context.Context, origen string) error {
 	decision, err := v.policy.Evaluate(ctx, origen)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrOrigenRechazado, err)
@@ -82,8 +86,43 @@ func ValidarFormato(origen string) error {
 	return validarFormato(origen)
 }
 
-// validarFormato aplica todas las reglas de validación estricta de formato sobre el origen.
+// ValidarFormatoSocket es ValidarFormato para el canal socket (WebSocket y
+// service): por compatibilidad con aplicaciones de intranet admite además
+// http fuera de loopback, como antes del lote 4. sinCifrar indica ese caso;
+// quien llame tiene que pasar igualmente la política y avisar.
+func ValidarFormatoSocket(origen string) (sinCifrar bool, err error) {
+	if err := validarFormatoCon(origen, true); err != nil {
+		return false, err
+	}
+	u, _ := url.Parse(origen)
+	return strings.EqualFold(u.Scheme, "http") && !esLocalhost(u.Hostname()), nil
+}
+
+// ValidateSocket es Validate para los destinos que llegan por el canal
+// socket: admite http fuera de loopback si la política autoriza el origen
+// (lista o TOFU, igual que antes del lote 4) y lo registra como aviso, sin
+// el origen.
+func (v *Validator) ValidateSocket(ctx context.Context, origen string) error {
+	sinCifrar, err := ValidarFormatoSocket(origen)
+	if err != nil {
+		return err
+	}
+	if err := v.evaluar(ctx, origen); err != nil {
+		return err
+	}
+	if sinCifrar {
+		slog.Warn("afirma_destino_sin_cifrar", "canal", "socket")
+	}
+	return nil
+}
+
 func validarFormato(origen string) error {
+	return validarFormatoCon(origen, false)
+}
+
+// validarFormatoCon aplica las reglas de formato sobre el origen. Con
+// permitirHTTP admite http fuera de loopback (solo canal socket).
+func validarFormatoCon(origen string, permitirHTTP bool) error {
 	if strings.TrimSpace(origen) == "" {
 		return ErrOrigenVacio
 	}
@@ -120,7 +159,7 @@ func validarFormato(origen string) error {
 	}
 
 	// http solo para localhost / 127.0.0.1.
-	if esquema == "http" {
+	if esquema == "http" && !permitirHTTP {
 		host := u.Hostname()
 		if !esLocalhost(host) {
 			return ErrHTTPSoloLocalhost
