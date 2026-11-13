@@ -83,3 +83,25 @@ func TestCanonicalizeElementInDocument_InheritsNamespaces(t *testing.T) {
 		t.Fatalf("C14N exclusiva perdió el espacio ds utilizado: %s", exclusive)
 	}
 }
+
+// E1-08: C14N 1.0 §2.3 escribe las referencias de carácter en hexadecimal
+// (&#x9;, &#xA;, &#xD;) y la norma XML convierte en espacio los tabuladores
+// y saltos de línea literales de los valores de atributo; los que llegan como
+// referencia de carácter se conservan.
+func TestCanonicalizeXML_EscapesHex(t *testing.T) {
+	for _, caso := range []struct{ entrada, esperado string }{
+		{`<a b="x&#9;y&#10;z">t&#13;</a>`, `<a b="x&#x9;y&#xA;z">t&#xD;</a>`},
+		{"<a b=\"x\ty\nz\r\nw\"></a>", `<a b="x y z w"></a>`},
+		{"<a b='u\tv' c=\"&#9;\t\"><!-- \t --><![CDATA[\t]]></a>", "<a b=\"u v\" c=\"&#x9; \">\t</a>"},
+	} {
+		for _, algoritmo := range []string{algC14N, algExcC14N} {
+			got, err := canonicalizeXML([]byte(caso.entrada), algoritmo)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != caso.esperado {
+				t.Fatalf("%s:\n got %q\nwant %q", algoritmo, got, caso.esperado)
+			}
+		}
+	}
+}
