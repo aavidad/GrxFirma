@@ -55,7 +55,7 @@ class WebExtLockfileTests(unittest.TestCase):
         )
         lock = json.loads(lock_path.read_text(encoding="utf-8"))
         packages = lock["packages"]
-        self.assertEqual(packages["node_modules/web-ext"]["version"], "10.5.0")
+        self.assertEqual(packages["node_modules/web-ext"]["version"], "10.8.0")
         for name, entry in packages.items():
             if not name or entry.get("link"):
                 continue

@@ -4,6 +4,6 @@
   "description": "Herramientas fijadas con lockfile para firmar la extensión Firefox en AMO.",
   "license": "EUPL-1.2",
   "dependencies": {
-    "web-ext": "10.5.0"
+    "web-ext": "10.8.0"
   }
 }

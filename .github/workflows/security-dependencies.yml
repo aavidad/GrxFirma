@@ -69,6 +69,7 @@ jobs:
             --expected-source mobile/android/app/gradle.lockfile \
             --expected-source mobile/android/gradle/verification-metadata.xml \
             --expected-source packaging/browser-extensions/tests/chromium/requirements.txt
+            --expected-source packaging/browser-extensions/tools/package-lock.json
 
       - name: Gate reachable Go dependencies
         run: |
@@ -128,6 +129,7 @@ jobs:
         run: |
           "$(go env GOPATH)/bin/osv-scanner" scan source \
             --lockfile packaging/browser-extensions/tests/chromium/requirements.txt \
+            --lockfile packaging/browser-extensions/tools/package-lock.json \
             --format json \
             --all-packages \
             --output-file "$RUNNER_TEMP/osv-browser-tooling.json"

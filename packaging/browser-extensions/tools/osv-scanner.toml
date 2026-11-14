@@ -1,0 +1,13 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+
+# Excepciones del control de dependencias para las herramientas que solo se
+# usan al construir y firmar la extensión de Firefox. Nada de esto se instala
+# en los equipos de los usuarios. Cada excepción caduca para obligar a revisarla.
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+ignoreUntil = 2027-02-14
+reason = "deepmerge 4.3.1 (sin versión corregida) llega por web-ext > addons-linter, que solo mezcla la configuración y el manifiesto de nuestra propia extensión al validarla en la construcción. Quien controlara esa entrada ya controla el código de la extensión. Revisar si sale una versión corregida."

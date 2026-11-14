@@ -93,7 +93,7 @@ elimina en un paso `always()`. Windows valida primero el PFX en memoria con
 bloque de limpieza aunque falle la finalización.
 
 El workflow oficial activa `GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI=1` y usa
-`web-ext` 10.5.0 para obtener una única copia firmada por AMO. La versión de
+`web-ext` 10.8.0 para obtener una única copia firmada por AMO. La versión de
 primer nivel y todo su árbol de dependencias se fijan con
 `packaging/browser-extensions/tools/package.json` y su `package-lock.json`
 (hashes `integrity`). Se instala con `npm ci --ignore-scripts` en un paso que no

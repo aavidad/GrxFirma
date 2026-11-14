@@ -335,7 +335,7 @@ class WebExtSigningCommandTests(unittest.TestCase):
         package = json.loads(
             (build.ROOT / "tools/package.json").read_text(encoding="utf-8")
         )
-        self.assertEqual(package["dependencies"], {"web-ext": "10.5.0"})
+        self.assertEqual(package["dependencies"], {"web-ext": "10.8.0"})
 
 
 if __name__ == "__main__":
