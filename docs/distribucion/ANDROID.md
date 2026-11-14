@@ -188,7 +188,7 @@ desde la raíz del checkout que se quiera verificar y con JDK 17, SDK 36,
 Build Tools 36.0.0, NDK 28.2.13676358 y Go 1.26.11:
 
 ```bash
-export GOCACHE=/tmp/codex-gocache-24 GOFLAGS=-mod=mod
+export GOFLAGS=-mod=mod
 export ANDROID_HOME="$HOME/Android/Sdk" ANDROID_SDK_ROOT="$HOME/Android/Sdk"
 export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
