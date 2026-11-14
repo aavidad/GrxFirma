@@ -250,6 +250,21 @@ func TestTextoSeguroQuitaControles(t *testing.T) {
 	}
 }
 
+// ID-05: los controles de dirección (U+202E, U+2066…U+2069) y los de anchura
+// cero son de la categoría Cf, no Cc. Un CN con ellos invertiría o escondería
+// parte del sujeto en la terminal.
+func TestTextoSeguroQuitaControlesBidireccionales(t *testing.T) {
+	for _, caso := range []struct{ entrada, esperado string }{
+		{"CN=a\u202eb", "CN=a?b"},
+		{"CN=\u2066Ana\u2069 Garc\u00eda", "CN=?Ana? Garc\u00eda"},
+		{"CN=a\u200bb\u200fc\ufeff", "CN=a?b?c?"},
+	} {
+		if got := textoSeguro(caso.entrada); got != caso.esperado {
+			t.Fatalf("textoSeguro(%q) = %q, esperado %q", caso.entrada, got, caso.esperado)
+		}
+	}
+}
+
 // TestEjecutarCSCLoteConUnSoloPINyOTP firma con la CLI real una carpeta de
 // PDF con un prestador que admite varias firmas por autorización: el PIN y
 // el OTP se escriben una vez y el servicio autoriza el lote entero de una vez.

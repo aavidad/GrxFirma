@@ -320,10 +320,12 @@ func (l *lectorByteAByte) Read(p []byte) (int, error) {
 }
 
 // textoSeguro evita que un dato del servidor o del certificado inyecte
-// secuencias de control en la terminal.
+// secuencias de control en la terminal. También quita los caracteres de
+// formato (Cf: controles de dirección como U+202E y los de anchura cero), que
+// cambian el orden visible del sujeto sin ser controles C0/C1.
 func textoSeguro(s string) string {
 	return strings.Map(func(r rune) rune {
-		if unicode.IsControl(r) || r == unicode.ReplacementChar {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || r == unicode.ReplacementChar {
 			return '?'
 		}
 		return r
