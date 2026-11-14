@@ -11,6 +11,7 @@ import "ThemeContrast.js" as Contrast
 // de foco de 2 px. Los botones principales fijan palette.button; el texto se elige
 // para que se lea con contraste AA sobre ese fondo.
 Button {
+    font.pixelSize: Typography.control
     id: control
     Accessible.name: text
     hoverEnabled: true
@@ -29,7 +30,7 @@ Button {
         color: control.labelColor
         opacity: control.enabled ? 1 : 0.6
         wrapMode: Text.WordWrap
-        elide: Text.ElideRight
+        elide: Text.ElideNone
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }

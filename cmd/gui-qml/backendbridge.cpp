@@ -1096,7 +1096,7 @@ void BackendBridge::openExternal(const QString &path) {
     return;
   if (path.startsWith("http://") || path.startsWith("https://")) {
     if (!QDesktopServices::openUrl(QUrl(path))) {
-      emit backendLogReceived(bt(QStringLiteral("❌ No se pudo abrir la URL: ")) +
+      emit backendLogReceived(bt(QStringLiteral("No se pudo abrir la URL: ")) +
                               path);
       setStatus(bt(QStringLiteral("No se pudo abrir el recurso solicitado")));
     }
@@ -1109,7 +1109,7 @@ void BackendBridge::openExternal(const QString &path) {
   }
   QFileInfo info(localPath);
   if (!info.exists()) {
-    emit backendLogReceived(bt(QStringLiteral("❌ El fichero no existe: ")) +
+    emit backendLogReceived(bt(QStringLiteral("El fichero no existe: ")) +
                             localPath);
     setStatus(bt(QStringLiteral("El fichero indicado no existe")));
     return;
@@ -1123,7 +1123,7 @@ void BackendBridge::openExternal(const QString &path) {
     if (!dirPath.isEmpty() &&
         QDesktopServices::openUrl(QUrl::fromLocalFile(dirPath)))
       return;
-    emit backendLogReceived(bt(QStringLiteral("❌ No se pudo abrir la carpeta: ")) +
+    emit backendLogReceived(bt(QStringLiteral("No se pudo abrir la carpeta: ")) +
                             dirPath);
     setStatus(bt(QStringLiteral("No se pudo abrir la carpeta del fichero")));
     return;
@@ -1146,7 +1146,7 @@ void BackendBridge::openExternal(const QString &path) {
     return;
 #endif
 
-  emit backendLogReceived(bt(QStringLiteral("❌ No se pudo abrir el fichero: ")) +
+  emit backendLogReceived(bt(QStringLiteral("No se pudo abrir el fichero: ")) +
                           localPath);
   setStatus(bt(QStringLiteral("No se pudo abrir el fichero firmado")));
 }
@@ -1191,7 +1191,7 @@ void BackendBridge::verifyFile(const QString &inputPath) {
 
 void BackendBridge::verifyFileWithOriginal(const QString &inputPath,
                                            const QString &originalPath) {
-  emit backendLogReceived(bt(QStringLiteral("⚙ Verificando firma de: ")) +
+  emit backendLogReceived(bt(QStringLiteral("Verificando firma de: ")) +
                           inputPath);
   QByteArray signedContent;
   QString error;
@@ -1259,7 +1259,7 @@ void BackendBridge::verifyFileWithOriginal(const QString &inputPath,
             reply->errorString();
     }
 
-    emit backendLogReceived(bt(QStringLiteral("🔍 Respuesta de verificación: ")) +
+    emit backendLogReceived(bt(QStringLiteral("Respuesta de verificación: ")) +
                             msg);
     setStatus(msg);
     emit verificationFinished(success, msg, details);
@@ -1843,7 +1843,7 @@ void BackendBridge::signFileAdvanced(const QString &inputPath,
                                      const QString &outputPath, int certIndex,
                                      const QVariantMap &options) {
   m_lastSigningWarnings.clear();
-  emit backendLogReceived(bt(QStringLiteral("⚙ Preparando firma de: ")) +
+  emit backendLogReceived(bt(QStringLiteral("Preparando firma de: ")) +
                           inputPath);
   QByteArray input;
   QString localError;
@@ -1901,7 +1901,7 @@ void BackendBridge::signFileAdvanced(const QString &inputPath,
     if (reply->error() != QNetworkReply::NoError) {
       const QString msg =
           obj.value(QStringLiteral("error")).toString(reply->errorString());
-      emit backendLogReceived(bt(QStringLiteral("❌ ERROR DEL BACKEND: ")) + msg);
+      emit backendLogReceived(bt(QStringLiteral("ERROR DEL BACKEND: ")) + msg);
       setStatus(bt(QStringLiteral("Error: ")) + msg);
       emit signingFinished(false, msg, QString());
       reply->deleteLater();
@@ -1934,7 +1934,7 @@ void BackendBridge::signFileAdvanced(const QString &inputPath,
     }
     const QString msg = bt(QStringLiteral("Firma completada con éxito"));
     emit backendLogReceived(
-        bt(QStringLiteral("✅ Firma guardada exitosamente en: ")) + actual);
+        bt(QStringLiteral("Firma guardada exitosamente en: ")) + actual);
     setStatus(bt(QStringLiteral("Firma completada satisfactoriamente")));
     m_lastSigningWarnings = backendSigningWarnings(obj);
     emit signingFinished(true, msg, actual);
@@ -2328,7 +2328,7 @@ void BackendBridge::checkCertificateOnline(const QString &certificateId) {
 
 void BackendBridge::checkCertificates() {
   emit backendLogReceived(bt(QStringLiteral(
-      "⚙ Realizando chequeo exhaustivo de certificados...")));
+      "Realizando chequeo exhaustivo de certificados...")));
   QUrl url =
       BackendBridgeMakeUrl(m_addr, "/certificates?check=true", m_useTLS);
   QNetworkRequest req(url);
@@ -2348,7 +2348,7 @@ void BackendBridge::checkCertificates() {
       emit certificatesLoaded(list);
       setStatus(bt(QStringLiteral("Chequeo de certificados finalizado.")));
       emit backendLogReceived(bt(
-          QStringLiteral("ℹ️ Chequeo exhaustivo de certificados completado.")));
+          QStringLiteral("Chequeo exhaustivo de certificados completado.")));
     } else {
       emit backendLogReceived(
           bt(QStringLiteral("Error en chequeo: ")) + reply->errorString());
@@ -2369,7 +2369,7 @@ void BackendBridge::checkUpdates() {
 }
 
 void BackendBridge::runTLSDiagnostics() {
-  emit backendLogReceived(bt(QStringLiteral("⚙ Obteniendo diagnóstico TLS...")));
+  emit backendLogReceived(bt(QStringLiteral("Obteniendo diagnóstico TLS...")));
   QUrl url = BackendBridgeMakeUrl(m_addr, "/tls/trust-status", m_useTLS);
   QNetworkRequest req(url);
   if (!m_token.isEmpty())
@@ -2444,7 +2444,7 @@ void BackendBridge::exportDiagnosticReport() {
 
 void BackendBridge::clearTLSTrustStore() {
   emit backendLogReceived(
-      bt(QStringLiteral("⚙ Vaciando almacén TLS de confianza...")));
+      bt(QStringLiteral("Vaciando almacén TLS de confianza...")));
   QUrl url = BackendBridgeMakeUrl(m_addr, "/tls/clear-store", m_useTLS);
   QNetworkRequest req(url);
   if (!m_token.isEmpty())
@@ -2486,7 +2486,7 @@ void BackendBridge::reinstallBrowserConnectors() {
     }
   }
   if (helper.isEmpty()) {
-    emit backendLogReceived(bt(QStringLiteral("❌ No se encontró el instalador de conectores de navegador.")));
+    emit backendLogReceived(bt(QStringLiteral("No se encontró el instalador de conectores de navegador.")));
     setStatus(bt(QStringLiteral("No se encontraron conectores para reinstalar")));
     return;
   }
@@ -2518,11 +2518,11 @@ void BackendBridge::reinstallBrowserConnectors() {
             const bool ok = status == QProcess::NormalExit && code == 0;
             setStatus(ok ? bt(QStringLiteral("Conectores de navegador reinstalados. Reinicia el navegador."))
                          : bt(QStringLiteral("Error reinstalando conectores de navegador")));
-            emit backendLogReceived(ok ? bt(QStringLiteral("✅ Conectores de navegador reinstalados."))
-                                       : bt(QStringLiteral("❌ Error reinstalando conectores de navegador.")));
+            emit backendLogReceived(ok ? bt(QStringLiteral("Conectores de navegador reinstalados."))
+                                       : bt(QStringLiteral("Error reinstalando conectores de navegador.")));
             process->deleteLater();
           });
-  emit backendLogReceived(bt(QStringLiteral("⚙ Reinstalando conectores de navegador...")));
+  emit backendLogReceived(bt(QStringLiteral("Reinstalando conectores de navegador...")));
   process->start(helper);
 #else
   emit backendLogReceived(bt(QStringLiteral("La reinstalación de conectores desde la app solo está disponible en Linux por ahora.")));
@@ -2718,7 +2718,7 @@ void BackendBridge::getPdfPreview(const QString &path, int page,
 void BackendBridge::installCamerfirmaCerts() {
   if (m_addr.isEmpty()) {
     emit backendLogReceived(
-        bt(QStringLiteral("❌ No se puede instalar: Backend no configurado.")));
+        bt(QStringLiteral("No se puede instalar: Backend no configurado.")));
     return;
   }
 
@@ -2744,16 +2744,16 @@ void BackendBridge::installCamerfirmaCerts() {
                 .arg(obj.value("localCertificateState").toString())
                 .arg(obj.value("systemTrustState").toString()));
         emit backendLogReceived(
-            bt(QStringLiteral("✅ Proceso de instalación finalizado.")));
+            bt(QStringLiteral("Proceso de instalación finalizado.")));
         setStatus(bt(QStringLiteral("Confianza TLS local instalada")));
       } else {
         emit backendLogReceived(
-            bt(QStringLiteral("❌ Error: ")) + obj.value("error").toString());
+            bt(QStringLiteral("Error: ")) + obj.value("error").toString());
         setStatus(bt(QStringLiteral("Error instalando la confianza TLS local")));
       }
     } else {
       emit backendLogReceived(
-          bt(QStringLiteral("❌ Error de red: ")) + reply->errorString());
+          bt(QStringLiteral("Error de red: ")) + reply->errorString());
       setStatus(bt(QStringLiteral("Error de conexión")));
     }
     reply->deleteLater();

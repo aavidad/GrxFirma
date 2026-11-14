@@ -10,6 +10,7 @@ import "ThemeContrast.js" as Contrast
 
 // Casilla con el texto del tema (paleta de la ventana), ajuste de línea y foco visible.
 CheckBox {
+    font.pixelSize: Typography.control
     id: control
     // Rótulo para lectores de pantalla cuando el texto visible está fuera
     // del control y no lo precede en la misma fila.
@@ -18,8 +19,8 @@ CheckBox {
     Accessible.description: ToolTip.text
     // Recuadro propio: el de Fusion pierde el borde sobre fondos oscuros (contraste < 3:1).
     indicator: Rectangle {
-        implicitWidth: 20
-        implicitHeight: 20
+        implicitWidth: Typography.minimum(20)
+        implicitHeight: Typography.minimum(20)
         x: control.mirrored ? control.width - width - control.rightPadding : control.leftPadding
         y: control.topPadding + (control.availableHeight - height) / 2
         radius: 3
@@ -34,7 +35,7 @@ CheckBox {
             visible: control.checkState !== Qt.Unchecked
             color: control.palette.highlightedText
             font.bold: true
-            font.pixelSize: 14
+            font.pixelSize: Typography.size14
         }
     }
     contentItem: Text {

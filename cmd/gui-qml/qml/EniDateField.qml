@@ -118,6 +118,7 @@ ColumnLayout {
         }
     }
     Label {
+        font.pixelSize: Typography.control
         Layout.fillWidth: true
         textFormat: Text.PlainText
         text: root.translate("paridad.lote3.eni.date_hint")
@@ -125,6 +126,7 @@ ColumnLayout {
         wrapMode: Text.WordWrap
     }
     Label {
+        font.pixelSize: Typography.control
         Layout.fillWidth: true
         textFormat: Text.PlainText
         text: root.translate(root.timeLabelKey)
@@ -145,6 +147,7 @@ ColumnLayout {
             Accessible.description: root.invalid ? root.translate(root.errorKey) : root.translate("paridad.lote3.eni.time_hint")
         }
         Label {
+            font.pixelSize: Typography.control
             Layout.fillWidth: true
             textFormat: Text.PlainText
             text: root.translate("paridad.lote3.eni.time_hint")
@@ -153,6 +156,7 @@ ColumnLayout {
         }
     }
     Label {
+        font.pixelSize: Typography.control
         Layout.fillWidth: true
         visible: root.invalid
         // El icono evita depender solo del color para reconocer el error.
@@ -199,6 +203,7 @@ ColumnLayout {
                     onClicked: root.moveFocusDate(0, -1)
                 }
                 Label {
+                    font.pixelSize: Typography.control
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     color: root.textColor
@@ -215,7 +220,7 @@ ColumnLayout {
             DayOfWeekRow {
                 Layout.fillWidth: true
                 locale: calendar.locale
-                delegate: Label {
+                delegate: Label { font.pixelSize: Typography.control;
                     required property string shortName
                     textFormat: Text.PlainText
                     text: shortName
@@ -263,6 +268,7 @@ ColumnLayout {
                     border.width: chosen ? 2 : 0
                     opacity: dayCell.month === calendar.month ? 1 : 0.6
                     Label {
+                        font.pixelSize: Typography.control
                         anchors.centerIn: parent
                         textFormat: Text.PlainText
                         text: dayCell.day

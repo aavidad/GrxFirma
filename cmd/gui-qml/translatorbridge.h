@@ -10,12 +10,14 @@
 #include <QJsonObject>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 #include <QVariantList>
 
 class TranslatorBridge : public QObject {
   Q_OBJECT
   Q_PROPERTY(QString locale READ locale WRITE setLocale NOTIFY localeChanged)
   Q_PROPERTY(QVariantList languages READ languages NOTIFY localeChanged)
+  Q_PROPERTY(QStringList navigationLabels READ navigationLabels CONSTANT)
 
 public:
   explicit TranslatorBridge(QObject *parent = nullptr);
@@ -30,6 +32,7 @@ public:
   Q_INVOKABLE QString nativeName(const QString &code) const;
   Q_INVOKABLE QString helpHtml() const;
   QVariantList languages() const;
+  QStringList navigationLabels() const;
 
   static QString detectLocale();
   static QString normalizeLocale(const QString &locale);

@@ -25,6 +25,7 @@ Flow {
         return total + Math.max(0, shown - 1) * row.spacing
     }
     spacing: 8
+    Layout.minimumWidth: 0
     Layout.fillWidth: !row.centered
     Layout.alignment: row.centered ? Qt.AlignHCenter : Qt.AlignLeft
     Layout.preferredWidth: row.centered && row.parent ? Math.min(row.parent.width, row.naturalWidth) : -1

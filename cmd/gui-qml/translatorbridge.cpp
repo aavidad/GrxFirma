@@ -9,6 +9,7 @@
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <QProcessEnvironment>
+#include <QRegularExpression>
 
 TranslatorBridge *TranslatorBridge::s_shared = nullptr;
 
@@ -101,9 +102,15 @@ void TranslatorBridge::reload() {
 
 QString TranslatorBridge::t(const QString &key) const {
   const auto it = m_messages.constFind(key);
-  if (it == m_messages.constEnd())
-    return key;
-  return it.value();
+  if (it != m_messages.constEnd())
+    return it.value();
+  // Algunos mensajes técnicos antiguos no tienen entrada de catálogo. Su
+  // prefijo decorativo tampoco debe llegar al lector en el texto de reserva.
+  static const QRegularExpression prefix(
+      QStringLiteral("^[\\p{So}\\x{2139}\\x{FE0F}\\x{200D}\\s]+"));
+  QString plainKey = key;
+  plainKey.remove(prefix);
+  return plainKey.isEmpty() ? key : plainKey;
 }
 
 QString TranslatorBridge::format(const QString &key,
@@ -169,6 +176,26 @@ QVariantList TranslatorBridge::languages() const {
     out.push_back(item);
   }
   return out;
+}
+
+// Medir todos los idiomas evita cambiar el ancho del menú al cambiar de idioma.
+QStringList TranslatorBridge::navigationLabels() const {
+  QStringList labels;
+  const QStringList keys = {QStringLiteral("FIRMAR"), QStringLiteral("VERIFICAR"),
+      QStringLiteral("CIFRAR"), QStringLiteral("facturae.nav"),
+      QStringLiteral("paridad.lote3.eni.nav"), QStringLiteral("CONFIGURACIÓN"),
+      QStringLiteral("ACERCA DE"), QStringLiteral("EXPERTO")};
+  for (const auto &language : languages()) {
+    const QString code = language.toMap().value(QStringLiteral("code")).toString();
+    QFile file(resourcePathForLocale(code));
+    if (!file.open(QIODevice::ReadOnly)) continue;
+    const QJsonObject catalog = QJsonDocument::fromJson(file.readAll()).object();
+    for (const auto &key : keys) {
+      const QString label = catalog.value(key).toString(key).toUpper();
+      if (!labels.contains(label)) labels.append(label);
+    }
+  }
+  return labels;
 }
 
 QString TranslatorBridge::helpHtml() const {

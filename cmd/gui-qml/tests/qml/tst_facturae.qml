@@ -42,6 +42,24 @@ TestCase {
         panel = createTemporaryObject(factory, testCase)
         verify(panel !== null)
     }
+    function cleanup() { Typography.textScalePercent = 100; testCase.visible = false }
+    function test_fields_stay_inside_the_panel_at_two_hundred_percent() {
+        testCase.visible = true
+        panel.visible = true
+        Typography.textScalePercent = 200
+        wait(0)
+        let checked = 0
+        function inspect(item) {
+            if (item.objectName === "invoiceField" && item.visible) {
+                const point = item.mapToItem(panel, item.width, 0)
+                verify(point.x <= panel.width + 1, "campo fuera del panel: " + item.label)
+                checked++
+            }
+            for (let i = 0; i < item.children.length; ++i) inspect(item.children[i])
+        }
+        inspect(panel)
+        verify(checked > 10)
+    }
     function test_verifactu_report_and_local_qr_do_not_query() {
         fake.qrQueries = 0
         fake.verifactuValidated(true, {format: "VeriFactu", valid: false, errors: 1, warnings: 0, records: [], report: "XML: error"}, "")

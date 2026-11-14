@@ -82,6 +82,7 @@ Dialog {
         visible: dialog.title !== ""
         property alias color: titleLabel.color
         Label {
+            font.pixelSize: Typography.control
             id: titleLabel
             Accessible.role: Accessible.Heading
             Accessible.name: dialog.title
@@ -94,10 +95,10 @@ Dialog {
             wrapMode: Text.Wrap
         }
     }
-    footer: DialogButtonBox {
+    footer: DialogButtonBox { font.pixelSize: Typography.control;
         visible: dialog.standardButtons !== Dialog.NoButton
         standardButtons: dialog.standardButtons
-        delegate: Button {
+        delegate: Button { font.pixelSize: Typography.control;
             id: button
             implicitHeight: 44
             background: Rectangle {

@@ -44,6 +44,7 @@ ColumnLayout {
         }
     }
     Label {
+        font.pixelSize: Typography.control
         Layout.fillWidth: true
         // Con el error a la vista la pista sobra: el error ya dice qué escribir.
         visible: root.hintKey !== "" && !root.invalid
@@ -53,6 +54,7 @@ ColumnLayout {
         wrapMode: Text.WordWrap
     }
     Label {
+        font.pixelSize: Typography.control
         Layout.fillWidth: true
         visible: root.invalid
         // El icono evita depender solo del color para reconocer el error.

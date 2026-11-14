@@ -2399,104 +2399,104 @@
   "Último documento": "Últim document",
   "Último estado visible: %1": "Últim estat visible: %1",
   "• ": "• ",
-  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ El servidor REST detectat està actiu, però no va ser iniciat per esta finestra. Atureu-lo des de la safata del sistema o des de la instància que el va arrencar.",
-  "ℹ️ ": "ℹ️ ",
-  "ℹ️ Chequeo exhaustivo de certificados completado.": "ℹ️ Revisió exhaustiva de certificats completada.",
-  "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "ℹ️ L'informe de diagnòstic s'ha copiat al porta-retalls.",
-  "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "ℹ️ No s'ha trobat un gestor de certificats natiu (seahorse/kleopatra).",
-  "↶ Rotar Firma": "↶ Rotar signatura",
-  "↺  Valores por defecto": "↺ Valors per defecte",
-  "↻ Actualizar estado": "↻ Actualitzar estat",
-  "↻ Rotar Documento": "↻ Rotar document",
-  "⌛ Firmando...": "⌛ Signant...",
-  "⌛ Verificando...": "⌛ Verificant...",
-  "⏳  Sellado de Tiempo (TSA)": "⏳  Segell de temps (TSA)",
-  "▶ Ver detalles": "▶ Vore detalls",
-  "▼ Ocultar detalles": "▼ Ocultar detalls",
-  "● Comprobando estado del servidor...": "● Comprovant l'estat del servidor...",
-  "● Estado desconocido (Sin conexión)": "● Estat desconegut (Sense connexió)",
-  "● Servicio activo y corriendo": "● Servici actiu i en execució",
-  "● Servicio instalado pero parado": "● Servici instal·lat però aturat",
-  "● Servicio no instalado": "● Servici no instal·lat",
-  "● Servidor API REST en ejecución": "● Servidor API REST en execució",
-  "● Servidor detenido": "● Servidor detingut",
-  "⚙ Generando reporte de diagnóstico completo...": "⚙ Generant informe de diagnòstic complet...",
-  "⚙ Iniciando diagnóstico TLS (": "⚙ Iniciant diagnòstic TLS (",
-  "⚙ Iniciando firma IPC para: ": "⚙ Iniciant signatura IPC per a: ",
-  "⚙ Iniciando importación de certificado IPC...": "⚙ Iniciant importació de certificat IPC...",
-  "⚙ Iniciando instalación de raíces de confianza de AAPP...": "⚙ Iniciant instal·lació de confiança TLS local...",
-  "⚙ Instalando raíces de confianza públicas...": "⚙ Instal·lant confiança TLS local...",
-  "⚙ Obteniendo diagnóstico TLS...": "⚙ Obtenint diagnòstic TLS...",
-  "⚙ Preparando firma de: ": "⚙ Preparant signatura de: ",
-  "⚙ Realizando chequeo exhaustivo de certificados vía %1...": "⚙ Fent revisió exhaustiva de certificats via %1...",
-  "⚙ Realizando chequeo exhaustivo de certificados...": "⚙ Fent revisió exhaustiva de certificats...",
-  "⚙ Vaciando almacén TLS de confianza...": "⚙ Buidant magatzem TLS de confiança...",
-  "⚙ Verificando firma de: ": "⚙ Verificant signatura de: ",
-  "⚙️  Preferencias Generales": "⚙️ Preferències generals",
-  "⚙️ Modo administrador habilitado.": "⚙️ Mode administrador habilitat.",
-  "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "⚠ Desconnectat de la interfície IPC local (mode REST exclusiu, o motor aturat).",
-  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ Important: s'instal·la com a servici de la vostra sessió d'usuari (no com a servici de sistema), perquè tinga accés als vostres certificats del magatzem personal. Els servicis del sistema no poden accedir als certificats de l'usuari.",
-  "⚠️": "⚠️",
-  "⚠️ Conexión IPC cerrada.": "⚠️ Connexió IPC tancada.",
-  "⚠️ No hay conexión con el motor.": "⚠️ No hi ha connexió amb el motor.",
-  "⚠️ Requisitos faltantes": "⚠️ Requisits faltants",
-  "✅ Backend Go arrancado (PID ": "✅ Backend Go arrancat (PID ",
-  "✅ Conexión establecida con el motor de firma.": "✅ Connexió establida amb el motor de signatura.",
-  "✅ Firma guardada exitosamente en: ": "✅ Signatura guardada amb èxit en: ",
-  "✅ Proceso de instalación finalizado.": "✅ Procés d'instal·lació finalitzat.",
+  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "El servidor REST detectat està actiu, però no va ser iniciat per esta finestra. Atureu-lo des de la safata del sistema o des de la instància que el va arrencar.",
+  "ℹ️ ": "Informació: ",
+  "ℹ️ Chequeo exhaustivo de certificados completado.": "Revisió exhaustiva de certificats completada.",
+  "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "L'informe de diagnòstic s'ha copiat al porta-retalls.",
+  "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "No s'ha trobat un gestor de certificats natiu (seahorse/kleopatra).",
+  "↶ Rotar Firma": "Rotar signatura",
+  "↺  Valores por defecto": "Valors per defecte",
+  "↻ Actualizar estado": "Actualitzar estat",
+  "↻ Rotar Documento": "Rotar document",
+  "⌛ Firmando...": "Signant...",
+  "⌛ Verificando...": "Verificant...",
+  "⏳  Sellado de Tiempo (TSA)": "Segell de temps (TSA)",
+  "▶ Ver detalles": "Vore detalls",
+  "▼ Ocultar detalles": "Ocultar detalls",
+  "● Comprobando estado del servidor...": "Comprovant l'estat del servidor...",
+  "● Estado desconocido (Sin conexión)": "Estat desconegut (Sense connexió)",
+  "● Servicio activo y corriendo": "Servici actiu i en execució",
+  "● Servicio instalado pero parado": "Servici instal·lat però aturat",
+  "● Servicio no instalado": "Servici no instal·lat",
+  "● Servidor API REST en ejecución": "Servidor API REST en execució",
+  "● Servidor detenido": "Servidor detingut",
+  "⚙ Generando reporte de diagnóstico completo...": "Generant informe de diagnòstic complet...",
+  "⚙ Iniciando diagnóstico TLS (": "Iniciant diagnòstic TLS (",
+  "⚙ Iniciando firma IPC para: ": "Iniciant signatura IPC per a: ",
+  "⚙ Iniciando importación de certificado IPC...": "Iniciant importació de certificat IPC...",
+  "⚙ Iniciando instalación de raíces de confianza de AAPP...": "Iniciant instal·lació de confiança TLS local...",
+  "⚙ Instalando raíces de confianza públicas...": "Instal·lant confiança TLS local...",
+  "⚙ Obteniendo diagnóstico TLS...": "Obtenint diagnòstic TLS...",
+  "⚙ Preparando firma de: ": "Preparant signatura de: ",
+  "⚙ Realizando chequeo exhaustivo de certificados vía %1...": "Fent revisió exhaustiva de certificats via %1...",
+  "⚙ Realizando chequeo exhaustivo de certificados...": "Fent revisió exhaustiva de certificats...",
+  "⚙ Vaciando almacén TLS de confianza...": "Buidant magatzem TLS de confiança...",
+  "⚙ Verificando firma de: ": "Verificant signatura de: ",
+  "⚙️  Preferencias Generales": "Preferències generals",
+  "⚙️ Modo administrador habilitado.": "Mode administrador habilitat.",
+  "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "Desconnectat de la interfície IPC local (mode REST exclusiu, o motor aturat).",
+  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "Important: s'instal·la com a servici de la vostra sessió d'usuari (no com a servici de sistema), perquè tinga accés als vostres certificats del magatzem personal. Els servicis del sistema no poden accedir als certificats de l'usuari.",
+  "⚠️": "Avís",
+  "⚠️ Conexión IPC cerrada.": "Connexió IPC tancada.",
+  "⚠️ No hay conexión con el motor.": "No hi ha connexió amb el motor.",
+  "⚠️ Requisitos faltantes": "Requisits faltants",
+  "✅ Backend Go arrancado (PID ": "Backend Go arrancat (PID ",
+  "✅ Conexión establecida con el motor de firma.": "Connexió establida amb el motor de signatura.",
+  "✅ Firma guardada exitosamente en: ": "Signatura guardada amb èxit en: ",
+  "✅ Proceso de instalación finalizado.": "Procés d'instal·lació finalitzat.",
   "Conectando con el motor de firma del lanzador...": "S'està connectant amb el motor de signatura del llançador...",
   "Arrancando el motor de firma de esta ventana...": "S'està iniciant el motor de signatura d'esta finestra...",
-  "❌ No hay un directorio privado para la conexión con el motor de firma.": "❌ No hi ha cap carpeta privada per a la connexió amb el motor de signatura.",
+  "❌ No hay un directorio privado para la conexión con el motor de firma.": "No hi ha cap carpeta privada per a la connexió amb el motor de signatura.",
   "Error: no se pudo preparar la conexión con el motor de firma": "Error: no s'ha pogut preparar la connexió amb el motor de signatura",
   "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo.": "La connexió no porta al motor de signatura que ha obert GrxFirma i s'ha tallat sense enviar cap dada. Tanqueu GrxFirma i torneu a obrir-lo.",
   "Error: no se reconoce el motor de firma": "Error: no es reconeix el motor de signatura",
-  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "❌ La resposta del motor de signatura és massa gran; es talla la connexió.",
-  "✅ Validar Documento": "✅ Validar document",
-  "✅ VÁLIDA": "✅ VÀLIDA",
-  "✍ FIRMA DIGITAL": "✍ SIGNATURA DIGITAL",
-  "✍️  Firma por defecto": "✍️  Signatura per defecte",
-  "✓ Firma válida": "✓ Signatura vàlida",
-  "✗ Firma inválida": "✗ Signatura invàlida",
-  "❌ ": "❌ ",
-  "❌ ERROR DEL BACKEND: ": "❌ ERROR DEL BACKEND: ",
-  "❌ El fichero no existe: ": "❌ El fitxer no existix: ",
-  "❌ Error de red: ": "❌ Error de xarxa: ",
-  "❌ Error en Socket: ": "❌ Error en Socket: ",
-  "❌ Error: ": "❌ Error: ",
-  "❌ Error: Clave incorrecta.": "❌ Error: clau incorrecta.",
-  "❌ Error: m_socketPath está vacía.": "❌ Error: m_socketPath està buida.",
-  "❌ Lote fallido: %1": "❌ Lot fallit: %1",
-  "❌ Modo de backend no soportado: ": "❌ Mode de backend no suportat: ",
-  "❌ NO VÁLIDA": "❌ NO VÀLIDA",
-  "❌ No hay conexión IPC activa para firmar.": "❌ No hi ha connexió IPC activa per a signar.",
-  "❌ No hay conexión IPC activa para verificar.": "❌ No hi ha connexió IPC activa per a verificar.",
-  "❌ No se encontró grxfirma-gui para iniciar el backend IPC.": "❌ No s'ha trobat grxfirma-gui per a iniciar el backend IPC.",
-  "❌ No se pudo abrir el archivo de certificado.": "❌ No s'ha pogut obrir el fitxer de certificat.",
-  "❌ No se pudo abrir el fichero: ": "❌ No s'ha pogut obrir el fitxer: ",
-  "❌ No se pudo abrir la URL: ": "❌ No s'ha pogut obrir la URL: ",
-  "❌ No se pudo arrancar GrxFirma: ": "❌ No s'ha pogut arrancar GrxFirma: ",
-  "❌ No se puede instalar: Backend no configurado.": "❌ No es pot instal·lar: backend no configurat.",
-  "🌐  Configuración de Proxy": "🌐 Configuració del proxy",
-  "🌐  Servidor API REST Local": "🌐 Servidor API REST local",
-  "📤 Enviando petición (JSON): ": "📤 Enviant petició (JSON): ",
-  "🔄 Solicitando certificados vía %1...": "🔄 Sol·licitant certificats via %1...",
-  "🔌 Intentando conectar a: ": "🔌 Intentant connectar a: ",
-  "🔍 Respuesta de verificación: ": "🔍 Resposta de verificació: ",
-  "🔍 Solicitando verificación IPC para: ": "🔍 Sol·licitant verificació IPC per a: ",
-  "🔑 Clave de Seguridad Requerida": "🔑 Clau de seguretat requerida",
-  "🔑 Configure la clave de acceso para Seguridad y Dominios": "🔑 Configureu la clau d'accés per a Seguretat i Dominis",
-  "🔑 Contraseña Requerida": "🔑 Contrasenya requerida",
-  "🔧  Servicio de Usuario al Inicio de Sesión": "🔧 Servici d'usuari a l'inici de sessió",
-  "🗂️  Formato automático por tipo de documento": "🗂️  Format automàtic per tipus de document",
-  "❌ No se pudo abrir la carpeta: ": "❌ No s'ha pogut obrir la carpeta: ",
-  "🗑": "🗑",
-  "🛑 Deteniendo backend...": "🛑 Detenint backend...",
-  "🛠 Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "🛠 Iniciant instal·lació de confiança TLS local...",
-  "🛡️  Política de firma por defecto": "🛡️  Política de signatura per defecte",
-  "🛡️ Control de Dominios Permitidos": "🛡️ Control de dominis permesos",
-  "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "🛡️ Instal·lar confiança TLS local",
-  "🛡️ Instalar confianza TLS local": "🛡️ Instal·lar confiança TLS local",
-  "🌐  Navegadores y certificados locales": "🌐  Navegadors i certificats locals",
+  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "La resposta del motor de signatura és massa gran; es talla la connexió.",
+  "✅ Validar Documento": "Validar document",
+  "✅ VÁLIDA": "VÀLIDA",
+  "✍ FIRMA DIGITAL": "SIGNATURA DIGITAL",
+  "✍️  Firma por defecto": "Signatura per defecte",
+  "✓ Firma válida": "Signatura vàlida",
+  "✗ Firma inválida": "Signatura invàlida",
+  "❌ ": "Errada: ",
+  "❌ ERROR DEL BACKEND: ": "ERROR DEL BACKEND: ",
+  "❌ El fichero no existe: ": "El fitxer no existix: ",
+  "❌ Error de red: ": "Error de xarxa: ",
+  "❌ Error en Socket: ": "Error en el sòcol: ",
+  "❌ Error: ": "Error: ",
+  "❌ Error: Clave incorrecta.": "Error: clau incorrecta.",
+  "❌ Error: m_socketPath está vacía.": "Error: m_socketPath està buida.",
+  "❌ Lote fallido: %1": "Lot fallit: %1",
+  "❌ Modo de backend no soportado: ": "Mode de backend no suportat: ",
+  "❌ NO VÁLIDA": "NO VÀLIDA",
+  "❌ No hay conexión IPC activa para firmar.": "No hi ha connexió IPC activa per a signar.",
+  "❌ No hay conexión IPC activa para verificar.": "No hi ha connexió IPC activa per a verificar.",
+  "❌ No se encontró grxfirma-gui para iniciar el backend IPC.": "No s'ha trobat grxfirma-gui per a iniciar el backend IPC.",
+  "❌ No se pudo abrir el archivo de certificado.": "No s'ha pogut obrir el fitxer de certificat.",
+  "❌ No se pudo abrir el fichero: ": "No s'ha pogut obrir el fitxer: ",
+  "❌ No se pudo abrir la URL: ": "No s'ha pogut obrir la URL: ",
+  "❌ No se pudo arrancar GrxFirma: ": "No s'ha pogut arrancar GrxFirma: ",
+  "❌ No se puede instalar: Backend no configurado.": "No es pot instal·lar: backend no configurat.",
+  "🌐  Configuración de Proxy": "Configuració del proxy",
+  "🌐  Servidor API REST Local": "Servidor API REST local",
+  "📤 Enviando petición (JSON): ": "Enviant petició (JSON): ",
+  "🔄 Solicitando certificados vía %1...": "Sol·licitant certificats via %1...",
+  "🔌 Intentando conectar a: ": "Intentant connectar a: ",
+  "🔍 Respuesta de verificación: ": "Resposta de verificació: ",
+  "🔍 Solicitando verificación IPC para: ": "Sol·licitant verificació IPC per a: ",
+  "🔑 Clave de Seguridad Requerida": "Clau de seguretat requerida",
+  "🔑 Configure la clave de acceso para Seguridad y Dominios": "Configureu la clau d'accés per a Seguretat i Dominis",
+  "🔑 Contraseña Requerida": "Contrasenya requerida",
+  "🔧  Servicio de Usuario al Inicio de Sesión": "Servici d'usuari a l'inici de sessió",
+  "🗂️  Formato automático por tipo de documento": "Format automàtic per tipus de document",
+  "❌ No se pudo abrir la carpeta: ": "No s'ha pogut obrir la carpeta: ",
+  "🗑": "Suprimix",
+  "🛑 Deteniendo backend...": "Detenint backend...",
+  "🛠 Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "Iniciant instal·lació de confiança TLS local...",
+  "🛡️  Política de firma por defecto": "Política de signatura per defecte",
+  "🛡️ Control de Dominios Permitidos": "Control de dominis permesos",
+  "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "Instal·lar confiança TLS local",
+  "🛡️ Instalar confianza TLS local": "Instal·lar confiança TLS local",
+  "🌐  Navegadores y certificados locales": "Navegadors i certificats locals",
   "Repara la integración con Chrome, Chromium, Edge, Brave y Firefox, incluyendo perfiles Snap o Flatpak cuando existan. Usa estas opciones si una web no consigue abrir GrxFirma o si el navegador no confía en la conexión local.": "Repara la integració amb Chrome, Chromium, Edge, Brave i Firefox, incloent-hi perfils Snap o Flatpak quan n'hi haja. Utilitzeu estes opcions si una web no aconseguix obrir GrxFirma o si el navegador no confia en la connexió local.",
   "Reinstalar conectores de navegadores": "Reinstal·lar connectors dels navegadors",
   "Vuelve a registrar afirma://, Native Messaging y perfiles Firefox detectados. Después reinicia el navegador.": "Torna a registrar afirma://, Native Messaging i els perfils de Firefox detectats. Després reinicieu el navegador.",
@@ -2505,11 +2505,11 @@
   "Diagnóstico TLS": "Diagnòstic TLS",
   "Conectores de navegador reinstalados. Reinicia el navegador.": "Connectors de navegador reinstal·lats. Reinicieu el navegador.",
   "Error reinstalando conectores de navegador": "Error en reinstal·lar els connectors de navegador",
-  "❌ No se encontró el instalador de conectores de navegador.": "❌ No s'ha trobat l'instal·lador de connectors de navegador.",
+  "❌ No se encontró el instalador de conectores de navegador.": "No s'ha trobat l'instal·lador de connectors de navegador.",
   "No se encontraron conectores para reinstalar": "No s'han trobat connectors per a reinstal·lar",
-  "✅ Conectores de navegador reinstalados.": "✅ Connectors de navegador reinstal·lats.",
-  "❌ Error reinstalando conectores de navegador.": "❌ Error en reinstal·lar els connectors de navegador.",
-  "⚙ Reinstalando conectores de navegador...": "⚙ Reinstal·lant connectors de navegador...",
+  "✅ Conectores de navegador reinstalados.": "Connectors de navegador reinstal·lats.",
+  "❌ Error reinstalando conectores de navegador.": "Error en reinstal·lar els connectors de navegador.",
+  "⚙ Reinstalando conectores de navegador...": "Reinstal·lant connectors de navegador...",
   "La reinstalación de conectores desde la app solo está disponible en Linux por ahora.": "La reinstal·lació de connectors des de l'aplicació només està disponible en Linux de moment.",
   "Reinstalar conectores": "Reinstal·lar connectors",
   "Reinstalar certificados": "Reinstal·lar certificats",
@@ -3513,7 +3513,7 @@
   ,"Solo consulta": "Només consulta"
   ,"Válido para firmar, pero caduca pronto.": "Vàlid per a signar, però caduca prompte."
   ,"Válido y apto para firmar.": "Vàlid i apte per a signar."
-  ,"⚠ No válido": "⚠ No vàlid"
+  ,"⚠ No válido": "No vàlid"
   ,"Solo durante esta sesión": "Només durant esta sessió"
   ,"Almacén del sistema": "Magatzem del sistema"
   ,"NIF / identificador": "NIF / identificador"
@@ -4092,7 +4092,7 @@
   ,"Operación de firma": "Operació de signatura"
   ,"Formato de firma": "Format de signatura"
   ,"Seleccione un certificado válido": "Seleccioneu un certificat vàlid"
-  ,"⤢ Ver todos los certificados": "⤢ Vore tots els certificats"
+  ,"⤢ Ver todos los certificados": "Vore tots els certificats"
   ,"Elija un certificado ya disponible, cargue un archivo solo para esta sesión o impórtelo expresamente en el almacén personal de Windows.": "Trieu un certificat ja disponible, carregueu un fitxer només per a esta sessió o importeu-lo expressament al magatzem personal de Windows."
   ,"Vuelve a consultar los certificados aptos del almacén personal oficial de Windows.": "Torna a consultar els certificats aptes del magatzem personal oficial de Windows."
   ,"Buscar certificados en Windows": "Buscar certificats en Windows"
@@ -5743,7 +5743,7 @@
   ,"winui.certificados.valido_para_firmar_pero_caduca_pronto": "Vàlid per a signar, però caduca prompte."
   ,"winui.certificados.valido_y_apto_para_firmar": "Vàlid i apte per a signar."
   ,"winui.certificados.caduca_en_dia_s_la_fnmt_permite": "Caduca d’ací a {days} dies. La FNMT permet renovar-lo durant els 60 dies anteriors a la caducitat, si no està revocat: instal·leu el seu Configurador, sol·liciteu la renovació identificant-vos amb este certificat i descarregueu el nou amb el codi que rebreu per correu electrònic. Només es pot renovar així una vegada; després cal tornar a acreditar la identitat."
-  ,"winui.certificados.no_valido": "⚠ No vàlid"
+  ,"winui.certificados.no_valido": "No vàlid"
   ,"winui.certificados.caduca_pronto": "Caduca prompte"
   ,"winui.certificados.valido": "Vàlid"
   ,"winui.certificados.vence": "Caduca: {date}"
@@ -6605,7 +6605,7 @@
   ,"winui.verificar.datos_tecnicos_guardados": "Dades tècniques guardades."
   ,"portal.operation.cancelled_title": "Operació cancel·lada"
   ,"portal.operation.cancelled_body": "Heu cancel·lat l’operació i la web ja ho sap. Esta finestra es tancarà a soles d’ací a uns segons."
-  ,"sign.seal.preview_unavailable_heading": "⚠️ La vista del PDF no està disponible"
+  ,"sign.seal.preview_unavailable_heading": "La vista del PDF no està disponible"
   ,"winui.verificar.informe_guardado_en": "Informe guardat en {0}."
   ,"winui.verificar.datos_tecnicos_guardados_en": "Dades tècniques guardades en {0}."
   ,"winui.proteger.no_se_pudo_guardar_en_destino": "No s'ha pogut guardar en {0}; el document està en {1}."
@@ -6850,4 +6850,93 @@
   ,"winui.l27.assistant.network": "Xarxa observada en l’operació"
   ,"winui.l27.assistant.portal": "Portal o seu electrònica"
   ,"winui.l27.assistant.checked": "Comprovació local acabada. Les dades sense resposta confirmada continuen com a «No comprovat». La fallada original es conserva en l’informe."
+  ,"Rotar Firma": "Rotar signatura"
+  ,"Valores por defecto": "Valors per defecte"
+  ,"Rotar Documento": "Rotar document"
+  ,"Firmando...": "Signant..."
+  ,"Verificando...": "Verificant..."
+  ,"Sellado de Tiempo (TSA)": "Segell de temps (TSA)"
+  ,"Ver detalles": "Vore detalls"
+  ,"Comprobando estado del servidor...": "Comprovant l'estat del servidor..."
+  ,"Estado desconocido (Sin conexión)": "Estat desconegut (Sense connexió)"
+  ,"Servicio activo y corriendo": "Servici actiu i en execució"
+  ,"Servicio instalado pero parado": "Servici instal·lat però aturat"
+  ,"Servicio no instalado": "Servici no instal·lat"
+  ,"Servidor API REST en ejecución": "Servidor API REST en execució"
+  ,"Servidor detenido": "Servidor detingut"
+  ,"Generando reporte de diagnóstico completo...": "Generant informe de diagnòstic complet..."
+  ,"Iniciando diagnóstico TLS (": "Iniciant diagnòstic TLS ("
+  ,"Iniciando firma IPC para: ": "Iniciant signatura IPC per a: "
+  ,"Iniciando importación de certificado IPC...": "Iniciant importació de certificat IPC..."
+  ,"Iniciando instalación de raíces de confianza de AAPP...": "Iniciant instal·lació de confiança TLS local..."
+  ,"Instalando raíces de confianza públicas...": "Instal·lant confiança TLS local..."
+  ,"Obteniendo diagnóstico TLS...": "Obtenint diagnòstic TLS..."
+  ,"Preparando firma de: ": "Preparant signatura de: "
+  ,"Realizando chequeo exhaustivo de certificados vía %1...": "Fent revisió exhaustiva de certificats via %1..."
+  ,"Realizando chequeo exhaustivo de certificados...": "Fent revisió exhaustiva de certificats..."
+  ,"Vaciando almacén TLS de confianza...": "Buidant magatzem TLS de confiança..."
+  ,"Verificando firma de: ": "Verificant signatura de: "
+  ,"Preferencias Generales": "Preferències generals"
+  ,"Modo administrador habilitado.": "Mode administrador habilitat."
+  ,"Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "Desconnectat de la interfície IPC local (mode REST exclusiu, o motor aturat)."
+  ,"Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "Important: s'instal·la com a servici de la vostra sessió d'usuari (no com a servici de sistema), perquè tinga accés als vostres certificats del magatzem personal. Els servicis del sistema no poden accedir als certificats de l'usuari."
+  ,"Aviso": "Avís"
+  ,"Conexión IPC cerrada.": "Connexió IPC tancada."
+  ,"No hay conexión con el motor.": "No hi ha connexió amb el motor."
+  ,"Requisitos faltantes": "Requisits faltants"
+  ,"Backend Go arrancado (PID ": "Backend Go arrancat (PID "
+  ,"Conexión establecida con el motor de firma.": "Connexió establida amb el motor de signatura."
+  ,"No hay un directorio privado para la conexión con el motor de firma.": "No hi ha cap carpeta privada per a la connexió amb el motor de signatura."
+  ,"Respuesta del motor de firma demasiado grande; se corta la conexión.": "La resposta del motor de signatura és massa gran; es talla la connexió."
+  ,"Proceso de instalación finalizado.": "Procés d'instal·lació finalitzat."
+  ,"VÁLIDA": "VÀLIDA"
+  ,"Firma por defecto": "Signatura per defecte"
+  ,"Firma inválida": "Signatura invàlida"
+  ,"ERROR DEL BACKEND: ": "ERROR DEL BACKEND: "
+  ,"El fichero no existe: ": "El fitxer no existix: "
+  ,"Error de red: ": "Error de xarxa: "
+  ,"Error en Socket: ": "Error en el sòcol: "
+  ,"Error: Clave incorrecta.": "Error: clau incorrecta."
+  ,"Error: m_socketPath está vacía.": "Error: m_socketPath està buida."
+  ,"Lote fallido: %1": "Lot fallit: %1"
+  ,"Modo de backend no soportado: ": "Mode de backend no suportat: "
+  ,"NO VÁLIDA": "NO VÀLIDA"
+  ,"No hay conexión IPC activa para firmar.": "No hi ha connexió IPC activa per a signar."
+  ,"No hay conexión IPC activa para verificar.": "No hi ha connexió IPC activa per a verificar."
+  ,"No se encontró grxfirma-gui para iniciar el backend IPC.": "No s'ha trobat grxfirma-gui per a iniciar el backend IPC."
+  ,"No se pudo abrir el fichero: ": "No s'ha pogut obrir el fitxer: "
+  ,"No se pudo abrir la carpeta: ": "No s'ha pogut obrir la carpeta: "
+  ,"No se pudo abrir la URL: ": "No s'ha pogut obrir la URL: "
+  ,"No se pudo arrancar GrxFirma: ": "No s'ha pogut arrancar GrxFirma: "
+  ,"No se puede instalar: Backend no configurado.": "No es pot instal·lar: backend no configurat."
+  ,"Configuración de Proxy": "Configuració del proxy"
+  ,"Servidor API REST Local": "Servidor API REST local"
+  ,"Enviando petición (JSON): ": "Enviant petició (JSON): "
+  ,"Solicitando certificados vía %1...": "Sol·licitant certificats via %1..."
+  ,"Intentando conectar a: ": "Intentant connectar a: "
+  ,"Respuesta de verificación: ": "Resposta de verificació: "
+  ,"Solicitando verificación IPC para: ": "Sol·licitant verificació IPC per a: "
+  ,"Clave de Seguridad Requerida": "Clau de seguretat requerida"
+  ,"Configure la clave de acceso para Seguridad y Dominios": "Configureu la clau d'accés per a Seguretat i Dominis"
+  ,"Contraseña Requerida": "Contrasenya requerida"
+  ,"Servicio de Usuario al Inicio de Sesión": "Servici d'usuari a l'inici de sessió"
+  ,"Formato automático por tipo de documento": "Format automàtic per tipus de document"
+  ,"Eliminar": "Suprimix"
+  ,"Deteniendo backend...": "Detenint backend..."
+  ,"Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "Iniciant instal·lació de confiança TLS local..."
+  ,"Política de firma por defecto": "Política de signatura per defecte"
+  ,"Control de Dominios Permitidos": "Control de dominis permesos"
+  ,"Instalar Certificados Raíz de Administraciones Públicas": "Instal·lar confiança TLS local"
+  ,"Navegadores y certificados locales": "Navegadors i certificats locals"
+  ,"No se encontró el instalador de conectores de navegador.": "No s'ha trobat l'instal·lador de connectors de navegador."
+  ,"Conectores de navegador reinstalados.": "Connectors de navegador reinstal·lats."
+  ,"Error reinstalando conectores de navegador.": "Error en reinstal·lar els connectors de navegador."
+  ,"Reinstalando conectores de navegador...": "Reinstal·lant connectors de navegador..."
+  ,"qt.accessibility.text_size": "Mida del text"
+  ,"qt.accessibility.percent": "%1 %"
+  ,"El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "El servidor REST detectat està actiu, però no va ser iniciat per esta finestra. Atureu-lo des de la safata del sistema o des de la instància que el va arrencar."
+  ,"Chequeo exhaustivo de certificados completado.": "Revisió exhaustiva de certificats completada."
+  ,"El reporte de diagnóstico se ha copiado al portapapeles.": "L'informe de diagnòstic s'ha copiat al porta-retalls."
+  ,"No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "No s'ha trobat un gestor de certificats natiu (seahorse/kleopatra)."
+  ,"Información: ": "Informació: "
 }

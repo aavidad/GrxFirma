@@ -97,17 +97,21 @@ Item {
     }
     component InvoiceField: ColumnLayout {
         id: invoiceField
+        objectName: "invoiceField"
         property string label: ""
         property alias value: input.text
         property string hint: ""
         // Los obligatorios llevan «*» (leyenda al principio) y lo dicen al lector de pantalla.
         property bool required: false
         Layout.fillWidth: true
+        Layout.minimumWidth: 0
+        Layout.preferredWidth: Typography.scale > 1 ? 1 : -1
         spacing: 4
-        Label { textFormat: Text.PlainText; text: invoiceField.required ? invoiceField.label + " *" : invoiceField.label; color: panel.theme.textColor; wrapMode: Text.WordWrap }
+        Label { Layout.minimumWidth: 0; Layout.fillWidth: Typography.scale > 1; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; font.pixelSize: Typography.control; textFormat: Text.PlainText; text: invoiceField.required ? invoiceField.label + " *" : invoiceField.label; color: panel.theme.textColor; wrapMode: Text.WordWrap }
         ThemedTextField {
             id: input
             Layout.fillWidth: true
+            Layout.minimumWidth: 0
             Accessible.name: invoiceField.required ? invoiceField.label + ", " + panel.tr("facturae.required") : invoiceField.label
             Accessible.description: invoiceField.hint
             placeholderText: hint
@@ -247,20 +251,21 @@ Item {
         onAccepted: { panel.verifactuResult = null; panel.verifactuError = ""; panel.verifactuStatusKey = "paridad.lote3.invoice.validating"; panel.busy = true; panel.bridge.validateVeriFactu(panel.localPath(selectedFolder)) }
     }
     ScrollView {
+        id: invoiceScroll
         anchors.fill: parent
         clip: true
         contentWidth: availableWidth
         ColumnLayout {
-            width: Math.max(0, parent.width - 48)
+            width: Math.max(0, invoiceScroll.availableWidth - 48)
             x: 24
             spacing: 18
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 4
-                Label {
+                Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1;
                     text: tr("facturae.title")
                     color: panel.theme.textColor
-                    font.pixelSize: 28
+                    font.pixelSize: Typography.size28
                     font.bold: true
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
@@ -269,29 +274,30 @@ Item {
                 }
                 HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("facturae.title"); helpText: panel.tr("ayuda.facturae") }
             }
-            Label {
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1;
+                font.pixelSize: Typography.control
                 text: tr("facturae.intro")
                 color: panel.theme.secondaryTextColor
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
-            Label { text: tr("facturae.required_legend"); color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-            Label { text: tr("facturae.invoice"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; font.pixelSize: Typography.control; text: tr("facturae.required_legend"); color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            Label { Layout.minimumWidth: 0; Layout.fillWidth: Typography.scale > 1; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; wrapMode: Text.Wrap; font.pixelSize: Typography.control; text: tr("facturae.invoice"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             GridLayout {
-                columns: panel.width > 820 ? 3 : 1
+                columns: invoiceScroll.availableWidth / Typography.scale > 820 ? 3 : 1
                 Layout.fillWidth: true
                 InvoiceField { id: invoiceNumber; required: true; label: tr("facturae.invoice_number") }
                 InvoiceField { id: invoiceSeries; label: tr("facturae.series") }
                 InvoiceField { id: issueDate; required: true; label: tr("facturae.issue_date"); value: Qt.formatDate(new Date(), "yyyy-MM-dd"); hint: tr("facturae.date_hint") }
             }
-            Label { text: tr("facturae.seller"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+            Label { Layout.minimumWidth: 0; Layout.fillWidth: Typography.scale > 1; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; wrapMode: Text.Wrap; font.pixelSize: Typography.control; text: tr("facturae.seller"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             ThemedSwitch {
                 id: sellerIndividual
                 text: tr("facturae.individual")
                 Accessible.name: text
             }
             GridLayout {
-                columns: panel.width > 820 ? 3 : 1
+                columns: invoiceScroll.availableWidth / Typography.scale > 820 ? 3 : 1
                 Layout.fillWidth: true
                 InvoiceField { id: sellerTax; required: true; label: tr("facturae.tax_id") }
                 InvoiceField { id: sellerName; required: true; label: sellerIndividual.checked ? tr("facturae.person_name") : tr("facturae.legal_name") }
@@ -303,9 +309,9 @@ Item {
                 InvoiceField { id: sellerProvince; required: true; label: tr("facturae.province") }
                 InvoiceField { id: sellerEmail; label: tr("facturae.email") }
             }
-            Label { text: tr("facturae.buyer"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+            Label { Layout.minimumWidth: 0; Layout.fillWidth: Typography.scale > 1; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; wrapMode: Text.Wrap; font.pixelSize: Typography.control; text: tr("facturae.buyer"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             GridLayout {
-                columns: panel.width > 820 ? 3 : 1
+                columns: invoiceScroll.availableWidth / Typography.scale > 820 ? 3 : 1
                 Layout.fillWidth: true
                 InvoiceField { id: buyerTax; required: true; label: tr("facturae.tax_id") }
                 InvoiceField { id: buyerName; required: true; label: tr("facturae.legal_name") }
@@ -317,19 +323,19 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 4
-                Label { text: tr("facturae.dir3"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+                Label { Layout.minimumWidth: 0; Layout.fillWidth: Typography.scale > 1; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; wrapMode: Text.Wrap; font.pixelSize: Typography.control; text: tr("facturae.dir3"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
                 HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("facturae.dir3"); helpText: panel.tr("ayuda.facturae.dir3") }
             }
             GridLayout {
-                columns: panel.width > 820 ? 3 : 1
+                columns: invoiceScroll.availableWidth / Typography.scale > 820 ? 3 : 1
                 Layout.fillWidth: true
                 InvoiceField { id: accounting; required: true; label: tr("facturae.accounting") }
                 InvoiceField { id: managing; required: true; label: tr("facturae.managing") }
                 InvoiceField { id: processing; required: true; label: tr("facturae.processing") }
             }
-            Label { text: tr("facturae.item"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+            Label { Layout.minimumWidth: 0; Layout.fillWidth: Typography.scale > 1; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; wrapMode: Text.Wrap; font.pixelSize: Typography.control; text: tr("facturae.item"); color: panel.theme.textColor; font.bold: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             GridLayout {
-                columns: panel.width > 820 ? 4 : 1
+                columns: invoiceScroll.availableWidth / Typography.scale > 820 ? 4 : 1
                 Layout.fillWidth: true
                 InvoiceField { id: lineDescription; required: true; label: tr("facturae.item_description") }
                 InvoiceField { id: quantity; required: true; label: tr("facturae.quantity"); value: "1" }
@@ -337,7 +343,7 @@ Item {
                 InvoiceField { id: vat; required: true; label: tr("facturae.vat"); value: "21" }
             }
             GridLayout {
-                columns: panel.width > 820 ? 3 : 1
+                columns: invoiceScroll.availableWidth / Typography.scale > 820 ? 3 : 1
                 Layout.fillWidth: true
                 InvoiceField { id: invoiceDescription; label: tr("facturae.description") }
                 InvoiceField { id: fileReference; label: tr("facturae.file_reference") }
@@ -346,12 +352,13 @@ Item {
             ThemedSwitch { id: includePayment; text: tr("facturae.payment"); Accessible.name: text }
             GridLayout {
                 visible: includePayment.checked
-                columns: panel.width > 820 ? 2 : 1
+                columns: invoiceScroll.availableWidth / Typography.scale > 820 ? 2 : 1
                 Layout.fillWidth: true
                 InvoiceField { id: dueDate; required: true; label: tr("facturae.due_date"); hint: tr("facturae.date_hint") }
                 InvoiceField { id: iban; required: true; label: tr("facturae.iban") }
             }
-            Label {
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1;
+                font.pixelSize: Typography.control
                 textFormat: Text.PlainText
                 text: panel.statusText
                 visible: text !== ""
@@ -366,13 +373,14 @@ Item {
                 ThemedButton { text: tr("facturae.create"); enabled: !panel.busy; Accessible.name: text; onClicked: saveDialog.open() }
                 ThemedButton { text: tr("facturae.sign"); Accessible.name: text; onClicked: panel.signRequested() }
             }
-            Label { text: tr("paridad.lote3.invoice.title"); font.bold: true; color: panel.theme.textColor; Layout.fillWidth: true }
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; wrapMode: Text.Wrap; font.pixelSize: Typography.control; text: tr("paridad.lote3.invoice.title"); font.bold: true; color: panel.theme.textColor; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true
                 ThemedButton { text: tr("paridad.lote3.invoice.choose"); enabled: !panel.busy; Accessible.name: text; onClicked: invoiceOpenDialog.open() }
                 ThemedButton { text: tr("paridad.lote3.invoice.export"); enabled: !!panel.invoiceResult; Accessible.name: text; onClicked: invoiceReportDialog.open() }
             }
-            Label {
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1;
+                font.pixelSize: Typography.control
                 textFormat: Text.PlainText
                 text: panel.invoiceResult ? tr("paridad.lote3.invoice.summary").replace("%1", panel.invoiceResult.format).replace("%2", panel.invoiceResult.errors).replace("%3", panel.invoiceResult.warnings) : tr("paridad.lote3.invoice.empty")
                 color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true
@@ -380,7 +388,7 @@ Item {
             }
             Repeater {
                 model: panel.invoiceResult && panel.invoiceResult.issues ? panel.invoiceResult.issues : []
-                delegate: Label {
+                delegate: Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; font.pixelSize: Typography.control;
                     required property var modelData
                     textFormat: Text.PlainText
                     text: (modelData.level === "error" ? tr("paridad.lote3.invoice.error") : tr("paridad.lote3.invoice.warning")) + " · " + modelData.field + ": " + modelData.message
@@ -388,7 +396,7 @@ Item {
                     Accessible.name: text
                 }
             }
-            Label { text: tr("facturae.face_note"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; font.pixelSize: Typography.control; text: tr("facturae.face_note"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true
                 ThemedButton { text: tr("facturae.validate_face"); Accessible.name: text; onClicked: Qt.openUrlExternally("https://proveedores.face.gob.es/proveedores/validar-factura") }
@@ -398,17 +406,18 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 4
-                Label { text: tr("verifactu.title"); font.bold: true; font.pixelSize: 20; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+                Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; text: tr("verifactu.title"); font.bold: true; font.pixelSize: Typography.size20; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
                 HelpButton { nameTemplate: panel.tr("ayuda.boton_nombre"); controlLabel: panel.tr("verifactu.title"); helpText: panel.tr("ayuda.verifactu") }
             }
-            Label { text: tr("verifactu.scope"); textFormat: Text.PlainText; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; font.pixelSize: Typography.control; text: tr("verifactu.scope"); textFormat: Text.PlainText; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true
                 ThemedButton { text: tr("verifactu.choose"); enabled: !panel.busy; Accessible.name: text; onClicked: verifactuFileDialog.open() }
                 ThemedButton { text: tr("verifactu.folder"); enabled: !panel.busy; Accessible.name: text; onClicked: verifactuFolderDialog.open() }
             }
             // Resultado junto a sus botones, como región viva.
-            Label {
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1;
+                font.pixelSize: Typography.control
                 objectName: "verifactuSummary"
                 textFormat: Text.PlainText
                 text: panel.verifactuStatus !== "" ? panel.verifactuStatus : tr("verifactu.empty_state")
@@ -424,8 +433,8 @@ Item {
                 color: panel.theme.textColor; Layout.fillWidth: true
             }
             ThemedButton { text: tr("verifactu.export"); visible: !!panel.verifactuResult; Accessible.name: text; onClicked: verifactuReportDialog.open() }
-            Label { text: tr("verifactu.qr_title"); color: panel.theme.textColor; font.bold: true; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
-            Label { text: tr("verifactu.qr_url_field"); color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; font.pixelSize: Typography.control; text: tr("verifactu.qr_title"); color: panel.theme.textColor; font.bold: true; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; font.pixelSize: Typography.control; text: tr("verifactu.qr_url_field"); color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 Layout.fillWidth: true
                 ThemedTextField {
@@ -435,12 +444,12 @@ Item {
                 }
                 ThemedButton { objectName: "qrFromFileButton"; text: tr("verifactu.qr_from_file"); enabled: !panel.busy; Accessible.name: text; onClicked: qrFileDialog.open() }
             }
-            Label { text: tr("verifactu.qr_notice"); textFormat: Text.PlainText; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; font.pixelSize: Typography.control; text: tr("verifactu.qr_notice"); textFormat: Text.PlainText; color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             RowLayout {
                 ThemedButton { text: tr("verifactu.qr_read"); enabled: !panel.busy && qrInput.text.length > 0; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.readVeriFactuQR(qrInput.text) } }
                 ThemedButton { objectName: "qrQueryButton"; text: tr("verifactu.qr_query"); enabled: !panel.busy && qrArea.readResult !== null; Accessible.name: text; onClicked: { panel.busy = true; panel.bridge.queryVeriFactuQR(qrArea.readResult.url) } }
             }
-            Label { text: tr("verifactu.qr_query_help"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            Label { Layout.minimumWidth: 0; Layout.preferredWidth: Typography.scale > 1 ? 1 : -1; font.pixelSize: Typography.control; text: tr("verifactu.qr_query_help"); color: panel.theme.secondaryTextColor; wrapMode: Text.WordWrap; Layout.fillWidth: true }
             // Fondo del tema: con el blanco por defecto el texto claro no se veía.
             ThemedTextArea {
                 id: qrArea; objectName: "qrResultArea"; property var readResult: null; text: panel.qrText(panel.qrState); readOnly: true; wrapMode: TextEdit.Wrap; textFormat: TextEdit.PlainText; Layout.fillWidth: true

@@ -10,6 +10,7 @@ import "ThemeContrast.js" as Contrast
 // Área de texto con el mismo aspecto que ThemedTextField: borde de 3:1 en todos
 // los temas, foco de 2 px, error con errorColor y texto plano por defecto.
 TextArea {
+    font.pixelSize: Typography.control
     id: control
     property bool hasError: false
     property color errorColor: "#b42318"

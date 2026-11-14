@@ -137,10 +137,10 @@ assert.equal(certificateStatusText({...base, diasCaducidad:60}), 'Caduca pronto'
 assert.equal(certificateStatusColor({...base, diasCaducidad:60}), '#5c3900');
 assert.equal(certificateStatusText({...base, diasCaducidad:61}), 'Válido');
 assert.equal(certificateStatusColor({...base, diasCaducidad:61}), '#064c2a');
-assert.equal(certificateStatusText({...base, caducado:true}), '⚠ No válido');
+assert.equal(certificateStatusText({...base, caducado:true}), 'No válido');
 assert.equal(certificateStatusReason({...base, caducado:true}), 'Caducado el 31/12/2026');
 assert.equal(certificateStatusColor({...base, caducado:true}), '#750010');
-assert.equal(certificateStatusText({...base, status:'Revocado'}), '⚠ No válido');
+assert.equal(certificateStatusText({...base, status:'Revocado'}), 'No válido');
 assert.equal(certificateStatusReason({...base, status:'Revocado'}), 'Revocado');
 assert.equal(certificateStatusColor({...base, status:'Revocado'}), '#750010');
 let signSealRotation = 45;

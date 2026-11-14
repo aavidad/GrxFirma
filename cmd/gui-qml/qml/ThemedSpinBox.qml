@@ -11,6 +11,7 @@ import "ThemeContrast.js" as Contrast
 // entre 1:1 y 2:1 con el fondo en varios temas. Aquí llega a 3:1 (WCAG 1.4.11)
 // y el foco se ve con un borde de 2 px.
 SpinBox {
+    font.pixelSize: Typography.control
     id: control
     readonly property color fieldColor: control.palette.base
     readonly property color borderColor: Contrast.accentOn(control.fieldColor, control.palette.mid, 3.0)

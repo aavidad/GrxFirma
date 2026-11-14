@@ -104,18 +104,20 @@ GroupBox {
 
     contentItem: ColumnLayout {
         spacing: 12
-        Label { Layout.fillWidth: true; text: panel.t("intro"); wrapMode: Text.Wrap; textFormat: Text.PlainText }
+        Label { font.pixelSize: Typography.control; Layout.fillWidth: true; text: panel.t("intro"); wrapMode: Text.Wrap; textFormat: Text.PlainText }
         Label {
+            font.pixelSize: Typography.control
             Layout.fillWidth: true
             visible: !panel.supported || (panel.loaded && !panel.snapshot.available)
             text: panel.t("unavailable"); wrapMode: Text.Wrap; textFormat: Text.PlainText
         }
         Label {
+            font.pixelSize: Typography.control
             Layout.fillWidth: true; visible: panel.loaded
             text: panel.t("state") + ": " + panel.t("state_" + (["missing", "disabled", "configured", "invalid", "unavailable"].indexOf(panel.snapshot.state) >= 0 ? panel.snapshot.state : "unavailable"))
             wrapMode: Text.Wrap; textFormat: Text.PlainText
         }
-        Label { textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.loaded && panel.snapshot.available && !panel.snapshot.editable; text: panel.t("readonly"); wrapMode: Text.Wrap }
+        Label { font.pixelSize: Typography.control; textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.loaded && panel.snapshot.available && !panel.snapshot.editable; text: panel.t("readonly"); wrapMode: Text.Wrap }
         Flow {
             Layout.fillWidth: true; spacing: 8
             ThemedButton {
@@ -126,10 +128,10 @@ GroupBox {
             ThemedButton { implicitHeight: 44; text: panel.t("diagnose"); enabled: panel.supported && !panel.busy; onClicked: panel.diagnose() }
             BusyIndicator { running: panel.busy; visible: running; width: 40; height: 40; Accessible.name: panel.t("busy") }
         }
-        Label { Layout.fillWidth: true; text: panel.t("diagnose_help"); wrapMode: Text.Wrap; textFormat: Text.PlainText }
+        Label { font.pixelSize: Typography.control; Layout.fillWidth: true; text: panel.t("diagnose_help"); wrapMode: Text.Wrap; textFormat: Text.PlainText }
         Repeater {
             model: panel.snapshot.checks || []
-            Label { required property var modelData; Layout.fillWidth: true; text: panel.checkLabel(modelData); wrapMode: Text.Wrap; textFormat: Text.PlainText }
+            Label { font.pixelSize: Typography.control; required property var modelData; Layout.fillWidth: true; text: panel.checkLabel(modelData); wrapMode: Text.Wrap; textFormat: Text.PlainText }
         }
         RowLayout {
             Layout.fillWidth: true
@@ -139,7 +141,7 @@ GroupBox {
                 Layout.fillWidth: true
                 Layout.minimumHeight: 44
                 text: panel.t("enable"); checked: panel.draftEnabled; enabled: panel.canEdit
-                contentItem: Label { textFormat: Text.PlainText; text: enableCheck.text; leftPadding: enableCheck.indicator.width + enableCheck.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter }
+                contentItem: Label { font.pixelSize: Typography.control; textFormat: Text.PlainText; text: enableCheck.text; leftPadding: enableCheck.indicator.width + enableCheck.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter }
                 onClicked: { panel.draftEnabled = checked; panel.dirty = true }
             }
             HelpButton {
@@ -149,14 +151,14 @@ GroupBox {
                 helpText: panel.appText("ayuda.pkcs11.modulos")
             }
         }
-        Label { Layout.fillWidth: true; text: panel.t("driver_warning"); wrapMode: Text.Wrap; textFormat: Text.PlainText }
+        Label { font.pixelSize: Typography.control; Layout.fillWidth: true; text: panel.t("driver_warning"); wrapMode: Text.Wrap; textFormat: Text.PlainText }
         Repeater {
             model: panel.modules
             RowLayout {
                 required property var modelData
                 required property int index
                 Layout.fillWidth: true
-                Label { Layout.fillWidth: true; Layout.minimumWidth: 0; text: modelData.path; wrapMode: Text.WrapAnywhere; textFormat: Text.PlainText }
+                Label { font.pixelSize: Typography.control; Layout.fillWidth: true; Layout.minimumWidth: 0; text: modelData.path; wrapMode: Text.WrapAnywhere; textFormat: Text.PlainText }
                 ThemedButton {
                     implicitHeight: 44
                     text: panel.t("remove"); Accessible.name: text + " " + modelData.path; enabled: panel.canEdit
@@ -173,10 +175,10 @@ GroupBox {
                 onClicked: { confirmation.checked = false; replaceConfirmation.checked = false; saveDialog.open() }
             }
         }
-        Label { textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.dirty; text: panel.t("draft"); wrapMode: Text.Wrap }
-        Label { textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.snapshot.restartRequired === true; text: panel.t("restart"); wrapMode: Text.Wrap }
-        Label { textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.snapshot.warning === "durability_unconfirmed"; text: panel.t("durability"); wrapMode: Text.Wrap }
-        Label { Layout.fillWidth: true; visible: panel.message !== ""; text: panel.message; wrapMode: Text.Wrap; textFormat: Text.PlainText; Accessible.name: text }
+        Label { font.pixelSize: Typography.control; textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.dirty; text: panel.t("draft"); wrapMode: Text.Wrap }
+        Label { font.pixelSize: Typography.control; textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.snapshot.restartRequired === true; text: panel.t("restart"); wrapMode: Text.Wrap }
+        Label { font.pixelSize: Typography.control; textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.snapshot.warning === "durability_unconfirmed"; text: panel.t("durability"); wrapMode: Text.Wrap }
+        Label { font.pixelSize: Typography.control; Layout.fillWidth: true; visible: panel.message !== ""; text: panel.message; wrapMode: Text.Wrap; textFormat: Text.PlainText; Accessible.name: text }
     }
 
     FileDialog {
@@ -201,7 +203,7 @@ GroupBox {
             standardButton(Dialog.Ok).implicitHeight = 44
             standardButton(Dialog.Cancel).implicitHeight = 44
         }
-        contentItem: Label { textFormat: Text.PlainText; text: panel.t("discard"); wrapMode: Text.Wrap }
+        contentItem: Label { font.pixelSize: Typography.control; textFormat: Text.PlainText; text: panel.t("discard"); wrapMode: Text.Wrap }
         onAccepted: panel.load()
     }
     ThemedDialog {
@@ -229,11 +231,11 @@ GroupBox {
             contentWidth: availableWidth
             ColumnLayout {
                 width: saveDialog.availableWidth
-                Label { textFormat: Text.PlainText; Layout.fillWidth: true; text: panel.t("driver_warning") + "\n" + panel.t("restart"); wrapMode: Text.Wrap }
-                Label { Layout.fillWidth: true; text: panel.t("enable") + ": " + panel.t(panel.draftEnabled ? "state_configured" : "state_disabled"); wrapMode: Text.Wrap }
-                Repeater { model: panel.modules; Label { required property var modelData; Layout.fillWidth: true; text: modelData.path; wrapMode: Text.WrapAnywhere; textFormat: Text.PlainText } }
-                ThemedCheckBox { id: confirmation; objectName: "tokenSettingsConfirmation"; Layout.fillWidth: true; text: panel.t("confirm"); contentItem: Label { textFormat: Text.PlainText; text: confirmation.text; leftPadding: confirmation.indicator.width + confirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
-                ThemedCheckBox { id: replaceConfirmation; objectName: "tokenSettingsReplaceConfirmation"; visible: panel.snapshot.state === "invalid"; Layout.fillWidth: true; text: panel.t("replace_invalid"); contentItem: Label { textFormat: Text.PlainText; text: replaceConfirmation.text; leftPadding: replaceConfirmation.indicator.width + replaceConfirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
+                Label { font.pixelSize: Typography.control; textFormat: Text.PlainText; Layout.fillWidth: true; text: panel.t("driver_warning") + "\n" + panel.t("restart"); wrapMode: Text.Wrap }
+                Label { font.pixelSize: Typography.control; Layout.fillWidth: true; text: panel.t("enable") + ": " + panel.t(panel.draftEnabled ? "state_configured" : "state_disabled"); wrapMode: Text.Wrap }
+                Repeater { model: panel.modules; Label { font.pixelSize: Typography.control; required property var modelData; Layout.fillWidth: true; text: modelData.path; wrapMode: Text.WrapAnywhere; textFormat: Text.PlainText } }
+                ThemedCheckBox { id: confirmation; objectName: "tokenSettingsConfirmation"; Layout.fillWidth: true; text: panel.t("confirm"); contentItem: Label { font.pixelSize: Typography.control; textFormat: Text.PlainText; text: confirmation.text; leftPadding: confirmation.indicator.width + confirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
+                ThemedCheckBox { id: replaceConfirmation; objectName: "tokenSettingsReplaceConfirmation"; visible: panel.snapshot.state === "invalid"; Layout.fillWidth: true; text: panel.t("replace_invalid"); contentItem: Label { font.pixelSize: Typography.control; textFormat: Text.PlainText; text: replaceConfirmation.text; leftPadding: replaceConfirmation.indicator.width + replaceConfirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
             }
         }
     }
