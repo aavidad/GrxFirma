@@ -64,6 +64,8 @@ public sealed partial class SignPage : Page
     private double _visibleSealStartYPercent;
     private double _visibleSealStartWidthPercent;
     private double _visibleSealStartHeightPercent;
+    private double _visibleSealStartRotationDegrees;
+    private double _visibleSealStartPointerAngle;
     private bool _drawingSealArea;
     private Point _sealDrawFirst;
     private Point _sealDrawSecond;
@@ -95,6 +97,9 @@ public sealed partial class SignPage : Page
         ViewModel.SignConfirmationPrompt = ConfirmSignAsync;
         ViewModel.CosignOriginalPrompt = PromptCosignOriginalAsync;
         InitializeComponent();
+        // El Viewbox escala también los objetivos de puntero. Compensar su
+        // escala después de cada maquetación mantiene al menos 24 DIP reales.
+        VisibleSealPreviewViewbox.LayoutUpdated += (_, _) => UpdateSealHandleSizes();
         // La superficie recibe el inicio del dibujo desde el control transparente.
         VisibleSealPreviewSurface.AddHandler(UIElement.PointerPressedEvent,
             new PointerEventHandler(OnVisibleSealDrawPointerPressed), true);
@@ -125,6 +130,40 @@ public sealed partial class SignPage : Page
         VisibleSealRotateHandle.AddHandler(
             UIElement.PointerReleasedEvent,
             new PointerEventHandler(OnVisibleSealPreviewPointerReleased), true);
+    }
+
+    private void UpdateSealHandleSizes()
+    {
+        if (!VisibleSealPreviewSurface.IsLoaded || VisibleSealPreviewSurface.ActualWidth <= 0)
+            return;
+        var transform = VisibleSealPreviewSurface.TransformToVisual(VisibleSealPreviewViewbox);
+        var origin = transform.TransformPoint(new Point(0, 0));
+        var unit = transform.TransformPoint(new Point(1, 0));
+        var scale = Math.Sqrt(Math.Pow(unit.X - origin.X, 2) + Math.Pow(unit.Y - origin.Y, 2));
+        if (!double.IsFinite(scale) || scale <= 0) return;
+        // Situarlos sobre las esquinas giradas y dentro de la página evita
+        // recortes; el cálculo separa los objetivos de sellos muy pequeños.
+        var corners = VisibleSealPreviewRegion.TransformToVisual(VisibleSealPreviewSurface);
+        var top = corners.TransformPoint(new Point(VisibleSealPreviewRegion.ActualWidth, 0));
+        var bottom = corners.TransformPoint(new Point(VisibleSealPreviewRegion.ActualWidth,
+            VisibleSealPreviewRegion.ActualHeight));
+        var targets = SealHandleGeometry.Calculate(scale,
+            VisibleSealPreviewSurface.ActualWidth, VisibleSealPreviewSurface.ActualHeight,
+            top.X, top.Y, bottom.X, bottom.Y);
+        Apply(VisibleSealRotateHandle, targets.Rotate);
+        Apply(VisibleSealResizeHandle, targets.Resize);
+
+        static void Apply(FrameworkElement handle, SealHandleTarget target)
+        {
+            // No reescribir valores iguales: LayoutUpdated no debe provocar
+            // otra maquetación continua ni cambiar dos veces una posición.
+            if (Math.Abs(handle.Width - target.Size) > 0.01)
+                handle.Width = handle.Height = target.Size;
+            if (Math.Abs(Canvas.GetLeft(handle) - target.X) > 0.01 || double.IsNaN(Canvas.GetLeft(handle)))
+                Canvas.SetLeft(handle, target.X);
+            if (Math.Abs(Canvas.GetTop(handle) - target.Y) > 0.01 || double.IsNaN(Canvas.GetTop(handle)))
+                Canvas.SetTop(handle, target.Y);
+        }
     }
 
     private void RegisterFieldValidation(TextBox field, string name)
@@ -1451,8 +1490,41 @@ public sealed partial class SignPage : Page
             return;
         }
 
-        var diagnostic = await ViewModel.SignBatchAsync(
-            cancellation.Token);
+        // El contrato de lotes no publica resultados intermedios. No se
+        // inventa un número de documentos firmados mientras se espera.
+        BatchLiveProgress.Text = string.Empty;
+        var batchStarted = false;
+        void ObserveBatchStart(object? source, PropertyChangedEventArgs change)
+        {
+            if (change.PropertyName == nameof(SignPageViewModel.IsBatchProgressIndeterminate) &&
+                ViewModel.IsBatchProgressIndeterminate) batchStarted = true;
+        }
+        ViewModel.PropertyChanged += ObserveBatchStart;
+        var timer = DispatcherQueue.CreateTimer();
+        timer.Interval = TimeSpan.FromSeconds(10);
+        timer.Tick += (_, _) =>
+        {
+            if (!ViewModel.IsBatchProgressIndeterminate || cancellation.IsCancellationRequested) return;
+            BatchLiveProgress.Text = Localizer.Text("winui.l27.batch.waiting");
+            LiveAnnouncer.Announce(BatchLiveProgress);
+        };
+        timer.Start();
+        OperationDiagnostic? diagnostic;
+        try
+        {
+            diagnostic = await ViewModel.SignBatchAsync(cancellation.Token);
+        }
+        finally
+        {
+            timer.Stop();
+            ViewModel.PropertyChanged -= ObserveBatchStart;
+            if (batchStarted && !cancellation.IsCancellationRequested)
+            {
+                BatchLiveProgress.Text = Localizer.Format("winui.l27.batch.finished",
+                    ViewModel.BatchProgressText, ViewModel.ValidationMessage);
+                LiveAnnouncer.Announce(BatchLiveProgress);
+            }
+        }
         await ShowDiagnosticIfPresentAsync(diagnostic);
     }
 
@@ -2200,6 +2272,10 @@ public sealed partial class SignPage : Page
             ViewModel.VisibleSealHeightPercent;
         if (mode is VisibleSealPointerMode.Rotate)
         {
+            _visibleSealStartRotationDegrees = ViewModel.VisibleSealRotationDegrees;
+            _visibleSealStartPointerAngle = Math.Atan2(
+                point.Position.Y - (ViewModel.VisibleSealPreviewTop + ViewModel.VisibleSealPreviewHeight / 2),
+                point.Position.X - (ViewModel.VisibleSealPreviewX + ViewModel.VisibleSealPreviewWidth / 2));
             ViewModel.BeginVisibleSealRotation();
             VisibleSealRotateHandle.Focus(FocusState.Pointer);
         }
@@ -2248,12 +2324,11 @@ public sealed partial class SignPage : Page
                 ViewModel.VisibleSealPreviewWidth / 2;
             var centerY = ViewModel.VisibleSealPreviewTop +
                 ViewModel.VisibleSealPreviewHeight / 2;
-            var baseAngle = Math.Atan2(
-                -ViewModel.VisibleSealPreviewHeight / 2,
-                ViewModel.VisibleSealPreviewWidth / 2);
-            var degrees = (Math.Atan2(
+            // Usar el ángulo inicial del puntero evita un salto cuando el
+            // objetivo se desplaza para no quedar recortado junto al borde.
+            var degrees = _visibleSealStartRotationDegrees + (Math.Atan2(
                 point.Position.Y - centerY,
-                point.Position.X - centerX) - baseAngle) * 180 / Math.PI;
+                point.Position.X - centerX) - _visibleSealStartPointerAngle) * 180 / Math.PI;
             degrees = (degrees % 360 + 360) % 360;
             if (IsShiftPressed())
             {
