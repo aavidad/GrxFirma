@@ -872,7 +872,31 @@ public sealed class DesktopOperationsClientTests
             "warnings",
             "errors",
             "evidence",
-            "reportHtml");
+            "reportHtml",
+            "forcedTrust");
+        AssertJsonPropertyNames<VerifyForcedTrust>(
+            "available",
+            "forbidden",
+            "applied",
+            "acceptable");
+        AssertJsonPropertyNames<ForcedTrustObstacle>(
+            "type",
+            "fingerprint",
+            "subject",
+            "label",
+            "notice",
+            "acceptedAt");
+        AssertJsonPropertyNames<ForcedTrustItem>(
+            "type",
+            "fingerprint");
+        AssertJsonPropertyNames<ForcedTrustAcceptParameters>(
+            "items");
+        AssertJsonPropertyNames<ForcedTrustRemoveParameters>(
+            "type",
+            "fingerprint");
+        AssertJsonPropertyNames<ForcedTrustListResult>(
+            "forbidden",
+            "entries");
         AssertJsonPropertyNames<VerifyAspect>(
             "status",
             "reason",
