@@ -108,3 +108,46 @@ func TestPolicyInvalidaCierraLaFirmaRemotaCSCDelUsuario(t *testing.T) {
 		}
 	}
 }
+
+// ID-03 tras la fusión con F-07: policy.json se lee campo a campo, y la lista
+// de prestadores CSC tiene que llegar a la política; mal escrita, la
+// política no se puede leer y la firma remota no se autoriza.
+func TestLoadPolicy_ServiciosCSC(t *testing.T) {
+	casos := map[string]struct {
+		json    string
+		quiere  []string
+		esError bool
+	}{
+		"lista":       {json: `{"firma_remota_csc_servicios_permitidos": ["firma.example.es:8443"]}`, quiere: []string{"firma.example.es:8443"}},
+		"vacia":       {json: `{"firma_remota_csc_servicios_permitidos": []}`, quiere: []string{}},
+		"nula":        {json: `{"firma_remota_csc_servicios_permitidos": null}`, quiere: []string{}},
+		"sin_fijar":   {json: `{}`, quiere: nil},
+		"mal_escrita": {json: `{"firma_remota_csc_servicios_permitidos": "firma.example.es"}`, esError: true},
+	}
+	for nombre, c := range casos {
+		t.Run(nombre, func(t *testing.T) {
+			dir := t.TempDir()
+			if err := os.WriteFile(filepath.Join(dir, "policy.json"), []byte(c.json), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			p, err := config.LoadPolicy(dir)
+			if c.esError {
+				if err == nil {
+					t.Fatalf("una lista mal escrita debe hacer ilegible la política")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("LoadPolicy: %v", err)
+			}
+			if (c.quiere == nil) != (p.FirmaRemotaCSCServicios == nil) || len(c.quiere) != len(p.FirmaRemotaCSCServicios) {
+				t.Fatalf("servicios = %#v, quiere %#v", p.FirmaRemotaCSCServicios, c.quiere)
+			}
+			for i := range c.quiere {
+				if c.quiere[i] != p.FirmaRemotaCSCServicios[i] {
+					t.Fatalf("servicios = %#v, quiere %#v", p.FirmaRemotaCSCServicios, c.quiere)
+				}
+			}
+		})
+	}
+}

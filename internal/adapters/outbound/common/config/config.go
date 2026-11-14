@@ -290,7 +290,7 @@ func loadMachinePolicyDesde(lector lectorPoliticaMaquina) (Policy, error) {
 		p.FirmaRemotaCSCOAuth = v
 	}
 	if v, ok, err := lector.textos(machinepolicy.FirmaRemotaCSCServicios); err != nil {
-		errs = append(errs, err)
+		fallo(machinepolicy.FirmaRemotaCSCServicios, err)
 	} else if ok {
 		if v == nil {
 			v = []string{} // fijada y vacía: no admite ningún prestador
@@ -437,6 +437,12 @@ func loadPolicyFile(path string) (Policy, error) {
 	})
 	campoPolicy(campos, machinepolicy.FirmaRemotaCSC, &raw, &errs, func(v *bool) { raw.FirmaRemotaCSC = v })
 	campoPolicy(campos, machinepolicy.FirmaRemotaCSCOAuth, &raw, &errs, func(v []string) { raw.FirmaRemotaCSCOAuth = v })
+	campoPolicy(campos, machinepolicy.FirmaRemotaCSCServicios, &raw, &errs, func(v []string) {
+		if v == nil {
+			v = []string{} // fijada y vacía: no admite ningún prestador
+		}
+		raw.FirmaRemotaCSCServicios = v
+	})
 	if len(errs) > 0 {
 		return raw, fmt.Errorf("%s: %w", path, errors.Join(errs...))
 	}
