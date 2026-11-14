@@ -36,6 +36,31 @@
                 IsClosable="False"
                 IsOpen="False" />
 
+            <StackPanel Spacing="10">
+                <TextBlock Text="winui.l27.assistant.title"
+                    AutomationProperties.HeadingLevel="Level2"
+                    Style="{StaticResource SectionTitleTextStyle}" />
+                <TextBlock x:Name="ContextualOperation" TextWrapping="Wrap" />
+                <TextBlock x:Name="ContextualStep" TextWrapping="Wrap" />
+                <TextBlock Text="winui.l27.assistant.scope" TextWrapping="Wrap" />
+                <TextBlock x:Name="ContextualNextAction" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <Button x:Name="CheckLocalButton" Content="winui.l27.assistant.check"
+                    Click="OnCheckLocal" MinHeight="40" />
+                <TextBlock x:Name="LocalCheckStatus" TextWrapping="Wrap"
+                    AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True" />
+                <ItemsControl x:Name="ContextualEvidence">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Spacing="4" Margin="0,0,0,10">
+                                <TextBlock Text="{Binding Label}" FontWeight="SemiBold"
+                                    AutomationProperties.HeadingLevel="Level3" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
             <StackPanel Spacing="12">
                 <Border Style="{StaticResource AppCardStyle}">
                     <StackPanel Spacing="6">

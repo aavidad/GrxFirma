@@ -1085,49 +1085,50 @@
                                                                         </StackPanel>
                                                                     </Border>
                                                                 </Viewbox>
-                                                                <controls:SealRotateButton
-                                                                    x:Name="VisibleSealRotateHandle"
-                                                                    TabIndex="71"
-                                                                    Width="44"
-                                                                    Height="44"
-                                                                    HorizontalAlignment="Right"
-                                                                    VerticalAlignment="Top"
-                                                                    AutomationProperties.Name="{x:Bind ViewModel.VisibleSealRotateHandleLabel, Mode=OneWay}"
-                                                                    AutomationProperties.HelpText="{x:Bind ViewModel.VisibleSealRotateHandleHelp, Mode=OneWay}"
-                                                                    Background="{ThemeResource AppSealHandleBrush}"
-                                                                    BorderBrush="{ThemeResource AppSealHandleTextBrush}"
-                                                                    BorderThickness="2"
-                                                                    CornerRadius="22"
-                                                                    KeyDown="OnVisibleSealRotateKeyDown"
-                                                                    PointerCanceled="OnVisibleSealPreviewPointerCanceled"
-                                                                    PointerCaptureLost="OnVisibleSealPreviewPointerCaptureLost">
-                                                                    <TextBlock
-                                                                        FontSize="25"
-                                                                        Foreground="{ThemeResource AppSealHandleTextBrush}"
-                                                                        Text="↻"
-                                                                        TextWrapping="Wrap" />
-                                                                </controls:SealRotateButton>
-                                                                <Border
-                                                                    x:Name="VisibleSealResizeHandle"
-                                                                    Width="36"
-                                                                    Height="36"
-                                                                    Margin="0,0,-3,-3"
-                                                                    HorizontalAlignment="Right"
-                                                                    VerticalAlignment="Bottom"
-                                                                    AutomationProperties.HelpText="Arrastre para cambiar el ancho y el alto del sello."
-                                                                    AutomationProperties.Name="Redimensionar zona del sello"
-                                                                    Background="{ThemeResource AppSealHandleBrush}"
-                                                                    BorderBrush="{ThemeResource AppSealHandleTextBrush}"
-                                                                    BorderThickness="2"
-                                                                    CornerRadius="3"
-                                                                    PointerPressed="OnVisibleSealResizePointerPressed"
-                                                                    ToolTipService.ToolTip="Arrastrar para cambiar el tamaño">
-                                                                    <FontIcon
-                                                                        FontSize="11"
-                                                                        Foreground="{ThemeResource AppSealHandleTextBrush}"
-                                                                        Glyph="&#xE740;" />
-                                                                </Border>
                                                             </Grid>
+                                                        </Border>
+                                                        <controls:SealRotateButton
+                                                            x:Name="VisibleSealRotateHandle"
+                                                            Visibility="{x:Bind ViewModel.HasSealOnPreviewPage, Mode=OneWay}"
+                                                            TabIndex="71"
+                                                            Width="44"
+                                                            Height="44"
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Top"
+                                                            AutomationProperties.Name="{x:Bind ViewModel.VisibleSealRotateHandleLabel, Mode=OneWay}"
+                                                            AutomationProperties.HelpText="{x:Bind ViewModel.VisibleSealRotateHandleHelp, Mode=OneWay}"
+                                                            Background="{ThemeResource AppSealHandleBrush}"
+                                                            BorderBrush="{ThemeResource AppSealHandleTextBrush}"
+                                                            BorderThickness="2"
+                                                            CornerRadius="22"
+                                                            KeyDown="OnVisibleSealRotateKeyDown"
+                                                            PointerCanceled="OnVisibleSealPreviewPointerCanceled"
+                                                            PointerCaptureLost="OnVisibleSealPreviewPointerCaptureLost">
+                                                            <TextBlock
+                                                                FontSize="25"
+                                                                Foreground="{ThemeResource AppSealHandleTextBrush}"
+                                                                Text="↻"
+                                                                TextWrapping="Wrap" />
+                                                        </controls:SealRotateButton>
+                                                        <Border
+                                                            x:Name="VisibleSealResizeHandle"
+                                                            Visibility="{x:Bind ViewModel.HasSealOnPreviewPage, Mode=OneWay}"
+                                                            Width="36"
+                                                            Height="36"
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Bottom"
+                                                            AutomationProperties.HelpText="Arrastre para cambiar el ancho y el alto del sello."
+                                                            AutomationProperties.Name="Redimensionar zona del sello"
+                                                            Background="{ThemeResource AppSealHandleBrush}"
+                                                            BorderBrush="{ThemeResource AppSealHandleTextBrush}"
+                                                            BorderThickness="2"
+                                                            CornerRadius="3"
+                                                            PointerPressed="OnVisibleSealResizePointerPressed"
+                                                            ToolTipService.ToolTip="Arrastrar para cambiar el tamaño">
+                                                            <FontIcon
+                                                                FontSize="11"
+                                                                Foreground="{ThemeResource AppSealHandleTextBrush}"
+                                                                Glyph="&#xE740;" />
                                                         </Border>
                                                         <ContentControl x:Name="VisibleSealDrawInput" Visibility="Collapsed" IsTabStop="True" UseSystemFocusVisuals="True" TabIndex="70"
                                                             Width="{x:Bind ViewModel.PreviewCanvasWidth, Mode=OneWay}"
@@ -1241,8 +1242,11 @@
                             AutomationProperties.HeadingLevel="Level2"
                             Style="{StaticResource SectionTitleTextStyle}"
                             Text="Resultado del lote" />
+                        <TextBlock x:Name="BatchLiveProgress"
+                            AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
+                            TextWrapping="Wrap" />
                         <InfoBar
-                            AutomationProperties.LiveSetting="Assertive"
+                            AutomationProperties.LiveSetting="Off"
                             IsClosable="False"
                             IsOpen="{x:Bind ViewModel.HasBatchResults, Mode=OneWay}"
                             Message="{x:Bind ViewModel.BatchProgressText, Mode=OneWay}"

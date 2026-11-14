@@ -130,6 +130,44 @@ distinta:
 - `Ayuda` abre una guía local incluida en el paquete y únicamente destinos
   oficiales fijos. Ninguna URL o ruta recibida por IPC se usa como destino.
 
+El diálogo de una operación incorpora ahora ayuda contextual (hecha en código,
+pendiente de comprobar en Windows):
+
+- muestra la operación conocida y la última fase fallida registrada; si falta
+  el dato, indica `No comprobado`;
+- ofrece pasos distintos ante problemas de certificados, guardado, comunicación
+  con el motor local y comunicación remota, además de una salida general para
+  conservar los resultados y preparar una incidencia;
+- no convierte códigos de comunicación como `SAF_26` o `SAF_27`, categorías
+  heredadas ni el responsable probable del backend en pruebas de culpabilidad.
+  El resumen y las fases genéricas de operación mantienen el responsable
+  desconocido; los detalles técnicos conservan la evidencia saneada;
+- separa certificados utilizables, lectura local del reloj, hora remota, red,
+  sede y plataforma `@firma`. Una fase solo aporta evidencia independiente si
+  tiene un código específico reconocido, estado confirmado y referencia de
+  una fase observada. Un resultado genérico de operación no acredita la red
+  ni el servidor. Las filas sin esa evidencia siguen como `No comprobado`;
+- `Comprobar datos locales` es un botón de teclado y lector de pantalla. Solo
+  usa las acciones existentes `check_certificates` y `clock_diagnostics`, sin
+  parámetros de dirección, sin firmar y sin validar certificados en línea.
+  Cada consulta se puede completar aunque la otra falle; una respuesta fallida,
+  incoherente o una acción no publicada deja su dato como `No comprobado`;
+- la consulta tiene un límite de quince segundos, evita ejecuciones simultáneas
+  en el diálogo y se cancela al cerrarlo. Su estado se anuncia en una región
+  en vivo `Polite`;
+- el recuento de certificados se identifica como comprobación posterior: no
+  prueba el estado del certificado elegido en el momento del fallo. Leer el
+  reloj y el servicio de hora tampoco prueba sincronización;
+- `Exportar informe` conserva la correlación y los pasos del fallo, con la
+  atribución prudente que presenta el diálogo. Las consultas posteriores se
+  muestran aparte y no se incorporan al informe como si fueran fases de la
+  operación original. El informe no envía datos a ningún servicio.
+
+No se ha modificado el contrato ni el servidor IPC. La fuente de reloj remoto
+sigue vacía (`clockdiagnostic.New(nil)` en `ipc/server.go`): no hay una fuente
+interna autenticada compartida que se pueda conectar sin ampliar destinos.
+Esta entrega no añade ninguna consulta de red ni admite destinos de WinUI o IPC.
+
 Los contratos automatizados de esta superficie no sustituyen su revisión
 visual, accesible ni instalada en Windows 10.
 
@@ -510,9 +548,13 @@ cerradas, entre ellas:
 Cada una debe abrir sobre contexto real ya conocido por la app y no pedir al
 usuario que vuelva a describir la operación actual.
 
-WinUI ofrece por ahora una guía local, recomendaciones breves y accesos fijos a
-manual, carpeta, proyecto y contacto privado. Es un centro de ayuda seguro,
-pero todavía no es el asistente contextual completo descrito en este apartado.
+WinUI conserva la guía local y los accesos fijos a manual, carpeta, proyecto y
+contacto privado. Además, el diálogo de fallo ofrece el asistente contextual
+anterior: operación y fase conocidas, recomendaciones por código, evidencia
+separada y consulta local explícita. Está hecho en código y pendiente de
+comprobar en Windows. La comparación remota del reloj sigue sin fuente
+habilitada; los datos ausentes aparecen como `No comprobado`. Las lecturas
+posteriores no se incluyen todavía como bloque separado del informe exportado.
 
 ## Criterios de calidad
 

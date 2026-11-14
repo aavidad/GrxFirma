@@ -114,14 +114,19 @@ Notas a la tabla:
   «solo texto más grande» del sistema (factor de texto de GNOME, «Aumentar el
   tamaño del texto» de Windows), porque los tamaños de letra están fijados en
   píxeles. Pendiente P-Q1.
-- 2.5.8 en WinUI: los tiradores del editor del sello se ven a escala del
-  PDF y bajan de 24 px en ventanas estrechas. Todo lo que hacen se puede hacer
-  con los campos numéricos de posición, tamaño y giro, que es la excepción que
-  admite el criterio. Pendiente P-W1. El inventario UIA marcó otros dos
+- 2.5.8 en WinUI: los tiradores compensan ahora la escala de la vista previa
+  para conservar al menos 24 píxeles independientes de la escala de Windows.
+  Se sitúan fuera de la región girada, dentro de la página y separados entre
+  sí, también para sellos pequeños. Los campos numéricos de posición, tamaño
+  y giro siguen disponibles mediante teclado. P-W1 hecho en código, pendiente
+  de comprobar en Windows. El inventario UIA marcó otros dos
   controles pequeños, pero estaban medio tapados por el borde de la zona
   visible al hacer la medida; en el XAML miden 44 px de alto.
-- 4.1.3 en WinUI: el avance de la firma por lotes no se anuncia mientras
-  dura; sí el resultado final. Pendiente P-W2.
+- 4.1.3 en WinUI: una región en vivo `Polite` avisa cada diez segundos de
+  que la firma por lotes sigue en curso y anuncia siempre el fin de la espera,
+  incluido error o cancelación. El contrato actual solo devuelve resultados
+  al terminar: no se inventa un recuento intermedio de documentos firmados.
+  P-W2 hecho en código, pendiente de comprobar en Windows.
 
 Contrastes más bajos que quedan, todos por encima del umbral:
 
@@ -233,9 +238,9 @@ Contrastes más bajos que quedan, todos por encima del umbral:
 | P-Q1 | Qt | Seguir el tamaño de texto del sistema o añadir un ajuste «Tamaño del texto» (100–200 %). Hoy hay 231 tamaños fijos en píxeles. | Alta |
 | P-Q2 | Qt | Capa del sello para portales: la barra de estado sigue alcanzable con Tab bajo la capa, sus desplegables y campos numéricos no tienen el borde de 3:1 y el título no es encabezado. Se deja para después de la rama del selector de portales. | Media |
 | P-Q3 | Qt | 116 textos traducidos empiezan por un emoji o símbolo (⌛, ✍, 🔑) que el lector pronuncia. | Baja |
-| P-W1 | WinUI | Tiradores del sello de al menos 24 px a cualquier escala. | Baja |
-| P-W2 | WinUI | Anunciar el avance de la firma por lotes cada pocos documentos. | Media |
-| P-W3 | WinUI | Los colores puestos desde código no se repintan si se cambia de tema con la página abierta. | Baja |
+| P-W1 | WinUI | Hecho en código, pendiente de comprobar en Windows: objetivos de al menos 24 píxeles efectivos mediante compensación de escala, contenidos en la página y separados. | Baja |
+| P-W2 | WinUI | Hecho en código, pendiente de comprobar en Windows: aviso `Polite` cada 10 s y al terminar. Sin recuentos intermedios porque el contrato de lotes no los publica. | Media |
+| P-W3 | WinUI | Hecho en código, pendiente de comprobar en Windows: pinceles actualizados al cambiar el tema real o el contraste del sistema, también en páginas abiertas. | Baja |
 | P-A1 | Android | Activar `AccessibilityChecks` de Espresso en las pruebas instrumentadas. Exige nuevas dependencias verificadas y regenerar los ficheros de bloqueo. | Media |
 | P-A2 | Android | Comprobar en Android 15 o posterior que el modo de borde a borde no tapa los últimos botones con la barra de gestos. | Media |
 
