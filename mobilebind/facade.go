@@ -517,7 +517,8 @@ func (f *Facade) SignJSON(payload string) (out string, err error) {
 
 // InspectSignatureJSON detecta firmas existentes sin confundirlas con firmas
 // verificadas. No necesita identidad, original ni acceso a la red.
-func (f *Facade) InspectSignatureJSON(payload string) (string, error) {
+func (f *Facade) InspectSignatureJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("inspeccion", &out, &err)
 	if f == nil {
 		return "", errNoConfigurado("inspeccion")
 	}
@@ -850,7 +851,8 @@ func (f *Facade) ImportCertificateBytesJSON(data []byte, password string) (out s
 
 // ImportCertificateSecretBytesJSON mantiene ambos buffers mutables en el borde
 // gomobile. La conversión String queda limitada a la biblioteca PKCS#12 Go.
-func (f *Facade) ImportCertificateSecretBytesJSON(data, password []byte) (string, error) {
+func (f *Facade) ImportCertificateSecretBytesJSON(data, password []byte) (out string, err error) {
+	defer recuperarPanicoFachada("importacion de certificado", &out, &err)
 	defer zeroBytes(data)
 	defer zeroBytes(password)
 	if len(password) == 0 || len(password) > maxPasswordBytes {

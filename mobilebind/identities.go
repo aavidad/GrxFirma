@@ -404,7 +404,8 @@ type removeIdentityResponse struct {
 
 // RemoveSessionIdentityJSON cierra uno de los certificados abiertos y destruye
 // su material en memoria. ClearSession sigue cerrándolos todos.
-func (f *Facade) RemoveSessionIdentityJSON(payload string) (string, error) {
+func (f *Facade) RemoveSessionIdentityJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("cierre de certificado", &out, &err)
 	if f == nil || f.session == nil {
 		return "", errNoConfigurado("cierre de certificado")
 	}

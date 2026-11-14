@@ -71,7 +71,8 @@ type eniFileDocument struct {
 // CreateENIFileJSON crea un expediente ENI con los documentos ENI aportados y
 // firma su índice con la identidad de la sesión (PKCS#12 o DNIe). La firma del
 // índice es XAdES y, como en el escritorio, solo admite claves RSA.
-func (f *Facade) CreateENIFileJSON(payload string) (string, error) {
+func (f *Facade) CreateENIFileJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("fichero ENI", &out, &err)
 	if f == nil || f.session == nil {
 		return "", errNoConfigurado("ENI")
 	}

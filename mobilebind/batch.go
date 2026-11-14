@@ -40,7 +40,8 @@ type mobileBatchResponse struct {
 // ProcessBatchJSON firma varios documentos con una única aprobación y la
 // identidad de la sesión. Cada documento pasa las mismas validaciones que
 // SignJSON y el resultado se devuelve por posición, con éxito o error propio.
-func (f *Facade) ProcessBatchJSON(payload string) (string, error) {
+func (f *Facade) ProcessBatchJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("lote", &out, &err)
 	if f == nil || f.batchService == nil {
 		return "", errNoConfigurado("lote")
 	}

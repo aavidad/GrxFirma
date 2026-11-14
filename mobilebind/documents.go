@@ -89,7 +89,8 @@ type veriFactuValidateResponse struct {
 // ValidateVeriFactuJSON comprueba registros Veri*Factu aportados (estructura,
 // huella, encadenamiento y firma) con el motor del escritorio. No consulta a
 // la AEAT ni accede a la red.
-func (f *Facade) ValidateVeriFactuJSON(payload string) (string, error) {
+func (f *Facade) ValidateVeriFactuJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("validacion Veri*Factu", &out, &err)
 	if f == nil {
 		return "", errNoConfigurado("Veri*Factu")
 	}
@@ -189,7 +190,8 @@ type eniDocumentResponse struct {
 // CreateENIDocumentJSON envuelve una firma PAdES, CAdES o XAdES en un
 // documento electrónico ENI con los metadatos obligatorios de la NTI. Reglas
 // de detección iguales a las de la herramienta de escritorio.
-func (f *Facade) CreateENIDocumentJSON(payload string) (string, error) {
+func (f *Facade) CreateENIDocumentJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("documento ENI", &out, &err)
 	if f == nil {
 		return "", errNoConfigurado("ENI")
 	}
@@ -392,7 +394,8 @@ type eniValidateResponse struct {
 
 // ValidateENIJSON revisa la estructura de un documento o expediente ENI 1.0.
 // No verifica las firmas que contiene ni sustituye a la validación XSD.
-func (f *Facade) ValidateENIJSON(payload string) (string, error) {
+func (f *Facade) ValidateENIJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("validacion ENI", &out, &err)
 	if f == nil {
 		return "", errNoConfigurado("ENI")
 	}
@@ -449,7 +452,8 @@ type csvLegendResponse struct {
 // CSVLegendJSON valida la leyenda CSV con las mismas reglas que la firma
 // PAdES y devuelve la URL de cotejo normalizada (IDN en ASCII) y el texto
 // final con {csv} y {url} sustituidos. El error indica el campo que corregir.
-func (f *Facade) CSVLegendJSON(payload string) (string, error) {
+func (f *Facade) CSVLegendJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("leyenda CSV", &out, &err)
 	if f == nil {
 		return "", errNoConfigurado("CSV")
 	}

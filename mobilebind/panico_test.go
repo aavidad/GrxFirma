@@ -15,6 +15,7 @@ import (
 	"strings"
 	"testing"
 
+	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/application"
 )
 
@@ -80,5 +81,32 @@ func TestFacadePanicoEnServicioDevuelveError(t *testing.T) {
 	// El mutex de operaciones queda libre tras el pánico: otra llamada no se bloquea.
 	comprobarErrorSaneado(t, "VerifyJSON (segunda llamada)", func() (string, error) {
 		return facade.VerifyJSON(`{"name":"firma.p7s","content_base64":"` + contenido + `","mime_type":"application/pkcs7-signature"}`)
+	})
+}
+
+type batchServicePanico struct{}
+
+func (batchServicePanico) Execute(context.Context, application.ProcessBatchCommand) (application.BatchResult, error) {
+	panic(secretoPanico)
+}
+
+// H-10 sobre los métodos que la 0.0.125 añadió a la fachada (lote, QR de
+// Veri*Factu, ENI, protección...): también devuelven un error saneado.
+func TestFacadePanicoEnMetodosNuevosDevuelveError(t *testing.T) {
+	pdf := base64.StdEncoding.EncodeToString([]byte("%PDF-1.4"))
+	facade := newFacade(nil, nil, nil).withBatchService(batchServicePanico{})
+	lote := `{"certificate_id":"cert-lote","items":[{"name":"doc.pdf","content_base64":"` + pdf + `","mime_type":"application/pdf","format":"PAdES","action":"sign"}]}`
+	comprobarErrorSaneado(t, "ProcessBatchJSON", func() (string, error) {
+		return facade.ProcessBatchJSON(lote)
+	})
+	comprobarErrorSaneado(t, "ProcessBatchJSON (segunda llamada)", func() (string, error) {
+		return facade.ProcessBatchJSON(lote)
+	})
+
+	facade.veriFactuImageRead = func(context.Context, []byte) (commonsigner.VeriFactuQR, error) {
+		panic(secretoPanico)
+	}
+	comprobarErrorSaneado(t, "ReadVeriFactuQRImageJSON", func() (string, error) {
+		return facade.ReadVeriFactuQRImageJSON([]byte{0x89, 'P', 'N', 'G'})
 	})
 }

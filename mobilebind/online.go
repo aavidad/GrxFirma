@@ -79,7 +79,8 @@ type certificateDetailsResponse struct {
 // CertificateDetailsJSON describe los certificados de la sesión con su
 // caducidad, tipo, NIF y organización, en el orden en que se abrieron. La
 // interfaz los filtra por NIF, organización o tipo cuando hay más de uno.
-func (f *Facade) CertificateDetailsJSON() (string, error) {
+func (f *Facade) CertificateDetailsJSON() (out string, err error) {
+	defer recuperarPanicoFachada("detalle del certificado", &out, &err)
 	if f == nil || f.session == nil {
 		return "", errNoConfigurado("detalle del certificado")
 	}
@@ -148,7 +149,8 @@ type revocationResponse struct {
 // CheckCertificateRevocationJSON consulta OCSP o CRL del certificado de la
 // sesión con el mismo comprobador que escritorio. Solo envía al prestador lo
 // que exige OCSP/CRL (número de serie y emisor) y no guarda nada.
-func (f *Facade) CheckCertificateRevocationJSON(payload string) (string, error) {
+func (f *Facade) CheckCertificateRevocationJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("validacion en linea", &out, &err)
 	if f == nil || f.session == nil {
 		return "", errNoConfigurado("validación en línea")
 	}
@@ -259,7 +261,8 @@ type timestampProbeResponse struct {
 // ProbeTimestampAuthorityJSON pide un sello de tiempo de prueba sobre un
 // resumen aleatorio (sin documento) y compara su hora con la del dispositivo.
 // El cliente RFC 3161 es el mismo que usa la firma y valida nonce y firma.
-func (f *Facade) ProbeTimestampAuthorityJSON(payload string) (string, error) {
+func (f *Facade) ProbeTimestampAuthorityJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("prueba de TSA", &out, &err)
 	if f == nil {
 		return "", errNoConfigurado("prueba de TSA")
 	}
@@ -332,7 +335,8 @@ type veriFactuQRRequest struct {
 
 // ReadVeriFactuQRJSON valida la URL del QR tributario con el motor de
 // escritorio. No hace ninguna petición de red.
-func (f *Facade) ReadVeriFactuQRJSON(payload string) (string, error) {
+func (f *Facade) ReadVeriFactuQRJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("lectura del QR", &out, &err)
 	var req veriFactuQRRequest
 	if err := decodeJSONStrict(payload, maxOnlineJSONBytes, "QR Veri*Factu", &req); err != nil {
 		return "", newFacadeError(verifactuKeyPrefix + "qr_url")
@@ -349,7 +353,8 @@ func (f *Facade) ReadVeriFactuQRJSON(payload string) (string, error) {
 // No usa la red. data cruza JNI como buffer mutable y se borra al terminar.
 // El lector comprueba tamaño y dimensiones antes de decodificar y acota el
 // tiempo de búsqueda.
-func (f *Facade) ReadVeriFactuQRImageJSON(data []byte) (string, error) {
+func (f *Facade) ReadVeriFactuQRImageJSON(data []byte) (out string, err error) {
+	defer recuperarPanicoFachada("lectura del QR", &out, &err)
 	defer zeroBytes(data)
 	if len(data) == 0 || len(data) > commonsigner.VeriFactuQRMaxImageBytes {
 		return "", newFacadeError(verifactuKeyPrefix + "qr_image")
@@ -381,7 +386,8 @@ func veriFactuQRImageError(err error) error {
 // Solo se llama cuando la persona pulsa «Cotejar con la AEAT». El motor
 // exige HTTPS, host y ruta oficiales, sin redirecciones ni proxy y con
 // tiempo máximo; se envían únicamente los cuatro datos del QR.
-func (f *Facade) QueryVeriFactuQRJSON(payload string) (string, error) {
+func (f *Facade) QueryVeriFactuQRJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("cotejo AEAT", &out, &err)
 	if f == nil {
 		return "", errNoConfigurado("cotejo AEAT")
 	}
@@ -430,7 +436,8 @@ type updateCheckResponse struct {
 
 // CheckUpdateJSON consulta la última publicación en la API pública de
 // GitHub del repositorio oficial. Nunca descarga ni instala nada.
-func (f *Facade) CheckUpdateJSON(payload string) (string, error) {
+func (f *Facade) CheckUpdateJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("comprobacion de version", &out, &err)
 	if f == nil {
 		return "", errNoConfigurado("comprobación de versión")
 	}

@@ -68,7 +68,8 @@ type hashCheckResponse struct {
 // CreateHashJSON calcula la huella de un fichero con los mismos algoritmos,
 // codificaciones y contenido de fichero que el escritorio (.hexhash, .hashb64
 // o .hash binario).
-func (f *Facade) CreateHashJSON(payload string) (string, error) {
+func (f *Facade) CreateHashJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("huella", &out, &err)
 	if f == nil {
 		return "", errNoConfigurado("huella")
 	}
@@ -114,7 +115,8 @@ func (f *Facade) CreateHashJSON(payload string) (string, error) {
 
 // CheckHashJSON compara un fichero con una huella guardada. El formato y el
 // algoritmo se deducen del fichero de huella como en escritorio.
-func (f *Facade) CheckHashJSON(payload string) (string, error) {
+func (f *Facade) CheckHashJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("comprobacion de huella", &out, &err)
 	if f == nil {
 		return "", errNoConfigurado("comprobacion de huella")
 	}
@@ -218,7 +220,8 @@ type unprotectResponse struct {
 // SignedAndEnvelopedData firmado con la identidad de la sesión (PKCS#12 o
 // DNIe, que solo firma el resumen; véase external_cms.go).
 // secret contiene la clave Base64 en ASCII; se borra antes de volver.
-func (f *Facade) ProtectJSON(payload string, secret []byte) (string, error) {
+func (f *Facade) ProtectJSON(payload string, secret []byte) (out string, err error) {
+	defer recuperarPanicoFachada("proteccion", &out, &err)
 	defer zeroBytes(secret)
 	if f == nil || f.session == nil {
 		return "", errNoConfigurado("proteccion")
@@ -324,7 +327,8 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (string, error) {
 
 // UnprotectJSON descifra un contenedor CMS (o el sobre JSON compatible) con la
 // identidad PKCS#12 de la sesión o con la clave transitoria de EncryptedData.
-func (f *Facade) UnprotectJSON(payload string, secret []byte) (string, error) {
+func (f *Facade) UnprotectJSON(payload string, secret []byte) (out string, err error) {
+	defer recuperarPanicoFachada("desproteccion", &out, &err)
 	defer zeroBytes(secret)
 	if f == nil || f.session == nil {
 		return "", errNoConfigurado("desproteccion")
