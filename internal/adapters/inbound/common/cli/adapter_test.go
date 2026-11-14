@@ -1758,6 +1758,7 @@ func TestRunResetearAutoseleccionCert_ConfirmaYBorraTodo(t *testing.T) {
 
 	adaptador := New(nil, nil)
 	adaptador.ConfigDir = tmp
+	adaptador.Localizador = localizador.Para("es")
 	adaptador.Stdin = strings.NewReader("s\n")
 	var stdout strings.Builder
 	var stderr strings.Builder
@@ -1801,6 +1802,7 @@ func TestRunResetearAutoseleccionCert_CancelaSinBorrar(t *testing.T) {
 
 	adaptador := New(nil, nil)
 	adaptador.ConfigDir = tmp
+	adaptador.Localizador = localizador.Para("es")
 	adaptador.Stdin = strings.NewReader("n\n")
 	var stdout strings.Builder
 	var stderr strings.Builder
