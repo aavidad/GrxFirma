@@ -2819,6 +2819,7 @@
   ,"verify.forced_trust.cli.error.missing_input": "Indica a sinatura con -entrada ou o caso con -tipo-confianza."
   ,"verify.forced_trust.cli.error.needs_confirmation": "Sen terminal non se pode pedir confirmación. Le o aviso e engade -acepto-el-aviso para aceptalo."
   ,"verify.forced_trust.cli.confirm": "Acéptalo neste equipo? [s/N]: "
+  ,"cli.confirm.yes_answers": "s,si,sí"
   ,"verify.forced_trust.cli.cancelled": "Non se aceptou nada."
   ,"verify.forced_trust.cli.accepted": "Aceptado. Podes quitalo con -quitar-confianza-aceptada."
   ,"verify.forced_trust.cli.not_found": "Non había nada aceptado con ese caso e esa pegada."

@@ -2819,6 +2819,7 @@
   ,"verify.forced_trust.cli.error.missing_input": "Give the signature with -entrada or the case with -tipo-confianza."
   ,"verify.forced_trust.cli.error.needs_confirmation": "Without a terminal, confirmation cannot be requested. Read the warning and add -acepto-el-aviso to accept it."
   ,"verify.forced_trust.cli.confirm": "Accept it on this computer? [y/N]: "
+  ,"cli.confirm.yes_answers": "y,yes"
   ,"verify.forced_trust.cli.cancelled": "Nothing has been accepted."
   ,"verify.forced_trust.cli.accepted": "Accepted. You can remove it with -quitar-confianza-aceptada."
   ,"verify.forced_trust.cli.not_found": "Nothing was accepted with that case and fingerprint."

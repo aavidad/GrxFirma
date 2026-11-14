@@ -2819,6 +2819,7 @@
   ,"verify.forced_trust.cli.error.missing_input": "Indica la signatura amb -entrada o el cas amb -tipo-confianza."
   ,"verify.forced_trust.cli.error.needs_confirmation": "Sense terminal no es pot demanar confirmació. Llegeix l'avís i afegeix -acepto-el-aviso per acceptar-ho."
   ,"verify.forced_trust.cli.confirm": "L'acceptes en aquest equip? [s/N]: "
+  ,"cli.confirm.yes_answers": "s,sí,si"
   ,"verify.forced_trust.cli.cancelled": "No s'ha acceptat res."
   ,"verify.forced_trust.cli.accepted": "Acceptat. El pots treure amb -quitar-confianza-aceptada."
   ,"verify.forced_trust.cli.not_found": "No hi havia res acceptat amb aquest cas i aquesta empremta."

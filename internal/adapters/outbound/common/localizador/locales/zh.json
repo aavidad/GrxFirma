@@ -2819,6 +2819,7 @@
   ,"verify.forced_trust.cli.error.missing_input": "请用 -entrada 指定签名，或用 -tipo-confianza 指定情况。"
   ,"verify.forced_trust.cli.error.needs_confirmation": "没有终端时无法请求确认。请阅读警告，并添加 -acepto-el-aviso 以接受。"
   ,"verify.forced_trust.cli.confirm": "在此计算机上接受？[y/N]: "
+  ,"cli.confirm.yes_answers": "y,yes,是,是的"
   ,"verify.forced_trust.cli.cancelled": "未接受任何内容。"
   ,"verify.forced_trust.cli.accepted": "已接受。可用 -quitar-confianza-aceptada 移除。"
   ,"verify.forced_trust.cli.not_found": "没有与该情况和指纹对应的已接受项。"
