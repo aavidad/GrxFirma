@@ -88,21 +88,36 @@ func CotejarXAdESSeparada(firma, original []byte) error {
 	return ErrFirmaNoCorrespondeOriginal
 }
 
-// contenidoInternoCoincide busca un CONTENT con Id referenciado desde un
-// ds:Reference y compara su contenido con el original.
+// contenidoInternoCoincide busca un CONTENT cuyo contenido es el original y
+// exige que TODAS las firmas principales (las ds:Signature que no están
+// dentro de otra, es decir, sin contar contrafirmas) lo referencien desde su
+// propio ds:SignedInfo. Solo cuentan los ds:Reference (espacio de nombres
+// xmldsig) hijos directos de ese ds:SignedInfo: un Reference suelto o dentro
+// de un SignedInfo que no es de la firma no está firmado (KD-02). El Id del
+// CONTENT tiene que ser único en todo el documento.
 func contenidoInternoCoincide(firma, original []byte) bool {
 	type contenido struct {
 		id, encoding string
 		inicio       int64
 		fin          int64
 	}
-	referencias := map[string]bool{}
-	var contenidos []contenido
+	type nodo struct {
+		nombre    xml.Name
+		contenido *contenido
+		firma     int // índice de la firma principal a la que pertenece, o -1
+	}
+	var (
+		contenidos []contenido
+		// referenciasPorFirma[i] son los Id que referencia el SignedInfo
+		// de la firma principal i.
+		referenciasPorFirma []map[string]bool
+		ids                 = map[string]int{}
+		pila                []nodo
+	)
 	d := xml.NewDecoder(bytes.NewReader(firma))
-	var pila []*contenido
 	for {
 		inicio := d.InputOffset()
-		tok, err := d.RawToken()
+		tok, err := d.Token()
 		if err == io.EOF {
 			break
 		}
@@ -111,14 +126,33 @@ func contenidoInternoCoincide(firma, original []byte) bool {
 		}
 		switch t := tok.(type) {
 		case xml.StartElement:
-			if t.Name.Local == "Reference" {
-				for _, a := range t.Attr {
-					if a.Name.Local == "URI" && strings.HasPrefix(a.Value, "#") {
-						referencias[strings.TrimPrefix(a.Value, "#")] = true
-					}
+			for _, a := range t.Attr {
+				if a.Name.Local == "Id" || a.Name.Local == "ID" || a.Name.Local == "id" {
+					ids[a.Value]++
 				}
 			}
-			if t.Name.Local == "CONTENT" && t.Name.Space == "" {
+			actual := nodo{nombre: t.Name, firma: -1}
+			if len(pila) > 0 {
+				actual.firma = pila[len(pila)-1].firma
+			}
+			esDSig := t.Name.Space == nsXMLDSig
+			switch {
+			case esDSig && t.Name.Local == "Signature" && actual.firma < 0:
+				referenciasPorFirma = append(referenciasPorFirma, map[string]bool{})
+				actual.firma = len(referenciasPorFirma) - 1
+			case esDSig && t.Name.Local == "Reference" && len(pila) >= 2:
+				padre, abuelo := pila[len(pila)-1], pila[len(pila)-2]
+				if actual.firma >= 0 &&
+					padre.nombre == (xml.Name{Space: nsXMLDSig, Local: "SignedInfo"}) &&
+					abuelo.nombre == (xml.Name{Space: nsXMLDSig, Local: "Signature"}) &&
+					abuelo.firma == actual.firma && (len(pila) < 3 || pila[len(pila)-3].firma < 0) {
+					for _, a := range t.Attr {
+						if a.Name.Local == "URI" && a.Name.Space == "" && strings.HasPrefix(a.Value, "#") {
+							referenciasPorFirma[actual.firma][strings.TrimPrefix(a.Value, "#")] = true
+						}
+					}
+				}
+			case t.Name.Local == "CONTENT" && t.Name.Space == "" && actual.firma < 0:
 				c := &contenido{inicio: d.InputOffset()}
 				for _, a := range t.Attr {
 					switch a.Name.Local {
@@ -128,23 +162,33 @@ func contenidoInternoCoincide(firma, original []byte) bool {
 						c.encoding = a.Value
 					}
 				}
-				pila = append(pila, c)
-			} else {
-				pila = append(pila, nil)
+				actual.contenido = c
 			}
+			pila = append(pila, actual)
 		case xml.EndElement:
 			if len(pila) == 0 {
 				return false
 			}
-			if c := pila[len(pila)-1]; c != nil {
+			if c := pila[len(pila)-1].contenido; c != nil {
 				c.fin = inicio
 				contenidos = append(contenidos, *c)
 			}
 			pila = pila[:len(pila)-1]
 		}
 	}
+	if len(referenciasPorFirma) == 0 {
+		return false
+	}
+	referenciadoPorTodas := func(id string) bool {
+		for _, refs := range referenciasPorFirma {
+			if !refs[id] {
+				return false
+			}
+		}
+		return true
+	}
 	for _, c := range contenidos {
-		if c.id == "" || !referencias[c.id] || c.fin < c.inicio {
+		if c.id == "" || ids[c.id] != 1 || !referenciadoPorTodas(c.id) || c.fin < c.inicio {
 			continue
 		}
 		dentro := firma[c.inicio:c.fin]
