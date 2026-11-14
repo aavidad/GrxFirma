@@ -99,7 +99,10 @@ type paramsFirma struct {
 	AdditionalCertificateIDs []string `json:"additionalCertificateIds,omitempty"`
 	Format                   string   `json:"format"`
 	Action                   string   `json:"action"`
-	Overwrite                string   `json:"overwrite"`
+	// OriginalPath es el documento que cubre una CAdES explícita al
+	// cofirmarla o contrafirmarla (KD-03, lote 17b). Opcional.
+	OriginalPath string `json:"originalPath,omitempty"`
+	Overwrite    string `json:"overwrite"`
 	// OverwriteConfirmed solo debe ir a true cuando la persona confirmó el
 	// reemplazo de OutputPath en un diálogo de guardar del sistema.
 	OverwriteConfirmed bool              `json:"overwriteConfirmed,omitempty"`

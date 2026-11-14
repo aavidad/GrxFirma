@@ -293,6 +293,8 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp = m.handleCheckUpdates(ctx)
 	case "sign":
 		resp = m.handleFirma(ctx, p.Params)
+	case accionCofirmaOriginal:
+		resp = m.handleCofirmaOriginal(ctx, p.Params)
 	case "sign_multicosign":
 		resp = m.handleFirmaMultiCofirma(ctx, p.Params)
 	case "sign_batch":
@@ -718,12 +720,19 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 	if err != nil {
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}
 	}
+	// KD-03 (lote 17b): el documento original de una CAdES explícita, si la
+	// persona lo eligió; el motor lo coteja antes de firmar.
+	original, err := m.leerOriginalCofirmaIPC(params.OriginalPath, accionFirma)
+	if err != nil {
+		return respuesta{OK: false, Action: "sign", Error: err.Error()}
+	}
+	cmd.OriginalContent = original
 
 	// Los avisos que el motor anota mientras firma van al resultado.
 	ctxFirma, recolector := domain.ConAvisosOperacion(ctx)
 	result, err := m.Firmar.Execute(ctxFirma, cmd)
 	if err != nil {
-		return respuesta{OK: false, Action: "sign", Error: err.Error()}
+		return respuesta{OK: false, Action: "sign", Error: m.mensajeErrorCofirmaOriginal(err)}
 	}
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}
