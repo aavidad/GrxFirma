@@ -491,6 +491,9 @@ type resultadoDiagnostico struct {
 	Certificates int                   `json:"certificates"`
 	CanSign      int                   `json:"canSign"`
 	TLSStore     resultadoEstadoTLSIPC `json:"tlsStore"`
+	// IPCClientBinding: verified (interfaz vinculada por PID), unbound
+	// (--server sin PID: solo firmas locales) o unverified.
+	IPCClientBinding string `json:"ipcClientBinding,omitempty"`
 }
 
 // resultadoEstadoTLSIPC expone únicamente estados y recuentos. Las rutas y los

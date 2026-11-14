@@ -192,6 +192,14 @@ func (m *Manejador) handleCSC(ctx context.Context, action string, raw json.RawMe
 		return m.cscError(action, &csc.Error{Codigo: cscremota.CodigoDesactivada})
 	}
 	switch action {
+	case "csc_configure", "csc_connect", "csc_send_otp":
+		// Elegir el servicio, abrir la autorización y pedir un OTP solo
+		// desde la interfaz vinculada por PID (ID-01/JD-03).
+		if !esInterfazVerificada(ctx) {
+			return m.cscError(action, &csc.Error{Codigo: cscremota.CodigoInterfazNoVerificada})
+		}
+	}
+	switch action {
 	case "csc_status":
 		var vacio struct{}
 		if err := decodeCSCParams(raw, &vacio); err != nil {
@@ -337,6 +345,13 @@ func (m *Manejador) prepararFirmaRemota(ctx context.Context, action string, raw 
 	if m.CSC != nil && certID != "" {
 		cred, remota = m.CSC.Credencial(certID)
 	}
+	// Ninguna credencial remota, principal o adicional, firma si la
+	// petición no llega de la interfaz vinculada por PID (ID-01/JD-03).
+	if !esInterfazVerificada(ctx) && (remota || m.algunAdicionalRemoto(p.AdditionalCertificateIDs)) {
+		liberar()
+		resp := m.cscError(action, &csc.Error{Codigo: cscremota.CodigoInterfazNoVerificada})
+		return ctx, nil, func() {}, &resp
+	}
 	// Los secretos de la petición son del firmante principal. Un firmante
 	// adicional remoto que pida PIN u OTP no tendría con qué firmar, ni en
 	// la multifirma de un documento ni en la de un lote.
@@ -375,6 +390,20 @@ func (m *Manejador) prepararFirmaRemota(ctx context.Context, action string, raw 
 	}
 	ctx, peticion := cscremota.ContextoConSecretos(ctx, certID, p.RemotePIN, p.RemoteOTP)
 	return ctx, peticion, liberar, nil
+}
+
+func (m *Manejador) algunAdicionalRemoto(ids []string) bool {
+	if m.CSC == nil {
+		return false
+	}
+	for _, id := range ids {
+		for _, candidato := range []string{id, strings.TrimSpace(id)} {
+			if _, ok := m.CSC.Credencial(candidato); ok {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // explicarFalloRemoto sustituye el mensaje genérico del motor por el del

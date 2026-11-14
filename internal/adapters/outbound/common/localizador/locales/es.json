@@ -4972,6 +4972,7 @@
   ,"csc.error.secreto_no_pedido": "Falta el PIN o el código de un solo uso, o se ha enviado para un certificado que no es remoto. Vuelva a firmar y escríbalos cuando se pidan."
   ,"csc.error.adicional_con_secretos": "En una firma con varios firmantes, solo el primero puede usar un certificado remoto que pida PIN o código de un solo uso. Ponga ese certificado como primer firmante o firme por separado."
   ,"csc.error.proteger_con_secretos": "Este certificado remoto pide PIN o código de un solo uso y no han llegado. Vuelva a pulsar «Proteger y firmar» y escríbalos cuando se pidan."
+  ,"csc.error.interfaz_no_verificada": "La firma remota solo se puede usar desde la ventana de GrxFirma. Ábrala y firme desde allí."
   ,"csc.gui.titulo": "Firma remota"
   ,"csc.gui.descripcion": "Firme con un certificado que guarda un prestador de confianza. Del equipo solo sale el resumen del documento, nunca el documento."
   ,"csc.gui.url": "Dirección del servicio de firma"

@@ -28,6 +28,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net"
 	"strings"
 	"sync"
@@ -156,6 +157,11 @@ func (s *Servidor) Escuchar(ctx context.Context, socketPath string) error {
 	}
 	s.listener = ln
 	s.mu.Unlock()
+	if estado, _, _ := s.peerPID.snapshot(); estado == vinculacionSinConfigurar {
+		// --server manual sin PID: las firmas locales siguen; la firma remota
+		// CSC no se admite sin la interfaz vinculada (ID-01/JD-03).
+		slog.Warn("ipc_sin_vinculacion_pid", "firma_remota_csc", "no_disponible")
+	}
 
 	go func() {
 		<-ctx.Done()
@@ -374,6 +380,9 @@ func (s *Servidor) servirConexion(ctx context.Context, conn net.Conn) {
 			continue
 		}
 
+		if requiereEstadoInterfaz(p.Action) {
+			requestCtx = conEstadoInterfaz(requestCtx, s.estadoInterfaz(requestCtx, conn))
+		}
 		var resp respuesta
 		if isLocalTokenSettingsAction(p.Action) {
 			var allowed bool

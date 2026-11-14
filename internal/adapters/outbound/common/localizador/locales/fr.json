@@ -4972,6 +4972,7 @@
   ,"csc.error.secreto_no_pedido": "Le PIN ou le code à usage unique manque, ou il a été envoyé pour un certificat qui n'est pas distant. Signez de nouveau et saisissez-les lorsqu'ils sont demandés."
   ,"csc.error.adicional_con_secretos": "Lorsque plusieurs personnes signent, seul le premier signataire peut utiliser un certificat distant qui demande un code PIN ou un code à usage unique. Placez ce certificat en premier ou signez séparément."
   ,"csc.error.proteger_con_secretos": "Ce certificat distant demande un code PIN ou un code à usage unique, et ils ne sont pas arrivés. Appuyez de nouveau sur « Protéger et signer » et saisissez-les lorsqu’ils sont demandés."
+  ,"csc.error.interfaz_no_verificada": "La signature à distance ne peut être utilisée que depuis la fenêtre de GrxFirma. Ouvrez-la et signez depuis celle-ci."
   ,"csc.gui.titulo": "Signature à distance"
   ,"csc.gui.descripcion": "Signez avec un certificat conservé par un prestataire de confiance. Seule la valeur de hachage du document quitte l'ordinateur, jamais le document."
   ,"csc.gui.url": "Adresse du service de signature"

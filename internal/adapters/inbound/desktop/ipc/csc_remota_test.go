@@ -67,7 +67,8 @@ func pedirIPC(t *testing.T, m *Manejador, accion string, params any) respuesta {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return m.despachar(context.Background(), peticion{Action: accion, Params: raw})
+	// Las pruebas del flujo hablan como la interfaz vinculada (ID-01).
+	return m.despachar(conEstadoInterfaz(context.Background(), interfazVerificada), peticion{Action: accion, Params: raw})
 }
 
 func sinSecretosEnRespuesta(t *testing.T, resp respuesta, secretos ...string) {
@@ -314,7 +315,7 @@ func TestCSCIPCSecretosLigadosAlFirmantePrincipal(t *testing.T) {
 	}
 	e.m.setUltimosCerts(refs)
 	raw, _ := json.Marshal(map[string]any{"certificateIndex": 0, "remotePin": pin})
-	ctx, peticion, liberar, rechazo := e.m.prepararFirmaRemota(context.Background(), "sign", raw)
+	ctx, peticion, liberar, rechazo := e.m.prepararFirmaRemota(conEstadoInterfaz(context.Background(), interfazVerificada), "sign", raw)
 	defer liberar()
 	if rechazo != nil || peticion == nil {
 		t.Fatalf("preparar: %+v", rechazo)

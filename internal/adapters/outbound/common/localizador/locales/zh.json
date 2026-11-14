@@ -4972,6 +4972,7 @@
   ,"csc.error.secreto_no_pedido": "缺少 PIN 或一次性验证码，或者它被发送给了非远程证书。请重新签名，并在提示时输入。"
   ,"csc.error.adicional_con_secretos": "多人签名时，只有第一位签名人可以使用需要 PIN 或一次性验证码的远程证书。请将该证书设为第一位签名人，或分开签名。"
   ,"csc.error.proteger_con_secretos": "此远程证书需要 PIN 或一次性验证码，但未收到。请再次点击“保护并签名”，并在提示时输入。"
+  ,"csc.error.interfaz_no_verificada": "远程签名只能在 GrxFirma 窗口中使用。请打开该窗口并在其中签名。"
   ,"csc.gui.titulo": "远程签名"
   ,"csc.gui.descripcion": "使用由可信服务商保管的证书签名。离开本机的只有文档摘要，绝不是文档本身。"
   ,"csc.gui.url": "签名服务地址"

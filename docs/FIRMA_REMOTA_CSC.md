@@ -169,6 +169,12 @@ usa la autorización conjunta y sigue rechazando el OTP.
   incrusta si cada certificado está firmado por el siguiente.
 - Ningún error ni registro incluye tokens, PIN, OTP ni SAD. Los datos que llegan
   del servidor se sanean antes de mostrarlos en la terminal.
+- En el IPC, `csc_configure`, `csc_connect`, `csc_send_otp` y toda firma con un
+  certificado remoto (principal o adicional) solo se admiten desde la interfaz
+  vinculada por PID; si no, fallan con `csc_interfaz_no_verificada`. Un
+  `--server` manual sin PID sigue firmando con certificados locales, deja el
+  aviso `ipc_sin_vinculacion_pid` en el registro y `export_diagnostic` devuelve
+  `ipcClientBinding: "unbound"`.
 
 ## Límites
 

@@ -70,6 +70,10 @@ const (
 	// CodigoProtegerConSecretos: «proteger y firmar» con un certificado
 	// remoto que pide PIN u OTP sin que la petición los traiga.
 	CodigoProtegerConSecretos csc.Codigo = "proteger_con_secretos" // #nosec G101 -- código de error, no un secreto.
+	// CodigoInterfazNoVerificada: la petición no llega de la interfaz que
+	// lanzó el motor (vínculo por PID), y la firma remota solo se admite
+	// desde ella.
+	CodigoInterfazNoVerificada csc.Codigo = "interfaz_no_verificada"
 )
 
 // ErrNoAplicable indica que el certificado pedido no es remoto: el proveedor

@@ -4972,6 +4972,7 @@
   ,"csc.error.secreto_no_pedido": "Falta o PIN ou o código de utilização única, ou foi enviado para um certificado que não é remoto. Assine novamente e escreva-os quando forem pedidos."
   ,"csc.error.adicional_con_secretos": "Numa assinatura com vários signatários, só o primeiro pode usar um certificado remoto que peça PIN ou código de utilização única. Coloque esse certificado como primeiro signatário ou assine em separado."
   ,"csc.error.proteger_con_secretos": "Este certificado remoto pede PIN ou código de utilização única, que não chegaram. Prima novamente «Proteger e assinar» e escreva-os quando forem pedidos."
+  ,"csc.error.interfaz_no_verificada": "A assinatura remota só pode ser usada a partir da janela do GrxFirma. Abra-a e assine a partir daí."
   ,"csc.gui.titulo": "Assinatura remota"
   ,"csc.gui.descripcion": "Assine com um certificado guardado por um prestador de confiança. Do computador só sai o resumo do documento, nunca o documento."
   ,"csc.gui.url": "Endereço do serviço de assinatura"
