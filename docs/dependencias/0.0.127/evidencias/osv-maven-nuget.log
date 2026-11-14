@@ -1,0 +1,8 @@
+Starting filesystem walk for root: /
+Scanned /tmp/claude-1000/-home-alberto-Trabajo-GrxFirma/2636490f-02c9-4dca-aa21-7c8847e52d89/scratchpad/wt/l26/mobile/android/app/gradle.lockfile file and found 276 packages
+Scanned /tmp/claude-1000/-home-alberto-Trabajo-GrxFirma/2636490f-02c9-4dca-aa21-7c8847e52d89/scratchpad/wt/l26/cmd/gui-winui/src/GrxFirma.WinUI/packages.lock.json file and found 19 packages
+Scanned /tmp/claude-1000/-home-alberto-Trabajo-GrxFirma/2636490f-02c9-4dca-aa21-7c8847e52d89/scratchpad/wt/l26/cmd/gui-winui/tests/GrxFirma.WinUI.Core.Tests/packages.lock.json file and found 16 packages
+End status: 0 dirs visited, 3 inodes visited, 3 Extract calls, 9.528784ms elapsed, 9.528834ms wall time
+Filtered 2 local/unscannable package/s from the scan.
+could not load db for NuGet ecosystem: unable to fetch OSV database: no offline version of the OSV database is available
+could not load db for Maven ecosystem: unable to fetch OSV database: no offline version of the OSV database is available

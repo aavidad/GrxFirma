@@ -119,6 +119,7 @@ license_text_filenames = ["LICENSE"]
 generated_globs = [
   "**/packages.lock.json",
   "docs/generated/**",
+  "docs/dependencias/*/evidencias/**",
   "mobile/android/app/gradle.lockfile",
   "mobile/ios/GrxFirma.xcodeproj/project.pbxproj",
   "mobile/ios/GrxFirma.xcodeproj/xcshareddata/xcschemes/GrxFirma.xcscheme",

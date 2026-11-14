@@ -48,7 +48,8 @@ jobs:
             poppler-utils \
             libnss3-tools \
             libnss3-dev \
-            openssl
+            openssl \
+            xmlsec1
 
       - name: Report validator versions
         run: |

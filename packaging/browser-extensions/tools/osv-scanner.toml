@@ -10,4 +10,4 @@
 [[IgnoredVulns]]
 id = "GHSA-gcqx-w48m-w2h4"
 ignoreUntil = 2027-02-14
-reason = "deepmerge 4.3.1 (sin versión corregida) llega por web-ext > addons-linter, que solo mezcla la configuración y el manifiesto de nuestra propia extensión al validarla en la construcción. Quien controlara esa entrada ya controla el código de la extensión. Revisar si sale una versión corregida."
+reason = "Revisión 2026-11-14: comprobado en el registro npm deepmerge 4.3.1 (última publicación de 2023, sin versión corregida) y web-ext 10.8.0 (última versión); cadena web-ext 10.8.0 > addons-linter 10.14.0 > deepmerge 4.3.1. Solo mezcla configuración y manifiesto propios al validar/construir Firefox; no se distribuye al usuario. Quien controla esa entrada ya controla el código de la extensión. Se mantiene la excepción existente sin ampliar caducidad; revisar sustitución compatible con construcción y validación de la extensión antes de aplicar overrides. Evidencia y aceptación pendiente de Alberto en docs/dependencias/0.0.127/README.md."

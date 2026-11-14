@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-14",
+  "scanner_versions": {
+    "govulncheck": "v1.6.0",
+    "osv-scanner": "2.3.8",
+    "syft": "[not provided]; compilado con Go 1.26.5",
+    "grype": "base rechazada antes del escaneo"
+  },
+  "databases": [
+    {
+      "name": "Go/all.zip",
+      "sha256": "d89509e6cf609361159fe43c46a3f8f611dfe3ac19c12a4632f1cce76829efb9",
+      "mtime_utc": "2026-11-14T06:29:54.358829+00:00",
+      "note": "mtime es fecha de caché, no prueba fecha de publicación de la base"
+    },
+    {
+      "name": "npm/all.zip",
+      "sha256": "054cba51d54758fb21400fd5bd3f741f3feb7a00fcb40b2ef5aeca9ce566f409",
+      "mtime_utc": "2026-11-14T06:29:59.999842+00:00",
+      "note": "mtime es fecha de caché, no prueba fecha de publicación de la base"
+    }
+  ],
+  "reports": [
+    {
+      "name": "govulncheck-aplicacion.json.gz",
+      "exit_code": 0,
+      "scope": "aplicación, linux/amd64; análisis de símbolos",
+      "review": "GO-2026-5932 en módulo x/crypto 0.58.0; sin paquete/símbolo alcanzable comunicado"
+    },
+    {
+      "name": "govulncheck-pdfsign.json.gz",
+      "exit_code": 0,
+      "scope": "módulo pdfsign por separado, linux/amd64",
+      "review": "GO-2026-5932 en módulo x/crypto 0.56.0; sin paquete/símbolo alcanzable comunicado"
+    },
+    {
+      "name": "osv-go-npm.json.gz",
+      "exit_code": 1,
+      "scope": "go.mod raíz, pdfsign y lockfile web-ext; sin análisis de llamadas, cubierto por govulncheck",
+      "review": "GO-2026-5932 en ambos módulos; GHSA-gcqx-w48m-w2h4 filtrado por excepción existente, revisado por separado"
+    },
+    {
+      "name": "osv-maven-nuget.log",
+      "exit_code": 127,
+      "scope": "Gradle y NuGet fuente",
+      "review": "No comprobado: faltan bases locales Maven/NuGet"
+    },
+    {
+      "name": "grype.log",
+      "exit_code": 1,
+      "scope": "SBOM fuente Syft",
+      "review": "No comprobado: base 2026-10-13, antigüedad >5 días; no se desactiva el control"
+    }
+  ],
+  "govulncheck_db": {
+    "entries": 4820,
+    "db_last_modified": "2026-11-13T19:12:57.873495135Z",
+    "origin": "entradas GO oficiales de Go/all.zip, exportadas sin modificar"
+  }
+}

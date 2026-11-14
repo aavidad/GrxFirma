@@ -74,3 +74,17 @@ Una extensión o ruta nueva que no encaje en una categoría conocida hace fallar
 la comprobación. El inventario procede exclusivamente de `git ls-files -z`;
 los artefactos ignorados y los ficheros todavía no añadidos al índice no
 forman parte de la auditoría.
+
+
+## Revisión de dependencias por versión
+
+`dependency-review.json` relaciona cada identidad y versión de los manifiestos
+con su uso y evidencia de licencia. Los datos se obtienen de los inventarios
+existentes, Syft y metadatos locales; no sustituyen los avisos de terceros.
+`dependency-license-pending-0.0.127.json` congela las 38 licencias sin acreditar
+en la primera revisión y no se amplía con el generador de propuestas.
+
+El [expediente técnico](../docs/dependencias/README.md) explica el control de
+altas, el modo estricto y los pendientes de aceptación. La cobertura central
+de las evidencias generadas atribuye la elaboración del informe; cada
+dependencia conserva la licencia y los titulares de sus propios avisos.

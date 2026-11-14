@@ -6,7 +6,7 @@
 # Inventario de dependencias y licencias — GrxFirma
 
 Fecha inicial: 2026-03-20.
-Última revisión: 2026-08-01.
+Última revisión: 2026-11-14.
 Autoría: Alberto Avidad Fernández
 Estado: inventario operativo enlazado a SBOM formal.
 
@@ -29,7 +29,8 @@ operativos que una SBOM por sí sola no explica.
 
 ## Resumen ejecutivo
 
-Dependencias directas declaradas en [go.mod](../go.mod):
+Selección de dependencias directas declaradas en [go.mod](../go.mod). La
+relación por versión y licencia está en el [expediente generado](dependencias/0.0.127/inventario.json):
 
 | Dependencia | Rol en el producto | Tipo |
 |-------------|--------------------|------|
@@ -130,13 +131,13 @@ Los riesgos que hay que controlar antes de una venta pública son:
 
 ## Qué falta para cerrar este bloque
 
-- vincular cada dependencia con su licencia exacta y versión
-- diferenciar:
-  - dependencia operativa de runtime
-  - dependencia solo de test
-  - dependencia opcional por plataforma
-- documentar qué parte del producto deja de estar soportada si falta cada herramienta externa
-- conservar la revisión y el triage de la `SBOM` de cada release real
+- acreditar las 38 licencias Qt/NuGet pendientes en el expediente inicial y
+  revisar los textos que Syft identifica solo por hash;
+- adjuntar la SBOM y los avisos de los artefactos publicados por plataforma,
+  incluidos el kit Qt, los SDK y las herramientas del sistema efectivas;
+- completar escaneos Maven/NuGet y Grype con bases locales actuales;
+- asignar responsables y obtener la aceptación de Alberto; conservar las
+  siguientes revisiones por versión sin sobrescribir la inicial.
 
 ---
 
@@ -148,3 +149,17 @@ Antes de una venta pública seria, cerrar al menos:
 2. política y responsable de actualización de dependencias
 3. justificación de cada dependencia externa de sistema
 4. aceptación trazable de la `SBOM` y de sus escaneos por release
+
+
+## Expediente por versión (revisión 14/11/2026)
+
+La clasificación generada, las licencias por identidad y versión, los informes
+locales revisados, las herramientas del sistema y sus límites se conservan en
+[el expediente 0.0.127](dependencias/0.0.127/README.md).
+[El procedimiento reproducible](dependencias/README.md) amplía los inventarios
+y controles existentes; la [próxima versión](dependencias/proxima/README.md)
+tiene plantilla preparada. El control detecta dependencias nuevas sin licencia
+o uso revisados y conserva visibles 38 licencias pendientes iniciales de
+Qt/NuGet. La aceptación de riesgos, los responsables y los compromisos de
+soporte siguen pendientes de Alberto. No equivale a cierre contractual ni
+a aceptación de todos los informes de la release publicada.
