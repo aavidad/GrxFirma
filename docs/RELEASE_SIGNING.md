@@ -180,6 +180,30 @@ regeneración del manifiesto sin necesitar una clave real. Esa simulación no
 sustituye la validación de una firma oficial, el servidor de timestamp ni
 SmartScreen antes de publicar.
 
+### Binarios ajenos sin firma
+
+Algunas DLL de Qt y de la publicación de WinUI llegan sin firma de su
+proveedor, y la publicación las firma con el certificado oficial, tanto por
+SignPath como con el PFX propio. Para que nadie cuele ahí un binario
+manipulado (hallazgo JD-01):
+
+- ningún job de `release.yml` restaura caché de Actions: `cache: false` en
+  `setup-go` e `install-qt-action` y `package-manager-cache: false` en
+  `setup-node`. La caché la comparten `main` y las etiquetas, así que un job de
+  `main` con código ajeno podría dejar en ella un `Qt6Core.dll` cambiado.
+  `check-official-release-policy.py` falla si algún paso la restaura;
+- antes de preparar la ronda 1 de SignPath, o de firmar nada con el PFX, cada
+  PE ajeno sin firma se coteja por SHA-256 y nombre con el inventario
+  versionado `packaging/windows/vendor-unsigned-pe.sha256`
+  (`windows-vendor-inventory.ps1`). Los que no están se listan en el resumen
+  del job con su huella, en el formato del inventario;
+- `GRXFIRMA_VENDOR_INVENTORY_ENFORCE`, en el job `build-windows`, decide qué
+  pasa con ellos: `"0"` solo avisa; `"1"` para la publicación. Empieza en
+  `"0"` porque el inventario está vacío. Se rellena con el resumen de la
+  primera publicación, después de comprobar que cada fichero sale de la
+  instalación oficial de Qt o de la publicación de WinUI, y entonces se pasa a
+  `"1"`.
+
 Apple exige firmar el software con Developer ID, activar Hardened Runtime,
 usar timestamp seguro y notarizar la distribución. Referencias:
 

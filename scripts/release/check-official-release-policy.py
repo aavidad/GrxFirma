@@ -15,6 +15,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
 LOCAL_OFFICIAL = ROOT / "scripts" / "release" / "build-official-release.sh"
+VENDOR_INVENTORY = ROOT / "packaging" / "windows" / "vendor-unsigned-pe.sha256"
+WINDOWS_FINALIZERS = (
+    ROOT / "scripts" / "release" / "finalize-windows-release.ps1",
+    ROOT / "scripts" / "release" / "finalize-windows-release-signpath.ps1",
+)
 ACTION_RE = re.compile(r"(?m)^\s*uses:\s*([^\s#]+)")
 
 
@@ -31,6 +36,34 @@ def job_block(text: str, name: str) -> str:
 def require(block: str, needle: str, context: str) -> None:
     if needle not in block:
         raise ValueError(f"{context} does not contain required control: {needle}")
+
+
+CACHE_ACTIONS = ("actions/setup-go@", "jurplel/install-qt-action@")
+
+
+def release_cache_violations(text: str) -> list[str]:
+    """JD-01 (G-01 also on the SignPath path): no release job restores an
+    Actions cache. main and the tags share that cache, so a poisoned entry
+    (for example an unsigned Qt6Core.dll) would otherwise reach the signer."""
+    violations = []
+    jobs = text.split("\njobs:\n", 1)[-1]
+    for step in re.split(r"(?m)^      - ", jobs)[1:]:
+        uses = re.search(r"(?m)^\s*uses:\s*(\S+)", step)
+        action = uses.group(1) if uses else ""
+        label = action or step.splitlines()[0]
+        if action.startswith("actions/cache"):
+            violations.append(f"{label}: actions/cache is not allowed")
+        if re.search(r"(?m)^\s+cache:\s*true\s*$", step):
+            violations.append(f"{label}: cache: true")
+        if any(name in action for name in CACHE_ACTIONS) and not re.search(
+            r"(?m)^\s+cache:\s*false\s*$", step
+        ):
+            violations.append(f"{label}: missing cache: false")
+        if "actions/setup-node@" in action and not re.search(
+            r"(?m)^\s+package-manager-cache:\s*false\s*$", step
+        ):
+            violations.append(f"{label}: missing package-manager-cache: false")
+    return violations
 
 
 def main() -> int:
@@ -276,6 +309,29 @@ def main() -> int:
         revision = reference.rsplit("@", 1)[-1]
         if not re.fullmatch(r"[0-9a-fA-F]{40}", revision):
             raise SystemExit(f"release action is not pinned by full SHA: {reference}")
+
+    cache_violations = release_cache_violations(text)
+    if cache_violations:
+        raise SystemExit(
+            f"release workflow must not restore Actions cache: {cache_violations}"
+        )
+    # JD-01: both Windows signing paths check unsigned third-party PE files
+    # against the versioned inventory before signing anything.
+    if not re.search(
+        r'(?m)^      GRXFIRMA_VENDOR_INVENTORY_ENFORCE: "[01]"$',
+        job_block(text, "build-windows"),
+    ):
+        raise SystemExit(
+            "build-windows must set GRXFIRMA_VENDOR_INVENTORY_ENFORCE to \"0\" or \"1\""
+        )
+    if not VENDOR_INVENTORY.is_file():
+        raise SystemExit(f"missing vendor inventory: {VENDOR_INVENTORY}")
+    for finalizer in WINDOWS_FINALIZERS:
+        require(
+            finalizer.read_text(encoding="utf-8-sig"),
+            "Invoke-WindowsVendorInventoryCheck",
+            finalizer.name,
+        )
 
     print("Official release policy is fail-closed and all actions are pinned.")
     return 0

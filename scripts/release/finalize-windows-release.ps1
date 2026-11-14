@@ -213,6 +213,31 @@ try {
         }
     )
 
+    # JD-01: el mismo inventario de PE ajenos sin firma que en la vía SignPath,
+    # cotejado antes de firmar nada.
+    $vendorInventoryHelpers = Join-Path $PSScriptRoot 'windows-vendor-inventory.ps1'
+    if (-not (Test-Path -LiteralPath $vendorInventoryHelpers -PathType Leaf)) {
+        throw "Falta windows-vendor-inventory.ps1."
+    }
+    . $vendorInventoryHelpers
+    $unsignedVendorTargets = @()
+    foreach ($build in $builds) {
+        if (-not (Test-Path -LiteralPath $build.Stage -PathType Container)) {
+            throw "Falta la etapa Windows que debe firmarse: $($build.Stage)"
+        }
+        $unsignedVendorTargets += @(
+            Get-WindowsUnsignedVendorTargets -SigningTargets @(
+                Get-WindowsReleaseSigningTargets `
+                    -StageDirectory $build.Stage `
+                    -Suite:($build.Kind -eq "suite")
+            )
+        )
+    }
+    Invoke-WindowsVendorInventoryCheck `
+        -Files $unsignedVendorTargets `
+        -InventoryPath (Get-WindowsVendorInventoryPath -RepositoryRoot $RepositoryRoot) |
+        Out-Null
+
     if (Test-Path -LiteralPath $OutputDirectory) {
         Remove-Item -LiteralPath $OutputDirectory -Recurse -Force
     }
