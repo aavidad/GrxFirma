@@ -64,11 +64,18 @@ func (a *Adaptador) escribirPistaConfianzaForzada(cfg configCLI, r application.R
 		return
 	}
 	fmt.Fprintln(a.Stdout, a.t("verify.forced_trust.cli.hint_command", "verify.forced_trust.cli.hint_command"))
-	orden := "grxfirma -modo-cli -aceptar-confianza -entrada " + citarArgumentoCLI(cfg.entrada)
-	if strings.TrimSpace(cfg.original) != "" {
-		orden += " -documento-original " + citarArgumentoCLI(cfg.original)
+	fmt.Fprintf(a.Stdout, "  %s\n", OrdenAceptarConfianza(cfg.entrada, cfg.original))
+}
+
+// OrdenAceptarConfianza es la orden de la CLI que acepta en este equipo los
+// obstáculos de una firma, con las rutas citadas para la terminal. La usa
+// también la interfaz Fyne, que no gestiona la lista (lote 17b).
+func OrdenAceptarConfianza(entrada, original string) string {
+	orden := "grxfirma -modo-cli -aceptar-confianza -entrada " + citarArgumentoCLI(entrada)
+	if strings.TrimSpace(original) != "" {
+		orden += " -documento-original " + citarArgumentoCLI(original)
 	}
-	fmt.Fprintf(a.Stdout, "  %s\n", orden)
+	return orden
 }
 
 func citarArgumentoCLI(valor string) string {

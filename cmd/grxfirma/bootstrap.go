@@ -436,6 +436,18 @@ func construirAdaptador(rutaP12, password, rutaCert, rutaClave string) (*cli.Ada
 	return construirAdaptadorCon(rutaP12, password, rutaCert, rutaClave, nil)
 }
 
+// construirServiciosEscritorio compone los servicios de la interfaz Fyne
+// local. Como la CLI, la verificación aplica lo que el usuario aceptó en este
+// equipo (lote 17b); la lista se gestiona en la CLI, Qt y WinUI.
+func construirServiciosEscritorio(rutaP12, password, rutaCert, rutaClave string) (*serviciosGrxFirma, error) {
+	servicios, err := construirServicios(rutaP12, password, rutaCert, rutaClave)
+	if err != nil {
+		return nil, err
+	}
+	servicios.verificar.ConConfianzaForzada(config.NuevoAlmacenConfianzaForzada(servicios.configDir))
+	return servicios, nil
+}
+
 func construirAdaptadorCon(rutaP12, password, rutaCert, rutaClave string, remota *fuenteRemota) (*cli.Adaptador, error) {
 	servicios, err := construirServiciosCon(rutaP12, password, rutaCert, rutaClave, remota)
 	if err != nil {
