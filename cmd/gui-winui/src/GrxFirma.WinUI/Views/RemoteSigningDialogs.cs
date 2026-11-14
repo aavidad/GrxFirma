@@ -307,8 +307,8 @@ internal static class RemoteSigningDialogs
         {
             try
             {
-                var status = await statusOperations.GetRemoteSigningStatusAsync(cancellationToken);
-                if (status.IsSuccess && status.Data is { } current &&
+                var cscStatus = await statusOperations.GetRemoteSigningStatusAsync(cancellationToken);
+                if (cscStatus.IsSuccess && cscStatus.Data is { } current &&
                     (current.Connected || current.Discovered))
                 {
                     serviceHost = current.ServiceHost.Trim();
