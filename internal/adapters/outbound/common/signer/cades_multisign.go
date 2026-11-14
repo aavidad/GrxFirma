@@ -44,12 +44,14 @@ type signedDataParts struct {
 	eContentBytes []byte
 }
 
-func cosignCAdES(existing []byte, key *LocalSigningKey, spec cmsHashSpec, now time.Time) ([]byte, error) {
+// cosignCAdES añade un firmante. original solo llega, ya cotejado, en una
+// CAdES explícita cuyo documento ha aportado quien firma.
+func cosignCAdES(existing, original []byte, key *LocalSigningKey, spec cmsHashSpec, now time.Time) ([]byte, error) {
 	sd, err := parseSignedDataParts(existing)
 	if err != nil {
 		return nil, err
 	}
-	digest, err := digestParaCofirma(sd, spec)
+	digest, err := digestParaCofirma(sd, spec, original)
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +69,32 @@ func cosignCAdES(existing []byte, key *LocalSigningKey, spec cmsHashSpec, now ti
 		return nil, err
 	}
 	return sd.marshal()
+}
+
+// originalCofirmaCotejado decide qué hacer con el original que acompaña a
+// una cofirma o contrafirma (KD-03). Solo cuenta en una CAdES explícita: si
+// llega, se coteja con la firma recibida y, si no corresponde, no se firma.
+// Una firma que corresponde pero usa SHA-1 sigue adelante con su aviso
+// (lote 16c), salvo que la política de máquina lo prohíba. Devuelve el
+// original que puede usar la cofirma, o nil si no lo hay o no hace falta.
+func originalCofirmaCotejado(ctx context.Context, existing, original []byte) ([]byte, error) {
+	if len(original) == 0 {
+		return nil, nil
+	}
+	if _, implicita, err := ContenidoCAdESImplicito(existing); err != nil || implicita {
+		// La firma lleva el documento dentro (o no se puede leer y fallará
+		// después con su propio error): el original no se usa.
+		return nil, nil
+	}
+	aviso, err := AdmitirCotejoSHA1(CotejarCAdESExplicita(existing, original), "cofirma")
+	if err != nil {
+		slog.Warn("cofirma_original_no_corresponde", "error", err)
+		return nil, err
+	}
+	if aviso {
+		domain.AnotarAviso(ctx, AvisoFirmaSHA1Corresponde)
+	}
+	return original, nil
 }
 
 // AvisoCofirmaSinOriginal es la clave de catálogo del aviso que acompaña al
@@ -246,11 +274,15 @@ func buildSignedAttributesWithContentType(cert *x509.Certificate, digest []byte,
 }
 
 // digestParaCofirma obtiene el resumen del contenido: del contenido
-// encapsulado si existe o, en firmas explícitas, del messageDigest de un
-// firmante con el mismo algoritmo, como hace AutoFirma Java.
-func digestParaCofirma(sd signedDataParts, spec cmsHashSpec) ([]byte, error) {
+// encapsulado si existe; en firmas explícitas, del original cotejado si se
+// ha aportado o, si no, del messageDigest de un firmante con el mismo
+// algoritmo, como hace AutoFirma Java.
+func digestParaCofirma(sd signedDataParts, spec cmsHashSpec, original []byte) ([]byte, error) {
 	if len(sd.eContentBytes) > 0 {
 		return cmsDigest(spec.hash, sd.eContentBytes), nil
+	}
+	if len(original) > 0 {
+		return cmsDigest(spec.hash, original), nil
 	}
 	for _, siDER := range sd.signerInfos {
 		var si signerInfoRaw

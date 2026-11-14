@@ -12,6 +12,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/base64"
+	"errors"
 	"math/big"
 	"testing"
 	"time"
@@ -129,9 +130,8 @@ func TestCreateENIDocumentCAdESSHA1LoCierraLaPolitica(t *testing.T) {
 
 // La cofirma con el original de una CAdES explícita SHA-1: si el original
 // corresponde, la comprobación sigue con el aviso de SHA-1 en vez de decir
-// que el original no corresponde. (Que el motor pueda cofirmar una explícita
-// cuyos firmantes solo usan SHA-1 es otra cosa: necesita los datos y hoy no
-// los recibe, igual que antes de KD-03.)
+// que el original no corresponde. La firma completa la prueba
+// TestSignJSONCofirmaCAdESExplicitaSHA1ConOriginal (lote 17b).
 func TestComprobarOriginalCofirmaSHA1(t *testing.T) {
 	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
 	original := []byte("convenio firmado en 2012")
@@ -146,5 +146,35 @@ func TestComprobarOriginalCofirmaSHA1(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, false)
 	if _, err := comprobarOriginalCofirma(csig, original, false); err == nil || err.Error() != mobileErrorSHA1Prohibido {
 		t.Fatalf("con SHA-1 prohibido por política se rechaza: %v", err)
+	}
+}
+
+// Lote 17b (3c): la fachada pasa el original al motor. Una CAdES explícita
+// cuyos firmantes solo usan SHA-1 se cofirma con su original y el aviso de
+// SHA-1; la cofirma resultante (mixta, SHA-1 y SHA-256) también.
+func TestSignJSONCofirmaCAdESExplicitaSHA1ConOriginal(t *testing.T) {
+	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
+	facade := newAndroidFacadeForTest(t)
+	id := importPKCS12(t, facade, ephemeralRSAPKCS12(t, "cofirmante"), "cofirmante")
+	original := []byte("convenio firmado en 2012")
+	firma := cadesSHA1Movil(t, original, true)
+	for _, paso := range []string{"solo_sha1", "mixta"} {
+		req := peticionCofirmaKD03(id, "cosign", firma)
+		req.OriginalBase64 = base64.StdEncoding.EncodeToString(original)
+		raw, err := facade.SignJSON(mustJSON(t, req))
+		if err != nil {
+			t.Fatalf("%s: con el original la cofirma debe hacerse: %v", paso, err)
+		}
+		var firmado signResponse
+		decodeResponse(t, raw, &firmado)
+		if len(firmado.Warnings) != 1 || firmado.Warnings[0] != commonsigner.AvisoFirmaSHA1Corresponde {
+			t.Fatalf("%s: la cofirma debe llevar solo el aviso de SHA-1: %v", paso, firmado.Warnings)
+		}
+		if firma, err = base64.StdEncoding.DecodeString(firmado.SignedContentBase64); err != nil {
+			t.Fatal(err)
+		}
+		if err := commonsigner.CotejarCAdESExplicita(firma, original); !errors.Is(err, commonsigner.ErrFirmaCorrespondeConSHA1) {
+			t.Fatalf("%s: todos los firmantes deben cubrir el original: %v", paso, err)
+		}
 	}
 }

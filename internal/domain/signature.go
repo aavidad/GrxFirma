@@ -52,6 +52,11 @@ type SignatureJob struct {
 	// Options contiene parametros adicionales especificos del formato (nivel, politica, etc.).
 	// Las claves son nombres de dominio neutros, no nombres de parametros de protocolo.
 	Options map[string]string
+	// OriginalContent es el documento que firmó una CAdES explícita (sin el
+	// contenido dentro) al cofirmarla o contrafirmarla. Es opcional: si llega,
+	// el motor lo coteja con la firma antes de añadir la suya y no firma a
+	// ciegas (KD-03); sin él se sigue firmando con aviso, como AutoFirma.
+	OriginalContent []byte
 }
 
 func (j SignatureJob) Validate() error {

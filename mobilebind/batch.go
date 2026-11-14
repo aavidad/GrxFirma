@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"grxfirma/internal/application"
+	"grxfirma/internal/domain"
 )
 
 // mobileBatchRequest es el contrato público del lote Android. No admite
@@ -121,9 +122,15 @@ func (f *Facade) ProcessBatchJSON(payload string) (out string, err error) {
 		if index >= len(sinOriginal) || !sinOriginal[index] || !respuesta.Items[index].OK {
 			continue
 		}
-		slog.Warn("cofirma_sin_original_lote", "plataforma", "movil", "elemento", index)
-		respuesta.Items[index].Warnings = []string{mobileAvisoCofirmaSinOriginal}
-		respuesta.Warnings = []string{mobileAvisoCofirmaSinOriginal}
+		// Con la confirmación de la pantalla (lote 17b) el aviso se mantiene:
+		// el documento sigue sin verse. El registro dice si se confirmó.
+		slog.Warn("cofirma_sin_original_lote", "plataforma", "movil", "elemento", index,
+			"confirmado", req.ConfirmUnseenContent)
+		respuesta.Items[index].Warnings = domain.UnirAvisos(respuesta.Items[index].Warnings, mobileAvisoCofirmaSinOriginal)
+	}
+	// El lote reúne, sin repetir, los avisos de sus elementos.
+	for _, item := range respuesta.Items {
+		respuesta.Warnings = domain.UnirAvisos(respuesta.Warnings, item.Warnings...)
 	}
 	return marshal(respuesta)
 }
@@ -214,6 +221,8 @@ func mobileBatchResponseFrom(result application.BatchResult, count int) mobileBa
 			item.Format = sanitizeOutputText(string(signed.Result.Format), 64)
 			item.Algorithm = sanitizeOutputText(signed.Result.Algorithm, 128)
 			item.SignedContentBase64 = base64.StdEncoding.EncodeToString(signed.Result.Data)
+			// Avisos que el motor anotó al firmar este documento.
+			item.Warnings = domain.UnirAvisos(nil, signed.Warnings...)
 			if response.CertificateID == "" {
 				response.CertificateID = sanitizeOutputText(signed.CertificateUsed.ID, 128)
 			}
