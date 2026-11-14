@@ -10,9 +10,12 @@ namespace GrxFirma.WinUI.Core.Operations;
 // Fecha de una firma tal como la entrega el motor (RFC 3339 en UTC), escrita
 // en la hora local con el formato del idioma. Si no se puede leer o el
 // origen no es uno conocido, no se muestra nada: no se inventa una fecha.
+// La de un sello de tiempo sin comprobar (KD-01) se da, pero quien la pinta
+// tiene que decir siempre su origen.
 public static class SigningTimeText
 {
     public const string FromTimestamp = "timestamp";
+    public const string FromUnverifiedTimestamp = "timestamp_unverified";
     public const string FromSignedAttribute = "signed_attribute";
 
     public static bool TryFormat(
@@ -25,7 +28,7 @@ public static class SigningTimeText
         ArgumentNullException.ThrowIfNull(culture);
         ArgumentNullException.ThrowIfNull(zone);
         text = string.Empty;
-        if (source is not (FromTimestamp or FromSignedAttribute) ||
+        if (source is not (FromTimestamp or FromUnverifiedTimestamp or FromSignedAttribute) ||
             !DateTimeOffset.TryParseExact(
                 raw ?? string.Empty,
                 "yyyy-MM-dd'T'HH:mm:ssK",

@@ -6546,6 +6546,7 @@
   ,"winui.verificar.firmante_con_fecha": "{subject} em {date} ({origin})"
   ,"winui.verificar.fecha_segun_sello": "segundo o carimbo temporal"
   ,"winui.verificar.fecha_del_firmante": "hora do computador de quem assinou; sem carimbo temporal"
+  ,"winui.verificar.fecha_sello_sin_comprobar": "data declarada por um carimbo temporal que não foi possível verificar"
   ,"winui.proteger.proteccion_completada_un_destinatario": "Documento protegido para 1 destinatário e guardado como {0}."
   ,"winui.proteger.proteccion_firmada_un_destinatario": "Documento protegido e assinado para 1 destinatário e guardado como {0}."
   ,"winui.proteger.documento_recuperado_en": "Documento recuperado e guardado em {0}."

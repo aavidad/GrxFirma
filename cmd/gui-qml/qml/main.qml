@@ -5182,11 +5182,13 @@ Window {
             const issuer = String(item.issuer || "").trim()
             const parsed = Signers.parseDistinguishedName(subject)
             const date = Signers.signingTimeText(item.signingTime, item.signingTimeSource, tr("format.datetime_seconds"))
+            const unverified = item.signingTimeSource === "timestamp_unverified"
             let dateText = ""
             if (date !== "")
                 dateText = catalogFormat(item.signingTimeSource === "timestamp"
                                          ? "report.signer.time_from_timestamp"
-                                         : "report.signer.time_declared", [date])
+                                         : unverified ? "report.signer.time_from_unverified_timestamp"
+                                                      : "report.signer.time_declared", [date])
             entries.push({
                 name: subject !== "" ? Signers.readableName(subject) : String(item.id || "").trim(),
                 identifier: parsed.identifier,
@@ -5194,6 +5196,8 @@ Window {
                 issuer: issuer !== "" ? Signers.readableIssuer(issuer) : "",
                 date: date,
                 dateText: dateText,
+                // El resumen breve no puede dar esta fecha a secas.
+                dateUnverified: unverified && date !== "",
                 subjectDn: subject,
                 issuerDn: issuer,
                 fingerprint: String(item.fingerprint || "").trim()
@@ -5208,7 +5212,7 @@ Window {
             const parsed = Signers.parseDistinguishedName(dn)
             entries.push({ name: Signers.readableName(dn), identifier: parsed.identifier,
                            organization: parsed.organization, issuer: "", date: "", dateText: "",
-                           subjectDn: dn, issuerDn: "", fingerprint: "" })
+                           dateUnverified: false, subjectDn: dn, issuerDn: "", fingerprint: "" })
         }
         return entries
     }
@@ -5241,7 +5245,8 @@ Window {
         if (entries.length === 0)
             return tr("No disponible")
         return entries.map(function(entry) {
-            return entry.date !== "" ? tr("verificacion.firmante_con_fecha").arg(entry.name).arg(entry.date) : entry.name
+            if (entry.date === "") return entry.name
+            return tr("verificacion.firmante_con_fecha").arg(entry.name).arg(entry.dateUnverified ? entry.dateText : entry.date)
         }).join("; ")
     }
 

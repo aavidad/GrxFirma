@@ -20,6 +20,17 @@ public sealed class SigningTimeTextTests
         Assert.AreEqual("05/10/2026 11:00:44", text);
     }
 
+    // KD-01: la fecha de un sello sin comprobar se puede leer; la vista
+    // la acompaña siempre de su origen.
+    [TestMethod]
+    public void UnverifiedTimestampIsReadable()
+    {
+        Assert.IsTrue(SigningTimeText.TryFormat("2026-10-05T11:00:44Z", "timestamp_unverified",
+            AppCulture.For("es"), TimeZoneInfo.Utc, out var text));
+        Assert.AreEqual("05/10/2026 11:00:44", text);
+        Assert.AreEqual("timestamp_unverified", SigningTimeText.FromUnverifiedTimestamp);
+    }
+
     [TestMethod]
     [DataRow("", "timestamp")]
     [DataRow("05/10/2026", "timestamp")]

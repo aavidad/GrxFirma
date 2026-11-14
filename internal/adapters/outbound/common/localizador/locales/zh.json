@@ -6546,6 +6546,7 @@
   ,"winui.verificar.firmante_con_fecha": "{subject}，{date}（{origin}）"
   ,"winui.verificar.fecha_segun_sello": "依据时间戳"
   ,"winui.verificar.fecha_del_firmante": "签名者电脑的时间；无时间戳"
+  ,"winui.verificar.fecha_sello_sin_comprobar": "时间戳声明的时间（无法验证该时间戳）"
   ,"winui.proteger.proteccion_completada_un_destinatario": "文档已为 1 位收件人加密，并保存为 {0}。"
   ,"winui.proteger.proteccion_firmada_un_destinatario": "文档已为 1 位收件人加密并签署，并保存为 {0}。"
   ,"winui.proteger.documento_recuperado_en": "文档已恢复并保存到 {0}。"

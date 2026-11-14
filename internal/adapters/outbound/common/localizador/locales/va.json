@@ -6546,6 +6546,7 @@
   ,"winui.verificar.firmante_con_fecha": "{subject} el {date} ({origin})"
   ,"winui.verificar.fecha_segun_sello": "segons el segell de temps"
   ,"winui.verificar.fecha_del_firmante": "hora de l'equip de qui va signar; no hi ha segell de temps"
+  ,"winui.verificar.fecha_sello_sin_comprobar": "data que declara un segell de temps que no s'ha pogut comprovar"
   ,"winui.proteger.proteccion_completada_un_destinatario": "Document protegit per a 1 destinatari i guardat com a {0}."
   ,"winui.proteger.proteccion_firmada_un_destinatario": "Document protegit i signat per a 1 destinatari i guardat com a {0}."
   ,"winui.proteger.documento_recuperado_en": "Document recuperat i guardat en {0}."

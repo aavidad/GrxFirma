@@ -6546,6 +6546,7 @@
   ,"winui.verificar.firmante_con_fecha": "{subject} le {date} ({origin})"
   ,"winui.verificar.fecha_segun_sello": "selon l'horodatage"
   ,"winui.verificar.fecha_del_firmante": "heure de l'ordinateur du signataire ; pas d'horodatage"
+  ,"winui.verificar.fecha_sello_sin_comprobar": "date indiquée par un horodatage qui n'a pas pu être vérifié"
   ,"winui.proteger.proteccion_completada_un_destinatario": "Document protégé pour 1 destinataire et enregistré sous {0}."
   ,"winui.proteger.proteccion_firmada_un_destinatario": "Document protégé et signé pour 1 destinataire et enregistré sous {0}."
   ,"winui.proteger.documento_recuperado_en": "Document récupéré et enregistré dans {0}."

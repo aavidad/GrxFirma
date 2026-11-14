@@ -6546,6 +6546,7 @@
   ,"winui.verificar.firmante_con_fecha": "{subject}, {date} ({origin})"
   ,"winui.verificar.fecha_segun_sello": "denbora-zigiluaren arabera"
   ,"winui.verificar.fecha_del_firmante": "sinatu zuenaren ordenagailuko ordua; ez dago denbora-zigilurik"
+  ,"winui.verificar.fecha_sello_sin_comprobar": "egiaztatu ezin izan den denbora-zigilu batek adierazitako data"
   ,"winui.proteger.proteccion_completada_un_destinatario": "Dokumentua hartzaile batentzat babestu da eta {0} izenarekin gorde da."
   ,"winui.proteger.proteccion_firmada_un_destinatario": "Dokumentua hartzaile batentzat babestu eta sinatu da, eta {0} izenarekin gorde da."
   ,"winui.proteger.documento_recuperado_en": "Dokumentua berreskuratu eta hemen gorde da: {0}."

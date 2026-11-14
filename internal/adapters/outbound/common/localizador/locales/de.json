@@ -6546,6 +6546,7 @@
   ,"winui.verificar.firmante_con_fecha": "{subject} am {date} ({origin})"
   ,"winui.verificar.fecha_segun_sello": "laut Zeitstempel"
   ,"winui.verificar.fecha_del_firmante": "Uhrzeit des Rechners der signierenden Person; kein Zeitstempel"
+  ,"winui.verificar.fecha_sello_sin_comprobar": "Datum laut einem Zeitstempel, der nicht geprüft werden konnte"
   ,"winui.proteger.proteccion_completada_un_destinatario": "Dokument für 1 Empfänger geschützt und als {0} gespeichert."
   ,"winui.proteger.proteccion_firmada_un_destinatario": "Dokument für 1 Empfänger geschützt, signiert und als {0} gespeichert."
   ,"winui.proteger.documento_recuperado_en": "Dokument wiederhergestellt und unter {0} gespeichert."
