@@ -269,6 +269,12 @@ func runConDependencias(
 		return 0
 	}
 
+	// Diálogos del programa para firmar en las webs en un proceso aparte
+	// (lote 15). Solo modos fijos, sin enlace.
+	if handled, code := ejecutarModoDialogoFirmaWeb(ctx, args, os.Stdout); handled {
+		return code
+	}
+
 	// Invocado por el navegador como manejador de afirma://, el único argumento
 	// válido es la URI: nunca se interpretan flags junto a ella, aunque una
 	// URI manipulada llegase partida en varios argumentos.
@@ -324,6 +330,11 @@ func ejecutarURIProtocolo(
 	// selección, se falla cerrado antes de interpretar o ejecutar la URI.
 	if err := prepareProtocolInteractiveUI(stderr); err != nil {
 		return graphicsUnavailableExitCode
+	}
+	// Lote 15: antes de preparar nada para firmar, decide si el enlace es
+	// para AutoFirma (preferencia, política o lo que elija la persona).
+	if handled, code := decidirProgramaFirmaWeb(ctx, rawURI); handled {
+		return code
 	}
 	if err := prepareStartupLocalTLSTrust(ctx, defaultProtocolConfigDir(), stderr); err != nil {
 		return 1

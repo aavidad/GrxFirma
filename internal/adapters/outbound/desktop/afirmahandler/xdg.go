@@ -227,7 +227,9 @@ func (s *XDGSelector) mimeappsFiles() []string {
 type desktopEntry struct {
 	path    string
 	program string
-	afirma  bool
+	// exec es la línea Exec tal cual, para el reenvío (parsearExecAutoFirma).
+	exec   string
+	afirma bool
 }
 
 // findDesktop busca el lanzador; el primero encontrado tapa a los demás.
@@ -250,6 +252,7 @@ func (s *XDGSelector) findDesktop(id string) (*desktopEntry, error) {
 		entry := &desktopEntry{path: path}
 		if exec, ok := iniValue(data, "Desktop Entry", "Exec"); ok {
 			entry.program = execProgram(exec)
+			entry.exec = exec
 		}
 		mimes, _ := iniValue(data, "Desktop Entry", "MimeType")
 		for _, mime := range strings.Split(mimes, ";") {

@@ -24,6 +24,10 @@ type Spec struct {
 	DefaultButton    int32
 	Radios           []Choice
 	AcceptNeedsRadio int32
+	// Verification es el texto de la casilla bajo los botones (por ejemplo,
+	// «Recordar mi elección»). Vacío: sin casilla. Su estado lo devuelve
+	// ShowVerification.
+	Verification string
 }
 
 // IDCancel es el identificador que devuelve Windows al cancelar.
