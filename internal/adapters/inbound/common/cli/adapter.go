@@ -4603,7 +4603,7 @@ func (a *Adaptador) resolverCotejoENI(cotejo error) ([]string, error) {
 	aviso, err := commonsigner.AdmitirCotejoSHA1(cotejo, "eni")
 	switch {
 	case errors.Is(err, commonsigner.ErrCotejoSHA1Prohibido):
-		return nil, errors.New(a.t("firma.sha1_corresponde.prohibido", "La firma usa SHA-1 y la política de este equipo no admite ese algoritmo, así que no se ha seguido."))
+		return nil, errors.New(a.t("firma.sha1_corresponde.prohibido", "La firma usa SHA-1 y la política de este equipo no admite ese algoritmo, así que no se ha hecho la operación."))
 	case err != nil:
 		return nil, a.errorFirmaNoCorresponde()
 	case aviso:
