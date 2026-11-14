@@ -52,6 +52,20 @@ interface CoreBridge {
         action: String = "sign",
     ): SignedOutput
 
+    /**
+     * Cofirma o contrafirma con el documento original de una CAdES explícita:
+     * el motor comprueba que corresponde y no firma a ciegas. Por defecto
+     * ignora el original, como un AAR anterior.
+     */
+    fun signWithOriginal(
+        document: LoadedFile,
+        format: String,
+        certificateId: String,
+        options: Map<String, String>,
+        action: String,
+        original: LoadedFile?,
+    ): SignedOutput = sign(document, format, certificateId, options, action)
+
     fun sealPreview(certificateId: String, options: Map<String, String>): ByteArray
 
     fun verify(document: LoadedFile, original: LoadedFile? = null): VerificationSummary

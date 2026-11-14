@@ -77,6 +77,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"sync"
 	"sync/atomic"
 )
 
@@ -117,6 +118,11 @@ type Reader struct {
 	// porque un Reader puede leerse desde varias gorrutinas; en ese caso el
 	// contador suma las de todas y el límite sigue muy por encima del uso real.
 	resolviendo atomic.Int32
+	// AutoFirmaV2: hojas del árbol de páginas en orden, calculadas una vez
+	// (KD-04). Page las usa para numerar como los visores y pdfsign.
+	hojasOnce sync.Once
+	hojas     []Value
+	hojasErr  error
 }
 
 const (

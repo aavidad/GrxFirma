@@ -96,6 +96,13 @@
         <multiText id="FirmaRemotaCSCOAuth_List" valueName="firma_remota_csc_oauth_permitidos" required="true" />
       </elements>
     </policy>
+    <policy name="FirmaRemotaCSCServicios" class="Machine" displayName="$(string.FirmaRemotaCSCServicios)" explainText="$(string.FirmaRemotaCSCServicios_Help)" presentation="$(presentation.FirmaRemotaCSCServicios)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_CSC" />
+      <elements>
+        <multiText id="FirmaRemotaCSCServicios_List" valueName="firma_remota_csc_servicios_permitidos" required="true" />
+      </elements>
+    </policy>
     <policy name="NivelLog" class="Machine" displayName="$(string.NivelLog)" explainText="$(string.NivelLog_Help)" presentation="$(presentation.NivelLog)" key="SOFTWARE\Policies\GrxFirma">
       <parentCategory ref="Operacion" />
       <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />

@@ -70,6 +70,10 @@ const (
 	// CodigoProtegerConSecretos: «proteger y firmar» con un certificado
 	// remoto que pide PIN u OTP sin que la petición los traiga.
 	CodigoProtegerConSecretos csc.Codigo = "proteger_con_secretos" // #nosec G101 -- código de error, no un secreto.
+	// CodigoInterfazNoVerificada: la petición no llega de la interfaz que
+	// lanzó el motor (vínculo por PID), y la firma remota solo se admite
+	// desde ella.
+	CodigoInterfazNoVerificada csc.Codigo = "interfaz_no_verificada"
 )
 
 // ErrNoAplicable indica que el certificado pedido no es remoto: el proveedor
@@ -171,9 +175,16 @@ func Nueva(opc Opciones) *Sesion {
 	return &Sesion{opc: opc}
 }
 
-// permiso lee configuración y política y devuelve los pares OAuth si la firma
+// permisoCSC es lo que la configuración y la política permiten: los pares
+// OAuth y, si la organización los limita, los prestadores admitidos.
+type permisoCSC struct {
+	pares     []csc.ParOAuth
+	servicios []string
+}
+
+// permiso lee configuración y política y devuelve lo permitido si la firma
 // remota está permitida.
-func (s *Sesion) permiso() ([]csc.ParOAuth, error) {
+func (s *Sesion) permiso() (permisoCSC, error) {
 	var (
 		cfg      config.Config
 		politica config.Policy
@@ -189,19 +200,35 @@ func (s *Sesion) permiso() ([]csc.ParOAuth, error) {
 	}
 	// Una configuración o una política ilegibles no pueden autorizar nada.
 	if err != nil {
-		return nil, nuevoError(CodigoDesactivada)
+		return permisoCSC{}, nuevoError(CodigoDesactivada)
 	}
 	if !cfg.FirmaRemotaCSCActiva(politica) {
 		if config.FirmaRemotaCSCProhibida(politica) {
-			return nil, nuevoError(CodigoProhibida)
+			return permisoCSC{}, nuevoError(CodigoProhibida)
 		}
-		return nil, nuevoError(CodigoDesactivada)
+		return permisoCSC{}, nuevoError(CodigoDesactivada)
 	}
 	pares, err := csc.ParsearParesOAuth(cfg.FirmaRemotaCSCOAuth)
 	if err != nil {
-		return nil, nuevoError(CodigoParesOAuthInvalidos)
+		return permisoCSC{}, nuevoError(CodigoParesOAuthInvalidos)
 	}
-	return pares, nil
+	return permisoCSC{pares: pares, servicios: politica.FirmaRemotaCSCServicios}, nil
+}
+
+// permisoServicioActual es permiso más la lista de prestadores aplicada al
+// servicio de la sesión, por si la política ha cambiado tras configurarlo.
+func (s *Sesion) permisoServicioActual() error {
+	perm, err := s.permiso()
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	actual := s.url
+	s.mu.Unlock()
+	if actual != "" && !csc.ServicioPermitido(actual, perm.servicios) {
+		return &csc.Error{Codigo: csc.CodigoServicioNoPermitido}
+	}
+	return nil
 }
 
 // Permitida indica si la política y la configuración permiten la firma
@@ -263,7 +290,7 @@ func (s *Sesion) configuradaPorUsuario() bool {
 // servicio (sin abrir el navegador) y devuelve los hosts que la persona debe
 // ver antes de conectar. Cierra la sesión anterior y guarda la configuración.
 func (s *Sesion) Configurar(ctx context.Context, urlServicio, clientID string) (Descubrimiento, error) {
-	pares, err := s.permiso()
+	perm, err := s.permiso()
 	if err != nil {
 		s.Desconectar()
 		return Descubrimiento{}, err
@@ -277,6 +304,10 @@ func (s *Sesion) Configurar(ctx context.Context, urlServicio, clientID string) (
 	if err != nil {
 		return Descubrimiento{}, err
 	}
+	// Un prestador fuera de la lista de la organización no se consulta.
+	if !csc.ServicioPermitido(urlServicio, perm.servicios) {
+		return Descubrimiento{}, &csc.Error{Codigo: csc.CodigoServicioNoPermitido}
+	}
 	cliente, err := csc.Nuevo(csc.Opciones{
 		URLServicio:        urlServicio,
 		ClientID:           clientID,
@@ -286,7 +317,7 @@ func (s *Sesion) Configurar(ctx context.Context, urlServicio, clientID string) (
 		TextoCallback:      s.opc.TextoCallback,
 		EsperaAutorizacion: esperaAutorizacion,
 		Idioma:             s.opc.Idioma,
-		ParesOAuth:         pares,
+		ParesOAuth:         perm.pares,
 		EnvioOTPManual:     true,
 	})
 	if err != nil {
@@ -321,7 +352,7 @@ func (s *Sesion) Configurar(ctx context.Context, urlServicio, clientID string) (
 // certificados remotos de la cuenta. Devuelve los que se pueden usar y
 // cuántos se han descartado por no ser válidos.
 func (s *Sesion) Conectar(ctx context.Context) ([]CredencialRemota, int, error) {
-	if _, err := s.permiso(); err != nil {
+	if err := s.permisoServicioActual(); err != nil {
 		s.Desconectar()
 		return nil, 0, err
 	}
@@ -437,7 +468,7 @@ func (s *Sesion) Credencial(certID string) (CredencialRemota, bool) {
 // EnviarOTP pide al prestador que envíe el código de un solo uso de una
 // credencial con OTP en línea.
 func (s *Sesion) EnviarOTP(ctx context.Context, certID string) error {
-	if _, err := s.permiso(); err != nil {
+	if err := s.permisoServicioActual(); err != nil {
 		s.Desconectar()
 		return err
 	}
@@ -480,7 +511,7 @@ func (s *Sesion) KeyFor(ctx context.Context, ref domain.CertificateRef) (ports.S
 	if !ok || !conectada || cliente == nil {
 		return nil, ErrNoAplicable
 	}
-	if _, err := s.permiso(); err != nil {
+	if err := s.permisoServicioActual(); err != nil {
 		s.Desconectar()
 		return nil, err
 	}

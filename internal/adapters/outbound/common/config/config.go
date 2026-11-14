@@ -100,6 +100,9 @@ type Policy struct {
 	// FirmaRemotaCSCOAuth sustituye la lista de pares del usuario.
 	FirmaRemotaCSCOAuth []string `json:"firma_remota_csc_oauth_permitidos"`
 	TSAPermitidas       []string `json:"tsa_permitidas"`
+	// FirmaRemotaCSCServicios limita los prestadores CSC a esta lista de
+	// "host[:puerto]". Solo la fija la organización; sin ella no hay límite.
+	FirmaRemotaCSCServicios []string `json:"firma_remota_csc_servicios_permitidos"`
 
 	// Control de lectura (no forman parte del JSON). ilegible indica que la
 	// política existe pero no se pudo leer ni interpretar; invalidos, los
@@ -285,6 +288,14 @@ func loadMachinePolicyDesde(lector lectorPoliticaMaquina) (Policy, error) {
 		fallo(machinepolicy.FirmaRemotaCSCOAuth, err)
 	} else if ok {
 		p.FirmaRemotaCSCOAuth = v
+	}
+	if v, ok, err := lector.textos(machinepolicy.FirmaRemotaCSCServicios); err != nil {
+		errs = append(errs, err)
+	} else if ok {
+		if v == nil {
+			v = []string{} // fijada y vacía: no admite ningún prestador
+		}
+		p.FirmaRemotaCSCServicios = v
 	}
 	if v, ok, err := lector.entero(machinepolicy.MaxTamanoDocumentoBytes); err != nil {
 		fallo(machinepolicy.MaxTamanoDocumentoBytes, err)

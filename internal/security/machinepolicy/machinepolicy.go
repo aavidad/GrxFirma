@@ -48,6 +48,7 @@ const (
 	FirmaRemotaCSCOAuth      = "firma_remota_csc_oauth_permitidos"
 	// ProhibirCifradoCMSHeredado impide descifrar CMS con cifrados antiguos.
 	ProhibirCifradoCMSHeredado = "prohibir_cifrado_cms_heredado"
+	FirmaRemotaCSCServicios    = "firma_remota_csc_servicios_permitidos"
 )
 
 // Native indica si la plataforma dispone de un almacén de política de

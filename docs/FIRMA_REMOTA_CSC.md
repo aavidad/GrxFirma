@@ -39,8 +39,17 @@ Decide primero la política de la organización:
 
 Si la política no fija el valor, la activa `"firma_remota_csc": true` en el
 `config.json` del usuario. No hay opción de la línea de órdenes ni variable de
-entorno que la active. La plantilla ADMX incluye las dos directivas
-(`FirmaRemotaCSC` y `FirmaRemotaCSCOAuth`); véase `POLITICA_MAQUINA.md`.
+entorno que la active. La plantilla ADMX incluye las tres directivas
+(`FirmaRemotaCSC`, `FirmaRemotaCSCOAuth` y `FirmaRemotaCSCServicios`); véase
+`POLITICA_MAQUINA.md`.
+
+La organización puede limitar los prestadores con
+`firma_remota_csc_servicios_permitidos` (solo en la política): una entrada
+`host[:puerto]` por servicio, 443 si no se indica. La CLI y las interfaces no
+consultan un servicio que no esté en la lista y fallan con
+`servicio_no_permitido`; una entrada mal escrita no admite nada y una lista
+vacía no admite ningún prestador. Sin la directiva no hay límite. Al pedir el
+PIN o el OTP, la CLI dice a qué servicio se envían.
 
 El prestador debe dar de alta a GrxFirma como cliente OAuth público y facilitar un
 identificador de cliente. No hay secreto de cliente: la autorización usa PKCE.
@@ -134,7 +143,8 @@ usa la autorización conjunta y sigue rechazando el OTP.
   endurecer (no es un `http.Transport`), no se conecta.
 - Cada petición tiene un tiempo máximo de 30 segundos y la espera del navegador,
   de 5 minutos. Las respuestas se cortan a 1 MiB y la vida de los tokens se
-  acota a 24 horas.
+  acota a 24 horas, también cuando el servicio no dice cuánto duran
+  (`expires_in` ausente o a cero).
 - El `state` OAuth es aleatorio y se compara en tiempo constante. Una petición
   con otro `state`, otra ruta, otro método u otro `Host` recibe un error y no
   cuenta: el receptor sigue esperando la buena hasta el tiempo máximo, de modo
@@ -168,6 +178,12 @@ usa la autorización conjunta y sigue rechazando el OTP.
   incrusta si cada certificado está firmado por el siguiente.
 - Ningún error ni registro incluye tokens, PIN, OTP ni SAD. Los datos que llegan
   del servidor se sanean antes de mostrarlos en la terminal.
+- En el IPC, `csc_configure`, `csc_connect`, `csc_send_otp` y toda firma con un
+  certificado remoto (principal o adicional) solo se admiten desde la interfaz
+  vinculada por PID; si no, fallan con `csc_interfaz_no_verificada`. Un
+  `--server` manual sin PID sigue firmando con certificados locales, deja el
+  aviso `ipc_sin_vinculacion_pid` en el registro y `export_diagnostic` devuelve
+  `ipcClientBinding: "unbound"`.
 
 ## Límites
 

@@ -107,6 +107,104 @@ func (r *Reader) BuscarPagina(num int) (Page, error) {
 	return Page{}, fmt.Errorf("página %d no encontrada", num)
 }
 
+// maxHojasNumeradas acota la lista de hojas que Page guarda en memoria. Un
+// árbol con más hojas vuelve a la numeración por /Count.
+const maxHojasNumeradas = 1 << 20
+
+// RecorrerHojas llama a fn con cada hoja /Type /Page del árbol que cuelga de
+// pages, en orden de documento y sin fiarse de los /Count, hasta que fn
+// devuelve false. Es la numeración que usan los visores y la misma con la que
+// pdfsign coloca el sello: el lector y el firmador tienen que contar las
+// páginas igual para que el giro y la caja del sello sean los de la página en
+// la que aparece (KD-04).
+//
+// AutoFirmaV2: el recorrido es iterativo y acotado. El árbol de páginas no es
+// de confianza: un /Kids que vuelve a un antecesor, un nodo repetido o un
+// árbol de más de MaxProfundidadArbolPaginas niveles devuelven un error
+// envuelto en ErrArbolPaginas en lugar de colgar el programa o agotar la pila.
+func RecorrerHojas(pages Value, fn func(Value) bool) error {
+	switch pages.Key("Type").Name() {
+	case "Page":
+		fn(pages)
+		return nil
+	case "Pages":
+	default:
+		return nil
+	}
+	type marco struct {
+		kids Value
+		id   uint32 // objeto del nodo, para distinguir hijos directos
+		i    int
+	}
+	raiz, _ := pages.ObjectReference()
+	vistos := map[uint32]bool{raiz: true}
+	pila := []marco{{kids: pages.Key("Kids"), id: raiz}}
+	for len(pila) > 0 {
+		m := &pila[len(pila)-1]
+		if m.i >= m.kids.Len() {
+			pila = pila[:len(pila)-1]
+			continue
+		}
+		kid := m.kids.Index(m.i)
+		m.i++
+		padre := m.id
+		// Un hijo indirecto lleva su propio número de objeto; uno directo,
+		// el de su contenedor. Los repetidos y los ciclos se rechazan; un
+		// objeto que se contiene a sí mismo lo corta el límite de niveles.
+		id, _ := kid.ObjectReference()
+		if id != 0 && id != padre {
+			if vistos[id] {
+				return errorArbol("el objeto %d aparece más de una vez", id)
+			}
+			vistos[id] = true
+		}
+		switch kid.Key("Type").Name() {
+		case "Pages":
+			if len(pila) >= MaxProfundidadArbolPaginas {
+				return errorArbol("más de %d niveles", MaxProfundidadArbolPaginas)
+			}
+			pila = append(pila, marco{kids: kid.Key("Kids"), id: id})
+		case "Page":
+			if !fn(kid) {
+				return nil
+			}
+		}
+	}
+	return nil
+}
+
+// hojasNumeradas recorre una sola vez el árbol de páginas del documento y
+// guarda sus hojas en orden.
+func (r *Reader) hojasNumeradas() ([]Value, error) {
+	r.hojasOnce.Do(func() {
+		var hojas []Value
+		err := RecorrerHojas(r.Trailer().Key("Root").Key("Pages"), func(hoja Value) bool {
+			hojas = append(hojas, hoja)
+			return len(hojas) <= maxHojasNumeradas
+		})
+		if err == nil && len(hojas) > maxHojasNumeradas {
+			err = errorArbol("más de %d páginas", maxHojasNumeradas)
+		}
+		r.hojas, r.hojasErr = hojas, err
+	})
+	return r.hojas, r.hojasErr
+}
+
+// PaginaHoja devuelve la hoja número num (desde 1) en orden de documento,
+// con la misma numeración que RecorrerHojas. Devuelve un error envuelto en
+// ErrArbolPaginas si el árbol no se puede recorrer y un error simple si la
+// página no existe.
+func (r *Reader) PaginaHoja(num int) (Page, error) {
+	hojas, err := r.hojasNumeradas()
+	if err != nil {
+		return Page{}, err
+	}
+	if num < 1 || num > len(hojas) {
+		return Page{}, fmt.Errorf("página %d fuera del documento", num)
+	}
+	return Page{hojas[num-1]}, nil
+}
+
 // Heredado devuelve el valor de la clave en la página o, si falta, en el
 // primer antecesor /Parent que la define (Resources, MediaBox, CropBox y
 // Rotate son heredables). Una cadena /Parent circular o demasiado larga

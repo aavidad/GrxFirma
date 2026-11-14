@@ -90,6 +90,8 @@ Disabled: remote signing cannot be used, even if the user turns it on in their s
 Not configured: the "firma_remota_csc" setting in the user's config.json decides (off by default).</string>
       <string id="FirmaRemotaCSCOAuth">Remote signing authorisation servers allowed on another host</string>
       <string id="FirmaRemotaCSCOAuth_Help">For security, GrxFirma only accepts a remote signing service that sends authorisation to an OAuth server on the same host and port. If a provider uses a different host, add one line per provider here in the form service=authorisation, for example firma.provider.example=auth.provider.example or firma.provider.example=auth.provider.example:8443. This list replaces the user's list. A malformed line invalidates the list and remote signing is not allowed.</string>
+      <string id="FirmaRemotaCSCServicios">Allowed remote signing services</string>
+      <string id="FirmaRemotaCSCServicios_Help">Limits remote signing to the providers in this list: one line per service in the form host or host:port (443 if omitted), for example firma.provider.example. GrxFirma does not contact any other service and does not send the PIN or the code anywhere else. A malformed line is ignored and allows no service. Not configured: providers are not limited.</string>
     </stringTable>
     <presentationTable>
       <presentation id="AllowedDomains"><multiTextBox refId="AllowedDomains_List">Origins (one per line):</multiTextBox></presentation>
@@ -100,6 +102,7 @@ Not configured: the "firma_remota_csc" setting in the user's config.json decides
       <presentation id="TimeoutOperacion"><decimalTextBox refId="TimeoutOperacion_Segundos" defaultValue="30">Seconds:</decimalTextBox></presentation>
       <presentation id="MaxTamanoDocumento"><decimalTextBox refId="MaxTamanoDocumento_Bytes" defaultValue="52428800">Bytes:</decimalTextBox></presentation>
       <presentation id="FirmaRemotaCSCOAuth"><multiTextBox refId="FirmaRemotaCSCOAuth_List">service=authorisation pairs (one per line):</multiTextBox></presentation>
+      <presentation id="FirmaRemotaCSCServicios"><multiTextBox refId="FirmaRemotaCSCServicios_List">Services (one per line):</multiTextBox></presentation>
     </presentationTable>
   </resources>
 </policyDefinitionResources>

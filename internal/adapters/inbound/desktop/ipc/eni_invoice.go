@@ -160,6 +160,9 @@ func (m *Manejador) handleGenerateENIFile(ctx context.Context, raw json.RawMessa
 	if err := json.Unmarshal(raw, &p); err != nil {
 		return respuesta{Action: action, Error: "parámetros no válidos"}
 	}
+	if rechazo := m.remotaSinInterfaz(ctx, action, p.CertificateID); rechazo != nil {
+		return *rechazo
+	}
 	if err := validarDirectorioLectura(p.DirectoryPath); err != nil {
 		return respuesta{Action: action, Error: err.Error()}
 	}

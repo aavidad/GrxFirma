@@ -8,6 +8,7 @@ package signer_test
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"testing"
 
@@ -66,6 +67,80 @@ func TestCotejarXAdESSeparadaConElOriginal(t *testing.T) {
 				t.Fatalf("original ajeno aceptado: %v", err)
 			}
 		})
+	}
+}
+
+// KD-02: una firma XAdES con el contenido dentro (AFIRMA/CONTENT, modo de
+// AutoFirma) solo coteja con el original si cada firma lo referencia desde
+// su ds:SignedInfo. Un CONTENT añadido fuera de lo firmado, con una
+// «Reference» suelta que lo nombra, no hace que la firma ajena pase por
+// firma del documento B.
+func TestCotejarXAdESSeparadaRechazaContenidoNoFirmadoAnadido(t *testing.T) {
+	priv, cert := generarCertRSAPrueba(t)
+	documentoA := []byte("acta de la sesión del lunes")
+	documentoB := []byte("reconozco una deuda de 90.000 euros")
+	doc, _ := domain.NewDocument("acta.txt", documentoA, "text/plain")
+	res, err := commonsigner.NewXAdESBESDetached().Sign(context.Background(), domain.SignatureJob{
+		Document: doc, Format: domain.FormatXAdES, Action: domain.ActionSign, Options: map[string]string{},
+	}, &commonsigner.LocalSigningKey{ID: "k", Signer: priv, Certificate: cert})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(res.Data, []byte("<AFIRMA>")) || !bytes.Contains(res.Data, []byte("</AFIRMA>")) {
+		t.Fatalf("se esperaba el modo AFIRMA/CONTENT: %.200s", res.Data)
+	}
+	if err := commonsigner.CotejarXAdESSeparada(res.Data, documentoA); err != nil {
+		t.Fatalf("la firma intacta debe cotejar con A: %v", err)
+	}
+	b64 := base64.StdEncoding.EncodeToString(documentoB)
+	variantes := map[string]string{
+		"referencia_suelta":              `<X><Reference URI="#EVIL"/></X><CONTENT Id="EVIL" Encoding="Base64">` + b64 + `</CONTENT>`,
+		"signedinfo_falso":               `<X><SignedInfo><Reference URI="#EVIL"/></SignedInfo></X><CONTENT Id="EVIL" Encoding="Base64">` + b64 + `</CONTENT>`,
+		"signedinfo_dsig_fuera_de_firma": `<ds:SignedInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><ds:Reference URI="#EVIL"/></ds:SignedInfo><CONTENT Id="EVIL" Encoding="Base64">` + b64 + `</CONTENT>`,
+	}
+	for nombre, anadido := range variantes {
+		t.Run(nombre, func(t *testing.T) {
+			atacada := bytes.Replace(res.Data, []byte("</AFIRMA>"), []byte(anadido+"</AFIRMA>"), 1)
+			// La firma sigue verificando sola (cubre A): el ataque solo
+			// funciona si el cotejo da B por firmado.
+			if err := commonsigner.CotejarXAdESSeparada(atacada, documentoA); err != nil {
+				t.Logf("A deja de cotejar en la variante (aceptable): %v", err)
+			}
+			if err := commonsigner.CotejarXAdESSeparada(atacada, documentoB); !errors.Is(err, commonsigner.ErrFirmaNoCorrespondeOriginal) {
+				t.Fatalf("el cotejo con B debe rechazarse: %v", err)
+			}
+		})
+	}
+}
+
+// La cofirma de un AFIRMA/CONTENT añade otra firma que referencia el mismo
+// CONTENT: sigue cotejando con el original.
+func TestCotejarXAdESSeparadaAdmiteCofirma(t *testing.T) {
+	priv, cert := generarCertRSAPrueba(t)
+	original := []byte("acta de la sesión del martes")
+	doc, _ := domain.NewDocument("acta.txt", original, "text/plain")
+	clave := &commonsigner.LocalSigningKey{ID: "k", Signer: priv, Certificate: cert}
+	res, err := commonsigner.NewXAdESBESDetached().Sign(context.Background(), domain.SignatureJob{
+		Document: doc, Format: domain.FormatXAdES, Action: domain.ActionSign, Options: map[string]string{},
+	}, clave)
+	if err != nil {
+		t.Fatal(err)
+	}
+	firmado, _ := domain.NewDocument("acta.xsig", res.Data, "application/xml")
+	cofirma, err := commonsigner.NewXAdESBESDetached().Sign(context.Background(), domain.SignatureJob{
+		Document: firmado, Format: domain.FormatXAdES, Action: domain.ActionCoSign, Options: map[string]string{},
+	}, clave)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n := bytes.Count(cofirma.Data, []byte("<ds:SignedInfo")); n < 2 {
+		t.Fatalf("se esperaban dos firmas, hay %d", n)
+	}
+	if err := commonsigner.CotejarXAdESSeparada(cofirma.Data, original); err != nil {
+		t.Fatalf("la cofirma debe cotejar con el original: %v", err)
+	}
+	if err := commonsigner.CotejarXAdESSeparada(cofirma.Data, []byte("otra acta")); !errors.Is(err, commonsigner.ErrFirmaNoCorrespondeOriginal) {
+		t.Fatalf("original ajeno aceptado: %v", err)
 	}
 }
 

@@ -162,13 +162,18 @@ type signRequest struct {
 	Action        string            `json:"action"`
 	CertificateID string            `json:"certificate_id"`
 	Options       map[string]string `json:"options"`
+	// OriginalBase64 es el documento de una CAdES explícita que se cofirma o
+	// contrafirma; ConfirmUnseenContent, la confirmación de firmar sin él.
+	OriginalBase64       string `json:"original_base64,omitempty"`
+	ConfirmUnseenContent bool   `json:"confirm_unseen_content,omitempty"`
 }
 
 type signResponse struct {
-	Format              string `json:"format"`
-	Algorithm           string `json:"algorithm"`
-	SignedContentBase64 string `json:"signed_content_base64"`
-	CertificateID       string `json:"certificate_id"`
+	Format              string   `json:"format"`
+	Algorithm           string   `json:"algorithm"`
+	SignedContentBase64 string   `json:"signed_content_base64"`
+	CertificateID       string   `json:"certificate_id"`
+	Warnings            []string `json:"warnings,omitempty"`
 }
 
 type sealPreviewRequest struct {
@@ -474,6 +479,20 @@ func (f *Facade) SignJSON(payload string) (out string, err error) {
 	if err := f.checkFormatPrerequisites(format, req.CertificateID, content); err != nil {
 		return "", err
 	}
+	var avisosFirma []string
+	if esCofirmaCAdESExplicita(format, req.Action, content) {
+		var original []byte
+		if req.OriginalBase64 != "" {
+			if original, err = decodeBase64Limited(req.OriginalBase64, "original_base64", maxDocumentBytes); err != nil {
+				return "", err
+			}
+		}
+		avisosFirma, err = comprobarOriginalCofirma(content, original, req.ConfirmUnseenContent)
+		zeroBytes(original)
+		if err != nil {
+			return "", err
+		}
+	}
 	if req.Options == nil {
 		req.Options = make(map[string]string)
 	}
@@ -512,6 +531,7 @@ func (f *Facade) SignJSON(payload string) (out string, err error) {
 		Algorithm:           sanitizeOutputText(result.Result.Algorithm, 128),
 		SignedContentBase64: base64.StdEncoding.EncodeToString(result.Result.Data),
 		CertificateID:       sanitizeOutputText(result.CertificateUsed.ID, 128),
+		Warnings:            avisosFirma,
 	})
 }
 

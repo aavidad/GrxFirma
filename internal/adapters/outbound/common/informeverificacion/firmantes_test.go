@@ -98,6 +98,27 @@ func TestHTML_FechaSegunSelloDeTiempoEnIngles(t *testing.T) {
 	}
 }
 
+// KD-01: un sello cuya autoridad no se ha comprobado no puede salir como
+// «según el sello de tiempo».
+func TestHTML_FechaDeSelloSinComprobar(t *testing.T) {
+	res := domain.NewVerificationSuccess("CAdES", "firma CAdES válida", nil)
+	res.SignerSummaries = []domain.VerificationSignerSummary{{
+		Subject: "CN=Ana", Issuer: "CN=AC", SigningTime: "2019-03-01T09:00:00Z",
+		SigningTimeSource: domain.SigningTimeSourceTimestampUnverified,
+	}}
+	out, err := HTML(Datos{Resultado: res, Fecha: time.Now(), Idioma: "es", Zona: time.UTC})
+	if err != nil {
+		t.Fatal(err)
+	}
+	html := string(out)
+	if strings.Contains(html, "según el sello de tiempo") {
+		t.Errorf("un sello sin comprobar sale como «según el sello de tiempo»:\n%s", html)
+	}
+	if !strings.Contains(html, "fecha que declara un sello de tiempo que no se ha podido comprobar") {
+		t.Errorf("falta el aviso de sello sin comprobar:\n%s", html)
+	}
+}
+
 func TestHTML_SinFechaFiableNoSeMuestra(t *testing.T) {
 	res := domain.NewVerificationSuccess("CAdES", "firma CAdES válida", nil)
 	res.SignerSummaries = []domain.VerificationSignerSummary{{Subject: "CN=Ana", SigningTime: "no-es-fecha", SigningTimeSource: "timestamp"}}

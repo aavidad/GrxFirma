@@ -16,6 +16,7 @@ import (
 	"strings"
 	"testing"
 
+	"grxfirma/internal/adapters/outbound/common/csc"
 	"grxfirma/internal/adapters/outbound/common/localizador"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
@@ -135,6 +136,27 @@ func TestEjecutarCSCDesactivadaYProhibida(t *testing.T) {
 	}
 }
 
+// ID-03: la CLI aplica la misma lista de prestadores de la política.
+func TestEjecutarCSCRechazaServicioFueraDeLaPolitica(t *testing.T) {
+	es := localizador.Para("es")
+	base := opcionesCSC{url: "https://csc.example.org", clientID: "c", listar: true}
+	e := nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true}`, `{"firma_remota_csc_servicios_permitidos": ["firma.example.es"]}`)
+	if code := ejecutarCSC(e.entornoCSC, base, false, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.error.servicio_no_permitido")) {
+		t.Fatalf("servicio fuera de la política: code=%d salida=%q", code, e.errores.String())
+	}
+}
+
+// ID-03: al pedir el PIN o el OTP, la CLI dice a qué servicio se envían.
+func TestPedirSecretoDiceAQueServicioVa(t *testing.T) {
+	e := entornoCSC{t: localizador.Para("es").T, hostServicio: "firma.example.es‮"}
+	for _, tipo := range []csc.TipoSecreto{csc.SecretoPIN, csc.SecretoOTP} {
+		texto := e.textoPedirSecreto(tipo)
+		if !strings.Contains(texto, "firma.example.es?") || strings.ContainsRune(texto, '‮') {
+			t.Fatalf("el aviso del secreto debe nombrar el servicio sin controles: %q", texto)
+		}
+	}
+}
+
 func TestEjecutarCSCPermitidaPorPoliticaYOAuthAjenoRechazado(t *testing.T) {
 	es := localizador.Para("es")
 	s := csctest.Nuevo(t)
@@ -247,6 +269,21 @@ func TestEjecutarCSCFirmaConLaCLIReal(t *testing.T) {
 func TestTextoSeguroQuitaControles(t *testing.T) {
 	if got := textoSeguro("CN=a\x1b[31m\nb"); got != "CN=a?[31m?b" {
 		t.Fatalf("textoSeguro = %q", got)
+	}
+}
+
+// ID-05: los controles de dirección (U+202E, U+2066…U+2069) y los de anchura
+// cero son de la categoría Cf, no Cc. Un CN con ellos invertiría o escondería
+// parte del sujeto en la terminal.
+func TestTextoSeguroQuitaControlesBidireccionales(t *testing.T) {
+	for _, caso := range []struct{ entrada, esperado string }{
+		{"CN=a\u202eb", "CN=a?b"},
+		{"CN=\u2066Ana\u2069 Garc\u00eda", "CN=?Ana? Garc\u00eda"},
+		{"CN=a\u200bb\u200fc\ufeff", "CN=a?b?c?"},
+	} {
+		if got := textoSeguro(caso.entrada); got != caso.esperado {
+			t.Fatalf("textoSeguro(%q) = %q, esperado %q", caso.entrada, got, caso.esperado)
+		}
 	}
 }
 

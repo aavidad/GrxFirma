@@ -162,5 +162,9 @@
   "SignedInfo sólo coincide con una canonicalización histórica no declarada/contextual.": "SignedInfo stimmt nur mit einer nicht deklarierten oder kontextabhängigen historischen Kanonisierung überein.",
   "Compatibilidad histórica; validación XML estándar no acreditada.": "Historische Kompatibilität; Standard-XML-Validierung nicht nachgewiesen.",
   "sin OCSP ni CRL disponibles": "Weder OCSP noch CRL verfügbar",
-  "sin respuesta concluyente del servicio de revocación": "Der Widerrufsdienst hat keine eindeutige Antwort geliefert"
+  "sin respuesta concluyente del servicio de revocación": "Der Widerrufsdienst hat keine eindeutige Antwort geliefert",
+  "firma.cofirma_sin_original.pedir_original": "Diese Signatur enthält das signierte Dokument nicht. Um sie mitzusignieren oder gegenzusignieren, wählen Sie auch das Originaldokument mit „Originaldokument hinzufügen“ aus. So sehen Sie, was Sie signieren.",
+  "firma.cofirma_sin_original.original_no_corresponde": "Das gewählte Originaldokument passt nicht zu dieser Signatur. Prüfen Sie, ob es dasselbe Dokument ist, das die anderen signiert haben.",
+  "firma.cofirma_sin_original.aviso_titulo": "Signatur ohne Einsicht in das Dokument",
+  "firma.cofirma_sin_original.aviso": "Die erhaltene Signatur enthält das Dokument nicht, und das Original wurde nicht angegeben. Ihre Signatur gilt für das Dokument, das diese Signatur angibt und das GrxFirma nicht anzeigen konnte."
 }

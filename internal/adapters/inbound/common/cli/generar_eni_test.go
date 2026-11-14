@@ -6,6 +6,7 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
@@ -132,5 +133,41 @@ func TestRunGenerarENI_RechazaOriginalAjeno(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(tmp, "explicita_eni.xml")); err == nil {
 		t.Fatal("se generó el ENI con un original ajeno")
+	}
+}
+
+// cadesImplicitaAlterada firma en implícito y cambia un byte del contenido
+// encapsulado después de firmar (misma longitud: el DER sigue siendo válido).
+func cadesImplicitaAlterada(t *testing.T, documento []byte) []byte {
+	t.Helper()
+	cms := firmaCAdESPrueba(t, documento, true)
+	i := bytes.Index(cms, documento)
+	if i < 0 {
+		t.Fatal("no se encontró el contenido encapsulado")
+	}
+	alterada := bytes.Clone(cms)
+	alterada[i+len(documento)-1] ^= 0x01
+	return alterada
+}
+
+// KD-05: una CAdES implícita cuyo contenido encapsulado se cambió después de
+// firmar no se envuelve como documento ENI: el contenido se coteja con el
+// messageDigest y la firma de cada firmante, como en la explícita.
+func TestRunGenerarENI_RechazaCAdESImplicitaAlterada(t *testing.T) {
+	tmp := t.TempDir()
+	firma := filepath.Join(tmp, "alterada.csig")
+	if err := os.WriteFile(firma, cadesImplicitaAlterada(t, []byte("%PDF-1.7\ncontenido del documento")), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr strings.Builder
+	a := New(nil, nil)
+	a.Stdout, a.Stderr = &stdout, &stderr
+	rc := a.Run(context.Background(), []string{"-operacion", "generar-eni", "-entrada", firma,
+		"-opcion", "eni.organo=L01180877", "-opcion", "eni.origen=ciudadano", "-opcion", "eni.tipoDocumental=TD14"})
+	if rc == 0 || !strings.Contains(stderr.String(), "no corresponde al documento original") {
+		t.Fatalf("rc=%d stderr=%s", rc, stderr.String())
+	}
+	if _, err := os.Stat(filepath.Join(tmp, "alterada_eni.xml")); err == nil {
+		t.Fatal("se generó el ENI con una CAdES implícita alterada")
 	}
 }

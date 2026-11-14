@@ -5,6 +5,7 @@
 package pdf
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -19,10 +20,21 @@ type Page struct {
 // Page numbers are indexed starting at 1, not 0.
 // If the page is not found, Page returns a Page with p.V.IsNull().
 //
-// AutoFirmaV2: delega en BuscarPagina, que corta los árboles cíclicos o
-// demasiado profundos; en ese caso también devuelve una página nula.
+// AutoFirmaV2: numera las hojas en orden de documento, sin fiarse de los
+// /Count (PaginaHoja), igual que los visores y que pdfsign al colocar el
+// sello (KD-04). Si el árbol no se puede recorrer así (por ejemplo, una
+// página que aparece dos veces), vuelve a BuscarPagina, que baja por los
+// /Count y corta los árboles cíclicos o demasiado profundos; en ese caso
+// también puede devolver una página nula.
 func (r *Reader) Page(num int) Page {
-	p, _ := r.BuscarPagina(num)
+	p, err := r.PaginaHoja(num)
+	if err == nil {
+		return p
+	}
+	if !errors.Is(err, ErrArbolPaginas) {
+		return Page{}
+	}
+	p, _ = r.BuscarPagina(num)
 	return p
 }
 

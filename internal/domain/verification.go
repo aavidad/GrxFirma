@@ -58,9 +58,17 @@ type VerificationSignerSummary struct {
 
 // Origen de la fecha de una firma.
 const (
-	// El sello de tiempo de la firma: su firma y su huella sobre el valor
-	// de firma se han comprobado.
+	// El sello de tiempo de la firma, validado: firma del sello, huella sobre
+	// el valor de firma, uso de clave timeStamping y cadena de la TSA hasta
+	// las anclas de confianza en el instante del sello, que además cae dentro
+	// de la vigencia del certificado firmante (KD-01).
 	SigningTimeSourceTimestamp = "timestamp"
+	// Un sello de tiempo cuya huella corresponde a la firma pero cuya
+	// autoridad no se ha podido comprobar (sin anclas, cadena no confiable,
+	// sin uso de sellado...). Cualquiera puede añadir uno a una firma ajena:
+	// solo se muestra como fecha declarada por el sello, sin comprobar, y
+	// únicamente si no hay otra fecha firmada.
+	SigningTimeSourceTimestampUnverified = "timestamp_unverified"
 	// El atributo firmado signingTime o, en PAdES, la /M del diccionario de
 	// firma dentro del rango firmado: lo protege la firma comprobada, pero es
 	// la hora del equipo de quien firmó.

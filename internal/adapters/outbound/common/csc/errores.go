@@ -49,6 +49,9 @@ const (
 	// CodigoOTPLoteExcede: el lote supera las firmas que el prestador admite
 	// con un solo código de un solo uso.
 	CodigoOTPLoteExcede Codigo = "otp_lote_excede"
+	// CodigoServicioNoPermitido: la política de la organización limita los
+	// prestadores CSC y este servicio no está en su lista.
+	CodigoServicioNoPermitido Codigo = "servicio_no_permitido"
 )
 
 // Error es el error tipado del paquete. Detalle solo contiene datos técnicos

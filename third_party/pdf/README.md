@@ -27,7 +27,11 @@ estas modificaciones, marcadas en el código:
   1 y 65536; error en vez de bucle sin fin ante cadenas, cadenas
   hexadecimales y arrays sin cerrar al final de un flujo de objetos, y
   `NumPage` devuelve 0 si `/Count` es negativo o mayor que el número de
-  objetos del documento.
+  objetos del documento;
+- `Page` numera las páginas hoja a hoja en orden de documento, sin fiarse de
+  los `/Count` (`RecorrerHojas`, `PaginaHoja`), como los visores y como
+  `pdfsign` al colocar el sello. Si el árbol no se puede recorrer así (una
+  página repetida, por ejemplo), vuelve a bajar por los `/Count`.
 
 Se omite la orden de ejemplo `pdfpasswd`.
 

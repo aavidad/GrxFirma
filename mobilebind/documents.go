@@ -275,6 +275,12 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 			return doc, newFacadeError(eniErrorUnrecognized)
 		}
 		if implicit {
+			// El contenido sale del propio CMS: se coteja con el messageDigest
+			// y la firma de cada firmante para no envolver un eContent cambiado
+			// después de firmar (KD-05).
+			if commonsigner.CotejarCAdESExplicita(signature, content) != nil {
+				return doc, newFacadeError(eniErrorMismatch)
+			}
 			doc.Contenido = content
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaCAdESImplicit, Datos: signature}}
 		} else {

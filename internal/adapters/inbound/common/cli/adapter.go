@@ -4501,6 +4501,12 @@ func (a *Adaptador) documentoENIDesdeFirma(firma, original []byte, opciones map[
 			return doc, err
 		}
 		if implicita {
+			// El contenido sale del propio CMS: se coteja con el messageDigest
+			// y la firma de cada firmante para no envolver un eContent cambiado
+			// después de firmar (KD-05).
+			if commonsigner.CotejarCAdESExplicita(firma, contenido) != nil {
+				return doc, a.errorFirmaNoCorresponde()
+			}
 			doc.Contenido = contenido
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaCAdESImplicit, Datos: firma}}
 		} else {

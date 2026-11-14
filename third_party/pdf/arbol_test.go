@@ -248,6 +248,25 @@ func TestValidarArbolPaginas_KidsRepetidosExponencial(t *testing.T) {
 	})
 }
 
+// KD-04: una página que aparece dos veces en /Kids no se puede numerar hoja a
+// hoja (RecorrerHojas lo rechaza). Page vuelve entonces a bajar por los
+// /Count, como antes, en lugar de dejar de encontrar páginas que hoy se leen.
+func TestPagina_KidsRepetidosVuelveANumerarPorCount(t *testing.T) {
+	r := abrirSintetico(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R >>",
+		"<< /Type /Pages /Kids [3 0 R 3 0 R] /Count 2 >>",
+		"<< /Type /Page /MediaBox [0 0 1 1] >>",
+	})
+	if _, err := r.PaginaHoja(1); !errors.Is(err, ErrArbolPaginas) {
+		t.Fatalf("se esperaba un error por nodo repetido, no %v", err)
+	}
+	for n := 1; n <= 2; n++ {
+		if id, _ := r.Page(n).V.ObjectReference(); id != 3 {
+			t.Fatalf("página %d: objeto %d, se esperaba el 3", n, id)
+		}
+	}
+}
+
 func TestOutline_SiguienteCiclico(t *testing.T) {
 	r := abrirSintetico(t, []string{
 		"<< /Type /Catalog /Pages 2 0 R /Outlines 3 0 R >>",

@@ -98,8 +98,11 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		if err != nil {
 			return domain.VerificationResult{}, nil, err
 		}
-		// Sin fecha en el CMS (lo normal en PAdES), la /M firmada del PDF.
-		if len(result.SigningTimes) == 0 && !signature.SigningTimeM.IsZero() && len(signers) == 1 {
+		// Sin fecha en el CMS (lo normal en PAdES), la /M firmada del PDF. Un
+		// sello sin comprobar no cuenta como fecha: el CMS va fuera del rango
+		// firmado y cualquiera puede añadirle uno (KD-01); la /M sí está
+		// dentro de lo firmado.
+		if sinFechaFirmada(result.SigningTimes) && !signature.SigningTimeM.IsZero() && len(signers) == 1 {
 			result.SigningTimes = []domain.VerificationSigningTime{{
 				Fingerprint: signers[0].Fingerprint,
 				Time:        signature.SigningTimeM,

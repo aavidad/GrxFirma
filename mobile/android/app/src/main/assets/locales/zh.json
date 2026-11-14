@@ -162,5 +162,9 @@
   "SignedInfo sólo coincide con una canonicalización histórica no declarada/contextual.": "SignedInfo 仅与未声明或依赖上下文的历史规范化方式匹配。",
   "Compatibilidad histórica; validación XML estándar no acreditada.": "历史兼容；未证实符合标准 XML 验证。",
   "sin OCSP ni CRL disponibles": "没有可用的 OCSP 或 CRL",
-  "sin respuesta concluyente del servicio de revocación": "吊销服务未给出明确答复"
+  "sin respuesta concluyente del servicio de revocación": "吊销服务未给出明确答复",
+  "firma.cofirma_sin_original.pedir_original": "此签名不包含所签署的文档。要联署或副署此签名，请同时通过“添加原始文档”选择原始文档，这样您可以看到自己签署的内容。",
+  "firma.cofirma_sin_original.original_no_corresponde": "您选择的原始文档与此签名不符。请确认它与其他人签署的是同一份文档。",
+  "firma.cofirma_sin_original.aviso_titulo": "未查看文档即签署",
+  "firma.cofirma_sin_original.aviso": "您收到的签名不包含文档，且未提供原始文档。您的签名将作用于该签名所声明的文档，而 GrxFirma 无法显示该文档。"
 }

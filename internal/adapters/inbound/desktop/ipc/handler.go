@@ -2868,6 +2868,8 @@ func (m *Manejador) handleExportDiagnostic(ctx context.Context) respuesta {
 		Certificates: total,
 		CanSign:      canSign,
 		TLSStore:     diagnosticarAlmacenTLSIPC(tlsDir),
+		// Sin vínculo de PID la firma remota no está disponible (ID-01).
+		IPCClientBinding: estadoInterfazDe(ctx),
 	}}
 }
 

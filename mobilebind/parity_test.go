@@ -29,6 +29,10 @@ func TestMobileCoAndCounterSignReuseDesktopEngine(t *testing.T) {
 			for _, action := range []string{"sign", "cosign", "countersign"} {
 				req.Action = action
 				req.ContentBase64 = base64.StdEncoding.EncodeToString(content)
+				if format == "cades" && action != "sign" {
+					// KD-03: la CAdES explícita se cofirma con su original.
+					req.OriginalBase64 = base64.StdEncoding.EncodeToString([]byte("contenido original"))
+				}
 				raw, err := facade.SignJSON(mustJSON(t, req))
 				if err != nil {
 					t.Fatalf("%s: %v", action, err)
