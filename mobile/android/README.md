@@ -24,8 +24,8 @@ certificado antes de crear PAdES, CAdES o XAdES.
 
 La resolución de dependencias, el `gradle.lockfile` y
 `gradle/verification-metadata.xml` se completan fuera de este entorno sin red.
-Después hay que reconstruir el AAR `gomobile` con el nuevo método
-`installExternalIdentityJSON`, fijar su SHA-256 y compilar `productionDebug`.
+El AAR debe incluir `installExternalIdentityJSON`; su reconstrucción y el
+estado de la comprobación de producción se describen en «Integración del núcleo».
 
 Antes de distribuir, un operador debe probar con un móvil NFC y DNIe 3.0 y
 4.0 reales: lectura de ambos certificados, elección de FIRMA, CAN incorrecto,
@@ -84,8 +84,30 @@ Con un emulador o dispositivo conectado, las pruebas instrumentadas se añaden
 con `RUN_ANDROID_DEVICE_TESTS=1`. También se pueden ejecutar directamente con
 `scripts/mobile/android/test-device.sh`.
 
-Ese script valida `verificationDebug`. Para ejecutar el mismo arnés contra el
-nucleo real, configure primero el AAR y su hash como se indica abajo y ejecute:
+Por defecto se valida `verification`. Para incluir también las pruebas
+unitarias, lint, APK de depuración, APK de pruebas y APK de producción sin firma,
+configure primero el AAR y su hash como se indica abajo y ejecute:
+
+```bash
+RUN_ANDROID_PRODUCTION_TESTS=1 scripts/mobile/android/validate-project.sh
+```
+
+Con `RUN_ANDROID_DEVICE_TESTS=1` se ejecutan además las pruebas instrumentadas
+de ambas variantes. El emulador debe estar arrancado (necesita `/dev/kvm`):
+
+```bash
+"$ANDROID_HOME/emulator/emulator" -avd medium_phone -no-window -no-audio -no-snapshot
+```
+
+Tras esperar al arranque completo del emulador, en otra terminal:
+
+```bash
+RUN_ANDROID_PRODUCTION_TESTS=1 RUN_ANDROID_DEVICE_TESTS=1 \
+  scripts/mobile/android/validate-project.sh
+```
+
+Cierre el emulador al terminar con `adb -s <serial-del-emulador> emu kill`.
+Si solo necesita ejecutar el arnés contra el núcleo real:
 
 ```bash
 cd mobile/android
@@ -204,8 +226,9 @@ commit actual, no desde cambios locales sin commit. Usa una revision fijada de
 y muestra el SHA-256 que debe aprobar Gradle. La compilacion se realiza sobre
 un `git archive` de `HEAD` y desactiva el sellado VCS de Go dentro de esa copia,
 ademas de eliminar del binario las rutas temporales con `-trimpath`; por ello
-usa una ruta de trabajo estable derivada de los blobs Go de `HEAD` y el AAR es
-reproducible byte a byte con Go 1.26 dentro del mismo entorno de herramientas,
+usa una ruta de trabajo estable derivada de los blobs Go de `HEAD` y el AAR
+está preparado para ser reproducible con la misma versión exacta de Go y
+el mismo entorno de herramientas,
 aunque el origen sea un `worktree` o el commit solo cambie documentación. Dos
 compilaciones simultaneas del mismo núcleo se rechazan para no mezclar sus
 ficheros intermedios:
@@ -217,6 +240,36 @@ export GRXFIRMA_ANDROID_CORE_SHA256=$(sha256sum /tmp/grxfirma.aar | cut -d' ' -f
 cd mobile/android
 ./gradlew --no-daemon --no-configuration-cache assembleProductionDebug
 ```
+
+La etiqueta publicada `0.0.127` (`b8902d6`) y la base de este lote (`d2cfd55`)
+requieren Go 1.26.11. Use también JDK 17, SDK 36, Build Tools 36.0.0 y NDK
+28.2.13676358. No sirve fijar Go 1.26.8 con `GOTOOLCHAIN=local`.
+
+Comprobación del 14 de noviembre de 2026: el AAR se reconstruyó con este
+script desde la etiqueta `0.0.127` y desde la rama del lote 24; las dos
+compilaciones del AAR de la etiqueta coinciden byte a byte. Con el AAR de la
+rama pasan las pruebas unitarias e instrumentadas de producción y verificación
+en el emulador `medium_phone`. Las huellas están en
+[la receta F-Droid y el estado de reproducibilidad](../../docs/distribucion/ANDROID.md#reproducibilidad-comprobada).
+
+Las necesidades de reconstrucción de las oleadas descritas en este README
+se reúnen en este punto: el AAR actual debe exponer todos los métodos del
+contrato, incluidos `installExternalIdentityJSON`, `createENIFileJSON`, las
+operaciones de QR y la gestión de varias identidades. Un AAR antiguo puede
+ocultar prestaciones opcionales; no acredita la validación de producción.
+
+Para comparar dos APK de producción sin firma desde esta rama, con el AAR y
+su SHA-256 ya configurados, vuelva a la raíz y ejecute:
+
+```bash
+scripts/mobile/android/verify-unsigned-reproducibility.sh /tmp/grxfirma-apk-comparacion
+```
+
+El directorio debe carecer de evidencias anteriores. El script conserva los
+dos APK y `SHA256SUMS.txt`, usa `clean` y `--no-build-cache` en cada pasada,
+fija el commit, `SOURCE_DATE_EPOCH` y `TZ=UTC`, y rechaza credenciales de firma.
+Véase también
+[la receta F-Droid y el estado de reproducibilidad](../../docs/distribucion/ANDROID.md#reproducibilidad-comprobada).
 
 El flujo local es real: importacion PKCS#12, catalogo y seleccion de la
 identidad de sesion, firma CAdES/PAdES (RSA o ECDSA), XAdES (RSA), verificacion
@@ -315,9 +368,9 @@ Los datos de identidad y los detalles técnicos sin traducción coincidente se
 muestran literalmente; el JSON exportado conserva el informe del motor.
 
 «Acerca de» muestra versiones de app y motor, EUPL 1.2 o posterior, el contacto
-avidad@dipgra.es, ayuda y las novedades locales de esta oleada. Para producción
-hay que reconstruir el AAR v2 y fijar su nuevo SHA-256; no se ha generado ni
-publicado un APK con estos cambios.
+avidad@dipgra.es, ayuda y las novedades locales de esta oleada. La comprobación
+del AAR y el APK de producción está pendiente en los términos de «Integración
+del núcleo»; no se ha publicado un paquete Android.
 
 ## Segunda oleada (parte A): lote, huellas y protección
 
@@ -427,7 +480,7 @@ esta parte siguen pendientes.
   del repositorio oficial.
 
 Todo es opcional para la app: un AAR anterior sin estos métodos los oculta.
-El AAR productivo hay que reconstruirlo y fijar su nuevo SHA-256.
+La reconstrucción del AAR productivo se trata en «Integración del núcleo».
 
 Pendiente: revisión de usabilidad independiente y prueba en dispositivo
 (las pruebas instrumentadas de `WaveThreeUiTest` están escritas pero no se
@@ -531,8 +584,8 @@ herramientas», con los desplegables como campos.
 Pendiente: probar en un móvil real el lote con DNIe 3.0 y 4.0 (varias firmas
 seguidas con un solo PIN, PIN erróneo a mitad de lote y retirada de la tarjeta),
 el expediente con documentos ENI de otras aplicaciones y la revisión de
-usabilidad independiente. También hay que reconstruir el AAR con
-`createENIFileJSON` y fijar su nuevo SHA-256.
+usabilidad independiente. El método `createENIFileJSON` debe estar en el AAR
+descrito en «Integración del núcleo».
 
 ## QR tributario con la cámara o una imagen y varias identidades por sesión
 
@@ -562,8 +615,8 @@ usabilidad independiente. También hay que reconstruir el AAR con
   Ninguna clave se guarda en disco.
 
 Las dos funciones son opcionales: con un AAR anterior la app oculta los
-botones de imagen y conserva una sola identidad. Hay que reconstruir el AAR
-y fijar su nuevo SHA-256.
+botones de imagen y conserva una sola identidad. La reconstrucción y validación
+del AAR se reúnen en «Integración del núcleo».
 
 Pendiente: probar en un móvil real la foto con distintas apps de cámara (y
 qué pasa si el sistema cierra GrxFirma mientras la cámara está abierta), la
