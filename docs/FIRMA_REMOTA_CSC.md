@@ -177,7 +177,11 @@ usa la autorización conjunta y sigue rechazando el OTP.
   RSA-PSS, con la sal anunciada). La cadena que envía el servicio solo se
   incrusta si cada certificado está firmado por el siguiente.
 - Ningún error ni registro incluye tokens, PIN, OTP ni SAD. Los datos que llegan
-  del servidor se sanean antes de mostrarlos en la terminal.
+  del servidor se sanean antes de mostrarlos en la terminal. El titular y el
+  emisor de cada certificado, remoto o local, llegan a las interfaces gráficas
+  por el IPC sin controles de dirección ni caracteres de anchura cero: el motor
+  los cambia por «?», igual que la CLI, para que un nombre no pueda cambiar el
+  orden en que se lee.
 - En el IPC, `csc_configure`, `csc_connect`, `csc_send_otp` y toda firma con un
   certificado remoto (principal o adicional) solo se admiten desde la interfaz
   vinculada por PID; si no, fallan con `csc_interfaz_no_verificada`. Un

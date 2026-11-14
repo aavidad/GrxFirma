@@ -1299,7 +1299,7 @@ func (m *Manejador) handleVerificacion(ctx context.Context, raw json.RawMessage)
 
 	signers := make([]string, 0, len(result.Firmantes))
 	for _, f := range result.Firmantes {
-		signers = append(signers, f.Subject)
+		signers = append(signers, domain.TextoVisible(f.Subject))
 	}
 
 	reportHTML := ""
@@ -1714,8 +1714,8 @@ func verificacionFirmantesIPC(items []domain.VerificationSignerSummary) []result
 	for _, item := range items {
 		out = append(out, resultadoVerificacionFirmante{
 			ID:                item.ID,
-			Subject:           item.Subject,
-			Issuer:            item.Issuer,
+			Subject:           domain.TextoVisible(item.Subject),
+			Issuer:            domain.TextoVisible(item.Issuer),
 			Fingerprint:       item.Fingerprint,
 			SigningTime:       item.SigningTime,
 			SigningTimeSource: item.SigningTimeSource,
@@ -2747,7 +2747,7 @@ func (m *Manejador) handleUseTemporaryCertificate(ctx context.Context, raw json.
 		}
 	}
 	return respuesta{OK: true, Action: "use_temporary_certificate", Data: temporaryCertificateJSON{
-		ID: result.Certificate.ID, Subject: result.Certificate.Subject,
+		ID: result.Certificate.ID, Subject: domain.TextoVisible(result.Certificate.Subject),
 		Fingerprint: result.Certificate.Fingerprint, Temporary: true,
 	}}
 }
@@ -3427,18 +3427,18 @@ func (m *Manejador) certsAJSON(certs []domain.CertificateRef) []certJSON {
 		}
 		item := certJSON{
 			ID:           c.ID,
-			Subject:      c.Subject,
-			SubjectName:  c.Subject,
-			Issuer:       c.Issuer,
-			IssuerName:   c.Issuer,
+			Subject:      domain.TextoVisible(c.Subject),
+			SubjectName:  domain.TextoVisible(c.Subject),
+			Issuer:       domain.TextoVisible(c.Issuer),
+			IssuerName:   domain.TextoVisible(c.Issuer),
 			Fingerprint:  c.Fingerprint,
-			SerialNumber: c.NIF,
+			SerialNumber: domain.TextoVisible(c.NIF),
 			Status:       status,
 			CanSign:      canSign,
 			NeedsUnlock:  needsUnlock,
 			Tipo:         string(c.Tipo),
-			Organizacion: c.Organizacion,
-			NIF:          c.NIF,
+			Organizacion: domain.TextoVisible(c.Organizacion),
+			NIF:          domain.TextoVisible(c.NIF),
 		}
 		if string(c.Tipo) == "" {
 			item.Tipo = string(domain.TipoCertDesconocido)
