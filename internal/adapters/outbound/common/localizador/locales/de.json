@@ -6705,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "Das gewählte Originaldokument passt nicht zu dieser Signatur. Prüfen Sie, ob es dasselbe Dokument ist, das die anderen signiert haben."
   ,"firma.cofirma_sin_original.aviso_titulo": "Signatur ohne Einsicht in das Dokument"
   ,"firma.cofirma_sin_original.aviso": "Die erhaltene Signatur enthält das Dokument nicht, und das Original wurde nicht angegeben. Ihre Signatur gilt für das Dokument, das diese Signatur angibt und das GrxFirma nicht anzeigen konnte."
+  ,"firma.lt.crl_no_aplicable.aviso": "Die Signatur enthält eine Sperrliste (CRL), die eines ihrer Zertifikate nicht abdeckt. Die Signatur wurde wie bisher erstellt, aber bei der Prüfung erscheint der Sperrstatus dieses Zertifikats als nicht geprüft."
   ,"ayuda.formato.automatico": "wählt das Format nach der Art des Dokuments."
   ,"ayuda.formato.pades.mas": "Jeder PDF-Reader zeigt die Signatur an und prüft sie, der Empfänger braucht also kein weiteres Programm. Es ist das empfohlene Format für PDF und das einzige, das einen sichtbaren Stempel erlaubt."
   ,"ayuda.formato.cades.mas": "Die Signaturdatei kann das Dokument enthalten oder getrennt davon vorliegen; ist sie getrennt, bewahren Sie beide zusammen auf. Zum Prüfen ist ein Programm für elektronische Signaturen nötig. Verwenden Sie es, wenn das Dokument weder PDF noch XML noch Office ist, zum Beispiel ein Bild."

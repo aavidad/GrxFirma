@@ -128,8 +128,9 @@ func (uc *SignDocumentUseCase) Ejecutar(ctx context.Context, cmd SignCommand) (S
 
 	_ = uc.publicarEvento(ctx, "firma_iniciada", cmd.Document.Name)
 
-	// Ejecutar la firma.
-	resultado, err := uc.motor.Sign(ctx, trabajo, clave)
+	// Ejecutar la firma con un registro de avisos propio de esta operación.
+	ctxFirma, avisos := domain.ConAvisosOperacion(ctx)
+	resultado, err := uc.motor.Sign(ctxFirma, trabajo, clave)
 	if err != nil {
 		uc.auditarFallo(ctx, cmd, cert, err)
 		return SignResult{}, fmt.Errorf("error durante la operacion de firma: %w", err)
@@ -145,6 +146,7 @@ func (uc *SignDocumentUseCase) Ejecutar(ctx context.Context, cmd SignCommand) (S
 		Result:              resultado,
 		CertificateUsed:     cert,
 		CertificateChainDER: cadenaDER,
+		Warnings:            avisos.Claves(),
 	}, nil
 }
 

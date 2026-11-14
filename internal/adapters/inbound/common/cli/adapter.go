@@ -1028,6 +1028,9 @@ func (a *Adaptador) ejecutarFirma(ctx context.Context, cfg configCLI) int {
 		a.escribirErrorCLI(a.t("Firma", "Firma"), err)
 		return 1
 	}
+	// Avisos del motor (cofirma sin el documento, CRL que no cubre al
+	// firmante...): la firma se ha hecho, pero quien firma debe saberlo.
+	a.escribirAvisosCLI("", resultado.Warnings)
 	if strings.TrimSpace(certRef.ID) == "" {
 		certRef = resultado.CertificateUsed
 	}
@@ -1178,6 +1181,17 @@ func (a *Adaptador) ejecutarLote(ctx context.Context, cfg configCLI) int {
 		return 1
 	}
 	// Los resultados solo incluyen los trabajos correctos, en orden.
+	k := 0
+	for i, item := range manifest {
+		if _, fallo := resultado.Errores[i]; fallo {
+			continue
+		}
+		if k >= len(resultado.Results) {
+			break
+		}
+		a.escribirAvisosCLI(filepath.Base(item.Ruta), resultado.Results[k].Warnings)
+		k++
+	}
 	var salidas []string
 	if !cfg.noGuardar {
 		k := 0
@@ -4461,7 +4475,7 @@ func (a *Adaptador) ejecutarGenerarENI(cfg configCLI) int {
 		a.escribirErrorCLI(titulo, err)
 		return 1
 	}
-	a.escribirAvisosCLI(avisosENI)
+	a.escribirAvisosCLI("", avisosENI)
 	xmlENI, err := eni.Generar(doc, time.Now())
 	if err != nil {
 		a.escribirErrorCLI(titulo, err)
@@ -4599,14 +4613,18 @@ func (a *Adaptador) resolverCotejoENI(cotejo error) ([]string, error) {
 }
 
 // escribirAvisosCLI saca por la salida de error, con su texto de catálogo,
-// los avisos de una operación que ha seguido adelante.
-func (a *Adaptador) escribirAvisosCLI(claves []string) {
+// los avisos de una operación que ha seguido adelante. contexto (por ejemplo,
+// el fichero de un lote) va delante del texto si no está vacío.
+func (a *Adaptador) escribirAvisosCLI(contexto string, claves []string) {
 	for _, clave := range claves {
 		texto := clave
 		if a.Localizador != nil {
 			if traducido := a.Localizador.T(clave); traducido != "" {
 				texto = traducido
 			}
+		}
+		if contexto != "" {
+			texto = contexto + ": " + texto
 		}
 		fmt.Fprintln(a.Stderr, a.t("cli.aviso.prefix", "aviso:"), texto)
 	}

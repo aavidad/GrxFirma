@@ -6705,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "Aukeratu duzun jatorrizko dokumentua ez dator bat sinadura honekin. Egiaztatu besteek sinatu zuten dokumentu bera dela."
   ,"firma.cofirma_sin_original.aviso_titulo": "Dokumentua ikusi gabeko sinadura"
   ,"firma.cofirma_sin_original.aviso": "Jaso duzun sinadurak ez du dokumentua barnean, eta ez da jatorrizkoa eman. Zure sinadura sinadura horrek adierazten duen dokumentuari aplikatzen zaio, eta GrxFirmak ezin izan du erakutsi."
+  ,"firma.lt.crl_no_aplicable.aviso": "Sinadurak bere ziurtagirietako bat estaltzen ez duen errebokazio-zerrenda (CRL) bat dakar. Sinadura lehen bezala egin da, baina egiaztatzean ziurtagiri horren errebokazioa egiaztatu gabe agertuko da."
   ,"ayuda.formato.automatico": "formatua dokumentu motaren arabera aukeratzen du."
   ,"ayuda.formato.pades.mas": "Edozein PDF irakurgailuk erakusten eta egiaztatzen du sinadura; beraz, dokumentua jasotzen duenak ez du beste programarik behar. PDFetarako gomendatutakoa da, eta zigilu ikusgaia onartzen duen bakarra."
   ,"ayuda.formato.cades.mas": "Sinadura fitxategiak dokumentua barruan eraman dezake edo haren aparte egon; aparte badago, gorde biak batera. Egiaztatzeko sinadura elektronikoko programa bat behar da. Erabili dokumentua PDF, XML edo Office motakoa ez denean, adibidez irudi bat."

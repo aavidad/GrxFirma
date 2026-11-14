@@ -22,6 +22,11 @@ type SignResult struct {
 	// CertificateChainDER conserva una copia de la cadena empleada, en orden
 	// hoja -> emisores. No contiene claves privadas ni referencias al almacén.
 	CertificateChainDER [][]byte
+
+	// Warnings lleva las claves de catálogo de los avisos que el motor ha
+	// dado al firmar por compatibilidad (domain.AvisoCofirmaSinOriginal,
+	// domain.AvisoCRLNoAplicable...). Cada interfaz los muestra con su texto.
+	Warnings []string
 }
 
 // SelectCertificateResult es el resultado de la seleccion de certificado por el usuario.

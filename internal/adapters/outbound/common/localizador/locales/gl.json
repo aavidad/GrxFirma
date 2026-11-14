@@ -6705,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "O documento orixinal que escolleu non corresponde a esta sinatura. Comprobe que é o mesmo documento que asinaron os demais."
   ,"firma.cofirma_sin_original.aviso_titulo": "Sinatura sen ver o documento"
   ,"firma.cofirma_sin_original.aviso": "A sinatura que recibiu non leva dentro o documento e non se achegou o orixinal. A súa sinatura aplícase ao documento que declara esa sinatura, que GrxFirma non puido mostrar."
+  ,"firma.lt.crl_no_aplicable.aviso": "A sinatura inclúe unha lista de revogación (CRL) que non cobre un dos seus certificados. A sinatura fíxose coma antes, pero ao verificala a revogación dese certificado sairá sen comprobar."
   ,"ayuda.formato.automatico": "escolle o formato segundo o tipo de documento."
   ,"ayuda.formato.pades.mas": "Calquera lector de PDF mostra a sinatura e compróbaa, así que quen reciba o documento non precisa outro programa. É o recomendado para PDF e o único que admite un selo visible."
   ,"ayuda.formato.cades.mas": "O ficheiro de sinatura pode levar o documento dentro ou ir separado del; se vai separado, garde os dous xuntos. Para comprobalo cómpre un programa de sinatura electrónica. Úseo cando o documento non sexa PDF, XML nin de Office, por exemplo unha imaxe."

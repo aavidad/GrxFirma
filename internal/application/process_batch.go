@@ -128,7 +128,8 @@ func (uc *ProcessBatchUseCase) Ejecutar(ctx context.Context, cmd ProcessBatchCom
 
 		_ = uc.publicarEvento(ctx, "trabajo_lote_iniciado", fmt.Sprintf("indice=%d", i))
 		inicioTrabajo := time.Now()
-		firma, err := uc.motor.Sign(ctx, job, clave)
+		ctxTrabajo, avisos := domain.ConAvisosOperacion(ctx)
+		firma, err := uc.motor.Sign(ctxTrabajo, job, clave)
 		if err != nil {
 			resultado.Errores[i] = fmt.Errorf("trabajo %d: %w", i, err)
 			uc.auditarTrabajo(ctx, i, job, cert, false, err)
@@ -144,6 +145,7 @@ func (uc *ProcessBatchUseCase) Ejecutar(ctx context.Context, cmd ProcessBatchCom
 		resultado.Results = append(resultado.Results, SignResult{
 			Result:          firma,
 			CertificateUsed: cert,
+			Warnings:        avisos.Claves(),
 		})
 		uc.auditarTrabajo(ctx, i, job, cert, true, nil)
 		if uc != nil && uc.metricas != nil {
@@ -162,6 +164,7 @@ type salidaTrabajo struct {
 	firma    domain.SignatureResult
 	err      error
 	duracion time.Duration
+	avisos   []string
 }
 
 // procesarPorGrupos firma el lote en grupos de hasta capacidad trabajos con
@@ -203,7 +206,7 @@ func (uc *ProcessBatchUseCase) procesarPorGrupos(
 				}
 				continue
 			}
-			resultado.Results = append(resultado.Results, SignResult{Result: salida.firma, CertificateUsed: cert})
+			resultado.Results = append(resultado.Results, SignResult{Result: salida.firma, CertificateUsed: cert, Warnings: salida.avisos})
 			uc.auditarTrabajo(ctx, i, job, cert, true, nil)
 			if uc.metricas != nil {
 				uc.metricas.RecordSign(ctx, string(job.Format), "ok", salida.duracion)
@@ -224,8 +227,10 @@ func (uc *ProcessBatchUseCase) firmarGrupo(
 	salidas := make([]salidaTrabajo, len(trabajos))
 	if len(trabajos) == 1 {
 		inicio := time.Now()
-		salidas[0].firma, salidas[0].err = uc.motor.Sign(ctx, trabajos[0], clave)
+		ctxTrabajo, avisos := domain.ConAvisosOperacion(ctx)
+		salidas[0].firma, salidas[0].err = uc.motor.Sign(ctxTrabajo, trabajos[0], clave)
 		salidas[0].duracion = time.Since(inicio)
+		salidas[0].avisos = avisos.Claves()
 		return salidas
 	}
 	lote, err := claveLote.BeginBatch(ctx, len(trabajos))
@@ -245,8 +250,10 @@ func (uc *ProcessBatchUseCase) firmarGrupo(
 			// no, el resto del grupo esperaría su resumen.
 			defer lote.Done(k)
 			inicio := time.Now()
-			salidas[k].firma, salidas[k].err = uc.motor.Sign(ctx, trabajos[k], lote.Key(k))
+			ctxTrabajo, avisos := domain.ConAvisosOperacion(ctx)
+			salidas[k].firma, salidas[k].err = uc.motor.Sign(ctxTrabajo, trabajos[k], lote.Key(k))
 			salidas[k].duracion = time.Since(inicio)
+			salidas[k].avisos = avisos.Claves()
 		}(k)
 	}
 	wg.Wait()

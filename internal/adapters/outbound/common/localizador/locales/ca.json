@@ -6705,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "El document original que heu triat no correspon a aquesta signatura. Comproveu que és el mateix document que van signar els altres."
   ,"firma.cofirma_sin_original.aviso_titulo": "Signatura sense veure el document"
   ,"firma.cofirma_sin_original.aviso": "La signatura que heu rebut no porta a dins el document i no s'ha aportat l'original. La vostra signatura s'aplica al document que declara aquesta signatura, que GrxFirma no ha pogut mostrar."
+  ,"firma.lt.crl_no_aplicable.aviso": "La signatura inclou una llista de revocació (CRL) que no cobreix un dels seus certificats. La signatura s'ha fet com abans, però en verificar-la la revocació d'aquest certificat sortirà sense comprovar."
   ,"ayuda.formato.automatico": "tria el format segons el tipus de document."
   ,"ayuda.formato.pades.mas": "Qualsevol lector de PDF mostra la signatura i la comprova, de manera que qui rebi el document no necessita cap altre programa. És el recomanat per a PDF i l'únic que admet un segell visible."
   ,"ayuda.formato.cades.mas": "El fitxer de signatura pot portar el document a dins o anar-ne separat; si va separat, deseu-los tots dos junts. Per comprovar-lo cal un programa de signatura electrònica. Feu-lo servir quan el document no sigui PDF, XML ni d'Office, per exemple una imatge."

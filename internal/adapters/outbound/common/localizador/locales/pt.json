@@ -6705,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "O documento original que escolheu não corresponde a esta assinatura. Verifique se é o mesmo documento que os outros assinaram."
   ,"firma.cofirma_sin_original.aviso_titulo": "Assinatura sem ver o documento"
   ,"firma.cofirma_sin_original.aviso": "A assinatura que recebeu não contém o documento e o original não foi fornecido. A sua assinatura aplica-se ao documento declarado por essa assinatura, que o GrxFirma não conseguiu mostrar."
+  ,"firma.lt.crl_no_aplicable.aviso": "A assinatura inclui uma lista de revogação (CRL) que não abrange um dos seus certificados. A assinatura foi feita como antes, mas ao verificá-la a revogação desse certificado aparecerá como não verificada."
   ,"ayuda.formato.automatico": "escolhe o formato conforme o tipo de documento."
   ,"ayuda.formato.pades.mas": "Qualquer leitor de PDF mostra e verifica a assinatura, por isso quem recebe o documento não precisa de outro programa. É o recomendado para PDF e o único que admite um selo visível."
   ,"ayuda.formato.cades.mas": "O ficheiro de assinatura pode levar o documento dentro ou ficar separado dele; se ficar separado, guarde os dois juntos. Para o verificar é preciso um programa de assinatura eletrónica. Use-o quando o documento não for PDF, XML nem Office, por exemplo uma imagem."

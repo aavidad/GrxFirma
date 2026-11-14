@@ -6705,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "Il documento originale scelto non corrisponde a questa firma. Verifica che sia lo stesso documento firmato dagli altri."
   ,"firma.cofirma_sin_original.aviso_titulo": "Firma senza vedere il documento"
   ,"firma.cofirma_sin_original.aviso": "La firma ricevuta non contiene il documento e l'originale non è stato fornito. La tua firma si applica al documento dichiarato da quella firma, che GrxFirma non ha potuto mostrare."
+  ,"firma.lt.crl_no_aplicable.aviso": "La firma include un elenco di revoca (CRL) che non copre uno dei suoi certificati. La firma è stata fatta come prima, ma alla verifica la revoca di quel certificato risulterà non controllata."
   ,"ayuda.formato.automatico": "sceglie il formato in base al tipo di documento."
   ,"ayuda.formato.pades.mas": "Qualsiasi lettore PDF mostra e verifica la firma, quindi chi riceve il documento non ha bisogno di altri programmi. È il formato consigliato per i PDF e l’unico che consente un sigillo visibile."
   ,"ayuda.formato.cades.mas": "Il file di firma può contenere il documento o restarne separato; se è separato, conserva i due insieme. Per verificarlo serve un programma di firma elettronica. Usalo quando il documento non è PDF, XML né Office, per esempio un’immagine."
