@@ -2532,7 +2532,7 @@ func (a *Adaptador) ejecutarDominiosListar(ctx context.Context, cfg configCLI) i
 				fmt.Fprintln(a.Stderr, "error importando dominios públicos iniciales:", err)
 				return 1
 			} else {
-				fmt.Fprintf(a.Stdout, "Se han importado %d dominios públicos iniciales.\n", importados)
+				fmt.Fprintln(a.Stdout, a.t("cli.domains.import.done", "cli.domains.import.done %d", importados))
 			}
 			dominios, err = a.leerDominiosConfiados(ctx)
 			if err != nil {
@@ -2881,14 +2881,14 @@ func (a *Adaptador) ejecutarAutoseleccionResetear(ctx context.Context, cfg confi
 	totalPersistente := len(preferenciasPersistentes)
 	totalSesion := len(preferenciasSesion)
 	if totalPersistente == 0 && totalSesion == 0 {
-		fmt.Fprintln(a.Stdout, "No hay autoselecciones guardadas.")
+		fmt.Fprintln(a.Stdout, a.t("cli.autoselection.empty", "cli.autoselection.empty"))
 		return 0
 	}
 
-	fmt.Fprintf(a.Stdout, "Se van a borrar las autoselecciones guardadas.\nPersistente: %d\nSesión: %d\n", totalPersistente, totalSesion)
-	fmt.Fprint(a.Stdout, "¿Continuar? [s/N]: ")
+	fmt.Fprint(a.Stdout, a.t("cli.autoselection.clear.summary", "cli.autoselection.clear.summary %d %d\n", totalPersistente, totalSesion))
+	fmt.Fprint(a.Stdout, a.t("cli.autoselection.clear.confirm", "cli.autoselection.clear.confirm"))
 	if !a.confirmacionPositiva() {
-		fmt.Fprintln(a.Stdout, "Operación cancelada.")
+		fmt.Fprintln(a.Stdout, a.t("cli.confirm.cancelled", "cli.confirm.cancelled"))
 		return 0
 	}
 
@@ -3302,7 +3302,7 @@ func (a *Adaptador) debePreguntarImportacionInicial(cfg configCLI) bool {
 }
 
 func (a *Adaptador) preguntarImportacionInicial() bool {
-	fmt.Fprint(a.Stdout, "No hay dominios confiados. ¿Quieres importar los dominios públicos iniciales? [s/N]: ")
+	fmt.Fprint(a.Stdout, a.t("cli.domains.import.confirm", "cli.domains.import.confirm"))
 	return a.confirmacionPositiva()
 }
 

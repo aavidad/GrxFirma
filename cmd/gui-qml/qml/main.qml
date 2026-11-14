@@ -3957,6 +3957,7 @@ Window {
         const certificate = selectedCertIndex >= 0 && selectedCertIndex < window.certificates.length
                 ? window.certificates[selectedCertIndex] : null
         if (!window.certificateCanSign(certificate)) {
+            window.resetCosignOriginalChoice()
             signValidationErrorDialog.errorMessage = window.certificateStatusReason(certificate)
             signValidationErrorDialog.open()
             return
@@ -3973,12 +3974,14 @@ Window {
             const batchOtpBlock = window.remoteBatchOtpBlockKey(remoteCertificate)
             if (batchOtpBlock !== "") {
                 window.cscPendingSecrets = null
+                window.resetCosignOriginalChoice()
                 signValidationErrorDialog.errorMessage = batchOtpBlock === "csc.error.otp_lote_excede"
                         ? tr("csc.error.otp_lote_excede") : tr("csc.error.otp_lote")
                 signValidationErrorDialog.open()
                 return
             }
             if (window.certificateNeedsRemoteSecrets(remoteCertificate) && window.cscPendingSecrets === null) {
+                window.resetCosignOriginalChoice()
                 window.openRemoteSecretDialog(selectedCertIndex, remoteCertificate)
                 return
             }
@@ -3989,18 +3992,21 @@ Window {
                 window.effectiveMultiCosignPrimaryId(), window.multiCosignCertificateIds, window.certificates)
             if (primaryIndex === -1 || !window.certificateCanSign(window.certificates[primaryIndex])
                     || additional.length !== window.multiCosignCertificateIds.length) {
+                window.resetCosignOriginalChoice()
                 signValidationErrorDialog.errorMessage = tr("Seleccione certificados válidos para la cofirma múltiple")
                 signValidationErrorDialog.open()
                 return
             }
         }
         if (!validateSignFields()) {
+            window.resetCosignOriginalChoice()
             focusSignField(firstSignFieldError)
             return
         }
         signPayloadNeedsPreview = false
         const payload = buildSignPayload()
         if (payload === null && signPayloadNeedsPreview && resumedAfterPreview) {
+            window.resetCosignOriginalChoice()
             window.statusMessage = ""
             signValidationErrorDialog.heading = tr("sign.seal.preview_unavailable_heading")
             signValidationErrorDialog.errorMessage = tr("sign.seal.preview_unavailable_before_sign")
@@ -4016,6 +4022,7 @@ Window {
             return
         }
         if (payload === null) {
+            window.resetCosignOriginalChoice()
             signValidationErrorDialog.errorMessage = tr("Selección de páginas inválida. Usa 1, 1,3-5 o all.")
             signValidationErrorDialog.open()
             return
@@ -4057,7 +4064,9 @@ Window {
             payload.extraOptions = pendingSealSignerSummaryContext.payload.extraOptions || payload.extraOptions
             pendingSealSignerSummaryContext = null
         }
-        // La elección sobre el original se gasta en esta firma.
+        // La elección sobre el original vale solo para este intento: se gasta
+        // aquí y también se borra en cada salida anterior y al terminar la
+        // firma, con éxito o sin él (lote 17c).
         const cosignOriginal = skipCosignOriginalCheckOnce ? cosignOriginalPathOnce : ""
         resetCosignOriginalChoice()
         if (cosignOriginal !== "" && window.isCosignOrCountersign(String(payload.action || signAction)))
@@ -4485,6 +4494,7 @@ Window {
             })
             return
         }
+        window.resetCosignOriginalChoice()
         window.statusMessage = ""
         signValidationErrorDialog.heading = tr("sign.seal.preview_unavailable_heading")
         signValidationErrorDialog.errorMessage = tr("sign.seal.preview_unavailable_before_sign")
@@ -6242,7 +6252,10 @@ Window {
                 }
                 ThemedButton {
                     text: tr("Cancelar")
-                    onClicked: cosignOriginalDialog.close()
+                    onClicked: {
+                        window.resetCosignOriginalChoice()
+                        cosignOriginalDialog.close()
+                    }
                 }
             }
         }
@@ -8354,6 +8367,7 @@ Window {
         }
         function onSigningFinished(success, message, outPath) {
             window.signingInProgress = false
+            window.resetCosignOriginalChoice()
             window.cscPendingSecrets = null
             window.statusMessage = (success ? "✅ " : "❌ ") + message
             window.signResultGeneration++
@@ -8392,6 +8406,7 @@ Window {
         }
         function onBatchSigningFinished(success, message, results) {
             window.signingInProgress = false
+            window.resetCosignOriginalChoice()
             window.cscPendingSecrets = null
             window.currentBatchResults = results || []
             window.batchSigningWarnings = window.visibleSigningWarnings(backend.lastSigningWarnings())

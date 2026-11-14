@@ -79,8 +79,8 @@ func TestDeudaI18nCLINoAumenta(t *testing.T) {
 			segmentos: 84,
 		},
 		"internal/adapters/inbound/common/cli/adapter.go/output": {
-			palabras:  400,
-			segmentos: 99,
+			palabras:  368,
+			segmentos: 93,
 		},
 	}
 
