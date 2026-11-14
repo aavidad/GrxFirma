@@ -10,6 +10,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"grxfirma/internal/domain"
@@ -65,5 +66,39 @@ func TestFetch_FirmaConCRLNoAplicableQueRevocaFalla(t *testing.T) {
 	client := newValidationClient(t, f.now)
 	if _, err := client.Fetch(context.Background(), hoja, f.ca); !errors.Is(err, ErrCertificateRevoked) {
 		t.Fatalf("un certificado revocado no puede firmar en LT: %v", err)
+	}
+}
+
+// Lote 16d: el aviso de 14-5 llega también al resultado de la firma (la
+// interfaz lo enseña tras firmar), no solo al registro. Una CRL que sí cubre
+// al certificado no avisa de nada.
+func TestFetch_CRLNoAplicableAnotaElAvisoDeLaFirma(t *testing.T) {
+	f := newValidationFixture(t)
+	noAplicable := servidorCRL(t, crlConExtensiones(t, f, nil, extensionIDPPrueba(t, []string{"http://x/otra.crl"})))
+	hoja := hojaConCRLDP(t, f, 403, false, noAplicable.URL)
+	client := newValidationClient(t, f.now)
+
+	ctx, rec := domain.ConAvisosOperacion(context.Background())
+	if _, err := client.Fetch(ctx, hoja, f.ca); err != nil {
+		t.Fatal(err)
+	}
+	if got := rec.Claves(); !slices.Equal(got, []string{AvisoCRLNoAplicable}) {
+		t.Fatalf("avisos = %q, want %q", got, AvisoCRLNoAplicable)
+	}
+
+	aplicable := servidorCRL(t, crlConExtensiones(t, f, nil))
+	hojaBuena := hojaConCRLDP(t, f, 404, false, aplicable.URL)
+	ctx, rec = domain.ConAvisosOperacion(context.Background())
+	if _, err := client.Fetch(ctx, hojaBuena, f.ca); err != nil {
+		t.Fatal(err)
+	}
+	if got := rec.Claves(); len(got) != 0 {
+		t.Fatalf("una CRL aplicable no avisa: %q", got)
+	}
+	// Al verificar (Check) no se anota nada: el aviso es de la firma.
+	ctx, rec = domain.ConAvisosOperacion(context.Background())
+	_, _ = client.Check(ctx, hoja, f.ca)
+	if got := rec.Claves(); len(got) != 0 {
+		t.Fatalf("Check no anota avisos de firma: %q", got)
 	}
 }

@@ -202,9 +202,11 @@ function formatGoLayout(date, layout) {
 }
 
 // Fecha de la firma tal como la entrega el motor (RFC 3339) solo si su
-// origen es uno conocido; si no, nada: no se inventa una fecha.
+// origen es uno conocido; si no, nada: no se inventa una fecha. Con
+// «timestamp_unverified» (sello de tiempo sin comprobar, KD-01) la fecha se
+// da, pero quien la pinta debe decir siempre de dónde sale.
 function signingTimeText(raw, source, layout) {
-    if (source !== "timestamp" && source !== "signed_attribute")
+    if (source !== "timestamp" && source !== "timestamp_unverified" && source !== "signed_attribute")
         return ""
     const text = String(raw || "")
     if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(text))

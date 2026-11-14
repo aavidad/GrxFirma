@@ -755,6 +755,9 @@ Window {
     property string signResultCause: ""
     property bool signResultVerificationPending: false
     property int signResultGeneration: 0
+    // Avisos del motor sobre la última firma o lote, ya traducidos (lote 16d).
+    property var signResultWarnings: []
+    property var batchSigningWarnings: []
     property string sessionLastDocumentPath: ""
     property var protectionRecipients: []
     property var protectSelectedRecipientIds: []
@@ -831,6 +834,7 @@ Window {
         signResultPath = ""
         signResultCause = ""
         signResultVerificationPending = false
+        signResultWarnings = []
         currentOutputVerificationMessage = ""
         currentOutputVerificationDetails = null
     }
@@ -2833,7 +2837,18 @@ Window {
         cscPinField.text = ""
         cscOtpField.text = ""
         cscSecretStatus.text = ""
+        // El cuadro dice a qué servicio van el PIN y el código (ID-03): se
+        // pide al motor el estado vigente antes de abrirlo.
+        backend.cscStatus()
         cscRemoteSecretDialog.open()
+    }
+
+    // Host del servicio de firma remota que da el motor en csc_status; vacío
+    // si no lo sabe (el cuadro entonces no lo menciona).
+    function cscPinServiceHost() {
+        const state = window.cscState || {}
+        return state.connected === true || state.discovered === true
+                ? String(window.cscState.serviceHost || "").trim() : ""
     }
 
     // «Proteger y firmar» con un certificado remoto que pide PIN u OTP los
@@ -4005,6 +4020,7 @@ Window {
         window.signingInProgress = true
         window.statusMessage = tr("Procesando firma...")
         window.currentBatchResults = []
+        window.batchSigningWarnings = []
         if (window.multiCosignEnabled && !window.isBatchMode()) {
             const primaryIndex = window.effectiveMultiCosignPrimaryIndex()
             if (primaryIndex === -1) {
@@ -5182,11 +5198,13 @@ Window {
             const issuer = String(item.issuer || "").trim()
             const parsed = Signers.parseDistinguishedName(subject)
             const date = Signers.signingTimeText(item.signingTime, item.signingTimeSource, tr("format.datetime_seconds"))
+            const unverified = item.signingTimeSource === "timestamp_unverified"
             let dateText = ""
             if (date !== "")
                 dateText = catalogFormat(item.signingTimeSource === "timestamp"
                                          ? "report.signer.time_from_timestamp"
-                                         : "report.signer.time_declared", [date])
+                                         : unverified ? "report.signer.time_from_unverified_timestamp"
+                                                      : "report.signer.time_declared", [date])
             entries.push({
                 name: subject !== "" ? Signers.readableName(subject) : String(item.id || "").trim(),
                 identifier: parsed.identifier,
@@ -5194,6 +5212,8 @@ Window {
                 issuer: issuer !== "" ? Signers.readableIssuer(issuer) : "",
                 date: date,
                 dateText: dateText,
+                // El resumen breve no puede dar esta fecha a secas.
+                dateUnverified: unverified && date !== "",
                 subjectDn: subject,
                 issuerDn: issuer,
                 fingerprint: String(item.fingerprint || "").trim()
@@ -5208,7 +5228,7 @@ Window {
             const parsed = Signers.parseDistinguishedName(dn)
             entries.push({ name: Signers.readableName(dn), identifier: parsed.identifier,
                            organization: parsed.organization, issuer: "", date: "", dateText: "",
-                           subjectDn: dn, issuerDn: "", fingerprint: "" })
+                           dateUnverified: false, subjectDn: dn, issuerDn: "", fingerprint: "" })
         }
         return entries
     }
@@ -5241,7 +5261,8 @@ Window {
         if (entries.length === 0)
             return tr("No disponible")
         return entries.map(function(entry) {
-            return entry.date !== "" ? tr("verificacion.firmante_con_fecha").arg(entry.name).arg(entry.date) : entry.name
+            if (entry.date === "") return entry.name
+            return tr("verificacion.firmante_con_fecha").arg(entry.name).arg(entry.dateUnverified ? entry.dateText : entry.date)
         }).join("; ")
     }
 
@@ -5306,9 +5327,26 @@ Window {
         }
     }
 
+    // Avisos del motor (claves del catálogo) en el idioma de la persona. Una
+    // clave que el catálogo no conoce no se enseña: nunca sale la clave cruda.
+    function visibleSigningWarnings(keys) {
+        if (!Array.isArray(keys)) return []
+        let shown = []
+        for (let i = 0; i < keys.length && shown.length < 16; i++) {
+            const key = typeof keys[i] === "string" ? keys[i] : ""
+            if (!/^[a-z0-9_]+(\.[a-z0-9_]+)+$/.test(key)) continue
+            const text = window.tr(key)
+            if (text === key || text === "" || shown.indexOf(text) !== -1) continue
+            shown.push(text)
+        }
+        return shown
+    }
+
     function signResultAnnouncement() {
         if (signResultKind === "success") {
             let result = tr("Documento firmado correctamente") + ". " + basename(signResultPath)
+            if (signResultWarnings.length > 0)
+                result += ". " + tr("Advertencias") + ": " + signResultWarnings.join(" ")
             if (signResultVerificationPending) return result + ". " + tr("Comprobando la firma...")
             if (currentOutputVerificationDetails !== null && signResultPath === currentOutputPath)
                 return result + ". " + signVerificationResultText()
@@ -7786,6 +7824,15 @@ Window {
                 color: currentTheme.secondaryTextColor
                 wrapMode: Text.WordWrap
             }
+            Text {
+                Layout.fillWidth: true
+                visible: window.cscPinServiceHost() !== ""
+                text: catalogFormat("csc.gui.pin_servicio", [window.cscPinServiceHost()])
+                textFormat: Text.PlainText
+                color: currentTheme.textColor
+                font.bold: true
+                wrapMode: Text.Wrap
+            }
             Label {
                 visible: !!window.cscSecretCertificate && window.cscSecretCertificate.remotePin === true
                 text: tr("csc.gui.pin")
@@ -8178,6 +8225,7 @@ Window {
             window.signResultKind = success ? "success" : "error"
             window.signResultPath = success ? String(outPath || "") : ""
             window.signResultCause = success ? "" : window.localizeVisibleDiagnosticText(message)
+            window.signResultWarnings = success ? window.visibleSigningWarnings(backend.lastSigningWarnings()) : []
             window.signResultVerificationPending = success && !!outPath
             if (success) {
                 window.clearOperationFailure()
@@ -8210,6 +8258,7 @@ Window {
             window.signingInProgress = false
             window.cscPendingSecrets = null
             window.currentBatchResults = results || []
+            window.batchSigningWarnings = window.visibleSigningWarnings(backend.lastSigningWarnings())
             const firstBatchError = window.firstBatchFailureMessage(window.currentBatchResults)
             window.statusMessage = (!success && firstBatchError !== "")
                 ? (tr("❌ Lote fallido: %1").arg(localizeVisibleDiagnosticText(firstBatchError)))
@@ -9149,6 +9198,10 @@ Window {
                                         font.pixelSize: 15
                                         font.bold: true
                                         wrapMode: Text.WrapAnywhere
+                                    }
+                                    SigningWarningsBox {
+                                        heading: tr("Advertencias")
+                                        warnings: window.signResultKind === "success" ? window.signResultWarnings : []
                                     }
                                     Text {
                                         visible: window.signResultKind === "success" && window.signResultVerificationPending
@@ -11098,6 +11151,11 @@ Window {
                                     color: currentTheme.textColor
                                     font.pixelSize: 16
                                     font.bold: true
+                                }
+
+                                SigningWarningsBox {
+                                    heading: tr("Advertencias")
+                                    warnings: window.batchSigningWarnings
                                 }
 
                                 Repeater {

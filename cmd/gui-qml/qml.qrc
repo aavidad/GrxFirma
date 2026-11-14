@@ -18,6 +18,7 @@
     <file>qml/ThemedSwitch.qml</file>
     <file>qml/AccessibleLabel.js</file>
     <file>qml/AdaptiveRow.qml</file>
+    <file>qml/SigningWarningsBox.qml</file>
     <file>qml/ThemedTextField.qml</file>
     <file>qml/ThemedTextArea.qml</file>
     <file>qml/ThemedComboBox.qml</file>

@@ -31,14 +31,23 @@ const maxAvisosOperacion = 16
 type AvisosOperacion struct {
 	mu     sync.Mutex
 	claves []string
+	// padre es el registro de la operación que contiene a esta (por ejemplo,
+	// la petición IPC que llama al caso de uso de firma). Lo anotado aquí se
+	// anota también allí, para que ninguna capa pierda un aviso.
+	padre *AvisosOperacion
 }
 
 type avisosOperacionKey struct{}
 
 // ConAvisosOperacion devuelve un contexto con un registro de avisos nuevo y
-// vacío para la operación que empieza.
+// vacío para la operación que empieza. Si el contexto ya traía uno, el nuevo
+// le pasa también lo que se anote.
 func ConAvisosOperacion(ctx context.Context) (context.Context, *AvisosOperacion) {
-	avisos := &AvisosOperacion{}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	padre, _ := ctx.Value(avisosOperacionKey{}).(*AvisosOperacion)
+	avisos := &AvisosOperacion{padre: padre}
 	return context.WithValue(ctx, avisosOperacionKey{}, avisos), avisos
 }
 
@@ -59,15 +68,19 @@ func (a *AvisosOperacion) anotar(clave string) {
 		return
 	}
 	a.mu.Lock()
-	defer a.mu.Unlock()
+	repetida := false
 	for _, existente := range a.claves {
 		if existente == clave {
-			return
+			repetida = true
+			break
 		}
 	}
-	if len(a.claves) < maxAvisosOperacion {
+	if !repetida && len(a.claves) < maxAvisosOperacion {
 		a.claves = append(a.claves, clave)
 	}
+	padre := a.padre
+	a.mu.Unlock()
+	padre.anotar(clave)
 }
 
 // Claves devuelve una copia de las claves anotadas, en orden de llegada.

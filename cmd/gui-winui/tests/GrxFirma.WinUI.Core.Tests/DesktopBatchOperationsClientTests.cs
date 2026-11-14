@@ -110,6 +110,31 @@ public sealed class DesktopBatchOperationsClientTests
             result.Results[1].Error);
     }
 
+    // Lote 16d: el motor devuelve los avisos del lote y de cada documento
+    // (claves del catálogo); la página los traduce.
+    [TestMethod]
+    public void Result_ReadsEngineWarnings()
+    {
+        var result = JsonSerializer.Deserialize<BatchSignResult>(
+            """
+            {"results":[{"inputPath":"C:\\a.csig","outputPath":"C:\\a_firmado.csig","ok":true,
+              "warnings":["firma.cofirma_sin_original.aviso"]}],
+             "okCount":1,"failCount":0,
+             "warnings":["firma.cofirma_sin_original.aviso","firma.lt.crl_no_aplicable.aviso"]}
+            """);
+
+        Assert.IsNotNull(result);
+        CollectionAssert.AreEqual(
+            new[] { "firma.cofirma_sin_original.aviso", "firma.lt.crl_no_aplicable.aviso" },
+            result!.VisibleWarnings.ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "firma.cofirma_sin_original.aviso" },
+            result.Results[0].VisibleWarnings.ToArray());
+        var withoutWarnings = JsonSerializer.Deserialize<BatchSignResult>(
+            """{"results":[],"okCount":0,"failCount":0}""");
+        Assert.AreEqual(0, withoutWarnings!.VisibleWarnings.Count);
+    }
+
     private static BatchSignParameters NewParameters() =>
         new()
         {

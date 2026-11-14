@@ -635,9 +635,7 @@ public sealed class VerifyPageViewModel
                 }
                 return Localizer.Fill("winui.verificar.firmante_con_fecha",
                     ("subject", name), ("date", date),
-                    ("origin", Localizer.Text(summary.SigningTimeSource == SigningTimeText.FromTimestamp
-                        ? "winui.verificar.fecha_segun_sello"
-                        : "winui.verificar.fecha_del_firmante")));
+                    ("origin", Localizer.Text(SigningTimeOriginKey(summary.SigningTimeSource))));
             }
             return name;
         }).ToArray();
@@ -760,6 +758,15 @@ public sealed class VerifyPageViewModel
             : Localizer.Format("{0}: {1}. {2}", Localizer.Text(label),
                 Localizer.Text(statusLabel), Localizer.VisibleText(reason));
     }
+
+    // De dónde sale la fecha del firmante. Un sello de tiempo sin comprobar
+    // (KD-01) no se presenta nunca como «según el sello de tiempo».
+    private static string SigningTimeOriginKey(string? source) => source switch
+    {
+        SigningTimeText.FromUnverifiedTimestamp => "winui.verificar.fecha_sello_sin_comprobar",
+        SigningTimeText.FromTimestamp => "winui.verificar.fecha_segun_sello",
+        _ => "winui.verificar.fecha_del_firmante",
+    };
 
     private static string CoverageLabel(string? coverage) =>
         coverage?.Trim().ToLowerInvariant() switch

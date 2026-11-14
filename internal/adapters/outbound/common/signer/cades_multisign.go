@@ -69,6 +69,11 @@ func cosignCAdES(existing []byte, key *LocalSigningKey, spec cmsHashSpec, now ti
 	return sd.marshal()
 }
 
+// AvisoCofirmaSinOriginal es la clave de catálogo del aviso que acompaña al
+// resultado de una cofirma o contrafirma de una CAdES explícita sin el
+// documento original (KD-03).
+const AvisoCofirmaSinOriginal = domain.AvisoCofirmaSinOriginal
+
 // avisarCofirmaSinDocumento deja aviso visible y en el registro cuando se
 // cofirma o contrafirma una CAdES explícita: el motor firma el resumen que
 // declara la firma recibida y nadie ha visto el documento. Se mantiene por

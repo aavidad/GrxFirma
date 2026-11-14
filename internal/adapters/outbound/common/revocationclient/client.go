@@ -149,6 +149,11 @@ func (c *Client) Check(ctx context.Context, cert *x509.Certificate, issuer *x509
 	return result, nil
 }
 
+// AvisoCRLNoAplicable es la clave de catálogo del aviso que acompaña al
+// resultado de una firma LT que incrusta una CRL que no cubre al certificado
+// (lote 14-5). La interfaz la muestra tras firmar (lote 16d).
+const AvisoCRLNoAplicable = domain.AvisoCRLNoAplicable
+
 // Fetch obtiene la evidencia de revocación que se incrusta al firmar
 // (CAdES-LT, PAdES-LT). Para verificar se usa Check.
 //
