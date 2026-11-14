@@ -241,9 +241,14 @@
   "verifactu.qr_reading": "正在文件中查找二维码…",
   "verifactu.qr_pdf": "无法将 PDF 转换为图像以查找二维码。请尝试使用发票的 PNG 或 JPEG 截图。",
   "verifactu.cli_qr_input": "leer-qr-verifactu 和 cotejar-qr-verifactu 的 -entrada 参数接受二维码 URL 或 PNG、JPEG、PDF 文件。",
+  "firma.sha1_corresponde.prohibido": "该签名使用 SHA-1，而本机策略不允许使用该算法，因此未继续操作。如需使用这份旧签名，请联系本机的管理员。",
   "verifactu.qr_aeat_not_verifiable": "西班牙税务局（AEAT）无法将此发票与其记录进行核对。开票方可能尚未提交该发票，或未使用 Veri*Factu。",
   "verifactu.qr_aeat_rejected": "西班牙税务局（AEAT）无法使用此二维码中的数据进行查询。技术响应中会显示 AEAT 给出的原因。",
   "verifactu.qr_empty": "请粘贴二维码网址或选择一张图片。",
   "firma.cofirma_sin_original.pedir_original": "此签名不包含所签署的文档。要联署或副署此签名，请同时通过“添加原始文档”选择原始文档，这样您可以看到自己签署的内容。",
-  "firma.cofirma_sin_original.original_no_corresponde": "您选择的原始文档与此签名不符。请确认它与其他人签署的是同一份文档。"
+  "firma.cofirma_sin_original.original_no_corresponde": "您选择的原始文档与此签名不符。请确认它与其他人签署的是同一份文档。",
+  "firma.cofirma_sin_original.confirmar_titulo": "缺少原始文档",
+  "firma.cofirma_sin_original.confirmar_texto": "此签名不包含被签署的文档。如果在没有原始文档的情况下添加您的签名，您将签署一份您未能查看的文档。建议您选择原始文档：GrxFirma 会核对它是否与其他人签署的文档相同，然后再添加您的签名。",
+  "firma.cofirma_sin_original.elegir_original": "选择原始文档",
+  "firma.cofirma_sin_original.firmar_igualmente": "仍然签名"
 }

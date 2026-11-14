@@ -241,9 +241,14 @@
   "verifactu.qr_reading": "Buscando o QR no ficheiro…",
   "verifactu.qr_pdf": "Non se puido converter o PDF en imaxe para buscar o QR. Probe cunha captura da factura en PNG ou JPEG.",
   "verifactu.cli_qr_input": "leer-qr-verifactu e cotejar-qr-verifactu aceptan en -entrada o URL do QR ou un ficheiro PNG, JPEG ou PDF.",
+  "firma.sha1_corresponde.prohibido": "A sinatura usa SHA-1 e a política deste equipo non admite ese algoritmo, así que non se continuou. Se precisa usar esta sinatura antiga, consulte con quen administra o equipo.",
   "verifactu.qr_aeat_not_verifiable": "A AEAT non pode contrastar esta factura cos seus rexistros. Pode que o emisor non a enviase ou que non use Veri*Factu.",
   "verifactu.qr_aeat_rejected": "A AEAT non puido facer a consulta cos datos deste QR. Na resposta técnica verá o motivo que indica a AEAT.",
   "verifactu.qr_empty": "Pegue o URL do QR ou escolla unha imaxe.",
   "firma.cofirma_sin_original.pedir_original": "Esta sinatura non leva dentro o documento asinado. Para cosinala ou contrasinala, escolla tamén o documento orixinal con «Engadir o documento orixinal» e poderá ver o que asina.",
-  "firma.cofirma_sin_original.original_no_corresponde": "O documento orixinal que escolleu non corresponde a esta sinatura. Comprobe que é o mesmo documento que asinaron os demais."
+  "firma.cofirma_sin_original.original_no_corresponde": "O documento orixinal que escolleu non corresponde a esta sinatura. Comprobe que é o mesmo documento que asinaron os demais.",
+  "firma.cofirma_sin_original.confirmar_titulo": "Falta o documento orixinal",
+  "firma.cofirma_sin_original.confirmar_texto": "Esta sinatura non leva dentro o documento que se asinou. Se engade a súa sinatura sen el, asinará un documento que non puido ver. Recomendámoslle escoller o documento orixinal: GrxFirma comprobará que é o mesmo que asinaron os demais e despois engadirá a súa sinatura.",
+  "firma.cofirma_sin_original.elegir_original": "Escoller o documento orixinal",
+  "firma.cofirma_sin_original.firmar_igualmente": "Asinar igualmente"
 }

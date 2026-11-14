@@ -241,9 +241,14 @@
   "verifactu.qr_reading": "Buscando el QR en el fichero…",
   "verifactu.qr_pdf": "No se ha podido convertir el PDF en imagen para buscar el QR. Pruebe con una captura de la factura en PNG o JPEG.",
   "verifactu.cli_qr_input": "leer-qr-verifactu y cotejar-qr-verifactu aceptan en -entrada la URL del QR o un fichero PNG, JPEG o PDF.",
+  "firma.sha1_corresponde.prohibido": "La firma usa SHA-1 y la política de este equipo no admite ese algoritmo, así que no se ha hecho la operación. Si necesita usar esta firma antigua, consulte con quien administra el equipo.",
   "verifactu.qr_aeat_not_verifiable": "La AEAT no puede contrastar esta factura con sus registros. Puede que el emisor no la haya enviado o que no use Veri*Factu.",
   "verifactu.qr_aeat_rejected": "La AEAT no ha podido hacer la consulta con los datos de este QR. En la respuesta técnica verá el motivo que indica la AEAT.",
   "verifactu.qr_empty": "Pegue la URL del QR o elija una imagen.",
   "firma.cofirma_sin_original.pedir_original": "Esta firma no lleva dentro el documento firmado. Para cofirmarla o contrafirmarla, elija también el documento original con «Añadir el documento original» y podrá ver lo que firma.",
-  "firma.cofirma_sin_original.original_no_corresponde": "El documento original que ha elegido no corresponde a esta firma. Compruebe que es el mismo documento que firmaron los demás."
+  "firma.cofirma_sin_original.original_no_corresponde": "El documento original que ha elegido no corresponde a esta firma. Compruebe que es el mismo documento que firmaron los demás.",
+  "firma.cofirma_sin_original.confirmar_titulo": "Falta el documento original",
+  "firma.cofirma_sin_original.confirmar_texto": "Esta firma no lleva dentro el documento que se firmó. Si añade su firma sin él, firmará un documento que no ha podido ver. Le recomendamos elegir el documento original: GrxFirma comprobará que es el mismo que firmaron los demás y después añadirá su firma.",
+  "firma.cofirma_sin_original.elegir_original": "Elegir el documento original",
+  "firma.cofirma_sin_original.firmar_igualmente": "Firmar de todos modos"
 }

@@ -241,9 +241,14 @@
   "verifactu.qr_reading": "Looking for the QR in the file…",
   "verifactu.qr_pdf": "The PDF could not be converted to an image to look for the QR. Try a PNG or JPEG screenshot of the invoice.",
   "verifactu.cli_qr_input": "leer-qr-verifactu and cotejar-qr-verifactu accept in -entrada the QR URL or a PNG, JPEG or PDF file.",
+  "firma.sha1_corresponde.prohibido": "The signature uses SHA-1 and this computer's policy does not allow that algorithm, so the operation was not carried out. If you need to use this old signature, ask whoever manages this computer.",
   "verifactu.qr_aeat_not_verifiable": "The AEAT cannot check this invoice against its records. The issuer may not have sent it or may not use Veri*Factu.",
   "verifactu.qr_aeat_rejected": "The AEAT could not run the check with the details in this QR. The technical response shows the reason the AEAT gives.",
   "verifactu.qr_empty": "Paste the QR URL or choose an image.",
   "firma.cofirma_sin_original.pedir_original": "This signature does not contain the signed document. To co-sign or countersign it, also choose the original document with \"Add the original document\" so you can see what you are signing.",
-  "firma.cofirma_sin_original.original_no_corresponde": "The original document you chose does not match this signature. Check that it is the same document the others signed."
+  "firma.cofirma_sin_original.original_no_corresponde": "The original document you chose does not match this signature. Check that it is the same document the others signed.",
+  "firma.cofirma_sin_original.confirmar_titulo": "The original document is missing",
+  "firma.cofirma_sin_original.confirmar_texto": "This signature does not contain the document that was signed. If you add your signature without it, you will sign a document you have not been able to see. We recommend choosing the original document: GrxFirma will check that it is the same one the others signed and then add your signature.",
+  "firma.cofirma_sin_original.elegir_original": "Choose the original document",
+  "firma.cofirma_sin_original.firmar_igualmente": "Sign anyway"
 }

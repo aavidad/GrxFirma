@@ -241,9 +241,14 @@
   "verifactu.qr_reading": "QRa fitxategian bilatzen…",
   "verifactu.qr_pdf": "Ezin izan da PDFa irudi bihurtu QRa bilatzeko. Saiatu fakturaren PNG edo JPEG pantaila-argazki batekin.",
   "verifactu.cli_qr_input": "leer-qr-verifactu eta cotejar-qr-verifactu aukerek QRaren URLa edo PNG, JPEG edo PDF fitxategi bat onartzen dute -entrada aukeran.",
+  "firma.sha1_corresponde.prohibido": "Sinadurak SHA-1 erabiltzen du eta ekipo honen politikak ez du algoritmo hori onartzen; beraz, ez da jarraitu. Sinadura zahar hau erabili behar baduzu, galdetu ekipoa administratzen duenari.",
   "verifactu.qr_aeat_not_verifiable": "AEATek ezin du faktura hau bere erregistroekin egiaztatu. Baliteke jaulkitzaileak ez bidali izana edo Veri*Factu ez erabiltzea.",
   "verifactu.qr_aeat_rejected": "AEATek ezin izan du kontsulta egin QR honen datuekin. Erantzun teknikoan ikusiko duzu AEATek adierazitako arrazoia.",
   "verifactu.qr_empty": "Itsatsi QRaren URLa edo aukeratu irudi bat.",
   "firma.cofirma_sin_original.pedir_original": "Sinadura honek ez du sinatutako dokumentua barnean. Kosinatzeko edo kontrasinatzeko, aukeratu jatorrizko dokumentua ere «Gehitu jatorrizko dokumentua» aukerarekin, eta ikusi ahal izango duzu zer sinatzen duzun.",
-  "firma.cofirma_sin_original.original_no_corresponde": "Aukeratu duzun jatorrizko dokumentua ez dator bat sinadura honekin. Egiaztatu besteek sinatu zuten dokumentu bera dela."
+  "firma.cofirma_sin_original.original_no_corresponde": "Aukeratu duzun jatorrizko dokumentua ez dator bat sinadura honekin. Egiaztatu besteek sinatu zuten dokumentu bera dela.",
+  "firma.cofirma_sin_original.confirmar_titulo": "Jatorrizko dokumentua falta da",
+  "firma.cofirma_sin_original.confirmar_texto": "Sinadura honek ez du barnean sinatu zen dokumentua. Hura gabe zure sinadura gehitzen baduzu, ikusi ezin izan duzun dokumentu bat sinatuko duzu. Jatorrizko dokumentua aukeratzea gomendatzen dizugu: GrxFirmak egiaztatuko du besteek sinatu zuten bera dela, eta gero zure sinadura gehituko du.",
+  "firma.cofirma_sin_original.elegir_original": "Aukeratu jatorrizko dokumentua",
+  "firma.cofirma_sin_original.firmar_igualmente": "Sinatu hala ere"
 }

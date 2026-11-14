@@ -241,9 +241,14 @@
   "verifactu.qr_reading": "Recherche du QR dans le fichier…",
   "verifactu.qr_pdf": "Impossible de convertir le PDF en image pour rechercher le QR. Essayez avec une capture de la facture en PNG ou JPEG.",
   "verifactu.cli_qr_input": "leer-qr-verifactu et cotejar-qr-verifactu acceptent dans -entrada l’URL du QR ou un fichier PNG, JPEG ou PDF.",
+  "firma.sha1_corresponde.prohibido": "La signature utilise SHA-1 et la politique de cet ordinateur n'admet pas cet algorithme ; l'opération n'a donc pas été effectuée. Si vous devez utiliser cette ancienne signature, adressez-vous à la personne qui administre l'ordinateur.",
   "verifactu.qr_aeat_not_verifiable": "L'AEAT ne peut pas comparer cette facture avec ses registres. L'émetteur ne l'a peut-être pas envoyée ou n'utilise pas Veri*Factu.",
   "verifactu.qr_aeat_rejected": "L'AEAT n'a pas pu effectuer la consultation avec les données de ce QR. La réponse technique indique le motif donné par l'AEAT.",
   "verifactu.qr_empty": "Collez l'URL du QR ou choisissez une image.",
   "firma.cofirma_sin_original.pedir_original": "Cette signature ne contient pas le document signé. Pour la cosigner ou la contresigner, choisissez aussi le document original avec « Ajouter le document original » : vous verrez ainsi ce que vous signez.",
-  "firma.cofirma_sin_original.original_no_corresponde": "Le document original choisi ne correspond pas à cette signature. Vérifiez qu'il s'agit du même document que celui signé par les autres."
+  "firma.cofirma_sin_original.original_no_corresponde": "Le document original choisi ne correspond pas à cette signature. Vérifiez qu'il s'agit du même document que celui signé par les autres.",
+  "firma.cofirma_sin_original.confirmar_titulo": "Le document original manque",
+  "firma.cofirma_sin_original.confirmar_texto": "Cette signature ne contient pas le document qui a été signé. Si vous ajoutez votre signature sans lui, vous signerez un document que vous n'avez pas pu voir. Nous vous recommandons de choisir le document original : GrxFirma vérifiera qu'il s'agit de celui que les autres ont signé, puis ajoutera votre signature.",
+  "firma.cofirma_sin_original.elegir_original": "Choisir le document original",
+  "firma.cofirma_sin_original.firmar_igualmente": "Signer quand même"
 }

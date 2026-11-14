@@ -241,9 +241,14 @@
   "verifactu.qr_reading": "S’està cercant el QR al fitxer…",
   "verifactu.qr_pdf": "No s’ha pogut convertir el PDF en imatge per cercar el QR. Proveu amb una captura de la factura en PNG o JPEG.",
   "verifactu.cli_qr_input": "leer-qr-verifactu i cotejar-qr-verifactu accepten a -entrada l’URL del QR o un fitxer PNG, JPEG o PDF.",
+  "firma.sha1_corresponde.prohibido": "La signatura fa servir SHA-1 i la política d'aquest equip no admet aquest algorisme, així que no s'ha continuat. Si heu de fer servir aquesta signatura antiga, consulteu qui administra l'equip.",
   "verifactu.qr_aeat_not_verifiable": "L'AEAT no pot contrastar aquesta factura amb els seus registres. Pot ser que l'emissor no l'hagi enviada o que no utilitzi Veri*Factu.",
   "verifactu.qr_aeat_rejected": "L'AEAT no ha pogut fer la consulta amb les dades d'aquest QR. A la resposta tècnica veureu el motiu que indica l'AEAT.",
   "verifactu.qr_empty": "Enganxeu l'URL del QR o trieu una imatge.",
   "firma.cofirma_sin_original.pedir_original": "Aquesta signatura no porta a dins el document signat. Per cosignar-la o contrasignar-la, trieu també el document original amb «Afegeix el document original» i podreu veure què signeu.",
-  "firma.cofirma_sin_original.original_no_corresponde": "El document original que heu triat no correspon a aquesta signatura. Comproveu que és el mateix document que van signar els altres."
+  "firma.cofirma_sin_original.original_no_corresponde": "El document original que heu triat no correspon a aquesta signatura. Comproveu que és el mateix document que van signar els altres.",
+  "firma.cofirma_sin_original.confirmar_titulo": "Falta el document original",
+  "firma.cofirma_sin_original.confirmar_texto": "Aquesta signatura no porta a dins el document que es va signar. Si hi afegiu la vostra signatura sense ell, signareu un document que no heu pogut veure. Us recomanem triar el document original: GrxFirma comprovarà que és el mateix que van signar els altres i després hi afegirà la vostra signatura.",
+  "firma.cofirma_sin_original.elegir_original": "Triar el document original",
+  "firma.cofirma_sin_original.firmar_igualmente": "Signar igualment"
 }

@@ -241,9 +241,14 @@
   "verifactu.qr_reading": "A procurar o QR no ficheiro…",
   "verifactu.qr_pdf": "Não foi possível converter o PDF em imagem para procurar o QR. Experimente uma captura da fatura em PNG ou JPEG.",
   "verifactu.cli_qr_input": "leer-qr-verifactu e cotejar-qr-verifactu aceitam em -entrada o URL do QR ou um ficheiro PNG, JPEG ou PDF.",
+  "firma.sha1_corresponde.prohibido": "A assinatura usa SHA-1 e a política deste computador não admite esse algoritmo, por isso a operação não foi feita. Se precisar de usar esta assinatura antiga, contacte quem administra o computador.",
   "verifactu.qr_aeat_not_verifiable": "A AEAT não consegue confrontar esta fatura com os seus registos. Pode ser que o emitente não a tenha enviado ou que não use o Veri*Factu.",
   "verifactu.qr_aeat_rejected": "A AEAT não conseguiu fazer a consulta com os dados deste QR. Na resposta técnica verá o motivo indicado pela AEAT.",
   "verifactu.qr_empty": "Cole o URL do QR ou escolha uma imagem.",
   "firma.cofirma_sin_original.pedir_original": "Esta assinatura não contém o documento assinado. Para a coassinar ou contra-assinar, escolha também o documento original com «Adicionar o documento original» e poderá ver o que assina.",
-  "firma.cofirma_sin_original.original_no_corresponde": "O documento original que escolheu não corresponde a esta assinatura. Verifique se é o mesmo documento que os outros assinaram."
+  "firma.cofirma_sin_original.original_no_corresponde": "O documento original que escolheu não corresponde a esta assinatura. Verifique se é o mesmo documento que os outros assinaram.",
+  "firma.cofirma_sin_original.confirmar_titulo": "Falta o documento original",
+  "firma.cofirma_sin_original.confirmar_texto": "Esta assinatura não contém o documento que foi assinado. Se adicionar a sua assinatura sem ele, assinará um documento que não pôde ver. Recomendamos que escolha o documento original: o GrxFirma verificará que é o mesmo que os outros assinaram e depois adicionará a sua assinatura.",
+  "firma.cofirma_sin_original.elegir_original": "Escolher o documento original",
+  "firma.cofirma_sin_original.firmar_igualmente": "Assinar mesmo assim"
 }
