@@ -107,6 +107,7 @@ class MainViewModelToolsTest {
     @Test fun protectAndSignAndBatchAreRefusedForTheDnie() = runTest {
         val (vm, _, _) = ready()
         vm.selectBatchDocuments(listOf(DOCUMENT_URI, OTHER_URI))
+        advanceUntilIdle() // la huella de cada fichero se lee en segundo plano
         assertTrue(vm.state.value.canSignBatch)
         // Simula el estado tras instalar un DNIe sin abrir NFC.
         val field = MainViewModel::class.java.getDeclaredField("mutableState").apply { isAccessible = true }
@@ -122,6 +123,7 @@ class MainViewModelToolsTest {
     @Test fun batchReportsEachFileAndSavesIntoTheChosenFolder() = runTest {
         val (vm, repository, core) = ready()
         vm.selectBatchDocuments(listOf(DOCUMENT_URI, OTHER_URI))
+        advanceUntilIdle() // la huella de cada fichero se lee en segundo plano
         vm.signBatch("cades")
         advanceUntilIdle()
         assertEquals(2, core.lastBatchSize)

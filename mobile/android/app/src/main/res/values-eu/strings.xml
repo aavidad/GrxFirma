@@ -207,6 +207,8 @@
     <string name="batch_dnie_unavailable">Instalazio honek ez du uzten hainbat fitxategi NAN elektronikoarekin sinatzen. Erabili ziurtagiri-fitxategi bat (.p12 edo .pfx).</string>
     <string name="batch_item_ok">Sinatuta: %1$s</string>
     <string name="batch_item_error">Ezin izan da sinatu: %1$s</string>
+    <string name="batch_item_changed">Ez da %1$s sinatu: aldatu egin da hautatu zenuenetik. Hauta ezazu berriro.</string>
+    <string name="batch_item_not_read">Ez da %1$s sinatu: ezin izan da irakurri hautatzean. Hauta ezazu berriro.</string>
     <string name="batch_item_saved">Gordeta: %1$s</string>
     <string name="batch_item_not_saved">Gorde gabe: %1$s</string>
     <string name="result_batch_signed">Sorta sinatuta</string>

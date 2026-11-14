@@ -22,6 +22,7 @@ import io.github.aavidad.grxfirma.android.model.SignedOutput
 import io.github.aavidad.grxfirma.android.model.LoadedFile
 import io.github.aavidad.grxfirma.android.model.SignatureInspection
 import io.github.aavidad.grxfirma.android.model.BatchItemResult
+import io.github.aavidad.grxfirma.android.model.SelectedFile
 import io.github.aavidad.grxfirma.android.model.ProtectionRequest
 import io.github.aavidad.grxfirma.android.model.CsvLegend
 import io.github.aavidad.grxfirma.android.model.EniCatalogs
@@ -36,6 +37,7 @@ import io.github.aavidad.grxfirma.android.qr.QrImagePreparer
 import io.github.aavidad.grxfirma.android.settings.AppSettings
 import io.github.aavidad.grxfirma.android.settings.AppSettingsStore
 import io.github.aavidad.grxfirma.android.settings.InMemorySettingsStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -946,6 +948,32 @@ class MainViewModel(
                 return@runInspect
             }
             mutableState.value = mutableState.value.clearedResult().copy(batchDocuments = selected)
+            fingerprintBatch(selected)
+        }
+    }
+
+    /**
+     * H-06 en lotes: lee cada fichero una vez al elegirlo y guarda su SHA-256.
+     * Un fichero que no se puede leer se queda sin huella y, al firmar, sale
+     * como no firmado. Si mientras tanto se eligió otro lote, no se aplica.
+     */
+    private fun fingerprintBatch(documents: List<SelectedFile>) {
+        launchOperation(clearsResult = false) {
+            val fingerprinted = documents.map { document ->
+                try {
+                    val loaded = repository.loadDocument(document)
+                    try {
+                        document.copy(sha256 = DocumentFingerprint.sha256Hex(loaded.bytes))
+                    } finally { loaded.bytes.fill(0) }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    document
+                }
+            }
+            val current = mutableState.value
+            if (current.batchDocuments !== documents) return@launchOperation
+            mutableState.value = current.copy(batchDocuments = fingerprinted)
         }
     }
 
@@ -1003,10 +1031,23 @@ class MainViewModel(
                 return@launchOperation
             }
             val loaded = ArrayList<LoadedFile>(snapshot.batchDocuments.size)
+            // H-06 en lotes: posición en el lote de cada fichero que no se manda
+            // al núcleo y el texto que lo explica. El resto se firma.
+            val notSigned = HashMap<Int, Int>()
             try {
                 var total = 0L
-                for (document in snapshot.batchDocuments) {
+                for ((index, document) in snapshot.batchDocuments.withIndex()) {
+                    val expected = document.sha256
+                    if (expected == null) {
+                        notSigned[index] = R.string.batch_item_not_read
+                        continue
+                    }
                     val file = repository.loadDocument(document)
+                    if (!DocumentFingerprint.matches(expected, file.bytes)) {
+                        file.bytes.fill(0)
+                        notSigned[index] = R.string.batch_item_changed
+                        continue
+                    }
                     loaded += file
                     total += file.bytes.size
                     if (total > ToolsPolicy.MAX_BATCH_TOTAL_BYTES) {
@@ -1014,7 +1055,7 @@ class MainViewModel(
                         return@launchOperation
                     }
                 }
-                val results = if (action == "sign" && !seal) {
+                val signed = if (loaded.isEmpty()) emptyList() else if (action == "sign" && !seal) {
                     core.signBatch(loaded, format, certificate.id, configured)
                 } else {
                     val items = ArrayList<BatchItemInput>(loaded.size)
@@ -1030,6 +1071,7 @@ class MainViewModel(
                     }
                     core.signBatchItems(items, certificate.id, configured, confirmUnseenContent && action == "cosign")
                 }
+                val results = mergeNotSigned(snapshot.batchDocuments, notSigned, signed)
                 clearPending()
                 pendingBatch = results
                 val ok = results.count { it.output != null }
@@ -1039,8 +1081,7 @@ class MainViewModel(
                     add(UiText.Plural(R.plurals.batch_ok_count, ok))
                     if (ok < results.size) add(UiText.Plural(R.plurals.batch_error_count, results.size - ok))
                     results.forEach {
-                        add(UiText.Resource(if (it.output != null) R.string.batch_item_ok else R.string.batch_item_error,
-                            listOf(it.sourceName)))
+                        add(UiText.Resource(batchItemLine(it), listOf(it.sourceName)))
                         addAll(warningLines(it.output?.warnings.orEmpty(), it.sourceName))
                     }
                 }
@@ -1060,6 +1101,32 @@ class MainViewModel(
         }
     }
 
+    /**
+     * Devuelve los resultados en el orden del lote: los ficheros de [notSigned]
+     * como no firmados, con su motivo, y el resto con lo que dijo el núcleo.
+     */
+    private fun mergeNotSigned(
+        documents: List<SelectedFile>,
+        notSigned: Map<Int, Int>,
+        signed: List<BatchItemResult>,
+    ): List<BatchItemResult> {
+        if (notSigned.isEmpty()) return signed
+        val fromCore = signed.iterator()
+        val merged = ArrayList<BatchItemResult>(documents.size)
+        documents.forEachIndexed { index, document ->
+            val reason = notSigned[index]
+            if (reason != null) merged += BatchItemResult(document.displayName, null, reason)
+            else if (fromCore.hasNext()) merged += fromCore.next()
+        }
+        fromCore.forEachRemaining { merged += it }
+        return merged
+    }
+
+    private fun batchItemLine(item: BatchItemResult): Int = when {
+        item.output != null -> R.string.batch_item_ok
+        else -> item.notSignedReason ?: R.string.batch_item_error
+    }
+
     fun updateBatchOptions(action: String, seal: Boolean) {
         if (!mutableState.value.canReplaceSelection) return
         require(action in listOf("sign", "cosign"))
@@ -1075,7 +1142,7 @@ class MainViewModel(
         for (item in batch) {
             val output = item.output
             if (output == null) {
-                lines += UiText.Resource(R.string.batch_item_error, listOf(item.sourceName))
+                lines += UiText.Resource(batchItemLine(item), listOf(item.sourceName))
                 continue
             }
             if (output.bytes.isEmpty()) {

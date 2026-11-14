@@ -208,6 +208,8 @@
     <string name="batch_dnie_unavailable">Esta instalação não permite assinar vários ficheiros com o DNIe. Use um ficheiro de certificado (.p12 ou .pfx).</string>
     <string name="batch_item_ok">Assinado: %1$s</string>
     <string name="batch_item_error">Não foi possível assinar: %1$s</string>
+    <string name="batch_item_changed">%1$s não foi assinado: mudou desde que o selecionou. Selecione-o novamente.</string>
+    <string name="batch_item_not_read">%1$s não foi assinado: não foi possível lê-lo ao selecioná-lo. Selecione-o novamente.</string>
     <string name="batch_item_saved">Guardado: %1$s</string>
     <string name="batch_item_not_saved">Não guardado: %1$s</string>
     <string name="result_batch_signed">Lote assinado</string>

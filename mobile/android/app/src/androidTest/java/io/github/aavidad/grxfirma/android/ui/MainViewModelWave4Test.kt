@@ -92,6 +92,7 @@ class MainViewModelWave4Test {
     @Test fun cosignBatchSendsEachItemWithItsActionAndDnieIsAccepted() = runTest {
         val (vm, _, core) = ready()
         vm.selectBatchDocuments(listOf(DOCUMENT_URI, OTHER_URI))
+        advanceUntilIdle() // la huella de cada fichero se lee en segundo plano
         val field = MainViewModel::class.java.getDeclaredField("mutableState").apply { isAccessible = true }
         @Suppress("UNCHECKED_CAST")
         val flow = field.get(vm) as kotlinx.coroutines.flow.MutableStateFlow<MainUiState>
@@ -113,6 +114,7 @@ class MainViewModelWave4Test {
         val (vm, _, core) = ready()
         core.itemWarnings = listOf("firma.cofirma_sin_original.aviso", "clave.desconocida.aviso")
         vm.selectBatchDocuments(listOf(DOCUMENT_URI, OTHER_URI))
+        advanceUntilIdle() // la huella de cada fichero se lee en segundo plano
         vm.updateBatchOptions("cosign", seal = false)
         vm.signBatch("cades", confirmUnseenContent = true)
         advanceUntilIdle()
@@ -128,6 +130,7 @@ class MainViewModelWave4Test {
     @Test fun sealedBatchAsksThePlannerOnlyForPdfs() = runTest {
         val (vm, _, core) = ready()
         vm.selectBatchDocuments(listOf(PDF_URI, DOCUMENT_URI))
+        advanceUntilIdle() // la huella de cada fichero se lee en segundo plano
         vm.updateBatchOptions("sign", seal = true)
         val planned = mutableListOf<String>()
         vm.signBatch("auto", BatchSealPlanner { file -> planned += file.displayName; mapOf("visibleSeal" to "true") })

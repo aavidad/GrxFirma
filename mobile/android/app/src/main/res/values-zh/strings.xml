@@ -206,6 +206,8 @@
     <string name="batch_dnie_unavailable">此安装不支持用 DNIe 签署多个文件。请使用证书文件（.p12 或 .pfx）。</string>
     <string name="batch_item_ok">已签名：%1$s</string>
     <string name="batch_item_error">无法签名：%1$s</string>
+    <string name="batch_item_changed">未签名 %1$s：该文件在您选择后已更改。请重新选择。</string>
+    <string name="batch_item_not_read">未签名 %1$s：选择时无法读取该文件。请重新选择。</string>
     <string name="batch_item_saved">已保存：%1$s</string>
     <string name="batch_item_not_saved">未保存：%1$s</string>
     <string name="result_batch_signed">批量签名完成</string>

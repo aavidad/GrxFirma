@@ -208,6 +208,8 @@
     <string name="batch_dnie_unavailable">Questa installazione non consente di firmare più file con il DNIe. Usa un file di certificato (.p12 o .pfx).</string>
     <string name="batch_item_ok">Firmato: %1$s</string>
     <string name="batch_item_error">Firma non riuscita: %1$s</string>
+    <string name="batch_item_changed">%1$s non è stato firmato: è cambiato dopo la selezione. Selezionarlo di nuovo.</string>
+    <string name="batch_item_not_read">%1$s non è stato firmato: non è stato possibile leggerlo al momento della selezione. Selezionarlo di nuovo.</string>
     <string name="batch_item_saved">Salvato: %1$s</string>
     <string name="batch_item_not_saved">Non salvato: %1$s</string>
     <string name="result_batch_signed">Lotto firmato</string>

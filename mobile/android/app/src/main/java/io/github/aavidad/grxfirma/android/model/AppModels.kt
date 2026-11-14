@@ -90,9 +90,15 @@ data class ProtectionRequest(
     val certificateId: String = "",
 )
 
+/**
+ * [notSignedReason]: recurso de texto que explica por qué la app no mandó el
+ * fichero al núcleo (H-06 en lotes: cambió o no se pudo leer al elegirlo).
+ * Con null, el fallo es del núcleo y se dice el genérico.
+ */
 data class BatchItemResult(
     val sourceName: String,
     val output: SignedOutput?,
+    val notSignedReason: Int? = null,
 )
 
 /** Incidencia con clave de localización cerrada del motor (verifactu.*, eni.*). */
