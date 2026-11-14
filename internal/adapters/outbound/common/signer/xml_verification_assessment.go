@@ -104,6 +104,16 @@ func extractContextualXMLSignatures(document []byte) ([]contextualXMLSignature, 
 				if entry.ordinal < 0 {
 					return nil, errors.New("firma XML sin SignedInfo directo")
 				}
+				ascendientes := make([]xml.Name, len(stack))
+				for i, ascendiente := range stack {
+					ascendientes[i] = ascendiente.name
+				}
+				if esSelloXMLDeFirma(ascendientes) {
+					// Es la firma de la TSA dentro de un sello XML de otra
+					// firma (XAdES-T con XMLTimeStamp): no firma el documento.
+					// El sello queda sin evaluar como los demás sellos XML.
+					continue
+				}
 				if len(signatures) >= maxFirmasXML {
 					return nil, fmt.Errorf("documento con demasiadas firmas XML (más de %d)", maxFirmasXML)
 				}
@@ -118,6 +128,32 @@ func extractContextualXMLSignatures(document []byte) ([]contextualXMLSignature, 
 	}
 	sort.Slice(signatures, func(i, j int) bool { return signatures[i].start < signatures[j].start })
 	return signatures, nil
+}
+
+// nsOASISDSS es el espacio de nombres de los sellos de tiempo XML de OASIS DSS
+// (dss:Timestamp), los que AutoFirma mete en xades:XMLTimeStamp.
+const nsOASISDSS = "urn:oasis:names:tc:dss:1.0:core:schema"
+
+// esSelloXMLDeFirma dice si la ds:Signature que se acaba de cerrar, con sus
+// ascendientes en pila, es la firma de un sello de tiempo XML: hija directa de
+// dss:Timestamp, que es hijo directo de xades:XMLTimeStamp, y todo ello dentro
+// de otra ds:Signature. Fuera de ese sitio exacto se verifica como cualquier
+// otra firma.
+func esSelloXMLDeFirma(pila []xml.Name) bool {
+	if len(pila) < 3 {
+		return false
+	}
+	padre, abuelo := pila[len(pila)-1], pila[len(pila)-2]
+	if padre != (xml.Name{Space: nsOASISDSS, Local: "Timestamp"}) ||
+		abuelo.Local != "XMLTimeStamp" || !strings.HasPrefix(abuelo.Space, "http://uri.etsi.org/01903/") {
+		return false
+	}
+	for _, ascendiente := range pila[:len(pila)-2] {
+		if ascendiente == (xml.Name{Space: nsXMLDSig, Local: "Signature"}) {
+			return true
+		}
+	}
+	return false
 }
 
 // El envoltorio sólo sirve para interpretar los nombres de los campos de un
