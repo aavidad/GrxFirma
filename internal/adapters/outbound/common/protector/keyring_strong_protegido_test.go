@@ -16,12 +16,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"sync"
 	"testing"
 
+	"grxfirma/internal/adapters/outbound/common/keyringstore"
 	"grxfirma/internal/adapters/outbound/common/protector"
 	"grxfirma/internal/domain"
 )
@@ -31,6 +33,8 @@ type almacenMemoria struct {
 	mu        sync.Mutex
 	datos     map[string][]byte
 	fallaTodo bool
+	// fallaStore simula un almacén que se puede leer pero no guardar.
+	fallaStore bool
 }
 
 func nuevoAlmacenMemoria() *almacenMemoria {
@@ -40,7 +44,7 @@ func nuevoAlmacenMemoria() *almacenMemoria {
 func (a *almacenMemoria) Store(_ context.Context, key string, value []byte) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if a.fallaTodo {
+	if a.fallaTodo || a.fallaStore {
 		return errors.New("Secret Service no disponible")
 	}
 	a.datos[key] = append([]byte(nil), value...)
@@ -55,7 +59,8 @@ func (a *almacenMemoria) Load(_ context.Context, key string) ([]byte, error) {
 	}
 	value, ok := a.datos[key]
 	if !ok {
-		return nil, errors.New("no encontrado")
+		// Como el almacén real: «no está» se distingue de «no responde».
+		return nil, fmt.Errorf("%w: %q", keyringstore.ErrNoEncontrado, key)
 	}
 	return append([]byte(nil), value...), nil
 }
@@ -192,39 +197,5 @@ func TestLocalStrongKeyring_MigraIdentidadEnClaro(t *testing.T) {
 	unprotected, err := engine.Unprotect(ctx, protected.Document, keys)
 	if err != nil || string(unprotected.Document.Content) != string(doc.Content) {
 		t.Fatalf("Unprotect() = %v; contenido %q", err, unprotected.Document.Content)
-	}
-}
-
-func TestLocalStrongKeyring_SinAlmacenSeguroNoUsaNiCreaClaveEnClaro(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	cfg, data := t.TempDir(), t.TempDir()
-	almacen := nuevoAlmacenMemoria()
-	almacen.fallaTodo = true
-	keyring := protector.NuevoLocalStrongKeyring(cfg, data, almacen)
-
-	recipients, err := keyring.List(ctx)
-	if !errors.Is(err, protector.ErrAlmacenSeguroNoDisponible) || len(recipients) != 0 {
-		t.Fatalf("List() = %#v, %v; want ErrAlmacenSeguroNoDisponible", recipients, err)
-	}
-	if entries, _ := os.ReadDir(filepath.Join(data, "protection", "strong")); len(entries) != 0 {
-		t.Fatalf("se escribieron %d identidades sin almacén seguro", len(entries))
-	}
-
-	// Una identidad antigua no se usa ni se borra si no se puede proteger.
-	id, _, _, legacyPath := identidadAltoV1(t, filepath.Join(cfg, "protection", "strong"))
-	keys, err := keyring.DecryptionKeys(ctx, documentoDirigidoA(t, id))
-	if len(keys) != 0 || !errors.Is(err, protector.ErrAlmacenSeguroNoDisponible) {
-		t.Fatalf("DecryptionKeys() = %d claves, %v; want ninguna", len(keys), err)
-	}
-	if _, err := os.Stat(legacyPath); err != nil {
-		t.Fatalf("la identidad antigua debe quedar para migrarla después: %v", err)
-	}
-
-	// El keyring combinado sigue funcionando sin el perfil alto.
-	combined := &protector.LocalCombinedKeyring{Strong: keyring}
-	if _, err := combined.List(ctx); err != nil {
-		t.Fatalf("LocalCombinedKeyring.List() error = %v", err)
 	}
 }

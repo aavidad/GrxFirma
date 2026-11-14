@@ -50,6 +50,9 @@ func (uc *UnprotectDocumentUseCase) Ejecutar(ctx context.Context, cmd UnprotectC
 	if uc.engine == nil {
 		return UnprotectResult{}, errors.New("motor de proteccion no configurado")
 	}
+	// Recoge los avisos que anoten el keyring y el motor (p. ej. la clave del
+	// perfil alto guardada en fichero porque no hay almacén, lote 19).
+	ctx, avisos := domain.ConAvisosOperacion(ctx)
 	keys, err := uc.keys.DecryptionKeys(ctx, cmd.ProtectedDocument)
 	if err != nil {
 		uc.auditar(ctx, cmd, false, err)
@@ -79,6 +82,7 @@ func (uc *UnprotectDocumentUseCase) Ejecutar(ctx context.Context, cmd UnprotectC
 		uc.auditar(ctx, cmd, false, err)
 		return UnprotectResult{}, fmt.Errorf("no se pudo desproteger el documento: %w", err)
 	}
+	unprotected.Avisos = domain.UnirAvisos(unprotected.Avisos, avisos.Claves()...)
 	_ = uc.publicarEvento(ctx, "desproteccion_completada", unprotected.Document.Name)
 	uc.auditar(ctx, cmd, true, nil, unprotected.Detalles...)
 	return UnprotectResult{Unprotected: unprotected}, nil

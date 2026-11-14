@@ -527,7 +527,8 @@ Así el canal TLS local sigue funcionando; como la CA solo vale para servidor TL
 en `localhost`, quien lea esa clave no puede emitir certificados para otros
 nombres ni para firmar. Cuando aparece el almacén, GrxFirma pasa la clave a él
 y borra el fichero en claro sobrescribiéndolo. La identidad del perfil `alto`
-no tiene esta excepción: sin almacén no se crea.
+también sigue funcionando sin almacén, en cualquier sistema, con su clave en un
+fichero 0600 (ver la protección de documentos más abajo).
 
 Acciones sensibles expuestas en esa consola:
 
@@ -692,12 +693,18 @@ Estado actual:
   - contenedor CMS DER estándar `signedandenvelopeddata` de tipo `SignedAndEnvelopedData` (`.signedenveloped.p7m`) mediante la operación separada `proteger-firmando`
 - el perfil `alto` genera automáticamente una identidad local fuerte del usuario si todavía no existe.
   La clave privada se guarda en el almacén de secretos del sistema (Secret Service en
-  Linux, Llavero en macOS y Administrador de credenciales en Windows) y nunca en un
-  fichero. La parte pública va al directorio de datos locales (`~/.local/share/grxfirma`
-  o `%LOCALAPPDATA%\GrxFirma`), que no viaja con el perfil itinerante. Si el almacén no
-  está disponible, el perfil `alto` no se ofrece. Una identidad antigua guardada en
-  claro bajo `protection/strong` del directorio de configuración se pasa al almacén la
-  primera vez que se usa y el fichero antiguo se sobrescribe y se borra
+  Linux, Llavero en macOS y Administrador de credenciales en Windows). La parte pública
+  va al directorio de datos locales (`~/.local/share/grxfirma` o `%LOCALAPPDATA%\GrxFirma`),
+  que no viaja con el perfil itinerante. Una identidad antigua guardada en claro bajo
+  `protection/strong` del directorio de configuración se pasa al almacén la primera vez
+  que se usa y el fichero antiguo se sobrescribe y se borra. Si el almacén no está
+  disponible (Linux sin gnome-keyring ni kwallet, sesión sin llavero desbloqueado,
+  contenedores), el perfil `alto` sigue funcionando como en la 0.0.125: la clave se lee
+  de ese fichero antiguo, o la identidad nueva se crea en el mismo formato (fichero 0600
+  en un directorio 0700). Cada vez que se crea o se usa así, al proteger, desproteger o
+  exportar, el registro deja el evento `protector_strong_key_unprotected_file` y la
+  persona ve el aviso `proteccion.alto.sin_almacen.aviso` al desproteger. El fichero
+  solo se borra cuando la clave ya está en el almacén
 - los destinatarios se resuelven desde el catálogo local ya disponible
 - en `compat` solo se ofrecen certificados RSA que autorizan
   `KeyEncipherment` y cuya clave privada es realmente recuperable por el motor
