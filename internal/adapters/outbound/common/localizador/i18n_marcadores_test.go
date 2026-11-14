@@ -68,3 +68,16 @@ func TestI18nTraduccionesConservanMarcadores(t *testing.T) {
 		}
 	}
 }
+
+// TestI18nCLINoUsaMarcadoresConLlaves: la CLI formatea sus textos con fmt
+// (%s, %d), así que un «{0}» en una clave cli.* sale tal cual en pantalla
+// seguido de «%!(EXTRA ...)».
+func TestI18nCLINoUsaMarcadoresConLlaves(t *testing.T) {
+	for _, idioma := range idiomasI18n {
+		for clave, valor := range cargarLocale(t, idioma) {
+			if strings.HasPrefix(clave, "cli.") && len(marcadoresLlaves(valor)) > 0 {
+				t.Errorf("%s.json: %q usa marcadores con llaves en la CLI: %q", idioma, clave, valor)
+			}
+		}
+	}
+}

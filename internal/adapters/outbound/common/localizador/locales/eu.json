@@ -2835,7 +2835,7 @@
   ,"verify.forced_trust.cli.removed": "Kenduta. Sinadura horiek berriro baliogabeak dira."
   ,"cli.help.forced_trust": "  -listar-confianza-aceptada | -aceptar-confianza | -quitar-confianza-aceptada\n    GrxFirmak baliozkotzat jotzen ez dituen arren ordenagailu honetan onartzen dituzun sinadurak: CA ezezaguna, RSA gako laburra, zerbitzari-ziurtagiria, egiaztatu gabeko errebokazioa edo SHA-1.\n    -aceptar-confianza -entrada <sinadura> [-tipo-confianza <kasua>] [-acepto-el-aviso]\n    -quitar-confianza-aceptada -tipo-confianza <kasua> [-huella <sha256>]"
   ,"cli.help.web_signing_program": "  -ver-programa-firma-web | -elegir-programa-firma-web <grxfirma|autofirma|preguntar>\n    Webguneek eskatzen dituzten sinadurak irekitzen dituen programa (afirma:// estekak). «preguntar» aukerarekin, GrxFirmak sinadura bakoitzean galdetzen du; AutoFirma instalatuta egon behar da. Ordenagailuaren politikak finkatzen badu, ezin da aldatu."
-  ,"cli.web_signing.autofirma_at": "AutoFirma hemen instalatuta: {0}"
+  ,"cli.web_signing.autofirma_at": "AutoFirma hemen instalatuta: %s"
   ,"cli.web_signing.autofirma_missing": "AutoFirma ez dago ordenagailu honetan instalatuta; GrxFirma bakarrik aukera daiteke."
   ,"cli.web_signing.invalid": "Balio baliogabea. Erabili grxfirma, autofirma edo preguntar."
   ,"verify.forced_trust.ui.accept_button": "Onartu ordenagailu honetan"

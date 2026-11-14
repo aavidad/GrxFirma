@@ -2836,7 +2836,7 @@
   ,"verify.forced_trust.cli.removed": "Llevat. Estes firmes tornen a eixir no vàlides."
   ,"cli.help.forced_trust": "  -listar-confianza-aceptada | -aceptar-confianza | -quitar-confianza-aceptada\n    Firmes que acceptes en este equip encara que GrxFirma no les done per vàlides: CA desconeguda, clau RSA curta, certificat de servidor, revocació sense comprovar o SHA-1.\n    -aceptar-confianza -entrada <firma> [-tipo-confianza <cas>] [-acepto-el-aviso]\n    -quitar-confianza-aceptada -tipo-confianza <cas> [-huella <sha256>]"
   ,"cli.help.web_signing_program": "  -ver-programa-firma-web | -elegir-programa-firma-web <grxfirma|autofirma|preguntar>\n    Programa que obri les signatures que demanen els webs (enllaços afirma://). Amb «preguntar», GrxFirma pregunta en cada signatura; cal tindre AutoFirma instal·lat. Si ho fixa la política de l'equip, no es pot canviar."
-  ,"cli.web_signing.autofirma_at": "AutoFirma instal·lat en: {0}"
+  ,"cli.web_signing.autofirma_at": "AutoFirma instal·lat en: %s"
   ,"cli.web_signing.autofirma_missing": "AutoFirma no està instal·lat en este equip; només es pot triar GrxFirma."
   ,"cli.web_signing.invalid": "Valor no vàlid. Utilitzeu grxfirma, autofirma o preguntar."
   ,"verify.forced_trust.ui.accept_button": "Acceptar en este equip"

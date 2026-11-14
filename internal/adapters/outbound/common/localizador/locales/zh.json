@@ -2836,7 +2836,7 @@
   ,"verify.forced_trust.cli.removed": "已移除。这些签名将再次显示为无效。"
   ,"cli.help.forced_trust": "  -listar-confianza-aceptada | -aceptar-confianza | -quitar-confianza-aceptada\n    即使 GrxFirma 不认为有效、你仍在此计算机上接受的签名：未知 CA、短 RSA 密钥、服务器证书、未检查的吊销状态或 SHA-1。\n    -aceptar-confianza -entrada <签名> [-tipo-confianza <情况>] [-acepto-el-aviso]\n    -quitar-confianza-aceptada -tipo-confianza <情况> [-huella <sha256>]"
   ,"cli.help.web_signing_program": "  -web-signing-program | -set-web-signing-program <grxfirma|autofirma|preguntar>\n    打开网站所请求签名（afirma:// 链接）的程序。选择 \"preguntar\" 时，GrxFirma 在每次签名时询问；需要已安装 AutoFirma。如由计算机策略设定，则无法更改。"
-  ,"cli.web_signing.autofirma_at": "AutoFirma 安装位置：{0}"
+  ,"cli.web_signing.autofirma_at": "AutoFirma 安装位置：%s"
   ,"cli.web_signing.autofirma_missing": "此电脑未安装 AutoFirma；只能选择 GrxFirma。"
   ,"cli.web_signing.invalid": "值无效。请使用 grxfirma、autofirma 或 preguntar。"
   ,"verify.forced_trust.ui.accept_button": "在此计算机上接受"

@@ -2836,7 +2836,7 @@
   ,"verify.forced_trust.cli.removed": "Retiré. Ces signatures apparaissent de nouveau non valides."
   ,"cli.help.forced_trust": "  -listar-confianza-aceptada | -aceptar-confianza | -quitar-confianza-aceptada\n    Signatures que vous acceptez sur cet ordinateur même si GrxFirma ne les considère pas comme valides : AC inconnue, clé RSA courte, certificat de serveur, révocation non vérifiée ou SHA-1.\n    -aceptar-confianza -entrada <signature> [-tipo-confianza <cas>] [-acepto-el-aviso]\n    -quitar-confianza-aceptada -tipo-confianza <cas> [-huella <sha256>]"
   ,"cli.help.web_signing_program": "  -web-signing-program | -set-web-signing-program <grxfirma|autofirma|preguntar>\n    Programme qui ouvre les signatures demandées par les sites web (liens afirma://). Avec « preguntar », GrxFirma demande à chaque signature ; AutoFirma doit être installé. Si la stratégie de l'ordinateur le fixe, il ne peut pas être modifié."
-  ,"cli.web_signing.autofirma_at": "AutoFirma installé dans : {0}"
+  ,"cli.web_signing.autofirma_at": "AutoFirma installé dans : %s"
   ,"cli.web_signing.autofirma_missing": "AutoFirma n'est pas installé sur cet ordinateur ; seul GrxFirma peut être choisi."
   ,"cli.web_signing.invalid": "Valeur non valide. Utilisez grxfirma, autofirma ou preguntar."
   ,"verify.forced_trust.ui.accept_button": "Accepter sur cet ordinateur"
