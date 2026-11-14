@@ -99,14 +99,25 @@ func (m *Manejador) leerOriginalCofirmaIPC(ruta, accion string) ([]byte, error) 
 	return contenido, nil
 }
 
-// mensajeErrorCofirmaOriginal traduce los errores del cotejo con el original
-// a sus claves de catálogo; los demás errores se devuelven como siempre.
-func (m *Manejador) mensajeErrorCofirmaOriginal(err error) string {
+// Códigos estables del fallo del cotejo, para que WinUI explique el motivo
+// con su catálogo sin leer el texto del error.
+const (
+	codigoCofirmaOriginalNoCorresponde = "cosign_original_mismatch"
+	codigoCofirmaOriginalSHA1Prohibido = "cosign_original_sha1_forbidden"
+)
+
+// respuestaErrorFirma traduce los errores del cotejo con el original a sus
+// claves de catálogo y a un código estable; los demás errores se devuelven
+// como siempre.
+func (m *Manejador) respuestaErrorFirma(err error) respuesta {
+	resp := respuesta{OK: false, Action: "sign", Error: err.Error()}
 	switch {
 	case errors.Is(err, signer.ErrCotejoSHA1Prohibido):
-		return m.t("firma.sha1_corresponde.prohibido")
+		resp.ErrorCode = codigoCofirmaOriginalSHA1Prohibido
+		resp.Error = m.t("firma.sha1_corresponde.prohibido")
 	case errors.Is(err, signer.ErrFirmaNoCorrespondeOriginal):
-		return m.t("firma.cofirma_sin_original.original_no_corresponde")
+		resp.ErrorCode = codigoCofirmaOriginalNoCorresponde
+		resp.Error = m.t("firma.cofirma_sin_original.original_no_corresponde")
 	}
-	return err.Error()
+	return resp
 }

@@ -275,6 +275,44 @@ public sealed class DesktopOperationsClientTests
         Assert.AreEqual(typeof(SignResult), call.DataType);
     }
 
+    // KD-03 (lote 17b): consulta previa a la cofirma y original opcional.
+    [TestMethod]
+    public async Task CosignOriginalCheck_SendsExactActionAndOriginalPathIsOptional()
+    {
+        var transport = new RecordingIpcClient();
+        var client = new DesktopOperationsClient(transport);
+        var parameters = new CosignOriginalCheckParameters
+        {
+            InputPath = "firma.csig",
+            Format = "cades",
+            Action = "cosign",
+        };
+
+        await client.CheckCosignOriginalAsync(parameters);
+
+        var call = transport.Calls.Single();
+        Assert.AreEqual("cosign_original_check", call.Action);
+        Assert.AreSame(parameters, call.Parameters);
+        Assert.AreEqual(typeof(CosignOriginalCheckParameters), call.ParametersType);
+        Assert.AreEqual(typeof(CosignOriginalCheckResult), call.DataType);
+
+        using var check = Serialize(parameters);
+        AssertPropertyNames(check.RootElement, "inputPath", "format", "action");
+        Assert.IsTrue(JsonSerializer.Deserialize<CosignOriginalCheckResult>(
+            "{\"needsOriginal\":true}", WireOptions)!.NeedsOriginal);
+
+        using var withOriginal = Serialize(NewSignParameters() with
+        {
+            Action = "cosign",
+            OriginalPath = "acta.pdf",
+        });
+        Assert.AreEqual(
+            "acta.pdf",
+            withOriginal.RootElement.GetProperty("originalPath").GetString());
+        using var withoutOriginal = Serialize(NewSignParameters());
+        Assert.IsFalse(withoutOriginal.RootElement.TryGetProperty("originalPath", out _));
+    }
+
     [TestMethod]
     public void RequestDtos_UseExactGoJsonNames()
     {

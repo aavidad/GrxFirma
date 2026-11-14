@@ -732,7 +732,7 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 	ctxFirma, recolector := domain.ConAvisosOperacion(ctx)
 	result, err := m.Firmar.Execute(ctxFirma, cmd)
 	if err != nil {
-		return respuesta{OK: false, Action: "sign", Error: m.mensajeErrorCofirmaOriginal(err)}
+		return m.respuestaErrorFirma(err)
 	}
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}

@@ -155,14 +155,22 @@ func TestFirmaIPCPasaElOriginalDeLaCofirma(t *testing.T) {
 	}
 
 	loc := localizador.Para("es")
-	for err, clave := range map[error]string{
-		fmt.Errorf("error durante la operacion de firma: %w", signer.ErrFirmaNoCorrespondeOriginal): "firma.cofirma_sin_original.original_no_corresponde",
-		fmt.Errorf("error durante la operacion de firma: %w", signer.ErrCotejoSHA1Prohibido):        "firma.sha1_corresponde.prohibido",
+	for _, caso := range []struct {
+		err           error
+		clave, codigo string
+	}{
+		{fmt.Errorf("error durante la operacion de firma: %w", signer.ErrFirmaNoCorrespondeOriginal),
+			"firma.cofirma_sin_original.original_no_corresponde", "cosign_original_mismatch"},
+		{fmt.Errorf("error durante la operacion de firma: %w", signer.ErrCotejoSHA1Prohibido),
+			"firma.sha1_corresponde.prohibido", "cosign_original_sha1_forbidden"},
 	} {
-		m := &Manejador{Firmar: &firmaQueGuardaOriginal{err: err}, Loc: loc, ultimosCerts: []domain.CertificateRef{{ID: "qa"}}}
+		m := &Manejador{Firmar: &firmaQueGuardaOriginal{err: caso.err}, Loc: loc, ultimosCerts: []domain.CertificateRef{{ID: "qa"}}}
 		resp := m.despachar(context.Background(), peticion("cosign"))
-		if resp.OK || resp.Error != loc.T(clave) || resp.Error == clave {
-			t.Fatalf("error = %q, want el texto de %s", resp.Error, clave)
+		if resp.OK || resp.Error != loc.T(caso.clave) || resp.Error == caso.clave {
+			t.Fatalf("error = %q, want el texto de %s", resp.Error, caso.clave)
+		}
+		if resp.ErrorCode != caso.codigo {
+			t.Fatalf("errorCode = %q, want %q", resp.ErrorCode, caso.codigo)
 		}
 	}
 }

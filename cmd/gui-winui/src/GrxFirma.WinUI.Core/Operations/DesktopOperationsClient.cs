@@ -32,6 +32,7 @@ public static class DesktopOperationActions
     public const string OpenCertificateManager =
         "open_certificate_manager";
     public const string Sign = "sign";
+    public const string CosignOriginalCheck = "cosign_original_check";
     public const string SignMultiCosign = "sign_multicosign";
     public const string SignBatch = "sign_batch";
     public const string Verify = "verify";
@@ -202,6 +203,23 @@ public sealed class DesktopOperationsClient
             ValidateCertificateOnlineParameters,
             CertificateOnlineValidationResult>(
                 DesktopOperationActions.ValidateCertificateOnline,
+                parameters,
+                cancellationToken);
+    }
+
+    /// <summary>
+    /// KD-03 (lote 17b): dice si la firma de entrada es una CAdES que no lleva
+    /// el documento dentro, para ofrecer el original antes de firmar.
+    /// </summary>
+    public Task<IpcCallResult<CosignOriginalCheckResult>> CheckCosignOriginalAsync(
+        CosignOriginalCheckParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        return _ipcClient.SendAsync<
+            CosignOriginalCheckParameters,
+            CosignOriginalCheckResult>(
+                DesktopOperationActions.CosignOriginalCheck,
                 parameters,
                 cancellationToken);
     }
