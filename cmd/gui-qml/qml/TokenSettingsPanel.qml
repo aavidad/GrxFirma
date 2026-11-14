@@ -115,7 +115,7 @@ GroupBox {
             text: panel.t("state") + ": " + panel.t("state_" + (["missing", "disabled", "configured", "invalid", "unavailable"].indexOf(panel.snapshot.state) >= 0 ? panel.snapshot.state : "unavailable"))
             wrapMode: Text.Wrap; textFormat: Text.PlainText
         }
-        Label { Layout.fillWidth: true; visible: panel.loaded && panel.snapshot.available && !panel.snapshot.editable; text: panel.t("readonly"); wrapMode: Text.Wrap }
+        Label { textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.loaded && panel.snapshot.available && !panel.snapshot.editable; text: panel.t("readonly"); wrapMode: Text.Wrap }
         Flow {
             Layout.fillWidth: true; spacing: 8
             ThemedButton {
@@ -139,7 +139,7 @@ GroupBox {
                 Layout.fillWidth: true
                 Layout.minimumHeight: 44
                 text: panel.t("enable"); checked: panel.draftEnabled; enabled: panel.canEdit
-                contentItem: Label { text: enableCheck.text; leftPadding: enableCheck.indicator.width + enableCheck.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter }
+                contentItem: Label { textFormat: Text.PlainText; text: enableCheck.text; leftPadding: enableCheck.indicator.width + enableCheck.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter }
                 onClicked: { panel.draftEnabled = checked; panel.dirty = true }
             }
             HelpButton {
@@ -173,9 +173,9 @@ GroupBox {
                 onClicked: { confirmation.checked = false; replaceConfirmation.checked = false; saveDialog.open() }
             }
         }
-        Label { Layout.fillWidth: true; visible: panel.dirty; text: panel.t("draft"); wrapMode: Text.Wrap }
-        Label { Layout.fillWidth: true; visible: panel.snapshot.restartRequired === true; text: panel.t("restart"); wrapMode: Text.Wrap }
-        Label { Layout.fillWidth: true; visible: panel.snapshot.warning === "durability_unconfirmed"; text: panel.t("durability"); wrapMode: Text.Wrap }
+        Label { textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.dirty; text: panel.t("draft"); wrapMode: Text.Wrap }
+        Label { textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.snapshot.restartRequired === true; text: panel.t("restart"); wrapMode: Text.Wrap }
+        Label { textFormat: Text.PlainText; Layout.fillWidth: true; visible: panel.snapshot.warning === "durability_unconfirmed"; text: panel.t("durability"); wrapMode: Text.Wrap }
         Label { Layout.fillWidth: true; visible: panel.message !== ""; text: panel.message; wrapMode: Text.Wrap; textFormat: Text.PlainText; Accessible.name: text }
     }
 
@@ -201,7 +201,7 @@ GroupBox {
             standardButton(Dialog.Ok).implicitHeight = 44
             standardButton(Dialog.Cancel).implicitHeight = 44
         }
-        contentItem: Label { text: panel.t("discard"); wrapMode: Text.Wrap }
+        contentItem: Label { textFormat: Text.PlainText; text: panel.t("discard"); wrapMode: Text.Wrap }
         onAccepted: panel.load()
     }
     ThemedDialog {
@@ -229,11 +229,11 @@ GroupBox {
             contentWidth: availableWidth
             ColumnLayout {
                 width: saveDialog.availableWidth
-                Label { Layout.fillWidth: true; text: panel.t("driver_warning") + "\n" + panel.t("restart"); wrapMode: Text.Wrap }
+                Label { textFormat: Text.PlainText; Layout.fillWidth: true; text: panel.t("driver_warning") + "\n" + panel.t("restart"); wrapMode: Text.Wrap }
                 Label { Layout.fillWidth: true; text: panel.t("enable") + ": " + panel.t(panel.draftEnabled ? "state_configured" : "state_disabled"); wrapMode: Text.Wrap }
                 Repeater { model: panel.modules; Label { required property var modelData; Layout.fillWidth: true; text: modelData.path; wrapMode: Text.WrapAnywhere; textFormat: Text.PlainText } }
-                ThemedCheckBox { id: confirmation; objectName: "tokenSettingsConfirmation"; Layout.fillWidth: true; text: panel.t("confirm"); contentItem: Label { text: confirmation.text; leftPadding: confirmation.indicator.width + confirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
-                ThemedCheckBox { id: replaceConfirmation; objectName: "tokenSettingsReplaceConfirmation"; visible: panel.snapshot.state === "invalid"; Layout.fillWidth: true; text: panel.t("replace_invalid"); contentItem: Label { text: replaceConfirmation.text; leftPadding: replaceConfirmation.indicator.width + replaceConfirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
+                ThemedCheckBox { id: confirmation; objectName: "tokenSettingsConfirmation"; Layout.fillWidth: true; text: panel.t("confirm"); contentItem: Label { textFormat: Text.PlainText; text: confirmation.text; leftPadding: confirmation.indicator.width + confirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
+                ThemedCheckBox { id: replaceConfirmation; objectName: "tokenSettingsReplaceConfirmation"; visible: panel.snapshot.state === "invalid"; Layout.fillWidth: true; text: panel.t("replace_invalid"); contentItem: Label { textFormat: Text.PlainText; text: replaceConfirmation.text; leftPadding: replaceConfirmation.indicator.width + replaceConfirmation.spacing; wrapMode: Text.Wrap; verticalAlignment: Text.AlignVCenter } }
             }
         }
     }

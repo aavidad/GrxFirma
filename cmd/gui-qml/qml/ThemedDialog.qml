@@ -86,6 +86,7 @@ Dialog {
             Accessible.role: Accessible.Heading
             Accessible.name: dialog.title
             width: parent.width
+            textFormat: Text.PlainText
             text: dialog.title
             color: dialog.theme.textColor
             padding: 12
@@ -108,6 +109,7 @@ Dialog {
                 radius: 4
             }
             contentItem: Text {
+                textFormat: Text.PlainText
                 text: button.text
                 font: button.font
                 color: button.down ? dialog.theme.cardColor : dialog.theme.textColor

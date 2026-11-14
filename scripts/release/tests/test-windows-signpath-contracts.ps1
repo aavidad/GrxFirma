@@ -369,4 +369,92 @@ Assert-Contains -Path $workflow -Expected @(
     '-Phase Complete'
 )
 
+# 5. JD-01: los PE ajenos sin firma se cotejan con el inventario versionado
+#    antes de preparar la ronda 1 (SignPath) o de firmar nada (PFX).
+. (Join-Path $releaseScripts 'windows-vendor-inventory.ps1')
+$inventoryRoot = Join-Path `
+    ([System.IO.Path]::GetTempPath()) `
+    ("grxfirma vendor inventory " + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Force -Path $inventoryRoot | Out-Null
+$previousEnforce = $env:GRXFIRMA_VENDOR_INVENTORY_ENFORCE
+try {
+    $env:GRXFIRMA_VENDOR_INVENTORY_ENFORCE = $null
+    $knownDll = Join-Path $inventoryRoot 'Qt6Core.dll'
+    $plantedDll = Join-Path $inventoryRoot 'Qt6Gui.dll'
+    [System.IO.File]::WriteAllBytes($knownDll, (New-FixturePe -Length 530))
+    [System.IO.File]::WriteAllBytes($plantedDll, (New-FixturePe -Length 540))
+    $knownHash = (Get-FileHash -LiteralPath $knownDll -Algorithm SHA256).Hash.ToLowerInvariant()
+    $plantedHash = (Get-FileHash -LiteralPath $plantedDll -Algorithm SHA256).Hash.ToLowerInvariant()
+    $inventoryPath = Join-Path $inventoryRoot 'vendor-unsigned-pe.sha256'
+    Set-Content -LiteralPath $inventoryPath -Encoding UTF8 -Value @(
+        '# comentario',
+        '',
+        "$knownHash *Qt6Core.dll",
+        # Misma huella con otro nombre: no autoriza Qt6Gui.dll.
+        "$knownHash *Qt6Widgets.dll"
+    )
+    $files = @((Get-Item -LiteralPath $knownDll), (Get-Item -LiteralPath $plantedDll))
+
+    $misses = @(Get-WindowsVendorInventoryMisses `
+        -Files $files `
+        -Inventory (Read-WindowsVendorInventory -Path $inventoryPath))
+    Assert-True (
+        $misses.Count -eq 1 -and $misses[0].Name -eq 'Qt6Gui.dll' -and $misses[0].Sha256 -eq $plantedHash
+    ) "El inventario no separa el PE conocido del plantado."
+
+    # Fase de aviso: no falla, pero deja la huella en el resumen del job.
+    $summary = Join-Path $inventoryRoot 'summary.md'
+    $warned = @(Invoke-WindowsVendorInventoryCheck `
+        -Files $files -InventoryPath $inventoryPath -SummaryPath $summary 3>$null)
+    Assert-True ($warned.Count -eq 1) "El aviso no devuelve el PE fuera del inventario."
+    Assert-True (
+        (Get-Content -LiteralPath $summary -Raw).Contains("$plantedHash *Qt6Gui.dll")
+    ) "El resumen del job no lista la huella del PE fuera del inventario."
+
+    # Con el interruptor (parametro o variable de entorno) falla.
+    Assert-Rejects {
+        Invoke-WindowsVendorInventoryCheck `
+            -Files $files -InventoryPath $inventoryPath -SummaryPath $summary -Enforce 3>$null
+    } "Con -Enforce se acepto un PE ajeno fuera del inventario."
+    $env:GRXFIRMA_VENDOR_INVENTORY_ENFORCE = '1'
+    Assert-Rejects {
+        Invoke-WindowsVendorInventoryCheck `
+            -Files $files -InventoryPath $inventoryPath -SummaryPath $summary 3>$null
+    } "Con GRXFIRMA_VENDOR_INVENTORY_ENFORCE=1 se acepto un PE ajeno fuera del inventario."
+    $passed = @(Invoke-WindowsVendorInventoryCheck `
+        -Files @((Get-Item -LiteralPath $knownDll)) -InventoryPath $inventoryPath -SummaryPath $summary)
+    Assert-True ($passed.Count -eq 0) "Se rechazo un PE que si esta en el inventario."
+    $env:GRXFIRMA_VENDOR_INVENTORY_ENFORCE = $null
+
+    foreach ($badLine in @("$knownHash  Qt6Core.dll", "$knownHash *bin/Qt6Core.dll", "xyz *Qt6Core.dll")) {
+        Set-Content -LiteralPath $inventoryPath -Encoding UTF8 -Value $badLine
+        Assert-Rejects {
+            Read-WindowsVendorInventory -Path $inventoryPath
+        } "Se acepto una linea mal formada en el inventario: $badLine"
+    }
+    Assert-Rejects {
+        Read-WindowsVendorInventory -Path (Join-Path $inventoryRoot 'no-existe.sha256')
+    } "Se acepto un inventario que no existe."
+} finally {
+    $env:GRXFIRMA_VENDOR_INVENTORY_ENFORCE = $previousEnforce
+    Remove-Item -LiteralPath $inventoryRoot -Recurse -Force
+}
+
+# El inventario versionado se lee sin errores.
+[void](Read-WindowsVendorInventory -Path (Get-WindowsVendorInventoryPath -RepositoryRoot $repositoryRoot))
+
+# SignPath: el cotejo va antes de crear la ronda 1; PFX: antes de firmar.
+$prepareOffset = $finalizerContent.IndexOf("'Prepare' {")
+$inventoryOffset = $finalizerContent.IndexOf('Invoke-WindowsVendorInventoryCheck', $prepareOffset)
+$round1Offset = $finalizerContent.IndexOf('New-Item -ItemType Directory -Force -Path $directory', $prepareOffset)
+Assert-True (
+    $prepareOffset -ge 0 -and $inventoryOffset -gt $prepareOffset -and $round1Offset -gt $inventoryOffset
+) "Prepare debe cotejar el inventario antes de crear round1-unsigned."
+$pfxContent = Get-Content -LiteralPath (Join-Path $releaseScripts 'finalize-windows-release.ps1') -Raw
+$pfxInventoryOffset = $pfxContent.IndexOf('Invoke-WindowsVendorInventoryCheck')
+$pfxSignOffset = $pfxContent.IndexOf('Invoke-WindowsAuthenticodeSign `')
+Assert-True (
+    $pfxInventoryOffset -ge 0 -and $pfxSignOffset -gt $pfxInventoryOffset
+) "La via PFX debe cotejar el inventario antes de firmar."
+
 Write-Output "Windows SignPath contract tests passed."

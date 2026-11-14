@@ -119,12 +119,14 @@ ColumnLayout {
     }
     Label {
         Layout.fillWidth: true
+        textFormat: Text.PlainText
         text: root.translate("paridad.lote3.eni.date_hint")
         color: root.mutedColor
         wrapMode: Text.WordWrap
     }
     Label {
         Layout.fillWidth: true
+        textFormat: Text.PlainText
         text: root.translate(root.timeLabelKey)
         color: root.textColor
         wrapMode: Text.WordWrap
@@ -144,6 +146,7 @@ ColumnLayout {
         }
         Label {
             Layout.fillWidth: true
+            textFormat: Text.PlainText
             text: root.translate("paridad.lote3.eni.time_hint")
             color: root.mutedColor
             wrapMode: Text.WordWrap
@@ -153,6 +156,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.invalid
         // El icono evita depender solo del color para reconocer el error.
+        textFormat: Text.PlainText
         text: root.invalid ? "⚠ " + root.translate(root.errorKey) : ""
         color: root.errorColor
         wrapMode: Text.WordWrap
@@ -198,6 +202,7 @@ ColumnLayout {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     color: root.textColor
+                    textFormat: Text.PlainText
                     text: calendar.locale.toString(new Date(calendar.year, calendar.month, 1), "MMMM yyyy")
                 }
                 ThemedButton {
@@ -212,6 +217,7 @@ ColumnLayout {
                 locale: calendar.locale
                 delegate: Label {
                     required property string shortName
+                    textFormat: Text.PlainText
                     text: shortName
                     color: root.mutedColor
                     horizontalAlignment: Text.AlignHCenter
@@ -258,6 +264,7 @@ ColumnLayout {
                     opacity: dayCell.month === calendar.month ? 1 : 0.6
                     Label {
                         anchors.centerIn: parent
+                        textFormat: Text.PlainText
                         text: dayCell.day
                         color: dayCell.keyFocus ? root.cardColor : root.textColor
                         font.bold: dayCell.chosen || dayCell.today

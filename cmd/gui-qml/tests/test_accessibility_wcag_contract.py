@@ -243,7 +243,9 @@ class RolesContract(ContractCase):
         status = MAIN[MAIN.index("id: statusMessageText"):]
         status = status[:status.index("\n            }\n")]
         self.assertIn("Accessible.role: Accessible.AlertMessage", status)
-        self.assertIn("ToolTip.visible: statusMessageText.truncated", status)
+        # LD-01: el mensaje completo sale en un PlainToolTip (texto plano).
+        self.assertIn("PlainToolTip {", status)
+        self.assertIn("visible: statusMessageText.truncated", status)
         self.assertInMain('text: window.currentOutputVerificationMessage')
         for name in ("EniValidatedField.qml", "EniDateField.qml"):
             with self.subTest(name=name):

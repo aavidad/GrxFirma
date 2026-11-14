@@ -7,7 +7,7 @@
 
 Fecha: 2026-03-18
 
-Última revisión: 2026-07-29
+Última revisión: 2026-11-14
 
 Estado: aceptado como principio arquitectónico
 
@@ -30,8 +30,9 @@ La APK actual:
 - permite escoger entrada y destino mediante SAF;
 - no declara un esquema `afirma://`, App Links ni `SEND_MULTIPLE`;
 - no devuelve todavía la firma a otra aplicación mediante `setResult()`;
-- no solicita `INTERNET` y, por tanto, no ejecuta protocolo trifásico ni
-  comprobaciones de revocación en línea.
+- pide `INTERNET` desde la 0.0.125, solo para las conexiones salientes que
+  abre el núcleo Go y que se describen en «Tráfico saliente»; no ejecuta
+  protocolo trifásico y, al verificar documentos recibidos, no sale a la red.
 
 Un intent explícito o una concesión de URI reducen la exposición, pero no
 justifican afirmar que cualquier custom scheme futuro sea exclusivo o
@@ -49,7 +50,7 @@ destinatario, límites y devolución del resultado en un ADR específico.
 | Logs | Nunca contienen documento, firma, PKCS#12 ni contraseña |
 | Sesión | Una identidad PKCS#12 en memoria; reemplazo, `clearSession()` o fin del proceso |
 | Capturas | `FLAG_SECURE` en producción |
-| Red | Sin permiso `INTERNET` y sin actualizador propio |
+| Red | `INTERNET` solo para las conexiones salientes del núcleo Go; ninguna escucha y ninguna descarga ni instalación de actualizaciones |
 
 ## Identidad y memoria
 
@@ -110,13 +111,44 @@ evalúa evidencias de revocación embebidas. Por ello la confianza se informa
 como desconocida y la pantalla nunca resume el resultado como «firma válida»
 global.
 
-## Tráfico saliente futuro
+## Tráfico saliente
 
-Un cliente trifásico HTTPS saliente no contradice por definición Zero Server,
-porque no crea un listener. Sin embargo, no forma parte de la APK Android
-actual: añadirlo exigiría permiso de red, política TLS, autenticación, modelo de
-amenazas, consentimiento y pruebas propias. Esta ADR no lo autoriza ni lo
-declara implementado.
+Zero Server prohíbe abrir puertos de escucha; las conexiones salientes están
+permitidas. La APK pide `INTERNET` y todas las conexiones las abre el núcleo
+Go; Kotlin no abre ninguna. Son estas:
+
+| Conexión | Cuándo | Quién elige el destino |
+|---|---|---|
+| TSA (sello de tiempo) | Al firmar con perfil T, LT o LTA y al probar la TSA en Preferencias | La persona, en Preferencias |
+| Evidencias LT/LTA (OCSP y CRL) | Al firmar con perfil LT o LTA | El certificado de la persona y su cadena |
+| OCSP/CRL del certificado | Solo cuando la persona lo pulsa | El certificado de la persona y su cadena |
+| Cotejo de un QR Veri*Factu con la AEAT | Solo cuando la persona lo pulsa | Fijo: host y ruta de la AEAT |
+| Consulta de versiones en GitHub | Solo cuando la persona lo pulsa; no descarga nada | Fijo: el repositorio oficial |
+
+La verificación de documentos recibidos no sale a la red: la revocación se
+limita a las evidencias embebidas.
+
+`usesCleartextTraffic=false` y el resto de la configuración de seguridad de red
+de Android solo valen para las bibliotecas de red de Java y Kotlin. El núcleo Go
+usa su propia pila y no los tiene en cuenta, así que no son un control de este
+tráfico. Las reglas las pone el núcleo: la URL de la TSA admite HTTP o HTTPS,
+sin credenciales ni fragmento, y la TSA no puede redirigir a otro origen; antes
+de incorporar el sello se comprueban su firma, la huella y el nonce. La TSA se
+admite por HTTP por compatibilidad con TSA públicas como la de la FNMT y con TSA
+internas; por ese canal solo viaja la huella del documento, no el documento.
+OCSP y CRL suelen ir por HTTP y llevan respuestas firmadas.
+
+¿Debe el núcleo Go limitar los destinos? Hoy no hace falta: cada destino es
+fijo, lo elige la persona o sale de su propio certificado, y ninguno viene de un
+documento recibido. Si algún día la verificación consulta en línea la
+revocación de certificados ajenos, esas URL las pondría un tercero y antes habrá
+que limitarlas en el núcleo (solo HTTP y HTTPS, sin direcciones de bucle local
+ni privadas y sin redirecciones a otro origen).
+
+Un cliente trifásico HTTPS saliente tampoco contradice Zero Server, porque no
+escucha. No forma parte de la APK actual: añadirlo exigiría política TLS,
+autenticación, modelo de amenazas, consentimiento y pruebas propias, y esta ADR
+no lo autoriza.
 
 ## Relación con escritorio
 
@@ -126,7 +158,8 @@ compatibilidad. No deben entrar en el camino mobile.
 ## Consecuencias
 
 - El producto Android mantiene una superficie local pequeña y no necesita
-  servicios de fondo ni permiso de red.
+  servicios de fondo. Pide `INTERNET` solo para las conexiones salientes
+  descritas en «Tráfico saliente».
 - La interoperabilidad web/app-a-app avanzada queda fuera hasta disponer de un
   protocolo explícito y verificable.
 - Las afirmaciones de Keystore, TEE, biometría o revocación en línea solo podrán

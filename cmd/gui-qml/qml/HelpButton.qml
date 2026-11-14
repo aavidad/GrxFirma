@@ -151,6 +151,7 @@ Button {
             border.width: 1.5
             Text {
                 anchors.centerIn: parent
+                textFormat: Text.PlainText
                 text: control.text
                 color: control.labelColor
                 font.bold: true
@@ -258,6 +259,7 @@ Button {
                     objectName: "helpTitle"
                     Layout.fillWidth: true
                     visible: control.title !== ""
+                    textFormat: Text.PlainText
                     text: control.title
                     color: helpPopup.textColor
                     font.bold: true
@@ -324,6 +326,7 @@ Button {
                                         Qt.callLater(function() { if (!control.activeFocus && !control.focusInsidePopup()) helpPopup.close() })
                                 }
                                 contentItem: Text {
+                                    textFormat: Text.PlainText
                                     text: moreButton.text
                                     color: helpPopup.textColor
                                     font.bold: true
@@ -344,6 +347,7 @@ Button {
                             objectName: "helpMoreText"
                             Layout.fillWidth: true
                             visible: entryItem.expanded
+                            textFormat: Text.PlainText
                             text: entryItem.modelData.more
                             color: helpPopup.textColor
                             wrapMode: Text.WordWrap

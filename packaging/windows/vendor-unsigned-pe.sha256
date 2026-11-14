@@ -1,0 +1,23 @@
+# Derechos de autor (C) 2026 Alberto Avidad Fernández.
+# Autoría: Alberto Avidad Fernández
+# Licencia: EUPL 1.2 o posterior
+# SPDX-License-Identifier: EUPL-1.2
+#
+# Inventario de los PE de terceros (DLL y EXE) que llegan sin firma de su
+# proveedor y que la publicación Windows firma con el certificado oficial,
+# por SignPath o con el PFX propio (JD-01). Una línea por fichero:
+#
+#   <sha256 en hexadecimal> *<nombre del fichero>
+#
+# Cómo se mantiene: la publicación lista en el resumen del job los PE que no
+# están aquí, ya con este formato. Antes de copiarlos, comprueba que salen de
+# la instalación oficial de Qt 6.7.3 (win64_msvc2019_64) o de la publicación
+# de WinUI de la misma versión, y revisa el diff en la revisión del cambio.
+# Si cambia la versión de Qt o de Windows App SDK, cambian las huellas.
+#
+# Mientras GRXFIRMA_VENDOR_INVENTORY_ENFORCE no valga "1" en release.yml, lo
+# que falte solo se avisa. Cuando el inventario esté completo, se pasa a "1"
+# y un PE fuera de esta lista detiene la publicación.
+#
+# PENDIENTE: el inventario está vacío. Se rellena con el resumen de la primera
+# publicación que pase por aquí.

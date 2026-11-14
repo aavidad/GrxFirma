@@ -43,7 +43,7 @@ if (-not $IsWindows) {
     throw "La firma Authenticode oficial requiere Windows."
 }
 
-foreach ($helperName in @('windows-authenticode.ps1', 'windows-suite-layout.ps1')) {
+foreach ($helperName in @('windows-authenticode.ps1', 'windows-suite-layout.ps1', 'windows-vendor-inventory.ps1')) {
     $helperPath = Join-Path $PSScriptRoot $helperName
     if (-not (Test-Path -LiteralPath $helperPath -PathType Leaf)) {
         throw "Falta $helperName."
@@ -258,6 +258,27 @@ function Get-PlanBuild {
 
 switch ($Phase) {
     'Prepare' {
+        # JD-01: antes de preparar la ronda 1, los PE ajenos sin firma que irían
+        # a SignPath se cotejan con el inventario versionado. Fuera de él: aviso
+        # en el resumen del job, o error con GRXFIRMA_VENDOR_INVENTORY_ENFORCE=1.
+        $unsignedVendorTargets = @()
+        foreach ($build in Get-ReleaseBuilds) {
+            if (-not (Test-Path -LiteralPath $build.Stage -PathType Container)) {
+                throw "Falta la etapa Windows que debe firmarse: $($build.Stage)"
+            }
+            $unsignedVendorTargets += @(
+                Get-WindowsUnsignedVendorTargets -SigningTargets @(
+                    Get-WindowsReleaseSigningTargets `
+                        -StageDirectory $build.Stage `
+                        -Suite:($build.Kind -eq 'suite')
+                )
+            )
+        }
+        Invoke-WindowsVendorInventoryCheck `
+            -Files $unsignedVendorTargets `
+            -InventoryPath (Get-WindowsVendorInventoryPath -RepositoryRoot $RepositoryRoot) |
+            Out-Null
+
         if (Test-Path -LiteralPath $WorkDirectory) {
             Remove-Item -LiteralPath $WorkDirectory -Recurse -Force
         }

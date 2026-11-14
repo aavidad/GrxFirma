@@ -137,6 +137,7 @@ Item {
                             }
 
                             Label {
+                                textFormat: Text.PlainText
                                 text: modelData.statusText || ""
                                 color: timeline.theme.textColor || "#ffffff"
                                 font.bold: true

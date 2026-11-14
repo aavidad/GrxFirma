@@ -187,7 +187,18 @@ C-07 y G-04), actualizada al llevar los arreglos a la 0.0.125.
 | Navegador | ID | Host nativo | Titular | Estado |
 |---|---|---|---|---|
 | Chromium | `pkefjandjcgdmhoonmhnllikibobijgg` | `io.github.aavidad.grxfirma`, `com.grxfirma.native` | Extensión oficial de GrxFirma | En uso |
-| Firefox | `grxfirma@aavidad.github.io` | `io.github.aavidad.grxfirma`, `com.grxfirma.native` | Extensión oficial de GrxFirma | Falta confirmar que el ID está reservado en AMO |
+| Firefox | `grxfirma@aavidad.github.io` | `io.github.aavidad.grxfirma`, `com.grxfirma.native` | Extensión oficial de GrxFirma | PENDIENTE: confirmar reserva en AMO |
+
+En Firefox, un ID con forma de correo pertenece a quien lo registra primero en
+AMO; no hace falta tener el dominio. Mientras no conste la reserva, otra
+persona podría registrar `grxfirma@aavidad.github.io`, obtener un XPI firmado y
+hablar con el host de todos los equipos con GrxFirma (hallazgo JD-02). Para
+cerrarlo hay que comprobar en AMO que el ID está en la cuenta del proyecto, la
+de `WEB_EXT_API_KEY` del job `build-firefox-extension`, con al menos una
+versión firmada. Si no lo está, se sube cuanto antes una versión sin listar
+desde esa cuenta. Al confirmarlo se cambia el estado de la fila.
+`TestCallerPolicyOnlyDocumentedIDs` (`cmd/nativehost`) falla si esta tabla y
+los ID integrados en el binario no coinciden.
 
 Además, el host acepta el ID que el instalador deja en
 `extensions/chromium/grxfirma-extension-chromium.id` y los que figuren en un

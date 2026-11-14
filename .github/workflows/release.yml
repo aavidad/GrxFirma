@@ -512,6 +512,10 @@ jobs:
       - build-firefox-extension
     env:
       WINDOWS_SIGNING_MODE: ${{ needs.release-policy.outputs.windows-signing-mode }}
+      # JD-01: "0" avisa en el resumen del job de los PE ajenos sin firma que no
+      # están en packaging/windows/vendor-unsigned-pe.sha256; "1" para la
+      # publicación. Pasar a "1" cuando el inventario esté completo.
+      GRXFIRMA_VENDOR_INVENTORY_ENFORCE: "0"
     steps:
       - name: Exigir una via de firma Windows conocida
         shell: pwsh
