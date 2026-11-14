@@ -409,9 +409,13 @@ func tokenDesdeRespuesta(r *respuestaToken) (*token, error) {
 		t.refresco = secmem.New(refresco)
 		secmem.Zeroize(refresco)
 	}
+	// expires_in es opcional (RFC 6749, 5.1). Sin él, o con un valor no
+	// positivo, el token dura lo máximo admitido y no lo que viva el proceso.
+	vida := maxVidaToken
 	if r.ExpiresIn > 0 {
-		t.caduca = time.Now().Add(duracionAcotada(r.ExpiresIn))
+		vida = duracionAcotada(r.ExpiresIn)
 	}
+	t.caduca = time.Now().Add(vida)
 	return t, nil
 }
 

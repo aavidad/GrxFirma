@@ -134,7 +134,8 @@ usa la autorización conjunta y sigue rechazando el OTP.
   endurecer (no es un `http.Transport`), no se conecta.
 - Cada petición tiene un tiempo máximo de 30 segundos y la espera del navegador,
   de 5 minutos. Las respuestas se cortan a 1 MiB y la vida de los tokens se
-  acota a 24 horas.
+  acota a 24 horas, también cuando el servicio no dice cuánto duran
+  (`expires_in` ausente o a cero).
 - El `state` OAuth es aleatorio y se compara en tiempo constante. Una petición
   con otro `state`, otra ruta, otro método u otro `Host` recibe un error y no
   cuenta: el receptor sigue esperando la buena hasta el tiempo máximo, de modo
