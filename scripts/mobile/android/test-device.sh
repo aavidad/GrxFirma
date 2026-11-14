@@ -23,5 +23,9 @@ fi
 
 (
     cd "$PROJECT_DIR"
-    ./gradlew --no-daemon connectedVerificationDebugAndroidTest
+    tasks=(connectedVerificationDebugAndroidTest)
+    if [[ "${RUN_ANDROID_PRODUCTION_TESTS:-0}" == "1" ]]; then
+        tasks+=(connectedProductionDebugAndroidTest)
+    fi
+    ./gradlew --no-daemon --no-configuration-cache "${tasks[@]}"
 )

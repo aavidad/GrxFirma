@@ -10,11 +10,13 @@ import io.github.aavidad.grxfirma.android.ui.DropdownField
 import androidx.test.core.app.ActivityScenario
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class DocumentsUiTest {
     /** La compilación de verificación no declara servicios: la sección se oculta y lo explica. */
     @Test fun documentToolsAreHiddenWithoutADeclaringCore() {
+        assumeTrue("solo la compilación de verificación carece de motor que declare servicios", BuildConfig.CORE_MODE == "verification")
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity {
                 assertEquals(View.GONE, it.findViewById<View>(R.id.verifactuRow).visibility)
@@ -27,10 +29,27 @@ class DocumentsUiTest {
 
     /** Sin AAR que los declare, el desplegable ofrece solo automático y los tres formatos básicos. */
     @Test fun signatureFormatsFollowTheContract() {
+        assumeTrue("solo la compilación de verificación carece de motor que declare formatos", BuildConfig.CORE_MODE == "verification")
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity {
                 val field = it.findViewById<DropdownField>(R.id.signatureFormat)
                 assertEquals(4, field.adapter.count)
+                assertEquals(it.getString(R.string.format_auto), field.adapter.getItem(0))
+                assertEquals(it.getString(R.string.format_auto), field.text.toString())
+            }
+        }
+    }
+
+    /** Con el motor de producción, que declara los servicios, las herramientas se ven y hay más formatos. */
+    @Test fun productionCoreShowsDocumentToolsAndFormats() {
+        assumeTrue("solo la compilación de producción lleva el motor completo", BuildConfig.CORE_MODE == "production")
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity {
+                assertEquals(View.VISIBLE, it.findViewById<View>(R.id.documentsSectionTitle).visibility)
+                assertEquals(View.VISIBLE, it.findViewById<View>(R.id.verifactuRow).visibility)
+                assertEquals(View.VISIBLE, it.findViewById<View>(R.id.eniRow).visibility)
+                val field = it.findViewById<DropdownField>(R.id.signatureFormat)
+                assertTrue(field.adapter.count > 4)
                 assertEquals(it.getString(R.string.format_auto), field.adapter.getItem(0))
                 assertEquals(it.getString(R.string.format_auto), field.text.toString())
             }

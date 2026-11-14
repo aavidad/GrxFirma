@@ -8,16 +8,16 @@
 
 # Distribución Android
 
-GrxFirma para Android se publica por tres canales: GitHub Releases (APK firmado
-por el proyecto), F-Droid (APK compilado y firmado por F-Droid) y Google Play
-(AAB firmado por el proyecto y redistribuido por Google). Todo lo que depende
-del código ya está en el repositorio. Al responsable le queda crear la clave,
-dar de alta los secretos, abrir las cuentas y subir.
+La distribución de GrxFirma para Android está preparada para GitHub Releases
+(APK firmado por el proyecto), F-Droid (APK compilado y firmado por F-Droid) y
+Google Play (AAB firmado por el proyecto y redistribuido por Google). A fecha
+de 14 de noviembre de 2026 no hay paquete Android público. Queda decidir la custodia de la
+clave oficial, dar de alta los secretos, abrir las cuentas y publicar.
 
 | Canal | Qué se sube | Quién firma | Qué falta |
 | --- | --- | --- | --- |
 | GitHub Releases | APK de `release.yml` | Clave del proyecto | Clave y secretos ([CERTIFICADOS.md](CERTIFICADOS.md#c-clave-de-firma-de-android)) |
-| F-Droid | Receta en `fdroiddata` | F-Droid | Etiqueta `vX.Y.Z` y merge request |
+| F-Droid | Receta en `fdroiddata` | F-Droid | Comprobar compilación de `0.0.127` y preparar merge request |
 | Google Play | AAB de `release.yml` | Clave del proyecto (subida) y Google (distribución) | Cuenta, ficha, formularios y prueba cerrada |
 
 Un móvil no puede actualizar una app instalada desde un canal con un APK de
@@ -111,9 +111,15 @@ La receta está en [packaging/fdroid/io.github.aavidad.grxfirma.yml](../../packa
 y se copia tal cual a `metadata/io.github.aavidad.grxfirma.yml` de
 [fdroiddata](https://gitlab.com/fdroid/fdroiddata). Hace esto:
 
-- Descarga Go 1.26.8 de go.dev y comprueba su SHA-256 antes de usarlo. Instala
-  la plataforma 36 y las Build Tools 36.0.0 del SDK y usa el NDK r28c
-  (28.2.13676358), las mismas versiones que `install-toolchain.sh`.
+- Fija la versión publicada `0.0.127`, `versionCode=127`, etiqueta `0.0.127`,
+  commit `b8902d63bf7b110bb7777a38f4e5af43c54b371c`. No incorpora los cambios
+  posteriores de la rama local.
+- Descarga Go 1.26.11 de go.dev y comprueba su SHA-256 antes de usarlo:
+  `9849f4e04ee35303714e34fbc3ac8ab44ea3e448a95aa182f91e3b9b79c710ec`
+  para Linux amd64, publicado en [las descargas oficiales](https://go.dev/dl/).
+  La etiqueta exige `go 1.26.11`: Go 1.26.8 con `GOTOOLCHAIN=local` abortaría.
+  Instala la plataforma 36 y las Build Tools 36.0.0 del SDK y usa el NDK r28c
+  (28.2.13676358).
 - Compila el AAR desde el código con `build-core-aar.sh` (gomobile fijado por
   revisión) y después `assembleProductionRelease`. No usa ningún binario
   precompilado del proyecto.
@@ -133,26 +139,78 @@ y se copia tal cual a `metadata/io.github.aavidad.grxfirma.yml` de
   `subdir` de la compilación).
 
 El `versionCode` se calcula en Gradle a partir de `VERSION.txt`
-(`mayor*1000000 + menor*1000 + parche`): 0.0.124 da 124. Como no es un literal,
-la receta lo lee con `UpdateCheckData` y la expresión `^0\.0\.(\d+)`, que solo
-vale para 0.0.x. Cuando la versión pase a 0.1.0 o superior, hay que cambiar esa
-línea en `fdroiddata` (por ejemplo, capturar el número completo desde un
-fichero que lo contenga). Mientras no se cambie, checkupdates no propondrá
-versiones nuevas, pero tampoco una equivocada.
+(`mayor*1000000 + menor*1000 + parche`): 0.0.127 da 127; 0.1.0 da 1000;
+1.0.0 da 1000000. `checkupdates` solo extrae un entero con una expresión
+regular y no ejecuta Gradle. Por eso las próximas versiones deben actualizar
+también `mobile/android/fdroid-version.properties`, cuyo `versionCode` completo
+lee `UpdateCheckData`. Las pruebas de `scripts/mobile/android/tests` comprueban
+su correspondencia con `VERSION.txt`. No basta con ensanchar la expresión de
+la versión: capturar `0.1.0` como código no produciría un entero válido.
 
-Con `AutoUpdateMode: Version` y `UpdateCheckMode: Tags ^v\d+\.\d+\.\d+$`, el
-robot de F-Droid detecta cada etiqueta nueva y añade la compilación sin
-intervención. Por eso cada versión necesita su etiqueta `vX.Y.Z` en GitHub
-sobre el commit de `VERSION.txt` correspondiente.
+`AutoUpdateMode: Version` conserva el mecanismo de actualización. El filtro
+de etiquetas admite `X.Y.Z` y `vX.Y.Z`, sin ceros iniciales, sufijos, prefijos
+adicionales ni versiones de prueba. El formato de `UpdateCheckData` tiene
+cuatro campos separados por `|`, como explica la
+[referencia de F-Droid](https://f-droid.org/docs/Build_Metadata_Reference/#UpdateCheckData).
+La etiqueta publicada 0.0.127 no contiene el nuevo fichero: `checkupdates`
+la omitirá, pero su bloque `Builds` ya está fijado explícitamente. El fichero
+debe incluirse en las siguientes etiquetas para que se detecten automáticamente;
+no se añade ni modifica nada en la etiqueta publicada.
 
 ### Reproducibilidad comprobada
 
-Con el código de 0.0.124 se hicieron dos compilaciones F-Droid sin firma
-(`GRXFIRMA_FDROID_BUILD=1`, `SOURCE_DATE_EPOCH` del commit, `TZ=UTC`) y dos
-compilaciones independientes del AAR. Los dos APK salieron idénticos byte a
-byte y los dos AAR también (`dc8b0e6f…`). El APK contiene `versionCode=124`,
-`versionName=0.0.124`, las ABI `arm64-v8a`, `armeabi-v7a` y `x86_64`, y no
-lleva el bloque de dependencias cifrado de AGP (`includeInApk = false`).
+El registro anterior describía dos APK y dos AAR idénticos de 0.0.124
+(AAR `dc8b0e6f…`). Esa comprobación histórica no acredita la versión 0.0.127.
+
+El 14 de noviembre de 2026 se compiló la receta desde un worktree sin modificar
+de la etiqueta `0.0.127` (`b8902d6`), con Go 1.26.11, JDK 17, SDK 36, Build
+Tools 36.0.0 y NDK 28.2.13676358, y las mismas variables que la receta
+(`GRXFIRMA_FDROID_BUILD=1`, `SOURCE_DATE_EPOCH` del commit, `TZ=UTC`):
+
+- Dos compilaciones del AAR con cachés de Go distintas salieron idénticas:
+  `3e9573dde81c43248bbd9f64ea87a54a2c96c7e74ab8cb252f447e6884f65e19`.
+- Dos `clean assembleProductionRelease` sin caché dieron el mismo APK sin firma,
+  byte a byte: `515a0f03c0f4ace285bd97bc7404d9ba1fb87f841e1e465e5b27aef2b2e83132`,
+  con `versionCode=127` y `versionName=0.0.127`.
+- El worktree de la etiqueta quedó limpio (`git status` vacío).
+
+En la rama posterior (`d2cfd55` más el lote 24) las pruebas unitarias e
+instrumentadas de las dos variantes pasan en el emulador `medium_phone`
+(Android 16): 71 en producción y 70 en verificación, sin fallos. Dos APK de
+producción sin firma de esa rama también salieron idénticos.
+`fdroid lint` y `fdroid build` no están instalados aquí; el YAML se valida con
+PyYAML y las expresiones de actualización con las pruebas de
+`scripts/mobile/android/tests`. Que compile aquí no garantiza que el escáner
+de F-Droid acepte la aplicación.
+
+Para completar la comprobación en un entorno con sockets y SDK disponibles,
+desde la raíz del checkout que se quiera verificar y con JDK 17, SDK 36,
+Build Tools 36.0.0, NDK 28.2.13676358 y Go 1.26.11:
+
+```bash
+export GOCACHE=/tmp/codex-gocache-24 GOFLAGS=-mod=mod
+export ANDROID_HOME="$HOME/Android/Sdk" ANDROID_SDK_ROOT="$HOME/Android/Sdk"
+export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+scripts/mobile/android/build-core-aar.sh /tmp/grxfirma-0.0.127.aar
+export GRXFIRMA_ANDROID_CORE_AAR=/tmp/grxfirma-0.0.127.aar
+export GRXFIRMA_ANDROID_CORE_SHA256="$(sha256sum "$GRXFIRMA_ANDROID_CORE_AAR" | cut -d ' ' -f1)"
+scripts/mobile/android/verify-unsigned-reproducibility.sh /tmp/grxfirma-apk-comparacion
+```
+
+El último script pertenece a esta rama; al comprobar la etiqueta publicada,
+se invocan desde su `mobile/android` las órdenes equivalentes de la receta:
+`GRXFIRMA_FDROID_BUILD=1`, `TZ=UTC`, `SOURCE_DATE_EPOCH` del commit,
+`GRXFIRMA_ANDROID_SOURCE_COMMIT` con el commit completo y dos ejecuciones de
+`./gradlew --no-daemon --no-configuration-cache --no-build-cache clean assembleProductionRelease`,
+copiando el primer APK fuera de `app/build` antes de la segunda ejecución.
+
+El arnés de esta rama conserva `first.apk`, `second.apk` y `SHA256SUMS.txt` en
+el directorio indicado, rechaza credenciales de firma y compara byte a byte.
+Cada pasada empieza con `clean` y desactiva las cachés de tareas y configuración;
+ambas enlazan el mismo AAR fijado por SHA-256. Para comprobar también el AAR,
+hay que ejecutar dos veces `build-core-aar.sh` a destinos distintos y compararlos.
+Si los APK difieren, ambos quedan disponibles para analizar sus entradas ZIP.
 
 Más adelante se puede pedir a F-Droid que publique el APK firmado por el
 proyecto si su compilación coincide con la de GitHub. Para eso se añaden a la
@@ -163,7 +221,7 @@ la compilación falla.
 
 ### Envío: merge request a fdroiddata
 
-1. Comprueba que existe en GitHub la etiqueta `v0.0.124` (o la versión que
+1. Comprueba que existe en GitHub la etiqueta `0.0.127` (o la versión que
    toque) y que `VERSION.txt` dice lo mismo en ese commit.
 2. Crea una cuenta en GitLab.com y haz un fork de
    <https://gitlab.com/fdroid/fdroiddata>.

@@ -32,15 +32,15 @@ RepoType: git
 Repo: https://github.com/aavidad/GrxFirma.git
 
 Builds:
-  - versionName: 0.0.124
-    versionCode: 124
-    commit: 08904f6974279acce063b7c3a3f3a7e32b12b16d
+  - versionName: 0.0.127
+    versionCode: 127
+    commit: b8902d63bf7b110bb7777a38f4e5af43c54b371c
     subdir: mobile/android
     sudo:
       - apt-get update
       - apt-get install -y curl python3
-      - curl -fsSL -o /tmp/go.tar.gz https://go.dev/dl/go1.26.8.linux-amd64.tar.gz
-      - echo 'd0f743b33e8d8945e6b1f432edd15785c70507121d6e2a723b21285eddf8b57b  /tmp/go.tar.gz'
+      - curl -fsSL -o /tmp/go.tar.gz https://go.dev/dl/go1.26.11.linux-amd64.tar.gz
+      - echo '9849f4e04ee35303714e34fbc3ac8ab44ea3e448a95aa182f91e3b9b79c710ec  /tmp/go.tar.gz'
         | sha256sum -c -
       - tar -C /opt -xzf /tmp/go.tar.gz
       - rm /tmp/go.tar.gz
@@ -62,15 +62,14 @@ Builds:
       - export GRXFIRMA_FDROID_BUILD=1
       - export SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)" TZ=UTC
       - cd mobile/android
-      - ./gradlew --no-daemon --no-configuration-cache clean assembleProductionRelease
+      - ./gradlew --no-daemon --no-configuration-cache --no-build-cache clean assembleProductionRelease
     ndk: r28c
 
 AutoUpdateMode: Version
-# El versionCode no es literal en Gradle: es mayor*1000000 + menor*1000 + parche
-# de VERSION.txt. La expresión solo casa con 0.0.x, donde versionCode = parche.
-# Al pasar a 0.1.0 o 1.0.0 deja de casar y checkupdates no propone nada: hay que
-# actualizarla a la vez (véase docs/distribucion/ANDROID.md).
-UpdateCheckMode: Tags ^v\d+\.\d+\.\d+$
-UpdateCheckData: VERSION.txt|^0\.0\.(\d+)\s*$|VERSION.txt|^(\d+\.\d+\.\d+)\s*$
-CurrentVersion: 0.0.124
-CurrentVersionCode: 124
+# checkupdates solo extrae un entero; no ejecuta la fórmula de Gradle.
+# El fichero se mantiene junto a VERSION.txt en las próximas etiquetas.
+# La 0.0.127 carece de él: su Build queda fijado arriba y no se modifica.
+UpdateCheckMode: Tags ^v?(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\Z
+UpdateCheckData: mobile/android/fdroid-version.properties|(?m)^versionCode=([0-9]+)\s*$|VERSION.txt|^([0-9]+\.[0-9]+\.[0-9]+)\s*$
+CurrentVersion: 0.0.127
+CurrentVersionCode: 127

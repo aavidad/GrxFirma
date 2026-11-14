@@ -29,6 +29,19 @@ python3 -m unittest discover -s "$SCRIPT_DIR/tests" -p 'test_*.py'
         assembleVerificationRelease
 )
 
+if [[ "${RUN_ANDROID_PRODUCTION_TESTS:-0}" == "1" ]]; then
+    (
+        cd "$PROJECT_DIR"
+        GRXFIRMA_FDROID_BUILD=1 ./gradlew --no-daemon --no-configuration-cache \
+            testProductionDebugUnitTest \
+            lintProductionDebug \
+            assembleProductionDebug \
+            assembleProductionDebugAndroidTest \
+            lintProductionRelease \
+            assembleProductionRelease
+    )
+fi
+
 if [[ "${RUN_ANDROID_DEVICE_TESTS:-0}" == "1" ]]; then
     "$SCRIPT_DIR/test-device.sh"
 fi
