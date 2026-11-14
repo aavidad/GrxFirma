@@ -12,6 +12,12 @@ data class SelectedFile(
     val displayName: String,
     val mimeType: String,
     val sizeBytes: Long?,
+    /**
+     * SHA-256 en hexadecimal de lo que se leyó al elegir el documento (H-06).
+     * Al firmar se compara con lo que se vuelve a leer. Null si aún no se ha
+     * leído o en ficheros que no se firman (certificados, lotes).
+     */
+    val sha256: String? = null,
 )
 
 data class LoadedFile(

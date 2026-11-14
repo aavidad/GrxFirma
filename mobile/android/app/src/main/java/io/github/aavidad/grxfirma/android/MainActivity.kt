@@ -52,6 +52,7 @@ import io.github.aavidad.grxfirma.android.nfc.DnieNfcSession
 import io.github.aavidad.grxfirma.android.seal.SealEditorDialog
 import io.github.aavidad.grxfirma.android.seal.SealPreferences
 import io.github.aavidad.grxfirma.android.seal.SealSettings
+import io.github.aavidad.grxfirma.android.files.DocumentFingerprint
 import io.github.aavidad.grxfirma.android.files.DocumentPolicy
 import io.github.aavidad.grxfirma.android.ui.AutoClose
 import io.github.aavidad.grxfirma.android.ui.MainUiState
@@ -1113,7 +1114,11 @@ class MainActivity : AppCompatActivity() {
         }
         backendStatusCard.setCardBackgroundColor(statusColor)
 
-        documentSummary.text = state.document?.summaryText() ?: getString(R.string.no_document)
+        documentSummary.text = state.document?.let { document ->
+            // H-06: el principio de la huella SHA-256 de lo que se leyó al elegirlo.
+            document.sha256?.let { getString(R.string.document_summary_fingerprint, document.summaryText(),
+                DocumentFingerprint.visiblePrefix(it)) } ?: document.summaryText()
+        } ?: getString(R.string.no_document)
         originalDocumentSummary.text = state.originalDocument?.summaryText()
             ?: getString(R.string.no_original_document)
         certificateFileSummary.text = state.certificateFile?.summaryText()

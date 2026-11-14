@@ -17,6 +17,7 @@ import io.github.aavidad.grxfirma.android.nfc.DnieErrors
 import io.github.aavidad.grxfirma.android.nfc.DnieNfcSession
 import io.github.aavidad.grxfirma.android.files.DocumentRepository
 import io.github.aavidad.grxfirma.android.files.DocumentPolicy
+import io.github.aavidad.grxfirma.android.files.DocumentFingerprint
 import io.github.aavidad.grxfirma.android.model.SignedOutput
 import io.github.aavidad.grxfirma.android.model.LoadedFile
 import io.github.aavidad.grxfirma.android.model.SignatureInspection
@@ -91,7 +92,7 @@ class MainViewModel(
                 DocumentPolicy.MAX_DOCUMENT_BYTES)
             mutableState.value = mutableState.value.copy(document = selected, result = OperationResult.Idle,
                 verification = null, postSignVerificationFailed = false, signatureAction = "sign", coSignSuggested = false, detectedSignatureFormat = "")
-            inspectExistingSignature(selected)
+            fingerprintAndInspect(selected)
         }
     }
 
@@ -406,7 +407,7 @@ class MainViewModel(
             return
         }
         launchOperation {
-            val loaded = repository.loadDocument(document)
+            val loaded = loadDocumentForSigning(document) ?: return@launchOperation
             try {
                 val effectiveFormat = if (format == "auto") when {
                     snapshot.signatureAction != "sign" && snapshot.detectedSignatureFormat.isNotBlank() -> snapshot.detectedSignatureFormat
@@ -532,16 +533,47 @@ class MainViewModel(
         mutableState.value = mutableState.value.copy(signatureAction = "cosign", coSignSuggested = false)
     }
 
-    private fun inspectExistingSignature(document: io.github.aavidad.grxfirma.android.model.SelectedFile) {
-        if (!core.readiness.available) return
+    /**
+     * H-06: lee el documento una vez al elegirlo, guarda su SHA-256 en la
+     * selección (la pantalla enseña el principio) y, con los mismos bytes,
+     * mira si ya está firmado. Al firmar se vuelve a leer y se compara.
+     */
+    private fun fingerprintAndInspect(document: io.github.aavidad.grxfirma.android.model.SelectedFile) {
         launchOperation(clearsResult = false) {
             val loaded = repository.loadDocument(document)
             try {
-                val inspection = try { core.inspectSignature(loaded) } catch (_: Exception) { SignatureInspection(false) }
-                mutableState.value = mutableState.value.copy(coSignSuggested = inspection.hasSignature,
+                val digest = DocumentFingerprint.sha256Hex(loaded.bytes)
+                val inspection = if (!core.readiness.available) null else
+                    try { core.inspectSignature(loaded) } catch (_: Exception) { SignatureInspection(false) }
+                val current = mutableState.value
+                // Si mientras tanto se eligió otro documento, este resultado ya no vale.
+                if (current.document !== document) return@launchOperation
+                val fingerprinted = document.copy(sha256 = digest)
+                mutableState.value = if (inspection == null) current.copy(document = fingerprinted)
+                else current.copy(document = fingerprinted, coSignSuggested = inspection.hasSignature,
                     detectedSignatureFormat = inspection.format)
             } finally { loaded.bytes.fill(0) }
         }
+    }
+
+    /**
+     * Lee el documento que se va a firmar y comprueba que es el mismo que se
+     * eligió. Si el proveedor devuelve otro contenido (o no se pudo leer al
+     * elegirlo), devuelve null sin llamar al núcleo y deja el error en pantalla.
+     */
+    private fun loadDocumentForSigning(document: io.github.aavidad.grxfirma.android.model.SelectedFile): LoadedFile? {
+        val expected = document.sha256
+        if (expected == null) {
+            setError(UiText.Resource(R.string.error_document_not_read))
+            return null
+        }
+        val loaded = repository.loadDocument(document)
+        if (!DocumentFingerprint.matches(expected, loaded.bytes)) {
+            loaded.bytes.fill(0)
+            setError(UiText.Resource(R.string.error_document_changed))
+            return null
+        }
+        return loaded
     }
 
     /** [printable] guarda el informe HTML de escritorio en lugar del JSON técnico. */
@@ -816,7 +848,9 @@ class MainViewModel(
         val key = if (snapshot.usesTransientKey) secret else { secret.fill('\u0000'); null }
         launchOperation(onFinished = { key?.fill('\u0000') }) {
             val loadedRecipients = ArrayList<ByteArray>()
-            val loaded = repository.loadDocument(document)
+            // Proteger y firmar firma el documento: tiene que ser el que se eligió (H-06).
+            val loaded = if (sign) loadDocumentForSigning(document) ?: return@launchOperation
+                else repository.loadDocument(document)
             try {
                 if (!snapshot.usesTransientKey) for (recipient in snapshot.recipients) {
                     val file = repository.loadCertificate(recipient)

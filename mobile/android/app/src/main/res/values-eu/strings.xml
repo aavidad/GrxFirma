@@ -18,6 +18,7 @@
     <string name="select_document">Hautatu dokumentua</string>
     <string name="no_document">Ez da dokumenturik hautatu</string>
     <string name="document_summary">%1$s · %2$s · %3$s</string>
+    <string name="document_summary_fingerprint">%1$s\nSHA-256 hatz-marka: %2$s…</string>
     <string name="original_document_helper">CAdES moduko sinadura bereizia egiaztatzeko, hautatu jatorrizko dokumentua ere. Utzi hutsik sinadurak dokumentua badakar.</string>
     <string name="select_original_document">Gehitu jatorrizko dokumentua</string>
     <string name="no_original_document">Ez da jatorrizko dokumenturik hautatu (aukerakoa)</string>
@@ -130,6 +131,8 @@
     <string name="retry_save">Saiatu berriro gordetzen</string>
     <string name="discard_pending_output">Baztertu sinadura</string>
     <string name="error_document_required">Hautatu lehenik dokumentu bat.</string>
+    <string name="error_document_changed">Dokumentua aldatu egin da hautatu zenuenetik. Hauta ezazu berriro.</string>
+    <string name="error_document_not_read">Ezin izan da dokumentua irakurri hautatzean. Hauta ezazu berriro.</string>
     <string name="error_certificate_required">Hautatu edo inportatu lehenik ziurtagiri bat.</string>
     <string name="error_password_required">Idatzi ziurtagiriaren pasahitza.</string>
     <string name="error_invalid_shared_intent">Ezin izan da partekatutako dokumentua ireki.</string>

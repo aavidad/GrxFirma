@@ -18,6 +18,7 @@
     <string name="select_document">Seleziona documento</string>
     <string name="no_document">Nessun documento selezionato</string>
     <string name="document_summary">%1$s · %2$s · %3$s</string>
+    <string name="document_summary_fingerprint">%1$s\nImpronta SHA-256: %2$s…</string>
     <string name="original_document_helper">Per una firma separata, come CAdES, selezionare anche l’originale. Lasciare vuoto se la firma contiene il documento.</string>
     <string name="select_original_document">Aggiungi il documento originale</string>
     <string name="no_original_document">Nessun originale selezionato (facoltativo)</string>
@@ -130,6 +131,8 @@
     <string name="retry_save">Riprovare il salvataggio</string>
     <string name="discard_pending_output">Scarta la firma</string>
     <string name="error_document_required">Selezionare prima un documento.</string>
+    <string name="error_document_changed">Il documento è cambiato dopo la selezione. Selezionarlo di nuovo.</string>
+    <string name="error_document_not_read">Non è stato possibile leggere il documento al momento della selezione. Selezionarlo di nuovo.</string>
     <string name="error_certificate_required">Selezionare o importare prima un certificato.</string>
     <string name="error_password_required">Scrivi la password del certificato.</string>
     <string name="error_invalid_shared_intent">Impossibile aprire il documento condiviso.</string>

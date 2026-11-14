@@ -18,6 +18,7 @@
     <string name="select_document">Seleccionar document</string>
     <string name="no_document">Cap document seleccionat</string>
     <string name="document_summary">%1$s · %2$s · %3$s</string>
+    <string name="document_summary_fingerprint">%1$s\nEmpremta SHA-256: %2$s…</string>
     <string name="original_document_helper">Per a verificar una signatura separada, com CAdES, seleccioneu també el document original. Deixeu-lo buit si la signatura ja conté el document.</string>
     <string name="select_original_document">Afegir el document original</string>
     <string name="no_original_document">Cap document original seleccionat (opcional)</string>
@@ -130,6 +131,8 @@
     <string name="retry_save">Tornar a guardar</string>
     <string name="discard_pending_output">Descartar la signatura</string>
     <string name="error_document_required">Seleccioneu primer un document.</string>
+    <string name="error_document_changed">El document ha canviat des que el vau seleccionar. Torneu a seleccionar-lo.</string>
+    <string name="error_document_not_read">No s’ha pogut llegir el document en seleccionar-lo. Torneu a seleccionar-lo.</string>
     <string name="error_certificate_required">Seleccioneu o importeu primer un certificat.</string>
     <string name="error_password_required">Escriviu la contrasenya del certificat.</string>
     <string name="error_invalid_shared_intent">No s’ha pogut obrir el document compartit.</string>

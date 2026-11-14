@@ -277,6 +277,7 @@ sesiones.
 - `usesCleartextTraffic=false` (configuración de seguridad de red de Android) solo afecta a las bibliotecas de red de Java y Kotlin. El núcleo Go abre sus propias conexiones y no lo tiene en cuenta: la TSA en HTTP y las consultas de revocación (OCSP y CRL, normalmente en HTTP) salen por él. Las reglas de esquema, credenciales y redirecciones (la TSA no puede redirigir a otro origen) las aplica el núcleo, no esa opción de Android;
 - copias de seguridad y transferencia de datos deshabilitadas;
 - documentos abiertos exclusivamente mediante URI `content://`;
+- al elegir el documento se lee una vez y se guarda su SHA-256; el resumen enseña sus 16 primeros caracteres. Al firmar (también al proteger y firmar) se vuelve a leer y, si la huella no coincide, la firma se cancela sin llamar al núcleo y se pide volver a seleccionarlo. Así la app que compartió el documento no puede cambiarlo entre la elección y la firma;
 - permisos SAF de alcance transitorio, sin retención entre sesiones;
 - limite de 32 MiB para documentos y 4 MiB para PKCS#12;
 - contrasenas y bytes sensibles no se guardan en preferencias ni estado;

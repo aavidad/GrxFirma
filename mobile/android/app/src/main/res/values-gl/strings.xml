@@ -18,6 +18,7 @@
     <string name="select_document">Seleccione documento</string>
     <string name="no_document">Ningún documento seleccionado</string>
     <string name="document_summary">%1$s · %2$s · %3$s</string>
+    <string name="document_summary_fingerprint">%1$s\nPegada SHA-256: %2$s…</string>
     <string name="original_document_helper">Para verificar unha sinatura separada, como CAdES, seleccione tamén o documento orixinal. Déixeo baleiro se a sinatura contén o documento.</string>
     <string name="select_original_document">Engadir o documento orixinal</string>
     <string name="no_original_document">Ningún documento orixinal seleccionado (opcional)</string>
@@ -130,6 +131,8 @@
     <string name="retry_save">Reintentar gardado</string>
     <string name="discard_pending_output">Descartar a sinatura</string>
     <string name="error_document_required">Seleccione primeiro un documento.</string>
+    <string name="error_document_changed">O documento cambiou desde que o seleccionou. Volva seleccionalo.</string>
+    <string name="error_document_not_read">Non se puido ler o documento ao seleccionalo. Volva seleccionalo.</string>
     <string name="error_certificate_required">Seleccione ou importe primeiro un certificado.</string>
     <string name="error_password_required">Escriba o contrasinal do certificado.</string>
     <string name="error_invalid_shared_intent">Non se puido abrir o documento compartido.</string>

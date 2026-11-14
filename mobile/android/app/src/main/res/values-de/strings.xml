@@ -18,6 +18,7 @@
     <string name="select_document">Dokument auswählen</string>
     <string name="no_document">Kein Dokument ausgewählt</string>
     <string name="document_summary">%1$s · %2$s · %3$s</string>
+    <string name="document_summary_fingerprint">%1$s\nSHA-256-Prüfsumme: %2$s…</string>
     <string name="original_document_helper">Wählen Sie für eine getrennte Signatur wie CAdES auch das Original. Bei eingebettetem Dokument bleibt das Feld leer.</string>
     <string name="select_original_document">Originaldokument hinzufügen</string>
     <string name="no_original_document">Kein Original ausgewählt (optional)</string>
@@ -130,6 +131,8 @@
     <string name="retry_save">Speichern erneut versuchen</string>
     <string name="discard_pending_output">Signatur verwerfen</string>
     <string name="error_document_required">Wählen Sie zuerst ein Dokument.</string>
+    <string name="error_document_changed">Das Dokument hat sich seit der Auswahl geändert. Wählen Sie es erneut aus.</string>
+    <string name="error_document_not_read">Das Dokument konnte bei der Auswahl nicht gelesen werden. Wählen Sie es erneut aus.</string>
     <string name="error_certificate_required">Wählen oder importieren Sie zuerst ein Zertifikat.</string>
     <string name="error_password_required">Geben Sie das Passwort des Zertifikats ein.</string>
     <string name="error_invalid_shared_intent">Geteiltes Dokument konnte nicht geöffnet werden.</string>
