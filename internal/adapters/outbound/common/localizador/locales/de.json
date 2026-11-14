@@ -890,13 +890,17 @@
   "Firma inválida o integridad no garantizada.": "Signatur ungültig oder Integrität nicht gewährleistet.",
   "La firma es correcta, pero parte del contenido del documento no está firmado.": "Die Signatur ist korrekt, aber ein Teil des Dokumentinhalts ist nicht signiert.",
   "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "Nicht alles, was die Signatur abdeckt, konnte geprüft werden; sie gilt daher nicht als gültig.",
+  "La firma cubre documentos que no van dentro del fichero y que GrxFirma no descarga. Sin ellos no se puede saber si han cambiado, así que la firma no se da por válida.": "Die Signatur umfasst Dokumente, die nicht in der Datei enthalten sind und die GrxFirma nicht herunterlädt. Ohne sie lässt sich nicht feststellen, ob sie verändert wurden, daher gilt die Signatur nicht als gültig.",
   "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "Die Signatur ist gültig, deckt aber einige Metadaten des Dokuments nicht ab, weil das Format sie ausnimmt. Die Details nennen, welche.",
   "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba.": "Das Dokument wurde seit der Signatur nicht verändert, aber die Signatur verwendet SHA-1, einen alten Algorithmus, der heute nicht mehr als sicher gilt. Deshalb gilt sie nicht als gültig: Sie dient als Nachweis einer Signatur aus der Zeit, als SHA-1 noch akzeptiert wurde.",
+  "La firma no incluye el documento firmado, así que no se puede saber si ha cambiado. Indique el documento original: en la línea de órdenes, con -original; en la aplicación de escritorio, con «Seleccionar original...».": "Die Signatur enthält das signierte Dokument nicht, daher lässt sich nicht feststellen, ob es verändert wurde. Geben Sie das Originaldokument an: in der Befehlszeile mit -original, in der Desktop-Anwendung mit „Original auswählen...“.",
+  "La firma es correcta, pero se hizo sobre un contenido vacío, sin ningún documento.": "Die Signatur ist korrekt, wurde aber über einen leeren Inhalt ohne jedes Dokument erstellt.",
   "La firma coincide con la forma de preparar el XML que usaban las versiones anteriores de GrxFirma, no con la estándar. Lo normal es que la hiciera una de esas versiones. No se da por válida.": "Die Signatur entspricht der Art, wie frühere Versionen von GrxFirma das XML aufbereitet haben, nicht dem Standard. Sie wurde sehr wahrscheinlich mit einer dieser Versionen erstellt. Sie gilt nicht als gültig.",
   "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar.": "Mit dieser alten Methode wurden Verarbeitungsanweisungen außerhalb des Wurzelelements, etwa ein Stylesheet, nicht signiert, und dieses Dokument enthält solche. Sie können nach der Signatur hinzugefügt worden sein.",
   "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida.": "Das Dokument verweist auf eine externe DTD, die GrxFirma nicht liest. Fügt diese DTD dem Dokument Werte hinzu, zeigt ein anderes Programm womöglich nicht das Signierte an; deshalb gilt die Signatur nicht als gültig.",
   "El nombre o el tipo de este archivo protegido pudieron cambiarse después de protegerlo; suele pasar con los que hizo una versión anterior de GrxFirma. El contenido sí está comprobado. GrxFirma ha ajustado el nombre por seguridad: revíselo antes de abrir el archivo.": "Name oder Typ dieser geschützten Datei können nach dem Schützen geändert worden sein; das kommt bei Dateien aus früheren Versionen von GrxFirma häufig vor. Der Inhalt wurde geprüft. GrxFirma hat den Namen aus Sicherheitsgründen angepasst: Prüfen Sie ihn, bevor Sie die Datei öffnen.",
   "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual.": "Diese Datei wurde mit einem alten Algorithmus verschlüsselt, der heute nicht mehr als sicher gilt. Sie wurde entschlüsselt, damit Sie den Zugriff nicht verlieren, aber der Absender sollte sie mit einem aktuellen Algorithmus neu schützen.",
+  "Este archivo cifrado iba dirigido también a otros destinatarios de un tipo que GrxFirma no admite. No se han tenido en cuenta y el archivo se ha abierto con su certificado.": "Diese verschlüsselte Datei war auch an weitere Empfänger eines Typs gerichtet, den GrxFirma nicht unterstützt. Sie wurden ignoriert, und die Datei wurde mit Ihrem Zertifikat geöffnet.",
   "Firma múltiple completada (": "Mehrfachsignatur abgeschlossen (",
   "Firma múltiple completada con incidencias (": "Mehrfachsignatur mit Hinweisen abgeschlossen (",
   "Firma múltiple finalizada.": "Mehrfachsignatur abgeschlossen.",
@@ -5156,6 +5160,8 @@
   ,"report.verdict.valid_warnings": "GÜLTIGE SIGNATUR MIT WARNUNGEN"
   ,"report.verdict.invalid": "UNGÜLTIGE SIGNATUR"
   ,"report.verdict.intact_unproven": "SIGNATUR UNVERÄNDERT · GÜLTIGKEIT DES ZERTIFIKATS NICHT NACHGEWIESEN"
+  ,"report.verdict.intact_legacy_algorithm": "SIGNATUR UNVERÄNDERT · VERALTETER ALGORITHMUS (SHA-1), GILT NICHT ALS GÜLTIG"
+  ,"report.verdict.intact_legacy_algorithm_unproven": "SIGNATUR UNVERÄNDERT · VERALTETER ALGORITHMUS (SHA-1), GÜLTIGKEIT DES ZERTIFIKATS NICHT NACHGEWIESEN"
   ,"report.verdict.unproven": "GÜLTIGKEIT NICHT NACHGEWIESEN"
   ,"report.aspect.integrity": "Integrität des Dokuments"
   ,"report.aspect.certificate": "Gültigkeit und Widerruf des Zertifikats"
@@ -5179,11 +5185,14 @@
   ,"report.section.signers": "Unterzeichner"
   ,"report.signer.issuer": "Aussteller"
   ,"report.signer.fingerprint": "Fingerabdruck"
+  ,"report.label": "%s:"
+  ,"report.signer.issuer_with_organization": "%s (%s)"
   ,"report.section.errors": "Fehler"
   ,"report.section.warnings": "Warnungen"
   ,"report.section.evidence": "Nachweise"
   ,"report.section.details": "Technische Details"
   ,"report.footer": "Erstellt von %s. Dieser Bericht beschreibt das Ergebnis der lokalen Prüfung zum angegebenen Zeitpunkt; der SHA-256-Hashwert identifiziert die genau geprüfte Datei. Er ersetzt keinen qualifizierten Validierungsdienst."
+  ,"report.app_version": "%s %s"
   ,"firma CAdES válida": "Gültige CAdES-Signatur"
   ,"firma XAdES valida": "Gültige XAdES-Signatur"
   ,"firma XMLdSig valida": "Gültige XMLdSig-Signatur"
@@ -5247,6 +5256,9 @@
   ,"verificacion.detalle.firma_pdf": "PDF-Signatur Nummer"
   ,"verificacion.detalle.firmante": "Unterzeichner"
   ,"verificacion.detalle.algoritmo": "Signaturalgorithmus (OID)"
+  ,"verificacion.detalle.algoritmo_antiguo": "Veralteter Algorithmus"
+  ,"verificacion.detalle.integridad_documento": "Integrität des Dokuments"
+  ,"verificacion.detalle.codificacion_cms": "Codierung der Signatur (CMS)"
   ,"verificacion.detalle.byterange": "Signierte Bytes (ByteRange)"
   ,"verificacion.detalle.subfilter": "PDF-Subfilter"
   ,"verificacion.detalle.cobertura_firma_pdf": "Abdeckung der Signatur %d"
@@ -5264,6 +5276,9 @@
   ,"verificacion.detalle.valor.detached": "Signatur in separater Datei"
   ,"verificacion.detalle.valor.embedded": "Signatur im Dokument enthalten"
   ,"verificacion.detalle.valor.ok": "geprüft"
+  ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.no_comprobable_sin_original": "ohne das Originaldokument nicht prüfbar"
+  ,"verificacion.detalle.valor.ber": "BER (zur Prüfung in DER umgewandelt)"
   ,"winui.comun.proteger": "Schützen"
   ,"winui.comun.certificado_sin_titular": "Zertifikat ohne Inhaber"
   ,"winui.comun.operacion_cancelada": "Vorgang abgebrochen"
@@ -6601,6 +6616,7 @@
   ,"report.evidence.certificate.subject": "Zertifikatsinhaber"
   ,"report.evidence.certificate.issuer": "Zertifikatsaussteller"
   ,"report.evidence.xml.canonicalization.compatibility": "Kompatibilität der XML-Kanonisierung"
+  ,"report.evidence.signature.algorithm.legacy": "Veralteter Algorithmus"
   ,"Nuevo logotipo de GrxFirma, y la aplicación figura a nombre de su autor.": "Neues GrxFirma-Logo, und die Anwendung wird unter dem Namen ihres Autors geführt."
   ,"El sello visible queda donde se coloca también en páginas giradas, como los escaneos en horizontal, y con cualquier ángulo de giro.": "Der sichtbare Stempel bleibt auch auf gedrehten Seiten, etwa Querformat-Scans, und bei jedem Drehwinkel genau dort, wo er platziert wurde."
   ,"Más seguridad: un PDF manipulado ya no puede bloquear la aplicación ni agotar la memoria, y solo la extensión de GrxFirma puede conectar con el programa.": "Mehr Sicherheit: Ein manipuliertes PDF kann die Anwendung nicht mehr blockieren oder den Speicher erschöpfen, und nur die GrxFirma-Erweiterung kann sich mit dem Programm verbinden."

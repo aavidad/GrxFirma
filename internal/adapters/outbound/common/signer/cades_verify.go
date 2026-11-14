@@ -289,6 +289,22 @@ const (
 	cmsContenidoOriginalAportado
 )
 
+// Una firma CAdES explícita (sin el documento dentro) que se verifica sin el
+// original no es un error: la firma del firmante se comprueba, pero la
+// integridad del documento queda sin comprobar. El motivo es clave de los
+// catálogos de idiomas.
+const (
+	motivoCAdESSinOriginal  = "La firma no incluye el documento firmado, así que no se puede saber si ha cambiado. Indique el documento original: en la línea de órdenes, con -original; en la aplicación de escritorio, con «Seleccionar original...»."
+	detalleCAdESSinOriginal = "integridad_documento=no_comprobable_sin_original"
+	// motivoContenidoFirmadoVacio avisa de una firma implícita correcta cuyo
+	// contenido firmado no tiene ningún byte.
+	motivoContenidoFirmadoVacio = "La firma es correcta, pero se hizo sobre un contenido vacío, sin ningún documento."
+	detalleCodificacionBER      = "codificacion_cms=ber"
+)
+
+// errCMSSinContenidoEncapsulado: el CMS no trae eContent (firma explícita).
+var errCMSSinContenidoEncapsulado = errors.New("la firma CAdES no contiene contenido encapsulado")
+
 // contenidoFirmadoCMS devuelve el contenido contra el que se comprueba el
 // messageDigest. Si el llamante aporta contenido externo, es siempre ese.
 func contenidoFirmadoCMS(encap asn1.RawValue, externalContent []byte, modo modoContenidoCMS) ([]byte, error) {
@@ -320,8 +336,20 @@ func contenidoFirmadoCMS(encap asn1.RawValue, externalContent []byte, modo modoC
 
 func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent []byte, modo modoContenidoCMS, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
 	contentInfo, err := parseContentInfo(cmsDER)
+	codificacionBER := false
 	if err != nil {
-		return domain.VerificationResult{}, nil, err
+		// Firmas antiguas en BER (longitudes indefinidas, como las de
+		// BouncyCastle en modo flujo): se pasan a DER y se vuelven a leer. El
+		// resumen de los atributos firmados es siempre sobre su DER (RFC 5652,
+		// 5.4), así que no cambia nada de lo que se comprueba.
+		der, errBER := normalizarCMSBER(cmsDER)
+		if errBER != nil {
+			return domain.VerificationResult{}, nil, err
+		}
+		if contentInfo, err = parseContentInfo(der); err != nil {
+			return domain.VerificationResult{}, nil, err
+		}
+		codificacionBER = true
 	}
 	if !contentInfo.ContentType.Equal(oidSignedData) {
 		return domain.VerificationResult{}, nil, fmt.Errorf("OID CMS no soportado: %v", contentInfo.ContentType)
@@ -333,8 +361,14 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 	}
 
 	content, err := contenidoFirmadoCMS(signedData.EncapContentInfo, externalContent, modo)
+	sinOriginal := false
 	if err != nil {
-		return domain.VerificationResult{}, nil, err
+		if modo != cmsContenidoEncapsulado || !errors.Is(err, errCMSSinContenidoEncapsulado) {
+			return domain.VerificationResult{}, nil, err
+		}
+		// Firma explícita verificada sin el original: se comprueba todo lo
+		// demás y la integridad del documento queda sin comprobar.
+		sinOriginal = true
 	}
 
 	certs, certRefs, err := parseCertificateSet(signedData.Certificates)
@@ -369,8 +403,10 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 		if antiguo {
 			antiguos = append(antiguos, detalleAlgoritmoSHA1)
 		}
-		if err := verifyMessageDigest(signerInfo.SignedAttributes, content, spec.hash); err != nil {
-			return domain.VerificationResult{}, certRefs, err
+		if !sinOriginal {
+			if err := verifyMessageDigest(signerInfo.SignedAttributes, content, spec.hash); err != nil {
+				return domain.VerificationResult{}, certRefs, err
+			}
 		}
 		if err := verifyCMSignature(signerCert, signerInfo, spec.hash); err != nil {
 			return domain.VerificationResult{}, certRefs, err
@@ -411,7 +447,9 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 	registro := domain.RegistroConfianzaForzadaDe(ctx)
 	result = applySignerVerificationMetadata(registro, result, signerCerts, certs, anchors)
 	enriquecerMaterialCMS(result.Material.Firmas, signerCertsPorSignerInfo, signerInfos)
-	result.Material.HuellasContenidoFirmado = []string{huellaContenido(content)}
+	if !sinOriginal {
+		result.Material.HuellasContenidoFirmado = []string{huellaContenido(content)}
+	}
 
 	// La revocación se evalúa sobre la cadena real de cada firmante
 	// (hoja → emisor → ...), construida por nombre y firma. Antes se usaba el
@@ -435,7 +473,22 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 		}
 	}
 	result = exigirRevocacionConcluyente(registro, result)
-	result = marcarAlgoritmoAntiguo(registro, result, antiguos)
+	if sinOriginal {
+		result = anotarAlgoritmoAntiguo(result, antiguos)
+	} else {
+		result = marcarAlgoritmoAntiguo(registro, result, antiguos)
+	}
+	if codificacionBER {
+		result.Details = append(result.Details, detalleCodificacionBER)
+		result.Integrity.Details = append(result.Integrity.Details, detalleCodificacionBER)
+	}
+	switch {
+	case sinOriginal:
+		// Lo que no se ha podido comprobar nunca sale válido.
+		result = result.ConCobertura(domain.CoberturaNoAcreditada, motivoCAdESSinOriginal, []string{detalleCAdESSinOriginal})
+	case modo == cmsContenidoEncapsulado && len(content) == 0:
+		result.Warnings = appendUniqueString(result.Warnings, motivoContenidoFirmadoVacio)
+	}
 
 	return result.Normalize(), signers, nil
 }
@@ -768,13 +821,17 @@ func parseEncapsulatedContent(raw asn1.RawValue) ([]byte, error) {
 		return nil, fmt.Errorf("contenido encapsulado no soportado: %v", eci.ContentType)
 	}
 	if len(eci.Content.Bytes) == 0 && len(eci.Content.FullBytes) == 0 {
-		return nil, errors.New("la firma CAdES no contiene contenido encapsulado")
+		return nil, errCMSSinContenidoEncapsulado
 	}
 	var content []byte
 	if _, err := asn1.Unmarshal(eci.Content.Bytes, &content); err != nil {
 		if _, err2 := asn1.Unmarshal(eci.Content.FullBytes, &content); err2 != nil {
 			return nil, fmt.Errorf("parseando contenido encapsulado: %w", err)
 		}
+	}
+	if content == nil {
+		// eContent presente y vacío: lo firmado no tiene ningún byte.
+		content = []byte{}
 	}
 	return content, nil
 }
@@ -857,8 +914,11 @@ func findSignerCertificate(certs []*x509.Certificate, sid issuerAndSerialNumber)
 	return nil, fmt.Errorf("no se encontró el certificado firmante para serie %s", serial.String())
 }
 
+// verifyMessageDigest compara el atributo messageDigest con el contenido. Un
+// contenido nil es que falta (se rechaza); uno vacío pero presente es el
+// eContent vacío de una firma implícita y se comprueba como cualquier otro.
 func verifyMessageDigest(signedAttrs asn1.RawValue, content []byte, hash crypto.Hash) error {
-	if len(content) == 0 {
+	if content == nil {
 		return errors.New("contenido firmado vacío")
 	}
 	attrsSET, err := asSetDER(signedAttrs)

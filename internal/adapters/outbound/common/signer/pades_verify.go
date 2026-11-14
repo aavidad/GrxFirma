@@ -54,6 +54,8 @@ type pdfEmbeddedSignature struct {
 	// SigningTimeM es /M del diccionario de firma, solo si está dentro del
 	// rango firmado y tiene zona horaria.
 	SigningTimeM time.Time
+	// CertsDER es /Cert, solo en adbe.x509.rsa_sha1.
+	CertsDER [][]byte
 }
 
 type pdfDictionaryRange struct {
@@ -63,7 +65,7 @@ type pdfDictionaryRange struct {
 
 func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Document, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
 	var omitidas []string
-	signatures, err := extraerFirmasPDF(signedDocument.Content, false, &omitidas)
+	signatures, err := extraerFirmasPDF(signedDocument.Content, false, true, &omitidas)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
@@ -77,27 +79,29 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	var modifications []string
 	var unanalyzable []string
 	var revisiones *revisionesPAdES
+	verificadas := 0
+	var errHeredada error
 
 	for idx, signature := range signatures {
 		signedBytes, err := extractPDFSignedBytes(signedDocument.Content, signature.ByteRange)
 		if err != nil {
 			return domain.VerificationResult{}, nil, err
 		}
-		cmsDER, err := normalizeBERToDER(signature.CMSDER)
+		result, signers, err := v.verificarFirmaPDF(ctx, idx, signature, signedBytes, anchors)
 		if err != nil {
-			return domain.VerificationResult{}, nil, fmt.Errorf("normalizando CMS BER/DER: %w", err)
-		}
-
-		// ETSI EN 319 142-1: cada /Contents lleva exactamente un SignerInfo.
-		if n, err := contarSignerInfosCMS(cmsDER); err != nil {
+			// Una firma antigua que no verifica, junto a otras, queda como
+			// antes de admitirlas: no verificada y el PDF sin salir válido.
+			// Si todas son antiguas y fallan, es un error, como antes.
+			if esSubFiltroPDFHeredado(signature.SubFilter) {
+				if errHeredada == nil {
+					errHeredada = err
+				}
+				omitidas = append(omitidas, signature.SubFilter)
+				continue
+			}
 			return domain.VerificationResult{}, nil, err
-		} else if n != 1 {
-			return domain.VerificationResult{}, nil, fmt.Errorf("la firma PDF %d contiene %d SignerInfo; se esperaba exactamente uno", idx+1, n)
 		}
-		result, signers, err := v.cades.VerifyDetachedCMSWithAnchors(ctx, cmsDER, signedBytes, anchors)
-		if err != nil {
-			return domain.VerificationResult{}, nil, err
-		}
+		verificadas++
 		// Sin fecha en el CMS (lo normal en PAdES), la /M firmada del PDF. Un
 		// sello sin comprobar no cuenta como fecha: el CMS va fuera del rango
 		// firmado y cualquiera puede añadirle uno (KD-01); la /M sí está
@@ -157,6 +161,11 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		}
 		allSigners = append(allSigners, signers...)
 	}
+	if verificadas == 0 && errHeredada != nil {
+		return domain.VerificationResult{}, nil, errHeredada
+	}
+	// Las firmas antiguas no verificadas ya están en omitidas.
+	total := verificadas + len(omitidas)
 
 	if !aggregate.Valid && aggregate.Reason == "" {
 		aggregate.Reason = "una o más firmas PAdES no son válidas"
@@ -202,10 +211,30 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 		aggregate.Warnings = append(aggregate.Warnings, reason)
 	}
 	aggregate = anotarFirmasOmitidasPDF(aggregate, omitidas)
-	total := len(signatures) + len(omitidas)
 	aggregate.Details = append([]string{fmt.Sprintf("firmas_pdf=%d", total)}, aggregate.Details...)
 	aggregate.Integrity.Details = append([]string{fmt.Sprintf("firmas_pdf=%d", total)}, aggregate.Integrity.Details...)
 	return aggregate.Normalize(), allSigners, nil
+}
+
+// verificarFirmaPDF verifica una firma del PDF según su subfiltro.
+func (v *PAdESVerifier) verificarFirmaPDF(ctx context.Context, idx int, signature pdfEmbeddedSignature, signedBytes []byte, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
+	cmsDER, err := normalizeBERToDER(signature.CMSDER)
+	if err != nil {
+		return domain.VerificationResult{}, nil, fmt.Errorf("normalizando CMS BER/DER: %w", err)
+	}
+	if signature.SubFilter == subFiltroX509RSASHA1 {
+		return v.cades.verificarPKCS1PDF(ctx, cmsDER, signature.CertsDER, signedBytes, anchors)
+	}
+	// ETSI EN 319 142-1: cada /Contents lleva exactamente un SignerInfo.
+	if n, err := contarSignerInfosCMS(cmsDER); err != nil {
+		return domain.VerificationResult{}, nil, err
+	} else if n != 1 {
+		return domain.VerificationResult{}, nil, fmt.Errorf("la firma PDF %d contiene %d SignerInfo; se esperaba exactamente uno", idx+1, n)
+	}
+	if signature.SubFilter == subFiltroPKCS7SHA1 {
+		return v.cades.verificarPKCS7SHA1PDF(ctx, cmsDER, signedBytes, anchors)
+	}
+	return v.cades.VerifyDetachedCMSWithAnchors(ctx, cmsDER, signedBytes, anchors)
 }
 
 // Claves del catálogo de textos para firmas del PDF que no se verifican.
@@ -257,12 +286,15 @@ func extractPDFEmbeddedSignatures(pdfBytes []byte) ([]pdfEmbeddedSignature, erro
 }
 
 func extractPDFEmbeddedSignaturesWithTimestamps(pdfBytes []byte, timestamps bool) ([]pdfEmbeddedSignature, error) {
-	return extraerFirmasPDF(pdfBytes, timestamps, nil)
+	return extraerFirmasPDF(pdfBytes, timestamps, false, nil)
 }
 
 // extraerFirmasPDF devuelve las firmas verificables y, si omitidas no es
 // nil, anota el SubFilter de cada diccionario de firma que no se verifica.
-func extraerFirmasPDF(pdfBytes []byte, timestamps bool, omitidas *[]string) ([]pdfEmbeddedSignature, error) {
+// Con heredados admite además adbe.pkcs7.sha1 y adbe.x509.rsa_sha1, que solo
+// sabe verificar PAdESVerifier.Verify (la inspección v2 y la detección de
+// firmas siguen sin contarlos).
+func extraerFirmasPDF(pdfBytes []byte, timestamps, heredados bool, omitidas *[]string) ([]pdfEmbeddedSignature, error) {
 	text := string(pdfBytes)
 	if candidates := strings.Count(text, "/ByteRange"); candidates > maxPDFEmbeddedSignatures {
 		return nil, fmt.Errorf("demasiadas firmas PDF: máximo %d", maxPDFEmbeddedSignatures)
@@ -304,38 +336,64 @@ func extraerFirmasPDF(pdfBytes []byte, timestamps bool, omitidas *[]string) ([]p
 		if err != nil {
 			return nil, err
 		}
-		if err := validatePDFSubFilter(subFilter); err != nil && !(timestamps && subFilter == "ETSI.RFC3161") {
+		if err := validatePDFSubFilter(subFilter); err != nil && !(timestamps && subFilter == "ETSI.RFC3161") && !(heredados && esSubFiltroPDFHeredado(subFilter)) {
 			if omitidas != nil {
 				*omitidas = append(*omitidas, subFilter)
 			}
 			continue
 		}
-		cmsDER, contentsFrom, contentsTo, err := extractPDFSignatureCMSWithRange(block)
+		signature, err := leerFirmaPDF(pdfBytes, block, dict, byteRange, subFilter)
 		if err != nil {
+			// Un diccionario antiguo mal formado queda como antes de admitirlos:
+			// se cuenta como firma no verificada y el PDF no sale válido.
+			if heredados && esSubFiltroPDFHeredado(subFilter) {
+				if omitidas != nil {
+					*omitidas = append(*omitidas, subFilter)
+				}
+				continue
+			}
 			return nil, err
 		}
-		signature := pdfEmbeddedSignature{
-			ByteRange:    byteRange,
-			CMSDER:       cmsDER,
-			SubFilter:    subFilter,
-			ContentsFrom: dict.Start + contentsFrom,
-			ContentsTo:   dict.Start + contentsTo,
-			SigningTimeM: extractPDFSigningTimeM(block, dict.Start, byteRange),
-		}
-		revisionEnd, err := validatePDFSignatureByteRange(len(pdfBytes), signature)
-		if err != nil {
-			return nil, fmt.Errorf("ByteRange de firma PDF inválido: %w", err)
-		}
-		signature.RevisionEnd = revisionEnd
 		out = append(out, signature)
 		if len(out) > maxPDFEmbeddedSignatures {
 			return nil, fmt.Errorf("demasiadas firmas PDF: máximo %d", maxPDFEmbeddedSignatures)
 		}
 	}
 	if len(out) == 0 {
+		if len(seen) == 0 {
+			return nil, errors.New("el PDF no contiene ninguna firma")
+		}
 		return nil, errors.New("no se encontró ninguna firma PAdES compatible en el PDF")
 	}
 	return out, nil
+}
+
+// leerFirmaPDF lee /Contents (y /Cert en adbe.x509.rsa_sha1) del diccionario
+// de firma y comprueba que el ByteRange deja fuera exactamente /Contents.
+func leerFirmaPDF(pdfBytes, block []byte, dict pdfDictionaryRange, byteRange [4]int, subFilter string) (pdfEmbeddedSignature, error) {
+	cmsDER, contentsFrom, contentsTo, err := extractPDFSignatureCMSWithRange(block)
+	if err != nil {
+		return pdfEmbeddedSignature{}, err
+	}
+	signature := pdfEmbeddedSignature{
+		ByteRange:    byteRange,
+		CMSDER:       cmsDER,
+		SubFilter:    subFilter,
+		ContentsFrom: dict.Start + contentsFrom,
+		ContentsTo:   dict.Start + contentsTo,
+		SigningTimeM: extractPDFSigningTimeM(block, dict.Start, byteRange),
+	}
+	if subFilter == subFiltroX509RSASHA1 {
+		if signature.CertsDER, err = extraerCertificadosPDF(string(block)); err != nil {
+			return pdfEmbeddedSignature{}, err
+		}
+	}
+	revisionEnd, err := validatePDFSignatureByteRange(len(pdfBytes), signature)
+	if err != nil {
+		return pdfEmbeddedSignature{}, fmt.Errorf("ByteRange de firma PDF inválido: %w", err)
+	}
+	signature.RevisionEnd = revisionEnd
+	return signature, nil
 }
 
 func extractPDFByteRange(pdf []byte) ([4]int, error) {

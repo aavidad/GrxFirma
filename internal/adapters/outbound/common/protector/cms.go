@@ -193,14 +193,14 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 	if err != nil {
 		return domain.UnprotectedPayload{}, fmt.Errorf("contenedor CMS no valido: %w", err)
 	}
-	var heredado asn1.ObjectIdentifier
+	var revision revisionCMS
 	switch contentType {
 	case cmsContentTypeEnvelopedData, cmsContentTypeEncryptedData:
 		// Las bibliotecas aceptan cualquier cifrado que conozcan: se mira
 		// antes cuál es (F-06). Uno heredado se descifra con aviso, salvo que
 		// la política de máquina lo prohíba. EncryptedData se trata luego
 		// para dar un error más claro si falta PSK.
-		heredado, err = validarAlgoritmosCMS(protected.Content)
+		revision, err = revisarCMS(protected.Content)
 		if err != nil {
 			return domain.UnprotectedPayload{}, err
 		}
@@ -237,16 +237,21 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 			if err != nil {
 				return domain.UnprotectedPayload{}, err
 			}
-			return conAvisoCifradoHeredado(domain.UnprotectedPayload{
+			return conAvisosRevisionCMS(domain.UnprotectedPayload{
 				Document:    doc,
 				Profile:     domain.ProtectionProfileCompat,
 				RecipientID: key.RecipientID,
-			}, heredado), nil
+			}, revision), nil
 		}
 		if invalidSecretLength && !validSecretLength {
 			return domain.UnprotectedPayload{}, errors.New("el secreto simetrico para CMS EncryptedData debe tener exactamente 32 bytes")
 		}
 		return domain.UnprotectedPayload{}, errors.New("no se pudo desproteger el CMS EncryptedData con el secreto simetrico proporcionado")
+	}
+	// Sin los destinatarios ajenos, si los había (ver revisarCMS).
+	sobre := protected.Content
+	if revision.sinAjenos != nil {
+		sobre = revision.sinAjenos
 	}
 	for _, key := range keys {
 		if !key.Supports(domain.ProtectionProfileCompat) {
@@ -259,7 +264,7 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 		if err != nil {
 			continue
 		}
-		plaintext, err := decryptCMSEnvelopedData(protected.Content, cert, priv)
+		plaintext, err := decryptCMSEnvelopedData(sobre, cert, priv)
 		if err != nil {
 			continue
 		}
@@ -267,11 +272,11 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 		if err != nil {
 			return domain.UnprotectedPayload{}, err
 		}
-		return conAvisoCifradoHeredado(domain.UnprotectedPayload{
+		return conAvisosRevisionCMS(domain.UnprotectedPayload{
 			Document:    doc,
 			Profile:     domain.ProtectionProfileCompat,
 			RecipientID: key.RecipientID,
-		}, heredado), nil
+		}, revision), nil
 	}
 	return domain.UnprotectedPayload{}, errors.New("no se pudo desproteger el sobre CMS con las claves disponibles")
 }

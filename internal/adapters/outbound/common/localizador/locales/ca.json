@@ -890,13 +890,17 @@
   "Firma inválida o integridad no garantizada.": "Signatura no vàlida o integritat no garantida.",
   "La firma es correcta, pero parte del contenido del documento no está firmado.": "La signatura és correcta, però part del contingut del document no està signat.",
   "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "No s'ha pogut comprovar tot el que cobreix la signatura, així que no es dona per vàlida.",
+  "La firma cubre documentos que no van dentro del fichero y que GrxFirma no descarga. Sin ellos no se puede saber si han cambiado, así que la firma no se da por válida.": "La signatura cobreix documents que no van dins del fitxer i que GrxFirma no descarrega. Sense ells no es pot saber si han canviat, així que la signatura no es dona per vàlida.",
   "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "La signatura és vàlida, encara que no cobreix algunes metadades del document perquè el seu format les deixa fora. Al detall s'indica quines.",
   "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba.": "El document no ha canviat des que es va signar, però la signatura fa servir SHA-1, un algorisme antic que avui no es considera segur. Per això no es dona per vàlida: serveix com a prova d'una signatura feta quan SHA-1 s'acceptava.",
+  "La firma no incluye el documento firmado, así que no se puede saber si ha cambiado. Indique el documento original: en la línea de órdenes, con -original; en la aplicación de escritorio, con «Seleccionar original...».": "La signatura no inclou el document signat, així que no es pot saber si ha canviat. Indiqueu el document original: a la línia d'ordres, amb -original; a l'aplicació d'escriptori, amb «Seleccionar original...».",
+  "La firma es correcta, pero se hizo sobre un contenido vacío, sin ningún documento.": "La signatura és correcta, però es va fer sobre un contingut buit, sense cap document.",
   "La firma coincide con la forma de preparar el XML que usaban las versiones anteriores de GrxFirma, no con la estándar. Lo normal es que la hiciera una de esas versiones. No se da por válida.": "La signatura coincideix amb la manera de preparar l'XML que feien servir les versions anteriors de GrxFirma, no amb l'estàndard. El més normal és que la fes una d'aquestes versions. No es dona per vàlida.",
   "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar.": "Amb aquesta manera antiga no quedaven signades les instruccions de procés de fora de l'element arrel, com un full d'estil, i aquest document en té. Es podrien haver afegit després de signar.",
   "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida.": "El document declara una DTD externa que GrxFirma no llegeix. Si aquesta DTD afegeix valors al document, el que mostri un altre programa pot no ser el que es va signar, així que la signatura no es dona per vàlida.",
   "El nombre o el tipo de este archivo protegido pudieron cambiarse después de protegerlo; suele pasar con los que hizo una versión anterior de GrxFirma. El contenido sí está comprobado. GrxFirma ha ajustado el nombre por seguridad: revíselo antes de abrir el archivo.": "El nom o el tipus d'aquest fitxer protegit es podrien haver canviat després de protegir-lo; passa sovint amb els que va fer una versió anterior de GrxFirma. El contingut sí que està comprovat. GrxFirma ha ajustat el nom per seguretat: reviseu-lo abans d'obrir el fitxer.",
   "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual.": "Aquest fitxer es va xifrar amb un algorisme antic que avui no es considera segur. S'ha desxifrat perquè no en perdeu l'accés, però qui us l'ha enviat l'hauria de tornar a protegir amb un d'actual.",
+  "Este archivo cifrado iba dirigido también a otros destinatarios de un tipo que GrxFirma no admite. No se han tenido en cuenta y el archivo se ha abierto con su certificado.": "Aquest fitxer xifrat també anava adreçat a altres destinataris d'un tipus que GrxFirma no admet. No s'han tingut en compte i el fitxer s'ha obert amb el vostre certificat.",
   "Firma múltiple completada (": "Signatura múltiple completada (",
   "Firma múltiple completada con incidencias (": "Signatura múltiple completada amb incidències (",
   "Firma múltiple finalizada.": "Signatura múltiple finalitzada.",
@@ -5156,6 +5160,8 @@
   ,"report.verdict.valid_warnings": "SIGNATURA VÀLIDA AMB ADVERTIMENTS"
   ,"report.verdict.invalid": "SIGNATURA NO VÀLIDA"
   ,"report.verdict.intact_unproven": "SIGNATURA ÍNTEGRA · VALIDESA DEL CERTIFICAT NO ACREDITADA"
+  ,"report.verdict.intact_legacy_algorithm": "SIGNATURA ÍNTEGRA · ALGORISME ANTIC (SHA-1), NO ES DONA PER VÀLIDA"
+  ,"report.verdict.intact_legacy_algorithm_unproven": "SIGNATURA ÍNTEGRA · ALGORISME ANTIC (SHA-1) I VALIDESA DEL CERTIFICAT NO ACREDITADA"
   ,"report.verdict.unproven": "VALIDESA NO ACREDITADA"
   ,"report.aspect.integrity": "Integritat del document"
   ,"report.aspect.certificate": "Vigència i revocació del certificat"
@@ -5179,11 +5185,14 @@
   ,"report.section.signers": "Signants"
   ,"report.signer.issuer": "Emissor"
   ,"report.signer.fingerprint": "Empremta digital"
+  ,"report.label": "%s:"
+  ,"report.signer.issuer_with_organization": "%s (%s)"
   ,"report.section.errors": "Errors"
   ,"report.section.warnings": "Advertiments"
   ,"report.section.evidence": "Evidències"
   ,"report.section.details": "Detalls tècnics"
   ,"report.footer": "Generat per %s. Aquest informe descriu el resultat de la verificació local en la data indicada; el resum SHA-256 identifica el fitxer exacte verificat. No substitueix un servei de validació qualificat."
+  ,"report.app_version": "%s %s"
   ,"firma CAdES válida": "Signatura CAdES vàlida"
   ,"firma XAdES valida": "Signatura XAdES vàlida"
   ,"firma XMLdSig valida": "Signatura XMLdSig vàlida"
@@ -5247,6 +5256,9 @@
   ,"verificacion.detalle.firma_pdf": "Signatura del PDF número"
   ,"verificacion.detalle.firmante": "Signant"
   ,"verificacion.detalle.algoritmo": "Algorisme de signatura (OID)"
+  ,"verificacion.detalle.algoritmo_antiguo": "Algorisme antic"
+  ,"verificacion.detalle.integridad_documento": "Integritat del document"
+  ,"verificacion.detalle.codificacion_cms": "Codificació de la signatura (CMS)"
   ,"verificacion.detalle.byterange": "Bytes signats (ByteRange)"
   ,"verificacion.detalle.subfilter": "Subfiltre del PDF"
   ,"verificacion.detalle.cobertura_firma_pdf": "Cobertura de la signatura %d"
@@ -5264,6 +5276,9 @@
   ,"verificacion.detalle.valor.detached": "signatura en un fitxer a part"
   ,"verificacion.detalle.valor.embedded": "signatura inclosa al document"
   ,"verificacion.detalle.valor.ok": "comprovades"
+  ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.no_comprobable_sin_original": "no es pot comprovar sense el document original"
+  ,"verificacion.detalle.valor.ber": "BER (s'ha passat a DER per verificar-la)"
   ,"winui.comun.proteger": "Protegir"
   ,"winui.comun.certificado_sin_titular": "Certificat sense titular"
   ,"winui.comun.operacion_cancelada": "Operació cancel·lada"
@@ -6601,6 +6616,7 @@
   ,"report.evidence.certificate.subject": "Titular del certificat"
   ,"report.evidence.certificate.issuer": "Emissor del certificat"
   ,"report.evidence.xml.canonicalization.compatibility": "Compatibilitat de la canonicalització XML"
+  ,"report.evidence.signature.algorithm.legacy": "Algorisme antic"
   ,"Nuevo logotipo de GrxFirma, y la aplicación figura a nombre de su autor.": "Nou logotip de GrxFirma, i l'aplicació figura a nom del seu autor."
   ,"El sello visible queda donde se coloca también en páginas giradas, como los escaneos en horizontal, y con cualquier ángulo de giro.": "El segell visible queda on es col·loca també en pàgines girades, com els escanejos en horitzontal, i amb qualsevol angle de gir."
   ,"Más seguridad: un PDF manipulado ya no puede bloquear la aplicación ni agotar la memoria, y solo la extensión de GrxFirma puede conectar con el programa.": "Més seguretat: un PDF manipulat ja no pot bloquejar l'aplicació ni esgotar la memòria, i només l'extensió de GrxFirma pot connectar amb el programa."

@@ -104,6 +104,16 @@ func extractContextualXMLSignatures(document []byte) ([]contextualXMLSignature, 
 				if entry.ordinal < 0 {
 					return nil, errors.New("firma XML sin SignedInfo directo")
 				}
+				ascendientes := make([]xml.Name, len(stack))
+				for i, ascendiente := range stack {
+					ascendientes[i] = ascendiente.name
+				}
+				if esSelloXMLDeFirma(ascendientes) {
+					// Es la firma de la TSA dentro de un sello XML de otra
+					// firma (XAdES-T con XMLTimeStamp): no firma el documento.
+					// El sello queda sin evaluar como los demás sellos XML.
+					continue
+				}
 				if len(signatures) >= maxFirmasXML {
 					return nil, fmt.Errorf("documento con demasiadas firmas XML (más de %d)", maxFirmasXML)
 				}
@@ -118,6 +128,32 @@ func extractContextualXMLSignatures(document []byte) ([]contextualXMLSignature, 
 	}
 	sort.Slice(signatures, func(i, j int) bool { return signatures[i].start < signatures[j].start })
 	return signatures, nil
+}
+
+// nsOASISDSS es el espacio de nombres de los sellos de tiempo XML de OASIS DSS
+// (dss:Timestamp), los que AutoFirma mete en xades:XMLTimeStamp.
+const nsOASISDSS = "urn:oasis:names:tc:dss:1.0:core:schema"
+
+// esSelloXMLDeFirma dice si la ds:Signature que se acaba de cerrar, con sus
+// ascendientes en pila, es la firma de un sello de tiempo XML: hija directa de
+// dss:Timestamp, que es hijo directo de xades:XMLTimeStamp, y todo ello dentro
+// de otra ds:Signature. Fuera de ese sitio exacto se verifica como cualquier
+// otra firma.
+func esSelloXMLDeFirma(pila []xml.Name) bool {
+	if len(pila) < 3 {
+		return false
+	}
+	padre, abuelo := pila[len(pila)-1], pila[len(pila)-2]
+	if padre != (xml.Name{Space: nsOASISDSS, Local: "Timestamp"}) ||
+		abuelo.Local != "XMLTimeStamp" || !strings.HasPrefix(abuelo.Space, "http://uri.etsi.org/01903/") {
+		return false
+	}
+	for _, ascendiente := range pila[:len(pila)-2] {
+		if ascendiente == (xml.Name{Space: nsXMLDSig, Local: "Signature"}) {
+			return true
+		}
+	}
+	return false
 }
 
 // El envoltorio sólo sirve para interpretar los nombres de los campos de un
@@ -533,30 +569,43 @@ func digestExcluyendoFirmas(document []byte, ref referenceForVerify, variante va
 }
 
 func assessXMLReferences(fragment []byte, context xmlSignatureContext, signedInfoXML []byte, resolver func(string) ([]byte, error)) ([]string, error) {
+	compatibility, _, err := assessXMLReferencesExternas(fragment, context, signedInfoXML, resolver, false)
+	return compatibility, err
+}
+
+// detalleReferenciaExterna marca una referencia del SignedInfo a un recurso
+// externo (http://, fichero...) que no se ha comprobado porque no se descarga.
+const detalleReferenciaExterna = "referencia_externa"
+
+// assessXMLReferencesExternas comprueba las referencias del SignedInfo. Con
+// externasNoComprobables, una referencia externa que no se puede resolver
+// (GrxFirma no descarga nada) no es un error: se devuelve en noComprobadas y
+// la firma no puede salir válida. Un resumen que no cuadra sigue siendo error.
+func assessXMLReferencesExternas(fragment []byte, context xmlSignatureContext, signedInfoXML []byte, resolver func(string) ([]byte, error), externasNoComprobables bool) ([]string, []string, error) {
 	document := context.document
 	var info signedInfoForVerify
 	if err := xml.Unmarshal(signedInfoXML, &info); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if len(info.References) == 0 {
-		return nil, errors.New("SignedInfo no contiene referencias")
+		return nil, nil, errors.New("SignedInfo no contiene referencias")
 	}
 	if len(info.References) > maxReferenciasXML {
-		return nil, fmt.Errorf("SignedInfo con demasiadas referencias (más de %d)", maxReferenciasXML)
+		return nil, nil, fmt.Errorf("SignedInfo con demasiadas referencias (más de %d)", maxReferenciasXML)
 	}
-	var compatibility []string
+	var compatibility, noComprobadas []string
 	for index, ref := range info.References {
 		if strings.TrimSpace(ref.DigestMethod.Parameters) != "" {
-			return nil, errors.New("parámetros de digest XML no soportados")
+			return nil, nil, errors.New("parámetros de digest XML no soportados")
 		}
 		for _, transform := range ref.Transforms {
 			if strings.TrimSpace(transform.Parameters) != "" && !esXPathExcluirFirmas(transform) {
-				return nil, errors.New("parámetros de transformación XML no soportados")
+				return nil, nil, errors.New("parámetros de transformación XML no soportados")
 			}
 			switch strings.TrimSpace(transform.Algorithm) {
 			case algEnveloped, algExcC14N, algC14N, algBase64Transform, algXPathFilter:
 			default:
-				return nil, fmt.Errorf("transform no soportado: %s", transform.Algorithm)
+				return nil, nil, fmt.Errorf("transform no soportado: %s", transform.Algorithm)
 			}
 		}
 		// La resolución histórica permanece acotada a la firma seleccionada;
@@ -570,11 +619,16 @@ func assessXMLReferences(fragment []byte, context xmlSignatureContext, signedInf
 			target, err = resolveReferenceTarget(document, ref.URI, resolver)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("referencia %d no resuelta: %w", index+1, err)
+			uri := strings.TrimSpace(ref.URI)
+			if externasNoComprobables && resolver == nil && uri != "" && !strings.HasPrefix(uri, "#") {
+				noComprobadas = append(noComprobadas, detalleReferenciaExterna)
+				continue
+			}
+			return nil, nil, fmt.Errorf("referencia %d no resuelta: %w", index+1, err)
 		}
 		expected, err := base64.StdEncoding.DecodeString(compactBase64(ref.DigestValue))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		declared, declaredErr := declaredReferenceDigest(context, ref, target)
 		if declaredErr == nil && equalBytes(declared, expected) {
@@ -588,15 +642,15 @@ func assessXMLReferences(fragment []byte, context xmlSignatureContext, signedInf
 		}
 		legacy, err := computeReferenceDigests(ref, target)
 		if err != nil {
-			return nil, fmt.Errorf("digest referencia %d: %w", index+1, err)
+			return nil, nil, fmt.Errorf("digest referencia %d: %w", index+1, err)
 		}
 		if !containsDigest(legacy, expected) {
-			return nil, fmt.Errorf("digest de referencia no coincide para referencia %d", index+1)
+			return nil, nil, fmt.Errorf("digest de referencia no coincide para referencia %d", index+1)
 		}
 		// No incluir URI ni contenido controlado por el documento en la marca.
 		compatibility = append(compatibility, fmt.Sprintf("Referencia %d sólo coincide mediante canonicalización histórica; el procedimiento declarado/contextual no queda acreditado.", index+1))
 	}
-	return compatibility, nil
+	return compatibility, noComprobadas, nil
 }
 
 func markXMLCompatibility(result domain.VerificationResult, compatibility []string) domain.VerificationResult {

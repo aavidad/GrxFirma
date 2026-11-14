@@ -60,6 +60,7 @@ type vista struct {
 	Advertencias, Errores, Detalles           []string
 	Evidencias                                []domain.VerificationEvidence
 	Rotulos                                   map[string]string
+	Etiquetas                                 map[string]string
 	Pie                                       string
 }
 
@@ -73,15 +74,19 @@ var rotulosInforme = []string{
 	"report.section.warnings", "report.section.evidence", "report.section.details",
 }
 
+// etiquetasInforme son los rótulos que la plantilla escribe delante de un
+// valor, con la puntuación del idioma.
+var etiquetasInforme = []string{
+	"report.signer.signing_time", "report.signer.identifier",
+	"report.signer.organization", "report.signer.issuer", "report.signer.fingerprint",
+}
+
 // HTML genera el informe. Todos los valores se escapan con html/template: el
 // documento verificado puede contener texto controlado por terceros.
 func HTML(d Datos) ([]byte, error) {
 	r := d.Resultado
-	idioma := localizador.Idioma(d.Idioma)
-	if idioma == "" {
-		idioma = "es"
-	}
-	loc := localizador.Para(idioma)
+	// Sin idioma, el catálogo base (castellano).
+	loc := localizador.Para(d.Idioma)
 	// Los motivos y avisos del motor son literales en castellano que el
 	// catálogo traduce usando el propio literal como clave; lo que no está
 	// catalogado (valores técnicos, nombres) se deja tal cual.
@@ -91,9 +96,15 @@ func HTML(d Datos) ([]byte, error) {
 	for _, clave := range rotulosInforme {
 		rotulos[clave] = loc.T(clave)
 	}
-	pie := "GrxFirma"
+	// Los rótulos que preceden a un valor en la misma línea llevan la
+	// puntuación del idioma («Emisor: …», «签发者：…»).
+	etiquetas := make(map[string]string, len(etiquetasInforme))
+	for _, clave := range etiquetasInforme {
+		etiquetas[clave] = loc.T("report.label", loc.T(clave))
+	}
+	pie := loc.T("GrxFirma")
 	if version := limpiar(d.VersionApp); version != "" {
-		pie += " " + version
+		pie = loc.T("report.app_version", pie, version)
 	}
 	// html/template escapa el marcado, pero no los caracteres de formato:
 	// un U+202E en el CN o en un aviso invertiría el texto visible del
@@ -113,6 +124,7 @@ func HTML(d Datos) ([]byte, error) {
 		Advertencias: limpiarLista(traducirLista(tr, r.Warnings)),
 		Errores:      limpiarLista(traducirLista(tr, r.Errors)),
 		Rotulos:      rotulos,
+		Etiquetas:    etiquetas,
 		Pie:          loc.T("report.footer", pie),
 	}
 	// Las comprobaciones solo muestran frases legibles; las evidencias en
@@ -143,6 +155,14 @@ func HTML(d Datos) ([]byte, error) {
 		v.Veredicto, v.ClaseVeredicto = loc.T("report.verdict.valid_warnings"), "aviso"
 	case r.Integrity.Status == domain.VerificationStatusInvalid:
 		v.Veredicto, v.ClaseVeredicto = loc.T("report.verdict.invalid"), "error"
+	case r.Integrity.Status == domain.VerificationStatusValid && conAlgoritmoAntiguo(r):
+		// El documento no ha cambiado, pero la firma usa SHA-1: se dice eso, y
+		// solo se añade lo del certificado si además no se ha acreditado.
+		clave := "report.verdict.intact_legacy_algorithm"
+		if r.Certificate.Status != domain.VerificationStatusValid || r.Trust.Status != domain.VerificationStatusValid {
+			clave = "report.verdict.intact_legacy_algorithm_unproven"
+		}
+		v.Veredicto, v.ClaseVeredicto = loc.T(clave), "aviso"
 	case r.Integrity.Status == domain.VerificationStatusValid:
 		// El documento no se ha alterado, pero no se ha podido acreditar la
 		// vigencia o la confianza del certificado.
@@ -155,6 +175,17 @@ func HTML(d Datos) ([]byte, error) {
 		return nil, err
 	}
 	return b.Bytes(), nil
+}
+
+// conAlgoritmoAntiguo dice si la verificación marcó un algoritmo antiguo
+// (SHA-1) en la firma.
+func conAlgoritmoAntiguo(r domain.VerificationResult) bool {
+	for _, e := range r.Evidence {
+		if e.Type == domain.EvidenciaAlgoritmoAntiguo {
+			return true
+		}
+	}
+	return false
 }
 
 // sinDetallesRepetidos quita de un aspecto las evidencias que ya salen en
@@ -243,7 +274,7 @@ func firmantesLegibles(loc *localizador.Localizador, zona *time.Location, firman
 		emisor := leerNombreDistinguido(emisorDN)
 		nombreEmisor := emisor.legible(emisorDN)
 		if emisor.organizacion != "" && emisor.organizacion != nombreEmisor {
-			nombreEmisor += " (" + emisor.organizacion + ")"
+			nombreEmisor = loc.T("report.signer.issuer_with_organization", nombreEmisor, emisor.organizacion)
 		}
 		out = append(out, firmante{
 			Nombre:        limpiar(titular.legible(sujeto)),
@@ -368,6 +399,14 @@ func evidenciasLegibles(loc *localizador.Localizador, evidencias []domain.Verifi
 		if clave := "report.evidence." + tipo; loc.T(clave) != clave {
 			tipo = loc.T(clave)
 		}
+		// «algoritmo_antiguo=sha1»: el rótulo ya lo da el tipo; se traduce el
+		// valor.
+		if clave, valor, ok := strings.Cut(resumen, "="); ok && loc.T(prefijoDetalle+clave) != prefijoDetalle+clave {
+			resumen = traducirValorDetalle(loc, valor)
+		}
+		if resumen != "" {
+			tipo = loc.T("report.label", tipo)
+		}
 		out = append(out, domain.VerificationEvidence{Type: tipo, Summary: resumen})
 	}
 	if len(out) == 0 {
@@ -442,11 +481,11 @@ ul{margin:.3rem 0 .3rem 1.2rem;padding:0}li{overflow-wrap:anywhere}footer{margin
 {{end}}</table>
 {{if .Firmantes}}<h2>{{index .Rotulos "report.section.signers"}}</h2>
 <table>
-{{range .Firmantes}}<tr><th>{{.Nombre}}</th><td>{{if .Fecha}}{{index $.Rotulos "report.signer.signing_time"}}: {{.Fecha}}<br>{{end}}{{if .Identificador}}{{index $.Rotulos "report.signer.identifier"}}: {{.Identificador}}<br>{{end}}{{if .Organizacion}}{{index $.Rotulos "report.signer.organization"}}: {{.Organizacion}}<br>{{end}}{{index $.Rotulos "report.signer.issuer"}}: {{.Emisor}}{{if .Huella}}<br>{{index $.Rotulos "report.signer.fingerprint"}}: <code>{{.Huella}}</code>{{end}}</td></tr>
+{{range .Firmantes}}<tr><th>{{.Nombre}}</th><td>{{if .Fecha}}{{index $.Etiquetas "report.signer.signing_time"}} {{.Fecha}}<br>{{end}}{{if .Identificador}}{{index $.Etiquetas "report.signer.identifier"}} {{.Identificador}}<br>{{end}}{{if .Organizacion}}{{index $.Etiquetas "report.signer.organization"}} {{.Organizacion}}<br>{{end}}{{index $.Etiquetas "report.signer.issuer"}} {{.Emisor}}{{if .Huella}}<br>{{index $.Etiquetas "report.signer.fingerprint"}} <code>{{.Huella}}</code>{{end}}</td></tr>
 {{end}}</table>{{end}}
 {{if .Errores}}<h2>{{index .Rotulos "report.section.errors"}}</h2><ul>{{range .Errores}}<li>{{.}}</li>{{end}}</ul>{{end}}
 {{if .Advertencias}}<h2>{{index .Rotulos "report.section.warnings"}}</h2><ul>{{range .Advertencias}}<li>{{.}}</li>{{end}}</ul>{{end}}
-{{if .Evidencias}}<h2>{{index .Rotulos "report.section.evidence"}}</h2><ul>{{range .Evidencias}}<li><strong>{{.Type}}</strong>{{if .Summary}}: {{.Summary}}{{end}}</li>{{end}}</ul>{{end}}
+{{if .Evidencias}}<h2>{{index .Rotulos "report.section.evidence"}}</h2><ul>{{range .Evidencias}}<li><strong>{{.Type}}</strong>{{if .Summary}} {{.Summary}}{{end}}</li>{{end}}</ul>{{end}}
 {{if .Detalles}}<h2>{{index .Rotulos "report.section.details"}}</h2><ul>{{range .Detalles}}<li>{{.}}</li>{{end}}</ul>{{end}}
 <footer>{{.Pie}}</footer>
 </body></html>

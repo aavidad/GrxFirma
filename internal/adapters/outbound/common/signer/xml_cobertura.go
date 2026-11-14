@@ -34,6 +34,10 @@ const (
 	motivoCoberturaParcial       = "La firma es correcta, pero parte del contenido del documento no está firmado."
 	motivoCoberturaNoComprobada  = "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida."
 	motivoFueraDeFirmaPorFormato = "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles."
+	// motivoReferenciaExternaNoComprobable: todo lo que falta por comprobar
+	// son documentos externos al fichero (URI http://, urn:...), que GrxFirma
+	// no descarga.
+	motivoReferenciaExternaNoComprobable = "La firma cubre documentos que no van dentro del fichero y que GrxFirma no descarga. Sin ellos no se puede saber si han cambiado, así que la firma no se da por válida."
 
 	maxElementosSinCubrirMostrados = 8
 )
@@ -117,19 +121,47 @@ func aplicarCoberturaXML(result domain.VerificationResult, cobertura resultadoCo
 	case domain.CoberturaParcial:
 		result = result.ConCobertura(domain.CoberturaParcial, motivoCoberturaParcial, detalles)
 	default:
-		result = result.ConCobertura(domain.CoberturaNoAcreditada, motivoCoberturaNoComprobada, detalles)
+		motivo := motivoCoberturaNoComprobada
+		if soloReferenciasExternas(cobertura.noComprobado) {
+			motivo = motivoReferenciaExternaNoComprobable
+		}
+		result = result.ConCobertura(domain.CoberturaNoAcreditada, motivo, detalles)
+		// El aviso de SHA-1 dice que el documento no ha cambiado, y aquí eso
+		// no se sabe. Queda la evidencia del algoritmo.
+		result.Warnings = sinString(result.Warnings, motivoAlgoritmoAntiguo)
 	}
 	result.Details = sinAfirmacionesDeCobertura(result.Details)
 	result.Integrity.Details = sinAfirmacionesDeCobertura(result.Integrity.Details)
 	return result
 }
 
-// Con cobertura incompleta, "referencias_zip=ok" daría a entender que se ha
-// comprobado todo el contenedor.
+func sinString(valores []string, quitar string) []string {
+	out := valores[:0:0]
+	for _, valor := range valores {
+		if valor != quitar {
+			out = append(out, valor)
+		}
+	}
+	return out
+}
+
+// soloReferenciasExternas dice si todo lo no comprobado son referencias a
+// documentos externos (del SignedInfo o de un ds:Manifest).
+func soloReferenciasExternas(noComprobado []string) bool {
+	for _, motivo := range noComprobado {
+		if motivo != detalleReferenciaExterna && motivo != "manifest_referencia_externa" {
+			return false
+		}
+	}
+	return len(noComprobado) > 0
+}
+
+// Con cobertura incompleta, "referencias_zip=ok" y "referencias=ok" darían a
+// entender que se ha comprobado todo.
 func sinAfirmacionesDeCobertura(details []string) []string {
 	out := details[:0:0]
 	for _, detail := range details {
-		if detail != "referencias_zip=ok" {
+		if detail != "referencias_zip=ok" && detail != "referencias=ok" {
 			out = append(out, detail)
 		}
 	}
