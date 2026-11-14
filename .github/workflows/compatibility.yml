@@ -110,7 +110,8 @@ jobs:
         run: go build ./...
 
       # El ejecutor de GitHub trae carpetas del sistema con escritura para
-      # todos (p. ej. /usr/share en 777) en la ruta de /etc/localtime. El
+      # todos (p. ej. /usr/share y el propio fichero de zona horaria en 777)
+      # en la ruta de /etc/localtime. El
       # aislamiento PKCS11 rechaza con razón un fichero que cualquiera puede
       # cambiar. Se corrige el ejecutor, no la política del producto.
       - name: Quitar escritura ajena en la ruta de la zona horaria
@@ -118,7 +119,7 @@ jobs:
         run: |
           set -euo pipefail
           destino="$(readlink -f /etc/localtime)"
-          carpeta="$(dirname "${destino}")"
+          carpeta="${destino}"
           while [ "${carpeta}" != "/" ]; do
             if [ "$(stat -c %u "${carpeta}")" = "0" ] && [ -n "$(find "${carpeta}" -maxdepth 0 -perm /022)" ]; then
               echo "Se quita la escritura ajena de ${carpeta} ($(stat -c %a "${carpeta}"))"
