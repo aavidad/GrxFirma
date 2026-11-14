@@ -44,15 +44,48 @@ class AfirmaAutoFirmaChoiceContract(unittest.TestCase):
 
     def test_update_keeps_autofirma_only_when_registration_is_retired(self):
         installer = source("install-afirmauri.ps1")
-        self.assertIn("$keepAutoFirma = Test-AfirmaProtocolKeptForAutoFirma", installer)
-        self.assertRegex(installer, r"(?s)if \(\$ValidateOnly\) \{\s*if \(-not \$keepAutoFirma\) \{\s*Install-AfirmaProtocolRegistration")
+        # Comprobación previa y actualización deciden igual (lote 15):
+        # política, /AFIRMA= o la preferencia de Configuración.
+        self.assertRegex(
+            installer,
+            r"(?s)if \(\$ValidateOnly\) \{\s*\$null = Invoke-AfirmaInstallHandlerChoice.*?-Requested \$AfirmaHandler\s*`\s*-ValidateOnly",
+        )
+        self.assertRegex(
+            installer,
+            r"(?s)\$afirmaApplied = Invoke-AfirmaInstallHandlerChoice.*?-Requested \$AfirmaHandler\n",
+        )
+        self.assertNotIn("Install-AfirmaProtocolRegistration", installer)
         registration = source("afirmauri-registration.ps1")
+        choice = registration[registration.index("function Invoke-AfirmaInstallHandlerChoice"):]
+        choice = choice[:choice.index("\n}\n")]
+        # AutoFirma solo se conserva si ya atiende afirma:// o si el registro
+        # de GrxFirma sigue retirado; si no, se registra o se cambia con la
+        # instantánea propia, nunca a ciegas.
+        self.assertIn("$autoFirmaCurrent -or (Test-AfirmaProtocolRetiredForAutoFirma @common)", choice)
+        self.assertIn("Switch-AfirmaProtocolToAutoFirma @common", choice)
+        self.assertIn("Install-AfirmaProtocolRegistration @common -ValidateOnly:$ValidateOnly", choice)
         body = registration[registration.index("function Test-AfirmaProtocolKeptForAutoFirma"):]
         for check in ('(Get-AfirmaProtocolHandlerPreference) -ne "autofirma"',
                       "Get-AfirmaAutoFirmaExecutable",
                       "Read-AfirmaProtocolSnapshot",
                       "Test-AfirmaProtocolValuesMatch -Expected @($state.Snapshots)"):
             self.assertIn(check, body)
+
+    def test_policy_prevails_and_never_writes_the_preference(self):
+        registration = source("afirmauri-registration.ps1")
+        resolve = registration[registration.index("function Resolve-AfirmaInstallHandler"):]
+        resolve = resolve[:resolve.index("\n}\n")]
+        order = [resolve.index('Source = "politica"'), resolve.index('Source = "parametro"'),
+                 resolve.index('Source = "preferencia"'), resolve.index('Source = "defecto"')]
+        self.assertEqual(order, sorted(order))
+        choice = registration[registration.index("function Invoke-AfirmaInstallHandlerChoice"):]
+        choice = choice[:choice.index("\n}\n")]
+        self.assertIn('$decision.Source -ne "politica"', choice)
+        self.assertIn("[bool]$policy.Unreadable", choice)
+        policy = registration[registration.index("function Get-AfirmaMachinePolicyHandler"):]
+        policy = policy[:policy.index("\n}\n")]
+        self.assertIn("OpenSubKey(\"SOFTWARE\\Policies\\GrxFirma\", $false)", policy)
+        self.assertIn("RegistryView]::Registry64", policy)
 
     def test_restart_marker_does_not_wipe_the_preference(self):
         # New-Item -Force recrea la clave HKCU\Software\GrxFirma vacía y

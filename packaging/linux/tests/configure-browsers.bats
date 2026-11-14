@@ -36,7 +36,9 @@ configure_browsers() {
     GRXFIRMA_FIREFOX_XPI="${TEST_XPI}" \
     GRXFIRMA_FIREFOX_METADATA="${TEST_METADATA}" \
     GRXFIRMA_SYSTEM_APP_DIRS="${BATS_TEST_TMPDIR}/usr/share/applications" \
-    "${BATS_TEST_DIRNAME}/../configure-browsers.sh"
+    GRXFIRMA_POLICY_FILE="${BATS_TEST_TMPDIR}/etc/policy.json" \
+    GRXFIRMA_AFIRMA_HANDLER="${TEST_AFIRMA_HANDLER:-}" \
+    "${BATS_TEST_DIRNAME}/../configure-browsers.sh" "$@"
 }
 
 @test "does not install an unsigned Firefox artifact" {
@@ -277,4 +279,159 @@ mime_value() {
   run configure_browsers
   [ "$status" -eq 0 ]
   [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = grxfirma.desktop ]
+}
+
+# Programa para firmar en las webs al instalar (lote 15): política,
+# --afirma-handler= y preferencia.
+install_autofirma_desktop() {
+  mkdir -p "${TEST_HOME}/.local/share/applications"
+  printf '[Desktop Entry]\nExec=/usr/bin/autofirma %%u\nMimeType=x-scheme-handler/afirma;\n' \
+    > "${TEST_HOME}/.local/share/applications/afirma.desktop"
+}
+
+preference_value() {
+  cat "${TEST_HOME}/.config/grxfirma/afirma-protocol-handler"
+}
+
+@test "--afirma-handler=autofirma devuelve afirma:// a AutoFirma y guarda la elección (lote 15)" {
+  write_metadata false
+  install_autofirma_desktop
+  local mimeapps="${TEST_HOME}/.config/mimeapps.list"
+  mkdir -p "$(dirname "${mimeapps}")"
+  printf '[Default Applications]\nx-scheme-handler/afirma=afirma.desktop\n' > "${mimeapps}"
+
+  # Instalación silenciosa sin nada: GrxFirma, como hasta ahora.
+  run configure_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = grxfirma.desktop ]
+  [ ! -e "${TEST_HOME}/.config/grxfirma/afirma-protocol-handler" ]
+
+  TEST_AFIRMA_HANDLER=autofirma run configure_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = afirma.desktop ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirmav2)" = grxfirma.desktop ]
+  [ "$(preference_value)" = autofirma ]
+  [ "$(stat -c %a "${TEST_HOME}/.config/grxfirma/afirma-protocol-handler")" = 600 ]
+
+  # Actualización silenciosa: se respeta AutoFirma.
+  run configure_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = afirma.desktop ]
+
+  # Volver a GrxFirma la re-registra.
+  TEST_AFIRMA_HANDLER=grxfirma run configure_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = grxfirma.desktop ]
+  [ "$(preference_value)" = grxfirma ]
+
+  # Desinstalar sigue devolviendo lo de antes de GrxFirma.
+  run restore_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = afirma.desktop ]
+}
+
+@test "con AutoFirma elegido no se pisa un manejador que la persona puso a mano (lote 15)" {
+  write_metadata false
+  install_autofirma_desktop
+  local mimeapps="${TEST_HOME}/.config/mimeapps.list"
+  mkdir -p "$(dirname "${mimeapps}")"
+  printf '[Default Applications]\nx-scheme-handler/afirma=otra.desktop\n' > "${mimeapps}"
+  run configure_browsers
+  [ "$status" -eq 0 ]
+  sed -i 's|^x-scheme-handler/afirma=.*|x-scheme-handler/afirma=otra.desktop|' "${mimeapps}"
+
+  TEST_AFIRMA_HANDLER=autofirma run configure_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = otra.desktop ]
+}
+
+@test "preguntar deja afirma:// a GrxFirma y guarda la elección (lote 15)" {
+  write_metadata false
+  install_autofirma_desktop
+
+  TEST_AFIRMA_HANDLER=preguntar run configure_browsers
+  [ "$status" -eq 0 ]
+  grep -qx 'x-scheme-handler/afirma=grxfirma.desktop' "${TEST_HOME}/.config/mimeapps.list"
+  [ "$(preference_value)" = preguntar ]
+}
+
+@test "sin AutoFirma, --afirma-handler=autofirma deja GrxFirma y avisa (lote 15)" {
+  write_metadata false
+
+  TEST_AFIRMA_HANDLER=autofirma run configure_browsers
+  [ "$status" -eq 0 ]
+  [[ "${output}" == *"AutoFirma no está instalado"* ]]
+  grep -qx 'x-scheme-handler/afirma=grxfirma.desktop' "${TEST_HOME}/.config/mimeapps.list"
+}
+
+@test "la política manejador_afirma prevalece y no escribe la preferencia (lote 15)" {
+  write_metadata false
+  install_autofirma_desktop
+  local mimeapps="${TEST_HOME}/.config/mimeapps.list"
+  mkdir -p "${BATS_TEST_TMPDIR}/etc" "$(dirname "${mimeapps}")" "${TEST_HOME}/.config/grxfirma"
+  printf '[Default Applications]\nx-scheme-handler/afirma=afirma.desktop\n' > "${mimeapps}"
+  printf 'preguntar\n' > "${TEST_HOME}/.config/grxfirma/afirma-protocol-handler"
+  run configure_browsers
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = grxfirma.desktop ]
+
+  printf '{"manejador_afirma": "AutoFirma"}\n' > "${BATS_TEST_TMPDIR}/etc/policy.json"
+  TEST_AFIRMA_HANDLER=grxfirma run configure_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = afirma.desktop ]
+  [ "$(preference_value)" = preguntar ]
+
+  printf '{"manejador_afirma": "grxfirma"}\n' > "${BATS_TEST_TMPDIR}/etc/policy.json"
+  TEST_AFIRMA_HANDLER=autofirma run configure_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = grxfirma.desktop ]
+  [ "$(preference_value)" = preguntar ]
+}
+
+@test "una política ilegible avisa y mantiene la elección de la persona (lote 15)" {
+  write_metadata false
+  install_autofirma_desktop
+  local mimeapps="${TEST_HOME}/.config/mimeapps.list"
+  mkdir -p "${BATS_TEST_TMPDIR}/etc" "$(dirname "${mimeapps}")" "${TEST_HOME}/.config/grxfirma"
+  printf '[Default Applications]\nx-scheme-handler/afirma=afirma.desktop\n' > "${mimeapps}"
+  printf 'autofirma\n' > "${TEST_HOME}/.config/grxfirma/afirma-protocol-handler"
+
+  for policy in '{"manejador_afirma": "otro"}' '{"manejador_afirma": 3}' 'no es json' '[]'; do
+    printf '%s\n' "${policy}" > "${BATS_TEST_TMPDIR}/etc/policy.json"
+    run configure_browsers
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *"no se pudo leer manejador_afirma"* ]]
+    [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = afirma.desktop ]
+    [ "$(preference_value)" = autofirma ]
+  done
+}
+
+@test "un valor no válido en --afirma-handler= se rechaza sin tocar nada (lote 15)" {
+  write_metadata false
+
+  TEST_AFIRMA_HANDLER='autofirma;rm' run configure_browsers
+  [ "$status" -eq 2 ]
+  [ ! -e "${TEST_HOME}/.config/mimeapps.list" ]
+  [ ! -e "${TEST_HOME}/.config/google-chrome/NativeMessagingHosts/io.github.aavidad.grxfirma.json" ]
+}
+
+@test "la detección para la pregunta del instalador solo lee (lote 15)" {
+  run configure_browsers --detect-afirma-handler
+  [ "$status" -eq 0 ]
+  [ "$output" = "0|-|-" ]
+  [ ! -e "${TEST_HOME}/.config/mimeapps.list" ]
+
+  install_autofirma_desktop
+  mkdir -p "${BATS_TEST_TMPDIR}/etc" "${TEST_HOME}/.config/grxfirma"
+  printf 'preguntar\n' > "${TEST_HOME}/.config/grxfirma/afirma-protocol-handler"
+  run configure_browsers --detect-afirma-handler
+  [ "$output" = "1|-|preguntar" ]
+
+  printf '{"manejador_afirma": "grxfirma"}\n' > "${BATS_TEST_TMPDIR}/etc/policy.json"
+  run configure_browsers --detect-afirma-handler
+  [ "$output" = "1|grxfirma|preguntar" ]
+
+  printf 'roto\n' > "${BATS_TEST_TMPDIR}/etc/policy.json"
+  run configure_browsers --detect-afirma-handler
+  [ "$output" = "1|-|preguntar" ]
+  [ ! -e "${TEST_HOME}/.config/mimeapps.list" ]
 }

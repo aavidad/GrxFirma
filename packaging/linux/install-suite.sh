@@ -10,6 +10,33 @@ set -euo pipefail
 
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Programa para firmar en las webs: --afirma-handler=grxfirma|autofirma|preguntar.
+# Sin él se mantiene lo que eligió la persona o, si no eligió nada, GrxFirma. La
+# política manejador_afirma de /etc/grxfirma/policy.json prevalece siempre.
+AFIRMA_HANDLER=""
+for arg in "$@"; do
+  case "${arg}" in
+    --afirma-handler=*)
+      AFIRMA_HANDLER="${arg#--afirma-handler=}"
+      AFIRMA_HANDLER="${AFIRMA_HANDLER,,}"
+      case "${AFIRMA_HANDLER}" in
+        grxfirma | autofirma | preguntar) ;;
+        *)
+          echo "error: valor no válido en --afirma-handler=. Use grxfirma, autofirma o preguntar. No se ha modificado el sistema." >&2
+          exit 2
+          ;;
+      esac
+      ;;
+    -h | --help)
+      echo "uso: install-suite.sh [--afirma-handler=grxfirma|autofirma|preguntar]"
+      exit 0
+      ;;
+    *)
+      echo "Aviso: se ignora la opción desconocida ${arg}." >&2
+      ;;
+  esac
+done
+
 USERBIN="${HOME}/.local/bin"
 USERAPP="${HOME}/.local/share/applications"
 USERLIBDIR="${HOME}/.local/lib/grxfirma/bin"
@@ -307,7 +334,50 @@ if [[ -f "${CHROMIUM_CRX_ID_FILE}" ]]; then
   install -m 644 "${CHROMIUM_CRX_ID_FILE}" "${USEREXTDIR}/chromium/grxfirma-extension-chromium.id"
 fi
 
+# Si AutoFirma está instalado, la política no decide y nadie pidió nada, se
+# pregunta (solo en una terminal; sin ella se mantiene lo que hay).
+afirma_ask_handler() {
+  local detection available policy preference initial default_index answer
+  detection="$(GRXFIRMA_TARGET_HOME="${HOME}" "${USERLIBDIR}/configure-browsers.sh" --detect-afirma-handler 2>/dev/null || true)"
+  IFS='|' read -r available policy preference <<< "${detection}"
+  [[ "${available}" == 1 && "${policy}" == "-" ]] || return 0
+  initial="grxfirma"
+  default_index=1
+  case "${preference}" in
+    autofirma) initial="autofirma"; default_index=2 ;;
+    preguntar) initial="preguntar"; default_index=3 ;;
+  esac
+  printf '\nAutoFirma también está instalado en este equipo.\n'
+  printf 'Cuando una web de la Administración le pida firmar, ¿con qué programa quiere hacerlo?\n'
+  printf '  1) GrxFirma\n'
+  printf '  2) AutoFirma (aplicación del Gobierno de España)\n'
+  printf '  3) Preguntar cada vez\n'
+  printf 'Podrá cambiarlo cuando quiera en GrxFirma, en Configuración, «Programa para firmar en las webs».\n'
+  for _ in 1 2 3; do
+    read -r -p "Elija 1, 2 o 3 (Intro deja la ${default_index}): " answer || return 0
+    case "${answer:-${default_index}}" in
+      1) answer="grxfirma" ;;
+      2) answer="autofirma" ;;
+      3) answer="preguntar" ;;
+      *)
+        echo "Escriba 1, 2 o 3."
+        continue
+        ;;
+    esac
+    # Si no cambia lo que había, no se pide nada: se conserva tal cual.
+    if [[ "${answer}" != "${initial}" ]]; then
+      AFIRMA_HANDLER="${answer}"
+    fi
+    return 0
+  done
+  echo "Se mantiene la opción ${default_index}."
+}
+if [[ -z "${AFIRMA_HANDLER}" && -t 0 && -t 1 ]]; then
+  afirma_ask_handler
+fi
+
 GRXFIRMA_TARGET_HOME="${HOME}" \
+GRXFIRMA_AFIRMA_HANDLER="${AFIRMA_HANDLER}" \
 GRXFIRMA_DESKTOP_ID="grxfirma.desktop" \
 GRXFIRMA_BROWSER_BRIDGE="${USERLIBDIR}/browser-bridge.sh" \
 GRXFIRMA_FIREFOX_XPI="${USEREXTDIR}/firefox/grxfirma-extension-firefox.xpi" \
@@ -320,7 +390,8 @@ FIREFOX_EXT_ID="${FIREFOX_EXT_ID}" \
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database "${USERAPP}" || true
 fi
-# configure-browsers.sh ya registra afirma:// respetando si se eligió AutoFirma.
+# configure-browsers.sh ya registra afirma:// con el programa para firmar en las
+# webs que toca (política, --afirma-handler= o lo que eligió la persona).
 
 echo "Suite instalada en:"
 echo "  CLI:          ${USERBIN}/grxfirma"

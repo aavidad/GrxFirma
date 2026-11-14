@@ -166,8 +166,9 @@ try {
 # Contratos del instalador: comprueba la elección antes de registrar y la
 # desinstalación no avisa cuando el registro ya estaba retirado.
 $installer = Get-Content -LiteralPath (Join-Path $windowsDir "install-afirmauri.ps1") -Raw
-Assert-True ($installer -match 'Test-AfirmaProtocolKeptForAutoFirma') "install-afirmauri.ps1 no consulta la eleccion de AutoFirma"
-Assert-True ($installer -match '(?s)if \(\$keepAutoFirma\) \{.*?\} else \{\s*Install-AfirmaProtocolRegistration') "install-afirmauri.ps1 registra aunque se eligiera AutoFirma"
+Assert-True ($installer -match '(?s)if \(\$ValidateOnly\) \{\s*\$null = Invoke-AfirmaInstallHandlerChoice.*?-Requested \$AfirmaHandler') "install-afirmauri.ps1 no consulta la eleccion de AutoFirma al comprobar"
+Assert-True ($installer -match '\$afirmaApplied = Invoke-AfirmaInstallHandlerChoice') "install-afirmauri.ps1 no consulta la eleccion de AutoFirma al instalar"
+Assert-True (-not ($installer -match 'Install-AfirmaProtocolRegistration')) "install-afirmauri.ps1 registra aunque se eligiera AutoFirma"
 $uninstaller = Get-Content -LiteralPath (Join-Path $windowsDir "uninstall-afirmauri.ps1") -Raw
 Assert-True ($uninstaller -match 'Test-AfirmaProtocolValuesMatch -Expected @\(\$state.Snapshots\)') "uninstall-afirmauri.ps1 no reconoce el registro ya retirado"
 

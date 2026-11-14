@@ -8,7 +8,12 @@ param(
     [switch]$SilentInstall,
     # Comprueba, sin cambiar nada, que la carpeta y el protocolo afirma://
     # pertenecen a esta instalación. La suite lo usa antes de detener procesos.
-    [switch]$ValidateOnly
+    [switch]$ValidateOnly,
+    # Programa para firmar en las webs (/AFIRMA= del instalador). Vacío: el
+    # que eligió la persona o, si no eligió, GrxFirma. La política de máquina
+    # manejador_afirma prevalece.
+    [ValidateSet("", "grxfirma", "autofirma", "preguntar")]
+    [string]$AfirmaHandler = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -66,22 +71,17 @@ if ($previousInstallExisted -and
 
 $protocolKey = "Software\Classes\afirma"
 $protocolSnapshot = Join-Path $InstallDir "afirma-protocol-snapshot.json"
-# Si la persona eligió en Configuración que AutoFirma atienda afirma://, la
-# actualización no le devuelve el protocolo a GrxFirma.
-$keepAutoFirma = Test-AfirmaProtocolKeptForAutoFirma `
-    -ProtocolKey $protocolKey `
-    -ExecutablePath (Join-Path $InstallDir "grxfirma-afirmauri.exe") `
-    -IconPath (Join-Path $InstallDir "grxfirma-grx.ico") `
-    -SnapshotPath $protocolSnapshot
+# Programa para firmar en las webs: la política, /AFIRMA= o lo que eligió la
+# persona en Configuración (si eligió AutoFirma, la actualización no le
+# devuelve el protocolo a GrxFirma). Ver Invoke-AfirmaInstallHandlerChoice.
 if ($ValidateOnly) {
-    if (-not $keepAutoFirma) {
-        Install-AfirmaProtocolRegistration `
-            -ProtocolKey $protocolKey `
-            -ExecutablePath (Join-Path $InstallDir "grxfirma-afirmauri.exe") `
-            -IconPath (Join-Path $InstallDir "grxfirma-grx.ico") `
-            -SnapshotPath $protocolSnapshot `
-            -ValidateOnly
-    }
+    $null = Invoke-AfirmaInstallHandlerChoice `
+        -ProtocolKey $protocolKey `
+        -ExecutablePath (Join-Path $InstallDir "grxfirma-afirmauri.exe") `
+        -IconPath (Join-Path $InstallDir "grxfirma-grx.ico") `
+        -SnapshotPath $protocolSnapshot `
+        -Requested $AfirmaHandler `
+        -ValidateOnly
     Write-Host "Protocolo afirma:// comprobado sin cambios."
     return
 }
@@ -143,20 +143,13 @@ try {
         }
     }
 
-    if ($keepAutoFirma) {
-        Write-Host "Se respeta la elección de Configuración: AutoFirma sigue atendiendo afirma://."
-    } else {
-        Install-AfirmaProtocolRegistration `
-            -ProtocolKey $protocolKey `
-            -ExecutablePath $exeTarget `
-            -IconPath $iconTarget `
-            -SnapshotPath $protocolSnapshot
-        if ((Get-AfirmaProtocolHandlerPreference) -eq "autofirma") {
-            # AutoFirma ya no está o el registro cambió: GrxFirma vuelve a
-            # atender las firmas y la preferencia lo refleja.
-            Set-AfirmaProtocolHandlerPreference -Handler "grxfirma"
-        }
-    }
+    $afirmaApplied = Invoke-AfirmaInstallHandlerChoice `
+        -ProtocolKey $protocolKey `
+        -ExecutablePath $exeTarget `
+        -IconPath $iconTarget `
+        -SnapshotPath $protocolSnapshot `
+        -Requested $AfirmaHandler
+    Write-Host "Programa para firmar en las webs: $afirmaApplied"
 
     # DefaultIcon ya apunta al icono nuevo: se retiran los nombres anteriores.
     foreach ($legacyIconName in $script:AfirmaLegacyIconFileNames) {

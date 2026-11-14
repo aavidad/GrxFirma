@@ -9,6 +9,7 @@ Unicode True
 !include "shell-icon-refresh.nsh"
 !include "authenticode-signing.nsh"
 !include "legacy-machine-install.nsh"
+!include "afirma-handler-choice.nsh"
 
 !ifndef VERSION
   !define VERSION "dev"
@@ -44,6 +45,7 @@ Var SilentInstallArg
 
 !define MUI_ABORTWARNING
 !insertmacro MUI_PAGE_WELCOME
+Page custom GrxFirmaAfirmaHandlerPage GrxFirmaAfirmaHandlerPageLeave
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
@@ -89,11 +91,15 @@ Section "Handler afirma://" SEC01
   StrCpy $SilentInstallArg ""
   IfSilent 0 +2
   StrCpy $SilentInstallArg "-SilentInstall"
-  !insertmacro GrxFirmaShowWarning \
-    "Desde ahora GrxFirma abrirá los enlaces afirma:// de los portales, en lugar de AutoFirma si lo tiene instalado, salvo que en Configuración haya elegido AutoFirma. Si desinstala GrxFirma, esos enlaces volverán a abrirse con AutoFirma."
+  !insertmacro GrxFirmaAfirmaHandlerArgument
+  ${If} $GrxAfirmaHandler != "autofirma"
+  ${AndIf} $GrxAfirmaHandler != "preguntar"
+    !insertmacro GrxFirmaShowWarning \
+      "Desde ahora GrxFirma abrirá los enlaces afirma:// de los portales, en lugar de AutoFirma si lo tiene instalado, salvo que haya elegido AutoFirma o «Preguntar cada vez». Puede cambiarlo en GrxFirma, en Configuración, «Programa para firmar en las webs». Si desinstala GrxFirma, esos enlaces volverán a abrirse con AutoFirma."
+  ${EndIf}
   !insertmacro GrxFirmaShowWarning \
     "Windows pedirá confirmar el certificado local de GrxFirma. Si se está renovando, también pedirá retirar el anterior. Pulse 'Sí' en los avisos de Windows para permitir la conexión segura con los portales."
-  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\install-afirmauri.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\AfirmaURI" $SilentInstallArg'
+  nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\install-afirmauri.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\AfirmaURI" $SilentInstallArg $GrxAfirmaHandlerArg'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
     "La instalación PowerShell del handler afirma:// ha fallado con código $0."

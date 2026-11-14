@@ -903,16 +903,20 @@ function Get-AfirmaProtocolHandlerPreference {
     } finally {
         $key.Dispose()
     }
-    if ($value -eq "grxfirma" -or $value -eq "autofirma") {
+    if ($script:AfirmaHandlerChoices -contains $value) {
         return $value
     }
     return ""
 }
 
+# Valores de la preferencia y de la política manejador_afirma. «preguntar»
+# deja afirma:// a GrxFirma, que pregunta en cada firma (lote 15).
+$script:AfirmaHandlerChoices = @("grxfirma", "autofirma", "preguntar")
+
 function Set-AfirmaProtocolHandlerPreference {
     param(
         [Parameter(Mandatory = $true)]
-        [ValidateSet("grxfirma", "autofirma")]
+        [ValidateSet("grxfirma", "autofirma", "preguntar")]
         [string]$Handler
     )
 
@@ -1052,6 +1056,26 @@ function Test-AfirmaProtocolKeptForAutoFirma {
     if ((Get-AfirmaProtocolHandlerPreference) -ne "autofirma") {
         return $false
     }
+    return (Test-AfirmaProtocolRetiredForAutoFirma `
+        -ProtocolKey $ProtocolKey `
+        -ExecutablePath $ExecutablePath `
+        -IconPath $IconPath `
+        -SnapshotPath $SnapshotPath)
+}
+
+# Verdadero si GrxFirma ya devolvió afirma:// a AutoFirma: AutoFirma sigue
+# instalado y el registro HKCU es exactamente el de antes de GrxFirma.
+function Test-AfirmaProtocolRetiredForAutoFirma {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProtocolKey,
+        [Parameter(Mandatory = $true)]
+        [string]$ExecutablePath,
+        [string]$IconPath = "",
+        [Parameter(Mandatory = $true)]
+        [string]$SnapshotPath
+    )
+
     if (-not (Test-Path -LiteralPath $SnapshotPath -PathType Leaf)) {
         return $false
     }
@@ -1076,4 +1100,290 @@ function Test-AfirmaProtocolKeptForAutoFirma {
         return $false
     }
     return (Test-AfirmaProtocolValuesMatch -Expected @($state.Snapshots))
+}
+
+# Política de máquina manejador_afirma (HKLM\SOFTWARE\Policies\GrxFirma, vista
+# de 64 bits, como la lee GrxFirma). Value es "" si no fija nada. Si existe pero
+# no se puede leer o no se entiende, Unreadable: se mantiene lo de hoy.
+function Get-AfirmaMachinePolicyHandler {
+    $result = [pscustomobject]@{ Value = ""; Unreadable = $false }
+    try {
+        $base = [Microsoft.Win32.RegistryKey]::OpenBaseKey(
+            [Microsoft.Win32.RegistryHive]::LocalMachine,
+            [Microsoft.Win32.RegistryView]::Registry64
+        )
+        try {
+            $key = $base.OpenSubKey("SOFTWARE\Policies\GrxFirma", $false)
+            if ($null -eq $key) {
+                return $result
+            }
+            try {
+                if (-not (@($key.GetValueNames()) -contains "manejador_afirma")) {
+                    return $result
+                }
+                $kind = $key.GetValueKind("manejador_afirma")
+                if ($kind -ne [Microsoft.Win32.RegistryValueKind]::String -and
+                    $kind -ne [Microsoft.Win32.RegistryValueKind]::ExpandString) {
+                    $result.Unreadable = $true
+                    return $result
+                }
+                $value = ([string]$key.GetValue("manejador_afirma")).Trim().ToLowerInvariant()
+            } finally {
+                $key.Dispose()
+            }
+        } finally {
+            $base.Dispose()
+        }
+    } catch {
+        $result.Unreadable = $true
+        return $result
+    }
+    if ($script:AfirmaHandlerChoices -contains $value) {
+        $result.Value = $value
+    } else {
+        $result.Unreadable = $true
+    }
+    return $result
+}
+
+# Qué programa debe atender afirma:// tras instalar: el que fija la política;
+# si no, el que pide el instalador (/AFIRMA=); si no, el que eligió la persona;
+# y si no eligió nada, GrxFirma, como hasta ahora.
+function Resolve-AfirmaInstallHandler {
+    param(
+        [AllowEmptyString()]
+        [string]$Requested = "",
+        [AllowEmptyString()]
+        [string]$Preference = "",
+        [object]$Policy = $null
+    )
+
+    if ($null -ne $Policy -and -not [bool]$Policy.Unreadable -and
+        $script:AfirmaHandlerChoices -contains [string]$Policy.Value) {
+        return [pscustomobject]@{ Handler = [string]$Policy.Value; Source = "politica" }
+    }
+    $requestedValue = ([string]$Requested).Trim().ToLowerInvariant()
+    if ($requestedValue.Length -gt 0) {
+        if (-not ($script:AfirmaHandlerChoices -contains $requestedValue)) {
+            throw "Valor no válido para el programa de firma en las webs: '$Requested'. Use grxfirma, autofirma o preguntar."
+        }
+        return [pscustomobject]@{ Handler = $requestedValue; Source = "parametro" }
+    }
+    if ($script:AfirmaHandlerChoices -contains $Preference) {
+        return [pscustomobject]@{ Handler = $Preference; Source = "preferencia" }
+    }
+    return [pscustomobject]@{ Handler = "grxfirma"; Source = "defecto" }
+}
+
+# Verdadero si la orden actual de afirma:// en HKCU es la de AutoFirma (por
+# ejemplo, AutoFirma se instaló con la misma cuenta después de GrxFirma).
+function Test-AfirmaAutoFirmaIsCurrent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProtocolKey
+    )
+
+    $command = Get-AfirmaRegistryValueSnapshot `
+        -Path "$ProtocolKey\shell\open\command" `
+        -Name ""
+    if (-not [bool]$command.ValueExisted) {
+        return $false
+    }
+    return -not [string]::IsNullOrEmpty(
+        (Get-AfirmaAutoFirmaExecutableFromCommand -Command ([string]$command.Value))
+    )
+}
+
+# Verdadero si AutoFirma está instalado: en el registro del equipo, en el que
+# guardó GrxFirma al instalarse o en el registro actual del usuario.
+function Test-AfirmaAutoFirmaAvailable {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProtocolKey,
+        [Parameter(Mandatory = $true)]
+        [string]$ExecutablePath,
+        [string]$IconPath = "",
+        [Parameter(Mandatory = $true)]
+        [string]$SnapshotPath
+    )
+
+    if (-not [string]::IsNullOrEmpty((Get-AfirmaAutoFirmaExecutable -ProtocolKey $ProtocolKey))) {
+        return $true
+    }
+    if (Test-AfirmaAutoFirmaIsCurrent -ProtocolKey $ProtocolKey) {
+        return $true
+    }
+    if (-not (Test-Path -LiteralPath $SnapshotPath -PathType Leaf)) {
+        return $false
+    }
+    $plan = @(Get-AfirmaProtocolRegistrationPlan `
+        -ProtocolKey $ProtocolKey `
+        -ExecutablePath $ExecutablePath `
+        -IconPath $IconPath)
+    try {
+        $state = Read-AfirmaProtocolSnapshot `
+            -Path $SnapshotPath `
+            -ProtocolKey $ProtocolKey `
+            -Plan $plan `
+            -AcceptedLegacyOwnerSets @(Get-AfirmaProtocolLegacyOwnerSets `
+                -ProtocolKey $ProtocolKey `
+                -ExecutablePath $ExecutablePath `
+                -IconPath $IconPath)
+    } catch {
+        return $false
+    }
+    return -not [string]::IsNullOrEmpty(
+        (Get-AfirmaSavedAutoFirmaExecutable -Snapshots @($state.Snapshots))
+    )
+}
+
+# Devuelve afirma:// a lo que había antes de GrxFirma (AutoFirma). Primero
+# registra GrxFirma para tener una instantánea propia y comprobada: si otro
+# programa cambió el registro, Install-AfirmaProtocolRegistration aborta sin
+# escribir.
+function Switch-AfirmaProtocolToAutoFirma {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProtocolKey,
+        [Parameter(Mandatory = $true)]
+        [string]$ExecutablePath,
+        [string]$IconPath = "",
+        [Parameter(Mandatory = $true)]
+        [string]$SnapshotPath
+    )
+
+    Install-AfirmaProtocolRegistration `
+        -ProtocolKey $ProtocolKey `
+        -ExecutablePath $ExecutablePath `
+        -IconPath $IconPath `
+        -SnapshotPath $SnapshotPath
+    $plan = @(Get-AfirmaProtocolRegistrationPlan `
+        -ProtocolKey $ProtocolKey `
+        -ExecutablePath $ExecutablePath `
+        -IconPath $IconPath)
+    $state = Read-AfirmaProtocolSnapshot `
+        -Path $SnapshotPath `
+        -ProtocolKey $ProtocolKey `
+        -Plan $plan `
+        -AcceptedLegacyOwnerSets @(Get-AfirmaProtocolLegacyOwnerSets `
+            -ProtocolKey $ProtocolKey `
+            -ExecutablePath $ExecutablePath `
+            -IconPath $IconPath)
+    if (-not (Restore-AfirmaProtocolRegistration `
+            -OwnerValues @($state.OwnerValues) `
+            -Snapshots @($state.Snapshots))) {
+        throw "El protocolo afirma:// cambio durante la instalacion; se aborta para no sobrescribir otro handler."
+    }
+}
+
+# Aplica al instalar el programa para firmar en las webs y devuelve el que
+# queda (grxfirma, autofirma o preguntar). Con -ValidateOnly solo comprueba la
+# propiedad del registro, sin escribir nada.
+function Invoke-AfirmaInstallHandlerChoice {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProtocolKey,
+        [Parameter(Mandatory = $true)]
+        [string]$ExecutablePath,
+        [string]$IconPath = "",
+        [Parameter(Mandatory = $true)]
+        [string]$SnapshotPath,
+        [AllowEmptyString()]
+        [string]$Requested = "",
+        [switch]$ValidateOnly
+    )
+
+    $policy = Get-AfirmaMachinePolicyHandler
+    if ([bool]$policy.Unreadable) {
+        Write-Warning "No se pudo leer la política manejador_afirma del equipo; se mantiene la elección de cada usuario."
+    }
+    $preference = Get-AfirmaProtocolHandlerPreference
+    $decision = Resolve-AfirmaInstallHandler -Requested $Requested -Preference $preference -Policy $policy
+    $handler = $decision.Handler
+    $explicit = $decision.Source -eq "politica" -or $decision.Source -eq "parametro"
+    $common = @{
+        ProtocolKey = $ProtocolKey
+        ExecutablePath = $ExecutablePath
+        IconPath = $IconPath
+        SnapshotPath = $SnapshotPath
+    }
+    $autoFirmaCurrent = Test-AfirmaAutoFirmaIsCurrent -ProtocolKey $ProtocolKey
+    $autoFirmaAvailable = Test-AfirmaAutoFirmaAvailable @common
+    if ($handler -ne "grxfirma" -and -not $autoFirmaAvailable) {
+        if ($explicit) {
+            Write-Warning "AutoFirma no está instalado en este equipo: las firmas de las webs se abrirán con GrxFirma."
+        }
+        $handler = "grxfirma"
+    }
+
+    $applied = $handler
+    if ($handler -eq "autofirma") {
+        if ($autoFirmaCurrent -or (Test-AfirmaProtocolRetiredForAutoFirma @common)) {
+            Write-Host "AutoFirma sigue atendiendo las firmas de las webs."
+        } elseif ($ValidateOnly) {
+            Install-AfirmaProtocolRegistration @common -ValidateOnly
+        } else {
+            Switch-AfirmaProtocolToAutoFirma @common
+            Write-Host "Las firmas de las webs se abrirán con AutoFirma."
+        }
+    } elseif ($autoFirmaCurrent -and -not $explicit -and
+        (Test-Path -LiteralPath $SnapshotPath -PathType Leaf) -and
+        -not (Test-AfirmaProtocolRetiredForAutoFirma @common)) {
+        # AutoFirma se adueñó del protocolo después de instalar GrxFirma (el
+        # registro ya no es ni el de GrxFirma ni el de antes). No se
+        # sobrescribe: la persona puede elegir en Configuración. Sin
+        # instantánea (primera instalación) o con el registro retirado por
+        # GrxFirma, se registra como hasta ahora.
+        Write-Warning "AutoFirma atiende ahora las firmas de las webs. GrxFirma no lo cambia; puede elegir el programa en Configuración, «Programa para firmar en las webs»."
+        $applied = "autofirma"
+    } else {
+        Install-AfirmaProtocolRegistration @common -ValidateOnly:$ValidateOnly
+    }
+
+    if ($ValidateOnly) {
+        return $applied
+    }
+    # La preferencia guarda la elección de la persona; la política no la toca,
+    # para que vuelva a valer si la organización la retira.
+    $newPreference = ""
+    if ($decision.Source -eq "parametro") {
+        $newPreference = $applied
+    } elseif ($decision.Source -ne "politica" -and $preference -eq "autofirma" -and $applied -eq "grxfirma") {
+        # AutoFirma ya no está: GrxFirma vuelve a atender las firmas.
+        $newPreference = "grxfirma"
+    }
+    if ($newPreference.Length -gt 0 -and $newPreference -ne $preference) {
+        Set-AfirmaProtocolHandlerPreference -Handler $newPreference
+    }
+    return $applied
+}
+
+# Para la página del instalador NSIS: escribe «autofirma|política|preferencia»
+# (por ejemplo «1|-|preguntar»), con «-» cuando no hay valor. Solo lee.
+# Una política ilegible cuenta como «-»: se mantiene lo de cada usuario.
+function Write-AfirmaInstallHandlerDetection {
+    param(
+        [string]$InstallDir = "$env:LOCALAPPDATA\Programs\GrxFirma\AfirmaURI",
+        [string]$ProtocolKey = "Software\Classes\afirma"
+    )
+
+    $available = Test-AfirmaAutoFirmaAvailable `
+        -ProtocolKey $ProtocolKey `
+        -ExecutablePath (Join-Path $InstallDir "grxfirma-afirmauri.exe") `
+        -IconPath (Join-Path $InstallDir "grxfirma-grx.ico") `
+        -SnapshotPath (Join-Path $InstallDir "afirma-protocol-snapshot.json")
+    $policy = Get-AfirmaMachinePolicyHandler
+    $policyValue = "-"
+    if (-not [bool]$policy.Unreadable -and -not [string]::IsNullOrEmpty([string]$policy.Value)) {
+        $policyValue = [string]$policy.Value
+    }
+    $preference = Get-AfirmaProtocolHandlerPreference
+    if ([string]::IsNullOrEmpty($preference)) {
+        $preference = "-"
+    }
+    $flag = "0"
+    if ($available) {
+        $flag = "1"
+    }
+    Write-Output "$flag|$policyValue|$preference"
 }

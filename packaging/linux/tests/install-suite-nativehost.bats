@@ -51,3 +51,30 @@ EOF
   [ "$(stat -c %a "${TEST_HOME}/.config/google-chrome/NativeMessagingHosts/io.github.aavidad.grxfirma.json")" = 644 ]
   [ "$(stat -c %a "${TEST_HOME}/.mozilla/native-messaging-hosts/io.github.aavidad.grxfirma.json")" = 644 ]
 }
+
+# Programa para firmar en las webs (lote 15): install-suite.sh pasa
+# --afirma-handler= a configure-browsers.sh, que aplica política y preferencia.
+@test "--afirma-handler= llega a configure-browsers.sh y sin él no se pide nada" {
+  cat > "${TEST_SUITE}/configure-browsers.sh" <<'STUB'
+#!/usr/bin/env bash
+printf '%s|%s\n' "${1:-}" "${GRXFIRMA_AFIRMA_HANDLER:-}" >> "${HOME}/configure-browsers.log"
+STUB
+  chmod 755 "${TEST_SUITE}/configure-browsers.sh"
+
+  run env HOME="${TEST_HOME}" "${TEST_SUITE}/install-suite.sh" --afirma-handler=AutoFirma
+  [ "$status" -eq 0 ]
+  [ "$(cat "${TEST_HOME}/configure-browsers.log")" = "|autofirma" ]
+
+  rm "${TEST_HOME}/configure-browsers.log"
+  run env HOME="${TEST_HOME}" "${TEST_SUITE}/install-suite.sh" < /dev/null
+  [ "$status" -eq 0 ]
+  # Sin terminal no se pregunta (no hay --detect-afirma-handler) ni se pide nada.
+  [ "$(cat "${TEST_HOME}/configure-browsers.log")" = "|" ]
+}
+
+@test "un valor no válido en --afirma-handler= para antes de instalar" {
+  run env HOME="${TEST_HOME}" "${TEST_SUITE}/install-suite.sh" --afirma-handler=otro
+  [ "$status" -eq 2 ]
+  [[ "${output}" == *"No se ha modificado el sistema"* ]]
+  [ ! -e "${TEST_HOME}/.local/bin/grxfirma" ]
+}
