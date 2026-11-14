@@ -1,6 +1,6 @@
 module github.com/digitorus/pdfsign
 
-go 1.26.8
+go 1.26.11
 
 require (
 	github.com/digitorus/pdf v0.1.2
