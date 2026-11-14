@@ -6,7 +6,7 @@
 # Política de vulnerabilidades y mantenimiento — GrxFirma
 
 Fecha inicial: 2026-03-20.
-Última revisión: 2026-07-26.
+Última revisión: 2026-11-14.
 Autoría: Alberto Avidad Fernández
 Estado: documento operativo vivo.
 
@@ -100,7 +100,8 @@ Lineas de trabajo abiertas:
   existen y que `SECURITY.md` tampoco promete;
 - enlazar desde `SECURITY.md` las auditorías internas y sus pruebas de
   regresión, si se decide publicarlas;
-- histórico único de incidencias, decisiones y backports;
+- ampliar el histórico inicial del expediente 0.0.127 a incidencias y backports
+  de cada versión mantenida;
 - cierre del expediente proveedor `NIS2` / `CRA`.
 
 ---
@@ -111,3 +112,17 @@ Lineas de trabajo abiertas:
 2. registrar el triage y la aceptación de cada release real
 3. acordar ventanas de soporte y backport por versión
 4. documentar las evidencias de revisión de cada versión en su expediente de publicación
+
+
+## Expediente por versión (revisión 14/11/2026)
+
+La clasificación generada, las licencias por identidad y versión, los informes
+locales revisados, las herramientas del sistema y sus límites se conservan en
+[el expediente 0.0.127](dependencias/0.0.127/README.md).
+[El procedimiento reproducible](dependencias/README.md) amplía los inventarios
+y controles existentes; la [próxima versión](dependencias/proxima/README.md)
+tiene plantilla preparada. El control detecta dependencias nuevas sin licencia
+o uso revisados y conserva visibles 38 licencias pendientes iniciales de
+Qt/NuGet. La aceptación de riesgos, los responsables y los compromisos de
+soporte siguen pendientes de Alberto. No equivale a cierre contractual ni
+a aceptación de todos los informes de la release publicada.

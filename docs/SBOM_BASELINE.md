@@ -6,9 +6,9 @@
 # SBOM y baseline de cadena de suministro — GrxFirma
 
 Fecha inicial: 2026-03-20.
-Última revisión: 2026-07-26.
+Última revisión: 2026-11-14.
 Autoría: Alberto Avidad Fernández
-Estado: baseline manual complementada con SBOM formal de CI y release.
+Estado: baseline con expediente generado por versión y SBOM formal de CI/release.
 
 ---
 
@@ -64,13 +64,14 @@ triage, clasificación de licencias y seguimiento histórico.
 
 ## Dependencias Go directas
 
-Tomadas de [go.mod](../go.mod):
+Selección tomada de [go.mod](../go.mod); la enumeración completa de manifiestos
+está en el [expediente generado](dependencias/0.0.127/inventario.json):
 
 | Módulo | Versión | Función | Uso principal |
 |--------|---------|---------|---------------|
 | `fyne.io/fyne/v2` | `v2.7.3` | UI desktop | runtime |
 | `github.com/miekg/pkcs11` | `v1.1.2` | base experimental PKCS#11 | dependencia no alcanzable desde binarios de producción |
-| `software.sslmate.com/src/go-pkcs12` | `v0.7.0` | importación PKCS#12 | runtime |
+| `software.sslmate.com/src/go-pkcs12` | `v0.7.2` | importación PKCS#12 | runtime |
 
 ---
 
@@ -126,16 +127,32 @@ además:
 
 ## Riesgos abiertos
 
-1. falta clasificación formal runtime/test/licencias en el entregable final
-2. falta asignar responsable y conservar el histórico de triage enlazado al inventario
-3. falta demostrar, por release real, la revisión y aceptación de los informes
-4. la SBOM del árbol fuente no sustituye un inventario contractual de herramientas del sistema
+1. quedan 38 licencias iniciales sin acreditar y versiones de kits/SDK por
+   atestar; la clasificación fuente ya está generada;
+2. falta asignar responsable y obtener la aceptación del triage inicial;
+3. faltan bases locales Maven/NuGet y Grype actual para completar la revisión;
+4. falta vincular las evidencias fuente a los artefactos publicados de cada
+   plataforma y cerrar su inventario contractual de herramientas.
 
 ---
 
 ## Próximo paso recomendado
 
-1. adjuntar licencias y clasificación runtime/test
-2. asignar propietario y SLA al triage de cada release
-3. enlazar la evidencia de la release con
-   [INVENTARIO_DEPENDENCIAS_LICENCIAS.md](INVENTARIO_DEPENDENCIAS_LICENCIAS.md)
+1. cerrar las licencias pendientes y adjuntar avisos y SPDX de los artefactos;
+2. Alberto debe asignar propietario y decidir compromisos de soporte/triage;
+3. usar la [plantilla de próxima versión](dependencias/proxima/README.md) y
+   conservar el histórico de evidencias.
+
+
+## Expediente por versión (revisión 14/11/2026)
+
+La clasificación generada, las licencias por identidad y versión, los informes
+locales revisados, las herramientas del sistema y sus límites se conservan en
+[el expediente 0.0.127](dependencias/0.0.127/README.md).
+[El procedimiento reproducible](dependencias/README.md) amplía los inventarios
+y controles existentes; la [próxima versión](dependencias/proxima/README.md)
+tiene plantilla preparada. El control detecta dependencias nuevas sin licencia
+o uso revisados y conserva visibles 38 licencias pendientes iniciales de
+Qt/NuGet. La aceptación de riesgos, los responsables y los compromisos de
+soporte siguen pendientes de Alberto. No equivale a cierre contractual ni
+a aceptación de todos los informes de la release publicada.

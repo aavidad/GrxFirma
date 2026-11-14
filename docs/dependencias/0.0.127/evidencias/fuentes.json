@@ -1,0 +1,235 @@
+{
+  "tag": "0.0.127",
+  "tag_commit": "b8902d63bf7b110bb7777a38f4e5af43c54b371c",
+  "worktree_base": "729c47a0679af9e90b7c46041717265dda44a18c",
+  "sources": [
+    {
+      "path": "cmd/gui-qml/activediagnostics_test.pro",
+      "sha256": "e3102cc2ef51952183930bfbeadbc186e7a141d29a3df767a3e50b70838b0c62",
+      "published_tag_sha256": "e3102cc2ef51952183930bfbeadbc186e7a141d29a3df767a3e50b70838b0c62",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/executablelocator_test.pro",
+      "sha256": "d74f3d5eecab9caa66412640e8fd38dd2d83f2cc0aa0173e17f2c1de4f662ad9",
+      "published_tag_sha256": "d74f3d5eecab9caa66412640e8fd38dd2d83f2cc0aa0173e17f2c1de4f662ad9",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/grxfirma_qt.pro",
+      "sha256": "af2f3b9ae8737217bb79b9187c0f30090f381b28f541aafd7a937265ee790e19",
+      "published_tag_sha256": "af2f3b9ae8737217bb79b9187c0f30090f381b28f541aafd7a937265ee790e19",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/incidentprivacy_test.pro",
+      "sha256": "eaf4da82c23fd82db7690361488f1b52ae0bc82576527ff50dfb4cd9bbada1b2",
+      "published_tag_sha256": "eaf4da82c23fd82db7690361488f1b52ae0bc82576527ff50dfb4cd9bbada1b2",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/ipcbridge_transientsecret_test.pro",
+      "sha256": "ab3b348c49416f785ced692ee1effd81510ec50f5d25e20d7ca31fff81ba14c0",
+      "published_tag_sha256": "ab3b348c49416f785ced692ee1effd81510ec50f5d25e20d7ca31fff81ba14c0",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/ipcpeer_test.pro",
+      "sha256": "bcc757c9a85ab69957a5f471e7c56425fd20106cb7c60ec28a2152845a9ad83f",
+      "published_tag_sha256": "bcc757c9a85ab69957a5f471e7c56425fd20106cb7c60ec28a2152845a9ad83f",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/linuxstartupregistration_test.pro",
+      "sha256": "147d11b894e2246824c30691a7bfee053faced8361922fd412add594634ff493",
+      "published_tag_sha256": "147d11b894e2246824c30691a7bfee053faced8361922fd412add594634ff493",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/officialupdatechecker_test.pro",
+      "sha256": "d5bf8116d02a8481c6fc5644297f7f572d3739a80ada1f33ab553f4c2b6b07d8",
+      "published_tag_sha256": "d5bf8116d02a8481c6fc5644297f7f572d3739a80ada1f33ab553f4c2b6b07d8",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/openablefile_test.pro",
+      "sha256": "ad0c4d591b7081f71c27092b36cf523c43f7ba9d97ab580675ee7562712154a1",
+      "published_tag_sha256": "ad0c4d591b7081f71c27092b36cf523c43f7ba9d97ab580675ee7562712154a1",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/portalsealbridge_test.pro",
+      "sha256": "17b6380f9f814916fa604c759124e49a6f786e6fd68dcdff7bf5e726a6b9b6bd",
+      "published_tag_sha256": "17b6380f9f814916fa604c759124e49a6f786e6fd68dcdff7bf5e726a6b9b6bd",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/processarguments_test.pro",
+      "sha256": "516cce84f0123153aef90d6dd86714ecba75369f154d560516c8584d67661df5",
+      "published_tag_sha256": "516cce84f0123153aef90d6dd86714ecba75369f154d560516c8584d67661df5",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/processenvironment_test.pro",
+      "sha256": "2753144a722f7b2d6b7c4c154a576bea5aa4792344381f0c0114d09f3e162130",
+      "published_tag_sha256": "2753144a722f7b2d6b7c4c154a576bea5aa4792344381f0c0114d09f3e162130",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/residentagent_test.pro",
+      "sha256": "4154cb338ae49a976cbed3120e3aa162bc9ddf5d405d7573c72841a4c221a608",
+      "published_tag_sha256": "4154cb338ae49a976cbed3120e3aa162bc9ddf5d405d7573c72841a4c221a608",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/savedialognames_test.pro",
+      "sha256": "d06c9711b12a890fe10e2b44c1039d830e493f87fc7fddac26403da3fbab2cb9",
+      "published_tag_sha256": "d06c9711b12a890fe10e2b44c1039d830e493f87fc7fddac26403da3fbab2cb9",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/transientsecret_test.pro",
+      "sha256": "8bb32cce81738ee98a35b4f76611eb9f3f071a9dfae782cb200b84753e539cb9",
+      "published_tag_sha256": "8bb32cce81738ee98a35b4f76611eb9f3f071a9dfae782cb200b84753e539cb9",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-qml/webcompatibilitylease_test.pro",
+      "sha256": "cc9eda2cd2d8aa882f82a3d73daba36e5a68567c3c6491741bd8f8bd303d4a7b",
+      "published_tag_sha256": "cc9eda2cd2d8aa882f82a3d73daba36e5a68567c3c6491741bd8f8bd303d4a7b",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-winui/src/GrxFirma.WinUI/GrxFirma.WinUI.csproj",
+      "sha256": "0c14d558836a442ad9865514f5e85565d165922a772e065322d4e47472c8a555",
+      "published_tag_sha256": "0c14d558836a442ad9865514f5e85565d165922a772e065322d4e47472c8a555",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-winui/src/GrxFirma.WinUI/packages.lock.json",
+      "sha256": "75275e05b2e23abb6f553687e22fe7ed375c61f3036f80e5a37d77a67737f7b2",
+      "published_tag_sha256": "75275e05b2e23abb6f553687e22fe7ed375c61f3036f80e5a37d77a67737f7b2",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-winui/src/GrxFirma.WinUI.Core/GrxFirma.WinUI.Core.csproj",
+      "sha256": "47df075bf2bbd9e525a15fd583ec7e794ceac02a55494d447854f4c86f77fff4",
+      "published_tag_sha256": "47df075bf2bbd9e525a15fd583ec7e794ceac02a55494d447854f4c86f77fff4",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-winui/src/GrxFirma.WinUI.Core/packages.lock.json",
+      "sha256": "c30b149eb0b6c271aabe8d79d7b0318ba25f0bbd2ebf6a08faa3b67056bce9b3",
+      "published_tag_sha256": "c30b149eb0b6c271aabe8d79d7b0318ba25f0bbd2ebf6a08faa3b67056bce9b3",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-winui/tests/GrxFirma.WinUI.Core.Tests/GrxFirma.WinUI.Core.Tests.csproj",
+      "sha256": "53b1ee553f9054f8fb6ea816aae24b764267d86e3a415198cd0186dfdd1eb378",
+      "published_tag_sha256": "53b1ee553f9054f8fb6ea816aae24b764267d86e3a415198cd0186dfdd1eb378",
+      "matches_published_tag": true
+    },
+    {
+      "path": "cmd/gui-winui/tests/GrxFirma.WinUI.Core.Tests/packages.lock.json",
+      "sha256": "c3f690ea8f10fcffbb129461401aa6b14caef42b9481c2c3006eedbe28592748",
+      "published_tag_sha256": "c3f690ea8f10fcffbb129461401aa6b14caef42b9481c2c3006eedbe28592748",
+      "matches_published_tag": true
+    },
+    {
+      "path": "go.mod",
+      "sha256": "e4739f41cd6d671804a92662c15e00ec78fba9e808ee95b91f6c425b8ba44e34",
+      "published_tag_sha256": "e4739f41cd6d671804a92662c15e00ec78fba9e808ee95b91f6c425b8ba44e34",
+      "matches_published_tag": true
+    },
+    {
+      "path": "go.sum",
+      "sha256": "f6e12962ec5c0c9e18ed885ce2acaa604412176cacc6706b15a6dcb34b767f01",
+      "published_tag_sha256": "f6e12962ec5c0c9e18ed885ce2acaa604412176cacc6706b15a6dcb34b767f01",
+      "matches_published_tag": true
+    },
+    {
+      "path": "legal/licensing.toml",
+      "sha256": "7b4599905fcdc5dfc776b871d7d85e9e28eb05e9b35affa6829ba1e7f5dd5547",
+      "published_tag_sha256": "1e944664d725c6d3182c527db4d9f36c6bdce2ce1e75f957d69836f42515e826",
+      "matches_published_tag": false
+    },
+    {
+      "path": "mobile/android/app/build.gradle.kts",
+      "sha256": "a0d7d4b3366fd85c19cec128525d0b734e708683fe8b9b65ae477689e6d316f5",
+      "published_tag_sha256": "a0d7d4b3366fd85c19cec128525d0b734e708683fe8b9b65ae477689e6d316f5",
+      "matches_published_tag": true
+    },
+    {
+      "path": "mobile/android/app/gradle.lockfile",
+      "sha256": "dc12a3a04f4182ccf97816ac6320c4e178fe312621a7bfb1271a349f7e82c492",
+      "published_tag_sha256": "dc12a3a04f4182ccf97816ac6320c4e178fe312621a7bfb1271a349f7e82c492",
+      "matches_published_tag": true
+    },
+    {
+      "path": "mobile/android/app/proguard-rules.pro",
+      "sha256": "3c1a0c9f05ddf47d97a074cbd4126c25bed0738cf776a44b3b0da2ac369d864d",
+      "published_tag_sha256": "3c1a0c9f05ddf47d97a074cbd4126c25bed0738cf776a44b3b0da2ac369d864d",
+      "matches_published_tag": true
+    },
+    {
+      "path": "mobile/android/build.gradle.kts",
+      "sha256": "673310d6fc3b5a641d7e16e796fe96f49469f39baf5035e32158177741e10523",
+      "published_tag_sha256": "673310d6fc3b5a641d7e16e796fe96f49469f39baf5035e32158177741e10523",
+      "matches_published_tag": true
+    },
+    {
+      "path": "mobile/android/gradle/wrapper/gradle-wrapper.properties",
+      "sha256": "060058b1094931b56f9d2e419d9bdd5df4589f339191800d2ce4adc2091949e6",
+      "published_tag_sha256": "060058b1094931b56f9d2e419d9bdd5df4589f339191800d2ce4adc2091949e6",
+      "matches_published_tag": true
+    },
+    {
+      "path": "mobile/android/settings-gradle.lockfile",
+      "sha256": "e58bb2ed80db9f829601a658d7c33b9802eb7d2191c31e79c28e01f14c225926",
+      "published_tag_sha256": "e58bb2ed80db9f829601a658d7c33b9802eb7d2191c31e79c28e01f14c225926",
+      "matches_published_tag": true
+    },
+    {
+      "path": "mobile/android/settings.gradle.kts",
+      "sha256": "1a2bd4e6c2ec3eaed918953199e3bc3356e24ef5f896cdd3c96617ddc953bf4d",
+      "published_tag_sha256": "1a2bd4e6c2ec3eaed918953199e3bc3356e24ef5f896cdd3c96617ddc953bf4d",
+      "matches_published_tag": true
+    },
+    {
+      "path": "packaging/browser-extensions/tools/package-lock.json",
+      "sha256": "4632c036f981a12b15ee1deb59948570659d70273645011a4c003332b5b15b16",
+      "published_tag_sha256": "4632c036f981a12b15ee1deb59948570659d70273645011a4c003332b5b15b16",
+      "matches_published_tag": true
+    },
+    {
+      "path": "scripts/windows-qa/GrxFirma.WindowCapture/GrxFirma.WindowCapture.csproj",
+      "sha256": "81f314c427a848111a531a6b0c9bf761e327a58eceece7a479e6605ecc7c1193",
+      "published_tag_sha256": "81f314c427a848111a531a6b0c9bf761e327a58eceece7a479e6605ecc7c1193",
+      "matches_published_tag": true
+    },
+    {
+      "path": "scripts/windows-qa/GrxFirma.WindowCapture/packages.lock.json",
+      "sha256": "82e855ec2367d4286262f41534d5303d6c2fc1f260242a2a541568641bb39c6b",
+      "published_tag_sha256": "82e855ec2367d4286262f41534d5303d6c2fc1f260242a2a541568641bb39c6b",
+      "matches_published_tag": true
+    },
+    {
+      "path": "third_party/pdf/go.mod",
+      "sha256": "2a5526f6b8629c1b6f1ae3e7bd0b0e3924895791d29f7a8130c2303b290c3550",
+      "published_tag_sha256": "2a5526f6b8629c1b6f1ae3e7bd0b0e3924895791d29f7a8130c2303b290c3550",
+      "matches_published_tag": true
+    },
+    {
+      "path": "third_party/pdfsign/go.mod",
+      "sha256": "14ac05cad7f69a1fe9d58785382e42127a8de24dc2c17fc5417265ddb638234e",
+      "published_tag_sha256": "14ac05cad7f69a1fe9d58785382e42127a8de24dc2c17fc5417265ddb638234e",
+      "matches_published_tag": true
+    },
+    {
+      "path": "third_party/pdfsign/go.sum",
+      "sha256": "36ca447aa399ecd3f71ae7e41fb866819ee78a2b43997291244598be535cf99b",
+      "published_tag_sha256": "36ca447aa399ecd3f71ae7e41fb866819ee78a2b43997291244598be535cf99b",
+      "matches_published_tag": true
+    }
+  ]
+}

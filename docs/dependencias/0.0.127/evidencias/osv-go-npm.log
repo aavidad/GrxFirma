@@ -1,0 +1,11 @@
+Starting filesystem walk for root: /
+Scanned /tmp/claude-1000/-home-alberto-Trabajo-GrxFirma/2636490f-02c9-4dca-aa21-7c8847e52d89/scratchpad/wt/l26/go.mod file and found 51 packages
+Scanned /tmp/claude-1000/-home-alberto-Trabajo-GrxFirma/2636490f-02c9-4dca-aa21-7c8847e52d89/scratchpad/wt/l26/third_party/pdfsign/go.mod file and found 7 packages
+Scanned /tmp/claude-1000/-home-alberto-Trabajo-GrxFirma/2636490f-02c9-4dca-aa21-7c8847e52d89/scratchpad/wt/l26/packaging/browser-extensions/tools/package-lock.json file and found 316 packages
+End status: 0 dirs visited, 3 inodes visited, 3 Extract calls, 3.672921ms elapsed, 3.672961ms wall time
+Filtered 3 local/unscannable package/s from the scan.
+Loaded filter from: /tmp/claude-1000/-home-alberto-Trabajo-GrxFirma/2636490f-02c9-4dca-aa21-7c8847e52d89/scratchpad/wt/l26/packaging/browser-extensions/tools/osv-scanner.toml
+Loaded Go local db from /home/alberto/.cache/osv-scanner/Go/all.zip
+Loaded npm local db from /home/alberto/.cache/osv-scanner/npm/all.zip
+GHSA-gcqx-w48m-w2h4 and 1 alias have been filtered out because: Revisión 2026-11-14: comprobado en el registro npm deepmerge 4.3.1 (última publicación de 2023, sin versión corregida) y web-ext 10.8.0 (última versión); cadena web-ext 10.8.0 > addons-linter 10.14.0 > deepmerge 4.3.1. Solo mezcla configuración y manifiesto propios al validar/construir Firefox; no se distribuye al usuario. Quien controla esa entrada ya controla el código de la extensión. Se mantiene la excepción existente sin ampliar caducidad; revisar sustitución compatible con construcción y validación de la extensión antes de aplicar overrides. Evidencia y aceptación pendiente de Alberto en docs/dependencias/0.0.127/README.md.
+Filtered 1 vulnerability from output

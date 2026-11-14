@@ -111,3 +111,19 @@ Debe acompañar:
 - y conversaciones de compra pública
 
 para que nadie interprete el estado actual como un “cumplimiento total ya auditado”.
+
+
+## Evidencia local añadida el 14/11/2026
+
+La [batería local de interoperabilidad](../test/conformance/README.md) añade
+PAdES básico y B-T con TSA sintética, OpenSSL para CMS/RFC 3161, pdfsig y qpdf;
+XAdES enveloped y FacturaE conservan verificación interna y una comprobación
+preparada para xmlsec1. Esta última no se ha ejecutado por faltar la herramienta.
+El transporte TSA es HTTP en memoria; no acredita conectividad con una TSA real.
+La instalación local de DSS y las pruebas que deberá ejecutar están descritas
+en esa guía, pendientes de disponer del paquete y de configurar la confianza
+de laboratorio. No se han enviado documentos a validadores públicos.
+
+El [expediente de dependencias 0.0.127](dependencias/0.0.127/README.md) distingue
+revisión técnica, licencias sin acreditar, escaneos incompletos y decisiones
+pendientes de Alberto. No cierra las exclusiones anteriores.
