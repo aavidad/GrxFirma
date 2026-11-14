@@ -6,10 +6,12 @@
 package signer
 
 import (
+	"crypto"
 	"fmt"
 	"math"
 	"strings"
 	"testing"
+	"time"
 
 	"grxfirma/internal/domain"
 )
@@ -232,4 +234,118 @@ func pdfConFirmasEmbebidasPrueba(t *testing.T, fields ...string) []byte {
 		searchFrom = contentsTo
 	}
 	return raw
+}
+
+func TestParsePDFDictionaryRanges_OmiteCadenasYComentarios(t *testing.T) {
+	for nombre, valor := range map[string]string{
+		"cierre":                `(>>)`,
+		"apertura":              `(<<)`,
+		"clave":                 `(/Contents <00> /ByteRange [0 0 0 0])`,
+		"escapes":               `(a\) >> \( << \\ b)`,
+		"anidada":               `(a(b(>> << /Contents)c)d)`,
+		"continuacion":          "(a\\\r\n>>\\\n<<)",
+		"hexadecimal":           `<283e3e203c3c202f436f6e74656e747329>`,
+		"hexadecimal_adyacente": `<00>`,
+		"comentario_LF":         "% >> << /Contents\n null",
+		"comentario_CR":         "% >> << /Contents\r null",
+	} {
+		t.Run(nombre, func(t *testing.T) {
+			text := "<< /Cert " + valor + " /Hijo << /A 1 >> >>"
+			ranges, err := parsePDFDictionaryRanges(text)
+			want := []pdfDictionaryRange{
+				{Start: strings.Index(text, "/Hijo") + len("/Hijo "), End: len(text) - 3},
+				{Start: 0, End: len(text)},
+			}
+			if err != nil || fmt.Sprint(ranges) != fmt.Sprint(want) {
+				t.Fatalf("rangos=%v; esperados=%v; error=%v", ranges, want, err)
+			}
+		})
+	}
+	// El cierre hexadecimal consume un solo >; los otros dos cierran el diccionario.
+	if got, err := parsePDFDictionaryRanges("<< /A <00>>>"); err != nil || len(got) != 1 || got[0].End != 12 {
+		t.Fatalf("cierre adyacente: %v, %v", got, err)
+	}
+}
+
+func TestExtractPDFSignature_OmiteClavesDentroDeValores(t *testing.T) {
+	text := "<< /ByteRange % comentario\r\n[0 1 2 3] /SubFilter % comentario\n/adbe.pkcs7.detached /Contents % comentario\n<AA55> " +
+		`/Cert (a(b\)c) << >> /Contents <FFFF> /ByteRange [9 9 9 9] /SubFilter /falso) ` +
+		"% /Contents <BB> /ByteRange [8 8 8 8] /SubFilter /falso\n>>"
+	br, err := extractPDFByteRange([]byte(text))
+	if err != nil || br != [4]int{0, 1, 2, 3} {
+		t.Fatalf("ByteRange=%v; error=%v", br, err)
+	}
+	sf, err := extractPDFSubFilter([]byte(text))
+	if err != nil || sf != "adbe.pkcs7.detached" {
+		t.Fatalf("SubFilter=%q; error=%v", sf, err)
+	}
+	cms, _, _, err := extractPDFSignatureCMSWithRange([]byte(text))
+	if err != nil || string(cms) != "\xaa\x55" {
+		t.Fatalf("Contents=%x; error=%v", cms, err)
+	}
+}
+
+func TestPAdES_X509LiteralConDelimitadoresDeterministas(t *testing.T) {
+	// Estos bytes quedan siempre en el DER del certificado, aunque su clave sea aleatoria.
+	priv, cert := certForTest(t, `>> << /Contents <FFFF> /ByteRange [9 9 9 9] /SubFilter /falso /Cert (anidado) \ final`)
+	pdf := pdfFirmaHeredadaPrueba(t, subFiltroX509RSASHA1, certLiteralPDF(cert), firmaPKCS1Prueba(priv, crypto.SHA1))
+	res, firmantes, err := verificarPDFHeredado(t, pdf)
+	exigirIntegraConSHA1(t, res, err)
+	if len(firmantes) != 1 || firmantes[0].Fingerprint != certificateFingerprint(cert) {
+		t.Fatalf("firmantes=%v", firmantes)
+	}
+}
+
+func TestPDFLexer_OmiteUnidadesOpacas(t *testing.T) {
+	for nombre, opaco := range map[string]string{
+		"literal":         `( /Contents <FFFF> /ByteRange << >> % (anidada) \) \( \\ )`,
+		"hexadecimal":     `<2f436f6e74656e7473>`,
+		"comentario_CRLF": "% /ByteRange << >> (/Contents\r\n",
+		"comentario_CR":   "% /ByteRange << >> (/Contents\r",
+		"stream":          "<< /Length 30 >>\nstream\n(<<%> /ByteRange /Contents<FFFF> \nendstream\nendobj\n",
+	} {
+		t.Run(nombre, func(t *testing.T) {
+			text := opaco + " << /Contents<AA> >>"
+			if got, want := findPDFName(text, "/Contents", 0), strings.LastIndex(text, "/Contents"); got != want {
+				t.Fatalf("clave en %d; esperada en %d", got, want)
+			}
+			if got := findPDFName(text, "/ByteRange", 0); got != -1 {
+				t.Fatalf("se interpretaron bytes opacos como clave en %d", got)
+			}
+		})
+	}
+	for _, opaco := range []string{`(/Contents<AA>`, `<AA`, `% /Contents<AA>`, "(\\"} {
+		if got := findPDFName(opaco, "/Contents", 0); got != -1 {
+			t.Fatalf("unidad sin terminar interpretada como clave: %q en %d", opaco, got)
+		}
+	}
+}
+
+func TestExtractPDFByteRange_ComentariosDentroDelArray(t *testing.T) {
+	pdf := []byte("<< /ByteRange [0 % ] /ByteRange [9 9 9 9]\r\n1 2 % comentario\r3] >>")
+	got, err := extractPDFByteRange(pdf)
+	if err != nil || got != [4]int{0, 1, 2, 3} {
+		t.Fatalf("ByteRange=%v; error=%v", got, err)
+	}
+}
+
+func TestExtractPDFSigningTimeM_OmiteFechaDentroDeLiteral(t *testing.T) {
+	block := []byte("<< /Cert (/M (D:20000101000000Z)) /M % comentario\n(D:20140101120000Z) >>")
+	got := extractPDFSigningTimeM(block, 0, [4]int{0, len(block), len(block), 0})
+	want := time.Date(2014, 1, 1, 12, 0, 0, 0, time.UTC)
+	if !got.Equal(want) {
+		t.Fatalf("fecha=%v; esperada=%v", got, want)
+	}
+}
+
+func TestPDFLexer_StreamConTerminadorDentroDeLosDatos(t *testing.T) {
+	data := "\nendstream\n(<< /ByteRange /Contents<FFFF>"
+	text := fmt.Sprintf("<< /Extra << /A (<<) >> /Length %d >>\r\nstream\r\n%s\r\nendstream\n<< /Contents<AA> >>", len(data), data)
+	if got, want := findPDFName(text, "/Contents", 0), strings.LastIndex(text, "/Contents"); got != want {
+		t.Fatalf("clave en %d; esperada en %d", got, want)
+	}
+	ranges, err := parsePDFDictionaryRanges(text)
+	if err != nil || len(ranges) != 3 || ranges[len(ranges)-1].End != len(text) {
+		t.Fatalf("rangos=%v; error=%v", ranges, err)
+	}
 }

@@ -8,6 +8,7 @@ package pkcs11worker
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -62,7 +63,7 @@ func (launch *SandboxLaunch) Close() error {
 	}
 	launch.files = nil
 	if failed {
-		return ErrSandboxUnavailable
+		return sandboxFailure(ErrSandboxUnavailable, "descriptores", "fallo al cerrar descriptores del padre", nil)
 	}
 	return nil
 }
@@ -80,16 +81,16 @@ func NewSandboxCommand(ctx context.Context, executable, module string, resources
 
 func newSandboxCommand(ctx context.Context, executable, module string, resources SandboxResources, launcherPath string) (_ *SandboxLaunch, resultErr error) {
 	if ctx == nil {
-		return nil, ErrSandboxPolicy
+		return nil, sandboxFailure(ErrSandboxPolicy, "contexto", "contexto nulo", nil)
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 	if os.Geteuid() == 0 || os.Getuid() != os.Geteuid() || os.Getgid() != os.Getegid() {
-		return nil, ErrSandboxUnavailable
+		return nil, sandboxFailure(ErrSandboxUnavailable, "identidad", "se requiere usuario sin privilegios ni cambios de identidad", nil)
 	}
 	if len(resources.ReadOnlyFiles)+len(resources.ReadOnlyDirs)+len(resources.ReadWriteDirs) > 16 {
-		return nil, ErrSandboxPolicy
+		return nil, sandboxFailure(ErrSandboxPolicy, "recursos", "más de 16 concesiones", nil)
 	}
 	launch := &SandboxLaunch{}
 	defer func() {
@@ -99,13 +100,13 @@ func newSandboxCommand(ctx context.Context, executable, module string, resources
 	}()
 	launcher, err := sandboxResolvedOpenOwned(launcherPath, true)
 	if err != nil {
-		return nil, ErrSandboxUnavailable
+		return nil, sandboxFailure(ErrSandboxUnavailable, launcherPath, "apertura del lanzador", err)
 	}
 	// bwrap itself is an administrator-installed executable, not user policy.
 	launcherStat, err := sandboxStat(launcher)
 	_ = launcher.Close()
 	if err != nil || !sandboxRegular(launcherStat) || launcherStat.Uid != 0 || launcherStat.Mode&06000 != 0 || launcherStat.Mode&0111 == 0 {
-		return nil, ErrSandboxUnavailable
+		return nil, sandboxFailure(ErrSandboxUnavailable, launcherPath, "lanzador: "+sandboxFileCondition(launcherStat, err, true, true), nil)
 	}
 	args := []string{"--unshare-user", "--unshare-ipc", "--unshare-pid", "--unshare-net", "--unshare-uts", "--disable-userns", "--die-with-parent", "--new-session", "--cap-drop", "ALL", "--clearenv", "--setenv", "PATH", "/usr/bin:/bin", "--setenv", "LANG", "C.UTF-8", "--chdir", "/"}
 	add := func(file *os.File, destination string, writable bool) {
@@ -128,27 +129,35 @@ func newSandboxCommand(ctx context.Context, executable, module string, resources
 			continue
 		}
 		if openErr != nil {
-			return nil, ErrSandboxUnavailable
+			return nil, sandboxFailure(ErrSandboxUnavailable, path, "apertura del directorio del sistema", openErr)
 		}
 		stat, statErr := sandboxStat(file)
 		resolved := file.Name()
 		if statErr != nil || stat.Uid != 0 || stat.Mode&unix.S_IFMT != unix.S_IFDIR || stat.Mode&0022 != 0 ||
 			(resolved != path && resolved != "/usr"+path) {
 			_ = file.Close()
-			return nil, ErrSandboxUnavailable
+			return nil, sandboxFailure(ErrSandboxUnavailable, path, "directorio del sistema: "+sandboxMetadata(stat, statErr)+"; requiere root, directorio sin escritura ajena y destino /usr o equivalente", nil)
 		}
 		add(file, path, false)
 	}
 	args = append(args, "--proc", "/proc", "--dev", "/dev", "--perms", "0700", "--size", "16777216", "--tmpfs", "/tmp")
 	for i, path := range []string{executable, module} {
+		resource := "ejecutable"
+		if i == 1 {
+			resource = "módulo"
+		}
 		file, openErr := sandboxResolvedOpen(path)
 		if openErr != nil {
-			return nil, ErrSandboxPolicy
+			return nil, sandboxFailure(ErrSandboxPolicy, resource, "apertura del fichero", openErr)
 		}
 		stat, statErr := sandboxStat(file)
-		if statErr != nil || !sandboxRegular(stat) || stat.Size == 0 || stat.Mode&06000 != 0 || (i == 0 && stat.Mode&0111 == 0) || sandboxReservedDestination(file.Name()) {
+		condition := sandboxFileCondition(stat, statErr, false, i == 0)
+		if condition == "" && sandboxReservedDestination(file.Name()) {
+			condition = "destino reservado"
+		}
+		if condition != "" {
 			_ = file.Close()
-			return nil, ErrSandboxPolicy
+			return nil, sandboxFailure(ErrSandboxPolicy, resource, condition, nil)
 		}
 		if i == 0 {
 			launch.Executable = file.Name()
@@ -157,7 +166,7 @@ func newSandboxCommand(ctx context.Context, executable, module string, resources
 		}
 		if i == 1 && launch.Executable == launch.Module {
 			_ = file.Close()
-			return nil, ErrSandboxPolicy
+			return nil, sandboxFailure(ErrSandboxPolicy, "ejecutable y módulo", "coinciden los destinos", nil)
 		}
 		add(file, file.Name(), false)
 	}
@@ -167,12 +176,19 @@ func newSandboxCommand(ctx context.Context, executable, module string, resources
 			continue
 		}
 		if openErr != nil {
-			return nil, ErrSandboxPolicy
+			return nil, sandboxFailure(ErrSandboxPolicy, path, "apertura de configuración fija", openErr)
 		}
 		stat, statErr := sandboxStat(file)
-		if statErr != nil || !sandboxRegular(stat) || stat.Uid != 0 || (!sandboxBeneath(file.Name(), "/etc") && !sandboxBeneath(file.Name(), "/usr")) {
+		condition := sandboxRegularCondition(stat, statErr)
+		if condition == "" && stat.Uid != 0 {
+			condition = "se requiere dueño root; " + sandboxMetadata(stat, nil)
+		}
+		if condition == "" && !sandboxBeneath(file.Name(), "/etc") && !sandboxBeneath(file.Name(), "/usr") {
+			condition = "destino resuelto fuera de /etc y /usr"
+		}
+		if condition != "" {
 			_ = file.Close()
-			return nil, ErrSandboxPolicy
+			return nil, sandboxFailure(ErrSandboxPolicy, path, condition, nil)
 		}
 		add(file, path, false)
 	}
@@ -184,11 +200,11 @@ func newSandboxCommand(ctx context.Context, executable, module string, resources
 		stat, statErr := sandboxStat(file)
 		if statErr != nil || stat.Uid != 0 || stat.Mode&unix.S_IFMT != unix.S_IFSOCK {
 			_ = file.Close()
-			return nil, ErrSandboxPolicy
+			return nil, sandboxFailure(ErrSandboxPolicy, pcsc, "se requiere socket de root; "+sandboxMetadata(stat, statErr), nil)
 		}
 		add(file, pcsc, false)
 	} else if !errors.Is(openErr, os.ErrNotExist) {
-		return nil, ErrSandboxPolicy
+		return nil, sandboxFailure(ErrSandboxPolicy, pcsc, "apertura del socket PC/SC", openErr)
 	}
 	paths := []string{launch.Executable, launch.Module}
 	groups := []struct {
@@ -199,22 +215,29 @@ func newSandboxCommand(ctx context.Context, executable, module string, resources
 	if len(resources.ReadOnlyDirs)+len(resources.ReadWriteDirs) > 0 {
 		home, err = sandboxLocalHome()
 		if err != nil {
-			return nil, ErrSandboxPolicy
+			return nil, sandboxFailure(ErrSandboxPolicy, "/etc/passwd", "resolución del directorio personal", err)
 		}
 	}
 	for _, group := range groups {
+		resource := "fichero de lectura"
+		if group.directory {
+			resource = "directorio de lectura"
+			if group.writable {
+				resource = "directorio de escritura"
+			}
+		}
 		for _, path := range group.paths {
 			if !sandboxValidPath(path) || sandboxReservedResource(path) || (group.directory && (path == home || sandboxBeneath(home, path) || filepath.Dir(path) == "/home")) {
-				return nil, ErrSandboxPolicy
+				return nil, sandboxFailure(ErrSandboxPolicy, resource, "ruta inválida, reservada o concesión de directorio demasiado amplia", nil)
 			}
 			for _, previous := range paths {
 				if path == previous || sandboxBeneath(path, previous) || sandboxBeneath(previous, path) {
-					return nil, ErrSandboxPolicy
+					return nil, sandboxFailure(ErrSandboxPolicy, resource, "concesiones solapadas", nil)
 				}
 			}
 			file, openErr := sandboxOpenPath(path)
 			if openErr != nil {
-				return nil, ErrSandboxPolicy
+				return nil, sandboxFailure(ErrSandboxPolicy, resource, "apertura de la concesión", openErr)
 			}
 			stat, statErr := sandboxStat(file)
 			valid := statErr == nil && sandboxRegular(stat)
@@ -223,7 +246,11 @@ func newSandboxCommand(ctx context.Context, executable, module string, resources
 			}
 			if !valid {
 				_ = file.Close()
-				return nil, ErrSandboxPolicy
+				condition := sandboxRegularCondition(stat, statErr)
+				if group.directory {
+					condition = "requiere directorio privado 0700 del usuario efectivo; " + sandboxMetadata(stat, statErr)
+				}
+				return nil, sandboxFailure(ErrSandboxPolicy, resource, condition, nil)
 			}
 			paths = append(paths, path)
 			add(file, path, group.writable)
@@ -306,13 +333,17 @@ func sandboxResolvedOpen(path string) (*os.File, error) {
 
 func sandboxResolvedOpenOwned(path string, rootOnly bool) (*os.File, error) {
 	if !sandboxValidPath(path) {
-		return nil, ErrSandboxPolicy
+		return nil, sandboxFailure(ErrSandboxPolicy, path, "ruta inválida", nil)
 	}
 	resolved, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		return nil, err
+		return nil, sandboxFailure(ErrSandboxPolicy, path, "resolución de enlaces simbólicos", err)
 	}
-	return sandboxOpenPathOwned(resolved, rootOnly)
+	file, err := sandboxOpenPathOwned(resolved, rootOnly)
+	if err != nil {
+		return nil, sandboxFailure(ErrSandboxPolicy, path, "apertura del destino resuelto", err)
+	}
+	return file, nil
 }
 
 // The leaf is O_PATH so opening a FIFO, device or socket never performs I/O.
@@ -323,18 +354,19 @@ func sandboxOpenPath(path string) (*os.File, error) {
 
 func sandboxOpenPathOwned(path string, rootOnly bool) (*os.File, error) {
 	if !sandboxValidPath(path) || path == "/" {
-		return nil, ErrSandboxPolicy
+		return nil, sandboxFailure(ErrSandboxPolicy, path, "ruta inválida o raíz", nil)
 	}
 	fd, err := unix.Open("/", unix.O_PATH|unix.O_DIRECTORY|unix.O_CLOEXEC, 0)
 	if err != nil {
-		return nil, err
+		return nil, sandboxFailure(ErrSandboxPolicy, path, "apertura de /", err)
 	}
 	parts := strings.Split(strings.TrimPrefix(path, "/"), "/")
 	for i, part := range parts {
 		var stat unix.Stat_t
-		if err := unix.Fstat(fd, &stat); err != nil || !sandboxAncestor(stat) || (rootOnly && (stat.Uid != 0 || stat.Mode&0022 != 0)) {
+		statErr := unix.Fstat(fd, &stat)
+		if statErr != nil || !sandboxAncestor(stat) || (rootOnly && (stat.Uid != 0 || stat.Mode&0022 != 0)) {
 			_ = unix.Close(fd)
-			return nil, ErrSandboxPolicy
+			return nil, sandboxFailure(ErrSandboxPolicy, path, fmt.Sprintf("ancestro %d no autorizado (solo root=%t); %s", i, rootOnly, sandboxMetadata(stat, statErr)), nil)
 		}
 		flags := unix.O_PATH | unix.O_NOFOLLOW | unix.O_CLOEXEC
 		if i < len(parts)-1 {
@@ -343,14 +375,15 @@ func sandboxOpenPathOwned(path string, rootOnly bool) (*os.File, error) {
 		next, err := unix.Openat(fd, part, flags, 0)
 		_ = unix.Close(fd)
 		if err != nil {
-			return nil, err
+			return nil, sandboxFailure(ErrSandboxPolicy, path, fmt.Sprintf("apertura sin enlaces del componente %d", i), err)
 		}
 		fd = next
 	}
 	var stat unix.Stat_t
-	if err := unix.Fstat(fd, &stat); err != nil || stat.Mode&unix.S_IFMT == unix.S_IFLNK || (stat.Uid != 0 && (rootOnly || stat.Uid != uint32(os.Geteuid()))) { // #nosec G115 -- Linux euid is a kernel uid_t (uint32).
+	statErr := unix.Fstat(fd, &stat)
+	if statErr != nil || stat.Mode&unix.S_IFMT == unix.S_IFLNK || (stat.Uid != 0 && (rootOnly || stat.Uid != uint32(os.Geteuid()))) { // #nosec G115 -- Linux euid is a kernel uid_t (uint32).
 		_ = unix.Close(fd)
-		return nil, ErrSandboxPolicy
+		return nil, sandboxFailure(ErrSandboxPolicy, path, fmt.Sprintf("destino con enlace simbólico o dueño no autorizado (solo root=%t); %s", rootOnly, sandboxMetadata(stat, statErr)), nil)
 	}
 	return os.NewFile(uintptr(fd), path), nil // #nosec G115 -- unix.Openat returned a non-negative descriptor.
 }
@@ -365,21 +398,21 @@ func sandboxAncestor(stat unix.Stat_t) bool {
 func sandboxLocalHome() (string, error) {
 	path, err := sandboxOpenPathOwned("/etc/passwd", true)
 	if err != nil {
-		return "", ErrSandboxPolicy
+		return "", sandboxFailure(ErrSandboxPolicy, "/etc/passwd", "apertura", err)
 	}
 	defer path.Close()
 	stat, err := sandboxStat(path)
 	if err != nil || !sandboxRegular(stat) || stat.Uid != 0 || stat.Size > 4*1024*1024 {
-		return "", ErrSandboxPolicy
+		return "", sandboxFailure(ErrSandboxPolicy, "/etc/passwd", "requiere fichero regular de root de hasta 4 MiB; "+sandboxMetadata(stat, err)+"; "+sandboxRegularCondition(stat, err), nil)
 	}
 	file, err := os.Open("/proc/self/fd/" + strconv.Itoa(int(path.Fd()))) // #nosec G115 -- os.File.Fd is a kernel int descriptor on Linux.
 	if err != nil {
-		return "", ErrSandboxPolicy
+		return "", sandboxFailure(ErrSandboxPolicy, "/etc/passwd", "reapertura del descriptor mediante /proc/self/fd", err)
 	}
 	defer file.Close()
 	data, err := io.ReadAll(io.LimitReader(file, 4*1024*1024+1))
 	if err != nil || len(data) > 4*1024*1024 {
-		return "", ErrSandboxPolicy
+		return "", sandboxFailure(ErrSandboxPolicy, "/etc/passwd", "lectura acotada a 4 MiB", err)
 	}
 	id := strconv.Itoa(os.Geteuid())
 	for _, line := range strings.Split(string(data), "\n") {
@@ -388,5 +421,5 @@ func sandboxLocalHome() (string, error) {
 			return fields[5], nil
 		}
 	}
-	return "", ErrSandboxPolicy
+	return "", sandboxFailure(ErrSandboxPolicy, "/etc/passwd", "sin entrada local con directorio personal válido para el usuario efectivo", nil)
 }

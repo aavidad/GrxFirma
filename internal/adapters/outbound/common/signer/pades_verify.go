@@ -296,8 +296,17 @@ func extractPDFEmbeddedSignaturesWithTimestamps(pdfBytes []byte, timestamps bool
 // firmas siguen sin contarlos).
 func extraerFirmasPDF(pdfBytes []byte, timestamps, heredados bool, omitidas *[]string) ([]pdfEmbeddedSignature, error) {
 	text := string(pdfBytes)
-	if candidates := strings.Count(text, "/ByteRange"); candidates > maxPDFEmbeddedSignatures {
-		return nil, fmt.Errorf("demasiadas firmas PDF: máximo %d", maxPDFEmbeddedSignatures)
+	var candidates []int
+	for desde := 0; ; {
+		idx := findPDFName(text, "/ByteRange", desde)
+		if idx < 0 {
+			break
+		}
+		candidates = append(candidates, idx)
+		if len(candidates) > maxPDFEmbeddedSignatures {
+			return nil, fmt.Errorf("demasiadas firmas PDF: máximo %d", maxPDFEmbeddedSignatures)
+		}
+		desde = idx + len("/ByteRange")
 	}
 	dicts, err := parsePDFDictionaryRanges(text)
 	if err != nil {
@@ -309,14 +318,7 @@ func extraerFirmasPDF(pdfBytes []byte, timestamps, heredados bool, omitidas *[]s
 
 	out := make([]pdfEmbeddedSignature, 0, 2)
 	seen := make(map[pdfDictionaryRange]struct{})
-	searchFrom := 0
-	for {
-		idx := strings.Index(text[searchFrom:], "/ByteRange")
-		if idx < 0 {
-			break
-		}
-		idx += searchFrom
-		searchFrom = idx + len("/ByteRange")
+	for _, idx := range candidates {
 
 		dict, ok := findContainingPDFDictionary(dicts, idx)
 		if !ok {
@@ -405,7 +407,19 @@ func extractPDFByteRange(pdf []byte) ([4]int, error) {
 	if len(raw) > maxPDFByteRangeText {
 		return out, errors.New("ByteRange excede el tamaño máximo permitido")
 	}
-	parts := strings.Fields(raw)
+	var parts []string
+	for pos := 0; pos < len(raw); {
+		pos = skipPDFSpaces(raw, pos)
+		if pos == len(raw) {
+			break
+		}
+		end := pos + 1
+		for end < len(raw) && !isPDFWhitespace(raw[end]) && raw[end] != '%' {
+			end++
+		}
+		parts = append(parts, raw[pos:end])
+		pos = end
+	}
 	if len(parts) != 4 {
 		return out, fmt.Errorf("ByteRange inválido: %q", raw)
 	}
@@ -510,7 +524,7 @@ func checkedPDFRangeEnd(start, length, limit int) (int, error) {
 
 func extractPDFSubFilter(pdf []byte) (string, error) {
 	text := string(pdf)
-	idx := strings.LastIndex(text, "/SubFilter")
+	idx := lastPDFName(text, "/SubFilter")
 	if idx < 0 {
 		return "", errors.New("no se encontró /SubFilter")
 	}
@@ -543,6 +557,14 @@ func parsePDFDictionaryRanges(text string) ([]pdfDictionaryRange, error) {
 	ranges := make([]pdfDictionaryRange, 0)
 	stack := make([]int, 0)
 	for i := 0; i < len(text)-1; i++ {
+		if next := skipPDFStream(text, i); next != i {
+			i = next - 1
+			continue
+		}
+		if next := skipPDFStringOrComment(text, i); next != i {
+			i = next - 1
+			continue
+		}
 		switch {
 		case text[i] == '<' && text[i+1] == '<':
 			if len(stack) >= maxPDFDictionaryNesting {
@@ -632,7 +654,7 @@ func verificationAspectRank(status domain.VerificationAspectStatus) int {
 }
 
 func extractPDFBracketValue(text, key string) (string, error) {
-	idx := strings.LastIndex(text, key)
+	idx := lastPDFName(text, key)
 	if idx < 0 {
 		return "", fmt.Errorf("no se encontró %s", key)
 	}
@@ -644,6 +666,10 @@ func extractPDFBracketValue(text, key string) (string, error) {
 	idx++
 	start := idx
 	for idx < len(text) && text[idx] != ']' {
+		if next := skipPDFStringOrComment(text, idx); next != idx {
+			idx = next
+			continue
+		}
 		idx++
 	}
 	if idx >= len(text) {
@@ -653,29 +679,167 @@ func extractPDFBracketValue(text, key string) (string, error) {
 }
 
 func extractPDFAngleValueRange(text, key string) (string, int, int, error) {
-	searchFrom := len(text)
-	for searchFrom >= 0 {
-		idx := strings.LastIndex(text[:searchFrom], key)
-		if idx < 0 {
-			return "", 0, 0, fmt.Errorf("no se encontró %s", key)
+	// Se conserva la preferencia por el último valor hexadecimal de la clave.
+	idx := -1
+	for desde := 0; ; {
+		found := findPDFName(text, key, desde)
+		if found < 0 {
+			break
 		}
-		idx += len(key)
-		idx = skipPDFSpaces(text, idx)
-		if idx < len(text) && text[idx] == '<' {
-			contentsFrom := idx
-			idx++
-			start := idx
-			for idx < len(text) && text[idx] != '>' {
-				idx++
-			}
-			if idx >= len(text) {
-				return "", 0, 0, fmt.Errorf("no se encontró el terminador >")
-			}
-			return text[start:idx], contentsFrom, idx + 1, nil
+		desde = found + len(key)
+		value := skipPDFSpaces(text, desde)
+		if value < len(text) && text[value] == '<' && (value+1 >= len(text) || text[value+1] != '<') {
+			idx = value
 		}
-		searchFrom = idx - len(key)
 	}
-	return "", 0, 0, fmt.Errorf("no se encontró %s", key)
+	if idx < 0 {
+		return "", 0, 0, fmt.Errorf("no se encontró %s", key)
+	}
+	end := strings.IndexByte(text[idx+1:], '>')
+	if end < 0 {
+		return "", 0, 0, fmt.Errorf("no se encontró el terminador >")
+	}
+	end += idx + 1
+	return text[idx+1 : end], idx, end + 1, nil
+}
+
+// skipPDFStringOrComment omite unidades léxicas opacas (ISO 32000-1,
+// 7.3.4 y 7.2.3). No decodifica ni copia los bytes del certificado o del CMS.
+// Una unidad sin cerrar consume el resto: sus bytes no son claves ni diccionarios.
+func skipPDFStringOrComment(text string, pos int) int {
+	switch text[pos] {
+	case '(':
+		if end, ok := skipPDFLiteralString(text, pos); ok {
+			return end
+		}
+		return len(text)
+	case '<':
+		if pos+1 < len(text) && text[pos+1] == '<' {
+			return pos
+		}
+		if end := strings.IndexByte(text[pos+1:], '>'); end >= 0 {
+			return pos + end + 2
+		}
+		return len(text)
+	case '%':
+		if end := strings.IndexAny(text[pos+1:], "\r\n"); end >= 0 {
+			return pos + end + 1
+		}
+		return len(text)
+	}
+	return pos
+}
+
+// skipPDFStream evita tratar los bytes binarios como sintaxis de cadenas.
+// Este recorrido textual localiza candidatos; la resolución xref y la cobertura
+// criptográfica se comprueban después, como antes, con el análisis v2.
+func skipPDFStream(text string, pos int) int {
+	if text[pos] != 's' || !strings.HasPrefix(text[pos:], "stream") ||
+		(pos > 0 && !isPDFWhitespace(text[pos-1]) && text[pos-1] != '>') {
+		return pos
+	}
+	start := pos + len("stream")
+	if start >= len(text) || (text[start] != '\r' && text[start] != '\n') {
+		return pos
+	}
+	dataStart := start + 1
+	if text[start] == '\r' && dataStart < len(text) && text[dataStart] == '\n' {
+		dataStart++
+	}
+	// Un endstream puede estar dentro de los datos. Si /Length es directo,
+	// se respeta su posición exacta antes de buscar el terminador textual.
+	if length, ok := pdfDirectStreamLength(text, pos); ok && length <= len(text)-dataStart {
+		end := skipPDFSpaces(text, dataStart+length)
+		if strings.HasPrefix(text[end:], "endstream") {
+			next := end + len("endstream")
+			if next == len(text) || isPDFWhitespace(text[next]) || isPDFDelimiter(text[next]) {
+				return next
+			}
+		}
+	}
+	for from := start; from < len(text); {
+		end := strings.Index(text[from:], "endstream")
+		if end < 0 {
+			return pos // Conserva la tolerancia previa ante un stream sin terminador.
+		}
+		end += from
+		next := end + len("endstream")
+		if isPDFWhitespace(text[end-1]) && (next == len(text) || isPDFWhitespace(text[next]) || isPDFDelimiter(text[next])) {
+			return next
+		}
+		from = next
+	}
+	return pos
+}
+
+// pdfDirectStreamLength lee el diccionario inmediatamente anterior al stream.
+// Los diccionarios internos y las cadenas con << no alteran el emparejamiento.
+func pdfDirectStreamLength(text string, streamStart int) (int, bool) {
+	end := streamStart
+	for end > 0 && isPDFWhitespace(text[end-1]) {
+		end--
+	}
+	if end < 2 || text[end-2:end] != ">>" {
+		return 0, false
+	}
+	searchEnd := end - 2
+	for n := 0; n < maxPDFDictionaryNesting && searchEnd > 0; n++ {
+		start := strings.LastIndex(text[:searchEnd], "<<")
+		if start < 0 {
+			break
+		}
+		_, next, valid := pdfTokenizeValue(text[:end], start)
+		if valid && next == end {
+			dict, ok := parsePDFDictValue(text[start:end])
+			length, err := strconv.Atoi(dict["/Length"])
+			return length, ok && err == nil && length >= 0
+		}
+		searchEnd = start
+	}
+	return 0, false
+}
+
+// findPDFName busca un nombre completo fuera de cadenas y comentarios.
+func findPDFName(text, key string, desde int) int {
+	for i := desde; i < len(text); {
+		if next := skipPDFStream(text, i); next != i {
+			i = next
+			continue
+		}
+		if next := skipPDFStringOrComment(text, i); next != i {
+			i = next
+			continue
+		}
+		if text[i] == '<' && i+1 < len(text) && text[i+1] == '<' {
+			i += 2
+			continue
+		}
+		if text[i] == '/' {
+			end := i + 1
+			for end < len(text) && isPDFNameChar(rune(text[end])) {
+				end++
+			}
+			if text[i:end] == key {
+				return i
+			}
+			i = end
+			continue
+		}
+		i++
+	}
+	return -1
+}
+
+func lastPDFName(text, key string) int {
+	last := -1
+	for desde := 0; ; {
+		idx := findPDFName(text, key, desde)
+		if idx < 0 {
+			return last
+		}
+		last = idx
+		desde = idx + len(key)
+	}
 }
 
 func skipPDFSpaces(text string, idx int) int {
@@ -683,6 +847,8 @@ func skipPDFSpaces(text string, idx int) int {
 		switch text[idx] {
 		case ' ', '\t', '\r', '\n', '\f', '\x00':
 			idx++
+		case '%':
+			idx = skipPDFStringOrComment(text, idx)
 		default:
 			return idx
 		}
@@ -714,7 +880,7 @@ func compactPDFHex(raw string) (string, error) {
 
 func isPDFNameChar(r rune) bool {
 	switch r {
-	case ' ', '\t', '\r', '\n', '\f', '\x00', '/', '[', ']', '<', '>', '(', ')':
+	case ' ', '\t', '\r', '\n', '\f', '\x00', '/', '[', ']', '<', '>', '(', ')', '%', '{', '}':
 		return false
 	default:
 		return true
