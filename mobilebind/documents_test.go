@@ -147,6 +147,49 @@ func TestCreateAndValidateENIDocument(t *testing.T) {
 	}
 }
 
+// KD-05: la CAdES implícita se coteja consigo misma antes de envolverla. Si
+// el contenido encapsulado se cambió después de firmar, el ENI no se genera.
+func TestCreateENIDocumentRejectsTamperedImplicitCAdES(t *testing.T) {
+	facade := newAndroidFacadeForTest(t)
+	id := importPKCS12(t, facade, ephemeralRSAPKCS12(t, "eni"), "eni")
+	original := []byte("acta de la sesión con importe 100")
+	raw, err := facade.SignJSON(mustJSON(t, signRequest{
+		Name: "acta.txt", MIMEType: "text/plain", Format: "cades", CertificateID: id,
+		ContentBase64: base64.StdEncoding.EncodeToString(original),
+		Options:       map[string]string{"mode": "implicit"},
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var signed signResponse
+	decodeResponse(t, raw, &signed)
+	cms, err := base64.StdEncoding.DecodeString(signed.SignedContentBase64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := eniDocumentRequest{
+		SignatureBase64: signed.SignedContentBase64,
+		Organs:          []string{"L01180877"},
+		Origin:          "administracion",
+		State:           "EE01",
+		DocumentType:    "TD10",
+		CaptureDate:     "2026-10-05T10:00:00+02:00",
+		ContentFormat:   "TXT",
+	}
+	if _, err := facade.CreateENIDocumentJSON(mustJSON(t, request)); err != nil {
+		t.Fatalf("la CAdES implícita íntegra debe envolverse: %v", err)
+	}
+	i := strings.Index(string(cms), "importe 100")
+	if i < 0 {
+		t.Fatal("no se encontró el contenido encapsulado")
+	}
+	cms[i+len("importe 1")] = '9'
+	request.SignatureBase64 = base64.StdEncoding.EncodeToString(cms)
+	if _, err := facade.CreateENIDocumentJSON(mustJSON(t, request)); err == nil || err.Error() != eniErrorMismatch {
+		t.Fatalf("una CAdES implícita alterada debe rechazarse: %v", err)
+	}
+}
+
 func TestENICatalogsComeFromEngine(t *testing.T) {
 	var catalogs struct {
 		DocumentStates []string `json:"document_states"`
