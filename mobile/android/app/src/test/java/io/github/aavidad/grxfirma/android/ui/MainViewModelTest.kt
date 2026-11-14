@@ -12,6 +12,7 @@ import io.github.aavidad.grxfirma.android.core.CoreBridge
 import io.github.aavidad.grxfirma.android.core.CoreReadiness
 import io.github.aavidad.grxfirma.android.files.DocumentFingerprint
 import io.github.aavidad.grxfirma.android.files.DocumentRepository
+import io.github.aavidad.grxfirma.android.model.BatchItemResult
 import io.github.aavidad.grxfirma.android.model.CertificateSummary
 import io.github.aavidad.grxfirma.android.model.LoadedFile
 import io.github.aavidad.grxfirma.android.model.SelectedFile
@@ -26,6 +27,7 @@ import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -128,6 +130,117 @@ class MainViewModelTest {
 
         assertEquals(OperationResult.Error(UiText.Resource(R.string.error_document_not_read)), vm.state.value.result)
         assertEquals(0, core.signCalls)
+    }
+
+    /** Lote: cada fichero (por el último segmento del Uri) entrega su lista de contenidos. */
+    private class BatchRepository(private val contents: Map<String, List<ByteArray>>) : DocumentRepository {
+        private val reads = HashMap<String, Int>()
+        val handedOut = mutableListOf<ByteArray>()
+        val failAtSelection = mutableSetOf<String>()
+
+        override fun inspect(uri: Uri, fallbackName: String, fallbackMime: String) =
+            SelectedFile(uri, uri.lastPathSegment!!, "text/plain", 8)
+
+        override fun loadDocument(file: SelectedFile): LoadedFile {
+            val name = file.displayName
+            val read = reads.getOrDefault(name, 0)
+            reads[name] = read + 1
+            if (read == 0 && name in failAtSelection) throw java.io.IOException("proveedor no disponible")
+            val versions = contents.getValue(name)
+            val bytes = versions[minOf(read, versions.size - 1)].copyOf()
+            handedOut += bytes
+            return LoadedFile(name, file.mimeType, bytes)
+        }
+
+        override fun loadCertificate(file: SelectedFile) = LoadedFile(file.displayName, file.mimeType, byteArrayOf(8))
+        override fun write(uri: Uri, bytes: ByteArray) = Unit
+    }
+
+    private class BatchCore : CoreBridge {
+        override val readiness = CoreReadiness(true, "ready", "")
+        override val toolsAvailable = true
+        val batches = mutableListOf<List<Pair<String, ByteArray>>>()
+        override fun selectCertificate(): CertificateSummary = error("no")
+        override fun importCertificate(data: ByteArray, password: CharArray) = CertificateSummary("id", "Titular", "Emisor", "huella")
+        override fun sign(document: LoadedFile, format: String, certificateId: String, options: Map<String, String>, action: String): SignedOutput =
+            error("el lote no firma de uno en uno")
+        override fun sealPreview(certificateId: String, options: Map<String, String>): ByteArray = byteArrayOf()
+        override fun verify(document: LoadedFile, original: LoadedFile?): VerificationSummary = error("sin verificación")
+        override fun clearSession() = Unit
+        override fun signBatch(documents: List<LoadedFile>, format: String, certificateId: String, options: Map<String, String>): List<BatchItemResult> {
+            batches += documents.map { it.displayName to it.bytes.copyOf() }
+            return documents.map {
+                BatchItemResult(it.displayName, SignedOutput(byteArrayOf(1), it.displayName + ".csig", "application/pkcs7-signature", "CAdES", "SHA-256"))
+            }
+        }
+    }
+
+    private fun readyBatch(repository: BatchRepository, core: BatchCore, vararg names: String): MainViewModel {
+        val vm = MainViewModel(repository, core, dispatcher)
+        vm.selectCertificateFile(FakeContentUri("content://test/certificate"))
+        vm.importCertificate(charArrayOf('p'))
+        vm.selectBatchDocuments(names.map { FakeContentUri("content://test/$it") })
+        assertTrue(vm.state.value.canSignBatch)
+        return vm
+    }
+
+    @Test fun `a batch file that changes after the choice is not signed and the rest is`() {
+        val other = "acta".toByteArray()
+        val repository = BatchRepository(mapOf(
+            "contrato.txt" to listOf(chosen, swapped),
+            "acta.txt" to listOf(other),
+        ))
+        val core = BatchCore()
+        val vm = readyBatch(repository, core, "contrato.txt", "acta.txt")
+        assertEquals(listOf(DocumentFingerprint.sha256Hex(chosen), DocumentFingerprint.sha256Hex(other)),
+            vm.state.value.batchDocuments.map { it.sha256 })
+
+        vm.signBatch("cades")
+
+        // Al núcleo solo llega el fichero que no cambió, con los bytes comprobados.
+        assertEquals(listOf("acta.txt"), core.batches.single().map { it.first })
+        assertArrayEquals(other, core.batches.single().single().second)
+        val result = vm.state.value.result as OperationResult.Success
+        val lines = (result.detail as UiText.Lines).lines
+        assertTrue(UiText.Plural(R.plurals.batch_ok_count, 1) in lines)
+        assertTrue(UiText.Plural(R.plurals.batch_error_count, 1) in lines)
+        assertTrue(UiText.Resource(R.string.batch_item_changed, listOf("contrato.txt")) in lines)
+        assertTrue(UiText.Resource(R.string.batch_item_ok, listOf("acta.txt")) in lines)
+        // El orden del lote se respeta: primero el contrato, después el acta.
+        val items = lines.filterIsInstance<UiText.Resource>().map { it.arguments.single() }
+        assertEquals(listOf("contrato.txt", "acta.txt"), items)
+        assertTrue(vm.state.value.awaitingSave)
+        repository.handedOut.forEach { assertArrayEquals(ByteArray(it.size), it) }
+    }
+
+    @Test fun `a batch where every file changed does not call the core`() {
+        val repository = BatchRepository(mapOf("contrato.txt" to listOf(chosen, swapped)))
+        val core = BatchCore()
+        val vm = readyBatch(repository, core, "contrato.txt")
+
+        vm.signBatch("cades")
+
+        assertTrue(core.batches.isEmpty())
+        val lines = ((vm.state.value.result as OperationResult.Error).detail as UiText.Lines).lines
+        assertTrue(UiText.Resource(R.string.batch_item_changed, listOf("contrato.txt")) in lines)
+        assertEquals(false, vm.state.value.awaitingSave)
+    }
+
+    @Test fun `a batch file that could not be read when chosen is not signed`() {
+        val other = "acta".toByteArray()
+        val repository = BatchRepository(mapOf(
+            "contrato.txt" to listOf(chosen),
+            "acta.txt" to listOf(other),
+        )).apply { failAtSelection += "contrato.txt" }
+        val core = BatchCore()
+        val vm = readyBatch(repository, core, "contrato.txt", "acta.txt")
+        assertEquals(null, vm.state.value.batchDocuments.first().sha256)
+
+        vm.signBatch("cades")
+
+        assertEquals(listOf("acta.txt"), core.batches.single().map { it.first })
+        val lines = ((vm.state.value.result as OperationResult.Success).detail as UiText.Lines).lines
+        assertTrue(UiText.Resource(R.string.batch_item_not_read, listOf("contrato.txt")) in lines)
     }
 
     @Test fun `the summary shows the first sixteen hex characters of the fingerprint`() {

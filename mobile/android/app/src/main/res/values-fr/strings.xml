@@ -208,6 +208,8 @@
     <string name="batch_dnie_unavailable">Cette installation ne permet pas de signer plusieurs fichiers avec le DNIe. Utilisez un fichier de certificat (.p12 ou .pfx).</string>
     <string name="batch_item_ok">Signé : %1$s</string>
     <string name="batch_item_error">Signature impossible : %1$s</string>
+    <string name="batch_item_changed">%1$s n’a pas été signé : il a changé depuis que vous l’avez sélectionné. Sélectionnez-le de nouveau.</string>
+    <string name="batch_item_not_read">%1$s n’a pas été signé : il n’a pas pu être lu lors de sa sélection. Sélectionnez-le de nouveau.</string>
     <string name="batch_item_saved">Enregistré : %1$s</string>
     <string name="batch_item_not_saved">Non enregistré : %1$s</string>
     <string name="result_batch_signed">Lot signé</string>
