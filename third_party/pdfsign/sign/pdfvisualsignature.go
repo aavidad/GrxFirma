@@ -376,57 +376,11 @@ func findPageByNumber(pages pdf.Value, pageNumber uint32) (pdf.Value, error) {
 // recorrerHojas llama a fn con cada hoja /Type /Page del árbol, en orden,
 // hasta que fn devuelve false.
 //
-// AutoFirmaV2: el recorrido es iterativo y acotado. El árbol de páginas no
-// es de confianza: un /Kids que vuelve a un antecesor, un nodo repetido o un
-// árbol de miles de niveles devuelven un error en lugar de colgar la firma o
-// agotar la pila.
+// AutoFirmaV2: delega en pdf.RecorrerHojas, el mismo recorrido iterativo y
+// acotado con el que el lector numera las páginas (pdf.Reader.Page). Así el
+// motor calcula el giro y la caja del sello con la misma hoja en la que se
+// coloca el widget (KD-04). Un /Kids que vuelve a un antecesor, un nodo
+// repetido o un árbol de miles de niveles devuelven un error.
 func recorrerHojas(pages pdf.Value, fn func(pdf.Value) bool) error {
-	switch pages.Key("Type").Name() {
-	case "Page":
-		fn(pages)
-		return nil
-	case "Pages":
-	default:
-		return nil
-	}
-	type marco struct {
-		kids pdf.Value
-		id   uint32 // objeto del nodo, para distinguir hijos directos
-		i    int
-	}
-	raiz, _ := pages.ObjectReference()
-	vistos := map[uint32]bool{raiz: true}
-	pila := []marco{{kids: pages.Key("Kids"), id: raiz}}
-	for len(pila) > 0 {
-		m := &pila[len(pila)-1]
-		if m.i >= m.kids.Len() {
-			pila = pila[:len(pila)-1]
-			continue
-		}
-		kid := m.kids.Index(m.i)
-		m.i++
-		padre := m.id
-		// Un hijo indirecto lleva su propio número de objeto; uno directo,
-		// el de su contenedor. Los repetidos y los ciclos se rechazan; un
-		// objeto que se contiene a sí mismo lo corta el límite de niveles.
-		id, _ := kid.ObjectReference()
-		if id != 0 && id != padre {
-			if vistos[id] {
-				return fmt.Errorf("árbol de páginas no válido: el objeto %d aparece más de una vez", id)
-			}
-			vistos[id] = true
-		}
-		switch kid.Key("Type").Name() {
-		case "Pages":
-			if len(pila) >= pdf.MaxProfundidadArbolPaginas {
-				return fmt.Errorf("árbol de páginas no válido: más de %d niveles", pdf.MaxProfundidadArbolPaginas)
-			}
-			pila = append(pila, marco{kids: kid.Key("Kids"), id: id})
-		case "Page":
-			if !fn(kid) {
-				return nil
-			}
-		}
-	}
-	return nil
+	return pdf.RecorrerHojas(pages, fn)
 }

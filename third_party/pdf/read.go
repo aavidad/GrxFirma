@@ -77,6 +77,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"sync"
 	"sync/atomic"
 )
 
@@ -97,6 +98,11 @@ type Reader struct {
 	// Un flujo de objetos cuyo /Length o /Extends lleva a un objeto de ese
 	// mismo flujo recursaba sin fin.
 	resolviendoObjStm atomic.Int32
+	// AutoFirmaV2: hojas del árbol de páginas en orden, calculadas una vez
+	// (KD-04). Page las usa para numerar como los visores y pdfsign.
+	hojasOnce sync.Once
+	hojas     []Value
+	hojasErr  error
 }
 
 const (

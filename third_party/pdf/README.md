@@ -19,6 +19,10 @@ estas modificaciones, marcadas en el código:
   cada entrada una vez; el analizador corta a 512 niveles de arrays y
   diccionarios anidados, y la resolución de flujos de objetos corta las
   cadenas `/Extends` y los flujos que se contienen a sí mismos. Antes esos
-  casos dejaban el lector en un bucle infinito o agotaban la pila.
+  casos dejaban el lector en un bucle infinito o agotaban la pila;
+- `Page` numera las páginas hoja a hoja en orden de documento, sin fiarse de
+  los `/Count` (`RecorrerHojas`, `PaginaHoja`), como los visores y como
+  `pdfsign` al colocar el sello. Si el árbol no se puede recorrer así (una
+  página repetida, por ejemplo), vuelve a bajar por los `/Count`.
 
 Se omite la orden de ejemplo `pdfpasswd`.
