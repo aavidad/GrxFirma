@@ -11,6 +11,8 @@
 package purity_test
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -106,7 +108,7 @@ func TestConfianzaForzadaSoloEnCanalesLocales(t *testing.T) {
 
 func recorrerGoSinPruebas(t *testing.T, dir string, visitar func(ruta, texto string)) {
 	t.Helper()
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
+	if _, err := os.Stat(dir); errors.Is(err, fs.ErrNotExist) {
 		return
 	}
 	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, werr error) error {
