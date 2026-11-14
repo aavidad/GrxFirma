@@ -56,6 +56,27 @@ func normalizarHost(raw string) (string, error) {
 	return claveHost(u), nil
 }
 
+// ServicioPermitido aplica la lista de prestadores de la política
+// (firma_remota_csc_servicios_permitidos, "host[:puerto]", 443 si no se
+// indica). Sin lista (nil) no hay límite; una lista vacía no admite ninguno.
+// Una entrada mal escrita no admite nada: no puede ampliar lo permitido.
+func ServicioPermitido(urlServicio string, lista []string) bool {
+	if lista == nil {
+		return true
+	}
+	u, err := url.Parse(strings.TrimSpace(urlServicio))
+	if err != nil || !strings.EqualFold(u.Scheme, "https") || u.Hostname() == "" {
+		return false
+	}
+	destino := claveHost(u)
+	for _, entrada := range lista {
+		if h, err := normalizarHost(entrada); err == nil && h == destino {
+			return true
+		}
+	}
+	return false
+}
+
 // claveHost identifica el destino de un URL https: host en minúsculas y
 // puerto explícito.
 func claveHost(u *url.URL) string {

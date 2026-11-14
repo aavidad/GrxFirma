@@ -39,8 +39,17 @@ Decide primero la política de la organización:
 
 Si la política no fija el valor, la activa `"firma_remota_csc": true` en el
 `config.json` del usuario. No hay opción de la línea de órdenes ni variable de
-entorno que la active. La plantilla ADMX incluye las dos directivas
-(`FirmaRemotaCSC` y `FirmaRemotaCSCOAuth`); véase `POLITICA_MAQUINA.md`.
+entorno que la active. La plantilla ADMX incluye las tres directivas
+(`FirmaRemotaCSC`, `FirmaRemotaCSCOAuth` y `FirmaRemotaCSCServicios`); véase
+`POLITICA_MAQUINA.md`.
+
+La organización puede limitar los prestadores con
+`firma_remota_csc_servicios_permitidos` (solo en la política): una entrada
+`host[:puerto]` por servicio, 443 si no se indica. La CLI y las interfaces no
+consultan un servicio que no esté en la lista y fallan con
+`servicio_no_permitido`; una entrada mal escrita no admite nada y una lista
+vacía no admite ningún prestador. Sin la directiva no hay límite. Al pedir el
+PIN o el OTP, la CLI dice a qué servicio se envían.
 
 El prestador debe dar de alta a GrxFirma como cliente OAuth público y facilitar un
 identificador de cliente. No hay secreto de cliente: la autorización usa PKCE.

@@ -52,4 +52,17 @@ func TestPoliticaMaquinaLeeFirmaRemotaCSC(t *testing.T) {
 	if p.FirmaRemotaCSC != nil {
 		t.Fatal("sin valor en el registro no hay decisión de la organización")
 	}
+
+	// ID-03: la lista de prestadores; fijada y vacía no admite ninguno.
+	if p.FirmaRemotaCSCServicios != nil {
+		t.Fatal("sin valor en el registro no hay límite de prestadores")
+	}
+	registro[machinepolicy.FirmaRemotaCSCServicios] = []string(nil)
+	if p, _ = loadMachinePolicyDesde(lector); p.FirmaRemotaCSCServicios == nil || len(p.FirmaRemotaCSCServicios) != 0 {
+		t.Fatalf("una lista fijada y vacía debe limitar: %#v", p.FirmaRemotaCSCServicios)
+	}
+	registro[machinepolicy.FirmaRemotaCSCServicios] = []string{"firma.example.es"}
+	if p, _ = loadMachinePolicyDesde(lector); !reflect.DeepEqual(p.FirmaRemotaCSCServicios, []string{"firma.example.es"}) {
+		t.Fatalf("servicios: %v", p.FirmaRemotaCSCServicios)
+	}
 }

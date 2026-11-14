@@ -34,6 +34,7 @@ todos los usuarios del equipo (por ejemplo, en servidores de escritorio remoto).
 | `rest_habilitado` | `REG_DWORD` | `1` activa el servicio REST local; `0` lo impide aunque el usuario lo active. |
 | `firma_remota_csc` | `REG_DWORD` | `1` permite la firma remota CSC (prototipo); `0` la prohíbe aunque el usuario la active. Sin valor, decide `firma_remota_csc` en el `config.json` del usuario. |
 | `firma_remota_csc_oauth_permitidos` | `REG_MULTI_SZ` | Pares `servicio=autorizacion` (`host[:puerto]`) que permiten un servidor OAuth en otro host que el servicio de firma remota. Sustituye a la lista del usuario. |
+| `firma_remota_csc_servicios_permitidos` | `REG_MULTI_SZ` | Servicios de firma remota permitidos (`host[:puerto]`, 443 si no se indica). Sin el valor no hay límite; vacío no admite ninguno. Solo lo fija la política. |
 | `nivel_log`, `directorio_p12` | `REG_SZ` | Igual que en `policy.json`. |
 | `timeout_operacion_segundos`, `max_tamano_documento_bytes` | `REG_DWORD` / `REG_QWORD` | Límites operativos. |
 

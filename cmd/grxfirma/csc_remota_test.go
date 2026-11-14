@@ -16,6 +16,7 @@ import (
 	"strings"
 	"testing"
 
+	"grxfirma/internal/adapters/outbound/common/csc"
 	"grxfirma/internal/adapters/outbound/common/localizador"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
@@ -132,6 +133,27 @@ func TestEjecutarCSCDesactivadaYProhibida(t *testing.T) {
 	e = nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true}`, "")
 	if code := ejecutarCSC(e.entornoCSC, opcionesCSC{url: "http://csc.example.org", clientID: "c", listar: true}, false, nil); code != 1 || !strings.Contains(e.errores.String(), es.T("csc.error.solo_https")) {
 		t.Fatalf("http plano: code=%d salida=%q", code, e.errores.String())
+	}
+}
+
+// ID-03: la CLI aplica la misma lista de prestadores de la política.
+func TestEjecutarCSCRechazaServicioFueraDeLaPolitica(t *testing.T) {
+	es := localizador.Para("es")
+	base := opcionesCSC{url: "https://csc.example.org", clientID: "c", listar: true}
+	e := nuevoEntornoPruebaCSC(t, nil, `{"firma_remota_csc": true}`, `{"firma_remota_csc_servicios_permitidos": ["firma.example.es"]}`)
+	if code := ejecutarCSC(e.entornoCSC, base, false, nil); code != 2 || !strings.Contains(e.errores.String(), es.T("csc.error.servicio_no_permitido")) {
+		t.Fatalf("servicio fuera de la política: code=%d salida=%q", code, e.errores.String())
+	}
+}
+
+// ID-03: al pedir el PIN o el OTP, la CLI dice a qué servicio se envían.
+func TestPedirSecretoDiceAQueServicioVa(t *testing.T) {
+	e := entornoCSC{t: localizador.Para("es").T, hostServicio: "firma.example.es‮"}
+	for _, tipo := range []csc.TipoSecreto{csc.SecretoPIN, csc.SecretoOTP} {
+		texto := e.textoPedirSecreto(tipo)
+		if !strings.Contains(texto, "firma.example.es?") || strings.ContainsRune(texto, '‮') {
+			t.Fatalf("el aviso del secreto debe nombrar el servicio sin controles: %q", texto)
+		}
 	}
 }
 

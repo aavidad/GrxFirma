@@ -165,6 +165,10 @@ func ejecutarCSC(e entornoCSC, opc opcionesCSC, locales bool, args []string) int
 	if !opc.listar && strings.TrimSpace(opc.credencial) == "" {
 		return avisar("csc.cli.falta_credencial")
 	}
+	// Un prestador fuera de la lista de la organización no se consulta.
+	if !csc.ServicioPermitido(opc.url, politica.FirmaRemotaCSCServicios) {
+		return avisar("csc.error.servicio_no_permitido")
+	}
 
 	if u, err := url.Parse(strings.TrimSpace(opc.url)); err == nil {
 		e.hostServicio = u.Host
@@ -262,12 +266,17 @@ func (e entornoCSC) abrirNavegador(ctx context.Context, destino string) error {
 	return e.navegador(ctx, destino)
 }
 
-func (e entornoCSC) pedirSecreto(_ context.Context, tipo csc.TipoSecreto) ([]byte, error) {
+// textoPedirSecreto nombra el servicio al que va el PIN o el OTP (ID-03).
+func (e entornoCSC) textoPedirSecreto(tipo csc.TipoSecreto) string {
 	clave := "csc.prompt.pin"
 	if tipo == csc.SecretoOTP {
 		clave = "csc.prompt.otp"
 	}
-	valor, err := secretinput.Read(e.stdin, e.errores, e.t(clave))
+	return e.t(clave, textoSeguro(e.hostServicio))
+}
+
+func (e entornoCSC) pedirSecreto(_ context.Context, tipo csc.TipoSecreto) ([]byte, error) {
+	valor, err := secretinput.Read(e.stdin, e.errores, e.textoPedirSecreto(tipo))
 	if err != nil {
 		return nil, err
 	}

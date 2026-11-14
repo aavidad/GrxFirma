@@ -39,6 +39,7 @@ const (
 	PermitirCMSAESECBLegacy  = "permitir_cms_aes_ecb_legacy"
 	FirmaRemotaCSC           = "firma_remota_csc"
 	FirmaRemotaCSCOAuth      = "firma_remota_csc_oauth_permitidos"
+	FirmaRemotaCSCServicios  = "firma_remota_csc_servicios_permitidos"
 )
 
 // Native indica si la plataforma dispone de un almacén de política de

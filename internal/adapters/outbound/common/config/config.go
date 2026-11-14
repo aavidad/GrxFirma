@@ -81,6 +81,9 @@ type Policy struct {
 	FirmaRemotaCSC *bool `json:"firma_remota_csc"`
 	// FirmaRemotaCSCOAuth sustituye la lista de pares del usuario.
 	FirmaRemotaCSCOAuth []string `json:"firma_remota_csc_oauth_permitidos"`
+	// FirmaRemotaCSCServicios limita los prestadores CSC a esta lista de
+	// "host[:puerto]". Solo la fija la organización; sin ella no hay límite.
+	FirmaRemotaCSCServicios []string `json:"firma_remota_csc_servicios_permitidos"`
 }
 
 // Default devuelve la configuración con valores seguros por defecto.
@@ -230,6 +233,14 @@ func loadMachinePolicyDesde(lector lectorPoliticaMaquina) (Policy, error) {
 		errs = append(errs, err)
 	} else if ok {
 		p.FirmaRemotaCSCOAuth = v
+	}
+	if v, ok, err := lector.textos(machinepolicy.FirmaRemotaCSCServicios); err != nil {
+		errs = append(errs, err)
+	} else if ok {
+		if v == nil {
+			v = []string{} // fijada y vacía: no admite ningún prestador
+		}
+		p.FirmaRemotaCSCServicios = v
 	}
 	if v, ok, err := lector.entero(machinepolicy.MaxTamanoDocumentoBytes); err != nil {
 		errs = append(errs, err)
