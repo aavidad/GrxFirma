@@ -17,6 +17,9 @@ import (
 func TestNativeCallerPolicy_SoloLaExtensionOficialEsOficial(t *testing.T) {
 	dir := t.TempDir()
 	home := filepath.Join(dir, "home")
+	// El manifiesto se busca en XDG_CONFIG_HOME si existe (los ejecutores de
+	// CI lo definen): se fija al home de la prueba.
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
 	executable := filepath.Join(dir, "bin", "grxfirma-nativehost")
 	writeTestFile(t, executable, []byte("host"), 0o700)
 

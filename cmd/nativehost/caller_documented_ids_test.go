@@ -26,7 +26,8 @@ func documentedCallerRows(t *testing.T) [][4]string {
 	if err != nil {
 		t.Fatalf("no se puede leer la ADR de escritorio: %v", err)
 	}
-	text := string(raw)
+	// Con core.autocrlf (CI de Windows) el fichero llega con CRLF.
+	text := strings.ReplaceAll(string(raw), "\r\n", "\n")
 	start := strings.Index(text, "\n## Llamantes autorizados del host nativo\n")
 	if start < 0 {
 		t.Fatal("docs/ADR-desktop-security.md no tiene la sección «Llamantes autorizados del host nativo»")

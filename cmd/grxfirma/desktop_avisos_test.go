@@ -23,7 +23,8 @@ func TestFyneVerificaConLaConfianzaAceptadaEnEsteEquipo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	texto := string(fuente)
+	// Con core.autocrlf (CI de Windows) los fuentes llegan con CRLF.
+	texto := strings.ReplaceAll(string(fuente), "\r\n", "\n")
 	if strings.Count(texto, "construirServiciosEscritorio(") != 2 || strings.Contains(texto, "construirServicios(") {
 		t.Fatal("el arranque y la recarga de Fyne deben componer los servicios con construirServiciosEscritorio")
 	}
@@ -34,9 +35,15 @@ func TestFyneVerificaConLaConfianzaAceptadaEnEsteEquipo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cuerpo := string(arranque)
-	cuerpo = cuerpo[strings.Index(cuerpo, "func construirServiciosEscritorio("):]
-	cuerpo = cuerpo[:strings.Index(cuerpo, "\n}\n")]
+	cuerpo := strings.ReplaceAll(string(arranque), "\r\n", "\n")
+	inicio := strings.Index(cuerpo, "func construirServiciosEscritorio(")
+	if inicio < 0 {
+		t.Fatal("bootstrap.go no define construirServiciosEscritorio")
+	}
+	cuerpo = cuerpo[inicio:]
+	if fin := strings.Index(cuerpo, "\n}\n"); fin >= 0 {
+		cuerpo = cuerpo[:fin]
+	}
 	if !strings.Contains(cuerpo, "servicios.verificar.ConConfianzaForzada(config.NuevoAlmacenConfianzaForzada(servicios.configDir))") {
 		t.Fatal("construirServiciosEscritorio debe aplicar el almacén de confianza aceptada")
 	}
