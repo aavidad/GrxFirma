@@ -66,6 +66,7 @@ inline_extensions = [
   ".rb",
   ".rc",
   ".sh",
+  ".sha256",
   ".svg",
   ".swift",
   ".tmpl",

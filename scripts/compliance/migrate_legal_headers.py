@@ -86,6 +86,7 @@ HASH_EXTENSIONS = frozenset(
         ".py",
         ".rb",
         ".sh",
+        ".sha256",
         ".toml",
         ".yml",
     }
