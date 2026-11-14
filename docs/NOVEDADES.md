@@ -7,7 +7,7 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
-## Próxima versión (sin publicar)
+## 0.0.126 — 2026-11-14
 
 - Al verificar, ahora se puede aceptar en tu equipo una firma que GrxFirma no da por válida solo por uno de estos motivos: la autoridad del certificado no es conocida, la clave RSA tiene menos de 2048 bits, es un certificado de servidor, no se pudo comprobar la revocación o la firma usa SHA-1. En la aplicación de escritorio aparece el botón «Aceptar en este equipo», que muestra un aviso antes de guardar nada; en la línea de órdenes, `-aceptar-confianza`. Desde entonces esas firmas salen válidas con el aviso «Se da por válida porque lo aceptaste en la configuración». Lo aceptado se quita en Configuración o con `-quitar-confianza-aceptada`. Las webs no pueden aceptar nada por ti, y un administrador puede impedirlo con la política `prohibir_confianza_forzada`.
 - Sin conexión a internet, algunas firmas que antes salían válidas ahora salen «no concluyente», porque GrxFirma no puede comprobar si el certificado está revocado. Puedes aceptar ese caso en tu equipo como se explica en el punto anterior.
