@@ -2934,7 +2934,8 @@ func TestRoutes_TLSClearStore(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("codigo inesperado: %d cuerpo=%s", rr.Code, rr.Body.String())
 	}
-	if runtime.GOOS != "windows" && runtime.GOOS != "linux" {
+	// macOS retira la confianza desde la 0.0.126 (B-07), como Windows y Linux.
+	if runtime.GOOS != "windows" && runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
 		if !bytes.Contains(rr.Body.Bytes(), []byte(`"ok":false`)) {
 			t.Fatalf("la plataforma sin retirada no falló cerrado: %s", rr.Body.String())
 		}

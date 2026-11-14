@@ -151,7 +151,9 @@ func TestEvaluateTrust_RaizDelSistemaLoDice(t *testing.T) {
 			if bloque == nil {
 				break
 			}
-			if cert, err := x509.ParseCertificate(bloque.Bytes); err == nil && esAutofirmado(cert) {
+			// Solo una raíz que el propio sistema da por buena: en macOS el
+			// fichero puede llevar raíces caducadas o retiradas del llavero.
+			if cert, err := x509.ParseCertificate(bloque.Bytes); err == nil && esAutofirmado(cert) && raizAceptadaPorElSistema(cert) {
 				raiz = cert
 			}
 		}
@@ -166,4 +168,9 @@ func TestEvaluateTrust_RaizDelSistemaLoDice(t *testing.T) {
 	if trust.Status != domain.VerificationStatusValid || trust.Reason != motivoConfianzaRaizSistema {
 		t.Fatalf("confianza=%s motivo=%q", trust.Status, trust.Reason)
 	}
+}
+
+func raizAceptadaPorElSistema(cert *x509.Certificate) bool {
+	_, err := cert.Verify(x509.VerifyOptions{KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageAny}})
+	return err == nil
 }

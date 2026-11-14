@@ -553,10 +553,12 @@ func TestDesktopIPCHello_ActionsOrdenadasYCapacidadesCerradas(t *testing.T) {
 	if hasInstallTrust != hasClearTrust {
 		t.Fatalf("hello anuncia un ciclo TLS incompleto: %#v", hello.Actions)
 	}
-	if (runtime.GOOS == "windows" || runtime.GOOS == "linux") && !hasInstallTrust {
+	// macOS retira la confianza desde la 0.0.126 (B-07): su ciclo es reversible.
+	cicloGestionado := runtime.GOOS == "windows" || runtime.GOOS == "linux" || runtime.GOOS == "darwin"
+	if cicloGestionado && !hasInstallTrust {
 		t.Fatalf("hello no anuncia el ciclo TLS gestionado: %#v", hello.Actions)
 	}
-	if runtime.GOOS != "windows" && runtime.GOOS != "linux" && hasInstallTrust {
+	if !cicloGestionado && hasInstallTrust {
 		t.Fatalf("hello anuncia un ciclo TLS no reversible: %#v", hello.Actions)
 	}
 }
