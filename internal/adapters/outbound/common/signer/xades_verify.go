@@ -39,6 +39,7 @@ func (v *XAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	if err := ctx.Err(); err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
+	ctx = conReferenciasExternasNoComprobables(ctx)
 	verification, err := verifyXMLSignatureDocument(ctx, signedDocument.Content, true, nil, anchors, string(domain.FormatXAdES), "firma XAdES valida", []string{"referencias=ok", "signedproperties=ok"}, coberturaDelDocumento)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
@@ -297,7 +298,7 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 	if err := ctx.Err(); err != nil {
 		return xmlSignatureVerification{}, err
 	}
-	referenceCompatibility, err := assessXMLReferences(xmlData, signatureContext, signedInfoXML, externalResolver)
+	referenceCompatibility, externasNoComprobadas, err := assessXMLReferencesExternas(xmlData, signatureContext, signedInfoXML, externalResolver, referenciasExternasNoComprobables(ctx))
 	if err != nil {
 		return xmlSignatureVerification{}, err
 	}
@@ -311,7 +312,7 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 		return xmlSignatureVerification{}, err
 	}
 	cobertura.uris = append(cobertura.uris, manifiestos.uris...)
-	cobertura.noComprobado = manifiestos.noComprobado
+	cobertura.noComprobado = append(externasNoComprobadas, manifiestos.noComprobado...)
 	cobertura.relacionesNoFirmadas = manifiestos.relacionesNoFirmadas
 	cobertura.partesRelacionesOPC = manifiestos.partesRelacionesOPC
 	// SHA-1 solo se acepta para leer firmas históricas: la integridad queda

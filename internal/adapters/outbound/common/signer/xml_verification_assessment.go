@@ -569,30 +569,43 @@ func digestExcluyendoFirmas(document []byte, ref referenceForVerify, variante va
 }
 
 func assessXMLReferences(fragment []byte, context xmlSignatureContext, signedInfoXML []byte, resolver func(string) ([]byte, error)) ([]string, error) {
+	compatibility, _, err := assessXMLReferencesExternas(fragment, context, signedInfoXML, resolver, false)
+	return compatibility, err
+}
+
+// detalleReferenciaExterna marca una referencia del SignedInfo a un recurso
+// externo (http://, fichero...) que no se ha comprobado porque no se descarga.
+const detalleReferenciaExterna = "referencia_externa"
+
+// assessXMLReferencesExternas comprueba las referencias del SignedInfo. Con
+// externasNoComprobables, una referencia externa que no se puede resolver
+// (GrxFirma no descarga nada) no es un error: se devuelve en noComprobadas y
+// la firma no puede salir válida. Un resumen que no cuadra sigue siendo error.
+func assessXMLReferencesExternas(fragment []byte, context xmlSignatureContext, signedInfoXML []byte, resolver func(string) ([]byte, error), externasNoComprobables bool) ([]string, []string, error) {
 	document := context.document
 	var info signedInfoForVerify
 	if err := xml.Unmarshal(signedInfoXML, &info); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if len(info.References) == 0 {
-		return nil, errors.New("SignedInfo no contiene referencias")
+		return nil, nil, errors.New("SignedInfo no contiene referencias")
 	}
 	if len(info.References) > maxReferenciasXML {
-		return nil, fmt.Errorf("SignedInfo con demasiadas referencias (más de %d)", maxReferenciasXML)
+		return nil, nil, fmt.Errorf("SignedInfo con demasiadas referencias (más de %d)", maxReferenciasXML)
 	}
-	var compatibility []string
+	var compatibility, noComprobadas []string
 	for index, ref := range info.References {
 		if strings.TrimSpace(ref.DigestMethod.Parameters) != "" {
-			return nil, errors.New("parámetros de digest XML no soportados")
+			return nil, nil, errors.New("parámetros de digest XML no soportados")
 		}
 		for _, transform := range ref.Transforms {
 			if strings.TrimSpace(transform.Parameters) != "" && !esXPathExcluirFirmas(transform) {
-				return nil, errors.New("parámetros de transformación XML no soportados")
+				return nil, nil, errors.New("parámetros de transformación XML no soportados")
 			}
 			switch strings.TrimSpace(transform.Algorithm) {
 			case algEnveloped, algExcC14N, algC14N, algBase64Transform, algXPathFilter:
 			default:
-				return nil, fmt.Errorf("transform no soportado: %s", transform.Algorithm)
+				return nil, nil, fmt.Errorf("transform no soportado: %s", transform.Algorithm)
 			}
 		}
 		// La resolución histórica permanece acotada a la firma seleccionada;
@@ -606,11 +619,16 @@ func assessXMLReferences(fragment []byte, context xmlSignatureContext, signedInf
 			target, err = resolveReferenceTarget(document, ref.URI, resolver)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("referencia %d no resuelta: %w", index+1, err)
+			uri := strings.TrimSpace(ref.URI)
+			if externasNoComprobables && resolver == nil && uri != "" && !strings.HasPrefix(uri, "#") {
+				noComprobadas = append(noComprobadas, detalleReferenciaExterna)
+				continue
+			}
+			return nil, nil, fmt.Errorf("referencia %d no resuelta: %w", index+1, err)
 		}
 		expected, err := base64.StdEncoding.DecodeString(compactBase64(ref.DigestValue))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		declared, declaredErr := declaredReferenceDigest(context, ref, target)
 		if declaredErr == nil && equalBytes(declared, expected) {
@@ -624,15 +642,15 @@ func assessXMLReferences(fragment []byte, context xmlSignatureContext, signedInf
 		}
 		legacy, err := computeReferenceDigests(ref, target)
 		if err != nil {
-			return nil, fmt.Errorf("digest referencia %d: %w", index+1, err)
+			return nil, nil, fmt.Errorf("digest referencia %d: %w", index+1, err)
 		}
 		if !containsDigest(legacy, expected) {
-			return nil, fmt.Errorf("digest de referencia no coincide para referencia %d", index+1)
+			return nil, nil, fmt.Errorf("digest de referencia no coincide para referencia %d", index+1)
 		}
 		// No incluir URI ni contenido controlado por el documento en la marca.
 		compatibility = append(compatibility, fmt.Sprintf("Referencia %d sólo coincide mediante canonicalización histórica; el procedimiento declarado/contextual no queda acreditado.", index+1))
 	}
-	return compatibility, nil
+	return compatibility, noComprobadas, nil
 }
 
 func markXMLCompatibility(result domain.VerificationResult, compatibility []string) domain.VerificationResult {

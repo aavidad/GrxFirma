@@ -889,6 +889,7 @@
   "Firma inválida o integridad no garantizada.": "签名无效或完整性无法保证。",
   "La firma es correcta, pero parte del contenido del documento no está firmado.": "签名正确，但文档的部分内容未签名。",
   "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "无法检查签名所涵盖的全部内容，因此不视为有效。",
+  "La firma cubre documentos que no van dentro del fichero y que GrxFirma no descarga. Sin ellos no se puede saber si han cambiado, así que la firma no se da por válida.": "签名涵盖了不在该文件中的文档，GrxFirma 不会下载这些文档。没有它们就无法判断其是否被更改，因此该签名不被视为有效。",
   "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "签名有效，但由于其格式的规定，签名不涵盖文档的部分元数据。详细信息中列出了具体内容。",
   "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba.": "文档自签名以来未被更改，但签名使用的是 SHA-1，这是一种如今已不被视为安全的旧算法。因此该签名不被视为有效：它只能证明这是在 SHA-1 仍被接受时所做的签名。",
   "La firma no incluye el documento firmado, así que no se puede saber si ha cambiado. Indique el documento original: en la línea de órdenes, con -original; en la aplicación de escritorio, con «Seleccionar original...».": "签名中不包含已签名的文档，因此无法判断文档是否被更改。请提供原始文档：命令行中使用 -original；桌面应用中使用「选择原始文件...」。",

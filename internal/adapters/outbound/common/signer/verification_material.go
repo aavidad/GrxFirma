@@ -17,6 +17,20 @@ import (
 
 type offlineVerificationContextKey struct{}
 
+// referenciasExternasKey: solo XAdES y XMLdSig sueltas admiten una referencia
+// externa sin resolver como «no comprobada» en vez de error. FacturaE,
+// Veri*Factu, los contenedores y el cotejo ENI no lo activan.
+type referenciasExternasKey struct{}
+
+func conReferenciasExternasNoComprobables(ctx context.Context) context.Context {
+	return context.WithValue(ctx, referenciasExternasKey{}, true)
+}
+
+func referenciasExternasNoComprobables(ctx context.Context) bool {
+	activo, _ := ctx.Value(referenciasExternasKey{}).(bool)
+	return activo
+}
+
 func offlineVerification(ctx context.Context) bool {
 	offline, _ := ctx.Value(offlineVerificationContextKey{}).(bool)
 	return offline
