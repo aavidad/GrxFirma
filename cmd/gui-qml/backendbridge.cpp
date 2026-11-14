@@ -27,6 +27,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
+#include <QRegularExpression>
 #ifdef Q_OS_WIN
 #include "windowssystempath.h"
 #endif
@@ -60,6 +61,26 @@ static QString bt(const QString &key) {
 }
 
 static constexpr qint64 kBackendMaxSignInputBytes = 60LL * 1024LL * 1024LL;
+
+// Avisos del motor sobre una firma (lote 17b, 3d): el mismo filtro que
+// ipcSigningWarnings en ipcbridge.cpp. Solo claves con forma de clave y con
+// tope, para que la respuesta no pueda colar texto libre en la pantalla.
+static constexpr int kBackendMaxSigningWarnings = 16;
+static QStringList backendSigningWarnings(const QJsonObject &res) {
+  static const QRegularExpression key(
+      QStringLiteral("^[a-z0-9_]+(\\.[a-z0-9_]+)+$"));
+  QStringList out;
+  const QJsonArray values = res.value(QStringLiteral("warnings")).toArray();
+  for (const auto &value : values) {
+    const QString text = value.toString();
+    if (text.size() > 128 || !key.match(text).hasMatch() || out.contains(text))
+      continue;
+    out << text;
+    if (out.size() >= kBackendMaxSigningWarnings)
+      break;
+  }
+  return out;
+}
 static constexpr qint64 kBackendMaxSealImageBytes = 10LL * 1024LL * 1024LL;
 static constexpr qint64 kBackendMaxHashReferenceBytes = 1LL * 1024LL * 1024LL;
 static constexpr qint64 kBackendMaxRESTOutputBytes = 75LL * 1024LL * 1024LL;
@@ -1821,6 +1842,7 @@ void BackendBridge::signFile(const QString &inputPath,
 void BackendBridge::signFileAdvanced(const QString &inputPath,
                                      const QString &outputPath, int certIndex,
                                      const QVariantMap &options) {
+  m_lastSigningWarnings.clear();
   emit backendLogReceived(bt(QStringLiteral("⚙ Preparando firma de: ")) +
                           inputPath);
   QByteArray input;
@@ -1914,6 +1936,7 @@ void BackendBridge::signFileAdvanced(const QString &inputPath,
     emit backendLogReceived(
         bt(QStringLiteral("✅ Firma guardada exitosamente en: ")) + actual);
     setStatus(bt(QStringLiteral("Firma completada satisfactoriamente")));
+    m_lastSigningWarnings = backendSigningWarnings(obj);
     emit signingFinished(true, msg, actual);
     reply->deleteLater();
   });
@@ -1928,6 +1951,7 @@ void BackendBridge::signFileMultiAdvanced(
   Q_UNUSED(certIndex);
   Q_UNUSED(additionalCertificateIds);
   Q_UNUSED(options);
+  m_lastSigningWarnings.clear();
   emit signingFinished(
       false,
       bt(QStringLiteral(
@@ -1939,6 +1963,7 @@ void BackendBridge::signBatchAdvanced(const QVariantList &inputPaths,
                                       const QString &directoryPath,
                                       const QString &outputDir, int certIndex,
                                       const QVariantMap &options) {
+  m_lastSigningWarnings.clear();
   if (!options.value(QStringLiteral("additionalCertificateIds"))
            .toList()
            .isEmpty()) {
@@ -2125,11 +2150,14 @@ void BackendBridge::signBatchAdvanced(const QVariantList &inputPaths,
       result.insert(QStringLiteral("outputPath"), actual);
       result.insert(QStringLiteral("format"),
                     response.value(QStringLiteral("format")).toString());
+      result.insert(QStringLiteral("warnings"),
+                    backendSigningWarnings(response));
       results.append(result);
     }
     const QString msg =
         allOK ? bt(QStringLiteral("Firma por lote completada"))
               : bt(QStringLiteral("La firma por lote terminó con errores"));
+    m_lastSigningWarnings = backendSigningWarnings(obj);
     emit batchSigningFinished(allOK, msg, results);
     reply->deleteLater();
   });

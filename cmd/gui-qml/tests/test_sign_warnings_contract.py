@@ -43,7 +43,7 @@ def cpp_block(source, marker):
 class SignWarningsContract(unittest.TestCase):
     def test_los_dos_puentes_exponen_los_avisos(self):
         self.assertIn("Q_INVOKABLE QStringList lastSigningWarnings() const", HEADER)
-        # El puente REST no los recibe, pero QML puede preguntar igual.
+        # El puente REST también los recibe (lote 17b, 3d).
         self.assertIn("Q_INVOKABLE QStringList lastSigningWarnings() const", REST_HEADER)
 
     def test_el_puente_ipc_lee_warnings_del_resultado(self):

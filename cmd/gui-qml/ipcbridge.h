@@ -120,6 +120,11 @@ public:
   Q_INVOKABLE void readVeriFactuQRFile(const QString &inputPath);
   Q_INVOKABLE void queryVeriFactuQR(const QString &url);
   Q_INVOKABLE void detectVeriFactu(const QString &inputPath);
+  // KD-03 (lote 17b): pregunta al motor si la firma de entrada es una CAdES
+  // explícita (sin el documento dentro) antes de cofirmar o contrafirmar.
+  Q_INVOKABLE void checkCosignOriginal(const QString &inputPath,
+                                       const QString &format,
+                                       const QString &action);
   Q_INVOKABLE void generateENIDocument(const QVariantMap &params);
   Q_INVOKABLE void generateENIFile(const QVariantMap &params);
   Q_INVOKABLE bool startupEnabled() const;
@@ -242,6 +247,7 @@ signals:
   void verifactuValidated(bool ok, QVariantMap result, QString message);
   void verifactuQRFinished(QString action, bool ok, QVariantMap result, QString message);
   void verifactuDetected(bool ok, QVariantMap result);
+  void cosignOriginalChecked(bool ok, bool needsOriginal);
   void eniGenerated(QString action, bool ok, QVariantMap result, QString message);
   void sealPreviewReceived(QString requestId, bool ok, QString image,
                            QString message);
