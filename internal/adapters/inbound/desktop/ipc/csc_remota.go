@@ -392,6 +392,17 @@ func (m *Manejador) prepararFirmaRemota(ctx context.Context, action string, raw 
 	return ctx, peticion, liberar, nil
 }
 
+// remotaSinInterfaz rechaza una acción que firma con la clave de un
+// certificado remoto fuera de prepararFirmaRemota (el expediente ENI) si la
+// petición no llega de la interfaz vinculada.
+func (m *Manejador) remotaSinInterfaz(ctx context.Context, action, certID string) *respuesta {
+	if esInterfazVerificada(ctx) || !m.algunAdicionalRemoto([]string{certID}) {
+		return nil
+	}
+	resp := m.cscError(action, &csc.Error{Codigo: cscremota.CodigoInterfazNoVerificada})
+	return &resp
+}
+
 func (m *Manejador) algunAdicionalRemoto(ids []string) bool {
 	if m.CSC == nil {
 		return false

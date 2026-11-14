@@ -29,7 +29,7 @@ type estadoInterfazContextKey struct{}
 // cliente es la interfaz vinculada.
 func requiereEstadoInterfaz(action string) bool {
 	switch strings.ToLower(strings.TrimSpace(action)) {
-	case "csc_configure", "csc_connect", "csc_send_otp", "export_diagnostic":
+	case "csc_configure", "csc_connect", "csc_send_otp", "export_diagnostic", "generate_eni_file":
 		return true
 	}
 	return isRemoteSigningAction(strings.ToLower(strings.TrimSpace(action)))

@@ -58,6 +58,8 @@ func TestCSCIPCSinInterfazVerificadaRechazaLaFirmaRemota(t *testing.T) {
 			{"sign_batch", map[string]any{"inputPaths": []string{entrada}, "certificateId": remoto, "format": "cades", "remotePin": pin}},
 			// Un firmante adicional remoto tampoco firma desde fuera.
 			{"sign_multicosign", map[string]any{"inputPath": entrada, "certificateId": local, "format": "cades", "additionalCertificateIds": []string{remoto}}},
+			// El expediente ENI firma el índice con la clave del certificado.
+			{"generate_eni_file", map[string]any{"directoryPath": filepath.Dir(entrada), "outputPath": filepath.Join(t.TempDir(), "exp.xml"), "certificateId": remoto}},
 		} {
 			raw, _ := json.Marshal(c.params)
 			resp := e.m.despachar(ctx, peticion{Action: c.accion, Params: raw})
