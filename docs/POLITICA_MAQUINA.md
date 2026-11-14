@@ -85,12 +85,16 @@ Administración pide firmar. Admite tres valores:
 | Valor | Qué pasa |
 |---|---|
 | `grxfirma` | Firma GrxFirma. Es lo que ocurre sin política. |
-| `autofirma` | GrxFirma recibe el enlace y se lo pasa a AutoFirma. Si AutoFirma no está instalado, firma GrxFirma. |
+| `autofirma` | Firma AutoFirma. El instalador le devuelve los enlaces y, si alguno llega a GrxFirma, GrxFirma se lo pasa. Si AutoFirma no está instalado, firma GrxFirma. |
 | `preguntar` | GrxFirma pregunta en cada enlace con qué programa firmar. Si AutoFirma no está instalado, no pregunta y firma GrxFirma. |
 
 Con la política fijada, el ajuste «Programa para firmar en las webs» de la
 aplicación queda solo de lectura y explica que lo decide la organización. El
-instalador también la respeta, incluso en una instalación silenciosa. Sin
+instalador también la respeta, incluso en una instalación silenciosa, y pasa
+por delante de `/AFIRMA=` (Windows) y `--afirma-handler=` (Linux). La política
+nunca cambia lo que eligió cada usuario: si se retira, vuelve a valer su
+elección. Si existe pero no se puede leer, o el valor no es uno de los tres, la
+aplicación y el instalador avisan y mantienen la elección de cada usuario. Sin
 política, cada usuario elige en Configuración, en la línea de órdenes
 (`grxfirma -elegir-programa-firma-web <valor>`) o en el instalador.
 

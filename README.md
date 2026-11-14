@@ -71,6 +71,13 @@ contraseñas de proxy se guardan en el almacén seguro del sistema y en Windows
 la interfaz es nativa. Los límites conocidos están en
 [docs/LIMITES_Y_EXCLUSIONES.md](docs/LIMITES_Y_EXCLUSIONES.md).
 
+GrxFirma y AutoFirma pueden estar instalados a la vez. En Configuración,
+«Programa para firmar en las webs», cada persona elige cuál se abre cuando una
+web le pide firmar: GrxFirma, AutoFirma o «Preguntar cada vez». El instalador
+pregunta lo mismo si encuentra AutoFirma y, en una instalación silenciosa,
+mantiene lo que había. La organización puede fijarlo con la política
+`manejador_afirma` ([docs/POLITICA_MAQUINA.md](docs/POLITICA_MAQUINA.md)).
+
 ## Estructura
 
 El motor está en Go y sigue una arquitectura de puertos y adaptadores: el

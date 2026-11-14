@@ -94,6 +94,28 @@ con un programa llamado `autofirma` (el nombre del lanzador cambia según el
 paquete). Hasta la 0.0.125 solo se miraban los dos nombres fijos, y con otro
 nombre el ajuste decía que AutoFirma no estaba instalado.
 
+### Programa para firmar en las webs
+
+En GrxFirma, Configuración, «Programa para firmar en las webs», se elige
+GrxFirma, AutoFirma o «Preguntar cada vez». La elección se guarda en
+`~/.config/grxfirma/afirma-protocol-handler`. Al instalar:
+
+- Si AutoFirma está instalado, la política no lo fija y no se ha pedido nada,
+  `install-suite.sh` pregunta en la terminal; Intro deja lo que había.
+- Sin terminal, o con el `.deb`, se mantiene lo que eligió la persona o, si no
+  eligió nada, GrxFirma, como hasta ahora.
+- `install-suite.sh --afirma-handler=grxfirma|autofirma|preguntar` lo fija y lo
+  guarda como elección de la persona. Un valor no válido termina con el código
+  2 antes de instalar nada.
+- `manejador_afirma` en `/etc/grxfirma/policy.json` prevalece y nunca cambia
+  la elección guardada. Si el fichero no se puede leer o el valor no se
+  entiende, se avisa y se mantiene la elección de cada usuario.
+
+Con AutoFirma, `afirma://` vuelve a su lanzador solo en los `mimeapps.list`
+donde lo tenía GrxFirma; si la persona puso otro programa a mano, se respeta.
+`configure-browsers.sh --detect-afirma-handler` dice, sin cambiar nada, si
+AutoFirma está instalado, qué fija la política y qué eligió la persona.
+
 Además:
 
 - si la suite trae Qt, instala `~/.local/bin/grxfirma-gui-qml` y sus recursos

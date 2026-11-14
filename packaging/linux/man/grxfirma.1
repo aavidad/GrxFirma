@@ -97,6 +97,12 @@ El manejador de \fBafirma://\fR se ejecuta con:
 .PP
 En una instalación de usuario Linux normalmente queda registrado a través del fichero
 \fI.desktop\fR y no se lanza manualmente salvo para depuración.
+.PP
+Qué programa se abre cuando una web pide firmar (GrxFirma, AutoFirma o
+«Preguntar cada vez») se elige en Configuración, «Programa para firmar en las
+webs», o con las opciones de la sección \fBPrograma para firmar en las webs\fR.
+Si se eligió AutoFirma, GrxFirma le pasa el enlace sin intérprete de órdenes;
+si no puede, pregunta si firmar con GrxFirma o cancelar.
 .SS Puente de navegadores
 El puente de navegadores es la pieza que conecta el navegador con la aplicación local.
 .PP
@@ -356,6 +362,17 @@ Comprueba si los certificados pueden firmar realmente.
 .TP
 .B \-lote \fImanifiesto.json\fR
 Procesa una firma en lote definida en un manifiesto JSON.
+.SS Programa para firmar en las webs
+.TP
+.B \-ver\-programa\-firma\-web, \-web\-signing\-program
+Dice qué programa se abre cuando una web pide firmar y si lo fija la
+organización. Con \fB\-json\fR devuelve el estado completo.
+.TP
+.B \-elegir\-programa\-firma\-web \fIgrxfirma|autofirma|preguntar\fR, \-set\-web\-signing\-program
+Cambia ese programa para el usuario actual. AutoFirma y \fBpreguntar\fR solo
+se aceptan si AutoFirma está instalado. Si la política \fBmanejador_afirma\fR
+fija otro valor, no cambia nada y lo explica. Ningún canal web (REST,
+\fBafirma://\fR, WebSocket ni el host nativo) puede cambiarlo.
 .SS Dominios de confianza
 GrxFirma mantiene un círculo de confianza de dominios para operaciones remotas.
 .PP
