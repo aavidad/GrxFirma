@@ -970,9 +970,11 @@ public sealed class ProtectPageViewModel
             // explica dónde quedó.
             UnprotectResultMessage = destinationProblem ??
                 Localizer.Format("winui.proteger.documento_recuperado_en", _unprotectOutputPath);
+            // Cada aviso es una clave del catálogo: se enseña en el idioma
+            // de la persona, uno por línea (lote 16d).
             UnprotectWarningMessage = string.Join(
-                " ",
-                result.Data.VisibleWarnings);
+                Environment.NewLine,
+                result.Data.VisibleWarnings.Select(Localizer.VisibleText));
             UnprotectValidationMessage =
                 Localizer.Text("winui.proteger.la_desproteccion_termino_correctamente");
             UpdateCommandStates();

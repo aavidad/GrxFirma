@@ -39,6 +39,15 @@ class UnprotectWarningsContract(unittest.TestCase):
         self.assertIn("result.Data.VisibleWarnings", WINUI_VM)
         self.assertIn("UnprotectWarningMessage", WINUI_XAML)
 
+    def test_winui_traduce_los_avisos_con_el_catalogo(self):
+        # Lote 16d: los avisos llegan como claves del catálogo (la frase en
+        # castellano); WinUI los pinta en el idioma de la persona, uno por
+        # línea, igual que Qt con tr().
+        bloque = WINUI_VM[WINUI_VM.index("UnprotectWarningMessage = string.Join("):]
+        bloque = bloque[:bloque.index(";") + 1]
+        self.assertIn("result.Data.VisibleWarnings.Select(Localizer.VisibleText)", bloque)
+        self.assertNotIn('" ",', bloque)
+
 
 if __name__ == "__main__":
     unittest.main()
