@@ -86,12 +86,12 @@ $suiteNsiContent = Get-Content -LiteralPath $suiteNsi -Raw
 Assert-Contains -Path $suiteNsi -Expected @(
     "RequestExecutionLevel user",
     "!insertmacro MUI_PAGE_COMPONENTS",
-    'Section "Motor, navegador y línea de comandos (obligatorio)" SEC_CORE',
+    'Section "$(GRX_SECTION_CORE)" SEC_CORE',
     "SectionIn RO",
     "!ifdef HAS_WINUI",
-    'Section "Interfaz nativa de Windows (WinUI 3) - recomendada" SEC_WINUI',
+    'Section "$(GRX_SECTION_WINUI)" SEC_WINUI',
     "!ifdef HAS_QT",
-    'Section /o "Interfaz multiplataforma Qt/QML (opcional)" SEC_QT',
+    'Section /o "$(GRX_SECTION_QT)" SEC_QT',
     'File /r "${STAGE_DIR}\desktop-winui\*.*"',
     'File /r "${STAGE_DIR}\desktop-qt\*.*"',
     '-PackageDir "$INSTDIR\desktop-winui"',
@@ -108,7 +108,7 @@ if ($suiteNsiContent -match "RequestExecutionLevel\s+admin") {
     throw "El instalador dual solicita elevacion administrativa."
 }
 if ($suiteNsiContent -match
-    'Section\s+/o\s+"Interfaz nativa de Windows') {
+    'Section\s+/o\s+"\$\(GRX_SECTION_WINUI\)') {
     throw "WinUI no queda seleccionada por defecto cuando forma parte del instalador."
 }
 $uninstallerOffset = $suiteNsiContent.IndexOf(
@@ -116,7 +116,7 @@ $uninstallerOffset = $suiteNsiContent.IndexOf(
     [System.StringComparison]::Ordinal
 )
 $firstOptionalOffset = $suiteNsiContent.IndexOf(
-    'Section "Interfaz nativa de Windows',
+    'Section "$(GRX_SECTION_WINUI)',
     [System.StringComparison]::Ordinal
 )
 if ($uninstallerOffset -lt 0 -or
@@ -125,8 +125,8 @@ if ($uninstallerOffset -lt 0 -or
     throw "Un fallo de GUI opcional puede ocurrir antes de dejar un desinstalador recuperable."
 }
 foreach ($componentBlock in @(
-    '(?ms)Section "Interfaz nativa de Windows.*?nsExec::ExecToLog.*?!insertmacro GrxFirmaExitOnExecFailure.*?RMDir /r "\$INSTDIR\\desktop-winui".*?SectionEnd',
-    '(?ms)Section /o "Interfaz multiplataforma Qt/QML.*?nsExec::ExecToLog.*?!insertmacro GrxFirmaExitOnExecFailure.*?RMDir /r "\$INSTDIR\\desktop-qt".*?SectionEnd'
+    '(?ms)Section "\$\(GRX_SECTION_WINUI\).*?nsExec::ExecToLog.*?!insertmacro GrxFirmaExitOnExecFailure.*?RMDir /r "\$INSTDIR\\desktop-winui".*?SectionEnd',
+    '(?ms)Section /o "\$\(GRX_SECTION_QT\).*?nsExec::ExecToLog.*?!insertmacro GrxFirmaExitOnExecFailure.*?RMDir /r "\$INSTDIR\\desktop-qt".*?SectionEnd'
 )) {
     if ($suiteNsiContent -notmatch $componentBlock) {
         throw "La seccion GUI no conserva payload y desinstalador cuando falla."

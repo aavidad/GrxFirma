@@ -1,0 +1,95 @@
+ACTUAL	       erhalten: @1@
+AFIRMA_GRXFIRMA	  1) GrxFirma
+AFIRMA_PROMPT	Wählen Sie 1, 2 oder 3 (Eingabe behält @1@): 
+ARCH_HINT	       Verwenden Sie GOARCH=amd64, arm64, arm oder 386.
+ARTIFACTS_TABLE	| Datei | Größe (Byte) | SHA-256 |
+ARTIFACTS_TITLE	# Artefakte der Linux-Suite
+EXPECTED	       erwartet: @1@
+FIREFOX_UNSIGNED	Firefox-XPI ohne AMO-Signatur: Das Protokoll wird konfiguriert, die stabile Erweiterung jedoch nicht installiert
+INSTALLING	GrxFirma @1@ wird installiert...
+LANGUAGE_CHOICES	1) Español  2) English  3) Català  4) Valencià  5) Galego  6) Euskara  7) Français  8) Deutsch  9) Italiano  10) Português  11) 中文
+LANGUAGE_PROMPT	Installationssprache (Eingabe behält @1@): 
+LOCATION_AFIRMA	  AfirmaURI:    @1@/grxfirma-afirmauri
+LOCATION_CLI	  CLI:          @1@/grxfirma
+LOCATION_CONFIG	  Config:       @1@
+LOCATION_DESKTOP	  Desktop:      @1@/grxfirma-desktop
+LOCATION_HOST	  NativeHost:   @1@/grxfirma-nativehost
+LOCATION_IPC	  Desktop IPC:  @1@/grxfirma-gui
+LOCATION_QML	  Qt QML/Assets:@1@
+LOCATION_QT	  Desktop Qt:   @1@/grxfirma-gui-qml
+MSG_001	Warnung: manejador_afirma in @1@ konnte nicht gelesen werden; die Auswahl jedes Benutzers bleibt erhalten.
+MSG_002	Warnung: AutoFirma ist auf diesem Computer nicht installiert; Website-Signaturen werden mit GrxFirma geöffnet.
+MSG_003	Warnung: GrxFirma öffnet künftig afirma://-Links. Ohne python3 konnte die vorherige Anwendung (etwa AutoFirma) nicht gespeichert werden.
+MSG_004	Warnung: afirma://-Links wurden mit @1@ geöffnet. Künftig öffnet sie GrxFirma. Dessen Deinstallation stellt die vorherige Anwendung wieder her.
+MSG_005	afirma://-Protokollhandler auf die vorherige Anwendung zurückgesetzt
+MSG_006	Vorheriger Host entfernt: @1@
+MSG_007	Vorherige Firefox-Erweiterung entfernt: @1@
+MSG_008	Chrome erkannt/konfiguriert
+MSG_009	Isoliertes Chromium erkannt: Native Messaging erfordert ein Portal oder eine vom Paket erlaubte Bereitstellung
+MSG_010	Chromium erkannt/konfiguriert
+MSG_011	Edge erkannt/konfiguriert
+MSG_012	Isoliertes Brave Flatpak erkannt: Native Messaging erfordert ein Portal oder eine vom Paket erlaubte Bereitstellung
+MSG_013	Brave erkannt/konfiguriert
+MSG_014	Vivaldi erkannt/konfiguriert
+MSG_015	Vivaldi Snap erkannt: Diese Distribution unterstützt Native Messaging nicht
+MSG_016	Opera Flatpak erkannt: Der externe Host hängt von den Paketberechtigungen ab
+MSG_017	Opera über Chromium-Manifeste erkannt/konfiguriert
+MSG_018	Firefox-Profil konfiguriert: @1@
+MSG_019	Firefox erkannt/konfiguriert
+MSG_020	Fehler: Ungültige Anwendung zum Signieren auf Websites: @1@. Verwenden Sie grxfirma, autofirma oder preguntar.
+MSG_021	Aufruf: configure-browsers.sh [--restore-afirma-handler | --detect-afirma-handler]
+MSG_022	Fehler: Nicht unterstützte Linux-Architektur: @1@
+MSG_023	Fehler: GRXFIRMA_BUILD_CHROMIUM_CRX muss 0 oder 1 sein.
+MSG_024	Warnung: Kein Chromium-Browser zum Verpacken der lokalen Erweiterung verfügbar.
+MSG_025	Warnung: Das Chromium-CRX-Paket konnte nicht erstellt werden.
+MSG_026	Chromium-CRX mit stabilem lokalem Schlüssel erstellt: @1@
+MSG_027	Warnung: Chromium-CRX mit temporärem Schlüssel erstellt; die ID ändert sich bei jedem Build.
+MSG_028	Fehler: Das .deb-Paket wurde nicht korrekt erstellt: @1@
+MSG_029	Fehler: Unerwartetes .deb-Paket, Package=@1@
+MSG_030	Fehler: Unerwartete .deb-Architektur, Architecture=@1@
+MSG_031	Fehler: Depends des .deb stimmt nicht mit der Laufzeitanalyse überein
+MSG_032	Fehler: Depends des .deb enthält @1@ nicht
+MSG_033	Fehler: Unvollständiges .deb-Paket. Es fehlen:
+MSG_034	Fehler: Unvollständiges .deb-Paket. ./usr/lib/grxfirma/gui-qml/help/ fehlt
+MSG_035	Fehler: BUILDINFO des .deb identifiziert den kompilierten Quellbaum nicht
+MSG_036	Fehler: SHA256SUMS.txt konnte für die Linux-Suite nicht erstellt werden.
+MSG_037	Fehler: ARTIFACTS.md konnte für die Linux-Suite nicht erstellt werden.
+MSG_038	Fehler: Nicht unterstütztes Argument: @1@
+MSG_039	Linux-Suite wird kompiliert (@1@)...
+MSG_040	Qt/QML-Oberfläche wird kompiliert...
+MSG_041	Fehler: Das Qt-Buildverzeichnis darf kein symbolischer Link sein: @1@
+MSG_042	Warnung: Qt6/qmake6 wird für die Qt/QML-Oberfläche benötigt; die Suite wird ohne Qt erstellt.
+MSG_043	Paket erstellt unter: @1@
+MSG_044	Fehler: dpkg-deb ist nicht verfügbar; das .deb kann nicht erstellt werden
+MSG_045	Fehler: VERSION.txt enthält keine gültige Debian-Version: @1@
+MSG_046	Fehler: Die Laufzeitanalyse hat ein leeres Depends-Feld erzeugt
+MSG_047	GrxFirma: Anwendung und Dienste werden vor dem Fortfahren geschlossen...
+MSG_048	GrxFirma: Jeder Benutzer kann afirma://-Links vor dem Entfernen des Pakets mit /usr/lib/grxfirma/bin/configure-browsers.sh --restore-afirma-handler auf AutoFirma zurücksetzen.
+MSG_049	GrxFirma: Jeder Benutzer, der die Anwendung verwendet hat, muss vor dem Entfernen des Pakets grxfirma-afirmauri --remove-local-tls-trust ausführen.
+MSG_050	GrxFirma: Das Benutzerverzeichnis von @1@ konnte nicht ermittelt werden; prüfen Sie das Konto und wiederholen Sie die Deinstallation, um dessen CA zu entfernen.
+MSG_051	GrxFirma: Die verwaltete CA von @1@ konnte nicht entfernt werden. Schließen Sie Firefox und wiederholen Sie die Deinstallation; das Paket bleibt für einen erneuten Versuch erhalten.
+MSG_052	.deb-Paket erstellt unter: @1@
+MSG_053	Aufruf:\n  packaging/linux/build-suite.sh [--deb]\n\nRelevante Variablen:\n  GOARCH=amd64|arm64|arm|386\n  QMAKE=/path/to/qmake6\n  GRXFIRMA_BUILD_CHROMIUM_CRX=1 erstellt das nicht reproduzierbare lokale CRX\n  GRXFIRMA_CHROMIUM_EXTENSION_KEY=/path/to/chromium-extension.pem
+MSG_054	Fehler: Ungültiger Wert für --afirma-handler=. Verwenden Sie grxfirma, autofirma oder preguntar. Das System wurde nicht verändert.
+MSG_055	Aufruf: install-suite.sh [--afirma-handler=grxfirma|autofirma|preguntar]
+MSG_056	Warnung: Unbekannte Option @1@ wird ignoriert.
+MSG_057	Fehler: @1@ fehlt neben dem Installationsprogramm
+MSG_058	Fehler: Die Prüfung der Laufzeitabhängigkeiten fehlt neben dem Installationsprogramm
+MSG_059	Warnung: Das Firefox-XPI ist eine Entwicklungsversion und wird nicht in stabilen Profilen installiert.
+MSG_060	\nAutoFirma ist ebenfalls auf diesem Computer installiert.
+MSG_061	Mit welcher Anwendung möchten Sie signieren, wenn eine Verwaltungswebsite Sie dazu auffordert?
+MSG_062	  2) AutoFirma (Anwendung der spanischen Regierung)
+MSG_063	  3) Jedes Mal fragen
+MSG_064	Sie können dies in GrxFirma unter Einstellungen, „Anwendung zum Signieren auf Websites“, ändern.
+MSG_065	Geben Sie 1, 2 oder 3 ein.
+MSG_066	Option @1@ bleibt erhalten.
+MSG_067	Suite installiert unter:
+MSG_068	  PKCS11-Prozess: @1@/grxfirma-pkcs11-worker (Funktion deaktiviert)
+MSG_069	  Erweiterungen: @1@
+MSG_070	  Zertifikate: @1@
+PACKAGE_DETAIL	CLI, Desktopoberfläche, afirma://-Protokollhandler und Native-Messaging-Host.
+PACKAGE_TITLE	GrxFirma für Linux
+REINSTALLING	GrxFirma @1@ wird erneut installiert...
+TAR_INCOMPLETE	Unvollständiges tar-Archiv:
+UNKNOWN_VERSION	unbekannt
+UPDATING	GrxFirma wird aktualisiert: @1@ -> @2@...

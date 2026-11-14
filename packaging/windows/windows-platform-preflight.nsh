@@ -28,7 +28,7 @@
 !macro GrxFirmaRequireSupportedWindows
   ${IfNot} ${IsNativeAMD64}
     !insertmacro GrxFirmaAbortUnsupportedWindows \
-      "Esta edición de GrxFirma requiere Windows x64 (AMD64). No es compatible con Windows de 32 bits ni con Windows ARM64.$\r$\n$\r$\nNo se ha modificado el sistema."
+      "$(GRX_WINDOWS_ARCH)"
   ${EndIf}
 
   SetRegView 64
@@ -46,7 +46,7 @@
 
   ${If} $3 < ${GRXFIRMA_MIN_WINDOWS_BUILD}
     !insertmacro GrxFirmaAbortUnsupportedWindows \
-      "Esta edición de GrxFirma requiere Windows 10 versión 1809 o posterior (build ${GRXFIRMA_MIN_WINDOWS_BUILD}). Este equipo informa del build '$3'.$\r$\n$\r$\nActualiza Windows antes de instalarla. No se ha modificado el sistema."
+      "$(GRX_WINDOWS_BUILD)"
   ${EndIf}
 !macroend
 

@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import unittest
+import json
 from pathlib import Path
 
 
@@ -19,7 +20,9 @@ class AfirmaHandlerWarningTests(unittest.TestCase):
         for name in ("grxfirma-suite.nsi", "grxfirma-afirmauri.nsi"):
             text = (WINDOWS / name).read_text(encoding="utf-8-sig")
             with self.subTest(installer=name):
-                warning = text.index("afirma:// de los portales, en lugar de AutoFirma")
+                warning = text.index("$(GRX_AFIRMA_WARNING)")
+                catalog = json.loads((WINDOWS / "i18n/es.json").read_text())
+                self.assertIn("afirma:// de los portales, en lugar de AutoFirma", catalog["AFIRMA_WARNING"])
                 install = text.index("nsExec::ExecToLog", warning)
                 self.assertIn("GrxFirmaShowWarning", text[warning - 200 : warning])
                 self.assertIn("install-", text[install : install + 300])

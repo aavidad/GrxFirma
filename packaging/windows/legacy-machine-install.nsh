@@ -16,9 +16,9 @@
 
 !macro GrxFirmaWriteInstallFailure EXIT_CODE ERROR_MESSAGE
   FileOpen $R9 "$TEMP\GrxFirma-install-error.txt" w
-  FileWrite $R9 "GrxFirma - instalacion fallida$\r$\n"
-  FileWrite $R9 "Codigo: ${EXIT_CODE}$\r$\n"
-  FileWrite $R9 "Fase: ${ERROR_MESSAGE}$\r$\n"
+  FileWrite $R9 "$(GRX_FAILURE_TITLE)$\r$\n"
+  FileWrite $R9 "$(GRX_FAILURE_CODE) ${EXIT_CODE}$\r$\n"
+  FileWrite $R9 "$(GRX_FAILURE_PHASE) ${ERROR_MESSAGE}$\r$\n"
   FileClose $R9
 !macroend
 
@@ -73,6 +73,7 @@
 ; de sus componentes desde una versión antigua elevada.
 !macro GrxFirmaBlockLegacyMachineInstall PRODUCT_KEY PRODUCT_NAME
 Function .onInit
+  !insertmacro MUI_LANGDLL_DISPLAY
   Push $0
   Push $1
   Push $2
@@ -99,7 +100,7 @@ Function .onInit
 grxfirma_legacy_machine_install_found:
   IfSilent +2
   MessageBox MB_OK|MB_ICONSTOP \
-    "Se ha detectado una instalación antigua por equipo de $0 en la vista de registro de $2 bits:$\r$\n$\r$\n$1$\r$\n$\r$\nEste instalador actual es por usuario y no puede actualizarla de forma segura sin privilegios de administrador. Desinstala primero la versión antigua desde Configuración > Aplicaciones (acepta el aviso UAC) o ejecuta su uninstall.exe como administrador. Después vuelve a iniciar este instalador.$\r$\n$\r$\nNo se ha modificado el sistema."
+    "$(GRX_LEGACY_INSTALL)"
   SetErrorLevel 1603
   Quit
 FunctionEnd

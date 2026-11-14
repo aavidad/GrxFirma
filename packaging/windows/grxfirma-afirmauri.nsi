@@ -14,8 +14,9 @@ Unicode True
 !ifndef VERSION
   !define VERSION "dev"
 !endif
+!include "i18n/version.nsh"
 !include "product-version.nsh"
-!insertmacro GrxFirmaProductVersion "Instalador GrxFirma afirma URI"
+!insertmacro GrxFirmaProductVersion "${GRX_VERSION_PRODUCT_AFIRMA_URI}"
 
 !ifndef ARCH
   !define ARCH "amd64"
@@ -54,10 +55,10 @@ Page custom GrxFirmaAfirmaHandlerPage GrxFirmaAfirmaHandlerPageLeave
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 
-!insertmacro MUI_LANGUAGE "Spanish"
+!include "installer-languages.nsh"
 !insertmacro GrxFirmaBlockLegacyMachineInstall "GrxFirmaAfirmaURI" "GrxFirma AfirmaURI"
 
-Section "Handler afirma://" SEC01
+Section "$(GRX_SECTION_AFIRMA)" SEC01
   SetShellVarContext current
   SetOutPath "$INSTDIR"
   File "${STAGE_DIR}\grxfirma-afirmauri.exe"
@@ -95,14 +96,14 @@ Section "Handler afirma://" SEC01
   ${If} $GrxAfirmaHandler != "autofirma"
   ${AndIf} $GrxAfirmaHandler != "preguntar"
     !insertmacro GrxFirmaShowWarning \
-      "Desde ahora GrxFirma abrirá los enlaces afirma:// de los portales, en lugar de AutoFirma si lo tiene instalado, salvo que haya elegido AutoFirma o «Preguntar cada vez». Puede cambiarlo en GrxFirma, en Configuración, «Programa para firmar en las webs». Si desinstala GrxFirma, esos enlaces volverán a abrirse con AutoFirma."
+      "$(GRX_AFIRMA_WARNING)"
   ${EndIf}
   !insertmacro GrxFirmaShowWarning \
-    "Windows pedirá confirmar el certificado local de GrxFirma. Si se está renovando, también pedirá retirar el anterior. Pulse 'Sí' en los avisos de Windows para permitir la conexión segura con los portales."
+    "$(GRX_TLS_WARNING)"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\install-afirmauri.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\AfirmaURI" $SilentInstallArg $GrxAfirmaHandlerArg'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "La instalación PowerShell del handler afirma:// ha fallado con código $0."
+    "$(GRX_AFIRMA_FAILED)"
 SectionEnd
 
 Section -post
@@ -124,14 +125,14 @@ Section "Uninstall"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR" -ValidateOnly'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "La ruta de mantenimiento contiene enlaces o puntos de reanálisis y no puede eliminarse de forma segura (código $0)."
+    "$(GRX_UNSAFE_MAINTENANCE_PATH)"
   StrCpy $SilentInstallArg ""
   IfSilent 0 +2
   StrCpy $SilentInstallArg "-Silent"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\uninstall-afirmauri.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\AfirmaURI" $SilentInstallArg'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "No se pudo limpiar la instalación por usuario (código $0). El desinstalador se conserva para reintentar."
+    "$(GRX_UNINSTALL_FAILED)"
   Delete "$INSTDIR\grxfirma-afirmauri.exe"
   Delete "$INSTDIR\install-afirmauri.ps1"
   Delete "$INSTDIR\uninstall-afirmauri.ps1"

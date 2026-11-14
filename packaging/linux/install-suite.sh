@@ -9,6 +9,8 @@
 set -euo pipefail
 
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=packaging/linux/installer-i18n.sh
+source "${SELF_DIR}/installer-i18n.sh"
 
 # Programa para firmar en las webs: --afirma-handler=grxfirma|autofirma|preguntar.
 # Sin él se mantiene lo que eligió la persona o, si no eligió nada, GrxFirma. La
@@ -22,17 +24,17 @@ for arg in "$@"; do
       case "${AFIRMA_HANDLER}" in
         grxfirma | autofirma | preguntar) ;;
         *)
-          echo "error: valor no válido en --afirma-handler=. Use grxfirma, autofirma o preguntar. No se ha modificado el sistema." >&2
+          grx_message MSG_054 >&2
           exit 2
           ;;
       esac
       ;;
     -h | --help)
-      echo "uso: install-suite.sh [--afirma-handler=grxfirma|autofirma|preguntar]"
+      grx_message MSG_055
       exit 0
       ;;
     *)
-      echo "Aviso: se ignora la opción desconocida ${arg}." >&2
+      grx_message MSG_056 "${arg}" >&2
       ;;
   esac
 done
@@ -74,22 +76,32 @@ if [[ -f "${CHROMIUM_CRX_ID_FILE}" ]]; then
   EXTRA_CHROME_EXT_ID="$(tr -d '\r\n' < "${CHROMIUM_CRX_ID_FILE}")"
 fi
 
+# Sin pregunta nueva: el idioma sale del sistema, como en la aplicación.
+# GRXFIRMA_INSTALLER_ASK_LANG=1 muestra el selector en una terminal.
+if [[ "${GRXFIRMA_INSTALLER_ASK_LANG:-0}" == "1" ]]; then
+  grx_select_installer_language
+fi
+
 for bin in grxfirma grxfirma-gui grxfirma-desktop grxfirma-afirmauri grxfirma-nativehost grxfirma-pkcs11-worker; do
   if [[ ! -f "${SELF_DIR}/${bin}" ]]; then
-    echo "error: no se encuentra ${bin} junto al instalador" >&2
+    grx_message MSG_057 "${bin}" >&2
     exit 1
   fi
 done
 
 if [[ ! -x "${SELF_DIR}/check-runtime-dependencies.sh" ]]; then
-  echo "error: no se encuentra el verificador de dependencias runtime junto al instalador" >&2
+  grx_message MSG_058 >&2
   exit 1
 fi
 "${SELF_DIR}/check-runtime-dependencies.sh" --check-bundle "${SELF_DIR}"
 
-package_version="desconocida"
+# El marcador persistido de versiones anteriores permanece estable; solo su
+# representación para la persona depende del idioma.
+package_version="$(grx_message_in es UNKNOWN_VERSION)"
+package_version_label="$(grx_message UNKNOWN_VERSION)"
 if [[ -f "${PACKAGE_VERSION_FILE}" ]]; then
   package_version="$(tr -d '\r\n' < "${PACKAGE_VERSION_FILE}")"
+  package_version_label="${package_version}"
 fi
 
 installed_version=""
@@ -98,11 +110,11 @@ if [[ -f "${INSTALLED_VERSION_FILE}" ]]; then
 fi
 
 if [[ -z "${installed_version}" ]]; then
-  echo "Instalando GrxFirma ${package_version}..."
+  grx_message INSTALLING "${package_version_label}"
 elif [[ "${installed_version}" == "${package_version}" ]]; then
-  echo "Reinstalando GrxFirma ${package_version}..."
+  grx_message REINSTALLING "${package_version_label}"
 else
-  echo "Actualizando GrxFirma: ${installed_version} -> ${package_version}..."
+  grx_message UPDATING "${installed_version}" "${package_version_label}"
 fi
 
 mkdir -p "${USERBIN}" "${USERAPP}" "${USERLIBDIR}" "${USERCFGDIR}" "${USERMANDIR}" "${USERMAN7DIR}" "${CONFIG_DIR}" "${USEREXTDIR}/firefox" "${USEREXTDIR}/chromium"
@@ -192,6 +204,9 @@ EOF
 chmod 755 "${USERLIBDIR}/desktop-launcher.sh"
 
 install -m 755 "${SELF_DIR}/configure-browsers.sh" "${USERLIBDIR}/configure-browsers.sh"
+install -m 644 "${SELF_DIR}/installer-i18n.sh" "${USERLIBDIR}/installer-i18n.sh"
+mkdir -p "${USERLIBDIR}/i18n"
+install -m 644 "${SELF_DIR}/i18n/"*.tsv "${USERLIBDIR}/i18n/"
 
 printf '%s\n' "${package_version}" > "${INSTALLED_VERSION_FILE}"
 if [[ -f "${PACKAGE_BUILD_INFO_FILE}" ]]; then
@@ -320,7 +335,7 @@ if [[ -f "${FIREFOX_XPI}" ]]; then
       done < <(find "${firefox_root}" -mindepth 1 -maxdepth 1 -type d -exec test -f "{}/prefs.js" ';' -print0)
     done
   else
-    echo "Aviso: el XPI Firefox es de desarrollo y no se instala en perfiles estables." >&2
+    grx_message MSG_059 >&2
   fi
 fi
 
@@ -347,20 +362,20 @@ afirma_ask_handler() {
     autofirma) initial="autofirma"; default_index=2 ;;
     preguntar) initial="preguntar"; default_index=3 ;;
   esac
-  printf '\nAutoFirma también está instalado en este equipo.\n'
-  printf 'Cuando una web de la Administración le pida firmar, ¿con qué programa quiere hacerlo?\n'
-  printf '  1) GrxFirma\n'
-  printf '  2) AutoFirma (aplicación del Gobierno de España)\n'
-  printf '  3) Preguntar cada vez\n'
-  printf 'Podrá cambiarlo cuando quiera en GrxFirma, en Configuración, «Programa para firmar en las webs».\n'
+  grx_message MSG_060
+  grx_message MSG_061
+  grx_message AFIRMA_GRXFIRMA
+  grx_message MSG_062
+  grx_message MSG_063
+  grx_message MSG_064
   for _ in 1 2 3; do
-    read -r -p "Elija 1, 2 o 3 (Intro deja la ${default_index}): " answer || return 0
+    read -r -p "$(grx_message AFIRMA_PROMPT "${default_index}")" answer || return 0
     case "${answer:-${default_index}}" in
       1) answer="grxfirma" ;;
       2) answer="autofirma" ;;
       3) answer="preguntar" ;;
       *)
-        echo "Escriba 1, 2 o 3."
+        grx_message MSG_065
         continue
         ;;
     esac
@@ -370,7 +385,7 @@ afirma_ask_handler() {
     fi
     return 0
   done
-  echo "Se mantiene la opción ${default_index}."
+  grx_message MSG_066 "${default_index}"
 }
 if [[ -z "${AFIRMA_HANDLER}" && -t 0 && -t 1 ]]; then
   afirma_ask_handler
@@ -393,19 +408,19 @@ fi
 # configure-browsers.sh ya registra afirma:// con el programa para firmar en las
 # webs que toca (política, --afirma-handler= o lo que eligió la persona).
 
-echo "Suite instalada en:"
-echo "  CLI:          ${USERBIN}/grxfirma"
-echo "  Desktop IPC:  ${USERBIN}/grxfirma-gui"
-echo "  Desktop:      ${USERBIN}/grxfirma-desktop"
+grx_message MSG_067
+grx_message LOCATION_CLI "${USERBIN}"
+grx_message LOCATION_IPC "${USERBIN}"
+grx_message LOCATION_DESKTOP "${USERBIN}"
 if [[ -x "${USERBIN}/grxfirma-gui-qml" ]]; then
-  echo "  Desktop Qt:   ${USERBIN}/grxfirma-gui-qml"
+  grx_message LOCATION_QT "${USERBIN}"
   if [[ -d "${USERGUIQMLDIR}" ]]; then
-    echo "  Qt QML/Assets:${USERGUIQMLDIR}"
+    grx_message LOCATION_QML "${USERGUIQMLDIR}"
   fi
 fi
-echo "  AfirmaURI:    ${USERBIN}/grxfirma-afirmauri"
-echo "  NativeHost:   ${USERLIBDIR}/grxfirma-nativehost"
-echo "  PKCS11 worker: ${USERLIBDIR}/grxfirma-pkcs11-worker (capacidad desactivada)"
-echo "  Extensiones:  ${USEREXTDIR}"
-echo "  Config:       ${ENV_FILE}"
-echo "  Certificados: ${USERCFGDIR}"
+grx_message LOCATION_AFIRMA "${USERBIN}"
+grx_message LOCATION_HOST "${USERLIBDIR}"
+grx_message MSG_068 "${USERLIBDIR}"
+grx_message MSG_069 "${USEREXTDIR}"
+grx_message LOCATION_CONFIG "${ENV_FILE}"
+grx_message MSG_070 "${USERCFGDIR}"

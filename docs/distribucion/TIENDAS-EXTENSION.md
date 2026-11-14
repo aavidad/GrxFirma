@@ -149,10 +149,13 @@ Cada permiso se usa en el código:
 
 No se declara `tabs` (abrir una pestaña con `tabs.create` no lo necesita), ni `externally_connectable`, ni `web_accessible_resources`.
 
+Con `all_frames: true`, el detector de Chrome y Firefox coordina la página y sus marcos para mostrar un solo botón «Firmar PDF» por URL de documento. En `<embed>`, `<object>` e `<iframe>` gana el marco PDF cuando consigue crear sus controles; así conserva la precarga desde el origen del documento. La página contenedora mantiene un botón de respaldo hasta recibir esa confirmación, por lo que sigue funcionando si el visor no admite scripts. Un PDF abierto directamente conserva su botón. Si el padre no tiene detector, el marco funciona por su cuenta.
+
+Cada PDF distinto tiene su botón; las referencias a la misma URL, aunque cambie `#page=`, se agrupan. También se reconocen los PDF sin extensión cuando su marco confirma el tipo de documento. Si se retira el marco elegido, otro marco preparado recupera el botón. El detector admite inserciones tardías y cambios de `src`, `data` y `type`. La negociación solo transmite control y huellas SHA-256 de las URL; la precarga y la firma siguen usando la mensajería de la extensión.
+
 Propuestas que no se han aplicado:
 
 - En Chrome, los dominios de fábrica de `host_permissions` repiten los de `content_scripts`, que ya conceden ese acceso. Quitarlos no cambia el aviso de instalación y obligaría a repetir las pruebas en Firefox, donde los permisos de sitio se muestran y se revocan por separado. Se mantienen.
-- Con `all_frames: true`, un PDF incrustado en una página de un dominio de fábrica muestra dos botones «Firmar PDF» (uno de la página y otro del marco del PDF). Conviene corregirlo en el detector en otra tarea.
 - `src/*/icons/icon256.png` e `icon512.png` siguen siendo el logotipo antiguo. No entran en el paquete, pero conviene sustituirlos por el GRX de `assets/branding/` o borrarlos.
 
 ## Lista final para el responsable

@@ -595,7 +595,7 @@ try {
             -Expected @(
                 "invoke-uninstall-silent.ps1",
                 "-ValidateOnly",
-                "puntos de reanálisis",
+                '$(GRX_UNSAFE_MAINTENANCE_PATH)',
                 "SetErrorLevel 0"
             )
     }
@@ -771,7 +771,7 @@ try {
             "!macro GrxFirmaExitOnExecFailure",
             "!macro GrxFirmaWriteInstallFailure",
             "GrxFirma-install-error.txt",
-            'Fase: ${ERROR_MESSAGE}',
+            '$(GRX_FAILURE_PHASE) ${ERROR_MESSAGE}',
             "IfSilent +2",
             "MessageBox MB_ICONSTOP",
             "GrxFirmaReadLegacyMachineInstall 64",
