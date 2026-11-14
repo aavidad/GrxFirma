@@ -284,7 +284,7 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 		signerCerts = append(signerCerts, signerCert)
 		signerCertsPorSignerInfo = append(signerCertsPorSignerInfo, signerCert)
 		signers = append(signers, certificateToRef(signerCert))
-		if fecha, origen, ok := fechaFirmaCMS(signerInfo); ok {
+		if fecha, origen, ok := fechaFirmaCMS(signerInfo, signerCert, anchors); ok {
 			result.SigningTimes = append(result.SigningTimes, domain.VerificationSigningTime{
 				Fingerprint: certificateFingerprint(signerCert), Time: fecha, Source: origen,
 			})

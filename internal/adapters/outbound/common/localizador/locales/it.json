@@ -6423,6 +6423,7 @@
   ,"report.signer.organization": "Organizzazione"
   ,"report.signer.signing_time": "Data della firma"
   ,"report.signer.time_from_timestamp": "%s, secondo la marca temporale"
+  ,"report.signer.time_from_unverified_timestamp": "%s, data dichiarata da una marca temporale che non è stato possibile verificare"
   ,"report.signer.time_declared": "%s, ora del computer di chi ha firmato (senza marca temporale non è verificabile)"
   ,"report.technical.subject_dn": "Titolare (DN): %s"
   ,"report.technical.issuer_dn": "Emittente (DN): %s"

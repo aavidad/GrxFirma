@@ -6423,6 +6423,7 @@
   ,"report.signer.organization": "Organización"
   ,"report.signer.signing_time": "Data da sinatura"
   ,"report.signer.time_from_timestamp": "%s, segundo o selo de tempo"
+  ,"report.signer.time_from_unverified_timestamp": "%s, data que declara un selo de tempo que non se puido comprobar"
   ,"report.signer.time_declared": "%s, hora do equipo de quen asinou (sen selo de tempo non se pode confirmar)"
   ,"report.technical.subject_dn": "Titular (DN): %s"
   ,"report.technical.issuer_dn": "Emisor (DN): %s"

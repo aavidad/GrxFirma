@@ -6423,6 +6423,7 @@
   ,"report.signer.organization": "Organisation"
   ,"report.signer.signing_time": "Zeitpunkt der Signatur"
   ,"report.signer.time_from_timestamp": "%s, laut Zeitstempel"
+  ,"report.signer.time_from_unverified_timestamp": "%s, Datum laut einem Zeitstempel, der nicht geprüft werden konnte"
   ,"report.signer.time_declared": "%s, Uhrzeit des Rechners der signierenden Person (ohne Zeitstempel nicht bestätigbar)"
   ,"report.technical.subject_dn": "Inhaber (DN): %s"
   ,"report.technical.issuer_dn": "Aussteller (DN): %s"

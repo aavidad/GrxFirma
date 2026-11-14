@@ -6423,6 +6423,7 @@
   ,"report.signer.organization": "Organisation"
   ,"report.signer.signing_time": "Date de la signature"
   ,"report.signer.time_from_timestamp": "%s, selon l'horodatage"
+  ,"report.signer.time_from_unverified_timestamp": "%s, date indiquée par un horodatage qui n'a pas pu être vérifié"
   ,"report.signer.time_declared": "%s, heure de l'ordinateur du signataire (impossible à confirmer sans horodatage)"
   ,"report.technical.subject_dn": "Titulaire (DN) : %s"
   ,"report.technical.issuer_dn": "Émetteur (DN) : %s"

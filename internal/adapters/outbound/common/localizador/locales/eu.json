@@ -6423,6 +6423,7 @@
   ,"report.signer.organization": "Erakundea"
   ,"report.signer.signing_time": "Sinaduraren data"
   ,"report.signer.time_from_timestamp": "%s, denbora-zigiluaren arabera"
+  ,"report.signer.time_from_unverified_timestamp": "%s, egiaztatu ezin izan den denbora-zigilu batek adierazitako data"
   ,"report.signer.time_declared": "%s, sinatu zuenaren ordenagailuko ordua (denbora-zigilurik gabe ezin da egiaztatu)"
   ,"report.technical.subject_dn": "Titularra (DN): %s"
   ,"report.technical.issuer_dn": "Jaulkitzailea (DN): %s"

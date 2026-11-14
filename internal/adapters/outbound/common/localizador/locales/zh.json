@@ -6423,6 +6423,7 @@
   ,"report.signer.organization": "组织"
   ,"report.signer.signing_time": "签名时间"
   ,"report.signer.time_from_timestamp": "%s，依据时间戳"
+  ,"report.signer.time_from_unverified_timestamp": "%s，时间戳声明的时间（无法验证该时间戳）"
   ,"report.signer.time_declared": "%s，签名者电脑的时间（没有时间戳，无法确认）"
   ,"report.technical.subject_dn": "持有人 (DN)：%s"
   ,"report.technical.issuer_dn": "颁发者 (DN)：%s"

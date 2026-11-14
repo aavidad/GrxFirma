@@ -71,7 +71,7 @@ func TestAtributoSigningTime_SinAtributoNoInventaFecha(t *testing.T) {
 	if _, ok := atributoSigningTime(nil); ok {
 		t.Fatal("sin atributos no debe haber fecha")
 	}
-	if _, _, ok := fechaFirmaCMS(signerInfoRaw{}); ok {
+	if _, _, ok := fechaFirmaCMS(signerInfoRaw{}, nil, domain.CertificateChain{}); ok {
 		t.Fatal("un SignerInfo vacío no debe dar fecha")
 	}
 }

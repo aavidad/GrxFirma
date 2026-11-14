@@ -6423,6 +6423,7 @@
   ,"report.signer.organization": "Organisation"
   ,"report.signer.signing_time": "Signing time"
   ,"report.signer.time_from_timestamp": "%s, according to the timestamp"
+  ,"report.signer.time_from_unverified_timestamp": "%s, date stated by a timestamp that could not be checked"
   ,"report.signer.time_declared": "%s, clock of the signer's computer (cannot be confirmed without a timestamp)"
   ,"report.technical.subject_dn": "Holder (DN): %s"
   ,"report.technical.issuer_dn": "Issuer (DN): %s"

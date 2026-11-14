@@ -271,6 +271,8 @@ func fechaFirma(loc *localizador.Localizador, zona *time.Location, f domain.Veri
 	switch f.SigningTimeSource {
 	case domain.SigningTimeSourceTimestamp:
 		return loc.T("report.signer.time_from_timestamp", fecha)
+	case domain.SigningTimeSourceTimestampUnverified:
+		return loc.T("report.signer.time_from_unverified_timestamp", fecha)
 	case domain.SigningTimeSourceSignedAttribute:
 		return loc.T("report.signer.time_declared", fecha)
 	default:

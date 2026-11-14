@@ -6423,6 +6423,7 @@
   ,"report.signer.organization": "Organização"
   ,"report.signer.signing_time": "Data da assinatura"
   ,"report.signer.time_from_timestamp": "%s, segundo o carimbo temporal"
+  ,"report.signer.time_from_unverified_timestamp": "%s, data declarada por um carimbo temporal que não foi possível verificar"
   ,"report.signer.time_declared": "%s, hora do computador de quem assinou (sem carimbo temporal não é possível confirmar)"
   ,"report.technical.subject_dn": "Titular (DN): %s"
   ,"report.technical.issuer_dn": "Emissor (DN): %s"
