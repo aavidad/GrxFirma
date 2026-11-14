@@ -10,6 +10,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -123,6 +124,14 @@ func ficheroEjecutable(t *testing.T, nombre string) string {
 	return path
 }
 
+// nombreAutoFirma lleva .exe en Windows, donde Reenviar solo acepta .exe.
+func nombreAutoFirma() string {
+	if runtime.GOOS == "windows" {
+		return "autofirma.exe"
+	}
+	return "autofirma"
+}
+
 func TestReenviarRechazaYNoLanza(t *testing.T) {
 	var lanzados [][2]string
 	anterior := lanzar
@@ -132,7 +141,7 @@ func TestReenviarRechazaYNoLanza(t *testing.T) {
 	}
 	t.Cleanup(func() { lanzar = anterior })
 
-	auto := ficheroEjecutable(t, "autofirma")
+	auto := ficheroEjecutable(t, nombreAutoFirma())
 	const uri = "afirma://sign?id=1"
 	casos := map[string]struct {
 		exe, uri string
@@ -146,7 +155,7 @@ func TestReenviarRechazaYNoLanza(t *testing.T) {
 		// Un .bat o .cmd se lanzaría con cmd.exe, que interpreta el enlace.
 		"script de Windows":      {`C:\Program Files\AutoFirma\AutoFirma.bat`, uri, ErrOrdenAutoFirmaNoValida},
 		"orden de Windows":       {`C:\Program Files\AutoFirma\autofirma.cmd`, uri, ErrOrdenAutoFirmaNoValida},
-		"AutoFirma desaparecido": {filepath.Join(t.TempDir(), "autofirma"), uri, ports.ErrAutoFirmaNoInstalada},
+		"AutoFirma desaparecido": {filepath.Join(t.TempDir(), nombreAutoFirma()), uri, ports.ErrAutoFirmaNoInstalada},
 	}
 	for nombre, c := range casos {
 		if err := Reenviar(context.Background(), c.exe, c.uri); !errors.Is(err, c.want) {
