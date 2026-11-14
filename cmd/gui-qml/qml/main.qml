@@ -6155,6 +6155,7 @@ Window {
 
                     Text {
                         text: tr(String(modelData.label || ""))
+                        textFormat: Text.PlainText
                         color: Contrast.accentOn(currentTheme.cardColor, "#f39c12")
                         font.bold: true
                         wrapMode: Text.Wrap
@@ -6162,6 +6163,7 @@ Window {
                     }
                     Text {
                         text: tr(String(modelData.notice || ""))
+                        textFormat: Text.PlainText
                         color: currentTheme.textColor
                         wrapMode: Text.Wrap
                         Layout.fillWidth: true
@@ -16515,6 +16517,7 @@ Window {
                                             spacing: 2
                                             Text {
                                                 text: tr(String(modelData.label || ""))
+                                                textFormat: Text.PlainText
                                                 color: currentTheme.textColor
                                                 font.bold: true
                                                 wrapMode: Text.WordWrap
@@ -16542,6 +16545,7 @@ Window {
                                             }
                                             Text {
                                                 text: tr("verify.forced_trust.cli.accepted_at") + ": " + window.forcedTrustDateText(modelData.acceptedAt)
+                                                textFormat: Text.PlainText
                                                 color: currentTheme.secondaryTextColor
                                                 font.pixelSize: 11
                                                 Layout.fillWidth: true
