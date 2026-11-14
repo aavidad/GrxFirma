@@ -7,8 +7,10 @@ package rest_test
 
 import (
 	"bytes"
+	"errors"
 	"go/parser"
 	"go/token"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -34,7 +36,7 @@ func TestREST_NoCambiaElProgramaParaFirmarEnLasWebs(t *testing.T) {
 		"handler": "autofirma", "programa_firma_web": "autofirma",
 	}
 	doJSON(t, adaptador.Routes(), http.MethodPost, "/settings", intento)
-	if _, err := os.Stat(filepath.Join(home, ".config", "grxfirma", afirmahandler.XDGPreferenceName)); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(home, ".config", "grxfirma", afirmahandler.XDGPreferenceName)); !errors.Is(err, fs.ErrNotExist) {
 		t.Fatalf("POST /settings creó la preferencia del programa de firma: %v", err)
 	}
 	if datos, err := os.ReadFile(filepath.Join(dir, "config.json")); err == nil && bytes.Contains(datos, []byte("manejador_afirma")) {

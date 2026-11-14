@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"unicode"
 
@@ -131,6 +132,12 @@ func Reenviar(ctx context.Context, exe, uri string) error {
 		return ErrOrdenAutoFirmaNoValida
 	}
 	if esPropioGrxFirma(exe) || !strings.HasPrefix(strings.ToLower(baseName(exe)), "autofirma") {
+		return ErrOrdenAutoFirmaNoValida
+	}
+	// En Windows, solo un .exe: Go lanza un .bat o un .cmd a través de
+	// cmd.exe, que interpretaría el enlace.
+	if (runtime.GOOS == "windows" || isAbsoluteWindowsPath(exe)) &&
+		!strings.EqualFold(filepath.Ext(baseName(exe)), ".exe") {
 		return ErrOrdenAutoFirmaNoValida
 	}
 	if !regularFileExists(exe) {

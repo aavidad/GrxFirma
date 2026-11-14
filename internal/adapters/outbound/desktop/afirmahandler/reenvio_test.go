@@ -138,11 +138,14 @@ func TestReenviarRechazaYNoLanza(t *testing.T) {
 		exe, uri string
 		want     error
 	}{
-		"enlace con comillas":    {auto, `afirma://sign?x="1"`, ErrURIReenvioNoValida},
-		"otro esquema":           {auto, "https://ejemplo.es", ErrURIReenvioNoValida},
-		"ruta relativa":          {"autofirma", uri, ErrOrdenAutoFirmaNoValida},
-		"el propio GrxFirma":     {ficheroEjecutable(t, "grxfirma-afirmauri"), uri, ErrOrdenAutoFirmaNoValida},
-		"otro programa":          {ficheroEjecutable(t, "firefox"), uri, ErrOrdenAutoFirmaNoValida},
+		"enlace con comillas": {auto, `afirma://sign?x="1"`, ErrURIReenvioNoValida},
+		"otro esquema":        {auto, "https://ejemplo.es", ErrURIReenvioNoValida},
+		"ruta relativa":       {"autofirma", uri, ErrOrdenAutoFirmaNoValida},
+		"el propio GrxFirma":  {ficheroEjecutable(t, "grxfirma-afirmauri"), uri, ErrOrdenAutoFirmaNoValida},
+		"otro programa":       {ficheroEjecutable(t, "firefox"), uri, ErrOrdenAutoFirmaNoValida},
+		// Un .bat o .cmd se lanzaría con cmd.exe, que interpreta el enlace.
+		"script de Windows":      {`C:\Program Files\AutoFirma\AutoFirma.bat`, uri, ErrOrdenAutoFirmaNoValida},
+		"orden de Windows":       {`C:\Program Files\AutoFirma\autofirma.cmd`, uri, ErrOrdenAutoFirmaNoValida},
 		"AutoFirma desaparecido": {filepath.Join(t.TempDir(), "autofirma"), uri, ports.ErrAutoFirmaNoInstalada},
 	}
 	for nombre, c := range casos {
