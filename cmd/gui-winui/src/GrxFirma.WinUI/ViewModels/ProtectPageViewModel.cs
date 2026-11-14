@@ -84,6 +84,7 @@ public sealed class ProtectPageViewModel
         Localizer.Text("winui.proteger.seleccione_un_contenedor_protegido");
     private string _protectResultMessage =
         Localizer.Text("winui.proteger.no_se_ha_ejecutado_ninguna_proteccion");
+    private string _protectWarningMessage = string.Empty;
     private string _unprotectWarningMessage = string.Empty;
     private string _unprotectResultMessage =
         Localizer.Text("winui.proteger.no_se_ha_ejecutado_ninguna_desproteccion");
@@ -310,6 +311,22 @@ public sealed class ProtectPageViewModel
         get => _unprotectResultMessage;
         private set => SetProperty(ref _unprotectResultMessage, value);
     }
+
+    // Avisos al proteger (vacío si no hay ninguno).
+    public string ProtectWarningMessage
+    {
+        get => _protectWarningMessage;
+        private set
+        {
+            if (SetProperty(ref _protectWarningMessage, value))
+            {
+                RaisePropertyChanged(nameof(HasProtectWarning));
+            }
+        }
+    }
+
+    public bool HasProtectWarning =>
+        !string.IsNullOrWhiteSpace(_protectWarningMessage);
 
     // Avisos de compatibilidad al desproteger (vacío si no hay ninguno).
     public string UnprotectWarningMessage
@@ -817,6 +834,9 @@ public sealed class ProtectPageViewModel
                     "PROTECTION_OUTPUT_NOT_FOUND");
             }
 
+            ProtectWarningMessage = string.Join(
+                Environment.NewLine,
+                result.Data.VisibleWarnings.Select(Localizer.VisibleText));
             _protectOutputPath = outputPath;
             ProtectResultMessage = encryptedData
                 ? Localizer.Format("winui.proteger.proteccion_cms_encrypteddata_completada",
@@ -1384,6 +1404,7 @@ public sealed class ProtectPageViewModel
     private void ClearProtectedOutput()
     {
         _protectOutputPath = null;
+        ProtectWarningMessage = string.Empty;
         ProtectResultMessage =
             Localizer.Text("winui.proteger.no_se_ha_ejecutado_ninguna_proteccion_2");
         UpdateCommandStates();

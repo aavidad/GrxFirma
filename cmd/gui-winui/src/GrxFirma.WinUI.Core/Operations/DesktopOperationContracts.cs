@@ -1116,6 +1116,14 @@ public sealed record ProtectionParameters
 
 public sealed record ProtectionResult
 {
+    // Avisos del perfil de protección, como claves del catálogo.
+    [JsonPropertyName("warnings")]
+    public IReadOnlyList<string> Warnings { get; init; } = [];
+
+    [JsonIgnore]
+    public IReadOnlyList<string> VisibleWarnings =>
+        OperationResultText.CleanList(Warnings);
+
     private string _profile = string.Empty;
     private string _documentName = string.Empty;
     private string _mimeType = string.Empty;

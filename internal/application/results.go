@@ -70,6 +70,8 @@ type VerifyResult struct {
 // ProtectResult resume la protección/cifrado de un documento.
 type ProtectResult struct {
 	Protected domain.ProtectedPayload
+	// Warnings contiene las claves de catálogo de los avisos de esta operación.
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 // ProtectAndSignResult resume la operación de proteger firmando.
@@ -117,6 +119,8 @@ type CheckDirectoryHashManifestResult struct {
 type ExportProtectionRecipientResult struct {
 	Recipient domain.ProtectionRecipient
 	Data      []byte
+	// Warnings contiene las claves de catálogo de los avisos de esta operación.
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 // ImportProtectionRecipientResult resume la importación correcta de un

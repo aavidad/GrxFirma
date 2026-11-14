@@ -1917,6 +1917,8 @@ func (a *Adaptador) ejecutarProteccion(ctx context.Context, cfg configCLI) int {
 		return 1
 	}
 
+	a.escribirAvisosCLI("", resultado.Warnings)
+
 	protectedB64 := base64.StdEncoding.EncodeToString(resultado.Protected.Document.Content)
 	salidaFinal := ""
 	renamed := false
@@ -1953,6 +1955,9 @@ func (a *Adaptador) ejecutarProteccion(ctx context.Context, cfg configCLI) int {
 		}
 		if cfg.noGuardar || cfg.imprimirFirma {
 			payload["contenido_protegido_base64"] = protectedB64
+		}
+		if len(resultado.Warnings) > 0 {
+			payload["advertencias"] = append([]string(nil), resultado.Warnings...)
 		}
 		if err := escribirJSON(a.Stdout, payload); err != nil {
 			a.escribirErrorCLI("JSON", err)
@@ -2310,6 +2315,7 @@ func (a *Adaptador) ejecutarDestinatarioProteccionExportar(ctx context.Context, 
 		a.escribirErrorCLI(a.t("Destinatario", "Destinatario"), err)
 		return 1
 	}
+	a.escribirAvisosCLI("", resultado.Warnings)
 	destino := strings.TrimSpace(cfg.salida)
 	if destino == "" {
 		destino = construirRutaDestinatarioProteccionPorDefecto(resultado.Recipient.ID)
@@ -2319,14 +2325,18 @@ func (a *Adaptador) ejecutarDestinatarioProteccionExportar(ctx context.Context, 
 		return 1
 	}
 	if cfg.json {
-		if err := escribirJSON(a.Stdout, map[string]any{
+		payload := map[string]any{
 			"exito":     true,
 			"destino":   destino,
 			"id":        resultado.Recipient.ID,
 			"nombre":    resultado.Recipient.Label,
 			"perfil":    "alto",
 			"algoritmo": "ML-KEM-768 + X25519",
-		}); err != nil {
+		}
+		if len(resultado.Warnings) > 0 {
+			payload["advertencias"] = append([]string(nil), resultado.Warnings...)
+		}
+		if err := escribirJSON(a.Stdout, payload); err != nil {
 			a.escribirErrorCLI("JSON", err)
 			return 1
 		}

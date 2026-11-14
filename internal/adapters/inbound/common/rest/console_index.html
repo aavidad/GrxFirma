@@ -2879,6 +2879,9 @@
         );
         ui.protectionExchangeResult.innerHTML =
           resultBanner("status-ok", "Destinatario exportado.") +
+          (Array.isArray(response.warnings) && response.warnings.length
+            ? resultBanner("status-warn", response.warnings.join(" "))
+            : "") +
           '<div class="result-block">' +
             '<div class="kv"><strong>ID</strong>' + escapeHtml(exportedRecipient.id || id) + '</div>' +
             '<div class="kv"><strong>Perfil</strong>' + escapeHtml(exportedRecipient.profile || "alto") + '</div>' +
@@ -2966,6 +2969,9 @@
         );
         ui.protectResult.innerHTML =
           resultBanner("status-ok", "Protección completada correctamente.") +
+          (Array.isArray(response.warnings) && response.warnings.length
+            ? resultBanner("status-warn", response.warnings.join(" "))
+            : "") +
           '<div class="result-block">' +
             '<div class="kv"><strong>Perfil</strong>' + escapeHtml(response.profile || payload.profile || "") + '</div>' +
             '<div class="kv"><strong>Contenedor</strong>' + escapeHtml(protectionContainer) + '</div>' +

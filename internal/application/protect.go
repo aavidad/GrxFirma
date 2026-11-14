@@ -63,6 +63,7 @@ func (uc *ProtectDocumentUseCase) Ejecutar(ctx context.Context, cmd ProtectComma
 		return ProtectResult{}, errors.New("motor de proteccion no configurado")
 	}
 
+	ctx, avisos := domain.ConAvisosOperacion(ctx)
 	recipients := []domain.ProtectionRecipient{}
 	if requiresProtectionRecipients(cmd) {
 		var err error
@@ -91,7 +92,7 @@ func (uc *ProtectDocumentUseCase) Ejecutar(ctx context.Context, cmd ProtectComma
 	}
 	_ = uc.publicarEvento(ctx, "proteccion_completada", protected.Document.Name)
 	uc.auditar(ctx, cmd, true, nil)
-	return ProtectResult{Protected: protected}, nil
+	return ProtectResult{Protected: protected, Warnings: avisos.Claves()}, nil
 }
 
 func (uc *ProtectDocumentUseCase) Execute(ctx context.Context, cmd ProtectCommand) (ProtectResult, error) {

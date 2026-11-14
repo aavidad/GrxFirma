@@ -353,6 +353,20 @@
                                     AutomationProperties.LiveSetting="Polite" controls:LiveAnnouncer.Watch="True"
                                     Text="{x:Bind ViewModel.ProtectResultMessage, Mode=OneWay}"
                                     TextWrapping="Wrap" />
+                                <StackPanel
+                                    x:Name="ProtectWarningPanel"
+                                    x:Load="{x:Bind ViewModel.HasProtectWarning, Mode=OneWay}"
+                                    Spacing="4">
+                                    <TextBlock
+                                        AutomationProperties.HeadingLevel="Level4"
+                                        FontWeight="SemiBold"
+                                        Text="Advertencias"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        AutomationProperties.LiveSetting="Assertive" controls:LiveAnnouncer.Watch="True"
+                                        Text="{x:Bind ViewModel.ProtectWarningMessage, Mode=OneWay}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
                                 <Button MinHeight="40"
                                     x:Name="ProtectResultButton"
                                     HorizontalAlignment="Stretch"
