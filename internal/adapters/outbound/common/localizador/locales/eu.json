@@ -152,7 +152,7 @@
   "security.secret.hint.p12": "erabili -contrasena-stdin edo, automatizazio-bateragarritasunerako soilik, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "PKCS#12 pasahitza: ",
   "security.secret.prompt.protection": "Base64 babes-gakoa: ",
-  "desktop.ipc.server.client_pid_required": "--server moduak --ipc-client-pid behar du, konektatuko den programaren PIDarekin; hori gabe ez da IPC kanala irekitzen",
+  "desktop.ipc.server.sin_vinculo_pid": "abisua: --server modua --ipc-client-pid gabe abiarazi da, edo konektatzen den programa egiaztatzen uzten ez duen sistema batean. Motorrak zure erabiltzailearen edozein programari erantzuten dio: ekipoko ziurtagiriekin sinatzeak funtzionatzen du, baina urruneko ziurtagiriarekin (CSC) sinatzea ez dago erabilgarri. Hura erabiltzeko, ireki GrxFirma bere ikonotik edo adierazi --ipc-client-pid.",
   "desktop.ipc.peer_binding_unsupported": "sistema honek ez du uzten egiaztatzen zein programa konektatzen den sinadura-motorrera; horregatik, GrxFirma ez da abiarazten",
   "desktop.ipc.flag.parent_stdin": "zerbitzaria gelditzen du abiarazi duen programa grafikoak irekita mantentzen duen sarrera estandarra ixten denean",
   "rest.error.private_credential": "ezin izan da REST kredentzialaren entrega pribatua prestatu",

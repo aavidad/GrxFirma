@@ -23,6 +23,11 @@ import (
 // nombreServicio es el nombre del servicio de usuario systemd.
 const nombreServicio = "grxfirma.service"
 
+// La unidad arranca --server sin --ipc-client-pid: el motor abre el canal sin
+// vínculo de PID, con aviso, y no admite la firma remota CSC (lote 16c).
+// RestartPreventExitStatus=2 evita reinicios en bucle cuando el código 2 indica
+// un error de configuración (modo de servidor desconocido o PID no válido).
+
 const plantillaUnidad = `[Unit]
 Description=GrxFirma – motor de firma digital
 After=network.target

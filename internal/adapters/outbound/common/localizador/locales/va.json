@@ -153,7 +153,7 @@
   "security.secret.prompt.p12": "Contrasenya PKCS#12: ",
   "security.secret.prompt.protection": "Clau de protecció Base64: ",
   "rest.error.private_credential": "error en preparar el lliurament privat de la credencial REST",
-  "desktop.ipc.server.client_pid_required": "el mode --server necessita --ipc-client-pid amb el PID del programa que s'hi connectarà; sense això no s'obri el canal IPC",
+  "desktop.ipc.server.sin_vinculo_pid": "avís: el mode --server s'ha iniciat sense --ipc-client-pid o en un sistema que no permet comprovar quin programa s'hi connecta. El motor atén qualsevol programa del vostre usuari: les signatures amb certificats de l'equip funcionen, però la signatura amb certificat remot (CSC) no està disponible. Per a usar-la, obriu GrxFirma des de la seua icona o indiqueu --ipc-client-pid.",
   "desktop.ipc.peer_binding_unsupported": "este sistema no permet comprovar quin programa es connecta al motor de signatura, així que GrxFirma no s'inicia",
   "desktop.ipc.flag.parent_stdin": "para el servidor quan es tanca l'entrada estàndard que manté oberta el programa gràfic que l'ha llançat",
   "rest.help.private_delivery": "Un gestor de secrets pot injectar GRXFIRMA_REST_TOKEN. Si el testimoni es genera automàticament, només es mostra la ruta d'un fitxer privat i efímer per a curl --config.",

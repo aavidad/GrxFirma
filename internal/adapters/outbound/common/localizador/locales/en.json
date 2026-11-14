@@ -152,7 +152,7 @@
   "security.secret.hint.p12": "use -password-stdin or, for automation compatibility only, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "PKCS#12 password: ",
   "security.secret.prompt.protection": "Base64 protection key: ",
-  "desktop.ipc.server.client_pid_required": "--server mode needs --ipc-client-pid with the PID of the program that will connect; without it the IPC channel is not opened",
+  "desktop.ipc.server.sin_vinculo_pid": "warning: --server mode was started without --ipc-client-pid or on a system that cannot check which program connects. The engine serves any program of your user: signing with certificates on this computer works, but signing with a remote certificate (CSC) is not available. To use it, open GrxFirma from its icon or pass --ipc-client-pid.",
   "desktop.ipc.peer_binding_unsupported": "this system cannot check which program connects to the signing engine, so GrxFirma will not start",
   "desktop.ipc.flag.parent_stdin": "stops the server when the graphical program that started it closes the standard input it keeps open",
   "rest.error.private_credential": "could not prepare private REST credential delivery",

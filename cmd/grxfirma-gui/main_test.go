@@ -6,14 +6,18 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -453,31 +457,132 @@ func TestFrontendPorDefectoEsElNativoDeCadaSistema(t *testing.T) {
 	}
 }
 
-// D-03: el modo --server sin --ipc-client-pid no abre el endpoint; sin
-// vínculo de PID cualquier proceso del usuario podría pedir firmas.
-func TestRunServerMode_SinPIDClienteNoAbreElEndpoint(t *testing.T) {
+// D-03 y lote 16c (retrocompatibilidad): el servicio de usuario de Linux y
+// cualquier --server manual arrancan sin --ipc-client-pid. El motor abre el
+// canal (mismo UID, socket 0600), avisa en la salida de error y en el
+// registro, y no admite la firma remota CSC porque no sabe quién se conecta.
+func TestRunServerMode_SinPIDClienteArrancaConAvisoYSinFirmaRemota(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("la prueba habla por un socket Unix; en Windows el canal es una named pipe")
+	}
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	ruta := filepath.Join(t.TempDir(), "s.sock")
-	if runtime.GOOS == "windows" {
-		ruta = fmt.Sprintf(`\\.\pipe\grxfirma_test_%d`, os.Getpid())
+	dir, err := os.MkdirTemp("", "gx")
+	if err != nil {
+		t.Fatalf("MkdirTemp: %v", err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer os.RemoveAll(dir)
+	ruta := filepath.Join(dir, "s.sock")
+
+	var registro bufferSeguro
+	anterior := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&registro, nil)))
+	defer slog.SetDefault(anterior)
+
+	loc := localizador.Para("es")
+	var salidaError bufferSeguro
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	code := runServerMode(ctx, "ipc", "", "", ruta, 0, false, localizador.Para("es"),
-		ipc.LocalTLSStartupStatus{}, filepath.Join(home, ".config", "grxfirma"))
-	if code != 2 {
-		t.Fatalf("runServerMode sin PID = %d; se esperaba 2", code)
-	}
-	if ctx.Err() != nil {
-		t.Fatal("runServerMode sin PID no debe quedarse escuchando hasta el plazo")
-	}
-	if runtime.GOOS != "windows" {
-		if _, err := os.Lstat(ruta); err == nil {
-			t.Fatal("se creó el socket sin vínculo de PID")
+	codigo := make(chan int, 1)
+	go func() {
+		codigo <- runServerMode(ctx, "ipc", "", "", ruta, 0, false, loc,
+			ipc.LocalTLSStartupStatus{}, filepath.Join(home, ".config", "grxfirma"), &salidaError)
+	}()
+
+	var info os.FileInfo
+	for {
+		if info, err = os.Lstat(ruta); err == nil {
+			break
+		}
+		select {
+		case c := <-codigo:
+			t.Fatalf("runServerMode sin PID terminó con %d sin abrir el canal; salida: %s", c, salidaError.String())
+		case <-time.After(20 * time.Millisecond):
+		}
+		if ctx.Err() != nil {
+			t.Fatal("el motor no abrió el socket a tiempo")
 		}
 	}
+	if info.Mode().Perm() != 0o600 {
+		t.Fatalf("permisos del socket = %o; se esperaba 0600", info.Mode().Perm())
+	}
+
+	conn, err := net.Dial("unix", ruta)
+	if err != nil {
+		t.Fatalf("Dial: %v", err)
+	}
+	defer conn.Close()
+	_ = conn.SetDeadline(time.Now().Add(10 * time.Second))
+	enc, dec := json.NewEncoder(conn), json.NewDecoder(conn)
+
+	if err := enc.Encode(map[string]any{"action": "csc_configure", "params": map[string]any{
+		"serviceUrl": "https://csc.example.invalid/csc/v2", "clientId": "grxfirma",
+	}}); err != nil {
+		t.Fatal(err)
+	}
+	var csc struct {
+		OK        bool   `json:"ok"`
+		ErrorCode string `json:"errorCode"`
+	}
+	if err := dec.Decode(&csc); err != nil {
+		t.Fatal(err)
+	}
+	if csc.OK || csc.ErrorCode != "csc_interfaz_no_verificada" {
+		t.Fatalf("sin vínculo de PID la firma remota CSC debe rechazarse: %+v", csc)
+	}
+
+	if err := enc.Encode(map[string]any{"action": "export_diagnostic", "params": map[string]any{}}); err != nil {
+		t.Fatal(err)
+	}
+	var diag struct {
+		OK   bool `json:"ok"`
+		Data struct {
+			IPCClientBinding string `json:"ipcClientBinding"`
+		} `json:"data"`
+	}
+	if err := dec.Decode(&diag); err != nil {
+		t.Fatal(err)
+	}
+	if !diag.OK || diag.Data.IPCClientBinding != "unbound" {
+		t.Fatalf("el diagnóstico debe decir que no hay vínculo: %+v", diag)
+	}
+
+	cancel()
+	select {
+	case c := <-codigo:
+		if c != 0 {
+			t.Fatalf("runServerMode = %d al cerrarse", c)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("el motor no terminó al cancelar el contexto")
+	}
+	if aviso := loc.T("desktop.ipc.server.sin_vinculo_pid"); aviso == "desktop.ipc.server.sin_vinculo_pid" ||
+		!strings.Contains(salidaError.String(), aviso) {
+		t.Fatalf("falta el aviso en la salida de error: %q", salidaError.String())
+	}
+	if !strings.Contains(registro.String(), "ipc_sin_vinculacion_pid") {
+		t.Fatalf("falta el aviso en el registro: %q", registro.String())
+	}
+}
+
+// bufferSeguro deja escribir desde la goroutine del motor y leer desde la
+// prueba sin carreras.
+type bufferSeguro struct {
+	mu sync.Mutex
+	b  bytes.Buffer
+}
+
+func (s *bufferSeguro) Write(p []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.Write(p)
+}
+
+func (s *bufferSeguro) String() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.String()
 }
 
 // D-04: un backend lanzado por la GUI con --ipc-parent-stdin termina y borra
@@ -546,7 +651,7 @@ func TestRunServerMode_HelperBackendVinculado(t *testing.T) {
 	home := os.Getenv("HOME")
 	code := runServerMode(context.Background(), "ipc", "", "", ruta,
 		uint64(os.Getppid()), true, localizador.Para("es"),
-		ipc.LocalTLSStartupStatus{}, filepath.Join(home, ".config", "grxfirma"))
+		ipc.LocalTLSStartupStatus{}, filepath.Join(home, ".config", "grxfirma"), os.Stderr)
 	if code != 0 {
 		t.Fatalf("runServerMode = %d", code)
 	}

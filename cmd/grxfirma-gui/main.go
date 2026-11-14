@@ -144,6 +144,7 @@ func main() {
 			loc,
 			localTLSStartupStatus,
 			configDir,
+			os.Stderr,
 		))
 	}
 
@@ -335,48 +336,55 @@ func runServerMode(
 	loc ports.Localizador,
 	localTLSStartupStatus ipc.LocalTLSStartupStatus,
 	configDir string,
+	stderr io.Writer,
 ) int {
 	switch strings.TrimSpace(strings.ToLower(mode)) {
 	case "", "ipc":
 		pidFrontend, err := normalizarPIDFrontend(ipcClientPID)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "grxfirma-gui: PID de cliente IPC no valido: %v\n", err)
+			fmt.Fprintf(stderr, "grxfirma-gui: PID de cliente IPC no valido: %v\n", err)
 			return 2
 		}
-		// Sin el PID del frontend no hay forma de saber quién se conecta: falla
-		// cerrado en vez de aceptar a cualquier proceso del usuario.
-		if pidFrontend == 0 || !ipc.SoportaVinculacionPIDFrontend() {
-			fmt.Fprintln(os.Stderr, "grxfirma-gui: "+loc.T("desktop.ipc.server.client_pid_required"))
-			return 2
+		// Retrocompatibilidad (lote 16c): el servicio de usuario de Linux y
+		// los --server manuales no traen el PID del cliente. Se arranca sin
+		// vínculo, con aviso aquí y en el registro (ipc_sin_vinculacion_pid):
+		// siguen la comprobación de mismo UID y el socket 0600, las firmas con
+		// certificados del equipo funcionan y la firma remota CSC se rechaza
+		// porque no se sabe qué programa se conecta (ID-01).
+		vincular := pidFrontend != 0 && ipc.SoportaVinculacionPIDFrontend()
+		if !vincular {
+			fmt.Fprintln(stderr, "grxfirma-gui: "+loc.T("desktop.ipc.server.sin_vinculo_pid"))
 		}
 		if vigilarEntrada {
 			ctx = vigilarEntradaHeredada(ctx, os.Stdin)
 		}
 		srv, socketRuta, err := construirServidor(ctx, rutaP12, passwordP12, socketPath, loc)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "grxfirma-gui: error arrancando servidor IPC: %v\n", err)
+			fmt.Fprintf(stderr, "grxfirma-gui: error arrancando servidor IPC: %v\n", err)
 			return 1
 		}
 		srv.SetLocalTLSStartupStatus(localTLSStartupStatus)
 		srv.SetLocalTLSStartupRefresh(func(ctx context.Context) ipc.LocalTLSStartupStatus {
 			return ensureLocalTLSStartup(ctx, configDir)
 		})
-		if err := srv.VincularPIDFrontend(pidFrontend); err != nil {
-			fmt.Fprintf(
-				os.Stderr,
-				"grxfirma-gui: no se pudo vincular el cliente IPC: %v\n",
-				err,
-			)
-			return 1
+		if vincular {
+			if err := srv.VincularPIDFrontend(pidFrontend); err != nil {
+				fmt.Fprintf(
+					stderr,
+					"grxfirma-gui: no se pudo vincular el cliente IPC: %v\n",
+					err,
+				)
+				return 1
+			}
 		}
-		fmt.Fprintf(os.Stderr, "grxfirma-gui: servidor IPC escuchando en %s\n", socketRuta)
+		fmt.Fprintf(stderr, "grxfirma-gui: servidor IPC escuchando en %s\n", socketRuta)
 		if err := srv.Escuchar(ctx, socketRuta); err != nil && ctx.Err() == nil {
-			fmt.Fprintf(os.Stderr, "grxfirma-gui: IPC: %v\n", err)
+			fmt.Fprintf(stderr, "grxfirma-gui: IPC: %v\n", err)
 			return 1
 		}
 		return 0
 	default:
-		fmt.Fprintf(os.Stderr, "grxfirma-gui: modo de servidor no soportado: %s\n", mode)
+		fmt.Fprintf(stderr, "grxfirma-gui: modo de servidor no soportado: %s\n", mode)
 		return 2
 	}
 }

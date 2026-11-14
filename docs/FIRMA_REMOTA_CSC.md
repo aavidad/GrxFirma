@@ -181,8 +181,10 @@ usa la autorización conjunta y sigue rechazando el OTP.
 - En el IPC, `csc_configure`, `csc_connect`, `csc_send_otp` y toda firma con un
   certificado remoto (principal o adicional) solo se admiten desde la interfaz
   vinculada por PID; si no, fallan con `csc_interfaz_no_verificada`. Un
-  `--server` manual sin PID sigue firmando con certificados locales, deja el
-  aviso `ipc_sin_vinculacion_pid` en el registro y `export_diagnostic` devuelve
+  `--server` sin PID (el servicio de usuario de Linux o un arranque manual)
+  arranca y sigue firmando con certificados locales. Avisa en la salida de
+  error de que la firma remota no está disponible, deja
+  `ipc_sin_vinculacion_pid` en el registro y `export_diagnostic` devuelve
   `ipcClientBinding: "unbound"`.
 
 ## Límites

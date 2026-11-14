@@ -152,7 +152,7 @@
   "security.secret.hint.p12": "使用 -password-stdin，或仅为自动化兼容使用 GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "PKCS#12 密码：",
   "security.secret.prompt.protection": "Base64 保护密钥： ",
-  "desktop.ipc.server.client_pid_required": "--server 模式需要用 --ipc-client-pid 指定将要连接的程序的 PID；否则不会打开 IPC 通道",
+  "desktop.ipc.server.sin_vinculo_pid": "警告：--server 模式启动时没有 --ipc-client-pid，或所在系统无法检查连接的是哪个程序。引擎会响应当前用户的任何程序：使用本机证书签名可以正常进行，但无法使用远程证书 (CSC) 签名。如需使用，请从图标打开 GrxFirma，或指定 --ipc-client-pid。",
   "desktop.ipc.peer_binding_unsupported": "此系统无法检查哪个程序连接到签名引擎，因此 GrxFirma 不会启动",
   "desktop.ipc.flag.parent_stdin": "当启动它的图形程序保持打开的标准输入被关闭时，停止服务器",
   "rest.error.private_credential": "无法准备 REST 凭据的私密交付",

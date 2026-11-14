@@ -152,7 +152,7 @@
   "security.secret.hint.p12": "use -contrasena-stdin ou, só para compatibilidade automatizada, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "Contrasinal PKCS#12: ",
   "security.secret.prompt.protection": "Chave de protección Base64: ",
-  "desktop.ipc.server.client_pid_required": "o modo --server precisa --ipc-client-pid co PID do programa que se vai conectar; sen el non se abre a canle IPC",
+  "desktop.ipc.server.sin_vinculo_pid": "aviso: o modo --server arrancou sen --ipc-client-pid ou nun sistema que non deixa comprobar que programa se conecta. O motor atende a calquera programa do seu usuario: as sinaturas con certificados do equipo funcionan, pero a sinatura con certificado remoto (CSC) non está dispoñible. Para usala, abra GrxFirma desde a súa icona ou indique --ipc-client-pid.",
   "desktop.ipc.peer_binding_unsupported": "este sistema non permite comprobar que programa se conecta ao motor de sinatura, así que GrxFirma non se inicia",
   "desktop.ipc.flag.parent_stdin": "detén o servidor cando se pecha a entrada estándar que mantén aberta o programa gráfico que o lanzou",
   "rest.error.private_credential": "erro preparando a entrega privada da credencial REST",
