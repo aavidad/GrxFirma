@@ -17,6 +17,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/csc"
 	"grxfirma/internal/adapters/outbound/common/secmem"
 	"grxfirma/internal/adapters/outbound/desktop/cscremota"
+	"grxfirma/internal/domain"
 )
 
 // Firma remota CSC desde las interfaces de escritorio.
@@ -274,8 +275,8 @@ func (m *Manejador) handleCSC(ctx context.Context, action string, raw json.RawMe
 func describirCredencialCSC(c cscremota.CredencialRemota) resultadoCSCCredencial {
 	return resultadoCSCCredencial{
 		CertificateID: c.Ref.ID,
-		Subject:       c.Ref.Subject,
-		Issuer:        c.Ref.Issuer,
+		Subject:       domain.TextoVisible(c.Ref.Subject),
+		Issuer:        domain.TextoVisible(c.Ref.Issuer),
 		NotAfter:      formatOptionalTime(c.Ref.NotAfter),
 		SCAL:          c.SCAL,
 		Mode:          string(c.Modo),

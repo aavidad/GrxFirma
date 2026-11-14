@@ -50,6 +50,7 @@ func TestRetrieveRequest_Exito(t *testing.T) {
 	publicador := &publicadorMock{}
 	uc := application.NuevoRetrieveRequestUseCase(
 		transporte,
+		politicaAbierta(),
 		application.NuevoAuditUseCase(relojMock{}, logger),
 		publicador,
 	)
@@ -81,6 +82,7 @@ func TestRetrieveRequest_FallaTransporte(t *testing.T) {
 	logger := &loggerMock{}
 	uc := application.NuevoRetrieveRequestUseCase(
 		transporte,
+		politicaAbierta(),
 		application.NuevoAuditUseCase(relojMock{}, logger),
 		&publicadorMock{},
 	)
@@ -100,7 +102,7 @@ func TestRetrieveRequest_Vacio(t *testing.T) {
 	t.Parallel()
 
 	transporte := &transporteRetrieveMock{data: nil}
-	uc := application.NuevoRetrieveRequestUseCase(transporte, nil, nil)
+	uc := application.NuevoRetrieveRequestUseCase(transporte, politicaAbierta(), nil, nil)
 
 	_, err := uc.Ejecutar(context.Background(), application.RetrieveRequestCommand{
 		Session: sesionRemotaPrueba(),
@@ -114,7 +116,7 @@ func TestRetrieveRequest_SesionInvalida(t *testing.T) {
 	t.Parallel()
 
 	transporte := &transporteRetrieveMock{}
-	uc := application.NuevoRetrieveRequestUseCase(transporte, nil, nil)
+	uc := application.NuevoRetrieveRequestUseCase(transporte, politicaAbierta(), nil, nil)
 
 	_, err := uc.Ejecutar(context.Background(), application.RetrieveRequestCommand{
 		Session: domain.ExchangeSession{},

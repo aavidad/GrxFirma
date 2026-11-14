@@ -18,6 +18,7 @@
     <string name="select_document">选择文档</string>
     <string name="no_document">未选择文档</string>
     <string name="document_summary">%1$s · %2$s · %3$s</string>
+    <string name="document_summary_fingerprint">%1$s\nSHA-256 摘要：%2$s…</string>
     <string name="original_document_helper">验证 CAdES 等分离式签名时，还需选择原始文档。若签名已包含文档，请留空。</string>
     <string name="select_original_document">添加原始文档</string>
     <string name="no_original_document">未选择原始文档（可选）</string>
@@ -130,6 +131,8 @@
     <string name="retry_save">重试保存</string>
     <string name="discard_pending_output">放弃签名</string>
     <string name="error_document_required">请先选择文档。</string>
+    <string name="error_document_changed">文档在您选择后已更改。请重新选择。</string>
+    <string name="error_document_not_read">选择文档时无法读取该文档。请重新选择。</string>
     <string name="error_certificate_required">请先选择或导入证书。</string>
     <string name="error_password_required">请输入证书密码。</string>
     <string name="error_invalid_shared_intent">无法打开共享文档。</string>

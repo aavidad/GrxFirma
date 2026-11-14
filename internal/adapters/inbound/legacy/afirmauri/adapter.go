@@ -239,7 +239,7 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 	solicitud.Sesion = sesion
 	solicitud.Origenes = fusionarOrigenes(origenes, solicitud.Origenes)
 
-	if err := a.validarDestinos(ctx, origenes, opts.bySocket, &solicitud); err != nil {
+	if err := a.validarSesion(ctx, sesion, origenes, opts.bySocket, &solicitud); err != nil {
 		return Solicitud{}, err
 	}
 
@@ -640,30 +640,62 @@ func (a *Adaptador) validarServidoresTrifasicos(ctx context.Context, solicitud *
 // registra un aviso sin el origen. El camino directo sigue sin admitirlo,
 // como ya hacía el orquestador antes del lote 4.
 func (a *Adaptador) validarDestinos(ctx context.Context, origenes []string, socket bool, solicitud *Solicitud) error {
+	sinCifrar, err := validarFormatoDestinos(origenes, socket)
+	if err != nil {
+		return err
+	}
+	if err := a.validarOrigenes(ctx, origenes); err != nil {
+		return err
+	}
+	marcarDestinoSinCifrar(sinCifrar, solicitud)
+	return nil
+}
+
+// validarSesion es validarDestinos para la descarga y la subida de la
+// sesión: el formato lo comprueba el adaptador y la política la aplica la
+// invariante común del núcleo (application.ComprobarSesionIntercambio, H-03),
+// la misma que usan los casos de uso de descarga y subida. Sin política el
+// parser no valida orígenes, como antes: lo hace después el orquestador.
+func (a *Adaptador) validarSesion(ctx context.Context, sesion domain.ExchangeSession, origenes []string, socket bool, solicitud *Solicitud) error {
+	sinCifrar, err := validarFormatoDestinos(origenes, socket)
+	if err != nil {
+		return err
+	}
+	if a != nil && a.trust != nil {
+		if err := application.ComprobarSesionIntercambio(ctx, a.trust, sesion); err != nil {
+			return err
+		}
+	}
+	marcarDestinoSinCifrar(sinCifrar, solicitud)
+	return nil
+}
+
+func validarFormatoDestinos(origenes []string, socket bool) (bool, error) {
 	sinCifrar := false
 	for _, origen := range origenes {
 		if socket {
 			http, err := originvalidator.ValidarFormatoSocket(origen)
 			if err != nil {
-				return fmt.Errorf("el destino %s no es válido: %w", origen, err)
+				return false, fmt.Errorf("el destino %s no es válido: %w", origen, err)
 			}
 			sinCifrar = sinCifrar || http
 			continue
 		}
 		if err := originvalidator.ValidarFormato(origen); err != nil {
-			return fmt.Errorf("el destino %s no es válido: %w", origen, err)
+			return false, fmt.Errorf("el destino %s no es válido: %w", origen, err)
 		}
 	}
-	if err := a.validarOrigenes(ctx, origenes); err != nil {
-		return err
+	return sinCifrar, nil
+}
+
+func marcarDestinoSinCifrar(sinCifrar bool, solicitud *Solicitud) {
+	if !sinCifrar {
+		return
 	}
-	if sinCifrar {
-		slog.Warn("afirma_destino_sin_cifrar", "canal", "socket")
-		if solicitud != nil {
-			solicitud.DestinoSinCifrar = true
-		}
+	slog.Warn("afirma_destino_sin_cifrar", "canal", "socket")
+	if solicitud != nil {
+		solicitud.DestinoSinCifrar = true
 	}
-	return nil
 }
 
 // OrigenesDestinoSolicitud devuelve los orígenes de todos los destinos de una

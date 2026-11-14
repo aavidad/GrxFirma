@@ -98,9 +98,19 @@ binario, y la política de dominios de confianza la aplican los adaptadores
   como antes, y el registro anota `guardado_web_sin_confirmacion`. En
   Windows el fichero lleva el flujo `Zone.Identifier` con `ZoneId=3` y el
   origen de la web, para que SmartScreen y Office lo traten como descargado.
-- Pendiente: llevar al núcleo la invariante de `ExchangeSession` (HTTPS, sin
-  credenciales y mismo host en descarga y subida) y exigir un
-  `ports.TrustPolicy` en los casos de uso que reciben un origen remoto.
+- La sesión de intercambio (`ExchangeSession`) tiene una invariante en el
+  núcleo, `application.ComprobarSesionIntercambio`: la política de dominios
+  de confianza tiene que admitir el origen de la descarga y el de la subida.
+  Si son de hosts distintos, los dos tienen que ser de confianza, y se anota
+  `sesion_intercambio_hosts_distintos` en el registro. No se exige el mismo
+  host, por compatibilidad: AutoFirma deja al portal elegir los dos servlets
+  por separado (`setServlets` de `autoscript.js`) y GrxFirma toma la descarga
+  de `serverUrl` cuando falta `rtservlet`. Los dos servidores aparecen en la
+  aprobación. `RetrieveRequestUseCase` y `UploadResultUseCase` exigen una
+  `ports.TrustPolicy` y sin ella fallan cerrado. El parser de `afirma://`
+  aplica la misma invariante; el formato del endpoint (https, http en
+  loopback o el http de intranet del canal socket) lo siguen comprobando el
+  adaptador y el transporte.
 
 ### Retención y builds de producción
 

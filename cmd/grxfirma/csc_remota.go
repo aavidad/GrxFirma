@@ -16,7 +16,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	"unicode"
 
 	"golang.org/x/term"
 
@@ -26,6 +25,7 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/cscremota"
 	"grxfirma/internal/adapters/outbound/desktop/proxyhttp"
 	"grxfirma/internal/appdirs"
+	"grxfirma/internal/domain"
 )
 
 // opcionesCSC recoge las opciones de la firma remota CSC (prototipo).
@@ -331,12 +331,8 @@ func (l *lectorByteAByte) Read(p []byte) (int, error) {
 // textoSeguro evita que un dato del servidor o del certificado inyecte
 // secuencias de control en la terminal. También quita los caracteres de
 // formato (Cf: controles de dirección como U+202E y los de anchura cero), que
-// cambian el orden visible del sujeto sin ser controles C0/C1.
+// cambian el orden visible del sujeto sin ser controles C0/C1. Es la misma
+// regla que aplica el motor al dar los datos a las interfaces gráficas.
 func textoSeguro(s string) string {
-	return strings.Map(func(r rune) rune {
-		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || r == unicode.ReplacementChar {
-			return '?'
-		}
-		return r
-	}, s)
+	return domain.TextoVisible(s)
 }

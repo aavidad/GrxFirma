@@ -94,7 +94,7 @@ func (m *Manejador) obstaculoJSON(o domain.ObstaculoConfianza) obstaculoConfianz
 	return obstaculoConfianzaJSON{
 		Type:        string(o.Tipo),
 		Fingerprint: o.Huella,
-		Subject:     o.Sujeto,
+		Subject:     domain.TextoVisible(o.Sujeto),
 		Label:       etiqueta,
 		Notice:      o.Tipo.ClaveAviso(),
 	}

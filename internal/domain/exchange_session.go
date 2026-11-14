@@ -5,7 +5,11 @@
 
 package domain
 
-import "errors"
+import (
+	"errors"
+	"net/url"
+	"strings"
+)
 
 // ExchangeSessionState representa el estado de una sesion de intercambio remoto.
 type ExchangeSessionState string
@@ -49,6 +53,44 @@ func (s ExchangeSession) Validate() error {
 		return errors.New("la sesion de intercambio debe tener endpoints de subida y descarga")
 	}
 	return nil
+}
+
+// OrigenesEndpoints devuelve los orígenes (esquema://host[:puerto]) de la
+// subida y la descarga, sin repetir, en ese orden. Son los que tiene que
+// admitir la política de dominios de confianza antes de usar la sesión. Un
+// endpoint sin esquema o sin host es un error.
+func (s ExchangeSession) OrigenesEndpoints() ([]string, error) {
+	out := make([]string, 0, 2)
+	vistos := map[string]bool{}
+	for _, endpoint := range []string{s.UploadEndpoint, s.RetrieveEndpoint} {
+		u, err := url.Parse(strings.TrimSpace(endpoint))
+		if err != nil {
+			return nil, errors.New("endpoint de la sesion de intercambio no valido")
+		}
+		if u.Scheme == "" || u.Host == "" {
+			return nil, errors.New("endpoint de la sesion de intercambio sin esquema u host")
+		}
+		origen := u.Scheme + "://" + u.Host
+		clave := strings.ToLower(origen)
+		if vistos[clave] {
+			continue
+		}
+		vistos[clave] = true
+		out = append(out, origen)
+	}
+	return out, nil
+}
+
+// HostsDistintos dice si la descarga y la subida van a hosts distintos. Es
+// válido si los dos son de confianza, pero se anota: el resultado firmado no
+// vuelve al mismo servidor que entregó el documento.
+func (s ExchangeSession) HostsDistintos() bool {
+	descarga, err1 := url.Parse(strings.TrimSpace(s.RetrieveEndpoint))
+	subida, err2 := url.Parse(strings.TrimSpace(s.UploadEndpoint))
+	if err1 != nil || err2 != nil {
+		return true
+	}
+	return !strings.EqualFold(descarga.Hostname(), subida.Hostname())
 }
 
 func (s ExchangeSession) IsActive() bool {
