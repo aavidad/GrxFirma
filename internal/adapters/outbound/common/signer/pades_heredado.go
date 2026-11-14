@@ -133,11 +133,10 @@ func firmantePKCS1(certs []*x509.Certificate, firma, signedBytes []byte) (*x509.
 func extraerCertificadosPDF(dict string) ([][]byte, error) {
 	idx := -1
 	for desde := 0; ; {
-		i := strings.Index(dict[desde:], "/Cert")
+		i := findPDFName(dict, "/Cert", desde)
 		if i < 0 {
 			break
 		}
-		i += desde
 		fin := i + len("/Cert")
 		if fin >= len(dict) || !isPDFNameChar(rune(dict[fin])) {
 			if idx >= 0 {

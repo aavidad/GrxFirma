@@ -109,6 +109,17 @@ jobs:
       - name: Build all native packages
         run: go build ./...
 
+      # Solo Linux: no admite saltos por falta de bwrap o espacios de nombres.
+      - name: Comprobar aislamiento PKCS11 obligatorio en Linux
+        if: ${{ matrix.name == 'Linux' }}
+        env:
+          GRXFIRMA_REQUIRE_PKCS11_SANDBOX: "1"
+        run: >-
+          go test -count=1 -timeout=5m
+          ./cmd/grxfirma-pkcs11-worker/
+          ./internal/adapters/outbound/desktop/pkcs11worker/
+          ./internal/adapters/outbound/desktop/isolatedtokenstore/
+
       - name: Run all native tests with public failure annotations
         shell: bash
         run: |
@@ -124,6 +135,15 @@ jobs:
               echo "::error title=Go native test failure::The JSON diagnostic parser failed; inspect the streamed test log."
           fi
           exit "${test_exit}"
+
+      # No cambia sysctl ni la política del producto. Solo imprime recursos
+      # fijos y causas saneadas para resolver diferencias del ejecutor Linux.
+      - name: Diagnóstico de aislamiento PKCS11 tras un fallo en Linux
+        if: ${{ failure() && matrix.name == 'Linux' }}
+        run: >-
+          go test -v -count=1 -timeout=1m
+          -run '^TestSandboxSystemDiagnostics$'
+          ./internal/adapters/outbound/desktop/pkcs11worker/
 
       - name: Test Windows certificate trust with fake store
         if: ${{ matrix.name == 'Windows' }}

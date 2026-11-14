@@ -177,6 +177,9 @@ func TestWorkerNativeConstructorIsolation(t *testing.T) {
 	}
 	response, workerErr := client.Execute(ctx, pkcs11worker.Request{Operation: "list"})
 	t.Logf("worker response code=%s error=%v", response.Code, workerErr)
+	if workerErr != nil {
+		t.Logf("Diagnóstico de recursos: %s", pkcs11worker.SandboxDiagnostic(workerErr))
+	}
 	actual := readResult() // An error without proof that the constructor ran is NEVER a pass.
 	var operationError *pkcs11worker.OperationError
 	if !errors.As(workerErr, &operationError) || operationError.Code != "driver_unavailable" {

@@ -148,3 +148,25 @@ func (output *boundedOutput) Write(data []byte) (int, error) {
 	}
 	return n, nil
 }
+
+// LogDiagnostics solo inspecciona prerrequisitos externos. No cambia sysctl,
+// AppArmor ni la política; tampoco convierte errores del producto en saltos.
+func LogDiagnostics(t testing.TB) {
+	t.Helper()
+	t.Logf("Identidad de prueba: uid=%d euid=%d gid=%d egid=%d", os.Getuid(), os.Geteuid(), os.Getgid(), os.Getegid())
+	for _, path := range []string{"/proc/sys/kernel/apparmor_restrict_unprivileged_userns", "/proc/sys/kernel/unprivileged_userns_clone", "/proc/sys/user/max_user_namespaces"} {
+		data, err := os.ReadFile(path)
+		value, parseErr := strconv.ParseUint(strings.TrimSpace(string(data)), 10, 64)
+		if err != nil || parseErr != nil {
+			t.Logf("Parámetro %s: no disponible", path)
+			continue
+		}
+		t.Logf("Parámetro %s=%d", path, value)
+	}
+	binary := probeBinary()
+	t.Logf("Prerrequisito bwrap: motivo=%q configuración_incorrecta=%t", binary.reason, binary.broken)
+	if binary.reason == "" {
+		namespaces := probeNamespaces()
+		t.Logf("Prueba independiente de espacios de nombres: motivo=%q", namespaces.reason)
+	}
+}

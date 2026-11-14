@@ -82,10 +82,12 @@ func TestProductionClientRejectsPINInCatalogAndDescribe(t *testing.T) {
 			return nil, errors.New("unexpected PIN callback")
 		}})
 	if _, err := store.List(context.Background()); !errors.Is(err, pkcs11worker.ErrProtocol) {
+		t.Logf("Diagnóstico de recursos: %s", pkcs11worker.SandboxDiagnostic(err))
 		t.Fatalf("list error=%v", err)
 	}
 	f := newFixture(t, "EC", nil)
 	if _, err := store.KeyFor(context.Background(), f.ref); !errors.Is(err, pkcs11worker.ErrProtocol) {
+		t.Logf("Diagnóstico de recursos: %s", pkcs11worker.SandboxDiagnostic(err))
 		t.Fatalf("describe error=%v", err)
 	}
 	if pinCalls.Load() != 0 {

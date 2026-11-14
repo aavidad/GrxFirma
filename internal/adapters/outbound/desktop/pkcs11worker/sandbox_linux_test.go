@@ -50,6 +50,7 @@ func TestSandboxPlanAndDescriptorOwnership(t *testing.T) {
 	roDir, rwDir := sandboxPrivateDir(t), sandboxPrivateDir(t)
 	launch, err := NewSandboxCommand(context.Background(), client.Executable, client.ModulePath, SandboxResources{ReadOnlyFiles: []string{roFile}, ReadOnlyDirs: []string{roDir}, ReadWriteDirs: []string{rwDir}})
 	if err != nil {
+		t.Logf("Diagnóstico de recursos: %s", SandboxDiagnostic(err))
 		t.Fatal(err)
 	}
 	defer launch.Close()
@@ -376,6 +377,7 @@ func TestSandboxRealSyntheticIsolation(t *testing.T) {
 	// exercise the worker validator, never executed or passed to a native API.
 	launch, err := NewSandboxCommand(ctx, client.Executable, "/usr/bin/find", SandboxResources{ReadOnlyFiles: []string{ro}, ReadWriteDirs: []string{rwDir}})
 	if err != nil {
+		t.Logf("Diagnóstico de recursos: %s", SandboxDiagnostic(err))
 		t.Fatal(err)
 	}
 	defer launch.Close()

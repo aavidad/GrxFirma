@@ -22,17 +22,8 @@ var fechaPDF = regexp.MustCompile(`^D:(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})
 // firmado o no tiene una fecha con zona, no hay fecha.
 func extractPDFSigningTimeM(block []byte, dictStart int, byteRange [4]int) time.Time {
 	text := string(block)
-	for i := 0; i+2 < len(text); i++ {
-		if text[i] != '/' || text[i+1] != 'M' {
-			continue
-		}
-		j := i + 2
-		if j < len(text) && text[j] != '(' && text[j] != ' ' && text[j] != '\t' && text[j] != '\r' && text[j] != '\n' {
-			continue // /MDP, /Matrix…
-		}
-		for j < len(text) && (text[j] == ' ' || text[j] == '\t' || text[j] == '\r' || text[j] == '\n') {
-			j++
-		}
+	for i := findPDFName(text, "/M", 0); i >= 0; i = findPDFName(text, "/M", i+2) {
+		j := skipPDFSpaces(text, i+2)
 		if j >= len(text) || text[j] != '(' {
 			continue
 		}
