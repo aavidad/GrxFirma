@@ -406,6 +406,8 @@ type resultadoProteccion struct {
 	DocumentName        string `json:"documentName,omitempty"`
 	MIMEType            string `json:"mimeType,omitempty"`
 	CertificateID       string `json:"certificateId,omitempty"`
+	// Warnings contiene las claves de catálogo de los avisos de esta operación.
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type resultadoDesproteccion struct {

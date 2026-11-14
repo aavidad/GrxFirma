@@ -14066,6 +14066,43 @@ Window {
                                                 color: "white"
                                                 wrapMode: Text.WordWrap
                                             }
+                                            Rectangle {
+                                                id: protectWarningsBox
+                                                readonly property var avisos: window.protectResult && !window.protectResult.error && window.protectResult.warnings
+                                                                              ? window.protectResult.warnings : []
+                                                visible: avisos.length > 0
+                                                Accessible.role: Accessible.AlertMessage
+                                                Accessible.name: tr("Advertencias")
+                                                Layout.fillWidth: true
+                                                radius: 8
+                                                color: "#4d3b12"
+                                                border.color: "#f2c14e"
+                                                border.width: 1
+                                                implicitHeight: protectWarningsColumn.implicitHeight + 16
+
+                                                ColumnLayout {
+                                                    id: protectWarningsColumn
+                                                    anchors.fill: parent
+                                                    anchors.margins: 8
+                                                    spacing: 4
+
+                                                    Text {
+                                                        text: tr("Advertencias")
+                                                        color: "#f2c14e"
+                                                        font.bold: true
+                                                    }
+                                                    Repeater {
+                                                        model: protectWarningsBox.avisos
+                                                        delegate: Text {
+                                                            textFormat: Text.PlainText
+                                                            text: tr(String(modelData))
+                                                            color: "white"
+                                                            wrapMode: Text.WordWrap
+                                                            Layout.fillWidth: true
+                                                        }
+                                                    }
+                                                }
+                                            }
                                             ThemedButton {
                                                 visible: window.protectResult && !window.protectResult.error && !!window.protectResult.outputPath
                                                 text: tr("Abrir protegido")

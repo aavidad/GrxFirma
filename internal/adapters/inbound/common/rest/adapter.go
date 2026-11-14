@@ -652,6 +652,8 @@ type protectResponse struct {
 	MIMEType               string `json:"mime_type,omitempty"`
 	ProtectedContentBase64 string `json:"protected_content_base64,omitempty"`
 	OutputPath             string `json:"outputPath,omitempty"`
+	// Warnings son avisos traducidos al idioma de la petición.
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type unprotectRequest struct {
@@ -701,6 +703,8 @@ type protectionRecipientExchangeResponse struct {
 	Recipient  protectionRecipientEntryResponse `json:"recipient"`
 	DataBase64 string                           `json:"data_base64,omitempty"`
 	Filename   string                           `json:"filename,omitempty"`
+	// Warnings son avisos traducidos al idioma de la petición.
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type verifyRequest struct {
@@ -1287,6 +1291,7 @@ func (a *Adaptador) handleProtect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, protectResponse{
+		Warnings:               a.traducirAvisosProteccion(r, result.Warnings),
 		OK:                     true,
 		Profile:                string(result.Protected.Profile),
 		RecipientCount:         result.Protected.RecipientCount,
@@ -1398,15 +1403,7 @@ func (a *Adaptador) handleUnprotect(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	var avisos []string
-	traducir := a.tForLocale(a.requestLocale(r))
-	for _, aviso := range result.Unprotected.Avisos {
-		if texto := traducir(aviso); texto != "" {
-			avisos = append(avisos, texto)
-		} else {
-			avisos = append(avisos, aviso)
-		}
-	}
+	avisos := a.traducirAvisosProteccion(r, result.Unprotected.Avisos)
 	writeJSON(w, http.StatusOK, unprotectResponse{
 		Warnings:                 avisos,
 		OK:                       true,
@@ -1416,6 +1413,20 @@ func (a *Adaptador) handleUnprotect(w http.ResponseWriter, r *http.Request) {
 		MIMEType:                 result.Unprotected.Document.MIMEType,
 		UnprotectedContentBase64: base64.StdEncoding.EncodeToString(result.Unprotected.Document.Content),
 	})
+}
+
+// traducirAvisosProteccion sigue el mismo catálogo que desproteger.
+func (a *Adaptador) traducirAvisosProteccion(r *http.Request, claves []string) []string {
+	var avisos []string
+	traducir := a.tForLocale(a.requestLocale(r))
+	for _, aviso := range claves {
+		if texto := traducir(aviso); texto != "" {
+			avisos = append(avisos, texto)
+		} else {
+			avisos = append(avisos, aviso)
+		}
+	}
+	return avisos
 }
 
 func (a *Adaptador) handleProtectionRecipients(w http.ResponseWriter, r *http.Request) {
@@ -1464,6 +1475,7 @@ func (a *Adaptador) handleProtectionRecipientExport(w http.ResponseWriter, r *ht
 		return
 	}
 	writeJSON(w, http.StatusOK, protectionRecipientExchangeResponse{
+		Warnings:   a.traducirAvisosProteccion(r, result.Warnings),
 		OK:         true,
 		Recipient:  makeProtectionRecipientEntryResponse(result.Recipient),
 		DataBase64: base64.StdEncoding.EncodeToString(result.Data),

@@ -741,7 +741,8 @@ public sealed class DesktopOperationsClientTests
               "recipientCount":1,
               "documentName":"protected.authenveloped.p7m",
               "mimeType":"application/pkcs7-mime",
-              "certificateId":"cert-1"
+              "certificateId":"cert-1",
+              "warnings":["proteccion.alto.sin_almacen.aviso"]
             }
             """);
         var unprotectedResult = JsonSerializer.Deserialize<UnprotectResult>(
@@ -763,6 +764,9 @@ public sealed class DesktopOperationsClientTests
                 .AuthEnvelopedDataCompatible);
         Assert.AreEqual(1, protectedResult!.RecipientCount);
         Assert.AreEqual("cert-1", protectedResult.CertificateId);
+        Assert.AreEqual("proteccion.alto.sin_almacen.aviso", protectedResult.VisibleWarnings.Single());
+        Assert.AreEqual(0, JsonSerializer.Deserialize<ProtectionResult>("{}")!.VisibleWarnings.Count);
+        Assert.AreEqual(0, JsonSerializer.Deserialize<ProtectionResult>("""{"warnings":null}""")!.VisibleWarnings.Count);
         Assert.AreEqual(
             "recipient-1",
             unprotectedResult!.RecipientId);
@@ -1024,7 +1028,8 @@ public sealed class DesktopOperationsClientTests
             "recipientCount",
             "documentName",
             "mimeType",
-            "certificateId");
+            "certificateId",
+            "warnings");
         AssertJsonPropertyNames<UnprotectResult>(
             "outputPath",
             "unprotectedContentBase64",

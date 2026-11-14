@@ -1521,6 +1521,7 @@ func (m *Manejador) handleProtect(ctx context.Context, raw json.RawMessage) resp
 		}
 	}
 	resp := resultadoProteccion{
+		Warnings:       append([]string(nil), result.Warnings...),
 		OutputPath:     outputPath,
 		Profile:        string(result.Protected.Profile),
 		RecipientCount: result.Protected.RecipientCount,

@@ -7,6 +7,10 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## Próxima versión (sin publicar)
+
+- Al proteger con el perfil «alto» o exportar su destinatario propio, GrxFirma avisa también si la clave privada está guardada en un fichero del equipo porque no hay almacén de secretos del sistema. La operación se completa y el aviso aparece en el idioma elegido.
+
 ## 0.0.127 — 2026-11-14
 
 - Actualización de seguridad: GrxFirma se compila ahora con Go 1.26.11 y con bibliotecas de red más recientes, que corrigen fallos conocidos en las conexiones seguras, en la comprobación de certificados y en el tratamiento de las peticiones web. Conviene instalarla cuanto antes.

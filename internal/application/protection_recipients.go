@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"strings"
 
+	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 )
 
@@ -33,6 +34,7 @@ func (uc *ExportProtectionRecipientUseCase) Ejecutar(ctx context.Context, cmd Ex
 	if recipientID == "" {
 		return ExportProtectionRecipientResult{}, errors.New("debe indicar el identificador del destinatario a exportar")
 	}
+	ctx, avisos := domain.ConAvisosOperacion(ctx)
 	recipient, data, err := uc.store.Export(ctx, recipientID)
 	if err != nil {
 		return ExportProtectionRecipientResult{}, fmt.Errorf("no se pudo exportar el destinatario de protección: %w", err)
@@ -40,6 +42,7 @@ func (uc *ExportProtectionRecipientUseCase) Ejecutar(ctx context.Context, cmd Ex
 	return ExportProtectionRecipientResult{
 		Recipient: recipient,
 		Data:      data,
+		Warnings:  avisos.Claves(),
 	}, nil
 }
 
