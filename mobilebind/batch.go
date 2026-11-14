@@ -8,6 +8,7 @@ package mobilebind
 import (
 	"context"
 	"encoding/base64"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -20,8 +21,9 @@ type mobileBatchRequest struct {
 	Items         []batchItemRequest `json:"items"`
 	CertificateID string             `json:"certificate_id"`
 	Options       map[string]string  `json:"options,omitempty"`
-	// ConfirmUnseenContent confirma que se cofirman CAdES explícitas sin ver
-	// su documento: el lote no lleva el original de cada firma.
+	// ConfirmUnseenContent se sigue aceptando por compatibilidad, pero ya no
+	// es obligatorio: el lote cofirma las CAdES explícitas sin su original y
+	// lo avisa en cada elemento (lote 16c).
 	ConfirmUnseenContent bool `json:"confirm_unseen_content,omitempty"`
 }
 
@@ -32,6 +34,9 @@ type mobileBatchItemResponse struct {
 	Algorithm           string `json:"algorithm,omitempty"`
 	SignedContentBase64 string `json:"signed_content_base64,omitempty"`
 	Error               string `json:"error,omitempty"`
+	// Warnings lleva claves de catálogo de este elemento, por ejemplo
+	// firma.cofirma_sin_original.aviso.
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type mobileBatchResponse struct {
@@ -75,7 +80,11 @@ func (f *Facade) ProcessBatchJSON(payload string) (out string, err error) {
 		}
 	}()
 	total := 0
-	var avisosLote []string
+	// Retrocompatibilidad (lote 16c): el lote de Android cofirmaba CAdES
+	// explícitas sin su original y la interfaz no pide confirmación. Se sigue
+	// firmando, con aviso en cada elemento afectado y en el registro. La firma
+	// individual sí pide el original o la confirmación (KD-03).
+	sinOriginal := make([]bool, 0, len(req.Items))
 	for _, item := range req.Items {
 		input, err := mobileBatchItem(item, req.Options, maxBatchInputBytes-total)
 		if err != nil {
@@ -83,11 +92,7 @@ func (f *Facade) ProcessBatchJSON(payload string) (out string, err error) {
 		}
 		total += len(input.Contenido)
 		items = append(items, input)
-		if avisosLote == nil && esCofirmaCAdESExplicita(input.Formato, input.Accion, input.Contenido) {
-			if avisosLote, err = comprobarOriginalCofirma(input.Contenido, nil, req.ConfirmUnseenContent); err != nil {
-				return "", err
-			}
-		}
+		sinOriginal = append(sinOriginal, esCofirmaCAdESExplicita(input.Formato, input.Accion, input.Contenido))
 	}
 	// Un formato solo RSA con una identidad ECDSA falla en su posición, como
 	// cualquier otro error del motor, y no detiene el resto del lote.
@@ -112,7 +117,14 @@ func (f *Facade) ProcessBatchJSON(payload string) (out string, err error) {
 		}
 	}()
 	respuesta := mobileBatchResponseFrom(result, len(items))
-	respuesta.Warnings = avisosLote
+	for index := range respuesta.Items {
+		if index >= len(sinOriginal) || !sinOriginal[index] || !respuesta.Items[index].OK {
+			continue
+		}
+		slog.Warn("cofirma_sin_original_lote", "plataforma", "movil", "elemento", index)
+		respuesta.Items[index].Warnings = []string{mobileAvisoCofirmaSinOriginal}
+		respuesta.Warnings = []string{mobileAvisoCofirmaSinOriginal}
+	}
 	return marshal(respuesta)
 }
 
