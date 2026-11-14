@@ -77,6 +77,29 @@ func (f *loteQueAvisa) Execute(ctx context.Context, cmd application.ProcessBatch
 	return out, nil
 }
 
+// lotePorDocumento firma como ProcessBatchUseCase: cada trabajo abre su
+// registro de avisos, que pasa también lo anotado al de la petición.
+type lotePorDocumento struct {
+	porTrabajo [][]string
+}
+
+func (f *lotePorDocumento) Execute(ctx context.Context, cmd application.ProcessBatchCommand) (application.BatchResult, error) {
+	out := application.BatchResult{}
+	for i := range cmd.Jobs {
+		ctxTrabajo, avisos := domain.ConAvisosOperacion(ctx)
+		if i < len(f.porTrabajo) {
+			for _, a := range f.porTrabajo[i] {
+				domain.AnotarAviso(ctxTrabajo, a)
+			}
+		}
+		out.Results = append(out.Results, application.SignResult{
+			Result:   domain.SignatureResult{Format: domain.FormatCAdES, Data: []byte("QA firmado")},
+			Warnings: avisos.Claves(),
+		})
+	}
+	return out, nil
+}
+
 func entradaPrueba(t *testing.T, dir, nombre string) string {
 	t.Helper()
 	ruta := filepath.Join(dir, nombre)
@@ -160,6 +183,33 @@ func TestFirmaLoteIPCDevuelveLosAvisosDelMotor(t *testing.T) {
 		data := resp.Data.(resultadoFirmaLote)
 		if data.OkCount != 2 || !slices.Equal(data.Warnings, []string{avisoPruebaCRL}) {
 			t.Fatalf("ok=%d warnings=%q", data.OkCount, data.Warnings)
+		}
+	})
+	// Lote 17b (3d): con ProcesarLote cada documento lleva también sus
+	// propios avisos, sin perder el resumen del lote.
+	t.Run("lote_por_documento", func(t *testing.T) {
+		dir := t.TempDir()
+		lote := &lotePorDocumento{porTrabajo: [][]string{{avisoPruebaCofirma}, nil, {avisoPruebaCRL, avisoPruebaCofirma}}}
+		m := &Manejador{ProcesarLote: lote, ultimosCerts: []domain.CertificateRef{{ID: "qa"}}}
+		resp := m.despachar(context.Background(), peticionJSON(t, "sign_batch", paramsFirmaLote{
+			InputPaths:    []string{entradaPrueba(t, dir, "a.csig"), entradaPrueba(t, dir, "b.txt"), entradaPrueba(t, dir, "c.csig")},
+			OutputDir:     t.TempDir(),
+			CertificateID: "qa", Format: "CAdES", Action: "cosign",
+		}))
+		if !resp.OK {
+			t.Fatal(resp.Error)
+		}
+		data := resp.Data.(resultadoFirmaLote)
+		if data.OkCount != 3 {
+			t.Fatalf("ok=%d resultados=%+v", data.OkCount, data.Results)
+		}
+		if !slices.Equal(data.Results[0].Warnings, []string{avisoPruebaCofirma}) ||
+			len(data.Results[1].Warnings) != 0 ||
+			!slices.Equal(data.Results[2].Warnings, []string{avisoPruebaCRL, avisoPruebaCofirma}) {
+			t.Fatalf("avisos por documento = %q %q %q", data.Results[0].Warnings, data.Results[1].Warnings, data.Results[2].Warnings)
+		}
+		if !slices.Equal(data.Warnings, []string{avisoPruebaCofirma, avisoPruebaCRL}) {
+			t.Fatalf("avisos del lote = %q", data.Warnings)
 		}
 	})
 	t.Run("cofirma_multiple", func(t *testing.T) {

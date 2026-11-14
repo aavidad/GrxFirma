@@ -14,6 +14,7 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
 // Aviso es una decisión automática explicada al usuario.
@@ -27,7 +28,21 @@ const maxAvisos = 16
 var (
 	mu    sync.Mutex
 	lista []Aviso
+	// soloRegistro: el proceso no enseña esta lista (lote 17b).
+	soloRegistro atomic.Bool
 )
+
+// SoloEnRegistro deja de guardar avisos en la lista global de este proceso:
+// desde ese momento Registrar solo los anota en el registro. La usan los
+// procesos de larga duración que atienden varias operaciones y no leen la
+// lista, como el motor de escritorio, que da los avisos de cada firma por su
+// propio registro de operación (domain.AnotarAviso). Así la lista no se
+// llena con avisos de operaciones distintas que nadie va a enseñar. Quien sí
+// la enseña (afirma://) la vacía con Reiniciar al empezar cada operación.
+func SoloEnRegistro() {
+	soloRegistro.Store(true)
+	Reiniciar()
+}
 
 // Registrar anota un aviso para la operación en curso. Los duplicados se
 // ignoran para no repetir el mismo motivo en cada fase.
@@ -35,6 +50,10 @@ func Registrar(titulo, motivo string) {
 	titulo = strings.TrimSpace(titulo)
 	motivo = strings.TrimSpace(motivo)
 	if titulo == "" {
+		return
+	}
+	if soloRegistro.Load() {
+		slog.Info("aviso_usuario", "titulo", titulo)
 		return
 	}
 	mu.Lock()

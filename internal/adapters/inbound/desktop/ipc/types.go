@@ -313,8 +313,8 @@ type resultadoFirmaLoteItem struct {
 	Format     string `json:"format,omitempty"`
 	OK         bool   `json:"ok"`
 	Error      string `json:"error,omitempty"`
-	// Warnings de este documento, cuando el motor puede atribuirlos (la
-	// cofirma múltiple firma documento a documento).
+	// Warnings son los avisos del motor al firmar este documento (claves de
+	// los catálogos), tanto en el lote normal como en la cofirma múltiple.
 	Warnings []string `json:"warnings,omitempty"`
 }
 

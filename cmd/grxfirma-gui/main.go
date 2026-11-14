@@ -67,6 +67,7 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/avisos"
 	"grxfirma/presentation/desktop/tokenpin"
 )
 
@@ -427,6 +428,10 @@ func idiomaPreferido(configDir string) string {
 
 // construirServidor monta la pila hexagonal completa y devuelve el servidor IPC.
 func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath string, loc ports.Localizador) (*ipc.Servidor, string, error) {
+	// El motor atiende muchas operaciones y no enseña la lista global de
+	// avisos (solo la lee afirma://, que es otro proceso): cada firma lleva
+	// sus avisos en su propio registro de operación (lote 17b).
+	avisos.SoloEnRegistro()
 	home, _ := os.UserHomeDir()
 	configDir := appdirs.Config(home)
 

@@ -1028,8 +1028,8 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 	}
 	cmd.CertificateID = certID
 
-	// El lote firma todos los documentos en una llamada: sus avisos se
-	// devuelven para el lote entero.
+	// Cada documento lleva los avisos que el motor anotó al firmarlo y el
+	// lote los reúne sin repetir (resumen).
 	ctxLote, recolector := domain.ConAvisosOperacion(ctx)
 	result, err := m.ProcesarLote.Execute(ctxLote, cmd)
 	if err != nil {
@@ -1083,6 +1083,7 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 		item.OK = true
 		item.OutputPath = finalPath
 		item.Format = string(signed.Result.Format)
+		item.Warnings = domain.UnirAvisos(nil, signed.Warnings...)
 		okCount++
 		items = append(items, item)
 	}
