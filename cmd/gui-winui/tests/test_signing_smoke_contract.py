@@ -71,9 +71,9 @@ class SigningSmokeContractTests(unittest.TestCase):
         source = self.source
         for contract in (
             '"SystemStore", "TemporaryFile", "WindowsImport"',
-            '"Buscar certificados en Windows"',
-            '"Usar archivo de certificado solo durante esta sesión"',
-            '"Importar archivo de certificado en Windows"',
+            '"Buscar en Windows"',
+            '"Cargar P12/PFX…"',
+            '"Importar archivo en Windows"',
             '"Contraseña de la credencial"',
             '"fnmt-test.p12"',
             "6E0CAD97B78BE2918ED54A64A0DD4F3F6E4C16E01B405EF0836FB91B77A3FFB4",

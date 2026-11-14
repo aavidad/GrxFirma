@@ -1664,7 +1664,7 @@ function Use-CertificateSourceForQa {
     if ($Source -eq "SystemStore") {
         $refresh = Wait-DescendantByName `
             -Root $ApplicationWindow `
-            -Name "Buscar certificados en Windows" `
+            -Name "Buscar en Windows" `
             -Deadline $Deadline `
             -RequireEnabled
         Invoke-PickerTriggerWithNativeClick `
@@ -1675,9 +1675,9 @@ function Use-CertificateSourceForQa {
     }
 
     $sourceButtonName = if ($Source -eq "TemporaryFile") {
-        "Usar archivo de certificado solo durante esta sesión"
+        "Cargar P12/PFX…"
     } else {
-        "Importar archivo de certificado en Windows"
+        "Importar archivo en Windows"
     }
     $sourceButton = Wait-DescendantByName `
         -Root $ApplicationWindow `
@@ -2046,7 +2046,7 @@ try {
 
     $selectDocument = Wait-DescendantByName `
         -Root $window `
-        -Name "Seleccionar documento para firmar" `
+        -Name "Examinar…" `
         -Deadline $deadline `
         -RequireEnabled
     $result.phase = "input-picker-opened"
@@ -2440,7 +2440,7 @@ try {
 
     $selectSigned = Wait-DescendantByName `
         -Root $window `
-        -Name "Seleccionar fichero firmado" `
+        -Name "Examinar…" `
         -Deadline $deadline `
         -RequireEnabled
     Submit-FilePickerPath `
@@ -2454,7 +2454,7 @@ try {
     if (-not $VisibleSealPades) {
         $selectOriginal = Wait-DescendantByName `
             -Root $window `
-            -Name "Seleccionar fichero original" `
+            -Name "Seleccionar original…" `
             -Deadline $deadline `
             -RequireEnabled
         Submit-FilePickerPath `
