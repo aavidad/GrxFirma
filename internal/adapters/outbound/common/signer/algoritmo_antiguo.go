@@ -37,6 +37,14 @@ func marcarAlgoritmoAntiguo(registro *domain.RegistroConfianzaForzada, result do
 		}
 		result.Warnings = appendUniqueString(result.Warnings, motivoAlgoritmoAntiguo)
 	}
+	return anotarAlgoritmoAntiguo(result, algoritmos)
+}
+
+// anotarAlgoritmoAntiguo deja el detalle y la evidencia sin tocar la validez
+// ni añadir el aviso. Sirve cuando la integridad no se ha podido comprobar
+// (CAdES explícita sin el original): el aviso dice que el documento no ha
+// cambiado, y eso no se sabe.
+func anotarAlgoritmoAntiguo(result domain.VerificationResult, algoritmos []string) domain.VerificationResult {
 	vistos := map[string]bool{}
 	for _, evidencia := range result.Evidence {
 		if evidencia.Type == domain.EvidenciaAlgoritmoAntiguo {
