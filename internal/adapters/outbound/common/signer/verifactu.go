@@ -176,6 +176,15 @@ func (r *VeriFactuRecordResult) add(field, key, level string) {
 }
 
 func vfCheckSignature(data []byte, n *vfNode, at time.Time) []vfProblem {
+	return vfCheckSignatureConContexto(context.Background(), data, n, at)
+}
+
+// vfCheckSignatureConContexto comprueba la firma del registro. Con SHA-1
+// (lote 14) aplica el mismo criterio que la verificación de firmas: si el
+// resumen y la firma cuadran, la integridad está comprobada, pero el registro
+// no se da por bueno salvo que el usuario haya aceptado SHA-1 en su equipo
+// (registro de confianza forzada en el contexto: solo CLI y escritorio).
+func vfCheckSignatureConContexto(ctx context.Context, data []byte, n *vfNode, at time.Time) []vfProblem {
 	fail := func(key string) []vfProblem { return []vfProblem{{"Signature", "verifactu." + key, "error"}} }
 	parts, e := extractContextualXMLSignatures(data)
 	if e != nil || len(parts) != 1 {
@@ -198,7 +207,8 @@ func vfCheckSignature(data []byte, n *vfNode, at time.Time) []vfProblem {
 		return fail("profile")
 	}
 	algo := vfAttribute(method, "Algorithm")
-	if algo != algRSASHA256 && algo != algRSASHA512 {
+	usaSHA1 := algo == algRSASHA1
+	if algo != algRSASHA256 && algo != algRSASHA512 && !usaSHA1 {
 		return fail("profile")
 	}
 	rootRefs := 0
@@ -208,7 +218,9 @@ func vfCheckSignature(data []byte, n *vfNode, at time.Time) []vfProblem {
 			continue
 		}
 		digestMethod := vfAttribute(ref.child(nsXMLDSig, "DigestMethod"), "Algorithm")
-		if digestMethod != algSHA256 && digestMethod != "http://www.w3.org/2001/04/xmlenc#sha512" {
+		if digestMethod == algSHA1 {
+			usaSHA1 = true
+		} else if digestMethod != algSHA256 && digestMethod != "http://www.w3.org/2001/04/xmlenc#sha512" {
 			return fail("profile")
 		}
 		uri := vfAttribute(ref, "URI")
@@ -257,8 +269,17 @@ func vfCheckSignature(data []byte, n *vfNode, at time.Time) []vfProblem {
 	if ph == nil || ph.child(nsXMLDSig, "DigestValue").value() != "G7roucf600+f03r/o0bAOQ6WAs0=" || vfAttribute(ph.child(nsXMLDSig, "DigestMethod"), "Algorithm") != algSHA1 {
 		return fail("profile")
 	}
-	verification, e := verifyXMLSignatureDocument(context.Background(), data, true, nil, domain.CertificateChain{}, string(FormatVeriFactu), "", nil, coberturaDelDocumento)
-	if e != nil || len(xmlCompatibilityDetails(verification.result)) > 0 || len(algoritmosAntiguos(verification.result)) > 0 {
+	// Solo SHA-1 se puede aceptar aquí: el registro propio de esta
+	// comprobación no lleva ninguna otra aceptación del usuario, y Veri*Factu
+	// no evalúa cadena, clave ni revocación (ver verifactu.trust).
+	registro := domain.RegistroConfianzaForzadaDe(ctx)
+	soloSHA1 := domain.NuevoRegistroConfianzaForzada(confianzaSoloSHA1(registro))
+	verification, e := verifyXMLSignatureDocument(domain.ConRegistroConfianzaForzada(ctx, soloSHA1), data, true, nil, domain.CertificateChain{}, string(FormatVeriFactu), "", nil, coberturaDelDocumento)
+	if e != nil || len(xmlCompatibilityDetails(verification.result)) > 0 {
+		return fail("signature")
+	}
+	antiguo := usaSHA1 || len(algoritmosAntiguos(verification.result)) > 0
+	if antiguo && verification.result.Integrity.Status != domain.VerificationStatusValid {
 		return fail("signature")
 	}
 	for _, c := range verification.signerCertificates {
@@ -267,7 +288,37 @@ func vfCheckSignature(data []byte, n *vfNode, at time.Time) []vfProblem {
 		}
 	}
 	// La integridad no acredita representación, cualificación TSL ni revocación histórica.
-	return []vfProblem{{"Signature", "verifactu.trust", "warning"}}
+	confianza := vfProblem{"Signature", "verifactu.trust", "warning"}
+	if !antiguo {
+		return []vfProblem{confianza}
+	}
+	sha1 := domain.ObstaculoConfianza{Tipo: domain.ConfianzaAlgoritmoSHA1}
+	if len(soloSHA1.Aplicadas()) > 0 && registro.Decidir(sha1) {
+		return []vfProblem{{"Signature", "verifactu.signature_sha1_accepted", "warning"}, confianza}
+	}
+	if registro != nil && !registro.Confianza().Prohibida {
+		// Se apunta el obstáculo para que la CLI y el escritorio sepan que
+		// se puede aceptar.
+		registro.Decidir(sha1)
+		return fail("signature_sha1_acceptable")
+	}
+	return fail("signature_sha1")
+}
+
+// confianzaSoloSHA1 deja de lo aceptado por el usuario solo SHA-1 (y la
+// prohibición de la política, si la hay).
+func confianzaSoloSHA1(registro *domain.RegistroConfianzaForzada) domain.ConfianzaForzada {
+	if registro == nil {
+		return domain.ConfianzaForzada{}
+	}
+	confianza := registro.Confianza()
+	out := domain.ConfianzaForzada{Prohibida: confianza.Prohibida}
+	for _, aceptacion := range confianza.Aceptaciones {
+		if aceptacion.Tipo == domain.ConfianzaAlgoritmoSHA1 {
+			out.Aceptaciones = append(out.Aceptaciones, aceptacion)
+		}
+	}
+	return out
 }
 
 // vfAEATNamespacePrefix agrupa los espacios de nombres de la AEAT para
@@ -407,7 +458,7 @@ func ValidarRegistrosVeriFactu(ctx context.Context, files map[string][]byte) Ver
 		}
 		r.Signed = looksLikeSignedXML(data)
 		if r.Signed {
-			r.Issues = append(r.Issues, vfCheckSignature(data, n, r.date)...)
+			r.Issues = append(r.Issues, vfCheckSignatureConContexto(ctx, data, n, r.date)...)
 		} else {
 			r.add("Signature", "unsigned", "warning")
 		}

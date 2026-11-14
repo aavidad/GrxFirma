@@ -31,13 +31,30 @@ type ConfianzaForzadaUseCase interface {
 	Quitar(ctx context.Context, tipo domain.TipoConfianzaForzada, huella string) (bool, error)
 }
 
-// textoAvisoConfianzaForzada traduce los avisos de confianza forzada; el
-// resto de avisos se escribe como hasta ahora.
-func (a *Adaptador) textoAvisoConfianzaForzada(aviso string) string {
-	if strings.HasPrefix(aviso, "verify.forced_trust.") {
-		return a.clave(aviso)
+// contextoConfianzaForzada adjunta al contexto lo que el usuario aceptó en
+// su equipo, para comprobaciones locales que no pasan por la verificación de
+// firmas (Veri*Factu). Si no se puede leer, cuenta como prohibido.
+func (a *Adaptador) contextoConfianzaForzada(ctx context.Context) (context.Context, *domain.RegistroConfianzaForzada) {
+	if a.ConfianzaForzada == nil {
+		return ctx, nil
 	}
-	return aviso
+	confianza, err := a.ConfianzaForzada.Listar(ctx)
+	if err != nil {
+		confianza = domain.ConfianzaForzada{Prohibida: true}
+	}
+	registro := domain.NuevoRegistroConfianzaForzada(confianza)
+	return domain.ConRegistroConfianzaForzada(ctx, registro), registro
+}
+
+// auditarConfianzaForzadaAplicada registra en la auditoría lo aceptado que se
+// aplicó, si el caso de uso lo admite.
+func (a *Adaptador) auditarConfianzaForzadaAplicada(ctx context.Context, operacion string, registro *domain.RegistroConfianzaForzada) {
+	auditor, ok := a.ConfianzaForzada.(interface {
+		RegistrarAplicadas(context.Context, string, []domain.ObstaculoConfianza)
+	})
+	if ok && registro != nil {
+		auditor.RegistrarAplicadas(ctx, operacion, registro.Aplicadas())
+	}
 }
 
 // escribirPistaConfianzaForzada dice cómo aceptar en este equipo los

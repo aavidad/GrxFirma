@@ -70,10 +70,12 @@ func (m *Manejador) handleVeriFactu(ctx context.Context, action string, raw json
 		}
 		return respuesta{OK: true, Action: action, Data: map[string]any{"inputPath": p.InputPath, "isVerifactu": signer.EsRegistroVeriFactu(data)}}
 	}
-	result, e := signer.ValidarRutaVeriFactu(ctx, p.InputPath)
+	ctxVF, registro := m.contextoConfianzaForzada(ctx)
+	result, e := signer.ValidarRutaVeriFactu(ctxVF, p.InputPath)
 	if e != nil {
 		return respuesta{Action: action, Error: signer.TraducirErrorVeriFactu(e, func(k string) string { return m.t(k) })}
 	}
+	m.auditarConfianzaForzadaAplicada(ctx, "verifactu_validar", registro)
 	result.Localize(func(k string) string { return m.t(k) })
 	return respuesta{OK: true, Action: action, Data: result}
 }

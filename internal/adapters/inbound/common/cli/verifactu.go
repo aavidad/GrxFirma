@@ -24,11 +24,13 @@ func (a *Adaptador) ejecutarVeriFactu(ctx context.Context, cfg configCLI) int {
 		return 1
 	}
 	if cfg.operacion == "validar-verifactu" {
-		result, e := signer.ValidarRutaVeriFactu(ctx, cfg.entrada)
+		ctxVF, registro := a.contextoConfianzaForzada(ctx)
+		result, e := signer.ValidarRutaVeriFactu(ctxVF, cfg.entrada)
 		if e != nil {
 			fmt.Fprintln(a.Stderr, signer.TraducirErrorVeriFactu(e, func(k string) string { return loc.T(k) }))
 			return 1
 		}
+		a.auditarConfianzaForzadaAplicada(ctx, "verifactu_validar", registro)
 		result.Localize(func(k string) string { return loc.T(k) })
 		if cfg.json {
 			data, _ := json.MarshalIndent(result, "", "  ")

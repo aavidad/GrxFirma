@@ -215,6 +215,20 @@ func (uc *GestionConfianzaForzadaUseCase) Quitar(ctx context.Context, tipo domai
 	return quitada, err
 }
 
+// RegistrarAplicadas deja en la auditoría que una comprobación local, fuera
+// de la verificación de firmas (Veri*Factu), dio algo por bueno gracias a lo
+// aceptado por el usuario.
+func (uc *GestionConfianzaForzadaUseCase) RegistrarAplicadas(ctx context.Context, operacion string, aplicadas []domain.ObstaculoConfianza) {
+	if uc == nil || uc.auditor == nil || len(aplicadas) == 0 {
+		return
+	}
+	_ = uc.auditor.Registrar(ctx, AuditCommand{
+		OperationType:  operacion,
+		Success:        true,
+		Compatibilidad: codigosConfianzaForzada(true, aplicadas),
+	})
+}
+
 func (uc *GestionConfianzaForzadaUseCase) auditar(ctx context.Context, operacion string, aceptacion domain.AceptacionConfianza, ok bool, err error) {
 	if uc.auditor == nil {
 		return
