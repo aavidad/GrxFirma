@@ -88,6 +88,7 @@ func desktopIPCHelloWithManagedTrust(managedTrustSupported bool) resultadoIPCHel
 		"check_updates",
 		"clear_temporary_certificates",
 		"clock_diagnostics",
+		"cosign_original_check",
 		"csc_configure",
 		"csc_connect",
 		"csc_disconnect",

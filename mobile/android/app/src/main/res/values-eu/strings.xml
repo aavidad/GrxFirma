@@ -570,6 +570,9 @@
     <string name="batch_action_label">Sortaren eragiketa</string>
     <string name="batch_action_sign">Sinatu</string>
     <string name="batch_action_cosign">Kosinatu (gehitu nire sinadura sinatuta dauden fitxategiei)</string>
+    <string name="batch_cosign_confirm_title">Kosinatu dokumentuak ikusi gabe</string>
+    <string name="batch_cosign_confirm_message">Fitxategiren bat sinatutako dokumentua barnean ez duen sinadura bat bada (adibidez, .csig bereizi bat), dokumentu hori ikusi gabe kosinatuko duzu. Aurretik ikusteko, kosinatu bakarrik eta aukeratu «Gehitu jatorrizko dokumentua». Sorta kosinatu nahi duzu?</string>
+    <string name="batch_cosign_confirm_action">Kosinatu sorta</string>
     <string name="batch_seal_check">Gehitu zigilu ikusgarria PDFei</string>
     <string name="batch_seal_helper">«Kokatu zigilua» botoiarekin kokatutako zigilua erabiltzen da. PDF batek aukeratutakoa baino orri gutxiago baditu, zigilua azkenean jartzen da. CSV legenda ez da sortan gehitzen.</string>
     <string name="batch_seal_error">Ezin izan da %1$s fitxategiaren zigilu ikusgarria prestatu. Kendu PDF hori sortatik edo sinatu zigilurik gabe.</string>

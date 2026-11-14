@@ -377,6 +377,22 @@ class MainViewModel(
         return UiText.Resource(resource, args)
     }
 
+    /**
+     * Avisos del motor tras firmar (lote 17b, 3b): solo claves cerradas del
+     * catálogo, traducidas en el idioma de la persona. Con [source], cada
+     * línea lleva el nombre del documento del lote.
+     */
+    private fun warningLines(warnings: List<String>, source: String? = null): List<UiText> =
+        warnings.filter(EngineKeys::isClosed).distinct().map { key ->
+            val text = UiText.Resource(R.string.verification_warning, listOf(UiText.Engine(key)))
+            if (source == null) text else UiText.Resource(R.string.issue_line, listOf(source, text))
+        }
+
+    private fun withWarnings(detail: UiText, warnings: List<String>): UiText {
+        val lines = warningLines(warnings)
+        return if (lines.isEmpty()) detail else UiText.Lines(listOf(detail) + lines)
+    }
+
     fun sign(format: String, options: Map<String, String> = emptyMap()) {
         val snapshot = mutableState.value
         val document = snapshot.document
@@ -441,9 +457,12 @@ class MainViewModel(
                     postSignVerificationFailed = verification == null,
                     result = OperationResult.Success(
                         UiText.Resource(R.string.result_success),
-                        UiText.Resource(
-                            R.string.result_signed,
-                            listOf(output.format, output.algorithm),
+                        withWarnings(
+                            UiText.Resource(
+                                R.string.result_signed,
+                                listOf(output.format, output.algorithm),
+                            ),
+                            output.warnings,
                         ),
                     ),
                 )
@@ -906,12 +925,15 @@ class MainViewModel(
      * visible calculado para cada documento. Con DNIe, [externalError] entrega
      * el primer fallo de la tarjeta para explicarlo junto al resultado, y
      * [onFinished] cierra la operación de PIN (también si no llega a empezar).
+     * [confirmUnseenContent] dice que la persona confirmó cofirmar sin ver el
+     * documento de las firmas que no lo llevan dentro (KD-03, lote 17b).
      */
     fun signBatch(
         format: String,
         sealPlanner: BatchSealPlanner? = null,
         externalError: (() -> Pair<Throwable, Int>?)? = null,
         onFinished: () -> Unit = {},
+        confirmUnseenContent: Boolean = false,
     ) {
         val snapshot = mutableState.value
         val certificate = snapshot.certificate
@@ -972,7 +994,7 @@ class MainViewModel(
                         } else emptyMap()
                         items += BatchItemInput(file, format, action, options)
                     }
-                    core.signBatchItems(items, certificate.id, configured)
+                    core.signBatchItems(items, certificate.id, configured, confirmUnseenContent && action == "cosign")
                 }
                 clearPending()
                 pendingBatch = results
@@ -985,6 +1007,7 @@ class MainViewModel(
                     results.forEach {
                         add(UiText.Resource(if (it.output != null) R.string.batch_item_ok else R.string.batch_item_error,
                             listOf(it.sourceName)))
+                        addAll(warningLines(it.output?.warnings.orEmpty(), it.sourceName))
                     }
                 }
                 if (ok == 0) {
@@ -1125,10 +1148,10 @@ class MainViewModel(
                 original = snapshot.originalDocument?.let(repository::loadDocument)
                 val created = core.createEniDocument(signature, original, request)
                 val name = EniForm.outputName(document.displayName)
-                val detail = UiText.Resource(R.string.eni_created_detail, listOf(name))
-                // Tras guardarlo ya no se pide elegir destino.
+                val detail = withWarnings(UiText.Resource(R.string.eni_created_detail, listOf(name)), created.warnings)
+                // Tras guardarlo ya no se pide elegir destino; los avisos siguen.
                 replacePending(SignedOutput(created.bytes, name, "application/xml", "ENI", created.signatureType),
-                    PendingKind.TOOL, UiText.Resource(R.string.eni_saved_detail, listOf(name)))
+                    PendingKind.TOOL, withWarnings(UiText.Resource(R.string.eni_saved_detail, listOf(name)), created.warnings))
                 mutableState.value = mutableState.value.copy(awaitingSave = true,
                     result = OperationResult.Success(UiText.Resource(R.string.eni_created), detail))
                 effectChannel.send(UiEffect.SaveSignedDocument(name, "application/xml"))

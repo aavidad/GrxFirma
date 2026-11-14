@@ -1336,6 +1336,8 @@ void IpcBridge::failActionDueToConnection(const QString &action,
     emit verifactuValidated(false, QVariantMap(), safeMessage);
   } else if (action == "detect_verifactu") {
     emit verifactuDetected(false, QVariantMap());
+  } else if (action == "cosign_original_check") {
+    emit cosignOriginalChecked(false, false);
   } else if (action == "read_verifactu_qr" || action == "query_verifactu_qr") {
     emit verifactuQRFinished(action, false, QVariantMap(), safeMessage);
   } else if (action == "validate_invoice") {
@@ -1447,6 +1449,11 @@ void IpcBridge::signFileAdvanced(const QString &inputPath,
   if (options.contains("visibleSeal")) {
     params["visibleSeal"] = options.value("visibleSeal").toMap();
   }
+  // KD-03: el documento original de una CAdES explícita, si se eligió; el
+  // motor lo coteja con la firma antes de cofirmar o contrafirmar.
+  const QString originalPath = options.value("originalPath").toString();
+  if (!originalPath.isEmpty())
+    params["originalPath"] = originalPath;
   ipcMoveRemoteSigningSecrets(params, options);
   m_lastSigningWarnings.clear();
   sendRequest("sign", params);
@@ -1635,6 +1642,14 @@ void IpcBridge::validateVeriFactu(const QString &inputPath) {
 }
 void IpcBridge::detectVeriFactu(const QString &inputPath) {
   sendRequest(QStringLiteral("detect_verifactu"), {{QStringLiteral("inputPath"), inputPath}});
+}
+void IpcBridge::checkCosignOriginal(const QString &inputPath,
+                                    const QString &format,
+                                    const QString &action) {
+  sendRequest(QStringLiteral("cosign_original_check"),
+              {{QStringLiteral("inputPath"), inputPath},
+               {QStringLiteral("format"), format},
+               {QStringLiteral("action"), action}});
 }
 void IpcBridge::readVeriFactuQR(const QString &url) {
   sendRequest(QStringLiteral("read_verifactu_qr"), {{QStringLiteral("url"), url}});
@@ -2177,6 +2192,11 @@ void IpcBridge::onReadyRead() {
       emit verifactuDetected(ok, ok ? data.toObject().toVariantMap() : QVariantMap());
       continue;
     }
+    if (action == QStringLiteral("cosign_original_check")) {
+      emit cosignOriginalChecked(
+          ok, ok && data.toObject().value(QStringLiteral("needsOriginal")).toBool());
+      continue;
+    }
     if (action == QStringLiteral("validate_verifactu")) {
       emit verifactuValidated(ok, ok ? data.toObject().toVariantMap() : QVariantMap(), ok ? QString() : errMsg);
       continue;
@@ -2517,8 +2537,14 @@ void IpcBridge::onReadyRead() {
       QJsonObject res = data.toObject();
       QVariantList results;
       QJsonArray arr = res.value("results").toArray();
-      for (const auto &v : arr)
-        results << v.toVariant();
+      for (const auto &v : arr) {
+        // Lote 17b (3d): cada documento trae sus avisos; pasan el mismo
+        // filtro que los de una firma suelta.
+        QVariantMap item = v.toObject().toVariantMap();
+        item.insert(QStringLiteral("warnings"),
+                    ipcSigningWarnings(v.toObject()));
+        results << item;
+      }
       int okCount = res.value("okCount").toInt();
       int failCount = res.value("failCount").toInt();
       QString msg =

@@ -3313,7 +3313,23 @@ func (a *Adaptador) confirmacionPositiva() bool {
 		return false
 	}
 	respuesta := strings.ToLower(strings.TrimSpace(linea))
-	return respuesta == "s" || respuesta == "si" || respuesta == "sí" || respuesta == "y" || respuesta == "yes"
+	if respuesta == "" {
+		return false
+	}
+	// Lo de siempre vale en todos los idiomas; además, la respuesta
+	// afirmativa del idioma de la persona (o, j, b…), del catálogo (lote 17b).
+	if respuesta == "s" || respuesta == "si" || respuesta == "sí" || respuesta == "y" || respuesta == "yes" {
+		return true
+	}
+	if a.Localizador == nil {
+		return false
+	}
+	for _, afirmativa := range strings.Split(a.Localizador.T("cli.confirm.yes_answers"), ",") {
+		if afirmativa = strings.ToLower(strings.TrimSpace(afirmativa)); afirmativa != "" && respuesta == afirmativa {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *Adaptador) importarDominiosIniciales(ctx context.Context) (int, error) {

@@ -64,6 +64,10 @@
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["draft"], "properties": {"draft": {"type": "object"}, "outputPath": {"type": "string"}, "overwriteConfirmed": {"type": "boolean"}}, "additionalProperties": false}}}
         },
         {
+          "if": {"properties": {"action": {"const": "cosign_original_check"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["inputPath", "action"], "properties": {"inputPath": {"type": "string", "minLength": 1}, "format": {"type": "string"}, "action": {"type": "string"}}, "additionalProperties": false}}}
+        },
+        {
           "if": {"properties": {"action": {"const": "forced_trust_accept"}}, "required": ["action"]},
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["items"], "properties": {"items": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"type": "object", "required": ["type"], "properties": {"type": {"type": "string"}, "fingerprint": {"type": "string"}}, "additionalProperties": false}}}, "additionalProperties": false}}}
         },
@@ -418,6 +422,7 @@
         "clear_temporary_certificates",
         "clear_tls_trust",
         "clock_diagnostics",
+        "cosign_original_check",
         "csc_configure",
         "csc_connect",
         "csc_disconnect",

@@ -65,12 +65,18 @@ func (e *CAdESBESDetached) Sign(ctx context.Context, job domain.SignatureJob, ke
 	var (
 		firma     []byte
 		algoritmo string
+		original  []byte
 	)
+	if job.Action != domain.ActionSign {
+		if original, err = originalCofirmaCotejado(ctx, job.Document.Content, job.OriginalContent); err != nil {
+			return domain.SignatureResult{}, err
+		}
+	}
 	switch job.Action {
 	case domain.ActionSign:
 		firma, algoritmo, err = signCAdESBES(job.Document.Content, clave, spec, modoImplicitoCAdES(job.Options))
 	case domain.ActionCoSign:
-		firma, err = cosignCAdES(job.Document.Content, clave, spec, time.Now())
+		firma, err = cosignCAdES(job.Document.Content, original, clave, spec, time.Now())
 		algoritmo = etiquetaAlgoritmoCMS(clave, spec)
 	case domain.ActionCounterSign:
 		firma, err = countersignCAdES(job.Document.Content, clave, spec, time.Now())
@@ -81,7 +87,7 @@ func (e *CAdESBESDetached) Sign(ctx context.Context, job domain.SignatureJob, ke
 	if err != nil {
 		return domain.SignatureResult{}, err
 	}
-	if job.Action != domain.ActionSign {
+	if job.Action != domain.ActionSign && original == nil {
 		avisarCofirmaSinDocumento(ctx, job.Document.Content)
 	}
 

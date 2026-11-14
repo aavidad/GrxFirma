@@ -33,6 +33,8 @@ data class SignedOutput(
     val mimeType: String,
     val format: String,
     val algorithm: String,
+    /** Avisos del motor sobre esta firma: claves cerradas del catálogo (lote 17b). */
+    val warnings: List<String> = emptyList(),
 )
 
 data class VerificationSummary(
@@ -129,7 +131,12 @@ data class EniRequest(
     val contentFormat: String = "",
 )
 
-data class EniDocument(val bytes: ByteArray, val signatureType: String)
+data class EniDocument(
+    val bytes: ByteArray,
+    val signatureType: String,
+    /** Avisos del motor, por ejemplo una firma SHA-1 que corresponde (lote 17b). */
+    val warnings: List<String> = emptyList(),
+)
 
 data class EniValidation(val valid: Boolean, val issues: List<EngineIssue>)
 

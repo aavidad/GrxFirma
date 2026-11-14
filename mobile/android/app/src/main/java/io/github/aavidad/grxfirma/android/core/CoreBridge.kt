@@ -172,8 +172,12 @@ interface CoreBridge {
     fun createEniFile(documents: List<LoadedFile>, certificateId: String, request: EniFileRequest): EniFileResult =
         toolsUnavailable()
 
-    fun signBatchItems(items: List<BatchItemInput>, certificateId: String, options: Map<String, String>): List<BatchItemResult> =
-        toolsUnavailable()
+    fun signBatchItems(
+        items: List<BatchItemInput>,
+        certificateId: String,
+        options: Map<String, String>,
+        confirmUnseenContent: Boolean = false,
+    ): List<BatchItemResult> = toolsUnavailable()
 }
 
 /** Nombres de servicio del contrato para la tercera oleada. */

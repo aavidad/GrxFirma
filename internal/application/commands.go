@@ -42,6 +42,10 @@ type SignCommand struct {
 	// RequesterOrigin conserva el origen visible de la solicitud cuando el
 	// borde de entrada puede acreditarlo (por ejemplo, una WebExtension).
 	RequesterOrigin string
+
+	// OriginalContent es, al cofirmar o contrafirmar una CAdES explícita, el
+	// documento que esa firma cubre. Opcional; ver domain.SignatureJob.
+	OriginalContent []byte
 }
 
 // CoSignCommand representa la solicitud de cofirma sobre un documento ya firmado.

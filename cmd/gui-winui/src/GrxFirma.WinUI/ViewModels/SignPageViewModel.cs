@@ -81,6 +81,15 @@ public sealed record BatchSignDisplayItem(
     public override string ToString() => DocumentName + ". " + Status;
 }
 
+// KD-03 (lote 17b): respuesta de la persona cuando la firma que va a cofirmar
+// o contrafirmar no lleva el documento dentro.
+public enum CosignOriginalChoice
+{
+    Cancel,
+    ChooseOriginal,
+    SignAnyway,
+}
+
 public sealed class SignPageViewModel
     : WorkspacePageViewModel
 {
@@ -333,6 +342,77 @@ public sealed class SignPageViewModel
     /// Solo se usa con la preferencia «Confirmar antes de firmar» activa.
     /// </summary>
     public Func<SignConfirmationSummary, CancellationToken, Task<bool>>? SignConfirmationPrompt { get; set; }
+
+    /// <summary>
+    /// KD-03 (lote 17b): explica que la firma no lleva el documento dentro y
+    /// ofrece elegir el original (recomendado) o firmar de todos modos.
+    /// </summary>
+    public Func<CancellationToken, Task<CosignOriginalChoice>>? CosignOriginalPrompt { get; set; }
+
+    private static bool IsCosignOrCountersign(string action) =>
+        string.Equals(action, "cosign", StringComparison.Ordinal) ||
+        string.Equals(action, "countersign", StringComparison.Ordinal);
+
+    // Pregunta al motor si la firma de entrada es una CAdES sin el documento
+    // dentro. Si lo es, la persona elige el original (el motor lo coteja
+    // antes de firmar) o firma de todos modos. Un motor que no sabe
+    // responder deja la firma como antes, con su aviso tras firmar.
+    private async Task<(bool Proceed, string? OriginalPath)> AskCosignOriginalAsync(
+        DesktopOperationsClient operations,
+        string inputPath,
+        string format,
+        string action,
+        CancellationToken cancellationToken)
+    {
+        if (!IsCosignOrCountersign(action) ||
+            !_session.Supports(DesktopOperationActions.CosignOriginalCheck))
+        {
+            return (true, null);
+        }
+        var check = await operations.CheckCosignOriginalAsync(
+            new CosignOriginalCheckParameters
+            {
+                InputPath = inputPath,
+                Format = format,
+                Action = action,
+            },
+            cancellationToken);
+        if (!check.IsSuccess || check.Data is not { NeedsOriginal: true })
+        {
+            return (true, null);
+        }
+        var prompt = CosignOriginalPrompt;
+        if (prompt is null)
+        {
+            return (true, null);
+        }
+        switch (await prompt(cancellationToken))
+        {
+            case CosignOriginalChoice.SignAnyway:
+                return (true, null);
+            case CosignOriginalChoice.ChooseOriginal:
+                var originalPath = await _filePicker.PickOpenFileAsync(
+                    OpenFilePickerProfile.SignedOrOriginalDocument,
+                    cancellationToken);
+                if (!string.IsNullOrWhiteSpace(originalPath))
+                {
+                    return (true, originalPath);
+                }
+                break;
+        }
+        ValidationMessage = Localizer.Text("winui.firmar.confirmar.cancelada");
+        return (false, null);
+    }
+
+    private static string? CosignOriginalFailureMessage(string? errorCode) =>
+        errorCode switch
+        {
+            "cosign_original_mismatch" =>
+                Localizer.Text("firma.cofirma_sin_original.original_no_corresponde"),
+            "cosign_original_sha1_forbidden" =>
+                Localizer.Text("firma.sha1_corresponde.prohibido"),
+            _ => null,
+        };
 
     private async Task<bool> ConfirmSignAsync(
         bool required,
@@ -2826,6 +2906,21 @@ public sealed class SignPageViewModel
                     tsaUrl = normalized;
                 }
             }
+            string? cosignOriginalPath = null;
+            if (!useGuidedMultiCosign)
+            {
+                var cosignOriginal = await AskCosignOriginalAsync(
+                    operations,
+                    inputPath,
+                    format.Value,
+                    action.Value,
+                    operationCancellation.Token);
+                if (!cosignOriginal.Proceed)
+                {
+                    return null;
+                }
+                cosignOriginalPath = cosignOriginal.OriginalPath;
+            }
             if (!await ConfirmSignAsync(
                 confirmSign,
                 new SignConfirmationSummary(
@@ -2917,6 +3012,7 @@ public sealed class SignPageViewModel
                     ? format.Value
                     : "pades",
                 Action = action.Value,
+                OriginalPath = cosignOriginalPath,
                 // El selector de guardar ya pidió confirmación si el
                 // fichero existía; el motor solo reemplaza con este aviso.
                 OverwriteConfirmed = true,
@@ -2947,6 +3043,7 @@ public sealed class SignPageViewModel
             {
                 ValidationMessage =
                     RemoteSigningFailureMessage(result.ErrorCode) ??
+                    CosignOriginalFailureMessage(result.ErrorCode) ??
                     Localizer.Text("winui.firmar.la_firma_no_se_completo_abra_el");
                 return OperationDiagnosticMapper.FromResult(result);
             }
@@ -4651,11 +4748,19 @@ public sealed class SignPageViewModel
             }
 
             successCount++;
+            // Lote 17b (3d): los avisos de este documento van con él, además
+            // del resumen del lote.
+            var detail = Localizer.Format("winui.firmar.salida_confirmada",
+                SafeFileName(item.OutputPath));
+            var itemWarnings = SigningWarningsText(item.VisibleWarnings);
+            if (itemWarnings.Length > 0)
+            {
+                detail += Environment.NewLine + itemWarnings;
+            }
             visibleItems.Add(new BatchSignDisplayItem(
                 SafeFileName(expectedPath),
                 Localizer.Text("winui.firmar.estado_firmado"),
-                Localizer.Format("winui.firmar.salida_confirmada",
-                    SafeFileName(item.OutputPath)),
+                detail,
                 true,
                 item.OutputPath));
         }

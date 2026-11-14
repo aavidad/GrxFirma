@@ -585,6 +585,9 @@
     <string name="batch_action_label">Operação do lote</string>
     <string name="batch_action_sign">Assinar</string>
     <string name="batch_action_cosign">Coassinar (acrescentar a minha assinatura a ficheiros já assinados)</string>
+    <string name="batch_cosign_confirm_title">Coassinar sem ver os documentos</string>
+    <string name="batch_cosign_confirm_message">Se algum dos ficheiros for uma assinatura que não contém o documento assinado (por exemplo, um .csig separado), irá coassiná-lo sem poder ver esse documento. Para o ver antes, coassine-o à parte e escolha «Adicionar o documento original». Quer coassinar o lote?</string>
+    <string name="batch_cosign_confirm_action">Coassinar o lote</string>
     <string name="batch_seal_check">Acrescentar o selo visível aos PDF</string>
     <string name="batch_seal_helper">É usado o selo colocado com «Colocar o selo». Se um PDF tiver menos páginas do que a escolhida, o selo vai na última. A legenda CSV não é acrescentada no lote.</string>
     <string name="batch_seal_error">Não foi possível preparar o selo visível de %1$s. Retire esse PDF do lote ou assine sem selo.</string>

@@ -585,6 +585,9 @@
     <string name="batch_action_label">Opération du lot</string>
     <string name="batch_action_sign">Signer</string>
     <string name="batch_action_cosign">Cosigner (ajouter ma signature à des fichiers déjà signés)</string>
+    <string name="batch_cosign_confirm_title">Cosigner sans voir les documents</string>
+    <string name="batch_cosign_confirm_message">Si l\'un des fichiers est une signature qui ne contient pas le document signé (par exemple, un .csig séparé), vous le cosignerez sans pouvoir voir ce document. Pour le voir avant, cosignez-le séparément et choisissez « Ajouter le document original ». Voulez-vous cosigner le lot ?</string>
+    <string name="batch_cosign_confirm_action">Cosigner le lot</string>
     <string name="batch_seal_check">Ajouter le cachet visible aux PDF</string>
     <string name="batch_seal_helper">Le cachet placé avec « Placer le cachet » est utilisé. Si un PDF a moins de pages que celle choisie, le cachet va sur la dernière. La mention CSV n\'est pas ajoutée dans un lot.</string>
     <string name="batch_seal_error">Impossible de préparer le cachet visible de %1$s. Retirez ce PDF du lot ou signez sans cachet.</string>

@@ -480,15 +480,18 @@ func (f *Facade) SignJSON(payload string) (out string, err error) {
 		return "", err
 	}
 	var avisosFirma []string
+	// original es el documento de una CAdES explícita que se cofirma: se
+	// coteja aquí y también lo recibe el motor, que lo necesita para cofirmar
+	// cuando los firmantes solo usan SHA-1 (lote 17b).
+	var original []byte
+	defer func() { zeroBytes(original) }()
 	if esCofirmaCAdESExplicita(format, req.Action, content) {
-		var original []byte
 		if req.OriginalBase64 != "" {
 			if original, err = decodeBase64Limited(req.OriginalBase64, "original_base64", maxDocumentBytes); err != nil {
 				return "", err
 			}
 		}
 		avisosFirma, err = comprobarOriginalCofirma(content, original, req.ConfirmUnseenContent)
-		zeroBytes(original)
 		if err != nil {
 			return "", err
 		}
@@ -515,6 +518,7 @@ func (f *Facade) SignJSON(payload string) (out string, err error) {
 	if err != nil {
 		return "", newFacadeError("solicitud de firma no valida")
 	}
+	cmd.OriginalContent = original
 	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
 	defer cancel()
 	result, err := f.signService.Execute(ctx, cmd)
@@ -531,7 +535,9 @@ func (f *Facade) SignJSON(payload string) (out string, err error) {
 		Algorithm:           sanitizeOutputText(result.Result.Algorithm, 128),
 		SignedContentBase64: base64.StdEncoding.EncodeToString(result.Result.Data),
 		CertificateID:       sanitizeOutputText(result.CertificateUsed.ID, 128),
-		Warnings:            avisosFirma,
+		// Los avisos del motor (por ejemplo, la CRL que no cubre al firmante)
+		// se suman a los de la cofirma, sin repetir.
+		Warnings: domain.UnirAvisos(avisosFirma, result.Warnings...),
 	})
 }
 

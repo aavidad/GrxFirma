@@ -261,8 +261,9 @@ class ReflectiveGomobileBridge private constructor(
         items: List<BatchItemInput>,
         certificateId: String,
         options: Map<String, String>,
+        confirmUnseenContent: Boolean,
     ): List<BatchItemResult> = CoreJsonCodec.parseBatch(
-        invokeTool("processBatchJSON", Wave4Codec.batchItemsRequest(items, certificateId, options)),
+        invokeTool("processBatchJSON", Wave4Codec.batchItemsRequest(items, certificateId, options, confirmUnseenContent)),
         items.map { it.file },
         outputName,
     )

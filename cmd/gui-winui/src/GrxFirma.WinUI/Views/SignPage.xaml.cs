@@ -93,6 +93,7 @@ public sealed partial class SignPage : Page
             app.FilePickerService);
         ViewModel.RemoteSecretsPrompt = PromptRemoteSecretsAsync;
         ViewModel.SignConfirmationPrompt = ConfirmSignAsync;
+        ViewModel.CosignOriginalPrompt = PromptCosignOriginalAsync;
         InitializeComponent();
         // La superficie recibe el inicio del dibujo desde el control transparente.
         VisibleSealPreviewSurface.AddHandler(UIElement.PointerPressedEvent,
@@ -930,6 +931,48 @@ public sealed partial class SignPage : Page
     // «Confirmar antes de firmar»: resumen de lo que se va a firmar y con qué
     // certificado. El botón por defecto es «Cancelar» para que Intro no firme
     // sin querer.
+    // KD-03 (lote 17b): la firma que se va a cofirmar o contrafirmar no lleva
+    // el documento dentro. «Elegir el documento original» es el botón por
+    // defecto (el camino recomendado); Escape y «Cancelar» no firman.
+    private async Task<CosignOriginalChoice> PromptCosignOriginalAsync(
+        CancellationToken cancellationToken)
+    {
+        if (!_isSubscribed || XamlRoot is null || cancellationToken.IsCancellationRequested)
+        {
+            return CosignOriginalChoice.Cancel;
+        }
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            RequestedTheme = ActualTheme,
+            Title = Localizer.Text("firma.cofirma_sin_original.confirmar_titulo"),
+            Content = new ScrollViewer
+            {
+                MaxHeight = 420,
+                Content = new TextBlock
+                {
+                    Text = Localizer.Text("firma.cofirma_sin_original.confirmar_texto"),
+                    TextWrapping = TextWrapping.Wrap,
+                },
+            },
+            PrimaryButtonText = Localizer.Text("firma.cofirma_sin_original.elegir_original"),
+            SecondaryButtonText = Localizer.Text("firma.cofirma_sin_original.firmar_igualmente"),
+            CloseButtonText = Localizer.Text("winui.comun.cancelar"),
+            DefaultButton = ContentDialogButton.Primary,
+        };
+        var result = await Localizer.ShowAsync(dialog);
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return CosignOriginalChoice.Cancel;
+        }
+        return result switch
+        {
+            ContentDialogResult.Primary => CosignOriginalChoice.ChooseOriginal,
+            ContentDialogResult.Secondary => CosignOriginalChoice.SignAnyway,
+            _ => CosignOriginalChoice.Cancel,
+        };
+    }
+
     private async Task<bool> ConfirmSignAsync(
         SignConfirmationSummary summary,
         CancellationToken cancellationToken)

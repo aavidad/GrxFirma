@@ -293,6 +293,8 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp = m.handleCheckUpdates(ctx)
 	case "sign":
 		resp = m.handleFirma(ctx, p.Params)
+	case accionCofirmaOriginal:
+		resp = m.handleCofirmaOriginal(ctx, p.Params)
 	case "sign_multicosign":
 		resp = m.handleFirmaMultiCofirma(ctx, p.Params)
 	case "sign_batch":
@@ -718,12 +720,19 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 	if err != nil {
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}
 	}
+	// KD-03 (lote 17b): el documento original de una CAdES explícita, si la
+	// persona lo eligió; el motor lo coteja antes de firmar.
+	original, err := m.leerOriginalCofirmaIPC(params.OriginalPath, accionFirma)
+	if err != nil {
+		return respuesta{OK: false, Action: "sign", Error: err.Error()}
+	}
+	cmd.OriginalContent = original
 
 	// Los avisos que el motor anota mientras firma van al resultado.
 	ctxFirma, recolector := domain.ConAvisosOperacion(ctx)
 	result, err := m.Firmar.Execute(ctxFirma, cmd)
 	if err != nil {
-		return respuesta{OK: false, Action: "sign", Error: err.Error()}
+		return m.respuestaErrorFirma(err)
 	}
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}
@@ -1028,8 +1037,8 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 	}
 	cmd.CertificateID = certID
 
-	// El lote firma todos los documentos en una llamada: sus avisos se
-	// devuelven para el lote entero.
+	// Cada documento lleva los avisos que el motor anotó al firmarlo y el
+	// lote los reúne sin repetir (resumen).
 	ctxLote, recolector := domain.ConAvisosOperacion(ctx)
 	result, err := m.ProcesarLote.Execute(ctxLote, cmd)
 	if err != nil {
@@ -1083,6 +1092,7 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 		item.OK = true
 		item.OutputPath = finalPath
 		item.Format = string(signed.Result.Format)
+		item.Warnings = domain.UnirAvisos(nil, signed.Warnings...)
 		okCount++
 		items = append(items, item)
 	}

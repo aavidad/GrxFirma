@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointBackward
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aavidad.grxfirma.android.R
 import io.github.aavidad.grxfirma.android.databinding.SectionBatchWave4Binding
 import io.github.aavidad.grxfirma.android.databinding.SectionExpedienteBinding
@@ -120,10 +121,32 @@ internal class Wave4Screen(
             view.batchSealCheck.isChecked)
     }
 
-    /** Firma el lote; con DNIe pide el PIN una vez y lo borra al terminar. */
+    /**
+     * Firma el lote; con DNIe pide el PIN una vez y lo borra al terminar.
+     * KD-03 (lote 17b): antes de cofirmar se explica que una firma separada
+     * se cofirma sin ver su documento y se pide confirmación; «Cancelar» es
+     * el botón seguro y no firma nada.
+     */
     fun signBatch(format: String, sealPlanner: BatchSealPlanner?) {
+        val state = viewModel.state.value
+        if (!state.batchCosignAvailable || state.wave4.batchAction != "cosign") {
+            startBatch(format, sealPlanner, confirmUnseenContent = false)
+            return
+        }
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.batch_cosign_confirm_title)
+            .setMessage(R.string.batch_cosign_confirm_message)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.batch_cosign_confirm_action) { _, _ ->
+                startBatch(format, sealPlanner, confirmUnseenContent = true)
+            }
+            .show()
+    }
+
+    private fun startBatch(format: String, sealPlanner: BatchSealPlanner?, confirmUnseenContent: Boolean) {
         dnie.withPin(hold = true) {
-            viewModel.signBatch(format, sealPlanner, externalError = dnie::takeError, onFinished = dnie::endOperation)
+            viewModel.signBatch(format, sealPlanner, externalError = dnie::takeError, onFinished = dnie::endOperation,
+                confirmUnseenContent = confirmUnseenContent)
         }
     }
 

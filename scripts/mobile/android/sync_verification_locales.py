@@ -19,8 +19,11 @@ LANGUAGES = ("es", "en", "ca", "va", "gl", "eu", "fr", "de", "it", "pt", "zh")
 
 # Veri*Factu, ENI y la leyenda CSV devuelven claves cerradas del catálogo
 # desktop: se empaquetan por clave, no por texto español. La cofirma de una
-# CAdES separada pide el original con claves propias (KD-03).
-KEY_PREFIXES = ("verifactu.", "eni.validacion.", "eni.codigo.", "csv.error.", "firma.cofirma_sin_original.")
+# CAdES separada pide el original con claves propias (KD-03). Los avisos que
+# el motor devuelve tras firmar (SHA-1 que corresponde, CRL que no cubre al
+# firmante) también llegan por clave (lote 17b).
+KEY_PREFIXES = ("verifactu.", "eni.validacion.", "eni.codigo.", "csv.error.", "firma.cofirma_sin_original.",
+                "firma.sha1_corresponde.", "firma.lt.crl_no_aplicable.")
 EXCLUDED_KEYS = {"verifactu.cli_usage", "eni.validacion.input", "eni.validacion.help"}
 
 

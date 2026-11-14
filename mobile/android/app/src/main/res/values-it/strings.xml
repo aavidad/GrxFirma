@@ -585,6 +585,9 @@
     <string name="batch_action_label">Operazione del lotto</string>
     <string name="batch_action_sign">Firma</string>
     <string name="batch_action_cosign">Cofirma (aggiungi la mia firma a file già firmati)</string>
+    <string name="batch_cosign_confirm_title">Cofirma senza vedere i documenti</string>
+    <string name="batch_cosign_confirm_message">Se uno dei file è una firma che non contiene il documento firmato (per esempio, un .csig separato), lo cofirmerai senza poter vedere quel documento. Per vederlo prima, cofirmalo da solo e scegli «Aggiungi il documento originale». Vuoi cofirmare il lotto?</string>
+    <string name="batch_cosign_confirm_action">Cofirma il lotto</string>
     <string name="batch_seal_check">Aggiungi il sigillo visibile ai PDF</string>
     <string name="batch_seal_helper">Si usa il sigillo posizionato con «Posiziona il sigillo». Se un PDF ha meno pagine di quella scelta, il sigillo va sull\'ultima. La dicitura CSV non viene aggiunta nel lotto.</string>
     <string name="batch_seal_error">Impossibile preparare il sigillo visibile di %1$s. Rimuova quel PDF dal lotto o firmi senza sigillo.</string>

@@ -531,6 +531,9 @@ type signResponse struct {
 	SignedContentBase64 string `json:"signed_content_base64"`
 	CertificateID       string `json:"certificate_id"`
 	OutputPath          string `json:"outputPath,omitempty"`
+	// Warnings son avisos del motor sobre esta firma (claves de los
+	// catálogos), para que la interfaz los muestre traducidos (lote 17b).
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type certificateOnlineCheckRequest struct {
@@ -607,6 +610,8 @@ type signBatchItemResponse struct {
 	CertificateID       string `json:"certificate_id,omitempty"`
 	OutputPath          string `json:"outputPath,omitempty"`
 	Error               string `json:"error,omitempty"`
+	// Warnings son los avisos del motor al firmar este documento.
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type signBatchResponse struct {
@@ -616,6 +621,8 @@ type signBatchResponse struct {
 	SuccessCount int                     `json:"successCount"`
 	FailureCount int                     `json:"failureCount"`
 	Results      []signBatchItemResponse `json:"results"`
+	// Warnings reúne, sin repetir, los avisos de todo el lote.
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type protectRequest struct {
@@ -1063,6 +1070,7 @@ func (a *Adaptador) handleSign(w http.ResponseWriter, r *http.Request) {
 		Algorithm:           result.Result.Algorithm,
 		SignedContentBase64: base64.StdEncoding.EncodeToString(result.Result.Data),
 		CertificateID:       result.CertificateUsed.ID,
+		Warnings:            domain.UnirAvisos(nil, result.Warnings...),
 	})
 }
 
@@ -1185,6 +1193,7 @@ func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	results := make([]signBatchItemResponse, 0, len(metas))
+	var avisosLote []string
 	successIndex := 0
 	successCount := 0
 	failureCount := 0
@@ -1214,6 +1223,8 @@ func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
 		itemResp.CertificateID = signed.CertificateUsed.ID
 
 		itemResp.SignedContentBase64 = base64.StdEncoding.EncodeToString(signed.Result.Data)
+		itemResp.Warnings = domain.UnirAvisos(nil, signed.Warnings...)
+		avisosLote = domain.UnirAvisos(avisosLote, signed.Warnings...)
 		successCount++
 		results = append(results, itemResp)
 	}
@@ -1229,6 +1240,7 @@ func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
 		SuccessCount: successCount,
 		FailureCount: failureCount,
 		Results:      results,
+		Warnings:     avisosLote,
 	})
 }
 

@@ -523,6 +523,13 @@ public sealed record SignParameters
     [JsonPropertyName("extraOptions")]
     public IReadOnlyDictionary<string, string>? ExtraOptions { get; init; }
 
+    // KD-03 (lote 17b): documento original de una CAdES que no lo lleva
+    // dentro, solo al cofirmar o contrafirmar. El motor lo coteja con la
+    // firma antes de firmar; sin él, la petición queda como antes.
+    [JsonPropertyName("originalPath")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? OriginalPath { get; init; }
+
     /// <summary>
     /// PIN del certificado remoto (firma CSC). Binario para que
     /// System.Text.Json lo envíe en Base64 sin crear un string; el cliente lo
@@ -533,6 +540,26 @@ public sealed record SignParameters
 
     [JsonPropertyName("remoteOtp")]
     public byte[]? RemoteOtp { get; init; }
+}
+
+// KD-03 (lote 17b): antes de cofirmar o contrafirmar, la página pregunta al
+// motor si la firma de entrada no lleva el documento dentro.
+public sealed record CosignOriginalCheckParameters
+{
+    [JsonPropertyName("inputPath")]
+    public required string InputPath { get; init; }
+
+    [JsonPropertyName("format")]
+    public string Format { get; init; } = string.Empty;
+
+    [JsonPropertyName("action")]
+    public required string Action { get; init; }
+}
+
+public sealed record CosignOriginalCheckResult
+{
+    [JsonPropertyName("needsOriginal")]
+    public bool NeedsOriginal { get; init; }
 }
 
 public sealed record BatchSignParameters

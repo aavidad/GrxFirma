@@ -804,7 +804,8 @@ Window {
         unprotectFileDialog.visible || verifyReportSaveDialog.visible || verifySummarySaveDialog.visible || verifyHtmlReportSaveDialog.visible || hashInputFileDialog.visible ||
         hashInputDirectoryDialog.visible || hashReferenceDialog.visible || localTLSStartupNoticeDialog.visible || aboutDialog.visible || releaseNotesDialog.visible ||
         signValidationErrorDialog.visible || signConfirmDialog.visible || multiCosignDialog.visible ||
-        signedDocumentWarningDialog.visible || certificateValidationDialog.visible || certificateValidationSaveDialog.visible || supportIncidentSaveDialog.visible ||
+        signedDocumentWarningDialog.visible || cosignOriginalDialog.visible || cosignOriginalFileDialog.visible ||
+        certificateValidationDialog.visible || certificateValidationSaveDialog.visible || supportIncidentSaveDialog.visible ||
         activeDiagnosticsConsentDialog.visible || supportIncidentSendDialog.visible || supportAssistantDialog.visible || unsavedSettingsDialog.visible ||
         p12FileDialog.visible || temporaryCertificateFileDialog.visible || guidedImportCertificateFileDialog.visible || sealImageFileDialog.visible ||
         recipientPublicFileDialog.visible || publicCertificateSaveDialog.visible || publicCertificateSelectDialog.visible || publicCertificateResultDialog.visible ||
@@ -816,6 +817,12 @@ Window {
     property var pendingSealSignerSummaryContext: null
     property var pendingSignedDocumentWarningContext: null
     property bool skipSignedDocumentWarningOnce: false
+    // KD-03 (lote 17b): antes de cofirmar o contrafirmar se pregunta al motor
+    // si la firma no lleva el documento dentro. La respuesta de la persona
+    // (elegir el original o firmar igualmente) vale solo para esa firma.
+    property var pendingCosignOriginalContext: null
+    property bool skipCosignOriginalCheckOnce: false
+    property string cosignOriginalPathOnce: ""
     property string signedDocumentWarningSummary: ""
     property string supportAssistantMode: "usuario"
     property string supportAssistantGoal: "sign"
@@ -850,6 +857,7 @@ Window {
     }
     onCurrentFilePathChanged: {
         verifactuInput = false
+        resetCosignOriginalChoice()
         if (signFormat === "verifactu") signFormat = ""
         if (isIpcMode && currentFilePath.toLowerCase().endsWith(".xml")) backend.detectVeriFactu(currentFilePath)
         if (portalSealMode) {
@@ -3921,6 +3929,28 @@ Window {
         Qt.quit()
     }
 
+    function isCosignOrCountersign(action) {
+        return action === "cosign" || action === "countersign"
+    }
+
+    // Solo una firma suelta por IPC: el lote y la cofirma múltiple no admiten
+    // un original por documento.
+    function needsCosignOriginalCheck(action) {
+        return isIpcMode && !window.isBatchMode() && !window.multiCosignEnabled
+                && currentFilePath !== "" && window.isCosignOrCountersign(action)
+    }
+
+    function resetCosignOriginalChoice() {
+        skipCosignOriginalCheckOnce = false
+        cosignOriginalPathOnce = ""
+    }
+
+    function resumeSignWithCosignChoice(selectedCertIndex, originalPath) {
+        skipCosignOriginalCheckOnce = true
+        cosignOriginalPathOnce = originalPath
+        Qt.callLater(function() { window.executeSignRequest(selectedCertIndex) })
+    }
+
     function executeSignRequest(selectedCertIndex) {
         const resumedAfterPreview = signAfterPreviewResumed
         signAfterPreviewResumed = false
@@ -4003,6 +4033,16 @@ Window {
             window.requestVerification(currentFilePath)
             return
         }
+        if (window.pendingCosignOriginalContext !== null)
+            return
+        if (!skipCosignOriginalCheckOnce && window.needsCosignOriginalCheck(String(payload.action || signAction))) {
+            window.pendingCosignOriginalContext = {
+                selectedCertIndex: selectedCertIndex,
+                path: currentFilePath
+            }
+            backend.checkCosignOriginal(currentFilePath, String(payload.format || ""), String(payload.action || signAction))
+            return
+        }
         if (shouldPrecheckSealSignerSummary(payload) && pendingSealSignerSummaryContext === null) {
             pendingSealSignerSummaryContext = {
                 selectedCertIndex: selectedCertIndex,
@@ -4017,6 +4057,11 @@ Window {
             payload.extraOptions = pendingSealSignerSummaryContext.payload.extraOptions || payload.extraOptions
             pendingSealSignerSummaryContext = null
         }
+        // La elección sobre el original se gasta en esta firma.
+        const cosignOriginal = skipCosignOriginalCheckOnce ? cosignOriginalPathOnce : ""
+        resetCosignOriginalChoice()
+        if (cosignOriginal !== "" && window.isCosignOrCountersign(String(payload.action || signAction)))
+            payload.originalPath = cosignOriginal
         window.signingInProgress = true
         window.statusMessage = tr("Procesando firma...")
         window.currentBatchResults = []
@@ -6122,6 +6167,97 @@ Window {
                     }
                 }
             }
+        }
+    }
+
+    Connections {
+        target: backend
+        enabled: isIpcMode
+        ignoreUnknownSignals: true
+        function onCosignOriginalChecked(ok, needsOriginal) {
+            const ctx = window.pendingCosignOriginalContext
+            window.pendingCosignOriginalContext = null
+            if (!ctx || ctx.path !== window.currentFilePath)
+                return
+            if (ok && needsOriginal) {
+                cosignOriginalDialog.selectedCertIndex = ctx.selectedCertIndex
+                cosignOriginalDialog.open()
+                return
+            }
+            // Firma con el documento dentro, otro formato o un motor que no
+            // sabe responder: se firma como siempre (el motor sigue avisando).
+            window.resumeSignWithCosignChoice(ctx.selectedCertIndex, "")
+        }
+    }
+
+    // KD-03 (lote 17b): la firma de entrada no lleva el documento dentro. Se
+    // explica en lenguaje llano y se recomienda elegir el original, que el
+    // motor coteja antes de firmar. «Elegir el documento original» tiene el
+    // foco; Escape y «Cancelar» cierran sin firmar.
+    ThemedDialog {
+        id: cosignOriginalDialog
+        theme: currentTheme
+        translate: function(key) { return window.tr(key) }
+        property int selectedCertIndex: -1
+        title: tr("firma.cofirma_sin_original.confirmar_titulo")
+        accessibleDescription: tr("firma.cofirma_sin_original.confirmar_texto")
+        modal: true
+        anchors.centerIn: parent
+        closePolicy: Popup.CloseOnEscape
+        onOpened: cosignOriginalChooseButton.forceActiveFocus()
+
+        ColumnLayout {
+            spacing: 12
+            width: 480
+
+            Text {
+                text: tr("firma.cofirma_sin_original.confirmar_texto")
+                textFormat: Text.PlainText
+                color: currentTheme.textColor
+                wrapMode: Text.Wrap
+                Layout.preferredWidth: 480
+                Layout.maximumWidth: 480
+            }
+            Flow {
+                Layout.fillWidth: true
+                Layout.maximumWidth: 480
+                spacing: 8
+
+                ThemedButton {
+                    id: cosignOriginalChooseButton
+                    text: tr("firma.cofirma_sin_original.elegir_original")
+                    highlighted: true
+                    onClicked: {
+                        cosignOriginalDialog.close()
+                        cosignOriginalFileDialog.open()
+                    }
+                }
+                ThemedButton {
+                    text: tr("firma.cofirma_sin_original.firmar_igualmente")
+                    onClicked: {
+                        const index = cosignOriginalDialog.selectedCertIndex
+                        cosignOriginalDialog.close()
+                        window.resumeSignWithCosignChoice(index, "")
+                    }
+                }
+                ThemedButton {
+                    text: tr("Cancelar")
+                    onClicked: cosignOriginalDialog.close()
+                }
+            }
+        }
+    }
+
+    FileDialog {
+        acceptLabel: tr("Abrir")
+        rejectLabel: tr("Cancelar")
+        id: cosignOriginalFileDialog
+        title: tr("firma.cofirma_sin_original.elegir_original")
+        nameFilters: [tr("Todos los archivos (*)")]
+        onAccepted: {
+            const original = localPathFromUrl(selectedFile)
+            if (original !== "")
+                window.resumeSignWithCosignChoice(cosignOriginalDialog.selectedCertIndex, original)
         }
     }
 
@@ -11229,6 +11365,13 @@ Window {
                                                 color: modelData.ok ? currentTheme.secondaryTextColor : Contrast.accentOn(currentTheme.cardColor, currentTheme.errorColor)
                                                 font.pixelSize: 12
                                                 wrapMode: Text.WordWrap
+                                            }
+
+                                            // Lote 17b (3d): los avisos de este documento,
+                                            // además del resumen del lote de arriba.
+                                            SigningWarningsBox {
+                                                heading: tr("Advertencias")
+                                                warnings: modelData.ok ? window.visibleSigningWarnings(modelData.warnings) : []
                                             }
 
                                             AdaptiveRow {

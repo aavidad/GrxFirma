@@ -585,6 +585,9 @@
     <string name="batch_action_label">Operació del lot</string>
     <string name="batch_action_sign">Signa</string>
     <string name="batch_action_cosign">Cosigna (afig la meua signatura a fitxers ja signats)</string>
+    <string name="batch_cosign_confirm_title">Cosignar sense veure els documents</string>
+    <string name="batch_cosign_confirm_message">Si algun dels fitxers és una signatura que no porta dins el document signat (per exemple, un .csig separat), el cosignareu sense poder veure eixe document. Per a veure\'l abans, cosigneu-lo per separat i trieu «Afegir el document original». Voleu cosignar el lot?</string>
+    <string name="batch_cosign_confirm_action">Cosignar el lot</string>
     <string name="batch_seal_check">Afig el segell visible als PDF</string>
     <string name="batch_seal_helper">S\'utilitza el segell que hàgeu col·locat amb «Col·locar el segell». Si un PDF té menys pàgines que la triada, el segell va en l\'última. La llegenda CSV no s\'afig al lot.</string>
     <string name="batch_seal_error">No s’ha pogut preparar el segell visible de %1$s. Traieu este PDF del lot o signeu sense segell.</string>

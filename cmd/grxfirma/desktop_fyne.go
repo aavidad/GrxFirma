@@ -74,7 +74,7 @@ func maybeRunDesktopApp(ctx context.Context, stderr io.Writer, frontend, rutaP12
 	}
 	desktopDebugf("arranque desktop manual")
 	aplicarEscalaDesktop()
-	servicios, err := construirServicios(rutaP12, password, rutaCert, rutaClave)
+	servicios, err := construirServiciosEscritorio(rutaP12, password, rutaCert, rutaClave)
 	if err != nil {
 		desktopDebugf("error bootstrap desktop: %v", err)
 		_, _ = fmt.Fprintf(stderr, "error arrancando la app desktop: %v\n", err)
@@ -482,7 +482,8 @@ func (ui *desktopManualUI) verificarDocumento() {
 		}
 
 		var original *domain.Document
-		if rutaOriginal := strings.TrimSpace(ui.verifyOriginal.Text); rutaOriginal != "" {
+		rutaOriginal := strings.TrimSpace(ui.verifyOriginal.Text)
+		if rutaOriginal != "" {
 			data, err := securefile.ReadFileLimit(rutaOriginal, desktopFyneMaxDocumentBytes)
 			if err != nil {
 				desktopDebugf("error leyendo original: %v", err)
@@ -532,6 +533,9 @@ func (ui *desktopManualUI) verificarDocumento() {
 		for _, linea := range resultado.Verification.Details {
 			detalle.WriteString("- " + linea + "\n")
 		}
+		// Lote 17b: avisos de la verificación y lo que se dio por válido
+		// porque el usuario lo aceptó en este equipo, como en la CLI.
+		detalle.WriteString(avisosVerificacionDesktop(localizador.Detectar(), resultado, firma, rutaOriginal))
 		ui.setVerifyStatus(detalle.String())
 	}()
 }
@@ -635,7 +639,7 @@ func (ui *desktopManualUI) importarCertificado() {
 }
 
 func (ui *desktopManualUI) recargarServicios() error {
-	servicios, err := construirServicios(ui.servicios.rutaP12, ui.servicios.password, ui.servicios.rutaCert, ui.servicios.rutaClave)
+	servicios, err := construirServiciosEscritorio(ui.servicios.rutaP12, ui.servicios.password, ui.servicios.rutaCert, ui.servicios.rutaClave)
 	if err != nil {
 		return err
 	}

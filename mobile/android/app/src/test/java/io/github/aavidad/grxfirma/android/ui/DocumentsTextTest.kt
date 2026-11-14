@@ -48,6 +48,11 @@ class DocumentsTextTest {
         assertTrue(EngineKeys.isClosed("csv.error.url_invalid"))
         assertFalse(EngineKeys.isClosed("verifactu.root: detalle del motor"))
         assertFalse(EngineKeys.isClosed("panic: runtime error"))
+        // Avisos del motor tras firmar (lote 17b).
+        assertTrue(EngineKeys.isClosed("firma.sha1_corresponde.aviso"))
+        assertTrue(EngineKeys.isClosed("firma.lt.crl_no_aplicable.aviso"))
+        assertTrue(EngineKeys.isClosed("firma.cofirma_sin_original.aviso"))
+        assertFalse(EngineKeys.isClosed("firma.otra_cosa.aviso"))
         assertEquals(UiText.Engine("eni.validacion.dir3"), CoreContractException("eni.validacion.dir3").toUserText())
         assertEquals(UiText.Resource(R.string.eni_error_unsigned_pdf), CoreContractException("eni.error.unsigned_pdf").toUserText())
         assertEquals(UiText.Resource(R.string.error_format_requires_rsa),

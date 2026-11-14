@@ -120,10 +120,11 @@ func (uc *SignDocumentUseCase) Ejecutar(ctx context.Context, cmd SignCommand) (S
 
 	// Construir el trabajo de firma interno.
 	trabajo := domain.SignatureJob{
-		Document: cmd.Document,
-		Format:   cmd.Format,
-		Action:   cmd.Action,
-		Options:  cmd.Options,
+		Document:        cmd.Document,
+		Format:          cmd.Format,
+		Action:          cmd.Action,
+		Options:         cmd.Options,
+		OriginalContent: cmd.OriginalContent,
 	}
 
 	_ = uc.publicarEvento(ctx, "firma_iniciada", cmd.Document.Name)
