@@ -58,6 +58,7 @@ func TestUploadResult_Exito(t *testing.T) {
 	publicador := &publicadorMock{}
 	uc := application.NuevoUploadResultUseCase(
 		transporte,
+		politicaAbierta(),
 		application.NuevoAuditUseCase(relojMock{}, logger),
 		publicador,
 	)
@@ -90,6 +91,7 @@ func TestUploadResult_FallaTransporte(t *testing.T) {
 	logger := &loggerMock{}
 	uc := application.NuevoUploadResultUseCase(
 		transporte,
+		politicaAbierta(),
 		application.NuevoAuditUseCase(relojMock{}, logger),
 		&publicadorMock{},
 	)
@@ -110,7 +112,7 @@ func TestUploadResult_SesionInvalida(t *testing.T) {
 	t.Parallel()
 
 	transporte := &transporteResultadoMock{}
-	uc := application.NuevoUploadResultUseCase(transporte, nil, nil)
+	uc := application.NuevoUploadResultUseCase(transporte, politicaAbierta(), nil, nil)
 
 	err := uc.Ejecutar(context.Background(), application.UploadResultCommand{
 		Session: domain.ExchangeSession{},
@@ -128,7 +130,7 @@ func TestUploadResult_DatosVacios(t *testing.T) {
 	t.Parallel()
 
 	transporte := &transporteResultadoMock{}
-	uc := application.NuevoUploadResultUseCase(transporte, nil, nil)
+	uc := application.NuevoUploadResultUseCase(transporte, politicaAbierta(), nil, nil)
 
 	err := uc.Ejecutar(context.Background(), application.UploadResultCommand{
 		Session: sesionRemotaPrueba(),

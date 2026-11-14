@@ -16,18 +16,24 @@ import (
 // RetrieveRequestUseCase recupera una peticion remota pendiente.
 type RetrieveRequestUseCase struct {
 	transporte ports.ResultTransport
+	politica   ports.TrustPolicy
 	auditor    *AuditUseCase
 	eventos    ports.EventPublisher
 }
 
 // NuevoRetrieveRequestUseCase construye el caso de uso RetrieveRequest.
+//
+// La política de dominios de confianza es obligatoria: sin ella el caso de uso
+// falla cerrado (ErrSinPoliticaConfianza).
 func NuevoRetrieveRequestUseCase(
 	transporte ports.ResultTransport,
+	politica ports.TrustPolicy,
 	auditor *AuditUseCase,
 	eventos ports.EventPublisher,
 ) *RetrieveRequestUseCase {
 	return &RetrieveRequestUseCase{
 		transporte: transporte,
+		politica:   politica,
 		auditor:    auditor,
 		eventos:    eventos,
 	}
@@ -41,7 +47,7 @@ func (uc *RetrieveRequestUseCase) Ejecutar(ctx context.Context, cmd RetrieveRequ
 	if uc == nil || uc.transporte == nil {
 		return RetrieveRequestResult{}, errors.New("transporte de resultados no configurado")
 	}
-	if err := cmd.Session.Validate(); err != nil {
+	if err := ComprobarSesionIntercambio(ctx, uc.politica, cmd.Session); err != nil {
 		return RetrieveRequestResult{}, fmt.Errorf("sesion de intercambio no valida: %w", err)
 	}
 

@@ -16,18 +16,24 @@ import (
 // UploadResultUseCase sube un resultado serializado a una sesion remota.
 type UploadResultUseCase struct {
 	transporte ports.ResultTransport
+	politica   ports.TrustPolicy
 	auditor    *AuditUseCase
 	eventos    ports.EventPublisher
 }
 
 // NuevoUploadResultUseCase construye el caso de uso UploadResult.
+//
+// La política de dominios de confianza es obligatoria: sin ella el caso de uso
+// falla cerrado (ErrSinPoliticaConfianza).
 func NuevoUploadResultUseCase(
 	transporte ports.ResultTransport,
+	politica ports.TrustPolicy,
 	auditor *AuditUseCase,
 	eventos ports.EventPublisher,
 ) *UploadResultUseCase {
 	return &UploadResultUseCase{
 		transporte: transporte,
+		politica:   politica,
 		auditor:    auditor,
 		eventos:    eventos,
 	}
@@ -41,7 +47,7 @@ func (uc *UploadResultUseCase) Ejecutar(ctx context.Context, cmd UploadResultCom
 	if uc == nil || uc.transporte == nil {
 		return errors.New("transporte de resultados no configurado")
 	}
-	if err := cmd.Session.Validate(); err != nil {
+	if err := ComprobarSesionIntercambio(ctx, uc.politica, cmd.Session); err != nil {
 		return fmt.Errorf("sesion de intercambio no valida: %w", err)
 	}
 	if len(cmd.Data) == 0 {
