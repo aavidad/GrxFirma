@@ -491,6 +491,8 @@ func TestRunServerMode_SinPIDClienteArrancaConAvisoYSinFirmaRemota(t *testing.T)
 	}()
 
 	var info os.FileInfo
+	espera := time.NewTicker(20 * time.Millisecond)
+	defer espera.Stop()
 	for {
 		if info, err = os.Lstat(ruta); err == nil {
 			break
@@ -498,7 +500,7 @@ func TestRunServerMode_SinPIDClienteArrancaConAvisoYSinFirmaRemota(t *testing.T)
 		select {
 		case c := <-codigo:
 			t.Fatalf("runServerMode sin PID terminó con %d sin abrir el canal; salida: %s", c, salidaError.String())
-		case <-time.After(20 * time.Millisecond):
+		case <-espera.C:
 		}
 		if ctx.Err() != nil {
 			t.Fatal("el motor no abrió el socket a tiempo")
