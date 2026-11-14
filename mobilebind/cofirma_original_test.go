@@ -131,30 +131,46 @@ func TestSignJSONCofirmaCAdESImplicitaNoPideOriginal(t *testing.T) {
 	}
 }
 
-// En el lote no se puede elegir el original de cada firma: una CAdES
-// explícita solo se cofirma con la confirmación expresa, y con su aviso.
-func TestProcessBatchCofirmaCAdESExplicitaPideConfirmacion(t *testing.T) {
+// En el lote no se puede elegir el original de cada firma y la interfaz de
+// Android no pide confirmación. Por retrocompatibilidad (lote 16c) el lote
+// sigue cofirmando una CAdES explícita, y lo avisa en cada elemento afectado
+// y en el registro; la confirmación ya no es obligatoria.
+func TestProcessBatchCofirmaCAdESExplicitaFirmaConAvisoPorElemento(t *testing.T) {
 	facade := newAndroidFacadeForTest(t)
 	id := importPKCS12(t, facade, ephemeralRSAPKCS12(t, "victima"), "victima")
 	csig := firmaExplicitaAtacanteKD03(t, documentoOcultoKD03)
 	lote := mobileBatchRequest{
 		CertificateID: id,
-		Items: []batchItemRequest{{
-			Name: "firmado.csig", MIMEType: "application/pkcs7-signature", Format: "cades", Action: "cosign",
-			ContentBase64: base64.StdEncoding.EncodeToString(csig),
-		}},
+		Items: []batchItemRequest{
+			{
+				Name: "firmado.csig", MIMEType: "application/pkcs7-signature", Format: "cades", Action: "cosign",
+				ContentBase64: base64.StdEncoding.EncodeToString(csig),
+			},
+			{
+				Name: "acta.txt", MIMEType: "text/plain", Format: "cades", Action: "sign",
+				ContentBase64: base64.StdEncoding.EncodeToString([]byte("acta de la sesión")),
+			},
+		},
 	}
-	if _, err := facade.ProcessBatchJSON(mustJSON(t, lote)); err == nil || err.Error() != mobileErrorCofirmaSinOriginal {
-		t.Fatalf("el lote no debe cofirmar a ciegas una CAdES explícita: %v", err)
-	}
-	lote.ConfirmUnseenContent = true
-	raw, err := facade.ProcessBatchJSON(mustJSON(t, lote))
-	if err != nil {
-		t.Fatalf("con la confirmación expresa el lote debe firmar: %v", err)
-	}
-	var respuesta mobileBatchResponse
-	decodeResponse(t, raw, &respuesta)
-	if !respuesta.OK || len(respuesta.Warnings) != 1 || respuesta.Warnings[0] != mobileAvisoCofirmaSinOriginal {
-		t.Fatalf("el lote confirmado debe firmar y llevar el aviso: %+v", respuesta)
+	for _, confirmado := range []bool{false, true} {
+		lote.ConfirmUnseenContent = confirmado
+		raw, err := facade.ProcessBatchJSON(mustJSON(t, lote))
+		if err != nil {
+			t.Fatalf("confirmado=%v: el lote debe firmar como antes: %v", confirmado, err)
+		}
+		var respuesta mobileBatchResponse
+		decodeResponse(t, raw, &respuesta)
+		if !respuesta.OK || len(respuesta.Items) != 2 {
+			t.Fatalf("confirmado=%v: el lote debe firmar los dos elementos: %+v", confirmado, respuesta)
+		}
+		if w := respuesta.Items[0].Warnings; len(w) != 1 || w[0] != mobileAvisoCofirmaSinOriginal {
+			t.Fatalf("confirmado=%v: la cofirma sin original debe llevar su aviso: %+v", confirmado, respuesta.Items[0])
+		}
+		if len(respuesta.Items[1].Warnings) != 0 {
+			t.Fatalf("confirmado=%v: una firma normal no lleva el aviso: %+v", confirmado, respuesta.Items[1])
+		}
+		if len(respuesta.Warnings) != 1 || respuesta.Warnings[0] != mobileAvisoCofirmaSinOriginal {
+			t.Fatalf("confirmado=%v: el lote resume el aviso: %+v", confirmado, respuesta.Warnings)
+		}
 	}
 }

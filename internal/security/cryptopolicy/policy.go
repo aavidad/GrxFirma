@@ -25,6 +25,17 @@ func LegacySHA1Enabled() bool {
 	return machinepolicy.OptIn(machinepolicy.PermitirSHA1Legacy)
 }
 
+// LegacySHA1Prohibited indica que un administrador ha fijado
+// permitir_sha1_legacy a 0 (directiva deshabilitada) o a false en la
+// política de máquina. Sin la directiva, una firma SHA-1 antigua que
+// corresponde a su documento se sigue admitiendo con aviso al envolverla en
+// un ENI o al cofirmar con el original (retrocompatibilidad, lote 16c); con
+// ella deshabilitada, se rechaza.
+func LegacySHA1Prohibited() bool {
+	habilitado, fijado := machinepolicy.OptInFijado(machinepolicy.PermitirSHA1Legacy)
+	return fijado && !habilitado
+}
+
 // RequireLegacySHA1 protege todos los puntos que generan una firma SHA-1.
 func RequireLegacySHA1() error {
 	if !LegacySHA1Enabled() {

@@ -84,6 +84,7 @@
   "cli.error.no_operation": "não foi indicada nenhuma operação CLI",
   "cli.error.p12_secret_input": "não foi possível ler a palavra-passe PKCS#12",
   "cli.error.prefix": "erro:",
+  "cli.aviso.prefix": "aviso:",
   "cli.error.protection_secret_input": "não foi possível ler a chave de proteção",
   "cli.error.secret_env_cleanup": "não foi possível remover %s do ambiente herdável",
   "cli.error.unsupported_operation": "operação CLI não suportada: %s",
@@ -152,7 +153,7 @@
   "security.secret.hint.p12": "use -password-stdin ou, apenas para compatibilidade de automação, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "Palavra-passe PKCS#12: ",
   "security.secret.prompt.protection": "Chave de proteção Base64: ",
-  "desktop.ipc.server.client_pid_required": "o modo --server precisa de --ipc-client-pid com o PID do programa que se vai ligar; sem ele o canal IPC não é aberto",
+  "desktop.ipc.server.sin_vinculo_pid": "aviso: o modo --server foi iniciado sem --ipc-client-pid ou num sistema que não permite verificar que programa se liga. O motor atende qualquer programa do seu utilizador: as assinaturas com certificados do computador funcionam, mas a assinatura com certificado remoto (CSC) não está disponível. Para a usar, abra o GrxFirma a partir do seu ícone ou indique --ipc-client-pid.",
   "desktop.ipc.peer_binding_unsupported": "este sistema não permite verificar que programa se liga ao motor de assinatura, por isso o GrxFirma não arranca",
   "desktop.ipc.flag.parent_stdin": "para o servidor quando se fecha a entrada padrão que o programa gráfico que o lançou mantém aberta",
   "rest.error.private_credential": "não foi possível preparar a entrega privada da credencial REST",
@@ -5127,6 +5128,8 @@
   ,"movil.verificacion.cadena_no_evaluada": "Integridade criptográfica verificada; confiança da cadeia não avaliada pelo sistema."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu e cotejar-qr-verifactu aceitam em -entrada o URL do QR ou um ficheiro PNG, JPEG ou PDF."
   ,"eni.error.signature_mismatch": "A assinatura não corresponde ao documento original ou o documento foi alterado depois de assinado. Verifique se escolheu o original correto."
+  ,"firma.sha1_corresponde.aviso": "A assinatura corresponde ao documento, mas usa SHA-1, um algoritmo antigo que hoje não é considerado seguro. É aceite para não deixar de fora documentos assinados há anos; ao verificar a assinatura aparecerá este mesmo aviso."
+  ,"firma.sha1_corresponde.prohibido": "A assinatura usa SHA-1 e a política deste computador não admite esse algoritmo, por isso a operação não foi feita. Se precisar de usar esta assinatura antiga, contacte quem administra o computador."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: ecrã por passos, resultado visível ao terminar, confirmação antes de descartar uma assinatura, fecho automático do certificado após alguns minutos em segundo plano e textos mais claros."
   ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android: dados e validade do certificado com verificação de revogação, preferências, diagnóstico, pesquisa de novas versões, tema claro ou escuro e relatório de verificação imprimível."
   ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android: processo ENI, lote com selo visível ou coassinatura, e DNIe em lote e em «proteger e assinar» pedindo o PIN uma única vez. O DNIe por NFC já aceita o certificado de assinatura do cartão."
@@ -6702,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "O documento original que escolheu não corresponde a esta assinatura. Verifique se é o mesmo documento que os outros assinaram."
   ,"firma.cofirma_sin_original.aviso_titulo": "Assinatura sem ver o documento"
   ,"firma.cofirma_sin_original.aviso": "A assinatura que recebeu não contém o documento e o original não foi fornecido. A sua assinatura aplica-se ao documento declarado por essa assinatura, que o GrxFirma não conseguiu mostrar."
+  ,"firma.lt.crl_no_aplicable.aviso": "A assinatura inclui uma lista de revogação (CRL) que não abrange um dos seus certificados. A assinatura foi feita como antes, mas ao verificá-la a revogação desse certificado aparecerá como não verificada."
   ,"ayuda.formato.automatico": "escolhe o formato conforme o tipo de documento."
   ,"ayuda.formato.pades.mas": "Qualquer leitor de PDF mostra e verifica a assinatura, por isso quem recebe o documento não precisa de outro programa. É o recomendado para PDF e o único que admite um selo visível."
   ,"ayuda.formato.cades.mas": "O ficheiro de assinatura pode levar o documento dentro ou ficar separado dele; se ficar separado, guarde os dois juntos. Para o verificar é preciso um programa de assinatura eletrónica. Use-o quando o documento não for PDF, XML nem Office, por exemplo uma imagem."

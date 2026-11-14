@@ -84,6 +84,7 @@
   "cli.error.no_operation": "no CLI operation was specified",
   "cli.error.p12_secret_input": "the PKCS#12 password could not be read",
   "cli.error.prefix": "error:",
+  "cli.aviso.prefix": "warning:",
   "cli.error.protection_secret_input": "the protection key could not be read",
   "cli.error.secret_env_cleanup": "%s could not be removed from the inherited environment",
   "cli.error.unsupported_operation": "unsupported CLI operation: %s",
@@ -152,7 +153,7 @@
   "security.secret.hint.p12": "use -password-stdin or, for automation compatibility only, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "PKCS#12 password: ",
   "security.secret.prompt.protection": "Base64 protection key: ",
-  "desktop.ipc.server.client_pid_required": "--server mode needs --ipc-client-pid with the PID of the program that will connect; without it the IPC channel is not opened",
+  "desktop.ipc.server.sin_vinculo_pid": "warning: --server mode was started without --ipc-client-pid or on a system that cannot check which program connects. The engine serves any program of your user: signing with certificates on this computer works, but signing with a remote certificate (CSC) is not available. To use it, open GrxFirma from its icon or pass --ipc-client-pid.",
   "desktop.ipc.peer_binding_unsupported": "this system cannot check which program connects to the signing engine, so GrxFirma will not start",
   "desktop.ipc.flag.parent_stdin": "stops the server when the graphical program that started it closes the standard input it keeps open",
   "rest.error.private_credential": "could not prepare private REST credential delivery",
@@ -5127,6 +5128,8 @@
   ,"movil.verificacion.cadena_no_evaluada": "Cryptographic integrity checked; system chain trust has not been evaluated."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu and cotejar-qr-verifactu accept in -entrada the QR URL or a PNG, JPEG or PDF file."
   ,"eni.error.signature_mismatch": "The signature does not match the original document, or the document was changed after it was signed. Check that you chose the correct original."
+  ,"firma.sha1_corresponde.aviso": "The signature matches the document, but it uses SHA-1, an old algorithm that is no longer considered secure. It is accepted so that documents signed years ago still work; this same warning will appear when the signature is verified."
+  ,"firma.sha1_corresponde.prohibido": "The signature uses SHA-1 and this computer's policy does not allow that algorithm, so the operation was not carried out. If you need to use this old signature, ask whoever manages this computer."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: step-by-step screen, result shown when finished, confirmation before discarding a signature, automatic closing of the certificate after a few minutes in the background and clearer texts."
   ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android: certificate details and expiry with revocation check, preferences, diagnostics, check for new versions, light or dark theme and printable verification report."
   ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android: ENI dossier, batch with visible seal or co-signing, and DNIe in batches and in «protect and sign», asking for the PIN only once. DNIe over NFC now accepts the card's signing certificate."
@@ -6702,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "The original document you chose does not match this signature. Check that it is the same document the others signed."
   ,"firma.cofirma_sin_original.aviso_titulo": "Signature without seeing the document"
   ,"firma.cofirma_sin_original.aviso": "The signature you received does not contain the document and the original was not provided. Your signature applies to the document stated by that signature, which GrxFirma could not show."
+  ,"firma.lt.crl_no_aplicable.aviso": "The signature includes a revocation list (CRL) that does not cover one of its certificates. The signature was made as before, but when it is verified the revocation of that certificate will show as not checked."
   ,"ayuda.formato.automatico": "chooses the format according to the type of document."
   ,"ayuda.formato.pades.mas": "Any PDF reader shows and checks the signature, so the recipient does not need another program. It is the recommended format for PDF and the only one that allows a visible seal."
   ,"ayuda.formato.cades.mas": "The signature file can contain the document or be kept apart from it; if it is apart, keep both together. Checking it requires an electronic signature program. Use it when the document is not PDF, XML or Office, for example an image."

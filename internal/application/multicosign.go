@@ -64,6 +64,7 @@ func (uc *MultiCoSignUseCase) Execute(ctx context.Context, cmd MultiCoSignComman
 	currentAction := cmd.InitialAction
 	currentOptions := cloneStringMap(cmd.Options)
 	var last SignResult
+	var avisos []string
 
 	for idx, certID := range ids {
 		signCmd := SignCommand{
@@ -77,6 +78,7 @@ func (uc *MultiCoSignUseCase) Execute(ctx context.Context, cmd MultiCoSignComman
 		if err != nil {
 			return SignResult{}, err
 		}
+		avisos = domain.UnirAvisos(avisos, result.Warnings...)
 		last = result
 		if idx == len(ids)-1 {
 			break
@@ -90,6 +92,7 @@ func (uc *MultiCoSignUseCase) Execute(ctx context.Context, cmd MultiCoSignComman
 		currentOptions = stripVisualOptions(currentOptions)
 	}
 
+	last.Warnings = avisos
 	return last, nil
 }
 

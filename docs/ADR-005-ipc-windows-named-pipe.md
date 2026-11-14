@@ -73,6 +73,23 @@ unidad de usuario de systemd que escribe el gestor de servicios de Linux no
 lleva PID, así que ya no arranca un backend útil (`RestartPreventExitStatus=2`
 evita que se reinicie en bucle).
 
+Actualización 14/11/2026 (lote 16c, retrocompatibilidad): lo anterior dejaba
+sin arrancar el servicio de usuario de Linux y cualquier `--server` manual que
+ya funcionaba, así que el cierre pasa a aviso. `grxfirma-gui --server` sin
+`--ipc-client-pid`, o en una plataforma que no permite comprobar el PID del
+otro extremo, abre el canal sin vínculo de PID. Lo dice en la salida de error
+(`desktop.ipc.server.sin_vinculo_pid`) y en el registro
+(`ipc_sin_vinculacion_pid`), y `export_diagnostic` devuelve
+`ipcClientBinding: "unbound"`. Siguen la comprobación de mismo UID y el socket
+`0600`. En ese modo se firma con los certificados del equipo y la firma remota
+CSC se rechaza con `csc_interfaz_no_verificada` (ver FIRMA_REMOTA_CSC.md).
+Con `--ipc-client-pid` el vínculo es el de siempre. La unidad de systemd
+conserva `RestartPreventExitStatus=2`: el código 2 queda para errores de
+configuración (modo de servidor desconocido o PID fuera de rango), que no se
+arreglan reiniciando. El lanzador normal sigue sin arrancar en una plataforma
+sin comprobación de PID; hoy no hay ninguna publicada (Linux, Windows y macOS
+la tienen).
+
 Actualización 13/11/2026 (D-01 y D-04): la comprobación es simétrica. Qt,
 como WinUI, solo habla con un backend cuyo PID conoce: el que lanza ella
 misma (`QProcess`) o el que le indica `grxfirma-gui` con `--backend-pid`.

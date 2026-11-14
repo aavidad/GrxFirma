@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"grxfirma/internal/domain"
 )
 
 func servidorCRL(t *testing.T, der []byte) *httptest.Server {
@@ -35,12 +37,17 @@ func TestFetch_FirmaConCRLNoAplicableIncrustaConAviso(t *testing.T) {
 	hoja := hojaConCRLDP(t, f, 401, false, srv.URL)
 	client := newValidationClient(t, f.now)
 
-	evidencia, err := client.Fetch(context.Background(), hoja, f.ca)
+	ctx, avisos := domain.ConAvisosOperacion(context.Background())
+	evidencia, err := client.Fetch(ctx, hoja, f.ca)
 	if err != nil {
 		t.Fatalf("al firmar, una CRL auténtica no aplicable no puede impedir la firma: %v", err)
 	}
 	if len(evidencia.CRLs) != 1 {
 		t.Fatalf("se esperaba la CRL incrustada: %d", len(evidencia.CRLs))
+	}
+	// Lote 16c: el aviso llega también al resultado de la firma.
+	if claves := avisos.Claves(); len(claves) != 1 || claves[0] != domain.AvisoCRLNoAplicable {
+		t.Fatalf("falta el aviso de CRL no aplicable en la operación: %q", claves)
 	}
 
 	resultado, err := client.Check(context.Background(), hoja, f.ca)

@@ -84,6 +84,7 @@
   "cli.error.no_operation": "non è stata specificata alcuna operazione CLI",
   "cli.error.p12_secret_input": "non è stato possibile leggere la password PKCS#12",
   "cli.error.prefix": "errore:",
+  "cli.aviso.prefix": "avviso:",
   "cli.error.protection_secret_input": "non è stato possibile leggere la chiave di protezione",
   "cli.error.secret_env_cleanup": "non è stato possibile rimuovere %s dall’ambiente ereditabile",
   "cli.error.unsupported_operation": "operazione CLI non supportata: %s",
@@ -152,7 +153,7 @@
   "security.secret.hint.p12": "usare -contrasena-stdin o, solo per compatibilità di automazione, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "Password PKCS#12: ",
   "security.secret.prompt.protection": "Chiave di protezione Base64: ",
-  "desktop.ipc.server.client_pid_required": "la modalità --server richiede --ipc-client-pid con il PID del programma che si collegherà; senza di esso il canale IPC non viene aperto",
+  "desktop.ipc.server.sin_vinculo_pid": "avviso: la modalità --server è stata avviata senza --ipc-client-pid o su un sistema che non permette di verificare quale programma si collega. Il motore risponde a qualsiasi programma del suo utente: le firme con i certificati del computer funzionano, ma la firma con certificato remoto (CSC) non è disponibile. Per usarla, apra GrxFirma dalla sua icona o indichi --ipc-client-pid.",
   "desktop.ipc.peer_binding_unsupported": "questo sistema non permette di verificare quale programma si collega al motore di firma, quindi GrxFirma non si avvia",
   "desktop.ipc.flag.parent_stdin": "arresta il server quando si chiude lo standard input che il programma grafico che lo ha avviato tiene aperto",
   "rest.error.private_credential": "impossibile preparare la consegna privata della credenziale REST",
@@ -5127,6 +5128,8 @@
   ,"movil.verificacion.cadena_no_evaluada": "Integrità crittografica verificata; attendibilità della catena non valutata dal sistema."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu e cotejar-qr-verifactu accettano in -entrada l’URL del QR o un file PNG, JPEG o PDF."
   ,"eni.error.signature_mismatch": "La firma non corrisponde al documento originale oppure il documento è stato modificato dopo la firma. Verifichi di aver scelto l'originale corretto."
+  ,"firma.sha1_corresponde.aviso": "La firma corrisponde al documento, ma usa SHA-1, un algoritmo vecchio che oggi non è considerato sicuro. Viene accettata per non escludere documenti firmati anni fa; verificando la firma comparirà questo stesso avviso."
+  ,"firma.sha1_corresponde.prohibido": "La firma usa SHA-1 e la politica di questo computer non ammette questo algoritmo, quindi l'operazione non è stata eseguita. Se deve usare questa firma vecchia, si rivolga a chi amministra il computer."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: schermata a passi, risultato visibile al termine, conferma prima di scartare una firma, chiusura automatica del certificato dopo qualche minuto in background e testi più chiari."
   ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android: dati e scadenza del certificato con verifica di revoca, preferenze, diagnostica, ricerca di nuove versioni, tema chiaro o scuro e report di verifica stampabile."
   ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android: fascicolo ENI, lotto con timbro visibile o cofirma, e DNIe nel lotto e in «proteggi e firma» chiedendo il PIN una sola volta. Il DNIe via NFC ora accetta il certificato di firma della carta."
@@ -6702,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "Il documento originale scelto non corrisponde a questa firma. Verifica che sia lo stesso documento firmato dagli altri."
   ,"firma.cofirma_sin_original.aviso_titulo": "Firma senza vedere il documento"
   ,"firma.cofirma_sin_original.aviso": "La firma ricevuta non contiene il documento e l'originale non è stato fornito. La tua firma si applica al documento dichiarato da quella firma, che GrxFirma non ha potuto mostrare."
+  ,"firma.lt.crl_no_aplicable.aviso": "La firma include un elenco di revoca (CRL) che non copre uno dei suoi certificati. La firma è stata fatta come prima, ma alla verifica la revoca di quel certificato risulterà non controllata."
   ,"ayuda.formato.automatico": "sceglie il formato in base al tipo di documento."
   ,"ayuda.formato.pades.mas": "Qualsiasi lettore PDF mostra e verifica la firma, quindi chi riceve il documento non ha bisogno di altri programmi. È il formato consigliato per i PDF e l’unico che consente un sigillo visibile."
   ,"ayuda.formato.cades.mas": "Il file di firma può contenere il documento o restarne separato; se è separato, conserva i due insieme. Per verificarlo serve un programma di firma elettronica. Usalo quando il documento non è PDF, XML né Office, per esempio un’immagine."

@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"golang.org/x/crypto/ocsp"
+	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 )
 
@@ -163,6 +164,9 @@ func (c *Client) Fetch(ctx context.Context, cert *x509.Certificate, issuer *x509
 		if len(result.crlNoAplicable) > 0 {
 			slog.Warn("se incrusta una CRL que no es aplicable al certificado; la verificación no la dará por concluyente",
 				"certificado", cert.Subject.String(), "error", err)
+			// Aviso también en el resultado de la firma (la CLI lo escribe en
+			// su salida de error; las interfaces pueden mostrarlo).
+			domain.AnotarAviso(ctx, domain.AvisoCRLNoAplicable)
 			return ports.RevocationEvidence{CRLs: [][]byte{result.crlNoAplicable}}, nil
 		}
 		return ports.RevocationEvidence{}, err

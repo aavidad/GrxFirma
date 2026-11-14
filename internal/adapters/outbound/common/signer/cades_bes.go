@@ -82,7 +82,7 @@ func (e *CAdESBESDetached) Sign(ctx context.Context, job domain.SignatureJob, ke
 		return domain.SignatureResult{}, err
 	}
 	if job.Action != domain.ActionSign {
-		avisarCofirmaSinDocumento(job.Document.Content)
+		avisarCofirmaSinDocumento(ctx, job.Document.Content)
 	}
 
 	return domain.SignatureResult{

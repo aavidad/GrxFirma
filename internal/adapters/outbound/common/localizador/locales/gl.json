@@ -84,6 +84,7 @@
   "cli.error.no_operation": "non se indicou ningunha operación CLI",
   "cli.error.p12_secret_input": "non se puido ler o contrasinal PKCS#12",
   "cli.error.prefix": "erro:",
+  "cli.aviso.prefix": "aviso:",
   "cli.error.protection_secret_input": "non se puido ler a chave de protección",
   "cli.error.secret_env_cleanup": "non se puido retirar %s do contorno herdable",
   "cli.error.unsupported_operation": "operación CLI non compatible: %s",
@@ -152,7 +153,7 @@
   "security.secret.hint.p12": "use -contrasena-stdin ou, só para compatibilidade automatizada, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "Contrasinal PKCS#12: ",
   "security.secret.prompt.protection": "Chave de protección Base64: ",
-  "desktop.ipc.server.client_pid_required": "o modo --server precisa --ipc-client-pid co PID do programa que se vai conectar; sen el non se abre a canle IPC",
+  "desktop.ipc.server.sin_vinculo_pid": "aviso: o modo --server arrancou sen --ipc-client-pid ou nun sistema que non deixa comprobar que programa se conecta. O motor atende a calquera programa do seu usuario: as sinaturas con certificados do equipo funcionan, pero a sinatura con certificado remoto (CSC) non está dispoñible. Para usala, abra GrxFirma desde a súa icona ou indique --ipc-client-pid.",
   "desktop.ipc.peer_binding_unsupported": "este sistema non permite comprobar que programa se conecta ao motor de sinatura, así que GrxFirma non se inicia",
   "desktop.ipc.flag.parent_stdin": "detén o servidor cando se pecha a entrada estándar que mantén aberta o programa gráfico que o lanzou",
   "rest.error.private_credential": "erro preparando a entrega privada da credencial REST",
@@ -5127,6 +5128,8 @@
   ,"movil.verificacion.cadena_no_evaluada": "Integridade criptográfica comprobada; o sistema non avaliou a confianza da cadea."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu e cotejar-qr-verifactu aceptan en -entrada o URL do QR ou un ficheiro PNG, JPEG ou PDF."
   ,"eni.error.signature_mismatch": "A sinatura non corresponde ao documento orixinal ou o documento modificouse despois de asinalo. Comprobe que escolleu o orixinal correcto."
+  ,"firma.sha1_corresponde.aviso": "A sinatura corresponde ao documento, pero usa SHA-1, un algoritmo antigo que hoxe non se considera seguro. Admítese para non deixar fóra documentos asinados hai anos; ao verificar a sinatura aparecerá este mesmo aviso."
+  ,"firma.sha1_corresponde.prohibido": "A sinatura usa SHA-1 e a política deste equipo non admite ese algoritmo, así que non se continuou. Se precisa usar esta sinatura antiga, consulte con quen administra o equipo."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: pantalla por pasos, resultado visible ao rematar, confirmación antes de descartar unha sinatura, peche automático do certificado tras uns minutos en segundo plano e textos máis claros."
   ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android: datos e caducidade do certificado con comprobación de revogación, preferencias, diagnóstico, busca de versións novas, tema claro ou escuro e informe de verificación imprimible."
   ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android: expediente ENI, lote con selo visible ou cosinatura, e DNIe en lote e en «protexer e asinar» pedindo o PIN unha soa vez. O DNIe por NFC xa admite o certificado de sinatura da tarxeta."
@@ -6702,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "O documento orixinal que escolleu non corresponde a esta sinatura. Comprobe que é o mesmo documento que asinaron os demais."
   ,"firma.cofirma_sin_original.aviso_titulo": "Sinatura sen ver o documento"
   ,"firma.cofirma_sin_original.aviso": "A sinatura que recibiu non leva dentro o documento e non se achegou o orixinal. A súa sinatura aplícase ao documento que declara esa sinatura, que GrxFirma non puido mostrar."
+  ,"firma.lt.crl_no_aplicable.aviso": "A sinatura inclúe unha lista de revogación (CRL) que non cobre un dos seus certificados. A sinatura fíxose coma antes, pero ao verificala a revogación dese certificado sairá sen comprobar."
   ,"ayuda.formato.automatico": "escolle o formato segundo o tipo de documento."
   ,"ayuda.formato.pades.mas": "Calquera lector de PDF mostra a sinatura e compróbaa, así que quen reciba o documento non precisa outro programa. É o recomendado para PDF e o único que admite un selo visible."
   ,"ayuda.formato.cades.mas": "O ficheiro de sinatura pode levar o documento dentro ou ir separado del; se vai separado, garde os dous xuntos. Para comprobalo cómpre un programa de sinatura electrónica. Úseo cando o documento non sexa PDF, XML nin de Office, por exemplo unha imaxe."

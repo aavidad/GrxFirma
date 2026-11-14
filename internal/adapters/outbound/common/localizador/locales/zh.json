@@ -84,6 +84,7 @@
   "cli.error.no_operation": "未指定 CLI 操作",
   "cli.error.p12_secret_input": "无法读取 PKCS#12 密码",
   "cli.error.prefix": "错误：",
+  "cli.aviso.prefix": "警告：",
   "cli.error.protection_secret_input": "无法读取保护密钥",
   "cli.error.secret_env_cleanup": "无法从可继承环境中移除 %s",
   "cli.error.unsupported_operation": "不支持的 CLI 操作：%s",
@@ -152,7 +153,7 @@
   "security.secret.hint.p12": "使用 -password-stdin，或仅为自动化兼容使用 GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "PKCS#12 密码：",
   "security.secret.prompt.protection": "Base64 保护密钥： ",
-  "desktop.ipc.server.client_pid_required": "--server 模式需要用 --ipc-client-pid 指定将要连接的程序的 PID；否则不会打开 IPC 通道",
+  "desktop.ipc.server.sin_vinculo_pid": "警告：--server 模式启动时没有 --ipc-client-pid，或所在系统无法检查连接的是哪个程序。引擎会响应当前用户的任何程序：使用本机证书签名可以正常进行，但无法使用远程证书 (CSC) 签名。如需使用，请从图标打开 GrxFirma，或指定 --ipc-client-pid。",
   "desktop.ipc.peer_binding_unsupported": "此系统无法检查哪个程序连接到签名引擎，因此 GrxFirma 不会启动",
   "desktop.ipc.flag.parent_stdin": "当启动它的图形程序保持打开的标准输入被关闭时，停止服务器",
   "rest.error.private_credential": "无法准备 REST 凭据的私密交付",
@@ -5127,6 +5128,8 @@
   ,"movil.verificacion.cadena_no_evaluada": "已验证加密完整性；系统尚未评估证书链信任。"
   ,"verifactu.cli_qr_input": "leer-qr-verifactu 和 cotejar-qr-verifactu 的 -entrada 参数接受二维码 URL 或 PNG、JPEG、PDF 文件。"
   ,"eni.error.signature_mismatch": "签名与原始文档不符，或文档在签名后已被修改。请确认您选择了正确的原始文档。"
+  ,"firma.sha1_corresponde.aviso": "签名与文档相符，但使用的是 SHA-1，这是一种如今已不再被视为安全的旧算法。为了不排除多年前签署的文档，仍予接受；验证该签名时也会出现同样的提示。"
+  ,"firma.sha1_corresponde.prohibido": "该签名使用 SHA-1，而本机策略不允许使用该算法，因此未继续操作。如需使用这份旧签名，请联系本机的管理员。"
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android：分步界面、完成后显示结果、放弃签名前先确认、证书在后台数分钟后自动关闭，文字也更清晰。"
   ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android：证书信息与有效期及吊销检查、偏好设置、诊断、检查新版本、浅色或深色主题，以及可打印的验证报告。"
   ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android：ENI 卷宗、带可见印章或联合签名的批量签名，以及批量签名和“保护并签名”中的 DNIe，PIN 只需输入一次。通过 NFC 使用的 DNIe 现在支持卡上的签名证书。"
@@ -6702,6 +6705,7 @@
   ,"firma.cofirma_sin_original.original_no_corresponde": "您选择的原始文档与此签名不符。请确认它与其他人签署的是同一份文档。"
   ,"firma.cofirma_sin_original.aviso_titulo": "未查看文档即签署"
   ,"firma.cofirma_sin_original.aviso": "您收到的签名不包含文档，且未提供原始文档。您的签名将作用于该签名所声明的文档，而 GrxFirma 无法显示该文档。"
+  ,"firma.lt.crl_no_aplicable.aviso": "签名中包含的吊销列表 (CRL) 未覆盖其中一个证书。签名已照常完成，但验证时该证书的吊销状态将显示为未检查。"
   ,"ayuda.formato.automatico": "根据文档类型选择格式。"
   ,"ayuda.formato.pades.mas": "任何 PDF 阅读器都能显示并验证签名，因此接收者无需其他程序。这是 PDF 的推荐格式，也是唯一支持可见印章的格式。"
   ,"ayuda.formato.cades.mas": "签名文件可以包含文档，也可以与文档分开；如果分开，请将两者放在一起保存。验证时需要电子签名程序。当文档不是 PDF、XML 或 Office 文件（例如图片）时使用。"

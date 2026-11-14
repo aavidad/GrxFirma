@@ -431,6 +431,9 @@ habilitable por un administrador mediante la política de máquina
 - `permitir_des_legacy`: permite el formato de sesión DES de V1.9.
 - `permitir_sha1_legacy`: permite generar firmas SHA-1 pedidas por
   portales heredados. La verificación SHA-1 sigue disponible (con advertencia).
+  Sin la directiva, una firma SHA-1 antigua que corresponde a su documento se
+  puede envolver en un ENI o cofirmar con su original, con aviso; fijada a `0`
+  (deshabilitada), se rechaza.
 - `permitir_rutas_directas_protocolo`: permite que un portal legacy
   indique rutas locales absolutas en `load`, `save` o `signandsave`. Por
   defecto se exige selección explícita del usuario para no exponer ni

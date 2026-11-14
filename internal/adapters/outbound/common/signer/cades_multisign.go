@@ -7,6 +7,7 @@ package signer
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/asn1"
@@ -16,6 +17,7 @@ import (
 	"time"
 
 	"grxfirma/internal/adapters/outbound/common/localizador"
+	"grxfirma/internal/domain"
 	"grxfirma/internal/security/avisos"
 )
 
@@ -71,13 +73,16 @@ func cosignCAdES(existing []byte, key *LocalSigningKey, spec cmsHashSpec, now ti
 // cofirma o contrafirma una CAdES explícita: el motor firma el resumen que
 // declara la firma recibida y nadie ha visto el documento. Se mantiene por
 // compatibilidad con AutoFirma; el móvil exige además el original (KD-03).
-func avisarCofirmaSinDocumento(existing []byte) {
+// El aviso va también al resultado de la operación (domain.AnotarAviso), que
+// la CLI escribe en su salida de error.
+func avisarCofirmaSinDocumento(ctx context.Context, existing []byte) {
 	if _, implicita, err := ContenidoCAdESImplicito(existing); err != nil || implicita {
 		return
 	}
 	slog.Warn("cofirma_cades_sin_documento")
+	domain.AnotarAviso(ctx, domain.AvisoCofirmaSinOriginal)
 	t := localizador.Detectar()
-	avisos.Registrar(t.T("firma.cofirma_sin_original.aviso_titulo"), t.T("firma.cofirma_sin_original.aviso"))
+	avisos.Registrar(t.T("firma.cofirma_sin_original.aviso_titulo"), t.T(domain.AvisoCofirmaSinOriginal))
 }
 
 func countersignCAdES(existing []byte, key *LocalSigningKey, spec cmsHashSpec, now time.Time) ([]byte, error) {
