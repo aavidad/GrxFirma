@@ -7,6 +7,10 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## 0.0.127 — 2026-11-14
+
+- Actualización de seguridad: GrxFirma se compila ahora con Go 1.26.11 y con bibliotecas de red más recientes, que corrigen fallos conocidos en las conexiones seguras, en la comprobación de certificados y en el tratamiento de las peticiones web. Conviene instalarla cuanto antes.
+
 ## 0.0.126 — 2026-11-14
 
 - Al verificar, ahora se puede aceptar en tu equipo una firma que GrxFirma no da por válida solo por uno de estos motivos: la autoridad del certificado no es conocida, la clave RSA tiene menos de 2048 bits, es un certificado de servidor, no se pudo comprobar la revocación o la firma usa SHA-1. En la aplicación de escritorio aparece el botón «Aceptar en este equipo», que muestra un aviso antes de guardar nada; en la línea de órdenes, `-aceptar-confianza`. Desde entonces esas firmas salen válidas con el aviso «Se da por válida porque lo aceptaste en la configuración». Lo aceptado se quita en Configuración o con `-quitar-confianza-aceptada`. Las webs no pueden aceptar nada por ti, y un administrador puede impedirlo con la política `prohibir_confianza_forzada`.
