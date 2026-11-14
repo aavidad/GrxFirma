@@ -229,6 +229,13 @@ puede aceptar el caso en su equipo después de leer un aviso.
   incorrecta, certificado revocado, MD5 u otros algoritmos desconocidos,
   cobertura parcial o desconocida, ataques de envoltura XML ni certificado
   caducado sin sello de tiempo.
+- Al comprobar registros Veri*Factu (CLI y escritorio) solo cuenta SHA-1
+  aceptado: esa comprobación no evalúa cadena, clave ni revocación. Un
+  registro alterado o firmado con un certificado que no era válido en su
+  fecha sigue siendo un error. El móvil no lee lo aceptado.
+- El cotejo previo a crear un documento ENI no usa lo aceptado: solo
+  comprueba que la firma cubre el original, y una firma CMS con SHA-1 no
+  se da por correspondiente, igual que en la 0.0.125.
 
 Línea de órdenes:
 
