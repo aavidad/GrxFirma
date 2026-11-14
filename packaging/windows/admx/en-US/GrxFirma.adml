@@ -11,6 +11,7 @@
     <stringTable>
       <string id="SUPPORTED_GrxFirma_0_0_90">GrxFirma 0.0.90 or later</string>
       <string id="SUPPORTED_GrxFirma_CSC">GrxFirma with CSC remote signing (prototype)</string>
+      <string id="SUPPORTED_GrxFirma_0_0_126">GrxFirma 0.0.126 or later</string>
       <string id="Cat_GrxFirma">GrxFirma</string>
       <string id="Cat_Origenes">Trusted origins</string>
       <string id="Cat_Operacion">Operation</string>
@@ -54,8 +55,23 @@ Disabled: all local WebSocket channels are blocked, including temporary afirma:/
       <string id="RestHabilitado_Help">Enabled: turns on the local REST service for desktop integrations, which opens a local TCP port.
 
 Disabled or not configured: the REST service is off (default), even if the user tries to enable it in their settings.</string>
+      <string id="ManejadorAfirma">Program for signing on websites</string>
+      <string id="ManejadorAfirma_Help">Decides which program opens the afirma:// links that public administration websites use to request a signature.
+
+GrxFirma: signatures open in GrxFirma. This is what GrxFirma does without this policy.
+AutoFirma: signatures open in AutoFirma, the Spanish Government application. If AutoFirma is not installed on the computer, GrxFirma signs instead.
+Ask every time: GrxFirma receives the link and asks which program to sign with.
+
+Enabled: the chosen value takes precedence over the user's choice, and the application setting becomes read-only. The installer also applies it in silent installations.
+
+Disabled or not configured: each user chooses in Settings. If the policy cannot be read, the user's choice is kept and a warning is written to the diagnostic log.
+
+No website can change this setting.</string>
       <string id="NivelLog">Diagnostic log level</string>
       <string id="NivelLog_Help">Level of detail of the diagnostic log. The log never contains documents, keys or passwords, and paths and identifiers are redacted.</string>
+      <string id="ManejadorAfirma_GrxFirma">GrxFirma</string>
+      <string id="ManejadorAfirma_AutoFirma">AutoFirma</string>
+      <string id="ManejadorAfirma_Preguntar">Ask every time</string>
       <string id="NivelLog_Error">Errors only</string>
       <string id="NivelLog_Warn">Warnings</string>
       <string id="NivelLog_Info">Information (recommended)</string>
@@ -97,6 +113,7 @@ Not configured: the "firma_remota_csc" setting in the user's config.json decides
       <presentation id="AllowedDomains"><multiTextBox refId="AllowedDomains_List">Origins (one per line):</multiTextBox></presentation>
       <presentation id="DominiosDeConfianza"><multiTextBox refId="DominiosDeConfianza_List">Domains (one per line):</multiTextBox></presentation>
       <presentation id="TSAPermitidas"><multiTextBox refId="TSAPermitidas_List">TSA URLs (one per line):</multiTextBox></presentation>
+      <presentation id="ManejadorAfirma"><dropdownList refId="ManejadorAfirma_Valor" defaultItem="0">Program:</dropdownList></presentation>
       <presentation id="NivelLog"><dropdownList refId="NivelLog_Valor" defaultItem="2">Level:</dropdownList></presentation>
       <presentation id="DirectorioP12"><textBox refId="DirectorioP12_Ruta"><label>Folder:</label></textBox></presentation>
       <presentation id="TimeoutOperacion"><decimalTextBox refId="TimeoutOperacion_Segundos" defaultValue="30">Seconds:</decimalTextBox></presentation>

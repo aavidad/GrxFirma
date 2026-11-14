@@ -165,13 +165,8 @@ func (s *Selector) preference() string {
 	if err != nil || !v.ValueExisted || v.Kind != KindString {
 		return ""
 	}
-	switch strings.ToLower(strings.TrimSpace(v.Data)) {
-	case ports.ProgramaAfirmaGrxFirma:
-		return ports.ProgramaAfirmaGrxFirma
-	case ports.ProgramaAfirmaAutoFirma:
-		return ports.ProgramaAfirmaAutoFirma
-	}
-	return ""
+	programa, _ := ports.NormalizarProgramaAfirma(v.Data)
+	return programa
 }
 
 func (s *Selector) savePreference(programa string) error {
@@ -244,16 +239,26 @@ func (s *Selector) Elegir(ctx context.Context, programa string) (ports.EstadoPro
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	programa, ok := ports.NormalizarProgramaAfirma(programa)
+	if !ok {
+		return ports.EstadoProtocoloAfirma{}, ports.ErrProgramaAfirmaDesconocido
+	}
 	var err error
-	switch strings.ToLower(strings.TrimSpace(programa)) {
+	switch programa {
 	case ports.ProgramaAfirmaGrxFirma:
 		err = s.register()
-		programa = ports.ProgramaAfirmaGrxFirma
 	case ports.ProgramaAfirmaAutoFirma:
 		err = s.retire()
-		programa = ports.ProgramaAfirmaAutoFirma
-	default:
-		return ports.EstadoProtocoloAfirma{}, ports.ErrProgramaAfirmaDesconocido
+	case ports.ProgramaAfirmaPreguntar:
+		// Preguntar solo tiene sentido con AutoFirma instalado; los enlaces
+		// llegan a GrxFirma, que pregunta en cada uno.
+		var installed bool
+		if installed, _, err = s.autoFirma(); err == nil && !installed {
+			err = ports.ErrAutoFirmaNoInstalada
+		}
+		if err == nil {
+			err = s.register()
+		}
 	}
 	if err != nil {
 		return ports.EstadoProtocoloAfirma{}, err

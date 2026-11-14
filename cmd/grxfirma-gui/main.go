@@ -562,7 +562,9 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 		application.NuevoTemporaryCertificateUseCase(temporaryStore),
 	)
 	srv.WithProxySecrets(proxysecretstore.New())
-	srv.WithProtocoloAfirma(afirmahandler.New())
+	// La política de máquina manejador_afirma prevalece sobre la elección del
+	// usuario; se lee en cada consulta.
+	srv.WithProtocoloAfirma(afirmahandler.ConPolitica(afirmahandler.New(), config.LectorPoliticaProgramaAfirma))
 	srv.WithUpdates(updatecheck.NewWithHTTPClient(httpClient), version)
 	srv.WithProtection(ucProteger, ucProtegerFirmando, ucDesproteger, keyringProteccion)
 	srv.WithFirmaRemotaCSC(sesionCSC)

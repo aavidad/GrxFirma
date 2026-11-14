@@ -14,6 +14,7 @@
     <definitions>
       <definition name="SUPPORTED_GrxFirma_0_0_90" displayName="$(string.SUPPORTED_GrxFirma_0_0_90)" />
       <definition name="SUPPORTED_GrxFirma_CSC" displayName="$(string.SUPPORTED_GrxFirma_CSC)" />
+      <definition name="SUPPORTED_GrxFirma_0_0_126" displayName="$(string.SUPPORTED_GrxFirma_0_0_126)" />
     </definitions>
   </supportedOn>
   <categories>
@@ -82,6 +83,17 @@
       <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
       <enabledValue><decimal value="1" /></enabledValue>
       <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="ManejadorAfirma" class="Machine" displayName="$(string.ManejadorAfirma)" explainText="$(string.ManejadorAfirma_Help)" presentation="$(presentation.ManejadorAfirma)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <elements>
+        <enum id="ManejadorAfirma_Valor" valueName="manejador_afirma" required="true">
+          <item displayName="$(string.ManejadorAfirma_GrxFirma)"><value><string>grxfirma</string></value></item>
+          <item displayName="$(string.ManejadorAfirma_AutoFirma)"><value><string>autofirma</string></value></item>
+          <item displayName="$(string.ManejadorAfirma_Preguntar)"><value><string>preguntar</string></value></item>
+        </enum>
+      </elements>
     </policy>
     <policy name="FirmaRemotaCSC" class="Machine" displayName="$(string.FirmaRemotaCSC)" explainText="$(string.FirmaRemotaCSC_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="firma_remota_csc">
       <parentCategory ref="Operacion" />

@@ -29,8 +29,10 @@ ese ajuste: el resto de la política se aplica. Un ajuste restrictivo
 `policy.json` existe pero no se puede leer (JSON inválido, enlace, propietario
 distinto de root en Linux), REST y WebSocket quedan desactivados. Lo mismo
 pasa con `prohibir_confianza_forzada`: un valor que no se entiende o una
-política ilegible cuentan como prohibición. En todos los
-casos GrxFirma deja un aviso en el registro de diagnóstico.
+política ilegible cuentan como prohibición. `manejador_afirma` es la
+excepción: si no se entiende o la política no se puede leer, cada usuario
+conserva el programa que había elegido, como si no hubiera política. En todos
+los casos GrxFirma deja un aviso en el registro de diagnóstico.
 
 En Windows **no** se leen `C:\etc\...` ni `%ProgramData%`: cualquier usuario
 autenticado puede crear carpetas en ellas y plantar una política que afectaría a
@@ -46,6 +48,7 @@ todos los usuarios del equipo (por ejemplo, en servidores de escritorio remoto).
 | `websocket_habilitado` | `REG_DWORD` | `1` mantiene un servicio WebSocket residente. Sin él, las sedes solo pueden abrir por `afirma://` un canal temporal que se cierra al terminar cada operación. |
 | `websocket_permitido` | `REG_DWORD` | `0` impide todo WebSocket local, incluso el canal temporal de `afirma://`; `1` o ausencia permite los canales temporales y, si se habilita aparte, el servicio residente. Prevalece sobre `websocket_habilitado` y el ajuste del usuario. |
 | `rest_habilitado` | `REG_DWORD` | `1` activa el servicio REST local; `0` lo impide aunque el usuario lo active. |
+| `manejador_afirma` | `REG_SZ` | Programa que abre los enlaces `afirma://` de las webs: `grxfirma`, `autofirma` o `preguntar`. Ver «Programa para firmar en las webs». |
 | `firma_remota_csc` | `REG_DWORD` | `1` permite la firma remota CSC (prototipo); `0` la prohíbe aunque el usuario la active. Sin valor, decide `firma_remota_csc` en el `config.json` del usuario. |
 | `firma_remota_csc_oauth_permitidos` | `REG_MULTI_SZ` | Pares `servicio=autorizacion` (`host[:puerto]`) que permiten un servidor OAuth en otro host que el servicio de firma remota. Sustituye a la lista del usuario. |
 | `firma_remota_csc_servicios_permitidos` | `REG_MULTI_SZ` | Servicios de firma remota permitidos (`host[:puerto]`, 443 si no se indica). Sin el valor no hay límite; vacío no admite ninguno. Solo lo fija la política. |
@@ -73,6 +76,28 @@ lee. La TSA de la organización (`GRXFIRMA_TSA_URL`) no depende de esta lista.
 
 En la plantilla ADMX es «Sellos de tiempo (TSA) que puede indicar una
 petición», en la categoría de orígenes.
+
+## Programa para firmar en las webs (`manejador_afirma`)
+
+Decide qué programa abre los enlaces `afirma://` con los que una web de la
+Administración pide firmar. Admite tres valores:
+
+| Valor | Qué pasa |
+|---|---|
+| `grxfirma` | Firma GrxFirma. Es lo que ocurre sin política. |
+| `autofirma` | GrxFirma recibe el enlace y se lo pasa a AutoFirma. Si AutoFirma no está instalado, firma GrxFirma. |
+| `preguntar` | GrxFirma pregunta en cada enlace con qué programa firmar. Si AutoFirma no está instalado, no pregunta y firma GrxFirma. |
+
+Con la política fijada, el ajuste «Programa para firmar en las webs» de la
+aplicación queda solo de lectura y explica que lo decide la organización. El
+instalador también la respeta, incluso en una instalación silenciosa. Sin
+política, cada usuario elige en Configuración, en la línea de órdenes
+(`grxfirma -elegir-programa-firma-web <valor>`) o en el instalador.
+
+Ninguna web puede cambiar este ajuste: no se acepta por `afirma://`,
+WebSocket, REST ni el host nativo. En la plantilla ADMX es «Programa para
+firmar en las webs», en la categoría «Operación»; en Linux y macOS,
+`"manejador_afirma": "autofirma"` en `policy.json`.
 
 Excepciones de compatibilidad (todas desactivadas por defecto; `1` las activa):
 

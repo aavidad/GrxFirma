@@ -420,13 +420,8 @@ func (s *XDGSelector) preference() string {
 	if err != nil || data == nil {
 		return ""
 	}
-	switch strings.ToLower(strings.TrimSpace(string(data))) {
-	case ports.ProgramaAfirmaGrxFirma:
-		return ports.ProgramaAfirmaGrxFirma
-	case ports.ProgramaAfirmaAutoFirma:
-		return ports.ProgramaAfirmaAutoFirma
-	}
-	return ""
+	programa, _ := ports.NormalizarProgramaAfirma(string(data))
+	return programa
 }
 
 // Estado lee qué programa abre ahora afirma://.
@@ -490,9 +485,26 @@ func (s *XDGSelector) Elegir(ctx context.Context, programa string) (ports.Estado
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	var desktopID string
-	switch strings.ToLower(strings.TrimSpace(programa)) {
-	case ports.ProgramaAfirmaGrxFirma:
+	programa, ok := ports.NormalizarProgramaAfirma(programa)
+	if !ok {
+		return ports.EstadoProtocoloAfirma{}, ports.ErrProgramaAfirmaDesconocido
+	}
+	// Con «preguntar» los enlaces llegan a GrxFirma, que pregunta en cada uno;
+	// solo tiene sentido con AutoFirma instalado.
+	desktopID, atiende := GrxFirmaDesktopID, ports.ProgramaAfirmaGrxFirma
+	if programa != ports.ProgramaAfirmaGrxFirma {
+		autoID, auto, err := s.autoFirma()
+		if err != nil {
+			return ports.EstadoProtocoloAfirma{}, err
+		}
+		if auto == nil {
+			return ports.EstadoProtocoloAfirma{}, ports.ErrAutoFirmaNoInstalada
+		}
+		if programa == ports.ProgramaAfirmaAutoFirma {
+			desktopID, atiende = autoID, ports.ProgramaAfirmaAutoFirma
+		}
+	}
+	if atiende == ports.ProgramaAfirmaGrxFirma {
 		grx, err := s.grxFirma()
 		if err != nil {
 			return ports.EstadoProtocoloAfirma{}, err
@@ -500,18 +512,6 @@ func (s *XDGSelector) Elegir(ctx context.Context, programa string) (ports.Estado
 		if grx == nil {
 			return ports.EstadoProtocoloAfirma{}, ports.ErrGrxFirmaAfirmaNoInstalada
 		}
-		desktopID, programa = GrxFirmaDesktopID, ports.ProgramaAfirmaGrxFirma
-	case ports.ProgramaAfirmaAutoFirma:
-		id, auto, err := s.autoFirma()
-		if err != nil {
-			return ports.EstadoProtocoloAfirma{}, err
-		}
-		if auto == nil {
-			return ports.EstadoProtocoloAfirma{}, ports.ErrAutoFirmaNoInstalada
-		}
-		desktopID, programa = id, ports.ProgramaAfirmaAutoFirma
-	default:
-		return ports.EstadoProtocoloAfirma{}, ports.ErrProgramaAfirmaDesconocido
 	}
 
 	// El fichero principal del usuario siempre; los demás ficheros del
@@ -535,7 +535,7 @@ func (s *XDGSelector) Elegir(ctx context.Context, programa string) (ports.Estado
 	if err != nil {
 		return estado, err
 	}
-	if estado.Actual != programa {
+	if estado.Actual != atiende {
 		// Un mimeapps.list del sistema u otra configuración manda sobre la
 		// del usuario; no se toca nada fuera de su carpeta personal.
 		return estado, ports.ErrProtocoloAfirmaAjeno

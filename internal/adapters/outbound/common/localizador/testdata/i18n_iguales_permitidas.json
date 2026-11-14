@@ -804,6 +804,9 @@
   "report.signer.organization"
  ],
  "gl": [
+  "afirma.elegir.cancelar",
+  "cli.web_signing.autofirma_at",
+  "protocolo.opcion.preguntar",
   " + base64",
   " certificado(s).",
   " correctos).",
@@ -1972,6 +1975,7 @@
   "approval.document.sized"
  ],
  "pt": [
+  "afirma.elegir.cancelar",
   " + base64",
   " certificado(s).",
   " · Algoritmo: {0}",

@@ -84,9 +84,13 @@ type Config struct {
 // policy.json. Se usa cuando una capa necesita distinguir valores fijados por
 // organización de la configuración agregada del usuario.
 type Policy struct {
-	WebsocketHabilitado      *bool    `json:"websocket_habilitado"`
-	WebsocketPermitido       *bool    `json:"websocket_permitido"`
-	RestHabilitado           *bool    `json:"rest_habilitado"`
+	WebsocketHabilitado *bool `json:"websocket_habilitado"`
+	WebsocketPermitido  *bool `json:"websocket_permitido"`
+	RestHabilitado      *bool `json:"rest_habilitado"`
+	// ManejadorAfirma fija el programa que abre afirma:// (grxfirma,
+	// autofirma o preguntar). Solo lo fija la organización; el usuario lo
+	// elige en el ajuste «Programa para firmar en las webs».
+	ManejadorAfirma          *string  `json:"manejador_afirma"`
 	TofuHabilitado           *bool    `json:"tofu_habilitado"`
 	ProhibirConfianzaForzada *bool    `json:"prohibir_confianza_forzada"`
 	DirectorioP12            *string  `json:"directorio_p12"`
@@ -263,6 +267,8 @@ func loadMachinePolicyDesde(lector lectorPoliticaMaquina) (Policy, error) {
 	leerBool(machinepolicy.WebsocketHabilitado, &p.WebsocketHabilitado)
 	leerBool(machinepolicy.WebsocketPermitido, &p.WebsocketPermitido)
 	leerBool(machinepolicy.RestHabilitado, &p.RestHabilitado)
+	leerTexto(machinepolicy.ManejadorAfirma, &p.ManejadorAfirma)
+	validarManejadorAfirmaPolicy(&p, &errs)
 	leerBool(machinepolicy.TofuHabilitado, &p.TofuHabilitado)
 	leerBool(machinepolicy.ProhibirConfianzaForzada, &p.ProhibirConfianzaForzada)
 	leerTexto(machinepolicy.DirectorioP12, &p.DirectorioP12)
@@ -422,6 +428,8 @@ func loadPolicyFile(path string) (Policy, error) {
 	campoPolicy(campos, machinepolicy.WebsocketHabilitado, &raw, &errs, func(v *bool) { raw.WebsocketHabilitado = v })
 	campoPolicy(campos, machinepolicy.WebsocketPermitido, &raw, &errs, func(v *bool) { raw.WebsocketPermitido = v })
 	campoPolicy(campos, machinepolicy.RestHabilitado, &raw, &errs, func(v *bool) { raw.RestHabilitado = v })
+	campoPolicy(campos, machinepolicy.ManejadorAfirma, &raw, &errs, func(v *string) { raw.ManejadorAfirma = v })
+	validarManejadorAfirmaPolicy(&raw, &errs)
 	campoPolicy(campos, machinepolicy.TofuHabilitado, &raw, &errs, func(v *bool) { raw.TofuHabilitado = v })
 	campoPolicy(campos, machinepolicy.ProhibirConfianzaForzada, &raw, &errs, func(v *bool) { raw.ProhibirConfianzaForzada = v })
 	campoPolicy(campos, machinepolicy.DirectorioP12, &raw, &errs, func(v *string) { raw.DirectorioP12 = v })

@@ -74,6 +74,7 @@ func TestProtocoloAfirmaErroresConCodigoEstable(t *testing.T) {
 		ports.ErrGrxFirmaAfirmaNoInstalada:  "grxfirma_afirma_missing",
 		ports.ErrProtocoloAfirmaNoSoportado: "afirma_handler_unsupported",
 		ports.ErrProgramaAfirmaDesconocido:  "afirma_handler_invalid",
+		ports.ErrProtocoloAfirmaPolitica:    "afirma_handler_policy",
 	}
 	for err, code := range casos {
 		m := &Manejador{ProtocoloAfirma: &protocoloAfirmaFalso{err: err}}
@@ -96,5 +97,24 @@ func TestProtocoloAfirmaSoloSeAnunciaEnWindowsYLinux(t *testing.T) {
 		slices.Contains(hello.Actions, "afirma_handler_select")
 	if tiene != (runtime.GOOS == "windows" || runtime.GOOS == "linux") {
 		t.Fatalf("anuncio del selector en %s: %v", runtime.GOOS, tiene)
+	}
+}
+
+func TestProtocoloAfirmaEnviaPoliticaYEfectiva(t *testing.T) {
+	falso := &protocoloAfirmaFalso{estado: ports.EstadoProtocoloAfirma{
+		Soportado: true, Actual: ports.ProgramaAfirmaGrxFirma, AutoFirmaInstalada: true,
+		Preferencia: ports.ProgramaAfirmaPreguntar, Politica: ports.ProgramaAfirmaAutoFirma,
+		Efectiva: ports.ProgramaAfirmaAutoFirma,
+	}}
+	m := &Manejador{ProtocoloAfirma: falso}
+	resp := m.despachar(context.Background(), peticion{Action: "afirma_handler_status"})
+	raw, _ := json.Marshal(resp.Data)
+	for _, want := range []string{`"preference":"preguntar"`, `"policy":"autofirma"`, `"effective":"autofirma"`} {
+		if !strings.Contains(string(raw), want) {
+			t.Fatalf("falta %s en %s", want, raw)
+		}
+	}
+	if strings.Contains(string(raw), "policyUnreadable") {
+		t.Fatalf("sin aviso no se envía policyUnreadable: %s", raw)
 	}
 }

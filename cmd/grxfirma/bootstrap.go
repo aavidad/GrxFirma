@@ -28,6 +28,7 @@ import (
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/adapters/outbound/common/systemtrust"
 	"grxfirma/internal/adapters/outbound/common/tsaclient"
+	"grxfirma/internal/adapters/outbound/desktop/afirmahandler"
 	"grxfirma/internal/adapters/outbound/desktop/certcatalogagg"
 	"grxfirma/internal/adapters/outbound/desktop/filesystem"
 	"grxfirma/internal/adapters/outbound/desktop/macoskeychain"
@@ -460,6 +461,9 @@ func construirAdaptadorCon(rutaP12, password, rutaCert, rutaClave string, remota
 
 	return cli.New(servicios.firmar, servicios.procesarLote).
 		WithConfianzaForzada(application.NuevoGestionConfianzaForzadaUseCase(confianzaForzada, servicios.auditor)).
+		// Lote 15: ver y elegir el programa que abre las firmas de las webs.
+		// Solo la CLI local y la aplicación de escritorio lo reciben.
+		WithProtocoloAfirma(afirmahandler.ConPolitica(afirmahandler.New(), config.LectorPoliticaProgramaAfirma)).
 		WithCatalogo(servicios.catalogo).
 		WithClaves(servicios.claves).
 		WithLocalizador(localizador.Detectar()).
