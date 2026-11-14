@@ -2354,13 +2354,58 @@ try {
         -Name "Firmar documento" `
         -Deadline $deadline `
         -RequireEnabled
+    # Con «Confirmar antes de firmar» activado (valor por defecto), la app
+    # pregunta «¿Firmar este documento?» antes de pedir dónde guardar. El
+    # selector de fichero lo abre entonces el botón «Firmar» de ese cuadro.
+    $pickerTrigger = $signButton
+    $confirmTitle = $null
+    Invoke-PickerTriggerWithNativeClick `
+        -Element $signButton `
+        -OwnerWindowHandle $window.Current.NativeWindowHandle
+    try {
+        $confirmTitle = Wait-DescendantNameContains `
+            -Root $window `
+            -Text "Firmar este documento" `
+            -Deadline ([datetime]::UtcNow.AddSeconds(15))
+    } catch {
+        $confirmTitle = $null
+    }
+    if ($null -ne $confirmTitle) {
+        $confirmCondition = [System.Windows.Automation.AndCondition]::new(
+            [System.Windows.Automation.PropertyCondition]::new(
+                [System.Windows.Automation.AutomationElement]::NameProperty,
+                "Firmar"
+            ),
+            [System.Windows.Automation.PropertyCondition]::new(
+                [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+                [System.Windows.Automation.ControlType]::Button
+            )
+        )
+        $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+        $node = $confirmTitle
+        $confirmButton = $null
+        while ($null -ne $node -and $null -eq $confirmButton) {
+            $node = $walker.GetParent($node)
+            if ($null -ne $node) {
+                $confirmButton = $node.FindFirst(
+                    [System.Windows.Automation.TreeScope]::Descendants,
+                    $confirmCondition
+                )
+            }
+        }
+        if ($null -eq $confirmButton) {
+            throw "Aparecio la confirmacion de firma, pero no su boton Firmar."
+        }
+        $pickerTrigger = $confirmButton
+    }
     $result.phase = "output-picker-opened"
     Write-JsonAtomically -Path $resultFullPath -Value $result
     Submit-FilePickerPath `
         -ApplicationWindow $window `
-        -Trigger $signButton `
+        -Trigger $pickerTrigger `
         -Path $signedPath `
         -Deadline $deadline `
+        -PickerAlreadyOpen:($null -eq $confirmTitle) `
         -ManualConfirmation:$ManualSaveConfirmation
     $result.phase = "signature-requested"
     Write-JsonAtomically -Path $resultFullPath -Value $result
